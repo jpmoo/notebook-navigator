@@ -55,20 +55,24 @@ export const ShortcutCollectionSelector = React.memo(function ShortcutCollection
 
     // Sort collections with default first, then alphabetically
     const sortedCollections = useMemo(() => {
-        return [...collections].sort((a, b) => {
+        console.log('Collections:', collections);
+        const sorted = [...collections].sort((a, b) => {
             if (a.isDefault && !b.isDefault) return -1;
             if (!a.isDefault && b.isDefault) return 1;
             return a.name.localeCompare(b.name);
         });
+        console.log('Sorted collections:', sorted);
+        return sorted;
     }, [collections]);
 
     // Create items for drag and drop reordering
-    const reorderItems = useMemo(() => 
-        sortedCollections.map(collection => ({
+    const reorderItems = useMemo(() => {
+        const items = sortedCollections.map(collection => ({
             key: collection.id
-        })), 
-        [sortedCollections]
-    );
+        }));
+        console.log('Reorder items:', items);
+        return items;
+    }, [sortedCollections]);
 
     // Set up drag and drop reordering
     const {
