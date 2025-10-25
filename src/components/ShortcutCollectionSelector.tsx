@@ -69,20 +69,23 @@ export const ShortcutCollectionSelector = React.memo(function ShortcutCollection
         
         const menu = new Menu();
         
-        // Don't allow editing/deleting the default collection
         const collection = collections.find(c => c.id === collectionId);
-        if (collection && !collection.isDefault) {
-        menu.addItem((item: any) => {
-            item.setTitle('Edit Collection')
-                .setIcon('lucide-edit')
-                .onClick(() => onEditCollection(collectionId));
-        });
-        
-        menu.addItem((item: any) => {
-            item.setTitle('Delete Collection')
-                .setIcon('lucide-trash-2')
-                .onClick(() => onDeleteCollection(collectionId));
-        });
+        if (collection) {
+            // Allow editing all collections (including default)
+            menu.addItem((item: any) => {
+                item.setTitle('Edit Collection')
+                    .setIcon('lucide-edit')
+                    .onClick(() => onEditCollection(collectionId));
+            });
+            
+            // Only allow deleting non-default collections
+            if (!collection.isDefault) {
+                menu.addItem((item: any) => {
+                    item.setTitle('Delete Collection')
+                        .setIcon('lucide-trash-2')
+                        .onClick(() => onDeleteCollection(collectionId));
+                });
+            }
         }
         
         menu.showAtMouseEvent(event.nativeEvent);

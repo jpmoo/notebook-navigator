@@ -146,6 +146,7 @@ export class ShortcutCollectionModal extends Modal {
                     ...this.collections[index],
                     name,
                     icon: this.selectedIcon
+                    // Preserve isDefault flag and id for default collection
                 };
             }
         } else {
