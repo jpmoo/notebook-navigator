@@ -49,8 +49,6 @@ export const ShortcutCollectionSelector = React.memo(function ShortcutCollection
     onReorderCollections
 }: ShortcutCollectionSelectorProps) {
     console.log('ShortcutCollectionSelector: Component rendering');
-    // Try alert as well to see if component is rendering
-    alert('ShortcutCollectionSelector: Component rendering');
     const { app } = useServices();
     const settings = useSettingsState();
     const updateSettings = useSettingsUpdate();

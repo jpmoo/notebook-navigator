@@ -135,6 +135,7 @@ const ZERO_NOTE_COUNT: NoteCountInfo = { current: 0, descendants: 0, total: 0 };
 
 export const NavigationPane = React.memo(
     forwardRef<NavigationPaneHandle, NavigationPaneProps>(function NavigationPane(props, ref) {
+        console.log('NavigationPane: Component rendering');
         const { app, isMobile, plugin, tagTreeService } = useServices();
         const { recentNotes } = useRecentData();
         const { onExecuteSearchShortcut, rootContainerRef, onNavigateToFolder, onRevealTag, onRevealFile, onRevealShortcutFile } = props;
