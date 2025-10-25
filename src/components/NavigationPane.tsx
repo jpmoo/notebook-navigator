@@ -1919,7 +1919,13 @@ export const NavigationPane = React.memo(
                     />
                 )}
                 {/* Collection selector */}
-                {settings.showShortcuts && !isRootReorderMode && (
+                {(() => {
+                    console.log('NavigationPane: Checking conditions for ShortcutCollectionSelector');
+                    console.log('settings.showShortcuts:', settings.showShortcuts);
+                    console.log('isRootReorderMode:', isRootReorderMode);
+                    console.log('collections:', collections);
+                    return settings.showShortcuts && !isRootReorderMode;
+                })() && (
                     <>
                         {console.log('NavigationPane: Rendering ShortcutCollectionSelector with collections:', collections)}
                         <ShortcutCollectionSelector
