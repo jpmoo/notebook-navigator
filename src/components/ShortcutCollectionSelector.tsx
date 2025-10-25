@@ -79,7 +79,10 @@ export const ShortcutCollectionSelector = React.memo(function ShortcutCollection
         items: reorderItems,
         isEnabled: true,
         reorderItems: async (orderedKeys) => {
-            return await onReorderCollections(orderedKeys);
+            console.log('Reordering collections:', orderedKeys);
+            const result = await onReorderCollections(orderedKeys);
+            console.log('Reorder result:', result);
+            return result;
         }
     });
 
@@ -127,6 +130,14 @@ export const ShortcutCollectionSelector = React.memo(function ShortcutCollection
                     const isDragging = draggingKey === collection.id;
                     const showDropIndicator = dropIndex === index;
                     
+                    console.log(`Collection ${collection.id}:`, {
+                        dragHandlers,
+                        isDragging,
+                        showDropIndicator,
+                        draggingKey,
+                        dropIndex
+                    });
+                    
                     return (
                         <button
                             key={collection.id}
@@ -135,7 +146,6 @@ export const ShortcutCollectionSelector = React.memo(function ShortcutCollection
                             onContextMenu={(e) => handleCollectionContextMenu(e, collection.id)}
                             title={collection.name}
                             tabIndex={-1}
-                            data-reorder-draggable="true"
                             {...dragHandlers}
                         >
                             <ObsidianIcon name={collection.icon} />
