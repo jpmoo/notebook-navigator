@@ -87,6 +87,7 @@ import { STORAGE_KEYS, SHORTCUTS_VIRTUAL_FOLDER_ID, RECENT_NOTES_VIRTUAL_FOLDER_
 import { localStorage } from '../utils/localStorage';
 import { useShortcuts } from '../context/ShortcutsContext';
 import { ShortcutItem } from './ShortcutItem';
+import { ShortcutCollectionSelector } from './ShortcutCollectionSelector';
 import { ShortcutType, SearchShortcut, SHORTCUT_DRAG_MIME, isFolderShortcut, isNoteShortcut, isTagShortcut } from '../types/shortcuts';
 import { strings } from '../i18n';
 import { createDragGhostManager, type DragGhostOptions } from '../utils/dragGhost';
@@ -150,7 +151,7 @@ export const NavigationPane = React.memo(
         const uiState = useUIState();
         const uiDispatch = useUIDispatch();
         const shortcuts = useShortcuts();
-        const { shortcutMap, removeShortcut, hydratedShortcuts, reorderShortcuts, addFolderShortcut, addNoteShortcut } = shortcuts;
+        const { shortcutMap, removeShortcut, hydratedShortcuts, reorderShortcuts, addFolderShortcut, addNoteShortcut, collections, activeCollectionId, setActiveCollection, addCollection, updateCollection, deleteCollection } = shortcuts;
         const { fileData, getFileDisplayName } = useFileCache();
         const dragGhostManager = useMemo(() => createDragGhostManager(app), [app]);
 
@@ -1915,6 +1916,45 @@ export const NavigationPane = React.memo(
                         onToggleRootFolderReorder={handleToggleRootReorder}
                         rootReorderActive={isRootReorderMode}
                         rootReorderDisabled={!canReorderRootItems}
+                    />
+                )}
+                {/* Collection selector */}
+                {settings.showShortcuts && !isRootReorderMode && (
+                    <ShortcutCollectionSelector
+                        collections={collections}
+                        activeCollectionId={activeCollectionId}
+                        onCollectionChange={setActiveCollection}
+                        onAddCollection={async () => {
+                            const { ShortcutCollectionModal } = await import('../modals/ShortcutCollectionModal');
+                            const modal = new ShortcutCollectionModal(app, metadataService, {
+                                collections,
+                                onSave: async (updatedCollections) => {
+                                    // Update the collections in settings
+                                    await updateSettings(current => {
+                                        current.shortcutCollections = updatedCollections;
+                                    });
+                                }
+                            });
+                            modal.open();
+                        }}
+                        onEditCollection={async (collectionId) => {
+                            const collection = collections.find(c => c.id === collectionId);
+                            if (collection) {
+                                const { ShortcutCollectionModal } = await import('../modals/ShortcutCollectionModal');
+                                const modal = new ShortcutCollectionModal(app, metadataService, {
+                                    collections,
+                                    editingCollection: collection,
+                                    onSave: async (updatedCollections) => {
+                                        // Update the collections in settings
+                                        await updateSettings(current => {
+                                            current.shortcutCollections = updatedCollections;
+                                        });
+                                    }
+                                });
+                                modal.open();
+                            }
+                        }}
+                        onDeleteCollection={deleteCollection}
                     />
                 )}
                 {pinnedShortcutItems.length > 0 && !isRootReorderMode ? (

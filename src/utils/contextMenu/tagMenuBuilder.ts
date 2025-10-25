@@ -38,25 +38,56 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
     }
 
     if (services.shortcuts) {
-        const { tagShortcutKeysByPath, addTagShortcut, removeShortcut } = services.shortcuts;
+        const { addTagShortcut, removeShortcut, collections, getCollectionsWithShortcut } = services.shortcuts;
         const normalizedShortcutPath = normalizeTagPath(tagPath);
-        const existingShortcutKey = normalizedShortcutPath ? tagShortcutKeysByPath.get(normalizedShortcutPath) : undefined;
+        const collectionsWithShortcut = normalizedShortcutPath ? getCollectionsWithShortcut(normalizedShortcutPath) : [];
 
         menu.addItem((item: MenuItem) => {
-            if (existingShortcutKey) {
-                item.setTitle(strings.shortcuts.remove)
-                    .setIcon('lucide-bookmark-x')
-                    .onClick(() => {
-                        void removeShortcut(existingShortcutKey);
-                    });
-            } else {
-                item.setTitle(strings.shortcuts.add)
-                    .setIcon('lucide-bookmark')
-                    .onClick(() => {
-                        void addTagShortcut(tagPath);
-                    });
-            }
+            item.setTitle(strings.shortcuts.add)
+                .setIcon('lucide-bookmark')
+                .onClick(async () => {
+                    if (collections.length > 1) {
+                        // Show collection selection modal
+                        const { ShortcutCollectionSelectionModal } = await import('../../modals/ShortcutCollectionSelectionModal');
+                        const modal = new ShortcutCollectionSelectionModal(app, {
+                            collections,
+                            existingCollections: collectionsWithShortcut,
+                            onSelect: (collectionId) => {
+                                void addTagShortcut(tagPath, { collectionId });
+                            },
+                            onCancel: () => {
+                                // Do nothing
+                            }
+                        });
+                        modal.open();
+                    } else {
+                        // Only one collection, add directly
+                        void addTagShortcut(tagPath, { collectionId: collections[0]?.id });
+                    }
+                });
         });
+
+        // Add remove options for each collection that has this shortcut
+        if (collectionsWithShortcut.length > 0) {
+            menu.addSeparator();
+            collectionsWithShortcut.forEach(collectionId => {
+                const collection = collections.find(c => c.id === collectionId);
+                if (collection) {
+                    menu.addItem((item: MenuItem) => {
+                        item.setTitle(`Remove from ${collection.name}`)
+                            .setIcon('lucide-bookmark-x')
+                            .onClick(async () => {
+                                // Find the shortcut key in this specific collection
+                                const { getShortcutInCollection } = services.shortcuts!;
+                                const shortcutKey = normalizedShortcutPath ? getShortcutInCollection(normalizedShortcutPath, collectionId) : null;
+                                if (shortcutKey) {
+                                    void removeShortcut(shortcutKey);
+                                }
+                            });
+                    });
+                }
+            });
+        }
 
         menu.addSeparator();
     }

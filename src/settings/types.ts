@@ -21,7 +21,7 @@ import type { FolderAppearance, TagAppearance } from '../hooks/useListPaneAppear
 import type { DualPaneBackgroundMode, PinnedNotes } from '../types';
 import type { FolderNoteType } from '../types/folderNote';
 import type { KeyboardShortcutConfig } from '../utils/keyboardShortcuts';
-import type { ShortcutEntry } from '../types/shortcuts';
+import type { ShortcutEntry, ShortcutCollection } from '../types/shortcuts';
 import type { SearchProvider } from '../types/search';
 
 /** Available sort options for file listing */
@@ -159,6 +159,8 @@ export interface NotebookNavigatorSettings {
     searchProvider: SearchProvider | null;
     keyboardShortcuts: KeyboardShortcutConfig;
     shortcuts: ShortcutEntry[];
+    shortcutCollections: ShortcutCollection[];
+    activeShortcutCollection: string;
 
     // Advanced tab
     checkForUpdatesOnStart: boolean;

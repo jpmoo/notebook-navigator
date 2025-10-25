@@ -21,6 +21,7 @@ import { FILE_VISIBILITY } from '../utils/fileTypeUtils';
 import { NAVPANE_MEASUREMENTS, type PinnedNotes } from '../types';
 import type { FolderAppearance, TagAppearance } from '../hooks/useListPaneAppearance';
 import type { NotebookNavigatorSettings } from './types';
+import type { ShortcutCollection } from '../types/shortcuts';
 
 /**
  * Default settings for the plugin
@@ -132,6 +133,16 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     searchProvider: 'internal',
     keyboardShortcuts: getDefaultKeyboardShortcuts(),
     shortcuts: [],
+    shortcutCollections: [
+        {
+            id: 'default',
+            name: 'Default',
+            icon: 'lucide-bookmark',
+            shortcuts: [],
+            isDefault: true
+        }
+    ],
+    activeShortcutCollection: 'default',
 
     // Advanced tab
     checkForUpdatesOnStart: true,
