@@ -135,7 +135,6 @@ const ZERO_NOTE_COUNT: NoteCountInfo = { current: 0, descendants: 0, total: 0 };
 
 export const NavigationPane = React.memo(
     forwardRef<NavigationPaneHandle, NavigationPaneProps>(function NavigationPane(props, ref) {
-        console.log('NavigationPane: Component rendering');
         const { app, isMobile, plugin, tagTreeService } = useServices();
         const { recentNotes } = useRecentData();
         const { onExecuteSearchShortcut, rootContainerRef, onNavigateToFolder, onRevealTag, onRevealFile, onRevealShortcutFile } = props;
@@ -1920,16 +1919,8 @@ export const NavigationPane = React.memo(
                     />
                 )}
                 {/* Collection selector */}
-                {(() => {
-                    console.log('NavigationPane: Checking conditions for ShortcutCollectionSelector');
-                    console.log('settings.showShortcuts:', settings.showShortcuts);
-                    console.log('isRootReorderMode:', isRootReorderMode);
-                    console.log('collections:', collections);
-                    return settings.showShortcuts && !isRootReorderMode;
-                })() && (
-                    <>
-                        {console.log('NavigationPane: Rendering ShortcutCollectionSelector with collections:', collections)}
-                        <ShortcutCollectionSelector
+                {settings.showShortcuts && !isRootReorderMode && (
+                    <ShortcutCollectionSelector
                         collections={collections}
                         activeCollectionId={activeCollectionId}
                         onCollectionChange={setActiveCollection}
@@ -1966,7 +1957,6 @@ export const NavigationPane = React.memo(
                         onDeleteCollection={deleteCollection}
                         onReorderCollections={reorderCollections}
                     />
-                    </>
                 )}
                 {pinnedShortcutItems.length > 0 && !isRootReorderMode ? (
                     <div

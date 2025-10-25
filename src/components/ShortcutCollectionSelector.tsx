@@ -48,32 +48,23 @@ export const ShortcutCollectionSelector = React.memo(function ShortcutCollection
     onDeleteCollection,
     onReorderCollections
 }: ShortcutCollectionSelectorProps) {
-    console.log('ShortcutCollectionSelector: Component rendering');
     const { app } = useServices();
     const settings = useSettingsState();
     const updateSettings = useSettingsUpdate();
     const uiState = useUIState();
 
-    // Sort collections with default first, then alphabetically
+    // Use the order from settings (which includes drag/drop reordering)
     const sortedCollections = useMemo(() => {
-        console.log('ShortcutCollectionSelector: Collections received:', collections);
-        const sorted = [...collections].sort((a, b) => {
-            if (a.isDefault && !b.isDefault) return -1;
-            if (!a.isDefault && b.isDefault) return 1;
-            return a.name.localeCompare(b.name);
-        });
-        console.log('ShortcutCollectionSelector: Sorted collections:', sorted);
-        return sorted;
+        return collections; // Collections are already in the correct order from settings
     }, [collections]);
 
     // Create items for drag and drop reordering
-    const reorderItems = useMemo(() => {
-        const items = sortedCollections.map(collection => ({
+    const reorderItems = useMemo(() => 
+        sortedCollections.map(collection => ({
             key: collection.id
-        }));
-        console.log('Reorder items:', items);
-        return items;
-    }, [sortedCollections]);
+        })), 
+        [sortedCollections]
+    );
 
     // Set up drag and drop reordering
     const {
@@ -84,10 +75,7 @@ export const ShortcutCollectionSelector = React.memo(function ShortcutCollection
         items: reorderItems,
         isEnabled: true,
         reorderItems: async (orderedKeys) => {
-            console.log('Reordering collections:', orderedKeys);
-            const result = await onReorderCollections(orderedKeys);
-            console.log('Reorder result:', result);
-            return result;
+            return await onReorderCollections(orderedKeys);
         }
     });
 
@@ -123,9 +111,7 @@ export const ShortcutCollectionSelector = React.memo(function ShortcutCollection
         menu.showAtMouseEvent(event.nativeEvent);
     }, [collections, onEditCollection, onDeleteCollection]);
 
-    console.log('ShortcutCollectionSelector: showShortcuts setting:', settings.showShortcuts);
     if (!settings.showShortcuts) {
-        console.log('ShortcutCollectionSelector: Not showing shortcuts, returning null');
         return null;
     }
 
@@ -137,18 +123,11 @@ export const ShortcutCollectionSelector = React.memo(function ShortcutCollection
                     const isDragging = draggingKey === collection.id;
                     const showDropIndicator = dropIndex === index;
                     
-                    console.log(`Collection ${collection.id}:`, {
-                        dragHandlers,
-                        isDragging,
-                        showDropIndicator,
-                        draggingKey,
-                        dropIndex
-                    });
                     
                     return (
                         <button
                             key={collection.id}
-                            className={`nn-collection-tab ${activeCollectionId === collection.id ? 'nn-collection-tab--active' : ''} ${isDragging ? 'nn-collection-tab--dragging' : ''}`}
+                            className={`nn-collection-tab ${activeCollectionId === collection.id ? 'nn-collection-tab--active' : ''} ${draggingKey === collection.id ? 'nn-collection-tab--dragging' : ''}`}
                             onClick={() => handleCollectionClick(collection.id)}
                             onContextMenu={(e) => handleCollectionContextMenu(e, collection.id)}
                             title={collection.name}
