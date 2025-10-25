@@ -151,7 +151,7 @@ export const NavigationPane = React.memo(
         const uiState = useUIState();
         const uiDispatch = useUIDispatch();
         const shortcuts = useShortcuts();
-        const { shortcutMap, removeShortcut, hydratedShortcuts, reorderShortcuts, addFolderShortcut, addNoteShortcut, collections, activeCollectionId, setActiveCollection, addCollection, updateCollection, deleteCollection } = shortcuts;
+        const { shortcutMap, removeShortcut, hydratedShortcuts, reorderShortcuts, addFolderShortcut, addNoteShortcut, collections, activeCollectionId, setActiveCollection, addCollection, updateCollection, deleteCollection, reorderCollections } = shortcuts;
         const { fileData, getFileDisplayName } = useFileCache();
         const dragGhostManager = useMemo(() => createDragGhostManager(app), [app]);
 
@@ -1955,6 +1955,7 @@ export const NavigationPane = React.memo(
                             }
                         }}
                         onDeleteCollection={deleteCollection}
+                        onReorderCollections={reorderCollections}
                     />
                 )}
                 {pinnedShortcutItems.length > 0 && !isRootReorderMode ? (

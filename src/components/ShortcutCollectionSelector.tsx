@@ -22,6 +22,7 @@ import { useServices } from '../context/ServicesContext';
 import { useSettingsState, useSettingsUpdate } from '../context/SettingsContext';
 import { useUIState } from '../context/UIStateContext';
 import { ObsidianIcon } from './ObsidianIcon';
+import { useListReorder } from '../hooks/useListReorder';
 import type { ShortcutCollection } from '../types/shortcuts';
 
 interface ShortcutCollectionSelectorProps {
@@ -31,6 +32,7 @@ interface ShortcutCollectionSelectorProps {
     onAddCollection: () => void;
     onEditCollection: (collectionId: string) => void;
     onDeleteCollection: (collectionId: string) => void;
+    onReorderCollections: (orderedCollectionIds: string[]) => Promise<boolean>;
 }
 
 /**
@@ -43,7 +45,8 @@ export const ShortcutCollectionSelector = React.memo(function ShortcutCollection
     onCollectionChange,
     onAddCollection,
     onEditCollection,
-    onDeleteCollection
+    onDeleteCollection,
+    onReorderCollections
 }: ShortcutCollectionSelectorProps) {
     const { app } = useServices();
     const settings = useSettingsState();
@@ -58,6 +61,27 @@ export const ShortcutCollectionSelector = React.memo(function ShortcutCollection
             return a.name.localeCompare(b.name);
         });
     }, [collections]);
+
+    // Create items for drag and drop reordering
+    const reorderItems = useMemo(() => 
+        sortedCollections.map(collection => ({
+            key: collection.id
+        })), 
+        [sortedCollections]
+    );
+
+    // Set up drag and drop reordering
+    const {
+        getDragHandlers,
+        dropIndex,
+        draggingKey
+    } = useListReorder({
+        items: reorderItems,
+        isEnabled: true,
+        reorderItems: async (orderedKeys) => {
+            return await onReorderCollections(orderedKeys);
+        }
+    });
 
     const handleCollectionClick = useCallback((collectionId: string) => {
         onCollectionChange(collectionId);
@@ -98,18 +122,29 @@ export const ShortcutCollectionSelector = React.memo(function ShortcutCollection
     return (
         <div className="nn-shortcut-collection-selector">
             <div className="nn-collection-tabs">
-                {sortedCollections.map(collection => (
-                    <button
-                        key={collection.id}
-                        className={`nn-collection-tab ${activeCollectionId === collection.id ? 'nn-collection-tab--active' : ''}`}
-                        onClick={() => handleCollectionClick(collection.id)}
-                        onContextMenu={(e) => handleCollectionContextMenu(e, collection.id)}
-                        title={collection.name}
-                        tabIndex={-1}
-                    >
-                        <ObsidianIcon name={collection.icon} />
-                    </button>
-                ))}
+                {sortedCollections.map((collection, index) => {
+                    const dragHandlers = getDragHandlers(collection.id);
+                    const isDragging = draggingKey === collection.id;
+                    const showDropIndicator = dropIndex === index;
+                    
+                    return (
+                        <button
+                            key={collection.id}
+                            className={`nn-collection-tab ${activeCollectionId === collection.id ? 'nn-collection-tab--active' : ''} ${isDragging ? 'nn-collection-tab--dragging' : ''}`}
+                            onClick={() => handleCollectionClick(collection.id)}
+                            onContextMenu={(e) => handleCollectionContextMenu(e, collection.id)}
+                            title={collection.name}
+                            tabIndex={-1}
+                            data-reorder-draggable="true"
+                            {...dragHandlers}
+                        >
+                            <ObsidianIcon name={collection.icon} />
+                            {showDropIndicator && (
+                                <div className="nn-collection-tab--drop-indicator" />
+                            )}
+                        </button>
+                    );
+                })}
                 <button
                     className="nn-collection-tab nn-collection-tab--add"
                     onClick={onAddCollection}

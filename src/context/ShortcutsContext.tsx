@@ -77,6 +77,7 @@ export interface ShortcutsContextValue {
     addCollection: (collection: Omit<ShortcutCollection, 'id'>) => Promise<boolean>;
     updateCollection: (collectionId: string, updates: Partial<ShortcutCollection>) => Promise<boolean>;
     deleteCollection: (collectionId: string) => Promise<boolean>;
+    reorderCollections: (orderedCollectionIds: string[]) => Promise<boolean>;
     getShortcutInCollection: (path: string, collectionId: string) => string | null;
     getCollectionsWithShortcut: (path: string) => string[];
 }
@@ -684,6 +685,31 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         [updateSettings, collections]
     );
 
+    const reorderCollections = useCallback(
+        async (orderedCollectionIds: string[]) => {
+            // Validate that all collection IDs are present
+            if (orderedCollectionIds.length !== collections.length) {
+                return false;
+            }
+
+            const orderedCollections: ShortcutCollection[] = [];
+            for (const id of orderedCollectionIds) {
+                const collection = collections.find(c => c.id === id);
+                if (!collection) {
+                    return false;
+                }
+                orderedCollections.push(collection);
+            }
+
+            await updateSettings(current => {
+                current.shortcutCollections = orderedCollections;
+            });
+
+            return true;
+        },
+        [collections, updateSettings]
+    );
+
     const value: ShortcutsContextValue = useMemo(
         () => ({
             shortcuts: collectionShortcuts,
@@ -710,6 +736,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             addCollection,
             updateCollection,
             deleteCollection,
+            reorderCollections,
             getShortcutInCollection,
             getCollectionsWithShortcut
         }),
@@ -738,6 +765,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             addCollection,
             updateCollection,
             deleteCollection,
+            reorderCollections,
             getShortcutInCollection,
             getCollectionsWithShortcut
         ]
