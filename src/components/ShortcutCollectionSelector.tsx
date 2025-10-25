@@ -89,7 +89,7 @@ export const ShortcutCollectionSelector = React.memo(function ShortcutCollection
         }
         
         menu.showAtMouseEvent(event.nativeEvent);
-    }, [app, collections, onEditCollection, onDeleteCollection]);
+    }, [collections, onEditCollection, onDeleteCollection]);
 
     if (!settings.showShortcuts) {
         return null;
