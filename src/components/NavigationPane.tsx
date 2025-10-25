@@ -1920,7 +1920,9 @@ export const NavigationPane = React.memo(
                 )}
                 {/* Collection selector */}
                 {settings.showShortcuts && !isRootReorderMode && (
-                    <ShortcutCollectionSelector
+                    <>
+                        {console.log('NavigationPane: Rendering ShortcutCollectionSelector with collections:', collections)}
+                        <ShortcutCollectionSelector
                         collections={collections}
                         activeCollectionId={activeCollectionId}
                         onCollectionChange={setActiveCollection}
@@ -1957,6 +1959,7 @@ export const NavigationPane = React.memo(
                         onDeleteCollection={deleteCollection}
                         onReorderCollections={reorderCollections}
                     />
+                    </>
                 )}
                 {pinnedShortcutItems.length > 0 && !isRootReorderMode ? (
                     <div

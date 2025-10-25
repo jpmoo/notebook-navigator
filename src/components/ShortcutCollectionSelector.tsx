@@ -48,6 +48,7 @@ export const ShortcutCollectionSelector = React.memo(function ShortcutCollection
     onDeleteCollection,
     onReorderCollections
 }: ShortcutCollectionSelectorProps) {
+    console.log('ShortcutCollectionSelector: Component rendering');
     const { app } = useServices();
     const settings = useSettingsState();
     const updateSettings = useSettingsUpdate();
@@ -55,13 +56,13 @@ export const ShortcutCollectionSelector = React.memo(function ShortcutCollection
 
     // Sort collections with default first, then alphabetically
     const sortedCollections = useMemo(() => {
-        console.log('Collections:', collections);
+        console.log('ShortcutCollectionSelector: Collections received:', collections);
         const sorted = [...collections].sort((a, b) => {
             if (a.isDefault && !b.isDefault) return -1;
             if (!a.isDefault && b.isDefault) return 1;
             return a.name.localeCompare(b.name);
         });
-        console.log('Sorted collections:', sorted);
+        console.log('ShortcutCollectionSelector: Sorted collections:', sorted);
         return sorted;
     }, [collections]);
 
@@ -122,7 +123,9 @@ export const ShortcutCollectionSelector = React.memo(function ShortcutCollection
         menu.showAtMouseEvent(event.nativeEvent);
     }, [collections, onEditCollection, onDeleteCollection]);
 
+    console.log('ShortcutCollectionSelector: showShortcuts setting:', settings.showShortcuts);
     if (!settings.showShortcuts) {
+        console.log('ShortcutCollectionSelector: Not showing shortcuts, returning null');
         return null;
     }
 
