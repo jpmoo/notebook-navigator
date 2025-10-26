@@ -979,7 +979,7 @@ body {
 
 .nn-collection-tabs {
     display: flex;
-    gap: 2px;
+    gap: 10px;
     align-items: center;
     justify-content: center;
 }
