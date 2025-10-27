@@ -282,10 +282,15 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
                         continue;
                     }
                     // Check if metadata cache has data for this file
-                    const metadata = app.metadataCache.getFileCache(abstract);
-                    // Remove from tracking if metadata is available
-                    if (metadata !== null && metadata !== undefined) {
-                        trackedPaths.delete(path);
+                    try {
+                        const metadata = app.metadataCache.getFileCache(abstract);
+                        // Remove from tracking if metadata is available
+                        if (metadata !== null && metadata !== undefined) {
+                            trackedPaths.delete(path);
+                        }
+                    } catch (error) {
+                        console.warn(`[Notebook Navigator] Error getting metadata cache for ${path}:`, error);
+                        // Continue without removing from tracking
                     }
                 }
             };
