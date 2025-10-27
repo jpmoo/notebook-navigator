@@ -204,34 +204,41 @@ export function buildTagTreeFromDatabase(
         tagPaths.sort((a, b) => naturalCompare(a, b));
 
         for (const tagPath of tagPaths) {
-            const parts = tagPath.split('/');
-            let currentPath = '';
+            try {
+                const parts = tagPath.split('/');
+                let currentPath = '';
 
-            // Safety check: skip tags with excessive depth
-            if (parts.length > MAX_DEPTH) {
-                console.warn(`[Notebook Navigator] Skipping tag with excessive depth: ${tagPath}`);
-                continue;
-            }
-
-            for (let i = 0; i < parts.length; i++) {
-                const part = parts[i];
-                currentPath = i === 0 ? part : `${currentPath}/${part}`;
-                const normalizedCurrentPath = normalizeTagPathValue(currentPath);
-                if (normalizedCurrentPath.length === 0) {
+                // Safety check: skip tags with excessive depth
+                if (parts.length > MAX_DEPTH) {
+                    console.warn(`[Notebook Navigator] Skipping tag with excessive depth: ${tagPath}`);
                     continue;
                 }
 
-                // Get or create the node
-                let node = allNodes.get(normalizedCurrentPath);
-                if (!node) {
-                    node = {
-                        name: part,
-                        path: normalizedCurrentPath,
-                        displayPath: currentPath,
-                        children: new Map(),
-                        notesWithTag: new Set()
-                    };
-                    allNodes.set(normalizedCurrentPath, node);
+                for (let i = 0; i < parts.length; i++) {
+                    const part = parts[i];
+                    // Safety check: skip empty or extremely long parts
+                    if (!part || part.length === 0 || part.length > 500) {
+                        console.warn(`[Notebook Navigator] Skipping invalid tag part: ${part}`);
+                        continue;
+                    }
+                    
+                    currentPath = i === 0 ? part : `${currentPath}/${part}`;
+                    const normalizedCurrentPath = normalizeTagPathValue(currentPath);
+                    if (normalizedCurrentPath.length === 0) {
+                        continue;
+                    }
+
+                    // Get or create the node
+                    let node = allNodes.get(normalizedCurrentPath);
+                    if (!node) {
+                        node = {
+                            name: part,
+                            path: normalizedCurrentPath,
+                            displayPath: currentPath,
+                            children: new Map(),
+                            notesWithTag: new Set()
+                        };
+                        allNodes.set(normalizedCurrentPath, node);
 
                     // Only add root-level tags to the tree Map
                     if (i === 0) {
@@ -255,6 +262,10 @@ export function buildTagTreeFromDatabase(
                         parent.children.set(normalizedCurrentPath, node);
                     }
                 }
+            }
+            } catch (error) {
+                console.error(`[Notebook Navigator] Error processing tag: ${tagPath}`, error);
+                continue;
             }
         }
 
