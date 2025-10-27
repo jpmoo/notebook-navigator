@@ -188,14 +188,14 @@ export function flattenTagTree(
 
     // Safety limit to prevent infinite recursion
     const MAX_DEPTH = 50;
-    const visitedPaths = new Set<string>();
+    // Global visited set to prevent revisiting nodes across all paths
+    const globalVisited = new Set<string>();
 
     /** Recursively adds a tag node and its children to the items array */
-    function addNode(node: TagTreeNode, currentLevel: number, parentHidden: boolean = false, currentPath: Set<string> = new Set()) {
-        // Safety check to prevent infinite recursion from circular references
-        // Check if this node is already in the current path (circular reference)
-        if (currentPath.has(node.path)) {
-            console.warn('[Notebook Navigator] Circular reference detected in tag tree at:', node.path);
+    function addNode(node: TagTreeNode, currentLevel: number, parentHidden: boolean = false) {
+        // Safety check: prevent revisiting nodes we've already processed
+        if (globalVisited.has(node.path)) {
+            console.warn('[Notebook Navigator] Node already visited, skipping:', node.path);
             return;
         }
         
@@ -205,8 +205,8 @@ export function flattenTagTree(
             return;
         }
         
-        // Add to current path for cycle detection (will be removed after processing children)
-        currentPath.add(node.path);
+        // Mark as visited immediately
+        globalVisited.add(node.path);
         
         const matchesRule = hiddenMatcher ? matchesHiddenTagPattern(node.path, node.name, hiddenMatcher) : false;
         const isHidden = parentHidden || matchesRule;
@@ -230,11 +230,8 @@ export function flattenTagTree(
         if (expandedTags.has(node.path) && node.children && node.children.size > 0) {
             const sortedChildren = Array.from(node.children.values()).sort(sortFn);
 
-            sortedChildren.forEach(child => addNode(child, currentLevel + 1, isHidden, currentPath));
+            sortedChildren.forEach(child => addNode(child, currentLevel + 1, isHidden));
         }
-        
-        // Remove from current path after processing children
-        currentPath.delete(node.path);
     }
 
     sortedNodes.forEach(node => addNode(node, level));
