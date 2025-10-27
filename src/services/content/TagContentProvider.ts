@@ -131,7 +131,17 @@ export class TagContentProvider extends BaseContentProvider {
      * @returns Array of unique tag strings without # prefix, in original casing
      */
     private extractTagsFromMetadata(metadata: CachedMetadata | null): string[] {
-        const rawTags = metadata ? getAllTags(metadata) : [];
+        if (!metadata) return [];
+        
+        // Safety: Try to extract tags, but catch any errors to prevent crashes
+        let rawTags: string[] = [];
+        try {
+            rawTags = getAllTags(metadata) || [];
+        } catch (error) {
+            console.warn(`[Notebook Navigator] Error extracting tags from metadata:`, error);
+            return [];
+        }
+        
         if (!rawTags || rawTags.length === 0) return [];
         
         // Safety limit to prevent crashes from corrupted tag data
