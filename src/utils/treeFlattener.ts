@@ -186,8 +186,26 @@ export function flattenTagTree(
     /** Sort tags using the selected comparator */
     const sortedNodes = tagNodes.slice().sort(sortFn);
 
+    // Safety limit to prevent infinite recursion
+    const MAX_DEPTH = 50;
+    const visitedPaths = new Set<string>();
+
     /** Recursively adds a tag node and its children to the items array */
     function addNode(node: TagTreeNode, currentLevel: number, parentHidden: boolean = false) {
+        // Safety check to prevent infinite recursion from circular references
+        if (visitedPaths.has(node.path)) {
+            console.warn('[Notebook Navigator] Circular reference detected in tag tree at:', node.path);
+            return;
+        }
+        
+        // Safety check to prevent stack overflow
+        if (currentLevel >= MAX_DEPTH) {
+            console.warn('[Notebook Navigator] Tag tree depth limit reached during flattening');
+            return;
+        }
+        
+        visitedPaths.add(node.path);
+        
         const matchesRule = hiddenMatcher ? matchesHiddenTagPattern(node.path, node.name, hiddenMatcher) : false;
         const isHidden = parentHidden || matchesRule;
 
@@ -212,6 +230,9 @@ export function flattenTagTree(
 
             sortedChildren.forEach(child => addNode(child, currentLevel + 1, isHidden));
         }
+        
+        // Remove from visited after processing children to allow re-traversal in different contexts
+        visitedPaths.delete(node.path);
     }
 
     sortedNodes.forEach(node => addNode(node, level));

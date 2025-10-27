@@ -264,13 +264,30 @@ export function getTotalNoteCount(node: TagTreeNode): number {
 
     // Collect all unique files from this node and all descendants
     const allFiles = new Set(node.notesWithTag);
+    const visited = new Set<string>();
+    let depth = 0;
+    const MAX_DEPTH = 50;
 
     // Helper to collect files from children
     function collectFromChildren(n: TagTreeNode): void {
+        // Safety check to prevent infinite recursion
+        if (visited.has(n.path) || depth >= MAX_DEPTH) {
+            if (depth >= MAX_DEPTH) {
+                console.warn('[Notebook Navigator] Tag tree depth limit reached during note count collection');
+            }
+            return;
+        }
+        
+        visited.add(n.path);
+        depth++;
+        
         for (const child of n.children.values()) {
             child.notesWithTag.forEach(file => allFiles.add(file));
             collectFromChildren(child);
         }
+        
+        depth--;
+        visited.delete(n.path);
     }
 
     collectFromChildren(node);
@@ -286,11 +303,26 @@ export function getTotalNoteCount(node: TagTreeNode): number {
  * Collect all tag paths from a node and its descendants
  * Returns lowercase paths for logic operations
  */
-export function collectAllTagPaths(node: TagTreeNode, paths: Set<string> = new Set()): Set<string> {
-    paths.add(node.path);
-    for (const child of node.children.values()) {
-        collectAllTagPaths(child, paths);
+export function collectAllTagPaths(node: TagTreeNode, paths: Set<string> = new Set(), visited: Set<string> = new Set()): Set<string> {
+    // Safety check to prevent infinite recursion from circular references
+    if (visited.has(node.path)) {
+        console.warn('[Notebook Navigator] Circular reference detected in tag tree at:', node.path);
+        return paths;
     }
+    
+    // Safety limit to prevent stack overflow
+    if (visited.size >= 1000) {
+        console.warn('[Notebook Navigator] Tag tree depth limit reached during path collection');
+        return paths;
+    }
+    
+    visited.add(node.path);
+    paths.add(node.path);
+    
+    for (const child of node.children.values()) {
+        collectAllTagPaths(child, paths, new Set(visited));
+    }
+    
     return paths;
 }
 
@@ -336,14 +368,33 @@ export function excludeFromTagTree(tree: Map<string, TagTreeNode>, matcher: Hidd
     }
 
     const filtered = new Map<string, TagTreeNode>();
+    const visited = new Set<string>();
+    let depth = 0;
+    const MAX_DEPTH = 50;
 
     // Helper to recursively check and filter nodes
     // Returns null if node should be excluded, otherwise returns node with filtered children
     function shouldIncludeNode(node: TagTreeNode): TagTreeNode | null {
+        // Safety check to prevent infinite recursion
+        if (visited.has(node.path)) {
+            console.warn('[Notebook Navigator] Circular reference detected in tag tree during exclusion at:', node.path);
+            return null;
+        }
+        
+        if (depth >= MAX_DEPTH) {
+            console.warn('[Notebook Navigator] Tag tree depth limit reached during exclusion');
+            return null;
+        }
+        
+        visited.add(node.path);
+        depth++;
+        
         // Check if this tag matches any exclusion prefix
         const shouldExclude = matchesHiddenTagPattern(node.path, node.name, matcher);
 
         if (shouldExclude) {
+            depth--;
+            visited.delete(node.path);
             return null;
         }
 
@@ -355,6 +406,9 @@ export function excludeFromTagTree(tree: Map<string, TagTreeNode>, matcher: Hidd
                 filteredChildren.set(childKey, filteredChild);
             }
         }
+        
+        depth--;
+        visited.delete(node.path);
 
         // Remove empty nodes (no notes and no children after filtering)
         // This ensures parent tags don't show if all their children are excluded
