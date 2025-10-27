@@ -191,9 +191,10 @@ export function flattenTagTree(
     const visitedPaths = new Set<string>();
 
     /** Recursively adds a tag node and its children to the items array */
-    function addNode(node: TagTreeNode, currentLevel: number, parentHidden: boolean = false) {
+    function addNode(node: TagTreeNode, currentLevel: number, parentHidden: boolean = false, currentPath: Set<string> = new Set()) {
         // Safety check to prevent infinite recursion from circular references
-        if (visitedPaths.has(node.path)) {
+        // Check if this node is already in the current path (circular reference)
+        if (currentPath.has(node.path)) {
             console.warn('[Notebook Navigator] Circular reference detected in tag tree at:', node.path);
             return;
         }
@@ -204,7 +205,8 @@ export function flattenTagTree(
             return;
         }
         
-        visitedPaths.add(node.path);
+        // Add to current path for cycle detection (will be removed after processing children)
+        currentPath.add(node.path);
         
         const matchesRule = hiddenMatcher ? matchesHiddenTagPattern(node.path, node.name, hiddenMatcher) : false;
         const isHidden = parentHidden || matchesRule;
@@ -228,11 +230,11 @@ export function flattenTagTree(
         if (expandedTags.has(node.path) && node.children && node.children.size > 0) {
             const sortedChildren = Array.from(node.children.values()).sort(sortFn);
 
-            sortedChildren.forEach(child => addNode(child, currentLevel + 1, isHidden));
+            sortedChildren.forEach(child => addNode(child, currentLevel + 1, isHidden, currentPath));
         }
         
-        // Remove from visited after processing children to allow re-traversal in different contexts
-        visitedPaths.delete(node.path);
+        // Remove from current path after processing children
+        currentPath.delete(node.path);
     }
 
     sortedNodes.forEach(node => addNode(node, level));
