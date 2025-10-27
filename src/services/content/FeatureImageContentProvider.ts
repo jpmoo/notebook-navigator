@@ -84,7 +84,14 @@ export class FeatureImageContentProvider extends BaseContentProvider {
         }
 
         try {
-            const metadata = this.app.metadataCache.getFileCache(job.file);
+            let metadata: CachedMetadata | null = null;
+            try {
+                metadata = this.app.metadataCache.getFileCache(job.file);
+            } catch (error) {
+                console.warn(`[Notebook Navigator] Error getting metadata cache for ${job.file.path}:`, error);
+                // Continue with null metadata
+            }
+            
             const imageUrl = this.getFeatureImageUrlFromMetadata(job.file, metadata, settings);
             const imageUrlStr = imageUrl || '';
 

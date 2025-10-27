@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { TFile } from 'obsidian';
+import { TFile, CachedMetadata } from 'obsidian';
 import { ContentType } from '../../interfaces/IContentProvider';
 import { NotebookNavigatorSettings } from '../../settings';
 import { FileData } from '../../storage/IndexedDBStorage';
@@ -96,7 +96,14 @@ export class MetadataContentProvider extends BaseContentProvider {
         }
 
         try {
-            const cachedMetadata = this.app.metadataCache.getFileCache(job.file);
+            let cachedMetadata: CachedMetadata | null = null;
+            try {
+                cachedMetadata = this.app.metadataCache.getFileCache(job.file);
+            } catch (error) {
+                console.warn(`[Notebook Navigator] Error getting metadata cache for ${job.file.path}:`, error);
+                return null;
+            }
+            
             const processedMetadata = extractMetadataFromCache(cachedMetadata, settings);
 
             const fileMetadata: FileData['metadata'] = {};

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { TFile } from 'obsidian';
+import { TFile, CachedMetadata } from 'obsidian';
 import { ContentType } from '../../interfaces/IContentProvider';
 import { NotebookNavigatorSettings } from '../../settings';
 import { FileData } from '../../storage/IndexedDBStorage';
@@ -91,10 +91,16 @@ export class PreviewContentProvider extends BaseContentProvider {
         }
 
         try {
-            const metadata = this.app.metadataCache.getFileCache(job.file);
+            let metadata: CachedMetadata | null = null;
+            try {
+                metadata = this.app.metadataCache.getFileCache(job.file);
+            } catch (error) {
+                console.warn(`[Notebook Navigator] Error getting metadata cache for ${job.file.path}:`, error);
+                // Continue with null metadata
+            }
 
             // Skip Excalidraw files - return empty preview
-            if (PreviewTextUtils.isExcalidrawFile(job.file.name, metadata?.frontmatter)) {
+            if (metadata && PreviewTextUtils.isExcalidrawFile(job.file.name, metadata?.frontmatter)) {
                 return {
                     path: job.file.path,
                     preview: ''
