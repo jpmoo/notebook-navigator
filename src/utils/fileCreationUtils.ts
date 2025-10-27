@@ -48,6 +48,9 @@ export interface CreateFileOptions {
 export function generateUniqueFilename(folderPath: string, baseName: string, extension: string, app: App): string {
     let fileName = baseName;
     let counter = 1;
+    
+    // Safety limit to prevent infinite loops that could crash the renderer
+    const MAX_ITERATIONS = 10000;
 
     const makePath = (name: string) => {
         const base = folderPath === '/' ? '' : `${folderPath}/`;
@@ -60,10 +63,16 @@ export function generateUniqueFilename(folderPath: string, baseName: string, ext
     let path = makePath(fileName);
 
     // Keep incrementing until we find a unique name
-    while (app.vault.getFileByPath(path)) {
+    while (app.vault.getFileByPath(path) && counter <= MAX_ITERATIONS) {
         fileName = `${baseName} ${counter}`;
         path = makePath(fileName);
         counter++;
+    }
+
+    // If we hit the max iterations, append timestamp to ensure uniqueness
+    if (counter > MAX_ITERATIONS) {
+        const timestamp = Date.now();
+        fileName = `${baseName} ${timestamp}`;
     }
 
     return fileName;

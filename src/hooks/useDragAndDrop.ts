@@ -884,11 +884,14 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
         document.addEventListener('keydown', handleEscape);
 
         return () => {
-            container.removeEventListener('dragstart', handleDragStart);
-            container.removeEventListener('dragover', handleDragOver);
-            container.removeEventListener('dragleave', handleDragLeave);
-            container.removeEventListener('drop', handleDrop);
-            container.removeEventListener('dragend', handleDragEnd);
+            // Safety check to prevent errors if container was removed from DOM
+            if (container) {
+                container.removeEventListener('dragstart', handleDragStart);
+                container.removeEventListener('dragover', handleDragOver);
+                container.removeEventListener('dragleave', handleDragLeave);
+                container.removeEventListener('drop', handleDrop);
+                container.removeEventListener('dragend', handleDragEnd);
+            }
             document.removeEventListener('keydown', handleEscape);
 
             // Clean up any lingering drag state on unmount
