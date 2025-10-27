@@ -174,12 +174,27 @@ export function buildTagTreeFromDatabase(
         const allNodes = new Map<string, TagTreeNode>();
         const tree = new Map<string, TagTreeNode>();
 
+        // Safety limit to prevent infinite loops from corrupted data
+        const MAX_TAGS = 100000;
+        const MAX_DEPTH = 100;
+        
+        if (tagPaths.length > MAX_TAGS) {
+            console.error(`[Notebook Navigator] Excessive tag count detected: ${tagPaths.length}. Skipping tag tree build.`);
+            return tree;
+        }
+
         // Sort tags (natural order) to ensure parents are processed before children
         tagPaths.sort((a, b) => naturalCompare(a, b));
 
         for (const tagPath of tagPaths) {
             const parts = tagPath.split('/');
             let currentPath = '';
+
+            // Safety check: skip tags with excessive depth
+            if (parts.length > MAX_DEPTH) {
+                console.warn(`[Notebook Navigator] Skipping tag with excessive depth: ${tagPath}`);
+                continue;
+            }
 
             for (let i = 0; i < parts.length; i++) {
                 const part = parts[i];

@@ -146,22 +146,33 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
 
     // Rebuilds the complete tag tree structure from database contents
     const rebuildTagTree = useCallback(() => {
-        const db = getDBInstance();
-        // Hidden items override: when enabled, include all folders in tag tree regardless of exclusions
-        const excludedFolderPatterns = settings.showHiddenItems ? [] : settings.excludedFolders;
-        // Filter database results to only include files matching current visibility settings
-        const includedPaths = new Set(getFilteredMarkdownFilesCallback().map(f => f.path));
-        const { tagTree, untagged: newUntagged, hiddenRootTags } = buildTagTreeFromDatabase(db, excludedFolderPatterns, includedPaths);
-        clearNoteCountCache();
-        const untaggedCount = newUntagged;
-        setFileData({ tagTree, untagged: untaggedCount, hiddenRootTags });
+        try {
+            const db = getDBInstance();
+            // Hidden items override: when enabled, include all folders in tag tree regardless of exclusions
+            const excludedFolderPatterns = settings.showHiddenItems ? [] : settings.excludedFolders;
+            // Filter database results to only include files matching current visibility settings
+            const includedPaths = new Set(getFilteredMarkdownFilesCallback().map(f => f.path));
+            const { tagTree, untagged: newUntagged, hiddenRootTags } = buildTagTreeFromDatabase(db, excludedFolderPatterns, includedPaths);
+            clearNoteCountCache();
+            const untaggedCount = newUntagged;
+            setFileData({ tagTree, untagged: untaggedCount, hiddenRootTags });
 
-        // Propagate updated tag trees to the global TagTreeService for cross-component access
-        if (tagTreeService) {
-            tagTreeService.updateTagTree(tagTree, untaggedCount);
+            // Propagate updated tag trees to the global TagTreeService for cross-component access
+            if (tagTreeService) {
+                tagTreeService.updateTagTree(tagTree, untaggedCount);
+            }
+
+            return tagTree;
+        } catch (error) {
+            console.error('[Notebook Navigator] Error building tag tree:', error);
+            // Return empty tree on error to prevent crash
+            const emptyTree = new Map<string, TagTreeNode>();
+            setFileData({ tagTree: emptyTree, untagged: 0, hiddenRootTags: new Map() });
+            if (tagTreeService) {
+                tagTreeService.updateTagTree(emptyTree, 0);
+            }
+            return emptyTree;
         }
-
-        return tagTree;
     }, [settings.excludedFolders, settings.showHiddenItems, tagTreeService, getFilteredMarkdownFilesCallback]);
 
     /**
