@@ -104,9 +104,20 @@ export function buildTagTreeFromDatabase(
 
     // Get all files from cache
     const allFiles = db.getAllFiles();
+    
+    // Safety limit to prevent processing excessive amounts of files
+    const MAX_FILES_TO_PROCESS = 100000;
+    const MAX_TAGS_PER_FILE = 1000;
+    let filesProcessed = 0;
 
     // First pass: collect all tags and their file associations
     for (const { path, data: fileData } of allFiles) {
+        filesProcessed++;
+        if (filesProcessed > MAX_FILES_TO_PROCESS) {
+            console.error(`[Notebook Navigator] Too many files to process: ${filesProcessed}. Stopping tag tree build.`);
+            break;
+        }
+        
         const isExcluded = excludedPatterns ? isPathInExcludedFolder(path, excludedPatterns) : false;
 
         // Defense-in-depth: skip files not in the included set (e.g., frontmatter-excluded)
@@ -135,6 +146,12 @@ export function buildTagTreeFromDatabase(
             if (tags !== null && path.endsWith('.md')) {
                 untaggedCount++;
             }
+            continue;
+        }
+        
+        // Safety check: skip files with excessive tags
+        if (tags.length > MAX_TAGS_PER_FILE) {
+            console.warn(`[Notebook Navigator] Skipping file with ${tags.length} tags: ${path}`);
             continue;
         }
 
