@@ -48,8 +48,18 @@ export class MemoryFileCache {
         // Clear any existing data
         this.memoryMap.clear();
 
+        // Safety limit: prevent loading excessive amounts of corrupted data
+        const MAX_FILES = 100000;
+        const MAX_ITERATIONS = MAX_FILES;
+        let iterationCount = 0;
+
         // Load all files into memory
         for (const { path, data } of filesWithPaths) {
+            iterationCount++;
+            if (iterationCount > MAX_ITERATIONS) {
+                console.error(`[Notebook Navigator] Too many files in database: ${iterationCount}. Stopping cache load.`);
+                break;
+            }
             this.memoryMap.set(path, data);
         }
 

@@ -292,11 +292,24 @@ export class IndexedDBStorage {
                         // Use openCursor to get both keys and values
                         const request = store.openCursor();
                         const filesWithPaths: { path: string; data: FileData }[] = [];
+                        
+                        // Safety limit to prevent runaway cursor loops
+                        const MAX_FILES = 100000;
+                        let fileCount = 0;
 
                         await new Promise<void>((resolve, reject) => {
                             request.onsuccess = event => {
                                 const cursor = (event.target as IDBRequest).result;
                                 if (cursor) {
+                                    fileCount++;
+                                    // Safety check to prevent infinite loops from corrupted data
+                                    if (fileCount > MAX_FILES) {
+                                        console.error(`[Notebook Navigator] Too many files in database cursor: ${fileCount}. Stopping cursor iteration.`);
+                                        this.cache.initialize(filesWithPaths);
+                                        resolve();
+                                        return;
+                                    }
+                                    
                                     filesWithPaths.push({
                                         path: cursor.key as string,
                                         data: cursor.value as FileData
