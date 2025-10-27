@@ -189,6 +189,7 @@ export function flattenTagTree(
     // Safety limits
     const MAX_DEPTH = 50;
     const MAX_ITERATIONS = 5000;
+    const MAX_RESULTS = 10000; // Hard limit on returned items to prevent excessive rendering
     let iterationCount = 0;
     
     // Global visited set to prevent any node from being processed multiple times
@@ -206,6 +207,12 @@ export function flattenTagTree(
         iterationCount++;
         if (iterationCount > MAX_ITERATIONS) {
             console.error('[Notebook Navigator] Maximum iterations exceeded in flattenTagTree');
+            return;
+        }
+        
+        // Safety check: limit total results to prevent excessive rendering
+        if (items.length >= MAX_RESULTS) {
+            console.warn('[Notebook Navigator] Maximum results limit reached in flattenTagTree');
             return;
         }
         
