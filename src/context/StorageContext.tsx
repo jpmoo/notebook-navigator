@@ -165,6 +165,8 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
             return tagTree;
         } catch (error) {
             console.error('[Notebook Navigator] Error building tag tree:', error);
+            console.error('[Notebook Navigator] If crashes persist, your IndexedDB may be corrupted.');
+            console.error('[Notebook Navigator] Try: Disable plugin, delete .obsidian/plugins/notebook-navigator/vault-storage/, re-enable plugin');
             // Return empty tree on error to prevent crash
             const emptyTree = new Map<string, TagTreeNode>();
             setFileData({ tagTree: emptyTree, untagged: 0, hiddenRootTags: new Map() });
