@@ -188,21 +188,24 @@ export function flattenTagTree(
 
     // Safety limits
     const MAX_DEPTH = 50;
-    const MAX_ITERATIONS = 10000;
+    const MAX_ITERATIONS = 5000;
     let iterationCount = 0;
+    
+    // Global visited set to prevent any node from being processed multiple times
+    const visited = new Set<string>();
 
     /** Recursively adds a tag node and its children to the items array */
-    function addNode(node: TagTreeNode, currentLevel: number, parentHidden: boolean = false, path: Set<string> = new Set()) {
+    function addNode(node: TagTreeNode, currentLevel: number, parentHidden: boolean = false) {
+        // Safety check: prevent revisiting nodes
+        if (visited.has(node.path)) {
+            console.warn('[Notebook Navigator] Node already visited, skipping:', node.path);
+            return;
+        }
+        
         // Safety check: prevent infinite loops from runaway iterations
         iterationCount++;
         if (iterationCount > MAX_ITERATIONS) {
             console.error('[Notebook Navigator] Maximum iterations exceeded in flattenTagTree');
-            return;
-        }
-        
-        // Safety check: detect circular references in current path
-        if (path.has(node.path)) {
-            console.warn('[Notebook Navigator] Circular reference detected in tag tree at:', node.path);
             return;
         }
         
@@ -212,8 +215,8 @@ export function flattenTagTree(
             return;
         }
         
-        // Add to current path to detect cycles
-        path.add(node.path);
+        // Mark as visited
+        visited.add(node.path);
         
         const matchesRule = hiddenMatcher ? matchesHiddenTagPattern(node.path, node.name, hiddenMatcher) : false;
         const isHidden = parentHidden || matchesRule;
@@ -238,14 +241,9 @@ export function flattenTagTree(
             const sortedChildren = Array.from(node.children.values()).sort(sortFn);
 
             sortedChildren.forEach(child => {
-                // Create a new path set for each child to allow revisiting nodes from different parent branches
-                const newPath = new Set(path);
-                addNode(child, currentLevel + 1, isHidden, newPath);
+                addNode(child, currentLevel + 1, isHidden);
             });
         }
-        
-        // Remove from path after processing
-        path.delete(node.path);
     }
 
     sortedNodes.forEach(node => addNode(node, level));
