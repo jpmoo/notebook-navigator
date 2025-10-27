@@ -79,7 +79,13 @@ export class TagContentProvider extends BaseContentProvider {
         }
 
         try {
-            const metadata = this.app.metadataCache.getFileCache(job.file);
+            let metadata: CachedMetadata | null = null;
+            try {
+                metadata = this.app.metadataCache.getFileCache(job.file);
+            } catch (error) {
+                console.warn(`[Notebook Navigator] Error getting metadata cache for ${job.file.path}:`, error);
+                return null;
+            }
             
             // Safety check: skip if metadata is corrupted or missing
             if (!metadata) {
