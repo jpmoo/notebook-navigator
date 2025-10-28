@@ -37,6 +37,7 @@ import { useRecentData } from '../context/RecentDataContext';
 import { useExpansionState } from '../context/ExpansionContext';
 import { useFileCache } from '../context/StorageContext';
 import { useShortcuts } from '../context/ShortcutsContext';
+import { useUXPreferences } from '../context/UXPreferencesContext';
 import { strings } from '../i18n';
 import {
     UNTAGGED_TAG_ID,
@@ -68,6 +69,7 @@ import { getDBInstance } from '../storage/fileOperations';
 import { naturalCompare } from '../utils/sortUtils';
 import type { NoteCountInfo } from '../types/noteCounts';
 import { calculateFolderNoteCounts } from '../utils/noteCountUtils';
+import { getEffectiveFrontmatterExclusions } from '../utils/exclusionUtils';
 import { sanitizeNavigationSectionOrder } from '../utils/navigationSections';
 
 // Checks if a navigation item is a shortcut-related item (virtual folder, shortcut, or header)
@@ -232,6 +234,11 @@ export function useNavigationPaneData({
     const expansionState = useExpansionState();
     const { fileData } = useFileCache();
     const { hydratedShortcuts, collections, activeCollectionId } = useShortcuts();
+    const uxPreferences = useUXPreferences();
+    const includeDescendantNotes = uxPreferences.includeDescendantNotes;
+    const showHiddenItems = uxPreferences.showHiddenItems;
+    // Resolves frontmatter exclusions, returns empty array when hidden items are shown
+    const effectiveFrontmatterExclusions = getEffectiveFrontmatterExclusions(settings, showHiddenItems);
 
     // Version counter that increments when vault files change
     const [fileChangeVersion, setFileChangeVersion] = useState(0);
@@ -251,25 +258,25 @@ export function useNavigationPaneData({
 
     // Create matcher for hidden tag patterns (supports "archive", "temp*", "*draft")
     const hiddenTagVisibility = useMemo(
-        () => createHiddenTagVisibility(settings.hiddenTags, settings.showHiddenItems),
-        [settings.hiddenTags, settings.showHiddenItems]
+        () => createHiddenTagVisibility(settings.hiddenTags, showHiddenItems),
+        [settings.hiddenTags, showHiddenItems]
     );
     const hiddenTagMatcher = hiddenTagVisibility.matcher;
     const hiddenMatcherHasRules = hiddenTagVisibility.hasHiddenRules;
 
     /** Create tag comparator based on current sort order and descendant note settings */
     const tagComparator = useMemo(
-        () => createTagComparator(settings.tagSortOrder, settings.includeDescendantNotes),
-        [settings.tagSortOrder, settings.includeDescendantNotes]
+        () => createTagComparator(settings.tagSortOrder, includeDescendantNotes),
+        [settings.tagSortOrder, includeDescendantNotes]
     );
 
     // Retrieves hidden root tag nodes when tags are visible but hidden items are not shown
     const hiddenRootTagNodes = useMemo(() => {
-        if (!settings.showTags || settings.showHiddenItems) {
+        if (!settings.showTags || showHiddenItems) {
             return new Map<string, TagTreeNode>();
         }
         return fileData.hiddenRootTags ?? new Map<string, TagTreeNode>();
-    }, [fileData.hiddenRootTags, settings.showHiddenItems, settings.showTags]);
+    }, [fileData.hiddenRootTags, showHiddenItems, settings.showTags]);
 
     // Combines visible and hidden tag trees for root tag ordering calculations
     const tagTreeForOrdering = useMemo(() => {
@@ -311,7 +318,7 @@ export function useNavigationPaneData({
 
         const items: CombinedNavigationItem[] = [];
 
-        const shouldHideTags = !settings.showHiddenItems;
+        const shouldHideTags = !showHiddenItems;
         const hasHiddenPatterns = hiddenMatcherHasRules;
         const visibleTagTree = hasHiddenPatterns && shouldHideTags ? excludeFromTagTree(tagTree, hiddenTagMatcher) : tagTree;
         const shouldIncludeUntagged = settings.showUntagged && untaggedCount > 0;
@@ -439,7 +446,7 @@ export function useNavigationPaneData({
 
                 if (expansionState.expandedVirtualFolders.has(folderId)) {
                     resolvedRootTagKeys.forEach(key => {
-                        if (hiddenRootTagNodes.has(key) && !settings.showHiddenItems) {
+                        if (hiddenRootTagNodes.has(key) && !showHiddenItems) {
                             return;
                         }
                         if (key === UNTAGGED_TAG_ID) {
@@ -456,7 +463,7 @@ export function useNavigationPaneData({
             }
         } else {
             resolvedRootTagKeys.forEach(key => {
-                if (hiddenRootTagNodes.has(key) && !settings.showHiddenItems) {
+                if (hiddenRootTagNodes.has(key) && !showHiddenItems) {
                     return;
                 }
                 if (key === UNTAGGED_TAG_ID) {
@@ -475,7 +482,7 @@ export function useNavigationPaneData({
     }, [
         settings.showTags,
         settings.showAllTagsFolder,
-        settings.showHiddenItems,
+        showHiddenItems,
         settings.showUntagged,
         hiddenTagMatcher,
         hiddenMatcherHasRules,
@@ -547,7 +554,7 @@ export function useNavigationPaneData({
                 }
 
                 const isExcluded = settings.excludedFolders.length > 0 && isFolderInExcludedFolder(folder, settings.excludedFolders);
-                if (isExcluded && !settings.showHiddenItems) {
+                if (isExcluded && !showHiddenItems) {
                     return;
                 }
 
@@ -631,7 +638,7 @@ export function useNavigationPaneData({
         });
 
         return items;
-    }, [app, hydratedShortcuts, tagTree, settings.excludedFolders, settings.showHiddenItems, settings.showShortcuts, shortcutsExpanded, collections, activeCollectionId]);
+    }, [app, hydratedShortcuts, tagTree, settings.excludedFolders, showHiddenItems, settings.showShortcuts, shortcutsExpanded, collections, activeCollectionId]);
 
     // Build list of recent notes items with proper hierarchy
     const recentNotesItems = useMemo(() => {
@@ -918,7 +925,7 @@ export function useNavigationPaneData({
         // When pinning shortcuts, exclude them from main tree (they're rendered separately)
         const baseItems = pinShortcuts ? itemsWithMetadata.filter(current => !isShortcutNavigationItem(current)) : itemsWithMetadata;
 
-        if (settings.showHiddenItems) {
+        if (showHiddenItems) {
             // Show all items including excluded ones
             return baseItems;
         }
@@ -929,7 +936,7 @@ export function useNavigationPaneData({
             }
             return true;
         });
-    }, [itemsWithMetadata, settings.showHiddenItems, pinShortcuts]);
+    }, [itemsWithMetadata, showHiddenItems, pinShortcuts]);
 
     /**
      * Create a map for O(1) item lookups by path
@@ -993,7 +1000,7 @@ export function useNavigationPaneData({
             if (item.type === NavigationPaneItemType.TAG) {
                 const tagNode = item.data;
                 const current = tagNode.notesWithTag.size;
-                if (settings.includeDescendantNotes) {
+                if (includeDescendantNotes) {
                     const total = getTotalNoteCount(tagNode);
                     const descendants = Math.max(total - current, 0);
                     counts.set(tagNode.path, { current, descendants, total });
@@ -1008,7 +1015,7 @@ export function useNavigationPaneData({
         });
 
         return counts;
-    }, [itemsWithMetadata, settings.showTags, settings.showUntagged, settings.includeDescendantNotes, untaggedCount, isVisible]);
+    }, [itemsWithMetadata, settings.showTags, settings.showUntagged, includeDescendantNotes, untaggedCount, isVisible]);
 
     /**
      * Pre-compute folder file counts to avoid recursive counting during render
@@ -1021,14 +1028,14 @@ export function useNavigationPaneData({
             return counts;
         }
 
-        const excludedProperties = settings.excludedFiles;
+        const excludedProperties = effectiveFrontmatterExclusions;
         const excludedFolderPatterns = settings.excludedFolders;
         const folderNoteSettings: FolderNoteDetectionSettings = {
             enableFolderNotes: settings.enableFolderNotes,
             folderNoteName: settings.folderNoteName
         };
-        const includeDescendants = settings.includeDescendantNotes;
-        const showHiddenFolders = settings.showHiddenItems;
+        const includeDescendants = includeDescendantNotes;
+        const showHiddenFolders = showHiddenItems;
         const countOptions = {
             app,
             fileVisibility: settings.fileVisibility,
@@ -1054,10 +1061,10 @@ export function useNavigationPaneData({
     }, [
         itemsWithMetadata,
         settings.showNoteCount,
-        settings.includeDescendantNotes,
-        settings.excludedFiles,
+        includeDescendantNotes,
+        effectiveFrontmatterExclusions,
         settings.excludedFolders,
-        settings.showHiddenItems,
+        showHiddenItems,
         settings.fileVisibility,
         settings.enableFolderNotes,
         settings.folderNoteName,

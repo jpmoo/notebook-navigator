@@ -43,7 +43,8 @@ export const STRINGS_PL = {
         emptyStateNoNotes: 'Brak notatek', // Message shown when a folder/tag has no notes (English: No notes)
         pinnedSection: '📌 Przypięte', // Header for the pinned notes section at the top of file list (English: 📌 Pinned)
         notesSection: 'Notatki', // Header shown between pinned and regular items when showing documents only (English: Notes)
-        filesSection: 'Pliki' // Header shown between pinned and regular items when showing supported or all files (English: Files)
+        filesSection: 'Pliki', // Header shown between pinned and regular items when showing supported or all files (English: Files)
+        hiddenItemAriaLabel: '{name} (ukryte)' // Accessibility label applied to list items that are normally hidden
     },
 
     // Tag list
@@ -98,8 +99,8 @@ export const STRINGS_PL = {
         finishRootFolderReorder: 'Zakończ przestawianie',
         toggleDescendantNotes: 'Pokaż notatki z podfolderów / potomnych', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: 'Automatycznie rozwijaj foldery i tagi', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
-        showExcludedItems: 'Pokaż ukryte elementy', // Tooltip for button to show hidden items (English: Show hidden items)
-        hideExcludedItems: 'Ukryj ukryte elementy', // Tooltip for button to hide hidden items (English: Hide hidden items)
+        showExcludedItems: 'Pokaż ukryte foldery, tagi i notatki', // Tooltip for button to show hidden items (English: Show hidden items)
+        hideExcludedItems: 'Ukryj ukryte foldery, tagi i notatki', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Pokaż podwójne panele', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Pokaż pojedynczy panel', // Tooltip for button to show single-pane layout (English: Show single pane)
         changeAppearance: 'Zmień wygląd', // Tooltip for button to change folder appearance settings (English: Change appearance)
@@ -176,6 +177,7 @@ export const STRINGS_PL = {
             changeColor: 'Zmień kolor ikony',
             changeBackground: 'Zmień tło',
             excludeFolder: 'Ukryj folder',
+            unhideFolder: 'Pokaż folder',
             moveFolder: 'Przenieś do...',
             renameFolder: 'Zmień nazwę folderu',
             deleteFolder: 'Usuń folder'
@@ -280,6 +282,10 @@ export const STRINGS_PL = {
             removeAllTagsFromNote: 'Czy na pewno chcesz usunąć wszystkie tagi z tej notatki?',
             removeAllTagsFromNotes: 'Czy na pewno chcesz usunąć wszystkie tagi z {count} notatek?'
         },
+        folderNoteType: {
+            title: 'Wybierz typ notatki folderu',
+            folderLabel: 'Folder: {name}'
+        },
         folderSuggest: {
             placeholder: 'Przenieś do folderu...',
             navigatePlaceholder: 'Przejdź do folderu...',
@@ -358,7 +364,8 @@ export const STRINGS_PL = {
             noFileSelected: 'Żaden plik nie jest wybrany'
         },
         notices: {
-            excludedFolder: 'Wykluczony folder: {name}'
+            hideFolder: 'Ukryty folder: {name}',
+            showFolder: 'Widoczny folder: {name}'
         },
         notifications: {
             deletedMultipleFiles: 'Usunięto {count} plików',
@@ -381,7 +388,8 @@ export const STRINGS_PL = {
             iconPackDownloaded: '{provider} pobrano',
             iconPackUpdated: '{provider} zaktualizowano ({version})',
             iconPackRemoved: '{provider} usunięto',
-            iconPackLoadFailed: 'Nie udało się załadować {provider}'
+            iconPackLoadFailed: 'Nie udało się załadować {provider}',
+            hiddenFileReveal: 'Plik jest ukryty. Włącz „Pokaż ukryte elementy", aby go wyświetlić'
         },
         confirmations: {
             deleteMultipleFiles: 'Czy na pewno chcesz usunąć {count} plików?',
@@ -450,7 +458,7 @@ export const STRINGS_PL = {
         navigateToTag: 'Przejdź do tagu', // Command palette: Navigate to a tag using fuzzy search (English: Navigate to tag)
         addShortcut: 'Dodaj do skrótów', // Command palette: Adds the current file, folder, or tag to shortcuts (English: Add to shortcuts)
         toggleDescendants: 'Przełącz podfoldery', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
-        toggleHidden: 'Przełącz ukryte elementy', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
+        toggleHidden: 'Przełącz ukryte foldery, tagi i notatki', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'Przełącz sortowanie tagów', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
         collapseExpand: 'Zwiń / rozwiń wszystkie elementy', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Dodaj tag do wybranych plików', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -496,10 +504,11 @@ export const STRINGS_PL = {
         },
         groups: {
             general: {
+                filtering: 'Filtrowanie',
+                behavior: 'Zachowanie',
                 view: 'Wygląd',
                 desktopAppearance: 'Wygląd na komputerze',
-                behavior: 'Zachowanie',
-                filtering: 'Filtrowanie',
+                mobileAppearance: 'Wygląd na telefonie',
                 formatting: 'Formatowanie'
             },
             navigation: {
@@ -572,6 +581,10 @@ export const STRINGS_PL = {
                 name: 'Pokaż notatki z podfolderów / potomnych',
                 desc: 'Podczas przeglądania folderu lub tagu uwzględnij notatki z zagnieżdżonych podfolderów i potomnych tagów.'
             },
+            limitPinnedToCurrentFolder: {
+                name: 'Pokaż przypięte notatki tylko w folderze nadrzędnym',
+                desc: 'Przypięte notatki pojawiają się tylko podczas przeglądania ich folderu'
+            },
             separateNoteCounts: {
                 name: 'Pokaż bieżące i potomne liczniki osobno',
                 desc: 'Wyświetla liczbę notatek w formacie "bieżące ▾ potomne" w folderach i tagach.'
@@ -621,14 +634,18 @@ export const STRINGS_PL = {
                     vertical: 'Podział pionowy'
                 }
             },
-            dualPaneBackground: {
+            appearanceBackground: {
                 name: 'Kolor tła',
-                desc: 'Wybierz kolory tła dla panelu nawigacji i panelu listy na komputerze.',
+                desc: 'Wybierz kolory tła dla panelu nawigacji i panelu listy.',
                 options: {
                     separate: 'Oddzielne tła',
                     primary: 'Użyj tła listy',
                     secondary: 'Użyj tła nawigacji'
                 }
+            },
+            appearanceScale: {
+                name: 'Poziom powiększenia',
+                desc: 'Kontroluje ogólny poziom powiększenia w Notebook Navigator.'
             },
             startView: {
                 name: 'Domyślny widok startowy',
@@ -649,6 +666,10 @@ export const STRINGS_PL = {
             autoSelectFirstFileOnFocusChange: {
                 name: 'Automatycznie wybierz pierwszą notatkę (tylko desktop)',
                 desc: 'Automatycznie otwórz pierwszą notatkę podczas zmiany folderów lub tagów.'
+            },
+            skipAutoScroll: {
+                name: 'Wyłącz automatyczne przewijanie dla skrótów',
+                desc: 'Nie przewijaj panelu nawigacji przy klikaniu elementów w skrótach.'
             },
             autoExpandFoldersTags: {
                 name: 'Automatycznie rozwijaj foldery i tagi',
@@ -680,6 +701,12 @@ export const STRINGS_PL = {
             showTooltipPath: {
                 name: 'Pokaż ścieżkę',
                 desc: 'Wyświetla ścieżkę folderu pod nazwami notatek w podpowiedziach.'
+            },
+            resetPaneSeparator: {
+                name: 'Zresetuj pozycję separatora paneli',
+                desc: 'Resetuje przeciągalny separator między panelem nawigacji a panelem listy do pozycji domyślnej.',
+                buttonText: 'Zresetuj separator',
+                notice: 'Pozycja separatora została zresetowana. Uruchom ponownie Obsidian lub otwórz ponownie Notebook Navigator, aby zastosować.'
             },
             multiSelectModifier: {
                 name: 'Modyfikator wielokrotnego wyboru',
@@ -883,6 +910,10 @@ export const STRINGS_PL = {
                 name: 'Pokaż notatki bez tagów',
                 desc: 'Wyświetl element "Bez tagów" dla notatek bez żadnych tagów.'
             },
+            keepEmptyTagsProperty: {
+                name: 'Zachowaj właściwość tags po usunięciu ostatniego tagu',
+                desc: 'Zachowuje właściwość tags we frontmatterze, gdy wszystkie tagi są usuwane. Gdy wyłączone, właściwość tags jest usuwana z frontmattera.'
+            },
             hiddenTags: {
                 name: 'Ukryte tagi',
                 desc: 'Lista prefiksów tagów lub symboli wieloznacznych nazw oddzielonych przecinkami. Użyj `tag*` lub `*tag`, aby dopasować nazwy tagów. Ukrycie tagu ukrywa też wszystkie jego pod-tagi (np. "archive" ukrywa "archive/2024/docs").',
@@ -896,6 +927,7 @@ export const STRINGS_PL = {
                 name: 'Domyślny typ notatki folderu',
                 desc: 'Typ notatki folderu tworzony z menu kontekstowego.',
                 options: {
+                    ask: 'Pytaj przy tworzeniu',
                     markdown: 'Markdown',
                     canvas: 'Canvas',
                     base: 'Base'
@@ -908,8 +940,8 @@ export const STRINGS_PL = {
             },
             folderNoteProperties: {
                 name: 'Właściwości notatki folderu',
-                desc: 'Właściwości frontmatter do dodania do nowo tworzonych notatek folderów (oddzielone przecinkami).',
-                placeholder: 'foldernote, darktheme'
+                desc: 'YAML frontmatter dodawany do nowych notatek folderów. Znaczniki --- są dodawane automatycznie.',
+                placeholder: 'theme: dark\nfoldernote: true'
             },
             hideFolderNoteInList: {
                 name: 'Ukryj notatki folderów na liście',

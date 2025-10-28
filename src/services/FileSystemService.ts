@@ -24,6 +24,7 @@ import { FolderSuggestModal } from '../modals/FolderSuggestModal';
 import { InputModal } from '../modals/InputModal';
 import { NotebookNavigatorSettings } from '../settings';
 import { NavigationItemType, ItemType } from '../types';
+import type { VisibilityPreferences } from '../types';
 import { ExtendedApp, TIMEOUTS, OBSIDIAN_COMMANDS } from '../types/obsidian-extended';
 import { createFileWithOptions, createDatabaseContent } from '../utils/fileCreationUtils';
 import { EXCALIDRAW_BASENAME_SUFFIX, isExcalidrawFile, stripExcalidrawSuffix } from '../utils/fileNameUtils';
@@ -100,7 +101,8 @@ export class FileSystemOperations {
     constructor(
         private app: App,
         private getTagTreeService: () => TagTreeService | null,
-        private getCommandQueue: () => CommandQueueService | null
+        private getCommandQueue: () => CommandQueueService | null,
+        private getVisibilityPreferences: () => VisibilityPreferences // Function to get current visibility preferences for descendant/hidden items state
     ) {}
 
     /**
@@ -248,15 +250,17 @@ export class FileSystemOperations {
 
                     // Reconstruct filename with .excalidraw suffix
                     finalFileName = `${workingName}${EXCALIDRAW_BASENAME_SUFFIX}${extensionSuffix}`;
-                } else if (!extensionSuffix) {
-                    // File has no extension, use input as-is
-                    finalFileName = trimmedInput;
-                } else if (trimmedInput.includes('.')) {
-                    // User provided extension, use input as-is
-                    finalFileName = trimmedInput;
                 } else {
-                    // Append original extension to input
-                    finalFileName = `${trimmedInput}${extensionSuffix}`;
+                    // Preserve original extension for all other files
+                    let workingName = trimmedInput;
+                    if (extensionSuffix && workingName.toLowerCase().endsWith(extensionSuffix.toLowerCase())) {
+                        workingName = workingName.slice(0, -extensionSuffix.length);
+                    }
+                    workingName = workingName.replace(/\.+$/u, '');
+                    if (!workingName) {
+                        return;
+                    }
+                    finalFileName = extensionSuffix ? `${workingName}${extensionSuffix}` : workingName;
                 }
 
                 // Skip rename if name unchanged
@@ -394,12 +398,14 @@ export class FileSystemOperations {
     ): Promise<void> {
         // Get the file list based on selection type
         let currentFiles: TFile[] = [];
+        // Get current UX preferences for descendant/hidden items when determining next file to select
+        const visibility = this.getVisibilityPreferences();
         if (selectionContext.selectionType === ItemType.FOLDER && selectionContext.selectedFolder) {
             const { getFilesForFolder } = await import('../utils/fileFinder');
-            currentFiles = getFilesForFolder(selectionContext.selectedFolder, settings, this.app);
+            currentFiles = getFilesForFolder(selectionContext.selectedFolder, settings, visibility, this.app);
         } else if (selectionContext.selectionType === ItemType.TAG && selectionContext.selectedTag) {
             const { getFilesForTag } = await import('../utils/fileFinder');
-            currentFiles = getFilesForTag(selectionContext.selectedTag, settings, this.app, this.getTagTreeService());
+            currentFiles = getFilesForTag(selectionContext.selectedTag, settings, visibility, this.app, this.getTagTreeService());
         }
 
         // Find next file to select

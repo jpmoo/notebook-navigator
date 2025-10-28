@@ -18,10 +18,12 @@
 
 import { useSelectionState } from '../context/SelectionContext';
 import { useSettingsState } from '../context/SettingsContext';
+import { useUXPreferences } from '../context/UXPreferencesContext';
 import { strings } from '../i18n';
 import { ObsidianIcon } from './ObsidianIcon';
 import { useNavigationActions } from '../hooks/useNavigationActions';
 import { useUIState } from '../context/UIStateContext';
+import { hasHiddenItemSources } from '../utils/exclusionUtils';
 
 interface NavigationToolbarProps {
     onTreeUpdateComplete?: () => void;
@@ -39,12 +41,15 @@ export function NavigationToolbar({
     rootReorderDisabled
 }: NavigationToolbarProps) {
     const settings = useSettingsState();
+    const uxPreferences = useUXPreferences();
+    const showHiddenItems = uxPreferences.showHiddenItems;
     const selectionState = useSelectionState();
     const uiState = useUIState();
 
     // Hook providing shared navigation actions (expand/collapse, folder creation, toggle visibility)
     const { shouldCollapseItems, handleExpandCollapseAll, handleNewFolder, handleToggleShowExcludedFolders } = useNavigationActions();
-    const hasHiddenItems = settings.excludedFolders.length > 0 || settings.hiddenTags.length > 0;
+    // Detects if any hidden folders, tags, or files are configured to determine if toggle should be shown
+    const hasHiddenItems = hasHiddenItemSources(settings);
 
     return (
         <div className="nn-mobile-toolbar">
@@ -80,10 +85,10 @@ export function NavigationToolbar({
             </button>
             {hasHiddenItems ? (
                 <button
-                    className={`nn-mobile-toolbar-button ${settings.showHiddenItems ? 'nn-mobile-toolbar-button-active' : ''}`}
-                    aria-label={settings.showHiddenItems ? strings.paneHeader.hideExcludedItems : strings.paneHeader.showExcludedItems}
-                    onClick={async () => {
-                        await handleToggleShowExcludedFolders();
+                    className={`nn-mobile-toolbar-button ${showHiddenItems ? 'nn-mobile-toolbar-button-active' : ''}`}
+                    aria-label={showHiddenItems ? strings.paneHeader.hideExcludedItems : strings.paneHeader.showExcludedItems}
+                    onClick={() => {
+                        handleToggleShowExcludedFolders();
                         if (onTreeUpdateComplete) {
                             // Defer callback until after DOM updates complete
                             requestAnimationFrame(() => {

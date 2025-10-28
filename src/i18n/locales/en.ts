@@ -43,7 +43,8 @@ export const STRINGS_EN = {
         emptyStateNoNotes: 'No notes', // Message shown when a folder/tag has no notes (English: No notes)
         pinnedSection: '📌 Pinned', // Header for the pinned notes section at the top of file list (English: 📌 Pinned)
         notesSection: 'Notes', // Header shown between pinned and regular items when showing documents only (English: Notes)
-        filesSection: 'Files' // Header shown between pinned and regular items when showing supported or all files (English: Files)
+        filesSection: 'Files', // Header shown between pinned and regular items when showing supported or all files (English: Files)
+        hiddenItemAriaLabel: '{name} (hidden)' // Accessibility label applied to list items that are normally hidden
     },
 
     // Tag list
@@ -99,8 +100,8 @@ export const STRINGS_EN = {
         finishRootFolderReorder: 'Finish root reorder',
         toggleDescendantNotes: 'Show notes from subfolders / descendants', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: 'Auto-expand folders and tags', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
-        showExcludedItems: 'Show hidden items', // Tooltip for button to show hidden items (English: Show hidden items)
-        hideExcludedItems: 'Hide hidden items', // Tooltip for button to hide hidden items (English: Hide hidden items)
+        showExcludedItems: 'Show hidden folders, tags, and notes', // Tooltip for button to show hidden items (English: Show hidden items)
+        hideExcludedItems: 'Hide hidden folders, tags, and notes', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Show dual panes', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Show single pane', // Tooltip for button to show single-pane layout (English: Show single pane)
         changeAppearance: 'Change appearance', // Tooltip for button to change folder appearance settings (English: Change appearance)
@@ -177,6 +178,7 @@ export const STRINGS_EN = {
             changeColor: 'Change color',
             changeBackground: 'Change background',
             excludeFolder: 'Hide folder',
+            unhideFolder: 'Unhide folder',
             moveFolder: 'Move to...',
             renameFolder: 'Rename folder',
             deleteFolder: 'Delete folder'
@@ -279,6 +281,10 @@ export const STRINGS_EN = {
             removeAllTagsFromNote: 'Are you sure you want to remove all tags from this note?',
             removeAllTagsFromNotes: 'Are you sure you want to remove all tags from {count} notes?'
         },
+        folderNoteType: {
+            title: 'Select folder note type',
+            folderLabel: 'Folder: {name}'
+        },
         folderSuggest: {
             placeholder: 'Move to folder...',
             navigatePlaceholder: 'Navigate to folder...',
@@ -356,7 +362,8 @@ export const STRINGS_EN = {
             noFileSelected: 'No file is selected'
         },
         notices: {
-            excludedFolder: 'Excluded folder: {name}'
+            hideFolder: 'Folder hidden: {name}',
+            showFolder: 'Folder shown: {name}'
         },
         notifications: {
             deletedMultipleFiles: 'Deleted {count} files',
@@ -379,7 +386,8 @@ export const STRINGS_EN = {
             iconPackDownloaded: '{provider} downloaded',
             iconPackUpdated: '{provider} updated ({version})',
             iconPackRemoved: '{provider} removed',
-            iconPackLoadFailed: 'Failed to load {provider}'
+            iconPackLoadFailed: 'Failed to load {provider}',
+            hiddenFileReveal: 'File is hidden. Enable "Show hidden items" to display it'
         },
         confirmations: {
             deleteMultipleFiles: 'Are you sure you want to delete {count} files?',
@@ -448,7 +456,7 @@ export const STRINGS_EN = {
         navigateToTag: 'Navigate to tag', // Command palette: Navigate to a tag using fuzzy search (English: Navigate to tag)
         addShortcut: 'Add to shortcuts', // Command palette: Adds the current file, folder, or tag to shortcuts (English: Add to shortcuts)
         toggleDescendants: 'Toggle descendants', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
-        toggleHidden: 'Toggle hidden items', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
+        toggleHidden: 'Toggle hidden folders, tags, and notes', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'Toggle tag sort order', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
         collapseExpand: 'Collapse / expand all items', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Add tag to selected files', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -494,10 +502,11 @@ export const STRINGS_EN = {
         },
         groups: {
             general: {
+                filtering: 'Filtering',
+                behavior: 'Behavior',
                 view: 'Appearance',
                 desktopAppearance: 'Desktop appearance',
-                behavior: 'Behavior',
-                filtering: 'Filtering',
+                mobileAppearance: 'Mobile appearance',
                 formatting: 'Formatting'
             },
             navigation: {
@@ -570,6 +579,10 @@ export const STRINGS_EN = {
                 name: 'Show notes from subfolders / descendants',
                 desc: 'Include notes from nested subfolders and tag descendants when viewing a folder or tag.'
             },
+            limitPinnedToCurrentFolder: {
+                name: 'Show pinned notes in parent folder only',
+                desc: 'Pinned notes appear only when viewing their folder'
+            },
             separateNoteCounts: {
                 name: 'Show current and descendant counts separately',
                 desc: 'Display note counts as "current ▾ descendants" format in folders and tags.'
@@ -619,14 +632,18 @@ export const STRINGS_EN = {
                     vertical: 'Vertical split'
                 }
             },
-            dualPaneBackground: {
+            appearanceBackground: {
                 name: 'Background color',
-                desc: 'Choose background colors for navigation and list panes on desktop.',
+                desc: 'Choose background colors for navigation and list panes.',
                 options: {
                     separate: 'Separate backgrounds',
                     primary: 'Use list background',
                     secondary: 'Use navigation background'
                 }
+            },
+            appearanceScale: {
+                name: 'Zoom level',
+                desc: 'Controls the overall zoom level of Notebook Navigator.'
             },
             startView: {
                 name: 'Default startup view',
@@ -647,6 +664,10 @@ export const STRINGS_EN = {
             autoSelectFirstFileOnFocusChange: {
                 name: 'Auto-select first note (desktop only)',
                 desc: 'Automatically open the first note when switching folders or tags.'
+            },
+            skipAutoScroll: {
+                name: 'Disable auto-scroll for shortcuts',
+                desc: "Don't scroll the navigation pane when clicking items in shortcuts."
             },
             autoExpandFoldersTags: {
                 name: 'Auto-expand folders and tags',
@@ -678,6 +699,12 @@ export const STRINGS_EN = {
             showTooltipPath: {
                 name: 'Show path',
                 desc: 'Display the folder path below note names in tooltips.'
+            },
+            resetPaneSeparator: {
+                name: 'Reset pane separator position',
+                desc: 'Reset the draggable separator between navigation pane and list pane to default position.',
+                buttonText: 'Reset separator',
+                notice: 'Separator position reset. Restart Obsidian or reopen Notebook Navigator to apply.'
             },
             multiSelectModifier: {
                 name: 'Multi-select modifier',
@@ -881,6 +908,10 @@ export const STRINGS_EN = {
                 name: 'Show untagged notes',
                 desc: 'Display "Untagged" item for notes without any tags.'
             },
+            keepEmptyTagsProperty: {
+                name: 'Retain tags property after removing last tag',
+                desc: 'Keep the tags frontmatter property when all tags are removed. When disabled, the tags property is deleted from frontmatter.'
+            },
             hiddenTags: {
                 name: 'Hidden tags',
                 desc: 'Comma-separated list of tag prefixes or name wildcards. Use tag* or *tag to match tag names. Hiding a tag also hides all its sub-tags (e.g., "archive" hides "archive/2024/docs").',
@@ -894,6 +925,7 @@ export const STRINGS_EN = {
                 name: 'Default folder note type',
                 desc: 'Folder note type created from the context menu.',
                 options: {
+                    ask: 'Ask when creating',
                     markdown: 'Markdown',
                     canvas: 'Canvas',
                     base: 'Base'
@@ -906,8 +938,8 @@ export const STRINGS_EN = {
             },
             folderNoteProperties: {
                 name: 'Folder note properties',
-                desc: 'Frontmatter properties to add to newly created folder notes (comma-separated).',
-                placeholder: 'foldernote, darktheme'
+                desc: 'YAML frontmatter added to new folder notes. --- markers are added automatically.',
+                placeholder: 'theme: dark\nfoldernote: true'
             },
             hideFolderNoteInList: {
                 name: 'Hide folder notes in list',

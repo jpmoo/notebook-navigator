@@ -62,6 +62,7 @@ import { useSelectionState, useSelectionDispatch } from '../context/SelectionCon
 import { useServices, useCommandQueue, useFileSystemOps, useMetadataService, useTagOperations } from '../context/ServicesContext';
 import { useRecentData } from '../context/RecentDataContext';
 import { useSettingsState, useSettingsUpdate } from '../context/SettingsContext';
+import { useUXPreferences } from '../context/UXPreferencesContext';
 import { useFileCache } from '../context/StorageContext';
 import { useUIState, useUIDispatch } from '../context/UIStateContext';
 import { useNavigationPaneKeyboard } from '../hooks/useNavigationPaneKeyboard';
@@ -103,8 +104,10 @@ import {
 } from '../utils/contextMenu';
 import type { NoteCountInfo } from '../types/noteCounts';
 import { calculateFolderNoteCounts } from '../utils/noteCountUtils';
+import { getEffectiveFrontmatterExclusions } from '../utils/exclusionUtils';
 import { normalizeNavigationSectionOrderInput } from '../utils/navigationSections';
 import { getPathBaseName } from '../utils/pathUtils';
+import type { NavigateToFolderOptions, RevealTagOptions } from '../hooks/useNavigatorReveal';
 
 export interface NavigationPaneHandle {
     getIndexOfPath: (itemType: ItemType, path: string) => number;
@@ -124,8 +127,8 @@ interface NavigationPaneProps {
      */
     rootContainerRef: React.RefObject<HTMLDivElement | null>;
     onExecuteSearchShortcut?: (shortcutKey: string, searchShortcut: SearchShortcut) => Promise<void> | void;
-    onNavigateToFolder: (folderPath: string) => void;
-    onRevealTag: (tagPath: string) => void;
+    onNavigateToFolder: (folderPath: string, options?: NavigateToFolderOptions) => void;
+    onRevealTag: (tagPath: string, options?: RevealTagOptions) => void;
     onRevealFile: (file: TFile) => void;
     onRevealShortcutFile?: (file: TFile) => void;
 }
@@ -147,6 +150,11 @@ export const NavigationPane = React.memo(
         const selectionState = useSelectionState();
         const selectionDispatch = useSelectionDispatch();
         const settings = useSettingsState();
+        const uxPreferences = useUXPreferences();
+        const includeDescendantNotes = uxPreferences.includeDescendantNotes;
+        const showHiddenItems = uxPreferences.showHiddenItems;
+        // Resolves frontmatter exclusions, returns empty array when hidden items are shown
+        const effectiveFrontmatterExclusions = getEffectiveFrontmatterExclusions(settings, showHiddenItems);
         const updateSettings = useSettingsUpdate();
         const uiState = useUIState();
         const uiDispatch = useUIDispatch();
@@ -165,9 +173,22 @@ export const NavigationPane = React.memo(
                 tagOperations,
                 tagTreeService,
                 commandQueue,
-                shortcuts
+                shortcuts,
+                visibility: { includeDescendantNotes, showHiddenItems }
             }),
-            [app, plugin, isMobile, fileSystemOps, metadataService, tagOperations, tagTreeService, commandQueue, shortcuts]
+            [
+                app,
+                plugin,
+                isMobile,
+                fileSystemOps,
+                metadataService,
+                tagOperations,
+                tagTreeService,
+                commandQueue,
+                shortcuts,
+                includeDescendantNotes,
+                showHiddenItems
+            ]
         );
 
         useEffect(() => {
@@ -649,6 +670,10 @@ export const NavigationPane = React.memo(
         const navigationBannerPath = settings.navigationBanner;
         // Banner should be shown in pinned area only when shortcuts are pinned and banner is configured
         const shouldShowPinnedBanner = Boolean(navigationBannerPath && pinnedShortcutItems.length > 0);
+        // We only reserve gutter space when a banner exists because Windows scrollbars
+        // change container width by ~7px when they appear. That width change used to
+        // feed back into the virtualizer via ResizeObserver and trigger infinite reflows.
+        const hasNavigationBannerConfigured = Boolean(settings.navigationBanner);
 
         const {
             reorderableRootFolders,
@@ -697,7 +722,6 @@ export const NavigationPane = React.memo(
             setRootReorderMode(prev => !prev);
         }, [canReorderRootItems]);
 
-        // Use the new scroll hook
         const { rowVirtualizer, scrollContainerRef, scrollContainerRefCallback, requestScroll } = useNavigationPaneScroll({
             items,
             pathToIndex,
@@ -974,14 +998,14 @@ export const NavigationPane = React.memo(
         const handleShortcutFolderActivate = useCallback(
             (folder: TFolder, shortcutKey: string) => {
                 setActiveShortcut(shortcutKey);
-                onNavigateToFolder(folder.path);
+                onNavigateToFolder(folder.path, { skipScroll: settings.skipAutoScroll, source: 'shortcut' });
                 scheduleShortcutRelease();
                 const container = rootContainerRef.current;
                 if (container && !uiState.singlePane) {
                     container.focus();
                 }
             },
-            [setActiveShortcut, onNavigateToFolder, scheduleShortcutRelease, rootContainerRef, uiState.singlePane]
+            [setActiveShortcut, onNavigateToFolder, scheduleShortcutRelease, rootContainerRef, uiState.singlePane, settings.skipAutoScroll]
         );
 
         // Opens folder note when clicking on a shortcut label with an associated folder note
@@ -1093,7 +1117,7 @@ export const NavigationPane = React.memo(
                     scheduleShortcutRelease();
                     return;
                 }
-                onRevealTag(canonicalPath);
+                onRevealTag(canonicalPath, { skipScroll: settings.skipAutoScroll, source: 'shortcut' });
 
                 if (!uiState.singlePane) {
                     uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'navigation' });
@@ -1115,7 +1139,8 @@ export const NavigationPane = React.memo(
                 rootContainerRef,
                 selectionDispatch,
                 scheduleShortcutRelease,
-                tagTree
+                tagTree,
+                settings.skipAutoScroll
             ]
         );
 
@@ -1299,10 +1324,10 @@ export const NavigationPane = React.memo(
                 return calculateFolderNoteCounts(folder, {
                     app,
                     fileVisibility: settings.fileVisibility,
-                    excludedFiles: settings.excludedFiles,
+                    excludedFiles: effectiveFrontmatterExclusions,
                     excludedFolders: settings.excludedFolders,
-                    includeDescendants: settings.includeDescendantNotes,
-                    showHiddenFolders: settings.showHiddenItems,
+                    includeDescendants: includeDescendantNotes,
+                    showHiddenFolders: showHiddenItems,
                     hideFolderNoteInList: settings.hideFolderNoteInList,
                     folderNoteSettings
                 });
@@ -1312,10 +1337,10 @@ export const NavigationPane = React.memo(
                 folderCounts,
                 settings.showNoteCount,
                 settings.fileVisibility,
-                settings.excludedFiles,
+                effectiveFrontmatterExclusions,
                 settings.excludedFolders,
-                settings.includeDescendantNotes,
-                settings.showHiddenItems,
+                includeDescendantNotes,
+                showHiddenItems,
                 settings.hideFolderNoteInList,
                 settings.enableFolderNotes,
                 settings.folderNoteName
@@ -1345,7 +1370,7 @@ export const NavigationPane = React.memo(
 
                 // Calculate note counts for the tag and its descendants
                 const current = tagNode.notesWithTag.size;
-                if (!settings.includeDescendantNotes) {
+                if (!includeDescendantNotes) {
                     // Return only current tag's note count when descendants are disabled
                     return {
                         current,
@@ -1364,7 +1389,7 @@ export const NavigationPane = React.memo(
                     total
                 };
             },
-            [settings.showNoteCount, settings.includeDescendantNotes, tagCounts, tagTree]
+            [settings.showNoteCount, includeDescendantNotes, tagCounts, tagTree]
         );
 
         // Generates display label for missing note shortcuts, stripping .md extension
@@ -1980,6 +2005,9 @@ export const NavigationPane = React.memo(
                 <div
                     ref={scrollContainerRefCallback}
                     className="nn-navigation-pane-scroller"
+                    // Reserve permanent gutter width when a banner is visible so the scrollbar
+                    // never changes clientWidth mid-resize (prevents RO feedback loops).
+                    data-banner={hasNavigationBannerConfigured ? 'true' : undefined}
                     data-pane="navigation"
                     role={isRootReorderMode ? 'list' : 'tree'}
                     tabIndex={-1}

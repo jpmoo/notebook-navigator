@@ -17,10 +17,17 @@
  */
 
 import { TFile, TFolder, App } from 'obsidian';
-import { NotebookNavigatorSettings } from '../settings';
-import { NavigatorContext, PinnedNotes } from '../types';
+import type { NotebookNavigatorSettings } from '../settings';
+import type { NavigatorContext, PinnedNotes, VisibilityPreferences } from '../types';
 import { UNTAGGED_TAG_ID } from '../types';
-import { shouldExcludeFile, shouldExcludeFolder, getFilteredDocumentFiles, getFilteredFiles, isPathInExcludedFolder } from './fileFilters';
+import {
+    shouldExcludeFile,
+    shouldExcludeFolder,
+    getFilteredDocumentFiles,
+    getFilteredFiles,
+    isPathInExcludedFolder,
+    isFolderInExcludedFolder
+} from './fileFilters';
 import { shouldDisplayFile, FILE_VISIBILITY } from './fileTypeUtils';
 import { getEffectiveSortOption, sortFiles } from './sortUtils';
 import { TagTreeService } from '../services/TagTreeService';
@@ -31,17 +38,43 @@ import { getFileDisplayName as getDisplayName } from './fileNameUtils';
 import { isFolderNote } from './folderNotes';
 import { createHiddenTagVisibility, normalizeTagPathValue } from './tagPrefixMatcher';
 
+interface CollectPinnedPathsOptions {
+    restrictToFolderPath?: string;
+}
+
+function getParentFolderPath(path: string): string {
+    const separatorIndex = path.lastIndexOf('/');
+    if (separatorIndex === -1 || separatorIndex === 0) {
+        return '/';
+    }
+    return path.slice(0, separatorIndex);
+}
+
 /**
  * Collects all pinned note paths from settings
  */
-export function collectPinnedPaths(pinnedNotes: PinnedNotes, contextFilter?: NavigatorContext): Set<string> {
+export function collectPinnedPaths(
+    pinnedNotes: PinnedNotes,
+    contextFilter?: NavigatorContext,
+    options: CollectPinnedPathsOptions = {}
+): Set<string> {
     const allPinnedPaths = new Set<string>();
 
     if (!pinnedNotes || typeof pinnedNotes !== 'object') {
         return allPinnedPaths;
     }
 
+    const restrictToFolderPath = options.restrictToFolderPath;
+    const shouldRestrictFolderContext = contextFilter === 'folder' && restrictToFolderPath !== undefined;
+
     for (const [path, contexts] of Object.entries(pinnedNotes)) {
+        if (shouldRestrictFolderContext) {
+            const parentPath = getParentFolderPath(path);
+            if (parentPath !== restrictToFolderPath) {
+                continue;
+            }
+        }
+
         if (!contextFilter) {
             // Include all pinned notes
             allPinnedPaths.add(path);
@@ -54,42 +87,84 @@ export function collectPinnedPaths(pinnedNotes: PinnedNotes, contextFilter?: Nav
     return allPinnedPaths;
 }
 
+// Reorders files to place pinned files first, preserving relative order within each group
+function applyPinnedOrdering(
+    files: TFile[],
+    settings: NotebookNavigatorSettings,
+    context: NavigatorContext,
+    options?: CollectPinnedPathsOptions
+): TFile[] {
+    const pinnedPaths = collectPinnedPaths(settings.pinnedNotes, context, options);
+    if (pinnedPaths.size === 0) {
+        return files;
+    }
+
+    const pinnedFiles: TFile[] = [];
+    const unpinnedFiles: TFile[] = [];
+
+    for (const file of files) {
+        if (pinnedPaths.has(file.path)) {
+            pinnedFiles.push(file);
+        } else {
+            unpinnedFiles.push(file);
+        }
+    }
+
+    return [...pinnedFiles, ...unpinnedFiles];
+}
+
 /**
  * Gets a sorted list of files for a given folder, respecting all plugin settings.
  * This is the primary utility function to be used by the reducer.
+ * @param folder - The folder to get files from
+ * @param settings - Plugin settings for sorting and filtering
+ * @param visibility - Visibility preferences for descendant notes and hidden items display
+ * @param app - Obsidian app instance
  */
-export function getFilesForFolder(folder: TFolder, settings: NotebookNavigatorSettings, app: App): TFile[] {
-    const excludedProperties = settings.excludedFiles;
-
-    // Collect files from folder
+export function getFilesForFolder(
+    folder: TFolder,
+    settings: NotebookNavigatorSettings,
+    visibility: VisibilityPreferences,
+    app: App
+): TFile[] {
     const files: TFile[] = [];
     const excludedFolderPatterns = settings.excludedFolders;
 
-    const showHiddenFolders = settings.showHiddenItems;
+    // Check if hidden folders should be shown based on UX preference
+    const showHiddenFolders = visibility.showHiddenItems;
+    const folderHiddenInitially = excludedFolderPatterns.length > 0 && isFolderInExcludedFolder(folder, excludedFolderPatterns);
+    if (!showHiddenFolders && folderHiddenInitially) {
+        return [];
+    }
 
-    const collectFiles = (f: TFolder): void => {
+    // Recursively collect files, tracking excluded folder state through the tree
+    const collectFiles = (f: TFolder, parentHidden: boolean): void => {
         for (const child of f.children) {
             if (child instanceof TFile) {
                 // Check if file should be displayed based on visibility setting
                 if (shouldDisplayFile(child, settings.fileVisibility, app)) {
                     files.push(child);
                 }
-            } else if (settings.includeDescendantNotes && child instanceof TFolder) {
-                // Skip excluded folders when collecting files - pass full path for path-based patterns
-                // Include excluded folders only when showHiddenItems is true
-                if (
-                    showHiddenFolders ||
-                    excludedFolderPatterns.length === 0 ||
-                    !shouldExcludeFolder(child.name, excludedFolderPatterns, child.path)
-                ) {
-                    collectFiles(child);
+            } else if (visibility.includeDescendantNotes && child instanceof TFolder) {
+                // Include descendant notes when UX preference is enabled
+                // Inherit parent's hidden state, then check if this folder is also excluded
+                let childHidden = parentHidden;
+                if (excludedFolderPatterns.length > 0 && shouldExcludeFolder(child.name, excludedFolderPatterns, child.path)) {
+                    childHidden = true;
+                }
+                const shouldTraverse = showHiddenFolders || !childHidden;
+                if (shouldTraverse) {
+                    collectFiles(child, childHidden);
                 }
             }
         }
     };
 
-    collectFiles(folder);
-    let allFiles = files.filter(file => !shouldExcludeFile(file, excludedProperties, app));
+    collectFiles(folder, folderHiddenInitially);
+    let allFiles: TFile[] = files;
+    if (!visibility.showHiddenItems && settings.excludedFiles.length > 0) {
+        allFiles = files.filter(file => file.extension !== 'md' || !shouldExcludeFile(file, settings.excludedFiles, app));
+    }
 
     // Filter out folder notes if enabled and set to hide
     if (settings.enableFolderNotes && settings.hideFolderNoteInList) {
@@ -149,50 +224,42 @@ export function getFilesForFolder(folder: TFolder, settings: NotebookNavigatorSe
         );
     }
 
-    const pinnedPaths = collectPinnedPaths(settings.pinnedNotes, 'folder');
-    // Separate pinned and unpinned files
-    let sortedFiles: TFile[];
-    if (pinnedPaths.size === 0) {
-        sortedFiles = allFiles;
-    } else {
-        const pinnedFiles: TFile[] = [];
-        const unpinnedFiles: TFile[] = [];
-
-        for (const file of allFiles) {
-            if (pinnedPaths.has(file.path)) {
-                pinnedFiles.push(file);
-            } else {
-                unpinnedFiles.push(file);
-            }
-        }
-
-        sortedFiles = [...pinnedFiles, ...unpinnedFiles];
-    }
-
-    return sortedFiles;
+    const pinnedOrderingOptions = settings.filterPinnedByFolder ? { restrictToFolderPath: folder.path } : undefined;
+    return applyPinnedOrdering(allFiles, settings, 'folder', pinnedOrderingOptions);
 }
 
 /**
  * Gets a sorted list of files for a given tag, respecting all plugin settings.
+ * @param tag - The tag to get files for
+ * @param settings - Plugin settings for sorting and filtering
+ * @param visibility - Visibility preferences for descendant notes and hidden items display
+ * @param app - Obsidian app instance
+ * @param tagTreeService - Service for tag tree operations
  */
-export function getFilesForTag(tag: string, settings: NotebookNavigatorSettings, app: App, tagTreeService: TagTreeService | null): TFile[] {
+export function getFilesForTag(
+    tag: string,
+    settings: NotebookNavigatorSettings,
+    visibility: VisibilityPreferences,
+    app: App,
+    tagTreeService: TagTreeService | null
+): TFile[] {
     // Get all files based on visibility setting, with proper filtering
     let allFiles: TFile[] = [];
-    const hiddenTagVisibility = createHiddenTagVisibility(settings.hiddenTags, settings.showHiddenItems);
+    const hiddenTagVisibility = createHiddenTagVisibility(settings.hiddenTags, visibility.showHiddenItems);
     const shouldFilterHiddenTags = hiddenTagVisibility.shouldFilterHiddenTags;
 
     if (settings.fileVisibility === FILE_VISIBILITY.DOCUMENTS) {
         // Only document files (markdown, canvas, base)
-        allFiles = getFilteredDocumentFiles(app, settings);
+        allFiles = getFilteredDocumentFiles(app, settings, { showHiddenItems: visibility.showHiddenItems });
     } else {
         // Get all files with filtering
-        allFiles = getFilteredFiles(app, settings);
+        allFiles = getFilteredFiles(app, settings, { showHiddenItems: visibility.showHiddenItems });
     }
 
     const excludedFolderPatterns = settings.excludedFolders;
     // For tag views, exclude files in excluded folders only when hidden items are not shown
     // When showing hidden items, include files from excluded folders to match the tag tree
-    const baseFiles = settings.showHiddenItems
+    const baseFiles = visibility.showHiddenItems
         ? allFiles
         : allFiles.filter(
               (file: TFile) => excludedFolderPatterns.length === 0 || !isPathInExcludedFolder(file.path, excludedFolderPatterns)
@@ -224,7 +291,7 @@ export function getFilesForTag(tag: string, settings: NotebookNavigatorSettings,
             // Collect tags to include based on setting:
             // - When showing notes from descendants: include selected tag and all descendants
             // - Otherwise: include only the exact selected tag
-            const tagsToInclude = settings.includeDescendantNotes
+            const tagsToInclude = visibility.includeDescendantNotes
                 ? tagTreeService?.collectTagPaths(selectedNode) || new Set<string>()
                 : new Set<string>([selectedNode.path]);
             const normalizedTagPaths = new Set(Array.from(tagsToInclude).map(path => normalizeTagPathValue(path)));
@@ -306,22 +373,5 @@ export function getFilesForTag(tag: string, settings: NotebookNavigatorSettings,
         );
     }
 
-    // Handle pinned notes for tag context
-    const pinnedPaths = collectPinnedPaths(settings.pinnedNotes, 'tag');
-    // Separate pinned and unpinned files
-    if (pinnedPaths.size === 0) {
-        return filteredFiles;
-    }
-    const pinnedFiles: TFile[] = [];
-    const unpinnedFiles: TFile[] = [];
-
-    for (const file of filteredFiles) {
-        if (pinnedPaths.has(file.path)) {
-            pinnedFiles.push(file);
-        } else {
-            unpinnedFiles.push(file);
-        }
-    }
-
-    return [...pinnedFiles, ...unpinnedFiles];
+    return applyPinnedOrdering(filteredFiles, settings, 'tag');
 }

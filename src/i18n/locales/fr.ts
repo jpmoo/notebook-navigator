@@ -43,7 +43,8 @@ export const STRINGS_FR = {
         emptyStateNoNotes: 'Aucune note', // Message shown when a folder/tag has no notes (English: No notes)
         pinnedSection: '📌 Épinglées', // Header for the pinned notes section at the top of file list (English: 📌 Pinned)
         notesSection: 'Notes', // Header shown between pinned and regular items when showing documents only (English: Notes)
-        filesSection: 'Fichiers' // Header shown between pinned and regular items when showing supported or all files (English: Files)
+        filesSection: 'Fichiers', // Header shown between pinned and regular items when showing supported or all files (English: Files)
+        hiddenItemAriaLabel: '{name} (masqué)' // Accessibility label applied to list items that are normally hidden
     },
 
     // Tag list
@@ -98,8 +99,8 @@ export const STRINGS_FR = {
         finishRootFolderReorder: 'Terminer la réorganisation',
         toggleDescendantNotes: 'Afficher les notes des sous-dossiers / descendants', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants)
         autoExpandFoldersTags: 'Développer automatiquement les dossiers et les étiquettes', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
-        showExcludedItems: 'Afficher les éléments masqués', // Tooltip for button to show hidden items (English: Show hidden items)
-        hideExcludedItems: 'Masquer les éléments masqués', // Tooltip for button to hide hidden items (English: Hide hidden items)
+        showExcludedItems: 'Afficher les dossiers, étiquettes et notes masqués', // Tooltip for button to show hidden items (English: Show hidden items)
+        hideExcludedItems: 'Masquer les dossiers, étiquettes et notes masqués', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Afficher les panneaux doubles', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Afficher panneau unique', // Tooltip for button to show single-pane layout (English: Show single pane)
         changeAppearance: "Changer l'apparence", // Tooltip for button to change folder appearance settings (English: Change appearance)
@@ -177,6 +178,7 @@ export const STRINGS_FR = {
             changeColor: 'Changer la couleur',
             changeBackground: 'Changer l’arrière-plan',
             excludeFolder: 'Masquer le dossier',
+            unhideFolder: 'Afficher le dossier',
             moveFolder: 'Déplacer vers...',
             renameFolder: 'Renommer le dossier',
             deleteFolder: 'Supprimer le dossier'
@@ -279,6 +281,10 @@ export const STRINGS_FR = {
             removeAllTagsFromNote: 'Êtes-vous sûr de vouloir supprimer toutes les étiquettes de cette note ?',
             removeAllTagsFromNotes: 'Êtes-vous sûr de vouloir supprimer toutes les étiquettes de {count} notes ?'
         },
+        folderNoteType: {
+            title: 'Sélectionner le type de note de dossier',
+            folderLabel: 'Dossier : {name}'
+        },
         folderSuggest: {
             placeholder: 'Déplacer vers le dossier...',
             navigatePlaceholder: 'Naviguer vers le dossier...',
@@ -357,7 +363,8 @@ export const STRINGS_FR = {
             noFileSelected: 'Aucun fichier sélectionné'
         },
         notices: {
-            excludedFolder: 'Dossier exclu : {name}'
+            hideFolder: 'Dossier masqué : {name}',
+            showFolder: 'Dossier affiché : {name}'
         },
         notifications: {
             deletedMultipleFiles: '{count} fichiers supprimés',
@@ -380,7 +387,8 @@ export const STRINGS_FR = {
             iconPackDownloaded: '{provider} téléchargé',
             iconPackUpdated: '{provider} mis à jour ({version})',
             iconPackRemoved: '{provider} supprimé',
-            iconPackLoadFailed: 'Échec du chargement de {provider}'
+            iconPackLoadFailed: 'Échec du chargement de {provider}',
+            hiddenFileReveal: "Le fichier est masqué. Activer « Afficher les éléments masqués » pour l'afficher"
         },
         confirmations: {
             deleteMultipleFiles: 'Voulez-vous vraiment supprimer {count} fichiers ?',
@@ -449,7 +457,7 @@ export const STRINGS_FR = {
         navigateToTag: "Naviguer vers l'étiquette", // Command palette: Navigate to a tag using fuzzy search (English: Navigate to tag)
         addShortcut: 'Ajouter aux raccourcis', // Command palette: Adds the current file, folder, or tag to shortcuts (English: Add to shortcuts)
         toggleDescendants: 'Basculer descendants', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
-        toggleHidden: 'Basculer les éléments masqués', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
+        toggleHidden: 'Basculer les dossiers, étiquettes et notes masqués', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'Basculer le tri des étiquettes', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
         collapseExpand: 'Replier / déplier tous les éléments', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Ajouter une étiquette aux fichiers sélectionnés', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -495,10 +503,11 @@ export const STRINGS_FR = {
         },
         groups: {
             general: {
+                filtering: 'Filtrage',
+                behavior: 'Comportement',
                 view: 'Apparence',
                 desktopAppearance: 'Apparence sur ordinateur',
-                behavior: 'Comportement',
-                filtering: 'Filtrage',
+                mobileAppearance: 'Apparence mobile',
                 formatting: 'Formatage'
             },
             navigation: {
@@ -572,6 +581,10 @@ export const STRINGS_FR = {
                 name: 'Afficher les notes des sous-dossiers / descendants',
                 desc: "Inclure les notes des sous-dossiers imbriqués et des descendants d'étiquettes lors de l'affichage d'un dossier ou d'une étiquette."
             },
+            limitPinnedToCurrentFolder: {
+                name: 'Afficher les notes épinglées uniquement dans le dossier parent',
+                desc: 'Les notes épinglées apparaissent uniquement lors de la visualisation de leur dossier'
+            },
             separateNoteCounts: {
                 name: 'Afficher les comptes actuels et descendants séparément',
                 desc: 'Affiche le nombre de notes au format "actuel ▾ descendants" dans les dossiers et étiquettes.'
@@ -621,14 +634,18 @@ export const STRINGS_FR = {
                     vertical: 'Séparation verticale'
                 }
             },
-            dualPaneBackground: {
+            appearanceBackground: {
                 name: 'Couleur de fond',
-                desc: 'Choisissez les couleurs de fond pour les volets de navigation et de liste sur bureau.',
+                desc: 'Choisissez les couleurs de fond pour les volets de navigation et de liste.',
                 options: {
                     separate: 'Arrière-plans séparés',
                     primary: 'Utiliser le fond de la liste',
                     secondary: 'Utiliser le fond de navigation'
                 }
+            },
+            appearanceScale: {
+                name: 'Niveau de zoom',
+                desc: 'Contrôle le niveau de zoom global de Notebook Navigator.'
             },
             startView: {
                 name: 'Vue de démarrage par défaut',
@@ -649,6 +666,10 @@ export const STRINGS_FR = {
             autoSelectFirstFileOnFocusChange: {
                 name: 'Sélectionner automatiquement la première note (ordinateur uniquement)',
                 desc: "Ouvrir automatiquement la première note lors du changement de dossier ou d'étiquette."
+            },
+            skipAutoScroll: {
+                name: 'Désactiver le défilement automatique pour les raccourcis',
+                desc: 'Ne pas faire défiler le panneau de navigation lors du clic sur les éléments de raccourcis.'
             },
             autoExpandFoldersTags: {
                 name: 'Développer automatiquement les dossiers et les étiquettes',
@@ -680,6 +701,12 @@ export const STRINGS_FR = {
             showTooltipPath: {
                 name: 'Afficher le chemin',
                 desc: 'Affiche le chemin du dossier sous le nom des notes dans les infobulles.'
+            },
+            resetPaneSeparator: {
+                name: 'Réinitialiser la position du séparateur de panneaux',
+                desc: 'Réinitialise le séparateur déplaçable entre le panneau de navigation et le panneau de liste à la position par défaut.',
+                buttonText: 'Réinitialiser le séparateur',
+                notice: 'Position du séparateur réinitialisée. Redémarrez Obsidian ou rouvrez Notebook Navigator pour appliquer.'
             },
             multiSelectModifier: {
                 name: 'Modificateur de sélection multiple',
@@ -884,6 +911,10 @@ export const STRINGS_FR = {
                 name: 'Afficher les notes sans étiquette',
                 desc: 'Afficher l\'élément "Sans étiquette" pour les notes sans aucune étiquette.'
             },
+            keepEmptyTagsProperty: {
+                name: 'Conserver la propriété tags après suppression de la dernière étiquette',
+                desc: 'Conserve la propriété tags dans le frontmatter lorsque toutes les étiquettes sont supprimées. Si désactivé, la propriété tags est supprimée du frontmatter.'
+            },
             hiddenTags: {
                 name: 'Étiquettes cachées',
                 desc: 'Liste séparée par des virgules de préfixes ou de jokers de nom d\'étiquettes à masquer. Utilisez `tag*` ou `*tag` pour faire correspondre les noms d\'étiquette. Masquer une étiquette masque aussi toutes ses sous-étiquettes (par ex. "archive" masque "archive/2024/docs").',
@@ -897,6 +928,7 @@ export const STRINGS_FR = {
                 name: 'Type de note de dossier par défaut',
                 desc: 'Type de note de dossier créé depuis le menu contextuel.',
                 options: {
+                    ask: 'Demander lors de la création',
                     markdown: 'Markdown',
                     canvas: 'Canvas',
                     base: 'Base'
@@ -909,8 +941,8 @@ export const STRINGS_FR = {
             },
             folderNoteProperties: {
                 name: 'Propriétés de note de dossier',
-                desc: 'Propriétés frontmatter à ajouter aux notes de dossier nouvellement créées (séparées par des virgules).',
-                placeholder: 'foldernote, darktheme'
+                desc: 'En-tête YAML ajouté aux nouvelles notes de dossier. Les marqueurs --- sont ajoutés automatiquement.',
+                placeholder: 'theme: dark\nfoldernote: true'
             },
             hideFolderNoteInList: {
                 name: 'Masquer les notes de dossier dans la liste',

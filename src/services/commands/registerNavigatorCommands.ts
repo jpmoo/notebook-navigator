@@ -8,6 +8,7 @@ import { NOTEBOOK_NAVIGATOR_VIEW } from '../../types';
 import { strings } from '../../i18n';
 import { isFolderNote, isSupportedFolderNoteExtension } from '../../utils/folderNotes';
 import { isFolderInExcludedFolder, shouldExcludeFile } from '../../utils/fileFilters';
+import { getEffectiveFrontmatterExclusions, isFileHiddenBySettings } from '../../utils/exclusionUtils';
 import { NotebookNavigatorView } from '../../view/NotebookNavigatorView';
 
 /**
@@ -87,6 +88,9 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
                 if (!checking) {
                     void (async () => {
                         await plugin.activateView();
+                        if (isFileHiddenBySettings(activeFile, plugin.settings, plugin.app, plugin.getUXPreferences().showHiddenItems)) {
+                            new Notice(strings.fileSystem.notifications.hiddenFileReveal);
+                        }
                         await plugin.revealFileInActualFolder(activeFile);
                     })();
                 }
@@ -102,8 +106,7 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
         name: strings.commands.toggleDescendants,
         callback: async () => {
             await plugin.activateView();
-            plugin.settings.includeDescendantNotes = !plugin.settings.includeDescendantNotes;
-            await plugin.saveSettingsAndUpdate();
+            plugin.toggleIncludeDescendantNotes();
         }
     });
 
@@ -113,8 +116,7 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
         name: strings.commands.toggleHidden,
         callback: async () => {
             await plugin.activateView();
-            plugin.settings.showHiddenItems = !plugin.settings.showHiddenItems;
-            await plugin.saveSettingsAndUpdate();
+            plugin.toggleShowHiddenItems();
         }
     });
 
@@ -262,6 +264,9 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
 
             // List of folder notes that can be pinned
             const eligible: TFile[] = [];
+            // Resolves frontmatter exclusions, returns empty array when hidden items are shown
+            const { showHiddenItems } = plugin.getUXPreferences();
+            const effectiveExcludedFiles = getEffectiveFrontmatterExclusions(plugin.settings, showHiddenItems);
 
             // Find all eligible folder notes in vault
             plugin.app.vault.getAllLoadedFiles().forEach(file => {
@@ -282,12 +287,12 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
                 }
 
                 // Skip folder notes in excluded folders when hidden items are disabled
-                if (!plugin.settings.showHiddenItems && isFolderInExcludedFolder(parent, plugin.settings.excludedFolders)) {
+                if (!plugin.getUXPreferences().showHiddenItems && isFolderInExcludedFolder(parent, plugin.settings.excludedFolders)) {
                     return;
                 }
 
-                // Skip files that match exclusion patterns
-                if (shouldExcludeFile(file, plugin.settings.excludedFiles, plugin.app)) {
+                // Skip files that are excluded by frontmatter when hidden items are disabled
+                if (effectiveExcludedFiles.length > 0 && shouldExcludeFile(file, effectiveExcludedFiles, plugin.app)) {
                     return;
                 }
 

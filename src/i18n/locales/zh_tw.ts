@@ -43,7 +43,8 @@ export const STRINGS_ZH_TW = {
         emptyStateNoNotes: '沒有筆記', // 當資料夾/標籤沒有筆記時顯示的訊息 (英文: No notes)
         pinnedSection: '📌 已釘選', // 檔案列表頂部釘選筆記區段的標頭 (英文: 📌 Pinned)
         notesSection: '筆記', // 僅顯示文件時，在釘選項目和一般項目之間顯示的標頭 (英文: Notes)
-        filesSection: '檔案' // 顯示支援的或所有檔案時，在釘選項目和一般項目之間顯示的標頭 (英文: Files)
+        filesSection: '檔案', // 顯示支援的或所有檔案時，在釘選項目和一般項目之間顯示的標頭 (英文: Files)
+        hiddenItemAriaLabel: '{name} (已隱藏)' // 用於標示通常被隱藏項目的無障礙標籤
     },
 
     // 標籤列表
@@ -99,8 +100,8 @@ export const STRINGS_ZH_TW = {
         finishRootFolderReorder: '完成重新排列',
         toggleDescendantNotes: '顯示子資料夾/後代中的筆記', // 工具提示：包含資料夾和標籤的後代
         autoExpandFoldersTags: '自動展開資料夾和標籤', // 選取時自動展開資料夾和標籤的切換按鈕工具提示 (英文: Auto-expand folders and tags)
-        showExcludedItems: '顯示隱藏項目', // 顯示隱藏項目的按鈕工具提示 (英文: Show hidden items)
-        hideExcludedItems: '隱藏隱藏項目', // 隱藏隱藏項目的按鈕工具提示 (英文: Hide hidden items)
+        showExcludedItems: '顯示隱藏的資料夾、標籤和筆記', // 顯示隱藏項目的按鈕工具提示 (英文: Show hidden items)
+        hideExcludedItems: '隱藏隱藏的資料夾、標籤和筆記', // 隱藏隱藏項目的按鈕工具提示 (英文: Hide hidden items)
         showDualPane: '顯示雙窗格', // 顯示雙窗格佈局的按鈕工具提示 (英文: Show dual panes)
         showSinglePane: '顯示單一窗格', // 顯示單一窗格佈局的按鈕工具提示 (英文: Show single pane)
         changeAppearance: '變更外觀', // 變更資料夾外觀設定的按鈕工具提示 (英文: Change appearance)
@@ -177,6 +178,7 @@ export const STRINGS_ZH_TW = {
             changeColor: '變更顏色',
             changeBackground: '變更背景',
             excludeFolder: '隱藏資料夾',
+            unhideFolder: '顯示資料夾',
             moveFolder: '移動至...',
             renameFolder: '重新命名資料夾',
             deleteFolder: '刪除資料夾'
@@ -279,6 +281,10 @@ export const STRINGS_ZH_TW = {
             removeAllTagsFromNote: '您確定要從此筆記中移除所有標籤嗎？',
             removeAllTagsFromNotes: '您確定要從 {count} 則筆記中移除所有標籤嗎？'
         },
+        folderNoteType: {
+            title: '選擇資料夾筆記類型',
+            folderLabel: '資料夾：{name}'
+        },
         folderSuggest: {
             placeholder: '移動至資料夾...',
             navigatePlaceholder: '導覽至資料夾...',
@@ -356,7 +362,8 @@ export const STRINGS_ZH_TW = {
             noFileSelected: '未選取檔案'
         },
         notices: {
-            excludedFolder: '已排除資料夾：{name}'
+            hideFolder: '已隱藏資料夾：{name}',
+            showFolder: '已顯示資料夾：{name}'
         },
         notifications: {
             deletedMultipleFiles: '已刪除 {count} 個檔案',
@@ -379,7 +386,8 @@ export const STRINGS_ZH_TW = {
             iconPackDownloaded: '{provider} 已下載',
             iconPackUpdated: '{provider} 已更新 ({version})',
             iconPackRemoved: '{provider} 已移除',
-            iconPackLoadFailed: '載入 {provider} 失敗'
+            iconPackLoadFailed: '載入 {provider} 失敗',
+            hiddenFileReveal: '檔案已隱藏。啟用「顯示隱藏項目」以顯示它'
         },
         confirmations: {
             deleteMultipleFiles: '您確定要刪除 {count} 個檔案嗎？',
@@ -448,7 +456,7 @@ export const STRINGS_ZH_TW = {
         navigateToTag: '導覽至標籤', // 指令面板：使用模糊搜尋導覽至標籤 (英文: Navigate to tag)
         addShortcut: '新增至捷徑', // 指令面板：將目前的檔案、資料夾或標籤加入捷徑 (英文: Add to shortcuts)
         toggleDescendants: '切換後代項目', // 指令面板：切換顯示後代中的筆記 (英文: Toggle descendants)
-        toggleHidden: '切換隱藏項目', // 指令面板：切換顯示隱藏項目 (英文: Toggle hidden items)
+        toggleHidden: '切換隱藏的資料夾、標籤和筆記', // 指令面板：切換顯示隱藏項目 (英文: Toggle hidden items)
         toggleTagSort: '切換標籤排序', // 指令面板：在字母和頻率標籤排序之間切換 (英文: Toggle tag sort order)
         collapseExpand: '收合/展開所有項目', // 指令面板：收合或展開所有資料夾和標籤 (英文: Collapse / expand all items)
         addTag: '為選取檔案新增標籤', // 指令面板：開啟對話框為選取檔案新增標籤 (英文: Add tag to selected files)
@@ -494,10 +502,11 @@ export const STRINGS_ZH_TW = {
         },
         groups: {
             general: {
+                filtering: '篩選',
+                behavior: '行為',
                 view: '外觀',
                 desktopAppearance: '桌面外觀',
-                behavior: '行為',
-                filtering: '篩選',
+                mobileAppearance: '行動裝置外觀',
                 formatting: '格式'
             },
             navigation: {
@@ -569,6 +578,10 @@ export const STRINGS_ZH_TW = {
                 name: '顯示子資料夾/後代中的筆記',
                 desc: '檢視資料夾或標籤時，包含巢狀子資料夾和標籤後代的筆記。'
             },
+            limitPinnedToCurrentFolder: {
+                name: '僅在父資料夾中顯示固定筆記',
+                desc: '固定筆記僅在查看其資料夾時顯示'
+            },
             separateNoteCounts: {
                 name: '分別顯示當前和後代計數',
                 desc: '在資料夾和標籤中以「當前 ▾ 後代」格式顯示筆記計數。'
@@ -618,14 +631,18 @@ export const STRINGS_ZH_TW = {
                     vertical: '垂直分割'
                 }
             },
-            dualPaneBackground: {
+            appearanceBackground: {
                 name: '背景色',
-                desc: '在桌面上為導覽窗格和列表窗格選擇背景色。',
+                desc: '為導覽窗格和列表窗格選擇背景色。',
                 options: {
                     separate: '分開背景',
                     primary: '使用列表背景',
                     secondary: '使用導覽背景'
                 }
+            },
+            appearanceScale: {
+                name: '縮放等級',
+                desc: '控制 Notebook Navigator 的整體縮放等級。'
             },
             startView: {
                 name: '預設啟動檢視',
@@ -646,6 +663,10 @@ export const STRINGS_ZH_TW = {
             autoSelectFirstFileOnFocusChange: {
                 name: '自動選取第一則筆記 (僅限桌面版)',
                 desc: '切換資料夾或標籤時自動開啟第一則筆記。'
+            },
+            skipAutoScroll: {
+                name: '停用捷徑自動捲動',
+                desc: '點選捷徑中的項目時不捲動導覽面板。'
             },
             autoExpandFoldersTags: {
                 name: '自動展開資料夾和標籤',
@@ -677,6 +698,12 @@ export const STRINGS_ZH_TW = {
             showTooltipPath: {
                 name: '顯示路徑',
                 desc: '在工具提示中的筆記名稱下方顯示資料夾路徑。'
+            },
+            resetPaneSeparator: {
+                name: '重置面板分隔符位置',
+                desc: '將導覽面板與清單面板之間的可拖動分隔符重置為預設位置。',
+                buttonText: '重置分隔符',
+                notice: '分隔符位置已重置。重新啟動 Obsidian 或重新開啟 Notebook Navigator 以套用。'
             },
             multiSelectModifier: {
                 name: '多重選取修飾鍵',
@@ -880,6 +907,10 @@ export const STRINGS_ZH_TW = {
                 name: '顯示無標籤筆記',
                 desc: '為沒有任何標籤的筆記顯示 "無標籤" 項目。'
             },
+            keepEmptyTagsProperty: {
+                name: '刪除最後一個標籤後保留 tags 屬性',
+                desc: '當所有標籤被刪除時保留 frontmatter 中的 tags 屬性。停用時,tags 屬性將從 frontmatter 中刪除。'
+            },
             hiddenTags: {
                 name: '隱藏標籤',
                 desc: '以逗號分隔的標籤前綴或名稱萬用字元清單。使用 tag* 或 *tag 來匹配標籤名稱。隱藏一個標籤也會隱藏其所有子標籤 (例如 "archive" 隱藏 "archive/2024/docs")。',
@@ -893,6 +924,7 @@ export const STRINGS_ZH_TW = {
                 name: '預設資料夾筆記類型',
                 desc: '從右鍵選單建立的資料夾筆記類型。',
                 options: {
+                    ask: '建立時詢問',
                     markdown: 'Markdown',
                     canvas: '畫布',
                     base: 'Base'
@@ -905,8 +937,8 @@ export const STRINGS_ZH_TW = {
             },
             folderNoteProperties: {
                 name: '資料夾筆記屬性',
-                desc: '新增至新建立資料夾筆記的 frontmatter 屬性 (以逗號分隔)。',
-                placeholder: 'foldernote, darktheme'
+                desc: '新增至新資料夾筆記的YAML前言。--- 標記會自動新增。',
+                placeholder: 'theme: dark\nfoldernote: true'
             },
             hideFolderNoteInList: {
                 name: '在清單中隱藏資料夾筆記',

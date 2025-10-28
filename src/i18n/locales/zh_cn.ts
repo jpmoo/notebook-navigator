@@ -43,7 +43,8 @@ export const STRINGS_ZH_CN = {
         emptyStateNoNotes: '无笔记', // Message shown when a folder/tag has no notes (English: No notes)
         pinnedSection: '📌 已固定', // Header for the pinned notes section at the top of file list (English: 📌 Pinned)
         notesSection: '笔记', // Header shown between pinned and regular items when showing documents only (English: Notes)
-        filesSection: '文件' // Header shown between pinned and regular items when showing supported or all files (English: Files)
+        filesSection: '文件', // Header shown between pinned and regular items when showing supported or all files (English: Files)
+        hiddenItemAriaLabel: '{name} (已隐藏)' // Accessibility label applied to list items that are normally hidden
     },
 
     // Tag list
@@ -98,8 +99,8 @@ export const STRINGS_ZH_CN = {
         finishRootFolderReorder: '完成重新排列',
         toggleDescendantNotes: '显示子文件夹/后代的笔记', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants)
         autoExpandFoldersTags: '自动展开文件夹和标签', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
-        showExcludedItems: '显示隐藏项', // Tooltip for button to show hidden items (English: Show hidden items)
-        hideExcludedItems: '隐藏隐藏项', // Tooltip for button to hide hidden items (English: Hide hidden items)
+        showExcludedItems: '显示隐藏的文件夹、标签和笔记', // Tooltip for button to show hidden items (English: Show hidden items)
+        hideExcludedItems: '隐藏隐藏的文件夹、标签和笔记', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: '显示双窗格', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: '显示单窗格', // Tooltip for button to show single-pane layout (English: Show single pane)
         changeAppearance: '更改外观', // Tooltip for button to change folder appearance settings (English: Change appearance)
@@ -177,6 +178,7 @@ export const STRINGS_ZH_CN = {
             changeColor: '更改颜色',
             changeBackground: '更改背景',
             excludeFolder: '隐藏文件夹',
+            unhideFolder: '显示文件夹',
             moveFolder: '移动到...',
             renameFolder: '重命名文件夹',
             deleteFolder: '删除文件夹'
@@ -279,6 +281,10 @@ export const STRINGS_ZH_CN = {
             removeAllTagsFromNote: '您确定要从这个笔记中移除所有标签吗？',
             removeAllTagsFromNotes: '您确定要从 {count} 个笔记中移除所有标签吗？'
         },
+        folderNoteType: {
+            title: '选择文件夹笔记类型',
+            folderLabel: '文件夹：{name}'
+        },
         folderSuggest: {
             placeholder: '移动到文件夹...',
             navigatePlaceholder: '导航到文件夹...',
@@ -357,7 +363,8 @@ export const STRINGS_ZH_CN = {
             noFileSelected: '未选择文件'
         },
         notices: {
-            excludedFolder: '已排除文件夹：{name}'
+            hideFolder: '已隐藏文件夹：{name}',
+            showFolder: '已显示文件夹：{name}'
         },
         notifications: {
             deletedMultipleFiles: '已删除 {count} 个文件',
@@ -380,7 +387,8 @@ export const STRINGS_ZH_CN = {
             iconPackDownloaded: '{provider} 已下载',
             iconPackUpdated: '{provider} 已更新 ({version})',
             iconPackRemoved: '{provider} 已移除',
-            iconPackLoadFailed: '{provider} 加载失败'
+            iconPackLoadFailed: '{provider} 加载失败',
+            hiddenFileReveal: '文件已隐藏。启用「显示隐藏项目」以显示它'
         },
         confirmations: {
             deleteMultipleFiles: '确定要删除 {count} 个文件吗？',
@@ -449,7 +457,7 @@ export const STRINGS_ZH_CN = {
         navigateToTag: '导航到标签', // Command palette: Navigate to a tag using fuzzy search (English: Navigate to tag)
         addShortcut: '添加到快捷方式', // Command palette: Adds the current file, folder, or tag to shortcuts (English: Add to shortcuts)
         toggleDescendants: '切换后代', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
-        toggleHidden: '切换隐藏项', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
+        toggleHidden: '切换隐藏的文件夹、标签和笔记', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: '切换标签排序', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
         collapseExpand: '折叠/展开所有项目', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: '为选定文件添加标签', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -495,10 +503,11 @@ export const STRINGS_ZH_CN = {
         },
         groups: {
             general: {
+                filtering: '过滤',
+                behavior: '行为',
                 view: '外观',
                 desktopAppearance: '桌面外观',
-                behavior: '行为',
-                filtering: '过滤',
+                mobileAppearance: '移动端外观',
                 formatting: '格式'
             },
             navigation: {
@@ -570,6 +579,10 @@ export const STRINGS_ZH_CN = {
                 name: '显示子文件夹/后代的笔记',
                 desc: '在查看文件夹或标签时包含嵌套子文件夹和标签后代中的笔记。'
             },
+            limitPinnedToCurrentFolder: {
+                name: '仅在父文件夹中显示固定笔记',
+                desc: '固定笔记仅在查看其文件夹时显示'
+            },
             separateNoteCounts: {
                 name: '分别显示当前和后代计数',
                 desc: '在文件夹和标签中以"当前 ▾ 后代"格式显示笔记计数。'
@@ -619,14 +632,18 @@ export const STRINGS_ZH_CN = {
                     vertical: '垂直分割'
                 }
             },
-            dualPaneBackground: {
+            appearanceBackground: {
                 name: '背景色',
-                desc: '在桌面上为导航窗格和列表窗格选择背景色。',
+                desc: '为导航窗格和列表窗格选择背景色。',
                 options: {
                     separate: '分开背景',
                     primary: '使用列表背景',
                     secondary: '使用导航背景'
                 }
+            },
+            appearanceScale: {
+                name: '缩放级别',
+                desc: '控制 Notebook Navigator 的整体缩放级别。'
             },
             startView: {
                 name: '默认启动视图',
@@ -647,6 +664,10 @@ export const STRINGS_ZH_CN = {
             autoSelectFirstFileOnFocusChange: {
                 name: '自动选择第一个笔记（仅桌面端）',
                 desc: '切换文件夹或标签时自动打开第一个笔记。'
+            },
+            skipAutoScroll: {
+                name: '禁用快捷方式自动滚动',
+                desc: '点击快捷方式中的项目时不滚动导航面板。'
             },
             autoExpandFoldersTags: {
                 name: '自动展开文件夹和标签',
@@ -678,6 +699,12 @@ export const STRINGS_ZH_CN = {
             showTooltipPath: {
                 name: '显示路径',
                 desc: '在工具提示中的笔记名称下方显示文件夹路径。'
+            },
+            resetPaneSeparator: {
+                name: '重置面板分隔符位置',
+                desc: '将导航面板和列表面板之间的可拖动分隔符重置为默认位置。',
+                buttonText: '重置分隔符',
+                notice: '分隔符位置已重置。重启 Obsidian 或重新打开 Notebook Navigator 以应用。'
             },
             multiSelectModifier: {
                 name: '多选修饰键',
@@ -882,6 +909,10 @@ export const STRINGS_ZH_CN = {
                 name: '显示无标签笔记',
                 desc: '为没有任何标签的笔记显示"无标签"项目。'
             },
+            keepEmptyTagsProperty: {
+                name: '删除最后一个标签后保留 tags 属性',
+                desc: '当所有标签被删除时保留 frontmatter 中的 tags 属性。禁用时,tags 属性将从 frontmatter 中删除。'
+            },
             hiddenTags: {
                 name: '隐藏标签',
                 desc: '要隐藏的标签前缀或名称通配符的逗号分隔列表。使用 `tag*` 或 `*tag` 匹配标签名称。隐藏标签也会隐藏所有子标签（例如："归档"隐藏"归档/2024/docs"）。',
@@ -895,6 +926,7 @@ export const STRINGS_ZH_CN = {
                 name: '默认文件夹笔记类型',
                 desc: '从上下文菜单创建的文件夹笔记类型。',
                 options: {
+                    ask: '创建时询问',
                     markdown: 'Markdown',
                     canvas: 'Canvas',
                     base: 'Base'
@@ -907,8 +939,8 @@ export const STRINGS_ZH_CN = {
             },
             folderNoteProperties: {
                 name: '文件夹笔记属性',
-                desc: '添加到新创建的文件夹笔记的 frontmatter 属性（逗号分隔）。',
-                placeholder: 'foldernote, darktheme'
+                desc: '添加到新文件夹笔记的YAML前置内容。--- 标记会自动添加。',
+                placeholder: 'theme: dark\nfoldernote: true'
             },
             hideFolderNoteInList: {
                 name: '在列表中隐藏文件夹笔记',

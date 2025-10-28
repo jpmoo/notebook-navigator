@@ -43,7 +43,8 @@ export const STRINGS_JA = {
         emptyStateNoNotes: 'ノートなし', // Message shown when a folder/tag has no notes (English: No notes)
         pinnedSection: '📌 ピン留め', // Header for the pinned notes section at the top of file list (English: 📌 Pinned)
         notesSection: 'ノート', // Header shown between pinned and regular items when showing documents only (English: Notes)
-        filesSection: 'ファイル' // Header shown between pinned and regular items when showing supported or all files (English: Files)
+        filesSection: 'ファイル', // Header shown between pinned and regular items when showing supported or all files (English: Files)
+        hiddenItemAriaLabel: '{name} (非表示)' // Accessibility label applied to list items that are normally hidden
     },
 
     // Tag list
@@ -98,8 +99,8 @@ export const STRINGS_JA = {
         finishRootFolderReorder: '並び替えを終了',
         toggleDescendantNotes: 'サブフォルダ / 子孫のノートを表示', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants)
         autoExpandFoldersTags: 'フォルダとタグを自動展開', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
-        showExcludedItems: '非表示項目を表示', // Tooltip for button to show hidden items (English: Show hidden items)
-        hideExcludedItems: '非表示項目を隠す', // Tooltip for button to hide hidden items (English: Hide hidden items)
+        showExcludedItems: '非表示のフォルダ・タグ・ノートを表示', // Tooltip for button to show hidden items (English: Show hidden items)
+        hideExcludedItems: '非表示のフォルダ・タグ・ノートを非表示', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'デュアルペインを表示', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'シングルペインを表示', // Tooltip for button to show single-pane layout (English: Show single pane)
         changeAppearance: '外観を変更', // Tooltip for button to change folder appearance settings (English: Change appearance)
@@ -177,6 +178,7 @@ export const STRINGS_JA = {
             changeColor: '色を変更',
             changeBackground: '背景色を変更',
             excludeFolder: 'フォルダを非表示',
+            unhideFolder: 'フォルダを表示',
             moveFolder: '移動先...',
             renameFolder: 'フォルダの名前を変更',
             deleteFolder: 'フォルダを削除'
@@ -279,6 +281,10 @@ export const STRINGS_JA = {
             removeAllTagsFromNote: 'このノートからすべてのタグを削除してもよろしいですか？',
             removeAllTagsFromNotes: '{count}個のノートからすべてのタグを削除してもよろしいですか？'
         },
+        folderNoteType: {
+            title: 'フォルダノートの形式を選択',
+            folderLabel: 'フォルダ: {name}'
+        },
         folderSuggest: {
             placeholder: 'フォルダに移動...',
             navigatePlaceholder: 'フォルダにナビゲート...',
@@ -357,7 +363,8 @@ export const STRINGS_JA = {
             noFileSelected: 'ファイルが選択されていません'
         },
         notices: {
-            excludedFolder: 'フォルダを除外: {name}'
+            hideFolder: 'フォルダを非表示: {name}',
+            showFolder: 'フォルダを表示: {name}'
         },
         notifications: {
             deletedMultipleFiles: '{count}個のファイルを削除しました',
@@ -380,7 +387,8 @@ export const STRINGS_JA = {
             iconPackDownloaded: '「{provider}」をダウンロードしました',
             iconPackUpdated: '「{provider}」を更新しました ({version})',
             iconPackRemoved: '「{provider}」を削除しました',
-            iconPackLoadFailed: '「{provider}」を読み込めませんでした'
+            iconPackLoadFailed: '「{provider}」を読み込めませんでした',
+            hiddenFileReveal: 'ファイルは非表示です。表示するには「非表示項目を表示」を有効にしてください'
         },
         confirmations: {
             deleteMultipleFiles: '本当に{count}個のファイルを削除しますか？',
@@ -449,7 +457,7 @@ export const STRINGS_JA = {
         navigateToTag: 'タグにナビゲート', // Command palette: Navigate to a tag using fuzzy search (English: Navigate to tag)
         addShortcut: 'ショートカットに追加', // Command palette: Adds the current file, folder, or tag to shortcuts (English: Add to shortcuts)
         toggleDescendants: '子孫切り替え', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
-        toggleHidden: '非表示項目を切り替え', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
+        toggleHidden: '非表示のフォルダ・タグ・ノートを切り替え', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'タグの並び順を切り替え', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
         collapseExpand: 'すべての項目を折りたたむ/展開', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: '選択したファイルにタグを追加', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -495,10 +503,11 @@ export const STRINGS_JA = {
         },
         groups: {
             general: {
+                filtering: 'フィルター',
+                behavior: '動作',
                 view: '外観',
                 desktopAppearance: 'デスクトップの外観',
-                behavior: '動作',
-                filtering: 'フィルター',
+                mobileAppearance: 'モバイルの外観',
                 formatting: '書式'
             },
             navigation: {
@@ -571,6 +580,10 @@ export const STRINGS_JA = {
                 name: 'サブフォルダ / 子孫のノートを表示',
                 desc: 'フォルダまたはタグを表示するとき、入れ子のサブフォルダとタグの子孫にあるノートを含めます。'
             },
+            limitPinnedToCurrentFolder: {
+                name: '親フォルダでのみピン留めノートを表示',
+                desc: 'ピン留めノートはフォルダを表示している時のみ表示されます'
+            },
             separateNoteCounts: {
                 name: '現在と子孫のカウントを個別に表示',
                 desc: 'フォルダとタグのノート数を「現在 ▾ 子孫」形式で表示します。'
@@ -620,14 +633,18 @@ export const STRINGS_JA = {
                     vertical: '垂直分割'
                 }
             },
-            dualPaneBackground: {
+            appearanceBackground: {
                 name: '背景色',
-                desc: 'デスクトップでナビゲーションペインとリストペインの背景色を選択します。',
+                desc: 'ナビゲーションペインとリストペインの背景色を選択します。',
                 options: {
                     separate: '背景を分ける',
                     primary: 'リストの背景を使用',
                     secondary: 'ナビゲーションの背景を使用'
                 }
+            },
+            appearanceScale: {
+                name: 'ズームレベル',
+                desc: 'Notebook Navigator 全体のズームレベルを制御します。'
             },
             startView: {
                 name: 'デフォルト起動ビュー',
@@ -648,6 +665,10 @@ export const STRINGS_JA = {
             autoSelectFirstFileOnFocusChange: {
                 name: '最初のノートを自動選択（デスクトップのみ）',
                 desc: 'フォルダまたはタグを切り替えた際に自動的に最初のノートを開きます。'
+            },
+            skipAutoScroll: {
+                name: 'ショートカットの自動スクロールを無効化',
+                desc: 'ショートカット内のアイテムをクリックしてもナビゲーションパネルをスクロールしない。'
             },
             autoExpandFoldersTags: {
                 name: 'フォルダとタグを自動展開',
@@ -679,6 +700,12 @@ export const STRINGS_JA = {
             showTooltipPath: {
                 name: 'パスを表示',
                 desc: 'ツールチップでノート名の下にフォルダパスを表示します。'
+            },
+            resetPaneSeparator: {
+                name: 'ペインセパレーターの位置をリセット',
+                desc: 'ナビゲーションペインとリストペーンの間のドラッグ可能なセパレーターをデフォルトの位置にリセットします。',
+                buttonText: 'セパレーターをリセット',
+                notice: 'セパレーターの位置がリセットされました。Obsidianを再起動するか、Notebook Navigatorを開き直して適用してください。'
             },
             multiSelectModifier: {
                 name: '複数選択モディファイア',
@@ -883,6 +910,10 @@ export const STRINGS_JA = {
                 name: 'タグなしノートを表示',
                 desc: 'タグのないノート用に「タグなし」項目を表示します。'
             },
+            keepEmptyTagsProperty: {
+                name: '最後のタグを削除した後も tags プロパティを保持',
+                desc: 'すべてのタグが削除されても frontmatter の tags プロパティを保持します。無効にすると、tags プロパティは frontmatter から削除されます。'
+            },
             hiddenTags: {
                 name: '非表示タグ',
                 desc: '非表示にするタグの接頭辞または名前ワイルドカードのカンマ区切りリスト。`tag*` や `*tag` でタグ名に一致します。タグを非表示にすると、すべてのサブタグも非表示になります（例："アーカイブ"で"アーカイブ/2024/docs"も非表示）。',
@@ -896,6 +927,7 @@ export const STRINGS_JA = {
                 name: '既定のフォルダノート形式',
                 desc: 'コンテキストメニューで作成されるフォルダノートの形式です。',
                 options: {
+                    ask: '作成時に確認',
                     markdown: 'Markdown',
                     canvas: 'Canvas',
                     base: 'Base'
@@ -908,8 +940,8 @@ export const STRINGS_JA = {
             },
             folderNoteProperties: {
                 name: 'フォルダノートプロパティ',
-                desc: '新しく作成されたフォルダノートに追加するフロントマタープロパティ（カンマ区切り）。',
-                placeholder: 'foldernote, darktheme'
+                desc: '新しいフォルダノートに追加されるYAMLフロントマター。--- マーカーは自動的に追加されます。',
+                placeholder: 'theme: dark\nfoldernote: true'
             },
             hideFolderNoteInList: {
                 name: 'リストでフォルダノートを非表示',

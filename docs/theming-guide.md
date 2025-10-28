@@ -24,13 +24,19 @@ theme to customize how Notebook Navigator looks.
 
 ## CSS Variables Reference
 
-All variables start with `--nn-theme-` and should be defined at the `body` level.
+The theming variables use the `--nn-theme-` prefix and should be defined at the `body` level.
 
 ### Navigation pane
 
 | Variable            | Default                       | Description                                                  |
 | ------------------- | ----------------------------- | ------------------------------------------------------------ |
 | `--nn-theme-nav-bg` | `var(--background-secondary)` | Navigation pane background (desktop only, see mobile styles) |
+
+#### Pinned shortcuts
+
+| Variable                                  | Default               | Description                                                                             |
+| ----------------------------------------- | --------------------- | --------------------------------------------------------------------------------------- |
+| `--nn-theme-pinned-shortcut-shadow-color` | `rgba(0, 0, 0, 0.05)` | Gradient overlay rendered beneath pinned shortcuts (defaults to `0.2` in `.theme-dark`) |
 
 #### Folder & tag items
 
@@ -147,17 +153,19 @@ Priority order: folder note styles override custom color styles, which override 
 
 ### Mobile styles
 
-| Variable                                               | Default                             | Description                                                                  |
-| ------------------------------------------------------ | ----------------------------------- | ---------------------------------------------------------------------------- |
-| `--nn-theme-mobile-nav-bg`                             | `var(--background-primary)`         | Background color of navigation pane on mobile (by default, both panes match) |
-| `--nn-theme-mobile-list-header-link-color`             | `var(--link-color)`                 | Color for back button and clickable breadcrumb segments on mobile            |
-| `--nn-theme-mobile-list-header-breadcrumb-color`       | `var(--text-normal)`                | Color for current folder and separators in breadcrumb on mobile              |
-| `--nn-theme-mobile-list-header-breadcrumb-font-weight` | `600`                               | Font weight for mobile breadcrumb                                            |
-| `--nn-theme-mobile-toolbar-bg`                         | `var(--background-secondary)`       | Background color of the mobile toolbar                                       |
-| `--nn-theme-mobile-toolbar-border-color`               | `var(--background-modifier-border)` | Border color of the mobile toolbar                                           |
-| `--nn-theme-mobile-toolbar-button-icon-color`          | `var(--link-color)`                 | Icon color for toolbar buttons                                               |
-| `--nn-theme-mobile-toolbar-button-active-bg`           | `var(--background-modifier-hover)`  | Background color for active toolbar button                                   |
-| `--nn-theme-mobile-toolbar-button-active-icon-color`   | `var(--link-color)`                 | Icon color for active toolbar button                                         |
+| Variable                                               | Default                             | Description                                                       |
+| ------------------------------------------------------ | ----------------------------------- | ----------------------------------------------------------------- |
+| `--nn-theme-mobile-list-header-link-color`             | `var(--link-color)`                 | Color for back button and clickable breadcrumb segments on mobile |
+| `--nn-theme-mobile-list-header-breadcrumb-color`       | `var(--text-normal)`                | Color for current folder and separators in breadcrumb on mobile   |
+| `--nn-theme-mobile-list-header-breadcrumb-font-weight` | `600`                               | Font weight for mobile breadcrumb                                 |
+| `--nn-theme-mobile-toolbar-bg`                         | `var(--background-secondary)`       | Background color of the mobile toolbar                            |
+| `--nn-theme-mobile-toolbar-border-color`               | `var(--background-modifier-border)` | Border color of the mobile toolbar                                |
+| `--nn-theme-mobile-toolbar-button-icon-color`          | `var(--link-color)`                 | Icon color for toolbar buttons                                    |
+| `--nn-theme-mobile-toolbar-button-active-bg`           | `var(--background-modifier-hover)`  | Background color for active toolbar button                        |
+| `--nn-theme-mobile-toolbar-button-active-icon-color`   | `var(--link-color)`                 | Icon color for active toolbar button                              |
+
+Mobile navigation backgrounds follow the Mobile appearance > Background color setting inside Notebook Navigator. The
+same Separate backgrounds, Use list background, and Use navigation background options apply on mobile and desktop.
 
 ## Complete Theme Example
 
@@ -193,6 +201,9 @@ body {
   --nn-theme-navitem-selected-count-color: #e6e6e6; /* Light gray - selected item count text */
   --nn-theme-navitem-selected-count-bg: rgba(0, 0, 0, 0.2); /* Subtle dark overlay - selected count bg */
   --nn-theme-navitem-selected-inactive-bg: #464c55; /* Dark gray - inactive selected background */
+
+  /* Pinned shortcuts */
+  --nn-theme-pinned-shortcut-shadow-color: rgba(0, 0, 0, 0.2); /* Shadow gradient below pinned shortcuts */
 
   /* Text styling */
   --nn-theme-navitem-name-font-weight: 400; /* Regular weight for normal items */
@@ -346,4 +357,5 @@ theme through inline styles.
 ## Style Settings Support
 
 Notebook Navigator fully supports the Style Settings plugin. When users install Style Settings, they can customize all
-these variables through a UI. Your theme values become the defaults that users can override.
+documented variables through a UI. `--nn-theme-pinned-shortcut-shadow-color` is not yet exposed and must be changed
+through custom CSS.

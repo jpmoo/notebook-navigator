@@ -34,10 +34,12 @@ import { useServices } from '../context/ServicesContext';
 import { OperationType } from '../services/CommandQueueService';
 import { useFileCache } from '../context/StorageContext';
 import { ListPaneItemType, ItemType } from '../types';
+import type { VisibilityPreferences } from '../types';
 import type { ListPaneItem } from '../types/virtualization';
 import { TIMEOUTS } from '../types/obsidian-extended';
 import { DateUtils } from '../utils/dateUtils';
 import { getFilesForFolder, getFilesForTag, collectPinnedPaths } from '../utils/fileFinder';
+import { shouldExcludeFile, isFolderInExcludedFolder } from '../utils/fileFilters';
 import { getDateField, getEffectiveSortOption } from '../utils/sortUtils';
 import { strings } from '../i18n';
 import { FILE_VISIBILITY } from '../utils/fileTypeUtils';
@@ -47,6 +49,8 @@ import type { SearchResultMeta } from '../types/search';
 import { createHiddenTagVisibility, normalizeTagPathValue } from '../utils/tagPrefixMatcher';
 
 const EMPTY_SEARCH_META = new Map<string, SearchResultMeta>();
+// Shared empty map used when no files are hidden to avoid allocations
+const EMPTY_HIDDEN_STATE = new Map<string, boolean>();
 
 /**
  * Parameters for the useListPaneData hook
@@ -62,6 +66,8 @@ interface UseListPaneDataParams {
     settings: NotebookNavigatorSettings;
     /** Optional search query to filter files */
     searchQuery?: string;
+    /** Visibility preferences that control descendant notes and hidden items */
+    visibility: VisibilityPreferences;
 }
 
 /**
@@ -94,10 +100,12 @@ export function useListPaneData({
     selectedFolder,
     selectedTag,
     settings,
-    searchQuery
+    searchQuery,
+    visibility
 }: UseListPaneDataParams): UseListPaneDataResult {
     const { app, tagTreeService, commandQueue, omnisearchService } = useServices();
     const { getFileCreatedTime, getFileModifiedTime, getDB, getFileDisplayName } = useFileCache();
+    const { includeDescendantNotes, showHiddenItems } = visibility;
 
     // State to force updates when vault changes (incremented on create/delete/rename)
     const [updateKey, setUpdateKey] = useState(0);
@@ -129,16 +137,16 @@ export function useListPaneData({
         let allFiles: TFile[] = [];
 
         if (selectionType === ItemType.FOLDER && selectedFolder) {
-            allFiles = getFilesForFolder(selectedFolder, settings, app);
+            allFiles = getFilesForFolder(selectedFolder, settings, visibility, app);
         } else if (selectionType === ItemType.TAG && selectedTag) {
-            allFiles = getFilesForTag(selectedTag, settings, app, tagTreeService);
+            allFiles = getFilesForTag(selectedTag, settings, visibility, app, tagTreeService);
         }
 
         return allFiles;
         // NOTE: Excluding getFilesForFolder/getFilesForTag - static imports
         // updateKey triggers re-computation on storage updates
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectionType, selectedFolder, selectedTag, settings, app, tagTreeService, updateKey]);
+    }, [selectionType, selectedFolder, selectedTag, settings, includeDescendantNotes, showHiddenItems, app, tagTreeService, updateKey]);
 
     // Set of file paths for the current view scope
     const basePathSet = useMemo(() => new Set(baseFiles.map(file => file.path)), [baseFiles]);
@@ -337,6 +345,51 @@ export function useListPaneData({
         return filteredByFilterSearch;
     }, [useOmnisearch, trimmedQuery, baseFiles, searchableNames, omnisearchResult, getDB]);
 
+    // Builds map of file paths that are normally hidden but shown via "show hidden items"
+    const hiddenFileState = useMemo(() => {
+        if (!showHiddenItems || files.length === 0) {
+            return EMPTY_HIDDEN_STATE;
+        }
+
+        const db = getDB();
+        const records = db.getFiles(files.map(file => file.path));
+        const shouldCheckFolders = settings.excludedFolders.length > 0;
+        const shouldCheckFrontmatter = settings.excludedFiles.length > 0;
+        const folderHiddenCache = shouldCheckFolders ? new Map<string, boolean>() : null;
+        const result = new Map<string, boolean>();
+
+        // Checks if a folder is in an excluded folder pattern with caching
+        const resolveFolderHidden = (folder: TFolder | null): boolean => {
+            if (!folderHiddenCache || !folder) {
+                return false;
+            }
+            if (folderHiddenCache.has(folder.path)) {
+                return folderHiddenCache.get(folder.path) ?? false;
+            }
+            const hidden = isFolderInExcludedFolder(folder, settings.excludedFolders);
+            folderHiddenCache.set(folder.path, hidden);
+            return hidden;
+        };
+
+        files.forEach(file => {
+            const record = records.get(file.path);
+            let hiddenByFrontmatter = false;
+            if (shouldCheckFrontmatter && file.extension === 'md') {
+                if (record?.metadata?.hidden === undefined) {
+                    hiddenByFrontmatter = shouldExcludeFile(file, settings.excludedFiles, app);
+                } else {
+                    hiddenByFrontmatter = Boolean(record.metadata?.hidden);
+                }
+            }
+            const hiddenByFolder = shouldCheckFolders ? resolveFolderHidden(file.parent ?? null) : false;
+            if (hiddenByFrontmatter || hiddenByFolder) {
+                result.set(file.path, true);
+            }
+        });
+
+        return result;
+    }, [files, getDB, settings.excludedFolders, settings.excludedFiles, showHiddenItems, app]);
+
     /**
      * Build the complete list of items for rendering, including:
      * - Pinned section header and pinned files
@@ -365,32 +418,53 @@ export function useListPaneData({
         // selectionType can be FOLDER, TAG, FILE, or null - we only use FOLDER and TAG for pinned context
         const contextFilter =
             selectionType === ItemType.TAG ? ItemType.TAG : selectionType === ItemType.FOLDER ? ItemType.FOLDER : undefined;
-        const pinnedPaths = collectPinnedPaths(settings.pinnedNotes, contextFilter);
+        const restrictToFolderPath =
+            settings.filterPinnedByFolder && selectionType === ItemType.FOLDER && selectedFolder ? selectedFolder.path : undefined;
+        const pinnedPaths = collectPinnedPaths(
+            settings.pinnedNotes,
+            contextFilter,
+            restrictToFolderPath !== undefined ? { restrictToFolderPath } : undefined
+        );
 
         // Separate pinned and unpinned files
         const pinnedFiles = files.filter(f => pinnedPaths.has(f.path));
         const unpinnedFiles = files.filter(f => !pinnedPaths.has(f.path));
 
         // Check if file has tags for height optimization
+        const db = getDB();
         const shouldDetectTags = settings.showTags && settings.showFileTags;
-        const db = shouldDetectTags ? getDB() : null;
-        const hiddenTagVisibility = shouldDetectTags ? createHiddenTagVisibility(settings.hiddenTags, settings.showHiddenItems) : null;
-        const fileHasTags =
-            shouldDetectTags && db
-                ? (file: TFile) => {
-                      const tags = db.getCachedTags(file.path);
-                      if (!hiddenTagVisibility) {
-                          return tags.length > 0;
-                      }
-                      return hiddenTagVisibility.hasVisibleTags(tags);
+        const hiddenTagVisibility = shouldDetectTags ? createHiddenTagVisibility(settings.hiddenTags, showHiddenItems) : null;
+        const fileHasTags = shouldDetectTags
+            ? (file: TFile) => {
+                  const tags = db.getCachedTags(file.path);
+                  if (!hiddenTagVisibility) {
+                      return tags.length > 0;
                   }
-                : () => false;
+                  return hiddenTagVisibility.hasVisibleTags(tags);
+              }
+            : () => false;
 
         // Determine which sort option to use
         // Files are already sorted in fileFinder; preserve order here
 
         // Track file index for stable onClick handlers
         let fileIndexCounter = 0;
+
+        // Helper to push file items with consistent computed properties
+        type FileItemOverrides = Partial<Omit<ListPaneItem, 'type' | 'data' | 'key' | 'fileIndex' | 'searchMeta' | 'hasTags' | 'isHidden'>>;
+        const pushFileItem = (file: TFile, overrides: FileItemOverrides = {}) => {
+            const baseItem: ListPaneItem = {
+                type: ListPaneItemType.FILE,
+                data: file,
+                parentFolder: selectedFolder?.path,
+                key: file.path,
+                fileIndex: fileIndexCounter++,
+                searchMeta: searchMetaMap.get(file.path),
+                hasTags: fileHasTags(file),
+                isHidden: hiddenFileState.get(file.path) ?? false
+            };
+            items.push({ ...baseItem, ...overrides });
+        };
 
         // Add pinned files
         if (pinnedFiles.length > 0) {
@@ -400,16 +474,7 @@ export function useListPaneData({
                 key: `header-pinned`
             });
             pinnedFiles.forEach(file => {
-                items.push({
-                    type: ListPaneItemType.FILE,
-                    data: file,
-                    parentFolder: selectedFolder?.path,
-                    key: file.path,
-                    fileIndex: fileIndexCounter++,
-                    isPinned: true,
-                    searchMeta: searchMetaMap.get(file.path),
-                    hasTags: fileHasTags(file)
-                });
+                pushFileItem(file, { isPinned: true });
             });
         }
 
@@ -435,15 +500,7 @@ export function useListPaneData({
             }
 
             unpinnedFiles.forEach(file => {
-                items.push({
-                    type: ListPaneItemType.FILE,
-                    data: file,
-                    parentFolder: selectedFolder?.path,
-                    key: file.path,
-                    fileIndex: fileIndexCounter++,
-                    searchMeta: searchMetaMap.get(file.path),
-                    hasTags: fileHasTags(file)
-                });
+                pushFileItem(file);
             });
         } else if (shouldGroupByDate) {
             // Group by date
@@ -463,15 +520,7 @@ export function useListPaneData({
                     });
                 }
 
-                items.push({
-                    type: ListPaneItemType.FILE,
-                    data: file,
-                    parentFolder: selectedFolder?.path,
-                    key: file.path,
-                    fileIndex: fileIndexCounter++,
-                    searchMeta: searchMetaMap.get(file.path),
-                    hasTags: fileHasTags(file)
-                });
+                pushFileItem(file);
             });
         } else {
             // Group by folder (first level relative to current selection or vault root)
@@ -568,15 +617,7 @@ export function useListPaneData({
                 }
 
                 group.files.forEach(file => {
-                    items.push({
-                        type: ListPaneItemType.FILE,
-                        data: file,
-                        parentFolder: selectedFolder?.path,
-                        key: file.path,
-                        fileIndex: fileIndexCounter++,
-                        searchMeta: searchMetaMap.get(file.path),
-                        hasTags: fileHasTags(file)
-                    });
+                    pushFileItem(file);
                 });
             });
         }
@@ -590,7 +631,19 @@ export function useListPaneData({
         });
 
         return items;
-    }, [files, settings, selectionType, selectedFolder, getFileCreatedTime, getFileModifiedTime, searchMetaMap, sortOption, getDB]);
+    }, [
+        files,
+        settings,
+        selectionType,
+        selectedFolder,
+        getFileCreatedTime,
+        getFileModifiedTime,
+        searchMetaMap,
+        sortOption,
+        getDB,
+        hiddenFileState,
+        showHiddenItems
+    ]);
 
     /**
      * Create a map from file paths to their index in listItems.
@@ -719,17 +772,25 @@ export function useListPaneData({
             })
         ];
         const metadataEvent = app.metadataCache.on('changed', file => {
+            // Filter out non-file metadata changes
+            if (!(file instanceof TFile)) {
+                return;
+            }
+
             // Only update if the metadata change is for a file in our current view
             if (selectionType === ItemType.FOLDER && selectedFolder) {
                 // Check if file is in the selected folder
                 const fileFolder = file.parent;
-                if (!fileFolder || fileFolder.path !== selectedFolder.path) {
+                const selectedPath = selectedFolder.path;
+                const isRootSelection = selectedPath === '/';
+
+                if (!fileFolder || fileFolder.path !== selectedPath) {
                     // If not showing descendants, ignore files not in this folder
-                    if (!settings.includeDescendantNotes) {
+                    if (!includeDescendantNotes) {
                         return;
                     }
                     // If showing descendants, check if it's a descendant
-                    if (!fileFolder?.path.startsWith(`${selectedFolder.path}/`)) {
+                    if (!isRootSelection && (!fileFolder?.path || !fileFolder.path.startsWith(`${selectedPath}/`))) {
                         return;
                     }
                 }
@@ -741,40 +802,62 @@ export function useListPaneData({
                     scheduleRefresh();
                 }
                 return;
-            }
-
-            // When viewing a folder, we don't need to rebuild the entire file list for metadata changes
-            // (only tag view needs rebuilding since files might be added/removed based on tag changes)
-            // Individual FileItem components will update themselves through the database subscription
-        });
-
-        // Listen for tag changes from database
-        const db = getDB();
-        const dbUnsubscribe = db.onContentChange(changes => {
-            // Check if any files had their tags modified
-            const hasTagChanges = changes.some(change => change.changes.tags !== undefined);
-            if (!hasTagChanges) {
+            } else {
+                // Ignore metadata changes when nothing is selected
                 return;
             }
 
-            const isTagView = selectionType === ItemType.TAG && selectedTag;
-            const isFolderView = selectionType === ItemType.FOLDER && selectedFolder;
+            // Check if file's hidden state changed (frontmatter property added/removed) to trigger rebuild
+            if (settings.excludedFiles.length > 0 && file.extension === 'md') {
+                const db = getDB();
+                const record = db.getFile(file.path);
+                const wasExcluded = Boolean(record?.metadata?.hidden);
+                const isCurrentlyExcluded = shouldExcludeFile(file, settings.excludedFiles, app);
 
+                if (isCurrentlyExcluded === wasExcluded) {
+                    return;
+                }
+
+                if (operationActiveRef.current) {
+                    pendingRefreshRef.current = true;
+                } else {
+                    scheduleRefresh();
+                }
+                return;
+            }
+
+            // When viewing a folder, other metadata changes can be handled by FileItem subscriptions
+        });
+
+        // Listen for tag and metadata changes from database
+        const db = getDB();
+        const dbUnsubscribe = db.onContentChange(changes => {
             let shouldRefresh = false;
 
-            // In tag view, always refresh since files may enter or leave the view
-            if (isTagView) {
-                shouldRefresh = true;
-            } else if (isFolderView) {
-                // In folder view, only refresh if changed files are in current folder
-                shouldRefresh = changes.some(change => basePathSet.has(change.path));
+            // React to tag changes that affect the current view
+            if (changes.some(change => change.changes.tags !== undefined)) {
+                const isTagView = selectionType === ItemType.TAG && selectedTag;
+                const isFolderView = selectionType === ItemType.FOLDER && selectedFolder;
+
+                if (isTagView) {
+                    shouldRefresh = true;
+                } else if (isFolderView) {
+                    shouldRefresh = changes.some(change => basePathSet.has(change.path));
+                }
+            }
+
+            // React to metadata changes that may update hidden-state styling
+            if (!shouldRefresh && settings.excludedFiles.length > 0 && showHiddenItems) {
+                const metadataPaths = changes.filter(change => change.changes.metadata !== undefined).map(change => change.path);
+                if (metadataPaths.length > 0) {
+                    shouldRefresh = metadataPaths.some(path => basePathSet.has(path));
+                }
             }
 
             if (!shouldRefresh) {
                 return;
             }
 
-            // Defer refresh if file operation is active
             if (operationActiveRef.current) {
                 pendingRefreshRef.current = true;
             } else {
@@ -790,7 +873,20 @@ export function useListPaneData({
             // Cancel any pending scheduled refresh to avoid stray updates
             scheduleRefresh.cancel();
         };
-    }, [app, selectionType, selectedTag, selectedFolder, settings.includeDescendantNotes, getDB, commandQueue, basePathSet, sortOption]);
+    }, [
+        app,
+        selectionType,
+        selectedTag,
+        selectedFolder,
+        includeDescendantNotes,
+        settings.excludedFiles,
+        settings.excludedFolders,
+        showHiddenItems,
+        getDB,
+        commandQueue,
+        basePathSet,
+        sortOption
+    ]);
 
     return {
         listItems,

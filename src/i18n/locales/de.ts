@@ -43,7 +43,8 @@ export const STRINGS_DE = {
         emptyStateNoNotes: 'Keine Notizen', // Message shown when a folder/tag has no notes (English: No notes)
         pinnedSection: '📌 Angeheftet', // Header for the pinned notes section at the top of file list (English: 📌 Pinned)
         notesSection: 'Notizen', // Header shown between pinned and regular items when showing documents only (English: Notes)
-        filesSection: 'Dateien' // Header shown between pinned and regular items when showing supported or all files (English: Files)
+        filesSection: 'Dateien', // Header shown between pinned and regular items when showing supported or all files (English: Files)
+        hiddenItemAriaLabel: '{name} (ausgeblendet)' // Accessibility label applied to list items that are normally hidden
     },
 
     // Tag list
@@ -98,8 +99,8 @@ export const STRINGS_DE = {
         finishRootFolderReorder: 'Neuordnung beenden',
         toggleDescendantNotes: 'Notizen aus Unterordnern / Nachkommen anzeigen', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants)
         autoExpandFoldersTags: 'Ordner und Tags automatisch erweitern', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
-        showExcludedItems: 'Versteckte Elemente anzeigen', // Tooltip for button to show hidden items (English: Show hidden items)
-        hideExcludedItems: 'Versteckte Elemente ausblenden', // Tooltip for button to hide hidden items (English: Hide hidden items)
+        showExcludedItems: 'Versteckte Ordner, Tags und Notizen anzeigen', // Tooltip for button to show hidden items (English: Show hidden items)
+        hideExcludedItems: 'Versteckte Ordner, Tags und Notizen ausblenden', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Zweispaltige Ansicht anzeigen', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Einspaltige Ansicht anzeigen', // Tooltip for button to show single-pane layout (English: Show single pane)
         changeAppearance: 'Erscheinungsbild ändern', // Tooltip for button to change folder appearance settings (English: Change appearance)
@@ -179,6 +180,7 @@ export const STRINGS_DE = {
             changeColor: 'Farbe ändern',
             changeBackground: 'Hintergrund ändern',
             excludeFolder: 'Ordner verstecken',
+            unhideFolder: 'Ordner einblenden',
             moveFolder: 'Verschieben nach...',
             renameFolder: 'Ordner umbenennen',
             deleteFolder: 'Ordner löschen'
@@ -281,6 +283,10 @@ export const STRINGS_DE = {
             removeAllTagsFromNote: 'Sind Sie sicher, dass Sie alle Tags von dieser Notiz entfernen möchten?',
             removeAllTagsFromNotes: 'Sind Sie sicher, dass Sie alle Tags von {count} Notizen entfernen möchten?'
         },
+        folderNoteType: {
+            title: 'Ordnernotiztyp auswählen',
+            folderLabel: 'Ordner: {name}'
+        },
         folderSuggest: {
             placeholder: 'In Ordner verschieben...',
             navigatePlaceholder: 'Zu Ordner navigieren...',
@@ -359,7 +365,8 @@ export const STRINGS_DE = {
             noFileSelected: 'Keine Datei ausgewählt'
         },
         notices: {
-            excludedFolder: 'Ordner ausgeschlossen: {name}'
+            hideFolder: 'Ordner ausgeblendet: {name}',
+            showFolder: 'Ordner eingeblendet: {name}'
         },
         notifications: {
             deletedMultipleFiles: '{count} Dateien gelöscht',
@@ -382,7 +389,8 @@ export const STRINGS_DE = {
             iconPackDownloaded: '{provider} heruntergeladen',
             iconPackUpdated: '{provider} aktualisiert ({version})',
             iconPackRemoved: '{provider} entfernt',
-            iconPackLoadFailed: '{provider} konnte nicht geladen werden'
+            iconPackLoadFailed: '{provider} konnte nicht geladen werden',
+            hiddenFileReveal: 'Datei ist ausgeblendet. Aktiviere „Ausgeblendete Elemente anzeigen", um sie anzuzeigen'
         },
         confirmations: {
             deleteMultipleFiles: 'Möchten Sie wirklich {count} Dateien löschen?',
@@ -451,7 +459,7 @@ export const STRINGS_DE = {
         navigateToTag: 'Zu Tag navigieren', // Command palette: Navigate to a tag using fuzzy search (English: Navigate to tag)
         addShortcut: 'Zu Shortcuts hinzufügen', // Command palette: Adds the current file, folder, or tag to shortcuts (English: Add to shortcuts)
         toggleDescendants: 'Nachkommen umschalten', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
-        toggleHidden: 'Versteckte Elemente umschalten', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
+        toggleHidden: 'Versteckte Ordner, Tags und Notizen umschalten', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'Tag-Sortierung umschalten', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
         collapseExpand: 'Alle Elemente ein-/ausklappen', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Tag zu ausgewählten Dateien hinzufügen', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -497,10 +505,11 @@ export const STRINGS_DE = {
         },
         groups: {
             general: {
+                filtering: 'Filterung',
+                behavior: 'Verhalten',
                 view: 'Darstellung',
                 desktopAppearance: 'Desktop-Darstellung',
-                behavior: 'Verhalten',
-                filtering: 'Filterung',
+                mobileAppearance: 'Mobile Darstellung',
                 formatting: 'Formatierung'
             },
             navigation: {
@@ -574,6 +583,10 @@ export const STRINGS_DE = {
                 name: 'Notizen aus Unterordnern / Nachkommen anzeigen',
                 desc: 'Beim Anzeigen eines Ordners oder Tags Notizen aus Unterordnern und Tag-Nachkommen einbeziehen.'
             },
+            limitPinnedToCurrentFolder: {
+                name: 'Angeheftete Notizen nur im übergeordneten Ordner anzeigen',
+                desc: 'Angeheftete Notizen erscheinen nur beim Anzeigen ihres Ordners'
+            },
             separateNoteCounts: {
                 name: 'Aktuelle und Nachkommen-Anzahl getrennt anzeigen',
                 desc: 'Zeigt Notizanzahl als "aktuell ▾ Nachkommen" Format in Ordnern und Tags.'
@@ -623,14 +636,18 @@ export const STRINGS_DE = {
                     vertical: 'Vertikale Aufteilung'
                 }
             },
-            dualPaneBackground: {
+            appearanceBackground: {
                 name: 'Hintergrundfarbe',
-                desc: 'Wählen Sie Hintergrundfarben für Navigations- und Listenbereich auf dem Desktop.',
+                desc: 'Wählen Sie Hintergrundfarben für Navigations- und Listenbereich.',
                 options: {
                     separate: 'Separate Hintergründe',
                     primary: 'Listenhintergrund verwenden',
                     secondary: 'Navigationshintergrund verwenden'
                 }
+            },
+            appearanceScale: {
+                name: 'Zoomstufe',
+                desc: 'Steuert die gesamte Zoomstufe von Notebook Navigator.'
             },
             startView: {
                 name: 'Standard-Startansicht',
@@ -651,6 +668,10 @@ export const STRINGS_DE = {
             autoSelectFirstFileOnFocusChange: {
                 name: 'Erste Notiz automatisch auswählen (nur Desktop)',
                 desc: 'Die erste Notiz automatisch öffnen, wenn Sie den Ordner oder Tag wechseln.'
+            },
+            skipAutoScroll: {
+                name: 'Auto-Scroll für Verknüpfungen deaktivieren',
+                desc: 'Navigationsbereich nicht scrollen beim Klicken auf Elemente in Verknüpfungen.'
             },
             autoExpandFoldersTags: {
                 name: 'Ordner und Tags automatisch erweitern',
@@ -682,6 +703,12 @@ export const STRINGS_DE = {
             showTooltipPath: {
                 name: 'Pfad anzeigen',
                 desc: 'Zeigt den Ordnerpfad unter den Notiznamen in Tooltips an.'
+            },
+            resetPaneSeparator: {
+                name: 'Position des Fenstertrennelements zurücksetzen',
+                desc: 'Setzt das verschiebbare Trennelement zwischen Navigationsbereich und Listenbereich auf die Standardposition zurück.',
+                buttonText: 'Trennelement zurücksetzen',
+                notice: 'Trennelementposition zurückgesetzt. Starten Sie Obsidian neu oder öffnen Sie Notebook Navigator erneut, um die Änderungen anzuwenden.'
             },
             multiSelectModifier: {
                 name: 'Mehrfachauswahl-Modifikator',
@@ -885,6 +912,10 @@ export const STRINGS_DE = {
                 name: 'Ungetaggte Notizen anzeigen',
                 desc: '"Ohne Tag" für Notizen ohne Tags anzeigen.'
             },
+            keepEmptyTagsProperty: {
+                name: 'Tags-Eigenschaft nach Entfernen des letzten Tags beibehalten',
+                desc: 'Behält die Tags-Frontmatter-Eigenschaft, wenn alle Tags entfernt werden. Wenn deaktiviert, wird die Tags-Eigenschaft aus dem Frontmatter gelöscht.'
+            },
             hiddenTags: {
                 name: 'Versteckte Tags',
                 desc: 'Kommagetrennte Liste von Tag-Präfixen oder Namensplatzhaltern zum Ausblenden. Verwende `tag*` oder `*tag`, um Tagnamen abzugleichen. Ein versteckter Tag blendet auch alle Unter-Tags aus (z.B. "archiv" blendet "archiv/2024/docs" aus).',
@@ -898,6 +929,7 @@ export const STRINGS_DE = {
                 name: 'Standardtyp für Ordnernotizen',
                 desc: 'Ordnernotiztyp, der über das Kontextmenü erstellt wird.',
                 options: {
+                    ask: 'Beim Erstellen fragen',
                     markdown: 'Markdown',
                     canvas: 'Canvas',
                     base: 'Base'
@@ -910,8 +942,8 @@ export const STRINGS_DE = {
             },
             folderNoteProperties: {
                 name: 'Ordnernotiz-Eigenschaften',
-                desc: 'Frontmatter-Eigenschaften, die neu erstellten Ordnernotizen hinzugefügt werden (kommagetrennt).',
-                placeholder: 'foldernote, darktheme'
+                desc: 'YAML-Frontmatter, das neuen Ordnernotizen hinzugefügt wird. --- Markierungen werden automatisch hinzugefügt.',
+                placeholder: 'theme: dark\nfoldernote: true'
             },
             hideFolderNoteInList: {
                 name: 'Ordnernotizen in Liste ausblenden',

@@ -43,7 +43,8 @@ export const STRINGS_ES = {
         emptyStateNoNotes: 'Sin notas', // Message shown when a folder/tag has no notes (English: No notes)
         pinnedSection: '📌 Fijadas', // Header for the pinned notes section at the top of file list (English: 📌 Pinned)
         notesSection: 'Notas', // Header shown between pinned and regular items when showing documents only (English: Notes)
-        filesSection: 'Archivos' // Header shown between pinned and regular items when showing supported or all files (English: Files)
+        filesSection: 'Archivos', // Header shown between pinned and regular items when showing supported or all files (English: Files)
+        hiddenItemAriaLabel: '{name} (oculto)' // Accessibility label applied to list items that are normally hidden
     },
 
     // Tag list
@@ -98,8 +99,8 @@ export const STRINGS_ES = {
         finishRootFolderReorder: 'Finalizar reordenación',
         toggleDescendantNotes: 'Mostrar notas de subcarpetas / descendientes', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants)
         autoExpandFoldersTags: 'Expandir carpetas y etiquetas automáticamente', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
-        showExcludedItems: 'Mostrar elementos ocultos', // Tooltip for button to show hidden items (English: Show hidden items)
-        hideExcludedItems: 'Ocultar elementos ocultos', // Tooltip for button to hide hidden items (English: Hide hidden items)
+        showExcludedItems: 'Mostrar carpetas, etiquetas y notas ocultas', // Tooltip for button to show hidden items (English: Show hidden items)
+        hideExcludedItems: 'Ocultar carpetas, etiquetas y notas ocultas', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Mostrar paneles dobles', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Mostrar panel único', // Tooltip for button to show single-pane layout (English: Show single pane)
         changeAppearance: 'Cambiar apariencia', // Tooltip for button to change folder appearance settings (English: Change appearance)
@@ -177,6 +178,7 @@ export const STRINGS_ES = {
             changeColor: 'Cambiar color',
             changeBackground: 'Cambiar fondo',
             excludeFolder: 'Ocultar carpeta',
+            unhideFolder: 'Mostrar carpeta',
             moveFolder: 'Mover a...',
             renameFolder: 'Renombrar carpeta',
             deleteFolder: 'Eliminar carpeta'
@@ -279,6 +281,10 @@ export const STRINGS_ES = {
             removeAllTagsFromNote: '¿Estás seguro de que quieres eliminar todas las etiquetas de esta nota?',
             removeAllTagsFromNotes: '¿Estás seguro de que quieres eliminar todas las etiquetas de {count} notas?'
         },
+        folderNoteType: {
+            title: 'Selecciona el tipo de nota de carpeta',
+            folderLabel: 'Carpeta: {name}'
+        },
         folderSuggest: {
             placeholder: 'Mover a carpeta...',
             navigatePlaceholder: 'Navegar a carpeta...',
@@ -357,7 +363,8 @@ export const STRINGS_ES = {
             noFileSelected: 'No hay archivo seleccionado'
         },
         notices: {
-            excludedFolder: 'Carpeta excluida: {name}'
+            hideFolder: 'Carpeta oculta: {name}',
+            showFolder: 'Carpeta mostrada: {name}'
         },
         notifications: {
             deletedMultipleFiles: '{count} archivos eliminados',
@@ -380,7 +387,8 @@ export const STRINGS_ES = {
             iconPackDownloaded: '{provider} descargado',
             iconPackUpdated: '{provider} actualizado ({version})',
             iconPackRemoved: '{provider} eliminado',
-            iconPackLoadFailed: 'No se pudo cargar {provider}'
+            iconPackLoadFailed: 'No se pudo cargar {provider}',
+            hiddenFileReveal: 'El archivo está oculto. Activa "Mostrar elementos ocultos" para mostrarlo'
         },
         confirmations: {
             deleteMultipleFiles: '¿Está seguro de que desea eliminar {count} archivos?',
@@ -449,7 +457,7 @@ export const STRINGS_ES = {
         navigateToTag: 'Navegar a etiqueta', // Command palette: Navigate to a tag using fuzzy search (English: Navigate to tag)
         addShortcut: 'Agregar a accesos directos', // Command palette: Adds the current file, folder, or tag to shortcuts (English: Add to shortcuts)
         toggleDescendants: 'Alternar descendientes', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
-        toggleHidden: 'Alternar elementos ocultos', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
+        toggleHidden: 'Alternar carpetas, etiquetas y notas ocultas', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'Alternar orden de etiquetas', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
         collapseExpand: 'Contraer / expandir todos los elementos', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Añadir etiqueta a archivos seleccionados', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -495,10 +503,11 @@ export const STRINGS_ES = {
         },
         groups: {
             general: {
+                filtering: 'Filtrado',
+                behavior: 'Comportamiento',
                 view: 'Apariencia',
                 desktopAppearance: 'Apariencia de escritorio',
-                behavior: 'Comportamiento',
-                filtering: 'Filtrado',
+                mobileAppearance: 'Apariencia móvil',
                 formatting: 'Formato'
             },
             navigation: {
@@ -571,6 +580,10 @@ export const STRINGS_ES = {
                 name: 'Mostrar notas de subcarpetas / descendientes',
                 desc: 'Incluir notas de subcarpetas y descendientes de etiquetas al ver una carpeta o etiqueta.'
             },
+            limitPinnedToCurrentFolder: {
+                name: 'Mostrar notas fijadas solo en la carpeta principal',
+                desc: 'Las notas fijadas aparecen solo al ver su carpeta'
+            },
             separateNoteCounts: {
                 name: 'Mostrar conteos actuales y descendientes por separado',
                 desc: 'Muestra el conteo de notas como formato "actual ▾ descendientes" en carpetas y etiquetas.'
@@ -620,14 +633,18 @@ export const STRINGS_ES = {
                     vertical: 'División vertical'
                 }
             },
-            dualPaneBackground: {
+            appearanceBackground: {
                 name: 'Color de fondo',
-                desc: 'Elige colores de fondo para los paneles de navegación y lista en escritorio.',
+                desc: 'Elige colores de fondo para los paneles de navegación y lista.',
                 options: {
                     separate: 'Fondos separados',
                     primary: 'Usar fondo de lista',
                     secondary: 'Usar fondo de navegación'
                 }
+            },
+            appearanceScale: {
+                name: 'Nivel de zoom',
+                desc: 'Controla el nivel de zoom general de Notebook Navigator.'
             },
             startView: {
                 name: 'Vista de inicio predeterminada',
@@ -648,6 +665,10 @@ export const STRINGS_ES = {
             autoSelectFirstFileOnFocusChange: {
                 name: 'Seleccionar automáticamente la primera nota (solo escritorio)',
                 desc: 'Abre automáticamente la primera nota al cambiar de carpeta o etiqueta.'
+            },
+            skipAutoScroll: {
+                name: 'Desactivar desplazamiento automático para accesos directos',
+                desc: 'No desplazar el panel de navegación al hacer clic en elementos de accesos directos.'
             },
             autoExpandFoldersTags: {
                 name: 'Expandir carpetas y etiquetas automáticamente',
@@ -679,6 +700,12 @@ export const STRINGS_ES = {
             showTooltipPath: {
                 name: 'Mostrar ruta',
                 desc: 'Muestra la ruta de la carpeta debajo del nombre de las notas en los tooltips.'
+            },
+            resetPaneSeparator: {
+                name: 'Restablecer posición del separador de paneles',
+                desc: 'Restablece el separador arrastrable entre el panel de navegación y el panel de lista a la posición predeterminada.',
+                buttonText: 'Restablecer separador',
+                notice: 'Posición del separador restablecida. Reinicia Obsidian o vuelve a abrir Notebook Navigator para aplicar.'
             },
             multiSelectModifier: {
                 name: 'Modificador de selección múltiple',
@@ -882,6 +909,10 @@ export const STRINGS_ES = {
                 name: 'Mostrar notas sin etiquetas',
                 desc: 'Muestra el elemento "Sin etiquetas" para notas sin ninguna etiqueta.'
             },
+            keepEmptyTagsProperty: {
+                name: 'Conservar propiedad tags después de eliminar la última etiqueta',
+                desc: 'Mantiene la propiedad tags en frontmatter cuando se eliminan todas las etiquetas. Cuando está desactivado, la propiedad tags se elimina del frontmatter.'
+            },
             hiddenTags: {
                 name: 'Etiquetas ocultas',
                 desc: 'Lista separada por comas de prefijos de etiquetas o comodines de nombre. Usa `tag*` o `*tag` para coincidir con nombres de etiquetas. Ocultar una etiqueta también oculta todas sus sub-etiquetas (ej. "archivo" oculta "archivo/2024/docs").',
@@ -895,6 +926,7 @@ export const STRINGS_ES = {
                 name: 'Tipo predeterminado de nota de carpeta',
                 desc: 'Tipo de nota de carpeta creado desde el menú contextual.',
                 options: {
+                    ask: 'Preguntar al crear',
                     markdown: 'Markdown',
                     canvas: 'Canvas',
                     base: 'Base'
@@ -907,8 +939,8 @@ export const STRINGS_ES = {
             },
             folderNoteProperties: {
                 name: 'Propiedades de nota de carpeta',
-                desc: 'Propiedades frontmatter para agregar a las notas de carpeta recién creadas (separadas por comas).',
-                placeholder: 'foldernote, darktheme'
+                desc: 'Frontmatter YAML agregado a las nuevas notas de carpeta. Los marcadores --- se agregan automáticamente.',
+                placeholder: 'theme: dark\nfoldernote: true'
             },
             hideFolderNoteInList: {
                 name: 'Ocultar notas de carpeta en la lista',

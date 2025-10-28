@@ -43,7 +43,8 @@ export const STRINGS_KO = {
         emptyStateNoNotes: '노트 없음', // Message shown when a folder/tag has no notes (English: No notes)
         pinnedSection: '📌 고정됨', // Header for the pinned notes section at the top of file list (English: 📌 Pinned)
         notesSection: '노트', // Header shown between pinned and regular items when showing documents only (English: Notes)
-        filesSection: '파일' // Header shown between pinned and regular items when showing supported or all files (English: Files)
+        filesSection: '파일', // Header shown between pinned and regular items when showing supported or all files (English: Files)
+        hiddenItemAriaLabel: '{name} (숨김)' // Accessibility label applied to list items that are normally hidden
     },
 
     // Tag list
@@ -98,8 +99,8 @@ export const STRINGS_KO = {
         finishRootFolderReorder: '재정렬 완료',
         toggleDescendantNotes: '하위 폴더 / 하위 항목 노트 표시', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: '폴더 및 태그 자동 펼치기', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
-        showExcludedItems: '숨겨진 항목 표시', // Tooltip for button to show hidden items (English: Show hidden items)
-        hideExcludedItems: '숨겨진 항목 숨기기', // Tooltip for button to hide hidden items (English: Hide hidden items)
+        showExcludedItems: '숨긴 폴더, 태그, 노트 표시', // Tooltip for button to show hidden items (English: Show hidden items)
+        hideExcludedItems: '숨긴 폴더, 태그, 노트 숨기기', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: '이중 창 표시', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: '단일 창 표시', // Tooltip for button to show single-pane layout (English: Show single pane)
         changeAppearance: '모양 변경', // Tooltip for button to change folder appearance settings (English: Change appearance)
@@ -176,6 +177,7 @@ export const STRINGS_KO = {
             changeColor: '아이콘 색상 변경',
             changeBackground: '배경색 변경',
             excludeFolder: '폴더 숨기기',
+            unhideFolder: '폴더 표시',
             moveFolder: '이동...',
             renameFolder: '폴더 이름 변경',
             deleteFolder: '폴더 삭제'
@@ -278,6 +280,10 @@ export const STRINGS_KO = {
             removeAllTagsFromNote: '이 노트에서 모든 태그를 제거하시겠습니까?',
             removeAllTagsFromNotes: '{count}개의 노트에서 모든 태그를 제거하시겠습니까?'
         },
+        folderNoteType: {
+            title: '폴더 노트 형식 선택',
+            folderLabel: '폴더: {name}'
+        },
         folderSuggest: {
             placeholder: '폴더로 이동...',
             navigatePlaceholder: '폴더로 이동...',
@@ -356,7 +362,8 @@ export const STRINGS_KO = {
             noFileSelected: '선택된 파일이 없습니다'
         },
         notices: {
-            excludedFolder: '숨겨진 폴더: {name}'
+            hideFolder: '폴더 숨김: {name}',
+            showFolder: '폴더 표시: {name}'
         },
         notifications: {
             deletedMultipleFiles: '{count}개의 파일이 삭제됨',
@@ -379,7 +386,8 @@ export const STRINGS_KO = {
             iconPackDownloaded: '{provider} 다운로드됨',
             iconPackUpdated: '{provider} 업데이트됨 ({version})',
             iconPackRemoved: '{provider} 제거됨',
-            iconPackLoadFailed: '{provider} 로드에 실패했습니다'
+            iconPackLoadFailed: '{provider} 로드에 실패했습니다',
+            hiddenFileReveal: '파일이 숨겨져 있습니다. 표시하려면 "숨겨진 항목 표시"를 활성화하세요'
         },
         confirmations: {
             deleteMultipleFiles: '{count}개의 파일을 삭제하시겠습니까?',
@@ -448,7 +456,7 @@ export const STRINGS_KO = {
         navigateToTag: '태그로 이동', // Command palette: Navigate to a tag using fuzzy search (English: Navigate to tag)
         addShortcut: '바로가기에 추가', // Command palette: Adds the current file, folder, or tag to shortcuts (English: Add to shortcuts)
         toggleDescendants: '하위 항목 전환', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
-        toggleHidden: '숨겨진 항목 전환', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
+        toggleHidden: '숨긴 폴더, 태그, 노트 전환', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: '태그 정렬 전환', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
         collapseExpand: '모든 항목 접기 / 펼치기', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: '선택한 파일에 태그 추가', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -494,10 +502,11 @@ export const STRINGS_KO = {
         },
         groups: {
             general: {
+                filtering: '필터링',
+                behavior: '동작',
                 view: '모양',
                 desktopAppearance: '데스크톱 모양새',
-                behavior: '동작',
-                filtering: '필터링',
+                mobileAppearance: '모바일 모양새',
                 formatting: '서식'
             },
             navigation: {
@@ -570,6 +579,10 @@ export const STRINGS_KO = {
                 name: '하위 폴더 / 하위 항목 노트 표시',
                 desc: '폴더나 태그를 볼 때 중첩된 하위 폴더와 태그 하위 항목의 노트를 포함합니다.'
             },
+            limitPinnedToCurrentFolder: {
+                name: '상위 폴더에서만 고정된 노트 표시',
+                desc: '고정된 노트는 해당 폴더를 볼 때만 표시됩니다'
+            },
             separateNoteCounts: {
                 name: '현재와 하위 항목 수를 별도로 표시',
                 desc: '폴더와 태그의 노트 수를 "현재 ▾ 하위" 형식으로 표시합니다.'
@@ -619,14 +632,18 @@ export const STRINGS_KO = {
                     vertical: '세로 분할'
                 }
             },
-            dualPaneBackground: {
+            appearanceBackground: {
                 name: '배경색',
-                desc: '데스크톱에서 탐색 및 목록 패널의 배경색을 선택합니다.',
+                desc: '탐색 및 목록 패널의 배경색을 선택합니다.',
                 options: {
                     separate: '분리된 배경',
                     primary: '목록 배경 사용',
                     secondary: '탐색 배경 사용'
                 }
+            },
+            appearanceScale: {
+                name: '확대 수준',
+                desc: 'Notebook Navigator의 전체 확대 수준을 제어합니다.'
             },
             startView: {
                 name: '기본 시작 보기',
@@ -647,6 +664,10 @@ export const STRINGS_KO = {
             autoSelectFirstFileOnFocusChange: {
                 name: '첫 번째 노트 자동 선택 (데스크톱 전용)',
                 desc: '폴더나 태그를 전환할 때 첫 번째 노트를 자동으로 엽니다.'
+            },
+            skipAutoScroll: {
+                name: '바로가기 자동 스크롤 비활성화',
+                desc: '바로가기 내 항목을 클릭할 때 탐색 패널을 스크롤하지 않습니다.'
             },
             autoExpandFoldersTags: {
                 name: '폴더 및 태그 자동 펼치기',
@@ -678,6 +699,12 @@ export const STRINGS_KO = {
             showTooltipPath: {
                 name: '경로 표시',
                 desc: '도구 설명에서 노트 이름 아래에 폴더 경로를 표시합니다.'
+            },
+            resetPaneSeparator: {
+                name: '창 구분선 위치 초기화',
+                desc: '탐색 창과 목록 창 사이의 드래그 가능한 구분선을 기본 위치로 초기화합니다.',
+                buttonText: '구분선 초기화',
+                notice: '구분선 위치가 초기화되었습니다. Obsidian을 재시작하거나 Notebook Navigator를 다시 열어 적용하세요.'
             },
             multiSelectModifier: {
                 name: '다중 선택 수정자',
@@ -881,6 +908,10 @@ export const STRINGS_KO = {
                 name: '태그 없는 노트 표시',
                 desc: '태그가 없는 노트에 대해 "태그 없음" 항목을 표시합니다.'
             },
+            keepEmptyTagsProperty: {
+                name: '마지막 태그 제거 후 tags 속성 유지',
+                desc: '모든 태그가 제거될 때 frontmatter 의 tags 속성을 유지합니다. 비활성화하면 tags 속성이 frontmatter 에서 삭제됩니다.'
+            },
             hiddenTags: {
                 name: '숨겨진 태그',
                 desc: '숨길 태그 접두사 또는 이름 와일드카드의 쉼표로 구분된 목록입니다. `tag*` 또는 `*tag` 로 태그 이름을 일치시킵니다. 태그를 숨기면 모든 하위 태그도 숨겨집니다 (예: "archive"는 "archive/2024/docs" 숨김).',
@@ -894,6 +925,7 @@ export const STRINGS_KO = {
                 name: '기본 폴더 노트 형식',
                 desc: '컨텍스트 메뉴에서 생성되는 폴더 노트 형식입니다.',
                 options: {
+                    ask: '생성 시 선택',
                     markdown: 'Markdown',
                     canvas: 'Canvas',
                     base: 'Base'
@@ -906,8 +938,8 @@ export const STRINGS_KO = {
             },
             folderNoteProperties: {
                 name: '폴더 노트 속성',
-                desc: '새로 생성된 폴더 노트에 추가할 frontmatter 속성 (쉼표로 구분).',
-                placeholder: 'foldernote, darktheme'
+                desc: '새 폴더 노트에 추가되는 YAML 전문. --- 마커는 자동으로 추가됩니다.',
+                placeholder: 'theme: dark\nfoldernote: true'
             },
             hideFolderNoteInList: {
                 name: '목록에서 폴더 노트 숨기기',

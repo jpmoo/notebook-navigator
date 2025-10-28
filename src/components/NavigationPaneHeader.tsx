@@ -19,10 +19,12 @@
 import { useSelectionState } from '../context/SelectionContext';
 import { useServices } from '../context/ServicesContext';
 import { useSettingsState } from '../context/SettingsContext';
+import { useUXPreferences } from '../context/UXPreferencesContext';
 import { useUIState } from '../context/UIStateContext';
 import { strings } from '../i18n';
 import { ObsidianIcon } from './ObsidianIcon';
 import { useNavigationActions } from '../hooks/useNavigationActions';
+import { hasHiddenItemSources } from '../utils/exclusionUtils';
 
 interface NavigationPaneHeaderProps {
     onTreeUpdateComplete?: () => void;
@@ -41,12 +43,15 @@ export function NavigationPaneHeader({
 }: NavigationPaneHeaderProps) {
     const { isMobile, plugin } = useServices();
     const settings = useSettingsState();
+    const uxPreferences = useUXPreferences();
+    const showHiddenItems = uxPreferences.showHiddenItems;
     const uiState = useUIState();
     const selectionState = useSelectionState();
 
     // Hook providing shared navigation actions (expand/collapse, folder creation, toggle visibility)
     const { shouldCollapseItems, handleExpandCollapseAll, handleNewFolder, handleToggleShowExcludedFolders } = useNavigationActions();
-    const hasHiddenItems = settings.excludedFolders.length > 0 || settings.hiddenTags.length > 0;
+    // Detects if any hidden folders, tags, or files are configured to determine if toggle should be shown
+    const hasHiddenItems = hasHiddenItemSources(settings);
 
     if (isMobile) {
         // Mobile devices render actions in tab bar instead of header
@@ -99,12 +104,10 @@ export function NavigationPaneHeader({
                     </button>
                     {hasHiddenItems ? (
                         <button
-                            className={`nn-icon-button ${settings.showHiddenItems ? 'nn-icon-button-active' : ''}`}
-                            aria-label={
-                                settings.showHiddenItems ? strings.paneHeader.hideExcludedItems : strings.paneHeader.showExcludedItems
-                            }
-                            onClick={async () => {
-                                await handleToggleShowExcludedFolders();
+                            className={`nn-icon-button ${showHiddenItems ? 'nn-icon-button-active' : ''}`}
+                            aria-label={showHiddenItems ? strings.paneHeader.hideExcludedItems : strings.paneHeader.showExcludedItems}
+                            onClick={() => {
+                                handleToggleShowExcludedFolders();
                                 if (onTreeUpdateComplete) {
                                     // Defer callback until after DOM updates complete
                                     requestAnimationFrame(() => {

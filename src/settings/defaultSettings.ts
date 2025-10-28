@@ -19,6 +19,7 @@
 import { getDefaultKeyboardShortcuts } from '../utils/keyboardShortcuts';
 import { FILE_VISIBILITY } from '../utils/fileTypeUtils';
 import { NAVPANE_MEASUREMENTS, type PinnedNotes } from '../types';
+import { DEFAULT_UI_SCALE } from '../utils/uiScale';
 import type { FolderAppearance, TagAppearance } from '../hooks/useListPaneAppearance';
 import type { NotebookNavigatorSettings } from './types';
 import type { ShortcutCollection } from '../types/shortcuts';
@@ -28,31 +29,39 @@ import type { ShortcutCollection } from '../types/shortcuts';
  * Used when plugin is first installed or settings are reset
  */
 export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
-    // General tab - Startup & layout
+    // General tab - Filtering
+    fileVisibility: FILE_VISIBILITY.DOCUMENTS,
+    excludedFolders: [],
+    excludedFiles: [],
+
+    // General tab - Behavior
+    autoRevealActiveFile: true,
+    autoRevealIgnoreRightSidebar: true,
+
+    // General tab - View
     startView: 'files',
-    showTooltips: false,
-    showTooltipPath: true,
-    dualPaneBackground: 'separate',
 
     // General tab - Homepage
     homepage: null,
     mobileHomepage: null,
     useMobileHomepage: false,
 
-    // General tab - Behavior
-    autoRevealActiveFile: true,
-    autoRevealIgnoreRightSidebar: true,
+    // General tab - Desktop appearance
+    showTooltips: false,
+    showTooltipPath: true,
+    desktopBackground: 'separate',
+    desktopScale: DEFAULT_UI_SCALE,
 
-    // General tab - Filtering
-    fileVisibility: FILE_VISIBILITY.DOCUMENTS,
-    excludedFolders: [],
-    excludedFiles: [],
+    // General tab - Mobile appearance
+    mobileBackground: 'primary',
+    mobileScale: DEFAULT_UI_SCALE,
 
     // General tab - Formatting
     dateFormat: 'MMM d, yyyy',
     timeFormat: 'h:mm a',
 
     // Navigation pane tab
+    skipAutoScroll: false,
     autoSelectFirstFileOnFocusChange: false,
     navigationBanner: null,
     showShortcuts: true,
@@ -68,7 +77,6 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     navIndent: NAVPANE_MEASUREMENTS.defaultIndent,
     navItemHeight: NAVPANE_MEASUREMENTS.defaultItemHeight,
     navItemHeightScaleText: true,
-    showHiddenItems: false,
 
     // Folders & tags tab
     showRootFolder: true,
@@ -76,7 +84,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     enableFolderNotes: false,
     folderNoteType: 'markdown',
     folderNoteName: '',
-    folderNoteProperties: [],
+    folderNoteProperties: '',
     hideFolderNoteInList: true,
     pinCreatedFolderNote: false,
     showTags: true,
@@ -84,13 +92,14 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     showUntagged: false,
     tagSortOrder: 'alpha-asc',
     hiddenTags: [],
+    keepEmptyTagsProperty: false,
 
     // List pane tab
     defaultFolderSort: 'modified-desc',
     listPaneTitle: 'header',
     multiSelectModifier: 'cmdCtrl',
-    includeDescendantNotes: true,
     noteGrouping: 'date',
+    filterPinnedByFolder: false,
     optimizeNoteHeight: true,
     showQuickActions: true,
     quickActionRevealInFolder: true,
@@ -149,7 +158,6 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     confirmBeforeDelete: true,
 
     // Runtime state and cached data
-    searchActive: false,
     customVaultName: '',
     pinnedNotes: {} as PinnedNotes,
     fileIcons: {},
