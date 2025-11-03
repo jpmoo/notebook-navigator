@@ -41,7 +41,7 @@ export const STRINGS_ES = {
     listPane: {
         emptyStateNoSelection: 'Selecciona una carpeta o etiqueta para ver las notas', // Message shown when no folder or tag is selected (English: Select a folder or tag to view notes)
         emptyStateNoNotes: 'Sin notas', // Message shown when a folder/tag has no notes (English: No notes)
-        pinnedSection: '📌 Fijadas', // Header for the pinned notes section at the top of file list (English: 📌 Pinned)
+        pinnedSection: 'Fijadas', // Header for the pinned notes section at the top of file list (English: Pinned)
         notesSection: 'Notas', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Archivos', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (oculto)' // Accessibility label applied to list items that are normally hidden
@@ -198,9 +198,11 @@ export const STRINGS_ES = {
         slimPreset: 'Compacto (sin fecha/vista previa/imagen)',
         titleRows: 'Filas de título',
         previewRows: 'Filas de vista previa',
+        groupBy: 'Agrupar por',
         defaultOption: (rows: number) => `Predeterminado (${rows})`,
         defaultTitleOption: (rows: number) => `Filas de título predeterminadas (${rows})`,
         defaultPreviewOption: (rows: number) => `Filas de vista previa predeterminadas (${rows})`,
+        defaultGroupOption: (groupLabel: string) => `Agrupación predeterminada (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} fila${rows === 1 ? '' : 's'} de título`,
         previewRowOption: (rows: number) => `${rows} fila${rows === 1 ? '' : 's'} de vista previa`
     },
@@ -451,6 +453,8 @@ export const STRINGS_ES = {
         deleteFile: 'Eliminar archivos', // Command palette: Deletes the currently active file (English: Delete file)
         createNewNote: 'Crear nueva nota', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         moveFiles: 'Mover archivos', // Command palette: Move selected files to another folder (English: Move files)
+        selectNextFile: 'Seleccionar siguiente archivo', // Command palette: Selects the next file in the current view (English: Select next file)
+        selectPreviousFile: 'Seleccionar archivo anterior', // Command palette: Selects the previous file in the current view (English: Select previous file)
         convertToFolderNote: 'Convertir en nota de carpeta', // Command palette: Converts the active file into a folder note with a new folder (English: Convert to folder note)
         pinAllFolderNotes: 'Fijar todas las notas de carpeta', // Command palette: Pins all folder notes to shortcuts (English: Pin all folder notes)
         navigateToFolder: 'Navegar a carpeta', // Command palette: Navigate to a folder using fuzzy search (English: Navigate to folder)
@@ -556,7 +560,7 @@ export const STRINGS_ES = {
                 }
             },
             listPaneTitle: {
-                name: 'Título del panel de lista',
+                name: 'Título del panel de lista (solo escritorio)',
                 desc: 'Elige dónde se muestra el título del panel de lista.',
                 options: {
                     header: 'Mostrar en el encabezado',
@@ -597,13 +601,34 @@ export const STRINGS_ES = {
                     folder: 'Agrupar por carpeta'
                 }
             },
+            showPinnedGroupHeader: {
+                name: 'Mostrar encabezado del grupo anclado',
+                desc: 'Muestra el encabezado de la sección de notas ancladas.'
+            },
+            showPinnedIcon: {
+                name: 'Mostrar icono de anclados',
+                desc: 'Muestra el icono junto al encabezado de la sección anclada.'
+            },
             optimizeNoteHeight: {
                 name: 'Optimizar altura de notas',
                 desc: 'Reducir altura para notas ancladas y notas sin texto de vista previa.'
             },
-            showParentFolderNames: {
-                name: 'Mostrar nombres de carpetas principales',
+            slimItemHeight: {
+                name: 'Altura de elementos compactos',
+                desc: 'Define la altura de los elementos compactos en escritorio y móvil.',
+                resetTooltip: 'Restablecer al valor predeterminado (28px)'
+            },
+            slimItemHeightScaleText: {
+                name: 'Escalar texto con altura compacta',
+                desc: 'Escala el texto de los elementos compactos cuando se reduce la altura.'
+            },
+            showParentFolder: {
+                name: 'Mostrar carpeta principal',
                 desc: 'Muestra el nombre de la carpeta principal para las notas en subcarpetas o etiquetas.'
+            },
+            showParentFolderColor: {
+                name: 'Mostrar color de carpeta principal',
+                desc: 'Usar colores de carpeta en etiquetas de carpetas principales.'
             },
             showQuickActions: {
                 name: 'Mostrar acciones rápidas (solo escritorio)',
@@ -846,6 +871,10 @@ export const STRINGS_ES = {
                 name: 'Mostrar carpeta raíz',
                 desc: 'Muestra el nombre de la carpeta raíz en el árbol.'
             },
+            showFolderIcons: {
+                name: 'Mostrar iconos de carpetas',
+                desc: 'Muestra iconos junto a las carpetas en el panel de navegación.'
+            },
             inheritFolderColors: {
                 name: 'Heredar colores de carpeta',
                 desc: 'Las subcarpetas heredan el color de las carpetas principales.'
@@ -854,9 +883,9 @@ export const STRINGS_ES = {
                 name: 'Mostrar conteo de notas',
                 desc: 'Muestra el número de notas junto a cada carpeta y etiqueta.'
             },
-            showIcons: {
-                name: 'Mostrar iconos',
-                desc: 'Muestra iconos para carpetas, etiquetas y notas.'
+            showSectionIcons: {
+                name: 'Mostrar iconos de atajo',
+                desc: 'Muestra iconos para secciones de navegación como Atajos y Archivos recientes.'
             },
             showIconsColorOnly: {
                 name: 'Aplicar color solo a los iconos',
@@ -887,9 +916,17 @@ export const STRINGS_ES = {
                 name: 'Escalar texto con la altura de línea',
                 desc: 'Reduce el texto de navegación cuando la altura de línea se disminuye.'
             },
+            navRootSpacing: {
+                name: 'Espaciado de elementos raíz',
+                desc: 'Espaciado entre carpetas y etiquetas de nivel superior.'
+            },
             showTags: {
                 name: 'Mostrar etiquetas',
                 desc: 'Muestra la sección de etiquetas debajo de las carpetas en el navegador.'
+            },
+            showTagIcons: {
+                name: 'Mostrar iconos de etiquetas',
+                desc: 'Muestra iconos junto a las etiquetas en el panel de navegación.'
             },
             tagSortOrder: {
                 name: 'Orden de etiquetas',
@@ -1067,7 +1104,7 @@ export const STRINGS_ES = {
                 status: 'New version available: {version}'
             },
             whatsNew: {
-                name: 'Novedades',
+                name: 'Novedades en Notebook Navigator {version}',
                 desc: 'Ver actualizaciones y mejoras recientes',
                 buttonText: 'Ver actualizaciones recientes'
             },

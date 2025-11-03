@@ -41,7 +41,7 @@ export const STRINGS_ZH_TW = {
     listPane: {
         emptyStateNoSelection: '選取一個資料夾或標籤以檢視筆記', // 未選取資料夾或標籤時顯示的訊息 (英文: Select a folder or tag to view notes)
         emptyStateNoNotes: '沒有筆記', // 當資料夾/標籤沒有筆記時顯示的訊息 (英文: No notes)
-        pinnedSection: '📌 已釘選', // 檔案列表頂部釘選筆記區段的標頭 (英文: 📌 Pinned)
+        pinnedSection: '已釘選', // 檔案列表頂部釘選筆記區段的標頭 (英文: Pinned)
         notesSection: '筆記', // 僅顯示文件時，在釘選項目和一般項目之間顯示的標頭 (英文: Notes)
         filesSection: '檔案', // 顯示支援的或所有檔案時，在釘選項目和一般項目之間顯示的標頭 (英文: Files)
         hiddenItemAriaLabel: '{name} (已隱藏)' // 用於標示通常被隱藏項目的無障礙標籤
@@ -198,9 +198,11 @@ export const STRINGS_ZH_TW = {
         slimPreset: '緊湊 (無日期/預覽/圖片)',
         titleRows: '標題列數',
         previewRows: '預覽列數',
+        groupBy: '分組依據',
         defaultOption: (rows: number) => `預設 (${rows})`,
         defaultTitleOption: (rows: number) => `預設標題列數 (${rows})`,
         defaultPreviewOption: (rows: number) => `預設預覽列數 (${rows})`,
+        defaultGroupOption: (groupLabel: string) => `預設分組 (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} 標題列`,
         previewRowOption: (rows: number) => `${rows} 預覽列`
     },
@@ -450,6 +452,8 @@ export const STRINGS_ZH_TW = {
         deleteFile: '刪除檔案', // 指令面板：刪除目前活動的檔案 (英文: Delete file)
         createNewNote: '建立新筆記', // 指令面板：在目前選取的資料夾中建立新筆記 (英文: Create new note)
         moveFiles: '移動檔案', // 指令面板：將選取的檔案移動至另一個資料夾 (英文: Move files)
+        selectNextFile: '選擇下一個檔案', // 指令面板：選取目前檢視中的下一個檔案 (英文: Select next file)
+        selectPreviousFile: '選擇上一個檔案', // 指令面板：選取目前檢視中的上一個檔案 (英文: Select previous file)
         convertToFolderNote: '轉換為資料夾筆記', // 指令面板：將活動檔案轉換為帶有新資料夾的資料夾筆記 (英文: Convert to folder note)
         pinAllFolderNotes: '固定所有資料夾筆記', // 指令面板：將所有資料夾筆記釘選到捷徑 (英文: Pin all folder notes)
         navigateToFolder: '導覽至資料夾', // 指令面板：使用模糊搜尋導覽至資料夾 (英文: Navigate to folder)
@@ -554,7 +558,7 @@ export const STRINGS_ZH_TW = {
                 }
             },
             listPaneTitle: {
-                name: '列表窗格標題',
+                name: '列表窗格標題（僅限桌面）',
                 desc: '選擇列表窗格標題的顯示位置。',
                 options: {
                     header: '顯示在標頭',
@@ -595,13 +599,34 @@ export const STRINGS_ZH_TW = {
                     folder: '依資料夾分組'
                 }
             },
+            showPinnedGroupHeader: {
+                name: '顯示釘選群組標題',
+                desc: '在釘選筆記上方顯示分組標題。'
+            },
+            showPinnedIcon: {
+                name: '顯示釘選圖示',
+                desc: '在釘選區段標題旁顯示圖示。'
+            },
             optimizeNoteHeight: {
                 name: '最佳化筆記高度',
                 desc: '減少釘選筆記和無預覽文字筆記的高度。'
             },
-            showParentFolderNames: {
-                name: '顯示父資料夾名稱',
+            slimItemHeight: {
+                name: '精簡項目高度',
+                desc: '設定桌面與行動裝置的精簡清單項目高度。',
+                resetTooltip: '恢復預設值 (28px)'
+            },
+            slimItemHeightScaleText: {
+                name: '精簡高度同步縮放文字',
+                desc: '降低精簡清單項目高度時同步調整文字大小。'
+            },
+            showParentFolder: {
+                name: '顯示父資料夾',
                 desc: '在子資料夾或標籤中顯示筆記的父資料夾名稱。'
+            },
+            showParentFolderColor: {
+                name: '顯示父資料夾顏色',
+                desc: '在父資料夾標籤上使用資料夾顏色。'
             },
             showQuickActions: {
                 name: '顯示快速操作 (僅限桌面版)',
@@ -844,6 +869,10 @@ export const STRINGS_ZH_TW = {
                 name: '顯示根資料夾',
                 desc: '在樹狀結構中將儲存庫名稱顯示為根資料夾。'
             },
+            showFolderIcons: {
+                name: '顯示資料夾圖示',
+                desc: '在導覽窗格的資料夾旁顯示圖示。'
+            },
             inheritFolderColors: {
                 name: '繼承資料夾顏色',
                 desc: '子資料夾繼承父資料夾的顏色。'
@@ -852,9 +881,9 @@ export const STRINGS_ZH_TW = {
                 name: '顯示筆記數量',
                 desc: '在每個資料夾和標籤旁邊顯示筆記數量。'
             },
-            showIcons: {
-                name: '顯示圖示',
-                desc: '顯示資料夾、標籤和筆記的圖示。'
+            showSectionIcons: {
+                name: '顯示捷徑圖示',
+                desc: '顯示導覽區段（如捷徑和最近檔案）的圖示。'
             },
             showIconsColorOnly: {
                 name: '僅對圖示套用顏色',
@@ -885,9 +914,17 @@ export const STRINGS_ZH_TW = {
                 name: '隨項目高度縮放文字',
                 desc: '減少項目高度時，縮小導覽文字大小。'
             },
+            navRootSpacing: {
+                name: '根層項目間距',
+                desc: '根層資料夾與標籤之間的間距。'
+            },
             showTags: {
                 name: '顯示標籤',
                 desc: '在導覽器中資料夾下方顯示標籤區段。'
+            },
+            showTagIcons: {
+                name: '顯示標籤圖示',
+                desc: '在導覽窗格的標籤旁顯示圖示。'
             },
             tagSortOrder: {
                 name: '標籤排序方式',
@@ -1065,7 +1102,7 @@ export const STRINGS_ZH_TW = {
                 status: '已有新版本: {version}'
             },
             whatsNew: {
-                name: '最新消息',
+                name: 'Notebook Navigator {version} 的最新消息',
                 desc: '查看最近的更新和改進',
                 buttonText: '查看最近更新'
             },

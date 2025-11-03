@@ -41,7 +41,7 @@ export const STRINGS_PL = {
     listPane: {
         emptyStateNoSelection: 'Wybierz folder lub tag aby zobaczyć notatki', // Message shown when no folder or tag is selected (English: Select a folder or tag to view notes)
         emptyStateNoNotes: 'Brak notatek', // Message shown when a folder/tag has no notes (English: No notes)
-        pinnedSection: '📌 Przypięte', // Header for the pinned notes section at the top of file list (English: 📌 Pinned)
+        pinnedSection: 'Przypięte', // Header for the pinned notes section at the top of file list (English: Pinned)
         notesSection: 'Notatki', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Pliki', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (ukryte)' // Accessibility label applied to list items that are normally hidden
@@ -197,9 +197,11 @@ export const STRINGS_PL = {
         slimPreset: 'Szczupły (bez daty/podglądu/obrazu)',
         titleRows: 'Wiersze tytułu',
         previewRows: 'Wiersze podglądu',
+        groupBy: 'Grupuj według',
         defaultOption: (rows: number) => `Domyślne (${rows})`,
         defaultTitleOption: (rows: number) => `Domyślne wiersze tytułu (${rows})`,
         defaultPreviewOption: (rows: number) => `Domyślne wiersze podglądu (${rows})`,
+        defaultGroupOption: (groupLabel: string) => `Domyślne grupowanie (${groupLabel})`,
         titleRowOption: (rows: number) =>
             `${rows} ${rows === 1 ? 'wiersz' : rows === 2 || rows === 3 || rows === 4 ? 'wiersze' : 'wierszy'} tytułu`,
         previewRowOption: (rows: number) =>
@@ -452,6 +454,8 @@ export const STRINGS_PL = {
         deleteFile: 'Usuń pliki', // Command palette: Deletes the currently active file (English: Delete file)
         createNewNote: 'Utwórz nową notatkę', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         moveFiles: 'Przenieś pliki', // Command palette: Move selected files to another folder (English: Move files)
+        selectNextFile: 'Wybierz następny plik', // Command palette: Selects the next file in the current view (English: Select next file)
+        selectPreviousFile: 'Wybierz poprzedni plik', // Command palette: Selects the previous file in the current view (English: Select previous file)
         convertToFolderNote: 'Konwertuj na notatkę folderu', // Command palette: Converts the active file into a folder note with a new folder (English: Convert to folder note)
         pinAllFolderNotes: 'Przypnij wszystkie notatki folderu', // Command palette: Pins all folder notes to shortcuts (English: Pin all folder notes)
         navigateToFolder: 'Przejdź do folderu', // Command palette: Navigate to a folder using fuzzy search (English: Navigate to folder)
@@ -557,7 +561,7 @@ export const STRINGS_PL = {
                 }
             },
             listPaneTitle: {
-                name: 'Tytuł panelu listy',
+                name: 'Tytuł panelu listy (tylko na komputerze)',
                 desc: 'Wybierz, gdzie ma być wyświetlany tytuł panelu listy.',
                 options: {
                     header: 'Wyświetlaj w nagłówku',
@@ -598,13 +602,34 @@ export const STRINGS_PL = {
                     folder: 'Grupuj według folderu'
                 }
             },
+            showPinnedGroupHeader: {
+                name: 'Pokaż nagłówek grupy przypiętych',
+                desc: 'Wyświetla nagłówek sekcji przypiętych notatek.'
+            },
+            showPinnedIcon: {
+                name: 'Pokaż ikonę przypiętych',
+                desc: 'Wyświetl ikonę obok nagłówka sekcji przypiętych.'
+            },
             optimizeNoteHeight: {
                 name: 'Optymalizuj wysokość notatek',
                 desc: 'Zmniejsz wysokość dla przypiętych notatek i notatek bez tekstu podglądu.'
             },
-            showParentFolderNames: {
-                name: 'Pokaż nazwy folderów nadrzędnych',
+            slimItemHeight: {
+                name: 'Wysokość elementów w trybie slim',
+                desc: 'Ustawia wysokość elementów listy w trybie slim na komputerze i urządzeniach mobilnych.',
+                resetTooltip: 'Przywróć wartość domyślną (28px)'
+            },
+            slimItemHeightScaleText: {
+                name: 'Skalowanie tekstu z wysokością trybu slim',
+                desc: 'Skaluje tekst elementów listy w trybie slim po zmniejszeniu wysokości.'
+            },
+            showParentFolder: {
+                name: 'Pokaż folder nadrzędny',
                 desc: 'Wyświetl nazwę folderu nadrzędnego dla notatek w podfolderach lub tagach.'
+            },
+            showParentFolderColor: {
+                name: 'Pokaż kolor folderu nadrzędnego',
+                desc: 'Używaj kolorów folderów na etykietach folderów nadrzędnych.'
             },
             showQuickActions: {
                 name: 'Pokaż szybkie akcje (tylko desktop)',
@@ -847,6 +872,10 @@ export const STRINGS_PL = {
                 name: 'Pokaż folder główny',
                 desc: 'Wyświetl nazwę magazynu jako folder główny w drzewie.'
             },
+            showFolderIcons: {
+                name: 'Pokaż ikony folderów',
+                desc: 'Wyświetl ikony obok folderów w panelu nawigacji.'
+            },
             inheritFolderColors: {
                 name: 'Dziedzicz kolory folderów',
                 desc: 'Podfoldery dziedziczą kolor z folderów nadrzędnych.'
@@ -855,9 +884,9 @@ export const STRINGS_PL = {
                 name: 'Pokaż liczbę notatek',
                 desc: 'Wyświetl liczbę notatek obok każdego folderu i tagu.'
             },
-            showIcons: {
-                name: 'Pokaż ikony',
-                desc: 'Wyświetl ikony dla folderów, tagów i notatek.'
+            showSectionIcons: {
+                name: 'Pokaż ikony skrótów',
+                desc: 'Wyświetl ikony dla sekcji nawigacji takich jak Skróty i Ostatnie pliki.'
             },
             showIconsColorOnly: {
                 name: 'Zastosuj kolor tylko do ikon',
@@ -888,9 +917,17 @@ export const STRINGS_PL = {
                 name: 'Skaluj tekst z wysokością elementu',
                 desc: 'Zmniejsza tekst nawigacji, gdy wysokość elementu jest obniżona.'
             },
+            navRootSpacing: {
+                name: 'Odstęp elementów głównych',
+                desc: 'Odstęp między folderami i tagami na poziomie głównym.'
+            },
             showTags: {
                 name: 'Pokaż tagi',
                 desc: 'Wyświetl sekcję tagów poniżej folderów w nawigatorze.'
+            },
+            showTagIcons: {
+                name: 'Pokaż ikony tagów',
+                desc: 'Wyświetl ikony obok tagów w panelu nawigacji.'
             },
             tagSortOrder: {
                 name: 'Kolejność sortowania tagów',
@@ -1068,7 +1105,7 @@ export const STRINGS_PL = {
                 status: 'New version available: {version}'
             },
             whatsNew: {
-                name: 'Co nowego',
+                name: 'Co nowego w Notebook Navigator {version}',
                 desc: 'Zobacz ostatnie aktualizacje i ulepszenia',
                 buttonText: 'Zobacz ostatnie aktualizacje'
             },

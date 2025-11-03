@@ -27,7 +27,7 @@ import { useShortcuts } from '../context/ShortcutsContext';
 import { useUXPreferences } from '../context/UXPreferencesContext';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { useDragNavigationPaneActivation } from '../hooks/useDragNavigationPaneActivation';
-import { useNavigatorReveal, type RevealFileOptions } from '../hooks/useNavigatorReveal';
+import { useNavigatorReveal, type RevealFileOptions, type NavigateToFolderOptions } from '../hooks/useNavigatorReveal';
 import { useNavigatorEventHandlers } from '../hooks/useNavigatorEventHandlers';
 import { useResizablePane } from '../hooks/useResizablePane';
 import { useNavigationActions } from '../hooks/useNavigationActions';
@@ -45,6 +45,7 @@ import { getSelectedPath, getFilesForSelection } from '../utils/selectionUtils';
 import { normalizeNavigationPath } from '../utils/navigationIndex';
 import { deleteSelectedFiles, deleteSelectedFolder } from '../utils/deleteOperations';
 import { localStorage } from '../utils/localStorage';
+import { calculateSlimListMetrics } from '../utils/listPaneMetrics';
 import { getNavigationPaneSizing } from '../utils/paneSizing';
 import { getBackgroundClasses } from '../utils/paneLayout';
 import { useNavigatorScale } from '../hooks/useNavigatorScale';
@@ -55,6 +56,23 @@ import type { NavigationPaneHandle } from './NavigationPane';
 import type { SearchShortcut } from '../types/shortcuts';
 import { UpdateNoticeBanner } from './UpdateNoticeBanner';
 import { UpdateNoticeIndicator } from './UpdateNoticeIndicator';
+import { EMPTY_SEARCH_TAG_FILTER_STATE, type SearchTagFilterState } from '../types/search';
+
+// Checks if two string arrays have identical content in the same order
+const arraysEqual = (a: string[], b: string[]): boolean => {
+    if (a === b) {
+        return true;
+    }
+    if (a.length !== b.length) {
+        return false;
+    }
+    for (let index = 0; index < a.length; index += 1) {
+        if (a[index] !== b[index]) {
+            return false;
+        }
+    }
+    return true;
+};
 
 export interface NotebookNavigatorHandle {
     // Navigates to a file by revealing it in its actual parent folder
@@ -62,12 +80,13 @@ export interface NotebookNavigatorHandle {
     // Reveals a file while preserving the current navigation context when possible
     revealFileInNearestFolder: (file: TFile, options?: RevealFileOptions) => void;
     focusVisiblePane: () => void;
+    focusNavigationPane: () => void;
     refresh: () => void;
     deleteActiveFile: () => void;
     createNoteInSelectedFolder: () => Promise<void>;
     moveSelectedFiles: () => Promise<void>;
     addShortcutForCurrentSelection: () => Promise<void>;
-    navigateToFolder: (folderPath: string) => void;
+    navigateToFolder: (folderPath: string, options?: NavigateToFolderOptions) => void;
     navigateToFolderWithModal: () => void;
     navigateToTagWithModal: () => void;
     addTagToSelectedFiles: () => Promise<void>;
@@ -77,6 +96,8 @@ export interface NotebookNavigatorHandle {
     triggerCollapse: () => void;
     stopContentProcessing: () => void;
     rebuildCache: () => Promise<void>;
+    selectNextFile: () => Promise<boolean>;
+    selectPreviousFile: () => Promise<boolean>;
 }
 
 /**
@@ -142,8 +163,35 @@ export const NotebookNavigatorComponent = React.memo(
         const containerRef = useRef<HTMLDivElement>(null);
 
         const [isNavigatorFocused, setIsNavigatorFocused] = useState(false);
+        // Tracks tag-related search tokens for highlighting tags in navigation pane
+        const [searchTagFilters, setSearchTagFilters] = useState<SearchTagFilterState>(EMPTY_SEARCH_TAG_FILTER_STATE);
         const navigationPaneRef = useRef<NavigationPaneHandle>(null);
         const listPaneRef = useRef<ListPaneHandle>(null);
+
+        // Updates search tag filters only when values actually change to avoid unnecessary re-renders
+        const handleSearchTokensChange = useCallback((next: SearchTagFilterState) => {
+            setSearchTagFilters(prev => {
+                // Skip update if all values match
+                if (
+                    prev.excludeTagged === next.excludeTagged &&
+                    prev.includeUntagged === next.includeUntagged &&
+                    prev.requireTagged === next.requireTagged &&
+                    arraysEqual(prev.include, next.include) &&
+                    arraysEqual(prev.exclude, next.exclude)
+                ) {
+                    return prev;
+                }
+
+                // Create new state with cloned arrays to prevent mutation
+                return {
+                    include: next.include.slice(),
+                    exclude: next.exclude.slice(),
+                    excludeTagged: next.excludeTagged,
+                    includeUntagged: next.includeUntagged,
+                    requireTagged: next.requireTagged
+                };
+            });
+        }, []);
 
         // Executes a search shortcut by delegating to the list pane component
         const handleSearchShortcutExecution = useCallback(async (_shortcutKey: string, searchShortcut: SearchShortcut) => {
@@ -162,24 +210,6 @@ export const NotebookNavigatorComponent = React.memo(
             storageKey: navigationPaneStorageKey,
             scale: uiScale
         });
-
-        // Use navigator reveal logic
-        const { revealFileInActualFolder, revealFileInNearestFolder, navigateToFolder, revealTag } = useNavigatorReveal({
-            app,
-            navigationPaneRef,
-            listPaneRef
-        });
-
-        // Use tag navigation logic
-        const { navigateToTag } = useTagNavigation();
-
-        // Handles file reveal from shortcuts, using nearest folder navigation
-        const handleShortcutNoteReveal = useCallback(
-            (file: TFile) => {
-                revealFileInNearestFolder(file, { source: 'shortcut' });
-            },
-            [revealFileInNearestFolder]
-        );
 
         // Get updateSettings from SettingsContext for refresh
         const updateSettings = useSettingsUpdate();
@@ -340,6 +370,62 @@ export const NotebookNavigatorComponent = React.memo(
         // Get navigation actions
         const { handleExpandCollapseAll } = useNavigationActions();
 
+        const focusPane = useCallback(
+            (pane: 'files' | 'navigation', options?: { updateSinglePaneView?: boolean }) => {
+                const isOpeningVersionHistory = commandQueue?.isOpeningVersionHistory() || false;
+                const isOpeningInNewContext = commandQueue?.isOpeningInNewContext() || false;
+
+                if (uiState.singlePane && options?.updateSinglePaneView && uiState.currentSinglePaneView !== pane) {
+                    uiDispatch({ type: 'SET_SINGLE_PANE_VIEW', view: pane });
+                }
+
+                if (uiState.focusedPane !== pane) {
+                    uiDispatch({ type: 'SET_FOCUSED_PANE', pane });
+                }
+
+                if (!isOpeningVersionHistory && !isOpeningInNewContext) {
+                    containerRef.current?.focus();
+                }
+            },
+            [commandQueue, uiDispatch, uiState.singlePane, uiState.currentSinglePaneView, uiState.focusedPane]
+        );
+
+        const focusNavigationPaneCallback = useCallback(
+            (options?: { updateSinglePaneView?: boolean }) => {
+                const updateSinglePaneView = options?.updateSinglePaneView ?? uiState.singlePane;
+                focusPane('navigation', { updateSinglePaneView });
+            },
+            [focusPane, uiState.singlePane]
+        );
+
+        const focusFilesPaneCallback = useCallback(
+            (options?: { updateSinglePaneView?: boolean }) => {
+                const updateSinglePaneView = options?.updateSinglePaneView ?? uiState.singlePane;
+                focusPane('files', { updateSinglePaneView });
+            },
+            [focusPane, uiState.singlePane]
+        );
+
+        // Use navigator reveal logic
+        const { revealFileInActualFolder, revealFileInNearestFolder, navigateToFolder, revealTag } = useNavigatorReveal({
+            app,
+            navigationPaneRef,
+            listPaneRef,
+            focusNavigationPane: focusNavigationPaneCallback,
+            focusFilesPane: focusFilesPaneCallback
+        });
+
+        // Use tag navigation logic
+        const { navigateToTag } = useTagNavigation();
+
+        // Handles file reveal from shortcuts, using nearest folder navigation
+        const handleShortcutNoteReveal = useCallback(
+            (file: TFile) => {
+                revealFileInNearestFolder(file, { source: 'shortcut' });
+            },
+            [revealFileInNearestFolder]
+        );
+
         // Expose methods via ref
         useImperativeHandle(ref, () => {
             // Retrieves currently selected files or falls back to single selected file
@@ -359,6 +445,15 @@ export const NotebookNavigatorComponent = React.memo(
                 return selectedFiles;
             };
 
+            // Routes adjacent file selection requests through the list pane reference
+            const navigateToAdjacentFile = (direction: 'next' | 'previous'): boolean => {
+                const listHandle = listPaneRef.current;
+                if (!listHandle) {
+                    return false;
+                }
+                return listHandle.selectAdjacentFile(direction);
+            };
+
             return {
                 // Forward to the manual reveal implementation
                 navigateToFile: (file: TFile, options?: RevealFileOptions) => {
@@ -369,19 +464,13 @@ export const NotebookNavigatorComponent = React.memo(
                     revealFileInNearestFolder(file, options);
                 },
                 focusVisiblePane: () => {
-                    const isOpeningVersionHistory = commandQueue?.isOpeningVersionHistory() || false;
-                    const isOpeningInNewContext = commandQueue?.isOpeningInNewContext() || false;
-
                     if (uiState.singlePane) {
-                        uiDispatch({ type: 'SET_FOCUSED_PANE', pane: uiState.currentSinglePaneView });
+                        focusPane(uiState.currentSinglePaneView);
                     } else {
-                        uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'files' });
-                    }
-
-                    if (!isOpeningVersionHistory && !isOpeningInNewContext) {
-                        containerRef.current?.focus();
+                        focusPane('files');
                     }
                 },
+                focusNavigationPane: focusNavigationPaneCallback,
                 stopContentProcessing: () => {
                     try {
                         stopProcessingRef.current?.();
@@ -393,6 +482,9 @@ export const NotebookNavigatorComponent = React.memo(
                     // Trigger complete cache rebuild from storage context
                     await rebuildCacheRef.current?.();
                 },
+                // Select adjacent files via command palette actions
+                selectNextFile: async () => navigateToAdjacentFile('next'),
+                selectPreviousFile: async () => navigateToAdjacentFile('previous'),
                 refresh: () => {
                     // A no-op update will increment the version and force a re-render
                     updateSettings(() => {});
@@ -504,7 +596,7 @@ export const NotebookNavigatorComponent = React.memo(
                         app,
                         (targetFolder: TFolder) => {
                             // Navigate to the selected folder
-                            navigateToFolder(targetFolder.path);
+                            navigateToFolder(targetFolder.path, { preserveNavigationFocus: true });
                         },
                         strings.modals.folderSuggest.navigatePlaceholder,
                         strings.modals.folderSuggest.instructions.select,
@@ -679,7 +771,6 @@ export const NotebookNavigatorComponent = React.memo(
         }, [
             revealFileInActualFolder,
             revealFileInNearestFolder,
-            uiDispatch,
             updateSettings,
             selectionState,
             fileSystemOps,
@@ -693,7 +784,8 @@ export const NotebookNavigatorComponent = React.memo(
             settings,
             plugin,
             tagTreeService,
-            commandQueue,
+            focusPane,
+            focusNavigationPaneCallback,
             tagOperations,
             handleExpandCollapseAll,
             navigationPaneRef,
@@ -762,8 +854,28 @@ export const NotebookNavigatorComponent = React.memo(
                 containerRef.current.style.setProperty('--nn-setting-nav-font-size', `${fontSize}px`);
                 containerRef.current.style.setProperty('--nn-setting-nav-font-size-mobile', `${mobileFontSize}px`);
                 containerRef.current.style.setProperty('--nn-setting-nav-indent', `${settings.navIndent}px`);
+                containerRef.current.style.setProperty('--nn-nav-root-spacing', `${settings.rootLevelSpacing}px`);
+
+                // Calculate slim list padding and font sizes based on configured item height
+                const slimMetrics = calculateSlimListMetrics({
+                    slimItemHeight: settings.slimItemHeight,
+                    scaleText: settings.slimItemHeightScaleText
+                });
+
+                // Apply slim list metrics to CSS custom properties
+                containerRef.current.style.setProperty('--nn-file-padding-vertical-slim', `${slimMetrics.desktopPadding}px`);
+                containerRef.current.style.setProperty('--nn-file-padding-vertical-slim-mobile', `${slimMetrics.mobilePadding}px`);
+                containerRef.current.style.setProperty('--nn-slim-font-size', `${slimMetrics.fontSize}px`);
+                containerRef.current.style.setProperty('--nn-slim-font-size-mobile', `${slimMetrics.mobileFontSize}px`);
             }
-        }, [settings.navItemHeight, settings.navItemHeightScaleText, settings.navIndent]);
+        }, [
+            settings.navItemHeight,
+            settings.navItemHeightScaleText,
+            settings.navIndent,
+            settings.rootLevelSpacing,
+            settings.slimItemHeight,
+            settings.slimItemHeightScaleText
+        ]);
 
         // Compute navigation pane style based on orientation and single pane mode
         const navigationPaneStyle = uiState.singlePane
@@ -801,15 +913,20 @@ export const NotebookNavigatorComponent = React.memo(
                         ref={navigationPaneRef}
                         style={navigationPaneStyle}
                         rootContainerRef={containerRef}
+                        searchTagFilters={searchTagFilters}
                         onExecuteSearchShortcut={handleSearchShortcutExecution}
                         onNavigateToFolder={navigateToFolder}
                         onRevealTag={revealTag}
                         onRevealFile={revealFileInNearestFolder}
                         onRevealShortcutFile={handleShortcutNoteReveal}
+                        onModifySearchWithTag={(tag, operator) => {
+                            listPaneRef.current?.modifySearchWithTag(tag, operator);
+                        }}
                     />
                     <ListPane
                         ref={listPaneRef}
                         rootContainerRef={containerRef}
+                        onSearchTokensChange={handleSearchTokensChange}
                         resizeHandleProps={!uiState.singlePane ? resizeHandleProps : undefined}
                     />
                 </div>
