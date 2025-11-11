@@ -18,6 +18,9 @@
 
 import { App, Plugin, View, WorkspaceLeaf, TFile } from 'obsidian';
 
+/** MIME type identifier for tag drag-and-drop operations */
+export const TAG_DRAG_MIME = 'application/x-notebook-navigator-tag';
+
 /**
  * Extended Obsidian type definitions for internal/undocumented APIs
  * These are based on actual Obsidian behavior but not part of the official API
@@ -81,7 +84,7 @@ type DragManagerPayloadValue =
     | (() => void);
 
 export interface DragManagerPayload {
-    type?: 'file' | 'files' | 'link'; // Type of drag operation
+    type?: 'file' | 'files' | 'link' | 'tag'; // Type of drag operation
     file?: TFile; // Single file being dragged
     files?: TFile[]; // Multiple files being dragged
     title?: string; // Display title for the drag operation
@@ -102,6 +105,11 @@ export interface AppWithDragManager extends App {
     dragManager: DragManagerState;
 }
 
+// Type guard that checks if a value is a non-null object
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null;
+}
+
 /**
  * Type guard that detects if the Obsidian app exposes the drag manager.
  * Uses reflection to safely check for the presence of internal drag manager API.
@@ -119,8 +127,8 @@ export function hasDragManager(app: App): app is AppWithDragManager {
     }
 
     // Validate dragManager is an object
-    const dragManager = Reflect.get(candidate, 'dragManager');
-    if (typeof dragManager !== 'object' || dragManager === null) {
+    const dragManager: unknown = Reflect.get(candidate, 'dragManager');
+    if (!isObjectRecord(dragManager)) {
         return false;
     }
 
@@ -130,7 +138,7 @@ export function hasDragManager(app: App): app is AppWithDragManager {
     }
 
     // Validate draggable is null or an object (the payload)
-    const draggableValue = Reflect.get(dragManager, 'draggable');
+    const draggableValue: unknown = Reflect.get(dragManager, 'draggable');
     return draggableValue === null || typeof draggableValue === 'object';
 }
 

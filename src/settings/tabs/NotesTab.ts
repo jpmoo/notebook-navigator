@@ -16,11 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Notice, Setting, ButtonComponent, App, TAbstractFile, TFile } from 'obsidian';
+import { Setting, ButtonComponent, App, TAbstractFile, TFile } from 'obsidian';
 import { strings } from '../../i18n';
+import { showNotice } from '../../utils/noticeUtils';
 import { ISO_DATE_FORMAT } from '../../utils/dateUtils';
 import { TIMEOUTS } from '../../types/obsidian-extended';
 import type { SettingsTabContext } from './SettingsTabContext';
+import { runAsyncAction } from '../../utils/async';
 
 /**
  * Type guard to check if a file is a markdown file
@@ -54,15 +56,7 @@ function countMarkdownMetadataEntries(records: Record<string, string> | undefine
 
 /** Renders the notes settings tab */
 export function renderNotesTab(context: SettingsTabContext): void {
-    const {
-        app,
-        containerEl,
-        plugin,
-        createDebouncedTextSetting,
-        registerMetadataInfoElement,
-        requestStatisticsRefresh,
-        registerShowTagsListener
-    } = context;
+    const { app, containerEl, plugin } = context;
 
     new Setting(containerEl).setName(strings.settings.groups.notes.frontmatter).setHeading();
 
@@ -74,7 +68,8 @@ export function renderNotesTab(context: SettingsTabContext): void {
                 plugin.settings.useFrontmatterMetadata = value;
                 await plugin.saveSettingsAndUpdate();
                 frontmatterSettingsEl.toggle(value);
-                requestStatisticsRefresh();
+                // Use context directly to satisfy eslint exhaustive-deps requirements
+                context.requestStatisticsRefresh();
             })
         );
 
@@ -83,7 +78,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
     let updateFrontmatterSaveVisibility: (() => void) | null = null;
     let frontmatterIconizeSetting: Setting | null = null;
 
-    const frontmatterIconSetting = createDebouncedTextSetting(
+    const frontmatterIconSetting = context.createDebouncedTextSetting(
         frontmatterSettingsEl,
         strings.settings.items.frontmatterIconField.name,
         strings.settings.items.frontmatterIconField.desc,
@@ -94,11 +89,11 @@ export function renderNotesTab(context: SettingsTabContext): void {
             updateFrontmatterSaveVisibility?.();
         },
         undefined,
-        requestStatisticsRefresh
+        () => context.requestStatisticsRefresh()
     );
     frontmatterIconSetting.controlEl.addClass('nn-setting-wide-input');
 
-    const frontmatterColorSetting = createDebouncedTextSetting(
+    const frontmatterColorSetting = context.createDebouncedTextSetting(
         frontmatterSettingsEl,
         strings.settings.items.frontmatterColorField.name,
         strings.settings.items.frontmatterColorField.desc,
@@ -109,7 +104,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
             updateFrontmatterSaveVisibility?.();
         },
         undefined,
-        requestStatisticsRefresh
+        () => context.requestStatisticsRefresh()
     );
     frontmatterColorSetting.controlEl.addClass('nn-setting-wide-input');
 
@@ -161,44 +156,50 @@ export function renderNotesTab(context: SettingsTabContext): void {
         migrateButton = button;
         button.setButtonText(strings.settings.items.frontmatterMigration.button);
         button.setCta();
-        button.onClick(async () => {
-            if (!plugin.metadataService) {
-                return;
-            }
-
-            button.setDisabled(true);
-            button.setButtonText(strings.settings.items.frontmatterMigration.buttonWorking);
-
-            try {
-                const result = await plugin.metadataService.migrateFileMetadataToFrontmatter();
-                updateMigrationDescription();
-
-                const { iconsBefore, colorsBefore, migratedIcons, migratedColors, failures } = result;
-
-                if (iconsBefore === 0 && colorsBefore === 0) {
-                    new Notice(strings.settings.items.frontmatterMigration.noticeNone);
-                } else if (migratedIcons === 0 && migratedColors === 0) {
-                    new Notice(strings.settings.items.frontmatterMigration.noticeNone);
-                } else {
-                    let message = strings.settings.items.frontmatterMigration.noticeDone
-                        .replace('{migratedIcons}', migratedIcons.toString())
-                        .replace('{icons}', iconsBefore.toString())
-                        .replace('{migratedColors}', migratedColors.toString())
-                        .replace('{colors}', colorsBefore.toString());
-                    if (failures > 0) {
-                        message += ` ${strings.settings.items.frontmatterMigration.noticeFailures.replace('{failures}', failures.toString())}`;
-                    }
-                    new Notice(message);
+        // Migrate metadata to frontmatter without blocking the UI
+        button.onClick(() => {
+            runAsyncAction(async () => {
+                if (!plugin.metadataService) {
+                    return;
                 }
-            } catch (error) {
-                console.error('Failed to migrate icon/color metadata to frontmatter', error);
-                new Notice(strings.settings.items.frontmatterMigration.noticeError, TIMEOUTS.NOTICE_ERROR);
-            } finally {
-                button.setButtonText(strings.settings.items.frontmatterMigration.button);
-                button.setDisabled(false);
-                updateMigrationDescription();
-                requestStatisticsRefresh();
-            }
+
+                button.setDisabled(true);
+                button.setButtonText(strings.settings.items.frontmatterMigration.buttonWorking);
+
+                try {
+                    const result = await plugin.metadataService.migrateFileMetadataToFrontmatter();
+                    updateMigrationDescription();
+
+                    const { iconsBefore, colorsBefore, migratedIcons, migratedColors, failures } = result;
+
+                    if (iconsBefore === 0 && colorsBefore === 0) {
+                        showNotice(strings.settings.items.frontmatterMigration.noticeNone);
+                    } else if (migratedIcons === 0 && migratedColors === 0) {
+                        showNotice(strings.settings.items.frontmatterMigration.noticeNone);
+                    } else {
+                        let message = strings.settings.items.frontmatterMigration.noticeDone
+                            .replace('{migratedIcons}', migratedIcons.toString())
+                            .replace('{icons}', iconsBefore.toString())
+                            .replace('{migratedColors}', migratedColors.toString())
+                            .replace('{colors}', colorsBefore.toString());
+                        if (failures > 0) {
+                            message += ` ${strings.settings.items.frontmatterMigration.noticeFailures.replace('{failures}', failures.toString())}`;
+                        }
+                        showNotice(message, { variant: 'success' });
+                    }
+                } catch (error) {
+                    console.error('Failed to migrate icon/color metadata to frontmatter', error);
+                    showNotice(strings.settings.items.frontmatterMigration.noticeError, {
+                        timeout: TIMEOUTS.NOTICE_ERROR,
+                        variant: 'warning'
+                    });
+                } finally {
+                    button.setButtonText(strings.settings.items.frontmatterMigration.button);
+                    button.setDisabled(false);
+                    updateMigrationDescription();
+                    context.requestStatisticsRefresh();
+                }
+            });
         });
     });
 
@@ -223,7 +224,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
 
     updateMigrationDescription();
 
-    createDebouncedTextSetting(
+    context.createDebouncedTextSetting(
         frontmatterSettingsEl,
         strings.settings.items.frontmatterNameField.name,
         strings.settings.items.frontmatterNameField.desc,
@@ -233,10 +234,10 @@ export function renderNotesTab(context: SettingsTabContext): void {
             plugin.settings.frontmatterNameField = value || '';
         },
         undefined,
-        requestStatisticsRefresh
+        () => context.requestStatisticsRefresh()
     );
 
-    createDebouncedTextSetting(
+    context.createDebouncedTextSetting(
         frontmatterSettingsEl,
         strings.settings.items.frontmatterCreatedField.name,
         strings.settings.items.frontmatterCreatedField.desc,
@@ -246,10 +247,10 @@ export function renderNotesTab(context: SettingsTabContext): void {
             plugin.settings.frontmatterCreatedField = value;
         },
         undefined,
-        requestStatisticsRefresh
+        () => context.requestStatisticsRefresh()
     );
 
-    createDebouncedTextSetting(
+    context.createDebouncedTextSetting(
         frontmatterSettingsEl,
         strings.settings.items.frontmatterModifiedField.name,
         strings.settings.items.frontmatterModifiedField.desc,
@@ -259,35 +260,37 @@ export function renderNotesTab(context: SettingsTabContext): void {
             plugin.settings.frontmatterModifiedField = value;
         },
         undefined,
-        requestStatisticsRefresh
+        () => context.requestStatisticsRefresh()
     );
 
-    const dateFormatSetting = createDebouncedTextSetting(
-        frontmatterSettingsEl,
-        strings.settings.items.frontmatterDateFormat.name,
-        strings.settings.items.frontmatterDateFormat.desc,
-        ISO_DATE_FORMAT,
-        () => plugin.settings.frontmatterDateFormat,
-        value => {
-            plugin.settings.frontmatterDateFormat = value;
-        },
-        undefined,
-        requestStatisticsRefresh
-    ).addExtraButton(button =>
-        button
-            .setIcon('lucide-help-circle')
-            .setTooltip(strings.settings.items.frontmatterDateFormat.helpTooltip)
-            .onClick(() => {
-                new Notice(strings.settings.items.frontmatterDateFormat.help, TIMEOUTS.NOTICE_HELP);
-            })
-    );
+    const dateFormatSetting = context
+        .createDebouncedTextSetting(
+            frontmatterSettingsEl,
+            strings.settings.items.frontmatterDateFormat.name,
+            strings.settings.items.frontmatterDateFormat.desc,
+            ISO_DATE_FORMAT,
+            () => plugin.settings.frontmatterDateFormat,
+            value => {
+                plugin.settings.frontmatterDateFormat = value;
+            },
+            undefined,
+            () => context.requestStatisticsRefresh()
+        )
+        .addExtraButton(button =>
+            button
+                .setIcon('lucide-help-circle')
+                .setTooltip(strings.settings.items.frontmatterDateFormat.helpTooltip)
+                .onClick(() => {
+                    showNotice(strings.settings.items.frontmatterDateFormat.help, { timeout: TIMEOUTS.NOTICE_HELP });
+                })
+        );
     dateFormatSetting.controlEl.addClass('nn-setting-wide-input');
 
     const metadataInfoContainer = frontmatterSettingsEl.createDiv('nn-setting-info-container');
     const metadataInfoEl = metadataInfoContainer.createEl('div', {
         cls: 'setting-item-description'
     });
-    registerMetadataInfoElement(metadataInfoEl);
+    context.registerMetadataInfoElement(metadataInfoEl);
 
     new Setting(containerEl).setName(strings.settings.groups.notes.display).setHeading();
 
@@ -454,7 +457,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
                 })
         );
 
-    const previewPropertiesSetting = createDebouncedTextSetting(
+    const previewPropertiesSetting = context.createDebouncedTextSetting(
         previewSettingsEl,
         strings.settings.items.previewProperties.name,
         strings.settings.items.previewProperties.desc,
@@ -488,7 +491,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
 
     const featureImageSettingsEl = containerEl.createDiv('nn-sub-settings');
 
-    const featurePropertiesSetting = createDebouncedTextSetting(
+    const featurePropertiesSetting = context.createDebouncedTextSetting(
         featureImageSettingsEl,
         strings.settings.items.featureImageProperties.name,
         strings.settings.items.featureImageProperties.desc,
@@ -529,9 +532,9 @@ export function renderNotesTab(context: SettingsTabContext): void {
     featureImageSettingsEl.toggle(plugin.settings.showFeatureImage);
     frontmatterSettingsEl.toggle(plugin.settings.useFrontmatterMetadata);
 
-    registerShowTagsListener(visible => {
+    context.registerShowTagsListener(visible => {
         showFileTagsSetting.settingEl.toggle(visible);
     });
 
-    requestStatisticsRefresh();
+    context.requestStatisticsRefresh();
 }

@@ -17,8 +17,9 @@
  */
 
 import { FrontMatterCache } from 'obsidian';
-import { NotebookNavigatorSettings } from '../settings';
 import { isExcalidrawFileName } from './fileNameUtils';
+import { NotebookNavigatorSettings } from '../settings';
+import { getRecordValue } from './typeGuards';
 
 // Maximum number of characters for preview text
 const MAX_PREVIEW_TEXT_LENGTH = 500;
@@ -26,8 +27,10 @@ const MAX_PREVIEW_TEXT_LENGTH = 500;
 // Base patterns used in both regex versions
 const BASE_PATTERNS = [
     // Group 0: Code blocks - remove entirely
-    // Example: ```javascript\nconst x = 1;\n``` → (removed)
-    /```[\s\S]*?```/.source,
+    // Examples: ```javascript\nconst x = 1;\n``` and ~~~\nconst x = 1;\n~~~ → (removed)
+    // Known limitation: closing fence must use the same character count as the opening fence.
+    // Obsidian's renderer shares this limitation, and lines like "~~~ note" are not parsed as fenced blocks.
+    /([`~]{3,})[\s\S]*?\1/.source,
     // Group 1: Obsidian comments - remove entirely (both inline and block)
     // Example: %%comment%% → (removed), %%\nmultiline\n%% → (removed)
     /%%[\s\S]*?%%/.source,
@@ -136,6 +139,67 @@ const REGEX_STRIP_MARKDOWN = new RegExp(BASE_PATTERNS.join('|'), 'gm');
 // Both regexes are now the same since heading handling is in the replacement logic
 const REGEX_STRIP_MARKDOWN_WITH_HEADINGS = REGEX_STRIP_MARKDOWN;
 
+/**
+ * Calculates the number of capture groups from regex replacement arguments
+ */
+function getCaptureLength(args: unknown[]): number {
+    if (args.length === 0) {
+        return 0;
+    }
+    const lastArg = args[args.length - 1];
+    const hasNamedGroups = typeof lastArg === 'object' && lastArg !== null && !Array.isArray(lastArg);
+    const metadataCount = hasNamedGroups ? 3 : 2;
+    return Math.max(args.length - metadataCount, 0);
+}
+
+/**
+ * Extracts a string value from a frontmatter property that could be a string or array
+ */
+function resolvePreviewPropertyValue(value: unknown): string | null {
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        return trimmed.length > 0 ? trimmed : null;
+    }
+
+    if (Array.isArray(value)) {
+        for (const entry of value) {
+            if (typeof entry !== 'string') {
+                continue;
+            }
+            const trimmed = entry.trim();
+            if (trimmed) {
+                return trimmed;
+            }
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Checks if a frontmatter value indicates the file is an Excalidraw drawing
+ */
+function isTruthyExcalidrawPluginFlag(value: unknown): boolean {
+    if (typeof value === 'boolean') {
+        return value;
+    }
+
+    if (typeof value === 'number') {
+        return value !== 0;
+    }
+
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (!trimmed) {
+            return false;
+        }
+        const normalized = trimmed.toLowerCase();
+        return normalized !== 'false' && normalized !== '0';
+    }
+
+    return Boolean(value);
+}
+
 export class PreviewTextUtils {
     /**
      * Checks if a file is an Excalidraw drawing
@@ -150,7 +214,8 @@ export class PreviewTextUtils {
         }
 
         // Check frontmatter for excalidraw-plugin property
-        if (frontmatter?.['excalidraw-plugin']) {
+        const pluginFlag = getRecordValue(frontmatter, 'excalidraw-plugin');
+        if (isTruthyExcalidrawPluginFlag(pluginFlag)) {
             return true;
         }
 
@@ -167,10 +232,12 @@ export class PreviewTextUtils {
     static stripMarkdownSyntax(text: string, skipHeadings: boolean = false, skipCodeBlocks: boolean = true): string {
         const regex = skipHeadings ? REGEX_STRIP_MARKDOWN_WITH_HEADINGS : REGEX_STRIP_MARKDOWN;
 
-        return text.replace(regex, (match, ...groups) => {
+        return text.replace(regex, (match, ...rawArgs) => {
+            const args: unknown[] = rawArgs;
+            const captureLength = getCaptureLength(args);
             // Check for specific patterns to remove entirely
             // Code blocks
-            if (match.startsWith('```')) {
+            if (match.startsWith('```') || match.startsWith('~~~')) {
                 if (skipCodeBlocks) {
                     return '';
                 }
@@ -216,13 +283,23 @@ export class PreviewTextUtils {
             // Italic with stars - preserve prefix and content
             const italicStarMatch = match.match(/(^|[^*\d])\*([^*\n]+)\*(?![*\d])/);
             if (italicStarMatch) {
-                return `${italicStarMatch[1]}${italicStarMatch[2]}`;
+                const italicStarContent = italicStarMatch[2];
+                if (typeof italicStarContent !== 'string' || !italicStarContent.trim()) {
+                    return match;
+                }
+                const italicStarPrefix = italicStarMatch[1] ?? '';
+                return `${italicStarPrefix}${italicStarContent}`;
             }
 
             // Italic with underscores - preserve prefix and content
             const italicUnderscoreMatch = match.match(/(^|[^_a-zA-Z0-9])_([^_\n]+)_(?![_a-zA-Z0-9])/);
             if (italicUnderscoreMatch) {
-                return `${italicUnderscoreMatch[1]}${italicUnderscoreMatch[2]}`;
+                const italicUnderscoreContent = italicUnderscoreMatch[2];
+                if (typeof italicUnderscoreContent !== 'string' || !italicUnderscoreContent.trim()) {
+                    return match;
+                }
+                const italicUnderscorePrefix = italicUnderscoreMatch[1] ?? '';
+                return `${italicUnderscorePrefix}${italicUnderscoreContent}`;
             }
 
             // Headings - always strip # symbols
@@ -232,9 +309,11 @@ export class PreviewTextUtils {
                     return '';
                 }
                 // Otherwise, return just the heading text without # symbols
-                // The heading text is in the last captured group before offset/string
-                const headingTextIndex = groups.length - 3; // -2 for offset/string, -1 for heading text position
-                return groups[headingTextIndex] || '';
+                const headingCandidate = captureLength > 0 ? args[captureLength - 1] : undefined;
+                if (typeof headingCandidate === 'string') {
+                    return headingCandidate;
+                }
+                return '';
             }
 
             // List markers
@@ -248,10 +327,10 @@ export class PreviewTextUtils {
             }
 
             // Find first defined capture group - that's our content to keep
-            for (let i = 0; i < groups.length - 2; i++) {
-                // -2 for offset and string
-                if (groups[i] !== undefined) {
-                    return groups[i];
+            for (let i = 0; i < captureLength; i++) {
+                const capture = args[i];
+                if (typeof capture === 'string') {
+                    return capture;
                 }
             }
 
@@ -260,8 +339,21 @@ export class PreviewTextUtils {
     }
 
     private static extractCodeBlockContent(block: string): string {
-        const withoutOpeningFence = block.replace(/^```[^\n\r]*\r?\n?/, '');
-        const withoutClosingFence = withoutOpeningFence.replace(/\r?\n?```(?:\s*)$/, '');
+        // Match opening fence (``` or ~~~) with optional language identifier
+        const openingFenceMatch = block.match(/^([`~]{3,})[^\n\r]*\r?\n?/);
+        if (!openingFenceMatch) {
+            return block;
+        }
+
+        // Extract fence character and length for matching closing fence
+        const fenceSequence = openingFenceMatch[1];
+        const fenceChar = fenceSequence[0] ?? '`';
+        const fenceLength = fenceSequence.length;
+        // Remove opening fence from block
+        const withoutOpeningFence = block.slice(openingFenceMatch[0].length);
+        // Build pattern for closing fence (must match character type and be at least same length)
+        const closingFencePattern = new RegExp(`\\r?\\n?${fenceChar}{${fenceLength},}(?:\\s*)$`);
+        const withoutClosingFence = withoutOpeningFence.replace(closingFencePattern, '');
         return withoutClosingFence;
     }
 
@@ -277,17 +369,17 @@ export class PreviewTextUtils {
         // Check preview properties first if frontmatter is provided
         if (frontmatter && settings.previewProperties && settings.previewProperties.length > 0) {
             for (const property of settings.previewProperties) {
-                if (frontmatter[property]) {
-                    const propertyValue = String(frontmatter[property]).trim();
-                    if (propertyValue) {
-                        // Apply same character limit to property values
-                        const maxChars = MAX_PREVIEW_TEXT_LENGTH;
-                        if (propertyValue.length > maxChars) {
-                            return `${propertyValue.substring(0, maxChars - 1)}…`;
-                        }
-                        return propertyValue;
-                    }
+                const value = getRecordValue(frontmatter, property);
+                const propertyValue = resolvePreviewPropertyValue(value);
+                if (!propertyValue) {
+                    continue;
                 }
+
+                const maxChars = MAX_PREVIEW_TEXT_LENGTH;
+                if (propertyValue.length > maxChars) {
+                    return `${propertyValue.substring(0, maxChars - 1)}…`;
+                }
+                return propertyValue;
             }
         }
 

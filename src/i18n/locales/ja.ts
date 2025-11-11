@@ -65,7 +65,9 @@ export const STRINGS_JA = {
         resetRootToFrequency: '頻度順にリセット',
         dragHandleLabel: 'ドラッグして並び替え',
         pinShortcuts: 'ショートカットを固定',
-        unpinShortcuts: 'ショートカットの固定を解除'
+        unpinShortcuts: 'ショートカットの固定を解除',
+        profileMenuLabel: 'プロファイル',
+        profileMenuAria: '保管庫のプロファイルを変更'
     },
 
     shortcuts: {
@@ -172,6 +174,8 @@ export const STRINGS_JA = {
             newDrawing: '新規図面',
             duplicateFolder: 'フォルダを複製',
             searchInFolder: 'フォルダ内を検索',
+            copyPath: 'パスをコピー',
+            copyRelativePath: '相対パスをコピー',
             createFolderNote: 'フォルダノートを作成',
             deleteFolderNote: 'フォルダーノートを削除',
             changeIcon: 'アイコンを変更',
@@ -263,6 +267,10 @@ export const STRINGS_JA = {
             affectedFiles: '{count}個のファイルが影響を受けます',
             andMore: 'さらに{count}個...',
             confirmRename: 'タグを名前変更',
+            renameUnchanged: '{tag} は変更されませんでした',
+            renameNoChanges: '{oldTag} → {newTag} ({countLabel})',
+            invalidTagName: '有効なタグ名を入力してください。',
+            descendantRenameError: 'タグを自身または子孫に移動することはできません。',
             confirmDelete: 'タグを削除',
             file: 'ファイル',
             files: 'ファイル'
@@ -319,6 +327,7 @@ export const STRINGS_JA = {
             addPlaceholder: '追加するタグを検索...',
             removePlaceholder: '削除するタグを選択...',
             createNewTag: '新しいタグを作成: #{tag}',
+            allowCreationToggle: '新しいタグの作成を許可',
             instructions: {
                 navigate: 'でナビゲート',
                 select: 'で選択',
@@ -679,6 +688,12 @@ export const STRINGS_JA = {
                     files: 'リストペイン'
                 }
             },
+            toolbarButtons: {
+                name: 'ツールバーボタン',
+                desc: 'ツールバーに表示するボタンを選択します。非表示のボタンはコマンドとメニューから引き続き利用できます。',
+                navigationLabel: 'ナビゲーションツールバー',
+                listLabel: 'リストツールバー'
+            },
             autoRevealActiveNote: {
                 name: 'アクティブなノートを自動表示',
                 desc: 'クイックスイッチャー、リンク、検索から開いたときに自動的にノートを表示します。'
@@ -700,8 +715,8 @@ export const STRINGS_JA = {
                 desc: 'フォルダやタグを選択した際に自動的に展開します。'
             },
             navigationBanner: {
-                name: 'ナビゲーションバナー',
-                desc: 'ナビゲーションペイン上部に画像を表示します。',
+                name: 'ナビゲーションバナー（保管庫プロファイル）',
+                desc: 'ナビゲーションペイン上部に画像を表示します。選択された保管庫プロファイルに応じて変更されます。',
                 current: '現在のバナー: {path}',
                 chooseButton: '画像を選択',
                 clearButton: 'クリア'
@@ -744,6 +759,24 @@ export const STRINGS_JA = {
                 name: 'ノートを非表示',
                 desc: 'カンマ区切りのフロントマター属性のリスト。これらの属性を含むノートは非表示になります（例：draft, private, archived）。',
                 placeholder: 'draft, private'
+            },
+            vaultProfiles: {
+                name: '保管庫プロファイル',
+                desc: 'プロファイルは、ファイルタイプの表示、非表示フォルダ、非表示タグ、非表示ノートを保存します。ナビゲーションペインのヘッダーからプロファイルを切り替えます。',
+                defaultName: 'デフォルト',
+                addButton: 'プロファイルを追加',
+                editButton: 'プロファイルを編集',
+                deleteButton: 'プロファイルを削除',
+                addModalTitle: 'プロファイルを追加',
+                editModalTitle: 'プロファイルを編集',
+                addModalPlaceholder: 'プロファイル名',
+                deleteModalTitle: '{name}を削除',
+                deleteModalMessage:
+                    '{name}を削除しますか？このプロファイルに保存されている非表示フォルダ、タグ、ノートのフィルタが削除されます。',
+                errors: {
+                    emptyName: 'プロファイル名を入力してください',
+                    duplicateName: 'プロファイル名は既に存在します'
+                }
             },
             excludedFolders: {
                 name: 'フォルダを非表示',
@@ -951,8 +984,12 @@ export const STRINGS_JA = {
                 name: '最後のタグを削除した後も tags プロパティを保持',
                 desc: 'すべてのタグが削除されても frontmatter の tags プロパティを保持します。無効にすると、tags プロパティは frontmatter から削除されます。'
             },
+            allowTagCreationInAddTagModal: {
+                name: 'タグ追加モーダルでタグ作成を許可',
+                desc: 'タグ追加時に作成オプションを表示します。トグルはモーダル内に表示されます。'
+            },
             hiddenTags: {
-                name: '非表示タグ',
+                name: 'タグを非表示',
                 desc: '非表示にするタグの接頭辞または名前ワイルドカードのカンマ区切りリスト。`tag*` や `*tag` でタグ名に一致します。タグを非表示にすると、すべてのサブタグも非表示になります（例："アーカイブ"で"アーカイブ/2024/docs"も非表示）。',
                 placeholder: '内部, temp/下書き, アーカイブ/2024'
             },
@@ -1091,7 +1128,7 @@ export const STRINGS_JA = {
                 name: 'タイムスタンプ形式',
                 desc: 'フロントマター内のタイムスタンプを解析するために使用される形式。空のままにするとISO 8601形式を使用',
                 helpTooltip: 'date-fnsフォーマットのドキュメントを参照',
-                help: "一般的な形式:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
+                help: "一般的な形式:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {
                 name: '開発をサポート',

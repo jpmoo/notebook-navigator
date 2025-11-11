@@ -66,7 +66,9 @@ export const STRINGS_IT = {
         resetRootToFrequency: 'Ripristina ordine per frequenza',
         dragHandleLabel: 'Trascina per riordinare',
         pinShortcuts: 'Fissa collegamenti',
-        unpinShortcuts: 'Rimuovi fissaggio collegamenti'
+        unpinShortcuts: 'Rimuovi fissaggio collegamenti',
+        profileMenuLabel: 'Profilo',
+        profileMenuAria: 'Cambia profilo del vault'
     },
 
     shortcuts: {
@@ -173,6 +175,8 @@ export const STRINGS_IT = {
             newDrawing: 'Nuovo disegno',
             duplicateFolder: 'Duplica cartella',
             searchInFolder: 'Cerca nella cartella',
+            copyPath: 'Copia percorso',
+            copyRelativePath: 'Copia percorso relativo',
             createFolderNote: 'Crea nota cartella',
             deleteFolderNote: 'Elimina nota cartella',
             changeIcon: 'Cambia icona',
@@ -264,6 +268,10 @@ export const STRINGS_IT = {
             affectedFiles: 'File interessati:',
             andMore: '...e altri {count}',
             confirmRename: 'Rinomina tag',
+            renameUnchanged: '{tag} non modificato',
+            renameNoChanges: '{oldTag} → {newTag} ({countLabel})',
+            invalidTagName: 'Inserisci un nome tag valido.',
+            descendantRenameError: 'Impossibile spostare un tag in se stesso o in un discendente.',
             confirmDelete: 'Elimina tag',
             file: 'file',
             files: 'file'
@@ -680,6 +688,12 @@ export const STRINGS_IT = {
                     files: 'Pannello lista'
                 }
             },
+            toolbarButtons: {
+                name: 'Pulsanti della barra degli strumenti',
+                desc: 'Scegli quali pulsanti appaiono nella barra degli strumenti. I pulsanti nascosti rimangono accessibili tramite comandi e menu.',
+                navigationLabel: 'Barra di navigazione',
+                listLabel: 'Barra elenco'
+            },
             autoRevealActiveNote: {
                 name: 'Mostra automaticamente nota attiva',
                 desc: 'Mostra automaticamente note quando aperte da Quick Switcher, link o ricerca.'
@@ -701,8 +715,8 @@ export const STRINGS_IT = {
                 desc: 'Espandi automaticamente cartelle e tag quando vengono selezionati.'
             },
             navigationBanner: {
-                name: 'Banner navigazione',
-                desc: "Visualizza un'immagine sopra il pannello navigazione.",
+                name: 'Banner navigazione (profilo vault)',
+                desc: "Visualizza un'immagine sopra il pannello navigazione. Cambia con il profilo vault selezionato.",
                 current: 'Banner attuale: {path}',
                 chooseButton: 'Scegli immagine',
                 clearButton: 'Cancella'
@@ -766,6 +780,24 @@ export const STRINGS_IT = {
                 name: 'Nascondi note',
                 desc: 'Lista separata da virgole di proprietà frontmatter. Le note contenenti una di queste proprietà saranno nascoste (es. draft, private, archived).',
                 placeholder: 'draft, private'
+            },
+            vaultProfiles: {
+                name: 'Profilo vault',
+                desc: "I profili memorizzano la visibilità dei tipi di file, cartelle nascoste, tag nascosti e note nascoste. Cambia profilo dall'intestazione del pannello di navigazione.",
+                defaultName: 'Predefinito',
+                addButton: 'Aggiungi profilo',
+                editButton: 'Modifica profilo',
+                deleteButton: 'Elimina profilo',
+                addModalTitle: 'Aggiungi profilo',
+                editModalTitle: 'Modifica profilo',
+                addModalPlaceholder: 'Nome profilo',
+                deleteModalTitle: 'Elimina {name}',
+                deleteModalMessage:
+                    'Rimuovere {name}? I filtri per cartelle, tag e note nascosti salvati in questo profilo verranno eliminati.',
+                errors: {
+                    emptyName: 'Inserisci un nome profilo',
+                    duplicateName: 'Nome profilo già esistente'
+                }
             },
             excludedFolders: {
                 name: 'Nascondi cartelle',
@@ -952,7 +984,7 @@ export const STRINGS_IT = {
                 desc: 'Mantieni la proprietà tag frontmatter quando tutti i tag sono rimossi. Quando disabilitato, la proprietà tag è eliminata dal frontmatter.'
             },
             hiddenTags: {
-                name: 'Tag nascosti',
+                name: 'Nascondi tag',
                 desc: 'Lista separata da virgole di prefissi tag o wildcard nome. Usa tag* o *tag per abbinare nomi tag. Nascondere un tag nasconde anche tutti i suoi sotto-tag (es. "archivio" nasconde "archivio/2024/docs").',
                 placeholder: 'interno, temp/bozze, archivio/2024'
             },
@@ -1091,7 +1123,7 @@ export const STRINGS_IT = {
                 name: 'Formato timestamp',
                 desc: 'Formato usato per analizzare timestamp nel frontmatter. Lascia vuoto per usare formato ISO 8601',
                 helpTooltip: 'Vedi documentazione formato date-fns',
-                help: "Formati comuni:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
+                help: "Formati comuni:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {
                 name: 'Sostieni lo sviluppo',

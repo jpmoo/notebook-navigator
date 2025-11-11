@@ -65,7 +65,9 @@ export const STRINGS_FR = {
         resetRootToFrequency: 'Réinitialiser selon la fréquence',
         dragHandleLabel: 'Faire glisser pour réorganiser',
         pinShortcuts: 'Épingler les raccourcis',
-        unpinShortcuts: 'Détacher les raccourcis'
+        unpinShortcuts: 'Détacher les raccourcis',
+        profileMenuLabel: 'Profil',
+        profileMenuAria: 'Changer le profil du coffre'
     },
 
     shortcuts: {
@@ -172,6 +174,8 @@ export const STRINGS_FR = {
             newDrawing: 'Nouveau dessin',
             duplicateFolder: 'Dupliquer le dossier',
             searchInFolder: 'Rechercher dans le dossier',
+            copyPath: 'Copier le chemin',
+            copyRelativePath: 'Copier le chemin relatif',
             createFolderNote: 'Créer une note de dossier',
             deleteFolderNote: 'Supprimer la note de dossier',
             changeIcon: "Changer l'icône",
@@ -263,6 +267,10 @@ export const STRINGS_FR = {
             affectedFiles: '{count} fichier(s) affecté(s)',
             andMore: 'et {count} de plus...',
             confirmRename: "Renommer l'étiquette",
+            renameUnchanged: '{tag} inchangé',
+            renameNoChanges: '{oldTag} → {newTag} ({countLabel})',
+            invalidTagName: "Entrez un nom d'étiquette valide.",
+            descendantRenameError: 'Impossible de déplacer une étiquette dans elle-même ou un descendant.',
             confirmDelete: "Supprimer l'étiquette",
             file: 'fichier',
             files: 'fichiers'
@@ -319,6 +327,7 @@ export const STRINGS_FR = {
             addPlaceholder: 'Rechercher une étiquette à ajouter...',
             removePlaceholder: "Sélectionner l'étiquette à supprimer...",
             createNewTag: 'Créer une nouvelle étiquette : #{tag}',
+            allowCreationToggle: 'Autoriser la création de nouvelles étiquettes',
             instructions: {
                 navigate: 'pour naviguer',
                 select: 'pour sélectionner',
@@ -680,6 +689,12 @@ export const STRINGS_FR = {
                     files: 'Panneau de liste'
                 }
             },
+            toolbarButtons: {
+                name: "Boutons de la barre d'outils",
+                desc: "Choisissez quels boutons apparaissent dans la barre d'outils. Les boutons masqués restent accessibles via les commandes et les menus.",
+                navigationLabel: 'Barre de navigation',
+                listLabel: 'Barre de liste'
+            },
             autoRevealActiveNote: {
                 name: 'Révéler automatiquement la note active',
                 desc: "Révéler automatiquement les notes lorsqu'elles sont ouvertes depuis le Commutateur rapide, les liens ou la recherche."
@@ -701,8 +716,8 @@ export const STRINGS_FR = {
                 desc: "Développer automatiquement les dossiers et les étiquettes lorsqu'ils sont sélectionnés."
             },
             navigationBanner: {
-                name: 'Bannière de navigation',
-                desc: 'Afficher une image au-dessus du panneau de navigation.',
+                name: 'Bannière de navigation (profil de coffre)',
+                desc: 'Afficher une image au-dessus du panneau de navigation. Change avec le profil de coffre sélectionné.',
                 current: 'Bannière actuelle : {path}',
                 chooseButton: 'Choisir une image',
                 clearButton: 'Effacer'
@@ -745,6 +760,24 @@ export const STRINGS_FR = {
                 name: 'Masquer les notes',
                 desc: "Liste de propriétés de métadonnées séparées par des virgules. Les notes contenant l'une de ces propriétés seront masquées (ex. : draft, private, archived).",
                 placeholder: 'draft, private'
+            },
+            vaultProfiles: {
+                name: 'Profil du coffre',
+                desc: "Les profils stockent la visibilité des types de fichiers, les dossiers cachés, les étiquettes cachées et les notes cachées. Changez de profil depuis l'en-tête du panneau de navigation.",
+                defaultName: 'Par défaut',
+                addButton: 'Ajouter un profil',
+                editButton: 'Modifier le profil',
+                deleteButton: 'Supprimer le profil',
+                addModalTitle: 'Ajouter un profil',
+                editModalTitle: 'Modifier le profil',
+                addModalPlaceholder: 'Nom du profil',
+                deleteModalTitle: 'Supprimer {name}',
+                deleteModalMessage:
+                    'Supprimer {name} ? Les filtres de dossiers, étiquettes et notes cachés enregistrés dans ce profil seront supprimés.',
+                errors: {
+                    emptyName: 'Entrez un nom de profil',
+                    duplicateName: 'Le nom du profil existe déjà'
+                }
             },
             excludedFolders: {
                 name: 'Masquer les dossiers',
@@ -952,8 +985,12 @@ export const STRINGS_FR = {
                 name: 'Conserver la propriété tags après suppression de la dernière étiquette',
                 desc: 'Conserve la propriété tags dans le frontmatter lorsque toutes les étiquettes sont supprimées. Si désactivé, la propriété tags est supprimée du frontmatter.'
             },
+            allowTagCreationInAddTagModal: {
+                name: "Autoriser la création d'étiquettes dans le modal d'ajout",
+                desc: "Afficher l'option de création d'étiquette lors de l'ajout d'étiquettes. Le bouton apparaît dans le modal."
+            },
             hiddenTags: {
-                name: 'Étiquettes cachées',
+                name: 'Masquer les étiquettes',
                 desc: 'Liste séparée par des virgules de préfixes ou de jokers de nom d\'étiquettes à masquer. Utilisez `tag*` ou `*tag` pour faire correspondre les noms d\'étiquette. Masquer une étiquette masque aussi toutes ses sous-étiquettes (par ex. "archive" masque "archive/2024/docs").',
                 placeholder: 'interne, temp/brouillons, archive/2024'
             },
@@ -1092,7 +1129,7 @@ export const STRINGS_FR = {
                 name: "Format d'horodatage",
                 desc: 'Format utilisé pour analyser les horodatages dans le frontmatter. Laisser vide pour utiliser le format ISO 8601',
                 helpTooltip: 'Voir la documentation du format date-fns',
-                help: "Formats courants :\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
+                help: "Formats courants :\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {
                 name: 'Soutenir le développement',

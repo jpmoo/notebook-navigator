@@ -65,7 +65,9 @@ export const STRINGS_KO = {
         resetRootToFrequency: '빈도 순으로 리셋',
         dragHandleLabel: '드래그하여 순서 변경',
         pinShortcuts: '바로가기를 고정',
-        unpinShortcuts: '바로가기 고정을 해제'
+        unpinShortcuts: '바로가기 고정을 해제',
+        profileMenuLabel: '프로필',
+        profileMenuAria: '보관소 프로필 변경'
     },
 
     shortcuts: {
@@ -171,6 +173,8 @@ export const STRINGS_KO = {
             newDrawing: '새 드로잉',
             duplicateFolder: '폴더 복제',
             searchInFolder: '폴더에서 검색',
+            copyPath: '경로 복사',
+            copyRelativePath: '상대 경로 복사',
             createFolderNote: '폴더 노트 만들기',
             deleteFolderNote: '폴더 노트 삭제',
             changeIcon: '아이콘 변경',
@@ -262,6 +266,10 @@ export const STRINGS_KO = {
             affectedFiles: '영향받는 파일:',
             andMore: '...그리고 {count}개 더',
             confirmRename: '태그 이름 변경',
+            renameUnchanged: '{tag} 변경 없음',
+            renameNoChanges: '{oldTag} → {newTag} ({countLabel})',
+            invalidTagName: '유효한 태그 이름을 입력하세요.',
+            descendantRenameError: '태그를 자신 또는 하위 태그로 이동할 수 없습니다.',
             confirmDelete: '태그 삭제',
             file: '파일',
             files: '파일'
@@ -318,6 +326,7 @@ export const STRINGS_KO = {
             addPlaceholder: '추가할 태그 검색...',
             removePlaceholder: '제거할 태그 선택...',
             createNewTag: '새 태그 생성: #{tag}',
+            allowCreationToggle: '새 태그 생성 허용',
             instructions: {
                 navigate: '이동',
                 select: '선택',
@@ -678,6 +687,12 @@ export const STRINGS_KO = {
                     files: '목록 창'
                 }
             },
+            toolbarButtons: {
+                name: '도구 모음 버튼',
+                desc: '도구 모음에 표시할 버튼을 선택하세요. 숨겨진 버튼은 명령과 메뉴를 통해 계속 사용할 수 있습니다.',
+                navigationLabel: '탐색 도구 모음',
+                listLabel: '목록 도구 모음'
+            },
             autoRevealActiveNote: {
                 name: '활성 노트 자동 표시',
                 desc: '빠른 전환기, 링크 또는 검색에서 열 때 노트를 자동으로 표시합니다.'
@@ -699,8 +714,8 @@ export const STRINGS_KO = {
                 desc: '폴더와 태그가 선택되면 자동으로 펼칩니다.'
             },
             navigationBanner: {
-                name: '탐색 배너',
-                desc: '탐색 창 상단에 이미지를 표시합니다.',
+                name: '탐색 배너 (저장소 프로필)',
+                desc: '탐색 창 상단에 이미지를 표시합니다. 선택한 저장소 프로필에 따라 변경됩니다.',
                 current: '현재 배너: {path}',
                 chooseButton: '이미지 선택',
                 clearButton: '지우기'
@@ -764,6 +779,23 @@ export const STRINGS_KO = {
                 name: '노트 숨기기',
                 desc: '쉼표로 구분된 frontmatter 속성 목록입니다. 이러한 속성 중 하나라도 포함된 노트는 숨겨집니다 (예: draft, private, archived).',
                 placeholder: 'draft, private'
+            },
+            vaultProfiles: {
+                name: '보관소 프로필',
+                desc: '프로필은 파일 유형 가시성, 숨겨진 폴더, 숨겨진 태그, 숨겨진 노트를 저장합니다. 탐색 창 헤더에서 프로필을 전환합니다.',
+                defaultName: '기본',
+                addButton: '프로필 추가',
+                editButton: '프로필 편집',
+                deleteButton: '프로필 삭제',
+                addModalTitle: '프로필 추가',
+                editModalTitle: '프로필 편집',
+                addModalPlaceholder: '프로필 이름',
+                deleteModalTitle: '{name} 삭제',
+                deleteModalMessage: '{name}을(를) 제거하시겠습니까? 이 프로필에 저장된 숨겨진 폴더, 태그 및 노트 필터가 삭제됩니다.',
+                errors: {
+                    emptyName: '프로필 이름을 입력하세요',
+                    duplicateName: '프로필 이름이 이미 존재합니다'
+                }
             },
             excludedFolders: {
                 name: '폴더 숨기기',
@@ -949,8 +981,12 @@ export const STRINGS_KO = {
                 name: '마지막 태그 제거 후 tags 속성 유지',
                 desc: '모든 태그가 제거될 때 frontmatter 의 tags 속성을 유지합니다. 비활성화하면 tags 속성이 frontmatter 에서 삭제됩니다.'
             },
+            allowTagCreationInAddTagModal: {
+                name: '태그 추가 모달에서 태그 생성 허용',
+                desc: '태그 추가 시 생성 옵션을 표시합니다. 토글이 모달에 나타납니다.'
+            },
             hiddenTags: {
-                name: '숨겨진 태그',
+                name: '태그 숨기기',
                 desc: '숨길 태그 접두사 또는 이름 와일드카드의 쉼표로 구분된 목록입니다. `tag*` 또는 `*tag` 로 태그 이름을 일치시킵니다. 태그를 숨기면 모든 하위 태그도 숨겨집니다 (예: "archive"는 "archive/2024/docs" 숨김).',
                 placeholder: 'internal, temp/drafts, archive/2024'
             },
@@ -1089,7 +1125,7 @@ export const STRINGS_KO = {
                 name: '타임스탬프 형식',
                 desc: 'frontmatter에서 타임스탬프를 구문 분석하는 데 사용되는 형식입니다. ISO 8601 형식을 사용하려면 비워 두세요',
                 helpTooltip: 'date-fns 형식 문서 참조',
-                help: "일반적인 형식:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
+                help: "일반적인 형식:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {
                 name: '개발 지원',

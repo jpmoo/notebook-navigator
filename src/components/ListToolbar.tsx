@@ -17,10 +17,12 @@
  */
 
 import { useSelectionState } from '../context/SelectionContext';
+import { useSettingsState } from '../context/SettingsContext';
 import { useUXPreferences } from '../context/UXPreferencesContext';
 import { strings } from '../i18n';
 import { ObsidianIcon } from './ObsidianIcon';
 import { useListActions } from '../hooks/useListActions';
+import { runAsyncAction } from '../utils/async';
 
 interface ListToolbarProps {
     isSearchActive?: boolean;
@@ -31,6 +33,8 @@ export function ListToolbar({ isSearchActive, onSearchToggle }: ListToolbarProps
     const uxPreferences = useUXPreferences();
     const includeDescendantNotes = uxPreferences.includeDescendantNotes;
     const selectionState = useSelectionState();
+    const settings = useSettingsState();
+    const listVisibility = settings.toolbarVisibility.list;
 
     // Use the shared actions hook
     const { handleNewFile, handleAppearanceMenu, handleSortMenu, handleToggleDescendants, getSortIcon, isCustomSort, hasCustomAppearance } =
@@ -38,51 +42,63 @@ export function ListToolbar({ isSearchActive, onSearchToggle }: ListToolbarProps
 
     return (
         <div className="nn-mobile-toolbar">
-            <button
-                className={`nn-mobile-toolbar-button ${isSearchActive ? 'nn-mobile-toolbar-button-active' : ''}`}
-                aria-label={strings.paneHeader.search}
-                onClick={onSearchToggle}
-                disabled={!selectionState.selectedFolder && !selectionState.selectedTag}
-                tabIndex={-1}
-            >
-                <ObsidianIcon name="lucide-search" />
-            </button>
-            <button
-                className={`nn-mobile-toolbar-button ${includeDescendantNotes ? 'nn-mobile-toolbar-button-active' : ''}`}
-                aria-label={strings.paneHeader.toggleDescendantNotes}
-                onClick={handleToggleDescendants}
-                disabled={!selectionState.selectedFolder && !selectionState.selectedTag}
-                tabIndex={-1}
-            >
-                <ObsidianIcon name="lucide-layers" />
-            </button>
-            <button
-                className={`nn-mobile-toolbar-button ${isCustomSort ? 'nn-mobile-toolbar-button-active' : ''}`}
-                aria-label={strings.paneHeader.changeSortOrder}
-                onClick={handleSortMenu}
-                disabled={!selectionState.selectedFolder && !selectionState.selectedTag}
-                tabIndex={-1}
-            >
-                <ObsidianIcon name={getSortIcon()} />
-            </button>
-            <button
-                className={`nn-mobile-toolbar-button ${hasCustomAppearance ? 'nn-mobile-toolbar-button-active' : ''}`}
-                aria-label={strings.paneHeader.changeAppearance}
-                onClick={handleAppearanceMenu}
-                disabled={!selectionState.selectedFolder && !selectionState.selectedTag}
-                tabIndex={-1}
-            >
-                <ObsidianIcon name="lucide-palette" />
-            </button>
-            <button
-                className="nn-mobile-toolbar-button"
-                aria-label={strings.paneHeader.newNote}
-                onClick={handleNewFile}
-                disabled={!selectionState.selectedFolder}
-                tabIndex={-1}
-            >
-                <ObsidianIcon name="lucide-pen-box" />
-            </button>
+            {listVisibility.search ? (
+                <button
+                    className={`nn-mobile-toolbar-button ${isSearchActive ? 'nn-mobile-toolbar-button-active' : ''}`}
+                    aria-label={strings.paneHeader.search}
+                    onClick={onSearchToggle}
+                    disabled={!selectionState.selectedFolder && !selectionState.selectedTag}
+                    tabIndex={-1}
+                >
+                    <ObsidianIcon name="lucide-search" />
+                </button>
+            ) : null}
+            {listVisibility.descendants ? (
+                <button
+                    className={`nn-mobile-toolbar-button ${includeDescendantNotes ? 'nn-mobile-toolbar-button-active' : ''}`}
+                    aria-label={strings.paneHeader.toggleDescendantNotes}
+                    onClick={handleToggleDescendants}
+                    disabled={!selectionState.selectedFolder && !selectionState.selectedTag}
+                    tabIndex={-1}
+                >
+                    <ObsidianIcon name="lucide-layers" />
+                </button>
+            ) : null}
+            {listVisibility.sort ? (
+                <button
+                    className={`nn-mobile-toolbar-button ${isCustomSort ? 'nn-mobile-toolbar-button-active' : ''}`}
+                    aria-label={strings.paneHeader.changeSortOrder}
+                    onClick={handleSortMenu}
+                    disabled={!selectionState.selectedFolder && !selectionState.selectedTag}
+                    tabIndex={-1}
+                >
+                    <ObsidianIcon name={getSortIcon()} />
+                </button>
+            ) : null}
+            {listVisibility.appearance ? (
+                <button
+                    className={`nn-mobile-toolbar-button ${hasCustomAppearance ? 'nn-mobile-toolbar-button-active' : ''}`}
+                    aria-label={strings.paneHeader.changeAppearance}
+                    onClick={handleAppearanceMenu}
+                    disabled={!selectionState.selectedFolder && !selectionState.selectedTag}
+                    tabIndex={-1}
+                >
+                    <ObsidianIcon name="lucide-palette" />
+                </button>
+            ) : null}
+            {listVisibility.newNote ? (
+                <button
+                    className="nn-mobile-toolbar-button"
+                    aria-label={strings.paneHeader.newNote}
+                    onClick={() => {
+                        runAsyncAction(() => handleNewFile());
+                    }}
+                    disabled={!selectionState.selectedFolder}
+                    tabIndex={-1}
+                >
+                    <ObsidianIcon name="lucide-pen-box" />
+                </button>
+            ) : null}
         </div>
     );
 }

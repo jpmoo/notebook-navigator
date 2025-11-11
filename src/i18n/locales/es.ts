@@ -65,7 +65,9 @@ export const STRINGS_ES = {
         resetRootToFrequency: 'Restablecer al orden por frecuencia',
         dragHandleLabel: 'Arrastrar para reordenar',
         pinShortcuts: 'Fijar accesos directos',
-        unpinShortcuts: 'Desfijar accesos directos'
+        unpinShortcuts: 'Desfijar accesos directos',
+        profileMenuLabel: 'Perfil',
+        profileMenuAria: 'Cambiar perfil de bóveda'
     },
 
     shortcuts: {
@@ -172,6 +174,8 @@ export const STRINGS_ES = {
             newDrawing: 'Nuevo dibujo',
             duplicateFolder: 'Duplicar carpeta',
             searchInFolder: 'Buscar en carpeta',
+            copyPath: 'Copiar ruta',
+            copyRelativePath: 'Copiar ruta relativa',
             createFolderNote: 'Crear nota de carpeta',
             deleteFolderNote: 'Eliminar nota de carpeta',
             changeIcon: 'Cambiar icono',
@@ -263,6 +267,10 @@ export const STRINGS_ES = {
             affectedFiles: '{count} archivo(s) afectado(s)',
             andMore: 'y {count} más...',
             confirmRename: 'Renombrar etiqueta',
+            renameUnchanged: '{tag} sin cambios',
+            renameNoChanges: '{oldTag} → {newTag} ({countLabel})',
+            invalidTagName: 'Introduce un nombre de etiqueta válido.',
+            descendantRenameError: 'No se puede mover una etiqueta dentro de sí misma o un descendiente.',
             confirmDelete: 'Eliminar etiqueta',
             file: 'archivo',
             files: 'archivos'
@@ -319,6 +327,7 @@ export const STRINGS_ES = {
             addPlaceholder: 'Buscar etiqueta para añadir...',
             removePlaceholder: 'Seleccionar etiqueta para eliminar...',
             createNewTag: 'Crear nueva etiqueta: #{tag}',
+            allowCreationToggle: 'Permitir crear nuevas etiquetas',
             instructions: {
                 navigate: 'para navegar',
                 select: 'para seleccionar',
@@ -679,6 +688,12 @@ export const STRINGS_ES = {
                     files: 'Panel de lista'
                 }
             },
+            toolbarButtons: {
+                name: 'Botones de la barra de herramientas',
+                desc: 'Elige qué botones aparecen en la barra de herramientas. Los botones ocultos siguen siendo accesibles mediante comandos y menús.',
+                navigationLabel: 'Barra de navegación',
+                listLabel: 'Barra de lista'
+            },
             autoRevealActiveNote: {
                 name: 'Mostrar automáticamente la nota activa',
                 desc: 'Muestra automáticamente las notas cuando se abren desde el Conmutador rápido, enlaces o búsqueda.'
@@ -700,8 +715,8 @@ export const STRINGS_ES = {
                 desc: 'Expandir automáticamente carpetas y etiquetas cuando se seleccionan.'
             },
             navigationBanner: {
-                name: 'Banner de navegación',
-                desc: 'Mostrar una imagen encima del panel de navegación.',
+                name: 'Banner de navegación (perfil de bóveda)',
+                desc: 'Mostrar una imagen encima del panel de navegación. Cambia con el perfil de bóveda seleccionado.',
                 current: 'Banner actual: {path}',
                 chooseButton: 'Elegir imagen',
                 clearButton: 'Limpiar'
@@ -744,6 +759,24 @@ export const STRINGS_ES = {
                 name: 'Ocultar notas',
                 desc: 'Lista de propiedades del frontmatter separadas por comas. Las notas que contengan cualquiera de estas propiedades se ocultarán (ej.: draft, private, archived).',
                 placeholder: 'draft, private'
+            },
+            vaultProfiles: {
+                name: 'Perfil de bóveda',
+                desc: 'Los perfiles almacenan visibilidad de tipos de archivo, carpetas ocultas, etiquetas ocultas y notas ocultas. Cambia de perfil desde el encabezado del panel de navegación.',
+                defaultName: 'Predeterminado',
+                addButton: 'Añadir perfil',
+                editButton: 'Editar perfil',
+                deleteButton: 'Eliminar perfil',
+                addModalTitle: 'Añadir perfil',
+                editModalTitle: 'Editar perfil',
+                addModalPlaceholder: 'Nombre del perfil',
+                deleteModalTitle: 'Eliminar {name}',
+                deleteModalMessage:
+                    '¿Eliminar {name}? Se eliminarán los filtros de carpetas, etiquetas y notas ocultas guardados en este perfil.',
+                errors: {
+                    emptyName: 'Introduce un nombre de perfil',
+                    duplicateName: 'El nombre del perfil ya existe'
+                }
             },
             excludedFolders: {
                 name: 'Ocultar carpetas',
@@ -950,8 +983,12 @@ export const STRINGS_ES = {
                 name: 'Conservar propiedad tags después de eliminar la última etiqueta',
                 desc: 'Mantiene la propiedad tags en frontmatter cuando se eliminan todas las etiquetas. Cuando está desactivado, la propiedad tags se elimina del frontmatter.'
             },
+            allowTagCreationInAddTagModal: {
+                name: 'Permitir crear etiquetas en el modal de añadir etiqueta',
+                desc: 'Mostrar opción de crear etiqueta al añadir etiquetas. El interruptor aparece en el modal.'
+            },
             hiddenTags: {
-                name: 'Etiquetas ocultas',
+                name: 'Ocultar etiquetas',
                 desc: 'Lista separada por comas de prefijos de etiquetas o comodines de nombre. Usa `tag*` o `*tag` para coincidir con nombres de etiquetas. Ocultar una etiqueta también oculta todas sus sub-etiquetas (ej. "archivo" oculta "archivo/2024/docs").',
                 placeholder: 'interno, temp/borradores, archivo/2024'
             },
@@ -1090,7 +1127,7 @@ export const STRINGS_ES = {
                 name: 'Formato de marca de tiempo',
                 desc: 'Formato utilizado para analizar marcas de tiempo en el frontmatter. Dejar vacío para usar formato ISO 8601',
                 helpTooltip: 'Ver documentación de formato date-fns',
-                help: "Formatos comunes:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
+                help: "Formatos comunes:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {
                 name: 'Apoyar el desarrollo',

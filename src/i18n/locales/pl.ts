@@ -65,7 +65,9 @@ export const STRINGS_PL = {
         resetRootToFrequency: 'Przywróć sortowanie według częstotliwości',
         dragHandleLabel: 'Przeciągnij aby zmienić kolejność',
         pinShortcuts: 'Przypnij skróty',
-        unpinShortcuts: 'Odepnij skróty'
+        unpinShortcuts: 'Odepnij skróty',
+        profileMenuLabel: 'Profil',
+        profileMenuAria: 'Zmień profil sejfu'
     },
 
     shortcuts: {
@@ -171,6 +173,8 @@ export const STRINGS_PL = {
             newDrawing: 'Nowy rysunek',
             duplicateFolder: 'Duplikuj folder',
             searchInFolder: 'Szukaj w folderze',
+            copyPath: 'Kopiuj ścieżkę',
+            copyRelativePath: 'Kopiuj ścieżkę względną',
             createFolderNote: 'Utwórz notatkę folderu',
             deleteFolderNote: 'Usuń notatkę folderu',
             changeIcon: 'Zmień ikonę',
@@ -264,6 +268,10 @@ export const STRINGS_PL = {
             affectedFiles: 'Dotknięte pliki:',
             andMore: '...i {count} więcej',
             confirmRename: 'Zmień nazwę tagu',
+            renameUnchanged: '{tag} bez zmian',
+            renameNoChanges: '{oldTag} → {newTag} ({countLabel})',
+            invalidTagName: 'Wprowadź prawidłową nazwę tagu.',
+            descendantRenameError: 'Nie można przenieść tagu do samego siebie lub potomka.',
             confirmDelete: 'Usuń tag',
             file: 'plik',
             files: 'plików'
@@ -320,6 +328,7 @@ export const STRINGS_PL = {
             addPlaceholder: 'Szukaj tagu do dodania...',
             removePlaceholder: 'Wybierz tag do usunięcia...',
             createNewTag: 'Utwórz nowy tag: #{tag}',
+            allowCreationToggle: 'Zezwalaj na tworzenie nowych tagów',
             instructions: {
                 navigate: 'aby nawigować',
                 select: 'aby wybrać',
@@ -680,6 +689,12 @@ export const STRINGS_PL = {
                     files: 'Panel listy'
                 }
             },
+            toolbarButtons: {
+                name: 'Przyciski paska narzędzi',
+                desc: 'Wybierz, które przyciski mają być wyświetlane na pasku narzędzi. Ukryte przyciski pozostają dostępne przez polecenia i menu.',
+                navigationLabel: 'Pasek nawigacji',
+                listLabel: 'Pasek listy'
+            },
             autoRevealActiveNote: {
                 name: 'Automatycznie odkryj aktywną notatkę',
                 desc: 'Automatycznie odkrywaj notatki po otwarciu z Quick Switcher, linków lub wyszukiwania.'
@@ -701,8 +716,8 @@ export const STRINGS_PL = {
                 desc: 'Automatycznie rozwijaj foldery i tagi gdy są wybrane.'
             },
             navigationBanner: {
-                name: 'Baner nawigacji',
-                desc: 'Wyświetl obraz nad panelem nawigacji.',
+                name: 'Baner nawigacji (profil sejfu)',
+                desc: 'Wyświetl obraz nad panelem nawigacji. Zmienia się wraz z wybranym profilem sejfu.',
                 current: 'Aktualny baner: {path}',
                 chooseButton: 'Wybierz obraz',
                 clearButton: 'Wyczyść'
@@ -766,6 +781,23 @@ export const STRINGS_PL = {
                 name: 'Ukryj notatki',
                 desc: 'Lista właściwości frontmatter oddzielonych przecinkami. Notatki zawierające którekolwiek z tych właściwości będą ukryte (np. draft, private, archived).',
                 placeholder: 'draft, private'
+            },
+            vaultProfiles: {
+                name: 'Profil sejfu',
+                desc: 'Profile przechowują widoczność typów plików, ukryte foldery, ukryte tagi i ukryte notatki. Zmień profil z nagłówka panelu nawigacji.',
+                defaultName: 'Domyślny',
+                addButton: 'Dodaj profil',
+                editButton: 'Edytuj profil',
+                deleteButton: 'Usuń profil',
+                addModalTitle: 'Dodaj profil',
+                editModalTitle: 'Edytuj profil',
+                addModalPlaceholder: 'Nazwa profilu',
+                deleteModalTitle: 'Usuń {name}',
+                deleteModalMessage: 'Usunąć {name}? Filtry ukrytych folderów, tagów i notatek zapisane w tym profilu zostaną usunięte.',
+                errors: {
+                    emptyName: 'Wprowadź nazwę profilu',
+                    duplicateName: 'Nazwa profilu już istnieje'
+                }
             },
             excludedFolders: {
                 name: 'Ukryj foldery',
@@ -951,8 +983,12 @@ export const STRINGS_PL = {
                 name: 'Zachowaj właściwość tags po usunięciu ostatniego tagu',
                 desc: 'Zachowuje właściwość tags we frontmatterze, gdy wszystkie tagi są usuwane. Gdy wyłączone, właściwość tags jest usuwana z frontmattera.'
             },
+            allowTagCreationInAddTagModal: {
+                name: 'Zezwalaj na tworzenie tagów w oknie dodawania tagów',
+                desc: 'Pokaż opcję tworzenia tagów podczas dodawania tagów. Przełącznik pojawia się w oknie modalnym.'
+            },
             hiddenTags: {
-                name: 'Ukryte tagi',
+                name: 'Ukryj tagi',
                 desc: 'Lista prefiksów tagów lub symboli wieloznacznych nazw oddzielonych przecinkami. Użyj `tag*` lub `*tag`, aby dopasować nazwy tagów. Ukrycie tagu ukrywa też wszystkie jego pod-tagi (np. "archive" ukrywa "archive/2024/docs").',
                 placeholder: 'internal, temp/drafts, archive/2024'
             },
@@ -1091,7 +1127,7 @@ export const STRINGS_PL = {
                 name: 'Format znacznika czasu',
                 desc: 'Format używany do parsowania znaczników czasu w frontmatter. Zostaw puste aby użyć formatu ISO 8601',
                 helpTooltip: 'Zobacz dokumentację formatu date-fns',
-                help: "Popularne formaty:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
+                help: "Popularne formaty:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {
                 name: 'Wspieraj rozwój',

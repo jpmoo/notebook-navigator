@@ -31,8 +31,19 @@ import type { ShortcutCollection } from '../types/shortcuts';
 export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     // General tab - Filtering
     fileVisibility: FILE_VISIBILITY.SUPPORTED,
-    excludedFolders: [],
-    excludedFiles: [],
+    hiddenTags: [],
+    vaultProfiles: [
+        {
+            id: 'default',
+            name: '',
+            fileVisibility: FILE_VISIBILITY.SUPPORTED,
+            hiddenFolders: [],
+            hiddenTags: [],
+            hiddenFiles: [],
+            navigationBanner: null
+        }
+    ],
+    vaultProfile: 'default',
 
     // General tab - Behavior
     autoRevealActiveFile: true,
@@ -63,7 +74,6 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
 
     // Navigation pane tab
     skipAutoScroll: false,
-    navigationBanner: null,
     showSectionIcons: true,
     showShortcuts: true,
     showRecentNotes: true,
@@ -71,6 +81,22 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     collapseBehavior: 'all',
     smartCollapse: true,
     colorIconOnly: false,
+    toolbarVisibility: {
+        navigation: {
+            shortcuts: true,
+            expandCollapse: true,
+            hiddenItems: true,
+            rootReorder: true,
+            newFolder: true
+        },
+        list: {
+            search: true,
+            descendants: true,
+            sort: true,
+            appearance: true,
+            newNote: true
+        }
+    },
     showNoteCount: true,
     separateNoteCounts: true,
     navIndent: NAVPANE_MEASUREMENTS.defaultIndent,
@@ -95,8 +121,8 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     showAllTagsFolder: true,
     showUntagged: false,
     tagSortOrder: 'alpha-asc',
-    hiddenTags: [],
     keepEmptyTagsProperty: false,
+    allowTagCreationInAddTagModal: true,
 
     // List pane tab
     defaultFolderSort: 'modified-desc',

@@ -50,6 +50,29 @@ export type ListNoteGroupingOption = 'none' | 'date' | 'folder';
 /** Date source to display when alphabetical sorting is active */
 export type AlphabeticalDateMode = 'created' | 'modified';
 
+/** Buttons available in the navigation toolbar */
+export type NavigationToolbarButtonId = 'shortcuts' | 'expandCollapse' | 'hiddenItems' | 'rootReorder' | 'newFolder';
+
+/** Buttons available in the list toolbar */
+export type ListToolbarButtonId = 'search' | 'descendants' | 'sort' | 'appearance' | 'newNote';
+
+/** Visibility toggles for toolbar buttons */
+export interface ToolbarVisibilitySettings {
+    navigation: Record<NavigationToolbarButtonId, boolean>;
+    list: Record<ListToolbarButtonId, boolean>;
+}
+
+/** Vault profile storing hidden folder, tag, and note patterns */
+export interface VaultProfile {
+    id: string;
+    name: string;
+    fileVisibility: FileVisibility;
+    hiddenFolders: string[];
+    hiddenTags: string[];
+    hiddenFiles: string[];
+    navigationBanner: string | null;
+}
+
 /**
  * Plugin settings interface defining all configurable options
  * Settings are organized by tab for easier maintenance
@@ -57,8 +80,9 @@ export type AlphabeticalDateMode = 'created' | 'modified';
 export interface NotebookNavigatorSettings {
     // General tab - Filtering
     fileVisibility: FileVisibility;
-    excludedFolders: string[];
-    excludedFiles: string[];
+    hiddenTags: string[];
+    vaultProfiles: VaultProfile[];
+    vaultProfile: string;
 
     // General tab - Behavior
     autoRevealActiveFile: boolean;
@@ -89,7 +113,6 @@ export interface NotebookNavigatorSettings {
 
     // Navigation pane tab
     skipAutoScroll: boolean;
-    navigationBanner: string | null;
     showSectionIcons: boolean;
     showShortcuts: boolean;
     showRecentNotes: boolean;
@@ -97,6 +120,7 @@ export interface NotebookNavigatorSettings {
     collapseBehavior: ItemScope;
     smartCollapse: boolean;
     colorIconOnly: boolean;
+    toolbarVisibility: ToolbarVisibilitySettings;
     showNoteCount: boolean;
     separateNoteCounts: boolean;
     navIndent: number;
@@ -121,8 +145,8 @@ export interface NotebookNavigatorSettings {
     showAllTagsFolder: boolean;
     showUntagged: boolean;
     tagSortOrder: TagSortOrder;
-    hiddenTags: string[];
     keepEmptyTagsProperty: boolean;
+    allowTagCreationInAddTagModal: boolean;
 
     // List pane tab
     defaultFolderSort: SortOption;

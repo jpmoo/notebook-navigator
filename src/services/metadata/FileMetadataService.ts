@@ -108,13 +108,15 @@ export class FileMetadataService extends BaseMetadataService {
 
         try {
             // Update the frontmatter in the file
-            await this.app.fileManager.processFrontMatter(file, frontmatter => {
+            await this.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
                 if (normalizedValue && normalizedValue.length > 0) {
                     frontmatter[trimmedField] = normalizedValue;
-                } else {
-                    if (Object.prototype.hasOwnProperty.call(frontmatter, trimmedField)) {
-                        delete frontmatter[trimmedField];
-                    }
+                    return;
+                }
+
+                // Remove the field if it exists and new value is empty
+                if (Reflect.has(frontmatter, trimmedField)) {
+                    delete frontmatter[trimmedField];
                 }
             });
             // Sync the change to IndexedDB cache using canonical format
@@ -128,7 +130,7 @@ export class FileMetadataService extends BaseMetadataService {
             }
             await db.updateFileMetadata(file.path, metadataUpdate);
             return { success: true, normalized: normalizedValue ?? null };
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to update frontmatter metadata', {
                 path: file.path,
                 field: trimmedField,

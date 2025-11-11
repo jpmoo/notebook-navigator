@@ -66,7 +66,9 @@ export const STRINGS_NL = {
         resetRootToFrequency: 'Terugzetten naar frequentievolgorde',
         dragHandleLabel: 'Sleep om te herschikken',
         pinShortcuts: 'Snelkoppelingen vastpinnen',
-        unpinShortcuts: 'Snelkoppelingen losmaken'
+        unpinShortcuts: 'Snelkoppelingen losmaken',
+        profileMenuLabel: 'Profiel',
+        profileMenuAria: 'Kluis profiel wijzigen'
     },
 
     shortcuts: {
@@ -173,6 +175,8 @@ export const STRINGS_NL = {
             newDrawing: 'Nieuwe tekening',
             duplicateFolder: 'Map dupliceren',
             searchInFolder: 'Zoeken in map',
+            copyPath: 'Pad kopiëren',
+            copyRelativePath: 'Relatief pad kopiëren',
             createFolderNote: 'Mapnotitie maken',
             deleteFolderNote: 'Mapnotitie verwijderen',
             changeIcon: 'Pictogram wijzigen',
@@ -264,6 +268,10 @@ export const STRINGS_NL = {
             affectedFiles: 'Betreffende bestanden:',
             andMore: '...en {count} meer',
             confirmRename: 'Tag hernoemen',
+            renameUnchanged: '{tag} niet gewijzigd',
+            renameNoChanges: '{oldTag} → {newTag} ({countLabel})',
+            invalidTagName: 'Voer een geldige tagnaam in.',
+            descendantRenameError: 'Een tag kan niet in zichzelf of een afstammeling worden verplaatst.',
             confirmDelete: 'Tag verwijderen',
             file: 'bestand',
             files: 'bestanden'
@@ -320,6 +328,7 @@ export const STRINGS_NL = {
             addPlaceholder: 'Zoeken naar tag om toe te voegen...',
             removePlaceholder: 'Selecteer tag om te verwijderen...',
             createNewTag: 'Nieuwe tag maken: #{tag}',
+            allowCreationToggle: 'Nieuwe tags aanmaken toestaan',
             instructions: {
                 navigate: 'om te navigeren',
                 select: 'om te selecteren',
@@ -680,6 +689,12 @@ export const STRINGS_NL = {
                     files: 'Lijstpaneel'
                 }
             },
+            toolbarButtons: {
+                name: 'Werkbalkknoppen',
+                desc: "Kies welke knoppen in de werkbalk worden weergegeven. Verborgen knoppen blijven toegankelijk via opdrachten en menu's.",
+                navigationLabel: 'Navigatiewerkbalk',
+                listLabel: 'Lijstwerkbalk'
+            },
             autoRevealActiveNote: {
                 name: 'Actieve notitie automatisch tonen',
                 desc: 'Notities automatisch tonen wanneer geopend vanuit Snelle Wisselaar, links of zoeken.'
@@ -701,8 +716,8 @@ export const STRINGS_NL = {
                 desc: 'Mappen en tags automatisch uitklappen wanneer ze worden geselecteerd.'
             },
             navigationBanner: {
-                name: 'Navigatiebanner',
-                desc: 'Een afbeelding weergeven boven het navigatiepaneel.',
+                name: 'Navigatiebanner (kluisprofiel)',
+                desc: 'Een afbeelding weergeven boven het navigatiepaneel. Verandert met het geselecteerde kluisprofiel.',
                 current: 'Huidige banner: {path}',
                 chooseButton: 'Afbeelding kiezen',
                 clearButton: 'Wissen'
@@ -766,6 +781,24 @@ export const STRINGS_NL = {
                 name: 'Notities verbergen',
                 desc: 'Kommagescheiden lijst van frontmatter-eigenschappen. Notities met een van deze eigenschappen worden verborgen (bijv. draft, private, archived).',
                 placeholder: 'draft, private'
+            },
+            vaultProfiles: {
+                name: 'Kluis profiel',
+                desc: 'Profielen bewaren bestandstypezichtbaarheid, verborgen mappen, verborgen labels en verborgen notities. Wissel van profiel via de koptekst van het navigatiepaneel.',
+                defaultName: 'Standaard',
+                addButton: 'Profiel toevoegen',
+                editButton: 'Profiel bewerken',
+                deleteButton: 'Profiel verwijderen',
+                addModalTitle: 'Profiel toevoegen',
+                editModalTitle: 'Profiel bewerken',
+                addModalPlaceholder: 'Profielnaam',
+                deleteModalTitle: '{name} verwijderen',
+                deleteModalMessage:
+                    '{name} verwijderen? Verborgen map-, label- en notitiefilters opgeslagen in dit profiel worden verwijderd.',
+                errors: {
+                    emptyName: 'Voer een profielnaam in',
+                    duplicateName: 'Profielnaam bestaat al'
+                }
             },
             excludedFolders: {
                 name: 'Mappen verbergen',
@@ -951,8 +984,12 @@ export const STRINGS_NL = {
                 name: 'Tags-eigenschap behouden na verwijderen laatste tag',
                 desc: 'De tags frontmatter-eigenschap behouden wanneer alle tags worden verwijderd. Indien uitgeschakeld, wordt de tags-eigenschap verwijderd uit frontmatter.'
             },
+            allowTagCreationInAddTagModal: {
+                name: 'Tags aanmaken in Tag toevoegen-dialoog toestaan',
+                desc: 'Optie om tags te maken weergeven bij het toevoegen van tags. Schakelaar verschijnt in het dialoogvenster.'
+            },
             hiddenTags: {
-                name: 'Verborgen tags',
+                name: 'Tags verbergen',
                 desc: 'Kommagescheiden lijst van tag-prefixen of naam-wildcards. Gebruik tag* of *tag om tagnamen te matchen. Het verbergen van een tag verbergt ook al zijn subtags (bijv. "archive" verbergt "archive/2024/docs").',
                 placeholder: 'internal, temp/drafts, archive/2024'
             },
@@ -1091,7 +1128,7 @@ export const STRINGS_NL = {
                 name: 'Tijdstempelformaat',
                 desc: 'Formaat gebruikt om tijdstempels in frontmatter te parseren. Laat leeg om ISO 8601 formaat te gebruiken',
                 helpTooltip: 'Zie date-fns formaatdocumentatie',
-                help: "Veelvoorkomende formaten:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
+                help: "Veelvoorkomende formaten:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {
                 name: 'Ontwikkeling ondersteunen',

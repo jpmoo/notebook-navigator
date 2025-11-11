@@ -16,8 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { App, ButtonComponent, Notice, PluginSettingTab, Setting } from 'obsidian';
+import { App, ButtonComponent, PluginSettingTab, Setting } from 'obsidian';
 import NotebookNavigatorPlugin from './main';
+import { showNotice } from './utils/noticeUtils';
 import { strings } from './i18n';
 import { TIMEOUTS } from './types/obsidian-extended';
 import { calculateCacheStatistics, CacheStatistics } from './storage/statistics';
@@ -30,6 +31,7 @@ import { renderIconPacksTab } from './settings/tabs/IconPacksTab';
 import { renderHotkeysSearchTab } from './settings/tabs/HotkeysSearchTab';
 import { renderAdvancedTab } from './settings/tabs/AdvancedTab';
 import type { DebouncedTextAreaSettingOptions, SettingsTabContext } from './settings/tabs/SettingsTabContext';
+import { runAsyncAction } from './utils/async';
 
 /** Identifiers for different settings tab panes */
 type SettingsPaneId = 'general' | 'navigation-pane' | 'folders-tags' | 'list-pane' | 'notes' | 'icon-packs' | 'search-hotkeys' | 'advanced';
@@ -80,6 +82,29 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     }
 
     /**
+     * Ensures only the most recent change for a given setting runs after the debounce delay.
+     */
+    private scheduleDebouncedSettingUpdate(name: string, updater: () => Promise<void> | void): void {
+        const timerId = `setting-${name}`;
+        const existingTimer = this.debounceTimers.get(timerId);
+        if (existingTimer !== undefined) {
+            window.clearTimeout(existingTimer);
+        }
+
+        const timer = window.setTimeout(() => {
+            runAsyncAction(async () => {
+                try {
+                    await updater();
+                } finally {
+                    this.debounceTimers.delete(timerId);
+                }
+            });
+        }, TIMEOUTS.DEBOUNCE_SETTINGS);
+
+        this.debounceTimers.set(timerId, timer);
+    }
+
+    /**
      * Creates a text setting with debounced onChange handler
      * Prevents excessive updates while user is typing
      * Supports optional validation before applying changes
@@ -109,35 +134,19 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
                 text
                     .setPlaceholder(placeholder)
                     .setValue(getValue())
-                    .onChange(async value => {
-                        const timerId = `setting-${name}`;
-
-                        // Clear existing timer for this setting
-                        const existingTimer = this.debounceTimers.get(timerId);
-                        if (existingTimer !== undefined) {
-                            window.clearTimeout(existingTimer);
-                        }
-
-                        // Set new timer
-                        const timer = window.setTimeout(async () => {
+                    .onChange(value => {
+                        // Schedule debounced update to ensure async operations complete safely
+                        this.scheduleDebouncedSettingUpdate(name, async () => {
                             const isValid = !validator || validator(value);
                             if (!isValid) {
-                                this.debounceTimers.delete(timerId);
                                 return;
                             }
-
-                            try {
-                                setValue(value);
-                                await this.plugin.saveSettingsAndUpdate();
-                                if (onAfterUpdate) {
-                                    onAfterUpdate();
-                                }
-                            } finally {
-                                this.debounceTimers.delete(timerId);
+                            setValue(value);
+                            await this.plugin.saveSettingsAndUpdate();
+                            if (onAfterUpdate) {
+                                onAfterUpdate();
                             }
-                        }, TIMEOUTS.DEBOUNCE_SETTINGS);
-
-                        this.debounceTimers.set(timerId, timer);
+                        });
                     })
             );
     }
@@ -172,31 +181,18 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
                 textArea.setPlaceholder(placeholder);
                 textArea.setValue(getValue());
                 textArea.inputEl.rows = rows;
-                textArea.onChange(async value => {
-                    const timerId = `setting-${name}`;
-                    const existingTimer = this.debounceTimers.get(timerId);
-                    if (existingTimer !== undefined) {
-                        window.clearTimeout(existingTimer);
-                    }
-
-                    const timer = window.setTimeout(async () => {
+                textArea.onChange(value => {
+                    // Schedule debounced update to ensure async operations complete safely
+                    this.scheduleDebouncedSettingUpdate(name, async () => {
                         const validator = options?.validator;
                         const isValid = !validator || validator(value);
                         if (!isValid) {
-                            this.debounceTimers.delete(timerId);
                             return;
                         }
-
-                        try {
-                            setValue(value);
-                            await this.plugin.saveSettingsAndUpdate();
-                            options?.onAfterUpdate?.();
-                        } finally {
-                            this.debounceTimers.delete(timerId);
-                        }
-                    }, TIMEOUTS.DEBOUNCE_SETTINGS);
-
-                    this.debounceTimers.set(timerId, timer);
+                        setValue(value);
+                        await this.plugin.saveSettingsAndUpdate();
+                        options?.onAfterUpdate?.();
+                    });
                 });
             });
     }
@@ -551,10 +547,10 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         try {
             // Create the file in vault root
             await this.app.vault.create(filename, content);
-            new Notice(strings.settings.metadataReport.exportSuccess.replace('{filename}', filename));
+            showNotice(strings.settings.metadataReport.exportSuccess.replace('{filename}', filename), { variant: 'success' });
         } catch (error) {
             console.error('Failed to export metadata report:', error);
-            new Notice(strings.settings.metadataReport.exportFailed);
+            showNotice(strings.settings.metadataReport.exportFailed, { variant: 'warning' });
         }
     }
 

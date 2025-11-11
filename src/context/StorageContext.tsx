@@ -49,6 +49,7 @@ import { FeatureImageContentProvider } from '../services/content/FeatureImageCon
 import { MetadataContentProvider } from '../services/content/MetadataContentProvider';
 import { TagContentProvider } from '../services/content/TagContentProvider';
 import { IndexedDBStorage, FileData as DBFileData, METADATA_SENTINEL } from '../storage/IndexedDBStorage';
+import { runAsyncAction } from '../utils/async';
 import { calculateFileDiff } from '../storage/diffCalculator';
 import { recordFileChanges, markFilesForRegeneration, removeFilesFromCache, getDBInstance } from '../storage/fileOperations';
 import { TagTreeNode } from '../types/storage';
@@ -62,6 +63,7 @@ import { useUXPreferences } from './UXPreferencesContext';
 import { NotebookNavigatorSettings } from '../settings';
 import type { NotebookNavigatorAPI } from '../api/NotebookNavigatorAPI';
 import type { ContentType } from '../interfaces/IContentProvider';
+import { getActiveHiddenFiles, getActiveHiddenFolders } from '../utils/vaultProfiles';
 
 /**
  * Returns content types that require Obsidian's metadata cache to be ready
@@ -74,7 +76,8 @@ function getMetadataDependentTypes(settings: NotebookNavigatorSettings): Content
     if (settings.showFeatureImage) {
         types.push('featureImage');
     }
-    if (settings.useFrontmatterMetadata || settings.excludedFiles.length > 0) {
+    const hiddenFiles = getActiveHiddenFiles(settings);
+    if (settings.useFrontmatterMetadata || hiddenFiles.length > 0) {
         types.push('metadata');
     }
     return types;
@@ -93,10 +96,29 @@ function resolveMetadataDependentTypes(settings: NotebookNavigatorSettings, requ
             return settings.showFeatureImage;
         }
         if (type === 'metadata') {
-            return settings.useFrontmatterMetadata || settings.excludedFiles.length > 0;
+            return settings.useFrontmatterMetadata || getActiveHiddenFiles(settings).length > 0;
         }
         return false;
     });
+}
+
+// Compares two string arrays for deep equality, handling null/undefined cases
+function haveStringArraysChanged(prev?: string[] | null, next?: string[] | null): boolean {
+    if (prev === next) {
+        return false;
+    }
+    if (!prev || !next) {
+        return (prev?.length ?? 0) !== (next?.length ?? 0);
+    }
+    if (prev.length !== next.length) {
+        return true;
+    }
+    for (let index = 0; index < prev.length; index += 1) {
+        if (prev[index] !== next[index]) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -110,7 +132,7 @@ function filterFilesRequiringMetadataSources(files: TFile[], types: ContentType[
 
     const db = getDBInstance();
     const records = db.getFiles(files.map(file => file.path));
-    const requiresHiddenState = settings.excludedFiles.length > 0;
+    const requiresHiddenState = getActiveHiddenFiles(settings).length > 0;
     const needsTags = types.includes('tags');
     const needsFeatureImage = types.includes('featureImage');
     const needsMetadata = types.includes('metadata');
@@ -201,6 +223,10 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
     const settings = useSettingsState();
     const uxPreferences = useUXPreferences();
     const showHiddenItems = uxPreferences.showHiddenItems;
+    // Memoized list of folders hidden by the active vault profile
+    const hiddenFolders = useMemo(() => getActiveHiddenFolders(settings), [settings]);
+    // Memoized list of files hidden by the active vault profile
+    const hiddenFiles = useMemo(() => getActiveHiddenFiles(settings), [settings]);
     const { tagTreeService } = useServices();
     const [fileData, setFileData] = useState<FileData>({ tagTree: new Map(), tagged: 0, untagged: 0, hiddenRootTags: new Map() });
 
@@ -247,7 +273,7 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
         try {
             const db = getDBInstance();
             // Hidden items override: when enabled, include all folders in tag tree regardless of exclusions
-            const excludedFolderPatterns = showHiddenItems ? [] : settings.excludedFolders;
+            const excludedFolderPatterns = showHiddenItems ? [] : hiddenFolders;
             // Filter database results to only include files matching current visibility settings
             const includedPaths = new Set(getVisibleMarkdownFiles().map(f => f.path));
             const {
@@ -278,7 +304,7 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
             }
             return emptyTree;
         }
-    }, [settings.excludedFolders, settings.hiddenTags, showHiddenItems, tagTreeService, getVisibleMarkdownFiles]);
+    }, [hiddenFolders, settings.hiddenTags, showHiddenItems, tagTreeService, getVisibleMarkdownFiles]);
 
     /**
      * Effect: Rebuild tag tree when hidden items visibility changes
@@ -655,7 +681,7 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
             let rawCleanup: (() => void) | null = null;
             try {
                 rawCleanup = waitForMetadataCache(waitingFiles, handleReady);
-            } catch (error) {
+            } catch (error: unknown) {
                 releaseTrackedPaths();
                 throw error;
             }
@@ -746,7 +772,7 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
         try {
             const db = getDBInstance();
             await db.clearDatabase();
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to clear database during cache rebuild:', error);
             stoppedRef.current = previousStopped;
             throw error;
@@ -779,7 +805,7 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
         try {
             hasBuiltInitialCache.current = true;
             await buildCache(true);
-        } catch (error) {
+        } catch (error: unknown) {
             hasBuiltInitialCache.current = false;
             stoppedRef.current = previousStopped;
             throw error;
@@ -995,16 +1021,17 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
      */
     useEffect(() => {
         let cancelled = false;
-        (async () => {
+        const initializeDatabase = async () => {
             try {
                 const db = getDBInstance();
                 await db.init();
                 if (!cancelled) setIsIndexedDBReady(true);
-            } catch (error) {
+            } catch (error: unknown) {
                 console.error('Database not available for StorageContext:', error);
                 if (!cancelled) setIsIndexedDBReady(false);
             }
-        })();
+        };
+        runAsyncAction(initializeDatabase);
         return () => {
             cancelled = true;
         };
@@ -1148,7 +1175,7 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
                             queueMetadataContentWhenReady([...toAdd, ...toUpdate], metadataDependentTypes, settings);
                         }
                     }
-                } catch (error) {
+                } catch (error: unknown) {
                     console.error('Failed during initial load sequence:', error);
                 }
             } else {
@@ -1182,7 +1209,7 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
                                         rebuildTagTree();
                                     }
                                 }
-                            } catch (error) {
+                            } catch (error: unknown) {
                                 console.error('Failed to update IndexedDB cache:', error);
                             }
 
@@ -1241,7 +1268,7 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
                                             filesToProcess = allFiles.filter(file => pathsNeedingContent.has(file.path));
                                         }
                                     }
-                                } catch (error) {
+                                } catch (error: unknown) {
                                     console.error('Failed to check content needs from IndexedDB:', error);
                                 }
 
@@ -1254,7 +1281,7 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
                                 }
                             }
                         }
-                    } catch (error) {
+                    } catch (error: unknown) {
                         console.error('Error processing file cache diff:', error);
                     }
                 };
@@ -1262,10 +1289,10 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
                 if (typeof window !== 'undefined') {
                     pendingSyncTimeoutId.current = window.setTimeout(() => {
                         pendingSyncTimeoutId.current = null;
-                        void processDiff();
+                        runAsyncAction(() => processDiff());
                     }, 0);
                 } else {
-                    void processDiff();
+                    runAsyncAction(() => processDiff());
                 }
             }
         };
@@ -1306,7 +1333,7 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
                     if (!build) {
                         return;
                     }
-                    void build(false);
+                    runAsyncAction(() => build(false));
                 },
                 TIMEOUTS.FILE_OPERATION_DELAY,
                 true
@@ -1317,7 +1344,7 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
         // Only build initial cache if IndexedDB is ready and we haven't built it yet
         if (isIndexedDBReady && !hasBuiltInitialCache.current) {
             hasBuiltInitialCache.current = true;
-            buildFileCache(true);
+            runAsyncAction(() => buildFileCache(true));
         }
 
         /**
@@ -1346,44 +1373,73 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
                         // Preload memory cache with existing data to avoid re-fetching after rename
                         db.seedMemoryFile(file.path, existing);
                     }
-                } catch (error) {
+                } catch (error: unknown) {
                     console.error('Failed to capture renamed file data:', error);
                 }
             }
             rebuildFileCache();
         };
 
+        /**
+         * Queues a file for content regeneration by all registered content providers.
+         * Separates metadata-dependent providers to be queued after metadata is ready.
+         */
+        const queueFileContentRefresh = (file: TFile) => {
+            if (stoppedRef.current || !contentRegistry.current) {
+                return;
+            }
+
+            try {
+                const liveSettings = latestSettingsRef.current;
+                // Identify content providers that depend on metadata (e.g., feature images from frontmatter)
+                const metadataDependentTypes = getMetadataDependentTypes(liveSettings);
+                // Exclude metadata-dependent providers from immediate processing if any exist
+                const options = metadataDependentTypes.length > 0 ? { exclude: metadataDependentTypes } : undefined;
+                // Queue file for all non-metadata-dependent content providers
+                contentRegistry.current.queueFilesForAllProviders([file], liveSettings, options);
+                if (metadataDependentTypes.length > 0) {
+                    // Queue metadata-dependent providers to run after metadata cache is ready
+                    queueMetadataContentWhenReady([file], metadataDependentTypes, liveSettings);
+                }
+            } catch (error: unknown) {
+                console.error('Failed to queue content refresh for file:', file.path, error);
+            }
+        };
+
+        /**
+         * Handles vault file modification events.
+         * Records file changes in the database and queues content regeneration.
+         */
+        const handleModify = (file: TAbstractFile) => {
+            if (stoppedRef.current) {
+                return;
+            }
+            if (!(file instanceof TFile) || file.extension !== 'md') {
+                return;
+            }
+
+            // Process file change asynchronously to avoid blocking the UI
+            runAsyncAction(async () => {
+                try {
+                    const db = getDBInstance();
+                    const existingData = db.getFiles([file.path]);
+                    // Update file metadata in the database (tracks new files and stat changes)
+                    await recordFileChanges([file], existingData, pendingRenameDataRef.current);
+                } catch (error: unknown) {
+                    console.error('Failed to record file change on modify:', error);
+                    return;
+                }
+
+                // Trigger content regeneration for all registered providers
+                queueFileContentRefresh(file);
+            });
+        };
+
         const vaultEvents = [
             app.vault.on('create', rebuildFileCache),
             app.vault.on('delete', rebuildFileCache),
             app.vault.on('rename', handleRename),
-            app.vault.on('modify', async file => {
-                if (stoppedRef.current) return;
-                // Check if it's a TFile (not a folder)
-                if (file instanceof TFile && file.extension === 'md') {
-                    // Get existing data for the file
-                    try {
-                        const db = getDBInstance();
-                        const existingData = db.getFiles([file.path]);
-                        // Record the file change (only does something for new files)
-                        await recordFileChanges([file], existingData, pendingRenameDataRef.current);
-                    } catch (e) {
-                        console.error('Failed to record file change on modify:', e);
-                        return;
-                    }
-
-                    // Content providers will detect the mtime mismatch (db.mtime != file.mtime) and regenerate
-                    if (contentRegistry.current) {
-                        const liveSettings = latestSettingsRef.current;
-                        const metadataDependentTypes = getMetadataDependentTypes(liveSettings);
-                        const options = metadataDependentTypes.length > 0 ? { exclude: metadataDependentTypes } : undefined;
-                        contentRegistry.current.queueFilesForAllProviders([file], liveSettings, options);
-                        if (metadataDependentTypes.length > 0) {
-                            queueMetadataContentWhenReady([file], metadataDependentTypes, liveSettings);
-                        }
-                    }
-                }
-            })
+            app.vault.on('modify', handleModify)
         ];
         activeVaultEventRefs.current = vaultEvents;
 
@@ -1397,32 +1453,30 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
          *
          * We mark files for regeneration to ensure content stays in sync.
          */
-        const metadataEvent = app.metadataCache.on('changed', async file => {
-            if (stoppedRef.current) return;
-            if (file && file.extension === 'md') {
-                // Mark file for regeneration - metadata changes might not update mtime
+        const handleMetadataChange = (file: TAbstractFile | null) => {
+            if (stoppedRef.current) {
+                return;
+            }
+            if (!(file instanceof TFile) || file.extension !== 'md') {
+                return;
+            }
+
+            // Process metadata change asynchronously to avoid blocking the UI
+            runAsyncAction(async () => {
                 try {
+                    // Force content regeneration by marking the file's cache as stale
                     await markFilesForRegeneration([file]);
-                } catch (e) {
-                    console.error('Failed to mark file for regeneration:', e);
+                } catch (error: unknown) {
+                    console.error('Failed to mark file for regeneration:', error);
                     return;
                 }
 
-                // Queue content regeneration for the file
-                if (contentRegistry.current) {
-                    const liveSettings = latestSettingsRef.current;
-                    const metadataDependentTypes = getMetadataDependentTypes(liveSettings);
-                    const options = metadataDependentTypes.length > 0 ? { exclude: metadataDependentTypes } : undefined;
-                    contentRegistry.current.queueFilesForAllProviders([file], liveSettings, options);
-                    if (metadataDependentTypes.length > 0) {
-                        queueMetadataContentWhenReady([file], metadataDependentTypes, liveSettings);
-                    }
-                }
+                // Trigger content regeneration for all registered providers
+                queueFileContentRefresh(file);
+            });
+        };
 
-                // Note: We already queued content regeneration above
-                // No need to check for specific feature image changes
-            }
-        });
+        const metadataEvent = app.metadataCache.on('changed', handleMetadataChange);
         activeMetadataEventRef.current = metadataEvent;
 
         // Cleanup
@@ -1489,20 +1543,23 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
      */
     useEffect(() => {
         // Skip on initial mount
-        if (!prevSettings.current) {
+        const previousSettings = prevSettings.current;
+        if (!previousSettings) {
             prevSettings.current = settings;
             return;
         }
-
-        // Let content providers handle settings changes
-        handleSettingsChanges(prevSettings.current, settings);
+        // Settings UIs debounce excluded folders/files edits, so this effect only runs after the user stops typing
+        // Use captured previousSettings variable instead of ref to ensure consistent comparison
+        runAsyncAction(() => handleSettingsChanges(previousSettings, settings));
 
         // Detect exclusion setting changes and resync cache / tag tree
-        const excludedFoldersChanged = JSON.stringify(prevSettings.current.excludedFolders) !== JSON.stringify(settings.excludedFolders);
-        const excludedFilesChanged = JSON.stringify(prevSettings.current.excludedFiles) !== JSON.stringify(settings.excludedFiles);
+        const previousHiddenFolders = getActiveHiddenFolders(previousSettings);
+        const excludedFoldersChanged = haveStringArraysChanged(previousHiddenFolders, hiddenFolders);
+        const previousHiddenFiles = getActiveHiddenFiles(previousSettings);
+        const excludedFilesChanged = haveStringArraysChanged(previousHiddenFiles, hiddenFiles);
 
         if (excludedFoldersChanged || excludedFilesChanged) {
-            (async () => {
+            runAsyncAction(async () => {
                 try {
                     const allFiles = getIndexableMarkdownFiles();
                     const { toAdd, toUpdate, toRemove, cachedFiles } = await calculateFileDiff(allFiles);
@@ -1569,8 +1626,8 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
                                     filesToProcess = allFiles.filter(file => pathsNeedingContent.has(file.path));
                                 }
                             }
-                        } catch (err) {
-                            console.error('Failed to check content needs from IndexedDB:', err);
+                        } catch (error: unknown) {
+                            console.error('Failed to check content needs from IndexedDB:', error);
                         }
 
                         if (filesToProcess.length > 0) {
@@ -1581,14 +1638,22 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
                             }
                         }
                     }
-                } catch (error) {
+                } catch (error: unknown) {
                     console.error('Error resyncing cache after exclusion changes:', error);
                 }
-            })();
+            });
         }
 
         prevSettings.current = settings;
-    }, [settings, handleSettingsChanges, rebuildTagTree, getIndexableMarkdownFiles, queueMetadataContentWhenReady]);
+    }, [
+        settings,
+        hiddenFolders,
+        hiddenFiles,
+        handleSettingsChanges,
+        rebuildTagTree,
+        getIndexableMarkdownFiles,
+        queueMetadataContentWhenReady
+    ]);
 
     /**
      * Augment context with control methods

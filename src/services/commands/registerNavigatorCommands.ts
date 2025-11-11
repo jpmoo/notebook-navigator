@@ -2,24 +2,26 @@
  * Notebook Navigator - Plugin for Obsidian
  */
 
-import { Notice, TFile, TFolder } from 'obsidian';
+import { TFile, TFolder, type WorkspaceLeaf } from 'obsidian';
 import type NotebookNavigatorPlugin from '../../main';
-import { NOTEBOOK_NAVIGATOR_VIEW } from '../../types';
 import { strings } from '../../i18n';
 import { isFolderNote, isSupportedFolderNoteExtension } from '../../utils/folderNotes';
 import { isFolderInExcludedFolder, shouldExcludeFile } from '../../utils/fileFilters';
 import { getEffectiveFrontmatterExclusions, isFileHiddenBySettings } from '../../utils/exclusionUtils';
+import { runAsyncAction } from '../../utils/async';
 import { NotebookNavigatorView } from '../../view/NotebookNavigatorView';
+import { getActiveHiddenFolders } from '../../utils/vaultProfiles';
+import { showNotice } from '../../utils/noticeUtils';
 
 /**
  * Reveals the navigator view and focuses whichever pane is currently visible
  * @param plugin - The plugin instance
  */
-function focusNavigatorVisiblePane(plugin: NotebookNavigatorPlugin) {
-    const navigatorLeaves = plugin.app.workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW);
+async function focusNavigatorVisiblePane(plugin: NotebookNavigatorPlugin, existingLeaves?: WorkspaceLeaf[]): Promise<void> {
+    const navigatorLeaves = existingLeaves ?? plugin.getNavigatorLeaves();
     if (navigatorLeaves.length > 0) {
         const leaf = navigatorLeaves[0];
-        plugin.app.workspace.revealLeaf(leaf);
+        await plugin.app.workspace.revealLeaf(leaf);
         const view = leaf.view;
         if (view instanceof NotebookNavigatorView) {
             view.focusVisiblePane();
@@ -32,14 +34,24 @@ function focusNavigatorVisiblePane(plugin: NotebookNavigatorPlugin) {
  * @param plugin - The plugin instance
  * @returns The workspace leaf containing the navigator view
  */
-async function ensureNavigatorOpen(plugin: NotebookNavigatorPlugin) {
-    const navigatorLeaves = plugin.app.workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW);
+async function ensureNavigatorOpen(
+    plugin: NotebookNavigatorPlugin,
+    existingLeaves?: WorkspaceLeaf[]
+): Promise<NotebookNavigatorView | null> {
+    const navigatorLeaves = existingLeaves ?? plugin.getNavigatorLeaves();
     if (navigatorLeaves.length > 0) {
-        plugin.app.workspace.revealLeaf(navigatorLeaves[0]);
-        return navigatorLeaves[0];
+        const leaf = navigatorLeaves[0];
+        await plugin.app.workspace.revealLeaf(leaf);
+        const view = leaf.view;
+        return view instanceof NotebookNavigatorView ? view : null;
     }
 
-    return plugin.activateView();
+    const createdLeaf = await plugin.activateView();
+    if (!createdLeaf) {
+        return null;
+    }
+    const view = createdLeaf.view;
+    return view instanceof NotebookNavigatorView ? view : null;
 }
 
 /**
@@ -50,13 +62,16 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
     plugin.addCommand({
         id: 'open',
         name: strings.commands.open,
-        callback: async () => {
-            const navigatorLeaves = plugin.app.workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW);
-            if (navigatorLeaves.length > 0) {
-                focusNavigatorVisiblePane(plugin);
-            } else {
+        callback: () => {
+            // Wrap async operations with error handling
+            runAsyncAction(async () => {
+                const navigatorLeaves = plugin.getNavigatorLeaves();
+                if (navigatorLeaves.length > 0) {
+                    await focusNavigatorVisiblePane(plugin, navigatorLeaves);
+                    return;
+                }
                 await plugin.activateView();
-            }
+            });
         }
     });
 
@@ -71,7 +86,8 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
             }
 
             if (!checking) {
-                void plugin.openHomepage('command');
+                // Execute homepage opening with error handling
+                runAsyncAction(() => plugin.openHomepage('command'));
             }
 
             return true;
@@ -86,13 +102,14 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
             const activeFile = plugin.app.workspace.getActiveFile();
             if (activeFile && activeFile.parent) {
                 if (!checking) {
-                    void (async () => {
+                    // Wrap file reveal with error handling
+                    runAsyncAction(async () => {
                         await plugin.activateView();
                         if (isFileHiddenBySettings(activeFile, plugin.settings, plugin.app, plugin.getUXPreferences().showHiddenItems)) {
-                            new Notice(strings.fileSystem.notifications.hiddenFileReveal);
+                            showNotice(strings.fileSystem.notifications.hiddenFileReveal, { variant: 'warning' });
                         }
                         await plugin.revealFileInActualFolder(activeFile);
-                    })();
+                    });
                 }
                 return true;
             }
@@ -104,9 +121,12 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
     plugin.addCommand({
         id: 'toggle-descendants',
         name: strings.commands.toggleDescendants,
-        callback: async () => {
-            await plugin.activateView();
-            plugin.toggleIncludeDescendantNotes();
+        callback: () => {
+            // Wrap toggle with error handling
+            runAsyncAction(async () => {
+                await plugin.activateView();
+                plugin.toggleIncludeDescendantNotes();
+            });
         }
     });
 
@@ -114,9 +134,12 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
     plugin.addCommand({
         id: 'toggle-hidden',
         name: strings.commands.toggleHidden,
-        callback: async () => {
-            await plugin.activateView();
-            plugin.toggleShowHiddenItems();
+        callback: () => {
+            // Wrap toggle with error handling
+            runAsyncAction(async () => {
+                await plugin.activateView();
+                plugin.toggleShowHiddenItems();
+            });
         }
     });
 
@@ -124,10 +147,13 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
     plugin.addCommand({
         id: 'toggle-tag-sort',
         name: strings.commands.toggleTagSort,
-        callback: async () => {
-            await plugin.activateView();
-            plugin.settings.tagSortOrder = plugin.settings.tagSortOrder === 'frequency-desc' ? 'alpha-asc' : 'frequency-desc';
-            await plugin.saveSettingsAndUpdate();
+        callback: () => {
+            // Wrap sort toggle with error handling
+            runAsyncAction(async () => {
+                await plugin.activateView();
+                plugin.settings.tagSortOrder = plugin.settings.tagSortOrder === 'frequency-desc' ? 'alpha-asc' : 'frequency-desc';
+                await plugin.saveSettingsAndUpdate();
+            });
         }
     });
 
@@ -135,9 +161,12 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
     plugin.addCommand({
         id: 'toggle-dual-pane',
         name: strings.commands.toggleDualPane,
-        callback: async () => {
-            await plugin.activateView();
-            plugin.toggleDualPanePreference();
+        callback: () => {
+            // Wrap pane toggle with error handling
+            runAsyncAction(async () => {
+                await plugin.activateView();
+                plugin.toggleDualPanePreference();
+            });
         }
     });
 
@@ -145,17 +174,14 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
     plugin.addCommand({
         id: 'collapse-expand',
         name: strings.commands.collapseExpand,
-        callback: async () => {
-            await plugin.activateView();
-
-            const navigatorLeaves = plugin.app.workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW);
-            for (const leaf of navigatorLeaves) {
-                const view = leaf.view;
-                if (view instanceof NotebookNavigatorView) {
+        callback: () => {
+            // Wrap collapse/expand with error handling
+            runAsyncAction(async () => {
+                const view = await ensureNavigatorOpen(plugin);
+                if (view) {
                     view.triggerCollapse();
-                    break;
                 }
-            }
+            });
         }
     });
 
@@ -163,17 +189,14 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
     plugin.addCommand({
         id: 'new-note',
         name: strings.commands.createNewNote,
-        callback: async () => {
-            await plugin.activateView();
-
-            const navigatorLeaves = plugin.app.workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW);
-            for (const leaf of navigatorLeaves) {
-                const view = leaf.view;
-                if (view instanceof NotebookNavigatorView) {
+        callback: () => {
+            // Wrap note creation with error handling
+            runAsyncAction(async () => {
+                const view = await ensureNavigatorOpen(plugin);
+                if (view) {
                     await view.createNoteInSelectedFolder();
-                    break;
                 }
-            }
+            });
         }
     });
 
@@ -181,17 +204,14 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
     plugin.addCommand({
         id: 'move-files',
         name: strings.commands.moveFiles,
-        callback: async () => {
-            await plugin.activateView();
-
-            const navigatorLeaves = plugin.app.workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW);
-            for (const leaf of navigatorLeaves) {
-                const view = leaf.view;
-                if (view instanceof NotebookNavigatorView) {
+        callback: () => {
+            // Wrap move operation with error handling
+            runAsyncAction(async () => {
+                const view = await ensureNavigatorOpen(plugin);
+                if (view) {
                     await view.moveSelectedFiles();
-                    break;
                 }
-            }
+            });
         }
     });
 
@@ -199,12 +219,14 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
     plugin.addCommand({
         id: 'select-next-file',
         name: strings.commands.selectNextFile,
-        callback: async () => {
-            const leaf = await ensureNavigatorOpen(plugin);
-            const view = leaf?.view;
-            if (view instanceof NotebookNavigatorView) {
-                await view.selectNextFileInCurrentView();
-            }
+        callback: () => {
+            // Wrap file selection with error handling
+            runAsyncAction(async () => {
+                const view = await ensureNavigatorOpen(plugin);
+                if (view) {
+                    await view.selectNextFileInCurrentView();
+                }
+            });
         }
     });
 
@@ -212,12 +234,14 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
     plugin.addCommand({
         id: 'select-previous-file',
         name: strings.commands.selectPreviousFile,
-        callback: async () => {
-            const leaf = await ensureNavigatorOpen(plugin);
-            const view = leaf?.view;
-            if (view instanceof NotebookNavigatorView) {
-                await view.selectPreviousFileInCurrentView();
-            }
+        callback: () => {
+            // Wrap file selection with error handling
+            runAsyncAction(async () => {
+                const view = await ensureNavigatorOpen(plugin);
+                if (view) {
+                    await view.selectPreviousFileInCurrentView();
+                }
+            });
         }
     });
 
@@ -262,7 +286,8 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
                 return true;
             }
 
-            void fileSystemOps.convertFileToFolderNote(activeFile, plugin.settings);
+            // Convert file to folder note with error handling
+            runAsyncAction(() => fileSystemOps.convertFileToFolderNote(activeFile, plugin.settings));
             return true;
         }
     });
@@ -293,6 +318,8 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
             // Resolves frontmatter exclusions, returns empty array when hidden items are shown
             const { showHiddenItems } = plugin.getUXPreferences();
             const effectiveExcludedFiles = getEffectiveFrontmatterExclusions(plugin.settings, showHiddenItems);
+            // Gets the list of folders hidden by the active vault profile
+            const hiddenFolders = getActiveHiddenFolders(plugin.settings);
 
             // Find all eligible folder notes in vault
             plugin.app.vault.getAllLoadedFiles().forEach(file => {
@@ -313,7 +340,7 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
                 }
 
                 // Skip folder notes in excluded folders when hidden items are disabled
-                if (!plugin.getUXPreferences().showHiddenItems && isFolderInExcludedFolder(parent, plugin.settings.excludedFolders)) {
+                if (!plugin.getUXPreferences().showHiddenItems && isFolderInExcludedFolder(parent, hiddenFolders)) {
                     return;
                 }
 
@@ -337,14 +364,15 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
 
             // Pin all eligible folder notes
             if (!checking) {
-                void (async () => {
+                // Pin all folder notes with error handling
+                runAsyncAction(async () => {
                     for (const note of eligible) {
                         await metadataService.togglePin(note.path, 'folder');
                     }
 
                     // Show notification with count of pinned folder notes
-                    new Notice(strings.shortcuts.folderNotesPinned.replace('{count}', eligible.length.toString()));
-                })();
+                    showNotice(strings.shortcuts.folderNotesPinned.replace('{count}', eligible.length.toString()), { variant: 'success' });
+                });
             }
 
             return true;
@@ -355,15 +383,18 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
     plugin.addCommand({
         id: 'delete-files',
         name: strings.commands.deleteFile,
-        callback: async () => {
-            await plugin.activateView();
+        callback: () => {
+            // Wrap delete operation with error handling
+            runAsyncAction(async () => {
+                await plugin.activateView();
 
-            const navigatorLeaves = plugin.app.workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW);
-            navigatorLeaves.forEach(leaf => {
-                const view = leaf.view;
-                if (view instanceof NotebookNavigatorView) {
-                    view.deleteActiveFile();
-                }
+                const navigatorLeaves = plugin.getNavigatorLeaves();
+                navigatorLeaves.forEach(leaf => {
+                    const view = leaf.view;
+                    if (view instanceof NotebookNavigatorView) {
+                        view.deleteActiveFile();
+                    }
+                });
             });
         }
     });
@@ -372,12 +403,15 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
     plugin.addCommand({
         id: 'rebuild-cache',
         name: strings.commands.rebuildCache,
-        callback: async () => {
-            try {
-                await plugin.rebuildCache();
-            } catch (error) {
-                console.error('Failed to rebuild cache:', error);
-            }
+        callback: () => {
+            // Wrap cache rebuild with error handling and logging
+            runAsyncAction(async () => {
+                try {
+                    await plugin.rebuildCache();
+                } catch (error) {
+                    console.error('Failed to rebuild cache:', error);
+                }
+            });
         }
     });
 
@@ -385,17 +419,14 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
     plugin.addCommand({
         id: 'add-tag',
         name: strings.commands.addTag,
-        callback: async () => {
-            await plugin.activateView();
-
-            const navigatorLeaves = plugin.app.workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW);
-            for (const leaf of navigatorLeaves) {
-                const view = leaf.view;
-                if (view instanceof NotebookNavigatorView) {
+        callback: () => {
+            // Wrap tag addition with error handling
+            runAsyncAction(async () => {
+                const view = await ensureNavigatorOpen(plugin);
+                if (view) {
                     await view.addTagToSelectedFiles();
-                    break;
                 }
-            }
+            });
         }
     });
 
@@ -403,17 +434,14 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
     plugin.addCommand({
         id: 'remove-tag',
         name: strings.commands.removeTag,
-        callback: async () => {
-            await plugin.activateView();
-
-            const navigatorLeaves = plugin.app.workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW);
-            for (const leaf of navigatorLeaves) {
-                const view = leaf.view;
-                if (view instanceof NotebookNavigatorView) {
+        callback: () => {
+            // Wrap tag removal with error handling
+            runAsyncAction(async () => {
+                const view = await ensureNavigatorOpen(plugin);
+                if (view) {
                     await view.removeTagFromSelectedFiles();
-                    break;
                 }
-            }
+            });
         }
     });
 
@@ -421,17 +449,14 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
     plugin.addCommand({
         id: 'remove-all-tags',
         name: strings.commands.removeAllTags,
-        callback: async () => {
-            await plugin.activateView();
-
-            const navigatorLeaves = plugin.app.workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW);
-            for (const leaf of navigatorLeaves) {
-                const view = leaf.view;
-                if (view instanceof NotebookNavigatorView) {
+        callback: () => {
+            // Wrap tag removal with error handling
+            runAsyncAction(async () => {
+                const view = await ensureNavigatorOpen(plugin);
+                if (view) {
                     await view.removeAllTagsFromSelectedFiles();
-                    break;
                 }
-            }
+            });
         }
     });
 
@@ -439,17 +464,14 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
     plugin.addCommand({
         id: 'navigate-to-folder',
         name: strings.commands.navigateToFolder,
-        callback: async () => {
-            await plugin.activateView();
-
-            const navigatorLeaves = plugin.app.workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW);
-            for (const leaf of navigatorLeaves) {
-                const view = leaf.view;
-                if (view instanceof NotebookNavigatorView) {
+        callback: () => {
+            // Wrap folder navigation with error handling
+            runAsyncAction(async () => {
+                const view = await ensureNavigatorOpen(plugin);
+                if (view) {
                     await view.navigateToFolderWithModal();
-                    break;
                 }
-            }
+            });
         }
     });
 
@@ -457,17 +479,14 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
     plugin.addCommand({
         id: 'navigate-to-tag',
         name: strings.commands.navigateToTag,
-        callback: async () => {
-            await plugin.activateView();
-
-            const navigatorLeaves = plugin.app.workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW);
-            for (const leaf of navigatorLeaves) {
-                const view = leaf.view;
-                if (view instanceof NotebookNavigatorView) {
+        callback: () => {
+            // Wrap tag navigation with error handling
+            runAsyncAction(async () => {
+                const view = await ensureNavigatorOpen(plugin);
+                if (view) {
                     await view.navigateToTagWithModal();
-                    break;
                 }
-            }
+            });
         }
     });
 
@@ -475,17 +494,14 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
     plugin.addCommand({
         id: 'add-shortcut',
         name: strings.commands.addShortcut,
-        callback: async () => {
-            await ensureNavigatorOpen(plugin);
-
-            const navigatorLeaves = plugin.app.workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW);
-            for (const leaf of navigatorLeaves) {
-                const view = leaf.view;
-                if (view instanceof NotebookNavigatorView) {
+        callback: () => {
+            // Wrap shortcut creation with error handling
+            runAsyncAction(async () => {
+                const view = await ensureNavigatorOpen(plugin);
+                if (view) {
                     await view.addShortcutForCurrentSelection();
-                    break;
                 }
-            }
+            });
         }
     });
 
@@ -493,17 +509,14 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
     plugin.addCommand({
         id: 'search',
         name: strings.commands.search,
-        callback: async () => {
-            await ensureNavigatorOpen(plugin);
-
-            const navigatorLeaves = plugin.app.workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW);
-            for (const leaf of navigatorLeaves) {
-                const view = leaf.view;
-                if (view instanceof NotebookNavigatorView) {
+        callback: () => {
+            // Wrap search toggle with error handling
+            runAsyncAction(async () => {
+                const view = await ensureNavigatorOpen(plugin);
+                if (view) {
                     view.toggleSearch();
-                    break;
                 }
-            }
+            });
         }
     });
 }

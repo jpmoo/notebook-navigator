@@ -65,7 +65,9 @@ export const STRINGS_DE = {
         resetRootToFrequency: 'Auf Häufigkeitsreihenfolge zurücksetzen',
         dragHandleLabel: 'Ziehen zum Neuanordnen',
         pinShortcuts: 'Lesezeichen anheften',
-        unpinShortcuts: 'Lesezeichen lösen'
+        unpinShortcuts: 'Lesezeichen lösen',
+        profileMenuLabel: 'Profil',
+        profileMenuAria: 'Tresorprofil ändern'
     },
 
     shortcuts: {
@@ -174,6 +176,8 @@ export const STRINGS_DE = {
             newDrawing: 'Neue Zeichnung',
             duplicateFolder: 'Ordner duplizieren',
             searchInFolder: 'In Ordner suchen',
+            copyPath: 'Pfad kopieren',
+            copyRelativePath: 'Relativen Pfad kopieren',
             createFolderNote: 'Ordnernotiz erstellen',
             deleteFolderNote: 'Ordnernotiz löschen',
             changeIcon: 'Symbol ändern',
@@ -265,6 +269,10 @@ export const STRINGS_DE = {
             affectedFiles: 'Betroffene Dateien:',
             andMore: '...und {count} weitere',
             confirmRename: 'Tag umbenennen',
+            renameUnchanged: '{tag} unverändert',
+            renameNoChanges: '{oldTag} → {newTag} ({countLabel})',
+            invalidTagName: 'Geben Sie einen gültigen Tag-Namen ein.',
+            descendantRenameError: 'Ein Tag kann nicht in sich selbst oder einen Nachkommen verschoben werden.',
             confirmDelete: 'Tag löschen',
             file: 'Datei',
             files: 'Dateien'
@@ -321,6 +329,7 @@ export const STRINGS_DE = {
             addPlaceholder: 'Nach hinzuzufügendem Tag suchen...',
             removePlaceholder: 'Tag zum Entfernen auswählen...',
             createNewTag: 'Neuen Tag erstellen: #{tag}',
+            allowCreationToggle: 'Erstellung neuer Tags erlauben',
             instructions: {
                 navigate: 'zum Navigieren',
                 select: 'zum Auswählen',
@@ -682,6 +691,12 @@ export const STRINGS_DE = {
                     files: 'Listenbereich'
                 }
             },
+            toolbarButtons: {
+                name: 'Symbolleisten-Schaltflächen',
+                desc: 'Wählen Sie aus, welche Schaltflächen in der Symbolleiste angezeigt werden. Ausgeblendete Schaltflächen bleiben über Befehle und Menüs zugänglich.',
+                navigationLabel: 'Navigationssymbolleiste',
+                listLabel: 'Listensymbolleiste'
+            },
             autoRevealActiveNote: {
                 name: 'Aktive Notiz automatisch anzeigen',
                 desc: 'Notizen automatisch anzeigen, wenn sie über Schnellauswahl, Links oder Suche geöffnet werden.'
@@ -703,8 +718,8 @@ export const STRINGS_DE = {
                 desc: 'Ordner und Tags automatisch erweitern, wenn sie ausgewählt werden.'
             },
             navigationBanner: {
-                name: 'Navigationsbanner',
-                desc: 'Bild oberhalb des Navigationsbereichs anzeigen.',
+                name: 'Navigationsbanner (Tresorprofil)',
+                desc: 'Bild oberhalb des Navigationsbereichs anzeigen. Ändert sich mit dem ausgewählten Tresorprofil.',
                 current: 'Aktuelles Banner: {path}',
                 chooseButton: 'Bild auswählen',
                 clearButton: 'Zurücksetzen'
@@ -747,6 +762,23 @@ export const STRINGS_DE = {
                 name: 'Notizen verstecken',
                 desc: 'Kommagetrennte Liste von Frontmatter-Eigenschaften. Notizen mit diesen Eigenschaften werden ausgeblendet (z.B. Entwurf, privat, archiviert).',
                 placeholder: 'entwurf, privat'
+            },
+            vaultProfiles: {
+                name: 'Tresorprofil',
+                desc: 'Profile speichern Dateityp-Sichtbarkeit, versteckte Ordner, versteckte Tags und versteckte Notizen. Profile können über die Kopfzeile des Navigationsbereichs gewechselt werden.',
+                defaultName: 'Standard',
+                addButton: 'Profil hinzufügen',
+                editButton: 'Profil bearbeiten',
+                deleteButton: 'Profil löschen',
+                addModalTitle: 'Profil hinzufügen',
+                editModalTitle: 'Profil bearbeiten',
+                addModalPlaceholder: 'Profilname',
+                deleteModalTitle: '{name} löschen',
+                deleteModalMessage: '{name} entfernen? Versteckte Ordner-, Tag- und Notizfilter in diesem Profil werden gelöscht.',
+                errors: {
+                    emptyName: 'Profilnamen eingeben',
+                    duplicateName: 'Profilname bereits vorhanden'
+                }
             },
             excludedFolders: {
                 name: 'Ordner verstecken',
@@ -953,8 +985,12 @@ export const STRINGS_DE = {
                 name: 'Tags-Eigenschaft nach Entfernen des letzten Tags beibehalten',
                 desc: 'Behält die Tags-Frontmatter-Eigenschaft, wenn alle Tags entfernt werden. Wenn deaktiviert, wird die Tags-Eigenschaft aus dem Frontmatter gelöscht.'
             },
+            allowTagCreationInAddTagModal: {
+                name: 'Tag-Erstellung im Tag-Hinzufügen-Dialog erlauben',
+                desc: 'Option zum Erstellen von Tags beim Hinzufügen anzeigen. Umschalter erscheint im Dialog.'
+            },
             hiddenTags: {
-                name: 'Versteckte Tags',
+                name: 'Tags verstecken',
                 desc: 'Kommagetrennte Liste von Tag-Präfixen oder Namensplatzhaltern zum Ausblenden. Verwende `tag*` oder `*tag`, um Tagnamen abzugleichen. Ein versteckter Tag blendet auch alle Unter-Tags aus (z.B. "archiv" blendet "archiv/2024/docs" aus).',
                 placeholder: 'intern, temp/entwürfe, archiv/2024'
             },
@@ -1093,7 +1129,7 @@ export const STRINGS_DE = {
                 name: 'Zeitstempelformat',
                 desc: 'Format zum Parsen von Zeitstempeln im Frontmatter. Leer lassen, um ISO 8601-Format zu verwenden',
                 helpTooltip: 'Siehe date-fns Formatdokumentation',
-                help: "Häufige Formate:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
+                help: "Häufige Formate:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {
                 name: 'Entwicklung unterstützen',

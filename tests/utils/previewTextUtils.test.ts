@@ -67,9 +67,33 @@ describe('PreviewTextUtils.extractPreviewText', () => {
         expect(preview).toBe('Sentence continues');
     });
 
+    it('removes spaced underscore horizontal rules without leaving stray characters', () => {
+        const content = ['Alpha line', '_ _ _', 'Omega line'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Alpha line Omega line');
+    });
+
+    it('removes spaced star horizontal rules without leaving stray characters', () => {
+        const content = ['Top section', '* * * * *', 'Bottom section'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Top section Bottom section');
+    });
+
     it('removes footnote references and definitions', () => {
         const content = 'Reference[^1] continues.\n\n[^1]: Footnote details';
         const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
         expect(preview).toBe('Reference continues.');
+    });
+
+    it('removes tilde fenced code blocks when skipping code blocks', () => {
+        const content = ['Summary line', '~~~', 'const value = 42;', '~~~', 'Final note'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Summary line Final note');
+    });
+
+    it('keeps tilde fenced code block content when including code blocks', () => {
+        const content = ['Intro', '~~~', 'console.log(42);', '~~~', 'Outro'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, includeCodeSettings);
+        expect(preview).toBe('Intro console.log(42); Outro');
     });
 });

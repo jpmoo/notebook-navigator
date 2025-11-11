@@ -65,7 +65,9 @@ export const STRINGS_ZH_CN = {
         resetRootToFrequency: '重置为频率排序',
         dragHandleLabel: '拖拽重新排列',
         pinShortcuts: '固定快捷方式',
-        unpinShortcuts: '取消固定快捷方式'
+        unpinShortcuts: '取消固定快捷方式',
+        profileMenuLabel: '配置文件',
+        profileMenuAria: '更改仓库配置文件'
     },
 
     shortcuts: {
@@ -172,6 +174,8 @@ export const STRINGS_ZH_CN = {
             newDrawing: '新建绘图',
             duplicateFolder: '复制文件夹',
             searchInFolder: '在文件夹中搜索',
+            copyPath: '复制路径',
+            copyRelativePath: '复制相对路径',
             createFolderNote: '创建文件夹笔记',
             deleteFolderNote: '删除文件夹笔记',
             changeIcon: '更改图标',
@@ -263,6 +267,10 @@ export const STRINGS_ZH_CN = {
             affectedFiles: '{count} 个文件受影响',
             andMore: '以及 {count} 个更多...',
             confirmRename: '重命名标签',
+            renameUnchanged: '{tag} 未更改',
+            renameNoChanges: '{oldTag} → {newTag} ({countLabel})',
+            invalidTagName: '请输入有效的标签名称。',
+            descendantRenameError: '无法将标签移动到自身或其子标签中。',
             confirmDelete: '删除标签',
             file: '个文件',
             files: '个文件'
@@ -319,6 +327,7 @@ export const STRINGS_ZH_CN = {
             addPlaceholder: '搜索要添加的标签...',
             removePlaceholder: '选择要移除的标签...',
             createNewTag: '创建新标签: #{tag}',
+            allowCreationToggle: '允许创建新标签',
             instructions: {
                 navigate: '导航',
                 select: '选择',
@@ -678,6 +687,12 @@ export const STRINGS_ZH_CN = {
                     files: '列表窗格'
                 }
             },
+            toolbarButtons: {
+                name: '工具栏按钮',
+                desc: '选择在工具栏中显示哪些按钮。隐藏的按钮仍可通过命令和菜单访问。',
+                navigationLabel: '导航工具栏',
+                listLabel: '列表工具栏'
+            },
             autoRevealActiveNote: {
                 name: '自动定位活动笔记',
                 desc: '从快速切换器、链接或搜索打开笔记时自动显示。'
@@ -699,8 +714,8 @@ export const STRINGS_ZH_CN = {
                 desc: '选择文件夹和标签时自动展开它们。'
             },
             navigationBanner: {
-                name: '导航横幅',
-                desc: '在导航窗格顶部显示一张图片。',
+                name: '导航横幅（仓库配置文件）',
+                desc: '在导航窗格顶部显示一张图片。随所选仓库配置文件而变化。',
                 current: '当前横幅：{path}',
                 chooseButton: '选择图片',
                 clearButton: '清除'
@@ -743,6 +758,23 @@ export const STRINGS_ZH_CN = {
                 name: '隐藏笔记',
                 desc: '逗号分隔的前置元数据属性列表。包含任何这些属性的笔记将被隐藏（例如：draft, private, archived）。',
                 placeholder: 'draft, private'
+            },
+            vaultProfiles: {
+                name: '仓库配置文件',
+                desc: '配置文件存储文件类型可见性、隐藏文件夹、隐藏标签和隐藏笔记。从导航窗格标题切换配置文件。',
+                defaultName: '默认',
+                addButton: '添加配置文件',
+                editButton: '编辑配置文件',
+                deleteButton: '删除配置文件',
+                addModalTitle: '添加配置文件',
+                editModalTitle: '编辑配置文件',
+                addModalPlaceholder: '配置文件名称',
+                deleteModalTitle: '删除 {name}',
+                deleteModalMessage: '删除 {name}？保存在此配置文件中的隐藏文件夹、标签和笔记过滤器将被删除。',
+                errors: {
+                    emptyName: '请输入配置文件名称',
+                    duplicateName: '配置文件名称已存在'
+                }
             },
             excludedFolders: {
                 name: '隐藏文件夹',
@@ -950,6 +982,10 @@ export const STRINGS_ZH_CN = {
                 name: '删除最后一个标签后保留 tags 属性',
                 desc: '当所有标签被删除时保留 frontmatter 中的 tags 属性。禁用时,tags 属性将从 frontmatter 中删除。'
             },
+            allowTagCreationInAddTagModal: {
+                name: '允许在添加标签对话框中创建标签',
+                desc: '添加标签时显示创建选项。切换按钮显示在对话框中。'
+            },
             hiddenTags: {
                 name: '隐藏标签',
                 desc: '要隐藏的标签前缀或名称通配符的逗号分隔列表。使用 `tag*` 或 `*tag` 匹配标签名称。隐藏标签也会隐藏所有子标签（例如："归档"隐藏"归档/2024/docs"）。',
@@ -1090,7 +1126,7 @@ export const STRINGS_ZH_CN = {
                 name: '时间戳格式',
                 desc: '用于解析前言中时间戳的格式。留空使用 ISO 8601 格式',
                 helpTooltip: '查看 date-fns 格式文档',
-                help: "常用格式:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
+                help: "常用格式:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {
                 name: '支持开发',

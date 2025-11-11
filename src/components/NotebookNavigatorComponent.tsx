@@ -18,7 +18,7 @@
 
 // src/components/NotebookNavigatorComponent.tsx
 import React, { useEffect, useImperativeHandle, forwardRef, useRef, useState, useCallback, useLayoutEffect } from 'react';
-import { TFile, TFolder, Notice } from 'obsidian';
+import { TFile, TFolder } from 'obsidian';
 import { useSelectionState, useSelectionDispatch } from '../context/SelectionContext';
 import { useServices } from '../context/ServicesContext';
 import { useSettingsState, useSettingsUpdate } from '../context/SettingsContext';
@@ -35,9 +35,10 @@ import { useMobileSwipeNavigation } from '../hooks/useSwipeGesture';
 import { useTagNavigation } from '../hooks/useTagNavigation';
 import { useFileCache } from '../context/StorageContext';
 import { strings } from '../i18n';
+import { runAsyncAction } from '../utils/async';
 import { useUpdateNotice } from '../hooks/useUpdateNotice';
 import { FolderSuggestModal } from '../modals/FolderSuggestModal';
-import { TagSuggestModal } from '../modals/TagSuggestModal';
+import { TagSuggestModal, createTagCreationOptions } from '../modals/TagSuggestModal';
 import { RemoveTagModal } from '../modals/RemoveTagModal';
 import { ConfirmModal } from '../modals/ConfirmModal';
 import { FILE_PANE_DIMENSIONS, ItemType, NAVPANE_MEASUREMENTS, type BackgroundMode, type DualPaneOrientation } from '../types';
@@ -56,6 +57,7 @@ import type { NavigationPaneHandle } from './NavigationPane';
 import type { SearchShortcut } from '../types/shortcuts';
 import { UpdateNoticeBanner } from './UpdateNoticeBanner';
 import { UpdateNoticeIndicator } from './UpdateNoticeIndicator';
+import { showNotice } from '../utils/noticeUtils';
 import { EMPTY_SEARCH_TAG_FILTER_STATE, type SearchTagFilterState } from '../types/search';
 
 // Checks if two string arrays have identical content in the same order
@@ -487,44 +489,51 @@ export const NotebookNavigatorComponent = React.memo(
                 selectPreviousFile: async () => navigateToAdjacentFile('previous'),
                 refresh: () => {
                     // A no-op update will increment the version and force a re-render
-                    updateSettings(() => {});
+                    runAsyncAction(() => updateSettings(() => {}));
                 },
+                // Delete focused file based on current pane (files or navigation)
                 deleteActiveFile: () => {
-                    // Determine which delete operation to perform based on focus
-                    if (uiState.focusedPane === 'files' && (selectionState.selectedFile || selectionState.selectedFiles.size > 0)) {
-                        deleteSelectedFiles({
-                            app,
-                            fileSystemOps,
-                            settings,
-                            visibility: {
-                                includeDescendantNotes: uxRef.current.includeDescendantNotes,
-                                showHiddenItems: uxRef.current.showHiddenItems
-                            },
-                            selectionState,
-                            selectionDispatch,
-                            tagTreeService
-                        });
-                    } else if (
-                        uiState.focusedPane === 'navigation' &&
-                        selectionState.selectionType === ItemType.FOLDER &&
-                        selectionState.selectedFolder
-                    ) {
-                        deleteSelectedFolder({
-                            app,
-                            fileSystemOps,
-                            settings,
-                            visibility: {
-                                includeDescendantNotes: uxRef.current.includeDescendantNotes,
-                                showHiddenItems: uxRef.current.showHiddenItems
-                            },
-                            selectionState,
-                            selectionDispatch
-                        });
-                    }
+                    runAsyncAction(async () => {
+                        // Delete files from list pane
+                        if (uiState.focusedPane === 'files' && (selectionState.selectedFile || selectionState.selectedFiles.size > 0)) {
+                            await deleteSelectedFiles({
+                                app,
+                                fileSystemOps,
+                                settings,
+                                visibility: {
+                                    includeDescendantNotes: uxRef.current.includeDescendantNotes,
+                                    showHiddenItems: uxRef.current.showHiddenItems
+                                },
+                                selectionState,
+                                selectionDispatch,
+                                tagTreeService
+                            });
+                            return;
+                        }
+
+                        // Delete folder from navigation pane
+                        if (
+                            uiState.focusedPane === 'navigation' &&
+                            selectionState.selectionType === ItemType.FOLDER &&
+                            selectionState.selectedFolder
+                        ) {
+                            await deleteSelectedFolder({
+                                app,
+                                fileSystemOps,
+                                settings,
+                                visibility: {
+                                    includeDescendantNotes: uxRef.current.includeDescendantNotes,
+                                    showHiddenItems: uxRef.current.showHiddenItems
+                                },
+                                selectionState,
+                                selectionDispatch
+                            });
+                        }
+                    });
                 },
                 createNoteInSelectedFolder: async () => {
                     if (!selectionState.selectedFolder) {
-                        new Notice(strings.fileSystem.errors.noFolderSelected);
+                        showNotice(strings.fileSystem.errors.noFolderSelected, { variant: 'warning' });
                         return;
                     }
 
@@ -536,7 +545,7 @@ export const NotebookNavigatorComponent = React.memo(
                     const selectedFiles = getSelectedFiles();
 
                     if (selectedFiles.length === 0) {
-                        new Notice(strings.fileSystem.errors.noFileSelected);
+                        showNotice(strings.fileSystem.errors.noFileSelected, { variant: 'warning' });
                         return;
                     }
 
@@ -587,7 +596,7 @@ export const NotebookNavigatorComponent = React.memo(
                     }
 
                     // Show error if nothing is selected
-                    new Notice(strings.common.noSelection);
+                    showNotice(strings.common.noSelection, { variant: 'warning' });
                 },
                 navigateToFolder,
                 navigateToFolderWithModal: () => {
@@ -621,20 +630,20 @@ export const NotebookNavigatorComponent = React.memo(
                 },
                 addTagToSelectedFiles: async () => {
                     if (!tagOperations) {
-                        new Notice(strings.fileSystem.notifications.tagOperationsNotAvailable);
+                        showNotice(strings.fileSystem.notifications.tagOperationsNotAvailable, { variant: 'warning' });
                         return;
                     }
 
                     // Get selected files
                     const selectedFiles = getSelectedFiles();
                     if (selectedFiles.length === 0) {
-                        new Notice(strings.fileSystem.notifications.noFilesSelected);
+                        showNotice(strings.fileSystem.notifications.noFilesSelected, { variant: 'warning' });
                         return;
                     }
 
                     // Verify all selected files are markdown (tags only work with markdown)
                     if (!selectedFiles.every(item => item.extension === 'md')) {
-                        new Notice(strings.fileSystem.notifications.tagsRequireMarkdown);
+                        showNotice(strings.fileSystem.notifications.tagsRequireMarkdown, { variant: 'warning' });
                         return;
                     }
 
@@ -642,43 +651,46 @@ export const NotebookNavigatorComponent = React.memo(
                     const modal = new TagSuggestModal(
                         app,
                         plugin,
-                        async (tag: string) => {
-                            const result = await tagOperations.addTagToFiles(tag, selectedFiles);
-                            const message =
-                                result.added === 1
-                                    ? strings.fileSystem.notifications.tagAddedToNote
-                                    : strings.fileSystem.notifications.tagAddedToNotes.replace('{count}', result.added.toString());
-                            new Notice(message);
+                        (tag: string) => {
+                            runAsyncAction(async () => {
+                                const result = await tagOperations.addTagToFiles(tag, selectedFiles);
+                                const message =
+                                    result.added === 1
+                                        ? strings.fileSystem.notifications.tagAddedToNote
+                                        : strings.fileSystem.notifications.tagAddedToNotes.replace('{count}', result.added.toString());
+                                showNotice(message, { variant: 'success' });
+                            });
                         },
                         strings.modals.tagSuggest.addPlaceholder,
                         strings.modals.tagSuggest.instructions.add,
-                        false // Don't include untagged
+                        false, // Don't include untagged
+                        createTagCreationOptions(plugin)
                     );
                     modal.open();
                 },
                 removeTagFromSelectedFiles: async () => {
                     if (!tagOperations) {
-                        new Notice(strings.fileSystem.notifications.tagOperationsNotAvailable);
+                        showNotice(strings.fileSystem.notifications.tagOperationsNotAvailable, { variant: 'warning' });
                         return;
                     }
 
                     // Get selected files
                     const selectedFiles = getSelectedFiles();
                     if (selectedFiles.length === 0) {
-                        new Notice(strings.fileSystem.notifications.noFilesSelected);
+                        showNotice(strings.fileSystem.notifications.noFilesSelected, { variant: 'warning' });
                         return;
                     }
 
                     // Verify all selected files are markdown (tags only work with markdown)
                     if (!selectedFiles.every(item => item.extension === 'md')) {
-                        new Notice(strings.fileSystem.notifications.tagsRequireMarkdown);
+                        showNotice(strings.fileSystem.notifications.tagsRequireMarkdown, { variant: 'warning' });
                         return;
                     }
 
                     // Get tags from selected files
                     const existingTags = tagOperations.getTagsFromFiles(selectedFiles);
                     if (existingTags.length === 0) {
-                        new Notice(strings.fileSystem.notifications.noTagsToRemove);
+                        showNotice(strings.fileSystem.notifications.noTagsToRemove, { variant: 'warning' });
                         return;
                     }
 
@@ -689,44 +701,46 @@ export const NotebookNavigatorComponent = React.memo(
                             result === 1
                                 ? strings.fileSystem.notifications.tagRemovedFromNote
                                 : strings.fileSystem.notifications.tagRemovedFromNotes.replace('{count}', result.toString());
-                        new Notice(message);
+                        showNotice(message, { variant: 'success' });
                         return;
                     }
 
                     // Show modal to select which tag to remove
-                    const modal = new RemoveTagModal(app, existingTags, async (tag: string) => {
-                        const result = await tagOperations.removeTagFromFiles(tag, selectedFiles);
-                        const message =
-                            result === 1
-                                ? strings.fileSystem.notifications.tagRemovedFromNote
-                                : strings.fileSystem.notifications.tagRemovedFromNotes.replace('{count}', result.toString());
-                        new Notice(message);
+                    const modal = new RemoveTagModal(app, existingTags, (tag: string) => {
+                        runAsyncAction(async () => {
+                            const result = await tagOperations.removeTagFromFiles(tag, selectedFiles);
+                            const message =
+                                result === 1
+                                    ? strings.fileSystem.notifications.tagRemovedFromNote
+                                    : strings.fileSystem.notifications.tagRemovedFromNotes.replace('{count}', result.toString());
+                            showNotice(message, { variant: 'success' });
+                        });
                     });
                     modal.open();
                 },
                 removeAllTagsFromSelectedFiles: async () => {
                     if (!tagOperations) {
-                        new Notice(strings.fileSystem.notifications.tagOperationsNotAvailable);
+                        showNotice(strings.fileSystem.notifications.tagOperationsNotAvailable, { variant: 'warning' });
                         return;
                     }
 
                     // Get selected files
                     const selectedFiles = getSelectedFiles();
                     if (selectedFiles.length === 0) {
-                        new Notice(strings.fileSystem.notifications.noFilesSelected);
+                        showNotice(strings.fileSystem.notifications.noFilesSelected, { variant: 'warning' });
                         return;
                     }
 
                     // Verify all selected files are markdown (tags only work with markdown)
                     if (!selectedFiles.every(item => item.extension === 'md')) {
-                        new Notice(strings.fileSystem.notifications.tagsRequireMarkdown);
+                        showNotice(strings.fileSystem.notifications.tagsRequireMarkdown, { variant: 'warning' });
                         return;
                     }
 
                     // Check if files have tags
                     const existingTags = tagOperations.getTagsFromFiles(selectedFiles);
                     if (existingTags.length === 0) {
-                        new Notice(strings.fileSystem.notifications.noTagsToRemove);
+                        showNotice(strings.fileSystem.notifications.noTagsToRemove, { variant: 'warning' });
                         return;
                     }
 
@@ -737,13 +751,15 @@ export const NotebookNavigatorComponent = React.memo(
                         selectedFiles.length === 1
                             ? strings.modals.fileSystem.removeAllTagsFromNote
                             : strings.modals.fileSystem.removeAllTagsFromNotes.replace('{count}', selectedFiles.length.toString()),
-                        async () => {
-                            const result = await tagOperations.clearAllTagsFromFiles(selectedFiles);
-                            const message =
-                                result === 1
-                                    ? strings.fileSystem.notifications.tagsClearedFromNote
-                                    : strings.fileSystem.notifications.tagsClearedFromNotes.replace('{count}', result.toString());
-                            new Notice(message);
+                        () => {
+                            runAsyncAction(async () => {
+                                const result = await tagOperations.clearAllTagsFromFiles(selectedFiles);
+                                const message =
+                                    result === 1
+                                        ? strings.fileSystem.notifications.tagsClearedFromNote
+                                        : strings.fileSystem.notifications.tagsClearedFromNotes.replace('{count}', result.toString());
+                                showNotice(message, { variant: 'success' });
+                            });
                         },
                         strings.common.remove
                     );

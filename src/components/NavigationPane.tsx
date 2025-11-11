@@ -63,6 +63,7 @@ import { useServices, useCommandQueue, useFileSystemOps, useMetadataService, use
 import { useRecentData } from '../context/RecentDataContext';
 import { useSettingsState, useSettingsUpdate } from '../context/SettingsContext';
 import { useUXPreferences } from '../context/UXPreferencesContext';
+import { showNotice } from '../utils/noticeUtils';
 import { useFileCache } from '../context/StorageContext';
 import { useUIState, useUIDispatch } from '../context/UIStateContext';
 import { useNavigationPaneKeyboard } from '../hooks/useNavigationPaneKeyboard';
@@ -86,10 +87,21 @@ import { VirtualFolderComponent } from './VirtualFolderItem';
 import { getNavigationIndex, normalizeNavigationPath } from '../utils/navigationIndex';
 import { STORAGE_KEYS, SHORTCUTS_VIRTUAL_FOLDER_ID, RECENT_NOTES_VIRTUAL_FOLDER_ID, NavigationSectionId } from '../types';
 import { localStorage } from '../utils/localStorage';
+import { runAsyncAction } from '../utils/async';
+import { extractFilePathsFromDataTransfer, parseTagDragPayload } from '../utils/dragData';
+import { openFileInContext } from '../utils/openFileInContext';
 import { useShortcuts } from '../context/ShortcutsContext';
 import { ShortcutItem } from './ShortcutItem';
 import { ShortcutCollectionSelector } from './ShortcutCollectionSelector';
-import { ShortcutType, SearchShortcut, SHORTCUT_DRAG_MIME, isFolderShortcut, isNoteShortcut, isTagShortcut } from '../types/shortcuts';
+import {
+    ShortcutEntry,
+    ShortcutType,
+    SearchShortcut,
+    SHORTCUT_DRAG_MIME,
+    isFolderShortcut,
+    isNoteShortcut,
+    isTagShortcut
+} from '../types/shortcuts';
 import { strings } from '../i18n';
 import { createDragGhostManager, type DragGhostOptions } from '../utils/dragGhost';
 import { showReorderMenu, createMenuReorderHandleConfig } from '../utils/reorderMenu';
@@ -108,6 +120,7 @@ import type { NoteCountInfo } from '../types/noteCounts';
 import type { SearchTagFilterState } from '../types/search';
 import type { InclusionOperator } from '../utils/filterSearch';
 import { calculateFolderNoteCounts } from '../utils/noteCountUtils';
+import { getActiveHiddenFolders } from '../utils/vaultProfiles';
 import { getEffectiveFrontmatterExclusions } from '../utils/exclusionUtils';
 import { normalizeNavigationSectionOrderInput } from '../utils/navigationSections';
 import { getPathBaseName } from '../utils/pathUtils';
@@ -116,6 +129,7 @@ import { isVirtualTagCollectionId } from '../utils/virtualTagCollections';
 import { compositeWithBase } from '../utils/colorUtils';
 import { useSurfaceColorVariables } from '../hooks/useSurfaceColorVariables';
 import { NAVIGATION_PANE_SURFACE_COLOR_MAPPINGS } from '../constants/surfaceColorMappings';
+import { TAG_DRAG_MIME } from '../types/obsidian-extended';
 
 export interface NavigationPaneHandle {
     getIndexOfPath: (itemType: ItemType, path: string) => number;
@@ -173,13 +187,33 @@ export const NavigationPane = React.memo(
         const uxPreferences = useUXPreferences();
         const includeDescendantNotes = uxPreferences.includeDescendantNotes;
         const showHiddenItems = uxPreferences.showHiddenItems;
+        // Retrieves the list of folders to hide based on the active vault profile
+        const hiddenFolders = useMemo(() => getActiveHiddenFolders(settings), [settings]);
         // Resolves frontmatter exclusions, returns empty array when hidden items are shown
         const effectiveFrontmatterExclusions = getEffectiveFrontmatterExclusions(settings, showHiddenItems);
         const updateSettings = useSettingsUpdate();
         const uiState = useUIState();
         const uiDispatch = useUIDispatch();
         const shortcuts = useShortcuts();
-        const { shortcutMap, removeShortcut, hydratedShortcuts, reorderShortcuts, addFolderShortcut, addNoteShortcut, collections, activeCollectionId, setActiveCollection, addCollection, updateCollection, deleteCollection, reorderCollections } = shortcuts;
+        const {
+            shortcutMap,
+            removeShortcut,
+            hydratedShortcuts,
+            reorderShortcuts,
+            addFolderShortcut,
+            addNoteShortcut,
+            addTagShortcut,
+            addShortcutsBatch,
+            hasFolderShortcut,
+            hasNoteShortcut,
+            collections,
+            activeCollectionId,
+            setActiveCollection,
+            addCollection,
+            updateCollection,
+            deleteCollection,
+            reorderCollections
+        } = shortcuts;
         const { fileData, getFileDisplayName } = useFileCache();
         const dragGhostManager = useMemo(() => createDragGhostManager(app), [app]);
         // Detect Android platform for mobile-specific UI behavior
@@ -356,13 +390,6 @@ export const NavigationPane = React.memo(
             };
         }, [app.metadataCache, hydratedShortcuts, settings.useFrontmatterMetadata, forceMetadataRefresh]);
 
-        // Reset banner height when banner is disabled in settings
-        useEffect(() => {
-            if (!settings.navigationBanner) {
-                setBannerHeight(0);
-            }
-        }, [settings.navigationBanner]);
-
         // Determine if drag and drop should be enabled for shortcuts
         const shortcutCount = hydratedShortcuts.length;
         const isShortcutDnDEnabled = shortcutsExpanded && shortcutCount > 0 && settings.showShortcuts;
@@ -481,7 +508,8 @@ export const NavigationPane = React.memo(
                 }
 
                 const hasObsidianFiles = types.includes('obsidian/file') || types.includes('obsidian/files');
-                if (!hasObsidianFiles) {
+                const hasTagPayload = types.includes(TAG_DRAG_MIME);
+                if (!hasObsidianFiles && !hasTagPayload) {
                     setExternalShortcutDropIndex(null);
                     return false;
                 }
@@ -513,30 +541,28 @@ export const NavigationPane = React.memo(
                     return false;
                 }
 
-                const rawPaths: string[] = [];
-                const multiple = dataTransfer.getData('obsidian/files');
-                if (multiple) {
-                    try {
-                        const parsed = JSON.parse(multiple);
-                        if (Array.isArray(parsed)) {
-                            parsed.forEach(path => {
-                                if (typeof path === 'string' && path.length > 0) {
-                                    rawPaths.push(path);
-                                }
-                            });
-                        }
-                    } catch (error) {
-                        console.error('Failed to parse obsidian/files payload', error);
+                const tagPayloadRaw = dataTransfer.getData(TAG_DRAG_MIME);
+                if (tagPayloadRaw) {
+                    const droppedTagPath = parseTagDragPayload(tagPayloadRaw);
+                    if (droppedTagPath) {
+                        event.preventDefault();
+                        event.stopPropagation();
+
+                        const baseInsertIndex = computeShortcutInsertIndex(event, key);
+                        runAsyncAction(async () => {
+                            await addTagShortcut(droppedTagPath, { index: Math.max(0, baseInsertIndex) });
+                        });
+
                         setExternalShortcutDropIndex(null);
-                        return false;
+                        return true;
                     }
                 }
 
-                const single = dataTransfer.getData('obsidian/file');
-                if (single) {
-                    rawPaths.push(single);
+                const rawPaths = extractFilePathsFromDataTransfer(dataTransfer);
+                if (!rawPaths) {
+                    setExternalShortcutDropIndex(null);
+                    return false;
                 }
-
                 if (rawPaths.length === 0) {
                     setExternalShortcutDropIndex(null);
                     return false;
@@ -556,17 +582,38 @@ export const NavigationPane = React.memo(
                     return false;
                 }
 
-                const additions: { type: 'folder' | 'note'; path: string }[] = [];
+                // Track valid additions and count duplicates
+                const additions: ShortcutEntry[] = [];
+                let duplicateFolderCount = 0;
+                let duplicateNoteCount = 0;
                 orderedPaths.forEach(path => {
                     const target = app.vault.getAbstractFileByPath(path);
                     if (target instanceof TFolder) {
-                        if (target.path !== '/') {
-                            additions.push({ type: 'folder', path: target.path });
+                        // Skip root folder
+                        if (target.path === '/') {
+                            return;
                         }
+                        if (hasFolderShortcut(target.path)) {
+                            duplicateFolderCount += 1;
+                            return;
+                        }
+                        additions.push({ type: ShortcutType.FOLDER, path: target.path });
                     } else if (target instanceof TFile) {
-                        additions.push({ type: 'note', path: target.path });
+                        if (hasNoteShortcut(target.path)) {
+                            duplicateNoteCount += 1;
+                            return;
+                        }
+                        additions.push({ type: ShortcutType.NOTE, path: target.path });
                     }
                 });
+
+                // Notify user of duplicate shortcuts
+                if (duplicateFolderCount > 0) {
+                    showNotice(strings.shortcuts.folderExists, { variant: 'warning' });
+                }
+                if (duplicateNoteCount > 0) {
+                    showNotice(strings.shortcuts.noteExists, { variant: 'warning' });
+                }
 
                 if (additions.length === 0) {
                     setExternalShortcutDropIndex(null);
@@ -578,27 +625,23 @@ export const NavigationPane = React.memo(
 
                 const baseInsertIndex = computeShortcutInsertIndex(event, key);
 
-                void (async () => {
-                    let offset = 0;
-                    for (const addition of additions) {
-                        const targetIndex = Math.max(0, baseInsertIndex + offset);
-                        let success = false;
-                        if (addition.type === 'folder') {
-                            success = await addFolderShortcut(addition.path, { index: targetIndex });
-                        } else {
-                            success = await addNoteShortcut(addition.path, { index: targetIndex });
-                        }
-
-                        if (success) {
-                            offset += 1;
-                        }
-                    }
-                })();
+                runAsyncAction(async () => {
+                    await addShortcutsBatch(additions, { index: Math.max(0, baseInsertIndex) });
+                });
 
                 setExternalShortcutDropIndex(null);
                 return true;
             },
-            [addFolderShortcut, addNoteShortcut, app.vault, computeShortcutInsertIndex, shortcutsExpanded, settings.showShortcuts]
+            [
+                addShortcutsBatch,
+                addTagShortcut,
+                app.vault,
+                computeShortcutInsertIndex,
+                shortcutsExpanded,
+                settings.showShortcuts,
+                hasFolderShortcut,
+                hasNoteShortcut
+            ]
         );
 
         const handleShortcutDragLeave = useCallback(() => {
@@ -727,10 +770,10 @@ export const NavigationPane = React.memo(
                     moveUpLabel: strings.shortcuts.moveUp,
                     moveDownLabel: strings.shortcuts.moveDown,
                     onMoveUp: () => {
-                        void moveShortcutItem(key, -1);
+                        runAsyncAction(() => moveShortcutItem(key, -1));
                     },
                     onMoveDown: () => {
-                        void moveShortcutItem(key, 1);
+                        runAsyncAction(() => moveShortcutItem(key, 1));
                     }
                 });
             },
@@ -747,7 +790,7 @@ export const NavigationPane = React.memo(
                 event.preventDefault();
                 event.stopPropagation();
 
-                void openShortcutReorderMenu(key, event.currentTarget);
+                openShortcutReorderMenu(key, event.currentTarget);
             },
             [canUseShortcutReorderMenu, openShortcutReorderMenu]
         );
@@ -763,7 +806,7 @@ export const NavigationPane = React.memo(
 
                 const nativeEvent = event.nativeEvent;
                 const mouseEvent = nativeEvent instanceof MouseEvent ? nativeEvent : undefined;
-                void openShortcutReorderMenu(key, event.currentTarget, mouseEvent);
+                openShortcutReorderMenu(key, event.currentTarget, mouseEvent);
             },
             [canUseShortcutReorderMenu, openShortcutReorderMenu]
         );
@@ -842,7 +885,8 @@ export const NavigationPane = React.memo(
             resolvedRootTagKeys,
             rootOrderingTagTree,
             missingRootTagPaths,
-            vaultChangeVersion
+            vaultChangeVersion,
+            navigationBannerPath
         } = useNavigationPaneData({
             settings,
             isVisible,
@@ -852,16 +896,21 @@ export const NavigationPane = React.memo(
             sectionOrder
         });
 
+        // Reset banner height when banner is disabled in settings
+        useEffect(() => {
+            if (!navigationBannerPath) {
+                setBannerHeight(0);
+            }
+        }, [navigationBannerPath]);
+
         // Extract shortcut items to display in pinned area when pinning is enabled
         const pinnedShortcutItems = shouldPinShortcuts ? shortcutItems : [];
-        // Path to the banner file to display above pinned shortcuts
-        const navigationBannerPath = settings.navigationBanner;
         // Banner should be shown in pinned area only when shortcuts are pinned and banner is configured
         const shouldShowPinnedBanner = Boolean(navigationBannerPath && pinnedShortcutItems.length > 0);
         // We only reserve gutter space when a banner exists because Windows scrollbars
         // change container width by ~7px when they appear. That width change used to
         // feed back into the virtualizer via ResizeObserver and trigger infinite reflows.
-        const hasNavigationBannerConfigured = Boolean(settings.navigationBanner);
+        const hasNavigationBannerConfigured = Boolean(navigationBannerPath);
 
         const {
             reorderableRootFolders,
@@ -1018,8 +1067,9 @@ export const NavigationPane = React.memo(
                         // Set folder as selected without auto-selecting first file
                         selectionDispatch({ type: 'SET_SELECTED_FOLDER', folder, autoSelectedFile: null });
 
-                        commandQueue.executeOpenFolderNote(folder.path, async () => {
-                            await app.workspace.getLeaf().openFile(folderNote);
+                        // Open folder note with proper command queue context
+                        runAsyncAction(async () => {
+                            await commandQueue.executeOpenFolderNote(folder.path, () => app.workspace.getLeaf().openFile(folderNote));
                         });
 
                         return;
@@ -1279,9 +1329,10 @@ export const NavigationPane = React.memo(
                     onRevealFile(note);
                 }
 
+                // Open file in background leaf without activating it
                 const leaf = app.workspace.getLeaf(false);
                 if (leaf) {
-                    void leaf.openFile(note, { active: false });
+                    runAsyncAction(() => leaf.openFile(note, { active: false }));
                 }
                 if (isMobile && app.workspace.leftSplit) {
                     app.workspace.leftSplit.collapse();
@@ -1296,7 +1347,7 @@ export const NavigationPane = React.memo(
                 onRevealFile,
                 onRevealShortcutFile,
                 scheduleShortcutRelease,
-                app.workspace,
+                app,
                 isMobile,
                 uiDispatch
             ]
@@ -1313,16 +1364,9 @@ export const NavigationPane = React.memo(
                 event.preventDefault();
                 event.stopPropagation();
 
-                // Use command queue if available to ensure proper focus and context handling
-                if (commandQueue) {
-                    commandQueue.executeOpenInNewContext(note, 'tab', async () => {
-                        await app.workspace.getLeaf('tab').openFile(note);
-                    });
-                } else {
-                    app.workspace.getLeaf('tab').openFile(note);
-                }
+                runAsyncAction(() => openFileInContext({ app, commandQueue, file: note, context: 'tab' }));
             },
-            [app.workspace, commandQueue]
+            [app, commandQueue]
         );
 
         const handleRecentNoteActivate = useCallback(
@@ -1333,9 +1377,10 @@ export const NavigationPane = React.memo(
                     onRevealFile(note);
                 }
 
+                // Open file in background leaf without activating it
                 const leaf = app.workspace.getLeaf(false);
                 if (leaf) {
-                    void leaf.openFile(note, { active: false });
+                    runAsyncAction(() => leaf.openFile(note, { active: false }));
                 }
                 if (isMobile && app.workspace.leftSplit) {
                     app.workspace.leftSplit.collapse();
@@ -1352,7 +1397,7 @@ export const NavigationPane = React.memo(
                 setActiveShortcut(shortcutKey);
                 scrollShortcutIntoView(shortcutKey);
                 if (onExecuteSearchShortcut) {
-                    void onExecuteSearchShortcut(shortcutKey, searchShortcut);
+                    runAsyncAction(() => onExecuteSearchShortcut(shortcutKey, searchShortcut));
                 }
                 scheduleShortcutRelease();
             },
@@ -1426,7 +1471,7 @@ export const NavigationPane = React.memo(
                         item.setTitle(strings.shortcuts.remove)
                             .setIcon('lucide-bookmark-x')
                             .onClick(() => {
-                                void removeShortcut(target.key);
+                                runAsyncAction(() => removeShortcut(target.key));
                             });
                     });
                     menu.showAtMouseEvent(event.nativeEvent);
@@ -1438,7 +1483,7 @@ export const NavigationPane = React.memo(
                         item.setTitle(strings.shortcuts.remove)
                             .setIcon('lucide-bookmark-x')
                             .onClick(() => {
-                                void removeShortcut(target.key);
+                                runAsyncAction(() => removeShortcut(target.key));
                             });
                     });
                     menu.showAtMouseEvent(event.nativeEvent);
@@ -1482,7 +1527,7 @@ export const NavigationPane = React.memo(
                             item.setTitle(strings.shortcuts.remove)
                                 .setIcon('lucide-bookmark-x')
                                 .onClick(() => {
-                                    void removeShortcut(target.key);
+                                    runAsyncAction(() => removeShortcut(target.key));
                                 });
                         });
                     }
@@ -1576,7 +1621,7 @@ export const NavigationPane = React.memo(
                     app,
                     fileVisibility: settings.fileVisibility,
                     excludedFiles: effectiveFrontmatterExclusions,
-                    excludedFolders: settings.excludedFolders,
+                    excludedFolders: hiddenFolders,
                     includeDescendants: includeDescendantNotes,
                     showHiddenFolders: showHiddenItems,
                     hideFolderNoteInList: settings.hideFolderNoteInList,
@@ -1589,7 +1634,7 @@ export const NavigationPane = React.memo(
                 settings.showNoteCount,
                 settings.fileVisibility,
                 effectiveFrontmatterExclusions,
-                settings.excludedFolders,
+                hiddenFolders,
                 includeDescendantNotes,
                 showHiddenItems,
                 settings.hideFolderNoteInList,
@@ -2022,6 +2067,15 @@ export const NavigationPane = React.memo(
                             }
                         }
 
+                        const dropConfig =
+                            virtualFolder.id === 'tags-root'
+                                ? {
+                                      zone: 'tag-root',
+                                      path: '__nn-tag-root__',
+                                      allowExternalDrop: false
+                                  }
+                                : undefined;
+
                         return (
                             <VirtualFolderComponent
                                 virtualFolder={virtualFolder}
@@ -2041,6 +2095,7 @@ export const NavigationPane = React.memo(
                                 onDragOver={isShortcutsGroup && allowEmptyShortcutDrop ? handleShortcutRootDragOver : undefined}
                                 onDrop={isShortcutsGroup && allowEmptyShortcutDrop ? handleShortcutRootDrop : undefined}
                                 onDragLeave={isShortcutsGroup && allowEmptyShortcutDrop ? handleShortcutRootDragLeave : undefined}
+                                dropConfig={dropConfig}
                             />
                         );
                     }
@@ -2092,6 +2147,7 @@ export const NavigationPane = React.memo(
                                 backgroundColor={getSolidBackground(item.backgroundColor)}
                                 icon={item.icon}
                                 searchMatch={searchMatch}
+                                isDraggable={!isMobile && tagNode.path !== UNTAGGED_TAG_ID && tagNode.path !== TAGGED_TAG_ID}
                                 onToggleAllSiblings={() => {
                                     const isCurrentlyExpanded = expansionState.expandedTags.has(tagNode.path);
 
@@ -2188,6 +2244,8 @@ export const NavigationPane = React.memo(
                 allowEmptyShortcutDrop,
                 getMissingNoteLabel,
                 handleShortcutFolderNoteClick,
+                isMobile,
+                useMobileReorderMenu,
                 tagsVirtualFolderHasChildren,
                 searchIncludeTokenSet,
                 searchExcludeTokenSet,
@@ -2195,7 +2253,6 @@ export const NavigationPane = React.memo(
                 highlightExcludeTagged,
                 highlightIncludeUntagged,
                 getSolidBackground,
-                useMobileReorderMenu,
                 vaultChangeVersion
             ]
         );

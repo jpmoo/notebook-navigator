@@ -17,7 +17,7 @@
  */
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { Notice, TAbstractFile, TFile, TFolder } from 'obsidian';
+import { TAbstractFile, TFile, TFolder } from 'obsidian';
 import { useSettingsState, useSettingsUpdate } from './SettingsContext';
 import { useServices } from './ServicesContext';
 import {
@@ -33,7 +33,9 @@ import {
 } from '../types/shortcuts';
 import type { SearchProvider } from '../types/search';
 import { strings } from '../i18n';
+import { showNotice } from '../utils/noticeUtils';
 import { normalizeTagPath } from '../utils/tagUtils';
+import { runAsyncAction } from '../utils/async';
 
 /**
  * Represents a shortcut with resolved file/folder references and validation state.
@@ -66,6 +68,7 @@ export interface ShortcutsContextValue {
     addNoteShortcut: (path: string, options?: { index?: number; collectionId?: string }) => Promise<boolean>;
     addTagShortcut: (tagPath: string, options?: { index?: number; collectionId?: string }) => Promise<boolean>;
     addSearchShortcut: (input: { name: string; query: string; provider: SearchProvider }, options?: { index?: number; collectionId?: string }) => Promise<boolean>;
+    addShortcutsBatch: (entries: ShortcutEntry[], options?: { index?: number; collectionId?: string }) => Promise<number>;
     removeShortcut: (key: string) => Promise<boolean>;
     removeSearchShortcut: (name: string) => Promise<boolean>;
     reorderShortcuts: (orderedKeys: string[]) => Promise<boolean>;
@@ -141,7 +144,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             return;
         }
 
-        void (async () => {
+        runAsyncAction(async () => {
             await updateSettings(current => {
                 const existing = current.shortcuts ?? [];
                 current.shortcuts = existing.map(entry => {
@@ -158,7 +161,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                     return entry;
                 });
             });
-        })();
+        });
     }, [rawShortcuts, updateSettings]);
 
     // Migration: Move existing shortcuts to default collection if collections don't exist
@@ -334,11 +337,9 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         };
     }, [app.vault, folderShortcutKeysByPath, noteShortcutKeysByPath]);
 
-    // Hydrates shortcuts by resolving file references and validating existence
-    // Transforms shortcut entries into hydrated objects with resolved file/folder references
     const hydratedShortcuts = useMemo<HydratedShortcut[]>(() => {
         // Reference vaultChangeVersion to ensure memoized value updates when tracked files change
-        void vaultChangeVersion;
+        void vaultChangeVersion; // Ensures memo recalculates after vault changes
         return collectionShortcuts.map(shortcut => {
             const key = getShortcutKey(shortcut);
 
@@ -447,16 +448,177 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         [updateSettings, activeCollectionId]
     );
 
+    // Adds multiple shortcuts, validating each type and showing notices for duplicates or invalid entries
+    const addShortcutsBatch = useCallback(
+        async (entries: ShortcutEntry[], options?: { index?: number; collectionId?: string }) => {
+            if (entries.length === 0) {
+                return 0;
+            }
+
+            // Create sets of existing paths/names for O(1) duplicate checking
+            const folderPaths = new Set(folderShortcutKeysByPath.keys());
+            const notePaths = new Set(noteShortcutKeysByPath.keys());
+            const tagPaths = new Set(tagShortcutKeysByPath.keys());
+            const searchNames = new Set(searchShortcutsByName.keys());
+
+            // Track validation errors to show notices after processing all entries
+            let duplicateFolder = false;
+            let duplicateNote = false;
+            let duplicateTag = false;
+            let invalidTag = false;
+            let duplicateSearch = false;
+            let emptySearchName = false;
+            let emptySearchQuery = false;
+
+            // Validate and normalize each entry, tracking errors
+            const normalizedEntries: ShortcutEntry[] = [];
+            entries.forEach(entry => {
+                if (entry.type === ShortcutType.FOLDER) {
+                    if (folderPaths.has(entry.path)) {
+                        duplicateFolder = true;
+                        return;
+                    }
+                    folderPaths.add(entry.path);
+                    normalizedEntries.push(entry);
+                    return;
+                }
+
+                if (entry.type === ShortcutType.NOTE) {
+                    if (notePaths.has(entry.path)) {
+                        duplicateNote = true;
+                        return;
+                    }
+                    notePaths.add(entry.path);
+                    normalizedEntries.push(entry);
+                    return;
+                }
+
+                if (entry.type === ShortcutType.TAG) {
+                    const normalizedPath = normalizeTagPath(entry.tagPath);
+                    if (!normalizedPath) {
+                        invalidTag = true;
+                        return;
+                    }
+                    if (tagPaths.has(normalizedPath)) {
+                        duplicateTag = true;
+                        return;
+                    }
+                    tagPaths.add(normalizedPath);
+                    normalizedEntries.push({
+                        ...entry,
+                        tagPath: normalizedPath
+                    });
+                    return;
+                }
+
+                if (entry.type === ShortcutType.SEARCH) {
+                    const normalizedName = entry.name.trim();
+                    const normalizedQuery = entry.query.trim();
+                    if (!normalizedName) {
+                        emptySearchName = true;
+                        return;
+                    }
+                    if (!normalizedQuery) {
+                        emptySearchQuery = true;
+                        return;
+                    }
+                    const lookupKey = normalizedName.toLowerCase();
+                    if (searchNames.has(lookupKey)) {
+                        duplicateSearch = true;
+                        return;
+                    }
+                    searchNames.add(lookupKey);
+                    normalizedEntries.push({
+                        ...entry,
+                        name: normalizedName,
+                        query: normalizedQuery
+                    });
+                }
+            });
+
+            // Show notices for any validation errors found
+            if (duplicateFolder) {
+                showNotice(strings.shortcuts.folderExists, { variant: 'warning' });
+            }
+            if (duplicateNote) {
+                showNotice(strings.shortcuts.noteExists, { variant: 'warning' });
+            }
+            if (duplicateTag) {
+                showNotice(strings.shortcuts.tagExists, { variant: 'warning' });
+            }
+            if (invalidTag) {
+                showNotice(strings.modals.tagOperation.invalidTagName, { variant: 'warning' });
+            }
+            if (duplicateSearch) {
+                showNotice(strings.shortcuts.searchExists, { variant: 'warning' });
+            }
+            if (emptySearchName) {
+                showNotice(strings.shortcuts.emptySearchName, { variant: 'warning' });
+            }
+            if (emptySearchQuery) {
+                showNotice(strings.shortcuts.emptySearchQuery, { variant: 'warning' });
+            }
+
+            if (normalizedEntries.length === 0) {
+                return 0;
+            }
+
+            // Insert normalized entries using insertShortcut to support collections
+            const targetCollectionId = options?.collectionId || activeCollectionId;
+            let insertIndex = options?.index;
+            let successCount = 0;
+
+            for (const entry of normalizedEntries) {
+                // Check for duplicates within the target collection
+                let existingKey: string | null = null;
+                if (entry.type === ShortcutType.FOLDER) {
+                    existingKey = getShortcutInCollection(entry.path, targetCollectionId);
+                } else if (entry.type === ShortcutType.NOTE) {
+                    existingKey = getShortcutInCollection(entry.path, targetCollectionId);
+                } else if (entry.type === ShortcutType.TAG) {
+                    existingKey = getShortcutInCollection(entry.tagPath, targetCollectionId);
+                } else if (entry.type === ShortcutType.SEARCH) {
+                    // Search shortcuts are checked by name
+                    const collection = collections.find(c => c.id === targetCollectionId);
+                    if (collection) {
+                        const lookupKey = entry.name.toLowerCase();
+                        const existing = collection.shortcuts.find(s => 
+                            isSearchShortcut(s) && s.name.toLowerCase() === lookupKey
+                        );
+                        if (existing) {
+                            continue; // Skip duplicate
+                        }
+                    }
+                }
+
+                if (existingKey) {
+                    continue; // Skip duplicate within collection
+                }
+
+                const inserted = await insertShortcut(entry, insertIndex, targetCollectionId);
+                if (inserted) {
+                    successCount++;
+                    if (typeof insertIndex === 'number') {
+                        insertIndex += 1;
+                    }
+                }
+            }
+
+            return successCount;
+        },
+        [folderShortcutKeysByPath, noteShortcutKeysByPath, tagShortcutKeysByPath, searchShortcutsByName, updateSettings, insertShortcut, getShortcutInCollection, activeCollectionId, collections]
+    );
+
     // Adds a folder shortcut if it doesn't already exist in the target collection
     const addFolderShortcut = useCallback(
         async (path: string, options?: { index?: number; collectionId?: string }) => {
             const targetCollectionId = options?.collectionId || activeCollectionId;
             const existingKey = getShortcutInCollection(path, targetCollectionId);
             if (existingKey) {
-                new Notice(strings.shortcuts.folderExists);
+                showNotice(strings.shortcuts.folderExists, { variant: 'warning' });
                 return false;
             }
-            return insertShortcut({ type: ShortcutType.FOLDER, path }, options?.index, options?.collectionId);
+            return insertShortcut({ type: ShortcutType.FOLDER, path }, options?.index, targetCollectionId);
         },
         [insertShortcut, getShortcutInCollection, activeCollectionId]
     );
@@ -467,10 +629,10 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             const targetCollectionId = options?.collectionId || activeCollectionId;
             const existingKey = getShortcutInCollection(path, targetCollectionId);
             if (existingKey) {
-                new Notice(strings.shortcuts.noteExists);
+                showNotice(strings.shortcuts.noteExists, { variant: 'warning' });
                 return false;
             }
-            return insertShortcut({ type: ShortcutType.NOTE, path }, options?.index, options?.collectionId);
+            return insertShortcut({ type: ShortcutType.NOTE, path }, options?.index, targetCollectionId);
         },
         [insertShortcut, getShortcutInCollection, activeCollectionId]
     );
@@ -485,10 +647,10 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             const targetCollectionId = options?.collectionId || activeCollectionId;
             const existingKey = getShortcutInCollection(normalizedPath, targetCollectionId);
             if (existingKey) {
-                new Notice(strings.shortcuts.tagExists);
+                showNotice(strings.shortcuts.tagExists, { variant: 'warning' });
                 return false;
             }
-            return insertShortcut({ type: ShortcutType.TAG, tagPath: normalizedPath }, options?.index, options?.collectionId);
+            return insertShortcut({ type: ShortcutType.TAG, tagPath: normalizedPath }, options?.index, targetCollectionId);
         },
         [insertShortcut, getShortcutInCollection, activeCollectionId]
     );
@@ -498,19 +660,19 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         async ({ name, query, provider }: { name: string; query: string; provider: SearchProvider }, options?: { index?: number; collectionId?: string }) => {
             const normalizedQuery = query.trim();
             if (!normalizedQuery) {
-                new Notice(strings.shortcuts.emptySearchQuery);
+                showNotice(strings.shortcuts.emptySearchQuery, { variant: 'warning' });
                 return false;
             }
 
             const normalizedName = name.trim();
             if (!normalizedName) {
-                new Notice(strings.shortcuts.emptySearchName);
+                showNotice(strings.shortcuts.emptySearchName, { variant: 'warning' });
                 return false;
             }
 
             const nameKey = normalizedName.toLowerCase();
             if (searchShortcutsByName.has(nameKey)) {
-                new Notice(strings.shortcuts.searchExists);
+                showNotice(strings.shortcuts.searchExists, { variant: 'warning' });
                 return false;
             }
 
@@ -725,6 +887,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             addNoteShortcut,
             addTagShortcut,
             addSearchShortcut,
+            addShortcutsBatch,
             removeShortcut,
             removeSearchShortcut,
             reorderShortcuts,
@@ -754,6 +917,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             addNoteShortcut,
             addTagShortcut,
             addSearchShortcut,
+            addShortcutsBatch,
             removeShortcut,
             removeSearchShortcut,
             reorderShortcuts,

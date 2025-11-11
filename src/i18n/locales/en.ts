@@ -66,7 +66,9 @@ export const STRINGS_EN = {
         resetRootToFrequency: 'Reset to frequency order',
         dragHandleLabel: 'Drag to reorder',
         pinShortcuts: 'Pin shortcuts',
-        unpinShortcuts: 'Unpin shortcuts'
+        unpinShortcuts: 'Unpin shortcuts',
+        profileMenuLabel: 'Profile',
+        profileMenuAria: 'Change vault profile'
     },
 
     shortcuts: {
@@ -172,6 +174,8 @@ export const STRINGS_EN = {
             newDrawing: 'New drawing',
             duplicateFolder: 'Duplicate folder',
             searchInFolder: 'Search in folder',
+            copyPath: 'Copy path',
+            copyRelativePath: 'Copy relative path',
             createFolderNote: 'Create folder note',
             deleteFolderNote: 'Delete folder note',
             changeIcon: 'Change icon',
@@ -263,6 +267,10 @@ export const STRINGS_EN = {
             affectedFiles: 'Affected files:',
             andMore: '...and {count} more',
             confirmRename: 'Rename tag',
+            renameUnchanged: '{tag} unchanged',
+            renameNoChanges: '{oldTag} → {newTag} ({countLabel})',
+            invalidTagName: 'Enter a valid tag name.',
+            descendantRenameError: 'Cannot move a tag into itself or a descendant.',
             confirmDelete: 'Delete tag',
             file: 'file',
             files: 'files'
@@ -319,6 +327,7 @@ export const STRINGS_EN = {
             addPlaceholder: 'Search for tag to add...',
             removePlaceholder: 'Select tag to remove...',
             createNewTag: 'Create new tag: #{tag}',
+            allowCreationToggle: 'Allow creating new tags',
             instructions: {
                 navigate: 'to navigate',
                 select: 'to select',
@@ -678,6 +687,12 @@ export const STRINGS_EN = {
                     files: 'List pane'
                 }
             },
+            toolbarButtons: {
+                name: 'Toolbar buttons',
+                desc: 'Choose which buttons appear in the toolbar. Hidden buttons remain accessible via commands and menus.',
+                navigationLabel: 'Navigation toolbar',
+                listLabel: 'List toolbar'
+            },
             autoRevealActiveNote: {
                 name: 'Auto-reveal active note',
                 desc: 'Automatically reveal notes when opened from Quick Switcher, links, or search.'
@@ -699,8 +714,8 @@ export const STRINGS_EN = {
                 desc: 'Automatically expand folders and tags when they are selected.'
             },
             navigationBanner: {
-                name: 'Navigation banner',
-                desc: 'Display an image above the navigation pane.',
+                name: 'Navigation banner (vault profile)',
+                desc: 'Display an image above the navigation pane. Changes with the selected vault profile.',
                 current: 'Current banner: {path}',
                 chooseButton: 'Choose image',
                 clearButton: 'Clear'
@@ -764,6 +779,23 @@ export const STRINGS_EN = {
                 name: 'Hide notes',
                 desc: 'Comma-separated list of frontmatter properties. Notes containing any of these properties will be hidden (e.g., draft, private, archived).',
                 placeholder: 'draft, private'
+            },
+            vaultProfiles: {
+                name: 'Vault profile',
+                desc: 'Profiles store file type visibility, hidden folders, hidden tags, and hidden notes. Switch profiles from the navigation pane header.',
+                defaultName: 'Default',
+                addButton: 'Add profile',
+                editButton: 'Edit profile',
+                deleteButton: 'Delete profile',
+                addModalTitle: 'Add profile',
+                editModalTitle: 'Edit profile',
+                addModalPlaceholder: 'Profile name',
+                deleteModalTitle: 'Delete {name}',
+                deleteModalMessage: 'Remove {name}? Hidden folder, tag, and note filters saved in this profile will be deleted.',
+                errors: {
+                    emptyName: 'Enter a profile name',
+                    duplicateName: 'Profile name already exists'
+                }
             },
             excludedFolders: {
                 name: 'Hide folders',
@@ -949,8 +981,12 @@ export const STRINGS_EN = {
                 name: 'Retain tags property after removing last tag',
                 desc: 'Keep the tags frontmatter property when all tags are removed. When disabled, the tags property is deleted from frontmatter.'
             },
+            allowTagCreationInAddTagModal: {
+                name: 'Allow creating tags in Add tag modal',
+                desc: 'Show create tag option when adding tags. Toggle appears in the modal.'
+            },
             hiddenTags: {
-                name: 'Hidden tags',
+                name: 'Hide tags',
                 desc: 'Comma-separated list of tag prefixes or name wildcards. Use tag* or *tag to match tag names. Hiding a tag also hides all its sub-tags (e.g., "archive" hides "archive/2024/docs").',
                 placeholder: 'internal, temp/drafts, archive/2024'
             },
@@ -1089,7 +1125,7 @@ export const STRINGS_EN = {
                 name: 'Timestamp format',
                 desc: 'Format used to parse timestamps in frontmatter. Leave empty to use ISO 8601 format',
                 helpTooltip: 'See date-fns format documentation',
-                help: "Common formats:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
+                help: "Common formats:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {
                 name: 'Support development',

@@ -80,10 +80,25 @@ export class IconAssetDatabase {
             const request = store.get(id);
 
             request.onsuccess = () => {
-                resolve(request.result ?? null);
+                // Validate the result from IndexedDB
+                const result: unknown = request.result;
+                if (result === null || result === undefined) {
+                    resolve(null);
+                    return;
+                }
+
+                // Ensure the record has the expected structure
+                if (isIconAssetRecord(result)) {
+                    resolve(result);
+                    return;
+                }
+
+                // Invalid record found in database, return null instead
+                console.log('[IconAssetDatabase] Ignoring invalid icon asset record', { id });
+                resolve(null);
             };
             request.onerror = () => {
-                reject(request.error);
+                reject(getRequestError(request.error, 'Failed to fetch icon asset'));
             };
         });
     }
@@ -102,7 +117,7 @@ export class IconAssetDatabase {
 
             request.onsuccess = () => resolve();
             request.onerror = () => {
-                reject(request.error);
+                reject(getRequestError(request.error, 'Failed to store icon asset'));
             };
         });
     }
@@ -121,7 +136,7 @@ export class IconAssetDatabase {
 
             request.onsuccess = () => resolve();
             request.onerror = () => {
-                reject(request.error);
+                reject(getRequestError(request.error, 'Failed to delete icon asset'));
             };
         });
     }
@@ -138,9 +153,29 @@ export class IconAssetDatabase {
             const store = transaction.objectStore(IconAssetDatabase.STORE_NAME);
             const request = store.getAll();
 
-            request.onsuccess = () => resolve(request.result as IconAssetRecord[]);
+            request.onsuccess = () => {
+                // Validate that getAll returned an array
+                const result: unknown = request.result;
+                if (!Array.isArray(result)) {
+                    console.log('[IconAssetDatabase] Unexpected result when fetching all icon assets');
+                    resolve([]);
+                    return;
+                }
+
+                // Filter out any invalid records from the database
+                const records: IconAssetRecord[] = [];
+                for (const entry of result) {
+                    if (isIconAssetRecord(entry)) {
+                        records.push(entry);
+                    } else {
+                        console.log('[IconAssetDatabase] Skipping invalid icon asset record');
+                    }
+                }
+
+                resolve(records);
+            };
             request.onerror = () => {
-                reject(request.error);
+                reject(getRequestError(request.error, 'Failed to fetch icon assets'));
             };
         });
     }
@@ -172,7 +207,7 @@ export class IconAssetDatabase {
             };
 
             request.onerror = () => {
-                reject(request.error);
+                reject(getRequestError(request.error, 'Failed to open icon asset database'));
             };
 
             request.onblocked = () => {
@@ -180,4 +215,36 @@ export class IconAssetDatabase {
             };
         });
     }
+}
+
+/**
+ * Converts IndexedDB request errors to standard Error objects.
+ * Returns the original error if it's already an Error, otherwise creates a new Error with the fallback message.
+ */
+function getRequestError(domError: DOMException | null, fallbackMessage: string): Error {
+    if (domError instanceof Error) {
+        return domError;
+    }
+    return new Error(fallbackMessage);
+}
+
+/**
+ * Type guard that validates whether a value matches the expected IconAssetRecord structure.
+ * Checks all required properties and their types to ensure data integrity from IndexedDB.
+ */
+function isIconAssetRecord(value: unknown): value is IconAssetRecord {
+    if (!value || typeof value !== 'object') {
+        return false;
+    }
+
+    const record = value as Partial<IconAssetRecord>;
+    return (
+        typeof record.id === 'string' &&
+        typeof record.version === 'string' &&
+        typeof record.mimeType === 'string' &&
+        record.data instanceof ArrayBuffer &&
+        record.metadataFormat === 'json' &&
+        typeof record.metadata === 'string' &&
+        typeof record.updated === 'number'
+    );
 }

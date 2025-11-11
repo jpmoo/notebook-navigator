@@ -20,9 +20,10 @@ import { MenuItem } from 'obsidian';
 import { TagMenuBuilderParams } from './menuTypes';
 import { strings } from '../../i18n';
 import { cleanupTagPatterns, createHiddenTagMatcher, matchesHiddenTagPattern } from '../tagPrefixMatcher';
-import { ItemType, UNTAGGED_TAG_ID } from '../../types';
+import { ItemType, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../../types';
 import { normalizeTagPath } from '../tagUtils';
 import { resetHiddenToggleIfNoSources } from '../exclusionUtils';
+import { setAsyncOnClick } from './menuAsyncHelpers';
 
 /**
  * Builds the context menu for a tag
@@ -38,15 +39,22 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
         });
     }
 
+    // Add rename/delete options only for real tags (not virtual aggregations)
+    const isVirtualTag = tagPath === UNTAGGED_TAG_ID || tagPath === TAGGED_TAG_ID;
+
     if (services.shortcuts) {
-        const { addTagShortcut, removeShortcut, collections, getCollectionsWithShortcut } = services.shortcuts;
+        const { addTagShortcut, removeShortcut, collections, getCollectionsWithShortcut, getShortcutInCollection, activeCollectionId } = services.shortcuts;
         const normalizedShortcutPath = normalizeTagPath(tagPath);
         const collectionsWithShortcut = normalizedShortcutPath ? getCollectionsWithShortcut(normalizedShortcutPath) : [];
+        const existingShortcutKey = normalizedShortcutPath ? getShortcutInCollection(normalizedShortcutPath, activeCollectionId) : null;
 
         menu.addItem((item: MenuItem) => {
-            item.setTitle(strings.shortcuts.add)
-                .setIcon('lucide-bookmark')
-                .onClick(async () => {
+            if (existingShortcutKey) {
+                setAsyncOnClick(item.setTitle(strings.shortcuts.remove).setIcon('lucide-bookmark-x'), async () => {
+                    await removeShortcut(existingShortcutKey);
+                });
+            } else {
+                setAsyncOnClick(item.setTitle(strings.shortcuts.add).setIcon('lucide-bookmark'), async () => {
                     if (collections.length > 1) {
                         // Show collection selection modal
                         const { ShortcutCollectionSelectionModal } = await import('../../modals/ShortcutCollectionSelectionModal');
@@ -66,6 +74,7 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
                         void addTagShortcut(tagPath, { collectionId: collections[0]?.id });
                     }
                 });
+            }
         });
 
         // Add remove options for each collection that has this shortcut
@@ -95,61 +104,53 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
 
     // Change icon
     menu.addItem((item: MenuItem) => {
-        item.setTitle(strings.contextMenu.tag.changeIcon)
-            .setIcon('lucide-image')
-            .onClick(async () => {
-                const { IconPickerModal } = await import('../../modals/IconPickerModal');
-                const modal = new IconPickerModal(app, metadataService, tagPath, ItemType.TAG);
-                modal.open();
-            });
+        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeIcon).setIcon('lucide-image'), async () => {
+            const { IconPickerModal } = await import('../../modals/IconPickerModal');
+            const modal = new IconPickerModal(app, metadataService, tagPath, ItemType.TAG);
+            modal.open();
+        });
     });
 
     // Change color
     menu.addItem((item: MenuItem) => {
-        item.setTitle(strings.contextMenu.tag.changeColor)
-            .setIcon('lucide-palette')
-            .onClick(async () => {
-                const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
-                const modal = new ColorPickerModal(app, metadataService, tagPath, ItemType.TAG, 'foreground');
-                modal.open();
-            });
+        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeColor).setIcon('lucide-palette'), async () => {
+            const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
+            const modal = new ColorPickerModal(app, metadataService, tagPath, ItemType.TAG, 'foreground');
+            modal.open();
+        });
     });
 
     // Change background color
     menu.addItem((item: MenuItem) => {
-        item.setTitle(strings.contextMenu.tag.changeBackground)
-            .setIcon('lucide-paint-bucket')
-            .onClick(async () => {
-                const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
-                const modal = new ColorPickerModal(app, metadataService, tagPath, ItemType.TAG, 'background');
-                modal.open();
-            });
+        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeBackground).setIcon('lucide-paint-bucket'), async () => {
+            const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
+            const modal = new ColorPickerModal(app, metadataService, tagPath, ItemType.TAG, 'background');
+            modal.open();
+        });
     });
 
-    // Don't show hide tag option for the Untagged virtual tag
-    if (tagPath !== UNTAGGED_TAG_ID) {
+    const canHideTag = tagPath !== UNTAGGED_TAG_ID;
+    if (canHideTag || !isVirtualTag) {
         menu.addSeparator();
 
-        const hiddenMatcher = createHiddenTagMatcher(settings.hiddenTags);
-        const hasHiddenRules =
-            hiddenMatcher.prefixes.length > 0 || hiddenMatcher.startsWithNames.length > 0 || hiddenMatcher.endsWithNames.length > 0;
-        const tagName = tagPath.split('/').pop() ?? tagPath;
-        const isHidden = hasHiddenRules && matchesHiddenTagPattern(tagPath, tagName, hiddenMatcher);
+        if (canHideTag) {
+            const hiddenMatcher = createHiddenTagMatcher(settings.hiddenTags);
+            const hasHiddenRules =
+                hiddenMatcher.prefixes.length > 0 || hiddenMatcher.startsWithNames.length > 0 || hiddenMatcher.endsWithNames.length > 0;
+            const tagName = tagPath.split('/').pop() ?? tagPath;
+            const isHidden = hasHiddenRules && matchesHiddenTagPattern(tagPath, tagName, hiddenMatcher);
 
-        const normalizedTagPath = normalizeTagPath(tagPath);
-        const hasDirectHiddenEntry =
-            normalizedTagPath !== null &&
-            settings.hiddenTags.some(pattern => {
-                const normalizedPattern = normalizeTagPath(pattern);
-                return normalizedPattern !== null && !normalizedPattern.includes('*') && normalizedPattern === normalizedTagPath;
-            });
+            const normalizedTagPath = normalizeTagPath(tagPath);
+            const hasDirectHiddenEntry =
+                normalizedTagPath !== null &&
+                settings.hiddenTags.some(pattern => {
+                    const normalizedPattern = normalizeTagPath(pattern);
+                    return normalizedPattern !== null && !normalizedPattern.includes('*') && normalizedPattern === normalizedTagPath;
+                });
 
-        if (!isHidden) {
-            menu.addItem((item: MenuItem) => {
-                item.setTitle(strings.contextMenu.tag.hideTag)
-                    .setIcon('lucide-eye-off')
-                    .onClick(async () => {
-                        // Clean up redundant entries when adding new hidden tag
+            if (!isHidden) {
+                menu.addItem((item: MenuItem) => {
+                    setAsyncOnClick(item.setTitle(strings.contextMenu.tag.hideTag).setIcon('lucide-eye-off'), async () => {
                         const cleanedHiddenTags = cleanupTagPatterns(settings.hiddenTags, tagPath);
 
                         plugin.settings.hiddenTags = cleanedHiddenTags;
@@ -160,12 +161,10 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
                         });
                         await plugin.saveSettingsAndUpdate();
                     });
-            });
-        } else if (hasDirectHiddenEntry && normalizedTagPath) {
-            menu.addItem((item: MenuItem) => {
-                item.setTitle(strings.contextMenu.tag.showTag)
-                    .setIcon('lucide-eye')
-                    .onClick(async () => {
+                });
+            } else if (hasDirectHiddenEntry && normalizedTagPath) {
+                menu.addItem((item: MenuItem) => {
+                    setAsyncOnClick(item.setTitle(strings.contextMenu.tag.showTag).setIcon('lucide-eye'), async () => {
                         plugin.settings.hiddenTags = settings.hiddenTags.filter(pattern => {
                             const normalizedPattern = normalizeTagPath(pattern);
                             return !(normalizedPattern && !normalizedPattern.includes('*') && normalizedPattern === normalizedTagPath);
@@ -178,6 +177,21 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
                         });
                         await plugin.saveSettingsAndUpdate();
                     });
+                });
+            }
+        }
+
+        if (!isVirtualTag) {
+            menu.addItem((item: MenuItem) => {
+                setAsyncOnClick(item.setTitle(strings.modals.tagOperation.confirmRename).setIcon('lucide-pencil'), async () => {
+                    await services.tagOperations.promptRenameTag(tagPath);
+                });
+            });
+
+            menu.addItem((item: MenuItem) => {
+                setAsyncOnClick(item.setTitle(strings.modals.tagOperation.confirmDelete).setIcon('lucide-trash-2'), async () => {
+                    await services.tagOperations.promptDeleteTag(tagPath);
+                });
             });
         }
     }

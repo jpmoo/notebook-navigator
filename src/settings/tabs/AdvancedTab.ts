@@ -16,16 +16,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { ButtonComponent, Notice, Platform, Setting } from 'obsidian';
+import { ButtonComponent, Platform, Setting } from 'obsidian';
 import { strings } from '../../i18n';
 import type { MetadataCleanupSummary } from '../../services/MetadataService';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { getNavigationPaneSizing } from '../../utils/paneSizing';
 import { localStorage } from '../../utils/localStorage';
+import { runAsyncAction } from '../../utils/async';
+import { showNotice } from '../../utils/noticeUtils';
 
 /** Renders the advanced settings tab */
 export function renderAdvancedTab(context: SettingsTabContext): void {
-    const { containerEl, plugin, registerStatsTextElement, requestStatisticsRefresh, ensureStatisticsInterval } = context;
+    const { containerEl, plugin } = context;
 
     new Setting(containerEl)
         .setName(strings.settings.items.updateCheckOnStart.name)
@@ -62,7 +64,7 @@ export function renderAdvancedTab(context: SettingsTabContext): void {
                     const orientation = plugin.getDualPaneOrientation();
                     const { storageKey } = getNavigationPaneSizing(orientation);
                     localStorage.remove(storageKey);
-                    new Notice(strings.settings.items.resetPaneSeparator.notice);
+                    showNotice(strings.settings.items.resetPaneSeparator.notice);
                 })
             );
     }
@@ -117,16 +119,19 @@ export function renderAdvancedTab(context: SettingsTabContext): void {
         metadataCleanupButton = button;
         button.setButtonText(strings.settings.items.metadataCleanup.buttonText);
         button.setDisabled(true);
-        button.onClick(async () => {
-            setMetadataCleanupLoadingState();
-            try {
-                await plugin.runMetadataCleanup();
-            } catch (error) {
-                console.error('Metadata cleanup failed', error);
-                new Notice(strings.settings.items.metadataCleanup.error);
-            } finally {
-                await refreshMetadataCleanupSummary();
-            }
+        // Run metadata cleanup without blocking the UI
+        button.onClick(() => {
+            runAsyncAction(async () => {
+                setMetadataCleanupLoadingState();
+                try {
+                    await plugin.runMetadataCleanup();
+                } catch (error) {
+                    console.error('Metadata cleanup failed', error);
+                    showNotice(strings.settings.items.metadataCleanup.error, { variant: 'warning' });
+                } finally {
+                    await refreshMetadataCleanupSummary();
+                }
+            });
         });
     });
 
@@ -135,23 +140,27 @@ export function renderAdvancedTab(context: SettingsTabContext): void {
         text: strings.settings.items.metadataCleanup.loading
     });
 
-    void refreshMetadataCleanupSummary();
+    // Load initial metadata cleanup summary without blocking
+    runAsyncAction(() => refreshMetadataCleanupSummary());
 
     new Setting(containerEl)
         .setName(strings.settings.items.rebuildCache.name)
         .setDesc(strings.settings.items.rebuildCache.desc)
         .addButton(button =>
-            button.setButtonText(strings.settings.items.rebuildCache.buttonText).onClick(async () => {
-                button.setDisabled(true);
-                try {
-                    await plugin.rebuildCache();
-                    new Notice(strings.settings.items.rebuildCache.success);
-                } catch (error) {
-                    console.error('Failed to rebuild cache from settings:', error);
-                    new Notice(strings.settings.items.rebuildCache.error);
-                } finally {
-                    button.setDisabled(false);
-                }
+            button.setButtonText(strings.settings.items.rebuildCache.buttonText).onClick(() => {
+                // Rebuild cache without blocking the UI
+                runAsyncAction(async () => {
+                    button.setDisabled(true);
+                    try {
+                        await plugin.rebuildCache();
+                        showNotice(strings.settings.items.rebuildCache.success, { variant: 'success' });
+                    } catch (error) {
+                        console.error('Failed to rebuild cache from settings:', error);
+                        showNotice(strings.settings.items.rebuildCache.error, { variant: 'warning' });
+                    } finally {
+                        button.setDisabled(false);
+                    }
+                });
             })
         );
 
@@ -164,7 +173,8 @@ export function renderAdvancedTab(context: SettingsTabContext): void {
         cls: 'nn-stats-text'
     });
 
-    registerStatsTextElement(statsTextEl);
-    requestStatisticsRefresh();
-    ensureStatisticsInterval();
+    // Use context directly to satisfy eslint exhaustive-deps requirements
+    context.registerStatsTextElement(statsTextEl);
+    context.requestStatisticsRefresh();
+    context.ensureStatisticsInterval();
 }

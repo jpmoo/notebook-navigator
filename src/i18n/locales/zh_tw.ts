@@ -66,7 +66,9 @@ export const STRINGS_ZH_TW = {
         resetRootToFrequency: '重設為頻率排序',
         dragHandleLabel: '拖曳以重新排序',
         pinShortcuts: '釘選捷徑',
-        unpinShortcuts: '取消釘選捷徑'
+        unpinShortcuts: '取消釘選捷徑',
+        profileMenuLabel: '設定檔',
+        profileMenuAria: '更改倉庫設定檔'
     },
 
     shortcuts: {
@@ -172,6 +174,8 @@ export const STRINGS_ZH_TW = {
             newDrawing: '新繪圖',
             duplicateFolder: '複製資料夾',
             searchInFolder: '在此資料夾中搜尋',
+            copyPath: '複製路徑',
+            copyRelativePath: '複製相對路徑',
             createFolderNote: '建立資料夾筆記',
             deleteFolderNote: '刪除資料夾筆記',
             changeIcon: '變更圖示',
@@ -263,6 +267,10 @@ export const STRINGS_ZH_TW = {
             affectedFiles: '受影響的檔案：',
             andMore: '...還有 {count} 個',
             confirmRename: '重新命名標籤',
+            renameUnchanged: '{tag} 未變更',
+            renameNoChanges: '{oldTag} → {newTag} ({countLabel})',
+            invalidTagName: '請輸入有效的標籤名稱。',
+            descendantRenameError: '無法將標籤移動到自身或其子標籤中。',
             confirmDelete: '刪除標籤',
             file: '檔案',
             files: '檔案'
@@ -319,6 +327,7 @@ export const STRINGS_ZH_TW = {
             addPlaceholder: '搜尋要新增的標籤...',
             removePlaceholder: '選取要移除的標籤...',
             createNewTag: '建立新標籤：#{tag}',
+            allowCreationToggle: '允許建立新標籤',
             instructions: {
                 navigate: '導覽',
                 select: '選取',
@@ -677,6 +686,12 @@ export const STRINGS_ZH_TW = {
                     files: '列表窗格'
                 }
             },
+            toolbarButtons: {
+                name: '工具列按鈕',
+                desc: '選擇在工具列中顯示哪些按鈕。隱藏的按鈕仍可透過指令和選單存取。',
+                navigationLabel: '導覽工具列',
+                listLabel: '清單工具列'
+            },
             autoRevealActiveNote: {
                 name: '自動顯示活動筆記',
                 desc: '從快速切換器、連結或搜尋開啟筆記時自動顯示。'
@@ -698,8 +713,8 @@ export const STRINGS_ZH_TW = {
                 desc: '選取資料夾和標籤時自動展開。'
             },
             navigationBanner: {
-                name: '導覽橫幅',
-                desc: '在導覽窗格上方顯示圖片。',
+                name: '導覽橫幅（倉庫設定檔）',
+                desc: '在導覽窗格上方顯示圖片。隨所選倉庫設定檔而變化。',
                 current: '目前橫幅：{path}',
                 chooseButton: '選擇圖片',
                 clearButton: '清除'
@@ -763,6 +778,23 @@ export const STRINGS_ZH_TW = {
                 name: '隱藏筆記',
                 desc: '以逗號分隔的 frontmatter 屬性清單。包含任何這些屬性的筆記將被隱藏 (例如 draft, private, archived)。',
                 placeholder: 'draft, private'
+            },
+            vaultProfiles: {
+                name: '倉庫設定檔',
+                desc: '設定檔儲存檔案類型可見性、隱藏資料夾、隱藏標籤和隱藏筆記。從導覽窗格標題切換設定檔。',
+                defaultName: '預設',
+                addButton: '新增設定檔',
+                editButton: '編輯設定檔',
+                deleteButton: '刪除設定檔',
+                addModalTitle: '新增設定檔',
+                editModalTitle: '編輯設定檔',
+                addModalPlaceholder: '設定檔名稱',
+                deleteModalTitle: '刪除 {name}',
+                deleteModalMessage: '刪除 {name}？儲存在此設定檔中的隱藏資料夾、標籤和筆記篩選器將被刪除。',
+                errors: {
+                    emptyName: '請輸入設定檔名稱',
+                    duplicateName: '設定檔名稱已存在'
+                }
             },
             excludedFolders: {
                 name: '隱藏資料夾',
@@ -948,6 +980,10 @@ export const STRINGS_ZH_TW = {
                 name: '刪除最後一個標籤後保留 tags 屬性',
                 desc: '當所有標籤被刪除時保留 frontmatter 中的 tags 屬性。停用時,tags 屬性將從 frontmatter 中刪除。'
             },
+            allowTagCreationInAddTagModal: {
+                name: '允許在新增標籤對話框中建立標籤',
+                desc: '新增標籤時顯示建立選項。切換按鈕顯示在對話框中。'
+            },
             hiddenTags: {
                 name: '隱藏標籤',
                 desc: '以逗號分隔的標籤前綴或名稱萬用字元清單。使用 tag* 或 *tag 來匹配標籤名稱。隱藏一個標籤也會隱藏其所有子標籤 (例如 "archive" 隱藏 "archive/2024/docs")。',
@@ -1088,7 +1124,7 @@ export const STRINGS_ZH_TW = {
                 name: '時間戳格式',
                 desc: '用於解析 frontmatter 中時間戳的格式。留空以使用 ISO 8601 格式',
                 helpTooltip: '請參閱 date-fns 格式文件',
-                help: "常用格式：\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
+                help: "常用格式：\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {
                 name: '支持開發',
