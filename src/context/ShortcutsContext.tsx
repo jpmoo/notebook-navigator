@@ -499,8 +499,9 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
 
     // Inserts a shortcut at the specified index or appends to the end
     const insertShortcut = useCallback(
-        async (shortcut: ShortcutEntry, index?: number, collectionId?: string) => {
+        async (shortcut: ShortcutEntry, index?: number, collectionId?: string): Promise<boolean> => {
             const targetCollectionId = collectionId || activeCollectionId;
+            let didInsert = false;
             await updateSettings(current => {
                 const collections = current.shortcutCollections ?? [];
                 const collectionIndex = collections.findIndex(c => c.id === targetCollectionId);
@@ -522,7 +523,9 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                     shortcuts: next
                 };
                 current.shortcutCollections = updatedCollections;
+                didInsert = true;
             });
+            return didInsert;
         },
         [updateSettings, activeCollectionId]
     );
