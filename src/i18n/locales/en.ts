@@ -193,6 +193,10 @@ export const STRINGS_EN = {
             changeBackground: 'Change background',
             showTag: 'Show tag',
             hideTag: 'Hide tag'
+        },
+        navigation: {
+            addSeparator: 'Add separator',
+            removeSeparator: 'Remove separator'
         }
     },
 
@@ -255,6 +259,11 @@ export const STRINGS_EN = {
                 slate: 'Slate',
                 stone: 'Stone'
             }
+        },
+        selectVaultProfile: {
+            title: 'Select vault profile',
+            currentBadge: 'Active',
+            emptyState: 'No vault profiles available.'
         },
         tagOperation: {
             renameTitle: 'Rename tag {tag}',
@@ -327,7 +336,6 @@ export const STRINGS_EN = {
             addPlaceholder: 'Search for tag to add...',
             removePlaceholder: 'Select tag to remove...',
             createNewTag: 'Create new tag: #{tag}',
-            allowCreationToggle: 'Allow creating new tags',
             instructions: {
                 navigate: 'to navigate',
                 select: 'to select',
@@ -458,6 +466,7 @@ export const STRINGS_EN = {
         revealFile: 'Reveal file', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Search', // Command palette: Toggle search in the file list (English: Search)
         toggleDualPane: 'Toggle dual pane layout', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
+        selectVaultProfile: 'Select vault profile', // Command palette: Opens a modal to choose a different vault profile (English: Select vault profile)
         deleteFile: 'Delete files', // Command palette: Deletes the currently active file (English: Delete file)
         createNewNote: 'Create new note', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         moveFiles: 'Move files', // Command palette: Move selected files to another folder (English: Move files)
@@ -782,7 +791,7 @@ export const STRINGS_EN = {
             },
             vaultProfiles: {
                 name: 'Vault profile',
-                desc: 'Profiles store file type visibility, hidden folders, hidden tags, and hidden notes. Switch profiles from the navigation pane header.',
+                desc: 'Profiles store file type visibility, hidden folders, hidden tags, hidden notes, shortcuts, and navigation banner. Switch profiles from the navigation pane header.',
                 defaultName: 'Default',
                 addButton: 'Add profile',
                 editButton: 'Edit profile',
@@ -981,10 +990,6 @@ export const STRINGS_EN = {
                 name: 'Retain tags property after removing last tag',
                 desc: 'Keep the tags frontmatter property when all tags are removed. When disabled, the tags property is deleted from frontmatter.'
             },
-            allowTagCreationInAddTagModal: {
-                name: 'Allow creating tags in Add tag modal',
-                desc: 'Show create tag option when adding tags. Toggle appears in the modal.'
-            },
             hiddenTags: {
                 name: 'Hide tags',
                 desc: 'Comma-separated list of tag prefixes or name wildcards. Use tag* or *tag to match tag names. Hiding a tag also hides all its sub-tags (e.g., "archive" hides "archive/2024/docs").',
@@ -1033,7 +1038,7 @@ export const STRINGS_EN = {
                 error: 'Settings cleanup failed',
                 loading: 'Checking metadata...',
                 statusClean: 'No metadata to clean',
-                statusCounts: 'Orphaned items: {folders} folders, {tags} tags, {files} files, {pinned} pins'
+                statusCounts: 'Orphaned items: {folders} folders, {tags} tags, {files} files, {pinned} pins, {separators} separators'
             },
             rebuildCache: {
                 name: 'Rebuild cache',

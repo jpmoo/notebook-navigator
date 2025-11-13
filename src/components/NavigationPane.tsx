@@ -874,6 +874,8 @@ export const NavigationPane = React.memo(
 
         const {
             items,
+            firstSectionId,
+            firstInlineFolderPath,
             shortcutItems,
             tagsVirtualFolderHasChildren,
             pathToIndex,
@@ -907,6 +909,7 @@ export const NavigationPane = React.memo(
         const pinnedShortcutItems = shouldPinShortcuts ? shortcutItems : [];
         // Banner should be shown in pinned area only when shortcuts are pinned and banner is configured
         const shouldShowPinnedBanner = Boolean(navigationBannerPath && pinnedShortcutItems.length > 0);
+
         // We only reserve gutter space when a banner exists because Windows scrollbars
         // change container width by ~7px when they appear. That width change used to
         // feed back into the virtualizer via ResizeObserver and trigger infinite reflows.
@@ -1599,6 +1602,36 @@ export const NavigationPane = React.memo(
             ]
         );
 
+        const handleSectionContextMenu = useCallback(
+            (event: React.MouseEvent<HTMLDivElement>, sectionId: NavigationSectionId) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const target = { type: 'section', id: sectionId } as const;
+                const hasSeparator = metadataService.hasNavigationSeparator(target);
+                const menu = new Menu();
+
+                menu.addItem(item => {
+                    item.setTitle(
+                        hasSeparator ? strings.contextMenu.navigation.removeSeparator : strings.contextMenu.navigation.addSeparator
+                    )
+                        .setIcon('lucide-separator-horizontal')
+                        .onClick(() => {
+                            runAsyncAction(async () => {
+                                if (hasSeparator) {
+                                    await metadataService.removeNavigationSeparator(target);
+                                    return;
+                                }
+                                await metadataService.addNavigationSeparator(target);
+                            });
+                        });
+                });
+
+                menu.showAtMouseEvent(event.nativeEvent);
+            },
+            [metadataService]
+        );
+
         // Calculates the note count for a folder shortcut, using cache when available
         const getFolderShortcutCount = useCallback(
             (folder: TFolder): NoteCountInfo => {
@@ -1989,6 +2022,10 @@ export const NavigationPane = React.memo(
                     case NavigationPaneItemType.FOLDER: {
                         const folderPath = item.data.path;
                         const countInfo = folderCounts.get(folderPath);
+                        // Disable context menu (including separator options) for the first inline folder when shortcuts are pinned
+                        // This prevents users from adding/removing separators on the first item after pinned shortcuts
+                        const shouldDisableFolderContextMenu =
+                            shouldPinShortcuts && firstInlineFolderPath !== null && folderPath === firstInlineFolderPath;
 
                         return (
                             <FolderItem
@@ -2027,6 +2064,7 @@ export const NavigationPane = React.memo(
                                 countInfo={countInfo}
                                 excludedFolders={item.parsedExcludedFolders || []}
                                 vaultChangeVersion={vaultChangeVersion}
+                                disableContextMenu={shouldDisableFolderContextMenu}
                             />
                         );
                     }
@@ -2076,6 +2114,24 @@ export const NavigationPane = React.memo(
                                   }
                                 : undefined;
 
+                        const sectionId = isShortcutsGroup
+                            ? NavigationSectionId.SHORTCUTS
+                            : isRecentNotesGroup
+                              ? NavigationSectionId.RECENT
+                              : virtualFolder.id === 'tags-root'
+                                ? NavigationSectionId.TAGS
+                                : null;
+
+                        const shouldDisableShortcutMenu = isShortcutsGroup && shouldPinShortcuts;
+                        const shouldDisableFirstSectionMenu =
+                            shouldPinShortcuts && sectionId !== null && firstSectionId !== null && sectionId === firstSectionId;
+                        // When shortcuts are pinned they render in their own panel, so the section header hides context menus by design.
+                        // Shortcuts have to be unpinned to edit the first inline section separator
+                        const sectionContextMenu =
+                            sectionId !== null && !shouldDisableShortcutMenu && !shouldDisableFirstSectionMenu
+                                ? (event: React.MouseEvent<HTMLDivElement>) => handleSectionContextMenu(event, sectionId)
+                                : undefined;
+
                         return (
                             <VirtualFolderComponent
                                 virtualFolder={virtualFolder}
@@ -2096,6 +2152,7 @@ export const NavigationPane = React.memo(
                                 onDrop={isShortcutsGroup && allowEmptyShortcutDrop ? handleShortcutRootDrop : undefined}
                                 onDragLeave={isShortcutsGroup && allowEmptyShortcutDrop ? handleShortcutRootDragLeave : undefined}
                                 dropConfig={dropConfig}
+                                onContextMenu={sectionContextMenu}
                             />
                         );
                     }
@@ -2178,7 +2235,8 @@ export const NavigationPane = React.memo(
                     }
 
                     case NavigationPaneItemType.TOP_SPACER: {
-                        return <div className="nn-nav-top-spacer" />;
+                        const spacerClass = item.hasSeparator ? 'nn-nav-top-spacer nn-nav-spacer--with-separator' : 'nn-nav-top-spacer';
+                        return <div className={spacerClass} />;
                     }
 
                     case NavigationPaneItemType.BOTTOM_SPACER: {
@@ -2186,7 +2244,8 @@ export const NavigationPane = React.memo(
                     }
 
                     case NavigationPaneItemType.LIST_SPACER: {
-                        return <div className="nn-nav-list-spacer" />;
+                        const spacerClass = item.hasSeparator ? 'nn-nav-list-spacer nn-nav-spacer--with-separator' : 'nn-nav-list-spacer';
+                        return <div className={spacerClass} />;
                     }
 
                     case NavigationPaneItemType.ROOT_SPACER: {
@@ -2210,6 +2269,9 @@ export const NavigationPane = React.memo(
                 handleTagToggle,
                 handleTagClick,
                 handleTagCollectionClick,
+                handleSectionContextMenu,
+                firstSectionId,
+                firstInlineFolderPath,
                 handleVirtualFolderToggle,
                 recentNotes.length,
                 getAllDescendantFolders,
@@ -2234,6 +2296,7 @@ export const NavigationPane = React.memo(
                 buildShortcutDragHandlers,
                 hydratedShortcuts,
                 shortcutsExpanded,
+                shouldPinShortcuts,
                 recentNotesExpanded,
                 getFileDisplayName,
                 shortcutDragHandleConfig,

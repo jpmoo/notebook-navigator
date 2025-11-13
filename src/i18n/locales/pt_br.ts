@@ -194,6 +194,10 @@ export const STRINGS_PT_BR = {
             changeBackground: 'Alterar plano de fundo',
             showTag: 'Mostrar tag',
             hideTag: 'Ocultar tag'
+        },
+        navigation: {
+            addSeparator: 'Add separator',
+            removeSeparator: 'Remove separator'
         }
     },
 
@@ -256,6 +260,11 @@ export const STRINGS_PT_BR = {
                 slate: 'Ardósia',
                 stone: 'Pedra'
             }
+        },
+        selectVaultProfile: {
+            title: 'Alterar perfil do cofre',
+            currentBadge: 'Ativo',
+            emptyState: 'Nenhum perfil de cofre disponível.'
         },
         tagOperation: {
             renameTitle: 'Renomear tag {tag}',
@@ -459,6 +468,7 @@ export const STRINGS_PT_BR = {
         revealFile: 'Revelar arquivo',
         search: 'Pesquisar',
         toggleDualPane: 'Alternar layout de painel duplo',
+        selectVaultProfile: 'Alterar perfil do cofre',
         deleteFile: 'Excluir arquivos',
         createNewNote: 'Criar nova nota',
         moveFiles: 'Mover arquivos',
@@ -783,7 +793,7 @@ export const STRINGS_PT_BR = {
             },
             vaultProfiles: {
                 name: 'Perfil do cofre',
-                desc: 'Perfis armazenam visibilidade de tipos de arquivo, pastas ocultas, tags ocultas e notas ocultas. Alterne perfis pelo cabeçalho do painel de navegação.',
+                desc: 'Perfis armazenam visibilidade de tipos de arquivo, pastas ocultas, tags ocultas, notas ocultas, atalhos e banner de navegação. Alterne perfis pelo cabeçalho do painel de navegação.',
                 defaultName: 'Padrão',
                 addButton: 'Adicionar perfil',
                 editButton: 'Editar perfil',
@@ -1030,7 +1040,7 @@ export const STRINGS_PT_BR = {
                 error: 'Falha na limpeza de configurações',
                 loading: 'Verificando metadados...',
                 statusClean: 'Sem metadados para limpar',
-                statusCounts: 'Itens órfãos: {folders} pastas, {tags} tags, {files} arquivos, {pinned} fixações'
+                statusCounts: 'Itens órfãos: {folders} pastas, {tags} tags, {files} arquivos, {pinned} fixações, {separators} separadores'
             },
             rebuildCache: {
                 name: 'Reconstruir cache',

@@ -71,6 +71,7 @@ export interface VaultProfile {
     hiddenTags: string[];
     hiddenFiles: string[];
     navigationBanner: string | null;
+    shortcuts: ShortcutEntry[];
 }
 
 /**
@@ -146,7 +147,6 @@ export interface NotebookNavigatorSettings {
     showUntagged: boolean;
     tagSortOrder: TagSortOrder;
     keepEmptyTagsProperty: boolean;
-    allowTagCreationInAddTagModal: boolean;
 
     // List pane tab
     defaultFolderSort: SortOption;
@@ -221,6 +221,7 @@ export interface NotebookNavigatorSettings {
     tagBackgroundColors: Record<string, string>;
     tagSortOverrides: Record<string, SortOption>;
     tagAppearances: Record<string, TagAppearance>;
+    navigationSeparators: Record<string, boolean>;
     recentColors: string[];
     lastShownVersion: string;
     latestKnownRelease: string;

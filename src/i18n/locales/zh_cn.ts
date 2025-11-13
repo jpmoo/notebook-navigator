@@ -193,6 +193,10 @@ export const STRINGS_ZH_CN = {
             changeBackground: '更改背景',
             showTag: '显示标签',
             hideTag: '隐藏标签'
+        },
+        navigation: {
+            addSeparator: 'Add separator',
+            removeSeparator: 'Remove separator'
         }
     },
 
@@ -255,6 +259,11 @@ export const STRINGS_ZH_CN = {
                 slate: '石板色',
                 stone: '石灰色'
             }
+        },
+        selectVaultProfile: {
+            title: '更改仓库配置文件',
+            currentBadge: '活动',
+            emptyState: '没有可用的仓库配置文件。'
         },
         tagOperation: {
             renameTitle: '重命名标签',
@@ -327,7 +336,6 @@ export const STRINGS_ZH_CN = {
             addPlaceholder: '搜索要添加的标签...',
             removePlaceholder: '选择要移除的标签...',
             createNewTag: '创建新标签: #{tag}',
-            allowCreationToggle: '允许创建新标签',
             instructions: {
                 navigate: '导航',
                 select: '选择',
@@ -459,6 +467,7 @@ export const STRINGS_ZH_CN = {
         revealFile: '显示文件', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: '搜索', // Command palette: Toggle search in the file list (English: Search)
         toggleDualPane: '切换双窗格布局', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
+        selectVaultProfile: '更改仓库配置文件', // Command palette: Opens a modal to choose a different vault profile (English: Switch vault profile)
         deleteFile: '删除文件', // Command palette: Deletes the currently active file (English: Delete file)
         createNewNote: '创建新笔记', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         moveFiles: '移动文件', // Command palette: Move selected files to another folder (English: Move files)
@@ -761,7 +770,7 @@ export const STRINGS_ZH_CN = {
             },
             vaultProfiles: {
                 name: '仓库配置文件',
-                desc: '配置文件存储文件类型可见性、隐藏文件夹、隐藏标签和隐藏笔记。从导航窗格标题切换配置文件。',
+                desc: '配置文件存储文件类型可见性、隐藏文件夹、隐藏标签、隐藏笔记、快捷方式和导航横幅。从导航窗格标题切换配置文件。',
                 defaultName: '默认',
                 addButton: '添加配置文件',
                 editButton: '编辑配置文件',
@@ -982,10 +991,6 @@ export const STRINGS_ZH_CN = {
                 name: '删除最后一个标签后保留 tags 属性',
                 desc: '当所有标签被删除时保留 frontmatter 中的 tags 属性。禁用时,tags 属性将从 frontmatter 中删除。'
             },
-            allowTagCreationInAddTagModal: {
-                name: '允许在添加标签对话框中创建标签',
-                desc: '添加标签时显示创建选项。切换按钮显示在对话框中。'
-            },
             hiddenTags: {
                 name: '隐藏标签',
                 desc: '要隐藏的标签前缀或名称通配符的逗号分隔列表。使用 `tag*` 或 `*tag` 匹配标签名称。隐藏标签也会隐藏所有子标签（例如："归档"隐藏"归档/2024/docs"）。',
@@ -1034,7 +1039,7 @@ export const STRINGS_ZH_CN = {
                 error: '设置清理失败',
                 loading: '正在检查元数据...',
                 statusClean: '没有需要清理的元数据',
-                statusCounts: '孤立项目：{folders} 文件夹，{tags} 标签，{files} 文件，{pinned} 置顶'
+                statusCounts: '孤立项目：{folders} 文件夹，{tags} 标签，{files} 文件，{pinned} 置顶，{separators} 分隔符'
             },
             rebuildCache: {
                 name: '重建缓存',

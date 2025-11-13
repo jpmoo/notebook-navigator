@@ -194,6 +194,10 @@ export const STRINGS_NL = {
             changeBackground: 'Achtergrond wijzigen',
             showTag: 'Tag tonen',
             hideTag: 'Tag verbergen'
+        },
+        navigation: {
+            addSeparator: 'Add separator',
+            removeSeparator: 'Remove separator'
         }
     },
 
@@ -256,6 +260,11 @@ export const STRINGS_NL = {
                 slate: 'Leisteen',
                 stone: 'Steen'
             }
+        },
+        selectVaultProfile: {
+            title: 'Kluisprofiel wijzigen',
+            currentBadge: 'Actief',
+            emptyState: 'Geen kluisprofielen beschikbaar.'
         },
         tagOperation: {
             renameTitle: 'Tag {tag} hernoemen',
@@ -328,7 +337,6 @@ export const STRINGS_NL = {
             addPlaceholder: 'Zoeken naar tag om toe te voegen...',
             removePlaceholder: 'Selecteer tag om te verwijderen...',
             createNewTag: 'Nieuwe tag maken: #{tag}',
-            allowCreationToggle: 'Nieuwe tags aanmaken toestaan',
             instructions: {
                 navigate: 'om te navigeren',
                 select: 'om te selecteren',
@@ -460,6 +468,7 @@ export const STRINGS_NL = {
         revealFile: 'Bestand tonen',
         search: 'Zoeken',
         toggleDualPane: 'Dubbel paneel in-/uitschakelen',
+        selectVaultProfile: 'Kluisprofiel wijzigen',
         deleteFile: 'Bestanden verwijderen',
         createNewNote: 'Nieuwe notitie maken',
         moveFiles: 'Bestanden verplaatsen',
@@ -784,7 +793,7 @@ export const STRINGS_NL = {
             },
             vaultProfiles: {
                 name: 'Kluis profiel',
-                desc: 'Profielen bewaren bestandstypezichtbaarheid, verborgen mappen, verborgen labels en verborgen notities. Wissel van profiel via de koptekst van het navigatiepaneel.',
+                desc: 'Profielen bewaren bestandstypezichtbaarheid, verborgen mappen, verborgen labels, verborgen notities, snelkoppelingen en navigatiebanner. Wissel van profiel via de koptekst van het navigatiepaneel.',
                 defaultName: 'Standaard',
                 addButton: 'Profiel toevoegen',
                 editButton: 'Profiel bewerken',
@@ -984,10 +993,6 @@ export const STRINGS_NL = {
                 name: 'Tags-eigenschap behouden na verwijderen laatste tag',
                 desc: 'De tags frontmatter-eigenschap behouden wanneer alle tags worden verwijderd. Indien uitgeschakeld, wordt de tags-eigenschap verwijderd uit frontmatter.'
             },
-            allowTagCreationInAddTagModal: {
-                name: 'Tags aanmaken in Tag toevoegen-dialoog toestaan',
-                desc: 'Optie om tags te maken weergeven bij het toevoegen van tags. Schakelaar verschijnt in het dialoogvenster.'
-            },
             hiddenTags: {
                 name: 'Tags verbergen',
                 desc: 'Kommagescheiden lijst van tag-prefixen of naam-wildcards. Gebruik tag* of *tag om tagnamen te matchen. Het verbergen van een tag verbergt ook al zijn subtags (bijv. "archive" verbergt "archive/2024/docs").',
@@ -1036,7 +1041,8 @@ export const STRINGS_NL = {
                 error: 'Opschonen van instellingen mislukt',
                 loading: 'Metadata controleren...',
                 statusClean: 'Geen metadata om op te schonen',
-                statusCounts: 'Verweesde items: {folders} mappen, {tags} tags, {files} bestanden, {pinned} pins'
+                statusCounts:
+                    'Verweesde items: {folders} mappen, {tags} tags, {files} bestanden, {pinned} pins, {separators} scheidingslijnen'
             },
             rebuildCache: {
                 name: 'Cache opnieuw opbouwen',

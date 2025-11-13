@@ -192,6 +192,10 @@ export const STRINGS_PL = {
             changeBackground: 'Zmień tło',
             showTag: 'Pokaż tag',
             hideTag: 'Ukryj tag'
+        },
+        navigation: {
+            addSeparator: 'Add separator',
+            removeSeparator: 'Remove separator'
         }
     },
 
@@ -256,6 +260,11 @@ export const STRINGS_PL = {
                 slate: 'Łupkowy',
                 stone: 'Kamienny'
             }
+        },
+        selectVaultProfile: {
+            title: 'Zmień profil sejfu',
+            currentBadge: 'Aktywny',
+            emptyState: 'Brak dostępnych profili sejfu.'
         },
         tagOperation: {
             renameTitle: 'Zmień nazwę tagu {tag}',
@@ -328,7 +337,6 @@ export const STRINGS_PL = {
             addPlaceholder: 'Szukaj tagu do dodania...',
             removePlaceholder: 'Wybierz tag do usunięcia...',
             createNewTag: 'Utwórz nowy tag: #{tag}',
-            allowCreationToggle: 'Zezwalaj na tworzenie nowych tagów',
             instructions: {
                 navigate: 'aby nawigować',
                 select: 'aby wybrać',
@@ -460,6 +468,7 @@ export const STRINGS_PL = {
         revealFile: 'Pokaż plik', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Szukaj', // Command palette: Toggle search in the file list (English: Search)
         toggleDualPane: 'Przełącz układ podwójnego panelu', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
+        selectVaultProfile: 'Zmień profil sejfu', // Command palette: Opens a modal to choose a different vault profile (English: Switch vault profile)
         deleteFile: 'Usuń pliki', // Command palette: Deletes the currently active file (English: Delete file)
         createNewNote: 'Utwórz nową notatkę', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         moveFiles: 'Przenieś pliki', // Command palette: Move selected files to another folder (English: Move files)
@@ -784,7 +793,7 @@ export const STRINGS_PL = {
             },
             vaultProfiles: {
                 name: 'Profil sejfu',
-                desc: 'Profile przechowują widoczność typów plików, ukryte foldery, ukryte tagi i ukryte notatki. Zmień profil z nagłówka panelu nawigacji.',
+                desc: 'Profile przechowują widoczność typów plików, ukryte foldery, ukryte tagi, ukryte notatki, skróty i baner nawigacji. Zmień profil z nagłówka panelu nawigacji.',
                 defaultName: 'Domyślny',
                 addButton: 'Dodaj profil',
                 editButton: 'Edytuj profil',
@@ -983,10 +992,6 @@ export const STRINGS_PL = {
                 name: 'Zachowaj właściwość tags po usunięciu ostatniego tagu',
                 desc: 'Zachowuje właściwość tags we frontmatterze, gdy wszystkie tagi są usuwane. Gdy wyłączone, właściwość tags jest usuwana z frontmattera.'
             },
-            allowTagCreationInAddTagModal: {
-                name: 'Zezwalaj na tworzenie tagów w oknie dodawania tagów',
-                desc: 'Pokaż opcję tworzenia tagów podczas dodawania tagów. Przełącznik pojawia się w oknie modalnym.'
-            },
             hiddenTags: {
                 name: 'Ukryj tagi',
                 desc: 'Lista prefiksów tagów lub symboli wieloznacznych nazw oddzielonych przecinkami. Użyj `tag*` lub `*tag`, aby dopasować nazwy tagów. Ukrycie tagu ukrywa też wszystkie jego pod-tagi (np. "archive" ukrywa "archive/2024/docs").',
@@ -1035,7 +1040,8 @@ export const STRINGS_PL = {
                 error: 'Czyszczenie ustawień nie powiodło się',
                 loading: 'Sprawdzanie metadanych...',
                 statusClean: 'Brak metadanych do wyczyszczenia',
-                statusCounts: 'Osierocone elementy: {folders} folderów, {tags} tagów, {files} plików, {pinned} przypiętych'
+                statusCounts:
+                    'Osierocone elementy: {folders} folderów, {tags} tagów, {files} plików, {pinned} przypiętych, {separators} separatorów'
             },
             rebuildCache: {
                 name: 'Odbuduj pamięć podręczną',

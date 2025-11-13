@@ -193,6 +193,10 @@ export const STRINGS_FR = {
             changeBackground: 'Changer l’arrière-plan',
             showTag: 'Afficher l’étiquette',
             hideTag: 'Masquer l’étiquette'
+        },
+        navigation: {
+            addSeparator: 'Add separator',
+            removeSeparator: 'Remove separator'
         }
     },
 
@@ -255,6 +259,11 @@ export const STRINGS_FR = {
                 slate: 'Ardoise',
                 stone: 'Pierre'
             }
+        },
+        selectVaultProfile: {
+            title: 'Changer le profil du coffre',
+            currentBadge: 'Actif',
+            emptyState: 'Aucun profil de coffre disponible.'
         },
         tagOperation: {
             renameTitle: "Renommer l'étiquette",
@@ -327,7 +336,6 @@ export const STRINGS_FR = {
             addPlaceholder: 'Rechercher une étiquette à ajouter...',
             removePlaceholder: "Sélectionner l'étiquette à supprimer...",
             createNewTag: 'Créer une nouvelle étiquette : #{tag}',
-            allowCreationToggle: 'Autoriser la création de nouvelles étiquettes',
             instructions: {
                 navigate: 'pour naviguer',
                 select: 'pour sélectionner',
@@ -459,6 +467,7 @@ export const STRINGS_FR = {
         revealFile: 'Révéler le fichier', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Rechercher', // Command palette: Toggle search in the file list (English: Search)
         toggleDualPane: 'Basculer la disposition à double panneau', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
+        selectVaultProfile: 'Changer le profil du coffre', // Command palette: Opens a modal to choose a different vault profile (English: Switch vault profile)
         deleteFile: 'Supprimer les fichiers', // Command palette: Deletes the currently active file (English: Delete file)
         createNewNote: 'Créer une nouvelle note', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         moveFiles: 'Déplacer les fichiers', // Command palette: Move selected files to another folder (English: Move files)
@@ -763,7 +772,7 @@ export const STRINGS_FR = {
             },
             vaultProfiles: {
                 name: 'Profil du coffre',
-                desc: "Les profils stockent la visibilité des types de fichiers, les dossiers cachés, les étiquettes cachées et les notes cachées. Changez de profil depuis l'en-tête du panneau de navigation.",
+                desc: "Les profils stockent la visibilité des types de fichiers, les dossiers cachés, les étiquettes cachées, les notes cachées, les raccourcis et la bannière de navigation. Changez de profil depuis l'en-tête du panneau de navigation.",
                 defaultName: 'Par défaut',
                 addButton: 'Ajouter un profil',
                 editButton: 'Modifier le profil',
@@ -985,10 +994,6 @@ export const STRINGS_FR = {
                 name: 'Conserver la propriété tags après suppression de la dernière étiquette',
                 desc: 'Conserve la propriété tags dans le frontmatter lorsque toutes les étiquettes sont supprimées. Si désactivé, la propriété tags est supprimée du frontmatter.'
             },
-            allowTagCreationInAddTagModal: {
-                name: "Autoriser la création d'étiquettes dans le modal d'ajout",
-                desc: "Afficher l'option de création d'étiquette lors de l'ajout d'étiquettes. Le bouton apparaît dans le modal."
-            },
             hiddenTags: {
                 name: 'Masquer les étiquettes',
                 desc: 'Liste séparée par des virgules de préfixes ou de jokers de nom d\'étiquettes à masquer. Utilisez `tag*` ou `*tag` pour faire correspondre les noms d\'étiquette. Masquer une étiquette masque aussi toutes ses sous-étiquettes (par ex. "archive" masque "archive/2024/docs").',
@@ -1037,7 +1042,8 @@ export const STRINGS_FR = {
                 error: 'Échec du nettoyage des paramètres',
                 loading: 'Vérification des métadonnées...',
                 statusClean: 'Aucune métadonnée à nettoyer',
-                statusCounts: 'Éléments orphelins: {folders} dossiers, {tags} étiquettes, {files} fichiers, {pinned} épingles'
+                statusCounts:
+                    'Éléments orphelins: {folders} dossiers, {tags} étiquettes, {files} fichiers, {pinned} épingles, {separators} séparateurs'
             },
             rebuildCache: {
                 name: 'Reconstruire le cache',

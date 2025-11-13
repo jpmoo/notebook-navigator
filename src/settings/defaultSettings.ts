@@ -40,7 +40,8 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
             hiddenFolders: [],
             hiddenTags: [],
             hiddenFiles: [],
-            navigationBanner: null
+            navigationBanner: null,
+            shortcuts: []
         }
     ],
     vaultProfile: 'default',
@@ -122,7 +123,6 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     showUntagged: false,
     tagSortOrder: 'alpha-asc',
     keepEmptyTagsProperty: false,
-    allowTagCreationInAddTagModal: true,
 
     // List pane tab
     defaultFolderSort: 'modified-desc',
@@ -206,6 +206,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     tagBackgroundColors: {},
     tagSortOverrides: {},
     tagAppearances: {} as Record<string, TagAppearance>,
+    navigationSeparators: {},
     recentColors: [],
     lastShownVersion: '',
     latestKnownRelease: '',

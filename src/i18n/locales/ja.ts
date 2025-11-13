@@ -193,6 +193,10 @@ export const STRINGS_JA = {
             changeBackground: '背景色を変更',
             showTag: 'タグを表示',
             hideTag: 'タグを非表示'
+        },
+        navigation: {
+            addSeparator: 'Add separator',
+            removeSeparator: 'Remove separator'
         }
     },
 
@@ -255,6 +259,11 @@ export const STRINGS_JA = {
                 slate: 'スレート',
                 stone: 'ストーン'
             }
+        },
+        selectVaultProfile: {
+            title: '保管庫のプロファイルを変更',
+            currentBadge: 'アクティブ',
+            emptyState: '利用できる保管庫プロファイルがありません。'
         },
         tagOperation: {
             renameTitle: 'タグの名前を変更',
@@ -327,7 +336,6 @@ export const STRINGS_JA = {
             addPlaceholder: '追加するタグを検索...',
             removePlaceholder: '削除するタグを選択...',
             createNewTag: '新しいタグを作成: #{tag}',
-            allowCreationToggle: '新しいタグの作成を許可',
             instructions: {
                 navigate: 'でナビゲート',
                 select: 'で選択',
@@ -459,6 +467,7 @@ export const STRINGS_JA = {
         revealFile: 'ファイルを表示', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: '検索', // Command palette: Toggle search in the file list (English: Search)
         toggleDualPane: 'デュアルペインレイアウトを切り替え', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
+        selectVaultProfile: '保管庫のプロファイルを変更', // Command palette: Opens a modal to choose a different vault profile (English: Switch vault profile)
         deleteFile: 'ファイルを削除', // Command palette: Deletes the currently active file (English: Delete file)
         createNewNote: '新規ノートを作成', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         moveFiles: 'ファイルを移動', // Command palette: Move selected files to another folder (English: Move files)
@@ -762,7 +771,7 @@ export const STRINGS_JA = {
             },
             vaultProfiles: {
                 name: '保管庫プロファイル',
-                desc: 'プロファイルは、ファイルタイプの表示、非表示フォルダ、非表示タグ、非表示ノートを保存します。ナビゲーションペインのヘッダーからプロファイルを切り替えます。',
+                desc: 'プロファイルは、ファイルタイプの表示、非表示フォルダ、非表示タグ、非表示ノート、ショートカット、ナビゲーションバナーを保存します。ナビゲーションペインのヘッダーからプロファイルを切り替えます。',
                 defaultName: 'デフォルト',
                 addButton: 'プロファイルを追加',
                 editButton: 'プロファイルを編集',
@@ -984,10 +993,6 @@ export const STRINGS_JA = {
                 name: '最後のタグを削除した後も tags プロパティを保持',
                 desc: 'すべてのタグが削除されても frontmatter の tags プロパティを保持します。無効にすると、tags プロパティは frontmatter から削除されます。'
             },
-            allowTagCreationInAddTagModal: {
-                name: 'タグ追加モーダルでタグ作成を許可',
-                desc: 'タグ追加時に作成オプションを表示します。トグルはモーダル内に表示されます。'
-            },
             hiddenTags: {
                 name: 'タグを非表示',
                 desc: '非表示にするタグの接頭辞または名前ワイルドカードのカンマ区切りリスト。`tag*` や `*tag` でタグ名に一致します。タグを非表示にすると、すべてのサブタグも非表示になります（例："アーカイブ"で"アーカイブ/2024/docs"も非表示）。',
@@ -1036,7 +1041,7 @@ export const STRINGS_JA = {
                 error: '設定のクリーンアップに失敗しました',
                 loading: 'メタデータを確認中...',
                 statusClean: 'クリーンアップするメタデータはありません',
-                statusCounts: '孤立した項目: {folders} フォルダ, {tags} タグ, {files} ファイル, {pinned} ピン'
+                statusCounts: '孤立した項目: {folders} フォルダ, {tags} タグ, {files} ファイル, {pinned} ピン, {separators} セパレーター'
             },
             rebuildCache: {
                 name: 'キャッシュを再構築',

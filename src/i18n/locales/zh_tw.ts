@@ -193,6 +193,10 @@ export const STRINGS_ZH_TW = {
             changeBackground: '變更背景',
             showTag: '顯示標籤',
             hideTag: '隱藏標籤'
+        },
+        navigation: {
+            addSeparator: 'Add separator',
+            removeSeparator: 'Remove separator'
         }
     },
 
@@ -255,6 +259,11 @@ export const STRINGS_ZH_TW = {
                 slate: '岩灰色',
                 stone: '石色'
             }
+        },
+        selectVaultProfile: {
+            title: '更改倉庫設定檔',
+            currentBadge: '使用中',
+            emptyState: '沒有可用的倉庫設定檔。'
         },
         tagOperation: {
             renameTitle: '重新命名標籤 {tag}',
@@ -327,7 +336,6 @@ export const STRINGS_ZH_TW = {
             addPlaceholder: '搜尋要新增的標籤...',
             removePlaceholder: '選取要移除的標籤...',
             createNewTag: '建立新標籤：#{tag}',
-            allowCreationToggle: '允許建立新標籤',
             instructions: {
                 navigate: '導覽',
                 select: '選取',
@@ -458,6 +466,7 @@ export const STRINGS_ZH_TW = {
         revealFile: '顯示檔案', // 指令面板：在導覽器中顯示並選取目前活動的檔案 (英文: Reveal file)
         search: '搜尋', // 指令面板：在檔案清單中切換搜尋 (英文: Search)
         toggleDualPane: '切換雙窗格佈局', // 指令面板：在單一窗格和雙窗格佈局之間切換 (英文: Toggle dual pane layout)
+        selectVaultProfile: '更改倉庫設定檔', // 指令面板：開啟對話框以選擇不同的倉庫設定檔 (英文: Switch vault profile)
         deleteFile: '刪除檔案', // 指令面板：刪除目前活動的檔案 (英文: Delete file)
         createNewNote: '建立新筆記', // 指令面板：在目前選取的資料夾中建立新筆記 (英文: Create new note)
         moveFiles: '移動檔案', // 指令面板：將選取的檔案移動至另一個資料夾 (英文: Move files)
@@ -781,7 +790,7 @@ export const STRINGS_ZH_TW = {
             },
             vaultProfiles: {
                 name: '倉庫設定檔',
-                desc: '設定檔儲存檔案類型可見性、隱藏資料夾、隱藏標籤和隱藏筆記。從導覽窗格標題切換設定檔。',
+                desc: '設定檔儲存檔案類型可見性、隱藏資料夾、隱藏標籤、隱藏筆記、捷徑和導覽橫幅。從導覽窗格標題切換設定檔。',
                 defaultName: '預設',
                 addButton: '新增設定檔',
                 editButton: '編輯設定檔',
@@ -980,10 +989,6 @@ export const STRINGS_ZH_TW = {
                 name: '刪除最後一個標籤後保留 tags 屬性',
                 desc: '當所有標籤被刪除時保留 frontmatter 中的 tags 屬性。停用時,tags 屬性將從 frontmatter 中刪除。'
             },
-            allowTagCreationInAddTagModal: {
-                name: '允許在新增標籤對話框中建立標籤',
-                desc: '新增標籤時顯示建立選項。切換按鈕顯示在對話框中。'
-            },
             hiddenTags: {
                 name: '隱藏標籤',
                 desc: '以逗號分隔的標籤前綴或名稱萬用字元清單。使用 tag* 或 *tag 來匹配標籤名稱。隱藏一個標籤也會隱藏其所有子標籤 (例如 "archive" 隱藏 "archive/2024/docs")。',
@@ -1032,7 +1037,7 @@ export const STRINGS_ZH_TW = {
                 error: '設定清理失敗',
                 loading: '正在檢查中繼資料...',
                 statusClean: '沒有要清理的中繼資料',
-                statusCounts: '孤立項目：{folders} 個資料夾、{tags} 個標籤、{files} 個檔案、{pinned} 個釘選'
+                statusCounts: '孤立項目：{folders} 個資料夾、{tags} 個標籤、{files} 個檔案、{pinned} 個釘選、{separators} 個分隔符'
             },
             rebuildCache: {
                 name: '重建快取',

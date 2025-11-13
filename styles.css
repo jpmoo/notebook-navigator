@@ -117,6 +117,7 @@ body {
 
     /* -- Navigation Pane -- */
     --nn-theme-nav-bg: var(--background-secondary);
+    --nn-theme-nav-separator-color: var(--text-muted);
     --nn-theme-pinned-shortcut-shadow-color: rgba(0, 0, 0, 0.05);
 
     /* -- Folder & Tag Items -- */
@@ -1011,6 +1012,7 @@ body {
 .nn-nav-top-spacer {
     height: 8px;
     flex-shrink: 0;
+    position: relative;
 }
 
 .nn-nav-bottom-spacer {
@@ -1021,12 +1023,31 @@ body {
 .nn-nav-list-spacer {
     height: 8px;
     flex-shrink: 0;
+    position: relative;
 }
 
 .nn-nav-root-spacer {
     height: var(--nn-nav-root-spacing, 0px);
     flex-shrink: 0;
     pointer-events: none;
+}
+
+.nn-nav-spacer--with-separator::after {
+    content: '';
+    position: absolute;
+    left: var(--nn-scroller-padding);
+    right: var(--nn-scroller-padding);
+    top: 50%;
+    transform: translateY(-0.5px);
+    height: 1px;
+    background-image: linear-gradient(
+        90deg,
+        transparent 0%,
+        var(--nn-theme-nav-separator-color) 15%,
+        var(--nn-theme-nav-separator-color) 85%,
+        transparent 100%
+    );
+    opacity: 0.3;
 }
 
 /* List pane spacers - match navigation pane for consistency */
@@ -2943,26 +2964,6 @@ body.nn-resizing {
     margin-top: 16px;
 }
 
-/* Tag suggest modal create toggle */
-.nn-tag-suggest-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin: 0 0 8px;
-    padding: 0 4px;
-}
-
-.nn-tag-suggest-toggle-label {
-    font-size: var(--font-ui-small);
-    color: var(--text-muted);
-}
-
-.nn-tag-suggest-toggle-control {
-    display: flex;
-    align-items: center;
-}
-
 .nn-folder-note-type-modal .modal-content {
     padding-top: 16px;
 }
@@ -2987,6 +2988,75 @@ body.nn-resizing {
 
 .nn-folder-note-type-buttons button {
     width: 100%;
+}
+
+/* ========================================================================
+   Select Vault Profile Modal
+   ======================================================================== */
+
+.modal.nn-select-profile-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-3);
+    padding: var(--size-4-4);
+}
+
+.nn-select-profile-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-2);
+    width: 100%;
+}
+
+.nn-select-profile-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: var(--size-2-3) var(--size-4-2);
+    border-radius: var(--radius-m);
+    background-color: transparent;
+    color: var(--text-normal);
+    cursor: pointer;
+    transition: background-color 120ms ease;
+}
+
+.nn-select-profile-item:focus {
+    outline: none;
+}
+
+.nn-select-profile-item:focus-visible {
+    box-shadow: 0 0 0 2px var(--interactive-accent);
+}
+
+.nn-select-profile-item:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.nn-select-profile-item.is-selected {
+    background-color: var(--background-modifier-hover);
+}
+
+.nn-select-profile-item.is-current .nn-select-profile-item-name {
+    color: var(--interactive-accent);
+}
+
+.nn-select-profile-item-name {
+    font-size: var(--font-ui-medium);
+}
+
+.nn-select-profile-item-badge {
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+    font-weight: var(--font-semibold);
+}
+
+.nn-select-profile-empty {
+    margin: 0;
+    padding: var(--size-4-4) 0;
+    color: var(--text-muted);
+    font-size: var(--font-ui-small);
+    text-align: center;
 }
 
 /* ========================================================================
@@ -3563,6 +3633,10 @@ body.nn-resizing {
 
 .is-mobile .nn-toolbar-visibility-group {
     width: 100%;
+}
+
+.is-mobile .nn-toolbar-visibility-group-label {
+    text-align: center;
 }
 
 .is-mobile .nn-toolbar-visibility-grid {
@@ -4847,6 +4921,15 @@ settings:
         id: nn-theme-nav-bg
         title: Navigation pane background
         description: Background color of the navigation pane.
+        type: variable-themed-color
+        format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
+    -
+        id: nn-theme-nav-separator-color
+        title: Navigation separator color
+        description: Line color for separators rendered inside navigation spacers.
         type: variable-themed-color
         format: hex
         default-light: '#'
