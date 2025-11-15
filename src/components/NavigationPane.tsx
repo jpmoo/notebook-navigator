@@ -326,13 +326,13 @@ export const NavigationPane = React.memo(
             const stored = localStorage.get<unknown>(STORAGE_KEYS.navigationSectionOrderKey);
             return normalizeNavigationSectionOrderInput(stored);
         });
-        // Tracks whether the notes/folders section is expanded or collapsed
-        const [notesSectionExpanded, setNotesSectionExpanded] = useState(true);
+        // Tracks whether the folders section is expanded or collapsed
+        const [foldersSectionExpanded, setFoldersSectionExpanded] = useState(true);
         // Tracks whether the tags section is expanded or collapsed
         const [tagsSectionExpanded, setTagsSectionExpanded] = useState(true);
-        // Toggles the expanded state of the notes/folders section
-        const handleToggleNotesSection = useCallback(() => {
-            setNotesSectionExpanded(prev => !prev);
+        // Toggles the expanded state of the folders section
+        const handleToggleFoldersSection = useCallback(() => {
+            setFoldersSectionExpanded(prev => !prev);
         }, []);
 
         // Toggles the expanded state of the tags section
@@ -942,9 +942,9 @@ export const NavigationPane = React.memo(
             metadataService,
             withDragGhost,
             isRootReorderMode,
-            notesSectionExpanded,
+            foldersSectionExpanded,
             tagsSectionExpanded,
-            handleToggleNotesSection,
+            handleToggleFoldersSection,
             handleToggleTagsSection,
             useReorderMenu: useMobileReorderMenu
         });
@@ -2022,9 +2022,9 @@ export const NavigationPane = React.memo(
                     case NavigationPaneItemType.FOLDER: {
                         const folderPath = item.data.path;
                         const countInfo = folderCounts.get(folderPath);
-                        // Disable context menu (including separator options) for the first inline folder when shortcuts are pinned
+                        // Hide separator actions for the first inline folder when shortcuts are pinned
                         // This prevents users from adding/removing separators on the first item after pinned shortcuts
-                        const shouldDisableFolderContextMenu =
+                        const shouldHideFolderSeparatorActions =
                             shouldPinShortcuts && firstInlineFolderPath !== null && folderPath === firstInlineFolderPath;
 
                         return (
@@ -2064,7 +2064,7 @@ export const NavigationPane = React.memo(
                                 countInfo={countInfo}
                                 excludedFolders={item.parsedExcludedFolders || []}
                                 vaultChangeVersion={vaultChangeVersion}
-                                disableContextMenu={shouldDisableFolderContextMenu}
+                                disableNavigationSeparatorActions={shouldHideFolderSeparatorActions}
                             />
                         );
                     }
@@ -2456,7 +2456,7 @@ export const NavigationPane = React.memo(
                             tagItems={tagReorderItems}
                             showRootFolderSection={showRootFolderSection}
                             showRootTagSection={showRootTagSection}
-                            notesSectionExpanded={notesSectionExpanded}
+                            foldersSectionExpanded={foldersSectionExpanded}
                             tagsSectionExpanded={tagsSectionExpanded}
                             showRootFolderReset={settings.rootFolderOrder.length > 0}
                             showRootTagReset={settings.rootTagOrder.length > 0}

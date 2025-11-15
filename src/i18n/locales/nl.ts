@@ -196,8 +196,8 @@ export const STRINGS_NL = {
             hideTag: 'Tag verbergen'
         },
         navigation: {
-            addSeparator: 'Add separator',
-            removeSeparator: 'Remove separator'
+            addSeparator: 'Scheidingslijn toevoegen',
+            removeSeparator: 'Scheidingslijn verwijderen'
         }
     },
 
@@ -469,6 +469,9 @@ export const STRINGS_NL = {
         search: 'Zoeken',
         toggleDualPane: 'Dubbel paneel in-/uitschakelen',
         selectVaultProfile: 'Kluisprofiel wijzigen',
+        selectVaultProfile1: 'Kluisprofiel 1 selecteren',
+        selectVaultProfile2: 'Kluisprofiel 2 selecteren',
+        selectVaultProfile3: 'Kluisprofiel 3 selecteren',
         deleteFile: 'Bestanden verwijderen',
         createNewNote: 'Nieuwe notitie maken',
         moveFiles: 'Bestanden verplaatsen',
@@ -1084,8 +1087,8 @@ export const STRINGS_NL = {
                 }
             },
             useFrontmatterDates: {
-                name: 'Metadata uit frontmatter lezen',
-                desc: 'Notitienamen, tijdstempels, pictogrammen en kleuren uit frontmatter lezen wanneer beschikbaar, met terugval naar bestandssysteemwaarden of instellingen'
+                name: 'Frontmatter metadata gebruiken',
+                desc: 'Frontmatter gebruiken voor notitienaam, tijdstempels, pictogrammen en kleuren'
             },
             frontmatterIconField: {
                 name: 'Pictogramveld',
@@ -1100,10 +1103,6 @@ export const STRINGS_NL = {
             frontmatterSaveMetadata: {
                 name: 'Pictogrammen en kleuren opslaan in frontmatter',
                 desc: 'Bestandspictogrammen en -kleuren automatisch naar frontmatter schrijven met behulp van de hierboven geconfigureerde velden.'
-            },
-            frontmatterIconizeFormat: {
-                name: 'Opslaan in Iconize-formaat',
-                desc: 'Pictogrammen opslaan met Iconize-formaat (bijv. LiHome, FasUser, SiGithub) in plaats van plugin-formaat (bijv. home, fontawesome-solid:user, simple-icons:github).'
             },
             frontmatterMigration: {
                 name: 'Pictogrammen en kleuren migreren vanuit instellingen',

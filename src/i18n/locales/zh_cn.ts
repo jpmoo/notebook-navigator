@@ -195,8 +195,8 @@ export const STRINGS_ZH_CN = {
             hideTag: '隐藏标签'
         },
         navigation: {
-            addSeparator: 'Add separator',
-            removeSeparator: 'Remove separator'
+            addSeparator: '添加分隔符',
+            removeSeparator: '移除分隔符'
         }
     },
 
@@ -468,6 +468,9 @@ export const STRINGS_ZH_CN = {
         search: '搜索', // Command palette: Toggle search in the file list (English: Search)
         toggleDualPane: '切换双窗格布局', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         selectVaultProfile: '更改仓库配置文件', // Command palette: Opens a modal to choose a different vault profile (English: Switch vault profile)
+        selectVaultProfile1: '切换到仓库配置文件 1', // Command palette: Activates the first vault profile without opening the modal (English: Select vault profile 1)
+        selectVaultProfile2: '切换到仓库配置文件 2', // Command palette: Activates the second vault profile without opening the modal (English: Select vault profile 2)
+        selectVaultProfile3: '切换到仓库配置文件 3', // Command palette: Activates the third vault profile without opening the modal (English: Select vault profile 3)
         deleteFile: '删除文件', // Command palette: Deletes the currently active file (English: Delete file)
         createNewNote: '创建新笔记', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         moveFiles: '移动文件', // Command palette: Move selected files to another folder (English: Move files)
@@ -1081,8 +1084,8 @@ export const STRINGS_ZH_CN = {
                 }
             },
             useFrontmatterDates: {
-                name: '从前言读取元数据',
-                desc: '如果可用，从前言读取笔记名称、时间戳、图标和颜色，否则使用文件系统值或设置'
+                name: '使用前言元数据',
+                desc: '使用前言设置笔记名称、时间戳、图标和颜色'
             },
             frontmatterNameField: {
                 name: '名称字段',
@@ -1102,10 +1105,6 @@ export const STRINGS_ZH_CN = {
             frontmatterSaveMetadata: {
                 name: '将图标和颜色保存到前言',
                 desc: '使用上面配置的字段自动将文件图标和颜色写入前言。'
-            },
-            frontmatterIconizeFormat: {
-                name: '以 Iconize 格式保存',
-                desc: '使用 Iconize 格式（例如 LiHome, FasUser, SiGithub）保存图标，而不是插件格式（例如 home, fontawesome-solid:user, simple-icons:github）。'
             },
             frontmatterMigration: {
                 name: '从设置迁移图标和颜色',

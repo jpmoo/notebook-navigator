@@ -196,8 +196,8 @@ export const STRINGS_IT = {
             hideTag: 'Nascondi tag'
         },
         navigation: {
-            addSeparator: 'Add separator',
-            removeSeparator: 'Remove separator'
+            addSeparator: 'Aggiungi separatore',
+            removeSeparator: 'Rimuovi separatore'
         }
     },
 
@@ -469,6 +469,9 @@ export const STRINGS_IT = {
         search: 'Cerca',
         toggleDualPane: 'Attiva/disattiva layout pannello doppio',
         selectVaultProfile: 'Cambia profilo del vault',
+        selectVaultProfile1: 'Cambia al profilo del vault 1',
+        selectVaultProfile2: 'Cambia al profilo del vault 2',
+        selectVaultProfile3: 'Cambia al profilo del vault 3',
         deleteFile: 'Elimina file',
         createNewNote: 'Crea nuova nota',
         moveFiles: 'Sposta file',
@@ -1083,8 +1086,8 @@ export const STRINGS_IT = {
                 }
             },
             useFrontmatterDates: {
-                name: 'Leggi metadati dal frontmatter',
-                desc: 'Leggi nomi note, timestamp, icone e colori dal frontmatter quando disponibile, tornando ai valori del file system o impostazioni'
+                name: 'Usa metadati del frontmatter',
+                desc: 'Usa frontmatter per nome nota, timestamp, icone e colori'
             },
             frontmatterIconField: {
                 name: 'Campo icona',
@@ -1099,10 +1102,6 @@ export const STRINGS_IT = {
             frontmatterSaveMetadata: {
                 name: 'Salva icone e colori in frontmatter',
                 desc: 'Scrivi automaticamente icone e colori file in frontmatter usando i campi configurati sopra.'
-            },
-            frontmatterIconizeFormat: {
-                name: 'Salva in formato Iconize',
-                desc: 'Salva icone usando formato Iconize (es. LiHome, FasUser, SiGithub) invece del formato plugin (es. home, fontawesome-solid:user, simple-icons:github).'
             },
             frontmatterMigration: {
                 name: 'Migra icone e colori dalle impostazioni',

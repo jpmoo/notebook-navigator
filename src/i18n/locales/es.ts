@@ -195,8 +195,8 @@ export const STRINGS_ES = {
             hideTag: 'Ocultar etiqueta'
         },
         navigation: {
-            addSeparator: 'Add separator',
-            removeSeparator: 'Remove separator'
+            addSeparator: 'Agregar separador',
+            removeSeparator: 'Eliminar separador'
         }
     },
 
@@ -468,6 +468,9 @@ export const STRINGS_ES = {
         search: 'Buscar', // Command palette: Toggle search in the file list (English: Search)
         toggleDualPane: 'Alternar diseño de doble panel', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         selectVaultProfile: 'Cambiar perfil de bóveda', // Command palette: Opens a modal to choose a different vault profile (English: Switch vault profile)
+        selectVaultProfile1: 'Cambiar al perfil de bóveda 1', // Command palette: Activates the first vault profile without opening the modal (English: Select vault profile 1)
+        selectVaultProfile2: 'Cambiar al perfil de bóveda 2', // Command palette: Activates the second vault profile without opening the modal (English: Select vault profile 2)
+        selectVaultProfile3: 'Cambiar al perfil de bóveda 3', // Command palette: Activates the third vault profile without opening the modal (English: Select vault profile 3)
         deleteFile: 'Eliminar archivos', // Command palette: Deletes the currently active file (English: Delete file)
         createNewNote: 'Crear nueva nota', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         moveFiles: 'Mover archivos', // Command palette: Move selected files to another folder (English: Move files)
@@ -1083,8 +1086,8 @@ export const STRINGS_ES = {
                 }
             },
             useFrontmatterDates: {
-                name: 'Leer metadatos del frontmatter',
-                desc: 'Leer nombres de notas, marcas de tiempo, iconos y colores del frontmatter cuando estén disponibles, usando valores del sistema o ajustes como respaldo'
+                name: 'Usar metadatos del frontmatter',
+                desc: 'Usar frontmatter para nombre de nota, marcas de tiempo, iconos y colores'
             },
             frontmatterNameField: {
                 name: 'Campo de nombre',
@@ -1104,10 +1107,6 @@ export const STRINGS_ES = {
             frontmatterSaveMetadata: {
                 name: 'Guardar iconos y colores en el frontmatter',
                 desc: 'Escribe automáticamente los iconos y colores de archivo en el frontmatter usando los campos configurados arriba.'
-            },
-            frontmatterIconizeFormat: {
-                name: 'Guardar en formato Iconize',
-                desc: 'Guarda iconos usando el formato Iconize (ej. LiHome, FasUser, SiGithub) en lugar del formato del plugin (ej. home, fontawesome-solid:user, simple-icons:github).'
             },
             frontmatterMigration: {
                 name: 'Migrar iconos y colores desde los ajustes',

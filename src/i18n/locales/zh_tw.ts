@@ -195,8 +195,8 @@ export const STRINGS_ZH_TW = {
             hideTag: '隱藏標籤'
         },
         navigation: {
-            addSeparator: 'Add separator',
-            removeSeparator: 'Remove separator'
+            addSeparator: '新增分隔線',
+            removeSeparator: '移除分隔線'
         }
     },
 
@@ -467,6 +467,9 @@ export const STRINGS_ZH_TW = {
         search: '搜尋', // 指令面板：在檔案清單中切換搜尋 (英文: Search)
         toggleDualPane: '切換雙窗格佈局', // 指令面板：在單一窗格和雙窗格佈局之間切換 (英文: Toggle dual pane layout)
         selectVaultProfile: '更改倉庫設定檔', // 指令面板：開啟對話框以選擇不同的倉庫設定檔 (英文: Switch vault profile)
+        selectVaultProfile1: '切換到倉庫設定檔 1', // 指令面板：不開對話框直接啟用第一個倉庫設定檔 (英文: Select vault profile 1)
+        selectVaultProfile2: '切換到倉庫設定檔 2', // 指令面板：不開對話框直接啟用第二個倉庫設定檔 (英文: Select vault profile 2)
+        selectVaultProfile3: '切換到倉庫設定檔 3', // 指令面板：不開對話框直接啟用第三個倉庫設定檔 (英文: Select vault profile 3)
         deleteFile: '刪除檔案', // 指令面板：刪除目前活動的檔案 (英文: Delete file)
         createNewNote: '建立新筆記', // 指令面板：在目前選取的資料夾中建立新筆記 (英文: Create new note)
         moveFiles: '移動檔案', // 指令面板：將選取的檔案移動至另一個資料夾 (英文: Move files)
@@ -1079,8 +1082,8 @@ export const STRINGS_ZH_TW = {
                 }
             },
             useFrontmatterDates: {
-                name: '從 frontmatter 讀取中繼資料',
-                desc: '可用時從 frontmatter 讀取筆記名稱、時間戳、圖示和顏色，否則退回至檔案系統值或設定'
+                name: '使用 frontmatter 中繼資料',
+                desc: '使用 frontmatter 作為筆記名稱、時間戳、圖示和顏色'
             },
             frontmatterNameField: {
                 name: '名稱欄位',
@@ -1100,10 +1103,6 @@ export const STRINGS_ZH_TW = {
             frontmatterSaveMetadata: {
                 name: '將圖示和顏色儲存至 frontmatter',
                 desc: '使用上方設定的欄位自動將檔案圖示和顏色寫入 frontmatter。'
-            },
-            frontmatterIconizeFormat: {
-                name: '以 Iconize 格式儲存',
-                desc: '使用 Iconize 格式（例如 LiHome, FasUser, SiGithub）儲存圖示，而不是外掛格式（例如 home, fontawesome-solid:user, simple-icons:github）。'
             },
             frontmatterMigration: {
                 name: '從設定移轉圖示和顏色',

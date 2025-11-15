@@ -467,6 +467,9 @@ export const STRINGS_EN = {
         search: 'Search', // Command palette: Toggle search in the file list (English: Search)
         toggleDualPane: 'Toggle dual pane layout', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         selectVaultProfile: 'Select vault profile', // Command palette: Opens a modal to choose a different vault profile (English: Select vault profile)
+        selectVaultProfile1: 'Select vault profile 1', // Command palette: Activates the first vault profile without opening the modal (English: Select vault profile 1)
+        selectVaultProfile2: 'Select vault profile 2', // Command palette: Activates the second vault profile without opening the modal (English: Select vault profile 2)
+        selectVaultProfile3: 'Select vault profile 3', // Command palette: Activates the third vault profile without opening the modal (English: Select vault profile 3)
         deleteFile: 'Delete files', // Command palette: Deletes the currently active file (English: Delete file)
         createNewNote: 'Create new note', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         moveFiles: 'Move files', // Command palette: Move selected files to another folder (English: Move files)
@@ -1080,8 +1083,8 @@ export const STRINGS_EN = {
                 }
             },
             useFrontmatterDates: {
-                name: 'Read metadata from frontmatter',
-                desc: 'Read note names, timestamps, icons, and colors from frontmatter when available, falling back to file system values or settings'
+                name: 'Use frontmatter metadata',
+                desc: 'Use frontmatter for note name, timestamps, icons, and colors'
             },
             frontmatterIconField: {
                 name: 'Icon field',
@@ -1096,10 +1099,6 @@ export const STRINGS_EN = {
             frontmatterSaveMetadata: {
                 name: 'Save icons and colors to frontmatter',
                 desc: 'Automatically write file icons and colors to frontmatter using the configured fields above.'
-            },
-            frontmatterIconizeFormat: {
-                name: 'Save in Iconize format',
-                desc: 'Save icons using Iconize format (e.g. LiHome, FasUser, SiGithub) instead of plugin format (e.g. home, fontawesome-solid:user, simple-icons:github).'
             },
             frontmatterMigration: {
                 name: 'Migrate icons and colors from settings',

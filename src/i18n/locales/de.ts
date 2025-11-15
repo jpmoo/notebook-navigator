@@ -197,8 +197,8 @@ export const STRINGS_DE = {
             hideTag: 'Tag ausblenden'
         },
         navigation: {
-            addSeparator: 'Add separator',
-            removeSeparator: 'Remove separator'
+            addSeparator: 'Trennlinie hinzufügen',
+            removeSeparator: 'Trennlinie entfernen'
         }
     },
 
@@ -470,6 +470,9 @@ export const STRINGS_DE = {
         search: 'Suchen', // Command palette: Toggle search in the file list (English: Search)
         toggleDualPane: 'Doppelbereichslayout umschalten', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         selectVaultProfile: 'Tresorprofil wechseln', // Command palette: Opens a modal to choose a different vault profile (English: Switch vault profile)
+        selectVaultProfile1: 'Tresorprofil 1 auswählen', // Command palette: Activates the first vault profile without opening the modal (English: Select vault profile 1)
+        selectVaultProfile2: 'Tresorprofil 2 auswählen', // Command palette: Activates the second vault profile without opening the modal (English: Select vault profile 2)
+        selectVaultProfile3: 'Tresorprofil 3 auswählen', // Command palette: Activates the third vault profile without opening the modal (English: Select vault profile 3)
         deleteFile: 'Dateien löschen', // Command palette: Deletes the currently active file (English: Delete file)
         createNewNote: 'Neue Notiz erstellen', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         moveFiles: 'Dateien verschieben', // Command palette: Move selected files to another folder (English: Move files)
@@ -1084,8 +1087,8 @@ export const STRINGS_DE = {
                 }
             },
             useFrontmatterDates: {
-                name: 'Metadaten aus Frontmatter lesen',
-                desc: 'Notiznamen, Zeitstempel, Icons und Farben aus dem Frontmatter lesen, falls vorhanden, ansonsten Dateisystemwerte oder Einstellungen verwenden'
+                name: 'Frontmatter-Metadaten verwenden',
+                desc: 'Frontmatter für Notizname, Zeitstempel, Icons und Farben verwenden'
             },
             frontmatterNameField: {
                 name: 'Namensfeld',
@@ -1105,10 +1108,6 @@ export const STRINGS_DE = {
             frontmatterSaveMetadata: {
                 name: 'Icons und Farben im Frontmatter speichern',
                 desc: 'Schreibt Datei-Icons und Farben automatisch ins Frontmatter über die oben konfigurierten Felder.'
-            },
-            frontmatterIconizeFormat: {
-                name: 'Im Iconize-Format speichern',
-                desc: 'Icons im Iconize-Format speichern (z.B. LiHome, FasUser, SiGithub) statt im Plugin-Format (z.B. home, fontawesome-solid:user, simple-icons:github).'
             },
             frontmatterMigration: {
                 name: 'Icons und Farben aus Einstellungen migrieren',

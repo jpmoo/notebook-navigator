@@ -195,8 +195,8 @@ export const STRINGS_FR = {
             hideTag: 'Masquer l’étiquette'
         },
         navigation: {
-            addSeparator: 'Add separator',
-            removeSeparator: 'Remove separator'
+            addSeparator: 'Ajouter un séparateur',
+            removeSeparator: 'Supprimer le séparateur'
         }
     },
 
@@ -468,6 +468,9 @@ export const STRINGS_FR = {
         search: 'Rechercher', // Command palette: Toggle search in the file list (English: Search)
         toggleDualPane: 'Basculer la disposition à double panneau', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         selectVaultProfile: 'Changer le profil du coffre', // Command palette: Opens a modal to choose a different vault profile (English: Switch vault profile)
+        selectVaultProfile1: 'Changer vers le profil du coffre 1', // Command palette: Activates the first vault profile without opening the modal (English: Select vault profile 1)
+        selectVaultProfile2: 'Changer vers le profil du coffre 2', // Command palette: Activates the second vault profile without opening the modal (English: Select vault profile 2)
+        selectVaultProfile3: 'Changer vers le profil du coffre 3', // Command palette: Activates the third vault profile without opening the modal (English: Select vault profile 3)
         deleteFile: 'Supprimer les fichiers', // Command palette: Deletes the currently active file (English: Delete file)
         createNewNote: 'Créer une nouvelle note', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         moveFiles: 'Déplacer les fichiers', // Command palette: Move selected files to another folder (English: Move files)
@@ -1085,8 +1088,8 @@ export const STRINGS_FR = {
                 }
             },
             useFrontmatterDates: {
-                name: 'Lire les métadonnées du frontmatter',
-                desc: "Lire les noms de notes, horodatages, icônes et couleurs du frontmatter lorsqu'ils sont disponibles, sinon utiliser les valeurs du système ou les paramètres"
+                name: 'Utiliser les métadonnées du frontmatter',
+                desc: 'Utiliser le frontmatter pour le nom de note, horodatages, icônes et couleurs'
             },
             frontmatterNameField: {
                 name: 'Champ de nom',
@@ -1106,10 +1109,6 @@ export const STRINGS_FR = {
             frontmatterSaveMetadata: {
                 name: 'Enregistrer les icônes et couleurs dans le frontmatter',
                 desc: 'Écrit automatiquement les icônes et couleurs de fichier dans le frontmatter via les champs configurés ci-dessus.'
-            },
-            frontmatterIconizeFormat: {
-                name: 'Enregistrer au format Iconize',
-                desc: 'Enregistre les icônes au format Iconize (ex. LiHome, FasUser, SiGithub) au lieu du format du plugin (ex. home, fontawesome-solid:user, simple-icons:github).'
             },
             frontmatterMigration: {
                 name: 'Migrer les icônes et couleurs depuis les paramètres',

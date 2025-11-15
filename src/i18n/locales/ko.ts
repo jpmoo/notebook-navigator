@@ -194,8 +194,8 @@ export const STRINGS_KO = {
             hideTag: '태그 숨기기'
         },
         navigation: {
-            addSeparator: 'Add separator',
-            removeSeparator: 'Remove separator'
+            addSeparator: '구분선 추가',
+            removeSeparator: '구분선 제거'
         }
     },
 
@@ -467,6 +467,9 @@ export const STRINGS_KO = {
         search: '검색', // Command palette: Toggle search in the file list (English: Search)
         toggleDualPane: '이중 창 레이아웃 전환', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         selectVaultProfile: '보관소 프로필 변경', // Command palette: Opens a modal to choose a different vault profile (English: Switch vault profile)
+        selectVaultProfile1: '보관소 프로필 1 선택', // Command palette: Activates the first vault profile without opening the modal (English: Select vault profile 1)
+        selectVaultProfile2: '보관소 프로필 2 선택', // Command palette: Activates the second vault profile without opening the modal (English: Select vault profile 2)
+        selectVaultProfile3: '보관소 프로필 3 선택', // Command palette: Activates the third vault profile without opening the modal (English: Select vault profile 3)
         deleteFile: '파일 삭제', // Command palette: Deletes the currently active file (English: Delete file)
         createNewNote: '새 노트 만들기', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         moveFiles: '파일 이동', // Command palette: Move selected files to another folder (English: Move files)
@@ -1080,8 +1083,8 @@ export const STRINGS_KO = {
                 }
             },
             useFrontmatterDates: {
-                name: 'frontmatter에서 메타데이터 읽기',
-                desc: '사용 가능한 경우 frontmatter에서 노트 이름, 타임스탬프, 아이콘, 색상을 읽고, 파일 시스템 값 또는 설정으로 대체'
+                name: 'frontmatter 메타데이터 사용',
+                desc: '노트 이름, 타임스탬프, 아이콘, 색상에 frontmatter 사용'
             },
             frontmatterNameField: {
                 name: '이름 필드',
@@ -1101,10 +1104,6 @@ export const STRINGS_KO = {
             frontmatterSaveMetadata: {
                 name: 'frontmatter에 아이콘과 색상 저장',
                 desc: '위에서 구성한 필드를 사용하여 파일 아이콘과 색상을 frontmatter에 자동으로 기록합니다.'
-            },
-            frontmatterIconizeFormat: {
-                name: 'Iconize 형식으로 저장',
-                desc: '플러그인 형식(예: home, fontawesome-solid:user, simple-icons:github) 대신 Iconize 형식(예: LiHome, FasUser, SiGithub)으로 아이콘을 저장합니다.'
             },
             frontmatterMigration: {
                 name: '설정에서 아이콘과 색상 이동',

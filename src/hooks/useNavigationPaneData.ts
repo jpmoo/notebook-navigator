@@ -73,7 +73,7 @@ import type { NoteCountInfo } from '../types/noteCounts';
 import { calculateFolderNoteCounts } from '../utils/noteCountUtils';
 import { getEffectiveFrontmatterExclusions } from '../utils/exclusionUtils';
 import { sanitizeNavigationSectionOrder } from '../utils/navigationSections';
-import { getVirtualTagCollection, VIRTUAL_TAG_COLLECTION_IDS } from '../utils/virtualTagCollections';
+import { getVirtualTagCollection, isVirtualTagCollectionId, VIRTUAL_TAG_COLLECTION_IDS } from '../utils/virtualTagCollections';
 import {
     buildFolderSeparatorKey,
     buildSectionSeparatorKey,
@@ -842,8 +842,13 @@ export function useNavigationPaneData({
                 }
 
                 const tagNode = findTagNode(tagTree, canonicalPath);
-                const displayPath = tagNode?.displayPath ?? resolvedPath;
-                const isMissing = !tagNode;
+                let displayPath = tagNode?.displayPath ?? resolvedPath;
+                let isMissing = !tagNode;
+
+                if (isVirtualTagCollectionId(canonicalPath)) {
+                    displayPath = getVirtualTagCollection(canonicalPath).getLabel();
+                    isMissing = false;
+                }
 
                 items.push({
                     type: NavigationPaneItemType.SHORTCUT_TAG,
@@ -955,7 +960,7 @@ export function useNavigationPaneData({
         // Determines which sections should be displayed based on settings and available items
         const shouldIncludeShortcutsSection = settings.showShortcuts && shortcutItems.length > 0 && !pinShortcuts;
         const shouldIncludeRecentSection = settings.showRecentNotes && recentNotesItems.length > 0;
-        const shouldIncludeNotesSection = folderItems.length > 0;
+        const shouldIncludeFoldersSection = folderItems.length > 0;
         const shouldIncludeTagsSection = settings.showTags && tagItems.length > 0;
 
         // Builds sections in the user-specified order
@@ -974,9 +979,9 @@ export function useNavigationPaneData({
                         orderedSections.push({ id: NavigationSectionId.RECENT, items: recentNotesItems });
                     }
                     break;
-                case NavigationSectionId.NOTES:
-                    if (shouldIncludeNotesSection) {
-                        orderedSections.push({ id: NavigationSectionId.NOTES, items: folderItems });
+                case NavigationSectionId.FOLDERS:
+                    if (shouldIncludeFoldersSection) {
+                        orderedSections.push({ id: NavigationSectionId.FOLDERS, items: folderItems });
                     }
                     break;
                 case NavigationSectionId.TAGS:
@@ -1100,6 +1105,9 @@ export function useNavigationPaneData({
             }
 
             if (descriptor.type === 'section') {
+                if (descriptor.id === NavigationSectionId.TAGS && !settings.showAllTagsFolder) {
+                    return;
+                }
                 sectionSeparatorIds.add(descriptor.id);
                 return;
             }
@@ -1122,7 +1130,7 @@ export function useNavigationPaneData({
             folderSeparators.size > 0 || tagSeparators.size > 0 || sectionSeparatorIds.size > 0 || useSectionSpacerForRootFolder;
 
         return { folderSeparators, tagSeparators, sectionSeparatorIds, useSectionSpacerForRootFolder, hasAnySeparators };
-    }, [navigationSeparatorSnapshot, settings.showRootFolder]);
+    }, [navigationSeparatorSnapshot, settings.showRootFolder, settings.showAllTagsFolder]);
 
     const itemsWithSeparators = useMemo(() => {
         const { folderSeparators, tagSeparators, sectionSeparatorIds, useSectionSpacerForRootFolder, hasAnySeparators } =
@@ -1154,9 +1162,9 @@ export function useNavigationPaneData({
         // - Either shortcuts are not pinned OR the first section is not NOTES
         // This ensures proper separation between pinned shortcuts and main navigation sections
         const shouldIncludeRootSectionSeparator =
-            useSectionSpacerForRootFolder && (!pinShortcuts || firstSectionId !== NavigationSectionId.NOTES);
+            useSectionSpacerForRootFolder && (!pinShortcuts || firstSectionId !== NavigationSectionId.FOLDERS);
         if (shouldIncludeRootSectionSeparator) {
-            const spacerKey = sectionSpacerMap.get(NavigationSectionId.NOTES);
+            const spacerKey = sectionSpacerMap.get(NavigationSectionId.FOLDERS);
             if (spacerKey) {
                 spacerKeysWithSeparators.add(spacerKey);
             }
