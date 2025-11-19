@@ -178,6 +178,16 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     // Search & hotkeys tab
     searchProvider: 'internal',
     keyboardShortcuts: getDefaultKeyboardShortcuts(),
+    shortcutCollections: [
+        {
+            id: 'default',
+            name: 'Default',
+            icon: 'lucide-bookmark',
+            shortcuts: [],
+            isDefault: true
+        }
+    ],
+    activeShortcutCollection: 'default',
 
     // Advanced tab
     checkForUpdatesOnStart: true,

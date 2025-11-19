@@ -408,7 +408,7 @@ export function useNavigationPaneData({
     const metadataService = useMetadataService();
     const expansionState = useExpansionState();
     const { fileData } = useFileCache();
-    const { hydratedShortcuts } = useShortcuts();
+    const { hydratedShortcuts, collections, activeCollectionId } = useShortcuts();
     const uxPreferences = useUXPreferences();
     const includeDescendantNotes = uxPreferences.includeDescendantNotes;
     const showHiddenItems = uxPreferences.showHiddenItems;
@@ -731,6 +731,11 @@ export function useNavigationPaneData({
         const headerLevel = 0;
         const itemLevel = headerLevel + 1;
 
+        // Get the active collection for the header
+        const activeCollection = collections.find(c => c.id === activeCollectionId) || collections[0];
+        const headerName = activeCollection ? activeCollection.name : strings.navigationPane.shortcutsHeader;
+        const headerIcon = activeCollection ? activeCollection.icon : 'lucide-bookmark';
+
         // Start with the shortcuts header/virtual folder
         const items: CombinedNavigationItem[] = [
             {
@@ -739,8 +744,8 @@ export function useNavigationPaneData({
                 level: headerLevel,
                 data: {
                     id: SHORTCUTS_VIRTUAL_FOLDER_ID,
-                    name: strings.navigationPane.shortcutsHeader,
-                    icon: 'lucide-bookmark'
+                    name: headerName,
+                    icon: headerIcon
                 }
             }
         ];
@@ -859,7 +864,7 @@ export function useNavigationPaneData({
         });
 
         return items;
-    }, [app, hydratedShortcuts, tagTree, hiddenFolders, showHiddenItems, settings.showShortcuts, shortcutsExpanded]);
+    }, [app, hydratedShortcuts, tagTree, hiddenFolders, showHiddenItems, settings.showShortcuts, shortcutsExpanded, collections, activeCollectionId]);
 
     // Build list of recent notes items with proper hierarchy
     const recentNotesItems = useMemo(() => {

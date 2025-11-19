@@ -49,7 +49,6 @@ interface ShortcutItemProps {
     dragHandleConfig?: DragHandleConfig;
     hasFolderNote?: boolean;
     onLabelClick?: (event: React.MouseEvent<HTMLSpanElement>) => void;
-    onLabelMouseDown?: (event: React.MouseEvent<HTMLSpanElement>) => void;
 }
 
 /**
@@ -77,8 +76,7 @@ export const ShortcutItem = React.memo(function ShortcutItem({
     isDragSource,
     dragHandleConfig,
     hasFolderNote,
-    onLabelClick,
-    onLabelMouseDown
+    onLabelClick
 }: ShortcutItemProps) {
     const settings = useSettingsState();
     const uxPreferences = useUXPreferences();
@@ -108,13 +106,6 @@ export const ShortcutItem = React.memo(function ShortcutItem({
         }
         return onLabelClick;
     }, [isMissing, onLabelClick, shouldDisableRow]);
-
-    const labelMouseDownHandler = useMemo(() => {
-        if (shouldDisableRow || isMissing) {
-            return undefined;
-        }
-        return onLabelMouseDown;
-    }, [isMissing, onLabelMouseDown, shouldDisableRow]);
 
     const rowBackgroundColor = useMemo(() => {
         if (isMissing) {
@@ -176,7 +167,6 @@ export const ShortcutItem = React.memo(function ShortcutItem({
             dragHandleConfig={dragHandleConfig}
             labelClassName={hasFolderNote ? 'nn-has-folder-note' : undefined}
             onLabelClick={labelClickHandler}
-            onLabelMouseDown={labelMouseDownHandler}
             showIcon={shouldShowIcon}
         />
     );

@@ -92,6 +92,7 @@ import { extractFilePathsFromDataTransfer, parseTagDragPayload } from '../utils/
 import { openFileInContext } from '../utils/openFileInContext';
 import { useShortcuts } from '../context/ShortcutsContext';
 import { ShortcutItem } from './ShortcutItem';
+import { ShortcutCollectionSelector } from './ShortcutCollectionSelector';
 import {
     ShortcutEntry,
     ShortcutType,
@@ -202,7 +203,14 @@ export const NavigationPane = React.memo(
             addTagShortcut,
             addShortcutsBatch,
             hasFolderShortcut,
-            hasNoteShortcut
+            hasNoteShortcut,
+            collections,
+            activeCollectionId,
+            setActiveCollection,
+            addCollection,
+            updateCollection,
+            deleteCollection,
+            reorderCollections
         } = shortcuts;
         const { fileData, getFileDisplayName } = useFileCache();
         const dragGhostManager = useMemo(() => createDragGhostManager(app), [app]);
@@ -1887,9 +1895,6 @@ export const NavigationPane = React.memo(
                                           }
                                         : undefined
                                 }
-                                onLabelMouseDown={
-                                    folder && folderNote ? event => handleShortcutFolderNoteMouseDown(folder, event) : undefined
-                                }
                             />
                         );
                     }
@@ -2404,6 +2409,46 @@ export const NavigationPane = React.memo(
                         onToggleRootFolderReorder={handleToggleRootReorder}
                         rootReorderActive={isRootReorderMode}
                         rootReorderDisabled={!canReorderRootItems}
+                    />
+                )}
+                {/* Collection selector */}
+                {settings.showShortcuts && !isRootReorderMode && (
+                    <ShortcutCollectionSelector
+                        collections={collections}
+                        activeCollectionId={activeCollectionId}
+                        onCollectionChange={setActiveCollection}
+                        onAddCollection={async () => {
+                            const { ShortcutCollectionModal } = await import('../modals/ShortcutCollectionModal');
+                            const modal = new ShortcutCollectionModal(app, metadataService, {
+                                collections,
+                                onSave: async (updatedCollections) => {
+                                    // Update the collections in settings
+                                    await updateSettings(current => {
+                                        current.shortcutCollections = updatedCollections;
+                                    });
+                                }
+                            });
+                            modal.open();
+                        }}
+                        onEditCollection={async (collectionId) => {
+                            const collection = collections.find(c => c.id === collectionId);
+                            if (collection) {
+                                const { ShortcutCollectionModal } = await import('../modals/ShortcutCollectionModal');
+                                const modal = new ShortcutCollectionModal(app, metadataService, {
+                                    collections,
+                                    editingCollection: collection,
+                                    onSave: async (updatedCollections) => {
+                                        // Update the collections in settings
+                                        await updateSettings(current => {
+                                            current.shortcutCollections = updatedCollections;
+                                        });
+                                    }
+                                });
+                                modal.open();
+                            }
+                        }}
+                        onDeleteCollection={deleteCollection}
+                        onReorderCollections={reorderCollections}
                     />
                 )}
                 {pinnedShortcutItems.length > 0 && !isRootReorderMode ? (

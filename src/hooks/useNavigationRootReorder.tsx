@@ -42,6 +42,7 @@ import { runAsyncAction } from '../utils/async';
 import { mergeNavigationSectionOrder } from '../utils/navigationSections';
 import { getPathBaseName } from '../utils/pathUtils';
 import { showReorderMenu, createMenuReorderHandleConfig } from '../utils/reorderMenu';
+import { useShortcuts } from '../context/ShortcutsContext';
 
 export interface RootFolderDescriptor {
     key: string;
@@ -166,6 +167,7 @@ export function useNavigationRootReorder(options: UseNavigationRootReorderOption
         handleToggleTagsSection,
         useReorderMenu
     } = options;
+    const { collections, activeCollectionId } = useShortcuts();
 
     // Enable menu-based reordering when on mobile and in reorder mode
     const canUseRootReorderMenu = useReorderMenu && isRootReorderMode;
@@ -857,8 +859,9 @@ export function useNavigationRootReorder(options: UseNavigationRootReorderOption
             let color: string | undefined;
 
             if (identifier === NavigationSectionId.SHORTCUTS) {
-                icon = 'lucide-bookmark';
-                label = strings.navigationPane.shortcutsHeader;
+                const activeCollection = collections.find(c => c.id === activeCollectionId) || collections[0];
+                icon = activeCollection ? activeCollection.icon : 'lucide-bookmark';
+                label = activeCollection ? activeCollection.name : strings.navigationPane.shortcutsHeader;
             } else if (identifier === NavigationSectionId.RECENT) {
                 icon = 'lucide-history';
                 label =

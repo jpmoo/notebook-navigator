@@ -6,7 +6,7 @@ Read in your language: [English](https://notebooknavigator.com/docs.html) • [D
 ![Obsidian Compatibility](https://img.shields.io/badge/Obsidian-v1.8.0+-483699?logo=obsidian&style=flat-square)
 [![Discord](https://img.shields.io/discord/1405458145974943846?color=7289da&label=Discord&logo=discord&logoColor=white)](https://discord.gg/6eeSUvzEJr)
 
-Notebook Navigator is a plugin for [Obsidian](https://obsidian.md) that replaces the default file explorer with a Notes-style interface with a dual-pane layout.
+Notebook Navigator Collections is a fork of [Notebook Navigator](https://github.com/johansan/notebook-navigator) that adds shortcut collections functionality. It replaces the default file explorer with a Notes-style interface with a dual-pane layout, and includes the ability to organize shortcuts into multiple collections.
 
 If you love using Notebook Navigator, please consider [buying me a coffee](https://buymeacoffee.com/johansan) or [Sponsor on GitHub ❤️](https://github.com/sponsors/johansan).
 

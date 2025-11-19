@@ -125,7 +125,7 @@ export const ShortcutCollectionSelector = React.memo(function ShortcutCollection
                     
                     
                     return (
-                        <button
+                        <span
                             key={collection.id}
                             className={`nn-collection-tab ${activeCollectionId === collection.id ? 'nn-collection-tab--active' : ''} ${draggingKey === collection.id ? 'nn-collection-tab--dragging' : ''}`}
                             onClick={() => handleCollectionClick(collection.id)}
@@ -134,21 +134,25 @@ export const ShortcutCollectionSelector = React.memo(function ShortcutCollection
                             tabIndex={-1}
                             {...dragHandlers}
                         >
-                            <ObsidianIcon name={collection.icon} />
+                            <span className="nn-navitem-icon">
+                                <ObsidianIcon name={collection.icon} />
+                            </span>
                             {showDropIndicator && (
                                 <div className="nn-collection-tab--drop-indicator" />
                             )}
-                        </button>
+                        </span>
                     );
                 })}
-                <button
+                <span
                     className="nn-collection-tab nn-collection-tab--add"
                     onClick={onAddCollection}
                     title="Add Collection"
                     tabIndex={-1}
                 >
-                    <ObsidianIcon name="lucide-plus" />
-                </button>
+                    <span className="nn-navitem-icon">
+                        <ObsidianIcon name="lucide-plus" />
+                    </span>
+                </span>
             </div>
         </div>
     );

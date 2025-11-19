@@ -168,8 +168,9 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
     // Add to shortcuts / Remove from shortcuts and Pin/Unpin - single selection only
     if (!shouldShowMultiOptions) {
         if (services.shortcuts) {
-            const { noteShortcutKeysByPath, addNoteShortcut, removeShortcut } = services.shortcuts;
-            const existingShortcutKey = noteShortcutKeysByPath.get(file.path);
+            const { addNoteShortcut, removeShortcut, collections, getCollectionsWithShortcut, getShortcutInCollection, activeCollectionId } = services.shortcuts;
+            const collectionsWithShortcut = getCollectionsWithShortcut(file.path);
+            const existingShortcutKey = getShortcutInCollection(file.path, activeCollectionId);
 
             menu.addItem((item: MenuItem) => {
                 if (existingShortcutKey) {
@@ -178,10 +179,48 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
                     });
                 } else {
                     setAsyncOnClick(item.setTitle(strings.shortcuts.add).setIcon('lucide-bookmark'), async () => {
-                        await addNoteShortcut(file.path);
+                        if (collections.length > 1) {
+                            // Show collection selection modal
+                            const { ShortcutCollectionSelectionModal } = await import('../../modals/ShortcutCollectionSelectionModal');
+                            const modal = new ShortcutCollectionSelectionModal(app, {
+                                collections,
+                                existingCollections: collectionsWithShortcut,
+                                onSelect: (collectionId) => {
+                                    void addNoteShortcut(file.path, { collectionId });
+                                },
+                                onCancel: () => {
+                                    // Do nothing
+                                }
+                            });
+                            modal.open();
+                        } else {
+                            // Only one collection, add directly
+                            void addNoteShortcut(file.path, { collectionId: collections[0]?.id });
+                        }
                     });
                 }
             });
+
+            // Add remove options for each collection that has this shortcut
+            if (collectionsWithShortcut.length > 0) {
+                menu.addSeparator();
+                collectionsWithShortcut.forEach(collectionId => {
+                    const collection = collections.find(c => c.id === collectionId);
+                    if (collection) {
+                        menu.addItem((item: MenuItem) => {
+                            item.setTitle(`Remove from ${collection.name}`)
+                                .setIcon('lucide-bookmark-x')
+                                .onClick(async () => {
+                                    // Find the shortcut key in this specific collection
+                                    const shortcutKey = getShortcutInCollection(file.path, collectionId);
+                                    if (shortcutKey) {
+                                        await removeShortcut(shortcutKey);
+                                    }
+                                });
+                        });
+                    }
+                });
+            }
         }
 
         const pinContext: NavigatorContext = selectionState.selectionType === ItemType.TAG ? 'tag' : 'folder';

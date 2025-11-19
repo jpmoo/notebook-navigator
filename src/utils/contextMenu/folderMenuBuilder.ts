@@ -236,8 +236,9 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
 
     // Add to shortcuts / Remove from shortcuts
     if (services.shortcuts) {
-        const { folderShortcutKeysByPath, addFolderShortcut, removeShortcut } = services.shortcuts;
-        const existingShortcutKey = folderShortcutKeysByPath.get(folder.path);
+        const { addFolderShortcut, removeShortcut, collections, getCollectionsWithShortcut, getShortcutInCollection, activeCollectionId } = services.shortcuts;
+        const collectionsWithShortcut = getCollectionsWithShortcut(folder.path);
+        const existingShortcutKey = getShortcutInCollection(folder.path, activeCollectionId);
 
         menu.addItem((item: MenuItem) => {
             if (existingShortcutKey) {
@@ -246,10 +247,48 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
                 });
             } else {
                 setAsyncOnClick(item.setTitle(strings.shortcuts.add).setIcon('lucide-bookmark'), async () => {
-                    await addFolderShortcut(folder.path);
+                    if (collections.length > 1) {
+                        // Show collection selection modal
+                        const { ShortcutCollectionSelectionModal } = await import('../../modals/ShortcutCollectionSelectionModal');
+                        const modal = new ShortcutCollectionSelectionModal(app, {
+                            collections,
+                            existingCollections: collectionsWithShortcut,
+                            onSelect: (collectionId) => {
+                                void addFolderShortcut(folder.path, { collectionId });
+                            },
+                            onCancel: () => {
+                                // Do nothing
+                            }
+                        });
+                        modal.open();
+                    } else {
+                        // Only one collection, add directly
+                        void addFolderShortcut(folder.path, { collectionId: collections[0]?.id });
+                    }
                 });
             }
         });
+
+        // Add remove options for each collection that has this shortcut
+        if (collectionsWithShortcut.length > 0) {
+            menu.addSeparator();
+            collectionsWithShortcut.forEach(collectionId => {
+                const collection = collections.find(c => c.id === collectionId);
+                if (collection) {
+                    menu.addItem((item: MenuItem) => {
+                        item.setTitle(`Remove from ${collection.name}`)
+                            .setIcon('lucide-bookmark-x')
+                            .onClick(async () => {
+                                // Find the shortcut key in this specific collection
+                                const shortcutKey = getShortcutInCollection(folder.path, collectionId);
+                                if (shortcutKey) {
+                                    await removeShortcut(shortcutKey);
+                                }
+                            });
+                    });
+                }
+            });
+        }
     }
 
     menu.addSeparator();
