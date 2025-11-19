@@ -270,40 +270,27 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
 
     // Rebuilds the complete tag tree structure from database contents
     const rebuildTagTree = useCallback(() => {
-        try {
-            const db = getDBInstance();
-            // Hidden items override: when enabled, include all folders in tag tree regardless of exclusions
-            const excludedFolderPatterns = showHiddenItems ? [] : hiddenFolders;
-            // Filter database results to only include files matching current visibility settings
-            const includedPaths = new Set(getVisibleMarkdownFiles().map(f => f.path));
-            const {
-                tagTree,
-                tagged: newTagged,
-                untagged: newUntagged,
-                hiddenRootTags
-            } = buildTagTreeFromDatabase(db, excludedFolderPatterns, includedPaths, settings.hiddenTags, showHiddenItems);
-            clearNoteCountCache();
-            const untaggedCount = newUntagged;
-            setFileData({ tagTree, tagged: newTagged, untagged: untaggedCount, hiddenRootTags });
+        const db = getDBInstance();
+        // Hidden items override: when enabled, include all folders in tag tree regardless of exclusions
+        const excludedFolderPatterns = showHiddenItems ? [] : hiddenFolders;
+        // Filter database results to only include files matching current visibility settings
+        const includedPaths = new Set(getVisibleMarkdownFiles().map(f => f.path));
+        const {
+            tagTree,
+            tagged: newTagged,
+            untagged: newUntagged,
+            hiddenRootTags
+        } = buildTagTreeFromDatabase(db, excludedFolderPatterns, includedPaths, settings.hiddenTags, showHiddenItems);
+        clearNoteCountCache();
+        const untaggedCount = newUntagged;
+        setFileData({ tagTree, tagged: newTagged, untagged: untaggedCount, hiddenRootTags });
 
-            // Propagate updated tag trees to the global TagTreeService for cross-component access
-            if (tagTreeService) {
-                tagTreeService.updateTagTree(tagTree, newTagged, untaggedCount);
-            }
-
-            return tagTree;
-        } catch (error) {
-            console.error('[Notebook Navigator] Error building tag tree:', error);
-            console.error('[Notebook Navigator] If crashes persist, your IndexedDB may be corrupted.');
-            console.error('[Notebook Navigator] Try: Disable plugin, delete .obsidian/plugins/notebook-navigator/vault-storage/, re-enable plugin');
-            // Return empty tree on error to prevent crash
-            const emptyTree = new Map<string, TagTreeNode>();
-            setFileData({ tagTree: emptyTree, tagged: 0, untagged: 0, hiddenRootTags: new Map() });
-            if (tagTreeService) {
-                tagTreeService.updateTagTree(emptyTree, 0, 0);
-            }
-            return emptyTree;
+        // Propagate updated tag trees to the global TagTreeService for cross-component access
+        if (tagTreeService) {
+            tagTreeService.updateTagTree(tagTree, newTagged, untaggedCount);
         }
+
+        return tagTree;
     }, [hiddenFolders, settings.hiddenTags, showHiddenItems, tagTreeService, getVisibleMarkdownFiles]);
 
     /**
@@ -432,15 +419,10 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
                         continue;
                     }
                     // Check if metadata cache has data for this file
-                    try {
-                        const metadata = app.metadataCache.getFileCache(abstract);
-                        // Remove from tracking if metadata is available
-                        if (metadata !== null && metadata !== undefined) {
-                            trackedPaths.delete(path);
-                        }
-                    } catch (error) {
-                        console.warn(`[Notebook Navigator] Error getting metadata cache for ${path}:`, error);
-                        // Continue without removing from tracking
+                    const metadata = app.metadataCache.getFileCache(abstract);
+                    // Remove from tracking if metadata is available
+                    if (metadata !== null && metadata !== undefined) {
+                        trackedPaths.delete(path);
                     }
                 }
             };

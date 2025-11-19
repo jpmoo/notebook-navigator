@@ -75,25 +75,6 @@ export interface TagShortcut {
 export type ShortcutEntry = FolderShortcut | NoteShortcut | SearchShortcut | TagShortcut;
 
 /**
- * Represents a collection of shortcuts with metadata
- */
-export interface ShortcutCollection {
-    id: string;
-    name: string;
-    icon: string;
-    shortcuts: ShortcutEntry[];
-    isDefault?: boolean;
-}
-
-/**
- * Extended shortcut entry that includes collection information
- */
-export interface ShortcutEntryWithCollection {
-    collectionId: string;
-    shortcut: ShortcutEntry;
-}
-
-/**
  * Type guard to check if a shortcut is a folder shortcut
  */
 export function isFolderShortcut(shortcut: ShortcutEntry): shortcut is FolderShortcut {

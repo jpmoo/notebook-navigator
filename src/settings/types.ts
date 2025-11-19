@@ -21,7 +21,7 @@ import type { FolderAppearance, TagAppearance } from '../hooks/useListPaneAppear
 import type { BackgroundMode, PinnedNotes } from '../types';
 import type { FolderNoteCreationPreference } from '../types/folderNote';
 import type { KeyboardShortcutConfig } from '../utils/keyboardShortcuts';
-import type { ShortcutEntry, ShortcutCollection } from '../types/shortcuts';
+import type { ShortcutEntry } from '../types/shortcuts';
 import type { SearchProvider } from '../types/search';
 
 /** Available sort options for file listing */
@@ -150,6 +150,7 @@ export interface NotebookNavigatorSettings {
 
     // List pane tab
     defaultFolderSort: SortOption;
+    revealFileOnListChanges: boolean;
     listPaneTitle: ListPaneTitleOption;
     noteGrouping: ListNoteGroupingOption;
     filterPinnedByFolder: boolean;
@@ -160,6 +161,8 @@ export interface NotebookNavigatorSettings {
     slimItemHeightScaleText: boolean;
     showQuickActions: boolean;
     quickActionRevealInFolder: boolean;
+    quickActionAddTag: boolean;
+    quickActionAddToShortcuts: boolean;
     quickActionPinNote: boolean;
     quickActionOpenInNewTab: boolean;
 
@@ -178,8 +181,10 @@ export interface NotebookNavigatorSettings {
     showFileTags: boolean;
     showFileTagAncestors: boolean;
     colorFileTags: boolean;
+    prioritizeColoredFileTags: boolean;
     showFileTagsInSlimMode: boolean;
     showParentFolder: boolean;
+    parentFolderClickRevealsFile: boolean;
     showParentFolderColor: boolean;
     showFilePreview: boolean;
     skipHeadingsInPreview: boolean;
@@ -197,9 +202,6 @@ export interface NotebookNavigatorSettings {
     // Search & hotkeys tab
     searchProvider: SearchProvider | null;
     keyboardShortcuts: KeyboardShortcutConfig;
-    shortcuts: ShortcutEntry[];
-    shortcutCollections: ShortcutCollection[];
-    activeShortcutCollection: string;
 
     // Advanced tab
     checkForUpdatesOnStart: boolean;

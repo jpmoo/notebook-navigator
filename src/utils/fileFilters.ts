@@ -37,17 +37,12 @@ const SKIP_EXCLUDED_FOLDERS_IN_INDEX = false;
 export function shouldExcludeFile(file: TFile, excludedProperties: string[], app: App): boolean {
     if (excludedProperties.length === 0) return false;
 
-    try {
-        const metadata = app.metadataCache.getFileCache(file);
-        const frontmatter = metadata?.frontmatter;
-        if (!frontmatter) return false;
+    const metadata = app.metadataCache.getFileCache(file);
+    const frontmatter = metadata?.frontmatter;
+    if (!frontmatter) return false;
 
-        // Hide if any of the listed properties exist in frontmatter (value is ignored)
-        return excludedProperties.some(prop => prop in frontmatter);
-    } catch (error) {
-        console.warn(`[Notebook Navigator] Error checking exclusion for ${file.path}:`, error);
-        return false;
-    }
+    // Hide if any of the listed properties exist in frontmatter (value is ignored)
+    return excludedProperties.some(prop => prop in frontmatter);
 }
 
 /**

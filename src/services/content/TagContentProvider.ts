@@ -79,19 +79,7 @@ export class TagContentProvider extends BaseContentProvider {
         }
 
         try {
-            let metadata: CachedMetadata | null = null;
-            try {
-                metadata = this.app.metadataCache.getFileCache(job.file);
-            } catch (error) {
-                console.warn(`[Notebook Navigator] Error getting metadata cache for ${job.file.path}:`, error);
-                return null;
-            }
-            
-            // Safety check: skip if metadata is corrupted or missing
-            if (!metadata) {
-                return null;
-            }
-            
+            const metadata = this.app.metadataCache.getFileCache(job.file);
             const tags = this.extractTagsFromMetadata(metadata);
 
             if (
@@ -137,25 +125,8 @@ export class TagContentProvider extends BaseContentProvider {
      * @returns Array of unique tag strings without # prefix, in original casing
      */
     private extractTagsFromMetadata(metadata: CachedMetadata | null): string[] {
-        if (!metadata) return [];
-        
-        // Safety: Try to extract tags, but catch any errors to prevent crashes
-        let rawTags: string[] = [];
-        try {
-            rawTags = getAllTags(metadata) || [];
-        } catch (error) {
-            console.warn(`[Notebook Navigator] Error extracting tags from metadata:`, error);
-            return [];
-        }
-        
+        const rawTags = metadata ? getAllTags(metadata) : [];
         if (!rawTags || rawTags.length === 0) return [];
-        
-        // Safety limit to prevent crashes from corrupted tag data
-        const MAX_TAGS = 1000;
-        if (rawTags.length > MAX_TAGS) {
-            console.warn(`[Notebook Navigator] Skipping excessive tags: ${rawTags.length} tags found`);
-            return [];
-        }
 
         // Deduplicate tags while preserving the first occurrence's casing
         const seen = new Set<string>();
@@ -164,13 +135,6 @@ export class TagContentProvider extends BaseContentProvider {
         for (const tag of rawTags) {
             // Remove # prefix
             const cleanTag = tag.startsWith('#') ? tag.slice(1) : tag;
-            
-            // Safety check: skip tags that are too long (might cause font processing issues)
-            if (cleanTag.length > 500) {
-                console.warn(`[Notebook Navigator] Skipping extremely long tag: ${cleanTag.substring(0, 50)}...`);
-                continue;
-            }
-            
             const lowerTag = cleanTag.toLowerCase();
 
             // Only add if we haven't seen this tag (case-insensitive)

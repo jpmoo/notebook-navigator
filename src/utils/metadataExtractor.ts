@@ -42,13 +42,8 @@ export interface ProcessedMetadata {
  * @returns Processed metadata object
  */
 export function extractMetadata(app: App, file: TFile, settings: NotebookNavigatorSettings): ProcessedMetadata {
-    try {
-        const metadata = app.metadataCache.getFileCache(file);
-        return extractMetadataFromCache(metadata, settings);
-    } catch (error) {
-        console.warn(`[Notebook Navigator] Error extracting metadata for ${file.path}:`, error);
-        return {};
-    }
+    const metadata = app.metadataCache.getFileCache(file);
+    return extractMetadataFromCache(metadata, settings);
 }
 
 /**

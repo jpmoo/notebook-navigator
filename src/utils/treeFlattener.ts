@@ -186,45 +186,8 @@ export function flattenTagTree(
     /** Sort tags using the selected comparator */
     const sortedNodes = tagNodes.slice().sort(sortFn);
 
-    // Safety limits
-    const MAX_DEPTH = 50;
-    const MAX_ITERATIONS = 5000;
-    const MAX_RESULTS = 10000; // Hard limit on returned items to prevent excessive rendering
-    let iterationCount = 0;
-    
-    // Global visited set to prevent any node from being processed multiple times
-    const visited = new Set<string>();
-
     /** Recursively adds a tag node and its children to the items array */
     function addNode(node: TagTreeNode, currentLevel: number, parentHidden: boolean = false) {
-        // Safety check: prevent revisiting nodes
-        if (visited.has(node.path)) {
-            console.warn('[Notebook Navigator] Node already visited, skipping:', node.path);
-            return;
-        }
-        
-        // Safety check: prevent infinite loops from runaway iterations
-        iterationCount++;
-        if (iterationCount > MAX_ITERATIONS) {
-            console.error('[Notebook Navigator] Maximum iterations exceeded in flattenTagTree');
-            return;
-        }
-        
-        // Safety check: limit total results to prevent excessive rendering
-        if (items.length >= MAX_RESULTS) {
-            console.warn('[Notebook Navigator] Maximum results limit reached in flattenTagTree');
-            return;
-        }
-        
-        // Safety check to prevent stack overflow
-        if (currentLevel >= MAX_DEPTH) {
-            console.warn('[Notebook Navigator] Tag tree depth limit reached during flattening');
-            return;
-        }
-        
-        // Mark as visited
-        visited.add(node.path);
-        
         const matchesRule = hiddenMatcher ? matchesHiddenTagPattern(node.path, node.name, hiddenMatcher) : false;
         const isHidden = parentHidden || matchesRule;
 
@@ -247,9 +210,7 @@ export function flattenTagTree(
         if (expandedTags.has(node.path) && node.children && node.children.size > 0) {
             const sortedChildren = Array.from(node.children.values()).sort(sortFn);
 
-            sortedChildren.forEach(child => {
-                addNode(child, currentLevel + 1, isHidden);
-            });
+            sortedChildren.forEach(child => addNode(child, currentLevel + 1, isHidden));
         }
     }
 

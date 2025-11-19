@@ -62,24 +62,16 @@ export function isExcalidrawFile(file: TFile): boolean {
  * @returns The display name for the file
  */
 export function getFileDisplayName(file: TFile, cachedData?: { fn?: string }, settings?: NotebookNavigatorSettings): string {
-    let name: string;
-    
     // If we have cached frontmatter name and feature is enabled, use it
     if (cachedData?.fn && settings?.useFrontmatterMetadata) {
-        name = cachedData.fn;
-    } else if (isExcalidrawFile(file)) {
-        // Strip .excalidraw suffix from Excalidraw files for cleaner display
-        name = stripExcalidrawSuffix(file.basename);
-    } else {
-        // Fall back to file basename
-        name = file.basename;
+        return cachedData.fn;
     }
-    
-    // Safety: Truncate extremely long names to prevent font rendering crashes
-    const MAX_NAME_LENGTH = 500;
-    if (name && name.length > MAX_NAME_LENGTH) {
-        return name.substring(0, MAX_NAME_LENGTH) + '...';
+
+    // Strip .excalidraw suffix from Excalidraw files for cleaner display
+    if (isExcalidrawFile(file)) {
+        return stripExcalidrawSuffix(file.basename);
     }
-    
-    return name;
+
+    // Fall back to file basename
+    return file.basename;
 }

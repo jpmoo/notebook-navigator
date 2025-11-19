@@ -285,14 +285,7 @@ export const TagTreeItem = React.memo(
                         <span className="nn-navitem-icon" ref={iconRef} style={tagColor ? { color: tagColor } : undefined} />
                     )}
                     <span className={tagNameClassName} style={applyColorToName ? { color: tagColor } : undefined}>
-                        {(() => {
-                            // Safety: Truncate extremely long tag names to prevent font rendering crashes
-                            const MAX_NAME_LENGTH = 500;
-                            if (tagNode.name && tagNode.name.length > MAX_NAME_LENGTH) {
-                                return tagNode.name.substring(0, MAX_NAME_LENGTH) + '...';
-                            }
-                            return tagNode.name;
-                        })()}
+                        {tagNode.name}
                     </span>
                     <span className="nn-navitem-spacer" />
                     {shouldDisplayCount && <span className="nn-navitem-count">{noteCountDisplay.label}</span>}

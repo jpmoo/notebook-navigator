@@ -16,13 +16,45 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { TFile } from 'obsidian';
-import { NotebookNavigatorSettings } from '../settings';
+import { Platform, TFile } from 'obsidian';
+import { MultiSelectModifier, NotebookNavigatorSettings } from '../settings';
 import { TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
 import { IndexedDBStorage } from '../storage/IndexedDBStorage';
 import { normalizeTagPathValue } from './tagPrefixMatcher';
 import { findTagNode } from './tagTree';
 import type { TagTreeNode } from '../types/storage';
+import type { InclusionOperator } from './filterSearch';
+
+export const TAG_CHARACTER_CLASS = '[\\p{L}\\p{N}_\\-/]';
+const TAG_NAME_PATTERN = new RegExp(`^${TAG_CHARACTER_CLASS}+$`, 'u');
+
+/**
+ * Checks if a tag value only contains allowed tag characters.
+ * Trims whitespace and rejects empty values.
+ */
+export function hasValidTagCharacters(tagValue: string | null | undefined): boolean {
+    if (!tagValue) {
+        return false;
+    }
+
+    const trimmed = tagValue.trim();
+    if (trimmed.length === 0) {
+        return false;
+    }
+
+    return TAG_NAME_PATTERN.test(trimmed);
+}
+
+/**
+ * Checks if a character is a valid preceding character for a tag.
+ * Tags can be preceded by whitespace, start of line, or certain punctuation.
+ */
+export function isValidTagPrecedingChar(char: string | null | undefined): boolean {
+    if (!char) {
+        return true; // Start of line/string
+    }
+    return /\s/.test(char) || char === '!';
+}
 
 /**
  * Normalizes tag paths for internal lookups.
@@ -61,6 +93,36 @@ export function resolveCanonicalTagPath(tagPath: string | null | undefined, tagT
 
     const node = findTagNode(tagTree, normalized);
     return node?.path ?? normalized;
+}
+
+interface TagModifierState {
+    altKey: boolean;
+    ctrlKey: boolean;
+    metaKey: boolean;
+    shiftKey: boolean;
+}
+
+/**
+ * Determines which inclusion operator to use when a modifier-click should mutate tag search filters.
+ */
+export function getTagSearchModifierOperator(
+    event: TagModifierState | null | undefined,
+    modifierSetting: MultiSelectModifier,
+    isMobile: boolean
+): InclusionOperator | null {
+    if (!event || isMobile) {
+        return null;
+    }
+
+    const prefersCmdCtrl = modifierSetting === 'cmdCtrl';
+    const hasCmdCtrl = Platform.isMacOS ? event.metaKey : event.metaKey || event.ctrlKey;
+    const modifierPressed = prefersCmdCtrl ? hasCmdCtrl : event.altKey;
+
+    if (!modifierPressed) {
+        return null;
+    }
+
+    return event.shiftKey ? 'OR' : 'AND';
 }
 
 /**

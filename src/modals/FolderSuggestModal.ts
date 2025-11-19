@@ -58,28 +58,17 @@ export class FolderSuggestModal extends BaseSuggestModal<TFolder> {
      */
     getItems(): TFolder[] {
         const folders: TFolder[] = [];
-        const MAX_DEPTH = 50; // Safety limit to prevent infinite recursion
-        let depth = 0;
 
         // Recursively collect all folders
         const collectFolders = (folder: TFolder) => {
-            // Safety check to prevent infinite recursion
-            if (depth >= MAX_DEPTH) {
-                console.warn('[Notebook Navigator] Max folder depth reached in folder suggest modal');
-                return;
-            }
-            
             if (!this.excludeFolders.has(folder.path)) {
                 folders.push(folder);
             }
-            
-            depth++;
             for (const child of folder.children) {
                 if (child instanceof TFolder) {
                     collectFolders(child);
                 }
             }
-            depth--;
         };
 
         // Start from root folder

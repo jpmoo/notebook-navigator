@@ -52,26 +52,13 @@ export function useNavigatorEventHandlers({ app, containerRef, setIsNavigatorFoc
             if (file instanceof TFolder) {
                 // Cleanup expanded folders
                 const existingPaths = new Set<string>();
-                const MAX_DEPTH = 50; // Safety limit to prevent infinite recursion
-                let depth = 0;
-                
                 const collectAllFolderPaths = (folder: TFolder) => {
-                    // Safety check to prevent infinite recursion
-                    if (depth >= MAX_DEPTH) {
-                        console.warn('[Notebook Navigator] Max folder depth reached during cleanup');
-                        return;
-                    }
-                    
                     existingPaths.add(folder.path);
-                    depth++;
-                    
                     folder.children.forEach(child => {
                         if (child instanceof TFolder) {
                             collectAllFolderPaths(child);
                         }
                     });
-                    
-                    depth--;
                 };
                 collectAllFolderPaths(app.vault.getRoot());
 

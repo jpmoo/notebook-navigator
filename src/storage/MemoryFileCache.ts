@@ -53,6 +53,7 @@ export class MemoryFileCache {
      */
     resetToEmpty(): void {
         this.memoryMap.clear();
+        this.isInitialized = true;
     }
 
     /**

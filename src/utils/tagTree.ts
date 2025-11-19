@@ -109,20 +109,9 @@ export function buildTagTreeFromDatabase(
 
     // Get all files from cache
     const allFiles = db.getAllFiles();
-    
-    // Safety limit to prevent processing excessive amounts of files
-    const MAX_FILES_TO_PROCESS = 100000;
-    const MAX_TAGS_PER_FILE = 1000;
-    let filesProcessed = 0;
 
     // First pass: collect all tags and their file associations
     for (const { path, data: fileData } of allFiles) {
-        filesProcessed++;
-        if (filesProcessed > MAX_FILES_TO_PROCESS) {
-            console.error(`[Notebook Navigator] Too many files to process: ${filesProcessed}. Stopping tag tree build.`);
-            break;
-        }
-        
         const isExcluded = excludedPatterns ? isPathInExcludedFolder(path, excludedPatterns) : false;
 
         // Defense-in-depth: skip files not in the included set (e.g., frontmatter-excluded)
@@ -151,12 +140,6 @@ export function buildTagTreeFromDatabase(
             if (tags !== null && path.endsWith('.md')) {
                 untaggedCount++;
             }
-            continue;
-        }
-        
-        // Safety check: skip files with excessive tags
-        if (tags.length > MAX_TAGS_PER_FILE) {
-            console.warn(`[Notebook Navigator] Skipping file with ${tags.length} tags: ${path}`);
             continue;
         }
 
@@ -206,59 +189,37 @@ export function buildTagTreeFromDatabase(
         const allNodes = new Map<string, TagTreeNode>();
         const tree = new Map<string, TagTreeNode>();
 
-        // Safety limit to prevent infinite loops from corrupted data
-        const MAX_TAGS = 100000;
-        const MAX_DEPTH = 100;
-        
-        if (tagPaths.length > MAX_TAGS) {
-            console.error(`[Notebook Navigator] Excessive tag count detected: ${tagPaths.length}. Skipping tag tree build.`);
-            return tree;
-        }
-
         // Sort tags (natural order) to ensure parents are processed before children
         tagPaths.sort((a, b) => naturalCompare(a, b));
 
         for (const tagPath of tagPaths) {
-            try {
-                const parts = tagPath.split('/');
-                let currentPath = '';
+            const parts = tagPath.split('/');
+            let currentPath = '';
 
-                // Safety check: skip tags with excessive depth
-                if (parts.length > MAX_DEPTH) {
-                    console.warn(`[Notebook Navigator] Skipping tag with excessive depth: ${tagPath}`);
+            for (let i = 0; i < parts.length; i++) {
+                const part = parts[i];
+                currentPath = i === 0 ? part : `${currentPath}/${part}`;
+                if (!part) {
+                    // Inline + frontmatter mixes can emit empty fragments (e.g. #tag//child); skip them so we never
+                    // create phantom nodes while keeping currentPath aligned for the next real fragment.
+                    continue;
+                }
+                const normalizedCurrentPath = normalizeTagPathValue(currentPath);
+                if (normalizedCurrentPath.length === 0) {
                     continue;
                 }
 
-                for (let i = 0; i < parts.length; i++) {
-                    const part = parts[i];
-                    currentPath = i === 0 ? part : `${currentPath}/${part}`;
-                    if (!part) {
-                        // Inline + frontmatter mixes can emit empty fragments (e.g. #tag//child); skip them so we never
-                        // create phantom nodes while keeping currentPath aligned for the next real fragment.
-                        continue;
-                    }
-                    // Safety check: skip empty or extremely long parts
-                    if (!part || part.length === 0 || part.length > 500) {
-                        console.warn(`[Notebook Navigator] Skipping invalid tag part: ${part}`);
-                        continue;
-                    }
-                    
-                    const normalizedCurrentPath = normalizeTagPathValue(currentPath);
-                    if (normalizedCurrentPath.length === 0) {
-                        continue;
-                    }
-
-                    // Get or create the node
-                    let node = allNodes.get(normalizedCurrentPath);
-                    if (!node) {
-                        node = {
-                            name: part,
-                            path: normalizedCurrentPath,
-                            displayPath: currentPath,
-                            children: new Map(),
-                            notesWithTag: new Set()
-                        };
-                        allNodes.set(normalizedCurrentPath, node);
+                // Get or create the node
+                let node = allNodes.get(normalizedCurrentPath);
+                if (!node) {
+                    node = {
+                        name: part,
+                        path: normalizedCurrentPath,
+                        displayPath: currentPath,
+                        children: new Map(),
+                        notesWithTag: new Set()
+                    };
+                    allNodes.set(normalizedCurrentPath, node);
 
                     // Only add root-level tags to the tree Map
                     if (i === 0) {
@@ -287,10 +248,6 @@ export function buildTagTreeFromDatabase(
                         parent.children.set(normalizedCurrentPath, node);
                     }
                 }
-            }
-            } catch (error) {
-                console.error(`[Notebook Navigator] Error processing tag: ${tagPath}`, error);
-                continue;
             }
         }
 
@@ -366,7 +323,6 @@ export function collectAllTagPaths(node: TagTreeNode, paths: Set<string> = new S
     for (const child of node.children.values()) {
         collectAllTagPaths(child, paths, visited);
     }
-    
     return paths;
 }
 
@@ -436,33 +392,14 @@ export function excludeFromTagTree(tree: Map<string, TagTreeNode>, matcher: Hidd
     }
 
     const filtered = new Map<string, TagTreeNode>();
-    const visited = new Set<string>();
-    let depth = 0;
-    const MAX_DEPTH = 50;
 
     // Helper to recursively check and filter nodes
     // Returns null if node should be excluded, otherwise returns node with filtered children
     function shouldIncludeNode(node: TagTreeNode): TagTreeNode | null {
-        // Safety check to prevent infinite recursion
-        if (visited.has(node.path)) {
-            console.warn('[Notebook Navigator] Circular reference detected in tag tree during exclusion at:', node.path);
-            return null;
-        }
-        
-        if (depth >= MAX_DEPTH) {
-            console.warn('[Notebook Navigator] Tag tree depth limit reached during exclusion');
-            return null;
-        }
-        
-        visited.add(node.path);
-        depth++;
-        
         // Check if this tag matches any exclusion prefix
         const shouldExclude = matchesHiddenTagPattern(node.path, node.name, matcher);
 
         if (shouldExclude) {
-            depth--;
-            visited.delete(node.path);
             return null;
         }
 
@@ -474,9 +411,6 @@ export function excludeFromTagTree(tree: Map<string, TagTreeNode>, matcher: Hidd
                 filteredChildren.set(childKey, filteredChild);
             }
         }
-        
-        depth--;
-        visited.delete(node.path);
 
         // Remove empty nodes (no notes and no children after filtering)
         // This ensures parent tags don't show if all their children are excluded

@@ -22,7 +22,6 @@ import { LISTPANE_MEASUREMENTS, NAVPANE_MEASUREMENTS, type PinnedNotes } from '.
 import { DEFAULT_UI_SCALE } from '../utils/uiScale';
 import type { FolderAppearance, TagAppearance } from '../hooks/useListPaneAppearance';
 import type { NotebookNavigatorSettings } from './types';
-import type { ShortcutCollection } from '../types/shortcuts';
 
 /**
  * Default settings for the plugin
@@ -126,6 +125,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
 
     // List pane tab
     defaultFolderSort: 'modified-desc',
+    revealFileOnListChanges: true,
     listPaneTitle: 'header',
     noteGrouping: 'date',
     filterPinnedByFolder: false,
@@ -135,9 +135,11 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     slimItemHeight: LISTPANE_MEASUREMENTS.defaultSlimItemHeight,
     slimItemHeightScaleText: true,
     showQuickActions: true,
-    quickActionRevealInFolder: true,
+    quickActionRevealInFolder: false,
+    quickActionAddTag: true,
+    quickActionAddToShortcuts: true,
     quickActionPinNote: true,
-    quickActionOpenInNewTab: true,
+    quickActionOpenInNewTab: false,
 
     // Notes tab
     useFrontmatterMetadata: false,
@@ -155,8 +157,10 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     showFileTags: true,
     showFileTagAncestors: true,
     colorFileTags: true,
+    prioritizeColoredFileTags: true,
     showFileTagsInSlimMode: false,
     showParentFolder: true,
+    parentFolderClickRevealsFile: false,
     showParentFolderColor: true,
     showFilePreview: true,
     skipHeadingsInPreview: true,
@@ -174,17 +178,6 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     // Search & hotkeys tab
     searchProvider: 'internal',
     keyboardShortcuts: getDefaultKeyboardShortcuts(),
-    shortcuts: [],
-    shortcutCollections: [
-        {
-            id: 'default',
-            name: 'Default',
-            icon: 'lucide-bookmark',
-            shortcuts: [],
-            isDefault: true
-        }
-    ],
-    activeShortcutCollection: 'default',
 
     // Advanced tab
     checkForUpdatesOnStart: true,
