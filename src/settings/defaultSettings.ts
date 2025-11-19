@@ -1,0 +1,216 @@
+/*
+ * Notebook Navigator - Plugin for Obsidian
+ * Copyright (c) 2025 Johan Sanneblad
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import { getDefaultKeyboardShortcuts } from '../utils/keyboardShortcuts';
+import { FILE_VISIBILITY } from '../utils/fileTypeUtils';
+import { LISTPANE_MEASUREMENTS, NAVPANE_MEASUREMENTS, type PinnedNotes } from '../types';
+import { DEFAULT_UI_SCALE } from '../utils/uiScale';
+import type { FolderAppearance, TagAppearance } from '../hooks/useListPaneAppearance';
+import type { NotebookNavigatorSettings } from './types';
+import type { ShortcutCollection } from '../types/shortcuts';
+
+/**
+ * Default settings for the plugin
+ * Used when plugin is first installed or settings are reset
+ */
+export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
+    // General tab - Filtering
+    fileVisibility: FILE_VISIBILITY.SUPPORTED,
+    hiddenTags: [],
+    vaultProfiles: [
+        {
+            id: 'default',
+            name: '',
+            fileVisibility: FILE_VISIBILITY.SUPPORTED,
+            hiddenFolders: [],
+            hiddenTags: [],
+            hiddenFiles: [],
+            navigationBanner: null,
+            shortcuts: []
+        }
+    ],
+    vaultProfile: 'default',
+
+    // General tab - Behavior
+    autoRevealActiveFile: true,
+    autoRevealIgnoreRightSidebar: true,
+    multiSelectModifier: 'cmdCtrl',
+
+    // General tab - View
+    startView: 'files',
+
+    // General tab - Homepage
+    homepage: null,
+    mobileHomepage: null,
+    useMobileHomepage: false,
+
+    // General tab - Desktop appearance
+    showTooltips: false,
+    showTooltipPath: true,
+    desktopBackground: 'separate',
+    desktopScale: DEFAULT_UI_SCALE,
+
+    // General tab - Mobile appearance
+    mobileBackground: 'primary',
+    mobileScale: DEFAULT_UI_SCALE,
+
+    // General tab - Formatting
+    dateFormat: 'MMM d, yyyy',
+    timeFormat: 'h:mm a',
+
+    // Navigation pane tab
+    skipAutoScroll: false,
+    showSectionIcons: true,
+    showShortcuts: true,
+    showRecentNotes: true,
+    recentNotesCount: 5,
+    collapseBehavior: 'all',
+    smartCollapse: true,
+    colorIconOnly: false,
+    toolbarVisibility: {
+        navigation: {
+            shortcuts: true,
+            expandCollapse: true,
+            hiddenItems: true,
+            rootReorder: true,
+            newFolder: true
+        },
+        list: {
+            search: true,
+            descendants: true,
+            sort: true,
+            appearance: true,
+            newNote: true
+        }
+    },
+    showNoteCount: true,
+    separateNoteCounts: true,
+    navIndent: NAVPANE_MEASUREMENTS.defaultIndent,
+    navItemHeight: NAVPANE_MEASUREMENTS.defaultItemHeight,
+    navItemHeightScaleText: true,
+    rootLevelSpacing: 0,
+
+    // Folders & tags tab
+    autoSelectFirstFileOnFocusChange: false,
+    autoExpandFoldersTags: false,
+    showFolderIcons: true,
+    showRootFolder: true,
+    inheritFolderColors: false,
+    enableFolderNotes: false,
+    folderNoteType: 'markdown',
+    folderNoteName: '',
+    folderNoteProperties: '',
+    hideFolderNoteInList: true,
+    pinCreatedFolderNote: false,
+    showTags: true,
+    showTagIcons: true,
+    showAllTagsFolder: true,
+    showUntagged: false,
+    tagSortOrder: 'alpha-asc',
+    keepEmptyTagsProperty: false,
+
+    // List pane tab
+    defaultFolderSort: 'modified-desc',
+    listPaneTitle: 'header',
+    noteGrouping: 'date',
+    filterPinnedByFolder: false,
+    showPinnedGroupHeader: true,
+    showPinnedIcon: true,
+    optimizeNoteHeight: true,
+    slimItemHeight: LISTPANE_MEASUREMENTS.defaultSlimItemHeight,
+    slimItemHeightScaleText: true,
+    showQuickActions: true,
+    quickActionRevealInFolder: true,
+    quickActionPinNote: true,
+    quickActionOpenInNewTab: true,
+
+    // Notes tab
+    useFrontmatterMetadata: false,
+    frontmatterIconField: 'icon',
+    frontmatterColorField: 'color',
+    frontmatterNameField: '',
+    frontmatterCreatedField: '',
+    frontmatterModifiedField: '',
+    frontmatterDateFormat: '',
+    saveMetadataToFrontmatter: false,
+    fileNameRows: 1,
+    showFileDate: true,
+    // Default to showing modified date when sorting alphabetically
+    alphabeticalDateMode: 'modified',
+    showFileTags: true,
+    showFileTagAncestors: true,
+    colorFileTags: true,
+    showFileTagsInSlimMode: false,
+    showParentFolder: true,
+    showParentFolderColor: true,
+    showFilePreview: true,
+    skipHeadingsInPreview: true,
+    skipCodeBlocksInPreview: true,
+    previewProperties: [],
+    previewRows: 2,
+    showFeatureImage: true,
+    featureImageProperties: ['thumbnail', 'featureResized', 'feature'],
+    forceSquareFeatureImage: true,
+    useEmbeddedImageFallback: true,
+
+    // Icon packs tab
+    externalIconProviders: {},
+
+    // Search & hotkeys tab
+    searchProvider: 'internal',
+    keyboardShortcuts: getDefaultKeyboardShortcuts(),
+    shortcuts: [],
+    shortcutCollections: [
+        {
+            id: 'default',
+            name: 'Default',
+            icon: 'lucide-bookmark',
+            shortcuts: [],
+            isDefault: true
+        }
+    ],
+    activeShortcutCollection: 'default',
+
+    // Advanced tab
+    checkForUpdatesOnStart: true,
+    confirmBeforeDelete: true,
+
+    // Runtime state and cached data
+    customVaultName: '',
+    pinnedNotes: {} as PinnedNotes,
+    fileIcons: {},
+    fileColors: {},
+    folderIcons: {},
+    folderColors: {},
+    folderBackgroundColors: {},
+    folderSortOverrides: {},
+    folderAppearances: {} as Record<string, FolderAppearance>,
+    tagIcons: {},
+    tagColors: {},
+    tagBackgroundColors: {},
+    tagSortOverrides: {},
+    tagAppearances: {} as Record<string, TagAppearance>,
+    navigationSeparators: {},
+    recentColors: [],
+    lastShownVersion: '',
+    latestKnownRelease: '',
+    lastAnnouncedRelease: '',
+    lastReleaseCheckAt: null,
+    rootFolderOrder: [],
+    rootTagOrder: []
+};
