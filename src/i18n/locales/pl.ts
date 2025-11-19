@@ -939,6 +939,10 @@ export const STRINGS_PL = {
                 name: 'Zastosuj kolor tylko do ikon',
                 desc: 'Gdy włączone, niestandardowe kolory są stosowane tylko do ikon. Gdy wyłączone, kolory są stosowane zarówno do ikon, jak i etykiet tekstowych.'
             },
+            showColorsInShortcutsOnly: {
+                name: 'Pokaż kolory tylko w skrótach',
+                desc: 'Gdy włączone, niestandardowe kolory tła i tekstu dla folderów i tagów są wyświetlane tylko w obszarze skrótów. Gdy wyłączone, kolory są również wyświetlane w drzewie nawigacji poniżej.'
+            },
             collapseBehavior: {
                 name: 'Zwiń elementy',
                 desc: 'Wybierz na co wpływa przycisk rozwiń/zwiń wszystko.',

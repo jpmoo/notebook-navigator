@@ -939,6 +939,10 @@ export const STRINGS_PT_BR = {
                 name: 'Aplicar cor apenas aos ícones',
                 desc: 'Quando ativado, cores personalizadas são aplicadas apenas aos ícones. Quando desativado, as cores são aplicadas aos ícones e aos rótulos de texto.'
             },
+            showColorsInShortcutsOnly: {
+                name: 'Mostrar cores apenas nos atalhos',
+                desc: 'Quando ativado, cores de fundo e texto personalizadas para pastas e tags são exibidas apenas na área de atalhos. Quando desativado, as cores também são exibidas na árvore de navegação abaixo.'
+            },
             collapseBehavior: {
                 name: 'Recolher itens',
                 desc: 'Escolha o que o botão expandir/recolher tudo afeta.',

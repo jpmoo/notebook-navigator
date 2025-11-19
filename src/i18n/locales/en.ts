@@ -937,6 +937,10 @@ export const STRINGS_EN = {
                 name: 'Apply color to icons only',
                 desc: 'When enabled, custom colors are applied only to icons. When disabled, colors are applied to both icons and text labels.'
             },
+            showColorsInShortcutsOnly: {
+                name: 'Show colors in shortcuts only',
+                desc: 'When enabled, custom background and text colors for folders and tags are only displayed in the shortcuts area. When disabled, colors are also shown in the navigation tree below.'
+            },
             collapseBehavior: {
                 name: 'Collapse items',
                 desc: 'Choose what the expand/collapse all button affects.',

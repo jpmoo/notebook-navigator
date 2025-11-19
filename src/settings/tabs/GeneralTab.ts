@@ -773,6 +773,16 @@ export function renderGeneralTab(context: SettingsTabContext): void {
             })
         );
 
+    new Setting(containerEl)
+        .setName(strings.settings.items.showColorsInShortcutsOnly.name)
+        .setDesc(strings.settings.items.showColorsInShortcutsOnly.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.showColorsInShortcutsOnly).onChange(async value => {
+                plugin.settings.showColorsInShortcutsOnly = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
     renderToolbarVisibilitySetting(containerEl, plugin);
 
     new Setting(containerEl).setName(strings.settings.groups.general.formatting).setHeading();

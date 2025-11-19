@@ -940,6 +940,10 @@ export const STRINGS_NL = {
                 name: 'Kleur alleen op pictogrammen toepassen',
                 desc: 'Indien ingeschakeld, worden aangepaste kleuren alleen op pictogrammen toegepast. Indien uitgeschakeld, worden kleuren toegepast op zowel pictogrammen als tekstlabels.'
             },
+            showColorsInShortcutsOnly: {
+                name: 'Kleuren alleen in snelkoppelingen weergeven',
+                desc: 'Indien ingeschakeld, worden aangepaste achtergrond- en tekstkleuren voor mappen en tags alleen in het snelkoppelingen gebied weergegeven. Indien uitgeschakeld, worden kleuren ook in de navigatieboom hieronder weergegeven.'
+            },
             collapseBehavior: {
                 name: 'Items inklappen',
                 desc: 'Kies wat de uitklappen/inklappen alle knop beïnvloedt.',

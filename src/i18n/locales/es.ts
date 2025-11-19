@@ -939,6 +939,10 @@ export const STRINGS_ES = {
                 name: 'Aplicar color solo a los iconos',
                 desc: 'Cuando está habilitado, los colores personalizados se aplican solo a los iconos. Cuando está deshabilitado, los colores se aplican tanto a los iconos como a las etiquetas de texto.'
             },
+            showColorsInShortcutsOnly: {
+                name: 'Mostrar colores solo en accesos directos',
+                desc: 'Cuando está habilitado, los colores de fondo y texto personalizados para carpetas y etiquetas solo se muestran en el área de accesos directos. Cuando está deshabilitado, los colores también se muestran en el árbol de navegación debajo.'
+            },
             collapseBehavior: {
                 name: 'Contraer elementos',
                 desc: 'Elige qué afecta el botón de expandir/contraer todo.',

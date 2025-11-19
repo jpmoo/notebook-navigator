@@ -941,6 +941,10 @@ export const STRINGS_DE = {
                 name: 'Farbe nur auf Symbole anwenden',
                 desc: 'Wenn aktiviert, werden benutzerdefinierte Farben nur auf Symbole angewendet. Wenn deaktiviert, werden Farben sowohl auf Symbole als auch auf Textbeschriftungen angewendet.'
             },
+            showColorsInShortcutsOnly: {
+                name: 'Farben nur in Shortcuts anzeigen',
+                desc: 'Wenn aktiviert, werden benutzerdefinierte Hintergrund- und Textfarben für Ordner und Tags nur im Shortcuts-Bereich angezeigt. Wenn deaktiviert, werden Farben auch im Navigationsbaum darunter angezeigt.'
+            },
             collapseBehavior: {
                 name: 'Elemente einklappen',
                 desc: 'Wählen Sie, was die Schaltfläche zum Ein-/Ausklappen beeinflusst.',

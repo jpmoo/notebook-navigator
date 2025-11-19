@@ -941,6 +941,10 @@ export const STRINGS_FR = {
                 name: 'Appliquer la couleur uniquement aux icônes',
                 desc: "Lorsqu'activé, les couleurs personnalisées sont appliquées uniquement aux icônes. Lorsque désactivé, les couleurs sont appliquées aux icônes et aux étiquettes de texte."
             },
+            showColorsInShortcutsOnly: {
+                name: 'Afficher les couleurs uniquement dans les raccourcis',
+                desc: "Lorsqu'activé, les couleurs de fond et de texte personnalisées pour les dossiers et les étiquettes ne sont affichées que dans la zone des raccourcis. Lorsqu'il est désactivé, les couleurs sont également affichées dans l'arborescence de navigation ci-dessous."
+            },
             collapseBehavior: {
                 name: 'Replier les éléments',
                 desc: 'Choisissez ce que le bouton déplier/replier tout affecte.',

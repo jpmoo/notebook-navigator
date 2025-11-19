@@ -119,15 +119,16 @@ function decorateNavigationItems(
     source: CombinedNavigationItem[],
     metadataService: MetadataService,
     parsedExcludedFolders: string[],
-    _metadataVersion: string
+    _metadataVersion: string,
+    showColorsInShortcutsOnly: boolean
 ): CombinedNavigationItem[] {
     void _metadataVersion;
     return source.map(item => {
         if (item.type === NavigationPaneItemType.FOLDER) {
             return {
                 ...item,
-                color: metadataService.getFolderColor(item.data.path),
-                backgroundColor: metadataService.getFolderBackgroundColor(item.data.path),
+                color: showColorsInShortcutsOnly ? undefined : metadataService.getFolderColor(item.data.path),
+                backgroundColor: showColorsInShortcutsOnly ? undefined : metadataService.getFolderBackgroundColor(item.data.path),
                 icon: metadataService.getFolderIcon(item.data.path),
                 parsedExcludedFolders
             };
@@ -136,8 +137,8 @@ function decorateNavigationItems(
             const tagNode = item.data;
             return {
                 ...item,
-                color: metadataService.getTagColor(tagNode.path),
-                backgroundColor: metadataService.getTagBackgroundColor(tagNode.path),
+                color: showColorsInShortcutsOnly ? undefined : metadataService.getTagColor(tagNode.path),
+                backgroundColor: showColorsInShortcutsOnly ? undefined : metadataService.getTagBackgroundColor(tagNode.path),
                 icon: metadataService.getTagIcon(tagNode.path)
             };
         }
@@ -1216,8 +1217,8 @@ export function useNavigationPaneData({
      * This pre-computation avoids calling these functions during render
      */
     const itemsWithMetadata = useMemo(
-        () => decorateNavigationItems(itemsWithSeparators, metadataService, parsedExcludedFolders, metadataVersion),
-        [itemsWithSeparators, metadataService, metadataVersion, parsedExcludedFolders]
+        () => decorateNavigationItems(itemsWithSeparators, metadataService, parsedExcludedFolders, metadataVersion, settings.showColorsInShortcutsOnly),
+        [itemsWithSeparators, metadataService, metadataVersion, parsedExcludedFolders, settings.showColorsInShortcutsOnly]
     );
 
     // Extract shortcut items when pinning is enabled for display in pinned area
@@ -1225,8 +1226,8 @@ export function useNavigationPaneData({
         if (!pinShortcuts) {
             return [] as CombinedNavigationItem[];
         }
-        return decorateNavigationItems(shortcutItems, metadataService, parsedExcludedFolders, metadataVersion);
-    }, [metadataService, metadataVersion, parsedExcludedFolders, pinShortcuts, shortcutItems]);
+        return decorateNavigationItems(shortcutItems, metadataService, parsedExcludedFolders, metadataVersion, settings.showColorsInShortcutsOnly);
+    }, [metadataService, metadataVersion, parsedExcludedFolders, pinShortcuts, shortcutItems, settings.showColorsInShortcutsOnly]);
 
     /**
      * Filter items based on showHiddenItems setting

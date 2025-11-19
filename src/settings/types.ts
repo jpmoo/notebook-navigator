@@ -121,6 +121,7 @@ export interface NotebookNavigatorSettings {
     collapseBehavior: ItemScope;
     smartCollapse: boolean;
     colorIconOnly: boolean;
+    showColorsInShortcutsOnly: boolean;
     toolbarVisibility: ToolbarVisibilitySettings;
     showNoteCount: boolean;
     separateNoteCounts: boolean;

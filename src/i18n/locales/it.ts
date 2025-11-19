@@ -940,6 +940,10 @@ export const STRINGS_IT = {
                 name: 'Applica colore solo alle icone',
                 desc: 'Quando abilitato, i colori personalizzati sono applicati solo alle icone. Quando disabilitato, i colori sono applicati sia alle icone che alle etichette di testo.'
             },
+            showColorsInShortcutsOnly: {
+                name: 'Mostra colori solo nelle scorciatoie',
+                desc: 'Quando abilitato, i colori di sfondo e testo personalizzati per cartelle e tag vengono visualizzati solo nell\'area delle scorciatoie. Quando disabilitato, i colori vengono visualizzati anche nell\'albero di navigazione sottostante.'
+            },
             collapseBehavior: {
                 name: 'Comprimi elementi',
                 desc: 'Scegli cosa influenza il pulsante espandi/comprimi tutto.',

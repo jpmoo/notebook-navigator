@@ -936,6 +936,10 @@ export const STRINGS_ZH_TW = {
                 name: '僅對圖示套用顏色',
                 desc: '啟用時，自訂顏色僅套用於圖示。停用時，顏色將同時套用於圖示和文字標籤。'
             },
+            showColorsInShortcutsOnly: {
+                name: '僅在捷徑中顯示顏色',
+                desc: '啟用時，資料夾和標籤的自訂背景色和文字顏色僅在捷徑區域顯示。停用時，顏色也會顯示在下方的導覽樹中。'
+            },
             collapseBehavior: {
                 name: '收合項目',
                 desc: '選擇展開/收合所有按鈕影響的對象。',

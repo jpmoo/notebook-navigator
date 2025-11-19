@@ -938,6 +938,10 @@ export const STRINGS_ZH_CN = {
                 name: '仅对图标应用颜色',
                 desc: '启用时，自定义颜色仅应用于图标。禁用时，颜色将同时应用于图标和文本标签。'
             },
+            showColorsInShortcutsOnly: {
+                name: '仅在快捷方式中显示颜色',
+                desc: '启用时，文件夹和标签的自定义背景色和文本颜色仅在快捷方式区域显示。禁用时，颜色也会显示在下方的导航树中。'
+            },
             collapseBehavior: {
                 name: '折叠项目',
                 desc: '选择展开/折叠全部按钮影响的内容。',

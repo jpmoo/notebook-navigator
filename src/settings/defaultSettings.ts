@@ -81,6 +81,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     collapseBehavior: 'all',
     smartCollapse: true,
     colorIconOnly: false,
+    showColorsInShortcutsOnly: false,
     toolbarVisibility: {
         navigation: {
             shortcuts: true,
