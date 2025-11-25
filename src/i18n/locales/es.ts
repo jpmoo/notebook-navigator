@@ -145,8 +145,10 @@ export const STRINGS_ES = {
             renameNote: 'Renombrar nota',
             deleteNote: 'Eliminar nota',
             deleteMultipleNotes: 'Eliminar {count} notas',
-            moveToFolder: 'Mover a...',
-            moveMultipleToFolder: 'Mover {count} archivos a...',
+            moveNoteToFolder: 'Mover nota a...',
+            moveFileToFolder: 'Mover archivo a...',
+            moveMultipleNotesToFolder: 'Mover {count} notas a...',
+            moveMultipleFilesToFolder: 'Mover {count} archivos a...',
             addTag: 'Añadir etiqueta',
             removeTag: 'Eliminar etiqueta',
             removeAllTags: 'Eliminar todas las etiquetas',
@@ -183,7 +185,7 @@ export const STRINGS_ES = {
             changeBackground: 'Cambiar fondo',
             excludeFolder: 'Ocultar carpeta',
             unhideFolder: 'Mostrar carpeta',
-            moveFolder: 'Mover a...',
+            moveFolder: 'Mover carpeta a...',
             renameFolder: 'Renombrar carpeta',
             deleteFolder: 'Eliminar carpeta'
         },
@@ -202,8 +204,9 @@ export const STRINGS_ES = {
 
     // Folder appearance menu
     folderAppearance: {
-        defaultPreset: 'Apariencia predeterminada',
-        slimPreset: 'Compacto (sin fecha/vista previa/imagen)',
+        standardPreset: 'Estándar',
+        compactPreset: 'Compacto',
+        defaultSuffix: '(predeterminado)',
         titleRows: 'Filas de título',
         previewRows: 'Filas de vista previa',
         groupBy: 'Agrupar por',
@@ -307,7 +310,8 @@ export const STRINGS_ES = {
             folderLabel: 'Carpeta: {name}'
         },
         folderSuggest: {
-            placeholder: 'Mover a carpeta...',
+            placeholder: (name: string) => `Mover ${name} a carpeta...`,
+            multipleFilesLabel: (count: number) => `${count} archivos`,
             navigatePlaceholder: 'Navegar a carpeta...',
             instructions: {
                 navigate: 'para navegar',
@@ -637,16 +641,28 @@ export const STRINGS_ES = {
                 name: 'Mostrar icono de anclados',
                 desc: 'Muestra el icono junto al encabezado de la sección anclada.'
             },
+            defaultListMode: {
+                name: 'Modo de lista predeterminado',
+                desc: 'Selecciona el diseño de lista predeterminado. Estándar muestra título, fecha, descripción y texto de vista previa. Compacto muestra solo el título. La apariencia se puede sobrescribir por carpeta.',
+                options: {
+                    standard: 'Estándar',
+                    compact: 'Compacto'
+                }
+            },
+            showFileIcons: {
+                name: 'Mostrar iconos de archivo',
+                desc: 'Mostrar iconos de archivo con espaciado alineado a la izquierda. Desactivar elimina tanto iconos como sangría.'
+            },
             optimizeNoteHeight: {
                 name: 'Optimizar altura de notas',
                 desc: 'Reducir altura para notas ancladas y notas sin texto de vista previa.'
             },
-            slimItemHeight: {
+            compactItemHeight: {
                 name: 'Altura de elementos compactos',
                 desc: 'Define la altura de los elementos compactos en escritorio y móvil.',
                 resetTooltip: 'Restablecer al valor predeterminado (28px)'
             },
-            slimItemHeightScaleText: {
+            compactItemHeightScaleText: {
                 name: 'Escalar texto con altura compacta',
                 desc: 'Escala el texto de los elementos compactos cuando se reduce la altura.'
             },
@@ -722,8 +738,8 @@ export const STRINGS_ES = {
                 desc: 'No desplazar el panel de navegación al hacer clic en elementos de accesos directos.'
             },
             autoExpandFoldersTags: {
-                name: 'Expandir carpetas y etiquetas automáticamente',
-                desc: 'Expandir automáticamente carpetas y etiquetas cuando se seleccionan.'
+                name: 'Expand on selection',
+                desc: 'Expand folders and tags when selected. In single pane mode, first selection expands, second selection shows files.'
             },
             navigationBanner: {
                 name: 'Banner de navegación (perfil de bóveda)',
@@ -843,7 +859,7 @@ export const STRINGS_ES = {
                 name: 'Mostrar primero las etiquetas coloreadas',
                 desc: 'Ordena las etiquetas coloreadas antes que otras etiquetas en los elementos de archivo.'
             },
-            showFileTagsInSlimMode: {
+            showFileTagsInCompactMode: {
                 name: 'Mostrar etiquetas de archivo en modo compacto',
                 desc: 'Mostrar etiquetas cuando la fecha, vista previa e imagen están ocultas.'
             },
@@ -860,6 +876,10 @@ export const STRINGS_ES = {
                 placeholder: 'HH:mm',
                 help: 'Formatos comunes:\nHH:mm = 14:30 (24 horas)\nh:mm a = 2:30 PM (12 horas)\nHH:mm:ss = 14:30:45\nh:mm:ss a = 2:30:45 PM\n\nTokens:\nHH/H = 24 horas\nhh/h = 12 horas\nmm = minutos\nss = segundos\na = AM/PM',
                 helpTooltip: 'Clic para referencia de formato'
+            },
+            preventInvalidCharacters: {
+                name: 'Prevent invalid characters',
+                desc: 'Block #, |, ^, :, %%, [[, ]] when creating or renaming files and folders.'
             },
             showFilePreview: {
                 name: 'Mostrar vista previa de nota',
@@ -932,7 +952,7 @@ export const STRINGS_ES = {
                 desc: 'Muestra el número de notas junto a cada carpeta y etiqueta.'
             },
             showSectionIcons: {
-                name: 'Mostrar iconos de atajo',
+                name: 'Mostrar iconos para atajos y elementos recientes',
                 desc: 'Muestra iconos para secciones de navegación como Atajos y Archivos recientes.'
             },
             showIconsColorOnly: {

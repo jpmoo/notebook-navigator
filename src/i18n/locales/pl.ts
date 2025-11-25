@@ -157,8 +157,10 @@ export const STRINGS_PL = {
             deleteFile: 'Usuń plik',
             deleteMultipleNotes: 'Usuń {count} notatek',
             deleteMultipleFiles: 'Usuń {count} plików',
-            moveToFolder: 'Przenieś do...',
-            moveMultipleToFolder: 'Przenieś {count} plików do...',
+            moveNoteToFolder: 'Przenieś notatkę do...',
+            moveFileToFolder: 'Przenieś plik do...',
+            moveMultipleNotesToFolder: 'Przenieś {count} notatek do...',
+            moveMultipleFilesToFolder: 'Przenieś {count} plików do...',
             addTag: 'Dodaj tag',
             removeTag: 'Usuń tag',
             removeAllTags: 'Usuń wszystkie tagi',
@@ -182,7 +184,7 @@ export const STRINGS_PL = {
             changeBackground: 'Zmień tło',
             excludeFolder: 'Ukryj folder',
             unhideFolder: 'Pokaż folder',
-            moveFolder: 'Przenieś do...',
+            moveFolder: 'Przenieś folder do...',
             renameFolder: 'Zmień nazwę folderu',
             deleteFolder: 'Usuń folder'
         },
@@ -201,8 +203,9 @@ export const STRINGS_PL = {
 
     // Folder appearance menu
     folderAppearance: {
-        defaultPreset: 'Domyślny wygląd',
-        slimPreset: 'Szczupły (bez daty/podglądu/obrazu)',
+        standardPreset: 'Standard',
+        compactPreset: 'Kompaktowy',
+        defaultSuffix: '(domyślne)',
         titleRows: 'Wiersze tytułu',
         previewRows: 'Wiersze podglądu',
         groupBy: 'Grupuj według',
@@ -308,7 +311,8 @@ export const STRINGS_PL = {
             folderLabel: 'Folder: {name}'
         },
         folderSuggest: {
-            placeholder: 'Przenieś do folderu...',
+            placeholder: (name: string) => `Przenieś ${name} do folderu...`,
+            multipleFilesLabel: (count: number) => `${count} plików`,
             navigatePlaceholder: 'Przejdź do folderu...',
             instructions: {
                 navigate: 'aby nawigować',
@@ -638,18 +642,30 @@ export const STRINGS_PL = {
                 name: 'Pokaż ikonę przypiętych',
                 desc: 'Wyświetl ikonę obok nagłówka sekcji przypiętych.'
             },
+            defaultListMode: {
+                name: 'Domyślny tryb listy',
+                desc: 'Wybierz domyślny układ listy. Standard pokazuje tytuł, datę, opis i tekst podglądu. Kompaktowy pokazuje tylko tytuł. Wygląd można nadpisać dla każdego folderu.',
+                options: {
+                    standard: 'Standard',
+                    compact: 'Kompaktowy'
+                }
+            },
+            showFileIcons: {
+                name: 'Pokaż ikony plików',
+                desc: 'Wyświetl ikony plików z wyrównaniem do lewej. Wyłączenie usuwa zarówno ikony, jak i wcięcie.'
+            },
             optimizeNoteHeight: {
                 name: 'Optymalizuj wysokość notatek',
                 desc: 'Zmniejsz wysokość dla przypiętych notatek i notatek bez tekstu podglądu.'
             },
-            slimItemHeight: {
-                name: 'Wysokość elementów w trybie slim',
-                desc: 'Ustawia wysokość elementów listy w trybie slim na komputerze i urządzeniach mobilnych.',
+            compactItemHeight: {
+                name: 'Wysokość elementów w trybie kompaktowym',
+                desc: 'Ustawia wysokość elementów listy w trybie kompaktowym na komputerze i urządzeniach mobilnych.',
                 resetTooltip: 'Przywróć wartość domyślną (28px)'
             },
-            slimItemHeightScaleText: {
-                name: 'Skalowanie tekstu z wysokością trybu slim',
-                desc: 'Skaluje tekst elementów listy w trybie slim po zmniejszeniu wysokości.'
+            compactItemHeightScaleText: {
+                name: 'Skalowanie tekstu z wysokością trybu kompaktowego',
+                desc: 'Skaluje tekst elementów listy w trybie kompaktowym po zmniejszeniu wysokości.'
             },
             showParentFolder: {
                 name: 'Pokaż folder nadrzędny',
@@ -723,8 +739,8 @@ export const STRINGS_PL = {
                 desc: 'Nie przewijaj panelu nawigacji przy klikaniu elementów w skrótach.'
             },
             autoExpandFoldersTags: {
-                name: 'Automatycznie rozwijaj foldery i tagi',
-                desc: 'Automatycznie rozwijaj foldery i tagi gdy są wybrane.'
+                name: 'Expand on selection',
+                desc: 'Expand folders and tags when selected. In single pane mode, first selection expands, second selection shows files.'
             },
             navigationBanner: {
                 name: 'Baner nawigacji (profil sejfu)',
@@ -843,7 +859,7 @@ export const STRINGS_PL = {
                 name: 'Wyświetl kolorowe tagi jako pierwsze',
                 desc: 'Sortuje kolorowe tagi przed pozostałymi tagami w elementach plików.'
             },
-            showFileTagsInSlimMode: {
+            showFileTagsInCompactMode: {
                 name: 'Pokaż tagi plików w trybie kompaktowym',
                 desc: 'Wyświetl tagi, gdy data, podgląd i obraz są ukryte.'
             },
@@ -860,6 +876,10 @@ export const STRINGS_PL = {
                 placeholder: 'HH:mm',
                 help: 'Popularne formaty:\nHH:mm = 14:30 (24-godzinny)\nh:mm a = 2:30 PM (12-godzinny)\nHH:mm:ss = 14:30:45\nh:mm:ss a = 2:30:45 PM\n\nTokeny:\nHH/H = 24-godzinny\nhh/h = 12-godzinny\nmm = minuty\nss = sekundy\na = AM/PM',
                 helpTooltip: 'Kliknij po informacje o formatowaniu'
+            },
+            preventInvalidCharacters: {
+                name: 'Prevent invalid characters',
+                desc: 'Block #, |, ^, :, %%, [[, ]] when creating or renaming files and folders.'
             },
             showFilePreview: {
                 name: 'Pokaż podgląd notatki',
@@ -932,7 +952,7 @@ export const STRINGS_PL = {
                 desc: 'Wyświetl liczbę notatek obok każdego folderu i tagu.'
             },
             showSectionIcons: {
-                name: 'Pokaż ikony skrótów',
+                name: 'Pokaż ikony skrótów i ostatnich elementów',
                 desc: 'Wyświetl ikony dla sekcji nawigacji takich jak Skróty i Ostatnie pliki.'
             },
             showIconsColorOnly: {

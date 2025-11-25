@@ -145,8 +145,10 @@ export const STRINGS_DE = {
             renameNote: 'Notiz umbenennen',
             deleteNote: 'Notiz löschen',
             deleteMultipleNotes: '{count} Notizen löschen',
-            moveToFolder: 'Verschieben nach...',
-            moveMultipleToFolder: '{count} Dateien verschieben nach...',
+            moveNoteToFolder: 'Notiz verschieben nach...',
+            moveFileToFolder: 'Datei verschieben nach...',
+            moveMultipleNotesToFolder: '{count} Notizen verschieben nach...',
+            moveMultipleFilesToFolder: '{count} Dateien verschieben nach...',
             addTag: 'Tag hinzufügen',
             removeTag: 'Tag entfernen',
             removeAllTags: 'Alle Tags entfernen',
@@ -185,7 +187,7 @@ export const STRINGS_DE = {
             changeBackground: 'Hintergrund ändern',
             excludeFolder: 'Ordner verstecken',
             unhideFolder: 'Ordner einblenden',
-            moveFolder: 'Verschieben nach...',
+            moveFolder: 'Ordner verschieben nach...',
             renameFolder: 'Ordner umbenennen',
             deleteFolder: 'Ordner löschen'
         },
@@ -204,8 +206,9 @@ export const STRINGS_DE = {
 
     // Folder appearance menu
     folderAppearance: {
-        defaultPreset: 'Standard-Aussehen',
-        slimPreset: 'Schmal (ohne Datum/Vorschau/Bild)',
+        standardPreset: 'Standard',
+        compactPreset: 'Kompakt',
+        defaultSuffix: '(Standard)',
         titleRows: 'Titelzeilen',
         previewRows: 'Vorschauzeilen',
         groupBy: 'Gruppieren nach',
@@ -309,7 +312,8 @@ export const STRINGS_DE = {
             folderLabel: 'Ordner: {name}'
         },
         folderSuggest: {
-            placeholder: 'In Ordner verschieben...',
+            placeholder: (name: string) => `In Ordner verschieben: ${name}...`,
+            multipleFilesLabel: (count: number) => `${count} Dateien`,
             navigatePlaceholder: 'Zu Ordner navigieren...',
             instructions: {
                 navigate: 'zum Navigieren',
@@ -640,16 +644,28 @@ export const STRINGS_DE = {
                 name: 'Icon für angeheftete Notizen anzeigen',
                 desc: 'Icon neben der Überschrift für angeheftete Notizen anzeigen.'
             },
+            defaultListMode: {
+                name: 'Standardmodus für Listen',
+                desc: 'Standardlistenlayout auswählen. Standard zeigt Titel, Datum, Beschreibung und Vorschautext. Kompakt zeigt nur den Titel. Ansicht kann pro Ordner überschrieben werden.',
+                options: {
+                    standard: 'Standard',
+                    compact: 'Kompakt'
+                }
+            },
+            showFileIcons: {
+                name: 'Dateisymbole anzeigen',
+                desc: 'Dateisymbole mit linksbündigem Abstand anzeigen. Deaktivierung entfernt sowohl Symbole als auch Einrückung.'
+            },
             optimizeNoteHeight: {
                 name: 'Notizenhöhe optimieren',
                 desc: 'Höhe für angeheftete Notizen und Notizen ohne Vorschautext reduzieren.'
             },
-            slimItemHeight: {
+            compactItemHeight: {
                 name: 'Höhe schlanker Elemente',
                 desc: 'Legt die Höhe schlanker Listenelemente auf Desktop und Mobilgeräten fest.',
                 resetTooltip: 'Auf Standard zurücksetzen (28px)'
             },
-            slimItemHeightScaleText: {
+            compactItemHeightScaleText: {
                 name: 'Text an schlanke Elementhöhe anpassen',
                 desc: 'Skaliert den Text schlanker Listenelemente bei reduzierter Höhe.'
             },
@@ -725,8 +741,8 @@ export const STRINGS_DE = {
                 desc: 'Navigationsbereich nicht scrollen beim Klicken auf Elemente in Verknüpfungen.'
             },
             autoExpandFoldersTags: {
-                name: 'Ordner und Tags automatisch erweitern',
-                desc: 'Ordner und Tags automatisch erweitern, wenn sie ausgewählt werden.'
+                name: 'Expand on selection',
+                desc: 'Expand folders and tags when selected. In single pane mode, first selection expands, second selection shows files.'
             },
             navigationBanner: {
                 name: 'Navigationsbanner (Tresorprofil)',
@@ -845,7 +861,7 @@ export const STRINGS_DE = {
                 name: 'Farbige Tags zuerst anzeigen',
                 desc: 'Farbige Tags vor anderen Tags in Datei-Elementen sortieren.'
             },
-            showFileTagsInSlimMode: {
+            showFileTagsInCompactMode: {
                 name: 'Datei-Tags im schlanken Modus anzeigen',
                 desc: 'Tags anzeigen, wenn Datum, Vorschau und Bild ausgeblendet sind.'
             },
@@ -862,6 +878,10 @@ export const STRINGS_DE = {
                 placeholder: 'HH:mm',
                 help: 'Gängige Formate:\nHH:mm = 14:30 (24-Stunden)\nh:mm a = 2:30 PM (12-Stunden)\nHH:mm:ss = 14:30:45\nh:mm:ss a = 2:30:45 PM\n\nTokens:\nHH/H = 24-Stunden\nhh/h = 12-Stunden\nmm = Minuten\nss = Sekunden\na = AM/PM',
                 helpTooltip: 'Klicken für Formatreferenz'
+            },
+            preventInvalidCharacters: {
+                name: 'Prevent invalid characters',
+                desc: 'Block #, |, ^, :, %%, [[, ]] when creating or renaming files and folders.'
             },
             showFilePreview: {
                 name: 'Notizenvorschau anzeigen',
@@ -934,7 +954,7 @@ export const STRINGS_DE = {
                 desc: 'Die Anzahl der Notizen neben jedem Ordner und Tag anzeigen.'
             },
             showSectionIcons: {
-                name: 'Shortcut-Icons anzeigen',
+                name: 'Icons für Shortcuts und kürzliche Elemente anzeigen',
                 desc: 'Icons für Navigationsbereiche wie Shortcuts und Zuletzt verwendete Dateien anzeigen.'
             },
             showIconsColorOnly: {

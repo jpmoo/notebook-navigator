@@ -69,6 +69,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     mobileScale: DEFAULT_UI_SCALE,
 
     // General tab - Formatting
+    preventInvalidCharacters: true,
     dateFormat: 'MMM d, yyyy',
     timeFormat: 'h:mm a',
 
@@ -125,6 +126,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     keepEmptyTagsProperty: false,
 
     // List pane tab
+    defaultListMode: 'standard',
     defaultFolderSort: 'modified-desc',
     revealFileOnListChanges: true,
     listPaneTitle: 'header',
@@ -132,9 +134,10 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     filterPinnedByFolder: false,
     showPinnedGroupHeader: true,
     showPinnedIcon: true,
+    showFileIcons: true,
     optimizeNoteHeight: true,
-    slimItemHeight: LISTPANE_MEASUREMENTS.defaultSlimItemHeight,
-    slimItemHeightScaleText: true,
+    compactItemHeight: LISTPANE_MEASUREMENTS.defaultCompactItemHeight,
+    compactItemHeightScaleText: true,
     showQuickActions: true,
     quickActionRevealInFolder: false,
     quickActionAddTag: true,
@@ -159,7 +162,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     showFileTagAncestors: true,
     colorFileTags: true,
     prioritizeColoredFileTags: true,
-    showFileTagsInSlimMode: false,
+    showFileTagsInCompactMode: false,
     showParentFolder: true,
     parentFolderClickRevealsFile: false,
     showParentFolderColor: true,

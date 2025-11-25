@@ -157,8 +157,10 @@ export const STRINGS_KO = {
             deleteFile: '파일 삭제',
             deleteMultipleNotes: '{count}개의 노트 삭제',
             deleteMultipleFiles: '{count}개의 파일 삭제',
-            moveToFolder: '이동...',
-            moveMultipleToFolder: '{count}개의 파일을 이동...',
+            moveNoteToFolder: '노트 이동...',
+            moveFileToFolder: '파일 이동...',
+            moveMultipleNotesToFolder: '{count}개의 노트 이동...',
+            moveMultipleFilesToFolder: '{count}개의 파일 이동...',
             addTag: '태그 추가',
             removeTag: '태그 제거',
             removeAllTags: '모든 태그 제거',
@@ -182,7 +184,7 @@ export const STRINGS_KO = {
             changeBackground: '배경색 변경',
             excludeFolder: '폴더 숨기기',
             unhideFolder: '폴더 표시',
-            moveFolder: '이동...',
+            moveFolder: '폴더 이동...',
             renameFolder: '폴더 이름 변경',
             deleteFolder: '폴더 삭제'
         },
@@ -201,8 +203,9 @@ export const STRINGS_KO = {
 
     // Folder appearance menu
     folderAppearance: {
-        defaultPreset: '기본 모양',
-        slimPreset: '슬림 (날짜/미리보기/이미지 없음)',
+        standardPreset: '표준',
+        compactPreset: '컴팩트',
+        defaultSuffix: '(기본값)',
         titleRows: '제목 행',
         previewRows: '미리보기 행',
         groupBy: '그룹화 기준',
@@ -306,7 +309,8 @@ export const STRINGS_KO = {
             folderLabel: '폴더: {name}'
         },
         folderSuggest: {
-            placeholder: '폴더로 이동...',
+            placeholder: (name: string) => `${name}를 폴더로 이동...`,
+            multipleFilesLabel: (count: number) => `${count}개의 파일`,
             navigatePlaceholder: '폴더로 이동...',
             instructions: {
                 navigate: '이동',
@@ -636,16 +640,28 @@ export const STRINGS_KO = {
                 name: '고정 아이콘 표시',
                 desc: '고정 섹션 헤더 옆에 아이콘을 표시합니다.'
             },
+            defaultListMode: {
+                name: '기본 목록 모드',
+                desc: '기본 목록 레이아웃을 선택합니다. 표준은 제목, 날짜, 설명, 미리보기 텍스트를 표시합니다. 컴팩트는 제목만 표시합니다. 외형은 폴더별로 덮어쓸 수 있습니다.',
+                options: {
+                    standard: '표준',
+                    compact: '컴팩트'
+                }
+            },
+            showFileIcons: {
+                name: '파일 아이콘 표시',
+                desc: '파일 아이콘을 왼쪽 정렬 간격과 함께 표시. 비활성화하면 아이콘과 들여쓰기가 모두 제거됩니다.'
+            },
             optimizeNoteHeight: {
                 name: '노트 높이 최적화',
                 desc: '고정된 노트와 미리보기 텍스트가 없는 노트의 높이를 줄입니다.'
             },
-            slimItemHeight: {
+            compactItemHeight: {
                 name: '슬림 항목 높이',
                 desc: '데스크톱과 모바일에서 슬림 목록 항목 높이를 설정합니다.',
                 resetTooltip: '기본값으로 복원 (28px)'
             },
-            slimItemHeightScaleText: {
+            compactItemHeightScaleText: {
                 name: '슬림 항목 높이에 맞춰 텍스트 크기 조정',
                 desc: '항목 높이를 줄이면 슬림 목록 텍스트 크기를 조정합니다.'
             },
@@ -721,8 +737,8 @@ export const STRINGS_KO = {
                 desc: '바로가기 내 항목을 클릭할 때 탐색 패널을 스크롤하지 않습니다.'
             },
             autoExpandFoldersTags: {
-                name: '폴더 및 태그 자동 펼치기',
-                desc: '폴더와 태그가 선택되면 자동으로 펼칩니다.'
+                name: 'Expand on selection',
+                desc: 'Expand folders and tags when selected. In single pane mode, first selection expands, second selection shows files.'
             },
             navigationBanner: {
                 name: '탐색 배너 (저장소 프로필)',
@@ -841,7 +857,7 @@ export const STRINGS_KO = {
                 name: '색상 태그 우선 표시',
                 desc: '색상 태그를 다른 태그보다 먼저 정렬합니다.'
             },
-            showFileTagsInSlimMode: {
+            showFileTagsInCompactMode: {
                 name: '슬림 모드에서 파일 태그 표시',
                 desc: '날짜, 미리보기, 이미지가 숨겨져 있을 때 태그를 표시합니다.'
             },
@@ -858,6 +874,10 @@ export const STRINGS_KO = {
                 placeholder: 'h:mm a',
                 help: '일반적인 형식:\nh:mm a = 2:30 PM (12시간)\nHH:mm = 14:30 (24시간)\nh:mm:ss a = 2:30:45 PM\nHH:mm:ss = 14:30:45\n\n토큰:\nHH/H = 24시간\nhh/h = 12시간\nmm = 분\nss = 초\na = AM/PM',
                 helpTooltip: '형식 참조를 보려면 클릭'
+            },
+            preventInvalidCharacters: {
+                name: 'Prevent invalid characters',
+                desc: 'Block #, |, ^, :, %%, [[, ]] when creating or renaming files and folders.'
             },
             showFilePreview: {
                 name: '노트 미리보기 표시',
@@ -930,7 +950,7 @@ export const STRINGS_KO = {
                 desc: '각 폴더와 태그 옆에 노트 수를 표시합니다.'
             },
             showSectionIcons: {
-                name: '바로 가기 아이콘 표시',
+                name: '바로 가기 및 최근 항목 아이콘 표시',
                 desc: '바로 가기 및 최근 파일과 같은 탐색 섹션의 아이콘을 표시합니다.'
             },
             showIconsColorOnly: {
