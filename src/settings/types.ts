@@ -240,6 +240,7 @@ export interface NotebookNavigatorSettings {
     tagSortOverrides: Record<string, SortOption>;
     tagAppearances: Record<string, TagAppearance>;
     navigationSeparators: Record<string, boolean>;
+    userColors: string[];
     recentColors: string[];
     lastShownVersion: string;
     latestKnownRelease: string;
