@@ -24,6 +24,7 @@ import { ItemType, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../../types';
 import { normalizeTagPath } from '../tagUtils';
 import { resetHiddenToggleIfNoSources } from '../exclusionUtils';
 import { setAsyncOnClick } from './menuAsyncHelpers';
+import { addStyleMenu } from './styleMenuBuilder';
 
 /**
  * Builds the context menu for a tag
@@ -101,6 +102,22 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
         menu.addSeparator();
     }
 
+    const tagSeparatorTarget = { type: 'tag', path: tagPath } as const;
+    const hasSeparator = metadataService.hasNavigationSeparator(tagSeparatorTarget);
+
+    menu.addItem((item: MenuItem) => {
+        const title = hasSeparator ? strings.contextMenu.navigation.removeSeparator : strings.contextMenu.navigation.addSeparator;
+        setAsyncOnClick(item.setTitle(title).setIcon('lucide-separator-horizontal'), async () => {
+            if (hasSeparator) {
+                await metadataService.removeNavigationSeparator(tagSeparatorTarget);
+                return;
+            }
+            await metadataService.addNavigationSeparator(tagSeparatorTarget);
+        });
+    });
+
+    menu.addSeparator();
+
     // Change icon
     menu.addItem((item: MenuItem) => {
         setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeIcon).setIcon('lucide-image'), async () => {
@@ -128,18 +145,46 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
         });
     });
 
-    const tagSeparatorTarget = { type: 'tag', path: tagPath } as const;
-    const hasSeparator = metadataService.hasNavigationSeparator(tagSeparatorTarget);
+    const tagIcon = metadataService.getTagIcon(tagPath);
+    const tagColor = metadataService.getTagColor(tagPath);
+    const tagBackgroundColor = metadataService.getTagBackgroundColor(tagPath);
+    const normalizedTagPath = normalizeTagPath(tagPath);
+    const directTagColor = normalizedTagPath ? settings.tagColors?.[normalizedTagPath] : undefined;
+    const directTagBackground = normalizedTagPath ? settings.tagBackgroundColors?.[normalizedTagPath] : undefined;
 
-    menu.addItem((item: MenuItem) => {
-        const title = hasSeparator ? strings.contextMenu.navigation.removeSeparator : strings.contextMenu.navigation.addSeparator;
-        setAsyncOnClick(item.setTitle(title).setIcon('lucide-separator-horizontal'), async () => {
-            if (hasSeparator) {
-                await metadataService.removeNavigationSeparator(tagSeparatorTarget);
-                return;
+    const hasRemovableIcon = Boolean(tagIcon);
+    const hasRemovableColor = Boolean(directTagColor);
+    const hasRemovableBackground = Boolean(directTagBackground);
+
+    addStyleMenu({
+        menu,
+        styleData: {
+            icon: tagIcon,
+            color: tagColor,
+            background: tagBackgroundColor
+        },
+        hasIcon: true,
+        hasColor: true,
+        hasBackground: true,
+        applyStyle: async clipboard => {
+            const { icon, color, background } = clipboard;
+            const actions: Promise<void>[] = [];
+
+            if (icon) {
+                actions.push(metadataService.setTagIcon(tagPath, icon));
             }
-            await metadataService.addNavigationSeparator(tagSeparatorTarget);
-        });
+            if (color) {
+                actions.push(metadataService.setTagColor(tagPath, color));
+            }
+            if (background) {
+                actions.push(metadataService.setTagBackgroundColor(tagPath, background));
+            }
+
+            await Promise.all(actions);
+        },
+        removeIcon: hasRemovableIcon ? async () => metadataService.removeTagIcon(tagPath) : undefined,
+        removeColor: hasRemovableColor ? async () => metadataService.removeTagColor(tagPath) : undefined,
+        removeBackground: hasRemovableBackground ? async () => metadataService.removeTagBackgroundColor(tagPath) : undefined
     });
 
     const canHideTag = tagPath !== UNTAGGED_TAG_ID;

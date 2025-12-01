@@ -25,6 +25,7 @@ export const STRINGS_ZH_CN = {
     common: {
         cancel: '取消', // Button text for canceling dialogs and operations (English: Cancel)
         delete: '删除', // Button text for delete operations in dialogs (English: Delete)
+        clear: '清除', // Button text for clearing values (English: Clear)
         remove: '移除', // Button text for remove operations in dialogs (English: Remove)
         submit: '提交', // Button text for submitting forms and dialogs (English: Submit)
         noSelection: '未选择', // Placeholder text when no folder or tag is selected (English: No selection)
@@ -79,8 +80,6 @@ export const STRINGS_ZH_CN = {
         emptySearchName: '保存搜索前请输入名称',
         add: '添加到快捷方式',
         remove: '从快捷方式移除',
-        moveUp: '上移',
-        moveDown: '下移',
         folderNotesPinned: '已固定 {count} 个文件夹笔记'
     },
 
@@ -174,6 +173,8 @@ export const STRINGS_ZH_CN = {
             newCanvas: '新建画布',
             newBase: '新建数据库',
             newDrawing: '新建绘图',
+            newExcalidrawDrawing: '新建 Excalidraw 绘图',
+            newTldrawDrawing: '新建 Tldraw 绘图',
             duplicateFolder: '复制文件夹',
             searchInFolder: '在文件夹中搜索',
             copyPath: '复制文件系统路径',
@@ -199,6 +200,15 @@ export const STRINGS_ZH_CN = {
         navigation: {
             addSeparator: '添加分隔符',
             removeSeparator: '移除分隔符'
+        },
+        style: {
+            title: '样式',
+            copy: '复制样式',
+            paste: '粘贴样式',
+            removeIcon: '移除图标',
+            removeColor: '移除颜色',
+            removeBackground: '移除背景',
+            clear: '清除样式'
         }
     },
 
@@ -235,15 +245,18 @@ export const STRINGS_ZH_CN = {
             newColor: '新颜色',
             presetColors: '预设颜色',
             userColors: '自定义颜色',
+            paletteDefault: '默认',
+            paletteCustom: '自定义',
             copyColors: '复制颜色',
             colorsCopied: '颜色已复制到剪贴板',
-            copyClipboardError: 'Could not write to clipboard',
+            copyClipboardError: '无法写入剪贴板',
             pasteColors: '粘贴颜色',
             pasteClipboardError: '无法读取剪贴板',
-            pasteInvalidJson: '剪贴板不包含有效的 JSON',
-            pasteInvalidFormat: '需要颜色值数组',
+            pasteInvalidJson: '剪贴板不包含有效的文本',
+            pasteInvalidFormat: '需要十六进制颜色值',
             colorsPasted: '颜色粘贴成功',
-            resetUserColors: '重置颜色',
+            resetUserColors: '清除自定义颜色',
+            clearCustomColorsConfirm: '删除所有自定义颜色？',
             userColorSlot: '颜色 {slot}',
             recentColors: '最近使用的颜色',
             clearRecentColors: '清除最近使用的颜色',
@@ -538,7 +551,9 @@ export const STRINGS_ZH_CN = {
             icons: '图标包',
             tags: '标签显示',
             folders: '文件夹笔记',
+            foldersAndTags: '文件夹与标签',
             search: '搜索',
+            searchAndHotkeys: '搜索与快捷键',
             listPane: '列表窗格',
             hotkeys: '快捷键',
             advanced: '高级'
@@ -554,7 +569,8 @@ export const STRINGS_ZH_CN = {
             },
             navigation: {
                 behavior: '行为',
-                appearance: '外观'
+                appearance: '外观',
+                shortcutsAndRecent: '快捷方式和最近项目'
             },
             list: {
                 display: '外观',
@@ -578,7 +594,7 @@ export const STRINGS_ZH_CN = {
                     filterSearch: {
                         title: '过滤搜索（默认）：',
                         description:
-                            '快速、轻量级搜索，按名称和标签过滤当前文件夹和子文件夹中的文件。支持使用 # 前缀进行标签过滤（例如 #项目），使用 ! 前缀进行排除（例如 !草稿，!#已归档），以及使用 !# 查找无标签笔记。非常适合在当前上下文中快速导航。'
+                            '按名称和标签过滤当前文件夹和子文件夹中的文件。过滤模式：混合文本和标签匹配所有条件（例如"项目 #工作"）。标签模式：仅使用标签搜索支持 AND/OR 运算符（例如"#工作 AND #紧急"、"#项目 OR #个人"）。Cmd/Ctrl+点击标签以 AND 方式添加，Cmd/Ctrl+Shift+点击以 OR 方式添加。支持使用 ! 前缀进行排除（例如 !草稿，!#已归档）以及使用 !# 查找无标签笔记。'
                     },
                     omnisearch: {
                         title: 'Omnisearch：',
@@ -681,8 +697,8 @@ export const STRINGS_ZH_CN = {
                 desc: '为子文件夹或标签中的笔记显示父文件夹名称。'
             },
             parentFolderClickRevealsFile: {
-                name: '点击父文件夹定位笔记',
-                desc: '点击父文件夹名称时，在文件夹中显示该笔记。'
+                name: '点击父文件夹打开文件夹',
+                desc: '点击父文件夹名称时，在列表面板中打开该文件夹。'
             },
             showParentFolderColor: {
                 name: '显示父文件夹颜色',
@@ -748,15 +764,14 @@ export const STRINGS_ZH_CN = {
                 desc: '点击快捷方式中的项目时不滚动导航面板。'
             },
             autoExpandFoldersTags: {
-                name: 'Expand on selection',
-                desc: 'Expand folders and tags when selected. In single pane mode, first selection expands, second selection shows files.'
+                name: '选中时展开',
+                desc: '选中时展开文件夹和标签。在单窗格模式下，首次选中展开，再次选中显示文件。'
             },
             navigationBanner: {
                 name: '导航横幅（仓库配置文件）',
                 desc: '在导航窗格顶部显示一张图片。随所选仓库配置文件而变化。',
                 current: '当前横幅：{path}',
-                chooseButton: '选择图片',
-                clearButton: '清除'
+                chooseButton: '选择图片'
             },
             showShortcuts: {
                 name: '显示快捷方式',
@@ -793,7 +808,7 @@ export const STRINGS_ZH_CN = {
                 }
             },
             excludedNotes: {
-                name: '隐藏笔记',
+                name: '隐藏笔记 (库配置)',
                 desc: '逗号分隔的前置元数据属性列表。包含任何这些属性的笔记将被隐藏（例如：draft, private, archived）。',
                 placeholder: 'draft, private'
             },
@@ -802,26 +817,32 @@ export const STRINGS_ZH_CN = {
                 desc: '配置文件存储文件类型可见性、隐藏文件夹、隐藏标签、隐藏笔记、快捷方式和导航横幅。从导航窗格标题切换配置文件。',
                 defaultName: '默认',
                 addButton: '添加配置文件',
+                editProfilesButton: '编辑配置文件',
+                addProfileOption: '添加配置文件...',
+                applyButton: '应用',
                 editButton: '编辑配置文件',
                 deleteButton: '删除配置文件',
                 addModalTitle: '添加配置文件',
+                editProfilesModalTitle: '编辑配置文件',
                 editModalTitle: '编辑配置文件',
                 addModalPlaceholder: '配置文件名称',
                 deleteModalTitle: '删除 {name}',
                 deleteModalMessage: '删除 {name}？保存在此配置文件中的隐藏文件夹、标签和笔记过滤器将被删除。',
+                moveUp: '上移',
+                moveDown: '下移',
                 errors: {
                     emptyName: '请输入配置文件名称',
                     duplicateName: '配置文件名称已存在'
                 }
             },
             excludedFolders: {
-                name: '隐藏文件夹',
+                name: '隐藏文件夹 (库配置)',
                 desc: '逗号分隔的要隐藏的文件夹列表。名称模式：assets*（以assets开头的文件夹），*_temp（以_temp结尾）。路径模式：/archive（仅根目录archive），/res*（以res开头的根文件夹），/*/temp（一级目录下的temp文件夹），/projects/*（projects内的所有文件夹）。',
                 placeholder: 'templates, assets*, /archive, /res*',
                 info: '自动清理：通过右键排除时，冗余的模式会被移除（例如，如果您排除/projects且/projects/app已在列表中，它将被移除）。'
             },
             fileVisibility: {
-                name: '显示文件类型',
+                name: '显示文件类型 (库配置)',
                 desc: '过滤在导航器中显示的文件类型。Obsidian不支持的文件类型可能会在外部应用程序中打开。',
                 options: {
                     documents: '文档 (.md, .canvas, .base)',
@@ -835,7 +856,7 @@ export const STRINGS_ZH_CN = {
                 current: '当前：{path}',
                 currentMobile: '移动端：{path}',
                 chooseButton: '选择文件',
-                clearButton: '清除',
+
                 separateMobile: {
                     name: '单独的移动端主页',
                     desc: '为移动设备使用不同的主页。'
@@ -888,8 +909,8 @@ export const STRINGS_ZH_CN = {
                 helpTooltip: '点击查看格式参考'
             },
             preventInvalidCharacters: {
-                name: 'Prevent invalid characters',
-                desc: 'Block #, |, ^, :, %%, [[, ]] when creating or renaming files and folders.'
+                name: '阻止无效字符',
+                desc: '创建或重命名文件和文件夹时阻止 #、|、^、:、%%、[[、]]。'
             },
             showFilePreview: {
                 name: '显示笔记预览',
@@ -1004,11 +1025,15 @@ export const STRINGS_ZH_CN = {
             },
             showTags: {
                 name: '显示标签',
-                desc: '在导航器中的文件夹下方显示标签部分。'
+                desc: '在导航器中显示标签部分。'
             },
             showTagIcons: {
                 name: '显示标签图标',
                 desc: '在导航窗格的标签旁显示图标。'
+            },
+            inheritTagColors: {
+                name: '继承标签颜色',
+                desc: '子标签从父标签继承颜色。'
             },
             tagSortOrder: {
                 name: '标签排序方式',
@@ -1033,7 +1058,7 @@ export const STRINGS_ZH_CN = {
                 desc: '当所有标签被删除时保留 frontmatter 中的 tags 属性。禁用时,tags 属性将从 frontmatter 中删除。'
             },
             hiddenTags: {
-                name: '隐藏标签',
+                name: '隐藏标签 (库配置)',
                 desc: '要隐藏的标签前缀或名称通配符的逗号分隔列表。使用 `tag*` 或 `*tag` 匹配标签名称。隐藏标签也会隐藏所有子标签（例如："归档"隐藏"归档/2024/docs"）。',
                 placeholder: '内部, 临时/草稿, 归档/2024'
             },
@@ -1171,7 +1196,7 @@ export const STRINGS_ZH_CN = {
             updateCheckOnStart: {
                 name: '启动时检查新版本',
                 desc: '启动时检查新的插件版本，当有可用更新时显示通知。每个版本仅通知一次，检查最多每天一次。',
-                status: 'New version available: {version}'
+                status: '有新版本可用：{version}'
             },
             whatsNew: {
                 name: 'Notebook Navigator {version} 的最新动态',

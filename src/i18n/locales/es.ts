@@ -25,6 +25,7 @@ export const STRINGS_ES = {
     common: {
         cancel: 'Cancelar', // Button text for canceling dialogs and operations (English: Cancel)
         delete: 'Eliminar', // Button text for delete operations in dialogs (English: Delete)
+        clear: 'Limpiar', // Button text for clearing values (English: Clear)
         remove: 'Eliminar', // Button text for remove operations in dialogs (English: Remove)
         submit: 'Enviar', // Button text for submitting forms and dialogs (English: Submit)
         noSelection: 'Sin selección', // Placeholder text when no folder or tag is selected (English: No selection)
@@ -79,8 +80,6 @@ export const STRINGS_ES = {
         emptySearchName: 'Ingresa un nombre antes de guardar la búsqueda',
         add: 'Agregar a accesos directos',
         remove: 'Quitar de accesos directos',
-        moveUp: 'Mover arriba',
-        moveDown: 'Mover abajo',
         folderNotesPinned: 'Fijadas {count} notas de carpeta'
     },
 
@@ -174,6 +173,8 @@ export const STRINGS_ES = {
             newCanvas: 'Nuevo lienzo',
             newBase: 'Nueva base de datos',
             newDrawing: 'Nuevo dibujo',
+            newExcalidrawDrawing: 'Nuevo dibujo de Excalidraw',
+            newTldrawDrawing: 'Nuevo dibujo de Tldraw',
             duplicateFolder: 'Duplicar carpeta',
             searchInFolder: 'Buscar en carpeta',
             copyPath: 'Copiar ruta del sistema de archivos',
@@ -199,6 +200,15 @@ export const STRINGS_ES = {
         navigation: {
             addSeparator: 'Agregar separador',
             removeSeparator: 'Eliminar separador'
+        },
+        style: {
+            title: 'Estilo',
+            copy: 'Copiar estilo',
+            paste: 'Pegar estilo',
+            removeIcon: 'Quitar icono',
+            removeColor: 'Quitar color',
+            removeBackground: 'Quitar fondo',
+            clear: 'Limpiar estilo'
         }
     },
 
@@ -235,15 +245,18 @@ export const STRINGS_ES = {
             newColor: 'Nuevo',
             presetColors: 'Colores predefinidos',
             userColors: 'Colores de usuario',
-            copyColors: 'Copiar colores',
-            colorsCopied: 'Colores copiados al portapapeles',
-            copyClipboardError: 'Could not write to clipboard',
-            pasteColors: 'Pegar colores',
+            paletteDefault: 'Predeterminado',
+            paletteCustom: 'Personalizado',
+            copyColors: 'Copiar color',
+            colorsCopied: 'Color copiado al portapapeles',
+            copyClipboardError: 'No se pudo escribir en el portapapeles',
+            pasteColors: 'Pegar color',
             pasteClipboardError: 'No se pudo leer el portapapeles',
-            pasteInvalidJson: 'El portapapeles no contiene JSON válido',
-            pasteInvalidFormat: 'Se esperaba un array de valores de color',
-            colorsPasted: 'Colores pegados correctamente',
-            resetUserColors: 'Restablecer colores',
+            pasteInvalidJson: 'El portapapeles no contiene texto válido',
+            pasteInvalidFormat: 'Se esperaba un valor de color hex',
+            colorsPasted: 'Color pegado correctamente',
+            resetUserColors: 'Borrar colores personalizados',
+            clearCustomColorsConfirm: '¿Eliminar todos los colores personalizados?',
             userColorSlot: 'Color {slot}',
             recentColors: 'Colores recientes',
             clearRecentColors: 'Limpiar colores recientes',
@@ -538,7 +551,9 @@ export const STRINGS_ES = {
             icons: 'Paquetes de iconos',
             tags: 'Visualización de etiquetas',
             folders: 'Notas de carpeta',
+            foldersAndTags: 'Carpetas y etiquetas',
             search: 'Buscar',
+            searchAndHotkeys: 'Búsqueda y atajos',
             listPane: 'Panel de lista',
             hotkeys: 'Atajos de teclado',
             advanced: 'Avanzado'
@@ -554,7 +569,8 @@ export const STRINGS_ES = {
             },
             navigation: {
                 behavior: 'Comportamiento',
-                appearance: 'Apariencia'
+                appearance: 'Apariencia',
+                shortcutsAndRecent: 'Atajos y elementos recientes'
             },
             list: {
                 display: 'Apariencia',
@@ -578,7 +594,7 @@ export const STRINGS_ES = {
                     filterSearch: {
                         title: 'Búsqueda por filtro (predeterminado):',
                         description:
-                            'Búsqueda rápida y ligera que filtra archivos por nombre y etiquetas dentro de la carpeta actual y subcarpetas. Admite filtrado de etiquetas con prefijo # (ej. #proyecto), exclusión con prefijo ! (ej. !borrador, !#archivado), y búsqueda de notas sin etiquetas con !#. Ideal para navegación rápida dentro de su contexto actual.'
+                            'Filtra archivos por nombre y etiquetas dentro de la carpeta actual y subcarpetas. Modo filtro: texto y etiquetas mezclados coinciden con todos los términos (ej. "proyecto #trabajo"). Modo etiquetas: búsqueda solo con etiquetas admite operadores AND/OR (ej. "#trabajo AND #urgente", "#proyecto OR #personal"). Cmd/Ctrl+Clic en etiquetas para añadir con AND, Cmd/Ctrl+Mayús+Clic para añadir con OR. Admite exclusión con prefijo ! (ej. !borrador, !#archivado) y búsqueda de notas sin etiquetas con !#.'
                     },
                     omnisearch: {
                         title: 'Omnisearch:',
@@ -682,8 +698,8 @@ export const STRINGS_ES = {
                 desc: 'Muestra el nombre de la carpeta principal para las notas en subcarpetas o etiquetas.'
             },
             parentFolderClickRevealsFile: {
-                name: 'Clic en carpeta principal revela nota',
-                desc: 'Al hacer clic en la etiqueta de la carpeta principal se revela la nota.'
+                name: 'Clic en carpeta principal abre carpeta',
+                desc: 'Al hacer clic en la etiqueta de la carpeta principal se abre la carpeta en el panel de lista.'
             },
             showParentFolderColor: {
                 name: 'Mostrar color de carpeta principal',
@@ -749,15 +765,14 @@ export const STRINGS_ES = {
                 desc: 'No desplazar el panel de navegación al hacer clic en elementos de accesos directos.'
             },
             autoExpandFoldersTags: {
-                name: 'Expand on selection',
-                desc: 'Expand folders and tags when selected. In single pane mode, first selection expands, second selection shows files.'
+                name: 'Expandir al seleccionar',
+                desc: 'Expandir carpetas y etiquetas al seleccionar. En modo de panel único, la primera selección expande, la segunda muestra archivos.'
             },
             navigationBanner: {
                 name: 'Banner de navegación (perfil de bóveda)',
                 desc: 'Mostrar una imagen encima del panel de navegación. Cambia con el perfil de bóveda seleccionado.',
                 current: 'Banner actual: {path}',
-                chooseButton: 'Elegir imagen',
-                clearButton: 'Limpiar'
+                chooseButton: 'Elegir imagen'
             },
             showShortcuts: {
                 name: 'Mostrar accesos directos',
@@ -794,7 +809,7 @@ export const STRINGS_ES = {
                 }
             },
             excludedNotes: {
-                name: 'Ocultar notas',
+                name: 'Ocultar notas (perfil de bóveda)',
                 desc: 'Lista de propiedades del frontmatter separadas por comas. Las notas que contengan cualquiera de estas propiedades se ocultarán (ej.: draft, private, archived).',
                 placeholder: 'draft, private'
             },
@@ -803,26 +818,32 @@ export const STRINGS_ES = {
                 desc: 'Los perfiles almacenan visibilidad de tipos de archivo, carpetas ocultas, etiquetas ocultas, notas ocultas, atajos y banner de navegación. Cambia de perfil desde el encabezado del panel de navegación.',
                 defaultName: 'Predeterminado',
                 addButton: 'Añadir perfil',
+                editProfilesButton: 'Editar perfiles',
+                addProfileOption: 'Añadir perfil...',
+                applyButton: 'Aplicar',
                 editButton: 'Editar perfil',
                 deleteButton: 'Eliminar perfil',
                 addModalTitle: 'Añadir perfil',
+                editProfilesModalTitle: 'Editar perfiles',
                 editModalTitle: 'Editar perfil',
                 addModalPlaceholder: 'Nombre del perfil',
                 deleteModalTitle: 'Eliminar {name}',
                 deleteModalMessage:
                     '¿Eliminar {name}? Se eliminarán los filtros de carpetas, etiquetas y notas ocultas guardados en este perfil.',
+                moveUp: 'Subir',
+                moveDown: 'Bajar',
                 errors: {
                     emptyName: 'Introduce un nombre de perfil',
                     duplicateName: 'El nombre del perfil ya existe'
                 }
             },
             excludedFolders: {
-                name: 'Ocultar carpetas',
+                name: 'Ocultar carpetas (perfil de bóveda)',
                 desc: 'Lista de carpetas a ocultar separadas por comas. Patrones de nombre: assets* (carpetas que comienzan con assets), *_temp (terminan con _temp). Patrones de ruta: /archive (solo archivo raíz), /res* (carpetas raíz que comienzan con res), /*/temp (carpetas temp un nivel abajo), /projects/* (todas las carpetas dentro de projects).',
                 placeholder: 'templates, assets*, /archive, /res*'
             },
             fileVisibility: {
-                name: 'Mostrar tipos de archivo',
+                name: 'Mostrar tipos de archivo (perfil de bóveda)',
                 desc: 'Filtre qué tipos de archivo se muestran en el navegador. Los tipos de archivo no soportados por Obsidian pueden abrirse en aplicaciones externas.',
                 options: {
                     documents: 'Documentos (.md, .canvas, .base)',
@@ -836,7 +857,7 @@ export const STRINGS_ES = {
                 current: 'Actual: {path}',
                 currentMobile: 'Móvil: {path}',
                 chooseButton: 'Elegir archivo',
-                clearButton: 'Limpiar',
+
                 separateMobile: {
                     name: 'Página de inicio móvil separada',
                     desc: 'Usar una página de inicio diferente en dispositivos móviles.'
@@ -889,8 +910,8 @@ export const STRINGS_ES = {
                 helpTooltip: 'Clic para referencia de formato'
             },
             preventInvalidCharacters: {
-                name: 'Prevent invalid characters',
-                desc: 'Block #, |, ^, :, %%, [[, ]] when creating or renaming files and folders.'
+                name: 'Prevenir caracteres inválidos',
+                desc: 'Bloquear #, |, ^, :, %%, [[, ]] al crear o renombrar archivos y carpetas.'
             },
             showFilePreview: {
                 name: 'Mostrar vista previa de nota',
@@ -1005,11 +1026,15 @@ export const STRINGS_ES = {
             },
             showTags: {
                 name: 'Mostrar etiquetas',
-                desc: 'Muestra la sección de etiquetas debajo de las carpetas en el navegador.'
+                desc: 'Muestra la sección de etiquetas en el navegador.'
             },
             showTagIcons: {
                 name: 'Mostrar iconos de etiquetas',
                 desc: 'Muestra iconos junto a las etiquetas en el panel de navegación.'
+            },
+            inheritTagColors: {
+                name: 'Heredar colores de etiquetas',
+                desc: 'Las etiquetas hijas heredan el color de las etiquetas padre.'
             },
             tagSortOrder: {
                 name: 'Orden de etiquetas',
@@ -1034,7 +1059,7 @@ export const STRINGS_ES = {
                 desc: 'Mantiene la propiedad tags en frontmatter cuando se eliminan todas las etiquetas. Cuando está desactivado, la propiedad tags se elimina del frontmatter.'
             },
             hiddenTags: {
-                name: 'Ocultar etiquetas',
+                name: 'Ocultar etiquetas (perfil de bóveda)',
                 desc: 'Lista separada por comas de prefijos de etiquetas o comodines de nombre. Usa `tag*` o `*tag` para coincidir con nombres de etiquetas. Ocultar una etiqueta también oculta todas sus sub-etiquetas (ej. "archivo" oculta "archivo/2024/docs").',
                 placeholder: 'interno, temp/borradores, archivo/2024'
             },
@@ -1173,7 +1198,7 @@ export const STRINGS_ES = {
             updateCheckOnStart: {
                 name: 'Buscar nueva versión al iniciar',
                 desc: 'Busca nuevas versiones del complemento al iniciar y muestra una notificación cuando hay una actualización disponible. Cada versión se anuncia solo una vez, y las comprobaciones se realizan como máximo una vez al día.',
-                status: 'New version available: {version}'
+                status: 'Nueva versión disponible: {version}'
             },
             whatsNew: {
                 name: 'Novedades en Notebook Navigator {version}',

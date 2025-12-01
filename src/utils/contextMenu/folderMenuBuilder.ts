@@ -20,15 +20,16 @@ import { FileSystemAdapter, MenuItem, Platform, TFolder, TFile } from 'obsidian'
 import { FolderMenuBuilderParams } from './menuTypes';
 import { strings } from '../../i18n';
 import { showNotice } from '../noticeUtils';
-import { getInternalPlugin, isFolderAncestor } from '../../utils/typeGuards';
+import { getInternalPlugin, isFolderAncestor, isPluginInstalled } from '../../utils/typeGuards';
 import { getFolderNote, createFolderNote } from '../../utils/folderNotes';
-import { ExtendedApp } from '../../types/obsidian-extended';
 import { cleanupExclusionPatterns, isFolderInExcludedFolder } from '../../utils/fileFilters';
 import { ItemType } from '../../types';
 import { resetHiddenToggleIfNoSources } from '../../utils/exclusionUtils';
 import { runAsyncAction } from '../async';
 import { setAsyncOnClick } from './menuAsyncHelpers';
 import { getActiveVaultProfile, getHiddenFolderPatternMatch, normalizeHiddenFolderPath } from '../../utils/vaultProfiles';
+import { EXCALIDRAW_PLUGIN_ID, TLDRAW_PLUGIN_ID } from '../../constants/pluginIds';
+import { addStyleMenu } from './styleMenuBuilder';
 
 /**
  * Adds folder creation commands (new note/folder/canvas/base/drawing) to a menu.
@@ -102,12 +103,28 @@ export function buildFolderCreationMenu(params: FolderMenuBuilderParams): void {
         });
     }
 
-    const isExcalidrawInstalled = !!(app as ExtendedApp).plugins?.plugins?.['obsidian-excalidraw-plugin'];
-    if (isExcalidrawInstalled) {
+    // Collect available drawing plugins to determine menu structure
+    const hasExcalidraw = isPluginInstalled(app, EXCALIDRAW_PLUGIN_ID);
+    const hasTldraw = isPluginInstalled(app, TLDRAW_PLUGIN_ID);
+    const hasBothDrawingPlugins = hasExcalidraw && hasTldraw;
+
+    if (hasExcalidraw) {
         menu.addItem((item: MenuItem) => {
-            setAsyncOnClick(item.setTitle(strings.contextMenu.folder.newDrawing).setIcon('lucide-pencil'), async () => {
+            const label = hasBothDrawingPlugins ? strings.contextMenu.folder.newExcalidrawDrawing : strings.contextMenu.folder.newDrawing;
+            setAsyncOnClick(item.setTitle(label).setIcon('excalidraw-icon'), async () => {
                 ensureFolderSelected();
-                const createdDrawing = await fileSystemOps.createNewDrawing(folder);
+                const createdDrawing = await fileSystemOps.createNewDrawing(folder, 'excalidraw');
+                handleFileCreation(createdDrawing);
+            });
+        });
+    }
+
+    if (hasTldraw) {
+        menu.addItem((item: MenuItem) => {
+            const label = hasBothDrawingPlugins ? strings.contextMenu.folder.newTldrawDrawing : strings.contextMenu.folder.newDrawing;
+            setAsyncOnClick(item.setTitle(label).setIcon('lucide-pencil'), async () => {
+                ensureFolderSelected();
+                const createdDrawing = await fileSystemOps.createNewDrawing(folder, 'tldraw');
                 handleFileCreation(createdDrawing);
             });
         });
@@ -219,18 +236,46 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
     const hasSeparator = metadataService.hasNavigationSeparator(folderSeparatorTarget);
     const disableNavigationSeparatorActions = Boolean(options?.disableNavigationSeparatorActions);
 
-    if (!disableNavigationSeparatorActions) {
-        menu.addItem((item: MenuItem) => {
-            const title = hasSeparator ? strings.contextMenu.navigation.removeSeparator : strings.contextMenu.navigation.addSeparator;
-            setAsyncOnClick(item.setTitle(title).setIcon('lucide-separator-horizontal'), async () => {
-                if (hasSeparator) {
-                    await metadataService.removeNavigationSeparator(folderSeparatorTarget);
-                    return;
-                }
-                await metadataService.addNavigationSeparator(folderSeparatorTarget);
-            });
-        });
-    }
+    const folderIcon = metadataService.getFolderIcon(folder.path);
+    const folderColor = metadataService.getFolderColor(folder.path);
+    const folderBackgroundColor = metadataService.getFolderBackgroundColor(folder.path);
+    const directFolderColor = settings.folderColors?.[folder.path];
+    const directFolderBackground = settings.folderBackgroundColors?.[folder.path];
+
+    const hasRemovableIcon = Boolean(folderIcon);
+    const hasRemovableColor = Boolean(directFolderColor);
+    const hasRemovableBackground = Boolean(directFolderBackground);
+
+    addStyleMenu({
+        menu,
+        styleData: {
+            icon: folderIcon,
+            color: folderColor,
+            background: folderBackgroundColor
+        },
+        hasIcon: true,
+        hasColor: true,
+        hasBackground: true,
+        applyStyle: async clipboard => {
+            const { icon, color, background } = clipboard;
+            const actions: Promise<void>[] = [];
+
+            if (icon) {
+                actions.push(metadataService.setFolderIcon(folder.path, icon));
+            }
+            if (color) {
+                actions.push(metadataService.setFolderColor(folder.path, color));
+            }
+            if (background) {
+                actions.push(metadataService.setFolderBackgroundColor(folder.path, background));
+            }
+
+            await Promise.all(actions);
+        },
+        removeIcon: hasRemovableIcon ? async () => metadataService.removeFolderIcon(folder.path) : undefined,
+        removeColor: hasRemovableColor ? async () => metadataService.removeFolderColor(folder.path) : undefined,
+        removeBackground: hasRemovableBackground ? async () => metadataService.removeFolderBackgroundColor(folder.path) : undefined
+    });
 
     menu.addSeparator();
 
@@ -289,6 +334,19 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
                 }
             });
         }
+    }
+
+    if (!disableNavigationSeparatorActions) {
+        menu.addItem((item: MenuItem) => {
+            const title = hasSeparator ? strings.contextMenu.navigation.removeSeparator : strings.contextMenu.navigation.addSeparator;
+            setAsyncOnClick(item.setTitle(title).setIcon('lucide-separator-horizontal'), async () => {
+                if (hasSeparator) {
+                    await metadataService.removeNavigationSeparator(folderSeparatorTarget);
+                    return;
+                }
+                await metadataService.addNavigationSeparator(folderSeparatorTarget);
+            });
+        });
     }
 
     menu.addSeparator();

@@ -25,6 +25,7 @@ export const STRINGS_EN = {
     common: {
         cancel: 'Cancel', // Button text for canceling dialogs and operations (English: Cancel)
         delete: 'Delete', // Button text for delete operations in dialogs (English: Delete)
+        clear: 'Clear', // Button text for clearing values (English: Clear)
         remove: 'Remove', // Button text for remove operations in dialogs (English: Remove)
         submit: 'Submit', // Button text for submitting forms and dialogs (English: Submit)
         noSelection: 'No selection', // Placeholder text when no folder or tag is selected (English: No selection)
@@ -80,8 +81,6 @@ export const STRINGS_EN = {
         emptySearchName: 'Enter a name before saving the search',
         add: 'Add to shortcuts',
         remove: 'Remove from shortcuts',
-        moveUp: 'Move up',
-        moveDown: 'Move down',
         folderNotesPinned: 'Pinned {count} folder notes'
     },
 
@@ -174,6 +173,8 @@ export const STRINGS_EN = {
             newCanvas: 'New canvas',
             newBase: 'New base',
             newDrawing: 'New drawing',
+            newExcalidrawDrawing: 'New Excalidraw drawing',
+            newTldrawDrawing: 'New Tldraw drawing',
             duplicateFolder: 'Duplicate folder',
             searchInFolder: 'Search in folder',
             copyPath: 'Copy file system path',
@@ -199,6 +200,15 @@ export const STRINGS_EN = {
         navigation: {
             addSeparator: 'Add separator',
             removeSeparator: 'Remove separator'
+        },
+        style: {
+            title: 'Style',
+            copy: 'Copy style',
+            paste: 'Paste style',
+            removeIcon: 'Remove icon',
+            removeColor: 'Remove color',
+            removeBackground: 'Remove background',
+            clear: 'Clear style'
         }
     },
 
@@ -235,15 +245,18 @@ export const STRINGS_EN = {
             newColor: 'New',
             presetColors: 'Preset colors',
             userColors: 'User colors',
-            copyColors: 'Copy colors',
-            colorsCopied: 'Colors copied to clipboard',
+            paletteDefault: 'Default',
+            paletteCustom: 'Custom',
+            copyColors: 'Copy color',
+            colorsCopied: 'Color copied to clipboard',
             copyClipboardError: 'Could not write to clipboard',
-            pasteColors: 'Paste colors',
+            pasteColors: 'Paste color',
             pasteClipboardError: 'Could not read clipboard',
-            pasteInvalidJson: 'Clipboard does not contain valid JSON',
-            pasteInvalidFormat: 'Expected an array of color values',
-            colorsPasted: 'Colors pasted successfully',
-            resetUserColors: 'Reset colors',
+            pasteInvalidJson: 'Clipboard does not contain valid text',
+            pasteInvalidFormat: 'Expected a hex color value',
+            colorsPasted: 'Color pasted successfully',
+            resetUserColors: 'Clear custom colors',
+            clearCustomColorsConfirm: 'Remove all custom colors?',
             userColorSlot: 'Color {slot}',
             recentColors: 'Recent colors',
             clearRecentColors: 'Clear recent colors',
@@ -535,8 +548,10 @@ export const STRINGS_EN = {
             navigationPane: 'Navigation pane',
             icons: 'Icon packs',
             folders: 'Folders',
+            foldersAndTags: 'Folders & tags',
             tags: 'Tags',
             search: 'Search',
+            searchAndHotkeys: 'Search & hotkeys',
             listPane: 'List pane',
             notes: 'Notes',
             hotkeys: 'Hotkeys',
@@ -553,7 +568,8 @@ export const STRINGS_EN = {
             },
             navigation: {
                 behavior: 'Behavior',
-                appearance: 'Appearance'
+                appearance: 'Appearance',
+                shortcutsAndRecent: 'Shortcuts & recent items'
             },
             list: {
                 display: 'Appearance',
@@ -577,7 +593,7 @@ export const STRINGS_EN = {
                     filterSearch: {
                         title: 'Filter search (default):',
                         description:
-                            'Fast, lightweight search that filters files by name and tags within the current folder and subfolders. Supports tag filtering with # prefix (e.g., #project), exclusion with ! prefix (e.g., !draft, !#archived), and finding untagged notes with !#. Ideal for quick navigation within your current context.'
+                            'Filters files by name and tags within the current folder and subfolders. Filter mode: mixed text and tags match all terms (e.g., "project #work"). Tag mode: search with only tags supports AND/OR operators (e.g., "#work AND #urgent", "#project OR #personal"). Cmd/Ctrl+Click tags to add with AND, Cmd/Ctrl+Shift+Click to add with OR. Supports exclusion with ! prefix (e.g., !draft, !#archived) and finding untagged notes with !#.'
                     },
                     omnisearch: {
                         title: 'Omnisearch:',
@@ -681,8 +697,8 @@ export const STRINGS_EN = {
                 desc: 'Display the parent folder name for notes in subfolders or tags.'
             },
             parentFolderClickRevealsFile: {
-                name: 'Click parent folder to reveal file',
-                desc: 'Clicking the parent folder label reveals the file.'
+                name: 'Click parent folder to go to folder',
+                desc: 'Clicking the parent folder label opens the folder in list pane.'
             },
             showParentFolderColor: {
                 name: 'Show parent folder color',
@@ -755,8 +771,7 @@ export const STRINGS_EN = {
                 name: 'Navigation banner (vault profile)',
                 desc: 'Display an image above the navigation pane. Changes with the selected vault profile.',
                 current: 'Current banner: {path}',
-                chooseButton: 'Choose image',
-                clearButton: 'Clear'
+                chooseButton: 'Choose image'
             },
             showShortcuts: {
                 name: 'Show shortcuts',
@@ -793,7 +808,7 @@ export const STRINGS_EN = {
                 }
             },
             fileVisibility: {
-                name: 'Show file types',
+                name: 'Show file types (vault profile)',
                 desc: 'Filter which file types are shown in the navigator. File types not supported by Obsidian may open in external applications.',
                 options: {
                     documents: 'Documents (.md, .canvas, .base)',
@@ -807,14 +822,13 @@ export const STRINGS_EN = {
                 current: 'Current: {path}',
                 currentMobile: 'Mobile: {path}',
                 chooseButton: 'Choose file',
-                clearButton: 'Clear',
                 separateMobile: {
                     name: 'Separate mobile homepage',
                     desc: 'Use a different homepage for mobile devices.'
                 }
             },
             excludedNotes: {
-                name: 'Hide notes',
+                name: 'Hide notes (vault profile)',
                 desc: 'Comma-separated list of frontmatter properties. Notes containing any of these properties will be hidden (e.g., draft, private, archived).',
                 placeholder: 'draft, private'
             },
@@ -823,20 +837,26 @@ export const STRINGS_EN = {
                 desc: 'Profiles store file type visibility, hidden folders, hidden tags, hidden notes, shortcuts, and navigation banner. Switch profiles from the navigation pane header.',
                 defaultName: 'Default',
                 addButton: 'Add profile',
+                editProfilesButton: 'Edit profiles',
+                addProfileOption: 'Add profile...',
+                applyButton: 'Apply',
                 editButton: 'Edit profile',
                 deleteButton: 'Delete profile',
                 addModalTitle: 'Add profile',
+                editProfilesModalTitle: 'Edit profiles',
                 editModalTitle: 'Edit profile',
                 addModalPlaceholder: 'Profile name',
                 deleteModalTitle: 'Delete {name}',
                 deleteModalMessage: 'Remove {name}? Hidden folder, tag, and note filters saved in this profile will be deleted.',
+                moveUp: 'Move up',
+                moveDown: 'Move down',
                 errors: {
                     emptyName: 'Enter a profile name',
                     duplicateName: 'Profile name already exists'
                 }
             },
             excludedFolders: {
-                name: 'Hide folders',
+                name: 'Hide folders (vault profile)',
                 desc: 'Comma-separated list of folders to hide. Name patterns: assets* (folders starting with assets), *_temp (ending with _temp). Path patterns: /archive (root archive only), /res* (root folders starting with res), /*/temp (temp folders one level deep), /projects/* (all folders inside projects).',
                 placeholder: 'templates, assets*, /archive, /res*'
             },
@@ -1003,11 +1023,15 @@ export const STRINGS_EN = {
             },
             showTags: {
                 name: 'Show tags',
-                desc: 'Display tags section below folders in the navigator.'
+                desc: 'Display tags section in the navigator.'
             },
             showTagIcons: {
                 name: 'Show tag icons',
                 desc: 'Display icons next to tags in the navigation pane.'
+            },
+            inheritTagColors: {
+                name: 'Inherit tag colors',
+                desc: 'Child tags inherit color from parent tags.'
             },
             tagSortOrder: {
                 name: 'Tag sort order',
@@ -1032,7 +1056,7 @@ export const STRINGS_EN = {
                 desc: 'Keep the tags frontmatter property when all tags are removed. When disabled, the tags property is deleted from frontmatter.'
             },
             hiddenTags: {
-                name: 'Hide tags',
+                name: 'Hide tags (vault profile)',
                 desc: 'Comma-separated list of tag prefixes or name wildcards. Use tag* or *tag to match tag names. Hiding a tag also hides all its sub-tags (e.g., "archive" hides "archive/2024/docs").',
                 placeholder: 'internal, temp/drafts, archive/2024'
             },

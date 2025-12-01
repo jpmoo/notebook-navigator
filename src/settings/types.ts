@@ -124,14 +124,18 @@ export interface NotebookNavigatorSettings {
     dateFormat: string;
     timeFormat: string;
 
-    // Navigation pane tab
+    // Navigation pane tab - Behavior
     skipAutoScroll: boolean;
+    collapseBehavior: ItemScope;
+    smartCollapse: boolean;
+
+    // Navigation pane tab - Shortcuts & recent items
     showSectionIcons: boolean;
     showShortcuts: boolean;
     showRecentNotes: boolean;
     recentNotesCount: number;
-    collapseBehavior: ItemScope;
-    smartCollapse: boolean;
+
+    // Navigation pane tab - Appearance
     colorIconOnly: boolean;
     showColorsInShortcutsOnly: boolean;
     toolbarVisibility: ToolbarVisibilitySettings;
@@ -148,6 +152,7 @@ export interface NotebookNavigatorSettings {
     showFolderIcons: boolean;
     showRootFolder: boolean;
     inheritFolderColors: boolean;
+    inheritTagColors: boolean;
     enableFolderNotes: boolean;
     folderNoteType: FolderNoteCreationPreference;
     folderNoteName: string;
@@ -194,9 +199,9 @@ export interface NotebookNavigatorSettings {
     showFileDate: boolean;
     alphabeticalDateMode: AlphabeticalDateMode;
     showFileTags: boolean;
-    showFileTagAncestors: boolean;
     colorFileTags: boolean;
     prioritizeColoredFileTags: boolean;
+    showFileTagAncestors: boolean;
     showFileTagsInCompactMode: boolean;
     showParentFolder: boolean;
     parentFolderClickRevealsFile: boolean;

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { TFolder, App } from 'obsidian';
+import { TFolder, App, Plugin } from 'obsidian';
 
 /**
  * Interface for internal plugin structure
@@ -84,6 +84,39 @@ export function executeCommand(app: App, commandId: string): boolean {
     } catch {
         return false;
     }
+}
+
+/**
+ * Extended App interface with access to plugin registry
+ */
+interface AppWithPlugins extends App {
+    plugins?: {
+        plugins?: Record<string, Plugin>;
+        enabledPlugins?: Set<string>;
+    };
+}
+
+/**
+ * Type guard to check if the app has a plugin registry
+ */
+function hasPluginRegistry(app: App): app is AppWithPlugins {
+    return typeof app === 'object' && app !== null && 'plugins' in app;
+}
+
+/**
+ * Checks if a plugin is installed or enabled
+ */
+export function isPluginInstalled(app: App, pluginId: string): boolean {
+    if (!pluginId || !hasPluginRegistry(app)) {
+        return false;
+    }
+
+    const registry = app.plugins;
+    if (!registry) {
+        return false;
+    }
+
+    return Boolean(registry.plugins?.[pluginId]) || Boolean(registry.enabledPlugins?.has(pluginId));
 }
 
 /**

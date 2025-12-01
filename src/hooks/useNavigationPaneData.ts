@@ -1069,7 +1069,8 @@ export function useNavigationPaneData({
             tagIcons: settings.tagIcons || {},
             fileIcons: settings.fileIcons || {},
             fileColors: settings.fileColors || {},
-            inheritFolderColors: settings.inheritFolderColors
+            inheritFolderColors: settings.inheritFolderColors,
+            inheritTagColors: settings.inheritTagColors
         });
         return `${settingsSignature}::${frontmatterMetadataVersion}`;
     }, [settings, frontmatterMetadataVersion]); // Depend on entire settings object to catch mutations

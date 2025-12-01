@@ -69,6 +69,9 @@ body {
     --nn-file-padding-total: calc(var(--nn-file-padding-vertical) * 2); /* Total vertical padding (top + bottom) */
     --nn-file-single-text-line-height: 19px; /* Height for single-line text (metadata, date, or single preview) */
     --nn-file-multiline-text-line-height: 18px; /* Height for multi-line preview text */
+    --nn-file-title-line-height-mobile: 21px; /* Mobile title text height */
+    --nn-file-single-text-line-height-mobile: 20px; /* Mobile single-line text height */
+    --nn-file-multiline-text-line-height-mobile: 19px; /* Mobile preview text height */
     --nn-feature-image-min-size: 42px; /* Minimum size for feature images */
     --nn-feature-image-max-size: 64px; /* Maximum size for feature images */
 
@@ -90,6 +93,8 @@ body {
 
     /* Navigation item heights - fixed pixel values to prevent fractional rendering */
     --nn-nav-line-height: 18px; /* Fixed line height for folder/tag names */
+    --nn-navitem-count-font-size: 11px; /* Desktop count font size */
+    --nn-navitem-count-font-size-mobile: 13px; /* Mobile count font size */
     /* Note: The following are dynamically set by JavaScript based on user settings:
        --nn-setting-nav-padding-vertical
        --nn-setting-nav-padding-vertical-mobile
@@ -118,6 +123,8 @@ body {
     /* Header font sizes */
     --nn-desktop-header-font-size: 13px; /* Fixed desktop header font size */
     --nn-mobile-header-font-size: 17px; /* Fixed mobile header font size */
+    --nn-root-reorder-hint-font-size: var(--font-ui-smaller);
+    --nn-root-reorder-hint-font-size-mobile: var(--font-ui-small);
 
     /* ========================================================================
        Pane Width Constraints
@@ -204,7 +211,7 @@ body {
     --nn-theme-file-date-color: var(--text-normal);
     --nn-theme-file-parent-color: var(--text-muted);
     --nn-theme-file-tag-color: var(--text-muted);
-    --nn-theme-file-tag-custom-color-text-color: white;
+    --nn-theme-file-tag-custom-color-text-color: var(--nn-theme-navitem-name-color);
     --nn-theme-file-tag-bg: var(--background-modifier-border);
     --nn-theme-file-tag-border-radius: 10px;
     --nn-theme-file-border-radius: 8px;
@@ -283,13 +290,13 @@ body {
 }
 
 /* Main container - establishes the plugin's layout foundation */
-    .notebook-navigator {
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        background-color: var(--background-primary);
-        font-family: var(--font-interface);
-    }
+.notebook-navigator {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--background-primary);
+    font-family: var(--font-interface);
+}
 
 /* Removes focus outline on main container for cleaner appearance */
 .notebook-navigator:focus {
@@ -1494,7 +1501,7 @@ body {
 
 /* Folder file count - shows number of files in folder */
 .nn-navitem-count {
-    font-size: 11px;
+    font-size: var(--nn-navitem-count-font-size);
     font-weight: var(--nn-theme-navitem-count-font-weight);
     color: var(--nn-theme-navitem-count-color);
     background-color: var(--nn-theme-navitem-count-bg);
@@ -1631,7 +1638,7 @@ body {
 }
 
 .nn-shortcut-header-item .nn-navitem-count {
-    font-size: 11px;
+    font-size: var(--nn-navitem-count-font-size);
 }
 
 .nn-drag-item {
@@ -1802,13 +1809,13 @@ body {
 }
 
 .nn-root-reorder-hint {
-    font-size: var(--font-ui-smaller);
+    font-size: var(--nn-root-reorder-hint-font-size);
     color: var(--text-muted);
     line-height: 1.25;
 }
 
 .notebook-navigator-mobile .nn-root-reorder-hint {
-    font-size: var(--font-ui-small);
+    font-size: var(--nn-root-reorder-hint-font-size-mobile);
 }
 
 .nn-root-reorder-list {
@@ -2342,26 +2349,35 @@ body {
     background-color: var(--nn-theme-file-tag-bg);
     color: var(--nn-theme-file-tag-color);
     border-radius: min(10px, var(--nn-theme-file-tag-border-radius));
+    border: 1px solid transparent;
+    border-color: color-mix(in srgb, currentColor 30%, transparent);
     font-size: 12px;
     font-weight: var(--nn-theme-file-tag-font-weight);
     white-space: nowrap;
     flex-shrink: 0;
 }
 
-/* When tag has custom color, use custom color text variable */
-.nn-file-tag[style*='background-color'] {
+.nn-file-tag[data-has-background='true'] {
+    background-color: var(--nn-theme-nav-bg);
+    background-image: linear-gradient(var(--nn-file-tag-custom-bg, transparent), var(--nn-file-tag-custom-bg, transparent));
+}
+
+.nn-file-tag[data-has-color='true'] {
+    font-weight: var(--nn-theme-navitem-custom-color-name-font-weight);
+}
+
+.nn-file-tag[data-has-color='true']:not([data-has-background='true']) {
+    background-color: var(--nn-theme-list-bg);
+    background-image: linear-gradient(color-mix(in srgb, currentColor 10%, transparent), color-mix(in srgb, currentColor 10%, transparent));
+}
+
+.nn-file-tag[data-has-background='true']:not([data-has-color='true']) {
     color: var(--nn-theme-file-tag-custom-color-text-color);
 }
 
 /* Tag pill hover effect - darken/lighten all tags on hover */
 .nn-file-tag:hover {
     filter: brightness(0.9);
-}
-
-/* Custom colored tag hover - slightly darken/lighten the background */
-.nn-file-tag[style*='background-color']:hover {
-    filter: brightness(0.9);
-    color: var(--nn-theme-file-tag-custom-color-text-color);
 }
 
 /* Clickable tag styling */
@@ -2375,14 +2391,9 @@ body {
 }
 
 /* Selected file tag styles - only for tags without custom colors */
-.nn-file.nn-selected .nn-file-tag:not([style*='background-color']) {
+.nn-file.nn-selected .nn-file-tag:not([data-has-color='true']):not([data-has-background='true']) {
     background-color: var(--nn-selected-file-tag-bg);
     color: var(--nn-selected-file-tag-color);
-}
-
-/* Ensure custom color tags keep their text color when selected */
-.nn-file.nn-selected .nn-file-tag[style*='background-color'] {
-    color: var(--nn-theme-file-tag-custom-color-text-color);
 }
 
 /* Selected file text colors */
@@ -2869,6 +2880,9 @@ body.nn-resizing {
     z-index: 999999;
     opacity: 0.9;
     will-change: transform;
+    left: 0;
+    top: 0;
+    transform: translate(var(--nn-drag-ghost-x, -1000px), var(--nn-drag-ghost-y, -1000px));
 }
 
 /* Badge shown on drag ghost for multiple files - Apple-style red badge */
@@ -3152,6 +3166,83 @@ body.nn-resizing {
     color: var(--text-muted);
     font-size: var(--font-ui-small);
     text-align: center;
+}
+
+/* ========================================================================
+   Edit Vault Profiles Modal
+   ======================================================================== */
+
+.modal.nn-edit-profiles-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-2);
+    padding: var(--size-4-4);
+}
+
+.nn-edit-profiles-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-1-5);
+    width: 100%;
+}
+
+.nn-edit-profiles-row {
+    display: flex;
+    align-items: center;
+    gap: var(--size-2-1);
+}
+
+.nn-edit-profiles-row .nn-input {
+    flex: 1;
+    min-width: 0;
+}
+
+.nn-edit-profiles-actions {
+    display: flex;
+    gap: var(--size-1-5);
+    flex-shrink: 0;
+}
+
+.nn-edit-profiles-action-btn {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    background-color: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.nn-edit-profiles-action-btn:hover:not(:disabled):not(.mod-warning) {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+    border-color: var(--background-modifier-border-hover);
+}
+
+.nn-edit-profiles-action-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.nn-edit-profiles-action-btn.mod-warning {
+    background: transparent;
+    color: var(--text-error);
+    border-color: var(--background-modifier-border);
+}
+
+.nn-edit-profiles-action-btn.mod-warning:hover:not(:disabled) {
+    background: var(--background-modifier-error);
+    color: var(--text-error);
+    border-color: var(--background-modifier-error-hover);
+}
+
+.nn-edit-profiles-action-btn svg {
+    width: 16px;
+    height: 16px;
 }
 
 /* ========================================================================
@@ -4422,6 +4513,33 @@ body.nn-resizing {
     gap: 4px;
 }
 
+.nn-preset-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.nn-preset-toggle-label {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.nn-preset-toggle-label.nn-preset-toggle-active {
+    color: var(--text-normal);
+    font-weight: 700;
+}
+
+.nn-preset-toggle-separator {
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1;
+}
+
 .nn-preset-action-button,
 .nn-clear-recent {
     width: 20px;
@@ -4437,6 +4555,15 @@ body.nn-resizing {
     justify-content: center;
     font-size: 14px;
     line-height: 1;
+}
+
+.nn-preset-action-disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.nn-preset-action-hidden {
+    display: none;
 }
 
 .nn-preset-action-button:hover,
@@ -4546,6 +4673,17 @@ body.nn-resizing {
     outline: none;
 }
 
+.nn-color-dot.nn-drop-hover {
+    outline: 3px solid var(--interactive-accent);
+    outline-offset: -3px;
+}
+
+.nn-drag-preview {
+    width: 36px;
+    height: 36px;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
+}
+
 /* Button container */
 .nn-color-button-container {
     display: flex;
@@ -4605,15 +4743,15 @@ body.nn-resizing {
 /* Mobile root variables */
 .nn-mobile {
     --nn-nav-icon-size: 20px;
-    --nn-file-name-size-mobile: calc(var(--nn-file-name-size) + 2px);
-    --nn-file-small-size-mobile: calc(var(--nn-file-small-size) + 2px);
+    --nn-file-name-size-mobile: 16px;
+    --nn-file-small-size-mobile: 15px;
     --nn-file-padding-vertical-mobile: calc(var(--nn-file-padding-vertical) + 4px);
     --nn-file-padding-total-mobile: calc(var(--nn-file-padding-vertical-mobile) * 2);
     --nn-file-icon-size-mobile: calc(var(--nn-file-icon-size) + 4px);
     --nn-file-icon-slot-width-mobile: var(--nn-file-icon-size-mobile);
-    --nn-file-title-line-height: 21px;
-    --nn-file-single-text-line-height: 20px;
-    --nn-file-multiline-text-line-height: 19px;
+    --nn-file-title-line-height: var(--nn-file-title-line-height-mobile);
+    --nn-file-single-text-line-height: var(--nn-file-single-text-line-height-mobile);
+    --nn-file-multiline-text-line-height: var(--nn-file-multiline-text-line-height-mobile);
     --nn-date-header-height-mobile: calc(var(--nn-date-header-height) + 8px);
     --nn-date-header-height-subsequent-mobile: calc(var(--nn-date-header-height-subsequent) + 8px);
     --nn-date-header-padding-top-mobile: calc(var(--nn-date-header-padding-top) + 4px);
@@ -4629,7 +4767,7 @@ body.nn-resizing {
 
 /* Increase folder count size on mobile to match folder text */
 .notebook-navigator-mobile .nn-navitem-count {
-    font-size: 13px;
+    font-size: var(--nn-navitem-count-font-size-mobile);
 }
 
 /* Mobile folder content padding adjustment for proper selection height */
@@ -4770,6 +4908,81 @@ body.nn-resizing {
 /* Mobile compact mode file names - use dedicated font variable */
 .notebook-navigator-mobile .nn-file.nn-compact .nn-file-name {
     font-size: var(--nn-compact-font-size-mobile, var(--nn-compact-font-size, 15px));
+}
+
+/* ========================================================================
+   Android textZoom Compensation
+
+   Android WebView scales text via textZoom property. This affects font-size
+   and line-height at the rendering level. We detect the scale factor in JS
+   and set --nn-android-font-scale, then CSS compensates by dividing values
+   by that factor so Android scaling produces correct final sizes.
+
+   Font-size compensation is handled via inline styles in androidFontScale.ts.
+   Line-height compensation is handled here in CSS because the .nn-mobile class
+   redefines variables and would override inline styles on the outer container.
+   ======================================================================== */
+
+/* Override line-height variables with compensated values
+   Note: We use a reciprocal variable for division since calc(x / var) can have issues */
+.notebook-navigator-android .nn-mobile {
+    --nn-android-font-scale-reciprocal: calc(1 / var(--nn-android-font-scale, 1));
+    --nn-file-title-line-height: calc(var(--nn-file-title-line-height-mobile) * var(--nn-android-font-scale-reciprocal, 1));
+    --nn-file-single-text-line-height: calc(var(--nn-file-single-text-line-height-mobile) * var(--nn-android-font-scale-reciprocal, 1));
+    --nn-file-multiline-text-line-height: calc(
+        var(--nn-file-multiline-text-line-height-mobile) * var(--nn-android-font-scale-reciprocal, 1)
+    );
+    /* Note: Do NOT compensate icon size variables - they're used for SVG width/height
+       which Android doesn't scale. Only compensate font-size on emoji elements directly. */
+}
+
+/* Note counts in navigation pane - !important needed to override other rules */
+.notebook-navigator-android .nn-navitem-count {
+    font-size: calc(
+        var(--nn-navitem-count-font-size-mobile, var(--nn-navitem-count-font-size)) * var(--nn-android-font-scale-reciprocal, 1)
+    ) !important;
+}
+
+/* Root reorder panel text */
+.notebook-navigator-android .nn-root-reorder-hint {
+    font-size: calc(
+        var(--nn-root-reorder-hint-font-size-mobile, var(--nn-root-reorder-hint-font-size)) * var(--nn-android-font-scale-reciprocal, 1)
+    ) !important;
+}
+
+/* Emoji and webfont icons - Android scales font-size but not SVG dimensions.
+   Only apply to .nn-emoji-icon and .nn-iconfont to avoid breaking Lucide SVG icons. */
+.notebook-navigator-android .nn-emoji-icon,
+.notebook-navigator-android .nn-iconfont {
+    font-size: calc(var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)) * var(--nn-android-font-scale-reciprocal, 1)) !important;
+}
+
+/* Height compensation - Android doesn't scale height/min-height, but we need them
+   to match the (now compensated) line-height after Android applies textZoom.
+   Since line-height var is pre-divided by scale, multiplying by scale here gives
+   the original value (21px, 20px, 19px) which matches the scaled line-height. */
+.notebook-navigator-android .nn-file-name {
+    min-height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1) * var(--nn-android-font-scale, 1));
+    height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1) * var(--nn-android-font-scale, 1));
+}
+
+.notebook-navigator-android .nn-file-preview:not(.nn-file-second-line .nn-file-preview) {
+    min-height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1) * var(--nn-android-font-scale, 1));
+    height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1) * var(--nn-android-font-scale, 1));
+}
+
+/* Icon vertical centering - line-height is pre-compensated, icon size is not */
+.notebook-navigator-android .nn-file-icon-slot {
+    margin-top: max(
+        0px,
+        calc(
+            (
+                    var(--nn-file-title-line-height) * var(--nn-android-font-scale, 1) -
+                        var(--nn-file-icon-size-mobile, var(--nn-file-icon-size))
+                ) /
+                2
+        )
+    );
 }
 
 /* ========================================================================

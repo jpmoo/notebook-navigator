@@ -25,6 +25,7 @@ export const STRINGS_JA = {
     common: {
         cancel: 'キャンセル', // Button text for canceling dialogs and operations (English: Cancel)
         delete: '削除', // Button text for delete operations in dialogs (English: Delete)
+        clear: 'クリア', // Button text for clearing values (English: Clear)
         remove: '削除', // Button text for remove operations in dialogs (English: Remove)
         submit: '送信', // Button text for submitting forms and dialogs (English: Submit)
         noSelection: '選択なし', // Placeholder text when no folder or tag is selected (English: No selection)
@@ -79,8 +80,6 @@ export const STRINGS_JA = {
         emptySearchName: '検索を保存する前に名前を入力してください',
         add: 'ショートカットに追加',
         remove: 'ショートカットから削除',
-        moveUp: '上に移動',
-        moveDown: '下に移動',
         folderNotesPinned: 'フォルダノート {count} 件をピン留めしました'
     },
 
@@ -174,6 +173,8 @@ export const STRINGS_JA = {
             newCanvas: '新規キャンバス',
             newBase: '新規データベース',
             newDrawing: '新規図面',
+            newExcalidrawDrawing: '新規 Excalidraw 図面',
+            newTldrawDrawing: '新規 Tldraw 図面',
             duplicateFolder: 'フォルダを複製',
             searchInFolder: 'フォルダ内を検索',
             copyPath: 'ファイルシステムパスをコピー',
@@ -199,6 +200,15 @@ export const STRINGS_JA = {
         navigation: {
             addSeparator: '区切り線を追加',
             removeSeparator: '区切り線を削除'
+        },
+        style: {
+            title: 'スタイル',
+            copy: 'スタイルをコピー',
+            paste: 'スタイルを貼り付け',
+            removeIcon: 'アイコンを削除',
+            removeColor: '色を削除',
+            removeBackground: '背景を削除',
+            clear: 'スタイルをクリア'
         }
     },
 
@@ -235,15 +245,18 @@ export const STRINGS_JA = {
             newColor: '新規',
             presetColors: 'プリセット色',
             userColors: 'ユーザー色',
+            paletteDefault: 'デフォルト',
+            paletteCustom: 'カスタム',
             copyColors: '色をコピー',
             colorsCopied: 'クリップボードにコピーしました',
-            copyClipboardError: 'Could not write to clipboard',
+            copyClipboardError: 'クリップボードに書き込めませんでした',
             pasteColors: '色を貼り付け',
             pasteClipboardError: 'クリップボードを読み取れませんでした',
-            pasteInvalidJson: 'クリップボードに有効なJSONがありません',
-            pasteInvalidFormat: '色の値の配列が必要です',
+            pasteInvalidJson: 'クリップボードに有効なテキストがありません',
+            pasteInvalidFormat: '16進数の色の値が必要です',
             colorsPasted: '色を貼り付けました',
-            resetUserColors: '色をリセット',
+            resetUserColors: 'カスタム色をクリア',
+            clearCustomColorsConfirm: 'すべてのカスタム色を削除しますか？',
             userColorSlot: 'カラー {slot}',
             recentColors: '最近使用した色',
             clearRecentColors: '最近使用した色をクリア',
@@ -538,7 +551,9 @@ export const STRINGS_JA = {
             icons: 'アイコンパック',
             tags: 'タグ表示',
             folders: 'フォルダノート',
+            foldersAndTags: 'フォルダとタグ',
             search: '検索',
+            searchAndHotkeys: '検索とホットキー',
             listPane: 'リストペイン',
             hotkeys: 'ホットキー',
             advanced: '詳細設定'
@@ -554,7 +569,8 @@ export const STRINGS_JA = {
             },
             navigation: {
                 behavior: '動作',
-                appearance: '外観'
+                appearance: '外観',
+                shortcutsAndRecent: 'ショートカットと最近の項目'
             },
             list: {
                 display: '外観',
@@ -578,7 +594,7 @@ export const STRINGS_JA = {
                     filterSearch: {
                         title: 'フィルター検索（デフォルト）：',
                         description:
-                            '現在のフォルダとサブフォルダ内のファイルを名前とタグでフィルタリングする高速で軽量な検索。#プレフィックスによるタグフィルタリング（例：#プロジェクト）、!プレフィックスによる除外（例：!下書き、!#アーカイブ済み）、!#によるタグなしノートの検索をサポート。現在のコンテキスト内でのクイックナビゲーションに最適。'
+                            '現在のフォルダとサブフォルダ内のファイルを名前とタグでフィルタリング。フィルターモード：テキストとタグの混在で全ての条件に一致（例：「プロジェクト #仕事」）。タグモード：タグのみの検索でAND/OR演算子をサポート（例：「#仕事 AND #急ぎ」、「#プロジェクト OR #個人」）。Cmd/Ctrl+クリックでANDとして追加、Cmd/Ctrl+Shift+クリックでORとして追加。!プレフィックスによる除外（例：!下書き、!#アーカイブ済み）と!#によるタグなしノートの検索をサポート。'
                     },
                     omnisearch: {
                         title: 'Omnisearch：',
@@ -682,8 +698,8 @@ export const STRINGS_JA = {
                 desc: 'サブフォルダまたはタグ内のノートに親フォルダ名を表示します。'
             },
             parentFolderClickRevealsFile: {
-                name: '親フォルダクリックでノートを表示',
-                desc: '親フォルダラベルをクリックするとノートを表示します。'
+                name: '親フォルダクリックでフォルダを開く',
+                desc: '親フォルダラベルをクリックするとリストペインでフォルダを開きます。'
             },
             showParentFolderColor: {
                 name: '親フォルダの色を表示',
@@ -749,15 +765,14 @@ export const STRINGS_JA = {
                 desc: 'ショートカット内のアイテムをクリックしてもナビゲーションパネルをスクロールしない。'
             },
             autoExpandFoldersTags: {
-                name: 'Expand on selection',
-                desc: 'Expand folders and tags when selected. In single pane mode, first selection expands, second selection shows files.'
+                name: '選択時に展開',
+                desc: '選択時にフォルダとタグを展開します。シングルペインモードでは、最初の選択で展開、2回目の選択でファイルを表示します。'
             },
             navigationBanner: {
                 name: 'ナビゲーションバナー（保管庫プロファイル）',
                 desc: 'ナビゲーションペイン上部に画像を表示します。選択された保管庫プロファイルに応じて変更されます。',
                 current: '現在のバナー: {path}',
-                chooseButton: '画像を選択',
-                clearButton: 'クリア'
+                chooseButton: '画像を選択'
             },
             showShortcuts: {
                 name: 'ショートカットを表示',
@@ -794,7 +809,7 @@ export const STRINGS_JA = {
                 }
             },
             excludedNotes: {
-                name: 'ノートを非表示',
+                name: 'ノートを非表示 (ボルトプロファイル)',
                 desc: 'カンマ区切りのフロントマター属性のリスト。これらの属性を含むノートは非表示になります（例：draft, private, archived）。',
                 placeholder: 'draft, private'
             },
@@ -803,27 +818,33 @@ export const STRINGS_JA = {
                 desc: 'プロファイルは、ファイルタイプの表示、非表示フォルダ、非表示タグ、非表示ノート、ショートカット、ナビゲーションバナーを保存します。ナビゲーションペインのヘッダーからプロファイルを切り替えます。',
                 defaultName: 'デフォルト',
                 addButton: 'プロファイルを追加',
+                editProfilesButton: 'プロファイルを編集',
+                addProfileOption: 'プロファイルを追加...',
+                applyButton: '適用',
                 editButton: 'プロファイルを編集',
                 deleteButton: 'プロファイルを削除',
                 addModalTitle: 'プロファイルを追加',
+                editProfilesModalTitle: 'プロファイルを編集',
                 editModalTitle: 'プロファイルを編集',
                 addModalPlaceholder: 'プロファイル名',
                 deleteModalTitle: '{name}を削除',
                 deleteModalMessage:
                     '{name}を削除しますか？このプロファイルに保存されている非表示フォルダ、タグ、ノートのフィルタが削除されます。',
+                moveUp: '上に移動',
+                moveDown: '下に移動',
                 errors: {
                     emptyName: 'プロファイル名を入力してください',
                     duplicateName: 'プロファイル名は既に存在します'
                 }
             },
             excludedFolders: {
-                name: 'フォルダを非表示',
+                name: 'フォルダを非表示 (ボルトプロファイル)',
                 desc: '非表示にするフォルダのカンマ区切りリスト。名前パターン: assets*（assetsで始まるフォルダ）、*_temp（_tempで終わる）。パスパターン: /archive（ルートのアーカイブのみ）、/res*（resで始まるルートフォルダ）、/*/temp（1階層下のtempフォルダ）、/projects/*（projects内のすべてのフォルダ）。',
                 placeholder: 'templates, assets*, /archive, /res*',
                 info: '自動クリーンアップ：右クリックで除外する際、重複するパターンが削除されます（例：/projectsを除外し、/projects/appが既にリストにある場合、削除されます）。'
             },
             fileVisibility: {
-                name: 'ファイルタイプを表示',
+                name: 'ファイルタイプを表示 (ボルトプロファイル)',
                 desc: 'ナビゲーターに表示されるファイルタイプをフィルタリングします。Obsidianでサポートされていないファイルタイプは、外部アプリケーションで開かれる場合があります。',
                 options: {
                     documents: 'ドキュメント (.md, .canvas, .base)',
@@ -837,7 +858,7 @@ export const STRINGS_JA = {
                 current: '現在: {path}',
                 currentMobile: 'モバイル: {path}',
                 chooseButton: 'ファイルを選択',
-                clearButton: 'クリア',
+
                 separateMobile: {
                     name: '個別のモバイルホームページ',
                     desc: 'モバイルデバイス用に別のホームページを使用します。'
@@ -890,8 +911,8 @@ export const STRINGS_JA = {
                 helpTooltip: 'クリックして形式リファレンスを表示'
             },
             preventInvalidCharacters: {
-                name: 'Prevent invalid characters',
-                desc: 'Block #, |, ^, :, %%, [[, ]] when creating or renaming files and folders.'
+                name: '無効な文字を防止',
+                desc: 'ファイルやフォルダの作成・名前変更時に #, |, ^, :, %%, [[, ]] をブロックします。'
             },
             showFilePreview: {
                 name: 'ノートプレビューを表示',
@@ -1006,11 +1027,15 @@ export const STRINGS_JA = {
             },
             showTags: {
                 name: 'タグを表示',
-                desc: 'ナビゲーターのフォルダの下にタグセクションを表示します。'
+                desc: 'ナビゲーターにタグセクションを表示します。'
             },
             showTagIcons: {
                 name: 'タグアイコンを表示',
                 desc: 'ナビゲーションペインのタグの横にアイコンを表示します。'
+            },
+            inheritTagColors: {
+                name: 'タグの色を継承',
+                desc: '子タグが親タグの色を継承します。'
             },
             tagSortOrder: {
                 name: 'タグの並び順',
@@ -1035,7 +1060,7 @@ export const STRINGS_JA = {
                 desc: 'すべてのタグが削除されても frontmatter の tags プロパティを保持します。無効にすると、tags プロパティは frontmatter から削除されます。'
             },
             hiddenTags: {
-                name: 'タグを非表示',
+                name: 'タグを非表示 (ボルトプロファイル)',
                 desc: '非表示にするタグの接頭辞または名前ワイルドカードのカンマ区切りリスト。`tag*` や `*tag` でタグ名に一致します。タグを非表示にすると、すべてのサブタグも非表示になります（例："アーカイブ"で"アーカイブ/2024/docs"も非表示）。',
                 placeholder: '内部, temp/下書き, アーカイブ/2024'
             },
@@ -1173,7 +1198,7 @@ export const STRINGS_JA = {
             updateCheckOnStart: {
                 name: '起動時に新しいバージョンを確認',
                 desc: '起動時に新しいプラグインリリースを確認し、アップデートが利用可能な場合に通知を表示します。各バージョンは一度だけ通知され、確認は最大1日1回行われます。',
-                status: 'New version available: {version}'
+                status: '新しいバージョンが利用可能: {version}'
             },
             whatsNew: {
                 name: 'Notebook Navigator {version} の新着情報',

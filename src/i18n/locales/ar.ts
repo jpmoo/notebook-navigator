@@ -25,6 +25,7 @@ export const STRINGS_AR = {
     common: {
         cancel: 'إلغاء', // Button text for canceling dialogs and operations (English: Cancel)
         delete: 'حذف', // Button text for delete operations in dialogs (English: Delete)
+        clear: 'مسح', // Button text for clearing values (English: Clear)
         remove: 'إزالة', // Button text for remove operations in dialogs (English: Remove)
         submit: 'إرسال', // Button text for submitting forms and dialogs (English: Submit)
         noSelection: 'لا يوجد تحديد', // Placeholder text when no folder or tag is selected (English: No selection)
@@ -80,8 +81,6 @@ export const STRINGS_AR = {
         emptySearchName: 'أدخل اسمًا قبل حفظ البحث',
         add: 'إضافة إلى الاختصارات',
         remove: 'إزالة من الاختصارات',
-        moveUp: 'نقل للأعلى',
-        moveDown: 'نقل للأسفل',
         folderNotesPinned: 'تم تثبيت {count} ملاحظة مجلد'
     },
 
@@ -174,6 +173,8 @@ export const STRINGS_AR = {
             newCanvas: 'لوحة جديدة',
             newBase: 'قاعدة جديدة',
             newDrawing: 'رسم جديد',
+            newExcalidrawDrawing: 'رسم Excalidraw جديد',
+            newTldrawDrawing: 'رسم Tldraw جديد',
             duplicateFolder: 'تكرار المجلد',
             searchInFolder: 'البحث في المجلد',
             copyPath: 'نسخ مسار نظام الملفات',
@@ -199,6 +200,15 @@ export const STRINGS_AR = {
         navigation: {
             addSeparator: 'إضافة فاصل',
             removeSeparator: 'إزالة الفاصل'
+        },
+        style: {
+            title: 'النمط',
+            copy: 'نسخ النمط',
+            paste: 'لصق النمط',
+            removeIcon: 'إزالة الأيقونة',
+            removeColor: 'إزالة اللون',
+            removeBackground: 'إزالة الخلفية',
+            clear: 'مسح النمط'
         }
     },
 
@@ -235,15 +245,18 @@ export const STRINGS_AR = {
             newColor: 'جديد',
             presetColors: 'ألوان مسبقة',
             userColors: 'ألوان المستخدم',
-            copyColors: 'نسخ الألوان',
-            colorsCopied: 'تم نسخ الألوان إلى الحافظة',
+            paletteDefault: 'افتراضي',
+            paletteCustom: 'مخصص',
+            copyColors: 'نسخ اللون',
+            colorsCopied: 'تم نسخ اللون إلى الحافظة',
             copyClipboardError: 'تعذرت الكتابة إلى الحافظة',
-            pasteColors: 'لصق الألوان',
+            pasteColors: 'لصق اللون',
             pasteClipboardError: 'تعذرت قراءة الحافظة',
-            pasteInvalidJson: 'الحافظة لا تحتوي على JSON صالح',
-            pasteInvalidFormat: 'متوقع مصفوفة من قيم الألوان',
-            colorsPasted: 'تم لصق الألوان بنجاح',
-            resetUserColors: 'إعادة تعيين الألوان',
+            pasteInvalidJson: 'الحافظة لا تحتوي على نص صالح',
+            pasteInvalidFormat: 'متوقع قيمة لون hex',
+            colorsPasted: 'تم لصق اللون بنجاح',
+            resetUserColors: 'مسح الألوان المخصصة',
+            clearCustomColorsConfirm: 'إزالة جميع الألوان المخصصة؟',
             userColorSlot: 'اللون {slot}',
             recentColors: 'ألوان حديثة',
             clearRecentColors: 'مسح الألوان الحديثة',
@@ -535,8 +548,10 @@ export const STRINGS_AR = {
             navigationPane: 'لوحة التنقل',
             icons: 'حزم الأيقونات',
             folders: 'مجلدات',
+            foldersAndTags: 'مجلدات ووسوم',
             tags: 'وسوم',
             search: 'بحث',
+            searchAndHotkeys: 'البحث والاختصارات',
             listPane: 'لوحة القائمة',
             notes: 'ملاحظات',
             hotkeys: 'اختصارات المفاتيح',
@@ -553,7 +568,8 @@ export const STRINGS_AR = {
             },
             navigation: {
                 behavior: 'السلوك',
-                appearance: 'المظهر'
+                appearance: 'المظهر',
+                shortcutsAndRecent: 'الاختصارات والعناصر الأخيرة'
             },
             list: {
                 display: 'المظهر',
@@ -577,7 +593,7 @@ export const STRINGS_AR = {
                     filterSearch: {
                         title: 'بحث التصفية (افتراضي):',
                         description:
-                            'بحث سريع وخفيف يصفي الملفات حسب الاسم والوسوم ضمن المجلد الحالي والمجلدات الفرعية. يدعم تصفية الوسوم بالبادئة # (مثل #مشروع)، والاستبعاد بالبادئة ! (مثل !مسودة، !#أرشيف)، وإيجاد الملاحظات بدون وسوم باستخدام !#. مثالي للتنقل السريع ضمن السياق الحالي.'
+                            'يصفي الملفات حسب الاسم والوسوم ضمن المجلد الحالي والمجلدات الفرعية. وضع الفلتر: النص والوسوم المختلطة تطابق جميع المصطلحات (مثل "مشروع #عمل"). وضع الوسوم: البحث بالوسوم فقط يدعم عوامل AND/OR (مثل "#عمل AND #عاجل"، "#مشروع OR #شخصي"). Cmd/Ctrl+انقر على الوسوم للإضافة مع AND، Cmd/Ctrl+Shift+انقر للإضافة مع OR. يدعم الاستبعاد بالبادئة ! (مثل !مسودة، !#أرشيف) وإيجاد الملاحظات بدون وسوم باستخدام !#.'
                     },
                     omnisearch: {
                         title: 'Omnisearch:',
@@ -681,8 +697,8 @@ export const STRINGS_AR = {
                 desc: 'عرض اسم المجلد الأصلي للملاحظات في المجلدات الفرعية أو الوسوم.'
             },
             parentFolderClickRevealsFile: {
-                name: 'النقر على المجلد الأصلي يكشف الملف',
-                desc: 'النقر على تسمية المجلد الأصلي يكشف الملف.'
+                name: 'النقر على المجلد الأصلي يفتح المجلد',
+                desc: 'النقر على تسمية المجلد الأصلي يفتح المجلد في لوحة القائمة.'
             },
             showParentFolderColor: {
                 name: 'إظهار لون المجلد الأصلي',
@@ -755,8 +771,7 @@ export const STRINGS_AR = {
                 name: 'شعار التنقل (ملف الخزنة)',
                 desc: 'عرض صورة فوق لوحة التنقل. يتغير مع ملف الخزنة المحدد.',
                 current: 'الشعار الحالي: {path}',
-                chooseButton: 'اختيار صورة',
-                clearButton: 'مسح'
+                chooseButton: 'اختيار صورة'
             },
             showShortcuts: {
                 name: 'إظهار الاختصارات',
@@ -793,7 +808,7 @@ export const STRINGS_AR = {
                 }
             },
             fileVisibility: {
-                name: 'إظهار أنواع الملفات',
+                name: 'إظهار أنواع الملفات (ملف الخزنة)',
                 desc: 'تصفية أنواع الملفات المعروضة في المتصفح. أنواع الملفات غير المدعومة من Obsidian قد تفتح في تطبيقات خارجية.',
                 options: {
                     documents: 'مستندات (.md, .canvas, .base)',
@@ -807,14 +822,14 @@ export const STRINGS_AR = {
                 current: 'الحالي: {path}',
                 currentMobile: 'الجوال: {path}',
                 chooseButton: 'اختيار ملف',
-                clearButton: 'مسح',
+
                 separateMobile: {
                     name: 'صفحة رئيسية منفصلة للجوال',
                     desc: 'استخدام صفحة رئيسية مختلفة للأجهزة المحمولة.'
                 }
             },
             excludedNotes: {
-                name: 'إخفاء الملاحظات',
+                name: 'إخفاء الملاحظات (ملف الخزنة)',
                 desc: 'قائمة مفصولة بفاصلة من خصائص البيانات الأمامية. الملاحظات التي تحتوي على أي من هذه الخصائص ستكون مخفية (مثل draft، private، archived).',
                 placeholder: 'draft, private'
             },
@@ -823,20 +838,26 @@ export const STRINGS_AR = {
                 desc: 'تخزن الملفات رؤية أنواع الملفات والمجلدات المخفية والوسوم المخفية والملاحظات المخفية والاختصارات وشعار التنقل. بدل الملفات من رأس لوحة التنقل.',
                 defaultName: 'افتراضي',
                 addButton: 'إضافة ملف',
+                editProfilesButton: 'تحرير الملفات',
+                addProfileOption: 'إضافة ملف...',
+                applyButton: 'تطبيق',
                 editButton: 'تحرير الملف',
                 deleteButton: 'حذف الملف',
                 addModalTitle: 'إضافة ملف',
+                editProfilesModalTitle: 'تحرير الملفات',
                 editModalTitle: 'تحرير الملف',
                 addModalPlaceholder: 'اسم الملف',
                 deleteModalTitle: 'حذف {name}',
                 deleteModalMessage: 'إزالة {name}؟ سيتم حذف مرشحات المجلدات والوسوم والملاحظات المخفية المحفوظة في هذا الملف.',
+                moveUp: 'تحريك لأعلى',
+                moveDown: 'تحريك لأسفل',
                 errors: {
                     emptyName: 'أدخل اسم الملف',
                     duplicateName: 'اسم الملف موجود بالفعل'
                 }
             },
             excludedFolders: {
-                name: 'إخفاء المجلدات',
+                name: 'إخفاء المجلدات (ملف الخزنة)',
                 desc: 'قائمة مفصولة بفاصلة من المجلدات لإخفائها. أنماط الاسم: assets* (المجلدات التي تبدأ بـ assets)، *_temp (التي تنتهي بـ _temp). أنماط المسار: /archive (الأرشيف الجذري فقط)، /res* (المجلدات الجذرية التي تبدأ بـ res)، /*/temp (مجلدات temp بمستوى واحد)، /projects/* (جميع المجلدات داخل projects).',
                 placeholder: 'templates, assets*, /archive, /res*'
             },
@@ -1003,11 +1024,15 @@ export const STRINGS_AR = {
             },
             showTags: {
                 name: 'إظهار الوسوم',
-                desc: 'عرض قسم الوسوم أسفل المجلدات في المتصفح.'
+                desc: 'عرض قسم الوسوم في المتصفح.'
             },
             showTagIcons: {
                 name: 'إظهار أيقونات الوسوم',
                 desc: 'عرض الأيقونات بجانب الوسوم في لوحة التنقل.'
+            },
+            inheritTagColors: {
+                name: 'وراثة ألوان الوسوم',
+                desc: 'تَرِث الوسوم الفرعية اللون من الوسوم الأصلية.'
             },
             tagSortOrder: {
                 name: 'ترتيب فرز الوسوم',
@@ -1032,7 +1057,7 @@ export const STRINGS_AR = {
                 desc: 'الاحتفاظ بخاصية الوسوم في البيانات الأمامية عند إزالة جميع الوسوم. عند التعطيل، يتم حذف خاصية الوسوم من البيانات الأمامية.'
             },
             hiddenTags: {
-                name: 'إخفاء الوسوم',
+                name: 'إخفاء الوسوم (ملف الخزنة)',
                 desc: 'قائمة مفصولة بفاصلة من بادئات الوسوم أو أحرف البدل. استخدم tag* أو *tag للمطابقة بأسماء الوسوم. إخفاء وسم يخفي أيضًا جميع وسومه الفرعية (مثل "archive" يخفي "archive/2024/docs").',
                 placeholder: 'internal, temp/drafts, archive/2024'
             },

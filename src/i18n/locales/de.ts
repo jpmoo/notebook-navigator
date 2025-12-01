@@ -25,6 +25,7 @@ export const STRINGS_DE = {
     common: {
         cancel: 'Abbrechen', // Button text for canceling dialogs and operations (English: Cancel)
         delete: 'Löschen', // Button text for delete operations in dialogs (English: Delete)
+        clear: 'Zurücksetzen', // Button text for clearing values (English: Clear)
         remove: 'Entfernen', // Button text for remove operations in dialogs (English: Remove)
         submit: 'OK', // Button text for submitting forms and dialogs (English: Submit)
         noSelection: 'Keine Auswahl', // Placeholder text when no folder or tag is selected (English: No selection)
@@ -79,8 +80,6 @@ export const STRINGS_DE = {
         emptySearchName: 'Geben Sie einen Namen ein, bevor Sie die Suche speichern',
         add: 'Zu Lesezeichen hinzufügen',
         remove: 'Aus Lesezeichen entfernen',
-        moveUp: 'Nach oben verschieben',
-        moveDown: 'Nach unten verschieben',
         folderNotesPinned: '{count} Ordnernotizen angeheftet'
     },
 
@@ -176,6 +175,8 @@ export const STRINGS_DE = {
             newCanvas: 'Neue Canvas',
             newBase: 'Neue Datenbank',
             newDrawing: 'Neue Zeichnung',
+            newExcalidrawDrawing: 'Neue Excalidraw-Zeichnung',
+            newTldrawDrawing: 'Neue Tldraw-Zeichnung',
             duplicateFolder: 'Ordner duplizieren',
             searchInFolder: 'In Ordner suchen',
             copyPath: 'Dateisystempfad kopieren',
@@ -201,6 +202,15 @@ export const STRINGS_DE = {
         navigation: {
             addSeparator: 'Trennlinie hinzufügen',
             removeSeparator: 'Trennlinie entfernen'
+        },
+        style: {
+            title: 'Stil',
+            copy: 'Stil kopieren',
+            paste: 'Stil einfügen',
+            removeIcon: 'Symbol entfernen',
+            removeColor: 'Farbe entfernen',
+            removeBackground: 'Hintergrund entfernen',
+            clear: 'Stil löschen'
         }
     },
 
@@ -237,15 +247,18 @@ export const STRINGS_DE = {
             newColor: 'Neu',
             presetColors: 'Vordefinierte Farben',
             userColors: 'Benutzerfarben',
-            copyColors: 'Farben kopieren',
-            colorsCopied: 'Farben in Zwischenablage kopiert',
-            copyClipboardError: 'Could not write to clipboard',
-            pasteColors: 'Farben einfügen',
+            paletteDefault: 'Standard',
+            paletteCustom: 'Benutzerdefiniert',
+            copyColors: 'Farbe kopieren',
+            colorsCopied: 'Farbe in Zwischenablage kopiert',
+            copyClipboardError: 'Konnte nicht in Zwischenablage schreiben',
+            pasteColors: 'Farbe einfügen',
             pasteClipboardError: 'Zwischenablage konnte nicht gelesen werden',
-            pasteInvalidJson: 'Zwischenablage enthält kein gültiges JSON',
-            pasteInvalidFormat: 'Ein Array von Farbwerten erwartet',
-            colorsPasted: 'Farben erfolgreich eingefügt',
-            resetUserColors: 'Farben zurücksetzen',
+            pasteInvalidJson: 'Zwischenablage enthält keinen gültigen Text',
+            pasteInvalidFormat: 'Ein Hex-Farbwert erwartet',
+            colorsPasted: 'Farbe erfolgreich eingefügt',
+            resetUserColors: 'Benutzerdefinierte Farben löschen',
+            clearCustomColorsConfirm: 'Alle benutzerdefinierten Farben entfernen?',
             userColorSlot: 'Farbe {slot}',
             recentColors: 'Zuletzt verwendete Farben',
             clearRecentColors: 'Zuletzt verwendete Farben löschen',
@@ -540,7 +553,9 @@ export const STRINGS_DE = {
             icons: 'Icon-Pakete',
             tags: 'Tag-Anzeige',
             folders: 'Ordnernotizen',
+            foldersAndTags: 'Ordner & Tags',
             search: 'Suchen',
+            searchAndHotkeys: 'Suche & Tastenkürzel',
             listPane: 'Listenbereich',
             hotkeys: 'Tastenkürzel',
             advanced: 'Erweitert'
@@ -556,7 +571,8 @@ export const STRINGS_DE = {
             },
             navigation: {
                 behavior: 'Verhalten',
-                appearance: 'Darstellung'
+                appearance: 'Darstellung',
+                shortcutsAndRecent: 'Verknüpfungen & Letzte Einträge'
             },
             list: {
                 display: 'Darstellung',
@@ -580,7 +596,7 @@ export const STRINGS_DE = {
                     filterSearch: {
                         title: 'Filtersuche (Standard):',
                         description:
-                            'Schnelle, leichtgewichtige Suche, die Dateien nach Namen und Tags im aktuellen Ordner und Unterordnern filtert. Unterstützt Tag-Filterung mit # Präfix (z.B. #projekt), Ausschluss mit ! Präfix (z.B. !entwurf, !#archiviert), und das Finden von Notizen ohne Tags mit !#. Ideal für die schnelle Navigation im aktuellen Kontext.'
+                            'Filtert Dateien nach Namen und Tags im aktuellen Ordner und Unterordnern. Filtermodus: Gemischter Text und Tags entsprechen allen Begriffen (z.B. "projekt #arbeit"). Tag-Modus: Suche nur mit Tags unterstützt AND/OR-Operatoren (z.B. "#arbeit AND #dringend", "#projekt OR #persönlich"). Cmd/Strg+Klick auf Tags zum Hinzufügen mit AND, Cmd/Strg+Umschalt+Klick zum Hinzufügen mit OR. Unterstützt Ausschluss mit ! Präfix (z.B. !entwurf, !#archiviert) und das Finden von Notizen ohne Tags mit !#.'
                     },
                     omnisearch: {
                         title: 'Omnisearch:',
@@ -685,8 +701,8 @@ export const STRINGS_DE = {
                 desc: 'Den übergeordneten Ordnernamen für Notizen in Unterordnern oder Tags anzeigen.'
             },
             parentFolderClickRevealsFile: {
-                name: 'Überordnerklick zeigt Datei',
-                desc: 'Klicken auf den übergeordneten Ordner blendet die Datei ein.'
+                name: 'Klick auf übergeordneten Ordner öffnet Ordner',
+                desc: 'Klicken auf den übergeordneten Ordner öffnet den Ordner im Listenbereich.'
             },
             showParentFolderColor: {
                 name: 'Übergeordnete Ordnerfarbe anzeigen',
@@ -752,15 +768,14 @@ export const STRINGS_DE = {
                 desc: 'Navigationsbereich nicht scrollen beim Klicken auf Elemente in Verknüpfungen.'
             },
             autoExpandFoldersTags: {
-                name: 'Expand on selection',
-                desc: 'Expand folders and tags when selected. In single pane mode, first selection expands, second selection shows files.'
+                name: 'Bei Auswahl erweitern',
+                desc: 'Ordner und Tags bei Auswahl erweitern. Im Einzelfenster-Modus: erste Auswahl erweitert, zweite Auswahl zeigt Dateien.'
             },
             navigationBanner: {
                 name: 'Navigationsbanner (Tresorprofil)',
                 desc: 'Bild oberhalb des Navigationsbereichs anzeigen. Ändert sich mit dem ausgewählten Tresorprofil.',
                 current: 'Aktuelles Banner: {path}',
-                chooseButton: 'Bild auswählen',
-                clearButton: 'Zurücksetzen'
+                chooseButton: 'Bild auswählen'
             },
             showShortcuts: {
                 name: 'Lesezeichen anzeigen',
@@ -797,7 +812,7 @@ export const STRINGS_DE = {
                 }
             },
             excludedNotes: {
-                name: 'Notizen verstecken',
+                name: 'Notizen verstecken (Tresorprofil)',
                 desc: 'Kommagetrennte Liste von Frontmatter-Eigenschaften. Notizen mit diesen Eigenschaften werden ausgeblendet (z.B. Entwurf, privat, archiviert).',
                 placeholder: 'entwurf, privat'
             },
@@ -806,25 +821,31 @@ export const STRINGS_DE = {
                 desc: 'Profile speichern Dateityp-Sichtbarkeit, versteckte Ordner, versteckte Tags, versteckte Notizen, Verknüpfungen und Navigationsbanner. Profile können über die Kopfzeile des Navigationsbereichs gewechselt werden.',
                 defaultName: 'Standard',
                 addButton: 'Profil hinzufügen',
+                editProfilesButton: 'Profile bearbeiten',
+                addProfileOption: 'Profil hinzufügen...',
+                applyButton: 'Übernehmen',
                 editButton: 'Profil bearbeiten',
                 deleteButton: 'Profil löschen',
                 addModalTitle: 'Profil hinzufügen',
+                editProfilesModalTitle: 'Profile bearbeiten',
                 editModalTitle: 'Profil bearbeiten',
                 addModalPlaceholder: 'Profilname',
                 deleteModalTitle: '{name} löschen',
                 deleteModalMessage: '{name} entfernen? Versteckte Ordner-, Tag- und Notizfilter in diesem Profil werden gelöscht.',
+                moveUp: 'Nach oben',
+                moveDown: 'Nach unten',
                 errors: {
                     emptyName: 'Profilnamen eingeben',
                     duplicateName: 'Profilname bereits vorhanden'
                 }
             },
             excludedFolders: {
-                name: 'Ordner verstecken',
+                name: 'Ordner verstecken (Tresorprofil)',
                 desc: 'Kommagetrennte Liste von auszublendenden Ordnern. Namensmuster: assets* (Ordner die mit assets beginnen), *_temp (endet mit _temp). Pfadmuster: /archive (nur Wurzel-Archive), /res* (Wurzelordner die mit res beginnen), /*/temp (temp-Ordner eine Ebene tief), /projects/* (alle Ordner in projects).',
                 placeholder: 'templates, assets*, /archive, /res*'
             },
             fileVisibility: {
-                name: 'Dateitypen anzeigen',
+                name: 'Dateitypen anzeigen (Tresorprofil)',
                 desc: 'Filtern Sie, welche Dateitypen im Navigator angezeigt werden. Dateitypen, die von Obsidian nicht unterstützt werden, können in externen Anwendungen geöffnet werden.',
                 options: {
                     documents: 'Dokumente (.md, .canvas, .base)',
@@ -838,7 +859,7 @@ export const STRINGS_DE = {
                 current: 'Aktuell: {path}',
                 currentMobile: 'Mobil: {path}',
                 chooseButton: 'Datei auswählen',
-                clearButton: 'Zurücksetzen',
+
                 separateMobile: {
                     name: 'Separate mobile Startseite',
                     desc: 'Verwenden Sie eine andere Startseite für Mobilgeräte.'
@@ -891,8 +912,8 @@ export const STRINGS_DE = {
                 helpTooltip: 'Klicken für Formatreferenz'
             },
             preventInvalidCharacters: {
-                name: 'Prevent invalid characters',
-                desc: 'Block #, |, ^, :, %%, [[, ]] when creating or renaming files and folders.'
+                name: 'Ungültige Zeichen verhindern',
+                desc: '#, |, ^, :, %%, [[, ]] beim Erstellen oder Umbenennen von Dateien und Ordnern blockieren.'
             },
             showFilePreview: {
                 name: 'Notizenvorschau anzeigen',
@@ -1007,11 +1028,15 @@ export const STRINGS_DE = {
             },
             showTags: {
                 name: 'Tags anzeigen',
-                desc: 'Tag-Bereich unterhalb der Ordner im Navigator anzeigen.'
+                desc: 'Tag-Bereich im Navigator anzeigen.'
             },
             showTagIcons: {
                 name: 'Tag-Icons anzeigen',
                 desc: 'Icons neben Tags im Navigationsbereich anzeigen.'
+            },
+            inheritTagColors: {
+                name: 'Tag-Farben vererben',
+                desc: 'Unter-Tags erben die Farbe von übergeordneten Tags.'
             },
             tagSortOrder: {
                 name: 'Tag-Sortierreihenfolge',
@@ -1036,7 +1061,7 @@ export const STRINGS_DE = {
                 desc: 'Behält die Tags-Frontmatter-Eigenschaft, wenn alle Tags entfernt werden. Wenn deaktiviert, wird die Tags-Eigenschaft aus dem Frontmatter gelöscht.'
             },
             hiddenTags: {
-                name: 'Tags verstecken',
+                name: 'Tags verstecken (Tresorprofil)',
                 desc: 'Kommagetrennte Liste von Tag-Präfixen oder Namensplatzhaltern zum Ausblenden. Verwende `tag*` oder `*tag`, um Tagnamen abzugleichen. Ein versteckter Tag blendet auch alle Unter-Tags aus (z.B. "archiv" blendet "archiv/2024/docs" aus).',
                 placeholder: 'intern, temp/entwürfe, archiv/2024'
             },
@@ -1174,7 +1199,7 @@ export const STRINGS_DE = {
             updateCheckOnStart: {
                 name: 'Beim Start nach neuer Version suchen',
                 desc: 'Prüft beim Start auf neue Plugin-Versionen und zeigt eine Benachrichtigung an, wenn ein Update verfügbar ist. Jede Version wird nur einmal angekündigt, und Überprüfungen erfolgen höchstens einmal täglich.',
-                status: 'New version available: {version}'
+                status: 'Neue Version verfügbar: {version}'
             },
             whatsNew: {
                 name: 'Neuigkeiten in Notebook Navigator {version}',
