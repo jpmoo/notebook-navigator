@@ -989,6 +989,10 @@ export const STRINGS_VI = {
                 name: 'Chỉ áp dụng màu cho biểu tượng',
                 desc: 'Khi bật, màu tùy chỉnh chỉ áp dụng cho biểu tượng. Khi tắt, màu áp dụng cho cả biểu tượng và nhãn văn bản.'
             },
+            showColorsInShortcutsOnly: {
+                name: 'Hiển thị màu chỉ trong phím tắt',
+                desc: 'Khi bật, màu nền và văn bản tùy chỉnh cho thư mục và thẻ chỉ được hiển thị trong khu vực phím tắt. Khi tắt, màu cũng được hiển thị trong cây điều hướng bên dưới.'
+            },
             collapseBehavior: {
                 name: 'Thu gọn mục',
                 desc: 'Chọn nút mở rộng/thu gọn tất cả ảnh hưởng đến gì.',

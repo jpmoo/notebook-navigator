@@ -109,6 +109,7 @@ export class ShortcutCollectionModal extends Modal {
                 this.selectedIcon = iconId;
                 this.updateIconButton();
             }
+            return { handled: false };
         };
         modal.open();
     }

@@ -40,7 +40,6 @@ import { RootFolderReorderItem } from '../components/RootFolderReorderItem';
 import { runAsyncAction } from '../utils/async';
 import { mergeNavigationSectionOrder } from '../utils/navigationSections';
 import { getPathBaseName } from '../utils/pathUtils';
-import { showReorderMenu, createMenuReorderHandleConfig } from '../utils/reorderMenu';
 import { useShortcuts } from '../context/ShortcutsContext';
 
 export interface RootFolderDescriptor {

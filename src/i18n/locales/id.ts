@@ -989,6 +989,10 @@ export const STRINGS_ID = {
                 name: 'Terapkan warna ke ikon saja',
                 desc: 'Saat diaktifkan, warna kustom hanya diterapkan ke ikon. Saat dinonaktifkan, warna diterapkan ke ikon dan label teks.'
             },
+            showColorsInShortcutsOnly: {
+                name: 'Tampilkan warna hanya di pintasan',
+                desc: 'Saat diaktifkan, warna latar belakang dan teks kustom untuk folder dan tag hanya ditampilkan di area pintasan. Saat dinonaktifkan, warna juga ditampilkan di pohon navigasi di bawah.'
+            },
             collapseBehavior: {
                 name: 'Ciutkan item',
                 desc: 'Pilih apa yang dipengaruhi tombol luaskan/ciutkan semua.',

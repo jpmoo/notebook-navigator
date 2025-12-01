@@ -989,6 +989,10 @@ export const STRINGS_TR = {
                 name: 'Rengi yalnızca simgelere uygula',
                 desc: 'Etkinleştirildiğinde, özel renkler yalnızca simgelere uygulanır. Devre dışı bırakıldığında, renkler hem simgelere hem de metin etiketlerine uygulanır.'
             },
+            showColorsInShortcutsOnly: {
+                name: 'Renkleri yalnızca kısayollarda göster',
+                desc: 'Etkinleştirildiğinde, klasörler ve etiketler için özel arka plan ve metin renkleri yalnızca kısayol alanında görüntülenir. Devre dışı bırakıldığında, renkler aşağıdaki navigasyon ağacında da görüntülenir.'
+            },
             collapseBehavior: {
                 name: 'Öğeleri daralt',
                 desc: 'Tümünü genişlet/daralt düğmesinin neyi etkilediğini seçin.',
