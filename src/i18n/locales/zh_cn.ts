@@ -59,14 +59,17 @@ export const STRINGS_ZH_CN = {
         shortcutsHeader: '快捷方式',
         recentNotesHeader: '最近笔记',
         recentFilesHeader: '最近文件',
-        reorderRootFoldersTitle: '重新排列导航分区',
-        reorderRootFoldersHint: '拖动标题或项目以调整顺序',
+        reorderRootFoldersTitle: '重新排列导航',
+        reorderRootFoldersHint: '使用箭头或拖动来重新排列',
         vaultRootLabel: '仓库',
         resetRootToAlpha: '重置为字母顺序',
         resetRootToFrequency: '重置为频率排序',
-        dragHandleLabel: '拖拽重新排列',
         pinShortcuts: '固定快捷方式',
+        pinShortcutsAndRecentNotes: '固定快捷方式和最近笔记',
+        pinShortcutsAndRecentFiles: '固定快捷方式和最近文件',
         unpinShortcuts: '取消固定快捷方式',
+        unpinShortcutsAndRecentNotes: '取消固定快捷方式和最近笔记',
+        unpinShortcutsAndRecentFiles: '取消固定快捷方式和最近文件',
         profileMenuLabel: '配置文件',
         profileMenuAria: '更改仓库配置文件'
     },
@@ -96,9 +99,9 @@ export const STRINGS_ZH_CN = {
         customSort: '自定义', // Label for custom sorting mode (English: Custom)
         showFolders: '显示导航', // Tooltip for button to show the navigation pane (English: Show navigation)
         hideFolders: '隐藏导航', // Tooltip for button to hide the navigation pane (English: Hide navigation)
-        reorderRootFolders: '重新排列根文件夹和标签',
-        finishRootFolderReorder: '完成重新排列',
-        toggleDescendantNotes: '显示子文件夹/后代的笔记', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants)
+        reorderRootFolders: '重新排列导航',
+        finishRootFolderReorder: '完成',
+        toggleDescendantNotes: '显示子文件夹/后代的笔记（不同步）', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants (not synced))
         autoExpandFoldersTags: '自动展开文件夹和标签', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
         showExcludedItems: '显示隐藏的文件夹、标签和笔记', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: '隐藏隐藏的文件夹、标签和笔记', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -585,7 +588,7 @@ export const STRINGS_ZH_CN = {
         items: {
             searchProvider: {
                 name: '搜索提供器',
-                desc: '在快速文件名搜索或使用Omnisearch插件的全文搜索之间选择。',
+                desc: '在快速文件名搜索或使用Omnisearch插件的全文搜索之间选择。（不同步）',
                 options: {
                     internal: '过滤搜索',
                     omnisearch: 'Omnisearch（全文）'
@@ -639,7 +642,7 @@ export const STRINGS_ZH_CN = {
                 desc: '在固定笔记、显示后代笔记、更改文件夹外观或执行文件操作时滚动到选定的文件。'
             },
             includeDescendantNotes: {
-                name: '显示子文件夹/后代的笔记',
+                name: '显示子文件夹/后代的笔记（不同步）',
                 desc: '在查看文件夹或标签时包含嵌套子文件夹和标签后代中的笔记。'
             },
             limitPinnedToCurrentFolder: {
@@ -730,7 +733,7 @@ export const STRINGS_ZH_CN = {
                 }
             },
             appearanceScale: {
-                name: '缩放级别',
+                name: '缩放级别（不同步）',
                 desc: '控制 Notebook Navigator 的整体缩放级别。'
             },
             startView: {
@@ -784,6 +787,10 @@ export const STRINGS_ZH_CN = {
             recentNotesCount: {
                 name: '最近笔记数量',
                 desc: '要显示的最近笔记数量。'
+            },
+            pinRecentNotesWithShortcuts: {
+                name: '将最近笔记与快捷方式一起固定',
+                desc: '固定快捷方式时包含最近笔记。'
             },
             showTooltips: {
                 name: '显示工具提示',
@@ -1037,7 +1044,7 @@ export const STRINGS_ZH_CN = {
             },
             tagSortOrder: {
                 name: '标签排序方式',
-                desc: '选择导航窗格中的标签排序顺序。',
+                desc: '选择导航窗格中的标签排序顺序。（不同步）',
                 options: {
                     alphaAsc: 'A 到 Z',
                     alphaDesc: 'Z 到 A',
@@ -1059,8 +1066,8 @@ export const STRINGS_ZH_CN = {
             },
             hiddenTags: {
                 name: '隐藏标签 (库配置)',
-                desc: '要隐藏的标签前缀或名称通配符的逗号分隔列表。使用 `tag*` 或 `*tag` 匹配标签名称。隐藏标签也会隐藏所有子标签（例如："归档"隐藏"归档/2024/docs"）。',
-                placeholder: '内部, 临时/草稿, 归档/2024'
+                desc: '逗号分隔的标签模式列表。名称模式：tag*（以...开头）、*tag（以...结尾）。路径模式：archive（标签及其后代）、archive/*（仅后代）、projects/*/drafts（中间通配符）。',
+                placeholder: 'archive*, *draft, projects/*/old'
             },
             enableFolderNotes: {
                 name: '启用文件夹笔记',

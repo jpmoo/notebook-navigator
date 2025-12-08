@@ -59,14 +59,17 @@ export const STRINGS_FR = {
         shortcutsHeader: 'Raccourcis',
         recentNotesHeader: 'Notes récentes',
         recentFilesHeader: 'Fichiers récents',
-        reorderRootFoldersTitle: 'Réorganiser les sections de navigation',
-        reorderRootFoldersHint: "Faites glisser les en-têtes ou les éléments pour changer l'ordre",
+        reorderRootFoldersTitle: 'Réorganiser la navigation',
+        reorderRootFoldersHint: 'Utilisez les flèches ou glissez pour réorganiser',
         vaultRootLabel: 'Coffre',
         resetRootToAlpha: "Réinitialiser l'ordre alphabétique",
         resetRootToFrequency: 'Réinitialiser selon la fréquence',
-        dragHandleLabel: 'Faire glisser pour réorganiser',
         pinShortcuts: 'Épingler les raccourcis',
+        pinShortcutsAndRecentNotes: 'Épingler les raccourcis et notes récentes',
+        pinShortcutsAndRecentFiles: 'Épingler les raccourcis et fichiers récents',
         unpinShortcuts: 'Détacher les raccourcis',
+        unpinShortcutsAndRecentNotes: 'Détacher les raccourcis et notes récentes',
+        unpinShortcutsAndRecentFiles: 'Détacher les raccourcis et fichiers récents',
         profileMenuLabel: 'Profil',
         profileMenuAria: 'Changer le profil du coffre'
     },
@@ -96,9 +99,9 @@ export const STRINGS_FR = {
         customSort: 'Personnalisé', // Label for custom sorting mode (English: Custom)
         showFolders: 'Afficher la navigation', // Tooltip for button to show the navigation pane (English: Show navigation)
         hideFolders: 'Masquer la navigation', // Tooltip for button to hide the navigation pane (English: Hide navigation)
-        reorderRootFolders: 'Réorganiser les dossiers racine et les étiquettes',
-        finishRootFolderReorder: 'Terminer la réorganisation',
-        toggleDescendantNotes: 'Afficher les notes des sous-dossiers / descendants', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants)
+        reorderRootFolders: 'Réorganiser la navigation',
+        finishRootFolderReorder: 'Terminé',
+        toggleDescendantNotes: 'Afficher les notes des sous-dossiers / descendants (non synchronisé)', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants (not synced))
         autoExpandFoldersTags: 'Développer automatiquement les dossiers et les étiquettes', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
         showExcludedItems: 'Afficher les dossiers, étiquettes et notes masqués', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Masquer les dossiers, étiquettes et notes masqués', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -585,7 +588,7 @@ export const STRINGS_FR = {
         items: {
             searchProvider: {
                 name: 'Fournisseur de recherche',
-                desc: 'Choisissez entre la recherche rapide par nom de fichier ou la recherche plein texte avec le plugin Omnisearch.',
+                desc: 'Choisissez entre la recherche rapide par nom de fichier ou la recherche plein texte avec le plugin Omnisearch. (non synchronisé)',
                 options: {
                     internal: 'Recherche par filtre',
                     omnisearch: 'Omnisearch (plein texte)'
@@ -641,7 +644,7 @@ export const STRINGS_FR = {
                 desc: "Défiler vers le fichier sélectionné lors de l'épinglage de notes, l'affichage de notes descendantes, le changement d'apparence de dossier ou l'exécution d'opérations sur les fichiers."
             },
             includeDescendantNotes: {
-                name: 'Afficher les notes des sous-dossiers / descendants',
+                name: 'Afficher les notes des sous-dossiers / descendants (non synchronisé)',
                 desc: "Inclure les notes des sous-dossiers imbriqués et des descendants d'étiquettes lors de l'affichage d'un dossier ou d'une étiquette."
             },
             limitPinnedToCurrentFolder: {
@@ -732,7 +735,7 @@ export const STRINGS_FR = {
                 }
             },
             appearanceScale: {
-                name: 'Niveau de zoom',
+                name: 'Niveau de zoom (non synchronisé)',
                 desc: 'Contrôle le niveau de zoom global de Notebook Navigator.'
             },
             startView: {
@@ -786,6 +789,10 @@ export const STRINGS_FR = {
             recentNotesCount: {
                 name: 'Nombre de notes récentes',
                 desc: 'Nombre de notes récentes à afficher.'
+            },
+            pinRecentNotesWithShortcuts: {
+                name: 'Épingler les notes récentes avec les raccourcis',
+                desc: "Inclure les notes récentes lors de l'épinglage des raccourcis."
             },
             showTooltips: {
                 name: 'Afficher les infobulles',
@@ -1040,7 +1047,7 @@ export const STRINGS_FR = {
             },
             tagSortOrder: {
                 name: 'Ordre de tri des étiquettes',
-                desc: 'Définir comment les étiquettes sont triées dans le panneau de navigation.',
+                desc: 'Définir comment les étiquettes sont triées dans le panneau de navigation. (non synchronisé)',
                 options: {
                     alphaAsc: 'A à Z',
                     alphaDesc: 'Z à A',
@@ -1062,8 +1069,8 @@ export const STRINGS_FR = {
             },
             hiddenTags: {
                 name: 'Masquer les étiquettes (profil du coffre)',
-                desc: 'Liste séparée par des virgules de préfixes ou de jokers de nom d\'étiquettes à masquer. Utilisez `tag*` ou `*tag` pour faire correspondre les noms d\'étiquette. Masquer une étiquette masque aussi toutes ses sous-étiquettes (par ex. "archive" masque "archive/2024/docs").',
-                placeholder: 'interne, temp/brouillons, archive/2024'
+                desc: "Liste séparée par des virgules de motifs d'étiquettes. Motifs de nom : tag* (commence par), *tag (termine par). Motifs de chemin : archive (étiquette et descendants), archive/* (descendants uniquement), projets/*/brouillons (joker intermédiaire).",
+                placeholder: 'archive*, *brouillon, projets/*/ancien'
             },
             enableFolderNotes: {
                 name: 'Activer les notes de dossier',

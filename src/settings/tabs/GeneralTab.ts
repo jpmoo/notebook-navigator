@@ -31,7 +31,6 @@ import { EditVaultProfilesModal } from '../../modals/EditVaultProfilesModal';
 import {
     DEFAULT_UI_SCALE,
     formatUIScalePercent,
-    sanitizeUIScale,
     MIN_UI_SCALE_PERCENT,
     MAX_UI_SCALE_PERCENT,
     UI_SCALE_PERCENT_STEP,
@@ -159,13 +158,13 @@ export function renderGeneralTab(context: SettingsTabContext): void {
         }
         const activeProfile = getActiveProfile();
         if (fileVisibilityDropdown) {
-            fileVisibilityDropdown.setValue(plugin.settings.fileVisibility);
+            fileVisibilityDropdown.setValue(activeProfile?.fileVisibility ?? FILE_VISIBILITY.SUPPORTED);
         }
         if (excludedFoldersInput) {
             excludedFoldersInput.value = activeProfile ? activeProfile.hiddenFolders.join(', ') : '';
         }
         if (hiddenTagsInput) {
-            hiddenTagsInput.value = plugin.settings.hiddenTags.join(', ');
+            hiddenTagsInput.value = activeProfile ? activeProfile.hiddenTags.join(', ') : '';
         }
         if (excludedFilesInput) {
             excludedFilesInput.value = activeProfile ? activeProfile.hiddenFiles.join(', ') : '';
@@ -181,8 +180,8 @@ export function renderGeneralTab(context: SettingsTabContext): void {
         const activeProfile = getActiveProfile();
         const result = createValidatedVaultProfileFromTemplate(plugin.settings.vaultProfiles, validatedName, {
             sourceProfile: activeProfile,
-            fallbackHiddenTags: plugin.settings.hiddenTags,
-            fallbackFileVisibility: plugin.settings.fileVisibility
+            fallbackHiddenTags: activeProfile?.hiddenTags,
+            fallbackFileVisibility: activeProfile?.fileVisibility
         });
 
         if ('error' in result) {
@@ -195,7 +194,8 @@ export function renderGeneralTab(context: SettingsTabContext): void {
         }
 
         plugin.settings.vaultProfiles.push(result.profile);
-        await plugin.setVaultProfile(result.profile.id);
+        plugin.setVaultProfile(result.profile.id);
+        await plugin.saveSettingsAndUpdate();
         refreshProfileControls();
     };
 
@@ -223,7 +223,8 @@ export function renderGeneralTab(context: SettingsTabContext): void {
                 if (plugin.settings.vaultProfile === targetProfileId) {
                     await plugin.saveSettingsAndUpdate();
                 } else {
-                    await plugin.setVaultProfile(targetProfileId);
+                    plugin.setVaultProfile(targetProfileId);
+                    await plugin.saveSettingsAndUpdate();
                 }
                 refreshProfileControls();
             }
@@ -248,15 +249,13 @@ export function renderGeneralTab(context: SettingsTabContext): void {
                     context.app,
                     strings.settings.items.vaultProfiles.addModalTitle,
                     strings.settings.items.vaultProfiles.addModalPlaceholder,
-                    async profileName => {
-                        await handleAddProfile(profileName);
-                    }
+                    profileName => handleAddProfile(profileName)
                 );
                 modal.open();
                 return;
             }
-            runAsyncAction(async () => {
-                await plugin.setVaultProfile(value);
+            runAsyncAction(() => {
+                plugin.setVaultProfile(value);
                 refreshProfileControls();
             });
         });
@@ -281,9 +280,8 @@ export function renderGeneralTab(context: SettingsTabContext): void {
                 .addOption(FILE_VISIBILITY.DOCUMENTS, strings.settings.items.fileVisibility.options.documents)
                 .addOption(FILE_VISIBILITY.SUPPORTED, strings.settings.items.fileVisibility.options.supported)
                 .addOption(FILE_VISIBILITY.ALL, strings.settings.items.fileVisibility.options.all)
-                .setValue(plugin.settings.fileVisibility)
+                .setValue(getActiveProfile()?.fileVisibility ?? FILE_VISIBILITY.SUPPORTED)
                 .onChange(async (value: FileVisibility) => {
-                    plugin.settings.fileVisibility = value;
                     const activeProfile = plugin.settings.vaultProfiles.find(profile => profile.id === plugin.settings.vaultProfile);
                     if (activeProfile) {
                         activeProfile.fileVisibility = value;
@@ -325,14 +323,18 @@ export function renderGeneralTab(context: SettingsTabContext): void {
         strings.settings.items.hiddenTags.name,
         strings.settings.items.hiddenTags.desc,
         strings.settings.items.hiddenTags.placeholder,
-        () => plugin.settings.hiddenTags.join(', '),
+        () => getActiveProfile()?.hiddenTags.join(', ') ?? '',
         value => {
+            const activeProfile = getActiveProfile();
+            if (!activeProfile) {
+                return;
+            }
             const normalizedHiddenTags = value
                 .split(',')
                 .map(entry => normalizeTagPath(entry))
                 .filter((entry): entry is string => entry !== null);
 
-            plugin.settings.hiddenTags = Array.from(new Set(normalizedHiddenTags));
+            activeProfile.hiddenTags = Array.from(new Set(normalizedHiddenTags));
             resetHiddenToggleIfNoSources({
                 settings: plugin.settings,
                 showHiddenItems: plugin.getUXPreferences().showHiddenItems,
@@ -415,51 +417,6 @@ export function renderGeneralTab(context: SettingsTabContext): void {
     if (!Platform.isMobile) {
         new Setting(containerEl).setName(strings.settings.groups.general.desktopAppearance).setHeading();
 
-        const desktopScaleSetting = new Setting(containerEl)
-            .setName(strings.settings.items.appearanceScale.name)
-            .setDesc(strings.settings.items.appearanceScale.desc);
-
-        const desktopScaleValueEl = desktopScaleSetting.controlEl.createDiv({ cls: 'nn-slider-value' });
-        const updateDesktopScaleLabel = (percentValue: number) => {
-            desktopScaleValueEl.setText(formatUIScalePercent(percentToScale(percentValue)));
-        };
-
-        let desktopScaleSlider: SliderComponent;
-        const initialDesktopScale = sanitizeUIScale(plugin.settings.desktopScale);
-        const initialDesktopScalePercent = scaleToPercent(initialDesktopScale);
-
-        desktopScaleSetting
-            .addSlider(slider => {
-                desktopScaleSlider = slider
-                    .setLimits(MIN_UI_SCALE_PERCENT, MAX_UI_SCALE_PERCENT, UI_SCALE_PERCENT_STEP)
-                    .setDynamicTooltip()
-                    .setValue(initialDesktopScalePercent)
-                    .onChange(async value => {
-                        const nextValue = percentToScale(value);
-                        plugin.settings.desktopScale = nextValue;
-                        updateDesktopScaleLabel(value);
-                        await plugin.saveSettingsAndUpdate();
-                    });
-                return slider;
-            })
-            .addExtraButton(button =>
-                button
-                    .setIcon('lucide-rotate-ccw')
-                    .setTooltip('Restore to default (100%)')
-                    .onClick(() => {
-                        // Reset desktop scale to default without blocking the UI
-                        runAsyncAction(async () => {
-                            const defaultPercent = scaleToPercent(DEFAULT_UI_SCALE);
-                            desktopScaleSlider.setValue(defaultPercent);
-                            plugin.settings.desktopScale = DEFAULT_UI_SCALE;
-                            updateDesktopScaleLabel(defaultPercent);
-                            await plugin.saveSettingsAndUpdate();
-                        });
-                    })
-            );
-
-        updateDesktopScaleLabel(initialDesktopScalePercent);
-
         new Setting(containerEl)
             .setName(strings.settings.items.dualPane.name)
             .setDesc(strings.settings.items.dualPane.desc)
@@ -540,51 +497,6 @@ export function renderGeneralTab(context: SettingsTabContext): void {
     if (Platform.isMobile) {
         new Setting(containerEl).setName(strings.settings.groups.general.mobileAppearance).setHeading();
 
-        const mobileScaleSetting = new Setting(containerEl)
-            .setName(strings.settings.items.appearanceScale.name)
-            .setDesc(strings.settings.items.appearanceScale.desc);
-
-        const mobileScaleValueEl = mobileScaleSetting.controlEl.createDiv({ cls: 'nn-slider-value' });
-        const updateMobileScaleLabel = (percentValue: number) => {
-            mobileScaleValueEl.setText(formatUIScalePercent(percentToScale(percentValue)));
-        };
-
-        let mobileScaleSlider: SliderComponent;
-        const initialMobileScale = sanitizeUIScale(plugin.settings.mobileScale);
-        const initialMobileScalePercent = scaleToPercent(initialMobileScale);
-
-        mobileScaleSetting
-            .addSlider(slider => {
-                mobileScaleSlider = slider
-                    .setLimits(MIN_UI_SCALE_PERCENT, MAX_UI_SCALE_PERCENT, UI_SCALE_PERCENT_STEP)
-                    .setDynamicTooltip()
-                    .setValue(initialMobileScalePercent)
-                    .onChange(async value => {
-                        const nextValue = percentToScale(value);
-                        plugin.settings.mobileScale = nextValue;
-                        updateMobileScaleLabel(value);
-                        await plugin.saveSettingsAndUpdate();
-                    });
-                return slider;
-            })
-            .addExtraButton(button =>
-                button
-                    .setIcon('lucide-rotate-ccw')
-                    .setTooltip('Restore to default (100%)')
-                    .onClick(() => {
-                        // Reset mobile scale to default without blocking the UI
-                        runAsyncAction(async () => {
-                            const defaultPercent = scaleToPercent(DEFAULT_UI_SCALE);
-                            mobileScaleSlider.setValue(defaultPercent);
-                            plugin.settings.mobileScale = DEFAULT_UI_SCALE;
-                            updateMobileScaleLabel(defaultPercent);
-                            await plugin.saveSettingsAndUpdate();
-                        });
-                    })
-            );
-
-        updateMobileScaleLabel(initialMobileScalePercent);
-
         new Setting(containerEl)
             .setName(strings.settings.items.appearanceBackground.name)
             .setDesc(strings.settings.items.appearanceBackground.desc)
@@ -605,6 +517,45 @@ export function renderGeneralTab(context: SettingsTabContext): void {
     }
 
     new Setting(containerEl).setName(strings.settings.groups.general.view).setHeading();
+
+    const uiScaleSetting = new Setting(containerEl)
+        .setName(strings.settings.items.appearanceScale.name)
+        .setDesc(strings.settings.items.appearanceScale.desc);
+
+    const uiScaleValueEl = uiScaleSetting.controlEl.createDiv({ cls: 'nn-slider-value' });
+    const updateUIScaleLabel = (percentValue: number) => {
+        uiScaleValueEl.setText(formatUIScalePercent(percentToScale(percentValue)));
+    };
+
+    let uiScaleSlider: SliderComponent;
+    const initialUIScalePercent = scaleToPercent(plugin.getUIScale());
+
+    uiScaleSetting
+        .addSlider(slider => {
+            uiScaleSlider = slider
+                .setLimits(MIN_UI_SCALE_PERCENT, MAX_UI_SCALE_PERCENT, UI_SCALE_PERCENT_STEP)
+                .setDynamicTooltip()
+                .setValue(initialUIScalePercent)
+                .onChange(value => {
+                    const nextValue = percentToScale(value);
+                    plugin.setUIScale(nextValue);
+                    updateUIScaleLabel(value);
+                });
+            return slider;
+        })
+        .addExtraButton(button =>
+            button
+                .setIcon('lucide-rotate-ccw')
+                .setTooltip('Restore to default (100%)')
+                .onClick(() => {
+                    const defaultPercent = scaleToPercent(DEFAULT_UI_SCALE);
+                    uiScaleSlider.setValue(defaultPercent);
+                    plugin.setUIScale(DEFAULT_UI_SCALE);
+                    updateUIScaleLabel(defaultPercent);
+                })
+        );
+
+    updateUIScaleLabel(initialUIScalePercent);
 
     new Setting(containerEl)
         .setName(strings.settings.items.startView.name)

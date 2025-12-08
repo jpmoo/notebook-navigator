@@ -90,9 +90,6 @@ export interface VaultProfile {
  * Settings are organized by tab for easier maintenance
  */
 export interface NotebookNavigatorSettings {
-    // General tab - Filtering
-    fileVisibility: FileVisibility;
-    hiddenTags: string[];
     vaultProfiles: VaultProfile[];
     vaultProfile: string;
 
@@ -125,13 +122,14 @@ export interface NotebookNavigatorSettings {
     timeFormat: string;
 
     // Navigation pane tab - Behavior
-    skipAutoScroll: boolean;
+    pinRecentNotesWithShortcuts: boolean;
     collapseBehavior: ItemScope;
     smartCollapse: boolean;
 
     // Navigation pane tab - Shortcuts & recent items
     showSectionIcons: boolean;
     showShortcuts: boolean;
+    skipAutoScroll: boolean;
     showRecentNotes: boolean;
     recentNotesCount: number;
 
@@ -246,11 +244,8 @@ export interface NotebookNavigatorSettings {
     tagAppearances: Record<string, TagAppearance>;
     navigationSeparators: Record<string, boolean>;
     userColors: string[];
-    recentColors: string[];
     lastShownVersion: string;
-    latestKnownRelease: string;
     lastAnnouncedRelease: string;
-    lastReleaseCheckAt: number | null;
     rootFolderOrder: string[];
     rootTagOrder: string[];
 }

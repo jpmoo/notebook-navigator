@@ -60,14 +60,17 @@ export const STRINGS_FA = {
         shortcutsHeader: 'میانبرها',
         recentNotesHeader: 'یادداشت‌های اخیر',
         recentFilesHeader: 'فایل‌های اخیر',
-        reorderRootFoldersTitle: 'مرتب‌سازی مجدد بخش‌های ناوبری',
-        reorderRootFoldersHint: 'سرتیترها یا آیتم‌ها را بکشید تا ترتیب را تغییر دهید',
+        reorderRootFoldersTitle: 'مرتب‌سازی مجدد ناوبری',
+        reorderRootFoldersHint: 'از فلش‌ها یا کشیدن برای مرتب‌سازی استفاده کنید',
         vaultRootLabel: 'خزانه',
         resetRootToAlpha: 'بازنشانی به ترتیب الفبایی',
         resetRootToFrequency: 'بازنشانی به ترتیب فراوانی',
-        dragHandleLabel: 'بکشید برای مرتب‌سازی مجدد',
         pinShortcuts: 'سنجاق کردن میانبرها',
+        pinShortcutsAndRecentNotes: 'سنجاق کردن میانبرها و یادداشت‌های اخیر',
+        pinShortcutsAndRecentFiles: 'سنجاق کردن میانبرها و فایل‌های اخیر',
         unpinShortcuts: 'برداشتن سنجاق میانبرها',
+        unpinShortcutsAndRecentNotes: 'برداشتن سنجاق میانبرها و یادداشت‌های اخیر',
+        unpinShortcutsAndRecentFiles: 'برداشتن سنجاق میانبرها و فایل‌های اخیر',
         profileMenuLabel: 'پروفایل',
         profileMenuAria: 'تغییر پروفایل خزانه'
     },
@@ -97,9 +100,9 @@ export const STRINGS_FA = {
         customSort: 'سفارشی',
         showFolders: 'نمایش ناوبری',
         hideFolders: 'مخفی کردن ناوبری',
-        reorderRootFolders: 'مرتب‌سازی مجدد پوشه‌ها و برچسب‌های اصلی',
-        finishRootFolderReorder: 'پایان مرتب‌سازی مجدد',
-        toggleDescendantNotes: 'نمایش یادداشت‌ها از زیرپوشه‌ها / زیرمجموعه‌ها',
+        reorderRootFolders: 'مرتب‌سازی مجدد ناوبری',
+        finishRootFolderReorder: 'تمام',
+        toggleDescendantNotes: 'نمایش یادداشت‌ها از زیرپوشه‌ها / زیرمجموعه‌ها (همگام‌سازی نمی‌شود)',
         autoExpandFoldersTags: 'باز کردن هنگام انتخاب',
         showExcludedItems: 'نمایش پوشه‌ها، برچسب‌ها و یادداشت‌های پنهان',
         hideExcludedItems: 'مخفی کردن پوشه‌ها، برچسب‌ها و یادداشت‌های پنهان',
@@ -584,7 +587,7 @@ export const STRINGS_FA = {
         items: {
             searchProvider: {
                 name: 'ارائه‌دهنده جستجو',
-                desc: 'بین جستجوی سریع نام فایل یا جستجوی متن کامل با افزونه Omnisearch انتخاب کنید.',
+                desc: 'بین جستجوی سریع نام فایل یا جستجوی متن کامل با افزونه Omnisearch انتخاب کنید. (همگام‌سازی نمی‌شود)',
                 options: {
                     internal: 'جستجوی فیلتر',
                     omnisearch: 'Omnisearch (متن کامل)'
@@ -639,7 +642,7 @@ export const STRINGS_FA = {
                 desc: 'هنگام سنجاق کردن یادداشت‌ها، نمایش یادداشت‌های زیرمجموعه، تغییر ظاهر پوشه، یا اجرای عملیات فایل به فایل انتخابی اسکرول کنید.'
             },
             includeDescendantNotes: {
-                name: 'نمایش یادداشت‌ها از زیرپوشه‌ها / زیرمجموعه‌ها',
+                name: 'نمایش یادداشت‌ها از زیرپوشه‌ها / زیرمجموعه‌ها (همگام‌سازی نمی‌شود)',
                 desc: 'یادداشت‌های زیرپوشه‌های تودرتو و زیرمجموعه‌های برچسب را هنگام مشاهده پوشه یا برچسب شامل کنید.'
             },
             limitPinnedToCurrentFolder: {
@@ -730,7 +733,7 @@ export const STRINGS_FA = {
                 }
             },
             appearanceScale: {
-                name: 'سطح زوم',
+                name: 'سطح زوم (همگام‌سازی نمی‌شود)',
                 desc: 'سطح زوم کلی Notebook Navigator را کنترل می‌کند.'
             },
             startView: {
@@ -784,6 +787,10 @@ export const STRINGS_FA = {
             recentNotesCount: {
                 name: 'تعداد یادداشت‌های اخیر',
                 desc: 'تعداد یادداشت‌های اخیر که نمایش داده می‌شوند.'
+            },
+            pinRecentNotesWithShortcuts: {
+                name: 'سنجاق کردن یادداشت‌های اخیر با میانبرها',
+                desc: 'هنگام سنجاق کردن میانبرها، یادداشت‌های اخیر را نیز شامل شود.'
             },
             showTooltips: {
                 name: 'نمایش راهنماها',
@@ -1036,7 +1043,7 @@ export const STRINGS_FA = {
             },
             tagSortOrder: {
                 name: 'ترتیب مرتب‌سازی برچسب',
-                desc: 'نحوه مرتب‌سازی برچسب‌ها در پنل ناوبری را انتخاب کنید.',
+                desc: 'نحوه مرتب‌سازی برچسب‌ها در پنل ناوبری را انتخاب کنید. (همگام‌سازی نمی‌شود)',
                 options: {
                     alphaAsc: 'الف تا ی',
                     alphaDesc: 'ی تا الف',
@@ -1058,8 +1065,8 @@ export const STRINGS_FA = {
             },
             hiddenTags: {
                 name: 'مخفی کردن برچسب‌ها (پروفایل خزانه)',
-                desc: 'لیست پیشوندهای برچسب یا wildcardهای نام جدا شده با کاما. از tag* یا *tag برای تطابق نام‌های برچسب استفاده کنید. مخفی کردن برچسب همه زیربرچسب‌ها را نیز مخفی می‌کند (مثل "بایگانی" ← "بایگانی/۲۰۲۴/اسناد" را مخفی می‌کند).',
-                placeholder: 'داخلی، موقت/پیش‌نویس‌ها، بایگانی/۲۰۲۴'
+                desc: 'لیست الگوهای برچسب جدا شده با کاما. الگوهای نام: tag* (شروع با)، *tag (پایان با). الگوهای مسیر: archive (برچسب و فرزندان)، archive/* (فقط فرزندان)، projects/*/drafts (wildcard میانی).',
+                placeholder: 'archive*, *draft, projects/*/old'
             },
             enableFolderNotes: {
                 name: 'فعال کردن یادداشت‌های پوشه',

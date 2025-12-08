@@ -30,8 +30,6 @@ import type { NotebookNavigatorSettings } from './types';
  */
 export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     // General tab - Filtering
-    fileVisibility: FILE_VISIBILITY.SUPPORTED,
-    hiddenTags: [],
     vaultProfiles: [
         {
             id: 'default',
@@ -75,13 +73,14 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     timeFormat: 'h:mm a',
 
     // Navigation pane tab - Behavior
-    skipAutoScroll: false,
+    pinRecentNotesWithShortcuts: false,
     collapseBehavior: 'all',
     smartCollapse: true,
 
     // Navigation pane tab - Shortcuts & recent items
     showSectionIcons: true,
     showShortcuts: true,
+    skipAutoScroll: false,
     showRecentNotes: true,
     recentNotesCount: 5,
 
@@ -220,11 +219,8 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     tagAppearances: {} as Record<string, TagAppearance>,
     navigationSeparators: {},
     userColors: [...DEFAULT_CUSTOM_COLORS],
-    recentColors: [],
     lastShownVersion: '',
-    latestKnownRelease: '',
     lastAnnouncedRelease: '',
-    lastReleaseCheckAt: null,
     rootFolderOrder: [],
     rootTagOrder: []
 };

@@ -60,14 +60,17 @@ export const STRINGS_AR = {
         shortcutsHeader: 'اختصارات', // Header label for shortcuts section in navigation pane (English: Shortcuts)
         recentNotesHeader: 'ملاحظات حديثة', // Header label for recent notes section in navigation pane (English: Recent notes)
         recentFilesHeader: 'ملفات حديثة', // Header label when showing recent non-note files in navigation pane (English: Recent files)
-        reorderRootFoldersTitle: 'إعادة ترتيب أقسام التنقل',
-        reorderRootFoldersHint: 'اسحب العناوين أو العناصر لتغيير الترتيب',
+        reorderRootFoldersTitle: 'إعادة ترتيب التنقل',
+        reorderRootFoldersHint: 'استخدم الأسهم أو اسحب لإعادة الترتيب',
         vaultRootLabel: 'الخزنة',
         resetRootToAlpha: 'إعادة الترتيب الأبجدي',
         resetRootToFrequency: 'إعادة الترتيب حسب التكرار',
-        dragHandleLabel: 'اسحب لإعادة الترتيب',
         pinShortcuts: 'تثبيت الاختصارات',
+        pinShortcutsAndRecentNotes: 'تثبيت الاختصارات والملاحظات الحديثة',
+        pinShortcutsAndRecentFiles: 'تثبيت الاختصارات والملفات الحديثة',
         unpinShortcuts: 'إلغاء تثبيت الاختصارات',
+        unpinShortcutsAndRecentNotes: 'إلغاء تثبيت الاختصارات والملاحظات الحديثة',
+        unpinShortcutsAndRecentFiles: 'إلغاء تثبيت الاختصارات والملفات الحديثة',
         profileMenuLabel: 'الملف الشخصي',
         profileMenuAria: 'تغيير ملف الخزنة'
     },
@@ -97,9 +100,9 @@ export const STRINGS_AR = {
         customSort: 'مخصص', // Label for custom sorting mode (English: Custom)
         showFolders: 'إظهار التنقل', // Tooltip for button to show the navigation pane (English: Show navigation)
         hideFolders: 'إخفاء التنقل', // Tooltip for button to hide the navigation pane (English: Hide navigation)
-        reorderRootFolders: 'إعادة ترتيب المجلدات والوسوم الجذرية',
-        finishRootFolderReorder: 'إنهاء إعادة الترتيب',
-        toggleDescendantNotes: 'إظهار ملاحظات المجلدات الفرعية / الفروع', // Tooltip: include descendants for folders and tags
+        reorderRootFolders: 'إعادة ترتيب التنقل',
+        finishRootFolderReorder: 'تم',
+        toggleDescendantNotes: 'إظهار ملاحظات المجلدات الفرعية / الفروع (غير متزامن)', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: 'توسيع عند التحديد', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Expand on selection)
         showExcludedItems: 'إظهار المجلدات والوسوم والملاحظات المخفية', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'إخفاء المجلدات والوسوم والملاحظات المخفية', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -584,7 +587,7 @@ export const STRINGS_AR = {
         items: {
             searchProvider: {
                 name: 'مزود البحث',
-                desc: 'اختر بين البحث السريع بأسماء الملفات أو البحث النصي الكامل مع إضافة Omnisearch.',
+                desc: 'اختر بين البحث السريع بأسماء الملفات أو البحث النصي الكامل مع إضافة Omnisearch. (غير متزامن)',
                 options: {
                     internal: 'بحث التصفية',
                     omnisearch: 'Omnisearch (نص كامل)'
@@ -639,7 +642,7 @@ export const STRINGS_AR = {
                 desc: 'التمرير إلى الملف المحدد عند تثبيت الملاحظات، أو إظهار ملاحظات الفروع، أو تغيير مظهر المجلد، أو تنفيذ عمليات الملفات.'
             },
             includeDescendantNotes: {
-                name: 'إظهار ملاحظات المجلدات الفرعية / الفروع',
+                name: 'إظهار ملاحظات المجلدات الفرعية / الفروع (غير متزامن)',
                 desc: 'تضمين الملاحظات من المجلدات الفرعية المتداخلة وفروع الوسوم عند عرض مجلد أو وسم.'
             },
             limitPinnedToCurrentFolder: {
@@ -730,7 +733,7 @@ export const STRINGS_AR = {
                 }
             },
             appearanceScale: {
-                name: 'مستوى التكبير',
+                name: 'مستوى التكبير (غير متزامن)',
                 desc: 'التحكم في مستوى التكبير العام لمتصفح الدفتر.'
             },
             startView: {
@@ -784,6 +787,10 @@ export const STRINGS_AR = {
             recentNotesCount: {
                 name: 'عدد الملاحظات الحديثة',
                 desc: 'عدد الملاحظات الحديثة المعروضة.'
+            },
+            pinRecentNotesWithShortcuts: {
+                name: 'تثبيت الملاحظات الحديثة مع الاختصارات',
+                desc: 'تضمين الملاحظات الحديثة عند تثبيت الاختصارات.'
             },
             showTooltips: {
                 name: 'إظهار التلميحات',
@@ -1036,7 +1043,7 @@ export const STRINGS_AR = {
             },
             tagSortOrder: {
                 name: 'ترتيب فرز الوسوم',
-                desc: 'اختر كيفية ترتيب الوسوم في لوحة التنقل.',
+                desc: 'اختر كيفية ترتيب الوسوم في لوحة التنقل. (غير متزامن)',
                 options: {
                     alphaAsc: 'من أ إلى ي',
                     alphaDesc: 'من ي إلى أ',
@@ -1058,8 +1065,8 @@ export const STRINGS_AR = {
             },
             hiddenTags: {
                 name: 'إخفاء الوسوم (ملف الخزنة)',
-                desc: 'قائمة مفصولة بفاصلة من بادئات الوسوم أو أحرف البدل. استخدم tag* أو *tag للمطابقة بأسماء الوسوم. إخفاء وسم يخفي أيضًا جميع وسومه الفرعية (مثل "archive" يخفي "archive/2024/docs").',
-                placeholder: 'internal, temp/drafts, archive/2024'
+                desc: 'قائمة مفصولة بفاصلة من أنماط الوسوم. أنماط الأسماء: tag* (تبدأ بـ)، *tag (تنتهي بـ). أنماط المسارات: archive (الوسم وفروعه)، archive/* (الفروع فقط)، projects/*/drafts (حرف بدل وسطي).',
+                placeholder: 'archive*, *draft, projects/*/old'
             },
             enableFolderNotes: {
                 name: 'تمكين ملاحظات المجلدات',

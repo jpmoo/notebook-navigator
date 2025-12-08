@@ -60,14 +60,17 @@ export const STRINGS_VI = {
         shortcutsHeader: 'Lối tắt', // Header label for shortcuts section in navigation pane (English: Shortcuts)
         recentNotesHeader: 'Ghi chú gần đây', // Header label for recent notes section in navigation pane (English: Recent notes)
         recentFilesHeader: 'Tệp gần đây', // Header label when showing recent non-note files in navigation pane (English: Recent files)
-        reorderRootFoldersTitle: 'Sắp xếp lại các phần điều hướng',
-        reorderRootFoldersHint: 'Kéo tiêu đề hoặc mục để thay đổi thứ tự',
+        reorderRootFoldersTitle: 'Sắp xếp lại điều hướng',
+        reorderRootFoldersHint: 'Dùng mũi tên hoặc kéo để sắp xếp lại',
         vaultRootLabel: 'Vault',
         resetRootToAlpha: 'Đặt lại theo thứ tự bảng chữ cái',
         resetRootToFrequency: 'Đặt lại theo tần suất',
-        dragHandleLabel: 'Kéo để sắp xếp lại',
         pinShortcuts: 'Ghim lối tắt',
+        pinShortcutsAndRecentNotes: 'Ghim lối tắt và ghi chú gần đây',
+        pinShortcutsAndRecentFiles: 'Ghim lối tắt và tệp gần đây',
         unpinShortcuts: 'Bỏ ghim lối tắt',
+        unpinShortcutsAndRecentNotes: 'Bỏ ghim lối tắt và ghi chú gần đây',
+        unpinShortcutsAndRecentFiles: 'Bỏ ghim lối tắt và tệp gần đây',
         profileMenuLabel: 'Hồ sơ',
         profileMenuAria: 'Đổi hồ sơ vault'
     },
@@ -97,9 +100,9 @@ export const STRINGS_VI = {
         customSort: 'Tùy chỉnh', // Label for custom sorting mode (English: Custom)
         showFolders: 'Hiện điều hướng', // Tooltip for button to show the navigation pane (English: Show navigation)
         hideFolders: 'Ẩn điều hướng', // Tooltip for button to hide the navigation pane (English: Hide navigation)
-        reorderRootFolders: 'Sắp xếp lại thư mục gốc và thẻ',
-        finishRootFolderReorder: 'Hoàn tất sắp xếp lại',
-        toggleDescendantNotes: 'Hiện ghi chú từ thư mục con / phần tử con', // Tooltip: include descendants for folders and tags
+        reorderRootFolders: 'Sắp xếp lại điều hướng',
+        finishRootFolderReorder: 'Hoàn tất',
+        toggleDescendantNotes: 'Hiện ghi chú từ thư mục con / phần tử con (không đồng bộ)', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: 'Mở rộng khi chọn', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Expand on selection)
         showExcludedItems: 'Hiện thư mục, thẻ và ghi chú ẩn', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Ẩn thư mục, thẻ và ghi chú ẩn', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -584,7 +587,7 @@ export const STRINGS_VI = {
         items: {
             searchProvider: {
                 name: 'Nhà cung cấp tìm kiếm',
-                desc: 'Chọn giữa tìm kiếm nhanh theo tên tệp hoặc tìm kiếm toàn văn với plugin Omnisearch.',
+                desc: 'Chọn giữa tìm kiếm nhanh theo tên tệp hoặc tìm kiếm toàn văn với plugin Omnisearch. (không đồng bộ)',
                 options: {
                     internal: 'Tìm kiếm lọc',
                     omnisearch: 'Omnisearch (toàn văn)'
@@ -639,7 +642,7 @@ export const STRINGS_VI = {
                 desc: 'Cuộn đến tệp đã chọn khi ghim ghi chú, hiện ghi chú con, đổi giao diện thư mục hoặc thao tác tệp.'
             },
             includeDescendantNotes: {
-                name: 'Hiện ghi chú từ thư mục con / phần tử con',
+                name: 'Hiện ghi chú từ thư mục con / phần tử con (không đồng bộ)',
                 desc: 'Bao gồm ghi chú từ thư mục con lồng nhau và phần tử con của thẻ khi xem thư mục hoặc thẻ.'
             },
             limitPinnedToCurrentFolder: {
@@ -730,7 +733,7 @@ export const STRINGS_VI = {
                 }
             },
             appearanceScale: {
-                name: 'Mức thu phóng',
+                name: 'Mức thu phóng (không đồng bộ)',
                 desc: 'Điều khiển mức thu phóng tổng thể của Notebook Navigator.'
             },
             startView: {
@@ -784,6 +787,10 @@ export const STRINGS_VI = {
             recentNotesCount: {
                 name: 'Số lượng ghi chú gần đây',
                 desc: 'Số ghi chú gần đây để hiển thị.'
+            },
+            pinRecentNotesWithShortcuts: {
+                name: 'Ghim ghi chú gần đây cùng lối tắt',
+                desc: 'Bao gồm ghi chú gần đây khi lối tắt được ghim.'
             },
             showTooltips: {
                 name: 'Hiện chú thích',
@@ -1036,7 +1043,7 @@ export const STRINGS_VI = {
             },
             tagSortOrder: {
                 name: 'Thứ tự sắp xếp thẻ',
-                desc: 'Chọn cách sắp xếp thẻ trong ngăn điều hướng.',
+                desc: 'Chọn cách sắp xếp thẻ trong ngăn điều hướng. (không đồng bộ)',
                 options: {
                     alphaAsc: 'A đến Z',
                     alphaDesc: 'Z đến A',
@@ -1058,8 +1065,8 @@ export const STRINGS_VI = {
             },
             hiddenTags: {
                 name: 'Ẩn thẻ (hồ sơ vault)',
-                desc: 'Danh sách tiền tố thẻ hoặc ký tự đại diện phân cách bằng dấu phẩy. Dùng thẻ* hoặc *thẻ để khớp tên thẻ. Ẩn thẻ cũng ẩn tất cả thẻ con (ví dụ: "lưu trữ" ẩn "lưu trữ/2024/tài liệu").',
-                placeholder: 'nội bộ, temp/nháp, lưu trữ/2024'
+                desc: 'Danh sách mẫu thẻ phân cách bằng dấu phẩy. Mẫu tên: tag* (bắt đầu bằng), *tag (kết thúc bằng). Mẫu đường dẫn: archive (thẻ và con cháu), archive/* (chỉ con cháu), projects/*/drafts (ký tự đại diện ở giữa).',
+                placeholder: 'archive*, *draft, projects/*/old'
             },
             enableFolderNotes: {
                 name: 'Bật ghi chú thư mục',

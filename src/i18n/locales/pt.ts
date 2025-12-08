@@ -60,14 +60,17 @@ export const STRINGS_PT = {
         shortcutsHeader: 'Atalhos', // Header label for shortcuts section in navigation pane (English: Shortcuts)
         recentNotesHeader: 'Notas recentes', // Header label for recent notes section in navigation pane (English: Recent notes)
         recentFilesHeader: 'Ficheiros recentes', // Header label when showing recent non-note files in navigation pane (English: Recent files)
-        reorderRootFoldersTitle: 'Reordenar secções de navegação',
-        reorderRootFoldersHint: 'Arraste cabeçalhos ou itens para alterar a ordem',
+        reorderRootFoldersTitle: 'Reordenar navegação',
+        reorderRootFoldersHint: 'Use setas ou arraste para reordenar',
         vaultRootLabel: 'Cofre',
         resetRootToAlpha: 'Repor ordem alfabética',
         resetRootToFrequency: 'Repor ordem por frequência',
-        dragHandleLabel: 'Arraste para reordenar',
         pinShortcuts: 'Fixar atalhos',
+        pinShortcutsAndRecentNotes: 'Fixar atalhos e notas recentes',
+        pinShortcutsAndRecentFiles: 'Fixar atalhos e ficheiros recentes',
         unpinShortcuts: 'Desafixar atalhos',
+        unpinShortcutsAndRecentNotes: 'Desafixar atalhos e notas recentes',
+        unpinShortcutsAndRecentFiles: 'Desafixar atalhos e ficheiros recentes',
         profileMenuLabel: 'Perfil',
         profileMenuAria: 'Alterar perfil do cofre'
     },
@@ -97,9 +100,9 @@ export const STRINGS_PT = {
         customSort: 'Personalizado', // Label for custom sorting mode (English: Custom)
         showFolders: 'Mostrar navegação', // Tooltip for button to show the navigation pane (English: Show navigation)
         hideFolders: 'Ocultar navegação', // Tooltip for button to hide the navigation pane (English: Hide navigation)
-        reorderRootFolders: 'Reordenar pastas raiz e etiquetas',
-        finishRootFolderReorder: 'Terminar reordenação',
-        toggleDescendantNotes: 'Mostrar notas de subpastas / descendentes', // Tooltip: include descendants for folders and tags
+        reorderRootFolders: 'Reordenar navegação',
+        finishRootFolderReorder: 'Concluído',
+        toggleDescendantNotes: 'Mostrar notas de subpastas / descendentes (não sincronizado)', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: 'Expandir ao selecionar', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Expand on selection)
         showExcludedItems: 'Mostrar pastas, etiquetas e notas ocultas', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Ocultar pastas, etiquetas e notas ocultas', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -584,7 +587,7 @@ export const STRINGS_PT = {
         items: {
             searchProvider: {
                 name: 'Fornecedor de pesquisa',
-                desc: 'Escolha entre pesquisa rápida por nome de ficheiro ou pesquisa de texto completo com o plugin Omnisearch.',
+                desc: 'Escolha entre pesquisa rápida por nome de ficheiro ou pesquisa de texto completo com o plugin Omnisearch. (não sincronizado)',
                 options: {
                     internal: 'Pesquisa com filtro',
                     omnisearch: 'Omnisearch (texto completo)'
@@ -639,7 +642,7 @@ export const STRINGS_PT = {
                 desc: 'Deslocar para o ficheiro selecionado ao fixar notas, mostrar notas descendentes, alterar aparência da pasta ou executar operações de ficheiros.'
             },
             includeDescendantNotes: {
-                name: 'Mostrar notas de subpastas / descendentes',
+                name: 'Mostrar notas de subpastas / descendentes (não sincronizado)',
                 desc: 'Incluir notas de subpastas aninhadas e descendentes de etiquetas ao visualizar uma pasta ou etiqueta.'
             },
             limitPinnedToCurrentFolder: {
@@ -730,7 +733,7 @@ export const STRINGS_PT = {
                 }
             },
             appearanceScale: {
-                name: 'Nível de zoom',
+                name: 'Nível de zoom (não sincronizado)',
                 desc: 'Controla o nível de zoom geral do Notebook Navigator.'
             },
             startView: {
@@ -784,6 +787,10 @@ export const STRINGS_PT = {
             recentNotesCount: {
                 name: 'Número de notas recentes',
                 desc: 'Número de notas recentes a exibir.'
+            },
+            pinRecentNotesWithShortcuts: {
+                name: 'Fixar notas recentes com atalhos',
+                desc: 'Incluir notas recentes quando os atalhos estão fixos.'
             },
             showTooltips: {
                 name: 'Mostrar dicas',
@@ -1037,7 +1044,7 @@ export const STRINGS_PT = {
             },
             tagSortOrder: {
                 name: 'Ordem de ordenação de etiquetas',
-                desc: 'Escolha como as etiquetas são ordenadas no painel de navegação.',
+                desc: 'Escolha como as etiquetas são ordenadas no painel de navegação. (não sincronizado)',
                 options: {
                     alphaAsc: 'A a Z',
                     alphaDesc: 'Z a A',
@@ -1059,8 +1066,8 @@ export const STRINGS_PT = {
             },
             hiddenTags: {
                 name: 'Ocultar etiquetas (perfil do cofre)',
-                desc: 'Lista de prefixos de etiquetas ou curingas de nome separados por vírgulas. Use etiqueta* ou *etiqueta para corresponder nomes de etiquetas. Ocultar uma etiqueta também oculta todas as suas sub-etiquetas (ex: "arquivo" oculta "arquivo/2024/docs").',
-                placeholder: 'interno, temp/rascunhos, arquivo/2024'
+                desc: 'Lista de padrões de etiquetas separados por vírgulas. Padrões de nome: tag* (começa com), *tag (termina com). Padrões de caminho: arquivo (etiqueta e descendentes), arquivo/* (apenas descendentes), projetos/*/rascunhos (curinga intermédio).',
+                placeholder: 'arquivo*, *rascunho, projetos/*/antigo'
             },
             enableFolderNotes: {
                 name: 'Ativar notas de pasta',

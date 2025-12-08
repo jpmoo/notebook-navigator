@@ -60,14 +60,17 @@ export const STRINGS_ZH_TW = {
         shortcutsHeader: '捷徑', // 導覽窗格中捷徑區段的標頭標籤 (英文: Shortcuts)
         recentNotesHeader: '最近筆記', // 導覽窗格中最近筆記區段的標頭標籤 (英文: Recent notes)
         recentFilesHeader: '最近檔案', // 在導覽窗格中顯示最近非筆記檔案時的標頭標籤 (英文: Recent files)
-        reorderRootFoldersTitle: '重新排列導覽區段',
-        reorderRootFoldersHint: '拖曳標題或項目以調整順序',
+        reorderRootFoldersTitle: '重新排列導覽',
+        reorderRootFoldersHint: '使用箭頭或拖曳來重新排列',
         vaultRootLabel: '儲存庫',
         resetRootToAlpha: '重設為字母順序',
         resetRootToFrequency: '重設為頻率排序',
-        dragHandleLabel: '拖曳以重新排序',
         pinShortcuts: '釘選捷徑',
+        pinShortcutsAndRecentNotes: '釘選捷徑和最近筆記',
+        pinShortcutsAndRecentFiles: '釘選捷徑和最近檔案',
         unpinShortcuts: '取消釘選捷徑',
+        unpinShortcutsAndRecentNotes: '取消釘選捷徑和最近筆記',
+        unpinShortcutsAndRecentFiles: '取消釘選捷徑和最近檔案',
         profileMenuLabel: '設定檔',
         profileMenuAria: '更改倉庫設定檔'
     },
@@ -97,9 +100,9 @@ export const STRINGS_ZH_TW = {
         customSort: '自訂', // 自訂排序模式的標籤 (英文: Custom)
         showFolders: '顯示導覽', // 顯示導覽窗格按鈕的工具提示 (英文: Show navigation)
         hideFolders: '隱藏導覽', // 隱藏導覽窗格按鈕的工具提示 (英文: Hide navigation)
-        reorderRootFolders: '重新排列根資料夾和標籤',
-        finishRootFolderReorder: '完成重新排列',
-        toggleDescendantNotes: '顯示子資料夾/後代中的筆記', // 工具提示：包含資料夾和標籤的後代
+        reorderRootFolders: '重新排列導覽',
+        finishRootFolderReorder: '完成',
+        toggleDescendantNotes: '顯示子資料夾/後代中的筆記（不同步）', // 工具提示：包含資料夾和標籤的後代
         autoExpandFoldersTags: '自動展開資料夾和標籤', // 選取時自動展開資料夾和標籤的切換按鈕工具提示 (英文: Auto-expand folders and tags)
         showExcludedItems: '顯示隱藏的資料夾、標籤和筆記', // 顯示隱藏項目的按鈕工具提示 (英文: Show hidden items)
         hideExcludedItems: '隱藏隱藏的資料夾、標籤和筆記', // 隱藏隱藏項目的按鈕工具提示 (英文: Hide hidden items)
@@ -584,7 +587,7 @@ export const STRINGS_ZH_TW = {
         items: {
             searchProvider: {
                 name: '搜尋提供者',
-                desc: '選擇快速檔案名稱搜尋或使用 Omnisearch 外掛進行全文搜尋。',
+                desc: '選擇快速檔案名稱搜尋或使用 Omnisearch 外掛進行全文搜尋。（不同步）',
                 options: {
                     internal: '篩選搜尋',
                     omnisearch: 'Omnisearch (全文)'
@@ -638,7 +641,7 @@ export const STRINGS_ZH_TW = {
                 desc: '在釘選筆記、顯示後代筆記、變更資料夾外觀或執行檔案操作時捲動至選定的檔案。'
             },
             includeDescendantNotes: {
-                name: '顯示子資料夾/後代中的筆記',
+                name: '顯示子資料夾/後代中的筆記（不同步）',
                 desc: '檢視資料夾或標籤時，包含巢狀子資料夾和標籤後代的筆記。'
             },
             limitPinnedToCurrentFolder: {
@@ -729,7 +732,7 @@ export const STRINGS_ZH_TW = {
                 }
             },
             appearanceScale: {
-                name: '縮放等級',
+                name: '縮放等級（不同步）',
                 desc: '控制 Notebook Navigator 的整體縮放等級。'
             },
             startView: {
@@ -783,6 +786,10 @@ export const STRINGS_ZH_TW = {
             recentNotesCount: {
                 name: '最近筆記數量',
                 desc: '要顯示的最近筆記數量。'
+            },
+            pinRecentNotesWithShortcuts: {
+                name: '將最近筆記與捷徑一起釘選',
+                desc: '釘選捷徑時包含最近筆記。'
             },
             showTooltips: {
                 name: '顯示工具提示',
@@ -1035,7 +1042,7 @@ export const STRINGS_ZH_TW = {
             },
             tagSortOrder: {
                 name: '標籤排序方式',
-                desc: '選擇導覽窗格中的標籤排序順序。',
+                desc: '選擇導覽窗格中的標籤排序順序。（不同步）',
                 options: {
                     alphaAsc: 'A 到 Z',
                     alphaDesc: 'Z 到 A',
@@ -1057,8 +1064,8 @@ export const STRINGS_ZH_TW = {
             },
             hiddenTags: {
                 name: '隱藏標籤 (儲存庫配置)',
-                desc: '以逗號分隔的標籤前綴或名稱萬用字元清單。使用 tag* 或 *tag 來匹配標籤名稱。隱藏一個標籤也會隱藏其所有子標籤 (例如 "archive" 隱藏 "archive/2024/docs")。',
-                placeholder: 'internal, temp/drafts, archive/2024'
+                desc: '以逗號分隔的標籤模式清單。名稱模式：tag*（以...開頭）、*tag（以...結尾）。路徑模式：archive（標籤及其後代）、archive/*（僅後代）、projects/*/drafts（中間萬用字元）。',
+                placeholder: 'archive*, *draft, projects/*/old'
             },
             enableFolderNotes: {
                 name: '啟用資料夾筆記',

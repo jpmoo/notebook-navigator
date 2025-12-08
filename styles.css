@@ -158,6 +158,7 @@ body {
     --nn-theme-navitem-chevron-color: var(--text-muted);
     --nn-theme-navitem-icon-color: var(--text-muted);
     --nn-theme-navitem-name-color: var(--text-normal);
+    --nn-theme-navitem-file-name-color: var(--nn-theme-navitem-name-color);
     --nn-theme-navitem-count-color: var(--text-muted);
     --nn-theme-navitem-count-bg: transparent;
     --nn-theme-navitem-count-border-radius: 8px;
@@ -1290,6 +1291,10 @@ body {
     position: relative;
 }
 
+.nn-navigation-pane[data-shortcut-sorting='true'] .nn-navitem:not(.nn-shortcut-item) {
+    pointer-events: none;
+}
+
 /* Render the custom background color behind the nav item content */
 .nn-navitem.nn-has-custom-background::before {
     content: '';
@@ -1474,7 +1479,7 @@ body {
 }
 
 .nn-navitem[data-nav-item-type='note'] .nn-navitem-name {
-    color: var(--nn-theme-file-name-color);
+    color: var(--nn-theme-navitem-file-name-color);
 }
 
 /* Custom colored folder names */
@@ -1645,52 +1650,6 @@ body {
     position: relative;
 }
 
-.nn-shortcut-drag-source {
-    opacity: 0.6;
-}
-
-.nn-drag-item[data-reorder-drop-before='true'] .nn-navitem-content::before,
-.nn-drag-item[data-reorder-drop-after='true'] .nn-navitem-content::after {
-    content: '';
-    position: absolute;
-    inset-inline-start: 0;
-    inset-inline-end: 0;
-    height: 2px;
-    background-color: var(--interactive-accent);
-    border-radius: 999px;
-    pointer-events: none;
-    z-index: 3;
-}
-
-.nn-drag-item[data-reorder-drop-before='true'] .nn-navitem-content::before {
-    top: 0;
-}
-
-.nn-drag-item[data-reorder-drop-after='true'] .nn-navitem-content::after {
-    bottom: 0;
-}
-
-.nn-desktop .nn-drag-item[data-reorder-drop-before='true']::before,
-.nn-desktop .nn-drag-item[data-reorder-drop-after='true']::after {
-    content: '';
-    position: absolute;
-    inset-inline-start: 0;
-    inset-inline-end: 0;
-    height: 3px;
-    background-color: var(--interactive-accent);
-    border-radius: 999px;
-    pointer-events: none;
-    z-index: 5;
-}
-
-.nn-desktop .nn-drag-item[data-reorder-drop-before='true']::before {
-    top: -1px;
-}
-
-.nn-desktop .nn-drag-item[data-reorder-drop-after='true']::after {
-    bottom: -1px;
-}
-
 .nn-drag-item .nn-navitem-name {
     display: inline-flex;
     align-items: center;
@@ -1831,23 +1790,8 @@ body {
     position: relative;
 }
 
-.nn-root-reorder-section[data-reorder-drop-after='true']::after {
-    content: '';
-    position: absolute;
-    inset-inline-start: 0;
-    inset-inline-end: 0;
-    bottom: 0;
-    height: 2px;
-    background-color: var(--interactive-accent);
-    border-radius: 999px;
-    pointer-events: none;
-    z-index: 3;
-}
-
-.nn-desktop .nn-root-reorder-section[data-reorder-drop-after='true']::after {
-    height: 3px;
-    bottom: -1px;
-    z-index: 5;
+.nn-root-reorder-section--dragging {
+    opacity: 0;
 }
 
 .nn-root-reorder-section-list {
@@ -1910,6 +1854,34 @@ body {
     align-items: center;
     justify-content: center;
     font-weight: 500;
+}
+
+.nn-root-reorder-section-controls {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.nn-root-reorder-section-button {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 6px;
+    color: var(--nn-theme-header-button-icon-color);
+    flex-shrink: 0;
+}
+
+.nn-root-reorder-section-button svg {
+    width: 16px;
+    height: 16px;
+}
+
+.nn-desktop .nn-root-reorder-section-button:hover {
+    background-color: var(--nn-theme-header-button-hover-bg);
+}
+
+.nn-root-reorder-section-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
 .nn-shortcut-disabled {
@@ -5353,6 +5325,15 @@ settings:
         id: nn-theme-navitem-name-color
         title: Text color
         description: Text color for folder and tag names.
+        type: variable-themed-color
+        format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
+    -
+        id: nn-theme-navitem-file-name-color
+        title: File text color
+        description: Text color for note shortcuts and recent files. Defaults to folder/tag text color.
         type: variable-themed-color
         format: hex
         default-light: '#'

@@ -59,14 +59,17 @@ export const STRINGS_JA = {
         shortcutsHeader: 'ショートカット',
         recentNotesHeader: '最近のノート',
         recentFilesHeader: '最近のファイル',
-        reorderRootFoldersTitle: 'ナビゲーションセクションを並び替え',
-        reorderRootFoldersHint: '見出しまたは項目をドラッグして順序を変更します',
+        reorderRootFoldersTitle: 'ナビゲーションを並び替え',
+        reorderRootFoldersHint: '矢印またはドラッグで並び替え',
         vaultRootLabel: 'ボールト',
         resetRootToAlpha: 'アルファベット順にリセット',
         resetRootToFrequency: '頻度順にリセット',
-        dragHandleLabel: 'ドラッグして並び替え',
         pinShortcuts: 'ショートカットを固定',
+        pinShortcutsAndRecentNotes: 'ショートカットと最近のノートを固定',
+        pinShortcutsAndRecentFiles: 'ショートカットと最近のファイルを固定',
         unpinShortcuts: 'ショートカットの固定を解除',
+        unpinShortcutsAndRecentNotes: 'ショートカットと最近のノートの固定を解除',
+        unpinShortcutsAndRecentFiles: 'ショートカットと最近のファイルの固定を解除',
         profileMenuLabel: 'プロファイル',
         profileMenuAria: '保管庫のプロファイルを変更'
     },
@@ -96,9 +99,9 @@ export const STRINGS_JA = {
         customSort: 'カスタム', // Label for custom sorting mode (English: Custom)
         showFolders: 'ナビゲーションを表示', // Tooltip for button to show the navigation pane (English: Show navigation)
         hideFolders: 'ナビゲーションを非表示', // Tooltip for button to hide the navigation pane (English: Hide navigation)
-        reorderRootFolders: 'ルートフォルダとタグを並び替え',
-        finishRootFolderReorder: '並び替えを終了',
-        toggleDescendantNotes: 'サブフォルダ / 子孫のノートを表示', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants)
+        reorderRootFolders: 'ナビゲーションを並び替え',
+        finishRootFolderReorder: '完了',
+        toggleDescendantNotes: 'サブフォルダ / 子孫のノートを表示（同期されません）', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants (not synced))
         autoExpandFoldersTags: 'フォルダとタグを自動展開', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
         showExcludedItems: '非表示のフォルダ・タグ・ノートを表示', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: '非表示のフォルダ・タグ・ノートを非表示', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -585,7 +588,7 @@ export const STRINGS_JA = {
         items: {
             searchProvider: {
                 name: '検索プロバイダー',
-                desc: 'クイックファイル名検索またはOmnisearchプラグインによる全文検索を選択してください。',
+                desc: 'クイックファイル名検索またはOmnisearchプラグインによる全文検索を選択してください。（同期されません）',
                 options: {
                     internal: 'フィルター検索',
                     omnisearch: 'Omnisearch（全文）'
@@ -640,7 +643,7 @@ export const STRINGS_JA = {
                 desc: 'ノートのピン留め、子孫ノートの表示、フォルダ外観の変更、ファイル操作の実行時に選択したファイルへスクロールします。'
             },
             includeDescendantNotes: {
-                name: 'サブフォルダ / 子孫のノートを表示',
+                name: 'サブフォルダ / 子孫のノートを表示（同期されません）',
                 desc: 'フォルダまたはタグを表示するとき、入れ子のサブフォルダとタグの子孫にあるノートを含めます。'
             },
             limitPinnedToCurrentFolder: {
@@ -731,7 +734,7 @@ export const STRINGS_JA = {
                 }
             },
             appearanceScale: {
-                name: 'ズームレベル',
+                name: 'ズームレベル（同期されません）',
                 desc: 'Notebook Navigator 全体のズームレベルを制御します。'
             },
             startView: {
@@ -785,6 +788,10 @@ export const STRINGS_JA = {
             recentNotesCount: {
                 name: '最近のノート数',
                 desc: '表示する最近のノートの数。'
+            },
+            pinRecentNotesWithShortcuts: {
+                name: '最近のノートをショートカットと一緒に固定',
+                desc: 'ショートカットを固定するときに最近のノートを含める。'
             },
             showTooltips: {
                 name: 'ツールチップを表示',
@@ -1039,7 +1046,7 @@ export const STRINGS_JA = {
             },
             tagSortOrder: {
                 name: 'タグの並び順',
-                desc: 'ナビゲーションペインでタグを並べ替える方法を設定します。',
+                desc: 'ナビゲーションペインでタグを並べ替える方法を設定します。（同期されません）',
                 options: {
                     alphaAsc: 'A から Z',
                     alphaDesc: 'Z から A',
@@ -1061,8 +1068,8 @@ export const STRINGS_JA = {
             },
             hiddenTags: {
                 name: 'タグを非表示 (ボルトプロファイル)',
-                desc: '非表示にするタグの接頭辞または名前ワイルドカードのカンマ区切りリスト。`tag*` や `*tag` でタグ名に一致します。タグを非表示にすると、すべてのサブタグも非表示になります（例："アーカイブ"で"アーカイブ/2024/docs"も非表示）。',
-                placeholder: '内部, temp/下書き, アーカイブ/2024'
+                desc: 'カンマ区切りのタグパターンリスト。名前パターン: tag*（で始まる）、*tag（で終わる）。パスパターン: archive（タグと子孫）、archive/*（子孫のみ）、projects/*/drafts（中間ワイルドカード）。',
+                placeholder: 'archive*, *draft, projects/*/old'
             },
             enableFolderNotes: {
                 name: 'フォルダノートを有効化',

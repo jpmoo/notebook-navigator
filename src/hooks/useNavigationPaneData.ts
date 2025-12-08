@@ -58,7 +58,6 @@ import { shouldDisplayFile, FILE_VISIBILITY, isImageFile } from '../utils/fileTy
 import { isExcalidrawFile } from '../utils/fileNameUtils';
 // Use Obsidian's trailing debounce for vault-driven updates
 import { getTotalNoteCount, excludeFromTagTree, findTagNode } from '../utils/tagTree';
-import { getActiveHiddenFolders, getActiveNavigationBanner } from '../utils/vaultProfiles';
 import { flattenFolderTree, flattenTagTree, compareTagOrderWithFallback } from '../utils/treeFlattener';
 import { createHiddenTagVisibility } from '../utils/tagPrefixMatcher';
 import { setNavigationIndex } from '../utils/navigationIndex';
@@ -81,6 +80,7 @@ import {
     parseNavigationSeparatorKey
 } from '../utils/navigationSeparators';
 import type { MetadataService } from '../services/MetadataService';
+import type { ActiveProfileState } from '../context/SettingsContext';
 
 // Checks if a navigation item is a shortcut-related item (virtual folder, shortcut, or header)
 const isShortcutNavigationItem = (item: CombinedNavigationItem): boolean => {
@@ -95,6 +95,14 @@ const isShortcutNavigationItem = (item: CombinedNavigationItem): boolean => {
         item.type === NavigationPaneItemType.SHORTCUT_TAG ||
         item.type === NavigationPaneItemType.SHORTCUT_HEADER
     );
+};
+
+// Checks if a navigation item is part of the recent notes section
+const isRecentNavigationItem = (item: CombinedNavigationItem): boolean => {
+    if (item.type === NavigationPaneItemType.VIRTUAL_FOLDER) {
+        return item.data.id === RECENT_NOTES_VIRTUAL_FOLDER_ID;
+    }
+    return item.type === NavigationPaneItemType.RECENT_NOTE;
 };
 
 /** Options controlling which navigation items are eligible for root spacing */
@@ -337,6 +345,8 @@ const createTagComparator = (order: TagSortOrder, includeDescendantNotes: boolea
 interface UseNavigationPaneDataParams {
     /** Plugin settings */
     settings: NotebookNavigatorSettings;
+    /** Active profile-derived values */
+    activeProfile: ActiveProfileState;
     /** Whether the navigation pane is currently visible */
     isVisible: boolean;
     /** Whether the shortcuts virtual folder is expanded */
@@ -363,6 +373,10 @@ interface UseNavigationPaneDataResult {
     shortcutItems: CombinedNavigationItem[];
     /** Whether the tags virtual folder has visible children */
     tagsVirtualFolderHasChildren: boolean;
+    /** Recent notes items rendered in the pinned area when pinning is enabled */
+    pinnedRecentNotesItems: CombinedNavigationItem[];
+    /** Whether recent notes are pinned with shortcuts */
+    shouldPinRecentNotes: boolean;
     /** Map from item keys to index in items array */
     pathToIndex: Map<string, number>;
     /** Map from shortcut id to index */
@@ -398,6 +412,7 @@ interface UseNavigationPaneDataResult {
  */
 export function useNavigationPaneData({
     settings,
+    activeProfile,
     isVisible,
     shortcutsExpanded,
     recentNotesExpanded,
@@ -415,9 +430,8 @@ export function useNavigationPaneData({
     const showHiddenItems = uxPreferences.showHiddenItems;
     // Resolves frontmatter exclusions, returns empty array when hidden items are shown
     const effectiveFrontmatterExclusions = getEffectiveFrontmatterExclusions(settings, showHiddenItems);
-    // Memoized list of folders hidden by the active vault profile
-    const hiddenFolders = useMemo(() => getActiveHiddenFolders(settings), [settings]);
-    const navigationBannerPath = useMemo(() => getActiveNavigationBanner(settings), [settings]);
+    const { hiddenFolders, hiddenTags, fileVisibility, navigationBanner } = activeProfile;
+    const navigationBannerPath = navigationBanner;
 
     // Version counter that increments when vault files change
     const [fileChangeVersion, setFileChangeVersion] = useState(0);
@@ -436,10 +450,7 @@ export function useNavigationPaneData({
     const untaggedCount = fileData.untagged;
 
     // Create matcher for hidden tag patterns (supports "archive", "temp*", "*draft")
-    const hiddenTagVisibility = useMemo(
-        () => createHiddenTagVisibility(settings.hiddenTags, showHiddenItems),
-        [settings.hiddenTags, showHiddenItems]
-    );
+    const hiddenTagVisibility = useMemo(() => createHiddenTagVisibility(hiddenTags, showHiddenItems), [hiddenTags, showHiddenItems]);
     const hiddenTagMatcher = hiddenTagVisibility.matcher;
     const hiddenMatcherHasRules = hiddenTagVisibility.hasHiddenRules;
 
@@ -878,7 +889,7 @@ export function useNavigationPaneData({
 
         // Use appropriate header based on file visibility setting
         const recentHeaderName =
-            settings.fileVisibility === FILE_VISIBILITY.DOCUMENTS
+            fileVisibility === FILE_VISIBILITY.DOCUMENTS
                 ? strings.navigationPane.recentNotesHeader
                 : strings.navigationPane.recentFilesHeader;
 
@@ -921,7 +932,9 @@ export function useNavigationPaneData({
         });
 
         return items;
-    }, [app, settings.showRecentNotes, recentNotes, settings.recentNotesCount, settings.fileVisibility, recentNotesExpanded]);
+    }, [app, settings.showRecentNotes, recentNotes, settings.recentNotesCount, fileVisibility, recentNotesExpanded]);
+
+    const shouldPinRecentNotes = pinShortcuts && settings.pinRecentNotesWithShortcuts && settings.showRecentNotes;
 
     // Sanitize section order from local storage and ensure defaults are present
     const normalizedSectionOrder = useMemo(() => sanitizeNavigationSectionOrder(sectionOrder), [sectionOrder]);
@@ -937,8 +950,10 @@ export function useNavigationPaneData({
 
         // Path to the banner file configured in the active vault profile
         const bannerPath = navigationBannerPath;
-        // Banner appears in main list when not pinning shortcuts or when shortcuts list is empty
-        const shouldIncludeBannerInMainList = Boolean(bannerPath && (!pinShortcuts || shortcutItems.length === 0));
+        // Banner appears in main list only when nothing is pinned
+        const pinnedShortcutItems = pinShortcuts && shortcutItems.length > 0;
+        const pinnedRecentItems = shouldPinRecentNotes && recentNotesItems.length > 0;
+        const shouldIncludeBannerInMainList = Boolean(bannerPath && !(pinnedShortcutItems || pinnedRecentItems));
 
         if (shouldIncludeBannerInMainList && bannerPath) {
             allItems.push({
@@ -960,7 +975,7 @@ export function useNavigationPaneData({
 
         // Determines which sections should be displayed based on settings and available items
         const shouldIncludeShortcutsSection = settings.showShortcuts && shortcutItems.length > 0 && !pinShortcuts;
-        const shouldIncludeRecentSection = settings.showRecentNotes && recentNotesItems.length > 0;
+        const shouldIncludeRecentSection = settings.showRecentNotes && recentNotesItems.length > 0 && !shouldPinRecentNotes;
         const shouldIncludeFoldersSection = folderItems.length > 0;
         const shouldIncludeTagsSection = settings.showTags && tagItems.length > 0;
 
@@ -1031,6 +1046,7 @@ export function useNavigationPaneData({
         recentNotesItems,
         normalizedSectionOrder,
         settings.showShortcuts,
+        shouldPinRecentNotes,
         settings.showRecentNotes,
         settings.showTags,
         navigationBannerPath,
@@ -1222,6 +1238,8 @@ export function useNavigationPaneData({
         [itemsWithSeparators, metadataService, metadataVersion, parsedExcludedFolders, settings.showColorsInShortcutsOnly]
     );
 
+    const decoratedRecentNotes = useMemo(() => itemsWithMetadata.filter(isRecentNavigationItem), [itemsWithMetadata]);
+
     // Extract shortcut items when pinning is enabled for display in pinned area
     const shortcutItemsWithMetadata = useMemo(() => {
         if (!pinShortcuts) {
@@ -1230,13 +1248,31 @@ export function useNavigationPaneData({
         return decorateNavigationItems(shortcutItems, metadataService, parsedExcludedFolders, metadataVersion, settings.showColorsInShortcutsOnly);
     }, [metadataService, metadataVersion, parsedExcludedFolders, pinShortcuts, shortcutItems, settings.showColorsInShortcutsOnly]);
 
+    const pinnedRecentNotesItems = useMemo(() => {
+        if (!shouldPinRecentNotes) {
+            return [] as CombinedNavigationItem[];
+        }
+        if (decoratedRecentNotes.length > 0) {
+            return decoratedRecentNotes;
+        }
+        return decorateNavigationItems(recentNotesItems, metadataService, parsedExcludedFolders, metadataVersion, settings.showColorsInShortcutsOnly);
+    }, [decoratedRecentNotes, metadataService, metadataVersion, parsedExcludedFolders, recentNotesItems, shouldPinRecentNotes, settings.showColorsInShortcutsOnly]);
+
     /**
      * Filter items based on showHiddenItems setting
      * When showHiddenItems is false, filter out folders marked as excluded
      */
     const filteredItems = useMemo(() => {
         // When pinning shortcuts, exclude them from main tree (they're rendered separately)
-        const baseItems = pinShortcuts ? itemsWithMetadata.filter(current => !isShortcutNavigationItem(current)) : itemsWithMetadata;
+        const baseItems = itemsWithMetadata.filter(current => {
+            if (pinShortcuts && isShortcutNavigationItem(current)) {
+                return false;
+            }
+            if (shouldPinRecentNotes && isRecentNavigationItem(current)) {
+                return false;
+            }
+            return true;
+        });
 
         if (showHiddenItems) {
             // Show all items including excluded ones
@@ -1249,7 +1285,7 @@ export function useNavigationPaneData({
             }
             return true;
         });
-    }, [itemsWithMetadata, showHiddenItems, pinShortcuts]);
+    }, [itemsWithMetadata, showHiddenItems, pinShortcuts, shouldPinRecentNotes]);
 
     /**
      * Find the first folder that appears inline (not in the pinned area) when shortcuts are pinned.
@@ -1440,7 +1476,7 @@ export function useNavigationPaneData({
         const showHiddenFolders = showHiddenItems;
         const countOptions = {
             app,
-            fileVisibility: settings.fileVisibility,
+            fileVisibility,
             excludedFiles: excludedProperties,
             excludedFolders: excludedFolderPatterns,
             includeDescendants,
@@ -1467,7 +1503,7 @@ export function useNavigationPaneData({
         effectiveFrontmatterExclusions,
         hiddenFolders,
         showHiddenItems,
-        settings.fileVisibility,
+        fileVisibility,
         settings.enableFolderNotes,
         settings.folderNoteName,
         settings.hideFolderNoteInList,
@@ -1503,6 +1539,8 @@ export function useNavigationPaneData({
         firstSectionId,
         firstInlineFolderPath,
         shortcutItems: shortcutItemsWithMetadata,
+        pinnedRecentNotesItems,
+        shouldPinRecentNotes,
         tagsVirtualFolderHasChildren,
         pathToIndex,
         shortcutIndex,

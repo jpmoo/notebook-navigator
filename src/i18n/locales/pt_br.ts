@@ -60,14 +60,17 @@ export const STRINGS_PT_BR = {
         shortcutsHeader: 'Atalhos',
         recentNotesHeader: 'Notas recentes',
         recentFilesHeader: 'Arquivos recentes',
-        reorderRootFoldersTitle: 'Reordenar seções de navegação',
-        reorderRootFoldersHint: 'Arraste cabeçalhos ou itens para alterar ordem',
+        reorderRootFoldersTitle: 'Reordenar navegação',
+        reorderRootFoldersHint: 'Use setas ou arraste para reordenar',
         vaultRootLabel: 'Cofre',
         resetRootToAlpha: 'Redefinir para ordem alfabética',
         resetRootToFrequency: 'Redefinir para ordem de frequência',
-        dragHandleLabel: 'Arraste para reordenar',
         pinShortcuts: 'Fixar atalhos',
+        pinShortcutsAndRecentNotes: 'Fixar atalhos e notas recentes',
+        pinShortcutsAndRecentFiles: 'Fixar atalhos e arquivos recentes',
         unpinShortcuts: 'Desafixar atalhos',
+        unpinShortcutsAndRecentNotes: 'Desafixar atalhos e notas recentes',
+        unpinShortcutsAndRecentFiles: 'Desafixar atalhos e arquivos recentes',
         profileMenuLabel: 'Perfil',
         profileMenuAria: 'Alterar perfil do cofre'
     },
@@ -97,9 +100,9 @@ export const STRINGS_PT_BR = {
         customSort: 'Personalizado',
         showFolders: 'Mostrar navegação',
         hideFolders: 'Ocultar navegação',
-        reorderRootFolders: 'Reordenar pastas e tags raiz',
-        finishRootFolderReorder: 'Finalizar reordenação raiz',
-        toggleDescendantNotes: 'Mostrar notas de subpastas / descendentes',
+        reorderRootFolders: 'Reordenar navegação',
+        finishRootFolderReorder: 'Concluído',
+        toggleDescendantNotes: 'Mostrar notas de subpastas / descendentes (não sincronizado)',
         autoExpandFoldersTags: 'Expandir automaticamente pastas e tags',
         showExcludedItems: 'Mostrar pastas, tags e notas ocultas',
         hideExcludedItems: 'Ocultar pastas, tags e notas ocultas',
@@ -585,7 +588,7 @@ export const STRINGS_PT_BR = {
         items: {
             searchProvider: {
                 name: 'Provedor de pesquisa',
-                desc: 'Escolha entre pesquisa rápida por nome de arquivo ou pesquisa de texto completo com o plugin Omnisearch.',
+                desc: 'Escolha entre pesquisa rápida por nome de arquivo ou pesquisa de texto completo com o plugin Omnisearch. (não sincronizado)',
                 options: {
                     internal: 'Pesquisa por filtro',
                     omnisearch: 'Omnisearch (texto completo)'
@@ -640,7 +643,7 @@ export const STRINGS_PT_BR = {
                 desc: 'Rolar para o arquivo selecionado ao fixar notas, mostrar notas descendentes, mudar aparência de pastas ou executar operações de arquivo.'
             },
             includeDescendantNotes: {
-                name: 'Mostrar notas de subpastas / descendentes',
+                name: 'Mostrar notas de subpastas / descendentes (não sincronizado)',
                 desc: 'Incluir notas de subpastas aninhadas e descendentes de tags ao visualizar uma pasta ou tag.'
             },
             limitPinnedToCurrentFolder: {
@@ -731,7 +734,7 @@ export const STRINGS_PT_BR = {
                 }
             },
             appearanceScale: {
-                name: 'Nível de zoom',
+                name: 'Nível de zoom (não sincronizado)',
                 desc: 'Controla o nível de zoom geral do Notebook Navigator.'
             },
             startView: {
@@ -785,6 +788,10 @@ export const STRINGS_PT_BR = {
             recentNotesCount: {
                 name: 'Contagem de notas recentes',
                 desc: 'Número de notas recentes a exibir.'
+            },
+            pinRecentNotesWithShortcuts: {
+                name: 'Fixar notas recentes com atalhos',
+                desc: 'Incluir notas recentes quando os atalhos estiverem fixados.'
             },
             showTooltips: {
                 name: 'Mostrar dicas',
@@ -1037,7 +1044,7 @@ export const STRINGS_PT_BR = {
             },
             tagSortOrder: {
                 name: 'Ordem de classificação de tags',
-                desc: 'Escolha como as tags são ordenadas no painel de navegação.',
+                desc: 'Escolha como as tags são ordenadas no painel de navegação. (não sincronizado)',
                 options: {
                     alphaAsc: 'A a Z',
                     alphaDesc: 'Z a A',
@@ -1059,8 +1066,8 @@ export const STRINGS_PT_BR = {
             },
             hiddenTags: {
                 name: 'Ocultar tags (perfil do cofre)',
-                desc: 'Lista separada por vírgulas de prefixos de tag ou curingas de nome. Use tag* ou *tag para corresponder nomes de tags. Ocultar uma tag também oculta todas as suas sub-tags (por exemplo, "arquivo" oculta "arquivo/2024/docs").',
-                placeholder: 'interno, temp/rascunhos, arquivo/2024'
+                desc: 'Lista de padrões de tags separados por vírgulas. Padrões de nome: tag* (começa com), *tag (termina com). Padrões de caminho: arquivo (tag e descendentes), arquivo/* (apenas descendentes), projetos/*/rascunhos (curinga intermediário).',
+                placeholder: 'arquivo*, *rascunho, projetos/*/antigo'
             },
             enableFolderNotes: {
                 name: 'Ativar notas de pasta',

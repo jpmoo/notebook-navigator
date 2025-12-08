@@ -59,14 +59,17 @@ export const STRINGS_PL = {
         shortcutsHeader: 'Skróty',
         recentNotesHeader: 'Ostatnie notatki',
         recentFilesHeader: 'Ostatnie pliki',
-        reorderRootFoldersTitle: 'Przestaw sekcje nawigacji',
-        reorderRootFoldersHint: 'Przeciągnij nagłówki lub elementy, aby zmienić kolejność',
+        reorderRootFoldersTitle: 'Przestaw nawigację',
+        reorderRootFoldersHint: 'Użyj strzałek lub przeciągnij, aby przestawić',
         vaultRootLabel: 'Magazyn',
         resetRootToAlpha: 'Resetuj do kolejności alfabetycznej',
         resetRootToFrequency: 'Przywróć sortowanie według częstotliwości',
-        dragHandleLabel: 'Przeciągnij aby zmienić kolejność',
         pinShortcuts: 'Przypnij skróty',
+        pinShortcutsAndRecentNotes: 'Przypnij skróty i ostatnie notatki',
+        pinShortcutsAndRecentFiles: 'Przypnij skróty i ostatnie pliki',
         unpinShortcuts: 'Odepnij skróty',
+        unpinShortcutsAndRecentNotes: 'Odepnij skróty i ostatnie notatki',
+        unpinShortcutsAndRecentFiles: 'Odepnij skróty i ostatnie pliki',
         profileMenuLabel: 'Profil',
         profileMenuAria: 'Zmień profil sejfu'
     },
@@ -96,9 +99,9 @@ export const STRINGS_PL = {
         customSort: 'Własne', // Label for custom sorting mode (English: Custom)
         showFolders: 'Pokaż nawigację', // Tooltip for button to show the navigation pane (English: Show navigation)
         hideFolders: 'Ukryj nawigację', // Tooltip for button to hide the navigation pane (English: Hide navigation)
-        reorderRootFolders: 'Przestaw foldery główne i tagi',
-        finishRootFolderReorder: 'Zakończ przestawianie',
-        toggleDescendantNotes: 'Pokaż notatki z podfolderów / potomnych', // Tooltip: include descendants for folders and tags
+        reorderRootFolders: 'Przestaw nawigację',
+        finishRootFolderReorder: 'Gotowe',
+        toggleDescendantNotes: 'Pokaż notatki z podfolderów / potomnych (nie synchronizowane)', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: 'Automatycznie rozwijaj foldery i tagi', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
         showExcludedItems: 'Pokaż ukryte foldery, tagi i notatki', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Ukryj ukryte foldery, tagi i notatki', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -586,7 +589,7 @@ export const STRINGS_PL = {
         items: {
             searchProvider: {
                 name: 'Dostawca wyszukiwania',
-                desc: 'Wybierz między szybkim wyszukiwaniem nazwy pliku lub pełnotekstowym wyszukiwaniem z pluginem Omnisearch.',
+                desc: 'Wybierz między szybkim wyszukiwaniem nazwy pliku lub pełnotekstowym wyszukiwaniem z pluginem Omnisearch. (nie synchronizowane)',
                 options: {
                     internal: 'Wyszukiwanie filtrujące',
                     omnisearch: 'Omnisearch (pełnotekstowy)'
@@ -641,7 +644,7 @@ export const STRINGS_PL = {
                 desc: 'Przewiń do wybranego pliku przy przypinaniu notatek, pokazywaniu notatek potomnych, zmianie wyglądu folderów lub wykonywaniu operacji na plikach.'
             },
             includeDescendantNotes: {
-                name: 'Pokaż notatki z podfolderów / potomnych',
+                name: 'Pokaż notatki z podfolderów / potomnych (nie synchronizowane)',
                 desc: 'Podczas przeglądania folderu lub tagu uwzględnij notatki z zagnieżdżonych podfolderów i potomnych tagów.'
             },
             limitPinnedToCurrentFolder: {
@@ -732,7 +735,7 @@ export const STRINGS_PL = {
                 }
             },
             appearanceScale: {
-                name: 'Poziom powiększenia',
+                name: 'Poziom powiększenia (nie synchronizowane)',
                 desc: 'Kontroluje ogólny poziom powiększenia w Notebook Navigator.'
             },
             startView: {
@@ -786,6 +789,10 @@ export const STRINGS_PL = {
             recentNotesCount: {
                 name: 'Liczba ostatnich notatek',
                 desc: 'Liczba ostatnich notatek do wyświetlenia.'
+            },
+            pinRecentNotesWithShortcuts: {
+                name: 'Przypnij ostatnie notatki razem ze skrótami',
+                desc: 'Dołącz ostatnie notatki podczas przypinania skrótów.'
             },
             showTooltips: {
                 name: 'Pokaż podpowiedzi',
@@ -1038,7 +1045,7 @@ export const STRINGS_PL = {
             },
             tagSortOrder: {
                 name: 'Kolejność sortowania tagów',
-                desc: 'Wybierz sposób sortowania tagów w panelu nawigacji.',
+                desc: 'Wybierz sposób sortowania tagów w panelu nawigacji. (nie synchronizowane)',
                 options: {
                     alphaAsc: 'A do Z',
                     alphaDesc: 'Z do A',
@@ -1060,8 +1067,8 @@ export const STRINGS_PL = {
             },
             hiddenTags: {
                 name: 'Ukryj tagi (profil sejfu)',
-                desc: 'Lista prefiksów tagów lub symboli wieloznacznych nazw oddzielonych przecinkami. Użyj `tag*` lub `*tag`, aby dopasować nazwy tagów. Ukrycie tagu ukrywa też wszystkie jego pod-tagi (np. "archive" ukrywa "archive/2024/docs").',
-                placeholder: 'internal, temp/drafts, archive/2024'
+                desc: 'Lista wzorców tagów oddzielonych przecinkami. Wzorce nazw: tag* (zaczyna się od), *tag (kończy się na). Wzorce ścieżek: archiwum (tag i potomkowie), archiwum/* (tylko potomkowie), projekty/*/szkice (wildcard w środku).',
+                placeholder: 'archiwum*, *szkic, projekty/*/stare'
             },
             enableFolderNotes: {
                 name: 'Włącz notatki folderów',

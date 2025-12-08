@@ -1,7 +1,7 @@
 import React, { ReactNode, useMemo } from 'react';
-import type { ListReorderHandlers } from '../hooks/useListReorder';
+import type { DraggableSyntheticListeners } from '@dnd-kit/core';
+import type { ListReorderHandlers } from '../types/listReorder';
 import { NavigationListRow, type DragHandleConfig } from './NavigationListRow';
-import { strings } from '../i18n';
 import { useSettingsState } from '../context/SettingsContext';
 
 /**
@@ -12,8 +12,6 @@ interface RootFolderReorderItemProps {
     label: string;
     level: number;
     dragHandlers?: ListReorderHandlers;
-    showDropIndicatorBefore?: boolean;
-    showDropIndicatorAfter?: boolean;
     isDragSource?: boolean;
     onClick?: (event: React.MouseEvent<HTMLDivElement>) => void;
     chevronIcon?: string;
@@ -23,6 +21,12 @@ interface RootFolderReorderItemProps {
     className?: string; // Additional CSS classes to apply to the item
     dragHandleConfig?: DragHandleConfig;
     trailingAccessory?: ReactNode;
+    dragRef?: (node: HTMLDivElement | null) => void;
+    dragHandleRef?: (node: HTMLSpanElement | null) => void;
+    dragAttributes?: React.HTMLAttributes<HTMLElement>;
+    dragListeners?: DraggableSyntheticListeners;
+    dragStyle?: React.CSSProperties;
+    isSorting?: boolean;
 }
 
 /**
@@ -34,8 +38,6 @@ export function RootFolderReorderItem({
     label,
     level,
     dragHandlers,
-    showDropIndicatorBefore,
-    showDropIndicatorAfter,
     isDragSource,
     onClick,
     chevronIcon,
@@ -44,7 +46,13 @@ export function RootFolderReorderItem({
     itemType = 'folder',
     className,
     dragHandleConfig,
-    trailingAccessory
+    trailingAccessory,
+    dragRef,
+    dragHandleRef,
+    dragAttributes,
+    dragListeners,
+    dragStyle,
+    isSorting
 }: RootFolderReorderItemProps) {
     const settings = useSettingsState();
     // Prevents event bubbling for reorder item clicks to avoid triggering parent handlers
@@ -62,7 +70,6 @@ export function RootFolderReorderItem({
         dragHandleConfig ??
         (dragHandlers
             ? {
-                  label: strings.navigationPane.dragHandleLabel,
                   visible: true,
                   icon: 'lucide-grip-horizontal'
               }
@@ -111,8 +118,6 @@ export function RootFolderReorderItem({
             role="listitem"
             onClick={handleClick}
             dragHandlers={dragHandlers}
-            showDropIndicatorBefore={showDropIndicatorBefore}
-            showDropIndicatorAfter={showDropIndicatorAfter}
             isDragSource={isDragSource}
             showCount={false}
             className={rowClassName}
@@ -121,6 +126,12 @@ export function RootFolderReorderItem({
             chevronIcon={chevronIcon}
             trailingAccessory={trailingAccessory}
             showIcon={showIcon}
+            dragRef={dragRef}
+            dragHandleRef={dragHandleRef}
+            dragAttributes={dragAttributes}
+            dragListeners={dragListeners}
+            dragStyle={dragStyle}
+            isSorting={isSorting}
         />
     );
 }

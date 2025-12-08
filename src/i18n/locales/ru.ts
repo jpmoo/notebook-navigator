@@ -60,14 +60,17 @@ export const STRINGS_RU = {
         shortcutsHeader: 'Ярлыки', // Header label for shortcuts section in navigation pane (English: Shortcuts)
         recentNotesHeader: 'Недавние заметки', // Header label for recent notes section in navigation pane (English: Recent notes)
         recentFilesHeader: 'Недавние файлы', // Header label when showing recent non-note files in navigation pane (English: Recent files)
-        reorderRootFoldersTitle: 'Изменить порядок разделов навигации',
-        reorderRootFoldersHint: 'Перетащите заголовки или элементы для изменения порядка',
+        reorderRootFoldersTitle: 'Изменить порядок навигации',
+        reorderRootFoldersHint: 'Используйте стрелки или перетаскивание',
         vaultRootLabel: 'Хранилище',
         resetRootToAlpha: 'Сбросить в алфавитный порядок',
         resetRootToFrequency: 'Сбросить по частоте',
-        dragHandleLabel: 'Перетащите для изменения порядка',
         pinShortcuts: 'Закрепить ярлыки',
+        pinShortcutsAndRecentNotes: 'Закрепить ярлыки и недавние заметки',
+        pinShortcutsAndRecentFiles: 'Закрепить ярлыки и недавние файлы',
         unpinShortcuts: 'Открепить ярлыки',
+        unpinShortcutsAndRecentNotes: 'Открепить ярлыки и недавние заметки',
+        unpinShortcutsAndRecentFiles: 'Открепить ярлыки и недавние файлы',
         profileMenuLabel: 'Профиль',
         profileMenuAria: 'Сменить профиль хранилища'
     },
@@ -97,9 +100,9 @@ export const STRINGS_RU = {
         customSort: 'Пользовательская', // Label for custom sorting mode (English: Custom)
         showFolders: 'Показать навигацию', // Tooltip for button to show the navigation pane (English: Show navigation)
         hideFolders: 'Скрыть навигацию', // Tooltip for button to hide the navigation pane (English: Hide navigation)
-        reorderRootFolders: 'Изменить порядок корневых папок и тегов',
-        finishRootFolderReorder: 'Завершить изменение порядка',
-        toggleDescendantNotes: 'Показать заметки из подпапок / потомков', // Tooltip: include descendants for folders and tags
+        reorderRootFolders: 'Изменить порядок навигации',
+        finishRootFolderReorder: 'Готово',
+        toggleDescendantNotes: 'Показать заметки из подпапок / потомков (не синхронизируется)', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: 'Разворачивать при выборе', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Expand on selection)
         showExcludedItems: 'Показать скрытые папки, теги и заметки', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Скрыть скрытые папки, теги и заметки', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -584,7 +587,7 @@ export const STRINGS_RU = {
         items: {
             searchProvider: {
                 name: 'Поставщик поиска',
-                desc: 'Выберите между быстрым поиском по имени файла или полнотекстовым поиском с плагином Omnisearch.',
+                desc: 'Выберите между быстрым поиском по имени файла или полнотекстовым поиском с плагином Omnisearch. (не синхронизируется)',
                 options: {
                     internal: 'Фильтр-поиск',
                     omnisearch: 'Omnisearch (полнотекстовый)'
@@ -640,7 +643,7 @@ export const STRINGS_RU = {
                 desc: 'Прокручивать к выбранному файлу при закреплении заметок, показе потомков, изменении внешнего вида папки или выполнении файловых операций.'
             },
             includeDescendantNotes: {
-                name: 'Показывать заметки из подпапок / потомков',
+                name: 'Показывать заметки из подпапок / потомков (не синхронизируется)',
                 desc: 'Включать заметки из вложенных подпапок и потомков тегов при просмотре папки или тега.'
             },
             limitPinnedToCurrentFolder: {
@@ -731,7 +734,7 @@ export const STRINGS_RU = {
                 }
             },
             appearanceScale: {
-                name: 'Уровень масштабирования',
+                name: 'Уровень масштабирования (не синхронизируется)',
                 desc: 'Управляет общим масштабом Notebook Navigator.'
             },
             startView: {
@@ -785,6 +788,10 @@ export const STRINGS_RU = {
             recentNotesCount: {
                 name: 'Количество недавних заметок',
                 desc: 'Количество отображаемых недавних заметок.'
+            },
+            pinRecentNotesWithShortcuts: {
+                name: 'Закрепить недавние заметки вместе с ярлыками',
+                desc: 'Включать недавние заметки при закреплении ярлыков.'
             },
             showTooltips: {
                 name: 'Показывать подсказки',
@@ -1037,7 +1044,7 @@ export const STRINGS_RU = {
             },
             tagSortOrder: {
                 name: 'Сортировка тегов',
-                desc: 'Выберите порядок отображения тегов в панели навигации.',
+                desc: 'Выберите порядок отображения тегов в панели навигации. (не синхронизируется)',
                 options: {
                     alphaAsc: 'От А до Я',
                     alphaDesc: 'От Я до А',
@@ -1059,8 +1066,8 @@ export const STRINGS_RU = {
             },
             hiddenTags: {
                 name: 'Скрыть теги (профиль хранилища)',
-                desc: 'Список префиксов тегов или шаблонов имён через запятую. Используйте тег* или *тег для сопоставления имён тегов. Скрытие тега также скрывает все его подтеги (например, "archive" скрывает "archive/2024/docs").',
-                placeholder: 'internal, temp/drafts, archive/2024'
+                desc: 'Список шаблонов тегов через запятую. Шаблоны имён: тег* (начинается с), *тег (заканчивается на). Шаблоны путей: архив (тег и потомки), архив/* (только потомки), проекты/*/черновики (подстановочный знак в середине).',
+                placeholder: 'архив*, *черновик, проекты/*/старые'
             },
             enableFolderNotes: {
                 name: 'Включить заметки папок',

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Plugin, TFile, FileView, TFolder, WorkspaceLeaf } from 'obsidian';
+import { Plugin, TFile, FileView, TFolder, WorkspaceLeaf, Platform } from 'obsidian';
 import { NotebookNavigatorSettings, DEFAULT_SETTINGS, NotebookNavigatorSettingTab } from './settings';
 import {
     LocalStorageKeys,
@@ -53,14 +53,7 @@ import { isBooleanRecordValue, isPlainObjectRecordValue, isStringRecordValue, sa
 import { isRecord } from './utils/typeGuards';
 import { runAsyncAction } from './utils/async';
 import { resetHiddenToggleIfNoSources } from './utils/exclusionUtils';
-import {
-    applyActiveVaultProfileToSettings,
-    applyVaultProfileValues,
-    ensureVaultProfiles,
-    syncVaultProfileFromSettings,
-    DEFAULT_VAULT_PROFILE_ID,
-    cloneShortcuts
-} from './utils/vaultProfiles';
+import { ensureVaultProfiles, DEFAULT_VAULT_PROFILE_ID, cloneShortcuts, clearHiddenFolderMatcherCache } from './utils/vaultProfiles';
 import WorkspaceCoordinator from './services/workspace/WorkspaceCoordinator';
 import HomepageController from './services/workspace/HomepageController';
 import registerNavigatorCommands from './services/commands/registerNavigatorCommands';
@@ -68,7 +61,11 @@ import registerWorkspaceEvents from './services/workspace/registerWorkspaceEvent
 import type { RevealFileOptions } from './hooks/useNavigatorReveal';
 import { ShortcutType, type ShortcutEntry } from './types/shortcuts';
 import type { FolderAppearance } from './hooks/useListPaneAppearance';
-import { isSortOption, type SortOption } from './settings/types';
+import { isSortOption, isTagSortOrder, type SortOption, type TagSortOrder, type VaultProfile } from './settings/types';
+import { clearHiddenTagPatternCache } from './utils/tagPrefixMatcher';
+import { getPathPatternCacheKey } from './utils/pathPatternMatcher';
+import { DEFAULT_UI_SCALE, sanitizeUIScale } from './utils/uiScale';
+import { MAX_RECENT_COLORS } from './constants/colorPalette';
 
 const DEFAULT_UX_PREFERENCES: UXPreferences = {
     searchActive: false,
@@ -155,6 +152,12 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     private pendingUpdateNotice: ReleaseUpdateNotice | null = null;
     private uxPreferences: UXPreferences = { ...DEFAULT_UX_PREFERENCES };
     private uxPreferenceListeners = new Map<string, () => void>();
+    // TODO: Remove legacy UI scale flags and migration when desktopScale/mobileScale are fully dropped
+    // Track whether legacy scales still need to be kept in persisted settings until this device migrates them
+    private shouldPersistDesktopScale = false;
+    private shouldPersistMobileScale = false;
+    private hiddenFolderCacheKey: string | null = null;
+    private hiddenTagCacheKey: string | null = null;
 
     // Keys used for persisting UI state in browser localStorage
     keys: LocalStorageKeys = STORAGE_KEYS;
@@ -182,6 +185,8 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         const storedData: Record<string, unknown> | null = isRecord(rawData) ? rawData : null;
         const storedSettings = storedData as Partial<NotebookNavigatorSettings> | null;
         const isFirstLaunch = storedData === null; // No saved data means first launch
+        this.shouldPersistDesktopScale = Boolean(storedData && 'desktopScale' in storedData);
+        this.shouldPersistMobileScale = Boolean(storedData && 'mobileScale' in storedData);
 
         // Start with default settings
         this.settings = { ...DEFAULT_SETTINGS, ...(storedSettings ?? {}) };
@@ -196,6 +201,8 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         delete mutableSettings.searchActive;
         delete mutableSettings.includeDescendantNotes;
         delete mutableSettings.showHiddenItems;
+        delete mutableSettings.hiddenTags;
+        delete mutableSettings.fileVisibility;
 
         const storedNoteGrouping = storedData ? storedData['noteGrouping'] : undefined;
 
@@ -339,6 +346,13 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             this.settings.rootTagOrder = [];
         }
 
+        const migratedReleaseState = this.migrateReleaseCheckState(storedData);
+        const migratedRecentColors = this.migrateRecentColors(storedData);
+        const hadLegacyLocalOnlySettings = Boolean(storedData && ('tagSortOrder' in storedData || 'searchProvider' in storedData));
+        this.settings.tagSortOrder = this.resolveTagSortOrder(storedData);
+        this.settings.searchProvider = this.resolveSearchProvider(storedData);
+        const migratedScales = this.migrateUIScales(storedData);
+
         const normalizeFolderNoteBlock = (input: string): string =>
             input
                 .replace(/\r\n/g, '\n')
@@ -379,9 +393,222 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         this.applyLegacyVisibilityMigration(legacyVisibility);
         this.applyLegacyShortcutsMigration(legacyShortcuts);
         this.normalizeIconSettings(this.settings);
-        applyActiveVaultProfileToSettings(this.settings);
+        this.settings.vaultProfile = this.resolveActiveVaultProfileId();
+        localStorage.set(STORAGE_KEYS.vaultProfileKey, this.settings.vaultProfile);
+        this.refreshMatcherCachesIfNeeded();
+
+        const needsPersistedCleanup = migratedReleaseState || migratedRecentColors || hadLegacyLocalOnlySettings || migratedScales;
+
+        if (needsPersistedCleanup) {
+            await this.saveData(this.getPersistableSettings());
+        }
 
         return isFirstLaunch;
+    }
+
+    /**
+     * Migrates release check metadata from synced settings to vault-local storage.
+     */
+    private migrateReleaseCheckState(storedData: Record<string, unknown> | null): boolean {
+        const storedTimestamp =
+            typeof storedData?.['lastReleaseCheckAt'] === 'number' && Number.isFinite(storedData.lastReleaseCheckAt)
+                ? storedData.lastReleaseCheckAt
+                : null;
+        const storedKnownRelease = typeof storedData?.['latestKnownRelease'] === 'string' ? storedData.latestKnownRelease : '';
+
+        const localTimestamp = localStorage.get<unknown>(this.keys.releaseCheckTimestampKey);
+        const localKnownRelease = localStorage.get<unknown>(this.keys.latestKnownReleaseKey);
+
+        const resolvedTimestamp =
+            typeof localTimestamp === 'number' && Number.isFinite(localTimestamp) ? localTimestamp : (storedTimestamp ?? null);
+        const resolvedKnownRelease =
+            typeof localKnownRelease === 'string' && localKnownRelease.length > 0 ? localKnownRelease : storedKnownRelease;
+
+        if (resolvedTimestamp && resolvedTimestamp !== localTimestamp) {
+            localStorage.set(this.keys.releaseCheckTimestampKey, resolvedTimestamp);
+        }
+
+        if (resolvedKnownRelease && resolvedKnownRelease !== localKnownRelease) {
+            localStorage.set(this.keys.latestKnownReleaseKey, resolvedKnownRelease);
+        }
+
+        delete (this.settings as unknown as Record<string, unknown>).lastReleaseCheckAt;
+        delete (this.settings as unknown as Record<string, unknown>).latestKnownRelease;
+
+        const hadLegacyFields = Boolean(storedData && ('lastReleaseCheckAt' in storedData || 'latestKnownRelease' in storedData));
+        return hadLegacyFields;
+    }
+
+    /**
+     * Migrates recent colors history from synced settings to vault-local storage.
+     */
+    private migrateRecentColors(storedData: Record<string, unknown> | null): boolean {
+        const stored = storedData?.['recentColors'];
+        const storedColors = Array.isArray(stored)
+            ? stored.filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0).slice(0, MAX_RECENT_COLORS)
+            : [];
+
+        const localStored = localStorage.get<unknown>(this.keys.recentColorsKey);
+        const localColors = Array.isArray(localStored)
+            ? localStored.filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
+            : [];
+
+        const resolvedColors = localColors.length > 0 ? localColors : storedColors;
+        if (resolvedColors.length > 0) {
+            const capped = resolvedColors.slice(0, MAX_RECENT_COLORS);
+            const shouldUpdateLocal = localColors.length !== capped.length || capped.some((color, index) => color !== localColors[index]);
+            if (shouldUpdateLocal) {
+                localStorage.set(this.keys.recentColorsKey, capped);
+            }
+        }
+
+        delete (this.settings as unknown as Record<string, unknown>).recentColors;
+
+        const hadLegacyField = Boolean(storedData && 'recentColors' in storedData);
+        return hadLegacyField;
+    }
+
+    /**
+     * Resolves the effective tag sort order preference with local overrides.
+     */
+    private resolveTagSortOrder(storedData: Record<string, unknown> | null): TagSortOrder {
+        const storedLocal = localStorage.get<unknown>(this.keys.tagSortOrderKey);
+        const storedLocalValue = typeof storedLocal === 'string' ? storedLocal : null;
+        if (storedLocalValue && isTagSortOrder(storedLocalValue)) {
+            return storedLocalValue;
+        }
+
+        const storedSetting = storedData?.['tagSortOrder'];
+        const storedSettingValue = typeof storedSetting === 'string' ? storedSetting : null;
+        if (storedSettingValue && isTagSortOrder(storedSettingValue)) {
+            localStorage.set(this.keys.tagSortOrderKey, storedSettingValue);
+            return storedSettingValue;
+        }
+
+        localStorage.set(this.keys.tagSortOrderKey, DEFAULT_SETTINGS.tagSortOrder);
+        return DEFAULT_SETTINGS.tagSortOrder;
+    }
+
+    /**
+     * Resolves the effective search provider preference with local overrides.
+     */
+    private resolveSearchProvider(storedData: Record<string, unknown> | null): 'internal' | 'omnisearch' {
+        const storedLocal = localStorage.get<unknown>(this.keys.searchProviderKey);
+        if (storedLocal === 'internal' || storedLocal === 'omnisearch') {
+            return storedLocal;
+        }
+
+        const storedSetting = storedData?.['searchProvider'];
+        if (storedSetting === 'internal' || storedSetting === 'omnisearch') {
+            localStorage.set(this.keys.searchProviderKey, storedSetting);
+            return storedSetting;
+        }
+
+        const fallbackProvider: 'internal' | 'omnisearch' = DEFAULT_SETTINGS.searchProvider === 'omnisearch' ? 'omnisearch' : 'internal';
+        localStorage.set(this.keys.searchProviderKey, fallbackProvider);
+        return fallbackProvider;
+    }
+
+    /**
+     * Migrates desktop and mobile UI scales from synced settings to vault-local storage.
+     */
+    private migrateUIScales(storedData: Record<string, unknown> | null): boolean {
+        const storedDesktopScale = storedData?.['desktopScale'];
+        const storedMobileScale = storedData?.['mobileScale'];
+        const hadLegacyFields = Boolean(storedData && ('desktopScale' in storedData || 'mobileScale' in storedData));
+
+        // Keeps legacy scale values usable without reintroducing removed fields from other devices
+        const sanitizeScale = (value: unknown, fallback: number): number => {
+            if (typeof value === 'number' && Number.isFinite(value)) {
+                return sanitizeUIScale(value);
+            }
+            if (typeof value === 'string') {
+                const parsed = Number(value);
+                if (Number.isFinite(parsed)) {
+                    return sanitizeUIScale(parsed);
+                }
+            }
+            return sanitizeUIScale(fallback);
+        };
+
+        if (Platform.isMobile) {
+            const resolvedMobile = this.resolveUIScaleFromStorage(this.keys.uiScaleKey, storedMobileScale);
+            this.settings.mobileScale = resolvedMobile;
+            this.settings.desktopScale = sanitizeScale(storedDesktopScale, this.settings.desktopScale);
+            if (this.shouldPersistMobileScale) {
+                this.shouldPersistMobileScale = false;
+            }
+        } else {
+            const resolvedDesktop = this.resolveUIScaleFromStorage(this.keys.uiScaleKey, storedDesktopScale);
+            this.settings.desktopScale = resolvedDesktop;
+            this.settings.mobileScale = sanitizeScale(storedMobileScale, this.settings.mobileScale);
+            if (this.shouldPersistDesktopScale) {
+                this.shouldPersistDesktopScale = false;
+            }
+        }
+
+        return hadLegacyFields;
+    }
+
+    /**
+     * Resolves a UI scale value from local storage, falling back to synced settings or default.
+     */
+    private resolveUIScaleFromStorage(storageKey: string, storedSetting: unknown): number {
+        const parseScale = (value: unknown): number | null => {
+            if (typeof value === 'number' && Number.isFinite(value)) {
+                return sanitizeUIScale(value);
+            }
+            if (typeof value === 'string') {
+                const parsed = Number(value);
+                if (Number.isFinite(parsed)) {
+                    return sanitizeUIScale(parsed);
+                }
+            }
+            return null;
+        };
+
+        const storedLocal = localStorage.get<unknown>(storageKey);
+        const localScale = parseScale(storedLocal);
+        if (localScale !== null) {
+            return localScale;
+        }
+
+        const settingScale = parseScale(storedSetting);
+        if (settingScale !== null) {
+            localStorage.set(storageKey, settingScale);
+            return settingScale;
+        }
+
+        localStorage.set(storageKey, DEFAULT_UI_SCALE);
+        return DEFAULT_UI_SCALE;
+    }
+
+    /**
+     * Resolves the active vault profile ID using localStorage first, then stored settings, falling back to default.
+     */
+    private resolveActiveVaultProfileId(): string {
+        const profiles = this.settings.vaultProfiles;
+
+        const findMatchingProfileId = (candidate: unknown): string | null => {
+            if (typeof candidate !== 'string' || !candidate) {
+                return null;
+            }
+            const match = profiles.find(profile => profile.id === candidate);
+            return match ? match.id : null;
+        };
+
+        const storedLocal = localStorage.get<string>(this.keys.vaultProfileKey);
+        const localMatch = findMatchingProfileId(storedLocal);
+        if (localMatch) {
+            return localMatch;
+        }
+
+        const defaultProfile = profiles.find(profile => profile.id === DEFAULT_VAULT_PROFILE_ID);
+        if (defaultProfile) {
+            return defaultProfile.id;
+        }
+
+        return profiles[0]?.id ?? DEFAULT_VAULT_PROFILE_ID;
     }
 
     /**
@@ -538,6 +765,15 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             // Clear all localStorage data (if plugin was reinstalled)
             this.clearAllLocalStorage();
 
+            // Re-seed device-local defaults cleared above
+            localStorage.set(this.keys.tagSortOrderKey, this.settings.tagSortOrder);
+            localStorage.set(this.keys.searchProviderKey, this.settings.searchProvider);
+            const initialScale = sanitizeUIScale(Platform.isMobile ? this.settings.mobileScale : this.settings.desktopScale);
+            localStorage.set(this.keys.uiScaleKey, initialScale);
+
+            // Persist the active vault profile for this device
+            localStorage.set(this.keys.vaultProfileKey, this.settings.vaultProfile);
+
             // Reset dual-pane preference to default on fresh install
             this.dualPanePreference = true;
             this.dualPaneOrientationPreference = 'horizontal';
@@ -552,6 +788,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
             // Set localStorage version
             localStorage.set(STORAGE_KEYS.localStorageVersionKey, LOCALSTORAGE_VERSION);
+            await this.saveData(this.getPersistableSettings());
         } else {
             // Check localStorage version for potential migrations
             const versionNumber =
@@ -716,9 +953,139 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     }
 
     /**
+     * Returns the UI scale for this device (local-only).
+     */
+    public getUIScale(): number {
+        const current = Platform.isMobile ? this.settings.mobileScale : this.settings.desktopScale;
+        return sanitizeUIScale(current);
+    }
+
+    /**
+     * Updates the UI scale for this device and persists to vault-local storage.
+     */
+    public setUIScale(scale: number): void {
+        const next = sanitizeUIScale(scale);
+        const isMobile = Platform.isMobile;
+        const current = sanitizeUIScale(isMobile ? this.settings.mobileScale : this.settings.desktopScale);
+        if (isMobile) {
+            this.settings.mobileScale = next;
+        } else {
+            this.settings.desktopScale = next;
+        }
+        localStorage.set(this.keys.uiScaleKey, next);
+        if (current !== next) {
+            this.notifySettingsUpdate();
+        }
+    }
+
+    /**
+     * Returns the current tag sort order preference (local-only).
+     */
+    public getTagSortOrder(): TagSortOrder {
+        return this.settings.tagSortOrder;
+    }
+
+    /**
+     * Updates the tag sort order preference and persists to local storage.
+     */
+    public setTagSortOrder(order: TagSortOrder): void {
+        if (!isTagSortOrder(order) || this.settings.tagSortOrder === order) {
+            return;
+        }
+        this.settings.tagSortOrder = order;
+        localStorage.set(this.keys.tagSortOrderKey, order);
+        this.notifySettingsUpdate();
+    }
+
+    /**
+     * Returns the timestamp of the last release check (local-only).
+     */
+    public getReleaseCheckTimestamp(): number | null {
+        const value = localStorage.get<unknown>(this.keys.releaseCheckTimestampKey);
+        if (typeof value === 'number' && Number.isFinite(value)) {
+            return value;
+        }
+        return null;
+    }
+
+    /**
+     * Persists the last release check timestamp to local storage.
+     */
+    public setReleaseCheckTimestamp(timestamp: number): void {
+        localStorage.set(this.keys.releaseCheckTimestampKey, timestamp);
+    }
+
+    /**
+     * Returns the latest known release version discovered by this device.
+     */
+    public getLatestKnownRelease(): string {
+        const value = localStorage.get<unknown>(this.keys.latestKnownReleaseKey);
+        if (typeof value === 'string') {
+            return value;
+        }
+        return '';
+    }
+
+    /**
+     * Persists the latest known release version to local storage.
+     */
+    public setLatestKnownRelease(version: string): void {
+        if (!version) {
+            return;
+        }
+        localStorage.set(this.keys.latestKnownReleaseKey, version);
+    }
+
+    /**
+     * Retrieves recent colors history from vault-local storage.
+     */
+    public getRecentColors(): string[] {
+        const stored = localStorage.get<unknown>(this.keys.recentColorsKey);
+        if (!Array.isArray(stored)) {
+            return [];
+        }
+        return stored.filter((value): value is string => typeof value === 'string' && value.trim().length > 0);
+    }
+
+    /**
+     * Persists recent colors history to vault-local storage.
+     */
+    public setRecentColors(recentColors: string[]): void {
+        const sanitized = Array.isArray(recentColors)
+            ? recentColors.filter(color => typeof color === 'string' && color.trim().length > 0)
+            : [];
+        const capped = sanitized.slice(0, MAX_RECENT_COLORS);
+        localStorage.set(this.keys.recentColorsKey, capped);
+    }
+
+    /**
+     * Returns the active search provider preference (local-only).
+     */
+    public getSearchProvider(): 'internal' | 'omnisearch' {
+        const value = this.settings.searchProvider;
+        if (value === 'omnisearch') {
+            return 'omnisearch';
+        }
+        return 'internal';
+    }
+
+    /**
+     * Updates the search provider preference and persists to local storage.
+     */
+    public setSearchProvider(provider: 'internal' | 'omnisearch'): void {
+        const normalized = provider === 'omnisearch' ? 'omnisearch' : 'internal';
+        if (this.settings.searchProvider === normalized) {
+            return;
+        }
+        this.settings.searchProvider = normalized;
+        localStorage.set(this.keys.searchProviderKey, normalized);
+        this.notifySettingsUpdate();
+    }
+
+    /**
      * Sets the active vault profile and synchronizes hidden folder, tag, and note patterns.
      */
-    public async setVaultProfile(profileId: string): Promise<void> {
+    public setVaultProfile(profileId: string): void {
         ensureVaultProfiles(this.settings);
         const nextProfile =
             this.settings.vaultProfiles.find(profile => profile.id === profileId) ??
@@ -730,7 +1097,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         }
 
         this.settings.vaultProfile = nextProfile.id;
-        applyVaultProfileValues(this.settings, nextProfile);
+        localStorage.set(this.keys.vaultProfileKey, nextProfile.id);
 
         resetHiddenToggleIfNoSources({
             settings: this.settings,
@@ -738,7 +1105,8 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             setShowHiddenItems: value => this.setShowHiddenItems(value)
         });
 
-        await this.saveSettingsAndUpdate();
+        this.refreshMatcherCachesIfNeeded();
+        this.notifySettingsUpdate();
     }
 
     public getUXPreferences(): UXPreferences {
@@ -1185,9 +1553,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         delete mutableSettings['excludedFiles'];
 
         const storedHiddenTags = toUniqueStringList(storedData?.['hiddenTags']);
-        if (storedHiddenTags.length > 0) {
-            this.settings.hiddenTags = [...storedHiddenTags];
-        }
+        // Legacy hidden tags are captured for migration but not applied to top-level settings
 
         const rawNavigationBanner = mutableSettings['navigationBanner'];
         const legacyNavigationBanner = typeof rawNavigationBanner === 'string' ? rawNavigationBanner : null;
@@ -1245,7 +1611,6 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
         if (migration.hiddenTags.length > 0) {
             targetProfile.hiddenTags = [...migration.hiddenTags];
-            this.settings.hiddenTags = [...migration.hiddenTags];
         }
 
         if (hasNavigationBanner) {
@@ -1299,8 +1664,61 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             this.settings.tagAppearances = normalizeRecord(this.settings.tagAppearances);
         }
 
-        if (this.settings.hiddenTags) {
-            this.settings.hiddenTags = normalizeArray(this.settings.hiddenTags);
+        if (Array.isArray(this.settings.vaultProfiles)) {
+            this.settings.vaultProfiles.forEach(profile => {
+                profile.hiddenTags = normalizeArray(profile.hiddenTags);
+            });
+        }
+    }
+
+    /**
+     * Returns a copy of settings without transient fields that should not be synced.
+     */
+    private getPersistableSettings(): NotebookNavigatorSettings {
+        const rest = { ...this.settings } as Record<string, unknown>;
+        delete rest.vaultProfile;
+        delete rest.hiddenTags;
+        delete rest.fileVisibility;
+        delete rest.tagSortOrder;
+        delete rest.recentColors;
+        delete rest.lastReleaseCheckAt;
+        delete rest.latestKnownRelease;
+        delete rest.searchProvider;
+        if (!this.shouldPersistDesktopScale) {
+            delete rest.desktopScale;
+        }
+        if (!this.shouldPersistMobileScale) {
+            delete rest.mobileScale;
+        }
+        return rest as unknown as NotebookNavigatorSettings;
+    }
+
+    private buildPatternCacheKey(selector: (profile: VaultProfile) => string[]): string {
+        const profiles = Array.isArray(this.settings.vaultProfiles) ? this.settings.vaultProfiles : [];
+        if (profiles.length === 0) {
+            return '';
+        }
+        const entries = profiles.map(profile => ({
+            id: profile.id ?? '',
+            key: getPathPatternCacheKey(selector(profile) ?? [])
+        }));
+        entries.sort((a, b) => a.id.localeCompare(b.id));
+        return entries.map(entry => `${entry.id}:${entry.key}`).join('\u0002');
+    }
+
+    // Clears matcher caches only when the hidden folder or tag patterns change.
+    private refreshMatcherCachesIfNeeded(): void {
+        const folderKey = this.buildPatternCacheKey(profile => profile.hiddenFolders);
+        const tagKey = this.buildPatternCacheKey(profile => profile.hiddenTags);
+
+        if (folderKey !== this.hiddenFolderCacheKey) {
+            clearHiddenFolderMatcherCache();
+            this.hiddenFolderCacheKey = folderKey;
+        }
+
+        if (tagKey !== this.hiddenTagCacheKey) {
+            clearHiddenTagPatternCache();
+            this.hiddenTagCacheKey = tagKey;
         }
     }
 
@@ -1311,8 +1729,9 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
      */
     async saveSettingsAndUpdate() {
         ensureVaultProfiles(this.settings);
-        syncVaultProfileFromSettings(this.settings);
-        await this.saveData(this.settings);
+        this.refreshMatcherCachesIfNeeded();
+        const dataToPersist = this.getPersistableSettings();
+        await this.saveData(dataToPersist);
         // Notify all listeners that settings have been updated
         this.onSettingsUpdate();
     }

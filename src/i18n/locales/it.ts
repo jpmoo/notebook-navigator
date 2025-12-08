@@ -60,14 +60,17 @@ export const STRINGS_IT = {
         shortcutsHeader: 'Scorciatoie', // Header label for shortcuts section in navigation pane (English: Shortcuts)
         recentNotesHeader: 'Note recenti', // Header label for recent notes section in navigation pane (English: Recent notes)
         recentFilesHeader: 'File recenti', // Header label when showing recent non-note files in navigation pane (English: Recent files)
-        reorderRootFoldersTitle: 'Riordina sezioni di navigazione',
-        reorderRootFoldersHint: 'Trascina intestazioni o elementi per cambiare ordine',
+        reorderRootFoldersTitle: 'Riordina navigazione',
+        reorderRootFoldersHint: 'Usa frecce o trascina per riordinare',
         vaultRootLabel: 'Vault',
         resetRootToAlpha: 'Ripristina ordine alfabetico',
         resetRootToFrequency: 'Ripristina ordine per frequenza',
-        dragHandleLabel: 'Trascina per riordinare',
         pinShortcuts: 'Fissa scorciatoie',
+        pinShortcutsAndRecentNotes: 'Fissa scorciatoie e note recenti',
+        pinShortcutsAndRecentFiles: 'Fissa scorciatoie e file recenti',
         unpinShortcuts: 'Sblocca scorciatoie',
+        unpinShortcutsAndRecentNotes: 'Sblocca scorciatoie e note recenti',
+        unpinShortcutsAndRecentFiles: 'Sblocca scorciatoie e file recenti',
         profileMenuLabel: 'Profilo',
         profileMenuAria: 'Cambia profilo vault'
     },
@@ -97,9 +100,9 @@ export const STRINGS_IT = {
         customSort: 'Personalizzato', // Label for custom sorting mode (English: Custom)
         showFolders: 'Mostra navigazione', // Tooltip for button to show the navigation pane (English: Show navigation)
         hideFolders: 'Nascondi navigazione', // Tooltip for button to hide the navigation pane (English: Hide navigation)
-        reorderRootFolders: 'Riordina cartelle e tag principali',
-        finishRootFolderReorder: 'Termina riordino',
-        toggleDescendantNotes: 'Mostra note da sottocartelle / discendenti', // Tooltip: include descendants for folders and tags
+        reorderRootFolders: 'Riordina navigazione',
+        finishRootFolderReorder: 'Fatto',
+        toggleDescendantNotes: 'Mostra note da sottocartelle / discendenti (non sincronizzato)', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: 'Espandi alla selezione', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Expand on selection)
         showExcludedItems: 'Mostra cartelle, tag e note nascosti', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Nascondi cartelle, tag e note nascosti', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -584,7 +587,7 @@ export const STRINGS_IT = {
         items: {
             searchProvider: {
                 name: 'Provider di ricerca',
-                desc: 'Scegli tra ricerca rapida per nome file o ricerca full-text con il plugin Omnisearch.',
+                desc: 'Scegli tra ricerca rapida per nome file o ricerca full-text con il plugin Omnisearch. (non sincronizzato)',
                 options: {
                     internal: 'Ricerca con filtro',
                     omnisearch: 'Omnisearch (full-text)'
@@ -639,7 +642,7 @@ export const STRINGS_IT = {
                 desc: "Scorri al file selezionato quando fissi note, mostri note discendenti, cambi l'aspetto cartella o esegui operazioni sui file."
             },
             includeDescendantNotes: {
-                name: 'Mostra note da sottocartelle / discendenti',
+                name: 'Mostra note da sottocartelle / discendenti (non sincronizzato)',
                 desc: 'Includi note da sottocartelle nidificate e tag discendenti quando visualizzi una cartella o tag.'
             },
             limitPinnedToCurrentFolder: {
@@ -730,7 +733,7 @@ export const STRINGS_IT = {
                 }
             },
             appearanceScale: {
-                name: 'Livello zoom',
+                name: 'Livello zoom (non sincronizzato)',
                 desc: 'Controlla il livello di zoom complessivo di Notebook Navigator.'
             },
             startView: {
@@ -784,6 +787,10 @@ export const STRINGS_IT = {
             recentNotesCount: {
                 name: 'Numero note recenti',
                 desc: 'Numero di note recenti da visualizzare.'
+            },
+            pinRecentNotesWithShortcuts: {
+                name: 'Fissa note recenti con scorciatoie',
+                desc: 'Includi le note recenti quando le scorciatoie sono fissate.'
             },
             showTooltips: {
                 name: 'Mostra tooltip',
@@ -1036,7 +1043,7 @@ export const STRINGS_IT = {
             },
             tagSortOrder: {
                 name: 'Ordine tag',
-                desc: 'Scegli come ordinare i tag nel pannello navigazione.',
+                desc: 'Scegli come ordinare i tag nel pannello navigazione. (non sincronizzato)',
                 options: {
                     alphaAsc: 'A a Z',
                     alphaDesc: 'Z a A',
@@ -1058,8 +1065,8 @@ export const STRINGS_IT = {
             },
             hiddenTags: {
                 name: 'Nascondi tag (profilo vault)',
-                desc: 'Lista di prefissi tag o wildcard nome separate da virgola. Usa tag* o *tag per corrispondere nomi tag. Nascondere un tag nasconde anche tutti i suoi sotto-tag (es. "archivio" nasconde "archivio/2024/docs").',
-                placeholder: 'interno, temp/bozze, archivio/2024'
+                desc: 'Lista di pattern tag separati da virgola. Pattern nome: tag* (inizia con), *tag (finisce con). Pattern percorso: archivio (tag e discendenti), archivio/* (solo discendenti), progetti/*/bozze (wildcard intermedio).',
+                placeholder: 'archivio*, *bozza, progetti/*/vecchio'
             },
             enableFolderNotes: {
                 name: 'Abilita note cartella',

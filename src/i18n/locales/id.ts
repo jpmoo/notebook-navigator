@@ -60,14 +60,17 @@ export const STRINGS_ID = {
         shortcutsHeader: 'Pintasan',
         recentNotesHeader: 'Catatan terbaru',
         recentFilesHeader: 'File terbaru',
-        reorderRootFoldersTitle: 'Atur ulang bagian navigasi',
-        reorderRootFoldersHint: 'Seret header atau item untuk mengubah urutan',
+        reorderRootFoldersTitle: 'Atur ulang navigasi',
+        reorderRootFoldersHint: 'Gunakan panah atau seret untuk mengatur ulang',
         vaultRootLabel: 'Vault',
         resetRootToAlpha: 'Atur ulang ke urutan abjad',
         resetRootToFrequency: 'Atur ulang ke urutan frekuensi',
-        dragHandleLabel: 'Seret untuk mengatur ulang',
         pinShortcuts: 'Sematkan pintasan',
+        pinShortcutsAndRecentNotes: 'Sematkan pintasan dan catatan terbaru',
+        pinShortcutsAndRecentFiles: 'Sematkan pintasan dan file terbaru',
         unpinShortcuts: 'Lepas sematan pintasan',
+        unpinShortcutsAndRecentNotes: 'Lepas sematan pintasan dan catatan terbaru',
+        unpinShortcutsAndRecentFiles: 'Lepas sematan pintasan dan file terbaru',
         profileMenuLabel: 'Profil',
         profileMenuAria: 'Ubah profil vault'
     },
@@ -97,9 +100,9 @@ export const STRINGS_ID = {
         customSort: 'Kustom',
         showFolders: 'Tampilkan navigasi',
         hideFolders: 'Sembunyikan navigasi',
-        reorderRootFolders: 'Atur ulang folder dan tag root',
-        finishRootFolderReorder: 'Selesai mengatur ulang',
-        toggleDescendantNotes: 'Tampilkan catatan dari subfolder / turunan',
+        reorderRootFolders: 'Atur ulang navigasi',
+        finishRootFolderReorder: 'Selesai',
+        toggleDescendantNotes: 'Tampilkan catatan dari subfolder / turunan (tidak disinkronkan)',
         autoExpandFoldersTags: 'Luaskan saat dipilih',
         showExcludedItems: 'Tampilkan folder, tag, dan catatan tersembunyi',
         hideExcludedItems: 'Sembunyikan folder, tag, dan catatan tersembunyi',
@@ -584,7 +587,7 @@ export const STRINGS_ID = {
         items: {
             searchProvider: {
                 name: 'Penyedia pencarian',
-                desc: 'Pilih antara pencarian nama file cepat atau pencarian teks lengkap dengan plugin Omnisearch.',
+                desc: 'Pilih antara pencarian nama file cepat atau pencarian teks lengkap dengan plugin Omnisearch. (tidak disinkronkan)',
                 options: {
                     internal: 'Pencarian filter',
                     omnisearch: 'Omnisearch (teks lengkap)'
@@ -639,7 +642,7 @@ export const STRINGS_ID = {
                 desc: 'Gulir ke file yang dipilih saat menyematkan catatan, menampilkan catatan turunan, mengubah tampilan folder, atau menjalankan operasi file.'
             },
             includeDescendantNotes: {
-                name: 'Tampilkan catatan dari subfolder / turunan',
+                name: 'Tampilkan catatan dari subfolder / turunan (tidak disinkronkan)',
                 desc: 'Sertakan catatan dari subfolder bersarang dan turunan tag saat melihat folder atau tag.'
             },
             limitPinnedToCurrentFolder: {
@@ -730,7 +733,7 @@ export const STRINGS_ID = {
                 }
             },
             appearanceScale: {
-                name: 'Tingkat zoom',
+                name: 'Tingkat zoom (tidak disinkronkan)',
                 desc: 'Mengontrol tingkat zoom keseluruhan Notebook Navigator.'
             },
             startView: {
@@ -784,6 +787,10 @@ export const STRINGS_ID = {
             recentNotesCount: {
                 name: 'Jumlah catatan terbaru',
                 desc: 'Jumlah catatan terbaru yang ditampilkan.'
+            },
+            pinRecentNotesWithShortcuts: {
+                name: 'Sematkan catatan terbaru bersama pintasan',
+                desc: 'Sertakan catatan terbaru saat pintasan disematkan.'
             },
             showTooltips: {
                 name: 'Tampilkan tooltip',
@@ -1036,7 +1043,7 @@ export const STRINGS_ID = {
             },
             tagSortOrder: {
                 name: 'Urutan tag',
-                desc: 'Pilih cara tag diurutkan di panel navigasi.',
+                desc: 'Pilih cara tag diurutkan di panel navigasi. (tidak disinkronkan)',
                 options: {
                     alphaAsc: 'A ke Z',
                     alphaDesc: 'Z ke A',
@@ -1058,8 +1065,8 @@ export const STRINGS_ID = {
             },
             hiddenTags: {
                 name: 'Sembunyikan tag (profil vault)',
-                desc: 'Daftar awalan tag atau wildcard nama yang dipisahkan koma. Gunakan tag* atau *tag untuk mencocokkan nama tag. Menyembunyikan tag juga menyembunyikan semua sub-tagnya (misal, "arsip" menyembunyikan "arsip/2024/dokumen").',
-                placeholder: 'internal, temp/draf, arsip/2024'
+                desc: 'Daftar pola tag yang dipisahkan koma. Pola nama: tag* (dimulai dengan), *tag (diakhiri dengan). Pola jalur: arsip (tag dan turunan), arsip/* (hanya turunan), proyek/*/draf (wildcard tengah).',
+                placeholder: 'arsip*, *draf, proyek/*/lama'
             },
             enableFolderNotes: {
                 name: 'Aktifkan catatan folder',

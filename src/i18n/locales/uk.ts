@@ -60,14 +60,17 @@ export const STRINGS_UK = {
         shortcutsHeader: 'Ярлики', // Header label for shortcuts section in navigation pane (English: Shortcuts)
         recentNotesHeader: 'Останні нотатки', // Header label for recent notes section in navigation pane (English: Recent notes)
         recentFilesHeader: 'Останні файли', // Header label when showing recent non-note files in navigation pane (English: Recent files)
-        reorderRootFoldersTitle: 'Змінити порядок розділів навігації',
-        reorderRootFoldersHint: 'Перетягніть заголовки або елементи для зміни порядку',
+        reorderRootFoldersTitle: 'Змінити порядок навігації',
+        reorderRootFoldersHint: 'Використовуйте стрілки або перетягування',
         vaultRootLabel: 'Сховище',
         resetRootToAlpha: 'Скинути до алфавітного порядку',
         resetRootToFrequency: 'Скинути до порядку за частотою',
-        dragHandleLabel: 'Перетягніть для зміни порядку',
         pinShortcuts: 'Закріпити ярлики',
+        pinShortcutsAndRecentNotes: 'Закріпити ярлики та останні нотатки',
+        pinShortcutsAndRecentFiles: 'Закріпити ярлики та останні файли',
         unpinShortcuts: 'Відкріпити ярлики',
+        unpinShortcutsAndRecentNotes: 'Відкріпити ярлики та останні нотатки',
+        unpinShortcutsAndRecentFiles: 'Відкріпити ярлики та останні файли',
         profileMenuLabel: 'Профіль',
         profileMenuAria: 'Змінити профіль сховища'
     },
@@ -97,9 +100,9 @@ export const STRINGS_UK = {
         customSort: 'Власний', // Label for custom sorting mode (English: Custom)
         showFolders: 'Показати навігацію', // Tooltip for button to show the navigation pane (English: Show navigation)
         hideFolders: 'Сховати навігацію', // Tooltip for button to hide the navigation pane (English: Hide navigation)
-        reorderRootFolders: 'Змінити порядок кореневих папок і тегів',
-        finishRootFolderReorder: 'Завершити зміну порядку',
-        toggleDescendantNotes: 'Показати нотатки з підпапок / нащадків', // Tooltip: include descendants for folders and tags
+        reorderRootFolders: 'Змінити порядок навігації',
+        finishRootFolderReorder: 'Готово',
+        toggleDescendantNotes: 'Показати нотатки з підпапок / нащадків (не синхронізується)', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: 'Розгортати при виборі', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Expand on selection)
         showExcludedItems: 'Показати приховані папки, теги та нотатки', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Сховати приховані папки, теги та нотатки', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -584,7 +587,7 @@ export const STRINGS_UK = {
         items: {
             searchProvider: {
                 name: 'Постачальник пошуку',
-                desc: 'Оберіть між швидким пошуком за назвою файлу або повнотекстовим пошуком з плагіном Omnisearch.',
+                desc: 'Оберіть між швидким пошуком за назвою файлу або повнотекстовим пошуком з плагіном Omnisearch. (не синхронізується)',
                 options: {
                     internal: 'Пошук з фільтрацією',
                     omnisearch: 'Omnisearch (повнотекстовий)'
@@ -639,7 +642,7 @@ export const STRINGS_UK = {
                 desc: 'Прокручувати до вибраного файлу при закріпленні нотаток, показі нотаток нащадків, зміні вигляду папки або виконанні файлових операцій.'
             },
             includeDescendantNotes: {
-                name: 'Показувати нотатки з підпапок / нащадків',
+                name: 'Показувати нотатки з підпапок / нащадків (не синхронізується)',
                 desc: 'Включати нотатки з вкладених підпапок та нащадків тегів при перегляді папки або тегу.'
             },
             limitPinnedToCurrentFolder: {
@@ -730,7 +733,7 @@ export const STRINGS_UK = {
                 }
             },
             appearanceScale: {
-                name: 'Рівень масштабування',
+                name: 'Рівень масштабування (не синхронізується)',
                 desc: 'Керує загальним рівнем масштабування Notebook Navigator.'
             },
             startView: {
@@ -784,6 +787,10 @@ export const STRINGS_UK = {
             recentNotesCount: {
                 name: 'Кількість останніх нотаток',
                 desc: 'Кількість останніх нотаток для відображення.'
+            },
+            pinRecentNotesWithShortcuts: {
+                name: 'Закріпити останні нотатки разом з ярликами',
+                desc: 'Включати останні нотатки при закріпленні ярликів.'
             },
             showTooltips: {
                 name: 'Показувати підказки',
@@ -1037,7 +1044,7 @@ export const STRINGS_UK = {
             },
             tagSortOrder: {
                 name: 'Порядок сортування тегів',
-                desc: 'Виберіть, як впорядковуються теги в панелі навігації.',
+                desc: 'Виберіть, як впорядковуються теги в панелі навігації. (не синхронізується)',
                 options: {
                     alphaAsc: 'Від А до Я',
                     alphaDesc: 'Від Я до А',
@@ -1059,8 +1066,8 @@ export const STRINGS_UK = {
             },
             hiddenTags: {
                 name: 'Приховати теги (профіль сховища)',
-                desc: 'Список префіксів тегів або шаблонів назв, розділених комами. Використовуйте тег* або *тег для відповідності назвам тегів. Приховування тегу також приховує всі його підтеги (наприклад, "архів" приховує "архів/2024/документи").',
-                placeholder: 'внутрішній, temp/чернетки, архів/2024'
+                desc: 'Список шаблонів тегів, розділених комами. Шаблони назв: тег* (починається з), *тег (закінчується на). Шаблони шляхів: архів (тег і нащадки), архів/* (лише нащадки), проекти/*/чернетки (символ підстановки посередині).',
+                placeholder: 'архів*, *чернетка, проекти/*/старі'
             },
             enableFolderNotes: {
                 name: 'Увімкнути нотатки папок',

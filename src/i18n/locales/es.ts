@@ -59,14 +59,17 @@ export const STRINGS_ES = {
         shortcutsHeader: 'Accesos directos',
         recentNotesHeader: 'Notas recientes',
         recentFilesHeader: 'Archivos recientes',
-        reorderRootFoldersTitle: 'Reordenar secciones de navegación',
-        reorderRootFoldersHint: 'Arrastra encabezados o elementos para cambiar el orden',
+        reorderRootFoldersTitle: 'Reordenar navegación',
+        reorderRootFoldersHint: 'Usa flechas o arrastra para reordenar',
         vaultRootLabel: 'Bóveda',
         resetRootToAlpha: 'Restablecer orden alfabético',
         resetRootToFrequency: 'Restablecer al orden por frecuencia',
-        dragHandleLabel: 'Arrastrar para reordenar',
         pinShortcuts: 'Fijar accesos directos',
+        pinShortcutsAndRecentNotes: 'Fijar accesos directos y notas recientes',
+        pinShortcutsAndRecentFiles: 'Fijar accesos directos y archivos recientes',
         unpinShortcuts: 'Desfijar accesos directos',
+        unpinShortcutsAndRecentNotes: 'Desfijar accesos directos y notas recientes',
+        unpinShortcutsAndRecentFiles: 'Desfijar accesos directos y archivos recientes',
         profileMenuLabel: 'Perfil',
         profileMenuAria: 'Cambiar perfil de bóveda'
     },
@@ -96,9 +99,9 @@ export const STRINGS_ES = {
         customSort: 'Personalizado', // Label for custom sorting mode (English: Custom)
         showFolders: 'Mostrar navegación', // Tooltip for button to show the navigation pane (English: Show navigation)
         hideFolders: 'Ocultar navegación', // Tooltip for button to hide the navigation pane (English: Hide navigation)
-        reorderRootFolders: 'Reordenar carpetas raíz y etiquetas',
-        finishRootFolderReorder: 'Finalizar reordenación',
-        toggleDescendantNotes: 'Mostrar notas de subcarpetas / descendientes', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants)
+        reorderRootFolders: 'Reordenar navegación',
+        finishRootFolderReorder: 'Listo',
+        toggleDescendantNotes: 'Mostrar notas de subcarpetas / descendientes (no sincronizado)', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants (not synced))
         autoExpandFoldersTags: 'Expandir carpetas y etiquetas automáticamente', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
         showExcludedItems: 'Mostrar carpetas, etiquetas y notas ocultas', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Ocultar carpetas, etiquetas y notas ocultas', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -585,7 +588,7 @@ export const STRINGS_ES = {
         items: {
             searchProvider: {
                 name: 'Proveedor de búsqueda',
-                desc: 'Elija entre búsqueda rápida de nombres de archivo o búsqueda de texto completo con el plugin Omnisearch.',
+                desc: 'Elija entre búsqueda rápida de nombres de archivo o búsqueda de texto completo con el plugin Omnisearch. (no sincronizado)',
                 options: {
                     internal: 'Búsqueda por filtro',
                     omnisearch: 'Omnisearch (texto completo)'
@@ -640,7 +643,7 @@ export const STRINGS_ES = {
                 desc: 'Desplazar al archivo seleccionado al anclar notas, mostrar notas descendientes, cambiar la apariencia de carpetas o ejecutar operaciones de archivos.'
             },
             includeDescendantNotes: {
-                name: 'Mostrar notas de subcarpetas / descendientes',
+                name: 'Mostrar notas de subcarpetas / descendientes (no sincronizado)',
                 desc: 'Incluir notas de subcarpetas y descendientes de etiquetas al ver una carpeta o etiqueta.'
             },
             limitPinnedToCurrentFolder: {
@@ -731,7 +734,7 @@ export const STRINGS_ES = {
                 }
             },
             appearanceScale: {
-                name: 'Nivel de zoom',
+                name: 'Nivel de zoom (no sincronizado)',
                 desc: 'Controla el nivel de zoom general de Notebook Navigator.'
             },
             startView: {
@@ -785,6 +788,10 @@ export const STRINGS_ES = {
             recentNotesCount: {
                 name: 'Cantidad de notas recientes',
                 desc: 'Número de notas recientes a mostrar.'
+            },
+            pinRecentNotesWithShortcuts: {
+                name: 'Fijar notas recientes con accesos directos',
+                desc: 'Incluir notas recientes cuando se fijan los accesos directos.'
             },
             showTooltips: {
                 name: 'Mostrar tooltips',
@@ -1038,7 +1045,7 @@ export const STRINGS_ES = {
             },
             tagSortOrder: {
                 name: 'Orden de etiquetas',
-                desc: 'Elige cómo se ordenan las etiquetas en el panel de navegación.',
+                desc: 'Elige cómo se ordenan las etiquetas en el panel de navegación. (no sincronizado)',
                 options: {
                     alphaAsc: 'A a Z',
                     alphaDesc: 'Z a A',
@@ -1060,8 +1067,8 @@ export const STRINGS_ES = {
             },
             hiddenTags: {
                 name: 'Ocultar etiquetas (perfil de bóveda)',
-                desc: 'Lista separada por comas de prefijos de etiquetas o comodines de nombre. Usa `tag*` o `*tag` para coincidir con nombres de etiquetas. Ocultar una etiqueta también oculta todas sus sub-etiquetas (ej. "archivo" oculta "archivo/2024/docs").',
-                placeholder: 'interno, temp/borradores, archivo/2024'
+                desc: 'Lista separada por comas de patrones de etiquetas. Patrones de nombre: tag* (empieza con), *tag (termina con). Patrones de ruta: archivo (etiqueta y descendientes), archivo/* (solo descendientes), proyectos/*/borradores (comodín intermedio).',
+                placeholder: 'archivo*, *borrador, proyectos/*/antiguo'
             },
             enableFolderNotes: {
                 name: 'Habilitar notas de carpeta',
