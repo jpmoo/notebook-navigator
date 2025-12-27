@@ -23,6 +23,7 @@ import { LISTPANE_MEASUREMENTS, NAVPANE_MEASUREMENTS, type PinnedNotes } from '.
 import { DEFAULT_UI_SCALE } from '../utils/uiScale';
 import type { FolderAppearance, TagAppearance } from '../hooks/useListPaneAppearance';
 import type { NotebookNavigatorSettings } from './types';
+import { sanitizeRecord } from '../utils/recordUtils';
 
 /**
  * Default settings for the plugin
@@ -38,6 +39,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
             hiddenFolders: [],
             hiddenTags: [],
             hiddenFiles: [],
+            hiddenFileNamePatterns: [],
             navigationBanner: null,
             shortcuts: []
         }
@@ -51,6 +53,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
 
     // General tab - View
     startView: 'files',
+    interfaceIcons: sanitizeRecord<string>(undefined),
 
     // General tab - Homepage
     homepage: null,
@@ -63,12 +66,9 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     desktopBackground: 'separate',
     desktopScale: DEFAULT_UI_SCALE,
 
-    // General tab - Mobile appearance
-    mobileBackground: 'primary',
     mobileScale: DEFAULT_UI_SCALE,
 
     // General tab - Formatting
-    preventInvalidCharacters: true,
     dateFormat: 'MMM d, yyyy',
     timeFormat: 'h:mm a',
 
@@ -80,6 +80,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     // Navigation pane tab - Shortcuts & recent items
     showSectionIcons: true,
     showShortcuts: true,
+    shortcutBadgeDisplay: 'index',
     skipAutoScroll: false,
     showRecentNotes: true,
     recentNotesCount: 5,
@@ -113,6 +114,9 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     // Folders & tags tab
     autoSelectFirstFileOnFocusChange: false,
     autoExpandFoldersTags: false,
+    springLoadedFolders: true,
+    springLoadedFoldersInitialDelay: 0.5,
+    springLoadedFoldersSubsequentDelay: 0.5,
     showFolderIcons: true,
     showRootFolder: true,
     inheritFolderColors: false,
@@ -139,7 +143,6 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     filterPinnedByFolder: false,
     showPinnedGroupHeader: true,
     showPinnedIcon: true,
-    showFileIcons: true,
     optimizeNoteHeight: true,
     compactItemHeight: LISTPANE_MEASUREMENTS.defaultCompactItemHeight,
     compactItemHeightScaleText: true,
@@ -159,27 +162,33 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     frontmatterModifiedField: '',
     frontmatterDateFormat: '',
     saveMetadataToFrontmatter: false,
+    showFileIcons: true,
+    showFilenameMatchIcons: false,
+    fileNameIconMap: {},
+    showCategoryIcons: false,
+    fileTypeIconMap: {},
     fileNameRows: 1,
-    showFileDate: true,
-    // Default to showing modified date when sorting alphabetically
-    alphabeticalDateMode: 'modified',
+    showFilePreview: true,
+    skipHeadingsInPreview: true,
+    skipCodeBlocksInPreview: true,
+    stripHtmlInPreview: true,
+    previewRows: 2,
+    previewProperties: [],
+    showFeatureImage: true,
+    featureImageProperties: ['thumbnail', 'featureResized', 'feature'],
+    forceSquareFeatureImage: true,
+    useEmbeddedImageFallback: true,
     showFileTags: true,
     colorFileTags: true,
     prioritizeColoredFileTags: true,
     showFileTagAncestors: false,
     showFileTagsInCompactMode: false,
+    showFileDate: true,
+    // Default to showing modified date when sorting alphabetically
+    alphabeticalDateMode: 'modified',
     showParentFolder: true,
     parentFolderClickRevealsFile: false,
     showParentFolderColor: true,
-    showFilePreview: true,
-    skipHeadingsInPreview: true,
-    skipCodeBlocksInPreview: true,
-    previewProperties: [],
-    previewRows: 2,
-    showFeatureImage: true,
-    featureImageProperties: ['thumbnail', 'featureResized', 'feature'],
-    forceSquareFeatureImage: true,
-    useEmbeddedImageFallback: true,
 
     // Icon packs tab
     externalIconProviders: {},

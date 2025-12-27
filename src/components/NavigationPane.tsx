@@ -54,7 +54,17 @@
  *    - Prevents unnecessary child re-renders
  */
 
-import React, { useRef, useEffect, useCallback, useImperativeHandle, forwardRef, useMemo, useState, useReducer } from 'react';
+import React, {
+    useRef,
+    useEffect,
+    useCallback,
+    useImperativeHandle,
+    forwardRef,
+    useMemo,
+    useState,
+    useReducer,
+    useLayoutEffect
+} from 'react';
 import { TFolder, TFile, Menu, Platform } from 'obsidian';
 import { Virtualizer } from '@tanstack/react-virtual';
 import { DndContext, PointerSensor, closestCenter, type DragEndEvent, type DragStartEvent, useSensor, useSensors } from '@dnd-kit/core';
@@ -63,7 +73,6 @@ import { CSS } from '@dnd-kit/utilities';
 import { useExpansionState, useExpansionDispatch } from '../context/ExpansionContext';
 import { useSelectionState, useSelectionDispatch } from '../context/SelectionContext';
 import { useServices, useCommandQueue, useFileSystemOps, useMetadataService, useTagOperations } from '../context/ServicesContext';
-import { useRecentData } from '../context/RecentDataContext';
 import { useSettingsState, useSettingsUpdate, useActiveProfile } from '../context/SettingsContext';
 import { useUXPreferences } from '../context/UXPreferencesContext';
 import { showNotice } from '../utils/noticeUtils';
@@ -73,6 +82,7 @@ import { useNavigationPaneKeyboard } from '../hooks/useNavigationPaneKeyboard';
 import { useNavigationPaneData } from '../hooks/useNavigationPaneData';
 import { useNavigationPaneScroll } from '../hooks/useNavigationPaneScroll';
 import { useNavigationRootReorder } from '../hooks/useNavigationRootReorder';
+import { usePointerDrag } from '../hooks/usePointerDrag';
 import type { ListReorderHandlers } from '../types/listReorder';
 import type { CombinedNavigationItem } from '../types/virtualization';
 import { NavigationPaneItemType, ItemType, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
@@ -88,7 +98,13 @@ import { NavigationToolbar } from './NavigationToolbar';
 import { TagTreeItem } from './TagTreeItem';
 import { VirtualFolderComponent } from './VirtualFolderItem';
 import { getNavigationIndex, normalizeNavigationPath } from '../utils/navigationIndex';
-import { STORAGE_KEYS, SHORTCUTS_VIRTUAL_FOLDER_ID, RECENT_NOTES_VIRTUAL_FOLDER_ID, NavigationSectionId } from '../types';
+import {
+    STORAGE_KEYS,
+    SHORTCUTS_VIRTUAL_FOLDER_ID,
+    RECENT_NOTES_VIRTUAL_FOLDER_ID,
+    NavigationSectionId,
+    NAVIGATION_PANE_DIMENSIONS
+} from '../types';
 import { localStorage } from '../utils/localStorage';
 import { runAsyncAction } from '../utils/async';
 import { extractFilePathsFromDataTransfer, parseTagDragPayload } from '../utils/dragData';
@@ -96,6 +112,7 @@ import { openFileInContext } from '../utils/openFileInContext';
 import { useShortcuts } from '../context/ShortcutsContext';
 import { ShortcutItem } from './ShortcutItem';
 import { ShortcutCollectionSelector } from './ShortcutCollectionSelector';
+import { ConfirmModal } from '../modals/ConfirmModal';
 import {
     ShortcutEntry,
     ShortcutType,
@@ -103,6 +120,7 @@ import {
     SHORTCUT_DRAG_MIME,
     isFolderShortcut,
     isNoteShortcut,
+    isSearchShortcut,
     isTagShortcut
 } from '../types/shortcuts';
 import { strings } from '../i18n';
@@ -130,16 +148,19 @@ import { useSurfaceColorVariables } from '../hooks/useSurfaceColorVariables';
 import { NAVIGATION_PANE_SURFACE_COLOR_MAPPINGS } from '../constants/surfaceColorMappings';
 import { TAG_DRAG_MIME } from '../types/obsidian-extended';
 import { SHORTCUT_POINTER_CONSTRAINT, verticalAxisOnly } from '../utils/dndConfig';
+import { createHiddenFileNameMatcherForVisibility } from '../utils/fileFilters';
 
 export interface NavigationPaneHandle {
     getIndexOfPath: (itemType: ItemType, path: string) => number;
     virtualizer: Virtualizer<HTMLDivElement, Element> | null;
     scrollContainerRef: HTMLDivElement | null;
     requestScroll: (path: string, options: { align?: 'auto' | 'center' | 'start' | 'end'; itemType: ItemType }) => void;
+    openShortcutByNumber: (shortcutNumber: number) => Promise<boolean>;
 }
 
 interface NavigationPaneProps {
     style?: React.CSSProperties;
+    uiScale: number;
     /**
      * Reference to the root navigator container (.nn-split-container).
      * This is passed from NotebookNavigatorComponent to ensure keyboard events
@@ -191,7 +212,6 @@ function SortableShortcutItem({ sortableId, canReorder, dragHandlers, ...rest }:
 export const NavigationPane = React.memo(
     forwardRef<NavigationPaneHandle, NavigationPaneProps>(function NavigationPane(props, ref) {
         const { app, isMobile, plugin, tagTreeService } = useServices();
-        const { recentNotes } = useRecentData();
         const {
             onExecuteSearchShortcut,
             rootContainerRef,
@@ -200,7 +220,8 @@ export const NavigationPane = React.memo(
             onRevealTag,
             onRevealFile,
             onRevealShortcutFile,
-            onModifySearchWithTag
+            onModifySearchWithTag,
+            uiScale
         } = props;
         const commandQueue = useCommandQueue();
         const fileSystemOps = useFileSystemOps();
@@ -215,16 +236,21 @@ export const NavigationPane = React.memo(
         const uxPreferences = useUXPreferences();
         const includeDescendantNotes = uxPreferences.includeDescendantNotes;
         const showHiddenItems = uxPreferences.showHiddenItems;
-        const { hiddenFolders, fileVisibility } = activeProfile;
+        const { hiddenFolders, hiddenFileNamePatterns, fileVisibility } = activeProfile;
         // Resolves frontmatter exclusions, returns empty array when hidden items are shown
         const effectiveFrontmatterExclusions = getEffectiveFrontmatterExclusions(settings, showHiddenItems);
+        const folderCountFileNameMatcher = useMemo(() => {
+            return createHiddenFileNameMatcherForVisibility(hiddenFileNamePatterns, showHiddenItems);
+        }, [hiddenFileNamePatterns, showHiddenItems]);
         const updateSettings = useSettingsUpdate();
         const uiState = useUIState();
         const uiDispatch = useUIDispatch();
         const shortcuts = useShortcuts();
         const {
+            shortcuts: shortcutsList,
             shortcutMap,
             removeShortcut,
+            clearShortcuts,
             hydratedShortcuts,
             reorderShortcuts,
             addTagShortcut,
@@ -239,10 +265,173 @@ export const NavigationPane = React.memo(
             deleteCollection,
             reorderCollections
         } = shortcuts;
+        const effectiveShortcutBadgeDisplay = settings.shortcutBadgeDisplay;
+        const shouldShowShortcutCounts = effectiveShortcutBadgeDisplay === 'count';
+        const shortcutNumberBadgesByKey = useMemo(() => {
+            if (effectiveShortcutBadgeDisplay !== 'index') {
+                return new Map<string, string>();
+            }
+
+            const badgeMap = new Map<string, string>();
+            hydratedShortcuts.slice(0, 9).forEach((shortcut, index) => {
+                badgeMap.set(shortcut.key, String(index + 1));
+            });
+            return badgeMap;
+        }, [effectiveShortcutBadgeDisplay, hydratedShortcuts]);
         const { fileData, getFileDisplayName } = useFileCache();
         // Detect Android platform for toolbar placement
         const isAndroid = Platform.isAndroidApp;
         const navigationPaneRef = useRef<HTMLDivElement>(null);
+        const pinnedShortcutsContainerRef = useRef<HTMLDivElement>(null);
+        const [pinnedShortcutsScrollElement, setPinnedShortcutsScrollElement] = useState<HTMLDivElement | null>(null);
+        const [pinnedShortcutsHasOverflow, setPinnedShortcutsHasOverflow] = useState(false);
+        const pinnedShortcutsResizeFrameRef = useRef<number | null>(null);
+        const pinnedShortcutsResizeHeightRef = useRef<number>(0);
+        const { startPointerDrag } = usePointerDrag();
+
+        // Resolves scale factor with fallback to prevent division by zero or invalid values
+        const scaleFactor = Number.isFinite(uiScale) && uiScale > 0 ? uiScale : 1;
+
+        // Ref callback to capture the scrollable container for pinned shortcuts
+        const pinnedShortcutsScrollRefCallback = useCallback((node: HTMLDivElement | null) => {
+            setPinnedShortcutsScrollElement(node);
+        }, []);
+
+        // Loads persisted max height for pinned shortcuts or null for auto-sizing
+        const [pinnedShortcutsMaxHeight, setPinnedShortcutsMaxHeight] = useState<number | null>(() => {
+            const stored = localStorage.get<number>(STORAGE_KEYS.pinnedShortcutsMaxHeightKey);
+            if (typeof stored !== 'number' || !Number.isFinite(stored) || stored <= 0) {
+                return null;
+            }
+            return Math.max(NAVIGATION_PANE_DIMENSIONS.pinnedShortcutsMinHeight, Math.round(stored));
+        });
+
+        const [isPinnedShortcutsResizing, setIsPinnedShortcutsResizing] = useState(false);
+
+        // Checks if pinned shortcuts content exceeds container height
+        const updatePinnedShortcutsOverflow = useCallback(
+            (element?: HTMLDivElement | null) => {
+                const target = element ?? pinnedShortcutsScrollElement;
+                if (!target) {
+                    setPinnedShortcutsHasOverflow(false);
+                    return;
+                }
+
+                const hasOverflow = target.scrollHeight - target.clientHeight > 1;
+                setPinnedShortcutsHasOverflow(prev => (prev === hasOverflow ? prev : hasOverflow));
+            },
+            [pinnedShortcutsScrollElement]
+        );
+
+        // Throttles max height updates using requestAnimationFrame to avoid layout thrashing
+        const schedulePinnedShortcutsHeightUpdate = useCallback((height: number) => {
+            pinnedShortcutsResizeHeightRef.current = height;
+            if (pinnedShortcutsResizeFrameRef.current !== null) {
+                return;
+            }
+            pinnedShortcutsResizeFrameRef.current = window.requestAnimationFrame(() => {
+                pinnedShortcutsResizeFrameRef.current = null;
+                setPinnedShortcutsMaxHeight(pinnedShortcutsResizeHeightRef.current);
+            });
+        }, []);
+
+        // Cancels any pending animation frame on unmount
+        useEffect(() => {
+            return () => {
+                if (pinnedShortcutsResizeFrameRef.current !== null) {
+                    cancelAnimationFrame(pinnedShortcutsResizeFrameRef.current);
+                    pinnedShortcutsResizeFrameRef.current = null;
+                }
+            };
+        }, []);
+
+        // Monitors pinned shortcuts container size changes to update overflow state
+        useLayoutEffect(() => {
+            const element = pinnedShortcutsScrollElement;
+            if (!element) {
+                setPinnedShortcutsHasOverflow(false);
+                return;
+            }
+
+            updatePinnedShortcutsOverflow(element);
+
+            if (typeof ResizeObserver === 'undefined') {
+                return;
+            }
+
+            const resizeObserver = new ResizeObserver(() => {
+                updatePinnedShortcutsOverflow(element);
+            });
+            resizeObserver.observe(element);
+
+            return () => {
+                resizeObserver.disconnect();
+            };
+        }, [pinnedShortcutsScrollElement, updatePinnedShortcutsOverflow]);
+
+        // Handles drag-to-resize for the pinned shortcuts section
+        const handlePinnedShortcutsResizePointerDown = useCallback(
+            (event: React.PointerEvent<HTMLDivElement>) => {
+                if (event.pointerType === 'mouse' && event.button !== 0) {
+                    return;
+                }
+
+                const pinnedElement = pinnedShortcutsContainerRef.current;
+                const scrollElement = pinnedShortcutsScrollElement;
+                if (!pinnedElement) {
+                    return;
+                }
+                if (!scrollElement) {
+                    return;
+                }
+
+                const shouldTrackResizeState = !isMobile;
+                const handleHeight = Math.round(event.currentTarget.getBoundingClientRect().height / scaleFactor);
+                const maxAllowed = Math.round(scrollElement.scrollHeight + handleHeight);
+                const minAllowed = Math.min(NAVIGATION_PANE_DIMENSIONS.pinnedShortcutsMinHeight, maxAllowed);
+                const startMaxHeight = Math.min(Math.round(pinnedElement.getBoundingClientRect().height / scaleFactor), maxAllowed);
+                const startY = event.clientY;
+                let currentMaxHeight = startMaxHeight;
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                if (shouldTrackResizeState) {
+                    setIsPinnedShortcutsResizing(true);
+                }
+
+                const clamp = (value: number) => Math.min(Math.max(value, minAllowed), maxAllowed);
+
+                schedulePinnedShortcutsHeightUpdate(currentMaxHeight);
+
+                startPointerDrag({
+                    event,
+                    onMove: (moveEvent: PointerEvent) => {
+                        const deltaY = (moveEvent.clientY - startY) / scaleFactor;
+                        currentMaxHeight = clamp(startMaxHeight + deltaY);
+                        schedulePinnedShortcutsHeightUpdate(currentMaxHeight);
+                    },
+                    onEnd: () => {
+                        if (pinnedShortcutsResizeFrameRef.current !== null) {
+                            cancelAnimationFrame(pinnedShortcutsResizeFrameRef.current);
+                            pinnedShortcutsResizeFrameRef.current = null;
+                        }
+                        const contentFitHeight = Math.round(scrollElement.scrollHeight + handleHeight);
+                        if (currentMaxHeight >= contentFitHeight - 2) {
+                            setPinnedShortcutsMaxHeight(null);
+                            localStorage.remove(STORAGE_KEYS.pinnedShortcutsMaxHeightKey);
+                        } else {
+                            localStorage.set(STORAGE_KEYS.pinnedShortcutsMaxHeightKey, currentMaxHeight);
+                            setPinnedShortcutsMaxHeight(currentMaxHeight);
+                        }
+                        if (shouldTrackResizeState) {
+                            setIsPinnedShortcutsResizing(false);
+                        }
+                    }
+                });
+            },
+            [isMobile, pinnedShortcutsScrollElement, scaleFactor, schedulePinnedShortcutsHeightUpdate, startPointerDrag]
+        );
         /** Maps semi-transparent theme color variables to their pre-composited solid equivalents (see constants/surfaceColorMappings). */
         const { color: navSurfaceColor, version: navSurfaceVersion } = useSurfaceColorVariables(navigationPaneRef, {
             app,
@@ -693,7 +882,6 @@ export const NavigationPane = React.memo(
             shouldPinRecentNotes,
             tagsVirtualFolderHasChildren,
             pathToIndex,
-            shortcutIndex,
             tagCounts,
             folderCounts,
             rootLevelFolders,
@@ -739,6 +927,11 @@ export const NavigationPane = React.memo(
         }, [pinnedRecentNotesItems, sectionOrder, shortcutItems, shouldPinRecentNotes, shouldPinShortcuts]);
         // Banner should be shown in pinned area only when shortcuts are pinned and banner is configured
         const shouldShowPinnedBanner = Boolean(navigationBannerPath && pinnedNavigationItems.length > 0);
+
+        // Recalculates overflow when pinned items or banner visibility changes
+        useLayoutEffect(() => {
+            updatePinnedShortcutsOverflow(pinnedShortcutsScrollElement);
+        }, [pinnedNavigationItems, pinnedShortcutsScrollElement, shouldShowPinnedBanner, updatePinnedShortcutsOverflow]);
 
         // We only reserve gutter space when a banner exists because Windows scrollbars
         // change container width by ~7px when they appear. That width change used to
@@ -1185,25 +1378,6 @@ export const NavigationPane = React.memo(
             uiDispatch({ type: 'SET_PIN_SHORTCUTS', value: !uiState.pinShortcuts });
         }, [uiDispatch, uiState.pinShortcuts]);
 
-        // Scrolls shortcut into view - scrolls to top for pinned shortcuts or to item index for inline
-        const scrollShortcutIntoView = useCallback(
-            (shortcutKey: string) => {
-                // When shortcuts are pinned, scroll to top to show pinned area
-                if (shouldPinShortcuts) {
-                    const container = scrollContainerRef.current;
-                    if (container) {
-                        container.scrollTo({ top: 0, behavior: 'auto' });
-                    }
-                    return;
-                }
-                const index = shortcutIndex.get(shortcutKey);
-                if (index !== undefined) {
-                    rowVirtualizer.scrollToIndex(index, { align: 'auto' });
-                }
-            },
-            [shortcutIndex, rowVirtualizer, shouldPinShortcuts, scrollContainerRef]
-        );
-
         // Clears active shortcut after two animation frames to allow visual feedback
         const scheduleShortcutRelease = useCallback(() => {
             const release = () => setActiveShortcut(null);
@@ -1325,13 +1499,12 @@ export const NavigationPane = React.memo(
         const handleShortcutSearchActivate = useCallback(
             (shortcutKey: string, searchShortcut: SearchShortcut) => {
                 setActiveShortcut(shortcutKey);
-                scrollShortcutIntoView(shortcutKey);
                 if (onExecuteSearchShortcut) {
                     runAsyncAction(() => onExecuteSearchShortcut(shortcutKey, searchShortcut));
                 }
                 scheduleShortcutRelease();
             },
-            [setActiveShortcut, scrollShortcutIntoView, onExecuteSearchShortcut, scheduleShortcutRelease]
+            [setActiveShortcut, onExecuteSearchShortcut, scheduleShortcutRelease]
         );
 
         // Handles tag shortcut activation - navigates to tag and shows its files
@@ -1443,7 +1616,8 @@ export const NavigationPane = React.memo(
                         services: menuServices,
                         settings,
                         state,
-                        dispatchers
+                        dispatchers,
+                        options: { disableNavigationSeparatorActions: true }
                     });
                 } else if (target.type === 'note') {
                     buildFileMenu({
@@ -1472,7 +1646,8 @@ export const NavigationPane = React.memo(
                         services: menuServices,
                         settings,
                         state,
-                        dispatchers
+                        dispatchers,
+                        options: { disableNavigationSeparatorActions: true }
                     });
                 }
 
@@ -1533,34 +1708,71 @@ export const NavigationPane = React.memo(
             ]
         );
 
+        // Shows a context menu for navigation section headers with separator and shortcut actions
         const handleSectionContextMenu = useCallback(
-            (event: React.MouseEvent<HTMLDivElement>, sectionId: NavigationSectionId) => {
+            (event: React.MouseEvent<HTMLDivElement>, sectionId: NavigationSectionId, options?: { allowSeparator?: boolean }) => {
                 event.preventDefault();
                 event.stopPropagation();
 
+                const isShortcutsSection = sectionId === NavigationSectionId.SHORTCUTS;
                 const target = { type: 'section', id: sectionId } as const;
-                const hasSeparator = metadataService.hasNavigationSeparator(target);
+                const allowSeparator = options?.allowSeparator ?? true;
+                const hasSeparator = allowSeparator ? metadataService.hasNavigationSeparator(target) : false;
                 const menu = new Menu();
+                let hasActions = false;
 
-                menu.addItem(item => {
-                    item.setTitle(
-                        hasSeparator ? strings.contextMenu.navigation.removeSeparator : strings.contextMenu.navigation.addSeparator
-                    )
-                        .setIcon('lucide-separator-horizontal')
-                        .onClick(() => {
-                            runAsyncAction(async () => {
-                                if (hasSeparator) {
-                                    await metadataService.removeNavigationSeparator(target);
-                                    return;
-                                }
-                                await metadataService.addNavigationSeparator(target);
+                // Add separator toggle option when allowed
+                if (allowSeparator) {
+                    menu.addItem(item => {
+                        item.setTitle(
+                            hasSeparator ? strings.contextMenu.navigation.removeSeparator : strings.contextMenu.navigation.addSeparator
+                        )
+                            .setIcon('lucide-separator-horizontal')
+                            .onClick(() => {
+                                runAsyncAction(async () => {
+                                    if (hasSeparator) {
+                                        await metadataService.removeNavigationSeparator(target);
+                                        return;
+                                    }
+                                    await metadataService.addNavigationSeparator(target);
+                                });
                             });
-                        });
-                });
+                    });
+                    hasActions = true;
+                }
+
+                // Add "remove all shortcuts" option for the shortcuts section
+                if (isShortcutsSection && shortcutsList.length > 0) {
+                    if (hasActions) {
+                        menu.addSeparator();
+                    }
+
+                    menu.addItem(item => {
+                        item.setTitle(strings.shortcuts.removeAll)
+                            .setIcon('lucide-trash-2')
+                            .onClick(() => {
+                                const confirmModal = new ConfirmModal(
+                                    app,
+                                    strings.shortcuts.removeAll,
+                                    strings.shortcuts.removeAllConfirm,
+                                    () => clearShortcuts(),
+                                    strings.common.remove
+                                );
+                                confirmModal.open();
+                            });
+                    });
+
+                    hasActions = true;
+                }
+
+                // Skip showing empty menu
+                if (!hasActions) {
+                    return;
+                }
 
                 menu.showAtMouseEvent(event.nativeEvent);
             },
-            [metadataService]
+            [app, clearShortcuts, metadataService, shortcutsList.length]
         );
 
         // Calculates the note count for a folder shortcut, using cache when available
@@ -1586,6 +1798,7 @@ export const NavigationPane = React.memo(
                     fileVisibility,
                     excludedFiles: effectiveFrontmatterExclusions,
                     excludedFolders: hiddenFolders,
+                    fileNameMatcher: folderCountFileNameMatcher,
                     includeDescendants: includeDescendantNotes,
                     showHiddenFolders: showHiddenItems,
                     hideFolderNoteInList: settings.hideFolderNoteInList,
@@ -1603,7 +1816,8 @@ export const NavigationPane = React.memo(
                 showHiddenItems,
                 settings.hideFolderNoteInList,
                 settings.enableFolderNotes,
-                settings.folderNoteName
+                settings.folderNoteName,
+                folderCountFileNameMatcher
             ]
         );
 
@@ -1713,14 +1927,18 @@ export const NavigationPane = React.memo(
         ]);
 
         // Updates banner height with threshold to prevent micro-adjustments
-        const handleBannerHeightChange = useCallback((height: number) => {
-            setBannerHeight(previous => {
-                if (Math.abs(previous - height) < 0.5) {
-                    return previous;
-                }
-                return height;
-            });
-        }, []);
+        const handleBannerHeightChange = useCallback(
+            (height: number) => {
+                setBannerHeight(previous => {
+                    if (Math.abs(previous - height) < 0.5) {
+                        return previous;
+                    }
+                    return height;
+                });
+                updatePinnedShortcutsOverflow();
+            },
+            [updatePinnedShortcutsOverflow]
+        );
 
         // Renders individual navigation items based on their type
         const renderItem = useCallback(
@@ -1745,7 +1963,8 @@ export const NavigationPane = React.memo(
                             }
                             return getPathBaseName(folderPath);
                         })();
-                        const folderCountInfo = canInteract && folder ? getFolderShortcutCount(folder) : ZERO_NOTE_COUNT;
+                        const folderCountInfo =
+                            canInteract && folder && shouldShowShortcutCounts ? getFolderShortcutCount(folder) : ZERO_NOTE_COUNT;
                         const folderNote = canInteract && folder && settings.enableFolderNotes ? getFolderNote(folder, settings) : null;
 
                         const dragHandlers = buildShortcutExternalHandlers(item.key);
@@ -1765,7 +1984,9 @@ export const NavigationPane = React.memo(
                             description: undefined,
                             level: item.level,
                             type: 'folder' as const,
-                            countInfo: !isMissing ? folderCountInfo : undefined,
+                            countInfo: !isMissing && shouldShowShortcutCounts ? folderCountInfo : undefined,
+                            badge: shortcutNumberBadgesByKey.get(item.key),
+                            forceShowCount: shouldShowShortcutCounts,
                             isExcluded: !isMissing ? item.isExcluded : undefined,
                             isDisabled: isMissing,
                             isMissing,
@@ -1835,6 +2056,8 @@ export const NavigationPane = React.memo(
                             description: undefined,
                             level: item.level,
                             type: 'note' as const,
+                            badge: shortcutNumberBadgesByKey.get(item.key),
+                            forceShowCount: shouldShowShortcutCounts,
                             isDisabled: isMissing,
                             isMissing,
                             onClick: () => {
@@ -1880,6 +2103,8 @@ export const NavigationPane = React.memo(
                             label: searchShortcut.name,
                             level: item.level,
                             type: 'search' as const,
+                            badge: shortcutNumberBadgesByKey.get(item.key),
+                            forceShowCount: shouldShowShortcutCounts,
                             onClick: () => handleShortcutSearchActivate(item.key, searchShortcut),
                             onContextMenu: (event: React.MouseEvent<HTMLDivElement>) =>
                                 handleShortcutContextMenu(event, {
@@ -1907,7 +2132,7 @@ export const NavigationPane = React.memo(
                     case NavigationPaneItemType.SHORTCUT_TAG: {
                         const isMissing = Boolean(item.isMissing);
                         const tagPath = isTagShortcut(item.shortcut) ? item.shortcut.tagPath : item.tagPath;
-                        const tagCountInfo = !isMissing ? getTagShortcutCount(tagPath) : ZERO_NOTE_COUNT;
+                        const tagCountInfo = !isMissing && shouldShowShortcutCounts ? getTagShortcutCount(tagPath) : ZERO_NOTE_COUNT;
 
                         const dragHandlers = buildShortcutExternalHandlers(item.key);
                         const isDragSource = shouldUseShortcutDnd && activeShortcutId === item.key;
@@ -1925,7 +2150,9 @@ export const NavigationPane = React.memo(
                             description: undefined,
                             level: item.level,
                             type: 'tag' as const,
-                            countInfo: !isMissing ? tagCountInfo : undefined,
+                            countInfo: !isMissing && shouldShowShortcutCounts ? tagCountInfo : undefined,
+                            badge: shortcutNumberBadgesByKey.get(item.key),
+                            forceShowCount: shouldShowShortcutCounts,
                             isDisabled: isMissing,
                             isMissing,
                             onClick: () => {
@@ -2008,14 +2235,9 @@ export const NavigationPane = React.memo(
                         const virtualFolder = item.data;
                         const isShortcutsGroup = virtualFolder.id === SHORTCUTS_VIRTUAL_FOLDER_ID;
                         const isRecentNotesGroup = virtualFolder.id === RECENT_NOTES_VIRTUAL_FOLDER_ID;
-                        let hasChildren = true;
-                        if (isShortcutsGroup) {
-                            hasChildren = hydratedShortcuts.length > 0;
-                        } else if (isRecentNotesGroup) {
-                            hasChildren = recentNotes.length > 0;
-                        } else if (virtualFolder.id === 'tags-root') {
-                            hasChildren = tagsVirtualFolderHasChildren;
-                        }
+                        // `hasChildren` is computed when building the navigation items so it reflects actual renderable children
+                        // (e.g. recent paths that still resolve to `TFile`).
+                        const hasChildren = item.hasChildren ?? false;
 
                         const isExpanded = isShortcutsGroup
                             ? shortcutsExpanded
@@ -2057,14 +2279,16 @@ export const NavigationPane = React.memo(
                                 ? NavigationSectionId.TAGS
                                 : null;
 
-                        const shouldDisableShortcutMenu = isShortcutsGroup && shouldPinShortcuts;
                         const shouldDisableFirstSectionMenu =
                             shouldPinShortcuts && sectionId !== null && firstSectionId !== null && sectionId === firstSectionId;
-                        // When shortcuts are pinned they render in their own panel, so the section header hides context menus by design.
-                        // Shortcuts have to be unpinned to edit the first inline section separator
+                        const allowSeparatorActions = !isShortcutsGroup || !shouldPinShortcuts;
+                        const hasShortcutMenuActions = isShortcutsGroup && shortcutsList.length > 0;
+                        // When shortcuts are pinned they render in their own panel, so separator actions are disabled for that section.
+                        // Shortcuts have to be unpinned to edit the first inline section separator.
                         const sectionContextMenu =
-                            sectionId !== null && !shouldDisableShortcutMenu && !shouldDisableFirstSectionMenu
-                                ? (event: React.MouseEvent<HTMLDivElement>) => handleSectionContextMenu(event, sectionId)
+                            sectionId !== null && !shouldDisableFirstSectionMenu && (allowSeparatorActions || hasShortcutMenuActions)
+                                ? (event: React.MouseEvent<HTMLDivElement>) =>
+                                      handleSectionContextMenu(event, sectionId, { allowSeparator: allowSeparatorActions })
                                 : undefined;
 
                         return (
@@ -2208,7 +2432,7 @@ export const NavigationPane = React.memo(
                 firstSectionId,
                 firstInlineFolderPath,
                 handleVirtualFolderToggle,
-                recentNotes.length,
+                shortcutsList.length,
                 getAllDescendantFolders,
                 getAllDescendantTags,
                 expansionDispatch,
@@ -2227,7 +2451,8 @@ export const NavigationPane = React.memo(
                 handleRecentFileContextMenu,
                 handleShortcutContextMenu,
                 buildShortcutExternalHandlers,
-                hydratedShortcuts,
+                shortcutNumberBadgesByKey,
+                shouldShowShortcutCounts,
                 shortcutsExpanded,
                 shouldPinShortcuts,
                 recentNotesExpanded,
@@ -2243,7 +2468,6 @@ export const NavigationPane = React.memo(
                 handleShortcutFolderNoteClick,
                 handleShortcutFolderNoteMouseDown,
                 isMobile,
-                tagsVirtualFolderHasChildren,
                 searchIncludeTokenSet,
                 searchExcludeTokenSet,
                 highlightRequireTagged,
@@ -2276,9 +2500,57 @@ export const NavigationPane = React.memo(
                 },
                 virtualizer: rowVirtualizer,
                 scrollContainerRef: scrollContainerRef.current,
-                requestScroll
+                requestScroll,
+                openShortcutByNumber: async (shortcutNumber: number) => {
+                    if (!Number.isInteger(shortcutNumber) || shortcutNumber < 1) {
+                        return false;
+                    }
+
+                    const entry = hydratedShortcuts[shortcutNumber - 1];
+                    if (!entry || entry.isMissing) {
+                        return false;
+                    }
+
+                    const { key, shortcut, folder, note, search, tagPath } = entry;
+
+                    if (isFolderShortcut(shortcut) && folder) {
+                        handleShortcutFolderActivate(folder, key);
+                        return true;
+                    }
+
+                    if (isNoteShortcut(shortcut) && note) {
+                        handleShortcutNoteActivate(note, key);
+                        return true;
+                    }
+
+                    if (isSearchShortcut(shortcut)) {
+                        handleShortcutSearchActivate(key, search ?? shortcut);
+                        return true;
+                    }
+
+                    if (isTagShortcut(shortcut)) {
+                        const resolvedTagPath = tagPath ?? shortcut.tagPath;
+                        if (!resolvedTagPath) {
+                            return false;
+                        }
+                        handleShortcutTagActivate(resolvedTagPath, key);
+                        return true;
+                    }
+
+                    return false;
+                }
             }),
-            [pathToIndex, rowVirtualizer, requestScroll, scrollContainerRef]
+            [
+                pathToIndex,
+                rowVirtualizer,
+                requestScroll,
+                scrollContainerRef,
+                hydratedShortcuts,
+                handleShortcutFolderActivate,
+                handleShortcutNoteActivate,
+                handleShortcutSearchActivate,
+                handleShortcutTagActivate
+            ]
         );
 
         // Add keyboard navigation
@@ -2301,6 +2573,7 @@ export const NavigationPane = React.memo(
                 className="nn-navigation-pane"
                 style={props.style}
                 data-shortcut-sorting={isShortcutSorting ? 'true' : undefined}
+                data-shortcuts-resizing={!isMobile && isPinnedShortcutsResizing ? 'true' : undefined}
             >
                 <NavigationPaneHeader
                     onTreeUpdateComplete={handleTreeUpdateComplete}
@@ -2362,22 +2635,36 @@ export const NavigationPane = React.memo(
                     />
                 )}
                 {pinnedNavigationItems.length > 0 && !isRootReorderMode ? (
-                    <div
-                        className="nn-shortcut-pinned"
-                        role="presentation"
-                        data-has-banner={shouldShowPinnedBanner ? 'true' : undefined}
-                        onDragOver={allowEmptyShortcutDrop ? handleShortcutRootDragOver : undefined}
-                        onDrop={allowEmptyShortcutDrop ? handleShortcutRootDrop : undefined}
-                    >
-                        {shouldShowPinnedBanner && navigationBannerPath ? (
-                            <NavigationBanner path={navigationBannerPath} onHeightChange={handleBannerHeightChange} />
-                        ) : null}
-                        <div className="nn-shortcut-pinned-inner">
-                            {pinnedNavigationItems.map(pinnedItem => (
-                                <React.Fragment key={pinnedItem.key}>{renderItem(pinnedItem)}</React.Fragment>
-                            ))}
+                    <>
+                        <div
+                            className="nn-shortcut-pinned"
+                            ref={pinnedShortcutsContainerRef}
+                            role="presentation"
+                            data-has-banner={shouldShowPinnedBanner ? 'true' : undefined}
+                            data-scroll={pinnedShortcutsHasOverflow ? 'true' : undefined}
+                            style={pinnedShortcutsMaxHeight !== null ? { maxHeight: pinnedShortcutsMaxHeight } : undefined}
+                            onDragOver={allowEmptyShortcutDrop ? handleShortcutRootDragOver : undefined}
+                            onDrop={allowEmptyShortcutDrop ? handleShortcutRootDrop : undefined}
+                        >
+                            <div className="nn-shortcut-pinned-scroll" ref={pinnedShortcutsScrollRefCallback}>
+                                {shouldShowPinnedBanner && navigationBannerPath ? (
+                                    <NavigationBanner path={navigationBannerPath} onHeightChange={handleBannerHeightChange} />
+                                ) : null}
+                                <div className="nn-shortcut-pinned-inner">
+                                    {pinnedNavigationItems.map(pinnedItem => (
+                                        <React.Fragment key={pinnedItem.key}>{renderItem(pinnedItem)}</React.Fragment>
+                                    ))}
+                                </div>
+                            </div>
+                            <div
+                                className="nn-shortcuts-resize-handle"
+                                role="separator"
+                                aria-orientation="horizontal"
+                                aria-label="Resize pinned shortcuts"
+                                onPointerDown={handlePinnedShortcutsResizePointerDown}
+                            />
                         </div>
-                    </div>
+                    </>
                 ) : null}
                 <div
                     ref={scrollContainerRefCallback}

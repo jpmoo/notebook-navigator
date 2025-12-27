@@ -23,8 +23,18 @@ import { generateUniqueFilename } from './fileCreationUtils';
 import { ensureRecord, isBooleanRecordValue, isStringRecordValue } from './recordUtils';
 import { getPluginById } from './typeGuards';
 
-/** Moment.js API exposed globally by Obsidian */
-type MomentApi = typeof import('moment');
+interface MomentInstance {
+    format: (format: string) => string;
+}
+
+interface MomentApi {
+    (): MomentInstance;
+    fn: object;
+    utc: () => void;
+}
+
+// Cache the Obsidian-provided moment API; Obsidian sets window.moment during startup so caching null is safe.
+let cachedMomentApi: MomentApi | null | undefined;
 
 export type DrawingType = 'excalidraw' | 'tldraw';
 
@@ -71,7 +81,7 @@ interface ExcalidrawPluginApi extends Plugin {
  * - viewType: "tldraw-view", "tldraw-read-only", or "markdown"
  */
 interface TldrawPluginApi extends Plugin {
-    createDefaultFilename: () => string;
+    createDefaultFilename?: (options: { currentFile?: Pick<TFile, 'basename'> }) => string;
     createTldrFile: (filename: string, options: { foldername: string; inMarkdown: boolean; tlStore?: unknown }) => Promise<TFile>;
     openTldrFile?: (file: TFile, location: string, viewType?: string, openState?: unknown) => Promise<void>;
     settings?: Record<string, unknown>;
@@ -83,16 +93,33 @@ interface DrawingFilePathOptions {
 
 /** Type guard for the global moment API */
 function isMomentApi(value: unknown): value is MomentApi {
-    return typeof value === 'function';
+    if (typeof value !== 'function') {
+        return false;
+    }
+    // Moment exposes a prototype object at .fn for plugin extensions
+    if (!('fn' in value) || typeof value.fn !== 'object' || value.fn === null) {
+        return false;
+    }
+    // Moment provides a utc factory function for timezone handling
+    if (!('utc' in value) || typeof value.utc !== 'function') {
+        return false;
+    }
+    return true;
 }
 
 /** Returns the global moment API exposed by Obsidian, or null if unavailable */
 function getMomentApi(): MomentApi | null {
+    // Cache the first observed value (including null) to avoid repeated global lookups; plugin code runs after Obsidian sets window.moment.
+    if (cachedMomentApi !== undefined) {
+        return cachedMomentApi;
+    }
     const momentValue = (window as { moment?: unknown }).moment;
     if (!isMomentApi(momentValue)) {
+        cachedMomentApi = null;
         return null;
     }
-    return momentValue;
+    cachedMomentApi = momentValue;
+    return cachedMomentApi;
 }
 
 /** Type guard checking if a plugin exposes a settings object */
@@ -322,10 +349,9 @@ function isTldrawPlugin(plugin: Plugin | null): plugin is TldrawPluginApi {
         return false;
     }
 
-    const createDefaultFilename: unknown = Reflect.get(plugin, 'createDefaultFilename');
     const createTldrFile: unknown = Reflect.get(plugin, 'createTldrFile');
 
-    return typeof createDefaultFilename === 'function' && typeof createTldrFile === 'function';
+    return typeof createTldrFile === 'function';
 }
 
 /**
@@ -379,7 +405,21 @@ async function createDrawingWithTldrawPlugin(app: App, parent: TFolder): Promise
         return null;
     }
 
-    const rawFileName = plugin.createDefaultFilename();
+    const rawFileName = (() => {
+        const fileNameFromSettings = getTldrawFileNameFromPlugin(app);
+
+        if (typeof plugin.createDefaultFilename === 'function') {
+            const activeFile = app.workspace.getActiveFile();
+            const currentFile = activeFile ?? undefined;
+            try {
+                return plugin.createDefaultFilename({ currentFile });
+            } catch (error) {
+                console.error('Failed to generate default Tldraw filename via plugin API', error);
+            }
+        }
+
+        return fileNameFromSettings ?? getFallbackDrawingFileName('tldraw');
+    })();
     const safeFileName = normalizeAndSanitizeDrawingFileName(rawFileName, 'tldraw');
     const uniquePath = getUniqueDrawingFilePath(app, parent, safeFileName);
     const uniqueFileName = getFileNameFromPath(uniquePath);

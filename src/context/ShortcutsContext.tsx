@@ -89,6 +89,7 @@ export interface ShortcutsContextValue {
     addShortcutsBatch: (entries: ShortcutEntry[], options?: { index?: number; collectionId?: string }) => Promise<number>;
     removeShortcut: (key: string) => Promise<boolean>;
     removeSearchShortcut: (name: string) => Promise<boolean>;
+    clearShortcuts: () => Promise<boolean>;
     reorderShortcuts: (orderedKeys: string[]) => Promise<boolean>;
     hasFolderShortcut: (path: string) => boolean;
     hasNoteShortcut: (path: string) => boolean;
@@ -809,6 +810,11 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         [removeShortcut, searchShortcutsByName]
     );
 
+    // Removes all shortcuts from the active profile
+    const clearShortcuts = useCallback(async () => {
+        return updateActiveProfileShortcuts(() => []);
+    }, [updateActiveProfileShortcuts]);
+
     // Reorders shortcuts based on provided key order (for drag & drop functionality)
     // Validates that all keys are present before applying the new order
     const reorderShortcuts = useCallback(
@@ -975,6 +981,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             addShortcutsBatch,
             removeShortcut,
             removeSearchShortcut,
+            clearShortcuts,
             reorderShortcuts,
             hasFolderShortcut,
             hasNoteShortcut,
@@ -1005,6 +1012,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             addShortcutsBatch,
             removeShortcut,
             removeSearchShortcut,
+            clearShortcuts,
             reorderShortcuts,
             hasFolderShortcut,
             hasNoteShortcut,

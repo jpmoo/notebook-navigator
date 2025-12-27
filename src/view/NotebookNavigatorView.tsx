@@ -19,7 +19,7 @@ import { Root, createRoot } from 'react-dom/client';
  */
 
 // src/view/NotebookNavigatorView.tsx
-import { ItemView, WorkspaceLeaf, TFile, Platform, TFolder } from 'obsidian';
+import { ItemView, WorkspaceLeaf, TFile, Platform, TFolder, requireApiVersion } from 'obsidian';
 import { NotebookNavigatorContainer } from '../components/NotebookNavigatorContainer';
 import type { NotebookNavigatorHandle } from '../components/NotebookNavigatorComponent';
 import type { RevealFileOptions, NavigateToFolderOptions } from '../hooks/useNavigatorReveal';
@@ -40,6 +40,7 @@ import {
     clearAndroidFontCompensation,
     propagateAndroidFontCompensationToMobileRoot
 } from '../utils/androidFontScale';
+import { ensureNotebookNavigatorSvgFilters } from '../utils/svgFilters';
 
 /**
  * Custom Obsidian view that hosts the React-based Notebook Navigator interface
@@ -110,8 +111,14 @@ export class NotebookNavigatorView extends ItemView {
                 applyAndroidFontCompensation(container);
             } else if (Platform.isIosApp) {
                 container.classList.add('notebook-navigator-ios');
+
+                if (requireApiVersion('1.11.0')) {
+                    container.classList.add('notebook-navigator-obsidian-1-11-plus-ios');
+                }
             }
         }
+
+        ensureNotebookNavigatorSvgFilters();
 
         this.root = createRoot(container);
         this.root.render(
@@ -260,7 +267,14 @@ export class NotebookNavigatorView extends ItemView {
      * Navigates directly to the provided folder path
      */
     navigateToFolder(folder: TFolder, options?: NavigateToFolderOptions) {
-        this.componentRef.current?.navigateToFolder(folder.path, options);
+        this.componentRef.current?.navigateToFolder(folder, options);
+    }
+
+    /**
+     * Navigates directly to the provided tag path
+     */
+    navigateToTag(tagPath: string) {
+        this.componentRef.current?.navigateToTag(tagPath);
     }
 
     /**
@@ -299,6 +313,13 @@ export class NotebookNavigatorView extends ItemView {
     }
 
     /**
+     * Creates a new note from a template in the currently selected folder
+     */
+    async createNoteFromTemplateInSelectedFolder(): Promise<void> {
+        await this.componentRef.current?.createNoteFromTemplateInSelectedFolder();
+    }
+
+    /**
      * Moves selected files to another folder using the folder suggest modal
      */
     async moveSelectedFiles(): Promise<void> {
@@ -324,6 +345,13 @@ export class NotebookNavigatorView extends ItemView {
      */
     async addShortcutForCurrentSelection(): Promise<void> {
         await this.componentRef.current?.addShortcutForCurrentSelection();
+    }
+
+    /**
+     * Opens the shortcut at the given 1-based position in the shortcuts list.
+     */
+    async openShortcutByNumber(shortcutNumber: number): Promise<boolean> {
+        return (await this.componentRef.current?.openShortcutByNumber(shortcutNumber)) ?? false;
     }
 
     /**

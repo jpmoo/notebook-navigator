@@ -219,6 +219,7 @@ export interface LocalStorageKeys {
     recentNotesKey: string;
     recentIconsKey: string;
     navigationSectionOrderKey: string;
+    pinnedShortcutsMaxHeightKey: string;
     uxPreferencesKey: string;
     fileCacheKey: string;
     databaseSchemaVersionKey: string;
@@ -254,6 +255,7 @@ export const STORAGE_KEYS: LocalStorageKeys = {
     recentNotesKey: 'notebook-navigator-recent-notes',
     recentIconsKey: 'notebook-navigator-recent-icons',
     navigationSectionOrderKey: 'notebook-navigator-section-order',
+    pinnedShortcutsMaxHeightKey: 'notebook-navigator-pinned-shortcuts-max-height',
     uxPreferencesKey: 'notebook-navigator-ux-preferences',
     fileCacheKey: 'notebook-navigator-file-cache',
     databaseSchemaVersionKey: 'notebook-navigator-db-schema-version',
@@ -279,7 +281,7 @@ export type VisibilityPreferences = Pick<UXPreferences, 'includeDescendantNotes'
 /** Orientation options for dual-pane layout */
 export type DualPaneOrientation = 'horizontal' | 'vertical';
 
-/** Background color mode for navigation/list panes on desktop and mobile */
+/** Background color mode for navigation/list panes on desktop */
 export type BackgroundMode = 'separate' | 'primary' | 'secondary';
 
 /**
@@ -290,7 +292,8 @@ export const NAVIGATION_PANE_DIMENSIONS = {
     defaultWidth: 300,
     minWidth: 150,
     defaultHeight: 260,
-    minHeight: 160
+    minHeight: 160,
+    pinnedShortcutsMinHeight: 80
 };
 
 /**

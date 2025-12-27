@@ -25,9 +25,10 @@ import type { FileVisibility } from '../utils/fileTypeUtils';
 import type { ShortcutEntry } from '../types/shortcuts';
 import { isFolderShortcut, isNoteShortcut, isSearchShortcut, isTagShortcut } from '../types/shortcuts';
 import { cloneShortcuts, getActiveVaultProfile } from '../utils/vaultProfiles';
-import { sanitizeRecord } from '../utils/recordUtils';
+import { isStringRecordValue, sanitizeRecord } from '../utils/recordUtils';
 import { areStringArraysEqual } from '../utils/arrayUtils';
 import type { FolderAppearance } from '../hooks/useListPaneAppearance';
+import { buildFileNameIconNeedles, type FileNameIconNeedle } from '../utils/fileIconUtils';
 
 // Separate contexts for state and update function
 type SettingsStateValue = NotebookNavigatorSettings & { dualPaneOrientation: DualPaneOrientation };
@@ -35,6 +36,7 @@ export interface ActiveProfileState {
     profile: VaultProfile;
     hiddenFolders: string[];
     hiddenFiles: string[];
+    hiddenFileNamePatterns: string[];
     hiddenTags: string[];
     fileVisibility: FileVisibility;
     navigationBanner: string | null;
@@ -43,6 +45,10 @@ export interface ActiveProfileState {
 const SettingsStateContext = createContext<SettingsStateValue | null>(null);
 const SettingsUpdateContext = createContext<((updater: (settings: NotebookNavigatorSettings) => void) => Promise<void>) | null>(null);
 const ActiveProfileContext = createContext<ActiveProfileState | null>(null);
+interface SettingsDerivedValue {
+    fileNameIconNeedles: readonly FileNameIconNeedle[];
+}
+const SettingsDerivedContext = createContext<SettingsDerivedValue | null>(null);
 
 // Compares shortcut lists to reuse the previous profile object when entries are unchanged.
 const areShortcutsEqual = (prev?: ShortcutEntry[] | null, next?: ShortcutEntry[] | null): boolean => {
@@ -130,6 +136,10 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
     // Use a version counter to force re-renders when settings change
     const [version, setVersion] = useState(0);
     const previousActiveProfileRef = useRef<ActiveProfileState | null>(null);
+    const previousInterfaceIconsRef = useRef<{
+        raw: NotebookNavigatorSettings['interfaceIcons'] | undefined;
+        sanitized: Record<string, string>;
+    } | null>(null);
 
     const updateSettings = useCallback(
         async (updater: (settings: NotebookNavigatorSettings) => void) => {
@@ -152,11 +162,21 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
         // Clone tag color records so settings updates change object identity and trigger consumers
         const tagColors = sanitizeRecord(plugin.settings.tagColors);
         const tagBackgroundColors = sanitizeRecord(plugin.settings.tagBackgroundColors);
+        const rawInterfaceIcons = plugin.settings.interfaceIcons;
+        const interfaceIconsCache = previousInterfaceIconsRef.current;
+        const interfaceIcons =
+            interfaceIconsCache && interfaceIconsCache.raw === rawInterfaceIcons
+                ? interfaceIconsCache.sanitized
+                : sanitizeRecord(rawInterfaceIcons, isStringRecordValue);
+        if (!interfaceIconsCache || interfaceIconsCache.raw !== rawInterfaceIcons) {
+            previousInterfaceIconsRef.current = { raw: rawInterfaceIcons, sanitized: interfaceIcons };
+        }
         const nextSettings: SettingsStateValue = {
             ...plugin.settings,
             dualPaneOrientation: plugin.getDualPaneOrientation(),
             tagColors,
             tagBackgroundColors,
+            interfaceIcons,
             folderAppearances: cloneAppearanceMap(plugin.settings.folderAppearances),
             tagAppearances: cloneAppearanceMap(plugin.settings.tagAppearances),
             pinnedNotes: clonePinnedNotes(plugin.settings.pinnedNotes)
@@ -166,15 +186,21 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
             // Create deep copies of profile arrays to prevent shared references
             nextSettings.vaultProfiles = plugin.settings.vaultProfiles.map(profile => ({
                 ...profile,
-                hiddenFolders: [...profile.hiddenFolders],
-                hiddenFiles: [...profile.hiddenFiles],
-                hiddenTags: [...profile.hiddenTags],
+                hiddenFolders: Array.isArray(profile.hiddenFolders) ? [...profile.hiddenFolders] : [],
+                hiddenFiles: Array.isArray(profile.hiddenFiles) ? [...profile.hiddenFiles] : [],
+                hiddenFileNamePatterns: Array.isArray(profile.hiddenFileNamePatterns) ? [...profile.hiddenFileNamePatterns] : [],
+                hiddenTags: Array.isArray(profile.hiddenTags) ? [...profile.hiddenTags] : [],
                 shortcuts: cloneShortcuts(profile.shortcuts)
             }));
         }
         void version; // Keep dependency so settings snapshot recreates when updates are published
         return nextSettings;
     }, [plugin, version]);
+
+    const derivedValue = React.useMemo<SettingsDerivedValue>(() => {
+        const fileNameIconNeedles = settingsValue.showFilenameMatchIcons ? buildFileNameIconNeedles(settingsValue.fileNameIconMap) : [];
+        return { fileNameIconNeedles };
+    }, [settingsValue.showFilenameMatchIcons, settingsValue.fileNameIconMap]);
 
     // Listen for settings updates from the plugin (e.g., from settings tab)
     useEffect(() => {
@@ -200,6 +226,10 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
 
         const hiddenFoldersEqual = areStringArraysEqual(previous?.profile.hiddenFolders ?? [], profile.hiddenFolders);
         const hiddenFilesEqual = areStringArraysEqual(previous?.profile.hiddenFiles ?? [], profile.hiddenFiles);
+        const hiddenFileNamePatternsEqual = areStringArraysEqual(
+            previous?.profile.hiddenFileNamePatterns ?? [],
+            profile.hiddenFileNamePatterns
+        );
         const hiddenTagsEqual = areStringArraysEqual(previous?.profile.hiddenTags ?? [], profile.hiddenTags);
         const fileVisibilityEqual = previous?.profile.fileVisibility === profile.fileVisibility;
         const navigationBanner = profile.navigationBanner ?? null;
@@ -211,6 +241,7 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
             isSameProfile &&
             hiddenFoldersEqual &&
             hiddenFilesEqual &&
+            hiddenFileNamePatternsEqual &&
             hiddenTagsEqual &&
             fileVisibilityEqual &&
             navigationBannerEqual &&
@@ -225,6 +256,7 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
             profile,
             hiddenFolders: profile.hiddenFolders,
             hiddenFiles: profile.hiddenFiles,
+            hiddenFileNamePatterns: profile.hiddenFileNamePatterns,
             hiddenTags: profile.hiddenTags,
             fileVisibility: profile.fileVisibility,
             navigationBanner
@@ -236,9 +268,11 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
 
     return (
         <SettingsStateContext.Provider value={settingsValue}>
-            <ActiveProfileContext.Provider value={activeProfileValue}>
-                <SettingsUpdateContext.Provider value={updateSettings}>{children}</SettingsUpdateContext.Provider>
-            </ActiveProfileContext.Provider>
+            <SettingsDerivedContext.Provider value={derivedValue}>
+                <ActiveProfileContext.Provider value={activeProfileValue}>
+                    <SettingsUpdateContext.Provider value={updateSettings}>{children}</SettingsUpdateContext.Provider>
+                </ActiveProfileContext.Provider>
+            </SettingsDerivedContext.Provider>
         </SettingsStateContext.Provider>
     );
 }
@@ -257,6 +291,14 @@ export function useSettingsUpdate() {
     const context = useContext(SettingsUpdateContext);
     if (!context) {
         throw new Error('useSettingsUpdate must be used within a SettingsProvider');
+    }
+    return context;
+}
+
+export function useSettingsDerived(): SettingsDerivedValue {
+    const context = useContext(SettingsDerivedContext);
+    if (!context) {
+        throw new Error('useSettingsDerived must be used within a SettingsProvider');
     }
     return context;
 }

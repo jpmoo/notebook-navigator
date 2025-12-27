@@ -32,7 +32,6 @@ import { useNavigatorEventHandlers } from '../hooks/useNavigatorEventHandlers';
 import { useResizablePane } from '../hooks/useResizablePane';
 import { useNavigationActions } from '../hooks/useNavigationActions';
 import { useMobileSwipeNavigation } from '../hooks/useSwipeGesture';
-import { useTagNavigation } from '../hooks/useTagNavigation';
 import { useFileCache } from '../context/StorageContext';
 import { strings } from '../i18n';
 import { runAsyncAction } from '../utils/async';
@@ -49,6 +48,7 @@ import { getNavigationPaneSizing } from '../utils/paneSizing';
 import { getAndroidFontScale } from '../utils/androidFontScale';
 import { getBackgroundClasses } from '../utils/paneLayout';
 import { confirmRemoveAllTagsFromFiles, openAddTagToFilesModal, removeTagFromFilesWithPrompt } from '../utils/tagModalHelpers';
+import { getTemplaterCreateNewNoteFromTemplate } from '../utils/templaterIntegration';
 import { useNavigatorScale } from '../hooks/useNavigatorScale';
 import { ListPane } from './ListPane';
 import type { ListPaneHandle } from './ListPane';
@@ -86,9 +86,11 @@ export interface NotebookNavigatorHandle {
     focusNavigationPane: () => void;
     deleteActiveFile: () => void;
     createNoteInSelectedFolder: () => Promise<void>;
+    createNoteFromTemplateInSelectedFolder: () => Promise<void>;
     moveSelectedFiles: () => Promise<void>;
     addShortcutForCurrentSelection: () => Promise<void>;
-    navigateToFolder: (folderPath: string, options?: NavigateToFolderOptions) => void;
+    navigateToFolder: (folder: TFolder, options?: NavigateToFolderOptions) => void;
+    navigateToTag: (tagPath: string) => void;
     navigateToFolderWithModal: () => void;
     navigateToTagWithModal: () => void;
     addTagToSelectedFiles: () => Promise<void>;
@@ -100,6 +102,7 @@ export interface NotebookNavigatorHandle {
     rebuildCache: () => Promise<void>;
     selectNextFile: () => Promise<boolean>;
     selectPreviousFile: () => Promise<boolean>;
+    openShortcutByNumber: (shortcutNumber: number) => Promise<boolean>;
 }
 
 /**
@@ -123,9 +126,8 @@ export const NotebookNavigatorComponent = React.memo(
         }, [uxPreferences]);
         // Get active orientation from settings
         const orientation: DualPaneOrientation = settings.dualPaneOrientation;
-        // Get background modes for desktop and mobile layouts
+        // Get background mode for desktop layout
         const desktopBackground: BackgroundMode = settings.desktopBackground ?? 'separate';
-        const mobileBackground: BackgroundMode = settings.mobileBackground ?? 'primary';
         const {
             scale: uiScale,
             style: scaleWrapperStyle,
@@ -406,16 +408,13 @@ export const NotebookNavigatorComponent = React.memo(
         );
 
         // Use navigator reveal logic
-        const { revealFileInActualFolder, revealFileInNearestFolder, navigateToFolder, revealTag } = useNavigatorReveal({
+        const { revealFileInActualFolder, revealFileInNearestFolder, navigateToFolder, navigateToTag, revealTag } = useNavigatorReveal({
             app,
             navigationPaneRef,
             listPaneRef,
             focusNavigationPane: focusNavigationPaneCallback,
             focusFilesPane: focusFilesPaneCallback
         });
-
-        // Use tag navigation logic
-        const { navigateToTag } = useTagNavigation();
 
         // Handles file reveal from shortcuts, using nearest folder navigation
         const handleShortcutNoteReveal = useCallback(
@@ -484,6 +483,13 @@ export const NotebookNavigatorComponent = React.memo(
                 // Select adjacent files via command palette actions
                 selectNextFile: async () => navigateToAdjacentFile('next'),
                 selectPreviousFile: async () => navigateToAdjacentFile('previous'),
+                openShortcutByNumber: (shortcutNumber: number) => {
+                    const navHandle = navigationPaneRef.current;
+                    if (!navHandle) {
+                        return Promise.resolve(false);
+                    }
+                    return navHandle.openShortcutByNumber(shortcutNumber);
+                },
                 // Delete focused file based on current pane (files or navigation)
                 deleteActiveFile: () => {
                     runAsyncAction(async () => {
@@ -532,6 +538,19 @@ export const NotebookNavigatorComponent = React.memo(
 
                     // Use the same logic as the context menu
                     await fileSystemOps.createNewFile(selectionState.selectedFolder);
+                },
+                createNoteFromTemplateInSelectedFolder: async () => {
+                    if (!selectionState.selectedFolder) {
+                        showNotice(strings.fileSystem.errors.noFolderSelected, { variant: 'warning' });
+                        return;
+                    }
+
+                    const createNewNoteFromTemplate = getTemplaterCreateNewNoteFromTemplate(app);
+                    if (!createNewNoteFromTemplate) {
+                        return;
+                    }
+
+                    await createNewNoteFromTemplate(selectionState.selectedFolder);
                 },
                 moveSelectedFiles: async () => {
                     // Get selected files
@@ -592,13 +611,14 @@ export const NotebookNavigatorComponent = React.memo(
                     showNotice(strings.common.noSelection, { variant: 'warning' });
                 },
                 navigateToFolder,
+                navigateToTag,
                 navigateToFolderWithModal: () => {
                     // Show the folder selection modal for navigation
                     const modal = new FolderSuggestModal(
                         app,
                         (targetFolder: TFolder) => {
                             // Navigate to the selected folder
-                            navigateToFolder(targetFolder.path, { preserveNavigationFocus: true });
+                            navigateToFolder(targetFolder, { preserveNavigationFocus: true });
                         },
                         strings.modals.folderSuggest.navigatePlaceholder,
                         strings.modals.folderSuggest.instructions.select,
@@ -728,8 +748,6 @@ export const NotebookNavigatorComponent = React.memo(
         // Add platform class and background mode classes
         if (isMobile) {
             containerClasses.push('nn-mobile');
-            // Apply mobile background mode (separate, primary, or secondary)
-            containerClasses.push(...getBackgroundClasses(mobileBackground));
         } else {
             containerClasses.push('nn-desktop');
             // Apply desktop background mode (separate, primary, or secondary)
@@ -858,6 +876,7 @@ export const NotebookNavigatorComponent = React.memo(
                     <NavigationPane
                         ref={navigationPaneRef}
                         style={navigationPaneStyle}
+                        uiScale={uiScale}
                         rootContainerRef={containerRef}
                         searchTagFilters={searchTagFilters}
                         onExecuteSearchShortcut={handleSearchShortcutExecution}

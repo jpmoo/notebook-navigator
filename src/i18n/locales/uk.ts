@@ -83,7 +83,11 @@ export const STRINGS_UK = {
         emptySearchQuery: 'Введіть пошуковий запит перед збереженням',
         emptySearchName: 'Введіть назву перед збереженням пошуку',
         add: 'Додати до ярликів',
+        addNotesCount: 'Додати {count} нотаток до ярликів',
+        addFilesCount: 'Додати {count} файлів до ярликів',
         remove: 'Вилучити з ярликів',
+        removeAll: 'Видалити всі ярлики',
+        removeAllConfirm: 'Видалити всі ярлики?',
         folderNotesPinned: 'Закріплено {count} нотаток папок'
     },
 
@@ -172,6 +176,7 @@ export const STRINGS_UK = {
         },
         folder: {
             newNote: 'Нова нотатка',
+            newNoteFromTemplate: 'Нова нотатка з шаблону',
             newFolder: 'Нова папка',
             newCanvas: 'Нове полотно',
             newBase: 'Нова база даних',
@@ -183,6 +188,7 @@ export const STRINGS_UK = {
             copyPath: 'Копіювати шлях файлової системи',
             copyRelativePath: 'Копіювати шлях сховища',
             createFolderNote: 'Створити нотатку папки',
+            detachFolderNote: "Від'єднати нотатку папки",
             deleteFolderNote: 'Видалити нотатку папки',
             changeIcon: 'Змінити іконку',
             changeColor: 'Змінити колір',
@@ -242,6 +248,36 @@ export const STRINGS_UK = {
             emojiInstructions: 'Введіть або вставте будь-який емодзі для використання як іконки',
             removeIcon: 'Вилучити іконку',
             allTabLabel: 'Всі'
+        },
+        fileIconRuleEditor: {
+            addRuleAria: 'Додати правило'
+        },
+        interfaceIcons: {
+            title: 'Іконки інтерфейсу',
+            items: {
+                'nav-shortcuts': 'Ярлики',
+                'nav-recent-files': 'Нещодавні файли',
+                'nav-expand-all': 'Розгорнути все',
+                'nav-collapse-all': 'Згорнути все',
+                'nav-tree-expand': 'Стрілка дерева: розгорнути',
+                'nav-tree-collapse': 'Стрілка дерева: згорнути',
+                'nav-hidden-items': 'Приховані елементи',
+                'nav-root-reorder': 'Змінити порядок кореневих папок',
+                'nav-new-folder': 'Нова папка',
+                'nav-show-single-pane': 'Показати одну панель',
+                'nav-show-dual-pane': 'Показати подвійну панель',
+                'nav-profile-chevron': 'Стрілка меню профілю',
+                'list-search': 'Пошук',
+                'list-descendants': 'Нотатки з підпапок',
+                'list-sort-ascending': 'Порядок сортування: за зростанням',
+                'list-sort-descending': 'Порядок сортування: за спаданням',
+                'list-appearance': 'Змінити вигляд',
+                'list-new-note': 'Нова нотатка',
+                'nav-folder-open': 'Папка відкрита',
+                'nav-folder-closed': 'Папка закрита',
+                'nav-tag': 'Тег',
+                'list-pinned': 'Закріплені елементи'
+            }
         },
         colorPicker: {
             currentColor: 'Поточний',
@@ -399,6 +435,7 @@ export const STRINGS_UK = {
             folderAlreadyExists: 'Папка "{name}" вже існує',
             folderNotesDisabled: 'Увімкніть нотатки папок у налаштуваннях для конвертації файлів',
             folderNoteAlreadyLinked: 'Цей файл вже працює як нотатка папки',
+            folderNoteNotFound: 'У вибраній папці немає нотатки папки',
             folderNoteUnsupportedExtension: 'Непідтримуване розширення файлу: {extension}',
             folderNoteMoveFailed: 'Не вдалося перемістити файл під час конвертації: {error}',
             folderNoteRenameConflict: 'Файл з назвою "{name}" вже існує в папці',
@@ -412,6 +449,11 @@ export const STRINGS_UK = {
             failedToCreateDrawing: 'Не вдалося створити малюнок',
             noFolderSelected: 'У Notebook Navigator не вибрано папку',
             noFileSelected: 'Файл не вибрано'
+        },
+        warnings: {
+            linkBreakingNameCharacters: "Це ім'я містить символи, які ламають посилання Obsidian: #, |, ^, %%, [[, ]].",
+            forbiddenNameCharactersAllPlatforms: 'Імена не можуть починатися з крапки або містити : чи /.',
+            forbiddenNameCharactersWindows: 'Зарезервовані в Windows символи не дозволені: <, >, ", \\, |, ?, *.'
         },
         notices: {
             hideFolder: 'Папку сховано: {name}',
@@ -505,14 +547,18 @@ export const STRINGS_UK = {
         selectVaultProfile3: 'Вибрати профіль сховища 3', // Command palette: Activates the third vault profile without opening the modal (English: Select vault profile 3)
         deleteFile: 'Видалити файли', // Command palette: Deletes the currently active file (English: Delete file)
         createNewNote: 'Створити нову нотатку', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
+        createNewNoteFromTemplate: 'Нова нотатка з шаблону', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Перемістити файли', // Command palette: Move selected files to another folder (English: Move files)
         selectNextFile: 'Вибрати наступний файл', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Вибрати попередній файл', // Command palette: Selects the previous file in the current view (English: Select previous file)
         convertToFolderNote: 'Конвертувати в нотатку папки', // Command palette: Converts the active file into a folder note with a new folder (English: Convert to folder note)
+        setAsFolderNote: 'Встановити як нотатку папки', // Command palette: Renames the active file to its folder note name (English: Set as folder note)
+        detachFolderNote: "Від'єднати нотатку папки", // Command palette: Renames the active folder note to a new name (English: Detach folder note)
         pinAllFolderNotes: 'Закріпити всі нотатки папок', // Command palette: Pins all folder notes to shortcuts (English: Pin all folder notes)
         navigateToFolder: 'Перейти до папки', // Command palette: Navigate to a folder using fuzzy search (English: Navigate to folder)
         navigateToTag: 'Перейти до тегу', // Command palette: Navigate to a tag using fuzzy search (English: Navigate to tag)
         addShortcut: 'Додати до ярликів', // Command palette: Adds the current file, folder, or tag to shortcuts (English: Add to shortcuts)
+        openShortcut: 'Відкрити ярлик {number}',
         toggleDescendants: 'Перемкнути нащадків', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
         toggleHidden: 'Перемкнути приховані папки, теги та нотатки', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'Перемкнути порядок сортування тегів', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
@@ -565,12 +611,11 @@ export const STRINGS_UK = {
                 filtering: 'Фільтрація',
                 behavior: 'Поведінка',
                 view: 'Вигляд',
+                icons: 'Іконки',
                 desktopAppearance: "Вигляд на комп'ютері",
-                mobileAppearance: 'Вигляд на мобільному',
                 formatting: 'Форматування'
             },
             navigation: {
-                behavior: 'Поведінка',
                 appearance: 'Вигляд',
                 shortcutsAndRecent: 'Ярлики та нещодавні елементи'
             },
@@ -581,7 +626,13 @@ export const STRINGS_UK = {
             },
             notes: {
                 frontmatter: 'Frontmatter',
-                display: 'Вигляд'
+                icon: 'Іконка',
+                title: 'Заголовок',
+                previewText: 'Текст попереднього перегляду',
+                featureImage: 'Зображення запису',
+                tags: 'Теги',
+                date: 'Дата',
+                parentFolder: 'Батьківська папка'
             }
         },
         items: {
@@ -680,7 +731,27 @@ export const STRINGS_UK = {
             },
             showFileIcons: {
                 name: 'Показувати іконки файлів',
-                desc: 'Відображати іконки файлів з вирівнюванням ліворуч. Вимкнення видаляє як іконки, так і відступ.'
+                desc: 'Відображати іконки файлів з вирівнюванням ліворуч. Вимкнення видаляє як іконки, так і відступ. Пріоритет: користувацькі > назва файлу > тип файлу > за замовчуванням.'
+            },
+            showFilenameMatchIcons: {
+                name: 'Іконки за назвою файлу',
+                desc: 'Призначити іконки файлам на основі тексту в їхніх назвах.'
+            },
+            fileNameIconMap: {
+                name: 'Зіставлення назв та іконок',
+                desc: 'Файли, що містять текст, отримують вказану іконку. Одне зіставлення на рядок: текст=іконка',
+                placeholder: '# текст=іконка\nзустріч=LiCalendar\nрахунок=PhReceipt',
+                editTooltip: 'Редагувати зіставлення'
+            },
+            showCategoryIcons: {
+                name: 'Іконки за типом файлу',
+                desc: 'Призначити іконки файлам на основі їхнього розширення.'
+            },
+            fileTypeIconMap: {
+                name: 'Зіставлення типів та іконок',
+                desc: 'Файли з розширенням отримують вказану іконку. Одне зіставлення на рядок: розширення=іконка',
+                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                editTooltip: 'Редагувати зіставлення'
             },
             optimizeNoteHeight: {
                 name: 'Оптимізувати висоту нотаток',
@@ -770,6 +841,18 @@ export const STRINGS_UK = {
                 name: 'Розгортати при виборі',
                 desc: 'Розгортати папки та теги при виборі. У режимі однієї панелі перший вибір розгортає, другий показує файли.'
             },
+            springLoadedFolders: {
+                name: "Розгортати під час перетягування (лише комп'ютер)",
+                desc: 'Розгортати папки й теги при наведенні під час перетягування.'
+            },
+            springLoadedFoldersInitialDelay: {
+                name: 'Затримка першого розгортання',
+                desc: 'Затримка перед розгортанням першої папки або тегу під час перетягування (секунди).'
+            },
+            springLoadedFoldersSubsequentDelay: {
+                name: 'Затримка наступних розгортань',
+                desc: 'Затримка перед розгортанням додаткових папок або тегів під час того ж перетягування (секунди).'
+            },
             navigationBanner: {
                 name: 'Банер навігації (профіль сховища)',
                 desc: 'Відображати зображення над панеллю навігації. Змінюється з вибраним профілем сховища.',
@@ -779,6 +862,15 @@ export const STRINGS_UK = {
             showShortcuts: {
                 name: 'Показувати ярлики',
                 desc: 'Відображати розділ ярликів у панелі навігації.'
+            },
+            shortcutBadgeDisplay: {
+                name: 'Значок ярлика',
+                desc: "Що відображати біля ярликів. Використовуйте команди 'Відкрити ярлик 1-9' для прямого відкриття ярликів.",
+                options: {
+                    index: 'Позиція (1-9)',
+                    count: 'Кількість елементів',
+                    none: 'Немає'
+                }
             },
             showRecentNotes: {
                 name: 'Показувати останні нотатки',
@@ -807,7 +899,7 @@ export const STRINGS_UK = {
                 notice: 'Позицію роздільника скинуто. Перезапустіть Obsidian або відкрийте Notebook Navigator знову для застосування.'
             },
             multiSelectModifier: {
-                name: 'Модифікатор множинного вибору',
+                name: "Модифікатор множинного вибору (лише комп'ютер)",
                 desc: 'Виберіть, яка клавіша-модифікатор перемикає множинний вибір. При виборі Option/Alt натискання Cmd/Ctrl відкриває нотатки в новій вкладці.',
                 options: {
                     cmdCtrl: 'Натискання Cmd/Ctrl',
@@ -840,9 +932,14 @@ export const STRINGS_UK = {
                 desc: 'Список властивостей frontmatter, розділених комами. Нотатки, що містять будь-яку з цих властивостей, будуть приховані (наприклад, чернетка, приватний, архів).',
                 placeholder: 'чернетка, приватний'
             },
+            excludedFileNamePatterns: {
+                name: 'Приховати файли (профіль сховища)',
+                desc: 'Список шаблонів імен файлів через кому для приховування. Підтримує символи підстановки * та шляхи / (наприклад, temp-*, *.png, /assets/*).',
+                placeholder: 'temp-*, *.png, /assets/*'
+            },
             vaultProfiles: {
                 name: 'Профіль сховища',
-                desc: 'Профілі зберігають видимість типів файлів, приховані папки, приховані теги, приховані нотатки, ярлики та банер навігації. Перемикайте профілі із заголовка панелі навігації.',
+                desc: 'Профілі зберігають видимість типів файлів, приховані файли, приховані папки, приховані теги, приховані нотатки, ярлики та банер навігації. Перемикайте профілі із заголовка панелі навігації.',
                 defaultName: 'За замовчуванням',
                 addButton: 'Додати профіль',
                 editProfilesButton: 'Редагувати профілі',
@@ -856,7 +953,7 @@ export const STRINGS_UK = {
                 addModalPlaceholder: 'Назва профілю',
                 deleteModalTitle: 'Видалити {name}',
                 deleteModalMessage:
-                    'Видалити {name}? Фільтри прихованих папок, тегів та нотаток, збережені в цьому профілі, будуть видалені.',
+                    'Видалити {name}? Фільтри прихованих файлів, папок, тегів та нотаток, збережені в цьому профілі, будуть видалені.',
                 moveUp: 'Перемістити вгору',
                 moveDown: 'Перемістити вниз',
                 errors: {
@@ -915,10 +1012,6 @@ export const STRINGS_UK = {
                 help: 'Поширені формати:\nh:mm a = 2:30 PM (12-годинний)\nHH:mm = 14:30 (24-годинний)\nh:mm:ss a = 2:30:45 PM\nHH:mm:ss = 14:30:45\n\nТокени:\nHH/H = 24-годинний\nhh/h = 12-годинний\nmm = хвилини\nss = секунди\na = AM/PM',
                 helpTooltip: 'Натисніть для довідки по форматах'
             },
-            preventInvalidCharacters: {
-                name: 'Запобігати недійсним символам',
-                desc: 'Блокувати #, |, ^, :, %%, [[, ]] при створенні або перейменуванні файлів і папок.'
-            },
             showFilePreview: {
                 name: 'Показувати попередній перегляд нотатки',
                 desc: 'Відображати текст попереднього перегляду під назвами нотаток.'
@@ -930,6 +1023,10 @@ export const STRINGS_UK = {
             skipCodeBlocksInPreview: {
                 name: 'Пропускати блоки коду в попередньому перегляді',
                 desc: 'Пропускати блоки коду при генерації тексту попереднього перегляду.'
+            },
+            stripHtmlInPreview: {
+                name: 'Видаляти HTML у попередньому перегляді',
+                desc: 'Видаляти HTML-теги з тексту попереднього перегляду. Може впливати на продуктивність у великих нотатках.'
             },
             previewProperties: {
                 name: 'Властивості попереднього перегляду',
@@ -992,6 +1089,11 @@ export const STRINGS_UK = {
             showSectionIcons: {
                 name: 'Показувати іконки для ярликів та останніх елементів',
                 desc: 'Відображати іконки для розділів навігації, таких як Ярлики та Останні файли.'
+            },
+            interfaceIcons: {
+                name: 'Іконки інтерфейсу',
+                desc: 'Редагувати іконки панелі інструментів, папок, тегів, закріплених, пошуку та сортування.',
+                buttonText: 'Редагувати іконки'
             },
             showIconsColorOnly: {
                 name: 'Застосовувати колір лише до іконок',
@@ -1175,9 +1277,9 @@ export const STRINGS_UK = {
                 noticeError: 'Перенесення не вдалося. Перевірте консоль для деталей.'
             },
             frontmatterNameField: {
-                name: 'Поле назви',
-                desc: 'Поле frontmatter для використання як відображуваної назви нотатки. Залиште порожнім для використання назви файлу.',
-                placeholder: 'заголовок'
+                name: 'Поля назви',
+                desc: 'Список полів frontmatter через кому. Використовується перше непорожнє значення. Повертається до назви файлу.',
+                placeholder: 'заголовок, назва'
             },
             frontmatterCreatedField: {
                 name: 'Поле часової мітки створення',

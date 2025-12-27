@@ -83,7 +83,11 @@ export const STRINGS_RU = {
         emptySearchQuery: 'Введите поисковый запрос перед сохранением',
         emptySearchName: 'Введите название перед сохранением поиска',
         add: 'Добавить в ярлыки',
+        addNotesCount: 'Добавить {count} заметок в ярлыки',
+        addFilesCount: 'Добавить {count} файлов в ярлыки',
         remove: 'Убрать из ярлыков',
+        removeAll: 'Удалить все ярлыки',
+        removeAllConfirm: 'Удалить все ярлыки?',
         folderNotesPinned: 'Закреплено заметок папок: {count}'
     },
 
@@ -172,6 +176,7 @@ export const STRINGS_RU = {
         },
         folder: {
             newNote: 'Новая заметка',
+            newNoteFromTemplate: 'Новая заметка из шаблона',
             newFolder: 'Новая папка',
             newCanvas: 'Новый холст',
             newBase: 'Новая база',
@@ -183,6 +188,7 @@ export const STRINGS_RU = {
             copyPath: 'Копировать путь в файловой системе',
             copyRelativePath: 'Копировать путь в хранилище',
             createFolderNote: 'Создать заметку папки',
+            detachFolderNote: 'Отвязать заметку папки',
             deleteFolderNote: 'Удалить заметку папки',
             changeIcon: 'Изменить иконку',
             changeColor: 'Изменить цвет',
@@ -242,6 +248,36 @@ export const STRINGS_RU = {
             emojiInstructions: 'Введите или вставьте любой эмодзи, чтобы использовать его как иконку',
             removeIcon: 'Удалить иконку',
             allTabLabel: 'Все'
+        },
+        fileIconRuleEditor: {
+            addRuleAria: 'Добавить правило'
+        },
+        interfaceIcons: {
+            title: 'Иконки интерфейса',
+            items: {
+                'nav-shortcuts': 'Ярлыки',
+                'nav-recent-files': 'Недавние файлы',
+                'nav-expand-all': 'Развернуть все',
+                'nav-collapse-all': 'Свернуть все',
+                'nav-tree-expand': 'Стрелка дерева: развернуть',
+                'nav-tree-collapse': 'Стрелка дерева: свернуть',
+                'nav-hidden-items': 'Скрытые элементы',
+                'nav-root-reorder': 'Изменить порядок корневых папок',
+                'nav-new-folder': 'Новая папка',
+                'nav-show-single-pane': 'Показать одну панель',
+                'nav-show-dual-pane': 'Показать двойную панель',
+                'nav-profile-chevron': 'Стрелка меню профиля',
+                'list-search': 'Поиск',
+                'list-descendants': 'Заметки из подпапок',
+                'list-sort-ascending': 'Порядок сортировки: по возрастанию',
+                'list-sort-descending': 'Порядок сортировки: по убыванию',
+                'list-appearance': 'Изменить вид',
+                'list-new-note': 'Новая заметка',
+                'nav-folder-open': 'Папка открыта',
+                'nav-folder-closed': 'Папка закрыта',
+                'nav-tag': 'Тег',
+                'list-pinned': 'Закреплённые элементы'
+            }
         },
         colorPicker: {
             currentColor: 'Текущий',
@@ -399,6 +435,7 @@ export const STRINGS_RU = {
             folderAlreadyExists: 'Папка "{name}" уже существует',
             folderNotesDisabled: 'Включите заметки папок в настройках для конвертации файлов',
             folderNoteAlreadyLinked: 'Этот файл уже является заметкой папки',
+            folderNoteNotFound: 'В выбранной папке нет заметки папки',
             folderNoteUnsupportedExtension: 'Неподдерживаемое расширение файла: {extension}',
             folderNoteMoveFailed: 'Не удалось переместить файл при конвертации: {error}',
             folderNoteRenameConflict: 'Файл с именем "{name}" уже существует в папке',
@@ -412,6 +449,11 @@ export const STRINGS_RU = {
             failedToCreateDrawing: 'Не удалось создать рисунок',
             noFolderSelected: 'В Notebook Navigator не выбрана папка',
             noFileSelected: 'Файл не выбран'
+        },
+        warnings: {
+            linkBreakingNameCharacters: 'Это имя содержит символы, которые ломают ссылки Obsidian: #, |, ^, %%, [[, ]].',
+            forbiddenNameCharactersAllPlatforms: 'Имена не могут начинаться с точки или содержать : или /.',
+            forbiddenNameCharactersWindows: 'Зарезервированные в Windows символы не разрешены: <, >, ", \\, |, ?, *.'
         },
         notices: {
             hideFolder: 'Папка скрыта: {name}',
@@ -505,14 +547,18 @@ export const STRINGS_RU = {
         selectVaultProfile3: 'Выбрать профиль хранилища 3', // Command palette: Activates the third vault profile without opening the modal (English: Select vault profile 3)
         deleteFile: 'Удалить файлы', // Command palette: Deletes the currently active file (English: Delete file)
         createNewNote: 'Создать новую заметку', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
+        createNewNoteFromTemplate: 'Новая заметка из шаблона', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Переместить файлы', // Command palette: Move selected files to another folder (English: Move files)
         selectNextFile: 'Выбрать следующий файл', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Выбрать предыдущий файл', // Command palette: Selects the previous file in the current view (English: Select previous file)
         convertToFolderNote: 'Конвертировать в заметку папки', // Command palette: Converts the active file into a folder note with a new folder (English: Convert to folder note)
+        setAsFolderNote: 'Назначить заметкой папки', // Command palette: Renames the active file to its folder note name (English: Set as folder note)
+        detachFolderNote: 'Отвязать заметку папки', // Command palette: Renames the active folder note to a new name (English: Detach folder note)
         pinAllFolderNotes: 'Закрепить все заметки папок', // Command palette: Pins all folder notes to shortcuts (English: Pin all folder notes)
         navigateToFolder: 'Перейти к папке', // Command palette: Navigate to a folder using fuzzy search (English: Navigate to folder)
         navigateToTag: 'Перейти к тегу', // Command palette: Navigate to a tag using fuzzy search (English: Navigate to tag)
         addShortcut: 'Добавить в ярлыки', // Command palette: Adds the current file, folder, or tag to shortcuts (English: Add to shortcuts)
+        openShortcut: 'Открыть ярлык {number}',
         toggleDescendants: 'Переключить потомков', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
         toggleHidden: 'Переключить скрытые папки, теги и заметки', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'Переключить сортировку тегов', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
@@ -565,12 +611,11 @@ export const STRINGS_RU = {
                 filtering: 'Фильтрация',
                 behavior: 'Поведение',
                 view: 'Внешний вид',
+                icons: 'Иконки',
                 desktopAppearance: 'Внешний вид на компьютере',
-                mobileAppearance: 'Внешний вид на мобильном',
                 formatting: 'Форматирование'
             },
             navigation: {
-                behavior: 'Поведение',
                 appearance: 'Внешний вид',
                 shortcutsAndRecent: 'Ярлыки и недавние элементы'
             },
@@ -581,7 +626,13 @@ export const STRINGS_RU = {
             },
             notes: {
                 frontmatter: 'Frontmatter',
-                display: 'Внешний вид'
+                icon: 'Иконка',
+                title: 'Заголовок',
+                previewText: 'Текст превью',
+                featureImage: 'Изображение записи',
+                tags: 'Теги',
+                date: 'Дата',
+                parentFolder: 'Родительская папка'
             }
         },
         items: {
@@ -681,7 +732,27 @@ export const STRINGS_RU = {
             },
             showFileIcons: {
                 name: 'Показывать иконки файлов',
-                desc: 'Отображать иконки файлов с выравниванием по левому краю. Отключение убирает и иконки, и отступы.'
+                desc: 'Отображать иконки файлов с выравниванием по левому краю. Отключение убирает и иконки, и отступы. Приоритет: пользовательские > имя файла > тип файла > по умолчанию.'
+            },
+            showFilenameMatchIcons: {
+                name: 'Иконки по имени файла',
+                desc: 'Назначить иконки файлам на основе текста в их именах.'
+            },
+            fileNameIconMap: {
+                name: 'Сопоставление имён и иконок',
+                desc: 'Файлы, содержащие текст, получают указанную иконку. Одно сопоставление на строку: текст=иконка',
+                placeholder: '# текст=иконка\nвстреча=LiCalendar\nсчёт=PhReceipt',
+                editTooltip: 'Редактировать сопоставления'
+            },
+            showCategoryIcons: {
+                name: 'Иконки по типу файла',
+                desc: 'Назначить иконки файлам на основе их расширения.'
+            },
+            fileTypeIconMap: {
+                name: 'Сопоставление типов и иконок',
+                desc: 'Файлы с расширением получают указанную иконку. Одно сопоставление на строку: расширение=иконка',
+                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                editTooltip: 'Редактировать сопоставления'
             },
             optimizeNoteHeight: {
                 name: 'Оптимизировать высоту заметок',
@@ -771,6 +842,18 @@ export const STRINGS_RU = {
                 name: 'Разворачивать при выборе',
                 desc: 'Разворачивать папки и теги при выборе. В однопанельном режиме первый выбор разворачивает, второй показывает файлы.'
             },
+            springLoadedFolders: {
+                name: 'Разворачивать при перетаскивании (только компьютер)',
+                desc: 'Разворачивать папки и теги при наведении во время перетаскивания.'
+            },
+            springLoadedFoldersInitialDelay: {
+                name: 'Задержка первого разворачивания',
+                desc: 'Задержка перед разворачиванием первой папки или тега во время перетаскивания (секунды).'
+            },
+            springLoadedFoldersSubsequentDelay: {
+                name: 'Задержка последующих разворачиваний',
+                desc: 'Задержка перед разворачиванием дополнительных папок или тегов во время того же перетаскивания (секунды).'
+            },
             navigationBanner: {
                 name: 'Баннер навигации (профиль хранилища)',
                 desc: 'Показывать изображение над панелью навигации. Меняется с выбранным профилем хранилища.',
@@ -780,6 +863,15 @@ export const STRINGS_RU = {
             showShortcuts: {
                 name: 'Показывать ярлыки',
                 desc: 'Отображать раздел ярлыков в панели навигации.'
+            },
+            shortcutBadgeDisplay: {
+                name: 'Значок ярлыка',
+                desc: "Что отображать рядом с ярлыками. Используйте команды 'Открыть ярлык 1-9' для прямого открытия ярлыков.",
+                options: {
+                    index: 'Позиция (1-9)',
+                    count: 'Количество элементов',
+                    none: 'Нет'
+                }
             },
             showRecentNotes: {
                 name: 'Показывать недавние заметки',
@@ -808,7 +900,7 @@ export const STRINGS_RU = {
                 notice: 'Положение разделителя сброшено. Перезапустите Obsidian или переоткройте Notebook Navigator для применения.'
             },
             multiSelectModifier: {
-                name: 'Модификатор множественного выбора',
+                name: 'Модификатор множественного выбора (только компьютер)',
                 desc: 'Выберите, какая клавиша-модификатор переключает множественный выбор. При выборе Option/Alt, клик с Cmd/Ctrl открывает заметки в новой вкладке.',
                 options: {
                     cmdCtrl: 'Клик с Cmd/Ctrl',
@@ -841,9 +933,14 @@ export const STRINGS_RU = {
                 desc: 'Список свойств frontmatter через запятую. Заметки, содержащие любое из этих свойств, будут скрыты (например, draft, private, archived).',
                 placeholder: 'draft, private'
             },
+            excludedFileNamePatterns: {
+                name: 'Скрыть файлы (профиль хранилища)',
+                desc: 'Список шаблонов имён файлов через запятую для скрытия. Поддерживает подстановочные знаки * и пути / (например, temp-*, *.png, /assets/*).',
+                placeholder: 'temp-*, *.png, /assets/*'
+            },
             vaultProfiles: {
                 name: 'Профиль хранилища',
-                desc: 'Профили хранят видимость типов файлов, скрытые папки, скрытые теги, скрытые заметки, ярлыки и баннер навигации. Переключайте профили из заголовка панели навигации.',
+                desc: 'Профили хранят видимость типов файлов, скрытые файлы, скрытые папки, скрытые теги, скрытые заметки, ярлыки и баннер навигации. Переключайте профили из заголовка панели навигации.',
                 defaultName: 'По умолчанию',
                 addButton: 'Добавить профиль',
                 editProfilesButton: 'Редактировать профили',
@@ -856,7 +953,8 @@ export const STRINGS_RU = {
                 editModalTitle: 'Редактировать профиль',
                 addModalPlaceholder: 'Название профиля',
                 deleteModalTitle: 'Удалить {name}',
-                deleteModalMessage: 'Удалить {name}? Фильтры скрытых папок, тегов и заметок, сохранённые в этом профиле, будут удалены.',
+                deleteModalMessage:
+                    'Удалить {name}? Фильтры скрытых файлов, папок, тегов и заметок, сохранённые в этом профиле, будут удалены.',
                 moveUp: 'Переместить вверх',
                 moveDown: 'Переместить вниз',
                 errors: {
@@ -915,10 +1013,6 @@ export const STRINGS_RU = {
                 help: 'Распространённые форматы:\nHH:mm = 14:30 (24-часовой)\nh:mm a = 2:30 PM (12-часовой)\nHH:mm:ss = 14:30:45\nh:mm:ss a = 2:30:45 PM\n\nТокены:\nHH/H = 24-часовой\nhh/h = 12-часовой\nmm = минуты\nss = секунды\na = AM/PM',
                 helpTooltip: 'Нажмите для справки по формату'
             },
-            preventInvalidCharacters: {
-                name: 'Предотвращать недопустимые символы',
-                desc: 'Блокировать #, |, ^, :, %%, [[, ]] при создании или переименовании файлов и папок.'
-            },
             showFilePreview: {
                 name: 'Показывать превью заметки',
                 desc: 'Отображать текст превью под названиями заметок.'
@@ -930,6 +1024,10 @@ export const STRINGS_RU = {
             skipCodeBlocksInPreview: {
                 name: 'Пропускать блоки кода в превью',
                 desc: 'Пропускать блоки кода при генерации текста превью.'
+            },
+            stripHtmlInPreview: {
+                name: 'Удалять HTML в превью',
+                desc: 'Удалять HTML-теги из текста предпросмотра. Может влиять на производительность при больших заметках.'
             },
             previewProperties: {
                 name: 'Свойства превью',
@@ -992,6 +1090,11 @@ export const STRINGS_RU = {
             showSectionIcons: {
                 name: 'Показывать иконки для ярлыков и недавних',
                 desc: 'Отображать иконки для разделов навигации, таких как Ярлыки и Недавние файлы.'
+            },
+            interfaceIcons: {
+                name: 'Иконки интерфейса',
+                desc: 'Редактировать иконки панели инструментов, папок, тегов, закреплённых, поиска и сортировки.',
+                buttonText: 'Редактировать иконки'
             },
             showIconsColorOnly: {
                 name: 'Применять цвет только к иконкам',
@@ -1175,9 +1278,9 @@ export const STRINGS_RU = {
                 noticeError: 'Миграция не удалась. Проверьте консоль для деталей.'
             },
             frontmatterNameField: {
-                name: 'Поле названия',
-                desc: 'Поле frontmatter для отображаемого названия заметки. Оставьте пустым для использования имени файла.',
-                placeholder: 'title'
+                name: 'Поля названия',
+                desc: 'Список полей frontmatter через запятую. Используется первое непустое значение. Возвращается к имени файла.',
+                placeholder: 'заголовок, название'
             },
             frontmatterCreatedField: {
                 name: 'Поле даты создания',

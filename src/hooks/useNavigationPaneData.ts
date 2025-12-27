@@ -31,7 +31,7 @@
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { TFile, TFolder, debounce } from 'obsidian';
-import type { MetadataCache } from 'obsidian';
+import type { App } from 'obsidian';
 import { useServices, useMetadataService } from '../context/ServicesContext';
 import { useRecentData } from '../context/RecentDataContext';
 import { useExpansionState } from '../context/ExpansionContext';
@@ -53,9 +53,9 @@ import { TIMEOUTS } from '../types/obsidian-extended';
 import { TagTreeNode } from '../types/storage';
 import type { CombinedNavigationItem } from '../types/virtualization';
 import type { NotebookNavigatorSettings, TagSortOrder } from '../settings/types';
-import { isFolderInExcludedFolder } from '../utils/fileFilters';
-import { shouldDisplayFile, FILE_VISIBILITY, isImageFile } from '../utils/fileTypeUtils';
-import { isExcalidrawFile } from '../utils/fileNameUtils';
+import { createHiddenFileNameMatcherForVisibility, isFolderInExcludedFolder } from '../utils/fileFilters';
+import { shouldDisplayFile, FILE_VISIBILITY } from '../utils/fileTypeUtils';
+import { resolveFileIconId, type FileNameIconNeedle } from '../utils/fileIconUtils';
 // Use Obsidian's trailing debounce for vault-driven updates
 import { getTotalNoteCount, excludeFromTagTree, findTagNode } from '../utils/tagTree';
 import { flattenFolderTree, flattenTagTree, compareTagOrderWithFallback } from '../utils/treeFlattener';
@@ -79,8 +79,9 @@ import {
     buildTagSeparatorKey,
     parseNavigationSeparatorKey
 } from '../utils/navigationSeparators';
+import { resolveUXIcon } from '../utils/uxIcons';
 import type { MetadataService } from '../services/MetadataService';
-import type { ActiveProfileState } from '../context/SettingsContext';
+import { useSettingsDerived, type ActiveProfileState } from '../context/SettingsContext';
 
 // Checks if a navigation item is a shortcut-related item (virtual folder, shortcut, or header)
 const isShortcutNavigationItem = (item: CombinedNavigationItem): boolean => {
@@ -125,12 +126,25 @@ const isRootSpacingCandidate = (item: CombinedNavigationItem, options: RootSpaci
 
 function decorateNavigationItems(
     source: CombinedNavigationItem[],
+    app: App,
+    settings: NotebookNavigatorSettings,
+    fileNameIconNeedles: readonly FileNameIconNeedle[],
+    getFileDisplayName: (file: TFile) => string,
     metadataService: MetadataService,
     parsedExcludedFolders: string[],
     _metadataVersion: string,
     showColorsInShortcutsOnly: boolean
 ): CombinedNavigationItem[] {
     void _metadataVersion;
+    const shouldResolveFileNameIcons = settings.showFilenameMatchIcons;
+    const fileIconSettings = {
+        showFilenameMatchIcons: settings.showFilenameMatchIcons,
+        fileNameIconMap: settings.fileNameIconMap,
+        showCategoryIcons: true,
+        fileTypeIconMap: settings.fileTypeIconMap
+    };
+    const fileIconFallbackMode = 'file';
+
     return source.map(item => {
         if (item.type === NavigationPaneItemType.FOLDER) {
             return {
@@ -178,20 +192,39 @@ function decorateNavigationItems(
             if (!note) {
                 return item;
             }
-            const customIcon = metadataService.getFileIcon(note.path);
             const color = metadataService.getFileColor(note.path);
+            const customIconId = metadataService.getFileIcon(note.path);
+            const isExternalFile = !shouldDisplayFile(note, FILE_VISIBILITY.SUPPORTED, app);
+            const resolvedIconId = resolveFileIconId(note, fileIconSettings, {
+                customIconId,
+                metadataCache: app.metadataCache,
+                isExternalFile,
+                fallbackMode: fileIconFallbackMode,
+                fileNameNeedles: fileNameIconNeedles,
+                fileNameForMatch: shouldResolveFileNameIcons ? getFileDisplayName(note) : undefined
+            });
             return {
                 ...item,
-                icon: customIcon ?? item.icon,
+                icon: resolvedIconId ?? undefined,
                 color
             };
         }
         if (item.type === NavigationPaneItemType.RECENT_NOTE) {
-            const customIcon = metadataService.getFileIcon(item.note.path);
-            const color = metadataService.getFileColor(item.note.path);
+            const note = item.note;
+            const customIconId = metadataService.getFileIcon(note.path);
+            const color = metadataService.getFileColor(note.path);
+            const isExternalFile = !shouldDisplayFile(note, FILE_VISIBILITY.SUPPORTED, app);
+            const resolvedIconId = resolveFileIconId(note, fileIconSettings, {
+                customIconId,
+                metadataCache: app.metadataCache,
+                isExternalFile,
+                fallbackMode: fileIconFallbackMode,
+                fileNameNeedles: fileNameIconNeedles,
+                fileNameForMatch: shouldResolveFileNameIcons ? getFileDisplayName(note) : undefined
+            });
             return {
                 ...item,
-                icon: customIcon ?? item.icon,
+                icon: resolvedIconId ?? undefined,
                 color
             };
         }
@@ -263,37 +296,6 @@ const insertRootSpacing = (items: CombinedNavigationItem[], spacing: number, opt
     }
 
     return result;
-};
-
-// Maps non-markdown document extensions to their icon names
-const DOCUMENT_EXTENSION_ICONS: Record<string, string> = {
-    canvas: 'lucide-layout-grid',
-    base: 'lucide-database'
-};
-
-// Returns the appropriate icon for a document based on its type and extension
-const getDocumentIcon = (file: TFile | null, metadataCache?: MetadataCache): string | undefined => {
-    if (!file) {
-        return undefined;
-    }
-
-    if (isImageFile(file)) {
-        return 'lucide-image';
-    }
-
-    if (isExcalidrawFile(file)) {
-        return 'lucide-image';
-    }
-
-    if (metadataCache) {
-        const frontmatter = metadataCache.getFileCache(file)?.frontmatter;
-        if (frontmatter?.['excalidraw-plugin']) {
-            return 'lucide-image';
-        }
-    }
-
-    const extension = file.extension.toLowerCase();
-    return DOCUMENT_EXTENSION_ICONS[extension] ?? undefined;
 };
 
 /** Comparator function type for sorting tag tree nodes */
@@ -420,18 +422,22 @@ export function useNavigationPaneData({
     sectionOrder
 }: UseNavigationPaneDataParams): UseNavigationPaneDataResult {
     const { app } = useServices();
+    const { fileNameIconNeedles } = useSettingsDerived();
     const { recentNotes } = useRecentData();
     const metadataService = useMetadataService();
     const expansionState = useExpansionState();
-    const { fileData } = useFileCache();
+    const { fileData, getFileDisplayName } = useFileCache();
     const { hydratedShortcuts, collections, activeCollectionId } = useShortcuts();
     const uxPreferences = useUXPreferences();
     const includeDescendantNotes = uxPreferences.includeDescendantNotes;
     const showHiddenItems = uxPreferences.showHiddenItems;
     // Resolves frontmatter exclusions, returns empty array when hidden items are shown
     const effectiveFrontmatterExclusions = getEffectiveFrontmatterExclusions(settings, showHiddenItems);
-    const { hiddenFolders, hiddenTags, fileVisibility, navigationBanner } = activeProfile;
+    const { hiddenFolders, hiddenFileNamePatterns, hiddenTags, fileVisibility, navigationBanner } = activeProfile;
     const navigationBannerPath = navigationBanner;
+    const folderCountFileNameMatcher = useMemo(() => {
+        return createHiddenFileNameMatcherForVisibility(hiddenFileNamePatterns, showHiddenItems);
+    }, [hiddenFileNamePatterns, showHiddenItems]);
 
     // Version counter that increments when vault files change
     const [fileChangeVersion, setFileChangeVersion] = useState(0);
@@ -556,7 +562,7 @@ export function useNavigationPaneData({
             id: string,
             name: string,
             icon?: string,
-            options?: { tagCollectionId?: string; showFileCount?: boolean; noteCount?: NoteCountInfo }
+            options?: { tagCollectionId?: string; showFileCount?: boolean; noteCount?: NoteCountInfo; hasChildren?: boolean }
         ) => {
             const folder: VirtualFolder = { id, name, icon };
             items.push({
@@ -566,6 +572,7 @@ export function useNavigationPaneData({
                 key: id,
                 isSelectable: Boolean(options?.tagCollectionId),
                 tagCollectionId: options?.tagCollectionId,
+                hasChildren: options?.hasChildren,
                 showFileCount: options?.showFileCount,
                 noteCount: options?.noteCount
             });
@@ -576,6 +583,7 @@ export function useNavigationPaneData({
                 const folderId = 'tags-root';
                 addVirtualFolder(folderId, strings.tagList.tags, 'lucide-tags', {
                     tagCollectionId: TAGGED_TAG_ID,
+                    hasChildren: shouldIncludeUntagged,
                     showFileCount: settings.showNoteCount,
                     noteCount: taggedCollectionCount
                 });
@@ -671,6 +679,7 @@ export function useNavigationPaneData({
                 const folderId = 'tags-root';
                 addVirtualFolder(folderId, strings.tagList.tags, 'lucide-tags', {
                     tagCollectionId: TAGGED_TAG_ID,
+                    hasChildren: tagsVirtualFolderHasChildren,
                     showFileCount: settings.showNoteCount,
                     noteCount: taggedCollectionCount
                 });
@@ -758,7 +767,8 @@ export function useNavigationPaneData({
                     id: SHORTCUTS_VIRTUAL_FOLDER_ID,
                     name: headerName,
                     icon: headerIcon
-                }
+                },
+                hasChildren: hydratedShortcuts.length > 0
             }
         ];
 
@@ -816,15 +826,12 @@ export function useNavigationPaneData({
                     });
                     return;
                 }
-                const isExternalFile = !shouldDisplayFile(note, FILE_VISIBILITY.SUPPORTED, app);
-                const icon = isExternalFile ? 'lucide-external-link' : getDocumentIcon(note, app.metadataCache);
                 items.push({
                     type: NavigationPaneItemType.SHORTCUT_NOTE,
                     key,
                     level: itemLevel,
                     shortcut,
-                    note,
-                    icon
+                    note
                 });
                 return;
             }
@@ -878,7 +885,15 @@ export function useNavigationPaneData({
         return items;
     }, [app, hydratedShortcuts, tagTree, hiddenFolders, showHiddenItems, settings.showShortcuts, shortcutsExpanded, collections, activeCollectionId]);
 
-    // Build list of recent notes items with proper hierarchy
+    // Build list of recent notes items with proper hierarchy.
+    //
+    // `recentNotes` is persisted as an array of paths, and the vault can change independently (files moved/deleted).
+    // The navigation UI uses `hasChildren` to decide whether to render an expander chevron on the recent section header.
+    //
+    // Design:
+    // - Collapsed: return only the header and compute `hasChildren` via a short scan over the configured limit, stopping at the
+    //   first path that resolves to a `TFile`. This keeps the chevron accurate without building child items.
+    // - Expanded: build the child item list, filtering out paths that do not resolve to a `TFile`.
     const recentNotesItems = useMemo(() => {
         if (!settings.showRecentNotes) {
             return [] as CombinedNavigationItem[];
@@ -887,13 +902,54 @@ export function useNavigationPaneData({
         const headerLevel = 0;
         const itemLevel = headerLevel + 1;
 
+        const limit = Math.max(1, settings.recentNotesCount ?? 1);
+        const recentPaths = recentNotes.slice(0, limit);
+
         // Use appropriate header based on file visibility setting
         const recentHeaderName =
             fileVisibility === FILE_VISIBILITY.DOCUMENTS
                 ? strings.navigationPane.recentNotesHeader
                 : strings.navigationPane.recentFilesHeader;
 
-        // Start with the recent notes header/virtual folder
+        // Collapsed: return only the header (no child items), with `hasChildren` reflecting whether expansion would render any notes.
+        if (!recentNotesExpanded) {
+            let hasChildren = false;
+            for (const path of recentPaths) {
+                const file = app.vault.getAbstractFileByPath(path);
+                if (file instanceof TFile) {
+                    hasChildren = true;
+                    break;
+                }
+            }
+            return [
+                {
+                    type: NavigationPaneItemType.VIRTUAL_FOLDER,
+                    key: RECENT_NOTES_VIRTUAL_FOLDER_ID,
+                    level: headerLevel,
+                    data: {
+                        id: RECENT_NOTES_VIRTUAL_FOLDER_ID,
+                        name: recentHeaderName,
+                        icon: resolveUXIcon(settings.interfaceIcons, 'nav-recent-files')
+                    },
+                    hasChildren
+                }
+            ];
+        }
+
+        // Expanded: build child items and keep `hasChildren` aligned with the filtered child list.
+        const childItems: CombinedNavigationItem[] = [];
+        recentPaths.forEach(path => {
+            const file = app.vault.getAbstractFileByPath(path);
+            if (file instanceof TFile) {
+                childItems.push({
+                    type: NavigationPaneItemType.RECENT_NOTE,
+                    key: `recent-${path}`,
+                    level: itemLevel,
+                    note: file
+                });
+            }
+        });
+
         const items: CombinedNavigationItem[] = [
             {
                 type: NavigationPaneItemType.VIRTUAL_FOLDER,
@@ -902,37 +958,28 @@ export function useNavigationPaneData({
                 data: {
                     id: RECENT_NOTES_VIRTUAL_FOLDER_ID,
                     name: recentHeaderName,
-                    icon: 'lucide-history'
-                }
+                    icon: resolveUXIcon(settings.interfaceIcons, 'nav-recent-files')
+                },
+                hasChildren: childItems.length > 0
             }
         ];
 
-        // Return only header if recent notes folder is collapsed
-        if (!recentNotesExpanded) {
+        if (childItems.length === 0) {
             return items;
         }
 
-        // Add recent note items up to the configured limit
-        const limit = Math.max(1, settings.recentNotesCount ?? 1);
-        const recentPaths = recentNotes.slice(0, limit);
-
-        recentPaths.forEach(path => {
-            const file = app.vault.getAbstractFileByPath(path);
-            if (file instanceof TFile) {
-                const isExternalFile = !shouldDisplayFile(file, FILE_VISIBILITY.SUPPORTED, app);
-                const icon = isExternalFile ? 'lucide-external-link' : getDocumentIcon(file, app.metadataCache);
-                items.push({
-                    type: NavigationPaneItemType.RECENT_NOTE,
-                    key: `recent-${path}`,
-                    level: itemLevel,
-                    note: file,
-                    icon
-                });
-            }
-        });
+        items.push(...childItems);
 
         return items;
-    }, [app, settings.showRecentNotes, recentNotes, settings.recentNotesCount, fileVisibility, recentNotesExpanded]);
+    }, [
+        app,
+        settings.recentNotesCount,
+        settings.showRecentNotes,
+        settings.interfaceIcons,
+        recentNotes,
+        fileVisibility,
+        recentNotesExpanded
+    ]);
 
     const shouldPinRecentNotes = pinShortcuts && settings.pinRecentNotesWithShortcuts && settings.showRecentNotes;
 
@@ -1229,14 +1276,26 @@ export function useNavigationPaneData({
         return result;
     }, [firstSectionId, items, parsedNavigationSeparators, sectionSpacerMap, showHiddenItems, pinShortcuts]);
 
+    const decorateItems = useCallback(
+        (sourceItems: CombinedNavigationItem[]) =>
+            decorateNavigationItems(
+                sourceItems,
+                app,
+                settings,
+                fileNameIconNeedles,
+                getFileDisplayName,
+                metadataService,
+                parsedExcludedFolders,
+                metadataVersion
+            ),
+        [app, settings, fileNameIconNeedles, getFileDisplayName, metadataService, parsedExcludedFolders, metadataVersion]
+    );
+
     /**
      * Add metadata (colors, icons) and excluded folders to items
      * This pre-computation avoids calling these functions during render
      */
-    const itemsWithMetadata = useMemo(
-        () => decorateNavigationItems(itemsWithSeparators, metadataService, parsedExcludedFolders, metadataVersion, settings.showColorsInShortcutsOnly),
-        [itemsWithSeparators, metadataService, metadataVersion, parsedExcludedFolders, settings.showColorsInShortcutsOnly]
-    );
+    const itemsWithMetadata = useMemo(() => decorateItems(itemsWithSeparators), [decorateItems, itemsWithSeparators]);
 
     const decoratedRecentNotes = useMemo(() => itemsWithMetadata.filter(isRecentNavigationItem), [itemsWithMetadata]);
 
@@ -1245,8 +1304,8 @@ export function useNavigationPaneData({
         if (!pinShortcuts) {
             return [] as CombinedNavigationItem[];
         }
-        return decorateNavigationItems(shortcutItems, metadataService, parsedExcludedFolders, metadataVersion, settings.showColorsInShortcutsOnly);
-    }, [metadataService, metadataVersion, parsedExcludedFolders, pinShortcuts, shortcutItems, settings.showColorsInShortcutsOnly]);
+        return decorateItems(shortcutItems);
+    }, [decorateItems, pinShortcuts, shortcutItems]);
 
     const pinnedRecentNotesItems = useMemo(() => {
         if (!shouldPinRecentNotes) {
@@ -1255,8 +1314,8 @@ export function useNavigationPaneData({
         if (decoratedRecentNotes.length > 0) {
             return decoratedRecentNotes;
         }
-        return decorateNavigationItems(recentNotesItems, metadataService, parsedExcludedFolders, metadataVersion, settings.showColorsInShortcutsOnly);
-    }, [decoratedRecentNotes, metadataService, metadataVersion, parsedExcludedFolders, recentNotesItems, shouldPinRecentNotes, settings.showColorsInShortcutsOnly]);
+        return decorateItems(recentNotesItems);
+    }, [decorateItems, decoratedRecentNotes, recentNotesItems, shouldPinRecentNotes]);
 
     /**
      * Filter items based on showHiddenItems setting
@@ -1479,6 +1538,7 @@ export function useNavigationPaneData({
             fileVisibility,
             excludedFiles: excludedProperties,
             excludedFolders: excludedFolderPatterns,
+            fileNameMatcher: folderCountFileNameMatcher,
             includeDescendants,
             showHiddenFolders,
             hideFolderNoteInList: settings.hideFolderNoteInList,
@@ -1502,7 +1562,9 @@ export function useNavigationPaneData({
         includeDescendantNotes,
         effectiveFrontmatterExclusions,
         hiddenFolders,
+        hiddenFileNamePatterns,
         showHiddenItems,
+        folderCountFileNameMatcher,
         fileVisibility,
         settings.enableFolderNotes,
         settings.folderNoteName,

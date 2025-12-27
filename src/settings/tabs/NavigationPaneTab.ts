@@ -16,89 +16,91 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { ButtonComponent, Setting, SliderComponent } from 'obsidian';
+import { ButtonComponent, DropdownComponent, Setting, SliderComponent } from 'obsidian';
 import { strings } from '../../i18n';
 import { NavigationBannerModal } from '../../modals/NavigationBannerModal';
 import { DEFAULT_SETTINGS } from '../defaultSettings';
-import type { ItemScope } from '../types';
+import type { ItemScope, ShortcutBadgeDisplayMode } from '../types';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { runAsyncAction } from '../../utils/async';
 import { getActiveVaultProfile } from '../../utils/vaultProfiles';
+import { createSettingGroupFactory } from '../settingGroups';
+import { createSubSettingsContainer, wireToggleSettingWithSubSettings } from '../subSettings';
 
 /** Renders the navigation pane settings tab */
 export function renderNavigationPaneTab(context: SettingsTabContext): void {
-    const { containerEl, plugin } = context;
+    const { containerEl, plugin, addToggleSetting } = context;
     const getActiveProfile = () => getActiveVaultProfile(plugin.settings);
 
-    new Setting(containerEl).setName(strings.settings.groups.navigation.behavior).setHeading();
+    const createGroup = createSettingGroupFactory(containerEl);
+    const behaviorGroup = createGroup(undefined);
 
-    new Setting(containerEl)
-        .setName(strings.settings.items.pinRecentNotesWithShortcuts.name)
-        .setDesc(strings.settings.items.pinRecentNotesWithShortcuts.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.pinRecentNotesWithShortcuts).onChange(async value => {
-                plugin.settings.pinRecentNotesWithShortcuts = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
+    behaviorGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.collapseBehavior.name)
+            .setDesc(strings.settings.items.collapseBehavior.desc)
+            .addDropdown(dropdown =>
+                dropdown
+                    .addOption('all', strings.settings.items.collapseBehavior.options.all)
+                    .addOption('folders-only', strings.settings.items.collapseBehavior.options.foldersOnly)
+                    .addOption('tags-only', strings.settings.items.collapseBehavior.options.tagsOnly)
+                    .setValue(plugin.settings.collapseBehavior)
+                    .onChange(async (value: ItemScope) => {
+                        plugin.settings.collapseBehavior = value;
+                        await plugin.saveSettingsAndUpdate();
+                    })
+            );
+    });
 
-    new Setting(containerEl)
-        .setName(strings.settings.items.collapseBehavior.name)
-        .setDesc(strings.settings.items.collapseBehavior.desc)
-        .addDropdown(dropdown =>
+    addToggleSetting(
+        behaviorGroup.addSetting,
+        strings.settings.items.smartCollapse.name,
+        strings.settings.items.smartCollapse.desc,
+        () => plugin.settings.smartCollapse,
+        value => {
+            plugin.settings.smartCollapse = value;
+        }
+    );
+
+    const shortcutsGroup = createGroup(strings.settings.groups.navigation.shortcutsAndRecent);
+
+    addToggleSetting(
+        shortcutsGroup.addSetting,
+        strings.settings.items.showSectionIcons.name,
+        strings.settings.items.showSectionIcons.desc,
+        () => plugin.settings.showSectionIcons,
+        value => {
+            plugin.settings.showSectionIcons = value;
+        }
+    );
+
+    const showShortcutsSetting = shortcutsGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.showShortcuts.name).setDesc(strings.settings.items.showShortcuts.desc);
+    });
+
+    const shortcutsSubSettings = wireToggleSettingWithSubSettings(
+        showShortcutsSetting,
+        () => plugin.settings.showShortcuts,
+        async value => {
+            plugin.settings.showShortcuts = value;
+            await plugin.saveSettingsAndUpdate();
+        }
+    );
+
+    new Setting(shortcutsSubSettings)
+        .setName(strings.settings.items.shortcutBadgeDisplay.name)
+        .setDesc(strings.settings.items.shortcutBadgeDisplay.desc)
+        .addDropdown((dropdown: DropdownComponent) =>
             dropdown
-                .addOption('all', strings.settings.items.collapseBehavior.options.all)
-                .addOption('folders-only', strings.settings.items.collapseBehavior.options.foldersOnly)
-                .addOption('tags-only', strings.settings.items.collapseBehavior.options.tagsOnly)
-                .setValue(plugin.settings.collapseBehavior)
-                .onChange(async (value: ItemScope) => {
-                    plugin.settings.collapseBehavior = value;
+                .addOption('index', strings.settings.items.shortcutBadgeDisplay.options.index)
+                .addOption('count', strings.settings.items.shortcutBadgeDisplay.options.count)
+                .addOption('none', strings.settings.items.shortcutBadgeDisplay.options.none)
+                .setValue(plugin.settings.shortcutBadgeDisplay)
+                .onChange(async (value: ShortcutBadgeDisplayMode) => {
+                    plugin.settings.shortcutBadgeDisplay = value;
                     await plugin.saveSettingsAndUpdate();
                 })
         );
-
-    new Setting(containerEl)
-        .setName(strings.settings.items.smartCollapse.name)
-        .setDesc(strings.settings.items.smartCollapse.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.smartCollapse).onChange(async value => {
-                plugin.settings.smartCollapse = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
-
-    new Setting(containerEl).setName(strings.settings.groups.navigation.shortcutsAndRecent).setHeading();
-
-    new Setting(containerEl)
-        .setName(strings.settings.items.showSectionIcons.name)
-        .setDesc(strings.settings.items.showSectionIcons.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.showSectionIcons).onChange(async value => {
-                plugin.settings.showSectionIcons = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
-
-    let shortcutsSubSettings: HTMLDivElement | null = null;
-
-    const updateShortcutsVisibility = (visible: boolean) => {
-        if (shortcutsSubSettings) {
-            shortcutsSubSettings.toggleClass('nn-setting-hidden', !visible);
-        }
-    };
-
-    new Setting(containerEl)
-        .setName(strings.settings.items.showShortcuts.name)
-        .setDesc(strings.settings.items.showShortcuts.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.showShortcuts).onChange(async value => {
-                plugin.settings.showShortcuts = value;
-                await plugin.saveSettingsAndUpdate();
-                updateShortcutsVisibility(value);
-            })
-        );
-
-    shortcutsSubSettings = containerEl.createDiv('nn-sub-settings');
 
     new Setting(shortcutsSubSettings)
         .setName(strings.settings.items.skipAutoScroll.name)
@@ -110,28 +112,28 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
             })
         );
 
-    updateShortcutsVisibility(plugin.settings.showShortcuts);
+    const showRecentNotesSetting = shortcutsGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.showRecentNotes.name).setDesc(strings.settings.items.showRecentNotes.desc);
+    });
 
-    let recentNotesSubSettings: HTMLDivElement | null = null;
-
-    const updateRecentNotesVisibility = (visible: boolean) => {
-        if (recentNotesSubSettings) {
-            recentNotesSubSettings.toggleClass('nn-setting-hidden', !visible);
+    const recentNotesSubSettings = wireToggleSettingWithSubSettings(
+        showRecentNotesSetting,
+        () => plugin.settings.showRecentNotes,
+        async value => {
+            plugin.settings.showRecentNotes = value;
+            await plugin.saveSettingsAndUpdate();
         }
-    };
+    );
 
-    new Setting(containerEl)
-        .setName(strings.settings.items.showRecentNotes.name)
-        .setDesc(strings.settings.items.showRecentNotes.desc)
+    new Setting(recentNotesSubSettings)
+        .setName(strings.settings.items.pinRecentNotesWithShortcuts.name)
+        .setDesc(strings.settings.items.pinRecentNotesWithShortcuts.desc)
         .addToggle(toggle =>
-            toggle.setValue(plugin.settings.showRecentNotes).onChange(async value => {
-                plugin.settings.showRecentNotes = value;
+            toggle.setValue(plugin.settings.pinRecentNotesWithShortcuts).onChange(async value => {
+                plugin.settings.pinRecentNotesWithShortcuts = value;
                 await plugin.saveSettingsAndUpdate();
-                updateRecentNotesVisibility(value);
             })
         );
-
-    recentNotesSubSettings = containerEl.createDiv('nn-sub-settings');
 
     new Setting(recentNotesSubSettings)
         .setName(strings.settings.items.recentNotesCount.name)
@@ -140,6 +142,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
             slider
                 .setLimits(1, 10, 1)
                 .setValue(plugin.settings.recentNotesCount)
+                .setInstant(false)
                 .setDynamicTooltip()
                 .onChange(async value => {
                     plugin.settings.recentNotesCount = value;
@@ -148,11 +151,11 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
                 })
         );
 
-    updateRecentNotesVisibility(plugin.settings.showRecentNotes);
+    const appearanceGroup = createGroup(strings.settings.groups.navigation.appearance);
 
-    new Setting(containerEl).setName(strings.settings.groups.navigation.appearance).setHeading();
-
-    const navigationBannerSetting = new Setting(containerEl).setName(strings.settings.items.navigationBanner.name);
+    const navigationBannerSetting = appearanceGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.navigationBanner.name);
+    });
     navigationBannerSetting.setDesc('');
 
     const navigationBannerDescEl = navigationBannerSetting.descEl;
@@ -206,26 +209,18 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
 
     renderNavigationBannerValue();
 
-    let noteCountSubSettingsEl: HTMLDivElement | null = null;
+    const showNoteCountSetting = appearanceGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.showNoteCount.name).setDesc(strings.settings.items.showNoteCount.desc);
+    });
 
-    const updateNoteCountSettingsVisibility = () => {
-        if (noteCountSubSettingsEl) {
-            noteCountSubSettingsEl.toggle(plugin.settings.showNoteCount);
+    const noteCountSubSettingsEl = wireToggleSettingWithSubSettings(
+        showNoteCountSetting,
+        () => plugin.settings.showNoteCount,
+        async value => {
+            plugin.settings.showNoteCount = value;
+            await plugin.saveSettingsAndUpdate();
         }
-    };
-
-    new Setting(containerEl)
-        .setName(strings.settings.items.showNoteCount.name)
-        .setDesc(strings.settings.items.showNoteCount.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.showNoteCount).onChange(async value => {
-                plugin.settings.showNoteCount = value;
-                await plugin.saveSettingsAndUpdate();
-                updateNoteCountSettingsVisibility();
-            })
-        );
-
-    noteCountSubSettingsEl = containerEl.createDiv('nn-sub-settings');
+    );
 
     new Setting(noteCountSubSettingsEl)
         .setName(strings.settings.items.separateNoteCounts.name)
@@ -237,69 +232,73 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
             })
         );
 
-    updateNoteCountSettingsVisibility();
-
     let indentationSlider: SliderComponent;
-    new Setting(containerEl)
-        .setName(strings.settings.items.navIndent.name)
-        .setDesc(strings.settings.items.navIndent.desc)
-        .addSlider(slider => {
-            indentationSlider = slider
-                .setLimits(10, 24, 1)
-                .setValue(plugin.settings.navIndent)
-                .setDynamicTooltip()
-                .onChange(async value => {
-                    plugin.settings.navIndent = value;
-                    await plugin.saveSettingsAndUpdate();
-                });
-            return slider;
-        })
-        .addExtraButton(button =>
-            button
-                .setIcon('lucide-rotate-ccw')
-                .setTooltip('Restore to default (16px)')
-                .onClick(() => {
-                    // Reset indentation to default without blocking the UI
-                    runAsyncAction(async () => {
-                        const defaultValue = DEFAULT_SETTINGS.navIndent;
-                        indentationSlider.setValue(defaultValue);
-                        plugin.settings.navIndent = defaultValue;
+    appearanceGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.navIndent.name)
+            .setDesc(strings.settings.items.navIndent.desc)
+            .addSlider(slider => {
+                indentationSlider = slider
+                    .setLimits(10, 24, 1)
+                    .setValue(plugin.settings.navIndent)
+                    .setInstant(false)
+                    .setDynamicTooltip()
+                    .onChange(async value => {
+                        plugin.settings.navIndent = value;
                         await plugin.saveSettingsAndUpdate();
                     });
-                })
-        );
+                return slider;
+            })
+            .addExtraButton(button =>
+                button
+                    .setIcon('lucide-rotate-ccw')
+                    .setTooltip('Restore to default (16px)')
+                    .onClick(() => {
+                        // Reset indentation to default without blocking the UI
+                        runAsyncAction(async () => {
+                            const defaultValue = DEFAULT_SETTINGS.navIndent;
+                            indentationSlider.setValue(defaultValue);
+                            plugin.settings.navIndent = defaultValue;
+                            await plugin.saveSettingsAndUpdate();
+                        });
+                    })
+            );
+    });
 
     let lineHeightSlider: SliderComponent;
-    new Setting(containerEl)
-        .setName(strings.settings.items.navItemHeight.name)
-        .setDesc(strings.settings.items.navItemHeight.desc)
-        .addSlider(slider => {
-            lineHeightSlider = slider
-                .setLimits(20, 28, 1)
-                .setValue(plugin.settings.navItemHeight)
-                .setDynamicTooltip()
-                .onChange(async value => {
-                    plugin.settings.navItemHeight = value;
-                    await plugin.saveSettingsAndUpdate();
-                });
-            return slider;
-        })
-        .addExtraButton(button =>
-            button
-                .setIcon('lucide-rotate-ccw')
-                .setTooltip('Restore to default (28px)')
-                .onClick(() => {
-                    // Reset line height to default without blocking the UI
-                    runAsyncAction(async () => {
-                        const defaultValue = DEFAULT_SETTINGS.navItemHeight;
-                        lineHeightSlider.setValue(defaultValue);
-                        plugin.settings.navItemHeight = defaultValue;
+    const navItemHeightSetting = appearanceGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.navItemHeight.name)
+            .setDesc(strings.settings.items.navItemHeight.desc)
+            .addSlider(slider => {
+                lineHeightSlider = slider
+                    .setLimits(20, 28, 1)
+                    .setValue(plugin.settings.navItemHeight)
+                    .setInstant(false)
+                    .setDynamicTooltip()
+                    .onChange(async value => {
+                        plugin.settings.navItemHeight = value;
                         await plugin.saveSettingsAndUpdate();
                     });
-                })
-        );
+                return slider;
+            })
+            .addExtraButton(button =>
+                button
+                    .setIcon('lucide-rotate-ccw')
+                    .setTooltip('Restore to default (28px)')
+                    .onClick(() => {
+                        // Reset line height to default without blocking the UI
+                        runAsyncAction(async () => {
+                            const defaultValue = DEFAULT_SETTINGS.navItemHeight;
+                            lineHeightSlider.setValue(defaultValue);
+                            plugin.settings.navItemHeight = defaultValue;
+                            await plugin.saveSettingsAndUpdate();
+                        });
+                    })
+            );
+    });
 
-    const navItemHeightSettingsEl = containerEl.createDiv('nn-sub-settings');
+    const navItemHeightSettingsEl = createSubSettingsContainer(navItemHeightSetting);
 
     new Setting(navItemHeightSettingsEl)
         .setName(strings.settings.items.navItemHeightScaleText.name)
@@ -312,32 +311,35 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
         );
 
     let rootSpacingSlider: SliderComponent;
-    new Setting(containerEl)
-        .setName(strings.settings.items.navRootSpacing.name)
-        .setDesc(strings.settings.items.navRootSpacing.desc)
-        .addSlider(slider => {
-            rootSpacingSlider = slider
-                .setLimits(0, 6, 1)
-                .setValue(plugin.settings.rootLevelSpacing)
-                .setDynamicTooltip()
-                .onChange(async value => {
-                    plugin.settings.rootLevelSpacing = value;
-                    await plugin.saveSettingsAndUpdate();
-                });
-            return slider;
-        })
-        .addExtraButton(button =>
-            button
-                .setIcon('lucide-rotate-ccw')
-                .setTooltip('Restore to default (0px)')
-                .onClick(() => {
-                    // Reset root spacing to default without blocking the UI
-                    runAsyncAction(async () => {
-                        const defaultValue = DEFAULT_SETTINGS.rootLevelSpacing;
-                        rootSpacingSlider.setValue(defaultValue);
-                        plugin.settings.rootLevelSpacing = defaultValue;
+    appearanceGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.navRootSpacing.name)
+            .setDesc(strings.settings.items.navRootSpacing.desc)
+            .addSlider(slider => {
+                rootSpacingSlider = slider
+                    .setLimits(0, 6, 1)
+                    .setValue(plugin.settings.rootLevelSpacing)
+                    .setInstant(false)
+                    .setDynamicTooltip()
+                    .onChange(async value => {
+                        plugin.settings.rootLevelSpacing = value;
                         await plugin.saveSettingsAndUpdate();
                     });
-                })
-        );
+                return slider;
+            })
+            .addExtraButton(button =>
+                button
+                    .setIcon('lucide-rotate-ccw')
+                    .setTooltip('Restore to default (0px)')
+                    .onClick(() => {
+                        // Reset root spacing to default without blocking the UI
+                        runAsyncAction(async () => {
+                            const defaultValue = DEFAULT_SETTINGS.rootLevelSpacing;
+                            rootSpacingSlider.setValue(defaultValue);
+                            plugin.settings.rootLevelSpacing = defaultValue;
+                            await plugin.saveSettingsAndUpdate();
+                        });
+                    })
+            );
+    });
 }

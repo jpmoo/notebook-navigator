@@ -83,7 +83,11 @@ export const STRINGS_ZH_TW = {
         emptySearchQuery: '儲存前請輸入搜尋查詢',
         emptySearchName: '儲存搜尋前請輸入名稱',
         add: '新增至捷徑',
+        addNotesCount: '新增 {count} 個筆記至捷徑',
+        addFilesCount: '新增 {count} 個檔案至捷徑',
         remove: '從捷徑移除',
+        removeAll: '移除所有捷徑',
+        removeAllConfirm: '移除所有捷徑？',
         folderNotesPinned: '已釘選 {count} 個資料夾筆記'
     },
 
@@ -172,6 +176,7 @@ export const STRINGS_ZH_TW = {
         },
         folder: {
             newNote: '新筆記',
+            newNoteFromTemplate: '從範本建立新筆記',
             newFolder: '新資料夾',
             newCanvas: '新畫布',
             newBase: '新 Base',
@@ -183,6 +188,7 @@ export const STRINGS_ZH_TW = {
             copyPath: '複製檔案系統路徑',
             copyRelativePath: '複製保險庫路徑',
             createFolderNote: '建立資料夾筆記',
+            detachFolderNote: '解除資料夾筆記',
             deleteFolderNote: '刪除資料夾筆記',
             changeIcon: '變更圖示',
             changeColor: '變更顏色',
@@ -242,6 +248,36 @@ export const STRINGS_ZH_TW = {
             emojiInstructions: '輸入或貼上任何表情符號以作為圖示',
             removeIcon: '移除圖示',
             allTabLabel: '全部'
+        },
+        fileIconRuleEditor: {
+            addRuleAria: '新增規則'
+        },
+        interfaceIcons: {
+            title: '介面圖示',
+            items: {
+                'nav-shortcuts': '捷徑',
+                'nav-recent-files': '最近檔案',
+                'nav-expand-all': '全部展開',
+                'nav-collapse-all': '全部摺疊',
+                'nav-tree-expand': '樹狀箭頭: 展開',
+                'nav-tree-collapse': '樹狀箭頭: 摺疊',
+                'nav-hidden-items': '隱藏項目',
+                'nav-root-reorder': '重新排列根資料夾',
+                'nav-new-folder': '新建資料夾',
+                'nav-show-single-pane': '顯示單一窗格',
+                'nav-show-dual-pane': '顯示雙窗格',
+                'nav-profile-chevron': '設定檔選單箭頭',
+                'list-search': '搜尋',
+                'list-descendants': '子資料夾中的筆記',
+                'list-sort-ascending': '排序: 升冪',
+                'list-sort-descending': '排序: 降冪',
+                'list-appearance': '變更外觀',
+                'list-new-note': '新建筆記',
+                'nav-folder-open': '資料夾開啟',
+                'nav-folder-closed': '資料夾關閉',
+                'nav-tag': '標籤',
+                'list-pinned': '釘選項目'
+            }
         },
         colorPicker: {
             currentColor: '目前',
@@ -399,6 +435,7 @@ export const STRINGS_ZH_TW = {
             folderAlreadyExists: '資料夾「{name}」已存在',
             folderNotesDisabled: '請在設定中啟用資料夾筆記以轉換檔案',
             folderNoteAlreadyLinked: '此檔案已作為資料夾筆記',
+            folderNoteNotFound: '所選資料夾中沒有資料夾筆記',
             folderNoteUnsupportedExtension: '不支援的檔案副檔名：{extension}',
             folderNoteMoveFailed: '轉換過程中移動檔案失敗：{error}',
             folderNoteRenameConflict: '資料夾中已存在名為「{name}」的檔案',
@@ -412,6 +449,11 @@ export const STRINGS_ZH_TW = {
             failedToCreateDrawing: '建立繪圖失敗',
             noFolderSelected: 'Notebook Navigator 中未選取資料夾',
             noFileSelected: '未選取檔案'
+        },
+        warnings: {
+            linkBreakingNameCharacters: '此名稱包含會破壞 Obsidian 連結的字元：#, |, ^, %%, [[, ]].',
+            forbiddenNameCharactersAllPlatforms: '名稱不能以 . 開頭，也不能包含 : 或 /。',
+            forbiddenNameCharactersWindows: 'Windows 保留字元不允許使用：<, >, ", \\, |, ?, *。'
         },
         notices: {
             hideFolder: '已隱藏資料夾：{name}',
@@ -505,14 +547,18 @@ export const STRINGS_ZH_TW = {
         selectVaultProfile3: '切換到倉庫設定檔 3', // 指令面板：不開對話框直接啟用第三個倉庫設定檔 (英文: Select vault profile 3)
         deleteFile: '刪除檔案', // 指令面板：刪除目前活動的檔案 (英文: Delete file)
         createNewNote: '建立新筆記', // 指令面板：在目前選取的資料夾中建立新筆記 (英文: Create new note)
+        createNewNoteFromTemplate: '從範本建立新筆記', // 指令面板：在目前選取的資料夾中從範本建立新筆記 (英文: Create new note from template)
         moveFiles: '移動檔案', // 指令面板：將選取的檔案移動至另一個資料夾 (英文: Move files)
         selectNextFile: '選擇下一個檔案', // 指令面板：選取目前檢視中的下一個檔案 (英文: Select next file)
         selectPreviousFile: '選擇上一個檔案', // 指令面板：選取目前檢視中的上一個檔案 (英文: Select previous file)
         convertToFolderNote: '轉換為資料夾筆記', // 指令面板：將活動檔案轉換為帶有新資料夾的資料夾筆記 (英文: Convert to folder note)
+        setAsFolderNote: '設為資料夾筆記', // 指令面板：將活動檔案重新命名為資料夾筆記名稱 (英文: Set as folder note)
+        detachFolderNote: '解除資料夾筆記', // 指令面板：將活動資料夾筆記重新命名為新名稱 (英文: Detach folder note)
         pinAllFolderNotes: '固定所有資料夾筆記', // 指令面板：將所有資料夾筆記釘選到捷徑 (英文: Pin all folder notes)
         navigateToFolder: '導覽至資料夾', // 指令面板：使用模糊搜尋導覽至資料夾 (英文: Navigate to folder)
         navigateToTag: '導覽至標籤', // 指令面板：使用模糊搜尋導覽至標籤 (英文: Navigate to tag)
         addShortcut: '新增至捷徑', // 指令面板：將目前的檔案、資料夾或標籤加入捷徑 (英文: Add to shortcuts)
+        openShortcut: '開啟捷徑 {number}',
         toggleDescendants: '切換後代項目', // 指令面板：切換顯示後代中的筆記 (英文: Toggle descendants)
         toggleHidden: '切換隱藏的資料夾、標籤和筆記', // 指令面板：切換顯示隱藏項目 (英文: Toggle hidden items)
         toggleTagSort: '切換標籤排序', // 指令面板：在字母和頻率標籤排序之間切換 (英文: Toggle tag sort order)
@@ -565,12 +611,11 @@ export const STRINGS_ZH_TW = {
                 filtering: '篩選',
                 behavior: '行為',
                 view: '外觀',
+                icons: '圖示',
                 desktopAppearance: '桌面外觀',
-                mobileAppearance: '行動裝置外觀',
                 formatting: '格式'
             },
             navigation: {
-                behavior: '行為',
                 appearance: '外觀',
                 shortcutsAndRecent: '捷徑和最近項目'
             },
@@ -581,7 +626,13 @@ export const STRINGS_ZH_TW = {
             },
             notes: {
                 frontmatter: '前置元資料',
-                display: '外觀'
+                icon: '圖示',
+                title: '標題',
+                previewText: '預覽文字',
+                featureImage: '精選圖片',
+                tags: '標籤',
+                date: '日期',
+                parentFolder: '父資料夾'
             }
         },
         items: {
@@ -679,7 +730,27 @@ export const STRINGS_ZH_TW = {
             },
             showFileIcons: {
                 name: '顯示檔案圖示',
-                desc: '顯示檔案圖示並保留靠左對齊間距。停用後將移除圖示和縮排。'
+                desc: '顯示檔案圖示並保留靠左對齊間距。停用後將移除圖示和縮排。優先順序：自訂 > 檔案名稱 > 檔案類型 > 預設。'
+            },
+            showFilenameMatchIcons: {
+                name: '依檔案名稱設定圖示',
+                desc: '根據檔案名稱中的文字指派圖示。'
+            },
+            fileNameIconMap: {
+                name: '檔案名稱圖示對應',
+                desc: '包含指定文字的檔案將獲得指定圖示。每行一個對應：文字=圖示',
+                placeholder: '# 文字=圖示\n會議=LiCalendar\n發票=PhReceipt',
+                editTooltip: '編輯對應'
+            },
+            showCategoryIcons: {
+                name: '依檔案類型設定圖示',
+                desc: '根據檔案副檔名指派圖示。'
+            },
+            fileTypeIconMap: {
+                name: '檔案類型圖示對應',
+                desc: '具有指定副檔名的檔案將獲得指定圖示。每行一個對應：副檔名=圖示',
+                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                editTooltip: '編輯對應'
             },
             optimizeNoteHeight: {
                 name: '最佳化筆記高度',
@@ -769,6 +840,18 @@ export const STRINGS_ZH_TW = {
                 name: '選取時展開',
                 desc: '選取時展開資料夾和標籤。在單一窗格模式下，首次選取展開，再次選取顯示檔案。'
             },
+            springLoadedFolders: {
+                name: '拖曳時展開 (僅限桌面版)',
+                desc: '拖曳操作中懸停時展開資料夾和標籤。'
+            },
+            springLoadedFoldersInitialDelay: {
+                name: '首次展開延遲',
+                desc: '拖曳時首次展開資料夾或標籤前的延遲（秒）。'
+            },
+            springLoadedFoldersSubsequentDelay: {
+                name: '後續展開延遲',
+                desc: '同一次拖曳中展開更多資料夾或標籤前的延遲（秒）。'
+            },
             navigationBanner: {
                 name: '導覽橫幅（倉庫設定檔）',
                 desc: '在導覽窗格上方顯示圖片。隨所選倉庫設定檔而變化。',
@@ -778,6 +861,15 @@ export const STRINGS_ZH_TW = {
             showShortcuts: {
                 name: '顯示捷徑',
                 desc: '在導覽窗格中顯示捷徑區段。'
+            },
+            shortcutBadgeDisplay: {
+                name: '捷徑徽章',
+                desc: '在捷徑旁邊顯示的內容。使用「開啟捷徑1-9」命令可直接開啟捷徑。',
+                options: {
+                    index: '位置 (1-9)',
+                    count: '項目計數',
+                    none: '無'
+                }
             },
             showRecentNotes: {
                 name: '顯示最近筆記',
@@ -806,7 +898,7 @@ export const STRINGS_ZH_TW = {
                 notice: '分隔符位置已重置。重新啟動 Obsidian 或重新開啟 Notebook Navigator 以套用。'
             },
             multiSelectModifier: {
-                name: '多重選取修飾鍵',
+                name: '多重選取修飾鍵 (僅限桌面版)',
                 desc: '選擇哪個修飾鍵切換多重選取。選擇 Option/Alt 時，Cmd/Ctrl 點擊會在一個新分頁中開啟筆記。',
                 options: {
                     cmdCtrl: 'Cmd/Ctrl 點擊',
@@ -839,9 +931,14 @@ export const STRINGS_ZH_TW = {
                 desc: '以逗號分隔的 frontmatter 屬性清單。包含任何這些屬性的筆記將被隱藏 (例如 draft, private, archived)。',
                 placeholder: 'draft, private'
             },
+            excludedFileNamePatterns: {
+                name: '隱藏檔案 (儲存庫配置)',
+                desc: '以逗號分隔的檔案名稱模式清單，用於隱藏檔案。支援 * 萬用字元和 / 路徑（例如：temp-*、*.png、/assets/*）。',
+                placeholder: 'temp-*, *.png, /assets/*'
+            },
             vaultProfiles: {
                 name: '倉庫設定檔',
-                desc: '設定檔儲存檔案類型可見性、隱藏資料夾、隱藏標籤、隱藏筆記、捷徑和導覽橫幅。從導覽窗格標題切換設定檔。',
+                desc: '設定檔儲存檔案類型可見性、隱藏檔案、隱藏資料夾、隱藏標籤、隱藏筆記、捷徑和導覽橫幅。從導覽窗格標題切換設定檔。',
                 defaultName: '預設',
                 addButton: '新增設定檔',
                 editProfilesButton: '編輯設定檔',
@@ -854,7 +951,7 @@ export const STRINGS_ZH_TW = {
                 editModalTitle: '編輯設定檔',
                 addModalPlaceholder: '設定檔名稱',
                 deleteModalTitle: '刪除 {name}',
-                deleteModalMessage: '刪除 {name}？儲存在此設定檔中的隱藏資料夾、標籤和筆記篩選器將被刪除。',
+                deleteModalMessage: '刪除 {name}？儲存在此設定檔中的隱藏檔案、資料夾、標籤和筆記篩選器將被刪除。',
                 moveUp: '上移',
                 moveDown: '下移',
                 errors: {
@@ -913,10 +1010,6 @@ export const STRINGS_ZH_TW = {
                 help: '常用格式：\nh:mm a = 2:30 PM (12 小時制)\nHH:mm = 14:30 (24 小時制)\nh:mm:ss a = 2:30:45 PM\nHH:mm:ss = 14:30:45\n\n符號：\nHH/H = 24 小時\nhh/h = 12 小時\nmm = 分鐘\nss = 秒\na = AM/PM',
                 helpTooltip: '點擊查看格式參考'
             },
-            preventInvalidCharacters: {
-                name: '阻止無效字元',
-                desc: '建立或重新命名檔案和資料夾時阻止 #、|、^、:、%%、[[、]]。'
-            },
             showFilePreview: {
                 name: '顯示筆記預覽',
                 desc: '在筆記名稱下方顯示預覽文字。'
@@ -928,6 +1021,10 @@ export const STRINGS_ZH_TW = {
             skipCodeBlocksInPreview: {
                 name: '在預覽中跳過程式碼區塊',
                 desc: '產生預覽文字時跳過程式碼區塊。'
+            },
+            stripHtmlInPreview: {
+                name: '移除預覽中的 HTML',
+                desc: '從預覽文字中移除 HTML 標籤。可能會影響大型筆記的效能。'
             },
             previewProperties: {
                 name: '預覽屬性',
@@ -990,6 +1087,11 @@ export const STRINGS_ZH_TW = {
             showSectionIcons: {
                 name: '顯示捷徑和最近項目的圖示',
                 desc: '顯示導覽區段（如捷徑和最近檔案）的圖示。'
+            },
+            interfaceIcons: {
+                name: '介面圖示',
+                desc: '編輯工具列、資料夾、標籤、釘選、搜尋和排序圖示。',
+                buttonText: '編輯圖示'
             },
             showIconsColorOnly: {
                 name: '僅對圖示套用顏色',
@@ -1148,9 +1250,9 @@ export const STRINGS_ZH_TW = {
                 desc: '使用 frontmatter 作為筆記名稱、時間戳、圖示和顏色'
             },
             frontmatterNameField: {
-                name: '名稱欄位',
-                desc: '用作筆記顯示名稱的 frontmatter 欄位。留空以使用檔案名稱。',
-                placeholder: '標題'
+                name: '名稱欄位（多個）',
+                desc: '逗號分隔的 frontmatter 欄位列表。使用第一個非空值。回退到檔案名稱。',
+                placeholder: '標題, 名稱'
             },
             frontmatterIconField: {
                 name: '圖示欄位',

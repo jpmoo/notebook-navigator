@@ -83,7 +83,11 @@ export const STRINGS_FA = {
         emptySearchQuery: 'قبل از ذخیره، عبارت جستجو را وارد کنید',
         emptySearchName: 'قبل از ذخیره جستجو، نامی وارد کنید',
         add: 'افزودن به میانبرها',
+        addNotesCount: 'افزودن {count} یادداشت‌ها به میانبرها',
+        addFilesCount: 'افزودن {count} فایل به میانبرها',
         remove: 'حذف از میانبرها',
+        removeAll: 'حذف همه میانبرها',
+        removeAllConfirm: 'حذف همه میانبرها؟',
         folderNotesPinned: '{count} یادداشت پوشه سنجاق شد'
     },
 
@@ -172,6 +176,7 @@ export const STRINGS_FA = {
         },
         folder: {
             newNote: 'یادداشت جدید',
+            newNoteFromTemplate: 'یادداشت جدید از قالب',
             newFolder: 'پوشه جدید',
             newCanvas: 'بوم جدید',
             newBase: 'پایگاه جدید',
@@ -183,6 +188,7 @@ export const STRINGS_FA = {
             copyPath: 'کپی مسیر سیستم فایل',
             copyRelativePath: 'کپی مسیر خزانه',
             createFolderNote: 'ایجاد یادداشت پوشه',
+            detachFolderNote: 'جدا کردن یادداشت پوشه',
             deleteFolderNote: 'حذف یادداشت پوشه',
             changeIcon: 'تغییر آیکون',
             changeColor: 'تغییر رنگ',
@@ -242,6 +248,36 @@ export const STRINGS_FA = {
             emojiInstructions: 'ایموجی را تایپ یا پیست کنید تا به عنوان آیکون استفاده شود',
             removeIcon: 'حذف آیکون',
             allTabLabel: 'همه'
+        },
+        fileIconRuleEditor: {
+            addRuleAria: 'افزودن قانون'
+        },
+        interfaceIcons: {
+            title: 'آیکون‌های رابط کاربری',
+            items: {
+                'nav-shortcuts': 'میانبرها',
+                'nav-recent-files': 'فایل‌های اخیر',
+                'nav-expand-all': 'باز کردن همه',
+                'nav-collapse-all': 'بستن همه',
+                'nav-tree-expand': 'فلش درختی: باز کردن',
+                'nav-tree-collapse': 'فلش درختی: بستن',
+                'nav-hidden-items': 'آیتم‌های مخفی',
+                'nav-root-reorder': 'مرتب‌سازی مجدد پوشه‌های ریشه',
+                'nav-new-folder': 'پوشه جدید',
+                'nav-show-single-pane': 'نمایش پنل تکی',
+                'nav-show-dual-pane': 'نمایش پنل‌های دوگانه',
+                'nav-profile-chevron': 'فلش منوی پروفایل',
+                'list-search': 'جستجو',
+                'list-descendants': 'یادداشت‌ها از زیرپوشه‌ها',
+                'list-sort-ascending': 'ترتیب: صعودی',
+                'list-sort-descending': 'ترتیب: نزولی',
+                'list-appearance': 'تغییر ظاهر',
+                'list-new-note': 'یادداشت جدید',
+                'nav-folder-open': 'پوشه باز',
+                'nav-folder-closed': 'پوشه بسته',
+                'nav-tag': 'برچسب',
+                'list-pinned': 'آیتم‌های سنجاق شده'
+            }
         },
         colorPicker: {
             currentColor: 'فعلی',
@@ -399,6 +435,7 @@ export const STRINGS_FA = {
             folderAlreadyExists: 'پوشه "{name}" وجود دارد',
             folderNotesDisabled: 'یادداشت‌های پوشه را در تنظیمات فعال کنید تا فایل‌ها را تبدیل کنید',
             folderNoteAlreadyLinked: 'این فایل در حال حاضر به عنوان یادداشت پوشه عمل می‌کند',
+            folderNoteNotFound: 'هیچ یادداشت پوشه‌ای در پوشه انتخاب‌شده وجود ندارد',
             folderNoteUnsupportedExtension: 'پسوند فایل پشتیبانی نمی‌شود: {extension}',
             folderNoteMoveFailed: 'انتقال فایل در حین تبدیل ناموفق بود: {error}',
             folderNoteRenameConflict: 'فایلی با نام "{name}" در پوشه وجود دارد',
@@ -412,6 +449,11 @@ export const STRINGS_FA = {
             failedToCreateDrawing: 'ایجاد طراحی ناموفق بود',
             noFolderSelected: 'پوشه‌ای در Notebook Navigator انتخاب نشده است',
             noFileSelected: 'فایلی انتخاب نشده است'
+        },
+        warnings: {
+            linkBreakingNameCharacters: 'این نام شامل کاراکترهایی است که لینک‌های Obsidian را خراب می‌کند: #, |, ^, %%, [[, ]].',
+            forbiddenNameCharactersAllPlatforms: 'نام‌ها نمی‌توانند با نقطه شروع شوند یا شامل : یا / باشند.',
+            forbiddenNameCharactersWindows: 'کاراکترهای رزرو شده در Windows مجاز نیستند: <, >, ", \\, |, ?, *.'
         },
         notices: {
             hideFolder: 'پوشه مخفی شد: {name}',
@@ -505,14 +547,18 @@ export const STRINGS_FA = {
         selectVaultProfile3: 'انتخاب پروفایل خزانه ۳',
         deleteFile: 'حذف فایل‌ها',
         createNewNote: 'ایجاد یادداشت جدید',
+        createNewNoteFromTemplate: 'یادداشت جدید از قالب',
         moveFiles: 'انتقال فایل‌ها',
         selectNextFile: 'انتخاب فایل بعدی',
         selectPreviousFile: 'انتخاب فایل قبلی',
         convertToFolderNote: 'تبدیل به یادداشت پوشه',
+        setAsFolderNote: 'تنظیم به عنوان یادداشت پوشه',
+        detachFolderNote: 'جدا کردن یادداشت پوشه',
         pinAllFolderNotes: 'سنجاق کردن همه یادداشت‌های پوشه',
         navigateToFolder: 'رفتن به پوشه',
         navigateToTag: 'رفتن به برچسب',
         addShortcut: 'افزودن به میانبرها',
+        openShortcut: 'باز کردن میانبر {number}',
         toggleDescendants: 'تغییر زیرمجموعه‌ها',
         toggleHidden: 'تغییر پوشه‌ها، برچسب‌ها و یادداشت‌های مخفی',
         toggleTagSort: 'تغییر ترتیب مرتب‌سازی برچسب',
@@ -565,12 +611,11 @@ export const STRINGS_FA = {
                 filtering: 'فیلتر کردن',
                 behavior: 'رفتار',
                 view: 'ظاهر',
+                icons: 'آیکون‌ها',
                 desktopAppearance: 'ظاهر دسکتاپ',
-                mobileAppearance: 'ظاهر موبایل',
                 formatting: 'قالب‌بندی'
             },
             navigation: {
-                behavior: 'رفتار',
                 appearance: 'ظاهر',
                 shortcutsAndRecent: 'میانبرها و موارد اخیر'
             },
@@ -581,7 +626,13 @@ export const STRINGS_FA = {
             },
             notes: {
                 frontmatter: 'فرانت‌متر',
-                display: 'ظاهر'
+                icon: 'آیکون',
+                title: 'عنوان',
+                previewText: 'متن پیش‌نمایش',
+                featureImage: 'تصویر ویژه',
+                tags: 'برچسب‌ها',
+                date: 'تاریخ',
+                parentFolder: 'پوشه والد'
             }
         },
         items: {
@@ -680,7 +731,27 @@ export const STRINGS_FA = {
             },
             showFileIcons: {
                 name: 'نمایش آیکون‌های فایل',
-                desc: 'آیکون‌های فایل را با فاصله‌گذاری چپ‌چین نمایش دهید. غیرفعال کردن آیکون‌ها و تورفتگی را حذف می‌کند.'
+                desc: 'آیکون‌های فایل را با فاصله‌گذاری چپ‌چین نمایش دهید. غیرفعال کردن آیکون‌ها و تورفتگی را حذف می‌کند. اولویت: سفارشی > نام فایل > نوع فایل > پیش‌فرض.'
+            },
+            showFilenameMatchIcons: {
+                name: 'آیکون بر اساس نام فایل',
+                desc: 'تخصیص آیکون به فایل‌ها بر اساس متن در نام آن‌ها.'
+            },
+            fileNameIconMap: {
+                name: 'نگاشت آیکون نام فایل',
+                desc: 'فایل‌های حاوی متن آیکون مشخص‌شده را دریافت می‌کنند. یک نگاشت در هر خط: متن=آیکون',
+                placeholder: '# متن=آیکون\nجلسه=LiCalendar\nفاکتور=PhReceipt',
+                editTooltip: 'ویرایش نگاشت‌ها'
+            },
+            showCategoryIcons: {
+                name: 'آیکون بر اساس نوع فایل',
+                desc: 'تخصیص آیکون به فایل‌ها بر اساس پسوند آن‌ها.'
+            },
+            fileTypeIconMap: {
+                name: 'نگاشت آیکون نوع فایل',
+                desc: 'فایل‌های با پسوند مشخص آیکون مشخص‌شده را دریافت می‌کنند. یک نگاشت در هر خط: پسوند=آیکون',
+                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                editTooltip: 'ویرایش نگاشت‌ها'
             },
             optimizeNoteHeight: {
                 name: 'بهینه‌سازی ارتفاع یادداشت',
@@ -770,6 +841,18 @@ export const STRINGS_FA = {
                 name: 'باز کردن هنگام انتخاب',
                 desc: 'پوشه‌ها و برچسب‌ها را هنگام انتخاب باز کنید. در حالت پنل تکی، اولین انتخاب باز می‌کند، دومین انتخاب فایل‌ها را نمایش می‌دهد.'
             },
+            springLoadedFolders: {
+                name: 'گسترش هنگام کشیدن (فقط دسکتاپ)',
+                desc: 'پوشه‌ها و برچسب‌ها را هنگام قرار گرفتن روی آن‌ها در حین کشیدن گسترش دهید.'
+            },
+            springLoadedFoldersInitialDelay: {
+                name: 'تأخیر گسترش اول',
+                desc: 'تأخیر قبل از گسترش اولین پوشه یا برچسب هنگام کشیدن (ثانیه).'
+            },
+            springLoadedFoldersSubsequentDelay: {
+                name: 'تأخیر گسترش‌های بعدی',
+                desc: 'تأخیر قبل از گسترش پوشه‌ها یا برچسب‌های بیشتر در همان عملیات کشیدن (ثانیه).'
+            },
             navigationBanner: {
                 name: 'بنر ناوبری (پروفایل خزانه)',
                 desc: 'تصویری را بالای پنل ناوبری نمایش دهید. با پروفایل خزانه انتخابی تغییر می‌کند.',
@@ -779,6 +862,15 @@ export const STRINGS_FA = {
             showShortcuts: {
                 name: 'نمایش میانبرها',
                 desc: 'بخش میانبرها را در پنل ناوبری نمایش دهید.'
+            },
+            shortcutBadgeDisplay: {
+                name: 'نشان میانبر',
+                desc: "چه چیزی در کنار میانبرها نمایش داده شود. از دستورات 'باز کردن میانبر 1-9' برای باز کردن مستقیم میانبرها استفاده کنید.",
+                options: {
+                    index: 'موقعیت (1-9)',
+                    count: 'تعداد موارد',
+                    none: 'هیچ'
+                }
             },
             showRecentNotes: {
                 name: 'نمایش یادداشت‌های اخیر',
@@ -807,7 +899,7 @@ export const STRINGS_FA = {
                 notice: 'موقعیت جداکننده بازنشانی شد. اوبسیدین را ری‌استارت کنید یا Notebook Navigator را دوباره باز کنید.'
             },
             multiSelectModifier: {
-                name: 'کلید تغییردهنده انتخاب چندگانه',
+                name: 'کلید تغییردهنده انتخاب چندگانه (فقط دسکتاپ)',
                 desc: 'کلید تغییردهنده‌ای که انتخاب چندگانه را فعال می‌کند را انتخاب کنید. وقتی Option/Alt انتخاب شود، کلیک Cmd/Ctrl یادداشت‌ها را در تب جدید باز می‌کند.',
                 options: {
                     cmdCtrl: 'کلیک Cmd/Ctrl',
@@ -840,9 +932,14 @@ export const STRINGS_FA = {
                 desc: 'لیست ویژگی‌های فرانت‌متر جدا شده با کاما. یادداشت‌های حاوی هر یک از این ویژگی‌ها مخفی می‌شوند (مثل پیش‌نویس، خصوصی، بایگانی).',
                 placeholder: 'پیش‌نویس، خصوصی'
             },
+            excludedFileNamePatterns: {
+                name: 'مخفی کردن فایل‌ها (پروفایل خزانه)',
+                desc: 'لیست الگوهای نام فایل جدا شده با کاما برای مخفی کردن. از علامت‌های عام * و مسیرهای / پشتیبانی می‌کند (مثل temp-*، *.png، /assets/*).',
+                placeholder: 'temp-*, *.png, /assets/*'
+            },
             vaultProfiles: {
                 name: 'پروفایل خزانه',
-                desc: 'پروفایل‌ها نمایش انواع فایل، پوشه‌های مخفی، برچسب‌های مخفی، یادداشت‌های مخفی، میانبرها و بنر ناوبری را ذخیره می‌کنند. پروفایل‌ها را از هدر پنل ناوبری تعویض کنید.',
+                desc: 'پروفایل‌ها نمایش انواع فایل، فایل‌های مخفی، پوشه‌های مخفی، برچسب‌های مخفی، یادداشت‌های مخفی، میانبرها و بنر ناوبری را ذخیره می‌کنند. پروفایل‌ها را از هدر پنل ناوبری تعویض کنید.',
                 defaultName: 'پیش‌فرض',
                 addButton: 'افزودن پروفایل',
                 editProfilesButton: 'ویرایش پروفایل‌ها',
@@ -855,7 +952,7 @@ export const STRINGS_FA = {
                 editModalTitle: 'ویرایش پروفایل',
                 addModalPlaceholder: 'نام پروفایل',
                 deleteModalTitle: 'حذف {name}',
-                deleteModalMessage: '{name} حذف شود؟ فیلترهای پوشه، برچسب و یادداشت مخفی ذخیره‌شده در این پروفایل حذف می‌شوند.',
+                deleteModalMessage: '{name} حذف شود؟ فیلترهای فایل، پوشه، برچسب و یادداشت مخفی ذخیره‌شده در این پروفایل حذف می‌شوند.',
                 moveUp: 'انتقال به بالا',
                 moveDown: 'انتقال به پایین',
                 errors: {
@@ -914,10 +1011,6 @@ export const STRINGS_FA = {
                 help: 'قالب‌های رایج:\nHH:mm = ۱۴:۳۰ (۲۴ ساعته)\nh:mm a = 2:30 PM (۱۲ ساعته)\nHH:mm:ss = ۱۴:۳۰:۴۵\nh:mm:ss a = 2:30:45 PM\n\nتوکن‌ها:\nHH/H = ۲۴ ساعته\nhh/h = ۱۲ ساعته\nmm = دقیقه\nss = ثانیه\na = صبح/عصر',
                 helpTooltip: 'برای مرجع قالب کلیک کنید'
             },
-            preventInvalidCharacters: {
-                name: 'جلوگیری از کاراکترهای نامعتبر',
-                desc: 'مسدود کردن #، |، ^، :، %%، [[، ]] هنگام ایجاد یا تغییر نام فایل‌ها و پوشه‌ها.'
-            },
             showFilePreview: {
                 name: 'نمایش پیش‌نمایش یادداشت',
                 desc: 'متن پیش‌نمایش را زیر نام یادداشت نمایش دهید.'
@@ -929,6 +1022,10 @@ export const STRINGS_FA = {
             skipCodeBlocksInPreview: {
                 name: 'رد شدن از بلوک‌های کد در پیش‌نمایش',
                 desc: 'هنگام تولید متن پیش‌نمایش از بلوک‌های کد رد شوید.'
+            },
+            stripHtmlInPreview: {
+                name: 'حذف HTML از پیش‌نمایش‌ها',
+                desc: 'حذف تگ‌های HTML از متن پیش‌نمایش. ممکن است بر عملکرد در یادداشت‌های بزرگ تأثیر بگذارد.'
             },
             previewProperties: {
                 name: 'ویژگی‌های پیش‌نمایش',
@@ -991,6 +1088,11 @@ export const STRINGS_FA = {
             showSectionIcons: {
                 name: 'نمایش آیکون برای میانبرها و آیتم‌های اخیر',
                 desc: 'آیکون‌ها را برای بخش‌های ناوبری مانند میانبرها و فایل‌های اخیر نمایش دهید.'
+            },
+            interfaceIcons: {
+                name: 'آیکون‌های رابط کاربری',
+                desc: 'ویرایش آیکون‌های نوار ابزار، پوشه، برچسب، سنجاق شده، جستجو و مرتب‌سازی.',
+                buttonText: 'ویرایش آیکون‌ها'
             },
             showIconsColorOnly: {
                 name: 'اعمال رنگ فقط به آیکون‌ها',
@@ -1173,9 +1275,9 @@ export const STRINGS_FA = {
                 noticeError: 'مهاجرت ناموفق بود. کنسول را برای جزئیات بررسی کنید.'
             },
             frontmatterNameField: {
-                name: 'فیلد نام',
-                desc: 'فیلد فرانت‌متر برای استفاده به عنوان نام نمایش یادداشت. برای استفاده از نام فایل خالی بگذارید.',
-                placeholder: 'عنوان'
+                name: 'فیلدهای نام',
+                desc: 'لیست فیلدهای فرانت‌متر جداشده با کاما. اولین مقدار غیرخالی استفاده می‌شود. به نام فایل برمی‌گردد.',
+                placeholder: 'عنوان, نام'
             },
             frontmatterCreatedField: {
                 name: 'فیلد زمان ایجاد',

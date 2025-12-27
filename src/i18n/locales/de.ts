@@ -82,7 +82,11 @@ export const STRINGS_DE = {
         emptySearchQuery: 'Geben Sie eine Suchanfrage ein, bevor Sie sie speichern',
         emptySearchName: 'Geben Sie einen Namen ein, bevor Sie die Suche speichern',
         add: 'Zu Lesezeichen hinzufügen',
+        addNotesCount: '{count} Notizen zu Lesezeichen hinzufügen',
+        addFilesCount: '{count} Dateien zu Lesezeichen hinzufügen',
         remove: 'Aus Lesezeichen entfernen',
+        removeAll: 'Alle Lesezeichen entfernen',
+        removeAllConfirm: 'Alle Lesezeichen entfernen?',
         folderNotesPinned: '{count} Ordnernotizen angeheftet'
     },
 
@@ -174,6 +178,7 @@ export const STRINGS_DE = {
         },
         folder: {
             newNote: 'Neue Notiz',
+            newNoteFromTemplate: 'Neue Notiz aus Vorlage',
             newFolder: 'Neuer Ordner',
             newCanvas: 'Neue Canvas',
             newBase: 'Neue Datenbank',
@@ -185,6 +190,7 @@ export const STRINGS_DE = {
             copyPath: 'Dateisystempfad kopieren',
             copyRelativePath: 'Vault-Pfad kopieren',
             createFolderNote: 'Ordnernotiz erstellen',
+            detachFolderNote: 'Ordnernotiz lösen',
             deleteFolderNote: 'Ordnernotiz löschen',
             changeIcon: 'Symbol ändern',
             changeColor: 'Farbe ändern',
@@ -244,6 +250,36 @@ export const STRINGS_DE = {
             emojiInstructions: 'Geben Sie ein Emoji ein oder fügen Sie es ein, um es als Symbol zu verwenden',
             removeIcon: 'Icon entfernen',
             allTabLabel: 'Alle'
+        },
+        fileIconRuleEditor: {
+            addRuleAria: 'Regel hinzufügen'
+        },
+        interfaceIcons: {
+            title: 'Oberflächensymbole',
+            items: {
+                'nav-shortcuts': 'Verknüpfungen',
+                'nav-recent-files': 'Zuletzt verwendete Dateien',
+                'nav-expand-all': 'Alle erweitern',
+                'nav-collapse-all': 'Alle einklappen',
+                'nav-tree-expand': 'Baumpfeil: erweitern',
+                'nav-tree-collapse': 'Baumpfeil: einklappen',
+                'nav-hidden-items': 'Ausgeblendete Elemente',
+                'nav-root-reorder': 'Stammordner neu anordnen',
+                'nav-new-folder': 'Neuer Ordner',
+                'nav-show-single-pane': 'Einspaltige Ansicht anzeigen',
+                'nav-show-dual-pane': 'Zweispaltige Ansicht anzeigen',
+                'nav-profile-chevron': 'Profilmenü-Pfeil',
+                'list-search': 'Suche',
+                'list-descendants': 'Notizen aus Unterordnern',
+                'list-sort-ascending': 'Sortierung: aufsteigend',
+                'list-sort-descending': 'Sortierung: absteigend',
+                'list-appearance': 'Darstellung ändern',
+                'list-new-note': 'Neue Notiz',
+                'nav-folder-open': 'Ordner geöffnet',
+                'nav-folder-closed': 'Ordner geschlossen',
+                'nav-tag': 'Tag',
+                'list-pinned': 'Angeheftete Elemente'
+            }
         },
         colorPicker: {
             currentColor: 'Aktuell',
@@ -402,6 +438,7 @@ export const STRINGS_DE = {
             folderAlreadyExists: 'Ordner "{name}" existiert bereits',
             folderNotesDisabled: 'Aktivieren Sie Ordnernotizen in den Einstellungen, um Dateien zu konvertieren',
             folderNoteAlreadyLinked: 'Diese Datei fungiert bereits als Ordnernotiz',
+            folderNoteNotFound: 'Keine Ordnernotiz im ausgewählten Ordner',
             folderNoteUnsupportedExtension: 'Nicht unterstützte Dateierweiterung: {extension}',
             folderNoteMoveFailed: 'Datei konnte während der Konvertierung nicht verschoben werden: {error}',
             folderNoteRenameConflict: 'Eine Datei namens "{name}" existiert bereits im Ordner',
@@ -415,6 +452,11 @@ export const STRINGS_DE = {
             failedToCreateDrawing: 'Zeichnung konnte nicht erstellt werden',
             noFolderSelected: 'Kein Ordner im Notebook Navigator ausgewählt',
             noFileSelected: 'Keine Datei ausgewählt'
+        },
+        warnings: {
+            linkBreakingNameCharacters: 'Dieser Name enthält Zeichen, die Obsidian-Links zerstören: #, |, ^, %%, [[, ]].',
+            forbiddenNameCharactersAllPlatforms: 'Namen dürfen nicht mit einem Punkt beginnen oder : oder / enthalten.',
+            forbiddenNameCharactersWindows: 'Windows-reservierte Zeichen sind nicht erlaubt: <, >, ", \\, |, ?, *.'
         },
         notices: {
             hideFolder: 'Ordner ausgeblendet: {name}',
@@ -508,14 +550,18 @@ export const STRINGS_DE = {
         selectVaultProfile3: 'Tresorprofil 3 auswählen', // Command palette: Activates the third vault profile without opening the modal (English: Select vault profile 3)
         deleteFile: 'Dateien löschen', // Command palette: Deletes the currently active file (English: Delete file)
         createNewNote: 'Neue Notiz erstellen', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
+        createNewNoteFromTemplate: 'Neue Notiz aus Vorlage', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Dateien verschieben', // Command palette: Move selected files to another folder (English: Move files)
         selectNextFile: 'Nächste Datei auswählen', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Vorherige Datei auswählen', // Command palette: Selects the previous file in the current view (English: Select previous file)
         convertToFolderNote: 'In Ordnernotiz konvertieren', // Command palette: Converts the active file into a folder note with a new folder (English: Convert to folder note)
+        setAsFolderNote: 'Als Ordnernotiz festlegen', // Command palette: Renames the active file to its folder note name (English: Set as folder note)
+        detachFolderNote: 'Ordnernotiz lösen', // Command palette: Renames the active folder note to a new name (English: Detach folder note)
         pinAllFolderNotes: 'Alle Ordnernotizen anheften', // Command palette: Pins all folder notes to shortcuts (English: Pin all folder notes)
         navigateToFolder: 'Zu Ordner navigieren', // Command palette: Navigate to a folder using fuzzy search (English: Navigate to folder)
         navigateToTag: 'Zu Tag navigieren', // Command palette: Navigate to a tag using fuzzy search (English: Navigate to tag)
         addShortcut: 'Zu Shortcuts hinzufügen', // Command palette: Adds the current file, folder, or tag to shortcuts (English: Add to shortcuts)
+        openShortcut: 'Shortcut {number} öffnen',
         toggleDescendants: 'Nachkommen umschalten', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
         toggleHidden: 'Versteckte Ordner, Tags und Notizen umschalten', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'Tag-Sortierung umschalten', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
@@ -568,12 +614,11 @@ export const STRINGS_DE = {
                 filtering: 'Filterung',
                 behavior: 'Verhalten',
                 view: 'Darstellung',
+                icons: 'Symbole',
                 desktopAppearance: 'Desktop-Darstellung',
-                mobileAppearance: 'Mobile Darstellung',
                 formatting: 'Formatierung'
             },
             navigation: {
-                behavior: 'Verhalten',
                 appearance: 'Darstellung',
                 shortcutsAndRecent: 'Verknüpfungen & Letzte Einträge'
             },
@@ -584,7 +629,13 @@ export const STRINGS_DE = {
             },
             notes: {
                 frontmatter: 'Frontmatter',
-                display: 'Darstellung'
+                icon: 'Symbol',
+                title: 'Titel',
+                previewText: 'Vorschautext',
+                featureImage: 'Hauptbild',
+                tags: 'Tags',
+                date: 'Datum',
+                parentFolder: 'Übergeordneter Ordner'
             }
         },
         items: {
@@ -684,7 +735,27 @@ export const STRINGS_DE = {
             },
             showFileIcons: {
                 name: 'Dateisymbole anzeigen',
-                desc: 'Dateisymbole mit linksbündigem Abstand anzeigen. Deaktivierung entfernt sowohl Symbole als auch Einrückung.'
+                desc: 'Dateisymbole mit linksbündigem Abstand anzeigen. Deaktivierung entfernt sowohl Symbole als auch Einrückung. Priorität: Benutzerdefiniert > Dateiname > Dateityp > Standard.'
+            },
+            showFilenameMatchIcons: {
+                name: 'Symbole nach Dateiname',
+                desc: 'Symbole basierend auf Text im Dateinamen zuweisen.'
+            },
+            fileNameIconMap: {
+                name: 'Dateiname-Symbol-Zuordnung',
+                desc: 'Dateien mit dem Text erhalten das angegebene Symbol. Eine Zuordnung pro Zeile: Text=Symbol',
+                placeholder: '# Text=icon\nbesprechung=LiCalendar\nrechnung=PhReceipt',
+                editTooltip: 'Zuordnungen bearbeiten'
+            },
+            showCategoryIcons: {
+                name: 'Symbole nach Dateityp',
+                desc: 'Symbole basierend auf der Dateierweiterung zuweisen.'
+            },
+            fileTypeIconMap: {
+                name: 'Dateityp-Symbol-Zuordnung',
+                desc: 'Dateien mit der Erweiterung erhalten das angegebene Symbol. Eine Zuordnung pro Zeile: Erweiterung=Symbol',
+                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                editTooltip: 'Zuordnungen bearbeiten'
             },
             optimizeNoteHeight: {
                 name: 'Notizenhöhe optimieren',
@@ -774,6 +845,18 @@ export const STRINGS_DE = {
                 name: 'Bei Auswahl erweitern',
                 desc: 'Ordner und Tags bei Auswahl erweitern. Im Einzelfenster-Modus: erste Auswahl erweitert, zweite Auswahl zeigt Dateien.'
             },
+            springLoadedFolders: {
+                name: 'Beim Ziehen erweitern (nur Desktop)',
+                desc: 'Ordner und Tags beim Überfahren während des Ziehens erweitern.'
+            },
+            springLoadedFoldersInitialDelay: {
+                name: 'Verzögerung beim ersten Erweitern',
+                desc: 'Verzögerung, bevor der erste Ordner oder Tag während eines Ziehvorgangs erweitert wird (Sekunden).'
+            },
+            springLoadedFoldersSubsequentDelay: {
+                name: 'Verzögerung bei weiteren Erweiterungen',
+                desc: 'Verzögerung, bevor weitere Ordner oder Tags während desselben Ziehvorgangs erweitert werden (Sekunden).'
+            },
             navigationBanner: {
                 name: 'Navigationsbanner (Tresorprofil)',
                 desc: 'Bild oberhalb des Navigationsbereichs anzeigen. Ändert sich mit dem ausgewählten Tresorprofil.',
@@ -783,6 +866,15 @@ export const STRINGS_DE = {
             showShortcuts: {
                 name: 'Lesezeichen anzeigen',
                 desc: 'Lesezeichen-Bereich im Navigationsbereich anzeigen.'
+            },
+            shortcutBadgeDisplay: {
+                name: 'Verknüpfungsabzeichen',
+                desc: "Was neben Verknüpfungen angezeigt wird. Verwenden Sie die Befehle 'Verknüpfung 1-9 öffnen', um Verknüpfungen direkt zu öffnen.",
+                options: {
+                    index: 'Position (1-9)',
+                    count: 'Elementanzahl',
+                    none: 'Keine'
+                }
             },
             showRecentNotes: {
                 name: 'Neueste Notizen anzeigen',
@@ -811,7 +903,7 @@ export const STRINGS_DE = {
                 notice: 'Trennelementposition zurückgesetzt. Starten Sie Obsidian neu oder öffnen Sie Notebook Navigator erneut, um die Änderungen anzuwenden.'
             },
             multiSelectModifier: {
-                name: 'Mehrfachauswahl-Modifikator',
+                name: 'Mehrfachauswahl-Modifikator (nur Desktop)',
                 desc: 'Wählen Sie, welche Modifikatortaste die Mehrfachauswahl umschaltet. Wenn Option/Alt ausgewählt ist, öffnet Cmd/Strg-Klick Notizen in einem neuen Tab.',
                 options: {
                     cmdCtrl: 'Cmd/Strg-Klick',
@@ -823,9 +915,14 @@ export const STRINGS_DE = {
                 desc: 'Kommagetrennte Liste von Frontmatter-Eigenschaften. Notizen mit diesen Eigenschaften werden ausgeblendet (z.B. Entwurf, privat, archiviert).',
                 placeholder: 'entwurf, privat'
             },
+            excludedFileNamePatterns: {
+                name: 'Dateien verstecken (Tresorprofil)',
+                desc: 'Kommagetrennte Liste von Dateinamenmustern zum Ausblenden. Unterstützt * Platzhalter und / Pfade (z.B. temp-*, *.png, /assets/*).',
+                placeholder: 'temp-*, *.png, /assets/*'
+            },
             vaultProfiles: {
                 name: 'Tresorprofil',
-                desc: 'Profile speichern Dateityp-Sichtbarkeit, versteckte Ordner, versteckte Tags, versteckte Notizen, Verknüpfungen und Navigationsbanner. Profile können über die Kopfzeile des Navigationsbereichs gewechselt werden.',
+                desc: 'Profile speichern Dateityp-Sichtbarkeit, versteckte Dateien, versteckte Ordner, versteckte Tags, versteckte Notizen, Verknüpfungen und Navigationsbanner. Profile können über die Kopfzeile des Navigationsbereichs gewechselt werden.',
                 defaultName: 'Standard',
                 addButton: 'Profil hinzufügen',
                 editProfilesButton: 'Profile bearbeiten',
@@ -838,7 +935,7 @@ export const STRINGS_DE = {
                 editModalTitle: 'Profil bearbeiten',
                 addModalPlaceholder: 'Profilname',
                 deleteModalTitle: '{name} löschen',
-                deleteModalMessage: '{name} entfernen? Versteckte Ordner-, Tag- und Notizfilter in diesem Profil werden gelöscht.',
+                deleteModalMessage: '{name} entfernen? Versteckte Datei-, Ordner-, Tag- und Notizfilter in diesem Profil werden gelöscht.',
                 moveUp: 'Nach oben',
                 moveDown: 'Nach unten',
                 errors: {
@@ -918,10 +1015,6 @@ export const STRINGS_DE = {
                 help: 'Gängige Formate:\nHH:mm = 14:30 (24-Stunden)\nh:mm a = 2:30 PM (12-Stunden)\nHH:mm:ss = 14:30:45\nh:mm:ss a = 2:30:45 PM\n\nTokens:\nHH/H = 24-Stunden\nhh/h = 12-Stunden\nmm = Minuten\nss = Sekunden\na = AM/PM',
                 helpTooltip: 'Klicken für Formatreferenz'
             },
-            preventInvalidCharacters: {
-                name: 'Ungültige Zeichen verhindern',
-                desc: '#, |, ^, :, %%, [[, ]] beim Erstellen oder Umbenennen von Dateien und Ordnern blockieren.'
-            },
             showFilePreview: {
                 name: 'Notizenvorschau anzeigen',
                 desc: 'Vorschautext unter Notizennamen anzeigen.'
@@ -933,6 +1026,10 @@ export const STRINGS_DE = {
             skipCodeBlocksInPreview: {
                 name: 'Codeblöcke in Vorschau überspringen',
                 desc: 'Codeblöcke bei der Erstellung des Vorschautextes überspringen.'
+            },
+            stripHtmlInPreview: {
+                name: 'HTML in Vorschauen entfernen',
+                desc: 'HTML-Tags aus dem Vorschautext entfernen. Kann die Leistung bei großen Notizen beeinträchtigen.'
             },
             previewProperties: {
                 name: 'Vorschau-Eigenschaften',
@@ -995,6 +1092,11 @@ export const STRINGS_DE = {
             showSectionIcons: {
                 name: 'Icons für Shortcuts und kürzliche Elemente anzeigen',
                 desc: 'Icons für Navigationsbereiche wie Shortcuts und Zuletzt verwendete Dateien anzeigen.'
+            },
+            interfaceIcons: {
+                name: 'Oberflächensymbole',
+                desc: 'Symbole für Symbolleiste, Ordner, Tags, angeheftete Elemente, Suche und Sortierung bearbeiten.',
+                buttonText: 'Symbole bearbeiten'
             },
             showIconsColorOnly: {
                 name: 'Farbe nur auf Symbole anwenden',
@@ -1153,9 +1255,9 @@ export const STRINGS_DE = {
                 desc: 'Frontmatter für Notizname, Zeitstempel, Icons und Farben verwenden'
             },
             frontmatterNameField: {
-                name: 'Namensfeld',
-                desc: 'Frontmatter-Feld für den angezeigten Notiznamen. Leer lassen, um den Dateinamen zu verwenden.',
-                placeholder: 'titel'
+                name: 'Namensfelder',
+                desc: 'Kommagetrennte Liste von Frontmatter-Feldern. Erster nicht-leerer Wert wird verwendet. Fällt auf Dateinamen zurück.',
+                placeholder: 'titel, name'
             },
             frontmatterIconField: {
                 name: 'Icon-Feld',

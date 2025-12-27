@@ -39,7 +39,7 @@ import type { ListPaneItem } from '../types/virtualization';
 import { TIMEOUTS } from '../types/obsidian-extended';
 import { DateUtils } from '../utils/dateUtils';
 import { getFilesForFolder, getFilesForTag, collectPinnedPaths } from '../utils/fileFinder';
-import { shouldExcludeFile, isFolderInExcludedFolder } from '../utils/fileFilters';
+import { shouldExcludeFile, createHiddenFileNameMatcher, isFolderInExcludedFolder } from '../utils/fileFilters';
 import { getDateField, getEffectiveSortOption, naturalCompare } from '../utils/sortUtils';
 import { strings } from '../i18n';
 import { FILE_VISIBILITY } from '../utils/fileTypeUtils';
@@ -58,6 +58,7 @@ import { resolveListGrouping } from '../utils/listGrouping';
 import { runAsyncAction } from '../utils/async';
 import type { ActiveProfileState } from '../context/SettingsContext';
 import type { SearchProvider } from '../types/search';
+import { PreviewTextUtils } from '../utils/previewTextUtils';
 
 const EMPTY_SEARCH_META = new Map<string, SearchResultMeta>();
 // Shared empty map used when no files are hidden to avoid allocations
@@ -145,7 +146,7 @@ export function useListPaneData({
     const isOmnisearchAvailable = omnisearchService?.isAvailable() ?? false;
     // Use Omnisearch only when selected, available, and there's a query
     const useOmnisearch = searchProvider === 'omnisearch' && isOmnisearchAvailable && hasSearchQuery;
-    const { hiddenFolders, hiddenFiles, hiddenTags, fileVisibility } = activeProfile;
+    const { hiddenFolders, hiddenFiles, hiddenFileNamePatterns, hiddenTags, fileVisibility } = activeProfile;
     const listConfig = useMemo(
         () => ({
             pinnedNotes: settings.pinnedNotes,
@@ -200,6 +201,7 @@ export function useListPaneData({
         activeProfile.profile.id,
         activeProfile.hiddenFolders,
         activeProfile.hiddenFiles,
+        activeProfile.hiddenFileNamePatterns,
         activeProfile.hiddenTags,
         activeProfile.fileVisibility,
         settings.enableFolderNotes,
@@ -281,12 +283,16 @@ export function useListPaneData({
                         }));
 
                     const terms = hit.foundWords.filter(word => typeof word === 'string' && word.length > 0);
+                    const excerpt =
+                        typeof hit.excerpt === 'string'
+                            ? PreviewTextUtils.normalizeExcerpt(hit.excerpt, { stripHtml: settings.stripHtmlInPreview })
+                            : undefined; // Normalize provider excerpts to match preview formatting rules
 
                     meta.set(hit.path, {
                         score: hit.score,
                         terms,
                         matches,
-                        excerpt: hit.excerpt
+                        excerpt
                     });
                 }
 
@@ -301,7 +307,7 @@ export function useListPaneData({
         return () => {
             disposed = true;
         };
-    }, [useOmnisearch, omnisearchService, trimmedQuery, basePathSet]);
+    }, [useOmnisearch, omnisearchService, trimmedQuery, basePathSet, settings.stripHtmlInPreview]);
 
     // Rebuild the entire map when the baseFiles list or name provider changes
     useEffect(() => {
@@ -432,6 +438,8 @@ export function useListPaneData({
         const records = db.getFiles(files.map(file => file.path));
         const shouldCheckFolders = hiddenFolders.length > 0;
         const shouldCheckFrontmatter = hiddenFiles.length > 0;
+        const shouldCheckFileNames = hiddenFileNamePatterns.length > 0;
+        const fileNameMatcher = shouldCheckFileNames ? createHiddenFileNameMatcher(hiddenFileNamePatterns) : null;
         const folderHiddenCache = shouldCheckFolders ? new Map<string, boolean>() : null;
         const result = new Map<string, boolean>();
 
@@ -458,14 +466,15 @@ export function useListPaneData({
                     hiddenByFrontmatter = Boolean(record.metadata?.hidden);
                 }
             }
+            const hiddenByFileName = fileNameMatcher ? fileNameMatcher.matches(file) : false;
             const hiddenByFolder = shouldCheckFolders ? resolveFolderHidden(file.parent ?? null) : false;
-            if (hiddenByFrontmatter || hiddenByFolder) {
+            if (hiddenByFrontmatter || hiddenByFileName || hiddenByFolder) {
                 result.set(file.path, true);
             }
         });
 
         return result;
-    }, [files, getDB, hiddenFolders, hiddenFiles, showHiddenItems, app]);
+    }, [files, getDB, hiddenFolders, hiddenFiles, hiddenFileNamePatterns, showHiddenItems, app]);
 
     /**
      * Build the complete list of items for rendering, including:

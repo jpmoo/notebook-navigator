@@ -28,7 +28,17 @@ import type { VisibilityPreferences } from '../types';
 import { ExtendedApp, TIMEOUTS, OBSIDIAN_COMMANDS } from '../types/obsidian-extended';
 import { createFileWithOptions, createDatabaseContent } from '../utils/fileCreationUtils';
 import { cleanupExclusionPatterns, isPathInExcludedFolder } from '../utils/fileFilters';
-import { EXCALIDRAW_BASENAME_SUFFIX, isExcalidrawFile, stripExcalidrawSuffix, stripInvalidLinkCharacters } from '../utils/fileNameUtils';
+import {
+    containsForbiddenNameCharactersAllPlatforms,
+    containsForbiddenNameCharactersWindows,
+    containsInvalidLinkCharacters,
+    EXCALIDRAW_BASENAME_SUFFIX,
+    isExcalidrawFile,
+    stripExcalidrawSuffix,
+    stripForbiddenNameCharactersAllPlatforms,
+    stripForbiddenNameCharactersWindows,
+    stripLeadingPeriods
+} from '../utils/fileNameUtils';
 import { getFolderNote, isFolderNote, isSupportedFolderNoteExtension } from '../utils/folderNotes';
 import { updateSelectionAfterFileOperation, findNextFileAfterRemoval } from '../utils/selectionUtils';
 import { executeCommand, isPluginInstalled } from '../utils/typeGuards';
@@ -341,28 +351,21 @@ export class FileSystemOperations {
     }
 
     /**
-     * Checks whether invalid character filtering is enabled in settings
-     */
-    private shouldFilterInvalidNames(): boolean {
-        return Boolean(this.settingsProvider.settings.preventInvalidCharacters);
-    }
-
-    /**
-     * Filters input name by removing invalid characters
-     * Removes invalid link characters if setting enabled and strips leading dots
+     * Filters input name for live typing
+     * Strips leading periods to avoid hidden files
+     * Removes forbidden characters across all platforms (: and /)
+     * Removes Windows-reserved characters on Windows (<, >, ", \\, |, ?, *)
      * Does NOT trim whitespace during live filtering to allow typing spaces
      * @param value - The input name to filter
-     * @returns Filtered value without invalid characters
+     * @returns Filtered value
      */
     private filterNameInputLive(value: string): string {
-        if (!value) {
-            return '';
+        let filtered = stripLeadingPeriods(value);
+        filtered = stripForbiddenNameCharactersAllPlatforms(filtered);
+        if (Platform.isWin) {
+            filtered = stripForbiddenNameCharactersWindows(filtered);
         }
-
-        // Remove invalid link characters if setting enabled
-        const withoutInvalidCharacters = this.shouldFilterInvalidNames() ? stripInvalidLinkCharacters(value) : value;
-        // Remove leading dots
-        return withoutInvalidCharacters.replace(/^\.+/u, '');
+        return filtered;
     }
 
     /**
@@ -375,11 +378,55 @@ export class FileSystemOperations {
     }
 
     /**
-     * Returns a function that filters input names for use in InputModal
-     * @returns Filter function that removes invalid characters (no trim for live typing)
+     * Builds a folder note filename for the provided base name.
      */
-    private getNameInputFilter(): (value: string) => string {
-        return (input: string) => this.filterNameInputLive(input);
+    private buildFolderNoteFileName(baseName: string, extension: string, isExcalidraw: boolean): string {
+        const folderNoteBaseName = isExcalidraw ? `${baseName}${EXCALIDRAW_BASENAME_SUFFIX}` : baseName;
+        return `${folderNoteBaseName}.${extension}`;
+    }
+
+    /**
+     * Builds a folder note filename for the provided base name.
+     */
+    private getFolderNoteFileName(baseName: string, folderNote: TFile): string {
+        return this.buildFolderNoteFileName(baseName, folderNote.extension, isExcalidrawFile(folderNote));
+    }
+
+    /**
+     * Returns options for input filtering and warnings in InputModal
+     */
+    private getNameInputModalOptions(): {
+        inputFilter: (value: string) => string;
+        onInputChange: (context: { rawValue: string; filteredValue: string }) => void;
+    } {
+        let previouslyHadLinkBreakingCharacters = false;
+
+        return {
+            inputFilter: (input: string) => this.filterNameInputLive(input),
+            onInputChange: ({ rawValue, filteredValue }) => {
+                const charactersWereRemoved = rawValue !== filteredValue;
+                if (charactersWereRemoved) {
+                    const hasLeadingPeriods = rawValue.startsWith('.');
+                    const hasForbiddenAllPlatforms = hasLeadingPeriods || containsForbiddenNameCharactersAllPlatforms(rawValue);
+                    if (hasForbiddenAllPlatforms) {
+                        showNotice(strings.fileSystem.warnings.forbiddenNameCharactersAllPlatforms, { variant: 'warning' });
+                    }
+
+                    if (Platform.isWin) {
+                        const hasForbiddenWindows = containsForbiddenNameCharactersWindows(rawValue);
+                        if (hasForbiddenWindows) {
+                            showNotice(strings.fileSystem.warnings.forbiddenNameCharactersWindows, { variant: 'warning' });
+                        }
+                    }
+                }
+
+                const hasLinkBreakingCharacters = containsInvalidLinkCharacters(filteredValue);
+                if (hasLinkBreakingCharacters && !previouslyHadLinkBreakingCharacters) {
+                    showNotice(strings.fileSystem.warnings.linkBreakingNameCharacters, { variant: 'warning' });
+                }
+                previouslyHadLinkBreakingCharacters = hasLinkBreakingCharacters;
+            }
+        };
     }
 
     /**
@@ -415,17 +462,15 @@ export class FileSystemOperations {
         const settings = this.settingsProvider.settings;
         ensureVaultProfiles(settings);
         const showHiddenOption = settings.vaultProfiles.length >= 2;
-        const inputFilter = this.getNameInputFilter();
+        const nameInputOptions = this.getNameInputModalOptions();
         const modalOptions = showHiddenOption
             ? {
                   checkbox: {
                       label: strings.modals.fileSystem.hideInOtherVaultProfiles
                   },
-                  inputFilter
+                  ...nameInputOptions
               }
-            : {
-                  inputFilter
-              };
+            : nameInputOptions;
 
         const modal = new InputModal(
             this.app,
@@ -481,7 +526,7 @@ export class FileSystemOperations {
      * @param settings - The plugin settings (optional)
      */
     async renameFolder(folder: TFolder, settings?: NotebookNavigatorSettings): Promise<void> {
-        const inputFilter = this.getNameInputFilter();
+        const nameInputOptions = this.getNameInputModalOptions();
 
         const modal = new InputModal(
             this.app,
@@ -503,7 +548,7 @@ export class FileSystemOperations {
                     }
 
                     if (folderNote) {
-                        const newNoteName = `${filteredName}.${folderNote.extension}`;
+                        const newNoteName = this.getFolderNoteFileName(filteredName, folderNote);
                         const folderBase = folder.path === '/' ? '' : `${folder.path}/`;
                         const conflictPath = normalizePath(`${folderBase}${newNoteName}`);
                         const conflict = this.app.vault.getFileByPath(conflictPath);
@@ -525,7 +570,8 @@ export class FileSystemOperations {
 
                     // Rename the folder note to match the new folder name when using default naming
                     if (folderNote) {
-                        const newNotePath = normalizePath(`${newFolderPath}/${filteredName}.${folderNote.extension}`);
+                        const newNoteName = this.getFolderNoteFileName(filteredName, folderNote);
+                        const newNotePath = normalizePath(`${newFolderPath}/${newNoteName}`);
                         await this.app.fileManager.renameFile(folderNote, newNotePath);
                     }
                 } catch (error) {
@@ -533,9 +579,7 @@ export class FileSystemOperations {
                 }
             },
             folder.name,
-            {
-                inputFilter
-            }
+            nameInputOptions
         );
         modal.open();
     }
@@ -553,7 +597,7 @@ export class FileSystemOperations {
         const extensionSuffix = extension ? `.${extension}` : '';
         // Strip .excalidraw suffix from default value for Excalidraw files
         const defaultValue = isExcalidraw ? stripExcalidrawSuffix(file.basename) : file.basename;
-        const inputFilter = this.getNameInputFilter();
+        const nameInputOptions = this.getNameInputModalOptions();
 
         const modal = new InputModal(
             this.app,
@@ -614,9 +658,7 @@ export class FileSystemOperations {
                 }
             },
             defaultValue,
-            {
-                inputFilter
-            }
+            nameInputOptions
         );
         modal.open();
     }
@@ -1061,6 +1103,80 @@ export class FileSystemOperations {
     }
 
     /**
+     * Renames a file to match its parent folder's folder note naming
+     * @param file - The file to rename
+     * @param settings - Notebook Navigator settings for folder note configuration
+     */
+    async setFileAsFolderNote(file: TFile, settings: NotebookNavigatorSettings): Promise<void> {
+        if (!settings.enableFolderNotes) {
+            return;
+        }
+
+        const parent = file.parent;
+        if (!parent || !(parent instanceof TFolder)) {
+            return;
+        }
+
+        if (parent.path === '/') {
+            return;
+        }
+
+        const detectionSettings = {
+            enableFolderNotes: settings.enableFolderNotes,
+            folderNoteName: settings.folderNoteName
+        };
+
+        if (isFolderNote(file, parent, detectionSettings)) {
+            showNotice(strings.fileSystem.errors.folderNoteAlreadyLinked, { variant: 'warning' });
+            return;
+        }
+
+        if (!isSupportedFolderNoteExtension(file.extension)) {
+            showNotice(strings.fileSystem.errors.folderNoteUnsupportedExtension.replace('{extension}', file.extension), {
+                variant: 'warning'
+            });
+            return;
+        }
+
+        const existingFolderNote = getFolderNote(parent, detectionSettings);
+        if (existingFolderNote && existingFolderNote.path !== file.path) {
+            showNotice(strings.fileSystem.errors.folderNoteAlreadyExists, { variant: 'warning' });
+            return;
+        }
+
+        const isExcalidraw = isExcalidrawFile(file);
+        let targetBaseName = settings.folderNoteName || parent.name;
+        if (isExcalidraw) {
+            // Strip .excalidraw from the base name for folder note naming.
+            targetBaseName = stripExcalidrawSuffix(targetBaseName);
+            if (!targetBaseName) {
+                return;
+            }
+        }
+
+        const targetFileName = this.buildFolderNoteFileName(targetBaseName, file.extension, isExcalidraw);
+        const parentBase = parent.path === '/' ? '' : `${parent.path}/`;
+        const targetPath = normalizePath(`${parentBase}${targetFileName}`);
+
+        if (file.path === targetPath) {
+            return;
+        }
+
+        if (this.app.vault.getAbstractFileByPath(targetPath)) {
+            showNotice(strings.fileSystem.errors.folderNoteRenameConflict.replace('{name}', targetFileName), {
+                variant: 'warning'
+            });
+            return;
+        }
+
+        try {
+            await this.app.fileManager.renameFile(file, targetPath);
+        } catch (error) {
+            this.notifyError(strings.fileSystem.errors.renameFile, error);
+        }
+    }
+
+    /**
      * Converts a single file into a folder note by creating a sibling folder and moving the file inside
      * @param file - The file to convert
      * @param settings - Notebook Navigator settings for folder note configuration
@@ -1098,9 +1214,19 @@ export class FileSystemOperations {
             return;
         }
 
+        const isExcalidraw = isExcalidrawFile(file);
+        let folderName = file.basename;
+        if (isExcalidraw) {
+            // Strip .excalidraw from the basename when deriving the folder name.
+            folderName = stripExcalidrawSuffix(folderName);
+            if (!folderName) {
+                showNotice(strings.fileSystem.errors.folderNoteConversionFailed, { variant: 'warning' });
+                return;
+            }
+        }
+
         // Build target folder path using the file's basename
         const parentPath = parent.path === '/' ? '' : `${parent.path}/`;
-        const folderName = file.basename;
         const targetFolderPath = normalizePath(`${parentPath}${folderName}`);
 
         // Check if folder already exists to avoid conflicts
@@ -1110,7 +1236,15 @@ export class FileSystemOperations {
         }
 
         // Determine final filename based on folder note settings
-        const finalBaseName = settings.folderNoteName ? settings.folderNoteName : folderName;
+        let finalBaseName = settings.folderNoteName ? settings.folderNoteName : folderName;
+        if (isExcalidraw) {
+            // Strip .excalidraw from the base name for folder note naming.
+            finalBaseName = stripExcalidrawSuffix(finalBaseName);
+            if (!finalBaseName) {
+                showNotice(strings.fileSystem.errors.folderNoteConversionFailed, { variant: 'warning' });
+                return;
+            }
+        }
 
         // Create the target folder
         try {
@@ -1153,7 +1287,7 @@ export class FileSystemOperations {
             let movedFile: TFile = movedFileEntry;
 
             // Rename file if folder note name setting requires it
-            const finalFileName = `${finalBaseName}.${file.extension}`;
+            const finalFileName = this.buildFolderNoteFileName(finalBaseName, file.extension, isExcalidraw);
             const finalPath = normalizePath(`${targetFolder.path}/${finalFileName}`);
 
             if (movedFile.path !== finalPath) {
@@ -1535,6 +1669,7 @@ export class FileSystemOperations {
 
             const leaf = this.app.workspace.getLeaf(false);
             await leaf.openFile(file);
+
             await this.trySwitchToDrawingView(leaf, file, type);
 
             return file;

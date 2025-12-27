@@ -73,6 +73,76 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
+        version: '1.9.4',
+        date: '2025-12-29',
+        showOnUpdate: true,
+        info: '==Templater support!== You can now create new notes from templates directly in the navigation pane or in current folder/tag using the new command! Also lots of other improvements in this release like a new ==visual editor for file icons== and the possibility to ==change all user interface icons==! Happy new year! 🎉',
+        new: [
+            'New setting: ==General > Icons > Interface icons==. You can now customize all icons used in the Notebook Navigator interface, like pinned section icon, shortcuts icon, recent notes icon, folder expand/collapse icons, all toolbar buttons, and more.',
+            '==File name icons and file type icons can now be edited with a new visual editor==. Just click the new **edit button** next to each text field in Settings > Notes > Icons.',
+            '==You can now use icons from icon packs for file name icons and file type icons==.',
+            'New menu command: ==New file from template==. If you have the plugin **Templater** installed you can now create new notes with templates directly from the navigation pane!',
+            'New command: ==Create new note from template==. If you have the plugin **Templater** installed you can now create a new note with template in the current folder or tag.',
+            'New commands: ==Open shortcut 1-9==. Use this to quickly open your shortcut files, navigate to folders/tags, or load a custom search filter.',
+            'New setting: Navigation pane > Shortcuts & recent items > ==Shortcut badge==. You can now choose to show index number (1-9) to help with shortcut commands, show item count or show no badge next to shortcuts. Default is index (1-9).',
+            'New theme variable: ==--nn-theme-mobile-bg== to change mobile background color. Set it in Style settings or through themes / CSS.'
+        ],
+        improved: [
+            "You can now use spaces in file icon mappings, e.g. 'ai ' to prevent matching titles like 'mail'.",
+            'Improved toolbar button layout on all Android devices and iOS devices running Obsidian 1.10 and earlier.'
+        ],
+        changed: [
+            'Removed the "Reset" button next to the file name and file icon mapping text fields to avoid removing mappings by accident.',
+            'Removed the theming variable --nn-theme-mobile-toolbar-border-color since it is no longer used.',
+            'Removed the theming variable --nn-style-pinned-section-icon. Use General > Icons > Interface icons to change the pinned icon.'
+        ],
+        fixed: [
+            'Fixed vertical text alignment in tag pills for certain fonts by adding explicit line-height.',
+            'Fixed "New Tldraw drawing" failing after a Tldraw plugin update.',
+            'You can now collapse and expand the Tags virtual folder with the keyboard.'
+        ]
+    },
+    {
+        version: '1.9.3',
+        date: '2025-12-23',
+        showOnUpdate: true,
+        info: 'The two major improvements in this release are 1: ==File icons==. You can now define rules so file names with certain text and extensions now show specific icons. 2. You can now ==Resize the pinned shortcuts area==. This makes it much easier to manage a large set of shortcuts. Merry Christmas!',
+        new: [
+            'New setting: Notes > Appearance > ==Icons by file name==. Map file name substrings to icons. Default disabled.',
+            'New setting: Notes > Appearance > ==Icons by file type==. If enabled show category icons for all files. Default disabled.',
+            'New setting: Notes > Appearance > ==File name icon map==. You can now set custom icon mappings for text in file names, text=icon.',
+            'New setting: Notes > Appearance > ==File type icon map==. You can now set custom icon mappings for file types, extension=icon.',
+            'New setting: Folders & tags > ==Spring-loaded folders==. Expand folders and tags on hover during drag operations. Default enabled.',
+            'When spring-loaded folders is enabled you now have two new sub-settings: ==First expand delay== and ==Subsequent expand delay== to configure how long to hover before a folder/tag expands during drag operations.',
+            'New command: ==Set as folder note==. Renames the active file to its folder note name.',
+            'New command: ==Detach folder note==. Detaches and renames the active folder note to a new name.',
+            'Public API: Added **navigation.navigateToFolder(folder)** and **navigation.navigateToTag(tag)**.'
+        ],
+        improved: [
+            '==You can now resize the pinned shortcuts area== by dragging the separator line.',
+            '==You can now add multiple files to shortcuts== using multi-selection and context menu.',
+            '==You can now remove all shortcuts== using the new "Remove all shortcuts" option in the shortcuts context menu.',
+            'If you use metadata from frontmatter, you can now enter ==multiple fields for name from frontmatter== such as title, name.'
+        ],
+        fixed: []
+    },
+    {
+        version: '1.9.2',
+        date: '2025-12-17',
+        showOnUpdate: true,
+        new: [
+            'New setting: Notes > Appearance > ==Strip HTML in previews==. Default enabled - removes html tags like <br>, <ul> etc from note previews in list pane.',
+            'New setting: General > Filtering > ==Hide files==. You can now hide filenames by pattern, like temp-* or *.png.'
+        ],
+        improved: [
+            'Settings now support the new ==SettingGroup API== in Obsidian 1.11 and later. Settings groups are now clearly outlined in settings.',
+            '==Toolbar buttons in iOS== now uses the Liquid Glass style in Obsidian 1.11 and later.',
+            'Commands: ==Select next file== and ==Select previous file== no longer reveal the Notebook Navigator view.'
+        ],
+        changed: ['Bumped DB_CONTENT_VERSION to support HTML tag removal from note previews. Cache will be rebuilt on next startup.'],
+        fixed: ['Folders and tags placed in shortcuts no longer show "Add separator" / "Remove separator" menu options']
+    },
+    {
         version: '1.9.1',
         date: '2025-12-07',
         showOnUpdate: true,
@@ -139,9 +209,8 @@ const RELEASE_NOTES: ReleaseNote[] = [
         date: '2025-11-24',
         showOnUpdate: true,
         new: [
-            'New setting: ==General > Formatting > Prevent invalid characters==. Blocks #, |, ^, :, %%, [[, ]] when creating or renaming files and folders to prevent broken links and unexpected behavior. Default enabled.',
             'New setting: ==List pane > Appearance > Default list mode==. Choose the default list layout between **standard** and **compact**. **Standard** shows title, date, description, and preview text. **Compact** only shows title. You can override the appearance for each folder or tag.',
-            'New setting: ==List pane > Appearance > Show file icons==. Disable to hide all file icons and avoid the indentation in the list pane.'
+            'New setting: ==Notes > Appearance > Show file icons==. Disable to hide all file icons and avoid the indentation in the list pane.'
         ],
         improved: [
             'If you change filename color in Style Settings, that color is now also used in shortcuts and recent notes.',

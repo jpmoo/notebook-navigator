@@ -52,6 +52,9 @@ export type MultiSelectModifier = 'cmdCtrl' | 'optionAlt';
 /** Display options for list pane title */
 export type ListPaneTitleOption = 'header' | 'list' | 'hidden';
 
+/** Display options for shortcut row badges in the navigation pane */
+export type ShortcutBadgeDisplayMode = 'index' | 'count' | 'none';
+
 /** Default display modes for list items */
 export type ListDisplayMode = 'standard' | 'compact';
 
@@ -81,6 +84,7 @@ export interface VaultProfile {
     hiddenFolders: string[];
     hiddenTags: string[];
     hiddenFiles: string[];
+    hiddenFileNamePatterns: string[];
     navigationBanner: string | null;
     shortcuts: ShortcutEntry[];
 }
@@ -100,6 +104,7 @@ export interface NotebookNavigatorSettings {
 
     // General tab - View
     startView: 'navigation' | 'files';
+    interfaceIcons: Record<string, string>;
 
     // General tab - Homepage
     homepage: string | null;
@@ -111,13 +116,9 @@ export interface NotebookNavigatorSettings {
     showTooltipPath: boolean;
     desktopBackground: BackgroundMode;
     desktopScale: number;
-
-    // General tab - Mobile appearance
-    mobileBackground: BackgroundMode;
     mobileScale: number;
 
     // General tab - Formatting
-    preventInvalidCharacters: boolean;
     dateFormat: string;
     timeFormat: string;
 
@@ -129,6 +130,7 @@ export interface NotebookNavigatorSettings {
     // Navigation pane tab - Shortcuts & recent items
     showSectionIcons: boolean;
     showShortcuts: boolean;
+    shortcutBadgeDisplay: ShortcutBadgeDisplayMode;
     skipAutoScroll: boolean;
     showRecentNotes: boolean;
     recentNotesCount: number;
@@ -147,6 +149,9 @@ export interface NotebookNavigatorSettings {
     // Folders & tags tab
     autoSelectFirstFileOnFocusChange: boolean;
     autoExpandFoldersTags: boolean;
+    springLoadedFolders: boolean;
+    springLoadedFoldersInitialDelay: number;
+    springLoadedFoldersSubsequentDelay: number;
     showFolderIcons: boolean;
     showRootFolder: boolean;
     inheritFolderColors: boolean;
@@ -173,7 +178,6 @@ export interface NotebookNavigatorSettings {
     filterPinnedByFolder: boolean;
     showPinnedGroupHeader: boolean;
     showPinnedIcon: boolean;
-    showFileIcons: boolean;
     optimizeNoteHeight: boolean;
     compactItemHeight: number;
     compactItemHeightScaleText: boolean;
@@ -193,26 +197,32 @@ export interface NotebookNavigatorSettings {
     frontmatterModifiedField: string;
     frontmatterDateFormat: string;
     saveMetadataToFrontmatter: boolean;
+    showFileIcons: boolean;
+    showFilenameMatchIcons: boolean;
+    fileNameIconMap: Record<string, string>;
+    showCategoryIcons: boolean;
+    fileTypeIconMap: Record<string, string>;
     fileNameRows: number;
-    showFileDate: boolean;
-    alphabeticalDateMode: AlphabeticalDateMode;
+    showFilePreview: boolean;
+    skipHeadingsInPreview: boolean;
+    skipCodeBlocksInPreview: boolean;
+    stripHtmlInPreview: boolean;
+    previewRows: number;
+    previewProperties: string[];
+    showFeatureImage: boolean;
+    featureImageProperties: string[];
+    forceSquareFeatureImage: boolean;
+    useEmbeddedImageFallback: boolean;
     showFileTags: boolean;
     colorFileTags: boolean;
     prioritizeColoredFileTags: boolean;
     showFileTagAncestors: boolean;
     showFileTagsInCompactMode: boolean;
+    showFileDate: boolean;
+    alphabeticalDateMode: AlphabeticalDateMode;
     showParentFolder: boolean;
     parentFolderClickRevealsFile: boolean;
     showParentFolderColor: boolean;
-    showFilePreview: boolean;
-    skipHeadingsInPreview: boolean;
-    skipCodeBlocksInPreview: boolean;
-    previewProperties: string[];
-    previewRows: number;
-    showFeatureImage: boolean;
-    featureImageProperties: string[];
-    forceSquareFeatureImage: boolean;
-    useEmbeddedImageFallback: boolean;
 
     // Icon packs tab
     externalIconProviders: Record<string, boolean>;

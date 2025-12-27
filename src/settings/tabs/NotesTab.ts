@@ -23,6 +23,16 @@ import { ISO_DATE_FORMAT } from '../../utils/dateUtils';
 import { TIMEOUTS } from '../../types/obsidian-extended';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { runAsyncAction } from '../../utils/async';
+import { createSettingGroupFactory } from '../settingGroups';
+import { setElementVisible, wireToggleSettingWithSubSettings } from '../subSettings';
+import {
+    normalizeFileNameIconMapKey,
+    normalizeFileTypeIconMapKey,
+    parseIconMapText,
+    serializeIconMapRecord,
+    type IconMapParseResult
+} from '../../utils/iconizeFormat';
+import { formatCommaSeparatedList, normalizeCommaSeparatedList, parseCommaSeparatedList } from '../../utils/commaSeparatedListUtils';
 
 /**
  * Type guard to check if a file is a markdown file
@@ -54,26 +64,35 @@ function countMarkdownMetadataEntries(records: Record<string, string> | undefine
     return count;
 }
 
+function parseFileTypeIconMapText(value: string): IconMapParseResult {
+    return parseIconMapText(value, normalizeFileTypeIconMapKey);
+}
+
+function parseFileNameIconMapText(value: string): IconMapParseResult {
+    return parseIconMapText(value, normalizeFileNameIconMapKey);
+}
+
 /** Renders the notes settings tab */
 export function renderNotesTab(context: SettingsTabContext): void {
     const { app, containerEl, plugin } = context;
 
-    new Setting(containerEl).setName(strings.settings.groups.notes.frontmatter).setHeading();
+    const createGroup = createSettingGroupFactory(containerEl);
+    const frontmatterGroup = createGroup(strings.settings.groups.notes.frontmatter);
 
-    new Setting(containerEl)
-        .setName(strings.settings.items.useFrontmatterDates.name)
-        .setDesc(strings.settings.items.useFrontmatterDates.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.useFrontmatterMetadata).onChange(async value => {
-                plugin.settings.useFrontmatterMetadata = value;
-                await plugin.saveSettingsAndUpdate();
-                frontmatterSettingsEl.toggle(value);
-                // Use context directly to satisfy eslint exhaustive-deps requirements
-                context.requestStatisticsRefresh();
-            })
-        );
+    const useFrontmatterSetting = frontmatterGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.useFrontmatterDates.name).setDesc(strings.settings.items.useFrontmatterDates.desc);
+    });
 
-    const frontmatterSettingsEl = containerEl.createDiv('nn-sub-settings');
+    const frontmatterSettingsEl = wireToggleSettingWithSubSettings(
+        useFrontmatterSetting,
+        () => plugin.settings.useFrontmatterMetadata,
+        async value => {
+            plugin.settings.useFrontmatterMetadata = value;
+            await plugin.saveSettingsAndUpdate();
+            // Use context directly to satisfy eslint exhaustive-deps requirements
+            context.requestStatisticsRefresh();
+        }
+    );
     // Function to update visibility of frontmatter save setting based on field values
     let updateFrontmatterSaveVisibility: (() => void) | null = null;
 
@@ -125,7 +144,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
         const hasIconField = plugin.settings.frontmatterIconField.trim().length > 0;
         const hasColorField = plugin.settings.frontmatterColorField.trim().length > 0;
         const canSaveMetadata = hasIconField || hasColorField;
-        frontmatterSaveSetting.settingEl.toggle(canSaveMetadata);
+        setElementVisible(frontmatterSaveSetting.settingEl, canSaveMetadata);
     };
 
     updateFrontmatterSaveVisibility();
@@ -201,7 +220,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
         descriptionEl.createDiv({ text: descriptionText });
         const shouldShow = !noMigrationsPending && plugin.settings.saveMetadataToFrontmatter;
         migrateButton?.setDisabled(!plugin.settings.saveMetadataToFrontmatter || noMigrationsPending);
-        migrationSetting.settingEl.toggle(shouldShow);
+        setElementVisible(migrationSetting.settingEl, shouldShow);
     };
 
     updateMigrationDescription();
@@ -211,9 +230,9 @@ export function renderNotesTab(context: SettingsTabContext): void {
         strings.settings.items.frontmatterNameField.name,
         strings.settings.items.frontmatterNameField.desc,
         strings.settings.items.frontmatterNameField.placeholder,
-        () => plugin.settings.frontmatterNameField,
+        () => normalizeCommaSeparatedList(plugin.settings.frontmatterNameField),
         value => {
-            plugin.settings.frontmatterNameField = value || '';
+            plugin.settings.frontmatterNameField = normalizeCommaSeparatedList(value);
         },
         undefined,
         () => context.requestStatisticsRefresh()
@@ -274,164 +293,204 @@ export function renderNotesTab(context: SettingsTabContext): void {
     });
     context.registerMetadataInfoElement(metadataInfoEl);
 
-    new Setting(containerEl).setName(strings.settings.groups.notes.display).setHeading();
+    const iconGroup = createGroup(strings.settings.groups.notes.icon);
+    const titleGroup = createGroup(strings.settings.groups.notes.title);
+    const previewTextGroup = createGroup(strings.settings.groups.notes.previewText);
+    const featureImageGroup = createGroup(strings.settings.groups.notes.featureImage);
+    const tagsGroup = createGroup(strings.settings.groups.notes.tags);
+    const dateGroup = createGroup(strings.settings.groups.notes.date);
+    const parentFolderGroup = createGroup(strings.settings.groups.notes.parentFolder);
 
-    new Setting(containerEl)
-        .setName(strings.settings.items.fileNameRows.name)
-        .setDesc(strings.settings.items.fileNameRows.desc)
-        .addDropdown(dropdown =>
-            dropdown
-                .addOption('1', strings.settings.items.fileNameRows.options['1'])
-                .addOption('2', strings.settings.items.fileNameRows.options['2'])
-                .setValue(plugin.settings.fileNameRows.toString())
-                .onChange(async value => {
-                    plugin.settings.fileNameRows = parseInt(value, 10);
-                    await plugin.saveSettingsAndUpdate();
+    const setGroupVisible = (groupRootEl: HTMLElement, visible: boolean) => {
+        setElementVisible(groupRootEl, visible);
+
+        const headingEl = groupRootEl.previousElementSibling;
+        if (headingEl instanceof HTMLElement && headingEl.classList.contains('setting-item-heading')) {
+            setElementVisible(headingEl, visible);
+        }
+    };
+
+    const showFileIconsSetting = iconGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.showFileIcons.name).setDesc(strings.settings.items.showFileIcons.desc);
+    });
+
+    const fileIconSubSettingsEl = wireToggleSettingWithSubSettings(
+        showFileIconsSetting,
+        () => plugin.settings.showFileIcons,
+        async value => {
+            plugin.settings.showFileIcons = value;
+            await plugin.saveSettingsAndUpdate();
+        }
+    );
+
+    let updateFileNameIconMapVisibility: (() => void) | null = null;
+    let updateFileTypeIconMapVisibility: (() => void) | null = null;
+
+    /**
+     * Adds an edit button to an icon map setting that opens the visual rule editor modal
+     */
+    const addIconMapEditorButton = (options: {
+        setting: Setting;
+        tooltip: string;
+        title: string;
+        mode: 'fileName' | 'fileType';
+        getMap: () => Record<string, string>;
+        setMap: (nextMap: Record<string, string>) => void;
+        normalizeKey: (input: string) => string;
+    }): void => {
+        options.setting.addExtraButton(button =>
+            button
+                .setIcon('lucide-pencil')
+                .setTooltip(options.tooltip)
+                .onClick(() => {
+                    runAsyncAction(async () => {
+                        const metadataService = plugin.metadataService;
+                        if (!metadataService) {
+                            showNotice(strings.common.unknownError, { variant: 'warning' });
+                            return;
+                        }
+
+                        const { FileIconRuleEditorModal } = await import('../../modals/FileIconRuleEditorModal');
+                        const modal = new FileIconRuleEditorModal(app, {
+                            title: options.title,
+                            mode: options.mode,
+                            initialMap: options.getMap(),
+                            fallbackIconId: 'file',
+                            metadataService,
+                            normalizeKey: options.normalizeKey,
+                            onSave: async nextMap => {
+                                options.setMap(nextMap);
+
+                                const textarea = options.setting.controlEl.querySelector('textarea');
+                                if (textarea instanceof HTMLTextAreaElement) {
+                                    textarea.value = serializeIconMapRecord(nextMap);
+                                }
+
+                                await plugin.saveSettingsAndUpdate();
+                            }
+                        });
+                        modal.open();
+                    });
                 })
         );
+    };
 
-    // Container for settings that depend on showFileDate being enabled
-    const fileDateSubSettingsEl = containerEl.createDiv('nn-sub-settings');
-    new Setting(containerEl)
-        .setName(strings.settings.items.showFileDate.name)
-        .setDesc(strings.settings.items.showFileDate.desc)
+    new Setting(fileIconSubSettingsEl)
+        .setName(strings.settings.items.showFilenameMatchIcons.name)
+        .setDesc(strings.settings.items.showFilenameMatchIcons.desc)
         .addToggle(toggle =>
-            toggle.setValue(plugin.settings.showFileDate).onChange(async value => {
-                plugin.settings.showFileDate = value;
+            toggle.setValue(plugin.settings.showFilenameMatchIcons).onChange(async value => {
+                plugin.settings.showFilenameMatchIcons = value;
                 await plugin.saveSettingsAndUpdate();
-                // Show or hide dependent settings based on toggle state
-                fileDateSubSettingsEl.toggle(value);
+                updateFileNameIconMapVisibility?.();
             })
         );
 
-    containerEl.appendChild(fileDateSubSettingsEl);
-    // Initially show or hide based on current setting value
-    fileDateSubSettingsEl.toggle(plugin.settings.showFileDate);
+    const fileNameIconMapSetting = context.createDebouncedTextAreaSetting(
+        fileIconSubSettingsEl,
+        strings.settings.items.fileNameIconMap.name,
+        strings.settings.items.fileNameIconMap.desc,
+        strings.settings.items.fileNameIconMap.placeholder,
+        () => serializeIconMapRecord(plugin.settings.fileNameIconMap),
+        value => {
+            const parsed = parseFileNameIconMapText(value);
+            plugin.settings.fileNameIconMap = parsed.map;
+        },
+        {
+            rows: 3,
+            validator: value => parseFileNameIconMapText(value).invalidLines.length === 0
+        }
+    );
 
-    // Dropdown to choose which date to display when sorting alphabetically
-    new Setting(fileDateSubSettingsEl)
-        .setName(strings.settings.items.alphabeticalDateMode.name)
-        .setDesc(strings.settings.items.alphabeticalDateMode.desc)
-        .addDropdown(dropdown =>
-            dropdown
-                .addOption('created', strings.settings.items.alphabeticalDateMode.options.created)
-                .addOption('modified', strings.settings.items.alphabeticalDateMode.options.modified)
-                .setValue(plugin.settings.alphabeticalDateMode)
-                .onChange(async value => {
-                    plugin.settings.alphabeticalDateMode = value === 'modified' ? 'modified' : 'created';
-                    await plugin.saveSettingsAndUpdate();
-                })
-        );
+    addIconMapEditorButton({
+        setting: fileNameIconMapSetting,
+        tooltip: strings.settings.items.fileNameIconMap.editTooltip,
+        title: strings.settings.items.fileNameIconMap.name,
+        mode: 'fileName',
+        getMap: () => plugin.settings.fileNameIconMap,
+        setMap: nextMap => {
+            plugin.settings.fileNameIconMap = nextMap;
+        },
+        normalizeKey: normalizeFileNameIconMapKey
+    });
+    fileNameIconMapSetting.controlEl.addClass('nn-setting-wide-input');
+    updateFileNameIconMapVisibility = () => {
+        setElementVisible(fileNameIconMapSetting.settingEl, plugin.settings.showFilenameMatchIcons);
+    };
+    updateFileNameIconMapVisibility();
 
-    const showFileTagsSetting = new Setting(containerEl)
-        .setName(strings.settings.items.showFileTags.name)
-        .setDesc(strings.settings.items.showFileTags.desc)
+    new Setting(fileIconSubSettingsEl)
+        .setName(strings.settings.items.showCategoryIcons.name)
+        .setDesc(strings.settings.items.showCategoryIcons.desc)
         .addToggle(toggle =>
-            toggle.setValue(plugin.settings.showFileTags).onChange(async value => {
-                plugin.settings.showFileTags = value;
+            toggle.setValue(plugin.settings.showCategoryIcons).onChange(async value => {
+                plugin.settings.showCategoryIcons = value;
                 await plugin.saveSettingsAndUpdate();
-                fileTagsSubSettingsEl.toggle(value);
+                updateFileTypeIconMapVisibility?.();
             })
         );
 
-    const fileTagsSubSettingsEl = containerEl.createDiv('nn-sub-settings');
-    let colorFileTagsSubSettingsEl: HTMLElement | null = null;
+    const fileTypeIconMapSetting = context.createDebouncedTextAreaSetting(
+        fileIconSubSettingsEl,
+        strings.settings.items.fileTypeIconMap.name,
+        strings.settings.items.fileTypeIconMap.desc,
+        strings.settings.items.fileTypeIconMap.placeholder,
+        () => serializeIconMapRecord(plugin.settings.fileTypeIconMap),
+        value => {
+            const parsed = parseFileTypeIconMapText(value);
+            plugin.settings.fileTypeIconMap = parsed.map;
+        },
+        {
+            rows: 3,
+            validator: value => parseFileTypeIconMapText(value).invalidLines.length === 0
+        }
+    );
 
-    new Setting(fileTagsSubSettingsEl)
-        .setName(strings.settings.items.colorFileTags.name)
-        .setDesc(strings.settings.items.colorFileTags.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.colorFileTags).onChange(async value => {
-                plugin.settings.colorFileTags = value;
-                await plugin.saveSettingsAndUpdate();
-                if (colorFileTagsSubSettingsEl) {
-                    colorFileTagsSubSettingsEl.toggle(value);
-                }
-            })
-        );
+    addIconMapEditorButton({
+        setting: fileTypeIconMapSetting,
+        tooltip: strings.settings.items.fileTypeIconMap.editTooltip,
+        title: strings.settings.items.fileTypeIconMap.name,
+        mode: 'fileType',
+        getMap: () => plugin.settings.fileTypeIconMap,
+        setMap: nextMap => {
+            plugin.settings.fileTypeIconMap = nextMap;
+        },
+        normalizeKey: normalizeFileTypeIconMapKey
+    });
+    fileTypeIconMapSetting.controlEl.addClass('nn-setting-wide-input');
+    updateFileTypeIconMapVisibility = () => {
+        setElementVisible(fileTypeIconMapSetting.settingEl, plugin.settings.showCategoryIcons);
+    };
+    updateFileTypeIconMapVisibility();
 
-    colorFileTagsSubSettingsEl = fileTagsSubSettingsEl.createDiv('nn-sub-settings');
+    titleGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.fileNameRows.name)
+            .setDesc(strings.settings.items.fileNameRows.desc)
+            .addDropdown(dropdown =>
+                dropdown
+                    .addOption('1', strings.settings.items.fileNameRows.options['1'])
+                    .addOption('2', strings.settings.items.fileNameRows.options['2'])
+                    .setValue(plugin.settings.fileNameRows.toString())
+                    .onChange(async value => {
+                        plugin.settings.fileNameRows = parseInt(value, 10);
+                        await plugin.saveSettingsAndUpdate();
+                    })
+            );
+    });
 
-    if (!colorFileTagsSubSettingsEl) {
-        throw new Error('Failed to create file tag color settings container');
-    }
+    const showPreviewSetting = previewTextGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.showFilePreview.name).setDesc(strings.settings.items.showFilePreview.desc);
+    });
 
-    new Setting(colorFileTagsSubSettingsEl)
-        .setName(strings.settings.items.prioritizeColoredFileTags.name)
-        .setDesc(strings.settings.items.prioritizeColoredFileTags.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.prioritizeColoredFileTags).onChange(async value => {
-                plugin.settings.prioritizeColoredFileTags = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
-    colorFileTagsSubSettingsEl.toggle(plugin.settings.colorFileTags);
-
-    new Setting(fileTagsSubSettingsEl)
-        .setName(strings.settings.items.showFileTagAncestors.name)
-        .setDesc(strings.settings.items.showFileTagAncestors.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.showFileTagAncestors).onChange(async value => {
-                plugin.settings.showFileTagAncestors = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
-
-    new Setting(fileTagsSubSettingsEl)
-        .setName(strings.settings.items.showFileTagsInCompactMode.name)
-        .setDesc(strings.settings.items.showFileTagsInCompactMode.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.showFileTagsInCompactMode).onChange(async value => {
-                plugin.settings.showFileTagsInCompactMode = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
-
-    new Setting(containerEl)
-        .setName(strings.settings.items.showParentFolder.name)
-        .setDesc(strings.settings.items.showParentFolder.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.showParentFolder).onChange(async value => {
-                plugin.settings.showParentFolder = value;
-                await plugin.saveSettingsAndUpdate();
-                parentFolderSettingsEl.toggle(value);
-            })
-        );
-
-    const parentFolderSettingsEl = containerEl.createDiv('nn-sub-settings');
-
-    new Setting(parentFolderSettingsEl)
-        .setName(strings.settings.items.parentFolderClickRevealsFile.name)
-        .setDesc(strings.settings.items.parentFolderClickRevealsFile.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.parentFolderClickRevealsFile).onChange(async value => {
-                plugin.settings.parentFolderClickRevealsFile = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
-
-    new Setting(parentFolderSettingsEl)
-        .setName(strings.settings.items.showParentFolderColor.name)
-        .setDesc(strings.settings.items.showParentFolderColor.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.showParentFolderColor).onChange(async value => {
-                plugin.settings.showParentFolderColor = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
-
-    new Setting(containerEl)
-        .setName(strings.settings.items.showFilePreview.name)
-        .setDesc(strings.settings.items.showFilePreview.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.showFilePreview).onChange(async value => {
-                plugin.settings.showFilePreview = value;
-                await plugin.saveSettingsAndUpdate();
-                previewSettingsEl.toggle(value);
-            })
-        );
-
-    const previewSettingsEl = containerEl.createDiv('nn-sub-settings');
+    const previewSettingsEl = wireToggleSettingWithSubSettings(
+        showPreviewSetting,
+        () => plugin.settings.showFilePreview,
+        async value => {
+            plugin.settings.showFilePreview = value;
+            await plugin.saveSettingsAndUpdate();
+        }
+    );
 
     new Setting(previewSettingsEl)
         .setName(strings.settings.items.skipHeadingsInPreview.name)
@@ -449,6 +508,16 @@ export function renderNotesTab(context: SettingsTabContext): void {
         .addToggle(toggle =>
             toggle.setValue(plugin.settings.skipCodeBlocksInPreview).onChange(async value => {
                 plugin.settings.skipCodeBlocksInPreview = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
+    new Setting(previewSettingsEl)
+        .setName(strings.settings.items.stripHtmlInPreview.name)
+        .setDesc(strings.settings.items.stripHtmlInPreview.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.stripHtmlInPreview).onChange(async value => {
+                plugin.settings.stripHtmlInPreview = value;
                 await plugin.saveSettingsAndUpdate();
             })
         );
@@ -475,12 +544,9 @@ export function renderNotesTab(context: SettingsTabContext): void {
         strings.settings.items.previewProperties.name,
         strings.settings.items.previewProperties.desc,
         strings.settings.items.previewProperties.placeholder,
-        () => plugin.settings.previewProperties.join(', '),
+        () => formatCommaSeparatedList(plugin.settings.previewProperties),
         value => {
-            plugin.settings.previewProperties = value
-                .split(',')
-                .map(property => property.trim())
-                .filter(property => property.length > 0);
+            plugin.settings.previewProperties = parseCommaSeparatedList(value);
         }
     );
     previewPropertiesSetting.controlEl.addClass('nn-setting-wide-input');
@@ -491,30 +557,27 @@ export function renderNotesTab(context: SettingsTabContext): void {
     });
     previewInfoDiv.createSpan({ text: strings.settings.items.previewProperties.info });
 
-    new Setting(containerEl)
-        .setName(strings.settings.items.showFeatureImage.name)
-        .setDesc(strings.settings.items.showFeatureImage.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.showFeatureImage).onChange(async value => {
-                plugin.settings.showFeatureImage = value;
-                await plugin.saveSettingsAndUpdate();
-                featureImageSettingsEl.toggle(value);
-            })
-        );
+    const showFeatureImageSetting = featureImageGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.showFeatureImage.name).setDesc(strings.settings.items.showFeatureImage.desc);
+    });
 
-    const featureImageSettingsEl = containerEl.createDiv('nn-sub-settings');
+    const featureImageSettingsEl = wireToggleSettingWithSubSettings(
+        showFeatureImageSetting,
+        () => plugin.settings.showFeatureImage,
+        async value => {
+            plugin.settings.showFeatureImage = value;
+            await plugin.saveSettingsAndUpdate();
+        }
+    );
 
     const featurePropertiesSetting = context.createDebouncedTextSetting(
         featureImageSettingsEl,
         strings.settings.items.featureImageProperties.name,
         strings.settings.items.featureImageProperties.desc,
         strings.settings.items.featureImageProperties.placeholder,
-        () => plugin.settings.featureImageProperties.join(', '),
+        () => formatCommaSeparatedList(plugin.settings.featureImageProperties),
         value => {
-            plugin.settings.featureImageProperties = value
-                .split(',')
-                .map(property => property.trim())
-                .filter(property => property.length > 0);
+            plugin.settings.featureImageProperties = parseCommaSeparatedList(value);
         }
     );
     featurePropertiesSetting.controlEl.addClass('nn-setting-wide-input');
@@ -539,14 +602,124 @@ export function renderNotesTab(context: SettingsTabContext): void {
             })
         );
 
-    fileTagsSubSettingsEl.toggle(plugin.settings.showFileTags);
-    parentFolderSettingsEl.toggle(plugin.settings.showParentFolder);
-    previewSettingsEl.toggle(plugin.settings.showFilePreview);
-    featureImageSettingsEl.toggle(plugin.settings.showFeatureImage);
-    frontmatterSettingsEl.toggle(plugin.settings.useFrontmatterMetadata);
+    const showFileTagsSetting = tagsGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.showFileTags.name).setDesc(strings.settings.items.showFileTags.desc);
+    });
+
+    const fileTagsSubSettingsEl = wireToggleSettingWithSubSettings(
+        showFileTagsSetting,
+        () => plugin.settings.showFileTags,
+        async value => {
+            plugin.settings.showFileTags = value;
+            await plugin.saveSettingsAndUpdate();
+        }
+    );
+
+    const colorFileTagsSetting = new Setting(fileTagsSubSettingsEl)
+        .setName(strings.settings.items.colorFileTags.name)
+        .setDesc(strings.settings.items.colorFileTags.desc);
+    const colorFileTagsSubSettingsEl = wireToggleSettingWithSubSettings(
+        colorFileTagsSetting,
+        () => plugin.settings.colorFileTags,
+        async value => {
+            plugin.settings.colorFileTags = value;
+            await plugin.saveSettingsAndUpdate();
+        }
+    );
+
+    new Setting(colorFileTagsSubSettingsEl)
+        .setName(strings.settings.items.prioritizeColoredFileTags.name)
+        .setDesc(strings.settings.items.prioritizeColoredFileTags.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.prioritizeColoredFileTags).onChange(async value => {
+                plugin.settings.prioritizeColoredFileTags = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
+    new Setting(fileTagsSubSettingsEl)
+        .setName(strings.settings.items.showFileTagAncestors.name)
+        .setDesc(strings.settings.items.showFileTagAncestors.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.showFileTagAncestors).onChange(async value => {
+                plugin.settings.showFileTagAncestors = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
+    new Setting(fileTagsSubSettingsEl)
+        .setName(strings.settings.items.showFileTagsInCompactMode.name)
+        .setDesc(strings.settings.items.showFileTagsInCompactMode.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.showFileTagsInCompactMode).onChange(async value => {
+                plugin.settings.showFileTagsInCompactMode = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
+    const showFileDateSetting = dateGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.showFileDate.name).setDesc(strings.settings.items.showFileDate.desc);
+    });
+
+    const fileDateSubSettingsEl = wireToggleSettingWithSubSettings(
+        showFileDateSetting,
+        () => plugin.settings.showFileDate,
+        async value => {
+            plugin.settings.showFileDate = value;
+            await plugin.saveSettingsAndUpdate();
+        }
+    );
+
+    // Dropdown to choose which date to display when sorting alphabetically
+    new Setting(fileDateSubSettingsEl)
+        .setName(strings.settings.items.alphabeticalDateMode.name)
+        .setDesc(strings.settings.items.alphabeticalDateMode.desc)
+        .addDropdown(dropdown =>
+            dropdown
+                .addOption('created', strings.settings.items.alphabeticalDateMode.options.created)
+                .addOption('modified', strings.settings.items.alphabeticalDateMode.options.modified)
+                .setValue(plugin.settings.alphabeticalDateMode)
+                .onChange(async value => {
+                    plugin.settings.alphabeticalDateMode = value === 'modified' ? 'modified' : 'created';
+                    await plugin.saveSettingsAndUpdate();
+                })
+        );
+
+    const showParentFolderSetting = parentFolderGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.showParentFolder.name).setDesc(strings.settings.items.showParentFolder.desc);
+    });
+
+    const parentFolderSettingsEl = wireToggleSettingWithSubSettings(
+        showParentFolderSetting,
+        () => plugin.settings.showParentFolder,
+        async value => {
+            plugin.settings.showParentFolder = value;
+            await plugin.saveSettingsAndUpdate();
+        }
+    );
+
+    new Setting(parentFolderSettingsEl)
+        .setName(strings.settings.items.parentFolderClickRevealsFile.name)
+        .setDesc(strings.settings.items.parentFolderClickRevealsFile.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.parentFolderClickRevealsFile).onChange(async value => {
+                plugin.settings.parentFolderClickRevealsFile = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
+    new Setting(parentFolderSettingsEl)
+        .setName(strings.settings.items.showParentFolderColor.name)
+        .setDesc(strings.settings.items.showParentFolderColor.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.showParentFolderColor).onChange(async value => {
+                plugin.settings.showParentFolderColor = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
 
     context.registerShowTagsListener(visible => {
-        showFileTagsSetting.settingEl.toggle(visible);
+        setGroupVisible(tagsGroup.rootEl, visible);
     });
 
     context.requestStatisticsRefresh();

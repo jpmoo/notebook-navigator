@@ -48,12 +48,19 @@ import { initializeDatabase, shutdownDatabase } from './storage/fileOperations';
 import { ExtendedApp } from './types/obsidian-extended';
 import { getLeafSplitLocation } from './utils/workspaceSplit';
 import { sanitizeKeyboardShortcuts } from './utils/keyboardShortcuts';
-import { normalizeCanonicalIconId } from './utils/iconizeFormat';
+import {
+    normalizeCanonicalIconId,
+    normalizeFileNameIconMapKey,
+    normalizeFileTypeIconMapKey,
+    normalizeIconMapRecord
+} from './utils/iconizeFormat';
+import { normalizeUXIconMapRecord } from './utils/uxIcons';
 import { isBooleanRecordValue, isPlainObjectRecordValue, isStringRecordValue, sanitizeRecord } from './utils/recordUtils';
 import { isRecord } from './utils/typeGuards';
 import { runAsyncAction } from './utils/async';
 import { resetHiddenToggleIfNoSources } from './utils/exclusionUtils';
 import { ensureVaultProfiles, DEFAULT_VAULT_PROFILE_ID, cloneShortcuts, clearHiddenFolderMatcherCache } from './utils/vaultProfiles';
+import { clearHiddenFileNameMatcherCache } from './utils/fileFilters';
 import WorkspaceCoordinator from './services/workspace/WorkspaceCoordinator';
 import HomepageController from './services/workspace/HomepageController';
 import registerNavigatorCommands from './services/commands/registerNavigatorCommands';
@@ -158,6 +165,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     private shouldPersistMobileScale = false;
     private hiddenFolderCacheKey: string | null = null;
     private hiddenTagCacheKey: string | null = null;
+    private hiddenFileNameCacheKey: string | null = null;
 
     // Keys used for persisting UI state in browser localStorage
     keys: LocalStorageKeys = STORAGE_KEYS;
@@ -203,6 +211,8 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         delete mutableSettings.showHiddenItems;
         delete mutableSettings.hiddenTags;
         delete mutableSettings.fileVisibility;
+        delete mutableSettings.preventInvalidCharacters;
+        delete mutableSettings.mobileBackground;
 
         const storedNoteGrouping = storedData ? storedData['noteGrouping'] : undefined;
 
@@ -248,6 +258,15 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         // Validate noteGrouping value and reset to default if invalid
         if (this.settings.noteGrouping !== 'none' && this.settings.noteGrouping !== 'date' && this.settings.noteGrouping !== 'folder') {
             this.settings.noteGrouping = DEFAULT_SETTINGS.noteGrouping;
+        }
+
+        // Validate shortcutBadgeDisplay value and reset to default if invalid
+        if (
+            this.settings.shortcutBadgeDisplay !== 'index' &&
+            this.settings.shortcutBadgeDisplay !== 'count' &&
+            this.settings.shortcutBadgeDisplay !== 'none'
+        ) {
+            this.settings.shortcutBadgeDisplay = DEFAULT_SETTINGS.shortcutBadgeDisplay;
         }
 
         type LegacyAppearance = FolderAppearance & {
@@ -393,6 +412,8 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         this.applyLegacyVisibilityMigration(legacyVisibility);
         this.applyLegacyShortcutsMigration(legacyShortcuts);
         this.normalizeIconSettings(this.settings);
+        this.normalizeFileIconMapSettings(this.settings);
+        this.normalizeInterfaceIconsSettings(this.settings);
         this.settings.vaultProfile = this.resolveActiveVaultProfileId();
         localStorage.set(STORAGE_KEYS.vaultProfileKey, this.settings.vaultProfile);
         this.refreshMatcherCachesIfNeeded();
@@ -1535,6 +1556,70 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         settings.fileIcons = normalizeRecord(settings.fileIcons);
     }
 
+    private normalizeFileIconMapSettings(settings: NotebookNavigatorSettings): void {
+        const normalizeIconMap = (input: unknown, normalizeKey: (key: string) => string, fallback: Record<string, string>) => {
+            if (!isPlainObjectRecordValue(input)) {
+                return normalizeIconMapRecord(fallback, normalizeKey);
+            }
+
+            const source = sanitizeRecord<string>(undefined);
+            Object.entries(input).forEach(([key, value]) => {
+                if (typeof value !== 'string') {
+                    return;
+                }
+
+                source[key] = value;
+            });
+
+            return normalizeIconMapRecord(source, normalizeKey);
+        };
+
+        if (typeof settings.showCategoryIcons !== 'boolean') {
+            settings.showCategoryIcons = DEFAULT_SETTINGS.showCategoryIcons;
+        }
+
+        if (typeof settings.showFilenameMatchIcons !== 'boolean') {
+            settings.showFilenameMatchIcons = DEFAULT_SETTINGS.showFilenameMatchIcons;
+        }
+
+        settings.fileTypeIconMap = normalizeIconMap(
+            settings.fileTypeIconMap,
+            normalizeFileTypeIconMapKey,
+            DEFAULT_SETTINGS.fileTypeIconMap
+        );
+
+        settings.fileNameIconMap = normalizeIconMap(
+            settings.fileNameIconMap,
+            normalizeFileNameIconMapKey,
+            DEFAULT_SETTINGS.fileNameIconMap
+        );
+    }
+
+    private normalizeInterfaceIconsSettings(settings: NotebookNavigatorSettings): void {
+        const raw = settings.interfaceIcons;
+        if (!isPlainObjectRecordValue(raw)) {
+            settings.interfaceIcons = sanitizeRecord(DEFAULT_SETTINGS.interfaceIcons, isStringRecordValue);
+            return;
+        }
+
+        const source = sanitizeRecord<string>(undefined);
+        Object.entries(raw).forEach(([key, value]) => {
+            if (typeof value !== 'string') {
+                return;
+            }
+            source[key] = value;
+        });
+
+        const legacySortIcon = source['list-sort'];
+        if (legacySortIcon && typeof legacySortIcon === 'string') {
+            source['list-sort-ascending'] = source['list-sort-ascending'] ?? legacySortIcon;
+            source['list-sort-descending'] = source['list-sort-descending'] ?? legacySortIcon;
+            delete source['list-sort'];
+        }
+
+        settings.interfaceIcons = sanitizeRecord(normalizeUXIconMapRecord(source), isStringRecordValue);
+    }
+
     // Extracts legacy exclusion settings from old format and prepares them for migration to vault profiles
     private extractLegacyVisibilitySettings(storedData: Record<string, unknown> | null): LegacyVisibilityMigration {
         // Converts unknown value to a deduplicated list of non-empty strings
@@ -1706,10 +1791,11 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         return entries.map(entry => `${entry.id}:${entry.key}`).join('\u0002');
     }
 
-    // Clears matcher caches only when the hidden folder or tag patterns change.
+    // Clears matcher caches only when the associated patterns change.
     private refreshMatcherCachesIfNeeded(): void {
         const folderKey = this.buildPatternCacheKey(profile => profile.hiddenFolders);
         const tagKey = this.buildPatternCacheKey(profile => profile.hiddenTags);
+        const fileNameKey = this.buildPatternCacheKey(profile => profile.hiddenFileNamePatterns);
 
         if (folderKey !== this.hiddenFolderCacheKey) {
             clearHiddenFolderMatcherCache();
@@ -1719,6 +1805,11 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         if (tagKey !== this.hiddenTagCacheKey) {
             clearHiddenTagPatternCache();
             this.hiddenTagCacheKey = tagKey;
+        }
+
+        if (fileNameKey !== this.hiddenFileNameCacheKey) {
+            clearHiddenFileNameMatcherCache();
+            this.hiddenFileNameCacheKey = fileNameKey;
         }
     }
 

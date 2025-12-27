@@ -139,7 +139,7 @@ export class EditVaultProfilesModal extends Modal {
             const actions = row.createDiv({ cls: 'nn-edit-profiles-actions' });
 
             const upBtn = actions.createEl('button', {
-                cls: 'nn-edit-profiles-action-btn',
+                cls: 'nn-action-btn',
                 attr: {
                     type: 'button',
                     'aria-label': strings.settings.items.vaultProfiles.moveUp
@@ -154,7 +154,7 @@ export class EditVaultProfilesModal extends Modal {
             );
 
             const downBtn = actions.createEl('button', {
-                cls: 'nn-edit-profiles-action-btn',
+                cls: 'nn-action-btn',
                 attr: {
                     type: 'button',
                     'aria-label': strings.settings.items.vaultProfiles.moveDown
@@ -169,7 +169,7 @@ export class EditVaultProfilesModal extends Modal {
             );
 
             const deleteBtn = actions.createEl('button', {
-                cls: 'nn-edit-profiles-action-btn mod-warning',
+                cls: 'nn-action-btn mod-warning',
                 attr: {
                     type: 'button',
                     'aria-label': strings.settings.items.vaultProfiles.deleteButton
@@ -488,6 +488,7 @@ export class EditVaultProfilesModal extends Modal {
             hiddenFolders: Array.isArray(profile.hiddenFolders) ? [...profile.hiddenFolders] : [],
             hiddenTags: Array.isArray(profile.hiddenTags) ? [...profile.hiddenTags] : [],
             hiddenFiles: Array.isArray(profile.hiddenFiles) ? [...profile.hiddenFiles] : [],
+            hiddenFileNamePatterns: Array.isArray(profile.hiddenFileNamePatterns) ? [...profile.hiddenFileNamePatterns] : [],
             navigationBanner: typeof profile.navigationBanner === 'string' ? profile.navigationBanner : null,
             shortcuts: cloneShortcuts(profile.shortcuts)
         }));
@@ -503,6 +504,7 @@ export class EditVaultProfilesModal extends Modal {
                 hiddenFolders: Array.isArray(profile.hiddenFolders) ? [...profile.hiddenFolders] : [],
                 hiddenTags: Array.isArray(profile.hiddenTags) ? [...profile.hiddenTags] : [],
                 hiddenFiles: Array.isArray(profile.hiddenFiles) ? [...profile.hiddenFiles] : [],
+                hiddenFileNamePatterns: Array.isArray(profile.hiddenFileNamePatterns) ? [...profile.hiddenFileNamePatterns] : [],
                 navigationBanner: profile.navigationBanner ?? null,
                 fileVisibility: profile.fileVisibility,
                 shortcuts: cloneShortcuts(profile.shortcuts)

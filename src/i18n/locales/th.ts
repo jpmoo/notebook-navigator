@@ -83,7 +83,11 @@ export const STRINGS_TH = {
         emptySearchQuery: 'กรอกคำค้นหาก่อนบันทึก',
         emptySearchName: 'กรอกชื่อก่อนบันทึกการค้นหา',
         add: 'เพิ่มในทางลัด',
+        addNotesCount: 'เพิ่ม {count} โน้ตไปยังทางลัด',
+        addFilesCount: 'เพิ่ม {count} ไฟล์ไปยังทางลัด',
         remove: 'นำออกจากทางลัด',
+        removeAll: 'ลบทางลัดทั้งหมด',
+        removeAllConfirm: 'ลบทางลัดทั้งหมด?',
         folderNotesPinned: 'ปักหมุด {count} โน้ตโฟลเดอร์แล้ว'
     },
 
@@ -172,6 +176,7 @@ export const STRINGS_TH = {
         },
         folder: {
             newNote: 'โน้ตใหม่',
+            newNoteFromTemplate: 'โน้ตใหม่จากเทมเพลต',
             newFolder: 'โฟลเดอร์ใหม่',
             newCanvas: 'Canvas ใหม่',
             newBase: 'Base ใหม่',
@@ -183,6 +188,7 @@ export const STRINGS_TH = {
             copyPath: 'คัดลอกเส้นทางระบบไฟล์',
             copyRelativePath: 'คัดลอกเส้นทางห้องนิรภัย',
             createFolderNote: 'สร้างโน้ตโฟลเดอร์',
+            detachFolderNote: 'แยกโน้ตโฟลเดอร์',
             deleteFolderNote: 'ลบโน้ตโฟลเดอร์',
             changeIcon: 'เปลี่ยนไอคอน',
             changeColor: 'เปลี่ยนสี',
@@ -242,6 +248,36 @@ export const STRINGS_TH = {
             emojiInstructions: 'พิมพ์หรือวางอีโมจิเพื่อใช้เป็นไอคอน',
             removeIcon: 'นำไอคอนออก',
             allTabLabel: 'ทั้งหมด'
+        },
+        fileIconRuleEditor: {
+            addRuleAria: 'เพิ่มกฎ'
+        },
+        interfaceIcons: {
+            title: 'ไอคอนอินเทอร์เฟซ',
+            items: {
+                'nav-shortcuts': 'ทางลัด',
+                'nav-recent-files': 'ไฟล์ล่าสุด',
+                'nav-expand-all': 'ขยายทั้งหมด',
+                'nav-collapse-all': 'ยุบทั้งหมด',
+                'nav-tree-expand': 'ลูกศรต้นไม้: ขยาย',
+                'nav-tree-collapse': 'ลูกศรต้นไม้: ยุบ',
+                'nav-hidden-items': 'รายการที่ซ่อน',
+                'nav-root-reorder': 'จัดเรียงโฟลเดอร์รากใหม่',
+                'nav-new-folder': 'โฟลเดอร์ใหม่',
+                'nav-show-single-pane': 'แสดงแผงเดียว',
+                'nav-show-dual-pane': 'แสดงแผงคู่',
+                'nav-profile-chevron': 'ลูกศรเมนูโปรไฟล์',
+                'list-search': 'ค้นหา',
+                'list-descendants': 'โน้ตจากโฟลเดอร์ย่อย',
+                'list-sort-ascending': 'ลำดับ: น้อยไปมาก',
+                'list-sort-descending': 'ลำดับ: มากไปน้อย',
+                'list-appearance': 'เปลี่ยนรูปลักษณ์',
+                'list-new-note': 'โน้ตใหม่',
+                'nav-folder-open': 'โฟลเดอร์เปิด',
+                'nav-folder-closed': 'โฟลเดอร์ปิด',
+                'nav-tag': 'แท็ก',
+                'list-pinned': 'รายการที่ปักหมุด'
+            }
         },
         colorPicker: {
             currentColor: 'ปัจจุบัน',
@@ -399,6 +435,7 @@ export const STRINGS_TH = {
             folderAlreadyExists: 'โฟลเดอร์ "{name}" มีอยู่แล้ว',
             folderNotesDisabled: 'เปิดใช้งานโน้ตโฟลเดอร์ในการตั้งค่าเพื่อแปลงไฟล์',
             folderNoteAlreadyLinked: 'ไฟล์นี้ทำหน้าที่เป็นโน้ตโฟลเดอร์อยู่แล้ว',
+            folderNoteNotFound: 'ไม่มีบันทึกโฟลเดอร์ในโฟลเดอร์ที่เลือก',
             folderNoteUnsupportedExtension: 'นามสกุลไฟล์ไม่รองรับ: {extension}',
             folderNoteMoveFailed: 'ย้ายไฟล์ระหว่างการแปลงล้มเหลว: {error}',
             folderNoteRenameConflict: 'ไฟล์ชื่อ "{name}" มีอยู่ในโฟลเดอร์แล้ว',
@@ -412,6 +449,11 @@ export const STRINGS_TH = {
             failedToCreateDrawing: 'สร้างภาพวาดล้มเหลว',
             noFolderSelected: 'ไม่ได้เลือกโฟลเดอร์ใน Notebook Navigator',
             noFileSelected: 'ไม่ได้เลือกไฟล์'
+        },
+        warnings: {
+            linkBreakingNameCharacters: 'ชื่อนี้มีอักขระที่ทำให้ลิงก์ Obsidian เสียหาย: #, |, ^, %%, [[, ]].',
+            forbiddenNameCharactersAllPlatforms: 'ชื่อไม่สามารถขึ้นต้นด้วยจุดหรือมี : หรือ / ได้',
+            forbiddenNameCharactersWindows: 'อักขระที่ Windows สงวนไว้ไม่อนุญาต: <, >, ", \\, |, ?, *.'
         },
         notices: {
             hideFolder: 'ซ่อนโฟลเดอร์แล้ว: {name}',
@@ -505,14 +547,18 @@ export const STRINGS_TH = {
         selectVaultProfile3: 'เลือกโปรไฟล์ห้องนิรภัย 3',
         deleteFile: 'ลบไฟล์',
         createNewNote: 'สร้างโน้ตใหม่',
+        createNewNoteFromTemplate: 'โน้ตใหม่จากเทมเพลต',
         moveFiles: 'ย้ายไฟล์',
         selectNextFile: 'เลือกไฟล์ถัดไป',
         selectPreviousFile: 'เลือกไฟล์ก่อนหน้า',
         convertToFolderNote: 'แปลงเป็นโน้ตโฟลเดอร์',
+        setAsFolderNote: 'ตั้งเป็นโน้ตโฟลเดอร์',
+        detachFolderNote: 'แยกโน้ตโฟลเดอร์',
         pinAllFolderNotes: 'ปักหมุดโน้ตโฟลเดอร์ทั้งหมด',
         navigateToFolder: 'นำทางไปยังโฟลเดอร์',
         navigateToTag: 'นำทางไปยังแท็ก',
         addShortcut: 'เพิ่มในทางลัด',
+        openShortcut: 'เปิดทางลัด {number}',
         toggleDescendants: 'สลับลูกหลาน',
         toggleHidden: 'สลับโฟลเดอร์ แท็ก และโน้ตที่ซ่อน',
         toggleTagSort: 'สลับลำดับการเรียงแท็ก',
@@ -565,12 +611,11 @@ export const STRINGS_TH = {
                 filtering: 'การกรอง',
                 behavior: 'พฤติกรรม',
                 view: 'ลักษณะ',
+                icons: 'ไอคอน',
                 desktopAppearance: 'ลักษณะเดสก์ท็อป',
-                mobileAppearance: 'ลักษณะมือถือ',
                 formatting: 'การจัดรูปแบบ'
             },
             navigation: {
-                behavior: 'พฤติกรรม',
                 appearance: 'ลักษณะ',
                 shortcutsAndRecent: 'ทางลัดและรายการล่าสุด'
             },
@@ -581,7 +626,13 @@ export const STRINGS_TH = {
             },
             notes: {
                 frontmatter: 'Frontmatter',
-                display: 'ลักษณะ'
+                icon: 'ไอคอน',
+                title: 'ชื่อเรื่อง',
+                previewText: 'ข้อความตัวอย่าง',
+                featureImage: 'รูปภาพเด่น',
+                tags: 'แท็ก',
+                date: 'วันที่',
+                parentFolder: 'โฟลเดอร์หลัก'
             }
         },
         items: {
@@ -680,7 +731,27 @@ export const STRINGS_TH = {
             },
             showFileIcons: {
                 name: 'แสดงไอคอนไฟล์',
-                desc: 'แสดงไอคอนไฟล์พร้อมระยะห่างชิดซ้าย การปิดใช้งานจะนำไอคอนและการเยื้องออก'
+                desc: 'แสดงไอคอนไฟล์พร้อมระยะห่างชิดซ้าย การปิดใช้งานจะนำไอคอนและการเยื้องออก ลำดับความสำคัญ: กำหนดเอง > ชื่อไฟล์ > ประเภทไฟล์ > ค่าเริ่มต้น'
+            },
+            showFilenameMatchIcons: {
+                name: 'ไอคอนตามชื่อไฟล์',
+                desc: 'กำหนดไอคอนให้ไฟล์ตามข้อความในชื่อ'
+            },
+            fileNameIconMap: {
+                name: 'แผนที่ไอคอนชื่อไฟล์',
+                desc: 'ไฟล์ที่มีข้อความจะได้รับไอคอนที่กำหนด หนึ่งการแมปต่อบรรทัด: ข้อความ=ไอคอน',
+                placeholder: '# ข้อความ=ไอคอน\nประชุม=LiCalendar\nใบแจ้งหนี้=PhReceipt',
+                editTooltip: 'แก้ไขการแมป'
+            },
+            showCategoryIcons: {
+                name: 'ไอคอนตามประเภทไฟล์',
+                desc: 'กำหนดไอคอนให้ไฟล์ตามนามสกุล'
+            },
+            fileTypeIconMap: {
+                name: 'แผนที่ไอคอนประเภทไฟล์',
+                desc: 'ไฟล์ที่มีนามสกุลจะได้รับไอคอนที่กำหนด หนึ่งการแมปต่อบรรทัด: นามสกุล=ไอคอน',
+                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                editTooltip: 'แก้ไขการแมป'
             },
             optimizeNoteHeight: {
                 name: 'ปรับความสูงโน้ตให้เหมาะสม',
@@ -770,6 +841,18 @@ export const STRINGS_TH = {
                 name: 'ขยายเมื่อเลือก',
                 desc: 'ขยายโฟลเดอร์และแท็กเมื่อเลือก ในโหมดแผงเดียว การเลือกครั้งแรกจะขยาย การเลือกครั้งที่สองจะแสดงไฟล์'
             },
+            springLoadedFolders: {
+                name: 'ขยายระหว่างลาก (เดสก์ท็อปเท่านั้น)',
+                desc: 'ขยายโฟลเดอร์และแท็กเมื่อวางเมาส์ระหว่างการลาก'
+            },
+            springLoadedFoldersInitialDelay: {
+                name: 'หน่วงเวลาการขยายครั้งแรก',
+                desc: 'หน่วงเวลาก่อนขยายโฟลเดอร์หรือแท็กครั้งแรกระหว่างการลาก (วินาที)'
+            },
+            springLoadedFoldersSubsequentDelay: {
+                name: 'หน่วงเวลาการขยายครั้งถัดไป',
+                desc: 'หน่วงเวลาก่อนขยายโฟลเดอร์หรือแท็กเพิ่มเติมระหว่างการลากเดียวกัน (วินาที)'
+            },
             navigationBanner: {
                 name: 'แบนเนอร์นำทาง (โปรไฟล์ห้องนิรภัย)',
                 desc: 'แสดงรูปภาพเหนือแผงนำทาง เปลี่ยนตามโปรไฟล์ห้องนิรภัยที่เลือก',
@@ -779,6 +862,15 @@ export const STRINGS_TH = {
             showShortcuts: {
                 name: 'แสดงทางลัด',
                 desc: 'แสดงส่วนทางลัดในแผงนำทาง'
+            },
+            shortcutBadgeDisplay: {
+                name: 'ป้ายทางลัด',
+                desc: "สิ่งที่จะแสดงถัดจากทางลัด ใช้คำสั่ง 'เปิดทางลัด 1-9' เพื่อเปิดทางลัดโดยตรง",
+                options: {
+                    index: 'ตำแหน่ง (1-9)',
+                    count: 'จำนวนรายการ',
+                    none: 'ไม่มี'
+                }
             },
             showRecentNotes: {
                 name: 'แสดงโน้ตล่าสุด',
@@ -807,7 +899,7 @@ export const STRINGS_TH = {
                 notice: 'รีเซ็ตตำแหน่งตัวคั่นแล้ว รีสตาร์ท Obsidian หรือเปิด Notebook Navigator ใหม่เพื่อใช้งาน'
             },
             multiSelectModifier: {
-                name: 'ตัวปรับแต่งเลือกหลายรายการ',
+                name: 'ตัวปรับแต่งเลือกหลายรายการ (เดสก์ท็อปเท่านั้น)',
                 desc: 'เลือกปุ่มตัวปรับแต่งที่จะสลับการเลือกหลายรายการ เมื่อเลือก Option/Alt การคลิก Cmd/Ctrl จะเปิดโน้ตในแท็บใหม่',
                 options: {
                     cmdCtrl: 'คลิก Cmd/Ctrl',
@@ -840,9 +932,14 @@ export const STRINGS_TH = {
                 desc: 'รายการคุณสมบัติ frontmatter คั่นด้วยเครื่องหมายจุลภาค โน้ตที่มีคุณสมบัติเหล่านี้จะถูกซ่อน (เช่น ฉบับร่าง, ส่วนตัว, เก็บถาวร)',
                 placeholder: 'ฉบับร่าง, ส่วนตัว'
             },
+            excludedFileNamePatterns: {
+                name: 'ซ่อนไฟล์ (โปรไฟล์ห้องนิรภัย)',
+                desc: 'รายการรูปแบบชื่อไฟล์คั่นด้วยเครื่องหมายจุลภาคที่จะซ่อน รองรับอักขระไวลด์การ์ด * และเส้นทาง / (เช่น temp-*, *.png, /assets/*)',
+                placeholder: 'temp-*, *.png, /assets/*'
+            },
             vaultProfiles: {
                 name: 'โปรไฟล์ห้องนิรภัย',
-                desc: 'โปรไฟล์เก็บการมองเห็นประเภทไฟล์ โฟลเดอร์ที่ซ่อน แท็กที่ซ่อน โน้ตที่ซ่อน ทางลัด และแบนเนอร์นำทาง สลับโปรไฟล์จากส่วนหัวแผงนำทาง',
+                desc: 'โปรไฟล์เก็บการมองเห็นประเภทไฟล์ ไฟล์ที่ซ่อน โฟลเดอร์ที่ซ่อน แท็กที่ซ่อน โน้ตที่ซ่อน ทางลัด และแบนเนอร์นำทาง สลับโปรไฟล์จากส่วนหัวแผงนำทาง',
                 defaultName: 'ค่าเริ่มต้น',
                 addButton: 'เพิ่มโปรไฟล์',
                 editProfilesButton: 'แก้ไขโปรไฟล์',
@@ -855,7 +952,7 @@ export const STRINGS_TH = {
                 editModalTitle: 'แก้ไขโปรไฟล์',
                 addModalPlaceholder: 'ชื่อโปรไฟล์',
                 deleteModalTitle: 'ลบ {name}',
-                deleteModalMessage: 'ลบ {name}? ตัวกรองโฟลเดอร์ แท็ก และโน้ตที่ซ่อนที่บันทึกในโปรไฟล์นี้จะถูกลบ',
+                deleteModalMessage: 'ลบ {name}? ตัวกรองไฟล์ โฟลเดอร์ แท็ก และโน้ตที่ซ่อนที่บันทึกในโปรไฟล์นี้จะถูกลบ',
                 moveUp: 'ย้ายขึ้น',
                 moveDown: 'ย้ายลง',
                 errors: {
@@ -914,10 +1011,6 @@ export const STRINGS_TH = {
                 help: 'รูปแบบทั่วไป:\nHH:mm = 14:30 (24 ชั่วโมง)\nh:mm a = 2:30 PM (12 ชั่วโมง)\nHH:mm:ss = 14:30:45\nh:mm:ss a = 2:30:45 PM\n\nโทเคน:\nHH/H = 24 ชั่วโมง\nhh/h = 12 ชั่วโมง\nmm = นาที\nss = วินาที\na = AM/PM',
                 helpTooltip: 'คลิกเพื่อดูข้อมูลอ้างอิงรูปแบบ'
             },
-            preventInvalidCharacters: {
-                name: 'ป้องกันอักขระไม่ถูกต้อง',
-                desc: 'บล็อก #, |, ^, :, %%, [[, ]] เมื่อสร้างหรือเปลี่ยนชื่อไฟล์และโฟลเดอร์'
-            },
             showFilePreview: {
                 name: 'แสดงตัวอย่างโน้ต',
                 desc: 'แสดงข้อความตัวอย่างใต้ชื่อโน้ต'
@@ -929,6 +1022,10 @@ export const STRINGS_TH = {
             skipCodeBlocksInPreview: {
                 name: 'ข้ามบล็อกโค้ดในตัวอย่าง',
                 desc: 'ข้ามบล็อกโค้ดเมื่อสร้างข้อความตัวอย่าง'
+            },
+            stripHtmlInPreview: {
+                name: 'ลบ HTML ในตัวอย่าง',
+                desc: 'ลบแท็ก HTML ออกจากข้อความตัวอย่าง อาจส่งผลต่อประสิทธิภาพในโน้ตขนาดใหญ่'
             },
             previewProperties: {
                 name: 'คุณสมบัติตัวอย่าง',
@@ -991,6 +1088,11 @@ export const STRINGS_TH = {
             showSectionIcons: {
                 name: 'แสดงไอคอนสำหรับทางลัดและรายการล่าสุด',
                 desc: 'แสดงไอคอนสำหรับส่วนนำทางเช่น ทางลัดและไฟล์ล่าสุด'
+            },
+            interfaceIcons: {
+                name: 'ไอคอนอินเทอร์เฟซ',
+                desc: 'แก้ไขไอคอนแถบเครื่องมือ โฟลเดอร์ แท็ก ปักหมุด ค้นหา และเรียงลำดับ',
+                buttonText: 'แก้ไขไอคอน'
             },
             showIconsColorOnly: {
                 name: 'ใช้สีกับไอคอนเท่านั้น',
@@ -1173,9 +1275,9 @@ export const STRINGS_TH = {
                 noticeError: 'ย้ายล้มเหลว ตรวจสอบคอนโซลสำหรับรายละเอียด'
             },
             frontmatterNameField: {
-                name: 'ฟิลด์ชื่อ',
-                desc: 'ฟิลด์ frontmatter ที่จะใช้เป็นชื่อแสดงโน้ต เว้นว่างเพื่อใช้ชื่อไฟล์',
-                placeholder: 'title'
+                name: 'ฟิลด์ชื่อ (หลายรายการ)',
+                desc: 'รายการฟิลด์ frontmatter คั่นด้วยเครื่องหมายจุลภาค ใช้ค่าแรกที่ไม่ว่าง กลับไปใช้ชื่อไฟล์',
+                placeholder: 'หัวข้อ, ชื่อ'
             },
             frontmatterCreatedField: {
                 name: 'ฟิลด์ timestamp สร้าง',
