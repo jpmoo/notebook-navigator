@@ -689,7 +689,7 @@ export function renderGeneralTab(context: SettingsTabContext): void {
             })
         );
 
-    renderToolbarVisibilitySetting(containerEl, plugin);
+    renderToolbarVisibilitySetting(createSetting => viewGroup.addSetting(createSetting), plugin);
 
     const iconsGroup = createGroup(strings.settings.groups.general.icons);
 

@@ -1286,7 +1286,8 @@ export function useNavigationPaneData({
                 getFileDisplayName,
                 metadataService,
                 parsedExcludedFolders,
-                metadataVersion
+                metadataVersion,
+                settings.showColorsInShortcutsOnly
             ),
         [app, settings, fileNameIconNeedles, getFileDisplayName, metadataService, parsedExcludedFolders, metadataVersion]
     );

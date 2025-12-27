@@ -810,10 +810,17 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         [removeShortcut, searchShortcutsByName]
     );
 
-    // Removes all shortcuts from the active profile
+    // Removes all shortcuts from the active collection
     const clearShortcuts = useCallback(async () => {
-        return updateActiveProfileShortcuts(() => []);
-    }, [updateActiveProfileShortcuts]);
+        await updateSettings(current => {
+            const collections = current.shortcutCollections ?? [];
+            const updatedCollections = collections.map(collection =>
+                collection.id === activeCollectionId ? { ...collection, shortcuts: [] } : collection
+            );
+            current.shortcutCollections = updatedCollections;
+        });
+        return true;
+    }, [updateSettings, activeCollectionId]);
 
     // Reorders shortcuts based on provided key order (for drag & drop functionality)
     // Validates that all keys are present before applying the new order
