@@ -23,6 +23,7 @@ import { FileData } from '../../storage/IndexedDBStorage';
 import { getDBInstance, isShutdownInProgress } from '../../storage/fileOperations';
 import { TIMEOUTS } from '../../types/obsidian-extended';
 import { runAsyncAction } from '../../utils/async';
+import { ContentReadCache } from './ContentReadCache';
 
 interface ContentJob {
     file: TFile;
@@ -34,8 +35,8 @@ interface ContentJob {
  * Provides common functionality for queue management and batch processing
  */
 export abstract class BaseContentProvider implements IContentProvider {
-    protected readonly QUEUE_BATCH_SIZE = 100;
-    protected readonly PARALLEL_LIMIT = 10;
+    protected readonly QUEUE_BATCH_SIZE: number = 100;
+    protected readonly PARALLEL_LIMIT: number = 10;
 
     protected queue: ContentJob[] = [];
     protected isProcessing = false;
@@ -51,7 +52,31 @@ export abstract class BaseContentProvider implements IContentProvider {
     // Track provider stop state to prevent any post-stop scheduling or enqueues
     protected stopped = false;
 
-    constructor(protected app: App) {}
+    constructor(
+        protected app: App,
+        protected readCache: ContentReadCache | null = null
+    ) {}
+
+    /**
+     * Yields to the event loop to prevent blocking the main thread during batch processing.
+     * Uses requestAnimationFrame when available, falls back to setTimeout.
+     */
+    protected async yieldToEventLoop(): Promise<void> {
+        const raf = globalThis.requestAnimationFrame;
+        if (typeof raf === 'function') {
+            await new Promise<void>(resolve => raf(() => resolve()));
+            return;
+        }
+
+        await new Promise<void>(resolve => globalThis.setTimeout(resolve, 0));
+    }
+
+    protected readFileContent(file: TFile): Promise<string> {
+        if (this.readCache) {
+            return this.readCache.readFile(file);
+        }
+        return this.app.vault.cachedRead(file);
+    }
 
     abstract getContentType(): ContentType;
     abstract getRelevantSettings(): (keyof NotebookNavigatorSettings)[];
@@ -73,7 +98,8 @@ export abstract class BaseContentProvider implements IContentProvider {
         path: string;
         tags?: string[] | null;
         preview?: string;
-        featureImage?: string;
+        featureImage?: Blob | null;
+        featureImageKey?: string | null;
         metadata?: FileData['metadata'];
     } | null>;
 
@@ -109,6 +135,7 @@ export abstract class BaseContentProvider implements IContentProvider {
 
         if (this.queueDebounceTimer !== null) {
             window.clearTimeout(this.queueDebounceTimer);
+            this.queueDebounceTimer = null;
         }
 
         this.queueDebounceTimer = window.setTimeout(() => {
@@ -171,7 +198,8 @@ export abstract class BaseContentProvider implements IContentProvider {
                 path: string;
                 tags?: string[] | null;
                 preview?: string;
-                featureImage?: string;
+                featureImage?: Blob | null;
+                featureImageKey?: string | null;
                 metadata?: FileData['metadata'];
             }[] = [];
 
@@ -198,11 +226,15 @@ export abstract class BaseContentProvider implements IContentProvider {
                             path: string;
                             tags?: string[] | null;
                             preview?: string;
-                            featureImage?: string;
+                            featureImage?: Blob | null;
+                            featureImageKey?: string | null;
                             metadata?: FileData['metadata'];
                         } => r !== null
                     )
                 );
+
+                // Yield to event loop between parallel batches to keep UI responsive
+                await this.yieldToEventLoop();
             }
 
             // Batch update database

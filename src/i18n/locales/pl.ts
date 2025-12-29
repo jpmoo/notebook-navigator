@@ -756,8 +756,8 @@ export const STRINGS_PL = {
                 editTooltip: 'Edytuj mapowania'
             },
             optimizeNoteHeight: {
-                name: 'Optymalizuj wysokość notatek',
-                desc: 'Zmniejsz wysokość dla przypiętych notatek i notatek bez tekstu podglądu.'
+                name: 'Zmienna wysokość notatek',
+                desc: 'Użyj kompaktowej wysokości dla przypiętych notatek i notatek bez tekstu podglądu.'
             },
             compactItemHeight: {
                 name: 'Wysokość elementów w trybie kompaktowym',
@@ -830,6 +830,11 @@ export const STRINGS_PL = {
             autoRevealIgnoreRightSidebar: {
                 name: 'Ignoruj zdarzenia z prawego paska bocznego',
                 desc: 'Nie zmieniaj aktywnej notatki przy klikaniu lub zmienianiu notatek w prawym pasku bocznym.'
+            },
+            paneTransitionDuration: {
+                name: 'Animacja pojedynczego panelu',
+                desc: 'Czas trwania przejścia podczas przełączania paneli w trybie pojedynczego panelu (milisekundy).',
+                resetTooltip: 'Przywróć domyślne'
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Automatycznie wybierz pierwszą notatkę (tylko desktop)',
@@ -1057,7 +1062,7 @@ export const STRINGS_PL = {
             },
             showFeatureImage: {
                 name: 'Pokaż obraz wyróżniający',
-                desc: 'Wyświetl miniaturki obrazów z frontmatter. Wskazówka: Użyj pluginu "Featured Image" aby automatycznie ustawić obrazy wyróżniające dla wszystkich dokumentów.'
+                desc: 'Wyświetla miniaturę pierwszego obrazu znalezionego w notatce.'
             },
             forceSquareFeatureImage: {
                 name: 'Wymuś kwadratowy obraz wyróżniający',
@@ -1065,12 +1070,13 @@ export const STRINGS_PL = {
             },
             featureImageProperties: {
                 name: 'Właściwości obrazu',
-                desc: 'Lista właściwości frontmatter oddzielonych przecinkami do sprawdzenia dla miniaturek obrazów. Pierwsza właściwość z obrazem zostanie użyta. Jeśli puste i ustawienie awaryjne jest włączone, pierwszy osadzony obraz zostanie użyty.',
+                desc: 'Lista właściwości frontmatter oddzielonych przecinkami do sprawdzenia dla miniaturek obrazów.',
                 placeholder: 'thumbnail, featureResized, feature'
             },
-            useEmbeddedImageFallback: {
-                name: 'Użyj awaryjnego obrazu osadzonego',
-                desc: 'Użyj pierwszego osadzonego obrazu w dokumencie jako awaryjny gdy nie znaleziono miniatury we właściwościach frontmatter (wymaga Obsidian 1.9.4+). Wyłącz to aby sprawdzić czy miniatury są poprawnie skonfigurowane.'
+
+            downloadExternalFeatureImages: {
+                name: 'Pobierz obrazy zewnętrzne',
+                desc: 'Pobierz zdalne obrazy i miniatury YouTube dla obrazów wyróżniających.'
             },
             showRootFolder: {
                 name: 'Pokaż folder główny',
@@ -1224,7 +1230,8 @@ export const STRINGS_PL = {
                 desc: 'Użyj tego, jeśli brakuje tagów, podglądy są nieprawidłowe lub brakuje obrazów. Może się to zdarzyć po konfliktach synchronizacji lub nieoczekiwanych zamknięciach.',
                 buttonText: 'Odbuduj pamięć podręczną',
                 success: 'Pamięć podręczna została odbudowana',
-                error: 'Nie udało się odbudować pamięci podręcznej'
+                error: 'Nie udało się odbudować pamięci podręcznej',
+                progress: 'Odbudowywanie pamięci podręcznej:'
             },
             hotkeys: {
                 intro: 'Edytuj <plugin folder>/notebook-navigator/data.json, aby dostosować skróty Notebook Navigator. Otwórz plik i znajdź sekcję "keyboardShortcuts". Każdy wpis ma następującą strukturę:',

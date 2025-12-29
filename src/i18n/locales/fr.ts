@@ -756,8 +756,8 @@ export const STRINGS_FR = {
                 editTooltip: 'Modifier les correspondances'
             },
             optimizeNoteHeight: {
-                name: 'Optimiser la hauteur des notes',
-                desc: "Réduire la hauteur pour les notes épinglées et les notes sans texte d'aperçu."
+                name: 'Hauteur de note variable',
+                desc: "Utiliser une hauteur compacte pour les notes épinglées et les notes sans texte d'aperçu."
             },
             compactItemHeight: {
                 name: 'Hauteur des éléments compacts',
@@ -830,6 +830,11 @@ export const STRINGS_FR = {
             autoRevealIgnoreRightSidebar: {
                 name: 'Ignorer les événements du panneau de droite',
                 desc: "Ne pas changer la note active lors d'un clic ou du changement de notes dans le panneau de droite."
+            },
+            paneTransitionDuration: {
+                name: 'Animation panneau unique',
+                desc: 'Durée de transition lors du changement de panneau en mode panneau unique (millisecondes).',
+                resetTooltip: 'Réinitialiser par défaut'
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Sélectionner automatiquement la première note (ordinateur uniquement)',
@@ -1058,7 +1063,7 @@ export const STRINGS_FR = {
             },
             showFeatureImage: {
                 name: "Afficher l'image vedette",
-                desc: 'Afficher les images miniatures depuis les métadonnées. Conseil : Utilisez le plugin "Featured Image" pour définir automatiquement des images vedettes pour tous vos documents.'
+                desc: 'Affiche une miniature de la première image trouvée dans la note.'
             },
             forceSquareFeatureImage: {
                 name: "Forcer l'image vedette carrée",
@@ -1069,9 +1074,10 @@ export const STRINGS_FR = {
                 desc: 'Liste de propriétés de métadonnées séparées par des virgules pour les images miniatures. La première propriété avec une image sera utilisée. Si vide et que le paramètre de repli est activé, la première image intégrée sera utilisée.',
                 placeholder: 'thumbnail, featureResized, feature'
             },
-            useEmbeddedImageFallback: {
-                name: "Utiliser l'image intégrée comme solution de repli",
-                desc: "Utilise la première image intégrée dans le document comme solution de repli lorsqu'aucune miniature n'est trouvée dans les propriétés du frontmatter (nécessite Obsidian 1.9.4+). Désactivez cette option pour vérifier que les miniatures sont correctement configurées."
+
+            downloadExternalFeatureImages: {
+                name: 'Télécharger les images externes',
+                desc: 'Télécharger les images distantes et les miniatures YouTube pour les images à la une.'
             },
             showRootFolder: {
                 name: 'Afficher le dossier racine',
@@ -1225,7 +1231,8 @@ export const STRINGS_FR = {
                 desc: 'Utilisez ceci si des étiquettes manquent, les aperçus sont incorrects ou des images manquent. Cela peut arriver après des conflits de synchronisation ou des fermetures inattendues.',
                 buttonText: 'Reconstruire le cache',
                 success: 'Cache reconstruit',
-                error: 'Échec de la reconstruction du cache'
+                error: 'Échec de la reconstruction du cache',
+                progress: 'Reconstruction du cache :'
             },
             hotkeys: {
                 intro: 'Modifiez <plugin folder>/notebook-navigator/data.json pour personnaliser les raccourcis de Notebook Navigator. Ouvrez le fichier et repérez la section "keyboardShortcuts". Chaque entrée suit cette structure :',

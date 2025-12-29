@@ -20,6 +20,8 @@ import { Plugin, TFile, FileView, TFolder, WorkspaceLeaf, Platform } from 'obsid
 import { NotebookNavigatorSettings, DEFAULT_SETTINGS, NotebookNavigatorSettingTab } from './settings';
 import {
     LocalStorageKeys,
+    MAX_PANE_TRANSITION_DURATION_MS,
+    MIN_PANE_TRANSITION_DURATION_MS,
     NOTEBOOK_NAVIGATOR_VIEW,
     STORAGE_KEYS,
     type DualPaneOrientation,
@@ -355,6 +357,15 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
         if (typeof this.settings.recentNotesCount !== 'number' || this.settings.recentNotesCount <= 0) {
             this.settings.recentNotesCount = DEFAULT_SETTINGS.recentNotesCount;
+        }
+
+        if (
+            typeof this.settings.paneTransitionDuration !== 'number' ||
+            !Number.isFinite(this.settings.paneTransitionDuration) ||
+            this.settings.paneTransitionDuration < MIN_PANE_TRANSITION_DURATION_MS ||
+            this.settings.paneTransitionDuration > MAX_PANE_TRANSITION_DURATION_MS
+        ) {
+            this.settings.paneTransitionDuration = DEFAULT_SETTINGS.paneTransitionDuration;
         }
 
         if (!Array.isArray(this.settings.rootFolderOrder)) {
@@ -763,7 +774,9 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         // Initialize database early for StorageContext consumers
         try {
             const appId = (this.app as ExtendedApp).appId || '';
-            await initializeDatabase(appId);
+            // Use a fixed per-platform LRU size for feature image blobs.
+            const featureImageCacheMaxEntries = Platform.isMobile ? 200 : 1000;
+            await initializeDatabase(appId, { featureImageCacheMaxEntries });
         } catch (e) {
             console.error('Failed to initialize database during plugin load:', e);
             // Fail fast: abort plugin load if database cannot initialize
@@ -1440,14 +1453,18 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     }
 
     /**
-     * Clears all localStorage data for the plugin
-     * Called on fresh install to ensure a clean start
+     * Clears localStorage data for the plugin.
+     * Called on fresh install to ensure a clean start.
+     * Preserves database version markers used for IndexedDB rebuild detection.
      */
     private clearAllLocalStorage() {
         // Clear all known localStorage keys
         // Get key names to enable proper TypeScript typing and avoid losing type information
         const storageKeyNames = Object.keys(STORAGE_KEYS) as (keyof LocalStorageKeys)[];
         storageKeyNames.forEach(storageKey => {
+            if (storageKey === 'databaseSchemaVersionKey' || storageKey === 'databaseContentVersionKey') {
+                return;
+            }
             const key = STORAGE_KEYS[storageKey];
             localStorage.remove(key);
         });

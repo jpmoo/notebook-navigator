@@ -51,6 +51,8 @@ type DragItemType = (typeof ItemType)[keyof typeof ItemType];
 
 type AutoExpandTarget = { type: 'folder' | 'tag'; path: string };
 
+const SUPPRESS_CLICK_AFTER_DROP_MS = 100;
+
 interface AutoExpandConfig {
     type: AutoExpandTarget['type'];
     path: string;
@@ -82,7 +84,8 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
     const dragTagDisplayRef = useRef<string | null>(null);
     // Stores canonical path of dragged tag for comparison and validation
     const dragTagCanonicalRef = useRef<string | null>(null);
-    const dragGhostManager = useMemo(() => createDragGhostManager(app), [app]);
+    const suppressClickUntilRef = useRef(0);
+    const dragGhostManager = useMemo(() => createDragGhostManager(), []);
     const springLoadedInitialDelayMs = useMemo(() => {
         const delaySeconds = settings.springLoadedFoldersInitialDelay;
         if (!Number.isFinite(delaySeconds)) {
@@ -262,7 +265,10 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                 return;
             }
 
-            e.dataTransfer.setData('obsidian/file', path);
+            if (type === ItemType.FILE || type === ItemType.FOLDER) {
+                e.dataTransfer.setData('obsidian/file', path);
+            }
+
             if (type === ItemType.FILE || type === ItemType.FOLDER || type === ItemType.TAG) {
                 dragTypeRef.current = type;
             } else {
@@ -291,6 +297,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                         canonicalPath: canonicalTag ?? normalizeTagPathValue(path)
                     };
                     e.dataTransfer.setData(TAG_DRAG_MIME, JSON.stringify(tagPayload));
+                    e.dataTransfer.setData('text/plain', `#${path}`);
                 } catch (error) {
                     console.error('[Notebook Navigator] Failed to attach tag drag payload', error);
                 }
@@ -498,9 +505,10 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                 const allowExternalDrop = dropZone.dataset.allowExternalDrop !== 'false';
                 const typesList = e.dataTransfer.types;
                 const hasObsidianData = !!typesList?.includes('obsidian/file') || !!typesList?.includes('obsidian/files');
+                const hasTagPayload = Boolean(typesList?.includes(TAG_DRAG_MIME));
                 const hasExternalFiles = Boolean(e.dataTransfer.files && e.dataTransfer.files.length > 0);
-                const isExternalOnly = hasExternalFiles && !hasObsidianData;
-                const isInternalTransfer = hasObsidianData;
+                const isInternalTransfer = hasObsidianData || hasTagPayload;
+                const isExternalOnly = hasExternalFiles && !isInternalTransfer;
 
                 // Block drops that do not meet drop zone permissions
                 if ((isInternalTransfer && !allowInternalDrop) || (isExternalOnly && !allowExternalDrop)) {
@@ -515,7 +523,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
 
                 e.preventDefault();
 
-                const isExternal = !!typesList?.includes('Files') && !hasObsidianData;
+                const isExternal = !!typesList?.includes('Files') && !isInternalTransfer;
 
                 // Folder: move (internal) / copy (external); Tag: untagged = move, tag = copy
                 if (dropType === 'folder') {
@@ -736,6 +744,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
      */
     const handleDrop = useCallback(
         async (e: DragEvent) => {
+            suppressClickUntilRef.current = Date.now() + SUPPRESS_CLICK_AFTER_DROP_MS;
             try {
                 let dropZone = dragOverElement.current;
                 if (dropZone) {
@@ -774,9 +783,10 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                 const typesList = e.dataTransfer?.types;
                 const externalFiles = e.dataTransfer?.files ?? null;
                 const hasObsidianData = !!typesList?.includes('obsidian/file') || !!typesList?.includes('obsidian/files');
+                const hasTagPayload = Boolean(typesList?.includes(TAG_DRAG_MIME));
                 const hasExternalFiles = Boolean(externalFiles && externalFiles.length > 0);
-                const isExternalOnly = hasExternalFiles && !hasObsidianData;
-                const isInternalTransfer = hasObsidianData;
+                const isInternalTransfer = hasObsidianData || hasTagPayload;
+                const isExternalOnly = hasExternalFiles && !isInternalTransfer;
 
                 // Block internal drops if not allowed
                 if (isInternalTransfer && !allowInternalDrop) {
@@ -1023,6 +1033,16 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
         container.addEventListener('dragleave', handleDragLeave);
         container.addEventListener('drop', handleDropListener);
         container.addEventListener('dragend', handleDragEnd);
+        const handleClickCapture = (event: MouseEvent) => {
+            if (Date.now() > suppressClickUntilRef.current) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+        };
+        container.addEventListener('click', handleClickCapture, true);
         document.addEventListener('keydown', handleKeyDown);
 
         return () => {
@@ -1031,6 +1051,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
             container.removeEventListener('dragleave', handleDragLeave);
             container.removeEventListener('drop', handleDropListener);
             container.removeEventListener('dragend', handleDragEnd);
+            container.removeEventListener('click', handleClickCapture, true);
             document.removeEventListener('keydown', handleKeyDown);
 
             // Clean up any lingering drag state on unmount

@@ -755,8 +755,8 @@ export const STRINGS_JA = {
                 editTooltip: 'マッピングを編集'
             },
             optimizeNoteHeight: {
-                name: 'ノートの高さを最適化',
-                desc: 'ピン留めされたノートとプレビューテキストのないノートの高さを削減。'
+                name: '可変ノート高さ',
+                desc: 'ピン留めされたノートとプレビューテキストのないノートにコンパクトな高さを使用。'
             },
             compactItemHeight: {
                 name: 'スリム表示の項目高さ',
@@ -829,6 +829,11 @@ export const STRINGS_JA = {
             autoRevealIgnoreRightSidebar: {
                 name: '右サイドバーのイベントを無視',
                 desc: '右サイドバーでのクリックやノートの変更時にアクティブノートを変更しません。'
+            },
+            paneTransitionDuration: {
+                name: 'シングルペインアニメーション',
+                desc: 'シングルペインモードでペイン切り替え時のトランジション時間（ミリ秒）。',
+                resetTooltip: 'デフォルトにリセット'
             },
             autoSelectFirstFileOnFocusChange: {
                 name: '最初のノートを自動選択（デスクトップのみ）',
@@ -1057,7 +1062,7 @@ export const STRINGS_JA = {
             },
             showFeatureImage: {
                 name: 'アイキャッチ画像を表示',
-                desc: 'フロントマターからサムネイル画像を表示します。ヒント：「Featured Image」プラグインを使用して、すべてのドキュメントに自動的にアイキャッチ画像を設定できます。'
+                desc: 'ノートで最初に見つかった画像のサムネイルを表示します。'
             },
             forceSquareFeatureImage: {
                 name: 'アイキャッチ画像を正方形に固定',
@@ -1065,12 +1070,13 @@ export const STRINGS_JA = {
             },
             featureImageProperties: {
                 name: '画像プロパティ',
-                desc: 'サムネイル画像用のフロントマタープロパティのカンマ区切りリスト。画像を持つ最初のプロパティが使用されます。空でフォールバック設定が有効な場合、最初の埋め込み画像が使用されます。',
+                desc: 'サムネイル画像用のフロントマタープロパティのカンマ区切りリスト。',
                 placeholder: 'thumbnail, featureResized, feature'
             },
-            useEmbeddedImageFallback: {
-                name: '埋め込み画像をフォールバックとして使用',
-                desc: 'フロントマタープロパティにサムネイルが見つからない場合、ドキュメント内の最初の埋め込み画像をフォールバックとして使用します（Obsidian 1.9.4以降が必要）。サムネイルが正しく設定されていることを確認するには、これを無効にします。'
+
+            downloadExternalFeatureImages: {
+                name: '外部画像をダウンロード',
+                desc: 'リモート画像とYouTubeサムネイルをフィーチャー画像としてダウンロードします。'
             },
             showRootFolder: {
                 name: 'ルートフォルダを表示',
@@ -1223,7 +1229,8 @@ export const STRINGS_JA = {
                 desc: 'タグの欠落、不正確なプレビュー、画像の欠落がある場合に使用してください。同期の競合や予期しない終了後に発生することがあります。',
                 buttonText: 'キャッシュを再構築',
                 success: 'キャッシュを再構築しました',
-                error: 'キャッシュの再構築に失敗しました'
+                error: 'キャッシュの再構築に失敗しました',
+                progress: 'キャッシュを再構築中:'
             },
             hotkeys: {
                 intro: 'Notebook Navigator のホットキーは <plugin folder>/notebook-navigator/data.json を編集してカスタマイズします。ファイルをテキストエディタで開き、"keyboardShortcuts" セクションを探してください。各エントリは次の構造です:',

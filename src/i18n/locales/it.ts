@@ -754,8 +754,8 @@ export const STRINGS_IT = {
                 editTooltip: 'Modifica mappature'
             },
             optimizeNoteHeight: {
-                name: 'Ottimizza altezza note',
-                desc: "Riduci l'altezza per note fissate e note senza testo anteprima."
+                name: 'Altezza nota variabile',
+                desc: 'Usa altezza compatta per note fissate e note senza testo anteprima.'
             },
             compactItemHeight: {
                 name: 'Altezza elemento compatto',
@@ -828,6 +828,11 @@ export const STRINGS_IT = {
             autoRevealIgnoreRightSidebar: {
                 name: 'Ignora eventi dalla barra laterale destra',
                 desc: 'Non cambiare nota attiva quando clicchi o cambi note nella barra laterale destra.'
+            },
+            paneTransitionDuration: {
+                name: 'Animazione pannello singolo',
+                desc: 'Durata della transizione quando si passa tra i pannelli in modalità pannello singolo (millisecondi).',
+                resetTooltip: 'Ripristina predefinito'
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Auto-seleziona prima nota (solo desktop)',
@@ -1055,7 +1060,7 @@ export const STRINGS_IT = {
             },
             showFeatureImage: {
                 name: 'Mostra immagine in evidenza',
-                desc: 'Visualizza immagini miniatura dal frontmatter. Suggerimento: Usa il plugin "Featured Image" per impostare automaticamente immagini in evidenza per tutti i tuoi documenti.'
+                desc: 'Visualizza una miniatura della prima immagine trovata nella nota.'
             },
             forceSquareFeatureImage: {
                 name: 'Forza immagine in evidenza quadrata',
@@ -1066,9 +1071,10 @@ export const STRINGS_IT = {
                 desc: "Lista di proprietà frontmatter separate da virgola da controllare per immagini miniatura. La prima proprietà con un'immagine sarà usata. Se vuoto e l'impostazione fallback è abilitata, la prima immagine incorporata sarà usata.",
                 placeholder: 'thumbnail, featureResized, feature'
             },
-            useEmbeddedImageFallback: {
-                name: 'Usa immagine incorporata come fallback',
-                desc: 'Usa la prima immagine incorporata nel documento come fallback quando nessuna miniatura viene trovata nelle proprietà frontmatter (richiede Obsidian 1.9.4+). Disabilita per verificare che le miniature siano configurate correttamente.'
+
+            downloadExternalFeatureImages: {
+                name: 'Scarica immagini esterne',
+                desc: 'Scarica immagini remote e miniature di YouTube per le immagini in evidenza.'
             },
             showRootFolder: {
                 name: 'Mostra cartella root',
@@ -1221,7 +1227,8 @@ export const STRINGS_IT = {
                 desc: 'Usa se riscontri tag mancanti, anteprime errate o immagini in evidenza mancanti. Questo può accadere dopo conflitti sync o chiusure inaspettate.',
                 buttonText: 'Ricostruisci cache',
                 success: 'Cache ricostruita',
-                error: 'Impossibile ricostruire cache'
+                error: 'Impossibile ricostruire cache',
+                progress: 'Ricostruzione cache:'
             },
             hotkeys: {
                 intro: 'Modifica <cartella plugin>/notebook-navigator/data.json per personalizzare le scorciatoie da tastiera di Notebook Navigator. Apri il file e trova la sezione "keyboardShortcuts". Ogni voce usa questa struttura:',

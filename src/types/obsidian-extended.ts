@@ -185,8 +185,8 @@ export const TIMEOUTS = {
     FILE_OPERATION_DELAY: 100,
 
     // Intervals
-    /** Interval for statistics refresh */
-    INTERVAL_STATISTICS: 1000,
+    /** Interval for cache statistics refresh (Advanced settings tab) */
+    INTERVAL_STATISTICS: 5000,
 
     // Notice Durations
     /** Duration for error messages */

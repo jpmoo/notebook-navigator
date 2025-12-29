@@ -754,8 +754,8 @@ export const STRINGS_EN = {
                 editTooltip: 'Edit mappings'
             },
             optimizeNoteHeight: {
-                name: 'Optimize note height',
-                desc: 'Reduce height for pinned notes and notes without preview text.'
+                name: 'Variable note height',
+                desc: 'Use compact height for pinned notes and notes without preview text.'
             },
             compactItemHeight: {
                 name: 'Compact item height',
@@ -828,6 +828,11 @@ export const STRINGS_EN = {
             autoRevealIgnoreRightSidebar: {
                 name: 'Ignore events from right sidebar',
                 desc: 'Do not change active note when clicking or changing notes in the right sidebar.'
+            },
+            paneTransitionDuration: {
+                name: 'Single pane animation',
+                desc: 'Transition duration when switching panes in single-pane mode (milliseconds).',
+                resetTooltip: 'Reset to default'
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Auto-select first note (desktop only)',
@@ -1053,7 +1058,7 @@ export const STRINGS_EN = {
             },
             showFeatureImage: {
                 name: 'Show feature image',
-                desc: 'Display thumbnail images from frontmatter. Tip: Use the "Featured Image" plugin to automatically set feature images for all your documents.'
+                desc: 'Display a thumbnail of the first image found in the note.'
             },
             forceSquareFeatureImage: {
                 name: 'Force square feature image',
@@ -1061,12 +1066,12 @@ export const STRINGS_EN = {
             },
             featureImageProperties: {
                 name: 'Image properties',
-                desc: 'Comma-separated list of frontmatter properties to check for thumbnail images. The first property with an image will be used. If empty and the fallback setting is enabled, the first embedded image will be used.',
+                desc: 'Comma-separated list of frontmatter properties to check for thumbnail images.',
                 placeholder: 'thumbnail, featureResized, feature'
             },
-            useEmbeddedImageFallback: {
-                name: 'Use embedded image fallback',
-                desc: 'Use the first embedded image in the document as a fallback when no thumbnail is found in frontmatter properties (requires Obsidian 1.9.4+). Disable this to verify that thumbnails are properly configured.'
+            downloadExternalFeatureImages: {
+                name: 'Download external images',
+                desc: 'Download remote images and YouTube thumbnails for feature images.'
             },
             showRootFolder: {
                 name: 'Show root folder',
@@ -1219,7 +1224,8 @@ export const STRINGS_EN = {
                 desc: 'Use this if you experience missing tags, incorrect previews or missing feature images. This can happen after sync conflicts or unexpected closures.',
                 buttonText: 'Rebuild cache',
                 success: 'Cache rebuilt',
-                error: 'Failed to rebuild cache'
+                error: 'Failed to rebuild cache',
+                progress: 'Rebuilding cache:'
             },
             hotkeys: {
                 intro: 'Edit <plugin folder>/notebook-navigator/data.json to customize Notebook Navigator hotkeys. Open the file and locate the "keyboardShortcuts" section. Each entry uses this structure:',

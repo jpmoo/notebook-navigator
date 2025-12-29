@@ -556,14 +556,14 @@ export function useNavigationPaneScroll({
 
         // Re-measure all items with new heights
         rowVirtualizer.measure();
-    }, [settings.navItemHeight, settings.navIndent, rowVirtualizer]);
+    }, [settings.navItemHeight, settings.navIndent, settings.rootLevelSpacing, rowVirtualizer]);
 
     /**
      * Scroll to maintain position only when settings actually change
      * Uses a settings key to detect real changes
      */
     useEffect(() => {
-        const settingsKey = `${settings.navItemHeight}-${settings.navIndent}`;
+        const settingsKey = `${settings.navItemHeight}-${settings.navIndent}-${settings.rootLevelSpacing}`;
         const settingsChanged = prevNavSettingsKeyRef.current && prevNavSettingsKeyRef.current !== settingsKey;
 
         // Skip settings-triggered scroll when a shortcut is active
@@ -588,6 +588,7 @@ export function useNavigationPaneScroll({
     }, [
         settings.navItemHeight,
         settings.navIndent,
+        settings.rootLevelSpacing,
         selectedPath,
         isScrollContainerReady,
         rowVirtualizer,

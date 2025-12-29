@@ -755,8 +755,8 @@ export const STRINGS_PT_BR = {
                 editTooltip: 'Editar mapeamentos'
             },
             optimizeNoteHeight: {
-                name: 'Otimizar altura da nota',
-                desc: 'Reduzir altura para notas fixadas e notas sem texto de visualização.'
+                name: 'Altura de nota variável',
+                desc: 'Usar altura compacta para notas fixadas e notas sem texto de visualização.'
             },
             compactItemHeight: {
                 name: 'Altura do item simples',
@@ -829,6 +829,11 @@ export const STRINGS_PT_BR = {
             autoRevealIgnoreRightSidebar: {
                 name: 'Ignorar eventos da barra lateral direita',
                 desc: 'Não alterar a nota ativa ao clicar ou alterar notas na barra lateral direita.'
+            },
+            paneTransitionDuration: {
+                name: 'Animação de painel único',
+                desc: 'Duração da transição ao alternar entre painéis no modo de painel único (milissegundos).',
+                resetTooltip: 'Restaurar padrão'
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Selecionar automaticamente a primeira nota (apenas desktop)',
@@ -1056,7 +1061,7 @@ export const STRINGS_PT_BR = {
             },
             showFeatureImage: {
                 name: 'Mostrar imagem destacada',
-                desc: 'Exibir imagens em miniatura do frontmatter. Dica: Use o plugin "Featured Image" para definir automaticamente imagens destacadas para todos os seus documentos.'
+                desc: 'Exibe uma miniatura da primeira imagem encontrada na nota.'
             },
             forceSquareFeatureImage: {
                 name: 'Forçar imagem destacada quadrada',
@@ -1064,12 +1069,13 @@ export const STRINGS_PT_BR = {
             },
             featureImageProperties: {
                 name: 'Propriedades de imagem',
-                desc: 'Lista separada por vírgulas de propriedades do frontmatter para verificar imagens em miniatura. A primeira propriedade com uma imagem será usada. Se vazia e a configuração de fallback estiver ativada, a primeira imagem incorporada será usada.',
+                desc: 'Lista separada por vírgulas de propriedades do frontmatter para verificar imagens em miniatura.',
                 placeholder: 'miniatura, featureRedimensionado, feature'
             },
-            useEmbeddedImageFallback: {
-                name: 'Usar fallback de imagem incorporada',
-                desc: 'Usar a primeira imagem incorporada no documento como fallback quando nenhuma miniatura for encontrada nas propriedades do frontmatter (requer Obsidian 1.9.4+). Desative isso para verificar se as miniaturas estão configuradas corretamente.'
+
+            downloadExternalFeatureImages: {
+                name: 'Baixar imagens externas',
+                desc: 'Baixar imagens remotas e miniaturas do YouTube para imagens de destaque.'
             },
             showRootFolder: {
                 name: 'Mostrar pasta raiz',
@@ -1222,7 +1228,8 @@ export const STRINGS_PT_BR = {
                 desc: 'Use isso se você tiver tags ausentes, visualizações incorretas ou imagens destacadas ausentes. Isso pode acontecer após conflitos de sincronização ou fechamentos inesperados.',
                 buttonText: 'Reconstruir cache',
                 success: 'Cache reconstruído',
-                error: 'Falha ao reconstruir cache'
+                error: 'Falha ao reconstruir cache',
+                progress: 'Reconstruindo cache:'
             },
             hotkeys: {
                 intro: 'Edite <pasta do plugin>/notebook-navigator/data.json para personalizar os atalhos de teclado do Notebook Navigator. Abra o arquivo e localize a seção "keyboardShortcuts". Cada entrada usa esta estrutura:',

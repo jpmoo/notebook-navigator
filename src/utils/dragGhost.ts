@@ -1,6 +1,23 @@
-import { App, setIcon } from 'obsidian';
+/*
+ * Notebook Navigator - Plugin for Obsidian
+ * Copyright (c) 2025 Johan Sanneblad
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import { setIcon } from 'obsidian';
 import { ItemType } from '../types';
-import { getDBInstance } from '../storage/fileOperations';
 import { getIconService } from '../services/icons';
 
 /**
@@ -33,9 +50,9 @@ export interface DragGhostManager {
 
 /**
  * Creates a drag ghost manager that displays custom drag previews.
- * Shows icons, images, or badges depending on the dragged content.
+ * Shows icons or badges depending on the dragged content.
  */
-export function createDragGhostManager(app: App): DragGhostManager {
+export function createDragGhostManager(): DragGhostManager {
     let dragGhostElement: HTMLElement | null = null;
     let windowDragEndHandler: ((event: DragEvent) => void) | null = null;
     let windowDropHandler: ((event: DragEvent) => void) | null = null;
@@ -180,41 +197,8 @@ export function createDragGhostManager(app: App): DragGhostManager {
                 iconWrapper.style.fill = iconColor;
                 iconWrapper.style.stroke = iconColor;
 
-                if (options.itemType === ItemType.FILE && options.path) {
-                    let featureImagePath = '';
-                    try {
-                        featureImagePath = getDBInstance().getCachedFeatureImageUrl(options.path);
-                    } catch (error) {
-                        void error;
-                        // Ignore cache errors and fall back to icon rendering
-                    }
-                    let imageLoaded = false;
-                    if (featureImagePath) {
-                        const imageFile = app.vault.getFileByPath(featureImagePath);
-                        if (imageFile) {
-                            try {
-                                const resourceUrl = app.vault.getResourcePath(imageFile);
-                                iconWrapper.className = 'nn-drag-ghost-icon nn-drag-ghost-featured-image';
-                                const img = document.createElement('img');
-                                img.src = resourceUrl;
-                                iconWrapper.appendChild(img);
-                                imageLoaded = true;
-                            } catch (error) {
-                                imageLoaded = false;
-                                void error;
-                            }
-                        }
-                    }
-
-                    if (!imageLoaded) {
-                        if (!renderIcon(options.icon, iconWrapper) && !renderIcon(resolvedIcon, iconWrapper)) {
-                            iconWrapper.innerHTML = '';
-                        }
-                    }
-                } else {
-                    if (!renderIcon(options.icon, iconWrapper) && !renderIcon(resolvedIcon, iconWrapper)) {
-                        iconWrapper.innerHTML = '';
-                    }
+                if (!renderIcon(options.icon, iconWrapper) && !renderIcon(resolvedIcon, iconWrapper)) {
+                    iconWrapper.innerHTML = '';
                 }
 
                 baseGhost.appendChild(iconWrapper);

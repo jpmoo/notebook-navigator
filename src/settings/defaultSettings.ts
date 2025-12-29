@@ -50,6 +50,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     autoRevealActiveFile: true,
     autoRevealIgnoreRightSidebar: true,
     multiSelectModifier: 'cmdCtrl',
+    paneTransitionDuration: 150,
 
     // General tab - View
     startView: 'files',
@@ -175,9 +176,9 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     previewRows: 2,
     previewProperties: [],
     showFeatureImage: true,
-    featureImageProperties: ['thumbnail', 'featureResized', 'feature'],
+    featureImageProperties: [],
     forceSquareFeatureImage: true,
-    useEmbeddedImageFallback: true,
+    downloadExternalFeatureImages: true,
     showFileTags: true,
     colorFileTags: true,
     prioritizeColoredFileTags: true,

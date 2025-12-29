@@ -758,8 +758,8 @@ export const STRINGS_DE = {
                 editTooltip: 'Zuordnungen bearbeiten'
             },
             optimizeNoteHeight: {
-                name: 'Notizenhöhe optimieren',
-                desc: 'Höhe für angeheftete Notizen und Notizen ohne Vorschautext reduzieren.'
+                name: 'Variable Notizenhöhe',
+                desc: 'Kompakte Höhe für angeheftete Notizen und Notizen ohne Vorschautext verwenden.'
             },
             compactItemHeight: {
                 name: 'Höhe schlanker Elemente',
@@ -832,6 +832,11 @@ export const STRINGS_DE = {
             autoRevealIgnoreRightSidebar: {
                 name: 'Ereignisse von rechter Seitenleiste ignorieren',
                 desc: 'Aktive Notiz nicht ändern, wenn in der rechten Seitenleiste auf Notizen geklickt oder diese gewechselt werden.'
+            },
+            paneTransitionDuration: {
+                name: 'Einzelbereich-Animation',
+                desc: 'Übergangsdauer beim Wechseln zwischen Bereichen im Einzelbereich-Modus (Millisekunden).',
+                resetTooltip: 'Auf Standard zurücksetzen'
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Erste Notiz automatisch auswählen (nur Desktop)',
@@ -1058,7 +1063,7 @@ export const STRINGS_DE = {
             },
             showFeatureImage: {
                 name: 'Vorschaubild anzeigen',
-                desc: 'Miniaturbilder aus Frontmatter anzeigen. Tipp: Verwenden Sie das "Featured Image" Plugin, um automatisch Vorschaubilder für alle Ihre Dokumente festzulegen.'
+                desc: 'Zeigt eine Miniatur des ersten Bildes in der Notiz an.'
             },
             forceSquareFeatureImage: {
                 name: 'Quadratische Vorschaubilder erzwingen',
@@ -1066,12 +1071,13 @@ export const STRINGS_DE = {
             },
             featureImageProperties: {
                 name: 'Bildeigenschaften',
-                desc: 'Kommagetrennte Liste von Frontmatter-Eigenschaften für Miniaturbilder. Die erste Eigenschaft mit einem Bild wird verwendet. Wenn leer und die Fallback-Einstellung aktiviert ist, wird das erste eingebettete Bild verwendet.',
+                desc: 'Kommagetrennte Liste von Frontmatter-Eigenschaften für Miniaturbilder.',
                 placeholder: 'thumbnail, featureResized, feature'
             },
-            useEmbeddedImageFallback: {
-                name: 'Eingebettetes Bild als Fallback verwenden',
-                desc: 'Verwende das erste eingebettete Bild im Dokument als Fallback, wenn kein Miniaturbild in den Frontmatter-Eigenschaften gefunden wird (erfordert Obsidian 1.9.4+). Deaktivieren Sie dies, um zu überprüfen, ob Miniaturbilder richtig konfiguriert sind.'
+
+            downloadExternalFeatureImages: {
+                name: 'Externe Bilder herunterladen',
+                desc: 'Remote-Bilder und YouTube-Vorschaubilder für Feature-Bilder herunterladen.'
             },
             showRootFolder: {
                 name: 'Wurzelordner anzeigen',
@@ -1224,7 +1230,8 @@ export const STRINGS_DE = {
                 desc: 'Verwenden Sie dies, wenn Tags fehlen, Vorschauen falsch sind oder Bilder fehlen. Dies kann nach Synchronisierungskonflikten oder unerwarteten Schließungen auftreten.',
                 buttonText: 'Cache neu aufbauen',
                 success: 'Cache wurde neu aufgebaut',
-                error: 'Cache-Neuaufbau fehlgeschlagen'
+                error: 'Cache-Neuaufbau fehlgeschlagen',
+                progress: 'Cache wird neu aufgebaut:'
             },
             hotkeys: {
                 intro: 'Bearbeite <plugin folder>/notebook-navigator/data.json, um Notebook Navigator-Tastenkürzel anzupassen. Öffne die Datei in einem Texteditor und suche den Abschnitt "keyboardShortcuts". Jede Zuordnung nutzt diese Struktur:',

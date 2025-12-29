@@ -73,28 +73,54 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
-        version: '1.9.4',
+        version: '2.0.1',
         date: '2025-12-29',
         showOnUpdate: true,
-        info: '==Templater support!== You can now create new notes from templates directly in the navigation pane or in current folder/tag using the new command! Also lots of other improvements in this release like a new ==visual editor for file icons== and the possibility to ==change all user interface icons==! Happy new year! 🎉',
+        new: [],
+        improved: ['==License is back to GPL 3== after discussions with the Obsidian team.'],
+        changed: [],
+        fixed: [
+            'Fixed **Style settings** not opening due to misaligned CSS variable names.',
+            '**Navigation Pane > Appearance > Root item spacing** now properly updates the view when changed.',
+            'Internal: normalized **content-type headers** for better external image support (e.g. some web sites provide `image/jpg` for JPEG or `image/x-png` for PNG).',
+            'Internal: hardened the **thumbnail LRU cache** to prevent possible race conditions after invalidation.'
+        ]
+    },
+    {
+        version: '2.0.0',
+        date: '2025-12-28',
+        showOnUpdate: true,
+        info: '==Notebook Navigator 2.0== is here and there are so many new features! First off: ==Notebook Navigator now automatically creates thumbnails for all your notes== and saves them to the metadata cache database for super fast scrolling! 🎉 If enabled, Notebook Navigator will now also download external images and YouTube thumbnails for feature images! We also have ==Templater support!== You can now create new notes from templates directly in the navigation pane or in the current folder / tag using the new command! Also there are lots of other improvements in this release like a new ==visual editor for file icons== and the option to ==change all user interface icons==! Happy new year! 🎉',
         new: [
+            'Notebook Navigator will now ==automatically create thumbnails for all your notes== and store them in the metadata cache database for super fast scrolling in the list pane! You no longer need the plugin **Featured Image** installed! You can still use a custom property for feature image if you want, otherwise the first image, external link or Youtube thumbnail in each document will be used.',
+            'New setting: ==Notes > Appearance > Download external images==. If enabled, Notebook Navigator will download external images and YouTube thumbnails to use as feature images in the list pane. Default enabled.',
             'New setting: ==General > Icons > Interface icons==. You can now customize all icons used in the Notebook Navigator interface, like pinned section icon, shortcuts icon, recent notes icon, folder expand/collapse icons, all toolbar buttons, and more.',
             '==File name icons and file type icons can now be edited with a new visual editor==. Just click the new **edit button** next to each text field in Settings > Notes > Icons.',
             '==You can now use icons from icon packs for file name icons and file type icons==.',
             'New menu command: ==New file from template==. If you have the plugin **Templater** installed you can now create new notes with templates directly from the navigation pane!',
             'New command: ==Create new note from template==. If you have the plugin **Templater** installed you can now create a new note with template in the current folder or tag.',
-            'New commands: ==Open shortcut 1-9==. Use this to quickly open your shortcut files, navigate to folders/tags, or load a custom search filter.',
+            'New commands: ==Open shortcut 1-9==. Use this to quickly open your shortcut files, navigate to folders/tags, or load a custom search filter. Tip: Bind them to CMD+1 etc for quick file and folder access!',
             'New setting: Navigation pane > Shortcuts & recent items > ==Shortcut badge==. You can now choose to show index number (1-9) to help with shortcut commands, show item count or show no badge next to shortcuts. Default is index (1-9).',
+            'New setting: General > Behavior > ==Single pane animation==. You can now customize the new animation speed when switching between navigation pane and list pane.',
             'New theme variable: ==--nn-theme-mobile-bg== to change mobile background color. Set it in Style settings or through themes / CSS.'
         ],
         improved: [
+            '==Links to external images and YouTube videos now show as feature images== in the list pane, as long as you prefix them with !.',
+            '==PDF files and inline PDF documents such as ![[mydocument.pdf]] now show the first page as a feature image== in the list pane.',
+            '==Excalidraw drawings now show as feature images== in the list pane.',
+            '**Significantly improved scrolling performance** since all feature images are now rendered from thumbnails with a fast LRU memory cache.',
+            'Switching between navigation pane and list pane on desktop in single pane mode **is now animated**.',
+            'On iOS devices you can now swipe anywhere to go from the list pane to navigation pane, this matches Obsidian default behavior.',
             "You can now use spaces in file icon mappings, e.g. 'ai ' to prevent matching titles like 'mail'.",
-            'Improved toolbar button layout on all Android devices and iOS devices running Obsidian 1.10 and earlier.'
+            'Improved toolbar button layout on all Android devices and iOS devices running Obsidian 1.10 and earlier.',
+            'Notebook Navigator is now fully compatible with Obsidian 1.11 and later, including the new Liquid Glass theme style.'
         ],
         changed: [
+            'The setting **List pane > Appearance > Optimize note height** no longer decreases vertical height for notes with feature images.',
             'Removed the "Reset" button next to the file name and file icon mapping text fields to avoid removing mappings by accident.',
             'Removed the theming variable --nn-theme-mobile-toolbar-border-color since it is no longer used.',
-            'Removed the theming variable --nn-style-pinned-section-icon. Use General > Icons > Interface icons to change the pinned icon.'
+            'Removed the theming variable --nn-style-pinned-section-icon. Use General > Icons > Interface icons to change the pinned icon.',
+            'Updated the Notebook Navigator licensing agreement. Developers can no longer submit forks of Notebook Navigator to the Obsidian community plugins list without my permission.'
         ],
         fixed: [
             'Fixed vertical text alignment in tag pills for certain fonts by adding explicit line-height.',

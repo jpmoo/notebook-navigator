@@ -49,13 +49,22 @@ const CORE_OBSIDIAN_EXTENSIONS = new Set([
  * Common image extensions that can be displayed as feature images.
  * Limited to formats with reliable cross-platform support.
  */
-const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'avif', 'bmp']);
+const SUPPORTED_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'avif', 'bmp'] as const;
+const IMAGE_EXTENSIONS = new Set<string>(SUPPORTED_IMAGE_EXTENSIONS);
 
 export function isImageExtension(extension: string): boolean {
     if (!extension) {
         return false;
     }
     return IMAGE_EXTENSIONS.has(extension.toLowerCase());
+}
+
+// Checks if a file extension is PDF (case-insensitive)
+function isPdfExtension(extension: string): boolean {
+    if (!extension) {
+        return false;
+    }
+    return extension.toLowerCase() === 'pdf';
 }
 
 /**
@@ -127,6 +136,14 @@ export function isImageFile(file: TFile): boolean {
         return false;
     }
     return isImageExtension(file.extension);
+}
+
+// Checks if a TFile is a PDF document
+export function isPdfFile(file: TFile): boolean {
+    if (!file?.extension) {
+        return false;
+    }
+    return isPdfExtension(file.extension);
 }
 
 /**

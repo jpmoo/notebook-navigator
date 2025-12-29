@@ -753,8 +753,8 @@ export const STRINGS_ZH_TW = {
                 editTooltip: '編輯對應'
             },
             optimizeNoteHeight: {
-                name: '最佳化筆記高度',
-                desc: '減少釘選筆記和無預覽文字筆記的高度。'
+                name: '可變筆記高度',
+                desc: '為釘選筆記和無預覽文字的筆記使用精簡高度。'
             },
             compactItemHeight: {
                 name: '精簡項目高度',
@@ -827,6 +827,11 @@ export const STRINGS_ZH_TW = {
             autoRevealIgnoreRightSidebar: {
                 name: '忽略右側邊欄事件',
                 desc: '在右側邊欄點擊或變更筆記時，不變更活動筆記。'
+            },
+            paneTransitionDuration: {
+                name: '單窗格動畫',
+                desc: '在單窗格模式下切換窗格時的過渡持續時間（毫秒）。',
+                resetTooltip: '重設為預設值'
             },
             autoSelectFirstFileOnFocusChange: {
                 name: '自動選取第一則筆記 (僅限桌面版)',
@@ -1053,7 +1058,7 @@ export const STRINGS_ZH_TW = {
             },
             showFeatureImage: {
                 name: '顯示特色圖片',
-                desc: '從 frontmatter 顯示縮圖。提示：使用 "Featured Image" 外掛為您的所有文件自動設定特色圖片。'
+                desc: '顯示筆記中找到的第一張圖片縮圖。'
             },
             forceSquareFeatureImage: {
                 name: '強制正方形特色圖片',
@@ -1061,12 +1066,13 @@ export const STRINGS_ZH_TW = {
             },
             featureImageProperties: {
                 name: '圖片屬性',
-                desc: '以逗號分隔的 frontmatter 屬性清單，用於檢查縮圖。將使用第一個有圖片的屬性。如果為空且啟用備用設定，將使用第一張嵌入的圖片。',
+                desc: '以逗號分隔的 frontmatter 屬性清單，用於檢查縮圖。',
                 placeholder: 'thumbnail, featureResized, feature'
             },
-            useEmbeddedImageFallback: {
-                name: '使用嵌入圖片備用',
-                desc: '當在 frontmatter 屬性中找不到縮圖時，使用文件中的第一張嵌入圖片作為備用 (需要 Obsidian 1.9.4+)。停用此項以驗證縮圖是否已正確設定。'
+
+            downloadExternalFeatureImages: {
+                name: '下載外部圖片',
+                desc: '下載遠端圖片和 YouTube 縮圖作為特色圖片。'
             },
             showRootFolder: {
                 name: '顯示根資料夾',
@@ -1219,7 +1225,8 @@ export const STRINGS_ZH_TW = {
                 desc: '如果您遇到標籤遺失、預覽不正確或特色圖片遺失的問題，請使用此功能。這可能在同步衝突或意外關閉後發生。',
                 buttonText: '重建快取',
                 success: '快取已重建',
-                error: '重建快取失敗'
+                error: '重建快取失敗',
+                progress: '正在重建快取:'
             },
             hotkeys: {
                 intro: '編輯 <plugin folder>/notebook-navigator/data.json 以自訂 Notebook Navigator 快捷鍵。開啟檔案並找到 "keyboardShortcuts" 區段。每個條目使用此結構：',

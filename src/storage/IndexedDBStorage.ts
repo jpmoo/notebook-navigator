@@ -1,5 +1,3 @@
-import { STORAGE_KEYS } from '../types';
-import { localStorage } from '../utils/localStorage';
 /*
  * Notebook Navigator - Plugin for Obsidian
  * Copyright (c) 2025 Johan Sanneblad
@@ -18,11 +16,21 @@ import { localStorage } from '../utils/localStorage';
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { STORAGE_KEYS } from '../types';
+import { localStorage } from '../utils/localStorage';
+import {
+    DEFAULT_FEATURE_IMAGE_CACHE_MAX,
+    FEATURE_IMAGE_STORE_NAME,
+    FeatureImageBlobStore,
+    computeFeatureImageMutation
+} from './FeatureImageBlobStore';
 import { MemoryFileCache } from './MemoryFileCache';
 
 const STORE_NAME = 'keyvaluepairs';
-const DB_SCHEMA_VERSION = 1; // IndexedDB structure version
-const DB_CONTENT_VERSION = 7; // Data format version
+const DB_SCHEMA_VERSION = 2; // IndexedDB structure version
+const DB_CONTENT_VERSION = 1; // Data format version
+
+export type FeatureImageStatus = 'unprocessed' | 'none' | 'has';
 
 /**
  * Sentinel values for metadata date fields
@@ -38,7 +46,33 @@ export interface FileData {
     mtime: number;
     tags: string[] | null; // null = not extracted yet (e.g. when tags disabled)
     preview: string | null; // null = not generated yet
-    featureImage: string | null; // null = not generated yet
+    /**
+     * Feature image placeholder for the main record.
+     * Always null in the main store; blobs live in a dedicated blob store.
+     * Empty blobs are not persisted; the featureImageKey is the durable marker for "processed but no thumbnail".
+     */
+    featureImage: Blob | null;
+    /**
+     * Feature image processing state.
+     *
+     * Semantics:
+     * - `unprocessed`: content provider has not run yet for this file
+     * - `none`: processed, but no thumbnail blob is stored (no reference or thumbnail generation failed)
+     * - `has`: processed and a thumbnail blob is stored in the blob store
+     */
+    featureImageStatus: FeatureImageStatus;
+    /**
+     * Stable key describing the selected feature image source.
+     *
+     * Semantics:
+     * - `null`: not generated yet (pending content generation)
+     * - `''`: generated and resolved, but no image reference is selected
+     * - `f:<path>@<mtime>`: local vault file reference (image embeds, PDF cover thumbnails)
+     * - `e:<url>`: external https URL reference (normalized, without hash)
+     * - `y:<videoId>`: YouTube thumbnail reference
+     * - `x:<path>@<mtime>`: Excalidraw file preview reference
+     */
+    featureImageKey: string | null;
     metadata: {
         name?: string;
         created?: number; // Valid timestamp, 0 = field not configured, -1 = parse failed
@@ -53,11 +87,17 @@ export interface FileContentChange {
     path: string;
     changes: {
         preview?: string | null;
-        featureImage?: string | null;
+        featureImage?: Blob | null;
+        featureImageKey?: string | null;
+        featureImageStatus?: FeatureImageStatus;
         metadata?: FileData['metadata'] | null;
         tags?: string[] | null;
     };
     changeType?: 'metadata' | 'content' | 'both';
+}
+
+interface IndexedDBStorageOptions {
+    featureImageCacheMaxEntries?: number;
 }
 
 /**
@@ -84,11 +124,46 @@ export class IndexedDBStorage {
     private changeListeners = new Set<(changes: FileContentChange[]) => void>();
     private db: IDBDatabase | null = null;
     private dbName: string;
+    // Dedicated feature image blob store with an in-memory LRU.
+    private featureImageBlobs: FeatureImageBlobStore;
     private fileChangeListeners = new Map<string, Set<(changes: FileContentChange['changes']) => void>>();
     private initPromise: Promise<void> | null = null;
+    private pendingRebuildNotice = false;
 
-    constructor(appId: string) {
+    constructor(appId: string, options?: IndexedDBStorageOptions) {
         this.dbName = `notebooknavigator/cache/${appId}`;
+        // Initialize the LRU size from caller options or fallback default.
+        const maxEntries = options?.featureImageCacheMaxEntries ?? DEFAULT_FEATURE_IMAGE_CACHE_MAX;
+        this.featureImageBlobs = new FeatureImageBlobStore(maxEntries);
+    }
+
+    consumePendingRebuildNotice(): boolean {
+        const pending = this.pendingRebuildNotice;
+        this.pendingRebuildNotice = false;
+        return pending;
+    }
+
+    private normalizeFileData(data: Partial<FileData>): FileData {
+        const featureImageKey = typeof data.featureImageKey === 'string' ? data.featureImageKey : null;
+        const rawStatus = data.featureImageStatus;
+        const featureImageStatus: FeatureImageStatus =
+            rawStatus === 'unprocessed' || rawStatus === 'none' || rawStatus === 'has'
+                ? rawStatus
+                : featureImageKey === null
+                  ? 'unprocessed'
+                  : 'none';
+
+        return {
+            mtime: typeof data.mtime === 'number' ? data.mtime : 0,
+            tags: Array.isArray(data.tags) ? data.tags : null,
+            preview: typeof data.preview === 'string' ? data.preview : null,
+            // Feature image blobs are stored separately from the main record.
+            // The MemoryFileCache is used for synchronous rendering and should not hold blob payloads.
+            featureImage: null,
+            featureImageStatus,
+            featureImageKey,
+            metadata: data.metadata && typeof data.metadata === 'object' ? (data.metadata as FileData['metadata']) : null
+        };
     }
 
     /**
@@ -195,36 +270,84 @@ export class IndexedDBStorage {
         return this.initPromise;
     }
 
-    private async checkSchemaAndInit(): Promise<void> {
-        const storedSchemaVersion = localStorage.get<string>(STORAGE_KEYS.databaseSchemaVersionKey);
-        const storedContentVersion = localStorage.get<string>(STORAGE_KEYS.databaseContentVersionKey);
-        const currentSchemaVersion = DB_SCHEMA_VERSION.toString();
-        const currentContentVersion = DB_CONTENT_VERSION.toString();
-
-        // Check version changes
-        const schemaChanged = storedSchemaVersion && storedSchemaVersion !== currentSchemaVersion;
-        const contentChanged = storedContentVersion && storedContentVersion !== currentContentVersion;
-
-        // Only schema changes require database recreation
-        if (schemaChanged) {
-            console.log(`Database schema version changed from ${storedSchemaVersion} to ${currentSchemaVersion}. Recreating database.`);
-            await this.deleteDatabase();
+    private parseStoredVersion(value: unknown): number | null {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+            return Math.trunc(value);
         }
 
-        localStorage.set(STORAGE_KEYS.databaseSchemaVersionKey, currentSchemaVersion);
-        localStorage.set(STORAGE_KEYS.databaseContentVersionKey, currentContentVersion);
+        if (typeof value === 'string') {
+            const parsed = Number.parseInt(value, 10);
+            return Number.isFinite(parsed) ? parsed : null;
+        }
 
-        const needsRebuild = !!(schemaChanged || contentChanged);
-        await this.openDatabase(needsRebuild);
+        return null;
+    }
+
+    private getStoredVersion(key: string): number | null {
+        const raw = localStorage.get<unknown>(key);
+        return this.parseStoredVersion(raw);
+    }
+
+    private isVersionError(error: unknown): boolean {
+        return error instanceof DOMException && error.name === 'VersionError';
+    }
+
+    private async checkSchemaAndInit(): Promise<void> {
+        const storedSchemaVersion = this.getStoredVersion(STORAGE_KEYS.databaseSchemaVersionKey);
+        const storedContentVersion = this.getStoredVersion(STORAGE_KEYS.databaseContentVersionKey);
+        const currentSchemaVersion = DB_SCHEMA_VERSION;
+        const currentContentVersion = DB_CONTENT_VERSION;
+
+        // Check version changes
+        const schemaVersionUnknown = storedSchemaVersion === null;
+        const contentVersionUnknown = storedContentVersion === null;
+        const schemaChanged = storedSchemaVersion !== null && storedSchemaVersion !== currentSchemaVersion;
+        const contentChanged = storedContentVersion !== null && storedContentVersion !== currentContentVersion;
+
+        // Only downgrade schema changes require database recreation; upgrades are handled via onupgradeneeded.
+        if (schemaChanged) {
+            if (storedSchemaVersion > currentSchemaVersion) {
+                console.log(
+                    `Database schema version downgraded from ${storedSchemaVersion} to ${currentSchemaVersion}. Recreating database.`
+                );
+                await this.deleteDatabase();
+            } else {
+                console.log(`Database schema version changed from ${storedSchemaVersion} to ${currentSchemaVersion}. Rebuilding database.`);
+            }
+        } else if (schemaVersionUnknown) {
+            console.log(`Database schema version is missing. Rebuilding database.`);
+        }
+
+        if (contentChanged) {
+            console.log(`Content version changed from ${storedContentVersion} to ${currentContentVersion}. Rebuilding content.`);
+        } else if (contentVersionUnknown) {
+            console.log('Content version is missing. Rebuilding content.');
+        }
+
+        const needsRebuild = schemaChanged || contentChanged || schemaVersionUnknown || contentVersionUnknown;
+        // Only show the rebuild notice when a version mismatch is detected (not when the keys are missing).
+        this.pendingRebuildNotice = schemaChanged || contentChanged;
+
+        try {
+            await this.openDatabase(needsRebuild);
+        } catch (error: unknown) {
+            if (this.isVersionError(error)) {
+                console.log('Database version mismatch detected. Recreating database.');
+                await this.deleteDatabase();
+                await this.openDatabase(needsRebuild);
+            } else {
+                throw error;
+            }
+        }
 
         // Clear and rebuild content if either version changed
         if (needsRebuild) {
-            if (contentChanged && !schemaChanged) {
-                console.log(`Content version changed from ${storedContentVersion} to ${currentContentVersion}. Rebuilding content.`);
-            }
             // Clear all data to force rebuild
             await this.clear();
         }
+
+        localStorage.set(STORAGE_KEYS.databaseSchemaVersionKey, currentSchemaVersion.toString());
+        localStorage.set(STORAGE_KEYS.databaseContentVersionKey, currentContentVersion.toString());
     }
 
     private async deleteDatabase(): Promise<void> {
@@ -292,6 +415,8 @@ export class IndexedDBStorage {
 
             request.onsuccess = async () => {
                 this.db = request.result;
+                // Reset blob caches whenever a new database connection is opened.
+                this.featureImageBlobs.clearMemoryCaches();
 
                 // Close this connection if a version change is requested elsewhere
                 if (this.db) {
@@ -310,34 +435,63 @@ export class IndexedDBStorage {
                     this.cache.resetToEmpty();
                 } else {
                     try {
-                        // Use cursor streaming to avoid materializing duplicate arrays in memory
                         const transaction = this.db.transaction([STORE_NAME], 'readonly');
                         const store = transaction.objectStore(STORE_NAME);
 
                         this.cache.clear();
 
-                        await new Promise<void>((resolveCursor, rejectCursor) => {
-                            const cursorRequest = store.openCursor();
+                        // Wrap an IndexedDB request in a promise so it can be awaited.
+                        const requestToPromise = <T>(request: IDBRequest<T>, fallbackMessage: string): Promise<T> =>
+                            new Promise((resolveRequest, rejectRequest) => {
+                                request.onsuccess = () => resolveRequest(request.result);
+                                request.onerror = () => rejectRequest(this.normalizeIdbError(request.error, fallbackMessage));
+                            });
 
-                            cursorRequest.onsuccess = () => {
-                                const cursor = cursorRequest.result;
-                                if (!cursor) {
-                                    // All data loaded, mark cache as ready
-                                    this.cache.markInitialized();
-                                    resolveCursor();
-                                    return;
+                        // Bulk-load the store to avoid per-row cursor callbacks.
+                        // Use batching to limit peak memory usage on large vaults.
+                        const batchSize = 5000;
+                        // Tracks the last key in the previous batch so the next query can resume after it.
+                        let lastKey: IDBValidKey | null = null;
+
+                        while (true) {
+                            // When resuming, start strictly after the last key we processed.
+                            const range = lastKey === null ? undefined : IDBKeyRange.lowerBound(lastKey, true);
+
+                            // Fetch keys and values for the same range/count so indexes line up.
+                            const keysRequest = store.getAllKeys(range, batchSize);
+                            const valuesRequest = store.getAll(range, batchSize) as IDBRequest<Partial<FileData>[]>;
+                            const [keys, values] = await Promise.all([
+                                requestToPromise(keysRequest, 'getAllKeys failed'),
+                                requestToPromise(valuesRequest, 'getAll failed')
+                            ]);
+
+                            if (keys.length === 0) {
+                                break;
+                            }
+
+                            // Apply each row directly into the in-memory cache.
+                            for (let index = 0; index < keys.length; index += 1) {
+                                const key = keys[index];
+                                if (typeof key !== 'string') {
+                                    continue;
                                 }
+                                const value = values[index];
+                                if (!value) {
+                                    continue;
+                                }
+                                this.cache.updateFile(key, this.normalizeFileData(value));
+                            }
 
-                                // Stream each file directly into the cache without intermediate storage
-                                const path = cursor.key as string;
-                                this.cache.updateFile(path, cursor.value as FileData);
-                                cursor.continue();
-                            };
+                            // Continue from the last key returned in this batch.
+                            lastKey = keys[keys.length - 1];
+                            // If IndexedDB returned fewer than the requested count, there are no more rows.
+                            if (keys.length < batchSize) {
+                                break;
+                            }
+                        }
 
-                            cursorRequest.onerror = () => {
-                                rejectCursor(this.normalizeIdbError(cursorRequest.error, 'Cursor iteration failed'));
-                            };
-                        });
+                        // All data loaded, mark cache as ready.
+                        this.cache.markInitialized();
                     } catch (error: unknown) {
                         console.error('[DB Cache] Failed to initialize cache:', error);
                         console.error(
@@ -351,7 +505,11 @@ export class IndexedDBStorage {
             };
 
             request.onupgradeneeded = event => {
-                const db = (event.target as IDBOpenDBRequest).result;
+                const target = event.target;
+                if (!(target instanceof IDBOpenDBRequest)) {
+                    return;
+                }
+                const db = target.result;
 
                 if (!db.objectStoreNames.contains(STORE_NAME)) {
                     // Use out-of-line keys since we removed path from FileData
@@ -359,6 +517,38 @@ export class IndexedDBStorage {
 
                     store.createIndex('mtime', 'mtime', { unique: false });
                     store.createIndex('tags', 'tags', { unique: false, multiEntry: true });
+                }
+
+                if (!db.objectStoreNames.contains(FEATURE_IMAGE_STORE_NAME)) {
+                    db.createObjectStore(FEATURE_IMAGE_STORE_NAME);
+                }
+
+                if (event.oldVersion < 2) {
+                    // Schema v2 introduces a dedicated feature image blob store.
+                    // This plugin does not migrate old cache payloads between schemas; the cache is rebuilt.
+                    //
+                    // Clear any existing data in the versionchange transaction to avoid mixing v1 records
+                    // with v2 read paths and to ensure content providers regenerate feature images.
+                    const transaction = target.transaction;
+                    if (!transaction) {
+                        return;
+                    }
+
+                    try {
+                        if (transaction.objectStoreNames.contains(STORE_NAME)) {
+                            transaction.objectStore(STORE_NAME).clear();
+                        }
+                    } catch (error: unknown) {
+                        console.error('[IndexedDB] clear failed during upgrade', { store: STORE_NAME, error });
+                    }
+
+                    try {
+                        if (transaction.objectStoreNames.contains(FEATURE_IMAGE_STORE_NAME)) {
+                            transaction.objectStore(FEATURE_IMAGE_STORE_NAME).clear();
+                        }
+                    } catch (error: unknown) {
+                        console.error('[IndexedDB] clear failed during upgrade', { store: FEATURE_IMAGE_STORE_NAME, error });
+                    }
                 }
             };
         });
@@ -372,8 +562,10 @@ export class IndexedDBStorage {
         await this.init();
         if (!this.db) throw new Error('Database not initialized');
 
-        const transaction = this.db.transaction([STORE_NAME], 'readwrite');
+        // Clear both the main store and the feature image blob store in one transaction.
+        const transaction = this.db.transaction([STORE_NAME, FEATURE_IMAGE_STORE_NAME], 'readwrite');
         const store = transaction.objectStore(STORE_NAME);
+        const blobStore = transaction.objectStore(FEATURE_IMAGE_STORE_NAME);
 
         return new Promise((resolve, reject) => {
             const op = 'clear';
@@ -387,8 +579,20 @@ export class IndexedDBStorage {
                     message: request.error?.message
                 });
             };
+            // Clear blob records alongside the main store.
+            const blobRequest = blobStore.clear();
+            blobRequest.onerror = () => {
+                lastRequestError = blobRequest.error || null;
+                console.error('[IndexedDB] clear failed', {
+                    store: FEATURE_IMAGE_STORE_NAME,
+                    name: blobRequest.error?.name,
+                    message: blobRequest.error?.message
+                });
+            };
             transaction.oncomplete = () => {
                 this.cache.resetToEmpty();
+                // Drop any in-memory blobs after clearing the database.
+                this.featureImageBlobs.clearMemoryCaches();
                 resolve();
             };
             transaction.onabort = () => {
@@ -453,7 +657,9 @@ export class IndexedDBStorage {
         return new Promise((resolve, reject) => {
             const op = 'put';
             let lastRequestError: DOMException | Error | null = null;
-            const request = store.put(data, path);
+            // Persist the main record without feature image blob data.
+            const sanitized = this.normalizeFileData({ ...data, featureImage: null });
+            const request = store.put(sanitized, path);
             request.onerror = () => {
                 lastRequestError = request.error || null;
                 console.error('[IndexedDB] put failed', {
@@ -464,7 +670,7 @@ export class IndexedDBStorage {
                 });
             };
             transaction.oncomplete = () => {
-                this.cache.updateFile(path, data);
+                this.cache.updateFile(path, sanitized);
                 resolve();
             };
             transaction.onabort = () => {
@@ -499,8 +705,9 @@ export class IndexedDBStorage {
         await this.init();
         if (!this.db) throw new Error('Database not initialized');
 
-        const transaction = this.db.transaction([STORE_NAME], 'readwrite');
+        const transaction = this.db.transaction([STORE_NAME, FEATURE_IMAGE_STORE_NAME], 'readwrite');
         const store = transaction.objectStore(STORE_NAME);
+        const blobStore = transaction.objectStore(FEATURE_IMAGE_STORE_NAME);
 
         return new Promise((resolve, reject) => {
             const op = 'delete';
@@ -515,8 +722,20 @@ export class IndexedDBStorage {
                     message: request.error?.message
                 });
             };
+            // Remove any feature image blob for the file path.
+            const blobRequest = blobStore.delete(path);
+            blobRequest.onerror = () => {
+                lastRequestError = blobRequest.error || null;
+                console.error('[IndexedDB] delete failed', {
+                    store: FEATURE_IMAGE_STORE_NAME,
+                    path,
+                    name: blobRequest.error?.name,
+                    message: blobRequest.error?.message
+                });
+            };
             transaction.oncomplete = () => {
                 this.cache.deleteFile(path);
+                this.featureImageBlobs.deleteFromCache(path);
                 resolve();
             };
             transaction.onabort = () => {
@@ -576,8 +795,13 @@ export class IndexedDBStorage {
                 resolve();
                 return;
             }
+            // Persist batch records without feature image blob data.
+            const sanitizedFiles = files.map(({ path, data }) => ({
+                path,
+                data: this.normalizeFileData({ ...data, featureImage: null })
+            }));
 
-            files.forEach(({ path, data }) => {
+            sanitizedFiles.forEach(({ path, data }) => {
                 const request = store.put(data, path);
                 request.onerror = () => {
                     lastRequestError = request.error || null;
@@ -591,7 +815,7 @@ export class IndexedDBStorage {
             });
 
             transaction.oncomplete = () => {
-                this.cache.batchUpdate(files);
+                this.cache.batchUpdate(sanitizedFiles);
                 resolve();
             };
             transaction.onabort = () => {
@@ -625,8 +849,9 @@ export class IndexedDBStorage {
         await this.init();
         if (!this.db) throw new Error('Database not initialized');
 
-        const transaction = this.db.transaction([STORE_NAME], 'readwrite');
+        const transaction = this.db.transaction([STORE_NAME, FEATURE_IMAGE_STORE_NAME], 'readwrite');
         const store = transaction.objectStore(STORE_NAME);
+        const blobStore = transaction.objectStore(FEATURE_IMAGE_STORE_NAME);
 
         return new Promise((resolve, reject) => {
             const op = 'delete:batch';
@@ -647,10 +872,22 @@ export class IndexedDBStorage {
                         message: request.error?.message
                     });
                 };
+                // Remove any feature image blob for the file path.
+                const blobRequest = blobStore.delete(path);
+                blobRequest.onerror = () => {
+                    lastRequestError = blobRequest.error || null;
+                    console.error('[IndexedDB] delete failed', {
+                        store: FEATURE_IMAGE_STORE_NAME,
+                        path,
+                        name: blobRequest.error?.name,
+                        message: blobRequest.error?.message
+                    });
+                };
             });
 
             transaction.oncomplete = () => {
                 this.cache.batchDelete(paths);
+                paths.forEach(path => this.featureImageBlobs.deleteFromCache(path));
                 resolve();
             };
             transaction.onabort = () => {
@@ -687,7 +924,8 @@ export class IndexedDBStorage {
         }
         return this.cache.getAllFiles().filter(file => {
             if (type === 'preview') return file.preview !== null;
-            if (type === 'featureImage') return file.featureImage !== null;
+            // Feature images are considered present when a stored thumbnail blob exists.
+            if (type === 'featureImage') return file.featureImageStatus === 'has';
             if (type === 'metadata') return file.metadata !== null;
             return false;
         });
@@ -747,7 +985,8 @@ export class IndexedDBStorage {
             if (
                 (type === 'tags' && data.tags === null) ||
                 (type === 'preview' && data.preview === null) ||
-                (type === 'featureImage' && data.featureImage === null) ||
+                // Feature images need processing when they are unprocessed.
+                (type === 'featureImage' && data.featureImageStatus === 'unprocessed') ||
                 (type === 'metadata' && data.metadata === null)
             ) {
                 result.add(path);
@@ -758,11 +997,13 @@ export class IndexedDBStorage {
 
     /**
      * Get current database statistics.
-     * Returns the number of items and total size in MB.
+     * Returns the number of items in the main store and an estimated total size in MB.
+     *
+     * Includes feature image blobs stored in the dedicated blob store.
      *
      * @returns Object with item count and size in MB
      */
-    getDatabaseStats(): { itemCount: number; sizeMB: number } {
+    async getDatabaseStats(): Promise<{ itemCount: number; sizeMB: number }> {
         if (!this.cache.isReady()) {
             return { itemCount: 0, sizeMB: 0 };
         }
@@ -771,6 +1012,9 @@ export class IndexedDBStorage {
         this.cache.forEachFile((path, data) => {
             itemCount++;
             totalSize += path.length + JSON.stringify(data).length;
+        });
+        await this.forEachFeatureImageBlobRecord((_path, record) => {
+            totalSize += record.blob.size;
         });
         const sizeMB = totalSize / 1024 / 1024;
         return { itemCount, sizeMB };
@@ -783,42 +1027,95 @@ export class IndexedDBStorage {
      *
      * @param path - File path to update
      * @param preview - New preview text (optional)
-     * @param image - New feature image URL (optional)
+     * @param image - New feature image blob (optional)
      * @param metadata - New metadata (optional)
      */
-    async updateFileContent(path: string, preview?: string, image?: string, metadata?: FileData['metadata']): Promise<void> {
+    async updateFileContent(
+        path: string,
+        preview?: string,
+        image?: Blob | null,
+        metadata?: FileData['metadata'],
+        featureImageKey?: string | null
+    ): Promise<void> {
         await this.init();
         if (!this.db) throw new Error('Database not initialized');
 
-        const transaction = this.db.transaction([STORE_NAME], 'readwrite');
+        const transaction = this.db.transaction([STORE_NAME, FEATURE_IMAGE_STORE_NAME], 'readwrite');
         const store = transaction.objectStore(STORE_NAME);
+        const blobStore = transaction.objectStore(FEATURE_IMAGE_STORE_NAME);
         const changes: FileContentChange['changes'] = {};
         let updated: FileData | null = null;
+        let shouldClearFeatureImageCache = false;
         const opUpdate = 'updateFileContent';
         let lastRequestErrorUpdate: DOMException | Error | null = null;
 
         await new Promise<void>((resolve, reject) => {
             const getReq = store.get(path);
             getReq.onsuccess = () => {
-                const existing = (getReq.result as FileData | undefined) || null;
-                if (!existing) {
+                const existingRaw = (getReq.result as Partial<FileData> | undefined) || null;
+                if (!existingRaw) {
                     resolve();
                     return;
                 }
+                const existing = this.normalizeFileData(existingRaw);
                 const next: FileData = { ...existing };
+
+                const featureImageMutation = computeFeatureImageMutation({
+                    existingKey: existing.featureImageKey,
+                    existingStatus: existing.featureImageStatus,
+                    featureImageKey,
+                    featureImage: image
+                });
+                if (featureImageMutation.changes.featureImageKey !== undefined) {
+                    changes.featureImageKey = featureImageMutation.changes.featureImageKey;
+                }
+                if (featureImageMutation.changes.featureImageStatus !== undefined) {
+                    changes.featureImageStatus = featureImageMutation.changes.featureImageStatus;
+                }
+                if (featureImageMutation.shouldClearCache) {
+                    shouldClearFeatureImageCache = true;
+                }
+
                 if (preview !== undefined) {
                     next.preview = preview;
                     changes.preview = preview;
-                }
-                if (image !== undefined) {
-                    next.featureImage = image;
-                    changes.featureImage = image;
                 }
                 if (metadata !== undefined) {
                     next.metadata = metadata;
                     changes.metadata = metadata;
                 }
+
+                // Main store records never hold blob data.
+                next.featureImageKey = featureImageMutation.nextKey;
+                next.featureImage = null;
+                next.featureImageStatus = featureImageMutation.nextStatus;
                 updated = next;
+                if (featureImageMutation.blobUpdate) {
+                    // Write the blob record with the current key.
+                    const imageReq = blobStore.put(featureImageMutation.blobUpdate, path);
+                    imageReq.onerror = () => {
+                        lastRequestErrorUpdate = imageReq.error || null;
+                        console.error('[IndexedDB] put failed', {
+                            store: FEATURE_IMAGE_STORE_NAME,
+                            op: opUpdate,
+                            path,
+                            name: imageReq.error?.name,
+                            message: imageReq.error?.message
+                        });
+                    };
+                } else if (featureImageMutation.shouldDeleteBlob) {
+                    const deleteReq = blobStore.delete(path);
+                    deleteReq.onerror = () => {
+                        lastRequestErrorUpdate = deleteReq.error || null;
+                        console.error('[IndexedDB] delete failed', {
+                            store: FEATURE_IMAGE_STORE_NAME,
+                            op: opUpdate,
+                            path,
+                            name: deleteReq.error?.name,
+                            message: deleteReq.error?.message
+                        });
+                    };
+                }
                 const putReq = store.put(next, path);
                 putReq.onerror = () => {
                     lastRequestErrorUpdate = putReq.error || null;
@@ -871,8 +1168,13 @@ export class IndexedDBStorage {
 
         if (updated) {
             this.cache.updateFile(path, updated);
+            if (shouldClearFeatureImageCache) {
+                // Remove any cached blob for the updated path.
+                this.featureImageBlobs.deleteFromCache(path);
+            }
             if (Object.keys(changes).length > 0) {
-                const hasContentChanges = changes.preview !== undefined || changes.featureImage !== undefined;
+                const hasContentChanges =
+                    changes.preview !== undefined || changes.featureImageKey !== undefined || changes.featureImageStatus !== undefined;
                 const hasMetadataChanges = changes.metadata !== undefined;
                 const changeType = hasContentChanges && hasMetadataChanges ? 'both' : hasContentChanges ? 'content' : 'metadata';
                 this.emitChanges([{ path, changes, changeType }]);
@@ -910,11 +1212,12 @@ export class IndexedDBStorage {
         await new Promise<void>((resolve, reject) => {
             const getReq = store.get(path);
             getReq.onsuccess = () => {
-                const existing = (getReq.result as FileData | undefined) || null;
-                if (!existing) {
+                const existingRaw = (getReq.result as Partial<FileData> | undefined) || null;
+                if (!existingRaw) {
                     resolve();
                     return;
                 }
+                const existing = this.normalizeFileData(existingRaw);
                 const newMeta = { ...(existing.metadata || {}), ...metadata };
                 updated = { ...existing, metadata: newMeta };
                 const putReq = store.put(updated, path);
@@ -997,9 +1300,9 @@ export class IndexedDBStorage {
             updates.forEach(({ path, mtime }) => {
                 const getReq = store.get(path);
                 getReq.onsuccess = () => {
-                    const existing = (getReq.result as FileData | undefined) || null;
-                    if (!existing) return;
-                    const updated: FileData = { ...existing, mtime };
+                    const existingRaw = (getReq.result as Partial<FileData> | undefined) || null;
+                    if (!existingRaw) return;
+                    const updated: FileData = { ...this.normalizeFileData(existingRaw), mtime };
                     cacheUpdates.push({ path, data: updated });
                     const putReq = store.put(updated, path);
                     putReq.onerror = () => {
@@ -1068,22 +1371,24 @@ export class IndexedDBStorage {
         await this.init();
         if (!this.db) throw new Error('Database not initialized');
 
-        const transaction = this.db.transaction([STORE_NAME], 'readwrite');
+        const transaction = this.db.transaction([STORE_NAME, FEATURE_IMAGE_STORE_NAME], 'readwrite');
         const store = transaction.objectStore(STORE_NAME);
+        const blobStore = transaction.objectStore(FEATURE_IMAGE_STORE_NAME);
         const changes: FileContentChange['changes'] = {};
         let updated: FileData | null = null;
+        let shouldClearFeatureImageCache = false;
         const op = 'clearFileContent';
         let lastRequestError: DOMException | Error | null = null;
 
         await new Promise<void>((resolve, reject) => {
             const getReq = store.get(path);
             getReq.onsuccess = () => {
-                const existing = (getReq.result as FileData | undefined) || null;
-                if (!existing) {
+                const existingRaw = (getReq.result as Partial<FileData> | undefined) || null;
+                if (!existingRaw) {
                     resolve();
                     return;
                 }
-                const file = { ...existing };
+                const file = { ...this.normalizeFileData(existingRaw) };
                 if (type === 'preview' || type === 'all') {
                     if (file.preview !== null) {
                         file.preview = null;
@@ -1091,10 +1396,28 @@ export class IndexedDBStorage {
                     }
                 }
                 if (type === 'featureImage' || type === 'all') {
-                    if (file.featureImage !== null) {
-                        file.featureImage = null;
-                        changes.featureImage = null;
+                    // Clear feature image key in the main store and delete blob records.
+                    if (file.featureImageKey !== null) {
+                        file.featureImageKey = null;
+                        changes.featureImageKey = null;
                     }
+                    if (file.featureImageStatus !== 'unprocessed') {
+                        file.featureImageStatus = 'unprocessed';
+                        changes.featureImageStatus = 'unprocessed';
+                    }
+                    file.featureImage = null;
+                    shouldClearFeatureImageCache = true;
+                    const deleteReq = blobStore.delete(path);
+                    deleteReq.onerror = () => {
+                        lastRequestError = deleteReq.error || null;
+                        console.error('[IndexedDB] delete failed', {
+                            store: FEATURE_IMAGE_STORE_NAME,
+                            op,
+                            path,
+                            name: deleteReq.error?.name,
+                            message: deleteReq.error?.message
+                        });
+                    };
                 }
                 if (type === 'metadata' || type === 'all') {
                     if (file.metadata !== null) {
@@ -1155,8 +1478,12 @@ export class IndexedDBStorage {
 
         if (updated) {
             this.cache.updateFile(path, updated);
+            if (shouldClearFeatureImageCache) {
+                this.featureImageBlobs.deleteFromCache(path);
+            }
             if (Object.keys(changes).length > 0) {
-                const hasContentCleared = changes.preview === null || changes.featureImage === null;
+                const hasContentCleared =
+                    changes.preview === null || changes.featureImageKey === null || changes.featureImageStatus !== undefined;
                 const hasMetadataCleared = changes.metadata === null;
                 const changeType = hasContentCleared && hasMetadataCleared ? 'both' : hasContentCleared ? 'content' : 'metadata';
                 this.emitChanges([{ path, changes, changeType }]);
@@ -1176,20 +1503,34 @@ export class IndexedDBStorage {
         await this.init();
         if (!this.db) throw new Error('Database not initialized');
 
-        const transaction = this.db.transaction([STORE_NAME], 'readwrite');
+        const transaction = this.db.transaction([STORE_NAME, FEATURE_IMAGE_STORE_NAME], 'readwrite');
         const store = transaction.objectStore(STORE_NAME);
+        const blobStore = transaction.objectStore(FEATURE_IMAGE_STORE_NAME);
         const changeNotifications: FileContentChange[] = [];
         const cacheUpdates: { path: string; data: FileData }[] = [];
         const op = 'batchClearAllFileContent';
         let lastRequestError: DOMException | Error | null = null;
 
         return new Promise((resolve, reject) => {
+            if (type === 'featureImage' || type === 'all') {
+                // Clear all feature image blobs in one operation.
+                const clearReq = blobStore.clear();
+                clearReq.onerror = () => {
+                    lastRequestError = clearReq.error || null;
+                    console.error('[IndexedDB] clear failed', {
+                        store: FEATURE_IMAGE_STORE_NAME,
+                        op,
+                        name: clearReq.error?.name,
+                        message: clearReq.error?.message
+                    });
+                };
+            }
             const request = store.openCursor();
 
             request.onsuccess = () => {
                 const cursor = request.result;
                 if (cursor) {
-                    const current = cursor.value as FileData;
+                    const current = this.normalizeFileData(cursor.value as Partial<FileData>);
                     const updated: FileData = { ...current };
                     const changes: FileContentChange['changes'] = {};
                     let hasChanges = false;
@@ -1199,10 +1540,18 @@ export class IndexedDBStorage {
                         changes.preview = null;
                         hasChanges = true;
                     }
-                    if ((type === 'featureImage' || type === 'all') && updated.featureImage !== null) {
-                        updated.featureImage = null;
-                        changes.featureImage = null;
+                    if ((type === 'featureImage' || type === 'all') && updated.featureImageKey !== null) {
+                        updated.featureImageKey = null;
+                        changes.featureImageKey = null;
                         hasChanges = true;
+                    }
+                    if (type === 'featureImage' || type === 'all') {
+                        updated.featureImage = null;
+                        if (updated.featureImageStatus !== 'unprocessed') {
+                            updated.featureImageStatus = 'unprocessed';
+                            changes.featureImageStatus = 'unprocessed';
+                            hasChanges = true;
+                        }
                     }
                     if ((type === 'metadata' || type === 'all') && updated.metadata !== null) {
                         updated.metadata = null;
@@ -1216,6 +1565,7 @@ export class IndexedDBStorage {
                     }
 
                     if (hasChanges) {
+                        const path = cursor.key as string;
                         const updateReq = cursor.update(updated);
                         updateReq.onerror = () => {
                             lastRequestError = updateReq.error || null;
@@ -1232,9 +1582,9 @@ export class IndexedDBStorage {
                                 void e;
                             }
                         };
-                        const path = cursor.key as string;
                         cacheUpdates.push({ path, data: updated });
-                        const hasContentCleared = changes.preview === null || changes.featureImage === null;
+                        const hasContentCleared =
+                            changes.preview === null || changes.featureImageKey === null || changes.featureImageStatus !== undefined;
                         const hasMetadataCleared = changes.metadata === null || changes.tags !== undefined;
                         const clearType = hasContentCleared && hasMetadataCleared ? 'both' : hasContentCleared ? 'content' : 'metadata';
                         changeNotifications.push({ path, changes, changeType: clearType });
@@ -1260,6 +1610,10 @@ export class IndexedDBStorage {
                 if (cacheUpdates.length > 0) {
                     this.cache.batchUpdate(cacheUpdates);
                     this.emitChanges(changeNotifications);
+                }
+                if (type === 'featureImage' || type === 'all') {
+                    // Reset the in-memory blob cache when all blobs are cleared.
+                    this.featureImageBlobs.clearMemoryCaches();
                 }
                 resolve();
             };
@@ -1297,8 +1651,9 @@ export class IndexedDBStorage {
         await this.init();
         if (!this.db) throw new Error('Database not initialized');
 
-        const transaction = this.db.transaction([STORE_NAME], 'readwrite');
+        const transaction = this.db.transaction([STORE_NAME, FEATURE_IMAGE_STORE_NAME], 'readwrite');
         const store = transaction.objectStore(STORE_NAME);
+        const blobStore = transaction.objectStore(FEATURE_IMAGE_STORE_NAME);
         const updates: { path: string; data: FileData }[] = [];
         const changeNotifications: FileContentChange[] = [];
         const op = 'batchClearFileContent';
@@ -1313,11 +1668,11 @@ export class IndexedDBStorage {
             paths.forEach(path => {
                 const getReq = store.get(path);
                 getReq.onsuccess = () => {
-                    const existing = (getReq.result as FileData | undefined) || null;
-                    if (!existing) {
+                    const existingRaw = (getReq.result as Partial<FileData> | undefined) || null;
+                    if (!existingRaw) {
                         return;
                     }
-                    const file = { ...existing };
+                    const file = { ...this.normalizeFileData(existingRaw) };
                     const changes: FileContentChange['changes'] = {};
                     let hasChanges = false;
                     if ((type === 'preview' || type === 'all') && file.preview !== null) {
@@ -1325,10 +1680,18 @@ export class IndexedDBStorage {
                         changes.preview = null;
                         hasChanges = true;
                     }
-                    if ((type === 'featureImage' || type === 'all') && file.featureImage !== null) {
-                        file.featureImage = null;
-                        changes.featureImage = null;
+                    if ((type === 'featureImage' || type === 'all') && file.featureImageKey !== null) {
+                        file.featureImageKey = null;
+                        changes.featureImageKey = null;
                         hasChanges = true;
+                    }
+                    if (type === 'featureImage' || type === 'all') {
+                        file.featureImage = null;
+                        if (file.featureImageStatus !== 'unprocessed') {
+                            file.featureImageStatus = 'unprocessed';
+                            changes.featureImageStatus = 'unprocessed';
+                            hasChanges = true;
+                        }
                     }
                     if ((type === 'metadata' || type === 'all') && file.metadata !== null) {
                         file.metadata = null;
@@ -1352,8 +1715,23 @@ export class IndexedDBStorage {
                                 message: putReq.error?.message
                             });
                         };
+                        if (type === 'featureImage' || type === 'all') {
+                            // Remove feature image blobs for the cleared paths.
+                            const deleteReq = blobStore.delete(path);
+                            deleteReq.onerror = () => {
+                                lastRequestError = deleteReq.error || null;
+                                console.error('[IndexedDB] delete failed', {
+                                    store: FEATURE_IMAGE_STORE_NAME,
+                                    op,
+                                    path,
+                                    name: deleteReq.error?.name,
+                                    message: deleteReq.error?.message
+                                });
+                            };
+                        }
                         updates.push({ path, data: file });
-                        const hasContentCleared = changes.preview === null || changes.featureImage === null;
+                        const hasContentCleared =
+                            changes.preview === null || changes.featureImageKey === null || changes.featureImageStatus !== undefined;
                         const hasMetadataCleared = changes.metadata === null || changes.tags !== undefined;
                         const clearType = hasContentCleared && hasMetadataCleared ? 'both' : hasContentCleared ? 'content' : 'metadata';
                         changeNotifications.push({ path, changes, changeType: clearType });
@@ -1402,6 +1780,12 @@ export class IndexedDBStorage {
             this.cache.batchUpdate(updates);
             this.emitChanges(changeNotifications);
         }
+        if (type === 'featureImage' || type === 'all') {
+            // Drop any cached blobs for the cleared paths.
+            for (const path of paths) {
+                this.featureImageBlobs.deleteFromCache(path);
+            }
+        }
     }
 
     /**
@@ -1417,7 +1801,8 @@ export class IndexedDBStorage {
             path: string;
             tags?: string[] | null;
             preview?: string;
-            featureImage?: string;
+            featureImage?: Blob | null;
+            featureImageKey?: string | null;
             metadata?: FileData['metadata'];
         }[]
     ): Promise<void> {
@@ -1426,10 +1811,12 @@ export class IndexedDBStorage {
 
         if (updates.length === 0) return;
 
-        const transaction = this.db.transaction([STORE_NAME], 'readwrite');
+        const transaction = this.db.transaction([STORE_NAME, FEATURE_IMAGE_STORE_NAME], 'readwrite');
         const store = transaction.objectStore(STORE_NAME);
+        const blobStore = transaction.objectStore(FEATURE_IMAGE_STORE_NAME);
         const filesToUpdate: { path: string; data: FileData }[] = [];
         const changeNotifications: FileContentChange[] = [];
+        const featureImageCacheUpdates = new Set<string>();
 
         await new Promise<void>((resolve, reject) => {
             const op = 'batchUpdateFileContent';
@@ -1437,10 +1824,11 @@ export class IndexedDBStorage {
             updates.forEach(update => {
                 const getReq = store.get(update.path);
                 getReq.onsuccess = () => {
-                    const existing = (getReq.result as FileData | undefined) || null;
-                    if (!existing) {
+                    const existingRaw = (getReq.result as Partial<FileData> | undefined) || null;
+                    if (!existingRaw) {
                         return;
                     }
+                    const existing = this.normalizeFileData(existingRaw);
                     const newData: FileData = { ...existing };
                     const changes: FileContentChange['changes'] = {};
                     let hasChanges = false;
@@ -1454,10 +1842,28 @@ export class IndexedDBStorage {
                         changes.preview = update.preview;
                         hasChanges = true;
                     }
-                    if (update.featureImage !== undefined) {
-                        newData.featureImage = update.featureImage;
-                        changes.featureImage = update.featureImage;
+                    const featureImageMutation = computeFeatureImageMutation({
+                        existingKey: existing.featureImageKey,
+                        existingStatus: existing.featureImageStatus,
+                        featureImageKey: update.featureImageKey,
+                        featureImage: update.featureImage
+                    });
+                    if (featureImageMutation.changes.featureImageKey !== undefined) {
+                        changes.featureImageKey = featureImageMutation.changes.featureImageKey;
                         hasChanges = true;
+                    }
+                    if (featureImageMutation.changes.featureImageStatus !== undefined) {
+                        changes.featureImageStatus = featureImageMutation.changes.featureImageStatus;
+                        hasChanges = true;
+                    }
+                    if (update.featureImageKey !== undefined || update.featureImage !== undefined) {
+                        // Main store records never hold blob data.
+                        newData.featureImageKey = featureImageMutation.nextKey;
+                        newData.featureImage = null;
+                        newData.featureImageStatus = featureImageMutation.nextStatus;
+                    }
+                    if (featureImageMutation.shouldClearCache) {
+                        featureImageCacheUpdates.add(update.path);
                     }
                     if (update.metadata !== undefined) {
                         newData.metadata = update.metadata;
@@ -1476,8 +1882,38 @@ export class IndexedDBStorage {
                                 message: putReq.error?.message
                             });
                         };
+                        if (featureImageMutation.blobUpdate) {
+                            // Write the blob record with the current key.
+                            const imageReq = blobStore.put(featureImageMutation.blobUpdate, update.path);
+                            imageReq.onerror = () => {
+                                lastRequestError = imageReq.error || null;
+                                console.error('[IndexedDB] put failed', {
+                                    store: FEATURE_IMAGE_STORE_NAME,
+                                    op,
+                                    path: update.path,
+                                    name: imageReq.error?.name,
+                                    message: imageReq.error?.message
+                                });
+                            };
+                        } else if (featureImageMutation.shouldDeleteBlob) {
+                            // Remove any stored blob when the key changes or blob is empty.
+                            const deleteReq = blobStore.delete(update.path);
+                            deleteReq.onerror = () => {
+                                lastRequestError = deleteReq.error || null;
+                                console.error('[IndexedDB] delete failed', {
+                                    store: FEATURE_IMAGE_STORE_NAME,
+                                    op,
+                                    path: update.path,
+                                    name: deleteReq.error?.name,
+                                    message: deleteReq.error?.message
+                                });
+                            };
+                        }
                         filesToUpdate.push({ path: update.path, data: newData });
-                        const hasContentUpdates = changes.preview !== undefined || changes.featureImage !== undefined;
+                        const hasContentUpdates =
+                            changes.preview !== undefined ||
+                            changes.featureImageKey !== undefined ||
+                            changes.featureImageStatus !== undefined;
                         const hasMetadataUpdates = changes.metadata !== undefined || changes.tags !== undefined;
                         const updateType = hasContentUpdates && hasMetadataUpdates ? 'both' : hasContentUpdates ? 'content' : 'metadata';
                         changeNotifications.push({ path: update.path, changes, changeType: updateType });
@@ -1524,6 +1960,10 @@ export class IndexedDBStorage {
         if (filesToUpdate.length > 0) {
             this.cache.batchUpdate(filesToUpdate);
             this.emitChanges(changeNotifications);
+        }
+        if (featureImageCacheUpdates.size > 0) {
+            // Drop any cached blobs for updated paths.
+            featureImageCacheUpdates.forEach(path => this.featureImageBlobs.deleteFromCache(path));
         }
     }
 
@@ -1585,18 +2025,6 @@ export class IndexedDBStorage {
     }
 
     /**
-     * Get feature image URL from memory cache, returning empty string if null.
-     * Helper method for UI components that need non-null strings.
-     *
-     * @param path - File path to get image for
-     * @returns Feature image URL or empty string
-     */
-    getCachedFeatureImageUrl(path: string): string {
-        const file = this.getFile(path);
-        return file?.featureImage || '';
-    }
-
-    /**
      * Get tags from memory cache, returning empty array if none.
      * Helper method for UI components that need tag data.
      *
@@ -1611,6 +2039,51 @@ export class IndexedDBStorage {
     }
 
     /**
+     * Fetch a feature image blob by path and expected key.
+     * Reads from the in-memory LRU first, then IndexedDB.
+     */
+    async getFeatureImageBlob(path: string, expectedKey: string): Promise<Blob | null> {
+        if (!expectedKey) {
+            return null;
+        }
+        await this.init();
+        if (!this.db) {
+            return null;
+        }
+        return this.featureImageBlobs.getBlob(this.db, path, expectedKey);
+    }
+
+    /**
+     * Stream all feature image blob records without allocating an array.
+     * Only yields non-empty blobs with a string key.
+     */
+    async forEachFeatureImageBlobRecord(callback: (path: string, record: { featureImageKey: string; blob: Blob }) => void): Promise<void> {
+        await this.init();
+        if (!this.db) {
+            return;
+        }
+        await this.featureImageBlobs.forEachBlobRecord(this.db, callback);
+    }
+
+    /**
+     * Move a feature image blob between paths.
+     */
+    async moveFeatureImageBlob(oldPath: string, newPath: string): Promise<void> {
+        await this.init();
+        if (!this.db) throw new Error('Database not initialized');
+        await this.featureImageBlobs.moveBlob(this.db, oldPath, newPath);
+    }
+
+    /**
+     * Delete a feature image blob by path.
+     */
+    async deleteFeatureImageBlob(path: string): Promise<void> {
+        await this.init();
+        if (!this.db) throw new Error('Database not initialized');
+        await this.featureImageBlobs.deleteBlob(this.db, path);
+    }
+
+    /**
      * Close the database connection.
      * Should be called when the plugin is unloaded.
      */
@@ -1621,5 +2094,6 @@ export class IndexedDBStorage {
         }
         this.initPromise = null;
         this.cache.clear();
+        this.featureImageBlobs.clearMemoryCaches();
     }
 }

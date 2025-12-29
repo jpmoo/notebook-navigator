@@ -16,6 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type { TFile } from 'obsidian';
+import type { FeatureImageStatus } from '../storage/IndexedDBStorage';
+import { isImageFile } from './fileTypeUtils';
+
 /**
  * Layout measurements used by the list pane virtualizer.
  * These values mirror the CSS variables defined in styles.css.
@@ -67,4 +71,37 @@ const MOBILE_MEASUREMENTS: ListPaneMeasurements = Object.freeze({
  */
 export function getListPaneMeasurements(isMobile: boolean): ListPaneMeasurements {
     return isMobile ? MOBILE_MEASUREMENTS : DESKTOP_MEASUREMENTS;
+}
+
+/**
+ * Shared feature image visibility logic for list pane rendering and sizing.
+ */
+export function shouldShowFeatureImageArea({
+    showImage,
+    file,
+    featureImageStatus,
+    hasFeatureImageUrl
+}: {
+    showImage: boolean;
+    file: TFile | null;
+    featureImageStatus?: FeatureImageStatus | null;
+    hasFeatureImageUrl?: boolean;
+}): boolean {
+    if (!showImage || !file) {
+        return false;
+    }
+
+    if (hasFeatureImageUrl) {
+        return true;
+    }
+
+    if (file.extension === 'canvas' || file.extension === 'base') {
+        return true;
+    }
+
+    if (isImageFile(file)) {
+        return true;
+    }
+
+    return featureImageStatus === 'has';
 }

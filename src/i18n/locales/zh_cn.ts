@@ -754,8 +754,8 @@ export const STRINGS_ZH_CN = {
                 editTooltip: '编辑映射'
             },
             optimizeNoteHeight: {
-                name: '优化笔记高度',
-                desc: '减少固定笔记和无预览文本笔记的高度。'
+                name: '可变笔记高度',
+                desc: '为固定笔记和无预览文本的笔记使用紧凑高度。'
             },
             compactItemHeight: {
                 name: '精简项目高度',
@@ -828,6 +828,11 @@ export const STRINGS_ZH_CN = {
             autoRevealIgnoreRightSidebar: {
                 name: '忽略右侧边栏事件',
                 desc: '在右侧边栏中点击或更改笔记时不更改活动笔记。'
+            },
+            paneTransitionDuration: {
+                name: '单窗格动画',
+                desc: '在单窗格模式下切换窗格时的过渡持续时间（毫秒）。',
+                resetTooltip: '重置为默认值'
             },
             autoSelectFirstFileOnFocusChange: {
                 name: '自动选择第一个笔记（仅桌面端）',
@@ -1055,7 +1060,7 @@ export const STRINGS_ZH_CN = {
             },
             showFeatureImage: {
                 name: '显示特色图片',
-                desc: '从前置元数据显示缩略图。提示：使用"Featured Image"插件自动为所有文档设置特色图片。'
+                desc: '显示笔记中找到的第一张图片的缩略图。'
             },
             forceSquareFeatureImage: {
                 name: '强制正方形特色图片',
@@ -1063,12 +1068,13 @@ export const STRINGS_ZH_CN = {
             },
             featureImageProperties: {
                 name: '图片属性',
-                desc: '用于缩略图的前置元数据属性的逗号分隔列表。将使用第一个包含图片的属性。如果为空且启用了后备设置，将使用第一个嵌入的图片。',
+                desc: '用于缩略图的前置元数据属性的逗号分隔列表。',
                 placeholder: 'thumbnail, featureResized, feature'
             },
-            useEmbeddedImageFallback: {
-                name: '使用嵌入图片作为后备',
-                desc: '当在前置元数据属性中找不到缩略图时，使用文档中的第一个嵌入图片作为后备（需要 Obsidian 1.9.4+）。禁用此选项以验证缩略图是否正确配置。'
+
+            downloadExternalFeatureImages: {
+                name: '下载外部图片',
+                desc: '下载远程图片和 YouTube 缩略图作为特色图片。'
             },
             showRootFolder: {
                 name: '显示根文件夹',
@@ -1221,7 +1227,8 @@ export const STRINGS_ZH_CN = {
                 desc: '如果出现标签缺失、预览不正确或图片缺失，请使用此功能。这可能在同步冲突或意外关闭后发生。',
                 buttonText: '重建缓存',
                 success: '缓存已重建',
-                error: '重建缓存失败'
+                error: '重建缓存失败',
+                progress: '正在重建缓存:'
             },
             hotkeys: {
                 intro: '通过编辑 <plugin folder>/notebook-navigator/data.json 来自定义 Notebook Navigator 快捷键。用文本编辑器打开文件并找到 "keyboardShortcuts" 部分。每个条目都使用以下结构：',

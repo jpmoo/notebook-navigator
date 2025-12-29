@@ -55,7 +55,7 @@ import type { ListPaneItem } from '../types/virtualization';
 import type { NotebookNavigatorSettings } from '../settings';
 import type { SelectionState } from '../context/SelectionContext';
 import { calculateCompactListMetrics } from '../utils/listPaneMetrics';
-import { getListPaneMeasurements } from '../utils/listPaneMeasurements';
+import { getListPaneMeasurements, shouldShowFeatureImageArea } from '../utils/listPaneMeasurements';
 
 /**
  * Parameters for the useListPaneScroll hook
@@ -137,6 +137,8 @@ export function useListPaneScroll({
     const { isMobile } = useServices();
     const listMeasurements = getListPaneMeasurements(isMobile);
     const { hasPreview, getDB, isStorageReady } = useFileCache();
+    // The list pane only renders after StorageContext marks storage ready.
+    const db = getDB();
 
     // Calculate compact list padding for height estimation in virtualization
     const compactListMetrics = useMemo(
@@ -226,19 +228,29 @@ export function useListPaneScroll({
             }
 
             // For file items - calculate height including all components
+            const file = item.type === ListPaneItemType.FILE && item.data instanceof TFile ? item.data : null;
 
             // Get actual preview status for accurate height calculation
             let hasPreviewText = false;
             let hasOmnisearchExcerpt = false;
-            if (item.type === ListPaneItemType.FILE && item.data instanceof TFile && folderSettings.showPreview) {
-                if (item.data.extension === 'md') {
+            if (file && folderSettings.showPreview) {
+                if (file.extension === 'md') {
                     // Use synchronous check from cache for markdown preview text
-                    hasPreviewText = hasPreview(item.data.path);
+                    hasPreviewText = hasPreview(file.path);
                 }
                 const excerpt = item.searchMeta?.excerpt;
                 hasOmnisearchExcerpt = typeof excerpt === 'string' && excerpt.trim().length > 0;
             }
             const hasPreviewContent = hasPreviewText || hasOmnisearchExcerpt;
+
+            // Keep height estimation aligned with FileItem feature image rendering.
+            // getFile reads from the in-memory cache; no IndexedDB reads occur during sizing.
+            const featureImageStatus = file ? db.getFile(file.path)?.featureImageStatus : null;
+            const showFeatureImageArea = shouldShowFeatureImageArea({
+                showImage: folderSettings.showImage,
+                file,
+                featureImageStatus
+            });
 
             // Note: Preview rows are calculated differently based on context
 
@@ -250,8 +262,8 @@ export function useListPaneScroll({
             const pinnedItemShouldUseCompactLayout = item.isPinned && heightOptimizationEnabled; // Pinned items get compact treatment only when optimizing
             const shouldUseSingleLineForDateAndPreview = pinnedItemShouldUseCompactLayout || folderSettings.previewRows < 2;
             const shouldUseMultiLinePreviewLayout = !pinnedItemShouldUseCompactLayout && folderSettings.previewRows >= 2;
-            const shouldCollapseEmptyPreviewSpace = heightOptimizationEnabled && !hasPreviewContent; // Optimization: compact layout for empty preview
-            const shouldAlwaysReservePreviewSpace = heightOptimizationDisabled || hasPreviewContent; // Show full layout when not optimizing OR has content
+            const shouldCollapseEmptyPreviewSpace = heightOptimizationEnabled && !hasPreviewContent && !showFeatureImageArea; // Optimization: compact layout for empty preview
+            const shouldAlwaysReservePreviewSpace = heightOptimizationDisabled || hasPreviewContent || showFeatureImageArea; // Show full layout when not optimizing OR has content
 
             // Start with base padding
             let textContentHeight = 0;
@@ -299,17 +311,17 @@ export function useListPaneScroll({
                         if (folderSettings.showPreview) {
                             // When using full height, always reserve full preview rows even if empty
                             // When optimizing, only show preview if there's content
-                            const previewRows = heightOptimizationDisabled
-                                ? folderSettings.previewRows
-                                : hasPreviewContent
-                                  ? folderSettings.previewRows
-                                  : 0;
+                            const previewRows =
+                                heightOptimizationDisabled || showFeatureImageArea
+                                    ? folderSettings.previewRows
+                                    : hasPreviewContent
+                                      ? folderSettings.previewRows
+                                      : 0;
                             if (previewRows > 0) {
                                 textContentHeight += heights.multilineTextLineHeight * previewRows;
                             }
                         }
                         // Only add metadata line if date is shown OR parent folder is shown
-                        const file = item.data instanceof TFile ? item.data : null;
                         const isInDescendant = file && item.parentFolder && file.parent && file.parent.path !== item.parentFolder;
                         const showParentFolder =
                             settings.showParentFolder &&
@@ -615,7 +627,8 @@ export function useListPaneScroll({
                 // Content changes always need remeasure
                 if (
                     change.changes.preview !== undefined ||
-                    change.changes.featureImage !== undefined ||
+                    change.changes.featureImageKey !== undefined ||
+                    change.changes.featureImageStatus !== undefined ||
                     change.changes.metadata !== undefined
                 ) {
                     return true;
