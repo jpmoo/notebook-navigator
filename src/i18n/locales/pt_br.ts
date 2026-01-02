@@ -85,6 +85,7 @@ export const STRINGS_PT_BR = {
         add: 'Adicionar aos atalhos',
         addNotesCount: 'Adicionar {count} notas aos atalhos',
         addFilesCount: 'Adicionar {count} arquivos aos atalhos',
+        rename: 'Renomear atalho',
         remove: 'Remover dos atalhos',
         removeAll: 'Remover todos os atalhos',
         removeAllConfirm: 'Remover todos os atalhos?',
@@ -106,7 +107,7 @@ export const STRINGS_PT_BR = {
         hideFolders: 'Ocultar navegação',
         reorderRootFolders: 'Reordenar navegação',
         finishRootFolderReorder: 'Concluído',
-        toggleDescendantNotes: 'Mostrar notas de subpastas / descendentes (não sincronizado)',
+        toggleDescendantNotes: 'Mostrar notas de subpastas / descendentes',
         autoExpandFoldersTags: 'Expandir automaticamente pastas e tags',
         showExcludedItems: 'Mostrar pastas, tags e notas ocultas',
         hideExcludedItems: 'Ocultar pastas, tags e notas ocultas',
@@ -124,7 +125,6 @@ export const STRINGS_PT_BR = {
         saveSearchShortcut: 'Salvar atalho de pesquisa',
         removeSearchShortcut: 'Remover atalho de pesquisa',
         shortcutModalTitle: 'Salvar atalho de pesquisa',
-        shortcutNameLabel: 'Nome do atalho',
         shortcutNamePlaceholder: 'Digite o nome do atalho'
     },
 
@@ -967,6 +967,14 @@ export const STRINGS_PT_BR = {
                     duplicateName: 'Nome do perfil já existe'
                 }
             },
+            vaultTitle: {
+                name: 'Posição do título do cofre (apenas desktop)',
+                desc: 'Escolha onde o título do cofre é mostrado.',
+                options: {
+                    header: 'Mostrar no cabeçalho',
+                    navigation: 'Mostrar no painel de navegação'
+                }
+            },
             excludedFolders: {
                 name: 'Ocultar pastas (perfil do cofre)',
                 desc: 'Lista separada por vírgulas de pastas a ocultar. Padrões de nome: assets* (pastas que começam com assets), *_temp (terminam com _temp). Padrões de caminho: /arquivo (apenas arquivo raiz), /res* (pastas raiz que começam com res), /*/temp (pastas temp um nível abaixo), /projetos/* (todas as pastas dentro de projetos).',
@@ -1229,7 +1237,8 @@ export const STRINGS_PT_BR = {
                 buttonText: 'Reconstruir cache',
                 success: 'Cache reconstruído',
                 error: 'Falha ao reconstruir cache',
-                progress: 'Reconstruindo cache:'
+                indexingTitle: 'Indexando o cofre...',
+                progress: 'Atualizando o cache do Notebook Navigator.'
             },
             hotkeys: {
                 intro: 'Edite <pasta do plugin>/notebook-navigator/data.json para personalizar os atalhos de teclado do Notebook Navigator. Abra o arquivo e localize a seção "keyboardShortcuts". Cada entrada usa esta estrutura:',

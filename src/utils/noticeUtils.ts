@@ -44,11 +44,11 @@ export interface ShowNoticeOptions {
  * - 'warning': Adds 'mod-warning' class for red text
  * - 'loading': Adds 'is-loading' class for spinner animation
  *
- * @param message - Text to display in the notice
+ * @param message - Content to display in the notice
  * @param options - Optional configuration for timeout and visual variant
  * @returns The Notice instance, allowing caller to dismiss or update it
  */
-export function showNotice(message: string, options?: ShowNoticeOptions): Notice {
+export function showNotice(message: string | DocumentFragment, options?: ShowNoticeOptions): Notice {
     const notice = new Notice(message, options?.timeout);
     const container = notice.containerEl;
     if (container) {

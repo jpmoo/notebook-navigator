@@ -583,7 +583,7 @@ export function useNavigationRootReorder(options: UseNavigationRootReorderOption
 
             if (identifier === NavigationSectionId.SHORTCUTS) {
                 const activeCollection = collections.find(c => c.id === activeCollectionId) || collections[0];
-                icon = activeCollection ? activeCollection.icon : 'lucide-bookmark';
+                icon = activeCollection ? activeCollection.icon : 'lucide-star';
                 label = activeCollection ? activeCollection.name : strings.navigationPane.shortcutsHeader;
             } else if (identifier === NavigationSectionId.RECENT) {
                 icon = 'lucide-history';

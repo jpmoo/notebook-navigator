@@ -85,6 +85,7 @@ export const STRINGS_NL = {
         add: 'Toevoegen aan snelkoppelingen',
         addNotesCount: 'Voeg {count} notities toe aan snelkoppelingen',
         addFilesCount: 'Voeg {count} bestanden toe aan snelkoppelingen',
+        rename: 'Snelkoppeling hernoemen',
         remove: 'Verwijderen uit snelkoppelingen',
         removeAll: 'Alle snelkoppelingen verwijderen',
         removeAllConfirm: 'Alle snelkoppelingen verwijderen?',
@@ -106,7 +107,7 @@ export const STRINGS_NL = {
         hideFolders: 'Navigatie verbergen',
         reorderRootFolders: 'Navigatie herschikken',
         finishRootFolderReorder: 'Klaar',
-        toggleDescendantNotes: 'Notities uit submappen / afstammelingen tonen (niet gesynchroniseerd)',
+        toggleDescendantNotes: 'Notities uit submappen / afstammelingen tonen',
         autoExpandFoldersTags: 'Mappen en tags automatisch uitklappen',
         showExcludedItems: 'Verborgen mappen, tags en notities tonen',
         hideExcludedItems: 'Verborgen mappen, tags en notities verbergen',
@@ -124,7 +125,6 @@ export const STRINGS_NL = {
         saveSearchShortcut: 'Zoeksnelkoppeling opslaan',
         removeSearchShortcut: 'Zoeksnelkoppeling verwijderen',
         shortcutModalTitle: 'Zoeksnelkoppeling opslaan',
-        shortcutNameLabel: 'Naam snelkoppeling',
         shortcutNamePlaceholder: 'Voer naam snelkoppeling in'
     },
 
@@ -968,6 +968,14 @@ export const STRINGS_NL = {
                     duplicateName: 'Profielnaam bestaat al'
                 }
             },
+            vaultTitle: {
+                name: 'Kluistitel plaatsing (alleen desktop)',
+                desc: 'Kies waar de kluistitel wordt weergegeven.',
+                options: {
+                    header: 'Weergeven in header',
+                    navigation: 'Weergeven in navigatiepaneel'
+                }
+            },
             excludedFolders: {
                 name: 'Mappen verbergen (kluisprofiel)',
                 desc: 'Kommagescheiden lijst van te verbergen mappen. Naampatronen: assets* (mappen beginnend met assets), *_temp (eindigend met _temp). Padpatronen: /archive (alleen root archive), /res* (root mappen beginnend met res), /*/temp (temp mappen één niveau diep), /projects/* (alle mappen binnen projects).',
@@ -1231,7 +1239,8 @@ export const STRINGS_NL = {
                 buttonText: 'Cache opnieuw opbouwen',
                 success: 'Cache opnieuw opgebouwd',
                 error: 'Kan cache niet opnieuw opbouwen',
-                progress: 'Cache opnieuw opbouwen:'
+                indexingTitle: 'Kluis wordt geïndexeerd...',
+                progress: 'Notebook Navigator-cache wordt bijgewerkt.'
             },
             hotkeys: {
                 intro: 'Bewerk <plugin folder>/notebook-navigator/data.json om Notebook Navigator sneltoetsen aan te passen. Open het bestand en zoek de sectie "keyboardShortcuts". Elke invoer gebruikt deze structuur:',

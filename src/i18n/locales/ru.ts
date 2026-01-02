@@ -85,6 +85,7 @@ export const STRINGS_RU = {
         add: 'Добавить в ярлыки',
         addNotesCount: 'Добавить {count} заметок в ярлыки',
         addFilesCount: 'Добавить {count} файлов в ярлыки',
+        rename: 'Переименовать ярлык',
         remove: 'Убрать из ярлыков',
         removeAll: 'Удалить все ярлыки',
         removeAllConfirm: 'Удалить все ярлыки?',
@@ -106,7 +107,7 @@ export const STRINGS_RU = {
         hideFolders: 'Скрыть навигацию', // Tooltip for button to hide the navigation pane (English: Hide navigation)
         reorderRootFolders: 'Изменить порядок навигации',
         finishRootFolderReorder: 'Готово',
-        toggleDescendantNotes: 'Показать заметки из подпапок / потомков (не синхронизируется)', // Tooltip: include descendants for folders and tags
+        toggleDescendantNotes: 'Показать заметки из подпапок / потомков', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: 'Разворачивать при выборе', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Expand on selection)
         showExcludedItems: 'Показать скрытые папки, теги и заметки', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Скрыть скрытые папки, теги и заметки', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -123,7 +124,6 @@ export const STRINGS_RU = {
         saveSearchShortcut: 'Сохранить ярлык поиска',
         removeSearchShortcut: 'Удалить ярлык поиска',
         shortcutModalTitle: 'Сохранить ярлык поиска',
-        shortcutNameLabel: 'Название ярлыка',
         shortcutNamePlaceholder: 'Введите название ярлыка'
     },
 
@@ -967,6 +967,14 @@ export const STRINGS_RU = {
                     duplicateName: 'Профиль с таким названием уже существует'
                 }
             },
+            vaultTitle: {
+                name: 'Расположение названия хранилища (только для компьютера)',
+                desc: 'Выберите, где отображается название хранилища.',
+                options: {
+                    header: 'Показать в заголовке',
+                    navigation: 'Показать в панели навигации'
+                }
+            },
             excludedFolders: {
                 name: 'Скрыть папки (профиль хранилища)',
                 desc: 'Список папок через запятую для скрытия. Шаблоны имён: assets* (папки, начинающиеся с assets), *_temp (заканчивающиеся на _temp). Шаблоны путей: /archive (только корневой archive), /res* (корневые папки, начинающиеся с res), /*/temp (папки temp на один уровень вглубь), /projects/* (все папки внутри projects).',
@@ -1230,7 +1238,8 @@ export const STRINGS_RU = {
                 buttonText: 'Пересобрать кэш',
                 success: 'Кэш пересобран',
                 error: 'Не удалось пересобрать кэш',
-                progress: 'Пересборка кэша:'
+                indexingTitle: 'Индексирование хранилища...',
+                progress: 'Обновление кэша Notebook Navigator.'
             },
             hotkeys: {
                 intro: 'Отредактируйте <папка плагина>/notebook-navigator/data.json для настройки горячих клавиш Notebook Navigator. Откройте файл и найдите раздел "keyboardShortcuts". Каждая запись использует такую структуру:',

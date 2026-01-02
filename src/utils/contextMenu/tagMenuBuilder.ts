@@ -24,8 +24,11 @@ import { ItemType, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../../types';
 import { normalizeTagPath } from '../tagUtils';
 import { resetHiddenToggleIfNoSources } from '../exclusionUtils';
 import { setAsyncOnClick } from './menuAsyncHelpers';
+import { addShortcutRenameMenuItem } from './shortcutRenameMenuItem';
 import { addStyleMenu } from './styleMenuBuilder';
+import { getVirtualTagCollection, isVirtualTagCollectionId } from '../virtualTagCollections';
 import { getActiveHiddenTags, getActiveVaultProfile } from '../vaultProfiles';
+import { resolveDisplayTagPath } from '../../services/tagOperations/TagOperationUtils';
 
 /**
  * Builds the context menu for a tag
@@ -40,7 +43,8 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
     if (isMobile) {
         hasInitialItems = true;
         menu.addItem((item: MenuItem) => {
-            item.setTitle(`#${tagPath}`).setIsLabel(true);
+            const label = isVirtualTagCollectionId(tagPath) ? getVirtualTagCollection(tagPath).getLabel() : `#${tagPath}`;
+            item.setTitle(label).setIsLabel(true);
         });
     }
 
@@ -49,18 +53,36 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
 
     if (services.shortcuts) {
         hasInitialItems = true;
-        const { tagShortcutKeysByPath, addTagShortcut, removeShortcut, collections, getCollectionsWithShortcut, getShortcutInCollection, activeCollectionId } = services.shortcuts;
+        const { tagShortcutKeysByPath, addTagShortcut, removeShortcut, renameShortcut, shortcutMap, collections, getCollectionsWithShortcut, getShortcutInCollection, activeCollectionId } = services.shortcuts;
         const normalizedShortcutPath = normalizeTagPath(tagPath);
         const collectionsWithShortcut = normalizedShortcutPath ? getCollectionsWithShortcut(normalizedShortcutPath) : [];
         const existingShortcutKey = normalizedShortcutPath ? getShortcutInCollection(normalizedShortcutPath, activeCollectionId) : null;
 
+        if (existingShortcutKey) {
+            const existingShortcut = shortcutMap.get(existingShortcutKey);
+            const defaultLabel = isVirtualTagCollectionId(tagPath)
+                ? getVirtualTagCollection(tagPath).getLabel()
+                : resolveDisplayTagPath(tagPath, services.tagTreeService);
+
+            addShortcutRenameMenuItem({
+                app,
+                menu,
+                shortcutKey: existingShortcutKey,
+                defaultLabel,
+                existingShortcut,
+                title: strings.shortcuts.rename,
+                placeholder: strings.searchInput.shortcutNamePlaceholder,
+                renameShortcut
+            });
+        }
+
         menu.addItem((item: MenuItem) => {
             if (existingShortcutKey) {
-                setAsyncOnClick(item.setTitle(strings.shortcuts.remove).setIcon('lucide-bookmark-x'), async () => {
+                setAsyncOnClick(item.setTitle(strings.shortcuts.remove).setIcon('lucide-star-off'), async () => {
                     await removeShortcut(existingShortcutKey);
                 });
             } else {
-                setAsyncOnClick(item.setTitle(strings.shortcuts.add).setIcon('lucide-bookmark'), async () => {
+                setAsyncOnClick(item.setTitle(strings.shortcuts.add).setIcon('lucide-star'), async () => {
                     if (collections.length > 1) {
                         // Show collection selection modal
                         const { ShortcutCollectionSelectionModal } = await import('../../modals/ShortcutCollectionSelectionModal');

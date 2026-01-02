@@ -96,6 +96,7 @@ import { FolderItem } from './FolderItem';
 import { NavigationPaneHeader } from './NavigationPaneHeader';
 import { NavigationToolbar } from './NavigationToolbar';
 import { TagTreeItem } from './TagTreeItem';
+import { VaultTitleArea } from './VaultTitleArea';
 import { VirtualFolderComponent } from './VirtualFolderItem';
 import { getNavigationIndex, normalizeNavigationPath } from '../utils/navigationIndex';
 import {
@@ -281,10 +282,26 @@ export const NavigationPane = React.memo(
         const { fileData, getFileDisplayName } = useFileCache();
         // Detect Android platform for toolbar placement
         const isAndroid = Platform.isAndroidApp;
+        const vaultTitlePreference = settings.vaultTitle ?? 'navigation';
+        const hasMultipleVaultProfiles = (settings.vaultProfiles ?? []).length > 1;
+        const shouldShowVaultTitleInHeader = !isMobile && hasMultipleVaultProfiles && vaultTitlePreference === 'header';
+        const shouldShowVaultTitleInNavigationPane = !isMobile && hasMultipleVaultProfiles && vaultTitlePreference === 'navigation';
         const navigationPaneRef = useRef<HTMLDivElement>(null);
+        const navigationOverlayRef = useRef<HTMLDivElement>(null);
         const pinnedShortcutsContainerRef = useRef<HTMLDivElement>(null);
         const [pinnedShortcutsScrollElement, setPinnedShortcutsScrollElement] = useState<HTMLDivElement | null>(null);
         const [pinnedShortcutsHasOverflow, setPinnedShortcutsHasOverflow] = useState(false);
+        // The navigation pane renders a "chrome" stack above the virtualized tree:
+        // - pane header
+        // - (Android) toolbar
+        // - vault banner
+        // - pinned shortcuts/recent section
+        //
+        // The virtualized list is rendered below this stack inside the same scroll container. We measure
+        // the stack height and feed it into TanStack Virtual as a scrollMargin/scrollPaddingStart so that:
+        // - scrollToIndex aligns items below the chrome (not under it)
+        // - virtual item start offsets match the real DOM layout (list starts after the chrome)
+        const [navigationOverlayHeight, setNavigationOverlayHeight] = useState<number>(0);
         const pinnedShortcutsResizeFrameRef = useRef<number | null>(null);
         const pinnedShortcutsResizeHeightRef = useRef<number>(0);
         const { startPointerDrag } = usePointerDrag();
@@ -545,8 +562,6 @@ export const NavigationPane = React.memo(
         const handleToggleTagsSection = useCallback(() => {
             setTagsSectionExpanded(prev => !prev);
         }, []);
-        // Tracks the measured height of the navigation banner for virtualization
-        const [bannerHeight, setBannerHeight] = useState<number>(0);
         // Trigger for forcing a re-render when shortcut note metadata changes in frontmatter
         const [, forceMetadataRefresh] = useReducer((value: number) => value + 1, 0);
         const [isRootReorderMode, setRootReorderMode] = useState(false);
@@ -901,13 +916,6 @@ export const NavigationPane = React.memo(
             sectionOrder
         });
 
-        // Reset banner height when banner is disabled in settings
-        useEffect(() => {
-            if (!navigationBannerPath) {
-                setBannerHeight(0);
-            }
-        }, [navigationBannerPath]);
-
         // Extract shortcut items to display in pinned area when pinning is enabled
         const pinnedNavigationItems = useMemo(() => {
             const pinnedShortcutItems = shouldPinShortcuts ? shortcutItems : [];
@@ -925,13 +933,46 @@ export const NavigationPane = React.memo(
             });
             return ordered;
         }, [pinnedRecentNotesItems, sectionOrder, shortcutItems, shouldPinRecentNotes, shouldPinShortcuts]);
-        // Banner should be shown in pinned area only when shortcuts are pinned and banner is configured
-        const shouldShowPinnedBanner = Boolean(navigationBannerPath && pinnedNavigationItems.length > 0);
+        const shouldRenderNavigationBanner = Boolean(navigationBannerPath && !isRootReorderMode);
+        // Pinned shortcuts are shown in normal navigation mode (but hidden during reorder mode).
+        const shouldRenderPinnedShortcuts = pinnedNavigationItems.length > 0 && !isRootReorderMode;
 
         // Recalculates overflow when pinned items or banner visibility changes
         useLayoutEffect(() => {
             updatePinnedShortcutsOverflow(pinnedShortcutsScrollElement);
-        }, [pinnedNavigationItems, pinnedShortcutsScrollElement, shouldShowPinnedBanner, updatePinnedShortcutsOverflow]);
+        }, [pinnedNavigationItems, pinnedShortcutsScrollElement, updatePinnedShortcutsOverflow]);
+
+        useLayoutEffect(() => {
+            const overlayElement = navigationOverlayRef.current;
+            if (!overlayElement) {
+                setNavigationOverlayHeight(0);
+                return;
+            }
+
+            const updateOverlayHeight = () => {
+                const height = Math.round(overlayElement.getBoundingClientRect().height);
+                setNavigationOverlayHeight(prev => (prev === height ? prev : height));
+            };
+
+            updateOverlayHeight();
+
+            if (typeof ResizeObserver === 'undefined') {
+                const handleResize = () => updateOverlayHeight();
+                window.addEventListener('resize', handleResize);
+                return () => {
+                    window.removeEventListener('resize', handleResize);
+                };
+            }
+
+            const resizeObserver = new ResizeObserver(() => {
+                updateOverlayHeight();
+            });
+            resizeObserver.observe(overlayElement);
+
+            return () => {
+                resizeObserver.disconnect();
+            };
+        }, [isAndroid, isMobile, shouldRenderNavigationBanner, shouldRenderPinnedShortcuts]);
 
         // We only reserve gutter space when a banner exists because Windows scrollbars
         // change container width by ~7px when they appear. That width change used to
@@ -1010,7 +1051,7 @@ export const NavigationPane = React.memo(
             pathToIndex,
             isVisible,
             activeShortcutKey,
-            bannerHeight
+            scrollMargin: navigationOverlayHeight
         });
 
         /** Converts a potentially transparent background color into a solid color by compositing with the pane surface. */
@@ -1576,7 +1617,7 @@ export const NavigationPane = React.memo(
                 if (target.type === 'missing') {
                     menu.addItem(item => {
                         item.setTitle(strings.shortcuts.remove)
-                            .setIcon('lucide-bookmark-x')
+                            .setIcon('lucide-star-off')
                             .onClick(() => {
                                 runAsyncAction(() => removeShortcut(target.key));
                             });
@@ -1588,7 +1629,7 @@ export const NavigationPane = React.memo(
                 if (target.type === 'search') {
                     menu.addItem(item => {
                         item.setTitle(strings.shortcuts.remove)
-                            .setIcon('lucide-bookmark-x')
+                            .setIcon('lucide-star-off')
                             .onClick(() => {
                                 runAsyncAction(() => removeShortcut(target.key));
                             });
@@ -1633,7 +1674,7 @@ export const NavigationPane = React.memo(
                         menu.addSeparator();
                         menu.addItem(item => {
                             item.setTitle(strings.shortcuts.remove)
-                                .setIcon('lucide-bookmark-x')
+                                .setIcon('lucide-star-off')
                                 .onClick(() => {
                                     runAsyncAction(() => removeShortcut(target.key));
                                 });
@@ -1926,20 +1967,6 @@ export const NavigationPane = React.memo(
             setActiveShortcut
         ]);
 
-        // Updates banner height with threshold to prevent micro-adjustments
-        const handleBannerHeightChange = useCallback(
-            (height: number) => {
-                setBannerHeight(previous => {
-                    if (Math.abs(previous - height) < 0.5) {
-                        return previous;
-                    }
-                    return height;
-                });
-                updatePinnedShortcutsOverflow();
-            },
-            [updatePinnedShortcutsOverflow]
-        );
-
         // Renders individual navigation items based on their type
         const renderItem = useCallback(
             (item: CombinedNavigationItem): React.ReactNode => {
@@ -1966,6 +1993,8 @@ export const NavigationPane = React.memo(
                         const folderCountInfo =
                             canInteract && folder && shouldShowShortcutCounts ? getFolderShortcutCount(folder) : ZERO_NOTE_COUNT;
                         const folderNote = canInteract && folder && settings.enableFolderNotes ? getFolderNote(folder, settings) : null;
+                        const folderAlias = isFolderShortcut(item.shortcut) ? item.shortcut.alias : undefined;
+                        const folderLabel = folderAlias && folderAlias.length > 0 ? folderAlias : folderName;
 
                         const dragHandlers = buildShortcutExternalHandlers(item.key);
                         const isDragSource = shouldUseShortcutDnd && activeShortcutId === item.key;
@@ -1977,10 +2006,14 @@ export const NavigationPane = React.memo(
                         const shortcutBackground = isMissing ? undefined : getSolidBackground(item.backgroundColor);
 
                         const shortcutProps = {
-                            icon: isMissing ? 'lucide-alert-triangle' : (item.icon ?? 'lucide-folder'),
+                            icon: isMissing
+                                ? 'lucide-alert-triangle'
+                                : item.isExcluded && !showHiddenItems
+                                  ? 'lucide-eye-off'
+                                  : (item.icon ?? 'lucide-folder'),
                             color: isMissing ? undefined : item.color,
                             backgroundColor: shortcutBackground,
-                            label: folderName,
+                            label: folderLabel,
                             description: undefined,
                             level: item.level,
                             type: 'folder' as const,
@@ -1995,6 +2028,9 @@ export const NavigationPane = React.memo(
                                     return;
                                 }
                                 handleShortcutFolderActivate(folder, item.key);
+                            },
+                            onRemove: () => {
+                                runAsyncAction(() => removeShortcut(item.key));
                             },
                             onContextMenu: (event: React.MouseEvent<HTMLDivElement>) => handleShortcutContextMenu(event, contextTarget),
                             dragHandlers,
@@ -2035,7 +2071,7 @@ export const NavigationPane = React.memo(
                         const dragHandlers = buildShortcutExternalHandlers(item.key);
                         const isDragSource = shouldUseShortcutDnd && activeShortcutId === item.key;
 
-                        const label = (() => {
+                        const defaultLabel = (() => {
                             if (!note || !canInteract) {
                                 return getMissingNoteLabel(notePath);
                             }
@@ -2043,6 +2079,8 @@ export const NavigationPane = React.memo(
                             const extensionSuffix = shouldShowExtensionSuffix(note) ? getExtensionSuffix(note) : '';
                             return extensionSuffix ? `${displayName}${extensionSuffix}` : displayName;
                         })();
+                        const noteAlias = isNoteShortcut(item.shortcut) ? item.shortcut.alias : undefined;
+                        const label = noteAlias && noteAlias.length > 0 ? noteAlias : defaultLabel;
 
                         const contextTarget: ShortcutContextMenuTarget =
                             canInteract && note
@@ -2050,7 +2088,11 @@ export const NavigationPane = React.memo(
                                 : { type: 'missing', key: item.key, kind: 'note' };
 
                         const shortcutProps = {
-                            icon: isMissing ? 'lucide-alert-triangle' : (item.icon ?? 'lucide-file-text'),
+                            icon: isMissing
+                                ? 'lucide-alert-triangle'
+                                : item.isExcluded && !showHiddenItems
+                                  ? 'lucide-eye-off'
+                                  : (item.icon ?? 'lucide-file-text'),
                             color: isMissing ? undefined : item.color,
                             label,
                             description: undefined,
@@ -2058,6 +2100,7 @@ export const NavigationPane = React.memo(
                             type: 'note' as const,
                             badge: shortcutNumberBadgesByKey.get(item.key),
                             forceShowCount: shouldShowShortcutCounts,
+                            isExcluded: !isMissing ? item.isExcluded : undefined,
                             isDisabled: isMissing,
                             isMissing,
                             onClick: () => {
@@ -2065,6 +2108,9 @@ export const NavigationPane = React.memo(
                                     return;
                                 }
                                 handleShortcutNoteActivate(note, item.key);
+                            },
+                            onRemove: () => {
+                                runAsyncAction(() => removeShortcut(item.key));
                             },
                             onMouseDown: (event: React.MouseEvent<HTMLDivElement>) => {
                                 if (!note || !canInteract) {
@@ -2105,6 +2151,9 @@ export const NavigationPane = React.memo(
                             type: 'search' as const,
                             badge: shortcutNumberBadgesByKey.get(item.key),
                             forceShowCount: shouldShowShortcutCounts,
+                            onRemove: () => {
+                                runAsyncAction(() => removeShortcut(item.key));
+                            },
                             onClick: () => handleShortcutSearchActivate(item.key, searchShortcut),
                             onContextMenu: (event: React.MouseEvent<HTMLDivElement>) =>
                                 handleShortcutContextMenu(event, {
@@ -2133,6 +2182,8 @@ export const NavigationPane = React.memo(
                         const isMissing = Boolean(item.isMissing);
                         const tagPath = isTagShortcut(item.shortcut) ? item.shortcut.tagPath : item.tagPath;
                         const tagCountInfo = !isMissing && shouldShowShortcutCounts ? getTagShortcutCount(tagPath) : ZERO_NOTE_COUNT;
+                        const tagAlias = isTagShortcut(item.shortcut) ? item.shortcut.alias : undefined;
+                        const tagLabel = tagAlias && tagAlias.length > 0 ? tagAlias : item.displayName;
 
                         const dragHandlers = buildShortcutExternalHandlers(item.key);
                         const isDragSource = shouldUseShortcutDnd && activeShortcutId === item.key;
@@ -2143,16 +2194,21 @@ export const NavigationPane = React.memo(
                         const shortcutBackground = isMissing ? undefined : getSolidBackground(item.backgroundColor);
 
                         const shortcutProps = {
-                            icon: isMissing ? 'lucide-alert-triangle' : (item.icon ?? 'lucide-tags'),
+                            icon: isMissing
+                                ? 'lucide-alert-triangle'
+                                : item.isExcluded && !showHiddenItems
+                                  ? 'lucide-eye-off'
+                                  : (item.icon ?? 'lucide-tags'),
                             color: isMissing ? undefined : item.color,
                             backgroundColor: shortcutBackground,
-                            label: item.displayName,
+                            label: tagLabel,
                             description: undefined,
                             level: item.level,
                             type: 'tag' as const,
                             countInfo: !isMissing && shouldShowShortcutCounts ? tagCountInfo : undefined,
                             badge: shortcutNumberBadgesByKey.get(item.key),
                             forceShowCount: shouldShowShortcutCounts,
+                            isExcluded: !isMissing ? item.isExcluded : undefined,
                             isDisabled: isMissing,
                             isMissing,
                             onClick: () => {
@@ -2160,6 +2216,9 @@ export const NavigationPane = React.memo(
                                     return;
                                 }
                                 handleShortcutTagActivate(tagPath, item.key);
+                            },
+                            onRemove: () => {
+                                runAsyncAction(() => removeShortcut(item.key));
                             },
                             onContextMenu: (event: React.MouseEvent<HTMLDivElement>) => handleShortcutContextMenu(event, contextTarget),
                             dragHandlers,
@@ -2388,10 +2447,6 @@ export const NavigationPane = React.memo(
                         );
                     }
 
-                    case NavigationPaneItemType.BANNER: {
-                        return <NavigationBanner path={item.path} onHeightChange={handleBannerHeightChange} />;
-                    }
-
                     case NavigationPaneItemType.TOP_SPACER: {
                         const spacerClass = item.hasSeparator ? 'nn-nav-top-spacer nn-nav-spacer--with-separator' : 'nn-nav-top-spacer';
                         return <div className={spacerClass} />;
@@ -2450,17 +2505,18 @@ export const NavigationPane = React.memo(
                 handleRecentNoteActivate,
                 handleRecentFileContextMenu,
                 handleShortcutContextMenu,
+                removeShortcut,
                 buildShortcutExternalHandlers,
                 shortcutNumberBadgesByKey,
                 shouldShowShortcutCounts,
                 shortcutsExpanded,
                 shouldPinShortcuts,
+                showHiddenItems,
                 recentNotesExpanded,
                 getFileDisplayName,
                 shortcutDragHandleConfig,
                 activeShortcutId,
                 shouldUseShortcutDnd,
-                handleBannerHeightChange,
                 handleShortcutRootDragOver,
                 handleShortcutRootDrop,
                 allowEmptyShortcutDrop,
@@ -2582,6 +2638,7 @@ export const NavigationPane = React.memo(
                     rootReorderActive={isRootReorderMode}
                     rootReorderDisabled={!canReorderRootItems}
                     pinToggleLabel={pinToggleLabel}
+                    showVaultTitleInHeader={shouldShowVaultTitleInHeader}
                 />
                 {/* Android - toolbar at top */}
                 {isMobile && isAndroid && (
@@ -2640,16 +2697,12 @@ export const NavigationPane = React.memo(
                             className="nn-shortcut-pinned"
                             ref={pinnedShortcutsContainerRef}
                             role="presentation"
-                            data-has-banner={shouldShowPinnedBanner ? 'true' : undefined}
                             data-scroll={pinnedShortcutsHasOverflow ? 'true' : undefined}
                             style={pinnedShortcutsMaxHeight !== null ? { maxHeight: pinnedShortcutsMaxHeight } : undefined}
                             onDragOver={allowEmptyShortcutDrop ? handleShortcutRootDragOver : undefined}
                             onDrop={allowEmptyShortcutDrop ? handleShortcutRootDrop : undefined}
                         >
                             <div className="nn-shortcut-pinned-scroll" ref={pinnedShortcutsScrollRefCallback}>
-                                {shouldShowPinnedBanner && navigationBannerPath ? (
-                                    <NavigationBanner path={navigationBannerPath} onHeightChange={handleBannerHeightChange} />
-                                ) : null}
                                 <div className="nn-shortcut-pinned-inner">
                                     {pinnedNavigationItems.map(pinnedItem => (
                                         <React.Fragment key={pinnedItem.key}>{renderItem(pinnedItem)}</React.Fragment>
@@ -2673,72 +2726,119 @@ export const NavigationPane = React.memo(
                     // never changes clientWidth mid-resize (prevents RO feedback loops).
                     data-banner={hasNavigationBannerConfigured ? 'true' : undefined}
                     data-pane="navigation"
-                    role={isRootReorderMode ? 'list' : 'tree'}
                     tabIndex={-1}
                 >
-                    {isRootReorderMode ? (
-                        <NavigationRootReorderPanel
-                            sectionItems={sectionReorderItems}
-                            folderItems={folderReorderItems}
-                            tagItems={tagReorderItems}
-                            showRootFolderSection={showRootFolderSection}
-                            showRootTagSection={showRootTagSection}
-                            foldersSectionExpanded={foldersSectionExpanded}
-                            tagsSectionExpanded={tagsSectionExpanded}
-                            showRootFolderReset={settings.rootFolderOrder.length > 0}
-                            showRootTagReset={settings.rootTagOrder.length > 0}
-                            resetRootTagOrderLabel={resetRootTagOrderLabel}
-                            onResetRootFolderOrder={handleResetRootFolderOrder}
-                            onResetRootTagOrder={handleResetRootTagOrder}
-                            onReorderSections={reorderSectionOrder}
-                            onReorderFolders={reorderRootFolderOrder}
-                            onReorderTags={reorderRootTagOrder}
-                            canReorderSections={canReorderSections}
-                            canReorderFolders={canReorderRootFolders}
-                            canReorderTags={canReorderRootTags}
-                            isMobile={isMobile}
+                    <div className="nn-navigation-pane-overlay" ref={navigationOverlayRef}>
+                        <NavigationPaneHeader
+                            onTreeUpdateComplete={handleTreeUpdateComplete}
+                            onTogglePinnedShortcuts={settings.showShortcuts ? handleShortcutSplitToggle : undefined}
+                            onToggleRootFolderReorder={handleToggleRootReorder}
+                            rootReorderActive={isRootReorderMode}
+                            rootReorderDisabled={!canReorderRootItems}
+                            pinToggleLabel={pinToggleLabel}
+                            showVaultTitleInHeader={shouldShowVaultTitleInHeader}
                         />
-                    ) : (
-                        items.length > 0 && (
+                        {shouldShowVaultTitleInNavigationPane ? <VaultTitleArea /> : null}
+                        {/* Android - toolbar at top */}
+                        {isMobile && isAndroid && (
+                            <NavigationToolbar
+                                onTreeUpdateComplete={handleTreeUpdateComplete}
+                                onTogglePinnedShortcuts={settings.showShortcuts ? handleShortcutSplitToggle : undefined}
+                                onToggleRootFolderReorder={handleToggleRootReorder}
+                                rootReorderActive={isRootReorderMode}
+                                rootReorderDisabled={!canReorderRootItems}
+                                pinToggleLabel={pinToggleLabel}
+                            />
+                        )}
+                        {shouldRenderNavigationBanner && navigationBannerPath ? <NavigationBanner path={navigationBannerPath} /> : null}
+                        {shouldRenderPinnedShortcuts ? (
                             <div
-                                className="nn-virtual-container"
-                                style={{
-                                    height: `${rowVirtualizer.getTotalSize()}px`
-                                }}
+                                className="nn-shortcut-pinned"
+                                ref={pinnedShortcutsContainerRef}
+                                role="presentation"
+                                data-scroll={pinnedShortcutsHasOverflow ? 'true' : undefined}
+                                style={pinnedShortcutsMaxHeight !== null ? { maxHeight: pinnedShortcutsMaxHeight } : undefined}
+                                onDragOver={allowEmptyShortcutDrop ? handleShortcutRootDragOver : undefined}
+                                onDrop={allowEmptyShortcutDrop ? handleShortcutRootDrop : undefined}
                             >
-                                {rowVirtualizer.getVirtualItems().map(virtualItem => {
-                                    // Safe array access
-                                    const item =
-                                        virtualItem.index >= 0 && virtualItem.index < items.length ? items[virtualItem.index] : null;
-                                    if (!item) return null;
-
-                                    // Callback to measure dynamic-height items for virtualization
-                                    const measureRef = (element: HTMLDivElement | null) => {
-                                        if (!element) {
-                                            return;
-                                        }
-                                        if (item.type === NavigationPaneItemType.BANNER) {
-                                            rowVirtualizer.measureElement(element);
-                                        }
-                                    };
-
-                                    return (
-                                        <div
-                                            key={virtualItem.key}
-                                            data-index={virtualItem.index}
-                                            className="nn-virtual-nav-item"
-                                            ref={measureRef}
-                                            style={{
-                                                transform: `translateY(${virtualItem.start}px)`
-                                            }}
-                                        >
-                                            {renderItem(item)}
-                                        </div>
-                                    );
-                                })}
+                                <div className="nn-shortcut-pinned-scroll" ref={pinnedShortcutsScrollRefCallback}>
+                                    <div className="nn-shortcut-pinned-inner">
+                                        {pinnedNavigationItems.map(pinnedItem => (
+                                            <React.Fragment key={pinnedItem.key}>{renderItem(pinnedItem)}</React.Fragment>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div
+                                    className="nn-shortcuts-resize-handle"
+                                    role="separator"
+                                    aria-orientation="horizontal"
+                                    aria-label="Resize pinned shortcuts"
+                                    onPointerDown={handlePinnedShortcutsResizePointerDown}
+                                />
                             </div>
-                        )
-                    )}
+                        ) : null}
+                    </div>
+                    <div role={isRootReorderMode ? 'list' : 'tree'}>
+                        {isRootReorderMode ? (
+                            <NavigationRootReorderPanel
+                                sectionItems={sectionReorderItems}
+                                folderItems={folderReorderItems}
+                                tagItems={tagReorderItems}
+                                showRootFolderSection={showRootFolderSection}
+                                showRootTagSection={showRootTagSection}
+                                foldersSectionExpanded={foldersSectionExpanded}
+                                tagsSectionExpanded={tagsSectionExpanded}
+                                showRootFolderReset={settings.rootFolderOrder.length > 0}
+                                showRootTagReset={settings.rootTagOrder.length > 0}
+                                resetRootTagOrderLabel={resetRootTagOrderLabel}
+                                onResetRootFolderOrder={handleResetRootFolderOrder}
+                                onResetRootTagOrder={handleResetRootTagOrder}
+                                onReorderSections={reorderSectionOrder}
+                                onReorderFolders={reorderRootFolderOrder}
+                                onReorderTags={reorderRootTagOrder}
+                                canReorderSections={canReorderSections}
+                                canReorderFolders={canReorderRootFolders}
+                                canReorderTags={canReorderRootTags}
+                                isMobile={isMobile}
+                            />
+                        ) : (
+                            items.length > 0 && (
+                                <div
+                                    className="nn-virtual-container"
+                                    style={{
+                                        height: `${rowVirtualizer.getTotalSize()}px`
+                                    }}
+                                >
+                                    {rowVirtualizer.getVirtualItems().map(virtualItem => {
+                                        // Safe array access
+                                        const item =
+                                            virtualItem.index >= 0 && virtualItem.index < items.length ? items[virtualItem.index] : null;
+                                        if (!item) return null;
+
+                                        return (
+                                            <div
+                                                key={virtualItem.key}
+                                                data-index={virtualItem.index}
+                                                className="nn-virtual-nav-item"
+                                                style={{
+                                                    // The navigation chrome stack (header/banner/pinned) lives above the virtual list
+                                                    // inside the same scroll container. TanStack Virtual is configured with a
+                                                    // scrollMargin/scrollPaddingStart equal to the chrome height so scrollToIndex aligns
+                                                    // items below the chrome, but it also
+                                                    // means virtualItem.start includes that margin. The virtual container itself
+                                                    // is rendered below the chrome stack in normal flow, so we subtract the
+                                                    // overlay height to position items at the correct Y within the container.
+                                                    transform: `translateY(${Math.max(0, virtualItem.start - navigationOverlayHeight)}px)`
+                                                }}
+                                            >
+                                                {renderItem(item)}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )
+                        )}
+                    </div>
                 </div>
                 {/* iOS - toolbar at bottom */}
                 {isMobile && !isAndroid && (

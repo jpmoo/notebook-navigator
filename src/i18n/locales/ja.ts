@@ -84,6 +84,7 @@ export const STRINGS_JA = {
         add: 'ショートカットに追加',
         addNotesCount: 'ショートカットに{count}件のノートを追加',
         addFilesCount: 'ショートカットに{count}件のファイルを追加',
+        rename: 'ショートカット名を変更',
         remove: 'ショートカットから削除',
         removeAll: 'すべてのショートカットを削除',
         removeAllConfirm: 'すべてのショートカットを削除しますか？',
@@ -105,7 +106,7 @@ export const STRINGS_JA = {
         hideFolders: 'ナビゲーションを非表示', // Tooltip for button to hide the navigation pane (English: Hide navigation)
         reorderRootFolders: 'ナビゲーションを並び替え',
         finishRootFolderReorder: '完了',
-        toggleDescendantNotes: 'サブフォルダ / 子孫のノートを表示（同期されません）', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants (not synced))
+        toggleDescendantNotes: 'サブフォルダ / 子孫のノートを表示', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants)
         autoExpandFoldersTags: 'フォルダとタグを自動展開', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
         showExcludedItems: '非表示のフォルダ・タグ・ノートを表示', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: '非表示のフォルダ・タグ・ノートを非表示', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -122,7 +123,6 @@ export const STRINGS_JA = {
         saveSearchShortcut: '検索をショートカットに保存',
         removeSearchShortcut: 'ショートカットから検索を削除',
         shortcutModalTitle: '検索ショートカットを保存',
-        shortcutNameLabel: 'ショートカット名',
         shortcutNamePlaceholder: 'ショートカット名を入力'
     },
 
@@ -946,6 +946,14 @@ export const STRINGS_JA = {
                     duplicateName: 'プロファイル名は既に存在します'
                 }
             },
+            vaultTitle: {
+                name: 'ボルトタイトルの配置（デスクトップのみ）',
+                desc: 'ボルトタイトルの表示場所を選択します。',
+                options: {
+                    header: 'ヘッダーに表示',
+                    navigation: 'ナビゲーションペインに表示'
+                }
+            },
             excludedFolders: {
                 name: 'フォルダを非表示 (ボルトプロファイル)',
                 desc: '非表示にするフォルダのカンマ区切りリスト。名前パターン: assets*（assetsで始まるフォルダ）、*_temp（_tempで終わる）。パスパターン: /archive（ルートのアーカイブのみ）、/res*（resで始まるルートフォルダ）、/*/temp（1階層下のtempフォルダ）、/projects/*（projects内のすべてのフォルダ）。',
@@ -1230,7 +1238,8 @@ export const STRINGS_JA = {
                 buttonText: 'キャッシュを再構築',
                 success: 'キャッシュを再構築しました',
                 error: 'キャッシュの再構築に失敗しました',
-                progress: 'キャッシュを再構築中:'
+                indexingTitle: 'ボールトをインデックス中...',
+                progress: 'Notebook Navigator のキャッシュを更新しています.'
             },
             hotkeys: {
                 intro: 'Notebook Navigator のホットキーは <plugin folder>/notebook-navigator/data.json を編集してカスタマイズします。ファイルをテキストエディタで開き、"keyboardShortcuts" セクションを探してください。各エントリは次の構造です:',

@@ -85,6 +85,7 @@ export const STRINGS_ZH_TW = {
         add: '新增至捷徑',
         addNotesCount: '新增 {count} 個筆記至捷徑',
         addFilesCount: '新增 {count} 個檔案至捷徑',
+        rename: '重新命名捷徑',
         remove: '從捷徑移除',
         removeAll: '移除所有捷徑',
         removeAllConfirm: '移除所有捷徑？',
@@ -106,7 +107,7 @@ export const STRINGS_ZH_TW = {
         hideFolders: '隱藏導覽', // 隱藏導覽窗格按鈕的工具提示 (英文: Hide navigation)
         reorderRootFolders: '重新排列導覽',
         finishRootFolderReorder: '完成',
-        toggleDescendantNotes: '顯示子資料夾/後代中的筆記（不同步）', // 工具提示：包含資料夾和標籤的後代
+        toggleDescendantNotes: '顯示子資料夾/後代中的筆記', // 工具提示：包含資料夾和標籤的後代
         autoExpandFoldersTags: '自動展開資料夾和標籤', // 選取時自動展開資料夾和標籤的切換按鈕工具提示 (英文: Auto-expand folders and tags)
         showExcludedItems: '顯示隱藏的資料夾、標籤和筆記', // 顯示隱藏項目的按鈕工具提示 (英文: Show hidden items)
         hideExcludedItems: '隱藏隱藏的資料夾、標籤和筆記', // 隱藏隱藏項目的按鈕工具提示 (英文: Hide hidden items)
@@ -123,7 +124,6 @@ export const STRINGS_ZH_TW = {
         saveSearchShortcut: '儲存搜尋捷徑',
         removeSearchShortcut: '移除搜尋捷徑',
         shortcutModalTitle: '儲存搜尋捷徑',
-        shortcutNameLabel: '捷徑名稱',
         shortcutNamePlaceholder: '輸入捷徑名稱'
     },
 
@@ -964,6 +964,14 @@ export const STRINGS_ZH_TW = {
                     duplicateName: '設定檔名稱已存在'
                 }
             },
+            vaultTitle: {
+                name: '儲存庫標題位置（僅桌面版）',
+                desc: '選擇儲存庫標題顯示的位置。',
+                options: {
+                    header: '顯示在標題列',
+                    navigation: '顯示在導覽窗格'
+                }
+            },
             excludedFolders: {
                 name: '隱藏資料夾 (儲存庫配置)',
                 desc: '以逗號分隔的要隱藏的資料夾清單。名稱模式：assets* (以 assets 開頭的資料夾)、*_temp (以 _temp 結尾)。路徑模式：/archive (僅根目錄的 archive)、/res* (以 res 開頭的根資料夾)、/*/temp (一層深的 temp 資料夾)、/projects/* (projects 內的所有資料夾)。',
@@ -1226,7 +1234,8 @@ export const STRINGS_ZH_TW = {
                 buttonText: '重建快取',
                 success: '快取已重建',
                 error: '重建快取失敗',
-                progress: '正在重建快取:'
+                indexingTitle: '正在索引儲存庫...',
+                progress: '正在更新 Notebook Navigator 快取.'
             },
             hotkeys: {
                 intro: '編輯 <plugin folder>/notebook-navigator/data.json 以自訂 Notebook Navigator 快捷鍵。開啟檔案並找到 "keyboardShortcuts" 區段。每個條目使用此結構：',

@@ -16,8 +16,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import { describe, it, expect } from 'vitest';
-import { buildTagTreeFromDatabase, findTagNode, collectTagFilePaths, collectAllTagPaths, getTotalNoteCount } from '../../src/utils/tagTree';
-import { normalizeTagPathValue } from '../../src/utils/tagPrefixMatcher';
+import {
+    buildTagTreeFromDatabase,
+    findTagNode,
+    collectTagFilePaths,
+    collectAllTagPaths,
+    getTotalNoteCount,
+    excludeFromTagTree
+} from '../../src/utils/tagTree';
+import { createHiddenTagMatcher, normalizeTagPathValue } from '../../src/utils/tagPrefixMatcher';
 import type { IndexedDBStorage, FileData } from '../../src/storage/IndexedDBStorage';
 import type { TagTreeNode } from '../../src/types/storage';
 
@@ -44,7 +51,7 @@ function createFileData(tags: string[] | null): FileData {
     return {
         mtime: 0,
         tags,
-        preview: null,
+        previewStatus: 'unprocessed',
         featureImage: null,
         featureImageStatus: 'unprocessed',
         featureImageKey: null,
@@ -212,5 +219,32 @@ describe('tagged count visibility', () => {
 
         const unfiltered = buildTagTreeFromDatabase(db, undefined, undefined, ['archive'], true);
         expect(unfiltered.tagged).toBe(2);
+    });
+});
+
+describe('excludeFromTagTree', () => {
+    it('filters trailing wildcard tag patterns', () => {
+        const child: TagTreeNode = {
+            name: 'client',
+            path: 'projects/client',
+            displayPath: 'projects/client',
+            children: new Map(),
+            notesWithTag: new Set(['child.md'])
+        };
+        const root: TagTreeNode = {
+            name: 'projects',
+            path: 'projects',
+            displayPath: 'projects',
+            children: new Map([[child.path, child]]),
+            notesWithTag: new Set(['root.md'])
+        };
+
+        const tree = new Map<string, TagTreeNode>([[root.path, root]]);
+        const matcher = createHiddenTagMatcher(['projects/*']);
+        const filtered = excludeFromTagTree(tree, matcher);
+
+        expect(filtered.has(root.path)).toBe(true);
+        const filteredRoot = filtered.get(root.path);
+        expect(filteredRoot?.children.size).toBe(0);
     });
 });

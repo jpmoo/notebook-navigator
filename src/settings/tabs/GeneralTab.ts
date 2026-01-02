@@ -28,7 +28,7 @@ import {
     PANE_TRANSITION_DURATION_STEP_MS,
     type BackgroundMode
 } from '../../types';
-import type { ListToolbarButtonId, MultiSelectModifier, NavigationToolbarButtonId } from '../types';
+import type { ListToolbarButtonId, MultiSelectModifier, NavigationToolbarButtonId, VaultTitleOption } from '../types';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { resetHiddenToggleIfNoSources } from '../../utils/exclusionUtils';
 import { InputModal } from '../../modals/InputModal';
@@ -149,9 +149,15 @@ export function renderGeneralTab(context: SettingsTabContext): void {
     let hiddenTagsInput: HTMLInputElement | null = null;
     let excludedFilesInput: HTMLInputElement | null = null;
     let hiddenFileNamePatternsInput: HTMLInputElement | null = null;
+    let vaultTitleSetting: Setting | null = null;
 
     // Updates all profile-related UI controls with current settings values
     const refreshProfileControls = () => {
+        const shouldShowVaultTitleSetting = !Platform.isMobile && plugin.settings.vaultProfiles.length > 1;
+        if (vaultTitleSetting) {
+            setElementVisible(vaultTitleSetting.settingEl, shouldShowVaultTitleSetting);
+        }
+
         if (profileDropdown) {
             const selectEl = profileDropdown.selectEl;
             while (selectEl.firstChild) {
@@ -288,6 +294,24 @@ export function renderGeneralTab(context: SettingsTabContext): void {
     });
 
     profileSetting.controlEl.addClass('nn-setting-profile-dropdown');
+
+    if (!Platform.isMobile) {
+        vaultTitleSetting = filteringGroup.addSetting(setting => {
+            setting
+                .setName(strings.settings.items.vaultTitle.name)
+                .setDesc(strings.settings.items.vaultTitle.desc)
+                .addDropdown(dropdown =>
+                    dropdown
+                        .addOption('header', strings.settings.items.vaultTitle.options.header)
+                        .addOption('navigation', strings.settings.items.vaultTitle.options.navigation)
+                        .setValue(plugin.settings.vaultTitle)
+                        .onChange(async (value: VaultTitleOption) => {
+                            plugin.settings.vaultTitle = value;
+                            await plugin.saveSettingsAndUpdate();
+                        })
+                );
+        });
+    }
 
     filteringGroup.addSetting(setting => {
         setting
@@ -829,7 +853,7 @@ interface ToolbarButtonConfig<T extends string> {
 }
 
 const NAVIGATION_TOOLBAR_BUTTONS: ToolbarButtonConfig<NavigationToolbarButtonId>[] = [
-    { id: 'shortcuts', icon: 'lucide-bookmark', label: strings.navigationPane.pinShortcuts },
+    { id: 'shortcuts', icon: 'lucide-star', label: strings.navigationPane.pinShortcuts },
     { id: 'expandCollapse', icon: 'lucide-chevrons-up-down', label: strings.paneHeader.expandAllFolders },
     { id: 'hiddenItems', icon: 'lucide-eye', label: strings.paneHeader.showExcludedItems },
     { id: 'rootReorder', icon: 'lucide-list-tree', label: strings.paneHeader.reorderRootFolders },

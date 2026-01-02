@@ -85,6 +85,7 @@ export const STRINGS_IT = {
         add: 'Aggiungi alle scorciatoie',
         addNotesCount: 'Aggiungi {count} note alle scorciatoie',
         addFilesCount: 'Aggiungi {count} file alle scorciatoie',
+        rename: 'Rinomina scorciatoia',
         remove: 'Rimuovi dalle scorciatoie',
         removeAll: 'Rimuovi tutte le scorciatoie',
         removeAllConfirm: 'Rimuovere tutte le scorciatoie?',
@@ -106,7 +107,7 @@ export const STRINGS_IT = {
         hideFolders: 'Nascondi navigazione', // Tooltip for button to hide the navigation pane (English: Hide navigation)
         reorderRootFolders: 'Riordina navigazione',
         finishRootFolderReorder: 'Fatto',
-        toggleDescendantNotes: 'Mostra note da sottocartelle / discendenti (non sincronizzato)', // Tooltip: include descendants for folders and tags
+        toggleDescendantNotes: 'Mostra note da sottocartelle / discendenti', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: 'Espandi alla selezione', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Expand on selection)
         showExcludedItems: 'Mostra cartelle, tag e note nascosti', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Nascondi cartelle, tag e note nascosti', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -123,7 +124,6 @@ export const STRINGS_IT = {
         saveSearchShortcut: 'Salva scorciatoia ricerca',
         removeSearchShortcut: 'Rimuovi scorciatoia ricerca',
         shortcutModalTitle: 'Salva scorciatoia ricerca',
-        shortcutNameLabel: 'Nome scorciatoia',
         shortcutNamePlaceholder: 'Inserisci nome scorciatoia'
     },
 
@@ -966,6 +966,14 @@ export const STRINGS_IT = {
                     duplicateName: 'Nome profilo già esistente'
                 }
             },
+            vaultTitle: {
+                name: 'Posizione titolo vault (solo desktop)',
+                desc: 'Scegli dove viene mostrato il titolo del vault.',
+                options: {
+                    header: "Mostra nell'intestazione",
+                    navigation: 'Mostra nel pannello di navigazione'
+                }
+            },
             excludedFolders: {
                 name: 'Nascondi cartelle (profilo vault)',
                 desc: 'Lista di cartelle da nascondere separate da virgola. Pattern nome: assets* (cartelle che iniziano con assets), *_temp (che finiscono con _temp). Pattern percorso: /archivio (solo archivio root), /res* (cartelle root che iniziano con res), /*/temp (cartelle temp un livello sotto), /progetti/* (tutte le cartelle in progetti).',
@@ -1228,7 +1236,8 @@ export const STRINGS_IT = {
                 buttonText: 'Ricostruisci cache',
                 success: 'Cache ricostruita',
                 error: 'Impossibile ricostruire cache',
-                progress: 'Ricostruzione cache:'
+                indexingTitle: 'Indicizzazione del vault...',
+                progress: 'Aggiornamento della cache di Notebook Navigator.'
             },
             hotkeys: {
                 intro: 'Modifica <cartella plugin>/notebook-navigator/data.json per personalizzare le scorciatoie da tastiera di Notebook Navigator. Apri il file e trova la sezione "keyboardShortcuts". Ogni voce usa questa struttura:',

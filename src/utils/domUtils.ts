@@ -41,3 +41,10 @@ export function isTypingInInput(e: KeyboardEvent): boolean {
     const target = e.target as HTMLElement;
     return target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true';
 }
+
+export function getTooltipPlacement(): 'left' | 'right' {
+    if (typeof document === 'undefined' || !document.body) {
+        return 'right';
+    }
+    return document.body.classList.contains('mod-rtl') ? 'left' : 'right';
+}

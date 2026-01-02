@@ -772,16 +772,27 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         localStorage.init(this.app);
 
         // Initialize database early for StorageContext consumers
-        try {
-            const appId = (this.app as ExtendedApp).appId || '';
-            // Use a fixed per-platform LRU size for feature image blobs.
-            const featureImageCacheMaxEntries = Platform.isMobile ? 200 : 1000;
-            await initializeDatabase(appId, { featureImageCacheMaxEntries });
-        } catch (e) {
-            console.error('Failed to initialize database during plugin load:', e);
-            // Fail fast: abort plugin load if database cannot initialize
-            throw e instanceof Error ? e : new Error(String(e));
-        }
+        const appId = (this.app as ExtendedApp).appId || '';
+        // Use a fixed per-platform LRU size for feature image blobs.
+        const featureImageCacheMaxEntries = Platform.isMobile ? 200 : 1000;
+        // Use a fixed per-platform LRU size for preview text strings.
+        const previewTextCacheMaxEntries = Platform.isMobile ? 10000 : 50000;
+        // Limit the number of preview text paths processed per load flush.
+        const previewLoadMaxBatch = Platform.isMobile ? 20 : 50;
+        runAsyncAction(
+            async () => {
+                try {
+                    await initializeDatabase(appId, { featureImageCacheMaxEntries, previewTextCacheMaxEntries, previewLoadMaxBatch });
+                } catch (error: unknown) {
+                    console.error('Failed to initialize database:', error);
+                }
+            },
+            {
+                onError: (error: unknown) => {
+                    console.error('Failed to initialize database:', error);
+                }
+            }
+        );
 
         // Load settings and check if this is first launch
         const isFirstLaunch = await this.loadSettings();
@@ -868,11 +879,19 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
         const iconService = getIconService();
         this.externalIconController = new ExternalIconProviderController(this.app, iconService, this);
-        await this.externalIconController.initialize();
-        // Sync icon settings with external providers without blocking
         const iconController = this.externalIconController;
         if (iconController) {
-            runAsyncAction(() => iconController.syncWithSettings());
+            runAsyncAction(
+                async () => {
+                    await iconController.initialize();
+                    await iconController.syncWithSettings();
+                },
+                {
+                    onError: (error: unknown) => {
+                        console.error('External icon controller init failed:', error);
+                    }
+                }
+            );
         }
 
         // Re-sync icon settings when settings update

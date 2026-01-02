@@ -85,6 +85,7 @@ export const STRINGS_VI = {
         add: 'Thêm vào lối tắt',
         addNotesCount: 'Thêm {count} ghi chú vào lối tắt',
         addFilesCount: 'Thêm {count} tệp vào lối tắt',
+        rename: 'Đổi tên lối tắt',
         remove: 'Gỡ khỏi lối tắt',
         removeAll: 'Xóa tất cả lối tắt',
         removeAllConfirm: 'Xóa tất cả lối tắt?',
@@ -106,7 +107,7 @@ export const STRINGS_VI = {
         hideFolders: 'Ẩn điều hướng', // Tooltip for button to hide the navigation pane (English: Hide navigation)
         reorderRootFolders: 'Sắp xếp lại điều hướng',
         finishRootFolderReorder: 'Hoàn tất',
-        toggleDescendantNotes: 'Hiện ghi chú từ thư mục con / phần tử con (không đồng bộ)', // Tooltip: include descendants for folders and tags
+        toggleDescendantNotes: 'Hiện ghi chú từ thư mục con / phần tử con', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: 'Mở rộng khi chọn', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Expand on selection)
         showExcludedItems: 'Hiện thư mục, thẻ và ghi chú ẩn', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Ẩn thư mục, thẻ và ghi chú ẩn', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -123,7 +124,6 @@ export const STRINGS_VI = {
         saveSearchShortcut: 'Lưu lối tắt tìm kiếm',
         removeSearchShortcut: 'Gỡ lối tắt tìm kiếm',
         shortcutModalTitle: 'Lưu lối tắt tìm kiếm',
-        shortcutNameLabel: 'Tên lối tắt',
         shortcutNamePlaceholder: 'Nhập tên lối tắt'
     },
 
@@ -965,6 +965,14 @@ export const STRINGS_VI = {
                     duplicateName: 'Tên hồ sơ đã tồn tại'
                 }
             },
+            vaultTitle: {
+                name: 'Vị trí tiêu đề vault (chỉ máy tính)',
+                desc: 'Chọn nơi tiêu đề vault được hiển thị.',
+                options: {
+                    header: 'Hiển thị ở tiêu đề',
+                    navigation: 'Hiển thị trong bảng điều hướng'
+                }
+            },
             excludedFolders: {
                 name: 'Ẩn thư mục (hồ sơ vault)',
                 desc: 'Danh sách thư mục cần ẩn phân cách bằng dấu phẩy. Mẫu tên: assets* (thư mục bắt đầu bằng assets), *_temp (kết thúc bằng _temp). Mẫu đường dẫn: /archive (chỉ archive gốc), /res* (thư mục gốc bắt đầu bằng res), /*/temp (thư mục temp ở độ sâu một cấp), /projects/* (tất cả thư mục trong projects).',
@@ -1227,7 +1235,8 @@ export const STRINGS_VI = {
                 buttonText: 'Xây dựng lại cache',
                 success: 'Đã xây dựng lại cache',
                 error: 'Không thể xây dựng lại cache',
-                progress: 'Đang xây dựng lại cache:'
+                indexingTitle: 'Đang lập chỉ mục vault...',
+                progress: 'Đang cập nhật cache Notebook Navigator.'
             },
             hotkeys: {
                 intro: 'Sửa <plugin folder>/notebook-navigator/data.json để tùy chỉnh phím tắt Notebook Navigator. Mở tệp và tìm phần "keyboardShortcuts". Mỗi mục dùng cấu trúc này:',

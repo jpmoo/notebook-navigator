@@ -69,8 +69,15 @@ interface UseNavigationPaneScrollParams {
     isVisible: boolean;
     /** Currently active shortcut id (if any) */
     activeShortcutKey: string | null;
-    /** Measured height of the navigation banner (if configured) */
-    bannerHeight: number;
+    /**
+     * Top offset inside the scroll container before the virtual list begins.
+     *
+     * The navigation pane renders a sticky "chrome" stack (header/toolbar/banner/pinned shortcuts)
+     * above the virtualized tree inside the same scroll container. Providing its height keeps:
+     * - visible range calculations aligned with the tree rows (excluding the chrome),
+     * - scrollToIndex alignment below the chrome stack.
+     */
+    scrollMargin: number;
 }
 
 /**
@@ -103,7 +110,7 @@ export function useNavigationPaneScroll({
     pathToIndex,
     isVisible,
     activeShortcutKey,
-    bannerHeight
+    scrollMargin
 }: UseNavigationPaneScrollParams): UseNavigationPaneScrollResult {
     const { isMobile } = useServices();
     const selectionState = useSelectionState();
@@ -246,9 +253,14 @@ export function useNavigationPaneScroll({
     /**
      * Initialize TanStack Virtual virtualizer with dynamic heights for navigation items
      */
+    const effectiveScrollMargin = Number.isFinite(scrollMargin) && scrollMargin > 0 ? scrollMargin : 0;
     const rowVirtualizer = useVirtualizer({
         count: items.length,
         getScrollElement: () => scrollContainerRef.current,
+        // Align virtualizer scroll math with the start of the list content (excluding pinned headers).
+        scrollMargin: effectiveScrollMargin,
+        // Ensure scrollToIndex aligns items below the pinned header instead of under it.
+        scrollPaddingStart: effectiveScrollMargin,
         estimateSize: index => {
             const item = items[index];
 
@@ -262,9 +274,6 @@ export function useNavigationPaneScroll({
                     return NAVPANE_MEASUREMENTS.bottomSpacer;
                 case NavigationPaneItemType.LIST_SPACER:
                     return NAVPANE_MEASUREMENTS.listSpacer;
-                case NavigationPaneItemType.BANNER:
-                    // Fall back to a small spacer height until ResizeObserver reports the real banner height
-                    return bannerHeight > 0 ? bannerHeight : NAVPANE_MEASUREMENTS.topSpacer;
                 case NavigationPaneItemType.ROOT_SPACER:
                     return item.spacing;
                 case NavigationPaneItemType.FOLDER:

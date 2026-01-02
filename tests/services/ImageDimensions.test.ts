@@ -70,10 +70,46 @@ describe('getImageDimensionsFromBuffer', () => {
         bytes.set([0x52, 0x49, 0x46, 0x46], 0);
         bytes.set([0x57, 0x45, 0x42, 0x50], 8);
         bytes.set([0x56, 0x50, 0x38, 0x58], 12);
+        bytes.set([0x0a, 0x00, 0x00, 0x00], 16);
         bytes.set([0x2b, 0x01, 0x00], 24);
         bytes.set([0xc7, 0x00, 0x00], 27);
 
         expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/webp')).toEqual({ width: 300, height: 200 });
+    });
+
+    it('normalizes WebP mime type aliases', () => {
+        const bytes = new Uint8Array(30);
+        bytes.set([0x52, 0x49, 0x46, 0x46], 0);
+        bytes.set([0x57, 0x45, 0x42, 0x50], 8);
+        bytes.set([0x56, 0x50, 0x38, 0x58], 12);
+        bytes.set([0x0a, 0x00, 0x00, 0x00], 16);
+        bytes.set([0x2b, 0x01, 0x00], 24);
+        bytes.set([0xc7, 0x00, 0x00], 27);
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/x-webp')).toEqual({ width: 300, height: 200 });
+    });
+
+    it('falls back to signature detection when mime type is wrong', () => {
+        const bytes = new Uint8Array([0xff, 0xd8, 0xff, 0xc0, 0x00, 0x08, 0x08, 0x00, 0xc8, 0x01, 0x2c, 0x03, 0xff, 0xd9]);
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/webp')).toEqual({ width: 300, height: 200 });
+    });
+
+    it('parses "fried" PNG dimensions with a leading CgBI chunk', () => {
+        const bytes = new Uint8Array(48);
+        bytes.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], 0);
+
+        // CgBI chunk
+        bytes.set([0x00, 0x00, 0x00, 0x04], 8);
+        bytes.set([0x43, 0x67, 0x42, 0x49], 12);
+
+        // IHDR chunk after CgBI
+        bytes.set([0x00, 0x00, 0x00, 0x0d], 24);
+        bytes.set([0x49, 0x48, 0x44, 0x52], 28);
+        bytes.set([0x00, 0x00, 0x01, 0x2c], 32);
+        bytes.set([0x00, 0x00, 0x00, 0xc8], 36);
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/png')).toEqual({ width: 300, height: 200 });
     });
 
     it('parses BMP dimensions', () => {
@@ -105,6 +141,71 @@ describe('getImageDimensionsFromBuffer', () => {
         bytes.set([0x00, 0x00, 0x00, 0xc8], 16);
 
         expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/avif')).toEqual({ width: 300, height: 200 });
+    });
+
+    it('parses HEIC/HEIF dimensions with an ispe box and clap crop right', () => {
+        const bytes = new Uint8Array(64);
+
+        // meta box (full box, includes 4 bytes version/flags)
+        bytes.set([0x00, 0x00, 0x00, 0x40], 0);
+        bytes.set([0x6d, 0x65, 0x74, 0x61], 4);
+
+        // iprp box
+        bytes.set([0x00, 0x00, 0x00, 0x34], 12);
+        bytes.set([0x69, 0x70, 0x72, 0x70], 16);
+
+        // ipco box
+        bytes.set([0x00, 0x00, 0x00, 0x2c], 20);
+        bytes.set([0x69, 0x70, 0x63, 0x6f], 24);
+
+        // ispe box (full box)
+        bytes.set([0x00, 0x00, 0x00, 0x14], 28);
+        bytes.set([0x69, 0x73, 0x70, 0x65], 32);
+        bytes.set([0x00, 0x00, 0x00, 0x7c], 40); // width = 124
+        bytes.set([0x00, 0x00, 0x01, 0xc8], 44); // height = 456
+
+        // clap box (full box)
+        bytes.set([0x00, 0x00, 0x00, 0x10], 48);
+        bytes.set([0x63, 0x6c, 0x61, 0x70], 52);
+        bytes.set([0x00, 0x00, 0x00, 0x01], 60); // cropRight = 1
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heic')).toEqual({ width: 123, height: 456 });
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heif')).toEqual({ width: 123, height: 456 });
+    });
+
+    it('selects the largest HEIC/HEIF ispe dimensions when multiple boxes are present', () => {
+        const bytes = new Uint8Array(84);
+
+        // meta box (full box, includes 4 bytes version/flags)
+        bytes.set([0x00, 0x00, 0x00, 0x54], 0);
+        bytes.set([0x6d, 0x65, 0x74, 0x61], 4);
+
+        // iprp box
+        bytes.set([0x00, 0x00, 0x00, 0x48], 12);
+        bytes.set([0x69, 0x70, 0x72, 0x70], 16);
+
+        // ipco box
+        bytes.set([0x00, 0x00, 0x00, 0x40], 20);
+        bytes.set([0x69, 0x70, 0x63, 0x6f], 24);
+
+        // ispe box #1 (full box, 10x10)
+        bytes.set([0x00, 0x00, 0x00, 0x14], 28);
+        bytes.set([0x69, 0x73, 0x70, 0x65], 32);
+        bytes.set([0x00, 0x00, 0x00, 0x0a], 40);
+        bytes.set([0x00, 0x00, 0x00, 0x0a], 44);
+
+        // clap box applied by the HEIF handler (cropRight = 1)
+        bytes.set([0x00, 0x00, 0x00, 0x10], 48);
+        bytes.set([0x63, 0x6c, 0x61, 0x70], 52);
+        bytes.set([0x00, 0x00, 0x00, 0x01], 60);
+
+        // ispe box #2 (full box, 124x456)
+        bytes.set([0x00, 0x00, 0x00, 0x14], 64);
+        bytes.set([0x69, 0x73, 0x70, 0x65], 68);
+        bytes.set([0x00, 0x00, 0x00, 0x7c], 76);
+        bytes.set([0x00, 0x00, 0x01, 0xc8], 80);
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heic')).toEqual({ width: 123, height: 456 });
     });
 
     it('returns null for unknown mime types', () => {

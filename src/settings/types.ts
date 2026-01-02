@@ -49,6 +49,9 @@ export type ItemScope = 'all' | 'folders-only' | 'tags-only';
 /** Modifier key used for multi-select operations */
 export type MultiSelectModifier = 'cmdCtrl' | 'optionAlt';
 
+/** Display options for vault title */
+export type VaultTitleOption = 'header' | 'navigation';
+
 /** Display options for list pane title */
 export type ListPaneTitleOption = 'header' | 'list' | 'hidden';
 
@@ -96,6 +99,7 @@ export interface VaultProfile {
 export interface NotebookNavigatorSettings {
     vaultProfiles: VaultProfile[];
     vaultProfile: string;
+    vaultTitle: VaultTitleOption;
 
     // General tab - Behavior
     autoRevealActiveFile: boolean;

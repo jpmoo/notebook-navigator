@@ -85,6 +85,7 @@ export const STRINGS_TH = {
         add: 'เพิ่มในทางลัด',
         addNotesCount: 'เพิ่ม {count} โน้ตไปยังทางลัด',
         addFilesCount: 'เพิ่ม {count} ไฟล์ไปยังทางลัด',
+        rename: 'เปลี่ยนชื่อทางลัด',
         remove: 'นำออกจากทางลัด',
         removeAll: 'ลบทางลัดทั้งหมด',
         removeAllConfirm: 'ลบทางลัดทั้งหมด?',
@@ -106,7 +107,7 @@ export const STRINGS_TH = {
         hideFolders: 'ซ่อนการนำทาง',
         reorderRootFolders: 'จัดเรียงการนำทางใหม่',
         finishRootFolderReorder: 'เสร็จสิ้น',
-        toggleDescendantNotes: 'แสดงโน้ตจากโฟลเดอร์ย่อย / ลูกหลาน (ไม่ซิงค์)',
+        toggleDescendantNotes: 'แสดงโน้ตจากโฟลเดอร์ย่อย / ลูกหลาน',
         autoExpandFoldersTags: 'ขยายเมื่อเลือก',
         showExcludedItems: 'แสดงโฟลเดอร์ แท็ก และโน้ตที่ซ่อน',
         hideExcludedItems: 'ซ่อนโฟลเดอร์ แท็ก และโน้ตที่ซ่อน',
@@ -123,7 +124,6 @@ export const STRINGS_TH = {
         saveSearchShortcut: 'บันทึกทางลัดการค้นหา',
         removeSearchShortcut: 'นำทางลัดการค้นหาออก',
         shortcutModalTitle: 'บันทึกทางลัดการค้นหา',
-        shortcutNameLabel: 'ชื่อทางลัด',
         shortcutNamePlaceholder: 'กรอกชื่อทางลัด'
     },
 
@@ -965,6 +965,14 @@ export const STRINGS_TH = {
                     duplicateName: 'ชื่อโปรไฟล์มีอยู่แล้ว'
                 }
             },
+            vaultTitle: {
+                name: 'ตำแหน่งชื่อห้องนิรภัย (เดสก์ท็อปเท่านั้น)',
+                desc: 'เลือกตำแหน่งที่จะแสดงชื่อห้องนิรภัย',
+                options: {
+                    header: 'แสดงในส่วนหัว',
+                    navigation: 'แสดงในแผงนำทาง'
+                }
+            },
             excludedFolders: {
                 name: 'ซ่อนโฟลเดอร์ (โปรไฟล์ห้องนิรภัย)',
                 desc: 'รายการโฟลเดอร์คั่นด้วยเครื่องหมายจุลภาคที่จะซ่อน รูปแบบชื่อ: assets* (โฟลเดอร์ที่เริ่มด้วย assets), *_temp (ลงท้ายด้วย _temp) รูปแบบเส้นทาง: /archive (archive หลักเท่านั้น), /res* (โฟลเดอร์หลักที่เริ่มด้วย res), /*/temp (โฟลเดอร์ temp ลึกหนึ่งระดับ), /projects/* (โฟลเดอร์ทั้งหมดใน projects)',
@@ -1227,7 +1235,8 @@ export const STRINGS_TH = {
                 buttonText: 'สร้างแคชใหม่',
                 success: 'สร้างแคชใหม่แล้ว',
                 error: 'สร้างแคชใหม่ล้มเหลว',
-                progress: 'กำลังสร้างแคชใหม่:'
+                indexingTitle: 'กำลังสร้างดัชนีห้องนิรภัย...',
+                progress: 'Notebook Navigator กำลังอัปเดตแคช.'
             },
             hotkeys: {
                 intro: 'แก้ไข <โฟลเดอร์ปลั๊กอิน>/notebook-navigator/data.json เพื่อปรับแต่งปุ่มลัด Notebook Navigator เปิดไฟล์และค้นหาส่วน "keyboardShortcuts" แต่ละรายการใช้โครงสร้างนี้:',

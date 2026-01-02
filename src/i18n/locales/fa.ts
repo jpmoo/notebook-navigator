@@ -85,6 +85,7 @@ export const STRINGS_FA = {
         add: 'افزودن به میانبرها',
         addNotesCount: 'افزودن {count} یادداشت‌ها به میانبرها',
         addFilesCount: 'افزودن {count} فایل به میانبرها',
+        rename: 'تغییر نام میانبر',
         remove: 'حذف از میانبرها',
         removeAll: 'حذف همه میانبرها',
         removeAllConfirm: 'حذف همه میانبرها؟',
@@ -106,7 +107,7 @@ export const STRINGS_FA = {
         hideFolders: 'مخفی کردن ناوبری',
         reorderRootFolders: 'مرتب‌سازی مجدد ناوبری',
         finishRootFolderReorder: 'تمام',
-        toggleDescendantNotes: 'نمایش یادداشت‌ها از زیرپوشه‌ها / زیرمجموعه‌ها (همگام‌سازی نمی‌شود)',
+        toggleDescendantNotes: 'نمایش یادداشت‌ها از زیرپوشه‌ها / زیرمجموعه‌ها',
         autoExpandFoldersTags: 'باز کردن هنگام انتخاب',
         showExcludedItems: 'نمایش پوشه‌ها، برچسب‌ها و یادداشت‌های پنهان',
         hideExcludedItems: 'مخفی کردن پوشه‌ها، برچسب‌ها و یادداشت‌های پنهان',
@@ -123,7 +124,6 @@ export const STRINGS_FA = {
         saveSearchShortcut: 'ذخیره میانبر جستجو',
         removeSearchShortcut: 'حذف میانبر جستجو',
         shortcutModalTitle: 'ذخیره میانبر جستجو',
-        shortcutNameLabel: 'نام میانبر',
         shortcutNamePlaceholder: 'نام میانبر را وارد کنید'
     },
 
@@ -965,6 +965,14 @@ export const STRINGS_FA = {
                     duplicateName: 'نام پروفایل وجود دارد'
                 }
             },
+            vaultTitle: {
+                name: 'محل عنوان خزانه (فقط دسکتاپ)',
+                desc: 'انتخاب کنید عنوان خزانه کجا نمایش داده شود.',
+                options: {
+                    header: 'نمایش در سربرگ',
+                    navigation: 'نمایش در پنل ناوبری'
+                }
+            },
             excludedFolders: {
                 name: 'مخفی کردن پوشه‌ها (پروفایل خزانه)',
                 desc: 'لیست پوشه‌های جدا شده با کاما برای مخفی کردن. الگوهای نام: assets* (پوشه‌های شروع‌شده با assets)، *_temp (پایان‌یافته با _temp). الگوهای مسیر: /archive (فقط archive اصلی)، /res* (پوشه‌های اصلی شروع‌شده با res)، /*/temp (پوشه‌های temp یک سطح عمیق)، /projects/* (همه پوشه‌های داخل projects).',
@@ -1227,7 +1235,8 @@ export const STRINGS_FA = {
                 buttonText: 'بازسازی کش',
                 success: 'کش بازسازی شد',
                 error: 'بازسازی کش ناموفق بود',
-                progress: 'در حال بازسازی کش:'
+                indexingTitle: 'در حال نمایه\u200cسازی خزانه...',
+                progress: 'Notebook Navigator در حال به\u200cروزرسانی کش است.'
             },
             hotkeys: {
                 intro: 'فایل <پوشه افزونه>/notebook-navigator/data.json را برای سفارشی‌سازی کلیدهای میانبر Notebook Navigator ویرایش کنید. فایل را باز کنید و بخش "keyboardShortcuts" را پیدا کنید. هر ورودی از این ساختار استفاده می‌کند:',

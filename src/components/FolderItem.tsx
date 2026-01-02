@@ -58,6 +58,7 @@ import { useContextMenu, hideNavigatorContextMenu } from '../hooks/useContextMen
 import { strings } from '../i18n';
 import { getIconService, useIconServiceVersion } from '../services/icons';
 import { ItemType } from '../types';
+import { getTooltipPlacement } from '../utils/domUtils';
 import { getFolderNote } from '../utils/folderNotes';
 import { hasSubfolders, shouldExcludeFolder, shouldExcludeFile } from '../utils/fileFilters';
 import { getEffectiveFrontmatterExclusions } from '../utils/exclusionUtils';
@@ -298,17 +299,12 @@ export const FolderItem = React.memo(function FolderItem({
                 : `${folderStats.folderCount} ${strings.tooltips.folders}`;
         const statsTooltip = `${fileText}, ${folderText}`;
 
-        // Always include folder name at the top
-        const tooltip = `${folder.name}\n\n${statsTooltip}`;
+        const tooltip = folder.path === '/' ? statsTooltip : `${folder.name}\n\n${statsTooltip}`;
 
-        // Check if RTL mode is active
-        const isRTL = document.body.classList.contains('mod-rtl');
-
-        // Set placement to the right (left in RTL)
         setTooltip(folderRef.current, tooltip, {
-            placement: isRTL ? 'left' : 'right'
+            placement: getTooltipPlacement()
         });
-    }, [folderStats.fileCount, folderStats.folderCount, folder.name, settings, isMobile]);
+    }, [folder.path, folder.name, folderStats.fileCount, folderStats.folderCount, settings, isMobile]);
 
     useEffect(() => {
         if (chevronRef.current) {

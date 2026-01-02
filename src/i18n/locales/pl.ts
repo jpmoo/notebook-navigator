@@ -84,6 +84,7 @@ export const STRINGS_PL = {
         add: 'Dodaj do skrótów',
         addNotesCount: 'Dodaj {count} notatek do skrótów',
         addFilesCount: 'Dodaj {count} plików do skrótów',
+        rename: 'Zmień nazwę skrótu',
         remove: 'Usuń ze skrótów',
         removeAll: 'Usuń wszystkie skróty',
         removeAllConfirm: 'Usunąć wszystkie skróty?',
@@ -105,7 +106,7 @@ export const STRINGS_PL = {
         hideFolders: 'Ukryj nawigację', // Tooltip for button to hide the navigation pane (English: Hide navigation)
         reorderRootFolders: 'Przestaw nawigację',
         finishRootFolderReorder: 'Gotowe',
-        toggleDescendantNotes: 'Pokaż notatki z podfolderów / potomnych (nie synchronizowane)', // Tooltip: include descendants for folders and tags
+        toggleDescendantNotes: 'Pokaż notatki z podfolderów / potomnych', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: 'Automatycznie rozwijaj foldery i tagi', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
         showExcludedItems: 'Pokaż ukryte foldery, tagi i notatki', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Ukryj ukryte foldery, tagi i notatki', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -122,7 +123,6 @@ export const STRINGS_PL = {
         saveSearchShortcut: 'Zapisz wyszukiwanie w skrótach',
         removeSearchShortcut: 'Usuń wyszukiwanie ze skrótów',
         shortcutModalTitle: 'Zapisz wyszukiwanie',
-        shortcutNameLabel: 'Nazwa skrótu',
         shortcutNamePlaceholder: 'Wprowadź nazwę skrótu'
     },
 
@@ -968,6 +968,14 @@ export const STRINGS_PL = {
                     duplicateName: 'Nazwa profilu już istnieje'
                 }
             },
+            vaultTitle: {
+                name: 'Położenie tytułu sejfu (tylko pulpit)',
+                desc: 'Wybierz, gdzie tytuł sejfu jest wyświetlany.',
+                options: {
+                    header: 'Pokaż w nagłówku',
+                    navigation: 'Pokaż w panelu nawigacji'
+                }
+            },
             excludedFolders: {
                 name: 'Ukryj foldery (profil sejfu)',
                 desc: 'Lista folderów do ukrycia oddzielonych przecinkami. Wzory nazw: assets* (foldery zaczynające się od assets), *_temp (kończące się na _temp). Wzory ścieżek: /archive (tylko archiwum główne), /res* (foldery główne zaczynające się od res), /*/temp (foldery temp jeden poziom w głąb), /projects/* (wszystkie foldery wewnątrz projects).',
@@ -1231,7 +1239,8 @@ export const STRINGS_PL = {
                 buttonText: 'Odbuduj pamięć podręczną',
                 success: 'Pamięć podręczna została odbudowana',
                 error: 'Nie udało się odbudować pamięci podręcznej',
-                progress: 'Odbudowywanie pamięci podręcznej:'
+                indexingTitle: 'Indeksowanie magazynu...',
+                progress: 'Aktualizowanie pamięci podręcznej Notebook Navigator.'
             },
             hotkeys: {
                 intro: 'Edytuj <plugin folder>/notebook-navigator/data.json, aby dostosować skróty Notebook Navigator. Otwórz plik i znajdź sekcję "keyboardShortcuts". Każdy wpis ma następującą strukturę:',

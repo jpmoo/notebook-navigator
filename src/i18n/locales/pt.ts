@@ -85,6 +85,7 @@ export const STRINGS_PT = {
         add: 'Adicionar aos atalhos',
         addNotesCount: 'Adicionar {count} notas aos atalhos',
         addFilesCount: 'Adicionar {count} ficheiros aos atalhos',
+        rename: 'Renomear atalho',
         remove: 'Remover dos atalhos',
         removeAll: 'Remover todos os atalhos',
         removeAllConfirm: 'Remover todos os atalhos?',
@@ -106,7 +107,7 @@ export const STRINGS_PT = {
         hideFolders: 'Ocultar navegação', // Tooltip for button to hide the navigation pane (English: Hide navigation)
         reorderRootFolders: 'Reordenar navegação',
         finishRootFolderReorder: 'Concluído',
-        toggleDescendantNotes: 'Mostrar notas de subpastas / descendentes (não sincronizado)', // Tooltip: include descendants for folders and tags
+        toggleDescendantNotes: 'Mostrar notas de subpastas / descendentes', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: 'Expandir ao selecionar', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Expand on selection)
         showExcludedItems: 'Mostrar pastas, etiquetas e notas ocultas', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Ocultar pastas, etiquetas e notas ocultas', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -123,7 +124,6 @@ export const STRINGS_PT = {
         saveSearchShortcut: 'Guardar atalho de pesquisa',
         removeSearchShortcut: 'Remover atalho de pesquisa',
         shortcutModalTitle: 'Guardar atalho de pesquisa',
-        shortcutNameLabel: 'Nome do atalho',
         shortcutNamePlaceholder: 'Introduza o nome do atalho'
     },
 
@@ -966,6 +966,14 @@ export const STRINGS_PT = {
                     duplicateName: 'Nome de perfil já existe'
                 }
             },
+            vaultTitle: {
+                name: 'Posição do título do cofre (apenas desktop)',
+                desc: 'Escolha onde o título do cofre é mostrado.',
+                options: {
+                    header: 'Mostrar no cabeçalho',
+                    navigation: 'Mostrar no painel de navegação'
+                }
+            },
             excludedFolders: {
                 name: 'Ocultar pastas (perfil do cofre)',
                 desc: 'Lista de pastas a ocultar separadas por vírgulas. Padrões de nome: assets* (pastas começando com assets), *_temp (terminando com _temp). Padrões de caminho: /arquivo (apenas arquivo raiz), /res* (pastas raiz começando com res), /*/temp (pastas temp um nível abaixo), /projetos/* (todas as pastas dentro de projetos).',
@@ -1229,7 +1237,8 @@ export const STRINGS_PT = {
                 buttonText: 'Reconstruir cache',
                 success: 'Cache reconstruída',
                 error: 'Falha ao reconstruir cache',
-                progress: 'A reconstruir cache:'
+                indexingTitle: 'A indexar o cofre...',
+                progress: 'A atualizar a cache do Notebook Navigator.'
             },
             hotkeys: {
                 intro: 'Edite <plugin folder>/notebook-navigator/data.json para personalizar os atalhos de teclado do Notebook Navigator. Abra o ficheiro e localize a secção "keyboardShortcuts". Cada entrada usa esta estrutura:',

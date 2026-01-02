@@ -85,6 +85,7 @@ export const STRINGS_EN = {
         add: 'Add to shortcuts',
         addNotesCount: 'Add {count} notes to shortcuts',
         addFilesCount: 'Add {count} files to shortcuts',
+        rename: 'Rename shortcut',
         remove: 'Remove from shortcuts',
         removeAll: 'Remove all shortcuts',
         removeAllConfirm: 'Remove all shortcuts?',
@@ -106,7 +107,7 @@ export const STRINGS_EN = {
         hideFolders: 'Hide navigation', // Tooltip for button to hide the navigation pane (English: Hide navigation)
         reorderRootFolders: 'Reorder navigation',
         finishRootFolderReorder: 'Done reordering',
-        toggleDescendantNotes: 'Show notes from subfolders / descendants (not synced)', // Tooltip: include descendants for folders and tags
+        toggleDescendantNotes: 'Show notes from subfolders / descendants', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: 'Expand on selection', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Expand on selection)
         showExcludedItems: 'Show hidden folders, tags, and notes', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Hide hidden folders, tags, and notes', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -123,7 +124,6 @@ export const STRINGS_EN = {
         saveSearchShortcut: 'Save search shortcut',
         removeSearchShortcut: 'Remove search shortcut',
         shortcutModalTitle: 'Save search shortcut',
-        shortcutNameLabel: 'Shortcut name',
         shortcutNamePlaceholder: 'Enter shortcut name'
     },
 
@@ -964,6 +964,14 @@ export const STRINGS_EN = {
                     duplicateName: 'Profile name already exists'
                 }
             },
+            vaultTitle: {
+                name: 'Vault title placement (desktop only)',
+                desc: 'Choose where the vault title is shown.',
+                options: {
+                    header: 'Show in header',
+                    navigation: 'Show in navigation pane'
+                }
+            },
             excludedFolders: {
                 name: 'Hide folders (vault profile)',
                 desc: 'Comma-separated list of folders to hide. Name patterns: assets* (folders starting with assets), *_temp (ending with _temp). Path patterns: /archive (root archive only), /res* (root folders starting with res), /*/temp (temp folders one level deep), /projects/* (all folders inside projects).',
@@ -1225,7 +1233,8 @@ export const STRINGS_EN = {
                 buttonText: 'Rebuild cache',
                 success: 'Cache rebuilt',
                 error: 'Failed to rebuild cache',
-                progress: 'Rebuilding cache:'
+                indexingTitle: 'Indexing vault...',
+                progress: 'Updating Notebook Navigator cache.'
             },
             hotkeys: {
                 intro: 'Edit <plugin folder>/notebook-navigator/data.json to customize Notebook Navigator hotkeys. Open the file and locate the "keyboardShortcuts" section. Each entry uses this structure:',

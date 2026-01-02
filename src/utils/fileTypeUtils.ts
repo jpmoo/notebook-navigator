@@ -18,7 +18,6 @@
 
 import { App, TFile } from 'obsidian';
 import { ExtendedApp } from '../types/obsidian-extended';
-import { EXCALIDRAW_BASENAME_SUFFIX, isExcalidrawFile } from './fileNameUtils';
 
 /**
  * File visibility options for the navigator
@@ -45,11 +44,56 @@ const CORE_OBSIDIAN_EXTENSIONS = new Set([
     'pdf' // PDF viewer
 ]);
 
+const supportedExtensionsCache = new WeakMap<App, Set<string>>();
+
+function getSupportedExtensions(app: App): Set<string> {
+    const cached = supportedExtensionsCache.get(app);
+    if (cached) {
+        return cached;
+    }
+
+    const extensions = new Set<string>(CORE_OBSIDIAN_EXTENSIONS);
+
+    try {
+        // Try to get registered view types from Obsidian's view registry
+        const extendedApp = app as ExtendedApp;
+
+        if (extendedApp.viewRegistry?.typeByExtension) {
+            const typeByExtension = extendedApp.viewRegistry.typeByExtension;
+            if (typeByExtension && typeof typeByExtension === 'object') {
+                for (const ext of Object.keys(typeByExtension)) {
+                    if (typeof ext === 'string') {
+                        extensions.add(ext);
+                    }
+                }
+            }
+        }
+
+        // Also check for registered extensions in the metadataTypeManager
+        // This catches some additional file types that plugins might register
+        if (extendedApp.metadataTypeManager?.registeredExtensions) {
+            const registeredExtensions = extendedApp.metadataTypeManager.registeredExtensions;
+            if (Array.isArray(registeredExtensions)) {
+                for (const ext of registeredExtensions) {
+                    if (typeof ext === 'string') {
+                        extensions.add(ext);
+                    }
+                }
+            }
+        }
+    } catch {
+        // If we can't access internal APIs, just use the core extensions
+    }
+
+    supportedExtensionsCache.set(app, extensions);
+    return extensions;
+}
+
 /**
  * Common image extensions that can be displayed as feature images.
- * Limited to formats with reliable cross-platform support.
+ * Used by the feature image pipeline.
  */
-const SUPPORTED_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'avif', 'bmp'] as const;
+const SUPPORTED_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'avif', 'heic', 'heif', 'bmp'] as const;
 const IMAGE_EXTENSIONS = new Set<string>(SUPPORTED_IMAGE_EXTENSIONS);
 
 export function isImageExtension(extension: string): boolean {
@@ -82,40 +126,7 @@ export function shouldDisplayFile(file: TFile, visibility: FileVisibility, app: 
             return file.extension === 'md' || file.extension === 'canvas' || file.extension === 'base';
 
         case FILE_VISIBILITY.SUPPORTED: {
-            // Get supported extensions inline
-            const extensions = new Set<string>(CORE_OBSIDIAN_EXTENSIONS);
-
-            try {
-                // Try to get registered view types from Obsidian's view registry
-                const extendedApp = app as ExtendedApp;
-
-                if (extendedApp.viewRegistry?.typeByExtension) {
-                    const typeByExtension = extendedApp.viewRegistry.typeByExtension;
-                    if (typeByExtension && typeof typeByExtension === 'object') {
-                        for (const ext of Object.keys(typeByExtension)) {
-                            if (typeof ext === 'string') {
-                                extensions.add(ext);
-                            }
-                        }
-                    }
-                }
-
-                // Also check for registered extensions in the metadataTypeManager
-                // This catches some additional file types that plugins might register
-                if (extendedApp.metadataTypeManager?.registeredExtensions) {
-                    const registeredExtensions = extendedApp.metadataTypeManager.registeredExtensions;
-                    if (Array.isArray(registeredExtensions)) {
-                        for (const ext of registeredExtensions) {
-                            if (typeof ext === 'string') {
-                                extensions.add(ext);
-                            }
-                        }
-                    }
-                }
-            } catch {
-                // If we can't access internal APIs, just use the core extensions
-            }
-
+            const extensions = getSupportedExtensions(app);
             return extensions.has(file.extension);
         }
 
@@ -146,17 +157,24 @@ export function isPdfFile(file: TFile): boolean {
     return isPdfExtension(file.extension);
 }
 
+export function isMarkdownPath(path: string): boolean {
+    if (!path) {
+        return false;
+    }
+    if (path.length < 3) {
+        return false;
+    }
+    return path.slice(-3).toLowerCase() === '.md';
+}
+
 /**
  * Determines whether an inline extension suffix should be shown for a file name.
  * Excludes markdown, canvas, and base files.
  */
 export function shouldShowExtensionSuffix(file: TFile): boolean {
     if (!file || !file.extension) return false;
-    if (isExcalidrawFile(file)) {
-        return true;
-    }
-    const ext = file.extension;
-    return !(ext === 'md' || ext === 'canvas' || ext === 'base');
+    const extension = file.extension.toLowerCase();
+    return !(extension === 'md' || extension === 'canvas' || extension === 'base');
 }
 
 /**
@@ -164,8 +182,5 @@ export function shouldShowExtensionSuffix(file: TFile): boolean {
  * Returns an empty string when suffix should not be shown.
  */
 export function getExtensionSuffix(file: TFile): string {
-    if (isExcalidrawFile(file)) {
-        return EXCALIDRAW_BASENAME_SUFFIX;
-    }
     return shouldShowExtensionSuffix(file) ? `.${file.extension}` : '';
 }

@@ -88,6 +88,7 @@ export interface ShortcutsContextValue {
     addSearchShortcut: (input: { name: string; query: string; provider: SearchProvider }, options?: { index?: number; collectionId?: string }) => Promise<boolean>;
     addShortcutsBatch: (entries: ShortcutEntry[], options?: { index?: number; collectionId?: string }) => Promise<number>;
     removeShortcut: (key: string) => Promise<boolean>;
+    renameShortcut: (key: string, alias: string, defaultLabel?: string) => Promise<boolean>;
     removeSearchShortcut: (name: string) => Promise<boolean>;
     clearShortcuts: () => Promise<boolean>;
     reorderShortcuts: (orderedKeys: string[]) => Promise<boolean>;
@@ -797,6 +798,48 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         [shortcutMap, updateSettings]
     );
 
+    const renameShortcut = useCallback(
+        async (key: string, alias: string, defaultLabel?: string) => {
+            const existing = shortcutMap.get(key);
+            if (!existing || existing.type === ShortcutType.SEARCH) {
+                return false;
+            }
+
+            const trimmedAlias = alias.trim();
+            const trimmedDefaultLabel = defaultLabel?.trim();
+            const nextAlias =
+                trimmedAlias.length === 0 || (trimmedDefaultLabel && trimmedAlias === trimmedDefaultLabel) ? undefined : trimmedAlias;
+
+            await updateSettings(current => {
+                const collections = current.shortcutCollections ?? [];
+                const updatedCollections = collections.map(collection => {
+                    if (collection.id !== activeCollectionId) {
+                        return collection;
+                    }
+                    let changed = false;
+                    const next = collection.shortcuts.map((entry: ShortcutEntry) => {
+                        if (getShortcutKey(entry) !== key || entry.type === ShortcutType.SEARCH) {
+                            return entry;
+                        }
+
+                        const normalizedCurrent = entry.alias && entry.alias.length > 0 ? entry.alias : undefined;
+                        if (normalizedCurrent === nextAlias) {
+                            return entry;
+                        }
+
+                        changed = true;
+                        return { ...entry, alias: nextAlias };
+                    });
+
+                    return changed ? { ...collection, shortcuts: next } : collection;
+                });
+                current.shortcutCollections = updatedCollections;
+            });
+            return true;
+        },
+        [shortcutMap, updateSettings, activeCollectionId]
+    );
+
     // Removes a search shortcut by its name (case-insensitive)
     const removeSearchShortcut = useCallback(
         async (name: string) => {
@@ -987,6 +1030,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             addSearchShortcut,
             addShortcutsBatch,
             removeShortcut,
+            renameShortcut,
             removeSearchShortcut,
             clearShortcuts,
             reorderShortcuts,
@@ -1018,6 +1062,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             addSearchShortcut,
             addShortcutsBatch,
             removeShortcut,
+            renameShortcut,
             removeSearchShortcut,
             clearShortcuts,
             reorderShortcuts,

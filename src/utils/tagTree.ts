@@ -384,7 +384,12 @@ export function findTagNode(tree: Map<string, TagTreeNode>, tagPath: string): Ta
  * @returns A new tree with excluded tags and empty parents removed
  */
 export function excludeFromTagTree(tree: Map<string, TagTreeNode>, matcher: HiddenTagMatcher): Map<string, TagTreeNode> {
-    if (matcher.prefixes.length === 0 && matcher.startsWithNames.length === 0 && matcher.endsWithNames.length === 0) {
+    if (
+        matcher.pathPatterns.length === 0 &&
+        matcher.prefixes.length === 0 &&
+        matcher.startsWithNames.length === 0 &&
+        matcher.endsWithNames.length === 0
+    ) {
         return tree;
     }
 

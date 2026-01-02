@@ -38,7 +38,15 @@ export const SHORTCUT_DRAG_MIME = 'application/x-notebook-shortcut';
 /**
  * Shortcut pointing to a folder in the vault
  */
-export interface FolderShortcut {
+interface ShortcutAlias {
+    /**
+     * Optional custom label shown in the shortcuts section.
+     * Does not affect the underlying file, folder, or tag path.
+     */
+    alias?: string;
+}
+
+export interface FolderShortcut extends ShortcutAlias {
     type: typeof ShortcutType.FOLDER;
     path: string;
 }
@@ -46,7 +54,7 @@ export interface FolderShortcut {
 /**
  * Shortcut pointing to a note (file) in the vault
  */
-export interface NoteShortcut {
+export interface NoteShortcut extends ShortcutAlias {
     type: typeof ShortcutType.NOTE;
     path: string;
 }
@@ -64,7 +72,7 @@ export interface SearchShortcut {
 /**
  * Shortcut pointing to a tag
  */
-export interface TagShortcut {
+export interface TagShortcut extends ShortcutAlias {
     type: typeof ShortcutType.TAG;
     tagPath: string;
 }

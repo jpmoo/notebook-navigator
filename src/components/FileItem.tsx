@@ -63,8 +63,9 @@ import { SortOption } from '../settings';
 import { ItemType } from '../types';
 import { DateUtils } from '../utils/dateUtils';
 import { runAsyncAction } from '../utils/async';
+import { getTooltipPlacement } from '../utils/domUtils';
 import { openFileInContext } from '../utils/openFileInContext';
-import { FILE_VISIBILITY, getExtensionSuffix, isImageFile, shouldDisplayFile, shouldShowExtensionSuffix } from '../utils/fileTypeUtils';
+import { FILE_VISIBILITY, getExtensionSuffix, isImageFile, shouldDisplayFile } from '../utils/fileTypeUtils';
 import { resolveFileDragIconId, resolveFileIconId } from '../utils/fileIconUtils';
 import { getDateField, naturalCompare } from '../utils/sortUtils';
 import { shouldShowFeatureImageArea } from '../utils/listPaneMeasurements';
@@ -291,7 +292,7 @@ export const FileItem = React.memo(function FileItem({
     const includeDescendantNotes = uxPreferences.includeDescendantNotes;
     const showHiddenItems = uxPreferences.showHiddenItems;
     const appearanceSettings = useListPaneAppearance();
-    const { getFileDisplayName, getDB, getFileCreatedTime, getFileModifiedTime } = useFileCache();
+    const { getFileDisplayName, getDB, getFileCreatedTime, getFileModifiedTime, hasPreview } = useFileCache();
     const { navigateToTag } = useTagNavigation();
     const metadataService = useMetadataService();
     const { addNoteShortcut, hasNoteShortcut, noteShortcutKeysByPath, removeShortcut } = useShortcuts();
@@ -382,7 +383,6 @@ export const FileItem = React.memo(function FileItem({
 
     // Decide whether to render an inline extension suffix after the name
     const extensionSuffix = useMemo(() => getExtensionSuffix(file), [file]);
-    const showExtensionSuffix = useMemo(() => shouldShowExtensionSuffix(file), [file]);
     const fileIconId = metadataService.getFileIcon(file.path);
     const fileColor = metadataService.getFileColor(file.path);
     const fileExtension = file.extension.toLowerCase();
@@ -463,10 +463,10 @@ export const FileItem = React.memo(function FileItem({
                 }
             >
                 {highlightedName}
-                {showExtensionSuffix && <span className="nn-file-ext-suffix">{extensionSuffix}</span>}
+                {extensionSuffix.length > 0 && <span className="nn-file-ext-suffix">{extensionSuffix}</span>}
             </div>
         );
-    }, [appearanceSettings.titleRows, extensionSuffix, fileColor, applyColorToName, highlightedName, showExtensionSuffix]);
+    }, [appearanceSettings.titleRows, extensionSuffix, fileColor, applyColorToName, highlightedName]);
 
     // === Callbacks ===
 
@@ -699,9 +699,9 @@ export const FileItem = React.memo(function FileItem({
 
     // Layout decision variables
     const pinnedItemShouldUseCompactLayout = isPinned && heightOptimizationEnabled; // Pinned items get compact treatment only when optimizing
-    const effectivePreviewText =
-        searchMeta && searchMeta.excerpt && searchMeta.excerpt.trim().length > 0 ? searchMeta.excerpt : previewText;
-    const hasPreviewContent = effectivePreviewText.trim().length > 0;
+    const effectivePreviewText = searchMeta?.excerpt ? searchMeta.excerpt : previewText;
+    const hasPreviewAccordingToStatus = appearanceSettings.showPreview && file.extension === 'md' ? hasPreview(file.path) : false;
+    const hasPreviewContent = hasPreviewAccordingToStatus || effectivePreviewText.length > 0;
     const highlightedPreview = useMemo(
         // Only Omnisearch trigger highlighting in preview, not regular filter
         () => (searchMeta ? renderHighlightedText(effectivePreviewText, undefined, searchMeta) : effectivePreviewText),
@@ -855,6 +855,10 @@ export const FileItem = React.memo(function FileItem({
             }
         });
 
+        if (appearanceSettings.showPreview && file.extension === 'md') {
+            void db.ensurePreviewTextLoaded(file.path);
+        }
+
         return () => {
             unsubscribe();
         };
@@ -1007,7 +1011,7 @@ export const FileItem = React.memo(function FileItem({
             : `${strings.tooltips.lastModifiedAt} ${modifiedDate}\n${strings.tooltips.createdAt} ${createdDate}`;
 
         // Always include a name at the top. When showing suffix, prefer the true filename (with extension)
-        const topLine = shouldShowExtensionSuffix(file) ? file.name : displayName;
+        const topLine = extensionSuffix.length > 0 ? file.name : displayName;
 
         // Build tooltip content with multiple lines
         const tooltipLines = [topLine];
@@ -1022,12 +1026,8 @@ export const FileItem = React.memo(function FileItem({
         tooltipLines.push('', datesTooltip);
         const tooltip = tooltipLines.join('\n');
 
-        // Check if RTL mode is active
-        const isRTL = document.body.classList.contains('mod-rtl');
-
-        // Set placement to the right (left in RTL)
         setTooltip(fileRef.current, tooltip, {
-            placement: isRTL ? 'left' : 'right'
+            placement: getTooltipPlacement()
         });
     }, [
         isMobile,
@@ -1036,6 +1036,7 @@ export const FileItem = React.memo(function FileItem({
         file.stat.mtime,
         settings,
         displayName,
+        extensionSuffix,
         getFileCreatedTime,
         getFileModifiedTime,
         sortOption,
@@ -1229,7 +1230,7 @@ export const FileItem = React.memo(function FileItem({
                 setIcon(addTagIconRef.current, 'lucide-tag');
             }
             if (addShortcutIconRef.current && shouldShowShortcutAction) {
-                setIcon(addShortcutIconRef.current, hasShortcut ? 'lucide-bookmark-x' : 'lucide-bookmark');
+                setIcon(addShortcutIconRef.current, hasShortcut ? 'lucide-star-off' : 'lucide-star');
             }
             if (pinNoteIconRef.current && shouldShowPinNote) {
                 setIcon(pinNoteIconRef.current, isPinned ? 'lucide-pin-off' : 'lucide-pin');

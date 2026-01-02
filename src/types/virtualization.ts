@@ -146,12 +146,6 @@ export interface ShortcutTagNavItem extends ShortcutNavigationBase {
     displayName: string;
 }
 
-export interface NavigationBannerItem {
-    type: typeof NavigationPaneItemType.BANNER;
-    key: string;
-    path: string;
-}
-
 export interface RootSpacerItem {
     type: typeof NavigationPaneItemType.ROOT_SPACER;
     key: string;
@@ -186,7 +180,6 @@ export type CombinedNavigationItem =
     | RecentNoteNavItem
     | ShortcutSearchNavItem
     | ShortcutTagNavItem
-    | NavigationBannerItem
     | RootSpacerItem
     | TopSpacerItem
     | BottomSpacerItem

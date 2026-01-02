@@ -121,7 +121,7 @@ export function renderListPaneTab(context: SettingsTabContext): void {
             },
             {
                 key: 'quickActionAddToShortcuts',
-                icon: 'lucide-bookmark',
+                icon: 'lucide-star',
                 label: strings.shortcuts.add
             },
             {

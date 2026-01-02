@@ -84,6 +84,7 @@ export const STRINGS_FR = {
         add: 'Ajouter aux raccourcis',
         addNotesCount: 'Ajouter {count} notes aux raccourcis',
         addFilesCount: 'Ajouter {count} fichiers aux raccourcis',
+        rename: 'Renommer le raccourci',
         remove: 'Retirer des raccourcis',
         removeAll: 'Supprimer tous les raccourcis',
         removeAllConfirm: 'Supprimer tous les raccourcis ?',
@@ -105,7 +106,7 @@ export const STRINGS_FR = {
         hideFolders: 'Masquer la navigation', // Tooltip for button to hide the navigation pane (English: Hide navigation)
         reorderRootFolders: 'Réorganiser la navigation',
         finishRootFolderReorder: 'Terminé',
-        toggleDescendantNotes: 'Afficher les notes des sous-dossiers / descendants (non synchronisé)', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants (not synced))
+        toggleDescendantNotes: 'Afficher les notes des sous-dossiers / descendants', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants)
         autoExpandFoldersTags: 'Développer automatiquement les dossiers et les étiquettes', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
         showExcludedItems: 'Afficher les dossiers, étiquettes et notes masqués', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Masquer les dossiers, étiquettes et notes masqués', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -122,7 +123,6 @@ export const STRINGS_FR = {
         saveSearchShortcut: 'Ajouter la recherche aux raccourcis',
         removeSearchShortcut: 'Retirer la recherche des raccourcis',
         shortcutModalTitle: 'Enregistrer la recherche',
-        shortcutNameLabel: 'Nom du raccourci',
         shortcutNamePlaceholder: 'Saisir le nom du raccourci'
     },
 
@@ -947,6 +947,14 @@ export const STRINGS_FR = {
                     duplicateName: 'Le nom du profil existe déjà'
                 }
             },
+            vaultTitle: {
+                name: 'Placement du titre du coffre (bureau uniquement)',
+                desc: 'Choisissez où le titre du coffre est affiché.',
+                options: {
+                    header: "Afficher dans l'en-tête",
+                    navigation: 'Afficher dans le panneau de navigation'
+                }
+            },
             excludedFolders: {
                 name: 'Masquer les dossiers (profil du coffre)',
                 desc: 'Liste de dossiers à masquer séparés par des virgules. Modèles de nom : assets* (dossiers commençant par assets), *_temp (finissant par _temp). Modèles de chemin : /archive (archive racine uniquement), /res* (dossiers racine commençant par res), /*/temp (dossiers temp un niveau plus bas), /projects/* (tous les dossiers dans projects).',
@@ -1232,7 +1240,8 @@ export const STRINGS_FR = {
                 buttonText: 'Reconstruire le cache',
                 success: 'Cache reconstruit',
                 error: 'Échec de la reconstruction du cache',
-                progress: 'Reconstruction du cache :'
+                indexingTitle: 'Indexation du coffre...',
+                progress: 'Mise à jour du cache de Notebook Navigator.'
             },
             hotkeys: {
                 intro: 'Modifiez <plugin folder>/notebook-navigator/data.json pour personnaliser les raccourcis de Notebook Navigator. Ouvrez le fichier et repérez la section "keyboardShortcuts". Chaque entrée suit cette structure :',

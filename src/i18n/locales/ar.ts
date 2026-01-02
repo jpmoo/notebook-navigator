@@ -85,6 +85,7 @@ export const STRINGS_AR = {
         add: 'إضافة إلى الاختصارات',
         addNotesCount: 'إضافة {count} ملاحظات إلى الاختصارات',
         addFilesCount: 'إضافة {count} ملفات إلى الاختصارات',
+        rename: 'إعادة تسمية الاختصار',
         remove: 'إزالة من الاختصارات',
         removeAll: 'إزالة جميع الاختصارات',
         removeAllConfirm: 'إزالة جميع الاختصارات؟',
@@ -106,7 +107,7 @@ export const STRINGS_AR = {
         hideFolders: 'إخفاء التنقل', // Tooltip for button to hide the navigation pane (English: Hide navigation)
         reorderRootFolders: 'إعادة ترتيب التنقل',
         finishRootFolderReorder: 'تم',
-        toggleDescendantNotes: 'إظهار ملاحظات المجلدات الفرعية / الفروع (غير متزامن)', // Tooltip: include descendants for folders and tags
+        toggleDescendantNotes: 'إظهار ملاحظات المجلدات الفرعية / الفروع', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: 'توسيع عند التحديد', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Expand on selection)
         showExcludedItems: 'إظهار المجلدات والوسوم والملاحظات المخفية', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'إخفاء المجلدات والوسوم والملاحظات المخفية', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -123,7 +124,6 @@ export const STRINGS_AR = {
         saveSearchShortcut: 'حفظ اختصار البحث',
         removeSearchShortcut: 'إزالة اختصار البحث',
         shortcutModalTitle: 'حفظ اختصار البحث',
-        shortcutNameLabel: 'اسم الاختصار',
         shortcutNamePlaceholder: 'أدخل اسم الاختصار'
     },
 
@@ -965,6 +965,14 @@ export const STRINGS_AR = {
                     duplicateName: 'اسم الملف موجود بالفعل'
                 }
             },
+            vaultTitle: {
+                name: 'موضع عنوان الخزنة (سطح المكتب فقط)',
+                desc: 'اختر مكان عرض عنوان الخزنة.',
+                options: {
+                    header: 'عرض في الرأس',
+                    navigation: 'عرض في لوحة التنقل'
+                }
+            },
             excludedFolders: {
                 name: 'إخفاء المجلدات (ملف الخزنة)',
                 desc: 'قائمة مفصولة بفاصلة من المجلدات لإخفائها. أنماط الاسم: assets* (المجلدات التي تبدأ بـ assets)، *_temp (التي تنتهي بـ _temp). أنماط المسار: /archive (الأرشيف الجذري فقط)، /res* (المجلدات الجذرية التي تبدأ بـ res)، /*/temp (مجلدات temp بمستوى واحد)، /projects/* (جميع المجلدات داخل projects).',
@@ -1227,7 +1235,8 @@ export const STRINGS_AR = {
                 buttonText: 'إعادة بناء الذاكرة المؤقتة',
                 success: 'تم إعادة بناء الذاكرة المؤقتة',
                 error: 'فشل إعادة بناء الذاكرة المؤقتة',
-                progress: 'إعادة بناء الذاكرة المؤقتة:'
+                indexingTitle: 'جارٍ فهرسة الخزنة...',
+                progress: 'جارٍ تحديث ذاكرة التخزين المؤقت لـ Notebook Navigator.'
             },
             hotkeys: {
                 intro: 'حرر <plugin folder>/notebook-navigator/data.json لتخصيص اختصارات مفاتيح متصفح الدفتر. افتح الملف وحدد موقع قسم "keyboardShortcuts". يستخدم كل إدخال هذا الهيكل:',

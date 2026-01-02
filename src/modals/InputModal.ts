@@ -26,6 +26,7 @@ interface InputModalCheckboxOptions {
 }
 
 interface InputModalOptions {
+    closeOnSubmit?: boolean;
     checkbox?: InputModalCheckboxOptions;
     inputFilter?: (value: string) => string;
     onInputChange?: (context: { rawValue: string; filteredValue: string }) => void;
@@ -43,6 +44,8 @@ export interface InputModalSubmitContext {
 export class InputModal extends Modal {
     private cancelBtn: HTMLButtonElement;
     private cancelHandler: () => void;
+    private readonly closeOnSubmit: boolean;
+    private isSubmitting = false;
     private inputEl: HTMLInputElement;
     private submitBtn: HTMLButtonElement;
     private submitHandler: () => void;
@@ -66,6 +69,7 @@ export class InputModal extends Modal {
     ) {
         super(app);
         this.titleEl.setText(title);
+        this.closeOnSubmit = options?.closeOnSubmit ?? true;
 
         // Apply input filter to default value if provided
         const inputFilter = options?.inputFilter;
@@ -80,30 +84,7 @@ export class InputModal extends Modal {
 
         // Store handlers for cleanup
         this.cancelHandler = () => this.close();
-        this.submitHandler = () => {
-            this.close();
-            this.submitValue(this.inputEl.value);
-        };
-
-        // Use Obsidian scope for keyboard handling
-        this.scope.register([], 'Enter', evt => {
-            const activeElement = document.activeElement as HTMLElement | null;
-            if (!activeElement) {
-                return;
-            }
-
-            if (!this.contentEl.contains(activeElement)) {
-                return;
-            }
-
-            if (this.cancelBtn && activeElement === this.cancelBtn) {
-                return;
-            }
-
-            evt.preventDefault();
-            this.close();
-            this.submitValue(this.inputEl.value);
-        });
+        this.submitHandler = () => this.handleSubmit();
 
         if (options?.checkbox) {
             const checkboxRow = this.contentEl.createEl('label', { cls: 'nn-input-checkbox-row' });
@@ -124,6 +105,25 @@ export class InputModal extends Modal {
             cls: 'mod-cta'
         });
         this.submitBtn.addEventListener('click', this.submitHandler);
+
+        // Use Obsidian scope for keyboard handling
+        this.scope.register([], 'Enter', evt => {
+            const activeElement = document.activeElement;
+            if (!(activeElement instanceof HTMLElement)) {
+                return;
+            }
+
+            if (!this.contentEl.contains(activeElement)) {
+                return;
+            }
+
+            if (activeElement === this.cancelBtn) {
+                return;
+            }
+
+            evt.preventDefault();
+            this.handleSubmit();
+        });
 
         this.inputEl.focus();
         if (defaultValue) {
@@ -162,7 +162,7 @@ export class InputModal extends Modal {
 
     /**
      * Cleanup event listeners when modal is closed
-     * Prevents memory leaks by removing all event listeners
+     * Prevents duplicate handlers by removing button event listeners
      */
     onClose() {
         if (this.cancelBtn && this.cancelHandler) {
@@ -174,10 +174,36 @@ export class InputModal extends Modal {
     }
 
     /**
+     * Submits the form value if no submission is currently in-flight.
+     */
+    private handleSubmit(): void {
+        if (this.isSubmitting) {
+            return;
+        }
+
+        const value = this.inputEl.value;
+        if (this.closeOnSubmit) {
+            this.close();
+        }
+        this.submitValue(value);
+    }
+
+    /**
      * Executes the submit callback asynchronously with the input value
      */
     private submitValue(value: string): void {
+        if (this.isSubmitting) {
+            return;
+        }
+        this.isSubmitting = true;
+
         const context: InputModalSubmitContext | undefined = this.checkboxEl ? { checkboxValue: this.checkboxEl.checked } : undefined;
-        runAsyncAction(() => this.onSubmit(value, context));
+        runAsyncAction(async () => {
+            try {
+                await this.onSubmit(value, context);
+            } finally {
+                this.isSubmitting = false;
+            }
+        });
     }
 }

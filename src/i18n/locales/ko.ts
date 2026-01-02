@@ -84,6 +84,7 @@ export const STRINGS_KO = {
         add: '바로가기에 추가',
         addNotesCount: '바로가기에 노트 {count}개 추가',
         addFilesCount: '바로가기에 파일 {count}개 추가',
+        rename: '바로가기 이름 변경',
         remove: '바로가기에 제거',
         removeAll: '모든 바로가기 제거',
         removeAllConfirm: '모든 바로가기를 제거하시겠습니까?',
@@ -105,7 +106,7 @@ export const STRINGS_KO = {
         hideFolders: '탐색 숨기기', // Tooltip for button to hide the navigation pane (English: Hide navigation)
         reorderRootFolders: '내비게이션 재정렬',
         finishRootFolderReorder: '완료',
-        toggleDescendantNotes: '하위 폴더 / 하위 항목 노트 표시 (동기화 안 됨)', // Tooltip: include descendants for folders and tags
+        toggleDescendantNotes: '하위 폴더 / 하위 항목 노트 표시', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: '폴더 및 태그 자동 펼치기', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
         showExcludedItems: '숨긴 폴더, 태그, 노트 표시', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: '숨긴 폴더, 태그, 노트 숨기기', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -122,7 +123,6 @@ export const STRINGS_KO = {
         saveSearchShortcut: '검색을 바로가기에 저장',
         removeSearchShortcut: '바로가기에서 검색 제거',
         shortcutModalTitle: '검색 바로가기 저장',
-        shortcutNameLabel: '바로가기 이름',
         shortcutNamePlaceholder: '바로가기 이름을 입력하세요'
     },
 
@@ -965,6 +965,14 @@ export const STRINGS_KO = {
                     duplicateName: '프로필 이름이 이미 존재합니다'
                 }
             },
+            vaultTitle: {
+                name: '볼트 제목 위치 (데스크톱 전용)',
+                desc: '볼트 제목이 표시되는 위치를 선택합니다.',
+                options: {
+                    header: '헤더에 표시',
+                    navigation: '탐색 창에 표시'
+                }
+            },
             excludedFolders: {
                 name: '폴더 숨기기 (볼트 프로필)',
                 desc: '숨길 폴더의 쉼표로 구분된 목록입니다. 이름 패턴: assets* (assets로 시작하는 폴더), *_temp (_temp로 끝나는). 경로 패턴: /archive (루트 archive만), /res* (res로 시작하는 루트 폴더), /*/temp (한 레벨 깊이의 temp 폴더), /projects/* (projects 내부의 모든 폴더).',
@@ -1227,7 +1235,8 @@ export const STRINGS_KO = {
                 buttonText: '캐시 다시 빌드',
                 success: '캐시가 다시 빌드되었습니다',
                 error: '캐시 다시 빌드 실패',
-                progress: '캐시 다시 빌드 중:'
+                indexingTitle: '보관함을 인덱싱하는 중...',
+                progress: 'Notebook Navigator 캐시를 업데이트하는 중.'
             },
             hotkeys: {
                 intro: 'Notebook Navigator 단축키는 <plugin folder>/notebook-navigator/data.json을 편집하여 구성합니다. 파일을 텍스트 편집기로 열고 "keyboardShortcuts" 섹션을 확인하세요. 각 항목은 다음 구조를 사용합니다:',

@@ -73,22 +73,68 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
-        version: '2.0.1',
-        date: '2025-12-29',
+        version: '2.0.4',
+        date: '2026-01-05',
+        showOnUpdate: true,
+        new: [
+            '==The user interface now has a slight transparency== for all overlay elements. This can be modified or disabled in Style Settings.',
+            'Two new theme variables: ==--nn-theme-nav-overlay-opacity== and ==--nn-theme-nav-overlay-filter== to control the new overlay opacity.',
+            'New setting: ==General > Vault title placement==. You can now show the vault title either in header or in the navigation pane (default).'
+        ],
+        improved: [
+            'You can now ==rename shortcuts== by right clicking and selecting "Rename shortcut".',
+            'You can now quickly ==remove shortcuts by clicking on the (X)== on the right side of each shortcut.',
+            'Shortcuts and recent notes with truncated titles now show full title on hover with a tooltip.'
+        ],
+        changed: [
+            '==Minimum required Obsidian version is now 1.8.7== due to the updated notice system.',
+            'Changed the default navigation pane width from 300px to 200px so it is smaller than the default width for left panel. This should help with people not finding the list pane when enabling dual pane mode.',
+            'Changed the Shortcuts icon to Star to keep it visually distinct from Obsidian Bookmarks.'
+        ],
+        fixed: ['Fixed pinned shortcuts sometimes appearing blank on mobile after switching from editor to side pane.']
+    },
+    {
+        version: '2.0.3',
+        date: '2025-12-31',
         showOnUpdate: true,
         new: [],
-        improved: ['==License is back to GPL 3== after discussions with the Obsidian team.'],
+        improved: [
+            'Improved preview text render performance - preview text is now asyncronously filling up a memory cache after startup, so text is instantly available.',
+            'Added HEIC and HEIF image support for feature images (common on Apple devices). We now support PNG, JPEG, GIF, WebP, AVIF, HEIC, HEIF, SVG, and BMP formats for feature images.',
+            'Shortcuts to hidden files, folders and tags are now shown dimmed.'
+        ],
+        changed: ['Bumped DB_CONTENT_VERSION so feature image thumbnails will be re-built on upgrade.'],
+        fixed: [
+            'Feature images now display correctly when servers return incorrect Content-Type headers.',
+            'iOS-optimized PNG files (with CgBI chunks) are now parsed correctly.',
+            'Improved AVIF/HEIF dimension parsing for images with crop metadata.'
+        ]
+    },
+    {
+        version: '2.0.2',
+        date: '2025-12-30',
+        showOnUpdate: true,
+        info: '==Significantly improved startup performance!== You should see a massive improvement in startup time, especially on mobile devices. License is back to GPL-3 and Style Settings works again!',
+        new: [],
+        improved: [
+            '**License is back to GPL 3** after clarifications from the Obsidian team.',
+            'Internal: Deferred icon initialization from onload() to runAsyncAction() to improve startup time.',
+            'Internal: Deferred IndexedDB initialization from onload() to runAsyncAction() to improve startup time.',
+            'Internal: Improved database hydration performance moving from cursor to batched reads.',
+            'Internal: Moved preview text to a separate cache store which is now loaded on demand.'
+        ],
         changed: [],
         fixed: [
             'Fixed **Style settings** not opening due to misaligned CSS variable names.',
             '**Navigation Pane > Appearance > Root item spacing** now properly updates the view when changed.',
-            'Internal: normalized **content-type headers** for better external image support (e.g. some web sites provide `image/jpg` for JPEG or `image/x-png` for PNG).',
-            'Internal: hardened the **thumbnail LRU cache** to prevent possible race conditions after invalidation.'
+            'Fixed chevrons sometimes briefly appearing in tag tree for tags that do not have children. Thanks @bwya77 for reporting and proposing the fix!',
+            'Internal: Normalized **content-type headers** for better external image support (e.g. some web sites provide image/jpg for JPEG or image/x-png for PNG).',
+            'Internal: Hardened the **thumbnail LRU cache** to prevent possible race conditions after invalidation.'
         ]
     },
     {
         version: '2.0.0',
-        date: '2025-12-28',
+        date: '2025-12-29',
         showOnUpdate: true,
         info: '==Notebook Navigator 2.0== is here and there are so many new features! First off: ==Notebook Navigator now automatically creates thumbnails for all your notes== and saves them to the metadata cache database for super fast scrolling! 🎉 If enabled, Notebook Navigator will now also download external images and YouTube thumbnails for feature images! We also have ==Templater support!== You can now create new notes from templates directly in the navigation pane or in the current folder / tag using the new command! Also there are lots of other improvements in this release like a new ==visual editor for file icons== and the option to ==change all user interface icons==! Happy new year! 🎉',
         new: [

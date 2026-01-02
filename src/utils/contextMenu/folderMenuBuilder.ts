@@ -27,6 +27,7 @@ import { ItemType } from '../../types';
 import { resetHiddenToggleIfNoSources } from '../../utils/exclusionUtils';
 import { runAsyncAction } from '../async';
 import { setAsyncOnClick } from './menuAsyncHelpers';
+import { addShortcutRenameMenuItem } from './shortcutRenameMenuItem';
 import { getActiveVaultProfile, getHiddenFolderPatternMatch, normalizeHiddenFolderPath } from '../../utils/vaultProfiles';
 import { EXCALIDRAW_PLUGIN_ID, TLDRAW_PLUGIN_ID } from '../../constants/pluginIds';
 import { addStyleMenu } from './styleMenuBuilder';
@@ -299,17 +300,33 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
 
     // Add to shortcuts / Remove from shortcuts
     if (services.shortcuts) {
-        const { addFolderShortcut, removeShortcut, collections, getCollectionsWithShortcut, getShortcutInCollection, activeCollectionId } = services.shortcuts;
+        const { folderShortcutKeysByPath, addFolderShortcut, removeShortcut, renameShortcut, shortcutMap, collections, getCollectionsWithShortcut, getShortcutInCollection, activeCollectionId } = services.shortcuts;
         const collectionsWithShortcut = getCollectionsWithShortcut(folder.path);
-        const existingShortcutKey = getShortcutInCollection(folder.path, activeCollectionId);
+        const existingShortcutKey = folderShortcutKeysByPath.get(folder.path) || getShortcutInCollection(folder.path, activeCollectionId);
+
+        if (existingShortcutKey) {
+            const existingShortcut = shortcutMap.get(existingShortcutKey);
+            const defaultLabel = folder.path === '/' ? settings.customVaultName || app.vault.getName() : folder.name;
+
+            addShortcutRenameMenuItem({
+                app,
+                menu,
+                shortcutKey: existingShortcutKey,
+                defaultLabel,
+                existingShortcut,
+                title: strings.shortcuts.rename,
+                placeholder: strings.searchInput.shortcutNamePlaceholder,
+                renameShortcut
+            });
+        }
 
         menu.addItem((item: MenuItem) => {
             if (existingShortcutKey) {
-                setAsyncOnClick(item.setTitle(strings.shortcuts.remove).setIcon('lucide-bookmark-x'), async () => {
+                setAsyncOnClick(item.setTitle(strings.shortcuts.remove).setIcon('lucide-star-off'), async () => {
                     await removeShortcut(existingShortcutKey);
                 });
             } else {
-                setAsyncOnClick(item.setTitle(strings.shortcuts.add).setIcon('lucide-bookmark'), async () => {
+                setAsyncOnClick(item.setTitle(strings.shortcuts.add).setIcon('lucide-star'), async () => {
                     if (collections.length > 1) {
                         // Show collection selection modal
                         const { ShortcutCollectionSelectionModal } = await import('../../modals/ShortcutCollectionSelectionModal');

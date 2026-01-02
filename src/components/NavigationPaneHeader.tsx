@@ -16,19 +16,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type React from 'react';
-import { Menu } from 'obsidian';
 import { useSelectionState } from '../context/SelectionContext';
 import { useServices } from '../context/ServicesContext';
 import { useSettingsState } from '../context/SettingsContext';
 import { useUXPreferences } from '../context/UXPreferencesContext';
 import { useUIState } from '../context/UIStateContext';
+import { useVaultProfileMenu } from '../hooks/useVaultProfileMenu';
 import { strings } from '../i18n';
 import { ServiceIcon } from './ServiceIcon';
 import { useNavigationActions } from '../hooks/useNavigationActions';
 import { hasHiddenItemSources } from '../utils/exclusionUtils';
 import { runAsyncAction } from '../utils/async';
-import { getLocalizedDefaultVaultProfileName } from '../utils/vaultProfiles';
 import { resolveUXIcon } from '../utils/uxIcons';
 
 interface NavigationPaneHeaderProps {
@@ -38,6 +36,7 @@ interface NavigationPaneHeaderProps {
     rootReorderActive?: boolean;
     rootReorderDisabled?: boolean;
     pinToggleLabel?: string;
+    showVaultTitleInHeader: boolean;
 }
 
 export function NavigationPaneHeader({
@@ -46,7 +45,8 @@ export function NavigationPaneHeader({
     onToggleRootFolderReorder,
     rootReorderActive,
     rootReorderDisabled,
-    pinToggleLabel
+    pinToggleLabel,
+    showVaultTitleInHeader
 }: NavigationPaneHeaderProps) {
     const { isMobile, plugin } = useServices();
     const settings = useSettingsState();
@@ -54,13 +54,11 @@ export function NavigationPaneHeader({
     const showHiddenItems = uxPreferences.showHiddenItems;
     const uiState = useUIState();
     const selectionState = useSelectionState();
-    const vaultProfiles = settings.vaultProfiles ?? [];
-    const activeProfileId = settings.vaultProfile;
-    const activeProfile = vaultProfiles.find(profile => profile.id === activeProfileId) ?? vaultProfiles[0] ?? null;
-    const profileNameFallback = getLocalizedDefaultVaultProfileName();
-    const activeProfileName = activeProfile?.name?.trim().length ? activeProfile.name : profileNameFallback;
-    const hasProfiles = vaultProfiles.length > 0;
-    const hasMultipleProfiles = vaultProfiles.length > 1;
+    const { hasProfiles, hasMultipleProfiles, activeProfileName, handleTriggerClick, handleTriggerKeyDown } = useVaultProfileMenu({
+        plugin,
+        vaultProfiles: settings.vaultProfiles ?? [],
+        activeProfileId: settings.vaultProfile
+    });
 
     // Hook providing shared navigation actions (expand/collapse, folder creation, toggle visibility)
     const { shouldCollapseItems, handleExpandCollapseAll, handleNewFolder, handleToggleShowExcludedFolders } = useNavigationActions();
@@ -73,80 +71,48 @@ export function NavigationPaneHeader({
     const showRootReorderButton = navigationVisibility.rootReorder;
     const showNewFolderButton = navigationVisibility.newFolder;
 
-    // Creates a dropdown menu displaying all available vault profiles
-    const createProfileMenu = () => {
-        const menu = new Menu();
-        vaultProfiles.forEach(profile => {
-            menu.addItem(item => {
-                const profileName = profile.name?.trim().length ? profile.name : profileNameFallback;
-                item.setTitle(profileName)
-                    .setIcon(profile.id === activeProfile?.id ? 'lucide-check' : 'lucide-user')
-                    .setDisabled(profile.id === activeProfile?.id)
-                    .onClick(() => {
-                        runAsyncAction(() => {
-                            plugin.setVaultProfile(profile.id);
-                        });
-                    });
-            });
-        });
-        return menu;
-    };
-
-    // Handles mouse click on the profile selector to show the profile menu
-    const handleProfileTriggerClick = (event: React.MouseEvent<HTMLDivElement>) => {
-        event.preventDefault();
-        event.stopPropagation();
-
-        if (!activeProfile) {
-            return;
-        }
-
-        const menu = createProfileMenu();
-        menu.showAtMouseEvent(event.nativeEvent);
-    };
-
-    // Handles keyboard activation (Enter or Space) on the profile selector to show the profile menu
-    const handleProfileTriggerKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-        if (event.key !== 'Enter' && event.key !== ' ') {
-            return;
-        }
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        if (!activeProfile) {
-            return;
-        }
-
-        const rect = event.currentTarget.getBoundingClientRect();
-        const menu = createProfileMenu();
-        menu.showAtPosition({
-            x: rect.left + rect.width / 2,
-            y: rect.bottom
-        });
-    };
-
     if (!hasProfiles) {
         return null;
     }
 
     // Clickable element that displays the active profile name and opens the profile menu on interaction
-    const profileTrigger = hasMultipleProfiles ? (
-        <div
-            className="nn-pane-header-title nn-pane-header-profile"
-            aria-label={strings.navigationPane.profileMenuAria}
-            role="button"
-            tabIndex={0}
-            onClick={handleProfileTriggerClick}
-            onKeyDown={handleProfileTriggerKeyDown}
-        >
+    const shouldRenderProfileTrigger = hasMultipleProfiles && (isMobile || showVaultTitleInHeader);
+    const profileTriggerContent = (
+        <>
             <span className="nn-pane-header-text">{activeProfileName}</span>
             <ServiceIcon
                 className="nn-pane-header-profile-chevron"
                 iconId={resolveUXIcon(settings.interfaceIcons, 'nav-profile-chevron')}
                 aria-hidden={true}
             />
-        </div>
+        </>
+    );
+    const profileTrigger = shouldRenderProfileTrigger ? (
+        isMobile ? (
+            <div
+                className="nn-pane-header-title nn-pane-header-profile"
+                aria-label={strings.navigationPane.profileMenuAria}
+                role="button"
+                tabIndex={0}
+                onClick={handleTriggerClick}
+                onKeyDown={handleTriggerKeyDown}
+            >
+                {profileTriggerContent}
+            </div>
+        ) : (
+            <div className="nn-pane-header-title nn-pane-header-profile">
+                <div
+                    className="nn-pane-header-profile"
+                    aria-label={strings.navigationPane.profileMenuAria}
+                    role="button"
+                    tabIndex={0}
+                    onClick={handleTriggerClick}
+                    onKeyDown={handleTriggerKeyDown}
+                >
+                    {profileTriggerContent}
+                </div>
+            </div>
+        )
     ) : null;
 
     if (isMobile) {

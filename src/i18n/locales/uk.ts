@@ -85,6 +85,7 @@ export const STRINGS_UK = {
         add: 'Додати до ярликів',
         addNotesCount: 'Додати {count} нотаток до ярликів',
         addFilesCount: 'Додати {count} файлів до ярликів',
+        rename: 'Перейменувати ярлик',
         remove: 'Вилучити з ярликів',
         removeAll: 'Видалити всі ярлики',
         removeAllConfirm: 'Видалити всі ярлики?',
@@ -106,7 +107,7 @@ export const STRINGS_UK = {
         hideFolders: 'Сховати навігацію', // Tooltip for button to hide the navigation pane (English: Hide navigation)
         reorderRootFolders: 'Змінити порядок навігації',
         finishRootFolderReorder: 'Готово',
-        toggleDescendantNotes: 'Показати нотатки з підпапок / нащадків (не синхронізується)', // Tooltip: include descendants for folders and tags
+        toggleDescendantNotes: 'Показати нотатки з підпапок / нащадків', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: 'Розгортати при виборі', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Expand on selection)
         showExcludedItems: 'Показати приховані папки, теги та нотатки', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Сховати приховані папки, теги та нотатки', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -123,7 +124,6 @@ export const STRINGS_UK = {
         saveSearchShortcut: 'Зберегти ярлик пошуку',
         removeSearchShortcut: 'Вилучити ярлик пошуку',
         shortcutModalTitle: 'Зберегти ярлик пошуку',
-        shortcutNameLabel: 'Назва ярлика',
         shortcutNamePlaceholder: 'Введіть назву ярлика'
     },
 
@@ -966,6 +966,14 @@ export const STRINGS_UK = {
                     duplicateName: 'Назва профілю вже існує'
                 }
             },
+            vaultTitle: {
+                name: "Розташування назви сховища (лише для комп'ютера)",
+                desc: 'Виберіть, де відображається назва сховища.',
+                options: {
+                    header: 'Показати в заголовку',
+                    navigation: 'Показати на панелі навігації'
+                }
+            },
             excludedFolders: {
                 name: 'Приховати папки (профіль сховища)',
                 desc: 'Список папок для приховування, розділених комами. Шаблони назв: assets* (папки, що починаються з assets), *_temp (закінчуються на _temp). Шаблони шляхів: /archive (лише кореневий архів), /res* (кореневі папки, що починаються з res), /*/temp (папки temp на один рівень вглиб), /projects/* (всі папки всередині projects).',
@@ -1229,7 +1237,8 @@ export const STRINGS_UK = {
                 buttonText: 'Перебудувати кеш',
                 success: 'Кеш перебудовано',
                 error: 'Не вдалося перебудувати кеш',
-                progress: 'Перебудова кешу:'
+                indexingTitle: 'Індексація сховища...',
+                progress: 'Оновлення кешу Notebook Navigator.'
             },
             hotkeys: {
                 intro: 'Редагуйте <plugin folder>/notebook-navigator/data.json для налаштування гарячих клавіш Notebook Navigator. Відкрийте файл і знайдіть розділ "keyboardShortcuts". Кожен запис використовує таку структуру:',

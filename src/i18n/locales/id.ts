@@ -85,6 +85,7 @@ export const STRINGS_ID = {
         add: 'Tambahkan ke pintasan',
         addNotesCount: 'Tambahkan {count} catatan ke pintasan',
         addFilesCount: 'Tambahkan {count} file ke pintasan',
+        rename: 'Ubah nama pintasan',
         remove: 'Hapus dari pintasan',
         removeAll: 'Hapus semua pintasan',
         removeAllConfirm: 'Hapus semua pintasan?',
@@ -106,7 +107,7 @@ export const STRINGS_ID = {
         hideFolders: 'Sembunyikan navigasi',
         reorderRootFolders: 'Atur ulang navigasi',
         finishRootFolderReorder: 'Selesai',
-        toggleDescendantNotes: 'Tampilkan catatan dari subfolder / turunan (tidak disinkronkan)',
+        toggleDescendantNotes: 'Tampilkan catatan dari subfolder / turunan',
         autoExpandFoldersTags: 'Luaskan saat dipilih',
         showExcludedItems: 'Tampilkan folder, tag, dan catatan tersembunyi',
         hideExcludedItems: 'Sembunyikan folder, tag, dan catatan tersembunyi',
@@ -123,7 +124,6 @@ export const STRINGS_ID = {
         saveSearchShortcut: 'Simpan pintasan pencarian',
         removeSearchShortcut: 'Hapus pintasan pencarian',
         shortcutModalTitle: 'Simpan pintasan pencarian',
-        shortcutNameLabel: 'Nama pintasan',
         shortcutNamePlaceholder: 'Masukkan nama pintasan'
     },
 
@@ -966,6 +966,14 @@ export const STRINGS_ID = {
                     duplicateName: 'Nama profil sudah ada'
                 }
             },
+            vaultTitle: {
+                name: 'Penempatan judul vault (khusus desktop)',
+                desc: 'Pilih di mana judul vault ditampilkan.',
+                options: {
+                    header: 'Tampilkan di header',
+                    navigation: 'Tampilkan di panel navigasi'
+                }
+            },
             excludedFolders: {
                 name: 'Sembunyikan folder (profil vault)',
                 desc: 'Daftar folder yang dipisahkan koma untuk disembunyikan. Pola nama: assets* (folder yang dimulai dengan assets), *_temp (diakhiri dengan _temp). Pola path: /arsip (arsip root saja), /res* (folder root yang dimulai dengan res), /*/temp (folder temp satu level ke dalam), /proyek/* (semua folder di dalam proyek).',
@@ -1228,7 +1236,8 @@ export const STRINGS_ID = {
                 buttonText: 'Bangun ulang cache',
                 success: 'Cache dibangun ulang',
                 error: 'Gagal membangun ulang cache',
-                progress: 'Membangun ulang cache:'
+                indexingTitle: 'Mengindeks vault...',
+                progress: 'Memperbarui cache Notebook Navigator.'
             },
             hotkeys: {
                 intro: 'Edit <folder plugin>/notebook-navigator/data.json untuk menyesuaikan pintasan keyboard Notebook Navigator. Buka file dan temukan bagian "keyboardShortcuts". Setiap entri menggunakan struktur ini:',

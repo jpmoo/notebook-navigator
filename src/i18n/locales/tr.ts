@@ -85,6 +85,7 @@ export const STRINGS_TR = {
         add: 'Kısayollara ekle',
         addNotesCount: 'Kısayollara {count} not ekle',
         addFilesCount: 'Kısayollara {count} dosya ekle',
+        rename: 'Kısayolu yeniden adlandır',
         remove: 'Kısayollardan kaldır',
         removeAll: 'Tüm kısayolları kaldır',
         removeAllConfirm: 'Tüm kısayolları kaldır?',
@@ -106,7 +107,7 @@ export const STRINGS_TR = {
         hideFolders: 'Gezinmeyi gizle', // Tooltip for button to hide the navigation pane (English: Hide navigation)
         reorderRootFolders: 'Gezinmeyi yeniden sırala',
         finishRootFolderReorder: 'Tamamlandı',
-        toggleDescendantNotes: 'Alt klasörlerden / alt öğelerden notları göster (senkronize edilmez)', // Tooltip: include descendants for folders and tags
+        toggleDescendantNotes: 'Alt klasörlerden / alt öğelerden notları göster', // Tooltip: include descendants for folders and tags
         autoExpandFoldersTags: 'Seçimde genişlet', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Expand on selection)
         showExcludedItems: 'Gizli klasörleri, etiketleri ve notları göster', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Gizli klasörleri, etiketleri ve notları gizle', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -123,7 +124,6 @@ export const STRINGS_TR = {
         saveSearchShortcut: 'Arama kısayolunu kaydet',
         removeSearchShortcut: 'Arama kısayolunu kaldır',
         shortcutModalTitle: 'Arama kısayolunu kaydet',
-        shortcutNameLabel: 'Kısayol adı',
         shortcutNamePlaceholder: 'Kısayol adını girin'
     },
 
@@ -965,6 +965,14 @@ export const STRINGS_TR = {
                     duplicateName: 'Profil adı zaten var'
                 }
             },
+            vaultTitle: {
+                name: 'Kasa başlığı konumu (yalnızca masaüstü)',
+                desc: 'Kasa başlığının gösterileceği yeri seçin.',
+                options: {
+                    header: 'Başlıkta göster',
+                    navigation: 'Gezinme panelinde göster'
+                }
+            },
             excludedFolders: {
                 name: 'Klasörleri gizle (kasa profili)',
                 desc: 'Virgülle ayrılmış gizlenecek klasörler listesi. Ad desenleri: assets* (assets ile başlayan klasörler), *_temp (_temp ile biten). Yol desenleri: /archive (yalnızca kök arşiv), /res* (res ile başlayan kök klasörler), /*/temp (bir seviye derinlikte temp klasörleri), /projects/* (projects içindeki tüm klasörler).',
@@ -1227,7 +1235,8 @@ export const STRINGS_TR = {
                 buttonText: 'Önbelleği yeniden oluştur',
                 success: 'Önbellek yeniden oluşturuldu',
                 error: 'Önbellek yeniden oluşturulamadı',
-                progress: 'Önbellek yeniden oluşturuluyor:'
+                indexingTitle: 'Kasa dizinleniyor...',
+                progress: 'Notebook Navigator önbelleği güncelleniyor.'
             },
             hotkeys: {
                 intro: 'Notebook Navigator kısayol tuşlarını özelleştirmek için <plugin folder>/notebook-navigator/data.json dosyasını düzenleyin. Dosyayı açın ve "keyboardShortcuts" bölümünü bulun. Her giriş bu yapıyı kullanır:',

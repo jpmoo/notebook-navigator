@@ -84,6 +84,7 @@ export const STRINGS_ZH_CN = {
         add: '添加到快捷方式',
         addNotesCount: '添加 {count} 个笔记到快捷方式',
         addFilesCount: '添加 {count} 个文件到快捷方式',
+        rename: '重命名快捷方式',
         remove: '从快捷方式移除',
         removeAll: '移除所有快捷方式',
         removeAllConfirm: '移除所有快捷方式？',
@@ -105,7 +106,7 @@ export const STRINGS_ZH_CN = {
         hideFolders: '隐藏导航', // Tooltip for button to hide the navigation pane (English: Hide navigation)
         reorderRootFolders: '重新排列导航',
         finishRootFolderReorder: '完成',
-        toggleDescendantNotes: '显示子文件夹/后代的笔记（不同步）', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants (not synced))
+        toggleDescendantNotes: '显示子文件夹/后代的笔记', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants)
         autoExpandFoldersTags: '自动展开文件夹和标签', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
         showExcludedItems: '显示隐藏的文件夹、标签和笔记', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: '隐藏隐藏的文件夹、标签和笔记', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -122,7 +123,6 @@ export const STRINGS_ZH_CN = {
         saveSearchShortcut: '将搜索保存到快捷方式',
         removeSearchShortcut: '从快捷方式移除搜索',
         shortcutModalTitle: '保存搜索快捷方式',
-        shortcutNameLabel: '快捷方式名称',
         shortcutNamePlaceholder: '输入快捷方式名称'
     },
 
@@ -944,6 +944,14 @@ export const STRINGS_ZH_CN = {
                     duplicateName: '配置文件名称已存在'
                 }
             },
+            vaultTitle: {
+                name: '库标题位置（仅桌面端）',
+                desc: '选择库标题显示的位置。',
+                options: {
+                    header: '显示在标题栏',
+                    navigation: '显示在导航窗格'
+                }
+            },
             excludedFolders: {
                 name: '隐藏文件夹 (库配置)',
                 desc: '逗号分隔的要隐藏的文件夹列表。名称模式：assets*（以assets开头的文件夹），*_temp（以_temp结尾）。路径模式：/archive（仅根目录archive），/res*（以res开头的根文件夹），/*/temp（一级目录下的temp文件夹），/projects/*（projects内的所有文件夹）。',
@@ -1228,7 +1236,8 @@ export const STRINGS_ZH_CN = {
                 buttonText: '重建缓存',
                 success: '缓存已重建',
                 error: '重建缓存失败',
-                progress: '正在重建缓存:'
+                indexingTitle: '正在索引仓库...',
+                progress: '正在更新 Notebook Navigator 缓存.'
             },
             hotkeys: {
                 intro: '通过编辑 <plugin folder>/notebook-navigator/data.json 来自定义 Notebook Navigator 快捷键。用文本编辑器打开文件并找到 "keyboardShortcuts" 部分。每个条目都使用以下结构：',

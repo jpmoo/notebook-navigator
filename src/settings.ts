@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { App, ButtonComponent, PluginSettingTab, Setting } from 'obsidian';
+import { App, ButtonComponent, PluginSettingTab, Setting, requireApiVersion } from 'obsidian';
 import NotebookNavigatorPlugin from './main';
 import { showNotice } from './utils/noticeUtils';
 import { strings } from './i18n';
@@ -83,6 +83,11 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     constructor(app: App, plugin: NotebookNavigatorPlugin) {
         super(app, plugin);
         this.plugin = plugin;
+
+        // Settings sidebar icon (Obsidian 1.11.0+)
+        if (requireApiVersion('1.11.0')) {
+            this.icon = 'lucide-notebook';
+        }
     }
 
     /**

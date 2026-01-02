@@ -45,6 +45,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
         }
     ],
     vaultProfile: 'default',
+    vaultTitle: 'navigation',
 
     // General tab - Behavior
     autoRevealActiveFile: true,

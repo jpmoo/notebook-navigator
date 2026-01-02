@@ -95,6 +95,8 @@ interface UseListPaneScrollParams {
     topSpacerHeight: number;
     /** Whether descendant notes should be shown */
     includeDescendantNotes: boolean;
+    /** Scroll margin used to offset the visible range and scrollToIndex alignment */
+    scrollMargin?: number;
 }
 
 /**
@@ -132,7 +134,8 @@ export function useListPaneScroll({
     searchQuery,
     suppressSearchTopScrollRef,
     topSpacerHeight,
-    includeDescendantNotes
+    includeDescendantNotes,
+    scrollMargin = 0
 }: UseListPaneScrollParams): UseListPaneScrollResult {
     const { isMobile } = useServices();
     const listMeasurements = getListPaneMeasurements(isMobile);
@@ -195,6 +198,7 @@ export function useListPaneScroll({
      * Initialize TanStack Virtual virtualizer with dynamic height calculation.
      * Handles different item types (headers, files, spacers) with appropriate heights.
      */
+    const effectiveScrollMargin = Number.isFinite(scrollMargin) && scrollMargin > 0 ? scrollMargin : 0;
     const rowVirtualizer = useVirtualizer({
         count: listItems.length,
         getScrollElement: () => {
@@ -204,8 +208,10 @@ export function useListPaneScroll({
             }
             return element;
         },
-        scrollMargin: 0,
-        scrollPaddingStart: 0,
+        // Align virtualizer scroll math with the start of the file rows (excluding overlay chrome).
+        scrollMargin: effectiveScrollMargin,
+        // Ensure scrollToIndex aligns items below the overlay chrome instead of under it.
+        scrollPaddingStart: effectiveScrollMargin,
         estimateSize: index => {
             const item = listItems[index];
             const heights = listMeasurements;
@@ -239,7 +245,7 @@ export function useListPaneScroll({
                     hasPreviewText = hasPreview(file.path);
                 }
                 const excerpt = item.searchMeta?.excerpt;
-                hasOmnisearchExcerpt = typeof excerpt === 'string' && excerpt.trim().length > 0;
+                hasOmnisearchExcerpt = typeof excerpt === 'string' && excerpt.length > 0;
             }
             const hasPreviewContent = hasPreviewText || hasOmnisearchExcerpt;
 

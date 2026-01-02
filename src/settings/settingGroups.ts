@@ -24,7 +24,7 @@ interface SettingGroupController {
 }
 
 function supportsSettingGroups(): boolean {
-    return typeof SettingGroup === 'function' && typeof requireApiVersion === 'function' && requireApiVersion('1.11.0');
+    return typeof SettingGroup === 'function' && requireApiVersion('1.11.0');
 }
 
 export function createSettingGroupFactory(containerEl: HTMLElement): (heading?: string) => SettingGroupController {

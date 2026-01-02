@@ -84,6 +84,7 @@ export const STRINGS_DE = {
         add: 'Zu Lesezeichen hinzufügen',
         addNotesCount: '{count} Notizen zu Lesezeichen hinzufügen',
         addFilesCount: '{count} Dateien zu Lesezeichen hinzufügen',
+        rename: 'Lesezeichen umbenennen',
         remove: 'Aus Lesezeichen entfernen',
         removeAll: 'Alle Lesezeichen entfernen',
         removeAllConfirm: 'Alle Lesezeichen entfernen?',
@@ -105,7 +106,7 @@ export const STRINGS_DE = {
         hideFolders: 'Navigation ausblenden', // Tooltip for button to hide the navigation pane (English: Hide navigation)
         reorderRootFolders: 'Navigation neu anordnen',
         finishRootFolderReorder: 'Neuordnung fertig',
-        toggleDescendantNotes: 'Notizen aus Unterordnern / Nachkommen anzeigen (nicht synchronisiert)', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants (not synced))
+        toggleDescendantNotes: 'Notizen aus Unterordnern / Nachkommen anzeigen', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants)
         autoExpandFoldersTags: 'Ordner und Tags automatisch erweitern', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
         showExcludedItems: 'Versteckte Ordner, Tags und Notizen anzeigen', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Versteckte Ordner, Tags und Notizen ausblenden', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -122,7 +123,6 @@ export const STRINGS_DE = {
         saveSearchShortcut: 'Such-Lesezeichen speichern',
         removeSearchShortcut: 'Such-Lesezeichen entfernen',
         shortcutModalTitle: 'Such-Lesezeichen speichern',
-        shortcutNameLabel: 'Lesezeichen-Name',
         shortcutNamePlaceholder: 'Lesezeichen-Namen eingeben'
     },
 
@@ -948,6 +948,14 @@ export const STRINGS_DE = {
                     duplicateName: 'Profilname bereits vorhanden'
                 }
             },
+            vaultTitle: {
+                name: 'Tresortitel-Platzierung (nur Desktop)',
+                desc: 'Wählen Sie, wo der Tresortitel angezeigt wird.',
+                options: {
+                    header: 'Im Header anzeigen',
+                    navigation: 'Im Navigationsbereich anzeigen'
+                }
+            },
             excludedFolders: {
                 name: 'Ordner verstecken (Tresorprofil)',
                 desc: 'Kommagetrennte Liste von auszublendenden Ordnern. Namensmuster: assets* (Ordner die mit assets beginnen), *_temp (endet mit _temp). Pfadmuster: /archive (nur Wurzel-Archive), /res* (Wurzelordner die mit res beginnen), /*/temp (temp-Ordner eine Ebene tief), /projects/* (alle Ordner in projects).',
@@ -1231,7 +1239,8 @@ export const STRINGS_DE = {
                 buttonText: 'Cache neu aufbauen',
                 success: 'Cache wurde neu aufgebaut',
                 error: 'Cache-Neuaufbau fehlgeschlagen',
-                progress: 'Cache wird neu aufgebaut:'
+                indexingTitle: 'Tresor wird indexiert...',
+                progress: 'Notebook Navigator-Cache wird aktualisiert.'
             },
             hotkeys: {
                 intro: 'Bearbeite <plugin folder>/notebook-navigator/data.json, um Notebook Navigator-Tastenkürzel anzupassen. Öffne die Datei in einem Texteditor und suche den Abschnitt "keyboardShortcuts". Jede Zuordnung nutzt diese Struktur:',

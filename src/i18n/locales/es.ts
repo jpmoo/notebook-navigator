@@ -84,6 +84,7 @@ export const STRINGS_ES = {
         add: 'Agregar a accesos directos',
         addNotesCount: 'Agregar {count} notas a accesos directos',
         addFilesCount: 'Agregar {count} archivos a accesos directos',
+        rename: 'Renombrar acceso directo',
         remove: 'Quitar de accesos directos',
         removeAll: 'Eliminar todos los accesos directos',
         removeAllConfirm: '¿Eliminar todos los accesos directos?',
@@ -105,7 +106,7 @@ export const STRINGS_ES = {
         hideFolders: 'Ocultar navegación', // Tooltip for button to hide the navigation pane (English: Hide navigation)
         reorderRootFolders: 'Reordenar navegación',
         finishRootFolderReorder: 'Listo',
-        toggleDescendantNotes: 'Mostrar notas de subcarpetas / descendientes (no sincronizado)', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants (not synced))
+        toggleDescendantNotes: 'Mostrar notas de subcarpetas / descendientes', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants)
         autoExpandFoldersTags: 'Expandir carpetas y etiquetas automáticamente', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
         showExcludedItems: 'Mostrar carpetas, etiquetas y notas ocultas', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Ocultar carpetas, etiquetas y notas ocultas', // Tooltip for button to hide hidden items (English: Hide hidden items)
@@ -122,7 +123,6 @@ export const STRINGS_ES = {
         saveSearchShortcut: 'Guardar búsqueda en accesos directos',
         removeSearchShortcut: 'Eliminar búsqueda de accesos directos',
         shortcutModalTitle: 'Guardar búsqueda',
-        shortcutNameLabel: 'Nombre del acceso directo',
         shortcutNamePlaceholder: 'Introduce el nombre'
     },
 
@@ -946,6 +946,14 @@ export const STRINGS_ES = {
                     duplicateName: 'El nombre del perfil ya existe'
                 }
             },
+            vaultTitle: {
+                name: 'Ubicación del título de bóveda (solo escritorio)',
+                desc: 'Elige dónde se muestra el título de la bóveda.',
+                options: {
+                    header: 'Mostrar en el encabezado',
+                    navigation: 'Mostrar en el panel de navegación'
+                }
+            },
             excludedFolders: {
                 name: 'Ocultar carpetas (perfil de bóveda)',
                 desc: 'Lista de carpetas a ocultar separadas por comas. Patrones de nombre: assets* (carpetas que comienzan con assets), *_temp (terminan con _temp). Patrones de ruta: /archive (solo archivo raíz), /res* (carpetas raíz que comienzan con res), /*/temp (carpetas temp un nivel abajo), /projects/* (todas las carpetas dentro de projects).',
@@ -1230,7 +1238,8 @@ export const STRINGS_ES = {
                 buttonText: 'Reconstruir caché',
                 success: 'Caché reconstruido',
                 error: 'Error al reconstruir caché',
-                progress: 'Reconstruyendo caché:'
+                indexingTitle: 'Indexando la bóveda...',
+                progress: 'Actualizando la caché de Notebook Navigator.'
             },
             hotkeys: {
                 intro: 'Edita <plugin folder>/notebook-navigator/data.json para personalizar los atajos de Notebook Navigator. Abre el archivo y busca la sección "keyboardShortcuts". Cada entrada usa esta estructura:',
