@@ -2729,54 +2729,8 @@ export const NavigationPane = React.memo(
                     tabIndex={-1}
                 >
                     <div className="nn-navigation-pane-overlay" ref={navigationOverlayRef}>
-                        <NavigationPaneHeader
-                            onTreeUpdateComplete={handleTreeUpdateComplete}
-                            onTogglePinnedShortcuts={settings.showShortcuts ? handleShortcutSplitToggle : undefined}
-                            onToggleRootFolderReorder={handleToggleRootReorder}
-                            rootReorderActive={isRootReorderMode}
-                            rootReorderDisabled={!canReorderRootItems}
-                            pinToggleLabel={pinToggleLabel}
-                            showVaultTitleInHeader={shouldShowVaultTitleInHeader}
-                        />
                         {shouldShowVaultTitleInNavigationPane ? <VaultTitleArea /> : null}
-                        {/* Android - toolbar at top */}
-                        {isMobile && isAndroid && (
-                            <NavigationToolbar
-                                onTreeUpdateComplete={handleTreeUpdateComplete}
-                                onTogglePinnedShortcuts={settings.showShortcuts ? handleShortcutSplitToggle : undefined}
-                                onToggleRootFolderReorder={handleToggleRootReorder}
-                                rootReorderActive={isRootReorderMode}
-                                rootReorderDisabled={!canReorderRootItems}
-                                pinToggleLabel={pinToggleLabel}
-                            />
-                        )}
                         {shouldRenderNavigationBanner && navigationBannerPath ? <NavigationBanner path={navigationBannerPath} /> : null}
-                        {shouldRenderPinnedShortcuts ? (
-                            <div
-                                className="nn-shortcut-pinned"
-                                ref={pinnedShortcutsContainerRef}
-                                role="presentation"
-                                data-scroll={pinnedShortcutsHasOverflow ? 'true' : undefined}
-                                style={pinnedShortcutsMaxHeight !== null ? { maxHeight: pinnedShortcutsMaxHeight } : undefined}
-                                onDragOver={allowEmptyShortcutDrop ? handleShortcutRootDragOver : undefined}
-                                onDrop={allowEmptyShortcutDrop ? handleShortcutRootDrop : undefined}
-                            >
-                                <div className="nn-shortcut-pinned-scroll" ref={pinnedShortcutsScrollRefCallback}>
-                                    <div className="nn-shortcut-pinned-inner">
-                                        {pinnedNavigationItems.map(pinnedItem => (
-                                            <React.Fragment key={pinnedItem.key}>{renderItem(pinnedItem)}</React.Fragment>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div
-                                    className="nn-shortcuts-resize-handle"
-                                    role="separator"
-                                    aria-orientation="horizontal"
-                                    aria-label="Resize pinned shortcuts"
-                                    onPointerDown={handlePinnedShortcutsResizePointerDown}
-                                />
-                            </div>
-                        ) : null}
                     </div>
                     <div role={isRootReorderMode ? 'list' : 'tree'}>
                         {isRootReorderMode ? (
