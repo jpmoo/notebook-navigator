@@ -35,6 +35,7 @@ import { useShortcuts } from '../context/ShortcutsContext';
 import type { ActiveProfileState } from '../context/SettingsContext';
 import { shouldExcludeFolder } from '../utils/fileFilters';
 import { createHiddenTagMatcher, matchesHiddenTagPattern } from '../utils/tagPrefixMatcher';
+import { NOTEBOOK_NAVIGATOR_ICON_ID } from '../constants/notebookNavigatorIcon';
 
 export interface RootFolderDescriptor {
     key: string;
@@ -602,7 +603,7 @@ export function useNavigationRootReorder(options: UseNavigationRootReorderOption
                     }
                     label = customVaultName || app.vault.getName();
                 } else {
-                    icon = 'lucide-notebook';
+                    icon = NOTEBOOK_NAVIGATOR_ICON_ID;
                     label = strings.settings.sections.folders;
                 }
                 chevronIcon = foldersSectionExpanded ? 'lucide-chevron-down' : 'lucide-chevron-right';

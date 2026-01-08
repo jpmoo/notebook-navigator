@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Plugin, TFile, FileView, TFolder, WorkspaceLeaf, Platform } from 'obsidian';
+import { Plugin, TFile, FileView, TFolder, WorkspaceLeaf, Platform, addIcon } from 'obsidian';
 import { NotebookNavigatorSettings, DEFAULT_SETTINGS, NotebookNavigatorSettingTab } from './settings';
 import {
     LocalStorageKeys,
@@ -70,17 +70,25 @@ import registerWorkspaceEvents from './services/workspace/registerWorkspaceEvent
 import type { RevealFileOptions } from './hooks/useNavigatorReveal';
 import { ShortcutType, type ShortcutEntry } from './types/shortcuts';
 import type { FolderAppearance } from './hooks/useListPaneAppearance';
-import { isSortOption, isTagSortOrder, type SortOption, type TagSortOrder, type VaultProfile } from './settings/types';
+import {
+    isCustomPropertyType,
+    isSortOption,
+    isTagSortOrder,
+    type SortOption,
+    type TagSortOrder,
+    type VaultProfile
+} from './settings/types';
 import { clearHiddenTagPatternCache } from './utils/tagPrefixMatcher';
 import { getPathPatternCacheKey } from './utils/pathPatternMatcher';
 import { DEFAULT_UI_SCALE, sanitizeUIScale } from './utils/uiScale';
 import { MAX_RECENT_COLORS } from './constants/colorPalette';
+import { NOTEBOOK_NAVIGATOR_ICON_ID, NOTEBOOK_NAVIGATOR_ICON_SVG } from './constants/notebookNavigatorIcon';
 
 const DEFAULT_UX_PREFERENCES: UXPreferences = {
     searchActive: false,
     includeDescendantNotes: true,
     showHiddenItems: false,
-    pinShortcuts: false
+    pinShortcuts: true
 };
 
 const UX_PREFERENCE_KEYS: (keyof UXPreferences)[] = ['searchActive', 'includeDescendantNotes', 'showHiddenItems', 'pinShortcuts'];
@@ -269,6 +277,18 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             this.settings.shortcutBadgeDisplay !== 'none'
         ) {
             this.settings.shortcutBadgeDisplay = DEFAULT_SETTINGS.shortcutBadgeDisplay;
+        }
+
+        if (!isCustomPropertyType(this.settings.customPropertyType)) {
+            this.settings.customPropertyType = DEFAULT_SETTINGS.customPropertyType;
+        }
+
+        if (typeof this.settings.customPropertyFrontmatterFields !== 'string') {
+            this.settings.customPropertyFrontmatterFields = DEFAULT_SETTINGS.customPropertyFrontmatterFields;
+        }
+
+        if (typeof this.settings.showCustomPropertyInCompactMode !== 'boolean') {
+            this.settings.showCustomPropertyInCompactMode = DEFAULT_SETTINGS.showCustomPropertyInCompactMode;
         }
 
         type LegacyAppearance = FolderAppearance & {
@@ -657,7 +677,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         }
 
         // Load recent notes and icons from local storage
-        this.recentDataManager.initialize();
+        this.recentDataManager.initialize(this.settings.vaultProfile);
     }
 
     /**
@@ -770,6 +790,10 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     async onload() {
         // Initialize localStorage before database so version checks work
         localStorage.init(this.app);
+
+        if (typeof addIcon === 'function') {
+            addIcon(NOTEBOOK_NAVIGATOR_ICON_ID, NOTEBOOK_NAVIGATOR_ICON_SVG);
+        }
 
         // Initialize database early for StorageContext consumers
         const appId = (this.app as ExtendedApp).appId || '';
@@ -928,6 +952,11 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
                 }
 
                 await this.homepageController?.handleWorkspaceReady({ shouldActivateOnStartup });
+
+                if (isFirstLaunch) {
+                    const { WelcomeModal } = await import('./modals/WelcomeModal');
+                    new WelcomeModal(this.app).open();
+                }
 
                 // Check for version updates
                 await this.checkForVersionUpdate();
@@ -1149,8 +1178,13 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             return;
         }
 
+        if (this.settings.vaultProfile === nextProfile.id) {
+            return;
+        }
+
         this.settings.vaultProfile = nextProfile.id;
         localStorage.set(this.keys.vaultProfileKey, nextProfile.id);
+        this.initializeRecentDataManager();
 
         resetHiddenToggleIfNoSources({
             settings: this.settings,

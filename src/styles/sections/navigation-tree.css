@@ -270,21 +270,22 @@
     justify-content: center;
 }
 
-/* Shortcut remove button - replaces shortcut badge/count on hover */
-.nn-shortcut-remove-slot {
+/* Hover action button - replaces badge/count on hover */
+.nn-navitem-hover-action-slot {
     position: relative;
     flex-shrink: 0;
 }
 
-.nn-shortcut-remove-button {
+.nn-navitem-hover-action-button {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     visibility: hidden;
     pointer-events: none;
-    height: 16px !important;
-    width: 16px !important;
+    cursor: pointer;
+    height: 18px !important;
+    width: 18px !important;
     min-height: 0 !important;
     min-width: 0 !important;
     padding: 0 !important;
@@ -292,21 +293,23 @@
     z-index: 1;
 }
 
-.nn-shortcut-remove-button svg {
+.nn-navitem-hover-action-button svg {
     width: 14px;
     height: 14px;
 }
 
-.nn-shortcut-remove-placeholder {
+.nn-navitem-hover-action-placeholder {
     visibility: hidden;
 }
 
-.nn-desktop .nn-shortcut-item--removable:hover .nn-shortcut-remove-button {
+.nn-desktop .nn-shortcut-item--removable:hover .nn-navitem-hover-action-button,
+.nn-desktop .nn-shortcut-header-item:hover .nn-navitem-hover-action-button {
     visibility: visible;
     pointer-events: auto;
 }
 
-.nn-desktop .nn-shortcut-item--removable:hover .nn-shortcut-remove-count {
+.nn-desktop .nn-shortcut-item--removable:hover .nn-navitem-hover-action-count,
+.nn-desktop .nn-shortcut-header-item:hover .nn-navitem-hover-action-count {
     opacity: 0;
 }
 

@@ -1,5 +1,7 @@
 # Notebook Navigator Startup Process
 
+Updated: January 8, 2026
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -15,7 +17,7 @@
   - [Phase 5: Background Processing](#phase-5-background-processing)
 - [Critical Timing Mechanisms](#critical-timing-mechanisms)
   - [Deferred Scheduling](#deferred-scheduling)
-  - [Debouncing Strategies](#debouncing-strategies)
+  - [Debouncing](#debouncing)
 
 ## Overview
 
@@ -29,9 +31,10 @@ generation. The startup behavior differs between cold boots (first launch) and w
 A **cold boot** occurs when:
 
 - The plugin is installed for the first time
-- The IndexedDB database doesn't exist
-- Database schema version has changed (DB_SCHEMA_VERSION)
-- Content version has changed (DB_CONTENT_VERSION)
+- The IndexedDB cache doesn't exist or is cleared
+- Database version markers are missing in vault-scoped localStorage
+- `DB_CONTENT_VERSION` has changed
+- A schema downgrade or incompatible migration requires a rebuild
 
 Characteristics:
 
@@ -60,7 +63,9 @@ The plugin uses two version numbers to manage database state:
 **DB_SCHEMA_VERSION**: Controls the IndexedDB structure
 
 - Changes when database schema is modified (new indexes, stores, etc.)
-- Triggers complete database recreation on change
+- Used as the version passed to `indexedDB.open(...)`
+- Upgrades run via `onupgradeneeded` (stores/indexes/migrations); some upgrades clear legacy payloads to force a rebuild
+- Downgrades delete the database and rebuild
 
 **DB_CONTENT_VERSION**: Controls the data format
 
@@ -70,7 +75,7 @@ The plugin uses two version numbers to manage database state:
 
 Both versions are stored in localStorage to detect changes between sessions.
 
-Both version changes result in a cold boot to ensure data consistency.
+Version mismatches can result in a cold boot (empty `MemoryFileCache` + cleared stores) so providers regenerate content.
 
 ## Startup Phases
 
@@ -80,8 +85,8 @@ Both version changes result in a cold boot to ensure data consistency.
 
 1. Obsidian calls `Plugin.onload()`.
 2. Initialize vault-scoped localStorage (`localStorage.init`) before any database work.
-3. Initialize IndexedDB early via `initializeDatabase(appId)`.
-   - Database is ready for all consumers from the start.
+3. Initialize IndexedDB early via `initializeDatabase(appId, ...)`.
+   - Starts `db.init()` (schema check + `MemoryFileCache` hydration) before views mount.
    - Operation is idempotent to support rapid enable/disable cycles.
 4. Load settings from `data.json` and run migrations.
    - Sanitize keyboard shortcuts and migrate legacy fields.
@@ -129,28 +134,32 @@ Both version changes result in a cold boot to ensure data consistency.
    - Provides immediate visual feedback
    - Prevents layout shift when data loads
 4. Mobile detection adds platform-specific class and determines UI layout:
+   - Adds `notebook-navigator-mobile` and platform classes (`notebook-navigator-android`, `notebook-navigator-ios`)
+   - Android applies font scaling compensation before React renders
    - Desktop: NavigationPaneHeader and ListPaneHeader at top of panes
    - Mobile: NavigationToolbar and ListToolbar at bottom of panes
    - Touch optimizations and swipe gestures enabled on mobile
 
 ### Phase 3: Database Version Check and Initialization
 
-**Trigger**: Database already initialized by Plugin.onload() in Phase 1
+**Trigger**: Database initialization starts in Phase 1 and StorageContext awaits readiness
 
 1. StorageContext retrieves the shared database instance.
-   - Calls `getDBInstance()` (singleton created during plugin load).
-   - Awaits `db.init()` and sets `isIndexedDBReady` on success.
+   - Calls `getDBInstance()` and awaits `db.init()` (`useIndexedDBReady`).
    - Logs and keeps the flag false if initialization fails.
 2. `IndexedDBStorage.init()` handles schema and content version checks.
    - Reads stored versions from vault-scoped localStorage.
-   - Deletes the database when `DB_SCHEMA_VERSION` changes.
-   - Marks a rebuild when only `DB_CONTENT_VERSION` changes.
+   - Runs schema upgrades via `onupgradeneeded` and deletes the database on schema downgrades or open errors.
+   - Clears stores when version markers are missing or `DB_CONTENT_VERSION` changes.
    - Persists the current versions back to localStorage.
 3. Database opening and cache hydration:
    - Rebuilds start with an empty `MemoryFileCache`.
    - Warm boots load all records into the cache for synchronous access.
-4. StorageContext creates a `ContentProviderRegistry` once and registers the preview, feature image, metadata, and tag
-   providers.
+4. StorageContext creates a `ContentProviderRegistry` once and registers:
+   - `MarkdownPipelineContentProvider` (`markdownPipeline`)
+   - `FeatureImageContentProvider` (`fileThumbnails`)
+   - `MetadataContentProvider` (`metadata`)
+   - `TagContentProvider` (`tags`)
 5. With `isIndexedDBReady` true, Phase 4 processing can begin.
 
 #### Cold Boot Path (database empty or cleared):
@@ -172,108 +181,71 @@ Both version changes result in a cold boot to ensure data consistency.
 **Trigger**: Database initialization completes (from Phase 3)
 
 This phase handles the initial synchronization between the vault and the database, then ensures metadata is ready for
-tag extraction:
+tag extraction and markdown pipeline processing:
 
-#### Shared Initial Steps:
+#### Initial load (`isInitialLoad=true`)
 
-1. StorageContext calls `processExistingCache()`.
-   - Cold boot: `isInitialLoad=true` runs synchronously.
-   - Warm boot: `isInitialLoad=false` defers work via zero-delay timeouts.
-2. Gather markdown files with `getFilteredMarkdownFiles()`.
-3. Calculate diffs through `calculateFileDiff()`.
-   - Cold boot: All files appear as new (database is empty)
-   - Warm boot: Compare against cached data to find changes
+1. Gather indexable files with `getIndexableFiles()` (`getFilteredMarkdownAndPdfFiles()`).
+2. Calculate diffs through `calculateFileDiff()`.
+   - Cold boot: all files appear as new (database cache is empty)
+   - Warm boot: compare against cached data to find new/modified files
+3. Apply the diff:
+   - Remove deleted paths via `removeFilesFromCache(toRemove)`.
+   - Upsert new/modified files via `recordFileChanges([...toAdd, ...toUpdate], cachedFiles, pendingRenameData)`.
+     - New files use `createDefaultFileData` (provider processed mtimes set to `0`, status fields set to `unprocessed`,
+       markdown `tags` set to `null`).
+     - Modified files patch the stored `mtime` without clearing existing provider outputs. Providers compare their
+       processed mtime fields (`markdownPipelineMtime`, `tagsMtime`, `metadataMtime`, `fileThumbnailsMtime`) against
+       `file.stat.mtime` to detect stale content.
+4. Rebuild tag tree via `rebuildTagTree()` (`buildTagTreeFromDatabase`).
+5. Mark storage as ready (`setIsStorageReady(true)` and `NotebookNavigatorAPI.setStorageReady(true)`).
+6. Queue content generation:
+   - Determine metadata-dependent provider types with `getMetadataDependentTypes(settings)` (`markdownPipeline`, `tags`, `metadata`).
+   - `queueMetadataContentWhenReady(markdownFiles, metadataDependentTypes, settings)` filters to files needing work, waits for
+     Obsidian's metadata cache (`resolved` and `changed`), then queues providers in `ContentProviderRegistry`.
+   - When `showFeatureImage` is enabled, queue the `fileThumbnails` provider for PDFs (filtered by `filterPdfFilesRequiringThumbnails`).
 
-#### Cold Boot Specific:
+#### Ongoing sync (`isInitialLoad=false`)
 
-4. Record all files in IndexedDB with basic metadata only
-   - Store path and mtime (modification time)
-   - Set content fields to null (tags, preview, featureImage, metadata)
-   - Null fields act as flags that content needs to be generated
-5. Sync MemoryFileCache with new database entries
-   - Updates the empty memory cache with the new file records
-6. Rebuild tag tree via `rebuildTagTree()` (`buildTagTreeFromDatabase`).
-   - Tree mirrors the empty database; counts remain zero until tags extract.
-
-#### Warm Boot Specific:
-
-4. Update IndexedDB based on diff results:
-   - Add new files with null content fields (recordFileChanges)
-   - Don't update entries for modified files (keeps old mtime in database)
-   - The mtime difference (file.mtime != db.mtime) triggers content regeneration later
-   - Remove deleted files (removeFilesFromCache)
-5. Sync MemoryFileCache with any database changes
-   - Cache already loaded in Phase 3, just sync changes
-6. Rebuild tag tree only when deletions occur.
-   - Otherwise preserve counts already cached in memory.
-
-#### Shared Final Steps:
-
-7. Mark storage as ready (`setIsStorageReady(true)` and `NotebookNavigatorAPI.setStorageReady(true)`).
-   - Cold boot: UI renders with folder/file lists while content fields remain empty.
-   - Warm boot: Cached previews, tags, and metadata remain visible immediately.
-8. When tags are enabled, identify files with `tags === null` and call `waitForMetadataCache()`.
-   - Subscribes to Obsidian's `resolved` and `changed` events.
-   - Queues tag extraction once metadata exists for every tracked file.
-9. Determine metadata-dependent content types with `getMetadataDependentTypes()`.
-   - `queueMetadataContentWhenReady()` holds back tag, feature image, and metadata providers until metadata is
-     available.
-   - Preview generation (and other non-dependent providers) runs immediately.
-10. Begin background processing (see Phase 5).
-    - Cold boot: all files have pending work across providers.
-    - Warm boot: only changed or missing records are queued.
+- Vault events debounce a cache rebuild.
+- Diff processing is deferred with a zero-delay `setTimeout` and uses the same `calculateFileDiff` + `recordFileChanges` /
+  `removeFilesFromCache` flow.
+- When files are removed and tags are enabled, tag tree rebuild is scheduled.
 
 #### Data Flow Diagram
 
-The metadata cache resolution and tag extraction process is managed by the `waitForMetadataCache` function in
-StorageContext:
+The metadata cache gating is managed by `queueMetadataContentWhenReady()` (which uses `waitForMetadataCache`) and queues
+metadata-dependent providers once Obsidian metadata cache entries exist:
 
 ```mermaid
 graph TD
-    Start[From Phase 3:<br/>Database & Providers Ready] --> A
+    Start["From Phase 3:<br/>Database & Providers ready"] --> A["processExistingCache (initial)"]
 
-    subgraph "Shared Initial Steps"
-        A[processExistingCache] --> B[getFilteredMarkdownFiles]
-        B --> C[calculateFileDiff]
-    end
+    A --> B["getIndexableFiles<br/>(markdown + PDFs)"]
+    B --> C[calculateFileDiff]
 
-    C --> D{Boot Type}
+    C --> D["removeFilesFromCache (toRemove)"]
+    C --> E["recordFileChanges (toAdd/toUpdate)"]
 
-    subgraph "Cold Boot Path"
-        E[All files new] --> F[recordFileChanges]
-        F --> G[sync MemoryFileCache]
-        G --> H[rebuildTagTree]
-    end
+    D --> F[rebuildTagTree]
+    E --> F
 
-    subgraph "Warm Boot Path"
-        I[Diff results] --> J[record updates & removals]
-        J --> K[sync MemoryFileCache]
-        K --> L[rebuild tag tree if files removed]
-    end
+    F --> G[Mark storage ready<br/>notify API]
 
-    D -->|Cold| E
-    D -->|Warm| I
+    G --> H{Metadata-dependent types enabled?}
+    H -->|Yes| I[queueMetadataContentWhenReady]
+    I --> J["waitForMetadataCache<br/>(resolved/changed)"]
+    J --> K["Queue markdownPipeline/tags/metadata providers"]
+    H -->|No| L[Skip metadata gating]
 
-    H --> M
-    L --> M
+    G --> M{Show feature images?}
+    M -->|Yes| N[Queue fileThumbnails for PDFs]
+    M -->|No| O[Skip PDF thumbnails]
 
-    subgraph "Shared Final Steps"
-        M[Mark storage ready<br/>notify API]
-        M --> N[Queue preview provider immediately]
-        M --> O{Tags enabled?}
-        O -->|Yes| P[waitForMetadataCache]
-        P --> Q[Queue tag provider when metadata arrives]
-        O -->|No| R[Skip tag gating]
-        M --> S[Resolve metadata-dependent types]
-        S --> T{Any gated types?}
-        T -->|Yes| U[queueMetadataContentWhenReady]
-        U --> V[Schedule metadata/feature image providers]
-        T -->|No| R
-        R --> W[Enter Phase 5]
-        V --> W
-        Q --> W
-        N --> W
-    end
+    K --> P[Enter Phase 5]
+    N --> P
+    L --> P
+    O --> P
 ```
 
 #### Metadata Cleanup
@@ -309,23 +281,22 @@ See `MetadataService.cleanupAllMetadata()` and `MetadataService.getCleanupSummar
 Content is generated asynchronously in the background by the ContentProviderRegistry and individual providers:
 
 1. **File Detection**: Each provider checks if files need processing
-   - TagContentProvider: Checks if tags are null or file modified
-   - PreviewContentProvider: Checks if preview is null or file modified
-   - FeatureImageContentProvider: Checks if featureImage is null or file modified
-   - MetadataContentProvider: Checks if metadata is null or file modified
+   - TagContentProvider: `tags === null` or `tagsMtime !== file.stat.mtime`
+   - MarkdownPipelineContentProvider: `markdownPipelineMtime !== file.stat.mtime`, `previewStatus/featureImageStatus === 'unprocessed'`, or `customProperty === null`
+   - FeatureImageContentProvider: `fileThumbnailsMtime !== file.stat.mtime` or missing/mismatched `featureImageKey`
+   - MetadataContentProvider: `metadata === null` or `metadataMtime !== file.stat.mtime`
 
 2. **Queue Management**: Files are queued based on enabled settings
    - ContentProviderRegistry manages the queue
    - Processes files in batches to avoid blocking UI
    - Uses deferred scheduling for background processing
-   - `queueMetadataContentWhenReady()` delays metadata-dependent providers until Obsidian's metadata cache has entries
+   - `queueMetadataContentWhenReady()` delays metadata-dependent providers (markdown pipeline, tags, metadata) until Obsidian's metadata cache has entries
 
 3. **Processing**: Each provider processes files independently
-   - TagContentProvider: Extracts tags from app.metadataCache.getFileCache()
-   - PreviewContentProvider: Reads file content via app.vault.cachedRead()
-   - FeatureImageContentProvider: Checks frontmatter properties via app.metadataCache.getFileCache(), falls back to
-     checking embedded images using app.metadataCache.getFirstLinkpathDest()
-   - MetadataContentProvider: Extracts custom frontmatter fields from app.metadataCache.getFileCache()
+   - TagContentProvider: Extracts tags from Obsidian's metadata cache (`getAllTags(metadata)`)
+   - MarkdownPipelineContentProvider: Uses metadata cache for frontmatter/offsets, reads markdown content when needed, runs preview/custom property/feature image processors
+   - FeatureImageContentProvider: Generates thumbnails for non-markdown files (PDF cover thumbnails)
+   - MetadataContentProvider: Extracts configured frontmatter fields and hidden state from Obsidian's metadata cache
 
 4. **Database Updates**: Results stored in IndexedDB
    - Each provider returns updates to IndexedDBStorage
@@ -382,7 +353,6 @@ across vault events and UI updates to coalesce rapid event bursts and avoid redu
 7. Call `shutdownDatabase()` to:
    - Close the IndexedDB connection
    - Clear the in-memory cache
-   - Reset the singleton instance
    - Keep the operation idempotent for repeated unloads
 
 ### Phase 2: View Cleanup (NotebookNavigatorView.tsx)
@@ -392,6 +362,7 @@ across vault events and UI updates to coalesce rapid event bursts and avoid redu
 1. Remove CSS classes from container:
    - notebook-navigator
    - notebook-navigator-mobile (if applicable)
+   - notebook-navigator-android / notebook-navigator-ios (if applicable)
 2. Unmount React root:
    - Call root.unmount()
    - Set root to null

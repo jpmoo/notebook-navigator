@@ -31,21 +31,17 @@ import { resolveUXIcon } from '../utils/uxIcons';
 
 interface NavigationPaneHeaderProps {
     onTreeUpdateComplete?: () => void;
-    onTogglePinnedShortcuts?: () => void;
     onToggleRootFolderReorder?: () => void;
     rootReorderActive?: boolean;
     rootReorderDisabled?: boolean;
-    pinToggleLabel?: string;
     showVaultTitleInHeader: boolean;
 }
 
 export function NavigationPaneHeader({
     onTreeUpdateComplete,
-    onTogglePinnedShortcuts,
     onToggleRootFolderReorder,
     rootReorderActive,
     rootReorderDisabled,
-    pinToggleLabel,
     showVaultTitleInHeader
 }: NavigationPaneHeaderProps) {
     const { isMobile, plugin } = useServices();
@@ -65,7 +61,6 @@ export function NavigationPaneHeader({
     // Detects if any hidden folders, tags, or files are configured to determine if toggle should be shown
     const hasHiddenItems = hasHiddenItemSources(settings);
     const navigationVisibility = settings.toolbarVisibility.navigation;
-    const showShortcutsButton = settings.showShortcuts && navigationVisibility.shortcuts;
     const showExpandCollapseButton = navigationVisibility.expandCollapse;
     const showHiddenItemsButton = navigationVisibility.hiddenItems && hasHiddenItems;
     const showRootReorderButton = navigationVisibility.rootReorder;
@@ -145,23 +140,6 @@ export function NavigationPaneHeader({
                     {profileTrigger}
                 </div>
                 <div className="nn-header-actions">
-                    {showShortcutsButton ? (
-                        <button
-                            className={`nn-icon-button ${uiState.pinShortcuts ? 'nn-icon-button-active' : ''}`}
-                            aria-label={
-                                pinToggleLabel ??
-                                (uiState.pinShortcuts ? strings.navigationPane.unpinShortcuts : strings.navigationPane.pinShortcuts)
-                            }
-                            onClick={() => {
-                                if (onTogglePinnedShortcuts) {
-                                    onTogglePinnedShortcuts();
-                                }
-                            }}
-                            tabIndex={-1}
-                        >
-                            <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'nav-shortcuts')} />
-                        </button>
-                    ) : null}
                     {showExpandCollapseButton ? (
                         <button
                             className="nn-icon-button"

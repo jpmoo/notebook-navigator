@@ -22,33 +22,27 @@ import { useUXPreferences } from '../context/UXPreferencesContext';
 import { strings } from '../i18n';
 import { ServiceIcon } from './ServiceIcon';
 import { useNavigationActions } from '../hooks/useNavigationActions';
-import { useUIState } from '../context/UIStateContext';
 import { hasHiddenItemSources } from '../utils/exclusionUtils';
 import { runAsyncAction } from '../utils/async';
 import { resolveUXIcon } from '../utils/uxIcons';
 
 interface NavigationToolbarProps {
     onTreeUpdateComplete?: () => void;
-    onTogglePinnedShortcuts?: () => void;
     onToggleRootFolderReorder?: () => void;
     rootReorderActive?: boolean;
     rootReorderDisabled?: boolean;
-    pinToggleLabel?: string;
 }
 
 export function NavigationToolbar({
     onTreeUpdateComplete,
-    onTogglePinnedShortcuts,
     onToggleRootFolderReorder,
     rootReorderActive,
-    rootReorderDisabled,
-    pinToggleLabel
+    rootReorderDisabled
 }: NavigationToolbarProps) {
     const settings = useSettingsState();
     const uxPreferences = useUXPreferences();
     const showHiddenItems = uxPreferences.showHiddenItems;
     const selectionState = useSelectionState();
-    const uiState = useUIState();
     const navigationVisibility = settings.toolbarVisibility.navigation;
 
     // Hook providing shared navigation actions (expand/collapse, folder creation, toggle visibility)
@@ -56,15 +50,12 @@ export function NavigationToolbar({
     // Detects if any hidden folders, tags, or files are configured to determine if toggle should be shown
     const hasHiddenItems = hasHiddenItemSources(settings);
 
-    const showShortcutsButton = settings.showShortcuts && navigationVisibility.shortcuts;
     const showExpandCollapseButton = navigationVisibility.expandCollapse;
     const showHiddenItemsButton = navigationVisibility.hiddenItems && hasHiddenItems;
     const showRootReorderButton = navigationVisibility.rootReorder;
     const showNewFolderButton = navigationVisibility.newFolder;
 
-    const leftButtonCount = [showShortcutsButton, showExpandCollapseButton, showHiddenItemsButton, showRootReorderButton].filter(
-        Boolean
-    ).length;
+    const leftButtonCount = [showExpandCollapseButton, showHiddenItemsButton, showRootReorderButton].filter(Boolean).length;
     const totalButtonCount = leftButtonCount + (showNewFolderButton ? 1 : 0);
     const leftGroupClassName = leftButtonCount === 1 ? 'nn-mobile-toolbar-circle' : 'nn-mobile-toolbar-pill';
     const leftButtonBaseClassName =
@@ -79,19 +70,6 @@ export function NavigationToolbar({
             <div className="nn-mobile-toolbar-left">
                 {leftButtonCount > 0 ? (
                     <div className={leftGroupClassName}>
-                        {showShortcutsButton ? (
-                            <button
-                                className={`${leftButtonBaseClassName}${uiState.pinShortcuts ? ' nn-mobile-toolbar-button-active' : ''}`}
-                                aria-label={
-                                    pinToggleLabel ??
-                                    (uiState.pinShortcuts ? strings.navigationPane.unpinShortcuts : strings.navigationPane.pinShortcuts)
-                                }
-                                onClick={onTogglePinnedShortcuts}
-                                tabIndex={-1}
-                            >
-                                <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'nav-shortcuts')} />
-                            </button>
-                        ) : null}
                         {showExpandCollapseButton ? (
                             <button
                                 className={leftButtonBaseClassName}

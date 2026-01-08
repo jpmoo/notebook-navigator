@@ -134,7 +134,7 @@ body {
 
     /* Minimum widths for panes */
     --nn-navigation-pane-min-width: 150px; /* Minimum width for navigation pane */
-    --nn-list-pane-min-width: 250px; /* Minimum width for list pane */
+    --nn-list-pane-min-width: 150px; /* Minimum width for list pane */
     --nn-navigation-pane-min-height: 160px; /* Minimum height for navigation pane (vertical split) */
     --nn-list-pane-min-height: 250px; /* Minimum height for list pane (vertical split) */
 
@@ -142,11 +142,13 @@ body {
        Notebook Navigator Theme Variables
        ======================================================================== */
 
+    /* -- Pane Overlay Stacks -- */
+    /* Overlay stacks (header/search/title) rendered above scrolling content */
+    --nn-theme-pane-overlay-opacity: 85;
+    --nn-theme-pane-overlay-filter: blur(3px) saturate(160%);
+
     /* -- Navigation Pane -- */
     --nn-theme-nav-bg: var(--background-secondary);
-    /* Overlay stack (header/banner/pinned shortcuts) rendered above the tree rows */
-    --nn-theme-nav-overlay-opacity: 85;
-    --nn-theme-nav-overlay-filter: blur(3px) saturate(160%);
     --nn-theme-nav-separator-color: var(--text-muted);
     --nn-theme-nav-separator-background: linear-gradient(
         90deg,
@@ -199,9 +201,6 @@ body {
 
     /* -- List Pane (Files) -- */
     --nn-theme-list-bg: var(--background-primary);
-    /* Overlay stack (header/search/title) rendered above file rows */
-    --nn-theme-list-overlay-opacity: 85;
-    --nn-theme-list-overlay-filter: blur(3px) saturate(160%);
     --nn-theme-list-header-icon-color: var(--text-muted);
     --nn-theme-list-header-breadcrumb-color: var(--text-muted);
     --nn-theme-list-header-breadcrumb-font-weight: 600;
@@ -221,6 +220,8 @@ body {
     --nn-theme-file-tag-color: var(--text-muted);
     --nn-theme-file-tag-custom-color-text-color: var(--nn-theme-navitem-name-color);
     --nn-theme-file-tag-bg: var(--background-modifier-border);
+    --nn-theme-file-custom-property-color: var(--nn-theme-file-tag-color);
+    --nn-theme-file-custom-property-bg: var(--nn-theme-file-tag-bg);
     --nn-theme-file-tag-border-radius: 10px;
     --nn-theme-file-border-radius: 8px;
     --nn-theme-file-selected-bg: var(--text-selection);

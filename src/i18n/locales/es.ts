@@ -412,6 +412,17 @@ export const STRINGS_ES = {
                 add: 'para añadir etiqueta',
                 remove: 'para eliminar etiqueta'
             }
+        },
+        welcome: {
+            title: 'Bienvenido a {pluginName}',
+            introText:
+                '¡Hola! Antes de comenzar, te recomiendo que veas los primeros cinco minutos del video a continuación para entender cómo funcionan los paneles y el interruptor "Mostrar notas de subcarpetas".',
+            continueText:
+                'Si tienes cinco minutos más, continúa viendo el video para entender los modos de visualización compacta y cómo configurar correctamente los accesos directos y las teclas de acceso rápido importantes.',
+            thanksText: '¡Muchas gracias por descargar y disfruta!',
+            videoAlt: 'Instalando y dominando Notebook Navigator',
+            openVideoButton: 'Reproducir video',
+            closeButton: 'Lo veré más tarde'
         }
     },
 
@@ -632,6 +643,7 @@ export const STRINGS_ES = {
                 previewText: 'Texto de vista previa',
                 featureImage: 'Imagen destacada',
                 tags: 'Etiquetas',
+                customProperty: 'Custom property',
                 date: 'Fecha',
                 parentFolder: 'Carpeta superior'
             }
@@ -1012,6 +1024,24 @@ export const STRINGS_ES = {
                 name: 'Mostrar etiquetas de archivo en modo compacto',
                 desc: 'Mostrar etiquetas cuando la fecha, vista previa e imagen están ocultas.'
             },
+            customPropertyType: {
+                name: 'Type',
+                desc: 'Select the custom property to display in file items.',
+                options: {
+                    frontmatter: 'Frontmatter property',
+                    wordCount: 'Word count',
+                    none: 'None'
+                }
+            },
+            customPropertyFrontmatterFields: {
+                name: 'Frontmatter properties',
+                desc: 'Comma-separated list of frontmatter properties to display. The first property with a value is used.',
+                placeholder: 'status, type, category'
+            },
+            showCustomPropertyInCompactMode: {
+                name: 'Show custom property in compact mode',
+                desc: 'Display the custom property when date, preview, and image are hidden.'
+            },
             dateFormat: {
                 name: 'Formato de fecha',
                 desc: 'Formato para mostrar fechas (usa formato date-fns).',
@@ -1329,6 +1359,10 @@ export const STRINGS_ES = {
                 name: 'Novedades en Notebook Navigator {version}',
                 desc: 'Ver actualizaciones y mejoras recientes',
                 buttonText: 'Ver actualizaciones recientes'
+            },
+            masteringVideo: {
+                name: 'Dominar Notebook Navigator (vídeo)',
+                desc: 'Este vídeo cubre todo lo que necesitas para ser productivo en Notebook Navigator, incluyendo atajos de teclado, búsqueda, etiquetas y personalización avanzada.'
             },
             cacheStatistics: {
                 localCache: 'Caché local',

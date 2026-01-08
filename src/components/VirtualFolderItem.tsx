@@ -38,7 +38,7 @@
  *    - Virtual folder icons are defined in the virtualFolder prop
  *
  * 5. Minimal overhead:
- *    - No file operations or context menus
+ *    - No file operations
  *    - No tooltip functionality needed
  *    - Pure presentational component
  */
@@ -47,7 +47,7 @@ import React, { useRef, useEffect, useCallback, useMemo } from 'react';
 import type { DragEvent } from 'react';
 import { useSettingsState } from '../context/SettingsContext';
 import { getIconService, useIconServiceVersion } from '../services/icons';
-import { VirtualFolder } from '../types';
+import { SHORTCUTS_VIRTUAL_FOLDER_ID, VirtualFolder } from '../types';
 import { useUXPreferences } from '../context/UXPreferencesContext';
 import type { NoteCountInfo } from '../types/noteCounts';
 import { buildNoteCountDisplay } from '../utils/noteCountFormatting';
@@ -65,6 +65,7 @@ interface VirtualFolderItemProps {
     showFileCount?: boolean; // Whether to render note count badge
     countInfo?: NoteCountInfo; // Pre-computed note counts
     searchMatch?: 'include' | 'exclude'; // Search highlight state
+    trailingAccessory?: React.ReactNode; // Optional trailing action, rendered after spacer
     onDragOver?: (event: DragEvent<HTMLDivElement>) => void; // Optional drag over handler for shortcuts
     onDrop?: (event: DragEvent<HTMLDivElement>) => void; // Optional drop handler for shortcuts
     onDragLeave?: (event: DragEvent<HTMLDivElement>) => void; // Optional drag leave handler for shortcuts
@@ -103,6 +104,7 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
     showFileCount = false,
     countInfo,
     searchMatch,
+    trailingAccessory,
     onToggle,
     onDragOver,
     onDrop,
@@ -141,6 +143,9 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
     // Build CSS class name with selection state
     const className = useMemo(() => {
         const classes = ['nn-navitem'];
+        if (virtualFolder.id === SHORTCUTS_VIRTUAL_FOLDER_ID) {
+            classes.push('nn-shortcut-header-item');
+        }
         if (isSelected) {
             classes.push('nn-selected');
         }
@@ -148,7 +153,7 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
             classes.push('nn-has-search-match');
         }
         return classes.join(' ');
-    }, [isSelected, searchMatch]);
+    }, [isSelected, searchMatch, virtualFolder.id]);
 
     const contentClassName = useMemo(() => buildSearchMatchContentClass(['nn-navitem-content'], searchMatch), [searchMatch]);
 
@@ -246,6 +251,7 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
                 <span className="nn-navitem-name">{virtualFolder.name}</span>
                 <span className="nn-navitem-spacer" />
                 {shouldDisplayCount && noteCountDisplay && <span className="nn-navitem-count">{noteCountDisplay.label}</span>}
+                {trailingAccessory}
             </div>
         </div>
     );

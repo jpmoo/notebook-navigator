@@ -24,6 +24,7 @@ import { TFile, TFolder } from 'obsidian';
 import type NotebookNavigatorPlugin from '../../main';
 import { strings } from '../../i18n';
 import { runAsyncAction } from '../../utils/async';
+import { NOTEBOOK_NAVIGATOR_ICON_ID } from '../../constants/notebookNavigatorIcon';
 import { removeHiddenFolderExactMatches, updateHiddenFolderExactMatches } from '../../utils/vaultProfiles';
 
 /**
@@ -86,7 +87,7 @@ export default function registerWorkspaceEvents(plugin: NotebookNavigatorPlugin)
             if (file instanceof TFolder) {
                 menu.addItem(item => {
                     item.setTitle(strings.plugin.revealInNavigator)
-                        .setIcon('lucide-notebook')
+                        .setIcon(NOTEBOOK_NAVIGATOR_ICON_ID)
                         .onClick(() => {
                             // Wrap folder navigation with error handling
                             runAsyncAction(async () => {
@@ -99,7 +100,7 @@ export default function registerWorkspaceEvents(plugin: NotebookNavigatorPlugin)
     );
 
     // Add ribbon icon to open the navigator
-    plugin.ribbonIconEl = plugin.addRibbonIcon('lucide-notebook', strings.plugin.ribbonTooltip, () => {
+    plugin.ribbonIconEl = plugin.addRibbonIcon(NOTEBOOK_NAVIGATOR_ICON_ID, strings.plugin.ribbonTooltip, () => {
         // Activate navigator view with error handling
         runAsyncAction(() => plugin.activateView());
     });

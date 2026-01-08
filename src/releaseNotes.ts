@@ -57,6 +57,8 @@ export interface ReleaseNote {
     date: string;
     /** If false, skip automatic modal display for this version during startup */
     showOnUpdate?: boolean;
+    /** Optional YouTube video URL shown above the release notes for this version */
+    youtubeUrl?: string;
     info?: string; // General information about the release, shown at top without bullets
     new?: string[];
     improved?: string[];
@@ -73,25 +75,50 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
+        version: '2.0.5',
+        date: '2026-01-12',
+        showOnUpdate: true,
+        new: [
+            'New settings: ==Notes > Custom property==. Display a custom property in the list pane - either a frontmatter property or word count.'
+        ],
+        improved: [
+            'Internal: Improved cache rebuild performance by slowing down tag tree updates during the process.',
+            'Internal: Major rewrite of the metadata processing chain. It is now a single sequential pipeline per file instead of multiple parallel providers. It reads markdown content at most once per file per run and writes just one merged database update per file. This should make the cache system handle vaults of virtually any size without memory spikes.'
+        ],
+        changed: [],
+        fixed: []
+    },
+    {
         version: '2.0.4',
         date: '2026-01-05',
         showOnUpdate: true,
+        youtubeUrl: 'https://www.youtube.com/watch?v=BewIlG8wLAM',
         new: [
             '==The user interface now has a slight transparency== for all overlay elements. This can be modified or disabled in Style Settings.',
-            'Two new theme variables: ==--nn-theme-nav-overlay-opacity== and ==--nn-theme-nav-overlay-filter== to control the new overlay opacity.',
-            'New setting: ==General > Vault title placement==. You can now show the vault title either in header or in the navigation pane (default).'
+            'New theme variables: ==--nn-theme-pane-overlay-opacity== and ==--nn-theme-pane-overlay-filter==. Set pane overlay stack opacity and backdrop filter.',
+            'When installing for the first time, new users will now be presented with a ==Welcome to Notebook Navigator modal== that helps them get started.',
+            'Settings > General now shows a link to the video =="Mastering Notebook Navigator"== on YouTube. The video has subtitles in 21 languages, the same as Notebook Navigator supports.',
+            'New setting: ==General > Vault title placement==. You can now show the vault title either in the header or in the navigation pane (new default).',
+            'Notebook Navigator now has its own icon! 🎉'
         ],
         improved: [
+            'Recent files are now saved per vault profile.',
+            'Feature images now treat .md files as Excalidraw drawings when **excalidraw-plugin** is set in frontmatter.',
             'You can now ==rename shortcuts== by right clicking and selecting "Rename shortcut".',
             'You can now quickly ==remove shortcuts by clicking on the (X)== on the right side of each shortcut.',
-            'Shortcuts and recent notes with truncated titles now show full title on hover with a tooltip.'
+            'Shortcuts and recent notes with truncated titles now show full title on hover with a tooltip.',
+            'List pane can now be shrunk down to 150px width, same as navigation pane.'
         ],
         changed: [
             '==Minimum required Obsidian version is now 1.8.7== due to the updated notice system.',
+            'The ==Pin shortcuts toolbar button was removed==. Pin shortcuts using the pin button next to the Shortcuts header, or right-click Shortcuts and select "Pin shortcuts".',
             'Changed the default navigation pane width from 300px to 200px so it is smaller than the default width for left panel. This should help with people not finding the list pane when enabling dual pane mode.',
             'Changed the Shortcuts icon to Star to keep it visually distinct from Obsidian Bookmarks.'
         ],
-        fixed: ['Fixed pinned shortcuts sometimes appearing blank on mobile after switching from editor to side pane.']
+        fixed: [
+            'Fixed pinned shortcuts sometimes appearing blank on mobile after switching from editor to side pane.',
+            'Duplicating a file now correctly selects the new file in the list pane.'
+        ]
     },
     {
         version: '2.0.3',

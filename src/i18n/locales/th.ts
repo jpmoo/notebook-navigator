@@ -412,6 +412,17 @@ export const STRINGS_TH = {
                 add: 'เพื่อเพิ่มแท็ก',
                 remove: 'เพื่อนำแท็กออก'
             }
+        },
+        welcome: {
+            title: 'ยินดีต้อนรับสู่ {pluginName}',
+            introText:
+                'สวัสดี! ก่อนเริ่มต้น ขอแนะนำอย่างยิ่งให้ดูวิดีโอด้านล่างห้านาทีแรกเพื่อทำความเข้าใจว่าแผงควบคุมและปุ่มสลับ "แสดงโน้ตจากโฟลเดอร์ย่อย" ทำงานอย่างไร',
+            continueText:
+                'หากคุณมีเวลาอีกห้านาที ให้ดูวิดีโอต่อเพื่อทำความเข้าใจโหมดแสดงผลแบบกะทัดรัดและวิธีตั้งค่าทางลัดและปุ่มลัดที่สำคัญอย่างถูกต้อง',
+            thanksText: 'ขอบคุณมากที่ดาวน์โหลด สนุกกับการใช้งาน!',
+            videoAlt: 'การติดตั้งและเชี่ยวชาญ Notebook Navigator',
+            openVideoButton: 'เล่นวิดีโอ',
+            closeButton: 'ไว้ดูทีหลัง'
         }
     },
     // File system operations
@@ -631,6 +642,7 @@ export const STRINGS_TH = {
                 previewText: 'ข้อความตัวอย่าง',
                 featureImage: 'รูปภาพเด่น',
                 tags: 'แท็ก',
+                customProperty: 'Custom property',
                 date: 'วันที่',
                 parentFolder: 'โฟลเดอร์หลัก'
             }
@@ -1010,6 +1022,24 @@ export const STRINGS_TH = {
                 name: 'แสดงแท็กไฟล์ในโหมดกะทัดรัด',
                 desc: 'แสดงแท็กเมื่อวันที่ ตัวอย่าง และรูปภาพถูกซ่อน'
             },
+            customPropertyType: {
+                name: 'Type',
+                desc: 'Select the custom property to display in file items.',
+                options: {
+                    frontmatter: 'Frontmatter property',
+                    wordCount: 'Word count',
+                    none: 'None'
+                }
+            },
+            customPropertyFrontmatterFields: {
+                name: 'Frontmatter properties',
+                desc: 'Comma-separated list of frontmatter properties to display. The first property with a value is used.',
+                placeholder: 'status, type, category'
+            },
+            showCustomPropertyInCompactMode: {
+                name: 'Show custom property in compact mode',
+                desc: 'Display the custom property when date, preview, and image are hidden.'
+            },
             dateFormat: {
                 name: 'รูปแบบวันที่',
                 desc: 'รูปแบบสำหรับแสดงวันที่ (ใช้รูปแบบ date-fns)',
@@ -1326,6 +1356,10 @@ export const STRINGS_TH = {
                 name: 'มีอะไรใหม่ใน Notebook Navigator {version}',
                 desc: 'ดูการอัปเดตและการปรับปรุงล่าสุด',
                 buttonText: 'ดูการอัปเดตล่าสุด'
+            },
+            masteringVideo: {
+                name: 'เชี่ยวชาญ Notebook Navigator (วิดีโอ)',
+                desc: 'วิดีโอนี้ครอบคลุมทุกสิ่งที่คุณต้องการเพื่อใช้งาน Notebook Navigator อย่างมีประสิทธิภาพ รวมถึงปุ่มลัด การค้นหา แท็ก และการปรับแต่งขั้นสูง'
             },
             cacheStatistics: {
                 localCache: 'แคชท้องถิ่น',

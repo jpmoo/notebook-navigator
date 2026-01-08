@@ -17,10 +17,12 @@
  */
 
 import { App, Modal } from 'obsidian';
+import { SUPPORT_BUY_ME_A_COFFEE_URL } from '../constants/urls';
 import { strings } from '../i18n';
 import { ReleaseNote } from '../releaseNotes';
 import { DateUtils } from '../utils/dateUtils';
 import { addAsyncEventListener } from '../utils/domEventListeners';
+import { getYoutubeThumbnailUrl, getYoutubeVideoId } from '../utils/youtubeUtils';
 
 export class WhatsNewModal extends Modal {
     private releaseNotes: ReleaseNote[];
@@ -95,6 +97,41 @@ export class WhatsNewModal extends Modal {
         }
     }
 
+    private renderYoutubeLink(container: HTMLElement, youtubeUrl: string): void {
+        const link = container.createEl('a', { cls: 'nn-whats-new-youtube-link' });
+        link.setAttr('href', youtubeUrl);
+        link.setAttr('rel', 'noopener noreferrer');
+        link.setAttr('target', '_blank');
+        link.setAttr('aria-label', strings.modals.welcome.openVideoButton);
+
+        const thumbnail = link.createDiv({ cls: 'nn-whats-new-youtube-thumbnail' });
+
+        const videoId = getYoutubeVideoId(youtubeUrl);
+        if (videoId) {
+            const image = thumbnail.createEl('img', { cls: 'nn-whats-new-youtube-image' });
+            image.setAttr('alt', strings.modals.welcome.openVideoButton);
+            image.setAttr('loading', 'lazy');
+
+            const primaryUrl = getYoutubeThumbnailUrl(videoId, 'maxresdefault.jpg');
+            const fallbackUrl = getYoutubeThumbnailUrl(videoId, 'hqdefault.jpg');
+
+            let usedFallback = false;
+            image.addEventListener('error', () => {
+                if (usedFallback) {
+                    return;
+                }
+                usedFallback = true;
+                image.src = fallbackUrl;
+            });
+
+            image.src = primaryUrl;
+        } else {
+            thumbnail.createDiv({ cls: 'nn-whats-new-youtube-placeholder', text: strings.modals.welcome.openVideoButton });
+        }
+
+        thumbnail.createDiv({ cls: 'nn-whats-new-youtube-play' }).setAttr('aria-hidden', 'true');
+    }
+
     constructor(app: App, releaseNotes: ReleaseNote[], dateFormat: string, onCloseCallback?: () => void) {
         super(app);
         this.releaseNotes = releaseNotes;
@@ -132,6 +169,10 @@ export class WhatsNewModal extends Modal {
                 text: formattedDate,
                 cls: 'nn-whats-new-date'
             });
+
+            if (note.youtubeUrl) {
+                this.renderYoutubeLink(versionContainer, note.youtubeUrl);
+            }
 
             // Show info text first if present (supports paragraphs and line breaks)
             if (note.info) {
@@ -199,7 +240,7 @@ export class WhatsNewModal extends Modal {
         });
         this.domDisposers.push(
             addAsyncEventListener(supportButton, 'click', () => {
-                window.open('https://www.buymeacoffee.com/johansan');
+                window.open(SUPPORT_BUY_ME_A_COFFEE_URL);
             })
         );
 

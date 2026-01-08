@@ -28,6 +28,19 @@ cd "$SCRIPT_DIR/.."
 BUILD_WARNINGS=0
 BUILD_ERRORS=0
 
+# Step 0: Generate icon constants (keeps src/constants/notebookNavigatorIcon.ts in sync with icon.svg)
+echo "Generating icon constants..."
+ICON_OUTPUT=$(npm run build:icons 2>&1)
+ICON_STATUS=$?
+echo "$ICON_OUTPUT"
+
+if [ $ICON_STATUS -ne 0 ]; then
+    echo "❌ Icon generation failed"
+    exit 1
+else
+    echo "✅ Icon constants generated"
+fi
+
 # Step 1: Run ESLint
 echo "Running ESLint..."
 ESLINT_OUTPUT=$(npm run lint 2>&1)

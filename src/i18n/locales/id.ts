@@ -412,6 +412,17 @@ export const STRINGS_ID = {
                 add: 'untuk menambah tag',
                 remove: 'untuk menghapus tag'
             }
+        },
+        welcome: {
+            title: 'Selamat datang di {pluginName}',
+            introText:
+                'Halo! Sebelum memulai, saya sangat menyarankan Anda menonton lima menit pertama video di bawah ini untuk memahami cara kerja panel dan tombol "Tampilkan catatan dari subfolder".',
+            continueText:
+                'Jika Anda memiliki waktu lima menit lagi, lanjutkan menonton video untuk memahami mode tampilan ringkas dan cara mengatur pintasan dan tombol pintasan penting dengan benar.',
+            thanksText: 'Terima kasih banyak telah mengunduh, selamat menggunakan!',
+            videoAlt: 'Menginstal dan menguasai Notebook Navigator',
+            openVideoButton: 'Putar video',
+            closeButton: 'Nanti saja'
         }
     },
     // File system operations
@@ -631,6 +642,7 @@ export const STRINGS_ID = {
                 previewText: 'Teks pratinjau',
                 featureImage: 'Gambar fitur',
                 tags: 'Tag',
+                customProperty: 'Custom property',
                 date: 'Tanggal',
                 parentFolder: 'Folder induk'
             }
@@ -1011,6 +1023,24 @@ export const STRINGS_ID = {
                 name: 'Tampilkan tag file dalam mode kompak',
                 desc: 'Tampilkan tag saat tanggal, pratinjau, dan gambar disembunyikan.'
             },
+            customPropertyType: {
+                name: 'Type',
+                desc: 'Select the custom property to display in file items.',
+                options: {
+                    frontmatter: 'Frontmatter property',
+                    wordCount: 'Word count',
+                    none: 'None'
+                }
+            },
+            customPropertyFrontmatterFields: {
+                name: 'Frontmatter properties',
+                desc: 'Comma-separated list of frontmatter properties to display. The first property with a value is used.',
+                placeholder: 'status, type, category'
+            },
+            showCustomPropertyInCompactMode: {
+                name: 'Show custom property in compact mode',
+                desc: 'Display the custom property when date, preview, and image are hidden.'
+            },
             dateFormat: {
                 name: 'Format tanggal',
                 desc: 'Format untuk menampilkan tanggal (menggunakan format date-fns).',
@@ -1327,6 +1357,10 @@ export const STRINGS_ID = {
                 name: 'Apa yang baru di Notebook Navigator {version}',
                 desc: 'Lihat pembaruan dan peningkatan terbaru',
                 buttonText: 'Lihat pembaruan terbaru'
+            },
+            masteringVideo: {
+                name: 'Menguasai Notebook Navigator (video)',
+                desc: 'Video ini membahas semua yang Anda butuhkan untuk produktif di Notebook Navigator, termasuk pintasan keyboard, pencarian, tag, dan kustomisasi lanjutan.'
             },
             cacheStatistics: {
                 localCache: 'Cache lokal',

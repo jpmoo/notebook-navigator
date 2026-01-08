@@ -20,8 +20,31 @@ import { FrontMatterCache } from 'obsidian';
 import { hasExcalidrawFrontmatterFlag, isExcalidrawFileName } from './fileNameUtils';
 import { NotebookNavigatorSettings } from '../settings';
 import { getRecordValue } from './typeGuards';
-import { findFencedCodeBlockRanges, findInlineCodeRanges, findRangeContainingIndex } from './codeRangeUtils';
+import {
+    collectVisibleTextSkippingFencedCodeBlocks,
+    findFencedCodeBlockRanges,
+    findInlineCodeRanges,
+    findRangeContainingIndex
+} from './codeRangeUtils';
 import { NumericRange } from './arrayUtils';
+
+/**
+ * Preview text extraction utilities.
+ *
+ * `extractPreviewText()` produces a single-line preview (max `MAX_PREVIEW_TEXT_LENGTH` chars) from:
+ * - the first non-empty frontmatter field in `settings.previewProperties` (if provided), otherwise
+ * - the note body with YAML frontmatter removed.
+ *
+ * The pipeline is designed to be bounded:
+ * - the source text is clipped to `PREVIEW_EXTENSION_LIMIT`
+ * - the final preview is truncated to `MAX_PREVIEW_TEXT_LENGTH`
+ *
+ * Content handling:
+ * - Inline code spans keep their content (backticks removed).
+ * - Fenced code blocks are either removed entirely or included as plain text (fence markers removed).
+ * - HTML tags/entities can be stripped/decoded while preserving code spans.
+ * - Blockquote `>` markers are removed so quoted headings/lists/tables/links are handled like normal text.
+ */
 
 // Maximum number of characters for preview text
 const MAX_PREVIEW_TEXT_LENGTH = 500;
@@ -29,11 +52,13 @@ const MAX_PREVIEW_TEXT_LENGTH = 500;
 const PREVIEW_SOURCE_SLACK = 400;
 // Allow limited overrun when extending clips to finish code spans
 const PREVIEW_EXTENSION_LIMIT = MAX_PREVIEW_TEXT_LENGTH + PREVIEW_SOURCE_SLACK * 2;
+// Maximum number of characters scanned when skipping fenced blocks while collecting visible text
+const PREVIEW_CODE_BLOCK_SCAN_LIMIT = PREVIEW_EXTENSION_LIMIT * 50;
 
 // Incremented each call to ensure placeholder strings are globally unique
 let placeholderSeed = 0;
 
-/** Generates a unique placeholder prefix using label, timestamp, and counter */
+/** Generates a placeholder base that is unique across calls in the current process. */
 function createPlaceholderBase(label: string): string {
     placeholderSeed += 1;
     return `@@NN_${label}_${Date.now().toString(36)}_${placeholderSeed}@@`;
@@ -136,38 +161,29 @@ const BASE_PATTERNS = [
     // characters may remain in the preview. We only special-case a few high-noise tokens in
     // stripTrailingIncompleteEmbeds().
     /\[([^\]]+)\]\([^)]+\)/.source,
-    // Group 22: Wiki links with display
-    // Example: [[Some Page|Display Text]] → Display Text
-    /\[\[[^\]|]+\|([^\]]+)\]\]/.source,
-    // Group 23: Wiki links
-    // Example: [[Some Page]] → Some Page
-    /\[\[([^\]]+)\]\]/.source,
-    // Group 24: Callout titles (supports [!...] and [!...]+/-)
+    // Group 22: Callout titles (supports [!...] and [!...]+/-)
     // Examples:
     // [!info] Optional title → (removed)
     // [!info]+ Optional title → (removed)
     // [!info]- Optional title → (removed)
     /\[![\w-]+\][+-]?(?:\s+[^\n]*)?/.source,
-    // Group 25: List markers - remove marker prefix while keeping text
+    // Group 23: List markers - remove marker prefix while keeping text
     // Example: - List item → List item, 1. Item → Item
     /^(?:[-*+]\s+|\d+\.\s+)/.source,
-    // Group 26: Blockquotes - remove marker while keeping text
-    // Example: > Quote → Quote, >Quote → Quote
-    /^>\s?.*$/m.source,
-    // Group 27: Heading markers (always strip the # symbols, keep the text)
+    // Group 24: Heading markers (always strip the # symbols, keep the text)
     // Example: # Title → Title, ## Section → Section
     /^(#+)\s+(.*)$/m.source,
-    // Group 28: Markdown tables - matches table rows (lines with pipes)
+    // Group 25: Markdown tables - matches table rows (lines with pipes)
     // Example: | Header | Another | → (removed)
     // This captures lines that start with optional whitespace, then |, and contain at least one more |
     /^\s*\|.*\|.*$/m.source,
-    // Group 29: Inline footnotes
+    // Group 26: Inline footnotes
     // Example: text ^[detail] → text
     /\^\[[^\]]*?]/.source,
-    // Group 30: Footnote references
+    // Group 27: Footnote references
     // Example: reference[^1] → reference
     /\[\^[^\]]+]/.source,
-    // Group 31: Footnote definitions
+    // Group 28: Footnote definitions
     // Example: [^1]: Footnote text → (removed)
     /^\s*\[\^[^\]]+]:.*$/m.source
 ];
@@ -175,8 +191,13 @@ const BASE_PATTERNS = [
 // Regex without heading removal
 const REGEX_STRIP_MARKDOWN = new RegExp(BASE_PATTERNS.join('|'), 'gm');
 
-// Both regexes are now the same since heading handling is in the replacement logic
-const REGEX_STRIP_MARKDOWN_WITH_HEADINGS = REGEX_STRIP_MARKDOWN;
+/**
+ * Strips blockquote markers at the start of each line.
+ *
+ * This follows CommonMark's "up to 3 leading spaces" rule and removes multiple nested `>` markers
+ * (e.g. `> > text`).
+ */
+const REGEX_BLOCKQUOTE_MARKERS = /^\s{0,3}(?:>\s*)+/gm;
 
 /** Removes HTML tags from a chunk of text, preserving inner text content */
 function stripHtmlFromChunk(chunk: string): string {
@@ -248,6 +269,146 @@ function collapseWhitespace(text: string): string {
     return text.split(/\s+/).filter(Boolean).join(' ').trim();
 }
 
+/**
+ * Counts how many leading blockquote markers a line starts with.
+ *
+ * Supports lines like:
+ * - `> text` (depth 1)
+ * - `> > text` (depth 2)
+ * - `>> text` is treated as depth 2
+ */
+function countLeadingBlockquoteMarkers(line: string): number {
+    const trimmed = line.trimStart();
+    if (!trimmed.startsWith('>')) {
+        return 0;
+    }
+
+    let index = 0;
+    let depth = 0;
+
+    while (index < trimmed.length) {
+        if (trimmed[index] !== '>') {
+            break;
+        }
+
+        depth += 1;
+        index += 1;
+
+        while (index < trimmed.length && (trimmed[index] === ' ' || trimmed[index] === '\t')) {
+            index += 1;
+        }
+
+        if (index >= trimmed.length || trimmed[index] !== '>') {
+            break;
+        }
+    }
+
+    return depth;
+}
+
+/**
+ * Removes `depth` leading blockquote markers from a line, preserving the remainder.
+ *
+ * This only strips the leading prefix and does not attempt to normalize whitespace in the remainder.
+ */
+function stripLeadingBlockquoteMarkers(line: string, depth: number): string {
+    if (depth <= 0) {
+        return line;
+    }
+
+    let index = 0;
+    while (index < line.length && (line[index] === ' ' || line[index] === '\t')) {
+        index += 1;
+    }
+
+    let remaining = depth;
+    while (remaining > 0 && index < line.length) {
+        if (line[index] !== '>') {
+            break;
+        }
+
+        index += 1;
+        while (index < line.length && (line[index] === ' ' || line[index] === '\t')) {
+            index += 1;
+        }
+
+        remaining -= 1;
+    }
+
+    return line.slice(index);
+}
+
+/**
+ * Removes a consistent blockquote prefix from each line of a fenced code block.
+ *
+ * This is used when a fenced block is inside a blockquote (e.g. `> ```js`).
+ * The function only strips when the first line becomes a fence after removing the blockquote prefix.
+ */
+function stripBlockquotePrefixFromFencedBlock(block: string): string {
+    const firstNewline = block.indexOf('\n');
+    const firstLine = firstNewline === -1 ? block : block.slice(0, firstNewline);
+    const depth = countLeadingBlockquoteMarkers(firstLine);
+    if (depth === 0) {
+        return block;
+    }
+
+    const strippedFenceLine = stripLeadingBlockquoteMarkers(firstLine, depth).trimStart();
+    if (!/^[`~]{3,}/u.test(strippedFenceLine)) {
+        return block;
+    }
+
+    const lines = block.split(/\r?\n/);
+    const strippedLines = lines.map(line => stripLeadingBlockquoteMarkers(line, depth));
+    return strippedLines.join('\n');
+}
+
+/**
+ * Returns the display text that should appear for a wiki link payload.
+ *
+ * Input is the raw content inside `[[...]]`. Behavior:
+ * - `[[Page]]` → `Page`
+ * - `[[Page|Alias]]` → `Alias`
+ * - `[[Page|]]` → `Page`
+ * - `[[#Heading]]` → `Heading`
+ */
+function normalizeWikiLinkDisplayText(rawLinkText: string): string {
+    const trimmed = rawLinkText.trim();
+    if (!trimmed) {
+        return '';
+    }
+
+    const pipeIndex = trimmed.indexOf('|');
+    if (pipeIndex === -1) {
+        return trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
+    }
+
+    const displayText = trimmed.slice(pipeIndex + 1).trim();
+    if (displayText.length > 0) {
+        return displayText;
+    }
+
+    const fallback = trimmed.slice(0, pipeIndex).trim();
+    return fallback.startsWith('#') ? fallback.slice(1) : fallback;
+}
+
+/**
+ * Removes wiki-embed syntax and replaces wiki-link syntax with display text.
+ *
+ * This is applied as a post-pass because other markdown patterns can unwrap formatting first and
+ * expose `[[...]]` tokens to later steps (e.g. `**[[Page]]**`).
+ */
+function replaceWikiLinkSyntax(text: string): string {
+    if (!text.includes('[[')) {
+        return text;
+    }
+
+    const withoutEmbeds = text.replace(/!\[\[[^\]\n\r]*?\]\]/g, ' ');
+    return withoutEmbeds.replace(/\[\[[^\]\n\r]*?\]\]/g, match => {
+        const normalized = normalizeWikiLinkDisplayText(match.slice(2, -2));
+        return normalized.length > 0 ? normalized : ' ';
+    });
+}
+
 /** Strips leading and trailing backticks from an inline code span */
 function stripInlineCodeFence(span: string): string {
     let contentStart = 0;
@@ -266,6 +427,12 @@ function stripInlineCodeFence(span: string): string {
 /** Removes YAML frontmatter block from the start of content */
 function removeFrontmatter(content: string): string {
     return content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '');
+}
+
+/** Removes task checkbox markers and horizontal rule lines while preserving surrounding text. */
+function stripTaskCheckboxesAndHorizontalRules(text: string): string {
+    const withoutTaskCheckboxes = text.replace(/^\s*(?:[-*+]\s+|\d+\.\s+)?\[(?: |x|X|\/|-)?\]\]?\s*/gm, '');
+    return withoutTaskCheckboxes.replace(/^\s*([*_-])(?:\s*\1){2,}\s*$/gm, '');
 }
 
 /** Replaces inline code spans with their unwrapped content (backticks removed) */
@@ -306,29 +473,21 @@ function combineCodeRanges(context: CodeRangeContext, includeInline: boolean, in
     return combined;
 }
 
-/** Strips HTML tags from text while preserving code segments and remapping their ranges */
-function stripHtmlOutsideCode(
+function transformOutsideCodeSegments(
     text: string,
     context: CodeRangeContext,
-    options?: HtmlStripOptions & { enabled?: boolean }
+    options: {
+        includeInline: boolean;
+        includeFenced: boolean;
+        transform: (chunk: string) => string;
+        contextWhenNoRanges: CodeRangeContext;
+    }
 ): { text: string; context: CodeRangeContext } {
-    const enabled = options?.enabled ?? true;
-    const preserveInlineCode = options?.preserveInlineCode ?? true;
-    const preserveFencedCode = options?.preserveFencedCode ?? true;
-
-    if (!enabled || !text.includes('<')) {
-        return { text, context };
-    }
-
-    if (!preserveInlineCode && !preserveFencedCode) {
-        return { text: stripHtmlFromChunk(text), context: { inlineCodeRanges: [], fencedCodeRanges: [] } };
-    }
-
-    const combined = combineCodeRanges(context, preserveInlineCode, preserveFencedCode);
+    const combined = combineCodeRanges(context, options.includeInline, options.includeFenced);
     if (combined.length === 0) {
         return {
-            text: stripHtmlFromChunk(text),
-            context: { inlineCodeRanges: [], fencedCodeRanges: [] }
+            text: options.transform(text),
+            context: options.contextWhenNoRanges
         };
     }
 
@@ -339,7 +498,7 @@ function stripHtmlOutsideCode(
 
     for (const range of combined) {
         if (range.start > cursor) {
-            result += stripHtmlFromChunk(text.slice(cursor, range.start));
+            result += options.transform(text.slice(cursor, range.start));
         }
 
         const segmentStart = result.length;
@@ -357,7 +516,7 @@ function stripHtmlOutsideCode(
     }
 
     if (cursor < text.length) {
-        result += stripHtmlFromChunk(text.slice(cursor));
+        result += options.transform(text.slice(cursor));
     }
 
     return {
@@ -367,6 +526,27 @@ function stripHtmlOutsideCode(
             fencedCodeRanges: mappedFenced
         }
     };
+}
+
+/** Strips HTML tags from text while preserving code segments and remapping their ranges */
+function stripHtmlOutsideCode(
+    text: string,
+    context: CodeRangeContext,
+    options?: HtmlStripOptions & { enabled?: boolean }
+): { text: string; context: CodeRangeContext } {
+    const enabled = options?.enabled ?? true;
+    const preserveInlineCode = options?.preserveInlineCode ?? true;
+    const preserveFencedCode = options?.preserveFencedCode ?? true;
+
+    if (!enabled || !text.includes('<')) {
+        return { text, context };
+    }
+    return transformOutsideCodeSegments(text, context, {
+        includeInline: preserveInlineCode,
+        includeFenced: preserveFencedCode,
+        transform: stripHtmlFromChunk,
+        contextWhenNoRanges: { inlineCodeRanges: [], fencedCodeRanges: [] }
+    });
 }
 
 /** Clips text and context ranges to the specified length */
@@ -429,7 +609,7 @@ function stripTrailingIncompleteEmbeds(result: { text: string; context: CodeRang
     }
 
     const markdownImageStart = candidate.lastIndexOf('![');
-    if (markdownImageStart !== -1 && !candidate.startsWith('![[', markdownImageStart)) {
+    if (markdownImageStart !== -1 && !candidate.startsWith('![[', markdownImageStart) && !isStartInCode(markdownImageStart)) {
         const markdownImageClose = candidate.indexOf(')', markdownImageStart + 2);
         if (markdownImageClose === -1) {
             sliceEnd = Math.min(sliceEnd, markdownImageStart);
@@ -492,105 +672,55 @@ function decodeHtmlEntitiesOutsideCode(text: string, context: CodeRangeContext):
     if (!text.includes('&')) {
         return { text, context };
     }
-
-    const combined = combineCodeRanges(context, true, true);
-    if (combined.length === 0) {
-        return { text: decodeHtmlEntitiesFromChunk(text), context };
-    }
-
-    let cursor = 0;
-    let result = '';
-    const mappedInline: NumericRange[] = [];
-    const mappedFenced: NumericRange[] = [];
-
-    for (const range of combined) {
-        if (range.start > cursor) {
-            result += decodeHtmlEntitiesFromChunk(text.slice(cursor, range.start));
-        }
-
-        const segmentStart = result.length;
-        const segment = text.slice(range.start, range.end);
-        result += segment;
-        const segmentEnd = result.length;
-
-        if (range.kind === 'inline') {
-            mappedInline.push({ start: segmentStart, end: segmentEnd });
-        } else {
-            mappedFenced.push({ start: segmentStart, end: segmentEnd });
-        }
-
-        cursor = range.end;
-    }
-
-    if (cursor < text.length) {
-        result += decodeHtmlEntitiesFromChunk(text.slice(cursor));
-    }
-
-    return {
-        text: result,
-        context: {
-            inlineCodeRanges: mappedInline,
-            fencedCodeRanges: mappedFenced
-        }
-    };
+    return transformOutsideCodeSegments(text, context, {
+        includeInline: true,
+        includeFenced: true,
+        transform: decodeHtmlEntitiesFromChunk,
+        contextWhenNoRanges: context
+    });
 }
 
-/** Collects visible text while skipping fenced blocks, stopping at maxVisibleLength. */
-function collectVisibleTextSkippingFencedBlocks(text: string, maxVisibleLength: number): string {
-    const fencePattern = /^(\s*)([`~]{3,}).*$/u;
-    let output = '';
-    let index = 0;
-    let inFence = false;
-    let fenceChar: string | null = null;
-    let fenceLength = 0;
-    let pendingSpaceAfterFence = false;
-
-    while (index < text.length && output.length < maxVisibleLength) {
-        const lineEnd = text.indexOf('\n', index);
-        const line = lineEnd === -1 ? text.slice(index) : text.slice(index, lineEnd);
-        const match = line.match(fencePattern);
-
-        if (!inFence) {
-            if (match && match[2]) {
-                inFence = true;
-                fenceChar = match[2][0] ?? null;
-                fenceLength = match[2].length;
-                pendingSpaceAfterFence = output.length > 0 && !/\s$/.test(output);
-            } else {
-                if (pendingSpaceAfterFence) {
-                    const firstChar = line[0] ?? '';
-                    if (firstChar && !/\s/.test(firstChar) && !/\s/.test(output[output.length - 1] ?? '')) {
-                        output += ' ';
-                    }
-                    pendingSpaceAfterFence = false;
-                }
-
-                const segment = lineEnd === -1 ? text.slice(index) : text.slice(index, lineEnd + 1);
-                const remaining = maxVisibleLength - output.length;
-                if (segment.length <= remaining) {
-                    output += segment;
-                } else {
-                    output += segment.slice(0, remaining);
-                    break;
-                }
-            }
-        } else if (match && match[2]) {
-            const matchChar = match[2][0] ?? null;
-            if (matchChar === fenceChar && match[2].length >= fenceLength) {
-                inFence = false;
-                fenceChar = null;
-                fenceLength = 0;
-                pendingSpaceAfterFence = true;
-            }
-        }
-
-        if (lineEnd === -1) {
-            break;
-        }
-        index = lineEnd + 1;
+function buildPreviewFromClippedSource(clipped: { text: string; context: CodeRangeContext }, settings: NotebookNavigatorSettings): string {
+    if (!clipped.text.trim()) {
+        return '';
     }
 
-    return output;
+    const htmlStep = settings.stripHtmlInPreview
+        ? stripHtmlOutsideCode(clipped.text, clipped.context, {
+              enabled: true,
+              preserveFencedCode: true
+          })
+        : clipped;
+    if (!htmlStep.text.trim()) {
+        return '';
+    }
+
+    const decodedStep = decodeHtmlEntitiesOutsideCode(htmlStep.text, htmlStep.context);
+    if (!decodedStep.text.trim()) {
+        return '';
+    }
+
+    const cleanedStep = stripTrailingIncompleteEmbeds(decodedStep);
+    if (!cleanedStep.text.trim()) {
+        return '';
+    }
+
+    const stripped = PreviewTextUtils.stripMarkdownSyntax(
+        cleanedStep.text,
+        settings.skipHeadingsInPreview,
+        settings.skipCodeBlocksInPreview,
+        cleanedStep.context
+    );
+    const preview = collapseWhitespace(stripped);
+    if (!preview) {
+        return '';
+    }
+
+    const maxChars = MAX_PREVIEW_TEXT_LENGTH;
+    if (preview.length > maxChars) {
+        return `${preview.substring(0, maxChars - 1)}…`;
+    }
+    return preview;
 }
 
 /** Replaces code segments with placeholders so markdown stripping does not alter code content */
@@ -618,12 +748,15 @@ function buildProtectedText(
         }
 
         if (range.kind === 'inline') {
+            // Inline code placeholders preserve the content while removing the wrapping backticks.
             const content = stripInlineCodeFence(text.slice(range.start, range.end));
             const placeholder = buildPlaceholder(inlineBase, inlineSegments.length);
             inlineSegments.push(content);
             protectedText += placeholder;
         } else {
             if (skipCodeBlocks) {
+                // When code blocks are skipped, they are removed entirely from the protected text.
+                // Whitespace is adjusted so surrounding words do not merge.
                 const hasLeadingSpace = protectedText.length > 0 && !/\s$/.test(protectedText);
                 const nextChar = text[range.end] ?? '';
                 const needsTrailingSpace = nextChar !== '' && !/\s/.test(nextChar);
@@ -633,6 +766,7 @@ function buildProtectedText(
                 cursor = range.end;
                 continue;
             }
+            // When code blocks are included, store the extracted inner content as a placeholder.
             const codeContent = PreviewTextUtils.extractCodeBlockContent(text.slice(range.start, range.end));
             const placeholder = buildPlaceholder(fencedBase, fencedSegments.length);
             fencedSegments.push(codeContent);
@@ -763,7 +897,9 @@ export class PreviewTextUtils {
         skipCodeBlocks: boolean = true,
         codeRangeContext?: CodeRangeContext
     ): string {
-        const regex = skipHeadings ? REGEX_STRIP_MARKDOWN_WITH_HEADINGS : REGEX_STRIP_MARKDOWN;
+        // Code ranges are used to protect code content from the markdown stripping regex.
+        // When `skipCodeBlocks` is true, fenced blocks are removed from the protected text.
+        const regex = REGEX_STRIP_MARKDOWN;
         const fencedCodeBlocks =
             codeRangeContext && codeRangeContext.fencedCodeRanges.length > 0
                 ? codeRangeContext.fencedCodeRanges
@@ -778,9 +914,21 @@ export class PreviewTextUtils {
         };
         const { protectedText, inlineSegments, fencedSegments, inlineBase, fencedBase } = buildProtectedText(text, context, skipCodeBlocks);
 
-        const stripped = protectedText.replace(regex, (match, ...rawArgs) => {
+        // Remove blockquote markers so quoted markdown is treated the same as unquoted markdown.
+        const withoutBlockquoteMarkers = protectedText.includes('>') ? protectedText.replace(REGEX_BLOCKQUOTE_MARKERS, '') : protectedText;
+
+        const stripped = withoutBlockquoteMarkers.replace(regex, (match, ...rawArgs) => {
             const args: unknown[] = rawArgs;
             const captureLength = getCaptureLength(args);
+            const fenceMatch = match.match(/^([`~]{3,})/u);
+            if (fenceMatch && match.endsWith(fenceMatch[1])) {
+                // Fenced code blocks can reach this point if they were not protected by ranges.
+                // Handle them before inline-code handling since fences are also backticks.
+                if (skipCodeBlocks) {
+                    return '';
+                }
+                return PreviewTextUtils.extractCodeBlockContent(match);
+            }
             // Obsidian comments
             if (match.startsWith('%%') && match.endsWith('%%')) {
                 return '';
@@ -810,11 +958,6 @@ export class PreviewTextUtils {
             const trimmedFootnoteMatch = match.trimStart();
             if (trimmedFootnoteMatch.startsWith('^[') || trimmedFootnoteMatch.startsWith('[^')) {
                 return '';
-            }
-
-            // Blockquotes (entire line already matched)
-            if (match.startsWith('>')) {
-                return match.replace(/^>(?:\s?>)*\s?/, '').trimStart();
             }
 
             // Italic with stars - preserve prefix and content
@@ -860,13 +1003,6 @@ export class PreviewTextUtils {
                 return '';
             }
 
-            // Wiki links (remove entirely, including alias text)
-            // This intentionally overrides the wiki-link capture groups in BASE_PATTERNS so previews never
-            // show internal link text such as "[[Page]]" or "[[Page|Alias]]".
-            if (match.startsWith('[[') && match.endsWith(']]')) {
-                return '';
-            }
-
             // Find first defined capture group - that's our content to keep
             for (let i = 0; i < captureLength; i++) {
                 const capture = args[i];
@@ -881,10 +1017,13 @@ export class PreviewTextUtils {
         // Wiki links can survive the initial pass when other markdown patterns unwrap formatting
         // and return the wrapped content.
         // Example: "**[[Page]]**" matches the bold pattern first, returning "[[Page]]".
-        // This post-pass removes any remaining wiki-link tokens before restoring protected code segments.
-        const withoutWikiLinks = stripped.replace(/\[\[[^\]]*?\]\]/g, '');
+        // This post-pass converts any remaining wiki-link tokens before restoring protected code segments.
+        const withoutWikiLinkSyntax = replaceWikiLinkSyntax(stripped);
 
-        return restorePlaceholders(withoutWikiLinks, inlineSegments, fencedSegments, inlineBase, fencedBase);
+        // Apply post-cleanups before restoring code placeholders so code content is not altered.
+        const withoutTasksAndRules = stripTaskCheckboxesAndHorizontalRules(withoutWikiLinkSyntax);
+
+        return restorePlaceholders(withoutTasksAndRules, inlineSegments, fencedSegments, inlineBase, fencedBase);
     }
 
     /**
@@ -961,10 +1100,13 @@ export class PreviewTextUtils {
     }
 
     static extractCodeBlockContent(block: string): string {
+        // Code blocks can appear in blockquotes with a leading `>` prefix on each line.
+        // Normalize those blocks so fence detection and removal works on the raw fence text.
+        const normalizedBlock = stripBlockquotePrefixFromFencedBlock(block);
         // Match opening fence (``` or ~~~) with optional language identifier
-        const openingFenceMatch = block.match(/^\s*([`~]{3,})[^\n\r]*\r?\n?/);
+        const openingFenceMatch = normalizedBlock.match(/^\s*([`~]{3,})[^\n\r]*\r?\n?/);
         if (!openingFenceMatch) {
-            return block;
+            return normalizedBlock;
         }
 
         // Extract fence character and length for matching closing fence
@@ -972,7 +1114,7 @@ export class PreviewTextUtils {
         const fenceChar = fenceSequence[0] ?? '`';
         const fenceLength = fenceSequence.length;
         // Remove opening fence from block
-        const withoutOpeningFence = block.slice(openingFenceMatch[0].length);
+        const withoutOpeningFence = normalizedBlock.slice(openingFenceMatch[0].length);
         // Build pattern for closing fence (must match character type and be at least same length)
         const closingFencePattern = new RegExp(`\\r?\\n?\\s*${fenceChar}{${fenceLength},}(?:\\s*)$`);
         const withoutClosingFence = withoutOpeningFence.replace(closingFencePattern, '');
@@ -988,6 +1130,9 @@ export class PreviewTextUtils {
      * @returns The preview text (max characters defined by MAX_PREVIEW_TEXT_LENGTH) or empty string
      */
     static extractPreviewText(content: string, settings: NotebookNavigatorSettings, frontmatter?: FrontMatterCache): string {
+        const targetLength = MAX_PREVIEW_TEXT_LENGTH + PREVIEW_SOURCE_SLACK;
+        const maxExtension = PREVIEW_EXTENSION_LIMIT;
+
         // Check preview properties first if frontmatter is provided
         if (frontmatter && settings.previewProperties && settings.previewProperties.length > 0) {
             for (const property of settings.previewProperties) {
@@ -997,31 +1142,20 @@ export class PreviewTextUtils {
                     continue;
                 }
 
-                const htmlStripped = settings.stripHtmlInPreview
-                    ? this.stripHtmlTagsPreservingCode(propertyValue, {
-                          preserveFencedCode: true
-                      })
-                    : propertyValue;
-                const decodedProperty = this.decodeHtmlEntitiesPreservingCode(htmlStripped, { preserveFencedCode: true });
-
-                const strippedProperty = this.stripMarkdownSyntax(
-                    decodedProperty,
-                    settings.skipHeadingsInPreview,
-                    settings.skipCodeBlocksInPreview
+                const limitedPropertySource = propertyValue.length > maxExtension ? propertyValue.slice(0, maxExtension) : propertyValue;
+                const fencedRanges = findFencedCodeBlockRanges(limitedPropertySource);
+                const inlineRanges = findInlineCodeRanges(limitedPropertySource, fencedRanges);
+                const clippedProperty = clipIncludingCode(
+                    limitedPropertySource,
+                    { inlineCodeRanges: inlineRanges, fencedCodeRanges: fencedRanges },
+                    targetLength,
+                    maxExtension
                 );
-
-                const withoutTaskCheckboxes = strippedProperty.replace(/^\s*(?:[-*+]\s+|\d+\.\s+)?\[(?: |x|X|\/|-)?\]\]?\s*/gm, '');
-                const withoutHorizontalRules = withoutTaskCheckboxes.replace(/^\s*([*_-])(?:\s*\1){2,}\s*$/gm, '');
-                const normalized = collapseWhitespace(withoutHorizontalRules);
-                if (!normalized) {
+                const preview = buildPreviewFromClippedSource(clippedProperty, settings);
+                if (!preview) {
                     continue;
                 }
-
-                const maxChars = MAX_PREVIEW_TEXT_LENGTH;
-                if (normalized.length > maxChars) {
-                    return `${normalized.substring(0, maxChars - 1)}…`;
-                }
-                return normalized;
+                return preview;
             }
         }
 
@@ -1032,12 +1166,13 @@ export class PreviewTextUtils {
         const contentWithoutFrontmatter = removeFrontmatter(content);
         if (!contentWithoutFrontmatter.trim()) return '';
 
-        const targetLength = MAX_PREVIEW_TEXT_LENGTH + PREVIEW_SOURCE_SLACK;
-        const maxExtension = PREVIEW_EXTENSION_LIMIT;
-
         const clipped = settings.skipCodeBlocksInPreview
             ? (() => {
-                  const visibleText = collectVisibleTextSkippingFencedBlocks(contentWithoutFrontmatter, maxExtension);
+                  const visibleText = collectVisibleTextSkippingFencedCodeBlocks(
+                      contentWithoutFrontmatter,
+                      maxExtension,
+                      PREVIEW_CODE_BLOCK_SCAN_LIMIT
+                  );
                   if (!visibleText) {
                       return { text: '', context: { inlineCodeRanges: [], fencedCodeRanges: [] } };
                   }
@@ -1063,55 +1198,6 @@ export class PreviewTextUtils {
                       maxExtension
                   );
               })();
-        if (!clipped.text.trim()) {
-            return '';
-        }
-
-        const htmlStep = settings.stripHtmlInPreview
-            ? stripHtmlOutsideCode(clipped.text, clipped.context, {
-                  enabled: true,
-                  preserveFencedCode: true
-              })
-            : { text: clipped.text, context: clipped.context };
-
-        if (!htmlStep.text.trim()) {
-            return '';
-        }
-
-        const decodedStep = decodeHtmlEntitiesOutsideCode(htmlStep.text, htmlStep.context);
-        if (!decodedStep.text.trim()) {
-            return '';
-        }
-
-        const cleanedStep = stripTrailingIncompleteEmbeds(decodedStep);
-        if (!cleanedStep.text.trim()) {
-            return '';
-        }
-
-        const stripped = this.stripMarkdownSyntax(
-            cleanedStep.text,
-            settings.skipHeadingsInPreview,
-            settings.skipCodeBlocksInPreview,
-            cleanedStep.context
-        );
-
-        // Remove leading task checkbox markers while keeping task text
-        const withoutTaskCheckboxes = stripped.replace(/^\s*(?:[-*+]\s+|\d+\.\s+)?\[(?: |x|X|\/|-)?\]\]?\s*/gm, '');
-
-        // Remove horizontal rule lines including spaced variants
-        const withoutHorizontalRules = withoutTaskCheckboxes.replace(/^\s*([*_-])(?:\s*\1){2,}\s*$/gm, '');
-
-        // Clean up extra whitespace and truncate
-        const preview = collapseWhitespace(withoutHorizontalRules);
-
-        if (!preview) return '';
-
-        // Fixed character limit with ellipsis
-        const maxChars = MAX_PREVIEW_TEXT_LENGTH;
-        if (preview.length > maxChars) {
-            return `${preview.substring(0, maxChars - 1)}…`;
-        }
-
-        return preview;
+        return buildPreviewFromClippedSource(clipped, settings);
     }
 }

@@ -1,0 +1,226 @@
+/*
+ * Notebook Navigator - Plugin for Obsidian
+ * Copyright (c) 2025 Johan Sanneblad
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import { useCallback, useRef, type RefObject } from 'react';
+import { TFile, type App } from 'obsidian';
+import type { FileContentType } from '../../interfaces/IContentProvider';
+import { strings } from '../../i18n';
+import { getDBInstance } from '../../storage/fileOperations';
+import { showNotice } from '../../utils/noticeUtils';
+import { isMarkdownPath } from '../../utils/fileTypeUtils';
+
+/**
+ * Shows a persistent notice with a progress bar during a cache rebuild.
+ *
+ * The rebuild itself is performed by other hooks. This hook only:
+ * - Creates a notice UI with a progress element.
+ * - Periodically scans the database to estimate how much derived content remains.
+ * - Hides the notice once the tracked content types no longer have pending work.
+ *
+ * The polling interval is intentionally coarse because scanning the cache is O(number of files).
+ */
+export function useCacheRebuildNotice(params: { app: App; stoppedRef: RefObject<boolean> }): {
+    clearCacheRebuildNotice: () => void;
+    startCacheRebuildNotice: (total: number, enabledTypes: FileContentType[]) => void;
+} {
+    const { app, stoppedRef } = params;
+
+    const cacheRebuildNoticeRef = useRef<ReturnType<typeof showNotice> | null>(null);
+    const cacheRebuildIntervalRef = useRef<number | null>(null);
+
+    const clearCacheRebuildNotice = useCallback(() => {
+        if (cacheRebuildIntervalRef.current !== null) {
+            if (typeof window !== 'undefined') {
+                window.clearInterval(cacheRebuildIntervalRef.current);
+            }
+            cacheRebuildIntervalRef.current = null;
+        }
+        if (cacheRebuildNoticeRef.current) {
+            try {
+                cacheRebuildNoticeRef.current.hide();
+            } catch {
+                // ignore
+            }
+            cacheRebuildNoticeRef.current = null;
+        }
+    }, []);
+
+    const startCacheRebuildNotice = useCallback(
+        (total: number, enabledTypes: FileContentType[]) => {
+            clearCacheRebuildNotice();
+
+            if (stoppedRef.current || typeof window === 'undefined' || total <= 0 || enabledTypes.length === 0) {
+                return;
+            }
+
+            const title = strings.settings.items.rebuildCache.indexingTitle;
+            const description = strings.settings.items.rebuildCache.progress;
+            const trackPreview = enabledTypes.includes('preview');
+            const trackTags = enabledTypes.includes('tags');
+            const trackFeatureImage = enabledTypes.includes('featureImage');
+            const trackMetadata = enabledTypes.includes('metadata');
+            const trackCustomProperty = enabledTypes.includes('customProperty');
+
+            let progressBarEl: HTMLProgressElement | null = null;
+            let lastProgressValue: number | null = null;
+
+            const clampProgress = (value: number): number => {
+                return Math.min(total, Math.max(0, value));
+            };
+
+            const updateProgress = (value: number): void => {
+                const nextValue = clampProgress(value);
+
+                if (!progressBarEl) {
+                    return;
+                }
+
+                if (lastProgressValue === nextValue) {
+                    return;
+                }
+
+                lastProgressValue = nextValue;
+
+                progressBarEl.max = total;
+                progressBarEl.value = nextValue;
+            };
+
+            const createCacheRebuildNotice = (): void => {
+                lastProgressValue = null;
+
+                const fragment = document.createDocumentFragment();
+                const wrapper = fragment.createDiv({ cls: 'nn-cache-rebuild-notice' });
+                wrapper.createDiv({ cls: 'nn-cache-rebuild-notice-title', text: title });
+                wrapper.createDiv({ cls: 'nn-cache-rebuild-notice-description', text: description });
+
+                progressBarEl = wrapper.createEl('progress', { cls: 'nn-cache-rebuild-notice-progress-bar' });
+
+                const notice = showNotice(fragment, { timeout: 0 });
+                notice.containerEl.addClass('nn-cache-rebuild-notice-container');
+                notice.messageEl.addClass('nn-cache-rebuild-notice-message');
+                cacheRebuildNoticeRef.current = notice;
+            };
+
+            createCacheRebuildNotice();
+            updateProgress(0);
+
+            const db = getDBInstance();
+            let hasSeenPending = false;
+            let emptyTicks = 0;
+            const startedAt = Date.now();
+            // If the database never reports pending work (or metadata cache never becomes available), avoid leaving
+            // a sticky notice on screen forever.
+            const maxInitialWaitMs = 60_000;
+
+            cacheRebuildIntervalRef.current = window.setInterval(() => {
+                if (stoppedRef.current) {
+                    clearCacheRebuildNotice();
+                    return;
+                }
+
+                const notice = cacheRebuildNoticeRef.current;
+                const container = notice?.containerEl;
+                if (!container || !container.isConnected) {
+                    createCacheRebuildNotice();
+                }
+
+                const getFileByPath = (path: string): TFile | null => {
+                    const abstract = app.vault.getAbstractFileByPath(path);
+                    if (!(abstract instanceof TFile)) {
+                        return null;
+                    }
+                    return abstract;
+                };
+
+                let readyRemainingCount = 0;
+                let rawRemainingCount = 0;
+
+                db.forEachFile((path, data) => {
+                    const isMarkdown = isMarkdownPath(path);
+                    const needsPreview = trackPreview && isMarkdown && data.previewStatus === 'unprocessed';
+                    const needsTags = trackTags && isMarkdown && data.tags === null;
+                    const needsFeatureImage = trackFeatureImage && data.featureImageStatus === 'unprocessed';
+                    const needsMetadata = trackMetadata && isMarkdown && data.metadata === null;
+                    const needsCustomProperty = trackCustomProperty && isMarkdown && data.customProperty === null;
+
+                    if (!needsPreview && !needsTags && !needsFeatureImage && !needsMetadata && !needsCustomProperty) {
+                        return;
+                    }
+
+                    // `rawRemainingCount` counts everything still missing, even if it can't be processed yet because
+                    // Obsidian metadata hasn't been indexed for the file.
+                    rawRemainingCount += 1;
+
+                    const readyWithoutMetadata = needsFeatureImage && !isMarkdown;
+                    if (readyWithoutMetadata) {
+                        readyRemainingCount += 1;
+                        return;
+                    }
+
+                    const file = getFileByPath(path);
+                    if (!file) {
+                        return;
+                    }
+
+                    const hasMetadataCache = Boolean(app.metadataCache.getFileCache(file));
+                    const isMetadataReady =
+                        hasMetadataCache &&
+                        (needsPreview || needsCustomProperty || (needsFeatureImage && isMarkdown) || needsTags || needsMetadata);
+
+                    if (isMetadataReady) {
+                        // Track only work that can be queued immediately. Before metadata is ready, providers that
+                        // depend on metadata cache entries are intentionally gated.
+                        readyRemainingCount += 1;
+                    }
+                });
+
+                if (readyRemainingCount > 0) {
+                    hasSeenPending = true;
+                    emptyTicks = 0;
+                }
+
+                if (!hasSeenPending) {
+                    if (rawRemainingCount === 0) {
+                        emptyTicks += 1;
+                        // Require a couple of consecutive empty ticks before hiding the notice. This avoids flicker
+                        // if the rebuild is still seeding the database.
+                        if (emptyTicks >= 2) {
+                            clearCacheRebuildNotice();
+                            return;
+                        }
+                    } else if (Date.now() - startedAt >= maxInitialWaitMs) {
+                        clearCacheRebuildNotice();
+                        return;
+                    }
+                    updateProgress(0);
+                    return;
+                }
+
+                const done = Math.max(0, total - readyRemainingCount);
+                updateProgress(done);
+
+                if (readyRemainingCount === 0) {
+                    clearCacheRebuildNotice();
+                }
+            }, 2_000);
+        },
+        [app.metadataCache, app.vault, clearCacheRebuildNotice, stoppedRef]
+    );
+
+    return { clearCacheRebuildNotice, startCacheRebuildNotice };
+}

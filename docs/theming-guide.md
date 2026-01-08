@@ -1,11 +1,14 @@
 # Notebook Navigator Theming Guide
 
+Updated: January 8, 2026
+
 ## Table of Contents
 
 - [Introduction](#introduction)
 - [CSS Variables Reference](#css-variables-reference)
+  - [Pane overlay stacks](#pane-overlay-stacks)
   - [Navigation pane](#navigation-pane)
-  - [Pane divider](#pane-divider)
+  - [Pane divider](#pane-divider-desktop-only)
   - [List pane (files)](#list-pane-files)
   - [Headers (desktop only)](#headers-desktop-only)
   - [Mobile styles](#mobile-styles)
@@ -26,13 +29,18 @@ theme to customize how Notebook Navigator looks.
 
 The theming variables use the `--nn-theme-` prefix and should be defined at the `body` level.
 
+### Pane overlay stacks
+
+| Variable                            | Default | Description                                                              |
+| ----------------------------------- | ------- | ------------------------------------------------------------------------ |
+| `--nn-theme-pane-overlay-opacity`   | `85`    | Opacity (0-100) for the pane overlay stacks rendered above scrolling rows |
+| `--nn-theme-pane-overlay-filter`    | `blur(3px) saturate(160%)` | Backdrop filter for the pane overlay stacks (used for `backdrop-filter`) |
+
 ### Navigation pane
 
 | Variable                              | Default                                                                                                                                      | Description                                                                         |
 | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | `--nn-theme-nav-bg`                   | `var(--background-secondary)`                                                                                                                | Navigation pane background (desktop only, see mobile styles)                        |
-| `--nn-theme-nav-overlay-opacity`      | `85`                                                                                                                                         | Opacity (0-100) for the navigation overlay stack rendered above tree rows           |
-| `--nn-theme-nav-overlay-filter`       | `blur(3px) saturate(160%)`                                                                                                                   | Backdrop filter for the navigation overlay stack (used for `backdrop-filter`)       |
 | `--nn-theme-nav-separator-color`      | `var(--text-muted)`                                                                                                                          | Separator line color inside navigation spacers                                      |
 | `--nn-theme-nav-separator-background` | `linear-gradient(90deg, transparent 0%, var(--nn-theme-nav-separator-color) 15%, var(--nn-theme-nav-separator-color) 85%, transparent 100%)` | Fill for navigation separators; override to supply your own gradient or solid color |
 | `--nn-theme-nav-separator-height`     | `1px`                                                                                                                                        | Thickness for navigation separators                                                 |
@@ -42,7 +50,7 @@ The theming variables use the `--nn-theme-` prefix and should be defined at the 
 
 | Variable                                  | Default               | Description                                                                              |
 | ----------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------- |
-| `--nn-theme-pinned-shortcut-shadow-color` | `rgba(0, 0, 0, 0.08)` | Gradient overlay rendered beneath pinned shortcuts (defaults to `0.25` in `.theme-dark`) |
+| `--nn-theme-pinned-shortcut-shadow-color` | `rgba(0, 0, 0, 0.03)` | Gradient overlay rendered beneath pinned shortcuts (defaults to `rgba(0, 0, 0, 0.18)` in `.theme-dark`) |
 
 #### Folder & tag items
 
@@ -99,8 +107,6 @@ Priority order: folder note styles override custom color styles, which override 
 | Variable                                  | Default                             | Description                                                                        |
 | ----------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------- |
 | `--nn-theme-list-bg`                      | `var(--background-primary)`         | Background color of the list pane (desktop only, see mobile styles)                |
-| `--nn-theme-list-overlay-opacity`         | `85`                                | Opacity (0-100) for the list overlay stack rendered above file rows                |
-| `--nn-theme-list-overlay-filter`          | `blur(3px) saturate(160%)`          | Backdrop filter for the list overlay stack (used for `backdrop-filter`)            |
 | `--nn-theme-list-header-icon-color`       | `var(--text-muted)`                 | Folder/tag icon color shown beside the breadcrumb in the desktop header            |
 | `--nn-theme-list-header-breadcrumb-color` | `var(--text-muted)`                 | Text color for the breadcrumb path in the desktop header                           |
 | `--nn-theme-list-search-active-bg`        | `var(--text-highlight-bg)`          | Background color for the search field when a search query is active (desktop only) |
@@ -121,6 +127,8 @@ Priority order: folder note styles override custom color styles, which override 
 | `--nn-theme-file-tag-color`                       | `var(--text-muted)`                           | Text color for tag pills without custom colors                  |
 | `--nn-theme-file-tag-custom-color-text-color`     | `var(--nn-theme-navitem-name-color)`          | Text color for tags with custom backgrounds but no custom color |
 | `--nn-theme-file-tag-bg`                          | `var(--background-modifier-border)`           | Background color for tag pills without custom backgrounds       |
+| `--nn-theme-file-custom-property-color`           | `var(--nn-theme-file-tag-color)`              | Text color for custom property pill                             |
+| `--nn-theme-file-custom-property-bg`              | `var(--nn-theme-file-tag-bg)`                 | Background color for custom property pill                        |
 | `--nn-theme-file-tag-border-radius`               | `10px`                                        | Corner radius for tag pills (0-10px)                            |
 | `--nn-theme-file-border-radius`                   | `8px`                                         | Corner radius for file items (0-16px)                           |
 | `--nn-theme-file-selected-bg`                     | `var(--text-selection)`                       | Selected file background color                                  |
@@ -138,7 +146,7 @@ Priority order: folder note styles override custom color styles, which override 
 | `--nn-theme-file-selected-inactive-tag-color`     | `var(--nn-theme-file-selected-tag-color)`     | Tag text color when selected and pane is inactive               |
 | `--nn-theme-file-selected-inactive-tag-bg`        | `var(--nn-theme-file-selected-tag-bg)`        | Tag background color when selected and pane is inactive         |
 
-Color-only tag pills use the navigation pane background and follow the background mode setting.
+Tag pills with only a custom text color use the list pane background, and custom background pills use the navigation pane background. Both follow the background mode setting.
 
 #### Text styling
 
@@ -187,14 +195,13 @@ Color-only tag pills use the navigation pane background and follow the backgroun
 | `--nn-theme-mobile-toolbar-button-icon-color`          | `var(--link-color)`                                              | Icon color for toolbar buttons                                                                                   |
 | `--nn-theme-mobile-toolbar-button-active-bg`           | `var(--background-modifier-hover)`                               | Background color for active toolbar button                                                                       |
 | `--nn-theme-mobile-toolbar-button-active-icon-color`   | `var(--link-color)`                                              | Icon color for active toolbar button                                                                             |
-| `--nn-theme-mobile-toolbar-glass-bg`                   | `color-mix(in srgb, var(--background-primary) 72%, transparent)` | Background color of the Obsidian 1.11+ iOS glass toolbar (used for border and background, supports transparency) |
+| `--nn-theme-mobile-toolbar-glass-bg`                   | `var(--background-primary)`                                      | Base color of the Obsidian 1.11+ iOS glass toolbar (mixed with transparency)                                     |
 
 Mobile navigation and list pane backgrounds follow `--nn-theme-mobile-bg`.
 
 ## Complete Theme Example
 
-Here's a complete example showing all variables styled with the JetBrains Darcula theme - a low-contrast dark theme
-that's easy on the eyes:
+Here's a complete example styling all variables with a JetBrains Darcula-inspired palette:
 
 ```css
 /* ========================================
@@ -202,6 +209,13 @@ that's easy on the eyes:
    ======================================== */
 
 body {
+  /* ========================================
+     PANE OVERLAY STACKS
+     ======================================== */
+
+  --nn-theme-pane-overlay-opacity: 85; /* Opacity for pane overlay stacks */
+  --nn-theme-pane-overlay-filter: blur(3px) saturate(160%); /* Backdrop filter for pane overlay stacks */
+
   /* ========================================
      NAVIGATION PANE (Folders & Tags)
      ======================================== */
@@ -236,6 +250,10 @@ body {
   --nn-theme-navitem-selected-inactive-count-color: #b9bec6; /* Dimmed count text when pane is inactive */
   --nn-theme-navitem-selected-inactive-count-bg: rgba(0, 0, 0, 0.25); /* Slightly darker count bg when inactive */
 
+  /* Tag highlights and drop targets */
+  --nn-theme-tag-positive-bg: rgba(106, 135, 89, 0.2); /* Green tint - positive tag highlights */
+  --nn-theme-tag-negative-bg: rgba(219, 80, 80, 0.2); /* Red tint - negative tag highlights */
+
   /* Pinned shortcuts */
   --nn-theme-pinned-shortcut-shadow-color: rgba(0, 0, 0, 0.2); /* Shadow gradient below pinned shortcuts */
 
@@ -261,6 +279,9 @@ body {
 
   /* Pane background */
   --nn-theme-list-bg: #2b2b2b; /* Dark editor background - file list background */
+  --nn-theme-list-header-icon-color: #7f8b91; /* Muted gray - desktop breadcrumb icon */
+  --nn-theme-list-header-breadcrumb-color: #7f8b91; /* Muted gray - desktop breadcrumb text */
+  --nn-theme-list-header-breadcrumb-font-weight: 600; /* Bold weight - desktop breadcrumb */
   --nn-theme-list-search-active-bg: #515336; /* Yellow tint - active search field background */
   --nn-theme-list-search-border-color: #3c3c3c; /* Subtle gray - search field border */
   --nn-theme-list-heading-color: #d0d2d6; /* Light gray - list overlay heading */
@@ -276,6 +297,8 @@ body {
   --nn-theme-file-parent-color: #cc7832; /* Muted orange - parent folder path */
   --nn-theme-file-tag-color: #9876aa; /* Muted purple - tag text */
   --nn-theme-file-tag-bg: #383a3e; /* Dark gray - tag pill background */
+  --nn-theme-file-custom-property-color: #cc7832; /* Muted orange - custom property text */
+  --nn-theme-file-custom-property-bg: #383a3e; /* Dark gray - custom property pill background */
   --nn-theme-file-tag-border-radius: 3px; /* Subtle rounded tag pills */
   --nn-theme-file-tag-custom-color-text-color: #ffffff; /* White - text for custom colored tags */
   --nn-theme-file-selected-bg: #4a78c8; /* Blue accent - selected file background */
@@ -326,6 +349,7 @@ body {
      MOBILE STYLES
      ======================================== */
 
+  --nn-theme-mobile-bg: #2b2b2b; /* Mobile background for navigation and list panes */
   --nn-theme-mobile-list-header-link-color: #589df6; /* Bright blue - mobile back button and breadcrumb links */
   --nn-theme-mobile-list-header-breadcrumb-color: #a9b7c6; /* Soft blue-gray - current folder and separators */
   --nn-theme-mobile-list-header-breadcrumb-font-weight: 600; /* Bold weight - mobile breadcrumb */
@@ -333,6 +357,7 @@ body {
   --nn-theme-mobile-toolbar-button-icon-color: #a9b7c6; /* Soft blue-gray - mobile toolbar icons */
   --nn-theme-mobile-toolbar-button-active-bg: #4a78c8; /* Blue accent - active mobile button background */
   --nn-theme-mobile-toolbar-button-active-icon-color: #ffffff; /* White - active mobile button icons */
+  --nn-theme-mobile-toolbar-glass-bg: #2b2b2b; /* Base color for Obsidian 1.11+ iOS glass toolbar */
 }
 ```
 

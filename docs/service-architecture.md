@@ -1,5 +1,7 @@
 # Notebook Navigator Service Architecture
 
+Updated: January 8, 2026
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -34,6 +36,8 @@ must be guarded while the plugin is still initializing. `IconService` is a globa
 `getIconService()`. `StorageContext` owns the background content pipeline through `ContentProviderRegistry` and does not
 publish the registry via `ServicesContext`.
 
+See `docs/metadata-pipeline.md` for the cache rebuild flow and the content provider processing pipeline.
+
 ## Service Hierarchy
 
 ### ServicesContext
@@ -50,7 +54,7 @@ graph TB
     subgraph "Supporting Services"
         TagTreeService["TagTreeService<br/>Tag tree state"]
         CommandQueue["CommandQueueService<br/>Operation tracking"]
-        TagOperations["TagOperations<br/>Frontmatter tags"]
+        TagOperations["TagOperations<br/>Tag workflows"]
         Omnisearch["OmnisearchService<br/>Omnisearch bridge"]
         ReleaseCheck["ReleaseCheckService<br/>Update notices"]
     end
@@ -70,7 +74,7 @@ graph TB
 graph TB
     Plugin["NotebookNavigatorPlugin"]
 
-    Plugin --> RecentNotes["RecentNotesService<br/>Settings-backed recents"]
+    Plugin --> RecentNotes["RecentNotesService<br/>Vault-local recents"]
     Plugin --> RecentData["RecentDataManager<br/>Local storage cache"]
     Plugin --> WorkspaceCoordinator["WorkspaceCoordinator<br/>Navigator leaves"]
     Plugin --> HomepageController["HomepageController<br/>Startup homepage"]
@@ -88,11 +92,13 @@ graph TB
         FolderMeta["FolderMetadataService<br/>Colors, icons, sort, appearances"]
         TagMeta["TagMetadataService<br/>Colors, icons, sort, appearances"]
         FileMeta["FileMetadataService<br/>Pins, icons, colors"]
+        NavigationSeparators["NavigationSeparatorService<br/>Section/folder/tag separators"]
     end
 
     MetadataService --> FolderMeta
     MetadataService --> TagMeta
     MetadataService --> FileMeta
+    MetadataService --> NavigationSeparators
 ```
 
 ### Content Provider Registry Structure
@@ -102,14 +108,14 @@ graph TB
     ContentRegistry["ContentProviderRegistry<br/>Provider coordinator"]
 
     subgraph "Content Providers"
-        PreviewProvider["PreviewContentProvider<br/>Note previews"]
-        ImageProvider["FeatureImageContentProvider<br/>Feature images"]
+        MarkdownPipelineProvider["MarkdownPipelineContentProvider<br/>Preview + custom property + markdown feature images"]
+        FileThumbnailsProvider["FeatureImageContentProvider<br/>Non-markdown thumbnails (PDF covers)"]
         MetadataProvider["MetadataContentProvider<br/>Frontmatter fields + hidden state"]
         TagProvider["TagContentProvider<br/>Tag extraction"]
     end
 
-    ContentRegistry --> PreviewProvider
-    ContentRegistry --> ImageProvider
+    ContentRegistry --> MarkdownPipelineProvider
+    ContentRegistry --> FileThumbnailsProvider
     ContentRegistry --> MetadataProvider
     ContentRegistry --> TagProvider
 ```
@@ -131,6 +137,7 @@ state into settings when requested.
 - Folder metadata: colors, background colors, icons, sort overrides, custom appearances, folder note metadata detection.
 - Tag metadata: colors, background colors, icons, sort overrides, custom appearances.
 - File metadata: pinned notes, icons, colors, frontmatter migration helpers, iconize conversion support.
+- Navigation separators: section, folder, and tag separator entries.
 - Metadata cleanup and summary reporting based on vault state.
 - Rename and delete coordination for folders, tags, and files.
 
@@ -150,6 +157,11 @@ state into settings when requested.
   - Manages pinned notes per folder/tag context.
   - Stores file icons and colors with frontmatter fallback and migration.
   - Updates metadata during file rename/delete and syncs with IndexedDB cache.
+
+- **NavigationSeparatorService** (`src/services/metadata/NavigationSeparatorService.ts`)
+  - Persists separators for navigation sections, folders, and tags.
+  - Updates separator keys on folder/tag rename and delete.
+  - Cleans stale entries during metadata cleanup and exposes a versioned subscription.
 
 **Key APIs:**
 
@@ -180,12 +192,23 @@ getTagBackgroundColor(tagPath: string): string | undefined
 setTagIcon(tagPath: string, iconId: string): Promise<void>
 removeTagIcon(tagPath: string): Promise<void>
 getTagIcon(tagPath: string): string | undefined
+handleTagRename(oldPath: string, newPath: string, preserveExisting?: boolean): Promise<void>
+handleTagDelete(tagPath: string): Promise<void>
 setTagSortOverride(tagPath: string, sortOption: SortOption): Promise<void>
 removeTagSortOverride(tagPath: string): Promise<void>
 getTagSortOverride(tagPath: string): SortOption | undefined
 
+// Navigation separators
+getNavigationSeparators(): Record<string, boolean>
+hasNavigationSeparator(target: NavigationSeparatorTarget): boolean
+addNavigationSeparator(target: NavigationSeparatorTarget): Promise<void>
+removeNavigationSeparator(target: NavigationSeparatorTarget): Promise<void>
+getNavigationSeparatorsVersion(): number
+subscribeToNavigationSeparatorChanges(listener: (version: number) => void): () => void
+
 // File metadata
 togglePin(filePath: string, context: NavigatorContext): Promise<void>
+pinNotes(filePaths: string[], context: NavigatorContext): Promise<number>
 isFilePinned(filePath: string, context?: NavigatorContext): boolean
 getPinnedNotes(context?: NavigatorContext): string[]
 setFileIcon(filePath: string, iconId: string): Promise<void>
@@ -299,35 +322,33 @@ Coordinates background content providers that populate IndexedDB mirrors used by
 
 ```typescript
 registerProvider(provider: IContentProvider): void
-getProvider(type: ContentType): IContentProvider | undefined
+getProvider(type: ContentProviderType): IContentProvider | undefined
 getAllProviders(): IContentProvider[]
 getAllRelevantSettings(): (keyof NotebookNavigatorSettings)[]
-handleSettingsChange(oldSettings: NotebookNavigatorSettings, newSettings: NotebookNavigatorSettings): Promise<void>
+handleSettingsChange(oldSettings: NotebookNavigatorSettings, newSettings: NotebookNavigatorSettings): Promise<ContentProviderType[]>
 queueFilesForAllProviders(
   files: TFile[],
   settings: NotebookNavigatorSettings,
-  options?: { include?: ContentType[]; exclude?: ContentType[] }
+  options?: { include?: ContentProviderType[]; exclude?: ContentProviderType[] }
 ): void
 stopAllProcessing(): void
 ```
 
 **Content Providers:**
 
-- **PreviewContentProvider** (`src/services/content/PreviewContentProvider.ts`)
-  - Generates preview snippets for markdown files, respecting skipping settings and Excalidraw detection.
-  - Uses queue dedupe to avoid redundant work and keeps 100-file batches with a parallel limit of 10.
+- **MarkdownPipelineContentProvider** (`src/services/content/MarkdownPipelineContentProvider.ts`)
+  - Generates markdown-derived content in a single pass (preview text, custom property, markdown feature images).
+  - Uses Obsidian's metadata cache for frontmatter and frontmatter position offsets.
 
 - **FeatureImageContentProvider** (`src/services/content/FeatureImageContentProvider.ts`)
-  - Resolves feature images from frontmatter or first embedded image.
-  - Validates vault paths and clears cache on settings changes.
+  - Generates thumbnails for non-markdown files (PDF cover thumbnails).
 
 - **MetadataContentProvider** (`src/services/content/MetadataContentProvider.ts`)
-  - Extracts configured frontmatter fields and hidden state for excluded files.
-  - Tracks hidden-state computations between `needsProcessing` and `processFile`.
+  - Extracts configured frontmatter metadata fields and hidden state based on vault profile exclusions.
 
 - **TagContentProvider** (`src/services/content/TagContentProvider.ts`)
-  - Extracts tags from frontmatter and inline text using Obsidian metadata cache.
-  - Deduplicates case variants and normalizes stored values.
+  - Extracts tags from Obsidian's metadata cache (`getAllTags(metadata)`).
+  - Deduplicates case variants and stores values without the `#` prefix.
 
 ## Plugin-Managed Services
 
@@ -340,7 +361,7 @@ methods.
 
 **Responsibilities:**
 
-- Maintains the synced recent notes list stored in plugin settings.
+- Maintains the recent notes list stored in vault-local storage.
 - Deduplicates entries, enforces configurable limits, and preserves ordering.
 - Provides helpers for open, rename, and delete events.
 
@@ -365,7 +386,7 @@ removeEntry(path: string): boolean
 **Key Methods:**
 
 ```typescript
-initialize(): void
+initialize(activeVaultProfileId: string): void
 dispose(): void
 getRecentNotes(): string[]
 setRecentNotes(recentNotes: string[]): void
@@ -522,7 +543,7 @@ executeHomepageOpen(file: TFile, openFile: () => Promise<void>): Promise<Command
 
 ### TagOperations
 
-Frontmatter tag mutation helpers used by bulk tag commands.
+Facade for tag operations across the vault.
 
 **Location:** `src/services/TagOperations.ts`
 
@@ -530,15 +551,24 @@ Frontmatter tag mutation helpers used by bulk tag commands.
 
 - Adds tags while preventing duplicates and ancestor conflicts.
 - Removes single tags or clears all tags from files.
+- Renames and deletes tags using modal workflows and file mutations.
+- Updates tag metadata and shortcuts after tag rename/delete operations.
+- Emits tag rename/delete events to registered listeners.
 - Reads cached tags from IndexedDB to build tag summaries.
 
 **Key Methods:**
 
 ```typescript
+addTagRenameListener(listener: (payload: TagRenameEventPayload) => void): () => void
+addTagDeleteListener(listener: (payload: TagDeleteEventPayload) => void): () => void
 addTagToFiles(tag: string, files: TFile[]): Promise<{ added: number; skipped: number }>
 removeTagFromFiles(tag: string, files: TFile[]): Promise<number>
 clearAllTagsFromFiles(files: TFile[]): Promise<number>
 getTagsFromFiles(files: TFile[]): string[]
+promptRenameTag(tagPath: string): Promise<void>
+promoteTagToRoot(sourceTagPath: string): Promise<void>
+renameTagByDrag(sourceTagPath: string, targetTagPath: string): Promise<void>
+promptDeleteTag(tagPath: string): Promise<void>
 ```
 
 ### OmnisearchService
@@ -631,6 +661,8 @@ interface ISettingsProvider {
   setRecentNotes(recentNotes: string[]): void;
   getRecentIcons(): Record<string, string[]>;
   setRecentIcons(recentIcons: Record<string, string[]>): void;
+  getRecentColors(): string[];
+  setRecentColors(recentColors: string[]): void;
 }
 ```
 
@@ -652,13 +684,14 @@ interface ITagTreeProvider {
 
 ```typescript
 interface IContentProvider {
-  getContentType(): ContentType;
+  getContentType(): ContentProviderType;
   getRelevantSettings(): (keyof NotebookNavigatorSettings)[];
   shouldRegenerate(oldSettings: NotebookNavigatorSettings, newSettings: NotebookNavigatorSettings): boolean;
-  clearContent(): Promise<void>;
+  clearContent(context?: ContentProviderClearContext): Promise<void>;
   queueFiles(files: TFile[]): void;
   startProcessing(settings: NotebookNavigatorSettings): void;
   stopProcessing(): void;
+  waitForIdle(): Promise<void>;
   onSettingsChanged(settings: NotebookNavigatorSettings): void;
 }
 ```
@@ -672,12 +705,19 @@ Services are instantiated during plugin startup (see `docs/startup-process.md`, 
 this.initializeRecentDataManager();
 this.recentNotesService = new RecentNotesService(this);
 
+// Initialize workspace and homepage coordination
 this.workspaceCoordinator = new WorkspaceCoordinator(this);
 this.homepageController = new HomepageController(this, this.workspaceCoordinator);
 
-this.metadataService = new MetadataService(this.app, this, () => this.tagTreeService);
-this.tagOperations = new TagOperations(this.app, () => this.settings);
+// Initialize services
 this.tagTreeService = new TagTreeService();
+this.metadataService = new MetadataService(this.app, this, () => this.tagTreeService);
+this.tagOperations = new TagOperations(
+  this.app,
+  () => this.settings,
+  () => this.tagTreeService,
+  () => this.metadataService
+);
 this.commandQueue = new CommandQueueService(this.app);
 this.fileSystemOps = new FileSystemOperations(
   this.app,
@@ -686,7 +726,8 @@ this.fileSystemOps = new FileSystemOperations(
   (): VisibilityPreferences => ({
     includeDescendantNotes: this.uxPreferences.includeDescendantNotes,
     showHiddenItems: this.uxPreferences.showHiddenItems
-  })
+  }),
+  this
 );
 this.omnisearchService = new OmnisearchService(this.app);
 this.api = new NotebookNavigatorAPI(this, this.app);
@@ -694,8 +735,20 @@ this.releaseCheckService = new ReleaseCheckService(this);
 
 const iconService = getIconService();
 this.externalIconController = new ExternalIconProviderController(this.app, iconService, this);
-await this.externalIconController.initialize();
-void this.externalIconController.syncWithSettings();
+const iconController = this.externalIconController;
+if (iconController) {
+  runAsyncAction(
+    async () => {
+      await iconController.initialize();
+      await iconController.syncWithSettings();
+    },
+    {
+      onError: (error: unknown) => {
+        console.error('External icon controller init failed:', error);
+      }
+    }
+  );
+}
 ```
 
 React mounts the navigator with dependency injection:
@@ -742,8 +795,8 @@ Triggered manually from **Settings → Notebook Navigator → Advanced → Clean
 
 1. **Validator Preparation**: `MetadataService.prepareCleanupValidators()` collects vault files, folders, and the
    current tag tree.
-2. **Cleanup Execution**: `MetadataService.runUnifiedCleanup()` removes orphaned folder, tag, file, and pin entries
-   using the validators.
+2. **Cleanup Execution**: `MetadataService.runUnifiedCleanup()` removes orphaned folder, tag, file, pinned note, and
+   navigation separator entries using the validators.
 3. **Persistence**: When changes are detected, settings are saved via `saveSettingsAndUpdate()`.
 4. **Feedback**: UI shows cleanup results obtained from `MetadataService.getCleanupSummary()`.
 
@@ -759,8 +812,8 @@ Triggered manually from **Settings → Notebook Navigator → Advanced → Clean
 
 ## Service Patterns
 
-- **Singleton**: `IconService`, all plugin-managed services, and registry instances are singletons.
+- **Singleton**: `IconService` and plugin-managed services are singleton instances; each mounted `StorageProvider` owns a `ContentProviderRegistry`.
 - **Provider**: Content providers and icon providers use pluggable registries for extensibility.
-- **Delegation**: `MetadataService` delegates specialized work to folder/tag/file sub-services.
+- **Delegation**: `MetadataService` delegates specialized work to folder/tag/file/separator sub-services.
 - **Bridge**: `TagTreeService` bridges StorageContext data to non-React consumers.
-- **Observer**: `CommandQueueService` and `RecentDataManager` expose listener APIs for UI coordination.
+- **Observer**: `CommandQueueService`, recent data listeners, and `subscribeToNavigationSeparatorChanges()` publish state changes to the UI.

@@ -1,5 +1,7 @@
 # Notebook Navigator Storage Architecture
 
+Updated: January 8, 2026
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -21,17 +23,15 @@
 
 ## Overview
 
-The Notebook Navigator plugin uses five distinct storage containers, each serving a specific purpose in the plugin's
-data management strategy. These containers work together to provide fast performance, data persistence, and cross-device
-synchronization while maintaining clear separation of concerns. The stack consists of the IndexedDB cache, an in-memory
-mirror, vault-scoped localStorage, synchronized settings in `data.json`, and a dedicated icon asset database.
+The Notebook Navigator plugin uses five storage containers with distinct scopes and lifecycles. The stack consists of the
+IndexedDB cache, in-memory caches for synchronous reads (file records plus bounded preview text and feature image LRU
+caches), vault-scoped localStorage, synchronized settings in `data.json`, and a dedicated icon asset database.
 
 ## Storage Containers
 
 ### 1. IndexedDB (Persistent Local Storage)
 
-**Purpose**: Stores all file metadata and generated content locally on the device. This is the primary database for
-caching vault information to enable fast searches and filtering without repeatedly reading files from disk.
+**Purpose**: Stores file metadata and generated content locally on the device. Data is derived from the vault and can be rebuilt.
 
 **Location**: Browser's IndexedDB storage (device-specific)
 
@@ -39,22 +39,23 @@ caching vault information to enable fast searches and filtering without repeated
 
 **Data Stored**:
 
-- File modification times (mtime)
-- Extracted tags from Markdown content and frontmatter
-- Generated preview text (first ~500 characters)
-- Feature image references from frontmatter or embedded image fallback
-- Frontmatter metadata overrides (display name, created timestamp, modified timestamp)
-- Frontmatter icon and color overrides
-- Hidden flag when file matches exclusion patterns
+- File modification time (`mtime`)
+- Provider processed mtimes (`markdownPipelineMtime`, `tagsMtime`, `metadataMtime`, `fileThumbnailsMtime`)
+- Tags (`tags`)
+- Preview status in the main record (`previewStatus`) + preview text strings stored separately (`filePreviews`)
+- Feature image key/status in the main record (`featureImageKey`, `featureImageStatus`) + thumbnail blobs stored separately (`featureImageBlobs`)
+- Custom property value (`customProperty`)
+- Frontmatter metadata (`metadata.name`, `metadata.created`, `metadata.modified`, `metadata.icon`, `metadata.color`)
+- Hidden flag (`metadata.hidden`)
 
 **Key Characteristics**:
 
 - Persists across Obsidian restarts
 - Can store large amounts of data (typically gigabytes)
 - Asynchronous API requires careful handling
-- Cleared when DB_SCHEMA_VERSION or DB_CONTENT_VERSION changes
+- Stores are cleared when a rebuild is required (content version changes, stored version keys missing, schema downgrade, or schema upgrades that clear legacy payloads)
 - Database name: `notebooknavigator/cache/{appId}` (vault-specific)
-- Store name: `keyvaluepairs`
+- Object stores: `keyvaluepairs` (main records), `filePreviews` (preview text), `featureImageBlobs` (feature image blobs)
 
 **Lifecycle Management**:
 
@@ -67,14 +68,35 @@ caching vault information to enable fast searches and filtering without repeated
 **Implementation**: `src/storage/IndexedDBStorage.ts`
 
 ```typescript
+export type FeatureImageStatus = 'unprocessed' | 'none' | 'has';
+export type PreviewStatus = 'unprocessed' | 'none' | 'has';
+
 export interface FileData {
+  // Vault mtime for the file path
   mtime: number;
+
+  // Provider processed mtimes (used to detect stale provider output)
+  markdownPipelineMtime: number;
+  tagsMtime: number;
+  metadataMtime: number;
+  fileThumbnailsMtime: number;
+
+  // Generated content (null means not generated yet)
   tags: string[] | null;
-  preview: string | null;
-  featureImage: string | null;
+  customProperty: string | null;
+
+  // Preview text is stored in a dedicated store keyed by file path
+  previewStatus: PreviewStatus;
+
+  // Always null in the main record; thumbnail blobs live in the featureImageBlobs store
+  featureImage: Blob | null;
+  featureImageStatus: FeatureImageStatus;
+  featureImageKey: string | null;
   metadata: {
     name?: string;
+    // 0 = field not configured, -1 = parse failed
     created?: number;
+    // 0 = field not configured, -1 = parse failed
     modified?: number;
     icon?: string;
     color?: string;
@@ -112,29 +134,39 @@ allows users to have different UI layouts on desktop vs mobile, for example.
 - Uses Obsidian's vault-specific storage methods
 - Automatically cleaned up when plugin is uninstalled
 
-**Implementation**: `src/utils/localStorage.ts`
+**Implementation**: `src/types.ts` (`STORAGE_KEYS`), `src/utils/localStorage.ts` (vault-scoped wrapper)
 
 ```typescript
 export const STORAGE_KEYS: LocalStorageKeys = {
   expandedFoldersKey: 'notebook-navigator-expanded-folders',
   expandedTagsKey: 'notebook-navigator-expanded-tags',
+  expandedVirtualFoldersKey: 'notebook-navigator-expanded-virtual-folders',
   selectedFolderKey: 'notebook-navigator-selected-folder',
   selectedFileKey: 'notebook-navigator-selected-file',
   selectedFilesKey: 'notebook-navigator-selected-files',
+  selectedTagKey: 'notebook-navigator-selected-tag',
   navigationPaneWidthKey: 'notebook-navigator-navigation-pane-width',
   navigationPaneHeightKey: 'notebook-navigator-navigation-pane-height',
-  dualPaneKey: 'notebook-navigator-dual-pane',
   dualPaneOrientationKey: 'notebook-navigator-dual-pane-orientation',
+  dualPaneKey: 'notebook-navigator-dual-pane',
+  uiScaleKey: 'notebook-navigator-ui-scale',
   shortcutsExpandedKey: 'notebook-navigator-shortcuts-expanded',
   recentNotesExpandedKey: 'notebook-navigator-recent-notes-expanded',
-  uxPreferencesKey: 'notebook-navigator-ux-preferences',
   recentNotesKey: 'notebook-navigator-recent-notes',
   recentIconsKey: 'notebook-navigator-recent-icons',
+  navigationSectionOrderKey: 'notebook-navigator-section-order',
+  pinnedShortcutsMaxHeightKey: 'notebook-navigator-pinned-shortcuts-max-height',
+  uxPreferencesKey: 'notebook-navigator-ux-preferences',
+  fileCacheKey: 'notebook-navigator-file-cache',
   databaseSchemaVersionKey: 'notebook-navigator-db-schema-version',
   databaseContentVersionKey: 'notebook-navigator-db-content-version',
   localStorageVersionKey: 'notebook-navigator-localstorage-version',
-  vaultProfileKey: 'notebook-navigator-vault-profile'
-  // ... additional keys omitted for brevity
+  vaultProfileKey: 'notebook-navigator-vault-profile',
+  releaseCheckTimestampKey: 'notebook-navigator-release-check-timestamp',
+  latestKnownReleaseKey: 'notebook-navigator-latest-known-release',
+  searchProviderKey: 'notebook-navigator-search-provider',
+  tagSortOrderKey: 'notebook-navigator-tag-sort-order',
+  recentColorsKey: 'notebook-navigator-recent-colors'
 };
 ```
 
@@ -148,44 +180,37 @@ lists.
 
 **Synchronization**: Automatically synced with IndexedDB changes
 
-**Data Stored**: Complete mirror of all IndexedDB file data
+**Data Stored**: Main file records (no preview text strings or feature image blobs), plus bounded in-memory LRU caches for preview text and feature image blobs
 
 **Key Characteristics**:
 
 - Cleared when plugin reloads or Obsidian restarts
-- Provides instant synchronous access for UI rendering
-- Memory usage: ~300 bytes per file (3MB for 10k files, 30MB for 100k files)
-- Hydrated from IndexedDB on startup and updated with every database write
-- Essential for virtual scrolling performance
+- Provides synchronous reads for UI rendering
+- Preview text and feature image blobs are loaded on demand from IndexedDB and cached in bounded LRUs
+- Hydrated from the main store on startup and updated with every database write
 
 **Implementation**: `src/storage/MemoryFileCache.ts`
 
 ## Hidden Pattern Rules
 
-Hidden folders and tags share the same pattern handling:
+Hidden patterns are stored in the active vault profile and applied when building the file cache and tag tree.
+Implementation:
 
-- Name patterns (no `/`) apply to every path segment. `Projects*` hides `Projects`, its descendants, and any folder or
-  tag whose name starts with `Projects` (for example `Projects2024`).
-- Path patterns start with `/`. `/Projects*` hides `Projects` plus all descendants. `/Projects/*` hides descendants of
-  `Projects` but keeps the base visible.
-- Mid-segment wildcards match one segment only. `/Projects/*/Archive` hides `Projects/Client/Archive` and deeper
-  descendants, but not `Projects/Archive`.
-- Trailing `*` never matches an empty segment. `/Projects/*` and `projects/*` require at least one child segment.
-- Patterns with multiple wildcards in a single segment or wildcards in the middle of a segment are ignored.
+- Folder filtering: `src/utils/fileFilters.ts`, `src/utils/vaultProfiles.ts`
+- Tag filtering: `src/utils/tagPrefixMatcher.ts`
+- Shared path parsing: `src/utils/pathPatternMatcher.ts`
 
-```typescript
-export class MemoryFileCache {
-  private memoryMap = new Map<string, FileData>();
+Rules:
 
-  getFile(path: string): FileData | null {
-    return this.memoryMap.get(path) ?? null;
-  }
-
-  updateFile(path: string, data: FileData): void {
-    this.memoryMap.set(path, data);
-  }
-}
-```
+- Folder name patterns (no leading `/`) match folder names and are evaluated against each path segment (supports `prefix*` and `*suffix`).
+- Folder path patterns start with `/` and use segment patterns:
+  - `*` matches one path segment
+  - `prefix*` matches a path segment prefix
+  - `/Projects/*` matches descendants of `/Projects` but not `/Projects` itself
+- Tag patterns are normalized by removing a leading `#`, trimming slashes, and lowercasing.
+  - Path rules like `projects/*` match tag paths and support the same segment patterns as folders.
+  - Name rules `prefix*` and `*suffix` match tag names at any depth.
+- Patterns with multiple wildcards in a segment or wildcards in the middle of a segment are ignored.
 
 ### 4. Settings (Synchronized Storage)
 
@@ -228,27 +253,28 @@ Sync, these settings are automatically synchronized.
 - Changes trigger UI re-renders via React context
 - Must be kept small to avoid sync conflicts
 
-**Implementation**: `src/settings.ts`
+**Implementation**: `src/settings.ts`, `src/settings/types.ts`
 
 ```typescript
-interface NotebookNavigatorSettings {
-  showFolders: boolean;
-  showTags: boolean;
+export interface NotebookNavigatorSettings {
+  vaultProfiles: VaultProfile[];
+  vaultProfile: string;
 
-  // Per-folder customization
-  folderColors: Record<string, string>;
-  folderIcons: Record<string, string>;
-  folderSortOverrides: Record<string, SortOption>;
-  folderAppearances: Record<string, FolderAppearance>;
+  // ... many settings omitted
+
+  // Runtime state and cached data
   pinnedNotes: Record<string, string[]>;
-
-  // Per-tag customization
-  tagColors: Record<string, string>;
+  fileIcons: Record<string, string>;
+  fileColors: Record<string, string>;
+  folderIcons: Record<string, string>;
+  folderColors: Record<string, string>;
+  folderBackgroundColors: Record<string, string>;
   tagIcons: Record<string, string>;
-  tagSortOverrides: Record<string, SortOption>;
-  tagAppearances: Record<string, TagAppearance>;
-
-  // ... more settings
+  tagColors: Record<string, string>;
+  tagBackgroundColors: Record<string, string>;
+  rootFolderOrder: string[];
+  rootTagOrder: string[];
+}
 ```
 
 ### 5. Icon Assets Database (Device-Specific Storage)
@@ -271,7 +297,6 @@ libraries without bloating the vault or sync system.
 **Key Characteristics**:
 
 - Persists across Obsidian restarts
-- Large storage capacity for icon pack assets (5MB-10MB per pack)
 - Asynchronous download and storage
 - Automatic version management
 - Database name: `notebooknavigator/icons/{appId}`
@@ -287,12 +312,12 @@ libraries without bloating the vault or sync system.
 
 **Available Icon Packs**:
 
-- **Bootstrap Icons**: 1,800+ icons
-- **Font Awesome Solid**: 2,000+ icons
-- **Material Icons**: 2,100+ icons
-- **Phosphor Icons**: 7,000+ icons
-- **RPG Awesome**: 500+ game/fantasy icons
-- **Simple Icons**: 2,700+ brand icons
+- Bootstrap Icons
+- Font Awesome
+- Material Icons
+- Phosphor Icons
+- RPG Awesome
+- Simple Icons
 
 **Implementation**: `src/services/icons/external/IconAssetDatabase.ts`
 
@@ -313,19 +338,19 @@ interface IconAssetRecord {
 ### Initial Load (Cold Boot)
 
 1. **Settings** loaded from data.json
-2. **IndexedDB** opened, schema/content versions validated, and databases cleared if versions changed
-3. Existing **IndexedDB** records hydrated into the in-memory cache
+2. **IndexedDB** opened, schema migrations applied, and stores cleared when a rebuild is required
+3. Main **IndexedDB** records hydrated into the in-memory cache (preview text and blobs load on demand)
 4. **Local Storage** read for pane layout, selections, UX preferences, and recent data
 5. StorageContext diffs vault files and writes additions, updates, and removals to **IndexedDB**
-6. Tag tree rebuilt from the synchronized database
-7. Content providers queue pending previews, tags, metadata, and feature images while UI renders from the memory cache
+6. Tag tree rebuilt from cached tag data (IndexedDB + memory cache)
+7. Content providers queue pending file-derived content (preview, tags, metadata, feature images, custom property) while UI renders from the memory cache
 
 ### File Change (During Session)
 
 1. Obsidian emits vault event (create, delete, rename, modify)
 2. StorageContext diffs vault files and updates **IndexedDB** (adds new files, removes deleted entries, preserves
    renamed data)
-3. **ContentProviderRegistry** queues affected files for previews, tags, feature images, and metadata
+3. **ContentProviderRegistry** queues affected files for content regeneration
 4. Providers write updates through **IndexedDBStorage**, keeping the memory cache in sync and notifying listeners
 5. React components re-render with the refreshed in-memory data
 
@@ -399,9 +424,9 @@ interface IconAssetRecord {
 
 ### Memory Cache
 
-- **Memory Usage**: ~300 bytes per file (30MB for 100k files)
+- **Memory Usage**: Scales with file count and LRU cache sizes
 - **Synchronization**: Keep perfectly synced with IndexedDB
-- **Initialization**: Load all data upfront for consistent performance
+- **Initialization**: File records load on startup; preview text warmup is incremental
 
 ### Settings
 
@@ -416,9 +441,9 @@ interface IconAssetRecord {
 When IndexedDB schema changes:
 
 1. Increment `DB_SCHEMA_VERSION`
-2. Database automatically cleared on next start
-3. Full rebuild from vault files
-4. Memory cache populated fresh
+2. Schema upgrades run via `onupgradeneeded` (may clear stores when legacy payloads cannot be migrated)
+3. Schema downgrades delete and recreate the database
+4. If stores are cleared, content is rebuilt from vault files and providers
 
 ### Content Format Changes
 
@@ -429,7 +454,7 @@ When content generation logic changes:
 3. Content regenerated for all files
 4. Gradual population via background processing
 
-Current values: `DB_SCHEMA_VERSION = 1`, `DB_CONTENT_VERSION = 6`.
+Current values: `DB_SCHEMA_VERSION = 3`, `DB_CONTENT_VERSION = 2`.
 
 ### Settings Updates
 

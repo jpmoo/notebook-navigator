@@ -413,6 +413,17 @@ export const STRINGS_NL = {
                 add: 'om tag toe te voegen',
                 remove: 'om tag te verwijderen'
             }
+        },
+        welcome: {
+            title: 'Welkom bij {pluginName}',
+            introText:
+                'Hallo! Voordat je begint, raad ik je sterk aan om de eerste vijf minuten van de onderstaande video te bekijken om te begrijpen hoe de panelen en de schakelaar "Notities uit submappen weergeven" werken.',
+            continueText:
+                'Als je nog vijf minuten hebt, bekijk dan de rest van de video om de compacte weergavemodi te begrijpen en hoe je snelkoppelingen en belangrijke sneltoetsen correct instelt.',
+            thanksText: 'Heel erg bedankt voor het downloaden en veel plezier!',
+            videoAlt: 'Notebook Navigator installeren en beheersen',
+            openVideoButton: 'Video afspelen',
+            closeButton: 'Ik bekijk het later'
         }
     },
 
@@ -633,6 +644,7 @@ export const STRINGS_NL = {
                 previewText: 'Voorbeeldtekst',
                 featureImage: 'Uitgelichte afbeelding',
                 tags: 'Tags',
+                customProperty: 'Custom property',
                 date: 'Datum',
                 parentFolder: 'Bovenliggende map'
             }
@@ -1013,6 +1025,24 @@ export const STRINGS_NL = {
                 name: 'Bestandstags tonen in compacte modus',
                 desc: 'Tags weergeven wanneer datum, voorbeeld en afbeelding verborgen zijn.'
             },
+            customPropertyType: {
+                name: 'Type',
+                desc: 'Select the custom property to display in file items.',
+                options: {
+                    frontmatter: 'Frontmatter property',
+                    wordCount: 'Word count',
+                    none: 'None'
+                }
+            },
+            customPropertyFrontmatterFields: {
+                name: 'Frontmatter properties',
+                desc: 'Comma-separated list of frontmatter properties to display. The first property with a value is used.',
+                placeholder: 'status, type, category'
+            },
+            showCustomPropertyInCompactMode: {
+                name: 'Show custom property in compact mode',
+                desc: 'Display the custom property when date, preview, and image are hidden.'
+            },
             dateFormat: {
                 name: 'Datumformaat',
                 desc: 'Formaat voor het weergeven van datums (gebruikt date-fns formaat).',
@@ -1330,6 +1360,10 @@ export const STRINGS_NL = {
                 name: 'Wat is er nieuw in Notebook Navigator {version}',
                 desc: 'Bekijk recente updates en verbeteringen',
                 buttonText: 'Bekijk recente updates'
+            },
+            masteringVideo: {
+                name: 'Notebook Navigator beheersen (video)',
+                desc: 'Deze video behandelt alles wat je nodig hebt om productief te zijn in Notebook Navigator, inclusief sneltoetsen, zoeken, tags en geavanceerde aanpassingen.'
             },
             cacheStatistics: {
                 localCache: 'Lokale cache',

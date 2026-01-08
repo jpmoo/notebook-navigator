@@ -88,6 +88,8 @@ Keep this list ordered: later files override earlier ones.
 @import './sections/modal-file-icon-rule-editor.css';
 /* modal-ux-icon-map.css: UX icon map modal layout, mobile sizing, scroll container. */
 @import './sections/modal-ux-icon-map.css';
+/* modal-welcome.css: welcome modal layout, video thumbnail sizing, and button row. */
+@import './sections/modal-welcome.css';
 /* modal-whats-new.css: “What’s new” modal layout, list formatting, and release notes typography. */
 @import './sections/modal-whats-new.css';
 /* modal-icon-picker.css: icon picker modal layout, search input, results grid, and category headers. */

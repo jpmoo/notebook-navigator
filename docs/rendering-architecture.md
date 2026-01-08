@@ -1,5 +1,7 @@
 # Notebook Navigator Rendering Architecture
 
+Updated: January 8, 2026
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -46,8 +48,8 @@ Expensive data shaping lives outside component bodies. Examples:
   colours, and tracks virtual folders, banners, pinned shortcuts, and section ordering.
 - `useNavigationRootReorder` exposes drag-and-drop reorder state and render helpers for root folders, tags, and section
   headers.
-- `useListPaneData` assembles list pane items (pinned files, top spacer, date headers, Omnisearch matches, drop targets,
-  hidden item annotations) and keeps lookup maps for virtualized scrolling and multi-selection.
+- `useListPaneData` assembles list pane items (pinned files, top spacer, date headers, search metadata, hidden item
+  flags) and keeps lookup maps for virtualized scrolling and multi-selection.
 - `useListPaneAppearance`, `useListPaneTitle`, `useNavigationPaneKeyboard`, `useListPaneKeyboard`, `useNavigatorReveal`,
   and `useNavigatorEventHandlers` encapsulate behaviour that would otherwise live inside components.
 
@@ -65,8 +67,8 @@ Nine providers wrap the React tree:
 - `StorageContext` – IndexedDB mirror, tag tree, synchronous metadata accessors, cache rebuild entry points
 - `ExpansionContext` – expanded folders, tags, shortcuts, recent notes, and virtual folders
 - `SelectionContext` – selected folder/tag/file, multi-selection tracking, reveal targets, and selection dispatchers
-- `UIStateContext` – pane mode (single vs dual), focused pane, pane orientation and size, pinned shortcuts toggle,
-  mobile drawer state
+- `UIStateContext` – pane mode (single vs dual), focused pane, current single-pane view, navigation pane width, pinned
+  shortcuts toggle
 
 ### 5. Stable Rendering Contracts
 
@@ -77,70 +79,73 @@ applied via effects in `NotebookNavigatorComponent` and `useNavigatorScale` so r
 
 ## Component Hierarchy
 
+### Top-level stack
+
 ```mermaid
-graph TD
-    subgraph "Obsidian Integration"
-        OV[NotebookNavigatorView<br/>• ItemView host<br/>• Lifecycle bridge]
-    end
-
-    subgraph "React Application"
-        subgraph "Context Providers"
-            SP[SettingsProvider]
-            UX[UXPreferencesProvider]
-            RD[RecentDataProvider]
-            SVC[ServicesProvider]
-            SHC[ShortcutsProvider]
-            ST[StorageProvider]
-            EP[ExpansionProvider]
-            SEL[SelectionProvider]
-            UI[UIStateProvider]
-        end
-
-        subgraph "Main Container"
-            NC[NotebookNavigatorContainer<br/>• Scale wrapper<br/>• Skeleton fallback]
-            NNC[NotebookNavigatorComponent<br/>• Pane orchestration]
-            SK[SkeletonView]
-        end
-
-        subgraph "Navigation Pane"
-            NPH[NavigationPaneHeader]
-            NTB[NavigationToolbar]
-            NP[NavigationPane<br/>• Virtual tree]
-            NB[NavigationBanner]
-            NRP[NavigationRootReorderPanel]
-        end
-
-        subgraph "List Pane"
-            LPH[ListPaneHeader]
-            LTA[ListPaneTitleArea]
-            LP[ListPane<br/>• SearchInput + Virtual list]
-            LTB[ListToolbar]
-        end
-    end
+flowchart TD
+    OV[NotebookNavigatorView]
+    SP[SettingsProvider]
+    UX[UXPreferencesProvider]
+    RD[RecentDataProvider]
+    SVC[ServicesProvider]
+    SHC[ShortcutsProvider]
+    ST[StorageProvider]
+    EP[ExpansionProvider]
+    SEL[SelectionProvider]
+    UI[UIStateProvider]
+    NC[NotebookNavigatorContainer]
+    SK[SkeletonView]
+    NNC[NotebookNavigatorComponent]
+    UNB[UpdateNoticeBanner]
+    UNI[UpdateNoticeIndicator]
+    NPR[NavigationPane]
+    LPR[ListPane]
 
     OV --> SP --> UX --> RD --> SVC --> SHC --> ST --> EP --> SEL --> UI --> NC
     NC --> SK
     NC --> NNC
-    NNC --> NPH
-    NNC --> NTB
-    NNC --> NP
-    NNC --> NB
-    NNC --> NRP
-    NNC --> LPH
-    NNC --> LTA
-    NNC --> LP
-    NNC --> LTB
+    NNC --> UNB
+    NNC --> UNI
+    NNC --> NPR
+    NNC --> LPR
+```
 
-    classDef obsidian fill:#e8f4f8,stroke:#0ea5e9,stroke-width:2px
-    classDef context fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
-    classDef container fill:#e9d5ff,stroke:#a855f7,stroke-width:2px
-    classDef pane fill:#dcfce7,stroke:#22c55e,stroke-width:2px
-    classDef ui fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+### NavigationPane subtree
 
-    class OV obsidian
-    class SP,UX,RD,SVC,SHC,ST,EP,SEL,UI context
-    class NC,NNC,SK container
-    class NPH,NTB,NP,NB,NRP,LPH,LTA,LP,LTB pane
+```mermaid
+flowchart TD
+    NPR[NavigationPane]
+    NPH[NavigationPaneHeader]
+    VTA[VaultTitleArea]
+    NTB[NavigationToolbar]
+    NB[NavigationBanner]
+    NPL[Virtualized navigation list]
+    NRP[NavigationRootReorderPanel]
+
+    NPR --> NPH
+    NPH --> VTA
+    NPH --> NTB
+    NPR --> NB
+    NPR --> NPL
+    NPR --> NRP
+```
+
+### ListPane subtree
+
+```mermaid
+flowchart TD
+    LPR[ListPane]
+    LPH[ListPaneHeader]
+    LTA[ListPaneTitleArea]
+    SI[SearchInput]
+    LTB[ListToolbar]
+    LPL[Virtualized file list]
+
+    LPR --> LPH
+    LPH --> LTA
+    LPH --> SI
+    LPH --> LTB
+    LPR --> LPL
 ```
 
 ## Component Responsibilities
@@ -194,31 +199,31 @@ graph TD
 
 **Location**: `src/components/NavigationPaneHeader.tsx`
 
-- Desktop-only toolbar providing dual/single pane toggle, pinned shortcuts toggle, expand/collapse all, hidden item
-  toggle, root reorder toggle, and new folder action.
+- Desktop header providing dual/single pane toggle, profile menu trigger, expand/collapse all, hidden item toggle, root
+  reorder toggle, and new folder action.
+- Mobile variant renders a simplified profile menu trigger when multiple profiles exist.
 - Defers tree-refresh callbacks with `requestAnimationFrame` so scroll hooks can remeasure after batch operations.
 
 ### NavigationToolbar
 
 **Location**: `src/components/NavigationToolbar.tsx`
 
-- Mobile toolbar mirroring header actions (pin shortcuts, expand/collapse, hidden item toggle, root reorder toggle, new
-  folder button).
-- Used on both Android and iOS, positioned according to mobile layout rules.
+- Mobile toolbar providing expand/collapse, hidden item toggle, root reorder toggle, and new folder action.
+- Rendered at the top on Android and the bottom on iOS.
 
 ### NavigationPane
 
 **Location**: `src/components/NavigationPane.tsx`
 
 - Consumes data from `useNavigationPaneData`, `useNavigationRootReorder`, `useNavigationPaneScroll`,
-  `useNavigationPaneKeyboard`, and `useNavigationPaneScroll`.
-- Renders `FolderItem`, `TagTreeItem`, `VirtualFolderComponent`, `ShortcutItem`, `RootFolderReorderItem`, recent note
-  entries, navigation banner placeholder, and section spacers inside the virtual list.
+  and `useNavigationPaneKeyboard`.
+- Renders header/banner/pinned sections above a virtualized `CombinedNavigationItem[]` list; renders
+  `NavigationRootReorderPanel` instead of the virtual list when root reorder mode is active.
 - Handles folder/tag drag targets and uses dnd-kit sortable contexts for shortcut reordering.
 - Integrates context menus (`buildFolderMenu`, `buildTagMenu`, `buildFileMenu`) and frontmatter exclusion logic for
   hidden items.
-- Coordinates pending scrolls, shortcut activation, banner height measurements, and reveals through the virtualizer
-  exposed on the forwarded ref.
+- Measures the chrome overlay height and passes it to the scroll hook as `scrollMargin` so `scrollToIndex` aligns items
+  below the overlay.
 
 ### NavigationBanner
 
@@ -258,7 +263,7 @@ graph TD
 **Location**: `src/components/ListPane.tsx`
 
 - Consumes data and behaviour from `useListPaneData`, `useListPaneScroll`, `useListPaneKeyboard`,
-  `useListPaneAppearance`, `useMultiSelection`, `useContextMenu`, and `useListActions`.
+  `useListPaneAppearance`, `useMultiSelection`, `useContextMenu`, and `useFileOpener`.
 - Renders the search bar (`SearchInput`), `ListPaneTitleArea`, mobile toolbars, empty states, and the virtual list with
   top spacer, date headers, file rows, and bottom spacer.
 - Integrates Omnisearch results when configured, including excerpt matches and highlight metadata.
@@ -311,12 +316,16 @@ graph TD
 
 ### Navigation Pane Virtualization
 
-- `useNavigationPaneData` returns a `CombinedNavigationItem[]` that includes folders, tags, virtual folders, shortcuts,
-  recent notes, banners, spacers, and reorder placeholders.
-- `useNavigationPaneScroll` initializes the virtualizer with `NAVPANE_MEASUREMENTS`, tracks banner height, and exposes
-  `requestScroll` for reveal operations.
+- `useNavigationPaneData` returns `items: CombinedNavigationItem[]` plus lookup maps (`pathToIndex`, `shortcutIndex`) and
+  pinned-section arrays (`shortcutItems`, `pinnedRecentNotesItems`) used by the chrome overlay.
+- `NavigationPane` renders the chrome overlay (header/banner/pinned sections) above the virtual list and measures its
+  height; that value is passed as `scrollMargin` so virtualizer alignment stays below the overlay.
+- `useNavigationPaneScroll` initializes the virtualizer with `NAVPANE_MEASUREMENTS` and exposes `requestScroll` for reveal
+  operations.
 - `NavigationPane` maps `rowVirtualizer.getVirtualItems()` to components, switching on `item.type` to render the correct
-  row (`FolderItem`, `TagTreeItem`, `VirtualFolderComponent`, `ShortcutItem`, `RootFolderReorderItem`, banner, spacer).
+  row (`FolderItem`, `TagTreeItem`, `VirtualFolderComponent`, `ShortcutItem`, recent note rows, spacers).
+- Root reorder mode swaps the virtual list for `NavigationRootReorderPanel` (non-virtualized), which renders
+  `RootFolderReorderItem` rows.
 - Path-to-index maps and shortcut index maps are kept in `useNavigationPaneData` and shared with the scroll hook to
   resolve scroll targets at execution time.
 
@@ -336,7 +345,7 @@ const { rowVirtualizer, scrollContainerRefCallback, requestScroll } = useNavigat
   pathToIndex,
   isVisible: navigationVisible,
   activeShortcutKey,
-  bannerHeight
+  scrollMargin: navigationOverlayHeight
 });
 ```
 
@@ -344,9 +353,9 @@ const { rowVirtualizer, scrollContainerRefCallback, requestScroll } = useNavigat
 
 - `useListPaneData` emits `ListPaneItem[]` composed of top/bottom spacers, date headers, and file items with pinned and
   hidden flags plus lookup maps (`filePathToIndex`, `fileIndexMap`).
-- `useListPaneScroll` feeds `listItems` into `useVirtualizer`, calculating heights with `LISTPANE_MEASUREMENTS`,
-  Omnisearch excerpts, preview availability (`hasPreview`), parent folder visibility, and optimization settings
-  (`optimizeNoteHeight`).
+- `useListPaneScroll` feeds `listItems` into `useVirtualizer`, calculating heights with `getListPaneMeasurements`,
+  preview availability (`hasPreview`), search metadata, and appearance settings. The list overlay height is passed as
+  `scrollMargin` so `scrollToIndex` aligns items below the header/search chrome.
 - The hook maintains a priority queue of pending scrolls (reveal, navigation, visibility change, search) and runs them
   after the index version matches the expected rebuild.
 - `ListPane` renders virtual items by switching on `item.type` and passing search metadata to `FileItem`; headers are
@@ -358,25 +367,29 @@ const { listItems, filePathToIndex, orderedFiles } = useListPaneData({
   selectedFolder,
   selectedTag,
   settings,
-  searchQuery: debouncedSearchQuery,
-  searchTokens: debouncedSearchTokens,
+  activeProfile,
+  searchProvider,
+  searchQuery: isSearchActive ? debouncedSearchQuery : undefined,
+  searchTokens: isSearchActive ? debouncedSearchTokens : undefined,
   visibility: { includeDescendantNotes, showHiddenItems }
 });
 
 const { rowVirtualizer, scrollContainerRefCallback, handleScrollToTop } = useListPaneScroll({
   listItems,
   filePathToIndex,
-  selectedFile: selectionState.selectedFile,
+  selectedFile,
   selectedFolder,
   selectedTag,
   settings,
   folderSettings: appearanceSettings,
-  isVisible: listPaneVisible,
+  isVisible,
   selectionState,
   selectionDispatch,
   searchQuery: isSearchActive ? debouncedSearchQuery : undefined,
+  suppressSearchTopScrollRef,
   topSpacerHeight,
-  includeDescendantNotes
+  includeDescendantNotes,
+  scrollMargin: listOverlayHeight
 });
 ```
 

@@ -51,6 +51,7 @@ import { ShortcutsProvider } from '../context/ShortcutsContext';
 import { RecentDataProvider } from '../context/RecentDataContext';
 import { strings } from '../i18n';
 import NotebookNavigatorPlugin from '../main';
+import { NOTEBOOK_NAVIGATOR_ICON_ID } from '../constants/notebookNavigatorIcon';
 import { NOTEBOOK_NAVIGATOR_VIEW } from '../types';
 import { UXPreferencesProvider } from '../context/UXPreferencesContext';
 import {
@@ -101,7 +102,7 @@ export class NotebookNavigatorView extends ItemView {
      * @returns The Obsidian icon name to display in tabs and headers
      */
     getIcon() {
-        return 'notebook';
+        return NOTEBOOK_NAVIGATOR_ICON_ID;
     }
 
     /**

@@ -1,5 +1,7 @@
 # Notebook Navigator Scroll Orchestration
 
+Updated: January 8, 2026
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -95,8 +97,7 @@ These counters allow pending scrolls to specify the version they require before 
 Each pane stores at most one pending request.
 
 - **Navigation pane** records `{ path, itemType, intent, align?, minIndexVersion? }`. Paths are normalized by item type.
-- **List pane** records `{ type: 'file' | 'top', filePath?, reason?, minIndexVersion?, skipScroll? }`. `skipScroll`
-  marks bookkeeping entries that clear without scrolling.
+- **List pane** records `{ type: 'file' | 'top', filePath?, reason?, minIndexVersion? }`.
 
 A `pendingScrollVersion` state value forces React effects to re-run whenever a new request replaces the previous one.
 
@@ -104,8 +105,8 @@ A `pendingScrollVersion` state value forces React effects to re-run whenever a n
 
 Intent metadata ties each request to its trigger and alignment policy.
 
-- **Navigation intents**: `selection`, `reveal`, `visibilityToggle`, `external`, `mobile-visibility`. `startup` exists
-  in the type for future use but is not currently enqueued.
+- **Navigation intents**: `selection`, `visibilityToggle`, `external`, `mobile-visibility`. `startup` and `reveal` exist
+  in the type but are not currently enqueued by `useNavigationPaneScroll`.
 - **List intents**: `folder-navigation`, `visibility-change`, `reveal`, `list-structure-change`. `'top'` requests use
   the same priority system with `type: 'top'`.
 
@@ -145,16 +146,16 @@ requests.
 
 ### Navigation Pane Scrolling
 
-`useNavigationPaneScroll` wires TanStack Virtual for folder, tag, banner, and spacer items.
+`useNavigationPaneScroll` wires TanStack Virtual for navigation items (folders, tags, shortcuts, recent notes, and
+spacers).
 
-- **Virtualizer setup**: Item height estimates follow navigation settings and mobile overrides. Banner height falls back
-  to a spacer until measured.
+- **Virtualizer setup**: Item height estimates follow navigation settings and mobile overrides. `scrollMargin` and
+  `scrollPaddingStart` align virtualization math and `scrollToIndex` below the pinned chrome stack.
 - **Selection handling**: The hook watches folder/tag selection, pane focus, and visibility. It suppresses auto-scroll
   when a shortcut is active or when `skipAutoScroll` is enabled for shortcut reveals.
 - **Hidden item toggles**: When `showHiddenItems` changes, the current selection is queued with intent
   `visibilityToggle` and `minIndexVersion = current + 1`.
-- **Startup tags**: Tags load after folders, so a dedicated effect watches for new tag indices and queues the selected
-  tag once available.
+- **Tag selection**: Tags can load after folders, so tag selection scrolling is handled in a dedicated effect.
 - **Pending execution**: While a visibility toggle is in progress, only `visibilityToggle` requests can execute. After
   running such a scroll, the hook rechecks the index on the next animation frame and queues a follow-up if the index
   moved again.
@@ -171,16 +172,15 @@ requests.
 
 - **Virtualizer setup**: Height estimation mirrors `FileItem` logic, looking up preview availability synchronously and
   respecting compact mode.
-- **Priority queue**: `setPending` wraps `rankListPending`, replacing lower-ranked requests and preventing skip-only
-  updates from clobbering real scrolls.
+- **Priority queue**: `setPending` wraps `rankListPending`, replacing lower-ranked requests.
 - **Selected file tracking**: `selectedFilePathRef` avoids executing stale config scrolls for files that are no longer
   selected.
 - **Context tracking**: `contextIndexVersionRef` maintains the last version seen per folder/tag context. When the index
-  advances within a folder or tag (pin/unpin, reorder, delete), the hook queues a `list-structure-change` scroll so the
-  selected file remains visible.
+  advances within a folder or tag (pin/unpin, reorder, delete), the hook queues a `list-structure-change` scroll (when
+  `revealFileOnListChanges` is enabled) so the selected file remains visible.
 - **Folder navigation**: When the list context changes or `isFolderNavigation` is true, the hook sets a pending request
-  (file or top) and clears the navigation flag. Pending entries execute even if the pane is hidden, so the position is
-  restored once visible.
+  (file or top) and clears the navigation flag. Pending entries can be queued even when the pane is hidden and execute
+  once the list becomes ready.
 - **Reveal operations**: Reveal flows queue a `reveal` pending scroll. Startup reveals override alignment to `'center'`.
 - **Mobile drawer**: The `notebook-navigator-visible` event queues a visibility-change scroll when a file is selected.
 - **Settings and search**: Appearance changes and descendant toggles queue `list-structure-change` entries. Search
@@ -208,15 +208,15 @@ requests.
 
 1. Navigation line height or indentation updates trigger `rowVirtualizer.measure()` followed by a deferred selection
    scroll when auto-scroll is allowed.
-2. List appearance or descendant toggles queue a `list-structure-change` scroll with `minIndexVersion = current + 1`. If
-   no file is selected and descendants are disabled, the hook scrolls to top instead.
+2. List appearance or descendant toggles queue a `list-structure-change` scroll with `minIndexVersion = current + 1`
+   when `revealFileOnListChanges` is enabled. Disabling descendants can queue a `top` scroll instead.
 3. Reorders within the same folder or tag update `indexVersion` and enqueue a `list-structure-change` scroll so pinned
    files remain visible.
 
 ### Reveal Operations
 
 1. Reveal flows call `requestScroll` for the navigation pane and set `selectionState.isRevealOperation`.
-2. The navigation pane resolves the target path and scrolls with alignment from `getNavAlign('reveal')` (`auto`).
+2. The navigation pane scrolls as an `external` request (alignment from `getNavAlign('external')`, `auto` by default).
 3. The list pane queues a `reveal` request and scrolls once the index is ready. Startup reveals center the target item;
    manual reveals use `auto`.
 
@@ -259,13 +259,12 @@ export function rankListPending(p?: { type: 'file' | 'top'; reason?: ListScrollI
 }
 ```
 
-`setPending` compares these ranks and only replaces the current request when the new one is equal or higher, aside from
-preserving non-skip entries when the incoming request is skip-only.
+`setPending` compares these ranks and only replaces the current request when the new one is equal or higher.
 
 ### Alignment Policies
 
-- **Navigation pane**: `selection` centers on mobile and uses `auto` on desktop. `visibilityToggle`, `reveal`,
-  `external`, and `mobile-visibility` use `auto`.
+- **Navigation pane**: `selection` centers on mobile and uses `auto` on desktop. `visibilityToggle`, `external`, and
+  `mobile-visibility` use `auto`. `startup` defaults to `center` and `reveal` maps to `auto` in `getNavAlign`.
 - **List pane**: `folder-navigation` centers on mobile, others use `auto`. Startup reveals override to `center` after
   execution.
 
@@ -273,9 +272,8 @@ preserving non-skip entries when the incoming request is skip-only.
 
 - Navigation visibility toggles run a `requestAnimationFrame` check after scrolling to detect secondary rebuilds and
   queue another pending request if needed.
-- List config-change scrolls run a similar frame-based check and queue a follow-up when the index changes again.
-- `skipScroll` entries allow the list pane to clear pending state without scrolling while still synchronizing
-  version-based updates.
+- List `list-structure-change` scrolls run a similar frame-based check and queue a follow-up when the index changes
+  again (only when `revealFileOnListChanges` is enabled).
 
 ### Container Readiness
 

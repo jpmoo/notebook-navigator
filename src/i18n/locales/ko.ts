@@ -411,6 +411,17 @@ export const STRINGS_KO = {
                 add: '태그 추가',
                 remove: '태그 제거'
             }
+        },
+        welcome: {
+            title: '{pluginName}에 오신 것을 환영합니다',
+            introText:
+                '안녕하세요! 시작하기 전에 아래 비디오의 첫 5분을 시청하여 패널과 토글 "하위 폴더의 노트 표시"가 어떻게 작동하는지 이해하는 것을 강력히 권장합니다.',
+            continueText:
+                '5분 더 있으시다면 비디오를 계속 시청하여 컴팩트 표시 모드와 바로가기 및 중요한 단축키를 올바르게 설정하는 방법을 이해해 주세요.',
+            thanksText: '다운로드해 주셔서 감사합니다. 즐겁게 사용하세요!',
+            videoAlt: 'Notebook Navigator 설치 및 마스터하기',
+            openVideoButton: '비디오 재생',
+            closeButton: '나중에 볼게요'
         }
     },
 
@@ -631,6 +642,7 @@ export const STRINGS_KO = {
                 previewText: '미리보기 텍스트',
                 featureImage: '대표 이미지',
                 tags: '태그',
+                customProperty: 'Custom property',
                 date: '날짜',
                 parentFolder: '상위 폴더'
             }
@@ -1010,6 +1022,24 @@ export const STRINGS_KO = {
                 name: '슬림 모드에서 파일 태그 표시',
                 desc: '날짜, 미리보기, 이미지가 숨겨져 있을 때 태그를 표시합니다.'
             },
+            customPropertyType: {
+                name: 'Type',
+                desc: 'Select the custom property to display in file items.',
+                options: {
+                    frontmatter: 'Frontmatter property',
+                    wordCount: 'Word count',
+                    none: 'None'
+                }
+            },
+            customPropertyFrontmatterFields: {
+                name: 'Frontmatter properties',
+                desc: 'Comma-separated list of frontmatter properties to display. The first property with a value is used.',
+                placeholder: 'status, type, category'
+            },
+            showCustomPropertyInCompactMode: {
+                name: 'Show custom property in compact mode',
+                desc: 'Display the custom property when date, preview, and image are hidden.'
+            },
             dateFormat: {
                 name: '날짜 형식',
                 desc: '날짜 표시 형식 (date-fns 형식 사용).',
@@ -1326,6 +1356,10 @@ export const STRINGS_KO = {
                 name: 'Notebook Navigator {version}의 새로운 기능',
                 desc: '최근 업데이트와 개선 사항 보기',
                 buttonText: '최근 업데이트 보기'
+            },
+            masteringVideo: {
+                name: 'Notebook Navigator 마스터하기 (동영상)',
+                desc: '이 동영상에서는 Notebook Navigator를 효율적으로 사용하는 데 필요한 모든 것을 다룹니다. 단축키, 검색, 태그 및 고급 사용자 지정이 포함됩니다.'
             },
             cacheStatistics: {
                 localCache: '로컬 캐시',

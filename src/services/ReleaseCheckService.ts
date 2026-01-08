@@ -17,6 +17,7 @@
  */
 
 import { requestUrl } from 'obsidian';
+import { NOTEBOOK_NAVIGATOR_RELEASE_CHECK_URL } from '../constants/urls';
 import { compareVersions } from '../releaseNotes';
 import NotebookNavigatorPlugin from '../main';
 
@@ -36,8 +37,6 @@ interface GithubReleaseResponse {
     prerelease: boolean;
 }
 
-/** GitHub API endpoint for fetching the latest release */
-const GITHUB_RELEASES_ENDPOINT = 'https://api.github.com/repos/johansan/notebook-navigator/releases/latest';
 /** Minimum time between release checks (24 hours) */
 const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
@@ -129,7 +128,7 @@ export default class ReleaseCheckService {
      */
     private async fetchLatestRelease(): Promise<ReleaseUpdateNotice | null> {
         const response = await requestUrl({
-            url: GITHUB_RELEASES_ENDPOINT,
+            url: NOTEBOOK_NAVIGATOR_RELEASE_CHECK_URL,
             method: 'GET',
             headers: {
                 'User-Agent': 'NotebookNavigator/ReleaseCheck (Obsidian Plugin)',

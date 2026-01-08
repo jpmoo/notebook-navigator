@@ -412,6 +412,17 @@ export const STRINGS_FA = {
                 add: 'برای افزودن برچسب',
                 remove: 'برای حذف برچسب'
             }
+        },
+        welcome: {
+            title: 'به {pluginName} خوش آمدید',
+            introText:
+                'سلام! قبل از شروع، اکیداً توصیه می‌کنم پنج دقیقه اول ویدیوی زیر را تماشا کنید تا نحوه کار پنل‌ها و کلید «نمایش یادداشت‌ها از زیرپوشه‌ها» را درک کنید.',
+            continueText:
+                'اگر پنج دقیقه دیگر وقت دارید، به تماشای ویدیو ادامه دهید تا حالت‌های نمایش فشرده و نحوه تنظیم صحیح میانبرها و کلیدهای میانبر مهم را درک کنید.',
+            thanksText: 'از دانلود شما بسیار سپاسگزارم، لذت ببرید!',
+            videoAlt: 'نصب و تسلط بر Notebook Navigator',
+            openVideoButton: 'پخش ویدیو',
+            closeButton: 'بعداً تماشا می‌کنم'
         }
     },
     // File system operations
@@ -631,6 +642,7 @@ export const STRINGS_FA = {
                 previewText: 'متن پیش‌نمایش',
                 featureImage: 'تصویر ویژه',
                 tags: 'برچسب‌ها',
+                customProperty: 'Custom property',
                 date: 'تاریخ',
                 parentFolder: 'پوشه والد'
             }
@@ -1010,6 +1022,24 @@ export const STRINGS_FA = {
                 name: 'نمایش برچسب‌های فایل در حالت فشرده',
                 desc: 'برچسب‌ها را هنگامی که تاریخ، پیش‌نمایش و تصویر مخفی هستند نمایش دهید.'
             },
+            customPropertyType: {
+                name: 'Type',
+                desc: 'Select the custom property to display in file items.',
+                options: {
+                    frontmatter: 'Frontmatter property',
+                    wordCount: 'Word count',
+                    none: 'None'
+                }
+            },
+            customPropertyFrontmatterFields: {
+                name: 'Frontmatter properties',
+                desc: 'Comma-separated list of frontmatter properties to display. The first property with a value is used.',
+                placeholder: 'status, type, category'
+            },
+            showCustomPropertyInCompactMode: {
+                name: 'Show custom property in compact mode',
+                desc: 'Display the custom property when date, preview, and image are hidden.'
+            },
             dateFormat: {
                 name: 'قالب تاریخ',
                 desc: 'قالب نمایش تاریخ‌ها (از قالب date-fns استفاده می‌کند).',
@@ -1326,6 +1356,10 @@ export const STRINGS_FA = {
                 name: 'چه چیزی جدید است در Notebook Navigator {version}',
                 desc: 'به‌روزرسانی‌ها و بهبودهای اخیر را ببینید',
                 buttonText: 'مشاهده به‌روزرسانی‌های اخیر'
+            },
+            masteringVideo: {
+                name: 'تسلط بر Notebook Navigator (ویدیو)',
+                desc: 'این ویدیو تمام آنچه برای کار بهره‌ور با Notebook Navigator نیاز دارید را پوشش می‌دهد، از جمله میانبرهای صفحه‌کلید، جستجو، برچسب‌ها و سفارشی‌سازی پیشرفته.'
             },
             cacheStatistics: {
                 localCache: 'کش محلی',

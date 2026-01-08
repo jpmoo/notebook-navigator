@@ -113,6 +113,7 @@ import { openFileInContext } from '../utils/openFileInContext';
 import { useShortcuts } from '../context/ShortcutsContext';
 import { ShortcutItem } from './ShortcutItem';
 import { ShortcutCollectionSelector } from './ShortcutCollectionSelector';
+import { NavItemHoverActionSlot } from './NavItemHoverActionSlot';
 import { ConfirmModal } from '../modals/ConfirmModal';
 import {
     ShortcutEntry,
@@ -1762,8 +1763,69 @@ export const NavigationPane = React.memo(
                 const menu = new Menu();
                 let hasActions = false;
 
-                // Add separator toggle option when allowed
-                if (allowSeparator) {
+                if (isShortcutsSection) {
+                    menu.addItem(item => {
+                        item.setTitle(pinToggleLabel)
+                            .setIcon(uiState.pinShortcuts ? 'lucide-pin-off' : 'lucide-pin')
+                            .onClick(() => {
+                                handleShortcutSplitToggle();
+                            });
+                    });
+                    hasActions = true;
+
+                    const shouldShowSeparatorAction = allowSeparator && !uiState.pinShortcuts;
+                    const shouldShowRemoveAll = shortcutsList.length > 0;
+                    const shouldRenderSecondarySection = shouldShowSeparatorAction || shouldShowRemoveAll;
+
+                    if (shouldRenderSecondarySection) {
+                        menu.addSeparator();
+                    }
+
+                    // Add separator toggle option when shortcuts are not pinned
+                    if (shouldShowSeparatorAction) {
+                        menu.addItem(item => {
+                            item.setTitle(
+                                hasSeparator ? strings.contextMenu.navigation.removeSeparator : strings.contextMenu.navigation.addSeparator
+                            )
+                                .setIcon('lucide-separator-horizontal')
+                                .onClick(() => {
+                                    runAsyncAction(async () => {
+                                        if (hasSeparator) {
+                                            await metadataService.removeNavigationSeparator(target);
+                                            return;
+                                        }
+                                        await metadataService.addNavigationSeparator(target);
+                                    });
+                                });
+                        });
+                        hasActions = true;
+                    }
+
+                    // Add "remove all shortcuts" option
+                    if (shouldShowRemoveAll) {
+                        if (shouldShowSeparatorAction) {
+                            menu.addSeparator();
+                        }
+
+                        menu.addItem(item => {
+                            item.setTitle(strings.shortcuts.removeAll)
+                                .setIcon('lucide-trash-2')
+                                .onClick(() => {
+                                    const confirmModal = new ConfirmModal(
+                                        app,
+                                        strings.shortcuts.removeAll,
+                                        strings.shortcuts.removeAllConfirm,
+                                        () => clearShortcuts(),
+                                        strings.common.remove
+                                    );
+                                    confirmModal.open();
+                                });
+                        });
+
+                        hasActions = true;
+                    }
+                } else if (allowSeparator) {
+                    // Add separator toggle option for other sections
                     menu.addItem(item => {
                         item.setTitle(
                             hasSeparator ? strings.contextMenu.navigation.removeSeparator : strings.contextMenu.navigation.addSeparator
@@ -1782,30 +1844,6 @@ export const NavigationPane = React.memo(
                     hasActions = true;
                 }
 
-                // Add "remove all shortcuts" option for the shortcuts section
-                if (isShortcutsSection && shortcutsList.length > 0) {
-                    if (hasActions) {
-                        menu.addSeparator();
-                    }
-
-                    menu.addItem(item => {
-                        item.setTitle(strings.shortcuts.removeAll)
-                            .setIcon('lucide-trash-2')
-                            .onClick(() => {
-                                const confirmModal = new ConfirmModal(
-                                    app,
-                                    strings.shortcuts.removeAll,
-                                    strings.shortcuts.removeAllConfirm,
-                                    () => clearShortcuts(),
-                                    strings.common.remove
-                                );
-                                confirmModal.open();
-                            });
-                    });
-
-                    hasActions = true;
-                }
-
                 // Skip showing empty menu
                 if (!hasActions) {
                     return;
@@ -1813,7 +1851,7 @@ export const NavigationPane = React.memo(
 
                 menu.showAtMouseEvent(event.nativeEvent);
             },
-            [app, clearShortcuts, metadataService, shortcutsList.length]
+            [app, clearShortcuts, handleShortcutSplitToggle, metadataService, pinToggleLabel, shortcutsList.length, uiState.pinShortcuts]
         );
 
         // Calculates the note count for a folder shortcut, using cache when available
@@ -2342,13 +2380,24 @@ export const NavigationPane = React.memo(
                             shouldPinShortcuts && sectionId !== null && firstSectionId !== null && sectionId === firstSectionId;
                         const allowSeparatorActions = !isShortcutsGroup || !shouldPinShortcuts;
                         const hasShortcutMenuActions = isShortcutsGroup && shortcutsList.length > 0;
+                        const hasShortcutsPinAction = isShortcutsGroup;
                         // When shortcuts are pinned they render in their own panel, so separator actions are disabled for that section.
                         // Shortcuts have to be unpinned to edit the first inline section separator.
                         const sectionContextMenu =
-                            sectionId !== null && !shouldDisableFirstSectionMenu && (allowSeparatorActions || hasShortcutMenuActions)
+                            sectionId !== null &&
+                            (!shouldDisableFirstSectionMenu || isShortcutsGroup) &&
+                            (allowSeparatorActions || hasShortcutMenuActions || hasShortcutsPinAction)
                                 ? (event: React.MouseEvent<HTMLDivElement>) =>
                                       handleSectionContextMenu(event, sectionId, { allowSeparator: allowSeparatorActions })
                                 : undefined;
+
+                        const trailingAccessory = isShortcutsGroup ? (
+                            <NavItemHoverActionSlot
+                                actionLabel={pinToggleLabel}
+                                icon={uiState.pinShortcuts ? 'lucide-pin-off' : 'lucide-pin'}
+                                onClick={handleShortcutSplitToggle}
+                            />
+                        ) : undefined;
 
                         return (
                             <VirtualFolderComponent
@@ -2360,6 +2409,7 @@ export const NavigationPane = React.memo(
                                 showFileCount={showFileCount}
                                 countInfo={collectionCountInfo}
                                 searchMatch={collectionSearchMatch}
+                                trailingAccessory={trailingAccessory}
                                 onSelect={
                                     isTagCollection && tagCollectionId
                                         ? event => handleTagCollectionClick(tagCollectionId, event)
@@ -2511,6 +2561,9 @@ export const NavigationPane = React.memo(
                 shouldShowShortcutCounts,
                 shortcutsExpanded,
                 shouldPinShortcuts,
+                uiState.pinShortcuts,
+                pinToggleLabel,
+                handleShortcutSplitToggle,
                 showHiddenItems,
                 recentNotesExpanded,
                 getFileDisplayName,
@@ -2633,22 +2686,18 @@ export const NavigationPane = React.memo(
             >
                 <NavigationPaneHeader
                     onTreeUpdateComplete={handleTreeUpdateComplete}
-                    onTogglePinnedShortcuts={settings.showShortcuts ? handleShortcutSplitToggle : undefined}
                     onToggleRootFolderReorder={handleToggleRootReorder}
                     rootReorderActive={isRootReorderMode}
                     rootReorderDisabled={!canReorderRootItems}
-                    pinToggleLabel={pinToggleLabel}
                     showVaultTitleInHeader={shouldShowVaultTitleInHeader}
                 />
                 {/* Android - toolbar at top */}
                 {isMobile && isAndroid && (
                     <NavigationToolbar
                         onTreeUpdateComplete={handleTreeUpdateComplete}
-                        onTogglePinnedShortcuts={settings.showShortcuts ? handleShortcutSplitToggle : undefined}
                         onToggleRootFolderReorder={handleToggleRootReorder}
                         rootReorderActive={isRootReorderMode}
                         rootReorderDisabled={!canReorderRootItems}
-                        pinToggleLabel={pinToggleLabel}
                     />
                 )}
                 {/* Collection selector */}
@@ -2798,7 +2847,6 @@ export const NavigationPane = React.memo(
                 {isMobile && !isAndroid && (
                     <NavigationToolbar
                         onTreeUpdateComplete={handleTreeUpdateComplete}
-                        onTogglePinnedShortcuts={settings.showShortcuts ? handleShortcutSplitToggle : undefined}
                         onToggleRootFolderReorder={handleToggleRootReorder}
                         rootReorderActive={isRootReorderMode}
                         rootReorderDisabled={!canReorderRootItems}

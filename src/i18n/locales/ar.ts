@@ -412,6 +412,17 @@ export const STRINGS_AR = {
                 add: 'لإضافة وسم',
                 remove: 'لإزالة وسم'
             }
+        },
+        welcome: {
+            title: 'مرحباً بك في {pluginName}',
+            introText:
+                'مرحباً! قبل البدء، أوصي بشدة بمشاهدة الدقائق الخمس الأولى من الفيديو أدناه لفهم كيفية عمل اللوحات ومفتاح التبديل "عرض الملاحظات من المجلدات الفرعية".',
+            continueText:
+                'إذا كان لديك خمس دقائق إضافية، تابع مشاهدة الفيديو لفهم أوضاع العرض المضغوط وكيفية إعداد الاختصارات ومفاتيح الاختصار المهمة بشكل صحيح.',
+            thanksText: 'شكراً جزيلاً على التحميل، واستمتع!',
+            videoAlt: 'تثبيت وإتقان Notebook Navigator',
+            openVideoButton: 'تشغيل الفيديو',
+            closeButton: 'سأشاهده لاحقاً'
         }
     },
     // File system operations
@@ -631,6 +642,7 @@ export const STRINGS_AR = {
                 previewText: 'نص المعاينة',
                 featureImage: 'الصورة المميزة',
                 tags: 'الوسوم',
+                customProperty: 'Custom property',
                 date: 'التاريخ',
                 parentFolder: 'المجلد الأصلي'
             }
@@ -1010,6 +1022,24 @@ export const STRINGS_AR = {
                 name: 'إظهار وسوم الملفات في الوضع المضغوط',
                 desc: 'عرض الوسوم عند إخفاء التاريخ والمعاينة والصورة.'
             },
+            customPropertyType: {
+                name: 'Type',
+                desc: 'Select the custom property to display in file items.',
+                options: {
+                    frontmatter: 'Frontmatter property',
+                    wordCount: 'Word count',
+                    none: 'None'
+                }
+            },
+            customPropertyFrontmatterFields: {
+                name: 'Frontmatter properties',
+                desc: 'Comma-separated list of frontmatter properties to display. The first property with a value is used.',
+                placeholder: 'status, type, category'
+            },
+            showCustomPropertyInCompactMode: {
+                name: 'Show custom property in compact mode',
+                desc: 'Display the custom property when date, preview, and image are hidden.'
+            },
             dateFormat: {
                 name: 'تنسيق التاريخ',
                 desc: 'تنسيق عرض التواريخ (يستخدم تنسيق date-fns).',
@@ -1326,6 +1356,10 @@ export const STRINGS_AR = {
                 name: 'الجديد في متصفح الدفتر {version}',
                 desc: 'شاهد التحديثات والتحسينات الأخيرة',
                 buttonText: 'عرض التحديثات الأخيرة'
+            },
+            masteringVideo: {
+                name: 'إتقان Notebook Navigator (فيديو)',
+                desc: 'يغطي هذا الفيديو كل ما تحتاجه لتكون منتجاً في Notebook Navigator، بما في ذلك اختصارات لوحة المفاتيح والبحث والوسوم والتخصيص المتقدم.'
             },
             cacheStatistics: {
                 localCache: 'الذاكرة المؤقتة المحلية',

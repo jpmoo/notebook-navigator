@@ -92,7 +92,6 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     showColorsInShortcutsOnly: false,
     toolbarVisibility: {
         navigation: {
-            shortcuts: true,
             expandCollapse: true,
             hiddenItems: true,
             rootReorder: true,
@@ -132,7 +131,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     showTags: true,
     showTagIcons: true,
     showAllTagsFolder: true,
-    showUntagged: false,
+    showUntagged: true,
     tagSortOrder: 'alpha-asc',
     keepEmptyTagsProperty: false,
 
@@ -185,6 +184,9 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     prioritizeColoredFileTags: true,
     showFileTagAncestors: false,
     showFileTagsInCompactMode: false,
+    customPropertyType: 'none',
+    customPropertyFrontmatterFields: '',
+    showCustomPropertyInCompactMode: false,
     showFileDate: true,
     // Default to showing modified date when sorting alphabetically
     alphabeticalDateMode: 'modified',

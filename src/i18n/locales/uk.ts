@@ -412,6 +412,17 @@ export const STRINGS_UK = {
                 add: 'для додавання тегу',
                 remove: 'для вилучення тегу'
             }
+        },
+        welcome: {
+            title: 'Ласкаво просимо до {pluginName}',
+            introText:
+                "Привіт! Перш ніж почати, наполегливо рекомендую переглянути перші п'ять хвилин відео нижче, щоб зрозуміти, як працюють панелі та перемикач «Показувати нотатки з підпапок».",
+            continueText:
+                "Якщо у вас є ще п'ять хвилин, продовжуйте перегляд відео, щоб зрозуміти компактні режими відображення та як правильно налаштувати закладки та важливі гарячі клавіші.",
+            thanksText: 'Дуже дякую за завантаження, насолоджуйтесь!',
+            videoAlt: 'Встановлення та освоєння Notebook Navigator',
+            openVideoButton: 'Відтворити відео',
+            closeButton: 'Подивлюсь пізніше'
         }
     },
     // File system operations
@@ -631,6 +642,7 @@ export const STRINGS_UK = {
                 previewText: 'Текст попереднього перегляду',
                 featureImage: 'Зображення запису',
                 tags: 'Теги',
+                customProperty: 'Custom property',
                 date: 'Дата',
                 parentFolder: 'Батьківська папка'
             }
@@ -1011,6 +1023,24 @@ export const STRINGS_UK = {
                 name: 'Показувати теги файлів у компактному режимі',
                 desc: 'Відображати теги, коли дата, попередній перегляд та зображення приховані.'
             },
+            customPropertyType: {
+                name: 'Type',
+                desc: 'Select the custom property to display in file items.',
+                options: {
+                    frontmatter: 'Frontmatter property',
+                    wordCount: 'Word count',
+                    none: 'None'
+                }
+            },
+            customPropertyFrontmatterFields: {
+                name: 'Frontmatter properties',
+                desc: 'Comma-separated list of frontmatter properties to display. The first property with a value is used.',
+                placeholder: 'status, type, category'
+            },
+            showCustomPropertyInCompactMode: {
+                name: 'Show custom property in compact mode',
+                desc: 'Display the custom property when date, preview, and image are hidden.'
+            },
             dateFormat: {
                 name: 'Формат дати',
                 desc: 'Формат для відображення дат (використовує формат date-fns).',
@@ -1328,6 +1358,10 @@ export const STRINGS_UK = {
                 name: 'Що нового в Notebook Navigator {version}',
                 desc: 'Перегляньте останні оновлення та покращення',
                 buttonText: 'Переглянути останні оновлення'
+            },
+            masteringVideo: {
+                name: 'Опанування Notebook Navigator (відео)',
+                desc: 'Це відео охоплює все, що потрібно для продуктивної роботи з Notebook Navigator, включаючи гарячі клавіші, пошук, теги та розширене налаштування.'
             },
             cacheStatistics: {
                 localCache: 'Локальний кеш',

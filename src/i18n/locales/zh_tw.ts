@@ -412,6 +412,15 @@ export const STRINGS_ZH_TW = {
                 add: '新增標籤',
                 remove: '移除標籤'
             }
+        },
+        welcome: {
+            title: '歡迎使用 {pluginName}',
+            introText: '您好！在開始之前，強烈建議您觀看下方影片的前五分鐘，以了解面板和切換開關「顯示子資料夾中的筆記」是如何運作的。',
+            continueText: '如果您還有五分鐘時間，請繼續觀看影片以了解緊湊顯示模式以及如何正確設定捷徑和重要的快捷鍵。',
+            thanksText: '非常感謝您的下載，祝您使用愉快！',
+            videoAlt: '安裝和掌握 Notebook Navigator',
+            openVideoButton: '播放影片',
+            closeButton: '稍後觀看'
         }
     },
     // 檔案系統操作
@@ -631,6 +640,7 @@ export const STRINGS_ZH_TW = {
                 previewText: '預覽文字',
                 featureImage: '精選圖片',
                 tags: '標籤',
+                customProperty: 'Custom property',
                 date: '日期',
                 parentFolder: '父資料夾'
             }
@@ -1009,6 +1019,24 @@ export const STRINGS_ZH_TW = {
                 name: '在緊湊模式下顯示檔案標籤',
                 desc: '隱藏日期、預覽和圖片時顯示標籤。'
             },
+            customPropertyType: {
+                name: 'Type',
+                desc: 'Select the custom property to display in file items.',
+                options: {
+                    frontmatter: 'Frontmatter property',
+                    wordCount: 'Word count',
+                    none: 'None'
+                }
+            },
+            customPropertyFrontmatterFields: {
+                name: 'Frontmatter properties',
+                desc: 'Comma-separated list of frontmatter properties to display. The first property with a value is used.',
+                placeholder: 'status, type, category'
+            },
+            showCustomPropertyInCompactMode: {
+                name: 'Show custom property in compact mode',
+                desc: 'Display the custom property when date, preview, and image are hidden.'
+            },
             dateFormat: {
                 name: '日期格式',
                 desc: '顯示日期的格式 (使用 date-fns 格式)。',
@@ -1325,6 +1353,10 @@ export const STRINGS_ZH_TW = {
                 name: 'Notebook Navigator {version} 的最新消息',
                 desc: '查看最近的更新和改進',
                 buttonText: '查看最近更新'
+            },
+            masteringVideo: {
+                name: '精通 Notebook Navigator（影片）',
+                desc: '這部影片涵蓋了在 Notebook Navigator 中高效工作所需的一切內容，包括快捷鍵、搜尋、標籤和進階自訂。'
             },
             cacheStatistics: {
                 localCache: '本地快取',

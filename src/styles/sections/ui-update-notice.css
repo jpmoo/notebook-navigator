@@ -31,6 +31,14 @@
         transform 0.4s ease;
 }
 
+.nn-split-container .nn-update-banner {
+    background: var(--interactive-accent);
+    border: none;
+    color: var(--text-on-accent);
+    padding: 10px 16px;
+    appearance: none;
+}
+
 .nn-update-banner:focus-visible {
     outline: none;
     box-shadow:

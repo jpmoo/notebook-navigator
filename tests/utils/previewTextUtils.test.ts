@@ -59,6 +59,12 @@ describe('PreviewTextUtils.extractPreviewText', () => {
         expect(preview).toBe('Use #include <stdio.h> and [[Link]] here');
     });
 
+    it('does not truncate incomplete markdown image tokens inside inline code', () => {
+        const content = 'Alpha `![alt](url` Beta';
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Alpha ![alt](url Beta');
+    });
+
     it('keeps multi-backtick inline code content that looks like a callout', () => {
         const content = 'Example ``[!note]`` content';
         const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
@@ -109,6 +115,78 @@ describe('PreviewTextUtils.extractPreviewText', () => {
     it('keeps blockquote text with trailing space', () => {
         const preview = PreviewTextUtils.extractPreviewText('> Johan', skipCodeSettings);
         expect(preview).toBe('Johan');
+    });
+
+    it('removes fenced code blocks inside blockquotes when skipping code blocks', () => {
+        const content = ['> ```js', '> const value = 42;', '> ```', 'Tail'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Tail');
+    });
+
+    it('keeps fenced code block content inside blockquotes when including code blocks', () => {
+        const content = ['> ```js', '> const value = 42;', '> ```', 'Tail'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, includeCodeSettings);
+        expect(preview).toBe('const value = 42; Tail');
+    });
+
+    it('removes fenced code blocks inside blockquotes with extra indentation when skipping code blocks', () => {
+        const content = ['>   ```js', '>   const value = 42;', '>   ```', 'Tail'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Tail');
+    });
+
+    it('keeps fenced code block content inside blockquotes with extra indentation when including code blocks', () => {
+        const content = ['>   ```js', '>   const value = 42;', '>   ```', 'Tail'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, includeCodeSettings);
+        expect(preview).toBe('const value = 42; Tail');
+    });
+
+    it('removes fenced code blocks inside nested blockquotes with extra spacing when skipping code blocks', () => {
+        const content = ['>  > ```js', '>  > const value = 42;', '>  > ```', 'Tail'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Tail');
+    });
+
+    it('keeps fenced code block content inside nested blockquotes with extra spacing when including code blocks', () => {
+        const content = ['>  > ```js', '>  > const value = 42;', '>  > ```', 'Tail'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, includeCodeSettings);
+        expect(preview).toBe('const value = 42; Tail');
+    });
+
+    it('removes tilde fenced code blocks inside blockquotes when skipping code blocks', () => {
+        const content = ['> ~~~', '> const value = 42;', '> ~~~', 'Tail'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Tail');
+    });
+
+    it('keeps tilde fenced code block content inside blockquotes when including code blocks', () => {
+        const content = ['> ~~~', '> const value = 42;', '> ~~~', 'Tail'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, includeCodeSettings);
+        expect(preview).toBe('const value = 42; Tail');
+    });
+
+    it('strips heading markers inside blockquotes', () => {
+        const content = ['> ## Heading', '> # Title'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Heading Title');
+    });
+
+    it('strips list markers inside blockquotes with extra spacing', () => {
+        const content = ['>   - Alpha', '>    1. Beta'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Alpha Beta');
+    });
+
+    it('strips list markers inside blockquotes', () => {
+        const content = ['> - Alpha', '> 1. Beta'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Alpha Beta');
+    });
+
+    it('removes table rows inside blockquotes', () => {
+        const content = ['> | Header | Value |', '> | --- | --- |', '> | A | B |', 'Tail'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Tail');
     });
 
     it('strips checkbox syntax while keeping list text', () => {
@@ -162,10 +240,28 @@ describe('PreviewTextUtils.extractPreviewText', () => {
         expect(preview).toBe('Intro console.log(42); Outro');
     });
 
+    it('does not treat closing fences with trailing text as a closing fence', () => {
+        const content = ['Intro', '```js', 'const value = 42;', '``` trailing', 'more code', '```', 'Tail'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Intro Tail');
+    });
+
     it('keeps backticks inside fenced code blocks when code blocks are included', () => {
         const content = ['Intro', '```js', 'const value = `test`;', '```', 'Outro'].join('\n');
         const preview = PreviewTextUtils.extractPreviewText(content, includeCodeSettings);
         expect(preview).toBe('Intro const value = `test`; Outro');
+    });
+
+    it('does not strip task checkbox markers inside fenced code blocks when code blocks are included', () => {
+        const content = ['Intro', '```md', '- [ ] Not a task', '```', 'Outro'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, includeCodeSettings);
+        expect(preview).toBe('Intro - [ ] Not a task Outro');
+    });
+
+    it('does not strip horizontal rule lines inside fenced code blocks when code blocks are included', () => {
+        const content = ['Intro', '```', '---', '```', 'Outro'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, includeCodeSettings);
+        expect(preview).toBe('Intro --- Outro');
     });
 
     it('removes fences from indented code blocks while keeping code when included', () => {
@@ -274,6 +370,11 @@ describe('PreviewTextUtils.extractPreviewText', () => {
         expect(preview).toBe('Fallback content');
     });
 
+    it('keeps text separated when removing wiki embeds unwrapped by formatting', () => {
+        const preview = PreviewTextUtils.extractPreviewText('Alpha**![[image.png]]**Beta', skipCodeSettings);
+        expect(preview).toBe('Alpha Beta');
+    });
+
     it('does not leak clipped wiki embed syntax into previews', () => {
         const longFileName = 'vlcsnap-'.padEnd(1100, 'a');
         const content = `---\ncreated: 2024-03-17 19:43:18\n---\n![[${longFileName}.png]]\n`;
@@ -288,10 +389,46 @@ describe('PreviewTextUtils.extractPreviewText', () => {
         expect(preview).toBe('');
     });
 
-    it('removes internal wiki links from preview text', () => {
+    it('keeps internal wiki link text in preview text', () => {
         const content = 'Alpha [[Datorer/Obsidian/Make shortcuts selected]] mid [[Page|Display]] Beta';
         const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
-        expect(preview).toBe('Alpha mid Beta');
+        expect(preview).toBe('Alpha Datorer/Obsidian/Make shortcuts selected mid Display Beta');
+    });
+
+    it('uses wiki link alias text in preview text', () => {
+        const content = 'Reference [[Artificial intelligence | AI]] in text';
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Reference AI in text');
+    });
+
+    it('keeps leading hash in wiki link alias text', () => {
+        const content = 'Alpha [[Page|#1]] beta';
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Alpha #1 beta');
+    });
+
+    it('normalizes wiki link display text consistently across passes', () => {
+        const content = '[[Page|A|B]] and **[[Page|A|B]]**';
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('A|B and A|B');
+    });
+
+    it('falls back to link text when wiki link alias is empty', () => {
+        const content = 'Alpha [[Page|]] beta **[[Page|]]**';
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Alpha Page beta Page');
+    });
+
+    it('strips wiki and markdown link syntax inside blockquotes', () => {
+        const content = ['> [[wikilink]]', '> [markdown link](https://example.org)'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('wikilink markdown link');
+    });
+
+    it('does not treat wiki syntax split across lines as a wiki link', () => {
+        const content = ['Alpha [[', 'Beta', ']] Gamma'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Alpha [[ Beta ]] Gamma');
     });
 });
 

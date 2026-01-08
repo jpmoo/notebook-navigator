@@ -28,7 +28,7 @@ import type { NoteCountInfo } from '../types/noteCounts';
 import { buildNoteCountDisplay } from '../utils/noteCountFormatting';
 import { getTooltipPlacement } from '../utils/domUtils';
 import { strings } from '../i18n';
-import { ObsidianIcon } from './ObsidianIcon';
+import { NavItemHoverActionSlot } from './NavItemHoverActionSlot';
 
 /**
  * Props for a shortcut item component that can represent folders, notes, searches, or tags
@@ -146,25 +146,6 @@ export const ShortcutItem = React.memo(function ShortcutItem({
         return backgroundColor;
     }, [backgroundColor, isMissing]);
 
-    const handleRemoveMouseDown = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-        event.stopPropagation();
-    }, []);
-
-    const handleRemovePointerDown = useCallback((event: React.PointerEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-        event.stopPropagation();
-    }, []);
-
-    const handleRemoveClick = useCallback(
-        (event: React.MouseEvent<HTMLButtonElement>) => {
-            event.preventDefault();
-            event.stopPropagation();
-            onRemove?.();
-        },
-        [onRemove]
-    );
-
     // Determines icon visibility based on section icons setting and shortcut type
     const shouldShowIcon = useMemo(() => {
         if (!settings.showSectionIcons) {
@@ -180,31 +161,19 @@ export const ShortcutItem = React.memo(function ShortcutItem({
     }, [settings.showFolderIcons, settings.showSectionIcons, settings.showTagIcons, type]);
 
     const countSlot = useMemo(() => {
-        if (!hasRemove) {
+        if (!onRemove) {
             return undefined;
         }
 
         return (
-            <span className="nn-shortcut-remove-slot">
-                {shouldShowCount ? (
-                    <span className="nn-navitem-count nn-shortcut-remove-count">{countLabel}</span>
-                ) : (
-                    <span className="nn-navitem-count nn-shortcut-remove-placeholder" aria-hidden={true} />
-                )}
-                <button
-                    type="button"
-                    className="nn-icon-button nn-shortcut-remove-button"
-                    aria-label={strings.shortcuts.remove}
-                    tabIndex={-1}
-                    onPointerDown={handleRemovePointerDown}
-                    onMouseDown={handleRemoveMouseDown}
-                    onClick={handleRemoveClick}
-                >
-                    <ObsidianIcon name="lucide-x" aria-hidden={true} />
-                </button>
-            </span>
+            <NavItemHoverActionSlot
+                label={shouldShowCount ? countLabel : undefined}
+                actionLabel={strings.shortcuts.remove}
+                icon="lucide-x"
+                onClick={onRemove}
+            />
         );
-    }, [countLabel, handleRemoveClick, handleRemoveMouseDown, handleRemovePointerDown, hasRemove, shouldShowCount]);
+    }, [countLabel, onRemove, shouldShowCount]);
 
     const handleRowRef = useCallback(
         (node: HTMLDivElement | null) => {

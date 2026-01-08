@@ -32,6 +32,7 @@ import { renderHotkeysSearchTab } from './settings/tabs/HotkeysSearchTab';
 import { renderAdvancedTab } from './settings/tabs/AdvancedTab';
 import type { AddSettingFunction, DebouncedTextAreaSettingOptions, SettingsTabContext } from './settings/tabs/SettingsTabContext';
 import { runAsyncAction } from './utils/async';
+import { NOTEBOOK_NAVIGATOR_ICON_ID } from './constants/notebookNavigatorIcon';
 
 /** Identifiers for different settings tab panes */
 type SettingsPaneId = 'general' | 'navigation-pane' | 'folders-tags' | 'list-pane' | 'notes' | 'icon-packs' | 'search-hotkeys' | 'advanced';
@@ -86,7 +87,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
 
         // Settings sidebar icon (Obsidian 1.11.0+)
         if (requireApiVersion('1.11.0')) {
-            this.icon = 'lucide-notebook';
+            this.icon = NOTEBOOK_NAVIGATOR_ICON_ID;
         }
     }
 
@@ -721,6 +722,7 @@ export type {
     ItemScope,
     MultiSelectModifier,
     ListPaneTitleOption,
-    AlphabeticalDateMode
+    AlphabeticalDateMode,
+    CustomPropertyType
 } from './settings/types';
 export { DEFAULT_SETTINGS } from './settings/defaultSettings';
