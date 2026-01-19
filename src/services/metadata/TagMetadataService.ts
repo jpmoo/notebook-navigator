@@ -25,9 +25,21 @@ import { BaseMetadataService } from './BaseMetadataService';
 import type { CleanupValidators } from '../MetadataService';
 import { TagTreeNode } from '../../types/storage';
 import { normalizeTagPath } from '../../utils/tagUtils';
-import { hasHiddenTagMatch, removeHiddenTagPrefixMatches, updateHiddenTagPrefixMatches } from '../../utils/vaultProfiles';
+import {
+    hasHiddenFileTagMatch,
+    hasHiddenTagMatch,
+    removeHiddenFileTagPrefixMatches,
+    removeHiddenTagPrefixMatches,
+    updateHiddenFileTagPrefixMatches,
+    updateHiddenTagPrefixMatches
+} from '../../utils/vaultProfiles';
 
 type SettingsMutation = (settings: NotebookNavigatorSettings) => boolean;
+
+export interface TagColorData {
+    color?: string;
+    background?: string;
+}
 
 /**
  * Service for managing tag-specific metadata operations
@@ -91,6 +103,66 @@ export class TagMetadataService extends BaseMetadataService {
         return this.removeEntityBackgroundColor(ItemType.TAG, normalized);
     }
 
+    // Resolves tag color/background once, optionally inheriting from ancestor tags when enabled.
+    // Uses a shared ancestor traversal so callers can request one or both variants without duplicating work.
+    private resolveTagColorData(normalizedTagPath: string, includeColor: boolean, includeBackground: boolean): TagColorData {
+        let resolvedColor = includeColor ? this.getEntityColor(ItemType.TAG, normalizedTagPath) : undefined;
+        let resolvedBackground = includeBackground ? this.getEntityBackgroundColor(ItemType.TAG, normalizedTagPath) : undefined;
+
+        const shouldInherit =
+            this.settingsProvider.settings.inheritTagColors &&
+            ((includeColor && !resolvedColor) || (includeBackground && !resolvedBackground));
+
+        if (!shouldInherit) {
+            return {
+                color: resolvedColor,
+                background: resolvedBackground
+            };
+        }
+
+        let ancestorPath = normalizedTagPath;
+        while (ancestorPath.includes('/')) {
+            const separatorIndex = ancestorPath.lastIndexOf('/');
+            if (separatorIndex <= 0) {
+                break;
+            }
+
+            ancestorPath = ancestorPath.slice(0, separatorIndex);
+
+            if (includeColor && !resolvedColor) {
+                const ancestorColor = this.getEntityColor(ItemType.TAG, ancestorPath);
+                if (ancestorColor) {
+                    resolvedColor = ancestorColor;
+                }
+            }
+
+            if (includeBackground && !resolvedBackground) {
+                const ancestorBackground = this.getEntityBackgroundColor(ItemType.TAG, ancestorPath);
+                if (ancestorBackground) {
+                    resolvedBackground = ancestorBackground;
+                }
+            }
+
+            if ((!includeColor || resolvedColor) && (!includeBackground || resolvedBackground)) {
+                break;
+            }
+        }
+
+        return {
+            color: resolvedColor,
+            background: resolvedBackground
+        };
+    }
+
+    getTagColorData(tagPath: string): TagColorData {
+        const normalized = normalizeTagPath(tagPath);
+        if (!normalized) {
+            return {};
+        }
+        // Returns resolved values including inheritance settings.
+        return this.resolveTagColorData(normalized, true, true);
+    }
+
     /**
      * Gets the custom color for a tag, checking ancestors if not directly set
      * @param tagPath - Path of the tag
@@ -101,24 +173,7 @@ export class TagMetadataService extends BaseMetadataService {
         if (!normalized) {
             return undefined;
         }
-
-        // First check if this tag has a color directly set
-        const directColor = this.getEntityColor(ItemType.TAG, normalized);
-        if (directColor) return directColor;
-
-        if (!this.settingsProvider.settings.inheritTagColors) {
-            return undefined;
-        }
-
-        // If no direct color, check ancestors
-        const pathParts = normalized.split('/');
-        for (let i = pathParts.length - 1; i > 0; i--) {
-            const ancestorPath = pathParts.slice(0, i).join('/');
-            const ancestorColor = this.getEntityColor(ItemType.TAG, ancestorPath);
-            if (ancestorColor) return ancestorColor;
-        }
-
-        return undefined;
+        return this.resolveTagColorData(normalized, true, false).color;
     }
 
     /**
@@ -131,22 +186,7 @@ export class TagMetadataService extends BaseMetadataService {
         if (!normalized) {
             return undefined;
         }
-
-        const directBackground = this.getEntityBackgroundColor(ItemType.TAG, normalized);
-        if (directBackground) return directBackground;
-
-        if (!this.settingsProvider.settings.inheritTagColors) {
-            return undefined;
-        }
-
-        const pathParts = normalized.split('/');
-        for (let i = pathParts.length - 1; i > 0; i--) {
-            const ancestorPath = pathParts.slice(0, i).join('/');
-            const ancestorBackground = this.getEntityBackgroundColor(ItemType.TAG, ancestorPath);
-            if (ancestorBackground) return ancestorBackground;
-        }
-
-        return undefined;
+        return this.resolveTagColorData(normalized, false, true).background;
     }
 
     /**
@@ -308,6 +348,7 @@ export class TagMetadataService extends BaseMetadataService {
         const settingsSnapshot = this.settingsProvider.settings;
         const hasMetadata = this.hasTagMetadataForPath(settingsSnapshot, normalizedOld);
         const hasHiddenTags = hasHiddenTagMatch(settingsSnapshot, normalizedOld);
+        const hasHiddenFileTags = hasHiddenFileTagMatch(settingsSnapshot, normalizedOld);
 
         const requiresUpdate = hasMetadata
             ? this.willUpdateNestedPaths(settingsSnapshot.tagColors, normalizedOld, normalizedNew, preserveExisting) ||
@@ -317,7 +358,7 @@ export class TagMetadataService extends BaseMetadataService {
               this.willUpdateNestedPaths(settingsSnapshot.tagAppearances, normalizedOld, normalizedNew, preserveExisting)
             : false;
 
-        if (!requiresUpdate && !hasHiddenTags && !extraMutation) {
+        if (!requiresUpdate && !hasHiddenTags && !hasHiddenFileTags && !extraMutation) {
             return;
         }
 
@@ -332,6 +373,7 @@ export class TagMetadataService extends BaseMetadataService {
             }
 
             changed = updateHiddenTagPrefixMatches(settings, normalizedOld, normalizedNew) || changed;
+            changed = updateHiddenFileTagPrefixMatches(settings, normalizedOld, normalizedNew) || changed;
 
             if (extraMutation) {
                 changed = extraMutation(settings) || changed;
@@ -355,7 +397,10 @@ export class TagMetadataService extends BaseMetadataService {
         }
 
         const settingsSnapshot = this.settingsProvider.settings;
-        const hasMetadata = this.hasTagMetadataForPath(settingsSnapshot, normalized) || hasHiddenTagMatch(settingsSnapshot, normalized);
+        const hasMetadata =
+            this.hasTagMetadataForPath(settingsSnapshot, normalized) ||
+            hasHiddenTagMatch(settingsSnapshot, normalized) ||
+            hasHiddenFileTagMatch(settingsSnapshot, normalized);
 
         if (!hasMetadata && !extraMutation) {
             return;
@@ -374,6 +419,7 @@ export class TagMetadataService extends BaseMetadataService {
             }
 
             changed = removeHiddenTagPrefixMatches(settings, normalized) || changed;
+            changed = removeHiddenFileTagPrefixMatches(settings, normalized) || changed;
 
             if (extraMutation) {
                 changed = extraMutation(settings) || changed;

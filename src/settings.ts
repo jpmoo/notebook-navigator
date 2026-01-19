@@ -21,7 +21,13 @@ import NotebookNavigatorPlugin from './main';
 import { showNotice } from './utils/noticeUtils';
 import { strings } from './i18n';
 import { TIMEOUTS } from './types/obsidian-extended';
-import { calculateCacheStatistics, CacheStatistics } from './storage/statistics';
+import {
+    calculateCacheStatistics,
+    calculateMetadataParsingFailurePaths,
+    calculateMetadataParsingStatistics,
+    type CacheStatistics,
+    type MetadataParsingStatistics
+} from './storage/statistics';
 import { renderGeneralTab } from './settings/tabs/GeneralTab';
 import { renderNavigationPaneTab } from './settings/tabs/NavigationPaneTab';
 import { renderFoldersTagsTab } from './settings/tabs/FoldersTagsTab';
@@ -33,6 +39,7 @@ import { renderAdvancedTab } from './settings/tabs/AdvancedTab';
 import type { AddSettingFunction, DebouncedTextAreaSettingOptions, SettingsTabContext } from './settings/tabs/SettingsTabContext';
 import { runAsyncAction } from './utils/async';
 import { NOTEBOOK_NAVIGATOR_ICON_ID } from './constants/notebookNavigatorIcon';
+import { getDBInstanceOrNull } from './storage/fileOperations';
 
 /** Identifiers for different settings tab panes */
 type SettingsPaneId = 'general' | 'navigation-pane' | 'folders-tags' | 'list-pane' | 'notes' | 'icon-packs' | 'search-hotkeys' | 'advanced';
@@ -71,10 +78,15 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     private currentShowTagsVisible = false;
     // Pending deferred statistics refresh timer
     private pendingStatisticsRefresh: number | null = null;
-    // Prevent overlapping statistics calculations when scheduled frequently.
-    private isUpdatingStatistics = false;
+    // Prevent overlapping cache statistics calculations when scheduled frequently.
+    private isUpdatingCacheStatistics = false;
+    // Prevent overlapping metadata parsing statistics calculations when scheduled frequently.
+    private isUpdatingMetadataInfo = false;
+    private pendingMetadataInfoRefreshRequested = false;
     // Tracks whether a refresh is needed when the Advanced tab becomes active.
     private pendingStatisticsRefreshRequested = false;
+    private metadataInfoChangeUnsubscribe: (() => void) | null = null;
+    private settingsUpdateListenerId = 'settings-tab';
 
     /**
      * Creates a new settings tab
@@ -89,6 +101,21 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         if (requireApiVersion('1.11.0')) {
             this.icon = NOTEBOOK_NAVIGATOR_ICON_ID;
         }
+    }
+
+    private ensureSettingsUpdateListener(): void {
+        this.plugin.registerSettingsUpdateListener(this.settingsUpdateListenerId, () => {
+            if (!this.plugin.isExternalSettingsUpdate()) {
+                return;
+            }
+            this.refreshFromExternalSettingsUpdate();
+        });
+    }
+
+    private refreshFromExternalSettingsUpdate(): void {
+        const contentWrapper = this.containerEl.querySelector<HTMLElement>('.nn-settings-tabs-content');
+        const scrollTop = contentWrapper?.scrollTop ?? 0;
+        this.renderSettingsTab({ focus: false, restoreScrollTop: scrollTop });
     }
 
     /**
@@ -294,7 +321,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     /**
      * Generate metadata parsing info text
      */
-    private generateMetadataInfoText(stats: CacheStatistics): {
+    private generateMetadataInfoText(stats: MetadataParsingStatistics): {
         infoText: string;
         failedText: string | null;
         hasFailures: boolean;
@@ -333,21 +360,21 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     }
 
     /**
-     * Update the statistics display
+     * Update the cache statistics display
      */
-    private async updateStatistics(): Promise<void> {
+    private async updateCacheStatistics(): Promise<void> {
         // Statistics queries scan cache state and should only run while the Advanced tab is visible.
         if (this.lastActiveTabId !== 'advanced') {
             return;
         }
         // Skip work when the tab UI has not registered any statistic targets yet.
-        if (!this.statsTextEl && !this.metadataInfoEl) {
+        if (!this.statsTextEl) {
             return;
         }
-        if (this.isUpdatingStatistics) {
+        if (this.isUpdatingCacheStatistics) {
             return;
         }
-        this.isUpdatingStatistics = true;
+        this.isUpdatingCacheStatistics = true;
         try {
             const stats = await calculateCacheStatistics(this.plugin.settings, this.plugin.getUXPreferences().showHiddenItems);
             if (!stats) {
@@ -358,49 +385,87 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
             if (this.statsTextEl) {
                 this.statsTextEl.setText(this.generateStatisticsText(stats));
             }
+        } finally {
+            this.isUpdatingCacheStatistics = false;
+        }
+    }
 
-            // Update metadata parsing info
-            if (this.metadataInfoEl && this.plugin.settings.useFrontmatterMetadata) {
-                const { infoText, failedText, hasFailures, failurePercentage } = this.generateMetadataInfoText(stats);
+    private async updateMetadataInfo(): Promise<void> {
+        if (this.lastActiveTabId !== 'notes') {
+            return;
+        }
+        const metadataInfoEl = this.metadataInfoEl;
+        if (!metadataInfoEl) {
+            return;
+        }
+        if (this.isUpdatingMetadataInfo) {
+            this.pendingMetadataInfoRefreshRequested = true;
+            return;
+        }
+        if (!this.plugin.settings.useFrontmatterMetadata) {
+            metadataInfoEl.empty();
+            return;
+        }
 
-                // Clear previous content
-                this.metadataInfoEl.empty();
+        this.isUpdatingMetadataInfo = true;
+        try {
+            const stats = await calculateMetadataParsingStatistics(this.plugin.settings, this.plugin.getUXPreferences().showHiddenItems);
+            if (this.lastActiveTabId !== 'notes' || this.metadataInfoEl !== metadataInfoEl) {
+                return;
+            }
+            if (!this.plugin.settings.useFrontmatterMetadata) {
+                metadataInfoEl.empty();
+                return;
+            }
+            if (!stats) {
+                return;
+            }
 
-                // Create a flex container for the entire metadata info
-                const metadataContainer = this.metadataInfoEl.createEl('div', {
-                    cls: 'nn-metadata-info-row'
+            const { infoText, failedText, hasFailures, failurePercentage } = this.generateMetadataInfoText(stats);
+
+            // Clear previous content
+            metadataInfoEl.empty();
+
+            // Create a flex container for the entire metadata info
+            const metadataContainer = metadataInfoEl.createEl('div', {
+                cls: 'nn-metadata-info-row'
+            });
+
+            // Left side: text content
+            const textContainer = metadataContainer.createEl('div', {
+                cls: 'nn-metadata-info-text'
+            });
+
+            // Add info text
+            textContainer.createSpan({ text: infoText });
+
+            if (failedText) {
+                // Add line break and failed parse message
+                textContainer.createEl('br');
+                // Only apply error styling if failure percentage > 70%
+                const shouldHighlight = failurePercentage > 70;
+                textContainer.createSpan({
+                    text: failedText,
+                    cls: shouldHighlight ? 'nn-metadata-error-text' : undefined
                 });
+            }
 
-                // Left side: text content
-                const textContainer = metadataContainer.createEl('div', {
-                    cls: 'nn-metadata-info-text'
+            // Right side: export button (only if there are failures)
+            if (hasFailures) {
+                const exportButton = metadataContainer.createEl('button', {
+                    text: strings.settings.items.metadataInfo.exportFailed,
+                    cls: 'nn-metadata-export-button'
                 });
-
-                // Add info text
-                textContainer.createSpan({ text: infoText });
-
-                if (failedText) {
-                    // Add line break and failed parse message
-                    textContainer.createEl('br');
-                    // Only apply error styling if failure percentage > 70%
-                    const shouldHighlight = failurePercentage > 70;
-                    textContainer.createSpan({
-                        text: failedText,
-                        cls: shouldHighlight ? 'nn-metadata-error-text' : undefined
-                    });
-                }
-
-                // Right side: export button (only if there are failures)
-                if (hasFailures) {
-                    const exportButton = metadataContainer.createEl('button', {
-                        text: strings.settings.items.metadataInfo.exportFailed,
-                        cls: 'nn-metadata-export-button'
-                    });
-                    exportButton.onclick = () => this.exportFailedMetadataReport(stats);
-                }
+                exportButton.onclick = () => {
+                    runAsyncAction(() => this.exportFailedMetadataReport());
+                };
             }
         } finally {
-            this.isUpdatingStatistics = false;
+            this.isUpdatingMetadataInfo = false;
+            if (this.pendingMetadataInfoRefreshRequested) {
+                this.pendingMetadataInfoRefreshRequested = false;
+                runAsyncAction(() => this.updateMetadataInfo());
+            }
         }
     }
 
@@ -416,19 +481,29 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         const delay = TIMEOUTS.INTERVAL_STATISTICS * 2;
         this.pendingStatisticsRefresh = window.setTimeout(() => {
             this.pendingStatisticsRefresh = null;
-            runAsyncAction(() => this.updateStatistics());
+            runAsyncAction(() => this.updateActiveTabInfo());
         }, delay);
     }
 
     private requestStatisticsRefresh(): void {
         // Tabs can request a refresh while inactive; persist the request and run on activation.
         this.pendingStatisticsRefreshRequested = true;
-        if (this.lastActiveTabId !== 'advanced') {
+        if (this.lastActiveTabId !== 'advanced' && this.lastActiveTabId !== 'notes') {
             return;
         }
         this.pendingStatisticsRefreshRequested = false;
-        runAsyncAction(() => this.updateStatistics());
+        runAsyncAction(() => this.updateActiveTabInfo());
         this.scheduleDeferredStatisticsRefresh();
+    }
+
+    private updateActiveTabInfo(): Promise<void> {
+        if (this.lastActiveTabId === 'advanced') {
+            return this.updateCacheStatistics();
+        }
+        if (this.lastActiveTabId === 'notes') {
+            return this.updateMetadataInfo();
+        }
+        return Promise.resolve();
     }
 
     /**
@@ -443,6 +518,14 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
      * - Advanced
      */
     display(): void {
+        this.ensureSettingsUpdateListener();
+        this.renderSettingsTab({ focus: true });
+    }
+
+    private renderSettingsTab(options?: { focus?: boolean; restoreScrollTop?: number }): void {
+        const shouldFocus = options?.focus ?? false;
+        const restoreScrollTop = options?.restoreScrollTop;
+
         // Clear any existing interval to prevent duplicates
         if (this.statsUpdateInterval !== null) {
             window.clearInterval(this.statsUpdateInterval);
@@ -495,6 +578,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
             buttonComponent.buttonEl.addClass('nn-settings-tab-button');
             buttonComponent.buttonEl.addClass('clickable-icon');
             buttonComponent.buttonEl.setAttribute('role', 'tab');
+            buttonComponent.buttonEl.setAttribute('aria-selected', 'false');
             buttonComponent.onClick(() => {
                 this.activateTab(tab.id, tabs, contentWrapper);
             });
@@ -506,7 +590,10 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         const initialTabId =
             this.lastActiveTabId && tabs.some(tab => tab.id === this.lastActiveTabId) ? this.lastActiveTabId : fallbackTabId;
         if (initialTabId) {
-            this.activateTab(initialTabId, tabs, contentWrapper, { focus: true });
+            this.activateTab(initialTabId, tabs, contentWrapper, { focus: shouldFocus, preserveScroll: restoreScrollTop !== undefined });
+        }
+        if (restoreScrollTop !== undefined) {
+            contentWrapper.scrollTop = restoreScrollTop;
         }
     }
 
@@ -562,7 +649,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         id: SettingsPaneId,
         tabs: SettingsPaneDefinition[],
         contentWrapper: HTMLElement,
-        options?: { focus?: boolean }
+        options?: { focus?: boolean; preserveScroll?: boolean }
     ): void {
         const definition = tabs.find(tab => tab.id === id);
         if (!definition) {
@@ -578,37 +665,50 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
             this.tabContentMap.set(id, tabContainer);
         }
 
-        // Update active state for all tab contents
-        this.tabContentMap.forEach((element, tabId) => {
-            element.toggleClass('is-active', tabId === id);
-        });
-        // Update active state for all tab buttons
-        this.tabButtons.forEach((buttonComponent, tabId) => {
-            const isActive = tabId === id;
-            buttonComponent.buttonEl.toggleClass('is-active', isActive);
-            buttonComponent.buttonEl.setAttribute('aria-selected', isActive ? 'true' : 'false');
-            if (isActive) {
-                buttonComponent.setCta();
-            } else {
-                buttonComponent.removeCta();
+        const previousTabId = this.lastActiveTabId;
+        if (previousTabId && previousTabId !== id) {
+            this.tabContentMap.get(previousTabId)?.toggleClass('is-active', false);
+            const previousButton = this.tabButtons.get(previousTabId);
+            if (previousButton) {
+                previousButton.buttonEl.toggleClass('is-active', false);
+                previousButton.buttonEl.setAttribute('aria-selected', 'false');
+                previousButton.removeCta();
             }
-        });
+        }
+
+        this.tabContentMap.get(id)?.toggleClass('is-active', true);
+        const activeButton = this.tabButtons.get(id);
+        if (activeButton) {
+            activeButton.buttonEl.toggleClass('is-active', true);
+            activeButton.buttonEl.setAttribute('aria-selected', 'true');
+            activeButton.setCta();
+        }
         this.lastActiveTabId = id;
-        contentWrapper.scrollTop = 0;
+        if (!options?.preserveScroll) {
+            contentWrapper.scrollTop = 0;
+        }
 
         if (id === 'advanced') {
             // The Advanced tab owns cache statistics; start polling when visible and stop on tab switch.
             this.ensureStatisticsInterval();
-            if (this.pendingStatisticsRefreshRequested) {
-                this.pendingStatisticsRefreshRequested = false;
-                runAsyncAction(() => this.updateStatistics());
-            }
         } else {
             this.stopStatisticsInterval();
         }
 
+        if (id === 'notes') {
+            this.ensureMetadataInfoListener();
+            runAsyncAction(() => this.updateMetadataInfo());
+        } else {
+            this.stopMetadataInfoListener();
+        }
+
+        if (this.pendingStatisticsRefreshRequested && (id === 'advanced' || id === 'notes')) {
+            this.pendingStatisticsRefreshRequested = false;
+            runAsyncAction(() => this.updateActiveTabInfo());
+            this.scheduleDeferredStatisticsRefresh();
+        }
+
         if (shouldFocus) {
-            const activeButton = this.tabButtons.get(id);
             activeButton?.buttonEl.focus();
         }
     }
@@ -634,19 +734,64 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         }
 
         // Update immediately
-        runAsyncAction(() => this.updateStatistics());
+        runAsyncAction(() => this.updateCacheStatistics());
         // Schedule periodic updates
         this.statsUpdateInterval = window.setInterval(() => {
-            runAsyncAction(() => this.updateStatistics());
+            runAsyncAction(() => this.updateCacheStatistics());
         }, TIMEOUTS.INTERVAL_STATISTICS);
         this.plugin.registerInterval(this.statsUpdateInterval);
+    }
+
+    private ensureMetadataInfoListener(): void {
+        if (this.metadataInfoChangeUnsubscribe) {
+            return;
+        }
+        const db = getDBInstanceOrNull();
+        if (!db) {
+            return;
+        }
+
+        this.metadataInfoChangeUnsubscribe = db.onContentChange(changes => {
+            if (this.lastActiveTabId !== 'notes') {
+                return;
+            }
+            if (!this.metadataInfoEl || !this.plugin.settings.useFrontmatterMetadata) {
+                return;
+            }
+            const hasMetadataChanges = changes.some(change => change.changes.metadata !== undefined);
+            if (!hasMetadataChanges) {
+                return;
+            }
+
+            this.scheduleDebouncedSettingUpdate('metadata-info-refresh', () => {
+                return this.updateMetadataInfo();
+            });
+        });
+    }
+
+    private stopMetadataInfoListener(): void {
+        if (this.metadataInfoChangeUnsubscribe) {
+            this.metadataInfoChangeUnsubscribe();
+            this.metadataInfoChangeUnsubscribe = null;
+        }
     }
 
     /**
      * Export failed metadata parsing report to markdown file
      */
-    private async exportFailedMetadataReport(stats: CacheStatistics): Promise<void> {
-        if (!stats.failedCreatedFiles || !stats.failedModifiedFiles) return;
+    private async exportFailedMetadataReport(): Promise<void> {
+        if (!this.plugin.settings.useFrontmatterMetadata) {
+            return;
+        }
+
+        const failurePaths = await calculateMetadataParsingFailurePaths(
+            this.plugin.settings,
+            this.plugin.getUXPreferences().showHiddenItems
+        );
+        if (!failurePaths) {
+            showNotice(strings.settings.metadataReport.exportFailed, { variant: 'warning' });
+            return;
+        }
 
         // Generate timestamp for filename
         const now = new Date();
@@ -657,33 +802,32 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         const filename = `metadata-parsing-failures-${timestamp}.md`;
 
         // Sort file paths alphabetically
-        const failedCreatedFiles = [...stats.failedCreatedFiles].sort();
-        const failedModifiedFiles = [...stats.failedModifiedFiles].sort();
+        const failedCreatedFiles = [...failurePaths.failedCreatedFiles].sort();
+        const failedModifiedFiles = [...failurePaths.failedModifiedFiles].sort();
 
-        // Generate markdown content
-        let content = `# Metadata Parsing Failures\n\n`;
-        content += `Generated on: ${readableDate}\n\n`;
+        const lines: string[] = [];
+        lines.push('# Metadata Parsing Failures', '', `Generated on: ${readableDate}`, '');
+        lines.push('## Failed Created Date Parsing', `Total files: ${failedCreatedFiles.length}`, '');
 
-        content += `## Failed Created Date Parsing\n`;
-        content += `Total files: ${failedCreatedFiles.length}\n\n`;
         if (failedCreatedFiles.length > 0) {
             failedCreatedFiles.forEach(path => {
-                content += `- [[${path}]]\n`;
+                lines.push(`- [[${path}]]`);
             });
         } else {
-            content += `*No failures*\n`;
+            lines.push('*No failures*');
         }
-        content += `\n`;
 
-        content += `## Failed Modified Date Parsing\n`;
-        content += `Total files: ${failedModifiedFiles.length}\n\n`;
+        lines.push('', '## Failed Modified Date Parsing', `Total files: ${failedModifiedFiles.length}`, '');
+
         if (failedModifiedFiles.length > 0) {
             failedModifiedFiles.forEach(path => {
-                content += `- [[${path}]]\n`;
+                lines.push(`- [[${path}]]`);
             });
         } else {
-            content += `*No failures*\n`;
+            lines.push('*No failures*');
         }
+
+        const content = `${lines.join('\n')}\n`;
 
         try {
             // Create the file in vault root
@@ -700,11 +844,14 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
      * Cleans up any pending debounce timers and intervals to prevent memory leaks
      */
     hide(): void {
+        this.plugin.unregisterSettingsUpdateListener(this.settingsUpdateListenerId);
+
         // Clean up all pending debounce timers when settings tab is closed
         this.debounceTimers.forEach(timer => window.clearTimeout(timer));
         this.debounceTimers.clear();
 
         this.stopStatisticsInterval();
+        this.stopMetadataInfoListener();
 
         // Clear references and state
         this.statsTextEl = null;

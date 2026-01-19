@@ -112,7 +112,17 @@ export function addStyleMenu(config: StyleMenuConfig): void {
                         return;
                     }
 
-                    await config.applyStyle(clipboard.data);
+                    const supportedClipboardData: StyleClipboardData = {
+                        icon: hasIconSupport ? clipboard.data.icon : undefined,
+                        color: hasColorSupport ? clipboard.data.color : undefined,
+                        background: hasBackgroundSupport ? clipboard.data.background : undefined
+                    };
+
+                    if (!hasStyleData(supportedClipboardData)) {
+                        return;
+                    }
+
+                    await config.applyStyle(supportedClipboardData);
                 });
             });
         }

@@ -16,10 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Platform, TFile } from 'obsidian';
+import { Platform, TFile, getAllTags, type App } from 'obsidian';
 import { MultiSelectModifier, NotebookNavigatorSettings } from '../settings';
 import { TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
-import { IndexedDBStorage } from '../storage/IndexedDBStorage';
+import { IndexedDBStorage, type FileData } from '../storage/IndexedDBStorage';
+import { getDBInstanceOrNull } from '../storage/fileOperations';
 import { normalizeTagPathValue } from './tagPrefixMatcher';
 import { findTagNode } from './tagTree';
 import type { TagTreeNode } from '../types/storage';
@@ -95,6 +96,82 @@ export function resolveCanonicalTagPath(tagPath: string | null | undefined, tagT
     return node?.path ?? normalized;
 }
 
+/**
+ * Extract tags from metadata cache values.
+ *
+ * Tags are returned without the # prefix, in original casing. Duplicate tags with
+ * different casing are deduplicated, keeping the first occurrence.
+ */
+export function extractFileTagsFromRawTags(rawTags: readonly string[] | null): string[] {
+    if (!rawTags || rawTags.length === 0) {
+        return [];
+    }
+
+    const seen = new Set<string>();
+    const uniqueTags: string[] = [];
+
+    for (const tag of rawTags) {
+        const cleanTag = tag.startsWith('#') ? tag.slice(1) : tag;
+        if (!cleanTag) {
+            continue;
+        }
+        const lowerTag = cleanTag.toLowerCase();
+        if (seen.has(lowerTag)) {
+            continue;
+        }
+        seen.add(lowerTag);
+        uniqueTags.push(cleanTag);
+    }
+
+    return uniqueTags;
+}
+
+export interface CachedFileTagsDB {
+    getFile?: (path: string) => FileData | null;
+    getCachedTags?: (path: string) => readonly string[];
+}
+
+const EMPTY_FILE_TAGS: readonly string[] = [];
+
+export function getCachedFileTags(params: {
+    app: App;
+    file: TFile;
+    db?: CachedFileTagsDB | null;
+    fileData?: FileData | null;
+}): readonly string[] {
+    if (params.file.extension !== 'md') {
+        return EMPTY_FILE_TAGS;
+    }
+
+    const fileData = params.fileData ?? null;
+    if (fileData && fileData.tags !== null) {
+        return fileData.tags;
+    }
+
+    const db = params.db ?? getDBInstanceOrNull();
+    if (db) {
+        if (typeof db.getFile === 'function') {
+            const record = db.getFile(params.file.path);
+            if (record) {
+                return record.tags ?? EMPTY_FILE_TAGS;
+            }
+            return EMPTY_FILE_TAGS;
+        }
+
+        if (typeof db.getCachedTags === 'function') {
+            const cachedTags = db.getCachedTags(params.file.path);
+            return cachedTags.length > 0 ? cachedTags : EMPTY_FILE_TAGS;
+        }
+    }
+
+    const metadata = params.app.metadataCache.getFileCache(params.file);
+    const rawTags = metadata ? getAllTags(metadata) : null;
+    if (!rawTags || rawTags.length === 0) {
+        return EMPTY_FILE_TAGS;
+    }
+    return extractFileTagsFromRawTags(rawTags);
+}
+
 interface TagModifierState {
     altKey: boolean;
     ctrlKey: boolean;
@@ -166,7 +243,8 @@ export function determineTagToReveal(
     file: TFile,
     currentTag: string | null,
     settings: NotebookNavigatorSettings,
-    storage: IndexedDBStorage
+    storage: IndexedDBStorage,
+    includeDescendantNotes: boolean
 ): string | null {
     // Check if file has no tags
     const fileTags = getNormalizedTagsForFile(file, storage);
@@ -175,8 +253,18 @@ export function determineTagToReveal(
         return settings.showUntagged ? UNTAGGED_TAG_ID : null;
     }
 
+    const fileData = storage.getFile(file.path);
+    const originalTags = fileData?.tags;
+
+    const getFirstFileTag = () => {
+        if (originalTags && originalTags.length > 0) {
+            return originalTags[0];
+        }
+        return fileTags[0] ?? null;
+    };
+
     if (currentTag === TAGGED_TAG_ID) {
-        return TAGGED_TAG_ID;
+        return includeDescendantNotes ? TAGGED_TAG_ID : getFirstFileTag();
     }
 
     // Check if we should stay on the current tag
@@ -186,31 +274,25 @@ export function determineTagToReveal(
             return currentTag; // Stay on current tag
         }
 
-        // For auto-reveals (which tag reveals always are), check if current tag is a parent
-        // This is similar to how folder auto-reveals preserve parent folders with includeDescendantNotes
-        const normalizedCurrentTag = normalizeTagPathValue(currentTag);
-        if (normalizedCurrentTag.length > 0) {
-            const currentTagPrefix = `${normalizedCurrentTag}/`;
+        if (includeDescendantNotes) {
+            // For auto-reveals (which tag reveals always are), check if current tag is a parent.
+            // This is similar to how folder auto-reveals preserve parent folders with includeDescendantNotes.
+            const normalizedCurrentTag = normalizeTagPathValue(currentTag);
+            if (normalizedCurrentTag.length > 0) {
+                const currentTagPrefix = `${normalizedCurrentTag}/`;
 
-            // Check if any of the file's tags are children of the current tag
-            for (const fileTag of fileTags) {
-                if (fileTag.startsWith(currentTagPrefix)) {
-                    return currentTag; // Stay on parent tag (shortest path)
+                // Check if any of the file's tags are children of the current tag
+                for (const fileTag of fileTags) {
+                    if (fileTag.startsWith(currentTagPrefix)) {
+                        return currentTag; // Stay on parent tag (shortest path)
+                    }
                 }
             }
         }
     }
 
     // File has different tags - return the first tag of the file
-    // Get the original tags from cache (they preserve case)
-    const fileData = storage.getFile(file.path);
-    const originalTags = fileData?.tags;
-    if (originalTags && originalTags.length > 0) {
-        // Tags in cache are already without # prefix
-        return originalTags[0];
-    }
-
-    return null;
+    return getFirstFileTag();
 }
 
 function isTagVisible(tagPath: string, expandedTags: Set<string>): boolean {

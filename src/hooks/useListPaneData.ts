@@ -59,6 +59,7 @@ import { runAsyncAction } from '../utils/async';
 import type { ActiveProfileState } from '../context/SettingsContext';
 import type { SearchProvider } from '../types/search';
 import { PreviewTextUtils } from '../utils/previewTextUtils';
+import { getCachedFileTags } from '../utils/tagUtils';
 
 const EMPTY_SEARCH_META = new Map<string, SearchResultMeta>();
 // Shared empty map used when no files are hidden to avoid allocations
@@ -146,7 +147,7 @@ export function useListPaneData({
     const isOmnisearchAvailable = omnisearchService?.isAvailable() ?? false;
     // Use Omnisearch only when selected, available, and there's a query
     const useOmnisearch = searchProvider === 'omnisearch' && isOmnisearchAvailable && hasSearchQuery;
-    const { hiddenFolders, hiddenFiles, hiddenFileNamePatterns, hiddenTags, fileVisibility } = activeProfile;
+    const { hiddenFolders, hiddenFileProperties, hiddenFileNames, hiddenTags, hiddenFileTags, fileVisibility } = activeProfile;
     const listConfig = useMemo(
         () => ({
             pinnedNotes: settings.pinnedNotes,
@@ -200,9 +201,10 @@ export function useListPaneData({
         selectedTag,
         activeProfile.profile.id,
         activeProfile.hiddenFolders,
-        activeProfile.hiddenFiles,
-        activeProfile.hiddenFileNamePatterns,
+        activeProfile.hiddenFileProperties,
+        activeProfile.hiddenFileNames,
         activeProfile.hiddenTags,
+        activeProfile.hiddenFileTags,
         activeProfile.fileVisibility,
         settings.enableFolderNotes,
         settings.hideFolderNoteInList,
@@ -387,7 +389,7 @@ export function useListPaneData({
         const emptyTags: string[] = [];
 
         // Get or compute normalized tags for a file path
-        const resolveNormalizedTags = (path: string, rawTags: string[]): string[] => {
+        const resolveNormalizedTags = (path: string, rawTags: readonly string[]): string[] => {
             const cached = normalizedTagCache.get(path);
             if (cached !== undefined) {
                 return cached;
@@ -405,7 +407,7 @@ export function useListPaneData({
                 return fileMatchesFilterTokens(lowercaseName, emptyTags, tokens);
             }
 
-            const rawTags = db.getCachedTags(file.path);
+            const rawTags = getCachedFileTags({ app, file, db });
             const hasTags = rawTags.length > 0;
 
             // Early return if file must have tags but has none
@@ -427,7 +429,7 @@ export function useListPaneData({
 
         // Return the filtered results from the internal filter search
         return filteredByFilterSearch;
-    }, [useOmnisearch, trimmedQuery, baseFiles, searchableNames, omnisearchResult, getDB, searchTokens]);
+    }, [useOmnisearch, trimmedQuery, baseFiles, searchableNames, omnisearchResult, getDB, searchTokens, app]);
 
     // Builds map of file paths that are normally hidden but shown via "show hidden items"
     const hiddenFileState = useMemo(() => {
@@ -438,9 +440,11 @@ export function useListPaneData({
         const db = getDB();
         const records = db.getFiles(files.map(file => file.path));
         const shouldCheckFolders = hiddenFolders.length > 0;
-        const shouldCheckFrontmatter = hiddenFiles.length > 0;
-        const shouldCheckFileNames = hiddenFileNamePatterns.length > 0;
-        const fileNameMatcher = shouldCheckFileNames ? createHiddenFileNameMatcher(hiddenFileNamePatterns) : null;
+        const shouldCheckFrontmatter = hiddenFileProperties.length > 0;
+        const shouldCheckFileNames = hiddenFileNames.length > 0;
+        const shouldCheckFileTags = hiddenFileTags.length > 0;
+        const fileNameMatcher = shouldCheckFileNames ? createHiddenFileNameMatcher(hiddenFileNames) : null;
+        const hiddenFileTagVisibility = shouldCheckFileTags ? createHiddenTagVisibility(hiddenFileTags, false) : null;
         const folderHiddenCache = shouldCheckFolders ? new Map<string, boolean>() : null;
         const result = new Map<string, boolean>();
 
@@ -462,20 +466,28 @@ export function useListPaneData({
             let hiddenByFrontmatter = false;
             if (shouldCheckFrontmatter && file.extension === 'md') {
                 if (record?.metadata?.hidden === undefined) {
-                    hiddenByFrontmatter = shouldExcludeFile(file, hiddenFiles, app);
+                    hiddenByFrontmatter = shouldExcludeFile(file, hiddenFileProperties, app);
                 } else {
                     hiddenByFrontmatter = Boolean(record.metadata?.hidden);
                 }
             }
             const hiddenByFileName = fileNameMatcher ? fileNameMatcher.matches(file) : false;
             const hiddenByFolder = shouldCheckFolders ? resolveFolderHidden(file.parent ?? null) : false;
-            if (hiddenByFrontmatter || hiddenByFileName || hiddenByFolder) {
+            const hiddenByTags =
+                hiddenFileTagVisibility !== null &&
+                hiddenFileTagVisibility.hasHiddenRules &&
+                file.extension === 'md' &&
+                getCachedFileTags({ app, file, db, fileData: record ?? null }).some(
+                    tagValue => !hiddenFileTagVisibility.isTagVisible(tagValue)
+                );
+
+            if (hiddenByFrontmatter || hiddenByFileName || hiddenByFolder || hiddenByTags) {
                 result.set(file.path, true);
             }
         });
 
         return result;
-    }, [files, getDB, hiddenFolders, hiddenFiles, hiddenFileNamePatterns, showHiddenItems, app]);
+    }, [files, getDB, hiddenFolders, hiddenFileProperties, hiddenFileNames, hiddenFileTags, showHiddenItems, app]);
 
     /**
      * Build the complete list of items for rendering, including:
@@ -523,7 +535,7 @@ export function useListPaneData({
         const hiddenTagVisibility = shouldDetectTags ? createHiddenTagVisibility(hiddenTags, showHiddenItems) : null;
         const fileHasTags = shouldDetectTags
             ? (file: TFile) => {
-                  const tags = db.getCachedTags(file.path);
+                  const tags = getCachedFileTags({ app, file, db });
                   if (!hiddenTagVisibility) {
                       return tags.length > 0;
                   }
@@ -757,7 +769,8 @@ export function useListPaneData({
         hiddenFileState,
         showHiddenItems,
         fileVisibility,
-        hiddenTags
+        hiddenTags,
+        app
     ]);
 
     /**
@@ -927,11 +940,11 @@ export function useListPaneData({
             }
 
             // Check if file's hidden state changed (frontmatter property added/removed) to trigger rebuild
-            if (hiddenFiles.length > 0 && file.extension === 'md') {
+            if (hiddenFileProperties.length > 0 && file.extension === 'md') {
                 const db = getDB();
                 const record = db.getFile(file.path);
                 const wasExcluded = Boolean(record?.metadata?.hidden);
-                const isCurrentlyExcluded = shouldExcludeFile(file, hiddenFiles, app);
+                const isCurrentlyExcluded = shouldExcludeFile(file, hiddenFileProperties, app);
 
                 if (isCurrentlyExcluded === wasExcluded) {
                     return;
@@ -961,12 +974,28 @@ export function useListPaneData({
                 if (isTagView) {
                     shouldRefresh = true;
                 } else if (isFolderView) {
-                    shouldRefresh = changes.some(change => basePathSet.has(change.path));
+                    const folderPath = selectedFolder.path;
+                    const isRootSelection = folderPath === '/';
+                    const shouldCheckFolderScope = hiddenFileTags.length > 0;
+                    shouldRefresh = changes.some(change => {
+                        if (!shouldCheckFolderScope) {
+                            return basePathSet.has(change.path);
+                        }
+                        if (isRootSelection) {
+                            return true;
+                        }
+                        if (!includeDescendantNotes) {
+                            const separatorIndex = change.path.lastIndexOf('/');
+                            const parentPath = separatorIndex === -1 ? '/' : change.path.slice(0, separatorIndex);
+                            return parentPath === folderPath;
+                        }
+                        return change.path.startsWith(`${folderPath}/`);
+                    });
                 }
             }
 
             // React to metadata changes that may update hidden-state styling
-            if (!shouldRefresh && hiddenFiles.length > 0 && showHiddenItems) {
+            if (!shouldRefresh && hiddenFileProperties.length > 0 && showHiddenItems) {
                 const metadataPaths = changes.filter(change => change.changes.metadata !== undefined).map(change => change.path);
                 if (metadataPaths.length > 0) {
                     shouldRefresh = metadataPaths.some(path => basePathSet.has(path));
@@ -998,8 +1027,9 @@ export function useListPaneData({
         selectedTag,
         selectedFolder,
         includeDescendantNotes,
-        hiddenFiles,
+        hiddenFileProperties,
         hiddenFolders,
+        hiddenFileTags,
         showHiddenItems,
         getDB,
         commandQueue,

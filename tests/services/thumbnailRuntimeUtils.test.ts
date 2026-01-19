@@ -30,7 +30,11 @@ describe('createOnceLogger', () => {
         logOnce('c', 'C');
         logOnce('a', 'A after eviction');
 
-        expect(spy.mock.calls.map(call => call[0])).toEqual(['A', 'B', 'C', 'A after eviction']);
+        expect(spy).toHaveBeenCalledTimes(4);
+        expect(spy).toHaveBeenNthCalledWith(1, 'A');
+        expect(spy).toHaveBeenNthCalledWith(2, 'B');
+        expect(spy).toHaveBeenNthCalledWith(3, 'C');
+        expect(spy).toHaveBeenNthCalledWith(4, 'A after eviction');
         spy.mockRestore();
     });
 });

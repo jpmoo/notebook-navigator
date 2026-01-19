@@ -93,6 +93,18 @@ export function getDBInstance(): IndexedDBStorage {
 }
 
 /**
+ * Returns the global database instance when initialized, otherwise null.
+ *
+ * This avoids throwing during early startup when callers only need best-effort cache reads.
+ */
+export function getDBInstanceOrNull(): IndexedDBStorage | null {
+    if (!appId) {
+        return null;
+    }
+    return getDBInstance();
+}
+
+/**
  * Initialize the database connection.
  * Must be called before using any other file operations.
  *
@@ -211,6 +223,7 @@ export async function recordFileChanges(
                 metadataMtime: renamed.metadataMtime,
                 fileThumbnailsMtime: renamed.fileThumbnailsMtime,
                 tags: renamed.tags,
+                wordCount: renamed.wordCount,
                 customProperty: renamed.customProperty,
                 previewStatus: renamed.previewStatus,
                 featureImageStatus: renamed.featureImageStatus,

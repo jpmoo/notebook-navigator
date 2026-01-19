@@ -22,7 +22,7 @@ import type { ContentProviderType } from '../../interfaces/IContentProvider';
 import type { ContentProviderRegistry } from '../../services/content/ContentProviderRegistry';
 import type { NotebookNavigatorSettings } from '../../settings';
 import { getDBInstance } from '../../storage/fileOperations';
-import { isCustomPropertyEnabled } from '../../utils/customPropertyUtils';
+import { hasCustomPropertyFrontmatterFields } from '../../utils/customPropertyUtils';
 import { isPdfFile } from '../../utils/fileTypeUtils';
 import { filterFilesRequiringMetadataSources, filterPdfFilesRequiringThumbnails } from '../storageQueueFilters';
 import { getMetadataDependentTypes } from './storageContentTypes';
@@ -87,9 +87,9 @@ export function useStorageContentQueue(params: {
             }
 
             const metadataDependentTypes = getMetadataDependentTypes(settings);
-            const customPropertyEnabled = isCustomPropertyEnabled(settings);
+            const hasCustomProperties = hasCustomPropertyFrontmatterFields(settings);
             const contentEnabled =
-                settings.showFilePreview || settings.showFeatureImage || customPropertyEnabled || metadataDependentTypes.length > 0;
+                settings.showFilePreview || settings.showFeatureImage || hasCustomProperties || metadataDependentTypes.length > 0;
 
             // If nothing in settings requires derived content, avoid any work.
             if (!contentEnabled) {
@@ -122,7 +122,9 @@ export function useStorageContentQueue(params: {
                     // no "changed files" but still pending derived content in the database. Fall back to checking
                     // the database for any missing content types.
                     const db = getDBInstance();
-                    const contentTypesToCheck: ('tags' | 'preview' | 'featureImage' | 'metadata' | 'customProperty')[] = [];
+                    const contentTypesToCheck: ('tags' | 'preview' | 'featureImage' | 'metadata' | 'wordCount' | 'customProperty')[] = [
+                        'wordCount'
+                    ];
                     if (metadataDependentTypes.includes('tags')) {
                         contentTypesToCheck.push('tags');
                     }
@@ -135,7 +137,7 @@ export function useStorageContentQueue(params: {
                     if (metadataDependentTypes.includes('metadata')) {
                         contentTypesToCheck.push('metadata');
                     }
-                    if (customPropertyEnabled) {
+                    if (hasCustomProperties) {
                         contentTypesToCheck.push('customProperty');
                     }
 

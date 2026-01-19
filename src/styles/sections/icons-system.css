@@ -26,8 +26,7 @@
 }
 
 /* Ensure emojis in navigation items display properly */
-.nn-navitem-icon.nn-emoji-icon,
-.nn-tag-icon.nn-emoji-icon {
+.nn-navitem-icon.nn-emoji-icon {
     font-size: var(--nn-nav-icon-size);
     width: var(--nn-nav-icon-size);
     height: var(--nn-nav-icon-size);
@@ -50,6 +49,29 @@
     width: 1em;
     height: 1em;
     font-size: inherit;
+}
+
+/* ========================================================================
+   ServiceIcon Alignment
+   ======================================================================== */
+
+/*
+ * `ServiceIcon` renders into a `<span>` container and injects an inline SVG.
+ * Ensure the span/SVG don't participate in baseline alignment, so icons stay vertically centered inside flex buttons.
+ */
+.nn-icon-button > span,
+.nn-mobile-toolbar-button > span,
+.nn-navigation-calendar-nav-button > span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+}
+
+.nn-icon-button > span > svg,
+.nn-mobile-toolbar-button > span > svg,
+.nn-navigation-calendar-nav-button > span > svg {
+    display: block;
 }
 
 /* Icon Picker Modal Styles */
@@ -143,13 +165,13 @@
 .nn-icon-provider-tab {
     padding: 4px 12px;
     border-radius: var(--radius-s);
-    color: var(--text-muted);
+    color: var(--nn-theme-foreground-muted);
     white-space: nowrap;
 }
 
 .nn-icon-provider-tab:hover {
     background-color: var(--background-modifier-hover);
-    color: var(--text-normal);
+    color: var(--nn-theme-foreground);
 }
 
 .nn-icon-provider-tab.nn-active {
@@ -166,7 +188,7 @@
 .nn-icon-section-header {
     font-size: var(--font-ui-small);
     font-weight: 600;
-    color: var(--text-muted);
+    color: var(--nn-theme-foreground-muted);
     margin-top: 12px;
     margin-bottom: 4px;
 }

@@ -30,12 +30,13 @@ export const STRINGS_TH = {
         submit: 'ส่ง',
         noSelection: 'ไม่มีการเลือก',
         untagged: 'ไม่มีแท็ก',
-        untitled: 'ไม่มีชื่อ',
         featureImageAlt: 'รูปภาพประกอบ',
         unknownError: 'ข้อผิดพลาดที่ไม่ทราบสาเหตุ',
         updateBannerTitle: 'มีการอัปเดต Notebook Navigator',
         updateBannerInstruction: 'อัปเดตใน การตั้งค่า -> ปลั๊กอินชุมชน',
-        updateIndicatorLabel: 'มีเวอร์ชันใหม่'
+        updateIndicatorLabel: 'มีเวอร์ชันใหม่',
+        previous: 'ก่อนหน้า', // Generic aria label for previous navigation (English: Previous)
+        next: 'ถัดไป' // Generic aria label for next navigation (English: Next)
     },
 
     // List pane
@@ -51,7 +52,6 @@ export const STRINGS_TH = {
     // Tag list
     tagList: {
         untaggedLabel: 'ไม่มีแท็ก',
-        hiddenTags: 'แท็กที่ซ่อน',
         tags: 'แท็ก'
     },
 
@@ -71,8 +71,26 @@ export const STRINGS_TH = {
         unpinShortcuts: 'เลิกปักหมุดทางลัด',
         unpinShortcutsAndRecentNotes: 'เลิกปักหมุดทางลัดและโน้ตล่าสุด',
         unpinShortcutsAndRecentFiles: 'เลิกปักหมุดทางลัดและไฟล์ล่าสุด',
-        profileMenuLabel: 'โปรไฟล์',
         profileMenuAria: 'เปลี่ยนโปรไฟล์ห้องนิรภัย'
+    },
+
+    navigationCalendar: {
+        ariaLabel: 'ปฏิทิน',
+        dailyNotesNotEnabled: 'ปลั๊กอินบันทึกรายวันไม่ได้เปิดใช้งาน',
+        promptDailyNoteTitle: {
+            title: 'ชื่อบันทึกรายวัน',
+            placeholder: 'ป้อนชื่อเรื่อง'
+        },
+        createDailyNote: {
+            title: 'บันทึกรายวันใหม่',
+            message: 'ไฟล์ {filename} ไม่มีอยู่ คุณต้องการสร้างหรือไม่?',
+            confirmButton: 'สร้าง'
+        }
+    },
+
+    dailyNotes: {
+        templateReadFailed: 'ไม่สามารถอ่านเทมเพลตบันทึกรายวัน',
+        createFailed: 'ไม่สามารถสร้างบันทึกรายวัน'
     },
 
     shortcuts: {
@@ -96,24 +114,25 @@ export const STRINGS_TH = {
     paneHeader: {
         collapseAllFolders: 'ยุบรายการ',
         expandAllFolders: 'ขยายรายการทั้งหมด',
-        scrollToTop: 'เลื่อนขึ้นบนสุด',
+        showCalendar: 'แสดงปฏิทิน',
+        hideCalendar: 'ซ่อนปฏิทิน',
         newFolder: 'โฟลเดอร์ใหม่',
         newNote: 'โน้ตใหม่',
         mobileBackToNavigation: 'กลับไปการนำทาง',
         changeSortOrder: 'เปลี่ยนลำดับการเรียง',
         defaultSort: 'ค่าเริ่มต้น',
-        customSort: 'กำหนดเอง',
         showFolders: 'แสดงการนำทาง',
-        hideFolders: 'ซ่อนการนำทาง',
         reorderRootFolders: 'จัดเรียงการนำทางใหม่',
         finishRootFolderReorder: 'เสร็จสิ้น',
-        toggleDescendantNotes: 'แสดงโน้ตจากโฟลเดอร์ย่อย / ลูกหลาน',
-        autoExpandFoldersTags: 'ขยายเมื่อเลือก',
         showExcludedItems: 'แสดงโฟลเดอร์ แท็ก และโน้ตที่ซ่อน',
         hideExcludedItems: 'ซ่อนโฟลเดอร์ แท็ก และโน้ตที่ซ่อน',
         showDualPane: 'แสดงแผงคู่',
         showSinglePane: 'แสดงแผงเดียว',
         changeAppearance: 'เปลี่ยนลักษณะ',
+        showNotesFromSubfolders: 'แสดงโน้ตจากโฟลเดอร์ย่อย',
+        showFilesFromSubfolders: 'แสดงไฟล์จากโฟลเดอร์ย่อย',
+        showNotesFromDescendants: 'แสดงโน้ตจากลูกหลาน',
+        showFilesFromDescendants: 'แสดงไฟล์จากลูกหลาน',
         search: 'ค้นหา'
     },
     // Search input
@@ -226,10 +245,10 @@ export const STRINGS_TH = {
         standardPreset: 'มาตรฐาน',
         compactPreset: 'กะทัดรัด',
         defaultSuffix: '(ค่าเริ่มต้น)',
+        defaultLabel: 'ค่าเริ่มต้น',
         titleRows: 'แถวชื่อเรื่อง',
         previewRows: 'แถวตัวอย่าง',
         groupBy: 'จัดกลุ่มตาม',
-        defaultOption: (rows: number) => `ค่าเริ่มต้น (${rows})`,
         defaultTitleOption: (rows: number) => `แถวชื่อเรื่องเริ่มต้น (${rows})`,
         defaultPreviewOption: (rows: number) => `แถวตัวอย่างเริ่มต้น (${rows})`,
         defaultGroupOption: (groupLabel: string) => `การจัดกลุ่มเริ่มต้น (${groupLabel})`,
@@ -254,11 +273,13 @@ export const STRINGS_TH = {
         },
         interfaceIcons: {
             title: 'ไอคอนอินเทอร์เฟซ',
+            fileItemsSection: 'รายการไฟล์',
             items: {
                 'nav-shortcuts': 'ทางลัด',
                 'nav-recent-files': 'ไฟล์ล่าสุด',
                 'nav-expand-all': 'ขยายทั้งหมด',
                 'nav-collapse-all': 'ยุบทั้งหมด',
+                'nav-calendar': 'ปฏิทิน',
                 'nav-tree-expand': 'ลูกศรต้นไม้: ขยาย',
                 'nav-tree-collapse': 'ลูกศรต้นไม้: ยุบ',
                 'nav-hidden-items': 'รายการที่ซ่อน',
@@ -275,15 +296,16 @@ export const STRINGS_TH = {
                 'list-new-note': 'โน้ตใหม่',
                 'nav-folder-open': 'โฟลเดอร์เปิด',
                 'nav-folder-closed': 'โฟลเดอร์ปิด',
+                'nav-folder-note': 'โน้ตโฟลเดอร์',
                 'nav-tag': 'แท็ก',
-                'list-pinned': 'รายการที่ปักหมุด'
+                'list-pinned': 'รายการที่ปักหมุด',
+                'file-word-count': 'จำนวนคำ',
+                'file-custom-property': 'คุณสมบัติที่กำหนดเอง'
             }
         },
         colorPicker: {
             currentColor: 'ปัจจุบัน',
             newColor: 'ใหม่',
-            presetColors: 'สีที่ตั้งไว้',
-            userColors: 'สีผู้ใช้',
             paletteDefault: 'ค่าเริ่มต้น',
             paletteCustom: 'กำหนดเอง',
             copyColors: 'คัดลอกสี',
@@ -291,7 +313,6 @@ export const STRINGS_TH = {
             copyClipboardError: 'ไม่สามารถเขียนลงคลิปบอร์ด',
             pasteColors: 'วางสี',
             pasteClipboardError: 'ไม่สามารถอ่านคลิปบอร์ด',
-            pasteInvalidJson: 'คลิปบอร์ดไม่มีข้อความที่ถูกต้อง',
             pasteInvalidFormat: 'ต้องการค่าสี hex',
             colorsPasted: 'วางสีสำเร็จ',
             resetUserColors: 'ล้างสีที่กำหนดเอง',
@@ -303,29 +324,7 @@ export const STRINGS_TH = {
             removeColor: 'นำสีออก',
             apply: 'นำไปใช้',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
-            colors: {
-                red: 'แดง',
-                orange: 'ส้ม',
-                amber: 'อำพัน',
-                yellow: 'เหลือง',
-                lime: 'มะนาว',
-                green: 'เขียว',
-                emerald: 'มรกต',
-                teal: 'น้ำเงินเขียว',
-                cyan: 'ฟ้า',
-                sky: 'ท้องฟ้า',
-                blue: 'น้ำเงิน',
-                indigo: 'คราม',
-                violet: 'ม่วง',
-                purple: 'ม่วงเข้ม',
-                fuchsia: 'ฟิวเชีย',
-                pink: 'ชมพู',
-                rose: 'กุหลาบ',
-                gray: 'เทา',
-                slate: 'หินชนวน',
-                stone: 'หิน'
-            }
+            rgbLabel: 'RGBA'
         },
         selectVaultProfile: {
             title: 'เลือกโปรไฟล์ห้องนิรภัย',
@@ -400,7 +399,6 @@ export const STRINGS_TH = {
             }
         },
         tagSuggest: {
-            placeholder: 'ค้นหาแท็ก...',
             navigatePlaceholder: 'นำทางไปยังแท็ก...',
             addPlaceholder: 'ค้นหาแท็กเพื่อเพิ่ม...',
             removePlaceholder: 'เลือกแท็กเพื่อนำออก...',
@@ -436,8 +434,6 @@ export const STRINGS_TH = {
             deleteFolder: 'ลบโฟลเดอร์ล้มเหลว: {error}',
             deleteFile: 'ลบไฟล์ล้มเหลว: {error}',
             duplicateNote: 'ทำซ้ำโน้ตล้มเหลว: {error}',
-            createCanvas: 'สร้าง canvas ล้มเหลว: {error}',
-            createDatabase: 'สร้างฐานข้อมูลล้มเหลว: {error}',
             duplicateFolder: 'ทำซ้ำโฟลเดอร์ล้มเหลว: {error}',
             openVersionHistory: 'เปิดประวัติเวอร์ชันล้มเหลว: {error}',
             versionHistoryNotFound: 'ไม่พบคำสั่งประวัติเวอร์ชัน ตรวจสอบว่า Obsidian Sync เปิดใช้งานอยู่',
@@ -499,8 +495,7 @@ export const STRINGS_TH = {
             deleteConfirmation: 'การดำเนินการนี้ไม่สามารถยกเลิกได้'
         },
         defaultNames: {
-            untitled: 'ไม่มีชื่อ',
-            untitledNumber: 'ไม่มีชื่อ {number}'
+            untitled: 'ไม่มีชื่อ'
         }
     },
 
@@ -517,9 +512,7 @@ export const STRINGS_TH = {
         },
         notifications: {
             filesAlreadyExist: '{count} ไฟล์มีอยู่ในปลายทางแล้ว',
-            addedTag: 'เพิ่มแท็ก "{tag}" ใน {count} ไฟล์แล้ว',
             filesAlreadyHaveTag: '{count} ไฟล์มีแท็กนี้หรือแท็กที่เฉพาะเจาะจงกว่าอยู่แล้ว',
-            clearedTags: 'ล้างแท็กทั้งหมดจาก {count} ไฟล์แล้ว',
             noTagsToClear: 'ไม่มีแท็กให้ล้าง',
             fileImported: 'นำเข้า 1 ไฟล์แล้ว',
             filesImported: 'นำเข้า {count} ไฟล์แล้ว'
@@ -534,24 +527,15 @@ export const STRINGS_TH = {
         previous30Days: '30 วันที่ผ่านมา'
     },
 
-    // Weekdays
-    weekdays: {
-        sunday: 'วันอาทิตย์',
-        monday: 'วันจันทร์',
-        tuesday: 'วันอังคาร',
-        wednesday: 'วันพุธ',
-        thursday: 'วันพฤหัสบดี',
-        friday: 'วันศุกร์',
-        saturday: 'วันเสาร์'
-    },
-
     // Plugin commands
     commands: {
         open: 'เปิด',
+        toggleLeftSidebar: 'สลับแถบด้านซ้าย',
         openHomepage: 'เปิดหน้าแรก',
         revealFile: 'แสดงไฟล์',
         search: 'ค้นหา',
         toggleDualPane: 'สลับรูปแบบแผงคู่',
+        toggleCalendar: 'สลับปฏิทิน',
         selectVaultProfile: 'เลือกโปรไฟล์ห้องนิรภัย',
         selectVaultProfile1: 'เลือกโปรไฟล์ห้องนิรภัย 1',
         selectVaultProfile2: 'เลือกโปรไฟล์ห้องนิรภัย 2',
@@ -577,6 +561,7 @@ export const STRINGS_TH = {
         addTag: 'เพิ่มแท็กในไฟล์ที่เลือก',
         removeTag: 'นำแท็กออกจากไฟล์ที่เลือก',
         removeAllTags: 'นำแท็กทั้งหมดออกจากไฟล์ที่เลือก',
+        openAllFiles: 'เปิดไฟล์ทั้งหมด',
         rebuildCache: 'สร้างแคชใหม่'
     },
 
@@ -608,6 +593,7 @@ export const STRINGS_TH = {
             navigationPane: 'แผงนำทาง',
             icons: 'ชุดไอคอน',
             folders: 'โฟลเดอร์',
+            folderNotes: 'โน้ตโฟลเดอร์',
             foldersAndTags: 'โฟลเดอร์ & แท็ก',
             tags: 'แท็ก',
             search: 'ค้นหา',
@@ -628,12 +614,12 @@ export const STRINGS_TH = {
             },
             navigation: {
                 appearance: 'ลักษณะ',
-                shortcutsAndRecent: 'ทางลัดและรายการล่าสุด'
+                shortcutsAndRecent: 'ทางลัดและรายการล่าสุด',
+                calendarIntegration: 'การรวมปฏิทิน'
             },
             list: {
                 display: 'ลักษณะ',
-                pinnedNotes: 'โน้ตที่ปักหมุด',
-                quickActions: 'การกระทำด่วน'
+                pinnedNotes: 'โน้ตที่ปักหมุด'
             },
             notes: {
                 frontmatter: 'Frontmatter',
@@ -642,15 +628,20 @@ export const STRINGS_TH = {
                 previewText: 'ข้อความตัวอย่าง',
                 featureImage: 'รูปภาพเด่น',
                 tags: 'แท็ก',
-                customProperty: 'Custom property',
+                customProperty: 'คุณสมบัติกำหนดเอง (ฟรอนต์แมตเตอร์หรือจำนวนคำ)',
                 date: 'วันที่',
                 parentFolder: 'โฟลเดอร์หลัก'
             }
         },
+        syncMode: {
+            notSynced: '(ไม่ซิงค์)',
+            switchToSynced: 'เปิดใช้งานการซิงค์',
+            switchToLocal: 'ปิดใช้งานการซิงค์'
+        },
         items: {
             searchProvider: {
                 name: 'ผู้ให้บริการค้นหา',
-                desc: 'เลือกระหว่างการค้นหาชื่อไฟล์อย่างรวดเร็วหรือการค้นหาข้อความเต็มด้วยปลั๊กอิน Omnisearch (ไม่ซิงค์)',
+                desc: 'เลือกระหว่างการค้นหาชื่อไฟล์อย่างรวดเร็วหรือการค้นหาข้อความเต็มด้วยปลั๊กอิน Omnisearch',
                 options: {
                     internal: 'การค้นหาตัวกรอง',
                     omnisearch: 'Omnisearch (ข้อความเต็ม)'
@@ -680,7 +671,7 @@ export const STRINGS_TH = {
                 }
             },
             listPaneTitle: {
-                name: 'ชื่อแผงรายการ (เดสก์ท็อปเท่านั้น)',
+                name: 'ชื่อแผงรายการ',
                 desc: 'เลือกตำแหน่งที่จะแสดงชื่อแผงรายการ',
                 options: {
                     header: 'แสดงในส่วนหัว',
@@ -705,7 +696,7 @@ export const STRINGS_TH = {
                 desc: 'เลื่อนไปยังไฟล์ที่เลือกเมื่อปักหมุดโน้ต แสดงโน้ตลูกหลาน เปลี่ยนลักษณะโฟลเดอร์ หรือเรียกใช้การดำเนินการไฟล์'
             },
             includeDescendantNotes: {
-                name: 'แสดงโน้ตจากโฟลเดอร์ย่อย / ลูกหลาน (ไม่ซิงค์)',
+                name: 'แสดงโน้ตจากโฟลเดอร์ย่อย / ลูกหลาน',
                 desc: 'รวมโน้ตจากโฟลเดอร์ย่อยที่ซ้อนกันและลูกหลานแท็กเมื่อดูโฟลเดอร์หรือแท็ก'
             },
             limitPinnedToCurrentFolder: {
@@ -790,16 +781,20 @@ export const STRINGS_TH = {
                 name: 'แสดงสีโฟลเดอร์หลัก',
                 desc: 'ใช้สีโฟลเดอร์บนป้ายโฟลเดอร์หลัก'
             },
+            showParentFolderIcon: {
+                name: 'แสดงไอคอนโฟลเดอร์หลัก',
+                desc: 'แสดงไอคอนโฟลเดอร์ข้างป้ายโฟลเดอร์หลัก'
+            },
             showQuickActions: {
-                name: 'แสดงการกระทำด่วน (เดสก์ท็อปเท่านั้น)',
+                name: 'แสดงการกระทำด่วน',
                 desc: 'แสดงปุ่มการกระทำเมื่อวางเมาส์บนไฟล์ ตัวควบคุมปุ่มเลือกการกระทำที่จะปรากฏ'
             },
             dualPane: {
-                name: 'รูปแบบแผงคู่ (ไม่ซิงค์)',
+                name: 'รูปแบบแผงคู่',
                 desc: 'แสดงแผงนำทางและแผงรายการเคียงข้างกันบนเดสก์ท็อป'
             },
             dualPaneOrientation: {
-                name: 'ทิศทางแผงคู่ (ไม่ซิงค์)',
+                name: 'ทิศทางแผงคู่',
                 desc: 'เลือกรูปแบบแนวนอนหรือแนวตั้งเมื่อใช้งานแผงคู่',
                 options: {
                     horizontal: 'แบ่งแนวนอน',
@@ -816,7 +811,7 @@ export const STRINGS_TH = {
                 }
             },
             appearanceScale: {
-                name: 'ระดับการซูม (ไม่ซิงค์)',
+                name: 'ระดับการซูม',
                 desc: 'ควบคุมระดับการซูมโดยรวมของ Notebook Navigator'
             },
             startView: {
@@ -847,7 +842,7 @@ export const STRINGS_TH = {
                 resetTooltip: 'รีเซ็ตเป็นค่าเริ่มต้น'
             },
             autoSelectFirstFileOnFocusChange: {
-                name: 'เลือกโน้ตแรกอัตโนมัติ (เดสก์ท็อปเท่านั้น)',
+                name: 'เลือกโน้ตแรกอัตโนมัติ',
                 desc: 'เปิดโน้ตแรกอัตโนมัติเมื่อสลับโฟลเดอร์หรือแท็ก'
             },
             skipAutoScroll: {
@@ -859,7 +854,7 @@ export const STRINGS_TH = {
                 desc: 'ขยายโฟลเดอร์และแท็กเมื่อเลือก ในโหมดแผงเดียว การเลือกครั้งแรกจะขยาย การเลือกครั้งที่สองจะแสดงไฟล์'
             },
             springLoadedFolders: {
-                name: 'ขยายระหว่างลาก (เดสก์ท็อปเท่านั้น)',
+                name: 'ขยายระหว่างลาก',
                 desc: 'ขยายโฟลเดอร์และแท็กเมื่อวางเมาส์ระหว่างการลาก'
             },
             springLoadedFoldersInitialDelay: {
@@ -901,6 +896,65 @@ export const STRINGS_TH = {
                 name: 'ปักหมุดโน้ตล่าสุดพร้อมทางลัด',
                 desc: 'รวมโน้ตล่าสุดเมื่อปักหมุดทางลัด'
             },
+            showCalendar: {
+                name: 'แสดงปฏิทิน',
+                desc: 'แสดงปฏิทินที่ด้านล่างของแผงนำทาง'
+            },
+            calendarLocale: {
+                name: 'ภาษา',
+                desc: 'ควบคุมการนับสัปดาห์และวันแรกของสัปดาห์',
+                options: {
+                    systemDefault: 'ค่าเริ่มต้น'
+                }
+            },
+            calendarWeeksToShow: {
+                name: 'สัปดาห์ที่แสดง',
+                desc: 'จำนวนสัปดาห์ปฏิทินที่จะแสดง',
+                options: {
+                    fullMonth: 'เต็มเดือน',
+                    oneWeek: '1 สัปดาห์',
+                    weeksCount: '{count} สัปดาห์'
+                }
+            },
+            calendarHighlightToday: {
+                name: 'ไฮไลต์วันที่วันนี้',
+                desc: 'แสดงวงกลมสีแดงและข้อความตัวหนาบนวันที่วันนี้'
+            },
+            calendarShowWeekNumber: {
+                name: 'แสดงหมายเลขสัปดาห์',
+                desc: 'เพิ่มคอลัมน์พร้อมหมายเลขสัปดาห์'
+            },
+            calendarConfirmBeforeCreate: {
+                name: 'ยืนยันก่อนสร้าง',
+                desc: 'แสดงกล่องยืนยันเมื่อสร้างบันทึกรายวันใหม่'
+            },
+            calendarIntegrationMode: {
+                name: 'แหล่งที่มาบันทึกรายวัน',
+                desc: 'แหล่งที่มาสำหรับบันทึกปฏิทิน',
+                options: {
+                    dailyNotes: 'บันทึกรายวัน',
+                    notebookNavigator: 'Notebook Navigator'
+                },
+                info: {
+                    dailyNotes: 'โฟลเดอร์และรูปแบบวันที่ถูกกำหนดค่าในปลั๊กอิน Daily Notes หลัก'
+                }
+            },
+            calendarCustomRootFolder: {
+                name: 'โฟลเดอร์หลัก',
+                desc: 'โฟลเดอร์ฐานสำหรับบันทึกปฏิทิน',
+                placeholder: 'Personal/Diary'
+            },
+            calendarCustomFilePattern: {
+                name: 'รูปแบบไฟล์',
+                desc: 'รูปแบบวันที่เทียบกับโฟลเดอร์หลัก โทเค็นที่รองรับ: YYYY, MM, M, DD, D บันทึกสามารถรวมส่วนต่อท้ายชื่อเรื่องที่เป็นทางเลือกได้',
+                placeholder: 'YYYY/YYYYMMDD',
+                example: 'รูปแบบปัจจุบันมีลักษณะดังนี้: {path}',
+                parsingError: 'รูปแบบต้องรวม YYYY, MM/M และ DD/D โทเค็นที่รองรับ: YYYY, MM, M, DD, D'
+            },
+            calendarCustomPromptForTitle: {
+                name: 'ขอชื่อเรื่อง',
+                desc: 'ขอชื่อเรื่องเมื่อสร้างบันทึก ยอมรับชื่อเรื่องว่าง'
+            },
             showTooltips: {
                 name: 'แสดง tooltips',
                 desc: 'แสดง tooltips เมื่อวางเมาส์พร้อมข้อมูลเพิ่มเติมสำหรับโน้ตและโฟลเดอร์'
@@ -915,8 +969,18 @@ export const STRINGS_TH = {
                 buttonText: 'รีเซ็ตตัวคั่น',
                 notice: 'รีเซ็ตตำแหน่งตัวคั่นแล้ว รีสตาร์ท Obsidian หรือเปิด Notebook Navigator ใหม่เพื่อใช้งาน'
             },
+            resetAllSettings: {
+                name: 'รีเซ็ตการตั้งค่าทั้งหมด',
+                desc: 'รีเซ็ตการตั้งค่า Notebook Navigator ทั้งหมดเป็นค่าเริ่มต้น',
+                buttonText: 'รีเซ็ตการตั้งค่าทั้งหมด',
+                confirmTitle: 'รีเซ็ตการตั้งค่าทั้งหมด?',
+                confirmMessage: 'การดำเนินการนี้จะรีเซ็ตการตั้งค่า Notebook Navigator ทั้งหมดเป็นค่าเริ่มต้น ไม่สามารถยกเลิกได้',
+                confirmButtonText: 'รีเซ็ตการตั้งค่าทั้งหมด',
+                notice: 'รีเซ็ตการตั้งค่าทั้งหมดแล้ว รีสตาร์ท Obsidian หรือเปิด Notebook Navigator ใหม่เพื่อใช้งาน',
+                error: 'รีเซ็ตการตั้งค่าล้มเหลว'
+            },
             multiSelectModifier: {
-                name: 'ตัวปรับแต่งเลือกหลายรายการ (เดสก์ท็อปเท่านั้น)',
+                name: 'ตัวปรับแต่งเลือกหลายรายการ',
                 desc: 'เลือกปุ่มตัวปรับแต่งที่จะสลับการเลือกหลายรายการ เมื่อเลือก Option/Alt การคลิก Cmd/Ctrl จะเปิดโน้ตในแท็บใหม่',
                 options: {
                     cmdCtrl: 'คลิก Cmd/Ctrl',
@@ -945,7 +1009,7 @@ export const STRINGS_TH = {
                 }
             },
             excludedNotes: {
-                name: 'ซ่อนโน้ต (โปรไฟล์ห้องนิรภัย)',
+                name: 'ซ่อนโน้ตที่มีคุณสมบัติ (โปรไฟล์ห้องนิรภัย)',
                 desc: 'รายการคุณสมบัติ frontmatter คั่นด้วยเครื่องหมายจุลภาค โน้ตที่มีคุณสมบัติเหล่านี้จะถูกซ่อน (เช่น ฉบับร่าง, ส่วนตัว, เก็บถาวร)',
                 placeholder: 'ฉบับร่าง, ส่วนตัว'
             },
@@ -962,11 +1026,9 @@ export const STRINGS_TH = {
                 editProfilesButton: 'แก้ไขโปรไฟล์',
                 addProfileOption: 'เพิ่มโปรไฟล์...',
                 applyButton: 'นำไปใช้',
-                editButton: 'แก้ไขโปรไฟล์',
                 deleteButton: 'ลบโปรไฟล์',
                 addModalTitle: 'เพิ่มโปรไฟล์',
                 editProfilesModalTitle: 'แก้ไขโปรไฟล์',
-                editModalTitle: 'แก้ไขโปรไฟล์',
                 addModalPlaceholder: 'ชื่อโปรไฟล์',
                 deleteModalTitle: 'ลบ {name}',
                 deleteModalMessage: 'ลบ {name}? ตัวกรองไฟล์ โฟลเดอร์ แท็ก และโน้ตที่ซ่อนที่บันทึกในโปรไฟล์นี้จะถูกลบ',
@@ -978,7 +1040,7 @@ export const STRINGS_TH = {
                 }
             },
             vaultTitle: {
-                name: 'ตำแหน่งชื่อห้องนิรภัย (เดสก์ท็อปเท่านั้น)',
+                name: 'ตำแหน่งชื่อห้องนิรภัย',
                 desc: 'เลือกตำแหน่งที่จะแสดงชื่อห้องนิรภัย',
                 options: {
                     header: 'แสดงในส่วนหัว',
@@ -1023,22 +1085,27 @@ export const STRINGS_TH = {
                 desc: 'แสดงแท็กเมื่อวันที่ ตัวอย่าง และรูปภาพถูกซ่อน'
             },
             customPropertyType: {
-                name: 'Type',
-                desc: 'Select the custom property to display in file items.',
+                name: 'ประเภท',
+                desc: 'เลือกคุณสมบัติกำหนดเองที่จะแสดงในรายการไฟล์',
                 options: {
-                    frontmatter: 'Frontmatter property',
-                    wordCount: 'Word count',
-                    none: 'None'
+                    frontmatter: 'คุณสมบัติ Frontmatter',
+                    wordCount: 'จำนวนคำ',
+                    none: 'ไม่มี'
                 }
             },
-            customPropertyFrontmatterFields: {
-                name: 'Frontmatter properties',
-                desc: 'Comma-separated list of frontmatter properties to display. The first property with a value is used.',
-                placeholder: 'status, type, category'
+            customPropertyFields: {
+                name: 'คุณสมบัติที่จะแสดง',
+                desc: 'รายการคุณสมบัติ frontmatter คั่นด้วยเครื่องหมายจุลภาคเพื่อแสดงเป็นป้าย คุณสมบัติที่มีค่าเป็นรายการจะแสดงหนึ่งป้ายต่อค่า ค่าในรูปแบบ [[wikilink]] จะแสดงเป็นลิงก์ที่คลิกได้',
+                placeholder: 'สถานะ, ประเภท, หมวดหมู่'
+            },
+            customPropertyColorFields: {
+                name: 'คุณสมบัติสำหรับสี',
+                desc: 'รายการคุณสมบัติ frontmatter คั่นด้วยเครื่องหมายจุลภาคสำหรับสีของป้าย คุณสมบัติสีจะจับคู่กับคุณสมบัติแสดงผลตามตำแหน่ง คุณสมบัติที่มีค่าเป็นรายการจะจับคู่สีตามดัชนี ค่าสามารถเป็นชื่อแท็กหรือสี CSS',
+                placeholder: 'statusColor, typeColor, categoryColor'
             },
             showCustomPropertyInCompactMode: {
-                name: 'Show custom property in compact mode',
-                desc: 'Display the custom property when date, preview, and image are hidden.'
+                name: 'แสดงคุณสมบัติกำหนดเองในโหมดกะทัดรัด',
+                desc: 'แสดงคุณสมบัติกำหนดเองเมื่อวันที่ ตัวอย่าง และรูปภาพถูกซ่อน'
             },
             dateFormat: {
                 name: 'รูปแบบวันที่',
@@ -1105,8 +1172,13 @@ export const STRINGS_TH = {
             },
             featureImageProperties: {
                 name: 'คุณสมบัติรูปภาพ',
-                desc: 'รายการคุณสมบัติ frontmatter คั่นด้วยเครื่องหมายจุลภาคเพื่อตรวจสอบภาพย่อ คุณสมบัติแรกที่มีรูปภาพจะถูกใช้ หากว่างและเปิดใช้งานการตั้งค่า fallback รูปภาพฝังตัวแรกจะถูกใช้',
+                desc: 'รายการคุณสมบัติ frontmatter คั่นด้วยเครื่องหมายจุลภาคเพื่อตรวจสอบก่อน ถ้าไม่พบจะใช้รูปภาพแรกในเนื้อหา markdown',
                 placeholder: 'thumbnail, featureResized, feature'
+            },
+            featureImageExcludeProperties: {
+                name: 'ยกเว้นโน้ตที่มีคุณสมบัติ',
+                desc: 'รายการคุณสมบัติ frontmatter คั่นด้วยเครื่องหมายจุลภาค โน้ตที่มีคุณสมบัติใดๆ เหล่านี้จะไม่เก็บภาพเด่น',
+                placeholder: 'ส่วนตัว, ลับ'
             },
 
             downloadExternalFeatureImages: {
@@ -1189,7 +1261,7 @@ export const STRINGS_TH = {
             },
             tagSortOrder: {
                 name: 'ลำดับการเรียงแท็ก',
-                desc: 'เลือกวิธีเรียงแท็กในแผงนำทาง (ไม่ซิงค์)',
+                desc: 'เลือกวิธีเรียงแท็กในแผงนำทาง',
                 options: {
                     alphaAsc: 'ก ถึง ฮ',
                     alphaDesc: 'ฮ ถึง ก',
@@ -1212,6 +1284,11 @@ export const STRINGS_TH = {
             hiddenTags: {
                 name: 'ซ่อนแท็ก (โปรไฟล์ห้องนิรภัย)',
                 desc: 'รายการรูปแบบแท็กคั่นด้วยเครื่องหมายจุลภาค รูปแบบชื่อ: tag* (ขึ้นต้นด้วย), *tag (ลงท้ายด้วย) รูปแบบเส้นทาง: archive (แท็กและลูกหลาน), archive/* (ลูกหลานเท่านั้น), projects/*/drafts (wildcard ตรงกลาง)',
+                placeholder: 'archive*, *draft, projects/*/old'
+            },
+            hiddenFileTags: {
+                name: 'ซ่อนโน้ตที่มีแท็ก (โปรไฟล์ห้องนิรภัย)',
+                desc: 'Comma-separated list of tag patterns. Notes containing matching tags are hidden. Name patterns: tag* (starting with), *tag (ending with). Path patterns: archive (tag and descendants), archive/* (descendants only), projects/*/drafts (mid-segment wildcard).',
                 placeholder: 'archive*, *draft, projects/*/old'
             },
             enableFolderNotes: {
@@ -1238,6 +1315,10 @@ export const STRINGS_TH = {
                 desc: 'YAML frontmatter ที่เพิ่มในโน้ตโฟลเดอร์ใหม่ เครื่องหมาย --- จะถูกเพิ่มโดยอัตโนมัติ',
                 placeholder: 'theme: dark\nfoldernote: true'
             },
+            openFolderNotesInNewTab: {
+                name: 'เปิดโน้ตโฟลเดอร์ในแท็บใหม่',
+                desc: 'เปิดโน้ตโฟลเดอร์ในแท็บใหม่เสมอเมื่อคลิกที่โฟลเดอร์'
+            },
             hideFolderNoteInList: {
                 name: 'ซ่อนโน้ตโฟลเดอร์ในรายการ',
                 desc: 'ซ่อนโน้ตโฟลเดอร์ไม่ให้ปรากฏในรายการโน้ตของโฟลเดอร์'
@@ -1263,7 +1344,6 @@ export const STRINGS_TH = {
                 name: 'สร้างแคชใหม่',
                 desc: 'ใช้เมื่อพบแท็กที่หายไป ตัวอย่างไม่ถูกต้อง หรือรูปภาพประกอบที่หายไป สิ่งนี้อาจเกิดขึ้นหลังจากความขัดแย้งการซิงค์หรือการปิดที่ไม่คาดคิด',
                 buttonText: 'สร้างแคชใหม่',
-                success: 'สร้างแคชใหม่แล้ว',
                 error: 'สร้างแคชใหม่ล้มเหลว',
                 indexingTitle: 'กำลังสร้างดัชนีห้องนิรภัย...',
                 progress: 'Notebook Navigator กำลังอัปเดตแคช.'

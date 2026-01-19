@@ -25,17 +25,18 @@ export const STRINGS_ID = {
     common: {
         cancel: 'Batal',
         delete: 'Hapus',
-        clear: 'Hapus',
+        clear: 'Bersihkan',
         remove: 'Buang',
         submit: 'Kirim',
         noSelection: 'Tidak ada pilihan',
         untagged: 'Tanpa tag',
-        untitled: 'Tanpa judul',
         featureImageAlt: 'Gambar unggulan',
         unknownError: 'Kesalahan tidak diketahui',
         updateBannerTitle: 'Pembaruan Notebook Navigator tersedia',
         updateBannerInstruction: 'Perbarui di Pengaturan -> Plugin komunitas',
-        updateIndicatorLabel: 'Versi baru tersedia'
+        updateIndicatorLabel: 'Versi baru tersedia',
+        previous: 'Sebelumnya', // Generic aria label for previous navigation (English: Previous)
+        next: 'Berikutnya' // Generic aria label for next navigation (English: Next)
     },
 
     // List pane
@@ -51,7 +52,6 @@ export const STRINGS_ID = {
     // Tag list
     tagList: {
         untaggedLabel: 'Tanpa tag',
-        hiddenTags: 'Tag tersembunyi',
         tags: 'Tag'
     },
 
@@ -71,8 +71,26 @@ export const STRINGS_ID = {
         unpinShortcuts: 'Lepas sematan pintasan',
         unpinShortcutsAndRecentNotes: 'Lepas sematan pintasan dan catatan terbaru',
         unpinShortcutsAndRecentFiles: 'Lepas sematan pintasan dan file terbaru',
-        profileMenuLabel: 'Profil',
         profileMenuAria: 'Ubah profil vault'
+    },
+
+    navigationCalendar: {
+        ariaLabel: 'Kalender',
+        dailyNotesNotEnabled: 'Plugin catatan harian tidak diaktifkan.',
+        promptDailyNoteTitle: {
+            title: 'Judul catatan harian',
+            placeholder: 'Masukkan judul'
+        },
+        createDailyNote: {
+            title: 'Catatan harian baru',
+            message: 'File {filename} tidak ada. Apakah Anda ingin membuatnya?',
+            confirmButton: 'Buat'
+        }
+    },
+
+    dailyNotes: {
+        templateReadFailed: 'Gagal membaca template catatan harian.',
+        createFailed: 'Tidak dapat membuat catatan harian.'
     },
 
     shortcuts: {
@@ -96,31 +114,32 @@ export const STRINGS_ID = {
     paneHeader: {
         collapseAllFolders: 'Ciutkan item',
         expandAllFolders: 'Luaskan semua item',
-        scrollToTop: 'Gulir ke atas',
+        showCalendar: 'Tampilkan kalender',
+        hideCalendar: 'Sembunyikan kalender',
         newFolder: 'Folder baru',
         newNote: 'Catatan baru',
         mobileBackToNavigation: 'Kembali ke navigasi',
         changeSortOrder: 'Ubah urutan',
         defaultSort: 'Default',
-        customSort: 'Kustom',
         showFolders: 'Tampilkan navigasi',
-        hideFolders: 'Sembunyikan navigasi',
         reorderRootFolders: 'Atur ulang navigasi',
         finishRootFolderReorder: 'Selesai',
-        toggleDescendantNotes: 'Tampilkan catatan dari subfolder / turunan',
-        autoExpandFoldersTags: 'Luaskan saat dipilih',
         showExcludedItems: 'Tampilkan folder, tag, dan catatan tersembunyi',
         hideExcludedItems: 'Sembunyikan folder, tag, dan catatan tersembunyi',
         showDualPane: 'Tampilkan panel ganda',
         showSinglePane: 'Tampilkan panel tunggal',
         changeAppearance: 'Ubah tampilan',
+        showNotesFromSubfolders: 'Tampilkan catatan dari subfolder',
+        showFilesFromSubfolders: 'Tampilkan file dari subfolder',
+        showNotesFromDescendants: 'Tampilkan catatan dari turunan',
+        showFilesFromDescendants: 'Tampilkan file dari turunan',
         search: 'Cari'
     },
     // Search input
     searchInput: {
         placeholder: 'Cari...',
         placeholderOmnisearch: 'Omnisearch...',
-        clearSearch: 'Hapus pencarian',
+        clearSearch: 'Bersihkan pencarian',
         saveSearchShortcut: 'Simpan pintasan pencarian',
         removeSearchShortcut: 'Hapus pintasan pencarian',
         shortcutModalTitle: 'Simpan pintasan pencarian',
@@ -217,7 +236,7 @@ export const STRINGS_ID = {
             removeIcon: 'Hapus ikon',
             removeColor: 'Hapus warna',
             removeBackground: 'Hapus latar belakang',
-            clear: 'Hapus gaya'
+            clear: 'Bersihkan gaya'
         }
     },
 
@@ -226,10 +245,10 @@ export const STRINGS_ID = {
         standardPreset: 'Standar',
         compactPreset: 'Kompak',
         defaultSuffix: '(default)',
+        defaultLabel: 'Bawaan',
         titleRows: 'Baris judul',
         previewRows: 'Baris pratinjau',
         groupBy: 'Kelompokkan berdasarkan',
-        defaultOption: (rows: number) => `Default (${rows})`,
         defaultTitleOption: (rows: number) => `Baris judul default (${rows})`,
         defaultPreviewOption: (rows: number) => `Baris pratinjau default (${rows})`,
         defaultGroupOption: (groupLabel: string) => `Pengelompokan default (${groupLabel})`,
@@ -254,11 +273,13 @@ export const STRINGS_ID = {
         },
         interfaceIcons: {
             title: 'Ikon antarmuka',
+            fileItemsSection: 'Item file',
             items: {
                 'nav-shortcuts': 'Pintasan',
                 'nav-recent-files': 'File terbaru',
                 'nav-expand-all': 'Perluas semua',
                 'nav-collapse-all': 'Tutup semua',
+                'nav-calendar': 'Kalender',
                 'nav-tree-expand': 'Panah pohon: perluas',
                 'nav-tree-collapse': 'Panah pohon: tutup',
                 'nav-hidden-items': 'Item tersembunyi',
@@ -275,15 +296,16 @@ export const STRINGS_ID = {
                 'list-new-note': 'Catatan baru',
                 'nav-folder-open': 'Folder terbuka',
                 'nav-folder-closed': 'Folder tertutup',
+                'nav-folder-note': 'Catatan folder',
                 'nav-tag': 'Tag',
-                'list-pinned': 'Item tersemat'
+                'list-pinned': 'Item tersemat',
+                'file-word-count': 'Jumlah kata',
+                'file-custom-property': 'Properti kustom'
             }
         },
         colorPicker: {
             currentColor: 'Saat ini',
             newColor: 'Baru',
-            presetColors: 'Warna preset',
-            userColors: 'Warna pengguna',
             paletteDefault: 'Bawaan',
             paletteCustom: 'Kustom',
             copyColors: 'Salin warna',
@@ -291,41 +313,18 @@ export const STRINGS_ID = {
             copyClipboardError: 'Tidak dapat menulis ke clipboard',
             pasteColors: 'Tempel warna',
             pasteClipboardError: 'Tidak dapat membaca clipboard',
-            pasteInvalidJson: 'Clipboard tidak berisi teks yang valid',
             pasteInvalidFormat: 'Diharapkan nilai warna hex',
             colorsPasted: 'Warna berhasil ditempel',
-            resetUserColors: 'Hapus warna kustom',
-            clearCustomColorsConfirm: 'Hapus semua warna kustom?',
+            resetUserColors: 'Bersihkan warna kustom',
+            clearCustomColorsConfirm: 'Bersihkan semua warna kustom?',
             userColorSlot: 'Warna {slot}',
             recentColors: 'Warna terbaru',
-            clearRecentColors: 'Hapus warna terbaru',
+            clearRecentColors: 'Bersihkan warna terbaru',
             removeRecentColor: 'Hapus warna',
             removeColor: 'Hapus warna',
             apply: 'Terapkan',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
-            colors: {
-                red: 'Merah',
-                orange: 'Oranye',
-                amber: 'Amber',
-                yellow: 'Kuning',
-                lime: 'Limau',
-                green: 'Hijau',
-                emerald: 'Zamrud',
-                teal: 'Teal',
-                cyan: 'Sian',
-                sky: 'Langit',
-                blue: 'Biru',
-                indigo: 'Nila',
-                violet: 'Ungu',
-                purple: 'Ungu tua',
-                fuchsia: 'Fuchsia',
-                pink: 'Merah muda',
-                rose: 'Mawar',
-                gray: 'Abu-abu',
-                slate: 'Batu tulis',
-                stone: 'Batu'
-            }
+            rgbLabel: 'RGBA'
         },
         selectVaultProfile: {
             title: 'Pilih profil vault',
@@ -400,7 +399,6 @@ export const STRINGS_ID = {
             }
         },
         tagSuggest: {
-            placeholder: 'Cari tag...',
             navigatePlaceholder: 'Navigasi ke tag...',
             addPlaceholder: 'Cari tag untuk ditambahkan...',
             removePlaceholder: 'Pilih tag untuk dihapus...',
@@ -436,8 +434,6 @@ export const STRINGS_ID = {
             deleteFolder: 'Gagal menghapus folder: {error}',
             deleteFile: 'Gagal menghapus file: {error}',
             duplicateNote: 'Gagal menduplikat catatan: {error}',
-            createCanvas: 'Gagal membuat canvas: {error}',
-            createDatabase: 'Gagal membuat database: {error}',
             duplicateFolder: 'Gagal menduplikat folder: {error}',
             openVersionHistory: 'Gagal membuka riwayat versi: {error}',
             versionHistoryNotFound: 'Perintah riwayat versi tidak ditemukan. Pastikan Obsidian Sync diaktifkan.',
@@ -499,8 +495,7 @@ export const STRINGS_ID = {
             deleteConfirmation: 'Tindakan ini tidak dapat dibatalkan.'
         },
         defaultNames: {
-            untitled: 'Tanpa judul',
-            untitledNumber: 'Tanpa judul {number}'
+            untitled: 'Tanpa judul'
         }
     },
 
@@ -517,9 +512,7 @@ export const STRINGS_ID = {
         },
         notifications: {
             filesAlreadyExist: '{count} file sudah ada di tujuan',
-            addedTag: 'Menambahkan tag "{tag}" ke {count} file',
             filesAlreadyHaveTag: '{count} file sudah memiliki tag ini atau yang lebih spesifik',
-            clearedTags: 'Menghapus semua tag dari {count} file',
             noTagsToClear: 'Tidak ada tag untuk dihapus',
             fileImported: 'Mengimpor 1 file',
             filesImported: 'Mengimpor {count} file'
@@ -534,24 +527,15 @@ export const STRINGS_ID = {
         previous30Days: '30 hari terakhir'
     },
 
-    // Weekdays
-    weekdays: {
-        sunday: 'Minggu',
-        monday: 'Senin',
-        tuesday: 'Selasa',
-        wednesday: 'Rabu',
-        thursday: 'Kamis',
-        friday: 'Jumat',
-        saturday: 'Sabtu'
-    },
-
     // Plugin commands
     commands: {
         open: 'Buka',
+        toggleLeftSidebar: 'Alihkan bilah sisi kiri',
         openHomepage: 'Buka beranda',
         revealFile: 'Tampilkan file',
         search: 'Cari',
         toggleDualPane: 'Alihkan tata letak panel ganda',
+        toggleCalendar: 'Alihkan kalender',
         selectVaultProfile: 'Pilih profil vault',
         selectVaultProfile1: 'Pilih profil vault 1',
         selectVaultProfile2: 'Pilih profil vault 2',
@@ -577,6 +561,7 @@ export const STRINGS_ID = {
         addTag: 'Tambah tag ke file yang dipilih',
         removeTag: 'Hapus tag dari file yang dipilih',
         removeAllTags: 'Hapus semua tag dari file yang dipilih',
+        openAllFiles: 'Buka semua file',
         rebuildCache: 'Bangun ulang cache'
     },
 
@@ -600,7 +585,7 @@ export const STRINGS_ID = {
     // Settings
     settings: {
         metadataReport: {
-            exportSuccess: 'Laporan metadata gagal diekspor ke: {filename}',
+            exportSuccess: 'Laporan metadata yang gagal diekspor ke: {filename}',
             exportFailed: 'Gagal mengekspor laporan metadata'
         },
         sections: {
@@ -608,6 +593,7 @@ export const STRINGS_ID = {
             navigationPane: 'Panel navigasi',
             icons: 'Paket ikon',
             folders: 'Folder',
+            folderNotes: 'Catatan folder',
             foldersAndTags: 'Folder & tag',
             tags: 'Tag',
             search: 'Pencarian',
@@ -628,12 +614,12 @@ export const STRINGS_ID = {
             },
             navigation: {
                 appearance: 'Tampilan',
-                shortcutsAndRecent: 'Pintasan & item terbaru'
+                shortcutsAndRecent: 'Pintasan & item terbaru',
+                calendarIntegration: 'Integrasi kalender'
             },
             list: {
                 display: 'Tampilan',
-                pinnedNotes: 'Catatan yang disematkan',
-                quickActions: 'Aksi cepat'
+                pinnedNotes: 'Catatan yang disematkan'
             },
             notes: {
                 frontmatter: 'Frontmatter',
@@ -642,15 +628,20 @@ export const STRINGS_ID = {
                 previewText: 'Teks pratinjau',
                 featureImage: 'Gambar fitur',
                 tags: 'Tag',
-                customProperty: 'Custom property',
+                customProperty: 'Properti kustom (frontmatter atau jumlah kata)',
                 date: 'Tanggal',
                 parentFolder: 'Folder induk'
             }
         },
+        syncMode: {
+            notSynced: '(tidak disinkronkan)',
+            switchToSynced: 'Aktifkan sinkronisasi',
+            switchToLocal: 'Nonaktifkan sinkronisasi'
+        },
         items: {
             searchProvider: {
                 name: 'Penyedia pencarian',
-                desc: 'Pilih antara pencarian nama file cepat atau pencarian teks lengkap dengan plugin Omnisearch. (tidak disinkronkan)',
+                desc: 'Pilih antara pencarian nama file cepat atau pencarian teks lengkap dengan plugin Omnisearch.',
                 options: {
                     internal: 'Pencarian filter',
                     omnisearch: 'Omnisearch (teks lengkap)'
@@ -680,7 +671,7 @@ export const STRINGS_ID = {
                 }
             },
             listPaneTitle: {
-                name: 'Judul panel daftar (desktop saja)',
+                name: 'Judul panel daftar',
                 desc: 'Pilih di mana judul panel daftar ditampilkan.',
                 options: {
                     header: 'Tampilkan di header',
@@ -705,7 +696,7 @@ export const STRINGS_ID = {
                 desc: 'Gulir ke file yang dipilih saat menyematkan catatan, menampilkan catatan turunan, mengubah tampilan folder, atau menjalankan operasi file.'
             },
             includeDescendantNotes: {
-                name: 'Tampilkan catatan dari subfolder / turunan (tidak disinkronkan)',
+                name: 'Tampilkan catatan dari subfolder / turunan',
                 desc: 'Sertakan catatan dari subfolder bersarang dan turunan tag saat melihat folder atau tag.'
             },
             limitPinnedToCurrentFolder: {
@@ -790,16 +781,20 @@ export const STRINGS_ID = {
                 name: 'Tampilkan warna folder induk',
                 desc: 'Gunakan warna folder pada label folder induk.'
             },
+            showParentFolderIcon: {
+                name: 'Tampilkan ikon folder induk',
+                desc: 'Tampilkan ikon folder di samping label folder induk.'
+            },
             showQuickActions: {
-                name: 'Tampilkan aksi cepat (desktop saja)',
+                name: 'Tampilkan aksi cepat',
                 desc: 'Tampilkan tombol aksi saat mengarahkan kursor ke file. Kontrol tombol memilih aksi mana yang muncul.'
             },
             dualPane: {
-                name: 'Tata letak panel ganda (tidak disinkronkan)',
+                name: 'Tata letak panel ganda',
                 desc: 'Tampilkan panel navigasi dan panel daftar berdampingan di desktop.'
             },
             dualPaneOrientation: {
-                name: 'Orientasi panel ganda (tidak disinkronkan)',
+                name: 'Orientasi panel ganda',
                 desc: 'Pilih tata letak horizontal atau vertikal saat panel ganda aktif.',
                 options: {
                     horizontal: 'Pembagian horizontal',
@@ -816,7 +811,7 @@ export const STRINGS_ID = {
                 }
             },
             appearanceScale: {
-                name: 'Tingkat zoom (tidak disinkronkan)',
+                name: 'Tingkat zoom',
                 desc: 'Mengontrol tingkat zoom keseluruhan Notebook Navigator.'
             },
             startView: {
@@ -847,7 +842,7 @@ export const STRINGS_ID = {
                 resetTooltip: 'Atur ulang ke default'
             },
             autoSelectFirstFileOnFocusChange: {
-                name: 'Auto-pilih catatan pertama (desktop saja)',
+                name: 'Auto-pilih catatan pertama',
                 desc: 'Secara otomatis membuka catatan pertama saat beralih folder atau tag.'
             },
             skipAutoScroll: {
@@ -859,7 +854,7 @@ export const STRINGS_ID = {
                 desc: 'Luaskan folder dan tag saat dipilih. Dalam mode panel tunggal, pilihan pertama meluaskan, pilihan kedua menampilkan file.'
             },
             springLoadedFolders: {
-                name: 'Luaskan saat menyeret (desktop saja)',
+                name: 'Luaskan saat menyeret',
                 desc: 'Luaskan folder dan tag saat mengarahkan kursor selama menyeret.'
             },
             springLoadedFoldersInitialDelay: {
@@ -901,6 +896,65 @@ export const STRINGS_ID = {
                 name: 'Sematkan catatan terbaru bersama pintasan',
                 desc: 'Sertakan catatan terbaru saat pintasan disematkan.'
             },
+            showCalendar: {
+                name: 'Tampilkan kalender',
+                desc: 'Tampilkan kalender di bagian bawah panel navigasi.'
+            },
+            calendarLocale: {
+                name: 'Bahasa',
+                desc: 'Mengontrol penomoran minggu dan hari pertama dalam seminggu.',
+                options: {
+                    systemDefault: 'Default'
+                }
+            },
+            calendarWeeksToShow: {
+                name: 'Minggu yang ditampilkan',
+                desc: 'Jumlah minggu kalender yang ditampilkan.',
+                options: {
+                    fullMonth: 'Bulan penuh',
+                    oneWeek: '1 minggu',
+                    weeksCount: '{count} minggu'
+                }
+            },
+            calendarHighlightToday: {
+                name: 'Sorot tanggal hari ini',
+                desc: 'Tampilkan lingkaran merah dan teks tebal pada tanggal hari ini.'
+            },
+            calendarShowWeekNumber: {
+                name: 'Tampilkan nomor minggu',
+                desc: 'Tambahkan kolom dengan nomor minggu.'
+            },
+            calendarConfirmBeforeCreate: {
+                name: 'Konfirmasi sebelum membuat',
+                desc: 'Tampilkan dialog konfirmasi saat membuat catatan harian baru.'
+            },
+            calendarIntegrationMode: {
+                name: 'Sumber catatan harian',
+                desc: 'Sumber untuk catatan kalender.',
+                options: {
+                    dailyNotes: 'Catatan harian',
+                    notebookNavigator: 'Notebook Navigator'
+                },
+                info: {
+                    dailyNotes: 'Folder dan format tanggal dikonfigurasi di plugin inti Daily Notes.'
+                }
+            },
+            calendarCustomRootFolder: {
+                name: 'Folder root',
+                desc: 'Folder dasar untuk catatan kalender.',
+                placeholder: 'Personal/Diary'
+            },
+            calendarCustomFilePattern: {
+                name: 'Pola file',
+                desc: 'Pola tanggal relatif terhadap folder root. Token yang didukung: YYYY, MM, M, DD, D. Catatan dapat menyertakan sufiks judul opsional.',
+                placeholder: 'YYYY/YYYYMMDD',
+                example: 'Sintaks saat ini terlihat seperti ini: {path}',
+                parsingError: 'Pola harus menyertakan YYYY, MM/M, dan DD/D. Token yang didukung: YYYY, MM, M, DD, D.'
+            },
+            calendarCustomPromptForTitle: {
+                name: 'Minta judul',
+                desc: 'Minta judul saat membuat catatan. Menerima judul kosong.'
+            },
             showTooltips: {
                 name: 'Tampilkan tooltip',
                 desc: 'Tampilkan tooltip hover dengan informasi tambahan untuk catatan dan folder.'
@@ -915,8 +969,18 @@ export const STRINGS_ID = {
                 buttonText: 'Atur ulang pemisah',
                 notice: 'Posisi pemisah diatur ulang. Mulai ulang Obsidian atau buka kembali Notebook Navigator untuk menerapkan.'
             },
+            resetAllSettings: {
+                name: 'Atur ulang semua pengaturan',
+                desc: 'Atur ulang semua pengaturan Notebook Navigator ke nilai default.',
+                buttonText: 'Atur ulang semua pengaturan',
+                confirmTitle: 'Atur ulang semua pengaturan?',
+                confirmMessage: 'Ini akan mengatur ulang semua pengaturan Notebook Navigator ke nilai default. Ini tidak dapat dibatalkan.',
+                confirmButtonText: 'Atur ulang semua pengaturan',
+                notice: 'Semua pengaturan diatur ulang. Mulai ulang Obsidian atau buka kembali Notebook Navigator untuk menerapkan.',
+                error: 'Gagal mengatur ulang pengaturan.'
+            },
             multiSelectModifier: {
-                name: 'Modifier multi-pilih (desktop saja)',
+                name: 'Modifier multi-pilih',
                 desc: 'Pilih tombol modifier mana yang mengalihkan multi-pilih. Ketika Option/Alt dipilih, klik Cmd/Ctrl membuka catatan di tab baru.',
                 options: {
                     cmdCtrl: 'Klik Cmd/Ctrl',
@@ -945,7 +1009,7 @@ export const STRINGS_ID = {
                 }
             },
             excludedNotes: {
-                name: 'Sembunyikan catatan (profil vault)',
+                name: 'Sembunyikan catatan dengan properti (profil vault)',
                 desc: 'Daftar properti frontmatter yang dipisahkan koma. Catatan yang berisi properti ini akan disembunyikan (misal, draf, pribadi, arsip).',
                 placeholder: 'draf, pribadi'
             },
@@ -962,11 +1026,9 @@ export const STRINGS_ID = {
                 editProfilesButton: 'Edit profil',
                 addProfileOption: 'Tambah profil...',
                 applyButton: 'Terapkan',
-                editButton: 'Edit profil',
                 deleteButton: 'Hapus profil',
                 addModalTitle: 'Tambah profil',
                 editProfilesModalTitle: 'Edit profil',
-                editModalTitle: 'Edit profil',
                 addModalPlaceholder: 'Nama profil',
                 deleteModalTitle: 'Hapus {name}',
                 deleteModalMessage:
@@ -979,7 +1041,7 @@ export const STRINGS_ID = {
                 }
             },
             vaultTitle: {
-                name: 'Penempatan judul vault (khusus desktop)',
+                name: 'Penempatan judul vault',
                 desc: 'Pilih di mana judul vault ditampilkan.',
                 options: {
                     header: 'Tampilkan di header',
@@ -1024,22 +1086,27 @@ export const STRINGS_ID = {
                 desc: 'Tampilkan tag saat tanggal, pratinjau, dan gambar disembunyikan.'
             },
             customPropertyType: {
-                name: 'Type',
-                desc: 'Select the custom property to display in file items.',
+                name: 'Tipe',
+                desc: 'Pilih properti kustom untuk ditampilkan di item file.',
                 options: {
-                    frontmatter: 'Frontmatter property',
-                    wordCount: 'Word count',
-                    none: 'None'
+                    frontmatter: 'Properti frontmatter',
+                    wordCount: 'Jumlah kata',
+                    none: 'Tidak ada'
                 }
             },
-            customPropertyFrontmatterFields: {
-                name: 'Frontmatter properties',
-                desc: 'Comma-separated list of frontmatter properties to display. The first property with a value is used.',
-                placeholder: 'status, type, category'
+            customPropertyFields: {
+                name: 'Properti untuk ditampilkan',
+                desc: 'Daftar properti frontmatter yang dipisahkan koma untuk ditampilkan sebagai lencana. Properti bernilai daftar menampilkan satu lencana per nilai. Nilai [[wikilink]] ditampilkan sebagai tautan yang dapat diklik.',
+                placeholder: 'status, tipe, kategori'
+            },
+            customPropertyColorFields: {
+                name: 'Properti untuk warna',
+                desc: 'Daftar properti frontmatter yang dipisahkan koma untuk warna lencana. Properti warna dipasangkan dengan properti tampilan berdasarkan posisi. Properti bernilai daftar memasangkan warna berdasarkan indeks. Nilai dapat berupa nama tag atau warna CSS.',
+                placeholder: 'statusColor, typeColor, categoryColor'
             },
             showCustomPropertyInCompactMode: {
-                name: 'Show custom property in compact mode',
-                desc: 'Display the custom property when date, preview, and image are hidden.'
+                name: 'Tampilkan properti kustom dalam mode kompak',
+                desc: 'Tampilkan properti kustom saat tanggal, pratinjau, dan gambar disembunyikan.'
             },
             dateFormat: {
                 name: 'Format tanggal',
@@ -1106,8 +1173,13 @@ export const STRINGS_ID = {
             },
             featureImageProperties: {
                 name: 'Properti gambar',
-                desc: 'Daftar properti frontmatter yang dipisahkan koma untuk memeriksa gambar thumbnail.',
+                desc: 'Daftar properti frontmatter yang dipisahkan koma untuk diperiksa terlebih dahulu. Jika tidak ditemukan, menggunakan gambar pertama dalam konten markdown.',
                 placeholder: 'thumbnail, featureResized, feature'
+            },
+            featureImageExcludeProperties: {
+                name: 'Kecualikan catatan dengan properti',
+                desc: 'Daftar properti frontmatter yang dipisahkan koma. Catatan yang mengandung properti ini tidak menyimpan gambar fitur.',
+                placeholder: 'pribadi, rahasia'
             },
 
             downloadExternalFeatureImages: {
@@ -1190,7 +1262,7 @@ export const STRINGS_ID = {
             },
             tagSortOrder: {
                 name: 'Urutan tag',
-                desc: 'Pilih cara tag diurutkan di panel navigasi. (tidak disinkronkan)',
+                desc: 'Pilih cara tag diurutkan di panel navigasi.',
                 options: {
                     alphaAsc: 'A ke Z',
                     alphaDesc: 'Z ke A',
@@ -1215,6 +1287,11 @@ export const STRINGS_ID = {
                 desc: 'Daftar pola tag yang dipisahkan koma. Pola nama: tag* (dimulai dengan), *tag (diakhiri dengan). Pola jalur: arsip (tag dan turunan), arsip/* (hanya turunan), proyek/*/draf (wildcard tengah).',
                 placeholder: 'arsip*, *draf, proyek/*/lama'
             },
+            hiddenFileTags: {
+                name: 'Sembunyikan catatan dengan tag (profil vault)',
+                desc: 'Comma-separated list of tag patterns. Notes containing matching tags are hidden. Name patterns: tag* (starting with), *tag (ending with). Path patterns: archive (tag and descendants), archive/* (descendants only), projects/*/drafts (mid-segment wildcard).',
+                placeholder: 'archive*, *draft, projects/*/old'
+            },
             enableFolderNotes: {
                 name: 'Aktifkan catatan folder',
                 desc: 'Saat diaktifkan, folder dengan catatan terkait ditampilkan sebagai tautan yang dapat diklik.'
@@ -1238,6 +1315,10 @@ export const STRINGS_ID = {
                 name: 'Properti catatan folder',
                 desc: 'Frontmatter YAML ditambahkan ke catatan folder baru. Penanda --- ditambahkan secara otomatis.',
                 placeholder: 'theme: dark\nfoldernote: true'
+            },
+            openFolderNotesInNewTab: {
+                name: 'Buka catatan folder di tab baru',
+                desc: 'Selalu buka catatan folder di tab baru saat mengklik folder.'
             },
             hideFolderNoteInList: {
                 name: 'Sembunyikan catatan folder di daftar',
@@ -1264,7 +1345,6 @@ export const STRINGS_ID = {
                 name: 'Bangun ulang cache',
                 desc: 'Gunakan ini jika Anda mengalami tag yang hilang, pratinjau yang salah, atau gambar unggulan yang hilang. Ini dapat terjadi setelah konflik sinkronisasi atau penutupan yang tidak terduga.',
                 buttonText: 'Bangun ulang cache',
-                success: 'Cache dibangun ulang',
                 error: 'Gagal membangun ulang cache',
                 indexingTitle: 'Mengindeks vault...',
                 progress: 'Memperbarui cache Notebook Navigator.'

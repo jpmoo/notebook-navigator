@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import { describe, expect, it, vi } from 'vitest';
-import type { App } from 'obsidian';
+import { App } from 'obsidian';
 import { BaseMetadataService, type EntityType } from '../../src/services/metadata/BaseMetadataService';
 import type { ISettingsProvider } from '../../src/interfaces/ISettingsProvider';
 import type { NotebookNavigatorSettings } from '../../src/settings';
@@ -67,22 +67,23 @@ function createSettings(overrides: Partial<NotebookNavigatorSettings> = {}): Not
 }
 
 describe('BaseMetadataService getEntityIcon', () => {
-    const appStub = {} as unknown as App;
+    const app = new App();
 
     it('ignores properties from Object.prototype', () => {
         const settings = createSettings({ folderIcons: {} });
         const provider = new TestSettingsProvider(settings);
-        const service = new ConcreteMetadataService(appStub, provider);
+        const service = new ConcreteMetadataService(app, provider);
 
         expect(service.readIcon(ItemType.FOLDER, 'constructor')).toBeUndefined();
     });
 
     it('ignores inherited properties from a custom prototype', () => {
         const proto = { '/proto': 'lucide-bomb' };
-        const folderIcons = Object.create(proto);
+        const folderIcons: Record<string, string> = {};
+        Object.setPrototypeOf(folderIcons, proto);
         const settings = createSettings({ folderIcons });
         const provider = new TestSettingsProvider(settings);
-        const service = new ConcreteMetadataService(appStub, provider);
+        const service = new ConcreteMetadataService(app, provider);
 
         expect(service.readIcon(ItemType.FOLDER, '/proto')).toBeUndefined();
     });
@@ -90,7 +91,7 @@ describe('BaseMetadataService getEntityIcon', () => {
     it('returns undefined when the stored value is not a string', () => {
         const settings = createSettings({ folderIcons: { '/folder': 42 as unknown as string } });
         const provider = new TestSettingsProvider(settings);
-        const service = new ConcreteMetadataService(appStub, provider);
+        const service = new ConcreteMetadataService(app, provider);
 
         expect(service.readIcon(ItemType.FOLDER, '/folder')).toBeUndefined();
     });
@@ -99,7 +100,7 @@ describe('BaseMetadataService getEntityIcon', () => {
         const normalizeSpy = vi.spyOn(iconizeFormat, 'normalizeCanonicalIconId').mockReturnValue('normalized-icon');
         const settings = createSettings({ folderIcons: { '/folder': ' lucide-sun ' } });
         const provider = new TestSettingsProvider(settings);
-        const service = new ConcreteMetadataService(appStub, provider);
+        const service = new ConcreteMetadataService(app, provider);
 
         expect(service.readIcon(ItemType.FOLDER, '/folder')).toBe('normalized-icon');
         expect(normalizeSpy).toHaveBeenCalledWith(' lucide-sun ');
@@ -109,10 +110,11 @@ describe('BaseMetadataService getEntityIcon', () => {
 
     it('ignores prototype values for tag icons', () => {
         const proto = { '#proto': 'lucide-tag' };
-        const tagIcons = Object.create(proto);
+        const tagIcons: Record<string, string> = {};
+        Object.setPrototypeOf(tagIcons, proto);
         const settings = createSettings({ tagIcons });
         const provider = new TestSettingsProvider(settings);
-        const service = new ConcreteMetadataService(appStub, provider);
+        const service = new ConcreteMetadataService(app, provider);
 
         expect(service.readIcon(ItemType.TAG, '#proto')).toBeUndefined();
     });
@@ -120,7 +122,7 @@ describe('BaseMetadataService getEntityIcon', () => {
     it('returns undefined for non-string tag icon values', () => {
         const settings = createSettings({ tagIcons: { '#tag': { nested: true } as unknown as string } });
         const provider = new TestSettingsProvider(settings);
-        const service = new ConcreteMetadataService(appStub, provider);
+        const service = new ConcreteMetadataService(app, provider);
 
         expect(service.readIcon(ItemType.TAG, '#tag')).toBeUndefined();
     });
@@ -129,7 +131,7 @@ describe('BaseMetadataService getEntityIcon', () => {
         const normalizeSpy = vi.spyOn(iconizeFormat, 'normalizeCanonicalIconId').mockReturnValue('normalized-file-icon');
         const settings = createSettings({ fileIcons: { '/file.md': ' lucide-file ' } });
         const provider = new TestSettingsProvider(settings);
-        const service = new ConcreteMetadataService(appStub, provider);
+        const service = new ConcreteMetadataService(app, provider);
 
         expect(service.readIcon(ItemType.FILE, '/file.md')).toBe('normalized-file-icon');
         expect(normalizeSpy).toHaveBeenCalledWith(' lucide-file ');

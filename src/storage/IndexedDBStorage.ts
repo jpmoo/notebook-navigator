@@ -29,14 +29,48 @@ import { isPlainObjectRecordValue } from '../utils/recordUtils';
 import { isMarkdownPath } from '../utils/fileTypeUtils';
 import type { ContentProviderType } from '../interfaces/IContentProvider';
 import { getProviderProcessedMtimeField } from './providerMtime';
+import { LIMITS } from '../constants/limits';
 
 const STORE_NAME = 'keyvaluepairs';
 const PREVIEW_STORE_NAME = 'filePreviews';
 const DB_SCHEMA_VERSION = 3; // IndexedDB structure version
-const DB_CONTENT_VERSION = 2; // Data format version
+const DB_CONTENT_VERSION = 4; // Data format version
 
 export type FeatureImageStatus = 'unprocessed' | 'none' | 'has';
 export type PreviewStatus = 'unprocessed' | 'none' | 'has';
+
+export interface CustomPropertyItem {
+    // Rendered pill text (raw frontmatter value or computed value such as word count).
+    value: string;
+    // Optional color token (tag name or CSS color string).
+    color?: string;
+}
+
+function isCustomPropertyItem(value: unknown): value is CustomPropertyItem {
+    if (!isPlainObjectRecordValue(value)) {
+        return false;
+    }
+
+    // Persisted data must remain JSON-compatible.
+    const rawValue = value['value'];
+    if (typeof rawValue !== 'string') {
+        return false;
+    }
+
+    const rawColor = value['color'];
+    if (typeof rawColor !== 'undefined' && typeof rawColor !== 'string') {
+        return false;
+    }
+
+    return true;
+}
+
+function isCustomPropertyData(value: unknown): value is CustomPropertyItem[] {
+    if (!Array.isArray(value)) {
+        return false;
+    }
+    return value.every(entry => isCustomPropertyItem(entry));
+}
 
 function getDefaultPreviewStatusForPath(path: string): PreviewStatus {
     return isMarkdownPath(path) ? 'unprocessed' : 'none';
@@ -51,6 +85,7 @@ export function createDefaultFileData(params: { mtime: number; path: string }): 
         metadataMtime: 0,
         fileThumbnailsMtime: 0,
         tags: isMarkdown ? null : [],
+        wordCount: isMarkdown ? null : 0,
         customProperty: null,
         previewStatus: getDefaultPreviewStatusForPath(params.path),
         featureImage: null,
@@ -98,7 +133,8 @@ export interface FileData {
      */
     fileThumbnailsMtime: number;
     tags: string[] | null; // null = not extracted yet (e.g. when tags disabled)
-    customProperty: string | null; // null = not generated yet
+    wordCount: number | null; // null = not generated yet
+    customProperty: CustomPropertyItem[] | null; // null = not generated yet
     /**
      * Preview text processing state.
      *
@@ -154,7 +190,8 @@ export interface FileContentChange {
         featureImageStatus?: FeatureImageStatus;
         metadata?: FileData['metadata'] | null;
         tags?: string[] | null;
-        customProperty?: string | null;
+        wordCount?: number | null;
+        customProperty?: FileData['customProperty'];
     };
     changeType?: 'metadata' | 'content' | 'both';
 }
@@ -163,11 +200,12 @@ interface IndexedDBStorageOptions {
     featureImageCacheMaxEntries?: number;
     previewTextCacheMaxEntries?: number;
     previewLoadMaxBatch?: number;
+    cache?: MemoryFileCache;
 }
 
 // Default limits for preview text caching and load batching.
-const DEFAULT_PREVIEW_TEXT_CACHE_MAX_ENTRIES = 10000;
-const DEFAULT_PREVIEW_LOAD_MAX_BATCH = 50;
+const DEFAULT_PREVIEW_TEXT_CACHE_MAX_ENTRIES = LIMITS.storage.previewTextCacheMaxEntriesDefault;
+const DEFAULT_PREVIEW_LOAD_MAX_BATCH = LIMITS.storage.previewLoadMaxBatchDefault;
 
 /**
  * IndexedDBStorage - Browser's IndexedDB wrapper for persistent file storage
@@ -206,6 +244,12 @@ export class IndexedDBStorage {
     private previewLoadFlushTimer: ReturnType<typeof setTimeout> | null = null;
     private isPreviewLoadFlushRunning = false;
     private previewLoadSessionId = 0;
+    // Tracks preview store key moves while a rename is in progress: newPath -> { oldPath, startedAt }.
+    // Used to prevent the preview loader from downgrading `previewStatus` when the preview record is temporarily missing.
+    private previewTextMoveInFlight = new Map<string, { oldPath: string; startedAt: number }>();
+    // Tracks feature image blob store key moves while a rename is in progress: newPath -> { oldPath, startedAt }.
+    // Used so `getFeatureImageBlob(newPath)` can fall back to `oldPath` until the blob record is moved.
+    private featureImageBlobMoveInFlight = new Map<string, { oldPath: string; startedAt: number }>();
     // Warmup state for background preview text cache population.
     private isPreviewWarmupEnabled = false;
     private isPreviewWarmupComplete = false;
@@ -219,7 +263,7 @@ export class IndexedDBStorage {
     constructor(appId: string, options?: IndexedDBStorageOptions) {
         this.dbName = `notebooknavigator/cache/${appId}`;
         const previewTextCacheMaxEntries = options?.previewTextCacheMaxEntries ?? DEFAULT_PREVIEW_TEXT_CACHE_MAX_ENTRIES;
-        this.cache = new MemoryFileCache({ previewTextCacheMaxEntries });
+        this.cache = options?.cache ?? new MemoryFileCache({ previewTextCacheMaxEntries });
         this.previewTextCacheMaxEntries = Math.max(0, previewTextCacheMaxEntries);
         this.previewLoadMaxBatch = Math.max(1, options?.previewLoadMaxBatch ?? DEFAULT_PREVIEW_LOAD_MAX_BATCH);
         // Initialize the LRU size from caller options or fallback default.
@@ -263,7 +307,11 @@ export class IndexedDBStorage {
         data.metadataMtime = typeof data.metadataMtime === 'number' ? data.metadataMtime : data.mtime;
         data.fileThumbnailsMtime = typeof data.fileThumbnailsMtime === 'number' ? data.fileThumbnailsMtime : data.mtime;
         data.tags = Array.isArray(data.tags) ? data.tags : null;
-        data.customProperty = typeof data.customProperty === 'string' ? data.customProperty : null;
+        data.wordCount =
+            typeof data.wordCount === 'number' && Number.isFinite(data.wordCount) && data.wordCount >= 0
+                ? Math.trunc(data.wordCount)
+                : null;
+        data.customProperty = isCustomPropertyData(data.customProperty) ? data.customProperty : null;
         data.previewStatus = previewStatus;
         // Feature image blobs are stored separately from the main record.
         // The MemoryFileCache is used for synchronous rendering and should not hold blob payloads.
@@ -865,6 +913,100 @@ export class IndexedDBStorage {
         this.cache.setClonedFile(path, data);
     }
 
+    beginFeatureImageBlobMove(oldPath: string, newPath: string): void {
+        if (oldPath === newPath) {
+            return;
+        }
+        // Opportunistic cleanup for failed/abandoned moves.
+        this.pruneFeatureImageBlobMovesInFlight();
+
+        const existing = this.featureImageBlobMoveInFlight.get(newPath);
+        if (existing?.oldPath === oldPath) {
+            return;
+        }
+        this.featureImageBlobMoveInFlight.set(newPath, { oldPath, startedAt: Date.now() });
+        // Move any cached thumbnail so the UI can render without waiting for IndexedDB.
+        this.featureImageBlobs.moveCacheEntry(oldPath, newPath);
+    }
+
+    private endFeatureImageBlobMove(oldPath: string, newPath: string): void {
+        const tracked = this.featureImageBlobMoveInFlight.get(newPath);
+        if (tracked?.oldPath === oldPath) {
+            this.featureImageBlobMoveInFlight.delete(newPath);
+        }
+    }
+
+    private isFeatureImageBlobMoveInFlight(path: string): boolean {
+        return this.featureImageBlobMoveInFlight.has(path);
+    }
+
+    private pruneFeatureImageBlobMovesInFlight(): void {
+        // In-flight entries are best-effort and can remain if the IndexedDB move fails.
+        // Prune on subsequent operations to keep the map bounded.
+        const maxAgeMs = 10_000;
+        const cutoff = Date.now() - maxAgeMs;
+        for (const [newPath, tracked] of this.featureImageBlobMoveInFlight.entries()) {
+            if (tracked.startedAt <= cutoff) {
+                this.featureImageBlobMoveInFlight.delete(newPath);
+            }
+        }
+    }
+
+    beginPreviewTextMove(oldPath: string, newPath: string): void {
+        if (oldPath === newPath) {
+            return;
+        }
+        // Opportunistic cleanup for failed/abandoned moves.
+        this.prunePreviewTextMovesInFlight();
+
+        const existing = this.previewTextMoveInFlight.get(newPath);
+        if (existing?.oldPath === oldPath) {
+            return;
+        }
+        this.previewTextMoveInFlight.set(newPath, { oldPath, startedAt: Date.now() });
+
+        if (!this.cache.isReady()) {
+            return;
+        }
+
+        // Copy already-loaded preview text to the new path so UI can render without waiting for IndexedDB.
+        const cachedPreviewText = this.cache.getPreviewText(oldPath);
+        if (cachedPreviewText.length === 0) {
+            return;
+        }
+
+        const existingRecord = this.cache.getFile(newPath);
+        if (!existingRecord) {
+            return;
+        }
+
+        this.cache.updateFileContent(newPath, { previewText: cachedPreviewText, previewStatus: 'has' });
+        this.emitChanges([{ path: newPath, changes: { preview: cachedPreviewText }, changeType: 'content' }]);
+    }
+
+    private endPreviewTextMove(oldPath: string, newPath: string): void {
+        const tracked = this.previewTextMoveInFlight.get(newPath);
+        if (tracked?.oldPath === oldPath) {
+            this.previewTextMoveInFlight.delete(newPath);
+        }
+    }
+
+    private isPreviewTextMoveInFlight(path: string): boolean {
+        return this.previewTextMoveInFlight.has(path);
+    }
+
+    private prunePreviewTextMovesInFlight(): void {
+        // In-flight entries are best-effort and can remain if the IndexedDB move fails.
+        // Prune on subsequent operations to keep the map bounded.
+        const maxAgeMs = 10_000;
+        const cutoff = Date.now() - maxAgeMs;
+        for (const [newPath, tracked] of this.previewTextMoveInFlight.entries()) {
+            if (tracked.startedAt <= cutoff) {
+                this.previewTextMoveInFlight.delete(newPath);
+            }
+        }
+    }
+
     /**
      * Store or update a single file in the database.
      *
@@ -1322,7 +1464,7 @@ export class IndexedDBStorage {
      * @param type - Type of content to check for
      * @returns Set of file paths needing content
      */
-    getFilesNeedingContent(type: 'tags' | 'preview' | 'featureImage' | 'metadata' | 'customProperty'): Set<string> {
+    getFilesNeedingContent(type: 'tags' | 'preview' | 'featureImage' | 'metadata' | 'wordCount' | 'customProperty'): Set<string> {
         if (!this.cache.isReady()) {
             return new Set();
         }
@@ -1334,6 +1476,7 @@ export class IndexedDBStorage {
                 // Feature images need processing when they are unprocessed or missing a key marker.
                 (type === 'featureImage' && (data.featureImageKey === null || data.featureImageStatus === 'unprocessed')) ||
                 (type === 'metadata' && isMarkdownPath(path) && data.metadata === null) ||
+                (type === 'wordCount' && isMarkdownPath(path) && data.wordCount === null) ||
                 (type === 'customProperty' && isMarkdownPath(path) && data.customProperty === null)
             ) {
                 result.add(path);
@@ -1342,7 +1485,7 @@ export class IndexedDBStorage {
         return result;
     }
 
-    getFilesNeedingAnyContent(types: ('tags' | 'preview' | 'featureImage' | 'metadata' | 'customProperty')[]): Set<string> {
+    getFilesNeedingAnyContent(types: ('tags' | 'preview' | 'featureImage' | 'metadata' | 'wordCount' | 'customProperty')[]): Set<string> {
         if (!this.cache.isReady() || types.length === 0) {
             return new Set();
         }
@@ -1351,6 +1494,7 @@ export class IndexedDBStorage {
         const needsPreview = types.includes('preview');
         const needsFeatureImage = types.includes('featureImage');
         const needsMetadata = types.includes('metadata');
+        const needsWordCount = types.includes('wordCount');
         const needsCustomProperty = types.includes('customProperty');
 
         const result = new Set<string>();
@@ -1361,6 +1505,7 @@ export class IndexedDBStorage {
                 (needsPreview && isMarkdown && data.previewStatus === 'unprocessed') ||
                 (needsFeatureImage && (data.featureImageKey === null || data.featureImageStatus === 'unprocessed')) ||
                 (needsMetadata && isMarkdown && data.metadata === null) ||
+                (needsWordCount && isMarkdown && data.wordCount === null) ||
                 (needsCustomProperty && isMarkdown && data.customProperty === null)
             ) {
                 result.add(path);
@@ -2377,11 +2522,12 @@ export class IndexedDBStorage {
         updates: {
             path: string;
             tags?: string[] | null;
+            wordCount?: number | null;
             preview?: string;
             featureImage?: Blob | null;
             featureImageKey?: string | null;
             metadata?: FileData['metadata'];
-            customProperty?: string | null;
+            customProperty?: FileData['customProperty'];
         }[]
     ): Promise<void> {
         await this.batchUpdateFileContentAndProviderProcessedMtimes({ contentUpdates: updates });
@@ -2401,11 +2547,12 @@ export class IndexedDBStorage {
         contentUpdates: {
             path: string;
             tags?: string[] | null;
+            wordCount?: number | null;
             preview?: string;
             featureImage?: Blob | null;
             featureImageKey?: string | null;
             metadata?: FileData['metadata'];
-            customProperty?: string | null;
+            customProperty?: FileData['customProperty'];
         }[];
         provider?: ContentProviderType;
         processedMtimeUpdates?: { path: string; mtime: number; expectedPreviousMtime: number }[];
@@ -2524,6 +2671,11 @@ export class IndexedDBStorage {
                         if (guardedUpdate.tags !== undefined) {
                             newData.tags = guardedUpdate.tags;
                             changes.tags = guardedUpdate.tags;
+                            hasContentChanges = true;
+                        }
+                        if (guardedUpdate.wordCount !== undefined) {
+                            newData.wordCount = guardedUpdate.wordCount;
+                            changes.wordCount = guardedUpdate.wordCount;
                             hasContentChanges = true;
                         }
                         if (guardedUpdate.customProperty !== undefined) {
@@ -2651,6 +2803,7 @@ export class IndexedDBStorage {
                                 changes.preview !== undefined ||
                                 changes.featureImageKey !== undefined ||
                                 changes.featureImageStatus !== undefined ||
+                                changes.wordCount !== undefined ||
                                 changes.customProperty !== undefined;
                             const hasMetadataUpdates = changes.metadata !== undefined || changes.tags !== undefined;
                             const updateType =
@@ -3199,6 +3352,9 @@ export class IndexedDBStorage {
         this.isPreviewLoadFlushRunning = true;
         const sessionId = this.previewLoadSessionId;
         try {
+            // Opportunistic cleanup so stuck in-flight state does not block preview loading indefinitely.
+            this.prunePreviewTextMovesInFlight();
+
             const queuedPaths = Array.from(this.previewLoadQueue);
             this.previewLoadQueue.clear();
             if (queuedPaths.length === 0) {
@@ -3368,15 +3524,24 @@ export class IndexedDBStorage {
                 if (typeof previewText === 'string' && previewText.length > 0) {
                     this.cache.updateFileContent(path, { previewText, previewStatus: 'has' });
                     changes.push({ path, changes: { preview: previewText }, changeType: 'content' });
-                } else {
-                    const file = this.cache.getFile(path);
-                    if (file && file.previewStatus === 'has') {
-                        const nextPreviewStatus = getDefaultPreviewStatusForPath(path);
-                        this.cache.updateFileContent(path, { previewText: '', previewStatus: nextPreviewStatus });
-                        previewStatusRepairs.push({ path, previewStatus: nextPreviewStatus });
-                        changes.push({ path, changes: { preview: null }, changeType: 'content' });
-                    }
+                    this.previewLoadDeferred.get(path)?.resolve();
+                    continue;
                 }
+
+                const file = this.cache.getFile(path);
+                if (file && file.previewStatus === 'has') {
+                    // During a rename/move, the preview record is keyed by path and may not exist at `newPath` yet.
+                    // Keep `previewStatus` intact and wait for `movePreviewText()` to finish.
+                    if (this.isPreviewTextMoveInFlight(path)) {
+                        this.previewLoadDeferred.get(path)?.resolve();
+                        continue;
+                    }
+                    const nextPreviewStatus = getDefaultPreviewStatusForPath(path);
+                    this.cache.updateFileContent(path, { previewText: '', previewStatus: nextPreviewStatus });
+                    previewStatusRepairs.push({ path, previewStatus: nextPreviewStatus });
+                    changes.push({ path, changes: { preview: null }, changeType: 'content' });
+                }
+
                 this.previewLoadDeferred.get(path)?.resolve();
             }
 
@@ -3476,7 +3641,27 @@ export class IndexedDBStorage {
         if (!this.db) {
             return null;
         }
-        return this.featureImageBlobs.getBlob(this.db, path, expectedKey);
+        // Opportunistic cleanup so fallback reads don't persist across unrelated operations.
+        this.pruneFeatureImageBlobMovesInFlight();
+        const blob = await this.featureImageBlobs.getBlob(this.db, path, expectedKey);
+        if (blob || !this.isFeatureImageBlobMoveInFlight(path)) {
+            return blob;
+        }
+
+        const tracked = this.featureImageBlobMoveInFlight.get(path);
+        const oldPath = tracked?.oldPath ?? '';
+        if (oldPath.length === 0) {
+            return blob;
+        }
+
+        const fallbackBlob = await this.featureImageBlobs.getBlob(this.db, oldPath, expectedKey);
+        if (fallbackBlob) {
+            // Seed the cache under the new path so subsequent reads are fast.
+            this.featureImageBlobs.moveCacheEntry(oldPath, path);
+            return fallbackBlob;
+        }
+
+        return blob;
     }
 
     /**
@@ -3561,9 +3746,26 @@ export class IndexedDBStorage {
      * Move a feature image blob between paths.
      */
     async moveFeatureImageBlob(oldPath: string, newPath: string): Promise<void> {
-        await this.init();
-        if (!this.db) throw new Error('Database not initialized');
-        await this.featureImageBlobs.moveBlob(this.db, oldPath, newPath);
+        if (oldPath === newPath) {
+            return;
+        }
+        this.beginFeatureImageBlobMove(oldPath, newPath);
+
+        let didMove = false;
+        try {
+            await this.init();
+            if (!this.db) throw new Error('Database not initialized');
+            await this.featureImageBlobs.moveBlob(this.db, oldPath, newPath);
+            didMove = true;
+        } catch (error: unknown) {
+            if (!this.isClosing) {
+                console.error('[FeatureImageBlob] Failed to move feature image blob', { oldPath, newPath, error });
+            }
+        } finally {
+            if (didMove) {
+                this.endFeatureImageBlobMove(oldPath, newPath);
+            }
+        }
     }
 
     /**
@@ -3573,89 +3775,125 @@ export class IndexedDBStorage {
         if (oldPath === newPath) {
             return;
         }
-        await this.init();
-        if (!this.db) throw new Error('Database not initialized');
+        this.beginPreviewTextMove(oldPath, newPath);
 
-        const cachedPreviewText = this.cache.isReady() ? this.cache.getPreviewText(oldPath) : '';
-        if (this.cache.isReady()) {
-            this.cache.updateFileContent(oldPath, { previewText: '' });
-            if (cachedPreviewText.length > 0) {
-                this.cache.updateFileContent(newPath, { previewText: cachedPreviewText, previewStatus: 'has' });
-            }
-        }
+        try {
+            await this.init();
+            if (!this.db) throw new Error('Database not initialized');
 
-        const transaction = this.db.transaction([PREVIEW_STORE_NAME], 'readwrite');
-        const store = transaction.objectStore(PREVIEW_STORE_NAME);
+            const transaction = this.db.transaction([PREVIEW_STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(PREVIEW_STORE_NAME);
 
-        await new Promise<void>((resolve, reject) => {
-            const op = 'movePreviewText';
-            let lastRequestError: DOMException | Error | null = null;
+            const movedPreviewText = await new Promise<string | null>((resolve, reject) => {
+                const op = 'movePreviewText';
+                let lastRequestError: DOMException | Error | null = null;
+                let previewTextMoved: string | null = null;
 
-            const getReq = store.get(oldPath);
-            getReq.onsuccess = () => {
-                const previewText: unknown = getReq.result;
-                if (typeof previewText === 'string' && previewText.length > 0) {
-                    const putReq = store.put(previewText, newPath);
-                    putReq.onerror = () => {
-                        lastRequestError = putReq.error || null;
-                        console.error('[IndexedDB] put failed', {
+                const getReq = store.get(oldPath);
+                getReq.onsuccess = () => {
+                    const previewText: unknown = getReq.result;
+                    if (typeof previewText === 'string' && previewText.length > 0) {
+                        previewTextMoved = previewText;
+                        const putReq = store.put(previewText, newPath);
+                        putReq.onerror = () => {
+                            lastRequestError = putReq.error || null;
+                            console.error('[IndexedDB] put failed', {
+                                store: PREVIEW_STORE_NAME,
+                                op,
+                                path: newPath,
+                                name: putReq.error?.name,
+                                message: putReq.error?.message
+                            });
+                        };
+                    }
+
+                    const deleteReq = store.delete(oldPath);
+                    deleteReq.onerror = () => {
+                        lastRequestError = deleteReq.error || null;
+                        console.error('[IndexedDB] delete failed', {
                             store: PREVIEW_STORE_NAME,
                             op,
-                            path: newPath,
-                            name: putReq.error?.name,
-                            message: putReq.error?.message
+                            path: oldPath,
+                            name: deleteReq.error?.name,
+                            message: deleteReq.error?.message
                         });
                     };
-                }
-
-                const deleteReq = store.delete(oldPath);
-                deleteReq.onerror = () => {
-                    lastRequestError = deleteReq.error || null;
-                    console.error('[IndexedDB] delete failed', {
+                };
+                getReq.onerror = () => {
+                    lastRequestError = getReq.error || null;
+                    console.error('[IndexedDB] get failed', {
                         store: PREVIEW_STORE_NAME,
                         op,
                         path: oldPath,
-                        name: deleteReq.error?.name,
-                        message: deleteReq.error?.message
+                        name: getReq.error?.name,
+                        message: getReq.error?.message
                     });
+                    try {
+                        transaction.abort();
+                    } catch (e) {
+                        void e;
+                    }
                 };
-            };
-            getReq.onerror = () => {
-                lastRequestError = getReq.error || null;
-                console.error('[IndexedDB] get failed', {
-                    store: PREVIEW_STORE_NAME,
-                    op,
-                    path: oldPath,
-                    name: getReq.error?.name,
-                    message: getReq.error?.message
-                });
-                try {
-                    transaction.abort();
-                } catch (e) {
-                    void e;
-                }
-            };
 
-            transaction.oncomplete = () => resolve();
-            transaction.onabort = () => {
-                console.error('[IndexedDB] transaction aborted', {
-                    store: PREVIEW_STORE_NAME,
-                    op,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction aborted');
-            };
-            transaction.onerror = () => {
-                console.error('[IndexedDB] transaction error', {
-                    store: PREVIEW_STORE_NAME,
-                    op,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction error');
-            };
-        });
+                transaction.oncomplete = () => resolve(previewTextMoved);
+                transaction.onabort = () => {
+                    console.error('[IndexedDB] transaction aborted', {
+                        store: PREVIEW_STORE_NAME,
+                        op,
+                        txError: transaction.error?.message,
+                        reqError: lastRequestError?.message
+                    });
+                    this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction aborted');
+                };
+                transaction.onerror = () => {
+                    console.error('[IndexedDB] transaction error', {
+                        store: PREVIEW_STORE_NAME,
+                        op,
+                        txError: transaction.error?.message,
+                        reqError: lastRequestError?.message
+                    });
+                    this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction error');
+                };
+            });
+
+            if (this.cache.isReady()) {
+                if (movedPreviewText && movedPreviewText.length > 0) {
+                    this.cache.updateFileContent(newPath, { previewText: movedPreviewText, previewStatus: 'has' });
+                    this.emitChanges([{ path: newPath, changes: { preview: movedPreviewText }, changeType: 'content' }]);
+
+                    try {
+                        await this.repairPreviewStatusRecords([{ path: newPath, previewStatus: 'has' }]);
+                    } catch (error: unknown) {
+                        if (!this.isClosing) {
+                            console.error('[PreviewText] Failed to persist preview status after move', error);
+                        }
+                    }
+                } else {
+                    const file = this.cache.getFile(newPath);
+                    if (file && file.previewStatus === 'has') {
+                        const nextPreviewStatus = getDefaultPreviewStatusForPath(newPath);
+                        this.cache.updateFileContent(newPath, { previewText: '', previewStatus: nextPreviewStatus });
+                        this.emitChanges([{ path: newPath, changes: { preview: null }, changeType: 'content' }]);
+                        try {
+                            await this.repairPreviewStatusRecords([{ path: newPath, previewStatus: nextPreviewStatus }]);
+                        } catch (error: unknown) {
+                            if (!this.isClosing) {
+                                console.error('[PreviewText] Failed to persist preview status repair after move', error);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (error: unknown) {
+            if (!this.isClosing) {
+                console.error('[PreviewText] Failed to move preview text', { oldPath, newPath, error });
+            }
+        } finally {
+            this.endPreviewTextMove(oldPath, newPath);
+            this.previewLoadQueue.delete(newPath);
+            // Unblock any `ensurePreviewTextLoaded(newPath)` call that was queued during the rename window.
+            this.previewLoadDeferred.get(newPath)?.resolve();
+        }
     }
 
     /**
@@ -3696,6 +3934,8 @@ export class IndexedDBStorage {
         this.previewLoadDeferred.forEach(deferred => deferred.resolve());
         this.previewLoadDeferred.clear();
         this.previewLoadPromises.clear();
+        this.previewTextMoveInFlight.clear();
+        this.featureImageBlobMoveInFlight.clear();
         this.featureImageBlobs.clearMemoryCaches();
     }
 }

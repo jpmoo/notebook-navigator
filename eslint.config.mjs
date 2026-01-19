@@ -8,11 +8,48 @@ import globals from 'globals';
 
 export default tseslint.config(
     {
-        ignores: ['node_modules/**', 'dist/**', 'build/**', 'main.js', '*.min.js', 'web/**', 'codemods/**']
+        ignores: ['node_modules/**', 'dist/**', 'build/**', 'main.js', '*.min.js', 'web/**', 'codemods/**', 'tests/api-test-suite.js'],
+        linterOptions: {
+            reportUnusedDisableDirectives: 'error'
+        }
     },
     js.configs.recommended,
     ...tseslint.configs.recommended,
     ...obsidianmd.configs.recommended,
+    {
+        files: ['tests/**/*.{ts,tsx}'],
+        languageOptions: {
+            globals: {
+                ...globals.node
+            },
+            parserOptions: {
+                project: './tsconfig.json'
+            }
+        },
+        rules: {
+            // Tests may legitimately use Node built-ins (e.g. reading fixture files).
+            // Keep this rule enabled for `src/**` to avoid shipping Node-only imports in the plugin runtime.
+            'import/no-nodejs-modules': 'off',
+            'no-restricted-properties': [
+                'error',
+                {
+                    object: 'describe',
+                    property: 'only',
+                    message: 'Do not commit describe.only()'
+                },
+                {
+                    object: 'it',
+                    property: 'only',
+                    message: 'Do not commit it.only()'
+                },
+                {
+                    object: 'test',
+                    property: 'only',
+                    message: 'Do not commit test.only()'
+                }
+            ]
+        }
+    },
     {
         files: ['src/**/*.{ts,tsx}'],
         languageOptions: {

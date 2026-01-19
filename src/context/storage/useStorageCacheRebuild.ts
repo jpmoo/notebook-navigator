@@ -19,14 +19,15 @@
 import { useCallback, type Dispatch, type RefObject, type SetStateAction } from 'react';
 import { debounce, type TFile } from 'obsidian';
 import type { NotebookNavigatorAPI } from '../../api/NotebookNavigatorAPI';
-import type { ContentProviderType, FileContentType } from '../../interfaces/IContentProvider';
+import type { FileContentType } from '../../interfaces/IContentProvider';
 import type { ContentProviderRegistry } from '../../services/content/ContentProviderRegistry';
 import type { NotebookNavigatorSettings } from '../../settings';
 import { getDBInstance } from '../../storage/fileOperations';
 import type { TagTreeNode } from '../../types/storage';
 import { clearNoteCountCache } from '../../utils/tagTree';
 import type { StorageFileData } from './storageFileData';
-import { getCacheRebuildProgressTypes } from './storageContentTypes';
+import { getCacheRebuildProgressTypes, getContentWorkTotal } from './storageContentTypes';
+import { clearCacheRebuildNoticeState, setCacheRebuildNoticeState } from './cacheRebuildNoticeStorage';
 
 interface TagTreeServiceLike {
     updateTagTree: (tree: Map<string, TagTreeNode>, tagged: number, untagged: number) => void;
@@ -50,7 +51,8 @@ export function useStorageCacheRebuild(params: {
     rebuildFileCacheRef: RefObject<ReturnType<typeof debounce> | null>;
     cancelTagTreeRebuildDebouncer: (options?: { reset?: boolean }) => void;
     disposeMetadataWaitDisposers: () => void;
-    pendingMetadataWaitPathsRef: RefObject<Map<string, Set<ContentProviderType>>>;
+    // Map: file path -> pending metadata-dependent wait mask (see `useMetadataCacheQueue`).
+    pendingMetadataWaitPathsRef: RefObject<Map<string, number>>;
     setFileData: Dispatch<SetStateAction<StorageFileData>>;
     tagTreeService: TagTreeServiceLike | null;
     setIsStorageReady: Dispatch<SetStateAction<boolean>>;
@@ -86,6 +88,8 @@ export function useStorageCacheRebuild(params: {
 
     const rebuildCache = useCallback(async () => {
         clearCacheRebuildNotice();
+        // Reset any previously persisted rebuild marker before starting a new rebuild.
+        clearCacheRebuildNoticeState();
 
         // Rebuild runs as an exclusive operation. Store and restore the previous value so rebuild can also be
         // invoked during shutdown without accidentally re-enabling processing afterwards.
@@ -150,13 +154,19 @@ export function useStorageCacheRebuild(params: {
         try {
             const liveSettings = latestSettingsRef.current;
             const enabledTypes = getCacheRebuildProgressTypes(liveSettings);
-            const total = getIndexableFiles().length;
+            const total = getContentWorkTotal(getIndexableFiles(), enabledTypes);
+            if (total > 0 && enabledTypes.length > 0) {
+                // Persist a rebuild marker so the progress notice can be restored if Obsidian restarts mid-rebuild.
+                setCacheRebuildNoticeState({ total, source: 'rebuild', types: enabledTypes });
+            }
             startCacheRebuildNotice(total, enabledTypes);
 
             hasBuiltInitialCacheRef.current = true;
             await buildCache(true);
         } catch (error: unknown) {
             clearCacheRebuildNotice();
+            // Ensure restarts don't restore a notice when rebuild fails to start/complete.
+            clearCacheRebuildNoticeState();
             hasBuiltInitialCacheRef.current = false;
             stoppedRef.current = previousStopped;
             throw error;

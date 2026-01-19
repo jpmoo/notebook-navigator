@@ -16,10 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { App } from 'obsidian';
-import { TFile } from 'obsidian';
+import { App, TFile } from 'obsidian';
 import * as TagRenameModule from '../../src/services/tagRename/TagRenameEngine';
 import { TagOperations } from '../../src/services/TagOperations';
+import { TagRenameWorkflow, type TagRenameAnalysis, type TagRenameResult } from '../../src/services/tagOperations/TagRenameWorkflow';
 import { ShortcutType, type ShortcutEntry } from '../../src/types/shortcuts';
 import { TAGGED_TAG_ID } from '../../src/types';
 import type { NotebookNavigatorSettings } from '../../src/settings';
@@ -29,55 +29,7 @@ import type { TagTreeService } from '../../src/services/TagTreeService';
 import type { MetadataService } from '../../src/services/MetadataService';
 import { createVaultProfile, getActiveVaultProfile } from '../../src/utils/vaultProfiles';
 import type { VaultProfile } from '../../src/settings/types';
-
-vi.mock('obsidian', () => {
-    class Modal {}
-    class TFile {}
-    class Notice {
-        constructor(public message: unknown) {
-            // no-op
-        }
-    }
-
-    return {
-        App: class {},
-        Modal,
-        Notice,
-        Plugin: class {},
-        TFile,
-        TFolder: class {},
-        getLanguage: () => 'en',
-        normalizePath: (path: string) => path,
-        parseFrontMatterTags: (frontmatter?: { tags?: string | string[] }) => {
-            const raw = frontmatter?.tags;
-            if (raw === undefined || raw === null) {
-                return null;
-            }
-            if (Array.isArray(raw)) {
-                const tags: string[] = [];
-                for (const entry of raw) {
-                    if (typeof entry !== 'string') {
-                        continue;
-                    }
-                    entry
-                        .split(/[, ]+/u)
-                        .map(tag => tag.trim())
-                        .filter(tag => tag.length > 0)
-                        .forEach(tag => tags.push(tag));
-                }
-                return tags.length > 0 ? tags : null;
-            }
-            if (typeof raw === 'string') {
-                const tags = raw
-                    .split(/[, ]+/u)
-                    .map(tag => tag.trim())
-                    .filter(tag => tag.length > 0);
-                return tags.length > 0 ? tags : null;
-            }
-            return null;
-        }
-    };
-});
+import { createTestTFile } from '../utils/createTestTFile';
 
 const cachedTagsByPath = new Map<string, string[]>();
 
@@ -87,6 +39,54 @@ vi.mock('../../src/storage/fileOperations', () => ({
     })
 }));
 
+class TestTagOperations extends TagOperations {
+    // Test harness compromise:
+    // The production `TagOperations` API intentionally keeps many operations `protected` to enforce
+    // workflow boundaries. Tests need to exercise those paths directly, but using `as any` bypasses
+    // type safety and can hide real issues under stricter ESLint rules.
+    //
+    // This subclass re-exposes a small surface as `public` purely for testing.
+    public override resolveDisplayTagPath(tagPath: string): string {
+        return super.resolveDisplayTagPath(tagPath);
+    }
+
+    public override executeRename(analysis: TagRenameAnalysis): Promise<TagRenameResult> {
+        return super.executeRename(analysis);
+    }
+
+    public override updateTagMetadataAfterRename(oldTagPath: string, newTagPath: string, preserveDestination: boolean): Promise<void> {
+        return super.updateTagMetadataAfterRename(oldTagPath, newTagPath, preserveDestination);
+    }
+
+    public override updateTagShortcutsAfterRename(oldTagPath: string, newTagPath: string): Promise<void> {
+        return super.updateTagShortcutsAfterRename(oldTagPath, newTagPath);
+    }
+
+    public override runTagRename(
+        oldTagPath: string,
+        newTagPath: string,
+        presetTargets?: TagRenameModule.RenameFile[] | null
+    ): Promise<boolean> {
+        return super.runTagRename(oldTagPath, newTagPath, presetTargets ?? null);
+    }
+
+    public override runTagDelete(tagPath: string, presetPaths?: readonly string[] | null): Promise<boolean> {
+        return super.runTagDelete(tagPath, presetPaths ?? null);
+    }
+
+    public override deleteTagFromFile(file: TFile, tag: TagRenameModule.TagDescriptor): Promise<boolean> {
+        return super.deleteTagFromFile(file, tag);
+    }
+
+    public override removeTagMetadataAfterDelete(tagPath: string): Promise<void> {
+        return super.removeTagMetadataAfterDelete(tagPath);
+    }
+
+    public override removeTagShortcutsAfterDelete(tagPath: string): Promise<void> {
+        return super.removeTagShortcutsAfterDelete(tagPath);
+    }
+}
+
 function createSettings(): NotebookNavigatorSettings {
     return {
         ...DEFAULT_SETTINGS,
@@ -94,8 +94,10 @@ function createSettings(): NotebookNavigatorSettings {
             createVaultProfile(profile.name, {
                 id: profile.id,
                 hiddenFolders: profile.hiddenFolders,
-                hiddenFiles: profile.hiddenFiles,
+                hiddenFileProperties: profile.hiddenFileProperties,
+                hiddenFileNames: profile.hiddenFileNames,
                 hiddenTags: profile.hiddenTags,
+                hiddenFileTags: profile.hiddenFileTags,
                 fileVisibility: profile.fileVisibility,
                 navigationBanner: profile.navigationBanner,
                 shortcuts: profile.shortcuts
@@ -108,8 +110,10 @@ function createVaultProfileStub(id: string, shortcuts: ShortcutEntry[]): VaultPr
     return createVaultProfile(id, {
         id,
         hiddenFolders: [],
-        hiddenFiles: [],
+        hiddenFileProperties: [],
+        hiddenFileNames: [],
         hiddenTags: [],
+        hiddenFileTags: [],
         shortcuts
     });
 }
@@ -133,15 +137,15 @@ function createSettingsProvider(settings: NotebookNavigatorSettings): ISettingsP
 
 function createTagOperations(settings: NotebookNavigatorSettings) {
     const provider = createSettingsProvider(settings);
+    const app = new App();
     const metadataServiceStub = {
         getSettingsProvider: () => provider
-    } as unknown;
-    const appStub = { vault: {} } as unknown as App;
-    const tagOperations = new TagOperations(
-        appStub,
+    };
+    const tagOperations = new TestTagOperations(
+        app,
         () => settings,
         () => null,
-        () => metadataServiceStub as any
+        () => metadataServiceStub as unknown as MetadataService
     );
     return { tagOperations, provider };
 }
@@ -230,7 +234,7 @@ describe('TagOperations shortcut migration', () => {
         ];
         const { tagOperations, provider } = createTagOperations(settings);
 
-        await (tagOperations as any).updateTagShortcutsAfterRename('projects', 'areas');
+        await tagOperations.updateTagShortcutsAfterRename('projects', 'areas');
 
         expect(profile.shortcuts).toEqual([
             { type: ShortcutType.TAG, tagPath: 'areas' },
@@ -249,7 +253,7 @@ describe('TagOperations shortcut migration', () => {
         ];
         const { tagOperations, provider } = createTagOperations(settings);
 
-        await (tagOperations as any).updateTagShortcutsAfterRename('projects', 'areas');
+        await tagOperations.updateTagShortcutsAfterRename('projects', 'areas');
 
         expect(profile.shortcuts).toEqual([{ type: ShortcutType.TAG, tagPath: 'areas' }]);
         expect(provider.saveSettingsAndUpdate).toHaveBeenCalledTimes(1);
@@ -261,7 +265,7 @@ describe('TagOperations shortcut migration', () => {
         profile.shortcuts = [{ type: ShortcutType.TAG, tagPath: 'projects' }];
         const { tagOperations, provider } = createTagOperations(settings);
 
-        await (tagOperations as any).updateTagShortcutsAfterRename('Projects', 'projects');
+        await tagOperations.updateTagShortcutsAfterRename('Projects', 'projects');
 
         expect(profile.shortcuts).toEqual([{ type: ShortcutType.TAG, tagPath: 'projects' }]);
         expect(provider.saveSettingsAndUpdate).not.toHaveBeenCalled();
@@ -279,7 +283,7 @@ describe('TagOperations shortcut cleanup on delete', () => {
         ];
         const { tagOperations, provider } = createTagOperations(settings);
 
-        await (tagOperations as any).removeTagShortcutsAfterDelete('projects');
+        await tagOperations.removeTagShortcutsAfterDelete('projects');
 
         expect(profile.shortcuts).toEqual([{ type: ShortcutType.NOTE, path: 'Notes.md' }]);
         expect(provider.saveSettingsAndUpdate).toHaveBeenCalledTimes(1);
@@ -291,7 +295,7 @@ describe('TagOperations shortcut cleanup on delete', () => {
         profile.shortcuts = [{ type: ShortcutType.NOTE, path: 'Notes.md' }];
         const { tagOperations, provider } = createTagOperations(settings);
 
-        await (tagOperations as any).removeTagShortcutsAfterDelete('projects');
+        await tagOperations.removeTagShortcutsAfterDelete('projects');
 
         expect(profile.shortcuts).toEqual([{ type: ShortcutType.NOTE, path: 'Notes.md' }]);
         expect(provider.saveSettingsAndUpdate).not.toHaveBeenCalled();
@@ -315,7 +319,7 @@ describe('TagOperations multi-profile shortcuts', () => {
 
         const { tagOperations, provider } = createTagOperations(settings);
 
-        await (tagOperations as any).updateTagShortcutsAfterRename('projects', 'areas');
+        await tagOperations.updateTagShortcutsAfterRename('projects', 'areas');
 
         expect(primary.shortcuts).toEqual([
             { type: ShortcutType.TAG, tagPath: 'areas' },
@@ -344,7 +348,7 @@ describe('TagOperations multi-profile shortcuts', () => {
 
         const { tagOperations, provider } = createTagOperations(settings);
 
-        await (tagOperations as any).removeTagShortcutsAfterDelete('projects');
+        await tagOperations.removeTagShortcutsAfterDelete('projects');
 
         expect(primary.shortcuts).toEqual([{ type: ShortcutType.NOTE, path: 'Notes.md' }]);
         expect(secondary.shortcuts).toEqual([{ type: ShortcutType.NOTE, path: 'Archive.md' }]);
@@ -360,29 +364,26 @@ describe('TagOperations tag deletion', () => {
             aliases: ['#project', '#project/client', 'Project kickoff'],
             alias: '#project/client'
         };
-        const file = Object.assign(new TFile(), {
-            path: 'Project.md',
-            extension: 'md',
+        const file = Object.assign(createTestTFile('Project.md'), {
             frontmatter,
             content: '#project kickoff\nTasks include #project/client follow-up.'
-        }) as TFile & { frontmatter: { tags?: string | string[]; aliases?: string | string[]; alias?: string }; content: string };
+        });
 
         cachedTagsByPath.set(file.path, ['project', 'project/client']);
 
-        const fileManager = {
-            processFrontMatter: vi.fn((_file: TFile, callback: (fm: Record<string, unknown>) => void) => {
-                callback(file.frontmatter as unknown as Record<string, unknown>);
-                return Promise.resolve();
-            })
-        };
-
-        const vault = {
-            getAbstractFileByPath: vi.fn((path: string) => (path === file.path ? file : null)),
-            process: vi.fn(async (_file: TFile, processor: (content: string) => string) => {
-                const updated = processor(file.content);
-                file.content = updated;
-            })
-        };
+        const app = new App();
+        const getAbstractFileByPath = vi.fn((path: string) => (path === file.path ? file : null));
+        const processFrontMatter = vi.fn((_file: TFile, callback: (fm: Record<string, unknown>) => void) => {
+            callback(file.frontmatter);
+            return Promise.resolve();
+        });
+        const process = vi.fn(async (_file: TFile, processor: (content: string) => string) => {
+            file.content = processor(file.content);
+            return file.content;
+        });
+        app.vault.getAbstractFileByPath = getAbstractFileByPath;
+        app.fileManager.processFrontMatter = processFrontMatter;
+        app.vault.process = process;
 
         const provider = createSettingsProvider(settings);
         const metadataService = {
@@ -390,18 +391,18 @@ describe('TagOperations tag deletion', () => {
             handleTagDelete: vi.fn().mockResolvedValue(undefined)
         };
 
-        const tagOperations = new TagOperations(
-            { vault, fileManager } as unknown as App,
+        const tagOperations = new TestTagOperations(
+            app,
             () => settings,
             () => null,
-            () => metadataService as any
+            () => metadataService as unknown as MetadataService
         );
 
-        const result = await (tagOperations as any).runTagDelete('project', [file.path]);
+        const result = await tagOperations.runTagDelete('project', [file.path]);
 
         expect(result).toBe(true);
-        expect(fileManager.processFrontMatter).toHaveBeenCalled();
-        expect(vault.process).toHaveBeenCalled();
+        expect(processFrontMatter).toHaveBeenCalled();
+        expect(process).toHaveBeenCalled();
         expect(file.frontmatter.tags).toBeUndefined();
         expect(file.frontmatter.aliases).toEqual(['Project kickoff']);
         expect(file.frontmatter.alias).toBeUndefined();
@@ -417,30 +418,29 @@ describe('TagOperations tag deletion', () => {
             tags: 'project project/client other'
         };
 
-        const file = Object.assign(new TFile(), {
-            path: 'Scalar.md',
-            extension: 'md',
+        const file = Object.assign(createTestTFile('Scalar.md'), {
             frontmatter,
             content: '#project details and #project/client next steps'
-        }) as TFile & { frontmatter: { tags?: string | string[] }; content: string };
+        });
 
         cachedTagsByPath.set(file.path, ['project', 'project/client', 'other']);
 
-        const fileManager = {
-            processFrontMatter: vi.fn((_file: TFile, callback: (fm: Record<string, unknown>) => void) => {
-                callback(file.frontmatter as unknown as Record<string, unknown>);
-                return Promise.resolve();
-            })
-        };
-
-        const vault = {
-            getAbstractFileByPath: vi.fn((path: string) => (path === file.path ? file : null)),
-            read: vi.fn(async () => file.content),
-            modify: vi.fn(async (_file: TFile, data: string) => {
-                file.content = data;
-            }),
-            process: vi.fn()
-        };
+        const app = new App();
+        const getAbstractFileByPath = vi.fn((path: string) => (path === file.path ? file : null));
+        const processFrontMatter = vi.fn((_file: TFile, callback: (fm: Record<string, unknown>) => void) => {
+            callback(file.frontmatter);
+            return Promise.resolve();
+        });
+        const read = vi.fn(async () => file.content);
+        const modify = vi.fn(async (_file: TFile, data: string) => {
+            file.content = data;
+        });
+        const process = vi.fn();
+        app.vault.getAbstractFileByPath = getAbstractFileByPath;
+        app.fileManager.processFrontMatter = processFrontMatter;
+        app.vault.read = read;
+        app.vault.modify = modify;
+        app.vault.process = process;
 
         const provider = createSettingsProvider(settings);
         const metadataService = {
@@ -448,19 +448,19 @@ describe('TagOperations tag deletion', () => {
             handleTagDelete: vi.fn().mockResolvedValue(undefined)
         };
 
-        const tagOperations = new TagOperations(
-            { vault, fileManager } as unknown as App,
+        const tagOperations = new TestTagOperations(
+            app,
             () => settings,
             () => null,
-            () => metadataService as any
+            () => metadataService as unknown as MetadataService
         );
 
-        const result = await (tagOperations as any).runTagDelete('project', [file.path]);
+        const result = await tagOperations.runTagDelete('project', [file.path]);
 
         expect(result).toBe(true);
-        expect(fileManager.processFrontMatter).toHaveBeenCalled();
-        expect(vault.read).toHaveBeenCalled();
-        expect(vault.modify).toHaveBeenCalled();
+        expect(processFrontMatter).toHaveBeenCalled();
+        expect(read).toHaveBeenCalled();
+        expect(modify).toHaveBeenCalled();
         expect(file.frontmatter.tags).toBe('other');
         expect(file.content).not.toContain('#project');
         expect(file.content).not.toContain('#project/client');
@@ -474,33 +474,29 @@ describe('TagOperations tag deletion', () => {
             aliases: ['#project//client', '#project//client/research'],
             alias: '#project//client'
         };
-        const file = Object.assign(new TFile(), {
-            path: 'Client.md',
-            extension: 'md',
+        const file = Object.assign(createTestTFile('Client.md'), {
             frontmatter,
             content: 'Meeting notes for #project//client.\nFollow-up tasks #project//client/research.'
-        }) as TFile & {
-            frontmatter: { tags?: string | string[]; aliases?: string | string[]; alias?: string };
-            content: string;
-        };
+        });
 
         cachedTagsByPath.set(file.path, ['project//client', 'project//client/research', 'other']);
 
-        const fileManager = {
-            processFrontMatter: vi.fn((_file: TFile, callback: (fm: Record<string, unknown>) => void) => {
-                callback(file.frontmatter as unknown as Record<string, unknown>);
-                return Promise.resolve();
-            })
-        };
-
-        const vault = {
-            getAbstractFileByPath: vi.fn((path: string) => (path === file.path ? file : null)),
-            read: vi.fn(async () => file.content),
-            modify: vi.fn(async (_file: TFile, data: string) => {
-                file.content = data;
-            }),
-            process: vi.fn()
-        };
+        const app = new App();
+        const getAbstractFileByPath = vi.fn((path: string) => (path === file.path ? file : null));
+        const processFrontMatter = vi.fn((_file: TFile, callback: (fm: Record<string, unknown>) => void) => {
+            callback(file.frontmatter);
+            return Promise.resolve();
+        });
+        const read = vi.fn(async () => file.content);
+        const modify = vi.fn(async (_file: TFile, data: string) => {
+            file.content = data;
+        });
+        const process = vi.fn();
+        app.vault.getAbstractFileByPath = getAbstractFileByPath;
+        app.fileManager.processFrontMatter = processFrontMatter;
+        app.vault.read = read;
+        app.vault.modify = modify;
+        app.vault.process = process;
 
         const provider = createSettingsProvider(settings);
         const metadataService = {
@@ -508,19 +504,19 @@ describe('TagOperations tag deletion', () => {
             handleTagDelete: vi.fn().mockResolvedValue(undefined)
         };
 
-        const tagOperations = new TagOperations(
-            { vault, fileManager } as unknown as App,
+        const tagOperations = new TestTagOperations(
+            app,
             () => settings,
             () => null,
-            () => metadataService as any
+            () => metadataService as unknown as MetadataService
         );
 
-        const result = await (tagOperations as any).runTagDelete('project//client', [file.path]);
+        const result = await tagOperations.runTagDelete('project//client', [file.path]);
 
         expect(result).toBe(true);
-        expect(fileManager.processFrontMatter).toHaveBeenCalled();
-        expect(vault.read).toHaveBeenCalled();
-        expect(vault.modify).toHaveBeenCalled();
+        expect(processFrontMatter).toHaveBeenCalled();
+        expect(read).toHaveBeenCalled();
+        expect(modify).toHaveBeenCalled();
         expect(file.frontmatter.tags).toEqual(['other']);
         expect(file.frontmatter.aliases).toBeUndefined();
         expect(file.frontmatter.alias).toBeUndefined();
@@ -534,33 +530,29 @@ describe('TagOperations tag deletion', () => {
         const frontmatter = {
             tags: ['project', 'project/client', 'project-archive', 'project_2024']
         };
-        const file = Object.assign(new TFile(), {
-            path: 'Mixed.md',
-            extension: 'md',
+        const file = Object.assign(createTestTFile('Mixed.md'), {
             frontmatter,
             content: 'Summary #project overview #project-archive tasks #project_2024 next #project/client wrap'
-        }) as TFile & {
-            frontmatter: { tags?: string | string[] };
-            content: string;
-        };
+        });
 
         cachedTagsByPath.set(file.path, ['project', 'project/client', 'project-archive', 'project_2024']);
 
-        const fileManager = {
-            processFrontMatter: vi.fn((_file: TFile, callback: (fm: Record<string, unknown>) => void) => {
-                callback(file.frontmatter as unknown as Record<string, unknown>);
-                return Promise.resolve();
-            })
-        };
-
-        const vault = {
-            getAbstractFileByPath: vi.fn((path: string) => (path === file.path ? file : null)),
-            read: vi.fn(async () => file.content),
-            modify: vi.fn(async (_file: TFile, data: string) => {
-                file.content = data;
-            }),
-            process: vi.fn()
-        };
+        const app = new App();
+        const getAbstractFileByPath = vi.fn((path: string) => (path === file.path ? file : null));
+        const processFrontMatter = vi.fn((_file: TFile, callback: (fm: Record<string, unknown>) => void) => {
+            callback(file.frontmatter);
+            return Promise.resolve();
+        });
+        const read = vi.fn(async () => file.content);
+        const modify = vi.fn(async (_file: TFile, data: string) => {
+            file.content = data;
+        });
+        const process = vi.fn();
+        app.vault.getAbstractFileByPath = getAbstractFileByPath;
+        app.fileManager.processFrontMatter = processFrontMatter;
+        app.vault.read = read;
+        app.vault.modify = modify;
+        app.vault.process = process;
 
         const provider = createSettingsProvider(settings);
         const metadataService = {
@@ -568,14 +560,14 @@ describe('TagOperations tag deletion', () => {
             handleTagDelete: vi.fn().mockResolvedValue(undefined)
         };
 
-        const tagOperations = new TagOperations(
-            { vault, fileManager } as unknown as App,
+        const tagOperations = new TestTagOperations(
+            app,
             () => settings,
             () => null,
-            () => metadataService as any
+            () => metadataService as unknown as MetadataService
         );
 
-        const result = await (tagOperations as any).runTagDelete('project', [file.path]);
+        const result = await tagOperations.runTagDelete('project', [file.path]);
 
         expect(result).toBe(true);
         expect(file.frontmatter.tags).toEqual(['project-archive', 'project_2024']);
@@ -588,30 +580,25 @@ describe('TagOperations tag deletion', () => {
 
     it('notifies listeners after successful tag delete', async () => {
         const settings = createSettings();
-        const file = Object.assign(new TFile(), {
-            path: 'Project.md',
-            extension: 'md'
-        });
+        const file = createTestTFile('Project.md');
+        const app = new App();
+        app.vault.getAbstractFileByPath = vi.fn((path: string) => (path === file.path ? file : null));
 
-        const vault = {
-            getAbstractFileByPath: vi.fn(() => file)
-        };
-
-        const tagOperations = new TagOperations(
-            { vault } as unknown as App,
+        const tagOperations = new TestTagOperations(
+            app,
             () => settings,
             () => null,
             () => null
         );
 
-        vi.spyOn(tagOperations as any, 'deleteTagFromFile').mockResolvedValue(true);
-        vi.spyOn(tagOperations as any, 'removeTagMetadataAfterDelete').mockResolvedValue(undefined);
-        vi.spyOn(tagOperations as any, 'removeTagShortcutsAfterDelete').mockResolvedValue(undefined);
+        vi.spyOn(tagOperations, 'deleteTagFromFile').mockResolvedValue(true);
+        vi.spyOn(tagOperations, 'removeTagMetadataAfterDelete').mockResolvedValue(undefined);
+        vi.spyOn(tagOperations, 'removeTagShortcutsAfterDelete').mockResolvedValue(undefined);
 
         const listener = vi.fn();
         const unsubscribe = tagOperations.addTagDeleteListener(listener);
 
-        const result = await (tagOperations as any).runTagDelete('project', [file.path]);
+        const result = await tagOperations.runTagDelete('project', [file.path]);
 
         expect(result).toBe(true);
         expect(listener).toHaveBeenCalledTimes(1);
@@ -637,9 +624,9 @@ describe('TagOperations tag rename workflow', () => {
         const settings = overrides.settings ?? createSettings();
         const tagTree = overrides.tagTree ?? null;
         const metadataService = overrides.metadataService ?? null;
-        const app = { vault: {}, fileManager: {} } as unknown as App;
+        const app = new App();
 
-        return new TagOperations(
+        return new TestTagOperations(
             app,
             () => settings,
             () => tagTree as TagTreeService | null,
@@ -656,11 +643,11 @@ describe('TagOperations tag rename workflow', () => {
 
     it('rejects descendant rename requests', async () => {
         const tagOperations = createTagOperationsInstance();
-        const executeSpy = vi.spyOn(tagOperations as any, 'executeRename');
-        const metadataSpy = vi.spyOn(tagOperations as any, 'updateTagMetadataAfterRename');
-        const shortcutsSpy = vi.spyOn(tagOperations as any, 'updateTagShortcutsAfterRename');
+        const executeSpy = vi.spyOn(tagOperations, 'executeRename');
+        const metadataSpy = vi.spyOn(tagOperations, 'updateTagMetadataAfterRename');
+        const shortcutsSpy = vi.spyOn(tagOperations, 'updateTagShortcutsAfterRename');
 
-        const result = await (tagOperations as any).runTagRename('projects', 'projects/client', createRenameTargets());
+        const result = await tagOperations.runTagRename('projects', 'projects/client', createRenameTargets());
 
         expect(result).toBe(false);
         expect(executeSpy).not.toHaveBeenCalled();
@@ -670,9 +657,9 @@ describe('TagOperations tag rename workflow', () => {
 
     it('rejects renames that keep the same tag', async () => {
         const tagOperations = createTagOperationsInstance();
-        const executeSpy = vi.spyOn(tagOperations as any, 'executeRename');
+        const executeSpy = vi.spyOn(tagOperations, 'executeRename');
 
-        const result = await (tagOperations as any).runTagRename('projects', 'projects', createRenameTargets());
+        const result = await tagOperations.runTagRename('projects', 'projects', createRenameTargets());
 
         expect(result).toBe(false);
         expect(executeSpy).not.toHaveBeenCalled();
@@ -680,9 +667,9 @@ describe('TagOperations tag rename workflow', () => {
 
     it('rejects renames with no target files', async () => {
         const tagOperations = createTagOperationsInstance();
-        const executeSpy = vi.spyOn(tagOperations as any, 'executeRename');
+        const executeSpy = vi.spyOn(tagOperations, 'executeRename');
 
-        const result = await (tagOperations as any).runTagRename('projects', 'areas', []);
+        const result = await tagOperations.runTagRename('projects', 'areas', []);
 
         expect(result).toBe(false);
         expect(executeSpy).not.toHaveBeenCalled();
@@ -690,14 +677,14 @@ describe('TagOperations tag rename workflow', () => {
 
     it('aborts when rename produces no file updates', async () => {
         const tagOperations = createTagOperationsInstance();
-        vi.spyOn(tagOperations as any, 'executeRename').mockResolvedValue({
+        vi.spyOn(tagOperations, 'executeRename').mockResolvedValue({
             renamed: 0,
             total: 2
         });
-        const metadataSpy = vi.spyOn(tagOperations as any, 'updateTagMetadataAfterRename');
-        const shortcutsSpy = vi.spyOn(tagOperations as any, 'updateTagShortcutsAfterRename');
+        const metadataSpy = vi.spyOn(tagOperations, 'updateTagMetadataAfterRename');
+        const shortcutsSpy = vi.spyOn(tagOperations, 'updateTagShortcutsAfterRename');
 
-        const result = await (tagOperations as any).runTagRename('projects', 'areas', createRenameTargets(2));
+        const result = await tagOperations.runTagRename('projects', 'areas', createRenameTargets(2));
 
         expect(result).toBe(false);
         expect(metadataSpy).not.toHaveBeenCalled();
@@ -706,14 +693,14 @@ describe('TagOperations tag rename workflow', () => {
 
     it('updates metadata and shortcuts after successful rename', async () => {
         const tagOperations = createTagOperationsInstance();
-        vi.spyOn(tagOperations as any, 'executeRename').mockResolvedValue({
+        vi.spyOn(tagOperations, 'executeRename').mockResolvedValue({
             renamed: 3,
             total: 3
         });
-        const metadataSpy = vi.spyOn(tagOperations as any, 'updateTagMetadataAfterRename').mockResolvedValue(undefined);
-        const shortcutsSpy = vi.spyOn(tagOperations as any, 'updateTagShortcutsAfterRename').mockResolvedValue(undefined);
+        const metadataSpy = vi.spyOn(tagOperations, 'updateTagMetadataAfterRename').mockResolvedValue(undefined);
+        const shortcutsSpy = vi.spyOn(tagOperations, 'updateTagShortcutsAfterRename').mockResolvedValue(undefined);
 
-        const result = await (tagOperations as any).runTagRename('projects', 'areas', createRenameTargets(3));
+        const result = await tagOperations.runTagRename('projects', 'areas', createRenameTargets(3));
 
         expect(result).toBe(true);
         expect(metadataSpy).toHaveBeenCalledWith('projects', 'areas', false);
@@ -722,17 +709,17 @@ describe('TagOperations tag rename workflow', () => {
 
     it('notifies listeners after successful rename', async () => {
         const tagOperations = createTagOperationsInstance();
-        vi.spyOn(tagOperations as any, 'executeRename').mockResolvedValue({
+        vi.spyOn(tagOperations, 'executeRename').mockResolvedValue({
             renamed: 2,
             total: 2
         });
-        vi.spyOn(tagOperations as any, 'updateTagMetadataAfterRename').mockResolvedValue(undefined);
-        vi.spyOn(tagOperations as any, 'updateTagShortcutsAfterRename').mockResolvedValue(undefined);
+        vi.spyOn(tagOperations, 'updateTagMetadataAfterRename').mockResolvedValue(undefined);
+        vi.spyOn(tagOperations, 'updateTagShortcutsAfterRename').mockResolvedValue(undefined);
 
         const listener = vi.fn();
         const unsubscribe = tagOperations.addTagRenameListener(listener);
 
-        const result = await (tagOperations as any).runTagRename('projects/client', 'areas/client', createRenameTargets(2));
+        const result = await tagOperations.runTagRename('projects/client', 'areas/client', createRenameTargets(2));
 
         expect(result).toBe(true);
         expect(listener).toHaveBeenCalledTimes(1);
@@ -751,8 +738,8 @@ describe('TagOperations tag rename workflow', () => {
 describe('TagOperations drag-based tag renames', () => {
     function createTagOperationsInstance() {
         const settings = createSettings();
-        const app = { vault: {}, fileManager: {} } as unknown as App;
-        return new TagOperations(
+        const app = new App();
+        return new TestTagOperations(
             app,
             () => settings,
             () => null,
@@ -762,13 +749,13 @@ describe('TagOperations drag-based tag renames', () => {
 
     it('promotes nested tags to root leaf name', async () => {
         const tagOperations = createTagOperationsInstance();
-        vi.spyOn(tagOperations as any, 'resolveDisplayTagPath').mockImplementation((path: string) => {
+        vi.spyOn(tagOperations, 'resolveDisplayTagPath').mockImplementation((path: string) => {
             if (path === 'sourceTag') {
                 return 'projects/client';
             }
             return path;
         });
-        const modalSpy = vi.spyOn(tagOperations as any, 'openRenameModal').mockResolvedValue(undefined);
+        const modalSpy = vi.spyOn(TagRenameWorkflow.prototype, 'promptRenameTag').mockResolvedValue(undefined);
 
         await tagOperations.promoteTagToRoot('sourceTag');
 
@@ -777,8 +764,8 @@ describe('TagOperations drag-based tag renames', () => {
 
     it('skips promotion when tag already at root', async () => {
         const tagOperations = createTagOperationsInstance();
-        vi.spyOn(tagOperations as any, 'resolveDisplayTagPath').mockReturnValue('projects');
-        const modalSpy = vi.spyOn(tagOperations as any, 'openRenameModal').mockResolvedValue(undefined);
+        vi.spyOn(tagOperations, 'resolveDisplayTagPath').mockReturnValue('projects');
+        const modalSpy = vi.spyOn(TagRenameWorkflow.prototype, 'promptRenameTag').mockResolvedValue(undefined);
 
         await tagOperations.promoteTagToRoot('projects');
 
@@ -787,7 +774,7 @@ describe('TagOperations drag-based tag renames', () => {
 
     it('renames dragged tag under target hierarchy', async () => {
         const tagOperations = createTagOperationsInstance();
-        vi.spyOn(tagOperations as any, 'resolveDisplayTagPath').mockImplementation((path: string) => {
+        vi.spyOn(tagOperations, 'resolveDisplayTagPath').mockImplementation((path: string) => {
             if (path === 'sourceTag') {
                 return 'projects/client';
             }
@@ -796,7 +783,7 @@ describe('TagOperations drag-based tag renames', () => {
             }
             return path;
         });
-        const modalSpy = vi.spyOn(tagOperations as any, 'openRenameModal').mockResolvedValue(undefined);
+        const modalSpy = vi.spyOn(TagRenameWorkflow.prototype, 'promptRenameTag').mockResolvedValue(undefined);
 
         await tagOperations.renameTagByDrag('sourceTag', 'targetTag');
 
@@ -805,7 +792,7 @@ describe('TagOperations drag-based tag renames', () => {
 
     it('renames dragged tag to root when dropping on empty target', async () => {
         const tagOperations = createTagOperationsInstance();
-        vi.spyOn(tagOperations as any, 'resolveDisplayTagPath').mockImplementation((path: string) => {
+        vi.spyOn(tagOperations, 'resolveDisplayTagPath').mockImplementation((path: string) => {
             if (path === 'sourceTag') {
                 return 'projects/client';
             }
@@ -814,7 +801,7 @@ describe('TagOperations drag-based tag renames', () => {
             }
             return path;
         });
-        const modalSpy = vi.spyOn(tagOperations as any, 'openRenameModal').mockResolvedValue(undefined);
+        const modalSpy = vi.spyOn(TagRenameWorkflow.prototype, 'promptRenameTag').mockResolvedValue(undefined);
 
         await tagOperations.renameTagByDrag('sourceTag', 'targetTag');
 
@@ -823,8 +810,8 @@ describe('TagOperations drag-based tag renames', () => {
 
     it('skips drag rename when target is virtual tag collection', async () => {
         const tagOperations = createTagOperationsInstance();
-        const resolveSpy = vi.spyOn(tagOperations as any, 'resolveDisplayTagPath');
-        const modalSpy = vi.spyOn(tagOperations as any, 'openRenameModal').mockResolvedValue(undefined);
+        const resolveSpy = vi.spyOn(tagOperations, 'resolveDisplayTagPath');
+        const modalSpy = vi.spyOn(TagRenameWorkflow.prototype, 'promptRenameTag').mockResolvedValue(undefined);
 
         await tagOperations.renameTagByDrag('sourceTag', TAGGED_TAG_ID);
 
@@ -834,7 +821,7 @@ describe('TagOperations drag-based tag renames', () => {
 
     it('skips drag rename when target resolves to same path', async () => {
         const tagOperations = createTagOperationsInstance();
-        vi.spyOn(tagOperations as any, 'resolveDisplayTagPath').mockImplementation((path: string) => {
+        vi.spyOn(tagOperations, 'resolveDisplayTagPath').mockImplementation((path: string) => {
             if (path === 'sourceTag') {
                 return 'projects/client';
             }
@@ -843,7 +830,7 @@ describe('TagOperations drag-based tag renames', () => {
             }
             return path;
         });
-        const modalSpy = vi.spyOn(tagOperations as any, 'openRenameModal').mockResolvedValue(undefined);
+        const modalSpy = vi.spyOn(TagRenameWorkflow.prototype, 'promptRenameTag').mockResolvedValue(undefined);
 
         await tagOperations.renameTagByDrag('sourceTag', 'targetTag');
 

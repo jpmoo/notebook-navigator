@@ -43,6 +43,7 @@ export function ListToolbar({ isSearchActive, onSearchToggle }: ListToolbarProps
         handleAppearanceMenu,
         handleSortMenu,
         handleToggleDescendants,
+        descendantsTooltip,
         getCurrentSortOption,
         isCustomSort,
         hasCustomAppearance
@@ -83,7 +84,7 @@ export function ListToolbar({ isSearchActive, onSearchToggle }: ListToolbarProps
                         {showDescendantsButton ? (
                             <button
                                 className={`${leftButtonBaseClassName}${includeDescendantNotes ? ' nn-mobile-toolbar-button-active' : ''}`}
-                                aria-label={strings.paneHeader.toggleDescendantNotes}
+                                aria-label={descendantsTooltip}
                                 onClick={handleToggleDescendants}
                                 disabled={!selectionState.selectedFolder && !selectionState.selectedTag}
                                 tabIndex={-1}

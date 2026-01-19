@@ -20,6 +20,15 @@
     outline: none !important;
 }
 
+/* Desktop pane header buttons - enforce Obsidian-muted icon color */
+.nn-desktop .nn-pane-header .nn-icon-button {
+    color: var(--nn-theme-header-button-icon-color);
+}
+
+.nn-desktop .nn-pane-header .nn-icon-button svg {
+    stroke: currentColor;
+}
+
 /* Header buttons - match Obsidian's standard dimensions */
 .nn-header-actions button.nn-icon-button {
     padding: 0 8px;
@@ -70,7 +79,7 @@
 
 /* Disabled icon svg stroke color */
 .nn-icon-button:disabled svg {
-    stroke: var(--nn-theme-header-button-disabled-icon-color);
+    stroke: currentColor;
 }
 
 /* Disabled hover state - no hover effect when disabled */
@@ -81,19 +90,22 @@
 
 /* Disabled icon color - maintains muted appearance */
 .nn-desktop .nn-icon-button:disabled:hover svg {
-    stroke: var(--nn-theme-header-button-disabled-icon-color);
+    stroke: currentColor;
 }
 
 /* Icon styling - consistent size and appearance for all button icons */
+.nn-icon-button > span {
+    color: inherit;
+}
+
+.nn-icon-button > span > svg {
+    color: inherit;
+}
+
 .nn-icon-button svg {
     width: 16px;
     height: 16px;
-    stroke: var(--nn-theme-header-button-icon-color);
+    stroke: currentColor;
     stroke-width: 2;
     fill: none;
-}
-
-/* Remove line-height from icon span to prevent vertical offset */
-.nn-icon-button > span {
-    line-height: 0;
 }

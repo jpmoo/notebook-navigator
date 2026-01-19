@@ -26,12 +26,12 @@ import { deriveFileMetadata } from '../utils/pathMetadata';
 
 class TestFeatureImageContentProvider extends MarkdownPipelineContentProvider {
     async runProcessFile(file: TFile, settings: NotebookNavigatorSettings) {
-        const result = await this.processFile({ file, path: file.path.split('/') }, null, settings);
+        const result = await this.processFile({ file, path: file.path }, null, settings);
         return result.update;
     }
 
     async runProcessFileWithData(file: TFile, fileData: FileData | null, settings: NotebookNavigatorSettings) {
-        const result = await this.processFile({ file, path: file.path.split('/') }, fileData, settings);
+        const result = await this.processFile({ file, path: file.path }, fileData, settings);
         return result.update;
     }
 
@@ -124,6 +124,10 @@ function createFrontmatterPosition(bodyStartIndex: number): CachedMetadata['fron
     };
 }
 
+function isFrontMatterCache(value: unknown): value is FrontMatterCache {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
 function deriveFrontmatterAndBodyStartIndex(content: string): { frontmatter: FrontMatterCache | null; bodyStartIndex: number } {
     const block = extractFrontmatterBlock(content);
     if (!block) {
@@ -131,9 +135,16 @@ function deriveFrontmatterAndBodyStartIndex(content: string): { frontmatter: Fro
     }
 
     const yamlText = block.yamlText.trim();
-    const parsed: Record<string, unknown> = yamlText.length > 0 ? parseYaml(yamlText) : {};
-    const frontmatter = Object.keys(parsed).length > 0 ? parsed : null;
-    return { frontmatter, bodyStartIndex: block.bodyStartIndex };
+    if (yamlText.length === 0) {
+        return { frontmatter: null, bodyStartIndex: block.bodyStartIndex };
+    }
+
+    const parsed: unknown = parseYaml(yamlText);
+    if (!isFrontMatterCache(parsed) || Object.keys(parsed).length === 0) {
+        return { frontmatter: null, bodyStartIndex: block.bodyStartIndex };
+    }
+
+    return { frontmatter: parsed, bodyStartIndex: block.bodyStartIndex };
 }
 
 function resolveReference(app: App, file: TFile, content: string, settings: NotebookNavigatorSettings) {
@@ -196,6 +207,24 @@ describe('FeatureImageContentProvider scanning', () => {
         resolvedFiles.set(imageFile.path, imageFile);
 
         const result = resolveReference(app, noteFile, '![[hero]]', settings);
+
+        expect(result?.kind).toBe('local');
+        if (result?.kind === 'local') {
+            expect(result.file.path).toBe(imageFile.path);
+        }
+    });
+
+    it('resolves wiki embeds that contain brackets in the path', () => {
+        const { app, resolvedFiles } = createApp();
+        const settings = createSettings();
+        const noteFile = createFile('notes/note.md');
+
+        const target = '_resources/[1762422974956].jpg';
+        const imageFile = createFile(`attachments/${target}`);
+        resolvedFiles.set(target, imageFile);
+        resolvedFiles.set(imageFile.path, imageFile);
+
+        const result = resolveReference(app, noteFile, `![[${target}]]`, settings);
 
         expect(result?.kind).toBe('local');
         if (result?.kind === 'local') {
@@ -500,6 +529,7 @@ describe('FeatureImageContentProvider scanning', () => {
             metadataMtime: noteFile.stat.mtime,
             fileThumbnailsMtime: noteFile.stat.mtime,
             tags: null,
+            wordCount: null,
             customProperty: null,
             previewStatus: 'unprocessed',
             featureImage: null,
@@ -508,9 +538,9 @@ describe('FeatureImageContentProvider scanning', () => {
             metadata: null
         };
 
-        // No update is emitted when the key matches.
+        // No feature image update is emitted when the key matches, but word count is still stored.
         const result = await provider.runProcessFileWithData(noteFile, fileData, settings);
-        expect(result).toBeNull();
+        expect(result).toEqual({ path: noteFile.path, wordCount: 0 });
     });
 
     it('acknowledges mtime mismatch when featureImageKey matches and a thumbnail exists', async () => {
@@ -531,6 +561,7 @@ describe('FeatureImageContentProvider scanning', () => {
             metadataMtime: 100,
             fileThumbnailsMtime: 100,
             tags: null,
+            wordCount: null,
             customProperty: null,
             previewStatus: 'unprocessed',
             featureImage: null,
@@ -541,7 +572,7 @@ describe('FeatureImageContentProvider scanning', () => {
 
         const result = await provider.runProcessFileWithData(noteFile, fileData, settings);
 
-        expect(result).toBeNull();
+        expect(result).toEqual({ path: noteFile.path, wordCount: 0 });
     });
 
     it('retries external downloads when the file changed but the featureImageKey did not', async () => {
@@ -562,6 +593,7 @@ describe('FeatureImageContentProvider scanning', () => {
             metadataMtime: 100,
             fileThumbnailsMtime: 100,
             tags: null,
+            wordCount: null,
             customProperty: null,
             previewStatus: 'unprocessed',
             featureImage: null,
@@ -596,6 +628,7 @@ describe('FeatureImageContentProvider scanning', () => {
             metadataMtime: 100,
             fileThumbnailsMtime: 100,
             tags: null,
+            wordCount: null,
             customProperty: null,
             previewStatus: 'unprocessed',
             featureImage: null,
@@ -608,6 +641,62 @@ describe('FeatureImageContentProvider scanning', () => {
 
         expect(result).not.toBeNull();
         expect(result?.featureImageKey).toBe('y:abc123');
+        expect(result?.featureImage).toBeInstanceOf(Blob);
+        expect(result?.featureImage?.size).toBe(0);
+    });
+
+    it('skips feature image storage when note contains an excluded property', async () => {
+        const context = createApp();
+        const { app } = context;
+        const provider = new TestFeatureImageContentProvider(app);
+        const settings = createSettings({ featureImageExcludeProperties: ['private'] });
+        const noteFile = createFile('notes/note.md');
+
+        const content = `---\nprivate: true\nthumbnail: https://example.com/cover.jpg\n---\n`;
+        setMarkdownContent(context, noteFile, content);
+
+        const result = await provider.runProcessFile(noteFile, settings);
+
+        expect(result).not.toBeNull();
+        expect(result?.featureImageKey).toBe('');
+        expect(result?.featureImage).toBeInstanceOf(Blob);
+        expect(result?.featureImage?.size).toBe(0);
+    });
+
+    it('does not read note content when excluded property only affects feature images', async () => {
+        const context = createApp();
+        const { app } = context;
+        const provider = new TestFeatureImageContentProvider(app);
+        const settings = createSettings({ featureImageExcludeProperties: ['private'] });
+        const noteFile = createFile('notes/note.md');
+
+        const content = `---\nprivate: true\n---\n`;
+        setMarkdownContent(context, noteFile, content, { overrideRead: false });
+
+        const cachedRead = vi.fn<() => Promise<string>>(async () => content);
+        app.vault.cachedRead = cachedRead;
+
+        const fileData: FileData = {
+            mtime: noteFile.stat.mtime,
+            markdownPipelineMtime: noteFile.stat.mtime,
+            tagsMtime: noteFile.stat.mtime,
+            metadataMtime: noteFile.stat.mtime,
+            fileThumbnailsMtime: noteFile.stat.mtime,
+            tags: null,
+            wordCount: 0,
+            customProperty: null,
+            previewStatus: 'none',
+            featureImage: null,
+            featureImageStatus: 'unprocessed',
+            featureImageKey: null,
+            metadata: null
+        };
+
+        const result = await provider.runProcessFileWithData(noteFile, fileData, settings);
+
+        expect(cachedRead).not.toHaveBeenCalled();
+        expect(result).not.toBeNull();
+        expect(result?.featureImageKey).toBe('');
         expect(result?.featureImage).toBeInstanceOf(Blob);
         expect(result?.featureImage?.size).toBe(0);
     });
@@ -760,6 +849,7 @@ describe('FeatureImageContentProvider scanning', () => {
                 metadataMtime: excalidrawFile.stat.mtime,
                 fileThumbnailsMtime: excalidrawFile.stat.mtime,
                 tags: null,
+                wordCount: 0,
                 customProperty: null,
                 previewStatus: 'unprocessed',
                 featureImage: null,

@@ -20,8 +20,6 @@
     --nn-date-header-height-subsequent-mobile: calc(var(--nn-date-header-height-subsequent) + 8px);
     --nn-date-header-padding-top-mobile: calc(var(--nn-date-header-padding-top) + 4px);
     --nn-date-header-padding-bottom-mobile: calc(var(--nn-date-header-padding-bottom) + 2px);
-    --nn-file-tag-row-height: calc(var(--nn-file-tag-row-height-base) + 4px);
-    --nn-file-tag-row-gap: calc(var(--nn-file-tag-row-gap-base) + 2px);
 }
 
 /* Folder text size on mobile */

@@ -23,7 +23,7 @@ import { FileData } from '../../storage/IndexedDBStorage';
 import { getDBInstance } from '../../storage/fileOperations';
 import { extractMetadataFromCache } from '../../utils/metadataExtractor';
 import { shouldExcludeFile } from '../../utils/fileFilters';
-import { getActiveHiddenFiles } from '../../utils/vaultProfiles';
+import { getActiveHiddenFileProperties } from '../../utils/vaultProfiles';
 import { BaseContentProvider, type ContentProviderProcessResult } from './BaseContentProvider';
 
 // Compares two arrays for same members regardless of order
@@ -72,9 +72,9 @@ export class MetadataContentProvider extends BaseContentProvider {
     }
 
     shouldRegenerate(oldSettings: NotebookNavigatorSettings, newSettings: NotebookNavigatorSettings): boolean {
-        const previousHiddenFiles = getActiveHiddenFiles(oldSettings);
-        const nextHiddenFiles = getActiveHiddenFiles(newSettings);
-        const excludedFilesChanged = !haveSameMembers(previousHiddenFiles, nextHiddenFiles);
+        const previousHiddenFileProperties = getActiveHiddenFileProperties(oldSettings);
+        const nextHiddenFileProperties = getActiveHiddenFileProperties(newSettings);
+        const excludedFilesChanged = !haveSameMembers(previousHiddenFileProperties, nextHiddenFileProperties);
         if (excludedFilesChanged) {
             return true;
         }
@@ -108,7 +108,7 @@ export class MetadataContentProvider extends BaseContentProvider {
 
     onSettingsChanged(settings: NotebookNavigatorSettings): void {
         super.onSettingsChanged(settings);
-        if (getActiveHiddenFiles(settings).length === 0) {
+        if (getActiveHiddenFileProperties(settings).length === 0) {
             this.clearPendingHiddenStates();
         }
     }
@@ -119,8 +119,8 @@ export class MetadataContentProvider extends BaseContentProvider {
     }
 
     protected needsProcessing(fileData: FileData | null, file: TFile, settings: NotebookNavigatorSettings): boolean {
-        const hiddenFiles = getActiveHiddenFiles(settings);
-        const requiresMetadata = settings.useFrontmatterMetadata || hiddenFiles.length > 0;
+        const hiddenFileProperties = getActiveHiddenFileProperties(settings);
+        const requiresMetadata = settings.useFrontmatterMetadata || hiddenFileProperties.length > 0;
         if (!requiresMetadata) {
             return false;
         }
@@ -129,7 +129,7 @@ export class MetadataContentProvider extends BaseContentProvider {
             return false;
         }
 
-        const shouldTrackHidden = hiddenFiles.length > 0;
+        const shouldTrackHidden = hiddenFileProperties.length > 0;
         // Lazy computation pattern - only check frontmatter when actually needed
         let hiddenStateComputed = false;
         let hiddenState = false;
@@ -138,7 +138,7 @@ export class MetadataContentProvider extends BaseContentProvider {
             if (hiddenStateComputed || !shouldTrackHidden) {
                 return;
             }
-            hiddenState = shouldExcludeFile(file, hiddenFiles, this.app);
+            hiddenState = shouldExcludeFile(file, hiddenFileProperties, this.app);
             hiddenStateComputed = true;
         };
         // Saves computed hidden state to cache for later retrieval in processFile
@@ -174,7 +174,7 @@ export class MetadataContentProvider extends BaseContentProvider {
     }
 
     protected async processFile(
-        job: { file: TFile; path: string[] },
+        job: { file: TFile; path: string },
         fileData: FileData | null,
         settings: NotebookNavigatorSettings
     ): Promise<ContentProviderProcessResult> {
@@ -182,9 +182,9 @@ export class MetadataContentProvider extends BaseContentProvider {
             return { update: null, processed: true };
         }
 
-        const hiddenFiles = getActiveHiddenFiles(settings);
+        const hiddenFileProperties = getActiveHiddenFileProperties(settings);
         const shouldExtractMetadata = settings.useFrontmatterMetadata;
-        const shouldTrackHidden = hiddenFiles.length > 0;
+        const shouldTrackHidden = hiddenFileProperties.length > 0;
         if (!shouldExtractMetadata && !shouldTrackHidden) {
             return { update: null, processed: true };
         }
@@ -207,11 +207,12 @@ export class MetadataContentProvider extends BaseContentProvider {
 
             if (shouldTrackHidden && job.file.extension === 'md') {
                 let hiddenValue: boolean;
-                if (this.pendingHiddenStates.has(job.file.path)) {
-                    hiddenValue = this.pendingHiddenStates.get(job.file.path) as boolean;
-                    this.pendingHiddenStates.delete(job.file.path);
+                const pendingHiddenState = this.pendingHiddenStates.get(job.path);
+                if (pendingHiddenState !== undefined) {
+                    hiddenValue = pendingHiddenState;
+                    this.pendingHiddenStates.delete(job.path);
                 } else {
-                    hiddenValue = shouldExcludeFile(job.file, hiddenFiles, this.app);
+                    hiddenValue = shouldExcludeFile(job.file, hiddenFileProperties, this.app);
                 }
                 fileMetadata.hidden = hiddenValue;
             }
@@ -223,9 +224,9 @@ export class MetadataContentProvider extends BaseContentProvider {
                 return { update: null, processed: true };
             }
 
-            return { update: { path: job.file.path, metadata: newMetadata }, processed: true };
+            return { update: { path: job.path, metadata: newMetadata }, processed: true };
         } catch (error) {
-            console.error(`Error extracting metadata for ${job.file.path}:`, error);
+            console.error(`Error extracting metadata for ${job.path}:`, error);
             return { update: null, processed: false };
         }
     }

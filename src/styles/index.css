@@ -48,6 +48,8 @@ Keep this list ordered: later files override earlier ones.
 @import './sections/navigation-scroller.css';
 /* navigation-tree.css: navigation rows (`.nn-navitem`), chevrons/icons/counts, shortcut rows, root reorder panel. */
 @import './sections/navigation-tree.css';
+/* navigation-calendar.css: bottom overlay calendar in navigation pane (`.nn-navigation-calendar*`). */
+@import './sections/navigation-calendar.css';
 /* list-files.css: list scroller (`.nn-list-pane-scroller`), overlay stack, list title area, file rows (`.nn-file`), separators, quick actions panel. */
 @import './sections/list-files.css';
 /* list-tags.css: file tag pills (`.nn-file-tag*`) and selected file text color rules. */
@@ -120,6 +122,10 @@ Keep this list ordered: later files override earlier ones.
 @import './sections/mobile-variables.css';
 /* mobile-tab-bars.css: mobile bottom navigation tabs, safe-area handling, and toolbar positioning rules. */
 @import './sections/mobile-tab-bars.css';
+/* platform-ios-obsidian-1-11.css: iOS safe areas + Obsidian 1.11+ iOS glass toolbar/overlays. */
+@import './sections/platform-ios-obsidian-1-11.css';
+/* platform-android-obsidian-1-11.css: Android tweaks for Obsidian 1.11+ view chrome. */
+@import './sections/platform-android-obsidian-1-11.css';
 /* android-toolbar.css: Android toolbar positioning overrides. */
 @import './sections/android-toolbar.css';
 /* android-textzoom.css: Android `textZoom` compensation variables and overrides. */
@@ -130,8 +136,6 @@ Keep this list ordered: later files override earlier ones.
 @import './sections/icons-system.css';
 /* settings-metadata-info.css: metadata info row styles and menu item trash coloring. */
 @import './sections/settings-metadata-info.css';
-/* theme-transparency-toggles.css: class toggles for transparent nav/list panes and overlay filter removal. */
-@import './sections/theme-transparency-toggles.css';
 
 /* Style settings */
 /* settings-style-settings.css: Style Settings metadata block (`@settings`) for variables and class toggles. */

@@ -58,6 +58,7 @@ export function ListPaneHeader({ onHeaderClick, isSearchActive, onSearchToggle }
         handleAppearanceMenu,
         handleSortMenu,
         handleToggleDescendants,
+        descendantsTooltip,
         getCurrentSortOption,
         isCustomSort,
         hasCustomAppearance
@@ -237,7 +238,7 @@ export function ListPaneHeader({ onHeaderClick, isSearchActive, onSearchToggle }
                     {showDescendantsButton ? (
                         <button
                             className={`nn-icon-button ${includeDescendantNotes ? 'nn-icon-button-active' : ''}`}
-                            aria-label={strings.paneHeader.toggleDescendantNotes}
+                            aria-label={descendantsTooltip}
                             onClick={handleToggleDescendants}
                             disabled={!selectionState.selectedFolder && !selectionState.selectedTag}
                             tabIndex={-1}

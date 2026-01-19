@@ -30,13 +30,16 @@ import { runAsyncAction } from '../../utils/async';
 import { NotebookNavigatorView } from '../../view/NotebookNavigatorView';
 import { getActiveHiddenFolders, getActiveVaultProfile } from '../../utils/vaultProfiles';
 import { showNotice } from '../../utils/noticeUtils';
+import { ConfirmModal } from '../../modals/ConfirmModal';
 import { SelectVaultProfileModal } from '../../modals/SelectVaultProfileModal';
 import { localStorage } from '../../utils/localStorage';
-import { STORAGE_KEYS, type VisibilityPreferences } from '../../types';
+import { NOTEBOOK_NAVIGATOR_VIEW, STORAGE_KEYS, type VisibilityPreferences } from '../../types';
 import { normalizeTagPath } from '../../utils/tagUtils';
 import { getFilesForFolder, getFilesForTag } from '../../utils/fileFinder';
 import { isNoteShortcut, type ShortcutEntry } from '../../types/shortcuts';
 import { getTemplaterCreateNewNoteFromTemplate } from '../../utils/templaterIntegration';
+import { getLeafSplitLocation } from '../../utils/workspaceSplit';
+import { openFileInContext } from '../../utils/openFileInContext';
 
 /**
  * Reveals the navigator view and focuses whichever pane is currently visible
@@ -204,6 +207,8 @@ function getFolderNoteDetectionSettings(plugin: NotebookNavigatorPlugin): Folder
     };
 }
 
+const OPEN_ALL_FILES_WARNING_THRESHOLD = 15;
+
 /**
  * Returns the selected folder from navigator state
  */
@@ -215,6 +220,98 @@ function getSelectedFolderForCommand(plugin: NotebookNavigatorPlugin): TFolder |
 
     const navItem = api.selection.getNavItem();
     return navItem.folder instanceof TFolder ? navItem.folder : null;
+}
+
+/**
+ * Returns the selected tag from navigator state
+ */
+function getSelectedTagForCommand(plugin: NotebookNavigatorPlugin): string | null {
+    const api = plugin.api;
+    if (!api) {
+        return null;
+    }
+
+    const navItem = api.selection.getNavItem();
+    return normalizeTagPath(navItem.tag);
+}
+
+function getFilesForOpenAllFilesCommand(plugin: NotebookNavigatorPlugin, context: { folder: TFolder | null; tag: string | null }): TFile[] {
+    const uxPreferences = plugin.getUXPreferences();
+    const visibility: VisibilityPreferences = {
+        includeDescendantNotes: uxPreferences.includeDescendantNotes,
+        showHiddenItems: uxPreferences.showHiddenItems
+    };
+
+    if (context.tag) {
+        return getFilesForTag(context.tag, plugin.settings, visibility, plugin.app, plugin.tagTreeService);
+    }
+
+    if (context.folder) {
+        return getFilesForFolder(context.folder, plugin.settings, visibility, plugin.app);
+    }
+
+    return [];
+}
+
+function resolveOpenAllFilesContext(plugin: NotebookNavigatorPlugin): { folder: TFolder | null; tag: string | null } {
+    const selectedTag = getSelectedTagForCommand(plugin);
+    if (selectedTag) {
+        return { folder: null, tag: selectedTag };
+    }
+
+    const selectedFolder = getSelectedFolderForCommand(plugin);
+    if (selectedFolder) {
+        return { folder: selectedFolder, tag: null };
+    }
+
+    const activeFile = plugin.app.workspace.getActiveFile();
+    const parent = activeFile?.parent;
+    if (parent instanceof TFolder) {
+        return { folder: parent, tag: null };
+    }
+
+    return { folder: null, tag: null };
+}
+
+function getOpenAllFilesConfirmTitle(fileCount: number): string {
+    const label = fileCount === 1 ? strings.tooltips.file : strings.tooltips.files;
+    return `${strings.commands.open} ${fileCount.toString()} ${label}?`;
+}
+
+async function openAllFilesInCurrentFolderOrTag(plugin: NotebookNavigatorPlugin): Promise<void> {
+    const context = resolveOpenAllFilesContext(plugin);
+    if (!context.folder && !context.tag) {
+        showNotice(strings.common.noSelection, { variant: 'warning' });
+        return;
+    }
+
+    const files = getFilesForOpenAllFilesCommand(plugin, context);
+    if (files.length === 0) {
+        showNotice(strings.listPane.emptyStateNoNotes, { variant: 'warning' });
+        return;
+    }
+
+    const openFiles = async () => {
+        for (let index = 0; index < files.length; index++) {
+            const file = files[index];
+            await openFileInContext({
+                app: plugin.app,
+                commandQueue: plugin.commandQueue,
+                file,
+                context: 'tab',
+                active: index === files.length - 1
+            });
+        }
+    };
+
+    if (files.length >= OPEN_ALL_FILES_WARNING_THRESHOLD) {
+        new ConfirmModal(plugin.app, getOpenAllFilesConfirmTitle(files.length), '', openFiles, strings.commands.open, {
+            confirmButtonClass: 'mod-cta'
+        }).open();
+        return;
+    }
+
+    await openFiles();
 }
 
 /**
@@ -262,6 +359,44 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
         }
     });
 
+    // Command to toggle the left sidebar, opening Notebook Navigator when uncollapsing
+    plugin.addCommand({
+        id: 'toggle-left-sidebar',
+        name: strings.commands.toggleLeftSidebar,
+        callback: () => {
+            runAsyncAction(async () => {
+                const { workspace } = plugin.app;
+                const leftSplit = workspace.leftSplit;
+                if (leftSplit && !leftSplit.collapsed) {
+                    leftSplit.collapse();
+                    return;
+                }
+
+                const navigatorLeaves = plugin.getNavigatorLeaves();
+                const leftSidebarNavigatorLeaf = navigatorLeaves.find(leaf => {
+                    return getLeafSplitLocation(plugin.app, leaf) === 'left-sidebar';
+                });
+
+                if (leftSidebarNavigatorLeaf) {
+                    await focusNavigatorVisiblePane(plugin, [leftSidebarNavigatorLeaf]);
+                    return;
+                }
+
+                const leftLeaf = workspace.getLeftLeaf(false);
+                if (!leftLeaf) {
+                    return;
+                }
+
+                await leftLeaf.setViewState({ type: NOTEBOOK_NAVIGATOR_VIEW, active: true });
+                await workspace.revealLeaf(leftLeaf);
+                const view = leftLeaf.view;
+                if (view instanceof NotebookNavigatorView) {
+                    view.focusVisiblePane();
+                }
+            });
+        }
+    });
+
     // Command to open the configured homepage file
     plugin.addCommand({
         id: 'open-homepage',
@@ -301,6 +436,25 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
                 return true;
             }
             return false;
+        }
+    });
+
+    // Command to open all files in the currently selected folder or tag
+    plugin.addCommand({
+        id: 'open-all-files',
+        name: strings.commands.openAllFiles,
+        checkCallback: (checking: boolean) => {
+            const context = resolveOpenAllFilesContext(plugin);
+            if (!context.folder && !context.tag) {
+                return false;
+            }
+
+            if (checking) {
+                return true;
+            }
+
+            runAsyncAction(() => openAllFilesInCurrentFolderOrTag(plugin));
+            return true;
         }
     });
 
@@ -353,6 +507,18 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
             runAsyncAction(async () => {
                 await plugin.activateView();
                 plugin.toggleDualPanePreference();
+            });
+        }
+    });
+
+    // Command to toggle showing the calendar overlay in the navigation pane
+    plugin.addCommand({
+        id: 'toggle-calendar',
+        name: strings.commands.toggleCalendar,
+        callback: () => {
+            runAsyncAction(async () => {
+                await plugin.activateView();
+                plugin.toggleShowCalendar();
             });
         }
     });

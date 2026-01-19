@@ -18,11 +18,12 @@
 
 import { FeatureImageBlobCache } from './FeatureImageBlobCache';
 import type { FeatureImageStatus } from './IndexedDBStorage';
+import { LIMITS } from '../constants/limits';
 
 // Blob store for feature image thumbnails keyed by file path.
 export const FEATURE_IMAGE_STORE_NAME = 'featureImageBlobs';
 // Default in-memory LRU capacity for feature image blobs.
-export const DEFAULT_FEATURE_IMAGE_CACHE_MAX = 1000;
+export const DEFAULT_FEATURE_IMAGE_CACHE_MAX = LIMITS.storage.featureImageCacheMaxEntriesDefault;
 
 export interface FeatureImageBlobRecord {
     featureImageKey: string;

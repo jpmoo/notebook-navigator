@@ -26,6 +26,7 @@ export type UXIconId =
     | 'nav-shortcuts'
     | 'nav-expand-all'
     | 'nav-collapse-all'
+    | 'nav-calendar'
     | 'nav-hidden-items'
     | 'nav-root-reorder'
     | 'nav-new-folder'
@@ -34,6 +35,7 @@ export type UXIconId =
     | 'nav-tree-collapse'
     | 'nav-folder-open'
     | 'nav-folder-closed'
+    | 'nav-folder-note'
     | 'nav-tag'
     | 'list-search'
     | 'list-descendants'
@@ -41,9 +43,11 @@ export type UXIconId =
     | 'list-sort-descending'
     | 'list-appearance'
     | 'list-new-note'
-    | 'list-pinned';
+    | 'list-pinned'
+    | 'file-word-count'
+    | 'file-custom-property';
 
-export type UXIconCategory = 'navigationPane' | 'listPane';
+export type UXIconCategory = 'navigationPane' | 'listPane' | 'fileItems';
 
 export interface UXIconDefinition {
     id: UXIconId;
@@ -52,12 +56,13 @@ export interface UXIconDefinition {
 }
 
 export const UX_ICON_DEFINITIONS: UXIconDefinition[] = [
-    { id: 'nav-show-single-pane', category: 'navigationPane', defaultIconId: 'panel-left' },
-    { id: 'nav-show-dual-pane', category: 'navigationPane', defaultIconId: 'panel-left-dashed' },
+    { id: 'nav-show-single-pane', category: 'navigationPane', defaultIconId: 'panel-left-close' },
+    { id: 'nav-show-dual-pane', category: 'navigationPane', defaultIconId: 'panel-left' },
     { id: 'nav-profile-chevron', category: 'navigationPane', defaultIconId: 'chevron-down' },
     { id: 'nav-shortcuts', category: 'navigationPane', defaultIconId: 'star' },
     { id: 'nav-expand-all', category: 'navigationPane', defaultIconId: 'chevrons-up-down' },
     { id: 'nav-collapse-all', category: 'navigationPane', defaultIconId: 'chevrons-down-up' },
+    { id: 'nav-calendar', category: 'navigationPane', defaultIconId: 'calendar-days' },
     { id: 'nav-hidden-items', category: 'navigationPane', defaultIconId: 'eye' },
     { id: 'nav-root-reorder', category: 'navigationPane', defaultIconId: 'list-tree' },
     { id: 'nav-new-folder', category: 'navigationPane', defaultIconId: 'folder-plus' },
@@ -66,6 +71,7 @@ export const UX_ICON_DEFINITIONS: UXIconDefinition[] = [
     { id: 'nav-tree-collapse', category: 'navigationPane', defaultIconId: 'chevron-down' },
     { id: 'nav-folder-open', category: 'navigationPane', defaultIconId: 'folder-open' },
     { id: 'nav-folder-closed', category: 'navigationPane', defaultIconId: 'folder-closed' },
+    { id: 'nav-folder-note', category: 'navigationPane', defaultIconId: 'file-text' },
     { id: 'nav-tag', category: 'navigationPane', defaultIconId: 'tags' },
     { id: 'list-search', category: 'listPane', defaultIconId: 'search' },
     { id: 'list-descendants', category: 'listPane', defaultIconId: 'layers' },
@@ -73,7 +79,9 @@ export const UX_ICON_DEFINITIONS: UXIconDefinition[] = [
     { id: 'list-sort-descending', category: 'listPane', defaultIconId: 'sort-desc' },
     { id: 'list-appearance', category: 'listPane', defaultIconId: 'palette' },
     { id: 'list-new-note', category: 'listPane', defaultIconId: 'pen-box' },
-    { id: 'list-pinned', category: 'listPane', defaultIconId: 'pin' }
+    { id: 'list-pinned', category: 'listPane', defaultIconId: 'pin' },
+    { id: 'file-word-count', category: 'fileItems', defaultIconId: 'case-sensitive' },
+    { id: 'file-custom-property', category: 'fileItems', defaultIconId: 'align-left' }
 ];
 
 const UX_ICON_ID_SET: ReadonlySet<string> = new Set(UX_ICON_DEFINITIONS.map(definition => definition.id));
@@ -123,6 +131,41 @@ export function resolveUXIcon(uxIconMap: Record<string, string> | undefined, ico
     }
 
     return UX_ICON_DEFAULT_CANONICAL[iconId];
+}
+
+function tryResolveLucideMenuIconId(iconId: string): string | null {
+    const trimmed = iconId.trim();
+    if (!trimmed) {
+        return null;
+    }
+
+    const colonIndex = trimmed.indexOf(':');
+    if (colonIndex !== -1) {
+        const provider = trimmed.substring(0, colonIndex);
+        if (provider !== 'lucide') {
+            return null;
+        }
+
+        const identifier = trimmed.substring(colonIndex + 1).trim();
+        if (!identifier) {
+            return null;
+        }
+
+        const slug = identifier.startsWith('lucide-') ? identifier.substring('lucide-'.length) : identifier;
+        return slug ? `lucide-${slug}` : null;
+    }
+
+    const slug = trimmed.startsWith('lucide-') ? trimmed.substring('lucide-'.length) : trimmed;
+    return slug ? `lucide-${slug}` : null;
+}
+
+export function resolveUXIconForMenu(
+    uxIconMap: Record<string, string> | undefined,
+    iconId: UXIconId,
+    fallbackLucideMenuIconId: string
+): string {
+    const resolved = resolveUXIcon(uxIconMap, iconId);
+    return tryResolveLucideMenuIconId(resolved) ?? fallbackLucideMenuIconId;
 }
 
 export function normalizeUXIconMapRecord(uxIconMap: Record<string, string> | undefined): Record<string, string> {

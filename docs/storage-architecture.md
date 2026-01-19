@@ -124,6 +124,7 @@ allows users to have different UI layouts on desktop vs mobile, for example.
 - UX preferences (search toggle, descendant scope, hidden item visibility, pinned shortcuts)
 - Recent note history and recent icon usage
 - Database version numbers (for detecting schema changes)
+- Cache rebuild progress marker
 - Local storage schema version marker
 
 **Key Characteristics**:
@@ -160,6 +161,7 @@ export const STORAGE_KEYS: LocalStorageKeys = {
   fileCacheKey: 'notebook-navigator-file-cache',
   databaseSchemaVersionKey: 'notebook-navigator-db-schema-version',
   databaseContentVersionKey: 'notebook-navigator-db-content-version',
+  cacheRebuildNoticeKey: 'notebook-navigator-cache-rebuild-notice',
   localStorageVersionKey: 'notebook-navigator-localstorage-version',
   vaultProfileKey: 'notebook-navigator-vault-profile',
   releaseCheckTimestampKey: 'notebook-navigator-release-check-timestamp',

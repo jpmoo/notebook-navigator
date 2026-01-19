@@ -19,7 +19,7 @@
 import { useSelectionState } from '../context/SelectionContext';
 import { useServices } from '../context/ServicesContext';
 import { useSettingsState } from '../context/SettingsContext';
-import { useUXPreferences } from '../context/UXPreferencesContext';
+import { useUXPreferenceActions, useUXPreferences } from '../context/UXPreferencesContext';
 import { useUIState } from '../context/UIStateContext';
 import { useVaultProfileMenu } from '../hooks/useVaultProfileMenu';
 import { strings } from '../i18n';
@@ -47,7 +47,9 @@ export function NavigationPaneHeader({
     const { isMobile, plugin } = useServices();
     const settings = useSettingsState();
     const uxPreferences = useUXPreferences();
+    const { toggleShowCalendar } = useUXPreferenceActions();
     const showHiddenItems = uxPreferences.showHiddenItems;
+    const isCalendarVisible = uxPreferences.showCalendar;
     const uiState = useUIState();
     const selectionState = useSelectionState();
     const { hasProfiles, hasMultipleProfiles, activeProfileName, handleTriggerClick, handleTriggerKeyDown } = useVaultProfileMenu({
@@ -61,7 +63,9 @@ export function NavigationPaneHeader({
     // Detects if any hidden folders, tags, or files are configured to determine if toggle should be shown
     const hasHiddenItems = hasHiddenItemSources(settings);
     const navigationVisibility = settings.toolbarVisibility.navigation;
+    const showToggleDualPaneButton = navigationVisibility.toggleDualPane;
     const showExpandCollapseButton = navigationVisibility.expandCollapse;
+    const showCalendarButton = navigationVisibility.calendar;
     const showHiddenItemsButton = navigationVisibility.hiddenItems && hasHiddenItems;
     const showRootReorderButton = navigationVisibility.rootReorder;
     const showNewFolderButton = navigationVisibility.newFolder;
@@ -121,22 +125,24 @@ export function NavigationPaneHeader({
         <div className="nn-pane-header">
             <div className="nn-header-actions nn-header-actions--space-between">
                 <div className="nn-header-actions nn-header-actions-profile">
-                    <button
-                        className="nn-icon-button"
-                        aria-label={uiState.dualPane ? strings.paneHeader.showSinglePane : strings.paneHeader.showDualPane}
-                        onClick={() => {
-                            plugin.setDualPanePreference(!plugin.useDualPane());
-                        }}
-                        tabIndex={-1}
-                        type="button"
-                    >
-                        <ServiceIcon
-                            iconId={resolveUXIcon(
-                                settings.interfaceIcons,
-                                uiState.dualPane ? 'nav-show-single-pane' : 'nav-show-dual-pane'
-                            )}
-                        />
-                    </button>
+                    {showToggleDualPaneButton ? (
+                        <button
+                            className="nn-icon-button"
+                            aria-label={uiState.dualPane ? strings.paneHeader.showSinglePane : strings.paneHeader.showDualPane}
+                            onClick={() => {
+                                plugin.setDualPanePreference(!plugin.useDualPane());
+                            }}
+                            tabIndex={-1}
+                            type="button"
+                        >
+                            <ServiceIcon
+                                iconId={resolveUXIcon(
+                                    settings.interfaceIcons,
+                                    uiState.dualPane ? 'nav-show-single-pane' : 'nav-show-dual-pane'
+                                )}
+                            />
+                        </button>
+                    ) : null}
                     {profileTrigger}
                 </div>
                 <div className="nn-header-actions">
@@ -180,6 +186,17 @@ export function NavigationPaneHeader({
                             tabIndex={-1}
                         >
                             <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'nav-hidden-items')} />
+                        </button>
+                    ) : null}
+                    {showCalendarButton ? (
+                        <button
+                            className={`nn-icon-button ${isCalendarVisible ? 'nn-icon-button-active' : ''}`}
+                            aria-label={isCalendarVisible ? strings.paneHeader.hideCalendar : strings.paneHeader.showCalendar}
+                            onClick={toggleShowCalendar}
+                            tabIndex={-1}
+                            type="button"
+                        >
+                            <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'nav-calendar')} />
                         </button>
                     ) : null}
                     {showRootReorderButton ? (

@@ -19,11 +19,12 @@
 import { Menu, TFolder } from 'obsidian';
 import { strings } from '../i18n';
 import { FolderAppearance, getDefaultListMode, resolveListMode } from '../hooks/useListPaneAppearance';
-import type { ListDisplayMode, ListNoteGroupingOption } from '../settings/types';
+import type { CustomPropertyType, ListDisplayMode, ListNoteGroupingOption } from '../settings/types';
 import { NotebookNavigatorSettings } from '../settings';
 import { ItemType } from '../types';
 import { resolveListGrouping } from '../utils/listGrouping';
 import { runAsyncAction } from '../utils/async';
+import { resolveUXIconForMenu } from '../utils/uxIcons';
 
 interface AppearanceMenuProps {
     event: MouseEvent;
@@ -47,6 +48,11 @@ export function showListPaneAppearanceMenu({
     const updateAppearance = (updates: Partial<FolderAppearance>) => {
         const normalizeAppearance = (appearance: FolderAppearance) => {
             const normalized = { ...appearance };
+            (Object.keys(normalized) as (keyof FolderAppearance)[]).forEach(key => {
+                if (normalized[key] === undefined) {
+                    delete normalized[key];
+                }
+            });
             if (normalized.mode === defaultMode) {
                 delete normalized.mode;
             }
@@ -59,11 +65,11 @@ export function showListPaneAppearanceMenu({
                 updateSettings(s => {
                     const newAppearances = { ...s.tagAppearances };
                     const currentAppearance = newAppearances[selectedTag] || {};
-                    newAppearances[selectedTag] = normalizeAppearance({ ...currentAppearance, ...updates });
-
-                    const hasDefinedValues = Object.values(newAppearances[selectedTag]).some(value => value !== undefined);
-                    if (!hasDefinedValues) {
+                    const normalizedAppearance = normalizeAppearance({ ...currentAppearance, ...updates });
+                    if (Object.keys(normalizedAppearance).length === 0) {
                         delete newAppearances[selectedTag];
+                    } else {
+                        newAppearances[selectedTag] = normalizedAppearance;
                     }
 
                     s.tagAppearances = newAppearances;
@@ -76,11 +82,11 @@ export function showListPaneAppearanceMenu({
                 updateSettings(s => {
                     const newAppearances = { ...s.folderAppearances };
                     const currentAppearance = newAppearances[folderPath] || {};
-                    newAppearances[folderPath] = normalizeAppearance({ ...currentAppearance, ...updates });
-
-                    const hasDefinedValues = Object.values(newAppearances[folderPath]).some(value => value !== undefined);
-                    if (!hasDefinedValues) {
+                    const normalizedAppearance = normalizeAppearance({ ...currentAppearance, ...updates });
+                    if (Object.keys(normalizedAppearance).length === 0) {
                         delete newAppearances[folderPath];
+                    } else {
+                        newAppearances[folderPath] = normalizedAppearance;
                     }
 
                     s.folderAppearances = newAppearances;
@@ -202,11 +208,58 @@ export function showListPaneAppearanceMenu({
         });
     }
 
-    const isFolderSelection = selectionType === ItemType.FOLDER && selectedFolder;
-    const isTagSelection = selectionType === ItemType.TAG && selectedTag;
+    const isFolderSelection = selectionType === ItemType.FOLDER && Boolean(selectedFolder);
+    const isTagSelection = selectionType === ItemType.TAG && Boolean(selectedTag);
 
     // Add groupBy menu section for folders and tags
     if (isFolderSelection || isTagSelection) {
+        const getCustomPropertyTypeLabel = (type: CustomPropertyType): string => {
+            switch (type) {
+                case 'frontmatter':
+                    return strings.settings.items.customPropertyType.options.frontmatter;
+                case 'wordCount':
+                    return strings.settings.items.customPropertyType.options.wordCount;
+                case 'none':
+                default:
+                    return strings.settings.items.customPropertyType.options.none;
+            }
+        };
+
+        menu.addSeparator();
+
+        // Custom property header
+        menu.addItem(item => {
+            item.setTitle(strings.modals.interfaceIcons.items['file-custom-property'])
+                .setIcon(resolveUXIconForMenu(settings.interfaceIcons, 'file-custom-property', 'lucide-align-left'))
+                .setDisabled(true);
+        });
+
+        // Default custom property option (clears custom override)
+        const defaultCustomPropertyLabel = getCustomPropertyTypeLabel(settings.customPropertyType);
+        const currentCustomPropertyType = appearance?.customPropertyType;
+        const hasCustomPropertyType = currentCustomPropertyType !== undefined;
+        menu.addItem(item => {
+            item.setTitle(`    ${strings.folderAppearance.defaultLabel} (${defaultCustomPropertyLabel})`)
+                .setChecked(!hasCustomPropertyType)
+                .onClick(() => {
+                    updateAppearance({ customPropertyType: undefined });
+                });
+        });
+
+        // Custom property options
+        const customPropertyOptions: CustomPropertyType[] = ['none', 'frontmatter', 'wordCount'];
+        customPropertyOptions.forEach(option => {
+            menu.addItem(item => {
+                const isChecked = hasCustomPropertyType && currentCustomPropertyType === option;
+                const label = getCustomPropertyTypeLabel(option);
+                item.setTitle(`    ${label}`)
+                    .setChecked(isChecked)
+                    .onClick(() => {
+                        updateAppearance({ customPropertyType: option });
+                    });
+            });
+        });
+
         menu.addSeparator();
 
         // Group by header

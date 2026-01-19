@@ -26,13 +26,13 @@ import type { FileData } from '../../src/storage/IndexedDBStorage';
 
 class TestTagContentProvider extends TagContentProvider {
     async runProcessFile(file: TFile, fileData: FileData | null, settings: NotebookNavigatorSettings) {
-        return await this.processFile({ file, path: file.path.split('/') }, fileData, settings);
+        return await this.processFile({ file, path: file.path }, fileData, settings);
     }
 }
 
 class TestMarkdownPipelineContentProvider extends MarkdownPipelineContentProvider {
     async runProcessFile(file: TFile, fileData: FileData | null, settings: NotebookNavigatorSettings) {
-        return await this.processFile({ file, path: file.path.split('/') }, fileData, settings);
+        return await this.processFile({ file, path: file.path }, fileData, settings);
     }
 }
 
@@ -70,6 +70,7 @@ describe('Content provider retry-later semantics', () => {
             metadataMtime: file.stat.mtime,
             fileThumbnailsMtime: file.stat.mtime,
             tags: ['old-tag'],
+            wordCount: null,
             customProperty: null,
             previewStatus: 'none',
             featureImage: null,
@@ -113,6 +114,7 @@ describe('Content provider retry-later semantics', () => {
             metadataMtime: file.stat.mtime,
             fileThumbnailsMtime: file.stat.mtime,
             tags: ['old-tag'],
+            wordCount: null,
             customProperty: null,
             previewStatus: 'none',
             featureImage: null,

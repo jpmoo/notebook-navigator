@@ -34,11 +34,11 @@ import { isMarkdownPath } from '../../utils/fileTypeUtils';
  *
  * The polling interval is intentionally coarse because scanning the cache is O(number of files).
  */
-export function useCacheRebuildNotice(params: { app: App; stoppedRef: RefObject<boolean> }): {
+export function useCacheRebuildNotice(params: { app: App; stoppedRef: RefObject<boolean>; onRebuildComplete?: () => void }): {
     clearCacheRebuildNotice: () => void;
     startCacheRebuildNotice: (total: number, enabledTypes: FileContentType[]) => void;
 } {
-    const { app, stoppedRef } = params;
+    const { app, stoppedRef, onRebuildComplete } = params;
 
     const cacheRebuildNoticeRef = useRef<ReturnType<typeof showNotice> | null>(null);
     const cacheRebuildIntervalRef = useRef<number | null>(null);
@@ -74,13 +74,16 @@ export function useCacheRebuildNotice(params: { app: App; stoppedRef: RefObject<
             const trackTags = enabledTypes.includes('tags');
             const trackFeatureImage = enabledTypes.includes('featureImage');
             const trackMetadata = enabledTypes.includes('metadata');
+            const trackWordCount = enabledTypes.includes('wordCount');
             const trackCustomProperty = enabledTypes.includes('customProperty');
 
             let progressBarEl: HTMLProgressElement | null = null;
             let lastProgressValue: number | null = null;
+            let lastProgressMax: number | null = null;
+            let maxTotal = Math.max(0, total);
 
             const clampProgress = (value: number): number => {
-                return Math.min(total, Math.max(0, value));
+                return Math.min(maxTotal, Math.max(0, value));
             };
 
             const updateProgress = (value: number): void => {
@@ -90,18 +93,20 @@ export function useCacheRebuildNotice(params: { app: App; stoppedRef: RefObject<
                     return;
                 }
 
-                if (lastProgressValue === nextValue) {
+                if (lastProgressValue === nextValue && lastProgressMax === maxTotal) {
                     return;
                 }
 
                 lastProgressValue = nextValue;
+                lastProgressMax = maxTotal;
 
-                progressBarEl.max = total;
+                progressBarEl.max = maxTotal;
                 progressBarEl.value = nextValue;
             };
 
             const createCacheRebuildNotice = (): void => {
                 lastProgressValue = null;
+                lastProgressMax = null;
 
                 const fragment = document.createDocumentFragment();
                 const wrapper = fragment.createDiv({ cls: 'nn-cache-rebuild-notice' });
@@ -154,11 +159,13 @@ export function useCacheRebuildNotice(params: { app: App; stoppedRef: RefObject<
                     const isMarkdown = isMarkdownPath(path);
                     const needsPreview = trackPreview && isMarkdown && data.previewStatus === 'unprocessed';
                     const needsTags = trackTags && isMarkdown && data.tags === null;
-                    const needsFeatureImage = trackFeatureImage && data.featureImageStatus === 'unprocessed';
+                    const needsFeatureImage =
+                        trackFeatureImage && (data.featureImageKey === null || data.featureImageStatus === 'unprocessed');
                     const needsMetadata = trackMetadata && isMarkdown && data.metadata === null;
+                    const needsWordCount = trackWordCount && isMarkdown && data.wordCount === null;
                     const needsCustomProperty = trackCustomProperty && isMarkdown && data.customProperty === null;
 
-                    if (!needsPreview && !needsTags && !needsFeatureImage && !needsMetadata && !needsCustomProperty) {
+                    if (!needsPreview && !needsTags && !needsFeatureImage && !needsMetadata && !needsWordCount && !needsCustomProperty) {
                         return;
                     }
 
@@ -180,7 +187,12 @@ export function useCacheRebuildNotice(params: { app: App; stoppedRef: RefObject<
                     const hasMetadataCache = Boolean(app.metadataCache.getFileCache(file));
                     const isMetadataReady =
                         hasMetadataCache &&
-                        (needsPreview || needsCustomProperty || (needsFeatureImage && isMarkdown) || needsTags || needsMetadata);
+                        (needsPreview ||
+                            needsWordCount ||
+                            needsCustomProperty ||
+                            (needsFeatureImage && isMarkdown) ||
+                            needsTags ||
+                            needsMetadata);
 
                     if (isMetadataReady) {
                         // Track only work that can be queued immediately. Before metadata is ready, providers that
@@ -188,6 +200,10 @@ export function useCacheRebuildNotice(params: { app: App; stoppedRef: RefObject<
                         readyRemainingCount += 1;
                     }
                 });
+
+                if (rawRemainingCount > maxTotal) {
+                    maxTotal = rawRemainingCount;
+                }
 
                 if (readyRemainingCount > 0) {
                     hasSeenPending = true;
@@ -200,6 +216,10 @@ export function useCacheRebuildNotice(params: { app: App; stoppedRef: RefObject<
                         // Require a couple of consecutive empty ticks before hiding the notice. This avoids flicker
                         // if the rebuild is still seeding the database.
                         if (emptyTicks >= 2) {
+                            if (db.getFileCount() > 0) {
+                                // Let callers clear persisted rebuild state only after the database has been seeded.
+                                onRebuildComplete?.();
+                            }
                             clearCacheRebuildNotice();
                             return;
                         }
@@ -211,15 +231,17 @@ export function useCacheRebuildNotice(params: { app: App; stoppedRef: RefObject<
                     return;
                 }
 
-                const done = Math.max(0, total - readyRemainingCount);
+                const done = Math.max(0, maxTotal - rawRemainingCount);
                 updateProgress(done);
 
-                if (readyRemainingCount === 0) {
+                if (rawRemainingCount === 0) {
+                    // Notify completion so callers can clear any persisted rebuild markers.
+                    onRebuildComplete?.();
                     clearCacheRebuildNotice();
                 }
             }, 2_000);
         },
-        [app.metadataCache, app.vault, clearCacheRebuildNotice, stoppedRef]
+        [app.metadataCache, app.vault, clearCacheRebuildNotice, onRebuildComplete, stoppedRef]
     );
 
     return { clearCacheRebuildNotice, startCacheRebuildNotice };

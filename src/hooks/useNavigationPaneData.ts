@@ -67,11 +67,12 @@ import { flattenFolderTree, flattenTagTree, compareTagOrderWithFallback } from '
 import { createHiddenTagVisibility, matchesHiddenTagPattern } from '../utils/tagPrefixMatcher';
 import { setNavigationIndex } from '../utils/navigationIndex';
 import { resolveCanonicalTagPath } from '../utils/tagUtils';
+import { getCachedFileTags } from '../utils/tagUtils';
 import { isFolderShortcut, isNoteShortcut, isSearchShortcut, isTagShortcut } from '../types/shortcuts';
 import { useRootFolderOrder } from './useRootFolderOrder';
 import { useRootTagOrder } from './useRootTagOrder';
 import type { FolderNoteDetectionSettings } from '../utils/folderNotes';
-import { getDBInstance } from '../storage/fileOperations';
+import { getDBInstance, getDBInstanceOrNull } from '../storage/fileOperations';
 import { naturalCompare } from '../utils/sortUtils';
 import type { NoteCountInfo } from '../types/noteCounts';
 import { calculateFolderNoteCounts } from '../utils/noteCountUtils';
@@ -162,10 +163,12 @@ function decorateNavigationItems(
         }
         if (item.type === NavigationPaneItemType.TAG || item.type === NavigationPaneItemType.UNTAGGED) {
             const tagNode = item.data;
+            // Resolve both color and background in one pass (including inherited values when enabled).
+            const tagColorData = metadataService.getTagColorData(tagNode.path);
             return {
                 ...item,
-                color: showColorsInShortcutsOnly ? undefined : metadataService.getTagColor(tagNode.path),
-                backgroundColor: showColorsInShortcutsOnly ? undefined : metadataService.getTagBackgroundColor(tagNode.path),
+                color: tagColorData.color,
+                backgroundColor: tagColorData.background,
                 icon: metadataService.getTagIcon(tagNode.path)
             };
         }
@@ -183,13 +186,13 @@ function decorateNavigationItems(
             };
         }
         if (item.type === NavigationPaneItemType.SHORTCUT_TAG) {
-            const tagColor = metadataService.getTagColor(item.tagPath);
-            const tagBackground = metadataService.getTagBackgroundColor(item.tagPath);
+            // Resolve both color and background in one pass (including inherited values when enabled).
+            const tagColorData = metadataService.getTagColorData(item.tagPath);
             return {
                 ...item,
                 icon: metadataService.getTagIcon(item.tagPath) || 'lucide-tags',
-                color: tagColor,
-                backgroundColor: tagBackground
+                color: tagColorData.color,
+                backgroundColor: tagColorData.background
             };
         }
         if (item.type === NavigationPaneItemType.SHORTCUT_NOTE) {
@@ -437,11 +440,12 @@ export function useNavigationPaneData({
     const showHiddenItems = uxPreferences.showHiddenItems;
     // Resolves frontmatter exclusions, returns empty array when hidden items are shown
     const effectiveFrontmatterExclusions = getEffectiveFrontmatterExclusions(settings, showHiddenItems);
-    const { hiddenFolders, hiddenFiles, hiddenFileNamePatterns, hiddenTags, fileVisibility, navigationBanner } = activeProfile;
+    const { hiddenFolders, hiddenFileProperties, hiddenFileNames, hiddenTags, hiddenFileTags, fileVisibility, navigationBanner } =
+        activeProfile;
     const navigationBannerPath = navigationBanner;
     const folderCountFileNameMatcher = useMemo(() => {
-        return createHiddenFileNameMatcherForVisibility(hiddenFileNamePatterns, showHiddenItems);
-    }, [hiddenFileNamePatterns, showHiddenItems]);
+        return createHiddenFileNameMatcherForVisibility(hiddenFileNames, showHiddenItems);
+    }, [hiddenFileNames, showHiddenItems]);
 
     // Version counter that increments when vault files change
     const [fileChangeVersion, setFileChangeVersion] = useState(0);
@@ -762,6 +766,9 @@ export function useNavigationPaneData({
         const headerIcon = activeCollection ? activeCollection.icon : 'lucide-bookmark';
         const fileVisibilityCache = new Map<string, boolean>();
         const tagVisibilityCache = new Map<string, boolean>();
+        const hiddenFileTagVisibility = createHiddenTagVisibility(hiddenFileTags, false);
+        const shouldFilterHiddenFileTags = hiddenFileTagVisibility.hasHiddenRules;
+        const db = shouldFilterHiddenFileTags ? getDBInstance() : null;
 
         // Start with the shortcuts header/virtual folder
         const items: CombinedNavigationItem[] = [
@@ -799,12 +806,20 @@ export function useNavigationPaneData({
                 return false;
             }
 
-            if (hiddenFiles.length > 0 && shouldExcludeFile(abstractFile, hiddenFiles, app)) {
+            if (hiddenFileProperties.length > 0 && shouldExcludeFile(abstractFile, hiddenFileProperties, app)) {
                 fileVisibilityCache.set(path, false);
                 return false;
             }
 
-            if (hiddenFileNamePatterns.length > 0 && shouldExcludeFileName(abstractFile, hiddenFileNamePatterns)) {
+            if (hiddenFileNames.length > 0 && shouldExcludeFileName(abstractFile, hiddenFileNames)) {
+                fileVisibilityCache.set(path, false);
+                return false;
+            }
+
+            if (
+                shouldFilterHiddenFileTags &&
+                getCachedFileTags({ app, file: abstractFile, db }).some(tagValue => !hiddenFileTagVisibility.isTagVisible(tagValue))
+            ) {
                 fileVisibilityCache.set(path, false);
                 return false;
             }
@@ -923,8 +938,11 @@ export function useNavigationPaneData({
                     return;
                 }
                 const isExcluded =
-                    (note.extension === 'md' && hiddenFiles.length > 0 && shouldExcludeFile(note, hiddenFiles, app)) ||
-                    (hiddenFileNamePatterns.length > 0 && shouldExcludeFileName(note, hiddenFileNamePatterns)) ||
+                    (note.extension === 'md' && hiddenFileProperties.length > 0 && shouldExcludeFile(note, hiddenFileProperties, app)) ||
+                    (note.extension === 'md' &&
+                        shouldFilterHiddenFileTags &&
+                        getCachedFileTags({ app, file: note, db }).some(tagValue => !hiddenFileTagVisibility.isTagVisible(tagValue))) ||
+                    (hiddenFileNames.length > 0 && shouldExcludeFileName(note, hiddenFileNames)) ||
                     (hiddenFolders.length > 0 && note.parent !== null && isFolderInExcludedFolder(note.parent, hiddenFolders));
                 items.push({
                     type: NavigationPaneItemType.SHORTCUT_NOTE,
@@ -989,8 +1007,9 @@ export function useNavigationPaneData({
     }, [
         app,
         hydratedShortcuts,
-        hiddenFileNamePatterns,
-        hiddenFiles,
+        hiddenFileNames,
+        hiddenFileTags,
+        hiddenFileProperties,
         hiddenFolders,
         hiddenMatcherHasRules,
         hiddenTagMatcher,
@@ -1653,6 +1672,8 @@ export function useNavigationPaneData({
 
         const excludedProperties = effectiveFrontmatterExclusions;
         const excludedFolderPatterns = hiddenFolders;
+        const hiddenFileTagVisibility = showHiddenItems ? null : createHiddenTagVisibility(hiddenFileTags, false);
+        const db = hiddenFileTagVisibility && hiddenFileTagVisibility.hasHiddenRules ? getDBInstanceOrNull() : null;
         const folderNoteSettings: FolderNoteDetectionSettings = {
             enableFolderNotes: settings.enableFolderNotes,
             folderNoteName: settings.folderNoteName
@@ -1661,10 +1682,12 @@ export function useNavigationPaneData({
         const showHiddenFolders = showHiddenItems;
         const countOptions = {
             app,
+            db,
             fileVisibility,
             excludedFiles: excludedProperties,
             excludedFolders: excludedFolderPatterns,
             fileNameMatcher: folderCountFileNameMatcher,
+            hiddenFileTagVisibility,
             includeDescendants,
             showHiddenFolders,
             hideFolderNoteInList: settings.hideFolderNoteInList,
@@ -1688,7 +1711,8 @@ export function useNavigationPaneData({
         includeDescendantNotes,
         effectiveFrontmatterExclusions,
         hiddenFolders,
-        hiddenFileNamePatterns,
+        hiddenFileNames,
+        hiddenFileTags,
         showHiddenItems,
         folderCountFileNameMatcher,
         fileVisibility,

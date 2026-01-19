@@ -17,37 +17,13 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { App } from 'obsidian';
-import { TFile } from 'obsidian';
+import { App, TFile } from 'obsidian';
 import { TagRenameWorkflow, type TagRenameHooks } from '../../../src/services/tagOperations/TagRenameWorkflow';
 import { TagDeleteWorkflow, type TagDeleteHooks } from '../../../src/services/tagOperations/TagDeleteWorkflow';
-import type { TagFileMutations } from '../../../src/services/tagOperations/TagFileMutations';
-import type { TagTreeService } from '../../../src/services/TagTreeService';
+import { TagFileMutations } from '../../../src/services/tagOperations/TagFileMutations';
 import { TagDescriptor, type RenameFile } from '../../../src/services/tagRename/TagRenameEngine';
-
-vi.mock('obsidian', () => {
-    class Notice {
-        constructor(_message: unknown) {
-            // no-op
-        }
-    }
-
-    class TFile {
-        path = '';
-        extension = 'md';
-    }
-
-    return {
-        App: class {},
-        Modal: class {},
-        Notice,
-        Plugin: class {},
-        TFile,
-        TFolder: class {},
-        getLanguage: () => 'en',
-        normalizePath: (path: string) => path
-    };
-});
+import { DEFAULT_SETTINGS } from '../../../src/settings/defaultSettings';
+import { createTestTFile } from '../../utils/createTestTFile';
 
 describe('TagRenameWorkflow', () => {
     let hooks: TagRenameHooks;
@@ -61,15 +37,12 @@ describe('TagRenameWorkflow', () => {
             notifyTagRenamed: vi.fn()
         };
 
+        const app = new App();
+        const fileMutations = new TagFileMutations(app, () => DEFAULT_SETTINGS);
         workflow = new TagRenameWorkflow(
-            {} as App,
-            { isValidTagName: () => true } as unknown as TagFileMutations,
-            () =>
-                ({
-                    getAllTagPaths: () => [],
-                    collectTagFilePaths: () => [],
-                    findTagNode: () => null
-                }) as unknown as TagTreeService,
+            app,
+            fileMutations,
+            () => null,
             () => null,
             tagPath => tagPath,
             () => hooks
@@ -116,11 +89,9 @@ describe('TagDeleteWorkflow', () => {
     let deleteTagFromFile: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
-        file = Object.assign(new TFile(), {
-            path: 'Projects/Client.md',
-            extension: 'md',
+        file = Object.assign(createTestTFile('Projects/Client.md'), {
             content: '#project/client note'
-        }) as TFile & { content: string };
+        });
 
         deleteTagFromFile = vi.fn().mockResolvedValue(true);
 
@@ -132,15 +103,13 @@ describe('TagDeleteWorkflow', () => {
             resolveDisplayTagPath: vi.fn().mockReturnValue('project/client')
         };
 
-        app = {
-            vault: {
-                getAbstractFileByPath: vi.fn((path: string) => (path === file.path ? file : null))
-            }
-        } as unknown as App;
+        app = new App();
+        app.vault.getAbstractFileByPath = vi.fn((path: string) => (path === file.path ? file : null));
 
+        const fileMutations = new TagFileMutations(app, () => DEFAULT_SETTINGS);
         workflow = new TagDeleteWorkflow(
             app,
-            {} as TagFileMutations,
+            fileMutations,
             () => null,
             () => null,
             () => hooks

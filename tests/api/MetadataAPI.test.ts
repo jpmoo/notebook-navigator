@@ -21,7 +21,7 @@ import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import type { NotebookNavigatorAPI } from '../../src/api/NotebookNavigatorAPI';
 import type { NotebookNavigatorSettings } from '../../src/settings';
 import type { IconString } from '../../src/api/types';
-import type { TFolder } from 'obsidian';
+import { TFolder } from 'obsidian';
 
 describe('MetadataAPI icon normalization', () => {
     let plugin: {
@@ -32,7 +32,7 @@ describe('MetadataAPI icon normalization', () => {
 
     beforeEach(() => {
         plugin = {
-            settings: JSON.parse(JSON.stringify(DEFAULT_SETTINGS)),
+            settings: structuredClone(DEFAULT_SETTINGS),
             saveSettingsAndUpdate: vi.fn().mockResolvedValue(undefined)
         };
 
@@ -50,7 +50,8 @@ describe('MetadataAPI icon normalization', () => {
 
     it('normalizes legacy lucide identifiers provided through the API', async () => {
         const metadataAPI = new MetadataAPI(api);
-        const folder = { path: 'Folder' } as TFolder;
+        const folder = new TFolder();
+        folder.path = 'Folder';
 
         await metadataAPI.setFolderMeta(folder, {
             icon: 'lucide-sun' as unknown as IconString
@@ -62,7 +63,8 @@ describe('MetadataAPI icon normalization', () => {
 
     it('normalizes provider-prefixed identifiers provided through the API', async () => {
         const metadataAPI = new MetadataAPI(api);
-        const folder = { path: 'Folder' } as TFolder;
+        const folder = new TFolder();
+        folder.path = 'Folder';
 
         await metadataAPI.setFolderMeta(folder, {
             icon: 'phosphor:ph-apple-logo' as IconString

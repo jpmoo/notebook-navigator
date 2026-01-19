@@ -23,7 +23,9 @@ import { strings } from '../i18n';
 import { FILE_VISIBILITY, type FileVisibility } from './fileTypeUtils';
 import { showNotice } from './noticeUtils';
 import { stripTrailingSlash } from './pathUtils';
+import { casefold } from './recordUtils';
 import { normalizeTagPath } from './tagUtils';
+import { isRecord } from './typeGuards';
 import { createHiddenTagMatcher, matchesHiddenTagPattern, getHiddenTagPathPatterns, normalizeTagPathValue } from './tagPrefixMatcher';
 import {
     createPathPatternMatcher,
@@ -42,9 +44,10 @@ const FALLBACK_VAULT_PROFILE_NAME = 'Default';
 interface VaultProfileInitOptions {
     id?: string;
     hiddenFolders?: string[];
-    hiddenFiles?: string[];
-    hiddenFileNamePatterns?: string[];
+    hiddenFileProperties?: string[];
+    hiddenFileNames?: string[];
     hiddenTags?: string[];
+    hiddenFileTags?: string[];
     fileVisibility?: FileVisibility;
     navigationBanner?: string | null;
     shortcuts?: ShortcutEntry[];
@@ -63,33 +66,110 @@ const normalizePathPattern = (pattern: string): string => {
     return parts.length === 0 ? '/' : `/${parts.join('/')}`;
 };
 
+const normalizeHiddenFolderMatchPath = (value: string): string => {
+    const normalized = normalizeHiddenFolderPath(value);
+    if (!normalized) {
+        return '';
+    }
+    return casefold(normalized);
+};
+
+const normalizeHiddenFolderMatchPattern = (pattern: string): string => {
+    const normalized = normalizeHiddenFolderMatchPath(pattern);
+    if (!normalized) {
+        return '';
+    }
+
+    const parts = normalized.split('/').filter(Boolean);
+    return parts.length === 0 ? '/' : `/${parts.join('/')}`;
+};
+
 const parseHiddenFolderPattern = (pattern: string): ParsedPathPattern | null => {
     return parsePathPattern(pattern, { normalizePattern: normalizePathPattern, requireRoot: true });
 };
 
-// Cache compiled hidden-folder matchers keyed by the normalized pattern list.
-const hiddenFolderMatcherCache = new Map<string, PathPatternMatcher>();
-
-export const getHiddenFolderMatcher = (patterns: string[]): PathPatternMatcher => {
-    const cacheKey = getPathPatternCacheKey(patterns);
-    const cached = hiddenFolderMatcherCache.get(cacheKey);
-    if (cached) {
-        return cached;
-    }
-
-    const matcher = createPathPatternMatcher(patterns, {
+const createHiddenFolderUpdateMatcher = (patterns: string[]): PathPatternMatcher => {
+    const pathPatterns = patterns.filter(pattern => pattern.trim().startsWith('/'));
+    return createPathPatternMatcher(pathPatterns, {
         normalizePattern: normalizePathPattern,
         normalizePath: normalizeHiddenFolderPath,
         requireRoot: true
     });
+};
+
+const matchesHiddenFolderLiteralPrefix = (pattern: ParsedPathPattern, candidateSegments: string[]): boolean => {
+    if (pattern.literalPrefixLength === 0 || candidateSegments.length === 0) {
+        return false;
+    }
+
+    const compareCount = Math.min(pattern.literalPrefixLength, pattern.segments.length, candidateSegments.length);
+    if (compareCount === 0) {
+        return false;
+    }
+
+    for (let index = 0; index < compareCount; index += 1) {
+        const segment = pattern.segments[index];
+        const candidate = candidateSegments[index];
+        if (segment.type !== 'literal') {
+            return false;
+        }
+        if (segment.value.toLowerCase() !== candidate) {
+            return false;
+        }
+    }
+
+    return true;
+};
+
+// Cache compiled hidden-folder matchers keyed by the normalized pattern list.
+const hiddenFolderMatcherCache = new Map<string, PathPatternMatcher>();
+let hiddenFolderMatcherCacheVersion = 0;
+const hiddenFolderMatcherByPatternList = new WeakMap<readonly string[], { version: number; matcher: PathPatternMatcher }>();
+
+export const getHiddenFolderMatcher = (patterns: string[]): PathPatternMatcher => {
+    const cachedByPatternList = hiddenFolderMatcherByPatternList.get(patterns);
+    if (cachedByPatternList && cachedByPatternList.version === hiddenFolderMatcherCacheVersion) {
+        return cachedByPatternList.matcher;
+    }
+
+    const pathPatterns: string[] = [];
+    const normalizedPatterns = new Set<string>();
+
+    patterns.forEach(pattern => {
+        const trimmed = pattern.trim();
+        if (!trimmed.startsWith('/')) {
+            return;
+        }
+
+        pathPatterns.push(trimmed);
+        const normalized = normalizeHiddenFolderMatchPattern(trimmed);
+        if (normalized) {
+            normalizedPatterns.add(normalized);
+        }
+    });
+
+    const cacheKey = getPathPatternCacheKey(Array.from(normalizedPatterns).sort());
+    const cached = hiddenFolderMatcherCache.get(cacheKey);
+    if (cached) {
+        hiddenFolderMatcherByPatternList.set(patterns, { version: hiddenFolderMatcherCacheVersion, matcher: cached });
+        return cached;
+    }
+
+    const matcher = createPathPatternMatcher(pathPatterns, {
+        normalizePattern: normalizeHiddenFolderMatchPattern,
+        normalizePath: normalizeHiddenFolderMatchPath,
+        requireRoot: true
+    });
 
     hiddenFolderMatcherCache.set(cacheKey, matcher);
+    hiddenFolderMatcherByPatternList.set(patterns, { version: hiddenFolderMatcherCacheVersion, matcher });
     return matcher;
 };
 
 // Clears all cached hidden-folder matchers.
 export const clearHiddenFolderMatcherCache = (): void => {
     hiddenFolderMatcherCache.clear();
+    hiddenFolderMatcherCacheVersion += 1;
 };
 
 // Normalizes a folder path to the canonical format used in hidden folder settings
@@ -222,8 +302,9 @@ export function createVaultProfile(name: string, options: VaultProfileInitOption
         fileVisibility: resolveFileVisibility(options.fileVisibility),
         hiddenFolders: clonePatterns(options.hiddenFolders),
         hiddenTags: clonePatterns(options.hiddenTags),
-        hiddenFiles: clonePatterns(options.hiddenFiles),
-        hiddenFileNamePatterns: clonePatterns(options.hiddenFileNamePatterns),
+        hiddenFileNames: clonePatterns(options.hiddenFileNames),
+        hiddenFileTags: clonePatterns(options.hiddenFileTags),
+        hiddenFileProperties: clonePatterns(options.hiddenFileProperties),
         navigationBanner:
             typeof options.navigationBanner === 'string' && options.navigationBanner.length > 0 ? options.navigationBanner : null,
         shortcuts: cloneShortcuts(options.shortcuts)
@@ -241,9 +322,10 @@ function createVaultProfileFromTemplate(name: string, template: VaultProfileTemp
     const source = template.sourceProfile ?? null;
     return createVaultProfile(name, {
         hiddenFolders: source?.hiddenFolders,
-        hiddenFiles: source?.hiddenFiles,
-        hiddenFileNamePatterns: source?.hiddenFileNamePatterns,
+        hiddenFileProperties: source?.hiddenFileProperties,
+        hiddenFileNames: source?.hiddenFileNames,
         hiddenTags: source?.hiddenTags ?? template.fallbackHiddenTags,
+        hiddenFileTags: source?.hiddenFileTags,
         fileVisibility: source?.fileVisibility ?? template.fallbackFileVisibility,
         navigationBanner: source?.navigationBanner,
         shortcuts: source?.shortcuts
@@ -367,13 +449,36 @@ export function ensureVaultProfiles(settings: NotebookNavigatorSettings): void {
     }
 
     settings.vaultProfiles.forEach(profile => {
+        const profileRecord = isRecord(profile) ? profile : null;
+        if (profileRecord) {
+            const legacyHiddenFiles = profileRecord['hiddenFiles'];
+            if (!Array.isArray(profileRecord['hiddenFileProperties']) && Array.isArray(legacyHiddenFiles)) {
+                const migrated = legacyHiddenFiles
+                    .map(entry => (typeof entry === 'string' ? entry.trim() : ''))
+                    .filter(entry => entry.length > 0);
+                profile.hiddenFileProperties = migrated;
+            }
+            delete profileRecord['hiddenFiles'];
+
+            const legacyFileNamePatterns = profileRecord['hiddenFileNamePatterns'];
+            if (!Array.isArray(profileRecord['hiddenFileNames']) && Array.isArray(legacyFileNamePatterns)) {
+                const migrated = legacyFileNamePatterns
+                    .map(entry => (typeof entry === 'string' ? entry.trim() : ''))
+                    .filter(entry => entry.length > 0);
+                profile.hiddenFileNames = migrated;
+            }
+            delete profileRecord['hiddenFileNamePatterns'];
+        }
+
         profile.name = resolveProfileName(profile.name);
         profile.fileVisibility = resolveFileVisibility(profile.fileVisibility);
         profile.hiddenFolders = clonePatterns(profile.hiddenFolders);
         const hiddenTagSource = Array.isArray(profile.hiddenTags) ? profile.hiddenTags : [];
         profile.hiddenTags = clonePatterns(hiddenTagSource);
-        profile.hiddenFiles = clonePatterns(profile.hiddenFiles);
-        profile.hiddenFileNamePatterns = clonePatterns(profile.hiddenFileNamePatterns);
+        profile.hiddenFileNames = clonePatterns(profile.hiddenFileNames);
+        const hiddenFileTagSource = Array.isArray(profile.hiddenFileTags) ? profile.hiddenFileTags : [];
+        profile.hiddenFileTags = clonePatterns(hiddenFileTagSource);
+        profile.hiddenFileProperties = clonePatterns(profile.hiddenFileProperties);
         profile.navigationBanner =
             typeof profile.navigationBanner === 'string' && profile.navigationBanner.length > 0 ? profile.navigationBanner : null;
         profile.shortcuts = cloneShortcuts(profile.shortcuts);
@@ -413,17 +518,20 @@ export function getActiveHiddenFolders(settings: NotebookNavigatorSettings): str
     return getActiveVaultProfile(settings).hiddenFolders;
 }
 
-// Returns the list of hidden file patterns from the active profile
-export function getActiveHiddenFiles(settings: NotebookNavigatorSettings): string[] {
-    return getActiveVaultProfile(settings).hiddenFiles;
-}
-
-export function getActiveHiddenFileNamePatterns(settings: NotebookNavigatorSettings): string[] {
-    return getActiveVaultProfile(settings).hiddenFileNamePatterns;
+export function getActiveHiddenFileNames(settings: NotebookNavigatorSettings): string[] {
+    return getActiveVaultProfile(settings).hiddenFileNames;
 }
 
 export function getActiveHiddenTags(settings: NotebookNavigatorSettings): string[] {
     return getActiveVaultProfile(settings).hiddenTags;
+}
+
+export function getActiveHiddenFileTags(settings: NotebookNavigatorSettings): string[] {
+    return getActiveVaultProfile(settings).hiddenFileTags;
+}
+
+export function getActiveHiddenFileProperties(settings: NotebookNavigatorSettings): string[] {
+    return getActiveVaultProfile(settings).hiddenFileProperties;
 }
 
 export function getActiveFileVisibility(settings: NotebookNavigatorSettings): FileVisibility {
@@ -444,6 +552,28 @@ export function hasHiddenTagMatch(settings: NotebookNavigatorSettings, normalize
             return false;
         }
         const matcher = createHiddenTagMatcher(profile.hiddenTags);
+        if (matchesHiddenTagPattern(normalizedPath, tagName, matcher)) {
+            return true;
+        }
+        // Consider patterns whose literal prefix includes the path (e.g., "projects/*/drafts" when renaming "projects")
+        return matcher.pathPatterns.some(pattern => matchesLiteralPrefix(pattern, pathSegments));
+    });
+}
+
+export function hasHiddenFileTagMatch(settings: NotebookNavigatorSettings, normalizedPath: string): boolean {
+    ensureVaultProfiles(settings);
+    if (!normalizedPath) {
+        return false;
+    }
+
+    const tagName = normalizedPath.split('/').pop() ?? normalizedPath;
+    const pathSegments = normalizedPath.split('/').filter(Boolean);
+
+    return settings.vaultProfiles.some(profile => {
+        if (!Array.isArray(profile.hiddenFileTags) || profile.hiddenFileTags.length === 0) {
+            return false;
+        }
+        const matcher = createHiddenTagMatcher(profile.hiddenFileTags);
         if (matchesHiddenTagPattern(normalizedPath, tagName, matcher)) {
             return true;
         }
@@ -491,6 +621,52 @@ export function updateHiddenTagPrefixMatches(settings: NotebookNavigatorSettings
 
         if (profileUpdated) {
             profile.hiddenTags = Array.from(new Set(updatedPatterns));
+            didUpdate = true;
+        }
+    });
+
+    return didUpdate;
+}
+
+// Rewrites hidden file tag patterns when a tag path is renamed, returning true when any rule changes.
+export function updateHiddenFileTagPrefixMatches(settings: NotebookNavigatorSettings, previousPath: string, nextPath: string): boolean {
+    ensureVaultProfiles(settings);
+    const normalizedPrevious = normalizeTagPath(previousPath);
+    const normalizedNext = normalizeTagPath(nextPath);
+
+    if (!normalizedPrevious || !normalizedNext || normalizedPrevious === normalizedNext) {
+        return false;
+    }
+
+    const previousSegments = getNormalizedPathSegments(normalizedPrevious, normalizeTagPathValue);
+    const nextSegments = getNormalizedPathSegments(normalizedNext, normalizeTagPathValue);
+
+    let didUpdate = false;
+
+    settings.vaultProfiles.forEach(profile => {
+        if (!Array.isArray(profile.hiddenFileTags) || profile.hiddenFileTags.length === 0) {
+            return;
+        }
+
+        const parsedPatterns = getHiddenTagPathPatterns(profile.hiddenFileTags);
+        const parsedByRaw = new Map(parsedPatterns.map(pattern => [pattern.raw, pattern]));
+
+        let profileUpdated = false;
+        const updatedPatterns = profile.hiddenFileTags.map(pattern => {
+            const parsedPattern = parsedByRaw.get(pattern);
+            if (!parsedPattern || parsedPattern.literalPrefixLength === 0 || !matchesLiteralPrefix(parsedPattern, previousSegments)) {
+                return pattern;
+            }
+
+            const rebuilt = rebuildPattern(parsedPattern, nextSegments, { normalizePattern: normalizeTagPathValue });
+            if (rebuilt !== pattern) {
+                profileUpdated = true;
+            }
+            return rebuilt;
+        });
+
+        if (profileUpdated) {
+            profile.hiddenFileTags = Array.from(new Set(updatedPatterns));
             didUpdate = true;
         }
     });
@@ -547,6 +723,55 @@ export function removeHiddenTagPrefixMatches(settings: NotebookNavigatorSettings
     return didUpdate;
 }
 
+// Removes hidden file tag rules whose literal prefix matches the deleted path, returning true when any rule is removed.
+export function removeHiddenFileTagPrefixMatches(settings: NotebookNavigatorSettings, targetPath: string): boolean {
+    ensureVaultProfiles(settings);
+    const normalizedTarget = normalizeTagPath(targetPath);
+    if (!normalizedTarget) {
+        return false;
+    }
+
+    const targetSegments = getNormalizedPathSegments(normalizedTarget, normalizeTagPathValue);
+    let didUpdate = false;
+
+    settings.vaultProfiles.forEach(profile => {
+        if (!Array.isArray(profile.hiddenFileTags) || profile.hiddenFileTags.length === 0) {
+            return;
+        }
+
+        const parsedPatterns = getHiddenTagPathPatterns(profile.hiddenFileTags);
+        const parsedByRaw = new Map(parsedPatterns.map(pattern => [pattern.raw, pattern]));
+        let profileUpdated = false;
+        const filtered = profile.hiddenFileTags.filter(pattern => {
+            const parsedPattern = parsedByRaw.get(pattern);
+            if (!parsedPattern) {
+                return true;
+            }
+
+            if (!matchesLiteralPrefix(parsedPattern, targetSegments)) {
+                return true;
+            }
+
+            if (
+                parsedPattern.literalPrefixLength < targetSegments.length &&
+                parsedPattern.literalPrefixLength < parsedPattern.segments.length
+            ) {
+                return true;
+            }
+
+            profileUpdated = true;
+            return false;
+        });
+
+        if (profileUpdated) {
+            profile.hiddenFileTags = filtered;
+            didUpdate = true;
+        }
+    });
+
+    return didUpdate;
+}
+
 // Updates hidden folder entries across all vault profiles when an exact path match changes
 export function updateHiddenFolderExactMatches(settings: NotebookNavigatorSettings, previousPath: string, nextPath: string): boolean {
     ensureVaultProfiles(settings);
@@ -557,7 +782,7 @@ export function updateHiddenFolderExactMatches(settings: NotebookNavigatorSettin
         return false;
     }
 
-    const previousSegments = getNormalizedPathSegments(normalizedPrevious, normalizeHiddenFolderPath);
+    const previousSegments = getNormalizedPathSegments(normalizedPrevious, normalizeHiddenFolderMatchPath);
     const nextSegments = getNormalizedPathSegments(normalizedNext, normalizeHiddenFolderPath);
 
     let didUpdate = false;
@@ -567,7 +792,7 @@ export function updateHiddenFolderExactMatches(settings: NotebookNavigatorSettin
             return;
         }
 
-        const matcher = getHiddenFolderMatcher(profile.hiddenFolders);
+        const matcher = createHiddenFolderUpdateMatcher(profile.hiddenFolders);
         if (matcher.patterns.length === 0) {
             return;
         }
@@ -577,7 +802,7 @@ export function updateHiddenFolderExactMatches(settings: NotebookNavigatorSettin
         let profileUpdated = false;
         const updated = profile.hiddenFolders.map(pattern => {
             const parsed = parsedByRaw.get(pattern);
-            if (!parsed || parsed.literalPrefixLength === 0 || !matchesLiteralPrefix(parsed, previousSegments)) {
+            if (!parsed || parsed.literalPrefixLength === 0 || !matchesHiddenFolderLiteralPrefix(parsed, previousSegments)) {
                 return pattern;
             }
 
@@ -614,13 +839,13 @@ export function removeHiddenFolderExactMatches(settings: NotebookNavigatorSettin
             return;
         }
 
-        const matcher = getHiddenFolderMatcher(profile.hiddenFolders);
+        const matcher = createHiddenFolderUpdateMatcher(profile.hiddenFolders);
         if (matcher.patterns.length === 0) {
             return;
         }
 
         const parsedByRaw = new Map(matcher.patterns.map(pattern => [pattern.raw, pattern]));
-        const targetSegments = getNormalizedPathSegments(normalizedTarget, normalizeHiddenFolderPath);
+        const targetSegments = getNormalizedPathSegments(normalizedTarget, normalizeHiddenFolderMatchPath);
 
         let profileUpdated = false;
         const filtered = profile.hiddenFolders.filter(pattern => {
@@ -629,7 +854,7 @@ export function removeHiddenFolderExactMatches(settings: NotebookNavigatorSettin
                 return true;
             }
 
-            if (!matchesLiteralPrefix(parsed, targetSegments)) {
+            if (!matchesHiddenFolderLiteralPrefix(parsed, targetSegments)) {
                 return true;
             }
 

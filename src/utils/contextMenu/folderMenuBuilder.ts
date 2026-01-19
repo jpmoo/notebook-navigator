@@ -20,7 +20,7 @@ import { FileSystemAdapter, MenuItem, Platform, TFolder, TFile } from 'obsidian'
 import { FolderMenuBuilderParams } from './menuTypes';
 import { strings } from '../../i18n';
 import { showNotice } from '../noticeUtils';
-import { getInternalPlugin, isFolderAncestor, isPluginInstalled } from '../../utils/typeGuards';
+import { executeCommand, getInternalPlugin, isFolderAncestor, isPluginInstalled } from '../../utils/typeGuards';
 import { getFolderNote, createFolderNote } from '../../utils/folderNotes';
 import { cleanupExclusionPatterns, isFolderInExcludedFolder } from '../../utils/fileFilters';
 import { ItemType } from '../../types';
@@ -28,7 +28,9 @@ import { resetHiddenToggleIfNoSources } from '../../utils/exclusionUtils';
 import { runAsyncAction } from '../async';
 import { setAsyncOnClick } from './menuAsyncHelpers';
 import { addShortcutRenameMenuItem } from './shortcutRenameMenuItem';
+import { resolveUXIconForMenu } from '../uxIcons';
 import { getActiveVaultProfile, getHiddenFolderPatternMatch, normalizeHiddenFolderPath } from '../../utils/vaultProfiles';
+import { casefold } from '../../utils/recordUtils';
 import { EXCALIDRAW_PLUGIN_ID, TLDRAW_PLUGIN_ID } from '../../constants/pluginIds';
 import { addStyleMenu } from './styleMenuBuilder';
 import { getTemplaterCreateNewNoteFromTemplate } from '../templaterIntegration';
@@ -205,7 +207,7 @@ export function buildFolderCreationMenu(params: FolderMenuBuilderParams): void {
  */
 export function buildFolderMenu(params: FolderMenuBuilderParams): void {
     const { folder, menu, services, settings, state, dispatchers, options } = params;
-    const { app, fileSystemOps, metadataService } = services;
+    const { app, fileSystemOps, metadataService, plugin } = services;
     const { selectionState, expandedFolders } = state;
     const { selectionDispatch, expansionDispatch } = dispatchers;
 
@@ -272,7 +274,7 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
             color: folderColor,
             background: folderBackgroundColor
         },
-        hasIcon: true,
+        hasIcon: settings.showFolderIcons,
         hasColor: true,
         hasBackground: true,
         applyStyle: async clipboard => {
@@ -322,11 +324,16 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
 
         menu.addItem((item: MenuItem) => {
             if (existingShortcutKey) {
-                setAsyncOnClick(item.setTitle(strings.shortcuts.remove).setIcon('lucide-star-off'), async () => {
-                    await removeShortcut(existingShortcutKey);
-                });
+                setAsyncOnClick(
+                    item
+                        .setTitle(strings.shortcuts.remove)
+                        .setIcon(resolveUXIconForMenu(settings.interfaceIcons, 'nav-shortcuts', 'lucide-star-off')),
+                    async () => {
+                        await removeShortcut(existingShortcutKey);
+                    }
+                );
             } else {
-                setAsyncOnClick(item.setTitle(strings.shortcuts.add).setIcon('lucide-star'), async () => {
+                setAsyncOnClick(item.setTitle(strings.shortcuts.add).setIcon(resolveUXIconForMenu(settings.interfaceIcons, 'nav-shortcuts', 'lucide-star')), async () => {
                     if (collections.length > 1) {
                         // Show collection selection modal
                         const { ShortcutCollectionSelectionModal } = await import('../../modals/ShortcutCollectionSelectionModal');
@@ -404,6 +411,16 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
             });
     });
 
+    if (folder.path === '/') {
+        menu.addItem((item: MenuItem) => {
+            item.setTitle(strings.commands.navigateToFolder)
+                .setIcon('lucide-folder')
+                .onClick(() => {
+                    executeCommand(app, `${plugin.manifest.id}:navigate-to-folder`);
+                });
+        });
+    }
+
     menu.addSeparator();
 
     // Copy actions
@@ -444,6 +461,11 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
         menu.addSeparator();
     }
 
+    const addedMenuExtensions = services.plugin.api?.menus?.applyFolderMenuExtensions({ menu, folder }) ?? 0;
+    if (addedMenuExtensions > 0) {
+        menu.addSeparator();
+    }
+
     // Hide/Unhide folder (not available for root folder)
     if (folder.path !== '/') {
         const { showHiddenItems } = services.visibility;
@@ -451,10 +473,10 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
         const activeProfile = getActiveVaultProfile(services.plugin.settings);
         const excludedPatterns = activeProfile.hiddenFolders;
         const isExcluded = isFolderInExcludedFolder(folder, excludedPatterns);
-        const normalizedFolderPath = normalizeHiddenFolderPath(folder.path);
+        const normalizedFolderPath = casefold(normalizeHiddenFolderPath(folder.path));
         const matchingHiddenPattern = excludedPatterns.find(pattern => {
             const match = getHiddenFolderPatternMatch(pattern);
-            return Boolean(match && match.normalizedPrefix === normalizedFolderPath);
+            return Boolean(match && casefold(match.normalizedPrefix) === normalizedFolderPath);
         });
 
         if (matchingHiddenPattern) {

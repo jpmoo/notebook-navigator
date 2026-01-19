@@ -30,12 +30,13 @@ export const STRINGS_AR = {
         submit: 'إرسال', // Button text for submitting forms and dialogs (English: Submit)
         noSelection: 'لا يوجد تحديد', // Placeholder text when no folder or tag is selected (English: No selection)
         untagged: 'بدون وسم', // Label for notes without any tags (English: Untagged)
-        untitled: 'بدون عنوان', // Default name for notes without a title (English: Untitled)
         featureImageAlt: 'صورة مميزة', // Alt text for thumbnail/preview images (English: Feature image)
         unknownError: 'خطأ غير معروف', // Generic fallback when an error has no message (English: Unknown error)
         updateBannerTitle: 'تحديث متصفح الدفتر متاح',
         updateBannerInstruction: 'قم بالتحديث في الإعدادات -> إضافات المجتمع',
-        updateIndicatorLabel: 'إصدار جديد متاح'
+        updateIndicatorLabel: 'إصدار جديد متاح',
+        previous: 'السابق', // Generic aria label for previous navigation (English: Previous)
+        next: 'التالي' // Generic aria label for next navigation (English: Next)
     },
 
     // List pane
@@ -51,7 +52,6 @@ export const STRINGS_AR = {
     // Tag list
     tagList: {
         untaggedLabel: 'بدون وسم', // Label for the special item showing notes without tags (English: Untagged)
-        hiddenTags: 'وسوم مخفية', // Label for the hidden tags virtual folder (English: Hidden tags)
         tags: 'وسوم' // Label for the tags virtual folder (English: Tags)
     },
 
@@ -71,8 +71,26 @@ export const STRINGS_AR = {
         unpinShortcuts: 'إلغاء تثبيت الاختصارات',
         unpinShortcutsAndRecentNotes: 'إلغاء تثبيت الاختصارات والملاحظات الحديثة',
         unpinShortcutsAndRecentFiles: 'إلغاء تثبيت الاختصارات والملفات الحديثة',
-        profileMenuLabel: 'الملف الشخصي',
         profileMenuAria: 'تغيير ملف الخزنة'
+    },
+
+    navigationCalendar: {
+        ariaLabel: 'التقويم',
+        dailyNotesNotEnabled: 'إضافة الملاحظات اليومية غير مفعلة.',
+        promptDailyNoteTitle: {
+            title: 'عنوان الملاحظة اليومية',
+            placeholder: 'أدخل العنوان'
+        },
+        createDailyNote: {
+            title: 'ملاحظة يومية جديدة',
+            message: 'الملف {filename} غير موجود. هل تريد إنشاءه؟',
+            confirmButton: 'إنشاء'
+        }
+    },
+
+    dailyNotes: {
+        templateReadFailed: 'فشل في قراءة قالب الملاحظة اليومية.',
+        createFailed: 'تعذر إنشاء الملاحظة اليومية.'
     },
 
     shortcuts: {
@@ -96,24 +114,25 @@ export const STRINGS_AR = {
     paneHeader: {
         collapseAllFolders: 'طي العناصر', // Tooltip for button that collapses expanded items (English: Collapse items)
         expandAllFolders: 'توسيع جميع العناصر', // Tooltip for button that expands all items (English: Expand all items)
-        scrollToTop: 'التمرير للأعلى',
+        showCalendar: 'عرض التقويم',
+        hideCalendar: 'إخفاء التقويم',
         newFolder: 'مجلد جديد', // Tooltip for create new folder button (English: New folder)
         newNote: 'ملاحظة جديدة', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'العودة للتنقل', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeSortOrder: 'تغيير ترتيب الفرز', // Tooltip for the sort order toggle button (English: Change sort order)
         defaultSort: 'افتراضي', // Label for default sorting mode (English: Default)
-        customSort: 'مخصص', // Label for custom sorting mode (English: Custom)
         showFolders: 'إظهار التنقل', // Tooltip for button to show the navigation pane (English: Show navigation)
-        hideFolders: 'إخفاء التنقل', // Tooltip for button to hide the navigation pane (English: Hide navigation)
         reorderRootFolders: 'إعادة ترتيب التنقل',
         finishRootFolderReorder: 'تم',
-        toggleDescendantNotes: 'إظهار ملاحظات المجلدات الفرعية / الفروع', // Tooltip: include descendants for folders and tags
-        autoExpandFoldersTags: 'توسيع عند التحديد', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Expand on selection)
         showExcludedItems: 'إظهار المجلدات والوسوم والملاحظات المخفية', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'إخفاء المجلدات والوسوم والملاحظات المخفية', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'إظهار لوحتين', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'إظهار لوحة واحدة', // Tooltip for button to show single-pane layout (English: Show single pane)
         changeAppearance: 'تغيير المظهر', // Tooltip for button to change folder appearance settings (English: Change appearance)
+        showNotesFromSubfolders: 'إظهار الملاحظات من المجلدات الفرعية',
+        showFilesFromSubfolders: 'إظهار الملفات من المجلدات الفرعية',
+        showNotesFromDescendants: 'إظهار الملاحظات من الفروع',
+        showFilesFromDescendants: 'إظهار الملفات من الفروع',
         search: 'بحث' // Tooltip for search button (English: Search)
     },
     // Search input
@@ -226,10 +245,10 @@ export const STRINGS_AR = {
         standardPreset: 'قياسي',
         compactPreset: 'مضغوط',
         defaultSuffix: '(افتراضي)',
+        defaultLabel: 'افتراضي',
         titleRows: 'صفوف العنوان',
         previewRows: 'صفوف المعاينة',
         groupBy: 'تجميع حسب',
-        defaultOption: (rows: number) => `افتراضي (${rows})`,
         defaultTitleOption: (rows: number) => `صفوف العنوان الافتراضية (${rows})`,
         defaultPreviewOption: (rows: number) => `صفوف المعاينة الافتراضية (${rows})`,
         defaultGroupOption: (groupLabel: string) => `التجميع الافتراضي (${groupLabel})`,
@@ -254,11 +273,13 @@ export const STRINGS_AR = {
         },
         interfaceIcons: {
             title: 'أيقونات الواجهة',
+            fileItemsSection: 'عناصر الملفات',
             items: {
                 'nav-shortcuts': 'الاختصارات',
                 'nav-recent-files': 'الملفات الأخيرة',
                 'nav-expand-all': 'توسيع الكل',
                 'nav-collapse-all': 'طي الكل',
+                'nav-calendar': 'التقويم',
                 'nav-tree-expand': 'سهم الشجرة: توسيع',
                 'nav-tree-collapse': 'سهم الشجرة: طي',
                 'nav-hidden-items': 'العناصر المخفية',
@@ -275,15 +296,16 @@ export const STRINGS_AR = {
                 'list-new-note': 'ملاحظة جديدة',
                 'nav-folder-open': 'مجلد مفتوح',
                 'nav-folder-closed': 'مجلد مغلق',
+                'nav-folder-note': 'ملاحظة المجلد',
                 'nav-tag': 'وسم',
-                'list-pinned': 'العناصر المثبتة'
+                'list-pinned': 'العناصر المثبتة',
+                'file-word-count': 'عدد الكلمات',
+                'file-custom-property': 'خاصية مخصصة'
             }
         },
         colorPicker: {
             currentColor: 'الحالي',
             newColor: 'جديد',
-            presetColors: 'ألوان مسبقة',
-            userColors: 'ألوان المستخدم',
             paletteDefault: 'افتراضي',
             paletteCustom: 'مخصص',
             copyColors: 'نسخ اللون',
@@ -291,7 +313,6 @@ export const STRINGS_AR = {
             copyClipboardError: 'تعذرت الكتابة إلى الحافظة',
             pasteColors: 'لصق اللون',
             pasteClipboardError: 'تعذرت قراءة الحافظة',
-            pasteInvalidJson: 'الحافظة لا تحتوي على نص صالح',
             pasteInvalidFormat: 'متوقع قيمة لون hex',
             colorsPasted: 'تم لصق اللون بنجاح',
             resetUserColors: 'مسح الألوان المخصصة',
@@ -303,29 +324,7 @@ export const STRINGS_AR = {
             removeColor: 'إزالة اللون',
             apply: 'تطبيق',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
-            colors: {
-                red: 'أحمر',
-                orange: 'برتقالي',
-                amber: 'كهرماني',
-                yellow: 'أصفر',
-                lime: 'ليموني',
-                green: 'أخضر',
-                emerald: 'زمردي',
-                teal: 'أزرق مخضر',
-                cyan: 'سماوي',
-                sky: 'سماء',
-                blue: 'أزرق',
-                indigo: 'نيلي',
-                violet: 'بنفسجي',
-                purple: 'أرجواني',
-                fuchsia: 'فوشيا',
-                pink: 'وردي',
-                rose: 'وردي فاتح',
-                gray: 'رمادي',
-                slate: 'رمادي داكن',
-                stone: 'حجري'
-            }
+            rgbLabel: 'RGBA'
         },
         selectVaultProfile: {
             title: 'اختر ملف الخزنة',
@@ -344,7 +343,7 @@ export const STRINGS_AR = {
             andMore: '...و {count} أخرى',
             confirmRename: 'إعادة تسمية الوسم',
             renameUnchanged: '{tag} لم يتغير',
-            renameNoChanges: '{oldTag} ← {newTag} ({countLabel})',
+            renameNoChanges: '{oldTag} → {newTag} ({countLabel})',
             invalidTagName: 'أدخل اسم وسم صالح.',
             descendantRenameError: 'لا يمكن نقل الوسم إلى نفسه أو إلى فرع منه.',
             confirmDelete: 'حذف الوسم',
@@ -400,7 +399,6 @@ export const STRINGS_AR = {
             }
         },
         tagSuggest: {
-            placeholder: 'البحث عن وسوم...',
             navigatePlaceholder: 'الانتقال إلى وسم...',
             addPlaceholder: 'البحث عن وسم لإضافته...',
             removePlaceholder: 'اختر وسمًا لإزالته...',
@@ -436,8 +434,6 @@ export const STRINGS_AR = {
             deleteFolder: 'فشل حذف المجلد: {error}',
             deleteFile: 'فشل حذف الملف: {error}',
             duplicateNote: 'فشل تكرار الملاحظة: {error}',
-            createCanvas: 'فشل إنشاء اللوحة: {error}',
-            createDatabase: 'فشل إنشاء قاعدة البيانات: {error}',
             duplicateFolder: 'فشل تكرار المجلد: {error}',
             openVersionHistory: 'فشل فتح سجل الإصدارات: {error}',
             versionHistoryNotFound: 'لم يتم العثور على أمر سجل الإصدارات. تأكد من تمكين Obsidian Sync.',
@@ -499,8 +495,7 @@ export const STRINGS_AR = {
             deleteConfirmation: 'لا يمكن التراجع عن هذا الإجراء.'
         },
         defaultNames: {
-            untitled: 'بدون عنوان',
-            untitledNumber: 'بدون عنوان {number}'
+            untitled: 'بدون عنوان'
         }
     },
 
@@ -517,9 +512,7 @@ export const STRINGS_AR = {
         },
         notifications: {
             filesAlreadyExist: '{count} ملفات موجودة بالفعل في الوجهة',
-            addedTag: 'تمت إضافة الوسم "{tag}" إلى {count} ملفات',
             filesAlreadyHaveTag: '{count} ملفات تحتوي بالفعل على هذا الوسم أو وسم أكثر تحديدًا',
-            clearedTags: 'تم مسح جميع الوسوم من {count} ملفات',
             noTagsToClear: 'لا توجد وسوم لمسحها',
             fileImported: 'تم استيراد ملف واحد',
             filesImported: 'تم استيراد {count} ملفات'
@@ -534,24 +527,15 @@ export const STRINGS_AR = {
         previous30Days: 'آخر 30 يومًا'
     },
 
-    // Weekdays
-    weekdays: {
-        sunday: 'الأحد',
-        monday: 'الاثنين',
-        tuesday: 'الثلاثاء',
-        wednesday: 'الأربعاء',
-        thursday: 'الخميس',
-        friday: 'الجمعة',
-        saturday: 'السبت'
-    },
-
     // Plugin commands
     commands: {
         open: 'فتح', // Command palette: Opens the Notebook Navigator view (English: Open)
+        toggleLeftSidebar: 'تبديل الشريط الجانبي الأيسر', // Command palette: Toggles left sidebar, opening Notebook Navigator when uncollapsing (English: Toggle left sidebar)
         openHomepage: 'فتح الصفحة الرئيسية', // Command palette: Opens the Notebook Navigator view and loads the homepage file (English: Open homepage)
         revealFile: 'الكشف عن الملف', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'بحث', // Command palette: Toggle search in the file list (English: Search)
         toggleDualPane: 'تبديل تخطيط اللوحتين', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
+        toggleCalendar: 'تبديل التقويم', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
         selectVaultProfile: 'اختيار ملف الخزنة', // Command palette: Opens a modal to choose a different vault profile (English: Select vault profile)
         selectVaultProfile1: 'اختيار ملف الخزنة 1', // Command palette: Activates the first vault profile without opening the modal (English: Select vault profile 1)
         selectVaultProfile2: 'اختيار ملف الخزنة 2', // Command palette: Activates the second vault profile without opening the modal (English: Select vault profile 2)
@@ -577,6 +561,7 @@ export const STRINGS_AR = {
         addTag: 'إضافة وسم للملفات المحددة', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         removeTag: 'إزالة وسم من الملفات المحددة', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
         removeAllTags: 'إزالة جميع الوسوم من الملفات المحددة', // Command palette: Removes all tags from selected files (English: Remove all tags from selected files)
+        openAllFiles: 'فتح جميع الملفات', // Command palette: Opens all files in the current folder or tag (English: Open all files)
         rebuildCache: 'إعادة بناء الذاكرة المؤقتة' // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
     },
 
@@ -608,6 +593,7 @@ export const STRINGS_AR = {
             navigationPane: 'لوحة التنقل',
             icons: 'حزم الأيقونات',
             folders: 'مجلدات',
+            folderNotes: 'ملاحظات المجلد',
             foldersAndTags: 'مجلدات ووسوم',
             tags: 'وسوم',
             search: 'بحث',
@@ -628,12 +614,12 @@ export const STRINGS_AR = {
             },
             navigation: {
                 appearance: 'المظهر',
-                shortcutsAndRecent: 'الاختصارات والعناصر الأخيرة'
+                shortcutsAndRecent: 'الاختصارات والعناصر الأخيرة',
+                calendarIntegration: 'تكامل التقويم'
             },
             list: {
                 display: 'المظهر',
-                pinnedNotes: 'الملاحظات المثبتة',
-                quickActions: 'الإجراءات السريعة'
+                pinnedNotes: 'الملاحظات المثبتة'
             },
             notes: {
                 frontmatter: 'البيانات الأمامية',
@@ -642,15 +628,20 @@ export const STRINGS_AR = {
                 previewText: 'نص المعاينة',
                 featureImage: 'الصورة المميزة',
                 tags: 'الوسوم',
-                customProperty: 'Custom property',
+                customProperty: 'خاصية مخصصة (البيانات الوصفية أو عدد الكلمات)',
                 date: 'التاريخ',
                 parentFolder: 'المجلد الأصلي'
             }
         },
+        syncMode: {
+            notSynced: '(غير متزامن)',
+            switchToSynced: 'تفعيل المزامنة',
+            switchToLocal: 'تعطيل المزامنة'
+        },
         items: {
             searchProvider: {
                 name: 'مزود البحث',
-                desc: 'اختر بين البحث السريع بأسماء الملفات أو البحث النصي الكامل مع إضافة Omnisearch. (غير متزامن)',
+                desc: 'اختر بين البحث السريع بأسماء الملفات أو البحث النصي الكامل مع إضافة Omnisearch.',
                 options: {
                     internal: 'بحث التصفية',
                     omnisearch: 'Omnisearch (نص كامل)'
@@ -680,7 +671,7 @@ export const STRINGS_AR = {
                 }
             },
             listPaneTitle: {
-                name: 'عنوان لوحة القائمة (سطح المكتب فقط)',
+                name: 'عنوان لوحة القائمة',
                 desc: 'اختر مكان عرض عنوان لوحة القائمة.',
                 options: {
                     header: 'إظهار في الرأس',
@@ -705,7 +696,7 @@ export const STRINGS_AR = {
                 desc: 'التمرير إلى الملف المحدد عند تثبيت الملاحظات، أو إظهار ملاحظات الفروع، أو تغيير مظهر المجلد، أو تنفيذ عمليات الملفات.'
             },
             includeDescendantNotes: {
-                name: 'إظهار ملاحظات المجلدات الفرعية / الفروع (غير متزامن)',
+                name: 'إظهار ملاحظات المجلدات الفرعية / الفروع',
                 desc: 'تضمين الملاحظات من المجلدات الفرعية المتداخلة وفروع الوسوم عند عرض مجلد أو وسم.'
             },
             limitPinnedToCurrentFolder: {
@@ -790,16 +781,20 @@ export const STRINGS_AR = {
                 name: 'إظهار لون المجلد الأصلي',
                 desc: 'استخدام ألوان المجلدات على تسميات المجلد الأصلي.'
             },
+            showParentFolderIcon: {
+                name: 'إظهار أيقونة المجلد الأصلي',
+                desc: 'إظهار أيقونات المجلدات بجانب تسميات المجلد الأصلي.'
+            },
             showQuickActions: {
-                name: 'إظهار الإجراءات السريعة (سطح المكتب فقط)',
+                name: 'إظهار الإجراءات السريعة',
                 desc: 'إظهار أزرار الإجراءات عند التمرير فوق الملفات. أدوات التحكم في الأزرار تحدد الإجراءات التي تظهر.'
             },
             dualPane: {
-                name: 'تخطيط اللوحتين (غير متزامن)',
+                name: 'تخطيط اللوحتين',
                 desc: 'إظهار لوحة التنقل ولوحة القائمة جنبًا إلى جنب على سطح المكتب.'
             },
             dualPaneOrientation: {
-                name: 'اتجاه اللوحتين (غير متزامن)',
+                name: 'اتجاه اللوحتين',
                 desc: 'اختر التخطيط الأفقي أو الرأسي عند تنشيط اللوحتين.',
                 options: {
                     horizontal: 'تقسيم أفقي',
@@ -816,7 +811,7 @@ export const STRINGS_AR = {
                 }
             },
             appearanceScale: {
-                name: 'مستوى التكبير (غير متزامن)',
+                name: 'مستوى التكبير',
                 desc: 'التحكم في مستوى التكبير العام لمتصفح الدفتر.'
             },
             startView: {
@@ -847,7 +842,7 @@ export const STRINGS_AR = {
                 resetTooltip: 'إعادة تعيين إلى الافتراضي'
             },
             autoSelectFirstFileOnFocusChange: {
-                name: 'التحديد التلقائي لأول ملاحظة (سطح المكتب فقط)',
+                name: 'التحديد التلقائي لأول ملاحظة',
                 desc: 'فتح أول ملاحظة تلقائيًا عند تبديل المجلدات أو الوسوم.'
             },
             skipAutoScroll: {
@@ -859,7 +854,7 @@ export const STRINGS_AR = {
                 desc: 'توسيع المجلدات والوسوم عند تحديدها. في وضع اللوحة الواحدة، التحديد الأول يوسع، والتحديد الثاني يعرض الملفات.'
             },
             springLoadedFolders: {
-                name: 'التوسيع أثناء السحب (سطح المكتب فقط)',
+                name: 'التوسيع أثناء السحب',
                 desc: 'توسيع المجلدات والوسوم عند التمرير فوقها أثناء السحب.'
             },
             springLoadedFoldersInitialDelay: {
@@ -901,6 +896,65 @@ export const STRINGS_AR = {
                 name: 'تثبيت الملاحظات الحديثة مع الاختصارات',
                 desc: 'تضمين الملاحظات الحديثة عند تثبيت الاختصارات.'
             },
+            showCalendar: {
+                name: 'عرض التقويم',
+                desc: 'عرض تقويم في أسفل لوحة التنقل.'
+            },
+            calendarLocale: {
+                name: 'اللغة',
+                desc: 'التحكم في ترقيم الأسابيع واليوم الأول من الأسبوع.',
+                options: {
+                    systemDefault: 'افتراضي'
+                }
+            },
+            calendarWeeksToShow: {
+                name: 'الأسابيع المعروضة',
+                desc: 'عدد أسابيع التقويم المعروضة.',
+                options: {
+                    fullMonth: 'شهر كامل',
+                    oneWeek: 'أسبوع واحد',
+                    weeksCount: '{count} أسابيع'
+                }
+            },
+            calendarHighlightToday: {
+                name: 'تمييز تاريخ اليوم',
+                desc: 'إظهار دائرة حمراء ونص غامق على تاريخ اليوم.'
+            },
+            calendarShowWeekNumber: {
+                name: 'عرض رقم الأسبوع',
+                desc: 'إضافة عمود برقم الأسبوع.'
+            },
+            calendarConfirmBeforeCreate: {
+                name: 'تأكيد قبل الإنشاء',
+                desc: 'عرض مربع حوار تأكيد عند إنشاء ملاحظة يومية جديدة.'
+            },
+            calendarIntegrationMode: {
+                name: 'مصدر الملاحظات اليومية',
+                desc: 'مصدر ملاحظات التقويم.',
+                options: {
+                    dailyNotes: 'الملاحظات اليومية',
+                    notebookNavigator: 'Notebook Navigator'
+                },
+                info: {
+                    dailyNotes: 'يتم تكوين المجلد وتنسيق التاريخ في إضافة الملاحظات اليومية الأساسية.'
+                }
+            },
+            calendarCustomRootFolder: {
+                name: 'المجلد الجذر',
+                desc: 'المجلد الأساسي لملاحظات التقويم.',
+                placeholder: 'Personal/Diary'
+            },
+            calendarCustomFilePattern: {
+                name: 'نمط الملف',
+                desc: 'نمط التاريخ نسبة إلى المجلد الجذر. الرموز المدعومة: YYYY، MM، M، DD، D. يمكن أن تتضمن الملاحظات لاحقة عنوان اختيارية.',
+                placeholder: 'YYYY/YYYYMMDD',
+                example: 'الصيغة الحالية تبدو هكذا: {path}',
+                parsingError: 'يجب أن يتضمن النمط YYYY وMM/M وDD/D. الرموز المدعومة: YYYY، MM، M، DD، D.'
+            },
+            calendarCustomPromptForTitle: {
+                name: 'طلب العنوان',
+                desc: 'طلب العنوان عند إنشاء الملاحظات. يقبل العناوين الفارغة.'
+            },
             showTooltips: {
                 name: 'إظهار التلميحات',
                 desc: 'عرض تلميحات التمرير مع معلومات إضافية للملاحظات والمجلدات.'
@@ -915,8 +969,18 @@ export const STRINGS_AR = {
                 buttonText: 'إعادة تعيين الفاصل',
                 notice: 'تم إعادة تعيين موضع الفاصل. أعد تشغيل Obsidian أو أعد فتح متصفح الدفتر للتطبيق.'
             },
+            resetAllSettings: {
+                name: 'إعادة تعيين جميع الإعدادات',
+                desc: 'إعادة تعيين جميع إعدادات متصفح الدفتر إلى القيم الافتراضية.',
+                buttonText: 'إعادة تعيين جميع الإعدادات',
+                confirmTitle: 'إعادة تعيين جميع الإعدادات؟',
+                confirmMessage: 'سيؤدي هذا إلى إعادة تعيين جميع إعدادات متصفح الدفتر إلى القيم الافتراضية. لا يمكن التراجع عن ذلك.',
+                confirmButtonText: 'إعادة تعيين جميع الإعدادات',
+                notice: 'تمت إعادة تعيين جميع الإعدادات. أعد تشغيل Obsidian أو أعد فتح متصفح الدفتر للتطبيق.',
+                error: 'فشل إعادة تعيين الإعدادات.'
+            },
             multiSelectModifier: {
-                name: 'معدل التحديد المتعدد (سطح المكتب فقط)',
+                name: 'معدل التحديد المتعدد',
                 desc: 'اختر مفتاح التعديل الذي يبدل التحديد المتعدد. عند اختيار Option/Alt، النقر مع Cmd/Ctrl يفتح الملاحظات في علامة تبويب جديدة.',
                 options: {
                     cmdCtrl: 'النقر مع Cmd/Ctrl',
@@ -945,7 +1009,7 @@ export const STRINGS_AR = {
                 }
             },
             excludedNotes: {
-                name: 'إخفاء الملاحظات (ملف الخزنة)',
+                name: 'إخفاء الملاحظات ذات الخصائص (ملف الخزنة)',
                 desc: 'قائمة مفصولة بفاصلة من خصائص البيانات الأمامية. الملاحظات التي تحتوي على أي من هذه الخصائص ستكون مخفية (مثل draft، private، archived).',
                 placeholder: 'draft, private'
             },
@@ -962,11 +1026,9 @@ export const STRINGS_AR = {
                 editProfilesButton: 'تحرير الملفات',
                 addProfileOption: 'إضافة ملف...',
                 applyButton: 'تطبيق',
-                editButton: 'تحرير الملف',
                 deleteButton: 'حذف الملف',
                 addModalTitle: 'إضافة ملف',
                 editProfilesModalTitle: 'تحرير الملفات',
-                editModalTitle: 'تحرير الملف',
                 addModalPlaceholder: 'اسم الملف',
                 deleteModalTitle: 'حذف {name}',
                 deleteModalMessage: 'إزالة {name}؟ سيتم حذف مرشحات الملفات والمجلدات والوسوم والملاحظات المخفية المحفوظة في هذا الملف.',
@@ -978,7 +1040,7 @@ export const STRINGS_AR = {
                 }
             },
             vaultTitle: {
-                name: 'موضع عنوان الخزنة (سطح المكتب فقط)',
+                name: 'موضع عنوان الخزنة',
                 desc: 'اختر مكان عرض عنوان الخزنة.',
                 options: {
                     header: 'عرض في الرأس',
@@ -1023,22 +1085,27 @@ export const STRINGS_AR = {
                 desc: 'عرض الوسوم عند إخفاء التاريخ والمعاينة والصورة.'
             },
             customPropertyType: {
-                name: 'Type',
-                desc: 'Select the custom property to display in file items.',
+                name: 'النوع',
+                desc: 'حدد الخاصية المخصصة لعرضها في عناصر الملفات.',
                 options: {
-                    frontmatter: 'Frontmatter property',
-                    wordCount: 'Word count',
-                    none: 'None'
+                    frontmatter: 'خاصية الواجهة الأمامية',
+                    wordCount: 'عدد الكلمات',
+                    none: 'لا شيء'
                 }
             },
-            customPropertyFrontmatterFields: {
-                name: 'Frontmatter properties',
-                desc: 'Comma-separated list of frontmatter properties to display. The first property with a value is used.',
-                placeholder: 'status, type, category'
+            customPropertyFields: {
+                name: 'الخاصية للعرض',
+                desc: 'قائمة خصائص frontmatter مفصولة بفواصل لعرضها كشارات. الخصائص ذات القيم المتعددة تعرض شارة واحدة لكل قيمة. قيم [[wikilink]] تُعرض كروابط قابلة للنقر.',
+                placeholder: 'الحالة، النوع، الفئة'
+            },
+            customPropertyColorFields: {
+                name: 'الخاصية للون',
+                desc: 'قائمة خصائص frontmatter مفصولة بفواصل لألوان الشارات. تقترن خصائص الألوان بخصائص العرض حسب الموضع. الخصائص ذات القيم المتعددة تقرن الألوان حسب الفهرس. يمكن أن تكون القيم أسماء وسوم أو ألوان CSS.',
+                placeholder: 'statusColor, typeColor, categoryColor'
             },
             showCustomPropertyInCompactMode: {
-                name: 'Show custom property in compact mode',
-                desc: 'Display the custom property when date, preview, and image are hidden.'
+                name: 'إظهار الخاصية المخصصة في الوضع المضغوط',
+                desc: 'عرض الخاصية المخصصة عند إخفاء التاريخ والمعاينة والصورة.'
             },
             dateFormat: {
                 name: 'تنسيق التاريخ',
@@ -1105,8 +1172,13 @@ export const STRINGS_AR = {
             },
             featureImageProperties: {
                 name: 'خصائص الصورة',
-                desc: 'قائمة مفصولة بفاصلة من خصائص البيانات الأمامية للتحقق من الصور المصغرة.',
+                desc: 'قائمة مفصولة بفاصلة من خصائص البيانات الأمامية للتحقق منها أولاً. يستخدم أول صورة في محتوى markdown كبديل.',
                 placeholder: 'thumbnail, featureResized, feature'
+            },
+            featureImageExcludeProperties: {
+                name: 'استبعاد الملاحظات ذات الخصائص',
+                desc: 'قائمة مفصولة بفاصلة من خصائص البيانات الأمامية. الملاحظات التي تحتوي على أي من هذه الخصائص لا تخزن صور العرض.',
+                placeholder: 'خاص, سري'
             },
 
             downloadExternalFeatureImages: {
@@ -1189,7 +1261,7 @@ export const STRINGS_AR = {
             },
             tagSortOrder: {
                 name: 'ترتيب فرز الوسوم',
-                desc: 'اختر كيفية ترتيب الوسوم في لوحة التنقل. (غير متزامن)',
+                desc: 'اختر كيفية ترتيب الوسوم في لوحة التنقل.',
                 options: {
                     alphaAsc: 'من أ إلى ي',
                     alphaDesc: 'من ي إلى أ',
@@ -1212,6 +1284,11 @@ export const STRINGS_AR = {
             hiddenTags: {
                 name: 'إخفاء الوسوم (ملف الخزنة)',
                 desc: 'قائمة مفصولة بفاصلة من أنماط الوسوم. أنماط الأسماء: tag* (تبدأ بـ)، *tag (تنتهي بـ). أنماط المسارات: archive (الوسم وفروعه)، archive/* (الفروع فقط)، projects/*/drafts (حرف بدل وسطي).',
+                placeholder: 'archive*, *draft, projects/*/old'
+            },
+            hiddenFileTags: {
+                name: 'إخفاء الملاحظات ذات الوسوم (ملف الخزنة)',
+                desc: 'Comma-separated list of tag patterns. Notes containing matching tags are hidden. Name patterns: tag* (starting with), *tag (ending with). Path patterns: archive (tag and descendants), archive/* (descendants only), projects/*/drafts (mid-segment wildcard).',
                 placeholder: 'archive*, *draft, projects/*/old'
             },
             enableFolderNotes: {
@@ -1238,6 +1315,10 @@ export const STRINGS_AR = {
                 desc: 'بيانات YAML الأمامية المضافة إلى ملاحظات المجلد الجديدة. تضاف علامات --- تلقائيًا.',
                 placeholder: 'theme: dark\nfoldernote: true'
             },
+            openFolderNotesInNewTab: {
+                name: 'فتح ملاحظات المجلد في علامة تبويب جديدة',
+                desc: 'فتح ملاحظات المجلد دائمًا في علامة تبويب جديدة عند النقر على مجلد.'
+            },
             hideFolderNoteInList: {
                 name: 'إخفاء ملاحظات المجلدات في القائمة',
                 desc: 'إخفاء ملاحظة المجلد من الظهور في قائمة ملاحظات المجلد.'
@@ -1263,7 +1344,6 @@ export const STRINGS_AR = {
                 name: 'إعادة بناء الذاكرة المؤقتة',
                 desc: 'استخدم هذا إذا واجهت وسومًا مفقودة أو معاينات غير صحيحة أو صورًا مميزة مفقودة. يمكن أن يحدث هذا بعد تعارضات المزامنة أو الإغلاق غير المتوقع.',
                 buttonText: 'إعادة بناء الذاكرة المؤقتة',
-                success: 'تم إعادة بناء الذاكرة المؤقتة',
                 error: 'فشل إعادة بناء الذاكرة المؤقتة',
                 indexingTitle: 'جارٍ فهرسة الخزنة...',
                 progress: 'جارٍ تحديث ذاكرة التخزين المؤقت لـ Notebook Navigator.'

@@ -28,11 +28,6 @@
     flex-shrink: 0;
 }
 
-/* Settings subsetting indentation */
-.notebook-navigator-subsetting {
-    margin-left: 20px;
-}
-
 /* Make delete menu items red (items with trash icon) */
 .menu-item:has(.menu-item-icon svg.lucide-trash) {
     color: var(--text-error);

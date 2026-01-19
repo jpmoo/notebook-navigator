@@ -112,10 +112,10 @@ export function RootFolderReorderItem({
         return classes.join(' ');
     })();
 
-    // Determines icon visibility based on section icons setting and item-specific icon settings
+    // Determines icon visibility based on item-specific icon settings
     const showIcon = useMemo(() => {
-        if (!settings.showSectionIcons) {
-            return false;
+        if (itemType === 'section') {
+            return true;
         }
         if (itemType === 'folder') {
             return settings.showFolderIcons;
@@ -124,7 +124,7 @@ export function RootFolderReorderItem({
             return settings.showTagIcons;
         }
         return true;
-    }, [itemType, settings.showFolderIcons, settings.showSectionIcons, settings.showTagIcons]);
+    }, [itemType, settings.showFolderIcons, settings.showTagIcons]);
 
     return (
         <NavigationListRow

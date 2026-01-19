@@ -30,12 +30,13 @@ export const STRINGS_DE = {
         submit: 'OK', // Button text for submitting forms and dialogs (English: Submit)
         noSelection: 'Keine Auswahl', // Placeholder text when no folder or tag is selected (English: No selection)
         untagged: 'Ohne Tag', // Label for notes without any tags (English: Untagged)
-        untitled: 'Ohne Titel', // Default name for notes without a title (English: Untitled)
         featureImageAlt: 'Vorschaubild', // Alt text for thumbnail/preview images (English: Feature image)
         unknownError: 'Unbekannter Fehler', // Generic fallback when an error has no message (English: Unknown error)
         updateBannerTitle: 'Notebook Navigator-Update verfügbar',
         updateBannerInstruction: 'In Einstellungen -> Community-Plugins aktualisieren',
-        updateIndicatorLabel: 'Neue Version verfügbar'
+        updateIndicatorLabel: 'Neue Version verfügbar',
+        previous: 'Zurück', // Generic aria label for previous navigation (English: Previous)
+        next: 'Weiter' // Generic aria label for next navigation (English: Next)
     },
 
     // List pane
@@ -51,7 +52,6 @@ export const STRINGS_DE = {
     // Tag list
     tagList: {
         untaggedLabel: 'Ohne Tag', // Label for the special item showing notes without tags (English: Untagged)
-        hiddenTags: 'Versteckte Tags', // Label for the hidden tags virtual folder (English: Hidden tags)
         tags: 'Tags' // Label for the tags virtual folder (English: Tags)
     },
 
@@ -70,8 +70,26 @@ export const STRINGS_DE = {
         unpinShortcuts: 'Lesezeichen lösen',
         unpinShortcutsAndRecentNotes: 'Lesezeichen und neueste Notizen lösen',
         unpinShortcutsAndRecentFiles: 'Lesezeichen und neueste Dateien lösen',
-        profileMenuLabel: 'Profil',
         profileMenuAria: 'Tresorprofil ändern'
+    },
+
+    navigationCalendar: {
+        ariaLabel: 'Kalender',
+        dailyNotesNotEnabled: 'Das Kernplugin für tägliche Notizen ist nicht aktiviert.',
+        promptDailyNoteTitle: {
+            title: 'Titel der Tagesnotiz',
+            placeholder: 'Titel eingeben'
+        },
+        createDailyNote: {
+            title: 'Neue tägliche Notiz',
+            message: 'Datei {filename} existiert nicht. Möchten Sie sie erstellen?',
+            confirmButton: 'Erstellen'
+        }
+    },
+
+    dailyNotes: {
+        templateReadFailed: 'Vorlage für tägliche Notizen konnte nicht gelesen werden.',
+        createFailed: 'Tägliche Notiz konnte nicht erstellt werden.'
     },
 
     shortcuts: {
@@ -95,24 +113,25 @@ export const STRINGS_DE = {
     paneHeader: {
         collapseAllFolders: 'Elemente einklappen', // Tooltip for button that collapses expanded items (English: Collapse items)
         expandAllFolders: 'Alle Elemente ausklappen', // Tooltip for button that expands all items (English: Expand all items)
-        scrollToTop: 'Nach oben scrollen',
+        showCalendar: 'Kalender anzeigen',
+        hideCalendar: 'Kalender ausblenden',
         newFolder: 'Neuer Ordner', // Tooltip for create new folder button (English: New folder)
         newNote: 'Neue Notiz', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'Zurück zur Navigation', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeSortOrder: 'Sortierreihenfolge ändern', // Tooltip for the sort order toggle button (English: Change sort order)
         defaultSort: 'Standard', // Label for default sorting mode (English: Default)
-        customSort: 'Benutzerdefiniert', // Label for custom sorting mode (English: Custom)
         showFolders: 'Navigation anzeigen', // Tooltip for button to show the navigation pane (English: Show navigation)
-        hideFolders: 'Navigation ausblenden', // Tooltip for button to hide the navigation pane (English: Hide navigation)
         reorderRootFolders: 'Navigation neu anordnen',
         finishRootFolderReorder: 'Neuordnung fertig',
-        toggleDescendantNotes: 'Notizen aus Unterordnern / Nachkommen anzeigen', // Tooltip for button to toggle showing notes from descendants (English: Show notes from subfolders / descendants)
-        autoExpandFoldersTags: 'Ordner und Tags automatisch erweitern', // Tooltip for button to toggle auto-expanding folders and tags when selected (English: Auto-expand folders and tags)
         showExcludedItems: 'Versteckte Ordner, Tags und Notizen anzeigen', // Tooltip for button to show hidden items (English: Show hidden items)
         hideExcludedItems: 'Versteckte Ordner, Tags und Notizen ausblenden', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Zweispaltige Ansicht anzeigen', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Einspaltige Ansicht anzeigen', // Tooltip for button to show single-pane layout (English: Show single pane)
         changeAppearance: 'Erscheinungsbild ändern', // Tooltip for button to change folder appearance settings (English: Change appearance)
+        showNotesFromSubfolders: 'Notizen aus Unterordnern anzeigen',
+        showFilesFromSubfolders: 'Dateien aus Unterordnern anzeigen',
+        showNotesFromDescendants: 'Notizen aus Nachkommen anzeigen',
+        showFilesFromDescendants: 'Dateien aus Nachkommen anzeigen',
         search: 'Suchen' // Tooltip for search button (English: Search)
     },
     // Search input
@@ -158,10 +177,8 @@ export const STRINGS_DE = {
             addTag: 'Tag hinzufügen',
             removeTag: 'Tag entfernen',
             removeAllTags: 'Alle Tags entfernen',
-            changeIcon: 'Icon ändern',
-            removeIcon: 'Icon entfernen',
+            changeIcon: 'Symbol ändern',
             changeColor: 'Farbe ändern',
-            removeColor: 'Farbe entfernen',
             // File-specific context menu items (non-markdown files)
             openMultipleFilesInNewTabs: '{count} Dateien in neuen Tabs öffnen',
             openMultipleFilesToRight: '{count} Dateien rechts öffnen',
@@ -228,10 +245,10 @@ export const STRINGS_DE = {
         standardPreset: 'Standard',
         compactPreset: 'Kompakt',
         defaultSuffix: '(Standard)',
+        defaultLabel: 'Standard',
         titleRows: 'Titelzeilen',
         previewRows: 'Vorschauzeilen',
         groupBy: 'Gruppieren nach',
-        defaultOption: (rows: number) => `Standard (${rows})`,
         defaultTitleOption: (rows: number) => `Standard-Titelzeilen (${rows})`,
         defaultPreviewOption: (rows: number) => `Standard-Vorschauzeilen (${rows})`,
         defaultGroupOption: (groupLabel: string) => `Standardgruppierung (${groupLabel})`,
@@ -256,11 +273,13 @@ export const STRINGS_DE = {
         },
         interfaceIcons: {
             title: 'Oberflächensymbole',
+            fileItemsSection: 'Datei-Elemente',
             items: {
                 'nav-shortcuts': 'Verknüpfungen',
                 'nav-recent-files': 'Zuletzt verwendete Dateien',
                 'nav-expand-all': 'Alle erweitern',
                 'nav-collapse-all': 'Alle einklappen',
+                'nav-calendar': 'Kalender',
                 'nav-tree-expand': 'Baumpfeil: erweitern',
                 'nav-tree-collapse': 'Baumpfeil: einklappen',
                 'nav-hidden-items': 'Ausgeblendete Elemente',
@@ -277,15 +296,16 @@ export const STRINGS_DE = {
                 'list-new-note': 'Neue Notiz',
                 'nav-folder-open': 'Ordner geöffnet',
                 'nav-folder-closed': 'Ordner geschlossen',
+                'nav-folder-note': 'Ordnernotiz',
                 'nav-tag': 'Tag',
-                'list-pinned': 'Angeheftete Elemente'
+                'list-pinned': 'Angeheftete Elemente',
+                'file-word-count': 'Wortanzahl',
+                'file-custom-property': 'Benutzerdefinierte Eigenschaft'
             }
         },
         colorPicker: {
             currentColor: 'Aktuell',
             newColor: 'Neu',
-            presetColors: 'Vordefinierte Farben',
-            userColors: 'Benutzerfarben',
             paletteDefault: 'Standard',
             paletteCustom: 'Benutzerdefiniert',
             copyColors: 'Farbe kopieren',
@@ -293,7 +313,6 @@ export const STRINGS_DE = {
             copyClipboardError: 'Konnte nicht in Zwischenablage schreiben',
             pasteColors: 'Farbe einfügen',
             pasteClipboardError: 'Zwischenablage konnte nicht gelesen werden',
-            pasteInvalidJson: 'Zwischenablage enthält keinen gültigen Text',
             pasteInvalidFormat: 'Ein Hex-Farbwert erwartet',
             colorsPasted: 'Farbe erfolgreich eingefügt',
             resetUserColors: 'Benutzerdefinierte Farben löschen',
@@ -305,29 +324,7 @@ export const STRINGS_DE = {
             removeColor: 'Farbe entfernen',
             apply: 'Anwenden',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
-            colors: {
-                red: 'Rot',
-                orange: 'Orange',
-                amber: 'Bernstein',
-                yellow: 'Gelb',
-                lime: 'Limette',
-                green: 'Grün',
-                emerald: 'Smaragd',
-                teal: 'Blaugrün',
-                cyan: 'Cyan',
-                sky: 'Himmelblau',
-                blue: 'Blau',
-                indigo: 'Indigo',
-                violet: 'Violett',
-                purple: 'Lila',
-                fuchsia: 'Fuchsia',
-                pink: 'Pink',
-                rose: 'Rosé',
-                gray: 'Grau',
-                slate: 'Schiefer',
-                stone: 'Stein'
-            }
+            rgbLabel: 'RGBA'
         },
         selectVaultProfile: {
             title: 'Tresorprofil wechseln',
@@ -402,7 +399,6 @@ export const STRINGS_DE = {
             }
         },
         tagSuggest: {
-            placeholder: 'Tags suchen...',
             navigatePlaceholder: 'Zu Tag navigieren...',
             addPlaceholder: 'Nach hinzuzufügendem Tag suchen...',
             removePlaceholder: 'Tag zum Entfernen auswählen...',
@@ -439,8 +435,6 @@ export const STRINGS_DE = {
             deleteFolder: 'Ordner konnte nicht gelöscht werden: {error}',
             deleteFile: 'Datei konnte nicht gelöscht werden: {error}',
             duplicateNote: 'Notiz konnte nicht dupliziert werden: {error}',
-            createCanvas: 'Canvas konnte nicht erstellt werden: {error}',
-            createDatabase: 'Datenbank konnte nicht erstellt werden: {error}',
             duplicateFolder: 'Ordner konnte nicht dupliziert werden: {error}',
             openVersionHistory: 'Versionsverlauf konnte nicht geöffnet werden: {error}',
             versionHistoryNotFound: 'Versionsverlauf-Befehl nicht gefunden. Stellen Sie sicher, dass Obsidian Sync aktiviert ist.',
@@ -502,8 +496,7 @@ export const STRINGS_DE = {
             deleteConfirmation: 'Diese Aktion kann nicht rückgängig gemacht werden.'
         },
         defaultNames: {
-            untitled: 'Ohne Titel',
-            untitledNumber: 'Ohne Titel {number}'
+            untitled: 'Ohne Titel'
         }
     },
 
@@ -520,9 +513,7 @@ export const STRINGS_DE = {
         },
         notifications: {
             filesAlreadyExist: '{count} Dateien existieren bereits am Zielort',
-            addedTag: 'Tag "{tag}" zu {count} Dateien hinzugefügt',
             filesAlreadyHaveTag: '{count} Dateien haben dieses Tag oder ein spezifischeres bereits',
-            clearedTags: 'Alle Tags von {count} Dateien entfernt',
             noTagsToClear: 'Keine Tags zum Entfernen',
             fileImported: '1 Datei importiert',
             filesImported: '{count} Dateien importiert'
@@ -537,24 +528,15 @@ export const STRINGS_DE = {
         previous30Days: 'Letzte 30 Tage'
     },
 
-    // Weekdays
-    weekdays: {
-        sunday: 'Sonntag',
-        monday: 'Montag',
-        tuesday: 'Dienstag',
-        wednesday: 'Mittwoch',
-        thursday: 'Donnerstag',
-        friday: 'Freitag',
-        saturday: 'Samstag'
-    },
-
     // Plugin commands
     commands: {
         open: 'Öffnen', // Command palette: Opens the Notebook Navigator view (English: Open)
+        toggleLeftSidebar: 'Linke Seitenleiste umschalten', // Command palette: Toggles left sidebar, opening Notebook Navigator when uncollapsing (English: Toggle left sidebar)
         openHomepage: 'Startseite öffnen', // Command palette: Opens the Notebook Navigator view and loads the homepage file (English: Open homepage)
         revealFile: 'Datei anzeigen', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Suchen', // Command palette: Toggle search in the file list (English: Search)
         toggleDualPane: 'Doppelbereichslayout umschalten', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
+        toggleCalendar: 'Kalender umschalten', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
         selectVaultProfile: 'Tresorprofil wechseln', // Command palette: Opens a modal to choose a different vault profile (English: Switch vault profile)
         selectVaultProfile1: 'Tresorprofil 1 auswählen', // Command palette: Activates the first vault profile without opening the modal (English: Select vault profile 1)
         selectVaultProfile2: 'Tresorprofil 2 auswählen', // Command palette: Activates the second vault profile without opening the modal (English: Select vault profile 2)
@@ -580,6 +562,7 @@ export const STRINGS_DE = {
         addTag: 'Tag zu ausgewählten Dateien hinzufügen', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         removeTag: 'Tag von ausgewählten Dateien entfernen', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
         removeAllTags: 'Alle Tags von ausgewählten Dateien entfernen', // Command palette: Removes all tags from selected files (English: Remove all tags from selected files)
+        openAllFiles: 'Alle Dateien öffnen', // Command palette: Opens all files in the current folder or tag (English: Open all files)
         rebuildCache: 'Cache neu aufbauen' // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
     },
 
@@ -608,11 +591,12 @@ export const STRINGS_DE = {
         },
         sections: {
             general: 'Allgemein',
-            notes: 'Notizenanzeige',
-            navigationPane: 'Ordneranzeige',
+            notes: 'Notizen',
+            navigationPane: 'Navigationsbereich',
             icons: 'Icon-Pakete',
-            tags: 'Tag-Anzeige',
-            folders: 'Ordnernotizen',
+            tags: 'Tags',
+            folders: 'Ordner',
+            folderNotes: 'Ordnernotizen',
             foldersAndTags: 'Ordner & Tags',
             search: 'Suchen',
             searchAndHotkeys: 'Suche & Tastenkürzel',
@@ -631,12 +615,12 @@ export const STRINGS_DE = {
             },
             navigation: {
                 appearance: 'Darstellung',
-                shortcutsAndRecent: 'Verknüpfungen & Letzte Einträge'
+                shortcutsAndRecent: 'Verknüpfungen & Letzte Einträge',
+                calendarIntegration: 'Kalenderintegration'
             },
             list: {
                 display: 'Darstellung',
-                pinnedNotes: 'Angeheftete Notizen',
-                quickActions: 'Schnellaktionen'
+                pinnedNotes: 'Angeheftete Notizen'
             },
             notes: {
                 frontmatter: 'Frontmatter',
@@ -645,15 +629,20 @@ export const STRINGS_DE = {
                 previewText: 'Vorschautext',
                 featureImage: 'Hauptbild',
                 tags: 'Tags',
-                customProperty: 'Custom property',
+                customProperty: 'Benutzerdefinierte Eigenschaft (Frontmatter oder Wortzahl)',
                 date: 'Datum',
                 parentFolder: 'Übergeordneter Ordner'
             }
         },
+        syncMode: {
+            notSynced: '(nicht synchronisiert)',
+            switchToSynced: 'Synchronisierung aktivieren',
+            switchToLocal: 'Synchronisierung deaktivieren'
+        },
         items: {
             searchProvider: {
                 name: 'Suchanbieter',
-                desc: 'Wählen Sie zwischen schneller Dateinamensuche oder Volltextsuche mit dem Omnisearch-Plugin. (nicht synchronisiert)',
+                desc: 'Wählen Sie zwischen schneller Dateinamensuche oder Volltextsuche mit dem Omnisearch-Plugin.',
                 options: {
                     internal: 'Filtersuche',
                     omnisearch: 'Omnisearch (Volltext)'
@@ -684,7 +673,7 @@ export const STRINGS_DE = {
                 }
             },
             listPaneTitle: {
-                name: 'Titel des Listenbereichs (nur Desktop)',
+                name: 'Titel des Listenbereichs',
                 desc: 'Wählen Sie, wo der Titel des Listenbereichs angezeigt wird.',
                 options: {
                     header: 'Im Kopfbereich anzeigen',
@@ -709,7 +698,7 @@ export const STRINGS_DE = {
                 desc: 'Zur ausgewählten Datei scrollen beim Anheften von Notizen, Anzeigen von Unternotizen, Ändern der Ordnerdarstellung oder bei Dateioperationen.'
             },
             includeDescendantNotes: {
-                name: 'Notizen aus Unterordnern / Nachkommen anzeigen (nicht synchronisiert)',
+                name: 'Notizen aus Unterordnern / Nachkommen anzeigen',
                 desc: 'Beim Anzeigen eines Ordners oder Tags Notizen aus Unterordnern und Tag-Nachkommen einbeziehen.'
             },
             limitPinnedToCurrentFolder: {
@@ -794,16 +783,20 @@ export const STRINGS_DE = {
                 name: 'Übergeordnete Ordnerfarbe anzeigen',
                 desc: 'Ordnerfarben auf übergeordnete Ordnerlabels anwenden.'
             },
+            showParentFolderIcon: {
+                name: 'Übergeordnetes Ordnersymbol anzeigen',
+                desc: 'Ordnersymbole neben übergeordneten Ordnerlabels anzeigen.'
+            },
             showQuickActions: {
-                name: 'Schnellaktionen anzeigen (nur Desktop)',
+                name: 'Schnellaktionen anzeigen',
                 desc: 'Aktionsschaltflächen beim Überfahren von Dateien anzeigen. Schaltflächensteuerung wählt aus, welche Aktionen erscheinen.'
             },
             dualPane: {
-                name: 'Doppelbereichslayout (nicht synchronisiert)',
+                name: 'Doppelbereichslayout',
                 desc: 'Navigationsbereich und Listenbereich nebeneinander auf dem Desktop anzeigen.'
             },
             dualPaneOrientation: {
-                name: 'Ausrichtung des Doppelbereichs (nicht synchronisiert)',
+                name: 'Ausrichtung des Doppelbereichs',
                 desc: 'Horizontalen oder vertikalen Aufbau wählen, wenn der Doppelbereich aktiv ist.',
                 options: {
                     horizontal: 'Horizontale Aufteilung',
@@ -820,7 +813,7 @@ export const STRINGS_DE = {
                 }
             },
             appearanceScale: {
-                name: 'Zoomstufe (nicht synchronisiert)',
+                name: 'Zoomstufe',
                 desc: 'Steuert die gesamte Zoomstufe von Notebook Navigator.'
             },
             startView: {
@@ -851,7 +844,7 @@ export const STRINGS_DE = {
                 resetTooltip: 'Auf Standard zurücksetzen'
             },
             autoSelectFirstFileOnFocusChange: {
-                name: 'Erste Notiz automatisch auswählen (nur Desktop)',
+                name: 'Erste Notiz automatisch auswählen',
                 desc: 'Die erste Notiz automatisch öffnen, wenn Sie den Ordner oder Tag wechseln.'
             },
             skipAutoScroll: {
@@ -863,7 +856,7 @@ export const STRINGS_DE = {
                 desc: 'Ordner und Tags bei Auswahl erweitern. Im Einzelfenster-Modus: erste Auswahl erweitert, zweite Auswahl zeigt Dateien.'
             },
             springLoadedFolders: {
-                name: 'Beim Ziehen erweitern (nur Desktop)',
+                name: 'Beim Ziehen erweitern',
                 desc: 'Ordner und Tags beim Überfahren während des Ziehens erweitern.'
             },
             springLoadedFoldersInitialDelay: {
@@ -905,6 +898,65 @@ export const STRINGS_DE = {
                 name: 'Neueste Notizen mit Lesezeichen anheften',
                 desc: 'Neueste Notizen beim Anheften von Lesezeichen einbeziehen.'
             },
+            showCalendar: {
+                name: 'Kalender anzeigen',
+                desc: 'Zeigt einen Kalender am unteren Rand des Navigationsbereichs an.'
+            },
+            calendarLocale: {
+                name: 'Gebietsschema',
+                desc: 'Steuert Wochennummerierung und ersten Wochentag.',
+                options: {
+                    systemDefault: 'Standard'
+                }
+            },
+            calendarWeeksToShow: {
+                name: 'Angezeigte Wochen',
+                desc: 'Anzahl der anzuzeigenden Kalenderwochen.',
+                options: {
+                    fullMonth: 'Ganzer Monat',
+                    oneWeek: '1 Woche',
+                    weeksCount: '{count} Wochen'
+                }
+            },
+            calendarHighlightToday: {
+                name: 'Heutiges Datum hervorheben',
+                desc: 'Einen roten Kreis und fetten Text für das heutige Datum anzeigen.'
+            },
+            calendarShowWeekNumber: {
+                name: 'Wochennummer anzeigen',
+                desc: 'Spalte mit der Wochennummer hinzufügen.'
+            },
+            calendarConfirmBeforeCreate: {
+                name: 'Vor Erstellung bestätigen',
+                desc: 'Bestätigungsdialog beim Erstellen einer neuen täglichen Notiz anzeigen.'
+            },
+            calendarIntegrationMode: {
+                name: 'Tagesnotiz-Quelle',
+                desc: 'Quelle für Kalendernotizen.',
+                options: {
+                    dailyNotes: 'Tägliche Notizen',
+                    notebookNavigator: 'Notebook Navigator'
+                },
+                info: {
+                    dailyNotes: 'Ordner und Datumsformat werden im Daily Notes-Core-Plugin konfiguriert.'
+                }
+            },
+            calendarCustomRootFolder: {
+                name: 'Stammordner',
+                desc: 'Basisordner für Kalendernotizen.',
+                placeholder: 'Personal/Diary'
+            },
+            calendarCustomFilePattern: {
+                name: 'Dateimuster',
+                desc: 'Datumsmuster relativ zum Stammordner. Unterstützte Token: YYYY, MM, M, DD, D. Notizen können ein optionales Titelsuffix enthalten.',
+                placeholder: 'YYYY/YYYYMMDD',
+                example: 'Aktuelle Syntax sieht so aus: {path}',
+                parsingError: 'Das Muster muss YYYY, MM/M und DD/D enthalten. Unterstützte Token: YYYY, MM, M, DD, D.'
+            },
+            calendarCustomPromptForTitle: {
+                name: 'Nach Titel fragen',
+                desc: 'Beim Erstellen von Notizen nach Titel fragen. Akzeptiert leere Titel.'
+            },
             showTooltips: {
                 name: 'Tooltips anzeigen',
                 desc: 'Zeige Hover-Tooltips mit zusätzlichen Informationen für Notizen und Ordner an.'
@@ -919,8 +971,19 @@ export const STRINGS_DE = {
                 buttonText: 'Trennelement zurücksetzen',
                 notice: 'Trennelementposition zurückgesetzt. Starten Sie Obsidian neu oder öffnen Sie Notebook Navigator erneut, um die Änderungen anzuwenden.'
             },
+            resetAllSettings: {
+                name: 'Alle Einstellungen zurücksetzen',
+                desc: 'Setzt alle Notebook Navigator-Einstellungen auf die Standardwerte zurück.',
+                buttonText: 'Alle Einstellungen zurücksetzen',
+                confirmTitle: 'Alle Einstellungen zurücksetzen?',
+                confirmMessage:
+                    'Dies setzt alle Notebook Navigator-Einstellungen auf ihre Standardwerte zurück. Dies kann nicht rückgängig gemacht werden.',
+                confirmButtonText: 'Alle Einstellungen zurücksetzen',
+                notice: 'Alle Einstellungen zurückgesetzt. Starten Sie Obsidian neu oder öffnen Sie Notebook Navigator erneut, um die Änderungen anzuwenden.',
+                error: 'Zurücksetzen der Einstellungen fehlgeschlagen.'
+            },
             multiSelectModifier: {
-                name: 'Mehrfachauswahl-Modifikator (nur Desktop)',
+                name: 'Mehrfachauswahl-Modifikator',
                 desc: 'Wählen Sie, welche Modifikatortaste die Mehrfachauswahl umschaltet. Wenn Option/Alt ausgewählt ist, öffnet Cmd/Strg-Klick Notizen in einem neuen Tab.',
                 options: {
                     cmdCtrl: 'Cmd/Strg-Klick',
@@ -928,7 +991,7 @@ export const STRINGS_DE = {
                 }
             },
             excludedNotes: {
-                name: 'Notizen verstecken (Tresorprofil)',
+                name: 'Notizen mit Eigenschaften verstecken (Tresorprofil)',
                 desc: 'Kommagetrennte Liste von Frontmatter-Eigenschaften. Notizen mit diesen Eigenschaften werden ausgeblendet (z.B. Entwurf, privat, archiviert).',
                 placeholder: 'entwurf, privat'
             },
@@ -945,11 +1008,9 @@ export const STRINGS_DE = {
                 editProfilesButton: 'Profile bearbeiten',
                 addProfileOption: 'Profil hinzufügen...',
                 applyButton: 'Übernehmen',
-                editButton: 'Profil bearbeiten',
                 deleteButton: 'Profil löschen',
                 addModalTitle: 'Profil hinzufügen',
                 editProfilesModalTitle: 'Profile bearbeiten',
-                editModalTitle: 'Profil bearbeiten',
                 addModalPlaceholder: 'Profilname',
                 deleteModalTitle: '{name} löschen',
                 deleteModalMessage: '{name} entfernen? Versteckte Datei-, Ordner-, Tag- und Notizfilter in diesem Profil werden gelöscht.',
@@ -961,7 +1022,7 @@ export const STRINGS_DE = {
                 }
             },
             vaultTitle: {
-                name: 'Tresortitel-Platzierung (nur Desktop)',
+                name: 'Tresortitel-Platzierung',
                 desc: 'Wählen Sie, wo der Tresortitel angezeigt wird.',
                 options: {
                     header: 'Im Header anzeigen',
@@ -1008,7 +1069,7 @@ export const STRINGS_DE = {
             },
             showFileTags: {
                 name: 'Datei-Tags anzeigen',
-                desc: 'Zeigt klickbare Tags in Datei-Elementen an. Verwenden Sie Tag-Farben, um verschiedene Tag-Typen visuell zu unterscheiden.'
+                desc: 'Zeigt klickbare Tags in Datei-Elementen an.'
             },
             showFileTagAncestors: {
                 name: 'Vollständige Tag-Pfade anzeigen',
@@ -1027,22 +1088,27 @@ export const STRINGS_DE = {
                 desc: 'Tags anzeigen, wenn Datum, Vorschau und Bild ausgeblendet sind.'
             },
             customPropertyType: {
-                name: 'Type',
-                desc: 'Select the custom property to display in file items.',
+                name: 'Typ',
+                desc: 'Wählen Sie die benutzerdefinierte Eigenschaft, die in Datei-Elementen angezeigt werden soll.',
                 options: {
-                    frontmatter: 'Frontmatter property',
-                    wordCount: 'Word count',
-                    none: 'None'
+                    frontmatter: 'Frontmatter-Eigenschaft',
+                    wordCount: 'Wortanzahl',
+                    none: 'Keine'
                 }
             },
-            customPropertyFrontmatterFields: {
-                name: 'Frontmatter properties',
-                desc: 'Comma-separated list of frontmatter properties to display. The first property with a value is used.',
-                placeholder: 'status, type, category'
+            customPropertyFields: {
+                name: 'Anzuzeigende Eigenschaft',
+                desc: 'Kommagetrennte Liste von Frontmatter-Eigenschaften zur Anzeige als Badges. Listen-Eigenschaften zeigen ein Badge pro Wert. [[Wikilink]]-Werte werden als anklickbare Links angezeigt.',
+                placeholder: 'status, typ, kategorie'
+            },
+            customPropertyColorFields: {
+                name: 'Eigenschaft für Farbe',
+                desc: 'Kommagetrennte Liste von Frontmatter-Eigenschaften für Badge-Farben. Farb-Eigenschaften werden nach Position mit Anzeige-Eigenschaften gepaart. Listen-Eigenschaften paaren Farben nach Index. Werte können Tag-Namen oder CSS-Farben sein.',
+                placeholder: 'statusColor, typeColor, categoryColor'
             },
             showCustomPropertyInCompactMode: {
-                name: 'Show custom property in compact mode',
-                desc: 'Display the custom property when date, preview, and image are hidden.'
+                name: 'Benutzerdefinierte Eigenschaft im Kompaktmodus anzeigen',
+                desc: 'Die benutzerdefinierte Eigenschaft anzeigen, wenn Datum, Vorschau und Bild ausgeblendet sind.'
             },
             dateFormat: {
                 name: 'Datumsformat',
@@ -1109,10 +1175,14 @@ export const STRINGS_DE = {
             },
             featureImageProperties: {
                 name: 'Bildeigenschaften',
-                desc: 'Kommagetrennte Liste von Frontmatter-Eigenschaften für Miniaturbilder.',
+                desc: 'Kommagetrennte Liste von Frontmatter-Eigenschaften, die zuerst geprüft werden. Fällt auf das erste Bild im Markdown-Inhalt zurück.',
                 placeholder: 'thumbnail, featureResized, feature'
             },
-
+            featureImageExcludeProperties: {
+                name: 'Notizen mit Eigenschaften ausschließen',
+                desc: 'Kommagetrennte Liste von Frontmatter-Eigenschaften. Notizen mit einer dieser Eigenschaften speichern keine Feature-Bilder.',
+                placeholder: 'privat, vertraulich'
+            },
             downloadExternalFeatureImages: {
                 name: 'Externe Bilder herunterladen',
                 desc: 'Remote-Bilder und YouTube-Vorschaubilder für Feature-Bilder herunterladen.'
@@ -1193,7 +1263,7 @@ export const STRINGS_DE = {
             },
             tagSortOrder: {
                 name: 'Tag-Sortierreihenfolge',
-                desc: 'Lege fest, wie Tags im Navigationsbereich sortiert werden. (nicht synchronisiert)',
+                desc: 'Lege fest, wie Tags im Navigationsbereich sortiert werden.',
                 options: {
                     alphaAsc: 'A bis Z',
                     alphaDesc: 'Z bis A',
@@ -1218,6 +1288,11 @@ export const STRINGS_DE = {
                 desc: 'Kommagetrennte Liste von Tag-Mustern. Namensmuster: tag* (beginnt mit), *tag (endet mit). Pfadmuster: archiv (Tag und Untergeordnete), archiv/* (nur Untergeordnete), projekte/*/entwürfe (Platzhalter in der Mitte).',
                 placeholder: 'archiv*, *entwurf, projekte/*/alt'
             },
+            hiddenFileTags: {
+                name: 'Notizen mit Tags verstecken (Tresorprofil)',
+                desc: 'Comma-separated list of tag patterns. Notes containing matching tags are hidden. Name patterns: tag* (starting with), *tag (ending with). Path patterns: archive (tag and descendants), archive/* (descendants only), projects/*/drafts (mid-segment wildcard).',
+                placeholder: 'archive*, *draft, projects/*/old'
+            },
             enableFolderNotes: {
                 name: 'Ordnernotizen aktivieren',
                 desc: 'Wenn aktiviert, werden Ordner mit zugehörigen Notizen als anklickbare Links angezeigt.'
@@ -1241,6 +1316,10 @@ export const STRINGS_DE = {
                 name: 'Ordnernotiz-Eigenschaften',
                 desc: 'YAML-Frontmatter, das neuen Ordnernotizen hinzugefügt wird. --- Markierungen werden automatisch hinzugefügt.',
                 placeholder: 'theme: dark\nfoldernote: true'
+            },
+            openFolderNotesInNewTab: {
+                name: 'Ordnernotizen in neuem Tab öffnen',
+                desc: 'Ordnernotizen beim Klicken auf einen Ordner immer in einem neuen Tab öffnen.'
             },
             hideFolderNoteInList: {
                 name: 'Ordnernotizen in Liste ausblenden',
@@ -1267,7 +1346,6 @@ export const STRINGS_DE = {
                 name: 'Cache neu aufbauen',
                 desc: 'Verwenden Sie dies, wenn Tags fehlen, Vorschauen falsch sind oder Bilder fehlen. Dies kann nach Synchronisierungskonflikten oder unerwarteten Schließungen auftreten.',
                 buttonText: 'Cache neu aufbauen',
-                success: 'Cache wurde neu aufgebaut',
                 error: 'Cache-Neuaufbau fehlgeschlagen',
                 indexingTitle: 'Tresor wird indexiert...',
                 progress: 'Notebook Navigator-Cache wird aktualisiert.'

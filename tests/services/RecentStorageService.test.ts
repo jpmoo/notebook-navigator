@@ -17,21 +17,31 @@
  */
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 
-const mockLocalStorageStore = new Map<string, unknown>();
+// Vitest mock factory functions are hoisted. Any referenced variables must be initialized via `vi.hoisted`
+// so they exist when the mock is evaluated.
+const { mockLocalStorageStore, localStorageInit, localStorageGet, localStorageSet, localStorageRemove } = vi.hoisted(() => {
+    const mockLocalStorageStore = new Map<string, unknown>();
+    const localStorageInit = vi.fn();
+    const localStorageGet = vi.fn((key: string) => (mockLocalStorageStore.has(key) ? (mockLocalStorageStore.get(key) ?? null) : null));
+    const localStorageSet = vi.fn((key: string, value: unknown) => {
+        mockLocalStorageStore.set(key, value);
+        return true;
+    });
+    const localStorageRemove = vi.fn((key: string) => {
+        mockLocalStorageStore.delete(key);
+        return true;
+    });
+
+    return { mockLocalStorageStore, localStorageInit, localStorageGet, localStorageSet, localStorageRemove };
+});
 
 vi.mock('../../src/utils/localStorage', () => {
     return {
         localStorage: {
-            init: vi.fn(),
-            get: vi.fn((key: string) => (mockLocalStorageStore.has(key) ? mockLocalStorageStore.get(key)! : null)),
-            set: vi.fn((key: string, value: unknown) => {
-                mockLocalStorageStore.set(key, value);
-                return true;
-            }),
-            remove: vi.fn((key: string) => {
-                mockLocalStorageStore.delete(key);
-                return true;
-            })
+            init: localStorageInit,
+            get: localStorageGet,
+            set: localStorageSet,
+            remove: localStorageRemove
         }
     };
 });
@@ -41,7 +51,6 @@ vi.stubGlobal('window', globalThis);
 import { RecentStorageService } from '../../src/services/RecentStorageService';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import { STORAGE_KEYS } from '../../src/types';
-import { localStorage } from '../../src/utils/localStorage';
 
 describe('RecentStorageService', () => {
     let service: RecentStorageService;
@@ -80,7 +89,7 @@ describe('RecentStorageService', () => {
         service.setRecentIcons(icons);
         service.flushPendingPersists();
 
-        expect(localStorage.set).toHaveBeenCalledWith(STORAGE_KEYS.recentIconsKey, {
+        expect(localStorageSet).toHaveBeenCalledWith(STORAGE_KEYS.recentIconsKey, {
             lucide: ['home']
         });
         expect(notifyChange).toHaveBeenCalled();
@@ -93,7 +102,7 @@ describe('RecentStorageService', () => {
         service.setRecentIcons(icons);
         service.flushPendingPersists();
 
-        expect(localStorage.set).toHaveBeenCalledWith(STORAGE_KEYS.recentIconsKey, {
+        expect(localStorageSet).toHaveBeenCalledWith(STORAGE_KEYS.recentIconsKey, {
             phosphor: ['phosphor:apple-logo']
         });
     });
@@ -107,7 +116,7 @@ describe('RecentStorageService', () => {
 
         const icons = service.getRecentIcons();
         expect(icons.phosphor).toEqual(['phosphor:sword']);
-        expect(localStorage.set).toHaveBeenCalledWith(STORAGE_KEYS.recentIconsKey, {
+        expect(localStorageSet).toHaveBeenCalledWith(STORAGE_KEYS.recentIconsKey, {
             phosphor: ['phosphor:sword']
         });
     });
@@ -121,7 +130,7 @@ describe('RecentStorageService', () => {
 
         const icons = service.getRecentIcons();
         expect(icons.lucide).toEqual(['home']);
-        expect(localStorage.set).toHaveBeenCalledWith(STORAGE_KEYS.recentIconsKey, {
+        expect(localStorageSet).toHaveBeenCalledWith(STORAGE_KEYS.recentIconsKey, {
             lucide: ['home']
         });
     });
@@ -145,7 +154,7 @@ describe('RecentStorageService', () => {
         notesService.hydrate();
 
         expect(notesService.getRecentNotes()).toEqual(['a.md', 'b.md']);
-        expect(localStorage.set).toHaveBeenCalledWith(STORAGE_KEYS.recentNotesKey, {
+        expect(localStorageSet).toHaveBeenCalledWith(STORAGE_KEYS.recentNotesKey, {
             [vaultProfileId]: ['a.md', 'b.md']
         });
     });
@@ -171,7 +180,7 @@ describe('RecentStorageService', () => {
         notesService.hydrate();
 
         expect(notesService.getRecentNotes()).toEqual(['a.md']);
-        expect(localStorage.set).toHaveBeenCalledWith(STORAGE_KEYS.recentNotesKey, {
+        expect(localStorageSet).toHaveBeenCalledWith(STORAGE_KEYS.recentNotesKey, {
             [vaultProfileId]: ['a.md']
         });
     });

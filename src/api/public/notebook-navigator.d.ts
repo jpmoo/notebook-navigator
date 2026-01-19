@@ -18,7 +18,7 @@
 
 /**
  * Notebook Navigator Plugin API Type Definitions
- * Version: 1.1.0
+ * Version: 1.2.0
  *
  * Download this file to your Obsidian plugin project to get TypeScript support
  * for the Notebook Navigator API.
@@ -27,7 +27,7 @@
  * ```typescript
  * import type { NotebookNavigatorAPI } from './notebook-navigator';
  *
- * const nn = app.plugins.plugins['notebook-navigator']?.api as NotebookNavigatorAPI;
+ * const nn = app.plugins.plugins['notebook-navigator']?.api as NotebookNavigatorAPI | undefined;
  * if (nn) {
  *   const folder = app.vault.getFolderByPath('Projects');
  *   if (folder) {
@@ -37,7 +37,7 @@
  * ```
  */
 
-import { TFile, TFolder, EventRef } from 'obsidian';
+import { EventRef, MenuItem, TFile, TFolder } from 'obsidian';
 
 // Core types
 
@@ -98,6 +98,41 @@ export interface SelectionState {
     /** The file that has keyboard focus (can be null) */
     focused: TFile | null;
 }
+
+/**
+ * Selection mode for file context menu extensions.
+ *
+ * - `single`: Menu opened on a single file (context.selection.files is `[file]`)
+ * - `multiple`: Menu opened on a selected file while multiple files are selected
+ */
+export type FileMenuSelectionMode = 'single' | 'multiple';
+
+export interface FileMenuExtensionContext {
+    /** Add a menu item (must be called synchronously during menu construction) */
+    addItem(cb: (item: MenuItem) => void): void;
+    /** Add a separator (must be called synchronously during menu construction) */
+    addSeparator(): void;
+    /** The file the menu was opened on */
+    file: TFile;
+    selection: {
+        /** Effective selection mode for this menu */
+        mode: FileMenuSelectionMode;
+        /** Snapshot of files for this menu (single mode uses `[file]`) */
+        files: readonly TFile[];
+    };
+}
+
+export interface FolderMenuExtensionContext {
+    /** Add a menu item (must be called synchronously during menu construction) */
+    addItem(cb: (item: MenuItem) => void): void;
+    /** Add a separator (must be called synchronously during menu construction) */
+    addSeparator(): void;
+    /** The folder the menu was opened on */
+    folder: TFolder;
+}
+
+/** Dispose function returned by menu registration methods */
+export type MenuExtensionDispose = () => void;
 
 /**
  * Context where a note can be pinned
@@ -166,7 +201,7 @@ export interface NotebookNavigatorEvents {
 
 /**
  * Main Notebook Navigator API interface
- * @version 1.1.0
+ * @version 1.2.0
  */
 export interface NotebookNavigatorAPI {
     /** Get the API version string */
@@ -218,6 +253,14 @@ export interface NotebookNavigatorAPI {
         getCurrent(): SelectionState;
     };
 
+    /** Menu extensions for Notebook Navigator context menus (callbacks run synchronously during menu construction) */
+    menus: {
+        /** Register items for the file context menu */
+        registerFileMenu(callback: (context: FileMenuExtensionContext) => void): MenuExtensionDispose;
+        /** Register items for the folder context menu */
+        registerFolderMenu(callback: (context: FolderMenuExtensionContext) => void): MenuExtensionDispose;
+    };
+
     // Event subscription
     /** Subscribe to navigator events with type safety */
     on<T extends NotebookNavigatorEventType>(event: T, callback: (data: NotebookNavigatorEvents[T]) => void): EventRef;
@@ -233,6 +276,8 @@ export interface NotebookNavigatorAPI {
  * Version 1.2.0 (2025-12-22)
  * - Added navigation.navigateToFolder(folder)
  * - Added navigation.navigateToTag(tag)
+ * - Added menus.registerFileMenu(callback)
+ * - Added menus.registerFolderMenu(callback)
  *
  * Version 1.0.1 (2025-09-16)
  * - Added backgroundColor property to FolderMetadata and TagMetadata interfaces

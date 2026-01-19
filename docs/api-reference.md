@@ -5,7 +5,7 @@ Updated: December 23, 2025
 The Notebook Navigator plugin exposes a public API that allows other plugins and scripts to interact with its features
 programmatically.
 
-**Current Version:** 1.1.0
+**Current Version:** 1.2.0
 
 ## Table of Contents
 
@@ -16,6 +16,7 @@ programmatically.
   - [Pinned Files](#pinned-files)
 - [Navigation API](#navigation-api)
 - [Selection API](#selection-api)
+- [Menus API](#menus-api)
 - [Events](#events)
 - [Core API Methods](#core-api-methods)
 - [TypeScript Support](#typescript-support)
@@ -57,11 +58,12 @@ if (nn) {
 
 ## API Overview
 
-The API provides three main namespaces:
+The API provides four main namespaces:
 
 - **`metadata`** - Folder/tag colors, icons, and pinned files
 - **`navigation`** - Navigate to files in the navigator
 - **`selection`** - Query current selection state
+- **`menus`** - Add items to Notebook Navigator context menus
 
 Core methods:
 
@@ -249,6 +251,89 @@ if (navItem.folder) {
 
 // Get selected files
 const { files, focused } = nn.selection.getCurrent();
+```
+
+## Menus API
+
+Register callbacks that add items to Notebook Navigator's folder and file context menus.
+
+Available in API version 1.2.0.
+
+| Method                      | Description                              | Returns                 |
+| --------------------------- | ---------------------------------------- | ----------------------- |
+| `registerFileMenu(callback)` | Add items to the file context menu       | `() => void`            |
+| `registerFolderMenu(callback)` | Add items to the folder context menu   | `() => void`            |
+
+Callbacks run synchronously each time the context menu is built. Keep callbacks lightweight, add menu items synchronously, and run async work in `onClick` handlers.
+
+### File context menu
+
+The file callback receives the clicked file and the effective selection for this menu:
+
+- `context.addItem(...)` - Add a menu item
+- `context.addSeparator()` - Add a separator
+- `context.file` - The file the menu was opened on
+- `context.selection.mode` - `'multiple'` when multiple files are selected and the menu was opened on a selected file
+- `context.selection.files` - Snapshot of files for this menu (`'single'` uses `[file]`)
+
+Single selection example:
+
+```typescript
+import type { NotebookNavigatorAPI } from './notebook-navigator';
+
+const nn = app.plugins.plugins['notebook-navigator']?.api as Partial<NotebookNavigatorAPI> | undefined;
+
+const dispose = nn?.menus?.registerFileMenu(({ addItem, file, selection }) => {
+  if (selection.mode !== 'single') {
+    return;
+  }
+
+  if (file.extension !== 'md') {
+    return;
+  }
+
+  addItem(item => {
+    item.setTitle('My action').setIcon('lucide-wand').onClick(() => {
+      console.log('Clicked', file.path);
+    });
+  });
+});
+
+// If dispose is defined, call dispose() when your plugin unloads
+```
+
+Multiple selection example:
+
+```typescript
+const dispose = nn?.menus?.registerFileMenu(({ addItem, selection }) => {
+  if (selection.mode !== 'multiple') {
+    return;
+  }
+
+  addItem(item => {
+    item.setTitle('My batch action').setIcon('lucide-list-check').onClick(() => {
+      console.log('Selected files', selection.files.map(f => f.path));
+    });
+  });
+});
+```
+
+### Folder context menu
+
+The folder callback receives:
+
+- `context.addItem(...)` - Add a menu item
+- `context.addSeparator()` - Add a separator
+- `context.folder` - The folder the menu was opened on
+
+```typescript
+const dispose = nn?.menus?.registerFolderMenu(({ addItem, folder }) => {
+  addItem(item => {
+    item.setTitle('My folder action').setIcon('lucide-folder').onClick(() => {
+      console.log('Folder', folder.path);
+    });
+  });
+});
 ```
 
 ## Events

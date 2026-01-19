@@ -28,10 +28,9 @@ import { calculateFileDiff } from '../../storage/diffCalculator';
 import { type FileData as DBFileData } from '../../storage/IndexedDBStorage';
 import { getDBInstance, markFilesForRegeneration, recordFileChanges, removeFilesFromCache } from '../../storage/fileOperations';
 import { runAsyncAction } from '../../utils/async';
-import { isCustomPropertyEnabled } from '../../utils/customPropertyUtils';
 import { isMarkdownPath, isPdfFile } from '../../utils/fileTypeUtils';
 import { filterFilesRequiringMetadataSources, filterPdfFilesRequiringThumbnails } from '../storageQueueFilters';
-import { getCacheRebuildProgressTypes, getMetadataDependentTypes } from './storageContentTypes';
+import { getCacheRebuildProgressTypes, getContentWorkTotal, getMetadataDependentTypes } from './storageContentTypes';
 
 /**
  * Syncs vault changes into the IndexedDB cache and triggers derived-content generation.
@@ -143,9 +142,7 @@ export function useStorageVaultSync(params: {
                     }
 
                     const metadataDependentTypes = getMetadataDependentTypes(settings);
-                    const customPropertyEnabled = isCustomPropertyEnabled(settings);
-                    const contentEnabled =
-                        settings.showFilePreview || settings.showFeatureImage || customPropertyEnabled || metadataDependentTypes.length > 0;
+                    const contentEnabled = metadataDependentTypes.length > 0;
 
                     if (contentRegistryRef.current && contentEnabled) {
                         const markdownFiles: TFile[] = [];
@@ -262,7 +259,7 @@ export function useStorageVaultSync(params: {
             if (db.consumePendingRebuildNotice()) {
                 const liveSettings = latestSettingsRef.current;
                 const enabledTypes = getCacheRebuildProgressTypes(liveSettings);
-                const total = getIndexableFiles().length;
+                const total = getContentWorkTotal(getIndexableFiles(), enabledTypes);
                 startCacheRebuildNotice(total, enabledTypes);
             }
             runAsyncAction(() => buildFileCache(true));
@@ -295,14 +292,33 @@ export function useStorageVaultSync(params: {
 
                         pendingRenameDataRef.current.set(file.path, seeded);
                         db.seedMemoryFile(file.path, seeded);
+                        if (existing.featureImageStatus === 'has') {
+                            // Prevent `getFeatureImageBlob(newPath)` from returning null before the blob store key moves.
+                            db.beginFeatureImageBlobMove(oldPath, file.path);
+                        }
+                        if (wasMarkdown && isMarkdown) {
+                            // Prevent preview status repairs while the preview store key is moving from oldPath -> newPath.
+                            db.beginPreviewTextMove(oldPath, file.path);
+                        }
                         runAsyncAction(async () => {
                             try {
-                                await db.moveFeatureImageBlob(oldPath, file.path);
+                                const operations: Promise<void>[] = [db.moveFeatureImageBlob(oldPath, file.path)];
+
                                 if (wasMarkdown && isMarkdown) {
-                                    await db.movePreviewText(oldPath, file.path);
+                                    operations.push(db.movePreviewText(oldPath, file.path));
                                 } else if (wasMarkdown) {
-                                    await db.deletePreviewText(oldPath);
+                                    operations.push(
+                                        db.deletePreviewText(oldPath).catch((error: unknown) => {
+                                            console.error('Failed to delete preview text after rename:', {
+                                                oldPath,
+                                                newPath: file.path,
+                                                error
+                                            });
+                                        })
+                                    );
                                 }
+
+                                await Promise.all(operations);
                             } finally {
                                 rebuildFileCache?.();
                             }

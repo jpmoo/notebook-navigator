@@ -30,6 +30,7 @@ interface InputModalOptions {
     checkbox?: InputModalCheckboxOptions;
     inputFilter?: (value: string) => string;
     onInputChange?: (context: { rawValue: string; filteredValue: string }) => void;
+    submitButtonText?: string;
 }
 
 export interface InputModalSubmitContext {
@@ -101,7 +102,7 @@ export class InputModal extends Modal {
         this.cancelBtn.addEventListener('click', this.cancelHandler);
 
         this.submitBtn = buttonContainer.createEl('button', {
-            text: strings.common.submit,
+            text: options?.submitButtonText ?? strings.common.submit,
             cls: 'mod-cta'
         });
         this.submitBtn.addEventListener('click', this.submitHandler);

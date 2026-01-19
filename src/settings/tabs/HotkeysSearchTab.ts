@@ -20,6 +20,7 @@ import { strings } from '../../i18n';
 import type { SearchProvider } from '../../types/search';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { createSettingGroupFactory } from '../settingGroups';
+import { addSettingSyncModeToggle } from '../syncModeToggle';
 
 /** Renders the search and hotkeys settings tab */
 export function renderHotkeysSearchTab(context: SettingsTabContext): void {
@@ -32,7 +33,7 @@ export function renderHotkeysSearchTab(context: SettingsTabContext): void {
         return value === 'internal' || value === 'omnisearch';
     };
 
-    searchGroup.addSetting(setting => {
+    const searchProviderSetting = searchGroup.addSetting(setting => {
         setting
             .setName(strings.settings.items.searchProvider.name)
             .setDesc(strings.settings.items.searchProvider.desc)
@@ -51,6 +52,8 @@ export function renderHotkeysSearchTab(context: SettingsTabContext): void {
                     });
             });
     });
+
+    addSettingSyncModeToggle({ setting: searchProviderSetting, plugin, settingId: 'searchProvider' });
 
     const searchInfoSetting = addInfoSetting(searchGroup.addSetting, 'nn-setting-info-container', () => {});
     const searchInfoEl = searchInfoSetting.descEl;

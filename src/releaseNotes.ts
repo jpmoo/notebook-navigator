@@ -75,18 +75,98 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
-        version: '2.0.5',
-        date: '2026-01-12',
+        version: '2.1.3',
+        date: '2026-01-20',
         showOnUpdate: true,
         new: [
-            'New settings: ==Notes > Custom property==. Display a custom property in the list pane - either a frontmatter property or word count.'
+            'Public API: Added a new ==Menus API== for extending the Notebook Navigator context menus! You can now "hook" into the file and folder context menus of Notebook Navigator to add your own menu items. The new API methods are:',
+            '==registerFileMenu(callback)== for adding items to the file context menu.',
+            '==registerFolderMenu(callback)== for adding items to the folder context menu.'
+        ],
+        improved: [],
+        changed: [],
+        fixed: [
+            "Fixed an issue where the What's New modal never appeared after updating the plugin.",
+            'Fixed an issue where calendar cells on some devices and themes rendered with variable width.'
+    ]
+    },
+    {
+        version: '2.1.2',
+        date: '2026-01-17',
+        showOnUpdate: true,
+        new: [
+            '==All settings are now synced between devices by default==. You can override this on a per-setting basis. Current local settings will continue to be local-only, and you can change them to synced by pressing a cloud symbol in settings. Let me know if there are any settings that are currently not enabled for local-only that you would like to override.'
+        ],
+        improved: [],
+        changed: [
+            "Toolbar buttons 'Show notes from subfolders' and 'Show calendar' are now disabled by default since it creates a simpler and easier startup experience for new users.",
+            'Mobile devices now skip PDF cover thumbnails for PDF files larger than 20 MB.'
+        ],
+        fixed: [
+            'Fixed a crash/reload on mobile devices during cache rebuild when generating PDF cover thumbnails for large PDF files.',
+            'Fixed the list pane sometimes rendering blank on iOS (Obsidian 1.11+) after preview text or feature image updates.'
+        ]
+    },
+    {
+        version: '2.1.1',
+        date: '2026-01-17',
+        showOnUpdate: true,
+        new: [
+            'New setting ==Navigation pane > Calendar integration==. Switch between "Daily notes" core plugin integration and a custom format that also supports daily note titles.',
+            'New command: ==Open all files==. Opens all files in the currently selected folder or tags. Warns when trying to open 15 or more files.',
+            'New command: ==Toggle calendar==. Toggles the calendar overlay on or off.',
+            'New command: ==Toggle left sidebar==. Toggle the left sidebar and opens Notebook Navigator when uncollapsing the left sidebar (unlike Obsidian’s built-in Toggle left sidebar command which restores the previous left sidebar view).'
         ],
         improved: [
-            'Internal: Improved cache rebuild performance by slowing down tag tree updates during the process.',
-            'Internal: Major rewrite of the metadata processing chain. It is now a single sequential pipeline per file instead of multiple parallel providers. It reads markdown content at most once per file per run and writes just one merged database update per file. This should make the cache system handle vaults of virtually any size without memory spikes.'
+            'The calendar widget now renders in the bottom of the list pane when using vertical split.',
+            'Hover over calendar days now shows a tooltip with feature image, date, and title.'
         ],
         changed: [],
-        fixed: []
+        fixed: [
+            'Fixed an issue with UI scale causing the floating toolbar buttons on iOS with Obsidian 1.11 and later to be mispositioned.',
+            'Fixed an issue where changing locale could leave calendar weekday labels misaligned until restart.',
+            'Fixed tag auto-reveal when opening notes from shortcuts/recent notes, matching folder auto-reveal behavior. With ==List pane > Show notes from subfolders / descendants== enabled it selects the closest visible tag ancestor; when Tags is collapsed it selects Tags for tagged notes and Untagged for untagged notes. With it disabled it expands the tag tree and selects the exact tag (or Untagged).'
+        ]
+    },
+    {
+        version: '2.1.0',
+        date: '2026-01-16',
+        showOnUpdate: true,
+        youtubeUrl: 'https://www.youtube.com/watch?v=1Kxrq832kfM',
+        new: [
+            '==We have a calendar!== Click days in the calendar to create or open daily notes for a day. Daily notes with images will show feature images in the calendar!',
+            'New setting: ==Notes > Custom property to show custom property or word count==. You can now show properties or word count in file list! You can show multiple properties, and you can even color each property individually using other properties! You can also override what property to display (none, word count, or specific property) per folder or tag.',
+            'New setting: ==Notes > Parent folder > Show parent folder icon==. Enable to show parent folder icons in the list pane. New default is disabled.',
+            'New setting: ==Notes > Feature image > Exclude notes with properties==. You can now exclude notes with certain frontmatter properties from showing feature images.',
+            'New setting: ==General > Filtering > Hide files with tags (vault profile)==. You can now hide files with certain tags in the list pane. This makes it super easy to hide certain files by just dragging them to a tag.',
+            'New setting: ==Folders & tags > Open folder notes in new tab==. Enable to always open folder notes in a new tab instead of the current tab.',
+            'New setting: ==Advanced > Reset all settings==. Use this to reset all plugin settings to default values.',
+            'Three new theme variables: --nn-theme-foreground, --nn-theme-foreground-muted and --nn-theme-foreground-faded so you easily can adjust the look and feel of all text and images.',
+            'Six new style and theme settings for custom property tag pills - text, background, selected x 2, selected inactive x 2.',
+            'Two new menu commands: **Navigate to folder** and **Navigate to tag**. Access them from the root folder or root tag folder context menu.'
+        ],
+        improved: [
+            '**Lots of UI polish** in this release. Things look cleaner and should be easier on the eyes, especially in dark mode. Remember that you can modify all colors using the Style settings plugin.',
+            'Internal: **Improved cache rebuild performance** by slowing down tag tree updates during the process.',
+            'Internal: **Major rewrite of the metadata processing chain**. It is now a sequential pipeline instead of multiple providers working in parallel. It reads markdown content at most once per file and writes just one merged database update per file. This should make the cache system handle vaults of virtually any size.',
+            'You can now **hide the dual-pane button in the top-left corner** using Settings > General > Toolbar buttons.'
+        ],
+        changed: [
+            '==Behavior change==: In single-pane mode, clicking on a file in shortcuts, recent notes, in calendar or changing notes in the editor (with auto reveal enabled) will no longer switch over to list pane automatically. The old behavior was implemented before we had shortcuts and recent notes, and it was time to change it.',
+            '==Moved several UX settings to local storage== so they are not synced between devices. These are: pane transition duration, toolbar button visibility, navigation indentation, navigation item height, scale navigation text with item height, compact list item height, scale compact list text with item height.',
+            'Folder notes no longer default to showing text in bold and underline, instead their icon is now a file icon and they show underline on hover. This can be changed in Style settings.',
+            'Right-clicking the name of a folder with folder note now shows the file menu for the folder note. To access the folder - right click outside the name.',
+            'Excluded files, folders and properties in General > Filtering are now case-insensitive.',
+            'Removed the two style setting variables **nn-navigation-pane-transparent** and **nn-list-pane-transparent** since they did not look good with the new overlay transparency. I will investigate best way forward for those who want full window transparency.',
+            'Hide files by name, Hide folders by name, Hide note with properties are now case-insensitive.'
+        ],
+        fixed: [
+            'The rebuild cache process dialog now properly reappears after restarting Obsidian.',
+            'Fixed several issues in many of the language translations, such as missing placeholders and incorrect translations due to wrong context.',
+            'Fixed Excalidraw feature image generation to better handle large complex images with Latex symbols.',
+            'Fixed an issue where errors in Notes > Frontmatter settings were not appearing until switching tabs.',
+            'Fixed an issue where images containing single brackets [ and ] were not accepted as valid feature images.'
+        ]
     },
     {
         version: '2.0.4',

@@ -230,6 +230,7 @@ export interface LocalStorageKeys {
     fileCacheKey: string;
     databaseSchemaVersionKey: string;
     databaseContentVersionKey: string;
+    cacheRebuildNoticeKey: string;
     localStorageVersionKey: string;
     vaultProfileKey: string;
     releaseCheckTimestampKey: string;
@@ -237,6 +238,14 @@ export interface LocalStorageKeys {
     searchProviderKey: string;
     tagSortOrderKey: string;
     recentColorsKey: string;
+    paneTransitionDurationKey: string;
+    toolbarVisibilityKey: string;
+    navIndentKey: string;
+    navItemHeightKey: string;
+    navItemHeightScaleTextKey: string;
+    calendarWeeksToShowKey: string;
+    compactItemHeightKey: string;
+    compactItemHeightScaleTextKey: string;
 }
 
 /**
@@ -266,13 +275,22 @@ export const STORAGE_KEYS: LocalStorageKeys = {
     fileCacheKey: 'notebook-navigator-file-cache',
     databaseSchemaVersionKey: 'notebook-navigator-db-schema-version',
     databaseContentVersionKey: 'notebook-navigator-db-content-version',
+    cacheRebuildNoticeKey: 'notebook-navigator-cache-rebuild-notice',
     localStorageVersionKey: 'notebook-navigator-localstorage-version',
     vaultProfileKey: 'notebook-navigator-vault-profile',
     releaseCheckTimestampKey: 'notebook-navigator-release-check-timestamp',
     latestKnownReleaseKey: 'notebook-navigator-latest-known-release',
     searchProviderKey: 'notebook-navigator-search-provider',
     tagSortOrderKey: 'notebook-navigator-tag-sort-order',
-    recentColorsKey: 'notebook-navigator-recent-colors'
+    recentColorsKey: 'notebook-navigator-recent-colors',
+    paneTransitionDurationKey: 'notebook-navigator-pane-transition-duration',
+    toolbarVisibilityKey: 'notebook-navigator-toolbar-visibility',
+    navIndentKey: 'notebook-navigator-nav-indent',
+    navItemHeightKey: 'notebook-navigator-nav-item-height',
+    navItemHeightScaleTextKey: 'notebook-navigator-nav-item-height-scale-text',
+    calendarWeeksToShowKey: 'notebook-navigator-calendar-weeks-to-show',
+    compactItemHeightKey: 'notebook-navigator-compact-item-height',
+    compactItemHeightScaleTextKey: 'notebook-navigator-compact-item-height-scale-text'
 };
 
 export interface UXPreferences {
@@ -280,6 +298,7 @@ export interface UXPreferences {
     includeDescendantNotes: boolean;
     showHiddenItems: boolean;
     pinShortcuts: boolean;
+    showCalendar: boolean;
 }
 
 export type VisibilityPreferences = Pick<UXPreferences, 'includeDescendantNotes' | 'showHiddenItems'>;

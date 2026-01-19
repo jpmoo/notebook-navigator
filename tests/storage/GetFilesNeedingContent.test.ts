@@ -28,6 +28,7 @@ function createFileData(overrides: Partial<FileData>): FileData {
         metadataMtime: 0,
         fileThumbnailsMtime: 0,
         tags: [],
+        wordCount: null,
         customProperty: null,
         previewStatus: 'none',
         featureImage: null,
@@ -42,6 +43,8 @@ describe('IndexedDBStorage.getFilesNeedingContent', () => {
     it('ignores non-markdown files for tags and metadata', () => {
         const cache = new MemoryFileCache();
         cache.markInitialized();
+
+        const storage = new IndexedDBStorage('test', { cache });
 
         cache.updateFile(
             'docs/file.pdf',
@@ -60,11 +63,11 @@ describe('IndexedDBStorage.getFilesNeedingContent', () => {
             })
         );
 
-        const tagsNeeding = IndexedDBStorage.prototype.getFilesNeedingContent.call({ cache }, 'tags');
+        const tagsNeeding = storage.getFilesNeedingContent('tags');
         expect(tagsNeeding.has('notes/note.md')).toBe(true);
         expect(tagsNeeding.has('docs/file.pdf')).toBe(false);
 
-        const metadataNeeding = IndexedDBStorage.prototype.getFilesNeedingContent.call({ cache }, 'metadata');
+        const metadataNeeding = storage.getFilesNeedingContent('metadata');
         expect(metadataNeeding.has('notes/note.md')).toBe(true);
         expect(metadataNeeding.has('docs/file.pdf')).toBe(false);
     });

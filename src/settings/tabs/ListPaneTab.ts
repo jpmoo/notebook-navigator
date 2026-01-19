@@ -24,6 +24,7 @@ import { SORT_OPTIONS } from '../types';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { runAsyncAction } from '../../utils/async';
 import { createSettingGroupFactory } from '../settingGroups';
+import { addSettingSyncModeToggle } from '../syncModeToggle';
 import { createSubSettingsContainer, wireToggleSettingWithSubSettings } from '../subSettings';
 
 type QuickActionSettingKey =
@@ -230,7 +231,7 @@ export function renderListPaneTab(context: SettingsTabContext): void {
             );
     });
 
-    displayGroup.addSetting(setting => {
+    const includeDescendantNotesSetting = displayGroup.addSetting(setting => {
         setting
             .setName(strings.settings.items.includeDescendantNotes.name)
             .setDesc(strings.settings.items.includeDescendantNotes.desc)
@@ -241,6 +242,8 @@ export function renderListPaneTab(context: SettingsTabContext): void {
                 });
             });
     });
+
+    addSettingSyncModeToggle({ setting: includeDescendantNotesSetting, plugin, settingId: 'includeDescendantNotes' });
 
     displayGroup.addSetting(setting => {
         setting
@@ -281,9 +284,8 @@ export function renderListPaneTab(context: SettingsTabContext): void {
                     .setValue(plugin.settings.compactItemHeight)
                     .setInstant(false)
                     .setDynamicTooltip()
-                    .onChange(async value => {
-                        plugin.settings.compactItemHeight = value;
-                        await plugin.saveSettingsAndUpdate();
+                    .onChange(value => {
+                        plugin.setCompactItemHeight(value);
                     });
                 return slider;
             })
@@ -293,27 +295,29 @@ export function renderListPaneTab(context: SettingsTabContext): void {
                     .setTooltip(strings.settings.items.compactItemHeight.resetTooltip)
                     .onClick(() => {
                         // Reset item height to default without blocking the UI
-                        runAsyncAction(async () => {
+                        runAsyncAction(() => {
                             const defaultValue = DEFAULT_SETTINGS.compactItemHeight;
                             compactItemHeightSlider.setValue(defaultValue);
-                            plugin.settings.compactItemHeight = defaultValue;
-                            await plugin.saveSettingsAndUpdate();
+                            plugin.setCompactItemHeight(defaultValue);
                         });
                     })
             );
     });
 
+    addSettingSyncModeToggle({ setting: compactItemHeightSetting, plugin, settingId: 'compactItemHeight' });
+
     // Sub-setting container for compact item height options
     const compactItemHeightSettingsEl = createSubSettingsContainer(compactItemHeightSetting);
 
     // Toggle to scale text proportionally with compact item height
-    new Setting(compactItemHeightSettingsEl)
+    const compactItemHeightScaleTextSetting = new Setting(compactItemHeightSettingsEl)
         .setName(strings.settings.items.compactItemHeightScaleText.name)
         .setDesc(strings.settings.items.compactItemHeightScaleText.desc)
         .addToggle(toggle =>
-            toggle.setValue(plugin.settings.compactItemHeightScaleText).onChange(async value => {
-                plugin.settings.compactItemHeightScaleText = value;
-                await plugin.saveSettingsAndUpdate();
+            toggle.setValue(plugin.settings.compactItemHeightScaleText).onChange(value => {
+                plugin.setCompactItemHeightScaleText(value);
             })
         );
+
+    addSettingSyncModeToggle({ setting: compactItemHeightScaleTextSetting, plugin, settingId: 'compactItemHeightScaleText' });
 }

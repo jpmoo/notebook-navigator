@@ -146,19 +146,10 @@ export const ShortcutItem = React.memo(function ShortcutItem({
         return backgroundColor;
     }, [backgroundColor, isMissing]);
 
-    // Determines icon visibility based on section icons setting and shortcut type
+    // Determines icon visibility based on shortcuts/recent icons setting
     const shouldShowIcon = useMemo(() => {
-        if (!settings.showSectionIcons) {
-            return false;
-        }
-        if (type === 'folder') {
-            return settings.showFolderIcons;
-        }
-        if (type === 'tag') {
-            return settings.showTagIcons;
-        }
-        return true;
-    }, [settings.showFolderIcons, settings.showSectionIcons, settings.showTagIcons, type]);
+        return settings.showSectionIcons;
+    }, [settings.showSectionIcons]);
 
     const countSlot = useMemo(() => {
         if (!onRemove) {

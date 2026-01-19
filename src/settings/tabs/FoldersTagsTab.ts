@@ -22,6 +22,7 @@ import { isFolderNoteCreationPreference } from '../../types/folderNote';
 import { isTagSortOrder } from '../types';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { createSettingGroupFactory } from '../settingGroups';
+import { addSettingSyncModeToggle } from '../syncModeToggle';
 import { setElementVisible, wireToggleSettingWithSubSettings } from '../subSettings';
 
 /** Renders the folders and tags settings tab */
@@ -129,7 +130,9 @@ export function renderFoldersTagsTab(context: SettingsTabContext): void {
         }
     );
 
-    const enableFolderNotesSetting = foldersGroup.addSetting(setting => {
+    const folderNotesGroup = createGroup(strings.settings.sections.folderNotes);
+
+    const enableFolderNotesSetting = folderNotesGroup.addSetting(setting => {
         setting.setName(strings.settings.items.enableFolderNotes.name).setDesc(strings.settings.items.enableFolderNotes.desc);
     });
     const folderNotesSettingsEl = wireToggleSettingWithSubSettings(
@@ -191,6 +194,16 @@ export function renderFoldersTagsTab(context: SettingsTabContext): void {
     folderNotePropertiesSetting.controlEl.addClass('nn-setting-wide-input');
 
     new Setting(folderNotesSettingsEl)
+        .setName(strings.settings.items.openFolderNotesInNewTab.name)
+        .setDesc(strings.settings.items.openFolderNotesInNewTab.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.openFolderNotesInNewTab).onChange(async value => {
+                plugin.settings.openFolderNotesInNewTab = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
+    new Setting(folderNotesSettingsEl)
         .setName(strings.settings.items.hideFolderNoteInList.name)
         .setDesc(strings.settings.items.hideFolderNoteInList.desc)
         .addToggle(toggle =>
@@ -246,7 +259,7 @@ export function renderFoldersTagsTab(context: SettingsTabContext): void {
         );
 
     /** Setting for choosing tag sort order in the navigation pane */
-    new Setting(tagSubSettingsEl)
+    const tagSortOrderSetting = new Setting(tagSubSettingsEl)
         .setName(strings.settings.items.tagSortOrder.name)
         .setDesc(strings.settings.items.tagSortOrder.desc)
         .addDropdown(dropdown => {
@@ -263,6 +276,8 @@ export function renderFoldersTagsTab(context: SettingsTabContext): void {
                     plugin.setTagSortOrder(value);
                 });
         });
+
+    addSettingSyncModeToggle({ setting: tagSortOrderSetting, plugin, settingId: 'tagSortOrder' });
 
     new Setting(tagSubSettingsEl)
         .setName(strings.settings.items.showAllTagsFolder.name)

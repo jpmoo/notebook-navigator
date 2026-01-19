@@ -190,18 +190,6 @@ export const FolderItem = React.memo(function FolderItem({
     const customColor = color;
     // Determine whether to apply color to the folder name instead of the icon
     const applyColorToName = Boolean(customColor) && !settings.colorIconOnly;
-    const dragIconId = useMemo(() => {
-        if (icon) {
-            return icon;
-        }
-        if (folder.path === '/') {
-            return hasChildren && isExpanded ? 'open-vault' : 'vault';
-        }
-        return hasChildren && isExpanded
-            ? resolveUXIcon(settings.interfaceIcons, 'nav-folder-open')
-            : resolveUXIcon(settings.interfaceIcons, 'nav-folder-closed');
-    }, [folder.path, hasChildren, icon, isExpanded, settings.interfaceIcons]);
-    const customBackground = backgroundColor;
 
     const hasFolderNote = useMemo(() => {
         if (!settings.enableFolderNotes) return false;
@@ -211,6 +199,25 @@ export const FolderItem = React.memo(function FolderItem({
         // NOTE TO REVIEWER: Including **vaultChangeVersion** to react to new folder notes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [folder, settings, noteCounts.current, vaultChangeVersion]);
+
+    const isRootFolder = folder.path === '/';
+    const shouldShowFolderIcon = settings.showFolderIcons || isRootFolder;
+
+    const dragIconId = useMemo(() => {
+        if (icon) {
+            return icon;
+        }
+        if (isRootFolder) {
+            return hasChildren && isExpanded ? 'open-vault' : 'vault';
+        }
+        if (hasFolderNote) {
+            return resolveUXIcon(settings.interfaceIcons, 'nav-folder-note');
+        }
+        return hasChildren && isExpanded
+            ? resolveUXIcon(settings.interfaceIcons, 'nav-folder-open')
+            : resolveUXIcon(settings.interfaceIcons, 'nav-folder-closed');
+    }, [hasChildren, hasFolderNote, icon, isExpanded, isRootFolder, settings.interfaceIcons]);
+    const customBackground = backgroundColor;
 
     // Memoize className to avoid string concatenation on every render
     const className = useMemo(() => {
@@ -316,16 +323,20 @@ export const FolderItem = React.memo(function FolderItem({
 
     // Add this useEffect for the folder icon
     useEffect(() => {
-        if (iconRef.current && settings.showFolderIcons) {
+        if (iconRef.current && shouldShowFolderIcon) {
             const iconService = getIconService();
 
             if (icon) {
                 // Custom icon is set - always show it, never toggle
                 iconService.renderIcon(iconRef.current, icon);
-            } else if (folder.path === '/') {
+            } else if (isRootFolder) {
                 // Root folder - use vault icon (open/closed based on expansion state)
                 const vaultIconName = hasChildren && isExpanded ? 'open-vault' : 'vault';
                 iconService.renderIcon(iconRef.current, vaultIconName);
+            } else if (hasFolderNote) {
+                // Folder note - show folder note icon
+                const folderNoteIconName = resolveUXIcon(settings.interfaceIcons, 'nav-folder-note');
+                iconService.renderIcon(iconRef.current, folderNoteIconName);
             } else {
                 // Default icon - show open folder only if has children AND is expanded
                 const iconName =
@@ -335,7 +346,7 @@ export const FolderItem = React.memo(function FolderItem({
                 iconService.renderIcon(iconRef.current, iconName);
             }
         }
-    }, [hasChildren, icon, iconVersion, isExpanded, folder.path, settings.showFolderIcons, settings.interfaceIcons]);
+    }, [hasChildren, hasFolderNote, icon, iconVersion, isExpanded, isRootFolder, settings.interfaceIcons, shouldShowFolderIcon]);
 
     // Enable context menu
     const folderMenuConfig = disableContextMenu
@@ -348,8 +359,6 @@ export const FolderItem = React.memo(function FolderItem({
 
     useContextMenu(folderRef, folderMenuConfig);
 
-    // Don't allow dragging the root vault folder
-    const isRootFolder = folder.path === '/';
     const isDraggable = !isMobile && !isRootFolder;
 
     return (
@@ -394,7 +403,7 @@ export const FolderItem = React.memo(function FolderItem({
                     onDoubleClick={handleChevronDoubleClick}
                     tabIndex={-1}
                 />
-                {settings.showFolderIcons && (
+                {shouldShowFolderIcon && (
                     <span className="nn-navitem-icon" ref={iconRef} style={customColor ? { color: customColor } : undefined}></span>
                 )}
                 <span
@@ -403,7 +412,7 @@ export const FolderItem = React.memo(function FolderItem({
                     onClick={handleNameClick}
                     onMouseDown={handleNameMouseDown}
                 >
-                    {folder.path === '/' ? settings.customVaultName || app.vault.getName() : folder.name}
+                    {isRootFolder ? settings.customVaultName || app.vault.getName() : folder.name}
                 </span>
                 <span className="nn-navitem-spacer" />
                 {shouldDisplayCount && <span className="nn-navitem-count">{noteCountDisplay.label}</span>}

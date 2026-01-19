@@ -30,24 +30,35 @@ import { renderExcalidrawThumbnail } from './excalidraw/excalidrawThumbnail';
 import { renderPdfCoverThumbnail } from './pdf/pdfCoverThumbnail';
 import { detectImageMimeTypeFromBuffer, getImageDimensionsFromBuffer, normalizeImageMimeType } from './thumbnail/imageDimensions';
 import { createOnceLogger, createRenderBudgetLimiter, createRenderLimiter } from './thumbnail/thumbnailRuntimeUtils';
+import { LIMITS } from '../../constants/limits';
 
-const MAX_THUMBNAIL_WIDTH = 256;
-const MAX_THUMBNAIL_HEIGHT = 144;
-const THUMBNAIL_OUTPUT_MIME = 'image/webp';
+const MAX_THUMBNAIL_WIDTH = LIMITS.thumbnails.featureImage.maxWidth;
+const MAX_THUMBNAIL_HEIGHT = LIMITS.thumbnails.featureImage.maxHeight;
+const THUMBNAIL_OUTPUT_MIME = LIMITS.thumbnails.featureImage.output.mimeType;
 // iOS Safari has issues with WebP encoding in some contexts, so use PNG as fallback
-const IOS_THUMBNAIL_OUTPUT_MIME = 'image/png';
-const THUMBNAIL_OUTPUT_QUALITY = 0.75;
+const IOS_THUMBNAIL_OUTPUT_MIME = LIMITS.thumbnails.featureImage.output.iosMimeType;
+const THUMBNAIL_OUTPUT_QUALITY = LIMITS.thumbnails.featureImage.output.quality;
 // Per-request timeout for external image fetches.
 // YouTube thumbnails try multiple candidates, so total time can exceed this value.
-const EXTERNAL_REQUEST_TIMEOUT_MS = 10000;
+const EXTERNAL_REQUEST_TIMEOUT_MS = LIMITS.thumbnails.featureImage.externalRequest.timeoutMs;
 // Maximum lifetime for an external request before releasing the concurrency slot.
 // `requestUrl()` does not accept an AbortSignal, so timed-out requests can continue running in the background.
-const EXTERNAL_REQUEST_MAX_LIFETIME_MS = 60000;
+const EXTERNAL_REQUEST_MAX_LIFETIME_MS = LIMITS.thumbnails.featureImage.externalRequest.maxLifetimeMs;
 // Maximum number of timed-out external requests that may continue running while new requests proceed.
 // This bounds oversubscription when releasing limiter slots on timeout.
-const EXTERNAL_REQUEST_TIMEOUT_DEBT_MAX = Platform.isMobile ? 0 : 2;
-// Maximum total pixels that can be decoded concurrently on mobile devices
-const MOBILE_IMAGE_DECODE_BUDGET_PIXELS = 120_000_000;
+const EXTERNAL_REQUEST_TIMEOUT_DEBT_MAX = Platform.isMobile
+    ? LIMITS.thumbnails.featureImage.externalRequest.timeoutDebtMax.mobile
+    : LIMITS.thumbnails.featureImage.externalRequest.timeoutDebtMax.desktop;
+// Maximum total pixels that can be decoded concurrently on mobile devices.
+const MOBILE_IMAGE_DECODE_BUDGET_PIXELS = LIMITS.thumbnails.featureImage.imageDecodeBudgetPixels.mobile;
+const DESKTOP_IMAGE_DECODE_BUDGET_PIXELS = LIMITS.thumbnails.featureImage.imageDecodeBudgetPixels.desktop;
+// Maximum size (in bytes) of images read into memory before decoding/resizing.
+const MAX_LOCAL_IMAGE_BYTES = Platform.isMobile
+    ? LIMITS.thumbnails.featureImage.maxImageBytes.local.mobile
+    : LIMITS.thumbnails.featureImage.maxImageBytes.local.desktop;
+const MAX_EXTERNAL_IMAGE_BYTES = Platform.isMobile
+    ? LIMITS.thumbnails.featureImage.maxImageBytes.external.mobile
+    : LIMITS.thumbnails.featureImage.maxImageBytes.external.desktop;
 
 const SUPPORTED_IMAGE_MIME_TYPES = new Set([
     'image/jpeg',
@@ -90,9 +101,11 @@ export type FeatureImageThumbnailRuntime = {
 
 export function createFeatureImageThumbnailRuntime(): FeatureImageThumbnailRuntime {
     return {
-        externalRequestLimiter: createRenderLimiter(6),
-        imageDecodeLimiter: createRenderBudgetLimiter(Platform.isMobile ? MOBILE_IMAGE_DECODE_BUDGET_PIXELS : Number.MAX_SAFE_INTEGER),
-        thumbnailCanvasLimiter: createRenderLimiter(6),
+        externalRequestLimiter: createRenderLimiter(LIMITS.thumbnails.featureImage.externalRequest.parallelLimit),
+        imageDecodeLimiter: createRenderBudgetLimiter(
+            Platform.isMobile ? MOBILE_IMAGE_DECODE_BUDGET_PIXELS : DESKTOP_IMAGE_DECODE_BUDGET_PIXELS
+        ),
+        thumbnailCanvasLimiter: createRenderLimiter(LIMITS.thumbnails.featureImage.thumbnailCanvasParallelLimit),
         thumbnailCanvasPool: [],
         logOnce: createOnceLogger(),
         inFlightDownloads: new Map<string, Promise<ImageBuffer | null>>(),
@@ -108,7 +121,7 @@ export function getLocalFeatureImageKey(file: TFile): string {
  * Content provider for finding and storing feature images
  */
 export class FeatureImageContentProvider extends BaseContentProvider {
-    protected readonly PARALLEL_LIMIT: number = 10;
+    protected readonly PARALLEL_LIMIT: number = LIMITS.contentProvider.parallelLimit;
 
     private readonly thumbnailRuntime: FeatureImageThumbnailRuntime;
 
@@ -195,7 +208,7 @@ export class FeatureImageContentProvider extends BaseContentProvider {
     }
 
     protected async processFile(
-        job: { file: TFile; path: string[] },
+        job: { file: TFile; path: string },
         fileData: FileData | null,
         settings: NotebookNavigatorSettings
     ): Promise<ContentProviderProcessResult> {
@@ -226,10 +239,10 @@ export class FeatureImageContentProvider extends BaseContentProvider {
             const thumbnail = await this.createThumbnailBlob(reference, settings);
             if (!thumbnail) {
                 const empty = this.createEmptyBlob();
-                return { update: { path: job.file.path, featureImage: empty, featureImageKey }, processed: true };
+                return { update: { path: job.path, featureImage: empty, featureImageKey }, processed: true };
             }
 
-            return { update: { path: job.file.path, featureImage: thumbnail, featureImageKey }, processed: true };
+            return { update: { path: job.path, featureImage: thumbnail, featureImageKey }, processed: true };
         }
 
         const nextKey = '';
@@ -239,7 +252,7 @@ export class FeatureImageContentProvider extends BaseContentProvider {
         if (fileData && fileData.featureImageKey === nextKey) {
             return { update: null, processed: true };
         }
-        return { update: { path: job.file.path, featureImage: nextImage, featureImageKey: nextKey }, processed: true };
+        return { update: { path: job.path, featureImage: nextImage, featureImageKey: nextKey }, processed: true };
     }
 
     protected createEmptyBlob(): Blob {
@@ -253,7 +266,7 @@ export class FeatureImageContentProvider extends BaseContentProvider {
 
     // Renders an Excalidraw file to a resized thumbnail blob
     protected async createExcalidrawThumbnail(file: TFile): Promise<Blob | null> {
-        const pngBlob = await renderExcalidrawThumbnail(this.app, file, { scale: 1, padding: 0 });
+        const pngBlob = await renderExcalidrawThumbnail(this.app, file, { padding: 0 });
         if (!pngBlob) {
             return null;
         }
@@ -326,6 +339,14 @@ export class FeatureImageContentProvider extends BaseContentProvider {
     private async readLocalImage(file: TFile): Promise<ImageBuffer | null> {
         const mimeType = this.getMimeTypeFromExtension(file.extension);
         if (!mimeType) {
+            return null;
+        }
+
+        if (file.stat.size > MAX_LOCAL_IMAGE_BYTES) {
+            this.thumbnailRuntime.logOnce(
+                `featureImage-local-too-large:${MAX_LOCAL_IMAGE_BYTES}`,
+                `[${file.path}] Skipping local image (${file.stat.size} bytes) - file too large`
+            );
             return null;
         }
 
@@ -477,6 +498,14 @@ export class FeatureImageContentProvider extends BaseContentProvider {
                     return null;
                 }
 
+                if (response.arrayBuffer.byteLength > MAX_EXTERNAL_IMAGE_BYTES) {
+                    this.thumbnailRuntime.logOnce(
+                        `featureImage-external-too-large:${MAX_EXTERNAL_IMAGE_BYTES}:${trimmedUrl}`,
+                        `[${trimmedUrl}] Skipping external image (${response.arrayBuffer.byteLength} bytes) - file too large`
+                    );
+                    return null;
+                }
+
                 return { buffer: response.arrayBuffer, mimeType };
             } catch {
                 return null;
@@ -580,16 +609,7 @@ export class FeatureImageContentProvider extends BaseContentProvider {
             return null;
         }
 
-        // Reject images exceeding platform-specific pixel limits to prevent out-of-memory crashes.
         const pixelCount = dimensions.width * dimensions.height;
-        const maxPixels = Platform.isMobile ? 80_000_000 : 200_000_000;
-        if (pixelCount > maxPixels) {
-            this.thumbnailRuntime.logOnce(
-                `featureImage-too-large:${effectiveMimeType}:${dimensions.width}x${dimensions.height}:${source}`,
-                `[${source}] Skipping ${effectiveMimeType} (${dimensions.width}x${dimensions.height}) - image too large`
-            );
-            return null;
-        }
 
         const { width: targetWidth, height: targetHeight } = this.calculateThumbnailDimensions(dimensions.width, dimensions.height);
         if (targetWidth === dimensions.width && targetHeight === dimensions.height) {
@@ -609,7 +629,9 @@ export class FeatureImageContentProvider extends BaseContentProvider {
             }
 
             // Fallback decoding loads the full image into memory, so apply stricter limits.
-            const maxFallbackPixels = Platform.isMobile ? 16_000_000 : 80_000_000;
+            const maxFallbackPixels = Platform.isMobile
+                ? LIMITS.thumbnails.featureImage.maxFallbackPixels.mobile
+                : LIMITS.thumbnails.featureImage.maxFallbackPixels.desktop;
             if (pixelCount > maxFallbackPixels) {
                 this.thumbnailRuntime.logOnce(
                     `featureImage-fallback-skip:${effectiveMimeType}:${dimensions.width}x${dimensions.height}:${source}`,

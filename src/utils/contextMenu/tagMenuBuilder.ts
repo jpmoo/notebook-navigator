@@ -26,6 +26,7 @@ import { resetHiddenToggleIfNoSources } from '../exclusionUtils';
 import { setAsyncOnClick } from './menuAsyncHelpers';
 import { addShortcutRenameMenuItem } from './shortcutRenameMenuItem';
 import { addStyleMenu } from './styleMenuBuilder';
+import { resolveUXIconForMenu } from '../uxIcons';
 import { getVirtualTagCollection, isVirtualTagCollectionId } from '../virtualTagCollections';
 import { getActiveHiddenTags, getActiveVaultProfile } from '../vaultProfiles';
 import { resolveDisplayTagPath } from '../../services/tagOperations/TagOperationUtils';
@@ -37,20 +38,98 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
     const { tagPath, menu, services, settings, options } = params;
     const { app, metadataService, plugin, isMobile } = services;
 
-    let hasInitialItems = false;
-
     // Show tag name on mobile
     if (isMobile) {
-        hasInitialItems = true;
         menu.addItem((item: MenuItem) => {
             const label = isVirtualTagCollectionId(tagPath) ? getVirtualTagCollection(tagPath).getLabel() : `#${tagPath}`;
             item.setTitle(label).setIsLabel(true);
         });
+        menu.addSeparator();
     }
 
     // Add rename/delete options only for real tags (not virtual aggregations)
     const isVirtualTag = tagPath === UNTAGGED_TAG_ID || tagPath === TAGGED_TAG_ID;
 
+    // Change icon
+    if (settings.showTagIcons) {
+        menu.addItem((item: MenuItem) => {
+            setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeIcon).setIcon('lucide-image'), async () => {
+                const { IconPickerModal } = await import('../../modals/IconPickerModal');
+                const modal = new IconPickerModal(app, metadataService, tagPath, ItemType.TAG);
+                modal.open();
+            });
+        });
+    }
+
+    // Change color
+    menu.addItem((item: MenuItem) => {
+        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeColor).setIcon('lucide-palette'), async () => {
+            const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
+            const modal = new ColorPickerModal(app, metadataService, tagPath, ItemType.TAG, 'foreground');
+            modal.open();
+        });
+    });
+
+    // Change background color
+    menu.addItem((item: MenuItem) => {
+        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeBackground).setIcon('lucide-paint-bucket'), async () => {
+            const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
+            const modal = new ColorPickerModal(app, metadataService, tagPath, ItemType.TAG, 'background');
+            modal.open();
+        });
+    });
+
+    // These include inherited values; direct settings entries are used to decide which "remove" actions to show.
+    const tagIcon = metadataService.getTagIcon(tagPath);
+    const tagColorData = metadataService.getTagColorData(tagPath);
+    const tagColor = tagColorData.color;
+    const tagBackgroundColor = tagColorData.background;
+    const normalizedTagPath = normalizeTagPath(tagPath);
+    const directTagColor = normalizedTagPath ? settings.tagColors?.[normalizedTagPath] : undefined;
+    const directTagBackground = normalizedTagPath ? settings.tagBackgroundColors?.[normalizedTagPath] : undefined;
+
+    const hasRemovableIcon = Boolean(tagIcon);
+    const hasRemovableColor = Boolean(directTagColor);
+    const hasRemovableBackground = Boolean(directTagBackground);
+
+    addStyleMenu({
+        menu,
+        styleData: {
+            icon: tagIcon,
+            color: tagColor,
+            background: tagBackgroundColor
+        },
+        hasIcon: settings.showTagIcons,
+        hasColor: true,
+        hasBackground: true,
+        applyStyle: async clipboard => {
+            const { icon, color, background } = clipboard;
+            const actions: Promise<void>[] = [];
+
+            if (icon) {
+                actions.push(metadataService.setTagIcon(tagPath, icon));
+            }
+            if (color) {
+                actions.push(metadataService.setTagColor(tagPath, color));
+            }
+            if (background) {
+                actions.push(metadataService.setTagBackgroundColor(tagPath, background));
+            }
+
+            await Promise.all(actions);
+        },
+        removeIcon: hasRemovableIcon ? async () => metadataService.removeTagIcon(tagPath) : undefined,
+        removeColor: hasRemovableColor ? async () => metadataService.removeTagColor(tagPath) : undefined,
+        removeBackground: hasRemovableBackground ? async () => metadataService.removeTagBackgroundColor(tagPath) : undefined
+    });
+
+    const disableNavigationSeparatorActions = Boolean(options?.disableNavigationSeparatorActions);
+    const shouldAddShortcutSectionSeparator = Boolean(services.shortcuts) || !disableNavigationSeparatorActions;
+    if (shouldAddShortcutSectionSeparator) {
+        menu.addSeparator();
+    }
+
+    // Add to shortcuts / Remove from shortcuts
     if (services.shortcuts) {
         hasInitialItems = true;
         const { tagShortcutKeysByPath, addTagShortcut, removeShortcut, renameShortcut, shortcutMap, collections, getCollectionsWithShortcut, getShortcutInCollection, activeCollectionId } = services.shortcuts;
@@ -78,11 +157,16 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
 
         menu.addItem((item: MenuItem) => {
             if (existingShortcutKey) {
-                setAsyncOnClick(item.setTitle(strings.shortcuts.remove).setIcon('lucide-star-off'), async () => {
-                    await removeShortcut(existingShortcutKey);
-                });
+                setAsyncOnClick(
+                    item
+                        .setTitle(strings.shortcuts.remove)
+                        .setIcon(resolveUXIconForMenu(settings.interfaceIcons, 'nav-shortcuts', 'lucide-star-off')),
+                    async () => {
+                        await removeShortcut(existingShortcutKey);
+                    }
+                );
             } else {
-                setAsyncOnClick(item.setTitle(strings.shortcuts.add).setIcon('lucide-star'), async () => {
+                setAsyncOnClick(item.setTitle(strings.shortcuts.add).setIcon(resolveUXIconForMenu(settings.interfaceIcons, 'nav-shortcuts', 'lucide-star')), async () => {
                     if (collections.length > 1) {
                         // Show collection selection modal
                         const { ShortcutCollectionSelectionModal } = await import('../../modals/ShortcutCollectionSelectionModal');
@@ -129,9 +213,7 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
         menu.addSeparator();
     }
 
-    const disableNavigationSeparatorActions = Boolean(options?.disableNavigationSeparatorActions);
     if (!disableNavigationSeparatorActions) {
-        hasInitialItems = true;
         const tagSeparatorTarget = { type: 'tag', path: tagPath } as const;
         const hasSeparator = metadataService.hasNavigationSeparator(tagSeparatorTarget);
 
@@ -146,79 +228,6 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
             });
         });
     }
-
-    if (hasInitialItems) {
-        menu.addSeparator();
-    }
-
-    // Change icon
-    menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeIcon).setIcon('lucide-image'), async () => {
-            const { IconPickerModal } = await import('../../modals/IconPickerModal');
-            const modal = new IconPickerModal(app, metadataService, tagPath, ItemType.TAG);
-            modal.open();
-        });
-    });
-
-    // Change color
-    menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeColor).setIcon('lucide-palette'), async () => {
-            const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
-            const modal = new ColorPickerModal(app, metadataService, tagPath, ItemType.TAG, 'foreground');
-            modal.open();
-        });
-    });
-
-    // Change background color
-    menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeBackground).setIcon('lucide-paint-bucket'), async () => {
-            const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
-            const modal = new ColorPickerModal(app, metadataService, tagPath, ItemType.TAG, 'background');
-            modal.open();
-        });
-    });
-
-    const tagIcon = metadataService.getTagIcon(tagPath);
-    const tagColor = metadataService.getTagColor(tagPath);
-    const tagBackgroundColor = metadataService.getTagBackgroundColor(tagPath);
-    const normalizedTagPath = normalizeTagPath(tagPath);
-    const directTagColor = normalizedTagPath ? settings.tagColors?.[normalizedTagPath] : undefined;
-    const directTagBackground = normalizedTagPath ? settings.tagBackgroundColors?.[normalizedTagPath] : undefined;
-
-    const hasRemovableIcon = Boolean(tagIcon);
-    const hasRemovableColor = Boolean(directTagColor);
-    const hasRemovableBackground = Boolean(directTagBackground);
-
-    addStyleMenu({
-        menu,
-        styleData: {
-            icon: tagIcon,
-            color: tagColor,
-            background: tagBackgroundColor
-        },
-        hasIcon: true,
-        hasColor: true,
-        hasBackground: true,
-        applyStyle: async clipboard => {
-            const { icon, color, background } = clipboard;
-            const actions: Promise<void>[] = [];
-
-            if (icon) {
-                actions.push(metadataService.setTagIcon(tagPath, icon));
-            }
-            if (color) {
-                actions.push(metadataService.setTagColor(tagPath, color));
-            }
-            if (background) {
-                actions.push(metadataService.setTagBackgroundColor(tagPath, background));
-            }
-
-            await Promise.all(actions);
-        },
-        removeIcon: hasRemovableIcon ? async () => metadataService.removeTagIcon(tagPath) : undefined,
-        removeColor: hasRemovableColor ? async () => metadataService.removeTagColor(tagPath) : undefined,
-        removeBackground: hasRemovableBackground ? async () => metadataService.removeTagBackgroundColor(tagPath) : undefined
-    });
 
     const canHideTag = tagPath !== UNTAGGED_TAG_ID;
     const activeProfile = getActiveVaultProfile(plugin.settings);

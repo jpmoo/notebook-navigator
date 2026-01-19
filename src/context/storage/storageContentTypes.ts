@@ -16,27 +16,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type { TFile } from 'obsidian';
 import { NotebookNavigatorSettings } from '../../settings';
 import type { ContentProviderType, FileContentType } from '../../interfaces/IContentProvider';
-import { isCustomPropertyEnabled } from '../../utils/customPropertyUtils';
-import { getActiveHiddenFiles } from '../../utils/vaultProfiles';
+import { hasCustomPropertyFrontmatterFields } from '../../utils/customPropertyUtils';
+import { isMarkdownPath } from '../../utils/fileTypeUtils';
+import { getActiveHiddenFileProperties } from '../../utils/vaultProfiles';
 
 /**
  * Returns provider types that require Obsidian's metadata cache to be ready.
  */
 export function getMetadataDependentTypes(settings: NotebookNavigatorSettings): ContentProviderType[] {
     const types: ContentProviderType[] = [];
-    const customPropertyEnabled = isCustomPropertyEnabled(settings);
 
-    if (settings.showFilePreview || settings.showFeatureImage || customPropertyEnabled) {
-        types.push('markdownPipeline');
-    }
+    // Always include markdownPipeline so word count + custom properties can be persisted for future per-folder overrides.
+    types.push('markdownPipeline');
     if (settings.showTags) {
         types.push('tags');
     }
 
-    const hiddenFiles = getActiveHiddenFiles(settings);
-    if (settings.useFrontmatterMetadata || hiddenFiles.length > 0) {
+    const hiddenFileProperties = getActiveHiddenFileProperties(settings);
+    if (settings.useFrontmatterMetadata || hiddenFileProperties.length > 0) {
         types.push('metadata');
     }
 
@@ -49,6 +49,8 @@ export function getMetadataDependentTypes(settings: NotebookNavigatorSettings): 
 export function getCacheRebuildProgressTypes(settings: NotebookNavigatorSettings): FileContentType[] {
     const types = new Set<FileContentType>();
 
+    types.add('wordCount');
+
     if (settings.showFilePreview) {
         types.add('preview');
     }
@@ -56,8 +58,7 @@ export function getCacheRebuildProgressTypes(settings: NotebookNavigatorSettings
         types.add('featureImage');
     }
 
-    const customPropertyEnabled = isCustomPropertyEnabled(settings);
-    if (customPropertyEnabled) {
+    if (hasCustomPropertyFrontmatterFields(settings)) {
         types.add('customProperty');
     }
 
@@ -71,6 +72,33 @@ export function getCacheRebuildProgressTypes(settings: NotebookNavigatorSettings
 }
 
 /**
+ * Returns the number of files that will require processing for the provided content types.
+ */
+export function getContentWorkTotal(files: TFile[], types: FileContentType[]): number {
+    if (files.length === 0 || types.length === 0) {
+        return 0;
+    }
+
+    const needsFeatureImage = types.includes('featureImage');
+    if (needsFeatureImage) {
+        return files.length;
+    }
+
+    const needsMarkdownContent = types.some(type => type !== 'featureImage');
+    if (!needsMarkdownContent) {
+        return 0;
+    }
+
+    let total = 0;
+    for (const file of files) {
+        if (isMarkdownPath(file.path)) {
+            total += 1;
+        }
+    }
+    return total;
+}
+
+/**
  * Filters provider types to those currently enabled in settings.
  */
 export function resolveMetadataDependentTypes(
@@ -78,17 +106,16 @@ export function resolveMetadataDependentTypes(
     requested?: ContentProviderType[]
 ): ContentProviderType[] {
     const baseTypes = requested ?? getMetadataDependentTypes(settings);
-    const customPropertyEnabled = isCustomPropertyEnabled(settings);
 
     return baseTypes.filter(type => {
         if (type === 'markdownPipeline') {
-            return settings.showFilePreview || settings.showFeatureImage || customPropertyEnabled;
+            return true;
         }
         if (type === 'tags') {
             return settings.showTags;
         }
         if (type === 'metadata') {
-            return settings.useFrontmatterMetadata || getActiveHiddenFiles(settings).length > 0;
+            return settings.useFrontmatterMetadata || getActiveHiddenFileProperties(settings).length > 0;
         }
         return false;
     });

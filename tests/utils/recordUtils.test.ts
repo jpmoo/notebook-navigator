@@ -31,8 +31,8 @@ describe('sanitizeRecord', () => {
 
     it('drops inherited properties from the prototype chain', () => {
         const prototype = { inherited: 'skip' };
-        const record = Object.create(prototype);
-        record.own = 'keep';
+        const record: Record<string, string> = { own: 'keep' };
+        Object.setPrototypeOf(record, prototype);
 
         const sanitized = sanitizeRecord(record);
 
@@ -58,8 +58,8 @@ describe('ensureRecord', () => {
 
     it('sanitizes objects with prototypes by rebuilding entries only', () => {
         const proto = { inherited: 'skip' };
-        const record = Object.create(proto);
-        record.own = 'keep';
+        const record: Record<string, string> = { own: 'keep' };
+        Object.setPrototypeOf(record, proto);
 
         const ensured = ensureRecord(record);
 

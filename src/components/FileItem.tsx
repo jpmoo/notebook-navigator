@@ -49,7 +49,7 @@
 import React, { useRef, useMemo, useEffect, useState, useCallback, useId } from 'react';
 import { TFile, TFolder, setTooltip, setIcon } from 'obsidian';
 import { useServices } from '../context/ServicesContext';
-import type { FeatureImageStatus, FileContentChange } from '../storage/IndexedDBStorage';
+import type { CustomPropertyItem, FeatureImageStatus, FileContentChange } from '../storage/IndexedDBStorage';
 import { useMetadataService } from '../context/ServicesContext';
 import { useActiveProfile, useSettingsDerived, useSettingsState } from '../context/SettingsContext';
 import { useUXPreferences } from '../context/UXPreferencesContext';
@@ -68,6 +68,14 @@ import { openFileInContext } from '../utils/openFileInContext';
 import { FILE_VISIBILITY, getExtensionSuffix, isImageFile, shouldDisplayFile } from '../utils/fileTypeUtils';
 import { resolveFileDragIconId, resolveFileIconId } from '../utils/fileIconUtils';
 import { getDateField, naturalCompare } from '../utils/sortUtils';
+import { getCachedFileTags } from '../utils/tagUtils';
+import {
+    areCustomPropertyItemsEqual,
+    cloneCustomPropertyItems,
+    isSupportedCssColor,
+    parseStrictWikiLink,
+    type WikiLinkTarget
+} from '../utils/customPropertyUtils';
 import { shouldShowCustomPropertyRow, shouldShowFeatureImageArea } from '../utils/listPaneMeasurements';
 import { getIconService, useIconServiceVersion } from '../services/icons';
 import type { SearchResultMeta } from '../types/search';
@@ -75,12 +83,21 @@ import { createHiddenTagVisibility } from '../utils/tagPrefixMatcher';
 import { areStringArraysEqual, mergeRanges, NumericRange } from '../utils/arrayUtils';
 import { openAddTagToFilesModal } from '../utils/tagModalHelpers';
 import { getTagSearchModifierOperator } from '../utils/tagUtils';
+import { resolveUXIcon } from '../utils/uxIcons';
 import type { InclusionOperator } from '../utils/filterSearch';
+import { ServiceIcon } from './ServiceIcon';
 
 const FEATURE_IMAGE_MAX_ASPECT_RATIO = 16 / 9;
 const FEATURE_IMAGE_REGEN_THROTTLE_MS = 10000;
 const sortTagsAlphabetically = (tags: string[]): void => {
     tags.sort((firstTag, secondTag) => naturalCompare(firstTag, secondTag));
+};
+
+type CustomPropertyPill = {
+    value: string;
+    label: string;
+    wikiLink: WikiLinkTarget | null;
+    color?: string;
 };
 
 interface FileItemProps {
@@ -231,7 +248,7 @@ function ParentFolderLabel({ iconId, label, iconVersion, color, showIcon, applyC
     }, [iconId, iconVersion, showIcon]);
 
     return (
-        <div className="nn-parent-folder">
+        <div className="nn-parent-folder" data-dot-separator={showIcon ? 'false' : 'true'}>
             <div
                 className="nn-parent-folder-content"
                 data-reveal={isRevealEnabled ? 'true' : 'false'}
@@ -307,12 +324,13 @@ export const FileItem = React.memo(function FileItem({
 
         const preview = appearanceSettings.showPreview && file.extension === 'md' ? db.getCachedPreviewText(file.path) : '';
 
-        const tagList = [...(db.getCachedTags(file.path) ?? [])];
         // Pull the feature image key from the cache; blobs load asynchronously.
         const record = db.getFile(file.path);
+        const tagList = [...getCachedFileTags({ app, file, db, fileData: record })];
         const featureImageKey = record?.featureImageKey ?? null;
         const featureImageStatus: FeatureImageStatus = record?.featureImageStatus ?? 'unprocessed';
-        const customProperty = record?.customProperty ?? null;
+        const customProperty = cloneCustomPropertyItems(record?.customProperty ?? null);
+        const wordCount = record?.wordCount ?? null;
 
         let imageUrl: string | null = null;
         if (appearanceSettings.showImage && isImageFile(file)) {
@@ -323,7 +341,7 @@ export const FileItem = React.memo(function FileItem({
             }
         }
 
-        return { preview, tags: tagList, imageUrl, featureImageKey, featureImageStatus, customProperty };
+        return { preview, tags: tagList, imageUrl, featureImageKey, featureImageStatus, customProperty, wordCount };
     }, [appearanceSettings.showImage, appearanceSettings.showPreview, app, file, getDB]);
 
     // === State ===
@@ -339,7 +357,8 @@ export const FileItem = React.memo(function FileItem({
     const [featureImageKey, setFeatureImageKey] = useState<string | null>(initialData.featureImageKey);
     const [featureImageStatus, setFeatureImageStatus] = useState<FeatureImageStatus>(initialData.featureImageStatus);
     const [featureImageUrl, setFeatureImageUrl] = useState<string | null>(initialData.imageUrl);
-    const [customProperty, setCustomProperty] = useState<string | null>(initialData.customProperty);
+    const [customProperty, setCustomProperty] = useState<CustomPropertyItem[] | null>(initialData.customProperty);
+    const [wordCount, setWordCount] = useState<number | null>(initialData.wordCount);
     const [featureImageAspectRatio, setFeatureImageAspectRatio] = useState<number | null>(null);
     const [isFeatureImageHidden, setIsFeatureImageHidden] = useState(false);
     const [metadataVersion, setMetadataVersion] = useState(0);
@@ -353,6 +372,7 @@ export const FileItem = React.memo(function FileItem({
     const openInNewTabIconRef = useRef<HTMLDivElement>(null);
     const fileIconRef = useRef<HTMLSpanElement>(null);
     const featureImageObjectUrlRef = useRef<string | null>(null);
+    const featureImageImgRef = useRef<HTMLImageElement | null>(null);
     const lastFeatureImageRegenRef = useRef<{ key: string; at: number } | null>(null);
     // Unique ID for linking screen reader description to the file item
     const hiddenDescriptionId = useId();
@@ -494,18 +514,18 @@ export const FileItem = React.memo(function FileItem({
         [navigateToTag, onModifySearchWithTag, settings.multiSelectModifier, isMobile]
     );
 
-    // Get tag color
-    const getTagColor = useCallback(
-        (tag: string): string | undefined => {
-            return metadataService.getTagColor(tag);
+    const handleCustomPropertyWikilinkClick = useCallback(
+        (event: React.MouseEvent, wikiLink: WikiLinkTarget) => {
+            event.stopPropagation();
+            event.preventDefault();
+            void app.workspace.openLinkText(wikiLink.target, file.path, false);
         },
-        [metadataService]
+        [app.workspace, file.path]
     );
 
-    // Get tag background color
-    const getTagBackgroundColor = useCallback(
-        (tag: string): string | undefined => {
-            return metadataService.getTagBackgroundColor(tag);
+    const getTagColorData = useCallback(
+        (tag: string): { color?: string; background?: string } => {
+            return metadataService.getTagColorData(tag);
         },
         [metadataService]
     );
@@ -526,23 +546,25 @@ export const FileItem = React.memo(function FileItem({
 
     // Build color and background map for visible tags
     const tagColorData = useMemo(() => {
+        void settings.tagColors;
+        void settings.tagBackgroundColors;
+        void settings.inheritTagColors;
+
         if (!colorFileTags || visibleTags.length === 0) {
             return new Map<string, { color?: string; background?: string }>();
         }
 
+        // Cache resolved tag color/background for visible tags to avoid repeated ancestor checks.
         const entries = new Map<string, { color?: string; background?: string }>();
-        const tagColorOverrides = settings.tagColors;
-        const tagBackgroundOverrides = settings.tagBackgroundColors;
-
         visibleTags.forEach(tag => {
-            entries.set(tag, {
-                color: tagColorOverrides?.[tag] ?? getTagColor(tag),
-                background: tagBackgroundOverrides?.[tag] ?? getTagBackgroundColor(tag)
-            });
+            const data = getTagColorData(tag);
+            if (data.color || data.background) {
+                entries.set(tag, data);
+            }
         });
 
         return entries;
-    }, [colorFileTags, getTagBackgroundColor, getTagColor, settings.tagBackgroundColors, settings.tagColors, visibleTags]);
+    }, [colorFileTags, getTagColorData, settings.inheritTagColors, settings.tagBackgroundColors, settings.tagColors, visibleTags]);
 
     // Sort tags alphabetically and optionally prioritize colored tags
     const categorizedTags = useMemo(() => {
@@ -591,6 +613,130 @@ export const FileItem = React.memo(function FileItem({
         return true;
     }, [categorizedTags, isCompactMode, settings.showFileTags, settings.showFileTagsInCompactMode, settings.showTags]);
 
+    const customPropertyPills = useMemo<CustomPropertyPill[]>(() => {
+        if (appearanceSettings.customPropertyType === 'none') {
+            return [];
+        }
+        if (appearanceSettings.customPropertyType === 'wordCount') {
+            // Don't show `0`: it can mean "no words", a huge file (content read skipped), or an Excalidraw document.
+            if (typeof wordCount !== 'number' || !Number.isFinite(wordCount) || wordCount <= 0) {
+                return [];
+            }
+            const rawValue = Math.trunc(wordCount).toString();
+            return [{ value: rawValue, label: Math.trunc(wordCount).toLocaleString(), wikiLink: null }];
+        }
+
+        if (!customProperty || customProperty.length === 0) {
+            return [];
+        }
+
+        // Convert cached custom property data to renderable pill models.
+        const pills: CustomPropertyPill[] = [];
+        for (const entry of customProperty) {
+            const rawValue = entry.value;
+            if (rawValue.trim().length === 0) {
+                continue;
+            }
+
+            const wikiLink = parseStrictWikiLink(rawValue);
+            const label = wikiLink ? wikiLink.displayText : rawValue;
+            pills.push({ value: rawValue, label, wikiLink, color: entry.color });
+        }
+
+        return pills;
+    }, [appearanceSettings.customPropertyType, customProperty, wordCount]);
+
+    const customPropertyColorData = useMemo(() => {
+        void settings.tagColors;
+        void settings.tagBackgroundColors;
+        void settings.inheritTagColors;
+
+        // Precompute per-token styles (tag colors/backgrounds, or CSS color fallback) so each pill render is O(1).
+        const entries = new Map<
+            string,
+            {
+                style?: (React.CSSProperties & { '--nn-file-tag-custom-bg'?: string }) | undefined;
+                hasColor: boolean;
+                hasBackground: boolean;
+            }
+        >();
+
+        if (customPropertyPills.length === 0) {
+            return entries;
+        }
+
+        for (const pill of customPropertyPills) {
+            const colorToken = pill.color?.trim();
+            if (!colorToken || colorToken.length === 0) {
+                continue;
+            }
+            if (entries.has(colorToken)) {
+                continue;
+            }
+
+            const resolved = getTagColorData(colorToken);
+            const pillStyle: React.CSSProperties & { '--nn-file-tag-custom-bg'?: string } = {};
+
+            let hasColor = false;
+            let hasBackground = false;
+            if (resolved.background) {
+                pillStyle['--nn-file-tag-custom-bg'] = resolved.background;
+                hasBackground = true;
+            }
+            if (resolved.color) {
+                pillStyle.color = resolved.color;
+                hasColor = true;
+            }
+
+            if (!hasColor && !hasBackground && isSupportedCssColor(colorToken)) {
+                pillStyle.color = colorToken;
+                hasColor = true;
+            }
+
+            entries.set(colorToken, {
+                style: hasColor || hasBackground ? pillStyle : undefined,
+                hasColor,
+                hasBackground
+            });
+        }
+
+        return entries;
+    }, [customPropertyPills, getTagColorData, settings.inheritTagColors, settings.tagBackgroundColors, settings.tagColors]);
+
+    const shouldShowCustomProperty = useMemo(() => {
+        return shouldShowCustomPropertyRow({
+            customPropertyType: appearanceSettings.customPropertyType,
+            showCustomPropertyInCompactMode: settings.showCustomPropertyInCompactMode,
+            isCompactMode,
+            file,
+            wordCount,
+            customProperty
+        });
+    }, [appearanceSettings.customPropertyType, customProperty, file, isCompactMode, settings.showCustomPropertyInCompactMode, wordCount]);
+
+    const shouldShowPillRowIcons = useMemo(() => {
+        const tagPillsEnabled = settings.showTags && settings.showFileTags && (!isCompactMode || settings.showFileTagsInCompactMode);
+        const customPropertyPillsEnabled =
+            appearanceSettings.customPropertyType !== 'none' && (!isCompactMode || settings.showCustomPropertyInCompactMode);
+
+        return tagPillsEnabled && customPropertyPillsEnabled;
+    }, [
+        appearanceSettings.customPropertyType,
+        isCompactMode,
+        settings.showCustomPropertyInCompactMode,
+        settings.showFileTags,
+        settings.showFileTagsInCompactMode,
+        settings.showTags
+    ]);
+
+    const fileTagPillIconId = useMemo(() => resolveUXIcon(settings.interfaceIcons, 'nav-tag'), [settings.interfaceIcons]);
+    const customPropertyPillIconId = useMemo(() => {
+        return resolveUXIcon(
+            settings.interfaceIcons,
+            appearanceSettings.customPropertyType === 'wordCount' ? 'file-word-count' : 'file-custom-property'
+        );
+    }, [appearanceSettings.customPropertyType, settings.interfaceIcons]);
+
     const getTagDisplayName = useCallback(
         (tag: string): string => {
             if (settings.showFileTagAncestors) {
@@ -614,7 +760,7 @@ export const FileItem = React.memo(function FileItem({
             return null;
         }
 
-        return (
+        const tagContainer = (
             <div className="nn-file-tags">
                 {categorizedTags.map((tag, index) => {
                     const tagColors = tagColorData.get(tag);
@@ -640,7 +786,7 @@ export const FileItem = React.memo(function FileItem({
                             onClick={e => handleTagClick(e, tag)}
                             role="button"
                             tabIndex={0}
-                            style={Object.keys(tagStyle).length > 0 ? tagStyle : undefined}
+                            style={tagColor || tagBackground ? tagStyle : undefined}
                         >
                             {displayTag}
                         </span>
@@ -648,30 +794,77 @@ export const FileItem = React.memo(function FileItem({
                 })}
             </div>
         );
-    }, [categorizedTags, getTagDisplayName, handleTagClick, shouldShowFileTags, tagColorData]);
 
-    const customPropertyLabel = customProperty ?? '';
-    const shouldShowCustomProperty = useMemo(() => {
-        return shouldShowCustomPropertyRow({
-            customPropertyType: settings.customPropertyType,
-            showCustomPropertyInCompactMode: settings.showCustomPropertyInCompactMode,
-            isCompactMode,
-            file,
-            customProperty: customPropertyLabel
-        });
-    }, [customPropertyLabel, file, isCompactMode, settings.customPropertyType, settings.showCustomPropertyInCompactMode]);
+        if (!shouldShowPillRowIcons) {
+            return tagContainer;
+        }
+
+        return (
+            <div className="nn-file-pill-row nn-file-pill-row-tags">
+                <ServiceIcon iconId={fileTagPillIconId} className="nn-file-pill-row-icon nn-file-pill-row-icon-tags" aria-hidden={true} />
+                {tagContainer}
+            </div>
+        );
+    }, [categorizedTags, fileTagPillIconId, getTagDisplayName, handleTagClick, shouldShowFileTags, shouldShowPillRowIcons, tagColorData]);
 
     const renderCustomProperty = useCallback(() => {
         if (!shouldShowCustomProperty) {
             return null;
         }
 
-        return (
+        const customPropertyContent = (
             <div className="nn-file-custom-property-row">
-                <span className="nn-file-tag nn-file-custom-property">{customPropertyLabel}</span>
+                {customPropertyPills.map((pill, index) => {
+                    const wikiLink = pill.wikiLink;
+                    const isLinked = Boolean(wikiLink);
+                    const className = isLinked
+                        ? 'nn-file-tag nn-file-custom-property nn-clickable-tag'
+                        : 'nn-file-tag nn-file-custom-property';
+                    const colorToken = pill.color?.trim();
+                    const resolvedColorData = colorToken && colorToken.length > 0 ? customPropertyColorData.get(colorToken) : undefined;
+                    const hasColor = Boolean(resolvedColorData?.hasColor);
+                    const hasBackground = Boolean(resolvedColorData?.hasBackground);
+
+                    return (
+                        <span
+                            key={index}
+                            className={className}
+                            data-has-color={hasColor ? 'true' : undefined}
+                            data-has-background={hasBackground ? 'true' : undefined}
+                            onClick={wikiLink ? event => handleCustomPropertyWikilinkClick(event, wikiLink) : undefined}
+                            role={isLinked ? 'button' : undefined}
+                            tabIndex={isLinked ? 0 : undefined}
+                            style={resolvedColorData?.style}
+                        >
+                            {pill.label}
+                        </span>
+                    );
+                })}
             </div>
         );
-    }, [customPropertyLabel, shouldShowCustomProperty]);
+
+        if (!shouldShowPillRowIcons) {
+            return customPropertyContent;
+        }
+
+        return (
+            <div className="nn-file-pill-row nn-file-pill-row-custom-property">
+                <ServiceIcon
+                    iconId={customPropertyPillIconId}
+                    className="nn-file-pill-row-icon nn-file-pill-row-icon-custom-property"
+                    aria-hidden={true}
+                />
+                {customPropertyContent}
+            </div>
+        );
+    }, [
+        customPropertyPillIconId,
+        customPropertyColorData,
+        customPropertyPills,
+        handleCustomPropertyWikilinkClick,
+        shouldShowCustomProperty,
+        shouldShowPillRowIcons
+    ]);
 
     // Format display date based on current sort
     const displayDate = useMemo(() => {
@@ -765,15 +958,18 @@ export const FileItem = React.memo(function FileItem({
 
         if (shouldShowParentLabel && parentFolderSource.path !== '/') {
             // Use custom icon if set, otherwise use default folder icon
-            const customParentIcon = metadataService.getFolderIcon(parentFolderSource.path);
-            const fallbackParentIcon = parentFolderSource.path === '/' ? 'vault' : 'lucide-folder-closed';
+            const shouldShowParentFolderIcon = settings.showParentFolderIcon;
+            const customParentIcon = shouldShowParentFolderIcon ? metadataService.getFolderIcon(parentFolderSource.path) : undefined;
+            const fallbackParentIcon = 'lucide-folder-closed';
+
             const parentFolderColor = settings.showParentFolderColor ? metadataService.getFolderColor(parentFolderSource.path) : undefined;
+            const shouldShowParentFolderColor = Boolean(parentFolderColor);
             parentFolderMeta = {
                 name: parentFolderSource.name,
                 iconId: customParentIcon ?? fallbackParentIcon,
-                color: parentFolderColor,
-                applyColorToName: Boolean(parentFolderColor) && !settings.colorIconOnly,
-                showIcon: settings.showFolderIcons
+                color: shouldShowParentFolderColor ? parentFolderColor : undefined,
+                applyColorToName: shouldShowParentFolderColor && !settings.colorIconOnly,
+                showIcon: shouldShowParentFolderIcon
             };
         }
     }
@@ -822,6 +1018,29 @@ export const FileItem = React.memo(function FileItem({
         } as React.CSSProperties;
     }, [featureImageAspectRatio, featureImageUrl, settings.forceSquareFeatureImage]);
 
+    const handleFeatureImageLoad = useCallback(() => {
+        if (!featureImageUrl || settings.forceSquareFeatureImage) {
+            return;
+        }
+
+        const image = featureImageImgRef.current;
+        if (!image) {
+            return;
+        }
+
+        const width = image.naturalWidth || image.width || 0;
+        const height = image.naturalHeight || image.height || 0;
+
+        if (width <= 0 || height <= 0) {
+            setFeatureImageAspectRatio(null);
+            return;
+        }
+
+        const ratio = width / height;
+        const clampedRatio = Math.min(ratio, FEATURE_IMAGE_MAX_ASPECT_RATIO);
+        setFeatureImageAspectRatio(clampedRatio);
+    }, [featureImageUrl, settings.forceSquareFeatureImage]);
+
     // Memoize className to avoid string concatenation on every render
     const className = useMemo(() => {
         const classes = ['nn-file'];
@@ -849,7 +1068,8 @@ export const FileItem = React.memo(function FileItem({
             tags: initialTags,
             featureImageKey: initialFeatureImageKey,
             featureImageStatus: initialFeatureImageStatus,
-            customProperty: initialCustomProperty
+            customProperty: initialCustomProperty,
+            wordCount: initialWordCount
         } = loadFileData();
 
         // Only update state if values actually changed to prevent unnecessary re-renders
@@ -857,7 +1077,8 @@ export const FileItem = React.memo(function FileItem({
         setTags(prev => (areStringArraysEqual(prev, initialTags) ? prev : initialTags));
         setFeatureImageKey(prev => (prev === initialFeatureImageKey ? prev : initialFeatureImageKey));
         setFeatureImageStatus(prev => (prev === initialFeatureImageStatus ? prev : initialFeatureImageStatus));
-        setCustomProperty(prev => (prev === initialCustomProperty ? prev : initialCustomProperty));
+        setCustomProperty(prev => (areCustomPropertyItemsEqual(prev, initialCustomProperty) ? prev : initialCustomProperty));
+        setWordCount(prev => (prev === initialWordCount ? prev : initialWordCount));
 
         const db = getDB();
         const unsubscribe = db.onFileContentChange(file.path, (changes: FileContentChange['changes']) => {
@@ -879,10 +1100,14 @@ export const FileItem = React.memo(function FileItem({
                 const nextTags = [...(changes.tags ?? [])];
                 setTags(prev => (areStringArraysEqual(prev, nextTags) ? prev : nextTags));
             }
+            if (changes.wordCount !== undefined) {
+                const nextWordCount = changes.wordCount ?? null;
+                setWordCount(prev => (prev === nextWordCount ? prev : nextWordCount));
+            }
             // Update custom property when it changes
             if (changes.customProperty !== undefined) {
-                const nextCustomProperty = changes.customProperty ?? null;
-                setCustomProperty(prev => (prev === nextCustomProperty ? prev : nextCustomProperty));
+                const nextCustomProperty = cloneCustomPropertyItems(changes.customProperty ?? null);
+                setCustomProperty(prev => (areCustomPropertyItemsEqual(prev, nextCustomProperty) ? prev : nextCustomProperty));
             }
             // Trigger metadata refresh when frontmatter changes
             if (changes.metadata !== undefined) {
@@ -990,38 +1215,18 @@ export const FileItem = React.memo(function FileItem({
         }
 
         setFeatureImageAspectRatio(null);
-
-        let isActive = true;
-        const image = new Image();
-
-        const applyAspectRatio = (width: number, height: number) => {
-            if (!isActive) {
-                return;
+        // If the already-rendered image is cached and completes synchronously,
+        // compute the aspect ratio immediately without forcing a second decode.
+        const image = featureImageImgRef.current;
+        if (image && image.complete) {
+            const width = image.naturalWidth || image.width || 0;
+            const height = image.naturalHeight || image.height || 0;
+            if (width > 0 && height > 0) {
+                const ratio = width / height;
+                const clampedRatio = Math.min(ratio, FEATURE_IMAGE_MAX_ASPECT_RATIO);
+                setFeatureImageAspectRatio(clampedRatio);
             }
-            if (width <= 0 || height <= 0) {
-                setFeatureImageAspectRatio(null);
-                return;
-            }
-            const ratio = width / height;
-            const clampedRatio = Math.min(ratio, FEATURE_IMAGE_MAX_ASPECT_RATIO);
-            setFeatureImageAspectRatio(clampedRatio);
-        };
-
-        image.onload = () => applyAspectRatio(image.naturalWidth, image.naturalHeight);
-        image.onerror = () => {
-            if (isActive) {
-                setFeatureImageAspectRatio(null);
-            }
-        };
-        image.src = featureImageUrl;
-
-        if (image.complete && image.naturalWidth > 0 && image.naturalHeight > 0) {
-            applyAspectRatio(image.naturalWidth, image.naturalHeight);
         }
-
-        return () => {
-            isActive = false;
-        };
     }, [featureImageUrl, settings.forceSquareFeatureImage]);
 
     // Add Obsidian tooltip (desktop only)
@@ -1358,7 +1563,7 @@ export const FileItem = React.memo(function FileItem({
                     ) : null}
                     {isCompactMode ? (
                         // ========== COMPACT MODE ==========
-                        // Minimal layout: only file name + tags
+                        // Minimal layout: file name + pills
                         // Used when date, preview, and image are all disabled
                         <div className="nn-compact-file-text-content">
                             <div className="nn-compact-file-header">
@@ -1371,8 +1576,8 @@ export const FileItem = React.memo(function FileItem({
                                     </div>
                                 ) : null}
                             </div>
-                            {renderTags()}
                             {renderCustomProperty()}
+                            {renderTags()}
                         </div>
                     ) : (
                         // ========== NORMAL MODE ==========
@@ -1383,7 +1588,7 @@ export const FileItem = React.memo(function FileItem({
 
                                 {/* ========== SINGLE LINE MODE ========== */}
                                 {/* Conditions: pinnedItemShouldUseCompactLayout OR previewRows < 2 */}
-                                {/* Layout: Date+Preview share one line, tags below, parent folder last */}
+                                {/* Layout: Date+Preview share one line, pills below, parent folder last */}
                                 {shouldUseSingleLineForDateAndPreview && (
                                     <>
                                         {/* Date + Preview on same line */}
@@ -1396,9 +1601,9 @@ export const FileItem = React.memo(function FileItem({
                                             )}
                                         </div>
 
-                                        {/* Tags */}
-                                        {renderTags()}
+                                        {/* Pills */}
                                         {renderCustomProperty()}
+                                        {renderTags()}
 
                                         {/* Parent folder - gets its own line */}
                                         {renderParentFolder()}
@@ -1412,12 +1617,12 @@ export const FileItem = React.memo(function FileItem({
                                     <>
                                         {/* CASE 1: COLLAPSED EMPTY PREVIEW */}
                                         {/* Conditions: heightOptimizationEnabled AND !hasPreviewContent */}
-                                        {/* Layout: Tags first, then Date+Parent on same line (compact) */}
+                                        {/* Layout: Pills, then Date+Parent on same line (compact) */}
                                         {shouldCollapseEmptyPreviewSpace && (
                                             <>
-                                                {/* Tags (show even when no preview text) */}
-                                                {renderTags()}
+                                                {/* Pills (show even when no preview text) */}
                                                 {renderCustomProperty()}
+                                                {renderTags()}
                                                 {/* Date + Parent folder share the second line (compact layout) */}
                                                 <div className="nn-file-second-line">
                                                     {settings.showFileDate && <div className="nn-file-date">{displayDate}</div>}
@@ -1441,9 +1646,9 @@ export const FileItem = React.memo(function FileItem({
                                                     </div>
                                                 )}
 
-                                                {/* Tags row */}
-                                                {renderTags()}
+                                                {/* Pills */}
                                                 {renderCustomProperty()}
+                                                {renderTags()}
 
                                                 {/* Date + Parent folder share the metadata line */}
                                                 <div className="nn-file-second-line">
@@ -1464,8 +1669,10 @@ export const FileItem = React.memo(function FileItem({
                                             src={featureImageUrl}
                                             alt={strings.common.featureImageAlt}
                                             className="nn-feature-image-img"
+                                            ref={featureImageImgRef}
                                             draggable={false}
                                             onDragStart={e => e.preventDefault()}
+                                            onLoad={handleFeatureImageLoad}
                                             // Hide the image container when image fails to load
                                             onError={() => {
                                                 setIsFeatureImageHidden(true);

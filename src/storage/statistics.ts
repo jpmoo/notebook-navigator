@@ -57,15 +57,147 @@ export interface CacheStatistics {
     // Failed date parsing counts
     itemsWithFailedCreatedParse: number;
     itemsWithFailedModifiedParse: number;
-    // Full paths of files with failed parsing
-    failedCreatedFiles: string[];
-    failedModifiedFiles: string[];
 }
 
 function estimateFileDataSizeBytes(fileData: FileData): number {
     // Exclude blobs from size estimates; the main store keeps featureImage null.
     const jsonSizeBytes = JSON.stringify({ ...fileData, featureImage: null }).length;
     return jsonSizeBytes;
+}
+
+export interface MetadataParsingStatistics {
+    itemsWithMetadataName: number;
+    itemsWithMetadataCreated: number;
+    itemsWithMetadataModified: number;
+    itemsWithMetadataIcon: number;
+    itemsWithMetadataColor: number;
+    itemsWithFailedCreatedParse: number;
+    itemsWithFailedModifiedParse: number;
+}
+
+/**
+ * Calculate metadata parsing statistics from the database.
+ * Streams only the main file store and skips preview/blob stores.
+ *
+ * @returns Metadata parsing statistics or null on error
+ */
+export async function calculateMetadataParsingStatistics(
+    settings: NotebookNavigatorSettings,
+    showHiddenItems: boolean
+): Promise<MetadataParsingStatistics | null> {
+    try {
+        const db = getDBInstance();
+
+        const hiddenFolders = getActiveHiddenFolders(settings);
+        const excludedFolderPatterns = showHiddenItems ? [] : hiddenFolders;
+
+        const stats: MetadataParsingStatistics = {
+            itemsWithMetadataName: 0,
+            itemsWithMetadataCreated: 0,
+            itemsWithMetadataModified: 0,
+            itemsWithMetadataIcon: 0,
+            itemsWithMetadataColor: 0,
+            itemsWithFailedCreatedParse: 0,
+            itemsWithFailedModifiedParse: 0
+        };
+
+        db.forEachFile((path, fileData) => {
+            if (excludedFolderPatterns.length > 0 && isPathInExcludedFolder(path, excludedFolderPatterns)) {
+                return;
+            }
+
+            const metadata = fileData.metadata;
+            if (!metadata) {
+                return;
+            }
+
+            if (metadata.name) {
+                stats.itemsWithMetadataName++;
+            }
+
+            const hasValidIcon = typeof metadata.icon === 'string' && metadata.icon.trim().length > 0;
+            if (hasValidIcon) {
+                stats.itemsWithMetadataIcon++;
+            }
+
+            const hasValidColor = typeof metadata.color === 'string' && metadata.color.trim().length > 0;
+            if (hasValidColor) {
+                stats.itemsWithMetadataColor++;
+            }
+
+            if (metadata.created !== undefined && metadata.created !== METADATA_SENTINEL.FIELD_NOT_CONFIGURED) {
+                if (metadata.created === METADATA_SENTINEL.PARSE_FAILED) {
+                    stats.itemsWithFailedCreatedParse++;
+                } else {
+                    stats.itemsWithMetadataCreated++;
+                }
+            }
+
+            if (metadata.modified !== undefined && metadata.modified !== METADATA_SENTINEL.FIELD_NOT_CONFIGURED) {
+                if (metadata.modified === METADATA_SENTINEL.PARSE_FAILED) {
+                    stats.itemsWithFailedModifiedParse++;
+                } else {
+                    stats.itemsWithMetadataModified++;
+                }
+            }
+        });
+
+        return stats;
+    } catch (error) {
+        console.error('Failed to calculate metadata parsing statistics:', error);
+        return null;
+    }
+}
+
+export interface MetadataParsingFailurePaths {
+    failedCreatedFiles: string[];
+    failedModifiedFiles: string[];
+}
+
+/**
+ * Calculate paths for files where metadata date parsing failed.
+ *
+ * This is computed on-demand (for export) to avoid allocating large path arrays during live refreshes.
+ *
+ * @returns Failure path lists or null on error
+ */
+export async function calculateMetadataParsingFailurePaths(
+    settings: NotebookNavigatorSettings,
+    showHiddenItems: boolean
+): Promise<MetadataParsingFailurePaths | null> {
+    try {
+        const db = getDBInstance();
+
+        const hiddenFolders = getActiveHiddenFolders(settings);
+        const excludedFolderPatterns = showHiddenItems ? [] : hiddenFolders;
+
+        const failedCreatedFiles: string[] = [];
+        const failedModifiedFiles: string[] = [];
+
+        db.forEachFile((path, fileData) => {
+            if (excludedFolderPatterns.length > 0 && isPathInExcludedFolder(path, excludedFolderPatterns)) {
+                return;
+            }
+
+            const metadata = fileData.metadata;
+            if (!metadata) {
+                return;
+            }
+
+            if (metadata.created === METADATA_SENTINEL.PARSE_FAILED) {
+                failedCreatedFiles.push(path);
+            }
+
+            if (metadata.modified === METADATA_SENTINEL.PARSE_FAILED) {
+                failedModifiedFiles.push(path);
+            }
+        });
+
+        return { failedCreatedFiles, failedModifiedFiles };
+    } catch (error) {
+        console.error('Failed to calculate metadata parsing failure paths:', error);
+        return null;
+    }
 }
 
 /**
@@ -98,9 +230,7 @@ export async function calculateCacheStatistics(
             itemsWithMetadataIcon: 0,
             itemsWithMetadataColor: 0,
             itemsWithFailedCreatedParse: 0,
-            itemsWithFailedModifiedParse: 0,
-            failedCreatedFiles: [],
-            failedModifiedFiles: []
+            itemsWithFailedModifiedParse: 0
         };
 
         let totalSize = 0;
@@ -156,7 +286,6 @@ export async function calculateCacheStatistics(
                 if (fileData.metadata.created !== undefined && fileData.metadata.created !== METADATA_SENTINEL.FIELD_NOT_CONFIGURED) {
                     if (fileData.metadata.created === METADATA_SENTINEL.PARSE_FAILED) {
                         stats.itemsWithFailedCreatedParse++;
-                        stats.failedCreatedFiles.push(path);
                     } else {
                         stats.itemsWithMetadataCreated++;
                     }
@@ -166,7 +295,6 @@ export async function calculateCacheStatistics(
                 if (fileData.metadata.modified !== undefined && fileData.metadata.modified !== METADATA_SENTINEL.FIELD_NOT_CONFIGURED) {
                     if (fileData.metadata.modified === METADATA_SENTINEL.PARSE_FAILED) {
                         stats.itemsWithFailedModifiedParse++;
-                        stats.failedModifiedFiles.push(path);
                     } else {
                         stats.itemsWithMetadataModified++;
                     }

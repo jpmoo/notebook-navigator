@@ -23,7 +23,14 @@ import { LISTPANE_MEASUREMENTS, NAVPANE_MEASUREMENTS, type PinnedNotes } from '.
 import { DEFAULT_UI_SCALE } from '../utils/uiScale';
 import type { FolderAppearance, TagAppearance } from '../hooks/useListPaneAppearance';
 import type { NotebookNavigatorSettings } from './types';
+import { SYNC_MODE_SETTING_IDS, type SettingSyncMode } from './types';
 import { sanitizeRecord } from '../utils/recordUtils';
+import { DEFAULT_CALENDAR_CUSTOM_FILE_PATTERN } from '../utils/calendarCustomNotePatterns';
+
+const defaultSettingsSync = sanitizeRecord<SettingSyncMode>(undefined);
+SYNC_MODE_SETTING_IDS.forEach(settingId => {
+    defaultSettingsSync[settingId] = 'synced';
+});
 
 /**
  * Default settings for the plugin
@@ -38,14 +45,16 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
             fileVisibility: FILE_VISIBILITY.SUPPORTED,
             hiddenFolders: [],
             hiddenTags: [],
-            hiddenFiles: [],
-            hiddenFileNamePatterns: [],
+            hiddenFileNames: [],
+            hiddenFileTags: [],
+            hiddenFileProperties: [],
             navigationBanner: null,
             shortcuts: []
         }
     ],
     vaultProfile: 'default',
     vaultTitle: 'navigation',
+    syncModes: defaultSettingsSync,
 
     // General tab - Behavior
     autoRevealActiveFile: true,
@@ -63,6 +72,8 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     useMobileHomepage: false,
 
     // General tab - Desktop appearance
+    dualPane: true,
+    dualPaneOrientation: 'horizontal',
     showTooltips: false,
     showTooltipPath: true,
     desktopBackground: 'separate',
@@ -87,12 +98,28 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     showRecentNotes: true,
     recentNotesCount: 5,
 
+    // Navigation pane tab - Calendar
+    showCalendar: false,
+    calendarLocale: 'system-default',
+    calendarWeeksToShow: 1,
+    calendarHighlightToday: true,
+    calendarShowWeekNumber: false,
+    calendarConfirmBeforeCreate: true,
+
+    // Navigation pane tab - Calendar integration
+    calendarIntegrationMode: 'daily-notes',
+    calendarCustomRootFolder: '',
+    calendarCustomFilePattern: DEFAULT_CALENDAR_CUSTOM_FILE_PATTERN,
+    calendarCustomPromptForTitle: true,
+
     // Navigation pane tab - Appearance
     colorIconOnly: false,
     showColorsInShortcutsOnly: false,
     toolbarVisibility: {
         navigation: {
+            toggleDualPane: true,
             expandCollapse: true,
+            calendar: true,
             hiddenItems: true,
             rootReorder: true,
             newFolder: true
@@ -107,10 +134,10 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     },
     showNoteCount: true,
     separateNoteCounts: true,
+    rootLevelSpacing: 0,
     navIndent: NAVPANE_MEASUREMENTS.defaultIndent,
     navItemHeight: NAVPANE_MEASUREMENTS.defaultItemHeight,
     navItemHeightScaleText: true,
-    rootLevelSpacing: 0,
 
     // Folders & tags tab
     autoSelectFirstFileOnFocusChange: false,
@@ -126,6 +153,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     folderNoteType: 'markdown',
     folderNoteName: '',
     folderNoteProperties: '',
+    openFolderNotesInNewTab: false,
     hideFolderNoteInList: true,
     pinCreatedFolderNote: false,
     showTags: true,
@@ -137,6 +165,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
 
     // List pane tab
     defaultListMode: 'standard',
+    includeDescendantNotes: false,
     defaultFolderSort: 'modified-desc',
     revealFileOnListChanges: true,
     listPaneTitle: 'header',
@@ -177,6 +206,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     previewProperties: [],
     showFeatureImage: true,
     featureImageProperties: [],
+    featureImageExcludeProperties: [],
     forceSquareFeatureImage: true,
     downloadExternalFeatureImages: true,
     showFileTags: true,
@@ -185,14 +215,16 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     showFileTagAncestors: false,
     showFileTagsInCompactMode: false,
     customPropertyType: 'none',
-    customPropertyFrontmatterFields: '',
+    customPropertyFields: '',
+    customPropertyColorFields: '',
     showCustomPropertyInCompactMode: false,
     showFileDate: true,
     // Default to showing modified date when sorting alphabetically
     alphabeticalDateMode: 'modified',
     showParentFolder: true,
     parentFolderClickRevealsFile: false,
-    showParentFolderColor: true,
+    showParentFolderColor: false,
+    showParentFolderIcon: false,
 
     // Icon packs tab
     externalIconProviders: {},

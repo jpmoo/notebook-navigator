@@ -19,7 +19,15 @@
 import type { NotebookNavigatorSettings } from '../settings';
 import type { App, TFile } from 'obsidian';
 import { isFolderInExcludedFolder, shouldExcludeFile, shouldExcludeFileName } from './fileFilters';
-import { getActiveHiddenFileNamePatterns, getActiveHiddenFiles, getActiveHiddenFolders, getActiveHiddenTags } from './vaultProfiles';
+import {
+    getActiveHiddenFileNames,
+    getActiveHiddenFileTags,
+    getActiveHiddenFileProperties,
+    getActiveHiddenFolders,
+    getActiveHiddenTags
+} from './vaultProfiles';
+import { createHiddenTagVisibility } from './tagPrefixMatcher';
+import { getCachedFileTags } from './tagUtils';
 
 // Shared empty array used when hidden items are shown to signal no exclusions should apply
 const NO_EXCLUSIONS: string[] = [];
@@ -34,7 +42,7 @@ export function getEffectiveFrontmatterExclusions(settings: NotebookNavigatorSet
     if (showHiddenItems) {
         return NO_EXCLUSIONS;
     }
-    return getActiveHiddenFiles(settings);
+    return getActiveHiddenFileProperties(settings);
 }
 
 /**
@@ -43,10 +51,17 @@ export function getEffectiveFrontmatterExclusions(settings: NotebookNavigatorSet
  */
 export function hasHiddenItemSources(settings: NotebookNavigatorSettings): boolean {
     const hiddenFolders = getActiveHiddenFolders(settings);
-    const hiddenFiles = getActiveHiddenFiles(settings);
-    const hiddenFileNamePatterns = getActiveHiddenFileNamePatterns(settings);
+    const hiddenFileProperties = getActiveHiddenFileProperties(settings);
+    const hiddenFileNames = getActiveHiddenFileNames(settings);
+    const hiddenFileTags = getActiveHiddenFileTags(settings);
     const hiddenTags = getActiveHiddenTags(settings);
-    return hiddenFolders.length > 0 || hiddenTags.length > 0 || hiddenFiles.length > 0 || hiddenFileNamePatterns.length > 0;
+    return (
+        hiddenFolders.length > 0 ||
+        hiddenTags.length > 0 ||
+        hiddenFileTags.length > 0 ||
+        hiddenFileProperties.length > 0 ||
+        hiddenFileNames.length > 0
+    );
 }
 
 /**
@@ -70,15 +85,27 @@ export function isFileHiddenBySettings(file: TFile, settings: NotebookNavigatorS
     if (!file || showHiddenItems) {
         return false;
     }
-    const hiddenFiles = getActiveHiddenFiles(settings);
+    const hiddenFileProperties = getActiveHiddenFileProperties(settings);
     const hiddenFolders = getActiveHiddenFolders(settings);
-    const hiddenFileNamePatterns = getActiveHiddenFileNamePatterns(settings);
-    const hasHiddenFrontmatter = file.extension === 'md' && hiddenFiles.length > 0 && shouldExcludeFile(file, hiddenFiles, app);
+    const hiddenFileNames = getActiveHiddenFileNames(settings);
+    const hiddenFileTags = getActiveHiddenFileTags(settings);
+    const hasHiddenFrontmatter =
+        file.extension === 'md' && hiddenFileProperties.length > 0 && shouldExcludeFile(file, hiddenFileProperties, app);
     if (hasHiddenFrontmatter) {
         return true;
     }
 
-    if (hiddenFileNamePatterns.length > 0 && shouldExcludeFileName(file, hiddenFileNamePatterns)) {
+    if (hiddenFileTags.length > 0 && file.extension === 'md') {
+        const visibility = createHiddenTagVisibility(hiddenFileTags, false);
+        if (visibility.hasHiddenRules) {
+            const tags = getCachedFileTags({ app, file });
+            if (tags.some(tag => !visibility.isTagVisible(tag))) {
+                return true;
+            }
+        }
+    }
+
+    if (hiddenFileNames.length > 0 && shouldExcludeFileName(file, hiddenFileNames)) {
         return true;
     }
 

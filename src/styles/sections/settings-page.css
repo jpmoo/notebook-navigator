@@ -70,19 +70,52 @@
     display: none;
 }
 
-/* Informational text in settings */
-.nn-setting-info {
-    margin-top: 4px;
-    font-size: var(--font-ui-smaller);
+.nn-setting-warning {
+    color: var(--text-error);
+    font-weight: 600;
+}
+
+/* Sync mode toggle button (cloud/device) */
+.nn-setting-sync-toggle {
+    color: var(--text-muted);
+    opacity: 0.85;
+}
+
+.nn-setting-sync-toggle:hover {
     color: var(--text-normal);
-    font-weight: var(--font-semibold);
-    line-height: 1.4;
+    opacity: 1;
+}
+
+/* "Not synced" marker appended to setting names */
+.nn-settings-tab-root .setting-item-name.nn-setting-not-synced::after {
+    content: ' ' attr(data-nn-sync-marker);
+    color: var(--text-muted);
+    font-weight: normal;
+}
+
+.mod-rtl .nn-settings-tab-root .setting-item-name.nn-setting-not-synced::after {
+    content: '';
+}
+
+.mod-rtl .nn-settings-tab-root .setting-item-name.nn-setting-not-synced::before {
+    content: attr(data-nn-sync-marker) ' ';
+    color: var(--text-muted);
+    font-weight: normal;
 }
 
 /* Container for additional info below settings */
 .nn-setting-info-container {
     margin-top: 8px;
     margin-bottom: 8px;
+}
+
+.nn-setting-info-container.nn-setting-info-centered.setting-item {
+    justify-content: center;
+}
+
+.nn-setting-info-container.nn-setting-info-centered .setting-item-info,
+.nn-setting-info-container.nn-setting-info-centered .setting-item-description {
+    text-align: center;
 }
 
 /* Wider text inputs for settings that benefit from more space */
@@ -111,7 +144,7 @@
 .nn-toolbar-visibility-group-label {
     font-size: var(--font-ui-small);
     font-weight: var(--font-semibold);
-    color: var(--text-muted);
+    color: var(--nn-theme-foreground-muted);
 }
 
 .nn-toolbar-visibility-grid {
@@ -165,7 +198,7 @@
     justify-content: center;
     width: 18px;
     height: 18px;
-    color: var(--text-normal);
+    color: var(--nn-theme-foreground);
 }
 
 .nn-toolbar-visibility-icon svg {
@@ -265,7 +298,7 @@
 .nn-slider-value {
     margin-left: 12px;
     font-size: var(--font-ui-smaller);
-    color: var(--text-muted);
+    color: var(--nn-theme-foreground-muted);
     min-width: 48px;
     text-align: right;
     font-variant-numeric: tabular-nums;

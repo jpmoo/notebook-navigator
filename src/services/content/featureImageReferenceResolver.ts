@@ -28,7 +28,7 @@ export type FeatureImageReference =
 
 type FrontmatterImageTarget = { kind: 'wiki' | 'md' | 'plain'; target: string };
 
-const wikiImagePattern = `!\\[\\[(?<wikiImage>[^\\]]+)\\]\\]`;
+const wikiImagePattern = `!\\[\\[(?<wikiImage>(?:[^\\]]|\\](?!\\]))+)\\]\\]`;
 const mdImagePattern = `!\\[[^\\]]*\\]\\((?<mdImage>(?:https?:\\/\\/(?:[^)\\r\\n(]|\\([^()\\r\\n]*\\))+|[^)\\r\\n]+))\\)`;
 
 const markdownImageRegex = new RegExp(mdImagePattern, 'i');

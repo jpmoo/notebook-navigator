@@ -17,63 +17,11 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { App } from 'obsidian';
-import { TFile } from 'obsidian';
+import { App, TFile } from 'obsidian';
 import { TagFileMutations } from '../../../src/services/tagOperations/TagFileMutations';
 import type { NotebookNavigatorSettings } from '../../../src/settings/types';
 import { DEFAULT_SETTINGS } from '../../../src/settings/defaultSettings';
-
-vi.mock('obsidian', () => {
-    class Notice {
-        constructor(_message: unknown) {
-            // no-op
-        }
-    }
-
-    class TFile {
-        path = '';
-        extension = 'md';
-    }
-
-    return {
-        App: class {},
-        Modal: class {},
-        Notice,
-        Plugin: class {},
-        TFile,
-        TFolder: class {},
-        getLanguage: () => 'en',
-        normalizePath: (path: string) => path,
-        parseFrontMatterTags: (frontmatter?: { tags?: string | string[] }) => {
-            const raw = frontmatter?.tags;
-            if (raw === undefined || raw === null) {
-                return null;
-            }
-            if (Array.isArray(raw)) {
-                const tags: string[] = [];
-                for (const entry of raw) {
-                    if (typeof entry !== 'string') {
-                        continue;
-                    }
-                    entry
-                        .split(/[, ]+/u)
-                        .map(tag => tag.trim())
-                        .filter(tag => tag.length > 0)
-                        .forEach(tag => tags.push(tag));
-                }
-                return tags.length > 0 ? tags : null;
-            }
-            if (typeof raw === 'string') {
-                const tags = raw
-                    .split(/[, ]+/u)
-                    .map(tag => tag.trim())
-                    .filter(tag => tag.length > 0);
-                return tags.length > 0 ? tags : null;
-            }
-            return null;
-        }
-    };
-});
+import { createTestTFile } from '../../utils/createTestTFile';
 
 const cachedTagsByPath = new Map<string, string[]>();
 
@@ -84,12 +32,10 @@ vi.mock('../../../src/storage/fileOperations', () => ({
 }));
 
 function createFile(path: string, frontmatter: Record<string, unknown>, content: string) {
-    const file = Object.assign(new TFile(), {
-        path,
+    return Object.assign(createTestTFile(path), {
         frontmatter,
         content
-    }) as TFile & { frontmatter: Record<string, unknown>; content: string };
-    return file;
+    });
 }
 
 describe('TagFileMutations', () => {
@@ -101,28 +47,21 @@ describe('TagFileMutations', () => {
         cachedTagsByPath.clear();
         settings = { ...DEFAULT_SETTINGS };
 
-        const fileManager = {
-            processFrontMatter: vi.fn((file: TFile, callback: (fm: Record<string, unknown>) => void) => {
-                callback((file as unknown as { frontmatter: Record<string, unknown> }).frontmatter);
-                return Promise.resolve();
-            })
-        };
+        app = new App();
+        app.fileManager.processFrontMatter = vi.fn((file: TFile, callback: (fm: Record<string, unknown>) => void) => {
+            callback((file as unknown as { frontmatter: Record<string, unknown> }).frontmatter);
+            return Promise.resolve();
+        });
 
-        const vault = {
-            read: vi.fn(async (file: TFile) => (file as unknown as { content: string }).content),
-            modify: vi.fn(async (file: TFile, data: string) => {
-                (file as unknown as { content: string }).content = data;
-            }),
-            process: vi.fn(async (file: TFile, processor: (content: string) => string) => {
-                const next = processor((file as unknown as { content: string }).content);
-                (file as unknown as { content: string }).content = next;
-            })
-        };
-
-        app = {
-            fileManager,
-            vault
-        } as unknown as App;
+        app.vault.read = vi.fn(async (file: TFile) => (file as unknown as { content: string }).content);
+        app.vault.modify = vi.fn(async (file: TFile, data: string) => {
+            (file as unknown as { content: string }).content = data;
+        });
+        app.vault.process = vi.fn(async (file: TFile, processor: (content: string) => string) => {
+            const next = processor((file as unknown as { content: string }).content);
+            (file as unknown as { content: string }).content = next;
+            return next;
+        });
 
         fileMutations = new TagFileMutations(app, () => settings);
     });

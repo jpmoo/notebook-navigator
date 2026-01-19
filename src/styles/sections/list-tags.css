@@ -19,6 +19,51 @@
     -ms-overflow-style: none;
 }
 
+.nn-file-pill-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: var(--nn-file-tag-row-gap);
+    height: var(--nn-file-tag-row-height);
+}
+
+.nn-file-pill-row .nn-file-tags,
+.nn-file-pill-row .nn-file-custom-property-row {
+    margin-top: 0;
+    flex: 1;
+    min-width: 0;
+}
+
+.nn-file-pill-row-icon {
+    width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.nn-file-pill-row-icon svg {
+    width: 14px;
+    height: 14px;
+}
+
+.nn-file-pill-row-tags .nn-file-pill-row-icon {
+    color: var(--nn-theme-file-tag-color);
+}
+
+.nn-file-pill-row-custom-property .nn-file-pill-row-icon {
+    color: var(--nn-theme-file-custom-property-color);
+}
+
+.nn-file.nn-selected .nn-file-pill-row-tags .nn-file-pill-row-icon {
+    color: var(--nn-selected-file-tag-color);
+}
+
+.nn-file.nn-selected .nn-file-pill-row-custom-property .nn-file-pill-row-icon {
+    color: var(--nn-selected-file-custom-property-color);
+}
+
 .nn-file-tags::-webkit-scrollbar,
 .nn-file-custom-property-row::-webkit-scrollbar {
     display: none;
@@ -29,22 +74,28 @@
     display: inline-flex;
     align-items: center;
     height: 20px;
-    line-height: 20px;
+    line-height: 1;
     padding: 0 8px;
     background-color: var(--nn-theme-file-tag-bg);
     color: var(--nn-theme-file-tag-color);
     border-radius: min(10px, var(--nn-theme-file-tag-border-radius));
     border: 1px solid transparent;
-    border-color: color-mix(in srgb, currentColor 30%, transparent);
+    border-color: var(--nn-file-pill-border-color);
     font-size: 12px;
     font-weight: var(--nn-theme-file-tag-font-weight);
     white-space: nowrap;
     flex-shrink: 0;
 }
 
+.nn-file-tag[data-has-color='true'],
+.nn-file-tag[data-has-background='true'] {
+    --nn-file-pill-border-color: color-mix(in srgb, currentColor 30%, transparent);
+}
+
 .nn-file-custom-property {
     background-color: var(--nn-theme-file-custom-property-bg);
     color: var(--nn-theme-file-custom-property-color);
+    border-radius: min(10px, var(--nn-theme-file-custom-property-border-radius));
 }
 
 .nn-file-tag[data-has-background='true'] {
@@ -66,7 +117,7 @@
 }
 
 /* Tag pill hover effect - darken/lighten all tags on hover */
-.nn-file-tag:hover {
+.nn-file-tag.nn-clickable-tag:hover {
     filter: brightness(0.9);
 }
 
@@ -75,15 +126,26 @@
     cursor: pointer;
 }
 
+/* Custom property wiki links show underline */
+.nn-file-tag.nn-file-custom-property.nn-clickable-tag {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
 /* Dark mode tag hover - lighten instead of darken */
-.theme-dark .nn-file-tag:hover {
+.theme-dark .nn-file-tag.nn-clickable-tag:hover {
     filter: brightness(1.05);
 }
 
 /* Selected file tag styles - only for tags without custom colors */
-.nn-file.nn-selected .nn-file-tag:not([data-has-color='true']):not([data-has-background='true']) {
+.nn-file.nn-selected .nn-file-tag:not(.nn-file-custom-property):not([data-has-color='true']):not([data-has-background='true']) {
     background-color: var(--nn-selected-file-tag-bg);
     color: var(--nn-selected-file-tag-color);
+}
+
+.nn-file.nn-selected .nn-file-tag.nn-file-custom-property:not([data-has-color='true']):not([data-has-background='true']) {
+    background-color: var(--nn-selected-file-custom-property-bg);
+    color: var(--nn-selected-file-custom-property-color);
 }
 
 /* Selected file text colors */

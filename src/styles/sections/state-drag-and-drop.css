@@ -26,6 +26,15 @@ body.nn-resizing {
     outline-offset: -2px;
 }
 
+/* Disable drag and drop feedback on mobile */
+.notebook-navigator-mobile [draggable='true'] {
+    cursor: default !important;
+}
+
+.notebook-navigator-mobile .nn-drag-over {
+    background-color: transparent !important;
+}
+
 /* Special visual feedback for tag drop zones - uses pre-composited solid color */
 [data-drop-zone='tag'].nn-drag-over {
     background-color: var(--nn-theme-tag-positive-bg-solid, var(--nn-theme-tag-positive-bg));
@@ -108,39 +117,11 @@ body.nn-resizing {
     fill: none;
 }
 
-/* Featured image in drag ghost - circular */
-.nn-drag-ghost-icon.nn-drag-ghost-featured-image {
-    padding: 0;
-    overflow: hidden;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    border: 2px solid #000000;
-}
-
-/* Dark mode: use dark gray border for featured image */
-.theme-dark .nn-drag-ghost-icon.nn-drag-ghost-featured-image {
-    border-color: var(--background-modifier-border);
-}
-
-.nn-drag-ghost-icon.nn-drag-ghost-featured-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-}
-
 /* Header actions layout variations 
    Different layouts are needed for mobile vs desktop views:
    - space-between: Mobile file pane (back button + folder name + actions)
-   - flex-end: Mobile folder pane (actions only, aligned right)
 */
 .nn-header-actions--space-between {
     width: 100%;
     justify-content: space-between;
-}
-
-.nn-header-actions--flex-end {
-    width: 100%;
-    justify-content: flex-end;
 }

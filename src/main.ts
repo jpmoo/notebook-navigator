@@ -16,8 +16,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Plugin, TFile, FileView, TFolder, WorkspaceLeaf, Platform, addIcon } from 'obsidian';
+import { Platform, Plugin, TFile, FileView, TFolder, WorkspaceLeaf, addIcon } from 'obsidian';
 import { NotebookNavigatorSettings, DEFAULT_SETTINGS, NotebookNavigatorSettingTab } from './settings';
+import { migrateRecentColors, migrateReleaseCheckState } from './settings/migrations/localPreferences';
+import {
+    applyExistingUserDefaults,
+    applyLegacyShortcutsMigration,
+    applyLegacyVisibilityMigration,
+    extractLegacyShortcuts,
+    extractLegacyVisibilitySettings,
+    migrateFolderNotePropertiesSetting,
+    migrateLegacySyncedSettings
+} from './settings/migrations/syncedSettings';
 import {
     LocalStorageKeys,
     MAX_PANE_TRANSITION_DURATION_MS,
@@ -61,74 +71,49 @@ import { isBooleanRecordValue, isPlainObjectRecordValue, isStringRecordValue, sa
 import { isRecord } from './utils/typeGuards';
 import { runAsyncAction } from './utils/async';
 import { resetHiddenToggleIfNoSources } from './utils/exclusionUtils';
-import { ensureVaultProfiles, DEFAULT_VAULT_PROFILE_ID, cloneShortcuts, clearHiddenFolderMatcherCache } from './utils/vaultProfiles';
+import { ensureVaultProfiles, DEFAULT_VAULT_PROFILE_ID, clearHiddenFolderMatcherCache } from './utils/vaultProfiles';
 import { clearHiddenFileNameMatcherCache } from './utils/fileFilters';
 import WorkspaceCoordinator from './services/workspace/WorkspaceCoordinator';
 import HomepageController from './services/workspace/HomepageController';
 import registerNavigatorCommands from './services/commands/registerNavigatorCommands';
 import registerWorkspaceEvents from './services/workspace/registerWorkspaceEvents';
 import type { RevealFileOptions } from './hooks/useNavigatorReveal';
-import { ShortcutType, type ShortcutEntry } from './types/shortcuts';
 import type { FolderAppearance } from './hooks/useListPaneAppearance';
 import {
-    isCustomPropertyType,
+    type CalendarWeeksToShow,
+    isSettingSyncMode,
     isSortOption,
     isTagSortOrder,
+    SYNC_MODE_SETTING_IDS,
+    type SettingSyncMode,
+    type SyncModeSettingId,
     type SortOption,
     type TagSortOrder,
     type VaultProfile
 } from './settings/types';
 import { clearHiddenTagPatternCache } from './utils/tagPrefixMatcher';
 import { getPathPatternCacheKey } from './utils/pathPatternMatcher';
-import { DEFAULT_UI_SCALE, sanitizeUIScale } from './utils/uiScale';
+import { sanitizeUIScale } from './utils/uiScale';
 import { MAX_RECENT_COLORS } from './constants/colorPalette';
 import { NOTEBOOK_NAVIGATOR_ICON_ID, NOTEBOOK_NAVIGATOR_ICON_SVG } from './constants/notebookNavigatorIcon';
+import { createSyncModeRegistry, type SyncModeRegistry } from './services/settings/syncModeRegistry';
 
 const DEFAULT_UX_PREFERENCES: UXPreferences = {
     searchActive: false,
-    includeDescendantNotes: true,
+    includeDescendantNotes: false,
     showHiddenItems: false,
-    pinShortcuts: true
+    pinShortcuts: true,
+    // Per-device toggle for the navigation calendar overlay.
+    showCalendar: false
 };
 
-const UX_PREFERENCE_KEYS: (keyof UXPreferences)[] = ['searchActive', 'includeDescendantNotes', 'showHiddenItems', 'pinShortcuts'];
-
-interface LegacyVisibilityMigration {
-    hiddenFolders: string[];
-    hiddenFiles: string[];
-    hiddenTags: string[];
-    navigationBanner: string | null;
-    shouldApplyToProfiles: boolean;
-}
-
-type ToolbarVisibilitySnapshot = NotebookNavigatorSettings['toolbarVisibility'];
-
-function mergeButtonVisibility<T extends string>(defaults: Record<T, boolean>, stored: unknown): Record<T, boolean> {
-    const next: Record<T, boolean> = { ...defaults };
-    if (!stored || typeof stored !== 'object') {
-        return next;
-    }
-
-    const entries = stored as Partial<Record<T, unknown>>;
-    (Object.keys(defaults) as T[]).forEach(key => {
-        const value = entries[key];
-        if (typeof value === 'boolean') {
-            next[key] = value;
-        }
-    });
-
-    return next;
-}
-
-function mergeToolbarVisibility(stored: unknown): ToolbarVisibilitySnapshot {
-    const defaults = DEFAULT_SETTINGS.toolbarVisibility;
-    const record = stored && typeof stored === 'object' ? (stored as Record<string, unknown>) : undefined;
-
-    return {
-        navigation: mergeButtonVisibility(defaults.navigation, record?.navigation),
-        list: mergeButtonVisibility(defaults.list, record?.list)
-    };
-}
+const UX_PREFERENCE_KEYS: (keyof UXPreferences)[] = [
+    'searchActive',
+    'includeDescendantNotes',
+    'showHiddenItems',
+    'pinShortcuts',
+    'showCalendar'
+];
 
 /**
  * Main plugin class for Notebook Navigator
@@ -156,6 +141,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     private updateNoticeListeners = new Map<string, (notice: ReleaseUpdateNotice | null) => void>();
     // Flag indicating plugin is being unloaded to prevent operations during shutdown
     private isUnloading = false;
+    private isHandlingExternalSettingsUpdate = false;
     // User preference for dual-pane mode (persisted in localStorage, not settings)
     private dualPanePreference = true;
     // User preference for dual-pane orientation (persisted in localStorage)
@@ -169,16 +155,162 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     private pendingUpdateNotice: ReleaseUpdateNotice | null = null;
     private uxPreferences: UXPreferences = { ...DEFAULT_UX_PREFERENCES };
     private uxPreferenceListeners = new Map<string, () => void>();
+    private syncModeRegistry: SyncModeRegistry | null = null;
     // TODO: Remove legacy UI scale flags and migration when desktopScale/mobileScale are fully dropped
     // Track whether legacy scales still need to be kept in persisted settings until this device migrates them
     private shouldPersistDesktopScale = false;
     private shouldPersistMobileScale = false;
     private hiddenFolderCacheKey: string | null = null;
     private hiddenTagCacheKey: string | null = null;
-    private hiddenFileNameCacheKey: string | null = null;
+    private hiddenFileNamesCacheKey: string | null = null;
 
     // Keys used for persisting UI state in browser localStorage
     keys: LocalStorageKeys = STORAGE_KEYS;
+
+    public getSyncMode(settingId: SyncModeSettingId): SettingSyncMode {
+        return this.settings.syncModes?.[settingId] === 'local' ? 'local' : 'synced';
+    }
+
+    public isLocal(settingId: SyncModeSettingId): boolean {
+        return this.getSyncMode(settingId) === 'local';
+    }
+
+    public isSynced(settingId: SyncModeSettingId): boolean {
+        return this.getSyncMode(settingId) === 'synced';
+    }
+
+    public async setSyncMode(settingId: SyncModeSettingId, mode: SettingSyncMode): Promise<void> {
+        const nextMode: SettingSyncMode = mode === 'local' ? 'local' : 'synced';
+        const currentMode = this.getSyncMode(settingId);
+        if (currentMode === nextMode) {
+            return;
+        }
+
+        // Ensure switching to local starts from the current value.
+        if (nextMode === 'local') {
+            this.seedLocalValue(settingId);
+        }
+
+        const next = sanitizeRecord<SettingSyncMode>(this.settings.syncModes, isSettingSyncMode);
+        next[settingId] = nextMode;
+        this.settings.syncModes = next;
+
+        await this.saveSettingsAndUpdate();
+    }
+
+    private persistSyncModeSettingUpdate(settingId: SyncModeSettingId): void {
+        if (this.isLocal(settingId)) {
+            this.notifySettingsUpdate();
+            return;
+        }
+
+        runAsyncAction(() => this.saveSettingsAndUpdate());
+    }
+
+    private async persistSyncModeSettingUpdateAsync(settingId: SyncModeSettingId): Promise<void> {
+        if (this.isLocal(settingId)) {
+            this.notifySettingsUpdate();
+            return;
+        }
+
+        await this.saveSettingsAndUpdate();
+    }
+
+    private updateSettingAndMirrorToLocalStorage<K extends SyncModeSettingId & keyof NotebookNavigatorSettings>(params: {
+        settingId: K;
+        localStorageKey: string;
+        nextValue: NotebookNavigatorSettings[K];
+    }): void {
+        if (this.settings[params.settingId] === params.nextValue) {
+            return;
+        }
+
+        this.settings[params.settingId] = params.nextValue;
+        localStorage.set(params.localStorageKey, params.nextValue);
+        this.persistSyncModeSettingUpdate(params.settingId);
+    }
+
+    private updateBoundedNumberSettingAndMirror(params: {
+        settingId: 'paneTransitionDuration' | 'navIndent' | 'navItemHeight' | 'compactItemHeight';
+        localStorageKey: string;
+        rawValue: number;
+        min: number;
+        max: number;
+        fallback: number;
+    }): void {
+        const parsed = this.parseFiniteNumber(params.rawValue);
+        const next = parsed !== null ? Math.min(params.max, Math.max(params.min, parsed)) : params.fallback;
+        this.updateSettingAndMirrorToLocalStorage({
+            settingId: params.settingId,
+            localStorageKey: params.localStorageKey,
+            nextValue: next
+        });
+    }
+
+    private getSyncModeRegistry(): SyncModeRegistry {
+        if (this.syncModeRegistry) {
+            return this.syncModeRegistry;
+        }
+
+        this.syncModeRegistry = createSyncModeRegistry({
+            keys: this.keys,
+            defaultSettings: DEFAULT_SETTINGS,
+            isLocal: settingId => this.isLocal(settingId),
+            getSettings: () => this.settings,
+            resolveActiveVaultProfileId: () => this.resolveActiveVaultProfileId(),
+            sanitizeVaultProfileId: value => this.sanitizeVaultProfileId(value),
+            parseDualPanePreference: raw => this.parseDualPanePreference(raw),
+            parseDualPaneOrientation: raw => this.parseDualPaneOrientation(raw),
+            sanitizeBooleanSetting: (value, fallback) => this.sanitizeBooleanSetting(value, fallback),
+            sanitizeDualPaneOrientationSetting: value => this.sanitizeDualPaneOrientationSetting(value),
+            sanitizeTagSortOrderSetting: value => this.sanitizeTagSortOrderSetting(value),
+            sanitizeSearchProviderSetting: value => this.sanitizeSearchProviderSetting(value),
+            sanitizePaneTransitionDurationSetting: value => this.sanitizePaneTransitionDurationSetting(value),
+            sanitizeToolbarVisibilitySetting: value => this.sanitizeToolbarVisibilitySetting(value),
+            sanitizeNavIndentSetting: value => this.sanitizeNavIndentSetting(value),
+            sanitizeNavItemHeightSetting: value => this.sanitizeNavItemHeightSetting(value),
+            sanitizeCalendarWeeksToShowSetting: value => this.sanitizeCalendarWeeksToShowSetting(value),
+            sanitizeCompactItemHeightSetting: value => this.sanitizeCompactItemHeightSetting(value),
+            defaultUXPreferences: DEFAULT_UX_PREFERENCES,
+            isUXPreferencesRecord: value => this.isUXPreferencesRecord(value),
+            mirrorUXPreferences: update => {
+                this.uxPreferences = {
+                    ...this.uxPreferences,
+                    ...update
+                };
+                this.persistUXPreferences(false);
+            },
+            getShouldPersistDesktopScale: () => this.shouldPersistDesktopScale,
+            getShouldPersistMobileScale: () => this.shouldPersistMobileScale,
+            setShouldPersistDesktopScale: value => {
+                this.shouldPersistDesktopScale = value;
+            },
+            setShouldPersistMobileScale: value => {
+                this.shouldPersistMobileScale = value;
+            }
+        });
+
+        return this.syncModeRegistry;
+    }
+
+    private seedLocalValue(settingId: SyncModeSettingId): void {
+        this.getSyncModeRegistry()[settingId].mirrorToLocalStorage();
+    }
+
+    private normalizeSyncModes(params: { storedData: Record<string, unknown> | null; isFirstLaunch: boolean }): void {
+        const { storedData, isFirstLaunch } = params;
+        const defaultMode: SettingSyncMode = isFirstLaunch ? 'synced' : 'local';
+        const storedModes = storedData?.['syncModes'];
+        const source = isPlainObjectRecordValue(storedModes) ? storedModes : null;
+
+        const resolved = sanitizeRecord<SettingSyncMode>(undefined);
+        SYNC_MODE_SETTING_IDS.forEach(settingId => {
+            const value = source ? source[settingId] : undefined;
+            resolved[settingId] = isSettingSyncMode(value) ? value : defaultMode;
+        });
+
+        this.settings.syncModes = resolved;
+    }
 
     /**
      * Called when external changes to settings are detected (e.g., from sync)
@@ -186,10 +318,32 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
      * is modified externally while the plugin is running
      */
     async onExternalSettingsChange() {
-        if (!this.isUnloading) {
+        if (this.isUnloading) {
+            return;
+        }
+
+        try {
             await this.loadSettings();
+            this.dualPanePreference = this.settings.dualPane;
+            this.dualPaneOrientationPreference = this.settings.dualPaneOrientation;
+            const previousIncludeDescendantNotes = this.uxPreferences.includeDescendantNotes;
+            const previousShowCalendar = this.uxPreferences.showCalendar;
+            this.uxPreferences = {
+                ...this.uxPreferences,
+                includeDescendantNotes: this.settings.includeDescendantNotes,
+                showCalendar: this.settings.showCalendar
+            };
             this.initializeRecentDataManager();
+            this.isHandlingExternalSettingsUpdate = true;
             this.onSettingsUpdate();
+            if (
+                previousIncludeDescendantNotes !== this.uxPreferences.includeDescendantNotes ||
+                previousShowCalendar !== this.uxPreferences.showCalendar
+            ) {
+                this.notifyUXPreferencesUpdate();
+            }
+        } finally {
+            this.isHandlingExternalSettingsUpdate = false;
         }
     }
 
@@ -210,160 +364,15 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         this.settings = { ...DEFAULT_SETTINGS, ...(storedSettings ?? {}) };
         // Validate and normalize keyboard shortcuts to use standard modifier names
         this.settings.keyboardShortcuts = sanitizeKeyboardShortcuts(this.settings.keyboardShortcuts);
-        this.settings.toolbarVisibility = mergeToolbarVisibility(storedSettings?.toolbarVisibility);
+        this.normalizeSyncModes({ storedData, isFirstLaunch });
+        const syncModeRegistry = this.getSyncModeRegistry();
 
-        // Remove deprecated fields from settings object
-        const mutableSettings = this.settings as unknown as Record<string, unknown>;
-        delete mutableSettings.recentNotes;
-        delete mutableSettings.recentIcons;
-        delete mutableSettings.searchActive;
-        delete mutableSettings.includeDescendantNotes;
-        delete mutableSettings.showHiddenItems;
-        delete mutableSettings.hiddenTags;
-        delete mutableSettings.fileVisibility;
-        delete mutableSettings.preventInvalidCharacters;
-        delete mutableSettings.mobileBackground;
-
-        const storedNoteGrouping = storedData ? storedData['noteGrouping'] : undefined;
-
-        // Migrates legacy showIcons boolean to separate icon settings for sections, folders, tags, and pinned items
-        const legacyShowIcons = mutableSettings.showIcons;
-        if (typeof legacyShowIcons === 'boolean') {
-            if (typeof storedData?.['showSectionIcons'] === 'undefined') {
-                this.settings.showSectionIcons = legacyShowIcons;
-            }
-            if (typeof storedData?.['showFolderIcons'] === 'undefined') {
-                this.settings.showFolderIcons = legacyShowIcons;
-            }
-            if (typeof storedData?.['showTagIcons'] === 'undefined') {
-                this.settings.showTagIcons = legacyShowIcons;
-            }
-            if (typeof storedData?.['showPinnedIcon'] === 'undefined') {
-                this.settings.showPinnedIcon = legacyShowIcons;
-            }
-        }
-        delete mutableSettings.showIcons;
-
-        // Migrate legacy parent folder visibility flag
-        const legacyShowParentFolderNames = mutableSettings['showParentFolderNames'];
-        if (typeof legacyShowParentFolderNames === 'boolean' && typeof storedData?.['showParentFolder'] === 'undefined') {
-            this.settings.showParentFolder = legacyShowParentFolderNames;
-        }
-        delete mutableSettings['showParentFolderNames'];
-
-        // Migrate legacy parent folder color toggle
-        const legacyShowParentFolderColors = mutableSettings['showParentFolderColors'];
-        if (typeof legacyShowParentFolderColors === 'boolean' && typeof storedData?.['showParentFolderColor'] === 'undefined') {
-            this.settings.showParentFolderColor = legacyShowParentFolderColors;
-        }
-        delete mutableSettings['showParentFolderColors'];
-
-        // Migrate legacy groupByDate boolean to noteGrouping dropdown
-        const legacyGroupByDate = mutableSettings.groupByDate;
-        if (typeof legacyGroupByDate === 'boolean' && typeof storedNoteGrouping === 'undefined') {
-            this.settings.noteGrouping = legacyGroupByDate ? 'date' : 'none';
-        }
-        delete mutableSettings.groupByDate;
-
-        // Validate noteGrouping value and reset to default if invalid
-        if (this.settings.noteGrouping !== 'none' && this.settings.noteGrouping !== 'date' && this.settings.noteGrouping !== 'folder') {
-            this.settings.noteGrouping = DEFAULT_SETTINGS.noteGrouping;
-        }
-
-        // Validate shortcutBadgeDisplay value and reset to default if invalid
-        if (
-            this.settings.shortcutBadgeDisplay !== 'index' &&
-            this.settings.shortcutBadgeDisplay !== 'count' &&
-            this.settings.shortcutBadgeDisplay !== 'none'
-        ) {
-            this.settings.shortcutBadgeDisplay = DEFAULT_SETTINGS.shortcutBadgeDisplay;
-        }
-
-        if (!isCustomPropertyType(this.settings.customPropertyType)) {
-            this.settings.customPropertyType = DEFAULT_SETTINGS.customPropertyType;
-        }
-
-        if (typeof this.settings.customPropertyFrontmatterFields !== 'string') {
-            this.settings.customPropertyFrontmatterFields = DEFAULT_SETTINGS.customPropertyFrontmatterFields;
-        }
-
-        if (typeof this.settings.showCustomPropertyInCompactMode !== 'boolean') {
-            this.settings.showCustomPropertyInCompactMode = DEFAULT_SETTINGS.showCustomPropertyInCompactMode;
-        }
-
-        type LegacyAppearance = FolderAppearance & {
-            showDate?: boolean;
-            showPreview?: boolean;
-            showImage?: boolean;
-        };
-
-        const migrateLegacyAppearanceMode = (appearance: LegacyAppearance | undefined): FolderAppearance | undefined => {
-            if (!appearance) {
-                return appearance;
-            }
-
-            const isLegacyCompact =
-                appearance.mode === undefined &&
-                appearance.showDate === false &&
-                appearance.showPreview === false &&
-                appearance.showImage === false;
-
-            if (isLegacyCompact) {
-                const migrated: FolderAppearance = { ...appearance, mode: 'compact' };
-                delete (migrated as LegacyAppearance).showDate;
-                delete (migrated as LegacyAppearance).showPreview;
-                delete (migrated as LegacyAppearance).showImage;
-                return migrated;
-            }
-
-            return appearance;
-        };
-
-        const migrateLegacyAppearances = (collection: Record<string, FolderAppearance> | undefined) => {
-            if (!collection) {
-                return;
-            }
-
-            Object.entries(collection).forEach(([key, appearance]) => {
-                const migratedAppearance = migrateLegacyAppearanceMode(appearance);
-                if (migratedAppearance) {
-                    collection[key] = migratedAppearance;
-                }
-            });
-        };
-
-        migrateLegacyAppearances(this.settings.folderAppearances);
-        migrateLegacyAppearances(this.settings.tagAppearances);
-
-        const legacyColorFileTags = mutableSettings['applyTagColorsToFileTags'];
-        if (typeof legacyColorFileTags === 'boolean') {
-            this.settings.colorFileTags = legacyColorFileTags;
-        }
-        delete mutableSettings['applyTagColorsToFileTags'];
-
-        const legacySlimItemHeight = mutableSettings['slimItemHeight'];
-        if (typeof legacySlimItemHeight === 'number' && Number.isFinite(legacySlimItemHeight)) {
-            if (typeof storedData?.['compactItemHeight'] === 'undefined') {
-                this.settings.compactItemHeight = legacySlimItemHeight;
-            }
-        }
-        delete mutableSettings['slimItemHeight'];
-
-        const legacySlimItemHeightScaleText = mutableSettings['slimItemHeightScaleText'];
-        if (typeof legacySlimItemHeightScaleText === 'boolean') {
-            if (typeof storedData?.['compactItemHeightScaleText'] === 'undefined') {
-                this.settings.compactItemHeightScaleText = legacySlimItemHeightScaleText;
-            }
-        }
-        delete mutableSettings['slimItemHeightScaleText'];
-
-        const legacyShowFileTagsInSlimMode = mutableSettings['showFileTagsInSlimMode'];
-        if (typeof legacyShowFileTagsInSlimMode === 'boolean') {
-            if (typeof storedData?.['showFileTagsInCompactMode'] === 'undefined') {
-                this.settings.showFileTagsInCompactMode = legacyShowFileTagsInSlimMode;
-            }
-        }
-        delete mutableSettings['showFileTagsInSlimMode'];
+        migrateLegacySyncedSettings({
+            settings: this.settings,
+            storedData,
+            keys: this.keys,
+            defaultSettings: DEFAULT_SETTINGS
+        });
 
         this.sanitizeSettingsRecords();
 
@@ -378,15 +387,17 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         if (typeof this.settings.recentNotesCount !== 'number' || this.settings.recentNotesCount <= 0) {
             this.settings.recentNotesCount = DEFAULT_SETTINGS.recentNotesCount;
         }
-
-        if (
-            typeof this.settings.paneTransitionDuration !== 'number' ||
-            !Number.isFinite(this.settings.paneTransitionDuration) ||
-            this.settings.paneTransitionDuration < MIN_PANE_TRANSITION_DURATION_MS ||
-            this.settings.paneTransitionDuration > MAX_PANE_TRANSITION_DURATION_MS
-        ) {
-            this.settings.paneTransitionDuration = DEFAULT_SETTINGS.paneTransitionDuration;
-        }
+        let uiScaleMigrated = false;
+        SYNC_MODE_SETTING_IDS.forEach(settingId => {
+            const entry = syncModeRegistry[settingId];
+            if (entry.loadPhase !== 'preProfiles') {
+                return;
+            }
+            const result = entry.resolveOnLoad({ storedData });
+            if (settingId === 'uiScale') {
+                uiScaleMigrated = result.migrated;
+            }
+        });
 
         if (!Array.isArray(this.settings.rootFolderOrder)) {
             this.settings.rootFolderOrder = [];
@@ -396,60 +407,40 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             this.settings.rootTagOrder = [];
         }
 
-        const migratedReleaseState = this.migrateReleaseCheckState(storedData);
-        const migratedRecentColors = this.migrateRecentColors(storedData);
-        const hadLegacyLocalOnlySettings = Boolean(storedData && ('tagSortOrder' in storedData || 'searchProvider' in storedData));
-        this.settings.tagSortOrder = this.resolveTagSortOrder(storedData);
-        this.settings.searchProvider = this.resolveSearchProvider(storedData);
-        const migratedScales = this.migrateUIScales(storedData);
+        const migratedReleaseState = migrateReleaseCheckState({ settings: this.settings, storedData, keys: this.keys });
+        const migratedRecentColors = migrateRecentColors({ settings: this.settings, storedData, keys: this.keys });
+        const hadLocalValuesInSettings = Boolean(
+            storedData &&
+                SYNC_MODE_SETTING_IDS.some(settingId => {
+                    const entry = syncModeRegistry[settingId];
+                    if (!entry.cleanupOnLoad) {
+                        return false;
+                    }
+                    if (!this.isLocal(settingId)) {
+                        return false;
+                    }
+                    return entry.hasPersistedValue(storedData);
+                })
+        );
 
-        const normalizeFolderNoteBlock = (input: string): string =>
-            input
-                .replace(/\r\n/g, '\n')
-                .replace(/^---\s*\n?/, '')
-                .replace(/\n?---\s*$/, '')
-                .trim();
-
-        const folderNotePropertiesSetting = this.settings.folderNoteProperties;
-        if (Array.isArray(folderNotePropertiesSetting)) {
-            const migratedProperties = folderNotePropertiesSetting
-                .map(entry => (typeof entry === 'string' ? entry.trim() : ''))
-                .filter(entry => entry.length > 0)
-                .map(entry => `${entry}: true`)
-                .join('\n');
-            this.settings.folderNoteProperties = normalizeFolderNoteBlock(migratedProperties);
-        } else if (typeof folderNotePropertiesSetting === 'string') {
-            this.settings.folderNoteProperties = normalizeFolderNoteBlock(folderNotePropertiesSetting);
-        } else {
-            this.settings.folderNoteProperties = DEFAULT_SETTINGS.folderNoteProperties;
-        }
-
-        // Initialize update check setting with default value for existing users
-        if (typeof this.settings.checkForUpdatesOnStart !== 'boolean') {
-            this.settings.checkForUpdatesOnStart = true;
-        }
-
-        // Load saved orientation preference for this device
-        const storedOrientation = localStorage.get<unknown>(this.keys.dualPaneOrientationKey);
-        const parsedOrientation = this.parseDualPaneOrientation(storedOrientation);
-        this.dualPaneOrientationPreference = parsedOrientation ?? 'horizontal';
+        migrateFolderNotePropertiesSetting({ settings: this.settings, defaultSettings: DEFAULT_SETTINGS });
+        applyExistingUserDefaults({ settings: this.settings });
 
         // Extract legacy exclusion settings and migrate to vault profile system
-        const legacyVisibility = this.extractLegacyVisibilitySettings(storedData);
-        const legacyShortcuts = this.extractLegacyShortcuts(storedData);
+        const legacyVisibility = extractLegacyVisibilitySettings({ settings: this.settings, storedData });
+        const legacyShortcuts = extractLegacyShortcuts({ storedData });
 
         // Initialize vault profiles and apply legacy settings to the active profile
         ensureVaultProfiles(this.settings);
-        this.applyLegacyVisibilityMigration(legacyVisibility);
-        this.applyLegacyShortcutsMigration(legacyShortcuts);
+        applyLegacyVisibilityMigration({ settings: this.settings, migration: legacyVisibility });
+        applyLegacyShortcutsMigration({ settings: this.settings, legacyShortcuts });
         this.normalizeIconSettings(this.settings);
         this.normalizeFileIconMapSettings(this.settings);
         this.normalizeInterfaceIconsSettings(this.settings);
-        this.settings.vaultProfile = this.resolveActiveVaultProfileId();
-        localStorage.set(STORAGE_KEYS.vaultProfileKey, this.settings.vaultProfile);
+        syncModeRegistry.vaultProfile.resolveOnLoad({ storedData });
         this.refreshMatcherCachesIfNeeded();
 
-        const needsPersistedCleanup = migratedReleaseState || migratedRecentColors || hadLegacyLocalOnlySettings || migratedScales;
+        const needsPersistedCleanup = migratedReleaseState || migratedRecentColors || hadLocalValuesInSettings || uiScaleMigrated;
 
         if (needsPersistedCleanup) {
             await this.saveData(this.getPersistableSettings());
@@ -458,181 +449,129 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         return isFirstLaunch;
     }
 
-    /**
-     * Migrates release check metadata from synced settings to vault-local storage.
-     */
-    private migrateReleaseCheckState(storedData: Record<string, unknown> | null): boolean {
-        const storedTimestamp =
-            typeof storedData?.['lastReleaseCheckAt'] === 'number' && Number.isFinite(storedData.lastReleaseCheckAt)
-                ? storedData.lastReleaseCheckAt
-                : null;
-        const storedKnownRelease = typeof storedData?.['latestKnownRelease'] === 'string' ? storedData.latestKnownRelease : '';
-
-        const localTimestamp = localStorage.get<unknown>(this.keys.releaseCheckTimestampKey);
-        const localKnownRelease = localStorage.get<unknown>(this.keys.latestKnownReleaseKey);
-
-        const resolvedTimestamp =
-            typeof localTimestamp === 'number' && Number.isFinite(localTimestamp) ? localTimestamp : (storedTimestamp ?? null);
-        const resolvedKnownRelease =
-            typeof localKnownRelease === 'string' && localKnownRelease.length > 0 ? localKnownRelease : storedKnownRelease;
-
-        if (resolvedTimestamp && resolvedTimestamp !== localTimestamp) {
-            localStorage.set(this.keys.releaseCheckTimestampKey, resolvedTimestamp);
+    private parseFiniteNumber(value: unknown): number | null {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+            return value;
         }
-
-        if (resolvedKnownRelease && resolvedKnownRelease !== localKnownRelease) {
-            localStorage.set(this.keys.latestKnownReleaseKey, resolvedKnownRelease);
-        }
-
-        delete (this.settings as unknown as Record<string, unknown>).lastReleaseCheckAt;
-        delete (this.settings as unknown as Record<string, unknown>).latestKnownRelease;
-
-        const hadLegacyFields = Boolean(storedData && ('lastReleaseCheckAt' in storedData || 'latestKnownRelease' in storedData));
-        return hadLegacyFields;
-    }
-
-    /**
-     * Migrates recent colors history from synced settings to vault-local storage.
-     */
-    private migrateRecentColors(storedData: Record<string, unknown> | null): boolean {
-        const stored = storedData?.['recentColors'];
-        const storedColors = Array.isArray(stored)
-            ? stored.filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0).slice(0, MAX_RECENT_COLORS)
-            : [];
-
-        const localStored = localStorage.get<unknown>(this.keys.recentColorsKey);
-        const localColors = Array.isArray(localStored)
-            ? localStored.filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
-            : [];
-
-        const resolvedColors = localColors.length > 0 ? localColors : storedColors;
-        if (resolvedColors.length > 0) {
-            const capped = resolvedColors.slice(0, MAX_RECENT_COLORS);
-            const shouldUpdateLocal = localColors.length !== capped.length || capped.some((color, index) => color !== localColors[index]);
-            if (shouldUpdateLocal) {
-                localStorage.set(this.keys.recentColorsKey, capped);
+        if (typeof value === 'string') {
+            const parsed = Number(value);
+            if (Number.isFinite(parsed)) {
+                return parsed;
             }
         }
-
-        delete (this.settings as unknown as Record<string, unknown>).recentColors;
-
-        const hadLegacyField = Boolean(storedData && 'recentColors' in storedData);
-        return hadLegacyField;
+        return null;
     }
 
-    /**
-     * Resolves the effective tag sort order preference with local overrides.
-     */
-    private resolveTagSortOrder(storedData: Record<string, unknown> | null): TagSortOrder {
-        const storedLocal = localStorage.get<unknown>(this.keys.tagSortOrderKey);
-        const storedLocalValue = typeof storedLocal === 'string' ? storedLocal : null;
-        if (storedLocalValue && isTagSortOrder(storedLocalValue)) {
-            return storedLocalValue;
+    private sanitizeBoundedIntegerSetting(value: unknown, params: { min: number; max: number; fallback: number }): number {
+        const parsed = this.parseFiniteNumber(value);
+        if (parsed === null) {
+            return params.fallback;
         }
-
-        const storedSetting = storedData?.['tagSortOrder'];
-        const storedSettingValue = typeof storedSetting === 'string' ? storedSetting : null;
-        if (storedSettingValue && isTagSortOrder(storedSettingValue)) {
-            localStorage.set(this.keys.tagSortOrderKey, storedSettingValue);
-            return storedSettingValue;
+        const rounded = Math.round(parsed);
+        if (rounded < params.min || rounded > params.max) {
+            return params.fallback;
         }
-
-        localStorage.set(this.keys.tagSortOrderKey, DEFAULT_SETTINGS.tagSortOrder);
-        return DEFAULT_SETTINGS.tagSortOrder;
+        return rounded;
     }
 
-    /**
-     * Resolves the effective search provider preference with local overrides.
-     */
-    private resolveSearchProvider(storedData: Record<string, unknown> | null): 'internal' | 'omnisearch' {
-        const storedLocal = localStorage.get<unknown>(this.keys.searchProviderKey);
-        if (storedLocal === 'internal' || storedLocal === 'omnisearch') {
-            return storedLocal;
-        }
-
-        const storedSetting = storedData?.['searchProvider'];
-        if (storedSetting === 'internal' || storedSetting === 'omnisearch') {
-            localStorage.set(this.keys.searchProviderKey, storedSetting);
-            return storedSetting;
-        }
-
-        const fallbackProvider: 'internal' | 'omnisearch' = DEFAULT_SETTINGS.searchProvider === 'omnisearch' ? 'omnisearch' : 'internal';
-        localStorage.set(this.keys.searchProviderKey, fallbackProvider);
-        return fallbackProvider;
+    private sanitizeBooleanSetting(value: unknown, fallback: boolean): boolean {
+        return typeof value === 'boolean' ? value : fallback;
     }
 
-    /**
-     * Migrates desktop and mobile UI scales from synced settings to vault-local storage.
-     */
-    private migrateUIScales(storedData: Record<string, unknown> | null): boolean {
-        const storedDesktopScale = storedData?.['desktopScale'];
-        const storedMobileScale = storedData?.['mobileScale'];
-        const hadLegacyFields = Boolean(storedData && ('desktopScale' in storedData || 'mobileScale' in storedData));
+    private sanitizeDualPaneOrientationSetting(value: unknown): DualPaneOrientation {
+        const parsed = this.parseDualPaneOrientation(value);
+        return parsed ?? DEFAULT_SETTINGS.dualPaneOrientation;
+    }
 
-        // Keeps legacy scale values usable without reintroducing removed fields from other devices
-        const sanitizeScale = (value: unknown, fallback: number): number => {
-            if (typeof value === 'number' && Number.isFinite(value)) {
-                return sanitizeUIScale(value);
+    private sanitizePaneTransitionDurationSetting(value: unknown): number {
+        return this.sanitizeBoundedIntegerSetting(value, {
+            min: MIN_PANE_TRANSITION_DURATION_MS,
+            max: MAX_PANE_TRANSITION_DURATION_MS,
+            fallback: DEFAULT_SETTINGS.paneTransitionDuration
+        });
+    }
+
+    private sanitizeNavIndentSetting(value: unknown): number {
+        return this.sanitizeBoundedIntegerSetting(value, { min: 10, max: 24, fallback: DEFAULT_SETTINGS.navIndent });
+    }
+
+    private sanitizeNavItemHeightSetting(value: unknown): number {
+        return this.sanitizeBoundedIntegerSetting(value, { min: 20, max: 28, fallback: DEFAULT_SETTINGS.navItemHeight });
+    }
+
+    private sanitizeCalendarWeeksToShowSetting(value: unknown): CalendarWeeksToShow {
+        const parsed = this.parseFiniteNumber(value);
+        if (parsed === null) {
+            return DEFAULT_SETTINGS.calendarWeeksToShow;
+        }
+        const rounded = Math.round(parsed);
+        if (rounded === 1 || rounded === 2 || rounded === 3 || rounded === 4 || rounded === 5 || rounded === 6) {
+            return rounded;
+        }
+        return DEFAULT_SETTINGS.calendarWeeksToShow;
+    }
+
+    private sanitizeCompactItemHeightSetting(value: unknown): number {
+        return this.sanitizeBoundedIntegerSetting(value, { min: 20, max: 28, fallback: DEFAULT_SETTINGS.compactItemHeight });
+    }
+
+    private sanitizeTagSortOrderSetting(value: unknown): TagSortOrder {
+        return typeof value === 'string' && isTagSortOrder(value) ? value : DEFAULT_SETTINGS.tagSortOrder;
+    }
+
+    private sanitizeSearchProviderSetting(value: unknown): 'internal' | 'omnisearch' {
+        if (value === 'omnisearch') {
+            return 'omnisearch';
+        }
+        return 'internal';
+    }
+
+    private sanitizeVaultProfileId(candidate: unknown): string {
+        const profiles = this.settings.vaultProfiles;
+        const match = typeof candidate === 'string' ? profiles.find(profile => profile.id === candidate) : null;
+        if (match) {
+            return match.id;
+        }
+
+        const defaultProfile = profiles.find(profile => profile.id === DEFAULT_VAULT_PROFILE_ID);
+        if (defaultProfile) {
+            return defaultProfile.id;
+        }
+
+        return profiles[0]?.id ?? DEFAULT_VAULT_PROFILE_ID;
+    }
+
+    private sanitizeToolbarVisibilitySetting(value: unknown): NotebookNavigatorSettings['toolbarVisibility'] {
+        const defaults = DEFAULT_SETTINGS.toolbarVisibility;
+
+        const mergeButtonVisibility = <T extends string>(
+            defaultButtons: Record<T, boolean>,
+            storedButtons: unknown
+        ): Record<T, boolean> => {
+            const next: Record<T, boolean> = { ...defaultButtons };
+            if (!isPlainObjectRecordValue(storedButtons)) {
+                return next;
             }
-            if (typeof value === 'string') {
-                const parsed = Number(value);
-                if (Number.isFinite(parsed)) {
-                    return sanitizeUIScale(parsed);
+            (Object.keys(defaultButtons) as T[]).forEach(key => {
+                const storedValue = storedButtons[key];
+                if (typeof storedValue === 'boolean') {
+                    next[key] = storedValue;
                 }
-            }
-            return sanitizeUIScale(fallback);
+            });
+            return next;
         };
 
-        if (Platform.isMobile) {
-            const resolvedMobile = this.resolveUIScaleFromStorage(this.keys.uiScaleKey, storedMobileScale);
-            this.settings.mobileScale = resolvedMobile;
-            this.settings.desktopScale = sanitizeScale(storedDesktopScale, this.settings.desktopScale);
-            if (this.shouldPersistMobileScale) {
-                this.shouldPersistMobileScale = false;
-            }
-        } else {
-            const resolvedDesktop = this.resolveUIScaleFromStorage(this.keys.uiScaleKey, storedDesktopScale);
-            this.settings.desktopScale = resolvedDesktop;
-            this.settings.mobileScale = sanitizeScale(storedMobileScale, this.settings.mobileScale);
-            if (this.shouldPersistDesktopScale) {
-                this.shouldPersistDesktopScale = false;
-            }
+        if (!isPlainObjectRecordValue(value)) {
+            return {
+                navigation: { ...defaults.navigation },
+                list: { ...defaults.list }
+            };
         }
 
-        return hadLegacyFields;
-    }
-
-    /**
-     * Resolves a UI scale value from local storage, falling back to synced settings or default.
-     */
-    private resolveUIScaleFromStorage(storageKey: string, storedSetting: unknown): number {
-        const parseScale = (value: unknown): number | null => {
-            if (typeof value === 'number' && Number.isFinite(value)) {
-                return sanitizeUIScale(value);
-            }
-            if (typeof value === 'string') {
-                const parsed = Number(value);
-                if (Number.isFinite(parsed)) {
-                    return sanitizeUIScale(parsed);
-                }
-            }
-            return null;
+        return {
+            navigation: mergeButtonVisibility(defaults.navigation, value.navigation),
+            list: mergeButtonVisibility(defaults.list, value.list)
         };
-
-        const storedLocal = localStorage.get<unknown>(storageKey);
-        const localScale = parseScale(storedLocal);
-        if (localScale !== null) {
-            return localScale;
-        }
-
-        const settingScale = parseScale(storedSetting);
-        if (settingScale !== null) {
-            localStorage.set(storageKey, settingScale);
-            return settingScale;
-        }
-
-        localStorage.set(storageKey, DEFAULT_UI_SCALE);
-        return DEFAULT_UI_SCALE;
     }
 
     /**
@@ -820,9 +759,8 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
         // Load settings and check if this is first launch
         const isFirstLaunch = await this.loadSettings();
-        const storedDualPane = localStorage.get<unknown>(this.keys.dualPaneKey);
-        const parsedDualPane = this.parseDualPanePreference(storedDualPane);
-        this.dualPanePreference = parsedDualPane ?? true;
+        this.dualPanePreference = this.settings.dualPane;
+        this.dualPaneOrientationPreference = this.settings.dualPaneOrientation;
         const storedLocalStorageVersion = localStorage.get<number>(STORAGE_KEYS.localStorageVersionKey);
         this.loadUXPreferences();
 
@@ -834,20 +772,15 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             // Clear all localStorage data (if plugin was reinstalled)
             this.clearAllLocalStorage();
 
-            // Re-seed device-local defaults cleared above
-            localStorage.set(this.keys.tagSortOrderKey, this.settings.tagSortOrder);
-            localStorage.set(this.keys.searchProviderKey, this.settings.searchProvider);
-            const initialScale = sanitizeUIScale(Platform.isMobile ? this.settings.mobileScale : this.settings.desktopScale);
-            localStorage.set(this.keys.uiScaleKey, initialScale);
-
-            // Persist the active vault profile for this device
-            localStorage.set(this.keys.vaultProfileKey, this.settings.vaultProfile);
-
-            // Reset dual-pane preference to default on fresh install
-            this.dualPanePreference = true;
-            this.dualPaneOrientationPreference = 'horizontal';
+            // Re-seed per-device mirrors cleared above
             this.uxPreferences = { ...DEFAULT_UX_PREFERENCES };
-            this.persistUXPreferences(false);
+            const syncModeRegistry = this.getSyncModeRegistry();
+            SYNC_MODE_SETTING_IDS.forEach(settingId => {
+                syncModeRegistry[settingId].mirrorToLocalStorage();
+            });
+
+            this.dualPanePreference = this.settings.dualPane;
+            this.dualPaneOrientationPreference = this.settings.dualPaneOrientation;
 
             // Ensure root folder is expanded on first launch (default is enabled)
             if (this.settings.showRootFolder) {
@@ -959,7 +892,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
                 }
 
                 // Check for version updates
-                await this.checkForVersionUpdate();
+                await this.checkForVersionUpdate({ isFirstLaunch });
 
                 // Trigger Style Settings plugin to parse our settings
                 this.app.workspace.trigger('parse-style-settings');
@@ -980,6 +913,10 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         this.settingsUpdateListeners.set(id, callback);
     }
 
+    public isExternalSettingsUpdate(): boolean {
+        return this.isHandlingExternalSettingsUpdate;
+    }
+
     /**
      * Returns whether dual-pane mode is enabled
      */
@@ -995,13 +932,15 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
      * Updates the dual-pane preference and persists to local storage
      */
     public setDualPanePreference(enabled: boolean): void {
-        if (this.dualPanePreference === enabled) {
+        const next = Boolean(enabled);
+        if (this.dualPanePreference === next) {
             return;
         }
 
-        this.dualPanePreference = enabled;
-        localStorage.set(this.keys.dualPaneKey, enabled ? '1' : '0');
-        this.notifySettingsUpdate();
+        this.dualPanePreference = next;
+        this.settings.dualPane = next;
+        localStorage.set(this.keys.dualPaneKey, next ? '1' : '0');
+        this.persistSyncModeSettingUpdate('dualPane');
     }
 
     /**
@@ -1030,12 +969,13 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
         // Update in-memory preference and persist
         this.dualPaneOrientationPreference = normalized;
+        this.settings.dualPaneOrientation = normalized;
         localStorage.set(this.keys.dualPaneOrientationKey, normalized);
-        this.notifySettingsUpdate();
+        await this.persistSyncModeSettingUpdateAsync('dualPaneOrientation');
     }
 
     /**
-     * Returns the UI scale for this device (local-only).
+     * Returns the UI scale for this device.
      */
     public getUIScale(): number {
         const current = Platform.isMobile ? this.settings.mobileScale : this.settings.desktopScale;
@@ -1055,13 +995,14 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             this.settings.desktopScale = next;
         }
         localStorage.set(this.keys.uiScaleKey, next);
-        if (current !== next) {
-            this.notifySettingsUpdate();
+        if (current === next) {
+            return;
         }
+        this.persistSyncModeSettingUpdate('uiScale');
     }
 
     /**
-     * Returns the current tag sort order preference (local-only).
+     * Returns the current tag sort order preference.
      */
     public getTagSortOrder(): TagSortOrder {
         return this.settings.tagSortOrder;
@@ -1076,7 +1017,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         }
         this.settings.tagSortOrder = order;
         localStorage.set(this.keys.tagSortOrderKey, order);
-        this.notifySettingsUpdate();
+        this.persistSyncModeSettingUpdate('tagSortOrder');
     }
 
     /**
@@ -1141,7 +1082,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     }
 
     /**
-     * Returns the active search provider preference (local-only).
+     * Returns the active search provider preference.
      */
     public getSearchProvider(): 'internal' | 'omnisearch' {
         const value = this.settings.searchProvider;
@@ -1156,12 +1097,108 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
      */
     public setSearchProvider(provider: 'internal' | 'omnisearch'): void {
         const normalized = provider === 'omnisearch' ? 'omnisearch' : 'internal';
-        if (this.settings.searchProvider === normalized) {
-            return;
-        }
-        this.settings.searchProvider = normalized;
-        localStorage.set(this.keys.searchProviderKey, normalized);
-        this.notifySettingsUpdate();
+        this.updateSettingAndMirrorToLocalStorage({
+            settingId: 'searchProvider',
+            localStorageKey: this.keys.searchProviderKey,
+            nextValue: normalized
+        });
+    }
+
+    /**
+     * Updates the single-pane transition duration and persists to local storage.
+     */
+    public setPaneTransitionDuration(durationMs: number): void {
+        this.updateBoundedNumberSettingAndMirror({
+            settingId: 'paneTransitionDuration',
+            localStorageKey: this.keys.paneTransitionDurationKey,
+            rawValue: durationMs,
+            min: MIN_PANE_TRANSITION_DURATION_MS,
+            max: MAX_PANE_TRANSITION_DURATION_MS,
+            fallback: DEFAULT_SETTINGS.paneTransitionDuration
+        });
+    }
+
+    /**
+     * Persists toolbar button visibility to local storage.
+     */
+    public persistToolbarVisibility(): void {
+        localStorage.set(this.keys.toolbarVisibilityKey, this.settings.toolbarVisibility);
+        this.persistSyncModeSettingUpdate('toolbarVisibility');
+    }
+
+    /**
+     * Updates navigation tree indentation and persists to local storage.
+     */
+    public setNavIndent(indent: number): void {
+        this.updateBoundedNumberSettingAndMirror({
+            settingId: 'navIndent',
+            localStorageKey: this.keys.navIndentKey,
+            rawValue: indent,
+            min: 10,
+            max: 24,
+            fallback: DEFAULT_SETTINGS.navIndent
+        });
+    }
+
+    /**
+     * Updates navigation item height and persists to local storage.
+     */
+    public setNavItemHeight(height: number): void {
+        this.updateBoundedNumberSettingAndMirror({
+            settingId: 'navItemHeight',
+            localStorageKey: this.keys.navItemHeightKey,
+            rawValue: height,
+            min: 20,
+            max: 28,
+            fallback: DEFAULT_SETTINGS.navItemHeight
+        });
+    }
+
+    /**
+     * Updates navigation text scaling with item height and persists to local storage.
+     */
+    public setNavItemHeightScaleText(enabled: boolean): void {
+        this.updateSettingAndMirrorToLocalStorage({
+            settingId: 'navItemHeightScaleText',
+            localStorageKey: this.keys.navItemHeightScaleTextKey,
+            nextValue: enabled
+        });
+    }
+
+    /**
+     * Updates calendar weeks to show and persists to local storage.
+     */
+    public setCalendarWeeksToShow(weeks: CalendarWeeksToShow): void {
+        this.updateSettingAndMirrorToLocalStorage({
+            settingId: 'calendarWeeksToShow',
+            localStorageKey: this.keys.calendarWeeksToShowKey,
+            nextValue: weeks
+        });
+    }
+
+    /**
+     * Updates compact list item height and persists to local storage.
+     */
+    public setCompactItemHeight(height: number): void {
+        this.updateBoundedNumberSettingAndMirror({
+            settingId: 'compactItemHeight',
+            localStorageKey: this.keys.compactItemHeightKey,
+            rawValue: height,
+            min: 20,
+            max: 28,
+            fallback: DEFAULT_SETTINGS.compactItemHeight
+        });
+    }
+
+    /**
+     * Updates compact list text scaling with item height and persists to local storage.
+     */
+    public setCompactItemHeightScaleText(enabled: boolean): void {
+        this.updateSettingAndMirrorToLocalStorage({
+            settingId: 'compactItemHeightScaleText',
+            localStorageKey: this.keys.compactItemHeightScaleTextKey,
+            nextValue: enabled
+        });
     }
 
     /**
@@ -1193,7 +1230,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         });
 
         this.refreshMatcherCachesIfNeeded();
-        this.notifySettingsUpdate();
+        this.persistSyncModeSettingUpdate('vaultProfile');
     }
 
     public getUXPreferences(): UXPreferences {
@@ -1213,7 +1250,14 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     }
 
     public setIncludeDescendantNotes(value: boolean): void {
-        this.updateUXPreference('includeDescendantNotes', value);
+        const next = Boolean(value);
+        if (this.uxPreferences.includeDescendantNotes === next) {
+            return;
+        }
+
+        this.settings.includeDescendantNotes = next;
+        this.updateUXPreference('includeDescendantNotes', next);
+        this.persistSyncModeSettingUpdate('includeDescendantNotes');
     }
 
     public toggleIncludeDescendantNotes(): void {
@@ -1230,6 +1274,21 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
     public setPinShortcuts(value: boolean): void {
         this.updateUXPreference('pinShortcuts', value);
+    }
+
+    public setShowCalendar(value: boolean): void {
+        const next = Boolean(value);
+        if (this.uxPreferences.showCalendar === next) {
+            return;
+        }
+
+        this.settings.showCalendar = next;
+        this.updateUXPreference('showCalendar', next);
+        this.persistSyncModeSettingUpdate('showCalendar');
+    }
+
+    public toggleShowCalendar(): void {
+        this.setShowCalendar(!this.uxPreferences.showCalendar);
     }
 
     private updateUXPreference(key: keyof UXPreferences, value: boolean): void {
@@ -1306,10 +1365,16 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
      */
     private parseDualPanePreference(raw: unknown): boolean | null {
         if (typeof raw === 'string') {
-            return raw === '1';
+            if (raw === '1') {
+                return true;
+            }
+            if (raw === '0') {
+                return false;
+            }
+            return null;
         }
 
-        return false;
+        return null;
     }
 
     /**
@@ -1523,65 +1588,6 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         });
     }
 
-    // Extracts legacy shortcuts from old settings format for migration to vault profiles
-    private extractLegacyShortcuts(storedData: Record<string, unknown> | null): ShortcutEntry[] | null {
-        if (!storedData) {
-            return null;
-        }
-
-        const raw = storedData['shortcuts'];
-        if (!Array.isArray(raw)) {
-            return null;
-        }
-
-        const entries: ShortcutEntry[] = [];
-        raw.forEach(value => {
-            if (!value || typeof value !== 'object') {
-                return;
-            }
-            const typed = value as ShortcutEntry;
-            const shortcutType = (typed as { type?: unknown }).type;
-            // Validates that shortcut type is one of the recognized types
-            if (
-                shortcutType !== ShortcutType.FOLDER &&
-                shortcutType !== ShortcutType.NOTE &&
-                shortcutType !== ShortcutType.TAG &&
-                shortcutType !== ShortcutType.SEARCH
-            ) {
-                return;
-            }
-            entries.push({ ...typed });
-        });
-
-        if (entries.length === 0) {
-            return [];
-        }
-
-        return entries;
-    }
-
-    // Migrates legacy shortcuts to vault profile system
-    private applyLegacyShortcutsMigration(legacyShortcuts: ShortcutEntry[] | null): void {
-        // Removes legacy shortcuts property from settings object
-        const settingsRecord = this.settings as unknown as Record<string, unknown>;
-        if (Object.prototype.hasOwnProperty.call(settingsRecord, 'shortcuts')) {
-            delete settingsRecord['shortcuts'];
-        }
-
-        if (!legacyShortcuts || legacyShortcuts.length === 0) {
-            return;
-        }
-
-        // Copies legacy shortcuts to all vault profiles that don't have shortcuts yet
-        const template = cloneShortcuts(legacyShortcuts);
-        this.settings.vaultProfiles.forEach(profile => {
-            if (Array.isArray(profile.shortcuts) && profile.shortcuts.length > 0) {
-                return;
-            }
-            profile.shortcuts = cloneShortcuts(template);
-        });
-    }
-
     // Rebuilds all settings records with null prototypes to prevent prototype pollution attacks
     private sanitizeSettingsRecords(): void {
         // Type-specific sanitizers that validate values match expected types
@@ -1592,6 +1598,8 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             sanitizeRecord(record, isAppearanceValue);
         const sanitizeBooleanMap = (record?: Record<string, boolean>): Record<string, boolean> =>
             sanitizeRecord(record, isBooleanRecordValue);
+        const sanitizeSettingsSyncMap = (record?: Record<string, SettingSyncMode>): Record<string, SettingSyncMode> =>
+            sanitizeRecord(record, isSettingSyncMode);
 
         // Rebuild maps with null prototypes so keys like "constructor" never resolve to Object.prototype
         this.settings.folderColors = sanitizeStringMap(this.settings.folderColors);
@@ -1605,6 +1613,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         this.settings.tagAppearances = sanitizeAppearanceMap(this.settings.tagAppearances);
         this.settings.navigationSeparators = sanitizeBooleanMap(this.settings.navigationSeparators);
         this.settings.externalIconProviders = sanitizeBooleanMap(this.settings.externalIconProviders);
+        this.settings.syncModes = sanitizeSettingsSyncMap(this.settings.syncModes);
     }
 
     private normalizeIconSettings(settings: NotebookNavigatorSettings): void {
@@ -1690,89 +1699,6 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         settings.interfaceIcons = sanitizeRecord(normalizeUXIconMapRecord(source), isStringRecordValue);
     }
 
-    // Extracts legacy exclusion settings from old format and prepares them for migration to vault profiles
-    private extractLegacyVisibilitySettings(storedData: Record<string, unknown> | null): LegacyVisibilityMigration {
-        // Converts unknown value to a deduplicated list of non-empty strings
-        const toUniqueStringList = (value: unknown): string[] => {
-            if (!Array.isArray(value)) {
-                return [];
-            }
-            const sanitized = value.map(entry => (typeof entry === 'string' ? entry.trim() : '')).filter(entry => entry.length > 0);
-            return Array.from(new Set(sanitized));
-        };
-
-        const mutableSettings = this.settings as unknown as Record<string, unknown>;
-        const legacyHiddenFolders = toUniqueStringList(mutableSettings['excludedFolders']);
-        const legacyHiddenFiles = toUniqueStringList(mutableSettings['excludedFiles']);
-        delete mutableSettings['excludedFolders'];
-        delete mutableSettings['excludedFiles'];
-
-        const storedHiddenTags = toUniqueStringList(storedData?.['hiddenTags']);
-        // Legacy hidden tags are captured for migration but not applied to top-level settings
-
-        const rawNavigationBanner = mutableSettings['navigationBanner'];
-        const legacyNavigationBanner = typeof rawNavigationBanner === 'string' ? rawNavigationBanner : null;
-        const storedNavigationBannerPath = storedData?.['navigationBannerPath'];
-        const legacyBannerPath = typeof storedNavigationBannerPath === 'string' ? storedNavigationBannerPath : null;
-        const navigationBanner =
-            legacyNavigationBanner && legacyNavigationBanner.length > 0
-                ? legacyNavigationBanner
-                : legacyBannerPath && legacyBannerPath.length > 0
-                  ? legacyBannerPath
-                  : null;
-
-        delete mutableSettings['navigationBanner'];
-        delete mutableSettings['navigationBannerPath'];
-
-        return {
-            hiddenFolders: legacyHiddenFolders,
-            hiddenFiles: legacyHiddenFiles,
-            hiddenTags: storedHiddenTags,
-            navigationBanner,
-            shouldApplyToProfiles: !Array.isArray(storedData?.['vaultProfiles'])
-        };
-    }
-
-    // Applies legacy hidden folder, file, and tag settings to the active vault profile
-    private applyLegacyVisibilityMigration(migration: LegacyVisibilityMigration): void {
-        const hasNavigationBanner = typeof migration.navigationBanner === 'string' && migration.navigationBanner.length > 0;
-
-        if (
-            !migration.shouldApplyToProfiles ||
-            (!hasNavigationBanner &&
-                migration.hiddenFolders.length === 0 &&
-                migration.hiddenFiles.length === 0 &&
-                migration.hiddenTags.length === 0)
-        ) {
-            return;
-        }
-
-        const targetProfile =
-            this.settings.vaultProfiles.find(profile => profile.id === this.settings.vaultProfile) ??
-            this.settings.vaultProfiles.find(profile => profile.id === DEFAULT_VAULT_PROFILE_ID) ??
-            this.settings.vaultProfiles[0];
-
-        if (!targetProfile) {
-            return;
-        }
-
-        if (migration.hiddenFolders.length > 0) {
-            targetProfile.hiddenFolders = [...migration.hiddenFolders];
-        }
-
-        if (migration.hiddenFiles.length > 0) {
-            targetProfile.hiddenFiles = [...migration.hiddenFiles];
-        }
-
-        if (migration.hiddenTags.length > 0) {
-            targetProfile.hiddenTags = [...migration.hiddenTags];
-        }
-
-        if (hasNavigationBanner) {
-            targetProfile.navigationBanner = migration.navigationBanner;
-        }
-    }
-
     /**
      * Normalizes tag-related settings to use lowercase keys
      * Ensures consistency regardless of manual edits or external changes
@@ -1822,6 +1748,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         if (Array.isArray(this.settings.vaultProfiles)) {
             this.settings.vaultProfiles.forEach(profile => {
                 profile.hiddenTags = normalizeArray(profile.hiddenTags);
+                profile.hiddenFileTags = normalizeArray(profile.hiddenFileTags);
             });
         }
     }
@@ -1831,20 +1758,18 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
      */
     private getPersistableSettings(): NotebookNavigatorSettings {
         const rest = { ...this.settings } as Record<string, unknown>;
-        delete rest.vaultProfile;
         delete rest.hiddenTags;
         delete rest.fileVisibility;
-        delete rest.tagSortOrder;
         delete rest.recentColors;
         delete rest.lastReleaseCheckAt;
         delete rest.latestKnownRelease;
-        delete rest.searchProvider;
-        if (!this.shouldPersistDesktopScale) {
-            delete rest.desktopScale;
-        }
-        if (!this.shouldPersistMobileScale) {
-            delete rest.mobileScale;
-        }
+        const syncModeRegistry = this.getSyncModeRegistry();
+        SYNC_MODE_SETTING_IDS.forEach(settingId => {
+            if (!this.isLocal(settingId)) {
+                return;
+            }
+            syncModeRegistry[settingId].deleteFromPersisted(rest);
+        });
         return rest as unknown as NotebookNavigatorSettings;
     }
 
@@ -1864,8 +1789,10 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     // Clears matcher caches only when the associated patterns change.
     private refreshMatcherCachesIfNeeded(): void {
         const folderKey = this.buildPatternCacheKey(profile => profile.hiddenFolders);
-        const tagKey = this.buildPatternCacheKey(profile => profile.hiddenTags);
-        const fileNameKey = this.buildPatternCacheKey(profile => profile.hiddenFileNamePatterns);
+        const hiddenTagKey = this.buildPatternCacheKey(profile => profile.hiddenTags);
+        const hiddenFileTagKey = this.buildPatternCacheKey(profile => profile.hiddenFileTags);
+        const tagKey = `${hiddenTagKey}\u0003${hiddenFileTagKey}`;
+        const fileNameKey = this.buildPatternCacheKey(profile => profile.hiddenFileNames);
 
         if (folderKey !== this.hiddenFolderCacheKey) {
             clearHiddenFolderMatcherCache();
@@ -1877,9 +1804,9 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             this.hiddenTagCacheKey = tagKey;
         }
 
-        if (fileNameKey !== this.hiddenFileNameCacheKey) {
+        if (fileNameKey !== this.hiddenFileNamesCacheKey) {
             clearHiddenFileNameMatcherCache();
-            this.hiddenFileNameCacheKey = fileNameKey;
+            this.hiddenFileNamesCacheKey = fileNameKey;
         }
     }
 
@@ -1895,6 +1822,49 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         await this.saveData(dataToPersist);
         // Notify all listeners that settings have been updated
         this.onSettingsUpdate();
+    }
+
+    /**
+     * Resets all persisted settings and local preferences back to defaults.
+     * Clears plugin localStorage state (except IndexedDB version markers) and clears persisted settings so defaults apply.
+     */
+    public async resetAllSettings(): Promise<void> {
+        if (this.isUnloading) {
+            throw new Error('Plugin is unloading');
+        }
+
+        const preservedSyncModes = sanitizeRecord<SettingSyncMode>(this.settings.syncModes, isSettingSyncMode);
+
+        // Clear local storage first so subsequent loads seed fresh defaults.
+        this.clearAllLocalStorage();
+
+        // Clear persisted settings; loadSettings will repopulate from DEFAULT_SETTINGS.
+        await this.saveData({});
+        await this.loadSettings();
+        this.settings.syncModes = preservedSyncModes;
+        await this.saveSettingsAndUpdate();
+
+        // Reset per-device preferences not handled by loadSettings.
+        this.dualPanePreference = this.settings.dualPane;
+        localStorage.set(this.keys.dualPaneKey, this.dualPanePreference ? '1' : '0');
+        this.dualPaneOrientationPreference = this.settings.dualPaneOrientation;
+        localStorage.set(this.keys.dualPaneOrientationKey, this.dualPaneOrientationPreference);
+
+        this.uxPreferences = {
+            ...DEFAULT_UX_PREFERENCES,
+            includeDescendantNotes: this.settings.includeDescendantNotes,
+            showCalendar: this.settings.showCalendar
+        };
+        localStorage.set(this.keys.uxPreferencesKey, this.uxPreferences);
+        localStorage.set(STORAGE_KEYS.localStorageVersionKey, LOCALSTORAGE_VERSION);
+
+        if (this.settings.showRootFolder) {
+            localStorage.set(STORAGE_KEYS.expandedFoldersKey, ['/']);
+        }
+
+        this.initializeRecentDataManager();
+        this.onSettingsUpdate();
+        this.notifyUXPreferencesUpdate();
     }
 
     /**
@@ -2118,15 +2088,43 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     /**
      * Check if the plugin has been updated and show release notes if needed
      */
-    private async checkForVersionUpdate(): Promise<void> {
+    private async checkForVersionUpdate(params: { isFirstLaunch: boolean }): Promise<void> {
+        const { isFirstLaunch } = params;
         // Get current version from manifest
         const currentVersion = this.manifest.version;
 
         // Get last shown version from settings
         const lastShownVersion = this.settings.lastShownVersion;
 
-        // Don't show on first install (when lastShownVersion is empty)
+        // Initialize lastShownVersion on first install.
         if (!lastShownVersion) {
+            if (isFirstLaunch) {
+                this.settings.lastShownVersion = currentVersion;
+                await this.saveSettingsAndUpdate();
+                return;
+            }
+
+            const { getLatestReleaseNotes, isReleaseAutoDisplayEnabled } = await import('./releaseNotes');
+
+            if (!isReleaseAutoDisplayEnabled(currentVersion)) {
+                this.settings.lastShownVersion = currentVersion;
+                await this.saveSettingsAndUpdate();
+                return;
+            }
+
+            const { WhatsNewModal } = await import('./modals/WhatsNewModal');
+
+            const releaseNotes = getLatestReleaseNotes();
+            new WhatsNewModal(this.app, releaseNotes, this.settings.dateFormat, () => {
+                // Save version after 1 second delay when user closes the modal
+                setTimeout(() => {
+                    // Wrap in runAsyncAction to handle async without blocking callback
+                    runAsyncAction(async () => {
+                        this.settings.lastShownVersion = currentVersion;
+                        await this.saveSettingsAndUpdate();
+                    });
+                }, 1000);
+            }).open();
             return;
         }
 

@@ -53,6 +53,7 @@ function createFileData(overrides: Partial<FileData>): FileData {
         metadataMtime: 0,
         fileThumbnailsMtime: 0,
         tags: null,
+        wordCount: null,
         customProperty: null,
         previewStatus: 'unprocessed',
         featureImage: null,
@@ -75,7 +76,8 @@ describe('recordFileChanges rename merge', () => {
             tagsMtime: 150,
             metadataMtime: 150,
             tags: ['destination'],
-            customProperty: 'destination',
+            wordCount: 10,
+            customProperty: [{ value: 'destination' }],
             previewStatus: 'none',
             featureImageStatus: 'none',
             featureImageKey: '',
@@ -88,7 +90,8 @@ describe('recordFileChanges rename merge', () => {
             tagsMtime: 0,
             metadataMtime: 0,
             tags: ['source'],
-            customProperty: 'source',
+            wordCount: 42,
+            customProperty: [{ value: 'source' }],
             previewStatus: 'has',
             featureImageStatus: 'has',
             featureImageKey: 'f:images/cover.png@123',
@@ -110,7 +113,8 @@ describe('recordFileChanges rename merge', () => {
 
         expect(updated.mtime).toBe(200);
         expect(updated.tags).toEqual(['source']);
-        expect(updated.customProperty).toBe('source');
+        expect(updated.wordCount).toBe(42);
+        expect(updated.customProperty).toEqual([{ value: 'source' }]);
         expect(updated.previewStatus).toBe('has');
         expect(updated.featureImageStatus).toBe('has');
         expect(updated.featureImageKey).toBe('f:images/cover.png@123');

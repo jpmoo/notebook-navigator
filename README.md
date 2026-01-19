@@ -29,9 +29,13 @@ For precise image management, consider also installing [Pixel Perfect Image](htt
 
 Here is the official tutorial for installing and mastering Notebook Navigator:
 
-[![Still Using Default File View in Obsidian? Watch This](https://raw.githubusercontent.com/johansan/notebook-navigator/main/images/youtube-thumbnail.jpg)](https://www.youtube.com/watch?v=BewIlG8wLAM)
+[![Mastering Notebook Navigator](https://raw.githubusercontent.com/johansan/notebook-navigator/main/images/youtube-thumbnail.jpg)](https://www.youtube.com/watch?v=BewIlG8wLAM)
 
-The tutorial has subtitles in 21 languages, same as Notebook Navigator.
+And here is a video walkthrough of all the new features in Notebook Navigator 2.1:
+
+[![What's new in Notebook Navigator 2.1 for Obsidian](https://raw.githubusercontent.com/johansan/notebook-navigator/main/images/youtube-2.1.jpg)](https://www.youtube.com/watch?v=1Kxrq832kfM)
+
+Both videos has subtitles in 21 languages, same as Notebook Navigator.
 
 <br>
 
@@ -52,6 +56,7 @@ The tutorial has subtitles in 21 languages, same as Notebook Navigator.
 - **Vault profiles** - Multiple filtered views with per-profile hidden folders/tags/notes, file visibility, banner, and shortcuts
 - **Shortcuts** - Notes, folders, tags, and saved searches with pinning and reordering
 - **Recent notes/files** - Recent items section stored per vault profile, optionally pinned with shortcuts
+- **Calendar** - Daily notes calendar with day selection, feature image previews, and vertical split support
 - **Folder tree** - Expand/collapse navigation with manual root folder ordering
 - **Tag tree** - Hierarchical tags with configurable root tag ordering
 - **Auto-reveal active file** - Folder expansion and scroll-to-selection
@@ -60,11 +65,11 @@ The tutorial has subtitles in 21 languages, same as Notebook Navigator.
 ### 3.3 Organization
 
 - **Pin notes** - Keep important notes at the top of folders and tags
-- **Folder notes** - Set/detach folder notes and pin folder notes
+- **Folder notes** - Set/detach folder notes, pin folder notes, open in new tab option
 - **Tag operations** - Add/remove/clear tags, rename/delete tags, drag-and-drop tag hierarchy
 - **Custom sort and grouping** - Override sort/group settings per folder or tag
 - **Per-folder/tag appearances** - Title rows, preview rows, compact mode, descendants toggle
-- **Hidden content** - Hidden folders/tags/notes/files with patterns and frontmatter properties
+- **Hidden content** - Hidden folders/tags/notes/files with patterns, frontmatter properties, and tag-based filtering per vault profile
 - **Color and icon system** - Folder/tag/file colors, icon packs, emoji/Lucide icons, frontmatter read/write, icon mapping by file name and file type category
 - **Name warnings** - Warn about forbidden filesystem characters and characters that break Obsidian links when naming files and folders
 
@@ -76,6 +81,8 @@ The tutorial has subtitles in 21 languages, same as Notebook Navigator.
 - **Date grouping** - Group notes by Today, Yesterday, Previous 7 days, Previous 30 days, months, and years when sorted by date
 - **Frontmatter support** - Read note names and timestamps from frontmatter fields
 - **Note metadata** - Show modification date and tags in the file list
+- **Custom properties** - Display frontmatter properties or word count in file list with per-folder/tag overrides and custom colors
+- **Parent folder display** - Optional parent folder name and icon in file list
 - **Compact mode** - Compact display when preview, date, and images are disabled
 - **Clickable tags** - Tags in file list navigate directly to that tag
 
@@ -162,32 +169,35 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 
 **View & navigation**
 
-- `Notebook Navigator: Open` Opens Notebook Navigator in left sidebar. If already open, focuses the file list pane. **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+E` to move keyboard focus to the list pane - **this is essential for full keyboard navigation**
+- `Notebook Navigator: Open` Opens Notebook Navigator in left sidebar. If already open, moves keyboard focus over to the list pane. **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+E` to move keyboard focus to the list pane - **this is essential for full keyboard navigation**
+- `Notebook Navigator: Toggle left sidebar` Toggles the left sidebar. When opening, sets the left sidebar view to Notebook Navigator (unlike Obsidian's built-in "Toggle left sidebar" command which restores the previous left sidebar view)
 - `Notebook Navigator: Open homepage` Opens the Notebook Navigator view and loads the homepage file configured in settings
 - `Notebook Navigator: Select vault profile` Opens modal to switch between vault profiles
-- `Notebook Navigator: Reveal file` Reveals current file in navigator. Expands parent folders and scrolls to file. This command is useful if you have the setting `Auto-reveal active note` switched off and want to reveal notes manually
+- `Notebook Navigator: Reveal file` Reveals current file in navigator. Expands parent folders and scrolls to file. This command is useful if you have the setting `Auto-reveal active note` switched off and want to reveal notes manually. **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+R` to quickly change the selected folder or tag to the current file
+- `Notebook Navigator: Open all files` Opens all notes in the currently selected folder or tag. When opening 15 or more files, shows a confirmation dialog
 - `Notebook Navigator: Navigate to folder` Search dialog to jump to any folder
 - `Notebook Navigator: Navigate to tag` Search dialog to jump to any tag
 - `Notebook Navigator: Add to shortcuts` Adds the current file, folder, or tag to shortcuts
 - `Notebook Navigator: Open shortcut 1-9` Opens shortcut by its position in the shortcuts list
-- `Notebook Navigator: Search` Opens quick search field or focuses it if already open. Search persists between sessions. **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+F` for quick file filtering
+- `Notebook Navigator: Search` Opens quick search field or focuses it if already open. Search persists between sessions. **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+S` for quick file filtering
 
 **Selection**
 
-- `Notebook Navigator: Select next file` Moves selection to the next file in the current folder or tag view.
-- `Notebook Navigator: Select previous file` Moves selection to the previous file in the current folder or tag view.
+- `Notebook Navigator: Select next file` Moves selection to the next file in the current folder or tag view. Respects custom sort order. **Suggestion:** Bind to a shortcut key like `Option+Cmd+Right` to quickly go to the next file in list
+- `Notebook Navigator: Select previous file` Moves selection to the previous file in the current folder or tag view. Respects custom sort order. **Suggestion:** Bind to a shortcut key like `Option+Cmd+Left` to quickly go to the previous file in list
 
 **Layout & display**
 
-- `Notebook Navigator: Toggle dual pane layout` Toggle single/dual-pane layout (desktop)
-- `Notebook Navigator: Toggle descendants` Toggle descendants notes display for both folders and tags. **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+S` to quickly toggle display of notes from descendants
+- `Notebook Navigator: Toggle dual pane layout` Toggle single/dual-pane layout (desktop). **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+A` to quickly switch between single-pane and dual-pane layout
+- `Notebook Navigator: Toggle calendar` Toggles calendar on or off. **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+C` to quickly show the calendar
+- `Notebook Navigator: Toggle descendants` Toggle subfolders / descendants notes display for folders and tags. **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+D` to quickly toggle display of notes from subfolders / descendants
 - `Notebook Navigator: Toggle hidden items` Show or hide hidden folders, tags, and notes
 - `Notebook Navigator: Toggle tag sort` Toggle between alphabetical and frequency-based tag sorting
-- `Notebook Navigator: Collapse / expand all items` Collapse or expand all items based on the current state. When `Keep selected item expanded` is enabled (default on), all folders except the current one will be collapsed. This is super handy to keep the navigation tree tidy when searching for documents. **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+C` to quickly collapse non-selected items
+- `Notebook Navigator: Collapse / expand all items` Collapse or expand all items based on the current state. When `Keep selected item expanded` is enabled (default on), all folders except the current one will be collapsed. This is handy to keep the navigation tree tidy when searching for documents
 
 **File operations**
 
-**Note:** When creating new notes in Obsidian you can choose the `Default location for new notes` in Obsidian settings. This can be the the root folder, same folder as current file, or a specific folder. When working with Notebook Navigator, especially with the setting `Show notes from descendants` enabled, none of these options are preferred. Instead you always want to create new notes in the currently selected folder (for example if you have `Show notes from descendants` on, and have a note in a descendant folder selected, you do not want the new note to appear in the descendant folder). The same also applies to moving and deleting files. This is why you should use these commands instead of the built-in Obsidian commands when using Notebook Navigator.
+**Important:** Obsidian has no context of "current folder or tag", so when creating notes in Obsidian by default they are created in the root folder, same folder as current file, or a specific folder. When working with Notebook Navigator you always want to create new notes in the currently selected folder or tag, so the first thing you should do is bind `Cmd/Ctrl+N` to `Notebook Navigator: Create new note` so new notes are always created in the currently selected folder or tag. The same also applies to moving and deleting files. This is why you should use these commands instead of the built-in Obsidian commands when using Notebook Navigator.
 
 - `Notebook Navigator: Create new note` Create note in currently selected folder. **Suggestion:** Bind `Cmd/Ctrl+N` to this command (unbind from Obsidian's default "Create new note" first)
 - `Notebook Navigator: Create new note from template` Create note from template in currently selected folder (requires Templater)
@@ -195,7 +205,7 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 - `Notebook Navigator: Convert to folder note` Create a folder matching the file name and move the file inside as the folder note
 - `Notebook Navigator: Set as folder note` Rename the active file to its folder note name
 - `Notebook Navigator: Detach folder note` Detach the folder note in the selected folder and rename it
-- `Notebook Navigator: Pin all folder notes` Add all folder notes to shortcuts. Command only visible when folder notes are enabled and at least one unpinned folder note exists
+- `Notebook Navigator: Pin all folder notes` Pin all folder notes in all folders. Command is only visible when folder notes are enabled and at least one unpinned folder note exists
 - `Notebook Navigator: Delete files` Delete selected files. Selects next file in current folder
 
 **Tag operations**
@@ -213,12 +223,14 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 | Command ID                                  | Command name                                                                                         |
 | ------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | `notebook-navigator:open`                   | Notebook Navigator: Open                                                                             |
+| `notebook-navigator:toggle-left-sidebar`    | Notebook Navigator: Toggle left sidebar                                                              |
 | `notebook-navigator:open-homepage`          | Notebook Navigator: Open homepage                                                                    |
 | `notebook-navigator:select-profile`         | Notebook Navigator: Select vault profile                                                             |
 | `notebook-navigator:select-profile-1`       | Notebook Navigator: Select vault profile 1                                                           |
 | `notebook-navigator:select-profile-2`       | Notebook Navigator: Select vault profile 2                                                           |
 | `notebook-navigator:select-profile-3`       | Notebook Navigator: Select vault profile 3                                                           |
 | `notebook-navigator:reveal-file`            | Notebook Navigator: Reveal file                                                                      |
+| `notebook-navigator:open-all-files`         | Notebook Navigator: Open all files                                                                   |
 | `notebook-navigator:navigate-to-folder`     | Notebook Navigator: Navigate to folder                                                               |
 | `notebook-navigator:navigate-to-tag`        | Notebook Navigator: Navigate to tag                                                                  |
 | `notebook-navigator:add-shortcut`           | Notebook Navigator: Add to shortcuts                                                                 |
@@ -233,6 +245,7 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 | `notebook-navigator:open-shortcut-9`        | Notebook Navigator: Open shortcut 9                                                                  |
 | `notebook-navigator:search`                 | Notebook Navigator: Search                                                                           |
 | `notebook-navigator:toggle-dual-pane`       | Notebook Navigator: Toggle dual pane layout                                                          |
+| `notebook-navigator:toggle-calendar`        | Notebook Navigator: Toggle calendar                                                                  |
 | `notebook-navigator:toggle-descendants`     | Notebook Navigator: Toggle descendants                                                               |
 | `notebook-navigator:toggle-hidden`          | Notebook Navigator: Toggle hidden items (folders, tags, notes)                                       |
 | `notebook-navigator:toggle-tag-sort`        | Notebook Navigator: Toggle tag sort                                                                  |

@@ -57,6 +57,7 @@ function createFileData(overrides: Partial<FileData>): FileData {
         metadataMtime: 0,
         fileThumbnailsMtime: 0,
         tags: null,
+        wordCount: null,
         customProperty: null,
         previewStatus: 'unprocessed',
         featureImage: null,
@@ -109,7 +110,7 @@ describe('Storage queue filters', () => {
                 markdownPipelineMtime: 0,
                 previewStatus: 'has',
                 featureImageStatus: 'has',
-                customProperty: '1'
+                customProperty: [{ value: '1' }]
             })
         );
 
@@ -133,7 +134,7 @@ describe('Storage queue filters', () => {
                 previewStatus: 'has',
                 featureImageStatus: 'none',
                 featureImageKey: null,
-                customProperty: '1'
+                customProperty: [{ value: '1' }]
             })
         );
 
@@ -165,7 +166,7 @@ describe('Storage queue filters', () => {
             vaultProfiles: [
                 {
                     ...settings.vaultProfiles[0],
-                    hiddenFiles: ['hide']
+                    hiddenFileProperties: ['hide']
                 }
             ]
         };

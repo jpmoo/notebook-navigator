@@ -16,8 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { App, CachedMetadata } from 'obsidian';
-import { TFile } from 'obsidian';
+import { App, TFile, type CachedMetadata } from 'obsidian';
 import { FileMetadataService } from '../../src/services/metadata/FileMetadataService';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import type { NotebookNavigatorSettings } from '../../src/settings';
@@ -98,14 +97,9 @@ describe('FileMetadataService frontmatter integration', () => {
         });
         getAbstractFileByPath.mockImplementation((path: string) => (path === file.path ? file : null));
 
-        app = {
-            vault: {
-                getAbstractFileByPath
-            },
-            fileManager: {
-                processFrontMatter
-            }
-        } as unknown as App;
+        app = new App();
+        app.vault.getAbstractFileByPath = getAbstractFileByPath;
+        app.fileManager.processFrontMatter = processFrontMatter;
 
         service = new FileMetadataService(app, settingsProvider);
     });

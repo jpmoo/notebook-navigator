@@ -31,11 +31,12 @@ class FakeDB {
         contentUpdates: {
             path: string;
             tags?: string[] | null;
+            wordCount?: number | null;
             preview?: string;
             featureImage?: Blob | null;
             featureImageKey?: string | null;
             metadata?: FileData['metadata'];
-            customProperty?: string | null;
+            customProperty?: FileData['customProperty'];
         }[];
         provider?: ContentProviderType;
         processedMtimeUpdates?: { path: string; mtime: number; expectedPreviousMtime: number }[];
@@ -125,6 +126,7 @@ function createFileData(overrides: Partial<FileData>): FileData {
         metadataMtime: 0,
         fileThumbnailsMtime: 0,
         tags: null,
+        wordCount: null,
         customProperty: null,
         previewStatus: 'unprocessed',
         featureImage: null,
@@ -223,6 +225,7 @@ describe('BaseContentProvider race handling', () => {
         const file = new TFile();
         file.path = 'notes/note.md';
         file.stat.mtime = 100;
+        app.vault.getAbstractFileByPath = (path: string) => (path === file.path ? file : null);
 
         db.setFile(
             file.path,
@@ -275,6 +278,7 @@ describe('BaseContentProvider race handling', () => {
         const file = new TFile();
         file.path = 'notes/note.md';
         file.stat.mtime = 200;
+        app.vault.getAbstractFileByPath = (path: string) => (path === file.path ? file : null);
 
         db.setFile(
             file.path,

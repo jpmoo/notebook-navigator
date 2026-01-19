@@ -20,7 +20,9 @@ import { PreviewTextUtils } from '../../src/utils/previewTextUtils';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import type { NotebookNavigatorSettings } from '../../src/settings/types';
 
-vi.mock('obsidian', () => ({}));
+vi.mock('obsidian', () => ({
+    Platform: { isMobile: false }
+}));
 
 function createSettings(overrides: Partial<NotebookNavigatorSettings> = {}): NotebookNavigatorSettings {
     return {

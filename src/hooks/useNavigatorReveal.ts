@@ -29,8 +29,8 @@ import { useUXPreferences } from '../context/UXPreferencesContext';
 import { useUIState, useUIDispatch } from '../context/UIStateContext';
 import { useFileCache } from '../context/StorageContext';
 import { useCommandQueue } from '../context/ServicesContext';
-import { determineTagToReveal, findNearestVisibleTagAncestor } from '../utils/tagUtils';
-import { ItemType } from '../types';
+import { determineTagToReveal, findNearestVisibleTagAncestor, normalizeTagPath } from '../utils/tagUtils';
+import { ItemType, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
 import { TIMEOUTS } from '../types/obsidian-extended';
 import { normalizeNavigationPath } from '../utils/navigationIndex';
 import { doesFolderContainPath } from '../utils/pathUtils';
@@ -339,11 +339,54 @@ export function useNavigatorReveal({
             const shouldCenterNavigation = Boolean(options?.isStartupReveal && settings.startView === 'navigation');
             const navigationAlign: Align = shouldCenterNavigation ? 'center' : 'auto';
             if (selectionState.selectionType === 'tag') {
-                targetTag = determineTagToReveal(file, selectionState.selectedTag, settings, getDB());
+                const resolvedTag = determineTagToReveal(file, selectionState.selectedTag, settings, getDB(), includeDescendantNotes);
+                targetTag = resolvedTag;
 
-                if (targetTag) {
-                    const visibleTag = findNearestVisibleTagAncestor(targetTag, expansionState.expandedTags);
-                    targetTag = visibleTag;
+                if (resolvedTag) {
+                    const normalizedResolvedTag = normalizeTagPath(resolvedTag);
+                    if (normalizedResolvedTag) {
+                        if (includeDescendantNotes) {
+                            const isTagsRootCollapsed =
+                                settings.showTags && settings.showAllTagsFolder && !expansionState.expandedVirtualFolders.has('tags-root');
+
+                            if (isTagsRootCollapsed) {
+                                if (normalizedResolvedTag === UNTAGGED_TAG_ID) {
+                                    const nextExpandedVirtualFolders = new Set(expansionState.expandedVirtualFolders);
+                                    nextExpandedVirtualFolders.add('tags-root');
+                                    expansionDispatch({ type: 'SET_EXPANDED_VIRTUAL_FOLDERS', folders: nextExpandedVirtualFolders });
+                                    targetTag = UNTAGGED_TAG_ID;
+                                } else {
+                                    targetTag = TAGGED_TAG_ID;
+                                }
+                            } else {
+                                targetTag = findNearestVisibleTagAncestor(normalizedResolvedTag, expansionState.expandedTags);
+                            }
+                        } else {
+                            if (
+                                settings.showTags &&
+                                settings.showAllTagsFolder &&
+                                !expansionState.expandedVirtualFolders.has('tags-root')
+                            ) {
+                                const nextExpandedVirtualFolders = new Set(expansionState.expandedVirtualFolders);
+                                nextExpandedVirtualFolders.add('tags-root');
+                                expansionDispatch({ type: 'SET_EXPANDED_VIRTUAL_FOLDERS', folders: nextExpandedVirtualFolders });
+                            }
+
+                            if (normalizedResolvedTag.includes('/')) {
+                                const segments = normalizedResolvedTag.split('/');
+                                const tagsToExpand: string[] = [];
+                                for (let i = 1; i < segments.length; i += 1) {
+                                    tagsToExpand.push(segments.slice(0, i).join('/'));
+                                }
+
+                                if (tagsToExpand.some(path => !expansionState.expandedTags.has(path))) {
+                                    expansionDispatch({ type: 'EXPAND_TAGS', tagPaths: tagsToExpand });
+                                }
+                            }
+
+                            targetTag = normalizedResolvedTag;
+                        }
+                    }
                 }
             }
 
@@ -403,27 +446,21 @@ export function useNavigatorReveal({
                 source: revealSource
             });
 
-            // Determine whether to switch to files view in single pane mode
-            // Check if we're currently opening the homepage file
-            const isHomepageContext = Boolean(commandQueue?.isOpeningHomepage());
-            const shouldSkipSinglePaneSwitch = Boolean(
-                (options?.isStartupReveal && settings.startView === 'navigation') ||
-                    options?.preserveNavigationFocus ||
-                    (isHomepageContext && settings.startView === 'navigation')
-            );
+            // Implicit file reveals (auto-reveal, shortcuts, recent notes) update selection/expansion only.
+            // Keep the current single-pane view (no navigation → files switch) during external file opens.
+            // If we want reveal to force the list pane visible again, reintroduce a SET_SINGLE_PANE_VIEW('files') here.
 
-            if (uiState.singlePane && uiState.currentSinglePaneView === 'navigation' && !shouldSkipSinglePaneSwitch) {
-                uiDispatch({ type: 'SET_SINGLE_PANE_VIEW', view: 'files' });
-            }
-
-            // Don't change focus - let Obsidian handle focus naturally when opening files
-
-            if (!targetTag && navigationPaneRef.current) {
-                const scrollFolder =
-                    targetFolderOverride ??
-                    (preserveFolder && selectionState.selectedFolder ? selectionState.selectedFolder : (resolvedFolder ?? file.parent));
-                if (scrollFolder) {
-                    navigationPaneRef.current.requestScroll(scrollFolder.path, { align: navigationAlign, itemType: ItemType.FOLDER });
+            const shouldSkipShortcutScroll = Boolean(settings.skipAutoScroll && revealSource === 'shortcut');
+            if (!shouldSkipShortcutScroll) {
+                if (targetTag && navigationPaneRef.current) {
+                    navigationPaneRef.current.requestScroll(targetTag, { align: navigationAlign, itemType: ItemType.TAG });
+                } else if (!targetTag && navigationPaneRef.current) {
+                    const scrollFolder =
+                        targetFolderOverride ??
+                        (preserveFolder && selectionState.selectedFolder ? selectionState.selectedFolder : (resolvedFolder ?? file.parent));
+                    if (scrollFolder) {
+                        navigationPaneRef.current.requestScroll(scrollFolder.path, { align: navigationAlign, itemType: ItemType.FOLDER });
+                    }
                 }
             }
         },
@@ -435,14 +472,12 @@ export function useNavigatorReveal({
             selectionState.selectedTag,
             expansionState.expandedFolders,
             expansionState.expandedTags,
+            expansionState.expandedVirtualFolders,
             expansionDispatch,
             selectionDispatch,
-            uiState,
-            uiDispatch,
             getDB,
             getRevealTargetFolder,
-            navigationPaneRef,
-            commandQueue
+            navigationPaneRef
         ]
     );
 

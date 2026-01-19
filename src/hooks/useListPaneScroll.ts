@@ -53,6 +53,7 @@ import { ListPaneItemType, OVERSCAN } from '../types';
 import { Align, ListScrollIntent, getListAlign, rankListPending } from '../types/scroll';
 import type { ListPaneItem } from '../types/virtualization';
 import type { NotebookNavigatorSettings } from '../settings';
+import type { CustomPropertyType } from '../settings/types';
 import type { SelectionState } from '../context/SelectionContext';
 import { calculateCompactListMetrics } from '../utils/listPaneMetrics';
 import { getListPaneMeasurements, shouldShowCustomPropertyRow, shouldShowFeatureImageArea } from '../utils/listPaneMeasurements';
@@ -77,6 +78,7 @@ interface UseListPaneScrollParams {
     folderSettings: {
         titleRows: number;
         previewRows: number;
+        customPropertyType: CustomPropertyType;
         showDate: boolean;
         showPreview: boolean;
         showImage: boolean;
@@ -97,6 +99,13 @@ interface UseListPaneScrollParams {
     includeDescendantNotes: boolean;
     /** Scroll margin used to offset the visible range and scrollToIndex alignment */
     scrollMargin?: number;
+    /**
+     * Bottom inset reserved by overlays that sit on top of the scroll content.
+     *
+     * The list pane can render a mobile floating toolbar at the bottom; scrolling and scrollToIndex
+     * should keep the target row above that overlay.
+     */
+    scrollPaddingEnd?: number;
 }
 
 /**
@@ -135,7 +144,8 @@ export function useListPaneScroll({
     suppressSearchTopScrollRef,
     topSpacerHeight,
     includeDescendantNotes,
-    scrollMargin = 0
+    scrollMargin = 0,
+    scrollPaddingEnd = 0
 }: UseListPaneScrollParams): UseListPaneScrollResult {
     const { isMobile } = useServices();
     const listMeasurements = getListPaneMeasurements(isMobile);
@@ -199,6 +209,7 @@ export function useListPaneScroll({
      * Handles different item types (headers, files, spacers) with appropriate heights.
      */
     const effectiveScrollMargin = Number.isFinite(scrollMargin) && scrollMargin > 0 ? scrollMargin : 0;
+    const effectiveScrollPaddingEnd = Number.isFinite(scrollPaddingEnd) && scrollPaddingEnd > 0 ? scrollPaddingEnd : 0;
     const rowVirtualizer = useVirtualizer({
         count: listItems.length,
         getScrollElement: () => {
@@ -350,10 +361,11 @@ export function useListPaneScroll({
             }
 
             const shouldShowCustomProperty = shouldShowCustomPropertyRow({
-                customPropertyType: settings.customPropertyType,
+                customPropertyType: folderSettings.customPropertyType,
                 showCustomPropertyInCompactMode: settings.showCustomPropertyInCompactMode,
                 isCompactMode,
                 file,
+                wordCount: fileRecord?.wordCount,
                 customProperty: fileRecord?.customProperty
             });
 
@@ -376,7 +388,7 @@ export function useListPaneScroll({
             return padding + textContentHeight;
         },
         overscan: OVERSCAN,
-        scrollPaddingEnd: 0
+        scrollPaddingEnd: effectiveScrollPaddingEnd
     });
 
     /**
@@ -712,7 +724,6 @@ export function useListPaneScroll({
         settings.showFeatureImage,
         settings.fileNameRows,
         settings.previewRows,
-        settings.customPropertyType,
         settings.showCustomPropertyInCompactMode,
         settings.showParentFolder,
         settings.showTags,

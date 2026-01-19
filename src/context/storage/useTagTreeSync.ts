@@ -51,7 +51,7 @@ export function useTagTreeSync(params: {
     showHiddenItems: boolean;
     hiddenFolders: string[];
     hiddenTags: string[];
-    hiddenFiles: string[];
+    hiddenFileProperties: string[];
     fileVisibility: FileVisibility;
     profileId: string;
     isStorageReady: boolean;
@@ -72,7 +72,7 @@ export function useTagTreeSync(params: {
         showHiddenItems,
         hiddenFolders,
         hiddenTags,
-        hiddenFiles,
+        hiddenFileProperties,
         fileVisibility,
         profileId,
         isStorageReady,
@@ -222,7 +222,7 @@ export function useTagTreeSync(params: {
         isStorageReady,
         scheduleTagTreeRebuild,
         hiddenFolders,
-        hiddenFiles,
+        hiddenFileProperties,
         hiddenTags,
         fileVisibility,
         profileId

@@ -18,11 +18,39 @@
 
 import type { FileVisibility } from '../utils/fileTypeUtils';
 import type { FolderAppearance, TagAppearance } from '../hooks/useListPaneAppearance';
-import type { BackgroundMode, PinnedNotes } from '../types';
+import type { BackgroundMode, DualPaneOrientation, PinnedNotes } from '../types';
 import type { FolderNoteCreationPreference } from '../types/folderNote';
 import type { KeyboardShortcutConfig } from '../utils/keyboardShortcuts';
 import type { ShortcutEntry, ShortcutCollection } from '../types/shortcuts';
 import type { SearchProvider } from '../types/search';
+
+export type SettingSyncMode = 'local' | 'synced';
+
+export function isSettingSyncMode(value: unknown): value is SettingSyncMode {
+    return value === 'local' || value === 'synced';
+}
+
+/** Identifiers for settings that can be switched between synced and local storage. */
+export const SYNC_MODE_SETTING_IDS = [
+    'vaultProfile',
+    'tagSortOrder',
+    'searchProvider',
+    'includeDescendantNotes',
+    'dualPane',
+    'dualPaneOrientation',
+    'paneTransitionDuration',
+    'toolbarVisibility',
+    'showCalendar',
+    'navIndent',
+    'navItemHeight',
+    'navItemHeightScaleText',
+    'calendarWeeksToShow',
+    'compactItemHeight',
+    'compactItemHeightScaleText',
+    'uiScale'
+] as const;
+
+export type SyncModeSettingId = (typeof SYNC_MODE_SETTING_IDS)[number];
 
 /** Available sort options for file listing */
 export type SortOption = 'modified-desc' | 'modified-asc' | 'created-desc' | 'created-asc' | 'title-asc' | 'title-desc';
@@ -58,6 +86,12 @@ export type ListPaneTitleOption = 'header' | 'list' | 'hidden';
 /** Display options for shortcut row badges in the navigation pane */
 export type ShortcutBadgeDisplayMode = 'index' | 'count' | 'none';
 
+/** Number of calendar week rows shown in the navigation pane */
+export type CalendarWeeksToShow = 1 | 2 | 3 | 4 | 5 | 6;
+
+/** Source used for calendar notes in the navigation pane */
+export type CalendarIntegrationMode = 'daily-notes' | 'notebook-navigator';
+
 /** Default display modes for list items */
 export type ListDisplayMode = 'standard' | 'compact';
 
@@ -76,7 +110,7 @@ export function isCustomPropertyType(value: string): value is CustomPropertyType
 }
 
 /** Buttons available in the navigation toolbar */
-export type NavigationToolbarButtonId = 'expandCollapse' | 'hiddenItems' | 'rootReorder' | 'newFolder';
+export type NavigationToolbarButtonId = 'toggleDualPane' | 'expandCollapse' | 'calendar' | 'hiddenItems' | 'rootReorder' | 'newFolder';
 
 /** Buttons available in the list toolbar */
 export type ListToolbarButtonId = 'search' | 'descendants' | 'sort' | 'appearance' | 'newNote';
@@ -94,8 +128,9 @@ export interface VaultProfile {
     fileVisibility: FileVisibility;
     hiddenFolders: string[];
     hiddenTags: string[];
-    hiddenFiles: string[];
-    hiddenFileNamePatterns: string[];
+    hiddenFileNames: string[];
+    hiddenFileTags: string[];
+    hiddenFileProperties: string[];
     navigationBanner: string | null;
     shortcuts: ShortcutEntry[];
 }
@@ -108,6 +143,7 @@ export interface NotebookNavigatorSettings {
     vaultProfiles: VaultProfile[];
     vaultProfile: string;
     vaultTitle: VaultTitleOption;
+    syncModes: Record<SyncModeSettingId, SettingSyncMode>;
 
     // General tab - Behavior
     autoRevealActiveFile: boolean;
@@ -125,6 +161,8 @@ export interface NotebookNavigatorSettings {
     useMobileHomepage: boolean;
 
     // General tab - Desktop appearance
+    dualPane: boolean;
+    dualPaneOrientation: DualPaneOrientation;
     showTooltips: boolean;
     showTooltipPath: boolean;
     desktopBackground: BackgroundMode;
@@ -148,16 +186,30 @@ export interface NotebookNavigatorSettings {
     showRecentNotes: boolean;
     recentNotesCount: number;
 
+    // Navigation pane tab - Calendar
+    showCalendar: boolean;
+    calendarLocale: string;
+    calendarWeeksToShow: CalendarWeeksToShow;
+    calendarHighlightToday: boolean;
+    calendarShowWeekNumber: boolean;
+    calendarConfirmBeforeCreate: boolean;
+
+    // Navigation pane tab - Calendar integration
+    calendarIntegrationMode: CalendarIntegrationMode;
+    calendarCustomRootFolder: string;
+    calendarCustomFilePattern: string;
+    calendarCustomPromptForTitle: boolean;
+
     // Navigation pane tab - Appearance
     colorIconOnly: boolean;
     showColorsInShortcutsOnly: boolean;
     toolbarVisibility: ToolbarVisibilitySettings;
     showNoteCount: boolean;
     separateNoteCounts: boolean;
+    rootLevelSpacing: number;
     navIndent: number;
     navItemHeight: number;
     navItemHeightScaleText: boolean;
-    rootLevelSpacing: number;
 
     // Folders & tags tab
     autoSelectFirstFileOnFocusChange: boolean;
@@ -173,6 +225,7 @@ export interface NotebookNavigatorSettings {
     folderNoteType: FolderNoteCreationPreference;
     folderNoteName: string;
     folderNoteProperties: string;
+    openFolderNotesInNewTab: boolean;
     hideFolderNoteInList: boolean;
     pinCreatedFolderNote: boolean;
     showTags: boolean;
@@ -184,6 +237,7 @@ export interface NotebookNavigatorSettings {
 
     // List pane tab
     defaultListMode: ListDisplayMode;
+    includeDescendantNotes: boolean;
     defaultFolderSort: SortOption;
     revealFileOnListChanges: boolean;
     listPaneTitle: ListPaneTitleOption;
@@ -224,6 +278,7 @@ export interface NotebookNavigatorSettings {
     previewProperties: string[];
     showFeatureImage: boolean;
     featureImageProperties: string[];
+    featureImageExcludeProperties: string[];
     forceSquareFeatureImage: boolean;
     downloadExternalFeatureImages: boolean;
     showFileTags: boolean;
@@ -232,13 +287,15 @@ export interface NotebookNavigatorSettings {
     showFileTagAncestors: boolean;
     showFileTagsInCompactMode: boolean;
     customPropertyType: CustomPropertyType;
-    customPropertyFrontmatterFields: string;
+    customPropertyFields: string;
+    customPropertyColorFields: string;
     showCustomPropertyInCompactMode: boolean;
     showFileDate: boolean;
     alphabeticalDateMode: AlphabeticalDateMode;
     showParentFolder: boolean;
     parentFolderClickRevealsFile: boolean;
     showParentFolderColor: boolean;
+    showParentFolderIcon: boolean;
 
     // Icon packs tab
     externalIconProviders: Record<string, boolean>;

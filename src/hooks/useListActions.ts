@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Menu } from 'obsidian';
 import { useSelectionState, useSelectionDispatch } from '../context/SelectionContext';
 import { useServices, useFileSystemOps, useMetadataService } from '../context/ServicesContext';
@@ -31,6 +31,8 @@ import { getDefaultListMode } from './useListPaneAppearance';
 import type { FolderAppearance } from './useListPaneAppearance';
 import { getFilesForFolder } from '../utils/fileFinder';
 import { runAsyncAction } from '../utils/async';
+import { FILE_VISIBILITY } from '../utils/fileTypeUtils';
+import { findVaultProfileById } from '../utils/vaultProfiles';
 
 /**
  * Custom hook that provides shared actions for list pane toolbars.
@@ -41,6 +43,8 @@ import { runAsyncAction } from '../utils/async';
 export function useListActions() {
     const { app } = useServices();
     const settings = useSettingsState();
+    const vaultProfileId = settings.vaultProfile;
+    const vaultProfiles = settings.vaultProfiles;
     const uxPreferences = useUXPreferences();
     const includeDescendantNotes = uxPreferences.includeDescendantNotes;
     const showHiddenItems = uxPreferences.showHiddenItems;
@@ -211,7 +215,10 @@ export function useListActions() {
 
         const hasModeOverride = (appearance.mode === 'compact' || appearance.mode === 'standard') && appearance.mode !== defaultMode;
         const otherOverrides =
-            appearance.titleRows !== undefined || appearance.previewRows !== undefined || appearance.groupBy !== undefined;
+            appearance.titleRows !== undefined ||
+            appearance.previewRows !== undefined ||
+            appearance.customPropertyType !== undefined ||
+            appearance.groupBy !== undefined;
 
         return hasModeOverride || otherOverrides;
     };
@@ -221,6 +228,24 @@ export function useListActions() {
         (selectionState.selectedFolder && hasMeaningfulOverrides(settings.folderAppearances?.[selectionState.selectedFolder.path])) ||
         (selectionState.selectedTag && hasMeaningfulOverrides(settings.tagAppearances?.[selectionState.selectedTag]));
 
+    const activeFileVisibility = useMemo(() => {
+        return findVaultProfileById(vaultProfiles, vaultProfileId).fileVisibility;
+    }, [vaultProfileId, vaultProfiles]);
+
+    const descendantsTooltip = useMemo(() => {
+        const showNotes = activeFileVisibility === FILE_VISIBILITY.DOCUMENTS;
+
+        if (selectionState.selectionType === ItemType.TAG) {
+            return showNotes ? strings.paneHeader.showNotesFromDescendants : strings.paneHeader.showFilesFromDescendants;
+        }
+
+        if (selectionState.selectionType === ItemType.FOLDER) {
+            return showNotes ? strings.paneHeader.showNotesFromSubfolders : strings.paneHeader.showFilesFromSubfolders;
+        }
+
+        return showNotes ? strings.paneHeader.showNotesFromSubfolders : strings.paneHeader.showFilesFromSubfolders;
+    }, [activeFileVisibility, selectionState.selectionType]);
+
     return {
         handleNewFile,
         handleAppearanceMenu,
@@ -229,6 +254,7 @@ export function useListActions() {
         getCurrentSortOption,
         getSortIcon,
         isCustomSort,
-        hasCustomAppearance
+        hasCustomAppearance,
+        descendantsTooltip
     };
 }

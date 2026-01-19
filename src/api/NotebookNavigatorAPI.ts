@@ -24,6 +24,7 @@ import type { NotebookNavigatorEventType, NotebookNavigatorEvents } from './type
 import { NavigationAPI } from './modules/NavigationAPI';
 import { MetadataAPI } from './modules/MetadataAPI';
 import { SelectionAPI } from './modules/SelectionAPI';
+import { MenusAPI } from './modules/MenusAPI';
 
 // Import versioning
 import { API_VERSION } from './version';
@@ -42,6 +43,7 @@ export class NotebookNavigatorAPI {
     public navigation: NavigationAPI;
     public metadata: MetadataAPI;
     public selection: SelectionAPI;
+    public menus: MenusAPI;
 
     constructor(plugin: NotebookNavigatorPlugin, app: App) {
         this.plugin = plugin;
@@ -52,6 +54,7 @@ export class NotebookNavigatorAPI {
         this.navigation = new NavigationAPI(this);
         this.metadata = new MetadataAPI(this);
         this.selection = new SelectionAPI(this);
+        this.menus = new MenusAPI();
     }
 
     /**

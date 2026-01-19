@@ -19,7 +19,7 @@
 import { useMemo } from 'react';
 import { useSettingsState } from '../context/SettingsContext';
 import { useSelectionState } from '../context/SelectionContext';
-import type { ListDisplayMode, ListNoteGroupingOption } from '../settings/types';
+import type { CustomPropertyType, ListDisplayMode, ListNoteGroupingOption } from '../settings/types';
 import type { NotebookNavigatorSettings } from '../settings';
 import { ItemType } from '../types';
 import { resolveListGrouping } from '../utils/listGrouping';
@@ -28,6 +28,7 @@ export interface FolderAppearance {
     mode?: ListDisplayMode;
     titleRows?: number;
     previewRows?: number;
+    customPropertyType?: CustomPropertyType;
     groupBy?: ListNoteGroupingOption;
 }
 
@@ -90,6 +91,7 @@ export function useListPaneAppearance() {
                 mode,
                 titleRows: appearance?.titleRows ?? settings.fileNameRows,
                 previewRows: appearance?.previewRows ?? settings.previewRows,
+                customPropertyType: appearance?.customPropertyType ?? settings.customPropertyType,
                 showDate: visibility.showDate,
                 showPreview: visibility.showPreview,
                 showImage: visibility.showImage

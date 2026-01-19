@@ -47,7 +47,7 @@ import React, { useRef, useEffect, useCallback, useMemo } from 'react';
 import type { DragEvent } from 'react';
 import { useSettingsState } from '../context/SettingsContext';
 import { getIconService, useIconServiceVersion } from '../services/icons';
-import { SHORTCUTS_VIRTUAL_FOLDER_ID, VirtualFolder } from '../types';
+import { RECENT_NOTES_VIRTUAL_FOLDER_ID, SHORTCUTS_VIRTUAL_FOLDER_ID, VirtualFolder } from '../types';
 import { useUXPreferences } from '../context/UXPreferencesContext';
 import type { NoteCountInfo } from '../types/noteCounts';
 import { buildNoteCountDisplay } from '../utils/noteCountFormatting';
@@ -137,8 +137,11 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
         if (!noteCountDisplay) {
             return false;
         }
+        if (virtualFolder.id === 'tags-root' && !includeDescendantNotes) {
+            return false;
+        }
         return noteCountDisplay.shouldDisplay;
-    }, [showFileCount, noteCountDisplay]);
+    }, [includeDescendantNotes, noteCountDisplay, showFileCount, virtualFolder.id]);
 
     // Build CSS class name with selection state
     const className = useMemo(() => {
@@ -156,6 +159,18 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
     }, [isSelected, searchMatch, virtualFolder.id]);
 
     const contentClassName = useMemo(() => buildSearchMatchContentClass(['nn-navitem-content'], searchMatch), [searchMatch]);
+
+    const shouldShowIcon = useMemo(() => {
+        if (
+            virtualFolder.id === SHORTCUTS_VIRTUAL_FOLDER_ID ||
+            virtualFolder.id === RECENT_NOTES_VIRTUAL_FOLDER_ID ||
+            virtualFolder.id === 'tags-root'
+        ) {
+            return true;
+        }
+
+        return settings.showSectionIcons;
+    }, [settings.showSectionIcons, virtualFolder.id]);
 
     const handleDoubleClick = useCallback(() => {
         if (hasChildren) {
@@ -209,11 +224,10 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
 
     // Renders icon for virtual folders based on folder type and icon visibility settings
     useEffect(() => {
-        const showIcon = virtualFolder.id === 'tags-root' ? settings.showTagIcons : settings.showSectionIcons;
-        if (iconRef.current && showIcon && virtualFolder.icon) {
+        if (iconRef.current && shouldShowIcon && virtualFolder.icon) {
             getIconService().renderIcon(iconRef.current, virtualFolder.icon);
         }
-    }, [virtualFolder.id, virtualFolder.icon, settings.showSectionIcons, settings.showTagIcons, iconVersion]);
+    }, [virtualFolder.icon, shouldShowIcon, iconVersion]);
 
     return (
         <div
@@ -245,9 +259,7 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
                     onDoubleClick={handleChevronDoubleClick}
                     tabIndex={-1}
                 />
-                {(virtualFolder.id === 'tags-root' ? settings.showTagIcons : settings.showSectionIcons) && virtualFolder.icon && (
-                    <span className="nn-navitem-icon" ref={iconRef} />
-                )}
+                {shouldShowIcon && virtualFolder.icon && <span className="nn-navitem-icon" ref={iconRef} />}
                 <span className="nn-navitem-name">{virtualFolder.name}</span>
                 <span className="nn-navitem-spacer" />
                 {shouldDisplayCount && noteCountDisplay && <span className="nn-navitem-count">{noteCountDisplay.label}</span>}

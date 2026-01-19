@@ -4,13 +4,41 @@
    File List Styles
    ======================================================================== */
 
+.nn-list-pane {
+    --nn-pane-bottom-toolbar-space: 0px;
+    --nn-pane-bottom-calendar-space: 0px;
+}
+
 /* File list container - scrollable area for files */
 .nn-list-pane-scroller {
     flex: 1;
+    /*
+     * Use a column flex layout so `.nn-list-pane-content` can expand to fill unused height.
+     * This keeps the bottom sticky toolbar (`.nn-pane-bottom-toolbar`) anchored to the pane bottom
+     * when the file list is shorter than the viewport.
+     */
+    display: flex;
+    flex-direction: column;
     overflow-y: auto;
     padding: 0 var(--nn-scroller-padding);
     background-color: var(--nn-theme-list-bg); /* Opaque background for GPU scroll layer optimization */
     position: relative;
+}
+
+/* Keep the chrome stack and bottom toolbar sized to their content; let the list content fill the remainder. */
+.nn-list-pane-scroller > .nn-list-pane-overlay,
+.nn-list-pane-scroller > .nn-list-pane-content,
+.nn-list-pane-scroller > .nn-pane-bottom-toolbar,
+.nn-list-pane-scroller > .nn-navigation-calendar-overlay {
+    flex-shrink: 0;
+}
+
+.nn-list-pane-scroller > .nn-list-pane-content {
+    flex: 1 0 auto;
+}
+
+.nn-list-pane-content {
+    padding-bottom: calc(var(--nn-pane-bottom-toolbar-space) + var(--nn-pane-bottom-calendar-space, 0px));
 }
 
 .nn-list-title-area {
@@ -30,8 +58,8 @@
     flex-direction: column;
     /* Match the list pane background: use background-primary-alt (#FAFAFA) which is what shows through
        when list-bg is transparent in Cupertino theme */
-    background: color-mix(in srgb, var(--background-primary-alt) calc(var(--nn-theme-pane-overlay-opacity, 85) * 1%), transparent) !important;
-    background-color: color-mix(in srgb, var(--background-primary-alt) calc(var(--nn-theme-pane-overlay-opacity, 85) * 1%), transparent) !important;
+    background: color-mix(in srgb, var(--background-primary-alt) calc(var(--nn-theme-pane-overlay-opacity, 87) * 1%), transparent) !important;
+    background-color: color-mix(in srgb, var(--background-primary-alt) calc(var(--nn-theme-pane-overlay-opacity, 87) * 1%), transparent) !important;
     -webkit-backdrop-filter: var(--nn-theme-pane-overlay-filter);
     backdrop-filter: var(--nn-theme-pane-overlay-filter);
     /* The scroller applies horizontal padding for rows; offset it so the overlay aligns to the pane edge. */
@@ -143,7 +171,7 @@ body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title
     font-family: var(--font-monospace);
     font-size: 9px;
     font-weight: 700;
-    color: var(--text-muted);
+    color: var(--nn-theme-foreground-muted);
     text-transform: uppercase;
     letter-spacing: 0.1px;
     line-height: 1;
@@ -220,16 +248,6 @@ body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title
 
 .nn-file-name[data-has-color='true'] {
     color: var(--nn-file-name-custom-color);
-}
-
-.nn-file-external-icon {
-    margin-inline-end: 4px;
-}
-
-.nn-file-external-icon svg,
-.nn-compact-file-type-icon svg {
-    width: 14px;
-    height: 14px;
 }
 
 .nn-file-icon {
@@ -345,11 +363,29 @@ body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title
     color: var(--nn-theme-file-date-color);
     flex-shrink: 0;
     white-space: nowrap;
-    margin-inline-end: 8px;
+    margin-inline-end: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: auto;
     line-height: var(--nn-file-single-text-line-height);
+}
+
+/* Date + preview (same line): match legacy spacing. */
+.nn-file-second-line > .nn-file-date + .nn-file-preview {
+    margin-inline-start: 8px;
+}
+
+/* Date + parent folder (same line): match legacy spacing when dot separator is disabled. */
+.nn-file-second-line > .nn-file-date + .nn-parent-folder[data-dot-separator='false'] {
+    margin-inline-start: 8px;
+}
+
+/* Date + parent folder (same line): dot separator */
+.nn-file-second-line > .nn-file-date + .nn-parent-folder[data-dot-separator='true']::before {
+    content: '•';
+    flex-shrink: 0;
+    margin-inline-end: 4px;
+    font-size: 0.65em;
 }
 
 /* File preview text - secondary line showing file content */

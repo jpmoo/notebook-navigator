@@ -308,6 +308,14 @@ Content is generated asynchronously in the background by the ContentProviderRegi
    - Tag changes trigger tag tree rebuild (buildTagTreeFromDatabase)
    - Components re-render with new content via React context
 
+#### Cache rebuild progress notice
+
+The cache rebuild progress notice tracks background provider work during a full cache rebuild.
+
+- Rebuild start persists a vault-scoped localStorage marker (`STORAGE_KEYS.cacheRebuildNoticeKey`) with the initial file count.
+- On the next startup, StorageContext restores the notice after storage is marked ready and uses current settings to determine which content types to track.
+- The marker is cleared when the notice detects that all tracked content types have no pending work.
+
 ## Critical Timing Mechanisms
 
 ### Deferred Scheduling

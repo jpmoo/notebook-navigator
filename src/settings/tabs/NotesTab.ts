@@ -583,6 +583,18 @@ export function renderNotesTab(context: SettingsTabContext): void {
     );
     featurePropertiesSetting.controlEl.addClass('nn-setting-wide-input');
 
+    const featureExcludePropertiesSetting = context.createDebouncedTextSetting(
+        featureImageSettingsEl,
+        strings.settings.items.featureImageExcludeProperties.name,
+        strings.settings.items.featureImageExcludeProperties.desc,
+        strings.settings.items.featureImageExcludeProperties.placeholder,
+        () => formatCommaSeparatedList(plugin.settings.featureImageExcludeProperties),
+        value => {
+            plugin.settings.featureImageExcludeProperties = parseCommaSeparatedList(value);
+        }
+    );
+    featureExcludePropertiesSetting.controlEl.addClass('nn-setting-wide-input');
+
     new Setting(featureImageSettingsEl)
         .setName(strings.settings.items.forceSquareFeatureImage.name)
         .setDesc(strings.settings.items.forceSquareFeatureImage.desc)
@@ -676,24 +688,33 @@ export function renderNotesTab(context: SettingsTabContext): void {
         );
     });
 
-    const customPropertyFrontmatterFieldsSetting = customPropertyGroup.addSetting(setting => {
+    const customPropertyFieldsSetting = customPropertyGroup.addSetting(setting => {
         context.configureDebouncedTextSetting(
             setting,
-            strings.settings.items.customPropertyFrontmatterFields.name,
-            strings.settings.items.customPropertyFrontmatterFields.desc,
-            strings.settings.items.customPropertyFrontmatterFields.placeholder,
-            () => normalizeCommaSeparatedList(plugin.settings.customPropertyFrontmatterFields),
+            strings.settings.items.customPropertyFields.name,
+            strings.settings.items.customPropertyFields.desc,
+            strings.settings.items.customPropertyFields.placeholder,
+            () => normalizeCommaSeparatedList(plugin.settings.customPropertyFields),
             value => {
-                plugin.settings.customPropertyFrontmatterFields = normalizeCommaSeparatedList(value);
+                plugin.settings.customPropertyFields = normalizeCommaSeparatedList(value);
             }
         );
     });
-    customPropertyFrontmatterFieldsSetting.controlEl.addClass('nn-setting-wide-input');
+    customPropertyFieldsSetting.controlEl.addClass('nn-setting-wide-input');
 
-    updateCustomPropertyFieldsVisibility = () => {
-        setElementVisible(customPropertyFrontmatterFieldsSetting.settingEl, plugin.settings.customPropertyType === 'frontmatter');
-    };
-    updateCustomPropertyFieldsVisibility();
+    const customPropertyColorFieldsSetting = customPropertyGroup.addSetting(setting => {
+        context.configureDebouncedTextSetting(
+            setting,
+            strings.settings.items.customPropertyColorFields.name,
+            strings.settings.items.customPropertyColorFields.desc,
+            strings.settings.items.customPropertyColorFields.placeholder,
+            () => normalizeCommaSeparatedList(plugin.settings.customPropertyColorFields),
+            value => {
+                plugin.settings.customPropertyColorFields = normalizeCommaSeparatedList(value);
+            }
+        );
+    });
+    customPropertyColorFieldsSetting.controlEl.addClass('nn-setting-wide-input');
 
     customPropertyGroup.addSetting(setting => {
         setting
@@ -706,6 +727,13 @@ export function renderNotesTab(context: SettingsTabContext): void {
                 })
             );
     });
+
+    updateCustomPropertyFieldsVisibility = () => {
+        const isFrontmatter = plugin.settings.customPropertyType === 'frontmatter';
+        setElementVisible(customPropertyFieldsSetting.settingEl, isFrontmatter);
+        setElementVisible(customPropertyColorFieldsSetting.settingEl, isFrontmatter);
+    };
+    updateCustomPropertyFieldsVisibility();
 
     const showFileDateSetting = dateGroup.addSetting(setting => {
         setting.setName(strings.settings.items.showFileDate.name).setDesc(strings.settings.items.showFileDate.desc);
@@ -764,6 +792,16 @@ export function renderNotesTab(context: SettingsTabContext): void {
         .addToggle(toggle =>
             toggle.setValue(plugin.settings.showParentFolderColor).onChange(async value => {
                 plugin.settings.showParentFolderColor = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
+    new Setting(parentFolderSettingsEl)
+        .setName(strings.settings.items.showParentFolderIcon.name)
+        .setDesc(strings.settings.items.showParentFolderIcon.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.showParentFolderIcon).onChange(async value => {
+                plugin.settings.showParentFolderIcon = value;
                 await plugin.saveSettingsAndUpdate();
             })
         );

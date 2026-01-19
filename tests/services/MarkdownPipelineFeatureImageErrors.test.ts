@@ -44,11 +44,12 @@ class FakeDb {
         contentUpdates: {
             path: string;
             tags?: string[] | null;
+            wordCount?: number | null;
             preview?: string;
             featureImage?: Blob | null;
             featureImageKey?: string | null;
             metadata?: FileData['metadata'];
-            customProperty?: string | null;
+            customProperty?: FileData['customProperty'];
         }[];
         provider?: ContentProviderType;
         processedMtimeUpdates?: { path: string; mtime: number; expectedPreviousMtime: number }[];
@@ -110,6 +111,7 @@ function createFileData(overrides: Partial<FileData>): FileData {
         metadataMtime: 0,
         fileThumbnailsMtime: 0,
         tags: null,
+        wordCount: null,
         customProperty: null,
         previewStatus: 'unprocessed',
         featureImage: null,
@@ -168,7 +170,9 @@ describe('MarkdownPipelineContentProvider feature image errors', () => {
             return path === imageFile.path ? imageFile : null;
         };
         app.vault.getAbstractFileByPath = (path: string) => {
-            return path === imageFile.path ? imageFile : null;
+            if (path === noteFile.path) return noteFile;
+            if (path === imageFile.path) return imageFile;
+            return null;
         };
 
         db.setFile(
