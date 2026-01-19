@@ -131,7 +131,6 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
 
     // Add to shortcuts / Remove from shortcuts
     if (services.shortcuts) {
-        hasInitialItems = true;
         const { tagShortcutKeysByPath, addTagShortcut, removeShortcut, renameShortcut, shortcutMap, collections, getCollectionsWithShortcut, getShortcutInCollection, activeCollectionId } = services.shortcuts;
         const normalizedShortcutPath = normalizeTagPath(tagPath);
         const collectionsWithShortcut = normalizedShortcutPath ? getCollectionsWithShortcut(normalizedShortcutPath) : [];
