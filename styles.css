@@ -2132,7 +2132,6 @@ body {
 .nn-shortcut-collection-selector {
     padding: 4px var(--nn-scroller-padding) 2px;
     border-bottom: 1px solid var(--nn-theme-divider-border-color);
-    border-right: 1px solid var(--nn-theme-divider-border-color);
     background-color: var(--nn-theme-nav-bg);
     display: flex;
     align-items: center;
@@ -2255,7 +2254,9 @@ body {
 }
 
 .nn-list-title-area {
-    background-color: var(--nn-theme-list-bg);
+    /* Background is handled by the overlay parent - only set solid background when not in overlay */
+    background-color: transparent !important;
+    background: transparent !important;
     padding: var(--nn-list-title-padding-block) var(--nn-scroller-padding) 8px;
 }
 
@@ -2267,7 +2268,10 @@ body {
     z-index: 4;
     display: flex;
     flex-direction: column;
-    background: color-mix(in srgb, var(--nn-theme-list-bg) calc(var(--nn-theme-pane-overlay-opacity, 85) * 1%), transparent);
+    /* Match the list pane background: use background-primary-alt (#FAFAFA) which is what shows through
+       when list-bg is transparent in Cupertino theme */
+    background: color-mix(in srgb, var(--background-primary-alt) calc(var(--nn-theme-pane-overlay-opacity, 85) * 1%), transparent) !important;
+    background-color: color-mix(in srgb, var(--background-primary-alt) calc(var(--nn-theme-pane-overlay-opacity, 85) * 1%), transparent) !important;
     -webkit-backdrop-filter: var(--nn-theme-pane-overlay-filter);
     backdrop-filter: var(--nn-theme-pane-overlay-filter);
     /* The scroller applies horizontal padding for rows; offset it so the overlay aligns to the pane edge. */
@@ -2280,8 +2284,11 @@ body {
 .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-mobile-toolbar,
 .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-search-bar-container,
 .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-search-input-wrapper,
-.nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title-area {
-    background-color: transparent;
+.nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title-area,
+.nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title-area .nn-list-title-content,
+.nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title-area .nn-list-title-text {
+    background-color: transparent !important;
+    background: transparent !important;
 }
 
 .nn-list-title-content {
@@ -2291,6 +2298,7 @@ body {
     font-size: var(--nn-list-title-font-size);
     font-weight: var(--nn-theme-list-heading-font-weight);
     color: var(--nn-theme-list-heading-color);
+    background-color: transparent !important;
 }
 
 .nn-list-title-text {
@@ -2300,6 +2308,15 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    background-color: transparent !important;
+    background: transparent !important;
+}
+
+/* Force transparency on title area - highest specificity to override themes */
+body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title-area,
+body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title-area * {
+    background-color: transparent !important;
+    background: transparent !important;
 }
 
 /* File - container for each file in the list */

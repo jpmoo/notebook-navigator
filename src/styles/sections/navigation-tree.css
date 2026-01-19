@@ -569,7 +569,6 @@
 .nn-shortcut-collection-selector {
     padding: 4px var(--nn-scroller-padding) 2px;
     border-bottom: 1px solid var(--nn-theme-divider-border-color);
-    border-right: 1px solid var(--nn-theme-divider-border-color);
     background-color: var(--nn-theme-nav-bg);
     display: flex;
     align-items: center;
