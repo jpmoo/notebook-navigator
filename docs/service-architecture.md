@@ -1,6 +1,6 @@
 # Notebook Navigator Service Architecture
 
-Updated: January 8, 2026
+Updated: January 19, 2026
 
 ## Table of Contents
 
@@ -16,9 +16,9 @@ Updated: January 8, 2026
 
 ## Overview
 
-The service layer hosts business logic that coordinates between the storage system and the React UI. Services
-encapsulate vault mutations, metadata lifecycle, background processing, and integration points so UI components remain
-declarative.
+The service layer hosts business logic that coordinates between the storage system and the React UI. Services handle
+vault mutations, metadata updates, background processing, and integration points. React components call into services
+through contexts, hooks, and the public API.
 
 Most UI code accesses services through `ServicesContext`. The provider exposes the Obsidian `app`, the plugin instance,
 a mobile flag, and the plugin-managed singletons:
@@ -31,12 +31,30 @@ a mobile flag, and the plugin-managed singletons:
 - `omnisearchService` (`OmnisearchService`)
 - `releaseCheckService` (`ReleaseCheckService`)
 
-These instances are created during plugin startup and remain singletons for the lifetime of the plugin. Nullable entries
-must be guarded while the plugin is still initializing. `IconService` is a global singleton accessed through
-`getIconService()`. `StorageContext` owns the background content pipeline through `ContentProviderRegistry` and does not
-publish the registry via `ServicesContext`.
+Convenience hooks wrap `ServicesContext` access:
 
-See `docs/metadata-pipeline.md` for the cache rebuild flow and the content provider processing pipeline.
+- `useServices()` returns the full context
+- `useFileSystemOps()` returns `fileSystemOps`
+- `useMetadataService()`, `useTagOperations()`, `useCommandQueue()` throw when the service is `null`
+
+These instances are created during plugin startup and remain singletons for the lifetime of the plugin.
+`ServicesProvider` throws if `fileSystemOps` is not initialized; other services are nullable until the plugin finishes
+startup and must be guarded. `IconService` is a global singleton accessed through `getIconService()`.
+
+### Ownership and lifetimes
+
+- `NotebookNavigatorPlugin` owns plugin-wide singletons (services, controllers, managers) created during `onload()`.
+- Each mounted `NotebookNavigatorView` owns a React provider tree. `ServicesContext` provides references to plugin
+  singletons, while `StorageProvider` owns view-scoped storage state and background queues.
+- `ContentProviderRegistry` is created by each mounted `StorageProvider` (via `useInitializeContentProviderRegistry`)
+  and is stopped during teardown.
+- `IndexedDBStorage` is initialized once per vault via `initializeDatabase()` and is accessed through `getDBInstance()`.
+
+`StorageContext` owns the IndexedDB sync lifecycle and the background content pipeline through `ContentProviderRegistry`.
+The registry is created when a navigator view mounts and is stopped during teardown; it is not exposed through
+`ServicesContext`.
+
+See `docs/metadata-pipeline.md` (cache rebuild flow, content provider processing pipeline).
 
 ## Service Hierarchy
 
@@ -74,12 +92,41 @@ graph TB
 graph TB
     Plugin["NotebookNavigatorPlugin"]
 
-    Plugin --> RecentNotes["RecentNotesService<br/>Vault-local recents"]
-    Plugin --> RecentData["RecentDataManager<br/>Local storage cache"]
-    Plugin --> WorkspaceCoordinator["WorkspaceCoordinator<br/>Navigator leaves"]
-    Plugin --> HomepageController["HomepageController<br/>Startup homepage"]
-    Plugin --> ExternalIcons["ExternalIconProviderController<br/>Icon packs"]
-    Plugin --> API["NotebookNavigatorAPI<br/>Public surface"]
+    subgraph "ServicesContext exports"
+        MetadataService["MetadataService<br/>Metadata coordination"]
+        FileSystemOperations["FileSystemOperations<br/>Vault actions"]
+        TagOperations["TagOperations<br/>Tag workflows"]
+        TagTreeService["TagTreeService<br/>Tag tree snapshot"]
+        CommandQueue["CommandQueueService<br/>Operation tracking"]
+        Omnisearch["OmnisearchService<br/>Omnisearch bridge"]
+        ReleaseCheck["ReleaseCheckService<br/>Update notices"]
+    end
+
+    subgraph "Other plugin services"
+        RecentNotes["RecentNotesService<br/>Vault-local recents"]
+        RecentData["RecentDataManager<br/>Vault-local persistence"]
+        SyncModeRegistry["Sync mode registry<br/>Local/synced resolution"]
+        WorkspaceCoordinator["WorkspaceCoordinator<br/>Navigator leaves"]
+        HomepageController["HomepageController<br/>Homepage opening"]
+        ExternalIcons["ExternalIconProviderController<br/>External icon packs"]
+        API["NotebookNavigatorAPI<br/>Public surface"]
+    end
+
+    Plugin --> MetadataService
+    Plugin --> FileSystemOperations
+    Plugin --> TagOperations
+    Plugin --> TagTreeService
+    Plugin --> CommandQueue
+    Plugin --> Omnisearch
+    Plugin --> ReleaseCheck
+
+    Plugin --> RecentNotes
+    Plugin --> RecentData
+    Plugin --> SyncModeRegistry
+    Plugin --> WorkspaceCoordinator
+    Plugin --> HomepageController
+    Plugin --> ExternalIcons
+    Plugin --> API
 ```
 
 ### Metadata Service Structure
@@ -108,8 +155,8 @@ graph TB
     ContentRegistry["ContentProviderRegistry<br/>Provider coordinator"]
 
     subgraph "Content Providers"
-        MarkdownPipelineProvider["MarkdownPipelineContentProvider<br/>Preview + custom property + markdown feature images"]
-        FileThumbnailsProvider["FeatureImageContentProvider<br/>Non-markdown thumbnails (PDF covers)"]
+        MarkdownPipelineProvider["MarkdownPipelineContentProvider<br/>Preview + word count + custom property + markdown feature images"]
+        FileThumbnailsProvider["FeatureImageContentProvider<br/>Non-markdown thumbnails (images, PDFs, Excalidraw)"]
         MetadataProvider["MetadataContentProvider<br/>Frontmatter fields + hidden state"]
         TagProvider["TagContentProvider<br/>Tag extraction"]
     end
@@ -120,15 +167,17 @@ graph TB
     ContentRegistry --> TagProvider
 ```
 
-`ContentProviderRegistry` is owned by `StorageContext`. The registry and its providers are created when storage mounts
-and are not exposed through `ServicesContext`.
+`ContentProviderRegistry` is owned by `StorageContext`. The registry and its providers are created by
+`useInitializeContentProviderRegistry` when a navigator view mounts and are stopped during teardown. The registry is not
+exposed through `ServicesContext`.
 
 ## Core Services
 
 ### MetadataService
 
-Central coordinator for folder, tag, and file metadata. Delegates to specialized sub-services and mirrors frontmatter
-state into settings when requested.
+Central coordinator for folder, tag, and file metadata. Delegates to specialized sub-services. Reads frontmatter-derived
+metadata from IndexedDB when `useFrontmatterMetadata` is enabled. File icon/color writes and migrations use frontmatter
+when both `useFrontmatterMetadata` and `saveMetadataToFrontmatter` are enabled.
 
 **Location:** `src/services/MetadataService.ts`
 
@@ -150,7 +199,8 @@ state into settings when requested.
 
 - **TagMetadataService** (`src/services/metadata/TagMetadataService.ts`)
   - Tracks tag colors/backgrounds/icons/sort overrides.
-  - Normalizes tag casing and propagates changes to nested paths.
+  - Updates nested metadata paths on tag rename/delete.
+  - Resolves inherited tag colors/backgrounds when enabled.
   - Uses tag tree snapshots for cleanup.
 
 - **FileMetadataService** (`src/services/metadata/FileMetadataService.ts`)
@@ -189,6 +239,7 @@ removeTagColor(tagPath: string): Promise<void>
 removeTagBackgroundColor(tagPath: string): Promise<void>
 getTagColor(tagPath: string): string | undefined
 getTagBackgroundColor(tagPath: string): string | undefined
+getTagColorData(tagPath: string): TagColorData
 setTagIcon(tagPath: string, iconId: string): Promise<void>
 removeTagIcon(tagPath: string): Promise<void>
 getTagIcon(tagPath: string): string | undefined
@@ -240,7 +291,7 @@ queue integration.
 
 - File and folder creation, rename, deletion, duplication.
 - Folder note conversion with conflict handling.
-- Batch file moves with modal workflows and smart selection updates.
+- Batch file moves with modal workflows and selection updates.
 - Canvas/base drawing creation and reveal helpers.
 - Command queue tracking for deletes and moves.
 - System actions such as reveal in explorer and version history.
@@ -311,6 +362,12 @@ Coordinates background content providers that populate IndexedDB mirrors used by
 
 **Location:** `src/services/content/ContentProviderRegistry.ts`
 
+`StorageContext` creates the registry in `useInitializeContentProviderRegistry` (`src/context/storage/useInitializeContentProviderRegistry.ts`).
+That hook wires shared helpers used across providers:
+
+- `ContentReadCache` (shared `vault.cachedRead()` cache)
+- `FeatureImageThumbnailRuntime` (shared thumbnail/external-request runtime for feature images)
+
 **Responsibilities:**
 
 - Provider registration and lookup.
@@ -337,14 +394,16 @@ stopAllProcessing(): void
 **Content Providers:**
 
 - **MarkdownPipelineContentProvider** (`src/services/content/MarkdownPipelineContentProvider.ts`)
-  - Generates markdown-derived content in a single pass (preview text, custom property, markdown feature images).
+  - Generates markdown-derived content in a single pass (preview text, word count, custom property, markdown feature images).
+  - Extends `FeatureImageContentProvider`; uses its thumbnail helpers with local files and external references.
   - Uses Obsidian's metadata cache for frontmatter and frontmatter position offsets.
 
 - **FeatureImageContentProvider** (`src/services/content/FeatureImageContentProvider.ts`)
-  - Generates thumbnails for non-markdown files (PDF cover thumbnails).
+  - Generates thumbnails for non-markdown files (images, PDFs, Excalidraw).
+  - Provides thumbnail helpers used by `MarkdownPipelineContentProvider` (local images, external URLs, YouTube).
 
 - **MetadataContentProvider** (`src/services/content/MetadataContentProvider.ts`)
-  - Extracts configured frontmatter metadata fields and hidden state based on vault profile exclusions.
+  - Extracts configured frontmatter metadata fields and hidden state based on active vault profile hidden frontmatter properties.
 
 - **TagContentProvider** (`src/services/content/TagContentProvider.ts`)
   - Extracts tags from Obsidian's metadata cache (`getAllTags(metadata)`).
@@ -395,6 +454,19 @@ getRecentIcons(): Record<string, string[]>
 setRecentIcons(recentIcons: Record<string, string[]>): void
 flushPendingPersists(): void
 ```
+
+### SyncModeRegistry
+
+**Location:** `src/services/settings/syncModeRegistry.ts`
+
+**Responsibilities:**
+
+- Defines per-setting rules for resolving "local" vs "synced" settings.
+- Applies load phases (`preProfiles` vs `postProfiles`) during `NotebookNavigatorPlugin.loadSettings()`.
+- Mirrors resolved values into `localStorage` and cleans up legacy persisted values.
+
+`NotebookNavigatorPlugin` builds the registry via `createSyncModeRegistry(...)` and caches it on the plugin instance.
+Each entry provides `resolveOnLoad(...)` and `mirrorToLocalStorage()` helpers keyed by `SyncModeSettingId`.
 
 ### ExternalIconProviderController
 
@@ -459,8 +531,11 @@ open(trigger: 'startup' | 'command'): Promise<boolean>
 
 **Location:** `src/api/NotebookNavigatorAPI.ts`
 
-Provides the typed public API surface for external integrations. Exposes metadata, navigation, and selection helpers
-built on top of the core services.
+Provides the typed public API surface for external integrations and internal cross-context events.
+
+- Sub-APIs: `navigation`, `metadata`, `selection`, `menus` (`src/api/modules/*`)
+- Event bus: `on(...)`, `once(...)`, `off(...)` (`src/api/NotebookNavigatorAPI.ts`)
+- Storage readiness: `isStorageReady()` and `setStorageReady(...)` gates API calls that require IndexedDB mirrors
 
 ## Supporting Services
 
@@ -480,6 +555,8 @@ Bridge between React storage state and non-React consumers that need tag data.
 ```typescript
 updateTagTree(tree: Map<string, TagTreeNode>, tagged: number, untagged: number): void
 getTagTree(): Map<string, TagTreeNode>
+getFlattenedTagNodes(): readonly TagTreeNode[]
+collectTagFilePaths(tagPath: string): string[]
 getUntaggedCount(): number
 getTaggedCount(): number
 findTagNode(tagPath: string): TagTreeNode | null
@@ -498,7 +575,7 @@ Tracks in-flight operations so React code can batch updates and adjust behavior 
 - Records move/delete operations, folder note opens, version history opens, new context opens, active file opens, and
   homepage loads.
 - Provides `onOperationChange` subscription for UI hooks.
-- Ensures sequential execution and consistent state tracking.
+- Serializes open-active-file requests and tracks active operation state.
 
 **Operation Types:**
 
@@ -554,7 +631,6 @@ Facade for tag operations across the vault.
 - Renames and deletes tags using modal workflows and file mutations.
 - Updates tag metadata and shortcuts after tag rename/delete operations.
 - Emits tag rename/delete events to registered listeners.
-- Reads cached tags from IndexedDB to build tag summaries.
 
 **Key Methods:**
 
@@ -600,9 +676,9 @@ Global singleton that coordinates icon providers and rendering.
 
 **Responsibilities:**
 
-- Registers bundled providers (Lucide, Emoji).
-- Manages search, validation, formatting, and recent icons.
-- Works with `ExternalIconProviderController` for downloadable packs.
+- Built-in providers (`LucideIconProvider`, `EmojiIconProvider`) are registered during `getIconService()` initialization.
+- Manages provider registry, icon id parsing/formatting, rendering, validation, and search.
+- `ExternalIconProviderController` registers downloadable providers with `IconService`.
 
 **Icon Providers:**
 
@@ -623,7 +699,8 @@ renderIcon(container: HTMLElement, iconId: string, size?: number): void
 isValidIcon(iconId: string): boolean
 search(query: string, providerId?: string): IconDefinition[]
 getAllIcons(providerId?: string): IconDefinition[]
-getRecentIcons(): string[]
+getVersion(): number
+subscribe(listener: () => void): () => void
 ```
 
 ### ReleaseCheckService
@@ -646,7 +723,7 @@ clearPendingNotice(): void
 
 ## Dependency Injection
 
-Services rely on light-weight interfaces to avoid tight coupling to the plugin class.
+Services depend on small interfaces rather than the plugin class.
 
 ### ISettingsProvider
 
@@ -760,7 +837,13 @@ React mounts the navigator with dependency injection:
       <ServicesProvider plugin={plugin}>
         <ShortcutsProvider>
           <StorageProvider app={plugin.app} api={plugin.api}>
-            {/* Navigator providers and UI */}
+            <ExpansionProvider>
+              <SelectionProvider /* app/api/file rename wiring */>
+                <UIStateProvider isMobile={isMobile}>
+                  <NotebookNavigatorContainer />
+                </UIStateProvider>
+              </SelectionProvider>
+            </ExpansionProvider>
           </StorageProvider>
         </ShortcutsProvider>
       </ServicesProvider>
@@ -769,23 +852,27 @@ React mounts the navigator with dependency injection:
 </SettingsProvider>
 ```
 
-`StorageProvider` creates the `ContentProviderRegistry` and registers all providers when storage becomes ready.
+`StorageProvider` creates the `ContentProviderRegistry` during mount and registers all providers. View-scoped contexts
+(`ExpansionProvider`, `SelectionProvider`, `UIStateProvider`) own React state and are not service singletons. Processing
+starts when `StorageContext` queues files through `ContentProviderRegistry.queueFilesForAllProviders(...)` (which calls
+`startProcessing()` for each provider).
 
 ## Data Flow
 
 ### Content Generation Flow
 
-1. **File Detection**: `StorageContext` picks files needing processing and calls `queueFilesForAllProviders`. Providers
-   skip files without enabled features and dedupe the queue.
+1. **File Detection**: `StorageContext` picks files needing processing and calls
+   `ContentProviderRegistry.queueFilesForAllProviders(...)` (optionally with include/exclude filters). Providers skip
+   files without enabled features and dedupe the queue.
 2. **Queue Management**: `BaseContentProvider` batches up to 100 files and processes them with a parallel limit of 10,
-   respecting debounce timers and abort signals.
+   with debounce timers, abort signals, and retry scheduling.
 3. **Processing**: Providers read vault data and produce updates:
-   - Tags via `app.metadataCache.getFileCache()`
-   - Preview text via `app.vault.cachedRead()`
-   - Feature images via frontmatter then embedded resources
-   - Metadata via `extractMetadataFromCache` plus hidden-state checks against exclusion rules
-4. **Database Updates**: Providers call `IndexedDBStorage` batch APIs (`batchUpdateFileContent`,
-   `batchClearAllFileContent`).
+   - Tags and metadata via `app.metadataCache.getFileCache()` (retries when cache data is missing)
+   - Preview text via `ContentReadCache` / `app.vault.cachedRead()` (skips oversized markdown reads via `LIMITS.markdown.maxReadBytes`)
+   - Feature images via frontmatter properties, markdown body references, and attachment thumbnails (local + optional external URLs)
+   - Metadata via `extractMetadataFromCache` and hidden-state checks against active vault profile hidden frontmatter properties
+4. **Database Updates**: Providers persist updates via `IndexedDBStorage.batchUpdateFileContentAndProviderProcessedMtimes(...)`
+   and clear content via `batchClearAllFileContent` / `batchClearFeatureImageContent`.
 5. **Memory Sync**: `MemoryFileCache` mirrors IndexedDB updates for synchronous access.
 6. **UI Updates**: `StorageContext` listens for database events, rebuilds the tag tree, and updates React contexts.
 
@@ -793,27 +880,53 @@ React mounts the navigator with dependency injection:
 
 Triggered manually from **Settings → Notebook Navigator → Advanced → Clean up metadata**.
 
-1. **Validator Preparation**: `MetadataService.prepareCleanupValidators()` collects vault files, folders, and the
-   current tag tree.
-2. **Cleanup Execution**: `MetadataService.runUnifiedCleanup()` removes orphaned folder, tag, file, pinned note, and
-   navigation separator entries using the validators.
-3. **Persistence**: When changes are detected, settings are saved via `saveSettingsAndUpdate()`.
-4. **Feedback**: UI shows cleanup results obtained from `MetadataService.getCleanupSummary()`.
+1. **Preview**: settings UI calls `NotebookNavigatorPlugin.getMetadataCleanupSummary()` which runs
+   `MetadataService.getCleanupSummary()` against a cloned settings object.
+2. **Cleanup Execution**: settings UI calls `NotebookNavigatorPlugin.runMetadataCleanup()` which runs
+   `MetadataService.cleanupAllMetadata()` (folder/tag/file/pinned note/separator cleanup).
+3. **Persistence**: `NotebookNavigatorPlugin.runMetadataCleanup()` calls `saveSettingsAndUpdate()` when changes are detected.
+4. **Feedback**: settings UI can re-run `getMetadataCleanupSummary()` after cleanup to confirm counts.
 
 ### File Operation Flow
 
 1. User initiates an operation (create, rename, move, delete, duplicate).
 2. `FileSystemOperations` gathers input through modals when required.
-3. `CommandQueueService` wraps long-running operations (moves, deletes, reveals, homepage opens).
-4. Vault operations execute through `app.vault` or `app.fileManager`.
+3. `CommandQueueService` wraps operations that coordinate workspace state (moves, deletes, folder note opens, version
+   history opens, new-context opens, active file opens, homepage opens).
+4. Vault mutations execute through `app.fileManager` (rename/move/trash/frontmatter) and `app.vault` (creates/reads).
 5. Selection state updates via helpers from `selectionUtils`.
 6. `StorageContext` observes vault events, records changes into IndexedDB, and rebuilds the tag tree.
 7. React contexts broadcast changes to the UI.
 
+### Settings Update Flow
+
+1. Settings UI updates values and persists via `saveSettingsAndUpdate()` (synced settings) or local preference helpers.
+2. `NotebookNavigatorPlugin` notifies settings listeners (`registerSettingsUpdateListener`) and open React views.
+3. `StorageContext` receives new settings and calls `ContentProviderRegistry.handleSettingsChange(old, new)` to stop
+   providers, wait for idle batches, clear content when required, and re-queue work.
+4. Controllers that mirror settings state (for example `ExternalIconProviderController`) resync based on updated settings.
+
+### External Icon Pack Flow
+
+1. `NotebookNavigatorPlugin` initializes `IconService` via `getIconService()` and creates `ExternalIconProviderController`.
+2. `ExternalIconProviderController.initialize()` loads persisted provider state and prepares the icon asset database.
+3. `ExternalIconProviderController.syncWithSettings()` installs/removes providers based on settings and updates enablement.
+4. `IconService` publishes version changes; React code can subscribe via `useIconServiceVersion()`.
+
+### Workspace and Vault Event Flow
+
+1. `registerWorkspaceEvents` wires Obsidian events (context menus, file-open, vault rename/delete).
+2. File opens update recent notes via `RecentNotesService.recordFileOpen`.
+3. Vault renames/deletes update metadata (`MetadataService.handle*`), recent note paths, hidden folder exact-match
+   settings, and selection context file path tracking.
+4. Active-file auto-reveal after a rename skips moves initiated by the navigator (`CommandQueueService.isMovingFile()`).
+
 ## Service Patterns
 
 - **Singleton**: `IconService` and plugin-managed services are singleton instances; each mounted `StorageProvider` owns a `ContentProviderRegistry`.
-- **Provider**: Content providers and icon providers use pluggable registries for extensibility.
+- **Provider**: `ContentProviderRegistry` and `IconService` manage lists of registered providers.
 - **Delegation**: `MetadataService` delegates specialized work to folder/tag/file/separator sub-services.
 - **Bridge**: `TagTreeService` bridges StorageContext data to non-React consumers.
-- **Observer**: `CommandQueueService`, recent data listeners, and `subscribeToNavigationSeparatorChanges()` publish state changes to the UI.
+- **Observer**: `CommandQueueService`, `IconService`, recent data listeners, and `subscribeToNavigationSeparatorChanges()` publish state changes to the UI.
+- **Facade**: `TagOperations` wraps tag workflows (batch operations, rename/delete workflows, shortcut updates).
+- **Controller**: `WorkspaceCoordinator`, `HomepageController`, and `ExternalIconProviderController` coordinate multi-step plugin flows.

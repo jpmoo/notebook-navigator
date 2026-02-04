@@ -32,6 +32,7 @@ export const STRINGS_KO = {
         untagged: '태그 없음', // Label for notes without any tags (English: Untagged)
         featureImageAlt: '대표 이미지', // Alt text for thumbnail/preview images (English: Feature image)
         unknownError: '알 수 없는 오류', // Generic fallback when an error has no message (English: Unknown error)
+        clipboardWriteError: '클립보드에 쓸 수 없습니다',
         updateBannerTitle: 'Notebook Navigator 업데이트 사용 가능',
         updateBannerInstruction: '설정 -> 커뮤니티 플러그인에서 업데이트',
         updateIndicatorLabel: '새 버전이 있습니다',
@@ -76,10 +77,6 @@ export const STRINGS_KO = {
     navigationCalendar: {
         ariaLabel: '달력',
         dailyNotesNotEnabled: '데일리 노트 코어 플러그인이 활성화되어 있지 않습니다.',
-        promptDailyNoteTitle: {
-            title: '데일리 노트 제목',
-            placeholder: '제목 입력'
-        },
         createDailyNote: {
             title: '새 데일리 노트',
             message: '파일 {filename}이(가) 존재하지 않습니다. 생성하시겠습니까?',
@@ -173,9 +170,6 @@ export const STRINGS_KO = {
             revealInFolder: '폴더에서 표시',
             revealInFinder: 'Finder에서 표시',
             showInExplorer: '시스템 탐색기에서 표시',
-            copyDeepLink: 'Obsidian URL 복사',
-            copyPath: '파일 시스템 경로 복사',
-            copyRelativePath: 'Vault 경로 복사',
             renameNote: '노트 이름 변경',
             renameFile: '파일 이름 변경',
             deleteNote: '노트 삭제',
@@ -203,8 +197,6 @@ export const STRINGS_KO = {
             newTldrawDrawing: '새 Tldraw 드로잉',
             duplicateFolder: '폴더 복제',
             searchInFolder: '폴더에서 검색',
-            copyPath: '파일 시스템 경로 복사',
-            copyRelativePath: 'Vault 경로 복사',
             createFolderNote: '폴더 노트 만들기',
             detachFolderNote: '폴더 노트 해제',
             deleteFolderNote: '폴더 노트 삭제',
@@ -227,6 +219,12 @@ export const STRINGS_KO = {
         navigation: {
             addSeparator: '구분선 추가',
             removeSeparator: '구분선 제거'
+        },
+        copyPath: {
+            title: '경로 복사',
+            asObsidianUrl: 'Obsidian URL로',
+            fromVaultFolder: 'Vault 폴더에서',
+            fromSystemRoot: '시스템 루트에서'
         },
         style: {
             title: '스타일',
@@ -265,6 +263,7 @@ export const STRINGS_KO = {
             showingResultsInfo: '{count}개 중 50개 결과 표시. 더 좁혀서 검색하세요.',
             emojiInstructions: '이모지를 입력하거나 붙여넣어 아이콘으로 사용하세요',
             removeIcon: '아이콘 제거',
+            removeFromRecents: '최근 아이콘에서 제거',
             allTabLabel: '모두'
         },
         fileIconRuleEditor: {
@@ -309,7 +308,6 @@ export const STRINGS_KO = {
             paletteCustom: '사용자 정의',
             copyColors: '색상 복사',
             colorsCopied: '클립보드에 복사됨',
-            copyClipboardError: '클립보드에 쓸 수 없습니다',
             pasteColors: '색상 붙여넣기',
             pasteClipboardError: '클립보드를 읽을 수 없습니다',
             pasteInvalidFormat: '16진수 색상 값이 필요합니다',
@@ -389,6 +387,14 @@ export const STRINGS_KO = {
                 dismiss: '닫기'
             }
         },
+        calendarTemplate: {
+            placeholder: '템플릿 검색...',
+            instructions: {
+                navigate: '이동',
+                select: '템플릿 선택',
+                dismiss: '닫기'
+            }
+        },
         navigationBanner: {
             placeholder: '이미지 검색...',
             instructions: {
@@ -419,7 +425,7 @@ export const STRINGS_KO = {
             thanksText: '다운로드해 주셔서 감사합니다. 즐겁게 사용하세요!',
             videoAlt: 'Notebook Navigator 설치 및 마스터하기',
             openVideoButton: '비디오 재생',
-            closeButton: '나중에 볼게요'
+            closeButton: '나중에'
         }
     },
 
@@ -532,8 +538,14 @@ export const STRINGS_KO = {
         open: '열기', // Command palette: Opens the Notebook Navigator view (English: Open)
         toggleLeftSidebar: '왼쪽 사이드바 전환', // Command palette: Toggles left sidebar, opening Notebook Navigator when uncollapsing (English: Toggle left sidebar)
         openHomepage: '홈페이지 열기', // Command palette: Opens the Notebook Navigator view and loads the homepage file (English: Open homepage)
+        openDailyNote: '일일 노트 열기',
+        openWeeklyNote: '주간 노트 열기',
+        openMonthlyNote: '월간 노트 열기',
+        openQuarterlyNote: '분기 노트 열기',
+        openYearlyNote: '연간 노트 열기',
         revealFile: '파일 표시', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: '검색', // Command palette: Toggle search in the file list (English: Search)
+        searchVaultRoot: '보관소 루트에서 검색', // Command palette: Selects the vault root folder and focuses search (English: Search in vault root)
         toggleDualPane: '이중 창 레이아웃 전환', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleCalendar: '캘린더 전환', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
         selectVaultProfile: '보관소 프로필 변경', // Command palette: Opens a modal to choose a different vault profile (English: Switch vault profile)
@@ -568,6 +580,7 @@ export const STRINGS_KO = {
     // Plugin UI
     plugin: {
         viewName: 'Notebook Navigator', // Name shown in the view header/tab (English: Notebook Navigator)
+        calendarViewName: '캘린더', // Name shown in the view header/tab (English: Calendar)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'Notebook Navigator에서 표시' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
@@ -591,6 +604,7 @@ export const STRINGS_KO = {
         sections: {
             general: '일반',
             navigationPane: '탐색 창',
+            calendar: '달력',
             icons: '아이콘 팩',
             folders: '폴더',
             folderNotes: '폴더 노트',
@@ -605,11 +619,14 @@ export const STRINGS_KO = {
         },
         groups: {
             general: {
+                vaultProfiles: '보관소 프로필',
                 filtering: '필터링',
                 behavior: '동작',
+                keyboardNavigation: '키보드 탐색',
                 view: '모양',
                 icons: '아이콘',
                 desktopAppearance: '데스크톱 모양새',
+                mobileAppearance: '모바일 모양',
                 formatting: '서식'
             },
             navigation: {
@@ -635,6 +652,7 @@ export const STRINGS_KO = {
         },
         syncMode: {
             notSynced: '(동기화되지 않음)',
+            disabled: '(비활성화됨)',
             switchToSynced: '동기화 활성화',
             switchToLocal: '동기화 비활성화'
         },
@@ -688,8 +706,21 @@ export const STRINGS_KO = {
                     'created-desc': '생성 날짜 (최신 상위)',
                     'created-asc': '생성 날짜 (오래된 상위)',
                     'title-asc': '제목 (가나다 상위)',
-                    'title-desc': '제목 (역순 상위)'
+                    'title-desc': '제목 (역순 상위)',
+                    'filename-asc': '파일 이름 (가나다 상위)',
+                    'filename-desc': '파일 이름 (역순 상위)',
+                    'property-asc': '속성 (가나다 상위)',
+                    'property-desc': '속성 (역순 상위)'
+                },
+                propertyOverride: {
+                    asc: '속성 ‘{property}’ (가나다 상위)',
+                    desc: '속성 ‘{property}’ (역순 상위)'
                 }
+            },
+            propertySortKey: {
+                name: '정렬 속성',
+                desc: '속성 정렬과 함께 사용됩니다. 이 frontmatter 속성이 있는 노트가 먼저 나열되고 속성 값으로 정렬됩니다. 배열은 하나의 값으로 결합됩니다.',
+                placeholder: 'order'
             },
             revealFileOnListChanges: {
                 name: '목록 변경 시 선택된 파일로 스크롤',
@@ -814,6 +845,10 @@ export const STRINGS_KO = {
                 name: '확대 수준',
                 desc: 'Notebook Navigator의 전체 확대 수준을 제어합니다.'
             },
+            useFloatingToolbars: {
+                name: 'iOS/iPadOS에서 플로팅 툴바 사용',
+                desc: 'Obsidian 1.11 이상에 적용됩니다.'
+            },
             startView: {
                 name: '기본 시작 보기',
                 desc: 'Notebook Navigator를 열 때 표시할 창을 선택하세요. 탐색 창은 바로가기, 최근 노트, 폴더 구조를 표시합니다. 목록 창은 노트 목록을 표시합니다.',
@@ -871,6 +906,10 @@ export const STRINGS_KO = {
                 current: '현재 배너: {path}',
                 chooseButton: '이미지 선택'
             },
+            pinNavigationBanner: {
+                name: '배너 고정',
+                desc: '탐색 배너를 탐색 트리 위에 고정합니다.'
+            },
             showShortcuts: {
                 name: '바로가기 표시',
                 desc: '탐색 창에 바로가기 섹션을 표시합니다.'
@@ -896,9 +935,13 @@ export const STRINGS_KO = {
                 name: '바로가기와 함께 최근 노트 고정',
                 desc: '바로가기를 고정할 때 최근 노트를 포함합니다.'
             },
-            showCalendar: {
-                name: '달력 표시',
-                desc: '탐색 창 하단에 달력을 표시합니다.'
+            calendarPlacement: {
+                name: '캘린더 위치',
+                desc: '왼쪽 또는 오른쪽 사이드바에 표시합니다.',
+                options: {
+                    leftSidebar: '왼쪽 사이드바',
+                    rightSidebar: '오른쪽 사이드바'
+                }
             },
             calendarLocale: {
                 name: '지역',
@@ -907,9 +950,19 @@ export const STRINGS_KO = {
                     systemDefault: '기본값'
                 }
             },
+            calendarWeekendDays: {
+                name: '주말',
+                desc: '주말을 다른 배경색으로 표시합니다.',
+                options: {
+                    none: '없음',
+                    satSun: '토요일과 일요일',
+                    friSat: '금요일과 토요일',
+                    thuFri: '목요일과 금요일'
+                }
+            },
             calendarWeeksToShow: {
-                name: '표시할 주',
-                desc: '표시할 달력 주 수입니다.',
+                name: '왼쪽 사이드바에 표시할 주',
+                desc: '오른쪽 사이드바의 캘린더는 항상 전체 월을 표시합니다.',
                 options: {
                     fullMonth: '전체 월',
                     oneWeek: '1주',
@@ -920,9 +973,17 @@ export const STRINGS_KO = {
                 name: '오늘 날짜 강조 표시',
                 desc: '오늘 날짜에 빨간 원과 굵은 텍스트를 표시합니다.'
             },
+            calendarShowFeatureImage: {
+                name: '대표 이미지 표시',
+                desc: '캘린더에서 노트의 대표 이미지를 표시합니다.'
+            },
             calendarShowWeekNumber: {
                 name: '주 번호 표시',
                 desc: '주 번호 열을 추가합니다.'
+            },
+            calendarShowQuarter: {
+                name: '분기 표시',
+                desc: '캘린더 헤더에 분기 레이블을 추가합니다.'
             },
             calendarConfirmBeforeCreate: {
                 name: '생성 전 확인',
@@ -932,7 +993,7 @@ export const STRINGS_KO = {
                 name: '데일리 노트 소스',
                 desc: '캘린더 노트 소스.',
                 options: {
-                    dailyNotes: '데일리 노트',
+                    dailyNotes: '데일리 노트(코어 플러그인)',
                     notebookNavigator: 'Notebook Navigator'
                 },
                 info: {
@@ -941,19 +1002,43 @@ export const STRINGS_KO = {
             },
             calendarCustomRootFolder: {
                 name: '루트 폴더',
-                desc: '캘린더 노트의 기본 폴더.',
+                desc: '정기 노트의 기본 폴더. 날짜 패턴에 하위 폴더를 포함할 수 있습니다. 선택한 보관소 프로필에 따라 변경됩니다.',
                 placeholder: 'Personal/Diary'
             },
-            calendarCustomFilePattern: {
-                name: '파일 패턴',
-                desc: '루트 폴더 기준 날짜 패턴. 지원되는 토큰: YYYY, MM, M, DD, D. 노트에는 선택적 제목 접미사를 포함할 수 있습니다.',
-                placeholder: 'YYYY/YYYYMMDD',
-                example: '현재 구문은 다음과 같습니다: {path}',
-                parsingError: '패턴에는 YYYY, MM/M, DD/D가 포함되어야 합니다. 지원되는 토큰: YYYY, MM, M, DD, D.'
+            calendarTemplateFolder: {
+                name: '템플릿 폴더 위치',
+                desc: '템플릿 파일 선택기가 이 폴더의 노트를 표시합니다.',
+                placeholder: 'Templates'
             },
-            calendarCustomPromptForTitle: {
-                name: '제목 입력',
-                desc: '노트 생성 시 제목 입력. 빈 제목 허용.'
+            calendarCustomFilePattern: {
+                name: '일일 노트',
+                desc: 'Moment 날짜 형식을 사용하여 경로 지정. 하위 폴더 이름은 대괄호로 감싸세요, 예: [Work]/YYYY. 템플릿 아이콘을 클릭하여 템플릿을 설정하세요.',
+                momentDescPrefix: '',
+                momentLinkText: 'Moment 날짜 형식',
+                momentDescSuffix:
+                    '을 사용하여 경로 지정. 하위 폴더 이름은 대괄호로 감싸세요, 예: [Work]/YYYY. 템플릿 아이콘을 클릭하여 템플릿을 설정하세요.',
+                placeholder: 'YYYY/YYYYMMDD',
+                example: '현재 구문: {path}',
+                parsingError: '패턴은 전체 날짜(연, 월, 일)로 포맷되고 다시 파싱될 수 있어야 합니다.'
+            },
+            calendarCustomWeekPattern: {
+                name: '주간 노트',
+                parsingError: '패턴은 전체 주(주 연도, 주 번호)로 포맷되고 다시 파싱될 수 있어야 합니다.'
+            },
+            calendarCustomMonthPattern: {
+                name: '월간 노트',
+                parsingError: '패턴은 전체 월(연도, 월)로 포맷되고 다시 파싱될 수 있어야 합니다.'
+            },
+            calendarCustomQuarterPattern: {
+                name: '분기별 노트',
+                parsingError: '패턴은 전체 분기(연도, 분기)로 포맷되고 다시 파싱될 수 있어야 합니다.'
+            },
+            calendarCustomYearPattern: {
+                name: '연간 노트',
+                parsingError: '패턴은 전체 연도(연도)로 포맷되고 다시 파싱될 수 있어야 합니다.'
+            },
+            calendarTemplateFile: {
+                current: '템플릿 파일: {name}'
             },
             showTooltips: {
                 name: '도구 설명 표시',
@@ -986,6 +1071,22 @@ export const STRINGS_KO = {
                     cmdCtrl: 'Cmd/Ctrl 클릭',
                     optionAlt: 'Option/Alt 클릭'
                 }
+            },
+            enterToOpenFiles: {
+                name: 'Enter 키로 파일 열기',
+                desc: '목록 키보드 탐색 중 Enter 키를 누를 때만 파일을 엽니다.'
+            },
+            shiftEnterOpenContext: {
+                name: 'Shift+Enter',
+                desc: 'Shift+Enter를 누르면 선택한 파일을 새 탭, 분할 또는 창에서 엽니다.'
+            },
+            cmdEnterOpenContext: {
+                name: 'Cmd+Enter',
+                desc: 'Cmd+Enter를 누르면 선택한 파일을 새 탭, 분할 또는 창에서 엽니다.'
+            },
+            ctrlEnterOpenContext: {
+                name: 'Ctrl+Enter',
+                desc: 'Ctrl+Enter를 누르면 선택한 파일을 새 탭, 분할 또는 창에서 엽니다.'
             },
             fileVisibility: {
                 name: '파일 유형 표시 (볼트 프로필)',
@@ -1085,7 +1186,7 @@ export const STRINGS_KO = {
                 desc: '날짜, 미리보기, 이미지가 숨겨져 있을 때 태그를 표시합니다.'
             },
             customPropertyType: {
-                name: '유형',
+                name: '속성 유형',
                 desc: '파일 항목에 표시할 사용자 정의 속성을 선택합니다.',
                 options: {
                     frontmatter: '프론트매터 속성',
@@ -1094,14 +1195,19 @@ export const STRINGS_KO = {
                 }
             },
             customPropertyFields: {
-                name: '표시할 속성',
+                name: '표시할 속성들',
                 desc: '배지로 표시할 프론트매터 속성의 쉼표로 구분된 목록. 목록 값 속성은 값당 하나의 배지를 표시합니다. [[위키링크]] 값은 클릭 가능한 링크로 표시됩니다.',
                 placeholder: '상태, 유형, 카테고리'
             },
-            customPropertyColorFields: {
-                name: '색상 속성',
-                desc: '배지 색상을 위한 프론트매터 속성의 쉼표로 구분된 목록. 색상 속성은 위치별로 표시 속성과 쌍을 이룹니다. 목록 값 속성은 인덱스별로 색상을 쌍으로 만듭니다. 값은 태그 이름 또는 CSS 색상이 될 수 있습니다.',
-                placeholder: 'statusColor, typeColor, categoryColor'
+            showCustomPropertiesOnSeparateRows: {
+                name: '속성을 별도 행에 표시',
+                desc: '각 속성을 개별 행에 표시합니다.'
+            },
+            customPropertyColorMap: {
+                name: '속성 색상',
+                desc: '프론트매터 속성을 배지 색상에 매핑합니다. 한 줄에 하나의 매핑: 속성=색상',
+                placeholder: '# 속성=색상\nstatus=#ff0000\ntype=#00ff00',
+                editTooltip: '매핑 편집'
             },
             showCustomPropertyInCompactMode: {
                 name: '슬림 모드에서 사용자 정의 속성 표시',
@@ -1112,14 +1218,16 @@ export const STRINGS_KO = {
                 desc: '날짜 표시 형식 (date-fns 형식 사용).',
                 placeholder: 'MMM d, yyyy',
                 help: '일반적인 형식:\nMMM d, yyyy = 5월 25, 2022\ndd/MM/yyyy = 25/05/2022\nyyyy-MM-dd = 2022-05-25\n\n토큰:\nyyyy/yy = 년도\nMMMM/MMM/MM = 월\ndd/d = 일\nEEEE/EEE = 요일',
-                helpTooltip: '형식 참조를 보려면 클릭'
+                helpTooltip: 'date-fns 형식',
+                dateFnsLinkText: 'date-fns 형식'
             },
             timeFormat: {
                 name: '시간 형식',
                 desc: '시간 표시 형식 (date-fns 형식 사용).',
                 placeholder: 'h:mm a',
                 help: '일반적인 형식:\nh:mm a = 2:30 PM (12시간)\nHH:mm = 14:30 (24시간)\nh:mm:ss a = 2:30:45 PM\nHH:mm:ss = 14:30:45\n\n토큰:\nHH/H = 24시간\nhh/h = 12시간\nmm = 분\nss = 초\na = AM/PM',
-                helpTooltip: '형식 참조를 보려면 클릭'
+                helpTooltip: 'date-fns 형식',
+                dateFnsLinkText: 'date-fns 형식'
             },
             showFilePreview: {
                 name: '노트 미리보기 표시',
@@ -1197,6 +1305,14 @@ export const STRINGS_KO = {
                 name: '폴더 색상 상속',
                 desc: '하위 폴더가 상위 폴더에서 색상을 상속합니다.'
             },
+            folderSortOrder: {
+                name: '폴더 정렬 순서',
+                desc: '폴더를 마우스 오른쪽 버튼으로 클릭하여 하위 항목의 정렬 순서를 개별적으로 설정할 수 있습니다.',
+                options: {
+                    alphaAsc: 'A부터 Z까지',
+                    alphaDesc: 'Z부터 A까지'
+                }
+            },
             showNoteCount: {
                 name: '노트 수 표시',
                 desc: '각 폴더와 태그 옆에 노트 수를 표시합니다.'
@@ -1261,12 +1377,13 @@ export const STRINGS_KO = {
             },
             tagSortOrder: {
                 name: '태그 정렬 순서',
-                desc: '탐색 창에서 태그를 정렬하는 방식을 선택합니다.',
+                desc: '태그를 마우스 오른쪽 버튼으로 클릭하여 하위 항목의 정렬 순서를 개별적으로 설정할 수 있습니다.',
                 options: {
                     alphaAsc: 'A부터 Z까지',
                     alphaDesc: 'Z부터 A까지',
-                    frequencyAsc: '빈도 (낮음 → 높음)',
-                    frequencyDesc: '빈도 (높음 → 낮음)'
+                    frequency: '빈도',
+                    lowToHigh: '낮음 → 높음',
+                    highToLow: '높음 → 낮음'
                 }
             },
             showAllTagsFolder: {
@@ -1418,7 +1535,8 @@ export const STRINGS_KO = {
             frontmatterDateFormat: {
                 name: '타임스탬프 형식',
                 desc: 'frontmatter에서 타임스탬프를 구문 분석하는 데 사용되는 형식입니다. ISO 8601 형식을 사용하려면 비워 두세요',
-                helpTooltip: 'date-fns 형식 문서 참조',
+                helpTooltip: 'date-fns 형식',
+                dateFnsLinkText: 'date-fns 형식',
                 help: "일반적인 형식:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {

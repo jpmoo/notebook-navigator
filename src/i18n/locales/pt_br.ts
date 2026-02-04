@@ -32,6 +32,7 @@ export const STRINGS_PT_BR = {
         untagged: 'Sem tags',
         featureImageAlt: 'Imagem destacada',
         unknownError: 'Erro desconhecido',
+        clipboardWriteError: 'Não foi possível gravar na área de transferência',
         updateBannerTitle: 'Atualização do Notebook Navigator disponível',
         updateBannerInstruction: 'Atualize em Configurações -> Plugins da comunidade',
         updateIndicatorLabel: 'Nova versão disponível',
@@ -77,10 +78,6 @@ export const STRINGS_PT_BR = {
     navigationCalendar: {
         ariaLabel: 'Calendário',
         dailyNotesNotEnabled: 'O plugin de notas diárias não está ativado.',
-        promptDailyNoteTitle: {
-            title: 'Título da nota diária',
-            placeholder: 'Digite o título'
-        },
         createDailyNote: {
             title: 'Nova nota diária',
             message: 'O arquivo {filename} não existe. Deseja criá-lo?',
@@ -175,9 +172,6 @@ export const STRINGS_PT_BR = {
             revealInFolder: 'Revelar na pasta',
             revealInFinder: 'Revelar no Finder',
             showInExplorer: 'Mostrar no explorador de arquivos',
-            copyDeepLink: 'Copiar URL do Obsidian',
-            copyPath: 'Copiar caminho do sistema de arquivos',
-            copyRelativePath: 'Copiar caminho do cofre',
             renameNote: 'Renomear nota',
             renameFile: 'Renomear arquivo',
             deleteNote: 'Excluir nota',
@@ -205,8 +199,6 @@ export const STRINGS_PT_BR = {
             newTldrawDrawing: 'Novo desenho Tldraw',
             duplicateFolder: 'Duplicar pasta',
             searchInFolder: 'Pesquisar na pasta',
-            copyPath: 'Copiar caminho do sistema de arquivos',
-            copyRelativePath: 'Copiar caminho do cofre',
             createFolderNote: 'Criar nota de pasta',
             detachFolderNote: 'Desvincular nota de pasta',
             deleteFolderNote: 'Excluir nota de pasta',
@@ -229,6 +221,12 @@ export const STRINGS_PT_BR = {
         navigation: {
             addSeparator: 'Adicionar separador',
             removeSeparator: 'Remover separador'
+        },
+        copyPath: {
+            title: 'Copiar caminho',
+            asObsidianUrl: 'como URL do Obsidian',
+            fromVaultFolder: 'a partir da pasta do cofre',
+            fromSystemRoot: 'a partir da raiz do sistema'
         },
         style: {
             title: 'Estilo',
@@ -267,6 +265,7 @@ export const STRINGS_PT_BR = {
             showingResultsInfo: 'Mostrando 50 de {count} resultados. Digite mais para refinar.',
             emojiInstructions: 'Digite ou cole qualquer emoji para usá-lo como ícone',
             removeIcon: 'Remover ícone',
+            removeFromRecents: 'Remover dos recentes',
             allTabLabel: 'Todos'
         },
         fileIconRuleEditor: {
@@ -307,7 +306,6 @@ export const STRINGS_PT_BR = {
             paletteCustom: 'Personalizado',
             copyColors: 'Copiar cor',
             colorsCopied: 'Cor copiada para a área de transferência',
-            copyClipboardError: 'Não foi possível gravar na área de transferência',
             pasteColors: 'Colar cor',
             pasteClipboardError: 'Não foi possível ler a área de transferência',
             pasteInvalidFormat: 'Esperado um valor de cor hex',
@@ -386,6 +384,14 @@ export const STRINGS_PT_BR = {
                 dismiss: 'para descartar'
             }
         },
+        calendarTemplate: {
+            placeholder: 'Pesquisar modelos...',
+            instructions: {
+                navigate: 'para navegar',
+                select: 'para selecionar o modelo',
+                dismiss: 'para descartar'
+            }
+        },
         navigationBanner: {
             placeholder: 'Pesquisar imagens...',
             instructions: {
@@ -416,7 +422,7 @@ export const STRINGS_PT_BR = {
             thanksText: 'Muito obrigado por baixar e aproveite!',
             videoAlt: 'Instalando e dominando o Notebook Navigator',
             openVideoButton: 'Reproduzir vídeo',
-            closeButton: 'Vou assistir depois'
+            closeButton: 'Talvez depois'
         }
     },
 
@@ -529,8 +535,14 @@ export const STRINGS_PT_BR = {
         open: 'Abrir',
         toggleLeftSidebar: 'Alternar barra lateral esquerda',
         openHomepage: 'Abrir página inicial',
+        openDailyNote: 'Abrir nota diária',
+        openWeeklyNote: 'Abrir nota semanal',
+        openMonthlyNote: 'Abrir nota mensal',
+        openQuarterlyNote: 'Abrir nota trimestral',
+        openYearlyNote: 'Abrir nota anual',
         revealFile: 'Revelar arquivo',
         search: 'Pesquisar',
+        searchVaultRoot: 'Pesquisar na raiz do cofre',
         toggleDualPane: 'Alternar layout de painel duplo',
         toggleCalendar: 'Alternar calendário',
         selectVaultProfile: 'Alterar perfil do cofre',
@@ -565,6 +577,7 @@ export const STRINGS_PT_BR = {
     // Plugin UI
     plugin: {
         viewName: 'Notebook Navigator',
+        calendarViewName: 'Calendário',
         ribbonTooltip: 'Notebook Navigator',
         revealInNavigator: 'Revelar no Notebook Navigator'
     },
@@ -588,6 +601,7 @@ export const STRINGS_PT_BR = {
         sections: {
             general: 'Geral',
             navigationPane: 'Painel de navegação',
+            calendar: 'Calendário',
             icons: 'Pacotes de ícones',
             folders: 'Pastas',
             folderNotes: 'Notas de pasta',
@@ -602,11 +616,14 @@ export const STRINGS_PT_BR = {
         },
         groups: {
             general: {
+                vaultProfiles: 'Perfis do cofre',
                 filtering: 'Filtragem',
                 behavior: 'Comportamento',
+                keyboardNavigation: 'Navegação por teclado',
                 view: 'Aparência',
                 icons: 'Ícones',
                 desktopAppearance: 'Aparência do desktop',
+                mobileAppearance: 'Aparência móvel',
                 formatting: 'Formatação'
             },
             navigation: {
@@ -632,6 +649,7 @@ export const STRINGS_PT_BR = {
         },
         syncMode: {
             notSynced: '(não sincronizado)',
+            disabled: '(desativado)',
             switchToSynced: 'Ativar sincronização',
             switchToLocal: 'Desativar sincronização'
         },
@@ -685,8 +703,21 @@ export const STRINGS_PT_BR = {
                     'created-desc': 'Data de criação (mais recente no topo)',
                     'created-asc': 'Data de criação (mais antiga no topo)',
                     'title-asc': 'Título (A no topo)',
-                    'title-desc': 'Título (Z no topo)'
+                    'title-desc': 'Título (Z no topo)',
+                    'filename-asc': 'Nome do arquivo (A no topo)',
+                    'filename-desc': 'Nome do arquivo (Z no topo)',
+                    'property-asc': 'Propriedade (A no topo)',
+                    'property-desc': 'Propriedade (Z no topo)'
+                },
+                propertyOverride: {
+                    asc: 'Propriedade ‘{property}’ (A no topo)',
+                    desc: 'Propriedade ‘{property}’ (Z no topo)'
                 }
+            },
+            propertySortKey: {
+                name: 'Propriedade de ordenação',
+                desc: 'Usado com a ordenação por propriedade. Notas com esta propriedade frontmatter são listadas primeiro e ordenadas pelo valor da propriedade. Arrays são combinados em um único valor.',
+                placeholder: 'order'
             },
             revealFileOnListChanges: {
                 name: 'Rolar para o arquivo selecionado em mudanças da lista',
@@ -811,6 +842,10 @@ export const STRINGS_PT_BR = {
                 name: 'Nível de zoom',
                 desc: 'Controla o nível de zoom geral do Notebook Navigator.'
             },
+            useFloatingToolbars: {
+                name: 'Usar barras de ferramentas flutuantes no iOS/iPadOS',
+                desc: 'Aplica-se ao Obsidian 1.11 e posteriores.'
+            },
             startView: {
                 name: 'Visualização inicial padrão',
                 desc: 'Escolha qual painel exibir ao abrir o Notebook Navigator. O painel de navegação mostra atalhos, notas recentes e árvore de pastas. O painel de lista mostra a lista de notas imediatamente.',
@@ -868,6 +903,10 @@ export const STRINGS_PT_BR = {
                 current: 'Banner atual: {path}',
                 chooseButton: 'Escolher imagem'
             },
+            pinNavigationBanner: {
+                name: 'Fixar banner',
+                desc: 'Fixar o banner de navegação acima da árvore de navegação.'
+            },
             showShortcuts: {
                 name: 'Mostrar atalhos',
                 desc: 'Exibir a seção de atalhos no painel de navegação.'
@@ -893,9 +932,13 @@ export const STRINGS_PT_BR = {
                 name: 'Fixar notas recentes com atalhos',
                 desc: 'Incluir notas recentes quando os atalhos estiverem fixados.'
             },
-            showCalendar: {
-                name: 'Mostrar calendário',
-                desc: 'Mostrar um calendário na parte inferior do painel de navegação.'
+            calendarPlacement: {
+                name: 'Posição do calendário',
+                desc: 'Exibir na barra lateral esquerda ou direita.',
+                options: {
+                    leftSidebar: 'Barra lateral esquerda',
+                    rightSidebar: 'Barra lateral direita'
+                }
             },
             calendarLocale: {
                 name: 'Idioma',
@@ -904,9 +947,19 @@ export const STRINGS_PT_BR = {
                     systemDefault: 'Padrão'
                 }
             },
+            calendarWeekendDays: {
+                name: 'Dias de fim de semana',
+                desc: 'Mostrar dias de fim de semana com uma cor de fundo diferente.',
+                options: {
+                    none: 'Nenhum',
+                    satSun: 'Sábado e domingo',
+                    friSat: 'Sexta-feira e sábado',
+                    thuFri: 'Quinta-feira e sexta-feira'
+                }
+            },
             calendarWeeksToShow: {
-                name: 'Semanas a exibir',
-                desc: 'Número de semanas do calendário a exibir.',
+                name: 'Semanas a exibir na barra lateral esquerda',
+                desc: 'O calendário na barra lateral direita sempre exibe o mês completo.',
                 options: {
                     fullMonth: 'Mês completo',
                     oneWeek: '1 semana',
@@ -917,9 +970,17 @@ export const STRINGS_PT_BR = {
                 name: 'Destacar a data de hoje',
                 desc: 'Mostrar um círculo vermelho e texto em negrito na data de hoje.'
             },
+            calendarShowFeatureImage: {
+                name: 'Mostrar imagem de destaque',
+                desc: 'Mostrar imagens de destaque das notas no calendário.'
+            },
             calendarShowWeekNumber: {
                 name: 'Mostrar número da semana',
                 desc: 'Adicionar uma coluna com o número da semana.'
+            },
+            calendarShowQuarter: {
+                name: 'Mostrar trimestre',
+                desc: 'Adicionar uma etiqueta de trimestre no cabeçalho do calendário.'
             },
             calendarConfirmBeforeCreate: {
                 name: 'Confirmar antes de criar',
@@ -929,7 +990,7 @@ export const STRINGS_PT_BR = {
                 name: 'Fonte de notas diárias',
                 desc: 'Fonte para notas do calendário.',
                 options: {
-                    dailyNotes: 'Notas diárias',
+                    dailyNotes: 'Notas diárias (plug-in principal)',
                     notebookNavigator: 'Notebook Navigator'
                 },
                 info: {
@@ -938,19 +999,44 @@ export const STRINGS_PT_BR = {
             },
             calendarCustomRootFolder: {
                 name: 'Pasta raiz',
-                desc: 'Pasta base para notas do calendário.',
+                desc: 'Pasta base para notas periódicas. Padrões de data podem incluir subpastas. Muda com o perfil do cofre selecionado.',
                 placeholder: 'Personal/Diary'
             },
-            calendarCustomFilePattern: {
-                name: 'Padrão de arquivo',
-                desc: 'Padrão de data relativo à pasta raiz. Tokens suportados: YYYY, MM, M, DD, D. As notas podem incluir um sufixo de título opcional.',
-                placeholder: 'YYYY/YYYYMMDD',
-                example: 'A sintaxe atual é assim: {path}',
-                parsingError: 'O padrão deve incluir YYYY, MM/M e DD/D. Tokens suportados: YYYY, MM, M, DD, D.'
+            calendarTemplateFolder: {
+                name: 'Localização da pasta de modelos',
+                desc: 'O seletor de arquivos de modelo mostra notas desta pasta.',
+                placeholder: 'Templates'
             },
-            calendarCustomPromptForTitle: {
-                name: 'Pedir título',
-                desc: 'Pedir título ao criar notas. Aceita títulos vazios.'
+            calendarCustomFilePattern: {
+                name: 'Notas diárias',
+                desc: 'Formatar caminho usando formato de data Moment. Coloque nomes de subpastas entre colchetes, ex. [Work]/YYYY. Clique no ícone de modelo para definir um modelo.',
+                momentDescPrefix: 'Formatar caminho usando ',
+                momentLinkText: 'formato de data Moment',
+                momentDescSuffix:
+                    '. Coloque nomes de subpastas entre colchetes, ex. [Work]/YYYY. Clique no ícone de modelo para definir um modelo.',
+                placeholder: 'YYYY/YYYYMMDD',
+                example: 'Sintaxe atual: {path}',
+                parsingError: 'O padrão deve ser formatado e analisado novamente como uma data completa (ano, mês, dia).'
+            },
+            calendarCustomWeekPattern: {
+                name: 'Notas semanais',
+                parsingError:
+                    'O padrão deve ser formatado e analisado novamente como uma semana completa (ano da semana, número da semana).'
+            },
+            calendarCustomMonthPattern: {
+                name: 'Notas mensais',
+                parsingError: 'O padrão deve ser formatado e analisado novamente como um mês completo (ano, mês).'
+            },
+            calendarCustomQuarterPattern: {
+                name: 'Notas trimestrais',
+                parsingError: 'O padrão deve ser formatado e analisado novamente como um trimestre completo (ano, trimestre).'
+            },
+            calendarCustomYearPattern: {
+                name: 'Notas anuais',
+                parsingError: 'O padrão deve ser formatado e analisado novamente como um ano completo (ano).'
+            },
+            calendarTemplateFile: {
+                current: 'Arquivo de modelo: {name}'
             },
             showTooltips: {
                 name: 'Mostrar dicas',
@@ -984,6 +1070,22 @@ export const STRINGS_PT_BR = {
                     cmdCtrl: 'Cmd/Ctrl clique',
                     optionAlt: 'Opção/Alt clique'
                 }
+            },
+            enterToOpenFiles: {
+                name: 'Pressionar Enter para abrir arquivos',
+                desc: 'Abrir arquivos apenas ao pressionar Enter durante a navegação por teclado na lista.'
+            },
+            shiftEnterOpenContext: {
+                name: 'Shift+Enter',
+                desc: 'Abrir o arquivo selecionado em uma nova aba, divisão ou janela ao pressionar Shift+Enter.'
+            },
+            cmdEnterOpenContext: {
+                name: 'Cmd+Enter',
+                desc: 'Abrir o arquivo selecionado em uma nova aba, divisão ou janela ao pressionar Cmd+Enter.'
+            },
+            ctrlEnterOpenContext: {
+                name: 'Ctrl+Enter',
+                desc: 'Abrir o arquivo selecionado em uma nova aba, divisão ou janela ao pressionar Ctrl+Enter.'
             },
             fileVisibility: {
                 name: 'Mostrar tipos de arquivo (perfil do cofre)',
@@ -1084,7 +1186,7 @@ export const STRINGS_PT_BR = {
                 desc: 'Exibir tags quando data, visualização e imagem estão ocultas.'
             },
             customPropertyType: {
-                name: 'Tipo',
+                name: 'Tipo de propriedade',
                 desc: 'Selecione a propriedade personalizada a exibir nos itens de arquivo.',
                 options: {
                     frontmatter: 'Propriedade frontmatter',
@@ -1093,14 +1195,19 @@ export const STRINGS_PT_BR = {
                 }
             },
             customPropertyFields: {
-                name: 'Propriedade a exibir',
+                name: 'Propriedades a exibir',
                 desc: 'Lista de propriedades frontmatter separadas por vírgulas para exibir como emblemas. Propriedades com valores de lista exibem um emblema por valor. Valores em formato [[wikilink]] são exibidos como links clicáveis.',
                 placeholder: 'status, tipo, categoria'
             },
-            customPropertyColorFields: {
-                name: 'Propriedade para cor',
-                desc: 'Lista de propriedades frontmatter separadas por vírgulas para cores dos emblemas. As propriedades de cor são emparelhadas com as propriedades de exibição por posição. Propriedades com valores de lista emparelham cores por índice. Os valores podem ser nomes de tags ou cores CSS.',
-                placeholder: 'statusColor, typeColor, categoryColor'
+            showCustomPropertiesOnSeparateRows: {
+                name: 'Mostrar propriedades em linhas separadas',
+                desc: 'Mostrar cada propriedade na sua própria linha.'
+            },
+            customPropertyColorMap: {
+                name: 'Cores de propriedade',
+                desc: 'Associa propriedades de frontmatter a cores de emblema. Uma associação por linha: propriedade=cor',
+                placeholder: '# Propriedade=cor\nstatus=#ff0000\ntype=#00ff00',
+                editTooltip: 'Editar associações'
             },
             showCustomPropertyInCompactMode: {
                 name: 'Mostrar propriedade personalizada no modo compacto',
@@ -1111,14 +1218,16 @@ export const STRINGS_PT_BR = {
                 desc: 'Formato para exibir datas (usa formato date-fns).',
                 placeholder: 'MMM d, yyyy',
                 help: 'Formatos comuns:\nMMM d, yyyy = Mai 25, 2022\ndd/MM/yyyy = 25/05/2022\nyyyy-MM-dd = 2022-05-25\n\nTokens:\nyyyy/yy = ano\nMMMM/MMM/MM = mês\ndd/d = dia\nEEEE/EEE = dia da semana',
-                helpTooltip: 'Clique para referência de formato'
+                helpTooltip: 'Formato usando date-fns',
+                dateFnsLinkText: 'formato date-fns'
             },
             timeFormat: {
                 name: 'Formato de hora',
                 desc: 'Formato para exibir horas (usa formato date-fns).',
                 placeholder: 'h:mm a',
                 help: 'Formatos comuns:\nh:mm a = 2:30 PM (12 horas)\nHH:mm = 14:30 (24 horas)\nh:mm:ss a = 2:30:45 PM\nHH:mm:ss = 14:30:45\n\nTokens:\nHH/H = 24 horas\nhh/h = 12 horas\nmm = minutos\nss = segundos\na = AM/PM',
-                helpTooltip: 'Clique para referência de formato'
+                helpTooltip: 'Formato usando date-fns',
+                dateFnsLinkText: 'formato date-fns'
             },
             showFilePreview: {
                 name: 'Mostrar visualização de nota',
@@ -1196,6 +1305,14 @@ export const STRINGS_PT_BR = {
                 name: 'Herdar cores de pastas',
                 desc: 'Pastas filhas herdam cor das pastas pai.'
             },
+            folderSortOrder: {
+                name: 'Ordem de classificação de pastas',
+                desc: 'Clique com o botão direito em qualquer pasta para definir uma ordem de classificação diferente para seus subitens.',
+                options: {
+                    alphaAsc: 'A a Z',
+                    alphaDesc: 'Z a A'
+                }
+            },
             showNoteCount: {
                 name: 'Mostrar contagem de notas',
                 desc: 'Exibir o número de notas ao lado de cada pasta e tag.'
@@ -1260,12 +1377,13 @@ export const STRINGS_PT_BR = {
             },
             tagSortOrder: {
                 name: 'Ordem de classificação de tags',
-                desc: 'Escolha como as tags são ordenadas no painel de navegação.',
+                desc: 'Clique com o botão direito em qualquer tag para definir uma ordem de classificação diferente para seus subitens.',
                 options: {
                     alphaAsc: 'A a Z',
                     alphaDesc: 'Z a A',
-                    frequencyAsc: 'Frequência (baixa para alta)',
-                    frequencyDesc: 'Frequência (alta para baixa)'
+                    frequency: 'Frequência',
+                    lowToHigh: 'baixa para alta',
+                    highToLow: 'alta para baixa'
                 }
             },
             showAllTagsFolder: {
@@ -1417,7 +1535,8 @@ export const STRINGS_PT_BR = {
             frontmatterDateFormat: {
                 name: 'Formato de timestamp',
                 desc: 'Formato usado para analisar timestamps no frontmatter. Deixe em branco para usar formato ISO 8601',
-                helpTooltip: 'Veja documentação de formato date-fns',
+                helpTooltip: 'Formato usando date-fns',
+                dateFnsLinkText: 'formato date-fns',
                 help: "Formatos comuns:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {

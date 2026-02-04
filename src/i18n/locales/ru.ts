@@ -32,6 +32,7 @@ export const STRINGS_RU = {
         untagged: 'Без тегов', // Label for notes without any tags (English: Untagged)
         featureImageAlt: 'Изображение', // Alt text for thumbnail/preview images (English: Feature image)
         unknownError: 'Неизвестная ошибка', // Generic fallback when an error has no message (English: Unknown error)
+        clipboardWriteError: 'Не удалось записать в буфер обмена',
         updateBannerTitle: 'Доступно обновление Notebook Navigator',
         updateBannerInstruction: 'Обновите в Настройки -> Сторонние плагины',
         updateIndicatorLabel: 'Доступна новая версия',
@@ -77,10 +78,6 @@ export const STRINGS_RU = {
     navigationCalendar: {
         ariaLabel: 'Календарь',
         dailyNotesNotEnabled: 'Плагин ежедневных заметок не включён.',
-        promptDailyNoteTitle: {
-            title: 'Заголовок ежедневной заметки',
-            placeholder: 'Введите заголовок'
-        },
         createDailyNote: {
             title: 'Новая ежедневная заметка',
             message: 'Файл {filename} не существует. Хотите создать его?',
@@ -174,9 +171,6 @@ export const STRINGS_RU = {
             revealInFolder: 'Показать в папке',
             revealInFinder: 'Показать в Finder',
             showInExplorer: 'Показать в проводнике',
-            copyDeepLink: 'Копировать URL Obsidian',
-            copyPath: 'Копировать путь в файловой системе',
-            copyRelativePath: 'Копировать путь в хранилище',
             renameNote: 'Переименовать заметку',
             renameFile: 'Переименовать файл',
             deleteNote: 'Удалить заметку',
@@ -204,8 +198,6 @@ export const STRINGS_RU = {
             newTldrawDrawing: 'Новый рисунок Tldraw',
             duplicateFolder: 'Дублировать папку',
             searchInFolder: 'Искать в папке',
-            copyPath: 'Копировать путь в файловой системе',
-            copyRelativePath: 'Копировать путь в хранилище',
             createFolderNote: 'Создать заметку папки',
             detachFolderNote: 'Отвязать заметку папки',
             deleteFolderNote: 'Удалить заметку папки',
@@ -228,6 +220,12 @@ export const STRINGS_RU = {
         navigation: {
             addSeparator: 'Добавить разделитель',
             removeSeparator: 'Удалить разделитель'
+        },
+        copyPath: {
+            title: 'Копировать путь',
+            asObsidianUrl: 'как URL Obsidian',
+            fromVaultFolder: 'из папки хранилища',
+            fromSystemRoot: 'из корня системы'
         },
         style: {
             title: 'Стиль',
@@ -266,6 +264,7 @@ export const STRINGS_RU = {
             showingResultsInfo: 'Показано 50 из {count} результатов. Введите больше для уточнения.',
             emojiInstructions: 'Введите или вставьте любой эмодзи, чтобы использовать его как иконку',
             removeIcon: 'Удалить иконку',
+            removeFromRecents: 'Удалить из недавних',
             allTabLabel: 'Все'
         },
         fileIconRuleEditor: {
@@ -310,7 +309,6 @@ export const STRINGS_RU = {
             paletteCustom: 'Пользовательские',
             copyColors: 'Копировать цвет',
             colorsCopied: 'Цвет скопирован в буфер обмена',
-            copyClipboardError: 'Не удалось записать в буфер обмена',
             pasteColors: 'Вставить цвет',
             pasteClipboardError: 'Не удалось прочитать буфер обмена',
             pasteInvalidFormat: 'Ожидалось hex-значение цвета',
@@ -390,6 +388,14 @@ export const STRINGS_RU = {
                 dismiss: 'для закрытия'
             }
         },
+        calendarTemplate: {
+            placeholder: 'Поиск шаблонов...',
+            instructions: {
+                navigate: 'для навигации',
+                select: 'для выбора шаблона',
+                dismiss: 'для закрытия'
+            }
+        },
         navigationBanner: {
             placeholder: 'Поиск изображений...',
             instructions: {
@@ -420,7 +426,7 @@ export const STRINGS_RU = {
             thanksText: 'Большое спасибо за загрузку, приятного использования!',
             videoAlt: 'Установка и освоение Notebook Navigator',
             openVideoButton: 'Воспроизвести видео',
-            closeButton: 'Посмотрю позже'
+            closeButton: 'Может, позже'
         }
     },
     // File system operations
@@ -532,8 +538,14 @@ export const STRINGS_RU = {
         open: 'Открыть', // Command palette: Opens the Notebook Navigator view (English: Open)
         toggleLeftSidebar: 'Переключить левую боковую панель', // Command palette: Toggles left sidebar, opening Notebook Navigator when uncollapsing (English: Toggle left sidebar)
         openHomepage: 'Открыть домашнюю страницу', // Command palette: Opens the Notebook Navigator view and loads the homepage file (English: Open homepage)
+        openDailyNote: 'Открыть ежедневную заметку',
+        openWeeklyNote: 'Открыть еженедельную заметку',
+        openMonthlyNote: 'Открыть ежемесячную заметку',
+        openQuarterlyNote: 'Открыть квартальную заметку',
+        openYearlyNote: 'Открыть годовую заметку',
         revealFile: 'Показать файл', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Поиск', // Command palette: Toggle search in the file list (English: Search)
+        searchVaultRoot: 'Поиск в корне хранилища', // Command palette: Selects the vault root folder and focuses search (English: Search in vault root)
         toggleDualPane: 'Переключить двухпанельный режим', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleCalendar: 'Переключить календарь', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
         selectVaultProfile: 'Выбрать профиль хранилища', // Command palette: Opens a modal to choose a different vault profile (English: Select vault profile)
@@ -568,6 +580,7 @@ export const STRINGS_RU = {
     // Plugin UI
     plugin: {
         viewName: 'Notebook Navigator', // Name shown in the view header/tab (English: Notebook Navigator)
+        calendarViewName: 'Календарь', // Name shown in the view header/tab (English: Calendar)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'Показать в Notebook Navigator' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
@@ -591,6 +604,7 @@ export const STRINGS_RU = {
         sections: {
             general: 'Общие',
             navigationPane: 'Панель навигации',
+            calendar: 'Календарь',
             icons: 'Наборы иконок',
             folders: 'Папки',
             folderNotes: 'Заметки папок',
@@ -605,11 +619,14 @@ export const STRINGS_RU = {
         },
         groups: {
             general: {
+                vaultProfiles: 'Профили хранилища',
                 filtering: 'Фильтрация',
                 behavior: 'Поведение',
+                keyboardNavigation: 'Навигация с клавиатуры',
                 view: 'Внешний вид',
                 icons: 'Иконки',
                 desktopAppearance: 'Внешний вид на компьютере',
+                mobileAppearance: 'Мобильный вид',
                 formatting: 'Форматирование'
             },
             navigation: {
@@ -635,6 +652,7 @@ export const STRINGS_RU = {
         },
         syncMode: {
             notSynced: '(не синхронизировано)',
+            disabled: '(отключено)',
             switchToSynced: 'Включить синхронизацию',
             switchToLocal: 'Отключить синхронизацию'
         },
@@ -689,8 +707,21 @@ export const STRINGS_RU = {
                     'created-desc': 'По дате создания (новые сверху)',
                     'created-asc': 'По дате создания (старые сверху)',
                     'title-asc': 'По названию (А сверху)',
-                    'title-desc': 'По названию (Я сверху)'
+                    'title-desc': 'По названию (Я сверху)',
+                    'filename-asc': 'Имя файла (А сверху)',
+                    'filename-desc': 'Имя файла (Я сверху)',
+                    'property-asc': 'Свойство (А сверху)',
+                    'property-desc': 'Свойство (Я сверху)'
+                },
+                propertyOverride: {
+                    asc: 'Свойство ‘{property}’ (А сверху)',
+                    desc: 'Свойство ‘{property}’ (Я сверху)'
                 }
+            },
+            propertySortKey: {
+                name: 'Свойство сортировки',
+                desc: 'Используется с сортировкой по свойству. Заметки с этим свойством frontmatter отображаются первыми и сортируются по значению свойства. Массивы объединяются в одно значение.',
+                placeholder: 'order'
             },
             revealFileOnListChanges: {
                 name: 'Прокрутка к выбранному файлу при изменениях списка',
@@ -815,6 +846,10 @@ export const STRINGS_RU = {
                 name: 'Уровень масштабирования',
                 desc: 'Управляет общим масштабом Notebook Navigator.'
             },
+            useFloatingToolbars: {
+                name: 'Использовать плавающие панели инструментов на iOS/iPadOS',
+                desc: 'Применяется к Obsidian 1.11 и более поздним версиям.'
+            },
             startView: {
                 name: 'Начальный вид по умолчанию',
                 desc: 'Выберите, какая панель отображается при открытии Notebook Navigator. Панель навигации показывает ярлыки, недавние заметки и дерево папок. Панель списка сразу показывает список заметок.',
@@ -872,6 +907,10 @@ export const STRINGS_RU = {
                 current: 'Текущий баннер: {path}',
                 chooseButton: 'Выбрать изображение'
             },
+            pinNavigationBanner: {
+                name: 'Закрепить баннер',
+                desc: 'Закрепить баннер навигации над деревом навигации.'
+            },
             showShortcuts: {
                 name: 'Показывать ярлыки',
                 desc: 'Отображать раздел ярлыков в панели навигации.'
@@ -897,9 +936,13 @@ export const STRINGS_RU = {
                 name: 'Закрепить недавние заметки вместе с ярлыками',
                 desc: 'Включать недавние заметки при закреплении ярлыков.'
             },
-            showCalendar: {
-                name: 'Показать календарь',
-                desc: 'Показать календарь в нижней части панели навигации.'
+            calendarPlacement: {
+                name: 'Расположение календаря',
+                desc: 'Отображать на левой или правой боковой панели.',
+                options: {
+                    leftSidebar: 'Левая боковая панель',
+                    rightSidebar: 'Правая боковая панель'
+                }
             },
             calendarLocale: {
                 name: 'Язык',
@@ -908,9 +951,19 @@ export const STRINGS_RU = {
                     systemDefault: 'По умолчанию'
                 }
             },
+            calendarWeekendDays: {
+                name: 'Выходные дни',
+                desc: 'Отображать выходные дни с другим цветом фона.',
+                options: {
+                    none: 'Нет',
+                    satSun: 'Суббота и воскресенье',
+                    friSat: 'Пятница и суббота',
+                    thuFri: 'Четверг и пятница'
+                }
+            },
             calendarWeeksToShow: {
-                name: 'Недель для отображения',
-                desc: 'Количество недель календаря для отображения.',
+                name: 'Недель для отображения на левой боковой панели',
+                desc: 'Календарь на правой боковой панели всегда отображает полный месяц.',
                 options: {
                     fullMonth: 'Полный месяц',
                     oneWeek: '1 неделя',
@@ -921,9 +974,17 @@ export const STRINGS_RU = {
                 name: 'Выделять сегодняшнюю дату',
                 desc: 'Показывать красный круг и жирный текст на сегодняшней дате.'
             },
+            calendarShowFeatureImage: {
+                name: 'Показать изображение-обложку',
+                desc: 'Отображать изображения-обложки заметок в календаре.'
+            },
             calendarShowWeekNumber: {
                 name: 'Показать номер недели',
                 desc: 'Добавить колонку с номером недели.'
+            },
+            calendarShowQuarter: {
+                name: 'Показать квартал',
+                desc: 'Добавить метку квартала в заголовок календаря.'
             },
             calendarConfirmBeforeCreate: {
                 name: 'Подтвердить перед созданием',
@@ -933,7 +994,7 @@ export const STRINGS_RU = {
                 name: 'Источник ежедневных заметок',
                 desc: 'Источник для заметок календаря.',
                 options: {
-                    dailyNotes: 'Ежедневные заметки',
+                    dailyNotes: 'Ежедневные заметки (основной плагин)',
                     notebookNavigator: 'Notebook Navigator'
                 },
                 info: {
@@ -942,19 +1003,43 @@ export const STRINGS_RU = {
             },
             calendarCustomRootFolder: {
                 name: 'Корневая папка',
-                desc: 'Базовая папка для заметок календаря.',
+                desc: 'Базовая папка для периодических заметок. Шаблоны дат могут включать подпапки. Изменяется с выбранным профилем хранилища.',
                 placeholder: 'Personal/Diary'
             },
-            calendarCustomFilePattern: {
-                name: 'Шаблон файла',
-                desc: 'Шаблон даты относительно корневой папки. Поддерживаемые токены: YYYY, MM, M, DD, D. Заметки могут включать необязательный суффикс заголовка.',
-                placeholder: 'YYYY/YYYYMMDD',
-                example: 'Текущий синтаксис выглядит так: {path}',
-                parsingError: 'Шаблон должен включать YYYY, MM/M и DD/D. Поддерживаемые токены: YYYY, MM, M, DD, D.'
+            calendarTemplateFolder: {
+                name: 'Расположение папки шаблонов',
+                desc: 'Выбор файла шаблона показывает заметки из этой папки.',
+                placeholder: 'Templates'
             },
-            calendarCustomPromptForTitle: {
-                name: 'Запросить заголовок',
-                desc: 'Запрашивать заголовок при создании заметок. Допускает пустые заголовки.'
+            calendarCustomFilePattern: {
+                name: 'Ежедневные заметки',
+                desc: 'Формат пути с использованием формата даты Moment. Заключайте названия подпапок в скобки, напр. [Work]/YYYY. Нажмите на значок шаблона, чтобы задать шаблон.',
+                momentDescPrefix: 'Формат пути с использованием ',
+                momentLinkText: 'формата даты Moment',
+                momentDescSuffix:
+                    '. Заключайте названия подпапок в скобки, напр. [Work]/YYYY. Нажмите на значок шаблона, чтобы задать шаблон.',
+                placeholder: 'YYYY/YYYYMMDD',
+                example: 'Текущий синтаксис: {path}',
+                parsingError: 'Шаблон должен форматироваться и разбираться обратно как полная дата (год, месяц, день).'
+            },
+            calendarCustomWeekPattern: {
+                name: 'Еженедельные заметки',
+                parsingError: 'Шаблон должен форматироваться и разбираться обратно как полная неделя (год недели, номер недели).'
+            },
+            calendarCustomMonthPattern: {
+                name: 'Ежемесячные заметки',
+                parsingError: 'Шаблон должен форматироваться и разбираться обратно как полный месяц (год, месяц).'
+            },
+            calendarCustomQuarterPattern: {
+                name: 'Квартальные заметки',
+                parsingError: 'Шаблон должен форматироваться и разбираться обратно как полный квартал (год, квартал).'
+            },
+            calendarCustomYearPattern: {
+                name: 'Годовые заметки',
+                parsingError: 'Шаблон должен форматироваться и разбираться обратно как полный год (год).'
+            },
+            calendarTemplateFile: {
+                current: 'Файл шаблона: {name}'
             },
             showTooltips: {
                 name: 'Показывать подсказки',
@@ -987,6 +1072,22 @@ export const STRINGS_RU = {
                     cmdCtrl: 'Клик с Cmd/Ctrl',
                     optionAlt: 'Клик с Option/Alt'
                 }
+            },
+            enterToOpenFiles: {
+                name: 'Нажать Enter для открытия файлов',
+                desc: 'Открывать файлы только при нажатии Enter во время навигации по списку с клавиатуры.'
+            },
+            shiftEnterOpenContext: {
+                name: 'Shift+Enter',
+                desc: 'Открыть выбранный файл в новой вкладке, разделении или окне при нажатии Shift+Enter.'
+            },
+            cmdEnterOpenContext: {
+                name: 'Cmd+Enter',
+                desc: 'Открыть выбранный файл в новой вкладке, разделении или окне при нажатии Cmd+Enter.'
+            },
+            ctrlEnterOpenContext: {
+                name: 'Ctrl+Enter',
+                desc: 'Открыть выбранный файл в новой вкладке, разделении или окне при нажатии Ctrl+Enter.'
             },
             fileVisibility: {
                 name: 'Показывать типы файлов (профиль хранилища)',
@@ -1087,7 +1188,7 @@ export const STRINGS_RU = {
                 desc: 'Отображать теги, когда дата, превью и изображение скрыты.'
             },
             customPropertyType: {
-                name: 'Тип',
+                name: 'Тип свойства',
                 desc: 'Выберите пользовательское свойство для отображения в элементах файлов.',
                 options: {
                     frontmatter: 'Свойство frontmatter',
@@ -1096,14 +1197,19 @@ export const STRINGS_RU = {
                 }
             },
             customPropertyFields: {
-                name: 'Свойство для отображения',
+                name: 'Свойства для отображения',
                 desc: 'Список свойств frontmatter через запятую для отображения в виде значков. Свойства со списковыми значениями отображают один значок на каждое значение. Значения в формате [[wikilink]] отображаются как кликабельные ссылки.',
                 placeholder: 'статус, тип, категория'
             },
-            customPropertyColorFields: {
-                name: 'Свойство для цвета',
-                desc: 'Список свойств frontmatter через запятую для цветов значков. Свойства цвета сопоставляются со свойствами отображения по позиции. Свойства со списковыми значениями сопоставляют цвета по индексу. Значения могут быть именами тегов или CSS-цветами.',
-                placeholder: 'statusColor, typeColor, categoryColor'
+            showCustomPropertiesOnSeparateRows: {
+                name: 'Показывать свойства в отдельных строках',
+                desc: 'Показывать каждое свойство в собственной строке.'
+            },
+            customPropertyColorMap: {
+                name: 'Цвета свойств',
+                desc: 'Сопоставление свойств frontmatter с цветами значков. Одно сопоставление на строку: свойство=цвет',
+                placeholder: '# Свойство=цвет\nstatus=#ff0000\ntype=#00ff00',
+                editTooltip: 'Редактировать сопоставления'
             },
             showCustomPropertyInCompactMode: {
                 name: 'Показывать пользовательское свойство в компактном режиме',
@@ -1114,14 +1220,16 @@ export const STRINGS_RU = {
                 desc: 'Формат отображения дат (использует формат date-fns).',
                 placeholder: 'd MMMM yyyy',
                 help: 'Распространённые форматы:\nd MMMM yyyy = 25 мая 2022\ndd.MM.yyyy = 25.05.2022\nyyyy-MM-dd = 2022-05-25\n\nТокены:\nyyyy/yy = год\nMMMM/MMM/MM = месяц\ndd/d = день\nEEEE/EEE = день недели',
-                helpTooltip: 'Нажмите для справки по формату'
+                helpTooltip: 'Формат date-fns',
+                dateFnsLinkText: 'формат date-fns'
             },
             timeFormat: {
                 name: 'Формат времени',
                 desc: 'Формат отображения времени (использует формат date-fns).',
                 placeholder: 'HH:mm',
                 help: 'Распространённые форматы:\nHH:mm = 14:30 (24-часовой)\nh:mm a = 2:30 PM (12-часовой)\nHH:mm:ss = 14:30:45\nh:mm:ss a = 2:30:45 PM\n\nТокены:\nHH/H = 24-часовой\nhh/h = 12-часовой\nmm = минуты\nss = секунды\na = AM/PM',
-                helpTooltip: 'Нажмите для справки по формату'
+                helpTooltip: 'Формат date-fns',
+                dateFnsLinkText: 'формат date-fns'
             },
             showFilePreview: {
                 name: 'Показывать превью заметки',
@@ -1199,6 +1307,14 @@ export const STRINGS_RU = {
                 name: 'Наследовать цвета папок',
                 desc: 'Дочерние папки наследуют цвет от родительских папок.'
             },
+            folderSortOrder: {
+                name: 'Сортировка папок',
+                desc: 'Щёлкните правой кнопкой мыши по папке, чтобы задать другой порядок сортировки для её дочерних элементов.',
+                options: {
+                    alphaAsc: 'От А до Я',
+                    alphaDesc: 'От Я до А'
+                }
+            },
             showNoteCount: {
                 name: 'Показывать количество заметок',
                 desc: 'Отображать количество заметок рядом с каждой папкой и тегом.'
@@ -1263,12 +1379,13 @@ export const STRINGS_RU = {
             },
             tagSortOrder: {
                 name: 'Сортировка тегов',
-                desc: 'Выберите порядок отображения тегов в панели навигации.',
+                desc: 'Щёлкните правой кнопкой мыши по тегу, чтобы задать другой порядок сортировки для его дочерних элементов.',
                 options: {
                     alphaAsc: 'От А до Я',
                     alphaDesc: 'От Я до А',
-                    frequencyAsc: 'По частоте (от низкой к высокой)',
-                    frequencyDesc: 'По частоте (от высокой к низкой)'
+                    frequency: 'По частоте',
+                    lowToHigh: 'от низкой к высокой',
+                    highToLow: 'от высокой к низкой'
                 }
             },
             showAllTagsFolder: {
@@ -1421,7 +1538,8 @@ export const STRINGS_RU = {
             frontmatterDateFormat: {
                 name: 'Формат временной метки',
                 desc: 'Формат для разбора временных меток во frontmatter. Оставьте пустым для использования формата ISO 8601',
-                helpTooltip: 'См. документацию формата date-fns',
+                helpTooltip: 'Формат date-fns',
+                dateFnsLinkText: 'формат date-fns',
                 help: "Распространённые форматы:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {

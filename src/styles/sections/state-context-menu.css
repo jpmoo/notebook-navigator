@@ -18,7 +18,7 @@
     inset-inline-end: 0;
     bottom: 0;
     /* Use pre-composited solid color for consistent border appearance */
-    border: 2px solid var(--nn-theme-navitem-selected-bg-solid, var(--nn-theme-navitem-selected-bg));
+    border: 2px solid var(--nn-computed-navitem-selected-bg, var(--nn-theme-navitem-selected-bg));
     border-radius: min(14px, var(--nn-theme-navitem-border-radius));
     pointer-events: none;
     z-index: 10;
@@ -38,7 +38,7 @@
     inset-inline-end: 0;
     bottom: 0; /* Extend to bottom edge to cover separator space */
     /* Use pre-composited solid color for consistent border appearance */
-    border: 2px solid var(--nn-theme-navitem-selected-bg-solid, var(--nn-theme-navitem-selected-bg));
+    border: 2px solid var(--nn-computed-navitem-selected-bg, var(--nn-theme-navitem-selected-bg));
     border-radius: min(16px, var(--nn-theme-file-border-radius));
     pointer-events: none;
     z-index: 10;

@@ -23,7 +23,15 @@ import { MAX_RECENT_COLORS } from '../../constants/colorPalette';
 import { localStorage } from '../../utils/localStorage';
 import { isRecord } from '../../utils/typeGuards';
 import { DEFAULT_UI_SCALE, sanitizeUIScale } from '../../utils/uiScale';
-import { isTagSortOrder, type CalendarWeeksToShow, type TagSortOrder } from '../types';
+import {
+    isAlphaSortOrder,
+    isCalendarPlacement,
+    isTagSortOrder,
+    type AlphaSortOrder,
+    type CalendarPlacement,
+    type CalendarWeeksToShow,
+    type TagSortOrder
+} from '../types';
 
 type ToolbarVisibilitySnapshot = NotebookNavigatorSettings['toolbarVisibility'];
 
@@ -109,6 +117,10 @@ function parseNavItemHeight(value: unknown): number | null {
         return null;
     }
     return rounded;
+}
+
+function parseCalendarPlacement(value: unknown): CalendarPlacement | null {
+    return isCalendarPlacement(value) ? value : null;
 }
 
 // Parses the calendar weeks-to-show setting to a supported integer value.
@@ -367,6 +379,66 @@ export function resolveNavItemHeightScaleText(params: {
 }
 
 /**
+ * Resolves the navigation banner pinned toggle with local overrides.
+ */
+export function resolvePinNavigationBanner(params: {
+    storedData: Record<string, unknown> | null;
+    keys: LocalStorageKeys;
+    defaultSettings: NotebookNavigatorSettings;
+}): MigrationResolution<boolean> {
+    const { storedData, keys, defaultSettings } = params;
+
+    const storedLocal = localStorage.get<unknown>(keys.pinNavigationBannerKey);
+    if (typeof storedLocal === 'boolean') {
+        // Local storage takes precedence for per-device preferences.
+        return { value: storedLocal, migrated: false };
+    }
+
+    const storedSetting = storedData?.['pinNavigationBanner'];
+    if (typeof storedSetting === 'boolean') {
+        // Migrate legacy synced value into local storage.
+        localStorage.set(keys.pinNavigationBannerKey, storedSetting);
+        return { value: storedSetting, migrated: true };
+    }
+
+    // Seed local storage with a valid default value.
+    const fallback = defaultSettings.pinNavigationBanner;
+    localStorage.set(keys.pinNavigationBannerKey, fallback);
+    return { value: fallback, migrated: false };
+}
+
+/**
+ * Resolves the calendar placement value with local overrides.
+ */
+export function resolveCalendarPlacement(params: {
+    storedData: Record<string, unknown> | null;
+    keys: LocalStorageKeys;
+    defaultSettings: NotebookNavigatorSettings;
+}): MigrationResolution<CalendarPlacement> {
+    const { storedData, keys, defaultSettings } = params;
+
+    const storedLocal = localStorage.get<unknown>(keys.calendarPlacementKey);
+    const localValue = parseCalendarPlacement(storedLocal);
+    if (localValue !== null) {
+        // Local storage takes precedence for per-device preferences.
+        return { value: localValue, migrated: false };
+    }
+
+    const storedSetting = storedData?.['calendarPlacement'];
+    const settingValue = parseCalendarPlacement(storedSetting);
+    if (settingValue !== null) {
+        // Migrate legacy synced value into local storage.
+        localStorage.set(keys.calendarPlacementKey, settingValue);
+        return { value: settingValue, migrated: true };
+    }
+
+    // Seed local storage with a valid default value.
+    const fallback = defaultSettings.calendarPlacement;
+    localStorage.set(keys.calendarPlacementKey, fallback);
+    return { value: fallback, migrated: false };
+}
+
+/**
  * Resolves the calendar weeks-to-show value with local overrides.
  */
 export function resolveCalendarWeeksToShow(params: {
@@ -485,6 +557,36 @@ export function resolveTagSortOrder(params: {
     // Seed local storage with a valid default value.
     localStorage.set(keys.tagSortOrderKey, defaultSettings.tagSortOrder);
     return defaultSettings.tagSortOrder;
+}
+
+/**
+ * Resolves the effective folder sort order preference with local overrides.
+ */
+export function resolveFolderSortOrder(params: {
+    storedData: Record<string, unknown> | null;
+    keys: LocalStorageKeys;
+    defaultSettings: NotebookNavigatorSettings;
+}): AlphaSortOrder {
+    const { storedData, keys, defaultSettings } = params;
+
+    const storedLocal = localStorage.get<unknown>(keys.folderSortOrderKey);
+    const storedLocalValue = typeof storedLocal === 'string' ? storedLocal : null;
+    if (storedLocalValue && isAlphaSortOrder(storedLocalValue)) {
+        // Local storage takes precedence for per-device preferences.
+        return storedLocalValue;
+    }
+
+    const storedSetting = storedData?.['folderSortOrder'];
+    const storedSettingValue = typeof storedSetting === 'string' ? storedSetting : null;
+    if (storedSettingValue && isAlphaSortOrder(storedSettingValue)) {
+        // Mirror the synced value into local storage when switching to local.
+        localStorage.set(keys.folderSortOrderKey, storedSettingValue);
+        return storedSettingValue;
+    }
+
+    // Seed local storage with a valid default value.
+    localStorage.set(keys.folderSortOrderKey, defaultSettings.folderSortOrder);
+    return defaultSettings.folderSortOrder;
 }
 
 /**

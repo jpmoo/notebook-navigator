@@ -28,6 +28,7 @@ import { ItemType, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
 import { hasSubfolders } from '../utils/fileFilters';
 import { getVirtualTagCollection, VIRTUAL_TAG_COLLECTION_IDS } from '../utils/virtualTagCollections';
 import { getActiveHiddenFolders } from '../utils/vaultProfiles';
+import { resolveUXIcon } from '../utils/uxIcons';
 
 export type BreadcrumbTargetType = 'folder' | 'tag' | 'none';
 
@@ -74,14 +75,16 @@ export function useListPaneTitle(): UseListPaneTitleResult {
             const showHiddenFolders = showHiddenItems;
             const hasChildren = hasSubfolders(folder, excludedFolders, showHiddenFolders);
             const isExpanded = expansionState.expandedFolders.has(folder.path);
-            return hasChildren && isExpanded ? 'lucide-folder-open' : 'lucide-folder-closed';
+            return hasChildren && isExpanded
+                ? resolveUXIcon(settings.interfaceIcons, 'nav-folder-open')
+                : resolveUXIcon(settings.interfaceIcons, 'nav-folder-closed');
         }
 
         if (selectionState.selectionType === ItemType.TAG && selectionState.selectedTag) {
             if (!settings.showTagIcons) {
                 return '';
             }
-            return metadataService.getTagIcon(selectionState.selectedTag) || 'lucide-tags';
+            return metadataService.getTagIcon(selectionState.selectedTag) || resolveUXIcon(settings.interfaceIcons, 'nav-tag');
         }
 
         return '';
@@ -93,6 +96,7 @@ export function useListPaneTitle(): UseListPaneTitleResult {
         selectionState.selectionType,
         hiddenFolders,
         showHiddenItems,
+        settings.interfaceIcons,
         settings.showFolderIcons,
         settings.showTagIcons
     ]);

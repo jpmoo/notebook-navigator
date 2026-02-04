@@ -132,6 +132,12 @@
     font-family: 'NotebookNavigatorSimpleIcons', 'Simple Icons', sans-serif;
 }
 
+.nn-vault-icon-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
 .nn-icon-provider-tabs {
     display: flex;
     flex-wrap: wrap;

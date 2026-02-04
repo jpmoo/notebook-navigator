@@ -17,6 +17,7 @@
  */
 
 import { extractFirstEmoji } from './emojiUtils';
+import { sanitizeRecord } from './recordUtils';
 
 /**
  * Base mapping between icon providers and their pack names
@@ -30,6 +31,8 @@ interface IconizeMapping {
 
 const LUCIDE_PROVIDER_ID = 'lucide';
 const LUCIDE_ICON_PREFIX = 'lucide-';
+const VAULT_PROVIDER_ID = 'vault';
+const VAULT_SVG_EXTENSION = '.svg';
 
 type CanonicalDelimiter = 'kebab' | 'snake';
 
@@ -497,7 +500,7 @@ function normalizeIconMapIconValue(iconId: string): string | null {
 }
 
 export function normalizeIconMapRecord(record: Record<string, string>, normalizeKey: (input: string) => string): Record<string, string> {
-    const normalized = Object.create(null) as Record<string, string>;
+    const normalized = sanitizeRecord<string>(undefined);
 
     Object.entries(record).forEach(([key, value]) => {
         if (typeof value !== 'string') {
@@ -530,7 +533,7 @@ export function serializeIconMapRecord(map: Record<string, string>): string {
 }
 
 export function parseIconMapText(value: string, normalizeKey: (input: string) => string): IconMapParseResult {
-    const map = Object.create(null) as Record<string, string>;
+    const map = sanitizeRecord<string>(undefined);
     const invalidLines: string[] = [];
 
     const lines = value.replace(/\r\n/g, '\n').split('\n');
@@ -621,6 +624,15 @@ export function serializeIconForFrontmatter(iconId: string): string | null {
         return null;
     }
 
+    const colonIndex = trimmed.indexOf(':');
+    if (colonIndex !== -1) {
+        const providerId = trimmed.substring(0, colonIndex);
+        const identifier = trimmed.substring(colonIndex + 1).trim();
+        if (providerId === VAULT_PROVIDER_ID && identifier.toLowerCase().endsWith(VAULT_SVG_EXTENSION)) {
+            return identifier;
+        }
+    }
+
     const emojiPrefix = 'emoji:';
     const emojiCandidate = trimmed.startsWith(emojiPrefix) ? trimmed.substring(emojiPrefix.length).trim() : trimmed;
     const emojiOnly = extractFirstEmoji(emojiCandidate);
@@ -629,7 +641,12 @@ export function serializeIconForFrontmatter(iconId: string): string | null {
         return emojiOnly;
     }
 
-    return convertIconIdToIconize(trimmed) ?? trimmed;
+    const iconize = convertIconIdToIconize(trimmed);
+    if (iconize) {
+        return iconize;
+    }
+
+    return trimmed.includes(':') ? null : trimmed;
 }
 
 /**
@@ -652,6 +669,100 @@ export function deserializeIconFromFrontmatter(value: string): string | null {
         return `emoji:${emojiOnly}`;
     }
 
+    if (!trimmed.includes(':') && trimmed.toLowerCase().endsWith(VAULT_SVG_EXTENSION)) {
+        return `${VAULT_PROVIDER_ID}:${trimmed}`;
+    }
+
     const normalized = normalizeCanonicalIconId(trimmed);
     return normalized && normalized.length > 0 ? normalized : null;
+}
+
+/**
+ * Deserializes a legacy provider-prefixed frontmatter value (e.g. "emoji:🔭") into canonical format.
+ */
+function deserializeLegacyProviderPrefixedFrontmatter(value: string): string | null {
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return null;
+    }
+
+    const colonIndex = trimmed.indexOf(':');
+    if (colonIndex === -1) {
+        return null;
+    }
+
+    const provider = trimmed.substring(0, colonIndex).trim().toLowerCase();
+    const identifier = trimmed.substring(colonIndex + 1).trim();
+    if (!provider || !identifier) {
+        return null;
+    }
+
+    if (provider === 'emoji') {
+        const emojiOnly = extractFirstEmoji(identifier);
+        if (emojiOnly && emojiOnly === identifier) {
+            return `emoji:${emojiOnly}`;
+        }
+        return null;
+    }
+
+    if (provider === LUCIDE_PROVIDER_ID) {
+        const normalized = normalizeCanonicalIconId(identifier);
+        return normalized && normalized.length > 0 ? normalized : null;
+    }
+
+    if (provider === VAULT_PROVIDER_ID && !identifier.includes(':') && identifier.toLowerCase().endsWith(VAULT_SVG_EXTENSION)) {
+        return `${VAULT_PROVIDER_ID}:${identifier}`;
+    }
+
+    return null;
+}
+
+/**
+ * Deserializes an icon value from note frontmatter back into canonical format.
+ * Rejects provider-prefixed values (e.g. "emoji:📁") and only accepts:
+ * - Iconize identifiers (e.g. "LiFolder")
+ * - Plain emoji characters
+ * - Vault SVG paths (e.g. "icons/folder.svg")
+ * - Plain lucide slugs (e.g. "folder")
+ */
+export function deserializeIconFromFrontmatterStrict(value: string): string | null {
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return null;
+    }
+
+    const converted = convertIconizeToIconId(trimmed);
+    if (converted) {
+        return converted;
+    }
+
+    const emojiOnly = extractFirstEmoji(trimmed);
+    if (emojiOnly && emojiOnly === trimmed) {
+        return `emoji:${emojiOnly}`;
+    }
+
+    if (!trimmed.includes(':') && trimmed.toLowerCase().endsWith(VAULT_SVG_EXTENSION)) {
+        return `${VAULT_PROVIDER_ID}:${trimmed}`;
+    }
+
+    if (trimmed.includes(':')) {
+        return null;
+    }
+
+    const normalized = normalizeCanonicalIconId(trimmed);
+    return normalized && normalized.length > 0 ? normalized : null;
+}
+
+/**
+ * Deserializes an icon value from note frontmatter back into canonical format.
+ *
+ * Accepts a legacy provider-prefixed format (e.g. "emoji:🔭") for backward compatibility.
+ */
+export function deserializeIconFromFrontmatterCompat(value: string): string | null {
+    const legacy = deserializeLegacyProviderPrefixedFrontmatter(value);
+    if (legacy) {
+        return legacy;
+    }
+
+    return deserializeIconFromFrontmatterStrict(value);
 }

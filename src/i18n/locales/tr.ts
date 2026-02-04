@@ -32,6 +32,7 @@ export const STRINGS_TR = {
         untagged: 'Etiketsiz', // Label for notes without any tags (English: Untagged)
         featureImageAlt: 'Öne çıkan görsel', // Alt text for thumbnail/preview images (English: Feature image)
         unknownError: 'Bilinmeyen hata', // Generic fallback when an error has no message (English: Unknown error)
+        clipboardWriteError: 'Panoya yazılamadı',
         updateBannerTitle: 'Notebook Navigator güncellemesi mevcut',
         updateBannerInstruction: 'Ayarlar -> Topluluk eklentileri bölümünden güncelleyin',
         updateIndicatorLabel: 'Yeni sürüm mevcut',
@@ -77,10 +78,6 @@ export const STRINGS_TR = {
     navigationCalendar: {
         ariaLabel: 'Takvim',
         dailyNotesNotEnabled: 'Günlük notlar eklentisi etkin değil.',
-        promptDailyNoteTitle: {
-            title: 'Günlük not başlığı',
-            placeholder: 'Başlık girin'
-        },
         createDailyNote: {
             title: 'Yeni günlük not',
             message: '{filename} dosyası mevcut değil. Oluşturmak ister misiniz?',
@@ -174,9 +171,6 @@ export const STRINGS_TR = {
             revealInFolder: 'Klasörde göster',
             revealInFinder: "Finder'da göster",
             showInExplorer: 'Sistem gezgininde göster',
-            copyDeepLink: 'Obsidian URL kopyala',
-            copyPath: 'Dosya sistemi yolunu kopyala',
-            copyRelativePath: 'Kasa yolunu kopyala',
             renameNote: 'Notu yeniden adlandır',
             renameFile: 'Dosyayı yeniden adlandır',
             deleteNote: 'Notu sil',
@@ -204,8 +198,6 @@ export const STRINGS_TR = {
             newTldrawDrawing: 'Yeni Tldraw çizimi',
             duplicateFolder: 'Klasörü çoğalt',
             searchInFolder: 'Klasörde ara',
-            copyPath: 'Dosya sistemi yolunu kopyala',
-            copyRelativePath: 'Kasa yolunu kopyala',
             createFolderNote: 'Klasör notu oluştur',
             detachFolderNote: 'Klasör notunu ayır',
             deleteFolderNote: 'Klasör notunu sil',
@@ -228,6 +220,12 @@ export const STRINGS_TR = {
         navigation: {
             addSeparator: 'Ayırıcı ekle',
             removeSeparator: 'Ayırıcıyı kaldır'
+        },
+        copyPath: {
+            title: 'Yolu kopyala',
+            asObsidianUrl: 'Obsidian URL olarak',
+            fromVaultFolder: 'kasa klasöründen',
+            fromSystemRoot: 'sistem kökünden'
         },
         style: {
             title: 'Stil',
@@ -266,6 +264,7 @@ export const STRINGS_TR = {
             showingResultsInfo: '{count} sonuçtan 50 tanesi gösteriliyor. Daraltmak için daha fazla yazın.',
             emojiInstructions: 'Simge olarak kullanmak için herhangi bir emoji yazın veya yapıştırın',
             removeIcon: 'Simgeyi kaldır',
+            removeFromRecents: 'Son kullanılanlardan kaldır',
             allTabLabel: 'Tümü'
         },
         fileIconRuleEditor: {
@@ -310,7 +309,6 @@ export const STRINGS_TR = {
             paletteCustom: 'Özel',
             copyColors: 'Rengi kopyala',
             colorsCopied: 'Renk panoya kopyalandı',
-            copyClipboardError: 'Panoya yazılamadı',
             pasteColors: 'Rengi yapıştır',
             pasteClipboardError: 'Pano okunamadı',
             pasteInvalidFormat: 'Hex renk değeri bekleniyor',
@@ -390,6 +388,14 @@ export const STRINGS_TR = {
                 dismiss: 'kapatmak için'
             }
         },
+        calendarTemplate: {
+            placeholder: 'Şablon ara...',
+            instructions: {
+                navigate: 'gezinmek için',
+                select: 'şablon seçmek için',
+                dismiss: 'kapatmak için'
+            }
+        },
         navigationBanner: {
             placeholder: 'Görsel ara...',
             instructions: {
@@ -420,7 +426,7 @@ export const STRINGS_TR = {
             thanksText: 'İndirdiğiniz için çok teşekkürler, keyifli kullanımlar!',
             videoAlt: 'Notebook Navigator kurulumu ve ustalaşma',
             openVideoButton: 'Videoyu oynat',
-            closeButton: 'Daha sonra izleyeceğim'
+            closeButton: 'Belki sonra'
         }
     },
     // File system operations
@@ -532,8 +538,14 @@ export const STRINGS_TR = {
         open: 'Aç', // Command palette: Opens the Notebook Navigator view (English: Open)
         toggleLeftSidebar: 'Sol kenar çubuğunu aç/kapat', // Command palette: Toggles left sidebar, opening Notebook Navigator when uncollapsing (English: Toggle left sidebar)
         openHomepage: 'Ana sayfayı aç', // Command palette: Opens the Notebook Navigator view and loads the homepage file (English: Open homepage)
+        openDailyNote: 'Günlük notu aç',
+        openWeeklyNote: 'Haftalık notu aç',
+        openMonthlyNote: 'Aylık notu aç',
+        openQuarterlyNote: 'Çeyreklik notu aç',
+        openYearlyNote: 'Yıllık notu aç',
         revealFile: 'Dosyayı göster', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Ara', // Command palette: Toggle search in the file list (English: Search)
+        searchVaultRoot: 'Kasa kökünde ara', // Command palette: Selects the vault root folder and focuses search (English: Search in vault root)
         toggleDualPane: 'Çift bölme düzenini aç/kapat', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleCalendar: 'Takvimi aç/kapat', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
         selectVaultProfile: 'Kasa profili seç', // Command palette: Opens a modal to choose a different vault profile (English: Select vault profile)
@@ -568,6 +580,7 @@ export const STRINGS_TR = {
     // Plugin UI
     plugin: {
         viewName: 'Notebook Navigator', // Name shown in the view header/tab (English: Notebook Navigator)
+        calendarViewName: 'Takvim', // Name shown in the view header/tab (English: Calendar)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: "Notebook Navigator'da göster" // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
@@ -591,6 +604,7 @@ export const STRINGS_TR = {
         sections: {
             general: 'Genel',
             navigationPane: 'Gezinme bölmesi',
+            calendar: 'Takvim',
             icons: 'Simge paketleri',
             folders: 'Klasörler',
             folderNotes: 'Klasör notları',
@@ -605,11 +619,14 @@ export const STRINGS_TR = {
         },
         groups: {
             general: {
+                vaultProfiles: 'Kasa profilleri',
                 filtering: 'Filtreleme',
                 behavior: 'Davranış',
+                keyboardNavigation: 'Klavye ile gezinme',
                 view: 'Görünüm',
                 icons: 'Simgeler',
                 desktopAppearance: 'Masaüstü görünümü',
+                mobileAppearance: 'Mobil görünüm',
                 formatting: 'Biçimlendirme'
             },
             navigation: {
@@ -635,6 +652,7 @@ export const STRINGS_TR = {
         },
         syncMode: {
             notSynced: '(senkronize edilmedi)',
+            disabled: '(devre dışı)',
             switchToSynced: 'Senkronizasyonu etkinleştir',
             switchToLocal: 'Senkronizasyonu devre dışı bırak'
         },
@@ -688,8 +706,21 @@ export const STRINGS_TR = {
                     'created-desc': 'Oluşturma tarihi (en yeni üstte)',
                     'created-asc': 'Oluşturma tarihi (en eski üstte)',
                     'title-asc': 'Başlık (A üstte)',
-                    'title-desc': 'Başlık (Z üstte)'
+                    'title-desc': 'Başlık (Z üstte)',
+                    'filename-asc': 'Dosya adı (A üstte)',
+                    'filename-desc': 'Dosya adı (Z üstte)',
+                    'property-asc': 'Özellik (A üstte)',
+                    'property-desc': 'Özellik (Z üstte)'
+                },
+                propertyOverride: {
+                    asc: 'Özellik ‘{property}’ (A üstte)',
+                    desc: 'Özellik ‘{property}’ (Z üstte)'
                 }
+            },
+            propertySortKey: {
+                name: 'Sıralama özelliği',
+                desc: 'Özellik sıralaması ile kullanılır. Bu frontmatter özelliğine sahip notlar önce listelenir ve özellik değerine göre sıralanır. Diziler tek bir değere birleştirilir.',
+                placeholder: 'order'
             },
             revealFileOnListChanges: {
                 name: 'Liste değişikliklerinde seçili dosyaya kaydır',
@@ -814,6 +845,10 @@ export const STRINGS_TR = {
                 name: 'Yakınlaştırma seviyesi',
                 desc: "Notebook Navigator'ın genel yakınlaştırma seviyesini kontrol eder."
             },
+            useFloatingToolbars: {
+                name: "iOS/iPadOS'ta kayan araç çubuklarını kullan",
+                desc: 'Obsidian 1.11 ve sonrası için geçerlidir.'
+            },
             startView: {
                 name: 'Varsayılan başlangıç görünümü',
                 desc: "Notebook Navigator'ı açarken hangi bölmenin görüntüleneceğini seçin. Gezinme bölmesi kısayolları, son notları ve klasör ağacını gösterir. Liste bölmesi not listesini hemen gösterir.",
@@ -871,6 +906,10 @@ export const STRINGS_TR = {
                 current: 'Mevcut afiş: {path}',
                 chooseButton: 'Görsel seç'
             },
+            pinNavigationBanner: {
+                name: 'Afişi sabitle',
+                desc: 'Gezinme afişini gezinme ağacının üstüne sabitle.'
+            },
             showShortcuts: {
                 name: 'Kısayolları göster',
                 desc: 'Gezinme bölmesinde kısayollar bölümünü görüntüle.'
@@ -896,9 +935,13 @@ export const STRINGS_TR = {
                 name: 'Son notları kısayollarla birlikte sabitle',
                 desc: 'Kısayollar sabitlendiğinde son notları dahil et.'
             },
-            showCalendar: {
-                name: 'Takvimi göster',
-                desc: 'Gezinme panelinin altında bir takvim göster.'
+            calendarPlacement: {
+                name: 'Takvim konumu',
+                desc: 'Sol veya sağ kenar çubuğunda görüntüle.',
+                options: {
+                    leftSidebar: 'Sol kenar çubuğu',
+                    rightSidebar: 'Sağ kenar çubuğu'
+                }
             },
             calendarLocale: {
                 name: 'Dil',
@@ -907,9 +950,19 @@ export const STRINGS_TR = {
                     systemDefault: 'Varsayılan'
                 }
             },
+            calendarWeekendDays: {
+                name: 'Hafta sonu günleri',
+                desc: 'Hafta sonu günlerini farklı bir arka plan rengiyle göster.',
+                options: {
+                    none: 'Hiçbiri',
+                    satSun: 'Cumartesi ve pazar',
+                    friSat: 'Cuma ve cumartesi',
+                    thuFri: 'Perşembe ve cuma'
+                }
+            },
             calendarWeeksToShow: {
-                name: 'Gösterilecek haftalar',
-                desc: 'Görüntülenecek takvim haftası sayısı.',
+                name: 'Sol kenar çubuğunda gösterilecek haftalar',
+                desc: 'Sağ kenar çubuğundaki takvim her zaman tam ayı gösterir.',
                 options: {
                     fullMonth: 'Tam ay',
                     oneWeek: '1 hafta',
@@ -920,9 +973,17 @@ export const STRINGS_TR = {
                 name: 'Bugünün tarihini vurgula',
                 desc: 'Bugünün tarihinde kırmızı bir daire ve kalın metin göster.'
             },
+            calendarShowFeatureImage: {
+                name: 'Öne çıkan görseli göster',
+                desc: 'Takvimdeki notların öne çıkan görsellerini göster.'
+            },
             calendarShowWeekNumber: {
                 name: 'Hafta numarasını göster',
                 desc: 'Hafta numarasıyla bir sütun ekle.'
+            },
+            calendarShowQuarter: {
+                name: 'Çeyreği göster',
+                desc: 'Takvim başlığına çeyrek etiketi ekle.'
             },
             calendarConfirmBeforeCreate: {
                 name: 'Oluşturmadan önce onayla',
@@ -932,7 +993,7 @@ export const STRINGS_TR = {
                 name: 'Günlük not kaynağı',
                 desc: 'Takvim notları için kaynak.',
                 options: {
-                    dailyNotes: 'Günlük notlar',
+                    dailyNotes: 'Günlük notlar (çekirdek eklenti)',
                     notebookNavigator: 'Notebook Navigator'
                 },
                 info: {
@@ -941,19 +1002,43 @@ export const STRINGS_TR = {
             },
             calendarCustomRootFolder: {
                 name: 'Kök klasör',
-                desc: 'Takvim notları için temel klasör.',
+                desc: 'Periyodik notlar için temel klasör. Tarih desenleri alt klasörleri içerebilir. Seçili kasa profiliyle değişir.',
                 placeholder: 'Personal/Diary'
             },
-            calendarCustomFilePattern: {
-                name: 'Dosya kalıbı',
-                desc: 'Kök klasöre göre tarih kalıbı. Desteklenen tokenler: YYYY, MM, M, DD, D. Notlar isteğe bağlı başlık eki içerebilir.',
-                placeholder: 'YYYY/YYYYMMDD',
-                example: 'Geçerli sözdizimi şöyle görünür: {path}',
-                parsingError: 'Kalıp YYYY, MM/M ve DD/D içermelidir. Desteklenen tokenler: YYYY, MM, M, DD, D.'
+            calendarTemplateFolder: {
+                name: 'Şablon klasörü konumu',
+                desc: 'Şablon dosya seçici bu klasördeki notları gösterir.',
+                placeholder: 'Templates'
             },
-            calendarCustomPromptForTitle: {
-                name: 'Başlık iste',
-                desc: 'Not oluştururken başlık isteyin. Boş başlıkları kabul eder.'
+            calendarCustomFilePattern: {
+                name: 'Günlük notlar',
+                desc: 'Moment tarih biçimini kullanarak yolu biçimlendir. Alt klasör adlarını köşeli parantez içine alın, örn. [Work]/YYYY. Şablon ayarlamak için şablon simgesine tıklayın.',
+                momentDescPrefix: '',
+                momentLinkText: 'Moment tarih biçimi',
+                momentDescSuffix:
+                    ' kullanarak yolu biçimlendir. Alt klasör adlarını köşeli parantez içine alın, örn. [Work]/YYYY. Şablon ayarlamak için şablon simgesine tıklayın.',
+                placeholder: 'YYYY/YYYYMMDD',
+                example: 'Geçerli sözdizimi: {path}',
+                parsingError: 'Desen, tam bir tarih (yıl, ay, gün) olarak biçimlendirilmeli ve tekrar ayrıştırılabilmelidir.'
+            },
+            calendarCustomWeekPattern: {
+                name: 'Haftalık notlar',
+                parsingError: 'Desen, tam bir hafta (hafta yılı, hafta numarası) olarak biçimlendirilmeli ve tekrar ayrıştırılabilmelidir.'
+            },
+            calendarCustomMonthPattern: {
+                name: 'Aylık notlar',
+                parsingError: 'Desen, tam bir ay (yıl, ay) olarak biçimlendirilmeli ve tekrar ayrıştırılabilmelidir.'
+            },
+            calendarCustomQuarterPattern: {
+                name: 'Çeyreklik notlar',
+                parsingError: 'Desen, tam bir çeyrek (yıl, çeyrek) olarak biçimlendirilmeli ve tekrar ayrıştırılabilmelidir.'
+            },
+            calendarCustomYearPattern: {
+                name: 'Yıllık notlar',
+                parsingError: 'Desen, tam bir yıl (yıl) olarak biçimlendirilmeli ve tekrar ayrıştırılabilmelidir.'
+            },
+            calendarTemplateFile: {
+                current: 'Şablon dosyası: {name}'
             },
             showTooltips: {
                 name: 'İpuçlarını göster',
@@ -986,6 +1071,22 @@ export const STRINGS_TR = {
                     cmdCtrl: 'Cmd/Ctrl tıkla',
                     optionAlt: 'Option/Alt tıkla'
                 }
+            },
+            enterToOpenFiles: {
+                name: "Dosyaları açmak için Enter'a basın",
+                desc: "Dosyaları yalnızca listede klavye ile gezinirken Enter'a basarak açın."
+            },
+            shiftEnterOpenContext: {
+                name: 'Shift+Enter',
+                desc: 'Shift+Enter ile seçili dosyayı yeni sekmede, bölmede veya pencerede aç.'
+            },
+            cmdEnterOpenContext: {
+                name: 'Cmd+Enter',
+                desc: 'Cmd+Enter ile seçili dosyayı yeni sekmede, bölmede veya pencerede aç.'
+            },
+            ctrlEnterOpenContext: {
+                name: 'Ctrl+Enter',
+                desc: 'Ctrl+Enter ile seçili dosyayı yeni sekmede, bölmede veya pencerede aç.'
             },
             fileVisibility: {
                 name: 'Dosya türlerini göster (kasa profili)',
@@ -1085,7 +1186,7 @@ export const STRINGS_TR = {
                 desc: 'Tarih, önizleme ve görsel gizlendiğinde etiketleri görüntüle.'
             },
             customPropertyType: {
-                name: 'Tür',
+                name: 'Özellik türü',
                 desc: 'Dosya öğelerinde görüntülenecek özel özelliği seçin.',
                 options: {
                     frontmatter: 'Frontmatter özelliği',
@@ -1094,14 +1195,19 @@ export const STRINGS_TR = {
                 }
             },
             customPropertyFields: {
-                name: 'Görüntülenecek özellik',
+                name: 'Görüntülenecek özellikler',
                 desc: 'Rozet olarak gösterilecek virgülle ayrılmış frontmatter özellikleri listesi. Liste değerli özellikler değer başına bir rozet gösterir. [[wikilink]] formatındaki değerler tıklanabilir bağlantılar olarak gösterilir.',
                 placeholder: 'durum, tür, kategori'
             },
-            customPropertyColorFields: {
-                name: 'Renk için özellik',
-                desc: 'Rozet renkleri için virgülle ayrılmış frontmatter özellikleri listesi. Renk özellikleri görüntüleme özellikleriyle konuma göre eşleştirilir. Liste değerli özellikler renkleri dizine göre eşleştirir. Değerler etiket adları veya CSS renkleri olabilir.',
-                placeholder: 'statusColor, typeColor, categoryColor'
+            showCustomPropertiesOnSeparateRows: {
+                name: 'Özellikleri ayrı satırlarda göster',
+                desc: 'Her özelliği kendi satırında göster.'
+            },
+            customPropertyColorMap: {
+                name: 'Özellik renkleri',
+                desc: 'Frontmatter özelliklerini rozet renklerine eşle. Satır başına bir eşleme: özellik=renk',
+                placeholder: '# Özellik=renk\nstatus=#ff0000\ntype=#00ff00',
+                editTooltip: 'Eşlemeleri düzenle'
             },
             showCustomPropertyInCompactMode: {
                 name: 'Kompakt modda özel özelliği göster',
@@ -1112,14 +1218,16 @@ export const STRINGS_TR = {
                 desc: 'Tarihleri görüntüleme formatı (date-fns formatı kullanır).',
                 placeholder: 'd MMM yyyy',
                 help: 'Yaygın formatlar:\nd MMM yyyy = 25 May 2022\ndd/MM/yyyy = 25/05/2022\nyyyy-MM-dd = 2022-05-25\n\nSimgeler:\nyyyy/yy = yıl\nMMMM/MMM/MM = ay\ndd/d = gün\nEEEE/EEE = haftanın günü',
-                helpTooltip: 'Format referansı için tıklayın'
+                helpTooltip: 'date-fns formatı',
+                dateFnsLinkText: 'date-fns formatı'
             },
             timeFormat: {
                 name: 'Saat formatı',
                 desc: 'Saatleri görüntüleme formatı (date-fns formatı kullanır).',
                 placeholder: 'HH:mm',
                 help: 'Yaygın formatlar:\nh:mm a = 2:30 PM (12 saat)\nHH:mm = 14:30 (24 saat)\nh:mm:ss a = 2:30:45 PM\nHH:mm:ss = 14:30:45\n\nSimgeler:\nHH/H = 24 saat\nhh/h = 12 saat\nmm = dakika\nss = saniye\na = ÖÖ/ÖS',
-                helpTooltip: 'Format referansı için tıklayın'
+                helpTooltip: 'date-fns formatı',
+                dateFnsLinkText: 'date-fns formatı'
             },
             showFilePreview: {
                 name: 'Not önizlemesini göster',
@@ -1197,6 +1305,14 @@ export const STRINGS_TR = {
                 name: 'Klasör renklerini devral',
                 desc: 'Alt klasörler üst klasörlerden renk devralır.'
             },
+            folderSortOrder: {
+                name: 'Klasör sıralama düzeni',
+                desc: 'Alt öğeleri için farklı bir sıralama düzeni ayarlamak üzere herhangi bir klasöre sağ tıklayın.',
+                options: {
+                    alphaAsc: "A'dan Z'ye",
+                    alphaDesc: "Z'den A'ya"
+                }
+            },
             showNoteCount: {
                 name: 'Not sayısını göster',
                 desc: 'Her klasör ve etiketin yanında not sayısını görüntüle.'
@@ -1261,12 +1377,13 @@ export const STRINGS_TR = {
             },
             tagSortOrder: {
                 name: 'Etiket sıralama düzeni',
-                desc: 'Etiketlerin gezinme bölmesinde nasıl sıralanacağını seçin.',
+                desc: 'Alt öğeleri için farklı bir sıralama düzeni ayarlamak üzere herhangi bir etikete sağ tıklayın.',
                 options: {
                     alphaAsc: "A'dan Z'ye",
                     alphaDesc: "Z'den A'ya",
-                    frequencyAsc: 'Sıklık (düşükten yükseğe)',
-                    frequencyDesc: 'Sıklık (yüksekten düşüğe)'
+                    frequency: 'Sıklık',
+                    lowToHigh: 'düşükten yükseğe',
+                    highToLow: 'yüksekten düşüğe'
                 }
             },
             showAllTagsFolder: {
@@ -1418,7 +1535,8 @@ export const STRINGS_TR = {
             frontmatterDateFormat: {
                 name: 'Zaman damgası formatı',
                 desc: "Frontmatter'daki zaman damgalarını ayrıştırmak için kullanılan format. ISO 8601 formatını kullanmak için boş bırakın",
-                helpTooltip: 'date-fns format belgelerine bakın',
+                helpTooltip: 'date-fns formatı',
+                dateFnsLinkText: 'date-fns formatı',
                 help: "Yaygın formatlar:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {

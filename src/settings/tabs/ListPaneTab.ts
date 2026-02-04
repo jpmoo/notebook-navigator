@@ -81,6 +81,21 @@ export function renderListPaneTab(context: SettingsTabContext): void {
             });
     });
 
+    topGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.propertySortKey.name)
+            .setDesc(strings.settings.items.propertySortKey.desc)
+            .addText(text =>
+                text
+                    .setPlaceholder(strings.settings.items.propertySortKey.placeholder)
+                    .setValue(plugin.settings.propertySortKey)
+                    .onChange(async value => {
+                        plugin.settings.propertySortKey = value;
+                        await plugin.saveSettingsAndUpdate();
+                    })
+            );
+    });
+
     addToggleSetting(
         topGroup.addSetting,
         strings.settings.items.revealFileOnListChanges.name,

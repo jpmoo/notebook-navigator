@@ -1,6 +1,6 @@
 # Notebook Navigator Storage Architecture
 
-Updated: January 8, 2026
+Updated: January 19, 2026
 
 ## Table of Contents
 
@@ -15,6 +15,7 @@ Updated: January 8, 2026
   - [Initial Load](#initial-load-cold-boot)
   - [File Change](#file-change-during-session)
   - [Settings Change](#settings-change)
+  - [Cache Rebuild](#cache-rebuild-manual)
   - [UI State Change](#ui-state-change)
 - [Hidden Pattern Rules](#hidden-pattern-rules)
 - [Storage Selection Guidelines](#storage-selection-guidelines)
@@ -23,80 +24,115 @@ Updated: January 8, 2026
 
 ## Overview
 
-The Notebook Navigator plugin uses five storage containers with distinct scopes and lifecycles. The stack consists of the
-IndexedDB cache, in-memory caches for synchronous reads (file records plus bounded preview text and feature image LRU
-caches), vault-scoped localStorage, synchronized settings in `data.json`, and a dedicated icon asset database.
+Notebook Navigator stores user configuration in `data.json` and uses rebuildable caches for file-derived data.
+
+- **Settings** (`data.json`): user configuration, vault profiles, appearance overrides, pinned notes, and icon/color/appearance maps.
+- **Vault-scoped local storage**: device-local UI state, recent notes/icons, and version/migration markers.
+- **IndexedDB cache**: per-file records and derived content state, with separate stores for preview text and feature image blobs.
+- **In-memory caches**: synchronous mirror of the IndexedDB main records and bounded LRUs for preview text and feature image blobs.
+- **Icon assets database**: per-vault IndexedDB database for downloaded icon fonts and metadata.
+
+```mermaid
+graph TB
+    Vault["Vault (files + metadata cache)"] --> Storage["StorageContext"]
+    Storage --> CacheDB["IndexedDB cache (notebooknavigator/cache/{appId})"]
+    Providers["Content providers"] --> CacheDB
+    CacheDB --> Memory["Memory caches (MemoryFileCache + LRUs)"]
+    Memory --> UI["React UI"]
+
+    Settings["Settings (data.json)"] --> UI
+    Local["vault-scoped localStorage"] --> UI
+    Local --> CacheDB
+    Icons["Icon assets DB (notebooknavigator/icons/{appId})"] --> UI
+```
 
 ## Storage Containers
 
 ### 1. IndexedDB (Persistent Local Storage)
 
-**Purpose**: Stores file metadata and generated content locally on the device. Data is derived from the vault and can be rebuilt.
+**Purpose**: Stores rebuildable file-derived data on the current device (per vault).
 
-**Location**: Browser's IndexedDB storage (device-specific)
+**Location**: Browser IndexedDB storage (device-specific, vault-specific namespace)
 
-**Synchronization**: Not synchronized - each device maintains its own cache
+**Synchronization**: Not synchronized. Each device maintains its own caches.
 
-**Data Stored**:
+**Key space and stores**:
 
-- File modification time (`mtime`)
+- Database name: `notebooknavigator/cache/{appId}`
+- Namespace key: `appId` from Obsidian (vault-scoped) passed through `initializeDatabase(...)`.
+- Keys: file paths (`TFile.path`) used as the IndexedDB keys across stores (the main record does not store the path).
+- Object stores:
+  - `keyvaluepairs`: main file records (`FileData`)
+  - `filePreviews`: preview text strings (`string`)
+  - `featureImageBlobs`: feature image blobs (`{ featureImageKey: string; blob: Blob }`)
+- Indexes (main store): `mtime` and `tags` (`tags` is `multiEntry: true`)
+
+**Data stored (main record)**:
+
+- Vault mtime (`mtime`)
 - Provider processed mtimes (`markdownPipelineMtime`, `tagsMtime`, `metadataMtime`, `fileThumbnailsMtime`)
-- Tags (`tags`)
-- Preview status in the main record (`previewStatus`) + preview text strings stored separately (`filePreviews`)
-- Feature image key/status in the main record (`featureImageKey`, `featureImageStatus`) + thumbnail blobs stored separately (`featureImageBlobs`)
-- Custom property value (`customProperty`)
-- Frontmatter metadata (`metadata.name`, `metadata.created`, `metadata.modified`, `metadata.icon`, `metadata.color`)
-- Hidden flag (`metadata.hidden`)
+- Derived fields:
+  - Tags (`tags`)
+  - Word count (`wordCount`)
+  - Custom property pills (`customProperty`)
+  - Preview state (`previewStatus`) with preview text stored in `filePreviews`
+  - Feature image state (`featureImageStatus`, `featureImageKey`) with blobs stored in `featureImageBlobs` (`featureImage` is always `null` in the main record)
+  - Frontmatter-derived metadata (`metadata.name`, `metadata.created`, `metadata.modified`, `metadata.icon`, `metadata.color`, `metadata.hidden`)
 
-**Key Characteristics**:
+**Status and sentinel semantics**:
 
-- Persists across Obsidian restarts
-- Can store large amounts of data (typically gigabytes)
-- Asynchronous API requires careful handling
-- Stores are cleared when a rebuild is required (content version changes, stored version keys missing, schema downgrade, or schema upgrades that clear legacy payloads)
-- Database name: `notebooknavigator/cache/{appId}` (vault-specific)
-- Object stores: `keyvaluepairs` (main records), `filePreviews` (preview text), `featureImageBlobs` (feature image blobs)
+- `previewStatus`: `unprocessed` | `none` | `has`
+- `featureImageStatus`: `unprocessed` | `none` | `has`
+- `featureImageKey`:
+  - `null`: not processed yet
+  - `''`: processed and no reference selected
+  - `f:<path>@<mtime>`, `e:<url>`, `y:<videoId>`, `x:<path>@<mtime>`: processed and reference selected
+- `metadata.created` / `metadata.modified`:
+  - `0`: field not configured
+  - `-1`: parsing failed
 
-**Lifecycle Management**:
+**Lifecycle management**:
 
-- Initialized early in Plugin.onload() via `initializeDatabase(appId)`
-- Database connection owned by plugin, not React components
-- Shutdown in Plugin.onunload() via `shutdownDatabase()`
-- Idempotent operations prevent issues with rapid enable/disable cycles
-- StorageContext checks availability but doesn't manage lifecycle
+- `src/main.ts` initializes `localStorage` and schedules `initializeDatabase(appId, ...)` early in `Plugin.onload()`.
+- `StorageContext` uses `useIndexedDBReady()` to gate work on `db.init()` completion.
+- `IndexedDBStorage.init()` opens the database, runs `onupgradeneeded`, and hydrates the in-memory mirror by bulk-loading the
+  main store in batches.
+- `IndexedDBStorage.init()` also checks local version markers (`STORAGE_KEYS.databaseSchemaVersionKey`, `STORAGE_KEYS.databaseContentVersionKey`) and clears all stores when a rebuild is required (missing markers, schema downgrade, or content version mismatch).
+- Preview text and feature image blobs are not hydrated on startup; they are loaded on demand and cached in bounded LRUs.
+- `Plugin.onunload()` calls `shutdownDatabase()` to close the connection and clear in-memory caches.
 
-**Implementation**: `src/storage/IndexedDBStorage.ts`
+**Implementation**: `src/storage/IndexedDBStorage.ts`, `src/storage/fileOperations.ts`
 
 ```typescript
 export type FeatureImageStatus = 'unprocessed' | 'none' | 'has';
 export type PreviewStatus = 'unprocessed' | 'none' | 'has';
 
+export interface CustomPropertyItem {
+  value: string;
+  color?: string;
+}
+
 export interface FileData {
-  // Vault mtime for the file path
   mtime: number;
 
-  // Provider processed mtimes (used to detect stale provider output)
   markdownPipelineMtime: number;
   tagsMtime: number;
   metadataMtime: number;
   fileThumbnailsMtime: number;
 
-  // Generated content (null means not generated yet)
   tags: string[] | null;
-  customProperty: string | null;
+  wordCount: number | null;
+  customProperty: CustomPropertyItem[] | null;
 
-  // Preview text is stored in a dedicated store keyed by file path
   previewStatus: PreviewStatus;
 
-  // Always null in the main record; thumbnail blobs live in the featureImageBlobs store
   featureImage: Blob | null;
   featureImageStatus: FeatureImageStatus;
   featureImageKey: string | null;
+
   metadata: {
     name?: string;
-    // 0 = field not configured, -1 = parse failed
     created?: number;
-    // 0 = field not configured, -1 = parse failed
     modified?: number;
     icon?: string;
     color?: string;
@@ -107,35 +143,32 @@ export interface FileData {
 
 ### 2. Local Storage (Persistent Local Storage)
 
-**Purpose**: Stores UI state and preferences that should persist across sessions but remain local to each device. This
-allows users to have different UI layouts on desktop vs mobile, for example.
+**Purpose**: Stores device-local state and small persisted values scoped to the current vault.
 
-**Location**: Browser's localStorage (device-specific, vault-specific)
+This includes UI state (pane sizes, selections, expansion state), recent notes/icons, local mirrors for selected settings,
+and cache version/migration markers.
 
-**Synchronization**: Not synchronized - each device maintains its own UI state
+**Location**: Obsidian vault-scoped local storage (`app.loadLocalStorage()` / `app.saveLocalStorage()`), not browser `window.localStorage`.
 
-**Data Stored**:
+**Synchronization**: Not synchronized. Each device maintains its own local state.
 
-- Navigation pane width and height
-- Dual-pane preference and orientation
-- Selected folder, tag, file, and multi-select state
-- Expanded folders, tags, and virtual folders
-- Navigation section order and collapsed state for shortcuts and recent notes
-- UX preferences (search toggle, descendant scope, hidden item visibility, pinned shortcuts)
-- Recent note history and recent icon usage
-- Database version numbers (for detecting schema changes)
-- Cache rebuild progress marker
-- Local storage schema version marker
+**Data stored (examples)**:
 
-**Key Characteristics**:
+- Layout and UI state: pane width/height, section order, toolbar visibility, navigation/list sizing, selected and expanded items.
+- UX preferences and toggles (stored under `STORAGE_KEYS.uxPreferencesKey`).
+- Recent data: recent notes (per vault profile) and recent icons.
+- Per-setting local mirrors for sync-mode settings (see "Sync modes and local mirrors" under Settings).
+- Cache version markers: `STORAGE_KEYS.databaseSchemaVersionKey`, `STORAGE_KEYS.databaseContentVersionKey`.
+- Cache rebuild notice marker: `STORAGE_KEYS.cacheRebuildNoticeKey`.
+- Local storage schema marker: `STORAGE_KEYS.localStorageVersionKey` (`LOCALSTORAGE_VERSION` in `src/utils/localStorage.ts`).
 
-- Persists across Obsidian restarts
-- Limited to ~5-10MB total storage
-- Synchronous API for immediate access
-- Uses Obsidian's vault-specific storage methods
-- Automatically cleaned up when plugin is uninstalled
+**Key characteristics**:
 
-**Implementation**: `src/types.ts` (`STORAGE_KEYS`), `src/utils/localStorage.ts` (vault-scoped wrapper)
+- `localStorage.init(app)` must run before using the wrapper to avoid mixing values between vaults.
+- Reads/writes are synchronous (Obsidian handles serialization and deserialization).
+- Recent notes/icons are persisted with a ~1000ms debounce and flushed on shutdown (`RecentStorageService`).
+
+**Implementation**: `src/types.ts` (`STORAGE_KEYS`), `src/utils/localStorage.ts`, `src/services/RecentStorageService.ts`
 
 ```typescript
 export const STORAGE_KEYS: LocalStorageKeys = {
@@ -168,112 +201,103 @@ export const STORAGE_KEYS: LocalStorageKeys = {
   latestKnownReleaseKey: 'notebook-navigator-latest-known-release',
   searchProviderKey: 'notebook-navigator-search-provider',
   tagSortOrderKey: 'notebook-navigator-tag-sort-order',
-  recentColorsKey: 'notebook-navigator-recent-colors'
+  recentColorsKey: 'notebook-navigator-recent-colors',
+  paneTransitionDurationKey: 'notebook-navigator-pane-transition-duration',
+  toolbarVisibilityKey: 'notebook-navigator-toolbar-visibility',
+  pinNavigationBannerKey: 'notebook-navigator-pin-navigation-banner',
+  navIndentKey: 'notebook-navigator-nav-indent',
+  navItemHeightKey: 'notebook-navigator-nav-item-height',
+  navItemHeightScaleTextKey: 'notebook-navigator-nav-item-height-scale-text',
+  calendarWeeksToShowKey: 'notebook-navigator-calendar-weeks-to-show',
+  compactItemHeightKey: 'notebook-navigator-compact-item-height',
+  compactItemHeightScaleTextKey: 'notebook-navigator-compact-item-height-scale-text'
 };
 ```
 
 ### 3. Memory Cache (Temporary Storage)
 
-**Purpose**: Provides synchronous access to all file data during rendering. This in-memory mirror of IndexedDB
-eliminates async operations in React components, preventing layout shifts and enabling smooth scrolling in virtualized
-lists.
+**Purpose**: Provides synchronous access to cached file records during rendering and keeps derived-content payloads out of
+React render paths.
 
-**Location**: JavaScript heap memory (RAM)
+**Location**: JavaScript heap memory (per session)
 
-**Synchronization**: Automatically synced with IndexedDB changes
+**Synchronization**: Owned by `IndexedDBStorage` and updated after successful IndexedDB writes.
 
-**Data Stored**: Main file records (no preview text strings or feature image blobs), plus bounded in-memory LRU caches for preview text and feature image blobs
+**Data stored**:
 
-**Key Characteristics**:
+- `MemoryFileCache`: `Map<path, FileData>` plus a bounded LRU for preview text strings.
+- `FeatureImageBlobStore`: bounded LRU for thumbnail blobs keyed by path (validated against `featureImageKey`), plus in-flight read deduplication.
 
-- Cleared when plugin reloads or Obsidian restarts
-- Provides synchronous reads for UI rendering
-- Preview text and feature image blobs are loaded on demand from IndexedDB and cached in bounded LRUs
-- Hydrated from the main store on startup and updated with every database write
+**Key characteristics**:
 
-**Implementation**: `src/storage/MemoryFileCache.ts`
+- Hydrated from `keyvaluepairs` during `IndexedDBStorage.init()` (bulk-loaded in batches).
+- Preview text is loaded into the in-memory LRU via `ensurePreviewTextLoaded(path)` and optionally warmed in the background via
+  `startPreviewTextWarmup()`.
+- Feature image blobs are loaded via `getFeatureImageBlob(path, expectedKey)`. The key is used to avoid returning a thumbnail
+  for an older reference.
+- Cleared when the plugin reloads, when `IndexedDBStorage.clear()` runs, or when the database connection changes.
 
-## Hidden Pattern Rules
-
-Hidden patterns are stored in the active vault profile and applied when building the file cache and tag tree.
-Implementation:
-
-- Folder filtering: `src/utils/fileFilters.ts`, `src/utils/vaultProfiles.ts`
-- Tag filtering: `src/utils/tagPrefixMatcher.ts`
-- Shared path parsing: `src/utils/pathPatternMatcher.ts`
-
-Rules:
-
-- Folder name patterns (no leading `/`) match folder names and are evaluated against each path segment (supports `prefix*` and `*suffix`).
-- Folder path patterns start with `/` and use segment patterns:
-  - `*` matches one path segment
-  - `prefix*` matches a path segment prefix
-  - `/Projects/*` matches descendants of `/Projects` but not `/Projects` itself
-- Tag patterns are normalized by removing a leading `#`, trimming slashes, and lowercasing.
-  - Path rules like `projects/*` match tag paths and support the same segment patterns as folders.
-  - Name rules `prefix*` and `*suffix` match tag names at any depth.
-- Patterns with multiple wildcards in a segment or wildcards in the middle of a segment are ignored.
+**Implementation**: `src/storage/MemoryFileCache.ts`, `src/storage/PreviewTextCache.ts`, `src/storage/FeatureImageBlobStore.ts`
 
 ### 4. Settings (Synchronized Storage)
 
-**Purpose**: Stores user preferences and configuration that should be consistent across all devices. When using Obsidian
-Sync, these settings are automatically synchronized.
+**Purpose**: Stores user configuration and vault-scoped metadata that the plugin needs to restore deterministically.
 
 **Location**: `.obsidian/plugins/notebook-navigator/data.json`
 
-**Synchronization**: Synchronized via Obsidian Sync (if enabled)
+**Synchronization**: Synchronized by Obsidian Sync (when enabled) and by any other vault/file synchronization method.
 
-**Data Stored**:
+**Data stored (high level)**:
 
-- Feature toggles and display preferences (folder visibility, preview rows, grouping, date/time formats, quick actions)
-- Frontmatter field mappings and metadata extraction options
-- Folder metadata:
-  - Colors and background colors (custom palette per folder)
-  - Icons (custom icon per folder)
-  - Sort overrides (custom sort order per folder)
-  - Custom appearance (titleRows, previewRows, showDate, showPreview, showImage)
-  - Pinned notes (list of pinned files per folder)
-- Tag metadata:
-  - Colors and background colors (custom palette per tag)
-  - Icons (custom icon per tag)
-  - Sort overrides (custom sort order per tag)
-  - Custom appearance (titleRows, previewRows, showDate, showPreview, showImage)
-- File metadata overrides:
-  - Icons (custom icon per file)
-  - Colors (custom color per file)
-- Shortcut definitions and keyboard shortcut configuration
-- External icon provider enablement flags
-- Recent color palette, release notice tracking, and sync timestamps
-- Root folder order, root tag order, and custom vault name
-- Homepage configuration for desktop and mobile
+- Vault profiles (`vaultProfiles`) with hidden patterns, banners, and shortcuts.
+- Feature toggles and UI configuration (folders/tags behavior, list layout, note preview/feature image options, formatting).
+- Folder/tag/file metadata maps: icons, colors, background colors, sort overrides, and appearance overrides.
+- Pinned notes (`pinnedNotes`) keyed by file path with separate `folder` / `tag` contexts.
+- External icon provider enablement (`externalIconProviders`) and keyboard shortcut configuration (`keyboardShortcuts`).
+- Runtime metadata maps and ordering: navigation separators, root folder/tag order, custom vault name, recent user colors, release tracking.
 
-**Key Characteristics**:
+#### Sync modes and local mirrors
 
-- JSON file in the vault
-- Synchronized across devices with Obsidian Sync
-- Loaded once at startup, cached in memory
-- Changes trigger UI re-renders via React context
-- Must be kept small to avoid sync conflicts
+Some settings can be switched between **synced** (stored in `data.json`) and **local** (stored in vault-scoped local storage).
+The selection is stored in `settings.syncModes` and resolved during `loadSettings()` using `src/services/settings/syncModeRegistry.ts`.
 
-**Implementation**: `src/settings.ts`, `src/settings/types.ts`
+Local-sync-mode settings are sourced from local storage keys (in `STORAGE_KEYS`) and mirrored back to local storage even when
+the setting is synced so the rest of the UI can read a single source.
+
+See `SYNC_MODE_SETTING_IDS` in `src/settings/types.ts` for the full list (includes: `vaultProfile`, `tagSortOrder`, `searchProvider`,
+`includeDescendantNotes`, `dualPane`, `dualPaneOrientation`, `paneTransitionDuration`, `toolbarVisibility`, `pinNavigationBanner`,
+`showCalendar`, `navIndent`, `navItemHeight`, `navItemHeightScaleText`, `calendarWeeksToShow`, `compactItemHeight`,
+`compactItemHeightScaleText`, `uiScale`).
+
+**Implementation**: `src/settings.ts`, `src/settings/types.ts`, `src/services/settings/syncModeRegistry.ts`
 
 ```typescript
 export interface NotebookNavigatorSettings {
   vaultProfiles: VaultProfile[];
   vaultProfile: string;
+  syncModes: Record<SyncModeSettingId, SettingSyncMode>;
 
-  // ... many settings omitted
+  // ... settings omitted
 
-  // Runtime state and cached data
-  pinnedNotes: Record<string, string[]>;
+  customVaultName: string;
+  pinnedNotes: PinnedNotes;
+
   fileIcons: Record<string, string>;
   fileColors: Record<string, string>;
   folderIcons: Record<string, string>;
   folderColors: Record<string, string>;
   folderBackgroundColors: Record<string, string>;
+  folderSortOverrides: Record<string, SortOption>;
+  folderAppearances: Record<string, FolderAppearance>;
+
   tagIcons: Record<string, string>;
   tagColors: Record<string, string>;
   tagBackgroundColors: Record<string, string>;
+  tagSortOverrides: Record<string, SortOption>;
+  tagAppearances: Record<string, TagAppearance>;
+
+  navigationSeparators: Record<string, boolean>;
+  userColors: string[];
   rootFolderOrder: string[];
   rootTagOrder: string[];
 }
@@ -281,50 +305,30 @@ export interface NotebookNavigatorSettings {
 
 ### 5. Icon Assets Database (Device-Specific Storage)
 
-**Purpose**: Stores downloaded icon pack assets locally on each device. This allows users to have extensive icon
-libraries without bloating the vault or sync system.
+**Purpose**: Stores downloaded icon fonts and metadata manifests in a per-vault IndexedDB database.
 
-**Location**: Browser's IndexedDB storage (device-specific)
+**Location**: Browser IndexedDB storage (device-specific, vault-specific namespace)
 
-**Synchronization**: Not synchronized - each device downloads its own icon packs
+**Synchronization**: Not synchronized. Each device downloads and caches its own icon packs.
 
-**Data Stored**:
+**Data stored**:
 
-- Icon font binary data (ArrayBuffer)
-- Metadata manifests with icon identifiers and keywords
-- Font MIME type
-- Metadata format indicator (currently JSON)
-- Provider version and last updated timestamp
+- Font data (`ArrayBuffer`) and MIME type
+- Metadata manifest payload (`metadata` as a JSON string) and format indicator (`metadataFormat`)
+- Provider version and `updated` timestamp
 
-**Key Characteristics**:
+**Key characteristics**:
 
-- Persists across Obsidian restarts
-- Asynchronous download and storage
-- Automatic version management
 - Database name: `notebooknavigator/icons/{appId}`
-- Records keyed by provider ID (one entry per installed pack)
-- Separate from main cache database
+- Object store: `providers` keyed by `id` (one record per provider)
+- Separate from the main cache database (`notebooknavigator/cache/{appId}`)
 
-**Icon Pack Management**:
+**Available icon providers**: Bootstrap Icons, Font Awesome, Material Icons, Phosphor Icons, RPG Awesome, Simple Icons
 
-- Settings only store which packs are enabled (small metadata)
-- Each device checks settings and downloads needed packs
-- Packs can be installed/removed independently per device
-- Updates handled automatically when new versions available
-
-**Available Icon Packs**:
-
-- Bootstrap Icons
-- Font Awesome
-- Material Icons
-- Phosphor Icons
-- RPG Awesome
-- Simple Icons
-
-**Implementation**: `src/services/icons/external/IconAssetDatabase.ts`
+**Implementation**: `src/services/icons/external/IconAssetDatabase.ts`, `src/services/icons/external/providerRegistry.ts`
 
 ```typescript
-interface IconAssetRecord {
+export interface IconAssetRecord {
   id: string;
   version: string;
   mimeType: string;
@@ -339,140 +343,222 @@ interface IconAssetRecord {
 
 ### Initial Load (Cold Boot)
 
-1. **Settings** loaded from data.json
-2. **IndexedDB** opened, schema migrations applied, and stores cleared when a rebuild is required
-3. Main **IndexedDB** records hydrated into the in-memory cache (preview text and blobs load on demand)
-4. **Local Storage** read for pane layout, selections, UX preferences, and recent data
-5. StorageContext diffs vault files and writes additions, updates, and removals to **IndexedDB**
-6. Tag tree rebuilt from cached tag data (IndexedDB + memory cache)
-7. Content providers queue pending file-derived content (preview, tags, metadata, feature images, custom property) while UI renders from the memory cache
+1. `localStorage.init(app)` runs early in `Plugin.onload()` so version checks and local mirrors are vault-scoped.
+2. `initializeDatabase(appId, ...)` schedules `IndexedDBStorage.init()` and starts preview text warmup (idempotent).
+3. `IndexedDBStorage.init()` compares local schema/content version markers with `DB_SCHEMA_VERSION` / `DB_CONTENT_VERSION` and clears the cache when a rebuild is required.
+4. Settings are loaded from `data.json`, and sync-mode settings are resolved/mirrored via the sync-mode registry.
+5. When a navigator view mounts, `StorageContext` waits for `useIndexedDBReady()` before doing cache work.
+6. If `IndexedDBStorage` marked a pending rebuild notice (schema downgrade/content version mismatch), `useStorageVaultSync` starts a rebuild progress notice.
+7. `useStorageVaultSync` diffs indexable vault files (`markdown` plus PDFs when enabled) against the in-memory cache (`calculateFileDiff()`),
+   then writes additions/updates/removals to IndexedDB (`recordFileChanges()`, `removeFilesFromCache()`).
+8. The tag tree is rebuilt from database records (`buildTagTreeFromDatabase()`), filtered to currently visible markdown paths.
+9. Content providers queue derived content work (previews, tags, metadata, custom properties, feature images, PDF thumbnails for PDF files) while the UI renders from the in-memory cache.
+10. Metadata-dependent providers (markdown pipeline, tags, metadata) are queued through `useMetadataCacheQueue` so they only run after `app.metadataCache` has entries for the files.
+11. If rebuild notice state exists in local storage (`STORAGE_KEYS.cacheRebuildNoticeKey`) and there is still pending work, `StorageContext` restores the rebuild progress notice after storage becomes ready.
 
 ### File Change (During Session)
 
-1. Obsidian emits vault event (create, delete, rename, modify)
-2. StorageContext diffs vault files and updates **IndexedDB** (adds new files, removes deleted entries, preserves
-   renamed data)
-3. **ContentProviderRegistry** queues affected files for content regeneration
-4. Providers write updates through **IndexedDBStorage**, keeping the memory cache in sync and notifying listeners
-5. React components re-render with the refreshed in-memory data
+1. Obsidian emits vault events (create, delete, rename, modify) and metadata cache events (`metadataCache.on('changed')` for markdown files).
+2. Vault events are debounced (`TIMEOUTS.FILE_OPERATION_DELAY`) and collapsed into a single diff pass.
+3. StorageContext runs `calculateFileDiff()` and updates IndexedDB:
+   - Adds new records with default provider state
+   - Updates `mtime` for modified files without clearing provider-owned fields
+   - Removes deleted records
+   - Preserves cached data across renames by seeding the new path with the previous record and moving preview/blob keys
+4. For metadata cache changes that do not produce a vault `modify` event, StorageContext can reset provider processed mtimes (`markFilesForRegeneration()`) to force reprocessing against the updated metadata cache.
+5. Content providers queue affected files for regeneration as needed (with `useMetadataCacheQueue` gating metadata-dependent types).
+6. Providers write derived content through `IndexedDBStorage`, which updates the in-memory cache and emits change events for UI consumers.
 
 ### Settings Change
 
-1. User modifies setting in UI
-2. New setting → **Settings** (data.json)
-3. **Settings** context broadcasts updates to React tree
-4. StorageContext compares old and new settings, marks affected files for regeneration, and queues content providers
-5. Components re-render with updated configuration
-6. If Obsidian Sync enabled → synced to other devices
+1. The settings UI updates the in-memory settings object and persists to `data.json`.
+2. `SettingsContext` broadcasts updates to the React tree.
+3. `useStorageSettingsSync` debounces changes and handles two categories:
+   - Provider-relevant settings: forwarded to `ContentProviderRegistry.handleSettingsChange()` and used to queue regeneration.
+   - Exclusion settings:
+     - Hidden folders / hidden file properties trigger a diff resync so cached file lists and tag tree reflect the new rules.
+     - Hidden file names / hidden file tags trigger a tag tree rebuild (database records are unchanged).
+4. When provider settings changes trigger regeneration across many files, `useStorageSettingsSync` can start a rebuild progress notice and persist notice state in local storage (`STORAGE_KEYS.cacheRebuildNoticeKey`, `source: 'settings'`).
+5. Content providers regenerate derived content in the background while the UI continues rendering from cached data.
+
+### Cache Rebuild (Manual)
+
+`StorageContext.rebuildCache()` (invoked by the rebuild-cache command/API) runs an exclusive rebuild sequence:
+
+1. Stops background work: vault sync timers, tag rebuild debouncers, metadata waits, and content provider queues.
+2. Clears IndexedDB stores (`IndexedDBStorage.clearDatabase()` / `IndexedDBStorage.clear()`), which also resets the in-memory caches.
+3. Resets tag tree state and marks storage as not ready.
+4. Persists rebuild notice state in local storage (`STORAGE_KEYS.cacheRebuildNoticeKey`, `source: 'rebuild'`) so a rebuild notice can be restored after a restart.
+5. Re-runs the initial diff + queue process.
 
 ### UI State Change
 
-1. User resizes a pane, changes selection, or toggles a UX preference
-2. New state → **Local Storage** (immediate writes for layout/selection, debounced writes for recent data)
-3. State persists for the next session on that device
-4. Each device maintains independent UI and recent history
+1. UI interactions update local component state and write device-local values to vault-scoped local storage.
+2. Recent notes and recent icons are persisted with a debounce (`RecentStorageService`).
+3. Sync-mode settings update local storage mirrors and (when synced) persist changes to `data.json`.
+
+## Hidden Pattern Rules
+
+Hidden patterns live in the active vault profile (`VaultProfile`) and influence which files/tags are visible and how the tag tree is counted.
+
+Implementation references:
+
+- Folder path patterns: `src/utils/vaultProfiles.ts`, `src/utils/pathPatternMatcher.ts`
+- File visibility filters (folders, file names, file tags, properties): `src/utils/fileFilters.ts`
+- Tag hiding patterns: `src/utils/tagPrefixMatcher.ts`, `src/utils/pathPatternMatcher.ts`
+
+### Folder patterns (`hiddenFolders`)
+
+- **Name patterns** (no leading `/`): match individual folder names case-insensitively.
+  - Supported forms: exact, `prefix*`, `*suffix` (wildcards in the middle / multiple wildcards are treated as literals)
+- **Path patterns** (leading `/`): match normalized folder paths using path segments.
+  - Segment types: literal (`Projects`), wildcard (`*`), prefix (`prefix*`)
+  - `/Projects/*` matches descendants of `/Projects` but not `/Projects` itself.
+  - `/Projects*` matches `/Projects` and any path segment starting with `Projects`.
+
+### Tag patterns (`hiddenTags`)
+
+- Normalization: remove a leading `#`, trim slashes, and lowercase.
+- Path patterns support the same segment matcher as folders (literal, `*`, `prefix*`).
+  - `projects` hides `projects` and descendants (`projects/client`).
+  - `projects/*` hides descendants but keeps `projects` visible.
+- Name patterns support `prefix*` and `*suffix` against the final tag name at any depth.
+  - `temp*` hides tag names starting with `temp` at any depth (`projects/temp-note`).
+  - `*draft` hides tag names ending with `draft` at any depth.
+  - Patterns with multiple wildcards or wildcards in the middle of a segment are ignored.
+
+### Hidden file name patterns (`hiddenFileNames`)
+
+- Case-insensitive matching against:
+  - file name (`file.name`)
+  - base name (`file.basename`)
+  - extension literals (`.pdf`, `.md`, etc)
+  - path patterns (strings containing `/` are treated as paths)
+- `*` wildcards are supported in name and path patterns. Multiple `*` wildcards are allowed.
+
+### Hidden file property patterns (`hiddenFileProperties`)
+
+- Case-insensitive list of frontmatter keys.
+- Applies to markdown files (`.md`) only.
+- A file is hidden when any of the configured keys exist in frontmatter (the value is ignored).
+
+### Hidden file tag patterns (`hiddenFileTags`)
+
+- Uses the same tag matcher as `hiddenTags`.
+- Applies to markdown files only.
+- A file is hidden when any tag matches a hidden tag rule (tags are read from `metadataCache` and/or cached tag extraction).
+
+### Indexing vs visibility
+
+The database indexes supported files regardless of the current "show hidden items" toggle:
+
+- `getIndexableFiles()` always includes hidden items (so toggling visibility does not require rebuilding IndexedDB).
+- The tag tree and counts are built from the database but filtered to the currently visible markdown set.
 
 ## Storage Selection Guidelines
 
 ### Use IndexedDB When:
 
 - Storing file-derived data that can be regenerated
-- Data is large or numerous (thousands of entries)
-- Data should not sync between devices
-- Async access is acceptable
+- Storing per-file payloads (records, preview strings, blobs)
+- Data should remain device-local
 
 ### Use Local Storage When:
 
-- Storing UI state that should persist locally
-- Data is small (< 100KB total)
-- Synchronous access is required
-- Device-specific preferences are needed
+- Storing device-local view state and small persisted values
+- Storing local mirrors for sync-mode settings
+- Storing version markers and migration state
 
 ### Use Memory Cache When:
 
-- Data needs synchronous access during rendering
-- Performance is critical (virtual scrolling)
-- Data already exists in IndexedDB
-- Temporary storage during session is sufficient
+- Data must be available synchronously for rendering
+- Data is already backed by IndexedDB and needs an in-memory mirror
+- Payloads should not be read asynchronously in render paths
 
 ### Use Settings When:
 
-- User preferences should sync between devices
-- Data configures plugin behavior
-- Changes should trigger UI updates
-- Data is small and JSON-serializable
+- Data configures plugin behavior and should be persisted with the vault
+- Data should participate in vault-level synchronization
+- Data is JSON-serializable and fits within expected settings size
 
 ### Use Icon Assets Database When:
 
-- Storing large binary assets (icon fonts)
-- Data is too large for settings sync
-- Device-specific resources are acceptable
-- Content can be re-downloaded if needed
+- Storing icon font binaries and provider metadata
+- Data is too large for `data.json`
+- Content can be re-downloaded per device
 
 ## Performance Considerations
 
 ### IndexedDB
 
-- **Batch Operations**: Group multiple updates in single transaction
-- **Async Processing**: Use deferred scheduling for background updates
-- **Version Management**: Increment versions carefully to avoid unnecessary cache clears
+- Main store hydration loads records in batches to limit peak allocations during startup.
+- Preview text loads are batched and deduplicated (`ensurePreviewTextLoaded` queue + max batch).
+- Feature image blob reads use a bounded LRU and per-path invalidation keyed by `featureImageKey`.
 
 ### Local Storage
 
-- **Size Limits**: Keep under 5MB total across all keys
-- **JSON Parsing**: Cache parsed values to avoid repeated parsing
-- **Cleanup**: Remove obsolete keys during migration
-- **Debounced Writes**: RecentStorageService batches writes (~1s delay) to reduce churn for recent data
+- Write frequency is kept low for frequently updated keys (recent notes/icons are debounced).
+- Stored values are sanitized/normalized on load (recent notes and icon maps).
 
 ### Memory Cache
 
-- **Memory Usage**: Scales with file count and LRU cache sizes
-- **Synchronization**: Keep perfectly synced with IndexedDB
-- **Initialization**: File records load on startup; preview text warmup is incremental
+- Memory footprint grows with file count and the configured LRU sizes.
+- Caches are cleared when the database connection is reopened or cleared.
 
 ### Settings
 
-- **File Size**: Keep under 1MB to avoid sync conflicts
-- **Metadata Cleanup**: Remove orphaned metadata via settings for files deleted outside Obsidian
-- **Change Detection**: Use React context for efficient re-renders
+- Large record maps (icons/colors/appearances) are updated on rename/delete to keep keys aligned with vault paths.
+- Sync-mode settings are mirrored to local storage so UI reads a vault-scoped device-local value regardless of sync mode.
 
 ## Version Management
+
+### Version Markers and Rebuild Notices
+
+Notebook Navigator tracks two cache versions:
+
+- **Schema** (`DB_SCHEMA_VERSION`): IndexedDB structure version (passed to `indexedDB.open(...)`).
+- **Content** (`DB_CONTENT_VERSION`): derived content format version (plugin-defined).
+
+`IndexedDBStorage.init()` stores the current versions in vault-scoped local storage:
+
+- `STORAGE_KEYS.databaseSchemaVersionKey`
+- `STORAGE_KEYS.databaseContentVersionKey`
+
+Initialization behavior:
+
+- Missing version keys trigger a full cache clear so the cache is rebuilt.
+- Schema downgrades and content version mismatches set a pending rebuild notice (`consumePendingRebuildNotice()`), which is used by `StorageContext` to start a rebuild progress notice.
+- IndexedDB open failures (including `VersionError`) can trigger a database delete + recreate and a cache rebuild.
 
 ### Schema Changes
 
 When IndexedDB schema changes:
 
-1. Increment `DB_SCHEMA_VERSION`
-2. Schema upgrades run via `onupgradeneeded` (may clear stores when legacy payloads cannot be migrated)
-3. Schema downgrades delete and recreate the database
-4. If stores are cleared, content is rebuilt from vault files and providers
+1. Increment `DB_SCHEMA_VERSION` in `src/storage/IndexedDBStorage.ts`.
+2. Schema upgrades run via `onupgradeneeded` (may clear stores when legacy payloads cannot be migrated).
+3. Schema downgrades delete and recreate the database.
 
 ### Content Format Changes
 
-When content generation logic changes:
+When derived content format changes:
 
-1. Increment `DB_CONTENT_VERSION`
-2. Database data cleared (structure preserved)
-3. Content regenerated for all files
-4. Gradual population via background processing
+1. Increment `DB_CONTENT_VERSION` in `src/storage/IndexedDBStorage.ts`.
+2. Stores are cleared (`IndexedDBStorage.clear()`).
+3. Content providers regenerate derived content for all files during background processing.
 
-Current values: `DB_SCHEMA_VERSION = 3`, `DB_CONTENT_VERSION = 2`.
+Current values: `DB_SCHEMA_VERSION = 3`, `DB_CONTENT_VERSION = 4`.
 
 ### Settings Updates
 
 When settings structure changes:
 
-1. Load existing settings
-2. Apply new structure in `loadSettings()`
-3. Save updated settings
-4. Sync propagates to other devices
+1. Load existing settings (`loadSettings()`).
+2. Apply migrations and defaults.
+3. Persist the updated structure back to `data.json`.
 
 ### Local Storage Updates
 
-When storage keys change:
+When local storage keys or formats change:
 
-1. Check for old keys
-2. Copy data to new keys
-3. Delete old keys
-4. Handle missing data gracefully
-5. Update `LOCALSTORAGE_VERSION` so migrations run only once
+1. Normalize or migrate stored values on load.
+2. Update `LOCALSTORAGE_VERSION` (`src/utils/localStorage.ts`) so migrations run once per vault.

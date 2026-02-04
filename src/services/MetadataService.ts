@@ -17,7 +17,7 @@
  */
 
 import { App, TFolder } from 'obsidian';
-import { SortOption, type NotebookNavigatorSettings } from '../settings';
+import { SortOption, type AlphaSortOrder, type NotebookNavigatorSettings } from '../settings';
 import { ISettingsProvider } from '../interfaces/ISettingsProvider';
 import { ITagTreeProvider } from '../interfaces/ITagTreeProvider';
 import {
@@ -137,6 +137,18 @@ export class MetadataService {
         return this.folderService.getFolderSortOverride(folderPath);
     }
 
+    async setFolderChildSortOrderOverride(folderPath: string, sortOrder: AlphaSortOrder): Promise<void> {
+        return this.folderService.setFolderChildSortOrderOverride(folderPath, sortOrder);
+    }
+
+    async removeFolderChildSortOrderOverride(folderPath: string): Promise<void> {
+        return this.folderService.removeFolderChildSortOrderOverride(folderPath);
+    }
+
+    getFolderChildSortOrderOverride(folderPath: string): AlphaSortOrder | undefined {
+        return this.folderService.getFolderChildSortOrderOverride(folderPath);
+    }
+
     async handleFolderRename(oldPath: string, newPath: string): Promise<void> {
         await this.folderService.handleFolderRename(oldPath, newPath, settings =>
             this.navigationSeparatorService.applyFolderRename(settings, oldPath, newPath)
@@ -218,6 +230,18 @@ export class MetadataService {
 
     getTagSortOverride(tagPath: string): SortOption | undefined {
         return this.tagService.getTagSortOverride(tagPath);
+    }
+
+    async setTagChildSortOrderOverride(tagPath: string, sortOrder: AlphaSortOrder): Promise<void> {
+        return this.tagService.setTagChildSortOrderOverride(tagPath, sortOrder);
+    }
+
+    async removeTagChildSortOrderOverride(tagPath: string): Promise<void> {
+        return this.tagService.removeTagChildSortOrderOverride(tagPath);
+    }
+
+    getTagChildSortOrderOverride(tagPath: string): AlphaSortOrder | undefined {
+        return this.tagService.getTagChildSortOrderOverride(tagPath);
     }
 
     // ========== Navigation Separator Methods ==========

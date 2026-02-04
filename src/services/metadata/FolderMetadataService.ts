@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { SortOption, type NotebookNavigatorSettings } from '../../settings';
+import { SortOption, type AlphaSortOrder, type NotebookNavigatorSettings } from '../../settings';
 import { ItemType } from '../../types';
 import { isFolderShortcut } from '../../types/shortcuts';
 import { BaseMetadataService } from './BaseMetadataService';
@@ -190,6 +190,30 @@ export class FolderMetadataService extends BaseMetadataService {
     }
 
     /**
+     * Sets a custom alphabetical sort order for the folder's child folders in the navigation pane.
+     */
+    async setFolderChildSortOrderOverride(folderPath: string, sortOrder: AlphaSortOrder): Promise<void> {
+        if (!this.validateFolder(folderPath)) {
+            return;
+        }
+        return this.setEntityChildSortOrderOverride(ItemType.FOLDER, folderPath, sortOrder);
+    }
+
+    /**
+     * Removes the custom child folder sort order from a folder.
+     */
+    async removeFolderChildSortOrderOverride(folderPath: string): Promise<void> {
+        return this.removeEntityChildSortOrderOverride(ItemType.FOLDER, folderPath);
+    }
+
+    /**
+     * Gets the child sort order override for a folder.
+     */
+    getFolderChildSortOrderOverride(folderPath: string): AlphaSortOrder | undefined {
+        return this.getEntityChildSortOrderOverride(ItemType.FOLDER, folderPath);
+    }
+
+    /**
      * Handles folder rename by updating all associated metadata
      * @param oldPath - Previous folder path
      * @param newPath - New folder path
@@ -202,6 +226,7 @@ export class FolderMetadataService extends BaseMetadataService {
             changed = this.updateNestedPaths(settings.folderBackgroundColors, oldPath, newPath) || changed;
             changed = this.updateNestedPaths(settings.folderIcons, oldPath, newPath) || changed;
             changed = this.updateNestedPaths(settings.folderSortOverrides, oldPath, newPath) || changed;
+            changed = this.updateNestedPaths(settings.folderTreeSortOverrides, oldPath, newPath) || changed;
             changed = this.updateNestedPaths(settings.folderAppearances, oldPath, newPath) || changed;
 
             const shortcutsChanged = this.updateShortcuts(settings, shortcut => {
@@ -236,6 +261,7 @@ export class FolderMetadataService extends BaseMetadataService {
             changed = this.deleteNestedPaths(settings.folderBackgroundColors, folderPath) || changed;
             changed = this.deleteNestedPaths(settings.folderIcons, folderPath) || changed;
             changed = this.deleteNestedPaths(settings.folderSortOverrides, folderPath) || changed;
+            changed = this.deleteNestedPaths(settings.folderTreeSortOverrides, folderPath) || changed;
             changed = this.deleteNestedPaths(settings.folderAppearances, folderPath) || changed;
 
             const shortcutsChanged = this.updateShortcuts(settings, shortcut => {
@@ -266,6 +292,7 @@ export class FolderMetadataService extends BaseMetadataService {
             this.cleanupMetadata(targetSettings, 'folderBackgroundColors', validator),
             this.cleanupMetadata(targetSettings, 'folderIcons', validator),
             this.cleanupMetadata(targetSettings, 'folderSortOverrides', validator),
+            this.cleanupMetadata(targetSettings, 'folderTreeSortOverrides', validator),
             this.cleanupMetadata(targetSettings, 'folderAppearances', validator)
         ]);
 
@@ -305,6 +332,7 @@ export class FolderMetadataService extends BaseMetadataService {
             this.cleanupMetadata(targetSettings, 'folderBackgroundColors', validator),
             this.cleanupMetadata(targetSettings, 'folderIcons', validator),
             this.cleanupMetadata(targetSettings, 'folderSortOverrides', validator),
+            this.cleanupMetadata(targetSettings, 'folderTreeSortOverrides', validator),
             this.cleanupMetadata(targetSettings, 'folderAppearances', validator)
         ]);
 

@@ -19,6 +19,7 @@
 import { useEffect, useRef, useCallback, RefObject, useState } from 'react';
 import { TFile, TFolder, App, FileView } from 'obsidian';
 import { getLeafSplitLocation } from '../utils/workspaceSplit';
+import { shouldSkipNavigatorAutoReveal } from '../utils/autoRevealUtils';
 import type { ListPaneHandle } from '../components/ListPane';
 import type { NavigationPaneHandle } from '../components/NavigationPane';
 import { useExpansionState, useExpansionDispatch } from '../context/ExpansionContext';
@@ -608,7 +609,8 @@ export function useNavigatorReveal({
          * Detects if the active file has changed and triggers reveal if needed.
          * This is the single entry point for both file-open and active-leaf-change events.
          */
-        const detectActiveFileChange = (candidateFile?: TFile | null) => {
+        const detectActiveFileChange = (candidateFile?: TFile | null, options?: { ignoreNavigatorPreviewOpen?: boolean }) => {
+            const ignoreNavigatorPreviewOpen = options?.ignoreNavigatorPreviewOpen ?? false;
             // Get the currently active file view
             const view = app.workspace.getActiveViewOfType(FileView);
             const activeViewFile = view?.file instanceof TFile ? view.file : null;
@@ -655,12 +657,20 @@ export function useNavigatorReveal({
             // Skip auto-reveal when the navigator is focused and it opened the currently selected file.
             // This prevents auto-reveal from re-dispatching selection changes for navigator-initiated opens.
             const navigatorEl = document.querySelector('.nn-split-container');
-            const hasNavigatorFocus = navigatorEl && navigatorEl.contains(document.activeElement);
+            const hasNavigatorFocus = Boolean(navigatorEl && navigatorEl.contains(document.activeElement));
 
             const selectedFilePath = selectedFilePathRef.current;
             const isNavigatorOpeningSelectedFile = selectedFilePath !== null && selectedFilePath === file.path;
 
-            if (hasNavigatorFocus && isNavigatorOpeningSelectedFile && !isOpeningVersionHistory && !isOpeningInNewContext) {
+            const shouldSkipNavigatorAutoRevealForFile = shouldSkipNavigatorAutoReveal({
+                hasNavigatorFocus,
+                isOpeningVersionHistory,
+                isOpeningInNewContext,
+                isNavigatorOpeningSelectedFile,
+                ignoreNavigatorPreviewOpen
+            });
+
+            if (shouldSkipNavigatorAutoRevealForFile) {
                 return;
             }
 
@@ -678,9 +688,12 @@ export function useNavigatorReveal({
         let pendingDetectTimer: number | null = null;
         let pendingCandidateFile: TFile | null | undefined = undefined;
 
-        const scheduleDetectActiveFileChange = (candidateFile?: TFile | null) => {
+        let pendingIgnoreNavigatorPreviewOpen: boolean | undefined = undefined;
+
+        const scheduleDetectActiveFileChange = (candidateFile?: TFile | null, ignoreNavigatorPreviewOpen?: boolean) => {
             if (candidateFile !== undefined) {
                 pendingCandidateFile = candidateFile;
+                pendingIgnoreNavigatorPreviewOpen = ignoreNavigatorPreviewOpen ?? false;
             }
             if (pendingDetectTimer !== null) {
                 window.clearTimeout(pendingDetectTimer);
@@ -689,8 +702,10 @@ export function useNavigatorReveal({
             pendingDetectTimer = window.setTimeout(() => {
                 pendingDetectTimer = null;
                 const file = pendingCandidateFile;
+                const ignore = pendingIgnoreNavigatorPreviewOpen;
                 pendingCandidateFile = undefined;
-                detectActiveFileChange(file);
+                pendingIgnoreNavigatorPreviewOpen = undefined;
+                detectActiveFileChange(file, { ignoreNavigatorPreviewOpen: ignore === true });
             }, TIMEOUTS.YIELD_TO_EVENT_LOOP);
         };
 
@@ -699,7 +714,11 @@ export function useNavigatorReveal({
         };
 
         const handleFileOpen = (file: TFile | null) => {
-            scheduleDetectActiveFileChange(file);
+            // `isOpeningActiveFileInBackground` detects preview opens (`active: false`) while the open is in-flight,
+            // and for a short time after completion to cover cases where Obsidian emits `file-open` after
+            // `leaf.openFile(...)` resolves (e.g. in a later macrotask).
+            const ignoreNavigatorPreviewOpen = file instanceof TFile && commandQueue.isOpeningActiveFileInBackground(file.path);
+            scheduleDetectActiveFileChange(file, ignoreNavigatorPreviewOpen);
         };
 
         const activeLeafEventRef = app.workspace.on('active-leaf-change', handleActiveLeafChange);

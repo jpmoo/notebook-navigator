@@ -32,6 +32,7 @@ export const STRINGS_ZH_TW = {
         untagged: '無標籤',
         featureImageAlt: '特色圖片',
         unknownError: '未知錯誤',
+        clipboardWriteError: '無法寫入剪貼簿',
         updateBannerTitle: 'Notebook Navigator 有可用更新',
         updateBannerInstruction: '在設定 -> 社群外掛中更新',
         updateIndicatorLabel: '有新版本可用',
@@ -76,10 +77,6 @@ export const STRINGS_ZH_TW = {
     navigationCalendar: {
         ariaLabel: '導覽日曆',
         dailyNotesNotEnabled: '未啟用每日筆記。請在 Obsidian 設定 → 核心外掛中啟用每日筆記。',
-        promptDailyNoteTitle: {
-            title: '每日筆記標題',
-            placeholder: '輸入標題'
-        },
         createDailyNote: {
             title: '建立每日筆記',
             message: '每日筆記 {filename} 不存在。是否建立？',
@@ -164,9 +161,6 @@ export const STRINGS_ZH_TW = {
             revealInFolder: '在資料夾中定位',
             revealInFinder: '在 Finder 中顯示',
             showInExplorer: '在檔案總管中顯示',
-            copyDeepLink: '複製 Obsidian URL',
-            copyPath: '複製檔案系統路徑',
-            copyRelativePath: '複製保險庫路徑',
             renameNote: '重新命名筆記',
             deleteNote: '刪除筆記',
             deleteMultipleNotes: '刪除 {count} 個筆記',
@@ -204,8 +198,6 @@ export const STRINGS_ZH_TW = {
             newTldrawDrawing: '新建 Tldraw 繪圖',
             duplicateFolder: '複製資料夾',
             searchInFolder: '在資料夾中搜尋',
-            copyPath: '複製檔案系統路徑',
-            copyRelativePath: '複製保險庫路徑',
             createFolderNote: '建立資料夾筆記',
             detachFolderNote: '解除資料夾筆記',
             deleteFolderNote: '刪除資料夾筆記',
@@ -228,6 +220,12 @@ export const STRINGS_ZH_TW = {
         navigation: {
             addSeparator: '新增分隔線',
             removeSeparator: '移除分隔線'
+        },
+        copyPath: {
+            title: '複製路徑',
+            asObsidianUrl: '作為 Obsidian URL',
+            fromVaultFolder: '從保險庫資料夾',
+            fromSystemRoot: '從系統根目錄'
         },
         style: {
             title: '樣式',
@@ -266,6 +264,7 @@ export const STRINGS_ZH_TW = {
             showingResultsInfo: '顯示 {count} 個結果中的 50 個。輸入更多內容以縮小範圍。',
             emojiInstructions: '輸入或貼上任何表情符號作為圖示使用',
             removeIcon: '移除圖示',
+            removeFromRecents: '從最近使用中移除',
             allTabLabel: '全部'
         },
         fileIconRuleEditor: {
@@ -310,7 +309,6 @@ export const STRINGS_ZH_TW = {
             paletteCustom: '自訂',
             copyColors: '複製顏色',
             colorsCopied: '顏色已複製到剪貼簿',
-            copyClipboardError: '無法寫入剪貼簿',
             pasteColors: '貼上顏色',
             pasteClipboardError: '無法讀取剪貼簿',
             pasteInvalidFormat: '需要十六進位顏色值',
@@ -390,6 +388,14 @@ export const STRINGS_ZH_TW = {
                 dismiss: '取消'
             }
         },
+        calendarTemplate: {
+            placeholder: '搜尋範本...',
+            instructions: {
+                navigate: '導覽',
+                select: '選擇範本',
+                dismiss: '取消'
+            }
+        },
         navigationBanner: {
             placeholder: '搜尋圖片...',
             instructions: {
@@ -418,7 +424,7 @@ export const STRINGS_ZH_TW = {
             thanksText: '非常感謝您的下載，祝您使用愉快！',
             videoAlt: '安裝與精通 Notebook Navigator',
             openVideoButton: '播放影片',
-            closeButton: '稍後觀看'
+            closeButton: '以後再說'
         }
     },
 
@@ -531,8 +537,14 @@ export const STRINGS_ZH_TW = {
         open: '開啟',
         toggleLeftSidebar: '切換左側邊欄',
         openHomepage: '開啟首頁',
+        openDailyNote: '開啟每日筆記',
+        openWeeklyNote: '開啟每週筆記',
+        openMonthlyNote: '開啟每月筆記',
+        openQuarterlyNote: '開啟季度筆記',
+        openYearlyNote: '開啟每年筆記',
         revealFile: '定位檔案',
         search: '搜尋',
+        searchVaultRoot: '在保險庫根目錄搜尋',
         toggleDualPane: '切換雙窗格布局',
         toggleCalendar: '切換日曆',
         selectVaultProfile: '變更保險庫設定檔',
@@ -567,6 +579,7 @@ export const STRINGS_ZH_TW = {
     // Plugin UI
     plugin: {
         viewName: '筆記本導覽器',
+        calendarViewName: '日曆',
         ribbonTooltip: '筆記本導覽器',
         revealInNavigator: '在筆記本導覽器中定位'
     },
@@ -591,6 +604,7 @@ export const STRINGS_ZH_TW = {
             general: '一般',
             notes: '筆記',
             navigationPane: '導覽窗格',
+            calendar: '導覽日曆',
             icons: '圖示包',
             tags: '標籤',
             folders: '資料夾',
@@ -604,11 +618,14 @@ export const STRINGS_ZH_TW = {
         },
         groups: {
             general: {
+                vaultProfiles: '保險庫設定檔',
                 filtering: '篩選',
                 behavior: '行為',
+                keyboardNavigation: '鍵盤導覽',
                 view: '外觀',
                 icons: '圖示',
                 desktopAppearance: '桌面外觀',
+                mobileAppearance: '行動裝置外觀',
                 formatting: '格式'
             },
             navigation: {
@@ -634,6 +651,7 @@ export const STRINGS_ZH_TW = {
         },
         syncMode: {
             notSynced: '（未同步）',
+            disabled: '（已停用）',
             switchToSynced: '啟用同步',
             switchToLocal: '停用同步'
         },
@@ -686,8 +704,21 @@ export const STRINGS_ZH_TW = {
                     'created-desc': '建立日期（最新在頂部）',
                     'created-asc': '建立日期（最舊在頂部）',
                     'title-asc': '標題（升序）',
-                    'title-desc': '標題（降序）'
+                    'title-desc': '標題（降序）',
+                    'filename-asc': '檔案名稱（升序）',
+                    'filename-desc': '檔案名稱（降序）',
+                    'property-asc': '屬性（升序）',
+                    'property-desc': '屬性（降序）'
+                },
+                propertyOverride: {
+                    asc: '屬性 ‘{property}’（升序）',
+                    desc: '屬性 ‘{property}’（降序）'
                 }
+            },
+            propertySortKey: {
+                name: '排序屬性',
+                desc: '用於屬性排序。具有此 frontmatter 屬性的筆記首先列出，並按屬性值排序。陣列合併為單一值。',
+                placeholder: 'order'
             },
             revealFileOnListChanges: {
                 name: '列表變更時捲動到選定檔案',
@@ -812,6 +843,10 @@ export const STRINGS_ZH_TW = {
                 name: '縮放級別',
                 desc: '控制 Notebook Navigator 的整體縮放級別。'
             },
+            useFloatingToolbars: {
+                name: '在 iOS/iPadOS 上使用浮動工具列',
+                desc: '適用於 Obsidian 1.11 及更高版本。'
+            },
             startView: {
                 name: '預設啟動檢視',
                 desc: '選擇開啟 Notebook Navigator 時顯示的窗格。導覽窗格顯示捷徑、最近筆記和資料夾結構。列表窗格顯示筆記列表。',
@@ -869,6 +904,10 @@ export const STRINGS_ZH_TW = {
                 current: '目前橫幅：{path}',
                 chooseButton: '選擇圖片'
             },
+            pinNavigationBanner: {
+                name: '固定橫幅',
+                desc: '將導航橫幅固定在導航樹上方。'
+            },
             showShortcuts: {
                 name: '顯示捷徑',
                 desc: '在導覽窗格中顯示捷徑區段。'
@@ -894,9 +933,13 @@ export const STRINGS_ZH_TW = {
                 name: '將最近筆記與捷徑一起釘選',
                 desc: '釘選捷徑時包含最近筆記。'
             },
-            showCalendar: {
-                name: '顯示日曆',
-                desc: '在導覽窗格中顯示每日筆記日曆。'
+            calendarPlacement: {
+                name: '日曆位置',
+                desc: '在左側邊欄或右側邊欄中顯示。',
+                options: {
+                    leftSidebar: '左側邊欄',
+                    rightSidebar: '右側邊欄'
+                }
             },
             calendarLocale: {
                 name: '日曆語言',
@@ -905,9 +948,19 @@ export const STRINGS_ZH_TW = {
                     systemDefault: '系統預設'
                 }
             },
+            calendarWeekendDays: {
+                name: '週末',
+                desc: '以不同背景顏色顯示週末。',
+                options: {
+                    none: '無',
+                    satSun: '週六和週日',
+                    friSat: '週五和週六',
+                    thuFri: '週四和週五'
+                }
+            },
             calendarWeeksToShow: {
-                name: '顯示週數',
-                desc: '選擇日曆中顯示的週數。',
+                name: '左側邊欄顯示週數',
+                desc: '右側邊欄的日曆始終顯示完整月份。',
                 options: {
                     fullMonth: '完整月份',
                     oneWeek: '1 週',
@@ -918,9 +971,17 @@ export const STRINGS_ZH_TW = {
                 name: '醒目顯示今天日期',
                 desc: '在今天日期上顯示紅色圓圈和粗體文字。'
             },
+            calendarShowFeatureImage: {
+                name: '顯示特色圖片',
+                desc: '在日曆中顯示筆記的特色圖片。'
+            },
             calendarShowWeekNumber: {
                 name: '顯示週號',
                 desc: '在每行開頭顯示週號。'
+            },
+            calendarShowQuarter: {
+                name: '顯示季度',
+                desc: '在行事曆標題中新增季度標籤。'
             },
             calendarConfirmBeforeCreate: {
                 name: '建立前確認',
@@ -930,7 +991,7 @@ export const STRINGS_ZH_TW = {
                 name: '日記來源',
                 desc: '行事曆筆記的來源。',
                 options: {
-                    dailyNotes: '日記',
+                    dailyNotes: '日記（核心外掛）',
                     notebookNavigator: 'Notebook Navigator'
                 },
                 info: {
@@ -939,19 +1000,42 @@ export const STRINGS_ZH_TW = {
             },
             calendarCustomRootFolder: {
                 name: '根資料夾',
-                desc: '行事曆筆記的基礎資料夾。',
+                desc: '週期筆記的基礎資料夾。日期模式可以包含子資料夾。隨所選儲存庫設定檔更改。',
                 placeholder: 'Personal/Diary'
             },
-            calendarCustomFilePattern: {
-                name: '檔案模式',
-                desc: '相對於根資料夾的日期模式。支援的標記：YYYY、MM、M、DD、D。筆記可以包含選用的標題後綴。',
-                placeholder: 'YYYY/YYYYMMDD',
-                example: '目前語法如下：{path}',
-                parsingError: '模式必須包含 YYYY、MM/M 和 DD/D。支援的標記：YYYY、MM、M、DD、D。'
+            calendarTemplateFolder: {
+                name: '範本資料夾位置',
+                desc: '範本檔案選擇器顯示此資料夾中的筆記。',
+                placeholder: 'Templates'
             },
-            calendarCustomPromptForTitle: {
-                name: '提示輸入標題',
-                desc: '建立筆記時提示輸入標題。允許空標題。'
+            calendarCustomFilePattern: {
+                name: '日記',
+                desc: '使用 Moment 日期格式設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。',
+                momentDescPrefix: '使用 ',
+                momentLinkText: 'Moment 日期格式',
+                momentDescSuffix: ' 設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。',
+                placeholder: 'YYYY/YYYYMMDD',
+                example: '目前語法：{path}',
+                parsingError: '模式必須能格式化並重新解析為完整日期（年、月、日）。'
+            },
+            calendarCustomWeekPattern: {
+                name: '週記',
+                parsingError: '模式必須能格式化並重新解析為完整週（週年、週數）。'
+            },
+            calendarCustomMonthPattern: {
+                name: '月記',
+                parsingError: '模式必須能格式化並重新解析為完整月份（年、月）。'
+            },
+            calendarCustomQuarterPattern: {
+                name: '季度筆記',
+                parsingError: '模式必須能格式化並重新解析為完整季度（年、季度）。'
+            },
+            calendarCustomYearPattern: {
+                name: '年記',
+                parsingError: '模式必須能格式化並重新解析為完整年份（年）。'
+            },
+            calendarTemplateFile: {
+                current: '範本檔案：{name}'
             },
             showTooltips: {
                 name: '顯示工具提示',
@@ -984,6 +1068,22 @@ export const STRINGS_ZH_TW = {
                     cmdCtrl: 'Cmd/Ctrl 點按',
                     optionAlt: 'Option/Alt 點按'
                 }
+            },
+            enterToOpenFiles: {
+                name: '按 Enter 鍵開啟檔案',
+                desc: '僅在清單鍵盤導覽時按 Enter 鍵開啟檔案。'
+            },
+            shiftEnterOpenContext: {
+                name: 'Shift+Enter',
+                desc: '按 Shift+Enter 在新分頁、分割或視窗中開啟所選檔案。'
+            },
+            cmdEnterOpenContext: {
+                name: 'Cmd+Enter',
+                desc: '按 Cmd+Enter 在新分頁、分割或視窗中開啟所選檔案。'
+            },
+            ctrlEnterOpenContext: {
+                name: 'Ctrl+Enter',
+                desc: '按 Ctrl+Enter 在新分頁、分割或視窗中開啟所選檔案。'
             },
             excludedNotes: {
                 name: '隱藏帶有屬性的筆記（保險庫設定檔）',
@@ -1083,7 +1183,7 @@ export const STRINGS_ZH_TW = {
                 desc: '當日期、預覽和圖片被隱藏時顯示標籤。'
             },
             customPropertyType: {
-                name: '類型',
+                name: '屬性類型',
                 desc: '選擇要在檔案項目中顯示的自訂屬性。',
                 options: {
                     frontmatter: '前置中繼資料屬性',
@@ -1096,10 +1196,15 @@ export const STRINGS_ZH_TW = {
                 desc: '以逗號分隔的前置中繼資料屬性清單，用於顯示為標籤。清單值屬性每個值顯示一個標籤。[[wikilink]] 格式的值會顯示為可點擊連結。',
                 placeholder: 'status, type, category'
             },
-            customPropertyColorFields: {
-                name: '顏色屬性',
-                desc: '以逗號分隔的前置中繼資料屬性清單，用於標籤顏色。顏色屬性按位置與顯示屬性配對。清單值屬性按索引配對顏色。值可以是標籤名稱或 CSS 顏色。',
-                placeholder: 'statusColor, typeColor, categoryColor'
+            showCustomPropertiesOnSeparateRows: {
+                name: '在個別行中顯示屬性',
+                desc: '將每個屬性顯示在個別行中。'
+            },
+            customPropertyColorMap: {
+                name: '屬性顏色',
+                desc: '將前置資料屬性對應到徽章顏色。每行一個對應：屬性=顏色',
+                placeholder: '# 屬性=顏色\nstatus=#ff0000\ntype=#00ff00',
+                editTooltip: '編輯對應'
             },
             showCustomPropertyInCompactMode: {
                 name: '在精簡模式中顯示自訂屬性',
@@ -1110,14 +1215,16 @@ export const STRINGS_ZH_TW = {
                 desc: '用於顯示日期的格式（使用 date-fns 格式）。',
                 placeholder: 'yyyy年M月d日',
                 help: '常用格式：\nyyyy年M月d日 = 2022年5月25日\nyyyy-MM-dd = 2022-05-25\nMM/dd/yyyy = 05/25/2022\n\n標記：\nyyyy/yy = 年\nMMMM/MMM/MM/M = 月\ndd/d = 日\nEEEE/EEE = 星期',
-                helpTooltip: '點按查看格式參考'
+                helpTooltip: '使用 date-fns 格式',
+                dateFnsLinkText: 'date-fns 格式'
             },
             timeFormat: {
                 name: '時間格式',
                 desc: '用於顯示時間的格式（使用 date-fns 格式）。',
                 placeholder: 'HH:mm',
                 help: '常用格式：\nHH:mm = 14:30（24小時制）\nh:mm a = 2:30 PM（12小時制）\nHH:mm:ss = 14:30:45\nh:mm:ss a = 2:30:45 PM\n\n標記：\nHH/H = 24小時制\nhh/h = 12小時制\nmm = 分鐘\nss = 秒\na = 上午/下午',
-                helpTooltip: '點按查看格式參考'
+                helpTooltip: '使用 date-fns 格式',
+                dateFnsLinkText: 'date-fns 格式'
             },
             showFilePreview: {
                 name: '顯示筆記預覽',
@@ -1195,6 +1302,14 @@ export const STRINGS_ZH_TW = {
                 name: '繼承資料夾顏色',
                 desc: '子資料夾從父資料夾繼承顏色。'
             },
+            folderSortOrder: {
+                name: '資料夾排序方式',
+                desc: '右鍵點擊任意資料夾，可為其子項目設定不同的排序方式。',
+                options: {
+                    alphaAsc: 'A 到 Z',
+                    alphaDesc: 'Z 到 A'
+                }
+            },
             showNoteCount: {
                 name: '顯示筆記數',
                 desc: '在每個資料夾和標籤旁顯示筆記數量。'
@@ -1259,12 +1374,13 @@ export const STRINGS_ZH_TW = {
             },
             tagSortOrder: {
                 name: '標籤排序方式',
-                desc: '選擇導覽窗格中的標籤排序順序。',
+                desc: '右鍵點擊任意標籤，可為其子項目設定不同的排序方式。',
                 options: {
                     alphaAsc: 'A 到 Z',
                     alphaDesc: 'Z 到 A',
-                    frequencyAsc: '頻率（從低到高）',
-                    frequencyDesc: '頻率（從高到低）'
+                    frequency: '頻率',
+                    lowToHigh: '從低到高',
+                    highToLow: '從高到低'
                 }
             },
             showAllTagsFolder: {
@@ -1416,7 +1532,8 @@ export const STRINGS_ZH_TW = {
             frontmatterDateFormat: {
                 name: '時間戳記格式',
                 desc: '用於解析前置中時間戳記的格式。留空使用 ISO 8601 格式',
-                helpTooltip: '查看 date-fns 格式文件',
+                helpTooltip: '使用 date-fns 格式',
+                dateFnsLinkText: 'date-fns 格式',
                 help: "常用格式:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {

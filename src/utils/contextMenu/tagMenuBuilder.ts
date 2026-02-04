@@ -23,7 +23,7 @@ import { cleanupTagPatterns, createHiddenTagMatcher, matchesHiddenTagPattern } f
 import { ItemType, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../../types';
 import { normalizeTagPath } from '../tagUtils';
 import { resetHiddenToggleIfNoSources } from '../exclusionUtils';
-import { setAsyncOnClick } from './menuAsyncHelpers';
+import { setAsyncOnClick, tryCreateSubmenu } from './menuAsyncHelpers';
 import { addShortcutRenameMenuItem } from './shortcutRenameMenuItem';
 import { addStyleMenu } from './styleMenuBuilder';
 import { resolveUXIconForMenu } from '../uxIcons';
@@ -78,6 +78,67 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
             modal.open();
         });
     });
+
+    // Child tag sort order
+    if (typeof MenuItem.prototype.setSubmenu === 'function') {
+        menu.addItem((item: MenuItem) => {
+            const currentOverride = metadataService.getTagChildSortOrderOverride(tagPath);
+            const effectiveOrder = currentOverride ?? settings.tagSortOrder;
+            const sortIcon = currentOverride
+                ? effectiveOrder.endsWith('-desc')
+                    ? 'lucide-sort-desc'
+                    : 'lucide-sort-asc'
+                : 'lucide-sliders-horizontal';
+
+            const sortOrderSubmenu = tryCreateSubmenu(item);
+            if (!sortOrderSubmenu) {
+                item.setTitle(strings.paneHeader.changeSortOrder).setIcon(sortIcon).setDisabled(true);
+                return;
+            }
+
+            const globalDefaultLabel = (() => {
+                switch (settings.tagSortOrder) {
+                    case 'alpha-desc':
+                        return strings.settings.items.tagSortOrder.options.alphaDesc;
+                    case 'frequency-asc':
+                        return strings.settings.items.tagSortOrder.options.lowToHigh;
+                    case 'frequency-desc':
+                        return strings.settings.items.tagSortOrder.options.highToLow;
+                    case 'alpha-asc':
+                    default:
+                        return strings.settings.items.tagSortOrder.options.alphaAsc;
+                }
+            })();
+
+            item.setTitle(strings.paneHeader.changeSortOrder).setIcon(sortIcon);
+
+            sortOrderSubmenu.addItem(subItem => {
+                subItem.setTitle(`${strings.folderAppearance.defaultLabel} (${globalDefaultLabel})`).setChecked(!currentOverride);
+                setAsyncOnClick(subItem, async () => {
+                    await metadataService.removeTagChildSortOrderOverride(tagPath);
+                    app.workspace.requestSaveLayout();
+                });
+            });
+
+            sortOrderSubmenu.addSeparator();
+
+            sortOrderSubmenu.addItem(subItem => {
+                subItem.setTitle(strings.settings.items.tagSortOrder.options.alphaAsc).setChecked(currentOverride === 'alpha-asc');
+                setAsyncOnClick(subItem, async () => {
+                    await metadataService.setTagChildSortOrderOverride(tagPath, 'alpha-asc');
+                    app.workspace.requestSaveLayout();
+                });
+            });
+
+            sortOrderSubmenu.addItem(subItem => {
+                subItem.setTitle(strings.settings.items.tagSortOrder.options.alphaDesc).setChecked(currentOverride === 'alpha-desc');
+                setAsyncOnClick(subItem, async () => {
+                    await metadataService.setTagChildSortOrderOverride(tagPath, 'alpha-desc');
+                    app.workspace.requestSaveLayout();
+                });
+            });
+        });
+    }
 
     // These include inherited values; direct settings entries are used to decide which "remove" actions to show.
     const tagIcon = metadataService.getTagIcon(tagPath);

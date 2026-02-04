@@ -19,7 +19,7 @@
 // src/components/NotebookNavigatorComponent.tsx
 import React, { useEffect, useImperativeHandle, forwardRef, useRef, useState, useCallback, useLayoutEffect } from 'react';
 import { TFile, TFolder } from 'obsidian';
-import { useSelectionState, useSelectionDispatch } from '../context/SelectionContext';
+import { useSelectionState, useSelectionDispatch, resolvePrimarySelectedFile } from '../context/SelectionContext';
 import { useServices } from '../context/ServicesContext';
 import { useSettingsState } from '../context/SettingsContext';
 import { useUIState, useUIDispatch } from '../context/UIStateContext';
@@ -54,6 +54,7 @@ import { ListPane } from './ListPane';
 import type { ListPaneHandle } from './ListPane';
 import { NavigationPane } from './NavigationPane';
 import type { NavigationPaneHandle } from './NavigationPane';
+import { NavigationPaneCalendar } from './NavigationPaneCalendar';
 import type { SearchShortcut } from '../types/shortcuts';
 import { UpdateNoticeBanner } from './UpdateNoticeBanner';
 import { UpdateNoticeIndicator } from './UpdateNoticeIndicator';
@@ -170,8 +171,10 @@ export const NotebookNavigatorComponent = React.memo(
         // Tracks tag-related search tokens for highlighting tags in navigation pane
         const [searchTagFilters, setSearchTagFilters] = useState<SearchTagFilterState>(EMPTY_SEARCH_TAG_FILTER_STATE);
         const [isPaneTransitioning, setIsPaneTransitioning] = useState(false);
+        const [suppressPaneTransitions, setSuppressPaneTransitions] = useState(false);
         const navigationPaneRef = useRef<NavigationPaneHandle>(null);
         const listPaneRef = useRef<ListPaneHandle>(null);
+        const lastDualPaneRef = useRef(uiState.dualPane);
 
         // Updates search tag filters only when values actually change to avoid unnecessary re-renders
         const handleSearchTokensChange = useCallback((next: SearchTagFilterState) => {
@@ -260,7 +263,10 @@ export const NotebookNavigatorComponent = React.memo(
         const preferredSinglePaneView = useRef<'navigation' | 'files'>(settings.startView === 'navigation' ? 'navigation' : 'files');
 
         // Switch to preferred view when entering single pane (desktop only)
-        useEffect(() => {
+        useLayoutEffect(() => {
+            const wasDualPane = lastDualPaneRef.current;
+            lastDualPaneRef.current = uiState.dualPane;
+
             if (isMobile) {
                 return;
             }
@@ -275,8 +281,20 @@ export const NotebookNavigatorComponent = React.memo(
             }
 
             hasInitializedSinglePane.current = true;
-            const preferredView = preferredSinglePaneView.current;
 
+            if (wasDualPane) {
+                setSuppressPaneTransitions(true);
+                const raf = window.requestAnimationFrame(() => {
+                    setSuppressPaneTransitions(false);
+                });
+                uiDispatch({ type: 'SET_SINGLE_PANE_VIEW', view: 'files' });
+                uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'files' });
+                return () => {
+                    window.cancelAnimationFrame(raf);
+                };
+            }
+
+            const preferredView = preferredSinglePaneView.current;
             uiDispatch({ type: 'SET_SINGLE_PANE_VIEW', view: preferredView });
             uiDispatch({ type: 'SET_FOCUSED_PANE', pane: preferredView });
         }, [isMobile, uiDispatch, uiState.dualPane]);
@@ -439,6 +457,74 @@ export const NotebookNavigatorComponent = React.memo(
                 revealFileInNearestFolder(file, { source: 'shortcut' });
             },
             [revealFileInNearestFolder]
+        );
+
+        const ensureSelectedNavigationItemVisible = useCallback(() => {
+            const selectedPath = getSelectedPath(selectionState);
+            if (!selectedPath) {
+                return;
+            }
+
+            const itemType = selectionState.selectionType === ItemType.TAG ? ItemType.TAG : ItemType.FOLDER;
+            const normalizedPath = normalizeNavigationPath(itemType, selectedPath);
+            navigationPaneRef.current?.requestScroll(normalizedPath, {
+                align: 'auto',
+                itemType
+            });
+        }, [selectionState]);
+
+        const ensureSelectedFileVisible = useCallback(() => {
+            const handle = listPaneRef.current;
+            if (!handle) {
+                return;
+            }
+
+            const selectedFile = resolvePrimarySelectedFile(app, selectionState);
+            if (!selectedFile) {
+                return;
+            }
+
+            const index = handle.getIndexOfPath(selectedFile.path);
+            if (index < 0) {
+                return;
+            }
+
+            handle.virtualizer?.scrollToIndex(index, { align: 'auto' });
+        }, [app, selectionState]);
+
+        const scheduleEnsureSelectionsVisible = useCallback(() => {
+            const scheduleScroll = () => {
+                ensureSelectedNavigationItemVisible();
+                ensureSelectedFileVisible();
+            };
+
+            if (typeof requestAnimationFrame !== 'undefined') {
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(scheduleScroll);
+                });
+                return;
+            }
+
+            setTimeout(scheduleScroll, 0);
+        }, [ensureSelectedFileVisible, ensureSelectedNavigationItemVisible]);
+
+        const prevSinglePaneCalendarWeekCountRef = useRef<number | null>(null);
+        const handleSinglePaneCalendarWeekCountChange = useCallback(
+            (count: number) => {
+                if (!uiState.singlePane) {
+                    return;
+                }
+
+                const prevCount = prevSinglePaneCalendarWeekCountRef.current;
+                prevSinglePaneCalendarWeekCountRef.current = count;
+
+                if (prevCount === count) {
+                    return;
+                }
+
+                scheduleEnsureSelectionsVisible();
+            },
+            [scheduleEnsureSelectionsVisible, uiState.singlePane]
         );
 
         // Expose methods via ref
@@ -725,15 +811,7 @@ export const NotebookNavigatorComponent = React.memo(
                     handleExpandCollapseAll();
                     // Request scroll to selected item after collapse/expand
                     requestAnimationFrame(() => {
-                        const selectedPath = getSelectedPath(selectionState);
-                        if (selectedPath && navigationPaneRef.current) {
-                            const itemType = selectionState.selectionType === ItemType.TAG ? ItemType.TAG : ItemType.FOLDER;
-                            const normalizedPath = normalizeNavigationPath(itemType, selectedPath);
-                            navigationPaneRef.current.requestScroll(normalizedPath, {
-                                align: 'auto',
-                                itemType
-                            });
-                        }
+                        ensureSelectedNavigationItemVisible();
                     });
                 }
             };
@@ -756,6 +834,7 @@ export const NotebookNavigatorComponent = React.memo(
             focusNavigationPaneCallback,
             tagOperations,
             handleExpandCollapseAll,
+            ensureSelectedNavigationItemVisible,
             navigationPaneRef,
             addFolderShortcut,
             addNoteShortcut,
@@ -778,6 +857,9 @@ export const NotebookNavigatorComponent = React.memo(
         } else {
             containerClasses.push('nn-dual-pane');
             containerClasses.push(`nn-orientation-${orientation}`);
+        }
+        if (uiState.singlePane && suppressPaneTransitions) {
+            containerClasses.push('nn-suppress-pane-transitions');
         }
         if (uiState.singlePane && isPaneTransitioning) {
             containerClasses.push('nn-pane-transitioning');
@@ -875,6 +957,9 @@ export const NotebookNavigatorComponent = React.memo(
               ? { width: '100%', flexBasis: `${paneSize}px`, minHeight: `${navigationPaneMinSize}px` }
               : { width: `${paneSize}px`, height: '100%' };
 
+        const shouldRenderSinglePaneCalendar =
+            uiState.singlePane && uxPreferences.showCalendar && settings.calendarPlacement === 'left-sidebar';
+
         return (
             <div className="nn-scale-wrapper" data-ui-scale={scaleWrapperDataAttr} style={scaleWrapperStyle}>
                 <div
@@ -921,6 +1006,11 @@ export const NotebookNavigatorComponent = React.memo(
                         onSearchTokensChange={handleSearchTokensChange}
                         resizeHandleProps={!uiState.singlePane ? resizeHandleProps : undefined}
                     />
+                    {shouldRenderSinglePaneCalendar ? (
+                        <div className="nn-single-pane-calendar">
+                            <NavigationPaneCalendar layout="panel" onWeekCountChange={handleSinglePaneCalendarWeekCountChange} />
+                        </div>
+                    ) : null}
                 </div>
             </div>
         );

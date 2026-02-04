@@ -16,21 +16,51 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/*
- * Notebook Navigator - Plugin for Obsidian
- */
-
 import { TFile, TFolder } from 'obsidian';
 import type NotebookNavigatorPlugin from '../../main';
 import { strings } from '../../i18n';
+import { getIconService } from '../icons';
 import { runAsyncAction } from '../../utils/async';
 import { NOTEBOOK_NAVIGATOR_ICON_ID } from '../../constants/notebookNavigatorIcon';
 import { removeHiddenFolderExactMatches, updateHiddenFolderExactMatches } from '../../utils/vaultProfiles';
+import {
+    invalidateVaultIconSvgCache,
+    isVaultIconFile,
+    isVaultIconPath,
+    updateVaultIconListCacheForCreate,
+    updateVaultIconListCacheForDelete,
+    updateVaultIconListCacheForRename
+} from '../icons/providers/VaultIconProvider';
 
 /**
  * Registers all workspace-related event listeners for the plugin
  */
 export default function registerWorkspaceEvents(plugin: NotebookNavigatorPlugin): void {
+    const iconService = getIconService();
+    let iconAssetNotifyTimer: number | null = null;
+    const scheduleIconAssetsChanged = (): void => {
+        if (iconAssetNotifyTimer !== null) {
+            return;
+        }
+
+        if (typeof window === 'undefined') {
+            iconService.notifyIconAssetsChanged();
+            return;
+        }
+
+        iconAssetNotifyTimer = window.setTimeout(() => {
+            iconAssetNotifyTimer = null;
+            iconService.notifyIconAssetsChanged();
+        }, 50);
+    };
+
+    plugin.register(() => {
+        if (iconAssetNotifyTimer !== null && typeof window !== 'undefined') {
+            window.clearTimeout(iconAssetNotifyTimer);
+        }
+        iconAssetNotifyTimer = null;
+    });
+
     const syncHiddenFolderRename = async (previousPath: string, nextPath: string): Promise<void> => {
         const updated = updateHiddenFolderExactMatches(plugin.settings, previousPath, nextPath);
         if (!updated) {
@@ -141,6 +171,14 @@ export default function registerWorkspaceEvents(plugin: NotebookNavigatorPlugin)
                     return;
                 }
 
+                const didTouchVaultIcon = isVaultIconPath(oldPath) || isVaultIconPath(file.path);
+                if (didTouchVaultIcon) {
+                    updateVaultIconListCacheForRename(file, oldPath);
+                    invalidateVaultIconSvgCache(oldPath);
+                    invalidateVaultIconSvgCache(file.path);
+                    scheduleIconAssetsChanged();
+                }
+
                 // Update recent notes history with new path
                 plugin.recentNotesService?.renameEntry(oldPath, file.path);
                 await plugin.metadataService?.handleFileRename(oldPath, file.path);
@@ -162,6 +200,43 @@ export default function registerWorkspaceEvents(plugin: NotebookNavigatorPlugin)
 
                 // Notify selection context to update stored file paths
                 plugin.notifyFileRenameListeners(oldPath, file.path);
+            });
+        })
+    );
+
+    // Handle new files
+    plugin.registerEvent(
+        plugin.app.vault.on('create', file => {
+            runAsyncAction(async () => {
+                if (plugin.isShuttingDown()) {
+                    return;
+                }
+
+                if (!(file instanceof TFile) || !isVaultIconFile(file)) {
+                    return;
+                }
+
+                updateVaultIconListCacheForCreate(file);
+                invalidateVaultIconSvgCache(file.path);
+                scheduleIconAssetsChanged();
+            });
+        })
+    );
+
+    // Handle icon file content changes
+    plugin.registerEvent(
+        plugin.app.vault.on('modify', file => {
+            runAsyncAction(async () => {
+                if (plugin.isShuttingDown()) {
+                    return;
+                }
+
+                if (!(file instanceof TFile) || !isVaultIconFile(file)) {
+                    return;
+                }
+
+                invalidateVaultIconSvgCache(file.path);
+                scheduleIconAssetsChanged();
             });
         })
     );
@@ -189,6 +264,12 @@ export default function registerWorkspaceEvents(plugin: NotebookNavigatorPlugin)
                 plugin.recentNotesService?.removeEntry(file.path);
                 if (plugin.metadataService) {
                     await plugin.metadataService.handleFileDelete(file.path);
+                }
+
+                if (isVaultIconFile(file)) {
+                    updateVaultIconListCacheForDelete(file.path);
+                    invalidateVaultIconSvgCache(file.path);
+                    scheduleIconAssetsChanged();
                 }
             });
         })

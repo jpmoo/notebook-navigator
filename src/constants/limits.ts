@@ -148,7 +148,7 @@ export const LIMITS = {
                      * Rationale:
                      * - Bounds memory spikes; images larger than this are skipped for feature image generation.
                      */
-                    mobile: 15_000_000,
+                    mobile: 50_000_000,
                     desktop: 50_000_000
                 },
                 external: {

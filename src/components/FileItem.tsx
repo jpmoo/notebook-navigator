@@ -67,7 +67,7 @@ import { getTooltipPlacement } from '../utils/domUtils';
 import { openFileInContext } from '../utils/openFileInContext';
 import { FILE_VISIBILITY, getExtensionSuffix, isImageFile, shouldDisplayFile } from '../utils/fileTypeUtils';
 import { resolveFileDragIconId, resolveFileIconId } from '../utils/fileIconUtils';
-import { getDateField, naturalCompare } from '../utils/sortUtils';
+import { getDateField, isAlphabeticalSortOption, naturalCompare } from '../utils/sortUtils';
 import { getCachedFileTags } from '../utils/tagUtils';
 import {
     areCustomPropertyItemsEqual,
@@ -85,6 +85,7 @@ import { openAddTagToFilesModal } from '../utils/tagModalHelpers';
 import { getTagSearchModifierOperator } from '../utils/tagUtils';
 import { resolveUXIcon } from '../utils/uxIcons';
 import type { InclusionOperator } from '../utils/filterSearch';
+import { casefold } from '../utils/recordUtils';
 import { ServiceIcon } from './ServiceIcon';
 
 const FEATURE_IMAGE_MAX_ASPECT_RATIO = 16 / 9;
@@ -640,11 +641,18 @@ export const FileItem = React.memo(function FileItem({
 
             const wikiLink = parseStrictWikiLink(rawValue);
             const label = wikiLink ? wikiLink.displayText : rawValue;
-            pills.push({ value: rawValue, label, wikiLink, color: entry.color });
+
+            // Resolve custom property colors at render time from the field key.
+            // This keeps persisted custom property items stable across style rule changes.
+            const colorKey = casefold(entry.fieldKey);
+            const mappedColor = colorKey ? (settings.customPropertyColorMap[colorKey] ?? '').trim() : '';
+            const color = mappedColor.length > 0 ? mappedColor : undefined;
+
+            pills.push({ value: rawValue, label, wikiLink, color });
         }
 
         return pills;
-    }, [appearanceSettings.customPropertyType, customProperty, wordCount]);
+    }, [appearanceSettings.customPropertyType, customProperty, settings.customPropertyColorMap, wordCount]);
 
     const customPropertyColorData = useMemo(() => {
         void settings.tagColors;
@@ -812,56 +820,87 @@ export const FileItem = React.memo(function FileItem({
             return null;
         }
 
-        const customPropertyContent = (
-            <div className="nn-file-custom-property-row">
-                {customPropertyPills.map((pill, index) => {
-                    const wikiLink = pill.wikiLink;
-                    const isLinked = Boolean(wikiLink);
-                    const className = isLinked
-                        ? 'nn-file-tag nn-file-custom-property nn-clickable-tag'
-                        : 'nn-file-tag nn-file-custom-property';
-                    const colorToken = pill.color?.trim();
-                    const resolvedColorData = colorToken && colorToken.length > 0 ? customPropertyColorData.get(colorToken) : undefined;
-                    const hasColor = Boolean(resolvedColorData?.hasColor);
-                    const hasBackground = Boolean(resolvedColorData?.hasBackground);
+        const showOnSeparateRows = appearanceSettings.customPropertyType === 'frontmatter' && settings.showCustomPropertiesOnSeparateRows;
 
-                    return (
-                        <span
-                            key={index}
-                            className={className}
-                            data-has-color={hasColor ? 'true' : undefined}
-                            data-has-background={hasBackground ? 'true' : undefined}
-                            onClick={wikiLink ? event => handleCustomPropertyWikilinkClick(event, wikiLink) : undefined}
-                            role={isLinked ? 'button' : undefined}
-                            tabIndex={isLinked ? 0 : undefined}
-                            style={resolvedColorData?.style}
-                        >
-                            {pill.label}
-                        </span>
-                    );
-                })}
-            </div>
-        );
+        const renderCustomPropertyPill = (pill: CustomPropertyPill, index: number) => {
+            const wikiLink = pill.wikiLink;
+            const isLinked = Boolean(wikiLink);
+            const className = isLinked ? 'nn-file-tag nn-file-custom-property nn-clickable-tag' : 'nn-file-tag nn-file-custom-property';
+            const colorToken = pill.color?.trim();
+            const resolvedColorData = colorToken && colorToken.length > 0 ? customPropertyColorData.get(colorToken) : undefined;
+            const hasColor = Boolean(resolvedColorData?.hasColor);
+            const hasBackground = Boolean(resolvedColorData?.hasBackground);
+
+            return (
+                <span
+                    key={index}
+                    className={className}
+                    data-has-color={hasColor ? 'true' : undefined}
+                    data-has-background={hasBackground ? 'true' : undefined}
+                    onClick={wikiLink ? event => handleCustomPropertyWikilinkClick(event, wikiLink) : undefined}
+                    role={isLinked ? 'button' : undefined}
+                    tabIndex={isLinked ? 0 : undefined}
+                    style={resolvedColorData?.style}
+                >
+                    {pill.label}
+                </span>
+            );
+        };
+
+        if (!showOnSeparateRows) {
+            const customPropertyContent = (
+                <div className="nn-file-custom-property-row">{customPropertyPills.map(renderCustomPropertyPill)}</div>
+            );
+
+            if (!shouldShowPillRowIcons) {
+                return customPropertyContent;
+            }
+
+            return (
+                <div className="nn-file-pill-row nn-file-pill-row-custom-property">
+                    <ServiceIcon
+                        iconId={customPropertyPillIconId}
+                        className="nn-file-pill-row-icon nn-file-pill-row-icon-custom-property"
+                        aria-hidden={true}
+                    />
+                    {customPropertyContent}
+                </div>
+            );
+        }
 
         if (!shouldShowPillRowIcons) {
-            return customPropertyContent;
+            return (
+                <>
+                    {customPropertyPills.map((pill, index) => (
+                        <div key={index} className="nn-file-custom-property-row">
+                            {renderCustomPropertyPill(pill, index)}
+                        </div>
+                    ))}
+                </>
+            );
         }
 
         return (
-            <div className="nn-file-pill-row nn-file-pill-row-custom-property">
-                <ServiceIcon
-                    iconId={customPropertyPillIconId}
-                    className="nn-file-pill-row-icon nn-file-pill-row-icon-custom-property"
-                    aria-hidden={true}
-                />
-                {customPropertyContent}
-            </div>
+            <>
+                {customPropertyPills.map((pill, index) => (
+                    <div key={index} className="nn-file-pill-row nn-file-pill-row-custom-property">
+                        <ServiceIcon
+                            iconId={customPropertyPillIconId}
+                            className="nn-file-pill-row-icon nn-file-pill-row-icon-custom-property"
+                            aria-hidden={true}
+                        />
+                        <div className="nn-file-custom-property-row">{renderCustomPropertyPill(pill, index)}</div>
+                    </div>
+                ))}
+            </>
         );
     }, [
         customPropertyPillIconId,
         customPropertyColorData,
         customPropertyPills,
         handleCustomPropertyWikilinkClick,
+        appearanceSettings.customPropertyType,
+        settings.showCustomPropertiesOnSeparateRows,
         shouldShowCustomProperty,
         shouldShowPillRowIcons
     ]);
@@ -872,7 +911,7 @@ export const FileItem = React.memo(function FileItem({
 
         const createdTimestamp = getFileCreatedTime(file);
         const modifiedTimestamp = getFileModifiedTime(file);
-        const isAlphabeticalSort = sortOption.startsWith('title');
+        const isAlphabeticalSort = isAlphabeticalSortOption(sortOption);
         const alphabeticalMode = settings.alphabeticalDateMode ?? 'modified';
 
         // Determine which date to show based on sort option and user preference
@@ -941,6 +980,9 @@ export const FileItem = React.memo(function FileItem({
     const shouldUseMultiLinePreviewLayout = !pinnedItemShouldUseCompactLayout && appearanceSettings.previewRows >= 2;
     const shouldCollapseEmptyPreviewSpace = heightOptimizationEnabled && !hasPreviewContent && !showFeatureImageArea; // Optimization: compact layout for empty preview
     const shouldAlwaysReservePreviewSpace = heightOptimizationDisabled || hasPreviewContent || showFeatureImageArea; // Show full layout when not optimizing OR has content
+    const hasVisiblePillRows = shouldShowFileTags || shouldShowCustomProperty;
+    const shouldSuppressEmptyPreviewLines = !hasPreviewContent && hasVisiblePillRows;
+    const shouldShowSingleLineSecondLine = settings.showFileDate || (settings.showFilePreview && !shouldSuppressEmptyPreviewLines);
 
     // Determine parent folder display metadata
     const parentFolderSource = file.parent;
@@ -1592,14 +1634,16 @@ export const FileItem = React.memo(function FileItem({
                                 {shouldUseSingleLineForDateAndPreview && (
                                     <>
                                         {/* Date + Preview on same line */}
-                                        <div className="nn-file-second-line">
-                                            {settings.showFileDate && <div className="nn-file-date">{displayDate}</div>}
-                                            {settings.showFilePreview && (
-                                                <div className="nn-file-preview" style={{ '--preview-rows': 1 } as React.CSSProperties}>
-                                                    {highlightedPreview}
-                                                </div>
-                                            )}
-                                        </div>
+                                        {shouldShowSingleLineSecondLine ? (
+                                            <div className="nn-file-second-line">
+                                                {settings.showFileDate && <div className="nn-file-date">{displayDate}</div>}
+                                                {settings.showFilePreview && !shouldSuppressEmptyPreviewLines && (
+                                                    <div className="nn-file-preview" style={{ '--preview-rows': 1 } as React.CSSProperties}>
+                                                        {highlightedPreview}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : null}
 
                                         {/* Pills */}
                                         {renderCustomProperty()}
@@ -1637,7 +1681,7 @@ export const FileItem = React.memo(function FileItem({
                                         {shouldAlwaysReservePreviewSpace && (
                                             <>
                                                 {/* Multi-row preview - show preview text spanning multiple rows */}
-                                                {settings.showFilePreview && (
+                                                {settings.showFilePreview && !shouldSuppressEmptyPreviewLines && (
                                                     <div
                                                         className="nn-file-preview"
                                                         style={{ '--preview-rows': appearanceSettings.previewRows } as React.CSSProperties}

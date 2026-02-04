@@ -32,6 +32,7 @@ export const STRINGS_JA = {
         untagged: 'タグなし', // Label for notes without any tags (English: Untagged)
         featureImageAlt: 'アイキャッチ画像', // Alt text for thumbnail/preview images (English: Feature image)
         unknownError: '不明なエラー', // Generic fallback when an error has no message (English: Unknown error)
+        clipboardWriteError: 'クリップボードに書き込めませんでした',
         updateBannerTitle: 'Notebook Navigator の更新があります',
         updateBannerInstruction: '設定 -> コミュニティプラグイン で更新',
         updateIndicatorLabel: '新しいバージョンがあります',
@@ -76,10 +77,6 @@ export const STRINGS_JA = {
     navigationCalendar: {
         ariaLabel: 'カレンダー',
         dailyNotesNotEnabled: 'デイリーノートプラグインが有効になっていません。',
-        promptDailyNoteTitle: {
-            title: 'デイリーノートのタイトル',
-            placeholder: 'タイトルを入力'
-        },
         createDailyNote: {
             title: '新規デイリーノート',
             message: 'ファイル {filename} は存在しません。作成しますか？',
@@ -164,9 +161,6 @@ export const STRINGS_JA = {
             revealInFolder: 'フォルダで表示',
             revealInFinder: 'Finderで表示',
             showInExplorer: 'システムエクスプローラーで表示',
-            copyDeepLink: 'Obsidian URL をコピー',
-            copyPath: 'ファイルシステムパスをコピー',
-            copyRelativePath: 'Vaultパスをコピー',
             renameNote: 'ノートの名前を変更',
             deleteNote: 'ノートを削除',
             deleteMultipleNotes: '{count}個のノートを削除',
@@ -204,8 +198,6 @@ export const STRINGS_JA = {
             newTldrawDrawing: '新規 Tldraw 図面',
             duplicateFolder: 'フォルダを複製',
             searchInFolder: 'フォルダ内を検索',
-            copyPath: 'ファイルシステムパスをコピー',
-            copyRelativePath: 'Vaultパスをコピー',
             createFolderNote: 'フォルダノートを作成',
             detachFolderNote: 'フォルダノートを解除',
             deleteFolderNote: 'フォルダーノートを削除',
@@ -228,6 +220,12 @@ export const STRINGS_JA = {
         navigation: {
             addSeparator: '区切り線を追加',
             removeSeparator: '区切り線を削除'
+        },
+        copyPath: {
+            title: 'パスをコピー',
+            asObsidianUrl: 'Obsidian URL として',
+            fromVaultFolder: 'Vault フォルダから',
+            fromSystemRoot: 'システムルートから'
         },
         style: {
             title: 'スタイル',
@@ -266,6 +264,7 @@ export const STRINGS_JA = {
             showingResultsInfo: '{count}件中50件を表示中。絞り込むには続けて入力してください。',
             emojiInstructions: '絵文字を入力または貼り付けてアイコンとして使用',
             removeIcon: 'アイコンを削除',
+            removeFromRecents: '最近使用したアイコンから削除',
             allTabLabel: 'すべて'
         },
         fileIconRuleEditor: {
@@ -310,7 +309,6 @@ export const STRINGS_JA = {
             paletteCustom: 'カスタム',
             copyColors: '色をコピー',
             colorsCopied: 'クリップボードにコピーしました',
-            copyClipboardError: 'クリップボードに書き込めませんでした',
             pasteColors: '色を貼り付け',
             pasteClipboardError: 'クリップボードを読み取れませんでした',
             pasteInvalidFormat: '16進数の色の値が必要です',
@@ -390,6 +388,14 @@ export const STRINGS_JA = {
                 dismiss: 'でキャンセル'
             }
         },
+        calendarTemplate: {
+            placeholder: 'テンプレートを検索...',
+            instructions: {
+                navigate: 'でナビゲート',
+                select: 'でテンプレートを選択',
+                dismiss: 'でキャンセル'
+            }
+        },
         navigationBanner: {
             placeholder: '画像を検索...',
             instructions: {
@@ -420,7 +426,7 @@ export const STRINGS_JA = {
             thanksText: 'ダウンロードいただきありがとうございます。お楽しみください！',
             videoAlt: 'Notebook Navigatorのインストールとマスター',
             openVideoButton: 'ビデオを再生',
-            closeButton: 'あとで見る'
+            closeButton: 'また今度'
         }
     },
 
@@ -533,8 +539,14 @@ export const STRINGS_JA = {
         open: '開く', // Command palette: Opens the Notebook Navigator view (English: Open)
         toggleLeftSidebar: '左サイドバーの切り替え', // Command palette: Toggles left sidebar, opening Notebook Navigator when uncollapsing (English: Toggle left sidebar)
         openHomepage: 'ホームページを開く', // Command palette: Opens the Notebook Navigator view and loads the homepage file (English: Open homepage)
+        openDailyNote: 'デイリーノートを開く',
+        openWeeklyNote: 'ウィークリーノートを開く',
+        openMonthlyNote: 'マンスリーノートを開く',
+        openQuarterlyNote: '四半期ノートを開く',
+        openYearlyNote: '年間ノートを開く',
         revealFile: 'ファイルを表示', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: '検索', // Command palette: Toggle search in the file list (English: Search)
+        searchVaultRoot: '保管庫のルートで検索', // Command palette: Selects the vault root folder and focuses search (English: Search in vault root)
         toggleDualPane: 'デュアルペインレイアウトを切り替え', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleCalendar: 'カレンダーの切り替え', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
         selectVaultProfile: '保管庫のプロファイルを変更', // Command palette: Opens a modal to choose a different vault profile (English: Switch vault profile)
@@ -569,6 +581,7 @@ export const STRINGS_JA = {
     // Plugin UI
     plugin: {
         viewName: 'ノートブックナビゲーター', // Name shown in the view header/tab (English: Notebook Navigator)
+        calendarViewName: 'カレンダー', // Name shown in the view header/tab (English: Calendar)
         ribbonTooltip: 'ノートブックナビゲーター', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'ノートブックナビゲーターで表示' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
@@ -593,6 +606,7 @@ export const STRINGS_JA = {
             general: '一般設定',
             notes: 'ノート表示',
             navigationPane: 'フォルダ表示',
+            calendar: 'カレンダー',
             icons: 'アイコンパック',
             tags: 'タグ表示',
             folders: 'フォルダノート',
@@ -606,11 +620,14 @@ export const STRINGS_JA = {
         },
         groups: {
             general: {
+                vaultProfiles: '保管庫プロファイル',
                 filtering: 'フィルター',
                 behavior: '動作',
+                keyboardNavigation: 'キーボード操作',
                 view: '外観',
                 icons: 'アイコン',
                 desktopAppearance: 'デスクトップの外観',
+                mobileAppearance: 'モバイルの外観',
                 formatting: '書式'
             },
             navigation: {
@@ -636,6 +653,7 @@ export const STRINGS_JA = {
         },
         syncMode: {
             notSynced: '（未同期）',
+            disabled: '（無効）',
             switchToSynced: '同期を有効化',
             switchToLocal: '同期を無効化'
         },
@@ -689,8 +707,21 @@ export const STRINGS_JA = {
                     'created-desc': '作成日時（新しいものが上）',
                     'created-asc': '作成日時（古いものが上）',
                     'title-asc': 'タイトル（昇順）',
-                    'title-desc': 'タイトル（降順）'
+                    'title-desc': 'タイトル（降順）',
+                    'filename-asc': 'ファイル名（昇順）',
+                    'filename-desc': 'ファイル名（降順）',
+                    'property-asc': 'プロパティ（昇順）',
+                    'property-desc': 'プロパティ（降順）'
+                },
+                propertyOverride: {
+                    asc: 'プロパティ ‘{property}’（昇順）',
+                    desc: 'プロパティ ‘{property}’（降順）'
                 }
+            },
+            propertySortKey: {
+                name: 'ソートプロパティ',
+                desc: 'プロパティソートで使用されます。このfrontmatterプロパティを持つノートが最初にリストされ、プロパティの値でソートされます。配列は1つの値に結合されます。',
+                placeholder: 'order'
             },
             revealFileOnListChanges: {
                 name: 'リスト変更時に選択ファイルへスクロール',
@@ -815,6 +846,10 @@ export const STRINGS_JA = {
                 name: 'ズームレベル',
                 desc: 'Notebook Navigator 全体のズームレベルを制御します。'
             },
+            useFloatingToolbars: {
+                name: 'iOS/iPadOSでフローティングツールバーを使用',
+                desc: 'Obsidian 1.11以降に適用されます。'
+            },
             startView: {
                 name: 'デフォルト起動ビュー',
                 desc: 'Notebook Navigator を開いたときに表示するペインを選択します。ナビゲーションペインはショートカット、最近のノート、フォルダ構造を表示します。リストペインはノート一覧を表示します。',
@@ -872,6 +907,10 @@ export const STRINGS_JA = {
                 current: '現在のバナー: {path}',
                 chooseButton: '画像を選択'
             },
+            pinNavigationBanner: {
+                name: 'バナーを固定',
+                desc: 'ナビゲーションバナーをナビゲーションツリーの上に固定します。'
+            },
             showShortcuts: {
                 name: 'ショートカットを表示',
                 desc: 'ナビゲーションペインにショートカットセクションを表示します。'
@@ -897,9 +936,13 @@ export const STRINGS_JA = {
                 name: '最近のノートをショートカットと一緒に固定',
                 desc: 'ショートカットを固定するときに最近のノートを含める。'
             },
-            showCalendar: {
-                name: 'カレンダーを表示',
-                desc: 'ナビゲーションペインの下部にカレンダーを表示します。'
+            calendarPlacement: {
+                name: 'カレンダーの配置',
+                desc: '左または右サイドバーに表示します。',
+                options: {
+                    leftSidebar: '左サイドバー',
+                    rightSidebar: '右サイドバー'
+                }
             },
             calendarLocale: {
                 name: 'ロケール',
@@ -908,9 +951,19 @@ export const STRINGS_JA = {
                     systemDefault: 'デフォルト'
                 }
             },
+            calendarWeekendDays: {
+                name: '週末',
+                desc: '週末を異なる背景色で表示します。',
+                options: {
+                    none: 'なし',
+                    satSun: '土曜日と日曜日',
+                    friSat: '金曜日と土曜日',
+                    thuFri: '木曜日と金曜日'
+                }
+            },
             calendarWeeksToShow: {
-                name: '表示週数',
-                desc: '表示するカレンダーの週数。',
+                name: '左サイドバーの表示週数',
+                desc: '右サイドバーのカレンダーは常に月全体を表示します。',
                 options: {
                     fullMonth: '月全体',
                     oneWeek: '1週間',
@@ -921,9 +974,17 @@ export const STRINGS_JA = {
                 name: '今日の日付を強調表示',
                 desc: '今日の日付に赤い円と太字のテキストを表示します。'
             },
+            calendarShowFeatureImage: {
+                name: 'アイキャッチ画像を表示',
+                desc: 'カレンダーでノートのアイキャッチ画像を表示します。'
+            },
             calendarShowWeekNumber: {
                 name: '週番号を表示',
                 desc: '週番号の列を追加します。'
+            },
+            calendarShowQuarter: {
+                name: '四半期を表示',
+                desc: 'カレンダーヘッダーに四半期ラベルを追加します。'
             },
             calendarConfirmBeforeCreate: {
                 name: '作成前に確認',
@@ -933,7 +994,7 @@ export const STRINGS_JA = {
                 name: 'デイリーノートのソース',
                 desc: 'カレンダーノートのソース。',
                 options: {
-                    dailyNotes: 'デイリーノート',
+                    dailyNotes: 'デイリーノート（コアプラグイン）',
                     notebookNavigator: 'Notebook Navigator'
                 },
                 info: {
@@ -942,19 +1003,43 @@ export const STRINGS_JA = {
             },
             calendarCustomRootFolder: {
                 name: 'ルートフォルダ',
-                desc: 'カレンダーノートの基本フォルダ。',
+                desc: '定期ノートの基本フォルダ。日付パターンにはサブフォルダを含めることができます。選択されたボールトプロファイルで変更されます。',
                 placeholder: 'Personal/Diary'
             },
-            calendarCustomFilePattern: {
-                name: 'ファイルパターン',
-                desc: 'ルートフォルダからの相対的な日付パターン。サポートされるトークン: YYYY、MM、M、DD、D。ノートにはオプションのタイトル接尾辞を含めることができます。',
-                placeholder: 'YYYY/YYYYMMDD',
-                example: '現在の構文は次のようになります: {path}',
-                parsingError: 'パターンにはYYYY、MM/M、DD/Dを含める必要があります。サポートされるトークン: YYYY、MM、M、DD、D。'
+            calendarTemplateFolder: {
+                name: 'テンプレートフォルダの場所',
+                desc: 'テンプレートファイルピッカーはこのフォルダからノートを表示します。',
+                placeholder: 'Templates'
             },
-            calendarCustomPromptForTitle: {
-                name: 'タイトルを入力',
-                desc: 'ノート作成時にタイトルを入力。空のタイトルも可。'
+            calendarCustomFilePattern: {
+                name: 'デイリーノート',
+                desc: 'Moment 日付フォーマットを使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。',
+                momentDescPrefix: '',
+                momentLinkText: 'Moment 日付フォーマット',
+                momentDescSuffix:
+                    'を使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。',
+                placeholder: 'YYYY/YYYYMMDD',
+                example: '現在の構文: {path}',
+                parsingError: 'パターンは完全な日付（年、月、日）としてフォーマットされ、再度パースできる必要があります。'
+            },
+            calendarCustomWeekPattern: {
+                name: 'ウィークリーノート',
+                parsingError: 'パターンは完全な週（週年、週番号）としてフォーマットされ、再度パースできる必要があります。'
+            },
+            calendarCustomMonthPattern: {
+                name: 'マンスリーノート',
+                parsingError: 'パターンは完全な月（年、月）としてフォーマットされ、再度パースできる必要があります。'
+            },
+            calendarCustomQuarterPattern: {
+                name: '四半期ノート',
+                parsingError: 'パターンは完全な四半期（年、四半期）としてフォーマットされ、再度パースできる必要があります。'
+            },
+            calendarCustomYearPattern: {
+                name: '年次ノート',
+                parsingError: 'パターンは完全な年（年）としてフォーマットされ、再度パースできる必要があります。'
+            },
+            calendarTemplateFile: {
+                current: 'テンプレートファイル: {name}'
             },
             showTooltips: {
                 name: 'ツールチップを表示',
@@ -987,6 +1072,22 @@ export const STRINGS_JA = {
                     cmdCtrl: 'Cmd/Ctrl クリック',
                     optionAlt: 'Option/Alt クリック'
                 }
+            },
+            enterToOpenFiles: {
+                name: 'Enterキーでファイルを開く',
+                desc: 'リストのキーボード操作中にEnterキーを押したときのみファイルを開きます。'
+            },
+            shiftEnterOpenContext: {
+                name: 'Shift+Enter',
+                desc: 'Shift+Enterで選択したファイルを新しいタブ、分割、またはウィンドウで開きます。'
+            },
+            cmdEnterOpenContext: {
+                name: 'Cmd+Enter',
+                desc: 'Cmd+Enterで選択したファイルを新しいタブ、分割、またはウィンドウで開きます。'
+            },
+            ctrlEnterOpenContext: {
+                name: 'Ctrl+Enter',
+                desc: 'Ctrl+Enterで選択したファイルを新しいタブ、分割、またはウィンドウで開きます。'
             },
             excludedNotes: {
                 name: 'プロパティ付きノートを非表示 (ボルトプロファイル)',
@@ -1088,7 +1189,7 @@ export const STRINGS_JA = {
                 desc: '日付、プレビュー、画像が非表示のときにタグを表示します。'
             },
             customPropertyType: {
-                name: 'タイプ',
+                name: 'プロパティタイプ',
                 desc: 'ファイルアイテムに表示するカスタムプロパティを選択します。',
                 options: {
                     frontmatter: 'フロントマタープロパティ',
@@ -1101,10 +1202,15 @@ export const STRINGS_JA = {
                 desc: 'バッジとして表示するフロントマタープロパティのカンマ区切りリスト。リスト値のプロパティは値ごとに1つのバッジを表示します。[[wikilink]]値はクリック可能なリンクとして表示されます。',
                 placeholder: 'ステータス, タイプ, カテゴリ'
             },
-            customPropertyColorFields: {
-                name: '色のプロパティ',
-                desc: 'バッジの色を指定するフロントマタープロパティのカンマ区切りリスト。色プロパティは位置によって表示プロパティとペアになります。リスト値のプロパティはインデックスで色をペアにします。値はタグ名またはCSSカラーが使用できます。',
-                placeholder: 'statusColor, typeColor, categoryColor'
+            showCustomPropertiesOnSeparateRows: {
+                name: 'プロパティを別の行に表示',
+                desc: '各プロパティを個別の行に表示します。'
+            },
+            customPropertyColorMap: {
+                name: 'プロパティの色',
+                desc: 'フロントマターのプロパティをバッジの色にマッピングします。1行に1つのマッピング: プロパティ=色',
+                placeholder: '# プロパティ=色\nstatus=#ff0000\ntype=#00ff00',
+                editTooltip: 'マッピングを編集'
             },
             showCustomPropertyInCompactMode: {
                 name: 'スリムモードでカスタムプロパティを表示',
@@ -1115,14 +1221,16 @@ export const STRINGS_JA = {
                 desc: '日付表示の形式（date-fns形式を使用）。',
                 placeholder: 'yyyy年M月d日',
                 help: '一般的な形式：\nyyyy年M月d日 = 2022年5月25日\nyyyy-MM-dd = 2022-05-25\nMM/dd/yyyy = 05/25/2022\n\nトークン：\nyyyy/yy = 年\nMMMM/MMM/MM/M = 月\ndd/d = 日\nEEEE/EEE = 曜日',
-                helpTooltip: 'クリックして形式リファレンスを表示'
+                helpTooltip: 'date-fns形式',
+                dateFnsLinkText: 'date-fns フォーマット'
             },
             timeFormat: {
                 name: '時刻形式',
                 desc: '時刻を表示する形式（date-fns形式を使用）。',
                 placeholder: 'HH:mm',
                 help: '一般的な形式：\nHH:mm = 14:30（24時間制）\nh:mm a = 2:30 PM（12時間制）\nHH:mm:ss = 14:30:45\nh:mm:ss a = 2:30:45 PM\n\nトークン：\nHH/H = 24時間制\nhh/h = 12時間制\nmm = 分\nss = 秒\na = AM/PM',
-                helpTooltip: 'クリックして形式リファレンスを表示'
+                helpTooltip: 'date-fns形式',
+                dateFnsLinkText: 'date-fns フォーマット'
             },
             showFilePreview: {
                 name: 'ノートプレビューを表示',
@@ -1200,6 +1308,14 @@ export const STRINGS_JA = {
                 name: 'フォルダの色を継承',
                 desc: 'サブフォルダが親フォルダから色を継承します。'
             },
+            folderSortOrder: {
+                name: 'フォルダの並び順',
+                desc: 'フォルダを右クリックして、その子要素の並び順を個別に設定できます。',
+                options: {
+                    alphaAsc: 'A から Z',
+                    alphaDesc: 'Z から A'
+                }
+            },
             showNoteCount: {
                 name: 'ノート数を表示',
                 desc: '各フォルダとタグの横にノート数を表示します。'
@@ -1264,12 +1380,13 @@ export const STRINGS_JA = {
             },
             tagSortOrder: {
                 name: 'タグの並び順',
-                desc: 'ナビゲーションペインでタグを並べ替える方法を設定します。',
+                desc: 'タグを右クリックして、その子要素の並び順を個別に設定できます。',
                 options: {
                     alphaAsc: 'A から Z',
                     alphaDesc: 'Z から A',
-                    frequencyAsc: '頻度（低→高）',
-                    frequencyDesc: '頻度（高→低）'
+                    frequency: '頻度',
+                    lowToHigh: '低→高',
+                    highToLow: '高→低'
                 }
             },
             showAllTagsFolder: {
@@ -1421,7 +1538,8 @@ export const STRINGS_JA = {
             frontmatterDateFormat: {
                 name: 'タイムスタンプ形式',
                 desc: 'フロントマター内のタイムスタンプを解析するために使用される形式。空のままにするとISO 8601形式を使用',
-                helpTooltip: 'date-fnsフォーマットのドキュメントを参照',
+                helpTooltip: 'date-fns形式',
+                dateFnsLinkText: 'date-fns フォーマット',
                 help: "一般的な形式:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {

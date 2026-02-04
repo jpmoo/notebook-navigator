@@ -1,6 +1,6 @@
 # Notebook Navigator Startup Process
 
-Updated: January 8, 2026
+Updated: January 19, 2026
 
 ## Table of Contents
 
@@ -8,6 +8,7 @@ Updated: January 8, 2026
 - [Key Concepts](#key-concepts)
   - [Cold Boot](#cold-boot)
   - [Warm Boot](#warm-boot)
+  - [Workspace Layout Restore](#workspace-layout-restore)
   - [Version System](#version-system)
 - [Startup Phases](#startup-phases)
   - [Phase 1: Plugin Registration](#phase-1-plugin-registration-maints)
@@ -18,11 +19,15 @@ Updated: January 8, 2026
 - [Critical Timing Mechanisms](#critical-timing-mechanisms)
   - [Deferred Scheduling](#deferred-scheduling)
   - [Debouncing](#debouncing)
+- [Shutdown Process](#shutdown-process)
+  - [Phase 1: Plugin Unload](#phase-1-plugin-unload-maints)
+  - [Phase 2: View Cleanup](#phase-2-view-cleanup-notebooknavigatorviewtsx)
+  - [Key Principles](#key-principles)
 
 ## Overview
 
 The Notebook Navigator plugin has a multi-phase startup process that handles data synchronization and content
-generation. The startup behavior differs between cold boots (first launch) and warm boots (subsequent launches).
+generation. The startup behavior differs between cold boots (empty/cleared cache) and warm boots (existing cache).
 
 ## Key Concepts
 
@@ -53,8 +58,18 @@ A **warm boot** occurs when:
 Characteristics:
 
 - Database already exists with cached data
-- Only changed files need processing
-- Metadata cache is typically ready immediately
+- Only changed files and files missing derived content need processing
+- Metadata cache is populated asynchronously; metadata-dependent providers wait for `metadataCache` entries
+
+### Workspace Layout Restore
+
+Obsidian can restore open tabs/leaves from the saved workspace layout.
+
+For Notebook Navigator this matters because:
+
+- On warm boots, the navigator view is often created by layout restore (not by `activateView()`).
+- On first launch, the plugin explicitly activates the view in `HomepageController.handleWorkspaceReady()` after
+  `workspace.onLayoutReady()`.
 
 ### Version System
 
@@ -76,6 +91,8 @@ The plugin uses two version numbers to manage database state:
 Both versions are stored in localStorage to detect changes between sessions.
 
 Version mismatches can result in a cold boot (empty `MemoryFileCache` + cleared stores) so providers regenerate content.
+Schema downgrades and content version changes also set a pending rebuild notice that is consumed by StorageContext to
+show progress.
 
 ## Startup Phases
 
@@ -85,40 +102,48 @@ Version mismatches can result in a cold boot (empty `MemoryFileCache` + cleared 
 
 1. Obsidian calls `Plugin.onload()`.
 2. Initialize vault-scoped localStorage (`localStorage.init`) before any database work.
-3. Initialize IndexedDB early via `initializeDatabase(appId, ...)`.
-   - Starts `db.init()` (schema check + `MemoryFileCache` hydration) before views mount.
+3. Register the plugin icon with Obsidian (`addIcon(...)`).
+4. Initialize IndexedDB early via `initializeDatabase(appId, ...)`.
+   - Starts `db.init()` (schema check + `MemoryFileCache` hydration) asynchronously before views mount.
    - Operation is idempotent to support rapid enable/disable cycles.
-4. Load settings from `data.json` and run migrations.
+   - Starts preview text warmup (`startPreviewTextWarmup`) after init.
+5. Load settings from `data.json` and run migrations.
    - Sanitize keyboard shortcuts and migrate legacy fields.
    - Apply default date/time formats and normalize folder note properties.
-   - Load dual-pane orientation and UX preferences from localStorage.
-5. Handle first-launch setup when no saved data exists.
-   - Normalize tag settings, clear vault-scoped localStorage keys, and expand the root folder.
-   - Reset dual-pane orientation and UX preferences to defaults.
-   - Record the current localStorage schema version for future migrations.
-6. Initialize recent data and UX tracking.
+   - Load UX preferences from vault-scoped localStorage.
+6. Handle first-launch setup when no saved data exists.
+   - Normalize tag settings and clear vault-scoped localStorage keys (preserving IndexedDB version markers).
+   - Re-seed per-device localStorage mirrors for sync-mode settings and UX preferences.
+   - Expand the root folder when `showRootFolder` is enabled.
+   - Persist the current localStorage version (`LOCALSTORAGE_VERSION`).
+7. Initialize recent data and UX tracking.
    - `RecentDataManager` loads persisted recent notes and icons.
    - `RecentNotesService` starts recording file-open history.
-7. Construct core services and controllers:
+8. Construct core services and controllers:
    - `WorkspaceCoordinator` and `HomepageController` manage view activation and homepage flow.
    - `MetadataService`, `TagOperations`, `TagTreeService`, and `CommandQueueService`.
    - `FileSystemOperations` wired with tag tree and visibility preferences.
    - `OmnisearchService`, `NotebookNavigatorAPI`, and `ReleaseCheckService`.
    - `ExternalIconProviderController` initializes icon providers and syncs settings.
-8. Register view, commands, settings tab, and workspace integrations.
+9. Register view, commands, settings tab, and workspace integrations.
    - `registerNavigatorCommands` wires command palette entries.
    - `registerWorkspaceEvents` adds editor context menu actions, the ribbon icon, recent-note tracking, and
      rename/delete handlers.
-9. Wait for `workspace.onLayoutReady()`.
-   - `HomepageController.handleWorkspaceReady()` activates the view on first launch and opens the configured homepage
-     when available.
+10. Wait for `workspace.onLayoutReady()`.
+   - `HomepageController.handleWorkspaceReady()` activates the view on first launch and opens the configured homepage (if set).
+   - On first launch, the Welcome modal is opened after the workspace is ready.
    - Triggers Style Settings parsing, version notice checks, and optional release polling.
 
 ### Phase 2: View Creation (NotebookNavigatorView.tsx)
 
-**Trigger**: activateView() creates the view via workspace.getLeaf()
+**Trigger**: Obsidian restores the view from workspace layout, or the plugin calls `activateView()` (commands/ribbon/menu)
 
-1. Obsidian calls onOpen() when view is created
+`activateView()` delegates to `WorkspaceCoordinator.activateNavigatorView()`:
+
+- Reveals the first existing navigator leaf (when one exists).
+- Otherwise creates a new left-sidebar leaf via `workspace.getLeftLeaf(false)` and `leaf.setViewState({ type: NOTEBOOK_NAVIGATOR_VIEW, active: true })`.
+
+1. Obsidian calls `NotebookNavigatorView.onOpen()` when the view is created/restored.
 2. React app mounts with the following context providers:
    - `SettingsProvider` (settings state and update actions)
    - `UXPreferencesProvider` (dual-pane and search preferences synced with the plugin)
@@ -129,16 +154,15 @@ Version mismatches can result in a cold boot (empty `MemoryFileCache` + cleared 
    - `ExpansionProvider` (expanded folders and tags)
    - `SelectionProvider` (selected items plus rename listeners from the plugin)
    - `UIStateProvider` (pane focus and layout mode)
-3. Container renders skeleton view while storage initializes:
-   - Shows placeholder panes with saved dimensions
-   - Provides immediate visual feedback
-   - Prevents layout shift when data loads
-4. Mobile detection adds platform-specific class and determines UI layout:
-   - Adds `notebook-navigator-mobile` and platform classes (`notebook-navigator-android`, `notebook-navigator-ios`)
-   - Android applies font scaling compensation before React renders
-   - Desktop: NavigationPaneHeader and ListPaneHeader at top of panes
-   - Mobile: NavigationToolbar and ListToolbar at bottom of panes
-   - Touch optimizations and swipe gestures enabled on mobile
+3. `NotebookNavigatorContainer` renders a skeleton until `StorageContext.isStorageReady` is true.
+4. `NotebookNavigatorView.onOpen()` adds platform classes and (on Android) applies font scaling compensation before React renders:
+   - Always adds `notebook-navigator`.
+   - Adds `notebook-navigator-mobile` and platform classes on mobile (`notebook-navigator-android`, `notebook-navigator-ios`).
+   - Adds `notebook-navigator-obsidian-1-11-plus-*` when `requireApiVersion('1.11.0')` passes.
+5. Pane chrome uses headers on all platforms and toolbars on mobile:
+   - `NavigationPaneHeader` and `ListPaneHeader` render at the top of the scroll content area.
+   - Android mobile renders `NavigationToolbar` / `ListToolbar` at the top.
+   - iOS mobile renders `NavigationToolbar` / `ListToolbar` in a bottom toolbar container.
 
 ### Phase 3: Database Version Check and Initialization
 
@@ -150,11 +174,17 @@ Version mismatches can result in a cold boot (empty `MemoryFileCache` + cleared 
 2. `IndexedDBStorage.init()` handles schema and content version checks.
    - Reads stored versions from vault-scoped localStorage.
    - Runs schema upgrades via `onupgradeneeded` and deletes the database on schema downgrades or open errors.
-   - Clears stores when version markers are missing or `DB_CONTENT_VERSION` changes.
+   - Opens the database with `skipCacheLoad=true` and clears stores when version markers are missing, `DB_CONTENT_VERSION`
+     changes, or a schema downgrade is detected.
+   - Sets a pending rebuild notice when a schema downgrade or `DB_CONTENT_VERSION` change is detected (not when keys are missing).
    - Persists the current versions back to localStorage.
 3. Database opening and cache hydration:
    - Rebuilds start with an empty `MemoryFileCache`.
    - Warm boots load all records into the cache for synchronous access.
+   - IndexedDB stores:
+     - `keyvaluepairs`: file records (`FileData`) excluding preview text and blob payloads
+     - `filePreviews`: preview text strings keyed by path (loaded on demand / warmup)
+     - `featureImageBlobs`: thumbnail blobs keyed by path (cached in an in-memory LRU)
 4. StorageContext creates a `ContentProviderRegistry` once and registers:
    - `MarkdownPipelineContentProvider` (`markdownPipeline`)
    - `FeatureImageContentProvider` (`fileThumbnails`)
@@ -192,15 +222,18 @@ tag extraction and markdown pipeline processing:
 3. Apply the diff:
    - Remove deleted paths via `removeFilesFromCache(toRemove)`.
    - Upsert new/modified files via `recordFileChanges([...toAdd, ...toUpdate], cachedFiles, pendingRenameData)`.
-     - New files use `createDefaultFileData` (provider processed mtimes set to `0`, status fields set to `unprocessed`,
-       markdown `tags` set to `null`).
+     - New files use `createDefaultFileData` (provider processed mtimes set to `0`; markdown records initialize `tags`,
+       `wordCount`, and `metadata` to `null`; `previewStatus` defaults to `unprocessed` for markdown and `none` for non-markdown).
      - Modified files patch the stored `mtime` without clearing existing provider outputs. Providers compare their
        processed mtime fields (`markdownPipelineMtime`, `tagsMtime`, `metadataMtime`, `fileThumbnailsMtime`) against
        `file.stat.mtime` to detect stale content.
 4. Rebuild tag tree via `rebuildTagTree()` (`buildTagTreeFromDatabase`).
 5. Mark storage as ready (`setIsStorageReady(true)` and `NotebookNavigatorAPI.setStorageReady(true)`).
 6. Queue content generation:
-   - Determine metadata-dependent provider types with `getMetadataDependentTypes(settings)` (`markdownPipeline`, `tags`, `metadata`).
+   - Determine metadata-dependent provider types with `getMetadataDependentTypes(settings)`:
+     - Always includes `markdownPipeline` (word count, preview/custom property/feature image pipelines).
+     - Includes `tags` when `showTags` is enabled.
+     - Includes `metadata` when frontmatter metadata is enabled or hidden-file frontmatter rules are active.
    - `queueMetadataContentWhenReady(markdownFiles, metadataDependentTypes, settings)` filters to files needing work, waits for
      Obsidian's metadata cache (`resolved` and `changed`), then queues providers in `ContentProviderRegistry`.
    - When `showFeatureImage` is enabled, queue the `fileThumbnails` provider for PDFs (filtered by `filterPdfFilesRequiringThumbnails`).
@@ -210,12 +243,14 @@ tag extraction and markdown pipeline processing:
 - Vault events debounce a cache rebuild.
 - Diff processing is deferred with a zero-delay `setTimeout` and uses the same `calculateFileDiff` + `recordFileChanges` /
   `removeFilesFromCache` flow.
+- Renames seed `MemoryFileCache` with the old record, move preview/feature-image artifacts, then schedule a diff to reconcile mtimes.
+- Metadata cache `changed` events can force regeneration (`markFilesForRegeneration`) so providers re-run even when file mtimes do not change (processed mtimes reset to `0` without clearing existing outputs).
 - When files are removed and tags are enabled, tag tree rebuild is scheduled.
 
 #### Data Flow Diagram
 
-The metadata cache gating is managed by `queueMetadataContentWhenReady()` (which uses `waitForMetadataCache`) and queues
-metadata-dependent providers once Obsidian metadata cache entries exist:
+The metadata cache gating is managed by `queueMetadataContentWhenReady()` (using `metadataCache.getFileCache(file)` plus
+`metadataCache` `resolved`/`changed` events) and queues metadata-dependent providers once cache entries exist:
 
 ```mermaid
 graph TD
@@ -232,20 +267,17 @@ graph TD
 
     F --> G[Mark storage ready<br/>notify API]
 
-    G --> H{Metadata-dependent types enabled?}
-    H -->|Yes| I[queueMetadataContentWhenReady]
-    I --> J["waitForMetadataCache<br/>(resolved/changed)"]
-    J --> K["Queue markdownPipeline/tags/metadata providers"]
-    H -->|No| L[Skip metadata gating]
+    G --> H["queueMetadataContentWhenReady<br/>(filters to files needing work)"]
+    H --> I["metadataCache gating<br/>(getFileCache, resolved/changed)"]
+    I --> J["Queue markdownPipeline/tags/metadata providers"]
 
-    G --> M{Show feature images?}
-    M -->|Yes| N[Queue fileThumbnails for PDFs]
-    M -->|No| O[Skip PDF thumbnails]
+    G --> K{Show feature images?}
+    K -->|Yes| L[Queue fileThumbnails for PDFs]
+    K -->|No| M[Skip PDF thumbnails]
 
-    K --> P[Enter Phase 5]
-    N --> P
-    L --> P
-    O --> P
+    J --> N[Enter Phase 5]
+    L --> N
+    M --> N
 ```
 
 #### Metadata Cleanup
@@ -270,6 +302,7 @@ cleanup is performed manually from settings.
 - Tag colors, icons, sort settings, and background colors for removed tags
 - Pinned notes that no longer exist
 - Custom appearances for non-existent items
+- Navigation separators for missing targets
 
 **Technical Details**: The cleanup process uses validators to compare stored metadata against the current vault state.
 See `MetadataService.cleanupAllMetadata()` and `MetadataService.getCleanupSummary()` for implementation.
@@ -281,14 +314,21 @@ See `MetadataService.cleanupAllMetadata()` and `MetadataService.getCleanupSummar
 Content is generated asynchronously in the background by the ContentProviderRegistry and individual providers:
 
 1. **File Detection**: Each provider checks if files need processing
-   - TagContentProvider: `tags === null` or `tagsMtime !== file.stat.mtime`
-   - MarkdownPipelineContentProvider: `markdownPipelineMtime !== file.stat.mtime`, `previewStatus/featureImageStatus === 'unprocessed'`, or `customProperty === null`
-   - FeatureImageContentProvider: `fileThumbnailsMtime !== file.stat.mtime` or missing/mismatched `featureImageKey`
-   - MetadataContentProvider: `metadata === null` or `metadataMtime !== file.stat.mtime`
+   - TagContentProvider (markdown): `tags === null` or `tagsMtime !== file.stat.mtime` (only when `showTags` is enabled)
+     - When tags are forced to regenerate (`tagsMtime` reset to `0`), the provider retries before replacing an existing non-empty tag list with an empty result.
+   - MarkdownPipelineContentProvider (markdown): runs when any of the following are true:
+     - `markdownPipelineMtime !== file.stat.mtime`
+     - `wordCount === null`
+     - `showFilePreview` is enabled and `previewStatus === 'unprocessed'`
+     - `showFeatureImage` is enabled and (`featureImageKey === null` or `featureImageStatus === 'unprocessed'`)
+     - Custom properties are configured and `customProperty === null`
+   - FeatureImageContentProvider (PDFs): `fileThumbnailsMtime !== file.stat.mtime`, `featureImageStatus === 'unprocessed'`,
+     `featureImageKey === null`, or `featureImageKey` mismatches the expected PDF key
+   - MetadataContentProvider (markdown): `metadata === null`, `metadataMtime !== file.stat.mtime`, or hidden-state tracking requires an update
 
 2. **Queue Management**: Files are queued based on enabled settings
    - ContentProviderRegistry manages the queue
-   - Processes files in batches to avoid blocking UI
+   - Processes files in batches and yields between batches
    - Uses deferred scheduling for background processing
    - `queueMetadataContentWhenReady()` delays metadata-dependent providers (markdown pipeline, tags, metadata) until Obsidian's metadata cache has entries
 
@@ -299,7 +339,7 @@ Content is generated asynchronously in the background by the ContentProviderRegi
    - MetadataContentProvider: Extracts configured frontmatter fields and hidden state from Obsidian's metadata cache
 
 4. **Database Updates**: Results stored in IndexedDB
-   - Each provider returns updates to IndexedDBStorage
+   - Providers apply updates via `IndexedDBStorage` (main records + preview store + feature image blob store)
    - Database fires content change events
 
 5. **Memory Sync**: MemoryFileCache automatically synced with IndexedDB changes
@@ -310,30 +350,33 @@ Content is generated asynchronously in the background by the ContentProviderRegi
 
 #### Cache rebuild progress notice
 
-The cache rebuild progress notice tracks background provider work during a full cache rebuild.
+The cache rebuild progress notice tracks background provider work during a full cache rebuild and other bulk regeneration triggers.
 
-- Rebuild start persists a vault-scoped localStorage marker (`STORAGE_KEYS.cacheRebuildNoticeKey`) with the initial file count.
-- On the next startup, StorageContext restores the notice after storage is marked ready and uses current settings to determine which content types to track.
+- Manual rebuilds (and settings-driven bulk regenerations) persist a vault-scoped localStorage marker (`STORAGE_KEYS.cacheRebuildNoticeKey`)
+  with the initial work total used for the progress bar.
+- Schema downgrades, `DB_CONTENT_VERSION` changes, and IndexedDB open errors set an in-memory `pendingRebuildNotice` flag in
+  `IndexedDBStorage` that is consumed on initial load to start the notice.
+- On the next startup, StorageContext restores the notice from the localStorage marker after storage is marked ready and uses current
+  settings to determine which content types to track.
 - The marker is cleared when the notice detects that all tracked content types have no pending work.
 
 ## Critical Timing Mechanisms
 
 ### Deferred Scheduling
 
-StorageContext defers non-blocking work with `setTimeout`, keeping the UI responsive:
+StorageContext and content providers defer heavy work so it does not run directly inside Obsidian event handlers:
 
-- Schedules background batches with zero-delay timeouts
-- Works across desktop, mobile, and Safari
-- Used for background processing and cleanup
+- Vault diff processing is deferred with `setTimeout(..., 0)` so bursts of vault events can coalesce.
+- Metadata cache gating batches queue flushes with `setTimeout(..., 0)`.
+- Content providers yield between batches via `requestAnimationFrame` (fallback: `setTimeout(..., 0)`).
 
 ### Debouncing
 
-The plugin uses a single debouncing approach based on Obsidian's built‑in `debounce` utility. It is applied consistently
-across vault events and UI updates to coalesce rapid event bursts and avoid redundant work.
+The plugin uses debouncers in a few specific places where Obsidian emits bursty events:
 
-- Scope: vault events (create, delete, rename, modify) and UI flows (list refresh, tree rebuilds, focus changes)
-- Mechanism: `debounce(handler, timeout, options)` from the Obsidian API
-- Goal: reduce repeated processing and unnecessary re-renders when events arrive in quick succession
+- Vault syncing uses Obsidian `debounce(..., TIMEOUTS.FILE_OPERATION_DELAY)` to collapse create/delete bursts into one diff.
+- Tag tree rebuilds use Obsidian `debounce(..., TIMEOUTS.DEBOUNCE_TAG_TREE)` because tag updates can arrive in batches.
+- Content providers use `TIMEOUTS.DEBOUNCE_CONTENT` (a `setTimeout`) to coalesce queueing before starting a processing batch.
 
 ## Shutdown Process
 
@@ -371,9 +414,11 @@ across vault events and UI updates to coalesce rapid event bursts and avoid redu
    - notebook-navigator
    - notebook-navigator-mobile (if applicable)
    - notebook-navigator-android / notebook-navigator-ios (if applicable)
+   - notebook-navigator-obsidian-1-11-plus-android / notebook-navigator-obsidian-1-11-plus-ios (if applicable)
 2. Unmount React root:
    - Call root.unmount()
    - Set root to null
+   - Clear the container element
 3. StorageContext cleanup (via useEffect return):
    - Stop all content processing in ContentProviderRegistry
    - Cancel any pending timers

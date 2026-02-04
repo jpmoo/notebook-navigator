@@ -27,15 +27,11 @@ For precise image management, consider also installing [Pixel Perfect Image](htt
 
 ## 2 Getting started
 
-Here is the official tutorial for installing and mastering Notebook Navigator:
+Here is the official tutorial for learning and mastering Notebook Navigator:
 
 [![Mastering Notebook Navigator](https://raw.githubusercontent.com/johansan/notebook-navigator/main/images/youtube-thumbnail.jpg)](https://www.youtube.com/watch?v=BewIlG8wLAM)
 
-And here is a video walkthrough of all the new features in Notebook Navigator 2.1:
-
-[![What's new in Notebook Navigator 2.1 for Obsidian](https://raw.githubusercontent.com/johansan/notebook-navigator/main/images/youtube-2.1.jpg)](https://www.youtube.com/watch?v=1Kxrq832kfM)
-
-Both videos has subtitles in 21 languages, same as Notebook Navigator.
+The video has subtitles in 21 languages.
 
 <br>
 
@@ -141,23 +137,23 @@ Both videos has subtitles in 21 languages, same as Notebook Navigator.
 
 ## 5 Keyboard shortcuts
 
-| Key                                         | Action                                                                                                            |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| ↑/↓                                         | Navigate up/down in current pane                                                                                  |
-| ←                                           | In navigation pane: collapse or go to parent<br>In list pane: switch to navigation pane                           |
-| →                                           | In navigation pane: expand or switch to list pane<br>In list pane: switch to editor                               |
-| Tab                                         | In navigation pane: switch to list pane<br>In list pane: switch to editor<br>In search field: switch to list pane |
-| Shift+Tab                                   | In list pane: switch to navigation pane<br>In search field: switch to navigation pane                             |
-| Enter                                       | In search field: switch to list pane                                                                              |
-| Escape                                      | In search field: close search and focus list pane                                                                 |
-| PageUp/PageDown                             | Scroll up/down in navigation pane and list pane                                                                   |
-| Home/End                                    | Jump to first/last item in current pane                                                                           |
-| Delete (Windows/Linux)<br>Backspace (macOS) | Delete selected item                                                                                              |
-| Cmd/Ctrl+A                                  | Select all notes in current folder                                                                                |
-| Cmd/Ctrl+Click                              | Toggle notes selection                                                                                            |
-| Shift+Click                                 | Select a range of notes                                                                                           |
-| Shift+Home/End                              | Select from current position to first/last item                                                                   |
-| Shift+↑/↓                                   | Extend selection up/down                                                                                          |
+| Key                                         | Action                                                                                                                                      |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| ↑/↓                                         | Navigate up/down in current pane                                                                                                            |
+| ←                                           | In navigation pane: collapse or go to parent<br>In list pane: switch to navigation pane                                                     |
+| →                                           | In navigation pane: expand or switch to list pane<br>In list pane: switch to editor                                                         |
+| Tab                                         | In navigation pane: switch to list pane<br>In list pane: switch to editor<br>In search field: switch to list pane                           |
+| Shift+Tab                                   | In list pane: switch to navigation pane<br>In search field: switch to navigation pane                                                       |
+| Enter                                       | In navigation pane: open folder note<br>In list pane: open selected file (when enabled in settings)<br>In search field: switch to list pane |
+| Escape                                      | In search field: close search and focus list pane                                                                                           |
+| PageUp/PageDown                             | Scroll up/down in navigation pane and list pane                                                                                             |
+| Home/End                                    | Jump to first/last item in current pane                                                                                                     |
+| Delete (Windows/Linux)<br>Backspace (macOS) | Delete selected item                                                                                                                        |
+| Cmd/Ctrl+A                                  | Select all notes in current folder                                                                                                          |
+| Cmd/Ctrl+Click                              | Toggle notes selection                                                                                                                      |
+| Shift+Click                                 | Select a range of notes                                                                                                                     |
+| Shift+Home/End                              | Select from current position to first/last item                                                                                             |
+| Shift+↑/↓                                   | Extend selection up/down                                                                                                                    |
 
 **Note:** All keyboard shortcuts can be customized by editing the `keyboardShortcuts` section in `.obsidian/plugins/notebook-navigator/data.json`. You can add VIM-style navigation (h,j,k,l) or assign multiple keys to the same command.
 
@@ -180,6 +176,7 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 - `Notebook Navigator: Add to shortcuts` Adds the current file, folder, or tag to shortcuts
 - `Notebook Navigator: Open shortcut 1-9` Opens shortcut by its position in the shortcuts list
 - `Notebook Navigator: Search` Opens quick search field or focuses it if already open. Search persists between sessions. **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+S` for quick file filtering
+- `Notebook Navigator: Search in vault root` Selects the vault root folder and opens search (requires `Show root folder` enabled)
 
 **Selection**
 
@@ -189,11 +186,19 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 **Layout & display**
 
 - `Notebook Navigator: Toggle dual pane layout` Toggle single/dual-pane layout (desktop). **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+A` to quickly switch between single-pane and dual-pane layout
-- `Notebook Navigator: Toggle calendar` Toggles calendar on or off. **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+C` to quickly show the calendar
 - `Notebook Navigator: Toggle descendants` Toggle subfolders / descendants notes display for folders and tags. **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+D` to quickly toggle display of notes from subfolders / descendants
 - `Notebook Navigator: Toggle hidden items` Show or hide hidden folders, tags, and notes
 - `Notebook Navigator: Toggle tag sort` Toggle between alphabetical and frequency-based tag sorting
 - `Notebook Navigator: Collapse / expand all items` Collapse or expand all items based on the current state. When `Keep selected item expanded` is enabled (default on), all folders except the current one will be collapsed. This is handy to keep the navigation tree tidy when searching for documents
+
+**Calendar**
+
+- `Notebook Navigator: Toggle calendar` Toggles calendar on or off. **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+C` to quickly show the calendar
+- `Notebook Navigator: Open daily note` Opens today's daily note based on calendar settings. Creates the note if it doesn't exist
+- `Notebook Navigator: Open weekly note` Opens the current weekly note. Creates the note if it doesn't exist
+- `Notebook Navigator: Open monthly note` Opens the current monthly note. Creates the note if it doesn't exist
+- `Notebook Navigator: Open quarterly note` Opens the current quarterly note. Creates the note if it doesn't exist
+- `Notebook Navigator: Open yearly note` Opens the current yearly note. Creates the note if it doesn't exist
 
 **File operations**
 
@@ -244,8 +249,14 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 | `notebook-navigator:open-shortcut-8`        | Notebook Navigator: Open shortcut 8                                                                  |
 | `notebook-navigator:open-shortcut-9`        | Notebook Navigator: Open shortcut 9                                                                  |
 | `notebook-navigator:search`                 | Notebook Navigator: Search                                                                           |
+| `notebook-navigator:search-vault`           | Notebook Navigator: Search in vault root                                                             |
 | `notebook-navigator:toggle-dual-pane`       | Notebook Navigator: Toggle dual pane layout                                                          |
 | `notebook-navigator:toggle-calendar`        | Notebook Navigator: Toggle calendar                                                                  |
+| `notebook-navigator:open-daily-note`        | Notebook Navigator: Open daily note                                                                  |
+| `notebook-navigator:open-weekly-note`       | Notebook Navigator: Open weekly note                                                                 |
+| `notebook-navigator:open-monthly-note`      | Notebook Navigator: Open monthly note                                                                |
+| `notebook-navigator:open-quarterly-note`    | Notebook Navigator: Open quarterly note                                                              |
+| `notebook-navigator:open-yearly-note`       | Notebook Navigator: Open yearly note                                                                 |
 | `notebook-navigator:toggle-descendants`     | Notebook Navigator: Toggle descendants                                                               |
 | `notebook-navigator:toggle-hidden`          | Notebook Navigator: Toggle hidden items (folders, tags, notes)                                       |
 | `notebook-navigator:toggle-tag-sort`        | Notebook Navigator: Toggle tag sort                                                                  |

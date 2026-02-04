@@ -32,6 +32,7 @@ export const STRINGS_TH = {
         untagged: 'ไม่มีแท็ก',
         featureImageAlt: 'รูปภาพประกอบ',
         unknownError: 'ข้อผิดพลาดที่ไม่ทราบสาเหตุ',
+        clipboardWriteError: 'ไม่สามารถเขียนลงคลิปบอร์ด',
         updateBannerTitle: 'มีการอัปเดต Notebook Navigator',
         updateBannerInstruction: 'อัปเดตใน การตั้งค่า -> ปลั๊กอินชุมชน',
         updateIndicatorLabel: 'มีเวอร์ชันใหม่',
@@ -77,10 +78,6 @@ export const STRINGS_TH = {
     navigationCalendar: {
         ariaLabel: 'ปฏิทิน',
         dailyNotesNotEnabled: 'ปลั๊กอินบันทึกรายวันไม่ได้เปิดใช้งาน',
-        promptDailyNoteTitle: {
-            title: 'ชื่อบันทึกรายวัน',
-            placeholder: 'ป้อนชื่อเรื่อง'
-        },
         createDailyNote: {
             title: 'บันทึกรายวันใหม่',
             message: 'ไฟล์ {filename} ไม่มีอยู่ คุณต้องการสร้างหรือไม่?',
@@ -174,9 +171,6 @@ export const STRINGS_TH = {
             revealInFolder: 'แสดงในโฟลเดอร์',
             revealInFinder: 'แสดงใน Finder',
             showInExplorer: 'แสดงใน explorer ระบบ',
-            copyDeepLink: 'คัดลอก URL Obsidian',
-            copyPath: 'คัดลอกเส้นทางระบบไฟล์',
-            copyRelativePath: 'คัดลอกเส้นทางห้องนิรภัย',
             renameNote: 'เปลี่ยนชื่อโน้ต',
             renameFile: 'เปลี่ยนชื่อไฟล์',
             deleteNote: 'ลบโน้ต',
@@ -204,8 +198,6 @@ export const STRINGS_TH = {
             newTldrawDrawing: 'ภาพวาด Tldraw ใหม่',
             duplicateFolder: 'ทำซ้ำโฟลเดอร์',
             searchInFolder: 'ค้นหาในโฟลเดอร์',
-            copyPath: 'คัดลอกเส้นทางระบบไฟล์',
-            copyRelativePath: 'คัดลอกเส้นทางห้องนิรภัย',
             createFolderNote: 'สร้างโน้ตโฟลเดอร์',
             detachFolderNote: 'แยกโน้ตโฟลเดอร์',
             deleteFolderNote: 'ลบโน้ตโฟลเดอร์',
@@ -228,6 +220,12 @@ export const STRINGS_TH = {
         navigation: {
             addSeparator: 'เพิ่มตัวคั่น',
             removeSeparator: 'นำตัวคั่นออก'
+        },
+        copyPath: {
+            title: 'คัดลอกเส้นทาง',
+            asObsidianUrl: 'เป็น URL Obsidian',
+            fromVaultFolder: 'จากโฟลเดอร์ห้องนิรภัย',
+            fromSystemRoot: 'จากรากระบบ'
         },
         style: {
             title: 'สไตล์',
@@ -266,6 +264,7 @@ export const STRINGS_TH = {
             showingResultsInfo: 'แสดง 50 จาก {count} ผลลัพธ์ พิมพ์เพิ่มเพื่อจำกัด',
             emojiInstructions: 'พิมพ์หรือวางอีโมจิเพื่อใช้เป็นไอคอน',
             removeIcon: 'นำไอคอนออก',
+            removeFromRecents: 'นำออกจากรายการล่าสุด',
             allTabLabel: 'ทั้งหมด'
         },
         fileIconRuleEditor: {
@@ -310,7 +309,6 @@ export const STRINGS_TH = {
             paletteCustom: 'กำหนดเอง',
             copyColors: 'คัดลอกสี',
             colorsCopied: 'คัดลอกสีไปคลิปบอร์ดแล้ว',
-            copyClipboardError: 'ไม่สามารถเขียนลงคลิปบอร์ด',
             pasteColors: 'วางสี',
             pasteClipboardError: 'ไม่สามารถอ่านคลิปบอร์ด',
             pasteInvalidFormat: 'ต้องการค่าสี hex',
@@ -390,6 +388,14 @@ export const STRINGS_TH = {
                 dismiss: 'เพื่อปิด'
             }
         },
+        calendarTemplate: {
+            placeholder: 'ค้นหาเทมเพลต...',
+            instructions: {
+                navigate: 'เพื่อนำทาง',
+                select: 'เพื่อเลือกเทมเพลต',
+                dismiss: 'เพื่อปิด'
+            }
+        },
         navigationBanner: {
             placeholder: 'ค้นหารูปภาพ...',
             instructions: {
@@ -420,7 +426,7 @@ export const STRINGS_TH = {
             thanksText: 'ขอบคุณมากที่ดาวน์โหลด สนุกกับการใช้งาน!',
             videoAlt: 'การติดตั้งและเชี่ยวชาญ Notebook Navigator',
             openVideoButton: 'เล่นวิดีโอ',
-            closeButton: 'ไว้ดูทีหลัง'
+            closeButton: 'ไว้ทีหลัง'
         }
     },
     // File system operations
@@ -532,8 +538,14 @@ export const STRINGS_TH = {
         open: 'เปิด',
         toggleLeftSidebar: 'สลับแถบด้านซ้าย',
         openHomepage: 'เปิดหน้าแรก',
+        openDailyNote: 'เปิดโน้ตรายวัน',
+        openWeeklyNote: 'เปิดโน้ตรายสัปดาห์',
+        openMonthlyNote: 'เปิดโน้ตรายเดือน',
+        openQuarterlyNote: 'เปิดโน้ตรายไตรมาส',
+        openYearlyNote: 'เปิดโน้ตรายปี',
         revealFile: 'แสดงไฟล์',
         search: 'ค้นหา',
+        searchVaultRoot: 'ค้นหาในรูทห้องนิรภัย',
         toggleDualPane: 'สลับรูปแบบแผงคู่',
         toggleCalendar: 'สลับปฏิทิน',
         selectVaultProfile: 'เลือกโปรไฟล์ห้องนิรภัย',
@@ -568,6 +580,7 @@ export const STRINGS_TH = {
     // Plugin UI
     plugin: {
         viewName: 'Notebook Navigator',
+        calendarViewName: 'ปฏิทิน',
         ribbonTooltip: 'Notebook Navigator',
         revealInNavigator: 'แสดงใน Notebook Navigator'
     },
@@ -591,6 +604,7 @@ export const STRINGS_TH = {
         sections: {
             general: 'ทั่วไป',
             navigationPane: 'แผงนำทาง',
+            calendar: 'ปฏิทิน',
             icons: 'ชุดไอคอน',
             folders: 'โฟลเดอร์',
             folderNotes: 'โน้ตโฟลเดอร์',
@@ -605,11 +619,14 @@ export const STRINGS_TH = {
         },
         groups: {
             general: {
+                vaultProfiles: 'โปรไฟล์ห้องนิรภัย',
                 filtering: 'การกรอง',
                 behavior: 'พฤติกรรม',
+                keyboardNavigation: 'การนำทางด้วยแป้นพิมพ์',
                 view: 'ลักษณะ',
                 icons: 'ไอคอน',
                 desktopAppearance: 'ลักษณะเดสก์ท็อป',
+                mobileAppearance: 'รูปลักษณ์บนมือถือ',
                 formatting: 'การจัดรูปแบบ'
             },
             navigation: {
@@ -635,6 +652,7 @@ export const STRINGS_TH = {
         },
         syncMode: {
             notSynced: '(ไม่ซิงค์)',
+            disabled: '(ปิดใช้งาน)',
             switchToSynced: 'เปิดใช้งานการซิงค์',
             switchToLocal: 'ปิดใช้งานการซิงค์'
         },
@@ -688,8 +706,21 @@ export const STRINGS_TH = {
                     'created-desc': 'วันที่สร้าง (ใหม่สุดบน)',
                     'created-asc': 'วันที่สร้าง (เก่าสุดบน)',
                     'title-asc': 'ชื่อเรื่อง (A บน)',
-                    'title-desc': 'ชื่อเรื่อง (Z บน)'
+                    'title-desc': 'ชื่อเรื่อง (Z บน)',
+                    'filename-asc': 'ชื่อไฟล์ (A บน)',
+                    'filename-desc': 'ชื่อไฟล์ (Z บน)',
+                    'property-asc': 'คุณสมบัติ (A บน)',
+                    'property-desc': 'คุณสมบัติ (Z บน)'
+                },
+                propertyOverride: {
+                    asc: 'คุณสมบัติ ‘{property}’ (A บน)',
+                    desc: 'คุณสมบัติ ‘{property}’ (Z บน)'
                 }
+            },
+            propertySortKey: {
+                name: 'คุณสมบัติสำหรับเรียงลำดับ',
+                desc: 'ใช้กับการเรียงลำดับตามคุณสมบัติ โน้ตที่มีคุณสมบัติ frontmatter นี้จะแสดงก่อนและเรียงตามค่าคุณสมบัติ อาร์เรย์จะรวมเป็นค่าเดียว',
+                placeholder: 'order'
             },
             revealFileOnListChanges: {
                 name: 'เลื่อนไปยังไฟล์ที่เลือกเมื่อรายการเปลี่ยนแปลง',
@@ -814,6 +845,10 @@ export const STRINGS_TH = {
                 name: 'ระดับการซูม',
                 desc: 'ควบคุมระดับการซูมโดยรวมของ Notebook Navigator'
             },
+            useFloatingToolbars: {
+                name: 'ใช้แถบเครื่องมือลอยบน iOS/iPadOS',
+                desc: 'ใช้ได้กับ Obsidian 1.11 และใหม่กว่า'
+            },
             startView: {
                 name: 'มุมมองเริ่มต้นเมื่อเริ่มงาน',
                 desc: 'เลือกแผงที่จะแสดงเมื่อเปิด Notebook Navigator แผงนำทางแสดงทางลัด โน้ตล่าสุด และต้นไม้โฟลเดอร์ แผงรายการแสดงรายการโน้ตทันที',
@@ -871,6 +906,10 @@ export const STRINGS_TH = {
                 current: 'แบนเนอร์ปัจจุบัน: {path}',
                 chooseButton: 'เลือกรูปภาพ'
             },
+            pinNavigationBanner: {
+                name: 'ปักหมุดแบนเนอร์',
+                desc: 'ปักหมุดแบนเนอร์การนำทางไว้เหนือแผนผังการนำทาง'
+            },
             showShortcuts: {
                 name: 'แสดงทางลัด',
                 desc: 'แสดงส่วนทางลัดในแผงนำทาง'
@@ -896,9 +935,13 @@ export const STRINGS_TH = {
                 name: 'ปักหมุดโน้ตล่าสุดพร้อมทางลัด',
                 desc: 'รวมโน้ตล่าสุดเมื่อปักหมุดทางลัด'
             },
-            showCalendar: {
-                name: 'แสดงปฏิทิน',
-                desc: 'แสดงปฏิทินที่ด้านล่างของแผงนำทาง'
+            calendarPlacement: {
+                name: 'ตำแหน่งปฏิทิน',
+                desc: 'แสดงในแถบด้านซ้ายหรือขวา',
+                options: {
+                    leftSidebar: 'แถบด้านซ้าย',
+                    rightSidebar: 'แถบด้านขวา'
+                }
             },
             calendarLocale: {
                 name: 'ภาษา',
@@ -907,9 +950,19 @@ export const STRINGS_TH = {
                     systemDefault: 'ค่าเริ่มต้น'
                 }
             },
+            calendarWeekendDays: {
+                name: 'วันหยุดสุดสัปดาห์',
+                desc: 'แสดงวันหยุดสุดสัปดาห์ด้วยสีพื้นหลังที่แตกต่างกัน',
+                options: {
+                    none: 'ไม่มี',
+                    satSun: 'วันเสาร์และวันอาทิตย์',
+                    friSat: 'วันศุกร์และวันเสาร์',
+                    thuFri: 'วันพฤหัสบดีและวันศุกร์'
+                }
+            },
             calendarWeeksToShow: {
-                name: 'สัปดาห์ที่แสดง',
-                desc: 'จำนวนสัปดาห์ปฏิทินที่จะแสดง',
+                name: 'สัปดาห์ที่แสดงในแถบด้านซ้าย',
+                desc: 'ปฏิทินในแถบด้านขวาจะแสดงเต็มเดือนเสมอ',
                 options: {
                     fullMonth: 'เต็มเดือน',
                     oneWeek: '1 สัปดาห์',
@@ -920,9 +973,17 @@ export const STRINGS_TH = {
                 name: 'ไฮไลต์วันที่วันนี้',
                 desc: 'แสดงวงกลมสีแดงและข้อความตัวหนาบนวันที่วันนี้'
             },
+            calendarShowFeatureImage: {
+                name: 'แสดงรูปภาพเด่น',
+                desc: 'แสดงรูปภาพเด่นของบันทึกในปฏิทิน'
+            },
             calendarShowWeekNumber: {
                 name: 'แสดงหมายเลขสัปดาห์',
                 desc: 'เพิ่มคอลัมน์พร้อมหมายเลขสัปดาห์'
+            },
+            calendarShowQuarter: {
+                name: 'แสดงไตรมาส',
+                desc: 'เพิ่มป้ายไตรมาสในส่วนหัวปฏิทิน'
             },
             calendarConfirmBeforeCreate: {
                 name: 'ยืนยันก่อนสร้าง',
@@ -932,7 +993,7 @@ export const STRINGS_TH = {
                 name: 'แหล่งที่มาบันทึกรายวัน',
                 desc: 'แหล่งที่มาสำหรับบันทึกปฏิทิน',
                 options: {
-                    dailyNotes: 'บันทึกรายวัน',
+                    dailyNotes: 'บันทึกรายวัน (ปลั๊กอินหลัก)',
                     notebookNavigator: 'Notebook Navigator'
                 },
                 info: {
@@ -941,19 +1002,42 @@ export const STRINGS_TH = {
             },
             calendarCustomRootFolder: {
                 name: 'โฟลเดอร์หลัก',
-                desc: 'โฟลเดอร์ฐานสำหรับบันทึกปฏิทิน',
+                desc: 'โฟลเดอร์ฐานสำหรับบันทึกตามรอบ รูปแบบวันที่สามารถรวมโฟลเดอร์ย่อยได้ เปลี่ยนแปลงตามโปรไฟล์ห้องนิรภัยที่เลือก',
                 placeholder: 'Personal/Diary'
             },
-            calendarCustomFilePattern: {
-                name: 'รูปแบบไฟล์',
-                desc: 'รูปแบบวันที่เทียบกับโฟลเดอร์หลัก โทเค็นที่รองรับ: YYYY, MM, M, DD, D บันทึกสามารถรวมส่วนต่อท้ายชื่อเรื่องที่เป็นทางเลือกได้',
-                placeholder: 'YYYY/YYYYMMDD',
-                example: 'รูปแบบปัจจุบันมีลักษณะดังนี้: {path}',
-                parsingError: 'รูปแบบต้องรวม YYYY, MM/M และ DD/D โทเค็นที่รองรับ: YYYY, MM, M, DD, D'
+            calendarTemplateFolder: {
+                name: 'ตำแหน่งโฟลเดอร์เทมเพลต',
+                desc: 'ตัวเลือกไฟล์เทมเพลตแสดงโน้ตจากโฟลเดอร์นี้',
+                placeholder: 'Templates'
             },
-            calendarCustomPromptForTitle: {
-                name: 'ขอชื่อเรื่อง',
-                desc: 'ขอชื่อเรื่องเมื่อสร้างบันทึก ยอมรับชื่อเรื่องว่าง'
+            calendarCustomFilePattern: {
+                name: 'โน้ตรายวัน',
+                desc: 'กำหนดเส้นทางโดยใช้รูปแบบวันที่ Moment ใส่ชื่อโฟลเดอร์ย่อยในวงเล็บเหลี่ยม เช่น [Work]/YYYY คลิกไอคอนเทมเพลตเพื่อตั้งค่าเทมเพลต',
+                momentDescPrefix: 'กำหนดเส้นทางโดยใช้ ',
+                momentLinkText: 'รูปแบบวันที่ Moment',
+                momentDescSuffix: ' ใส่ชื่อโฟลเดอร์ย่อยในวงเล็บเหลี่ยม เช่น [Work]/YYYY คลิกไอคอนเทมเพลตเพื่อตั้งค่าเทมเพลต',
+                placeholder: 'YYYY/YYYYMMDD',
+                example: 'รูปแบบปัจจุบัน: {path}',
+                parsingError: 'แพทเทิร์นต้องสามารถฟอร์แมตและพาร์สกลับเป็นวันที่แบบเต็ม (ปี เดือน วัน) ได้'
+            },
+            calendarCustomWeekPattern: {
+                name: 'โน้ตรายสัปดาห์',
+                parsingError: 'แพทเทิร์นต้องสามารถฟอร์แมตและพาร์สกลับเป็นสัปดาห์แบบเต็ม (ปีของสัปดาห์ หมายเลขสัปดาห์) ได้'
+            },
+            calendarCustomMonthPattern: {
+                name: 'โน้ตรายเดือน',
+                parsingError: 'แพทเทิร์นต้องสามารถฟอร์แมตและพาร์สกลับเป็นเดือนแบบเต็ม (ปี เดือน) ได้'
+            },
+            calendarCustomQuarterPattern: {
+                name: 'โน้ตรายไตรมาส',
+                parsingError: 'แพทเทิร์นต้องสามารถฟอร์แมตและพาร์สกลับเป็นไตรมาสแบบเต็ม (ปี ไตรมาส) ได้'
+            },
+            calendarCustomYearPattern: {
+                name: 'โน้ตรายปี',
+                parsingError: 'แพทเทิร์นต้องสามารถฟอร์แมตและพาร์สกลับเป็นปีแบบเต็ม (ปี) ได้'
+            },
+            calendarTemplateFile: {
+                current: 'ไฟล์เทมเพลต: {name}'
             },
             showTooltips: {
                 name: 'แสดง tooltips',
@@ -986,6 +1070,22 @@ export const STRINGS_TH = {
                     cmdCtrl: 'คลิก Cmd/Ctrl',
                     optionAlt: 'คลิก Option/Alt'
                 }
+            },
+            enterToOpenFiles: {
+                name: 'กด Enter เพื่อเปิดไฟล์',
+                desc: 'เปิดไฟล์เฉพาะเมื่อกด Enter ระหว่างการนำทางด้วยแป้นพิมพ์ในรายการ'
+            },
+            shiftEnterOpenContext: {
+                name: 'Shift+Enter',
+                desc: 'เปิดไฟล์ที่เลือกในแท็บใหม่ แยก หรือหน้าต่างเมื่อกด Shift+Enter'
+            },
+            cmdEnterOpenContext: {
+                name: 'Cmd+Enter',
+                desc: 'เปิดไฟล์ที่เลือกในแท็บใหม่ แยก หรือหน้าต่างเมื่อกด Cmd+Enter'
+            },
+            ctrlEnterOpenContext: {
+                name: 'Ctrl+Enter',
+                desc: 'เปิดไฟล์ที่เลือกในแท็บใหม่ แยก หรือหน้าต่างเมื่อกด Ctrl+Enter'
             },
             fileVisibility: {
                 name: 'แสดงประเภทไฟล์ (โปรไฟล์ห้องนิรภัย)',
@@ -1085,7 +1185,7 @@ export const STRINGS_TH = {
                 desc: 'แสดงแท็กเมื่อวันที่ ตัวอย่าง และรูปภาพถูกซ่อน'
             },
             customPropertyType: {
-                name: 'ประเภท',
+                name: 'ประเภทคุณสมบัติ',
                 desc: 'เลือกคุณสมบัติกำหนดเองที่จะแสดงในรายการไฟล์',
                 options: {
                     frontmatter: 'คุณสมบัติ Frontmatter',
@@ -1098,10 +1198,15 @@ export const STRINGS_TH = {
                 desc: 'รายการคุณสมบัติ frontmatter คั่นด้วยเครื่องหมายจุลภาคเพื่อแสดงเป็นป้าย คุณสมบัติที่มีค่าเป็นรายการจะแสดงหนึ่งป้ายต่อค่า ค่าในรูปแบบ [[wikilink]] จะแสดงเป็นลิงก์ที่คลิกได้',
                 placeholder: 'สถานะ, ประเภท, หมวดหมู่'
             },
-            customPropertyColorFields: {
-                name: 'คุณสมบัติสำหรับสี',
-                desc: 'รายการคุณสมบัติ frontmatter คั่นด้วยเครื่องหมายจุลภาคสำหรับสีของป้าย คุณสมบัติสีจะจับคู่กับคุณสมบัติแสดงผลตามตำแหน่ง คุณสมบัติที่มีค่าเป็นรายการจะจับคู่สีตามดัชนี ค่าสามารถเป็นชื่อแท็กหรือสี CSS',
-                placeholder: 'statusColor, typeColor, categoryColor'
+            showCustomPropertiesOnSeparateRows: {
+                name: 'แสดงคุณสมบัติแยกเป็นบรรทัด',
+                desc: 'แสดงแต่ละคุณสมบัติในบรรทัดของตัวเอง'
+            },
+            customPropertyColorMap: {
+                name: 'สีคุณสมบัติ',
+                desc: 'กำหนดคุณสมบัติ frontmatter ให้กับสีป้าย หนึ่งการกำหนดต่อบรรทัด: คุณสมบัติ=สี',
+                placeholder: '# คุณสมบัติ=สี\nstatus=#ff0000\ntype=#00ff00',
+                editTooltip: 'แก้ไขการกำหนด'
             },
             showCustomPropertyInCompactMode: {
                 name: 'แสดงคุณสมบัติกำหนดเองในโหมดกะทัดรัด',
@@ -1112,14 +1217,16 @@ export const STRINGS_TH = {
                 desc: 'รูปแบบสำหรับแสดงวันที่ (ใช้รูปแบบ date-fns)',
                 placeholder: 'd MMM yyyy',
                 help: 'รูปแบบทั่วไป:\nd MMM yyyy = 25 พ.ค. 2022\ndd/MM/yyyy = 25/05/2022\nyyyy-MM-dd = 2022-05-25\n\nโทเคน:\nyyyy/yy = ปี\nMMMM/MMM/MM = เดือน\ndd/d = วัน\nEEEE/EEE = วันในสัปดาห์',
-                helpTooltip: 'คลิกเพื่อดูข้อมูลอ้างอิงรูปแบบ'
+                helpTooltip: 'รูปแบบโดยใช้ date-fns',
+                dateFnsLinkText: 'รูปแบบ date-fns'
             },
             timeFormat: {
                 name: 'รูปแบบเวลา',
                 desc: 'รูปแบบสำหรับแสดงเวลา (ใช้รูปแบบ date-fns)',
                 placeholder: 'HH:mm',
                 help: 'รูปแบบทั่วไป:\nHH:mm = 14:30 (24 ชั่วโมง)\nh:mm a = 2:30 PM (12 ชั่วโมง)\nHH:mm:ss = 14:30:45\nh:mm:ss a = 2:30:45 PM\n\nโทเคน:\nHH/H = 24 ชั่วโมง\nhh/h = 12 ชั่วโมง\nmm = นาที\nss = วินาที\na = AM/PM',
-                helpTooltip: 'คลิกเพื่อดูข้อมูลอ้างอิงรูปแบบ'
+                helpTooltip: 'รูปแบบโดยใช้ date-fns',
+                dateFnsLinkText: 'รูปแบบ date-fns'
             },
             showFilePreview: {
                 name: 'แสดงตัวอย่างโน้ต',
@@ -1197,6 +1304,14 @@ export const STRINGS_TH = {
                 name: 'สืบทอดสีโฟลเดอร์',
                 desc: 'โฟลเดอร์ลูกสืบทอดสีจากโฟลเดอร์หลัก'
             },
+            folderSortOrder: {
+                name: 'ลำดับการเรียงโฟลเดอร์',
+                desc: 'คลิกขวาที่โฟลเดอร์ใดก็ได้เพื่อตั้งค่าลำดับการเรียงที่แตกต่างสำหรับรายการย่อย',
+                options: {
+                    alphaAsc: 'ก ถึง ฮ',
+                    alphaDesc: 'ฮ ถึง ก'
+                }
+            },
             showNoteCount: {
                 name: 'แสดงจำนวนโน้ต',
                 desc: 'แสดงจำนวนโน้ตข้างแต่ละโฟลเดอร์และแท็ก'
@@ -1261,12 +1376,13 @@ export const STRINGS_TH = {
             },
             tagSortOrder: {
                 name: 'ลำดับการเรียงแท็ก',
-                desc: 'เลือกวิธีเรียงแท็กในแผงนำทาง',
+                desc: 'คลิกขวาที่แท็กใดก็ได้เพื่อตั้งค่าลำดับการเรียงที่แตกต่างสำหรับรายการย่อย',
                 options: {
                     alphaAsc: 'ก ถึง ฮ',
                     alphaDesc: 'ฮ ถึง ก',
-                    frequencyAsc: 'ความถี่ (ต่ำไปสูง)',
-                    frequencyDesc: 'ความถี่ (สูงไปต่ำ)'
+                    frequency: 'ความถี่',
+                    lowToHigh: 'ต่ำไปสูง',
+                    highToLow: 'สูงไปต่ำ'
                 }
             },
             showAllTagsFolder: {
@@ -1418,7 +1534,8 @@ export const STRINGS_TH = {
             frontmatterDateFormat: {
                 name: 'รูปแบบ timestamp',
                 desc: 'รูปแบบที่ใช้แยกวิเคราะห์ timestamp ใน frontmatter เว้นว่างเพื่อใช้รูปแบบ ISO 8601',
-                helpTooltip: 'ดูเอกสารรูปแบบ date-fns',
+                helpTooltip: 'รูปแบบโดยใช้ date-fns',
+                dateFnsLinkText: 'รูปแบบ date-fns',
                 help: "รูปแบบทั่วไป:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {

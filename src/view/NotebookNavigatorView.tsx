@@ -61,6 +61,55 @@ import {
 } from '../utils/androidFontScale';
 import { ensureNotebookNavigatorSvgFilters } from '../utils/svgFilters';
 
+export const IOS_FLOATING_TOOLBARS_CLASS = 'notebook-navigator-ios-floating-toolbars';
+
+let viewInstanceCounter = 0;
+
+export function setupNotebookNavigatorViewContainer(
+    container: HTMLElement,
+    options?: { useFloatingToolbars?: boolean }
+): { isMobile: boolean } {
+    container.empty();
+    container.classList.add('notebook-navigator');
+
+    const isMobile = Platform.isMobile;
+    if (isMobile) {
+        container.classList.add('notebook-navigator-mobile');
+
+        if (Platform.isAndroidApp) {
+            container.classList.add('notebook-navigator-android');
+            if (requireApiVersion('1.11.0')) {
+                container.classList.add('notebook-navigator-obsidian-1-11-plus-android');
+            }
+            applyAndroidFontCompensation(container);
+        } else if (Platform.isIosApp) {
+            container.classList.add('notebook-navigator-ios');
+
+            if (requireApiVersion('1.11.0')) {
+                container.classList.add('notebook-navigator-obsidian-1-11-plus-ios');
+                if (options?.useFloatingToolbars ?? true) {
+                    container.classList.add(IOS_FLOATING_TOOLBARS_CLASS);
+                }
+            }
+        }
+    }
+
+    ensureNotebookNavigatorSvgFilters();
+    return { isMobile };
+}
+
+export function teardownNotebookNavigatorViewContainer(container: HTMLElement): void {
+    clearAndroidFontCompensation(container);
+    container.classList.remove('notebook-navigator');
+    container.classList.remove('notebook-navigator-mobile');
+    container.classList.remove('notebook-navigator-android');
+    container.classList.remove('notebook-navigator-obsidian-1-11-plus-android');
+    container.classList.remove('notebook-navigator-ios');
+    container.classList.remove('notebook-navigator-obsidian-1-11-plus-ios');
+    container.classList.remove(IOS_FLOATING_TOOLBARS_CLASS);
+    container.empty();
+}
+
 /**
  * Custom Obsidian view that hosts the React-based Notebook Navigator interface
  * Manages the lifecycle of the React application and provides integration between
@@ -70,6 +119,8 @@ export class NotebookNavigatorView extends ItemView {
     private componentRef = React.createRef<NotebookNavigatorHandle>();
     plugin: NotebookNavigatorPlugin;
     private root: Root | null = null;
+    private readonly settingsUpdateListenerId: string;
+    private viewContainer: HTMLElement | null = null;
 
     /**
      * Creates a new NotebookNavigatorView instance
@@ -79,6 +130,18 @@ export class NotebookNavigatorView extends ItemView {
     constructor(leaf: WorkspaceLeaf, plugin: NotebookNavigatorPlugin) {
         super(leaf);
         this.plugin = plugin;
+        viewInstanceCounter += 1;
+        this.settingsUpdateListenerId = `notebook-navigator-view-${viewInstanceCounter}`;
+    }
+
+    private updatePlatformClasses(): void {
+        const container = this.viewContainer;
+        if (!container) {
+            return;
+        }
+
+        const shouldUseFloatingToolbars = Platform.isIosApp && requireApiVersion('1.11.0') && this.plugin.settings.useFloatingToolbars;
+        container.classList.toggle(IOS_FLOATING_TOOLBARS_CLASS, shouldUseFloatingToolbars);
     }
 
     /**
@@ -115,32 +178,15 @@ export class NotebookNavigatorView extends ItemView {
         if (!(container instanceof HTMLElement)) {
             return;
         }
-        container.empty(); // Clear previous content
-        container.classList.add('notebook-navigator');
+        this.viewContainer = container;
+        const { isMobile } = setupNotebookNavigatorViewContainer(container, {
+            useFloatingToolbars: this.plugin.settings.useFloatingToolbars
+        });
 
-        // Detect mobile environment and add mobile class
-        const isMobile = Platform.isMobile;
-        if (isMobile) {
-            container.classList.add('notebook-navigator-mobile');
-
-            // Add platform-specific classes
-            if (Platform.isAndroidApp) {
-                container.classList.add('notebook-navigator-android');
-                if (requireApiVersion('1.11.0')) {
-                    container.classList.add('notebook-navigator-obsidian-1-11-plus-android');
-                }
-                // Detect and compensate for Android textZoom BEFORE React renders
-                applyAndroidFontCompensation(container);
-            } else if (Platform.isIosApp) {
-                container.classList.add('notebook-navigator-ios');
-
-                if (requireApiVersion('1.11.0')) {
-                    container.classList.add('notebook-navigator-obsidian-1-11-plus-ios');
-                }
-            }
-        }
-
-        ensureNotebookNavigatorSvgFilters();
+        this.plugin.registerSettingsUpdateListener(this.settingsUpdateListenerId, () => {
+            this.updatePlatformClasses();
+        });
+        this.updatePlatformClasses();
 
         this.root = createRoot(container);
         this.root.render(
@@ -246,17 +292,10 @@ export class NotebookNavigatorView extends ItemView {
         if (!(container instanceof HTMLElement)) {
             return;
         }
-        clearAndroidFontCompensation(container);
-        container.classList.remove('notebook-navigator');
-        // Also remove mobile/platform-specific classes added on open
-        container.classList.remove('notebook-navigator-mobile');
-        container.classList.remove('notebook-navigator-android');
-        container.classList.remove('notebook-navigator-obsidian-1-11-plus-android');
-        container.classList.remove('notebook-navigator-ios');
-        container.classList.remove('notebook-navigator-obsidian-1-11-plus-ios');
+        this.plugin.unregisterSettingsUpdateListener(this.settingsUpdateListenerId);
+        this.viewContainer = null;
         this.root?.unmount();
-        // Ensure container is cleared after unmount
-        container.empty();
+        teardownNotebookNavigatorViewContainer(container);
         this.root = null;
     }
 

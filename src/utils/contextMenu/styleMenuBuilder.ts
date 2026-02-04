@@ -18,23 +18,8 @@
 
 import { Menu, MenuItem } from 'obsidian';
 import { strings } from '../../i18n';
-import { setAsyncOnClick } from './menuAsyncHelpers';
+import { setAsyncOnClick, tryCreateSubmenu } from './menuAsyncHelpers';
 import { copyStyleToClipboard, getStyleClipboard, hasStyleData, type StyleClipboardData } from './styleClipboard';
-
-/** Extended MenuItem type with submenu support */
-type MenuItemWithSubmenu = MenuItem & {
-    setSubmenu: () => Menu;
-};
-
-/** Type guard for menu items that support submenus */
-function menuItemHasSubmenu(item: MenuItem): item is MenuItemWithSubmenu {
-    return typeof (item as MenuItemWithSubmenu).setSubmenu === 'function';
-}
-
-/** Checks if the current Obsidian version supports submenu creation */
-function menuSupportsSubmenu(): boolean {
-    return typeof (MenuItem.prototype as MenuItemWithSubmenu).setSubmenu === 'function';
-}
 
 /**
  * Configuration for the style submenu
@@ -57,7 +42,7 @@ export interface StyleMenuConfig {
  * Adds a Style submenu to a context menu with copy/paste and removal options
  */
 export function addStyleMenu(config: StyleMenuConfig): void {
-    if (!menuSupportsSubmenu()) {
+    if (typeof MenuItem.prototype.setSubmenu !== 'function') {
         return;
     }
 
@@ -89,12 +74,13 @@ export function addStyleMenu(config: StyleMenuConfig): void {
     }
 
     config.menu.addItem((item: MenuItem) => {
-        if (!menuItemHasSubmenu(item)) {
+        const styleSubmenu = tryCreateSubmenu(item);
+        if (!styleSubmenu) {
+            item.setTitle(strings.contextMenu.style.title).setIcon('lucide-brush').setDisabled(true);
             return;
         }
 
         item.setTitle(strings.contextMenu.style.title).setIcon('lucide-brush');
-        const styleSubmenu: Menu = item.setSubmenu();
 
         if (hasCopyableStyle) {
             styleSubmenu.addItem(subItem => {

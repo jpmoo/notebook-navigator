@@ -30,7 +30,7 @@ import {
     isFolderInExcludedFolder
 } from './fileFilters';
 import { shouldDisplayFile, FILE_VISIBILITY } from './fileTypeUtils';
-import { getEffectiveSortOption, sortFiles } from './sortUtils';
+import { getEffectiveSortOption, isPropertySortOption, sortFiles } from './sortUtils';
 import { TagTreeService } from '../services/TagTreeService';
 import { getDBInstanceOrNull } from '../storage/fileOperations';
 import { extractMetadata } from '../utils/metadataExtractor';
@@ -38,6 +38,7 @@ import { METADATA_SENTINEL } from '../storage/IndexedDBStorage';
 import { getFileDisplayName as getDisplayName } from './fileNameUtils';
 import { isFolderNote } from './folderNotes';
 import { createHiddenTagVisibility, normalizeTagPathValue } from './tagPrefixMatcher';
+import { isRecord } from './typeGuards';
 import {
     getActiveFileVisibility,
     getActiveHiddenFileNames,
@@ -58,6 +59,65 @@ function getParentFolderPath(path: string): string {
         return '/';
     }
     return path.slice(0, separatorIndex);
+}
+
+function extractPropertySortParts(value: unknown): string[] {
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        return trimmed.length > 0 ? [trimmed] : [];
+    }
+
+    if (typeof value === 'number') {
+        return Number.isFinite(value) ? [value.toString()] : [];
+    }
+
+    if (typeof value === 'boolean') {
+        return [value ? 'true' : 'false'];
+    }
+
+    if (Array.isArray(value)) {
+        const parts: string[] = [];
+        for (const entry of value) {
+            parts.push(...extractPropertySortParts(entry));
+        }
+        return parts;
+    }
+
+    return [];
+}
+
+function extractPropertySortValue(frontmatter: Record<string, unknown>, propertyKey: string): string | null {
+    const parts = extractPropertySortParts(frontmatter[propertyKey]);
+    if (parts.length === 0) {
+        return null;
+    }
+
+    const joined = parts.join(' ').trim();
+    return joined.length > 0 ? joined : null;
+}
+
+function createPropertySortValueGetter(app: App, propertySortKey: string): (file: TFile) => string | null {
+    const trimmedKey = propertySortKey.trim();
+    const cache = new Map<string, string | null>();
+
+    return (file: TFile): string | null => {
+        if (trimmedKey.length === 0) {
+            return null;
+        }
+        if (file.extension !== 'md') {
+            return null;
+        }
+
+        if (cache.has(file.path)) {
+            return cache.get(file.path) ?? null;
+        }
+
+        const fileCache = app.metadataCache.getFileCache(file);
+        const frontmatter = fileCache?.frontmatter;
+        const extracted = frontmatter && isRecord(frontmatter) ? extractPropertySortValue(frontmatter, trimmedKey) : null;
+        cache.set(file.path, extracted);
+        return extracted;
+    };
 }
 
 /**
@@ -214,6 +274,10 @@ export function getFilesForFolder(
     }
 
     const sortOption = getEffectiveSortOption(settings, 'folder', folder);
+    const isPropertySort = isPropertySortOption(sortOption);
+    const propertySortKey = settings.propertySortKey.trim();
+    const getPropertySortValue =
+        isPropertySort && propertySortKey.length > 0 ? createPropertySortValueGetter(app, propertySortKey) : undefined;
 
     if (settings.useFrontmatterMetadata) {
         const metadataCache = new Map<string, ReturnType<typeof extractMetadata>>();
@@ -226,36 +290,34 @@ export function getFilesForFolder(
             return v;
         };
 
-        sortFiles(
-            allFiles,
-            sortOption,
-            (file: TFile) => {
-                const md = getCached(file);
-                if (md.fc === undefined || md.fc === METADATA_SENTINEL.FIELD_NOT_CONFIGURED || md.fc === METADATA_SENTINEL.PARSE_FAILED) {
-                    return file.stat.ctime;
-                }
-                return md.fc;
-            },
-            (file: TFile) => {
-                const md = getCached(file);
-                if (md.fm === undefined || md.fm === METADATA_SENTINEL.FIELD_NOT_CONFIGURED || md.fm === METADATA_SENTINEL.PARSE_FAILED) {
-                    return file.stat.mtime;
-                }
-                return md.fm;
-            },
-            (file: TFile) => {
-                const md = getCached(file);
-                return getDisplayName(file, { fn: md.fn }, settings);
+        const getCreatedTime = (file: TFile) => {
+            const md = getCached(file);
+            if (md.fc === undefined || md.fc === METADATA_SENTINEL.FIELD_NOT_CONFIGURED || md.fc === METADATA_SENTINEL.PARSE_FAILED) {
+                return file.stat.ctime;
             }
-        );
+            return md.fc;
+        };
+
+        const getModifiedTime = (file: TFile) => {
+            const md = getCached(file);
+            if (md.fm === undefined || md.fm === METADATA_SENTINEL.FIELD_NOT_CONFIGURED || md.fm === METADATA_SENTINEL.PARSE_FAILED) {
+                return file.stat.mtime;
+            }
+            return md.fm;
+        };
+
+        const getTitle = (file: TFile) => {
+            const md = getCached(file);
+            return getDisplayName(file, { fn: md.fn }, settings);
+        };
+
+        sortFiles(allFiles, sortOption, getCreatedTime, getModifiedTime, getTitle, getPropertySortValue);
     } else {
-        sortFiles(
-            allFiles,
-            sortOption,
-            (file: TFile) => file.stat.ctime,
-            (file: TFile) => file.stat.mtime,
-            (file: TFile) => file.basename
-        );
+        const getCreatedTime = (file: TFile) => file.stat.ctime;
+        const getModifiedTime = (file: TFile) => file.stat.mtime;
+        const getTitle = (file: TFile) => file.basename;
+
+        sortFiles(allFiles, sortOption, getCreatedTime, getModifiedTime, getTitle, getPropertySortValue);
     }
 
     const pinnedOrderingOptions = settings.filterPinnedByFolder ? { restrictToFolderPath: folder.path } : undefined;
@@ -395,6 +457,10 @@ export function getFilesForTag(
 
     // Sort files
     const sortOption = getEffectiveSortOption(settings, 'tag', null, tag);
+    const isPropertySort = isPropertySortOption(sortOption);
+    const propertySortKey = settings.propertySortKey.trim();
+    const getPropertySortValue =
+        isPropertySort && propertySortKey.length > 0 ? createPropertySortValueGetter(app, propertySortKey) : undefined;
 
     if (settings.useFrontmatterMetadata) {
         const metadataCache = new Map<string, ReturnType<typeof extractMetadata>>();
@@ -407,36 +473,34 @@ export function getFilesForTag(
             return v;
         };
 
-        sortFiles(
-            filteredFiles,
-            sortOption,
-            (file: TFile) => {
-                const md = getCached(file);
-                if (md.fc === undefined || md.fc === METADATA_SENTINEL.FIELD_NOT_CONFIGURED || md.fc === METADATA_SENTINEL.PARSE_FAILED) {
-                    return file.stat.ctime;
-                }
-                return md.fc;
-            },
-            (file: TFile) => {
-                const md = getCached(file);
-                if (md.fm === undefined || md.fm === METADATA_SENTINEL.FIELD_NOT_CONFIGURED || md.fm === METADATA_SENTINEL.PARSE_FAILED) {
-                    return file.stat.mtime;
-                }
-                return md.fm;
-            },
-            (file: TFile) => {
-                const md = getCached(file);
-                return getDisplayName(file, { fn: md.fn }, settings);
+        const getCreatedTime = (file: TFile) => {
+            const md = getCached(file);
+            if (md.fc === undefined || md.fc === METADATA_SENTINEL.FIELD_NOT_CONFIGURED || md.fc === METADATA_SENTINEL.PARSE_FAILED) {
+                return file.stat.ctime;
             }
-        );
+            return md.fc;
+        };
+
+        const getModifiedTime = (file: TFile) => {
+            const md = getCached(file);
+            if (md.fm === undefined || md.fm === METADATA_SENTINEL.FIELD_NOT_CONFIGURED || md.fm === METADATA_SENTINEL.PARSE_FAILED) {
+                return file.stat.mtime;
+            }
+            return md.fm;
+        };
+
+        const getTitle = (file: TFile) => {
+            const md = getCached(file);
+            return getDisplayName(file, { fn: md.fn }, settings);
+        };
+
+        sortFiles(filteredFiles, sortOption, getCreatedTime, getModifiedTime, getTitle, getPropertySortValue);
     } else {
-        sortFiles(
-            filteredFiles,
-            sortOption,
-            (file: TFile) => file.stat.ctime,
-            (file: TFile) => file.stat.mtime,
-            (file: TFile) => file.basename
-        );
+        const getCreatedTime = (file: TFile) => file.stat.ctime;
+        const getModifiedTime = (file: TFile) => file.stat.mtime;
+        const getTitle = (file: TFile) => file.basename;
+
+        sortFiles(filteredFiles, sortOption, getCreatedTime, getModifiedTime, getTitle, getPropertySortValue);
     }
 
     return applyPinnedOrdering(filteredFiles, settings, 'tag');

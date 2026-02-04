@@ -234,6 +234,7 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
         const fileVisibilityEqual = previous?.profile.fileVisibility === profile.fileVisibility;
         const navigationBanner = profile.navigationBanner ?? null;
         const navigationBannerEqual = previous?.navigationBanner === navigationBanner;
+        const periodicNotesFolderEqual = previous?.profile.periodicNotesFolder === profile.periodicNotesFolder;
         const nameEqual = previous?.profile.name === profile.name;
         const shortcutsEqual = areShortcutsEqual(previous?.profile.shortcuts, profile.shortcuts);
 
@@ -246,6 +247,7 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
             hiddenFileTagsEqual &&
             fileVisibilityEqual &&
             navigationBannerEqual &&
+            periodicNotesFolderEqual &&
             nameEqual &&
             shortcutsEqual &&
             previous

@@ -75,20 +75,94 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
-        version: '2.1.3',
-        date: '2026-01-20',
+        version: '2.2.4',
+        date: '2026-02-09',
         showOnUpdate: true,
+        new: ['==Vault icons==. You can now use SVG images from your vault for icons. Just pick the new "Vault" tab in the icon picker.'],
+        improved: ['You can now remove icons from the recently used icons list.'],
+        changed: []
+    },
+    {
+        version: '2.2.3',
+        date: '2026-02-01',
+        showOnUpdate: false,
+        fixed: [
+            'Fixed an issue introduced in 2.2 where drag-moving a note to another folder could clear its feature image and preview text in the list pane.'
+        ]
+    },
+    {
+        version: '2.2.2',
+        date: '2026-01-31',
+        showOnUpdate: false,
+        info: 'The new tooltips introduced in 2.2.1 caused performance issues in large vaults so they were removed in this update. To compensate I added folder and tag sort overrides so you can now sort each folder or tag individually using A to Z or Z to A in the navigation pane!',
         new: [
-            'Public API: Added a new ==Menus API== for extending the Notebook Navigator context menus! You can now "hook" into the file and folder context menus of Notebook Navigator to add your own menu items. The new API methods are:',
-            '==registerFileMenu(callback)== for adding items to the file context menu.',
-            '==registerFolderMenu(callback)== for adding items to the folder context menu.'
+            'New setting: ==Folders & tags > Folder sort order==. You can now set default sort order for folders in navigation pane (A to Z, or Z to A).',
+            'You can now right-click to change ==sort order for folders and tags in the navigation pane==! So if you have a folder with child folders with date as names, you can now show the latest date on top in the navigation pane.'
         ],
-        improved: [],
+        improved: [
+            'Further optimizations to keyboard navigation performance when holding down UP, DOWN, PAGE UP, or PAGE DOWN keys in the list pane. Notebook Navigator now debounces visual updates to improve performance even more, try it and let me know if you like it!',
+            'If you hide all toolbar buttons in navigation pane and do not show vault title in header, the toolbar area is now hidden to save space.',
+            'Same with the list pane - if you hide all toolbar buttons and do not show folder name in header, this toolbar area is also hidden to save space.'
+        ],
         changed: [],
         fixed: [
+            'Removed tooltips for truncated items in navigation pane since it caused performance issues. If you want to show tooltips for all items, enable it from Settings > General > Show tooltips.'
+        ]
+    },
+    {
+        version: '2.2.1',
+        date: '2026-01-30',
+        showOnUpdate: true,
+        new: [
+            '==Periodic notes can now use template files== (daily, weekly, monthly, quarterly, yearly). Configure templates in Settings > Calendar.',
+            'New iOS / iPadOS setting: Settings > General > ==Use floating toolbars== on iOS/iPadOS. Default enabled. Disable to use fixed toolbars on iOS/iPadOS.',
+            'New Style setting: Calendar > ==Right sidebar date placement==. Show dates in the calendar in the right sidebar bottom right (default) or centered.'
+        ],
+        improved: [
+            'Weekly periodic note patterns now accept nested year/quarter/month/week folder paths.',
+            'Greatly improved keyboard performance in list pane when scrolling through large lists by holding the UP or DOWN key.',
+            'Folders and tags now show tooltips for truncated names on desktop devices, similar to how shortcuts and recent files works.'
+        ],
+        changed: [
+            'Due to issues with React native, scrollbar positioning and multiple themes, ==the UI panels are no longer shown with transparency== in front of the list scrollers. Notebook Navigator now again works fine with themes like Baseline and Cupertino.'
+        ],
+        fixed: [
+            'Fixed an issue where some customized user icons were not applying consistently to all UI elements.',
+            'Increased image size limit on mobile devices for feature image thumbnails from 15 MB to 50 MB (matches desktop).',
+            'Right sidebar calendar now properly sets background color to **--background-primary** on desktop for theme support.'
+        ]
+    },
+    {
+        version: '2.2.0',
+        date: '2026-01-25',
+        showOnUpdate: true,
+        new: [
+            '==Calendar now supports weekly, monthly, quarterly, and yearly notes!== Configure custom file patterns in Settings > Calendar. Click week numbers, month names, quarter labels, or year to create or open periodic notes.',
+            'New setting: Calendar > ==Placement==. Display the calendar in the **left** or **right sidebar**. 🎉',
+            'New setting: Notes > ==Show properties on separate rows==. Display each custom property on its own line. 🎉',
+            'New setting: List pane > Keyboard navigation > ==Press Enter to open files==. 🎉 Open selected files on Enter. Configure Shift+Enter and Cmd/Ctrl+Enter to open in a new tab, to the right, or new window!',
+            'New setting: ==List pane > Sort notes by > **File name** and **Property**==. You can now also sort files on file name or a custom property. 🎉 This is the first step towards custom sorting in list pane!',
+            'New command: ==Search in vault root==. Selects the vault root folder and focuses the search input.',
+            'New setting: Navigation pane > Appearance > ==Pin banner==. Keep the banner pinned to top or let it scroll with the navigation tree.',
+            'New setting: Calendar > ==Show feature image==. Disable to hide feature images in the calendar.',
+            'You can now press ==Enter to open folder notes== when a folder with folder note is selected. Shift+Enter opens in a new tab and Cmd/Ctrl+Enter opens to the right (configurable).',
+            '==New commands==: Open daily note, Open weekly note, Open monthly note, Open quarterly note, Open yearly note.',
+            'Public API: Added a new ==Menus API== for extending context menus. Use **registerFileMenu(callback)** and **registerFolderMenu(callback)** to add custom menu items.'
+        ],
+        improved: [
+            'Calendar > Root folder is now stored per vault profile so you can have different periodic notes for each profile.',
+            'Preview text now strips Obsidian block IDs like ^37066f and ^quote-of-the-day.',
+            'Copy path now shows a submenu with options: Obsidian URL, from vault folder, from system root.',
+            'Feature image thumbnails now apply image orientation for JPEG, AVIF, HEIC, and HEIF images.'
+        ],
+        changed: [
+            'Replaced ==Property for color== setting with ==Property color map==. You can now define colors with a simple **key=color** format using a visual editor. 🎉',
+            'Folders with folder notes no longer show a note icon by default.'
+        ],
+        fixed: [
             "Fixed an issue where the What's New modal never appeared after updating the plugin.",
-            'Fixed an issue where calendar cells on some devices and themes rendered with variable width.'
-    ]
+            'Fixed calendar cells rendering with variable width on some devices and themes.'
+        ]
     },
     {
         version: '2.1.2',
@@ -174,8 +248,6 @@ const RELEASE_NOTES: ReleaseNote[] = [
         showOnUpdate: true,
         youtubeUrl: 'https://www.youtube.com/watch?v=BewIlG8wLAM',
         new: [
-            '==The user interface now has a slight transparency== for all overlay elements. This can be modified or disabled in Style Settings.',
-            'New theme variables: ==--nn-theme-pane-overlay-opacity== and ==--nn-theme-pane-overlay-filter==. Set pane overlay stack opacity and backdrop filter.',
             'When installing for the first time, new users will now be presented with a ==Welcome to Notebook Navigator modal== that helps them get started.',
             'Settings > General now shows a link to the video =="Mastering Notebook Navigator"== on YouTube. The video has subtitles in 21 languages, the same as Notebook Navigator supports.',
             'New setting: ==General > Vault title placement==. You can now show the vault title either in the header or in the navigation pane (new default).',

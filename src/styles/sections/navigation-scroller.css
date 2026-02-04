@@ -6,44 +6,36 @@
 
 /* Scroller container for both folder tree and tag list */
 
+.nn-navigation-pane-chrome {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.nn-navigation-pane-panel {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
 .nn-navigation-pane-scroller {
     flex: 1;
-    /*
-     * Use a column flex layout so `.nn-navigation-pane-content` can expand to fill unused height.
-     * This keeps the bottom sticky overlays (`.nn-pane-bottom-toolbar`, `.nn-navigation-calendar-overlay`)
-     * anchored to the pane bottom when the navigation list is shorter than the viewport.
-     */
+    min-height: 0;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 0 var(--nn-scroller-padding);
     line-height: 1; /* Reset to 1 - we'll use fixed line-heights on individual elements */
-    border-right: 1px solid var(--nn-theme-divider-border-color);
     background-color: var(--nn-theme-nav-bg); /* Opaque background for GPU scroll layer optimization */
 
     /* Ensure scroll events work properly with virtualization */
     position: relative;
 }
 
-/* Keep the chrome stacks and bottom overlays sized to their content; let the list content fill the remainder. */
-.nn-navigation-pane-scroller > .nn-navigation-pane-overlay,
-.nn-navigation-pane-scroller > .nn-navigation-pane-content,
-.nn-navigation-pane-scroller > .nn-pane-bottom-toolbar,
-.nn-navigation-pane-scroller > .nn-navigation-calendar-overlay {
-    flex-shrink: 0;
-}
-
-.nn-navigation-pane-scroller > .nn-navigation-pane-content {
-    flex: 1 0 auto;
-}
-
 .nn-navigation-pane-content {
-    padding-bottom: calc(var(--nn-pane-bottom-toolbar-space) + var(--nn-pane-bottom-calendar-space));
-}
-
-.notebook-navigator-mobile .nn-navigation-pane-scroller {
-    border-right: none;
+    flex: 1 0 auto;
 }
 
 .nn-navigation-pane-scroller[data-banner='true'] {
@@ -170,36 +162,6 @@
 .notebook-navigator-mobile .nn-shortcut-pinned {
     background-color: var(--nn-theme-nav-bg);
     border-bottom: none;
-    border-right: none;
-}
-
-/* Navigation pane: chrome stack (header/banner/pinned) stays above tree rows. */
-.nn-navigation-pane-scroller > .nn-navigation-pane-overlay {
-    /* Keep the chrome stack pinned while scrolling folders/tags behind it. */
-    position: sticky;
-    top: 0;
-    /* Ensure the overlay stack stays above virtual list rows and dividers. */
-    z-index: 4;
-    display: flex;
-    flex-direction: column;
-    /*
-     * Render the overlay stack as a translucent surface so tree rows can scroll behind it.
-     * The opacity is user-adjustable via Style Settings.
-     */
-    background: color-mix(in srgb, var(--nn-theme-nav-bg) calc(var(--nn-theme-pane-overlay-opacity, 87) * 1%), transparent);
-    -webkit-backdrop-filter: var(--nn-theme-pane-overlay-filter);
-    backdrop-filter: var(--nn-theme-pane-overlay-filter);
-    /* The scroller applies horizontal padding for rows; offset it so the overlay aligns to the pane edge. */
-    margin-left: calc(-1 * var(--nn-scroller-padding));
-    margin-right: calc(-1 * var(--nn-scroller-padding));
-}
-
-/* Child chrome elements stay transparent so the overlay stack paints the background once. */
-.nn-navigation-pane .nn-navigation-pane-scroller > .nn-navigation-pane-overlay .nn-pane-header,
-.nn-navigation-pane .nn-navigation-pane-scroller > .nn-navigation-pane-overlay .nn-mobile-toolbar,
-.nn-navigation-pane .nn-navigation-pane-scroller > .nn-navigation-pane-overlay .nn-shortcut-pinned,
-.nn-navigation-pane .nn-navigation-pane-scroller > .nn-navigation-pane-overlay .nn-vault-title-area {
-    background-color: transparent;
 }
 
 /* Vault title displayed below the navigation header (desktop only). */
@@ -257,6 +219,11 @@
 .nn-nav-banner {
     padding: var(--nn-nav-banner-padding-vertical, 8px) var(--nn-nav-item-padding-horizontal);
     box-sizing: border-box;
+}
+
+.nn-navigation-pane-banner {
+    margin-inline-start: calc(-1 * var(--nn-scroller-padding));
+    margin-inline-end: calc(-1 * var(--nn-scroller-padding));
 }
 
 .nn-nav-banner-image {

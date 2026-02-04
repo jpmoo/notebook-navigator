@@ -46,8 +46,8 @@ export function useMeasuredElementHeight(
         }
 
         const updateHeight = () => {
-            // Rounded to avoid subpixel oscillation triggering reflows.
-            const nextHeight = Math.round(element.getBoundingClientRect().height);
+            // Use layout units so scroll math stays consistent under UI scale transforms.
+            const nextHeight = element.offsetHeight;
             setHeight(prev => (prev === nextHeight ? prev : nextHeight));
         };
 

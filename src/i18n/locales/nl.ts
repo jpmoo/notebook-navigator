@@ -32,6 +32,7 @@ export const STRINGS_NL = {
         untagged: 'Zonder tags',
         featureImageAlt: 'Uitgelichte afbeelding',
         unknownError: 'Onbekende fout',
+        clipboardWriteError: 'Kon niet naar klembord schrijven',
         updateBannerTitle: 'Notebook Navigator update beschikbaar',
         updateBannerInstruction: 'Werk bij in Instellingen -> Community plugins',
         updateIndicatorLabel: 'Nieuwe versie beschikbaar',
@@ -77,10 +78,6 @@ export const STRINGS_NL = {
     navigationCalendar: {
         ariaLabel: 'Kalender',
         dailyNotesNotEnabled: 'De dagelijkse notities plugin is niet ingeschakeld.',
-        promptDailyNoteTitle: {
-            title: 'Titel dagelijkse notitie',
-            placeholder: 'Voer titel in'
-        },
         createDailyNote: {
             title: 'Nieuwe dagelijkse notitie',
             message: 'Bestand {filename} bestaat niet. Wilt u het aanmaken?',
@@ -175,9 +172,6 @@ export const STRINGS_NL = {
             revealInFolder: 'Tonen in map',
             revealInFinder: 'Tonen in Finder',
             showInExplorer: 'Tonen in systeemverkenner',
-            copyDeepLink: 'Obsidian URL kopiëren',
-            copyPath: 'Bestandssysteempad kopiëren',
-            copyRelativePath: 'Vault-pad kopiëren',
             renameNote: 'Notitie hernoemen',
             renameFile: 'Bestand hernoemen',
             deleteNote: 'Notitie verwijderen',
@@ -205,8 +199,6 @@ export const STRINGS_NL = {
             newTldrawDrawing: 'Nieuwe Tldraw-tekening',
             duplicateFolder: 'Map dupliceren',
             searchInFolder: 'Zoeken in map',
-            copyPath: 'Bestandssysteempad kopiëren',
-            copyRelativePath: 'Vault-pad kopiëren',
             createFolderNote: 'Mapnotitie maken',
             detachFolderNote: 'Mapnotitie loskoppelen',
             deleteFolderNote: 'Mapnotitie verwijderen',
@@ -229,6 +221,12 @@ export const STRINGS_NL = {
         navigation: {
             addSeparator: 'Scheidingslijn toevoegen',
             removeSeparator: 'Scheidingslijn verwijderen'
+        },
+        copyPath: {
+            title: 'Pad kopiëren',
+            asObsidianUrl: 'als Obsidian URL',
+            fromVaultFolder: 'vanuit vault-map',
+            fromSystemRoot: 'vanaf systeemroot'
         },
         style: {
             title: 'Stijl',
@@ -267,6 +265,7 @@ export const STRINGS_NL = {
             showingResultsInfo: '50 van {count} resultaten weergegeven. Typ meer om te verfijnen.',
             emojiInstructions: 'Typ of plak een emoji om deze als pictogram te gebruiken',
             removeIcon: 'Pictogram verwijderen',
+            removeFromRecents: 'Verwijderen uit recent',
             allTabLabel: 'Alle'
         },
         fileIconRuleEditor: {
@@ -311,7 +310,6 @@ export const STRINGS_NL = {
             paletteCustom: 'Aangepast',
             copyColors: 'Kleur kopiëren',
             colorsCopied: 'Kleur gekopieerd naar klembord',
-            copyClipboardError: 'Kon niet naar klembord schrijven',
             pasteColors: 'Kleur plakken',
             pasteClipboardError: 'Kan klembord niet lezen',
             pasteInvalidFormat: 'Een hex kleurwaarde verwacht',
@@ -391,6 +389,14 @@ export const STRINGS_NL = {
                 dismiss: 'om te sluiten'
             }
         },
+        calendarTemplate: {
+            placeholder: 'Sjablonen zoeken...',
+            instructions: {
+                navigate: 'om te navigeren',
+                select: 'om sjabloon te selecteren',
+                dismiss: 'om te sluiten'
+            }
+        },
         navigationBanner: {
             placeholder: 'Afbeeldingen zoeken...',
             instructions: {
@@ -421,7 +427,7 @@ export const STRINGS_NL = {
             thanksText: 'Heel erg bedankt voor het downloaden en veel plezier!',
             videoAlt: 'Notebook Navigator installeren en beheersen',
             openVideoButton: 'Video afspelen',
-            closeButton: 'Ik bekijk het later'
+            closeButton: 'Misschien later'
         }
     },
 
@@ -534,8 +540,14 @@ export const STRINGS_NL = {
         open: 'Openen',
         toggleLeftSidebar: 'Linker zijbalk in-/uitschakelen',
         openHomepage: 'Startpagina openen',
+        openDailyNote: 'Dagelijkse notitie openen',
+        openWeeklyNote: 'Wekelijkse notitie openen',
+        openMonthlyNote: 'Maandelijkse notitie openen',
+        openQuarterlyNote: 'Kwartaalnotitie openen',
+        openYearlyNote: 'Jaarlijkse notitie openen',
         revealFile: 'Bestand tonen',
         search: 'Zoeken',
+        searchVaultRoot: 'Zoeken in kluisroot',
         toggleDualPane: 'Dubbel paneel in-/uitschakelen',
         toggleCalendar: 'Kalender in-/uitschakelen',
         selectVaultProfile: 'Kluisprofiel wijzigen',
@@ -570,6 +582,7 @@ export const STRINGS_NL = {
     // Plugin UI
     plugin: {
         viewName: 'Notebook Navigator',
+        calendarViewName: 'Kalender',
         ribbonTooltip: 'Notebook Navigator',
         revealInNavigator: 'Tonen in Notebook Navigator'
     },
@@ -593,6 +606,7 @@ export const STRINGS_NL = {
         sections: {
             general: 'Algemeen',
             navigationPane: 'Navigatiepaneel',
+            calendar: 'Kalender',
             icons: 'Pictogrampakketten',
             folders: 'Mappen',
             folderNotes: 'Mapnotities',
@@ -607,11 +621,14 @@ export const STRINGS_NL = {
         },
         groups: {
             general: {
+                vaultProfiles: 'Kluisprofielen',
                 filtering: 'Filteren',
                 behavior: 'Gedrag',
+                keyboardNavigation: 'Toetsenbordnavigatie',
                 view: 'Uiterlijk',
                 icons: 'Iconen',
                 desktopAppearance: 'Desktop-uiterlijk',
+                mobileAppearance: 'Mobiele weergave',
                 formatting: 'Opmaak'
             },
             navigation: {
@@ -637,6 +654,7 @@ export const STRINGS_NL = {
         },
         syncMode: {
             notSynced: '(niet gesynchroniseerd)',
+            disabled: '(uitgeschakeld)',
             switchToSynced: 'Synchronisatie inschakelen',
             switchToLocal: 'Synchronisatie uitschakelen'
         },
@@ -690,8 +708,21 @@ export const STRINGS_NL = {
                     'created-desc': 'Datum gemaakt (nieuwste bovenaan)',
                     'created-asc': 'Datum gemaakt (oudste bovenaan)',
                     'title-asc': 'Titel (A bovenaan)',
-                    'title-desc': 'Titel (Z bovenaan)'
+                    'title-desc': 'Titel (Z bovenaan)',
+                    'filename-asc': 'Bestandsnaam (A bovenaan)',
+                    'filename-desc': 'Bestandsnaam (Z bovenaan)',
+                    'property-asc': 'Eigenschap (A bovenaan)',
+                    'property-desc': 'Eigenschap (Z bovenaan)'
+                },
+                propertyOverride: {
+                    asc: 'Eigenschap ‘{property}’ (A bovenaan)',
+                    desc: 'Eigenschap ‘{property}’ (Z bovenaan)'
                 }
+            },
+            propertySortKey: {
+                name: 'Sorteereigenschap',
+                desc: 'Gebruikt met Eigenschap-sortering. Notities met deze frontmatter-eigenschap worden eerst weergegeven en gesorteerd op de eigenschapswaarde. Arrays worden samengevoegd tot één waarde.',
+                placeholder: 'order'
             },
             revealFileOnListChanges: {
                 name: 'Scroll naar geselecteerd bestand bij lijstwijzigingen',
@@ -816,6 +847,10 @@ export const STRINGS_NL = {
                 name: 'Zoomniveau',
                 desc: 'Regelt het algemene zoomniveau van Notebook Navigator.'
             },
+            useFloatingToolbars: {
+                name: 'Zwevende werkbalken gebruiken op iOS/iPadOS',
+                desc: 'Geldt voor Obsidian 1.11 en later.'
+            },
             startView: {
                 name: 'Standaard opstartweergave',
                 desc: 'Kies welk paneel wordt weergegeven bij het openen van Notebook Navigator. Navigatiepaneel toont snelkoppelingen, recente notities en mappenstructuur. Lijstpaneel toont direct de notitielijst.',
@@ -873,6 +908,10 @@ export const STRINGS_NL = {
                 current: 'Huidige banner: {path}',
                 chooseButton: 'Afbeelding kiezen'
             },
+            pinNavigationBanner: {
+                name: 'Banner vastpinnen',
+                desc: 'Pin de navigatiebanner boven de navigatieboom.'
+            },
             showShortcuts: {
                 name: 'Snelkoppelingen tonen',
                 desc: 'De sectie snelkoppelingen weergeven in het navigatiepaneel.'
@@ -898,9 +937,13 @@ export const STRINGS_NL = {
                 name: 'Recente notities met snelkoppelingen vastpinnen',
                 desc: 'Recente notities opnemen wanneer snelkoppelingen zijn vastgepind.'
             },
-            showCalendar: {
-                name: 'Kalender tonen',
-                desc: 'Toon een kalender onderaan het navigatiepaneel.'
+            calendarPlacement: {
+                name: 'Kalenderpositie',
+                desc: 'Weergeven in de linker of rechter zijbalk.',
+                options: {
+                    leftSidebar: 'Linker zijbalk',
+                    rightSidebar: 'Rechter zijbalk'
+                }
             },
             calendarLocale: {
                 name: 'Taal',
@@ -909,9 +952,19 @@ export const STRINGS_NL = {
                     systemDefault: 'Standaard'
                 }
             },
+            calendarWeekendDays: {
+                name: 'Weekenddagen',
+                desc: 'Toon weekenddagen met een andere achtergrondkleur.',
+                options: {
+                    none: 'Geen',
+                    satSun: 'Zaterdag en zondag',
+                    friSat: 'Vrijdag en zaterdag',
+                    thuFri: 'Donderdag en vrijdag'
+                }
+            },
             calendarWeeksToShow: {
-                name: 'Weken om te tonen',
-                desc: 'Aantal kalenderweken om weer te geven.',
+                name: 'Weken om te tonen in linker zijbalk',
+                desc: 'De kalender in de rechter zijbalk toont altijd de volledige maand.',
                 options: {
                     fullMonth: 'Volledige maand',
                     oneWeek: '1 week',
@@ -922,9 +975,17 @@ export const STRINGS_NL = {
                 name: 'Datum van vandaag markeren',
                 desc: 'Toon een rode cirkel en vetgedrukte tekst op de datum van vandaag.'
             },
+            calendarShowFeatureImage: {
+                name: 'Uitgelichte afbeelding tonen',
+                desc: 'Toon uitgelichte afbeeldingen voor notities in de kalender.'
+            },
             calendarShowWeekNumber: {
                 name: 'Weeknummer tonen',
                 desc: 'Voeg een kolom toe met het weeknummer.'
+            },
+            calendarShowQuarter: {
+                name: 'Kwartaal tonen',
+                desc: 'Voeg een kwartaallabel toe in de kalender-header.'
             },
             calendarConfirmBeforeCreate: {
                 name: 'Bevestigen voor aanmaken',
@@ -934,7 +995,7 @@ export const STRINGS_NL = {
                 name: 'Dagelijkse notitie bron',
                 desc: 'Bron voor kalendernotities.',
                 options: {
-                    dailyNotes: 'Dagelijkse notities',
+                    dailyNotes: 'Dagelijkse notities (core plug-in)',
                     notebookNavigator: 'Notebook Navigator'
                 },
                 info: {
@@ -943,19 +1004,43 @@ export const STRINGS_NL = {
             },
             calendarCustomRootFolder: {
                 name: 'Hoofdmap',
-                desc: 'Basismap voor kalendernotities.',
+                desc: 'Basismap voor periodieke notities. Datumpatronen kunnen submappen bevatten. Wijzigt met het geselecteerde kluisprofiel.',
                 placeholder: 'Personal/Diary'
             },
-            calendarCustomFilePattern: {
-                name: 'Bestandspatroon',
-                desc: 'Datumpatroon relatief aan hoofdmap. Ondersteunde tokens: YYYY, MM, M, DD, D. Notities kunnen een optioneel titelachtervoegsel bevatten.',
-                placeholder: 'YYYY/YYYYMMDD',
-                example: 'Huidige syntaxis ziet er zo uit: {path}',
-                parsingError: 'Patroon moet YYYY, MM/M en DD/D bevatten. Ondersteunde tokens: YYYY, MM, M, DD, D.'
+            calendarTemplateFolder: {
+                name: 'Sjabloonmaplocatie',
+                desc: 'De sjabloonbestandskiezer toont notities uit deze map.',
+                placeholder: 'Templates'
             },
-            calendarCustomPromptForTitle: {
-                name: 'Vraag om titel',
-                desc: 'Vraag om titel bij het maken van notities. Accepteert lege titels.'
+            calendarCustomFilePattern: {
+                name: 'Dagelijkse notities',
+                desc: 'Pad formatteren met Moment-datumnotatie. Zet submapnamen tussen haakjes, bijv. [Work]/YYYY. Klik op het sjabloonpictogram om een sjabloon in te stellen.',
+                momentDescPrefix: 'Pad formatteren met ',
+                momentLinkText: 'Moment-datumnotatie',
+                momentDescSuffix:
+                    '. Zet submapnamen tussen haakjes, bijv. [Work]/YYYY. Klik op het sjabloonpictogram om een sjabloon in te stellen.',
+                placeholder: 'YYYY/YYYYMMDD',
+                example: 'Huidige syntaxis: {path}',
+                parsingError: 'Het patroon moet kunnen formatteren en terug-parsen naar een volledige datum (jaar, maand, dag).'
+            },
+            calendarCustomWeekPattern: {
+                name: 'Wekelijkse notities',
+                parsingError: 'Het patroon moet kunnen formatteren en terug-parsen naar een volledige week (weekjaar, weeknummer).'
+            },
+            calendarCustomMonthPattern: {
+                name: 'Maandelijkse notities',
+                parsingError: 'Het patroon moet kunnen formatteren en terug-parsen naar een volledige maand (jaar, maand).'
+            },
+            calendarCustomQuarterPattern: {
+                name: 'Kwartaalnotities',
+                parsingError: 'Het patroon moet kunnen formatteren en terug-parsen naar een volledig kwartaal (jaar, kwartaal).'
+            },
+            calendarCustomYearPattern: {
+                name: 'Jaarlijkse notities',
+                parsingError: 'Het patroon moet kunnen formatteren en terug-parsen naar een volledig jaar (jaar).'
+            },
+            calendarTemplateFile: {
+                current: 'Sjabloonbestand: {name}'
             },
             showTooltips: {
                 name: 'Tooltips tonen',
@@ -989,6 +1074,22 @@ export const STRINGS_NL = {
                     cmdCtrl: 'Cmd/Ctrl klik',
                     optionAlt: 'Option/Alt klik'
                 }
+            },
+            enterToOpenFiles: {
+                name: 'Druk op Enter om bestanden te openen',
+                desc: 'Open bestanden alleen door op Enter te drukken tijdens toetsenbordnavigatie in de lijst.'
+            },
+            shiftEnterOpenContext: {
+                name: 'Shift+Enter',
+                desc: 'Open het geselecteerde bestand in een nieuw tabblad, splitsing of venster met Shift+Enter.'
+            },
+            cmdEnterOpenContext: {
+                name: 'Cmd+Enter',
+                desc: 'Open het geselecteerde bestand in een nieuw tabblad, splitsing of venster met Cmd+Enter.'
+            },
+            ctrlEnterOpenContext: {
+                name: 'Ctrl+Enter',
+                desc: 'Open het geselecteerde bestand in een nieuw tabblad, splitsing of venster met Ctrl+Enter.'
             },
             fileVisibility: {
                 name: 'Bestandstypes tonen (kluisprofiel)',
@@ -1089,7 +1190,7 @@ export const STRINGS_NL = {
                 desc: 'Tags weergeven wanneer datum, voorbeeld en afbeelding verborgen zijn.'
             },
             customPropertyType: {
-                name: 'Type',
+                name: 'Eigenschapstype',
                 desc: 'Selecteer de aangepaste eigenschap om weer te geven in bestandsitems.',
                 options: {
                     frontmatter: 'Frontmatter eigenschap',
@@ -1098,14 +1199,19 @@ export const STRINGS_NL = {
                 }
             },
             customPropertyFields: {
-                name: 'Weer te geven eigenschap',
+                name: 'Weer te geven eigenschappen',
                 desc: "Door komma's gescheiden lijst van frontmatter-eigenschappen om als badges weer te geven. Lijstwaarde-eigenschappen tonen één badge per waarde. Waarden in [[wikilink]]-formaat worden weergegeven als aanklikbare links.",
                 placeholder: 'status, type, categorie'
             },
-            customPropertyColorFields: {
-                name: 'Eigenschap voor kleur',
-                desc: "Door komma's gescheiden lijst van frontmatter-eigenschappen voor badge-kleuren. Kleureigenschappen worden gekoppeld aan weergave-eigenschappen op positie. Lijstwaarde-eigenschappen koppelen kleuren op index. Waarden kunnen tagnamen of CSS-kleuren zijn.",
-                placeholder: 'statusColor, typeColor, categoryColor'
+            showCustomPropertiesOnSeparateRows: {
+                name: 'Eigenschappen op afzonderlijke regels tonen',
+                desc: 'Toon elke eigenschap op een eigen regel.'
+            },
+            customPropertyColorMap: {
+                name: 'Eigenschapkleuren',
+                desc: 'Koppel frontmatter-eigenschappen aan badge-kleuren. Eén koppeling per regel: eigenschap=kleur',
+                placeholder: '# Eigenschap=kleur\nstatus=#ff0000\ntype=#00ff00',
+                editTooltip: 'Koppelingen bewerken'
             },
             showCustomPropertyInCompactMode: {
                 name: 'Toon aangepaste eigenschap in compacte modus',
@@ -1116,14 +1222,16 @@ export const STRINGS_NL = {
                 desc: 'Formaat voor het weergeven van datums (gebruikt date-fns formaat).',
                 placeholder: 'd MMM yyyy',
                 help: 'Veelvoorkomende formaten:\nd MMM yyyy = 25 mei 2022\ndd/MM/yyyy = 25/05/2022\nyyyy-MM-dd = 2022-05-25\n\nTokens:\nyyyy/yy = jaar\nMMMM/MMM/MM = maand\ndd/d = dag\nEEEE/EEE = weekdag',
-                helpTooltip: 'Klik voor formaatverwijzing'
+                helpTooltip: 'Formaat met date-fns',
+                dateFnsLinkText: 'date-fns-formaat'
             },
             timeFormat: {
                 name: 'Tijdformaat',
                 desc: 'Formaat voor het weergeven van tijden (gebruikt date-fns formaat).',
                 placeholder: 'HH:mm',
                 help: 'Veelvoorkomende formaten:\nHH:mm = 14:30 (24-uurs)\nh:mm a = 2:30 PM (12-uurs)\nHH:mm:ss = 14:30:45\nh:mm:ss a = 2:30:45 PM\n\nTokens:\nHH/H = 24-uurs\nhh/h = 12-uurs\nmm = minuten\nss = seconden\na = AM/PM',
-                helpTooltip: 'Klik voor formaatverwijzing'
+                helpTooltip: 'Formaat met date-fns',
+                dateFnsLinkText: 'date-fns-formaat'
             },
             showFilePreview: {
                 name: 'Notitievoorbeeld tonen',
@@ -1201,6 +1309,14 @@ export const STRINGS_NL = {
                 name: 'Mapkleuren overerven',
                 desc: 'Submappen erven kleur van bovenliggende mappen.'
             },
+            folderSortOrder: {
+                name: 'Map sorteervolgorde',
+                desc: 'Klik met de rechtermuisknop op een map om een andere sorteervolgorde in te stellen voor de onderliggende items.',
+                options: {
+                    alphaAsc: 'A tot Z',
+                    alphaDesc: 'Z tot A'
+                }
+            },
             showNoteCount: {
                 name: 'Notitietelling tonen',
                 desc: 'Het aantal notities naast elke map en tag weergeven.'
@@ -1265,12 +1381,13 @@ export const STRINGS_NL = {
             },
             tagSortOrder: {
                 name: 'Tag sorteervolgorde',
-                desc: 'Kies hoe tags worden geordend in het navigatiepaneel.',
+                desc: 'Klik met de rechtermuisknop op een tag om een andere sorteervolgorde in te stellen voor de onderliggende items.',
                 options: {
                     alphaAsc: 'A tot Z',
                     alphaDesc: 'Z tot A',
-                    frequencyAsc: 'Frequentie (laag naar hoog)',
-                    frequencyDesc: 'Frequentie (hoog naar laag)'
+                    frequency: 'Frequentie',
+                    lowToHigh: 'laag naar hoog',
+                    highToLow: 'hoog naar laag'
                 }
             },
             showAllTagsFolder: {
@@ -1423,7 +1540,8 @@ export const STRINGS_NL = {
             frontmatterDateFormat: {
                 name: 'Tijdstempelformaat',
                 desc: 'Formaat gebruikt om tijdstempels in frontmatter te parseren. Laat leeg om ISO 8601 formaat te gebruiken',
-                helpTooltip: 'Zie date-fns formaatdocumentatie',
+                helpTooltip: 'Formaat met date-fns',
+                dateFnsLinkText: 'date-fns-formaat',
                 help: "Veelvoorkomende formaten:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {

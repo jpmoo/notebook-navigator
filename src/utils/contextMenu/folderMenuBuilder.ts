@@ -26,7 +26,7 @@ import { cleanupExclusionPatterns, isFolderInExcludedFolder } from '../../utils/
 import { ItemType } from '../../types';
 import { resetHiddenToggleIfNoSources } from '../../utils/exclusionUtils';
 import { runAsyncAction } from '../async';
-import { setAsyncOnClick } from './menuAsyncHelpers';
+import { addCopyPathSubmenu, setAsyncOnClick, tryCreateSubmenu } from './menuAsyncHelpers';
 import { addShortcutRenameMenuItem } from './shortcutRenameMenuItem';
 import { resolveUXIconForMenu } from '../uxIcons';
 import { getActiveVaultProfile, getHiddenFolderPatternMatch, normalizeHiddenFolderPath } from '../../utils/vaultProfiles';
@@ -253,6 +253,58 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
         });
     });
 
+    // Child folder sort order
+    if (typeof MenuItem.prototype.setSubmenu === 'function') {
+        menu.addItem((item: MenuItem) => {
+            const currentOverride = metadataService.getFolderChildSortOrderOverride(folder.path);
+            const effectiveOrder = currentOverride ?? settings.folderSortOrder;
+            const sortIcon = currentOverride
+                ? effectiveOrder === 'alpha-desc'
+                    ? 'lucide-sort-desc'
+                    : 'lucide-sort-asc'
+                : 'lucide-sliders-horizontal';
+
+            const sortOrderSubmenu = tryCreateSubmenu(item);
+            if (!sortOrderSubmenu) {
+                item.setTitle(strings.paneHeader.changeSortOrder).setIcon(sortIcon).setDisabled(true);
+                return;
+            }
+
+            const globalDefaultLabel =
+                settings.folderSortOrder === 'alpha-desc'
+                    ? strings.settings.items.folderSortOrder.options.alphaDesc
+                    : strings.settings.items.folderSortOrder.options.alphaAsc;
+
+            item.setTitle(strings.paneHeader.changeSortOrder).setIcon(sortIcon);
+
+            sortOrderSubmenu.addItem(subItem => {
+                subItem.setTitle(`${strings.folderAppearance.defaultLabel} (${globalDefaultLabel})`).setChecked(!currentOverride);
+                setAsyncOnClick(subItem, async () => {
+                    await metadataService.removeFolderChildSortOrderOverride(folder.path);
+                    app.workspace.requestSaveLayout();
+                });
+            });
+
+            sortOrderSubmenu.addSeparator();
+
+            sortOrderSubmenu.addItem(subItem => {
+                subItem.setTitle(strings.settings.items.folderSortOrder.options.alphaAsc).setChecked(currentOverride === 'alpha-asc');
+                setAsyncOnClick(subItem, async () => {
+                    await metadataService.setFolderChildSortOrderOverride(folder.path, 'alpha-asc');
+                    app.workspace.requestSaveLayout();
+                });
+            });
+
+            sortOrderSubmenu.addItem(subItem => {
+                subItem.setTitle(strings.settings.items.folderSortOrder.options.alphaDesc).setChecked(currentOverride === 'alpha-desc');
+                setAsyncOnClick(subItem, async () => {
+                    await metadataService.setFolderChildSortOrderOverride(folder.path, 'alpha-desc');
+                    app.workspace.requestSaveLayout();
+                });
+            });
+        });
+    }
+
     const folderSeparatorTarget = { type: 'folder', path: folder.path } as const;
     const hasSeparator = metadataService.hasNavigationSeparator(folderSeparatorTarget);
     const disableNavigationSeparatorActions = Boolean(options?.disableNavigationSeparatorActions);
@@ -425,25 +477,16 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
 
     // Copy actions
     const adapter = app.vault.adapter;
-
-    menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(item.setTitle(strings.contextMenu.folder.copyRelativePath).setIcon('lucide-clipboard-list'), async () => {
-            await navigator.clipboard.writeText(folder.path);
-            showNotice(strings.fileSystem.notifications.relativePathCopied, { variant: 'success' });
-        });
+    const fileSystemAdapter = adapter instanceof FileSystemAdapter ? adapter : null;
+    const addedCopyMenu = addCopyPathSubmenu({
+        menu,
+        getVaultPath: () => folder.path,
+        getSystemPath: fileSystemAdapter ? () => fileSystemAdapter.getFullPath(folder.path) : undefined
     });
 
-    if (adapter instanceof FileSystemAdapter) {
-        menu.addItem((item: MenuItem) => {
-            setAsyncOnClick(item.setTitle(strings.contextMenu.folder.copyPath).setIcon('lucide-clipboard'), async () => {
-                const absolutePath = adapter.getFullPath(folder.path);
-                await navigator.clipboard.writeText(absolutePath);
-                showNotice(strings.fileSystem.notifications.pathCopied, { variant: 'success' });
-            });
-        });
+    if (addedCopyMenu) {
+        menu.addSeparator();
     }
-
-    menu.addSeparator();
 
     // Reveal in system explorer - desktop only
     if (!services.isMobile) {

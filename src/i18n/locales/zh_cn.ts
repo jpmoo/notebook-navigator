@@ -32,6 +32,7 @@ export const STRINGS_ZH_CN = {
         untagged: '无标签', // Label for notes without any tags (English: Untagged)
         featureImageAlt: '特色图片', // Alt text for thumbnail/preview images (English: Feature image)
         unknownError: '未知错误', // Generic fallback when an error has no message (English: Unknown error)
+        clipboardWriteError: '无法写入剪贴板',
         updateBannerTitle: 'Notebook Navigator 有可用更新',
         updateBannerInstruction: '在设置 -> 社区插件中更新',
         updateIndicatorLabel: '有新版本可用',
@@ -76,10 +77,6 @@ export const STRINGS_ZH_CN = {
     navigationCalendar: {
         ariaLabel: '导航日历',
         dailyNotesNotEnabled: '未启用每日笔记。请在 Obsidian 设置 → 核心插件中启用每日笔记。',
-        promptDailyNoteTitle: {
-            title: '每日笔记标题',
-            placeholder: '输入标题'
-        },
         createDailyNote: {
             title: '创建每日笔记',
             message: '每日笔记 {filename} 不存在。是否创建？',
@@ -164,9 +161,6 @@ export const STRINGS_ZH_CN = {
             revealInFolder: '在文件夹中定位',
             revealInFinder: '在访达中显示',
             showInExplorer: '在资源管理器中显示',
-            copyDeepLink: '复制 Obsidian URL',
-            copyPath: '复制文件系统路径',
-            copyRelativePath: '复制仓库路径',
             renameNote: '重命名笔记',
             deleteNote: '删除笔记',
             deleteMultipleNotes: '删除 {count} 个笔记',
@@ -204,8 +198,6 @@ export const STRINGS_ZH_CN = {
             newTldrawDrawing: '新建 Tldraw 绘图',
             duplicateFolder: '复制文件夹',
             searchInFolder: '在文件夹中搜索',
-            copyPath: '复制文件系统路径',
-            copyRelativePath: '复制仓库路径',
             createFolderNote: '创建文件夹笔记',
             detachFolderNote: '解除文件夹笔记',
             deleteFolderNote: '删除文件夹笔记',
@@ -228,6 +220,12 @@ export const STRINGS_ZH_CN = {
         navigation: {
             addSeparator: '添加分隔符',
             removeSeparator: '移除分隔符'
+        },
+        copyPath: {
+            title: '复制路径',
+            asObsidianUrl: '作为 Obsidian URL',
+            fromVaultFolder: '从仓库文件夹',
+            fromSystemRoot: '从系统根目录'
         },
         style: {
             title: '样式',
@@ -266,6 +264,7 @@ export const STRINGS_ZH_CN = {
             showingResultsInfo: '显示 {count} 个结果中的 50 个。输入更多内容以缩小范围。',
             emojiInstructions: '输入或粘贴任何表情符号作为图标使用',
             removeIcon: '移除图标',
+            removeFromRecents: '从最近使用中移除',
             allTabLabel: '全部'
         },
         fileIconRuleEditor: {
@@ -310,7 +309,6 @@ export const STRINGS_ZH_CN = {
             paletteCustom: '自定义',
             copyColors: '复制颜色',
             colorsCopied: '颜色已复制到剪贴板',
-            copyClipboardError: '无法写入剪贴板',
             pasteColors: '粘贴颜色',
             pasteClipboardError: '无法读取剪贴板',
             pasteInvalidFormat: '需要十六进制颜色值',
@@ -390,6 +388,14 @@ export const STRINGS_ZH_CN = {
                 dismiss: '取消'
             }
         },
+        calendarTemplate: {
+            placeholder: '搜索模板...',
+            instructions: {
+                navigate: '导航',
+                select: '选择模板',
+                dismiss: '取消'
+            }
+        },
         navigationBanner: {
             placeholder: '搜索图片...',
             instructions: {
@@ -418,7 +424,7 @@ export const STRINGS_ZH_CN = {
             thanksText: '非常感谢您的下载，祝您使用愉快！',
             videoAlt: '安装和掌握 Notebook Navigator',
             openVideoButton: '播放视频',
-            closeButton: '稍后观看'
+            closeButton: '以后再说'
         }
     },
 
@@ -531,8 +537,14 @@ export const STRINGS_ZH_CN = {
         open: '打开', // Command palette: Opens the Notebook Navigator view (English: Open)
         toggleLeftSidebar: '切换左侧边栏', // Command palette: Toggles left sidebar, opening Notebook Navigator when uncollapsing (English: Toggle left sidebar)
         openHomepage: '打开主页', // Command palette: Opens the Notebook Navigator view and loads the homepage file (English: Open homepage)
+        openDailyNote: '打开每日笔记',
+        openWeeklyNote: '打开每周笔记',
+        openMonthlyNote: '打开每月笔记',
+        openQuarterlyNote: '打开季度笔记',
+        openYearlyNote: '打开每年笔记',
         revealFile: '定位文件', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: '搜索', // Command palette: Toggle search in the file list (English: Search)
+        searchVaultRoot: '在仓库根目录搜索', // Command palette: Selects the vault root folder and focuses search (English: Search in vault root)
         toggleDualPane: '切换双窗格布局', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleCalendar: '切换日历', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
         selectVaultProfile: '更改仓库配置文件', // Command palette: Opens a modal to choose a different vault profile (English: Switch vault profile)
@@ -567,6 +579,7 @@ export const STRINGS_ZH_CN = {
     // Plugin UI
     plugin: {
         viewName: '笔记本导航器', // Name shown in the view header/tab (English: Notebook Navigator)
+        calendarViewName: '日历', // Name shown in the view header/tab (English: Calendar)
         ribbonTooltip: '笔记本导航器', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: '在笔记本导航器中定位' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
@@ -591,6 +604,7 @@ export const STRINGS_ZH_CN = {
             general: '通用',
             notes: '笔记',
             navigationPane: '导航窗格',
+            calendar: '导航日历',
             icons: '图标包',
             tags: '标签',
             folders: '文件夹',
@@ -604,11 +618,14 @@ export const STRINGS_ZH_CN = {
         },
         groups: {
             general: {
+                vaultProfiles: '仓库配置文件',
                 filtering: '过滤',
                 behavior: '行为',
+                keyboardNavigation: '键盘导航',
                 view: '外观',
                 icons: '图标',
                 desktopAppearance: '桌面外观',
+                mobileAppearance: '移动端外观',
                 formatting: '格式'
             },
             navigation: {
@@ -634,6 +651,7 @@ export const STRINGS_ZH_CN = {
         },
         syncMode: {
             notSynced: '（未同步）',
+            disabled: '（已禁用）',
             switchToSynced: '启用同步',
             switchToLocal: '禁用同步'
         },
@@ -686,8 +704,21 @@ export const STRINGS_ZH_CN = {
                     'created-desc': '创建日期（最新在顶部）',
                     'created-asc': '创建日期（最旧在顶部）',
                     'title-asc': '标题（升序）',
-                    'title-desc': '标题（降序）'
+                    'title-desc': '标题（降序）',
+                    'filename-asc': '文件名（升序）',
+                    'filename-desc': '文件名（降序）',
+                    'property-asc': '属性（升序）',
+                    'property-desc': '属性（降序）'
+                },
+                propertyOverride: {
+                    asc: '属性 ‘{property}’（升序）',
+                    desc: '属性 ‘{property}’（降序）'
                 }
+            },
+            propertySortKey: {
+                name: '排序属性',
+                desc: '用于属性排序。具有此 frontmatter 属性的笔记首先列出，并按属性值排序。数组合并为单一值。',
+                placeholder: 'order'
             },
             revealFileOnListChanges: {
                 name: '列表变更时滚动到选定文件',
@@ -812,6 +843,10 @@ export const STRINGS_ZH_CN = {
                 name: '缩放级别',
                 desc: '控制 Notebook Navigator 的整体缩放级别。'
             },
+            useFloatingToolbars: {
+                name: '在 iOS/iPadOS 上使用浮动工具栏',
+                desc: '适用于 Obsidian 1.11 及更高版本。'
+            },
             startView: {
                 name: '默认启动视图',
                 desc: '选择打开 Notebook Navigator 时显示的窗格。导航窗格显示快捷方式、最近笔记和文件夹结构。列表窗格显示笔记列表。',
@@ -869,6 +904,10 @@ export const STRINGS_ZH_CN = {
                 current: '当前横幅：{path}',
                 chooseButton: '选择图片'
             },
+            pinNavigationBanner: {
+                name: '固定横幅',
+                desc: '将导航横幅固定在导航树上方。'
+            },
             showShortcuts: {
                 name: '显示快捷方式',
                 desc: '在导航窗格中显示快捷方式部分。'
@@ -894,9 +933,13 @@ export const STRINGS_ZH_CN = {
                 name: '将最近笔记与快捷方式一起固定',
                 desc: '固定快捷方式时包含最近笔记。'
             },
-            showCalendar: {
-                name: '显示日历',
-                desc: '在导航窗格中显示每日笔记日历。'
+            calendarPlacement: {
+                name: '日历位置',
+                desc: '在左侧边栏或右侧边栏中显示。',
+                options: {
+                    leftSidebar: '左侧边栏',
+                    rightSidebar: '右侧边栏'
+                }
             },
             calendarLocale: {
                 name: '日历语言',
@@ -905,9 +948,19 @@ export const STRINGS_ZH_CN = {
                     systemDefault: '系统默认'
                 }
             },
+            calendarWeekendDays: {
+                name: '周末',
+                desc: '用不同的背景颜色显示周末。',
+                options: {
+                    none: '无',
+                    satSun: '周六和周日',
+                    friSat: '周五和周六',
+                    thuFri: '周四和周五'
+                }
+            },
             calendarWeeksToShow: {
-                name: '显示周数',
-                desc: '选择日历中显示的周数。',
+                name: '左侧边栏显示周数',
+                desc: '右侧边栏的日历始终显示完整月份。',
                 options: {
                     fullMonth: '完整月份',
                     oneWeek: '1 周',
@@ -918,9 +971,17 @@ export const STRINGS_ZH_CN = {
                 name: '高亮今天日期',
                 desc: '在今天日期上显示红色圆圈和加粗文本。'
             },
+            calendarShowFeatureImage: {
+                name: '显示特色图片',
+                desc: '在日历中显示笔记的特色图片。'
+            },
             calendarShowWeekNumber: {
                 name: '显示周号',
                 desc: '在每行开头显示周号。'
+            },
+            calendarShowQuarter: {
+                name: '显示季度',
+                desc: '在日历标题中添加季度标签。'
             },
             calendarConfirmBeforeCreate: {
                 name: '创建前确认',
@@ -930,7 +991,7 @@ export const STRINGS_ZH_CN = {
                 name: '日记来源',
                 desc: '日历笔记的来源。',
                 options: {
-                    dailyNotes: '日记',
+                    dailyNotes: '日记（核心插件）',
                     notebookNavigator: 'Notebook Navigator'
                 },
                 info: {
@@ -939,19 +1000,42 @@ export const STRINGS_ZH_CN = {
             },
             calendarCustomRootFolder: {
                 name: '根文件夹',
-                desc: '日历笔记的基础文件夹。',
+                desc: '周期笔记的基础文件夹。日期模式可以包含子文件夹。随所选仓库配置文件更改。',
                 placeholder: 'Personal/Diary'
             },
-            calendarCustomFilePattern: {
-                name: '文件模式',
-                desc: '相对于根文件夹的日期模式。支持的标记：YYYY、MM、M、DD、D。笔记可以包含可选的标题后缀。',
-                placeholder: 'YYYY/YYYYMMDD',
-                example: '当前语法如下：{path}',
-                parsingError: '模式必须包含 YYYY、MM/M 和 DD/D。支持的标记：YYYY、MM、M、DD、D。'
+            calendarTemplateFolder: {
+                name: '模板文件夹位置',
+                desc: '模板文件选择器显示此文件夹中的笔记。',
+                placeholder: 'Templates'
             },
-            calendarCustomPromptForTitle: {
-                name: '提示输入标题',
-                desc: '创建笔记时提示输入标题。允许空标题。'
+            calendarCustomFilePattern: {
+                name: '日记',
+                desc: '使用 Moment 日期格式设置路径。将子文件夹名称用方括号括起来，例如 [Work]/YYYY。点击模板图标设置模板。',
+                momentDescPrefix: '使用 ',
+                momentLinkText: 'Moment 日期格式',
+                momentDescSuffix: ' 设置路径。将子文件夹名称用方括号括起来，例如 [Work]/YYYY。点击模板图标设置模板。',
+                placeholder: 'YYYY/YYYYMMDD',
+                example: '当前语法：{path}',
+                parsingError: '模式必须能格式化并重新解析为完整日期（年、月、日）。'
+            },
+            calendarCustomWeekPattern: {
+                name: '周记',
+                parsingError: '模式必须能格式化并重新解析为完整周（周年、周数）。'
+            },
+            calendarCustomMonthPattern: {
+                name: '月记',
+                parsingError: '模式必须能格式化并重新解析为完整月份（年、月）。'
+            },
+            calendarCustomQuarterPattern: {
+                name: '季度笔记',
+                parsingError: '模式必须能格式化并重新解析为完整季度（年、季度）。'
+            },
+            calendarCustomYearPattern: {
+                name: '年记',
+                parsingError: '模式必须能格式化并重新解析为完整年份（年）。'
+            },
+            calendarTemplateFile: {
+                current: '模板文件：{name}'
             },
             showTooltips: {
                 name: '显示工具提示',
@@ -984,6 +1068,22 @@ export const STRINGS_ZH_CN = {
                     cmdCtrl: 'Cmd/Ctrl 点击',
                     optionAlt: 'Option/Alt 点击'
                 }
+            },
+            enterToOpenFiles: {
+                name: '按 Enter 键打开文件',
+                desc: '仅在列表键盘导航时按 Enter 键打开文件。'
+            },
+            shiftEnterOpenContext: {
+                name: 'Shift+Enter',
+                desc: '按 Shift+Enter 在新标签页、分栏或窗口中打开所选文件。'
+            },
+            cmdEnterOpenContext: {
+                name: 'Cmd+Enter',
+                desc: '按 Cmd+Enter 在新标签页、分栏或窗口中打开所选文件。'
+            },
+            ctrlEnterOpenContext: {
+                name: 'Ctrl+Enter',
+                desc: '按 Ctrl+Enter 在新标签页、分栏或窗口中打开所选文件。'
             },
             excludedNotes: {
                 name: '隐藏带属性的笔记 (库配置)',
@@ -1084,7 +1184,7 @@ export const STRINGS_ZH_CN = {
                 desc: '当日期、预览和图像被隐藏时显示标签。'
             },
             customPropertyType: {
-                name: '类型',
+                name: '属性类型',
                 desc: '选择要在文件项中显示的自定义属性。',
                 options: {
                     frontmatter: '前置元数据属性',
@@ -1097,10 +1197,15 @@ export const STRINGS_ZH_CN = {
                 desc: '以逗号分隔的前置元数据属性列表，用于显示为标签。列表值属性每个值显示一个标签。[[wikilink]] 格式的值将显示为可点击链接。',
                 placeholder: '状态, 类型, 分类'
             },
-            customPropertyColorFields: {
-                name: '颜色属性',
-                desc: '以逗号分隔的前置元数据属性列表，用于标签颜色。颜色属性按位置与显示属性配对。列表值属性按索引配对颜色。值可以是标签名称或 CSS 颜色。',
-                placeholder: 'statusColor, typeColor, categoryColor'
+            showCustomPropertiesOnSeparateRows: {
+                name: '在单独的行中显示属性',
+                desc: '将每个属性显示在单独的行中。'
+            },
+            customPropertyColorMap: {
+                name: '属性颜色',
+                desc: '将前置元数据属性映射到徽章颜色。每行一个映射：属性=颜色',
+                placeholder: '# 属性=颜色\nstatus=#ff0000\ntype=#00ff00',
+                editTooltip: '编辑映射'
             },
             showCustomPropertyInCompactMode: {
                 name: '在精简模式中显示自定义属性',
@@ -1111,14 +1216,16 @@ export const STRINGS_ZH_CN = {
                 desc: '用于显示日期的格式（使用 date-fns 格式）。',
                 placeholder: 'yyyy年M月d日',
                 help: '常用格式：\nyyyy年M月d日 = 2022年5月25日\nyyyy-MM-dd = 2022-05-25\nMM/dd/yyyy = 05/25/2022\n\n标记：\nyyyy/yy = 年\nMMMM/MMM/MM/M = 月\ndd/d = 日\nEEEE/EEE = 星期',
-                helpTooltip: '点击查看格式参考'
+                helpTooltip: '使用 date-fns 格式',
+                dateFnsLinkText: 'date-fns 格式'
             },
             timeFormat: {
                 name: '时间格式',
                 desc: '用于显示时间的格式（使用 date-fns 格式）。',
                 placeholder: 'HH:mm',
                 help: '常用格式：\nHH:mm = 14:30（24小时制）\nh:mm a = 2:30 PM（12小时制）\nHH:mm:ss = 14:30:45\nh:mm:ss a = 2:30:45 PM\n\n标记：\nHH/H = 24小时制\nhh/h = 12小时制\nmm = 分钟\nss = 秒\na = 上午/下午',
-                helpTooltip: '点击查看格式参考'
+                helpTooltip: '使用 date-fns 格式',
+                dateFnsLinkText: 'date-fns 格式'
             },
             showFilePreview: {
                 name: '显示笔记预览',
@@ -1196,6 +1303,14 @@ export const STRINGS_ZH_CN = {
                 name: '继承文件夹颜色',
                 desc: '子文件夹从父文件夹继承颜色。'
             },
+            folderSortOrder: {
+                name: '文件夹排序方式',
+                desc: '右键点击任意文件夹，可为其子项设置不同的排序方式。',
+                options: {
+                    alphaAsc: 'A 到 Z',
+                    alphaDesc: 'Z 到 A'
+                }
+            },
             showNoteCount: {
                 name: '显示笔记数',
                 desc: '在每个文件夹和标签旁显示笔记数量。'
@@ -1260,12 +1375,13 @@ export const STRINGS_ZH_CN = {
             },
             tagSortOrder: {
                 name: '标签排序方式',
-                desc: '选择导航窗格中的标签排序顺序。',
+                desc: '右键点击任意标签，可为其子项设置不同的排序方式。',
                 options: {
                     alphaAsc: 'A 到 Z',
                     alphaDesc: 'Z 到 A',
-                    frequencyAsc: '频率（从低到高）',
-                    frequencyDesc: '频率（从高到低）'
+                    frequency: '频率',
+                    lowToHigh: '从低到高',
+                    highToLow: '从高到低'
                 }
             },
             showAllTagsFolder: {
@@ -1417,7 +1533,8 @@ export const STRINGS_ZH_CN = {
             frontmatterDateFormat: {
                 name: '时间戳格式',
                 desc: '用于解析前言中时间戳的格式。留空使用 ISO 8601 格式',
-                helpTooltip: '查看 date-fns 格式文档',
+                helpTooltip: '使用 date-fns 格式',
+                dateFnsLinkText: 'date-fns 格式',
                 help: "常用格式:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {

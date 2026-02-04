@@ -190,7 +190,7 @@ function decorateNavigationItems(
             const tagColorData = metadataService.getTagColorData(item.tagPath);
             return {
                 ...item,
-                icon: metadataService.getTagIcon(item.tagPath) || 'lucide-tags',
+                icon: metadataService.getTagIcon(item.tagPath) || resolveUXIcon(settings.interfaceIcons, 'nav-tag'),
                 color: tagColorData.color,
                 backgroundColor: tagColorData.background
             };
@@ -517,9 +517,18 @@ export function useNavigationPaneData({
      */
     const folderItems = useMemo(() => {
         return flattenFolderTree(rootFolders, expansionState.expandedFolders, hiddenFolders, 0, new Set(), {
-            rootOrderMap: rootFolderOrderMap
+            rootOrderMap: rootFolderOrderMap,
+            defaultSortOrder: settings.folderSortOrder,
+            childSortOrderOverrides: settings.folderTreeSortOverrides
         });
-    }, [rootFolders, expansionState.expandedFolders, hiddenFolders, rootFolderOrderMap]);
+    }, [
+        rootFolders,
+        expansionState.expandedFolders,
+        hiddenFolders,
+        rootFolderOrderMap,
+        settings.folderSortOrder,
+        settings.folderTreeSortOverrides
+    ]);
 
     /**
      * Build tag items with a single tag tree
@@ -589,7 +598,7 @@ export function useNavigationPaneData({
         if (visibleTagTree.size === 0) {
             if (settings.showAllTagsFolder) {
                 const folderId = 'tags-root';
-                addVirtualFolder(folderId, strings.tagList.tags, 'lucide-tags', {
+                addVirtualFolder(folderId, strings.tagList.tags, resolveUXIcon(settings.interfaceIcons, 'nav-tag'), {
                     tagCollectionId: TAGGED_TAG_ID,
                     hasChildren: shouldIncludeUntagged,
                     showFileCount: settings.showNoteCount,
@@ -677,7 +686,8 @@ export function useNavigationPaneData({
         const appendTagNode = (node: TagTreeNode, level: number) => {
             const tagEntries = flattenTagTree([node], expansionState.expandedTags, level, {
                 hiddenMatcher: matcherForMarking,
-                comparator: effectiveComparator
+                comparator: effectiveComparator,
+                childSortOrderOverrides: settings.tagTreeSortOverrides
             });
             items.push(...tagEntries);
         };
@@ -685,7 +695,7 @@ export function useNavigationPaneData({
         if (settings.showAllTagsFolder) {
             if (hasContent) {
                 const folderId = 'tags-root';
-                addVirtualFolder(folderId, strings.tagList.tags, 'lucide-tags', {
+                addVirtualFolder(folderId, strings.tagList.tags, resolveUXIcon(settings.interfaceIcons, 'nav-tag'), {
                     tagCollectionId: TAGGED_TAG_ID,
                     hasChildren: tagsVirtualFolderHasChildren,
                     showFileCount: settings.showNoteCount,
@@ -730,6 +740,7 @@ export function useNavigationPaneData({
     }, [
         settings.showTags,
         settings.showAllTagsFolder,
+        settings.interfaceIcons,
         showHiddenItems,
         settings.showUntagged,
         hiddenTagMatcher,
@@ -739,6 +750,7 @@ export function useNavigationPaneData({
         untaggedCount,
         settings.showNoteCount,
         settings.rootTagOrder,
+        settings.tagTreeSortOverrides,
         expansionState.expandedTags,
         expansionState.expandedVirtualFolders,
         tagComparator,
@@ -1133,9 +1145,9 @@ export function useNavigationPaneData({
         const sectionSpacerMap = new Map<NavigationSectionId, string>();
         let firstVisibleSectionId: NavigationSectionId | null = null;
 
-        // Navigation banners are rendered in the pinned chrome stack (above the virtualized list).
-        // Keeping them out of the virtualized items ensures the banner stays in front of the tree rows
-        // and avoids mixing "header chrome" elements into the tree/list semantics.
+        // Navigation banners are rendered outside the virtualized items (either pinned in the chrome stack
+        // or as scroll content above the tree). Keeping them out of the virtualized rows avoids mixing
+        // chrome elements into the tree/list semantics.
 
         // Add top spacer for visual separation between pinned content and tree items
         allItems.push({

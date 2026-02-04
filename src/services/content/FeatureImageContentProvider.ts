@@ -28,7 +28,7 @@ import type { ContentReadCache } from './ContentReadCache';
 import { isValidHttpsUrl, type FeatureImageReference } from './featureImageReferenceResolver';
 import { renderExcalidrawThumbnail } from './excalidraw/excalidrawThumbnail';
 import { renderPdfCoverThumbnail } from './pdf/pdfCoverThumbnail';
-import { detectImageMimeTypeFromBuffer, getImageDimensionsFromBuffer, normalizeImageMimeType } from './thumbnail/imageDimensions';
+import { detectImageMimeTypeFromBuffer, getImageDimensionsPairFromBuffer, normalizeImageMimeType } from './thumbnail/imageDimensions';
 import { createOnceLogger, createRenderBudgetLimiter, createRenderLimiter } from './thumbnail/thumbnailRuntimeUtils';
 import { LIMITS } from '../../constants/limits';
 
@@ -600,8 +600,8 @@ export class FeatureImageContentProvider extends BaseContentProvider {
 
         // Extract dimensions from the image header to determine if resizing is needed.
         // Skip images with unknown dimensions to avoid memory issues during decoding.
-        const dimensions = getImageDimensionsFromBuffer(buffer, effectiveMimeType);
-        if (!dimensions) {
+        const dimensionsPair = getImageDimensionsPairFromBuffer(buffer, effectiveMimeType);
+        if (!dimensionsPair) {
             this.thumbnailRuntime.logOnce(
                 `featureImage-unknown-dimensions:${effectiveMimeType}:${source}`,
                 `[${source}] Skipping ${effectiveMimeType} (${buffer.byteLength} bytes) - unable to determine image dimensions`
@@ -609,19 +609,47 @@ export class FeatureImageContentProvider extends BaseContentProvider {
             return null;
         }
 
-        const pixelCount = dimensions.width * dimensions.height;
+        const { display: displayDimensions, coded: codedDimensions } = dimensionsPair;
+        const pixelCount = codedDimensions.width * codedDimensions.height;
 
-        const { width: targetWidth, height: targetHeight } = this.calculateThumbnailDimensions(dimensions.width, dimensions.height);
-        if (targetWidth === dimensions.width && targetHeight === dimensions.height) {
+        const maxFallbackPixels = Platform.isMobile
+            ? LIMITS.thumbnails.featureImage.maxFallbackPixels.mobile
+            : LIMITS.thumbnails.featureImage.maxFallbackPixels.desktop;
+
+        const { width: targetWidth, height: targetHeight } = this.calculateThumbnailDimensions(
+            displayDimensions.width,
+            displayDimensions.height
+        );
+
+        const shouldSkipDecode =
+            targetWidth === displayDimensions.width && targetHeight === displayDimensions.height && pixelCount <= maxFallbackPixels;
+
+        const sourceBlob = new Blob([buffer], { type: effectiveMimeType });
+
+        if (shouldSkipDecode) {
             // Skip decoding when the image is already within thumbnail limits.
-            return new Blob([buffer], { type: effectiveMimeType });
+            //
+            // When the container metadata indicates a display transform (crop/rotation), attempt a re-encode so thumbnails
+            // bake the transform into pixels. Fall back to the original blob when decoding is unavailable or fails.
+            const hasTransformMetadata =
+                displayDimensions.width !== codedDimensions.width || displayDimensions.height !== codedDimensions.height;
+
+            if (!hasTransformMetadata) {
+                return sourceBlob;
+            }
+
+            const releaseDecodeBudget = await this.thumbnailRuntime.imageDecodeLimiter.acquire(pixelCount);
+            try {
+                const reencoded = await this.tryCreateThumbnailFromBitmap(sourceBlob, true);
+                return reencoded ?? sourceBlob;
+            } finally {
+                releaseDecodeBudget();
+            }
         }
 
         const releaseDecodeBudget = await this.thumbnailRuntime.imageDecodeLimiter.acquire(pixelCount);
 
         try {
-            const sourceBlob = new Blob([buffer], { type: effectiveMimeType });
-
             // Attempt direct bitmap resize which is more memory-efficient for large images.
             const resizedBitmapResult = await this.tryCreateThumbnailFromResizedBitmap(sourceBlob, targetWidth, targetHeight);
             if (resizedBitmapResult) {
@@ -629,13 +657,11 @@ export class FeatureImageContentProvider extends BaseContentProvider {
             }
 
             // Fallback decoding loads the full image into memory, so apply stricter limits.
-            const maxFallbackPixels = Platform.isMobile
-                ? LIMITS.thumbnails.featureImage.maxFallbackPixels.mobile
-                : LIMITS.thumbnails.featureImage.maxFallbackPixels.desktop;
             if (pixelCount > maxFallbackPixels) {
+                const fallbackReason = typeof createImageBitmap === 'undefined' ? 'createImageBitmap unavailable' : 'resize bitmap failed';
                 this.thumbnailRuntime.logOnce(
-                    `featureImage-fallback-skip:${effectiveMimeType}:${dimensions.width}x${dimensions.height}:${source}`,
-                    `[${source}] Skipping ${effectiveMimeType} (${dimensions.width}x${dimensions.height}) - thumbnail decode fallback disabled for large images`
+                    `featureImage-fallback-skip:${effectiveMimeType}:${codedDimensions.width}x${codedDimensions.height}:${source}`,
+                    `[${source}] Skipping ${effectiveMimeType} (${codedDimensions.width}x${codedDimensions.height}, ${pixelCount} px) - ${fallbackReason}; fallback decode capped at ${maxFallbackPixels} px`
                 );
                 return null;
             }
@@ -679,6 +705,7 @@ export class FeatureImageContentProvider extends BaseContentProvider {
         let bitmap: ImageBitmap | null = null;
         try {
             bitmap = await createImageBitmap(blob, {
+                imageOrientation: 'from-image',
                 resizeWidth: targetWidth,
                 resizeHeight: targetHeight,
                 resizeQuality: 'high'
@@ -695,14 +722,14 @@ export class FeatureImageContentProvider extends BaseContentProvider {
     }
 
     // Decodes a blob to an ImageBitmap and resizes it to thumbnail dimensions
-    private async tryCreateThumbnailFromBitmap(blob: Blob): Promise<Blob | null> {
+    private async tryCreateThumbnailFromBitmap(blob: Blob, forceReencode = false): Promise<Blob | null> {
         if (typeof createImageBitmap === 'undefined') {
             return null;
         }
 
         let bitmap: ImageBitmap | null = null;
         try {
-            bitmap = await createImageBitmap(blob);
+            bitmap = await createImageBitmap(blob, { imageOrientation: 'from-image' });
         } catch {
             return null;
         }
@@ -716,7 +743,7 @@ export class FeatureImageContentProvider extends BaseContentProvider {
             }
 
             const { width, height } = this.calculateThumbnailDimensions(sourceWidth, sourceHeight);
-            if (width === sourceWidth && height === sourceHeight) {
+            if (!forceReencode && width === sourceWidth && height === sourceHeight) {
                 // Skip re-encoding when the image is already within thumbnail limits.
                 return blob;
             }

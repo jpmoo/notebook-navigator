@@ -30,19 +30,34 @@ import {
 } from './storage/statistics';
 import { renderGeneralTab } from './settings/tabs/GeneralTab';
 import { renderNavigationPaneTab } from './settings/tabs/NavigationPaneTab';
+import { renderCalendarTab } from './settings/tabs/CalendarTab';
 import { renderFoldersTagsTab } from './settings/tabs/FoldersTagsTab';
 import { renderListPaneTab } from './settings/tabs/ListPaneTab';
 import { renderNotesTab } from './settings/tabs/NotesTab';
 import { renderIconPacksTab } from './settings/tabs/IconPacksTab';
 import { renderHotkeysSearchTab } from './settings/tabs/HotkeysSearchTab';
 import { renderAdvancedTab } from './settings/tabs/AdvancedTab';
-import type { AddSettingFunction, DebouncedTextAreaSettingOptions, SettingsTabContext } from './settings/tabs/SettingsTabContext';
+import type {
+    AddSettingFunction,
+    DebouncedTextAreaSettingOptions,
+    SettingsTabContext,
+    SettingDescription
+} from './settings/tabs/SettingsTabContext';
 import { runAsyncAction } from './utils/async';
 import { NOTEBOOK_NAVIGATOR_ICON_ID } from './constants/notebookNavigatorIcon';
 import { getDBInstanceOrNull } from './storage/fileOperations';
 
 /** Identifiers for different settings tab panes */
-type SettingsPaneId = 'general' | 'navigation-pane' | 'folders-tags' | 'list-pane' | 'notes' | 'icon-packs' | 'search-hotkeys' | 'advanced';
+type SettingsPaneId =
+    | 'general'
+    | 'navigation-pane'
+    | 'calendar'
+    | 'folders-tags'
+    | 'list-pane'
+    | 'notes'
+    | 'icon-packs'
+    | 'search-hotkeys'
+    | 'advanced';
 
 /** Definition of a settings pane with its ID, label, and render function */
 interface SettingsPaneDefinition {
@@ -87,6 +102,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     private pendingStatisticsRefreshRequested = false;
     private metadataInfoChangeUnsubscribe: (() => void) | null = null;
     private settingsUpdateListenerId = 'settings-tab';
+    private tabSettingsUpdateListeners = new Map<string, () => void>();
 
     /**
      * Creates a new settings tab
@@ -105,10 +121,19 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
 
     private ensureSettingsUpdateListener(): void {
         this.plugin.registerSettingsUpdateListener(this.settingsUpdateListenerId, () => {
-            if (!this.plugin.isExternalSettingsUpdate()) {
+            if (this.plugin.isExternalSettingsUpdate()) {
+                this.refreshFromExternalSettingsUpdate();
                 return;
             }
-            this.refreshFromExternalSettingsUpdate();
+
+            const listeners = Array.from(this.tabSettingsUpdateListeners.values());
+            listeners.forEach(callback => {
+                try {
+                    callback();
+                } catch {
+                    // Ignore errors from settings-tab UI callbacks
+                }
+            });
         });
     }
 
@@ -198,7 +223,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     private createDebouncedTextSetting(
         container: HTMLElement,
         name: string,
-        desc: string,
+        desc: SettingDescription,
         placeholder: string,
         getValue: () => string,
         setValue: (value: string) => void,
@@ -220,7 +245,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     private configureDebouncedTextSetting(
         setting: Setting,
         name: string,
-        desc: string,
+        desc: SettingDescription,
         placeholder: string,
         getValue: () => string,
         setValue: (value: string) => void,
@@ -264,7 +289,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     private createDebouncedTextAreaSetting(
         container: HTMLElement,
         name: string,
-        desc: string,
+        desc: SettingDescription,
         placeholder: string,
         getValue: () => string,
         setValue: (value: string) => void,
@@ -276,7 +301,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     private configureDebouncedTextAreaSetting(
         setting: Setting,
         name: string,
-        desc: string,
+        desc: SettingDescription,
         placeholder: string,
         getValue: () => string,
         setValue: (value: string) => void,
@@ -511,6 +536,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
      * Organizes settings into logical sections:
      * - Top level (no header)
      * - Navigation pane
+     * - Calendar
      * - Folders
      * - Tags
      * - File list
@@ -541,12 +567,14 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         this.tabButtons.clear();
         this.statsTextEl = null;
         this.metadataInfoEl = null;
+        this.tabSettingsUpdateListeners.clear();
         this.showTagsListeners = [];
         this.currentShowTagsVisible = this.plugin.settings.showTags;
 
         // Define all settings tabs
         const tabs: SettingsPaneDefinition[] = [
             { id: 'general', label: strings.settings.sections.general, render: renderGeneralTab },
+            { id: 'calendar', label: strings.settings.sections.calendar, render: renderCalendarTab },
             { id: 'navigation-pane', label: strings.settings.sections.navigationPane, render: renderNavigationPaneTab },
             {
                 id: 'folders-tags',
@@ -617,6 +645,12 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
                 this.createDebouncedTextAreaSetting(parent, name, desc, placeholder, getValue, setValue, options),
             configureDebouncedTextAreaSetting: (setting, name, desc, placeholder, getValue, setValue, options) =>
                 this.configureDebouncedTextAreaSetting(setting, name, desc, placeholder, getValue, setValue, options),
+            registerSettingsUpdateListener: (id, listener) => {
+                this.tabSettingsUpdateListeners.set(id, listener);
+            },
+            unregisterSettingsUpdateListener: id => {
+                this.tabSettingsUpdateListeners.delete(id);
+            },
             registerMetadataInfoElement: element => {
                 this.metadataInfoEl = element;
             },
@@ -856,6 +890,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         // Clear references and state
         this.statsTextEl = null;
         this.metadataInfoEl = null;
+        this.tabSettingsUpdateListeners.clear();
         this.tabContentMap.clear();
         this.tabButtons.clear();
         this.showTagsListeners = [];
@@ -866,6 +901,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
 export type {
     NotebookNavigatorSettings,
     SortOption,
+    AlphaSortOrder,
     ItemScope,
     MultiSelectModifier,
     ListPaneTitleOption,

@@ -47,7 +47,7 @@
     position: relative;
     --nn-pane-transition-duration: 0.15s;
     --nn-pane-transition-timing: ease-in-out;
-    --nn-selected-file-bg-color: var(--nn-theme-file-selected-bg-solid, var(--nn-theme-file-selected-bg));
+    --nn-selected-file-bg-color: var(--nn-computed-file-selected-bg, var(--nn-theme-file-selected-bg));
     --nn-selected-file-name-color: var(--nn-theme-file-selected-name-color);
     --nn-selected-file-preview-color: var(--nn-theme-file-selected-preview-color);
     --nn-selected-file-date-color: var(--nn-theme-file-selected-date-color);
@@ -56,7 +56,7 @@
     --nn-selected-file-tag-bg: var(--nn-theme-file-selected-tag-bg);
     --nn-selected-file-custom-property-color: var(--nn-theme-file-selected-custom-property-color);
     --nn-selected-file-custom-property-bg: var(--nn-theme-file-selected-custom-property-bg);
-    --nn-selected-navitem-bg-color: var(--nn-theme-navitem-selected-bg-solid, var(--nn-theme-navitem-selected-bg));
+    --nn-selected-navitem-bg-color: var(--nn-computed-navitem-selected-bg, var(--nn-theme-navitem-selected-bg));
     --nn-selected-navitem-name-color: var(--nn-theme-navitem-selected-name-color);
     --nn-selected-navitem-chevron-color: var(--nn-theme-navitem-selected-chevron-color);
     --nn-selected-navitem-icon-color: var(--nn-theme-navitem-selected-icon-color);
@@ -65,7 +65,7 @@
 }
 
 .nn-split-container:is([data-navigator-focused='false'], [data-focus-pane='navigation'], [data-focus-pane='search']) {
-    --nn-selected-file-bg-color: var(--nn-theme-file-selected-inactive-bg-solid, var(--nn-theme-file-selected-inactive-bg));
+    --nn-selected-file-bg-color: var(--nn-computed-file-selected-inactive-bg, var(--nn-theme-file-selected-inactive-bg));
     --nn-selected-file-name-color: var(--nn-theme-file-selected-inactive-name-color);
     --nn-selected-file-preview-color: var(--nn-theme-file-selected-inactive-preview-color);
     --nn-selected-file-date-color: var(--nn-theme-file-selected-inactive-date-color);
@@ -77,7 +77,7 @@
 }
 
 .nn-split-container:is([data-navigator-focused='false'], [data-focus-pane='files'], [data-focus-pane='search']) {
-    --nn-selected-navitem-bg-color: var(--nn-theme-navitem-selected-inactive-bg-solid, var(--nn-theme-navitem-selected-inactive-bg));
+    --nn-selected-navitem-bg-color: var(--nn-computed-navitem-selected-inactive-bg, var(--nn-theme-navitem-selected-inactive-bg));
     --nn-selected-navitem-name-color: var(--nn-theme-navitem-selected-inactive-name-color);
     --nn-selected-navitem-chevron-color: var(--nn-theme-navitem-selected-inactive-chevron-color);
     --nn-selected-navitem-icon-color: var(--nn-theme-navitem-selected-inactive-icon-color);

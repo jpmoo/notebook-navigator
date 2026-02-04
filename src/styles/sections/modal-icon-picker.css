@@ -91,11 +91,63 @@
 
 /* Individual icon item */
 .nn-icon-item {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 8px 8px;
     border-radius: var(--radius-s);
+}
+
+.nn-icon-recent-remove-button {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    z-index: 1;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border-radius: 999px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    color: var(--nn-theme-foreground-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .nn-icon-recent-remove-button {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 120ms ease;
+    }
+
+    .nn-icon-item:hover .nn-icon-recent-remove-button,
+    .nn-icon-item:focus-within .nn-icon-recent-remove-button {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+}
+
+.nn-icon-recent-remove-button:hover {
+    color: var(--nn-theme-foreground);
+    border-color: var(--interactive-accent);
+}
+
+.nn-icon-recent-remove-button:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 1px;
+}
+
+.nn-icon-recent-remove-glyph {
+    font-size: 11px;
+    line-height: 1;
+    transform: translateY(-1px);
+    pointer-events: none;
 }
 
 /* Icon item hover/focus states */

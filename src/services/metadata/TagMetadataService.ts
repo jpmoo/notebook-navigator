@@ -17,7 +17,7 @@
  */
 
 import { App } from 'obsidian';
-import { SortOption, type NotebookNavigatorSettings } from '../../settings';
+import { SortOption, type AlphaSortOrder, type NotebookNavigatorSettings } from '../../settings';
 import { ItemType } from '../../types';
 import { ISettingsProvider } from '../../interfaces/ISettingsProvider';
 import { ITagTreeProvider } from '../../interfaces/ITagTreeProvider';
@@ -266,6 +266,39 @@ export class TagMetadataService extends BaseMetadataService {
     }
 
     /**
+     * Sets a custom alphabetical sort order for the tag's child tags in the navigation pane.
+     */
+    async setTagChildSortOrderOverride(tagPath: string, sortOrder: AlphaSortOrder): Promise<void> {
+        const normalized = normalizeTagPath(tagPath);
+        if (!normalized) {
+            return Promise.resolve();
+        }
+        return this.setEntityChildSortOrderOverride(ItemType.TAG, normalized, sortOrder);
+    }
+
+    /**
+     * Removes the custom child tag sort order from a tag.
+     */
+    async removeTagChildSortOrderOverride(tagPath: string): Promise<void> {
+        const normalized = normalizeTagPath(tagPath);
+        if (!normalized) {
+            return Promise.resolve();
+        }
+        return this.removeEntityChildSortOrderOverride(ItemType.TAG, normalized);
+    }
+
+    /**
+     * Gets the child sort order override for a tag.
+     */
+    getTagChildSortOrderOverride(tagPath: string): AlphaSortOrder | undefined {
+        const normalized = normalizeTagPath(tagPath);
+        if (!normalized) {
+            return undefined;
+        }
+        return this.getEntityChildSortOrderOverride(ItemType.TAG, normalized);
+    }
+
+    /**
      * Checks if metadata exists for a tag path or any of its descendants.
      */
     private hasTagMetadataForPath(settings: NotebookNavigatorSettings, path: string): boolean {
@@ -275,6 +308,7 @@ export class TagMetadataService extends BaseMetadataService {
             settings.tagBackgroundColors,
             settings.tagIcons,
             settings.tagSortOverrides,
+            settings.tagTreeSortOverrides,
             settings.tagAppearances
         ];
 
@@ -355,6 +389,7 @@ export class TagMetadataService extends BaseMetadataService {
               this.willUpdateNestedPaths(settingsSnapshot.tagBackgroundColors, normalizedOld, normalizedNew, preserveExisting) ||
               this.willUpdateNestedPaths(settingsSnapshot.tagIcons, normalizedOld, normalizedNew, preserveExisting) ||
               this.willUpdateNestedPaths(settingsSnapshot.tagSortOverrides, normalizedOld, normalizedNew, preserveExisting) ||
+              this.willUpdateNestedPaths(settingsSnapshot.tagTreeSortOverrides, normalizedOld, normalizedNew, preserveExisting) ||
               this.willUpdateNestedPaths(settingsSnapshot.tagAppearances, normalizedOld, normalizedNew, preserveExisting)
             : false;
 
@@ -369,6 +404,7 @@ export class TagMetadataService extends BaseMetadataService {
                 changed = this.updateNestedPaths(settings.tagBackgroundColors, normalizedOld, normalizedNew, preserveExisting) || changed;
                 changed = this.updateNestedPaths(settings.tagIcons, normalizedOld, normalizedNew, preserveExisting) || changed;
                 changed = this.updateNestedPaths(settings.tagSortOverrides, normalizedOld, normalizedNew, preserveExisting) || changed;
+                changed = this.updateNestedPaths(settings.tagTreeSortOverrides, normalizedOld, normalizedNew, preserveExisting) || changed;
                 changed = this.updateNestedPaths(settings.tagAppearances, normalizedOld, normalizedNew, preserveExisting) || changed;
             }
 
@@ -415,6 +451,7 @@ export class TagMetadataService extends BaseMetadataService {
                 changed = this.removeTagMetadataForPath(settings.tagBackgroundColors, normalized, prefix) || changed;
                 changed = this.removeTagMetadataForPath(settings.tagIcons, normalized, prefix) || changed;
                 changed = this.removeTagMetadataForPath(settings.tagSortOverrides, normalized, prefix) || changed;
+                changed = this.removeTagMetadataForPath(settings.tagTreeSortOverrides, normalized, prefix) || changed;
                 changed = this.removeTagMetadataForPath(settings.tagAppearances, normalized, prefix) || changed;
             }
 
@@ -449,6 +486,7 @@ export class TagMetadataService extends BaseMetadataService {
             this.cleanupMetadata(targetSettings, 'tagBackgroundColors', validator),
             this.cleanupMetadata(targetSettings, 'tagIcons', validator),
             this.cleanupMetadata(targetSettings, 'tagSortOverrides', validator),
+            this.cleanupMetadata(targetSettings, 'tagTreeSortOverrides', validator),
             this.cleanupMetadata(targetSettings, 'tagAppearances', validator)
         ]);
 
@@ -505,6 +543,7 @@ export class TagMetadataService extends BaseMetadataService {
             this.cleanupMetadata(targetSettings, 'tagBackgroundColors', validator),
             this.cleanupMetadata(targetSettings, 'tagIcons', validator),
             this.cleanupMetadata(targetSettings, 'tagSortOverrides', validator),
+            this.cleanupMetadata(targetSettings, 'tagTreeSortOverrides', validator),
             this.cleanupMetadata(targetSettings, 'tagAppearances', validator)
         ]);
 

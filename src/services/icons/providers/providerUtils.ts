@@ -26,6 +26,22 @@ const ICON_FONT_CLASSES = [
     'nn-iconfont-simple-icons'
 ];
 
+const ICON_RENDER_TOKENS = new WeakMap<HTMLElement, symbol>();
+
+/**
+ * Stores the current render token for an icon container.
+ */
+export function setIconRenderToken(container: HTMLElement, token: symbol): void {
+    ICON_RENDER_TOKENS.set(container, token);
+}
+
+/**
+ * Returns the current render token for an icon container.
+ */
+export function getIconRenderToken(container: HTMLElement): symbol | undefined {
+    return ICON_RENDER_TOKENS.get(container);
+}
+
 /**
  * Resets a container element by removing icon-related classes and content.
  */

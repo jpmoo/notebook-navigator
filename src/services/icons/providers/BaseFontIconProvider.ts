@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { IconProvider, IconDefinition } from '../types';
+import { IconProvider, IconDefinition, IconRenderResult } from '../types';
 import { IconAssetRecord } from '../external/IconAssetDatabase';
 import { resetIconContainer } from './providerUtils';
 
@@ -73,11 +73,11 @@ export abstract class BaseFontIconProvider implements IconProvider {
     /**
      * Renders an icon glyph to the container element.
      */
-    render(container: HTMLElement, iconId: string, size?: number): void {
+    render(container: HTMLElement, iconId: string, size?: number): IconRenderResult {
         const icon = this.iconLookup.get(iconId);
         resetIconContainer(container);
         if (!icon) {
-            return;
+            return 'not-found';
         }
 
         container.addClass('nn-iconfont');
@@ -97,6 +97,7 @@ export abstract class BaseFontIconProvider implements IconProvider {
         }
 
         this.fontLoadPromise?.catch(() => undefined);
+        return 'rendered';
     }
 
     /**

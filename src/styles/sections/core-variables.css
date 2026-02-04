@@ -147,11 +147,6 @@ body {
     --nn-theme-foreground-muted: color-mix(in srgb, var(--nn-theme-foreground) 70%, transparent);
     --nn-theme-foreground-faded: color-mix(in srgb, var(--nn-theme-foreground) 50%, transparent);
 
-    /* -- Pane Overlay Stacks -- */
-    /* Overlay stacks (header/search/title) rendered above scrolling content */
-    --nn-theme-pane-overlay-opacity: 87;
-    --nn-theme-pane-overlay-filter: blur(3px) saturate(160%);
-
     /* -- Navigation Pane -- */
     --nn-theme-nav-bg: var(--background-secondary);
     --nn-theme-nav-separator-color: var(--nn-theme-foreground);
@@ -167,16 +162,20 @@ body {
     --nn-theme-pinned-shortcut-shadow-color: rgba(0, 0, 0, 0.03);
 
     /* -- Navigation Calendar -- */
-    --nn-theme-nav-calendar-header-color: var(--nn-theme-foreground);
-    --nn-theme-nav-calendar-week-label-color: var(--nn-theme-foreground-muted);
-    --nn-theme-nav-calendar-day-in-month-color: var(--nn-theme-foreground);
-    --nn-theme-nav-calendar-day-outside-month-color: var(--nn-theme-foreground-muted);
-    --nn-theme-nav-calendar-hover-bg: var(--background-modifier-hover);
-    --nn-theme-nav-calendar-day-has-note-color: white;
-    --nn-theme-nav-calendar-day-has-note-bg: var(--text-selection);
-    --nn-theme-nav-calendar-day-has-feature-image-color: white;
-    --nn-theme-nav-calendar-day-today-color: var(--nn-theme-nav-calendar-day-has-note-color);
-    --nn-theme-nav-calendar-day-today-bg: var(--color-red);
+    --nn-theme-calendar-header-color: var(--nn-theme-foreground);
+    --nn-theme-calendar-weekday-color: var(--nn-theme-foreground-muted);
+    --nn-theme-calendar-week-color: var(--nn-theme-foreground-muted);
+    --nn-theme-calendar-day-in-month-color: var(--nn-theme-foreground);
+    --nn-theme-calendar-day-outside-month-color: var(--nn-theme-foreground-muted);
+    --nn-theme-calendar-hover-bg: var(--background-modifier-hover);
+    --nn-theme-calendar-weekend-bg: var(--background-secondary);
+    --nn-theme-calendar-day-has-note-color: white;
+    --nn-theme-calendar-day-has-note-bg: var(--text-selection);
+    --nn-theme-calendar-day-has-feature-image-color: white;
+    --nn-theme-calendar-day-today-color: var(--nn-theme-calendar-day-has-note-color);
+    --nn-theme-calendar-day-today-bg: var(--color-red);
+    --nn-theme-calendar-day-today-accent: var(--color-red);
+    --nn-calendar-right-sidebar-date-placement: flex-end;
 
     /* -- Folder & Tag Items -- */
     --nn-theme-navitem-chevron-color: var(--nn-theme-foreground-muted);

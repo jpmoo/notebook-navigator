@@ -17,7 +17,7 @@
  */
 
 import { ButtonComponent, DropdownComponent, Platform, Setting, SliderComponent } from 'obsidian';
-import { getWelcomeVideoBaseUrl, SUPPORT_BUY_ME_A_COFFEE_URL, SUPPORT_SPONSOR_URL } from '../../constants/urls';
+import { DATE_FNS_FORMAT_DOCS_URL, getWelcomeVideoBaseUrl, SUPPORT_BUY_ME_A_COFFEE_URL, SUPPORT_SPONSOR_URL } from '../../constants/urls';
 import { HomepageModal } from '../../modals/HomepageModal';
 import { strings } from '../../i18n';
 import { showNotice } from '../../utils/noticeUtils';
@@ -29,7 +29,7 @@ import {
     PANE_TRANSITION_DURATION_STEP_MS,
     type BackgroundMode
 } from '../../types';
-import type { ListToolbarButtonId, MultiSelectModifier, NavigationToolbarButtonId, VaultTitleOption } from '../types';
+import type { FileOpenContext, ListToolbarButtonId, MultiSelectModifier, NavigationToolbarButtonId, VaultTitleOption } from '../types';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { resetHiddenToggleIfNoSources } from '../../utils/exclusionUtils';
 import { InputModal } from '../../modals/InputModal';
@@ -59,6 +59,7 @@ import { DEFAULT_SETTINGS } from '../defaultSettings';
 import { createSettingGroupFactory } from '../settingGroups';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
 import { createSubSettingsContainer, setElementVisible, wireToggleSettingWithSubSettings } from '../subSettings';
+import { createSettingDescriptionWithExternalLink } from './externalLink';
 
 /** Renders the general settings tab */
 export function renderGeneralTab(context: SettingsTabContext): void {
@@ -152,6 +153,7 @@ export function renderGeneralTab(context: SettingsTabContext): void {
             });
     });
 
+    const vaultProfilesGroup = createGroup(strings.settings.groups.general.vaultProfiles);
     const filteringGroup = createGroup(strings.settings.groups.general.filtering);
 
     const fallbackProfileName = strings.settings.items.vaultProfiles.defaultName || 'Default';
@@ -175,15 +177,9 @@ export function renderGeneralTab(context: SettingsTabContext): void {
     let hiddenFileTagsInput: HTMLInputElement | null = null;
     let excludedFilesInput: HTMLInputElement | null = null;
     let hiddenFileNamesInput: HTMLInputElement | null = null;
-    let vaultTitleSetting: Setting | null = null;
 
     // Updates all profile-related UI controls with current settings values
     const refreshProfileControls = () => {
-        const shouldShowVaultTitleSetting = !Platform.isMobile && plugin.settings.vaultProfiles.length > 1;
-        if (vaultTitleSetting) {
-            setElementVisible(vaultTitleSetting.settingEl, shouldShowVaultTitleSetting);
-        }
-
         if (profileDropdown) {
             const selectEl = profileDropdown.selectEl;
             while (selectEl.firstChild) {
@@ -285,7 +281,7 @@ export function renderGeneralTab(context: SettingsTabContext): void {
         modal.open();
     };
 
-    const profileSetting = filteringGroup.addSetting(setting => {
+    const profileSetting = vaultProfilesGroup.addSetting(setting => {
         setting.setName(strings.settings.items.vaultProfiles.name).setDesc(strings.settings.items.vaultProfiles.desc);
     });
 
@@ -326,7 +322,7 @@ export function renderGeneralTab(context: SettingsTabContext): void {
     addSettingSyncModeToggle({ setting: profileSetting, plugin, settingId: 'vaultProfile' });
 
     if (!Platform.isMobile) {
-        vaultTitleSetting = filteringGroup.addSetting(setting => {
+        vaultProfilesGroup.addSetting(setting => {
             setting
                 .setName(strings.settings.items.vaultTitle.name)
                 .setDesc(strings.settings.items.vaultTitle.desc)
@@ -524,24 +520,6 @@ export function renderGeneralTab(context: SettingsTabContext): void {
             })
         );
 
-    if (!Platform.isMobile) {
-        behaviorGroup.addSetting(setting => {
-            setting
-                .setName(strings.settings.items.multiSelectModifier.name)
-                .setDesc(strings.settings.items.multiSelectModifier.desc)
-                .addDropdown(dropdown =>
-                    dropdown
-                        .addOption('cmdCtrl', strings.settings.items.multiSelectModifier.options.cmdCtrl)
-                        .addOption('optionAlt', strings.settings.items.multiSelectModifier.options.optionAlt)
-                        .setValue(plugin.settings.multiSelectModifier)
-                        .onChange(async (value: MultiSelectModifier) => {
-                            plugin.settings.multiSelectModifier = value;
-                            await plugin.saveSettingsAndUpdate();
-                        })
-                );
-        });
-    }
-
     const paneTransitionSetting = behaviorGroup.addSetting(setting => {
         setting.setName(strings.settings.items.paneTransitionDuration.name).setDesc(strings.settings.items.paneTransitionDuration.desc);
     });
@@ -581,6 +559,78 @@ export function renderGeneralTab(context: SettingsTabContext): void {
         );
 
     addSettingSyncModeToggle({ setting: paneTransitionSetting, plugin, settingId: 'paneTransitionDuration' });
+
+    if (!Platform.isMobile) {
+        const keyboardNavigationGroup = createGroup(strings.settings.groups.general.keyboardNavigation);
+
+        keyboardNavigationGroup.addSetting(setting => {
+            setting
+                .setName(strings.settings.items.multiSelectModifier.name)
+                .setDesc(strings.settings.items.multiSelectModifier.desc)
+                .addDropdown(dropdown =>
+                    dropdown
+                        .addOption('cmdCtrl', strings.settings.items.multiSelectModifier.options.cmdCtrl)
+                        .addOption('optionAlt', strings.settings.items.multiSelectModifier.options.optionAlt)
+                        .setValue(plugin.settings.multiSelectModifier)
+                        .onChange(async (value: MultiSelectModifier) => {
+                            plugin.settings.multiSelectModifier = value;
+                            await plugin.saveSettingsAndUpdate();
+                        })
+                );
+        });
+
+        const enterToOpenSetting = keyboardNavigationGroup.addSetting(setting => {
+            setting.setName(strings.settings.items.enterToOpenFiles.name).setDesc(strings.settings.items.enterToOpenFiles.desc);
+        });
+
+        const enterToOpenSettingsEl = wireToggleSettingWithSubSettings(
+            enterToOpenSetting,
+            () => plugin.settings.enterToOpenFiles,
+            async value => {
+                plugin.settings.enterToOpenFiles = value;
+                await plugin.saveSettingsAndUpdate();
+            }
+        );
+
+        const normalizeOpenContext = (value: string): FileOpenContext => {
+            if (value === 'split' || value === 'window') {
+                return value;
+            }
+            return 'tab';
+        };
+
+        new Setting(enterToOpenSettingsEl)
+            .setName(strings.settings.items.shiftEnterOpenContext.name)
+            .setDesc(strings.settings.items.shiftEnterOpenContext.desc)
+            .addDropdown(dropdown =>
+                dropdown
+                    .addOption('tab', strings.contextMenu.file.openInNewTab)
+                    .addOption('split', strings.contextMenu.file.openToRight)
+                    .addOption('window', strings.contextMenu.file.openInNewWindow)
+                    .setValue(plugin.settings.shiftEnterOpenContext)
+                    .onChange(async value => {
+                        plugin.settings.shiftEnterOpenContext = normalizeOpenContext(value);
+                        await plugin.saveSettingsAndUpdate();
+                    })
+            );
+
+        const cmdCtrlStrings = Platform.isMacOS ? strings.settings.items.cmdEnterOpenContext : strings.settings.items.ctrlEnterOpenContext;
+
+        new Setting(enterToOpenSettingsEl)
+            .setName(cmdCtrlStrings.name)
+            .setDesc(cmdCtrlStrings.desc)
+            .addDropdown(dropdown =>
+                dropdown
+                    .addOption('tab', strings.contextMenu.file.openInNewTab)
+                    .addOption('split', strings.contextMenu.file.openToRight)
+                    .addOption('window', strings.contextMenu.file.openInNewWindow)
+                    .setValue(plugin.settings.cmdCtrlEnterOpenContext)
+                    .onChange(async value => {
+                        plugin.settings.cmdCtrlEnterOpenContext = normalizeOpenContext(value);
+                        await plugin.saveSettingsAndUpdate();
+                    })
+            );
+    }
 
     if (!Platform.isMobile) {
         const desktopAppearanceGroup = createGroup(strings.settings.groups.general.desktopAppearance);
@@ -660,6 +710,23 @@ export function renderGeneralTab(context: SettingsTabContext): void {
                     await plugin.saveSettingsAndUpdate();
                 })
             );
+    }
+
+    if (Platform.isMobile) {
+        const mobileAppearanceGroup = createGroup(strings.settings.groups.general.mobileAppearance);
+
+        const useFloatingToolbarsSetting = mobileAppearanceGroup.addSetting(setting => {
+            setting
+                .setName(strings.settings.items.useFloatingToolbars.name)
+                .setDesc(strings.settings.items.useFloatingToolbars.desc)
+                .addToggle(toggle =>
+                    toggle.setValue(plugin.settings.useFloatingToolbars).onChange(value => {
+                        plugin.setUseFloatingToolbars(value);
+                    })
+                );
+        });
+
+        addSettingSyncModeToggle({ setting: useFloatingToolbarsSetting, plugin, settingId: 'useFloatingToolbars' });
     }
 
     const viewGroup = createGroup(strings.settings.groups.general.view);
@@ -870,7 +937,10 @@ export function renderGeneralTab(context: SettingsTabContext): void {
         configureDebouncedTextSetting(
             setting,
             strings.settings.items.dateFormat.name,
-            strings.settings.items.dateFormat.desc,
+            createSettingDescriptionWithExternalLink({
+                text: strings.settings.items.dateFormat.desc,
+                link: { text: strings.settings.items.dateFormat.dateFnsLinkText, href: DATE_FNS_FORMAT_DOCS_URL }
+            }),
             strings.settings.items.dateFormat.placeholder,
             () => plugin.settings.dateFormat,
             value => {
@@ -892,7 +962,10 @@ export function renderGeneralTab(context: SettingsTabContext): void {
         configureDebouncedTextSetting(
             setting,
             strings.settings.items.timeFormat.name,
-            strings.settings.items.timeFormat.desc,
+            createSettingDescriptionWithExternalLink({
+                text: strings.settings.items.timeFormat.desc,
+                link: { text: strings.settings.items.timeFormat.dateFnsLinkText, href: DATE_FNS_FORMAT_DOCS_URL }
+            }),
             strings.settings.items.timeFormat.placeholder,
             () => plugin.settings.timeFormat,
             value => {
@@ -911,27 +984,27 @@ export function renderGeneralTab(context: SettingsTabContext): void {
     timeFormatSetting.controlEl.addClass('nn-setting-wide-input');
 }
 
-interface ToolbarButtonConfig<T extends string> {
+type ToolbarButtonConfig<T extends string> = {
     id: T;
-    uxIconId: UXIconId;
     label: string;
-}
+} & ({ iconType: 'ux'; iconId: UXIconId } | { iconType: 'raw'; iconId: string });
 
 const NAVIGATION_TOOLBAR_BUTTONS: ToolbarButtonConfig<NavigationToolbarButtonId>[] = [
-    { id: 'toggleDualPane', uxIconId: 'nav-show-dual-pane', label: strings.paneHeader.showDualPane },
-    { id: 'expandCollapse', uxIconId: 'nav-expand-all', label: strings.paneHeader.expandAllFolders },
-    { id: 'hiddenItems', uxIconId: 'nav-hidden-items', label: strings.paneHeader.showExcludedItems },
-    { id: 'calendar', uxIconId: 'nav-calendar', label: strings.paneHeader.showCalendar },
-    { id: 'rootReorder', uxIconId: 'nav-root-reorder', label: strings.paneHeader.reorderRootFolders },
-    { id: 'newFolder', uxIconId: 'nav-new-folder', label: strings.paneHeader.newFolder }
+    { id: 'toggleDualPane', iconType: 'ux', iconId: 'nav-show-dual-pane', label: strings.paneHeader.showDualPane },
+    { id: 'expandCollapse', iconType: 'ux', iconId: 'nav-expand-all', label: strings.paneHeader.expandAllFolders },
+    { id: 'hiddenItems', iconType: 'ux', iconId: 'nav-hidden-items', label: strings.paneHeader.showExcludedItems },
+    { id: 'calendar', iconType: 'ux', iconId: 'nav-calendar', label: strings.paneHeader.showCalendar },
+    { id: 'rootReorder', iconType: 'ux', iconId: 'nav-root-reorder', label: strings.paneHeader.reorderRootFolders },
+    { id: 'newFolder', iconType: 'ux', iconId: 'nav-new-folder', label: strings.paneHeader.newFolder }
 ];
 
 const LIST_TOOLBAR_BUTTONS: ToolbarButtonConfig<ListToolbarButtonId>[] = [
-    { id: 'search', uxIconId: 'list-search', label: strings.paneHeader.search },
-    { id: 'descendants', uxIconId: 'list-descendants', label: strings.settings.items.includeDescendantNotes.name },
-    { id: 'sort', uxIconId: 'list-sort-ascending', label: strings.paneHeader.changeSortOrder },
-    { id: 'appearance', uxIconId: 'list-appearance', label: strings.paneHeader.changeAppearance },
-    { id: 'newNote', uxIconId: 'list-new-note', label: strings.paneHeader.newNote }
+    { id: 'back', iconType: 'raw', iconId: Platform.isAndroidApp ? 'arrow-left' : 'chevron-left', label: strings.paneHeader.showFolders },
+    { id: 'search', iconType: 'ux', iconId: 'list-search', label: strings.paneHeader.search },
+    { id: 'descendants', iconType: 'ux', iconId: 'list-descendants', label: strings.settings.items.includeDescendantNotes.name },
+    { id: 'sort', iconType: 'ux', iconId: 'list-sort-ascending', label: strings.paneHeader.changeSortOrder },
+    { id: 'appearance', iconType: 'ux', iconId: 'list-appearance', label: strings.paneHeader.changeAppearance },
+    { id: 'newNote', iconType: 'ux', iconId: 'list-new-note', label: strings.paneHeader.newNote }
 ];
 
 function renderToolbarVisibilitySetting(
@@ -1001,7 +1074,7 @@ function createToolbarButtonGroup<T extends string>({
         buttonEl.setAttr('title', button.label);
 
         const iconEl = buttonEl.createSpan({ cls: 'nn-toolbar-visibility-icon' });
-        const resolvedIconId = resolveUXIcon(interfaceIcons, button.uxIconId);
+        const resolvedIconId = button.iconType === 'ux' ? resolveUXIcon(interfaceIcons, button.iconId) : button.iconId;
         getIconService().renderIcon(iconEl, resolvedIconId);
 
         const applyState = () => {

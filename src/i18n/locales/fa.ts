@@ -32,6 +32,7 @@ export const STRINGS_FA = {
         untagged: 'بدون برچسب',
         featureImageAlt: 'تصویر ویژه',
         unknownError: 'خطای ناشناخته',
+        clipboardWriteError: 'نمی‌توان در کلیپ‌بورد نوشت',
         updateBannerTitle: 'به‌روزرسانی Notebook Navigator موجود است',
         updateBannerInstruction: 'در تنظیمات -> افزونه‌های انجمن به‌روزرسانی کنید',
         updateIndicatorLabel: 'نسخه جدید موجود است',
@@ -77,10 +78,6 @@ export const STRINGS_FA = {
     navigationCalendar: {
         ariaLabel: 'تقویم',
         dailyNotesNotEnabled: 'افزونه یادداشت روزانه فعال نیست.',
-        promptDailyNoteTitle: {
-            title: 'عنوان یادداشت روزانه',
-            placeholder: 'عنوان را وارد کنید'
-        },
         createDailyNote: {
             title: 'یادداشت روزانه جدید',
             message: 'فایل {filename} وجود ندارد. آیا می‌خواهید آن را ایجاد کنید؟',
@@ -174,9 +171,6 @@ export const STRINGS_FA = {
             revealInFolder: 'نمایش در پوشه',
             revealInFinder: 'نمایش در Finder',
             showInExplorer: 'نمایش در مرورگر سیستم',
-            copyDeepLink: 'کپی URL اوبسیدین',
-            copyPath: 'کپی مسیر سیستم فایل',
-            copyRelativePath: 'کپی مسیر خزانه',
             renameNote: 'تغییر نام یادداشت',
             renameFile: 'تغییر نام فایل',
             deleteNote: 'حذف یادداشت',
@@ -204,8 +198,6 @@ export const STRINGS_FA = {
             newTldrawDrawing: 'طراحی Tldraw جدید',
             duplicateFolder: 'کپی پوشه',
             searchInFolder: 'جستجو در پوشه',
-            copyPath: 'کپی مسیر سیستم فایل',
-            copyRelativePath: 'کپی مسیر خزانه',
             createFolderNote: 'ایجاد یادداشت پوشه',
             detachFolderNote: 'جدا کردن یادداشت پوشه',
             deleteFolderNote: 'حذف یادداشت پوشه',
@@ -228,6 +220,12 @@ export const STRINGS_FA = {
         navigation: {
             addSeparator: 'افزودن جداکننده',
             removeSeparator: 'حذف جداکننده'
+        },
+        copyPath: {
+            title: 'کپی مسیر',
+            asObsidianUrl: 'به‌صورت URL اوبسیدین',
+            fromVaultFolder: 'از پوشه خزانه',
+            fromSystemRoot: 'از ریشه سیستم'
         },
         style: {
             title: 'سبک',
@@ -266,6 +264,7 @@ export const STRINGS_FA = {
             showingResultsInfo: 'نمایش ۵۰ از {count} نتیجه. بیشتر تایپ کنید تا محدودتر شود.',
             emojiInstructions: 'ایموجی را تایپ یا پیست کنید تا به عنوان آیکون استفاده شود',
             removeIcon: 'حذف آیکون',
+            removeFromRecents: 'حذف از آیکون‌های اخیر',
             allTabLabel: 'همه'
         },
         fileIconRuleEditor: {
@@ -310,7 +309,6 @@ export const STRINGS_FA = {
             paletteCustom: 'سفارشی',
             copyColors: 'کپی رنگ',
             colorsCopied: 'رنگ در کلیپ‌بورد کپی شد',
-            copyClipboardError: 'نمی‌توان در کلیپ‌بورد نوشت',
             pasteColors: 'چسباندن رنگ',
             pasteClipboardError: 'نمی‌توان کلیپ‌بورد را خواند',
             pasteInvalidFormat: 'مقدار رنگ hex مورد انتظار است',
@@ -390,6 +388,14 @@ export const STRINGS_FA = {
                 dismiss: 'برای بستن'
             }
         },
+        calendarTemplate: {
+            placeholder: 'جستجوی قالب‌ها...',
+            instructions: {
+                navigate: 'برای ناوبری',
+                select: 'برای انتخاب قالب',
+                dismiss: 'برای بستن'
+            }
+        },
         navigationBanner: {
             placeholder: 'جستجوی تصویر...',
             instructions: {
@@ -420,7 +426,7 @@ export const STRINGS_FA = {
             thanksText: 'از دانلود شما بسیار سپاسگزارم، لذت ببرید!',
             videoAlt: 'نصب و تسلط بر Notebook Navigator',
             openVideoButton: 'پخش ویدیو',
-            closeButton: 'بعداً تماشا می‌کنم'
+            closeButton: 'شاید بعداً'
         }
     },
     // File system operations
@@ -532,8 +538,14 @@ export const STRINGS_FA = {
         open: 'باز کردن',
         toggleLeftSidebar: 'تغییر نوار کناری چپ',
         openHomepage: 'باز کردن صفحه اصلی',
+        openDailyNote: 'باز کردن یادداشت روزانه',
+        openWeeklyNote: 'باز کردن یادداشت هفتگی',
+        openMonthlyNote: 'باز کردن یادداشت ماهانه',
+        openQuarterlyNote: 'باز کردن یادداشت فصلی',
+        openYearlyNote: 'باز کردن یادداشت سالانه',
         revealFile: 'نمایش فایل',
         search: 'جستجو',
+        searchVaultRoot: 'جستجو در ریشه خزانه',
         toggleDualPane: 'تغییر نمای پنل دوگانه',
         toggleCalendar: 'تغییر تقویم',
         selectVaultProfile: 'انتخاب پروفایل خزانه',
@@ -568,6 +580,7 @@ export const STRINGS_FA = {
     // Plugin UI
     plugin: {
         viewName: 'Notebook Navigator',
+        calendarViewName: 'تقویم',
         ribbonTooltip: 'Notebook Navigator',
         revealInNavigator: 'نمایش در Notebook Navigator'
     },
@@ -591,6 +604,7 @@ export const STRINGS_FA = {
         sections: {
             general: 'عمومی',
             navigationPane: 'پنل ناوبری',
+            calendar: 'تقویم',
             icons: 'بسته‌های آیکون',
             folders: 'پوشه‌ها',
             folderNotes: 'یادداشت‌های پوشه',
@@ -605,11 +619,14 @@ export const STRINGS_FA = {
         },
         groups: {
             general: {
+                vaultProfiles: 'پروفایل‌های خزانه',
                 filtering: 'فیلتر کردن',
                 behavior: 'رفتار',
+                keyboardNavigation: 'پیمایش با صفحه‌کلید',
                 view: 'ظاهر',
                 icons: 'آیکون‌ها',
                 desktopAppearance: 'ظاهر دسکتاپ',
+                mobileAppearance: 'ظاهر موبایل',
                 formatting: 'قالب‌بندی'
             },
             navigation: {
@@ -635,6 +652,7 @@ export const STRINGS_FA = {
         },
         syncMode: {
             notSynced: '(همگام نشده)',
+            disabled: '(غیرفعال)',
             switchToSynced: 'فعال‌سازی همگام‌سازی',
             switchToLocal: 'غیرفعال‌سازی همگام‌سازی'
         },
@@ -688,8 +706,21 @@ export const STRINGS_FA = {
                     'created-desc': 'تاریخ ایجاد (جدیدترین بالا)',
                     'created-asc': 'تاریخ ایجاد (قدیمی‌ترین بالا)',
                     'title-asc': 'عنوان (الف بالا)',
-                    'title-desc': 'عنوان (ی بالا)'
+                    'title-desc': 'عنوان (ی بالا)',
+                    'filename-asc': 'نام فایل (الف بالا)',
+                    'filename-desc': 'نام فایل (ی بالا)',
+                    'property-asc': 'ویژگی (الف بالا)',
+                    'property-desc': 'ویژگی (ی بالا)'
+                },
+                propertyOverride: {
+                    asc: 'ویژگی ‘{property}’ (الف بالا)',
+                    desc: 'ویژگی ‘{property}’ (ی بالا)'
                 }
+            },
+            propertySortKey: {
+                name: 'ویژگی مرتب‌سازی',
+                desc: 'با مرتب‌سازی ویژگی استفاده می‌شود. یادداشت‌هایی که این ویژگی frontmatter را دارند ابتدا نمایش داده شده و بر اساس مقدار ویژگی مرتب می‌شوند. آرایه‌ها به یک مقدار تبدیل می‌شوند.',
+                placeholder: 'order'
             },
             revealFileOnListChanges: {
                 name: 'اسکرول به فایل انتخابی هنگام تغییر لیست',
@@ -814,6 +845,10 @@ export const STRINGS_FA = {
                 name: 'سطح زوم',
                 desc: 'سطح زوم کلی Notebook Navigator را کنترل می‌کند.'
             },
+            useFloatingToolbars: {
+                name: 'استفاده از نوار ابزار شناور در iOS/iPadOS',
+                desc: 'برای Obsidian 1.11 و بالاتر اعمال می‌شود.'
+            },
             startView: {
                 name: 'نمای پیش‌فرض شروع',
                 desc: 'پنلی که هنگام باز کردن Notebook Navigator نمایش داده می‌شود را انتخاب کنید. پنل ناوبری میانبرها، یادداشت‌های اخیر و درخت پوشه را نمایش می‌دهد. پنل لیست فوراً لیست یادداشت‌ها را نمایش می‌دهد.',
@@ -871,6 +906,10 @@ export const STRINGS_FA = {
                 current: 'بنر فعلی: {path}',
                 chooseButton: 'انتخاب تصویر'
             },
+            pinNavigationBanner: {
+                name: 'سنجاق کردن بنر',
+                desc: 'سنجاق کردن بنر ناوبری بالای درخت ناوبری.'
+            },
             showShortcuts: {
                 name: 'نمایش میانبرها',
                 desc: 'بخش میانبرها را در پنل ناوبری نمایش دهید.'
@@ -896,9 +935,13 @@ export const STRINGS_FA = {
                 name: 'سنجاق کردن یادداشت‌های اخیر با میانبرها',
                 desc: 'هنگام سنجاق کردن میانبرها، یادداشت‌های اخیر را نیز شامل شود.'
             },
-            showCalendar: {
-                name: 'نمایش تقویم',
-                desc: 'نمایش تقویم در پایین پنل ناوبری.'
+            calendarPlacement: {
+                name: 'محل قرارگیری تقویم',
+                desc: 'نمایش در نوار کناری راست یا چپ.', // RTL: right↔left flipped to match visual layout
+                options: {
+                    leftSidebar: 'نوار کناری راست', // RTL: "Left sidebar" → "Right sidebar" (appears on right in RTL)
+                    rightSidebar: 'نوار کناری چپ' // RTL: "Right sidebar" → "Left sidebar" (appears on left in RTL)
+                }
             },
             calendarLocale: {
                 name: 'زبان',
@@ -907,9 +950,19 @@ export const STRINGS_FA = {
                     systemDefault: 'پیش‌فرض'
                 }
             },
+            calendarWeekendDays: {
+                name: 'روزهای آخر هفته',
+                desc: 'نمایش روزهای آخر هفته با رنگ پس‌زمینه متفاوت.',
+                options: {
+                    none: 'هیچ',
+                    satSun: 'شنبه و یکشنبه',
+                    friSat: 'جمعه و شنبه',
+                    thuFri: 'پنجشنبه و جمعه'
+                }
+            },
             calendarWeeksToShow: {
-                name: 'هفته‌های نمایش داده شده',
-                desc: 'تعداد هفته‌های تقویم برای نمایش.',
+                name: 'هفته‌های نمایش در نوار کناری راست', // RTL: "left sidebar" → "right sidebar"
+                desc: 'تقویم در نوار کناری چپ همیشه ماه کامل را نمایش می‌دهد.', // RTL: "right sidebar" → "left sidebar"
                 options: {
                     fullMonth: 'ماه کامل',
                     oneWeek: '۱ هفته',
@@ -920,9 +973,17 @@ export const STRINGS_FA = {
                 name: 'برجسته کردن تاریخ امروز',
                 desc: 'نمایش دایره قرمز و متن پررنگ در تاریخ امروز.'
             },
+            calendarShowFeatureImage: {
+                name: 'نمایش تصویر شاخص',
+                desc: 'نمایش تصاویر شاخص یادداشت‌ها در تقویم.'
+            },
             calendarShowWeekNumber: {
                 name: 'نمایش شماره هفته',
                 desc: 'افزودن ستون شماره هفته.'
+            },
+            calendarShowQuarter: {
+                name: 'نمایش فصل',
+                desc: 'افزودن برچسب فصل در سربرگ تقویم.'
             },
             calendarConfirmBeforeCreate: {
                 name: 'تأیید قبل از ایجاد',
@@ -932,7 +993,7 @@ export const STRINGS_FA = {
                 name: 'منبع یادداشت روزانه',
                 desc: 'منبع یادداشت‌های تقویم.',
                 options: {
-                    dailyNotes: 'یادداشت‌های روزانه',
+                    dailyNotes: 'یادداشت‌های روزانه (پلاگین اصلی)',
                     notebookNavigator: 'Notebook Navigator'
                 },
                 info: {
@@ -941,19 +1002,42 @@ export const STRINGS_FA = {
             },
             calendarCustomRootFolder: {
                 name: 'پوشه ریشه',
-                desc: 'پوشه پایه برای یادداشت‌های تقویم.',
+                desc: 'پوشه پایه برای یادداشت‌های دوره‌ای. الگوهای تاریخ می‌توانند شامل زیرپوشه‌ها باشند. با پروفایل صندوق انتخاب شده تغییر می‌کند.',
                 placeholder: 'Personal/Diary'
             },
-            calendarCustomFilePattern: {
-                name: 'الگوی فایل',
-                desc: 'الگوی تاریخ نسبت به پوشه ریشه. توکن‌های پشتیبانی‌شده: YYYY، MM، M، DD، D. یادداشت‌ها می‌توانند شامل پسوند عنوان اختیاری باشند.',
-                placeholder: 'YYYY/YYYYMMDD',
-                example: 'نحوه نگارش فعلی به این شکل است: {path}',
-                parsingError: 'الگو باید شامل YYYY، MM/M و DD/D باشد. توکن‌های پشتیبانی‌شده: YYYY، MM، M، DD، D.'
+            calendarTemplateFolder: {
+                name: 'محل پوشه قالب',
+                desc: 'انتخابگر فایل قالب یادداشت‌های این پوشه را نمایش می‌دهد.',
+                placeholder: 'Templates'
             },
-            calendarCustomPromptForTitle: {
-                name: 'درخواست عنوان',
-                desc: 'هنگام ایجاد یادداشت عنوان بخواهید. عناوین خالی پذیرفته می‌شود.'
+            calendarCustomFilePattern: {
+                name: 'یادداشت‌های روزانه',
+                desc: 'قالب‌بندی مسیر با استفاده از فرمت تاریخ Moment. نام زیرپوشه‌ها را در کروشه قرار دهید، مثال [Work]/YYYY. روی نماد قالب کلیک کنید تا قالب تنظیم شود.',
+                momentDescPrefix: 'قالب‌بندی مسیر با استفاده از ',
+                momentLinkText: 'فرمت تاریخ Moment',
+                momentDescSuffix: '. نام زیرپوشه‌ها را در کروشه قرار دهید، مثال [Work]/YYYY. روی نماد قالب کلیک کنید تا قالب تنظیم شود.',
+                placeholder: 'YYYY/YYYYMMDD',
+                example: 'نحوه نگارش فعلی: {path}',
+                parsingError: 'الگو باید بتواند به یک تاریخ کامل (سال، ماه، روز) قالب‌بندی شود و دوباره به همان تاریخ تجزیه شود.'
+            },
+            calendarCustomWeekPattern: {
+                name: 'یادداشت‌های هفتگی',
+                parsingError: 'الگو باید بتواند به یک هفته کامل (سال هفته، شماره هفته) قالب‌بندی شود و دوباره تجزیه شود.'
+            },
+            calendarCustomMonthPattern: {
+                name: 'یادداشت‌های ماهانه',
+                parsingError: 'الگو باید بتواند به یک ماه کامل (سال، ماه) قالب‌بندی شود و دوباره تجزیه شود.'
+            },
+            calendarCustomQuarterPattern: {
+                name: 'یادداشت‌های فصلی',
+                parsingError: 'الگو باید بتواند به یک فصل کامل (سال، فصل) قالب‌بندی شود و دوباره تجزیه شود.'
+            },
+            calendarCustomYearPattern: {
+                name: 'یادداشت‌های سالانه',
+                parsingError: 'الگو باید بتواند به یک سال کامل (سال) قالب‌بندی شود و دوباره تجزیه شود.'
+            },
+            calendarTemplateFile: {
+                current: 'فایل قالب: {name}'
             },
             showTooltips: {
                 name: 'نمایش راهنماها',
@@ -986,6 +1070,22 @@ export const STRINGS_FA = {
                     cmdCtrl: 'کلیک Cmd/Ctrl',
                     optionAlt: 'کلیک Option/Alt'
                 }
+            },
+            enterToOpenFiles: {
+                name: 'فشار Enter برای باز کردن فایل‌ها',
+                desc: 'فایل‌ها فقط با فشار دادن Enter در هنگام پیمایش با صفحه‌کلید در لیست باز شوند.'
+            },
+            shiftEnterOpenContext: {
+                name: 'Shift+Enter',
+                desc: 'فایل انتخاب‌شده را در تب، تقسیم یا پنجره جدید با فشار Shift+Enter باز کنید.'
+            },
+            cmdEnterOpenContext: {
+                name: 'Cmd+Enter',
+                desc: 'فایل انتخاب‌شده را در تب، تقسیم یا پنجره جدید با فشار Cmd+Enter باز کنید.'
+            },
+            ctrlEnterOpenContext: {
+                name: 'Ctrl+Enter',
+                desc: 'فایل انتخاب‌شده را در تب، تقسیم یا پنجره جدید با فشار Ctrl+Enter باز کنید.'
             },
             fileVisibility: {
                 name: 'نمایش انواع فایل (پروفایل خزانه)',
@@ -1085,7 +1185,7 @@ export const STRINGS_FA = {
                 desc: 'برچسب‌ها را هنگامی که تاریخ، پیش‌نمایش و تصویر مخفی هستند نمایش دهید.'
             },
             customPropertyType: {
-                name: 'نوع',
+                name: 'نوع ویژگی',
                 desc: 'ویژگی سفارشی را برای نمایش در آیتم‌های فایل انتخاب کنید.',
                 options: {
                     frontmatter: 'ویژگی Frontmatter',
@@ -1094,14 +1194,19 @@ export const STRINGS_FA = {
                 }
             },
             customPropertyFields: {
-                name: 'ویژگی برای نمایش',
+                name: 'ویژگی‌ها برای نمایش',
                 desc: 'لیست ویژگی‌های frontmatter جدا شده با کاما برای نمایش به صورت نشان. ویژگی‌های با مقادیر لیستی یک نشان برای هر مقدار نمایش می‌دهند. مقادیر [[wikilink]] به صورت لینک‌های قابل کلیک نمایش داده می‌شوند.',
                 placeholder: 'وضعیت، نوع، دسته‌بندی'
             },
-            customPropertyColorFields: {
-                name: 'ویژگی برای رنگ',
-                desc: 'لیست ویژگی‌های frontmatter جدا شده با کاما برای رنگ نشان‌ها. ویژگی‌های رنگ با ویژگی‌های نمایش بر اساس موقعیت جفت می‌شوند. ویژگی‌های با مقادیر لیستی رنگ‌ها را بر اساس شاخص جفت می‌کنند. مقادیر می‌توانند نام برچسب یا رنگ‌های CSS باشند.',
-                placeholder: 'statusColor, typeColor, categoryColor'
+            showCustomPropertiesOnSeparateRows: {
+                name: 'نمایش ویژگی‌ها در ردیف‌های جداگانه',
+                desc: 'هر ویژگی را در ردیف جداگانه نمایش می‌دهد.'
+            },
+            customPropertyColorMap: {
+                name: 'رنگ‌های ویژگی',
+                desc: 'نگاشت ویژگی‌های فرانت‌متر به رنگ‌های نشان. یک نگاشت در هر خط: ویژگی=رنگ',
+                placeholder: '# ویژگی=رنگ\nstatus=#ff0000\ntype=#00ff00',
+                editTooltip: 'ویرایش نگاشت‌ها'
             },
             showCustomPropertyInCompactMode: {
                 name: 'نمایش ویژگی سفارشی در حالت فشرده',
@@ -1112,14 +1217,16 @@ export const STRINGS_FA = {
                 desc: 'قالب نمایش تاریخ‌ها (از قالب date-fns استفاده می‌کند).',
                 placeholder: 'yyyy/MM/dd',
                 help: 'قالب‌های رایج:\nyyyy/MM/dd = ۱۴۰۱/۰۵/۲۵\ndd/MM/yyyy = ۲۵/۰۵/۲۰۲۲\nyyyy-MM-dd = 2022-05-25\n\nتوکن‌ها:\nyyyy/yy = سال\nMMMM/MMM/MM = ماه\ndd/d = روز\nEEEE/EEE = روز هفته',
-                helpTooltip: 'برای مرجع قالب کلیک کنید'
+                helpTooltip: 'قالب با استفاده از date-fns',
+                dateFnsLinkText: 'قالب date-fns'
             },
             timeFormat: {
                 name: 'قالب زمان',
                 desc: 'قالب نمایش زمان‌ها (از قالب date-fns استفاده می‌کند).',
                 placeholder: 'HH:mm',
                 help: 'قالب‌های رایج:\nHH:mm = ۱۴:۳۰ (۲۴ ساعته)\nh:mm a = 2:30 PM (۱۲ ساعته)\nHH:mm:ss = ۱۴:۳۰:۴۵\nh:mm:ss a = 2:30:45 PM\n\nتوکن‌ها:\nHH/H = ۲۴ ساعته\nhh/h = ۱۲ ساعته\nmm = دقیقه\nss = ثانیه\na = صبح/عصر',
-                helpTooltip: 'برای مرجع قالب کلیک کنید'
+                helpTooltip: 'قالب با استفاده از date-fns',
+                dateFnsLinkText: 'قالب date-fns'
             },
             showFilePreview: {
                 name: 'نمایش پیش‌نمایش یادداشت',
@@ -1197,6 +1304,14 @@ export const STRINGS_FA = {
                 name: 'ارث‌بری رنگ‌های پوشه',
                 desc: 'پوشه‌های فرزند رنگ را از پوشه‌های والد به ارث می‌برند.'
             },
+            folderSortOrder: {
+                name: 'ترتیب مرتب‌سازی پوشه',
+                desc: 'روی هر پوشه‌ای کلیک راست کنید تا ترتیب مرتب‌سازی متفاوتی برای زیرمجموعه‌هایش تنظیم کنید.',
+                options: {
+                    alphaAsc: 'الف تا ی',
+                    alphaDesc: 'ی تا الف'
+                }
+            },
             showNoteCount: {
                 name: 'نمایش تعداد یادداشت',
                 desc: 'تعداد یادداشت‌ها را کنار هر پوشه و برچسب نمایش دهید.'
@@ -1261,12 +1376,13 @@ export const STRINGS_FA = {
             },
             tagSortOrder: {
                 name: 'ترتیب مرتب‌سازی برچسب',
-                desc: 'نحوه مرتب‌سازی برچسب‌ها در پنل ناوبری را انتخاب کنید.',
+                desc: 'روی هر برچسبی کلیک راست کنید تا ترتیب مرتب‌سازی متفاوتی برای زیرمجموعه‌هایش تنظیم کنید.',
                 options: {
                     alphaAsc: 'الف تا ی',
                     alphaDesc: 'ی تا الف',
-                    frequencyAsc: 'فراوانی (کم به زیاد)',
-                    frequencyDesc: 'فراوانی (زیاد به کم)'
+                    frequency: 'فراوانی',
+                    lowToHigh: 'کم به زیاد',
+                    highToLow: 'زیاد به کم'
                 }
             },
             showAllTagsFolder: {
@@ -1418,7 +1534,8 @@ export const STRINGS_FA = {
             frontmatterDateFormat: {
                 name: 'قالب زمان',
                 desc: 'قالب استفاده‌شده برای تجزیه زمان‌ها در فرانت‌متر. برای استفاده از قالب ISO 8601 خالی بگذارید',
-                helpTooltip: 'مستندات قالب date-fns را ببینید',
+                helpTooltip: 'قالب با استفاده از date-fns',
+                dateFnsLinkText: 'قالب date-fns',
                 help: "قالب‌های رایج:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {

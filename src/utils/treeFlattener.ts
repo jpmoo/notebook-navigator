@@ -23,11 +23,16 @@ import { TagTreeNode } from '../types/storage';
 import type { FolderTreeItem, TagTreeItem } from '../types/virtualization';
 import { isFolderInExcludedFolder } from './fileFilters';
 import { matchesHiddenTagPattern, HiddenTagMatcher } from './tagPrefixMatcher';
+import type { AlphaSortOrder } from '../settings';
 
 /** Options for flattenFolderTree function */
 interface FlattenFolderTreeOptions {
     /** Map of folder paths to their custom display order */
     rootOrderMap?: Map<string, number>;
+    /** Default alphabetical order for child folders */
+    defaultSortOrder?: AlphaSortOrder;
+    /** Per-folder child sort order overrides */
+    childSortOrderOverrides?: Record<string, AlphaSortOrder>;
 }
 
 /** Options for flattenTagTree function */
@@ -36,15 +41,29 @@ interface FlattenTagTreeOptions {
     hiddenMatcher?: HiddenTagMatcher;
     /** Custom comparator for sorting tag nodes */
     comparator?: (a: TagTreeNode, b: TagTreeNode) => number;
+    /** Per-tag child sort order overrides */
+    childSortOrderOverrides?: Record<string, AlphaSortOrder>;
+}
+
+function compareAlpha(a: string, b: string, order: AlphaSortOrder): number {
+    const cmp = naturalCompare(a, b);
+    return order === 'alpha-desc' ? -cmp : cmp;
 }
 
 /**
  * Compares folders using custom order map with fallback to natural sorting.
  * Returns negative if a comes before b, positive if b comes before a, 0 if equal.
  */
-export function compareFolderOrderWithFallback(a: TFolder, b: TFolder, orderMap?: Map<string, number>): number {
+export function compareFolderOrderWithFallback(
+    a: TFolder,
+    b: TFolder,
+    orderMap?: Map<string, number>,
+    fallback?: (first: TFolder, second: TFolder) => number
+): number {
+    const fallbackCompare = fallback ?? ((first: TFolder, second: TFolder) => naturalCompare(first.name, second.name));
+
     if (!orderMap || orderMap.size === 0) {
-        return naturalCompare(a.name, b.name);
+        return fallbackCompare(a, b);
     }
 
     const orderA = orderMap.get(a.path);
@@ -59,7 +78,7 @@ export function compareFolderOrderWithFallback(a: TFolder, b: TFolder, orderMap?
     if (orderB !== undefined) {
         return 1;
     }
-    return naturalCompare(a.name, b.name);
+    return fallbackCompare(a, b);
 }
 
 /**
@@ -110,9 +129,28 @@ export function flattenFolderTree(
     options: FlattenFolderTreeOptions = {}
 ): FolderTreeItem[] {
     const items: FolderTreeItem[] = [];
-    const { rootOrderMap } = options;
+    const { rootOrderMap, childSortOrderOverrides } = options;
+    const defaultSortOrder = options.defaultSortOrder ?? 'alpha-asc';
 
-    const foldersToProcess = level === 0 ? folders.slice().sort((a, b) => compareFolderOrderWithFallback(a, b, rootOrderMap)) : folders;
+    const getEffectiveChildSortOrder = (folderPath: string): AlphaSortOrder => {
+        if (childSortOrderOverrides && Object.prototype.hasOwnProperty.call(childSortOrderOverrides, folderPath)) {
+            return childSortOrderOverrides[folderPath] ?? defaultSortOrder;
+        }
+        return defaultSortOrder;
+    };
+
+    const compareFolderNames = (order: AlphaSortOrder) => (a: TFolder, b: TFolder) => {
+        const cmp = compareAlpha(a.name, b.name, order);
+        if (cmp !== 0) {
+            return cmp;
+        }
+        return a.path.localeCompare(b.path);
+    };
+
+    const rootChildComparator = compareFolderNames(getEffectiveChildSortOrder('/'));
+
+    const foldersToProcess =
+        level === 0 ? folders.slice().sort((a, b) => compareFolderOrderWithFallback(a, b, rootOrderMap, rootChildComparator)) : folders;
 
     foldersToProcess.forEach(folder => {
         // Skip folders already visited to prevent infinite loops
@@ -142,11 +180,13 @@ export function flattenFolderTree(
         // Process child folders if this folder is expanded
         if (expandedFolders.has(folder.path) && folder.children && folder.children.length > 0) {
             const childFolders = folder.children.filter((child): child is TFolder => child instanceof TFolder);
+            const childSortOrder = getEffectiveChildSortOrder(folder.path);
+            const childNameComparator = compareFolderNames(childSortOrder);
 
             if (folder.path === '/') {
-                childFolders.sort((a, b) => compareFolderOrderWithFallback(a, b, rootOrderMap));
+                childFolders.sort((a, b) => compareFolderOrderWithFallback(a, b, rootOrderMap, childNameComparator));
             } else {
-                childFolders.sort((a, b) => naturalCompare(a.name, b.name));
+                childFolders.sort(childNameComparator);
             }
 
             if (childFolders.length > 0) {
@@ -179,12 +219,30 @@ export function flattenTagTree(
     options: FlattenTagTreeOptions = {}
 ): TagTreeItem[] {
     const items: TagTreeItem[] = [];
-    const { hiddenMatcher, comparator } = options;
+    const { hiddenMatcher, comparator, childSortOrderOverrides } = options;
     /** Use custom comparator or default to alphabetical sorting */
     const sortFn = comparator ?? ((a: TagTreeNode, b: TagTreeNode) => naturalCompare(a.name, b.name));
 
     /** Sort tags using the selected comparator */
     const sortedNodes = tagNodes.slice().sort(sortFn);
+
+    const compareAlphaNodes = (order: AlphaSortOrder) => (a: TagTreeNode, b: TagTreeNode) => {
+        const cmp = compareAlpha(a.name, b.name, order);
+        if (cmp !== 0) {
+            return cmp;
+        }
+        return a.path.localeCompare(b.path);
+    };
+
+    const getEffectiveChildComparator = (parentTagPath: string) => {
+        if (childSortOrderOverrides && Object.prototype.hasOwnProperty.call(childSortOrderOverrides, parentTagPath)) {
+            const override = childSortOrderOverrides[parentTagPath];
+            if (override) {
+                return compareAlphaNodes(override);
+            }
+        }
+        return sortFn;
+    };
 
     /** Recursively adds a tag node and its children to the items array */
     function addNode(node: TagTreeNode, currentLevel: number, parentHidden: boolean = false) {
@@ -208,7 +266,8 @@ export function flattenTagTree(
 
         // Add children if expanded and has children
         if (expandedTags.has(node.path) && node.children && node.children.size > 0) {
-            const sortedChildren = Array.from(node.children.values()).sort(sortFn);
+            const childComparator = getEffectiveChildComparator(node.path);
+            const sortedChildren = Array.from(node.children.values()).sort(childComparator);
 
             sortedChildren.forEach(child => addNode(child, currentLevel + 1, isHidden));
         }

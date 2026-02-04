@@ -20,8 +20,17 @@ import { useCallback } from 'react';
 import { TFile } from 'obsidian';
 import { useSelectionState, useSelectionDispatch } from '../context/SelectionContext';
 import { useServices } from '../context/ServicesContext';
+import { useSettingsState } from '../context/SettingsContext';
 import { useFileOpener } from './useFileOpener';
 import { findFileIndex, getFilesInRange } from '../utils/selectionUtils';
+
+interface ShiftArrowSelectionOptions {
+    /**
+     * Overrides how the cursor file is opened.
+     * Used by keyboard navigation to debounce workspace opens while selection changes.
+     */
+    openFile?: (file: TFile) => void;
+}
 
 /**
  * Hook for managing multi-selection operations in file lists
@@ -31,6 +40,7 @@ export function useMultiSelection() {
     const selectionState = useSelectionState();
     const selectionDispatch = useSelectionDispatch();
     const { app } = useServices();
+    const settings = useSettingsState();
     const workspace = app.workspace;
     const openFileInWorkspace = useFileOpener();
 
@@ -118,9 +128,11 @@ export function useMultiSelection() {
     /**
      * Handle Shift+Arrow selection with Apple Notes-style anchor jumping
      * Returns the final index to scroll to, or -1 if no movement occurred
+     *
+     * `options.openFile` overrides how the cursor file is opened. The default is `openFileInWorkspace`.
      */
     const handleShiftArrowSelection = useCallback(
-        (direction: 'up' | 'down', currentIndex: number, files: TFile[]): number => {
+        (direction: 'up' | 'down', currentIndex: number, files: TFile[], options?: ShiftArrowSelectionOptions): number => {
             // Can't extend selection if nothing is selected
             if (currentIndex === -1 || !selectionState.selectedFile) {
                 return -1;
@@ -195,14 +207,21 @@ export function useMultiSelection() {
 
             // Open the file at cursor without changing focus
             // Always open if we deselected the active file, or if cursor moved to a different file
-            if (deselectedActiveFile || !activeFile || activeFile.path !== finalFile.path) {
-                openFileInWorkspace(finalFile);
+            if (!settings.enterToOpenFiles && (deselectedActiveFile || !activeFile || activeFile.path !== finalFile.path)) {
+                (options?.openFile ?? openFileInWorkspace)(finalFile);
             }
 
             // Return the final index for the caller to handle scrolling
             return finalIndex;
         },
-        [selectionState.selectedFile, selectionState.selectedFiles, selectionDispatch, openFileInWorkspace, workspace]
+        [
+            selectionState.selectedFile,
+            selectionState.selectedFiles,
+            selectionDispatch,
+            openFileInWorkspace,
+            settings.enterToOpenFiles,
+            workspace
+        ]
     );
 
     /**

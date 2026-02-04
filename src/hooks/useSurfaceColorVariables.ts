@@ -26,11 +26,11 @@ import { compositeWithBase, parseCssColor, releaseColorResolver, colorsEqual, ty
 
 /**
  * Defines a mapping from a source CSS variable (semi-transparent) to a target
- * CSS variable (pre-composited solid color).
+ * CSS variable (pre-composited surface color).
  *
  * Example:
  *   source: '--nn-theme-navitem-selected-bg' (rgba(100, 150, 200, 0.2))
- *   target: '--nn-theme-navitem-selected-bg-solid' (rgb(44, 54, 64))
+ *   target: '--nn-computed-navitem-selected-bg' (rgb(44, 54, 64))
  */
 export interface SurfaceVariableMapping {
     source: string;

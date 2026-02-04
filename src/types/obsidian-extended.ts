@@ -18,6 +18,12 @@
 
 import type { App, Plugin, View, WorkspaceLeaf, TFile } from 'obsidian';
 
+declare module 'obsidian' {
+    interface MenuItem {
+        setSubmenu?: (submenu?: import('obsidian').Menu) => import('obsidian').Menu | void;
+    }
+}
+
 /** MIME type identifier for tag drag-and-drop operations */
 export const TAG_DRAG_MIME = 'application/x-notebook-navigator-tag';
 
@@ -171,6 +177,8 @@ export const TIMEOUTS = {
     // Debounce Delays
     /** Debounce for keyboard, focus, and search input */
     DEBOUNCE_KEYBOARD: 100,
+    /** Debounce for opening files during keyboard scrolling */
+    DEBOUNCE_KEYBOARD_FILE_OPEN: 500,
     /** Debounce for content processing and tree updates */
     DEBOUNCE_CONTENT: 300,
     /** Debounce for tag tree rebuild requests */

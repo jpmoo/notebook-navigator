@@ -18,6 +18,7 @@
 
 import { Setting, ButtonComponent, App, TAbstractFile, TFile } from 'obsidian';
 import { strings } from '../../i18n';
+import { DATE_FNS_FORMAT_DOCS_URL } from '../../constants/urls';
 import { showNotice } from '../../utils/noticeUtils';
 import { ISO_DATE_FORMAT } from '../../utils/dateUtils';
 import { TIMEOUTS } from '../../types/obsidian-extended';
@@ -32,7 +33,14 @@ import {
     serializeIconMapRecord,
     type IconMapParseResult
 } from '../../utils/iconizeFormat';
+import {
+    normalizePropertyColorMapKey,
+    parsePropertyColorMapText,
+    serializePropertyColorMapRecord,
+    type PropertyColorMapParseResult
+} from '../../utils/propertyColorMapFormat';
 import { formatCommaSeparatedList, normalizeCommaSeparatedList, parseCommaSeparatedList } from '../../utils/commaSeparatedListUtils';
+import { createSettingDescriptionWithExternalLink } from './externalLink';
 
 /**
  * Type guard to check if a file is a markdown file
@@ -70,6 +78,10 @@ function parseFileTypeIconMapText(value: string): IconMapParseResult {
 
 function parseFileNameIconMapText(value: string): IconMapParseResult {
     return parseIconMapText(value, normalizeFileNameIconMapKey);
+}
+
+function parseCustomPropertyColorMapText(value: string): PropertyColorMapParseResult {
+    return parsePropertyColorMapText(value, normalizePropertyColorMapKey);
 }
 
 /** Renders the notes settings tab */
@@ -268,7 +280,10 @@ export function renderNotesTab(context: SettingsTabContext): void {
         .createDebouncedTextSetting(
             frontmatterSettingsEl,
             strings.settings.items.frontmatterDateFormat.name,
-            strings.settings.items.frontmatterDateFormat.desc,
+            createSettingDescriptionWithExternalLink({
+                text: strings.settings.items.frontmatterDateFormat.desc,
+                link: { text: strings.settings.items.frontmatterDateFormat.dateFnsLinkText, href: DATE_FNS_FORMAT_DOCS_URL }
+            }),
             ISO_DATE_FORMAT,
             () => plugin.settings.frontmatterDateFormat,
             value => {
@@ -365,6 +380,49 @@ export function renderNotesTab(context: SettingsTabContext): void {
                                 const textarea = options.setting.controlEl.querySelector('textarea');
                                 if (textarea instanceof HTMLTextAreaElement) {
                                     textarea.value = serializeIconMapRecord(nextMap);
+                                }
+
+                                await plugin.saveSettingsAndUpdate();
+                            }
+                        });
+                        modal.open();
+                    });
+                })
+        );
+    };
+
+    const addPropertyColorMapEditorButton = (options: {
+        setting: Setting;
+        tooltip: string;
+        title: string;
+        getMap: () => Record<string, string>;
+        setMap: (nextMap: Record<string, string>) => void;
+        normalizeKey: (input: string) => string;
+    }): void => {
+        options.setting.addExtraButton(button =>
+            button
+                .setIcon('lucide-pencil')
+                .setTooltip(options.tooltip)
+                .onClick(() => {
+                    runAsyncAction(async () => {
+                        const metadataService = plugin.metadataService;
+                        if (!metadataService) {
+                            showNotice(strings.common.unknownError, { variant: 'warning' });
+                            return;
+                        }
+
+                        const { PropertyColorRuleEditorModal } = await import('../../modals/PropertyColorRuleEditorModal');
+                        const modal = new PropertyColorRuleEditorModal(app, {
+                            title: options.title,
+                            initialMap: options.getMap(),
+                            metadataService,
+                            normalizeKey: options.normalizeKey,
+                            onSave: async nextMap => {
+                                options.setMap(nextMap);
+
+                                const textarea = options.setting.controlEl.querySelector('textarea');
+                                if (textarea instanceof HTMLTextAreaElement) {
+                                    textarea.value = serializePropertyColorMapRecord(nextMap);
                                 }
 
                                 await plugin.saveSettingsAndUpdate();
@@ -702,19 +760,47 @@ export function renderNotesTab(context: SettingsTabContext): void {
     });
     customPropertyFieldsSetting.controlEl.addClass('nn-setting-wide-input');
 
-    const customPropertyColorFieldsSetting = customPropertyGroup.addSetting(setting => {
-        context.configureDebouncedTextSetting(
+    const customPropertyColorMapSetting = customPropertyGroup.addSetting(setting => {
+        context.configureDebouncedTextAreaSetting(
             setting,
-            strings.settings.items.customPropertyColorFields.name,
-            strings.settings.items.customPropertyColorFields.desc,
-            strings.settings.items.customPropertyColorFields.placeholder,
-            () => normalizeCommaSeparatedList(plugin.settings.customPropertyColorFields),
+            strings.settings.items.customPropertyColorMap.name,
+            strings.settings.items.customPropertyColorMap.desc,
+            strings.settings.items.customPropertyColorMap.placeholder,
+            () => serializePropertyColorMapRecord(plugin.settings.customPropertyColorMap),
             value => {
-                plugin.settings.customPropertyColorFields = normalizeCommaSeparatedList(value);
+                const parsed = parseCustomPropertyColorMapText(value);
+                plugin.settings.customPropertyColorMap = parsed.map;
+            },
+            {
+                rows: 3,
+                validator: value => parseCustomPropertyColorMapText(value).invalidLines.length === 0
             }
         );
     });
-    customPropertyColorFieldsSetting.controlEl.addClass('nn-setting-wide-input');
+
+    addPropertyColorMapEditorButton({
+        setting: customPropertyColorMapSetting,
+        tooltip: strings.settings.items.customPropertyColorMap.editTooltip,
+        title: strings.settings.items.customPropertyColorMap.name,
+        getMap: () => plugin.settings.customPropertyColorMap,
+        setMap: nextMap => {
+            plugin.settings.customPropertyColorMap = nextMap;
+        },
+        normalizeKey: normalizePropertyColorMapKey
+    });
+    customPropertyColorMapSetting.controlEl.addClass('nn-setting-wide-input');
+
+    const showCustomPropertiesOnSeparateRowsSetting = customPropertyGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.showCustomPropertiesOnSeparateRows.name)
+            .setDesc(strings.settings.items.showCustomPropertiesOnSeparateRows.desc)
+            .addToggle(toggle =>
+                toggle.setValue(plugin.settings.showCustomPropertiesOnSeparateRows).onChange(async value => {
+                    plugin.settings.showCustomPropertiesOnSeparateRows = value;
+                    await plugin.saveSettingsAndUpdate();
+                })
+            );
+    });
 
     customPropertyGroup.addSetting(setting => {
         setting
@@ -731,7 +817,8 @@ export function renderNotesTab(context: SettingsTabContext): void {
     updateCustomPropertyFieldsVisibility = () => {
         const isFrontmatter = plugin.settings.customPropertyType === 'frontmatter';
         setElementVisible(customPropertyFieldsSetting.settingEl, isFrontmatter);
-        setElementVisible(customPropertyColorFieldsSetting.settingEl, isFrontmatter);
+        setElementVisible(showCustomPropertiesOnSeparateRowsSetting.settingEl, isFrontmatter);
+        setElementVisible(customPropertyColorMapSetting.settingEl, isFrontmatter);
     };
     updateCustomPropertyFieldsVisibility();
 

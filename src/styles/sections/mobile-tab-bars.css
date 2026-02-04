@@ -26,17 +26,8 @@
     justify-content: space-evenly;
 }
 
-.notebook-navigator-mobile:not(.notebook-navigator-android) .nn-navigation-pane,
-.notebook-navigator-mobile:not(.notebook-navigator-android) .nn-list-pane {
-    --nn-pane-bottom-toolbar-space: calc(49px + var(--nn-mobile-safe-area-bottom));
-}
-
 .nn-pane-bottom-toolbar {
-    position: sticky;
-    bottom: 0;
-    z-index: 5;
-    margin-left: calc(-1 * var(--nn-scroller-padding));
-    margin-right: calc(-1 * var(--nn-scroller-padding));
+    flex-shrink: 0;
 }
 
 .notebook-navigator-mobile .nn-mobile-toolbar-left,

@@ -70,19 +70,21 @@ interface UseNavigationPaneScrollParams {
     /** Currently active shortcut id (if any) */
     activeShortcutKey: string | null;
     /**
-     * Top offset inside the scroll container before the virtual list begins.
+     * Height of non-virtualized content rendered above the virtual list inside the scroll container.
      *
-     * The navigation pane renders a sticky "chrome" stack (header/toolbar/banner/pinned shortcuts)
-     * above the virtualized tree inside the same scroll container. Providing its height keeps:
-     * - visible range calculations aligned with the tree rows (excluding the chrome),
-     * - scrollToIndex alignment below the chrome stack.
+     * This should include any normal-flow content that sits above the virtualized tree rows, such as
+     * an unpinned navigation banner rendered inside the scroller.
+     *
+     * TanStack Virtual uses this to align:
+     * - visible range calculations with the first tree row,
+     * - scrollToIndex offsets relative to the start of the tree rows.
      */
     scrollMargin: number;
     /**
-     * Bottom inset reserved by overlays that sit on top of the scroll content.
+     * Bottom inset reserved by overlays that cover the scroll content.
      *
-     * The navigation pane can render bottom overlays (calendar, mobile floating toolbar). Scrolling and scrollToIndex
-     * should keep the target row above these overlays.
+     * Use this when a bottom overlay can sit on top of the scroller and cover tree rows. TanStack Virtual uses this as
+     * scrollPaddingEnd, and it is also used by post-scroll safety adjustments.
      */
     scrollPaddingEnd: number;
 }
@@ -271,8 +273,12 @@ export function useNavigationPaneScroll({
                 return;
             }
 
+            if (effectiveScrollPaddingEnd <= 0) {
+                return;
+            }
+
             // Navigation rows set `data-index` in `src/components/NavigationPane.tsx`; use it to find the rendered row
-            // TanStack Virtual scrolled to so we can keep it within the safe viewport (top chrome + bottom overlays).
+            // TanStack Virtual scrolled to so we can keep it within the safe viewport (scrollPaddingEnd).
             const row = scrollElement.querySelector(`[data-index="${index}"]`);
             if (!(row instanceof HTMLElement)) {
                 return;
@@ -280,28 +286,20 @@ export function useNavigationPaneScroll({
 
             const containerRect = scrollElement.getBoundingClientRect();
             const rowRect = row.getBoundingClientRect();
-            const safeTop = containerRect.top + effectiveScrollMargin;
             const safeBottom = containerRect.bottom - effectiveScrollPaddingEnd;
-
-            if (rowRect.top < safeTop) {
-                scrollElement.scrollTop -= Math.round(safeTop - rowRect.top);
-                return;
-            }
 
             if (rowRect.bottom > safeBottom) {
                 scrollElement.scrollTop += Math.round(rowRect.bottom - safeBottom);
             }
         },
-        [effectiveScrollMargin, effectiveScrollPaddingEnd]
+        [effectiveScrollPaddingEnd]
     );
 
     const rowVirtualizer = useVirtualizer({
         count: items.length,
         getScrollElement: () => scrollContainerRef.current,
-        // Align virtualizer scroll math with the start of the list content (excluding pinned headers).
+        // Align virtualizer scroll math with the start of the tree rows (excluding non-virtualized scroll content).
         scrollMargin: effectiveScrollMargin,
-        // Ensure scrollToIndex aligns items below the pinned header instead of under it.
-        scrollPaddingStart: effectiveScrollMargin,
         scrollPaddingEnd: effectiveScrollPaddingEnd,
         estimateSize: index => {
             const item = items[index];
@@ -333,8 +331,8 @@ export function useNavigationPaneScroll({
 
     const scrollToIndexSafely = useCallback(
         (index: number, align: Align) => {
-            // Use TanStack Virtual for the primary scroll, then run a small post-adjustment step to ensure the selected
-            // row is not covered by the sticky header/pinned stack or by a bottom overlay (calendar, mobile toolbar).
+            // Use TanStack Virtual for the primary scroll, then run a small post-adjustment step to keep the selected
+            // row within the safe viewport defined by scrollPaddingEnd.
             rowVirtualizer.scrollToIndex(index, { align });
 
             let attempts = 0;

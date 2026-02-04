@@ -4,7 +4,7 @@
    Date Group Headers
    ======================================================================== */
 
-/* Date group headers - sticky headers for grouped files */
+/* Date group headers for grouped files */
 .nn-date-group-header {
     height: var(--nn-date-header-height-subsequent-mobile, var(--nn-date-header-height-subsequent));
     box-sizing: border-box;

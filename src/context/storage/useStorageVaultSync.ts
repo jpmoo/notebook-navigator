@@ -272,8 +272,8 @@ export function useStorageVaultSync(params: {
                     const existing = db.getFile(oldPath);
                     if (existing) {
                         // Renames are handled as "seed + move artifacts":
-                        // - Seed the new path in the in-memory mirror so subsequent reads during the rename window
-                        //   see a consistent record.
+                        // - Seed the new path in the in-memory mirror so synchronous reads during the rename window see a consistent record.
+                        // - Persist the seeded record to IndexedDB before any provider writes run for the new path.
                         // - Move any stored blobs/text keyed by path.
                         // - Schedule a diff afterwards to reconcile final state and update mtimes.
                         const wasMarkdown = isMarkdownPath(oldPath);
@@ -302,6 +302,16 @@ export function useStorageVaultSync(params: {
                         }
                         runAsyncAction(async () => {
                             try {
+                                // Persist the seeded record at `newPath` before content providers run.
+                                //
+                                // Content providers can still run during the rename window (before the next diff reconciles the vault).
+                                // Provider writes fetch the main IndexedDB record for the path first. If the record is missing, the
+                                // provider layer creates a default record, which resets preview/feature-image fields (status/key) and
+                                // also drops any cached preview text for the path.
+                                //
+                                // Keeping a real record in IndexedDB avoids the default-record path and preserves the seeded fields
+                                // until the diff finishes and deletes `oldPath`.
+                                await db.setFile(file.path, { ...seeded, mtime: file.stat.mtime });
                                 const operations: Promise<void>[] = [db.moveFeatureImageBlob(oldPath, file.path)];
 
                                 if (wasMarkdown && isMarkdown) {

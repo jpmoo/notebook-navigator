@@ -18,7 +18,7 @@
 
 import { TFile, WorkspaceLeaf } from 'obsidian';
 import type NotebookNavigatorPlugin from '../../main';
-import { NOTEBOOK_NAVIGATOR_VIEW } from '../../types';
+import { NOTEBOOK_NAVIGATOR_CALENDAR_VIEW, NOTEBOOK_NAVIGATOR_VIEW } from '../../types';
 import { NotebookNavigatorView } from '../../view/NotebookNavigatorView';
 import type { RevealFileOptions } from '../../hooks/useNavigatorReveal';
 
@@ -31,6 +31,48 @@ export default class WorkspaceCoordinator {
 
     constructor(plugin: NotebookNavigatorPlugin) {
         this.plugin = plugin;
+    }
+
+    public detachCalendarViewLeaves(): void {
+        const leaves = this.plugin.app.workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_CALENDAR_VIEW);
+        for (const leaf of leaves) {
+            leaf.detach();
+        }
+    }
+
+    async ensureCalendarViewInRightSidebar(options?: {
+        reveal?: boolean;
+        activate?: boolean;
+        shouldContinue?: () => boolean;
+    }): Promise<WorkspaceLeaf | null> {
+        const reveal = options?.reveal ?? false;
+        const activate = options?.activate ?? reveal;
+        const shouldContinue = options?.shouldContinue ?? (() => true);
+        const { workspace } = this.plugin.app;
+
+        if (!shouldContinue()) {
+            return null;
+        }
+
+        const leaf = await workspace.ensureSideLeaf(NOTEBOOK_NAVIGATOR_CALENDAR_VIEW, 'right', {
+            active: activate,
+            reveal,
+            split: true
+        });
+        if (!shouldContinue()) {
+            this.detachCalendarViewLeaves();
+            return null;
+        }
+
+        const leaves = workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_CALENDAR_VIEW);
+        for (const existingLeaf of leaves) {
+            if (existingLeaf === leaf) {
+                continue;
+            }
+            existingLeaf.detach();
+        }
+
+        return leaf;
     }
 
     /**

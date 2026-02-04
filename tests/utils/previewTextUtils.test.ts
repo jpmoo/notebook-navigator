@@ -61,6 +61,145 @@ describe('PreviewTextUtils.extractPreviewText', () => {
         expect(preview).toBe('Use #include <stdio.h> and [[Link]] here');
     });
 
+    it('removes markdown hard-escape backslashes for punctuation', () => {
+        const preview = PreviewTextUtils.extractPreviewText('Escaped \\[bracket\\] and \\\\ backslash', skipCodeSettings);
+        expect(preview).toBe('Escaped [bracket] and \\ backslash');
+    });
+
+    it('removes markdown hard-escape backslashes for all CommonMark escapable punctuation', () => {
+        const escapablePunctuation = [
+            '!',
+            '"',
+            '#',
+            '$',
+            '%',
+            '&',
+            "'",
+            '(',
+            ')',
+            '*',
+            '+',
+            ',',
+            '-',
+            '.',
+            '/',
+            ':',
+            ';',
+            '<',
+            '=',
+            '>',
+            '?',
+            '@',
+            '[',
+            '\\',
+            ']',
+            '^',
+            '_',
+            '`',
+            '{',
+            '|',
+            '}',
+            '~'
+        ];
+
+        const escaped = escapablePunctuation.map(char => `\\${char}`).join(' ');
+        const content = `Escaped ${escaped} tail`;
+
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe(`Escaped ${escapablePunctuation.join(' ')} tail`);
+    });
+
+    it('removes markdown hard-escape backslashes for emphasis characters', () => {
+        const preview = PreviewTextUtils.extractPreviewText('Escaped \\*stars\\* and \\_underscores\\_ tail', skipCodeSettings);
+        expect(preview).toBe('Escaped *stars* and _underscores_ tail');
+    });
+
+    it('does not treat backslashes before non-punctuation as markdown hard-escapes', () => {
+        const preview = PreviewTextUtils.extractPreviewText('Alpha \\a \\Z tail', skipCodeSettings);
+        expect(preview).toBe('Alpha \\a \\Z tail');
+    });
+
+    it('does not unescape markdown hard-escapes inside inline code', () => {
+        const preview = PreviewTextUtils.extractPreviewText('Code `\\[literal\\]` tail', skipCodeSettings);
+        expect(preview).toBe('Code \\[literal\\] tail');
+    });
+
+    it('does not unescape markdown hard-escapes inside multi-backtick inline code spans', () => {
+        const escapablePunctuation = [
+            '!',
+            '"',
+            '#',
+            '$',
+            '%',
+            '&',
+            "'",
+            '(',
+            ')',
+            '*',
+            '+',
+            ',',
+            '-',
+            '.',
+            '/',
+            ':',
+            ';',
+            '<',
+            '=',
+            '>',
+            '?',
+            '@',
+            '[',
+            '\\',
+            ']',
+            '^',
+            '_',
+            '`',
+            '{',
+            '|',
+            '}',
+            '~'
+        ];
+
+        const escaped = escapablePunctuation.map(char => `\\${char}`).join(' ');
+        const content = 'Code ``' + escaped + '`` tail';
+
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe(`Code ${escaped} tail`);
+    });
+
+    it('removes markdown hard line-break backslashes outside code', () => {
+        const content = ['Alpha\\', 'Beta'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Alpha Beta');
+    });
+
+    it('does not treat escaped backslashes before newlines as hard line breaks', () => {
+        const content = ['Alpha\\\\', 'Beta'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Alpha\\ Beta');
+    });
+
+    it('keeps backslashes before newlines inside fenced code blocks when code blocks are included', () => {
+        const content = ['Intro', '```text', 'Alpha\\', 'Beta', '```', 'Outro'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, includeCodeSettings);
+        expect(preview).toBe('Intro Alpha\\ Beta Outro');
+    });
+
+    it('keeps escaped wiki syntax as literal text', () => {
+        const preview = PreviewTextUtils.extractPreviewText('Escaped \\[\\[Page\\]\\] tail', skipCodeSettings);
+        expect(preview).toBe('Escaped [[Page]] tail');
+    });
+
+    it('keeps escaped tags as literal text', () => {
+        const preview = PreviewTextUtils.extractPreviewText('Escaped \\#tag tail', skipCodeSettings);
+        expect(preview).toBe('Escaped #tag tail');
+    });
+
+    it('does not alter backslashes in paths', () => {
+        const preview = PreviewTextUtils.extractPreviewText('Path C:\\Windows\\System32', skipCodeSettings);
+        expect(preview).toBe('Path C:\\Windows\\System32');
+    });
+
     it('does not truncate incomplete markdown image tokens inside inline code', () => {
         const content = 'Alpha `![alt](url` Beta';
         const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
@@ -210,6 +349,37 @@ describe('PreviewTextUtils.extractPreviewText', () => {
     it('removes inline footnotes from preview text', () => {
         const preview = PreviewTextUtils.extractPreviewText('Sentence ^[footnote content] continues', skipCodeSettings);
         expect(preview).toBe('Sentence continues');
+    });
+
+    it('removes Obsidian block identifiers on their own line', () => {
+        const content = ['Alpha line', '^37066f', 'Omega line'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Alpha line Omega line');
+    });
+
+    it('removes Obsidian block identifiers at the end of paragraphs', () => {
+        const preview = PreviewTextUtils.extractPreviewText('The quick purple gem dashes through. ^37066d', skipCodeSettings);
+        expect(preview).toBe('The quick purple gem dashes through.');
+    });
+
+    it('preserves spacing when removing Obsidian block identifiers inside text', () => {
+        const preview = PreviewTextUtils.extractPreviewText('Alpha ^37066d Omega', skipCodeSettings);
+        expect(preview).toBe('Alpha Omega');
+    });
+
+    it('removes named Obsidian block identifiers', () => {
+        const preview = PreviewTextUtils.extractPreviewText('Alpha ^id Omega', skipCodeSettings);
+        expect(preview).toBe('Alpha Omega');
+    });
+
+    it('removes named Obsidian block identifiers containing hyphens', () => {
+        const preview = PreviewTextUtils.extractPreviewText('Alpha ^quote-of-the-day Omega', skipCodeSettings);
+        expect(preview).toBe('Alpha Omega');
+    });
+
+    it('does not strip Obsidian block identifier patterns inside inline code', () => {
+        const preview = PreviewTextUtils.extractPreviewText('Example `^37066d` token', skipCodeSettings);
+        expect(preview).toBe('Example ^37066d token');
     });
 
     it('removes spaced underscore horizontal rules without leaving stray characters', () => {

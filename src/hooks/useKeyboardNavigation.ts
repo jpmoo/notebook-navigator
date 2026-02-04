@@ -174,6 +174,8 @@ export interface UseKeyboardNavigationParams<T> {
     _getCurrentIndex: () => number;
     /** Keyboard handler provided by the specific pane implementation */
     onKeyDown: (e: KeyboardEvent, helpers: KeyboardNavigationHelpers<T>) => void;
+    /** Optional keyup handler provided by the specific pane implementation */
+    onKeyUp?: (e: KeyboardEvent, helpers: KeyboardNavigationHelpers<T>) => void;
 }
 
 /**
@@ -204,10 +206,26 @@ export function useKeyboardNavigation<T>({
     focusedPane,
     containerRef,
     isSelectable,
-    onKeyDown
+    onKeyDown,
+    onKeyUp
 }: UseKeyboardNavigationParams<T>) {
     const uiState = useUIState();
     const lastKeyPressTime = useRef(0);
+
+    const createHelpers = useCallback((): KeyboardNavigationHelpers<T> => {
+        return {
+            findNextIndex: (currentIndex: number, includeCurrent = false) =>
+                findNextSelectableIndex(items, currentIndex, isSelectable, includeCurrent),
+            findPreviousIndex: (currentIndex: number, includeCurrent = false) =>
+                findPreviousSelectableIndex(items, currentIndex, isSelectable, includeCurrent),
+            getPageSize: () => getVisiblePageSize(virtualizer),
+            scrollToIndex: (index: number) => {
+                virtualizer.scrollToIndex(index, { align: 'auto' });
+            },
+            getItemAt: (index: number) => safeGetItem(items, index),
+            isRTL: () => document.body.classList.contains('mod-rtl')
+        };
+    }, [items, isSelectable, virtualizer]);
 
     /**
      * Main keyboard event handler with common filtering
@@ -241,24 +259,38 @@ export function useKeyboardNavigation<T>({
             }
             lastKeyPressTime.current = now;
 
-            // Create helper functions for keyboard handlers
-            const helpers: KeyboardNavigationHelpers<T> = {
-                findNextIndex: (currentIndex: number, includeCurrent = false) =>
-                    findNextSelectableIndex(items, currentIndex, isSelectable, includeCurrent),
-                findPreviousIndex: (currentIndex: number, includeCurrent = false) =>
-                    findPreviousSelectableIndex(items, currentIndex, isSelectable, includeCurrent),
-                getPageSize: () => getVisiblePageSize(virtualizer),
-                scrollToIndex: (index: number) => {
-                    virtualizer.scrollToIndex(index, { align: 'auto' });
-                },
-                getItemAt: (index: number) => safeGetItem(items, index),
-                isRTL: () => document.body.classList.contains('mod-rtl')
-            };
-
             // Delegate to pane-specific handler
-            onKeyDown(e, helpers);
+            onKeyDown(e, createHelpers());
         },
-        [containerRef, uiState.focusedPane, focusedPane, onKeyDown, items, isSelectable, virtualizer]
+        [containerRef, uiState.focusedPane, focusedPane, onKeyDown, createHelpers]
+    );
+
+    const handleKeyUp = useCallback(
+        (e: KeyboardEvent) => {
+            if (!onKeyUp) {
+                return;
+            }
+
+            // 1. Check if the navigator is focused
+            const navigatorContainer = containerRef.current;
+            const navigatorFocused = navigatorContainer?.getAttribute('data-navigator-focused');
+            if (navigatorFocused !== 'true') return;
+
+            // 2. Skip if user is typing in an input field
+            if (isTypingInInput(e)) return;
+
+            // 3. Skip if a modal is open
+            const activeElement = document.activeElement as HTMLElement;
+            if (activeElement && activeElement.closest('.modal-container')) {
+                return;
+            }
+
+            // 4. Only handle events for the currently focused pane
+            if (uiState.focusedPane !== focusedPane) return;
+
+            onKeyUp(e, createHelpers());
+        },
+        [containerRef, uiState.focusedPane, focusedPane, onKeyUp, createHelpers]
     );
 
     /**
@@ -269,8 +301,10 @@ export function useKeyboardNavigation<T>({
         if (!container) return;
 
         container.addEventListener('keydown', handleKeyDown);
+        container.addEventListener('keyup', handleKeyUp);
         return () => {
             container.removeEventListener('keydown', handleKeyDown);
+            container.removeEventListener('keyup', handleKeyUp);
         };
-    }, [handleKeyDown, containerRef]);
+    }, [handleKeyDown, handleKeyUp, containerRef]);
 }

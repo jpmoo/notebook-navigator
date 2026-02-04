@@ -25,7 +25,8 @@ import {
     parseIconMapText,
     serializeIconMapRecord,
     serializeIconForFrontmatter,
-    deserializeIconFromFrontmatter
+    deserializeIconFromFrontmatter,
+    deserializeIconFromFrontmatterCompat
 } from '../../src/utils/iconizeFormat';
 
 describe('convertIconizeToIconId', () => {
@@ -129,8 +130,8 @@ describe('frontmatter icon helpers', () => {
         expect(serializeIconForFrontmatter('emoji:📁')).toBe('📁');
     });
 
-    it('falls back to canonical identifier when provider has no Iconize mapping', () => {
-        expect(serializeIconForFrontmatter('custom-pack:icon-name')).toBe('custom-pack:icon-name');
+    it('returns null when provider has no Iconize mapping', () => {
+        expect(serializeIconForFrontmatter('custom-pack:icon-name')).toBeNull();
     });
 
     it('deserializes Iconize identifiers with redundant prefixes', () => {
@@ -148,6 +149,10 @@ describe('frontmatter icon helpers', () => {
 
     it('deserializes legacy lucide identifiers', () => {
         expect(deserializeIconFromFrontmatter('lucide-sun')).toBe('sun');
+    });
+
+    it('deserializes legacy provider-prefixed emoji values with compat helper', () => {
+        expect(deserializeIconFromFrontmatterCompat('emoji:🔭')).toBe('emoji:🔭');
     });
 });
 

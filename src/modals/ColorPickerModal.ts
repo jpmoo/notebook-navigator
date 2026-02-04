@@ -1123,7 +1123,7 @@ export class ColorPickerModal extends Modal {
             await navigator.clipboard.writeText(hexWithoutHash);
             showNotice(strings.modals.colorPicker.colorsCopied, { variant: 'success' });
         } catch {
-            showNotice(strings.modals.colorPicker.copyClipboardError, { variant: 'warning' });
+            showNotice(strings.common.clipboardWriteError, { variant: 'warning' });
         }
     }
 

@@ -77,7 +77,8 @@ describe('recordFileChanges rename merge', () => {
             metadataMtime: 150,
             tags: ['destination'],
             wordCount: 10,
-            customProperty: [{ value: 'destination' }],
+            // Stored custom property items include the source field key and value.
+            customProperty: [{ fieldKey: 'status', value: 'destination' }],
             previewStatus: 'none',
             featureImageStatus: 'none',
             featureImageKey: '',
@@ -91,7 +92,8 @@ describe('recordFileChanges rename merge', () => {
             metadataMtime: 0,
             tags: ['source'],
             wordCount: 42,
-            customProperty: [{ value: 'source' }],
+            // Stored custom property items include the source field key and value.
+            customProperty: [{ fieldKey: 'status', value: 'source' }],
             previewStatus: 'has',
             featureImageStatus: 'has',
             featureImageKey: 'f:images/cover.png@123',
@@ -114,7 +116,7 @@ describe('recordFileChanges rename merge', () => {
         expect(updated.mtime).toBe(200);
         expect(updated.tags).toEqual(['source']);
         expect(updated.wordCount).toBe(42);
-        expect(updated.customProperty).toEqual([{ value: 'source' }]);
+        expect(updated.customProperty).toEqual([{ fieldKey: 'status', value: 'source' }]);
         expect(updated.previewStatus).toBe('has');
         expect(updated.featureImageStatus).toBe('has');
         expect(updated.featureImageKey).toBe('f:images/cover.png@123');

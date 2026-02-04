@@ -17,11 +17,31 @@
  */
 
 import { normalizePath } from 'obsidian';
+import { containsForbiddenNameCharactersAllPlatforms, containsForbiddenNameCharactersWindows } from './fileNameUtils';
+import type { MomentInstance } from './moment';
 
 export const DEFAULT_CALENDAR_CUSTOM_FILE_PATTERN = 'YYYY/YYYYMMDD';
+export const DEFAULT_CALENDAR_CUSTOM_WEEK_PATTERN = 'gggg/[W]ww';
+export const DEFAULT_CALENDAR_CUSTOM_MONTH_PATTERN = 'YYYY/YYYYMM';
+export const DEFAULT_CALENDAR_CUSTOM_QUARTER_PATTERN = 'YYYY/[Q]Q';
+export const DEFAULT_CALENDAR_CUSTOM_YEAR_PATTERN = 'YYYY';
 
-const CALENDAR_CUSTOM_SUPPORTED_DATE_TOKENS = ['YYYY', 'YY', 'MMMM', 'MMM', 'MM', 'M', 'DD', 'D'] as const;
-const CALENDAR_CUSTOM_ALLOWED_DATE_TOKENS = ['YYYY', 'MM', 'DD', 'M', 'D'] as const;
+export type CalendarCustomWeekAnchorUnit = 'week' | 'isoWeek';
+
+export function getCalendarCustomWeekAnchorDate(date: MomentInstance, pattern: string, calendarRulesLocale?: string): MomentInstance {
+    const unit = getCalendarCustomWeekAnchorUnit(pattern);
+    const cloned = date.clone();
+    const localized = calendarRulesLocale ? cloned.locale(calendarRulesLocale) : cloned;
+    return localized.startOf(unit);
+}
+
+/**
+ * Removes the legacy `{title}` token from calendar patterns so it is not treated as a literal path segment.
+ * Calendar notes resolve by formatted date path only.
+ */
+function stripCalendarTitleToken(value: string): string {
+    return value.replace(/[ \t]*\{title\}/gu, '');
+}
 
 /** Appends .md extension to file name if not already present */
 export function ensureMarkdownFileName(value: string): string {
@@ -46,17 +66,16 @@ export function normalizeCalendarCustomRootFolder(value: string): string {
 }
 
 /** Normalizes file pattern, ensuring .md extension and returning default if invalid */
-export function normalizeCalendarCustomFilePattern(value: string): string {
+export function normalizeCalendarCustomFilePattern(value: string, fallback: string = DEFAULT_CALENDAR_CUSTOM_FILE_PATTERN): string {
     const trimmed = value.trim();
     if (!trimmed) {
-        return DEFAULT_CALENDAR_CUSTOM_FILE_PATTERN;
+        return fallback;
     }
 
-    const normalized = normalizePath(trimmed)
-        .replace(/ ?\{title\}/gu, '')
-        .replace(/\.md$/iu, '');
+    const withoutTitleToken = stripCalendarTitleToken(trimmed);
+    const normalized = normalizePath(withoutTitleToken).replace(/\.md$/iu, '');
     if (!normalized || normalized === '/' || normalized === '.') {
-        return DEFAULT_CALENDAR_CUSTOM_FILE_PATTERN;
+        return fallback;
     }
 
     const normalizedWithoutLeadingSlashes = normalized.replace(/^\/+/u, '');
@@ -64,22 +83,22 @@ export function normalizeCalendarCustomFilePattern(value: string): string {
 
     if (slashIndex === -1) {
         const fileName = normalizedWithoutLeadingSlashes.trim();
-        return fileName || DEFAULT_CALENDAR_CUSTOM_FILE_PATTERN;
+        return fileName || fallback;
     }
 
     const folderPart = normalizedWithoutLeadingSlashes.slice(0, slashIndex);
     const filePart = normalizedWithoutLeadingSlashes.slice(slashIndex + 1);
     const filePartTrimmed = filePart.trim();
     if (!filePartTrimmed) {
-        return DEFAULT_CALENDAR_CUSTOM_FILE_PATTERN;
+        return fallback;
     }
 
     return folderPart ? `${folderPart}/${filePartTrimmed}` : filePartTrimmed;
 }
 
 /** Splits file pattern into folder and file components based on last slash */
-export function splitCalendarCustomPattern(value: string): { folderPattern: string; filePattern: string } {
-    const normalized = normalizeCalendarCustomFilePattern(value);
+export function splitCalendarCustomPattern(value: string, fallback?: string): { folderPattern: string; filePattern: string } {
+    const normalized = normalizeCalendarCustomFilePattern(value, fallback);
     const slashIndex = normalized.lastIndexOf('/');
     if (slashIndex === -1) {
         return { folderPattern: '', filePattern: normalized };
@@ -101,58 +120,121 @@ export function normalizeCalendarVaultFolderPath(value: string): string {
 
 /**
  * Returns true when a custom calendar pattern (folder + filename, without extension) can be parsed as a full date
- * (year, month, day) using supported tokens.
+ * (year, month, day).
  */
-export function isCalendarCustomDatePatternValid(pattern: string): boolean {
-    const normalized = pattern
-        .trim()
-        .replace(/\.md$/iu, '')
-        .replace(/ ?\{title\}/gu, '');
+export function isCalendarCustomDatePatternValid(pattern: string, momentApi?: MomentParseApi | null): boolean {
+    const normalized = normalizeCalendarCustomMomentPattern(pattern);
     if (!normalized || normalized === '/' || normalized === '.') {
         return false;
     }
 
-    let hasYear = false;
-    let hasMonth = false;
-    let hasDay = false;
-
-    for (let index = 0; index < normalized.length; ) {
-        const remaining = normalized.slice(index);
-        const token = CALENDAR_CUSTOM_SUPPORTED_DATE_TOKENS.find(entry => remaining.startsWith(entry));
-        if (!token) {
-            index += 1;
-            continue;
-        }
-
-        if (token === 'MMMM' || token === 'MMM' || token === 'YY') {
-            return false;
-        }
-
-        if (token === 'YYYY') {
-            hasYear = true;
-            index += token.length;
-            continue;
-        }
-
-        if (token === 'MM' || token === 'M') {
-            hasMonth = true;
-            index += token.length;
-            continue;
-        }
-
-        if (token === 'DD' || token === 'D') {
-            hasDay = true;
-            index += token.length;
-            continue;
-        }
+    if (!momentApi) {
+        return isCalendarCustomDatePatternValidStatic(normalized);
     }
 
-    return hasYear && hasMonth && hasDay;
+    if (!hasDateTokens(normalized)) {
+        return false;
+    }
+
+    return isCalendarCustomMomentPatternFormatsToValidPath(momentApi, normalized, ['2026-01-16', '2027-02-17'], date => date);
 }
 
-export interface CalendarCustomParsedNotePath {
-    iso: string;
-    title: string;
+export function isCalendarCustomWeekPatternValid(pattern: string, momentApi?: MomentParseApi | null): boolean {
+    const normalized = normalizeCalendarCustomMomentPattern(pattern);
+    if (!normalized || normalized === '/' || normalized === '.') {
+        return false;
+    }
+
+    if (!momentApi) {
+        return hasWeekTokens(normalized);
+    }
+
+    if (!hasWeekTokens(normalized)) {
+        return false;
+    }
+
+    const anchorUnit = getCalendarCustomWeekAnchorUnit(normalized);
+
+    /**
+     * Weekly note patterns are treated as path templates that we *format*, not patterns that must strict-parse back into a week.
+     *
+     * Background:
+     * - Moment has separate concepts for calendar year (`YYYY`) and week-year (`gggg` for locale weeks, `GGGG` for ISO weeks).
+     * - When a pattern mixes week tokens (week number + week-year) with month/quarter tokens, strict parsing can round-trip
+     *   incorrectly (the rendered string parses as a different week than the one it was formatted from).
+     * - Notebook Navigator does not currently parse weekly note paths back into dates; it only needs to generate a stable,
+     *   valid vault path. A strict “format -> parse -> compare week” validator rejects folder hierarchies that are valid and
+     *   commonly used by other plugins that also only format paths.
+     *
+     * Standards / “correctness” note:
+     * - ISO 8601 standardizes ISO week numbering (`WW`) and ISO week-year (`GGGG`), with weeks starting on Monday and week 1
+     *   being the week containing January 4 (or equivalently, the first Thursday).
+     * - There is no standard mapping from a week to a month/quarter; any `/Year/Quarter/Month/Week` hierarchy must choose
+     *   an anchor date to define which month/quarter contains the week.
+     *
+     * Choice:
+     * - We anchor weekly formatting to `startOf('week')` (using the locale’s week rules). This makes the output path stable
+     *   across all days within the same week, even if the pattern includes `YYYY-MM` or `YYYY-[Q]Q`.
+     * - If users want week-based years around year boundaries, they should prefer `gggg` (locale week-year) or `GGGG` (ISO
+     *   week-year) instead of `YYYY` (calendar year).
+     */
+    return isCalendarCustomMomentPatternFormatsToValidPath(
+        momentApi,
+        normalized,
+        ['2020-12-31', '2021-01-01', '2026-06-19', '2027-02-17'],
+        date => date.clone().startOf(anchorUnit)
+    );
+}
+
+export function isCalendarCustomMonthPatternValid(pattern: string, momentApi?: MomentParseApi | null): boolean {
+    const normalized = normalizeCalendarCustomMomentPattern(pattern);
+    if (!normalized || normalized === '/' || normalized === '.') {
+        return false;
+    }
+
+    if (!momentApi) {
+        return hasMonthTokens(normalized);
+    }
+
+    if (!hasMonthTokens(normalized)) {
+        return false;
+    }
+
+    return isCalendarCustomMomentPatternFormatsToValidPath(momentApi, normalized, ['2026-01-16', '2027-02-17'], date => date);
+}
+
+export function isCalendarCustomQuarterPatternValid(pattern: string, momentApi?: MomentParseApi | null): boolean {
+    const normalized = normalizeCalendarCustomMomentPattern(pattern);
+    if (!normalized || normalized === '/' || normalized === '.') {
+        return false;
+    }
+
+    if (!momentApi) {
+        return hasQuarterTokens(normalized);
+    }
+
+    if (!hasQuarterTokens(normalized)) {
+        return false;
+    }
+
+    return isCalendarCustomMomentPatternFormatsToValidPath(momentApi, normalized, ['2026-01-16', '2026-07-15', '2027-04-03'], date => date);
+}
+
+export function isCalendarCustomYearPatternValid(pattern: string, momentApi?: MomentParseApi | null): boolean {
+    const normalized = normalizeCalendarCustomMomentPattern(pattern);
+    if (!normalized || normalized === '/' || normalized === '.') {
+        return false;
+    }
+
+    if (!momentApi) {
+        return hasYearTokens(normalized);
+    }
+
+    if (!hasYearTokens(normalized)) {
+        return false;
+    }
+
+    return isCalendarCustomMomentPatternFormatsToValidPath(momentApi, normalized, ['2026-01-16', '2027-02-17'], date => date);
 }
 
 interface MomentFormatLike {
@@ -162,146 +244,258 @@ interface MomentFormatLike {
 interface MomentParseResult {
     isValid: () => boolean;
     format: (format?: string) => string;
+    clone: () => MomentParseResult;
+    startOf: (unit: string) => MomentParseResult;
 }
 
 interface MomentParseApi {
     (input?: string, format?: string, strict?: boolean): MomentParseResult;
 }
 
-function buildCalendarCustomMomentFormat(pattern: string): string {
-    if (!pattern) {
-        return '';
-    }
-
-    let result = '';
-    let literalBuffer = '';
-
-    for (let index = 0; index < pattern.length; ) {
-        const remaining = pattern.slice(index);
-        const token = CALENDAR_CUSTOM_ALLOWED_DATE_TOKENS.find(entry => remaining.startsWith(entry));
-        if (token) {
-            if (literalBuffer) {
-                result += `[${literalBuffer}]`;
-                literalBuffer = '';
-            }
-
-            result += token;
-            index += token.length;
-            continue;
+function isCalendarCustomMomentPatternFormatsToValidPath(
+    momentApi: MomentParseApi,
+    normalizedPattern: string,
+    sampleIsoDates: readonly string[],
+    anchorDate: (date: MomentParseResult) => MomentParseResult
+): boolean {
+    // Validation model:
+    // - Treat patterns as path templates that must format to a valid vault-relative note path.
+    // - Do not strict-parse the rendered string back into a date/week; round-trip parsing rejects valid hierarchies when
+    //   patterns include additional date tokens (e.g. month/quarter folders in weekly note paths).
+    // - Sample multiple dates to reduce false positives from tokens that only produce non-empty output for some inputs.
+    for (const sampleIso of sampleIsoDates) {
+        const sampleDate = momentApi(sampleIso, 'YYYY-MM-DD', true);
+        if (!sampleDate.isValid()) {
+            return false;
         }
 
-        const char = pattern[index] ?? '';
-        if (char === ']') {
-            if (literalBuffer) {
-                result += `[${literalBuffer}]`;
-                literalBuffer = '';
-            }
-            result += char;
-            index += 1;
-            continue;
+        const anchor = anchorDate(sampleDate);
+        if (!anchor.isValid()) {
+            return false;
         }
 
-        literalBuffer += char;
-        index += 1;
+        const rendered = anchor.format(normalizedPattern);
+        if (!rendered || rendered.trim().length === 0) {
+            return false;
+        }
+
+        if (!isRenderedCalendarNotePathValid(rendered)) {
+            return false;
+        }
     }
 
-    if (literalBuffer) {
-        result += `[${literalBuffer}]`;
+    return true;
+}
+
+function normalizeCalendarCustomMomentPattern(pattern: string): string {
+    // Pattern validators and formatters operate on the date pattern only; `{title}` is not supported.
+    return stripCalendarTitleToken(pattern.trim()).replace(/\.md$/iu, '');
+}
+
+function isCalendarCustomDatePatternValidStatic(pattern: string): boolean {
+    const normalized = normalizeCalendarCustomMomentPattern(pattern);
+    if (!normalized || normalized === '/' || normalized === '.') {
+        return false;
     }
 
-    return result;
+    return hasDateTokens(normalized);
 }
 
 export function createCalendarCustomDateFormatter(pattern: string): (date: MomentFormatLike) => string {
-    const normalized = pattern
-        .trim()
-        .replace(/\.md$/iu, '')
-        .replace(/ ?\{title\}/gu, '');
+    const normalized = normalizeCalendarCustomMomentPattern(pattern);
     if (!normalized) {
         return () => '';
     }
 
-    const format = buildCalendarCustomMomentFormat(normalized);
-    if (!format) {
-        return () => '';
-    }
-
-    return (date: MomentFormatLike) => date.format(format);
+    return (date: MomentFormatLike) => date.format(normalized);
 }
 
-function stripMarkdownExtension(value: string): string | null {
-    return /\.md$/iu.test(value) ? value.replace(/\.md$/iu, '') : null;
+function stripMomentLiterals(pattern: string): string {
+    // Moment supports literals inside square brackets: `YYYY-[W]WW` renders a literal `W` between year and week number.
+    //
+    // Token detection in this file treats the remaining (non-literal) characters as a token source. This intentionally
+    // ignores anything inside `[...]` so literal characters like `W` or `Q` do not count as tokens.
+    //
+    // Note:
+    // - This does not validate bracket pairing. An unclosed `[` is treated as “literal until end of string”, which can
+    //   cause token detection to fail (and therefore mark the pattern invalid).
+    let result = '';
+    let inLiteral = false;
+    for (let index = 0; index < pattern.length; index++) {
+        const char = pattern[index];
+        if (char === '[') {
+            inLiteral = true;
+            continue;
+        }
+        if (char === ']') {
+            inLiteral = false;
+            continue;
+        }
+        if (!inLiteral) {
+            result += char;
+        }
+    }
+    return result;
 }
 
-function tryParseCalendarCustomMoment(momentApi: MomentParseApi, input: string, format: string): string | null {
-    const parsed = momentApi(input, format, true);
-    return parsed.isValid() ? parsed.format('YYYY-MM-DD') : null;
+function getCalendarCustomWeekAnchorUnit(pattern: string): CalendarCustomWeekAnchorUnit {
+    const normalized = normalizeCalendarCustomMomentPattern(pattern);
+    const tokenSource = stripMomentLiterals(normalized);
+
+    const usesIsoWeekNumber = /W/u.test(tokenSource);
+    const usesIsoWeekYear = /G/u.test(tokenSource);
+    return usesIsoWeekNumber || usesIsoWeekYear ? 'isoWeek' : 'week';
 }
 
-/**
- * Creates a parser for calendar note paths (relative to the configured root folder) that extracts ISO dates and
- * optional title suffixes.
- */
-export function createCalendarCustomNotePathParser(
-    momentApi: MomentParseApi,
-    datePattern: string
-): ((relativePath: string) => CalendarCustomParsedNotePath | null) | null {
-    const trimmedPattern = datePattern
-        .trim()
-        .replace(/\.md$/iu, '')
-        .replace(/ ?\{title\}/gu, '');
-    if (!trimmedPattern || !isCalendarCustomDatePatternValid(trimmedPattern)) {
-        return null;
+function hasYearTokens(pattern: string): boolean {
+    // "Year-like" tokens:
+    // - `Y` (calendar year, e.g. `YYYY`)
+    // - `g` (locale week-year, e.g. `gggg`)
+    // - `G` (ISO week-year, e.g. `GGGG`)
+    //
+    // This is intentionally permissive. Some validators accept `gggg`/`GGGG` anywhere a year token is required because
+    // this module validates "formats to a valid note path", not "parses back to a calendar date".
+    const tokenSource = stripMomentLiterals(pattern);
+    return /[YgG]/u.test(tokenSource);
+}
+
+function hasMonthTokens(pattern: string): boolean {
+    // "Month-like" tokens are identified by the presence of `M` (e.g. `MM` or `M`) and a year-like token.
+    //
+    // This intentionally does not distinguish calendar month from other token combinations. The formatted output is
+    // additionally validated as a vault-relative path.
+    const tokenSource = stripMomentLiterals(pattern);
+    return /[YgG]/u.test(tokenSource) && /M/u.test(tokenSource);
+}
+
+function hasQuarterTokens(pattern: string): boolean {
+    // "Quarter-like" tokens are identified by the presence of `Q` and a year-like token.
+    //
+    // `Q` inside a Moment literal (e.g. `[Q]Q`) is ignored by `stripMomentLiterals()`, so only the token `Q` counts.
+    const tokenSource = stripMomentLiterals(pattern);
+    return /[YgG]/u.test(tokenSource) && /Q/u.test(tokenSource);
+}
+
+function hasDateTokens(pattern: string): boolean {
+    // "Date-like" tokens are identified by the presence of `M` and `D`, plus a year-like token.
+    //
+    // This intentionally matches any `D` token, including `DDD` (day-of-year). This module only requires that the pattern
+    // provides enough variability to avoid obvious collisions and formats to a valid vault path.
+    const tokenSource = stripMomentLiterals(pattern);
+    return /[YgG]/u.test(tokenSource) && /M/u.test(tokenSource) && /D/u.test(tokenSource);
+}
+
+function hasWeekTokens(pattern: string): boolean {
+    // "Week-like" tokens:
+    // - a year-like token (`Y`, `g`, or `G`)
+    // - a week number token (`w` for locale week number, `W` for ISO week number)
+    //
+    // Weekly patterns can include additional date tokens (month/quarter) as folder segments. They are validated by
+    // formatting a week-anchored date and checking that the rendered path is valid.
+    const tokenSource = stripMomentLiterals(pattern);
+    const hasYear = /[YgG]/u.test(tokenSource);
+    const hasWeekNumber = /[wW]/u.test(tokenSource);
+    // Require a year token to reduce collisions. For week-based years, `gggg`/`GGGG` is more precise than `YYYY` for weeks
+    // that cross year boundaries.
+    return hasYear && hasWeekNumber;
+}
+
+function isRenderedCalendarNotePathValid(rendered: string): boolean {
+    // Validates the formatted output as a vault-relative path.
+    //
+    // This does not access the vault. It checks only for path-level constraints that would make file creation fail or
+    // create ambiguous/hidden paths.
+    if (rendered !== rendered.trim()) {
+        return false;
     }
 
-    const format = buildCalendarCustomMomentFormat(trimmedPattern);
-    if (!format) {
-        return null;
+    const normalized = normalizePath(rendered);
+    if (!normalized || normalized === '/' || normalized === '.') {
+        return false;
     }
 
-    return (relativePath: string): CalendarCustomParsedNotePath | null => {
-        const withoutExt = stripMarkdownExtension(relativePath);
-        if (!withoutExt) {
-            return null;
+    const path = normalized.replace(/^\/+/u, '').replace(/\/+$/u, '');
+    if (!path) {
+        return false;
+    }
+
+    const parts = path.split('/');
+    if (parts.length === 0) {
+        return false;
+    }
+
+    for (const part of parts) {
+        const segment = part;
+        if (!segment || segment !== segment.trim()) {
+            return false;
         }
-
-        const directIso = tryParseCalendarCustomMoment(momentApi, withoutExt, format);
-        if (directIso) {
-            return { iso: directIso, title: '' };
+        if (segment === '.' || segment === '..') {
+            return false;
         }
-
-        const slashIndex = withoutExt.lastIndexOf('/');
-        const folderPrefix = slashIndex === -1 ? '' : withoutExt.slice(0, slashIndex + 1);
-        const filePart = slashIndex === -1 ? withoutExt : withoutExt.slice(slashIndex + 1);
-
-        const whitespacePattern = /[ \t]+/gu;
-        const matches = [...filePart.matchAll(whitespacePattern)];
-        for (let index = matches.length - 1; index >= 0; index--) {
-            const match = matches[index];
-            const start = match.index;
-            if (start === undefined) {
-                continue;
-            }
-
-            const title = filePart.slice(start + match[0].length).trim();
-            if (!title) {
-                continue;
-            }
-
-            const candidateFile = filePart.slice(0, start);
-            if (!candidateFile) {
-                continue;
-            }
-
-            const candidatePath = `${folderPrefix}${candidateFile}`;
-            const iso = tryParseCalendarCustomMoment(momentApi, candidatePath, format);
-            if (!iso) {
-                continue;
-            }
-
-            return { iso, title };
+        if (segment.startsWith('.')) {
+            return false;
         }
+        if (segment.endsWith('.')) {
+            return false;
+        }
+        if (isWindowsReservedFileName(segment)) {
+            return false;
+        }
+        if (containsForbiddenNameCharactersAllPlatforms(segment) || containsForbiddenNameCharactersWindows(segment)) {
+            return false;
+        }
+    }
 
-        return null;
-    };
+    const last = parts[parts.length - 1] ?? '';
+    const baseName = last.replace(/\.md$/iu, '');
+    return baseName.length > 0;
+}
+
+const WINDOWS_RESERVED_FILE_NAME_SET: ReadonlySet<string> = new Set([
+    'con',
+    'prn',
+    'aux',
+    'nul',
+    'clock$',
+    'com1',
+    'com2',
+    'com3',
+    'com4',
+    'com5',
+    'com6',
+    'com7',
+    'com8',
+    'com9',
+    'lpt1',
+    'lpt2',
+    'lpt3',
+    'lpt4',
+    'lpt5',
+    'lpt6',
+    'lpt7',
+    'lpt8',
+    'lpt9'
+]);
+
+function isWindowsReservedFileName(value: string): boolean {
+    // Windows reserves a set of device names (CON, NUL, COM1, ...). Creation fails even when an extension is present
+    // (`CON.txt`). Trailing dots are also not permitted.
+    //
+    // This check is applied to every formatted path segment to reject patterns that would create invalid files/folders on
+    // Windows.
+    if (!value) {
+        return false;
+    }
+
+    const normalized = value.trim().replace(/\.+$/u, '');
+    if (!normalized) {
+        return false;
+    }
+
+    const baseName = normalized.split('.')[0] ?? normalized;
+    if (!baseName) {
+        return false;
+    }
+
+    return WINDOWS_RESERVED_FILE_NAME_SET.has(baseName.toLowerCase());
 }

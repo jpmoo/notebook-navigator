@@ -564,3 +564,7 @@ export function useFileCache() {
     }
     return context;
 }
+
+export function useFileCacheOptional() {
+    return useContext(StorageContext);
+}

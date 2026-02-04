@@ -174,11 +174,6 @@ body {
     --nn-theme-foreground-muted: color-mix(in srgb, var(--nn-theme-foreground) 70%, transparent);
     --nn-theme-foreground-faded: color-mix(in srgb, var(--nn-theme-foreground) 50%, transparent);
 
-    /* -- Pane Overlay Stacks -- */
-    /* Overlay stacks (header/search/title) rendered above scrolling content */
-    --nn-theme-pane-overlay-opacity: 87;
-    --nn-theme-pane-overlay-filter: blur(3px) saturate(160%);
-
     /* -- Navigation Pane -- */
     --nn-theme-nav-bg: var(--background-secondary);
     --nn-theme-nav-separator-color: var(--nn-theme-foreground);
@@ -194,16 +189,20 @@ body {
     --nn-theme-pinned-shortcut-shadow-color: rgba(0, 0, 0, 0.03);
 
     /* -- Navigation Calendar -- */
-    --nn-theme-nav-calendar-header-color: var(--nn-theme-foreground);
-    --nn-theme-nav-calendar-week-label-color: var(--nn-theme-foreground-muted);
-    --nn-theme-nav-calendar-day-in-month-color: var(--nn-theme-foreground);
-    --nn-theme-nav-calendar-day-outside-month-color: var(--nn-theme-foreground-muted);
-    --nn-theme-nav-calendar-hover-bg: var(--background-modifier-hover);
-    --nn-theme-nav-calendar-day-has-note-color: white;
-    --nn-theme-nav-calendar-day-has-note-bg: var(--text-selection);
-    --nn-theme-nav-calendar-day-has-feature-image-color: white;
-    --nn-theme-nav-calendar-day-today-color: var(--nn-theme-nav-calendar-day-has-note-color);
-    --nn-theme-nav-calendar-day-today-bg: var(--color-red);
+    --nn-theme-calendar-header-color: var(--nn-theme-foreground);
+    --nn-theme-calendar-weekday-color: var(--nn-theme-foreground-muted);
+    --nn-theme-calendar-week-color: var(--nn-theme-foreground-muted);
+    --nn-theme-calendar-day-in-month-color: var(--nn-theme-foreground);
+    --nn-theme-calendar-day-outside-month-color: var(--nn-theme-foreground-muted);
+    --nn-theme-calendar-hover-bg: var(--background-modifier-hover);
+    --nn-theme-calendar-weekend-bg: var(--background-secondary);
+    --nn-theme-calendar-day-has-note-color: white;
+    --nn-theme-calendar-day-has-note-bg: var(--text-selection);
+    --nn-theme-calendar-day-has-feature-image-color: white;
+    --nn-theme-calendar-day-today-color: var(--nn-theme-calendar-day-has-note-color);
+    --nn-theme-calendar-day-today-bg: var(--color-red);
+    --nn-theme-calendar-day-today-accent: var(--color-red);
+    --nn-calendar-right-sidebar-date-placement: flex-end;
 
     /* -- Folder & Tag Items -- */
     --nn-theme-navitem-chevron-color: var(--nn-theme-foreground-muted);
@@ -381,7 +380,7 @@ body {
     position: relative;
     --nn-pane-transition-duration: 0.15s;
     --nn-pane-transition-timing: ease-in-out;
-    --nn-selected-file-bg-color: var(--nn-theme-file-selected-bg-solid, var(--nn-theme-file-selected-bg));
+    --nn-selected-file-bg-color: var(--nn-computed-file-selected-bg, var(--nn-theme-file-selected-bg));
     --nn-selected-file-name-color: var(--nn-theme-file-selected-name-color);
     --nn-selected-file-preview-color: var(--nn-theme-file-selected-preview-color);
     --nn-selected-file-date-color: var(--nn-theme-file-selected-date-color);
@@ -390,7 +389,7 @@ body {
     --nn-selected-file-tag-bg: var(--nn-theme-file-selected-tag-bg);
     --nn-selected-file-custom-property-color: var(--nn-theme-file-selected-custom-property-color);
     --nn-selected-file-custom-property-bg: var(--nn-theme-file-selected-custom-property-bg);
-    --nn-selected-navitem-bg-color: var(--nn-theme-navitem-selected-bg-solid, var(--nn-theme-navitem-selected-bg));
+    --nn-selected-navitem-bg-color: var(--nn-computed-navitem-selected-bg, var(--nn-theme-navitem-selected-bg));
     --nn-selected-navitem-name-color: var(--nn-theme-navitem-selected-name-color);
     --nn-selected-navitem-chevron-color: var(--nn-theme-navitem-selected-chevron-color);
     --nn-selected-navitem-icon-color: var(--nn-theme-navitem-selected-icon-color);
@@ -399,7 +398,7 @@ body {
 }
 
 .nn-split-container:is([data-navigator-focused='false'], [data-focus-pane='navigation'], [data-focus-pane='search']) {
-    --nn-selected-file-bg-color: var(--nn-theme-file-selected-inactive-bg-solid, var(--nn-theme-file-selected-inactive-bg));
+    --nn-selected-file-bg-color: var(--nn-computed-file-selected-inactive-bg, var(--nn-theme-file-selected-inactive-bg));
     --nn-selected-file-name-color: var(--nn-theme-file-selected-inactive-name-color);
     --nn-selected-file-preview-color: var(--nn-theme-file-selected-inactive-preview-color);
     --nn-selected-file-date-color: var(--nn-theme-file-selected-inactive-date-color);
@@ -411,7 +410,7 @@ body {
 }
 
 .nn-split-container:is([data-navigator-focused='false'], [data-focus-pane='files'], [data-focus-pane='search']) {
-    --nn-selected-navitem-bg-color: var(--nn-theme-navitem-selected-inactive-bg-solid, var(--nn-theme-navitem-selected-inactive-bg));
+    --nn-selected-navitem-bg-color: var(--nn-computed-navitem-selected-inactive-bg, var(--nn-theme-navitem-selected-inactive-bg));
     --nn-selected-navitem-name-color: var(--nn-theme-navitem-selected-inactive-name-color);
     --nn-selected-navitem-chevron-color: var(--nn-theme-navitem-selected-inactive-chevron-color);
     --nn-selected-navitem-icon-color: var(--nn-theme-navitem-selected-inactive-icon-color);
@@ -700,7 +699,8 @@ body {
     flex-direction: column;
     overflow: hidden;
     background-color: var(--nn-theme-nav-bg);
-    position: relative; /* Enables absolute positioning for overlays */
+    border-right: 1px solid var(--nn-theme-divider-border-color);
+    position: relative; /* Enables absolute positioning for resize handles */
 
     /* Performance optimization for virtualized content */
     contain: layout style;
@@ -737,6 +737,10 @@ body {
     --nn-theme-list-bg: var(--nn-theme-mobile-bg);
 }
 
+.notebook-navigator-mobile .nn-navigation-pane {
+    border-right: none;
+}
+
 .nn-split-container.nn-orientation-vertical {
     flex-direction: column;
 }
@@ -754,17 +758,11 @@ body {
     min-height: var(--nn-list-pane-min-height);
 }
 
-.nn-split-container.nn-orientation-vertical .nn-navigation-pane .nn-pane-header {
+.nn-split-container.nn-orientation-vertical .nn-navigation-pane {
     border-right: none;
 }
 
-.nn-split-container.nn-orientation-vertical .nn-navigation-pane-scroller,
-.nn-split-container.nn-orientation-vertical .nn-shortcut-pinned {
-    border-right: none;
-}
-
-.nn-split-container.nn-orientation-vertical:not(.nn-single-pane) .nn-navigation-pane-scroller,
-.nn-split-container.nn-orientation-vertical:not(.nn-single-pane) .nn-shortcut-pinned {
+.nn-split-container.nn-orientation-vertical:not(.nn-single-pane) .nn-navigation-pane {
     border-bottom: 1px solid var(--nn-theme-divider-border-color);
 }
 
@@ -808,7 +806,7 @@ body {
 .nn-split-container.nn-single-pane {
     display: grid;
     grid-template-columns: 100%;
-    grid-template-rows: 100%;
+    grid-template-rows: minmax(0, 1fr) auto;
     position: relative;
     overflow: hidden;
     height: 100%;
@@ -822,7 +820,19 @@ body {
     height: 100%;
     grid-column: 1;
     grid-row: 1;
+    min-height: 0;
     transition: transform var(--nn-pane-transition-duration) var(--nn-pane-transition-timing);
+}
+
+.nn-split-container.nn-single-pane .nn-single-pane-calendar {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+/* Disable transitions for one-frame mode changes (dual-pane -> single-pane) */
+.nn-split-container.nn-single-pane.nn-suppress-pane-transitions .nn-navigation-pane,
+.nn-split-container.nn-single-pane.nn-suppress-pane-transitions .nn-list-pane {
+    transition: none;
 }
 
 .nn-split-container.nn-single-pane.nn-pane-transitioning .nn-navigation-pane,
@@ -1567,44 +1577,36 @@ body {
 
 /* Scroller container for both folder tree and tag list */
 
+.nn-navigation-pane-chrome {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.nn-navigation-pane-panel {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
 .nn-navigation-pane-scroller {
     flex: 1;
-    /*
-     * Use a column flex layout so `.nn-navigation-pane-content` can expand to fill unused height.
-     * This keeps the bottom sticky overlays (`.nn-pane-bottom-toolbar`, `.nn-navigation-calendar-overlay`)
-     * anchored to the pane bottom when the navigation list is shorter than the viewport.
-     */
+    min-height: 0;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 0 var(--nn-scroller-padding);
     line-height: 1; /* Reset to 1 - we'll use fixed line-heights on individual elements */
-    border-right: 1px solid var(--nn-theme-divider-border-color);
     background-color: var(--nn-theme-nav-bg); /* Opaque background for GPU scroll layer optimization */
 
     /* Ensure scroll events work properly with virtualization */
     position: relative;
 }
 
-/* Keep the chrome stacks and bottom overlays sized to their content; let the list content fill the remainder. */
-.nn-navigation-pane-scroller > .nn-navigation-pane-overlay,
-.nn-navigation-pane-scroller > .nn-navigation-pane-content,
-.nn-navigation-pane-scroller > .nn-pane-bottom-toolbar,
-.nn-navigation-pane-scroller > .nn-navigation-calendar-overlay {
-    flex-shrink: 0;
-}
-
-.nn-navigation-pane-scroller > .nn-navigation-pane-content {
-    flex: 1 0 auto;
-}
-
 .nn-navigation-pane-content {
-    padding-bottom: calc(var(--nn-pane-bottom-toolbar-space) + var(--nn-pane-bottom-calendar-space));
-}
-
-.notebook-navigator-mobile .nn-navigation-pane-scroller {
-    border-right: none;
+    flex: 1 0 auto;
 }
 
 .nn-navigation-pane-scroller[data-banner='true'] {
@@ -1731,36 +1733,6 @@ body {
 .notebook-navigator-mobile .nn-shortcut-pinned {
     background-color: var(--nn-theme-nav-bg);
     border-bottom: none;
-    border-right: none;
-}
-
-/* Navigation pane: chrome stack (header/banner/pinned) stays above tree rows. */
-.nn-navigation-pane-scroller > .nn-navigation-pane-overlay {
-    /* Keep the chrome stack pinned while scrolling folders/tags behind it. */
-    position: sticky;
-    top: 0;
-    /* Ensure the overlay stack stays above virtual list rows and dividers. */
-    z-index: 4;
-    display: flex;
-    flex-direction: column;
-    /*
-     * Render the overlay stack as a translucent surface so tree rows can scroll behind it.
-     * The opacity is user-adjustable via Style Settings.
-     */
-    background: color-mix(in srgb, var(--nn-theme-nav-bg) calc(var(--nn-theme-pane-overlay-opacity, 87) * 1%), transparent);
-    -webkit-backdrop-filter: var(--nn-theme-pane-overlay-filter);
-    backdrop-filter: var(--nn-theme-pane-overlay-filter);
-    /* The scroller applies horizontal padding for rows; offset it so the overlay aligns to the pane edge. */
-    margin-left: calc(-1 * var(--nn-scroller-padding));
-    margin-right: calc(-1 * var(--nn-scroller-padding));
-}
-
-/* Child chrome elements stay transparent so the overlay stack paints the background once. */
-.nn-navigation-pane .nn-navigation-pane-scroller > .nn-navigation-pane-overlay .nn-pane-header,
-.nn-navigation-pane .nn-navigation-pane-scroller > .nn-navigation-pane-overlay .nn-mobile-toolbar,
-.nn-navigation-pane .nn-navigation-pane-scroller > .nn-navigation-pane-overlay .nn-shortcut-pinned,
-.nn-navigation-pane .nn-navigation-pane-scroller > .nn-navigation-pane-overlay .nn-vault-title-area {
-    background-color: transparent;
 }
 
 /* Vault title displayed below the navigation header (desktop only). */
@@ -1818,6 +1790,11 @@ body {
 .nn-nav-banner {
     padding: var(--nn-nav-banner-padding-vertical, 8px) var(--nn-nav-item-padding-horizontal);
     box-sizing: border-box;
+}
+
+.nn-navigation-pane-banner {
+    margin-inline-start: calc(-1 * var(--nn-scroller-padding));
+    margin-inline-end: calc(-1 * var(--nn-scroller-padding));
 }
 
 .nn-nav-banner-image {
@@ -1958,12 +1935,12 @@ body {
 
 /* Pre-composited solid color prevents hairlines by blending alpha with pane background */
 .nn-navitem-content--search-include::before {
-    background-color: var(--nn-theme-tag-positive-bg-solid, var(--nn-theme-tag-positive-bg));
+    background-color: var(--nn-computed-tag-positive-bg, var(--nn-theme-tag-positive-bg));
 }
 
 /* Pre-composited solid color prevents hairlines by blending alpha with pane background */
 .nn-navitem-content--search-exclude::before {
-    background-color: var(--nn-theme-tag-negative-bg-solid, var(--nn-theme-tag-negative-bg));
+    background-color: var(--nn-computed-tag-negative-bg, var(--nn-theme-tag-negative-bg));
 }
 
 /* Folder hover state - desktop only, using pseudo-element for padding control */
@@ -2523,7 +2500,8 @@ body {
    ======================================================================== */
 
 .nn-navigation-pane,
-.nn-list-pane {
+.nn-list-pane,
+.nn-single-pane-calendar {
     /* CSS vars are used to compute the overlay height and to coordinate scroller padding + mobile toolbar positioning. */
     --nn-nav-calendar-week-count: 6;
     --nn-nav-calendar-scrollbar-gap: var(--scrollbar-size, 12px);
@@ -2533,25 +2511,24 @@ body {
     --nn-nav-calendar-header-row-height: 28px;
     --nn-nav-calendar-header-font-size: 12px;
     --nn-nav-calendar-nav-button-size: 28px;
-    --nn-nav-calendar-nav-icon-size: 16px;
+    --nn-nav-calendar-nav-icon-size: 18px;
     --nn-nav-calendar-today-height: 28px;
     --nn-nav-calendar-today-font-size: 12px;
-    --nn-nav-calendar-week-label-font-size: 11px;
-    --nn-nav-calendar-weeknumber-font-size: 10px;
+    --nn-nav-calendar-weekday-font-size: 11px;
+    --nn-nav-calendar-weeknumber-font-size: var(--nn-nav-calendar-day-font-size);
     --nn-nav-calendar-day-font-size: 12px;
     --nn-nav-calendar-section-gap: 6px;
     --nn-nav-calendar-padding: 8px;
     --nn-nav-calendar-safe-area: 0px;
     --nn-nav-calendar-border-width: 1px;
     --nn-nav-calendar-weeknumber-column-width: 28px;
-    --nn-nav-calendar-weeknumber-padding-right: 6px;
+    --nn-nav-calendar-weeknumber-padding-right: 4px;
     --nn-nav-calendar-height: 0px;
-    --nn-pane-bottom-toolbar-space: 0px;
-    --nn-pane-bottom-calendar-space: 0px;
 }
 
 .notebook-navigator-mobile .nn-navigation-pane,
-.notebook-navigator-mobile .nn-list-pane {
+.notebook-navigator-mobile .nn-list-pane,
+.notebook-navigator-mobile .nn-single-pane-calendar {
     --nn-nav-calendar-safe-area: var(--nn-mobile-safe-area-bottom);
     --nn-nav-calendar-scrollbar-gap: 0px;
     --nn-nav-calendar-border-width: 0px;
@@ -2563,8 +2540,8 @@ body {
     --nn-nav-calendar-nav-icon-size: 18px;
     --nn-nav-calendar-today-height: 32px;
     --nn-nav-calendar-today-font-size: 14px;
-    --nn-nav-calendar-week-label-font-size: 12px;
-    --nn-nav-calendar-weeknumber-font-size: 11px;
+    --nn-nav-calendar-weekday-font-size: 12px;
+    --nn-nav-calendar-weeknumber-font-size: var(--nn-nav-calendar-day-font-size);
     --nn-nav-calendar-day-font-size: 13px;
 }
 
@@ -2576,31 +2553,33 @@ body {
             (2 * var(--nn-nav-calendar-section-gap)) + (var(--nn-nav-calendar-week-count) * var(--nn-nav-calendar-week-row-height)) +
             ((var(--nn-nav-calendar-week-count) - 1) * var(--nn-nav-calendar-week-gap))
     );
-    --nn-pane-bottom-calendar-space: var(--nn-nav-calendar-height);
 }
 
-.nn-navigation-pane[data-calendar='true'] .nn-pane-bottom-toolbar,
-.nn-list-pane[data-calendar='true'] .nn-pane-bottom-toolbar {
-    bottom: var(--nn-nav-calendar-height);
+.nn-single-pane-calendar {
+    flex-shrink: 0;
+    box-sizing: border-box;
+    padding: var(--nn-nav-calendar-padding) calc(var(--nn-scroller-padding) + var(--nn-nav-calendar-scrollbar-gap))
+        calc(var(--nn-nav-calendar-padding) + var(--nn-nav-calendar-safe-area)) var(--nn-scroller-padding);
+    border-top: var(--nn-nav-calendar-border-width) solid var(--nn-theme-divider-border-color);
+    background-color: var(--nn-theme-nav-bg);
 }
 
 .nn-navigation-calendar-overlay {
-    position: sticky;
-    bottom: 0;
-    z-index: 6;
+    flex-shrink: 0;
     box-sizing: border-box;
     height: var(--nn-nav-calendar-height);
-    margin-top: calc(-1 * var(--nn-nav-calendar-height));
-    margin-left: calc(-1 * var(--nn-scroller-padding));
-    margin-right: calc(-1 * var(--nn-scroller-padding));
     padding: var(--nn-nav-calendar-padding) calc(var(--nn-scroller-padding) + var(--nn-nav-calendar-scrollbar-gap))
         calc(var(--nn-nav-calendar-padding) + var(--nn-nav-calendar-safe-area)) var(--nn-scroller-padding);
 
-    background: color-mix(in srgb, var(--nn-theme-nav-bg) calc(var(--nn-theme-pane-overlay-opacity, 87) * 1%), transparent);
-    -webkit-backdrop-filter: var(--nn-theme-pane-overlay-filter);
-    backdrop-filter: var(--nn-theme-pane-overlay-filter);
-
     border-top: var(--nn-nav-calendar-border-width) solid var(--nn-theme-divider-border-color);
+}
+
+.nn-navigation-pane .nn-navigation-calendar-overlay {
+    background-color: var(--nn-theme-nav-bg);
+}
+
+.nn-list-pane .nn-navigation-calendar-overlay {
+    background-color: var(--nn-theme-list-bg);
 }
 
 .nn-navigation-calendar {
@@ -2629,13 +2608,87 @@ body {
 .nn-navigation-calendar-month {
     font-size: var(--nn-nav-calendar-header-font-size);
     font-weight: 600;
-    color: var(--nn-theme-nav-calendar-header-color);
+    color: var(--nn-theme-calendar-header-color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 2px;
+    line-height: 1;
+    white-space: nowrap;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.nn-navigation-calendar-month .nn-navigation-calendar-period-month {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nn-navigation-calendar-month .nn-navigation-calendar-period-year {
+    flex: 0 0 auto;
+    flex-shrink: 0;
+}
+
+.nn-navigation-calendar-month .nn-navigation-calendar-quarter-button,
+.nn-navigation-calendar-month .nn-navigation-calendar-quarter-label {
+    flex: 0 0 auto;
+    flex-shrink: 0;
+}
+
+.nn-navigation-calendar-period-button {
+    -webkit-appearance: none;
+    appearance: none;
+    border: none !important;
+    border-radius: 6px;
+    background: transparent !important;
+    color: var(--nn-theme-calendar-header-color);
+    cursor: pointer;
+    font: inherit;
+    padding: 2px 1px;
+    box-shadow: none !important;
+    outline: none;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+        background-color 120ms ease,
+        filter 120ms ease,
+        box-shadow 120ms ease;
+}
+
+.nn-navigation-calendar-period-label {
+    padding: 2px 1px;
+    line-height: 1;
+}
+
+.nn-navigation-calendar-period-button.has-period-note {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+}
+
+.nn-navigation-calendar button.nn-navigation-calendar-period-button {
+    color: var(--nn-theme-calendar-header-color);
 }
 
 .nn-navigation-calendar-nav {
     display: inline-flex;
     align-items: center;
     gap: 4px;
+}
+
+.nn-navigation-calendar-nav-prev {
+    width: 24px !important;
+    justify-content: flex-start !important;
+}
+
+.nn-navigation-calendar-nav-next {
+    width: 24px !important;
+    justify-content: flex-end !important;
 }
 
 .nn-navigation-calendar-nav-button {
@@ -2649,7 +2702,7 @@ body {
     border: none !important;
     border-radius: 6px;
     background: transparent !important;
-    color: var(--nn-theme-nav-calendar-header-color);
+    color: var(--nn-theme-foreground-muted);
     cursor: pointer;
     padding: 0;
     box-shadow: none !important;
@@ -2666,11 +2719,12 @@ body {
     appearance: none;
     border: none !important;
     background: transparent !important;
-    color: var(--nn-theme-nav-calendar-header-color);
+    color: var(--nn-theme-foreground-muted);
     font: inherit;
     font-size: var(--nn-nav-calendar-today-font-size);
+    font-weight: 600;
     height: var(--nn-nav-calendar-today-height);
-    padding: 0 8px;
+    padding: 0 1px;
     border-radius: 6px;
     cursor: pointer;
     box-shadow: none !important;
@@ -2685,10 +2739,19 @@ body {
         box-shadow 120ms ease;
 }
 
+.nn-navigation-calendar button.nn-navigation-calendar-nav-button {
+    color: var(--nn-theme-foreground-muted);
+}
+
+.nn-navigation-calendar button.nn-navigation-calendar-today {
+    color: var(--nn-theme-foreground-muted);
+}
+
 /* Calendar month navigation icon sizing (ServiceIcon renders an SVG). */
 .nn-navigation-calendar-nav-button svg {
     width: var(--nn-nav-calendar-nav-icon-size);
     height: var(--nn-nav-calendar-nav-icon-size);
+    stroke-width: 2.5;
 }
 
 .nn-navigation-calendar-weekdays {
@@ -2697,13 +2760,13 @@ body {
     align-items: center;
     column-gap: 1px;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    color: var(--nn-theme-nav-calendar-week-label-color);
-    font-size: var(--nn-nav-calendar-week-label-font-size);
+    color: var(--nn-theme-calendar-weekday-color);
+    font-size: var(--nn-nav-calendar-weekday-font-size);
     line-height: 1;
 }
 
 .nn-navigation-calendar-weekdays[data-weeknumbers='true'] {
-    grid-template-columns: var(--nn-nav-calendar-weeknumber-column-width) repeat(7, minmax(0, 1fr));
+    grid-template-columns: var(--nn-nav-calendar-weeknumber-column-width) 1px repeat(7, minmax(0, 1fr));
 }
 
 .nn-navigation-calendar-weekday,
@@ -2731,9 +2794,9 @@ body {
     position: absolute;
     top: 0;
     bottom: 0;
-    left: calc(var(--nn-nav-calendar-weeknumber-column-width) - 1px);
+    left: calc(var(--nn-nav-calendar-weeknumber-column-width) + 1px);
     width: 1px;
-    background-color: var(--nn-theme-nav-calendar-hover-bg);
+    background-color: var(--nn-theme-calendar-hover-bg);
     pointer-events: none;
 }
 
@@ -2744,7 +2807,13 @@ body {
 }
 
 .nn-navigation-calendar-weeks[data-weeknumbers='true'] .nn-navigation-calendar-week {
-    grid-template-columns: var(--nn-nav-calendar-weeknumber-column-width) repeat(7, minmax(0, 1fr));
+    grid-template-columns: var(--nn-nav-calendar-weeknumber-column-width) 1px repeat(7, minmax(0, 1fr));
+}
+
+.nn-navigation-calendar-weeknumber-divider {
+    width: 1px;
+    height: 100%;
+    pointer-events: none;
 }
 
 .nn-navigation-calendar-weeknumber {
@@ -2753,9 +2822,36 @@ body {
     align-items: center;
     justify-content: flex-end;
     padding-right: var(--nn-nav-calendar-weeknumber-padding-right);
-    color: var(--nn-theme-nav-calendar-week-label-color);
+    color: var(--nn-theme-calendar-week-color);
     font-size: var(--nn-nav-calendar-weeknumber-font-size);
+    font-weight: 400;
     line-height: 1;
+}
+
+.nn-navigation-calendar-weeknumber-button {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    border: none !important;
+    border-radius: 6px;
+    background: transparent !important;
+    cursor: pointer;
+    box-shadow: none !important;
+    outline: none;
+    transition:
+        background-color 120ms ease,
+        filter 120ms ease,
+        box-shadow 120ms ease;
+}
+
+.nn-navigation-calendar button.nn-navigation-calendar-weeknumber {
+    color: var(--nn-theme-calendar-week-color);
+}
+
+.nn-navigation-calendar-weeknumber-button.has-period-note {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
 }
 
 .nn-navigation-calendar-day {
@@ -2773,7 +2869,7 @@ body {
     align-items: center;
     justify-content: center;
     background-color: transparent !important;
-    color: var(--nn-theme-nav-calendar-day-in-month-color);
+    color: var(--nn-theme-calendar-day-in-month-color);
     cursor: pointer;
     background-size: cover;
     background-position: center;
@@ -2789,11 +2885,17 @@ body {
 /* Hover effects only apply on hover-capable devices (prevents "stuck hover" on touch). */
 @media (hover: hover) and (pointer: fine) {
     .nn-navigation-calendar-nav-button:hover {
-        background-color: var(--nn-theme-nav-calendar-hover-bg) !important;
+        background-color: var(--nn-theme-calendar-hover-bg) !important;
     }
 
     .nn-navigation-calendar-today:hover {
-        background-color: var(--nn-theme-nav-calendar-hover-bg) !important;
+        background-color: var(--nn-theme-calendar-hover-bg) !important;
+    }
+
+    .nn-navigation-calendar-period-button:hover,
+    .nn-navigation-calendar-weeknumber-button:hover {
+        filter: brightness(1.05);
+        background-color: var(--nn-theme-calendar-hover-bg) !important;
     }
 
     .nn-navigation-calendar-day:hover {
@@ -2801,20 +2903,20 @@ body {
     }
 
     .nn-navigation-calendar-day:hover:not(.has-feature-image):not(.has-daily-note) {
-        background-color: var(--nn-theme-nav-calendar-hover-bg) !important;
+        background-color: var(--nn-theme-calendar-hover-bg) !important;
     }
 }
 
 .nn-navigation-calendar-day.is-outside-month:not(.has-daily-note):not(.has-feature-image) {
-    color: var(--nn-theme-nav-calendar-day-outside-month-color);
+    color: var(--nn-theme-calendar-day-outside-month-color);
 }
 
-.nn-navigation-calendar[data-highlight-today='true'] .nn-navigation-calendar-day.is-today {
-    color: var(--nn-theme-nav-calendar-day-today-color);
+.nn-navigation-calendar-day.is-in-month:not(.has-daily-note):not(.has-feature-image):not(.has-feature-image-key) {
+    color: var(--nn-theme-calendar-day-in-month-color);
 }
 
-.nn-navigation-calendar[data-highlight-today='true'] .nn-navigation-calendar-day.is-today .nn-navigation-calendar-day-number {
-    font-weight: 600;
+.nn-navigation-calendar[data-highlight-today='true'] .nn-navigation-calendar-day.is-today:not(.has-daily-note):not(.has-feature-image) {
+    color: var(--nn-theme-calendar-day-today-color);
 }
 
 .nn-navigation-calendar[data-highlight-today='true']
@@ -2824,24 +2926,27 @@ body {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: min(calc(100% - 4px), calc(var(--nn-nav-calendar-week-row-height) - 4px));
-    height: min(calc(100% - 4px), calc(var(--nn-nav-calendar-week-row-height) - 4px));
+    width: min(calc(100% - 2px), calc(var(--nn-nav-calendar-week-row-height) - 4px));
+    aspect-ratio: 1 / 1;
     border-radius: 999px;
-    background-color: var(--nn-theme-nav-calendar-day-today-bg);
+    background-color: var(--nn-theme-calendar-day-today-bg);
     z-index: 0;
 }
 
 .nn-navigation-calendar-day.has-daily-note:not(.has-feature-image):not(.has-feature-image-key) {
-    background-color: var(--nn-theme-nav-calendar-day-has-note-bg) !important;
-    color: var(--nn-theme-nav-calendar-day-has-note-color);
+    background-color: var(--nn-theme-calendar-day-has-note-bg) !important;
+    color: var(--nn-theme-calendar-day-has-note-color);
 }
 
-.nn-navigation-calendar-day.has-daily-note .nn-navigation-calendar-day-number {
-    font-weight: 600;
+.nn-navigation-calendar-day.is-today .nn-navigation-calendar-day-number,
+.nn-navigation-calendar-day.has-daily-note .nn-navigation-calendar-day-number,
+.nn-navigation-calendar-day.has-feature-image .nn-navigation-calendar-day-number,
+.nn-navigation-calendar-day.has-feature-image-key .nn-navigation-calendar-day-number {
+    font-weight: 600 !important;
 }
 
 .nn-navigation-calendar[data-highlight-today='true'] .nn-navigation-calendar-day.has-daily-note.is-today {
-    color: var(--nn-theme-nav-calendar-day-today-color);
+    color: var(--nn-theme-calendar-day-today-color);
 }
 
 .nn-navigation-calendar[data-highlight-today='true'] .nn-navigation-calendar-day.is-today.has-daily-note .nn-navigation-calendar-day-number,
@@ -2851,11 +2956,11 @@ body {
 .nn-navigation-calendar[data-highlight-today='true']
     .nn-navigation-calendar-day.is-today.has-feature-image-key
     .nn-navigation-calendar-day-number {
-    color: var(--nn-theme-nav-calendar-day-today-bg);
+    color: var(--nn-theme-calendar-day-today-bg);
 }
 
 .nn-navigation-calendar-day.has-feature-image {
-    color: var(--nn-theme-nav-calendar-day-has-feature-image-color);
+    color: var(--nn-theme-calendar-day-has-feature-image-color);
 }
 
 .nn-navigation-calendar-day.has-feature-image .nn-navigation-calendar-day-number {
@@ -2894,7 +2999,7 @@ body {
     padding: 8px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 0;
     border-radius: 10px;
     background: var(--background-secondary);
     border: 1px solid var(--background-modifier-border);
@@ -2910,11 +3015,153 @@ body {
     background-repeat: no-repeat;
 }
 
-.nn-navigation-calendar-hover-tooltip-text {
-    white-space: pre-line;
-    font-size: 12px;
-    line-height: 1.25;
-    color: var(--text-normal);
+/* ========================================================================
+   Right Sidebar Calendar
+   ======================================================================== */
+
+.nn-calendar-right-sidebar {
+    overflow: auto;
+    background-color: var(--background-primary);
+}
+
+.is-mobile .nn-calendar-right-sidebar {
+    background-color: var(--mobile-sidebar-background);
+}
+
+.nn-calendar-right-sidebar-content {
+    padding: 10px 12px;
+}
+
+.nn-calendar-right-sidebar .nn-navigation-calendar[data-layout='panel'] {
+    height: auto;
+    --nn-nav-calendar-section-gap: 6px;
+    --nn-nav-calendar-header-font-size: var(--nn-nav-calendar-today-font-size);
+    --nn-nav-calendar-nav-button-size: 34px;
+    --nn-nav-calendar-day-font-size: 13px;
+    --nn-nav-calendar-nav-icon-size: var(--nn-nav-calendar-day-font-size);
+    --nn-nav-calendar-weekday-font-size: 12px;
+    --nn-nav-calendar-weeknumber-font-size: var(--nn-nav-calendar-day-font-size);
+    --nn-nav-calendar-today-font-size: var(--nn-nav-calendar-day-font-size);
+    --nn-nav-calendar-weeknumber-column-width: 34px;
+    --nn-nav-calendar-weeknumber-padding-right: 6px;
+}
+
+.nn-calendar-right-sidebar .nn-navigation-calendar[data-layout='panel'] .nn-navigation-calendar-header {
+    height: auto;
+}
+
+.nn-calendar-right-sidebar .nn-navigation-calendar[data-layout='panel'] .nn-navigation-calendar-weekdays {
+    height: auto;
+    column-gap: 0;
+}
+
+.nn-calendar-right-sidebar .nn-navigation-calendar[data-layout='panel'] .nn-navigation-calendar-weekdays[data-weeknumbers='true'] {
+    grid-template-columns: var(--nn-nav-calendar-weeknumber-column-width) repeat(7, minmax(0, 1fr));
+}
+
+.nn-calendar-right-sidebar .nn-navigation-calendar[data-layout='panel'] .nn-navigation-calendar-weeks {
+    gap: 0;
+}
+
+.nn-calendar-right-sidebar .nn-navigation-calendar[data-layout='panel'] .nn-navigation-calendar-weeks[data-weeknumbers='true']::before {
+    display: none;
+}
+
+.nn-calendar-right-sidebar .nn-navigation-calendar[data-layout='panel'] .nn-navigation-calendar-week {
+    column-gap: 0;
+}
+
+.nn-calendar-right-sidebar
+    .nn-navigation-calendar[data-layout='panel']
+    .nn-navigation-calendar-weeks[data-weeknumbers='true']
+    .nn-navigation-calendar-week {
+    grid-template-columns: var(--nn-nav-calendar-weeknumber-column-width) repeat(7, minmax(0, 1fr));
+}
+
+.nn-calendar-right-sidebar .nn-navigation-calendar[data-layout='panel'] .nn-navigation-calendar-weeknumber-divider {
+    display: none;
+}
+
+.nn-calendar-right-sidebar .nn-navigation-calendar[data-layout='panel'] .nn-navigation-calendar-weeknumber {
+    height: auto;
+    align-items: var(--nn-calendar-right-sidebar-date-placement, flex-end);
+    padding-block: 4px;
+}
+
+.nn-calendar-right-sidebar .nn-navigation-calendar[data-layout='panel'] .nn-navigation-calendar-day {
+    height: auto;
+    aspect-ratio: 1 / 1;
+    border-radius: 0;
+    border: none !important;
+    align-items: var(--nn-calendar-right-sidebar-date-placement, flex-end);
+    justify-content: var(--nn-calendar-right-sidebar-date-placement, flex-end);
+    padding: 4px !important;
+    border-top: 1px solid var(--background-modifier-border) !important;
+    border-left: 1px solid var(--background-modifier-border) !important;
+}
+
+.nn-calendar-right-sidebar
+    .nn-navigation-calendar[data-layout='panel']
+    .nn-navigation-calendar-week
+    .nn-navigation-calendar-day:last-child {
+    border-right: 1px solid var(--background-modifier-border) !important;
+}
+
+.nn-calendar-right-sidebar
+    .nn-navigation-calendar[data-layout='panel']
+    .nn-navigation-calendar-week:last-child
+    .nn-navigation-calendar-day {
+    border-bottom: 1px solid var(--background-modifier-border) !important;
+}
+
+.nn-calendar-right-sidebar .nn-navigation-calendar[data-layout='panel'][data-weeknumbers='true'] .nn-navigation-calendar-month {
+    padding-left: var(--nn-nav-calendar-weeknumber-column-width);
+}
+
+.nn-calendar-right-sidebar .nn-navigation-calendar[data-layout='panel'] .nn-navigation-calendar-day-number {
+    font-weight: 400;
+    padding: 0;
+}
+
+.nn-calendar-right-sidebar
+    .nn-navigation-calendar[data-layout='panel']
+    .nn-navigation-calendar-day.has-daily-note
+    .nn-navigation-calendar-day-number {
+    font-weight: 400;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .nn-calendar-right-sidebar .nn-navigation-calendar[data-layout='panel'] .nn-navigation-calendar-day:hover {
+        background-color: var(--nn-theme-calendar-hover-bg) !important;
+        border-color: color-mix(in srgb, var(--nn-theme-calendar-hover-bg) 55%, var(--background-modifier-border));
+    }
+}
+
+.nn-calendar-right-sidebar
+    .nn-navigation-calendar[data-layout='panel'][data-highlight-today='true']
+    .nn-navigation-calendar-day.is-today:not(.has-daily-note):not(.has-feature-image):not(.has-feature-image-key)::before {
+    content: none;
+}
+
+.nn-calendar-right-sidebar .nn-navigation-calendar[data-layout='panel'][data-highlight-today='true'] .nn-navigation-calendar-day.is-today {
+    border-color: var(--nn-theme-calendar-day-today-accent);
+}
+
+.nn-calendar-right-sidebar
+    .nn-navigation-calendar[data-layout='panel'][data-highlight-today='true']
+    .nn-navigation-calendar-day.is-today
+    .nn-navigation-calendar-day-number {
+    color: var(--nn-theme-calendar-day-today-accent);
+}
+
+/* ========================================================================
+   Weekend Column Background
+   ======================================================================== */
+
+.nn-calendar-right-sidebar
+    .nn-navigation-calendar[data-layout='panel']
+    .nn-navigation-calendar-day.is-weekend:not(.has-daily-note):not(.has-feature-image) {
+    background-color: var(--nn-theme-calendar-weekend-bg) !important;
 }
 /* Source: src/styles/sections/list-files.css */
 
@@ -2922,19 +3169,23 @@ body {
    File List Styles
    ======================================================================== */
 
-.nn-list-pane {
-    --nn-pane-bottom-toolbar-space: 0px;
-    --nn-pane-bottom-calendar-space: 0px;
+/* File list container - scrollable area for files */
+.nn-list-pane-chrome {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
 }
 
-/* File list container - scrollable area for files */
+.nn-list-pane-panel {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
 .nn-list-pane-scroller {
     flex: 1;
-    /*
-     * Use a column flex layout so `.nn-list-pane-content` can expand to fill unused height.
-     * This keeps the bottom sticky toolbar (`.nn-pane-bottom-toolbar`) anchored to the pane bottom
-     * when the file list is shorter than the viewport.
-     */
+    min-height: 0;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
@@ -2943,20 +3194,8 @@ body {
     position: relative;
 }
 
-/* Keep the chrome stack and bottom toolbar sized to their content; let the list content fill the remainder. */
-.nn-list-pane-scroller > .nn-list-pane-overlay,
-.nn-list-pane-scroller > .nn-list-pane-content,
-.nn-list-pane-scroller > .nn-pane-bottom-toolbar,
-.nn-list-pane-scroller > .nn-navigation-calendar-overlay {
-    flex-shrink: 0;
-}
-
-.nn-list-pane-scroller > .nn-list-pane-content {
-    flex: 1 0 auto;
-}
-
 .nn-list-pane-content {
-    padding-bottom: calc(var(--nn-pane-bottom-toolbar-space) + var(--nn-pane-bottom-calendar-space, 0px));
+    flex: 1 0 auto;
 }
 
 .nn-list-title-area {
@@ -2964,37 +3203,6 @@ body {
     background-color: transparent !important;
     background: transparent !important;
     padding: var(--nn-list-title-padding-block) var(--nn-scroller-padding) 8px;
-}
-
-/* List pane: chrome overlay stack (header/search/title) stays above file rows. */
-.nn-list-pane-scroller > .nn-list-pane-overlay {
-    /* Keep the chrome stack pinned while scrolling file rows behind it. */
-    position: sticky;
-    top: 0;
-    z-index: 4;
-    display: flex;
-    flex-direction: column;
-    /* Match the list pane background: use background-primary-alt (#FAFAFA) which is what shows through
-       when list-bg is transparent in Cupertino theme */
-    background: color-mix(in srgb, var(--background-primary-alt) calc(var(--nn-theme-pane-overlay-opacity, 87) * 1%), transparent) !important;
-    background-color: color-mix(in srgb, var(--background-primary-alt) calc(var(--nn-theme-pane-overlay-opacity, 87) * 1%), transparent) !important;
-    -webkit-backdrop-filter: var(--nn-theme-pane-overlay-filter);
-    backdrop-filter: var(--nn-theme-pane-overlay-filter);
-    /* The scroller applies horizontal padding for rows; offset it so the overlay aligns to the pane edge. */
-    margin-left: calc(-1 * var(--nn-scroller-padding));
-    margin-right: calc(-1 * var(--nn-scroller-padding));
-}
-
-/* Child chrome elements stay transparent so the overlay stack paints the background once. */
-.nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-pane-header,
-.nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-mobile-toolbar,
-.nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-search-bar-container,
-.nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-search-input-wrapper,
-.nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title-area,
-.nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title-area .nn-list-title-content,
-.nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title-area .nn-list-title-text {
-    background-color: transparent !important;
-    background: transparent !important;
 }
 
 .nn-list-title-content {
@@ -3716,7 +3924,7 @@ body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title
    Date Group Headers
    ======================================================================== */
 
-/* Date group headers - sticky headers for grouped files */
+/* Date group headers for grouped files */
 .nn-date-group-header {
     height: var(--nn-date-header-height-subsequent-mobile, var(--nn-date-header-height-subsequent));
     box-sizing: border-box;
@@ -3859,14 +4067,6 @@ body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title
     text-align: center;
     color: var(--nn-theme-foreground-muted);
     font-size: 14px;
-}
-
-/* List pane empty state lives below the sticky overlay stack (header/search/title). */
-.nn-list-pane-scroller > .nn-empty-state {
-    margin-left: calc(-1 * var(--nn-scroller-padding));
-    margin-right: calc(-1 * var(--nn-scroller-padding));
-    height: calc(100% - var(--nn-list-pane-overlay-height, 0px));
-    box-sizing: border-box;
 }
 
 /* Empty state message text */
@@ -4024,18 +4224,18 @@ body.nn-resizing {
 
 /* Special visual feedback for tag drop zones - uses pre-composited solid color */
 [data-drop-zone='tag'].nn-drag-over {
-    background-color: var(--nn-theme-tag-positive-bg-solid, var(--nn-theme-tag-positive-bg));
+    background-color: var(--nn-computed-tag-positive-bg, var(--nn-theme-tag-positive-bg));
     border-radius: min(14px, var(--nn-theme-navitem-border-radius));
 }
 
 [data-drop-zone='tag-root'].nn-drag-over {
-    background-color: var(--nn-theme-tag-positive-bg-solid, var(--nn-theme-tag-positive-bg));
+    background-color: var(--nn-computed-tag-positive-bg, var(--nn-theme-tag-positive-bg));
     border-radius: min(14px, var(--nn-theme-navitem-border-radius));
 }
 
 /* Different style for untagged drop zone - uses pre-composited solid color */
 [data-drop-zone='tag'][data-tag='__untagged__'].nn-drag-over {
-    background-color: var(--nn-theme-tag-negative-bg-solid, var(--nn-theme-tag-negative-bg));
+    background-color: var(--nn-computed-tag-negative-bg, var(--nn-theme-tag-negative-bg));
     border-radius: min(14px, var(--nn-theme-navitem-border-radius));
 }
 
@@ -4132,7 +4332,7 @@ body.nn-resizing {
     inset-inline-end: 0;
     bottom: 0;
     /* Use pre-composited solid color for consistent border appearance */
-    border: 2px solid var(--nn-theme-navitem-selected-bg-solid, var(--nn-theme-navitem-selected-bg));
+    border: 2px solid var(--nn-computed-navitem-selected-bg, var(--nn-theme-navitem-selected-bg));
     border-radius: min(14px, var(--nn-theme-navitem-border-radius));
     pointer-events: none;
     z-index: 10;
@@ -4152,7 +4352,7 @@ body.nn-resizing {
     inset-inline-end: 0;
     bottom: 0; /* Extend to bottom edge to cover separator space */
     /* Use pre-composited solid color for consistent border appearance */
-    border: 2px solid var(--nn-theme-navitem-selected-bg-solid, var(--nn-theme-navitem-selected-bg));
+    border: 2px solid var(--nn-computed-navitem-selected-bg, var(--nn-theme-navitem-selected-bg));
     border-radius: min(16px, var(--nn-theme-file-border-radius));
     pointer-events: none;
     z-index: 10;
@@ -4495,6 +4695,62 @@ body.nn-resizing {
 }
 
 .nn-file-icon-rule-row-invalid .nn-file-icon-rule-key {
+    border-color: var(--background-modifier-error);
+}
+/* Source: src/styles/sections/modal-property-color-rule-editor.css */
+
+/* ========================================================================
+   Property Color Rule Editor Modal
+   ======================================================================== */
+
+.modal.nn-property-color-rule-editor-modal {
+    width: 420px;
+    max-width: calc(100vw - 40px);
+    max-height: 500px;
+}
+
+.modal.nn-property-color-rule-editor-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-2);
+    padding: var(--size-4-4);
+    overflow: hidden;
+}
+
+.nn-property-color-rule-editor-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 4px;
+    padding-bottom: var(--size-1-5);
+}
+
+.nn-property-color-rule-editor-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-1-5);
+    width: 100%;
+}
+
+.nn-property-color-rule-editor-footer {
+    flex-shrink: 0;
+    margin-top: 0;
+    padding-top: var(--size-2-2);
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.nn-property-color-rule-row {
+    display: flex;
+    align-items: center;
+    gap: var(--size-2-2);
+}
+
+.nn-property-color-rule-key {
+    flex: 1;
+    min-width: 0;
+}
+
+.nn-property-color-rule-row-invalid .nn-property-color-rule-key {
     border-color: var(--background-modifier-error);
 }
 /* Source: src/styles/sections/modal-ux-icon-map.css */
@@ -5068,11 +5324,63 @@ body.nn-resizing {
 
 /* Individual icon item */
 .nn-icon-item {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 8px 8px;
     border-radius: var(--radius-s);
+}
+
+.nn-icon-recent-remove-button {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    z-index: 1;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border-radius: 999px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    color: var(--nn-theme-foreground-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .nn-icon-recent-remove-button {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 120ms ease;
+    }
+
+    .nn-icon-item:hover .nn-icon-recent-remove-button,
+    .nn-icon-item:focus-within .nn-icon-recent-remove-button {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+}
+
+.nn-icon-recent-remove-button:hover {
+    color: var(--nn-theme-foreground);
+    border-color: var(--interactive-accent);
+}
+
+.nn-icon-recent-remove-button:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 1px;
+}
+
+.nn-icon-recent-remove-glyph {
+    font-size: 11px;
+    line-height: 1;
+    transform: translateY(-1px);
+    pointer-events: none;
 }
 
 /* Icon item hover/focus states */
@@ -5251,6 +5559,11 @@ body.nn-resizing {
     font-weight: 600;
 }
 
+.nn-setting-calendar-pattern-example-text {
+    font-size: inherit;
+    font-weight: var(--font-semibold);
+}
+
 /* Sync mode toggle button (cloud/device) */
 .nn-setting-sync-toggle {
     color: var(--text-muted);
@@ -5262,21 +5575,29 @@ body.nn-resizing {
     opacity: 1;
 }
 
-/* "Not synced" marker appended to setting names */
-.nn-settings-tab-root .setting-item-name.nn-setting-not-synced::after {
-    content: ' ' attr(data-nn-sync-marker);
+/* Setting name marker appended to setting names */
+.nn-settings-tab-root .setting-item-name.nn-setting-name-marker::after {
+    content: ' ' attr(data-nn-setting-marker);
     color: var(--text-muted);
     font-weight: normal;
 }
 
-.mod-rtl .nn-settings-tab-root .setting-item-name.nn-setting-not-synced::after {
+.mod-rtl .nn-settings-tab-root .setting-item-name.nn-setting-name-marker::after {
     content: '';
 }
 
-.mod-rtl .nn-settings-tab-root .setting-item-name.nn-setting-not-synced::before {
-    content: attr(data-nn-sync-marker) ' ';
+.mod-rtl .nn-settings-tab-root .setting-item-name.nn-setting-name-marker::before {
+    content: attr(data-nn-setting-marker) ' ';
     color: var(--text-muted);
     font-weight: normal;
+}
+
+/* Dim disabled calendar pattern text inputs */
+.nn-settings-tab-root .setting-item.nn-setting-disabled input[type='text']:disabled {
+    opacity: 0.6;
+    pointer-events: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 /* Container for additional info below settings */
@@ -5949,6 +6270,22 @@ body.nn-resizing {
     cursor: pointer;
 }
 
+@media (hover: hover) and (pointer: fine) {
+    .nn-recent-remove-button {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 120ms ease;
+    }
+
+    .nn-color-dot:hover .nn-recent-remove-button,
+    .nn-color-dot:focus-within .nn-recent-remove-button {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+}
+
 .nn-recent-remove-button:hover {
     color: var(--nn-theme-foreground);
     border-color: var(--interactive-accent);
@@ -6135,17 +6472,8 @@ body.nn-resizing {
     justify-content: space-evenly;
 }
 
-.notebook-navigator-mobile:not(.notebook-navigator-android) .nn-navigation-pane,
-.notebook-navigator-mobile:not(.notebook-navigator-android) .nn-list-pane {
-    --nn-pane-bottom-toolbar-space: calc(49px + var(--nn-mobile-safe-area-bottom));
-}
-
 .nn-pane-bottom-toolbar {
-    position: sticky;
-    bottom: 0;
-    z-index: 5;
-    margin-left: calc(-1 * var(--nn-scroller-padding));
-    margin-right: calc(-1 * var(--nn-scroller-padding));
+    flex-shrink: 0;
 }
 
 .notebook-navigator-mobile .nn-mobile-toolbar-left,
@@ -6253,12 +6581,6 @@ body.nn-resizing {
     --nn-mobile-safe-area-bottom: 0px;
 }
 
-.notebook-navigator-ios:not(.notebook-navigator-obsidian-1-11-plus-ios) .nn-navigation-pane[data-calendar='true'],
-.notebook-navigator-ios:not(.notebook-navigator-obsidian-1-11-plus-ios) .nn-list-pane[data-calendar='true'] {
-    /* The calendar overlay accounts for the safe area; keep the bottom toolbar at the fixed 49px height above it. */
-    --nn-pane-bottom-toolbar-space: 49px;
-}
-
 .notebook-navigator-ios:not(.notebook-navigator-obsidian-1-11-plus-ios)
     .nn-navigation-pane[data-calendar='true']
     .nn-pane-bottom-toolbar
@@ -6280,20 +6602,36 @@ body.nn-resizing {
 
 /* Obsidian 1.11+ iOS: bottom padding inside the navigator viewport */
 /* Applied to the internal split container so the bottom edge doesn't touch the view chrome and the toolbar shadow can render into the padding (8px matches the top spacer). */
-.notebook-navigator-obsidian-1-11-plus-ios .nn-split-container {
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-split-container {
     padding-bottom: 8px;
     box-sizing: border-box;
 }
 
 /* iOS (Obsidian 1.11+): allow the glass toolbar shadow to render into the split container padding */
-.notebook-navigator-obsidian-1-11-plus-ios .nn-navigation-pane,
-.notebook-navigator-obsidian-1-11-plus-ios .nn-list-pane {
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-navigation-pane,
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-list-pane {
     overflow: visible;
 }
 
-/* Ensure the iOS glass toolbar shadow does not render on top of the calendar overlay. */
-.notebook-navigator-obsidian-1-11-plus-ios .nn-navigation-calendar-overlay {
-    z-index: 6;
+/* iOS (Obsidian 1.11+): anchor floating toolbar to the panel (above the calendar). */
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-navigation-pane-panel,
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-list-pane-panel {
+    position: relative;
+}
+
+/* iOS (Obsidian 1.11+): bottom overlays are positioned above the scroller. */
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-pane-bottom-toolbar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+}
+
+/* iOS (Obsidian 1.11+): reserve scroll space for the floating toolbar so rows can scroll under it. */
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-navigation-pane-scroller,
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-list-pane-scroller {
+    padding-bottom: var(--nn-ios-pane-bottom-overlay-height);
 }
 
 /* Navigation pane calendar safe area for Obsidian 1.11+ iOS */
@@ -6303,52 +6641,8 @@ body.nn-resizing {
     --nn-nav-calendar-safe-area: 0px;
 }
 
-.notebook-navigator-mobile.notebook-navigator-obsidian-1-11-plus-ios .nn-navigation-pane,
-.notebook-navigator-mobile.notebook-navigator-obsidian-1-11-plus-ios .nn-list-pane {
-    --nn-pane-bottom-toolbar-space: 0px;
-}
-
-/*
- * Obsidian 1.11+ iOS: bottom toolbar and calendar overlays.
- *
- * The toolbar and calendar must stay inside the pane scroller.
- * If an overlay is moved outside the scroller, the scroller's scrollbar can render behind the overlay.
- *
- * The toolbar has a visual bottom gap so the glass pills float above the view edge.
- * Do not implement that gap by offsetting the sticky toolbar (e.g., `bottom: 12px`), because it changes the
- * sticky stack behavior and can cause the calendar overlay to slide up into the toolbar when the list hits
- * the end of its scroll range.
- */
-.notebook-navigator-obsidian-1-11-plus-ios .nn-pane-bottom-toolbar {
-    bottom: 0;
-}
-
-.notebook-navigator-obsidian-1-11-plus-ios .nn-navigation-pane[data-calendar='true'] .nn-pane-bottom-toolbar,
-.notebook-navigator-obsidian-1-11-plus-ios .nn-list-pane[data-calendar='true'] .nn-pane-bottom-toolbar {
-    bottom: var(--nn-nav-calendar-height);
-}
-
-/*
-  * Obsidian 1.11+ iOS: sticky bottom overlays inside `.nn-scale-wrapper`.
-  *
-  * WebKit resolves `position: sticky` offsets against the unscaled pane height when an ancestor is transformed.
-  * This makes bottom-sticky overlays drift upward when `--nn-ui-scale` < 1 and downward when `--nn-ui-scale` > 1.
-  * `--nn-ios-ui-scale-sticky-bottom-offset` compensates so the overlays stay anchored in the pane.
-  */
-.notebook-navigator-obsidian-1-11-plus-ios .nn-scale-wrapper[data-ui-scale] {
-    --nn-ios-ui-scale-sticky-bottom-offset: calc(100% - (100% / var(--nn-ui-scale, 1)));
-}
-
-.notebook-navigator-obsidian-1-11-plus-ios .nn-scale-wrapper[data-ui-scale] .nn-pane-bottom-toolbar {
-    bottom: calc(var(--nn-pane-bottom-calendar-space, 0px) + var(--nn-ios-ui-scale-sticky-bottom-offset));
-}
-
-.notebook-navigator-obsidian-1-11-plus-ios .nn-scale-wrapper[data-ui-scale] .nn-navigation-calendar-overlay {
-    bottom: var(--nn-ios-ui-scale-sticky-bottom-offset);
-}
-
 /* Obsidian 1.11+ iOS glass toolbar */
-.notebook-navigator-obsidian-1-11-plus-ios .nn-mobile-toolbar {
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar {
     pointer-events: none;
     justify-content: space-between;
     align-items: flex-start;
@@ -6370,19 +6664,19 @@ body.nn-resizing {
     ); /* Match toolbar box height */
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios .nn-mobile-toolbar-left,
-.notebook-navigator-obsidian-1-11-plus-ios .nn-mobile-toolbar-right {
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-left,
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-right {
     display: flex;
     pointer-events: auto;
     flex: 0 0 auto;
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios .nn-mobile-toolbar-pill,
-.notebook-navigator-obsidian-1-11-plus-ios .nn-mobile-toolbar-circle {
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-pill,
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-circle {
     display: flex;
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios {
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars {
     --nn-theme-mobile-toolbar-button-icon-color: var(--nn-theme-foreground);
     --nn-ios-toolbar-glass-bg: color-mix(in srgb, var(--nn-theme-mobile-toolbar-glass-bg) 45%, transparent);
     --nn-ios-toolbar-glass-outline: rgba(255, 255, 255, 0.6);
@@ -6396,15 +6690,18 @@ body.nn-resizing {
     --nn-ios-toolbar-height: 44px; /* 38px button + (1px padding + 2px border) * 2 */
     --nn-ios-pane-bottom-fade-height: 64px; /* Fade height behind the toolbar */
     --nn-ios-pane-bottom-fade-opacity: 0.8; /* Fade opacity behind the toolbar */
+    --nn-ios-pane-bottom-overlay-height: calc(
+        var(--nn-ios-toolbar-height) + var(--nn-ios-toolbar-bottom-offset) + var(--nn-ios-toolbar-glass-visual-overlap-top)
+    );
 }
 
-.theme-dark .notebook-navigator-obsidian-1-11-plus-ios {
+.theme-dark .notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars {
     --nn-ios-toolbar-glass-outline: rgba(255, 255, 255, 0.1);
     --nn-ios-toolbar-glass-shadow: 0 0 0 2px var(--nn-ios-toolbar-glass-outline), 0 16px 32px rgba(0, 0, 0, 0.3);
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios .nn-mobile-toolbar-pill,
-.notebook-navigator-obsidian-1-11-plus-ios .nn-mobile-toolbar-circle {
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-pill,
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-circle {
     position: relative;
     z-index: 0;
     border-radius: 999px;
@@ -6427,24 +6724,24 @@ body.nn-resizing {
      */
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios .nn-mobile-toolbar-pill > .nn-mobile-toolbar-button,
-.notebook-navigator-obsidian-1-11-plus-ios .nn-mobile-toolbar-circle > .nn-mobile-toolbar-button {
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-pill > .nn-mobile-toolbar-button,
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-circle > .nn-mobile-toolbar-button {
     position: relative;
     z-index: 1;
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios .nn-mobile-toolbar-pill {
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-pill {
     width: auto;
     justify-content: flex-start;
     gap: 6px; /* Spacing between buttons inside the pill */
     padding: 1px 10px; /* 1px vertical + 10px horizontal pill inset */
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios .nn-mobile-toolbar-circle {
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-circle {
     padding: 1px; /* 1px inset around the circular button */
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios .nn-mobile-toolbar-button {
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-button {
     width: 38px; /* Button diameter inside the glass pill */
     height: 38px; /* Button diameter inside the glass pill */
     min-width: 38px; /* Prevent button shrink */
@@ -6452,18 +6749,18 @@ body.nn-resizing {
     border-radius: 999px;
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios .nn-mobile-toolbar-button svg {
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-button svg {
     stroke-width: 2;
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios .nn-navigation-pane-content,
-.notebook-navigator-obsidian-1-11-plus-ios .nn-list-pane-content {
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-navigation-pane-content,
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-list-pane-content {
     position: relative;
     z-index: 1;
 }
 
 /* Obsidian 1.11+ iOS: bottom fade layer */
-.notebook-navigator-obsidian-1-11-plus-ios .nn-pane-bottom-toolbar::before {
+.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-pane-bottom-toolbar::before {
     content: '';
     position: absolute;
     left: 0;
@@ -6809,6 +7106,12 @@ body.nn-resizing {
     font-family: 'NotebookNavigatorSimpleIcons', 'Simple Icons', sans-serif;
 }
 
+.nn-vault-icon-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
 .nn-icon-provider-tabs {
     display: flex;
     flex-wrap: wrap;
@@ -7007,6 +7310,130 @@ settings:
         format: hex
         default-light: '#'
         default-dark: '#'
+    -
+        id: nn-calendar-heading
+        title: Calendar
+        description: Customize the daily notes calendar.
+        type: heading
+        level: 1
+        collapsed: true
+    -
+        id: nn-theme-calendar-header-color
+        title: Header text color
+        description: Text color for month/year and header buttons.
+        type: variable-themed-color
+        format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-calendar-weekday-color
+        title: Weekday label text color
+        description: Text color for weekday labels (Mon, Tue, Wed...).
+        type: variable-themed-color
+        format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-calendar-week-color
+        title: Week number text color
+        description: Text color for week numbers.
+        type: variable-themed-color
+        format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-calendar-day-in-month-color
+        title: Day text color (current month)
+        description: Text color for days within the current month.
+        type: variable-themed-color
+        format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-calendar-day-outside-month-color
+        title: Day text color (outside month)
+        description: Text color for days outside the current month.
+        type: variable-themed-color
+        format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-calendar-hover-bg
+        title: Hover background
+        description: Background color when hovering calendar buttons and days.
+        type: variable-themed-color
+        format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-calendar-weekend-bg
+        title: Weekend background
+        description: Background color for weekend days (panel layout).
+        type: variable-themed-color
+        format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-calendar-day-has-note-color
+        title: Daily note text color
+        description: Text color for dates with a daily note.
+        type: variable-themed-color
+        format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-calendar-day-has-note-bg
+        title: Daily note background
+        description: Background color for dates with a daily note.
+        type: variable-themed-color
+        format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-calendar-day-has-feature-image-color
+        title: Feature image text color
+        description: Text color for dates with feature images.
+        type: variable-themed-color
+        format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-calendar-day-today-color
+        title: Day text color (today)
+        description: Text color for today's date (overlay layout).
+        type: variable-themed-color
+        format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-calendar-day-today-bg
+        title: Today highlight background
+        description: Background color for the today highlight circle (overlay layout).
+        type: variable-themed-color
+        format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-calendar-day-today-accent
+        title: Today accent color
+        description: Border and text color for today (panel layout).
+        type: variable-themed-color
+        format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-calendar-right-sidebar-date-placement
+        title: Right sidebar date placement
+        description: Position of day numbers in the right sidebar calendar.
+        type: variable-select
+        default: flex-end
+        options:
+          -
+            label: Bottom right
+            value: flex-end
+          -
+            label: Centered
+            value: center
     -
         id: nn-nav-pane-heading
         title: Navigation pane (folders, tags, shortcuts)
@@ -7364,7 +7791,7 @@ settings:
     -
         id: nn-theme-list-heading-color
         title: List heading text color
-        description: Text color for the list pane overlay heading.
+        description: Text color for the list pane title area and vault title.
         type: variable-themed-color
         format: hex
         default-light: '#'
@@ -7372,7 +7799,7 @@ settings:
     -
         id: nn-theme-list-heading-font-weight
         title: List heading font weight
-        description: Font weight for the list pane overlay heading.
+        description: Font weight for the list pane title area and vault title.
         type: variable-number-slider
         default: 600
         min: 100
@@ -7808,22 +8235,6 @@ settings:
         default-light: '#'
         default-dark: '#'
     -
-        id: nn-pane-overlay-heading
-        title: Pane overlay stacks
-        description: Customize the overlay stacks rendered above scrolling rows in both panes.
-        type: heading
-        level: 1
-        collapsed: true
-    -
-        id: nn-theme-pane-overlay-opacity
-        title: Overlay opacity
-        description: Opacity (0-100) for the pane overlay stacks rendered above scrolling rows.
-        type: variable-number-slider
-        default: 87
-        min: 0
-        max: 100
-        step: 1
-    -
         id: nn-theme-pane-divider-heading
         title: Pane divider
         description: Vertical divider between navigation and file list panes.
@@ -7842,93 +8253,6 @@ settings:
         id: nn-theme-divider-resize-handle-hover-bg
         title: Resize handle hover background
         description: Background color when hovering the pane divider to resize.
-        type: variable-themed-color
-        format: hex
-        default-light: '#'
-        default-dark: '#'
-    -
-        id: nn-nav-calendar-heading
-        title: Calendar overlay
-        description: Customize the navigation pane calendar overlay.
-        type: heading
-        level: 1
-        collapsed: true
-    -
-        id: nn-theme-nav-calendar-header-color
-        title: Header text color
-        description: Text color for month/year and header buttons.
-        type: variable-themed-color
-        format: hex
-        default-light: '#'
-        default-dark: '#'
-    -
-        id: nn-theme-nav-calendar-week-label-color
-        title: Week label text color
-        description: Text color for weekday labels and week numbers.
-        type: variable-themed-color
-        format: hex
-        default-light: '#'
-        default-dark: '#'
-    -
-        id: nn-theme-nav-calendar-day-in-month-color
-        title: Day text color (current month)
-        description: Text color for days within the current month.
-        type: variable-themed-color
-        format: hex
-        default-light: '#'
-        default-dark: '#'
-    -
-        id: nn-theme-nav-calendar-day-outside-month-color
-        title: Day text color (outside month)
-        description: Text color for days outside the current month.
-        type: variable-themed-color
-        format: hex
-        default-light: '#'
-        default-dark: '#'
-    -
-        id: nn-theme-nav-calendar-hover-bg
-        title: Hover background
-        description: Background color when hovering calendar buttons and days.
-        type: variable-themed-color
-        format: hex
-        default-light: '#'
-        default-dark: '#'
-    -
-        id: nn-theme-nav-calendar-day-has-note-color
-        title: Daily note text color
-        description: Text color for dates with a daily note.
-        type: variable-themed-color
-        format: hex
-        default-light: '#'
-        default-dark: '#'
-    -
-        id: nn-theme-nav-calendar-day-has-note-bg
-        title: Daily note background
-        description: Background color for dates with a daily note.
-        type: variable-themed-color
-        format: hex
-        default-light: '#'
-        default-dark: '#'
-    -
-        id: nn-theme-nav-calendar-day-has-feature-image-color
-        title: Feature image text color
-        description: Text color for dates with feature images.
-        type: variable-themed-color
-        format: hex
-        default-light: '#'
-        default-dark: '#'
-    -
-        id: nn-theme-nav-calendar-day-today-color
-        title: Day text color (today)
-        description: Text color for today's date.
-        type: variable-themed-color
-        format: hex
-        default-light: '#'
-        default-dark: '#'
-    -
-        id: nn-theme-nav-calendar-day-today-bg
-        title: Today highlight background
-        description: Background color for the today highlight circle.
         type: variable-themed-color
         format: hex
         default-light: '#'

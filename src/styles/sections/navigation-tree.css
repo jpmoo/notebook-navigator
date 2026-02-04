@@ -129,12 +129,12 @@
 
 /* Pre-composited solid color prevents hairlines by blending alpha with pane background */
 .nn-navitem-content--search-include::before {
-    background-color: var(--nn-theme-tag-positive-bg-solid, var(--nn-theme-tag-positive-bg));
+    background-color: var(--nn-computed-tag-positive-bg, var(--nn-theme-tag-positive-bg));
 }
 
 /* Pre-composited solid color prevents hairlines by blending alpha with pane background */
 .nn-navitem-content--search-exclude::before {
-    background-color: var(--nn-theme-tag-negative-bg-solid, var(--nn-theme-tag-negative-bg));
+    background-color: var(--nn-computed-tag-negative-bg, var(--nn-theme-tag-negative-bg));
 }
 
 /* Folder hover state - desktop only, using pseudo-element for padding control */

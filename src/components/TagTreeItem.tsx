@@ -147,12 +147,30 @@ export const TagTreeItem = React.memo(
             return { current: directCount, descendants, total };
         }, [countInfo, tagNode, includeDescendantNotes]);
 
-        // Determine if counts should be shown separately (e.g., "2 + 5") or combined
+        const tagTreeSortOverrides = settings.tagTreeSortOverrides;
+        const hasChildSortOrderOverride = Boolean(
+            tagTreeSortOverrides && Object.prototype.hasOwnProperty.call(tagTreeSortOverrides, tagNode.path)
+        );
+        const childSortOrderOverride = hasChildSortOrderOverride ? tagTreeSortOverrides?.[tagNode.path] : undefined;
+        const sortOrderIndicator = childSortOrderOverride === 'alpha-desc' ? '↓' : childSortOrderOverride === 'alpha-asc' ? '↑' : undefined;
+
+        // Determine if counts should be shown separately (e.g., "2 • 5") or combined
         const useSeparateCounts = includeDescendantNotes && settings.separateNoteCounts;
         // Build formatted display object with label and visibility flags
-        const noteCountDisplay = buildNoteCountDisplay(resolvedCounts, includeDescendantNotes, useSeparateCounts);
-        // Check if count badge should be displayed based on settings and count values
-        const shouldDisplayCount = showFileCount && noteCountDisplay.shouldDisplay;
+        const noteCountDisplay = buildNoteCountDisplay(
+            resolvedCounts,
+            includeDescendantNotes,
+            useSeparateCounts,
+            sortOrderIndicator ?? '•'
+        );
+        const noteCountLabel =
+            !useSeparateCounts && sortOrderIndicator && noteCountDisplay.shouldDisplay
+                ? `${sortOrderIndicator} ${noteCountDisplay.label}`
+                : sortOrderIndicator && !noteCountDisplay.shouldDisplay
+                  ? sortOrderIndicator
+                  : noteCountDisplay.label;
+        // Render count badge when enabled and there is either a count or a sort override indicator
+        const shouldDisplayCount = showFileCount && (noteCountDisplay.shouldDisplay || Boolean(sortOrderIndicator));
 
         // Memoize computed values
         const hasChildren = useMemo(() => tagNode.children.size > 0, [tagNode.children.size]);
@@ -299,7 +317,7 @@ export const TagTreeItem = React.memo(
                         {tagNode.name}
                     </span>
                     <span className="nn-navitem-spacer" />
-                    {shouldDisplayCount && <span className="nn-navitem-count">{noteCountDisplay.label}</span>}
+                    {shouldDisplayCount && <span className="nn-navitem-count">{noteCountLabel}</span>}
                 </div>
             </div>
         );

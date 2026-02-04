@@ -36,6 +36,7 @@ import type { ActiveProfileState } from '../context/SettingsContext';
 import { shouldExcludeFolder } from '../utils/fileFilters';
 import { createHiddenTagMatcher, matchesHiddenTagPattern } from '../utils/tagPrefixMatcher';
 import { NOTEBOOK_NAVIGATOR_ICON_ID } from '../constants/notebookNavigatorIcon';
+import { resolveUXIcon } from '../utils/uxIcons';
 
 export interface RootFolderDescriptor {
     key: string;
@@ -127,7 +128,7 @@ export function useNavigationRootReorder(options: UseNavigationRootReorderOption
         handleToggleTagsSection,
         activeProfile
     } = options;
-    const { collections, activeCollectionId } = useShortcuts();
+    useShortcuts();
 
     const {
         showRootFolder,
@@ -482,7 +483,7 @@ export function useNavigationRootReorder(options: UseNavigationRootReorderOption
             const iconName = rootFolderIconMap.get(entry.key) ?? (isMissing ? undefined : metadataService.getFolderIcon(entry.key));
             const iconColor = rootFolderColorMap.get(entry.key) ?? (isMissing ? undefined : metadataService.getFolderColor(entry.key));
 
-            let displayIcon = 'lucide-folder';
+            let displayIcon = resolveUXIcon(settings.interfaceIcons, 'nav-folder-closed');
             if (isMissing) {
                 displayIcon = 'lucide-folder-off';
             } else if (iconName) {
@@ -512,6 +513,7 @@ export function useNavigationRootReorder(options: UseNavigationRootReorderOption
         rootFolderIconMap,
         rootFolderColorMap,
         metadataService,
+        settings.interfaceIcons,
         buildRemoveMissingAction,
         handleRemoveMissingRootFolder,
         hiddenFolders,
@@ -528,12 +530,13 @@ export function useNavigationRootReorder(options: UseNavigationRootReorderOption
             let displayIcon: string;
             let label: string;
             if (isUntagged) {
-                displayIcon = metadataService.getTagIcon(entry.key) ?? 'lucide-tag';
+                displayIcon = metadataService.getTagIcon(entry.key) ?? resolveUXIcon(settings.interfaceIcons, 'nav-tag');
                 label = strings.tagList.untaggedLabel;
             } else {
                 const iconFromTree = rootTagIconMap.get(entry.key);
                 const metadataIcon = metadataService.getTagIcon(entry.key);
-                displayIcon = iconFromTree ?? metadataIcon ?? (isMissing ? 'lucide-tag-off' : 'lucide-tag');
+                displayIcon =
+                    iconFromTree ?? metadataIcon ?? (isMissing ? 'lucide-tag-off' : resolveUXIcon(settings.interfaceIcons, 'nav-tag'));
                 label = entry.tag ? `#${entry.tag.displayPath}` : `#${entry.key}`;
             }
 
@@ -562,6 +565,7 @@ export function useNavigationRootReorder(options: UseNavigationRootReorderOption
         rootTagIconMap,
         rootTagColorMap,
         metadataService,
+        settings.interfaceIcons,
         buildRemoveMissingAction,
         handleRemoveMissingRootTag,
         hasHiddenTagRules,
@@ -583,11 +587,10 @@ export function useNavigationRootReorder(options: UseNavigationRootReorderOption
             let color: string | undefined;
 
             if (identifier === NavigationSectionId.SHORTCUTS) {
-                const activeCollection = collections.find(c => c.id === activeCollectionId) || collections[0];
-                icon = activeCollection ? activeCollection.icon : 'lucide-star';
-                label = activeCollection ? activeCollection.name : strings.navigationPane.shortcutsHeader;
+                icon = resolveUXIcon(settings.interfaceIcons, 'nav-shortcuts');
+                label = strings.navigationPane.shortcutsHeader;
             } else if (identifier === NavigationSectionId.RECENT) {
-                icon = 'lucide-history';
+                icon = resolveUXIcon(settings.interfaceIcons, 'nav-recent-files');
                 label =
                     fileVisibility === FILE_VISIBILITY.DOCUMENTS
                         ? strings.navigationPane.recentNotesHeader
@@ -609,7 +612,7 @@ export function useNavigationRootReorder(options: UseNavigationRootReorderOption
                 chevronIcon = foldersSectionExpanded ? 'lucide-chevron-down' : 'lucide-chevron-right';
                 onClick = handleToggleFoldersSection;
             } else if (identifier === NavigationSectionId.TAGS) {
-                icon = 'lucide-tags';
+                icon = resolveUXIcon(settings.interfaceIcons, 'nav-tag');
                 label = strings.settings.sections.tags;
                 chevronIcon = tagsSectionExpanded ? 'lucide-chevron-down' : 'lucide-chevron-right';
                 onClick = handleToggleTagsSection;
@@ -644,6 +647,7 @@ export function useNavigationRootReorder(options: UseNavigationRootReorderOption
         rootFolderColorMap,
         customVaultName,
         app.vault,
+        settings.interfaceIcons,
         foldersSectionExpanded,
         tagsSectionExpanded,
         handleToggleFoldersSection,

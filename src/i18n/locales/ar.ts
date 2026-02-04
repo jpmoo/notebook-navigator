@@ -32,6 +32,7 @@ export const STRINGS_AR = {
         untagged: 'بدون وسم', // Label for notes without any tags (English: Untagged)
         featureImageAlt: 'صورة مميزة', // Alt text for thumbnail/preview images (English: Feature image)
         unknownError: 'خطأ غير معروف', // Generic fallback when an error has no message (English: Unknown error)
+        clipboardWriteError: 'تعذرت الكتابة إلى الحافظة',
         updateBannerTitle: 'تحديث متصفح الدفتر متاح',
         updateBannerInstruction: 'قم بالتحديث في الإعدادات -> إضافات المجتمع',
         updateIndicatorLabel: 'إصدار جديد متاح',
@@ -77,10 +78,6 @@ export const STRINGS_AR = {
     navigationCalendar: {
         ariaLabel: 'التقويم',
         dailyNotesNotEnabled: 'إضافة الملاحظات اليومية غير مفعلة.',
-        promptDailyNoteTitle: {
-            title: 'عنوان الملاحظة اليومية',
-            placeholder: 'أدخل العنوان'
-        },
         createDailyNote: {
             title: 'ملاحظة يومية جديدة',
             message: 'الملف {filename} غير موجود. هل تريد إنشاءه؟',
@@ -174,9 +171,6 @@ export const STRINGS_AR = {
             revealInFolder: 'الكشف في المجلد',
             revealInFinder: 'الكشف في Finder',
             showInExplorer: 'إظهار في مستكشف النظام',
-            copyDeepLink: 'نسخ رابط Obsidian',
-            copyPath: 'نسخ مسار نظام الملفات',
-            copyRelativePath: 'نسخ مسار الخزنة',
             renameNote: 'إعادة تسمية الملاحظة',
             renameFile: 'إعادة تسمية الملف',
             deleteNote: 'حذف الملاحظة',
@@ -204,8 +198,6 @@ export const STRINGS_AR = {
             newTldrawDrawing: 'رسم Tldraw جديد',
             duplicateFolder: 'تكرار المجلد',
             searchInFolder: 'البحث في المجلد',
-            copyPath: 'نسخ مسار نظام الملفات',
-            copyRelativePath: 'نسخ مسار الخزنة',
             createFolderNote: 'إنشاء ملاحظة مجلد',
             detachFolderNote: 'فصل ملاحظة المجلد',
             deleteFolderNote: 'حذف ملاحظة المجلد',
@@ -228,6 +220,12 @@ export const STRINGS_AR = {
         navigation: {
             addSeparator: 'إضافة فاصل',
             removeSeparator: 'إزالة الفاصل'
+        },
+        copyPath: {
+            title: 'نسخ المسار',
+            asObsidianUrl: 'كرابط Obsidian',
+            fromVaultFolder: 'من مجلد الخزنة',
+            fromSystemRoot: 'من جذر النظام'
         },
         style: {
             title: 'النمط',
@@ -266,6 +264,7 @@ export const STRINGS_AR = {
             showingResultsInfo: 'عرض 50 من {count} نتيجة. اكتب المزيد للتضييق.',
             emojiInstructions: 'اكتب أو الصق أي رمز تعبيري لاستخدامه كأيقونة',
             removeIcon: 'إزالة الأيقونة',
+            removeFromRecents: 'إزالة من الأيقونات الأخيرة',
             allTabLabel: 'الكل'
         },
         fileIconRuleEditor: {
@@ -310,7 +309,6 @@ export const STRINGS_AR = {
             paletteCustom: 'مخصص',
             copyColors: 'نسخ اللون',
             colorsCopied: 'تم نسخ اللون إلى الحافظة',
-            copyClipboardError: 'تعذرت الكتابة إلى الحافظة',
             pasteColors: 'لصق اللون',
             pasteClipboardError: 'تعذرت قراءة الحافظة',
             pasteInvalidFormat: 'متوقع قيمة لون hex',
@@ -390,6 +388,14 @@ export const STRINGS_AR = {
                 dismiss: 'للإغلاق'
             }
         },
+        calendarTemplate: {
+            placeholder: 'البحث عن القوالب...',
+            instructions: {
+                navigate: 'للتنقل',
+                select: 'لتحديد القالب',
+                dismiss: 'للإغلاق'
+            }
+        },
         navigationBanner: {
             placeholder: 'البحث عن صور...',
             instructions: {
@@ -420,7 +426,7 @@ export const STRINGS_AR = {
             thanksText: 'شكراً جزيلاً على التحميل، واستمتع!',
             videoAlt: 'تثبيت وإتقان Notebook Navigator',
             openVideoButton: 'تشغيل الفيديو',
-            closeButton: 'سأشاهده لاحقاً'
+            closeButton: 'ربما لاحقاً'
         }
     },
     // File system operations
@@ -532,8 +538,14 @@ export const STRINGS_AR = {
         open: 'فتح', // Command palette: Opens the Notebook Navigator view (English: Open)
         toggleLeftSidebar: 'تبديل الشريط الجانبي الأيسر', // Command palette: Toggles left sidebar, opening Notebook Navigator when uncollapsing (English: Toggle left sidebar)
         openHomepage: 'فتح الصفحة الرئيسية', // Command palette: Opens the Notebook Navigator view and loads the homepage file (English: Open homepage)
+        openDailyNote: 'فتح الملاحظة اليومية',
+        openWeeklyNote: 'فتح الملاحظة الأسبوعية',
+        openMonthlyNote: 'فتح الملاحظة الشهرية',
+        openQuarterlyNote: 'فتح الملاحظة الفصلية',
+        openYearlyNote: 'فتح الملاحظة السنوية',
         revealFile: 'الكشف عن الملف', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'بحث', // Command palette: Toggle search in the file list (English: Search)
+        searchVaultRoot: 'بحث في جذر الخزنة', // Command palette: Selects the vault root folder and focuses search (English: Search in vault root)
         toggleDualPane: 'تبديل تخطيط اللوحتين', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleCalendar: 'تبديل التقويم', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
         selectVaultProfile: 'اختيار ملف الخزنة', // Command palette: Opens a modal to choose a different vault profile (English: Select vault profile)
@@ -568,6 +580,7 @@ export const STRINGS_AR = {
     // Plugin UI
     plugin: {
         viewName: 'متصفح الدفتر', // Name shown in the view header/tab (English: Notebook Navigator)
+        calendarViewName: 'تقويم', // Name shown in the view header/tab (English: Calendar)
         ribbonTooltip: 'متصفح الدفتر', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'الكشف في متصفح الدفتر' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
@@ -591,6 +604,7 @@ export const STRINGS_AR = {
         sections: {
             general: 'عام',
             navigationPane: 'لوحة التنقل',
+            calendar: 'التقويم',
             icons: 'حزم الأيقونات',
             folders: 'مجلدات',
             folderNotes: 'ملاحظات المجلد',
@@ -605,11 +619,14 @@ export const STRINGS_AR = {
         },
         groups: {
             general: {
+                vaultProfiles: 'ملفات الخزنة',
                 filtering: 'التصفية',
                 behavior: 'السلوك',
+                keyboardNavigation: 'التنقل بلوحة المفاتيح',
                 view: 'المظهر',
                 icons: 'الأيقونات',
                 desktopAppearance: 'مظهر سطح المكتب',
+                mobileAppearance: 'مظهر الهاتف المحمول',
                 formatting: 'التنسيق'
             },
             navigation: {
@@ -635,6 +652,7 @@ export const STRINGS_AR = {
         },
         syncMode: {
             notSynced: '(غير متزامن)',
+            disabled: '(معطل)',
             switchToSynced: 'تفعيل المزامنة',
             switchToLocal: 'تعطيل المزامنة'
         },
@@ -688,8 +706,21 @@ export const STRINGS_AR = {
                     'created-desc': 'تاريخ الإنشاء (الأحدث في الأعلى)',
                     'created-asc': 'تاريخ الإنشاء (الأقدم في الأعلى)',
                     'title-asc': 'العنوان (أ في الأعلى)',
-                    'title-desc': 'العنوان (ي في الأعلى)'
+                    'title-desc': 'العنوان (ي في الأعلى)',
+                    'filename-asc': 'اسم الملف (أ في الأعلى)',
+                    'filename-desc': 'اسم الملف (ي في الأعلى)',
+                    'property-asc': 'الخاصية (أ في الأعلى)',
+                    'property-desc': 'الخاصية (ي في الأعلى)'
+                },
+                propertyOverride: {
+                    asc: 'الخاصية ‘{property}’ (أ في الأعلى)',
+                    desc: 'الخاصية ‘{property}’ (ي في الأعلى)'
                 }
+            },
+            propertySortKey: {
+                name: 'خاصية الترتيب',
+                desc: 'تُستخدم مع ترتيب الخاصية. الملاحظات التي تحتوي على هذه الخاصية في الواجهة الأمامية تُعرض أولاً وتُرتب حسب قيمة الخاصية. يتم دمج المصفوفات في قيمة واحدة.',
+                placeholder: 'order'
             },
             revealFileOnListChanges: {
                 name: 'التمرير إلى الملف المحدد عند تغيير القائمة',
@@ -814,6 +845,10 @@ export const STRINGS_AR = {
                 name: 'مستوى التكبير',
                 desc: 'التحكم في مستوى التكبير العام لمتصفح الدفتر.'
             },
+            useFloatingToolbars: {
+                name: 'استخدام أشرطة الأدوات العائمة على iOS/iPadOS',
+                desc: 'ينطبق على Obsidian 1.11 والإصدارات الأحدث.'
+            },
             startView: {
                 name: 'عرض البدء الافتراضي',
                 desc: 'اختر اللوحة التي تعرض عند فتح متصفح الدفتر. لوحة التنقل تعرض الاختصارات والملاحظات الحديثة وشجرة المجلدات. لوحة القائمة تعرض قائمة الملاحظات فورًا.',
@@ -871,6 +906,10 @@ export const STRINGS_AR = {
                 current: 'الشعار الحالي: {path}',
                 chooseButton: 'اختيار صورة'
             },
+            pinNavigationBanner: {
+                name: 'تثبيت البانر',
+                desc: 'تثبيت لافتة التنقل فوق شجرة التنقل.'
+            },
             showShortcuts: {
                 name: 'إظهار الاختصارات',
                 desc: 'عرض قسم الاختصارات في لوحة التنقل.'
@@ -896,9 +935,13 @@ export const STRINGS_AR = {
                 name: 'تثبيت الملاحظات الحديثة مع الاختصارات',
                 desc: 'تضمين الملاحظات الحديثة عند تثبيت الاختصارات.'
             },
-            showCalendar: {
-                name: 'عرض التقويم',
-                desc: 'عرض تقويم في أسفل لوحة التنقل.'
+            calendarPlacement: {
+                name: 'موضع التقويم',
+                desc: 'العرض في الشريط الجانبي الأيمن أو الأيسر.', // RTL: right↔left flipped to match visual layout
+                options: {
+                    leftSidebar: 'الشريط الجانبي الأيمن', // RTL: "Left sidebar" → "Right sidebar" (appears on right in RTL)
+                    rightSidebar: 'الشريط الجانبي الأيسر' // RTL: "Right sidebar" → "Left sidebar" (appears on left in RTL)
+                }
             },
             calendarLocale: {
                 name: 'اللغة',
@@ -907,9 +950,19 @@ export const STRINGS_AR = {
                     systemDefault: 'افتراضي'
                 }
             },
+            calendarWeekendDays: {
+                name: 'أيام عطلة نهاية الأسبوع',
+                desc: 'عرض أيام عطلة نهاية الأسبوع بلون خلفية مختلف.',
+                options: {
+                    none: 'لا شيء',
+                    satSun: 'السبت والأحد',
+                    friSat: 'الجمعة والسبت',
+                    thuFri: 'الخميس والجمعة'
+                }
+            },
             calendarWeeksToShow: {
-                name: 'الأسابيع المعروضة',
-                desc: 'عدد أسابيع التقويم المعروضة.',
+                name: 'الأسابيع المعروضة في الشريط الجانبي الأيمن', // RTL: "left sidebar" → "right sidebar"
+                desc: 'التقويم في الشريط الجانبي الأيسر يعرض الشهر كاملاً دائماً.', // RTL: "right sidebar" → "left sidebar"
                 options: {
                     fullMonth: 'شهر كامل',
                     oneWeek: 'أسبوع واحد',
@@ -920,9 +973,17 @@ export const STRINGS_AR = {
                 name: 'تمييز تاريخ اليوم',
                 desc: 'إظهار دائرة حمراء ونص غامق على تاريخ اليوم.'
             },
+            calendarShowFeatureImage: {
+                name: 'عرض صورة الميزة',
+                desc: 'عرض صور الميزات للملاحظات في التقويم.'
+            },
             calendarShowWeekNumber: {
                 name: 'عرض رقم الأسبوع',
                 desc: 'إضافة عمود برقم الأسبوع.'
+            },
+            calendarShowQuarter: {
+                name: 'عرض الربع',
+                desc: 'إضافة تسمية الربع في رأس التقويم.'
             },
             calendarConfirmBeforeCreate: {
                 name: 'تأكيد قبل الإنشاء',
@@ -932,7 +993,7 @@ export const STRINGS_AR = {
                 name: 'مصدر الملاحظات اليومية',
                 desc: 'مصدر ملاحظات التقويم.',
                 options: {
-                    dailyNotes: 'الملاحظات اليومية',
+                    dailyNotes: 'الملاحظات اليومية (المكوّن الإضافي الأساسي)',
                     notebookNavigator: 'Notebook Navigator'
                 },
                 info: {
@@ -941,19 +1002,42 @@ export const STRINGS_AR = {
             },
             calendarCustomRootFolder: {
                 name: 'المجلد الجذر',
-                desc: 'المجلد الأساسي لملاحظات التقويم.',
+                desc: 'المجلد الأساسي للملاحظات الدورية. يمكن أن تتضمن أنماط التاريخ مجلدات فرعية. يتغير مع ملف تعريف الخزنة المحدد.',
                 placeholder: 'Personal/Diary'
             },
-            calendarCustomFilePattern: {
-                name: 'نمط الملف',
-                desc: 'نمط التاريخ نسبة إلى المجلد الجذر. الرموز المدعومة: YYYY، MM، M، DD، D. يمكن أن تتضمن الملاحظات لاحقة عنوان اختيارية.',
-                placeholder: 'YYYY/YYYYMMDD',
-                example: 'الصيغة الحالية تبدو هكذا: {path}',
-                parsingError: 'يجب أن يتضمن النمط YYYY وMM/M وDD/D. الرموز المدعومة: YYYY، MM، M، DD، D.'
+            calendarTemplateFolder: {
+                name: 'موقع مجلد القوالب',
+                desc: 'يعرض منتقي ملفات القوالب الملاحظات من هذا المجلد.',
+                placeholder: 'Templates'
             },
-            calendarCustomPromptForTitle: {
-                name: 'طلب العنوان',
-                desc: 'طلب العنوان عند إنشاء الملاحظات. يقبل العناوين الفارغة.'
+            calendarCustomFilePattern: {
+                name: 'الملاحظات اليومية',
+                desc: 'تنسيق المسار باستخدام تنسيق تاريخ Moment. ضع أسماء المجلدات الفرعية بين أقواس معقوفة، مثال [Work]/YYYY. انقر على أيقونة القالب لتعيين قالب.',
+                momentDescPrefix: 'تنسيق المسار باستخدام ',
+                momentLinkText: 'تنسيق تاريخ Moment',
+                momentDescSuffix: '. ضع أسماء المجلدات الفرعية بين أقواس معقوفة، مثال [Work]/YYYY. انقر على أيقونة القالب لتعيين قالب.',
+                placeholder: 'YYYY/YYYYMMDD',
+                example: 'الصيغة الحالية: {path}',
+                parsingError: 'يجب أن يقوم النمط بتنسيق التاريخ ثم تحليله مرة أخرى كتاريخ كامل (السنة، الشهر، اليوم).'
+            },
+            calendarCustomWeekPattern: {
+                name: 'الملاحظات الأسبوعية',
+                parsingError: 'يجب أن يقوم النمط بتنسيق الأسبوع ثم تحليله مرة أخرى كأسبوع كامل (سنة الأسبوع، رقم الأسبوع).'
+            },
+            calendarCustomMonthPattern: {
+                name: 'الملاحظات الشهرية',
+                parsingError: 'يجب أن يقوم النمط بتنسيق الشهر ثم تحليله مرة أخرى كشهر كامل (السنة، الشهر).'
+            },
+            calendarCustomQuarterPattern: {
+                name: 'الملاحظات الفصلية',
+                parsingError: 'يجب أن يقوم النمط بتنسيق الفصل ثم تحليله مرة أخرى كفصل كامل (السنة، الفصل).'
+            },
+            calendarCustomYearPattern: {
+                name: 'الملاحظات السنوية',
+                parsingError: 'يجب أن يقوم النمط بتنسيق السنة ثم تحليلها مرة أخرى كسنة كاملة (السنة).'
+            },
+            calendarTemplateFile: {
+                current: 'ملف القالب: {name}'
             },
             showTooltips: {
                 name: 'إظهار التلميحات',
@@ -986,6 +1070,22 @@ export const STRINGS_AR = {
                     cmdCtrl: 'النقر مع Cmd/Ctrl',
                     optionAlt: 'النقر مع Option/Alt'
                 }
+            },
+            enterToOpenFiles: {
+                name: 'اضغط Enter لفتح الملفات',
+                desc: 'فتح الملفات فقط عند الضغط على Enter أثناء التنقل بلوحة المفاتيح في القائمة.'
+            },
+            shiftEnterOpenContext: {
+                name: 'Shift+Enter',
+                desc: 'افتح الملف المحدد في علامة تبويب جديدة أو تقسيم أو نافذة عند الضغط على Shift+Enter.'
+            },
+            cmdEnterOpenContext: {
+                name: 'Cmd+Enter',
+                desc: 'افتح الملف المحدد في علامة تبويب جديدة أو تقسيم أو نافذة عند الضغط على Cmd+Enter.'
+            },
+            ctrlEnterOpenContext: {
+                name: 'Ctrl+Enter',
+                desc: 'افتح الملف المحدد في علامة تبويب جديدة أو تقسيم أو نافذة عند الضغط على Ctrl+Enter.'
             },
             fileVisibility: {
                 name: 'إظهار أنواع الملفات (ملف الخزنة)',
@@ -1085,7 +1185,7 @@ export const STRINGS_AR = {
                 desc: 'عرض الوسوم عند إخفاء التاريخ والمعاينة والصورة.'
             },
             customPropertyType: {
-                name: 'النوع',
+                name: 'نوع الخاصية',
                 desc: 'حدد الخاصية المخصصة لعرضها في عناصر الملفات.',
                 options: {
                     frontmatter: 'خاصية الواجهة الأمامية',
@@ -1094,14 +1194,19 @@ export const STRINGS_AR = {
                 }
             },
             customPropertyFields: {
-                name: 'الخاصية للعرض',
+                name: 'الخصائص للعرض',
                 desc: 'قائمة خصائص frontmatter مفصولة بفواصل لعرضها كشارات. الخصائص ذات القيم المتعددة تعرض شارة واحدة لكل قيمة. قيم [[wikilink]] تُعرض كروابط قابلة للنقر.',
                 placeholder: 'الحالة، النوع، الفئة'
             },
-            customPropertyColorFields: {
-                name: 'الخاصية للون',
-                desc: 'قائمة خصائص frontmatter مفصولة بفواصل لألوان الشارات. تقترن خصائص الألوان بخصائص العرض حسب الموضع. الخصائص ذات القيم المتعددة تقرن الألوان حسب الفهرس. يمكن أن تكون القيم أسماء وسوم أو ألوان CSS.',
-                placeholder: 'statusColor, typeColor, categoryColor'
+            showCustomPropertiesOnSeparateRows: {
+                name: 'إظهار الخصائص في صفوف منفصلة',
+                desc: 'عرض كل خاصية في صف منفصل.'
+            },
+            customPropertyColorMap: {
+                name: 'ألوان الخصائص',
+                desc: 'ربط خصائص البيانات الوصفية بألوان الشارات. رابط واحد لكل سطر: خاصية=لون',
+                placeholder: '# خاصية=لون\nstatus=#ff0000\ntype=#00ff00',
+                editTooltip: 'تحرير الروابط'
             },
             showCustomPropertyInCompactMode: {
                 name: 'إظهار الخاصية المخصصة في الوضع المضغوط',
@@ -1112,14 +1217,16 @@ export const STRINGS_AR = {
                 desc: 'تنسيق عرض التواريخ (يستخدم تنسيق date-fns).',
                 placeholder: 'd MMM yyyy',
                 help: 'التنسيقات الشائعة:\nMMM d, yyyy = 25 مايو 2022\ndd/MM/yyyy = 25/05/2022\nyyyy-MM-dd = 2022-05-25\n\nالرموز:\nyyyy/yy = السنة\nMMMM/MMM/MM = الشهر\ndd/d = اليوم\nEEEE/EEE = يوم الأسبوع',
-                helpTooltip: 'انقر لمرجع التنسيق'
+                helpTooltip: 'تنسيق باستخدام date-fns',
+                dateFnsLinkText: 'تنسيق date-fns'
             },
             timeFormat: {
                 name: 'تنسيق الوقت',
                 desc: 'تنسيق عرض الأوقات (يستخدم تنسيق date-fns).',
                 placeholder: 'h:mm a',
                 help: 'التنسيقات الشائعة:\nh:mm a = 2:30 م (12 ساعة)\nHH:mm = 14:30 (24 ساعة)\nh:mm:ss a = 2:30:45 م\nHH:mm:ss = 14:30:45\n\nالرموز:\nHH/H = 24 ساعة\nhh/h = 12 ساعة\nmm = الدقائق\nss = الثواني\na = ص/م',
-                helpTooltip: 'انقر لمرجع التنسيق'
+                helpTooltip: 'تنسيق باستخدام date-fns',
+                dateFnsLinkText: 'تنسيق date-fns'
             },
             showFilePreview: {
                 name: 'إظهار معاينة الملاحظة',
@@ -1197,6 +1304,14 @@ export const STRINGS_AR = {
                 name: 'توريث ألوان المجلدات',
                 desc: 'المجلدات الفرعية ترث الألوان من المجلدات الأصلية.'
             },
+            folderSortOrder: {
+                name: 'ترتيب فرز المجلدات',
+                desc: 'انقر بزر الماوس الأيمن على أي مجلد لتعيين ترتيب فرز مختلف لمحتوياته.',
+                options: {
+                    alphaAsc: 'من أ إلى ي',
+                    alphaDesc: 'من ي إلى أ'
+                }
+            },
             showNoteCount: {
                 name: 'إظهار عدد الملاحظات',
                 desc: 'عرض عدد الملاحظات بجانب كل مجلد ووسم.'
@@ -1261,12 +1376,13 @@ export const STRINGS_AR = {
             },
             tagSortOrder: {
                 name: 'ترتيب فرز الوسوم',
-                desc: 'اختر كيفية ترتيب الوسوم في لوحة التنقل.',
+                desc: 'انقر بزر الماوس الأيمن على أي وسم لتعيين ترتيب فرز مختلف لمحتوياته.',
                 options: {
                     alphaAsc: 'من أ إلى ي',
                     alphaDesc: 'من ي إلى أ',
-                    frequencyAsc: 'التكرار (من الأقل إلى الأعلى)',
-                    frequencyDesc: 'التكرار (من الأعلى إلى الأقل)'
+                    frequency: 'التكرار',
+                    lowToHigh: 'من الأقل إلى الأعلى',
+                    highToLow: 'من الأعلى إلى الأقل'
                 }
             },
             showAllTagsFolder: {
@@ -1418,7 +1534,8 @@ export const STRINGS_AR = {
             frontmatterDateFormat: {
                 name: 'تنسيق الطابع الزمني',
                 desc: 'التنسيق المستخدم لتحليل الطوابع الزمنية في البيانات الأمامية. اتركه فارغًا لاستخدام تنسيق ISO 8601',
-                helpTooltip: 'راجع وثائق تنسيق date-fns',
+                helpTooltip: 'تنسيق باستخدام date-fns',
+                dateFnsLinkText: 'تنسيق date-fns',
                 help: "التنسيقات الشائعة:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {

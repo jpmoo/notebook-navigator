@@ -52,7 +52,7 @@ describe('extractMetadataFromCache - icon extraction', () => {
         expect(result.icon).toBe('emoji:🔭');
     });
 
-    it('retains emoji provider values without modification', () => {
+    it('accepts legacy provider-prefixed icon values', () => {
         const settings = createSettings();
         const metadata: CachedMetadata = {
             frontmatter: {

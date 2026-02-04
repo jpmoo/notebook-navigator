@@ -1,6 +1,6 @@
 # Notebook Navigator Scroll Orchestration
 
-Updated: January 8, 2026
+Updated: January 19, 2026
 
 ## Table of Contents
 
@@ -26,6 +26,7 @@ Updated: January 8, 2026
 - [Implementation Details](#implementation-details)
   - [Priority System](#priority-system)
   - [Alignment Policies](#alignment-policies)
+  - [Safe Viewport](#safe-viewport)
   - [Stabilization Mechanisms](#stabilization-mechanisms)
   - [Container Readiness](#container-readiness)
 - [Debugging Guide](#debugging-guide)
@@ -38,6 +39,12 @@ Updated: January 8, 2026
 
 The scroll orchestration system coordinates TanStack Virtual lists in both panes. Each pane tracks structural changes,
 defers scroll execution until data and DOM state are ready, and applies deterministic alignment for user-driven actions.
+
+Primary implementation:
+
+- `src/hooks/useNavigationPaneScroll.ts`
+- `src/hooks/useListPaneScroll.ts`
+- Shared helpers: `src/types/scroll.ts`, `src/utils/navigationIndex.ts`
 
 ## The Problem
 
@@ -78,7 +85,7 @@ Key principles:
 1. Always resolve indices at execution time.
 2. Increment pane-specific versions when index maps change.
 3. Block scroll execution until the pane reports visible and the required version is reached.
-4. Use intent metadata to pick alignment and replace lower-priority requests.
+4. Use intent metadata to pick alignment and (in the list pane) replace lower-priority requests.
 
 ## Core Concepts
 
@@ -87,8 +94,8 @@ Key principles:
 Both panes maintain `indexVersionRef` counters.
 
 - **Navigation pane** increments when the `pathToIndex` map changes size or identity.
-- **List pane** increments on `filePathToIndex` identity changes and triggers an immediate `virtualizer.measure()` so
-  item heights stay current.
+- **List pane** increments when the `filePathToIndex` map changes size or identity and triggers `rowVirtualizer.measure()`
+  so item heights stay current.
 
 These counters allow pending scrolls to specify the version they require before execution.
 
@@ -105,8 +112,9 @@ A `pendingScrollVersion` state value forces React effects to re-run whenever a n
 
 Intent metadata ties each request to its trigger and alignment policy.
 
-- **Navigation intents**: `selection`, `visibilityToggle`, `external`, `mobile-visibility`. `startup` and `reveal` exist
-  in the type but are not currently enqueued by `useNavigationPaneScroll`.
+- **Navigation intents**: `selection` is used for immediate selection scrolling (not stored as a pending scroll). Pending
+  scrolls currently use `visibilityToggle`, `external`, and `mobile-visibility`. `startup` and `reveal` exist in the type
+  but are not currently enqueued by `useNavigationPaneScroll`.
 - **List intents**: `folder-navigation`, `visibility-change`, `reveal`, `list-structure-change`. `'top'` requests use
   the same priority system with `type: 'top'`.
 
@@ -141,8 +149,10 @@ requests.
 - Both hooks use `ResizeObserver` to detect when the DOM container has width and height. Scrolls never run while the
   container or any parent is hidden.
 - The composed `isScrollContainerReady` flag requires both logical visibility and physical dimensions.
-- Mobile taps on the pane header call `handleScrollToTop`, which performs a smooth `scrollTo({ top: 0 })` when the
-  device is mobile.
+- Both panes use TanStack Virtual `scrollMargin` and `scrollPaddingStart`/`scrollPaddingEnd` to align row math with
+  overlay chrome and bottom overlays.
+- In the list pane, mobile taps on the pane header call `handleScrollToTop`, which performs a smooth
+  `scrollTo({ top: 0 })`.
 
 ### Navigation Pane Scrolling
 
@@ -150,7 +160,10 @@ requests.
 spacers).
 
 - **Virtualizer setup**: Item height estimates follow navigation settings and mobile overrides. `scrollMargin` and
-  `scrollPaddingStart` align virtualization math and `scrollToIndex` below the pinned chrome stack.
+  `scrollPaddingStart`/`scrollPaddingEnd` align virtualization math and `scrollToIndex` below the pinned chrome stack
+  and above bottom overlays.
+- **Safe viewport adjustment**: `scrollToIndexSafely` runs `scrollToIndex` and then adjusts `scrollTop` to keep the
+  rendered row between the pinned chrome stack and bottom overlays (calendar, mobile floating toolbar).
 - **Selection handling**: The hook watches folder/tag selection, pane focus, and visibility. It suppresses auto-scroll
   when a shortcut is active or when `skipAutoScroll` is enabled for shortcut reveals.
 - **Hidden item toggles**: When `showHiddenItems` changes, the current selection is queued with intent
@@ -163,18 +176,21 @@ spacers).
   the navigation pane.
 - **Mobile drawer**: A `notebook-navigator-visible` event sets a pending scroll when the drawer becomes visible on
   mobile devices.
-- **Settings changes**: Line height or indentation updates trigger a `measure()` call and a `requestAnimationFrame`
-  scroll to re-center the selection when auto-scroll is allowed.
+- **Settings changes**: Navigation sizing changes trigger `measure()` and an `auto` scroll to keep the selection within
+  the safe viewport. Scroll inset changes (`scrollMargin`, `scrollPaddingEnd`) use the same `auto` scroll path.
 
 ### List Pane Scrolling
 
 `useListPaneScroll` manages article lists, pinned groups, spacers, and date headers.
 
 - **Virtualizer setup**: Height estimation mirrors `FileItem` logic, looking up preview availability synchronously and
-  respecting compact mode.
+  respecting compact mode. `scrollMargin` and `scrollPaddingStart`/`scrollPaddingEnd` keep scroll math aligned with
+  overlay chrome and the mobile bottom toolbar.
 - **Priority queue**: `setPending` wraps `rankListPending`, replacing lower-ranked requests.
 - **Selected file tracking**: `selectedFilePathRef` avoids executing stale config scrolls for files that are no longer
   selected.
+- **Selection index resolution**: `getSelectionIndex` returns the header index for the first file in the list when a
+  header exists directly above it; otherwise it returns the file index.
 - **Context tracking**: `contextIndexVersionRef` maintains the last version seen per folder/tag context. When the index
   advances within a folder or tag (pin/unpin, reorder, delete), the hook queues a `list-structure-change` scroll (when
   `revealFileOnListChanges` is enabled) so the selected file remains visible.
@@ -186,6 +202,8 @@ spacers).
 - **Settings and search**: Appearance changes and descendant toggles queue `list-structure-change` entries. Search
   filters queue a `top` scroll when the selected file drops out of the filtered list, respecting mobile suppression
   flags.
+- **Dynamic height updates**: The hook re-measures the list when list indices change and when the in-memory database
+  reports preview, feature image, tag, metadata, or custom property updates.
 
 ## Common Scenarios
 
@@ -209,9 +227,10 @@ spacers).
 1. Navigation line height or indentation updates trigger `rowVirtualizer.measure()` followed by a deferred selection
    scroll when auto-scroll is allowed.
 2. List appearance or descendant toggles queue a `list-structure-change` scroll with `minIndexVersion = current + 1`
-   when `revealFileOnListChanges` is enabled. Disabling descendants can queue a `top` scroll instead.
-3. Reorders within the same folder or tag update `indexVersion` and enqueue a `list-structure-change` scroll so pinned
-   files remain visible.
+   when `revealFileOnListChanges` is enabled and a file is selected. Disabling descendants can queue a `top` scroll
+   when no file is selected or `revealFileOnListChanges` is disabled.
+3. Reorders within the same folder or tag update `indexVersion` and enqueue a `list-structure-change` scroll so the
+   selected file remains visible.
 
 ### Reveal Operations
 
@@ -268,6 +287,13 @@ export function rankListPending(p?: { type: 'file' | 'top'; reason?: ListScrollI
 - **List pane**: `folder-navigation` centers on mobile, others use `auto`. Startup reveals override to `center` after
   execution.
 
+### Safe Viewport
+
+- Both panes pass scroll insets to TanStack Virtual (`scrollMargin`, `scrollPaddingStart`, `scrollPaddingEnd`) so row
+  offsets and `scrollToIndex` align with overlay chrome.
+- Navigation runs a post-scroll adjustment step (`ensureIndexNotCovered`) that clamps the target row between the safe
+  top and bottom bounds, retrying for a few animation frames while virtualization settles.
+
 ### Stabilization Mechanisms
 
 - Navigation visibility toggles run a `requestAnimationFrame` check after scrolling to detect secondary rebuilds and
@@ -279,8 +305,8 @@ export function rankListPending(p?: { type: 'file' | 'top'; reason?: ListScrollI
 
 - `scrollContainerRefCallback` stores the DOM node and updates a local state reference.
 - `ResizeObserver` (or a window resize fallback) tracks the node's size.
-- `isScrollContainerReady` gates all scroll execution paths, preventing TanStack Virtual from throwing while hidden
-  elements are measured.
+- `isScrollContainerReady` gates all scroll execution paths, preventing TanStack Virtual scroll calls while the
+  container (or a parent) is hidden.
 
 ## Debugging Guide
 

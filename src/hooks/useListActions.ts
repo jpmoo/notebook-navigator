@@ -25,7 +25,7 @@ import { useUXPreferenceActions, useUXPreferences } from '../context/UXPreferenc
 import { strings } from '../i18n';
 import type { SortOption } from '../settings';
 import { ItemType } from '../types';
-import { getEffectiveSortOption, getSortIcon as getSortIconName, SORT_OPTIONS } from '../utils/sortUtils';
+import { getEffectiveSortOption, getSortIcon as getSortIconName, isPropertySortOption, SORT_OPTIONS } from '../utils/sortUtils';
 import { showListPaneAppearanceMenu } from '../components/ListPaneAppearanceMenu';
 import { getDefaultListMode } from './useListPaneAppearance';
 import type { FolderAppearance } from './useListPaneAppearance';
@@ -90,6 +90,19 @@ export function useListActions() {
         (event: React.MouseEvent) => {
             const menu = new Menu();
             const currentSort = getCurrentSortOption();
+            const propertySortKey = settings.propertySortKey.trim();
+
+            const getSortOptionLabel = (option: SortOption): string => {
+                if (isPropertySortOption(option) && propertySortKey.length > 0) {
+                    const template =
+                        option === 'property-asc'
+                            ? strings.settings.items.sortNotesBy.propertyOverride.asc
+                            : strings.settings.items.sortNotesBy.propertyOverride.desc;
+                    return template.replace('{property}', propertySortKey);
+                }
+                return strings.settings.items.sortNotesBy.options[option];
+            };
+
             const isCustomSort =
                 (selectionState.selectionType === ItemType.FOLDER &&
                     selectionState.selectedFolder &&
@@ -99,9 +112,7 @@ export function useListActions() {
                     metadataService.getTagSortOverride(selectionState.selectedTag));
 
             menu.addItem(item => {
-                item.setTitle(
-                    `${strings.paneHeader.defaultSort}: ${strings.settings.items.sortNotesBy.options[settings.defaultFolderSort]}`
-                )
+                item.setTitle(`${strings.paneHeader.defaultSort}: ${getSortOptionLabel(settings.defaultFolderSort)}`)
                     .setChecked(!isCustomSort)
                     .onClick(() => {
                         // Reset to default sort
@@ -127,7 +138,7 @@ export function useListActions() {
                 lastCategory = category;
 
                 menu.addItem(item => {
-                    item.setTitle(strings.settings.items.sortNotesBy.options[option])
+                    item.setTitle(getSortOptionLabel(option))
                         .setChecked(!!isCustomSort && currentSort === option)
                         .onClick(() => {
                             // Apply sort option

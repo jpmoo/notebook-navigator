@@ -16,9 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { IconProvider, IconDefinition } from '../types';
+import { IconProvider, IconDefinition, IconRenderResult } from '../types';
 import { isValidEmoji, extractFirstEmoji } from '../../../utils/emojiUtils';
 import * as emojilib from 'emojilib';
+import { resetIconContainer } from './providerUtils';
 
 /**
  * Type guard to check if a value is an array of strings.
@@ -30,15 +31,6 @@ function isKeywordList(value: unknown): value is string[] {
 
 /**
  * Icon provider for emoji icons.
- *
- * This provider allows users to use any emoji as an icon for folders and tags.
- * It supports:
- * - Direct emoji input (e.g., "📁", "🏠", "⭐")
- * - Emoji search by keyword using the emojilib library
- * - Automatic validation and extraction of emojis from mixed input
- *
- * The provider integrates seamlessly with the icon service, rendering emojis
- * as text with appropriate sizing and styling.
  */
 export class EmojiIconProvider implements IconProvider {
     id = 'emoji';
@@ -67,8 +59,12 @@ export class EmojiIconProvider implements IconProvider {
      * @param emojiId - The emoji character(s) to render
      * @param size - Optional size in pixels for the emoji
      */
-    render(container: HTMLElement, emojiId: string, size?: number): void {
-        container.empty();
+    render(container: HTMLElement, emojiId: string, size?: number): IconRenderResult {
+        resetIconContainer(container);
+        if (!emojiId) {
+            return 'not-found';
+        }
+
         container.addClass('nn-emoji-icon');
         container.setText(emojiId);
 
@@ -79,7 +75,14 @@ export class EmojiIconProvider implements IconProvider {
             container.style.width = `${size}px`;
             container.style.height = `${size}px`;
             container.style.lineHeight = `${size}px`;
+        } else {
+            container.style.removeProperty('font-size');
+            container.style.removeProperty('width');
+            container.style.removeProperty('height');
+            container.style.removeProperty('line-height');
         }
+
+        return 'rendered';
     }
 
     /**

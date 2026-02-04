@@ -64,6 +64,7 @@ export function ListPaneHeader({ onHeaderClick, isSearchActive, onSearchToggle }
         hasCustomAppearance
     } = useListActions();
     const listToolbarVisibility = settings.toolbarVisibility.list;
+    const showBackButton = listToolbarVisibility.back && uiState.singlePane;
     const showSearchButton = listToolbarVisibility.search;
     const showDescendantsButton = listToolbarVisibility.descendants;
     const showSortButton = listToolbarVisibility.sort;
@@ -73,6 +74,14 @@ export function ListPaneHeader({ onHeaderClick, isSearchActive, onSearchToggle }
     const shouldRenderBreadcrumbSegments = isMobile;
     const shouldShowHeaderTitle = !isMobile && listPaneTitlePreference === 'header';
     const shouldShowHeaderIcon = shouldShowHeaderTitle && showIcon;
+    const shouldRenderDesktopHeader =
+        showBackButton ||
+        shouldShowHeaderTitle ||
+        showSearchButton ||
+        showDescendantsButton ||
+        showSortButton ||
+        showAppearanceButton ||
+        showNewNoteButton;
 
     const backIconId = useMemo(() => {
         return Platform.isAndroidApp ? 'arrow-left' : 'chevron-left';
@@ -202,10 +211,14 @@ export function ListPaneHeader({ onHeaderClick, isSearchActive, onSearchToggle }
         );
     }
 
+    if (!shouldRenderDesktopHeader) {
+        return null;
+    }
+
     return (
         <div className="nn-pane-header">
             <div className="nn-header-actions nn-header-actions--space-between">
-                {uiState.singlePane && (
+                {showBackButton ? (
                     <button
                         className="nn-icon-button"
                         data-pane-toggle="navigation"
@@ -218,7 +231,7 @@ export function ListPaneHeader({ onHeaderClick, isSearchActive, onSearchToggle }
                     >
                         <ServiceIcon iconId={backIconId} aria-hidden={true} />
                     </button>
-                )}
+                ) : null}
                 <span className="nn-pane-header-title">
                     {shouldShowHeaderIcon && <span ref={iconRef} className="nn-pane-header-icon" />}
                     {shouldShowHeaderTitle && <span className="nn-pane-header-text">{breadcrumbContent}</span>}

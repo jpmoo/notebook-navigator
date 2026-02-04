@@ -22,11 +22,27 @@
 
 import { TFile, TFolder, type WorkspaceLeaf } from 'obsidian';
 import type NotebookNavigatorPlugin from '../../main';
-import { strings } from '../../i18n';
+import { getCurrentLanguage, strings } from '../../i18n';
+import {
+    createDailyNote,
+    getDailyNoteFile,
+    getDailyNoteFilename,
+    getDailyNoteSettings as getCoreDailyNoteSettings
+} from '../../utils/dailyNotes';
+import {
+    buildCustomCalendarFilePathForPattern,
+    buildCustomCalendarMomentPattern,
+    createCalendarMarkdownFile,
+    getCalendarNoteConfig,
+    getCalendarTemplatePath,
+    type CalendarNoteKind
+} from '../../utils/calendarNotes';
+import { getCalendarCustomWeekAnchorDate } from '../../utils/calendarCustomNotePatterns';
 import { getFolderNote, isFolderNote, isSupportedFolderNoteExtension, type FolderNoteDetectionSettings } from '../../utils/folderNotes';
 import { isFolderInExcludedFolder, shouldExcludeFile } from '../../utils/fileFilters';
 import { getEffectiveFrontmatterExclusions, isFileHiddenBySettings } from '../../utils/exclusionUtils';
 import { runAsyncAction } from '../../utils/async';
+import { getMomentApi, resolveMomentLocale, type MomentInstance } from '../../utils/moment';
 import { NotebookNavigatorView } from '../../view/NotebookNavigatorView';
 import { getActiveHiddenFolders, getActiveVaultProfile } from '../../utils/vaultProfiles';
 import { showNotice } from '../../utils/noticeUtils';
@@ -338,6 +354,153 @@ function openVaultProfilePicker(plugin: NotebookNavigatorPlugin): void {
     modal.open();
 }
 
+async function openFileInActiveLeaf(plugin: NotebookNavigatorPlugin, file: TFile): Promise<void> {
+    const openFile = async () => {
+        const leaf = plugin.app.workspace.getLeaf(false);
+        if (!leaf) {
+            return;
+        }
+        await leaf.openFile(file, { active: true });
+    };
+
+    if (plugin.commandQueue) {
+        await plugin.commandQueue.executeOpenActiveFile(file, openFile, { active: true });
+        return;
+    }
+
+    await openFile();
+}
+
+async function createAndOpenCustomCalendarNote(plugin: NotebookNavigatorPlugin, kind: CalendarNoteKind, date: MomentInstance) {
+    const config = getCalendarNoteConfig(kind, plugin.settings);
+    const settings = { calendarCustomRootFolder: getActiveVaultProfile(plugin.settings).periodicNotesFolder };
+    const templatePath = getCalendarTemplatePath(kind, plugin.settings);
+
+    const { folderPath, fileName, filePath } = buildCustomCalendarFilePathForPattern(
+        date,
+        settings,
+        config.calendarCustomFilePattern,
+        config.fallbackPattern
+    );
+
+    const existing = plugin.app.vault.getAbstractFileByPath(filePath);
+    if (existing instanceof TFile) {
+        await openFileInActiveLeaf(plugin, existing);
+        return;
+    }
+
+    let created: TFile;
+    try {
+        created = await createCalendarMarkdownFile(plugin.app, folderPath, fileName, templatePath);
+    } catch (error) {
+        console.error('Failed to create calendar note', error);
+        showNotice(strings.common.unknownError, { variant: 'warning' });
+        return;
+    }
+
+    await openFileInActiveLeaf(plugin, created);
+}
+
+async function openCalendarNoteForToday(plugin: NotebookNavigatorPlugin, kind: CalendarNoteKind): Promise<void> {
+    const momentApi = getMomentApi();
+    if (!momentApi) {
+        showNotice(strings.common.unknownError, { variant: 'warning' });
+        return;
+    }
+
+    const date: MomentInstance = momentApi().startOf('day');
+    const currentLanguage = getCurrentLanguage();
+    const fallbackLocale = momentApi.locale() || 'en';
+    const requestedDisplayLocale = (currentLanguage || fallbackLocale).replace(/_/g, '-');
+    const displayLocale = resolveMomentLocale(requestedDisplayLocale, momentApi, fallbackLocale);
+    const calendarRulesRequestedLocale =
+        plugin.settings.calendarLocale === 'system-default' ? displayLocale : plugin.settings.calendarLocale;
+    const calendarRulesLocale = resolveMomentLocale(calendarRulesRequestedLocale, momentApi, displayLocale);
+
+    if (kind === 'day' && plugin.settings.calendarIntegrationMode === 'daily-notes') {
+        const dailyNoteSettings = getCoreDailyNoteSettings(plugin.app);
+        if (!dailyNoteSettings) {
+            showNotice(strings.navigationCalendar.dailyNotesNotEnabled, { variant: 'warning' });
+            return;
+        }
+
+        const file = getDailyNoteFile(plugin.app, date, dailyNoteSettings);
+        if (!file) {
+            const filename = getDailyNoteFilename(date, dailyNoteSettings);
+
+            const createFile = async () => {
+                const created = await createDailyNote(plugin.app, date, dailyNoteSettings);
+                if (!created) {
+                    return;
+                }
+                await openFileInActiveLeaf(plugin, created);
+            };
+
+            if (plugin.settings.calendarConfirmBeforeCreate) {
+                new ConfirmModal(
+                    plugin.app,
+                    strings.navigationCalendar.createDailyNote.title,
+                    strings.navigationCalendar.createDailyNote.message.replace('{filename}', filename),
+                    () => {
+                        runAsyncAction(createFile);
+                    },
+                    strings.navigationCalendar.createDailyNote.confirmButton,
+                    { confirmButtonClass: 'mod-cta' }
+                ).open();
+                return;
+            }
+
+            await createFile();
+            return;
+        }
+
+        await openFileInActiveLeaf(plugin, file);
+        return;
+    }
+
+    const config = getCalendarNoteConfig(kind, plugin.settings);
+    const momentPattern = buildCustomCalendarMomentPattern(config.calendarCustomFilePattern, config.fallbackPattern);
+    if (!config.isPatternValid(momentPattern, momentApi)) {
+        showNotice(config.parsingErrorText, { variant: 'warning' });
+        return;
+    }
+
+    const dateForPath =
+        kind === 'week'
+            ? // Weekly patterns can include month/quarter tokens as folder segments. Anchor to the start of the week so all
+              // days within a week resolve to the same path. For ISO week patterns (`GGGG-[W]WW`), anchor to `isoWeek` to
+              // avoid locale week-start differences (e.g. Sunday-start locales).
+              getCalendarCustomWeekAnchorDate(date, momentPattern, calendarRulesLocale)
+            : kind === 'month' || kind === 'quarter' || kind === 'year'
+              ? date.clone().locale(displayLocale)
+              : date;
+
+    const settings = { calendarCustomRootFolder: getActiveVaultProfile(plugin.settings).periodicNotesFolder };
+    const expected = buildCustomCalendarFilePathForPattern(dateForPath, settings, config.calendarCustomFilePattern, config.fallbackPattern);
+    const fileEntry = plugin.app.vault.getAbstractFileByPath(expected.filePath);
+    const file = fileEntry instanceof TFile ? fileEntry : null;
+    if (!file) {
+        const createFile = () => runAsyncAction(() => createAndOpenCustomCalendarNote(plugin, kind, dateForPath));
+
+        if (plugin.settings.calendarConfirmBeforeCreate) {
+            new ConfirmModal(
+                plugin.app,
+                strings.paneHeader.newNote,
+                strings.navigationCalendar.createDailyNote.message.replace('{filename}', expected.filePath),
+                createFile,
+                strings.navigationCalendar.createDailyNote.confirmButton,
+                { confirmButtonClass: 'mod-cta' }
+            ).open();
+            return;
+        }
+
+        createFile();
+        return;
+    }
+
+    await openFileInActiveLeaf(plugin, file);
+}
+
 /**
  * Registers all navigator commands with the plugin
  */
@@ -520,6 +683,46 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
                 await plugin.activateView();
                 plugin.toggleShowCalendar();
             });
+        }
+    });
+
+    plugin.addCommand({
+        id: 'open-daily-note',
+        name: strings.commands.openDailyNote,
+        callback: () => {
+            runAsyncAction(() => openCalendarNoteForToday(plugin, 'day'));
+        }
+    });
+
+    plugin.addCommand({
+        id: 'open-weekly-note',
+        name: strings.commands.openWeeklyNote,
+        callback: () => {
+            runAsyncAction(() => openCalendarNoteForToday(plugin, 'week'));
+        }
+    });
+
+    plugin.addCommand({
+        id: 'open-monthly-note',
+        name: strings.commands.openMonthlyNote,
+        callback: () => {
+            runAsyncAction(() => openCalendarNoteForToday(plugin, 'month'));
+        }
+    });
+
+    plugin.addCommand({
+        id: 'open-quarterly-note',
+        name: strings.commands.openQuarterlyNote,
+        callback: () => {
+            runAsyncAction(() => openCalendarNoteForToday(plugin, 'quarter'));
+        }
+    });
+
+    plugin.addCommand({
+        id: 'open-yearly-note',
+        name: strings.commands.openYearlyNote,
+        callback: () => {
+            runAsyncAction(() => openCalendarNoteForToday(plugin, 'year'));
         }
     });
 
@@ -1048,6 +1251,34 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
                     view.toggleSearch();
                 }
             });
+        }
+    });
+
+    // Command to select the vault root folder and open search
+    plugin.addCommand({
+        id: 'search-vault',
+        name: strings.commands.searchVaultRoot,
+        checkCallback: (checking: boolean) => {
+            if (!plugin.settings.showRootFolder) {
+                return false;
+            }
+
+            if (checking) {
+                return true;
+            }
+
+            runAsyncAction(async () => {
+                const view = await ensureNavigatorOpen(plugin);
+                if (!view) {
+                    return;
+                }
+
+                const root = plugin.app.vault.getRoot();
+                view.navigateToFolder(root, { source: 'manual', preserveNavigationFocus: false });
+                view.toggleSearch();
+            });
+
+            return true;
         }
     });
 }

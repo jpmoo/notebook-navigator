@@ -41,18 +41,19 @@ export function useFileOpener() {
                 return;
             }
 
+            const active = options?.active ?? false;
+
             const openFile = async () => {
                 const targetLeaf = options?.leaf ?? app.workspace.getLeaf(false);
                 if (!targetLeaf) {
                     return;
                 }
-                const active = options?.active ?? false;
                 await targetLeaf.openFile(file, { active });
             };
 
             if (commandQueue) {
                 // Use command queue to serialize file operations
-                runAsyncAction(() => commandQueue.executeOpenActiveFile(file, openFile));
+                runAsyncAction(() => commandQueue.executeOpenActiveFile(file, openFile, { active }));
                 return;
             }
 

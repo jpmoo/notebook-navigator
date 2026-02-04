@@ -65,7 +65,7 @@ export function NavigationPaneHeader({
     const navigationVisibility = settings.toolbarVisibility.navigation;
     const showToggleDualPaneButton = navigationVisibility.toggleDualPane;
     const showExpandCollapseButton = navigationVisibility.expandCollapse;
-    const showCalendarButton = navigationVisibility.calendar;
+    const showCalendarButton = navigationVisibility.calendar && settings.calendarPlacement !== 'right-sidebar';
     const showHiddenItemsButton = navigationVisibility.hiddenItems && hasHiddenItems;
     const showRootReorderButton = navigationVisibility.rootReorder;
     const showNewFolderButton = navigationVisibility.newFolder;
@@ -119,6 +119,19 @@ export function NavigationPaneHeader({
             return null;
         }
         return <div className="nn-pane-header nn-pane-header-simple">{profileTrigger}</div>;
+    }
+
+    const shouldRenderDesktopHeader =
+        Boolean(profileTrigger) ||
+        showToggleDualPaneButton ||
+        showExpandCollapseButton ||
+        showHiddenItemsButton ||
+        showCalendarButton ||
+        showRootReorderButton ||
+        showNewFolderButton;
+
+    if (!shouldRenderDesktopHeader) {
+        return null;
     }
 
     return (

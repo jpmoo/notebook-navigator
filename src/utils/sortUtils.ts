@@ -20,10 +20,19 @@ import { TFile, TFolder } from 'obsidian';
 import type { SortOption, NotebookNavigatorSettings } from '../settings';
 import { NavigationItemType, ItemType } from '../types';
 
-/**
- * Available sort options in order they appear in menus
- */
-export const SORT_OPTIONS: SortOption[] = ['modified-desc', 'modified-asc', 'created-desc', 'created-asc', 'title-asc', 'title-desc'];
+export { SORT_OPTIONS } from '../settings/types';
+
+export function isDateSortOption(sortOption: SortOption): boolean {
+    return sortOption.startsWith('modified') || sortOption.startsWith('created');
+}
+
+export function isAlphabeticalSortOption(sortOption: SortOption): boolean {
+    return !isDateSortOption(sortOption);
+}
+
+export function isPropertySortOption(sortOption: SortOption): sortOption is 'property-asc' | 'property-desc' {
+    return sortOption === 'property-asc' || sortOption === 'property-desc';
+}
 
 /**
  * Natural string comparison that treats digit sequences as numbers.
@@ -75,7 +84,8 @@ export function sortFiles(
     sortOption: SortOption,
     getCreatedTime: (file: TFile) => number,
     getModifiedTime: (file: TFile) => number,
-    getDisplayName?: (file: TFile) => string
+    getDisplayName?: (file: TFile) => string,
+    getPropertyValue?: (file: TFile) => string | null
 ): void {
     // Helper function to get timestamp for sorting
     const getTimestamp = (file: TFile, type: 'created' | 'modified'): number => {
@@ -118,6 +128,60 @@ export function sortFiles(
                 return a.path.localeCompare(b.path);
             });
             break;
+        case 'filename-asc':
+            files.sort((a, b) => {
+                const nameA = a.basename;
+                const nameB = b.basename;
+                const cmp = naturalCompare(nameA, nameB);
+                if (cmp !== 0) return cmp;
+                if (nameA.length !== nameB.length) return nameA.length - nameB.length;
+                return a.path.localeCompare(b.path);
+            });
+            break;
+        case 'filename-desc':
+            files.sort((a, b) => {
+                const nameA = a.basename;
+                const nameB = b.basename;
+                const cmp = naturalCompare(nameA, nameB);
+                if (cmp !== 0) return -cmp;
+                if (nameA.length !== nameB.length) return nameA.length - nameB.length;
+                return a.path.localeCompare(b.path);
+            });
+            break;
+        case 'property-asc':
+        case 'property-desc': {
+            const descending = sortOption === 'property-desc';
+            files.sort((a, b) => {
+                const valueA = getPropertyValue ? getPropertyValue(a) : null;
+                const valueB = getPropertyValue ? getPropertyValue(b) : null;
+                const hasValueA = Boolean(valueA);
+                const hasValueB = Boolean(valueB);
+
+                if (hasValueA !== hasValueB) {
+                    return hasValueA ? -1 : 1;
+                }
+
+                if (hasValueA && hasValueB && valueA && valueB) {
+                    const cmp = naturalCompare(valueA, valueB);
+                    if (cmp !== 0) {
+                        return descending ? -cmp : cmp;
+                    }
+                    if (valueA.length !== valueB.length) {
+                        return valueA.length - valueB.length;
+                    }
+                }
+
+                const nameA = getDisplayName ? getDisplayName(a) : a.basename;
+                const nameB = getDisplayName ? getDisplayName(b) : b.basename;
+                const cmp = naturalCompare(nameA, nameB);
+                if (cmp !== 0) {
+                    return descending ? -cmp : cmp;
+                }
+                if (nameA.length !== nameB.length) return nameA.length - nameB.length;
+                return a.path.localeCompare(b.path);
+            });
+            break;
+        }
     }
 }
 

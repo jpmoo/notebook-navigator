@@ -195,7 +195,8 @@ export function useRootFolderOrder({ settings, onFileChange }: UseRootFolderOrde
             }
 
             if (rootFolderOrderRef.current.length === 0) {
-                const alphabeticalChildren = rootChildren.slice().sort((a, b) => naturalCompare(a.name, b.name));
+                const direction = settings.folderSortOrder === 'alpha-desc' ? -1 : 1;
+                const alphabeticalChildren = rootChildren.slice().sort((a, b) => naturalCompare(a.name, b.name) * direction);
 
                 pendingChanges.renames.clear();
                 pendingChanges.removals.clear();
@@ -319,7 +320,7 @@ export function useRootFolderOrder({ settings, onFileChange }: UseRootFolderOrde
             events.forEach(eventRef => app.vault.offref(eventRef));
             rebuildFolders.cancel();
         };
-    }, [app, onFileChange, settings.showRootFolder, settings.rootFolderOrder, updateSettings]);
+    }, [app, onFileChange, settings.showRootFolder, settings.rootFolderOrder, settings.folderSortOrder, updateSettings]);
 
     return {
         rootFolders,

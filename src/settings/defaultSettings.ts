@@ -25,7 +25,13 @@ import type { FolderAppearance, TagAppearance } from '../hooks/useListPaneAppear
 import type { NotebookNavigatorSettings } from './types';
 import { SYNC_MODE_SETTING_IDS, type SettingSyncMode } from './types';
 import { sanitizeRecord } from '../utils/recordUtils';
-import { DEFAULT_CALENDAR_CUSTOM_FILE_PATTERN } from '../utils/calendarCustomNotePatterns';
+import {
+    DEFAULT_CALENDAR_CUSTOM_FILE_PATTERN,
+    DEFAULT_CALENDAR_CUSTOM_MONTH_PATTERN,
+    DEFAULT_CALENDAR_CUSTOM_QUARTER_PATTERN,
+    DEFAULT_CALENDAR_CUSTOM_WEEK_PATTERN,
+    DEFAULT_CALENDAR_CUSTOM_YEAR_PATTERN
+} from '../utils/calendarCustomNotePatterns';
 
 const defaultSettingsSync = sanitizeRecord<SettingSyncMode>(undefined);
 SYNC_MODE_SETTING_IDS.forEach(settingId => {
@@ -49,6 +55,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
             hiddenFileTags: [],
             hiddenFileProperties: [],
             navigationBanner: null,
+            periodicNotesFolder: '',
             shortcuts: []
         }
     ],
@@ -59,8 +66,13 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     // General tab - Behavior
     autoRevealActiveFile: true,
     autoRevealIgnoreRightSidebar: true,
-    multiSelectModifier: 'cmdCtrl',
     paneTransitionDuration: 150,
+
+    // General tab - Keyboard navigation
+    multiSelectModifier: 'cmdCtrl',
+    enterToOpenFiles: false,
+    shiftEnterOpenContext: 'tab',
+    cmdCtrlEnterOpenContext: 'split',
 
     // General tab - View
     startView: 'files',
@@ -81,6 +93,9 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
 
     mobileScale: DEFAULT_UI_SCALE,
 
+    // General tab - Mobile appearance
+    useFloatingToolbars: true,
+
     // General tab - Formatting
     dateFormat: 'MMM d, yyyy',
     timeFormat: 'h:mm a',
@@ -98,19 +113,30 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     showRecentNotes: true,
     recentNotesCount: 5,
 
-    // Navigation pane tab - Calendar
-    showCalendar: false,
+    // Calendar tab - Calendar
+    calendarPlacement: 'left-sidebar',
     calendarLocale: 'system-default',
+    calendarWeekendDays: 'sat-sun',
     calendarWeeksToShow: 1,
     calendarHighlightToday: true,
+    calendarShowFeatureImage: true,
     calendarShowWeekNumber: false,
+    calendarShowQuarter: false,
     calendarConfirmBeforeCreate: true,
 
-    // Navigation pane tab - Calendar integration
-    calendarIntegrationMode: 'daily-notes',
-    calendarCustomRootFolder: '',
+    // Calendar tab - Calendar integration
+    calendarIntegrationMode: 'notebook-navigator',
     calendarCustomFilePattern: DEFAULT_CALENDAR_CUSTOM_FILE_PATTERN,
-    calendarCustomPromptForTitle: true,
+    calendarCustomWeekPattern: DEFAULT_CALENDAR_CUSTOM_WEEK_PATTERN,
+    calendarCustomMonthPattern: DEFAULT_CALENDAR_CUSTOM_MONTH_PATTERN,
+    calendarCustomQuarterPattern: DEFAULT_CALENDAR_CUSTOM_QUARTER_PATTERN,
+    calendarCustomYearPattern: DEFAULT_CALENDAR_CUSTOM_YEAR_PATTERN,
+    calendarTemplateFolder: '',
+    calendarCustomFileTemplate: null,
+    calendarCustomWeekTemplate: null,
+    calendarCustomMonthTemplate: null,
+    calendarCustomQuarterTemplate: null,
+    calendarCustomYearTemplate: null,
 
     // Navigation pane tab - Appearance
     colorIconOnly: false,
@@ -125,6 +151,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
             newFolder: true
         },
         list: {
+            back: true,
             search: true,
             descendants: true,
             sort: true,
@@ -132,6 +159,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
             newNote: true
         }
     },
+    pinNavigationBanner: true,
     showNoteCount: true,
     separateNoteCounts: true,
     rootLevelSpacing: 0,
@@ -148,6 +176,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     showFolderIcons: true,
     showRootFolder: true,
     inheritFolderColors: false,
+    folderSortOrder: 'alpha-asc',
     inheritTagColors: true,
     enableFolderNotes: false,
     folderNoteType: 'markdown',
@@ -167,6 +196,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     defaultListMode: 'standard',
     includeDescendantNotes: false,
     defaultFolderSort: 'modified-desc',
+    propertySortKey: '',
     revealFileOnListChanges: true,
     listPaneTitle: 'header',
     noteGrouping: 'date',
@@ -216,7 +246,8 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     showFileTagsInCompactMode: false,
     customPropertyType: 'none',
     customPropertyFields: '',
-    customPropertyColorFields: '',
+    showCustomPropertiesOnSeparateRows: true,
+    customPropertyColorMap: {},
     showCustomPropertyInCompactMode: false,
     showFileDate: true,
     // Default to showing modified date when sorting alphabetically
@@ -256,11 +287,13 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     folderColors: {},
     folderBackgroundColors: {},
     folderSortOverrides: {},
+    folderTreeSortOverrides: {},
     folderAppearances: {} as Record<string, FolderAppearance>,
     tagIcons: {},
     tagColors: {},
     tagBackgroundColors: {},
     tagSortOverrides: {},
+    tagTreeSortOverrides: {},
     tagAppearances: {} as Record<string, TagAppearance>,
     navigationSeparators: {},
     userColors: [...DEFAULT_CUSTOM_COLORS],

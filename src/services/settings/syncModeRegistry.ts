@@ -20,13 +20,16 @@ import { Platform } from 'obsidian';
 
 import {
     migrateUIScales,
+    resolveCalendarPlacement,
     resolveCalendarWeeksToShow,
     resolveCompactItemHeight,
     resolveCompactItemHeightScaleText,
+    resolveFolderSortOrder,
     resolveNavIndent,
     resolveNavItemHeight,
     resolveNavItemHeightScaleText,
     resolvePaneTransitionDuration,
+    resolvePinNavigationBanner,
     resolveSearchProvider,
     resolveTagSortOrder,
     resolveToolbarVisibility
@@ -61,11 +64,13 @@ interface CreateSyncModeRegistryParams {
     sanitizeBooleanSetting: (value: unknown, fallback: boolean) => boolean;
     sanitizeDualPaneOrientationSetting: (value: unknown) => DualPaneOrientation;
     sanitizeTagSortOrderSetting: (value: unknown) => NotebookNavigatorSettings['tagSortOrder'];
+    sanitizeFolderSortOrderSetting: (value: unknown) => NotebookNavigatorSettings['folderSortOrder'];
     sanitizeSearchProviderSetting: (value: unknown) => NotebookNavigatorSettings['searchProvider'];
     sanitizePaneTransitionDurationSetting: (value: unknown) => number;
     sanitizeToolbarVisibilitySetting: (value: unknown) => NotebookNavigatorSettings['toolbarVisibility'];
     sanitizeNavIndentSetting: (value: unknown) => number;
     sanitizeNavItemHeightSetting: (value: unknown) => number;
+    sanitizeCalendarPlacementSetting: (value: unknown) => NotebookNavigatorSettings['calendarPlacement'];
     sanitizeCalendarWeeksToShowSetting: (value: unknown) => NotebookNavigatorSettings['calendarWeeksToShow'];
     sanitizeCompactItemHeightSetting: (value: unknown) => number;
 
@@ -187,10 +192,7 @@ export function createSyncModeRegistry(params: CreateSyncModeRegistryParams): Sy
         });
     };
 
-    const createUXPreferenceEntry = (entryParams: {
-        settingId: 'includeDescendantNotes' | 'showCalendar';
-        persistedKey: 'includeDescendantNotes' | 'showCalendar';
-    }) => {
+    const createUXPreferenceEntry = (entryParams: { settingId: 'includeDescendantNotes'; persistedKey: 'includeDescendantNotes' }) => {
         return createEntry({
             persistedKeys: [entryParams.persistedKey],
             loadPhase: 'preProfiles',
@@ -238,6 +240,16 @@ export function createSyncModeRegistry(params: CreateSyncModeRegistryParams): Sy
                 return { migrated: false };
             },
             mirrorToLocalStorage: mirrorFromSettings(params.keys.vaultProfileKey, () => params.getSettings().vaultProfile)
+        }),
+        folderSortOrder: createResolvedLocalStorageSettingEntry({
+            settingId: 'folderSortOrder',
+            loadPhase: 'preProfiles',
+            localStorageKey: params.keys.folderSortOrderKey,
+            resolveDeviceLocal: storedData => ({
+                value: resolveFolderSortOrder({ storedData, keys: params.keys, defaultSettings: params.defaultSettings }),
+                migrated: false
+            }),
+            sanitizeSynced: () => params.sanitizeFolderSortOrderSetting(params.getSettings().folderSortOrder)
         }),
         tagSortOrder: createResolvedLocalStorageSettingEntry({
             settingId: 'tagSortOrder',
@@ -313,9 +325,27 @@ export function createSyncModeRegistry(params: CreateSyncModeRegistryParams): Sy
                 resolveToolbarVisibility({ storedData, keys: params.keys, defaultSettings: params.defaultSettings }),
             sanitizeSynced: () => params.sanitizeToolbarVisibilitySetting(params.getSettings().toolbarVisibility)
         }),
-        showCalendar: createUXPreferenceEntry({
-            settingId: 'showCalendar',
-            persistedKey: 'showCalendar'
+        useFloatingToolbars: createResolvedLocalStorageSettingEntry({
+            settingId: 'useFloatingToolbars',
+            loadPhase: 'preProfiles',
+            localStorageKey: params.keys.useFloatingToolbarsKey,
+            resolveDeviceLocal: () => {
+                const storedLocal = localStorage.get<unknown>(params.keys.useFloatingToolbarsKey);
+                const resolved = params.sanitizeBooleanSetting(storedLocal, params.defaultSettings.useFloatingToolbars);
+                setLocalStorage(params.keys.useFloatingToolbarsKey, resolved);
+                return { value: resolved, migrated: false };
+            },
+            sanitizeSynced: () =>
+                params.sanitizeBooleanSetting(params.getSettings().useFloatingToolbars, params.defaultSettings.useFloatingToolbars)
+        }),
+        pinNavigationBanner: createResolvedLocalStorageSettingEntry({
+            settingId: 'pinNavigationBanner',
+            loadPhase: 'preProfiles',
+            localStorageKey: params.keys.pinNavigationBannerKey,
+            resolveDeviceLocal: storedData =>
+                resolvePinNavigationBanner({ storedData, keys: params.keys, defaultSettings: params.defaultSettings }),
+            sanitizeSynced: () =>
+                params.sanitizeBooleanSetting(params.getSettings().pinNavigationBanner, params.defaultSettings.pinNavigationBanner)
         }),
         navIndent: createResolvedLocalStorageSettingEntry({
             settingId: 'navIndent',
@@ -340,6 +370,14 @@ export function createSyncModeRegistry(params: CreateSyncModeRegistryParams): Sy
                 resolveNavItemHeightScaleText({ storedData, keys: params.keys, defaultSettings: params.defaultSettings }),
             sanitizeSynced: () =>
                 params.sanitizeBooleanSetting(params.getSettings().navItemHeightScaleText, params.defaultSettings.navItemHeightScaleText)
+        }),
+        calendarPlacement: createResolvedLocalStorageSettingEntry({
+            settingId: 'calendarPlacement',
+            loadPhase: 'preProfiles',
+            localStorageKey: params.keys.calendarPlacementKey,
+            resolveDeviceLocal: storedData =>
+                resolveCalendarPlacement({ storedData, keys: params.keys, defaultSettings: params.defaultSettings }),
+            sanitizeSynced: () => params.sanitizeCalendarPlacementSetting(params.getSettings().calendarPlacement)
         }),
         calendarWeeksToShow: createResolvedLocalStorageSettingEntry({
             settingId: 'calendarWeeksToShow',

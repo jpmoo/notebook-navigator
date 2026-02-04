@@ -26,6 +26,9 @@ export const NOTEBOOK_NAVIGATOR_RELEASE_CHECK_URL = `https://api.github.com/repo
 export const SUPPORT_SPONSOR_URL = 'https://github.com/sponsors/johansan/';
 export const SUPPORT_BUY_ME_A_COFFEE_URL = 'https://buymeacoffee.com/johansan';
 
+export const DATE_FNS_FORMAT_DOCS_URL = 'https://date-fns.org/docs/format';
+export const MOMENT_FORMAT_DOCS_URL = 'https://momentjs.com/docs/#/displaying/format/';
+
 const WELCOME_VIDEO_URL = 'https://www.youtube.com/watch?v=BewIlG8wLAM';
 const WELCOME_VIDEO_TIMESTAMP_DESKTOP = 66;
 const WELCOME_VIDEO_TIMESTAMP_MOBILE = 116;

@@ -110,8 +110,6 @@ export type FileMenuSelectionMode = 'single' | 'multiple';
 export interface FileMenuExtensionContext {
     /** Add a menu item (must be called synchronously during menu construction) */
     addItem(cb: (item: MenuItem) => void): void;
-    /** Add a separator (must be called synchronously during menu construction) */
-    addSeparator(): void;
     /** The file the menu was opened on */
     file: TFile;
     selection: {
@@ -125,8 +123,6 @@ export interface FileMenuExtensionContext {
 export interface FolderMenuExtensionContext {
     /** Add a menu item (must be called synchronously during menu construction) */
     addItem(cb: (item: MenuItem) => void): void;
-    /** Add a separator (must be called synchronously during menu construction) */
-    addSeparator(): void;
     /** The folder the menu was opened on */
     folder: TFolder;
 }

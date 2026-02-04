@@ -155,7 +155,7 @@ describe('MarkdownPipelineContentProvider word count', () => {
             showFilePreview: true,
             showFeatureImage: false,
             customPropertyFields: '',
-            customPropertyColorFields: ''
+            customPropertyColorMap: {}
         });
         const provider = new TestMarkdownPipelineContentProvider(context.app);
         const file = createFile('notes/note.md');
@@ -185,7 +185,7 @@ describe('MarkdownPipelineContentProvider word count', () => {
             showFilePreview: true,
             showFeatureImage: false,
             customPropertyFields: '',
-            customPropertyColorFields: ''
+            customPropertyColorMap: {}
         });
         const provider = new TestMarkdownPipelineContentProvider(context.app);
         const file = createFile('notes/note.md');

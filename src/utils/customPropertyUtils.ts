@@ -85,7 +85,8 @@ export function cloneCustomPropertyItems(values: readonly CustomPropertyItem[] |
     return values.map(entry => ({ ...entry }));
 }
 
-// Compares custom property items by value + optional color, preserving order.
+// Compares custom property items by field key + value, preserving order.
+// Order is significant so the UI matches the configured field list and frontmatter value order.
 export function areCustomPropertyItemsEqual(
     first: readonly CustomPropertyItem[] | null,
     second: readonly CustomPropertyItem[] | null
@@ -102,10 +103,10 @@ export function areCustomPropertyItemsEqual(
     for (let index = 0; index < first.length; index += 1) {
         const firstItem = first[index];
         const secondItem = second[index];
-        if (firstItem.value !== secondItem.value) {
+        if (firstItem.fieldKey !== secondItem.fieldKey) {
             return false;
         }
-        if (firstItem.color !== secondItem.color) {
+        if (firstItem.value !== secondItem.value) {
             return false;
         }
     }

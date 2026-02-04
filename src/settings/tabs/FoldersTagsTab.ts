@@ -19,7 +19,7 @@
 import { Platform, Setting } from 'obsidian';
 import { strings } from '../../i18n';
 import { isFolderNoteCreationPreference } from '../../types/folderNote';
-import { isTagSortOrder } from '../types';
+import { isAlphaSortOrder, isTagSortOrder } from '../types';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { createSettingGroupFactory } from '../settingGroups';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
@@ -129,6 +129,24 @@ export function renderFoldersTagsTab(context: SettingsTabContext): void {
             plugin.settings.inheritFolderColors = value;
         }
     );
+
+    const folderSortOrderSetting = foldersGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.folderSortOrder.name).setDesc(strings.settings.items.folderSortOrder.desc);
+        setting.addDropdown(dropdown => {
+            dropdown
+                .addOption('alpha-asc', strings.settings.items.folderSortOrder.options.alphaAsc)
+                .addOption('alpha-desc', strings.settings.items.folderSortOrder.options.alphaDesc)
+                .setValue(plugin.getFolderSortOrder())
+                .onChange(value => {
+                    if (!isAlphaSortOrder(value)) {
+                        return;
+                    }
+                    plugin.setFolderSortOrder(value);
+                });
+        });
+    });
+
+    addSettingSyncModeToggle({ setting: folderSortOrderSetting, plugin, settingId: 'folderSortOrder' });
 
     const folderNotesGroup = createGroup(strings.settings.sections.folderNotes);
 
@@ -263,11 +281,14 @@ export function renderFoldersTagsTab(context: SettingsTabContext): void {
         .setName(strings.settings.items.tagSortOrder.name)
         .setDesc(strings.settings.items.tagSortOrder.desc)
         .addDropdown(dropdown => {
+            const frequencyAscLabel = `${strings.settings.items.tagSortOrder.options.frequency} (${strings.settings.items.tagSortOrder.options.lowToHigh})`;
+            const frequencyDescLabel = `${strings.settings.items.tagSortOrder.options.frequency} (${strings.settings.items.tagSortOrder.options.highToLow})`;
+
             dropdown
                 .addOption('alpha-asc', strings.settings.items.tagSortOrder.options.alphaAsc)
                 .addOption('alpha-desc', strings.settings.items.tagSortOrder.options.alphaDesc)
-                .addOption('frequency-asc', strings.settings.items.tagSortOrder.options.frequencyAsc)
-                .addOption('frequency-desc', strings.settings.items.tagSortOrder.options.frequencyDesc)
+                .addOption('frequency-asc', frequencyAscLabel)
+                .addOption('frequency-desc', frequencyDescLabel)
                 .setValue(plugin.getTagSortOrder())
                 .onChange(value => {
                     if (!isTagSortOrder(value)) {

@@ -12,7 +12,8 @@
     flex-direction: column;
     overflow: hidden;
     background-color: var(--nn-theme-nav-bg);
-    position: relative; /* Enables absolute positioning for overlays */
+    border-right: 1px solid var(--nn-theme-divider-border-color);
+    position: relative; /* Enables absolute positioning for resize handles */
 
     /* Performance optimization for virtualized content */
     contain: layout style;
@@ -49,6 +50,10 @@
     --nn-theme-list-bg: var(--nn-theme-mobile-bg);
 }
 
+.notebook-navigator-mobile .nn-navigation-pane {
+    border-right: none;
+}
+
 .nn-split-container.nn-orientation-vertical {
     flex-direction: column;
 }
@@ -66,17 +71,11 @@
     min-height: var(--nn-list-pane-min-height);
 }
 
-.nn-split-container.nn-orientation-vertical .nn-navigation-pane .nn-pane-header {
+.nn-split-container.nn-orientation-vertical .nn-navigation-pane {
     border-right: none;
 }
 
-.nn-split-container.nn-orientation-vertical .nn-navigation-pane-scroller,
-.nn-split-container.nn-orientation-vertical .nn-shortcut-pinned {
-    border-right: none;
-}
-
-.nn-split-container.nn-orientation-vertical:not(.nn-single-pane) .nn-navigation-pane-scroller,
-.nn-split-container.nn-orientation-vertical:not(.nn-single-pane) .nn-shortcut-pinned {
+.nn-split-container.nn-orientation-vertical:not(.nn-single-pane) .nn-navigation-pane {
     border-bottom: 1px solid var(--nn-theme-divider-border-color);
 }
 
@@ -120,7 +119,7 @@
 .nn-split-container.nn-single-pane {
     display: grid;
     grid-template-columns: 100%;
-    grid-template-rows: 100%;
+    grid-template-rows: minmax(0, 1fr) auto;
     position: relative;
     overflow: hidden;
     height: 100%;
@@ -134,7 +133,19 @@
     height: 100%;
     grid-column: 1;
     grid-row: 1;
+    min-height: 0;
     transition: transform var(--nn-pane-transition-duration) var(--nn-pane-transition-timing);
+}
+
+.nn-split-container.nn-single-pane .nn-single-pane-calendar {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+/* Disable transitions for one-frame mode changes (dual-pane -> single-pane) */
+.nn-split-container.nn-single-pane.nn-suppress-pane-transitions .nn-navigation-pane,
+.nn-split-container.nn-single-pane.nn-suppress-pane-transitions .nn-list-pane {
+    transition: none;
 }
 
 .nn-split-container.nn-single-pane.nn-pane-transitioning .nn-navigation-pane,

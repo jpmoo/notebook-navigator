@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Menu, MenuItem, TFile, App, Platform, FileSystemAdapter } from 'obsidian';
+import { Menu, MenuItem, TFile, TFolder, App, Platform, FileSystemAdapter } from 'obsidian';
 import { FileMenuBuilderParams } from './menuTypes';
 import { strings } from '../../i18n';
 import { getInternalPlugin } from '../../utils/typeGuards';
@@ -31,13 +31,13 @@ import { SelectionState, SelectionAction } from '../../context/SelectionContext'
 import type { ShortcutsContextValue } from '../../context/ShortcutsContext';
 import { NotebookNavigatorSettings } from '../../settings';
 import { CommandQueueService } from '../../services/CommandQueueService';
-import { setAsyncOnClick } from './menuAsyncHelpers';
+import { addCopyPathSubmenu, setAsyncOnClick } from './menuAsyncHelpers';
 import { addShortcutRenameMenuItem } from './shortcutRenameMenuItem';
 import { openFileInContext } from '../openFileInContext';
-import { showNotice } from '../noticeUtils';
 import { confirmRemoveAllTagsFromFiles, openAddTagToFilesModal, removeTagFromFilesWithPrompt } from '../tagModalHelpers';
 import { addStyleMenu } from './styleMenuBuilder';
 import { resolveUXIconForMenu } from '../uxIcons';
+import { isFolderNote } from '../../utils/folderNotes';
 
 /**
  * Builds the context menu for a file
@@ -66,6 +66,11 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
     // If right-clicking on an unselected file while having multi-selection,
     // treat it as a single file operation
     const shouldShowMultiOptions = isMultipleSelected && isFileSelected;
+    const isFolderNoteFile =
+        !shouldShowMultiOptions &&
+        settings.enableFolderNotes &&
+        file.parent instanceof TFolder &&
+        isFolderNote(file, file.parent, settings);
 
     // Cache the current file list to avoid regenerating it multiple times
     const cachedFileList = (() => {
@@ -384,42 +389,22 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
     // Copy actions - single selection only
     if (!shouldShowMultiOptions) {
         const adapter = app.vault.adapter;
-
-        // Copy relative path
-        menu.addItem((item: MenuItem) => {
-            setAsyncOnClick(item.setTitle(strings.contextMenu.file.copyRelativePath).setIcon('lucide-clipboard-list'), async () => {
-                await navigator.clipboard.writeText(file.path);
-                showNotice(strings.fileSystem.notifications.relativePathCopied, { variant: 'success' });
-            });
-        });
-
-        // Copy absolute path if available
-        if (adapter instanceof FileSystemAdapter) {
-            menu.addItem((item: MenuItem) => {
-                setAsyncOnClick(item.setTitle(strings.contextMenu.file.copyPath).setIcon('lucide-clipboard'), async () => {
-                    // Get full system path from the file system adapter
-                    const absolutePath = adapter.getFullPath(file.path);
-                    await navigator.clipboard.writeText(absolutePath);
-                    showNotice(strings.fileSystem.notifications.pathCopied, { variant: 'success' });
-                });
-            });
-        }
-
-        // Copy Obsidian URL
-        menu.addItem((item: MenuItem) => {
-            setAsyncOnClick(item.setTitle(strings.contextMenu.file.copyDeepLink).setIcon('lucide-link'), async () => {
+        const fileSystemAdapter = adapter instanceof FileSystemAdapter ? adapter : null;
+        const addedCopyMenu = addCopyPathSubmenu({
+            menu,
+            getObsidianUrl: () => {
                 const vaultName = app.vault.getName();
                 const encodedVault = encodeURIComponent(vaultName);
                 const encodedFile = encodeURIComponent(file.path);
-                // Construct Obsidian URL with encoded vault and file path
-                const deepLink = `obsidian://open?vault=${encodedVault}&file=${encodedFile}`;
-
-                await navigator.clipboard.writeText(deepLink);
-                showNotice(strings.fileSystem.notifications.deepLinkCopied, { variant: 'success' });
-            });
+                return `obsidian://open?vault=${encodedVault}&file=${encodedFile}`;
+            },
+            getVaultPath: () => file.path,
+            getSystemPath: fileSystemAdapter ? () => fileSystemAdapter.getFullPath(file.path) : undefined
         });
 
-        menu.addSeparator();
+        if (addedCopyMenu) {
+            menu.addSeparator();
+        }
     }
 
     // Reveal options - single selection only
@@ -485,14 +470,15 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
 
         // Rename note
         menu.addItem((item: MenuItem) => {
-            setAsyncOnClick(
-                item
-                    .setTitle(isMarkdown ? strings.contextMenu.file.renameNote : strings.contextMenu.file.renameFile)
-                    .setIcon('lucide-pencil'),
-                async () => {
-                    await fileSystemOps.renameFile(file);
-                }
-            );
+            const title = isFolderNoteFile
+                ? strings.contextMenu.folder.detachFolderNote
+                : isMarkdown
+                  ? strings.contextMenu.file.renameNote
+                  : strings.contextMenu.file.renameFile;
+            const iconId = isFolderNoteFile ? 'lucide-unlink' : 'lucide-pencil';
+            setAsyncOnClick(item.setTitle(title).setIcon(iconId), async () => {
+                await fileSystemOps.renameFile(file);
+            });
         });
 
         // Move to folder
@@ -515,7 +501,7 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
         addSingleFileDuplicateOption(menu, file, fileSystemOps);
 
         // Delete note
-        addSingleFileDeleteOption(menu, file, selectionState, settings, fileSystemOps, selectionDispatch);
+        addSingleFileDeleteOption(menu, file, selectionState, settings, fileSystemOps, selectionDispatch, isFolderNoteFile);
     }
 }
 
@@ -805,34 +791,35 @@ function addSingleFileDeleteOption(
     selectionState: SelectionState,
     settings: NotebookNavigatorSettings,
     fileSystemOps: FileSystemOperations,
-    selectionDispatch: React.Dispatch<SelectionAction>
+    selectionDispatch: React.Dispatch<SelectionAction>,
+    isFolderNoteFile: boolean
 ): void {
     menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(
-            item
-                .setTitle(file.extension === 'md' ? strings.contextMenu.file.deleteNote : strings.contextMenu.file.deleteFile)
-                .setIcon('lucide-trash'),
-            async () => {
-                // Check if this is the currently selected file
-                if (selectionState.selectedFile?.path === file.path) {
-                    // Use the smart delete handler
-                    await fileSystemOps.deleteSelectedFile(
-                        file,
-                        settings,
-                        {
-                            selectionType: selectionState.selectionType,
-                            selectedFolder: selectionState.selectedFolder || undefined,
-                            selectedTag: selectionState.selectedTag || undefined
-                        },
-                        selectionDispatch,
-                        settings.confirmBeforeDelete
-                    );
-                } else {
-                    // Normal deletion - not the currently selected file
-                    await fileSystemOps.deleteFile(file, settings.confirmBeforeDelete);
-                }
+        const title = isFolderNoteFile
+            ? strings.contextMenu.folder.deleteFolderNote
+            : file.extension === 'md'
+              ? strings.contextMenu.file.deleteNote
+              : strings.contextMenu.file.deleteFile;
+        setAsyncOnClick(item.setTitle(title).setIcon('lucide-trash'), async () => {
+            // Check if this is the currently selected file
+            if (selectionState.selectedFile?.path === file.path) {
+                // Use the smart delete handler
+                await fileSystemOps.deleteSelectedFile(
+                    file,
+                    settings,
+                    {
+                        selectionType: selectionState.selectionType,
+                        selectedFolder: selectionState.selectedFolder || undefined,
+                        selectedTag: selectionState.selectedTag || undefined
+                    },
+                    selectionDispatch,
+                    settings.confirmBeforeDelete
+                );
+            } else {
+                // Normal deletion - not the currently selected file
+                await fileSystemOps.deleteFile(file, settings.confirmBeforeDelete);
             }
-        );
+        });
     });
 }
 

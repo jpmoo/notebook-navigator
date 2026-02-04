@@ -1,0 +1,56 @@
+/* Source: src/styles/sections/modal-property-color-rule-editor.css */
+
+/* ========================================================================
+   Property Color Rule Editor Modal
+   ======================================================================== */
+
+.modal.nn-property-color-rule-editor-modal {
+    width: 420px;
+    max-width: calc(100vw - 40px);
+    max-height: 500px;
+}
+
+.modal.nn-property-color-rule-editor-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-2-2);
+    padding: var(--size-4-4);
+    overflow: hidden;
+}
+
+.nn-property-color-rule-editor-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 4px;
+    padding-bottom: var(--size-1-5);
+}
+
+.nn-property-color-rule-editor-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-1-5);
+    width: 100%;
+}
+
+.nn-property-color-rule-editor-footer {
+    flex-shrink: 0;
+    margin-top: 0;
+    padding-top: var(--size-2-2);
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.nn-property-color-rule-row {
+    display: flex;
+    align-items: center;
+    gap: var(--size-2-2);
+}
+
+.nn-property-color-rule-key {
+    flex: 1;
+    min-width: 0;
+}
+
+.nn-property-color-rule-row-invalid .nn-property-color-rule-key {
+    border-color: var(--background-modifier-error);
+}

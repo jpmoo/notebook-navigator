@@ -16,17 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 import type { DraggableSyntheticListeners } from '@dnd-kit/core';
-import { setTooltip } from 'obsidian';
 import { useSettingsState } from '../context/SettingsContext';
-import { useServices } from '../context/ServicesContext';
 import { useUXPreferences } from '../context/UXPreferencesContext';
 import type { ListReorderHandlers } from '../types/listReorder';
 import { NavigationListRow, type DragHandleConfig } from './NavigationListRow';
 import type { NoteCountInfo } from '../types/noteCounts';
 import { buildNoteCountDisplay } from '../utils/noteCountFormatting';
-import { getTooltipPlacement } from '../utils/domUtils';
 import { strings } from '../i18n';
 import { NavItemHoverActionSlot } from './NavItemHoverActionSlot';
 
@@ -100,11 +97,8 @@ export const ShortcutItem = React.memo(function ShortcutItem({
     dragStyle,
     isSorting
 }: ShortcutItemProps) {
-    const { isMobile } = useServices();
     const settings = useSettingsState();
     const uxPreferences = useUXPreferences();
-    const rowRef = useRef<HTMLDivElement | null>(null);
-    const tooltipStateRef = useRef<string>('');
     const includeDescendantNotes = uxPreferences.includeDescendantNotes;
     // Build formatted display object with label based on note count settings
     const countDisplay = buildNoteCountDisplay(countInfo, includeDescendantNotes, includeDescendantNotes && settings.separateNoteCounts);
@@ -166,66 +160,6 @@ export const ShortcutItem = React.memo(function ShortcutItem({
         );
     }, [countLabel, onRemove, shouldShowCount]);
 
-    const handleRowRef = useCallback(
-        (node: HTMLDivElement | null) => {
-            rowRef.current = node;
-            dragRef?.(node);
-        },
-        [dragRef]
-    );
-
-    // Add tooltip showing the full shortcut name when the label is truncated (desktop only)
-    useEffect(() => {
-        const rowElement = rowRef.current;
-        if (!rowElement) {
-            return;
-        }
-
-        // Skip tooltips on mobile
-        if (isMobile) {
-            return;
-        }
-
-        const labelElement = rowElement.querySelector('.nn-shortcut-label');
-        if (!(labelElement instanceof HTMLElement)) {
-            return;
-        }
-
-        const updateTooltip = () => {
-            const isTruncated = labelElement.scrollWidth > labelElement.clientWidth;
-            const tooltipText = isTruncated ? label : '';
-
-            if (tooltipStateRef.current === tooltipText) {
-                return;
-            }
-
-            tooltipStateRef.current = tooltipText;
-            if (tooltipText.length === 0) {
-                setTooltip(rowElement, '');
-                return;
-            }
-
-            setTooltip(rowElement, tooltipText, {
-                placement: getTooltipPlacement()
-            });
-        };
-
-        updateTooltip();
-
-        if (typeof ResizeObserver === 'undefined') {
-            return;
-        }
-
-        const observer = new ResizeObserver(() => {
-            updateTooltip();
-        });
-        observer.observe(labelElement);
-
-        return () => {
-            observer.disconnect();
-        };
-    }, [isMobile, label]);
-
     return (
         <NavigationListRow
             icon={icon}
@@ -265,7 +199,7 @@ export const ShortcutItem = React.memo(function ShortcutItem({
             labelClassName={hasFolderNote ? 'nn-has-folder-note' : undefined}
             onLabelClick={labelClickHandler}
             showIcon={shouldShowIcon}
-            dragRef={handleRowRef}
+            dragRef={dragRef}
             dragHandleRef={dragHandleRef}
             dragAttributes={dragAttributes}
             dragListeners={dragListeners}

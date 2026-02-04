@@ -17,7 +17,66 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { getImageDimensionsFromBuffer } from '../../src/services/content/thumbnail/imageDimensions';
+import { getImageCodedDimensionsFromBuffer, getImageDimensionsFromBuffer } from '../../src/services/content/thumbnail/imageDimensions';
+
+function ascii4(value: string): Uint8Array {
+    if (value.length !== 4) {
+        throw new Error(`Expected a 4-character ASCII string, got "${value}"`);
+    }
+
+    return new Uint8Array([value.charCodeAt(0), value.charCodeAt(1), value.charCodeAt(2), value.charCodeAt(3)]);
+}
+
+function be32(value: number): Uint8Array {
+    return new Uint8Array([(value >>> 24) & 0xff, (value >>> 16) & 0xff, (value >>> 8) & 0xff, value & 0xff]);
+}
+
+function concatBytes(parts: Uint8Array[]): Uint8Array {
+    let totalLength = 0;
+    for (const part of parts) {
+        totalLength += part.length;
+    }
+
+    const result = new Uint8Array(totalLength);
+    let offset = 0;
+    for (const part of parts) {
+        result.set(part, offset);
+        offset += part.length;
+    }
+    return result;
+}
+
+function fullBox(version: number, flags: number, payload: Uint8Array): Uint8Array {
+    const header = new Uint8Array(4);
+    header[0] = version & 0xff;
+    header[1] = (flags >>> 16) & 0xff;
+    header[2] = (flags >>> 8) & 0xff;
+    header[3] = flags & 0xff;
+
+    return concatBytes([header, payload]);
+}
+
+function box(type: string, payload: Uint8Array): Uint8Array {
+    const size = 8 + payload.length;
+    const data = new Uint8Array(size);
+    data.set(be32(size), 0);
+    data.set(ascii4(type), 4);
+    data.set(payload, 8);
+    return data;
+}
+
+function ftypBox(majorBrand: string, compatibleBrands: string[]): Uint8Array {
+    const minorVersion = be32(0);
+    const brands: Uint8Array[] = [ascii4(majorBrand), minorVersion];
+    for (const brand of compatibleBrands) {
+        brands.push(ascii4(brand));
+    }
+    return box('ftyp', concatBytes(brands));
+}
+
+function clapPayload(width: number, height: number): Uint8Array {
+    return concatBytes([be32(width), be32(1), be32(height), be32(1), be32(0), be32(1), be32(0), be32(1)]);
+}
 
 describe('getImageDimensionsFromBuffer', () => {
     it('parses PNG dimensions', () => {
@@ -54,6 +113,73 @@ describe('getImageDimensionsFromBuffer', () => {
 
     it('parses JPEG SOF dimensions', () => {
         const bytes = new Uint8Array([0xff, 0xd8, 0xff, 0xc0, 0x00, 0x08, 0x08, 0x00, 0xc8, 0x01, 0x2c, 0x03, 0xff, 0xd9]);
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/jpeg')).toEqual({ width: 300, height: 200 });
+    });
+
+    it('applies JPEG EXIF orientation', () => {
+        const bytes = new Uint8Array([
+            // SOI
+            0xff, 0xd8,
+            // APP1 (Exif) marker + length (0x0022 = 34 bytes, includes these two bytes)
+            0xff, 0xe1, 0x00, 0x22,
+            // "Exif\0\0"
+            0x45, 0x78, 0x69, 0x66, 0x00, 0x00,
+            // TIFF header (MM, 42, IFD0 offset = 8)
+            0x4d, 0x4d, 0x00, 0x2a, 0x00, 0x00, 0x00, 0x08,
+            // IFD0 entry count = 1
+            0x00, 0x01,
+            // Tag = 0x0112 (orientation), Type = 3 (SHORT), Count = 1
+            0x01, 0x12, 0x00, 0x03, 0x00, 0x00, 0x00, 0x01,
+            // Value = 6 (rotate 90) stored inline for SHORT
+            0x00, 0x06, 0x00, 0x00,
+            // Next IFD offset = 0
+            0x00, 0x00, 0x00, 0x00,
+            // SOF0 marker (width=300, height=200)
+            0xff, 0xc0, 0x00, 0x08, 0x08, 0x00, 0xc8, 0x01, 0x2c, 0x03,
+            // EOI
+            0xff, 0xd9
+        ]);
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/jpeg')).toEqual({ width: 200, height: 300 });
+    });
+
+    it('applies JPEG EXIF orientation (little endian)', () => {
+        const bytes = new Uint8Array([
+            // SOI
+            0xff, 0xd8,
+            // APP1 (Exif) marker + length (0x0022 = 34 bytes, includes these two bytes)
+            0xff, 0xe1, 0x00, 0x22,
+            // "Exif\0\0"
+            0x45, 0x78, 0x69, 0x66, 0x00, 0x00,
+            // TIFF header (II, 42, IFD0 offset = 8)
+            0x49, 0x49, 0x2a, 0x00, 0x08, 0x00, 0x00, 0x00,
+            // IFD0 entry count = 1
+            0x01, 0x00,
+            // Tag = 0x0112 (orientation), Type = 3 (SHORT), Count = 1
+            0x12, 0x01, 0x03, 0x00, 0x01, 0x00, 0x00, 0x00,
+            // Value = 8 stored inline for SHORT
+            0x08, 0x00, 0x00, 0x00,
+            // Next IFD offset = 0
+            0x00, 0x00, 0x00, 0x00,
+            // SOF0 marker (width=300, height=200)
+            0xff, 0xc0, 0x00, 0x08, 0x08, 0x00, 0xc8, 0x01, 0x2c, 0x03,
+            // EOI
+            0xff, 0xd9
+        ]);
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/jpeg')).toEqual({ width: 200, height: 300 });
+    });
+
+    it('parses JPEG SOF dimensions when trailing segments are truncated', () => {
+        const bytes = new Uint8Array([
+            // SOI
+            0xff, 0xd8,
+            // SOF0 marker (width=300, height=200)
+            0xff, 0xc0, 0x00, 0x08, 0x08, 0x00, 0xc8, 0x01, 0x2c, 0x03,
+            // APP2 marker with declared length extending past the buffer
+            0xff, 0xe2, 0x00, 0x10, 0x00
+        ]);
 
         expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/jpeg')).toEqual({ width: 300, height: 200 });
     });
@@ -95,6 +221,14 @@ describe('getImageDimensionsFromBuffer', () => {
         expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/webp')).toEqual({ width: 300, height: 200 });
     });
 
+    it('falls back to ISO BMFF detection when mime type is wrong and ftyp is not first box', () => {
+        const leadingFree = box('free', new Uint8Array([]));
+        const ispe = box('ispe', fullBox(0, 0, concatBytes([be32(300), be32(200)])));
+        const bytes = concatBytes([leadingFree, ftypBox('avif', ['avif']), ispe]);
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/png')).toEqual({ width: 300, height: 200 });
+    });
+
     it('parses "fried" PNG dimensions with a leading CgBI chunk', () => {
         const bytes = new Uint8Array(48);
         bytes.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], 0);
@@ -134,76 +268,166 @@ describe('getImageDimensionsFromBuffer', () => {
     });
 
     it('parses AVIF ispe dimensions', () => {
-        const bytes = new Uint8Array(20);
-        bytes.set([0x00, 0x00, 0x00, 0x14], 0);
-        bytes.set([0x69, 0x73, 0x70, 0x65], 4);
-        bytes.set([0x00, 0x00, 0x01, 0x2c], 12);
-        bytes.set([0x00, 0x00, 0x00, 0xc8], 16);
+        const ispe = box('ispe', fullBox(0, 0, concatBytes([be32(300), be32(200)])));
+        const bytes = concatBytes([ftypBox('avif', ['avif']), ispe]);
 
         expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/avif')).toEqual({ width: 300, height: 200 });
     });
 
+    it('parses AVIF dimensions when ftyp is not the first box', () => {
+        const leadingFree = box('free', new Uint8Array([]));
+        const ispe = box('ispe', fullBox(0, 0, concatBytes([be32(300), be32(200)])));
+        const bytes = concatBytes([leadingFree, ftypBox('avif', ['avif']), ispe]);
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/avif')).toEqual({ width: 300, height: 200 });
+    });
+
+    it('applies HEIC/HEIF/AVIF irot orientation', () => {
+        const ispe = box('ispe', fullBox(0, 0, concatBytes([be32(300), be32(200)])));
+        const irot = box('irot', new Uint8Array([0x01]));
+        const ipco = box('ipco', concatBytes([ispe, irot]));
+        const bytes = concatBytes([ftypBox('avif', ['avif', 'heic', 'mif1']), ipco]);
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heic')).toEqual({ width: 200, height: 300 });
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heif')).toEqual({ width: 200, height: 300 });
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/avif')).toEqual({ width: 200, height: 300 });
+    });
+
+    it('applies irot fullbox variant', () => {
+        const ispe = box('ispe', fullBox(0, 0, concatBytes([be32(300), be32(200)])));
+        const irot = box('irot', fullBox(0, 0, new Uint8Array([0x01])));
+        const ipco = box('ipco', concatBytes([ispe, irot]));
+        const bytes = concatBytes([ftypBox('avif', ['avif', 'heic', 'mif1']), ipco]);
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heic')).toEqual({ width: 200, height: 300 });
+    });
+
+    it('applies irot fullbox with non-zero flags', () => {
+        const ispe = box('ispe', fullBox(0, 0, concatBytes([be32(300), be32(200)])));
+        const irot = box('irot', fullBox(0, 0x123456, new Uint8Array([0x01])));
+        const ipco = box('ipco', concatBytes([ispe, irot]));
+        const bytes = concatBytes([ftypBox('avif', ['avif', 'heic', 'mif1']), ipco]);
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heic')).toEqual({ width: 200, height: 300 });
+    });
+
+    it('parses irot angle with reserved bits', () => {
+        const ispe = box('ispe', fullBox(0, 0, concatBytes([be32(300), be32(200)])));
+        const irot = box('irot', new Uint8Array([0x81]));
+        const ipco = box('ipco', concatBytes([ispe, irot]));
+        const bytes = concatBytes([ftypBox('avif', ['avif', 'heic', 'mif1']), ipco]);
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heic')).toEqual({ width: 200, height: 300 });
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heif')).toEqual({ width: 200, height: 300 });
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/avif')).toEqual({ width: 200, height: 300 });
+    });
+
+    it('uses HEIC/HEIF ipma associations to apply irot to primary item', () => {
+        const pitm = box('pitm', fullBox(0, 0, new Uint8Array([0x00, 0x02])));
+
+        const ispe1 = box('ispe', fullBox(0, 0, concatBytes([be32(300), be32(200)])));
+        const ispe2 = box('ispe', fullBox(0, 0, concatBytes([be32(500), be32(400)])));
+        const irot = box('irot', new Uint8Array([0x01]));
+
+        const ipco = box('ipco', concatBytes([ispe1, ispe2, irot]));
+        const ipma = box('ipma', fullBox(0, 0, concatBytes([be32(1), new Uint8Array([0x00, 0x02, 0x02, 0x02, 0x03])])));
+
+        const iprp = box('iprp', concatBytes([ipco, ipma]));
+        const meta = box('meta', fullBox(0, 0, concatBytes([pitm, iprp])));
+        const bytes = concatBytes([ftypBox('avif', ['avif', 'heic', 'mif1']), meta]);
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heic')).toEqual({ width: 400, height: 500 });
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heif')).toEqual({ width: 400, height: 500 });
+    });
+
+    it('parses irot payloads that include extra bytes', () => {
+        const ispe = box('ispe', fullBox(0, 0, concatBytes([be32(300), be32(200)])));
+        const irot = box('irot', new Uint8Array([0x01, 0xaa, 0xbb, 0xcc, 0x00, 0xdd]));
+        const ipco = box('ipco', concatBytes([ispe, irot]));
+        const bytes = concatBytes([ftypBox('avif', ['avif', 'heic', 'mif1']), ipco]);
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heic')).toEqual({ width: 200, height: 300 });
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heif')).toEqual({ width: 200, height: 300 });
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/avif')).toEqual({ width: 200, height: 300 });
+    });
+
+    it('prefers HEIC/HEIF primary item dimensions over other ispe boxes', () => {
+        const strayIspe = box('ispe', fullBox(0, 0, concatBytes([be32(1000), be32(1000)])));
+        const pitm = box('pitm', fullBox(0, 0, new Uint8Array([0x00, 0x02])));
+
+        const ispePrimary = box('ispe', fullBox(0, 0, concatBytes([be32(300), be32(200)])));
+        const irot = box('irot', new Uint8Array([0x01]));
+        const ipco = box('ipco', concatBytes([ispePrimary, irot]));
+
+        const ipma = box('ipma', fullBox(0, 0, concatBytes([be32(1), new Uint8Array([0x00, 0x02, 0x02, 0x01, 0x02])])));
+        const iprp = box('iprp', concatBytes([ipco, ipma]));
+        const meta = box('meta', fullBox(0, 0, concatBytes([pitm, iprp])));
+
+        const bytes = concatBytes([ftypBox('avif', ['avif', 'heic', 'mif1']), strayIspe, meta]);
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heic')).toEqual({ width: 200, height: 300 });
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heif')).toEqual({ width: 200, height: 300 });
+    });
+
     it('parses HEIC/HEIF dimensions with an ispe box and clap crop right', () => {
-        const bytes = new Uint8Array(64);
-
-        // meta box (full box, includes 4 bytes version/flags)
-        bytes.set([0x00, 0x00, 0x00, 0x40], 0);
-        bytes.set([0x6d, 0x65, 0x74, 0x61], 4);
-
-        // iprp box
-        bytes.set([0x00, 0x00, 0x00, 0x34], 12);
-        bytes.set([0x69, 0x70, 0x72, 0x70], 16);
-
-        // ipco box
-        bytes.set([0x00, 0x00, 0x00, 0x2c], 20);
-        bytes.set([0x69, 0x70, 0x63, 0x6f], 24);
-
-        // ispe box (full box)
-        bytes.set([0x00, 0x00, 0x00, 0x14], 28);
-        bytes.set([0x69, 0x73, 0x70, 0x65], 32);
-        bytes.set([0x00, 0x00, 0x00, 0x7c], 40); // width = 124
-        bytes.set([0x00, 0x00, 0x01, 0xc8], 44); // height = 456
-
-        // clap box (full box)
-        bytes.set([0x00, 0x00, 0x00, 0x10], 48);
-        bytes.set([0x63, 0x6c, 0x61, 0x70], 52);
-        bytes.set([0x00, 0x00, 0x00, 0x01], 60); // cropRight = 1
+        const ispe = box('ispe', fullBox(0, 0, concatBytes([be32(124), be32(456)])));
+        const clap = box('clap', clapPayload(123, 456));
+        const ipco = box('ipco', concatBytes([ispe, clap]));
+        const iprp = box('iprp', ipco);
+        const meta = box('meta', fullBox(0, 0, iprp));
+        const bytes = concatBytes([ftypBox('avif', ['avif', 'heic', 'mif1']), meta]);
 
         expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heic')).toEqual({ width: 123, height: 456 });
         expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heif')).toEqual({ width: 123, height: 456 });
+        expect(getImageCodedDimensionsFromBuffer(bytes.buffer, 'image/heic')).toEqual({ width: 124, height: 456 });
+    });
+
+    it('clamps HEIC/HEIF clap crop values that exceed ispe by 1px', () => {
+        const ispe = box('ispe', fullBox(0, 0, concatBytes([be32(124), be32(456)])));
+        const clap = box('clap', clapPayload(125, 400));
+        const ipco = box('ipco', concatBytes([ispe, clap]));
+        const bytes = concatBytes([ftypBox('avif', ['avif', 'heic', 'mif1']), ipco]);
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heic')).toEqual({ width: 124, height: 400 });
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heif')).toEqual({ width: 124, height: 400 });
+    });
+
+    it('ignores HEIC/HEIF clap crop values that exceed the width', () => {
+        const ispe = box('ispe', fullBox(0, 0, concatBytes([be32(5), be32(10)])));
+        const clap = box('clap', clapPayload(100, 10));
+        const ipco = box('ipco', concatBytes([ispe, clap]));
+        const iprp = box('iprp', ipco);
+        const meta = box('meta', fullBox(0, 0, iprp));
+        const bytes = concatBytes([ftypBox('avif', ['avif', 'heic', 'mif1']), meta]);
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heic')).toEqual({ width: 5, height: 10 });
+    });
+
+    it('applies HEIC/HEIF crop and rotation together when uniquely associated', () => {
+        const pitm = box('pitm', fullBox(0, 0, new Uint8Array([0x00, 0x02])));
+
+        const ispe = box('ispe', fullBox(0, 0, concatBytes([be32(300), be32(200)])));
+        const clap = box('clap', clapPayload(290, 200));
+        const irot = box('irot', new Uint8Array([0x01]));
+        const ipco = box('ipco', concatBytes([ispe, clap, irot]));
+
+        const ipma = box('ipma', fullBox(0, 0, concatBytes([be32(1), new Uint8Array([0x00, 0x02, 0x03, 0x01, 0x02, 0x03])])));
+        const iprp = box('iprp', concatBytes([ipco, ipma]));
+        const meta = box('meta', fullBox(0, 0, concatBytes([pitm, iprp])));
+        const bytes = concatBytes([ftypBox('avif', ['avif', 'heic', 'mif1']), meta]);
+
+        expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heic')).toEqual({ width: 200, height: 290 });
+        expect(getImageCodedDimensionsFromBuffer(bytes.buffer, 'image/heic')).toEqual({ width: 300, height: 200 });
     });
 
     it('selects the largest HEIC/HEIF ispe dimensions when multiple boxes are present', () => {
-        const bytes = new Uint8Array(84);
-
-        // meta box (full box, includes 4 bytes version/flags)
-        bytes.set([0x00, 0x00, 0x00, 0x54], 0);
-        bytes.set([0x6d, 0x65, 0x74, 0x61], 4);
-
-        // iprp box
-        bytes.set([0x00, 0x00, 0x00, 0x48], 12);
-        bytes.set([0x69, 0x70, 0x72, 0x70], 16);
-
-        // ipco box
-        bytes.set([0x00, 0x00, 0x00, 0x40], 20);
-        bytes.set([0x69, 0x70, 0x63, 0x6f], 24);
-
-        // ispe box #1 (full box, 10x10)
-        bytes.set([0x00, 0x00, 0x00, 0x14], 28);
-        bytes.set([0x69, 0x73, 0x70, 0x65], 32);
-        bytes.set([0x00, 0x00, 0x00, 0x0a], 40);
-        bytes.set([0x00, 0x00, 0x00, 0x0a], 44);
-
-        // clap box applied by the HEIF handler (cropRight = 1)
-        bytes.set([0x00, 0x00, 0x00, 0x10], 48);
-        bytes.set([0x63, 0x6c, 0x61, 0x70], 52);
-        bytes.set([0x00, 0x00, 0x00, 0x01], 60);
-
-        // ispe box #2 (full box, 124x456)
-        bytes.set([0x00, 0x00, 0x00, 0x14], 64);
-        bytes.set([0x69, 0x73, 0x70, 0x65], 68);
-        bytes.set([0x00, 0x00, 0x00, 0x7c], 76);
-        bytes.set([0x00, 0x00, 0x01, 0xc8], 80);
+        const ispe1 = box('ispe', fullBox(0, 0, concatBytes([be32(10), be32(10)])));
+        const clap = box('clap', clapPayload(123, 456));
+        const ispe2 = box('ispe', fullBox(0, 0, concatBytes([be32(124), be32(456)])));
+        const ipco = box('ipco', concatBytes([ispe1, clap, ispe2]));
+        const iprp = box('iprp', ipco);
+        const meta = box('meta', fullBox(0, 0, iprp));
+        const bytes = concatBytes([ftypBox('avif', ['avif', 'heic', 'mif1']), meta]);
 
         expect(getImageDimensionsFromBuffer(bytes.buffer, 'image/heic')).toEqual({ width: 123, height: 456 });
     });

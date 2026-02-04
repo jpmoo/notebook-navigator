@@ -21,7 +21,7 @@ import { NotebookNavigatorSettings } from '../settings';
 import { METADATA_SENTINEL } from '../storage/IndexedDBStorage';
 import { DateUtils } from './dateUtils';
 import { getCachedCommaSeparatedList } from './commaSeparatedListUtils';
-import { deserializeIconFromFrontmatter } from './iconizeFormat';
+import { deserializeIconFromFrontmatterCompat } from './iconizeFormat';
 import { isRecord } from './typeGuards';
 
 /**
@@ -47,6 +47,51 @@ export function extractMetadata(app: App, file: TFile, settings: NotebookNavigat
     return extractMetadataFromCache(metadata, settings);
 }
 
+export function extractFrontmatterName(app: App, file: TFile, frontmatterNameField: string): string {
+    const metadata = app.metadataCache.getFileCache(file);
+    return extractFrontmatterNameFromCache(metadata, frontmatterNameField);
+}
+
+function extractFrontmatterNameFromCache(metadata: CachedMetadata | null, frontmatterNameField: string): string {
+    const frontmatter = metadata?.frontmatter;
+    if (!frontmatter) {
+        return '';
+    }
+
+    const frontmatterValue: unknown = frontmatter;
+    if (!isRecord(frontmatterValue)) {
+        return '';
+    }
+    const frontmatterRecord = frontmatterValue;
+
+    const nameFields = getCachedCommaSeparatedList(frontmatterNameField);
+    if (nameFields.length === 0) {
+        return '';
+    }
+
+    for (const field of nameFields) {
+        const nameValue = frontmatterRecord[field];
+
+        if (typeof nameValue === 'string') {
+            const trimmedName = nameValue.trim();
+            if (trimmedName) {
+                return trimmedName;
+            }
+        } else if (Array.isArray(nameValue)) {
+            for (const entry of nameValue) {
+                if (typeof entry === 'string') {
+                    const trimmedName = entry.trim();
+                    if (trimmedName) {
+                        return trimmedName;
+                    }
+                }
+            }
+        }
+    }
+
+    return '';
+}
+
 /**
  * Extract metadata from cached metadata
  * @param metadata - Cached metadata from Obsidian
@@ -69,36 +114,9 @@ export function extractMetadataFromCache(metadata: CachedMetadata | null, settin
     const frontmatterRecord = frontmatterValue;
 
     // Extract name if field is specified
-    const nameFields = getCachedCommaSeparatedList(settings.frontmatterNameField);
-
-    if (nameFields.length > 0) {
-        for (const field of nameFields) {
-            const nameValue = frontmatterRecord[field];
-
-            if (typeof nameValue === 'string') {
-                const trimmedName = nameValue.trim();
-                if (trimmedName) {
-                    result.fn = trimmedName;
-                    break;
-                }
-            } else if (Array.isArray(nameValue)) {
-                for (const entry of nameValue) {
-                    if (typeof entry === 'string') {
-                        const trimmedName = entry.trim();
-                        if (trimmedName) {
-                            result.fn = trimmedName;
-                            break;
-                        }
-                    }
-                }
-                if (result.fn) {
-                    break;
-                }
-            }
-        }
-    } else {
-        // Field is empty, don't set name field (leave undefined)
-        result.fn = undefined;
+    const frontmatterName = extractFrontmatterNameFromCache(metadata, settings.frontmatterNameField);
+    if (frontmatterName) {
+        result.fn = frontmatterName;
     }
 
     // Extract icon if field is specified
@@ -116,7 +134,7 @@ export function extractMetadataFromCache(metadata: CachedMetadata | null, settin
                 return undefined;
             }
 
-            const parsed = deserializeIconFromFrontmatter(trimmed);
+            const parsed = deserializeIconFromFrontmatterCompat(trimmed);
             return parsed ?? undefined;
         };
 

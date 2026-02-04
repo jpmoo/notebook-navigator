@@ -16,8 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { IconProvider, IconDefinition } from '../types';
+import { IconProvider, IconDefinition, IconRenderResult } from '../types';
 import { getIconIds, setIcon } from 'obsidian';
+import { resetIconContainer } from './providerUtils';
 
 // Obsidian exposes Lucide identifiers with this prefix, but the rest of the
 // plugin stores bare slugs. Keeping the prefix definition here keeps the
@@ -66,9 +67,12 @@ export class LucideIconProvider implements IconProvider {
      * @param iconId - The Lucide icon identifier (e.g., 'folder', 'file-text')
      * @param size - Optional size in pixels for the icon
      */
-    render(container: HTMLElement, iconId: string, size?: number): void {
-        container.empty();
+    render(container: HTMLElement, iconId: string, size?: number): IconRenderResult {
+        resetIconContainer(container);
         const canonicalId = this.normalizeIconId(iconId);
+        if (!canonicalId) {
+            return 'not-found';
+        }
         setIcon(container, canonicalId);
 
         if (size) {
@@ -77,7 +81,13 @@ export class LucideIconProvider implements IconProvider {
             container.style.setProperty('--icon-size', `${size}px`);
             container.style.width = `${size}px`;
             container.style.height = `${size}px`;
+        } else {
+            container.style.removeProperty('--icon-size');
+            container.style.removeProperty('width');
+            container.style.removeProperty('height');
         }
+
+        return container.childElementCount > 0 ? 'rendered' : 'not-found';
     }
 
     /**

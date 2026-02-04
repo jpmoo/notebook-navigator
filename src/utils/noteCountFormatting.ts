@@ -32,14 +32,15 @@ export interface NoteCountDisplay {
 export function buildNoteCountDisplay(
     countInfo: NoteCountInfo | undefined,
     includeDescendants: boolean,
-    useSeparateCounts: boolean
+    useSeparateCounts: boolean,
+    descendantSeparator: string = '•'
 ): NoteCountDisplay {
     // Ensure counts are non-negative with fallback to zero
     const current = Math.max(0, countInfo?.current ?? 0);
     const descendants = includeDescendants ? Math.max(0, countInfo?.descendants ?? 0) : 0;
     const total = current + descendants;
 
-    // Handle separate count display format (e.g., "2 ▾ 5" for 2 current, 5 descendants)
+    // Handle separate count display format (e.g., "2 • 5" for 2 current, 5 descendants)
     if (useSeparateCounts && includeDescendants) {
         let label = '';
         if (current === 0 && descendants === 0) {
@@ -50,10 +51,10 @@ export function buildNoteCountDisplay(
             label = `${current}`;
         } else if (current === 0) {
             // Only descendant notes, no current ones
-            label = `▾ ${descendants}`;
+            label = `${descendantSeparator} ${descendants}`;
         } else {
             // Both current and descendant notes
-            label = `${current} ▾ ${descendants}`;
+            label = `${current} ${descendantSeparator} ${descendants}`;
         }
 
         return {

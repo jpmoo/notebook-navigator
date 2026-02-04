@@ -45,11 +45,11 @@ export function addSettingSyncModeToggle(options: SettingSyncModeToggleOptions):
             button.extraSettingsEl.setAttr('aria-label', tooltip);
 
             if (setting.nameEl) {
-                setting.nameEl.setAttr('data-nn-sync-marker', marker);
+                setting.nameEl.setAttr('data-nn-setting-marker', marker);
                 if (isLocal) {
-                    setting.nameEl.addClass('nn-setting-not-synced');
+                    setting.nameEl.addClass('nn-setting-name-marker');
                 } else {
-                    setting.nameEl.removeClass('nn-setting-not-synced');
+                    setting.nameEl.removeClass('nn-setting-name-marker');
                 }
             }
         };

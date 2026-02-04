@@ -16,14 +16,6 @@
     font-size: 14px;
 }
 
-/* List pane empty state lives below the sticky overlay stack (header/search/title). */
-.nn-list-pane-scroller > .nn-empty-state {
-    margin-left: calc(-1 * var(--nn-scroller-padding));
-    margin-right: calc(-1 * var(--nn-scroller-padding));
-    height: calc(100% - var(--nn-list-pane-overlay-height, 0px));
-    box-sizing: border-box;
-}
-
 /* Empty state message text */
 .nn-empty-message {
     text-align: center;

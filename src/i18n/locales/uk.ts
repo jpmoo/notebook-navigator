@@ -32,6 +32,7 @@ export const STRINGS_UK = {
         untagged: 'Без тегів', // Label for notes without any tags (English: Untagged)
         featureImageAlt: 'Головне зображення', // Alt text for thumbnail/preview images (English: Feature image)
         unknownError: 'Невідома помилка', // Generic fallback when an error has no message (English: Unknown error)
+        clipboardWriteError: 'Не вдалося записати в буфер обміну',
         updateBannerTitle: 'Доступне оновлення Notebook Navigator',
         updateBannerInstruction: 'Оновіть у Налаштування -> Плагіни спільноти',
         updateIndicatorLabel: 'Доступна нова версія',
@@ -77,10 +78,6 @@ export const STRINGS_UK = {
     navigationCalendar: {
         ariaLabel: 'Календар',
         dailyNotesNotEnabled: 'Плагін щоденних нотаток не увімкнено.',
-        promptDailyNoteTitle: {
-            title: 'Заголовок щоденної нотатки',
-            placeholder: 'Введіть заголовок'
-        },
         createDailyNote: {
             title: 'Нова щоденна нотатка',
             message: 'Файл {filename} не існує. Бажаєте створити його?',
@@ -174,9 +171,6 @@ export const STRINGS_UK = {
             revealInFolder: 'Показати в папці',
             revealInFinder: 'Показати у Finder',
             showInExplorer: 'Показати в провіднику системи',
-            copyDeepLink: 'Копіювати URL Obsidian',
-            copyPath: 'Копіювати шлях файлової системи',
-            copyRelativePath: 'Копіювати шлях сховища',
             renameNote: 'Перейменувати нотатку',
             renameFile: 'Перейменувати файл',
             deleteNote: 'Видалити нотатку',
@@ -204,8 +198,6 @@ export const STRINGS_UK = {
             newTldrawDrawing: 'Новий малюнок Tldraw',
             duplicateFolder: 'Дублювати папку',
             searchInFolder: 'Шукати в папці',
-            copyPath: 'Копіювати шлях файлової системи',
-            copyRelativePath: 'Копіювати шлях сховища',
             createFolderNote: 'Створити нотатку папки',
             detachFolderNote: "Від'єднати нотатку папки",
             deleteFolderNote: 'Видалити нотатку папки',
@@ -228,6 +220,12 @@ export const STRINGS_UK = {
         navigation: {
             addSeparator: 'Додати роздільник',
             removeSeparator: 'Вилучити роздільник'
+        },
+        copyPath: {
+            title: 'Копіювати шлях',
+            asObsidianUrl: 'як URL Obsidian',
+            fromVaultFolder: 'з папки сховища',
+            fromSystemRoot: 'з кореня системи'
         },
         style: {
             title: 'Стиль',
@@ -266,6 +264,7 @@ export const STRINGS_UK = {
             showingResultsInfo: 'Показано 50 з {count} результатів. Введіть більше для уточнення.',
             emojiInstructions: 'Введіть або вставте будь-який емодзі для використання як іконки',
             removeIcon: 'Вилучити іконку',
+            removeFromRecents: 'Видалити з нещодавніх',
             allTabLabel: 'Всі'
         },
         fileIconRuleEditor: {
@@ -310,7 +309,6 @@ export const STRINGS_UK = {
             paletteCustom: 'Власні',
             copyColors: 'Копіювати колір',
             colorsCopied: 'Колір скопійовано в буфер обміну',
-            copyClipboardError: 'Не вдалося записати в буфер обміну',
             pasteColors: 'Вставити колір',
             pasteClipboardError: 'Не вдалося прочитати буфер обміну',
             pasteInvalidFormat: 'Очікується hex-значення кольору',
@@ -390,6 +388,14 @@ export const STRINGS_UK = {
                 dismiss: 'для закриття'
             }
         },
+        calendarTemplate: {
+            placeholder: 'Пошук шаблонів...',
+            instructions: {
+                navigate: 'для навігації',
+                select: 'для вибору шаблону',
+                dismiss: 'для закриття'
+            }
+        },
         navigationBanner: {
             placeholder: 'Пошук зображень...',
             instructions: {
@@ -420,7 +426,7 @@ export const STRINGS_UK = {
             thanksText: 'Дуже дякую за завантаження, насолоджуйтесь!',
             videoAlt: 'Встановлення та освоєння Notebook Navigator',
             openVideoButton: 'Відтворити відео',
-            closeButton: 'Подивлюсь пізніше'
+            closeButton: 'Можливо, пізніше'
         }
     },
     // File system operations
@@ -532,8 +538,14 @@ export const STRINGS_UK = {
         open: 'Відкрити', // Command palette: Opens the Notebook Navigator view (English: Open)
         toggleLeftSidebar: 'Перемкнути ліву бічну панель', // Command palette: Toggles left sidebar, opening Notebook Navigator when uncollapsing (English: Toggle left sidebar)
         openHomepage: 'Відкрити домашню сторінку', // Command palette: Opens the Notebook Navigator view and loads the homepage file (English: Open homepage)
+        openDailyNote: 'Відкрити щоденну нотатку',
+        openWeeklyNote: 'Відкрити щотижневу нотатку',
+        openMonthlyNote: 'Відкрити щомісячну нотатку',
+        openQuarterlyNote: 'Відкрити квартальну нотатку',
+        openYearlyNote: 'Відкрити щорічну нотатку',
         revealFile: 'Показати файл', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Пошук', // Command palette: Toggle search in the file list (English: Search)
+        searchVaultRoot: 'Пошук у корені сховища', // Command palette: Selects the vault root folder and focuses search (English: Search in vault root)
         toggleDualPane: 'Перемкнути подвійну панель', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleCalendar: 'Перемкнути календар', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
         selectVaultProfile: 'Вибрати профіль сховища', // Command palette: Opens a modal to choose a different vault profile (English: Select vault profile)
@@ -568,6 +580,7 @@ export const STRINGS_UK = {
     // Plugin UI
     plugin: {
         viewName: 'Notebook Navigator', // Name shown in the view header/tab (English: Notebook Navigator)
+        calendarViewName: 'Календар', // Name shown in the view header/tab (English: Calendar)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'Показати в Notebook Navigator' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
@@ -591,6 +604,7 @@ export const STRINGS_UK = {
         sections: {
             general: 'Загальне',
             navigationPane: 'Панель навігації',
+            calendar: 'Календар',
             icons: 'Пакети іконок',
             folders: 'Папки',
             folderNotes: 'Нотатки папок',
@@ -605,11 +619,14 @@ export const STRINGS_UK = {
         },
         groups: {
             general: {
+                vaultProfiles: 'Профілі сховища',
                 filtering: 'Фільтрація',
                 behavior: 'Поведінка',
+                keyboardNavigation: 'Навігація з клавіатури',
                 view: 'Вигляд',
                 icons: 'Іконки',
                 desktopAppearance: "Вигляд на комп'ютері",
+                mobileAppearance: 'Мобільний вигляд',
                 formatting: 'Форматування'
             },
             navigation: {
@@ -635,6 +652,7 @@ export const STRINGS_UK = {
         },
         syncMode: {
             notSynced: '(не синхронізовано)',
+            disabled: '(вимкнено)',
             switchToSynced: 'Увімкнути синхронізацію',
             switchToLocal: 'Вимкнути синхронізацію'
         },
@@ -688,8 +706,21 @@ export const STRINGS_UK = {
                     'created-desc': 'Дата створення (найновіші зверху)',
                     'created-asc': 'Дата створення (найстаріші зверху)',
                     'title-asc': 'Заголовок (А зверху)',
-                    'title-desc': 'Заголовок (Я зверху)'
+                    'title-desc': 'Заголовок (Я зверху)',
+                    'filename-asc': "Ім'я файлу (А зверху)",
+                    'filename-desc': "Ім'я файлу (Я зверху)",
+                    'property-asc': 'Властивість (А зверху)',
+                    'property-desc': 'Властивість (Я зверху)'
+                },
+                propertyOverride: {
+                    asc: 'Властивість ‘{property}’ (А зверху)',
+                    desc: 'Властивість ‘{property}’ (Я зверху)'
                 }
+            },
+            propertySortKey: {
+                name: 'Властивість сортування',
+                desc: "Використовується з сортуванням за властивістю. Нотатки з цією властивістю frontmatter відображаються першими і сортуються за значенням властивості. Масиви об'єднуються в одне значення.",
+                placeholder: 'order'
             },
             revealFileOnListChanges: {
                 name: 'Прокручувати до вибраного файлу при змінах списку',
@@ -814,6 +845,10 @@ export const STRINGS_UK = {
                 name: 'Рівень масштабування',
                 desc: 'Керує загальним рівнем масштабування Notebook Navigator.'
             },
+            useFloatingToolbars: {
+                name: 'Використовувати плаваючі панелі інструментів на iOS/iPadOS',
+                desc: 'Застосовується до Obsidian 1.11 і новіших версій.'
+            },
             startView: {
                 name: 'Вигляд при запуску за замовчуванням',
                 desc: 'Виберіть, яку панель відображати при відкритті Notebook Navigator. Панель навігації показує ярлики, останні нотатки та дерево папок. Панель списку одразу показує список нотаток.',
@@ -871,6 +906,10 @@ export const STRINGS_UK = {
                 current: 'Поточний банер: {path}',
                 chooseButton: 'Вибрати зображення'
             },
+            pinNavigationBanner: {
+                name: 'Закріпити банер',
+                desc: 'Закріпити банер навігації над деревом навігації.'
+            },
             showShortcuts: {
                 name: 'Показувати ярлики',
                 desc: 'Відображати розділ ярликів у панелі навігації.'
@@ -896,9 +935,13 @@ export const STRINGS_UK = {
                 name: 'Закріпити останні нотатки разом з ярликами',
                 desc: 'Включати останні нотатки при закріпленні ярликів.'
             },
-            showCalendar: {
-                name: 'Показати календар',
-                desc: 'Показати календар у нижній частині панелі навігації.'
+            calendarPlacement: {
+                name: 'Розташування календаря',
+                desc: 'Відображати на лівій або правій бічній панелі.',
+                options: {
+                    leftSidebar: 'Ліва бічна панель',
+                    rightSidebar: 'Права бічна панель'
+                }
             },
             calendarLocale: {
                 name: 'Мова',
@@ -907,9 +950,19 @@ export const STRINGS_UK = {
                     systemDefault: 'За замовчуванням'
                 }
             },
+            calendarWeekendDays: {
+                name: 'Вихідні дні',
+                desc: 'Показувати вихідні дні з іншим кольором фону.',
+                options: {
+                    none: 'Немає',
+                    satSun: 'Субота та неділя',
+                    friSat: "П'ятниця та субота",
+                    thuFri: "Четвер та п'ятниця"
+                }
+            },
             calendarWeeksToShow: {
-                name: 'Тижнів для показу',
-                desc: 'Кількість тижнів календаря для відображення.',
+                name: 'Тижнів для показу на лівій бічній панелі',
+                desc: 'Календар на правій бічній панелі завжди відображає повний місяць.',
                 options: {
                     fullMonth: 'Повний місяць',
                     oneWeek: '1 тиждень',
@@ -920,9 +973,17 @@ export const STRINGS_UK = {
                 name: 'Виділяти сьогоднішню дату',
                 desc: 'Показувати червоне коло та жирний текст на сьогоднішній даті.'
             },
+            calendarShowFeatureImage: {
+                name: 'Показати обкладинку',
+                desc: 'Відображати зображення-обкладинки нотаток у календарі.'
+            },
             calendarShowWeekNumber: {
                 name: 'Показати номер тижня',
                 desc: 'Додати колонку з номером тижня.'
+            },
+            calendarShowQuarter: {
+                name: 'Показати квартал',
+                desc: 'Додати мітку кварталу в заголовок календаря.'
             },
             calendarConfirmBeforeCreate: {
                 name: 'Підтвердити перед створенням',
@@ -932,7 +993,7 @@ export const STRINGS_UK = {
                 name: 'Джерело щоденних нотаток',
                 desc: 'Джерело для нотаток календаря.',
                 options: {
-                    dailyNotes: 'Щоденні нотатки',
+                    dailyNotes: 'Щоденні нотатки (основний плагін)',
                     notebookNavigator: 'Notebook Navigator'
                 },
                 info: {
@@ -941,19 +1002,43 @@ export const STRINGS_UK = {
             },
             calendarCustomRootFolder: {
                 name: 'Коренева папка',
-                desc: 'Базова папка для нотаток календаря.',
+                desc: 'Базова папка для періодичних нотаток. Шаблони дат можуть включати підпапки. Змінюється з вибраним профілем сховища.',
                 placeholder: 'Personal/Diary'
             },
-            calendarCustomFilePattern: {
-                name: 'Шаблон файлу',
-                desc: "Шаблон дати відносно кореневої папки. Підтримувані токени: YYYY, MM, M, DD, D. Нотатки можуть включати необов'язковий суфікс заголовка.",
-                placeholder: 'YYYY/YYYYMMDD',
-                example: 'Поточний синтаксис виглядає так: {path}',
-                parsingError: 'Шаблон повинен включати YYYY, MM/M та DD/D. Підтримувані токени: YYYY, MM, M, DD, D.'
+            calendarTemplateFolder: {
+                name: 'Розташування папки шаблонів',
+                desc: 'Вибір файлу шаблону показує нотатки з цієї папки.',
+                placeholder: 'Templates'
             },
-            calendarCustomPromptForTitle: {
-                name: 'Запитати заголовок',
-                desc: 'Запитувати заголовок при створенні нотаток. Приймає порожні заголовки.'
+            calendarCustomFilePattern: {
+                name: 'Щоденні нотатки',
+                desc: 'Формат шляху з використанням формату дати Moment. Беріть назви підпапок у квадратні дужки, напр. [Work]/YYYY. Натисніть на іконку шаблону, щоб задати шаблон.',
+                momentDescPrefix: 'Формат шляху з використанням ',
+                momentLinkText: 'формату дати Moment',
+                momentDescSuffix:
+                    '. Беріть назви підпапок у квадратні дужки, напр. [Work]/YYYY. Натисніть на іконку шаблону, щоб задати шаблон.',
+                placeholder: 'YYYY/YYYYMMDD',
+                example: 'Поточний синтаксис: {path}',
+                parsingError: 'Шаблон має форматуватися і знову розбиратися як повна дата (рік, місяць, день).'
+            },
+            calendarCustomWeekPattern: {
+                name: 'Щотижневі нотатки',
+                parsingError: 'Шаблон має форматуватися і знову розбиратися як повний тиждень (рік тижня, номер тижня).'
+            },
+            calendarCustomMonthPattern: {
+                name: 'Щомісячні нотатки',
+                parsingError: 'Шаблон має форматуватися і знову розбиратися як повний місяць (рік, місяць).'
+            },
+            calendarCustomQuarterPattern: {
+                name: 'Квартальні нотатки',
+                parsingError: 'Шаблон має форматуватися і знову розбиратися як повний квартал (рік, квартал).'
+            },
+            calendarCustomYearPattern: {
+                name: 'Річні нотатки',
+                parsingError: 'Шаблон має форматуватися і знову розбиратися як повний рік (рік).'
+            },
+            calendarTemplateFile: {
+                current: 'Файл шаблону: {name}'
             },
             showTooltips: {
                 name: 'Показувати підказки',
@@ -986,6 +1071,22 @@ export const STRINGS_UK = {
                     cmdCtrl: 'Натискання Cmd/Ctrl',
                     optionAlt: 'Натискання Option/Alt'
                 }
+            },
+            enterToOpenFiles: {
+                name: 'Натисніть Enter для відкриття файлів',
+                desc: 'Відкривати файли лише при натисканні Enter під час навігації клавіатурою у списку.'
+            },
+            shiftEnterOpenContext: {
+                name: 'Shift+Enter',
+                desc: 'Відкрити вибраний файл у новій вкладці, розділенні або вікні при натисканні Shift+Enter.'
+            },
+            cmdEnterOpenContext: {
+                name: 'Cmd+Enter',
+                desc: 'Відкрити вибраний файл у новій вкладці, розділенні або вікні при натисканні Cmd+Enter.'
+            },
+            ctrlEnterOpenContext: {
+                name: 'Ctrl+Enter',
+                desc: 'Відкрити вибраний файл у новій вкладці, розділенні або вікні при натисканні Ctrl+Enter.'
             },
             fileVisibility: {
                 name: 'Показувати типи файлів (профіль сховища)',
@@ -1086,7 +1187,7 @@ export const STRINGS_UK = {
                 desc: 'Відображати теги, коли дата, попередній перегляд та зображення приховані.'
             },
             customPropertyType: {
-                name: 'Тип',
+                name: 'Тип властивості',
                 desc: 'Виберіть користувацьку властивість для відображення в елементах файлів.',
                 options: {
                     frontmatter: 'Властивість frontmatter',
@@ -1095,14 +1196,19 @@ export const STRINGS_UK = {
                 }
             },
             customPropertyFields: {
-                name: 'Властивість для відображення',
+                name: 'Властивості для відображення',
                 desc: 'Список властивостей frontmatter через кому для відображення як значки. Властивості зі списковими значеннями показують один значок на кожне значення. Значення у форматі [[wikilink]] відображаються як посилання, на які можна натиснути.',
                 placeholder: 'статус, тип, категорія'
             },
-            customPropertyColorFields: {
-                name: 'Властивість для кольору',
-                desc: 'Список властивостей frontmatter через кому для кольорів значків. Властивості кольору зіставляються з властивостями відображення за позицією. Властивості зі списковими значеннями зіставляють кольори за індексом. Значення можуть бути іменами тегів або CSS-кольорами.',
-                placeholder: 'statusColor, typeColor, categoryColor'
+            showCustomPropertiesOnSeparateRows: {
+                name: 'Показувати властивості в окремих рядках',
+                desc: 'Показувати кожну властивість у власному рядку.'
+            },
+            customPropertyColorMap: {
+                name: 'Кольори властивостей',
+                desc: 'Зіставлення властивостей frontmatter з кольорами значків. Одне зіставлення на рядок: властивість=колір',
+                placeholder: '# Властивість=колір\nstatus=#ff0000\ntype=#00ff00',
+                editTooltip: 'Редагувати зіставлення'
             },
             showCustomPropertyInCompactMode: {
                 name: 'Показувати користувацьку властивість у компактному режимі',
@@ -1113,14 +1219,16 @@ export const STRINGS_UK = {
                 desc: 'Формат для відображення дат (використовує формат date-fns).',
                 placeholder: 'd MMM yyyy',
                 help: 'Поширені формати:\nd MMM yyyy = 25 тра 2022\ndd/MM/yyyy = 25/05/2022\nyyyy-MM-dd = 2022-05-25\n\nТокени:\nyyyy/yy = рік\nMMMM/MMM/MM = місяць\ndd/d = день\nEEEE/EEE = день тижня',
-                helpTooltip: 'Натисніть для довідки по форматах'
+                helpTooltip: 'Формат date-fns',
+                dateFnsLinkText: 'формат date-fns'
             },
             timeFormat: {
                 name: 'Формат часу',
                 desc: 'Формат для відображення часу (використовує формат date-fns).',
                 placeholder: 'HH:mm',
                 help: 'Поширені формати:\nh:mm a = 2:30 PM (12-годинний)\nHH:mm = 14:30 (24-годинний)\nh:mm:ss a = 2:30:45 PM\nHH:mm:ss = 14:30:45\n\nТокени:\nHH/H = 24-годинний\nhh/h = 12-годинний\nmm = хвилини\nss = секунди\na = AM/PM',
-                helpTooltip: 'Натисніть для довідки по форматах'
+                helpTooltip: 'Формат date-fns',
+                dateFnsLinkText: 'формат date-fns'
             },
             showFilePreview: {
                 name: 'Показувати попередній перегляд нотатки',
@@ -1198,6 +1306,14 @@ export const STRINGS_UK = {
                 name: 'Успадковувати кольори папок',
                 desc: 'Дочірні папки успадковують колір від батьківських папок.'
             },
+            folderSortOrder: {
+                name: 'Порядок сортування папок',
+                desc: 'Клацніть правою кнопкою миші на папці, щоб задати інший порядок сортування для її дочірніх елементів.',
+                options: {
+                    alphaAsc: 'Від А до Я',
+                    alphaDesc: 'Від Я до А'
+                }
+            },
             showNoteCount: {
                 name: 'Показувати кількість нотаток',
                 desc: 'Відображати кількість нотаток поряд з кожною папкою та тегом.'
@@ -1262,12 +1378,13 @@ export const STRINGS_UK = {
             },
             tagSortOrder: {
                 name: 'Порядок сортування тегів',
-                desc: 'Виберіть, як впорядковуються теги в панелі навігації.',
+                desc: 'Клацніть правою кнопкою миші на тезі, щоб задати інший порядок сортування для її дочірніх елементів.',
                 options: {
                     alphaAsc: 'Від А до Я',
                     alphaDesc: 'Від Я до А',
-                    frequencyAsc: 'За частотою (від низької до високої)',
-                    frequencyDesc: 'За частотою (від високої до низької)'
+                    frequency: 'За частотою',
+                    lowToHigh: 'від низької до високої',
+                    highToLow: 'від високої до низької'
                 }
             },
             showAllTagsFolder: {
@@ -1420,7 +1537,8 @@ export const STRINGS_UK = {
             frontmatterDateFormat: {
                 name: 'Формат часової мітки',
                 desc: 'Формат для розбору часових міток у frontmatter. Залиште порожнім для використання формату ISO 8601',
-                helpTooltip: 'Див. документацію формату date-fns',
+                helpTooltip: 'Формат date-fns',
+                dateFnsLinkText: 'формат date-fns',
                 help: "Поширені формати:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
             },
             supportDevelopment: {

@@ -44,6 +44,8 @@ import { useKeyboardNavigation, KeyboardNavigationHelpers } from './useKeyboardN
 import { matchesShortcut, KeyboardShortcutAction } from '../utils/keyboardShortcuts';
 import { runAsyncAction } from '../utils/async';
 import { getNavigationIndex } from '../utils/navigationIndex';
+import { getFolderNote, openFolderNoteFile } from '../utils/folderNotes';
+import { isEnterKey, resolveKeyboardOpenContext } from '../utils/keyboardOpenContext';
 
 type VirtualTagCollectionItem = VirtualFolderItem & { tagCollectionId: string };
 
@@ -81,7 +83,7 @@ interface UseNavigationPaneKeyboardProps {
  * Handles folder/tag-specific keyboard interactions.
  */
 export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pathToIndex }: UseNavigationPaneKeyboardProps) {
-    const { app, isMobile } = useServices();
+    const { app, commandQueue, isMobile } = useServices();
     const fileSystemOps = useFileSystemOps();
     const settings = useSettingsState();
     const uxPreferences = useUXPreferences();
@@ -237,6 +239,22 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
 
                 return -1;
             };
+
+            if (isEnterKey(e) && selectionState.selectionType === ItemType.FOLDER && selectionState.selectedFolder) {
+                const folder = selectionState.selectedFolder;
+                const folderNote = getFolderNote(folder, settings);
+                if (folderNote) {
+                    e.preventDefault();
+
+                    const modifierContext = resolveKeyboardOpenContext(e, settings);
+                    const openContext = modifierContext ?? (settings.openFolderNotesInNewTab ? 'tab' : null);
+
+                    runAsyncAction(() =>
+                        openFolderNoteFile({ app, commandQueue, folder, folderNote, context: openContext, active: false })
+                    );
+                    return;
+                }
+            }
 
             if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.PANE_MOVE_DOWN)) {
                 e.preventDefault();
@@ -511,6 +529,7 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
             selectItemAtIndex,
             selectionState,
             app,
+            commandQueue,
             fileSystemOps,
             virtualizer,
             includeDescendantNotes,

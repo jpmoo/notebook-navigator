@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { Platform } from 'obsidian';
 import type { App, PaneType, TFile } from 'obsidian';
 import type { CommandQueueService } from '../services/CommandQueueService';
 
@@ -31,18 +32,20 @@ interface OpenFileInContextParams {
  * Opens a file in a new workspace context (tab, split, window) while respecting the command queue.
  */
 export async function openFileInContext({ app, commandQueue, file, context, active = true }: OpenFileInContextParams): Promise<void> {
+    const resolvedContext: PaneType = Platform.isMobile && context === 'window' ? 'tab' : context;
+
     // Define the file opening operation
     const openFile = async () => {
-        const leaf = app.workspace.getLeaf(context);
+        const leaf = app.workspace.getLeaf(resolvedContext);
         if (!leaf) {
-            throw new Error(`Unable to open file in ${context} context: leaf not available`);
+            throw new Error(`Unable to open file in ${resolvedContext} context: leaf not available`);
         }
         await leaf.openFile(file, { active });
     };
 
     // Execute through command queue if available to track file open context
     if (commandQueue) {
-        await commandQueue.executeOpenInNewContext(file, context, openFile);
+        await commandQueue.executeOpenInNewContext(file, resolvedContext, openFile);
         return;
     }
 

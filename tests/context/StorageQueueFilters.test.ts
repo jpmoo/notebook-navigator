@@ -110,7 +110,8 @@ describe('Storage queue filters', () => {
                 markdownPipelineMtime: 0,
                 previewStatus: 'has',
                 featureImageStatus: 'has',
-                customProperty: [{ value: '1' }]
+                // Stored custom property items include the source field key and value.
+                customProperty: [{ fieldKey: 'status', value: '1' }]
             })
         );
 
@@ -134,7 +135,8 @@ describe('Storage queue filters', () => {
                 previewStatus: 'has',
                 featureImageStatus: 'none',
                 featureImageKey: null,
-                customProperty: [{ value: '1' }]
+                // Stored custom property items include the source field key and value.
+                customProperty: [{ fieldKey: 'status', value: '1' }]
             })
         );
 

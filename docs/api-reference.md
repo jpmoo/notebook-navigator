@@ -1,11 +1,10 @@
 # Notebook Navigator API Reference
 
-Updated: December 23, 2025
+Updated: January 19, 2026
 
-The Notebook Navigator plugin exposes a public API that allows other plugins and scripts to interact with its features
-programmatically.
+The Notebook Navigator plugin exposes a public API for other plugins and scripts to interact with navigator features.
 
-**Current Version:** 1.2.0
+**Current API Version:** 1.2.0
 
 ## Table of Contents
 
@@ -20,6 +19,7 @@ programmatically.
 - [Events](#events)
 - [Core API Methods](#core-api-methods)
 - [TypeScript Support](#typescript-support)
+- [Changelog](#changelog)
 
 ## Quick Start
 
@@ -65,10 +65,15 @@ The API provides four main namespaces:
 - **`selection`** - Query current selection state
 - **`menus`** - Add items to Notebook Navigator context menus
 
+### Public surface
+
+The supported public surface is the API described in this document and in `src/api/public/notebook-navigator.d.ts`. The
+runtime `api` object may contain additional methods and properties; treat them as internal.
+
 Core methods:
 
 - **`getVersion()`** - Get the API version string
-- **`isStorageReady()`** - Check if storage is ready for metadata operations
+- **`isStorageReady()`** - Check if the storage cache is ready
 
 ## Metadata API
 
@@ -77,8 +82,12 @@ Customize folder and tag appearance, manage pinned files.
 ### Runtime Behavior
 
 - **Icon format**: `IconString` accepts emoji literals (`emoji:📁`) and provider-prefixed values for `lucide`,
-  `bootstrap-icons`, `fontawesome-solid`, `material-icons`, `phosphor`, `rpg-awesome`, and `simple-icons`. The runtime
-  still accepts any string, but unsupported providers or malformed IDs will fail to render.
+  `bootstrap-icons`, `fontawesome-solid`, `material-icons`, `phosphor`, `rpg-awesome`, and `simple-icons`.
+- **Icon normalization**: Icon values are normalized before saving (for example, redundant prefixes like `lucide-`,
+  `ph-`, and `ra-` are stripped, and `material-icons` identifiers are stored as snake case). Lucide is the default
+  provider and may be stored and returned without a `lucide:` prefix (for example, `'folder-open'`).
+- **Unsupported providers**: The runtime accepts and persists any string. Unsupported providers or malformed IDs do not
+  render and fall back to a default icon.
 - **Color values**: Any string is accepted and saved. Invalid CSS colors will not render correctly but won't throw
   errors.
 - **Tag normalization**: The `getTagMeta()` and `setTagMeta()` methods automatically normalize tags:
@@ -106,6 +115,9 @@ When using `setFolderMeta` or `setTagMeta`, partial updates follow this pattern:
 This applies to all metadata properties (color, backgroundColor, icon). Only properties explicitly included in the
 update object are modified.
 
+**TypeScript note**: The runtime uses `null` to clear a property, but the current type definitions use
+`Partial<FolderMetadata>` / `Partial<TagMetadata>` for the `meta` argument (which does not include `null`).
+
 ### Pinned Files
 
 Notes can be pinned in different contexts - they appear at the top of the file list when viewing folders or tags.
@@ -128,8 +140,7 @@ Pinned notes behave differently depending on the current view:
 - **Both Contexts**: A note can be pinned in both contexts and will appear at the top in both views
 - **Default Behavior**: Pin/unpin operations default to 'all' (both contexts)
 
-This allows users to have different sets of pinned notes for different workflows - for example, pinning project-related
-notes when browsing folders, and reference notes when browsing by tags.
+This supports separate pinned sets for folder and tag views.
 
 ```typescript
 // Set folder appearance
@@ -138,14 +149,11 @@ if (folder) {
   await nn.metadata.setFolderMeta(folder, {
     color: '#FF5733', // Hex, or 'red', 'rgb(255, 87, 51)', 'hsl(9, 100%, 60%)'
     backgroundColor: '#FFF3E0', // Light background color
-    icon: 'lucide:folder-open' // Type-safe with IconString
+    icon: 'lucide:folder-open'
   });
 
   // Update only specific properties (other properties unchanged)
   await nn.metadata.setFolderMeta(folder, { color: 'blue' });
-
-  // Clear properties by passing null
-  await nn.metadata.setFolderMeta(folder, { icon: null, backgroundColor: null });
 }
 
 // Pin a file
@@ -155,11 +163,11 @@ if (file) {
 
   // Or pin in specific context
   await nn.metadata.pin(file, 'folder');
-}
 
-// Check if pinned
-if (nn.metadata.isPinned(file, 'folder')) {
-  console.log('Pinned in folder context');
+  // Check if pinned
+  if (nn.metadata.isPinned(file, 'folder')) {
+    console.log('Pinned in folder context');
+  }
 }
 
 // Get all pinned files with context info
@@ -187,11 +195,12 @@ for (const [path, context] of pinned) {
 
 When calling `reveal(file)`:
 
+- **Opens the Notebook Navigator view** if it is not already open
 - **Switches to the file's parent folder** in the navigation pane
 - **Expands parent folders** as needed to make the folder visible
 - **Selects and focuses the file** in the file list
 - **Switches to file list view** if in single-pane mode
-- **If the file doesn't exist**, the method returns silently without error
+- **Rejects** if the navigator view cannot be opened
 
 ```typescript
 // Navigate to active file
@@ -206,9 +215,11 @@ if (activeFile) {
 
 When calling `navigateToFolder(folder)`:
 
+- Opens the Notebook Navigator view if it is not already open
 - Selects the folder in the navigation pane
 - Expands parent folders to make the folder visible
 - Preserves navigation focus in single-pane mode
+- Rejects if the navigator view cannot be opened
 
 ### Tag Navigation Behavior
 
@@ -219,6 +230,8 @@ When calling `navigateToTag(tag)`:
 - Expands the tags root when "All tags" is enabled and collapsed
 - Expands parent tags for hierarchical tags (e.g. `'parent/child'`)
 - Preserves navigation focus in single-pane mode
+- Does nothing if the tag is not present in the current tag tree
+- Rejects if the navigator view cannot be opened
 
 ```typescript
 // Wait for storage if needed, then navigate
@@ -232,6 +245,9 @@ await nn.navigation.navigateToTag('#work');
 ## Selection API
 
 Query the current selection state in the navigator.
+
+`getNavItem()` and `getCurrent()` return the navigator's most recently known state. Selection updates while the navigator
+view is active, and navigation selection is restored from localStorage on startup.
 
 | Method         | Description                  | Returns          |
 | -------------- | ---------------------------- | ---------------- |
@@ -261,17 +277,16 @@ Available in API version 1.2.0.
 
 | Method                      | Description                              | Returns                 |
 | --------------------------- | ---------------------------------------- | ----------------------- |
-| `registerFileMenu(callback)` | Add items to the file context menu       | `() => void`            |
-| `registerFolderMenu(callback)` | Add items to the folder context menu   | `() => void`            |
+| `registerFileMenu(callback)` | Add items to the file context menu      | `() => void`            |
+| `registerFolderMenu(callback)` | Add items to the folder context menu  | `() => void`            |
 
-Callbacks run synchronously each time the context menu is built. Keep callbacks lightweight, add menu items synchronously, and run async work in `onClick` handlers.
+Callbacks run synchronously during menu construction. Add menu items synchronously and do async work in `onClick` handlers.
 
 ### File context menu
 
 The file callback receives the clicked file and the effective selection for this menu:
 
 - `context.addItem(...)` - Add a menu item
-- `context.addSeparator()` - Add a separator
 - `context.file` - The file the menu was opened on
 - `context.selection.mode` - `'multiple'` when multiple files are selected and the menu was opened on a selected file
 - `context.selection.files` - Snapshot of files for this menu (`'single'` uses `[file]`)
@@ -323,7 +338,6 @@ const dispose = nn?.menus?.registerFileMenu(({ addItem, selection }) => {
 The folder callback receives:
 
 - `context.addItem(...)` - Add a menu item
-- `context.addSeparator()` - Add a separator
 - `context.folder` - The folder the menu was opened on
 
 ```typescript
@@ -340,6 +354,8 @@ const dispose = nn?.menus?.registerFolderMenu(({ addItem, folder }) => {
 
 Subscribe to navigator events to react to user actions.
 
+Tag strings in events use canonical form (no `#` prefix, lowercase path).
+
 | Event                  | Payload                                         | Description                  |
 | ---------------------- | ----------------------------------------------- | ---------------------------- |
 | `storage-ready`        | `void`                                          | Storage system is ready      |
@@ -352,11 +368,10 @@ Subscribe to navigator events to react to user actions.
 ```typescript
 // Subscribe to pin changes
 nn.on('pinned-files-changed', ({ files }) => {
-  console.log(`Total pinned files: ${files.length}`);
-  // Each file includes context information
-  files.forEach(pf => {
-    console.log(`${pf.file.name} - folder: ${pf.context.folder}, tag: ${pf.context.tag}`);
-  });
+  console.log(`Total pinned files: ${files.size}`);
+  for (const [path, context] of files) {
+    console.log(`${path} - folder: ${context.folder}, tag: ${context.tag}`);
+  }
 });
 
 // Use 'once' for one-time events (auto-unsubscribes)
@@ -392,6 +407,7 @@ nn.off(selectionRef);
 | Method                                                                                                       | Description                                      | Returns    |
 | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------ | ---------- |
 | `getVersion()`                                                                                               | Get API version                                  | `string`   |
+| `isStorageReady()`                                                                                           | Check if storage cache is ready                  | `boolean`  |
 | `on<T extends NotebookNavigatorEventType>(event: T, callback: (data: NotebookNavigatorEvents[T]) => void)`   | Subscribe to typed event                         | `EventRef` |
 | `once<T extends NotebookNavigatorEventType>(event: T, callback: (data: NotebookNavigatorEvents[T]) => void)` | Subscribe once (auto-unsubscribes after trigger) | `EventRef` |
 | `off(ref)`                                                                                                   | Unsubscribe from event                           | `void`     |
@@ -402,41 +418,44 @@ Since Obsidian plugins don't export types like npm packages, you have two option
 
 ### Option 1: With Type Definitions (Recommended)
 
-Download the TypeScript definitions file for full type safety and IntelliSense:
+Download the TypeScript definitions file:
 
 **[📄 notebook-navigator.d.ts](https://github.com/johansanneblad/notebook-navigator/blob/main/src/api/public/notebook-navigator.d.ts)**
 
 Save it to your plugin project and import:
 
 ```typescript
-import type { NotebookNavigatorAPI, NotebookNavigatorEvents, NavItem, IconString } from './notebook-navigator';
+import type { NotebookNavigatorAPI, IconString } from './notebook-navigator';
 
-const nn = app.plugins.plugins['notebook-navigator']?.api as NotebookNavigatorAPI;
-if (nn) {
-  // Wait for storage if needed, then proceed
-  if (!nn.isStorageReady()) {
-    await new Promise<void>(resolve => nn.once('storage-ready', resolve));
-  }
-
-  // Storage is ready, safe to use metadata APIs
-  await nn.metadata.setFolderMeta(folder, { color: '#FF5733' });
-
-  // Icon strings are type-checked at compile time
-  const icon: IconString = 'lucide:folder'; // Valid
-  // const bad: IconString = 'invalid:icon'; // TypeScript error
-  await nn.metadata.setFolderMeta(folder, { icon });
-
-  // Events have full type inference
-  nn.on('selection-changed', ({ state }) => {
-    // TypeScript knows: state is SelectionState with files and focused properties
-  });
+const nn = app.plugins.plugins['notebook-navigator']?.api as NotebookNavigatorAPI | undefined;
+if (!nn) {
+  return;
 }
+
+// Wait for storage if needed
+if (!nn.isStorageReady()) {
+  await new Promise<void>(resolve => nn.once('storage-ready', resolve));
+}
+
+const folder = app.vault.getFolderByPath('Projects');
+if (!folder) {
+  return;
+}
+
+// Icon strings are type-checked at compile time
+const icon: IconString = 'lucide:folder';
+await nn.metadata.setFolderMeta(folder, { color: '#FF5733', icon });
+
+// Events have full type inference
+nn.on('selection-changed', ({ state }) => {
+  console.log(state.files.length);
+});
 ```
 
 ### Option 2: Without Type Definitions
 
 ```javascript
-// Works fine without types in JavaScript/TypeScript
+// Works without type definitions
 const nn = app.plugins.plugins['notebook-navigator']?.api;
 if (nn) {
   // Wait for storage if needed, then proceed
@@ -444,7 +463,11 @@ if (nn) {
     await new Promise(resolve => nn.once('storage-ready', resolve));
   }
 
-  // Storage is ready, safe to use metadata APIs
+  const folder = app.vault.getFolderByPath('Projects');
+  if (!folder) {
+    return;
+  }
+
   await nn.metadata.setFolderMeta(folder, { color: '#FF5733' });
 }
 ```
@@ -453,18 +476,22 @@ if (nn) {
 
 The type definitions provide:
 
-- **Template literal types** for icons - `IconString` ensures only valid icon formats at compile time
-- **Generic event subscriptions** - Full type inference for event payloads
-- **Readonly arrays** - Prevents accidental mutation of returned data at compile time
-- **Exported utility types** - `NavItem`, `IconString`, `PinContext`, `PinnedFile`, etc.
-- **Complete API interface** - `NotebookNavigatorAPI` with all methods and properties
-- **Typed event system** - `NotebookNavigatorEvents` maps event names to payloads
-- **Full JSDoc comments** - Documentation for every method and type
+- **Template literal types** for icons (`IconString`)
+- **Typed event names and payloads** (`NotebookNavigatorEventType`, `NotebookNavigatorEvents`)
+- **Readonly return types** (selected files arrays, pinned map)
+- **Menu extension context types** (file and folder menus)
 
 **Note**: These type checks are compile-time only. At runtime, the API is permissive and accepts any values (see Runtime
 Behavior sections for each API).
 
 ## Changelog
+
+### Version 1.2.0 (2025-12-22)
+
+- Added `navigation.navigateToFolder(folder)`
+- Added `navigation.navigateToTag(tag)`
+- Added `menus.registerFileMenu(callback)`
+- Added `menus.registerFolderMenu(callback)`
 
 ### Version 1.0.1 (2025-09-16)
 

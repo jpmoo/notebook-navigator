@@ -28,7 +28,6 @@ function isPromiseLike(value: unknown): value is Promise<unknown> {
 
 export interface FileMenuExtensionContext {
     addItem: (cb: (item: MenuItem) => void) => void;
-    addSeparator: () => void;
     file: TFile;
     selection: {
         mode: FileMenuSelectionMode;
@@ -38,7 +37,6 @@ export interface FileMenuExtensionContext {
 
 export interface FolderMenuExtensionContext {
     addItem: (cb: (item: MenuItem) => void) => void;
-    addSeparator: () => void;
     folder: TFolder;
 }
 
@@ -119,15 +117,6 @@ export class MenusAPI {
                     console.error('Notebook Navigator file menu extension addItem failed', error);
                 }
             },
-            addSeparator: () => {
-                if (!isBuildingMenu) {
-                    console.error(
-                        'Notebook Navigator file menu extension attempted to add menu separators asynchronously. Add menu separators synchronously.'
-                    );
-                    return;
-                }
-                menu.addSeparator();
-            },
             file,
             selection: frozenSelection
         };
@@ -186,15 +175,6 @@ export class MenusAPI {
                 } catch (error) {
                     console.error('Notebook Navigator folder menu extension addItem failed', error);
                 }
-            },
-            addSeparator: () => {
-                if (!isBuildingMenu) {
-                    console.error(
-                        'Notebook Navigator folder menu extension attempted to add menu separators asynchronously. Add menu separators synchronously.'
-                    );
-                    return;
-                }
-                menu.addSeparator();
             },
             folder
         };

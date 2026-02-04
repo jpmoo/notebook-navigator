@@ -20,6 +20,7 @@ import type { NotebookNavigatorSettings } from '../settings';
 import type { VaultProfile } from '../settings/types';
 import type { ShortcutEntry } from '../types/shortcuts';
 import { strings } from '../i18n';
+import { normalizeCalendarCustomRootFolder } from './calendarCustomNotePatterns';
 import { FILE_VISIBILITY, type FileVisibility } from './fileTypeUtils';
 import { showNotice } from './noticeUtils';
 import { stripTrailingSlash } from './pathUtils';
@@ -50,6 +51,7 @@ interface VaultProfileInitOptions {
     hiddenFileTags?: string[];
     fileVisibility?: FileVisibility;
     navigationBanner?: string | null;
+    periodicNotesFolder?: string;
     shortcuts?: ShortcutEntry[];
 }
 
@@ -307,6 +309,9 @@ export function createVaultProfile(name: string, options: VaultProfileInitOption
         hiddenFileProperties: clonePatterns(options.hiddenFileProperties),
         navigationBanner:
             typeof options.navigationBanner === 'string' && options.navigationBanner.length > 0 ? options.navigationBanner : null,
+        periodicNotesFolder: normalizeCalendarCustomRootFolder(
+            typeof options.periodicNotesFolder === 'string' ? options.periodicNotesFolder : ''
+        ),
         shortcuts: cloneShortcuts(options.shortcuts)
     };
 }
@@ -328,6 +333,7 @@ function createVaultProfileFromTemplate(name: string, template: VaultProfileTemp
         hiddenFileTags: source?.hiddenFileTags,
         fileVisibility: source?.fileVisibility ?? template.fallbackFileVisibility,
         navigationBanner: source?.navigationBanner,
+        periodicNotesFolder: source?.periodicNotesFolder,
         shortcuts: source?.shortcuts
     });
 }
@@ -481,6 +487,9 @@ export function ensureVaultProfiles(settings: NotebookNavigatorSettings): void {
         profile.hiddenFileProperties = clonePatterns(profile.hiddenFileProperties);
         profile.navigationBanner =
             typeof profile.navigationBanner === 'string' && profile.navigationBanner.length > 0 ? profile.navigationBanner : null;
+        const profileRecordPeriodicNotesFolder =
+            profileRecord && typeof profileRecord['periodicNotesFolder'] === 'string' ? profileRecord['periodicNotesFolder'] : null;
+        profile.periodicNotesFolder = normalizeCalendarCustomRootFolder(profileRecordPeriodicNotesFolder ?? '');
         profile.shortcuts = cloneShortcuts(profile.shortcuts);
     });
 

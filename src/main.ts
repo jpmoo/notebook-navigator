@@ -21,8 +21,10 @@ import { NotebookNavigatorSettings, DEFAULT_SETTINGS, NotebookNavigatorSettingTa
 import { migrateRecentColors, migrateReleaseCheckState } from './settings/migrations/localPreferences';
 import {
     applyExistingUserDefaults,
+    applyLegacyPeriodicNotesFolderMigration,
     applyLegacyShortcutsMigration,
     applyLegacyVisibilityMigration,
+    extractLegacyPeriodicNotesFolder,
     extractLegacyShortcuts,
     extractLegacyVisibilitySettings,
     migrateFolderNotePropertiesSetting,
@@ -32,6 +34,7 @@ import {
     LocalStorageKeys,
     MAX_PANE_TRANSITION_DURATION_MS,
     MIN_PANE_TRANSITION_DURATION_MS,
+    NOTEBOOK_NAVIGATOR_CALENDAR_VIEW,
     NOTEBOOK_NAVIGATOR_VIEW,
     STORAGE_KEYS,
     type DualPaneOrientation,
@@ -46,6 +49,7 @@ import { CommandQueueService } from './services/CommandQueueService';
 import { OmnisearchService } from './services/OmnisearchService';
 import { FileSystemOperations } from './services/FileSystemService';
 import { getIconService } from './services/icons';
+import { VaultIconProvider } from './services/icons/providers/VaultIconProvider';
 import { RecentNotesService } from './services/RecentNotesService';
 import RecentDataManager from './services/recent/RecentDataManager';
 import { ExternalIconProviderController } from './services/icons/external/ExternalIconProviderController';
@@ -53,6 +57,7 @@ import { ExternalIconProviderId } from './services/icons/external/providerRegist
 import type { NavigateToFolderOptions } from './hooks/useNavigatorReveal';
 import ReleaseCheckService, { type ReleaseUpdateNotice } from './services/ReleaseCheckService';
 import { NotebookNavigatorView } from './view/NotebookNavigatorView';
+import { NotebookNavigatorCalendarView } from './view/NotebookNavigatorCalendarView';
 import { getDefaultDateFormat, getDefaultTimeFormat } from './i18n';
 import { localStorage, LOCALSTORAGE_VERSION } from './utils/localStorage';
 import { NotebookNavigatorAPI } from './api/NotebookNavigatorAPI';
@@ -66,6 +71,7 @@ import {
     normalizeFileTypeIconMapKey,
     normalizeIconMapRecord
 } from './utils/iconizeFormat';
+import { normalizePropertyColorMapKey, normalizePropertyColorMapRecord } from './utils/propertyColorMapFormat';
 import { normalizeUXIconMapRecord } from './utils/uxIcons';
 import { isBooleanRecordValue, isPlainObjectRecordValue, isStringRecordValue, sanitizeRecord } from './utils/recordUtils';
 import { isRecord } from './utils/typeGuards';
@@ -80,7 +86,12 @@ import registerWorkspaceEvents from './services/workspace/registerWorkspaceEvent
 import type { RevealFileOptions } from './hooks/useNavigatorReveal';
 import type { FolderAppearance } from './hooks/useListPaneAppearance';
 import {
+    type CalendarPlacement,
     type CalendarWeeksToShow,
+    type AlphaSortOrder,
+    isCalendarPlacement,
+    isCalendarWeekendDays,
+    isAlphaSortOrder,
     isSettingSyncMode,
     isSortOption,
     isTagSortOrder,
@@ -98,22 +109,66 @@ import { MAX_RECENT_COLORS } from './constants/colorPalette';
 import { NOTEBOOK_NAVIGATOR_ICON_ID, NOTEBOOK_NAVIGATOR_ICON_SVG } from './constants/notebookNavigatorIcon';
 import { createSyncModeRegistry, type SyncModeRegistry } from './services/settings/syncModeRegistry';
 
-const DEFAULT_UX_PREFERENCES: UXPreferences = {
-    searchActive: false,
-    includeDescendantNotes: false,
-    showHiddenItems: false,
-    pinShortcuts: true,
-    // Per-device toggle for the navigation calendar overlay.
-    showCalendar: false
+const UX_PREFERENCES_DEFAULTS = {
+    base: {
+        // Local-only UX preferences (per-device, stored in localStorage only)
+        searchActive: false,
+        showCalendar: false,
+        showHiddenItems: false,
+        pinShortcuts: true,
+
+        // UX preferences that mirror settings (sync-mode controlled)
+        includeDescendantNotes: DEFAULT_SETTINGS.includeDescendantNotes
+    },
+    platform: {
+        // Platform-specific default overrides.
+        // Applied before merging stored localStorage UX preferences; stored values override defaults.
+        mobile: {},
+        desktop: {}
+    }
+} satisfies {
+    base: UXPreferences;
+    platform: {
+        mobile: Partial<UXPreferences>;
+        desktop: Partial<UXPreferences>;
+    };
 };
 
-const UX_PREFERENCE_KEYS: (keyof UXPreferences)[] = [
-    'searchActive',
+type UXPreferenceKey = keyof typeof UX_PREFERENCES_DEFAULTS.base;
+
+const UX_PREFERENCE_KEYS = Object.keys(UX_PREFERENCES_DEFAULTS.base).filter((key): key is UXPreferenceKey => {
+    return key in UX_PREFERENCES_DEFAULTS.base;
+});
+
+function getDefaultUXPreferences(): UXPreferences {
+    // Used on first launch and when newly-added UX preference keys are missing from localStorage.
+    const overrides = Platform.isMobile ? UX_PREFERENCES_DEFAULTS.platform.mobile : UX_PREFERENCES_DEFAULTS.platform.desktop;
+
+    return {
+        ...UX_PREFERENCES_DEFAULTS.base,
+        ...overrides
+    };
+}
+
+// Settings that historically lived in localStorage only.
+// During upgrades (no stored syncModes), these default to local to preserve per-device behavior.
+const LEGACY_LOCAL_SYNC_MODE_SETTING_IDS = new Set<SyncModeSettingId>([
+    'vaultProfile',
+    'tagSortOrder',
+    'searchProvider',
     'includeDescendantNotes',
-    'showHiddenItems',
-    'pinShortcuts',
-    'showCalendar'
-];
+    'dualPane',
+    'dualPaneOrientation',
+    'paneTransitionDuration',
+    'toolbarVisibility',
+    'navIndent',
+    'navItemHeight',
+    'navItemHeightScaleText',
+    'calendarWeeksToShow',
+    'compactItemHeight',
+    'compactItemHeightScaleText',
+    'uiScale'
+]);
 
 /**
  * Main plugin class for Notebook Navigator
@@ -153,13 +208,16 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     // Handles homepage file opening and startup behavior
     private homepageController: HomepageController | null = null;
     private pendingUpdateNotice: ReleaseUpdateNotice | null = null;
-    private uxPreferences: UXPreferences = { ...DEFAULT_UX_PREFERENCES };
+    private uxPreferences: UXPreferences = getDefaultUXPreferences();
     private uxPreferenceListeners = new Map<string, () => void>();
     private syncModeRegistry: SyncModeRegistry | null = null;
     // TODO: Remove legacy UI scale flags and migration when desktopScale/mobileScale are fully dropped
     // Track whether legacy scales still need to be kept in persisted settings until this device migrates them
     private shouldPersistDesktopScale = false;
     private shouldPersistMobileScale = false;
+    private hasWorkspaceLayoutReady = false;
+    private lastCalendarPlacement: CalendarPlacement | null = null;
+    private calendarPlacementRequestId = 0;
     private hiddenFolderCacheKey: string | null = null;
     private hiddenTagCacheKey: string | null = null;
     private hiddenFileNamesCacheKey: string | null = null;
@@ -264,14 +322,16 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             sanitizeBooleanSetting: (value, fallback) => this.sanitizeBooleanSetting(value, fallback),
             sanitizeDualPaneOrientationSetting: value => this.sanitizeDualPaneOrientationSetting(value),
             sanitizeTagSortOrderSetting: value => this.sanitizeTagSortOrderSetting(value),
+            sanitizeFolderSortOrderSetting: value => this.sanitizeFolderSortOrderSetting(value),
             sanitizeSearchProviderSetting: value => this.sanitizeSearchProviderSetting(value),
             sanitizePaneTransitionDurationSetting: value => this.sanitizePaneTransitionDurationSetting(value),
             sanitizeToolbarVisibilitySetting: value => this.sanitizeToolbarVisibilitySetting(value),
             sanitizeNavIndentSetting: value => this.sanitizeNavIndentSetting(value),
             sanitizeNavItemHeightSetting: value => this.sanitizeNavItemHeightSetting(value),
             sanitizeCalendarWeeksToShowSetting: value => this.sanitizeCalendarWeeksToShowSetting(value),
+            sanitizeCalendarPlacementSetting: value => this.sanitizeCalendarPlacementSetting(value),
             sanitizeCompactItemHeightSetting: value => this.sanitizeCompactItemHeightSetting(value),
-            defaultUXPreferences: DEFAULT_UX_PREFERENCES,
+            defaultUXPreferences: getDefaultUXPreferences(),
             isUXPreferencesRecord: value => this.isUXPreferencesRecord(value),
             mirrorUXPreferences: update => {
                 this.uxPreferences = {
@@ -299,12 +359,18 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
     private normalizeSyncModes(params: { storedData: Record<string, unknown> | null; isFirstLaunch: boolean }): void {
         const { storedData, isFirstLaunch } = params;
-        const defaultMode: SettingSyncMode = isFirstLaunch ? 'synced' : 'local';
         const storedModes = storedData?.['syncModes'];
         const source = isPlainObjectRecordValue(storedModes) ? storedModes : null;
 
         const resolved = sanitizeRecord<SettingSyncMode>(undefined);
         SYNC_MODE_SETTING_IDS.forEach(settingId => {
+            // First launch: initialize all sync-mode settings as synced.
+            // Upgrade (missing per-setting mode): keep legacy local-only settings local and default new settings to synced.
+            const defaultMode: SettingSyncMode = isFirstLaunch
+                ? 'synced'
+                : LEGACY_LOCAL_SYNC_MODE_SETTING_IDS.has(settingId)
+                  ? 'local'
+                  : 'synced';
             const value = source ? source[settingId] : undefined;
             resolved[settingId] = isSettingSyncMode(value) ? value : defaultMode;
         });
@@ -327,19 +393,14 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             this.dualPanePreference = this.settings.dualPane;
             this.dualPaneOrientationPreference = this.settings.dualPaneOrientation;
             const previousIncludeDescendantNotes = this.uxPreferences.includeDescendantNotes;
-            const previousShowCalendar = this.uxPreferences.showCalendar;
             this.uxPreferences = {
                 ...this.uxPreferences,
-                includeDescendantNotes: this.settings.includeDescendantNotes,
-                showCalendar: this.settings.showCalendar
+                includeDescendantNotes: this.settings.includeDescendantNotes
             };
             this.initializeRecentDataManager();
             this.isHandlingExternalSettingsUpdate = true;
             this.onSettingsUpdate();
-            if (
-                previousIncludeDescendantNotes !== this.uxPreferences.includeDescendantNotes ||
-                previousShowCalendar !== this.uxPreferences.showCalendar
-            ) {
+            if (previousIncludeDescendantNotes !== this.uxPreferences.includeDescendantNotes) {
                 this.notifyUXPreferencesUpdate();
             }
         } finally {
@@ -362,6 +423,10 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
         // Start with default settings
         this.settings = { ...DEFAULT_SETTINGS, ...(storedSettings ?? {}) };
+
+        const settingsRecord = this.settings as unknown as Record<string, unknown>;
+        delete settingsRecord['showCalendar'];
+        delete settingsRecord['calendarCustomPromptForTitle'];
         // Validate and normalize keyboard shortcuts to use standard modifier names
         this.settings.keyboardShortcuts = sanitizeKeyboardShortcuts(this.settings.keyboardShortcuts);
         this.normalizeSyncModes({ storedData, isFirstLaunch });
@@ -387,6 +452,15 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         if (typeof this.settings.recentNotesCount !== 'number' || this.settings.recentNotesCount <= 0) {
             this.settings.recentNotesCount = DEFAULT_SETTINGS.recentNotesCount;
         }
+
+        if (!isCalendarWeekendDays(this.settings.calendarWeekendDays)) {
+            this.settings.calendarWeekendDays = DEFAULT_SETTINGS.calendarWeekendDays;
+        }
+
+        if (!isAlphaSortOrder(this.settings.folderSortOrder)) {
+            this.settings.folderSortOrder = DEFAULT_SETTINGS.folderSortOrder;
+        }
+
         let uiScaleMigrated = false;
         SYNC_MODE_SETTING_IDS.forEach(settingId => {
             const entry = syncModeRegistry[settingId];
@@ -429,13 +503,16 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         // Extract legacy exclusion settings and migrate to vault profile system
         const legacyVisibility = extractLegacyVisibilitySettings({ settings: this.settings, storedData });
         const legacyShortcuts = extractLegacyShortcuts({ storedData });
+        const legacyPeriodicNotesFolder = extractLegacyPeriodicNotesFolder({ settings: this.settings });
 
-        // Initialize vault profiles and apply legacy settings to the active profile
+        // Initialize vault profiles and apply legacy profile migrations
         ensureVaultProfiles(this.settings);
+        applyLegacyPeriodicNotesFolderMigration({ settings: this.settings, legacyPeriodicNotesFolder });
         applyLegacyVisibilityMigration({ settings: this.settings, migration: legacyVisibility });
         applyLegacyShortcutsMigration({ settings: this.settings, legacyShortcuts });
         this.normalizeIconSettings(this.settings);
         this.normalizeFileIconMapSettings(this.settings);
+        this.normalizeCustomPropertyColorMapSettings(this.settings);
         this.normalizeInterfaceIconsSettings(this.settings);
         syncModeRegistry.vaultProfile.resolveOnLoad({ storedData });
         this.refreshMatcherCachesIfNeeded();
@@ -499,6 +576,10 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         return this.sanitizeBoundedIntegerSetting(value, { min: 20, max: 28, fallback: DEFAULT_SETTINGS.navItemHeight });
     }
 
+    private sanitizeCalendarPlacementSetting(value: unknown): CalendarPlacement {
+        return isCalendarPlacement(value) ? value : DEFAULT_SETTINGS.calendarPlacement;
+    }
+
     private sanitizeCalendarWeeksToShowSetting(value: unknown): CalendarWeeksToShow {
         const parsed = this.parseFiniteNumber(value);
         if (parsed === null) {
@@ -517,6 +598,10 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
     private sanitizeTagSortOrderSetting(value: unknown): TagSortOrder {
         return typeof value === 'string' && isTagSortOrder(value) ? value : DEFAULT_SETTINGS.tagSortOrder;
+    }
+
+    private sanitizeFolderSortOrderSetting(value: unknown): AlphaSortOrder {
+        return typeof value === 'string' && isAlphaSortOrder(value) ? value : DEFAULT_SETTINGS.folderSortOrder;
     }
 
     private sanitizeSearchProviderSetting(value: unknown): 'internal' | 'omnisearch' {
@@ -773,7 +858,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             this.clearAllLocalStorage();
 
             // Re-seed per-device mirrors cleared above
-            this.uxPreferences = { ...DEFAULT_UX_PREFERENCES };
+            this.uxPreferences = getDefaultUXPreferences();
             const syncModeRegistry = this.getSyncModeRegistry();
             SYNC_MODE_SETTING_IDS.forEach(settingId => {
                 syncModeRegistry[settingId].mirrorToLocalStorage();
@@ -835,6 +920,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         this.releaseCheckService = new ReleaseCheckService(this);
 
         const iconService = getIconService();
+        iconService.registerProvider(new VaultIconProvider(this.app));
         this.externalIconController = new ExternalIconProviderController(this.app, iconService, this);
         const iconController = this.externalIconController;
         if (iconController) {
@@ -863,6 +949,9 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         this.registerView(NOTEBOOK_NAVIGATOR_VIEW, leaf => {
             return new NotebookNavigatorView(leaf, this);
         });
+        this.registerView(NOTEBOOK_NAVIGATOR_CALENDAR_VIEW, leaf => {
+            return new NotebookNavigatorCalendarView(leaf, this);
+        });
 
         // Register commands
         registerNavigatorCommands(this);
@@ -878,6 +967,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         const shouldActivateOnStartup = isFirstLaunch;
 
         this.app.workspace.onLayoutReady(() => {
+            this.hasWorkspaceLayoutReady = true;
             // Execute startup tasks asynchronously to avoid blocking the layout
             runAsyncAction(async () => {
                 if (this.isUnloading) {
@@ -891,11 +981,26 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
                     new WelcomeModal(this.app).open();
                 }
 
-                // Check for version updates
-                await this.checkForVersionUpdate({ isFirstLaunch });
+                // Check for version updates after a short delay.
+                // Obsidian Sync can update the plugin settings shortly after startup, so defer the check to avoid using cached settings.
+                const versionUpdateGracePeriodMs = 3000;
+                if (typeof window === 'undefined') {
+                    await this.checkForVersionUpdate({ isFirstLaunch });
+                } else {
+                    window.setTimeout(() => {
+                        runAsyncAction(async () => {
+                            if (this.isUnloading) {
+                                return;
+                            }
+                            await this.checkForVersionUpdate({ isFirstLaunch });
+                        });
+                    }, versionUpdateGracePeriodMs);
+                }
 
                 // Trigger Style Settings plugin to parse our settings
                 this.app.workspace.trigger('parse-style-settings');
+
+                this.applyCalendarPlacementView({ force: true, reveal: false });
 
                 // Check for new GitHub releases if enabled, without blocking startup
                 if (this.settings.checkForUpdatesOnStart) {
@@ -1009,6 +1114,13 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     }
 
     /**
+     * Returns the current folder sort order preference.
+     */
+    public getFolderSortOrder(): AlphaSortOrder {
+        return this.settings.folderSortOrder;
+    }
+
+    /**
      * Updates the tag sort order preference and persists to local storage.
      */
     public setTagSortOrder(order: TagSortOrder): void {
@@ -1018,6 +1130,18 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         this.settings.tagSortOrder = order;
         localStorage.set(this.keys.tagSortOrderKey, order);
         this.persistSyncModeSettingUpdate('tagSortOrder');
+    }
+
+    /**
+     * Updates the folder sort order preference and persists to local storage.
+     */
+    public setFolderSortOrder(order: AlphaSortOrder): void {
+        if (!isAlphaSortOrder(order) || this.settings.folderSortOrder === order) {
+            return;
+        }
+        this.settings.folderSortOrder = order;
+        localStorage.set(this.keys.folderSortOrderKey, order);
+        this.persistSyncModeSettingUpdate('folderSortOrder');
     }
 
     /**
@@ -1123,7 +1247,33 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
      */
     public persistToolbarVisibility(): void {
         localStorage.set(this.keys.toolbarVisibilityKey, this.settings.toolbarVisibility);
-        this.persistSyncModeSettingUpdate('toolbarVisibility');
+        this.notifySettingsUpdate();
+        if (this.isLocal('toolbarVisibility')) {
+            return;
+        }
+        runAsyncAction(() => this.saveSettings());
+    }
+
+    /**
+     * Updates whether floating toolbars are used.
+     */
+    public setUseFloatingToolbars(enabled: boolean): void {
+        this.updateSettingAndMirrorToLocalStorage({
+            settingId: 'useFloatingToolbars',
+            localStorageKey: this.keys.useFloatingToolbarsKey,
+            nextValue: Boolean(enabled)
+        });
+    }
+
+    /**
+     * Updates whether the navigation banner is pinned to the top of the navigation pane.
+     */
+    public setPinNavigationBanner(enabled: boolean): void {
+        this.updateSettingAndMirrorToLocalStorage({
+            settingId: 'pinNavigationBanner',
+            localStorageKey: this.keys.pinNavigationBannerKey,
+            nextValue: enabled
+        });
     }
 
     /**
@@ -1174,6 +1324,23 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             localStorageKey: this.keys.calendarWeeksToShowKey,
             nextValue: weeks
         });
+    }
+
+    public setCalendarPlacement(placement: CalendarPlacement): void {
+        const previousPlacement = this.settings.calendarPlacement;
+        if (previousPlacement === placement) {
+            return;
+        }
+
+        this.updateSettingAndMirrorToLocalStorage({
+            settingId: 'calendarPlacement',
+            localStorageKey: this.keys.calendarPlacementKey,
+            nextValue: placement
+        });
+
+        if (previousPlacement === 'right-sidebar' && placement === 'left-sidebar') {
+            this.setShowCalendar(true);
+        }
     }
 
     /**
@@ -1281,10 +1448,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         if (this.uxPreferences.showCalendar === next) {
             return;
         }
-
-        this.settings.showCalendar = next;
         this.updateUXPreference('showCalendar', next);
-        this.persistSyncModeSettingUpdate('showCalendar');
     }
 
     public toggleShowCalendar(): void {
@@ -1304,10 +1468,11 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     }
 
     private loadUXPreferences(): void {
+        const defaults = getDefaultUXPreferences();
         const stored = localStorage.get<unknown>(this.keys.uxPreferencesKey);
         if (this.isUXPreferencesRecord(stored)) {
             this.uxPreferences = {
-                ...DEFAULT_UX_PREFERENCES,
+                ...defaults,
                 ...stored
             };
 
@@ -1319,7 +1484,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
                 this.persistUXPreferences(false);
             }
         } else {
-            this.uxPreferences = { ...DEFAULT_UX_PREFERENCES };
+            this.uxPreferences = defaults;
             this.persistUXPreferences(false);
         }
     }
@@ -1593,6 +1758,9 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         // Type-specific sanitizers that validate values match expected types
         const sanitizeStringMap = (record?: Record<string, string>): Record<string, string> => sanitizeRecord(record, isStringRecordValue);
         const sanitizeSortMap = (record?: Record<string, SortOption>): Record<string, SortOption> => sanitizeRecord(record, isSortOption);
+        const sanitizeAlphaSortOrderMap = (
+            record?: Record<string, 'alpha-asc' | 'alpha-desc'>
+        ): Record<string, 'alpha-asc' | 'alpha-desc'> => sanitizeRecord(record, isAlphaSortOrder);
         const isAppearanceValue = (value: unknown): value is FolderAppearance => isPlainObjectRecordValue(value);
         const sanitizeAppearanceMap = (record?: Record<string, FolderAppearance>): Record<string, FolderAppearance> =>
             sanitizeRecord(record, isAppearanceValue);
@@ -1609,6 +1777,8 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         this.settings.tagBackgroundColors = sanitizeStringMap(this.settings.tagBackgroundColors);
         this.settings.folderSortOverrides = sanitizeSortMap(this.settings.folderSortOverrides);
         this.settings.tagSortOverrides = sanitizeSortMap(this.settings.tagSortOverrides);
+        this.settings.folderTreeSortOverrides = sanitizeAlphaSortOrderMap(this.settings.folderTreeSortOverrides);
+        this.settings.tagTreeSortOverrides = sanitizeAlphaSortOrderMap(this.settings.tagTreeSortOverrides);
         this.settings.folderAppearances = sanitizeAppearanceMap(this.settings.folderAppearances);
         this.settings.tagAppearances = sanitizeAppearanceMap(this.settings.tagAppearances);
         this.settings.navigationSeparators = sanitizeBooleanMap(this.settings.navigationSeparators);
@@ -1672,6 +1842,26 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             normalizeFileNameIconMapKey,
             DEFAULT_SETTINGS.fileNameIconMap
         );
+    }
+
+    private normalizeCustomPropertyColorMapSettings(settings: NotebookNavigatorSettings): void {
+        const normalizeColorMap = (input: unknown, fallback: Record<string, string>) => {
+            if (!isPlainObjectRecordValue(input)) {
+                return normalizePropertyColorMapRecord(fallback, normalizePropertyColorMapKey);
+            }
+
+            const source = sanitizeRecord<string>(undefined);
+            Object.entries(input).forEach(([key, value]) => {
+                if (typeof value !== 'string') {
+                    return;
+                }
+                source[key] = value;
+            });
+
+            return normalizePropertyColorMapRecord(source, normalizePropertyColorMapKey);
+        };
+
+        settings.customPropertyColorMap = normalizeColorMap(settings.customPropertyColorMap, DEFAULT_SETTINGS.customPropertyColorMap);
     }
 
     private normalizeInterfaceIconsSettings(settings: NotebookNavigatorSettings): void {
@@ -1763,6 +1953,8 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         delete rest.recentColors;
         delete rest.lastReleaseCheckAt;
         delete rest.latestKnownRelease;
+        delete rest.showCalendar;
+        delete rest.calendarCustomPromptForTitle;
         const syncModeRegistry = this.getSyncModeRegistry();
         SYNC_MODE_SETTING_IDS.forEach(settingId => {
             if (!this.isLocal(settingId)) {
@@ -1810,16 +2002,20 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         }
     }
 
+    private async saveSettings(): Promise<void> {
+        ensureVaultProfiles(this.settings);
+        this.refreshMatcherCachesIfNeeded();
+        const dataToPersist = this.getPersistableSettings();
+        await this.saveData(dataToPersist);
+    }
+
     /**
      * Saves current plugin settings to Obsidian's data storage and notifies listeners
      * Persists user preferences between sessions and triggers UI updates
      * Called whenever settings are modified
      */
     async saveSettingsAndUpdate() {
-        ensureVaultProfiles(this.settings);
-        this.refreshMatcherCachesIfNeeded();
-        const dataToPersist = this.getPersistableSettings();
-        await this.saveData(dataToPersist);
+        await this.saveSettings();
         // Notify all listeners that settings have been updated
         this.onSettingsUpdate();
     }
@@ -1850,10 +2046,10 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         this.dualPaneOrientationPreference = this.settings.dualPaneOrientation;
         localStorage.set(this.keys.dualPaneOrientationKey, this.dualPaneOrientationPreference);
 
+        const defaults = getDefaultUXPreferences();
         this.uxPreferences = {
-            ...DEFAULT_UX_PREFERENCES,
-            includeDescendantNotes: this.settings.includeDescendantNotes,
-            showCalendar: this.settings.showCalendar
+            ...defaults,
+            includeDescendantNotes: this.settings.includeDescendantNotes
         };
         localStorage.set(this.keys.uxPreferencesKey, this.uxPreferences);
         localStorage.set(STORAGE_KEYS.localStorageVersionKey, LOCALSTORAGE_VERSION);
@@ -1872,6 +2068,55 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
      */
     public notifySettingsUpdate(): void {
         this.onSettingsUpdate();
+    }
+
+    private isObsidianSettingsModalOpen(): boolean {
+        if (typeof document === 'undefined') {
+            return false;
+        }
+
+        return document.querySelector('.modal.mod-settings, .modal-container.mod-settings') !== null;
+    }
+
+    private applyCalendarPlacementView(options: { force?: boolean; reveal?: boolean; activate?: boolean } = {}): void {
+        if (this.isUnloading || !this.hasWorkspaceLayoutReady) {
+            return;
+        }
+
+        const coordinator = this.workspaceCoordinator;
+        if (!coordinator) {
+            return;
+        }
+
+        const nextPlacement = this.settings.calendarPlacement;
+        const previousPlacement = this.lastCalendarPlacement;
+        const force = options.force ?? false;
+
+        if (!force && previousPlacement === nextPlacement) {
+            return;
+        }
+
+        this.lastCalendarPlacement = nextPlacement;
+        const requestId = ++this.calendarPlacementRequestId;
+
+        if (nextPlacement === 'right-sidebar') {
+            const reveal = options.reveal ?? false;
+            const activate = options.activate ?? reveal;
+            runAsyncAction(() =>
+                coordinator.ensureCalendarViewInRightSidebar({
+                    reveal,
+                    activate,
+                    shouldContinue: () =>
+                        !this.isUnloading &&
+                        this.hasWorkspaceLayoutReady &&
+                        this.calendarPlacementRequestId === requestId &&
+                        this.settings.calendarPlacement === 'right-sidebar'
+                })
+            );
+            return;
+        }
+
+        coordinator.detachCalendarViewLeaves();
     }
 
     /**
@@ -1924,6 +2169,11 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
                 // Silently ignore errors from settings update callbacks
             }
         });
+
+        const shouldRevealCalendarView =
+            this.lastCalendarPlacement !== 'right-sidebar' && this.settings.calendarPlacement === 'right-sidebar';
+        const shouldActivateCalendarView = shouldRevealCalendarView && !this.isObsidianSettingsModalOpen();
+        this.applyCalendarPlacementView({ reveal: shouldRevealCalendarView, activate: shouldActivateCalendarView });
     }
 
     /**

@@ -199,6 +199,46 @@ const REGEX_STRIP_MARKDOWN = new RegExp(BASE_PATTERNS.join('|'), 'gm');
  */
 const REGEX_BLOCKQUOTE_MARKERS = /^\s{0,3}(?:>\s*)+/gm;
 
+/**
+ * CommonMark "backslash escapes" apply to ASCII punctuation:
+ * https://spec.commonmark.org/0.31.2/#backslash-escapes
+ *
+ * Using explicit ranges avoids brittle escaping rules inside a character class.
+ */
+const REGEX_MARKDOWN_HARD_ESCAPES = /\\([\u0021-\u002F\u003A-\u0040\u005B-\u0060\u007B-\u007E])/g;
+const REGEX_MARKDOWN_HARD_LINE_BREAK = /\\\r?\n/g;
+
+function protectMarkdownHardEscapes(text: string): { protectedText: string; escapeSegments: string[]; escapeBase: string } {
+    if (!text.includes('\\')) {
+        return { protectedText: text, escapeSegments: [], escapeBase: '' };
+    }
+
+    const escapeBase = createPlaceholderBase('ESC');
+    const escapeSegments: string[] = [];
+
+    const protectedText = text.replace(REGEX_MARKDOWN_HARD_ESCAPES, (_match, escapedChar: string) => {
+        const placeholder = buildPlaceholder(escapeBase, escapeSegments.length);
+        escapeSegments.push(escapedChar);
+        return placeholder;
+    });
+
+    return { protectedText, escapeSegments, escapeBase };
+}
+
+function restoreEscapePlaceholders(text: string, escapeSegments: readonly string[], escapeBase: string): string {
+    if (escapeSegments.length === 0) {
+        return text;
+    }
+    const escapePattern = new RegExp(`${escapeRegExpLiteral(escapeBase)}_(\\d+)@@`, 'g');
+    return text.replace(escapePattern, (_match, indexString: string) => {
+        const index = Number.parseInt(indexString, 10);
+        if (Number.isNaN(index) || index < 0 || index >= escapeSegments.length) {
+            return '';
+        }
+        return escapeSegments[index];
+    });
+}
+
 /** Removes HTML tags from a chunk of text, preserving inner text content */
 function stripHtmlFromChunk(chunk: string): string {
     if (!chunk.includes('<')) {
@@ -433,6 +473,15 @@ function removeFrontmatter(content: string): string {
 function stripTaskCheckboxesAndHorizontalRules(text: string): string {
     const withoutTaskCheckboxes = text.replace(/^\s*(?:[-*+]\s+|\d+\.\s+)?\[(?: |x|X|\/|-)?\]\]?\s*/gm, '');
     return withoutTaskCheckboxes.replace(/^\s*([*_-])(?:\s*\1){2,}\s*$/gm, '');
+}
+
+/** Removes Obsidian block identifiers like `^37066f` from preview text while preserving surrounding content. */
+function stripObsidianBlockIdentifiers(text: string): string {
+    if (!text.includes('^')) {
+        return text;
+    }
+
+    return text.replace(/(^|[ \t])\^[0-9A-Za-z-]+(?=\s|$)/gm, '$1');
 }
 
 /** Replaces inline code spans with their unwrapped content (backticks removed) */
@@ -913,9 +962,19 @@ export class PreviewTextUtils {
             fencedCodeRanges: fencedCodeBlocks
         };
         const { protectedText, inlineSegments, fencedSegments, inlineBase, fencedBase } = buildProtectedText(text, context, skipCodeBlocks);
+        const protectedEscapes = protectMarkdownHardEscapes(protectedText);
+
+        // CommonMark: a backslash followed by a newline is a hard line break escape.
+        // Apply after hard-escape protection so escaped backslashes (`\\`) are not treated as hard breaks.
+        const withoutHardLineBreakEscapes =
+            protectedEscapes.protectedText.includes('\\') && protectedEscapes.protectedText.includes('\n')
+                ? protectedEscapes.protectedText.replace(REGEX_MARKDOWN_HARD_LINE_BREAK, '\n')
+                : protectedEscapes.protectedText;
 
         // Remove blockquote markers so quoted markdown is treated the same as unquoted markdown.
-        const withoutBlockquoteMarkers = protectedText.includes('>') ? protectedText.replace(REGEX_BLOCKQUOTE_MARKERS, '') : protectedText;
+        const withoutBlockquoteMarkers = withoutHardLineBreakEscapes.includes('>')
+            ? withoutHardLineBreakEscapes.replace(REGEX_BLOCKQUOTE_MARKERS, '')
+            : withoutHardLineBreakEscapes;
 
         const stripped = withoutBlockquoteMarkers.replace(regex, (match, ...rawArgs) => {
             const args: unknown[] = rawArgs;
@@ -1023,7 +1082,15 @@ export class PreviewTextUtils {
         // Apply post-cleanups before restoring code placeholders so code content is not altered.
         const withoutTasksAndRules = stripTaskCheckboxesAndHorizontalRules(withoutWikiLinkSyntax);
 
-        return restorePlaceholders(withoutTasksAndRules, inlineSegments, fencedSegments, inlineBase, fencedBase);
+        const withoutBlockIdentifiers = stripObsidianBlockIdentifiers(withoutTasksAndRules);
+
+        const withEscapesRestored = restoreEscapePlaceholders(
+            withoutBlockIdentifiers,
+            protectedEscapes.escapeSegments,
+            protectedEscapes.escapeBase
+        );
+
+        return restorePlaceholders(withEscapesRestored, inlineSegments, fencedSegments, inlineBase, fencedBase);
     }
 
     /**

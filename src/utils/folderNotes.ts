@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { App, TFile, TFolder, normalizePath } from 'obsidian';
+import { App, type PaneType, TFile, TFolder, normalizePath } from 'obsidian';
 import { strings } from '../i18n';
 import { FolderNoteType, FOLDER_NOTE_TYPE_EXTENSIONS, FolderNoteCreationPreference } from '../types/folderNote';
 import { createDatabaseContent } from './fileCreationUtils';
@@ -24,6 +24,16 @@ import { isExcalidrawFile, stripExcalidrawSuffix } from './fileNameUtils';
 import { CommandQueueService } from '../services/CommandQueueService';
 import { promptForFolderNoteType } from '../modals/FolderNoteTypeModal';
 import { showNotice } from './noticeUtils';
+import { openFileInContext } from './openFileInContext';
+
+interface OpenFolderNoteFileParams {
+    app: App;
+    commandQueue: CommandQueueService | null;
+    folder: TFolder;
+    folderNote: TFile;
+    context: PaneType | null;
+    active?: boolean;
+}
 
 /**
  * Settings required for detecting folder notes
@@ -93,6 +103,39 @@ export function getFolderNote(folder: TFolder, settings: FolderNoteDetectionSett
     }
 
     return excalidrawCandidate;
+}
+
+/**
+ * Opens the folder note for a folder, optionally in a new workspace context.
+ * Uses CommandQueueService when available to track folder note opens.
+ */
+export async function openFolderNoteFile({
+    app,
+    commandQueue,
+    folder,
+    folderNote,
+    context,
+    active = true
+}: OpenFolderNoteFileParams): Promise<void> {
+    const openFile = async () => {
+        if (context) {
+            await openFileInContext({ app, commandQueue, file: folderNote, context, active });
+            return;
+        }
+
+        const leaf = app.workspace.getLeaf(false);
+        if (!leaf) {
+            return;
+        }
+        await leaf.openFile(folderNote, { active });
+    };
+
+    if (commandQueue) {
+        await commandQueue.executeOpenFolderNote(folder.path, openFile);
+        return;
+    }
+
+    await openFile();
 }
 
 /**
@@ -193,10 +236,18 @@ export async function createFolderNote(
         const file = await app.vault.create(notePath, content);
         if (commandQueue) {
             await commandQueue.executeOpenFolderNote(folder.path, async () => {
-                await app.workspace.getLeaf().openFile(file);
+                const leaf = app.workspace.getLeaf(false);
+                if (!leaf) {
+                    return;
+                }
+                await leaf.openFile(file);
             });
         } else {
-            await app.workspace.getLeaf().openFile(file);
+            const leaf = app.workspace.getLeaf(false);
+            if (!leaf) {
+                return file;
+            }
+            await leaf.openFile(file);
         }
         return file;
     } catch (error) {

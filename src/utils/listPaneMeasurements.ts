@@ -142,3 +142,64 @@ export function shouldShowCustomPropertyRow({
     // Custom property values are stored as an array; an empty array means there are no pills to render.
     return Boolean(customProperty && customProperty.length > 0);
 }
+
+export function getCustomPropertyRowCount({
+    customPropertyType,
+    showCustomPropertiesOnSeparateRows,
+    showCustomPropertyInCompactMode,
+    isCompactMode,
+    file,
+    wordCount,
+    customProperty
+}: {
+    customPropertyType: CustomPropertyType;
+    showCustomPropertiesOnSeparateRows: boolean;
+    showCustomPropertyInCompactMode: boolean;
+    isCompactMode: boolean;
+    file: TFile | null;
+    wordCount: FileData['wordCount'] | undefined;
+    customProperty: FileData['customProperty'] | undefined;
+}): number {
+    // Computes the number of visual rows the custom property area will occupy.
+    // This is used by the list pane virtualizer height estimator and must stay consistent with FileItem rendering.
+    const shouldShow = shouldShowCustomPropertyRow({
+        customPropertyType,
+        showCustomPropertyInCompactMode,
+        isCompactMode,
+        file,
+        wordCount,
+        customProperty
+    });
+
+    if (!shouldShow) {
+        // No custom property row will be rendered.
+        return 0;
+    }
+
+    if (customPropertyType === 'wordCount') {
+        // Word count is always rendered as a single pill row.
+        return 1;
+    }
+
+    const shouldUseSeparateRows = customPropertyType === 'frontmatter' && showCustomPropertiesOnSeparateRows;
+    if (!shouldUseSeparateRows) {
+        // Frontmatter values are rendered as pills on a single row when separate-row mode is disabled.
+        return 1;
+    }
+
+    if (!customProperty) {
+        // `shouldShowCustomPropertyRow` checks for non-empty arrays, but keep this guard for typed inputs.
+        return 0;
+    }
+
+    let rowCount = 0;
+    for (const entry of customProperty) {
+        // FileItem filters out empty/whitespace-only values, so the virtualizer estimator must do the same.
+        if (entry.value.trim().length === 0) {
+            continue;
+        }
+        rowCount += 1;
+    }
+
+    return rowCount;
+}

@@ -16,7 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { App, TFile, TFolder, PaneType } from 'obsidian';
+import { App, TFile, TFolder } from 'obsidian';
+import type { PaneType } from 'obsidian';
+
+const RECENT_BACKGROUND_OPEN_MARKER_TTL_MS = 250;
 
 /**
  * Types of operations that can be tracked by the command queue
@@ -88,6 +91,7 @@ interface OpenInNewContextOperation extends BaseOperation {
 interface OpenActiveFileOperation extends BaseOperation {
     type: OperationType.OPEN_ACTIVE_FILE;
     file: TFile;
+    active: boolean;
 }
 
 /**
@@ -128,8 +132,17 @@ export class CommandQueueService {
     private activeCounts = new Map<OperationType, number>();
     private openActiveFileQueue: Promise<void> = Promise.resolve();
     private latestOpenActiveFileOperationId: string | null = null;
+    private recentBackgroundOpenByPath = new Map<string, number>();
 
     constructor(private app: App) {}
+
+    private cleanupRecentBackgroundOpens(now: number): void {
+        for (const [path, openedAt] of this.recentBackgroundOpenByPath) {
+            if (now - openedAt > RECENT_BACKGROUND_OPEN_MARKER_TTL_MS) {
+                this.recentBackgroundOpenByPath.delete(path);
+            }
+        }
+    }
 
     /**
      * Generate a unique operation ID
@@ -244,6 +257,32 @@ export class CommandQueueService {
                 }
             }
         }
+        return false;
+    }
+
+    /**
+     * Check if opening a file in the active leaf as a preview (active: false)
+     */
+    isOpeningActiveFileInBackground(filePath: string): boolean {
+        for (const operation of this.activeOperations.values()) {
+            if (operation.type === OperationType.OPEN_ACTIVE_FILE) {
+                if (operation.file.path !== filePath) {
+                    continue;
+                }
+
+                return operation.active === false;
+            }
+        }
+
+        const now = Date.now();
+        const openedAt = this.recentBackgroundOpenByPath.get(filePath);
+        if (openedAt !== undefined) {
+            if (now - openedAt <= RECENT_BACKGROUND_OPEN_MARKER_TTL_MS) {
+                return true;
+            }
+            this.recentBackgroundOpenByPath.delete(filePath);
+        }
+
         return false;
     }
 
@@ -439,13 +478,19 @@ export class CommandQueueService {
      * Execute opening a file in the active leaf. Ensures only the latest request runs
      * while preserving execution order to prevent stale opens from winning the race.
      */
-    async executeOpenActiveFile(file: TFile, openFile: () => Promise<void>): Promise<CommandResult<{ skipped: boolean }>> {
+    async executeOpenActiveFile(
+        file: TFile,
+        openFile: () => Promise<void>,
+        options?: { active?: boolean }
+    ): Promise<CommandResult<{ skipped: boolean }>> {
+        const active = options?.active ?? true;
         const operationId = this.generateOperationId();
         const operation: OpenActiveFileOperation = {
             id: operationId,
             type: OperationType.OPEN_ACTIVE_FILE,
             timestamp: Date.now(),
-            file
+            file,
+            active
         };
 
         this.latestOpenActiveFileOperationId = operationId;
@@ -461,6 +506,11 @@ export class CommandQueueService {
 
             try {
                 await openFile();
+                if (active === false) {
+                    const now = Date.now();
+                    this.recentBackgroundOpenByPath.set(file.path, now);
+                    this.cleanupRecentBackgroundOpens(now);
+                }
                 // Clear tracking if this is still the latest
                 if (this.latestOpenActiveFileOperationId === operationId) {
                     this.latestOpenActiveFileOperationId = null;

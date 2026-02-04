@@ -40,7 +40,7 @@ import { TIMEOUTS } from '../types/obsidian-extended';
 import { DateUtils } from '../utils/dateUtils';
 import { getFilesForFolder, getFilesForTag, collectPinnedPaths } from '../utils/fileFinder';
 import { shouldExcludeFile, createHiddenFileNameMatcher, isFolderInExcludedFolder } from '../utils/fileFilters';
-import { getDateField, getEffectiveSortOption, naturalCompare } from '../utils/sortUtils';
+import { getDateField, getEffectiveSortOption, isDateSortOption, isPropertySortOption, naturalCompare } from '../utils/sortUtils';
 import { strings } from '../i18n';
 import { FILE_VISIBILITY } from '../utils/fileTypeUtils';
 import {
@@ -217,6 +217,7 @@ export function useListPaneData({
         settings.filterPinnedByFolder,
         settings.pinnedNotes,
         settings.defaultFolderSort,
+        settings.propertySortKey,
         settings.folderSortOverrides,
         settings.tagSortOverrides,
         includeDescendantNotes,
@@ -594,9 +595,8 @@ export function useListPaneData({
             tag: selectedTag ?? null
         });
         const groupingMode = groupingInfo.effectiveGrouping;
-        const isTitleSort = sortOption.startsWith('title');
         // Date grouping is only applied when sorting by date
-        const shouldGroupByDate = groupingMode === 'date' && !isTitleSort;
+        const shouldGroupByDate = groupingMode === 'date' && isDateSortOption(sortOption);
         const shouldGroupByFolder = groupingMode === 'folder' && selectionType === ItemType.FOLDER;
 
         if (!shouldGroupByDate && !shouldGroupByFolder) {
@@ -863,6 +863,8 @@ export function useListPaneData({
         }
 
         const isModifiedSort = sortOption.startsWith('modified');
+        const propertySortKey = settings.propertySortKey.trim();
+        const shouldRefreshOnMetadataChange = isPropertySortOption(sortOption) && propertySortKey.length > 0;
 
         const vaultEvents = [
             app.vault.on('create', () => {
@@ -927,7 +929,10 @@ export function useListPaneData({
                     }
                 }
             } else if (selectionType === ItemType.TAG && selectedTag) {
-                // For tag view, schedule a trailing refresh and extend if more changes arrive
+                if (file.extension !== 'md') {
+                    return;
+                }
+
                 if (operationActiveRef.current) {
                     pendingRefreshRef.current = true;
                 } else {
@@ -946,7 +951,22 @@ export function useListPaneData({
                 const wasExcluded = Boolean(record?.metadata?.hidden);
                 const isCurrentlyExcluded = shouldExcludeFile(file, hiddenFileProperties, app);
 
-                if (isCurrentlyExcluded === wasExcluded) {
+                if (isCurrentlyExcluded !== wasExcluded) {
+                    if (operationActiveRef.current) {
+                        pendingRefreshRef.current = true;
+                    } else {
+                        scheduleRefresh();
+                    }
+                    return;
+                }
+            }
+
+            if (shouldRefreshOnMetadataChange) {
+                if (file.extension !== 'md') {
+                    return;
+                }
+
+                if (!basePathSet.has(file.path)) {
                     return;
                 }
 
@@ -958,7 +978,7 @@ export function useListPaneData({
                 return;
             }
 
-            // When viewing a folder, other metadata changes can be handled by FileItem subscriptions
+            return;
         });
 
         // Listen for tag and metadata changes from database
@@ -1034,7 +1054,8 @@ export function useListPaneData({
         getDB,
         commandQueue,
         basePathSet,
-        sortOption
+        sortOption,
+        settings.propertySortKey
     ]);
 
     return {

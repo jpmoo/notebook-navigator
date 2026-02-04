@@ -1,13 +1,13 @@
 # Notebook Navigator Theming Guide
 
-Updated: January 15, 2026
+Updated: January 29, 2026
 
 ## Table of Contents
 
 - [Introduction](#introduction)
 - [CSS Variables Reference](#css-variables-reference)
   - [Theme foreground](#theme-foreground)
-  - [Pane overlay stacks](#pane-overlay-stacks)
+  - [Calendar](#calendar)
   - [Navigation pane](#navigation-pane)
   - [Pane divider](#pane-divider-desktop-only)
   - [List pane (files)](#list-pane-files)
@@ -21,14 +21,28 @@ Updated: January 15, 2026
 
 ## Introduction
 
-This guide helps you add Notebook Navigator support to your Obsidian theme. Simply define these CSS variables in your
-theme to customize how Notebook Navigator looks.
+Notebook Navigator is themed with CSS variables (custom properties). Themes and snippets override these variables to
+match the rest of the theme.
 
-**Note for users:** Install the Style Settings plugin. It changes colors without editing CSS.
+The Style Settings plugin exposes most `--nn-theme-*` variables under “Notebook Navigator”.
 
 ## CSS Variables Reference
 
-The theming variables use the `--nn-theme-` prefix and should be defined at the `body` level.
+The theming variables use the `--nn-theme-` prefix. Notebook Navigator defines defaults on `body` for Style Settings
+compatibility.
+
+Themes can override variables on `body`, `.theme-light`, or `.theme-dark`.
+
+On desktop, the background mode setting can map pane backgrounds:
+
+- Separate (default): navigation uses `--nn-theme-nav-bg` and list uses `--nn-theme-list-bg`.
+- Primary: navigation uses `--nn-theme-list-bg`.
+- Secondary: list uses `--nn-theme-nav-bg`.
+
+On mobile, both panes use `--nn-theme-mobile-bg`.
+
+Most variables are colors and should resolve to a computed color (some are used with `color-mix()`).
+`--nn-theme-nav-separator-background` is used as a `background` value.
 
 ### Theme foreground
 
@@ -38,12 +52,23 @@ The theming variables use the `--nn-theme-` prefix and should be defined at the 
 | `--nn-theme-foreground-muted` | `color-mix(in srgb, var(--nn-theme-foreground) 70%, transparent)`   | Muted foreground color   |
 | `--nn-theme-foreground-faded` | `color-mix(in srgb, var(--nn-theme-foreground) 50%, transparent)`   | Faded foreground color   |
 
-### Pane overlay stacks
+### Calendar
 
-| Variable                            | Default | Description                                                              |
-| ----------------------------------- | ------- | ------------------------------------------------------------------------ |
-| `--nn-theme-pane-overlay-opacity`   | `87`    | Opacity (0-100) for the pane overlay stacks rendered above scrolling rows |
-| `--nn-theme-pane-overlay-filter`    | `blur(3px) saturate(160%)` | Backdrop filter for the pane overlay stacks (used for `backdrop-filter`) |
+| Variable                                        | Default                         | Description                                             |
+| ----------------------------------------------- | ------------------------------- | ------------------------------------------------------- |
+| `--nn-theme-calendar-header-color`          | `var(--nn-theme-foreground)`          | Text color for month/year and header buttons            |
+| `--nn-theme-calendar-weekday-color`         | `var(--nn-theme-foreground-muted)`    | Text color for weekday labels (Mon, Tue, Wed...)        |
+| `--nn-theme-calendar-week-color`      | `var(--nn-theme-foreground-muted)`                 | Text color for week numbers                             |
+| `--nn-theme-calendar-day-in-month-color`    | `var(--nn-theme-foreground)`          | Text color for days within the current month            |
+| `--nn-theme-calendar-day-outside-month-color` | `var(--nn-theme-foreground-muted)`  | Text color for days outside the current month           |
+| `--nn-theme-calendar-hover-bg`              | `var(--background-modifier-hover)` | Hover background for calendar buttons and days          |
+| `--nn-theme-calendar-weekend-bg`            | `var(--background-secondary)`       | Background color for weekend days (panel layout)        |
+| `--nn-theme-calendar-day-has-note-color`    | `white`                         | Text color for dates with a daily note                  |
+| `--nn-theme-calendar-day-has-note-bg`       | `var(--text-selection)`         | Background color for dates with a daily note            |
+| `--nn-theme-calendar-day-has-feature-image-color` | `white`                  | Text color for dates with feature images                |
+| `--nn-theme-calendar-day-today-color`       | `var(--nn-theme-calendar-day-has-note-color)` | Text color for today's date (overlay layout)            |
+| `--nn-theme-calendar-day-today-bg`          | `var(--color-red)`            | Background color for the today highlight circle (overlay layout) |
+| `--nn-theme-calendar-day-today-accent`      | `var(--color-red)`            | Border and text color for today (panel layout)          |
 
 ### Navigation pane
 
@@ -54,21 +79,6 @@ The theming variables use the `--nn-theme-` prefix and should be defined at the 
 | `--nn-theme-nav-separator-background` | `linear-gradient(90deg, transparent 0%, var(--nn-theme-nav-separator-color) 15%, var(--nn-theme-nav-separator-color) 85%, transparent 100%)` | Fill for navigation separators; override to supply your own gradient or solid color |
 | `--nn-theme-nav-separator-height`     | `1px`                                                                                                                                        | Thickness for navigation separators                                                 |
 | `--nn-theme-nav-separator-opacity`    | `0.3`                                                                                                                                        | Opacity for navigation separators                                                   |
-
-#### Navigation calendar
-
-| Variable                                        | Default                         | Description                                             |
-| ----------------------------------------------- | ------------------------------- | ------------------------------------------------------- |
-| `--nn-theme-nav-calendar-header-color`          | `var(--nn-theme-foreground)`          | Text color for month/year and header buttons            |
-| `--nn-theme-nav-calendar-week-label-color`      | `var(--nn-theme-foreground-muted)`    | Text color for weekday labels and week numbers          |
-| `--nn-theme-nav-calendar-day-in-month-color`    | `var(--nn-theme-foreground)`          | Text color for days within the current month            |
-| `--nn-theme-nav-calendar-day-outside-month-color` | `var(--nn-theme-foreground-muted)`  | Text color for days outside the current month           |
-| `--nn-theme-nav-calendar-hover-bg`              | `var(--background-modifier-hover)` | Hover background for calendar buttons and days          |
-| `--nn-theme-nav-calendar-day-has-note-color`    | `white`                         | Text color for dates with a daily note                  |
-| `--nn-theme-nav-calendar-day-has-note-bg`       | `var(--text-selection)`         | Background color for dates with a daily note            |
-| `--nn-theme-nav-calendar-day-has-feature-image-color` | `white`                  | Text color for dates with feature images                |
-| `--nn-theme-nav-calendar-day-today-color`       | `var(--nn-theme-nav-calendar-day-has-note-color)` | Text color for today's date                             |
-| `--nn-theme-nav-calendar-day-today-bg`          | `var(--color-red)`            | Background color for the today highlight circle          |
 
 #### Pinned shortcuts
 
@@ -134,9 +144,9 @@ Priority order: folder note styles override custom color styles, which override 
 | `--nn-theme-list-bg`                      | `var(--background-primary)`         | Background color of the list pane (desktop only, see mobile styles)                |
 | `--nn-theme-list-header-icon-color`       | `var(--nn-theme-foreground-muted)`  | Folder/tag icon color shown beside the breadcrumb in the desktop header            |
 | `--nn-theme-list-header-breadcrumb-color` | `var(--nn-theme-foreground-muted)`  | Text color for the breadcrumb path in the desktop header                           |
-| `--nn-theme-list-search-active-bg`        | `var(--text-highlight-bg)`          | Background color for the search field when a search query is active (desktop only) |
-| `--nn-theme-list-search-border-color`     | `var(--background-modifier-border)` | Border and focus ring color for the search field (desktop only)                    |
-| `--nn-theme-list-heading-color`           | `var(--nn-theme-foreground-muted)`  | Text color for the list pane overlay heading                                       |
+| `--nn-theme-list-search-active-bg`        | `var(--text-highlight-bg)`          | Background color for the search field and match highlights when a search query is active |
+| `--nn-theme-list-search-border-color`     | `var(--background-modifier-border)` | Border and focus ring color for the search field                                   |
+| `--nn-theme-list-heading-color`           | `var(--nn-theme-foreground-muted)`  | Text color for the list pane title area and vault title                            |
 | `--nn-theme-list-group-header-color`      | `var(--nn-theme-foreground-muted)`  | Text color for date groups and pinned section                                      |
 | `--nn-theme-list-separator-color`         | `var(--background-modifier-border)` | Divider line color between files                                                   |
 
@@ -176,14 +186,15 @@ Priority order: folder note styles override custom color styles, which override 
 | `--nn-theme-file-selected-inactive-custom-property-color` | `var(--nn-theme-file-selected-custom-property-color)` | Custom property text color when selected and pane is inactive   |
 | `--nn-theme-file-selected-inactive-custom-property-bg`    | `var(--nn-theme-file-custom-property-bg)`     | Custom property background color when selected and pane is inactive |
 
-Tag pills with only a custom text color use the list pane background, and custom background pills use the navigation pane background. Both follow the background mode setting.
+Tag pills that only set a custom text color use the list pane background. Tag pills that set a custom background use the
+navigation pane background. In `primary` and `secondary` background modes, both panes share the same background.
 
 #### Text styling
 
 | Variable                                        | Default | Description                                          |
 | ----------------------------------------------- | ------- | ---------------------------------------------------- |
 | `--nn-theme-list-header-breadcrumb-font-weight` | `600`   | Font weight for the breadcrumb in the desktop header |
-| `--nn-theme-list-heading-font-weight`           | `600`   | Font weight for the list pane overlay heading        |
+| `--nn-theme-list-heading-font-weight`           | `600`   | Font weight for the list pane title area and vault title |
 | `--nn-theme-list-group-header-font-weight`      | `600`   | Font weight for date groups and pinned section       |
 | `--nn-theme-file-name-font-weight`              | `600`   | Font weight for file names                           |
 | `--nn-theme-file-compact-name-font-weight`      | `400`   | Font weight for file names in compact mode           |
@@ -229,175 +240,167 @@ Tag pills with only a custom text color use the list pane background, and custom
 
 Mobile navigation and list pane backgrounds follow `--nn-theme-mobile-bg`.
 
+On Obsidian 1.11+ on iOS, `.notebook-navigator-obsidian-1-11-plus-ios` overrides:
+
+- `--nn-theme-mobile-toolbar-button-icon-color`: `var(--nn-theme-foreground)`
+- `--nn-theme-mobile-toolbar-button-active-bg`: `transparent`
+
 ## Complete Theme Example
 
-Here's a complete example styling all variables with a JetBrains Darcula-inspired palette:
+Example theme snippet using a JetBrains Darcula-inspired palette. It sets all `--nn-theme-*` variables defined in CSS:
 
 ```css
-/* ========================================
-   NOTEBOOK NAVIGATOR DARCULA THEME
-   ======================================== */
-
 body {
-  /* ========================================
-	     THEME FOREGROUND
-	     ======================================== */
+  /* Theme foreground */
+  --nn-theme-foreground: #a9b7c6;
+  --nn-theme-foreground-muted: #7f8b91;
+  --nn-theme-foreground-faded: #6e6e6e;
 
-	  --nn-theme-foreground: #a9b7c6; /* Base foreground color */
-	  --nn-theme-foreground-muted: #7f8b91; /* Muted foreground color */
-	  --nn-theme-foreground-faded: #6e6e6e; /* Faded foreground color */
+  /* Navigation pane */
+  --nn-theme-nav-bg: #3c3f41;
+  --nn-theme-nav-separator-color: #6e6e6e;
+  --nn-theme-nav-separator-background: var(--nn-theme-nav-separator-color);
+  --nn-theme-nav-separator-height: 1px;
+  --nn-theme-nav-separator-opacity: 0.35;
 
-  /* ========================================
-     PANE OVERLAY STACKS
-     ======================================== */
-
-  --nn-theme-pane-overlay-opacity: 87; /* Opacity for pane overlay stacks */
-  --nn-theme-pane-overlay-filter: blur(3px) saturate(160%); /* Backdrop filter for pane overlay stacks */
-
-  /* ========================================
-     NAVIGATION PANE (Folders & Tags)
-     ======================================== */
-
-  /* Pane background */
-  --nn-theme-nav-bg: #3c3f41; /* Dark gray sidebar - navigation pane background */
-  --nn-theme-nav-separator-color: #6e6e6e; /* Muted gray - separator lines */
-  --nn-theme-nav-separator-background: var(--nn-theme-nav-separator-color); /* Solid separator fill */
-  --nn-theme-nav-separator-height: 1px; /* Keep separators at 1px */
-  --nn-theme-nav-separator-opacity: 0.35; /* Slightly stronger separator */
+  /* Navigation calendar */
+  --nn-theme-calendar-header-color: var(--nn-theme-foreground);
+  --nn-theme-calendar-weekday-color: var(--nn-theme-foreground-muted);
+  --nn-theme-calendar-week-color: var(--nn-theme-foreground-muted);
+  --nn-theme-calendar-day-in-month-color: var(--nn-theme-foreground);
+  --nn-theme-calendar-day-outside-month-color: var(--nn-theme-foreground-muted);
+  --nn-theme-calendar-hover-bg: #4b5059;
+  --nn-theme-calendar-weekend-bg: #4b5059;
+  --nn-theme-calendar-day-has-note-color: #ffffff;
+  --nn-theme-calendar-day-has-note-bg: #4a78c8;
+  --nn-theme-calendar-day-has-feature-image-color: #ffffff;
+  --nn-theme-calendar-day-today-color: #ffffff;
+  --nn-theme-calendar-day-today-bg: #db5050;
+  --nn-theme-calendar-day-today-accent: #db5050;
 
   /* Folder & tag items */
-  --nn-theme-navitem-chevron-color: #6e6e6e; /* Muted gray - expand/collapse arrows */
-  --nn-theme-navitem-icon-color: #afb1b3; /* Light gray - folder/tag icons */
-  --nn-theme-navitem-name-color: #a9b7c6; /* Soft blue-gray - folder/tag names */
-  --nn-theme-navitem-file-name-color: #a9b7c6; /* Soft blue-gray - note shortcuts and recent files */
-  --nn-theme-navitem-count-color: #7f8b91; /* Muted gray - file count text */
-  --nn-theme-navitem-count-bg: transparent; /* No background for count badges */
-  --nn-theme-navitem-count-border-radius: 3px; /* Subtle rounded count badges */
-  --nn-theme-navitem-border-radius: 3px; /* Subtle rounded corners */
-  --nn-theme-navitem-hover-bg: #4b5059; /* Slightly lighter gray - hover background */
-  --nn-theme-navitem-selected-bg: #4a78c8; /* Muted blue - selected item background */
-  --nn-theme-navitem-selected-chevron-color: #c5c5c5; /* Light gray - selected item arrows */
-  --nn-theme-navitem-selected-icon-color: #e6e6e6; /* Near white - selected item icons */
-  --nn-theme-navitem-selected-name-color: #ffffff; /* White - selected item text */
-  --nn-theme-navitem-selected-count-color: #e6e6e6; /* Light gray - selected item count text */
-  --nn-theme-navitem-selected-count-bg: rgba(0, 0, 0, 0.2); /* Subtle dark overlay - selected count bg */
-  --nn-theme-navitem-selected-inactive-bg: #464c55; /* Dark gray - inactive selected background */
-  --nn-theme-navitem-selected-inactive-name-color: #cfd3da; /* Muted cool gray - inactive selected text */
-  --nn-theme-navitem-selected-inactive-chevron-color: #9da2ab; /* Dimmed arrow when pane is inactive */
-  --nn-theme-navitem-selected-inactive-icon-color: #b9bec6; /* Dimmed icon when pane is inactive */
-  --nn-theme-navitem-selected-inactive-count-color: #b9bec6; /* Dimmed count text when pane is inactive */
-  --nn-theme-navitem-selected-inactive-count-bg: rgba(0, 0, 0, 0.25); /* Slightly darker count bg when inactive */
+  --nn-theme-navitem-chevron-color: #6e6e6e;
+  --nn-theme-navitem-icon-color: #afb1b3;
+  --nn-theme-navitem-name-color: #a9b7c6;
+  --nn-theme-navitem-file-name-color: #a9b7c6;
+  --nn-theme-navitem-count-color: #7f8b91;
+  --nn-theme-navitem-count-bg: transparent;
+  --nn-theme-navitem-count-border-radius: 3px;
+  --nn-theme-navitem-border-radius: 3px;
+  --nn-theme-navitem-hover-bg: #4b5059;
+  --nn-theme-navitem-selected-bg: #4a78c8;
+  --nn-theme-navitem-selected-chevron-color: #c5c5c5;
+  --nn-theme-navitem-selected-icon-color: #e6e6e6;
+  --nn-theme-navitem-selected-name-color: #ffffff;
+  --nn-theme-navitem-selected-count-color: #e6e6e6;
+  --nn-theme-navitem-selected-count-bg: rgba(0, 0, 0, 0.2);
+  --nn-theme-navitem-selected-inactive-bg: #464c55;
+  --nn-theme-navitem-selected-inactive-name-color: #cfd3da;
+  --nn-theme-navitem-selected-inactive-chevron-color: #9da2ab;
+  --nn-theme-navitem-selected-inactive-icon-color: #b9bec6;
+  --nn-theme-navitem-selected-inactive-count-color: #b9bec6;
+  --nn-theme-navitem-selected-inactive-count-bg: rgba(0, 0, 0, 0.25);
 
   /* Tag highlights and drop targets */
-  --nn-theme-tag-positive-bg: rgba(106, 135, 89, 0.2); /* Green tint - positive tag highlights */
-  --nn-theme-tag-negative-bg: rgba(219, 80, 80, 0.2); /* Red tint - negative tag highlights */
+  --nn-theme-tag-positive-bg: rgba(106, 135, 89, 0.2);
+  --nn-theme-tag-negative-bg: rgba(219, 80, 80, 0.2);
 
   /* Pinned shortcuts */
-  --nn-theme-pinned-shortcut-shadow-color: rgba(0, 0, 0, 0.2); /* Shadow gradient below pinned shortcuts */
+  --nn-theme-pinned-shortcut-shadow-color: rgba(0, 0, 0, 0.2);
 
-  /* Text styling */
-  --nn-theme-navitem-name-font-weight: 400; /* Regular weight for normal items */
-  --nn-theme-navitem-file-name-font-weight: 400; /* Regular weight for file names */
-  --nn-theme-navitem-custom-color-name-font-weight: 500; /* Medium for custom colored items */
-  --nn-theme-navitem-custom-color-file-name-font-weight: 500; /* Medium for custom colored file names */
-  --nn-theme-navitem-folder-note-name-font-weight: 500; /* Medium for folder notes */
-  --nn-theme-navitem-folder-note-name-decoration: none; /* Text decoration for folder notes */
-  --nn-theme-navitem-folder-note-name-hover-decoration: underline; /* Text decoration when hovering folder notes */
-  --nn-theme-navitem-count-font-weight: 400; /* Regular for count badges */
+  /* Navigation text styling */
+  --nn-theme-navitem-name-font-weight: 400;
+  --nn-theme-navitem-file-name-font-weight: 400;
+  --nn-theme-navitem-custom-color-name-font-weight: 600;
+  --nn-theme-navitem-custom-color-file-name-font-weight: 600;
+  --nn-theme-navitem-folder-note-name-font-weight: 600;
+  --nn-theme-navitem-folder-note-name-decoration: none;
+  --nn-theme-navitem-folder-note-name-hover-decoration: underline;
+  --nn-theme-navitem-count-font-weight: 400;
 
-  /* ========================================
-     PANE DIVIDER
-     ======================================== */
+  /* Pane divider */
+  --nn-theme-divider-border-color: #323232;
+  --nn-theme-divider-resize-handle-hover-bg: #4a78c8;
 
-  --nn-theme-divider-border-color: #323232; /* Dark gray - vertical divider between panes */
-  --nn-theme-divider-resize-handle-hover-bg: #4a78c8; /* Blue accent - resize handle on hover */
-
-  /* ========================================
-     LIST PANE (Files)
-     ======================================== */
-
-  /* Pane background */
-  --nn-theme-list-bg: #2b2b2b; /* Dark editor background - file list background */
-  --nn-theme-list-header-icon-color: #7f8b91; /* Muted gray - desktop breadcrumb icon */
-  --nn-theme-list-header-breadcrumb-color: #7f8b91; /* Muted gray - desktop breadcrumb text */
-  --nn-theme-list-header-breadcrumb-font-weight: 600; /* Bold weight - desktop breadcrumb */
-  --nn-theme-list-search-active-bg: #515336; /* Yellow tint - active search field background */
-  --nn-theme-list-search-border-color: #3c3c3c; /* Subtle gray - search field border */
-  --nn-theme-list-heading-color: #d0d2d6; /* Light gray - list overlay heading */
-  --nn-theme-list-separator-color: #3c3c3c; /* Very subtle - divider lines between files */
-  --nn-theme-list-group-header-color: #7f8b91; /* Muted gray - date group headers */
+  /* List pane */
+  --nn-theme-list-bg: #2b2b2b;
+  --nn-theme-list-header-icon-color: #7f8b91;
+  --nn-theme-list-header-breadcrumb-color: #7f8b91;
+  --nn-theme-list-header-breadcrumb-font-weight: 600;
+  --nn-theme-list-search-active-bg: #515336;
+  --nn-theme-list-search-border-color: #3c3c3c;
+  --nn-theme-list-heading-color: #d0d2d6;
+  --nn-theme-list-group-header-color: #7f8b91;
+  --nn-theme-list-separator-color: #3c3c3c;
 
   /* File items */
-  --nn-theme-file-border-radius: 4px; /* Subtle rounded file items */
-  --nn-theme-file-name-color: #a9b7c6; /* Soft blue-gray - file names */
-  --nn-theme-file-feature-border-radius: 3px; /* Subtle rounded feature images */
-  --nn-theme-file-preview-color: #7f8b91; /* Muted gray - preview text */
-  --nn-theme-file-date-color: #6a8759; /* Muted green - file dates */
-  --nn-theme-file-parent-color: #cc7832; /* Muted orange - parent folder path */
-  --nn-theme-file-tag-color: #9876aa; /* Muted purple - tag text */
-  --nn-theme-file-tag-bg: #383a3e; /* Dark gray - tag pill background */
-  --nn-theme-file-custom-property-color: #cc7832; /* Muted orange - custom property text */
-  --nn-theme-file-custom-property-bg: #383a3e; /* Dark gray - custom property pill background */
-  --nn-theme-file-tag-border-radius: 3px; /* Subtle rounded tag pills */
-  --nn-theme-file-custom-property-border-radius: 3px; /* Match tag pills */
-  --nn-theme-file-tag-custom-color-text-color: #ffffff; /* White - text for custom colored tags */
-  --nn-theme-file-selected-bg: #4a78c8; /* Blue accent - selected file background */
-  --nn-theme-file-selected-name-color: #ffffff; /* White - selected file names */
-  --nn-theme-file-selected-preview-color: #c5c5c5; /* Light gray - selected preview text */
-  --nn-theme-file-selected-date-color: #a5dc86; /* Bright green - selected file dates */
-  --nn-theme-file-selected-parent-color: #ffd580; /* Bright orange - selected parent folder */
-  --nn-theme-file-selected-tag-color: #ffffff; /* White - selected tag text */
-  --nn-theme-file-selected-tag-bg: #5a5f66; /* Medium gray - selected tag background */
-  --nn-theme-file-selected-inactive-bg: #383c45; /* Dark gray - inactive selected file background */
-  --nn-theme-file-selected-inactive-name-color: #dfe3e8; /* Muted gray - inactive selected file name */
-  --nn-theme-file-selected-inactive-preview-color: #b9bec6; /* Dimmed gray - inactive preview text */
-  --nn-theme-file-selected-inactive-date-color: #8fb275; /* Muted green - inactive file dates */
-  --nn-theme-file-selected-inactive-parent-color: #e3b173; /* Muted amber - inactive parent folder text */
-  --nn-theme-file-selected-inactive-tag-color: #dfe3e8; /* Muted gray - inactive tag text */
-  --nn-theme-file-selected-inactive-tag-bg: #4c5058; /* Dark gray - inactive tag background */
+  --nn-theme-file-name-color: #a9b7c6;
+  --nn-theme-file-preview-color: #7f8b91;
+  --nn-theme-file-feature-border-radius: 3px;
+  --nn-theme-file-date-color: #6a8759;
+  --nn-theme-file-parent-color: #cc7832;
+  --nn-theme-file-tag-color: #9876aa;
+  --nn-theme-file-tag-custom-color-text-color: #ffffff;
+  --nn-theme-file-tag-bg: #383a3e;
+  --nn-theme-file-custom-property-color: #cc7832;
+  --nn-theme-file-custom-property-bg: #383a3e;
+  --nn-theme-file-tag-border-radius: 3px;
+  --nn-theme-file-custom-property-border-radius: 3px;
+  --nn-theme-file-border-radius: 4px;
+  --nn-theme-file-selected-bg: #4a78c8;
+  --nn-theme-file-selected-name-color: #ffffff;
+  --nn-theme-file-selected-preview-color: #c5c5c5;
+  --nn-theme-file-selected-date-color: #a5dc86;
+  --nn-theme-file-selected-parent-color: #ffd580;
+  --nn-theme-file-selected-tag-color: #ffffff;
+  --nn-theme-file-selected-tag-bg: #5a5f66;
+  --nn-theme-file-selected-custom-property-color: #ffffff;
+  --nn-theme-file-selected-custom-property-bg: #5a5f66;
+  --nn-theme-file-selected-inactive-bg: #383c45;
+  --nn-theme-file-selected-inactive-name-color: #dfe3e8;
+  --nn-theme-file-selected-inactive-preview-color: #b9bec6;
+  --nn-theme-file-selected-inactive-date-color: #8fb275;
+  --nn-theme-file-selected-inactive-parent-color: #e3b173;
+  --nn-theme-file-selected-inactive-tag-color: #dfe3e8;
+  --nn-theme-file-selected-inactive-tag-bg: #4c5058;
+  --nn-theme-file-selected-inactive-custom-property-color: #dfe3e8;
+  --nn-theme-file-selected-inactive-custom-property-bg: #4c5058;
 
   /* File text styling */
-  --nn-theme-list-heading-font-weight: 600; /* Bold for list overlay heading */
-  --nn-theme-list-group-header-font-weight: 600; /* Bold for date groups */
-  --nn-theme-file-name-font-weight: 600; /* Bold for file names */
-  --nn-theme-file-compact-name-font-weight: 400; /* Regular for compact file names */
-  --nn-theme-file-preview-font-weight: 400; /* Regular for preview text */
-  --nn-theme-file-date-font-weight: 400; /* Regular weight for dates */
-  --nn-theme-file-parent-font-weight: 400; /* Regular for parent folder */
-  --nn-theme-file-tag-font-weight: 400; /* Regular for tag pills */
+  --nn-theme-list-heading-font-weight: 600;
+  --nn-theme-list-group-header-font-weight: 600;
+  --nn-theme-file-name-font-weight: 600;
+  --nn-theme-file-compact-name-font-weight: 400;
+  --nn-theme-file-preview-font-weight: 400;
+  --nn-theme-file-date-font-weight: 400;
+  --nn-theme-file-parent-font-weight: 400;
+  --nn-theme-file-tag-font-weight: 400;
 
   /* Quick actions */
-  --nn-theme-quick-actions-bg: rgba(43, 43, 43, 0.95); /* Semi-transparent dark - quick actions panel */
-  --nn-theme-quick-actions-border: #555555; /* Subtle gray - quick actions border */
-  --nn-theme-quick-actions-border-radius: 4px; /* Subtle rounded toolbar */
-  --nn-theme-quick-actions-icon-color: #7f8b91; /* Muted gray - quick action icons */
-  --nn-theme-quick-actions-icon-hover-color: #a9b7c6; /* Light gray - quick action icons on hover */
-  --nn-theme-quick-actions-separator-color: #3c3c3c; /* Very subtle - separators between actions */
+  --nn-theme-quick-actions-bg: rgba(43, 43, 43, 0.95);
+  --nn-theme-quick-actions-border: #555555;
+  --nn-theme-quick-actions-border-radius: 4px;
+  --nn-theme-quick-actions-icon-color: #7f8b91;
+  --nn-theme-quick-actions-icon-hover-color: #a9b7c6;
+  --nn-theme-quick-actions-separator-color: #3c3c3c;
 
-  /* ========================================
-     HEADERS
-     ======================================== */
+  /* Headers */
+  --nn-theme-header-button-icon-color: #7f8b91;
+  --nn-theme-header-button-hover-bg: #4b5059;
+  --nn-theme-header-button-active-bg: #4a78c8;
+  --nn-theme-header-button-active-icon-color: #ffffff;
+  --nn-theme-header-button-disabled-icon-color: #5c5c5c;
 
-  /* Header buttons */
-  --nn-theme-header-button-icon-color: #7f8b91; /* Muted gray - header button icons */
-  --nn-theme-header-button-hover-bg: #4b5059; /* Slightly lighter gray - header button hover background */
-  --nn-theme-header-button-active-bg: #4a78c8; /* Blue accent - active/toggled button background */
-  --nn-theme-header-button-active-icon-color: #ffffff; /* White - active/toggled button icons */
-  --nn-theme-header-button-disabled-icon-color: #5c5c5c; /* Dark gray - disabled button icons */
-
-  /* ========================================
-     MOBILE STYLES
-     ======================================== */
-
-  --nn-theme-mobile-bg: #2b2b2b; /* Mobile background for navigation and list panes */
-  --nn-theme-mobile-list-header-link-color: #589df6; /* Bright blue - mobile back button and breadcrumb links */
-  --nn-theme-mobile-list-header-breadcrumb-color: #a9b7c6; /* Soft blue-gray - current folder and separators */
-  --nn-theme-mobile-list-header-breadcrumb-font-weight: 600; /* Bold weight - mobile breadcrumb */
-  --nn-theme-mobile-toolbar-bg: #3c3f41; /* Dark gray sidebar - mobile toolbar background */
-  --nn-theme-mobile-toolbar-button-icon-color: #a9b7c6; /* Soft blue-gray - mobile toolbar icons */
-  --nn-theme-mobile-toolbar-button-active-bg: #4a78c8; /* Blue accent - active mobile button background */
-  --nn-theme-mobile-toolbar-button-active-icon-color: #ffffff; /* White - active mobile button icons */
-  --nn-theme-mobile-toolbar-glass-bg: #2b2b2b; /* Base color for Obsidian 1.11+ iOS glass toolbar */
+  /* Mobile */
+  --nn-theme-mobile-bg: #2b2b2b;
+  --nn-theme-mobile-list-header-link-color: #589df6;
+  --nn-theme-mobile-list-header-breadcrumb-color: #a9b7c6;
+  --nn-theme-mobile-list-header-breadcrumb-font-weight: 600;
+  --nn-theme-mobile-toolbar-bg: #3c3f41;
+  --nn-theme-mobile-toolbar-button-icon-color: #a9b7c6;
+  --nn-theme-mobile-toolbar-button-active-bg: #4a78c8;
+  --nn-theme-mobile-toolbar-button-active-icon-color: #ffffff;
+  --nn-theme-mobile-toolbar-glass-bg: #2b2b2b;
 }
 ```
 
@@ -462,5 +465,10 @@ theme through inline styles.
 
 ## Style Settings Support
 
-Notebook Navigator supports the Style Settings plugin. All documented variables, including inactive selection
-colors for both panes, are configurable through the Style Settings UI.
+Notebook Navigator includes a Style Settings `@settings` block for most theming variables.
+
+Not currently exposed in the Style Settings UI:
+
+- `--nn-theme-nav-separator-background`
+- `--nn-theme-nav-separator-height`
+- `--nn-theme-nav-separator-opacity`

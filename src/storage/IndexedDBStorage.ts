@@ -40,10 +40,11 @@ export type FeatureImageStatus = 'unprocessed' | 'none' | 'has';
 export type PreviewStatus = 'unprocessed' | 'none' | 'has';
 
 export interface CustomPropertyItem {
-    // Rendered pill text (raw frontmatter value or computed value such as word count).
+    // Frontmatter field name that produced the value.
+    // Used at render time for per-property color rules (normalized via `casefold()` before lookup).
+    fieldKey: string;
+    // Rendered pill text (raw frontmatter value after frontmatter flattening).
     value: string;
-    // Optional color token (tag name or CSS color string).
-    color?: string;
 }
 
 function isCustomPropertyItem(value: unknown): value is CustomPropertyItem {
@@ -51,14 +52,16 @@ function isCustomPropertyItem(value: unknown): value is CustomPropertyItem {
         return false;
     }
 
+    // Validation is applied when reading persisted file data.
+    // Invalid entries cause the record to be treated as missing (`customProperty = null`) so providers can regenerate it.
     // Persisted data must remain JSON-compatible.
-    const rawValue = value['value'];
-    if (typeof rawValue !== 'string') {
+    const rawFieldKey = value['fieldKey'];
+    if (typeof rawFieldKey !== 'string' || rawFieldKey.trim().length === 0) {
         return false;
     }
 
-    const rawColor = value['color'];
-    if (typeof rawColor !== 'undefined' && typeof rawColor !== 'string') {
+    const rawValue = value['value'];
+    if (typeof rawValue !== 'string') {
         return false;
     }
 
