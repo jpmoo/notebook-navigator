@@ -115,6 +115,7 @@ import { extractFilePathsFromDataTransfer, parseTagDragPayload } from '../utils/
 import { openFileInContext } from '../utils/openFileInContext';
 import { useShortcuts } from '../context/ShortcutsContext';
 import { ShortcutItem } from './ShortcutItem';
+import { ShortcutCollectionSelector } from './ShortcutCollectionSelector';
 import { NavItemHoverActionSlot } from './NavItemHoverActionSlot';
 import { ConfirmModal } from '../modals/ConfirmModal';
 import {
@@ -2785,6 +2786,44 @@ export const NavigationPane = React.memo(
                     {/* Android - toolbar at top */}
                     {isMobile && isAndroid ? navigationToolbar : null}
                     {settings.pinNavigationBanner ? navigationBannerContent : null}
+                    {/* Collection selector */}
+                    {settings.showShortcuts && !isRootReorderMode && (
+                        <ShortcutCollectionSelector
+                            collections={collections}
+                            activeCollectionId={activeCollectionId}
+                            onCollectionChange={setActiveCollection}
+                            onAddCollection={async () => {
+                                const { ShortcutCollectionModal } = await import('../modals/ShortcutCollectionModal');
+                                const modal = new ShortcutCollectionModal(app, metadataService, {
+                                    collections,
+                                    onSave: async (updatedCollections) => {
+                                        await updateSettings(current => {
+                                            current.shortcutCollections = updatedCollections;
+                                        });
+                                    }
+                                });
+                                modal.open();
+                            }}
+                            onEditCollection={async (collectionId) => {
+                                const collection = collections.find(c => c.id === collectionId);
+                                if (collection) {
+                                    const { ShortcutCollectionModal } = await import('../modals/ShortcutCollectionModal');
+                                    const modal = new ShortcutCollectionModal(app, metadataService, {
+                                        collections,
+                                        editingCollection: collection,
+                                        onSave: async (updatedCollections) => {
+                                            await updateSettings(current => {
+                                                current.shortcutCollections = updatedCollections;
+                                            });
+                                        }
+                                    });
+                                    modal.open();
+                                }
+                            }}
+                            onDeleteCollection={deleteCollection}
+                            onReorderCollections={reorderCollections}
+                        />
+                    )}
                     {shouldRenderPinnedShortcuts ? (
                         <div
                             className="nn-shortcut-pinned"
