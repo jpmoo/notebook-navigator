@@ -1,6 +1,6 @@
 # Notebook Navigator Storage Architecture
 
-Updated: January 19, 2026
+Updated: February 18, 2026
 
 ## Table of Contents
 
@@ -26,10 +26,11 @@ Updated: January 19, 2026
 
 Notebook Navigator stores user configuration in `data.json` and uses rebuildable caches for file-derived data.
 
-- **Settings** (`data.json`): user configuration, vault profiles, appearance overrides, pinned notes, and icon/color/appearance maps.
+- **Settings** (`data.json`): user configuration, vault profiles, appearance overrides, pinned notes, folder/tag/property metadata maps, and fallback file icon/color maps.
 - **Vault-scoped local storage**: device-local UI state, recent notes/icons, and version/migration markers.
 - **IndexedDB cache**: per-file records and derived content state, with separate stores for preview text and feature image blobs.
 - **In-memory caches**: synchronous mirror of the IndexedDB main records and bounded LRUs for preview text and feature image blobs.
+- **In-memory trees**: tag and property trees derived from cached markdown records for navigation and selection.
 - **Icon assets database**: per-vault IndexedDB database for downloaded icon fonts and metadata.
 
 ```mermaid
@@ -74,10 +75,11 @@ graph TB
 - Derived fields:
   - Tags (`tags`)
   - Word count (`wordCount`)
-  - Custom property pills (`customProperty`)
+  - Task counters (`taskTotal`, `taskUnfinished`)
+  - Property pills (`properties`)
   - Preview state (`previewStatus`) with preview text stored in `filePreviews`
   - Feature image state (`featureImageStatus`, `featureImageKey`) with blobs stored in `featureImageBlobs` (`featureImage` is always `null` in the main record)
-  - Frontmatter-derived metadata (`metadata.name`, `metadata.created`, `metadata.modified`, `metadata.icon`, `metadata.color`, `metadata.hidden`)
+  - Frontmatter-derived metadata (`metadata.name`, `metadata.created`, `metadata.modified`, `metadata.icon`, `metadata.color`, `metadata.background`, `metadata.hidden`)
 
 **Status and sentinel semantics**:
 
@@ -107,9 +109,10 @@ graph TB
 export type FeatureImageStatus = 'unprocessed' | 'none' | 'has';
 export type PreviewStatus = 'unprocessed' | 'none' | 'has';
 
-export interface CustomPropertyItem {
+export interface PropertyItem {
+  fieldKey: string;
   value: string;
-  color?: string;
+  valueKind?: 'string' | 'number' | 'boolean';
 }
 
 export interface FileData {
@@ -122,7 +125,9 @@ export interface FileData {
 
   tags: string[] | null;
   wordCount: number | null;
-  customProperty: CustomPropertyItem[] | null;
+  taskTotal: number | null;
+  taskUnfinished: number | null;
+  properties: PropertyItem[] | null;
 
   previewStatus: PreviewStatus;
 
@@ -136,6 +141,7 @@ export interface FileData {
     modified?: number;
     icon?: string;
     color?: string;
+    background?: string;
     hidden?: boolean;
   } | null;
 }
@@ -174,8 +180,10 @@ and cache version/migration markers.
 export const STORAGE_KEYS: LocalStorageKeys = {
   expandedFoldersKey: 'notebook-navigator-expanded-folders',
   expandedTagsKey: 'notebook-navigator-expanded-tags',
+  expandedPropertiesKey: 'notebook-navigator-expanded-properties',
   expandedVirtualFoldersKey: 'notebook-navigator-expanded-virtual-folders',
   selectedFolderKey: 'notebook-navigator-selected-folder',
+  selectedPropertyKey: 'notebook-navigator-selected-property',
   selectedFileKey: 'notebook-navigator-selected-file',
   selectedFilesKey: 'notebook-navigator-selected-files',
   selectedTagKey: 'notebook-navigator-selected-tag',
@@ -200,14 +208,19 @@ export const STORAGE_KEYS: LocalStorageKeys = {
   releaseCheckTimestampKey: 'notebook-navigator-release-check-timestamp',
   latestKnownReleaseKey: 'notebook-navigator-latest-known-release',
   searchProviderKey: 'notebook-navigator-search-provider',
+  folderSortOrderKey: 'notebook-navigator-folder-sort-order',
   tagSortOrderKey: 'notebook-navigator-tag-sort-order',
+  propertySortOrderKey: 'notebook-navigator-property-sort-order',
   recentColorsKey: 'notebook-navigator-recent-colors',
   paneTransitionDurationKey: 'notebook-navigator-pane-transition-duration',
   toolbarVisibilityKey: 'notebook-navigator-toolbar-visibility',
+  useFloatingToolbarsKey: 'notebook-navigator-use-floating-toolbars',
   pinNavigationBannerKey: 'notebook-navigator-pin-navigation-banner',
   navIndentKey: 'notebook-navigator-nav-indent',
   navItemHeightKey: 'notebook-navigator-nav-item-height',
   navItemHeightScaleTextKey: 'notebook-navigator-nav-item-height-scale-text',
+  calendarPlacementKey: 'notebook-navigator-calendar-placement',
+  calendarLeftPlacementKey: 'notebook-navigator-calendar-left-placement',
   calendarWeeksToShowKey: 'notebook-navigator-calendar-weeks-to-show',
   compactItemHeightKey: 'notebook-navigator-compact-item-height',
   compactItemHeightScaleTextKey: 'notebook-navigator-compact-item-height-scale-text'
@@ -251,10 +264,11 @@ React render paths.
 
 - Vault profiles (`vaultProfiles`) with hidden patterns, banners, and shortcuts.
 - Feature toggles and UI configuration (folders/tags behavior, list layout, note preview/feature image options, formatting).
-- Folder/tag/file metadata maps: icons, colors, background colors, sort overrides, and appearance overrides.
-- Pinned notes (`pinnedNotes`) keyed by file path with separate `folder` / `tag` contexts.
+- Folder/tag/property metadata maps in settings: icons, colors, background colors, sort overrides, and appearance overrides.
+- File icon/color settings maps (`fileIcons`, `fileColors`) used as fallback and migration sources when frontmatter metadata writes are unavailable.
+- Pinned notes (`pinnedNotes`) keyed by file path with separate `folder` / `tag` / `property` contexts.
 - External icon provider enablement (`externalIconProviders`) and keyboard shortcut configuration (`keyboardShortcuts`).
-- Runtime metadata maps and ordering: navigation separators, root folder/tag order, custom vault name, recent user colors, release tracking.
+- Runtime metadata maps and ordering: navigation separators, root folder/tag/property order, custom vault name, recent user colors, release tracking.
 
 #### Sync modes and local mirrors
 
@@ -295,11 +309,16 @@ export interface NotebookNavigatorSettings {
   tagBackgroundColors: Record<string, string>;
   tagSortOverrides: Record<string, SortOption>;
   tagAppearances: Record<string, TagAppearance>;
+  propertyIcons: Record<string, string>;
+  propertyColors: Record<string, string>;
+  propertyBackgroundColors: Record<string, string>;
+  propertyTreeSortOverrides: Record<string, AlphaSortOrder>;
 
   navigationSeparators: Record<string, boolean>;
   userColors: string[];
   rootFolderOrder: string[];
   rootTagOrder: string[];
+  rootPropertyOrder: string[];
 }
 ```
 
@@ -351,8 +370,8 @@ export interface IconAssetRecord {
 6. If `IndexedDBStorage` marked a pending rebuild notice (schema downgrade/content version mismatch), `useStorageVaultSync` starts a rebuild progress notice.
 7. `useStorageVaultSync` diffs indexable vault files (`markdown` plus PDFs when enabled) against the in-memory cache (`calculateFileDiff()`),
    then writes additions/updates/removals to IndexedDB (`recordFileChanges()`, `removeFilesFromCache()`).
-8. The tag tree is rebuilt from database records (`buildTagTreeFromDatabase()`), filtered to currently visible markdown paths.
-9. Content providers queue derived content work (previews, tags, metadata, custom properties, feature images, PDF thumbnails for PDF files) while the UI renders from the in-memory cache.
+8. Tag and property trees are rebuilt from database records (`buildTagTreeFromDatabase()`, `buildPropertyTreeFromDatabase()`), filtered to currently visible markdown paths.
+9. Content providers queue derived content work (previews, tags, metadata, task counters, properties, feature images, PDF thumbnails for PDF files) while the UI renders from the in-memory cache.
 10. Metadata-dependent providers (markdown pipeline, tags, metadata) are queued through `useMetadataCacheQueue` so they only run after `app.metadataCache` has entries for the files.
 11. If rebuild notice state exists in local storage (`STORAGE_KEYS.cacheRebuildNoticeKey`) and there is still pending work, `StorageContext` restores the rebuild progress notice after storage becomes ready.
 
@@ -368,6 +387,7 @@ export interface IconAssetRecord {
 4. For metadata cache changes that do not produce a vault `modify` event, StorageContext can reset provider processed mtimes (`markFilesForRegeneration()`) to force reprocessing against the updated metadata cache.
 5. Content providers queue affected files for regeneration as needed (with `useMetadataCacheQueue` gating metadata-dependent types).
 6. Providers write derived content through `IndexedDBStorage`, which updates the in-memory cache and emits change events for UI consumers.
+7. Tag and property trees are rebuilt when affected data or visibility rules change.
 
 ### Settings Change
 
@@ -376,8 +396,8 @@ export interface IconAssetRecord {
 3. `useStorageSettingsSync` debounces changes and handles two categories:
    - Provider-relevant settings: forwarded to `ContentProviderRegistry.handleSettingsChange()` and used to queue regeneration.
    - Exclusion settings:
-     - Hidden folders / hidden file properties trigger a diff resync so cached file lists and tag tree reflect the new rules.
-     - Hidden file names / hidden file tags trigger a tag tree rebuild (database records are unchanged).
+     - Hidden folders / hidden file properties trigger a diff resync so cached file lists and trees reflect the new rules.
+     - Hidden file names / hidden file tags trigger tree rebuilds (database records are unchanged).
 4. When provider settings changes trigger regeneration across many files, `useStorageSettingsSync` can start a rebuild progress notice and persist notice state in local storage (`STORAGE_KEYS.cacheRebuildNoticeKey`, `source: 'settings'`).
 5. Content providers regenerate derived content in the background while the UI continues rendering from cached data.
 
@@ -387,7 +407,7 @@ export interface IconAssetRecord {
 
 1. Stops background work: vault sync timers, tag rebuild debouncers, metadata waits, and content provider queues.
 2. Clears IndexedDB stores (`IndexedDBStorage.clearDatabase()` / `IndexedDBStorage.clear()`), which also resets the in-memory caches.
-3. Resets tag tree state and marks storage as not ready.
+3. Resets tag/property tree state and marks storage as not ready.
 4. Persists rebuild notice state in local storage (`STORAGE_KEYS.cacheRebuildNoticeKey`, `source: 'rebuild'`) so a rebuild notice can be restored after a restart.
 5. Re-runs the initial diff + queue process.
 
@@ -399,7 +419,7 @@ export interface IconAssetRecord {
 
 ## Hidden Pattern Rules
 
-Hidden patterns live in the active vault profile (`VaultProfile`) and influence which files/tags are visible and how the tag tree is counted.
+Hidden patterns live in the active vault profile (`VaultProfile`) and influence which files/tags/properties are visible and how tree counts are computed.
 
 Implementation references:
 
@@ -453,7 +473,7 @@ Implementation references:
 The database indexes supported files regardless of the current "show hidden items" toggle:
 
 - `getIndexableFiles()` always includes hidden items (so toggling visibility does not require rebuilding IndexedDB).
-- The tag tree and counts are built from the database but filtered to the currently visible markdown set.
+- Tag/property trees and counts are built from the database but filtered to the currently visible markdown set.
 
 ## Storage Selection Guidelines
 

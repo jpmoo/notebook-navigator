@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  */
 
 import { ButtonComponent, DropdownComponent, Platform, Setting, SliderComponent } from 'obsidian';
-import { DATE_FNS_FORMAT_DOCS_URL, getWelcomeVideoBaseUrl, SUPPORT_BUY_ME_A_COFFEE_URL, SUPPORT_SPONSOR_URL } from '../../constants/urls';
+import { MOMENT_FORMAT_DOCS_URL, getWelcomeVideoBaseUrl, SUPPORT_BUY_ME_A_COFFEE_URL, SUPPORT_SPONSOR_URL } from '../../constants/urls';
 import { HomepageModal } from '../../modals/HomepageModal';
 import { strings } from '../../i18n';
 import { showNotice } from '../../utils/noticeUtils';
@@ -29,7 +29,14 @@ import {
     PANE_TRANSITION_DURATION_STEP_MS,
     type BackgroundMode
 } from '../../types';
-import type { FileOpenContext, ListToolbarButtonId, MultiSelectModifier, NavigationToolbarButtonId, VaultTitleOption } from '../types';
+import type {
+    FileOpenContext,
+    ListToolbarButtonId,
+    MultiSelectModifier,
+    NavigationToolbarButtonId,
+    VaultProfilePropertyKey,
+    VaultTitleOption
+} from '../types';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { resetHiddenToggleIfNoSources } from '../../utils/exclusionUtils';
 import { InputModal } from '../../modals/InputModal';
@@ -55,11 +62,14 @@ import { resolveUXIcon, type UXIconId } from '../../utils/uxIcons';
 import { normalizeTagPath } from '../../utils/tagUtils';
 import { formatCommaSeparatedList, parseCommaSeparatedList } from '../../utils/commaSeparatedListUtils';
 import type NotebookNavigatorPlugin from '../../main';
+import { PropertyKeyVisibilityModal } from '../../modals/PropertyKeyVisibilityModal';
 import { DEFAULT_SETTINGS } from '../defaultSettings';
 import { createSettingGroupFactory } from '../settingGroups';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
 import { createSubSettingsContainer, setElementVisible, wireToggleSettingWithSubSettings } from '../subSettings';
 import { createSettingDescriptionWithExternalLink } from './externalLink';
+import { normalizeCalendarCustomRootFolder } from '../../utils/calendarCustomNotePatterns';
+import { FolderPathInputSuggest } from '../../suggest/FolderPathInputSuggest';
 
 /** Renders the general settings tab */
 export function renderGeneralTab(context: SettingsTabContext): void {
@@ -177,6 +187,25 @@ export function renderGeneralTab(context: SettingsTabContext): void {
     let hiddenFileTagsInput: HTMLInputElement | null = null;
     let excludedFilesInput: HTMLInputElement | null = null;
     let hiddenFileNamesInput: HTMLInputElement | null = null;
+    let propertyKeysSummaryTextEl: HTMLSpanElement | null = null;
+
+    const formatPropertyKeysSummary = (propertyKeys: VaultProfilePropertyKey[]): string => {
+        const configuredKeys = propertyKeys.map(entry => entry.key.trim()).filter(key => key.length > 0);
+        const configuredCount = configuredKeys.length;
+        if (configuredCount === 0) {
+            return strings.settings.items.propertyFields.noneConfigured;
+        }
+
+        const visibleKeys = configuredKeys.slice(0, 5);
+        const keyList = configuredCount > visibleKeys.length ? `${visibleKeys.join(', ')}, ...` : visibleKeys.join(', ');
+        if (configuredCount === 1) {
+            return strings.settings.items.propertyFields.singleConfigured.replace('{properties}', keyList);
+        }
+
+        return strings.settings.items.propertyFields.multipleConfigured
+            .replace('{count}', configuredCount.toString())
+            .replace('{properties}', keyList);
+    };
 
     // Updates all profile-related UI controls with current settings values
     const refreshProfileControls = () => {
@@ -217,6 +246,10 @@ export function renderGeneralTab(context: SettingsTabContext): void {
         }
         if (hiddenFileNamesInput) {
             hiddenFileNamesInput.value = activeProfile ? formatCommaSeparatedList(activeProfile.hiddenFileNames) : '';
+        }
+        if (propertyKeysSummaryTextEl) {
+            const propertyKeys = Array.isArray(activeProfile?.propertyKeys) ? activeProfile.propertyKeys : [];
+            propertyKeysSummaryTextEl.setText(formatPropertyKeysSummary(propertyKeys));
         }
     };
 
@@ -362,6 +395,33 @@ export function renderGeneralTab(context: SettingsTabContext): void {
             });
     });
 
+    const propertyKeysSetting = filteringGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.propertyFields.name).setDesc(strings.settings.items.propertyFields.desc);
+    });
+
+    const propertyKeysCountLineEl = propertyKeysSetting.descEl.createDiv({
+        cls: 'nn-setting-property-keys-count-line'
+    });
+    propertyKeysSummaryTextEl = propertyKeysCountLineEl.createSpan({ cls: 'nn-setting-property-keys-summary-text' });
+
+    propertyKeysSetting.addButton(button =>
+        button.setButtonText(strings.settings.items.propertyFields.addButtonTooltip).onClick(() => {
+            const activeProfile = getActiveProfile();
+            if (!activeProfile) {
+                return;
+            }
+            const modal = new PropertyKeyVisibilityModal(context.app, {
+                initialKeys: activeProfile.propertyKeys,
+                onSave: async nextKeys => {
+                    activeProfile.propertyKeys = nextKeys;
+                    await plugin.saveSettingsAndUpdate();
+                    refreshProfileControls();
+                }
+            });
+            modal.open();
+        })
+    );
+
     const hiddenFileNamesSetting = filteringGroup.addSetting(setting => {
         configureDebouncedTextSetting(
             setting,
@@ -495,7 +555,37 @@ export function renderGeneralTab(context: SettingsTabContext): void {
     excludedFilesInput = excludedFilesSetting.controlEl.querySelector('input');
     refreshProfileControls();
 
+    const templatesGroup = createGroup(strings.settings.groups.general.templates);
+    const templateFolderSetting = templatesGroup.addSetting(setting => {
+        configureDebouncedTextSetting(
+            setting,
+            strings.settings.items.calendarTemplateFolder.name,
+            strings.settings.items.calendarTemplateFolder.desc,
+            strings.settings.items.calendarTemplateFolder.placeholder,
+            () => normalizeCalendarCustomRootFolder(plugin.settings.calendarTemplateFolder),
+            value => {
+                plugin.settings.calendarTemplateFolder = normalizeCalendarCustomRootFolder(value);
+            }
+        );
+    });
+    templateFolderSetting.controlEl.addClass('nn-setting-wide-input');
+    const templateFolderInputEl = templateFolderSetting.controlEl.querySelector<HTMLInputElement>('input');
+    if (templateFolderInputEl) {
+        const folderSuggest = new FolderPathInputSuggest(context.app, templateFolderInputEl);
+        templateFolderInputEl.addEventListener('click', () => folderSuggest.open());
+    }
+
     const behaviorGroup = createGroup(strings.settings.groups.general.behavior);
+
+    addToggleSetting(
+        behaviorGroup.addSetting,
+        strings.settings.items.createNewNotesInNewTab.name,
+        strings.settings.items.createNewNotesInNewTab.desc,
+        () => plugin.settings.createNewNotesInNewTab,
+        value => {
+            plugin.settings.createNewNotesInNewTab = value;
+        }
+    );
 
     const autoRevealSetting = behaviorGroup.addSetting(setting => {
         setting.setName(strings.settings.items.autoRevealActiveNote.name).setDesc(strings.settings.items.autoRevealActiveNote.desc);
@@ -509,6 +599,16 @@ export function renderGeneralTab(context: SettingsTabContext): void {
             await plugin.saveSettingsAndUpdate();
         }
     );
+
+    new Setting(autoRevealSettingsEl)
+        .setName(strings.settings.items.autoRevealShortestPath.name)
+        .setDesc(strings.settings.items.autoRevealShortestPath.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.autoRevealShortestPath).onChange(async value => {
+                plugin.settings.autoRevealShortestPath = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
 
     new Setting(autoRevealSettingsEl)
         .setName(strings.settings.items.autoRevealIgnoreRightSidebar.name)
@@ -879,6 +979,17 @@ export function renderGeneralTab(context: SettingsTabContext): void {
             })
         );
 
+    viewGroup
+        .addSetting(setting => {
+            setting.setName(strings.settings.items.showInfoButtons.name).setDesc(strings.settings.items.showInfoButtons.desc);
+        })
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.showInfoButtons).onChange(async value => {
+                plugin.settings.showInfoButtons = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
     renderToolbarVisibilitySetting(createSetting => viewGroup.addSetting(createSetting), plugin);
 
     new Setting(containerEl)
@@ -939,12 +1050,12 @@ export function renderGeneralTab(context: SettingsTabContext): void {
             strings.settings.items.dateFormat.name,
             createSettingDescriptionWithExternalLink({
                 text: strings.settings.items.dateFormat.desc,
-                link: { text: strings.settings.items.dateFormat.dateFnsLinkText, href: DATE_FNS_FORMAT_DOCS_URL }
+                link: { text: strings.settings.items.dateFormat.momentLinkText, href: MOMENT_FORMAT_DOCS_URL }
             }),
             strings.settings.items.dateFormat.placeholder,
             () => plugin.settings.dateFormat,
             value => {
-                plugin.settings.dateFormat = value || 'MMM d, yyyy';
+                plugin.settings.dateFormat = value || 'MMM D, YYYY';
             }
         );
     });
@@ -964,7 +1075,7 @@ export function renderGeneralTab(context: SettingsTabContext): void {
             strings.settings.items.timeFormat.name,
             createSettingDescriptionWithExternalLink({
                 text: strings.settings.items.timeFormat.desc,
-                link: { text: strings.settings.items.timeFormat.dateFnsLinkText, href: DATE_FNS_FORMAT_DOCS_URL }
+                link: { text: strings.settings.items.timeFormat.momentLinkText, href: MOMENT_FORMAT_DOCS_URL }
             }),
             strings.settings.items.timeFormat.placeholder,
             () => plugin.settings.timeFormat,

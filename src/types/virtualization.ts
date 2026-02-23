@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 import { TFile, TFolder } from 'obsidian';
 import { ListPaneItemType, NavigationPaneItemType, VirtualFolder } from '../types';
 import type { SearchResultMeta } from './search';
-import { TagTreeNode } from '../types/storage';
+import { PropertyTreeNode, TagTreeNode } from '../types/storage';
 import type { SearchShortcut, ShortcutEntry } from '../types/shortcuts';
 import type { NoteCountInfo } from '../types/noteCounts';
 
@@ -34,6 +34,9 @@ export interface ListPaneItem {
     type: ListPaneItemType;
     data: TFile | string; // File or header text
     parentFolder?: string | null;
+    // Folder path associated with a folder-group header.
+    // Present only when grouping by folder in the list pane.
+    headerFolderPath?: string | null;
     key: string;
     // Pre-computed file index for stable onClick handlers
     fileIndex?: number;
@@ -52,6 +55,7 @@ export interface FolderTreeItem {
     level: number;
     path: string;
     key: string;
+    displayName?: string;
     color?: string;
     backgroundColor?: string;
     icon?: string;
@@ -81,6 +85,26 @@ export interface UntaggedItem {
     icon?: string;
 }
 
+export interface PropertyKeyTreeItem {
+    type: typeof NavigationPaneItemType.PROPERTY_KEY;
+    data: PropertyTreeNode;
+    level: number;
+    key: string;
+    color?: string;
+    backgroundColor?: string;
+    icon?: string;
+}
+
+export interface PropertyValueTreeItem {
+    type: typeof NavigationPaneItemType.PROPERTY_VALUE;
+    data: PropertyTreeNode;
+    level: number;
+    key: string;
+    color?: string;
+    backgroundColor?: string;
+    icon?: string;
+}
+
 export interface VirtualFolderItem {
     type: typeof NavigationPaneItemType.VIRTUAL_FOLDER;
     data: VirtualFolder;
@@ -89,6 +113,7 @@ export interface VirtualFolderItem {
     isSelectable?: boolean;
     isSelected?: boolean;
     tagCollectionId?: string;
+    propertyCollectionId?: string;
     // Pre-computed child presence flag used for rendering the expander chevron and for keyboard expand/collapse decisions.
     // Some virtual folders are backed by dynamic data (e.g. recent notes, shortcuts), where the source list can contain
     // entries that do not render (deleted/missing items). This flag reflects whether expansion would render any children.
@@ -119,6 +144,7 @@ export interface ShortcutHeaderItem {
 export interface ShortcutFolderNavItem extends ShortcutNavigationBase {
     type: typeof NavigationPaneItemType.SHORTCUT_FOLDER;
     folder: TFolder | null;
+    displayName?: string;
 }
 
 export interface ShortcutNoteNavItem extends ShortcutNavigationBase {
@@ -143,6 +169,12 @@ export interface ShortcutSearchNavItem extends ShortcutNavigationBase {
 export interface ShortcutTagNavItem extends ShortcutNavigationBase {
     type: typeof NavigationPaneItemType.SHORTCUT_TAG;
     tagPath: string;
+    displayName: string;
+}
+
+export interface ShortcutPropertyNavItem extends ShortcutNavigationBase {
+    type: typeof NavigationPaneItemType.SHORTCUT_PROPERTY;
+    propertyNodeId: string;
     displayName: string;
 }
 
@@ -174,12 +206,15 @@ export type CombinedNavigationItem =
     | VirtualFolderItem
     | TagTreeItem
     | UntaggedItem
+    | PropertyKeyTreeItem
+    | PropertyValueTreeItem
     | ShortcutHeaderItem
     | ShortcutFolderNavItem
     | ShortcutNoteNavItem
     | RecentNoteNavItem
     | ShortcutSearchNavItem
     | ShortcutTagNavItem
+    | ShortcutPropertyNavItem
     | RootSpacerItem
     | TopSpacerItem
     | BottomSpacerItem

@@ -10,6 +10,12 @@
     padding-left: 1em;
 }
 
+/* Restore bottom padding on last setting inside sub-settings containers
+   (Obsidian's .setting-item:last-child removes it, but nested containers need it) */
+.nn-sub-settings > .setting-item:last-child {
+    padding-bottom: var(--size-4-4);
+}
+
 /* Settings layout root */
 .nn-settings-tab-root {
     display: block;
@@ -24,18 +30,76 @@
 
 .nn-settings-tabs-nav {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: var(--size-2-3);
     flex-shrink: 0;
     margin-bottom: var(--size-4-4);
+}
+
+.nn-settings-tabs-nav-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-2-3);
+}
+
+.nn-settings-tabs-nav-row.is-hidden {
+    display: none;
+}
+
+.nn-settings-tabs-nav-row.is-icons-hidden .nn-settings-tab-icon {
+    display: none;
+}
+
+/* Separator between primary and secondary tab rows */
+.nn-settings-tabs-nav-secondary {
+    gap: var(--size-2-2);
+    border-top: 1px solid var(--background-modifier-border);
+    padding-top: var(--size-2-3);
 }
 
 .nn-settings-tab-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: var(--size-2-2);
     padding: 6px 12px;
     font-size: var(--font-ui-small);
+}
+
+/* Icon inside settings tab buttons */
+.nn-settings-tab-icon {
+    display: inline-flex;
+    align-items: center;
+}
+
+.nn-settings-tab-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+}
+
+.nn-settings-tab-button.is-hidden {
+    display: none;
+}
+
+.nn-settings-tab-button-primary.is-group-active {
+    background-color: transparent;
+    color: var(--interactive-accent);
+    opacity: 0.85;
+}
+
+.nn-settings-tab-button-primary.is-group-active:hover {
+    background-color: var(--background-modifier-hover);
+    opacity: 1;
+}
+
+.nn-settings-tab-button-secondary {
+    padding: 5px 10px;
+}
+
+.nn-settings-tab-button-secondary.is-active {
+    background-color: var(--background-modifier-hover);
+    color: var(--text-normal);
 }
 
 .nn-settings-tabs-content {
@@ -76,6 +140,15 @@
 }
 
 .nn-setting-calendar-pattern-example-text {
+    font-size: inherit;
+    font-weight: var(--font-semibold);
+}
+
+.nn-setting-property-keys-count-line {
+    margin-top: var(--size-2-1);
+}
+
+.nn-setting-property-keys-summary-text {
     font-size: inherit;
     font-weight: var(--font-semibold);
 }
@@ -129,6 +202,10 @@
 .nn-setting-info-container.nn-setting-info-centered .setting-item-info,
 .nn-setting-info-container.nn-setting-info-centered .setting-item-description {
     text-align: center;
+}
+
+.nn-sub-settings > .setting-item.nn-setting-property-keys-info:last-child {
+    padding-bottom: 0;
 }
 
 /* Wider text inputs for settings that benefit from more space */

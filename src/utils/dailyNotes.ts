@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,11 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { App, Notice, TFile, TFolder, normalizePath } from 'obsidian';
+import { App, TFile, TFolder, normalizePath } from 'obsidian';
 import { strings } from '../i18n';
 import { getInternalPlugin } from './typeGuards';
 import { isPlainObjectRecordValue, isStringRecordValue } from './recordUtils';
 import { getMomentApi, type MomentInstance } from './moment';
+import { showNotice } from './noticeUtils';
 
 const DAILY_NOTES_PLUGIN_ID = 'daily-notes';
 const DEFAULT_DAILY_NOTE_FORMAT = 'YYYY-MM-DD';
@@ -182,7 +183,7 @@ async function readTemplateInfo(app: App, templatePath: string): Promise<{ conte
         return { contents, foldInfo };
     } catch (error) {
         console.error(`Failed to read the daily note template "${normalized}"`, error);
-        new Notice(strings.dailyNotes.templateReadFailed);
+        showNotice(strings.dailyNotes.templateReadFailed);
         return { contents: '', foldInfo: null };
     }
 }
@@ -266,7 +267,7 @@ export async function createDailyNote(app: App, date: MomentInstance, settings: 
         return createdFile;
     } catch (error) {
         console.error(`Failed to create daily note "${path}"`, error);
-        new Notice(strings.dailyNotes.createFailed);
+        showNotice(strings.dailyNotes.createFailed);
         return null;
     }
 }

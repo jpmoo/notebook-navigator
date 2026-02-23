@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ import { Platform } from 'obsidian';
 import {
     migrateUIScales,
     resolveCalendarPlacement,
+    resolveCalendarLeftPlacement,
     resolveCalendarWeeksToShow,
     resolveCompactItemHeight,
     resolveCompactItemHeightScaleText,
@@ -30,8 +31,8 @@ import {
     resolveNavItemHeightScaleText,
     resolvePaneTransitionDuration,
     resolvePinNavigationBanner,
-    resolveSearchProvider,
     resolveTagSortOrder,
+    resolvePropertySortOrder,
     resolveToolbarVisibility
 } from '../../settings/migrations/localPreferences';
 import type { NotebookNavigatorSettings, SyncModeSettingId } from '../../settings/types';
@@ -65,12 +66,12 @@ interface CreateSyncModeRegistryParams {
     sanitizeDualPaneOrientationSetting: (value: unknown) => DualPaneOrientation;
     sanitizeTagSortOrderSetting: (value: unknown) => NotebookNavigatorSettings['tagSortOrder'];
     sanitizeFolderSortOrderSetting: (value: unknown) => NotebookNavigatorSettings['folderSortOrder'];
-    sanitizeSearchProviderSetting: (value: unknown) => NotebookNavigatorSettings['searchProvider'];
     sanitizePaneTransitionDurationSetting: (value: unknown) => number;
     sanitizeToolbarVisibilitySetting: (value: unknown) => NotebookNavigatorSettings['toolbarVisibility'];
     sanitizeNavIndentSetting: (value: unknown) => number;
     sanitizeNavItemHeightSetting: (value: unknown) => number;
     sanitizeCalendarPlacementSetting: (value: unknown) => NotebookNavigatorSettings['calendarPlacement'];
+    sanitizeCalendarLeftPlacementSetting: (value: unknown) => NotebookNavigatorSettings['calendarLeftPlacement'];
     sanitizeCalendarWeeksToShowSetting: (value: unknown) => NotebookNavigatorSettings['calendarWeeksToShow'];
     sanitizeCompactItemHeightSetting: (value: unknown) => number;
 
@@ -261,15 +262,15 @@ export function createSyncModeRegistry(params: CreateSyncModeRegistryParams): Sy
             }),
             sanitizeSynced: () => params.sanitizeTagSortOrderSetting(params.getSettings().tagSortOrder)
         }),
-        searchProvider: createResolvedLocalStorageSettingEntry({
-            settingId: 'searchProvider',
+        propertySortOrder: createResolvedLocalStorageSettingEntry({
+            settingId: 'propertySortOrder',
             loadPhase: 'preProfiles',
-            localStorageKey: params.keys.searchProviderKey,
+            localStorageKey: params.keys.propertySortOrderKey,
             resolveDeviceLocal: storedData => ({
-                value: resolveSearchProvider({ storedData, keys: params.keys, defaultSettings: params.defaultSettings }),
+                value: resolvePropertySortOrder({ storedData, keys: params.keys, defaultSettings: params.defaultSettings }),
                 migrated: false
             }),
-            sanitizeSynced: () => params.sanitizeSearchProviderSetting(params.getSettings().searchProvider)
+            sanitizeSynced: () => params.sanitizeTagSortOrderSetting(params.getSettings().propertySortOrder)
         }),
         includeDescendantNotes: createUXPreferenceEntry({
             settingId: 'includeDescendantNotes',
@@ -378,6 +379,14 @@ export function createSyncModeRegistry(params: CreateSyncModeRegistryParams): Sy
             resolveDeviceLocal: storedData =>
                 resolveCalendarPlacement({ storedData, keys: params.keys, defaultSettings: params.defaultSettings }),
             sanitizeSynced: () => params.sanitizeCalendarPlacementSetting(params.getSettings().calendarPlacement)
+        }),
+        calendarLeftPlacement: createResolvedLocalStorageSettingEntry({
+            settingId: 'calendarLeftPlacement',
+            loadPhase: 'preProfiles',
+            localStorageKey: params.keys.calendarLeftPlacementKey,
+            resolveDeviceLocal: storedData =>
+                resolveCalendarLeftPlacement({ storedData, keys: params.keys, defaultSettings: params.defaultSettings }),
+            sanitizeSynced: () => params.sanitizeCalendarLeftPlacementSetting(params.getSettings().calendarLeftPlacement)
         }),
         calendarWeeksToShow: createResolvedLocalStorageSettingEntry({
             settingId: 'calendarWeeksToShow',

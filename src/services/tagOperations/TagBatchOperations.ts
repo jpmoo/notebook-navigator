@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,8 +63,12 @@ export class TagBatchOperations {
                 continue;
             }
 
-            if (await this.fileMutations.removeTagFromFile(file, tag)) {
-                removed++;
+            try {
+                if (await this.fileMutations.removeTagFromFile(file, tag)) {
+                    removed++;
+                }
+            } catch (error: unknown) {
+                console.error(`[Notebook Navigator] Failed to remove tag ${tag} from ${file.path}`, error);
             }
         }
 

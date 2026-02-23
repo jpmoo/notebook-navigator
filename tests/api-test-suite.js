@@ -506,10 +506,12 @@
                     this.assertExists(navItem, 'Should return NavItem object');
                     this.assertExists(navItem.folder !== undefined, 'NavItem should have folder property');
                     this.assertExists(navItem.tag !== undefined, 'NavItem should have tag property');
+                    this.assertExists(navItem.property !== undefined, 'NavItem should have property field');
 
-                    // Either folder or tag can be selected, but not both
-                    if (navItem.folder && navItem.tag) {
-                        this.assertTrue(false, 'Both folder and tag should not be selected simultaneously');
+                    // Only one navigation target can be selected at a time
+                    const selectedTargets = [navItem.folder, navItem.tag, navItem.property].filter(Boolean).length;
+                    if (selectedTargets > 1) {
+                        this.assertTrue(false, 'Only one of folder, tag, or property should be selected');
                     }
 
                     // If a folder is selected, it should be a valid TFolder
@@ -522,6 +524,11 @@
                     if (navItem.tag) {
                         this.assertTrue(typeof navItem.tag === 'string', 'Tag should be a string');
                     }
+
+                    // If a property is selected, it should be a string id
+                    if (navItem.property) {
+                        this.assertTrue(typeof navItem.property === 'string', 'Property should be a string');
+                    }
                 },
 
                 'Should handle no selection gracefully': async function () {
@@ -529,8 +536,8 @@
                     const navItem = this.api.selection.getNavItem();
                     this.assertExists(navItem, 'Should always return a NavItem object');
 
-                    // Both can be null when nothing is selected
-                    if (!navItem.folder && !navItem.tag) {
+                    // All can be null when nothing is selected
+                    if (!navItem.folder && !navItem.tag && !navItem.property) {
                         this.assertTrue(true, 'API correctly handles no selection');
                     } else {
                         // Something is selected, which is also valid
@@ -604,17 +611,24 @@
                     if (eventData) {
                         this.assertExists(eventData.item, 'Should have item');
 
-                        // Check the discriminated union
+                        // Check nav item shape
                         if (eventData.item.folder) {
                             this.assertTrue(typeof eventData.item.folder === 'object', 'Folder should be TFolder object');
                             this.assertExists(eventData.item.folder.path, 'Folder should have path');
                             this.assertEqual(eventData.item.tag, null, 'Tag should be null when folder is selected');
+                            this.assertEqual(eventData.item.property, null, 'Property should be null when folder is selected');
                         } else if (eventData.item.tag) {
                             this.assertTrue(typeof eventData.item.tag === 'string', 'Tag should be string');
                             this.assertEqual(eventData.item.folder, null, 'Folder should be null when tag is selected');
+                            this.assertEqual(eventData.item.property, null, 'Property should be null when tag is selected');
+                        } else if (eventData.item.property) {
+                            this.assertTrue(typeof eventData.item.property === 'string', 'Property should be string');
+                            this.assertEqual(eventData.item.folder, null, 'Folder should be null when property is selected');
+                            this.assertEqual(eventData.item.tag, null, 'Tag should be null when property is selected');
                         } else {
                             this.assertEqual(eventData.item.folder, null, 'Folder should be null when nothing selected');
                             this.assertEqual(eventData.item.tag, null, 'Tag should be null when nothing selected');
+                            this.assertEqual(eventData.item.property, null, 'Property should be null when nothing selected');
                         }
                     }
 

@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,10 +18,11 @@
 
 import { TFile, App } from 'obsidian';
 import { SelectionDispatch, SelectionState } from '../context/SelectionContext';
-import { ItemType, type VisibilityPreferences } from '../types';
+import { ItemType, type NavigationItemType, type VisibilityPreferences } from '../types';
 import { NotebookNavigatorSettings } from '../settings';
-import { TagTreeService } from '../services/TagTreeService';
-import { getFilesForFolder, getFilesForTag } from './fileFinder';
+import type { IPropertyTreeProvider } from '../interfaces/IPropertyTreeProvider';
+import type { ITagTreeProvider } from '../interfaces/ITagTreeProvider';
+import { getFilesForFolder, getFilesForProperty, getFilesForTag } from './fileFinder';
 
 /**
  * Utilities for managing file selection operations
@@ -38,6 +39,9 @@ export function getSelectedPath(selectionState: SelectionState): string | null {
     }
     if (selectionState.selectionType === ItemType.TAG && selectionState.selectedTag) {
         return selectionState.selectedTag;
+    }
+    if (selectionState.selectionType === ItemType.PROPERTY && selectionState.selectedProperty) {
+        return selectionState.selectedProperty;
     }
     return null;
 }
@@ -56,13 +60,47 @@ export function getFilesForSelection(
     settings: NotebookNavigatorSettings,
     visibility: VisibilityPreferences,
     app: App,
-    tagTreeService: TagTreeService | null
+    tagTreeService: ITagTreeProvider | null,
+    propertyTreeService: IPropertyTreeProvider | null
 ): TFile[] {
-    if (selectionState.selectionType === ItemType.FOLDER && selectionState.selectedFolder) {
-        return getFilesForFolder(selectionState.selectedFolder, settings, visibility, app);
+    return getFilesForNavigationSelection(
+        {
+            selectionType: selectionState.selectionType,
+            selectedFolder: selectionState.selectedFolder,
+            selectedTag: selectionState.selectedTag,
+            selectedProperty: selectionState.selectedProperty
+        },
+        settings,
+        visibility,
+        app,
+        tagTreeService,
+        propertyTreeService
+    );
+}
+
+export interface NavigationSelectionScope {
+    selectionType: NavigationItemType | ItemType | null;
+    selectedFolder?: SelectionState['selectedFolder'];
+    selectedTag?: SelectionState['selectedTag'];
+    selectedProperty?: SelectionState['selectedProperty'];
+}
+
+export function getFilesForNavigationSelection(
+    selectionScope: NavigationSelectionScope,
+    settings: NotebookNavigatorSettings,
+    visibility: VisibilityPreferences,
+    app: App,
+    tagTreeService: ITagTreeProvider | null,
+    propertyTreeService: IPropertyTreeProvider | null
+): TFile[] {
+    if (selectionScope.selectionType === ItemType.FOLDER && selectionScope.selectedFolder) {
+        return getFilesForFolder(selectionScope.selectedFolder, settings, visibility, app);
     }
-    if (selectionState.selectionType === ItemType.TAG && selectionState.selectedTag) {
-        return getFilesForTag(selectionState.selectedTag, settings, visibility, app, tagTreeService);
+    if (selectionScope.selectionType === ItemType.TAG && selectionScope.selectedTag) {
+        return getFilesForTag(selectionScope.selectedTag, settings, visibility, app, tagTreeService);
+    }
+    if (selectionScope.selectionType === ItemType.PROPERTY && selectionScope.selectedProperty) {
+        return getFilesForProperty(selectionScope.selectedProperty, settings, visibility, app, propertyTreeService);
     }
     return [];
 }

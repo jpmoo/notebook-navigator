@@ -49,6 +49,15 @@
     text-overflow: ellipsis;
 }
 
+.nn-date-group-header-text--folder-note {
+    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration) !important;
+}
+
+.nn-date-group-header-text--folder-note:hover {
+    cursor: pointer;
+    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration) !important;
+}
+
 .nn-pinned-section-header {
     align-items: center;
 }

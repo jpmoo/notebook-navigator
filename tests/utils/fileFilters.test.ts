@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import { describe, expect, it } from 'vitest';
-import { createHiddenFileNameMatcher, shouldExcludeFileName } from '../../src/utils/fileFilters';
+import { createFrontmatterPropertyExclusionMatcher, createHiddenFileNameMatcher, shouldExcludeFileName } from '../../src/utils/fileFilters';
 import { createTestTFile } from './createTestTFile';
 
 describe('shouldExcludeFileName', () => {
@@ -87,5 +87,55 @@ describe('shouldExcludeFileName', () => {
         const first = createHiddenFileNameMatcher(['  *.png ', 'temp-*', '*.png']);
         const second = createHiddenFileNameMatcher(['temp-*', '*.png']);
         expect(first).toBe(second);
+    });
+});
+
+describe('createFrontmatterPropertyExclusionMatcher', () => {
+    it('matches key-only rules when the key exists regardless of value', () => {
+        const matcher = createFrontmatterPropertyExclusionMatcher(['archived']);
+
+        expect(matcher.matches({ archived: null })).toBe(true);
+        expect(matcher.matches({ archived: false })).toBe(true);
+        expect(matcher.matches({ archived: 'yes' })).toBe(true);
+        expect(matcher.matches({ status: 'active' })).toBe(false);
+    });
+
+    it('matches key=value rules against scalar frontmatter values', () => {
+        const matcher = createFrontmatterPropertyExclusionMatcher(['status=done', 'published=true', 'priority=2']);
+
+        expect(matcher.matches({ status: 'Done' })).toBe(true);
+        expect(matcher.matches({ published: true })).toBe(true);
+        expect(matcher.matches({ priority: 2 })).toBe(true);
+        expect(matcher.matches({ status: 'draft', published: false, priority: 3 })).toBe(false);
+    });
+
+    it('matches key=value rules against array frontmatter values', () => {
+        const matcher = createFrontmatterPropertyExclusionMatcher(['status=done', 'published=true']);
+
+        expect(matcher.matches({ status: ['draft', 'Done'] })).toBe(true);
+        expect(matcher.matches({ published: [false, true] })).toBe(true);
+        expect(matcher.matches({ status: ['draft', 'review'] })).toBe(false);
+    });
+
+    it('ignores invalid rules and caches normalized rule sets', () => {
+        const first = createFrontmatterPropertyExclusionMatcher([' archived ', 'status=done', 'status=Done', 'status=', '=done']);
+        const second = createFrontmatterPropertyExclusionMatcher(['status=done', 'archived']);
+
+        expect(first).toBe(second);
+    });
+
+    it('reuses matcher instances for the same rule array reference', () => {
+        const rules = ['status=done', 'archived'];
+        const first = createFrontmatterPropertyExclusionMatcher(rules);
+        const second = createFrontmatterPropertyExclusionMatcher(rules);
+
+        expect(first).toBe(second);
+    });
+
+    it('returns an empty matcher when no valid rules are present', () => {
+        const matcher = createFrontmatterPropertyExclusionMatcher(['', '=', 'status=']);
+
+        expect(matcher.hasCriteria).toBe(false);
+        expect(matcher.matches({ status: 'done' })).toBe(false);
     });
 });

@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ import { NotebookNavigatorSettings } from '../../settings';
 import { FileData } from '../../storage/IndexedDBStorage';
 import { getDBInstance } from '../../storage/fileOperations';
 import { extractMetadataFromCache } from '../../utils/metadataExtractor';
-import { shouldExcludeFile } from '../../utils/fileFilters';
+import { createFrontmatterPropertyExclusionMatcher, shouldExcludeFileWithMatcher } from '../../utils/fileFilters';
 import { getActiveHiddenFileProperties } from '../../utils/vaultProfiles';
 import { BaseContentProvider, type ContentProviderProcessResult } from './BaseContentProvider';
 
@@ -63,6 +63,7 @@ export class MetadataContentProvider extends BaseContentProvider {
             'frontmatterNameField',
             'frontmatterIconField',
             'frontmatterColorField',
+            'frontmatterBackgroundField',
             'frontmatterCreatedField',
             'frontmatterModifiedField',
             'frontmatterDateFormat',
@@ -91,6 +92,7 @@ export class MetadataContentProvider extends BaseContentProvider {
                 oldSettings.frontmatterNameField !== newSettings.frontmatterNameField ||
                 oldSettings.frontmatterIconField !== newSettings.frontmatterIconField ||
                 oldSettings.frontmatterColorField !== newSettings.frontmatterColorField ||
+                oldSettings.frontmatterBackgroundField !== newSettings.frontmatterBackgroundField ||
                 oldSettings.frontmatterCreatedField !== newSettings.frontmatterCreatedField ||
                 oldSettings.frontmatterModifiedField !== newSettings.frontmatterModifiedField ||
                 oldSettings.frontmatterDateFormat !== newSettings.frontmatterDateFormat
@@ -130,15 +132,16 @@ export class MetadataContentProvider extends BaseContentProvider {
         }
 
         const shouldTrackHidden = hiddenFileProperties.length > 0;
+        const hiddenFilePropertyMatcher = shouldTrackHidden ? createFrontmatterPropertyExclusionMatcher(hiddenFileProperties) : null;
         // Lazy computation pattern - only check frontmatter when actually needed
         let hiddenStateComputed = false;
         let hiddenState = false;
         // Computes hidden state by checking frontmatter against exclusion patterns
         const computeHiddenState = (): void => {
-            if (hiddenStateComputed || !shouldTrackHidden) {
+            if (hiddenStateComputed || !hiddenFilePropertyMatcher) {
                 return;
             }
-            hiddenState = shouldExcludeFile(file, hiddenFileProperties, this.app);
+            hiddenState = shouldExcludeFileWithMatcher(file, hiddenFilePropertyMatcher, this.app);
             hiddenStateComputed = true;
         };
         // Saves computed hidden state to cache for later retrieval in processFile
@@ -185,6 +188,7 @@ export class MetadataContentProvider extends BaseContentProvider {
         const hiddenFileProperties = getActiveHiddenFileProperties(settings);
         const shouldExtractMetadata = settings.useFrontmatterMetadata;
         const shouldTrackHidden = hiddenFileProperties.length > 0;
+        const hiddenFilePropertyMatcher = shouldTrackHidden ? createFrontmatterPropertyExclusionMatcher(hiddenFileProperties) : null;
         if (!shouldExtractMetadata && !shouldTrackHidden) {
             return { update: null, processed: true };
         }
@@ -203,6 +207,7 @@ export class MetadataContentProvider extends BaseContentProvider {
                 if (processedMetadata.fm !== undefined) fileMetadata.modified = processedMetadata.fm;
                 if (processedMetadata.icon) fileMetadata.icon = processedMetadata.icon;
                 if (processedMetadata.color) fileMetadata.color = processedMetadata.color;
+                if (processedMetadata.background) fileMetadata.background = processedMetadata.background;
             }
 
             if (shouldTrackHidden && job.file.extension === 'md') {
@@ -212,7 +217,9 @@ export class MetadataContentProvider extends BaseContentProvider {
                     hiddenValue = pendingHiddenState;
                     this.pendingHiddenStates.delete(job.path);
                 } else {
-                    hiddenValue = shouldExcludeFile(job.file, hiddenFileProperties, this.app);
+                    hiddenValue = hiddenFilePropertyMatcher
+                        ? shouldExcludeFileWithMatcher(job.file, hiddenFilePropertyMatcher, this.app)
+                        : false;
                 }
                 fileMetadata.hidden = hiddenValue;
             }

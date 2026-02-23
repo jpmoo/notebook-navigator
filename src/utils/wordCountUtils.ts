@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ const WORD_PATTERN = new RegExp(
     'g'
 );
 
-export function countWordsForCustomProperty(content: string, startIndex: number): number {
+export function countWordsForNoteProperty(content: string, startIndex: number): number {
     const text = startIndex > 0 ? content.slice(startIndex) : content;
     WORD_PATTERN.lastIndex = 0;
     let count = 0;

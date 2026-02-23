@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ import type { ExpansionAction } from '../context/ExpansionContext';
 import type { SelectionAction, SelectionRevealSource } from '../context/SelectionContext';
 import type { UIAction } from '../context/UIStateContext';
 import type { TagTreeNode } from '../types/storage';
-import { ItemType } from '../types';
+import { ItemType, TAGS_ROOT_VIRTUAL_FOLDER_ID } from '../types';
 import { resolveCanonicalTagPath } from './tagUtils';
 import { isVirtualTagCollectionId } from './virtualTagCollections';
 
@@ -128,9 +128,9 @@ export function navigateToTag(env: TagNavigationEnvironment, tagPath: string, op
         }
     }
 
-    if (env.showTags && env.showAllTagsFolder && !env.expandedVirtualFolders.has('tags-root')) {
+    if (env.showTags && env.showAllTagsFolder && !env.expandedVirtualFolders.has(TAGS_ROOT_VIRTUAL_FOLDER_ID)) {
         const nextExpanded = new Set(env.expandedVirtualFolders);
-        nextExpanded.add('tags-root');
+        nextExpanded.add(TAGS_ROOT_VIRTUAL_FOLDER_ID);
         env.expansionDispatch({ type: 'SET_EXPANDED_VIRTUAL_FOLDERS', folders: nextExpanded });
     }
 

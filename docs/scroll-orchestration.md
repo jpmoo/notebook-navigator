@@ -1,6 +1,6 @@
 # Notebook Navigator Scroll Orchestration
 
-Updated: January 19, 2026
+Updated: February 18, 2026
 
 ## Table of Contents
 
@@ -60,7 +60,7 @@ while scroll requests are still pending, so naive scrolling lands on the wrong i
 5. Without orchestration: scroll uses stale index 61 and targets the wrong tag.
 6. With orchestration: scroll waits for the rebuild, resolves the tag again, and hits index 62.
 
-This kind of shift happens with visibility toggles, layout changes, sorting updates, folder navigation, and asynchronous
+This kind of shift happens with visibility toggles, layout changes, sorting updates, folder/tag/property navigation, and asynchronous
 metadata hydration.
 
 ## The Solution
@@ -156,7 +156,7 @@ requests.
 
 ### Navigation Pane Scrolling
 
-`useNavigationPaneScroll` wires TanStack Virtual for navigation items (folders, tags, shortcuts, recent notes, and
+`useNavigationPaneScroll` wires TanStack Virtual for navigation items (folders, tags, properties, shortcuts, recent notes, and
 spacers).
 
 - **Virtualizer setup**: Item height estimates follow navigation settings and mobile overrides. `scrollMargin` and
@@ -164,11 +164,11 @@ spacers).
   and above bottom overlays.
 - **Safe viewport adjustment**: `scrollToIndexSafely` runs `scrollToIndex` and then adjusts `scrollTop` to keep the
   rendered row between the pinned chrome stack and bottom overlays (calendar, mobile floating toolbar).
-- **Selection handling**: The hook watches folder/tag selection, pane focus, and visibility. It suppresses auto-scroll
+- **Selection handling**: The hook watches folder/tag/property selection, pane focus, and visibility. It suppresses auto-scroll
   when a shortcut is active or when `skipAutoScroll` is enabled for shortcut reveals.
 - **Hidden item toggles**: When `showHiddenItems` changes, the current selection is queued with intent
   `visibilityToggle` and `minIndexVersion = current + 1`.
-- **Tag selection**: Tags can load after folders, so tag selection scrolling is handled in a dedicated effect.
+- **Tag/property selection**: Tag and property rows can load after folders, so selection scrolling for these types is handled in a dedicated effect.
 - **Pending execution**: While a visibility toggle is in progress, only `visibilityToggle` requests can execute. After
   running such a scroll, the hook rechecks the index on the next animation frame and queues a follow-up if the index
   moved again.
@@ -191,8 +191,8 @@ spacers).
   selected.
 - **Selection index resolution**: `getSelectionIndex` returns the header index for the first file in the list when a
   header exists directly above it; otherwise it returns the file index.
-- **Context tracking**: `contextIndexVersionRef` maintains the last version seen per folder/tag context. When the index
-  advances within a folder or tag (pin/unpin, reorder, delete), the hook queues a `list-structure-change` scroll (when
+- **Context tracking**: `contextIndexVersionRef` maintains the last version seen per folder/tag/property context. When the index
+  advances within a folder, tag, or property context (pin/unpin, reorder, delete), the hook queues a `list-structure-change` scroll (when
   `revealFileOnListChanges` is enabled) so the selected file remains visible.
 - **Folder navigation**: When the list context changes or `isFolderNavigation` is true, the hook sets a pending request
   (file or top) and clears the navigation flag. Pending entries can be queued even when the pane is hidden and execute
@@ -203,7 +203,7 @@ spacers).
   filters queue a `top` scroll when the selected file drops out of the filtered list, respecting mobile suppression
   flags.
 - **Dynamic height updates**: The hook re-measures the list when list indices change and when the in-memory database
-  reports preview, feature image, tag, metadata, or custom property updates.
+  reports preview, feature image, tag, metadata, or property updates.
 
 ## Common Scenarios
 
@@ -217,10 +217,10 @@ spacers).
 
 ### Folder Navigation
 
-1. Selection context raises `isFolderNavigation` when the user picks a folder or tag.
+1. Selection context raises `isFolderNavigation` when the user picks a folder, tag, or property.
 2. `useListPaneScroll` queues a file or top scroll with reason `folder-navigation` and clears the flag.
 3. `getListAlign` centers the selection on mobile and uses `auto` on desktop.
-4. The navigation pane independently scrolls to the selected folder or tag when the pane becomes focused or visible.
+4. The navigation pane independently scrolls to the selected folder/tag/property row when the pane becomes focused or visible.
 
 ### Settings and Layout Changes
 
@@ -229,7 +229,7 @@ spacers).
 2. List appearance or descendant toggles queue a `list-structure-change` scroll with `minIndexVersion = current + 1`
    when `revealFileOnListChanges` is enabled and a file is selected. Disabling descendants can queue a `top` scroll
    when no file is selected or `revealFileOnListChanges` is disabled.
-3. Reorders within the same folder or tag update `indexVersion` and enqueue a `list-structure-change` scroll so the
+3. Reorders within the same folder/tag/property context update `indexVersion` and enqueue a `list-structure-change` scroll so the
    selected file remains visible.
 
 ### Reveal Operations

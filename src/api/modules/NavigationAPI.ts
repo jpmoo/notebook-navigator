@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ type NavigatorView = {
     navigateToFile: (file: TFile) => void;
     navigateToFolder: (folder: TFolder, options?: { preserveNavigationFocus?: boolean }) => void;
     navigateToTag: (tag: string) => void;
+    navigateToProperty: (propertyNodeId: string) => void;
 };
 
 type LeafWithView = { view: object | null };
@@ -86,6 +87,19 @@ export class NavigationAPI {
     }
 
     /**
+     * Select a property node in the navigator navigation pane
+     * @param nodeId - Property node id (e.g. 'key:status' or 'key:status=done')
+     */
+    async navigateToProperty(nodeId: string): Promise<void> {
+        const view = await this.ensureViewOpen();
+        if (!view) {
+            throw new Error('Could not open navigator view');
+        }
+
+        view.navigateToProperty(nodeId);
+    }
+
+    /**
      * Ensure the navigator view is open
      */
     private async ensureViewOpen(): Promise<NavigatorView | null> {
@@ -120,6 +134,9 @@ export class NavigationAPI {
             return false;
         }
         if (!('navigateToTag' in view) || typeof view.navigateToTag !== 'function') {
+            return false;
+        }
+        if (!('navigateToProperty' in view) || typeof view.navigateToProperty !== 'function') {
             return false;
         }
 

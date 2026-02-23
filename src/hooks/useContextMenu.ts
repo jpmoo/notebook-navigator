@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,14 @@ import { useEffect, useCallback, useState } from 'react';
 import { Menu, TFolder } from 'obsidian';
 import { useExpansionState, useExpansionDispatch } from '../context/ExpansionContext';
 import { useSelectionState, useSelectionDispatch } from '../context/SelectionContext';
-import { useServices, useFileSystemOps, useMetadataService, useTagOperations, useCommandQueue } from '../context/ServicesContext';
+import {
+    useServices,
+    useFileSystemOps,
+    useMetadataService,
+    useTagOperations,
+    usePropertyOperations,
+    useCommandQueue
+} from '../context/ServicesContext';
 import { useSettingsState } from '../context/SettingsContext';
 import { useUIDispatch } from '../context/UIStateContext';
 import { useShortcuts } from '../context/ShortcutsContext';
@@ -34,6 +41,7 @@ import {
     MenuDispatchers,
     buildFolderMenu,
     buildTagMenu,
+    buildPropertyMenu,
     buildFileMenu,
     buildEmptyListMenu,
     EMPTY_LIST_MENU_TYPE
@@ -69,18 +77,19 @@ export function hideNavigatorContextMenu() {
  * ```
  */
 export function useContextMenu(elementRef: React.RefObject<HTMLElement | null>, config: MenuConfig | null) {
-    const { app, plugin, isMobile, tagTreeService } = useServices();
+    const { app, plugin, isMobile, tagTreeService, propertyTreeService } = useServices();
     const settings = useSettingsState();
     const fileSystemOps = useFileSystemOps();
     const metadataService = useMetadataService();
     const tagOperations = useTagOperations();
+    const propertyOperations = usePropertyOperations();
     const commandQueue = useCommandQueue();
     const shortcuts = useShortcuts();
     const uxPreferences = useUXPreferences();
     const includeDescendantNotes = uxPreferences.includeDescendantNotes;
     const showHiddenItems = uxPreferences.showHiddenItems;
     const selectionState = useSelectionState();
-    const { expandedFolders, expandedTags } = useExpansionState();
+    const { expandedFolders, expandedTags, expandedProperties } = useExpansionState();
     const selectionDispatch = useSelectionDispatch();
     const expansionDispatch = useExpansionDispatch();
     const uiDispatch = useUIDispatch();
@@ -171,6 +180,17 @@ export function useContextMenu(elementRef: React.RefObject<HTMLElement | null>, 
                         dispatchers
                     });
                 };
+            } else if (menuConfig.type === ItemType.PROPERTY) {
+                buildMenu = menuInstance => {
+                    buildPropertyMenu({
+                        propertyNodeId: menuConfig.item,
+                        menu: menuInstance,
+                        services,
+                        settings,
+                        state,
+                        dispatchers
+                    });
+                };
             } else if (menuConfig.type === ItemType.FILE) {
                 buildMenu = menuInstance => {
                     buildFileMenu({
@@ -223,7 +243,9 @@ export function useContextMenu(elementRef: React.RefObject<HTMLElement | null>, 
                 fileSystemOps,
                 metadataService,
                 tagOperations,
+                propertyOperations,
                 tagTreeService,
+                propertyTreeService,
                 commandQueue,
                 shortcuts,
                 visibility: { includeDescendantNotes, showHiddenItems }
@@ -232,7 +254,8 @@ export function useContextMenu(elementRef: React.RefObject<HTMLElement | null>, 
             const state: MenuState = {
                 selectionState,
                 expandedFolders,
-                expandedTags
+                expandedTags,
+                expandedProperties
             };
 
             const dispatchers: MenuDispatchers = {
@@ -284,14 +307,17 @@ export function useContextMenu(elementRef: React.RefObject<HTMLElement | null>, 
             fileSystemOps,
             metadataService,
             tagOperations,
+            propertyOperations,
             selectionState,
             expandedFolders,
             expandedTags,
+            expandedProperties,
             selectionDispatch,
             expansionDispatch,
             uiDispatch,
             isMobile,
             tagTreeService,
+            propertyTreeService,
             commandQueue,
             shortcuts,
             includeDescendantNotes,

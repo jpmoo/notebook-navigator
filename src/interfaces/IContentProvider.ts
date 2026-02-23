@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ export type ContentProviderType = 'fileThumbnails' | 'metadata' | 'tags' | 'mark
  *
  * These values identify content fields in storage (preview text, feature images, tags, etc).
  */
-export type FileContentType = 'preview' | 'featureImage' | 'metadata' | 'tags' | 'wordCount' | 'customProperty';
+export type FileContentType = 'preview' | 'featureImage' | 'metadata' | 'tags' | 'wordCount' | 'tasks' | 'properties';
 
 export type ContentProviderClearContext = {
     oldSettings: NotebookNavigatorSettings;

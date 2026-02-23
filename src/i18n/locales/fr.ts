@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,6 @@ export const STRINGS_FR = {
         clipboardWriteError: "Impossible d'écrire dans le presse-papiers",
         updateBannerTitle: 'Mise à jour Notebook Navigator disponible',
         updateBannerInstruction: 'Mettre à jour dans Paramètres -> Extensions communautaires',
-        updateIndicatorLabel: 'Nouvelle version disponible',
         previous: 'Précédent', // Generic aria label for previous navigation (English: Previous)
         next: 'Suivant' // Generic aria label for next navigation (English: Next)
     },
@@ -60,6 +59,7 @@ export const STRINGS_FR = {
         shortcutsHeader: 'Raccourcis',
         recentNotesHeader: 'Notes récentes',
         recentFilesHeader: 'Fichiers récents',
+        properties: 'Propriétés',
         reorderRootFoldersTitle: 'Réorganiser la navigation',
         reorderRootFoldersHint: 'Utilisez les flèches ou glissez pour réorganiser',
         vaultRootLabel: 'Coffre',
@@ -81,6 +81,16 @@ export const STRINGS_FR = {
             title: 'Nouvelle note quotidienne',
             message: "Le fichier {filename} n'existe pas. Voulez-vous le créer ?",
             confirmButton: 'Créer'
+        },
+        helpModal: {
+            title: 'Raccourcis du calendrier',
+            items: [
+                'Cliquez sur un jour pour ouvrir ou créer une note quotidienne. Les semaines, mois, trimestres et années fonctionnent de la même manière.',
+                "Un point plein sous un jour signifie qu'il a une note. Un point creux signifie qu'il a des tâches inachevées.",
+                'Si une note a une image mise en avant, elle apparaît en arrière-plan du jour.'
+            ],
+            dateFilterCmdCtrl: '`Cmd/Ctrl`+clic sur une date pour filtrer par cette date dans la liste des fichiers.',
+            dateFilterOptionAlt: '`Option/Alt`+clic sur une date pour filtrer par cette date dans la liste des fichiers.'
         }
     },
 
@@ -93,6 +103,8 @@ export const STRINGS_FR = {
         folderExists: 'Le dossier est déjà dans les raccourcis',
         noteExists: 'La note est déjà dans les raccourcis',
         tagExists: "L'étiquette est déjà dans les raccourcis",
+        propertyExists: 'Propriété déjà dans les raccourcis',
+        invalidProperty: 'Raccourci de propriété invalide',
         searchExists: 'Le raccourci de recherche existe déjà',
         emptySearchQuery: "Entrez une requête de recherche avant de l'enregistrer",
         emptySearchName: "Entrez un nom avant d'enregistrer la recherche",
@@ -136,10 +148,107 @@ export const STRINGS_FR = {
         placeholder: 'Rechercher...', // Placeholder text for search input (English: Search...)
         placeholderOmnisearch: 'Omnisearch...', // Placeholder text when Omnisearch provider is active (English: Omnisearch...)
         clearSearch: 'Effacer la recherche', // Tooltip for clear search button (English: Clear search)
+        switchToFilterSearch: 'Passer à la recherche par filtre',
+        switchToOmnisearch: 'Passer à Omnisearch',
         saveSearchShortcut: 'Ajouter la recherche aux raccourcis',
         removeSearchShortcut: 'Retirer la recherche des raccourcis',
         shortcutModalTitle: 'Enregistrer la recherche',
-        shortcutNamePlaceholder: 'Saisir le nom du raccourci'
+        shortcutNamePlaceholder: 'Saisir le nom du raccourci',
+        shortcutStartIn: 'Toujours démarrer dans : {path}',
+        searchHelp: 'Syntaxe de recherche',
+        searchHelpTitle: 'Syntaxe de recherche',
+        searchHelpModal: {
+            intro: 'Combinez noms de fichiers, propriétés, étiquettes, dates et filtres dans une requête (ex. `meeting .status=active #work @thisweek`). Installez le plugin Omnisearch pour utiliser la recherche plein texte.',
+            introSwitching:
+                "Basculez entre la recherche par filtre et Omnisearch avec les touches fléchées haut/bas ou en cliquant sur l'icône de recherche.",
+            sections: {
+                fileNames: {
+                    title: 'Noms de fichiers',
+                    items: [
+                        '`word` Trouver les notes avec "word" dans le nom de fichier.',
+                        '`word1 word2` Chaque mot doit correspondre au nom de fichier.',
+                        '`-word` Exclure les notes avec "word" dans le nom de fichier.'
+                    ]
+                },
+                tags: {
+                    title: 'Étiquettes',
+                    items: [
+                        "`#tag` Inclure les notes avec l'étiquette (correspond aussi aux étiquettes imbriquées comme `#tag/subtag`).",
+                        '`#` Inclure uniquement les notes étiquetées.',
+                        "`-#tag` Exclure les notes avec l'étiquette.",
+                        '`-#` Inclure uniquement les notes sans étiquettes.',
+                        '`#tag1 #tag2` Correspondre aux deux étiquettes (AND implicite).',
+                        '`#tag1 AND #tag2` Correspondre aux deux étiquettes (AND explicite).',
+                        "`#tag1 OR #tag2` Correspondre à l'une des étiquettes.",
+                        '`#a OR #b AND #c` AND a une priorité plus élevée : correspond à `#a`, ou aux deux `#b` et `#c`.',
+                        'Cmd/Ctrl+Clic sur une étiquette pour ajouter avec AND. Cmd/Ctrl+Shift+Clic pour ajouter avec OR.'
+                    ]
+                },
+                properties: {
+                    title: 'Propriétés',
+                    items: [
+                        '`.key` Inclure les notes avec une clé de propriété.',
+                        '`.key=value` Inclure les notes avec une valeur de propriété.',
+                        '`."Reading Status"` Inclure les notes avec une clé de propriété contenant des espaces.',
+                        '`."Reading Status"="In Progress"` Les clés et valeurs contenant des espaces doivent être entre guillemets doubles.',
+                        '`-.key` Exclure les notes avec une clé de propriété.',
+                        '`-.key=value` Exclure les notes avec une valeur de propriété.',
+                        'Cmd/Ctrl+Clic sur une propriété pour ajouter avec AND. Cmd/Ctrl+Shift+Clic pour ajouter avec OR.'
+                    ]
+                },
+                tasks: {
+                    title: 'Filtres',
+                    items: [
+                        '`has:task` Inclure les notes avec des tâches inachevées.',
+                        '`-has:task` Exclure les notes avec des tâches inachevées.',
+                        '`folder:meetings` Inclure les notes dont un nom de dossier contient `meetings`.',
+                        '`folder:/work/meetings` Inclure les notes uniquement dans `work/meetings` (pas les sous-dossiers).',
+                        '`folder:/` Inclure les notes uniquement à la racine du coffre.',
+                        '`-folder:archive` Exclure les notes dont un nom de dossier contient `archive`.',
+                        '`-folder:/archive` Exclure les notes uniquement dans `archive` (pas les sous-dossiers).',
+                        "`ext:md` Inclure les notes avec l'extension `md` (`ext:.md` est aussi supporté).",
+                        "`-ext:pdf` Exclure les notes avec l'extension `pdf`.",
+                        'Combiner avec des tags, des noms et des dates (par exemple : `folder:/work/meetings ext:md @thisweek`).'
+                    ]
+                },
+                connectors: {
+                    title: 'Comportement AND/OR',
+                    items: [
+                        '`AND` et `OR` sont des opérateurs uniquement dans les requêtes composées exclusivement de tags et propriétés.',
+                        'Les requêtes exclusives de tags et propriétés ne contiennent que des filtres de tags et propriétés : `#tag`, `-#tag`, `#`, `-#`, `.key`, `-.key`, `.key=value`, `-.key=value`.',
+                        "Si une requête inclut des noms, des dates (`@...`), des filtres de tâches (`has:task`), des filtres de dossiers (`folder:...`) ou des filtres d'extension (`ext:...`), `AND` et `OR` sont recherchés comme des mots.",
+                        'Exemple de requête avec opérateurs : `#work OR .status=started`.',
+                        'Exemple de requête mixte : `#work OR ext:md` (`OR` est recherché dans les noms de fichiers).'
+                    ]
+                },
+                dates: {
+                    title: 'Dates',
+                    items: [
+                        "`@today` Trouver les notes d'aujourd'hui en utilisant le champ de date par défaut.",
+                        '`@yesterday`, `@last7d`, `@last30d`, `@thisweek`, `@thismonth` Plages de dates relatives.',
+                        '`@2026-02-07` Trouver un jour spécifique (supporte aussi `@20260207`).',
+                        '`@2026` Trouver une année civile.',
+                        '`@2026-02` ou `@202602` Trouver un mois civil.',
+                        '`@2026-W05` ou `@2026W05` Trouver une semaine ISO.',
+                        '`@2026-Q2` ou `@2026Q2` Trouver un trimestre civil.',
+                        "`@13/02/2026` Formats numériques avec séparateurs (`@07022026` suit votre locale en cas d'ambiguïté).",
+                        '`@2026-02-01..2026-02-07` Trouver une plage de jours inclusive (fins ouvertes supportées).',
+                        '`@c:...` ou `@m:...` Cibler la date de création ou de modification.',
+                        '`-@...` Exclure une correspondance de date.'
+                    ]
+                },
+                omnisearch: {
+                    title: 'Omnisearch',
+                    items: [
+                        'Recherche plein texte dans tout le coffre, filtrée par le dossier actuel ou les étiquettes sélectionnées.',
+                        'Peut être lent avec moins de 3 caractères dans les grands coffres.',
+                        'Ne peut pas rechercher les chemins avec des caractères non-ASCII ou rechercher correctement les sous-chemins.',
+                        'Retourne des résultats limités avant le filtrage par dossier, donc les fichiers pertinents peuvent ne pas apparaître si de nombreuses correspondances existent ailleurs.',
+                        "Les aperçus de notes affichent les extraits Omnisearch au lieu du texte d'aperçu par défaut."
+                    ]
+                }
+            }
+        }
     },
 
     // Context menus
@@ -216,6 +325,11 @@ export const STRINGS_FR = {
             changeBackground: 'Changer l’arrière-plan',
             showTag: 'Afficher l’étiquette',
             hideTag: 'Masquer l’étiquette'
+        },
+        property: {
+            addKey: 'Configurer les clés de propriété',
+            renameKey: 'Renommer la propriété',
+            deleteKey: 'Supprimer la propriété'
         },
         navigation: {
             addSeparator: 'Ajouter un séparateur',
@@ -295,11 +409,14 @@ export const STRINGS_FR = {
                 'list-new-note': 'Nouvelle note',
                 'nav-folder-open': 'Dossier ouvert',
                 'nav-folder-closed': 'Dossier fermé',
-                'nav-folder-note': 'Note de dossier',
+                'nav-tags': 'Étiquettes',
                 'nav-tag': 'Étiquette',
+                'nav-properties': 'Propriétés',
+                'nav-property': 'Propriété',
+                'nav-property-value': 'Valeur',
                 'list-pinned': 'Éléments épinglés',
-                'file-word-count': 'Nombre de mots',
-                'file-custom-property': 'Propriété personnalisée'
+                'file-unfinished-task': 'Tâches inachevées',
+                'file-word-count': 'Nombre de mots'
             }
         },
         colorPicker: {
@@ -342,11 +459,40 @@ export const STRINGS_FR = {
             confirmRename: "Renommer l'étiquette",
             renameUnchanged: '{tag} inchangé',
             renameNoChanges: '{oldTag} → {newTag} ({countLabel})',
+            renameBatchNotFinalized:
+                "Renommés {renamed}/{total}. Non mis à jour : {notUpdated}. Les métadonnées et raccourcis n'ont pas été mis à jour.",
             invalidTagName: "Entrez un nom d'étiquette valide.",
             descendantRenameError: 'Impossible de déplacer une étiquette dans elle-même ou un descendant.',
             confirmDelete: "Supprimer l'étiquette",
+            deleteBatchNotFinalized:
+                "Supprimés de {removed}/{total}. Non mis à jour : {notUpdated}. Les métadonnées et raccourcis n'ont pas été mis à jour.",
+            checkConsoleForDetails: 'Consultez la console pour plus de détails.',
             file: 'fichier',
-            files: 'fichiers'
+            files: 'fichiers',
+            inlineParsingWarning: {
+                title: 'Compatibilité des étiquettes en ligne',
+                message:
+                    "{tag} contient des caractères qu'Obsidian ne peut pas analyser dans les étiquettes en ligne. Les étiquettes Frontmatter ne sont pas affectées.",
+                confirm: 'Utiliser quand même'
+            }
+        },
+        propertyOperation: {
+            renameTitle: 'Renommer la propriété {property}',
+            deleteTitle: 'Supprimer la propriété {property}',
+            newKeyPrompt: 'Nouveau nom de propriété',
+            newKeyPlaceholder: 'Saisir le nouveau nom de propriété',
+            renameWarning: 'Renommer la propriété {property} modifiera {count} {files}.',
+            renameConflictWarning:
+                'La propriété {newKey} existe déjà dans {count} {files}. Renommer {oldKey} remplacera les valeurs existantes de {newKey}.',
+            deleteWarning: 'Supprimer la propriété {property} modifiera {count} {files}.',
+            confirmRename: 'Renommer la propriété',
+            confirmDelete: 'Supprimer la propriété',
+            renameNoChanges: '{oldKey} → {newKey} (aucun changement)',
+            renameSettingsUpdateFailed: 'Propriété {oldKey} → {newKey} renommée. Échec de la mise à jour des paramètres.',
+            deleteSingleSuccess: 'Propriété {property} supprimée de 1 note',
+            deleteMultipleSuccess: 'Propriété {property} supprimée de {count} notes',
+            deleteSettingsUpdateFailed: 'Propriété {property} supprimée. Échec de la mise à jour des paramètres.',
+            invalidKeyName: 'Saisissez un nom de propriété valide.'
         },
         fileSystem: {
             newFolderTitle: 'Nouveau dossier',
@@ -354,6 +500,7 @@ export const STRINGS_FR = {
             renameFileTitle: 'Renommer le fichier',
             deleteFolderTitle: "Supprimer '{name}' ?",
             deleteFileTitle: "Supprimer '{name}' ?",
+            deleteFileAttachmentsTitle: 'Supprimer les pièces jointes ?',
             folderNamePrompt: 'Entrez le nom du dossier :',
             hideInOtherVaultProfiles: 'Masquer dans les autres profils du coffre',
             renamePrompt: 'Entrez le nouveau nom :',
@@ -361,6 +508,11 @@ export const STRINGS_FR = {
             renameVaultPrompt: "Entrez un nom d'affichage personnalisé (laissez vide pour utiliser le nom par défaut) :",
             deleteFolderConfirm: 'Êtes-vous sûr de vouloir supprimer ce dossier et tout son contenu ?',
             deleteFileConfirm: 'Êtes-vous sûr de vouloir supprimer ce fichier ?',
+            deleteFileAttachmentsDescriptionSingle: "Cette pièce jointe n'est plus utilisée dans aucune note. Voulez-vous la supprimer ?",
+            deleteFileAttachmentsDescriptionMultiple:
+                'Ces pièces jointes ne sont plus utilisées dans aucune note. Voulez-vous les supprimer ?',
+            deleteFileAttachmentsViewFileTreeAriaLabel: 'Arborescence',
+            deleteFileAttachmentsViewGalleryAriaLabel: 'Galerie',
             removeAllTagsTitle: 'Supprimer toutes les étiquettes',
             removeAllTagsFromNote: 'Êtes-vous sûr de vouloir supprimer toutes les étiquettes de cette note ?',
             removeAllTagsFromNotes: 'Êtes-vous sûr de vouloir supprimer toutes les étiquettes de {count} notes ?'
@@ -417,6 +569,26 @@ export const STRINGS_FR = {
                 remove: "pour supprimer l'étiquette"
             }
         },
+        propertySuggest: {
+            placeholder: 'Sélectionner une clé de propriété...',
+            navigatePlaceholder: 'Naviguer vers la propriété...',
+            instructions: {
+                navigate: 'pour naviguer',
+                select: 'pour ajouter la propriété',
+                dismiss: 'pour annuler'
+            }
+        },
+        propertyKeyVisibility: {
+            title: 'Visibilité des clés de propriété',
+            searchPlaceholder: 'Rechercher des clés de propriété...',
+            propertyColumnLabel: 'Propriété',
+            showInNavigation: 'Afficher dans la navigation',
+            showInList: 'Afficher dans la liste',
+            toggleAllInNavigation: 'Tout basculer dans la navigation',
+            toggleAllInList: 'Tout basculer dans la liste',
+            applyButton: 'Appliquer',
+            emptyState: 'Aucune clé de propriété trouvée.'
+        },
         welcome: {
             title: 'Bienvenue dans {pluginName}',
             introText:
@@ -440,6 +612,7 @@ export const STRINGS_FR = {
             renameFile: 'Échec du renommage du fichier : {error}',
             deleteFolder: 'Échec de la suppression du dossier : {error}',
             deleteFile: 'Échec de la suppression du fichier : {error}',
+            deleteAttachments: 'Échec de la suppression des pièces jointes : {error}',
             duplicateNote: 'Échec de la duplication de la note : {error}',
             duplicateFolder: 'Échec de la duplication du dossier : {error}',
             openVersionHistory: "Échec de l'ouverture de l'historique des versions : {error}",
@@ -490,7 +663,11 @@ export const STRINGS_FR = {
             noTagsToRemove: 'Aucune étiquette à supprimer',
             noFilesSelected: 'Aucun fichier sélectionné',
             tagOperationsNotAvailable: "Opérations d'étiquettes non disponibles",
+            propertyOperationsNotAvailable: 'Opérations de propriétés non disponibles',
             tagsRequireMarkdown: 'Les étiquettes ne sont prises en charge que sur les notes Markdown',
+            propertiesRequireMarkdown: 'Les propriétés ne sont prises en charge que sur les notes Markdown',
+            propertySetOnNote: 'Propriété mise à jour sur 1 note',
+            propertySetOnNotes: 'Propriété mise à jour sur {count} notes',
             iconPackDownloaded: '{provider} téléchargé',
             iconPackUpdated: '{provider} mis à jour ({version})',
             iconPackRemoved: '{provider} supprimé',
@@ -513,6 +690,7 @@ export const STRINGS_FR = {
             itemAlreadyExists: 'Un élément nommé "{name}" existe déjà à cet emplacement.',
             failedToMove: 'Échec du déplacement : {error}',
             failedToAddTag: 'Échec de l\'ajout de l\'étiquette "{tag}"',
+            failedToSetProperty: 'Échec de la mise à jour de la propriété : {error}',
             failedToClearTags: 'Échec de la suppression des étiquettes',
             failedToMoveFolder: 'Échec du déplacement du dossier "{name}"',
             failedToImportFiles: "Échec de l'importation : {names}"
@@ -520,6 +698,7 @@ export const STRINGS_FR = {
         notifications: {
             filesAlreadyExist: '{count} fichiers existent déjà dans la destination',
             filesAlreadyHaveTag: '{count} fichiers ont déjà cette étiquette ou une plus spécifique',
+            filesAlreadyHaveProperty: '{count} fichiers possèdent déjà cette propriété',
             noTagsToClear: 'Aucune étiquette à supprimer',
             fileImported: '1 fichier importé',
             filesImported: '{count} fichiers importés'
@@ -565,11 +744,13 @@ export const STRINGS_FR = {
         pinAllFolderNotes: 'Épingler toutes les notes de dossier', // Command palette: Pins all folder notes to shortcuts (English: Pin all folder notes)
         navigateToFolder: 'Naviguer vers le dossier', // Command palette: Navigate to a folder using fuzzy search (English: Navigate to folder)
         navigateToTag: "Naviguer vers l'étiquette", // Command palette: Navigate to a tag using fuzzy search (English: Navigate to tag)
-        addShortcut: 'Ajouter aux raccourcis', // Command palette: Adds the current file, folder, or tag to shortcuts (English: Add to shortcuts)
+        navigateToProperty: 'Naviguer vers la propriété', // Command palette: Navigate to a property key or value using fuzzy search (English: Navigate to property)
+        addShortcut: 'Ajouter aux raccourcis', // Command palette: Adds or removes the current file, folder, tag, or property from shortcuts (English: Add to shortcuts)
         openShortcut: 'Ouvrir le raccourci {number}',
         toggleDescendants: 'Basculer descendants', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
         toggleHidden: 'Basculer les dossiers, étiquettes et notes masqués', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'Basculer le tri des étiquettes', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
+        toggleCompactMode: 'Basculer le mode compact', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: 'Replier / déplier tous les éléments', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Ajouter une étiquette aux fichiers sélectionnés', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         removeTag: 'Supprimer une étiquette des fichiers sélectionnés', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
@@ -605,23 +786,22 @@ export const STRINGS_FR = {
         sections: {
             general: 'Général',
             notes: 'Notes',
-            navigationPane: 'Panneau de navigation',
+            navigationPane: 'Navigation',
             calendar: 'Calendrier',
             icons: "Packs d'icônes",
             tags: 'Étiquettes',
             folders: 'Dossiers',
             folderNotes: 'Notes de dossier',
-            foldersAndTags: 'Dossiers et étiquettes',
-            search: 'Rechercher',
-            searchAndHotkeys: 'Recherche et raccourcis',
-            listPane: 'Panneau de liste',
-            hotkeys: 'Raccourcis clavier',
+            foldersAndTags: 'Dossiers',
+            tagsAndProperties: 'Tags et propriétés',
+            listPane: 'Liste',
             advanced: 'Avancé'
         },
         groups: {
             general: {
                 vaultProfiles: 'Profils du coffre',
                 filtering: 'Filtrage',
+                templates: 'Modèles',
                 behavior: 'Comportement',
                 keyboardNavigation: 'Navigation au clavier',
                 view: 'Apparence',
@@ -632,7 +812,7 @@ export const STRINGS_FR = {
             },
             navigation: {
                 appearance: 'Apparence',
-                shortcutsAndRecent: 'Raccourcis et éléments récents',
+                leftSidebar: 'Barre latérale gauche',
                 calendarIntegration: 'Intégration du calendrier'
             },
             list: {
@@ -646,7 +826,7 @@ export const STRINGS_FR = {
                 previewText: "Texte d'aperçu",
                 featureImage: 'Image vedette',
                 tags: 'Étiquettes',
-                customProperty: 'Propriété personnalisée (frontmatter ou nombre de mots)',
+                properties: 'Propriétés',
                 date: 'Date',
                 parentFolder: 'Dossier parent'
             }
@@ -658,38 +838,6 @@ export const STRINGS_FR = {
             switchToLocal: 'Désactiver la synchronisation'
         },
         items: {
-            searchProvider: {
-                name: 'Fournisseur de recherche',
-                desc: 'Choisissez entre la recherche rapide par nom de fichier ou la recherche plein texte avec le plugin Omnisearch.',
-                options: {
-                    internal: 'Recherche par filtre',
-                    omnisearch: 'Omnisearch (plein texte)'
-                },
-                info: {
-                    filterSearch: {
-                        title: 'Recherche par filtre (par défaut):',
-                        description:
-                            'Filtre les fichiers par nom et étiquettes dans le dossier actuel et les sous-dossiers. Mode filtre : le texte et les étiquettes mixtes correspondent à tous les termes (ex. "projet #travail"). Mode étiquettes : la recherche avec uniquement des étiquettes prend en charge les opérateurs AND/OR (ex. "#travail AND #urgent", "#projet OR #personnel"). Cmd/Ctrl+Clic sur les étiquettes pour ajouter avec AND, Cmd/Ctrl+Maj+Clic pour ajouter avec OR. Prend en charge l\'exclusion avec le préfixe ! (ex. !brouillon, !#archivé) et la recherche de notes sans étiquettes avec !#.'
-                    },
-                    omnisearch: {
-                        title: 'Omnisearch:',
-                        description:
-                            "Recherche plein texte qui parcourt l'ensemble de votre coffre, puis filtre les résultats pour n'afficher que les fichiers du dossier actuel, des sous-dossiers ou des étiquettes sélectionnées. Nécessite l'installation du plugin Omnisearch - s'il n'est pas disponible, la recherche reviendra automatiquement à la recherche par filtre.",
-                        warningNotInstalled: 'Le plugin Omnisearch n’est pas installé. La recherche par filtre est utilisée.',
-                        limitations: {
-                            title: 'Limitations connues:',
-                            performance:
-                                'Performance: Peut être lent, surtout lors de la recherche de moins de 3 caractères dans de grandes coffres',
-                            pathBug:
-                                'Bug de chemin: Ne peut pas rechercher dans les chemins avec des caractères non-ASCII et ne recherche pas correctement dans les sous-chemins, affectant les fichiers qui apparaissent dans les résultats de recherche',
-                            limitedResults:
-                                "Résultats limités: Comme Omnisearch recherche dans tout le coffre et renvoie un nombre limité de résultats avant le filtrage, les fichiers pertinents de votre dossier actuel peuvent ne pas apparaître s'il existe trop de correspondances ailleurs dans le coffre",
-                            previewText:
-                                "Texte d'aperçu: Les aperçus de notes sont remplacés par des extraits de résultats Omnisearch, qui peuvent ne pas afficher la mise en surbrillance réelle de la correspondance de recherche si elle apparaît ailleurs dans le fichier"
-                        }
-                    }
-                }
-            },
             listPaneTitle: {
                 name: 'Titre du panneau de liste',
                 desc: 'Choisissez où afficher le titre du panneau de liste.',
@@ -723,6 +871,16 @@ export const STRINGS_FR = {
                 name: 'Propriété de tri',
                 desc: 'Utilisé avec le tri par propriété. Les notes avec cette propriété frontmatter sont listées en premier et triées par la valeur de la propriété. Les tableaux sont combinés en une seule valeur.',
                 placeholder: 'order'
+            },
+            propertySortSecondary: {
+                name: 'Tri secondaire',
+                desc: 'Utilisé avec le tri par propriété lorsque les notes ont la même valeur de propriété ou aucune valeur.',
+                options: {
+                    title: 'Titre',
+                    filename: 'Nom de fichier',
+                    created: 'Date de création',
+                    modified: 'Date de modification'
+                }
             },
             revealFileOnListChanges: {
                 name: 'Défiler vers le fichier sélectionné lors des changements de liste',
@@ -767,7 +925,11 @@ export const STRINGS_FR = {
             },
             showFileIcons: {
                 name: 'Afficher les icônes de fichier',
-                desc: "Afficher les icônes de fichier avec espacement aligné à gauche. La désactivation supprime les icônes et l'indentation. Priorité : personnalisé > nom de fichier > type de fichier > par défaut."
+                desc: "Afficher les icônes de fichier avec espacement aligné à gauche. La désactivation supprime les icônes et l'indentation. Priorité : icône de tâches inachevées > icône personnalisée > icône de nom de fichier > icône de type de fichier > icône par défaut."
+            },
+            showFileIconUnfinishedTask: {
+                name: 'Icône des tâches inachevées',
+                desc: "Afficher une icône de tâche lorsqu'une note contient des tâches inachevées."
             },
             showFilenameMatchIcons: {
                 name: 'Icônes par nom de fichier',
@@ -865,9 +1027,17 @@ export const STRINGS_FR = {
                 navigationLabel: 'Barre de navigation',
                 listLabel: 'Barre de liste'
             },
+            createNewNotesInNewTab: {
+                name: 'Ouvrir les nouvelles notes dans un nouvel onglet',
+                desc: "Lorsque activé, la commande Créer une nouvelle note ouvre les notes dans un nouvel onglet. Lorsque désactivé, les notes remplacent l'onglet actuel."
+            },
             autoRevealActiveNote: {
                 name: 'Révéler automatiquement la note active',
                 desc: "Révéler automatiquement les notes lorsqu'elles sont ouvertes depuis le Commutateur rapide, les liens ou la recherche."
+            },
+            autoRevealShortestPath: {
+                name: 'Utiliser le chemin le plus court',
+                desc: 'Activé : La révélation automatique sélectionne le dossier parent ou le tag visible le plus proche. Désactivé : La révélation automatique sélectionne le dossier réel du fichier et le tag exact.'
             },
             autoRevealIgnoreRightSidebar: {
                 name: 'Ignorer les événements du panneau de droite',
@@ -886,7 +1056,7 @@ export const STRINGS_FR = {
                 name: 'Désactiver le défilement automatique pour les raccourcis',
                 desc: 'Ne pas faire défiler le panneau de navigation lors du clic sur les éléments de raccourcis.'
             },
-            autoExpandFoldersTags: {
+            autoExpandNavItems: {
                 name: 'Développer à la sélection',
                 desc: 'Développer les dossiers et étiquettes lors de la sélection. En mode panneau unique, la première sélection développe, la seconde affiche les fichiers.'
             },
@@ -929,6 +1099,14 @@ export const STRINGS_FR = {
                 name: 'Afficher les notes récentes',
                 desc: 'Afficher la section des notes récentes dans le panneau de navigation.'
             },
+            hideRecentNotes: {
+                name: 'Masquer les notes',
+                desc: 'Choisir les types de notes à masquer dans la section des notes récentes.',
+                options: {
+                    none: 'Aucun',
+                    folderNotes: 'Notes de dossier'
+                }
+            },
             recentNotesCount: {
                 name: 'Nombre de notes récentes',
                 desc: 'Nombre de notes récentes à afficher.'
@@ -943,6 +1121,14 @@ export const STRINGS_FR = {
                 options: {
                     leftSidebar: 'Barre latérale gauche',
                     rightSidebar: 'Barre latérale droite'
+                }
+            },
+            calendarLeftPlacement: {
+                name: 'Emplacement en mode panneau unique',
+                desc: 'Où le calendrier est affiché en mode panneau unique.',
+                options: {
+                    navigationPane: 'Panneau de navigation',
+                    below: 'Sous les panneaux'
                 }
             },
             calendarLocale: {
@@ -962,6 +1148,10 @@ export const STRINGS_FR = {
                     thuFri: 'Jeudi et vendredi'
                 }
             },
+            showInfoButtons: {
+                name: "Afficher les boutons d'information",
+                desc: "Afficher les boutons d'information dans la barre de recherche et l'en-tête du calendrier."
+            },
             calendarWeeksToShow: {
                 name: 'Semaines à afficher dans la barre latérale gauche',
                 desc: 'Le calendrier dans la barre latérale droite affiche toujours le mois complet.',
@@ -973,7 +1163,7 @@ export const STRINGS_FR = {
             },
             calendarHighlightToday: {
                 name: "Mettre en évidence la date d'aujourd'hui",
-                desc: "Afficher un cercle rouge et du texte en gras sur la date d'aujourd'hui."
+                desc: "Mettre en évidence la date d'aujourd'hui avec une couleur de fond et du texte en gras."
             },
             calendarShowFeatureImage: {
                 name: "Afficher l'image mise en avant",
@@ -986,6 +1176,10 @@ export const STRINGS_FR = {
             calendarShowQuarter: {
                 name: 'Afficher le trimestre',
                 desc: "Ajouter une étiquette de trimestre dans l'en-tête du calendrier."
+            },
+            calendarShowYearCalendar: {
+                name: 'Afficher le calendrier annuel',
+                desc: 'Afficher la navigation annuelle et la grille des mois dans la barre latérale droite.'
             },
             calendarConfirmBeforeCreate: {
                 name: 'Confirmer avant de créer',
@@ -1002,6 +1196,7 @@ export const STRINGS_FR = {
                     dailyNotes: 'Le dossier et le format de date sont configurés dans le plugin Notes quotidiennes.'
                 }
             },
+
             calendarCustomRootFolder: {
                 name: 'Dossier racine',
                 desc: 'Dossier de base pour les notes périodiques. Les modèles de date peuvent inclure des sous-dossiers. Change avec le profil de coffre sélectionné.',
@@ -1014,11 +1209,11 @@ export const STRINGS_FR = {
             },
             calendarCustomFilePattern: {
                 name: 'Notes quotidiennes',
-                desc: "Formater le chemin en utilisant le format de date Moment. Entourez les noms de sous-dossiers de crochets, par ex. [Work]/YYYY. Cliquez sur l'icône de modèle pour définir un modèle.",
+                desc: "Formater le chemin en utilisant le format de date Moment. Entourez les noms de sous-dossiers de crochets, par ex. [Work]/YYYY. Cliquez sur l'icône de modèle pour définir un modèle. Définir l'emplacement du dossier de modèles dans Général > Modèles.",
                 momentDescPrefix: 'Formater le chemin en utilisant le ',
                 momentLinkText: 'format de date Moment',
                 momentDescSuffix:
-                    ". Entourez les noms de sous-dossiers de crochets, par ex. [Work]/YYYY. Cliquez sur l'icône de modèle pour définir un modèle.",
+                    ". Entourez les noms de sous-dossiers de crochets, par ex. [Work]/YYYY. Cliquez sur l'icône de modèle pour définir un modèle. Définir l'emplacement du dossier de modèles dans Général > Modèles.",
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Syntaxe actuelle : {path}',
                 parsingError: 'Le modèle doit pouvoir être formaté et ré-analysé comme une date complète (année, mois, jour).'
@@ -1093,9 +1288,9 @@ export const STRINGS_FR = {
                 desc: 'Ouvrir le fichier sélectionné dans un nouvel onglet, une division ou une fenêtre avec Ctrl+Entrée.'
             },
             excludedNotes: {
-                name: 'Masquer les notes avec propriétés (profil du coffre)',
-                desc: "Liste de propriétés de métadonnées séparées par des virgules. Les notes contenant l'une de ces propriétés seront masquées (ex. : draft, private, archived).",
-                placeholder: 'draft, private'
+                name: 'Masquer les notes avec des règles de propriétés (profil du coffre)',
+                desc: 'Liste de règles de métadonnées séparées par des virgules. Utilisez des entrées `key` ou `key=value` (ex. : status=done, published=true, archived).',
+                placeholder: 'status=done, published=true, archived'
             },
             excludedFileNamePatterns: {
                 name: 'Masquer les fichiers (profil du coffre)',
@@ -1191,49 +1386,58 @@ export const STRINGS_FR = {
                 name: 'Afficher les tags de fichier en mode compact',
                 desc: "Afficher les tags lorsque la date, l'aperçu et l'image sont masqués."
             },
-            customPropertyType: {
-                name: 'Type de propriété',
-                desc: 'Sélectionnez la propriété personnalisée à afficher dans les éléments de fichier.',
+            showFileProperties: {
+                name: 'Afficher les propriétés de fichier',
+                desc: 'Afficher les propriétés cliquables dans les éléments de fichier.'
+            },
+            colorFileProperties: {
+                name: 'Colorer les propriétés de fichier',
+                desc: 'Appliquer les couleurs de propriété aux badges de propriété dans les éléments de fichier.'
+            },
+            prioritizeColoredFileProperties: {
+                name: 'Afficher les propriétés colorées en premier',
+                desc: 'Trier les propriétés colorées avant les autres propriétés dans les éléments de fichier.'
+            },
+            showFilePropertiesInCompactMode: {
+                name: 'Afficher les propriétés en mode compact',
+                desc: 'Afficher les propriétés lorsque le mode compact est actif.'
+            },
+            notePropertyType: {
+                name: 'Propriété de note',
+                desc: 'Sélectionnez la propriété de note à afficher dans les éléments de fichier.',
                 options: {
                     frontmatter: 'Propriété frontmatter',
                     wordCount: 'Nombre de mots',
                     none: 'Aucun'
                 }
             },
-            customPropertyFields: {
-                name: 'Propriétés à afficher',
-                desc: 'Liste de propriétés frontmatter séparées par des virgules à afficher sous forme de badges. Les propriétés à valeurs multiples affichent un badge par valeur. Les valeurs [[wikilink]] sont affichées comme liens cliquables.',
-                placeholder: 'statut, type, catégorie'
+            propertyFields: {
+                name: 'Clés de propriétés (profil de coffre)',
+                desc: 'Clés de propriétés de métadonnées, avec visibilité par clé pour la navigation et la liste de fichiers.',
+                addButtonTooltip: 'Configurer les clés de propriété',
+                noneConfigured: 'Aucune propriété configurée',
+                singleConfigured: '1 propriété configurée : {properties}',
+                multipleConfigured: '{count} propriétés configurées : {properties}'
             },
-            showCustomPropertiesOnSeparateRows: {
+            showPropertiesOnSeparateRows: {
                 name: 'Afficher les propriétés sur des lignes séparées',
                 desc: 'Afficher chaque propriété sur sa propre ligne.'
             },
-            customPropertyColorMap: {
-                name: 'Couleurs des propriétés',
-                desc: 'Associe des propriétés frontmatter à des couleurs de badge. Une association par ligne : propriété=couleur',
-                placeholder: '# Propriété=couleur\nstatus=#ff0000\ntype=#00ff00',
-                editTooltip: 'Modifier les associations'
-            },
-            showCustomPropertyInCompactMode: {
-                name: 'Afficher la propriété personnalisée en mode compact',
-                desc: "Afficher la propriété personnalisée lorsque la date, l'aperçu et l'image sont masqués."
-            },
             dateFormat: {
                 name: 'Format de date',
-                desc: 'Format pour afficher les dates (utilise le format date-fns).',
-                placeholder: 'd MMMM yyyy',
-                help: 'Formats courants :\nd MMMM yyyy = 25 mai 2022\ndd/MM/yyyy = 25/05/2022\nyyyy-MM-dd = 2022-05-25\n\nJetons :\nyyyy/yy = année\nMMMM/MMM/MM = mois\ndd/d = jour\nEEEE/EEE = jour de la semaine',
-                helpTooltip: 'Format avec date-fns',
-                dateFnsLinkText: 'format date-fns'
+                desc: 'Format pour afficher les dates (utilise le format Moment).',
+                placeholder: 'D MMMM YYYY',
+                help: 'Formats courants :\nD MMMM YYYY = 25 mai 2022\nDD/MM/YYYY = 25/05/2022\nYYYY-MM-DD = 2022-05-25\n\nJetons :\nYYYY/YY = année\nMMMM/MMM/MM = mois\nDD/D = jour\ndddd/ddd = jour de la semaine',
+                helpTooltip: 'Format avec Moment',
+                momentLinkText: 'format Moment'
             },
             timeFormat: {
                 name: "Format d'heure",
-                desc: 'Format pour afficher les heures (utilise le format date-fns).',
+                desc: 'Format pour afficher les heures (utilise le format Moment).',
                 placeholder: 'HH:mm',
                 help: 'Formats courants :\nHH:mm = 14:30 (24 heures)\nh:mm a = 2:30 PM (12 heures)\nHH:mm:ss = 14:30:45\nh:mm:ss a = 2:30:45 PM\n\nJetons :\nHH/H = 24 heures\nhh/h = 12 heures\nmm = minutes\nss = secondes\na = AM/PM',
-                helpTooltip: 'Format avec date-fns',
-                dateFnsLinkText: 'format date-fns'
+                helpTooltip: 'Format avec Moment',
+                momentLinkText: 'format Moment'
             },
             showFilePreview: {
                 name: "Afficher l'aperçu de la note",
@@ -1254,7 +1458,7 @@ export const STRINGS_FR = {
             previewProperties: {
                 name: "Propriétés d'aperçu",
                 desc: "Liste séparée par des virgules de propriétés frontmatter pour le texte d'aperçu. La première propriété avec du texte sera utilisée.",
-                placeholder: 'résumé, description, abstrait',
+                placeholder: 'summary, description, abstract',
                 info: "Si aucun texte d'aperçu n'est trouvé dans les propriétés spécifiées, l'aperçu sera généré à partir du contenu de la note."
             },
             previewRows: {
@@ -1292,7 +1496,7 @@ export const STRINGS_FR = {
             featureImageExcludeProperties: {
                 name: 'Exclure les notes avec propriétés',
                 desc: "Liste de propriétés frontmatter séparées par des virgules. Les notes contenant l'une de ces propriétés ne stockent pas d'images principales.",
-                placeholder: 'privé, confidentiel'
+                placeholder: 'private, confidential'
             },
 
             downloadExternalFeatureImages: {
@@ -1365,6 +1569,10 @@ export const STRINGS_FR = {
                 name: 'Adapter le texte à la hauteur de ligne',
                 desc: 'Réduit le texte de navigation lorsque la hauteur de ligne est diminuée.'
             },
+            showIndentGuides: {
+                name: "Afficher les guides d'indentation",
+                desc: "Afficher les guides d'indentation pour les dossiers et étiquettes imbriqués."
+            },
             navRootSpacing: {
                 name: 'Espacement des éléments racine',
                 desc: 'Espacement entre les dossiers et étiquettes de niveau racine.'
@@ -1404,6 +1612,36 @@ export const STRINGS_FR = {
                 name: 'Conserver la propriété tags après suppression de la dernière étiquette',
                 desc: 'Conserve la propriété tags dans le frontmatter lorsque toutes les étiquettes sont supprimées. Si désactivé, la propriété tags est supprimée du frontmatter.'
             },
+            showProperties: {
+                name: 'Afficher les propriétés',
+                desc: 'Afficher la section des propriétés dans le navigateur.',
+                propertyKeysInfoPrefix: 'Configurer les propriétés dans ',
+                propertyKeysInfoLinkText: 'Général > Clés de propriétés',
+                propertyKeysInfoSuffix: ''
+            },
+            showPropertyIcons: {
+                name: 'Afficher les icônes de propriétés',
+                desc: 'Afficher les icônes à côté des propriétés dans le panneau de navigation.'
+            },
+            inheritPropertyColors: {
+                name: 'Hériter des couleurs de propriété',
+                desc: 'Les valeurs de propriété héritent de la couleur et du fond de leur clé de propriété.'
+            },
+            propertySortOrder: {
+                name: 'Ordre de tri des propriétés',
+                desc: 'Cliquez droit sur une propriété pour définir un ordre de tri différent pour ses valeurs.',
+                options: {
+                    alphaAsc: 'A à Z',
+                    alphaDesc: 'Z à A',
+                    frequency: 'Fréquence',
+                    lowToHigh: 'croissant',
+                    highToLow: 'décroissant'
+                }
+            },
+            showAllPropertiesFolder: {
+                name: 'Afficher le dossier des propriétés',
+                desc: 'Afficher "Propriétés" comme un dossier repliable.'
+            },
             hiddenTags: {
                 name: 'Masquer les étiquettes (profil du coffre)',
                 desc: "Liste séparée par des virgules de motifs d'étiquettes. Motifs de nom : tag* (commence par), *tag (termine par). Motifs de chemin : archive (étiquette et descendants), archive/* (descendants uniquement), projets/*/brouillons (joker intermédiaire).",
@@ -1431,12 +1669,15 @@ export const STRINGS_FR = {
             folderNoteName: {
                 name: 'Nom de la note de dossier',
                 desc: 'Nom de la note de dossier. Laisser vide pour utiliser le même nom que le dossier.',
-                placeholder: 'Laisser vide pour le nom du dossier'
+                placeholder: 'index'
             },
-            folderNoteProperties: {
-                name: 'Propriétés de note de dossier',
-                desc: 'En-tête YAML ajouté aux nouvelles notes de dossier. Les marqueurs --- sont ajoutés automatiquement.',
-                placeholder: 'theme: dark\nfoldernote: true'
+            folderNoteNamePattern: {
+                name: 'Modèle de nom de note de dossier',
+                desc: "Modèle de nom pour les notes de dossier sans extension. Utilisez {{folder}} pour insérer le nom du dossier. Lorsque défini, le nom de note de dossier ne s'applique pas."
+            },
+            folderNoteTemplate: {
+                name: 'Modèle de note de dossier',
+                desc: "Fichier modèle pour les nouvelles notes de dossier Markdown. Définir l'emplacement du dossier de modèles dans Général > Modèles."
             },
             openFolderNotesInNewTab: {
                 name: 'Ouvrir les notes de dossier dans un nouvel onglet',
@@ -1454,6 +1695,15 @@ export const STRINGS_FR = {
                 name: 'Confirmer avant de supprimer',
                 desc: 'Afficher une boîte de dialogue de confirmation lors de la suppression de notes ou de dossiers'
             },
+            deleteAttachments: {
+                name: 'Supprimer les pièces jointes lors de la suppression de fichiers',
+                desc: 'Supprimer automatiquement les pièces jointes liées au fichier supprimé si elles ne sont pas utilisées ailleurs',
+                options: {
+                    ask: 'Demander à chaque fois',
+                    always: 'Toujours',
+                    never: 'Jamais'
+                }
+            },
             metadataCleanup: {
                 name: 'Nettoyer les métadonnées',
                 desc: "Supprime les métadonnées orphelines laissées lorsque des fichiers, dossiers ou étiquettes sont supprimés, déplacés ou renommés en dehors d'Obsidian. Cela n'affecte que le fichier de configuration de Notebook Navigator.",
@@ -1462,7 +1712,7 @@ export const STRINGS_FR = {
                 loading: 'Vérification des métadonnées...',
                 statusClean: 'Aucune métadonnée à nettoyer',
                 statusCounts:
-                    'Éléments orphelins: {folders} dossiers, {tags} étiquettes, {files} fichiers, {pinned} épingles, {separators} séparateurs'
+                    'Éléments orphelins: {folders} dossiers, {tags} étiquettes, {properties} propriétés, {files} fichiers, {pinned} épingles, {separators} séparateurs'
             },
             rebuildCache: {
                 name: 'Reconstruire le cache',
@@ -1471,18 +1721,6 @@ export const STRINGS_FR = {
                 error: 'Échec de la reconstruction du cache',
                 indexingTitle: 'Indexation du coffre...',
                 progress: 'Mise à jour du cache de Notebook Navigator.'
-            },
-            hotkeys: {
-                intro: 'Modifiez <plugin folder>/notebook-navigator/data.json pour personnaliser les raccourcis de Notebook Navigator. Ouvrez le fichier et repérez la section "keyboardShortcuts". Chaque entrée suit cette structure :',
-                example: '"pane:move-up": [ { "key": "ArrowUp", "modifiers": [] }, { "key": "K", "modifiers": [] } ]',
-                modifierList: [
-                    '"Mod" = Cmd (macOS) / Ctrl (Win/Linux)',
-                    '"Alt" = Alt/Option',
-                    '"Shift" = Maj',
-                    '"Ctrl" = Contrôle (privilégiez "Mod" pour le multiplateforme)'
-                ],
-                guidance:
-                    'Ajoutez plusieurs associations pour proposer des touches alternatives comme FlècheHaut et K montrées ci-dessus. Combinez des modificateurs dans une même entrée en listant chaque valeur, par exemple "modifiers": ["Mod", "Shift"]. Les séquences clavier telles que "gg" ou "dd" ne sont pas prises en charge. Après modification, rechargez Obsidian.'
             },
             externalIcons: {
                 downloadButton: 'Télécharger',
@@ -1503,7 +1741,7 @@ export const STRINGS_FR = {
             frontmatterNameField: {
                 name: 'Champs de nom',
                 desc: 'Liste de champs frontmatter séparés par des virgules. La première valeur non vide est utilisée. Retombe sur le nom du fichier.',
-                placeholder: 'titre, nom'
+                placeholder: 'title, name'
             },
             frontmatterIconField: {
                 name: "Champ d'icône",
@@ -1515,9 +1753,10 @@ export const STRINGS_FR = {
                 desc: 'Champ frontmatter pour les couleurs de fichier. Laisser vide pour utiliser les couleurs enregistrées dans les paramètres.',
                 placeholder: 'color'
             },
-            frontmatterSaveMetadata: {
-                name: 'Enregistrer les icônes et couleurs dans le frontmatter',
-                desc: 'Écrit automatiquement les icônes et couleurs de fichier dans le frontmatter via les champs configurés ci-dessus.'
+            frontmatterBackgroundField: {
+                name: "Champ d'arrière-plan",
+                desc: "Champ frontmatter pour les couleurs d'arrière-plan. Laisser vide pour utiliser les couleurs d'arrière-plan enregistrées dans les paramètres.",
+                placeholder: 'background'
             },
             frontmatterMigration: {
                 name: 'Migrer les icônes et couleurs depuis les paramètres',
@@ -1532,19 +1771,19 @@ export const STRINGS_FR = {
             frontmatterCreatedField: {
                 name: "Champ d'horodatage de création",
                 desc: "Nom du champ frontmatter pour l'horodatage de création. Laisser vide pour utiliser uniquement la date du système.",
-                placeholder: 'créé'
+                placeholder: 'created'
             },
             frontmatterModifiedField: {
                 name: "Champ d'horodatage de modification",
                 desc: "Nom du champ frontmatter pour l'horodatage de modification. Laisser vide pour utiliser uniquement la date du système.",
-                placeholder: 'modifié'
+                placeholder: 'modified'
             },
             frontmatterDateFormat: {
                 name: "Format d'horodatage",
-                desc: 'Format utilisé pour analyser les horodatages dans le frontmatter. Laisser vide pour utiliser le format ISO 8601',
-                helpTooltip: 'Format avec date-fns',
-                dateFnsLinkText: 'format date-fns',
-                help: "Formats courants :\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
+                desc: 'Format utilisé pour analyser les horodatages dans le frontmatter. Laisser vide pour utiliser le parsing ISO 8601.',
+                helpTooltip: 'Format avec Moment',
+                momentLinkText: 'format Moment',
+                help: 'Formats courants :\nYYYY-MM-DD[T]HH:mm:ss → 2025-01-04T14:30:45\nYYYY-MM-DD[T]HH:mm:ssZ → 2025-08-07T16:53:39+02:00\nDD/MM/YYYY HH:mm:ss → 04/01/2025 14:30:45\nMM/DD/YYYY h:mm:ss a → 01/04/2025 2:30:45 PM'
             },
             supportDevelopment: {
                 name: 'Soutenir le développement',

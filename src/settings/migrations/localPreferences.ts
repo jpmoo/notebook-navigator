@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,9 +26,11 @@ import { DEFAULT_UI_SCALE, sanitizeUIScale } from '../../utils/uiScale';
 import {
     isAlphaSortOrder,
     isCalendarPlacement,
+    isCalendarLeftPlacement,
     isTagSortOrder,
     type AlphaSortOrder,
     type CalendarPlacement,
+    type CalendarLeftPlacement,
     type CalendarWeeksToShow,
     type TagSortOrder
 } from '../types';
@@ -121,6 +123,10 @@ function parseNavItemHeight(value: unknown): number | null {
 
 function parseCalendarPlacement(value: unknown): CalendarPlacement | null {
     return isCalendarPlacement(value) ? value : null;
+}
+
+function parseCalendarLeftPlacement(value: unknown): CalendarLeftPlacement | null {
+    return isCalendarLeftPlacement(value) ? value : null;
 }
 
 // Parses the calendar weeks-to-show setting to a supported integer value.
@@ -439,6 +445,37 @@ export function resolveCalendarPlacement(params: {
 }
 
 /**
+ * Resolves the calendar single-pane placement for left sidebar with local overrides.
+ */
+export function resolveCalendarLeftPlacement(params: {
+    storedData: Record<string, unknown> | null;
+    keys: LocalStorageKeys;
+    defaultSettings: NotebookNavigatorSettings;
+}): MigrationResolution<CalendarLeftPlacement> {
+    const { storedData, keys, defaultSettings } = params;
+
+    const storedLocal = localStorage.get<unknown>(keys.calendarLeftPlacementKey);
+    const localValue = parseCalendarLeftPlacement(storedLocal);
+    if (localValue !== null) {
+        // Local storage takes precedence for per-device preferences.
+        return { value: localValue, migrated: false };
+    }
+
+    const storedSetting = storedData?.['calendarLeftPlacement'];
+    const settingValue = parseCalendarLeftPlacement(storedSetting);
+    if (settingValue !== null) {
+        // Migrate legacy synced value into local storage.
+        localStorage.set(keys.calendarLeftPlacementKey, settingValue);
+        return { value: settingValue, migrated: true };
+    }
+
+    // Seed local storage with a valid default value.
+    const fallback = defaultSettings.calendarLeftPlacement;
+    localStorage.set(keys.calendarLeftPlacementKey, fallback);
+    return { value: fallback, migrated: false };
+}
+
+/**
  * Resolves the calendar weeks-to-show value with local overrides.
  */
 export function resolveCalendarWeeksToShow(params: {
@@ -560,6 +597,36 @@ export function resolveTagSortOrder(params: {
 }
 
 /**
+ * Resolves the effective property sort order preference with local overrides.
+ */
+export function resolvePropertySortOrder(params: {
+    storedData: Record<string, unknown> | null;
+    keys: LocalStorageKeys;
+    defaultSettings: NotebookNavigatorSettings;
+}): TagSortOrder {
+    const { storedData, keys, defaultSettings } = params;
+
+    const storedLocal = localStorage.get<unknown>(keys.propertySortOrderKey);
+    const storedLocalValue = typeof storedLocal === 'string' ? storedLocal : null;
+    if (storedLocalValue && isTagSortOrder(storedLocalValue)) {
+        // Local storage takes precedence for per-device preferences.
+        return storedLocalValue;
+    }
+
+    const storedSetting = storedData?.['propertySortOrder'];
+    const storedSettingValue = typeof storedSetting === 'string' ? storedSetting : null;
+    if (storedSettingValue && isTagSortOrder(storedSettingValue)) {
+        // Migrate legacy synced value into local storage.
+        localStorage.set(keys.propertySortOrderKey, storedSettingValue);
+        return storedSettingValue;
+    }
+
+    // Seed local storage with a valid default value.
+    localStorage.set(keys.propertySortOrderKey, defaultSettings.propertySortOrder);
+    return defaultSettings.propertySortOrder;
+}
+
+/**
  * Resolves the effective folder sort order preference with local overrides.
  */
 export function resolveFolderSortOrder(params: {
@@ -587,35 +654,6 @@ export function resolveFolderSortOrder(params: {
     // Seed local storage with a valid default value.
     localStorage.set(keys.folderSortOrderKey, defaultSettings.folderSortOrder);
     return defaultSettings.folderSortOrder;
-}
-
-/**
- * Resolves the effective search provider preference with local overrides.
- */
-export function resolveSearchProvider(params: {
-    storedData: Record<string, unknown> | null;
-    keys: LocalStorageKeys;
-    defaultSettings: NotebookNavigatorSettings;
-}): 'internal' | 'omnisearch' {
-    const { storedData, keys, defaultSettings } = params;
-
-    const storedLocal = localStorage.get<unknown>(keys.searchProviderKey);
-    if (storedLocal === 'internal' || storedLocal === 'omnisearch') {
-        // Local storage takes precedence for per-device preferences.
-        return storedLocal;
-    }
-
-    const storedSetting = storedData?.['searchProvider'];
-    if (storedSetting === 'internal' || storedSetting === 'omnisearch') {
-        // Migrate legacy synced value into local storage.
-        localStorage.set(keys.searchProviderKey, storedSetting);
-        return storedSetting;
-    }
-
-    // Seed local storage with a valid default value.
-    const fallbackProvider: 'internal' | 'omnisearch' = defaultSettings.searchProvider === 'omnisearch' ? 'omnisearch' : 'internal';
-    localStorage.set(keys.searchProviderKey, fallbackProvider);
-    return fallbackProvider;
 }
 
 // Resolves UI scale from local storage, migrating from legacy synced values if present.

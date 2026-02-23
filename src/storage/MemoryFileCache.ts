@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 
 import { FileData } from './IndexedDBStorage';
 import { PreviewTextCache } from './PreviewTextCache';
-import { cloneCustomPropertyItems } from '../utils/customPropertyUtils';
+import { clonePropertyItems } from '../utils/propertyUtils';
 
 // Creates a deep clone of FileData to prevent mutations from affecting the original
 function cloneFileData(data: FileData): FileData {
@@ -30,8 +30,10 @@ function cloneFileData(data: FileData): FileData {
         fileThumbnailsMtime: data.fileThumbnailsMtime,
         tags: data.tags ? [...data.tags] : null,
         wordCount: data.wordCount,
-        // Clone custom property items to prevent consumers from mutating cached records.
-        customProperty: cloneCustomPropertyItems(data.customProperty),
+        taskTotal: data.taskTotal,
+        taskUnfinished: data.taskUnfinished,
+        // Clone property items to prevent consumers from mutating cached records.
+        properties: clonePropertyItems(data.properties),
         previewStatus: data.previewStatus,
         // Feature image blobs are stored in IndexedDB, not in the memory cache.
         featureImage: null,
@@ -204,7 +206,7 @@ export class MemoryFileCache {
             featureImageKey?: string | null;
             featureImageStatus?: FileData['featureImageStatus'];
             metadata?: FileData['metadata'];
-            customProperty?: FileData['customProperty'];
+            properties?: FileData['properties'];
         }
     ): void {
         const existing = this.fileDataByPath.get(path);
@@ -228,7 +230,7 @@ export class MemoryFileCache {
             if (updates.featureImageKey !== undefined) existing.featureImageKey = updates.featureImageKey;
             if (updates.featureImageStatus !== undefined) existing.featureImageStatus = updates.featureImageStatus;
             if (updates.metadata !== undefined) existing.metadata = updates.metadata;
-            if (updates.customProperty !== undefined) existing.customProperty = updates.customProperty;
+            if (updates.properties !== undefined) existing.properties = updates.properties;
         }
     }
 

@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -186,8 +186,15 @@ export function buildTagTreeFromDatabase(
         const allNodes = new Map<string, TagTreeNode>();
         const tree = new Map<string, TagTreeNode>();
 
-        // Sort tags (natural order) to ensure parents are processed before children
-        tagPaths.sort((a, b) => naturalCompare(a, b));
+        // Sort tags (natural order) to ensure parents are processed before children.
+        // Use a lexical tie-breaker so collation-equivalent paths still get a deterministic order.
+        tagPaths.sort((a, b) => {
+            const naturalResult = naturalCompare(a, b);
+            if (naturalResult !== 0) {
+                return naturalResult;
+            }
+            return a.localeCompare(b);
+        });
 
         for (const tagPath of tagPaths) {
             const parts = tagPath.split('/');

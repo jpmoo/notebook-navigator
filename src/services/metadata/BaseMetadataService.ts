@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,9 +45,20 @@ type MetadataFields = {
     tagSortOverrides: Record<string, SortOption>;
     tagTreeSortOverrides: Record<string, AlphaSortOrder>;
     tagAppearances: Record<string, TagAppearance>;
+    propertyIcons: Record<string, string>;
+    propertyColors: Record<string, string>;
+    propertyBackgroundColors: Record<string, string>;
+    propertyTreeSortOverrides: Record<string, AlphaSortOrder>;
 };
 
-type ColorRecordKey = 'folderColors' | 'tagColors' | 'folderBackgroundColors' | 'tagBackgroundColors' | 'fileColors';
+type ColorRecordKey =
+    | 'folderColors'
+    | 'tagColors'
+    | 'propertyColors'
+    | 'folderBackgroundColors'
+    | 'tagBackgroundColors'
+    | 'propertyBackgroundColors'
+    | 'fileColors';
 type ColorVariant = 'color' | 'background';
 
 type MetadataKey = keyof MetadataFields;
@@ -55,7 +66,7 @@ type MetadataKey = keyof MetadataFields;
 /**
  * Type for entity that can have metadata (folder or tag)
  */
-export type EntityType = typeof ItemType.FOLDER | typeof ItemType.TAG | typeof ItemType.FILE;
+export type EntityType = typeof ItemType.FOLDER | typeof ItemType.TAG | typeof ItemType.PROPERTY | typeof ItemType.FILE;
 
 /**
  * Base class for metadata services
@@ -209,6 +220,9 @@ export abstract class BaseMetadataService {
         if (entityType === ItemType.TAG) {
             return variant === 'color' ? 'tagColors' : 'tagBackgroundColors';
         }
+        if (entityType === ItemType.PROPERTY) {
+            return variant === 'color' ? 'propertyColors' : 'propertyBackgroundColors';
+        }
         return 'fileColors';
     }
 
@@ -280,6 +294,10 @@ export abstract class BaseMetadataService {
                 const icons = ensureRecord(settings.tagIcons, isStringRecordValue);
                 icons[path] = normalizedIcon;
                 settings.tagIcons = icons;
+            } else if (entityType === ItemType.PROPERTY) {
+                const icons = ensureRecord(settings.propertyIcons, isStringRecordValue);
+                icons[path] = normalizedIcon;
+                settings.propertyIcons = icons;
             } else {
                 // Ensure null prototype and validate string values before adding icon
                 const icons = ensureRecord(settings.fileIcons, isStringRecordValue);
@@ -305,6 +323,12 @@ export abstract class BaseMetadataService {
             await this.saveAndUpdate(settings => {
                 if (settings.tagIcons) {
                     delete settings.tagIcons[path];
+                }
+            });
+        } else if (entityType === ItemType.PROPERTY && this.settingsProvider.settings.propertyIcons?.[path]) {
+            await this.saveAndUpdate(settings => {
+                if (settings.propertyIcons) {
+                    delete settings.propertyIcons[path];
                 }
             });
         } else if (entityType === ItemType.FILE && this.settingsProvider.settings.fileIcons?.[path]) {
@@ -342,6 +366,9 @@ export abstract class BaseMetadataService {
         }
         if (entityType === ItemType.TAG) {
             return this.readIconRecord(this.settingsProvider.settings.tagIcons, path);
+        }
+        if (entityType === ItemType.PROPERTY) {
+            return this.readIconRecord(this.settingsProvider.settings.propertyIcons, path);
         }
         return this.readIconRecord(this.settingsProvider.settings.fileIcons, path);
     }
@@ -415,7 +442,7 @@ export abstract class BaseMetadataService {
      * @param sortOrder - Alphabetical order to apply
      */
     protected async setEntityChildSortOrderOverride(
-        entityType: typeof ItemType.FOLDER | typeof ItemType.TAG,
+        entityType: typeof ItemType.FOLDER | typeof ItemType.TAG | typeof ItemType.PROPERTY,
         path: string,
         sortOrder: AlphaSortOrder
     ) {
@@ -425,11 +452,16 @@ export abstract class BaseMetadataService {
                 const next = sanitizeRecord(overrides);
                 next[path] = sortOrder;
                 settings.folderTreeSortOverrides = next;
-            } else {
+            } else if (entityType === ItemType.TAG) {
                 const overrides = ensureRecord(settings.tagTreeSortOverrides);
                 const next = sanitizeRecord(overrides);
                 next[path] = sortOrder;
                 settings.tagTreeSortOverrides = next;
+            } else {
+                const overrides = ensureRecord(settings.propertyTreeSortOverrides);
+                const next = sanitizeRecord(overrides);
+                next[path] = sortOrder;
+                settings.propertyTreeSortOverrides = next;
             }
         });
     }
@@ -439,7 +471,10 @@ export abstract class BaseMetadataService {
      * @param entityType - Type of entity ('folder' or 'tag')
      * @param path - Path of the entity
      */
-    protected async removeEntityChildSortOrderOverride(entityType: typeof ItemType.FOLDER | typeof ItemType.TAG, path: string) {
+    protected async removeEntityChildSortOrderOverride(
+        entityType: typeof ItemType.FOLDER | typeof ItemType.TAG | typeof ItemType.PROPERTY,
+        path: string
+    ) {
         if (entityType === ItemType.FOLDER) {
             const current = this.settingsProvider.settings.folderTreeSortOverrides;
             if (!current || !Object.prototype.hasOwnProperty.call(current, path)) {
@@ -454,15 +489,29 @@ export abstract class BaseMetadataService {
             return;
         }
 
-        const current = this.settingsProvider.settings.tagTreeSortOverrides;
+        if (entityType === ItemType.TAG) {
+            const current = this.settingsProvider.settings.tagTreeSortOverrides;
+            if (!current || !Object.prototype.hasOwnProperty.call(current, path)) {
+                return;
+            }
+            await this.saveAndUpdate(settings => {
+                const overrides = ensureRecord(settings.tagTreeSortOverrides);
+                const next = sanitizeRecord(overrides);
+                delete next[path];
+                settings.tagTreeSortOverrides = next;
+            });
+            return;
+        }
+
+        const current = this.settingsProvider.settings.propertyTreeSortOverrides;
         if (!current || !Object.prototype.hasOwnProperty.call(current, path)) {
             return;
         }
         await this.saveAndUpdate(settings => {
-            const overrides = ensureRecord(settings.tagTreeSortOverrides);
+            const overrides = ensureRecord(settings.propertyTreeSortOverrides);
             const next = sanitizeRecord(overrides);
             delete next[path];
-            settings.tagTreeSortOverrides = next;
+            settings.propertyTreeSortOverrides = next;
         });
     }
 
@@ -473,14 +522,19 @@ export abstract class BaseMetadataService {
      * @returns The alphabetical sort order override or undefined
      */
     protected getEntityChildSortOrderOverride(
-        entityType: typeof ItemType.FOLDER | typeof ItemType.TAG,
+        entityType: typeof ItemType.FOLDER | typeof ItemType.TAG | typeof ItemType.PROPERTY,
         path: string
     ): AlphaSortOrder | undefined {
         if (entityType === ItemType.FOLDER) {
             const record = this.settingsProvider.settings.folderTreeSortOverrides;
             return record && Object.prototype.hasOwnProperty.call(record, path) ? record[path] : undefined;
         }
-        const record = this.settingsProvider.settings.tagTreeSortOverrides;
+        if (entityType === ItemType.TAG) {
+            const record = this.settingsProvider.settings.tagTreeSortOverrides;
+            return record && Object.prototype.hasOwnProperty.call(record, path) ? record[path] : undefined;
+        }
+
+        const record = this.settingsProvider.settings.propertyTreeSortOverrides;
         return record && Object.prototype.hasOwnProperty.call(record, path) ? record[path] : undefined;
     }
 

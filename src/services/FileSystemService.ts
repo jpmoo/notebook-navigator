@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,10 +23,10 @@ import { ConfirmModal } from '../modals/ConfirmModal';
 import { FolderSuggestModal } from '../modals/FolderSuggestModal';
 import { InputModal } from '../modals/InputModal';
 import { NotebookNavigatorSettings } from '../settings';
-import { NavigationItemType, ItemType } from '../types';
+import { NavigationItemType, PROPERTIES_ROOT_VIRTUAL_FOLDER_ID, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
 import type { VisibilityPreferences } from '../types';
 import { ExtendedApp, TIMEOUTS, OBSIDIAN_COMMANDS } from '../types/obsidian-extended';
-import { createFileWithOptions, createDatabaseContent } from '../utils/fileCreationUtils';
+import { createFileWithOptions, createDatabaseContent, generateUniqueFilename } from '../utils/fileCreationUtils';
 import { cleanupExclusionPatterns, isPathInExcludedFolder } from '../utils/fileFilters';
 import {
     containsForbiddenNameCharactersAllPlatforms,
@@ -39,24 +39,33 @@ import {
     stripForbiddenNameCharactersWindows,
     stripLeadingPeriods
 } from '../utils/fileNameUtils';
-import { getFolderNote, isFolderNote, isSupportedFolderNoteExtension } from '../utils/folderNotes';
-import { updateSelectionAfterFileOperation, findNextFileAfterRemoval } from '../utils/selectionUtils';
+import { resolveFolderNoteName, shouldRenameFolderNoteWithFolderName } from '../utils/folderNoteName';
+import { getFolderNote, getFolderNoteDetectionSettings, isFolderNote, isSupportedFolderNoteExtension } from '../utils/folderNotes';
+import { findNextFileAfterRemoval, getFilesForNavigationSelection, updateSelectionAfterFileOperation } from '../utils/selectionUtils';
 import { executeCommand, isPluginInstalled } from '../utils/typeGuards';
 import { getErrorMessage } from '../utils/errorUtils';
 import { TagTreeService } from './TagTreeService';
+import type { PropertyTreeService } from './PropertyTreeService';
 import { CommandQueueService } from './CommandQueueService';
 import type { MaybePromise } from '../utils/async';
 import { showNotice } from '../utils/noticeUtils';
+import { normalizePropertyNodeId, parsePropertyNodeId, type PropertySelectionNodeId } from '../utils/propertyTree';
 import type { ISettingsProvider } from '../interfaces/ISettingsProvider';
-import { ensureRecord, isStringRecordValue } from '../utils/recordUtils';
+import { casefold, ensureRecord, isStringRecordValue } from '../utils/recordUtils';
+import type { MetadataService } from './MetadataService';
 import {
     ensureVaultProfiles,
+    getActiveVaultProfile,
     normalizeHiddenFolderPath,
     removeHiddenFolderExactMatches,
     updateHiddenFolderExactMatches
 } from '../utils/vaultProfiles';
 import { EXCALIDRAW_PLUGIN_ID, TLDRAW_PLUGIN_ID } from '../constants/pluginIds';
 import { createDrawingWithPlugin, DrawingType, getDrawingFilePath, getDrawingTemplate } from '../utils/drawingFileUtils';
+import { resolveFolderDisplayName } from '../utils/folderDisplayName';
+import { normalizeTagPath } from '../utils/tagUtils';
+import { isPrimaryDocumentFile } from '../utils/fileTypeUtils';
+import { type DeleteAttachmentsSetting, resolveDeleteAttachmentsSetting } from '../settings/types';
 
 /**
  * Selection context for file operations
@@ -66,6 +75,7 @@ interface SelectionContext {
     selectionType: NavigationItemType;
     selectedFolder?: TFolder;
     selectedTag?: string;
+    selectedProperty?: PropertySelectionNodeId;
 }
 
 /**
@@ -160,15 +170,36 @@ export class FileSystemOperations {
      * Creates a new FileSystemOperations instance
      * @param app - The Obsidian app instance for vault operations
      * @param getTagTreeService - Function to get the TagTreeService instance
+     * @param getPropertyTreeService - Function to get the PropertyTreeService instance
      * @param getCommandQueue - Function to get the CommandQueueService instance
+     * @param getMetadataService - Function to get the MetadataService instance
      */
     constructor(
         private app: App,
         private getTagTreeService: () => TagTreeService | null,
+        private getPropertyTreeService: () => PropertyTreeService | null,
         private getCommandQueue: () => CommandQueueService | null,
+        private getMetadataService: () => MetadataService | null,
         private getVisibilityPreferences: () => VisibilityPreferences, // Function to get current visibility preferences for descendant/hidden items state
         private settingsProvider: ISettingsProvider
     ) {}
+
+    /**
+     * Resolves UI label for a folder, including frontmatter display names.
+     */
+    private resolveFolderDisplayLabel(folder: TFolder): string {
+        const metadataService = this.getMetadataService();
+        if (!metadataService) {
+            return folder.path === '/' ? this.settingsProvider.settings.customVaultName || this.app.vault.getName() : folder.name;
+        }
+        return resolveFolderDisplayName({
+            app: this.app,
+            metadataService,
+            settings: { customVaultName: this.settingsProvider.settings.customVaultName },
+            folderPath: folder.path,
+            fallbackName: folder.name
+        });
+    }
 
     /**
      * Shows a notification with a formatted error message
@@ -176,6 +207,250 @@ export class FileSystemOperations {
     private notifyError(template: string, error: unknown, fallback?: string): void {
         const message = template.replace('{error}', getErrorMessage(error, fallback ?? strings.common.unknownError));
         showNotice(message, { variant: 'warning' });
+    }
+
+    private isAttachmentFile(file: TFile): boolean {
+        return !isPrimaryDocumentFile(file);
+    }
+
+    private normalizeAttachmentLinkTarget(rawLink: string): string | null {
+        const trimmed = rawLink.trim();
+        if (!trimmed) {
+            return null;
+        }
+
+        const withoutAlias = trimmed.split('|')[0]?.trim() ?? '';
+        if (!withoutAlias) {
+            return null;
+        }
+
+        const withoutSubpath = withoutAlias.split(/[#^]/, 1)[0]?.trim() ?? '';
+        if (!withoutSubpath) {
+            return null;
+        }
+
+        const lower = withoutSubpath.toLowerCase();
+        if (lower.includes('://') || lower.startsWith('mailto:')) {
+            return null;
+        }
+
+        return withoutSubpath;
+    }
+
+    private getLinkedAttachmentCandidates(sourceFile: TFile): TFile[] {
+        const cache = this.app.metadataCache.getFileCache(sourceFile);
+        if (!cache) {
+            return [];
+        }
+
+        const resolved = new Map<string, TFile>();
+        const references = [...(cache.links ?? []), ...(cache.embeds ?? []), ...(cache.frontmatterLinks ?? [])];
+
+        for (const reference of references) {
+            const target = this.normalizeAttachmentLinkTarget(reference.link);
+            if (!target) {
+                continue;
+            }
+
+            const destination = this.app.metadataCache.getFirstLinkpathDest(target, sourceFile.path);
+            if (!(destination instanceof TFile)) {
+                continue;
+            }
+
+            if (!this.isAttachmentFile(destination)) {
+                continue;
+            }
+
+            resolved.set(destination.path, destination);
+        }
+
+        return Array.from(resolved.values()).sort((a, b) => a.path.localeCompare(b.path));
+    }
+
+    private getOrphanLinkedAttachments(attachmentCandidates: readonly TFile[], deletedSourcePaths: Set<string>): TFile[] {
+        if (attachmentCandidates.length === 0) {
+            return [];
+        }
+
+        const candidatesByPath = new Map<string, TFile>();
+        attachmentCandidates.forEach(file => {
+            candidatesByPath.set(file.path, file);
+        });
+
+        const candidatePaths = new Set<string>(candidatesByPath.keys());
+        const usedElsewhere = new Set<string>();
+
+        const { resolvedLinks } = this.app.metadataCache;
+        for (const sourcePath of Object.keys(resolvedLinks)) {
+            if (deletedSourcePaths.has(sourcePath)) {
+                continue;
+            }
+
+            const destinations = resolvedLinks[sourcePath];
+            for (const destinationPath of Object.keys(destinations)) {
+                if (!candidatePaths.has(destinationPath)) {
+                    continue;
+                }
+                usedElsewhere.add(destinationPath);
+                if (usedElsewhere.size === candidatePaths.size) {
+                    break;
+                }
+            }
+
+            if (usedElsewhere.size === candidatePaths.size) {
+                break;
+            }
+        }
+
+        const orphaned = Array.from(candidatesByPath.values()).filter(file => !usedElsewhere.has(file.path));
+        return orphaned.sort((a, b) => a.path.localeCompare(b.path));
+    }
+
+    private resolveAttachmentDeletionSetting(): DeleteAttachmentsSetting {
+        return resolveDeleteAttachmentsSetting(this.settingsProvider.settings.deleteAttachments, 'ask');
+    }
+
+    private collectAttachmentCandidatesBySourcePath(
+        sourceFiles: readonly TFile[],
+        setting: DeleteAttachmentsSetting
+    ): Map<string, TFile[]> {
+        const candidatesBySourcePath = new Map<string, TFile[]>();
+        if (setting === 'never') {
+            return candidatesBySourcePath;
+        }
+
+        sourceFiles.forEach(file => {
+            candidatesBySourcePath.set(file.path, this.getLinkedAttachmentCandidates(file));
+        });
+        return candidatesBySourcePath;
+    }
+
+    private prepareAttachmentDeletionState(sourceFiles: readonly TFile[]): {
+        setting: DeleteAttachmentsSetting;
+        candidatesBySourcePath: Map<string, TFile[]>;
+    } {
+        const setting = this.resolveAttachmentDeletionSetting();
+        return {
+            setting,
+            candidatesBySourcePath: this.collectAttachmentCandidatesBySourcePath(sourceFiles, setting)
+        };
+    }
+
+    private getAttachmentCandidatesForDeletedSources(
+        candidatesBySourcePath: ReadonlyMap<string, readonly TFile[]>,
+        deletedSourcePaths: Set<string>
+    ): TFile[] {
+        if (candidatesBySourcePath.size === 0 || deletedSourcePaths.size === 0) {
+            return [];
+        }
+
+        const dedupedCandidatesByPath = new Map<string, TFile>();
+        deletedSourcePaths.forEach(path => {
+            const candidates = candidatesBySourcePath.get(path);
+            if (!candidates || candidates.length === 0) {
+                return;
+            }
+
+            candidates.forEach(candidate => {
+                if (!deletedSourcePaths.has(candidate.path)) {
+                    dedupedCandidatesByPath.set(candidate.path, candidate);
+                }
+            });
+        });
+
+        return Array.from(dedupedCandidatesByPath.values());
+    }
+
+    private async maybeDeleteAttachmentsAfterFileDelete(
+        candidatesBySourcePath: ReadonlyMap<string, readonly TFile[]>,
+        deletedSourcePaths: Set<string>,
+        setting: DeleteAttachmentsSetting
+    ): Promise<void> {
+        if (setting === 'never' || deletedSourcePaths.size === 0) {
+            return;
+        }
+
+        const attachmentCandidates = this.getAttachmentCandidatesForDeletedSources(candidatesBySourcePath, deletedSourcePaths);
+        if (attachmentCandidates.length === 0) {
+            return;
+        }
+
+        try {
+            await this.maybeDeleteOrphanedLinkedAttachments(attachmentCandidates, deletedSourcePaths, setting);
+        } catch (error) {
+            this.notifyError(strings.fileSystem.errors.deleteAttachments, error);
+        }
+    }
+
+    private async maybeDeleteOrphanedLinkedAttachments(
+        attachmentCandidates: readonly TFile[],
+        deletedSourcePaths: Set<string>,
+        setting: DeleteAttachmentsSetting
+    ): Promise<void> {
+        if (setting === 'never') {
+            return;
+        }
+
+        const orphaned = this.getOrphanLinkedAttachments(attachmentCandidates, deletedSourcePaths);
+        if (orphaned.length === 0) {
+            return;
+        }
+
+        let attachmentsToDelete: readonly TFile[] | null = orphaned;
+
+        if (setting === 'ask') {
+            const { promptDeleteFileAttachments } = await import('../modals/DeleteFileAttachmentsModal');
+            attachmentsToDelete = await promptDeleteFileAttachments(this.app, orphaned);
+        }
+
+        if (!attachmentsToDelete || attachmentsToDelete.length === 0) {
+            return;
+        }
+
+        const results = await Promise.allSettled(attachmentsToDelete.map(file => this.app.fileManager.trashFile(file)));
+
+        const failures: { file: TFile; error: unknown }[] = [];
+        results.forEach((result, index) => {
+            if (result.status === 'rejected') {
+                failures.push({ file: attachmentsToDelete[index], error: result.reason });
+                console.error('Error deleting attachment:', attachmentsToDelete[index].path, result.reason);
+            }
+        });
+
+        if (failures.length === 0) {
+            return;
+        }
+
+        const errorMsg =
+            failures.length === 1
+                ? strings.fileSystem.errors.failedToDeleteFile
+                      .replace('{name}', failures[0].file.name)
+                      .replace('{error}', getErrorMessage(failures[0].error))
+                : strings.fileSystem.errors.failedToDeleteMultipleFiles.replace('{count}', failures.length.toString());
+        showNotice(errorMsg, { variant: 'warning' });
+    }
+
+    private resolveConfiguredPropertyDisplayKey(normalizedKey: string): string | null {
+        const activeProfile = getActiveVaultProfile(this.settingsProvider.settings);
+        const propertyKeys = Array.isArray(activeProfile.propertyKeys) ? activeProfile.propertyKeys : [];
+
+        for (let index = 0; index < propertyKeys.length; index += 1) {
+            const rawKey = propertyKeys[index]?.key;
+            if (typeof rawKey !== 'string') {
+                continue;
+            }
+
+            const displayKey = rawKey.trim();
+            if (!displayKey) {
+                continue;
+            }
+
+            if (casefold(displayKey) === normalizedKey) {
+                return displayKey;
+            }
+        }
+
+        return null;
     }
 
     private async syncHiddenFolderPathChange(previousPath: string, nextPath: string): Promise<void> {
@@ -440,10 +715,7 @@ export class FileSystemOperations {
             return file.basename;
         }
 
-        const detectionSettings = {
-            enableFolderNotes: settings.enableFolderNotes,
-            folderNoteName: settings.folderNoteName
-        };
+        const detectionSettings = getFolderNoteDetectionSettings(settings);
 
         if (!isFolderNote(file, parent, detectionSettings)) {
             return file.basename;
@@ -507,14 +779,146 @@ export class FileSystemOperations {
      * Automatically increments name if "Untitled" already exists
      * Opens the file and triggers rename mode for immediate naming
      * @param parent - The parent folder to create the file in
+     * @param openInNewTab - Whether the file should open in a new tab
      * @returns The created file or null if creation failed
      */
-    async createNewFile(parent: TFolder): Promise<TFile | null> {
+    async createNewFile(parent: TFolder, openInNewTab = false): Promise<TFile | null> {
         return createFileWithOptions(parent, this.app, {
             extension: 'md',
             content: '',
+            openInNewTab,
             errorKey: 'createFile'
         });
+    }
+
+    /**
+     * Creates a new markdown file in the user's configured default location and adds the selected tag in frontmatter.
+     * Uses Obsidian's markdown file creation API so plugin hooks run on creation.
+     * @param tagPath - Canonical tag path without # prefix
+     * @param sourcePath - Current file path used for "same folder as current file" preference
+     * @param openInNewTab - Whether the file should open in a new tab
+     * @returns The created file or null when creation fails
+     */
+    async createNewFileForTag(tagPath: string, sourcePath?: string, openInNewTab = false): Promise<TFile | null> {
+        const normalizedTag = normalizeTagPath(tagPath);
+        if (!normalizedTag || normalizedTag === TAGGED_TAG_ID || normalizedTag === UNTAGGED_TAG_ID) {
+            return null;
+        }
+
+        const tagTreeService = this.getTagTreeService();
+        const tagNode = tagTreeService?.findTagNode(normalizedTag);
+        const resolvedTagPath = tagNode?.displayPath ?? normalizedTag;
+
+        try {
+            const activeFilePath = this.app.workspace.getActiveFile()?.path ?? '';
+            const sourceFilePath = sourcePath?.trim().length ? sourcePath : activeFilePath;
+            const defaultParent = this.app.fileManager.getNewFileParent(sourceFilePath ?? '');
+            const targetFolder = defaultParent instanceof TFolder ? defaultParent : this.app.vault.getRoot();
+            const fileName = generateUniqueFilename(targetFolder.path, strings.fileSystem.defaultNames.untitled, 'md', this.app);
+            const file = await this.app.fileManager.createNewMarkdownFile(targetFolder, fileName);
+
+            try {
+                // Mutate frontmatter through Obsidian's API so YAML serialization matches other tag operations.
+                await this.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
+                    frontmatter.tags = [resolvedTagPath];
+                });
+            } catch (error) {
+                console.error('[Notebook Navigator] Failed to update created note tags', error);
+                showNotice(strings.dragDrop.errors.failedToAddTag.replace('{tag}', `#${resolvedTagPath}`), { variant: 'warning' });
+            }
+
+            const leaf = this.app.workspace.getLeaf(openInNewTab);
+            await leaf.openFile(file, { state: { mode: 'source' }, active: true });
+
+            window.setTimeout(() => {
+                executeCommand(this.app, OBSIDIAN_COMMANDS.EDIT_FILE_TITLE);
+            }, TIMEOUTS.FILE_OPERATION_DELAY);
+
+            return file;
+        } catch (error) {
+            this.notifyError(strings.fileSystem.errors.createFile, error);
+            return null;
+        }
+    }
+
+    /**
+     * Creates a new markdown file in the user's configured default location and applies the selected property.
+     * Uses Obsidian's markdown file creation API so plugin hooks run on creation.
+     * @param propertyNodeId - Canonical property node id (`key:<property>` or `key:<property>=<value>`)
+     * @param sourcePath - Current file path used for "same folder as current file" preference
+     * @param openInNewTab - Whether the file should open in a new tab
+     * @returns The created file or null when creation fails
+     */
+    async createNewFileForProperty(propertyNodeId: string, sourcePath?: string, openInNewTab = false): Promise<TFile | null> {
+        if (propertyNodeId === PROPERTIES_ROOT_VIRTUAL_FOLDER_ID) {
+            return null;
+        }
+
+        const requestedNode = parsePropertyNodeId(propertyNodeId);
+        if (!requestedNode) {
+            return null;
+        }
+
+        const normalizedNodeId = normalizePropertyNodeId(propertyNodeId);
+        if (!normalizedNodeId) {
+            return null;
+        }
+
+        const parsed = parsePropertyNodeId(normalizedNodeId);
+        if (!parsed) {
+            return null;
+        }
+
+        const propertyTreeService = this.getPropertyTreeService();
+        const keyNode = propertyTreeService?.getKeyNode(parsed.key) ?? null;
+        const valueNode = parsed.valuePath ? (propertyTreeService?.findNode(normalizedNodeId) ?? null) : null;
+
+        const propertyKey = keyNode?.name?.trim() || this.resolveConfiguredPropertyDisplayKey(parsed.key) || parsed.key;
+        if (!propertyKey) {
+            return null;
+        }
+
+        const requestedValuePath = requestedNode.valuePath?.trim() ?? null;
+        const propertyValue: unknown =
+            parsed.valuePath === null
+                ? true
+                : valueNode && valueNode.kind === 'value' && valueNode.name.trim().length > 0
+                  ? valueNode.name.trim()
+                  : requestedValuePath || parsed.valuePath;
+
+        try {
+            const activeFilePath = this.app.workspace.getActiveFile()?.path ?? '';
+            const sourceFilePath = sourcePath?.trim().length ? sourcePath : activeFilePath;
+            const defaultParent = this.app.fileManager.getNewFileParent(sourceFilePath ?? '');
+            const targetFolder = defaultParent instanceof TFolder ? defaultParent : this.app.vault.getRoot();
+            const fileName = generateUniqueFilename(targetFolder.path, strings.fileSystem.defaultNames.untitled, 'md', this.app);
+            const file = await this.app.fileManager.createNewMarkdownFile(targetFolder, fileName);
+
+            try {
+                // Mutate frontmatter through Obsidian's API so YAML serialization matches other property operations.
+                await this.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
+                    frontmatter[propertyKey] = propertyValue;
+                });
+            } catch (error) {
+                console.error('[Notebook Navigator] Failed to update created note properties', error);
+                showNotice(
+                    strings.dragDrop.errors.failedToSetProperty.replace('{error}', getErrorMessage(error, strings.common.unknownError)),
+                    { variant: 'warning' }
+                );
+            }
+
+            const leaf = this.app.workspace.getLeaf(openInNewTab);
+            await leaf.openFile(file, { state: { mode: 'source' }, active: true });
+
+            window.setTimeout(() => {
+                executeCommand(this.app, OBSIDIAN_COMMANDS.EDIT_FILE_TITLE);
+            }, TIMEOUTS.FILE_OPERATION_DELAY);
+
+            return file;
+        } catch (error) {
+            this.notifyError(strings.fileSystem.errors.createFile, error);
+            return null;
+        }
     }
 
     /**
@@ -540,20 +944,23 @@ export class FileSystemOperations {
 
                 try {
                     const previousFolderPath = folder.path;
-                    const useDefaultFolderNote = Boolean(settings?.enableFolderNotes && !settings.folderNoteName);
+                    const folderNoteNamingSettings =
+                        settings?.enableFolderNotes && shouldRenameFolderNoteWithFolderName(settings) ? settings : null;
 
                     let folderNote: TFile | null = null;
-                    if (useDefaultFolderNote && settings) {
-                        folderNote = getFolderNote(folder, settings);
+                    let renamedFolderNoteFileName: string | null = null;
+                    if (folderNoteNamingSettings) {
+                        folderNote = getFolderNote(folder, folderNoteNamingSettings);
                     }
 
-                    if (folderNote) {
-                        const newNoteName = this.getFolderNoteFileName(filteredName, folderNote);
+                    if (folderNote && folderNoteNamingSettings) {
+                        const newFolderNoteBaseName = resolveFolderNoteName(filteredName, folderNoteNamingSettings);
+                        renamedFolderNoteFileName = this.getFolderNoteFileName(newFolderNoteBaseName, folderNote);
                         const folderBase = folder.path === '/' ? '' : `${folder.path}/`;
-                        const conflictPath = normalizePath(`${folderBase}${newNoteName}`);
+                        const conflictPath = normalizePath(`${folderBase}${renamedFolderNoteFileName}`);
                         const conflict = this.app.vault.getFileByPath(conflictPath);
                         if (conflict) {
-                            showNotice(strings.fileSystem.errors.renameFolderNoteConflict.replace('{name}', newNoteName), {
+                            showNotice(strings.fileSystem.errors.renameFolderNoteConflict.replace('{name}', renamedFolderNoteFileName), {
                                 variant: 'warning'
                             });
                             return;
@@ -568,10 +975,9 @@ export class FileSystemOperations {
                     await this.app.fileManager.renameFile(folder, newFolderPath);
                     await this.syncHiddenFolderPathChange(previousFolderPath, newFolderPath);
 
-                    // Rename the folder note to match the new folder name when using default naming
-                    if (folderNote) {
-                        const newNoteName = this.getFolderNoteFileName(filteredName, folderNote);
-                        const newNotePath = normalizePath(`${newFolderPath}/${newNoteName}`);
+                    // Rename folder note when naming is tied to the folder name.
+                    if (folderNote && renamedFolderNoteFileName !== null) {
+                        const newNotePath = normalizePath(`${newFolderPath}/${renamedFolderNoteFileName}`);
                         await this.app.fileManager.renameFile(folderNote, newNotePath);
                     }
                 } catch (error) {
@@ -672,6 +1078,7 @@ export class FileSystemOperations {
      * @param onSuccess - Optional callback on successful deletion
      */
     async deleteFolder(folder: TFolder, confirmBeforeDelete: boolean, onSuccess?: () => void): Promise<void> {
+        const folderDisplayName = this.resolveFolderDisplayLabel(folder);
         const deleteFolderWithCleanup = async () => {
             const deletedPath = folder.path;
             await this.app.fileManager.trashFile(folder);
@@ -684,7 +1091,7 @@ export class FileSystemOperations {
         if (confirmBeforeDelete) {
             const confirmModal = new ConfirmModal(
                 this.app,
-                strings.modals.fileSystem.deleteFolderTitle.replace('{name}', folder.name),
+                strings.modals.fileSystem.deleteFolderTitle.replace('{name}', folderDisplayName),
                 strings.modals.fileSystem.deleteFolderConfirm,
                 async () => {
                     try {
@@ -721,6 +1128,7 @@ export class FileSystemOperations {
     ): Promise<void> {
         const deleteTitle = this.getDeleteFileTitle(file);
         const performDeleteCore = async () => {
+            const attachmentDeletion = this.prepareAttachmentDeletionState([file]);
             try {
                 // Run pre-delete action if provided
                 if (preDeleteAction) {
@@ -734,7 +1142,14 @@ export class FileSystemOperations {
                 }
             } catch (error) {
                 this.notifyError(strings.fileSystem.errors.deleteFile, error);
+                return;
             }
+
+            await this.maybeDeleteAttachmentsAfterFileDelete(
+                attachmentDeletion.candidatesBySourcePath,
+                new Set([file.path]),
+                attachmentDeletion.setting
+            );
         };
 
         if (confirmBeforeDelete) {
@@ -782,16 +1197,21 @@ export class FileSystemOperations {
         confirmBeforeDelete: boolean
     ): Promise<void> {
         // Get the file list based on selection type
-        let currentFiles: TFile[] = [];
         // Get current UX preferences for descendant/hidden items when determining next file to select
         const visibility = this.getVisibilityPreferences();
-        if (selectionContext.selectionType === ItemType.FOLDER && selectionContext.selectedFolder) {
-            const { getFilesForFolder } = await import('../utils/fileFinder');
-            currentFiles = getFilesForFolder(selectionContext.selectedFolder, settings, visibility, this.app);
-        } else if (selectionContext.selectionType === ItemType.TAG && selectionContext.selectedTag) {
-            const { getFilesForTag } = await import('../utils/fileFinder');
-            currentFiles = getFilesForTag(selectionContext.selectedTag, settings, visibility, this.app, this.getTagTreeService());
-        }
+        const currentFiles = getFilesForNavigationSelection(
+            {
+                selectionType: selectionContext.selectionType,
+                selectedFolder: selectionContext.selectedFolder ?? null,
+                selectedTag: selectionContext.selectedTag ?? null,
+                selectedProperty: selectionContext.selectedProperty ?? null
+            },
+            settings,
+            visibility,
+            this.app,
+            this.getTagTreeService(),
+            this.getPropertyTreeService()
+        );
 
         // Find next file to select
         let nextFileToSelect: TFile | null = null;
@@ -997,6 +1417,7 @@ export class FileSystemOperations {
      * @returns Status object describing success with the new location data, a cancel signal, or an error payload
      */
     async moveFolderWithModal(folder: TFolder): Promise<MoveFolderModalResult> {
+        const folderDisplayName = this.resolveFolderDisplayLabel(folder);
         const excludePaths = new Set<string>();
 
         const collectPaths = (current: TFolder) => {
@@ -1041,13 +1462,15 @@ export class FileSystemOperations {
 
                     try {
                         const moveData = await this.moveFolderToTarget(folder, targetFolder);
-                        showNotice(strings.fileSystem.notifications.folderMoved.replace('{name}', folder.name), { variant: 'success' });
+                        showNotice(strings.fileSystem.notifications.folderMoved.replace('{name}', folderDisplayName), {
+                            variant: 'success'
+                        });
                         modal.close();
                         finish({ status: 'success', data: moveData });
                     } catch (error) {
                         if (error instanceof FolderMoveError) {
                             if (error.code === 'destination-exists') {
-                                showNotice(strings.fileSystem.errors.folderAlreadyExists.replace('{name}', folder.name), {
+                                showNotice(strings.fileSystem.errors.folderAlreadyExists.replace('{name}', folderDisplayName), {
                                     variant: 'warning'
                                 });
                                 return;
@@ -1058,12 +1481,12 @@ export class FileSystemOperations {
                             }
                         }
                         console.error('Failed to move folder via modal:', error);
-                        showNotice(strings.dragDrop.errors.failedToMoveFolder.replace('{name}', folder.name), { variant: 'warning' });
+                        showNotice(strings.dragDrop.errors.failedToMoveFolder.replace('{name}', folderDisplayName), { variant: 'warning' });
                         modal.close();
                         finish({ status: 'error', error });
                     }
                 },
-                this.getMovePlaceholder(folder.name, true),
+                this.getMovePlaceholder(folderDisplayName, true),
                 strings.modals.folderSuggest.instructions.move,
                 excludePaths,
                 () => finish({ status: 'cancelled' })
@@ -1121,10 +1544,7 @@ export class FileSystemOperations {
             return;
         }
 
-        const detectionSettings = {
-            enableFolderNotes: settings.enableFolderNotes,
-            folderNoteName: settings.folderNoteName
-        };
+        const detectionSettings = getFolderNoteDetectionSettings(settings);
 
         if (isFolderNote(file, parent, detectionSettings)) {
             showNotice(strings.fileSystem.errors.folderNoteAlreadyLinked, { variant: 'warning' });
@@ -1145,7 +1565,7 @@ export class FileSystemOperations {
         }
 
         const isExcalidraw = isExcalidrawFile(file);
-        let targetBaseName = settings.folderNoteName || parent.name;
+        let targetBaseName = resolveFolderNoteName(parent.name, settings);
         if (isExcalidraw) {
             // Strip .excalidraw from the base name for folder note naming.
             targetBaseName = stripExcalidrawSuffix(targetBaseName);
@@ -1195,10 +1615,7 @@ export class FileSystemOperations {
             return;
         }
 
-        const detectionSettings = {
-            enableFolderNotes: settings.enableFolderNotes,
-            folderNoteName: settings.folderNoteName
-        };
+        const detectionSettings = getFolderNoteDetectionSettings(settings);
 
         // Check if file is already acting as a folder note
         if (isFolderNote(file, parent, detectionSettings)) {
@@ -1236,7 +1653,7 @@ export class FileSystemOperations {
         }
 
         // Determine final filename based on folder note settings
-        let finalBaseName = settings.folderNoteName ? settings.folderNoteName : folderName;
+        let finalBaseName = resolveFolderNoteName(folderName, settings);
         if (isExcalidraw) {
             // Strip .excalidraw from the base name for folder note naming.
             finalBaseName = stripExcalidrawSuffix(finalBaseName);
@@ -1449,6 +1866,8 @@ export class FileSystemOperations {
         if (files.length === 0) return;
 
         const performDeleteCore = async () => {
+            const attachmentDeletion = this.prepareAttachmentDeletionState(files);
+
             // Run optional pre-delete action (e.g., to update selection)
             if (preDeleteAction) {
                 try {
@@ -1464,16 +1883,24 @@ export class FileSystemOperations {
             let deletedCount = 0;
 
             const results = await Promise.allSettled(files.map(file => this.app.fileManager.trashFile(file)));
+            const deletedSourcePaths = new Set<string>();
 
             results.forEach((result, index) => {
                 if (result.status === 'fulfilled') {
                     deletedCount++;
+                    deletedSourcePaths.add(files[index].path);
                 } else {
                     const file = files[index];
                     errors.push({ file, error: result.reason });
                     console.error('Error deleting file:', file.path, result.reason);
                 }
             });
+
+            await this.maybeDeleteAttachmentsAfterFileDelete(
+                attachmentDeletion.candidatesBySourcePath,
+                deletedSourcePaths,
+                attachmentDeletion.setting
+            );
 
             // Show appropriate notifications
             if (deletedCount > 0) {

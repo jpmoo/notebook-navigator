@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,17 +17,25 @@
  */
 
 import type { App } from 'obsidian';
+import { LIMITS } from '../../constants/limits';
 import { strings } from '../../i18n';
-import type { TagTreeService } from '../TagTreeService';
+import type { ITagTreeProvider } from '../../interfaces/ITagTreeProvider';
 import type { MetadataService } from '../MetadataService';
-import { collectRenameFiles, RenameFile, TagDescriptor, TagReplacement, isDescendantRename } from '../tagRename/TagRenameEngine';
+import {
+    collectRenameFiles,
+    RenameFile,
+    TagDescriptor,
+    TagReplacement,
+    isDescendantRename,
+    type RenameFileSkipReason
+} from '../tagRename/TagRenameEngine';
 import { TagRenameModal } from '../../modals/TagRenameModal';
-import { buildUsageSummary, buildUsageSummaryFromPaths, collectPreviewPaths, yieldToEventLoop } from './TagOperationUtils';
-import type { TagRenameEventPayload, TagUsageSummary } from './types';
+import { buildUsageSummary, confirmInlineTagParsingRisk, yieldToEventLoop } from './TagOperationUtils';
+import type { TagRenameEventPayload } from './types';
 import { TagFileMutations } from './TagFileMutations';
 import { showNotice } from '../../utils/noticeUtils';
 
-const RENAME_BATCH_SIZE = 10;
+const RENAME_BATCH_SIZE = LIMITS.operations.metadataMutationYieldBatchSize;
 
 export interface TagRenameAnalysis {
     oldTag: TagDescriptor;
@@ -40,6 +48,8 @@ export interface TagRenameAnalysis {
 export interface TagRenameResult {
     renamed: number;
     total: number;
+    skipped: number;
+    failed: number;
 }
 
 export interface TagRenameHooks {
@@ -57,7 +67,7 @@ export class TagRenameWorkflow {
     constructor(
         private readonly app: App,
         private readonly fileMutations: TagFileMutations,
-        private readonly getTagTreeService: () => TagTreeService | null,
+        private readonly getTagTreeService: () => ITagTreeProvider | null,
         private readonly getMetadataService: () => MetadataService | null,
         private readonly resolveDisplayTagPathInternal: (tagPath: string) => string,
         private readonly getHooks: () => TagRenameHooks
@@ -68,20 +78,10 @@ export class TagRenameWorkflow {
      * Shows affected files and prevents invalid renames
      */
     async promptRenameTag(tagPath: string, initialValue?: string): Promise<void> {
-        const tagTree = this.getTagTreeService();
         const displayPath = this.resolveDisplayTagPathInternal(tagPath);
         const oldTagDescriptor = new TagDescriptor(displayPath);
-        const previewPaths = collectPreviewPaths(oldTagDescriptor, tagTree);
-        let presetTargets: RenameFile[] | null = null;
-        let usage: TagUsageSummary;
-
-        if (previewPaths === null) {
-            const targets = collectRenameFiles(this.app, oldTagDescriptor, tagTree);
-            usage = buildUsageSummary(this.app, targets);
-            presetTargets = targets;
-        } else {
-            usage = buildUsageSummaryFromPaths(this.app, previewPaths);
-        }
+        const presetTargets = collectRenameFiles(this.app, oldTagDescriptor);
+        const usage = buildUsageSummary(this.app, presetTargets);
 
         if (usage.total === 0) {
             showNotice(`#${displayPath}: ${strings.listPane.emptyStateNoNotes}`, { variant: 'warning' });
@@ -104,6 +104,12 @@ export class TagRenameWorkflow {
                     showNotice(strings.modals.tagOperation.descendantRenameError, { variant: 'warning' });
                     return false;
                 }
+
+                const shouldContinue = await confirmInlineTagParsingRisk(this.app, trimmedName);
+                if (!shouldContinue) {
+                    return false;
+                }
+
                 return this.runTagRename(displayPath, trimmedName, presetTargets ?? null);
             }
         });
@@ -132,7 +138,7 @@ export class TagRenameWorkflow {
         const newTag = new TagDescriptor(newTagPath);
         const replacement = new TagReplacement(oldTag, newTag);
         const tagTree = this.getTagTreeService();
-        const targets = presetTargets ?? collectRenameFiles(this.app, oldTag, tagTree);
+        const targets = presetTargets ?? collectRenameFiles(this.app, oldTag);
         const existingTags = tagTree ? tagTree.getAllTagPaths().map(path => `#${path}`) : [];
         const mergeConflict = existingTags.length > 0 ? replacement.willMergeTags(existingTags) : null;
         return { oldTag, newTag, replacement, targets, mergeConflict };
@@ -150,17 +156,59 @@ export class TagRenameWorkflow {
         }
 
         let renamed = 0;
+        let skipped = 0;
+        let failed = 0;
+
+        // Skips are expected when the underlying file changes between the tree snapshot
+        // and the actual vault read/modify step. The workflow aggregates them for a single
+        // summary notice instead of emitting a notice per file.
+        const skippedByReason: Record<RenameFileSkipReason, number> = {
+            'file-missing': 0,
+            'file-changed': 0,
+            'no-op': 0
+        };
+        const skippedSamples: Record<RenameFileSkipReason, string[]> = {
+            'file-missing': [],
+            'file-changed': [],
+            'no-op': []
+        };
+        const pushSample = (bucket: string[], value: string): void => {
+            if (bucket.length >= 8) {
+                return;
+            }
+            bucket.push(value);
+        };
+
         for (let index = 0; index < analysis.targets.length; index++) {
             const target = analysis.targets[index];
-            if (await target.renamed(analysis.replacement)) {
-                renamed++;
+            try {
+                const applyResult = await target.renamed(analysis.replacement);
+                if (applyResult.outcome === 'changed') {
+                    renamed += 1;
+                } else {
+                    skipped += 1;
+                    skippedByReason[applyResult.reason] += 1;
+                    pushSample(skippedSamples[applyResult.reason], target.filePath);
+                }
+            } catch (error: unknown) {
+                failed += 1;
+                console.error(`[Notebook Navigator] Failed to rename tag in ${target.filePath}`, error);
             }
             if ((index + 1) % RENAME_BATCH_SIZE === 0) {
                 await yieldToEventLoop();
             }
         }
 
-        return { renamed, total: analysis.targets.length };
+        if (skipped > 0) {
+            console.warn('[Notebook Navigator] Tag rename skipped files', {
+                skipped,
+                total: analysis.targets.length,
+                skippedByReason,
+                samples: skippedSamples
+            });
+        }
+
+        return { renamed, total: analysis.targets.length, skipped, failed };
     }
 
     /**
@@ -210,15 +258,54 @@ export class TagRenameWorkflow {
         }
 
         const result = await hooks.executeRename(analysis);
+
+        const hasFileIssues = result.skipped > 0 || result.failed > 0;
+        const formatBatchNotFinalizedSummary = (): string => {
+            const notUpdated = result.skipped + result.failed;
+            // This notice is shown when at least one file was skipped or failed. It avoids
+            // finalizing tag metadata/shortcuts, because those follow-up operations assume
+            // the vault edits were applied to every target file.
+            return strings.modals.tagOperation.renameBatchNotFinalized
+                .replace('{renamed}', result.renamed.toString())
+                .replace('{total}', result.total.toString())
+                .replace('{notUpdated}', notUpdated.toString());
+        };
+
         if (result.renamed === 0) {
+            // No files were updated; keep the rename modal open so the user can retry
+            // without reopening the context menu.
+            const summary = hasFileIssues
+                ? formatBatchNotFinalizedSummary()
+                : strings.modals.tagOperation.renameNoChanges
+                      .replace('{oldTag}', analysis.oldTag.tag)
+                      .replace('{newTag}', analysis.newTag.tag)
+                      .replace('{countLabel}', strings.listPane.emptyStateNoNotes);
+
+            const withConsoleHint =
+                hasFileIssues && result.failed > 0 ? `${summary} ${strings.modals.tagOperation.checkConsoleForDetails}` : summary;
+
             showNotice(
-                strings.modals.tagOperation.renameNoChanges
-                    .replace('{oldTag}', analysis.oldTag.tag)
-                    .replace('{newTag}', analysis.newTag.tag)
-                    .replace('{countLabel}', strings.listPane.emptyStateNoNotes),
-                { variant: 'warning' }
+                `${strings.modals.tagOperation.confirmRename}: ${analysis.oldTag.tag} → ${analysis.newTag.tag}. ${withConsoleHint}`,
+                {
+                    variant: 'warning'
+                }
             );
             return false;
+        }
+
+        if (hasFileIssues) {
+            const summary = formatBatchNotFinalizedSummary();
+            const withConsoleHint = result.failed > 0 ? `${summary} ${strings.modals.tagOperation.checkConsoleForDetails}` : summary;
+
+            // Some files changed, but the batch did not fully apply across all targets.
+            // Close the modal and show a warning summary; the vault is now in a mixed state.
+            showNotice(
+                `${strings.modals.tagOperation.confirmRename}: ${analysis.oldTag.tag} → ${analysis.newTag.tag}. ${withConsoleHint}`,
+                {
+                    variant: 'warning'
+                }
+            );
+            return true;
         }
 
         await hooks.updateTagMetadataAfterRename(analysis.oldTag.name, analysis.newTag.name, Boolean(analysis.mergeConflict));

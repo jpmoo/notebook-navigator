@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
  */
 
 import { TFile, getAllTags } from 'obsidian';
+import { LIMITS } from '../../constants/limits';
 import { type ContentProviderType } from '../../interfaces/IContentProvider';
 import { NotebookNavigatorSettings } from '../../settings';
 import { FileData } from '../../storage/IndexedDBStorage';
@@ -30,9 +31,7 @@ import { BaseContentProvider, type ContentProviderProcessResult } from './BaseCo
 export class TagContentProvider extends BaseContentProvider {
     // When tags are regenerated due to a metadata-only change, `markFilesForRegeneration()` resets `tagsMtime` to 0.
     // If Obsidian has not populated tags in the metadata cache yet, defer clearing existing tags for a few retries.
-    private static readonly EMPTY_TAGS_RETRY_LIMIT = 2;
-
-    // Tracks consecutive empty-tag reads for files with `tagsMtime === 0` and existing non-empty tags.
+    // Tracks consecutive empty-tag reads for files with `tagsMtime === 0`.
     // Returning `processed:false` triggers BaseContentProvider retry scheduling.
     private readonly emptyTagRetryCounts = new Map<string, number>();
 
@@ -100,8 +99,15 @@ export class TagContentProvider extends BaseContentProvider {
             const rawTags = getAllTags(metadata);
             const tags = extractFileTagsFromRawTags(rawTags);
 
-            const shouldDeferClearing =
+            const shouldDeferExistingTagClearing =
                 fileData !== null && fileData.tagsMtime === 0 && fileData.tags !== null && fileData.tags.length > 0 && tags.length === 0;
+            const shouldDeferInitialEmptyTags =
+                fileData !== null &&
+                fileData.tagsMtime === 0 &&
+                fileData.tags === null &&
+                tags.length === 0 &&
+                Date.now() - job.file.stat.mtime <= LIMITS.contentProvider.metadataCache.recentFileWindowMs;
+            const shouldDeferClearing = shouldDeferExistingTagClearing || shouldDeferInitialEmptyTags;
 
             if (!shouldDeferClearing) {
                 this.emptyTagRetryCounts.delete(job.path);
@@ -109,7 +115,7 @@ export class TagContentProvider extends BaseContentProvider {
 
             if (shouldDeferClearing) {
                 const attempts = this.emptyTagRetryCounts.get(job.path) ?? 0;
-                if (attempts < TagContentProvider.EMPTY_TAGS_RETRY_LIMIT) {
+                if (attempts < LIMITS.contentProvider.metadataCache.emptyValueRetryLimit) {
                     this.emptyTagRetryCounts.set(job.path, attempts + 1);
                     return { update: null, processed: false };
                 }

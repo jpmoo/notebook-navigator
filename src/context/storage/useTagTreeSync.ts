@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -123,7 +123,7 @@ export function useTagTreeSync(params: {
 
         clearNoteCountCache();
 
-        setFileData({ tagTree, tagged, untagged, hiddenRootTags });
+        setFileData(previous => ({ ...previous, tagTree, tagged, untagged, hiddenRootTags }));
 
         // Propagate updated tag trees to the global TagTreeService for cross-component access
         if (tagTreeService) {

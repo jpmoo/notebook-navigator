@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@ import { NotebookNavigatorSettings } from '../../settings';
 import { FileData } from '../../storage/IndexedDBStorage';
 import { getDBInstance, isShutdownInProgress } from '../../storage/fileOperations';
 import { getProviderProcessedMtimeField } from '../../storage/providerMtime';
-import { TIMEOUTS } from '../../types/obsidian-extended';
 import { runAsyncAction } from '../../utils/async';
 import { ContentReadCache } from './ContentReadCache';
 import { LIMITS } from '../../constants/limits';
@@ -36,11 +35,13 @@ export type ContentProviderUpdate = {
     path: string;
     tags?: string[] | null;
     wordCount?: number | null;
+    taskTotal?: number | null;
+    taskUnfinished?: number | null;
     preview?: string;
     featureImage?: Blob | null;
     featureImageKey?: string | null;
     metadata?: FileData['metadata'];
-    customProperty?: FileData['customProperty'];
+    properties?: FileData['properties'];
 };
 
 export type ContentProviderProcessResult = {
@@ -60,12 +61,12 @@ export abstract class BaseContentProvider implements IContentProvider {
     private static readonly RETRY_INITIAL_DELAY_MS = LIMITS.contentProvider.retry.initialDelayMs;
     private static readonly RETRY_MAX_DELAY_MS = LIMITS.contentProvider.retry.maxDelayMs;
     private static readonly RETRY_MAX_ATTEMPTS = LIMITS.contentProvider.retry.maxAttempts;
+    private static readonly WAIT_FOR_IDLE_RETRY_POLL_MS = 25;
 
     // Work queue of file paths; resolved to `TFile` at processing time.
     protected queue: string[] = [];
     protected isProcessing = false;
     protected abortController: AbortController | null = null;
-    protected queueDebounceTimer: ReturnType<typeof setTimeout> | null = null;
     protected currentBatchSettings: NotebookNavigatorSettings | null = null;
     // Track files currently being processed to prevent duplicate processing
     // when multiple events fire for the same file in quick succession
@@ -91,16 +92,9 @@ export abstract class BaseContentProvider implements IContentProvider {
     ) {}
 
     /**
-     * Yields to the event loop to prevent blocking the main thread during batch processing.
-     * Uses requestAnimationFrame when available, falls back to setTimeout.
+     * Yields to the task queue to keep long provider runs responsive without frame-rate throttling.
      */
     protected async yieldToEventLoop(): Promise<void> {
-        const raf = globalThis.requestAnimationFrame;
-        if (typeof raf === 'function') {
-            await new Promise<void>(resolve => raf(() => resolve()));
-            return;
-        }
-
         await new Promise<void>(resolve => globalThis.setTimeout(resolve, 0));
     }
 
@@ -133,6 +127,16 @@ export abstract class BaseContentProvider implements IContentProvider {
     private clearRetryState(): void {
         this.clearRetryTimer();
         this.retryState.clear();
+    }
+
+    // Returns true when at least one retry entry has a scheduled retry timestamp.
+    private hasScheduledRetryWork(): boolean {
+        for (const state of this.retryState.values()) {
+            if (state.nextRetryAt !== BaseContentProvider.RETRY_UNSCHEDULED_AT) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private clearRetryForPath(path: string): void {
@@ -176,6 +180,9 @@ export abstract class BaseContentProvider implements IContentProvider {
 
         let nextRetryAt = BaseContentProvider.RETRY_UNSCHEDULED_AT;
         for (const state of this.retryState.values()) {
+            if (state.nextRetryAt === BaseContentProvider.RETRY_UNSCHEDULED_AT) {
+                continue;
+            }
             if (state.nextRetryAt < nextRetryAt) {
                 nextRetryAt = state.nextRetryAt;
             }
@@ -251,6 +258,11 @@ export abstract class BaseContentProvider implements IContentProvider {
      */
     protected abstract needsProcessing(fileData: FileData | null, file: TFile, settings: NotebookNavigatorSettings): boolean;
 
+    /**
+     * Runs after a provider session drains all queued work.
+     */
+    protected onProcessingIdle(): void {}
+
     queueFiles(files: TFile[]): void {
         if (this.stopped) return;
         // Filter out files that are currently being processed or already queued
@@ -267,12 +279,10 @@ export abstract class BaseContentProvider implements IContentProvider {
             queuedWork = true;
         }
 
-        if (queuedWork) {
-            if (!this.isProcessing && this.queueDebounceTimer === null && this.currentBatchSettings) {
-                // Schedule processing when work is queued while the provider is idle.
-                // `ContentProviderRegistry` calls `startProcessing()` explicitly, but direct callers might not.
-                this.startProcessing(this.currentBatchSettings);
-            }
+        if (queuedWork && !this.isProcessing && this.currentBatchSettings) {
+            // Run queued work immediately.
+            // `ContentProviderRegistry` calls `startProcessing()` first, but direct callers can enqueue while idle.
+            this.runProcessNextBatch();
         }
     }
 
@@ -281,34 +291,40 @@ export abstract class BaseContentProvider implements IContentProvider {
         this.stopped = false;
         this.currentBatchSettings = settings;
 
-        if (this.queueDebounceTimer !== null) {
-            globalThis.clearTimeout(this.queueDebounceTimer);
-            this.queueDebounceTimer = null;
+        if (!this.stopped && !this.isProcessing && this.queue.length > 0) {
+            this.runProcessNextBatch();
         }
-
-        this.queueDebounceTimer = globalThis.setTimeout(() => {
-            this.queueDebounceTimer = null;
-            if (!this.stopped && !this.isProcessing && this.queue.length > 0) {
-                // Run batch processing asynchronously without blocking
-                this.runProcessNextBatch();
-            }
-        }, TIMEOUTS.DEBOUNCE_CONTENT);
     }
 
     onSettingsChanged(settings: NotebookNavigatorSettings): void {
         this.currentBatchSettings = settings;
     }
 
+    // Treats queued files, in-flight batches, and scheduled retries as pending provider work.
+    private hasPendingWork(): boolean {
+        return (
+            this.isProcessing ||
+            this.activeBatchPromise !== null ||
+            this.queue.length > 0 ||
+            this.retryTimer !== null ||
+            this.hasScheduledRetryWork()
+        );
+    }
+
     async waitForIdle(): Promise<void> {
-        while (this.activeBatchPromise) {
+        while (this.hasPendingWork()) {
             const promise = this.activeBatchPromise;
-            try {
-                await promise;
-            } catch {
-                // Errors are already logged by runAsyncAction().
-            }
-            if (this.activeBatchPromise === promise) {
-                break;
+            if (promise) {
+                try {
+                    await promise;
+                } catch {
+                    // Errors are already logged by runAsyncAction().
+                }
+            } else if (this.retryTimer !== null || this.hasScheduledRetryWork()) {
+                // Retry work advances on timers; poll until retries are flushed or cleared.
+                await new Promise<void>(resolve => globalThis.setTimeout(resolve, BaseContentProvider.WAIT_FOR_IDLE_RETRY_POLL_MS));
+            } else {
+                await this.yieldToEventLoop();
             }
         }
     }
@@ -323,6 +339,8 @@ export abstract class BaseContentProvider implements IContentProvider {
         this.abortController = new AbortController();
         const abortSignal = this.abortController.signal;
         const settings = this.currentBatchSettings;
+        // Reuses provider type across all mtime lookups and writes in this batch session.
+        const type = this.getContentType();
 
         // Declare activeJobs outside try block so it's accessible in finally
         let activeJobs: { job: ContentJob; fileData: FileData | null; needsProcessing: boolean; expectedProviderMtime: number }[] = [];
@@ -335,13 +353,14 @@ export abstract class BaseContentProvider implements IContentProvider {
 
             // Filter jobs based on current settings and database state
             // Uses synchronous database access for immediate results
-            const type = this.getContentType();
             const jobsWithData: { job: ContentJob; fileData: FileData | null; needsProcessing: boolean; expectedProviderMtime: number }[] =
                 [];
             for (const path of batch) {
                 // Re-resolve each path to pick up deletes/renames and avoid holding stale `TFile` references.
                 const abstract = this.app.vault.getAbstractFileByPath(path);
                 if (!(abstract instanceof TFile)) {
+                    // The path disappeared while waiting in the queue; stale retry entries for this path are no longer valid.
+                    this.clearRetryForPath(path);
                     continue;
                 }
                 const file = abstract;
@@ -349,6 +368,10 @@ export abstract class BaseContentProvider implements IContentProvider {
                 const canonicalPath = file.path;
                 const fileData = db.getFile(canonicalPath);
                 const needsProcessing = this.needsProcessing(fileData, file, settings);
+                if (!needsProcessing) {
+                    // The file no longer requires processing; remove any queued retry entry to avoid indefinite idle waits.
+                    this.clearRetryForPath(canonicalPath);
+                }
                 const expectedProviderMtime = fileData ? fileData[getProviderProcessedMtimeField(type)] : 0;
                 jobsWithData.push({ job: { file, path: canonicalPath }, fileData, needsProcessing, expectedProviderMtime });
             }
@@ -368,6 +391,8 @@ export abstract class BaseContentProvider implements IContentProvider {
             const updates: ContentProviderUpdate[] = [];
             const processedMtimeUpdates: { path: string; mtime: number; expectedPreviousMtime: number }[] = [];
 
+            // Intentionally process parallel batches back-to-back.
+            // This path prioritizes throughput during bulk settings-triggered regeneration.
             for (let i = 0; i < activeJobs.length; i += this.PARALLEL_LIMIT) {
                 if (this.stopped || abortSignal.aborted || this.processingSession !== session) break;
 
@@ -401,7 +426,8 @@ export abstract class BaseContentProvider implements IContentProvider {
                         }
                     }
 
-                    if (result.processed) {
+                    // Avoids writing provider mtime when the stored value already matches this batch snapshot.
+                    if (result.processed && fileMtimeAtStart !== expectedProviderMtime) {
                         processedMtimeUpdates.push({
                             path: currentPath,
                             mtime: fileMtimeAtStart,
@@ -414,9 +440,6 @@ export abstract class BaseContentProvider implements IContentProvider {
                         updates.push({ ...result.update, path: currentPath });
                     }
                 });
-
-                // Yield to event loop between parallel batches to keep UI responsive
-                await this.yieldToEventLoop();
             }
 
             // Batch update database
@@ -427,7 +450,7 @@ export abstract class BaseContentProvider implements IContentProvider {
                 // During plugin shutdown, skip writes to avoid benign transaction errors
                 if (!isShutdownInProgress()) {
                     await db.batchUpdateFileContentAndProviderProcessedMtimes({
-                        provider: this.getContentType(),
+                        provider: type,
                         contentUpdates: updates,
                         processedMtimeUpdates
                     });
@@ -467,19 +490,13 @@ export abstract class BaseContentProvider implements IContentProvider {
 
             this.isProcessing = false;
 
+            if (isActiveSession && this.queue.length === 0) {
+                // Signals subclasses once queued and dirty-file work has drained for this session.
+                this.onProcessingIdle();
+            }
+
             if (this.queue.length > 0 && isActiveSession) {
-                // Process next batch.
-                // Defers execution to next animation frame when available.
-                const raf = globalThis.requestAnimationFrame;
-                if (typeof raf === 'function') {
-                    raf(() => {
-                        this.runProcessNextBatch();
-                    });
-                } else {
-                    globalThis.setTimeout(() => {
-                        this.runProcessNextBatch();
-                    }, 0);
-                }
+                this.runProcessNextBatch();
             }
         }
     }
@@ -492,11 +509,6 @@ export abstract class BaseContentProvider implements IContentProvider {
         if (this.abortController) {
             this.abortController.abort();
             this.abortController = null;
-        }
-
-        if (this.queueDebounceTimer !== null) {
-            globalThis.clearTimeout(this.queueDebounceTimer);
-            this.queueDebounceTimer = null;
         }
 
         this.clearRetryState();

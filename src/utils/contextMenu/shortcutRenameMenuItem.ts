@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 
 import type { App, Menu, MenuItem } from 'obsidian';
 import type { ShortcutEntry } from '../../types/shortcuts';
-import { isFolderShortcut, isNoteShortcut, isTagShortcut } from '../../types/shortcuts';
+import { isFolderShortcut, isNoteShortcut, isPropertyShortcut, isTagShortcut } from '../../types/shortcuts';
 import { setAsyncOnClick } from './menuAsyncHelpers';
 
 interface AddShortcutRenameMenuItemParams {
@@ -37,7 +37,12 @@ function resolveInitialValue(existingShortcut: ShortcutEntry | undefined, defaul
         return defaultLabel;
     }
 
-    if (isFolderShortcut(existingShortcut) || isNoteShortcut(existingShortcut) || isTagShortcut(existingShortcut)) {
+    if (
+        isFolderShortcut(existingShortcut) ||
+        isNoteShortcut(existingShortcut) ||
+        isTagShortcut(existingShortcut) ||
+        isPropertyShortcut(existingShortcut)
+    ) {
         const alias = existingShortcut.alias;
         if (alias && alias.length > 0) {
             return alias;

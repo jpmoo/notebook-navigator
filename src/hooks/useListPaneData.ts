@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,29 +29,46 @@
  */
 
 import { useMemo, useState, useEffect, useRef } from 'react';
-import { TFile, TFolder, debounce } from 'obsidian';
+import { TFile, TFolder, debounce, normalizePath } from 'obsidian';
 import { useServices } from '../context/ServicesContext';
 import { OperationType } from '../services/CommandQueueService';
 import { useFileCache } from '../context/StorageContext';
+import { useLocalDayKey } from './useLocalDayKey';
 import { ListPaneItemType, ItemType, PINNED_SECTION_HEADER_KEY } from '../types';
 import type { VisibilityPreferences } from '../types';
 import type { ListPaneItem } from '../types/virtualization';
 import { TIMEOUTS } from '../types/obsidian-extended';
 import { DateUtils } from '../utils/dateUtils';
-import { getFilesForFolder, getFilesForTag, collectPinnedPaths } from '../utils/fileFinder';
-import { shouldExcludeFile, createHiddenFileNameMatcher, isFolderInExcludedFolder } from '../utils/fileFilters';
-import { getDateField, getEffectiveSortOption, isDateSortOption, isPropertySortOption, naturalCompare } from '../utils/sortUtils';
+import { collectPinnedPaths } from '../utils/fileFinder';
+import {
+    createFrontmatterPropertyExclusionMatcher,
+    createHiddenFileNameMatcher,
+    isFolderInExcludedFolder,
+    shouldExcludeFileWithMatcher
+} from '../utils/fileFilters';
+import {
+    compareByAlphaSortOrder,
+    getDateField,
+    getEffectiveSortOption,
+    isDateSortOption,
+    resolveFolderChildSortOrder,
+    shouldRefreshOnFileModifyForSort,
+    shouldRefreshOnMetadataChangeForSort,
+    resolveDefaultDateField
+} from '../utils/sortUtils';
 import { strings } from '../i18n';
 import { FILE_VISIBILITY } from '../utils/fileTypeUtils';
 import {
     parseFilterSearchTokens,
+    fileMatchesDateFilterTokens,
     fileMatchesFilterTokens,
     filterSearchHasActiveCriteria,
     filterSearchNeedsTagLookup,
+    filterSearchNeedsPropertyLookup,
     filterSearchRequiresTagsForEveryMatch
 } from '../utils/filterSearch';
 import type { NotebookNavigatorSettings } from '../settings';
-import type { FilterSearchTokens } from '../utils/filterSearch';
+import type { FilterSearchMatchOptions, FilterSearchTokens } from '../utils/filterSearch';
 import type { SearchResultMeta } from '../types/search';
 import { createHiddenTagVisibility, normalizeTagPathValue } from '../utils/tagPrefixMatcher';
 import { resolveListGrouping } from '../utils/listGrouping';
@@ -60,6 +77,11 @@ import type { ActiveProfileState } from '../context/SettingsContext';
 import type { SearchProvider } from '../types/search';
 import { PreviewTextUtils } from '../utils/previewTextUtils';
 import { getCachedFileTags } from '../utils/tagUtils';
+import { createOmnisearchHighlightQueryTokenContext, sanitizeOmnisearchHighlightTokens } from '../utils/omnisearchHighlight';
+import { casefold } from '../utils/recordUtils';
+import { normalizePropertyTreeValuePath, type PropertySelectionNodeId } from '../utils/propertyTree';
+import { getFilesForNavigationSelection } from '../utils/selectionUtils';
+import { getActivePropertyFields } from '../utils/vaultProfiles';
 
 const EMPTY_SEARCH_META = new Map<string, SearchResultMeta>();
 // Shared empty map used when no files are hidden to avoid allocations
@@ -71,12 +93,14 @@ const TAG_PRESENCE_SENTINEL = ['__nn_tag_present__'];
  * Parameters for the useListPaneData hook
  */
 interface UseListPaneDataParams {
-    /** The type of selection (folder or tag) */
+    /** The type of selection (folder, tag, or property) */
     selectionType: ItemType | null;
     /** The currently selected folder, if any */
     selectedFolder: TFolder | null;
     /** The currently selected tag, if any */
     selectedTag: string | null;
+    /** The currently selected property key/value, if any */
+    selectedProperty: PropertySelectionNodeId | null;
     /** Plugin settings */
     settings: NotebookNavigatorSettings;
     /** Active profile-derived values */
@@ -109,6 +133,8 @@ interface UseListPaneDataResult {
     files: TFile[];
     /** Search metadata keyed by file path (populated when using Omnisearch) */
     searchMeta: Map<string, SearchResultMeta>;
+    /** Local day key in YYYY-MM-DD format */
+    localDayKey: string;
 }
 
 /**
@@ -122,6 +148,7 @@ export function useListPaneData({
     selectionType,
     selectedFolder,
     selectedTag,
+    selectedProperty,
     settings,
     activeProfile,
     searchProvider,
@@ -129,9 +156,10 @@ export function useListPaneData({
     searchTokens,
     visibility
 }: UseListPaneDataParams): UseListPaneDataResult {
-    const { app, tagTreeService, commandQueue, omnisearchService } = useServices();
-    const { getFileCreatedTime, getFileModifiedTime, getDB, getFileDisplayName } = useFileCache();
+    const { app, tagTreeService, propertyTreeService, commandQueue, omnisearchService } = useServices();
+    const { getFileTimestamps, getDB, getFileDisplayName } = useFileCache();
     const { includeDescendantNotes, showHiddenItems } = visibility;
+    const dayKey = useLocalDayKey();
 
     // State to force updates when vault changes (incremented on create/delete/rename)
     const [updateKey, setUpdateKey] = useState(0);
@@ -147,7 +175,40 @@ export function useListPaneData({
     const isOmnisearchAvailable = omnisearchService?.isAvailable() ?? false;
     // Use Omnisearch only when selected, available, and there's a query
     const useOmnisearch = searchProvider === 'omnisearch' && isOmnisearchAvailable && hasSearchQuery;
+    const hasTaskSearchFilters = useMemo(() => {
+        if (!trimmedQuery || useOmnisearch) {
+            return false;
+        }
+
+        const tokens = searchTokens ?? parseFilterSearchTokens(trimmedQuery);
+        if (!filterSearchHasActiveCriteria(tokens)) {
+            return false;
+        }
+
+        return tokens.requireUnfinishedTasks || tokens.excludeUnfinishedTasks;
+    }, [trimmedQuery, useOmnisearch, searchTokens]);
+    /**
+     * Optional folder scope passed to Omnisearch.
+     *
+     * Scope is only provided for folder selections because that is where
+     * Omnisearch can narrow results by path. Tag selections intentionally skip
+     * scope injection because tag views are not represented by a single folder
+     * path and may span unrelated locations in the vault.
+     *
+     * The service applies additional safety checks before injecting `path:"..."`.
+     * If the path is not considered safe, the query is executed unchanged.
+     */
+    const omnisearchPathScope = useMemo(() => {
+        if (selectionType !== ItemType.FOLDER || !selectedFolder) {
+            return undefined;
+        }
+        return selectedFolder.path;
+    }, [selectionType, selectedFolder]);
     const { hiddenFolders, hiddenFileProperties, hiddenFileNames, hiddenTags, hiddenFileTags, fileVisibility } = activeProfile;
+    const hiddenFilePropertyMatcher = useMemo(
+        () => createFrontmatterPropertyExclusionMatcher(hiddenFileProperties),
+        [hiddenFileProperties]
+    );
     const listConfig = useMemo(
         () => ({
             pinnedNotes: settings.pinnedNotes,
@@ -157,11 +218,15 @@ export function useListPaneData({
             showFileTags: settings.showFileTags,
             noteGrouping: settings.noteGrouping,
             folderAppearances: settings.folderAppearances,
-            tagAppearances: settings.tagAppearances
+            tagAppearances: settings.tagAppearances,
+            folderSortOrder: settings.folderSortOrder,
+            folderTreeSortOverrides: settings.folderTreeSortOverrides
         }),
         [
             settings.filterPinnedByFolder,
             settings.folderAppearances,
+            settings.folderSortOrder,
+            settings.folderTreeSortOverrides,
             settings.noteGrouping,
             settings.pinnedNotes,
             settings.showFileTags,
@@ -177,28 +242,34 @@ export function useListPaneData({
         }
         return getEffectiveSortOption(settings, ItemType.FOLDER, selectedFolder, selectedTag);
     }, [selectionType, selectedFolder, selectedTag, settings]);
+    const activePropertyFields = getActivePropertyFields(settings);
 
     /**
      * Calculate the base list of files based on current selection without search filtering.
      * Re-runs when selection changes or vault is modified.
      */
     const baseFiles = useMemo(() => {
-        let allFiles: TFile[] = [];
-
-        if (selectionType === ItemType.FOLDER && selectedFolder) {
-            allFiles = getFilesForFolder(selectedFolder, settings, visibility, app);
-        } else if (selectionType === ItemType.TAG && selectedTag) {
-            allFiles = getFilesForTag(selectedTag, settings, visibility, app, tagTreeService);
-        }
-
-        return allFiles;
-        // NOTE: Excluding getFilesForFolder/getFilesForTag - static imports
+        return getFilesForNavigationSelection(
+            {
+                selectionType,
+                selectedFolder,
+                selectedTag,
+                selectedProperty
+            },
+            settings,
+            visibility,
+            app,
+            tagTreeService,
+            propertyTreeService
+        );
+        // NOTE: Excluding getFilesForNavigationSelection - static import
         // updateKey triggers re-computation on storage updates
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         selectionType,
         selectedFolder,
         selectedTag,
+        selectedProperty,
         activeProfile.profile.id,
         activeProfile.hiddenFolders,
         activeProfile.hiddenFileProperties,
@@ -209,6 +280,7 @@ export function useListPaneData({
         settings.enableFolderNotes,
         settings.hideFolderNoteInList,
         settings.folderNoteName,
+        settings.folderNoteNamePattern,
         settings.useFrontmatterMetadata,
         settings.frontmatterNameField,
         settings.frontmatterCreatedField,
@@ -218,8 +290,12 @@ export function useListPaneData({
         settings.pinnedNotes,
         settings.defaultFolderSort,
         settings.propertySortKey,
+        settings.propertySortSecondary,
+        activePropertyFields,
+        settings.showProperties,
         settings.folderSortOverrides,
         settings.tagSortOverrides,
+        propertyTreeService,
         includeDescendantNotes,
         showHiddenItems,
         app,
@@ -260,7 +336,19 @@ export function useListPaneData({
         // Execute omnisearch
         runAsyncAction(async () => {
             try {
-                const hits = await omnisearchService.search(trimmedQuery);
+                // Pass folder scope to Omnisearch so path filtering can run inside
+                // Omnisearch's own ranking pipeline. This improves relevance when
+                // the vault has many global matches outside the current folder.
+                //
+                // The service only injects scope when:
+                // - no user `path:` filter is already present
+                // - the folder path passes ASCII/simple-path safety checks
+                //
+                // If those conditions are not met, this call behaves like the
+                // previous implementation and sends only `trimmedQuery`.
+                const hits = await omnisearchService.search(trimmedQuery, {
+                    pathScope: omnisearchPathScope
+                });
                 // Ignore stale results
                 if (disposed || searchTokenRef.current !== token) {
                     return;
@@ -268,6 +356,7 @@ export function useListPaneData({
 
                 const meta = new Map<string, SearchResultMeta>();
                 const orderedFiles: TFile[] = [];
+                const queryTokenContext = createOmnisearchHighlightQueryTokenContext(trimmedQuery);
 
                 for (const hit of hits) {
                     // Skip files outside the current view's scope
@@ -276,16 +365,8 @@ export function useListPaneData({
                     }
                     orderedFiles.push(hit.file);
 
-                    // Sanitize and normalize match data
-                    const matches = hit.matches
-                        .filter(match => typeof match.text === 'string' && match.text.length > 0)
-                        .map(match => ({
-                            offset: match.offset,
-                            length: match.length,
-                            text: match.text
-                        }));
-
-                    const terms = hit.foundWords.filter(word => typeof word === 'string' && word.length > 0);
+                    // Filter highlight tokens against the active query.
+                    const { matches, terms } = sanitizeOmnisearchHighlightTokens(hit.matches, hit.foundWords, queryTokenContext);
                     // Omnisearch excerpts are normalized on every search update; keep this cheap.
                     // HTML stripping is intentionally disabled regardless of stripHtmlInPreview to avoid
                     // additional per-keystroke processing on large excerpts.
@@ -311,7 +392,7 @@ export function useListPaneData({
         return () => {
             disposed = true;
         };
-    }, [useOmnisearch, omnisearchService, trimmedQuery, basePathSet]);
+    }, [useOmnisearch, omnisearchService, trimmedQuery, omnisearchPathScope, basePathSet]);
 
     // Rebuild the entire map when the baseFiles list or name provider changes
     useEffect(() => {
@@ -377,8 +458,16 @@ export function useListPaneData({
             return baseFiles;
         }
 
+        // Check if date filtering is needed and resolve which date field to use
+        const hasDateFilters = tokens.dateRanges.length > 0 || tokens.excludeDateRanges.length > 0;
+        const hasTaskFilters = tokens.requireUnfinishedTasks || tokens.excludeUnfinishedTasks;
+        const hasFolderFilters = tokens.folderTokens.length > 0 || tokens.excludeFolderTokens.length > 0;
+        const hasExtensionFilters = tokens.extensionTokens.length > 0 || tokens.excludeExtensionTokens.length > 0;
+        const defaultDateField = resolveDefaultDateField(sortOption, settings.alphabeticalDateMode ?? 'modified');
+
         // Check if we need to access tag metadata for any file
         const needsTagLookup = filterSearchNeedsTagLookup(tokens);
+        const needsPropertyLookup = filterSearchNeedsPropertyLookup(tokens);
         // Check if all inclusion clauses require files to have tags
         const requireTaggedMatches = filterSearchRequiresTagsForEveryMatch(tokens);
         const requiresNormalizedTagValues = tokens.mode === 'tag' || tokens.tagTokens.length > 0 || tokens.excludeTagTokens.length > 0;
@@ -388,6 +477,8 @@ export function useListPaneData({
         // Cache normalized tag arrays to avoid repeated string transformations
         const normalizedTagCache = new Map<string, string[]>();
         const emptyTags: string[] = [];
+        const normalizedPropertyCache = new Map<string, Map<string, string[]>>();
+        const emptyProperties = new Map<string, string[]>();
 
         // Get or compute normalized tags for a file path
         const resolveNormalizedTags = (path: string, rawTags: readonly string[]): string[] => {
@@ -400,15 +491,94 @@ export function useListPaneData({
             return normalized;
         };
 
+        const resolveNormalizedProperties = (
+            path: string,
+            properties: { fieldKey: string; value: string }[] | null
+        ): Map<string, string[]> => {
+            const cached = normalizedPropertyCache.get(path);
+            if (cached) {
+                return cached;
+            }
+
+            if (!properties || properties.length === 0) {
+                normalizedPropertyCache.set(path, emptyProperties);
+                return emptyProperties;
+            }
+
+            const normalizedValues = new Map<string, Set<string>>();
+            properties.forEach(entry => {
+                const normalizedKey = casefold(entry.fieldKey);
+                if (!normalizedKey) {
+                    return;
+                }
+
+                let values = normalizedValues.get(normalizedKey);
+                if (!values) {
+                    values = new Set<string>();
+                    normalizedValues.set(normalizedKey, values);
+                }
+
+                const normalizedValue = normalizePropertyTreeValuePath(entry.value);
+                if (!normalizedValue) {
+                    return;
+                }
+                values.add(normalizedValue);
+            });
+
+            const normalized = new Map<string, string[]>();
+            normalizedValues.forEach((values, key) => {
+                normalized.set(key, Array.from(values));
+            });
+
+            normalizedPropertyCache.set(path, normalized);
+            return normalized;
+        };
+
         const filteredByFilterSearch = baseFiles.filter(file => {
             const lowercaseName = searchableNames.get(file.path) || '';
+            const fileData = hasTaskFilters || needsTagLookup || needsPropertyLookup ? db.getFile(file.path) : null;
+            const hasUnfinishedTasks = hasTaskFilters && typeof fileData?.taskUnfinished === 'number' && fileData.taskUnfinished > 0;
+            const needsMatchOptions = hasTaskFilters || hasFolderFilters || hasExtensionFilters;
+            let matchOptions: FilterSearchMatchOptions | undefined;
+            if (needsMatchOptions) {
+                matchOptions = { hasUnfinishedTasks };
+
+                if (hasFolderFilters) {
+                    matchOptions.lowercaseFolderPath = (file.parent?.path ?? '').toLowerCase();
+                }
+
+                if (hasExtensionFilters) {
+                    matchOptions.lowercaseExtension = file.extension.toLowerCase();
+                }
+            }
+
+            if (needsPropertyLookup) {
+                const propertyValuesByKey = resolveNormalizedProperties(file.path, fileData?.properties ?? null);
+                if (matchOptions) {
+                    matchOptions = { ...matchOptions, propertyValuesByKey };
+                } else {
+                    matchOptions = { hasUnfinishedTasks, propertyValuesByKey };
+                }
+            }
 
             // Skip tag lookup if tokens do not reference tags
             if (!needsTagLookup) {
-                return fileMatchesFilterTokens(lowercaseName, emptyTags, tokens);
+                if (!fileMatchesFilterTokens(lowercaseName, emptyTags, tokens, matchOptions)) {
+                    return false;
+                }
+
+                if (!hasDateFilters) {
+                    return true;
+                }
+
+                const timestamps = getFileTimestamps(file);
+                return fileMatchesDateFilterTokens(
+                    { created: timestamps.created, modified: timestamps.modified, defaultField: defaultDateField },
+                    tokens
+                );
             }
 
-            const rawTags = getCachedFileTags({ app, file, db });
+            const rawTags = getCachedFileTags({ app, file, db, fileData });
             const hasTags = rawTags.length > 0;
 
             // Early return if file must have tags but has none
@@ -425,12 +595,36 @@ export function useListPaneData({
                 lowercaseTags = TAG_PRESENCE_SENTINEL;
             }
 
-            return fileMatchesFilterTokens(lowercaseName, lowercaseTags, tokens);
+            if (!fileMatchesFilterTokens(lowercaseName, lowercaseTags, tokens, matchOptions)) {
+                return false;
+            }
+
+            if (!hasDateFilters) {
+                return true;
+            }
+
+            const timestamps = getFileTimestamps(file);
+            return fileMatchesDateFilterTokens(
+                { created: timestamps.created, modified: timestamps.modified, defaultField: defaultDateField },
+                tokens
+            );
         });
 
         // Return the filtered results from the internal filter search
         return filteredByFilterSearch;
-    }, [useOmnisearch, trimmedQuery, baseFiles, searchableNames, omnisearchResult, getDB, searchTokens, app]);
+    }, [
+        useOmnisearch,
+        trimmedQuery,
+        baseFiles,
+        searchableNames,
+        omnisearchResult,
+        getDB,
+        getFileTimestamps,
+        searchTokens,
+        sortOption,
+        settings.alphabeticalDateMode,
+        app
+    ]);
 
     // Builds map of file paths that are normally hidden but shown via "show hidden items"
     const hiddenFileState = useMemo(() => {
@@ -441,7 +635,7 @@ export function useListPaneData({
         const db = getDB();
         const records = db.getFiles(files.map(file => file.path));
         const shouldCheckFolders = hiddenFolders.length > 0;
-        const shouldCheckFrontmatter = hiddenFileProperties.length > 0;
+        const shouldCheckFrontmatter = hiddenFilePropertyMatcher.hasCriteria;
         const shouldCheckFileNames = hiddenFileNames.length > 0;
         const shouldCheckFileTags = hiddenFileTags.length > 0;
         const fileNameMatcher = shouldCheckFileNames ? createHiddenFileNameMatcher(hiddenFileNames) : null;
@@ -467,7 +661,7 @@ export function useListPaneData({
             let hiddenByFrontmatter = false;
             if (shouldCheckFrontmatter && file.extension === 'md') {
                 if (record?.metadata?.hidden === undefined) {
-                    hiddenByFrontmatter = shouldExcludeFile(file, hiddenFileProperties, app);
+                    hiddenByFrontmatter = shouldExcludeFileWithMatcher(file, hiddenFilePropertyMatcher, app);
                 } else {
                     hiddenByFrontmatter = Boolean(record.metadata?.hidden);
                 }
@@ -488,7 +682,7 @@ export function useListPaneData({
         });
 
         return result;
-    }, [files, getDB, hiddenFolders, hiddenFileProperties, hiddenFileNames, hiddenFileTags, showHiddenItems, app]);
+    }, [files, getDB, hiddenFolders, hiddenFilePropertyMatcher, hiddenFileNames, hiddenFileTags, showHiddenItems, app]);
 
     /**
      * Build the complete list of items for rendering, including:
@@ -515,9 +709,15 @@ export function useListPaneData({
         });
 
         // Determine context filter based on selection type
-        // selectionType can be FOLDER, TAG, FILE, or null - we only use FOLDER and TAG for pinned context
+        // selectionType can be FOLDER, TAG, PROPERTY, FILE, or null - only context-backed types are used for pinned filtering
         const contextFilter =
-            selectionType === ItemType.TAG ? ItemType.TAG : selectionType === ItemType.FOLDER ? ItemType.FOLDER : undefined;
+            selectionType === ItemType.TAG
+                ? ItemType.TAG
+                : selectionType === ItemType.FOLDER
+                  ? ItemType.FOLDER
+                  : selectionType === ItemType.PROPERTY
+                    ? ItemType.PROPERTY
+                    : undefined;
         const restrictToFolderPath =
             listConfig.filterPinnedByFolder && selectionType === ItemType.FOLDER && selectedFolder ? selectedFolder.path : undefined;
         const pinnedPaths = collectPinnedPaths(
@@ -616,12 +816,15 @@ export function useListPaneData({
             });
         } else if (shouldGroupByDate) {
             // Group by date
+            const now = DateUtils.parseLocalDayKey(dayKey) ?? new Date();
+            const dateField = getDateField(sortOption);
+
             let currentGroup: string | null = null;
             unpinnedFiles.forEach(file => {
-                const dateField = getDateField(sortOption);
                 // Get timestamp based on sort field (created or modified)
-                const timestamp = dateField === 'ctime' ? getFileCreatedTime(file) : getFileModifiedTime(file);
-                const groupTitle = DateUtils.getDateGroup(timestamp);
+                const timestamps = getFileTimestamps(file);
+                const timestamp = dateField === 'ctime' ? timestamps.created : timestamps.modified;
+                const groupTitle = DateUtils.getDateGroup(timestamp, now);
 
                 if (groupTitle !== currentGroup) {
                     currentGroup = groupTitle;
@@ -640,24 +843,32 @@ export function useListPaneData({
             const baseFolderName = selectedFolder?.name ?? null;
             const basePrefix = baseFolderPath ? `${baseFolderPath}/` : null;
             const vaultRootLabel = strings.navigationPane.vaultRootLabel;
-            const vaultRootSortKey = `0-${vaultRootLabel.toLowerCase()}`;
+            const folderGroupSortOrder = resolveFolderChildSortOrder(
+                {
+                    folderSortOrder: listConfig.folderSortOrder,
+                    folderTreeSortOverrides: listConfig.folderTreeSortOverrides
+                },
+                baseFolderPath ?? '/'
+            );
             // Map of folder key to group metadata and files
             const folderGroups = new Map<
                 string,
                 {
                     label: string;
-                    sortKey: string;
                     files: TFile[];
                     isCurrentFolder: boolean;
+                    folderPath: string | null;
                 }
             >();
 
             // Determines which folder group a file belongs to based on its parent path
-            const resolveFolderGroup = (file: TFile): { key: string; label: string; sortKey: string; isCurrentFolder: boolean } => {
+            const resolveFolderGroup = (
+                file: TFile
+            ): { key: string; label: string; isCurrentFolder: boolean; folderPath: string | null } => {
                 const parent = file.parent;
                 // Files at vault root
                 if (!(parent instanceof TFolder)) {
-                    return { key: 'folder:/', label: vaultRootLabel, sortKey: vaultRootSortKey, isCurrentFolder: false };
+                    return { key: 'folder:/', label: vaultRootLabel, isCurrentFolder: false, folderPath: null };
                 }
 
                 // When viewing a folder, group by immediate parent folder
@@ -665,7 +876,13 @@ export function useListPaneData({
                     // Files directly in the selected folder
                     if (parent.path === baseFolderPath) {
                         const label = baseFolderName ?? parent.name;
-                        return { key: `folder:${baseFolderPath}`, label, sortKey: `0-${label.toLowerCase()}`, isCurrentFolder: true };
+                        const folderPath = baseFolderPath === '/' ? null : baseFolderPath;
+                        return {
+                            key: `folder:${baseFolderPath}`,
+                            label,
+                            isCurrentFolder: true,
+                            folderPath
+                        };
                     }
                     // Files in subfolders - group by first level subfolder name
                     if (basePrefix && parent.path.startsWith(basePrefix)) {
@@ -673,11 +890,14 @@ export function useListPaneData({
                         const [firstSegment] = relativePath.split('/');
                         if (firstSegment && firstSegment.length > 0) {
                             const label = firstSegment;
+                            const folderPath = normalizePath(
+                                !baseFolderPath || baseFolderPath === '/' ? label : `${baseFolderPath}/${label}`
+                            );
                             return {
                                 key: `folder:${baseFolderPath}/${label}`,
                                 label,
-                                sortKey: `1-${label.toLowerCase()}`,
-                                isCurrentFolder: false
+                                isCurrentFolder: false,
+                                folderPath
                             };
                         }
                     }
@@ -688,34 +908,38 @@ export function useListPaneData({
                 const [topLevel] = parentPath.split('/');
                 if (topLevel && topLevel.length > 0) {
                     const label = topLevel;
-                    return { key: `folder:/${label}`, label, sortKey: `1-${label.toLowerCase()}`, isCurrentFolder: false };
+                    return {
+                        key: `folder:/${label}`,
+                        label,
+                        isCurrentFolder: false,
+                        folderPath: topLevel
+                    };
                 }
 
                 // Fallback to vault root
-                return { key: 'folder:/', label: vaultRootLabel, sortKey: vaultRootSortKey, isCurrentFolder: false };
+                return { key: 'folder:/', label: vaultRootLabel, isCurrentFolder: false, folderPath: null };
             };
 
             // Collect files into folder groups
             unpinnedFiles.forEach(file => {
-                const { key, label, sortKey, isCurrentFolder } = resolveFolderGroup(file);
+                const { key, label, isCurrentFolder, folderPath } = resolveFolderGroup(file);
                 let group = folderGroups.get(key);
                 if (!group) {
-                    group = { label, sortKey, files: [], isCurrentFolder };
+                    group = { label, files: [], isCurrentFolder, folderPath };
                     folderGroups.set(key, group);
                 }
                 group.files.push(file);
             });
 
-            // Sort groups by sort key, then alphabetically by label
+            // Sort groups using the selected folder's child-folder order.
             const orderedGroups = Array.from(folderGroups.entries())
                 .map(([key, group]) => ({ key, ...group }))
                 .sort((a, b) => {
-                    const sortKeyCompare = naturalCompare(a.sortKey, b.sortKey);
-                    if (sortKeyCompare !== 0) {
-                        return sortKeyCompare;
+                    if (a.isCurrentFolder !== b.isCurrentFolder) {
+                        return a.isCurrentFolder ? -1 : 1;
                     }
 
-                    const labelCompare = naturalCompare(a.label, b.label);
+                    const labelCompare = compareByAlphaSortOrder(a.label, b.label, folderGroupSortOrder);
                     if (labelCompare !== 0) {
                         return labelCompare;
                     }
@@ -736,6 +960,7 @@ export function useListPaneData({
                     items.push({
                         type: ListPaneItemType.HEADER,
                         data: group.label,
+                        headerFolderPath: group.folderPath,
                         key: `header-${group.key}`
                     });
                 }
@@ -761,8 +986,7 @@ export function useListPaneData({
         selectionType,
         selectedFolder,
         selectedTag,
-        getFileCreatedTime,
-        getFileModifiedTime,
+        getFileTimestamps,
         searchMetaMap,
         sortOption,
         getDB,
@@ -770,7 +994,8 @@ export function useListPaneData({
         showHiddenItems,
         fileVisibility,
         hiddenTags,
-        app
+        app,
+        dayKey
     ]);
 
     /**
@@ -838,16 +1063,16 @@ export function useListPaneData({
         );
 
         // Track ongoing batch operations (move/delete) and defer UI refreshes
-        const operationActiveRef = { current: false } as { current: boolean };
-        const pendingRefreshRef = { current: false } as { current: boolean };
+        const operationActiveRef: { current: boolean } = { current: false };
+        const pendingRefreshRef: { current: boolean } = { current: false };
 
         // Helper to flush pending updates when operations have settled
         const flushPendingWhenIdle = () => {
             if (!pendingRefreshRef.current) return;
             if (!operationActiveRef.current) {
                 pendingRefreshRef.current = false;
-                // Run any pending scheduled refresh immediately
-                scheduleRefresh.run();
+                // Queue a refresh after operation completion.
+                scheduleRefresh();
             }
         };
 
@@ -861,10 +1086,27 @@ export function useListPaneData({
                 }
             });
         }
+        let unsubscribePropertyTree: (() => void) | null = null;
+        if (selectionType === ItemType.PROPERTY && selectedProperty && propertyTreeService) {
+            unsubscribePropertyTree = propertyTreeService.addTreeUpdateListener(() => {
+                if (operationActiveRef.current) {
+                    pendingRefreshRef.current = true;
+                    return;
+                }
+                scheduleRefresh();
+            });
+        }
 
-        const isModifiedSort = sortOption.startsWith('modified');
-        const propertySortKey = settings.propertySortKey.trim();
-        const shouldRefreshOnMetadataChange = isPropertySortOption(sortOption) && propertySortKey.length > 0;
+        const shouldRefreshOnFileModify = shouldRefreshOnFileModifyForSort(sortOption, settings.propertySortSecondary);
+        const shouldRefreshOnMetadataChange = shouldRefreshOnMetadataChangeForSort({
+            sortOption,
+            propertySortKey: settings.propertySortKey,
+            propertySortSecondary: settings.propertySortSecondary,
+            useFrontmatterMetadata: settings.useFrontmatterMetadata,
+            frontmatterNameField: settings.frontmatterNameField,
+            frontmatterCreatedField: settings.frontmatterCreatedField,
+            frontmatterModifiedField: settings.frontmatterModifiedField
+        });
 
         const vaultEvents = [
             app.vault.on('create', () => {
@@ -889,7 +1131,7 @@ export function useListPaneData({
                 }
             }),
             app.vault.on('modify', file => {
-                if (!isModifiedSort) {
+                if (!shouldRefreshOnFileModify) {
                     return;
                 }
                 if (!(file instanceof TFile)) {
@@ -939,17 +1181,32 @@ export function useListPaneData({
                     scheduleRefresh();
                 }
                 return;
+            } else if (selectionType === ItemType.PROPERTY && selectedProperty) {
+                if (file.extension !== 'md') {
+                    return;
+                }
+
+                if (!basePathSet.has(file.path)) {
+                    return;
+                }
+
+                if (operationActiveRef.current) {
+                    pendingRefreshRef.current = true;
+                } else {
+                    scheduleRefresh();
+                }
+                return;
             } else {
                 // Ignore metadata changes when nothing is selected
                 return;
             }
 
             // Check if file's hidden state changed (frontmatter property added/removed) to trigger rebuild
-            if (hiddenFileProperties.length > 0 && file.extension === 'md') {
+            if (hiddenFilePropertyMatcher.hasCriteria && file.extension === 'md') {
                 const db = getDB();
                 const record = db.getFile(file.path);
                 const wasExcluded = Boolean(record?.metadata?.hidden);
-                const isCurrentlyExcluded = shouldExcludeFile(file, hiddenFileProperties, app);
+                const isCurrentlyExcluded = shouldExcludeFileWithMatcher(file, hiddenFilePropertyMatcher, app);
 
                 if (isCurrentlyExcluded !== wasExcluded) {
                     if (operationActiveRef.current) {
@@ -981,19 +1238,22 @@ export function useListPaneData({
             return;
         });
 
-        // Listen for tag and metadata changes from database
+        // Listen for tag/property and metadata changes from database
         const db = getDB();
         const dbUnsubscribe = db.onContentChange(changes => {
             let shouldRefresh = false;
+            const isPropertyView = selectionType === ItemType.PROPERTY && selectedProperty;
 
-            // React to tag changes that affect the current view
-            if (changes.some(change => change.changes.tags !== undefined)) {
+            // React to tag/property changes that affect the current view
+            const hasTagChanges = changes.some(change => change.changes.tags !== undefined);
+            const hasPropertyChanges = changes.some(change => change.changes.properties !== undefined);
+            if (hasTagChanges || hasPropertyChanges) {
                 const isTagView = selectionType === ItemType.TAG && selectedTag;
                 const isFolderView = selectionType === ItemType.FOLDER && selectedFolder;
 
-                if (isTagView) {
+                if (isTagView && hasTagChanges) {
                     shouldRefresh = true;
-                } else if (isFolderView) {
+                } else if (isFolderView && hasTagChanges) {
                     const folderPath = selectedFolder.path;
                     const isRootSelection = folderPath === '/';
                     const shouldCheckFolderScope = hiddenFileTags.length > 0;
@@ -1011,15 +1271,30 @@ export function useListPaneData({
                         }
                         return change.path.startsWith(`${folderPath}/`);
                     });
+                } else if (isPropertyView) {
+                    if (hasPropertyChanges) {
+                        shouldRefresh = true;
+                    } else if (hasTagChanges) {
+                        const hasTagChangesInCurrentList = changes.some(change => basePathSet.has(change.path));
+                        const shouldRefreshForTagVisibility = hiddenFileTags.length > 0 && !showHiddenItems;
+                        shouldRefresh = hasTagChangesInCurrentList || shouldRefreshForTagVisibility;
+                    }
                 }
             }
 
             // React to metadata changes that may update hidden-state styling
-            if (!shouldRefresh && hiddenFileProperties.length > 0 && showHiddenItems) {
+            if (!shouldRefresh && hiddenFilePropertyMatcher.hasCriteria && showHiddenItems) {
                 const metadataPaths = changes.filter(change => change.changes.metadata !== undefined).map(change => change.path);
                 if (metadataPaths.length > 0) {
                     shouldRefresh = metadataPaths.some(path => basePathSet.has(path));
                 }
+            }
+
+            // React to task counter changes when task filters are active in the search query
+            if (!shouldRefresh && hasTaskSearchFilters) {
+                shouldRefresh = changes.some(change => {
+                    return change.changes.taskUnfinished !== undefined && basePathSet.has(change.path);
+                });
             }
 
             if (!shouldRefresh) {
@@ -1038,6 +1313,7 @@ export function useListPaneData({
             app.metadataCache.offref(metadataEvent);
             dbUnsubscribe();
             if (unsubscribeCQ) unsubscribeCQ();
+            if (unsubscribePropertyTree) unsubscribePropertyTree();
             // Cancel any pending scheduled refresh to avoid stray updates
             scheduleRefresh.cancel();
         };
@@ -1046,16 +1322,25 @@ export function useListPaneData({
         selectionType,
         selectedTag,
         selectedFolder,
+        selectedProperty,
         includeDescendantNotes,
-        hiddenFileProperties,
+        hiddenFilePropertyMatcher,
         hiddenFolders,
         hiddenFileTags,
         showHiddenItems,
+        hasTaskSearchFilters,
         getDB,
         commandQueue,
+        propertyTreeService,
         basePathSet,
         sortOption,
-        settings.propertySortKey
+        settings.propertySortKey,
+        settings.propertySortSecondary,
+        settings.useFrontmatterMetadata,
+        settings.frontmatterNameField,
+        settings.frontmatterCreatedField,
+        settings.frontmatterModifiedField,
+        settings.frontmatterDateFormat
     ]);
 
     return {
@@ -1065,6 +1350,7 @@ export function useListPaneData({
         filePathToIndex,
         fileIndexMap,
         files,
-        searchMeta: searchMetaMap
+        searchMeta: searchMetaMap,
+        localDayKey: dayKey
     };
 }

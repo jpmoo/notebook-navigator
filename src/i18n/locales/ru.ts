@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,6 @@ export const STRINGS_RU = {
         clipboardWriteError: 'Не удалось записать в буфер обмена',
         updateBannerTitle: 'Доступно обновление Notebook Navigator',
         updateBannerInstruction: 'Обновите в Настройки -> Сторонние плагины',
-        updateIndicatorLabel: 'Доступна новая версия',
         previous: 'Назад', // Generic aria label for previous navigation (English: Previous)
         next: 'Вперёд' // Generic aria label for next navigation (English: Next)
     },
@@ -61,6 +60,7 @@ export const STRINGS_RU = {
         shortcutsHeader: 'Ярлыки', // Header label for shortcuts section in navigation pane (English: Shortcuts)
         recentNotesHeader: 'Недавние заметки', // Header label for recent notes section in navigation pane (English: Recent notes)
         recentFilesHeader: 'Недавние файлы', // Header label when showing recent non-note files in navigation pane (English: Recent files)
+        properties: 'Свойства',
         reorderRootFoldersTitle: 'Изменить порядок навигации',
         reorderRootFoldersHint: 'Используйте стрелки или перетаскивание',
         vaultRootLabel: 'Хранилище',
@@ -82,6 +82,16 @@ export const STRINGS_RU = {
             title: 'Новая ежедневная заметка',
             message: 'Файл {filename} не существует. Хотите создать его?',
             confirmButton: 'Создать'
+        },
+        helpModal: {
+            title: 'Горячие клавиши календаря',
+            items: [
+                'Нажмите на любой день, чтобы открыть или создать ежедневную заметку. Недели, месяцы, кварталы и годы работают таким же образом.',
+                'Закрашенная точка под днём означает наличие заметки. Пустая точка означает наличие незавершённых задач.',
+                'Если у заметки есть изображение-обложка, оно отображается как фон дня.'
+            ],
+            dateFilterCmdCtrl: '`Cmd/Ctrl`+клик по дате для фильтрации по этой дате в списке файлов.',
+            dateFilterOptionAlt: '`Option/Alt`+клик по дате для фильтрации по этой дате в списке файлов.'
         }
     },
 
@@ -94,6 +104,8 @@ export const STRINGS_RU = {
         folderExists: 'Папка уже в ярлыках',
         noteExists: 'Заметка уже в ярлыках',
         tagExists: 'Тег уже в ярлыках',
+        propertyExists: 'Свойство уже в закладках',
+        invalidProperty: 'Недопустимая закладка свойства',
         searchExists: 'Ярлык поиска уже существует',
         emptySearchQuery: 'Введите поисковый запрос перед сохранением',
         emptySearchName: 'Введите название перед сохранением поиска',
@@ -137,10 +149,107 @@ export const STRINGS_RU = {
         placeholder: 'Поиск...', // Placeholder text for search input (English: Search...)
         placeholderOmnisearch: 'Omnisearch...', // Placeholder text when Omnisearch provider is active (English: Omnisearch...)
         clearSearch: 'Очистить поиск', // Tooltip for clear search button (English: Clear search)
+        switchToFilterSearch: 'Переключить на поиск с фильтром',
+        switchToOmnisearch: 'Переключить на Omnisearch',
         saveSearchShortcut: 'Сохранить ярлык поиска',
         removeSearchShortcut: 'Удалить ярлык поиска',
         shortcutModalTitle: 'Сохранить ярлык поиска',
-        shortcutNamePlaceholder: 'Введите название ярлыка'
+        shortcutNamePlaceholder: 'Введите название ярлыка',
+        shortcutStartIn: 'Всегда начинать в: {path}',
+        searchHelp: 'Синтаксис поиска',
+        searchHelpTitle: 'Синтаксис поиска',
+        searchHelpModal: {
+            intro: 'Комбинируйте имена файлов, свойства, теги, даты и фильтры в одном запросе (напр. `meeting .status=active #work @thisweek`). Установите плагин Omnisearch для полнотекстового поиска.',
+            introSwitching:
+                'Переключайтесь между поиском по фильтру и Omnisearch с помощью клавиш стрелок вверх/вниз или нажав на значок поиска.',
+            sections: {
+                fileNames: {
+                    title: 'Имена файлов',
+                    items: [
+                        '`word` Найти заметки со словом "word" в имени файла.',
+                        '`word1 word2` Каждое слово должно соответствовать имени файла.',
+                        '`-word` Исключить заметки со словом "word" в имени файла.'
+                    ]
+                },
+                tags: {
+                    title: 'Теги',
+                    items: [
+                        '`#tag` Включить заметки с тегом (также находит вложенные теги как `#tag/subtag`).',
+                        '`#` Включить только заметки с тегами.',
+                        '`-#tag` Исключить заметки с тегом.',
+                        '`-#` Включить только заметки без тегов.',
+                        '`#tag1 #tag2` Найти оба тега (неявное AND).',
+                        '`#tag1 AND #tag2` Найти оба тега (явное AND).',
+                        '`#tag1 OR #tag2` Найти любой из тегов.',
+                        '`#a OR #b AND #c` AND имеет больший приоритет: находит `#a`, или оба `#b` и `#c`.',
+                        'Cmd/Ctrl+Клик по тегу для добавления с AND. Cmd/Ctrl+Shift+Клик для добавления с OR.'
+                    ]
+                },
+                properties: {
+                    title: 'Свойства',
+                    items: [
+                        '`.key` Включить заметки с ключом свойства.',
+                        '`.key=value` Включить заметки с значением свойства.',
+                        '`."Reading Status"` Включить заметки с ключом свойства, содержащим пробелы.',
+                        '`."Reading Status"="In Progress"` Ключи и значения с пробелами должны быть заключены в двойные кавычки.',
+                        '`-.key` Исключить заметки с ключом свойства.',
+                        '`-.key=value` Исключить заметки с значением свойства.',
+                        'Cmd/Ctrl+Клик по свойству для добавления с AND. Cmd/Ctrl+Shift+Клик для добавления с OR.'
+                    ]
+                },
+                tasks: {
+                    title: 'Фильтры',
+                    items: [
+                        '`has:task` Включить заметки с незавершёнными задачами.',
+                        '`-has:task` Исключить заметки с незавершёнными задачами.',
+                        '`folder:meetings` Включить заметки, где имя папки содержит `meetings`.',
+                        '`folder:/work/meetings` Включить заметки только в `work/meetings` (не подпапки).',
+                        '`folder:/` Включить заметки только в корне хранилища.',
+                        '`-folder:archive` Исключить заметки, где имя папки содержит `archive`.',
+                        '`-folder:/archive` Исключить заметки только в `archive` (не подпапки).',
+                        '`ext:md` Включить заметки с расширением `md` (`ext:.md` также поддерживается).',
+                        '`-ext:pdf` Исключить заметки с расширением `pdf`.',
+                        'Комбинируйте с тегами, именами и датами (например: `folder:/work/meetings ext:md @thisweek`).'
+                    ]
+                },
+                connectors: {
+                    title: 'Поведение AND/OR',
+                    items: [
+                        '`AND` и `OR` являются операторами только в запросах, состоящих исключительно из тегов и свойств.',
+                        'Запросы только с тегами и свойствами содержат только фильтры тегов и свойств: `#tag`, `-#tag`, `#`, `-#`, `.key`, `-.key`, `.key=value`, `-.key=value`.',
+                        'Если запрос включает имена, даты (`@...`), фильтры задач (`has:task`), фильтры папок (`folder:...`) или фильтры расширений (`ext:...`), `AND` и `OR` ищутся как слова.',
+                        'Пример запроса с операторами: `#work OR .status=started`.',
+                        'Пример смешанного запроса: `#work OR ext:md` (`OR` ищется в именах файлов).'
+                    ]
+                },
+                dates: {
+                    title: 'Даты',
+                    items: [
+                        '`@today` Найти заметки за сегодня, используя поле даты по умолчанию.',
+                        '`@yesterday`, `@last7d`, `@last30d`, `@thisweek`, `@thismonth` Относительные диапазоны дат.',
+                        '`@2026-02-07` Найти конкретный день (также поддерживает `@20260207`).',
+                        '`@2026` Найти календарный год.',
+                        '`@2026-02` или `@202602` Найти календарный месяц.',
+                        '`@2026-W05` или `@2026W05` Найти ISO-неделю.',
+                        '`@2026-Q2` или `@2026Q2` Найти календарный квартал.',
+                        '`@13/02/2026` Числовые форматы с разделителями (`@07022026` следует вашей локали при неоднозначности).',
+                        '`@2026-02-01..2026-02-07` Найти включительный диапазон дней (открытые концы поддерживаются).',
+                        '`@c:...` или `@m:...` Указать дату создания или изменения.',
+                        '`-@...` Исключить совпадение даты.'
+                    ]
+                },
+                omnisearch: {
+                    title: 'Omnisearch',
+                    items: [
+                        'Полнотекстовый поиск по всему хранилищу с фильтрацией по текущей папке или выбранным тегам.',
+                        'Может быть медленным при менее чем 3 символах в больших хранилищах.',
+                        'Не может искать пути с не-ASCII символами или корректно искать подпути.',
+                        'Возвращает ограниченные результаты до фильтрации по папкам, поэтому релевантные файлы могут не отобразиться, если много совпадений в других местах.',
+                        'Превью заметок показывают фрагменты Omnisearch вместо текста превью по умолчанию.'
+                    ]
+                }
+            }
+        }
     },
 
     // Context menus
@@ -216,6 +325,11 @@ export const STRINGS_RU = {
             changeBackground: 'Изменить фон',
             showTag: 'Показать тег',
             hideTag: 'Скрыть тег'
+        },
+        property: {
+            addKey: 'Настроить ключи свойств',
+            renameKey: 'Переименовать свойство',
+            deleteKey: 'Удалить свойство'
         },
         navigation: {
             addSeparator: 'Добавить разделитель',
@@ -295,11 +409,14 @@ export const STRINGS_RU = {
                 'list-new-note': 'Новая заметка',
                 'nav-folder-open': 'Папка открыта',
                 'nav-folder-closed': 'Папка закрыта',
-                'nav-folder-note': 'Заметка папки',
+                'nav-tags': 'Теги',
                 'nav-tag': 'Тег',
+                'nav-properties': 'Свойства',
+                'nav-property': 'Свойство',
+                'nav-property-value': 'Значение',
                 'list-pinned': 'Закреплённые элементы',
-                'file-word-count': 'Количество слов',
-                'file-custom-property': 'Пользовательское свойство'
+                'file-unfinished-task': 'Незавершённые задачи',
+                'file-word-count': 'Количество слов'
             }
         },
         colorPicker: {
@@ -342,11 +459,37 @@ export const STRINGS_RU = {
             confirmRename: 'Переименовать тег',
             renameUnchanged: '{tag} не изменён',
             renameNoChanges: '{oldTag} → {newTag} ({countLabel})',
+            renameBatchNotFinalized: 'Переименовано {renamed}/{total}. Не обновлено: {notUpdated}. Метаданные и ярлыки не были обновлены.',
             invalidTagName: 'Введите корректное название тега.',
             descendantRenameError: 'Нельзя переместить тег в себя или в потомка.',
             confirmDelete: 'Удалить тег',
+            deleteBatchNotFinalized: 'Удалено из {removed}/{total}. Не обновлено: {notUpdated}. Метаданные и ярлыки не были обновлены.',
+            checkConsoleForDetails: 'Подробности в консоли.',
             file: 'файл',
-            files: 'файлов'
+            files: 'файлов',
+            inlineParsingWarning: {
+                title: 'Совместимость встроенных тегов',
+                message: '{tag} содержит символы, которые Obsidian не может обработать во встроенных тегах. Теги Frontmatter не затронуты.',
+                confirm: 'Всё равно использовать'
+            }
+        },
+        propertyOperation: {
+            renameTitle: 'Переименовать свойство {property}',
+            deleteTitle: 'Удалить свойство {property}',
+            newKeyPrompt: 'Новое имя свойства',
+            newKeyPlaceholder: 'Введите новое имя свойства',
+            renameWarning: 'Переименование свойства {property} изменит {count} {files}.',
+            renameConflictWarning:
+                'Свойство {newKey} уже существует в {count} {files}. Переименование {oldKey} заменит существующие значения {newKey}.',
+            deleteWarning: 'Удаление свойства {property} изменит {count} {files}.',
+            confirmRename: 'Переименовать свойство',
+            confirmDelete: 'Удалить свойство',
+            renameNoChanges: '{oldKey} → {newKey} (без изменений)',
+            renameSettingsUpdateFailed: 'Свойство {oldKey} → {newKey} переименовано. Не удалось обновить настройки.',
+            deleteSingleSuccess: 'Свойство {property} удалено из 1 заметки',
+            deleteMultipleSuccess: 'Свойство {property} удалено из {count} заметок',
+            deleteSettingsUpdateFailed: 'Свойство {property} удалено. Не удалось обновить настройки.',
+            invalidKeyName: 'Введите допустимое имя свойства.'
         },
         fileSystem: {
             newFolderTitle: 'Новая папка',
@@ -354,6 +497,7 @@ export const STRINGS_RU = {
             renameFileTitle: 'Переименовать файл',
             deleteFolderTitle: "Удалить '{name}'?",
             deleteFileTitle: "Удалить '{name}'?",
+            deleteFileAttachmentsTitle: 'Удалить вложения файла?',
             folderNamePrompt: 'Введите название папки:',
             hideInOtherVaultProfiles: 'Скрыть в других профилях хранилища',
             renamePrompt: 'Введите новое название:',
@@ -361,6 +505,10 @@ export const STRINGS_RU = {
             renameVaultPrompt: 'Введите пользовательское имя (оставьте пустым для использования по умолчанию):',
             deleteFolderConfirm: 'Вы уверены, что хотите удалить эту папку и всё её содержимое?',
             deleteFileConfirm: 'Вы уверены, что хотите удалить этот файл?',
+            deleteFileAttachmentsDescriptionSingle: 'Это вложение больше не используется ни в одной заметке. Хотите его удалить?',
+            deleteFileAttachmentsDescriptionMultiple: 'Эти вложения больше не используются ни в одной заметке. Хотите их удалить?',
+            deleteFileAttachmentsViewFileTreeAriaLabel: 'Дерево файлов',
+            deleteFileAttachmentsViewGalleryAriaLabel: 'Галерея',
             removeAllTagsTitle: 'Удалить все теги',
             removeAllTagsFromNote: 'Вы уверены, что хотите удалить все теги из этой заметки?',
             removeAllTagsFromNotes: 'Вы уверены, что хотите удалить все теги из {count} заметок?'
@@ -417,6 +565,26 @@ export const STRINGS_RU = {
                 remove: 'для удаления тега'
             }
         },
+        propertySuggest: {
+            placeholder: 'Выберите ключ свойства...',
+            navigatePlaceholder: 'Перейти к свойству...',
+            instructions: {
+                navigate: 'для навигации',
+                select: 'для добавления свойства',
+                dismiss: 'для закрытия'
+            }
+        },
+        propertyKeyVisibility: {
+            title: 'Видимость ключей свойств',
+            searchPlaceholder: 'Поиск ключей свойств...',
+            propertyColumnLabel: 'Свойство',
+            showInNavigation: 'Показать в навигации',
+            showInList: 'Показать в списке',
+            toggleAllInNavigation: 'Переключить все в навигации',
+            toggleAllInList: 'Переключить все в списке',
+            applyButton: 'Применить',
+            emptyState: 'Ключи свойств не найдены.'
+        },
         welcome: {
             title: 'Добро пожаловать в {pluginName}',
             introText:
@@ -439,6 +607,7 @@ export const STRINGS_RU = {
             renameFile: 'Не удалось переименовать файл: {error}',
             deleteFolder: 'Не удалось удалить папку: {error}',
             deleteFile: 'Не удалось удалить файл: {error}',
+            deleteAttachments: 'Не удалось удалить вложения: {error}',
             duplicateNote: 'Не удалось дублировать заметку: {error}',
             duplicateFolder: 'Не удалось дублировать папку: {error}',
             openVersionHistory: 'Не удалось открыть историю версий: {error}',
@@ -489,7 +658,11 @@ export const STRINGS_RU = {
             noTagsToRemove: 'Нет тегов для удаления',
             noFilesSelected: 'Файлы не выбраны',
             tagOperationsNotAvailable: 'Операции с тегами недоступны',
+            propertyOperationsNotAvailable: 'Операции со свойствами недоступны',
             tagsRequireMarkdown: 'Теги поддерживаются только для Markdown-заметок',
+            propertiesRequireMarkdown: 'Свойства поддерживаются только в заметках Markdown',
+            propertySetOnNote: 'Свойство обновлено в 1 заметке',
+            propertySetOnNotes: 'Свойство обновлено в {count} заметках',
             iconPackDownloaded: '{provider} загружен',
             iconPackUpdated: '{provider} обновлён ({version})',
             iconPackRemoved: '{provider} удалён',
@@ -512,6 +685,7 @@ export const STRINGS_RU = {
             itemAlreadyExists: 'Элемент с именем "{name}" уже существует в этом месте.',
             failedToMove: 'Не удалось переместить: {error}',
             failedToAddTag: 'Не удалось добавить тег "{tag}"',
+            failedToSetProperty: 'Не удалось обновить свойство: {error}',
             failedToClearTags: 'Не удалось очистить теги',
             failedToMoveFolder: 'Не удалось переместить папку "{name}"',
             failedToImportFiles: 'Не удалось импортировать: {names}'
@@ -519,6 +693,7 @@ export const STRINGS_RU = {
         notifications: {
             filesAlreadyExist: '{count} файлов уже существуют в месте назначения',
             filesAlreadyHaveTag: '{count} файлов уже имеют этот тег или более специфичный',
+            filesAlreadyHaveProperty: '{count} файлов уже имеют это свойство',
             noTagsToClear: 'Нет тегов для очистки',
             fileImported: 'Импортирован 1 файл',
             filesImported: 'Импортировано файлов: {count}'
@@ -564,11 +739,13 @@ export const STRINGS_RU = {
         pinAllFolderNotes: 'Закрепить все заметки папок', // Command palette: Pins all folder notes to shortcuts (English: Pin all folder notes)
         navigateToFolder: 'Перейти к папке', // Command palette: Navigate to a folder using fuzzy search (English: Navigate to folder)
         navigateToTag: 'Перейти к тегу', // Command palette: Navigate to a tag using fuzzy search (English: Navigate to tag)
-        addShortcut: 'Добавить в ярлыки', // Command palette: Adds the current file, folder, or tag to shortcuts (English: Add to shortcuts)
+        navigateToProperty: 'Перейти к свойству', // Command palette: Navigate to a property key or value using fuzzy search (English: Navigate to property)
+        addShortcut: 'Добавить в ярлыки', // Command palette: Adds or removes the current file, folder, tag, or property from shortcuts (English: Add to shortcuts)
         openShortcut: 'Открыть ярлык {number}',
         toggleDescendants: 'Переключить потомков', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
         toggleHidden: 'Переключить скрытые папки, теги и заметки', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'Переключить сортировку тегов', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
+        toggleCompactMode: 'Переключить компактный режим', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: 'Свернуть / развернуть все элементы', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Добавить тег к выбранным файлам', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         removeTag: 'Удалить тег из выбранных файлов', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
@@ -603,24 +780,23 @@ export const STRINGS_RU = {
         },
         sections: {
             general: 'Общие',
-            navigationPane: 'Панель навигации',
+            navigationPane: 'Навигация',
             calendar: 'Календарь',
             icons: 'Наборы иконок',
             folders: 'Папки',
             folderNotes: 'Заметки папок',
-            foldersAndTags: 'Папки и теги',
+            foldersAndTags: 'Папки',
+            tagsAndProperties: 'Теги и свойства',
             tags: 'Теги',
-            search: 'Поиск',
-            searchAndHotkeys: 'Поиск и горячие клавиши',
-            listPane: 'Панель списка',
+            listPane: 'Список',
             notes: 'Заметки',
-            hotkeys: 'Горячие клавиши',
             advanced: 'Расширенные'
         },
         groups: {
             general: {
                 vaultProfiles: 'Профили хранилища',
                 filtering: 'Фильтрация',
+                templates: 'Шаблоны',
                 behavior: 'Поведение',
                 keyboardNavigation: 'Навигация с клавиатуры',
                 view: 'Внешний вид',
@@ -631,7 +807,7 @@ export const STRINGS_RU = {
             },
             navigation: {
                 appearance: 'Внешний вид',
-                shortcutsAndRecent: 'Ярлыки и недавние элементы',
+                leftSidebar: 'Левая боковая панель',
                 calendarIntegration: 'Интеграция с календарём'
             },
             list: {
@@ -645,7 +821,7 @@ export const STRINGS_RU = {
                 previewText: 'Текст превью',
                 featureImage: 'Изображение записи',
                 tags: 'Теги',
-                customProperty: 'Пользовательское свойство (метаданные или количество слов)',
+                properties: 'Свойства',
                 date: 'Дата',
                 parentFolder: 'Родительская папка'
             }
@@ -657,38 +833,6 @@ export const STRINGS_RU = {
             switchToLocal: 'Отключить синхронизацию'
         },
         items: {
-            searchProvider: {
-                name: 'Поставщик поиска',
-                desc: 'Выберите между быстрым поиском по имени файла или полнотекстовым поиском с плагином Omnisearch.',
-                options: {
-                    internal: 'Фильтр-поиск',
-                    omnisearch: 'Omnisearch (полнотекстовый)'
-                },
-                info: {
-                    filterSearch: {
-                        title: 'Фильтр-поиск (по умолчанию):',
-                        description:
-                            'Фильтрует файлы по имени и тегам в текущей папке и подпапках. Режим фильтра: смешанный текст и теги соответствуют всем условиям (например, "проект #работа"). Режим тегов: поиск только по тегам поддерживает операторы AND/OR (например, "#работа AND #срочно", "#проект OR #личное"). Cmd/Ctrl+Клик по тегам для добавления с AND, Cmd/Ctrl+Shift+Клик для добавления с OR. Поддерживает исключение с префиксом ! (например, !черновик, !#архив) и поиск заметок без тегов с !#.'
-                    },
-                    omnisearch: {
-                        title: 'Omnisearch:',
-                        description:
-                            'Полнотекстовый поиск по всему хранилищу с последующей фильтрацией результатов для показа только файлов из текущей папки, подпапок или выбранных тегов. Требуется установленный плагин Omnisearch — если недоступен, поиск автоматически переключится на фильтр-поиск.',
-                        warningNotInstalled: 'Плагин Omnisearch не установлен. Используется фильтр-поиск.',
-                        limitations: {
-                            title: 'Известные ограничения:',
-                            performance:
-                                'Производительность: Может быть медленным, особенно при поиске менее 3 символов в больших хранилищах',
-                            pathBug:
-                                'Ошибка путей: Не может искать в путях с не-ASCII символами и некорректно ищет в подпутях, что влияет на отображаемые файлы в результатах',
-                            limitedResults:
-                                'Ограниченные результаты: Поскольку Omnisearch ищет по всему хранилищу и возвращает ограниченное количество результатов до фильтрации, релевантные файлы из текущей папки могут не отображаться, если слишком много совпадений найдено в других местах',
-                            previewText:
-                                'Текст превью: Превью заметок заменяются на отрывки результатов Omnisearch, которые могут не показывать фактическое совпадение, если оно находится в другом месте файла'
-                        }
-                    }
-                }
-            },
             listPaneTitle: {
                 name: 'Заголовок панели списка',
                 desc: 'Выберите, где отображается заголовок панели списка.',
@@ -722,6 +866,16 @@ export const STRINGS_RU = {
                 name: 'Свойство сортировки',
                 desc: 'Используется с сортировкой по свойству. Заметки с этим свойством frontmatter отображаются первыми и сортируются по значению свойства. Массивы объединяются в одно значение.',
                 placeholder: 'order'
+            },
+            propertySortSecondary: {
+                name: 'Вторичная сортировка',
+                desc: 'Используется при сортировке по свойству, когда у заметок одинаковое значение свойства или значение отсутствует.',
+                options: {
+                    title: 'Заголовок',
+                    filename: 'Имя файла',
+                    created: 'Дата создания',
+                    modified: 'Дата редактирования'
+                }
             },
             revealFileOnListChanges: {
                 name: 'Прокрутка к выбранному файлу при изменениях списка',
@@ -766,7 +920,11 @@ export const STRINGS_RU = {
             },
             showFileIcons: {
                 name: 'Показывать иконки файлов',
-                desc: 'Отображать иконки файлов с выравниванием по левому краю. Отключение убирает и иконки, и отступы. Приоритет: пользовательские > имя файла > тип файла > по умолчанию.'
+                desc: 'Отображать иконки файлов с выравниванием по левому краю. Отключение убирает и иконки, и отступы. Приоритет: значок незавершённых задач > пользовательский значок > значок имени файла > значок типа файла > значок по умолчанию.'
+            },
+            showFileIconUnfinishedTask: {
+                name: 'Значок незавершённых задач',
+                desc: 'Отображать значок задачи, когда заметка содержит незавершённые задачи.'
             },
             showFilenameMatchIcons: {
                 name: 'Иконки по имени файла',
@@ -864,9 +1022,17 @@ export const STRINGS_RU = {
                 navigationLabel: 'Панель навигации',
                 listLabel: 'Панель списка'
             },
+            createNewNotesInNewTab: {
+                name: 'Открывать новые заметки в новой вкладке',
+                desc: 'Если включено, команда «Создать новую заметку» открывает заметки в новой вкладке. Если выключено, заметки заменяют текущую вкладку.'
+            },
             autoRevealActiveNote: {
                 name: 'Автопоказ активной заметки',
                 desc: 'Автоматически показывать заметки, открытые из быстрого переключателя, ссылок или поиска.'
+            },
+            autoRevealShortestPath: {
+                name: 'Использовать кратчайший путь',
+                desc: 'Включено: Автопоказ выбирает ближайшую видимую родительскую папку или тег. Выключено: Автопоказ выбирает фактическую папку файла и точный тег.'
             },
             autoRevealIgnoreRightSidebar: {
                 name: 'Игнорировать события из правой боковой панели',
@@ -885,7 +1051,7 @@ export const STRINGS_RU = {
                 name: 'Отключить автопрокрутку для ярлыков',
                 desc: 'Не прокручивать панель навигации при клике по элементам в ярлыках.'
             },
-            autoExpandFoldersTags: {
+            autoExpandNavItems: {
                 name: 'Разворачивать при выборе',
                 desc: 'Разворачивать папки и теги при выборе. В однопанельном режиме первый выбор разворачивает, второй показывает файлы.'
             },
@@ -928,6 +1094,14 @@ export const STRINGS_RU = {
                 name: 'Показывать недавние заметки',
                 desc: 'Отображать раздел недавних заметок в панели навигации.'
             },
+            hideRecentNotes: {
+                name: 'Скрыть заметки',
+                desc: 'Выберите типы заметок для скрытия в разделе недавних заметок.',
+                options: {
+                    none: 'Нет',
+                    folderNotes: 'Заметки папок'
+                }
+            },
             recentNotesCount: {
                 name: 'Количество недавних заметок',
                 desc: 'Количество отображаемых недавних заметок.'
@@ -942,6 +1116,14 @@ export const STRINGS_RU = {
                 options: {
                     leftSidebar: 'Левая боковая панель',
                     rightSidebar: 'Правая боковая панель'
+                }
+            },
+            calendarLeftPlacement: {
+                name: 'Расположение в режиме одной панели',
+                desc: 'Где отображается календарь в режиме одной панели.',
+                options: {
+                    navigationPane: 'Панель навигации',
+                    below: 'Под панелями'
                 }
             },
             calendarLocale: {
@@ -961,6 +1143,10 @@ export const STRINGS_RU = {
                     thuFri: 'Четверг и пятница'
                 }
             },
+            showInfoButtons: {
+                name: 'Показать кнопки информации',
+                desc: 'Отображать кнопки информации в строке поиска и заголовке календаря.'
+            },
             calendarWeeksToShow: {
                 name: 'Недель для отображения на левой боковой панели',
                 desc: 'Календарь на правой боковой панели всегда отображает полный месяц.',
@@ -972,7 +1158,7 @@ export const STRINGS_RU = {
             },
             calendarHighlightToday: {
                 name: 'Выделять сегодняшнюю дату',
-                desc: 'Показывать красный круг и жирный текст на сегодняшней дате.'
+                desc: 'Выделять сегодняшнюю дату цветом фона и жирным текстом.'
             },
             calendarShowFeatureImage: {
                 name: 'Показать изображение-обложку',
@@ -985,6 +1171,10 @@ export const STRINGS_RU = {
             calendarShowQuarter: {
                 name: 'Показать квартал',
                 desc: 'Добавить метку квартала в заголовок календаря.'
+            },
+            calendarShowYearCalendar: {
+                name: 'Показать годовой календарь',
+                desc: 'Отображать навигацию по годам и сетку месяцев в правой боковой панели.'
             },
             calendarConfirmBeforeCreate: {
                 name: 'Подтвердить перед созданием',
@@ -1001,6 +1191,7 @@ export const STRINGS_RU = {
                     dailyNotes: 'Папка и формат даты настраиваются в плагине Daily Notes.'
                 }
             },
+
             calendarCustomRootFolder: {
                 name: 'Корневая папка',
                 desc: 'Базовая папка для периодических заметок. Шаблоны дат могут включать подпапки. Изменяется с выбранным профилем хранилища.',
@@ -1013,11 +1204,11 @@ export const STRINGS_RU = {
             },
             calendarCustomFilePattern: {
                 name: 'Ежедневные заметки',
-                desc: 'Формат пути с использованием формата даты Moment. Заключайте названия подпапок в скобки, напр. [Work]/YYYY. Нажмите на значок шаблона, чтобы задать шаблон.',
+                desc: 'Формат пути с использованием формата даты Moment. Заключайте названия подпапок в скобки, напр. [Work]/YYYY. Нажмите на значок шаблона, чтобы задать шаблон. Укажите расположение папки шаблонов в Общие > Шаблоны.',
                 momentDescPrefix: 'Формат пути с использованием ',
                 momentLinkText: 'формата даты Moment',
                 momentDescSuffix:
-                    '. Заключайте названия подпапок в скобки, напр. [Work]/YYYY. Нажмите на значок шаблона, чтобы задать шаблон.',
+                    '. Заключайте названия подпапок в скобки, напр. [Work]/YYYY. Нажмите на значок шаблона, чтобы задать шаблон. Укажите расположение папки шаблонов в Общие > Шаблоны.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Текущий синтаксис: {path}',
                 parsingError: 'Шаблон должен форматироваться и разбираться обратно как полная дата (год, месяц, день).'
@@ -1111,9 +1302,9 @@ export const STRINGS_RU = {
                 }
             },
             excludedNotes: {
-                name: 'Скрыть заметки со свойствами (профиль хранилища)',
-                desc: 'Список свойств frontmatter через запятую. Заметки, содержащие любое из этих свойств, будут скрыты (например, draft, private, archived).',
-                placeholder: 'draft, private'
+                name: 'Скрыть заметки по правилам свойств (профиль хранилища)',
+                desc: 'Список правил frontmatter через запятую. Используйте записи `key` или `key=value` (например, status=done, published=true, archived).',
+                placeholder: 'status=done, published=true, archived'
             },
             excludedFileNamePatterns: {
                 name: 'Скрыть файлы (профиль хранилища)',
@@ -1187,49 +1378,58 @@ export const STRINGS_RU = {
                 name: 'Показывать теги файлов в компактном режиме',
                 desc: 'Отображать теги, когда дата, превью и изображение скрыты.'
             },
-            customPropertyType: {
-                name: 'Тип свойства',
-                desc: 'Выберите пользовательское свойство для отображения в элементах файлов.',
+            showFileProperties: {
+                name: 'Показывать свойства файлов',
+                desc: 'Отображать кликабельные свойства в элементах файлов.'
+            },
+            colorFileProperties: {
+                name: 'Окрашивать свойства файлов',
+                desc: 'Применять цвета свойств к значкам свойств на элементах файлов.'
+            },
+            prioritizeColoredFileProperties: {
+                name: 'Показывать цветные свойства первыми',
+                desc: 'Сортировать цветные свойства перед другими свойствами на элементах файлов.'
+            },
+            showFilePropertiesInCompactMode: {
+                name: 'Показывать свойства в компактном режиме',
+                desc: 'Отображать свойства при активном компактном режиме.'
+            },
+            notePropertyType: {
+                name: 'Свойство заметки',
+                desc: 'Выберите свойство заметки для отображения в элементах файлов.',
                 options: {
                     frontmatter: 'Свойство frontmatter',
                     wordCount: 'Количество слов',
                     none: 'Нет'
                 }
             },
-            customPropertyFields: {
-                name: 'Свойства для отображения',
-                desc: 'Список свойств frontmatter через запятую для отображения в виде значков. Свойства со списковыми значениями отображают один значок на каждое значение. Значения в формате [[wikilink]] отображаются как кликабельные ссылки.',
-                placeholder: 'статус, тип, категория'
+            propertyFields: {
+                name: 'Ключи свойств (профиль хранилища)',
+                desc: 'Ключи свойств метаданных с настройкой видимости для каждого ключа в навигации и списке файлов.',
+                addButtonTooltip: 'Настроить ключи свойств',
+                noneConfigured: 'Свойства не настроены',
+                singleConfigured: '1 свойство настроено: {properties}',
+                multipleConfigured: '{count} свойств настроено: {properties}'
             },
-            showCustomPropertiesOnSeparateRows: {
+            showPropertiesOnSeparateRows: {
                 name: 'Показывать свойства в отдельных строках',
                 desc: 'Показывать каждое свойство в собственной строке.'
             },
-            customPropertyColorMap: {
-                name: 'Цвета свойств',
-                desc: 'Сопоставление свойств frontmatter с цветами значков. Одно сопоставление на строку: свойство=цвет',
-                placeholder: '# Свойство=цвет\nstatus=#ff0000\ntype=#00ff00',
-                editTooltip: 'Редактировать сопоставления'
-            },
-            showCustomPropertyInCompactMode: {
-                name: 'Показывать пользовательское свойство в компактном режиме',
-                desc: 'Отображать пользовательское свойство, когда дата, превью и изображение скрыты.'
-            },
             dateFormat: {
                 name: 'Формат даты',
-                desc: 'Формат отображения дат (использует формат date-fns).',
-                placeholder: 'd MMMM yyyy',
-                help: 'Распространённые форматы:\nd MMMM yyyy = 25 мая 2022\ndd.MM.yyyy = 25.05.2022\nyyyy-MM-dd = 2022-05-25\n\nТокены:\nyyyy/yy = год\nMMMM/MMM/MM = месяц\ndd/d = день\nEEEE/EEE = день недели',
-                helpTooltip: 'Формат date-fns',
-                dateFnsLinkText: 'формат date-fns'
+                desc: 'Формат отображения дат (использует формат Moment).',
+                placeholder: 'D MMMM YYYY',
+                help: 'Распространённые форматы:\nD MMMM YYYY = 25 мая 2022\nDD.MM.YYYY = 25.05.2022\nYYYY-MM-DD = 2022-05-25\n\nТокены:\nYYYY/YY = год\nMMMM/MMM/MM = месяц\nDD/D = день\ndddd/ddd = день недели',
+                helpTooltip: 'Формат Moment',
+                momentLinkText: 'формат Moment'
             },
             timeFormat: {
                 name: 'Формат времени',
-                desc: 'Формат отображения времени (использует формат date-fns).',
+                desc: 'Формат отображения времени (использует формат Moment).',
                 placeholder: 'HH:mm',
                 help: 'Распространённые форматы:\nHH:mm = 14:30 (24-часовой)\nh:mm a = 2:30 PM (12-часовой)\nHH:mm:ss = 14:30:45\nh:mm:ss a = 2:30:45 PM\n\nТокены:\nHH/H = 24-часовой\nhh/h = 12-часовой\nmm = минуты\nss = секунды\na = AM/PM',
-                helpTooltip: 'Формат date-fns',
-                dateFnsLinkText: 'формат date-fns'
+                helpTooltip: 'Формат Moment',
+                momentLinkText: 'формат Moment'
             },
             showFilePreview: {
                 name: 'Показывать превью заметки',
@@ -1288,7 +1488,7 @@ export const STRINGS_RU = {
             featureImageExcludeProperties: {
                 name: 'Исключить заметки со свойствами',
                 desc: 'Список свойств frontmatter через запятую. Заметки, содержащие любое из этих свойств, не сохраняют главные изображения.',
-                placeholder: 'личное, конфиденциальное'
+                placeholder: 'private, confidential'
             },
 
             downloadExternalFeatureImages: {
@@ -1361,6 +1561,10 @@ export const STRINGS_RU = {
                 name: 'Масштабировать текст с высотой элемента',
                 desc: 'Уменьшать размер текста навигации при уменьшении высоты элемента.'
             },
+            showIndentGuides: {
+                name: 'Показать направляющие отступов',
+                desc: 'Отображать направляющие отступов для вложенных папок и тегов.'
+            },
             navRootSpacing: {
                 name: 'Отступ корневых элементов',
                 desc: 'Отступ между корневыми папками и тегами.'
@@ -1400,6 +1604,36 @@ export const STRINGS_RU = {
                 name: 'Сохранять свойство tags после удаления последнего тега',
                 desc: 'Сохранять свойство tags в frontmatter, когда все теги удалены. При отключении свойство tags удаляется из frontmatter.'
             },
+            showProperties: {
+                name: 'Показать свойства',
+                desc: 'Отображать раздел свойств в навигаторе.',
+                propertyKeysInfoPrefix: 'Настроить свойства в ',
+                propertyKeysInfoLinkText: 'Общие > Ключи свойств',
+                propertyKeysInfoSuffix: ''
+            },
+            showPropertyIcons: {
+                name: 'Показать значки свойств',
+                desc: 'Отображать значки рядом со свойствами в панели навигации.'
+            },
+            inheritPropertyColors: {
+                name: 'Наследовать цвета свойств',
+                desc: 'Значения свойств наследуют цвет и фон от ключа свойства.'
+            },
+            propertySortOrder: {
+                name: 'Порядок сортировки свойств',
+                desc: 'Щёлкните правой кнопкой мыши по свойству, чтобы задать другой порядок сортировки его значений.',
+                options: {
+                    alphaAsc: 'А до Я',
+                    alphaDesc: 'Я до А',
+                    frequency: 'Частота',
+                    lowToHigh: 'по возрастанию',
+                    highToLow: 'по убыванию'
+                }
+            },
+            showAllPropertiesFolder: {
+                name: 'Показать папку свойств',
+                desc: 'Отображать «Свойства» как сворачиваемую папку.'
+            },
             hiddenTags: {
                 name: 'Скрыть теги (профиль хранилища)',
                 desc: 'Список шаблонов тегов через запятую. Шаблоны имён: тег* (начинается с), *тег (заканчивается на). Шаблоны путей: архив (тег и потомки), архив/* (только потомки), проекты/*/черновики (подстановочный знак в середине).',
@@ -1429,10 +1663,13 @@ export const STRINGS_RU = {
                 desc: 'Название заметки папки без расширения. Оставьте пустым для использования того же имени, что и у папки.',
                 placeholder: 'index'
             },
-            folderNoteProperties: {
-                name: 'Свойства заметки папки',
-                desc: 'YAML frontmatter, добавляемый к новым заметкам папок. Маркеры --- добавляются автоматически.',
-                placeholder: 'theme: dark\nfoldernote: true'
+            folderNoteNamePattern: {
+                name: 'Шаблон названия заметки папки',
+                desc: 'Шаблон имени заметок папок без расширения. Используйте {{folder}} для вставки имени папки. Если задан, имя заметки папки не применяется.'
+            },
+            folderNoteTemplate: {
+                name: 'Шаблон заметки папки',
+                desc: 'Файл шаблона для новых заметок папок Markdown. Укажите расположение папки шаблонов в Общие > Шаблоны.'
             },
             openFolderNotesInNewTab: {
                 name: 'Открывать заметки папок в новой вкладке',
@@ -1450,6 +1687,15 @@ export const STRINGS_RU = {
                 name: 'Подтверждать перед удалением',
                 desc: 'Показывать диалог подтверждения при удалении заметок или папок'
             },
+            deleteAttachments: {
+                name: 'Удалять вложения при удалении файлов',
+                desc: 'Автоматически удалять вложения, связанные с удалённым файлом, если они не используются в другом месте',
+                options: {
+                    ask: 'Спрашивать каждый раз',
+                    always: 'Всегда',
+                    never: 'Никогда'
+                }
+            },
             metadataCleanup: {
                 name: 'Очистка метаданных',
                 desc: 'Удаляет осиротевшие метаданные, оставшиеся после удаления, перемещения или переименования файлов, папок или тегов вне Obsidian. Это влияет только на файл настроек Notebook Navigator.',
@@ -1458,7 +1704,7 @@ export const STRINGS_RU = {
                 loading: 'Проверка метаданных...',
                 statusClean: 'Нет метаданных для очистки',
                 statusCounts:
-                    'Осиротевшие элементы: {folders} папок, {tags} тегов, {files} файлов, {pinned} закреплённых, {separators} разделителей'
+                    'Осиротевшие элементы: {folders} папок, {tags} тегов, {properties} свойств, {files} файлов, {pinned} закреплённых, {separators} разделителей'
             },
             rebuildCache: {
                 name: 'Пересобрать кэш',
@@ -1467,18 +1713,6 @@ export const STRINGS_RU = {
                 error: 'Не удалось пересобрать кэш',
                 indexingTitle: 'Индексирование хранилища...',
                 progress: 'Обновление кэша Notebook Navigator.'
-            },
-            hotkeys: {
-                intro: 'Отредактируйте <папка плагина>/notebook-navigator/data.json для настройки горячих клавиш Notebook Navigator. Откройте файл и найдите раздел "keyboardShortcuts". Каждая запись использует такую структуру:',
-                example: '"pane:move-up": [ { "key": "ArrowUp", "modifiers": [] }, { "key": "K", "modifiers": [] } ]',
-                modifierList: [
-                    '"Mod" = Cmd (macOS) / Ctrl (Win/Linux)',
-                    '"Alt" = Alt/Option',
-                    '"Shift" = Shift',
-                    '"Ctrl" = Control (предпочтительно "Mod" для кроссплатформенности)'
-                ],
-                guidance:
-                    'Добавьте несколько привязок для поддержки альтернативных клавиш, как показано выше для ArrowUp и K. Комбинируйте модификаторы в одной записи, перечисляя каждое значение, например "modifiers": ["Mod", "Shift"]. Последовательности клавиш, такие как "gg" или "dd", не поддерживаются. Перезагрузите Obsidian после редактирования файла.'
             },
             externalIcons: {
                 downloadButton: 'Скачать',
@@ -1506,9 +1740,10 @@ export const STRINGS_RU = {
                 desc: 'Поле frontmatter для цветов файлов. Оставьте пустым для использования цветов из настроек.',
                 placeholder: 'color'
             },
-            frontmatterSaveMetadata: {
-                name: 'Сохранять иконки и цвета во frontmatter',
-                desc: 'Автоматически записывать иконки и цвета файлов во frontmatter, используя настроенные выше поля.'
+            frontmatterBackgroundField: {
+                name: 'Поле фона',
+                desc: 'Поле frontmatter для цветов фона. Оставьте пустым для использования цветов фона из настроек.',
+                placeholder: 'background'
             },
             frontmatterMigration: {
                 name: 'Миграция иконок и цветов из настроек',
@@ -1523,7 +1758,7 @@ export const STRINGS_RU = {
             frontmatterNameField: {
                 name: 'Поля названия',
                 desc: 'Список полей frontmatter через запятую. Используется первое непустое значение. Возвращается к имени файла.',
-                placeholder: 'заголовок, название'
+                placeholder: 'title, name'
             },
             frontmatterCreatedField: {
                 name: 'Поле даты создания',
@@ -1537,10 +1772,10 @@ export const STRINGS_RU = {
             },
             frontmatterDateFormat: {
                 name: 'Формат временной метки',
-                desc: 'Формат для разбора временных меток во frontmatter. Оставьте пустым для использования формата ISO 8601',
-                helpTooltip: 'Формат date-fns',
-                dateFnsLinkText: 'формат date-fns',
-                help: "Распространённые форматы:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
+                desc: 'Формат для разбора временных меток во frontmatter. Оставьте пустым для использования парсинга ISO 8601.',
+                helpTooltip: 'Формат Moment',
+                momentLinkText: 'формат Moment',
+                help: 'Распространённые форматы:\nYYYY-MM-DD[T]HH:mm:ss → 2025-01-04T14:30:45\nYYYY-MM-DD[T]HH:mm:ssZ → 2025-08-07T16:53:39+02:00\nDD/MM/YYYY HH:mm:ss → 04/01/2025 14:30:45\nMM/DD/YYYY h:mm:ss a → 01/04/2025 2:30:45 PM'
             },
             supportDevelopment: {
                 name: 'Поддержать разработку',

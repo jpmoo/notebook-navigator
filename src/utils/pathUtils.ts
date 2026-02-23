@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,6 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+import { normalizePath } from 'obsidian';
 
 /**
  * Removes a trailing slash from a path unless it is the vault root.
@@ -55,4 +57,66 @@ export function doesFolderContainPath(folderPath: string, candidatePath: string)
     }
     const normalizedFolderPath = folderPath.endsWith('/') ? folderPath : `${folderPath}/`;
     return candidatePath.startsWith(normalizedFolderPath);
+}
+
+/**
+ * Normalizes an optional vault file path and returns null for empty values.
+ */
+export function normalizeOptionalVaultFilePath(value: string | null | undefined): string | null {
+    if (typeof value !== 'string') {
+        return null;
+    }
+
+    const trimmed = value.trim();
+    if (!trimmed || trimmed === '/') {
+        return null;
+    }
+
+    const normalized = normalizePath(trimmed);
+    if (!normalized || normalized === '.' || normalized === '/') {
+        return null;
+    }
+
+    const withoutLeadingSlash = normalized.replace(/^\/+/u, '');
+    if (!withoutLeadingSlash || withoutLeadingSlash === '.') {
+        return null;
+    }
+
+    return withoutLeadingSlash;
+}
+
+/**
+ * Normalizes an optional vault folder path and keeps root path as "/" when provided.
+ */
+export function normalizeOptionalVaultFolderPath(value: string | null | undefined): string | null {
+    if (typeof value !== 'string') {
+        return null;
+    }
+
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return null;
+    }
+
+    if (trimmed === '/') {
+        return '/';
+    }
+
+    if (/^\/+$/u.test(trimmed)) {
+        return null;
+    }
+
+    const normalized = normalizePath(trimmed);
+    const collapsed = normalized.replace(/\/{2,}/gu, '/');
+    if (!collapsed || collapsed === '.' || collapsed === '/') {
+        return null;
+    }
+
+    const withoutLeadingSlash = collapsed.replace(/^\/+/u, '');
+    if (!withoutLeadingSlash || withoutLeadingSlash === '.') {
+        return null;
+    }
+
+    const withoutTrailingSlash = withoutLeadingSlash.replace(/\/+$/u, '');
+    return withoutTrailingSlash.length > 0 ? withoutTrailingSlash : null;
 }

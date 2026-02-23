@@ -53,12 +53,12 @@
     border-top-right-radius: var(--nn-navitem-top-right-radius, min(14px, var(--nn-theme-navitem-border-radius)));
     border-bottom-left-radius: var(--nn-navitem-bottom-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));
     border-bottom-right-radius: var(--nn-navitem-bottom-right-radius, min(14px, var(--nn-theme-navitem-border-radius)));
+    box-shadow: inset 0 0 0 var(--nn-theme-navitem-border-width) var(--nn-theme-navitem-custom-border-color);
     z-index: 0;
     pointer-events: none;
 }
 
-.nn-navitem.nn-has-custom-background > .nn-navitem-content,
-.nn-navitem.nn-has-custom-background > .nn-navitem-content > * {
+.nn-navitem.nn-has-custom-background > .nn-navitem-content {
     position: relative;
     z-index: 2;
 }
@@ -94,7 +94,8 @@
 .nn-navitem-content {
     display: flex;
     align-items: center;
-    padding: var(--nn-setting-nav-padding-vertical) var(--nn-nav-item-padding-horizontal);
+    height: 100%;
+    padding: 0 var(--nn-nav-item-padding-horizontal);
     border-radius: min(14px, var(--nn-theme-navitem-border-radius));
     margin: 0;
     background: transparent;
@@ -102,6 +103,34 @@
     flex: 1;
     min-width: 0; /* Critical: allows flex children to shrink below their min-content width */
     box-sizing: border-box;
+}
+
+/* Indent guide columns shown on rows inside expanded subtrees */
+.nn-navitem-indent-guide {
+    --nn-indent-guide-line-width: 0.5px;
+    --nn-indent-guide-padding-inline-start: var(--nn-nav-item-padding-horizontal);
+    --nn-indent-guide-chevron-slot-width: var(--nn-nav-icon-size);
+    --nn-indent-guide-chevron-center-origin: calc(
+        var(--nn-indent-guide-padding-inline-start) + (var(--nn-indent-guide-chevron-slot-width) / 2)
+    );
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    inset-inline-start: calc(
+        (var(--nn-indent-guide-level, 0) - var(--level, 0)) * var(--nn-setting-nav-indent) + var(--nn-indent-guide-chevron-center-origin)
+    );
+    width: var(--nn-indent-guide-line-width);
+    transform: translateX(-50%);
+    background-color: var(--nn-theme-foreground-faint);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.mod-rtl .nn-navitem-indent-guide {
+    inset-inline-start: auto;
+    inset-inline-end: calc(
+        (var(--level, 0) - var(--nn-indent-guide-level, 0)) * var(--nn-setting-nav-indent) + var(--nn-indent-guide-chevron-center-origin)
+    );
 }
 
 .nn-navitem-content--search-include,
@@ -151,12 +180,13 @@
     inset-inline-end: 0;
     background-color: var(--nn-theme-navitem-hover-bg);
     border-radius: min(14px, var(--nn-theme-navitem-border-radius));
+    box-shadow: inset 0 0 0 var(--nn-theme-navitem-border-width) var(--nn-theme-navitem-hover-border-color);
     z-index: 1;
     pointer-events: none;
 }
 
 /* Ensure content appears above hover background */
-.nn-desktop .nn-navitem:hover > .nn-navitem-content > * {
+.nn-desktop .nn-navitem:hover > .nn-navitem-content {
     position: relative;
     z-index: 2;
 }
@@ -230,7 +260,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: var(--nn-nav-line-height);
+    line-height: normal;
     color: var(--nn-theme-navitem-name-color);
 }
 
@@ -247,6 +277,11 @@
 .nn-navitem-name.nn-has-folder-note {
     font-weight: var(--nn-theme-navitem-folder-note-name-font-weight) !important;
     text-decoration: var(--nn-theme-navitem-folder-note-name-decoration) !important;
+}
+
+/* Folder with folder note and custom color uses custom color weight */
+.nn-navitem-name.nn-has-folder-note.nn-has-custom-color {
+    font-weight: var(--nn-theme-navitem-custom-color-name-font-weight) !important;
 }
 
 /* Folder with folder note - show pointer cursor on hover */
@@ -281,6 +316,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    box-shadow: inset 0 0 0 var(--nn-theme-navitem-count-border-width) var(--nn-theme-navitem-count-border-color);
 }
 
 /* Hover action button - replaces badge/count on hover */
@@ -292,8 +328,8 @@
 .nn-navitem-hover-action-button {
     position: absolute;
     top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    inset-inline-end: 0;
+    transform: translateY(-50%);
     visibility: hidden;
     pointer-events: none;
     cursor: pointer;
@@ -316,13 +352,15 @@
 }
 
 .nn-desktop .nn-shortcut-item--removable:hover .nn-navitem-hover-action-button,
-.nn-desktop .nn-shortcut-header-item:hover .nn-navitem-hover-action-button {
+.nn-desktop .nn-shortcut-header-item:hover .nn-navitem-hover-action-button,
+.nn-desktop .nn-properties-header-item:hover .nn-navitem-hover-action-button {
     visibility: visible;
     pointer-events: auto;
 }
 
 .nn-desktop .nn-shortcut-item--removable:hover .nn-navitem-hover-action-count,
-.nn-desktop .nn-shortcut-header-item:hover .nn-navitem-hover-action-count {
+.nn-desktop .nn-shortcut-header-item:hover .nn-navitem-hover-action-count,
+.nn-desktop .nn-properties-header-item:hover .nn-navitem-hover-action-count {
     opacity: 0;
 }
 
@@ -369,6 +407,11 @@
 .nn-shortcut-item .nn-navitem-name.nn-has-folder-note .nn-shortcut-label {
     font-weight: var(--nn-theme-navitem-folder-note-name-font-weight) !important;
     text-decoration: var(--nn-theme-navitem-folder-note-name-decoration) !important;
+}
+
+/* Folder note shortcuts with custom color use custom color weight */
+.nn-shortcut-item .nn-navitem-name.nn-has-folder-note.nn-has-custom-color .nn-shortcut-label {
+    font-weight: var(--nn-theme-navitem-custom-color-file-name-font-weight) !important;
 }
 
 /* Pointer cursor on hover for clickable folder note shortcuts */

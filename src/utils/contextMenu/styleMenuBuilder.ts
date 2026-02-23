@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Menu, MenuItem } from 'obsidian';
+import { App, Menu, MenuItem } from 'obsidian';
 import { strings } from '../../i18n';
+import { ItemType } from '../../types';
+import { MetadataService } from '../../services/MetadataService';
 import { setAsyncOnClick, tryCreateSubmenu } from './menuAsyncHelpers';
 import { copyStyleToClipboard, getStyleClipboard, hasStyleData, type StyleClipboardData } from './styleClipboard';
 
@@ -36,6 +38,153 @@ export interface StyleMenuConfig {
     removeIcon?: () => Promise<void>;
     removeColor?: () => Promise<void>;
     removeBackground?: () => Promise<void>;
+    clearStyle?: () => Promise<void>;
+}
+
+interface AddFolderStyleMenuParams {
+    menu: Menu;
+    metadataService: MetadataService;
+    folderPath: string;
+    inheritFolderColors: boolean;
+    showFolderIcons: boolean;
+}
+
+interface AddFolderStyleChangeActionsParams {
+    menu: Menu;
+    app: App;
+    metadataService: MetadataService;
+    folderPath: string;
+    showFolderIcons: boolean;
+}
+
+interface FolderStyleMenuData {
+    styleData: StyleClipboardData;
+    hasRemovableIcon: boolean;
+    hasRemovableColor: boolean;
+    hasRemovableBackground: boolean;
+    hasRemovableStyle: boolean;
+    showClearAction: boolean;
+}
+
+/**
+ * Adds folder icon/color/background actions to a context menu.
+ */
+export function addFolderStyleChangeActions(params: AddFolderStyleChangeActionsParams): void {
+    const { menu, app, metadataService, folderPath, showFolderIcons } = params;
+
+    if (showFolderIcons) {
+        menu.addItem((item: MenuItem) => {
+            setAsyncOnClick(item.setTitle(strings.contextMenu.folder.changeIcon).setIcon('lucide-image'), async () => {
+                const { IconPickerModal } = await import('../../modals/IconPickerModal');
+                const modal = new IconPickerModal(app, metadataService, folderPath, ItemType.FOLDER);
+                modal.open();
+            });
+        });
+    }
+
+    menu.addItem((item: MenuItem) => {
+        setAsyncOnClick(item.setTitle(strings.contextMenu.folder.changeColor).setIcon('lucide-palette'), async () => {
+            const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
+            const modal = new ColorPickerModal(app, metadataService, folderPath, ItemType.FOLDER, 'foreground');
+            modal.open();
+        });
+    });
+
+    menu.addItem((item: MenuItem) => {
+        setAsyncOnClick(item.setTitle(strings.contextMenu.folder.changeBackground).setIcon('lucide-paint-bucket'), async () => {
+            const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
+            const modal = new ColorPickerModal(app, metadataService, folderPath, ItemType.FOLDER, 'background');
+            modal.open();
+        });
+    });
+}
+
+/**
+ * Resolves folder style data and removable actions for Style submenu construction.
+ */
+function resolveFolderStyleMenuData(
+    params: Pick<AddFolderStyleMenuParams, 'metadataService' | 'folderPath' | 'inheritFolderColors'>
+): FolderStyleMenuData {
+    const { metadataService, folderPath, inheritFolderColors } = params;
+    const directFolderDisplayData = metadataService.getFolderDisplayData(folderPath, {
+        includeDisplayName: false,
+        includeColor: true,
+        includeBackgroundColor: true,
+        includeIcon: true,
+        includeInheritedColors: false
+    });
+    const shouldResolveInheritedColor = inheritFolderColors && !directFolderDisplayData.color;
+    const shouldResolveInheritedBackground = inheritFolderColors && !directFolderDisplayData.backgroundColor;
+    const inheritedFolderDisplayData =
+        shouldResolveInheritedColor || shouldResolveInheritedBackground
+            ? metadataService.getFolderDisplayData(folderPath, {
+                  includeDisplayName: false,
+                  includeColor: shouldResolveInheritedColor,
+                  includeBackgroundColor: shouldResolveInheritedBackground,
+                  includeIcon: false,
+                  includeInheritedColors: true
+              })
+            : null;
+
+    const hasRemovableIcon = Boolean(directFolderDisplayData.icon);
+    const hasRemovableColor = Boolean(directFolderDisplayData.color);
+    const hasRemovableBackground = Boolean(directFolderDisplayData.backgroundColor);
+    const removableStyleCount = Number(hasRemovableIcon) + Number(hasRemovableColor) + Number(hasRemovableBackground);
+
+    return {
+        styleData: {
+            icon: directFolderDisplayData.icon,
+            color: directFolderDisplayData.color ?? inheritedFolderDisplayData?.color,
+            background: directFolderDisplayData.backgroundColor ?? inheritedFolderDisplayData?.backgroundColor
+        },
+        hasRemovableIcon,
+        hasRemovableColor,
+        hasRemovableBackground,
+        hasRemovableStyle: hasRemovableIcon || hasRemovableColor || hasRemovableBackground,
+        showClearAction: removableStyleCount >= 2
+    };
+}
+
+/**
+ * Adds folder style copy/paste and removal actions to a context menu.
+ */
+export function addFolderStyleMenu(params: AddFolderStyleMenuParams): void {
+    const { menu, metadataService, folderPath, inheritFolderColors, showFolderIcons } = params;
+    const folderStyleData = resolveFolderStyleMenuData({
+        metadataService,
+        folderPath,
+        inheritFolderColors
+    });
+
+    addStyleMenu({
+        menu,
+        styleData: folderStyleData.styleData,
+        hasIcon: showFolderIcons,
+        hasColor: true,
+        hasBackground: true,
+        showClearAction: folderStyleData.showClearAction,
+        applyStyle: async clipboard => {
+            const { icon, color, background } = clipboard;
+            await metadataService.setFolderStyle(folderPath, {
+                icon: icon ?? undefined,
+                color: color ?? undefined,
+                backgroundColor: background ?? undefined
+            });
+        },
+        removeIcon: folderStyleData.hasRemovableIcon ? async () => metadataService.removeFolderIcon(folderPath) : undefined,
+        removeColor: folderStyleData.hasRemovableColor ? async () => metadataService.removeFolderColor(folderPath) : undefined,
+        removeBackground: folderStyleData.hasRemovableBackground
+            ? async () => metadataService.removeFolderBackgroundColor(folderPath)
+            : undefined,
+        clearStyle: folderStyleData.hasRemovableStyle
+            ? async () =>
+                  metadataService.setFolderStyle(folderPath, {
+                      icon: null,
+                      color: null,
+                      backgroundColor: null
+                  })
+            : undefined
+    });
 }
 
 /**
@@ -63,13 +212,14 @@ export function addStyleMenu(config: StyleMenuConfig): void {
     const hasRemovableColor = Boolean(config.removeColor && hasColorSupport);
     const hasRemovableBackground = Boolean(config.removeBackground && hasBackgroundSupport);
     const removalCount = Number(hasRemovableIcon) + Number(hasRemovableColor) + Number(hasRemovableBackground);
+    const hasClearAction = Boolean(config.clearStyle) || removalCount > 0;
     const hasCopyableStyle = hasStyleData(config.styleData);
     const hasPasteableStyle = Boolean(config.applyStyle && hasSupportedClipboardData);
     const hasRemoveActions = removalCount > 0;
     const showIndividualRemovers = (config.showIndividualRemovers ?? true) && hasRemoveActions;
-    const showClearAction = config.showClearAction ?? removalCount >= 2;
+    const showClearAction = config.showClearAction ?? (Boolean(config.clearStyle) || removalCount >= 2);
 
-    if (!hasCopyableStyle && !hasPasteableStyle && !hasRemoveActions) {
+    if (!hasCopyableStyle && !hasPasteableStyle && !hasClearAction) {
         return;
     }
 
@@ -137,9 +287,15 @@ export function addStyleMenu(config: StyleMenuConfig): void {
             });
         }
 
-        if (showClearAction && hasRemoveActions) {
+        if (showClearAction && hasClearAction) {
             styleSubmenu.addItem(subItem => {
                 setAsyncOnClick(subItem.setTitle(strings.contextMenu.style.clear).setIcon('lucide-eraser'), async () => {
+                    if (config.clearStyle) {
+                        // Single clear action path for item types that support unified metadata updates.
+                        await config.clearStyle();
+                        return;
+                    }
+
                     const actions: Promise<void>[] = [];
 
                     if (hasRemovableIcon && config.removeIcon) {

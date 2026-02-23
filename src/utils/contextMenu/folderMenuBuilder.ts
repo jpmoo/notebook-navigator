@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,18 +32,28 @@ import { resolveUXIconForMenu } from '../uxIcons';
 import { getActiveVaultProfile, getHiddenFolderPatternMatch, normalizeHiddenFolderPath } from '../../utils/vaultProfiles';
 import { casefold } from '../../utils/recordUtils';
 import { EXCALIDRAW_PLUGIN_ID, TLDRAW_PLUGIN_ID } from '../../constants/pluginIds';
-import { addStyleMenu } from './styleMenuBuilder';
+import { addFolderStyleChangeActions, addFolderStyleMenu } from './styleMenuBuilder';
 import { getTemplaterCreateNewNoteFromTemplate } from '../templaterIntegration';
+import { resolveFolderDisplayName } from '../folderDisplayName';
 
 /**
  * Adds folder creation commands (new note/folder/canvas/base/drawing) to a menu.
  */
-export function buildFolderCreationMenu(params: FolderMenuBuilderParams): void {
+export function buildFolderCreationMenu(params: FolderMenuBuilderParams, folderDisplayNameOverride?: string): void {
     const { folder, menu, services, state, dispatchers } = params;
-    const { app, fileSystemOps } = services;
+    const { app, fileSystemOps, metadataService } = services;
     const { selectionState, expandedFolders } = state;
     const { selectionDispatch, expansionDispatch, uiDispatch } = dispatchers;
     const isVaultRoot = folder.path === '/';
+    const folderDisplayName =
+        folderDisplayNameOverride ??
+        resolveFolderDisplayName({
+            app,
+            metadataService,
+            settings: params.settings,
+            folderPath: folder.path,
+            fallbackName: folder.name
+        });
 
     const ensureFolderSelected = () => {
         if (
@@ -72,7 +82,7 @@ export function buildFolderCreationMenu(params: FolderMenuBuilderParams): void {
     menu.addItem((item: MenuItem) => {
         setAsyncOnClick(item.setTitle(strings.contextMenu.folder.newNote).setIcon('lucide-pen-box'), async () => {
             ensureFolderSelected();
-            const createdFile = await fileSystemOps.createNewFile(folder);
+            const createdFile = await fileSystemOps.createNewFile(folder, params.settings.createNewNotesInNewTab);
             handleFileCreation(createdFile);
         });
     });
@@ -146,7 +156,6 @@ export function buildFolderCreationMenu(params: FolderMenuBuilderParams): void {
 
     // Folder note operations
     const { settings } = params;
-    const { metadataService } = services;
     if (settings.enableFolderNotes) {
         const folderNote = getFolderNote(folder, settings);
         const canDeleteFolderNote = Boolean(folderNote);
@@ -174,16 +183,20 @@ export function buildFolderCreationMenu(params: FolderMenuBuilderParams): void {
             // Create folder note option
             menu.addItem((item: MenuItem) => {
                 setAsyncOnClick(item.setTitle(strings.contextMenu.folder.createFolderNote).setIcon('lucide-pen-box'), async () => {
+                    ensureFolderSelected();
                     const createdNote = await createFolderNote(
                         app,
                         folder,
                         {
                             folderNoteType: settings.folderNoteType,
                             folderNoteName: settings.folderNoteName,
-                            folderNoteProperties: settings.folderNoteProperties
+                            folderNoteNamePattern: settings.folderNoteNamePattern,
+                            folderNoteTemplate: settings.folderNoteTemplate
                         },
-                        services.commandQueue
+                        services.commandQueue,
+                        { folderDisplayName }
                     );
+                    handleFileCreation(createdNote);
                     if (createdNote && settings.pinCreatedFolderNote) {
                         try {
                             if (!metadataService.isFilePinned(createdNote.path, 'folder')) {
@@ -210,47 +223,32 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
     const { app, fileSystemOps, metadataService, plugin } = services;
     const { selectionState, expandedFolders } = state;
     const { selectionDispatch, expansionDispatch } = dispatchers;
+    const folderDisplayName = resolveFolderDisplayName({
+        app,
+        metadataService,
+        settings,
+        folderPath: folder.path,
+        fallbackName: folder.name
+    });
 
     // Show folder name on mobile
     if (services.isMobile) {
         menu.addItem((item: MenuItem) => {
-            item.setTitle(folder.name).setIsLabel(true);
+            item.setTitle(folderDisplayName).setIsLabel(true);
         });
     }
 
-    buildFolderCreationMenu(params);
+    buildFolderCreationMenu(params, folderDisplayName);
 
     menu.addSeparator();
 
     // Customization options: icon, color, background, separator
-    // Only show icon options if folder icons are enabled
-    if (settings.showFolderIcons) {
-        // Change icon
-        menu.addItem((item: MenuItem) => {
-            setAsyncOnClick(item.setTitle(strings.contextMenu.folder.changeIcon).setIcon('lucide-image'), async () => {
-                const { IconPickerModal } = await import('../../modals/IconPickerModal');
-                const modal = new IconPickerModal(app, metadataService, folder.path, ItemType.FOLDER);
-                modal.open();
-            });
-        });
-    }
-
-    // Change color
-    menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(item.setTitle(strings.contextMenu.folder.changeColor).setIcon('lucide-palette'), async () => {
-            const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
-            const modal = new ColorPickerModal(app, metadataService, folder.path, ItemType.FOLDER, 'foreground');
-            modal.open();
-        });
-    });
-
-    // Change background color
-    menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(item.setTitle(strings.contextMenu.folder.changeBackground).setIcon('lucide-paint-bucket'), async () => {
-            const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
-            const modal = new ColorPickerModal(app, metadataService, folder.path, ItemType.FOLDER, 'background');
-            modal.open();
-        });
+    addFolderStyleChangeActions({
+        menu,
+        app,
+        metadataService,
+        folderPath: folder.path,
+        showFolderIcons: settings.showFolderIcons
     });
 
     // Child folder sort order
@@ -309,45 +307,12 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
     const hasSeparator = metadataService.hasNavigationSeparator(folderSeparatorTarget);
     const disableNavigationSeparatorActions = Boolean(options?.disableNavigationSeparatorActions);
 
-    const folderIcon = metadataService.getFolderIcon(folder.path);
-    const folderColor = metadataService.getFolderColor(folder.path);
-    const folderBackgroundColor = metadataService.getFolderBackgroundColor(folder.path);
-    const directFolderColor = settings.folderColors?.[folder.path];
-    const directFolderBackground = settings.folderBackgroundColors?.[folder.path];
-
-    const hasRemovableIcon = Boolean(folderIcon);
-    const hasRemovableColor = Boolean(directFolderColor);
-    const hasRemovableBackground = Boolean(directFolderBackground);
-
-    addStyleMenu({
+    addFolderStyleMenu({
         menu,
-        styleData: {
-            icon: folderIcon,
-            color: folderColor,
-            background: folderBackgroundColor
-        },
-        hasIcon: settings.showFolderIcons,
-        hasColor: true,
-        hasBackground: true,
-        applyStyle: async clipboard => {
-            const { icon, color, background } = clipboard;
-            const actions: Promise<void>[] = [];
-
-            if (icon) {
-                actions.push(metadataService.setFolderIcon(folder.path, icon));
-            }
-            if (color) {
-                actions.push(metadataService.setFolderColor(folder.path, color));
-            }
-            if (background) {
-                actions.push(metadataService.setFolderBackgroundColor(folder.path, background));
-            }
-
-            await Promise.all(actions);
-        },
-        removeIcon: hasRemovableIcon ? async () => metadataService.removeFolderIcon(folder.path) : undefined,
-        removeColor: hasRemovableColor ? async () => metadataService.removeFolderColor(folder.path) : undefined,
-        removeBackground: hasRemovableBackground ? async () => metadataService.removeFolderBackgroundColor(folder.path) : undefined
+        metadataService,
+        folderPath: folder.path,
+        inheritFolderColors: settings.inheritFolderColors,
+        showFolderIcons: settings.showFolderIcons
     });
 
     menu.addSeparator();
@@ -360,7 +325,7 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
 
         if (existingShortcutKey) {
             const existingShortcut = shortcutMap.get(existingShortcutKey);
-            const defaultLabel = folder.path === '/' ? settings.customVaultName || app.vault.getName() : folder.name;
+            const defaultLabel = folderDisplayName;
 
             addShortcutRenameMenuItem({
                 app,
@@ -534,7 +499,7 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
                     });
                     await services.plugin.saveSettingsAndUpdate();
 
-                    showNotice(strings.fileSystem.notices.showFolder.replace('{name}', folder.name), { variant: 'success' });
+                    showNotice(strings.fileSystem.notices.showFolder.replace('{name}', folderDisplayName), { variant: 'success' });
                 });
             });
         } else if (!isExcluded) {
@@ -556,7 +521,7 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
                     });
                     await services.plugin.saveSettingsAndUpdate();
 
-                    showNotice(strings.fileSystem.notices.hideFolder.replace('{name}', folder.name), { variant: 'success' });
+                    showNotice(strings.fileSystem.notices.hideFolder.replace('{name}', folderDisplayName), { variant: 'success' });
                 });
             });
         }

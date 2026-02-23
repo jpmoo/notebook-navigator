@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,15 +28,19 @@ import { strings } from '../i18n';
 import { showNotice } from '../utils/noticeUtils';
 import { ItemType, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
 import { SHORTCUT_DRAG_MIME } from '../types/shortcuts';
-import { DragManagerPayload, TAG_DRAG_MIME, hasDragManager, TIMEOUTS } from '../types/obsidian-extended';
+import { DragManagerPayload, PROPERTY_DRAG_MIME, TAG_DRAG_MIME, hasDragManager, TIMEOUTS } from '../types/obsidian-extended';
 import { getPathFromDataAttribute } from '../utils/domUtils';
-import { getFilesForFolder, getFilesForTag } from '../utils/fileFinder';
 import { generateUniqueFilename } from '../utils/fileCreationUtils';
 import { createDragGhostManager } from '../utils/dragGhost';
 import { normalizeTagPathValue } from '../utils/tagPrefixMatcher';
 import { runAsyncAction } from '../utils/async';
 import { extractFilePathsFromDataTransfer } from '../utils/dragData';
 import { FolderMoveError } from '../services/FileSystemService';
+import { getCachedCommaSeparatedList } from '../utils/commaSeparatedListUtils';
+import { casefold } from '../utils/recordUtils';
+import { buildPropertyKeyNodeId, normalizePropertyTreeValuePath, parsePropertyNodeId } from '../utils/propertyTree';
+import { getFilesForNavigationSelection } from '../utils/selectionUtils';
+import { getActivePropertyFields } from '../utils/vaultProfiles';
 
 /**
  * Enables drag and drop for files and folders using event delegation.
@@ -62,7 +66,7 @@ interface AutoExpandConfig {
 }
 
 export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>) {
-    const { app, isMobile, tagTreeService } = useServices();
+    const { app, isMobile, tagTreeService, propertyTreeService } = useServices();
     const fileSystemOps = useFileSystemOps();
     const tagOperations = useTagOperations();
     const selectionState = useSelectionState();
@@ -100,6 +104,22 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
         }
         return Math.round(Math.min(2, Math.max(0.1, delaySeconds)) * 1000);
     }, [settings.springLoadedFoldersSubsequentDelay]);
+    const activePropertyFields = getActivePropertyFields(settings);
+    const configuredPropertyDisplayByNodeId = useMemo(() => {
+        const displayByNodeId = new Map<string, string>();
+        getCachedCommaSeparatedList(activePropertyFields).forEach(fieldName => {
+            const normalizedKey = casefold(fieldName);
+            const displayName = fieldName.trim();
+            if (!normalizedKey || !displayName) {
+                return;
+            }
+            const nodeId = buildPropertyKeyNodeId(normalizedKey);
+            if (!displayByNodeId.has(nodeId)) {
+                displayByNodeId.set(nodeId, displayName);
+            }
+        });
+        return displayByNodeId;
+    }, [activePropertyFields]);
 
     /**
      * Sets or clears the drag payload in Obsidian's internal drag manager.
@@ -136,17 +156,32 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
         return element instanceof HTMLElement;
     };
 
+    const isGhostableDragType = (value: string | null): value is ItemType => {
+        return value === ItemType.FILE || value === ItemType.FOLDER || value === ItemType.TAG;
+    };
+
+    const isUnknownArray = (value: unknown): value is unknown[] => {
+        return Array.isArray(value);
+    };
+
     /**
      * Helper function to get current file list based on selection
      */
     const getCurrentFileList = useCallback((): TFile[] => {
-        if (selectionState.selectionType === ItemType.FOLDER && selectionState.selectedFolder) {
-            return getFilesForFolder(selectionState.selectedFolder, settings, { includeDescendantNotes, showHiddenItems }, app);
-        } else if (selectionState.selectionType === ItemType.TAG && selectionState.selectedTag) {
-            return getFilesForTag(selectionState.selectedTag, settings, { includeDescendantNotes, showHiddenItems }, app, tagTreeService);
-        }
-        return [];
-    }, [selectionState, settings, includeDescendantNotes, showHiddenItems, app, tagTreeService]);
+        return getFilesForNavigationSelection(
+            {
+                selectionType: selectionState.selectionType,
+                selectedFolder: selectionState.selectedFolder,
+                selectedTag: selectionState.selectedTag,
+                selectedProperty: selectionState.selectedProperty
+            },
+            settings,
+            { includeDescendantNotes, showHiddenItems },
+            app,
+            tagTreeService,
+            propertyTreeService
+        );
+    }, [selectionState, settings, includeDescendantNotes, showHiddenItems, app, tagTreeService, propertyTreeService]);
 
     /**
      * Converts an array of file paths to TFile objects
@@ -183,6 +218,24 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
             });
         },
         [fileSystemOps, getCurrentFileList, selectionState.selectedFile, dispatch]
+    );
+
+    const getMarkdownFilesFromDragEvent = useCallback(
+        (event: DragEvent): { files: TFile[]; hasNonMarkdown: boolean } => {
+            const selectedPaths = extractFilePathsFromDataTransfer(event.dataTransfer ?? null);
+            if (!selectedPaths || selectedPaths.length === 0) {
+                return { files: [], hasNonMarkdown: false };
+            }
+
+            const files = getFilesFromPaths(selectedPaths);
+            if (files.length === 0) {
+                return { files: [], hasNonMarkdown: false };
+            }
+
+            const hasNonMarkdown = files.some(file => file.extension !== 'md');
+            return { files, hasNonMarkdown };
+        },
+        [getFilesFromPaths]
     );
 
     /**
@@ -269,12 +322,12 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                 e.dataTransfer.setData('obsidian/file', path);
             }
 
-            if (type === ItemType.FILE || type === ItemType.FOLDER || type === ItemType.TAG) {
+            if (type === ItemType.FILE || type === ItemType.FOLDER || type === ItemType.TAG || type === ItemType.PROPERTY) {
                 dragTypeRef.current = type;
             } else {
                 dragTypeRef.current = ItemType.FILE;
             }
-            e.dataTransfer.effectAllowed = 'all';
+            e.dataTransfer.effectAllowed = type === ItemType.PROPERTY ? 'copy' : 'all';
 
             if (type === ItemType.FILE) {
                 const file = app.vault.getFileByPath(path);
@@ -305,10 +358,17 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                     type: 'tag',
                     title: path
                 });
+            } else if (type === ItemType.PROPERTY) {
+                try {
+                    const payload = { nodeId: path };
+                    e.dataTransfer.setData(PROPERTY_DRAG_MIME, JSON.stringify(payload));
+                } catch (error) {
+                    console.error('[Notebook Navigator] Failed to attach property drag payload', error);
+                }
             }
 
             draggable.classList.add('nn-dragging');
-            const resolvedType = type === ItemType.FILE || type === ItemType.FOLDER || type === ItemType.TAG ? (type as ItemType) : null;
+            const resolvedType = isGhostableDragType(type) ? type : null;
             dragGhostManager.hideNativePreview(e);
             dragGhostManager.showGhost(e, {
                 itemType: resolvedType,
@@ -469,7 +529,9 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
     const handleDragOver = useCallback(
         (e: DragEvent) => {
             if (!isHTMLElement(e.target)) return;
-            const dropZone = e.target.closest<HTMLElement>('[data-drop-zone="folder"],[data-drop-zone="tag"],[data-drop-zone="tag-root"]');
+            const dropZone = e.target.closest<HTMLElement>(
+                '[data-drop-zone="folder"],[data-drop-zone="tag"],[data-drop-zone="tag-root"],[data-drop-zone="property"]'
+            );
             const isShortcutDrag = Boolean(e.dataTransfer?.types?.includes(SHORTCUT_DRAG_MIME));
 
             if (dragOverElement.current && dragOverElement.current !== dropZone) {
@@ -496,6 +558,16 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                 return;
             }
 
+            if (dragTypeRef.current === ItemType.PROPERTY) {
+                dropZone.classList.remove('nn-drag-over');
+                dragOverElement.current = null;
+                clearAutoExpandTimer();
+                if (e.dataTransfer) {
+                    e.dataTransfer.dropEffect = 'none';
+                }
+                return;
+            }
+
             if (e.dataTransfer) {
                 const dropType = dropZone.getAttribute('data-drop-zone');
                 const targetPath = dropZone.getAttribute('data-drop-path');
@@ -509,6 +581,20 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                 const hasExternalFiles = Boolean(e.dataTransfer.files && e.dataTransfer.files.length > 0);
                 const isInternalTransfer = hasObsidianData || hasTagPayload;
                 const isExternalOnly = hasExternalFiles && !isInternalTransfer;
+
+                if (dropType === 'property') {
+                    const isNavigatorFolderDrag = dragTypeRef.current === ItemType.FOLDER;
+                    const isNavigatorTagDrag = dragTypeRef.current === ItemType.TAG;
+                    if (isNavigatorFolderDrag || isNavigatorTagDrag || !hasObsidianData || isExternalOnly) {
+                        if (dragOverElement.current === dropZone) {
+                            dropZone.classList.remove('nn-drag-over');
+                            dragOverElement.current = null;
+                        }
+                        clearAutoExpandTimer();
+                        e.dataTransfer.dropEffect = 'none';
+                        return;
+                    }
+                }
 
                 // Block drops that do not meet drop zone permissions
                 if ((isInternalTransfer && !allowInternalDrop) || (isExternalOnly && !allowExternalDrop)) {
@@ -561,6 +647,9 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                     } else {
                         clearAutoExpandTimer();
                     }
+                } else if (dropType === 'property') {
+                    clearAutoExpandTimer();
+                    e.dataTransfer.dropEffect = 'copy';
                 }
 
                 if (dropType === 'tag-root') {
@@ -597,18 +686,13 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
      */
     const handleTagDrop = useCallback(
         async (e: DragEvent, targetTag: string) => {
-            let files: TFile[] = [];
-
-            // Extract file paths from drag event data (handles both single and multiple files)
-            const selectedPaths = extractFilePathsFromDataTransfer(e.dataTransfer ?? null);
-            if (selectedPaths && selectedPaths.length > 0) {
-                files = getFilesFromPaths(selectedPaths);
+            const { files, hasNonMarkdown } = getMarkdownFilesFromDragEvent(e);
+            if (files.length === 0) {
+                return;
             }
 
-            if (files.length === 0) return;
-
             // Verify all files are markdown (tags only work with markdown)
-            if (files.some(file => file.extension !== 'md')) {
+            if (hasNonMarkdown) {
                 showNotice(strings.fileSystem.notifications.tagsRequireMarkdown, { variant: 'warning' });
                 return;
             }
@@ -654,7 +738,135 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                 }
             }
         },
-        [tagOperations, getFilesFromPaths]
+        [getMarkdownFilesFromDragEvent, tagOperations]
+    );
+
+    const handlePropertyDrop = useCallback(
+        async (event: DragEvent, targetPropertyNodeId: string) => {
+            const { files, hasNonMarkdown } = getMarkdownFilesFromDragEvent(event);
+            if (files.length === 0) {
+                return;
+            }
+
+            if (hasNonMarkdown) {
+                showNotice(strings.fileSystem.notifications.propertiesRequireMarkdown, { variant: 'warning' });
+                return;
+            }
+
+            if (!propertyTreeService) {
+                console.error('[Notebook Navigator] PropertyTreeService not available');
+                return;
+            }
+
+            const targetNode = propertyTreeService.findNode(targetPropertyNodeId);
+            const configuredDisplayName = configuredPropertyDisplayByNodeId.get(targetPropertyNodeId);
+            const parsedTargetNode = parsePropertyNodeId(targetPropertyNodeId);
+            const resolvedNodeKind = targetNode ? targetNode.kind : configuredDisplayName ? 'key' : null;
+            const resolvedNodeKey = targetNode ? targetNode.key : configuredDisplayName ? (parsedTargetNode?.key ?? '') : '';
+
+            if (!resolvedNodeKind || !resolvedNodeKey) {
+                return;
+            }
+
+            const keyNode = propertyTreeService.getKeyNode(resolvedNodeKey);
+            const propertyKey = (keyNode?.name ?? configuredDisplayName ?? resolvedNodeKey).trim();
+            if (propertyKey.length === 0) {
+                return;
+            }
+            const normalizedPropertyKey = casefold(propertyKey);
+
+            const desiredValue = resolvedNodeKind === 'value' ? (targetNode?.name.trim() ?? null) : null;
+            const normalizedDesiredValue = desiredValue ? normalizePropertyTreeValuePath(desiredValue) : null;
+            if (resolvedNodeKind === 'value' && !normalizedDesiredValue) {
+                return;
+            }
+
+            let updated = 0;
+            let skipped = 0;
+
+            try {
+                for (const file of files) {
+                    let didChange = false;
+
+                    await app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
+                        const resolveExistingFrontmatterKey = (): string | null => {
+                            for (const existingKey of Object.keys(frontmatter)) {
+                                if (casefold(existingKey) === normalizedPropertyKey) {
+                                    return existingKey;
+                                }
+                            }
+                            return null;
+                        };
+
+                        if (resolvedNodeKind === 'key') {
+                            const existingPropertyKey = resolveExistingFrontmatterKey();
+                            if (existingPropertyKey) {
+                                return;
+                            }
+                            frontmatter[propertyKey] = true;
+                            didChange = true;
+                            return;
+                        }
+
+                        if (!desiredValue || !normalizedDesiredValue) {
+                            return;
+                        }
+
+                        const targetPropertyKey = resolveExistingFrontmatterKey() ?? propertyKey;
+                        const currentValue = frontmatter[targetPropertyKey];
+                        if (typeof currentValue === 'string') {
+                            if (normalizePropertyTreeValuePath(currentValue) === normalizedDesiredValue) {
+                                return;
+                            }
+                            frontmatter[targetPropertyKey] = desiredValue;
+                            didChange = true;
+                            return;
+                        }
+
+                        if (isUnknownArray(currentValue)) {
+                            const hasMatch = currentValue.some(
+                                entry => typeof entry === 'string' && normalizePropertyTreeValuePath(entry) === normalizedDesiredValue
+                            );
+                            if (hasMatch) {
+                                return;
+                            }
+                            frontmatter[targetPropertyKey] = [...currentValue, desiredValue];
+                            didChange = true;
+                            return;
+                        }
+
+                        frontmatter[targetPropertyKey] = desiredValue;
+                        didChange = true;
+                    });
+
+                    if (didChange) {
+                        updated++;
+                    } else {
+                        skipped++;
+                    }
+                }
+            } catch (error) {
+                const msg = error instanceof Error ? error.message : strings.common.unknownError;
+                showNotice(strings.dragDrop.errors.failedToSetProperty.replace('{error}', msg), { variant: 'warning' });
+                return;
+            }
+
+            if (updated > 0) {
+                const message =
+                    updated === 1
+                        ? strings.fileSystem.notifications.propertySetOnNote
+                        : strings.fileSystem.notifications.propertySetOnNotes.replace('{count}', updated.toString());
+                showNotice(message, { variant: 'success' });
+            }
+
+            if (skipped > 0) {
+                showNotice(strings.dragDrop.notifications.filesAlreadyHaveProperty.replace('{count}', skipped.toString()), {
+                    timeout: TIMEOUTS.NOTICE_ERROR,
+                    variant: 'warning'
+                });
+            }
+        },
+        [app.fileManager, configuredPropertyDisplayByNodeId, getMarkdownFilesFromDragEvent, propertyTreeService]
     );
 
     /**
@@ -763,6 +975,11 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                     return;
                 }
 
+                if (dragTypeRef.current === ItemType.PROPERTY) {
+                    clearAutoExpandTimer();
+                    return;
+                }
+
                 if (!dropZone) {
                     clearAutoExpandTimer();
                     return;
@@ -856,6 +1073,19 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                     return;
                 }
 
+                if (dropType === 'property') {
+                    if (!hasObsidianData || isExternalOnly) {
+                        return;
+                    }
+
+                    if (dragTypeRef.current === ItemType.TAG || dragTypeRef.current === ItemType.FOLDER) {
+                        return;
+                    }
+
+                    await handlePropertyDrop(e, targetPath);
+                    return;
+                }
+
                 if (dropType === 'folder' && dragTypeRef.current === ItemType.TAG) {
                     return;
                 }
@@ -934,6 +1164,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
         },
         [
             app,
+            handlePropertyDrop,
             handleTagDrop,
             handleExternalFileDrop,
             moveFilesWithContext,

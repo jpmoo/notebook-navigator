@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,22 +16,43 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Platform, TFile, getAllTags, type App } from 'obsidian';
+import { TFile, getAllTags, type App } from 'obsidian';
 import { MultiSelectModifier, NotebookNavigatorSettings } from '../settings';
 import { TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
-import { IndexedDBStorage, type FileData } from '../storage/IndexedDBStorage';
+import type { FileData } from '../storage/IndexedDBStorage';
 import { getDBInstanceOrNull } from '../storage/fileOperations';
+import { isMultiSelectModifierPressed } from './keyboardOpenContext';
 import { normalizeTagPathValue } from './tagPrefixMatcher';
 import { findTagNode } from './tagTree';
 import type { TagTreeNode } from '../types/storage';
 import type { InclusionOperator } from './filterSearch';
 
-export const TAG_CHARACTER_CLASS = '[\\p{L}\\p{N}_\\-/]';
-const TAG_NAME_PATTERN = new RegExp(`^${TAG_CHARACTER_CLASS}+$`, 'u');
+/**
+ * Mirrors Obsidian's inline tag tokenization by defining the characters that terminate an inline `#tag`.
+ *
+ * Obsidian recognizes inline tags using a pattern equivalent to:
+ * - `(^|\\s)#([^{DISALLOWED}]+)`
+ *
+ * This means:
+ * - `#` must be at the start of the string/line or preceded by whitespace (not punctuation).
+ * - The tag value continues until a disallowed character is encountered.
+ *
+ * This constant is inserted into a RegExp character class (e.g. `[^${...}]`), so it must be valid
+ * character-class content (not wrapped in `[]`).
+ */
+export const OBSIDIAN_INLINE_TAG_DISALLOWED_CLASS_CONTENT = '\\u2000-\\u206F\\u2E00-\\u2E7F\'!"#$%&()*+,.:;<=>?@^`{|}~[\\]\\\\\\s';
+
+const INLINE_TAG_COMPAT_PATTERN = new RegExp(`^#[^${OBSIDIAN_INLINE_TAG_DISALLOWED_CLASS_CONTENT}]+$`, 'u');
+const TAG_ALLOWED_CHAR_PATTERN = /^[\p{L}\p{N}\p{M}_\-/]$/u;
+const TAG_COMBINING_MARK_PATTERN = /^\p{M}$/u;
+const TAG_ALLOWED_PICTOGRAPHIC_PATTERN = /^\p{Extended_Pictographic}$/u;
+const TAG_ALLOWED_REGIONAL_INDICATOR_PATTERN = /^\p{Regional_Indicator}$/u;
+const EMOJI_SEQUENCE_JOINERS = new Set(['\u200D', '\uFE0E', '\uFE0F']);
 
 /**
- * Checks if a tag value only contains allowed tag characters.
- * Trims whitespace and rejects empty values.
+ * Checks if a tag input can be used as a canonical tag path string.
+ * Trims whitespace and rejects empty values, whitespace, and hash characters.
+ * Rejects leading/trailing slashes and double slashes.
  */
 export function hasValidTagCharacters(tagValue: string | null | undefined): boolean {
     if (!tagValue) {
@@ -43,18 +64,80 @@ export function hasValidTagCharacters(tagValue: string | null | undefined): bool
         return false;
     }
 
-    return TAG_NAME_PATTERN.test(trimmed);
+    if (/\s/u.test(trimmed)) {
+        return false;
+    }
+
+    if (trimmed.includes('#')) {
+        return false;
+    }
+
+    if (trimmed.startsWith('/') || trimmed.endsWith('/')) {
+        return false;
+    }
+
+    if (trimmed.includes('//')) {
+        return false;
+    }
+
+    let hasBaseCharacter = false;
+
+    for (const char of trimmed) {
+        if (EMOJI_SEQUENCE_JOINERS.has(char)) {
+            continue;
+        }
+
+        if (TAG_ALLOWED_CHAR_PATTERN.test(char)) {
+            if (!TAG_COMBINING_MARK_PATTERN.test(char)) {
+                hasBaseCharacter = true;
+            }
+            continue;
+        }
+
+        if (TAG_ALLOWED_PICTOGRAPHIC_PATTERN.test(char)) {
+            hasBaseCharacter = true;
+            continue;
+        }
+
+        if (TAG_ALLOWED_REGIONAL_INDICATOR_PATTERN.test(char)) {
+            hasBaseCharacter = true;
+            continue;
+        }
+
+        return false;
+    }
+
+    return hasBaseCharacter;
 }
 
 /**
- * Checks if a character is a valid preceding character for a tag.
- * Tags can be preceded by whitespace, start of line, or certain punctuation.
+ * Checks whether a tag value can be parsed fully as an inline #tag by Obsidian.
+ */
+export function isInlineTagValueCompatible(tagValue: string | null | undefined): boolean {
+    if (!tagValue) {
+        return false;
+    }
+
+    const trimmed = tagValue.trim();
+    if (trimmed.length === 0) {
+        return false;
+    }
+
+    const prefixedValue = trimmed.startsWith('#') ? trimmed : `#${trimmed}`;
+    return INLINE_TAG_COMPAT_PATTERN.test(prefixedValue);
+}
+
+/**
+ * Checks whether `char` is a valid preceding character for an inline `#tag` token.
+ *
+ * Obsidian only recognizes inline tags when `#` is preceded by whitespace or is at the start of the
+ * string/line. This intentionally rejects punctuation-adjacent fragments like `!#anchor` or `/#hash`.
  */
 export function isValidTagPrecedingChar(char: string | null | undefined): boolean {
     if (!char) {
         return true; // Start of line/string
     }
-    return /\s/.test(char) || char === '!';
+    return /\s/u.test(char);
 }
 
 /**
@@ -131,6 +214,10 @@ export interface CachedFileTagsDB {
     getCachedTags?: (path: string) => readonly string[];
 }
 
+interface TagRevealStorage {
+    getFile(path: string): FileData | null;
+}
+
 const EMPTY_FILE_TAGS: readonly string[] = [];
 
 export function getCachedFileTags(params: {
@@ -191,9 +278,7 @@ export function getTagSearchModifierOperator(
         return null;
     }
 
-    const prefersCmdCtrl = modifierSetting === 'cmdCtrl';
-    const hasCmdCtrl = Platform.isMacOS ? event.metaKey : event.metaKey || event.ctrlKey;
-    const modifierPressed = prefersCmdCtrl ? hasCmdCtrl : event.altKey;
+    const modifierPressed = isMultiSelectModifierPressed(event, modifierSetting);
 
     if (!modifierPressed) {
         return null;
@@ -205,7 +290,7 @@ export function getTagSearchModifierOperator(
 /**
  * Gets normalized tags for a file (without # prefix and in lowercase)
  */
-function getNormalizedTagsForFile(file: TFile, storage: IndexedDBStorage): string[] {
+function getNormalizedTagsForFile(file: TFile, storage: TagRevealStorage): string[] {
     if (file.extension !== 'md') {
         return [];
     }
@@ -226,7 +311,7 @@ function getNormalizedTagsForFile(file: TFile, storage: IndexedDBStorage): strin
  * Checks if a file has a specific tag - exact match only, no ancestor checking.
  * Comparison is case-insensitive (e.g., "TODO" matches "todo").
  */
-function fileHasExactTag(file: TFile, tag: string, storage: IndexedDBStorage): boolean {
+function fileHasExactTag(file: TFile, tag: string, storage: TagRevealStorage): boolean {
     const normalizedTags = getNormalizedTagsForFile(file, storage);
     const normalizedSearchTag = normalizeTagPathValue(tag);
     if (normalizedSearchTag.length === 0) {
@@ -243,9 +328,16 @@ export function determineTagToReveal(
     file: TFile,
     currentTag: string | null,
     settings: NotebookNavigatorSettings,
-    storage: IndexedDBStorage,
-    includeDescendantNotes: boolean
+    storage: TagRevealStorage,
+    includeDescendantNotes: boolean,
+    useShortestPath: boolean
 ): string | null {
+    const fileData = storage.getFile(file.path);
+    if (!fileData || fileData.tags === null) {
+        // Tags are not indexed yet for this file. Keep the current tag selection.
+        return currentTag;
+    }
+
     // Check if file has no tags
     const fileTags = getNormalizedTagsForFile(file, storage);
     if (fileTags.length === 0) {
@@ -253,8 +345,7 @@ export function determineTagToReveal(
         return settings.showUntagged ? UNTAGGED_TAG_ID : null;
     }
 
-    const fileData = storage.getFile(file.path);
-    const originalTags = fileData?.tags;
+    const originalTags = fileData.tags;
 
     const getFirstFileTag = () => {
         if (originalTags && originalTags.length > 0) {
@@ -264,7 +355,7 @@ export function determineTagToReveal(
     };
 
     if (currentTag === TAGGED_TAG_ID) {
-        return includeDescendantNotes ? TAGGED_TAG_ID : getFirstFileTag();
+        return includeDescendantNotes && useShortestPath ? TAGGED_TAG_ID : getFirstFileTag();
     }
 
     // Check if we should stay on the current tag
@@ -274,9 +365,8 @@ export function determineTagToReveal(
             return currentTag; // Stay on current tag
         }
 
-        if (includeDescendantNotes) {
-            // For auto-reveals (which tag reveals always are), check if current tag is a parent.
-            // This is similar to how folder auto-reveals preserve parent folders with includeDescendantNotes.
+        if (includeDescendantNotes && useShortestPath) {
+            // In shortest-path mode, keep parent tags selected when the file has descendant tags.
             const normalizedCurrentTag = normalizeTagPathValue(currentTag);
             if (normalizedCurrentTag.length > 0) {
                 const currentTagPrefix = `${normalizedCurrentTag}/`;

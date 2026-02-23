@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,22 +22,28 @@ import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import type { NotebookNavigatorSettings } from '../../src/settings/types';
 import type { FileData } from '../../src/storage/IndexedDBStorage';
 import { deriveFileMetadata } from '../utils/pathMetadata';
+import { setActivePropertyFields } from '../../src/utils/vaultProfiles';
 
 class TestMarkdownPipelineContentProvider extends MarkdownPipelineContentProvider {
-    async runCustomProperty(file: TFile, settings: NotebookNavigatorSettings): Promise<FileData['customProperty'] | null> {
+    async runCustomProperty(file: TFile, settings: NotebookNavigatorSettings): Promise<FileData['properties'] | null> {
         const result = await this.processFile({ file, path: file.path }, null, settings);
-        return result.update?.customProperty ?? null;
+        return result.update?.properties ?? null;
     }
 }
 
-function createSettings(overrides: Partial<NotebookNavigatorSettings>): NotebookNavigatorSettings {
-    return {
-        ...DEFAULT_SETTINGS,
-        showFilePreview: false,
-        showFeatureImage: false,
-        customPropertyType: 'frontmatter',
-        ...overrides
-    };
+function createSettings(overrides: Partial<NotebookNavigatorSettings> & { propertyFields?: string }): NotebookNavigatorSettings {
+    const { propertyFields, ...settingsOverrides } = overrides;
+    const settings = structuredClone(DEFAULT_SETTINGS);
+    settings.showFilePreview = false;
+    settings.showFeatureImage = false;
+    settings.notePropertyType = 'none';
+    Object.assign(settings, settingsOverrides);
+
+    if (typeof propertyFields === 'string') {
+        setActivePropertyFields(settings, propertyFields);
+    }
+
+    return settings;
 }
 
 function createApp() {
@@ -66,10 +72,10 @@ function setFrontmatter(context: ReturnType<typeof createApp>, file: TFile, fron
 }
 
 describe('MarkdownPipelineContentProvider frontmatter custom properties', () => {
-    // Custom property items persist the source field key and the raw value; styling is derived at render time.
+    // Custom property items persist the source field key, raw value, and value kind; styling is derived at render time.
     it('returns multiple properties as pills', async () => {
         const context = createApp();
-        const settings = createSettings({ customPropertyFields: 'status, type' });
+        const settings = createSettings({ propertyFields: 'status, type' });
         const provider = new TestMarkdownPipelineContentProvider(context.app);
         const file = createFile('notes/note.md');
 
@@ -77,14 +83,14 @@ describe('MarkdownPipelineContentProvider frontmatter custom properties', () => 
         const result = await provider.runCustomProperty(file, settings);
 
         expect(result).toEqual([
-            { fieldKey: 'status', value: 'Active' },
-            { fieldKey: 'type', value: 'Project' }
+            { fieldKey: 'status', value: 'Active', valueKind: 'string' },
+            { fieldKey: 'type', value: 'Project', valueKind: 'string' }
         ]);
     });
 
     it('flattens list values into multiple pills', async () => {
         const context = createApp();
-        const settings = createSettings({ customPropertyFields: 'status, type' });
+        const settings = createSettings({ propertyFields: 'status, type' });
         const provider = new TestMarkdownPipelineContentProvider(context.app);
         const file = createFile('notes/note.md');
 
@@ -92,20 +98,16 @@ describe('MarkdownPipelineContentProvider frontmatter custom properties', () => 
         const result = await provider.runCustomProperty(file, settings);
 
         expect(result).toEqual([
-            { fieldKey: 'status', value: 'A' },
-            { fieldKey: 'status', value: 'B' },
-            { fieldKey: 'type', value: 'Project' }
+            { fieldKey: 'status', value: 'A', valueKind: 'string' },
+            { fieldKey: 'status', value: 'B', valueKind: 'string' },
+            { fieldKey: 'type', value: 'Project', valueKind: 'string' }
         ]);
     });
 
-    it('does not persist colors in custom property items', async () => {
+    it('does not persist presentation data in custom property items', async () => {
         const context = createApp();
         const settings = createSettings({
-            customPropertyFields: 'status, type',
-            customPropertyColorMap: {
-                status: '#ff0000',
-                type: '#00ff00'
-            }
+            propertyFields: 'status, type'
         });
         const provider = new TestMarkdownPipelineContentProvider(context.app);
         const file = createFile('notes/note.md');
@@ -114,8 +116,38 @@ describe('MarkdownPipelineContentProvider frontmatter custom properties', () => 
         const result = await provider.runCustomProperty(file, settings);
 
         expect(result).toEqual([
-            { fieldKey: 'status', value: 'Active' },
-            { fieldKey: 'type', value: 'Project' }
+            { fieldKey: 'status', value: 'Active', valueKind: 'string' },
+            { fieldKey: 'type', value: 'Project', valueKind: 'string' }
+        ]);
+    });
+
+    it('preserves value kind metadata for string and boolean literals', async () => {
+        const context = createApp();
+        const settings = createSettings({ propertyFields: 'status, flag' });
+        const provider = new TestMarkdownPipelineContentProvider(context.app);
+        const file = createFile('notes/note.md');
+
+        setFrontmatter(context, file, { status: 'true', flag: true });
+        const result = await provider.runCustomProperty(file, settings);
+
+        expect(result).toEqual([
+            { fieldKey: 'status', value: 'true', valueKind: 'string' },
+            { fieldKey: 'flag', value: 'true', valueKind: 'boolean' }
+        ]);
+    });
+
+    it('treats null frontmatter values as boolean true', async () => {
+        const context = createApp();
+        const settings = createSettings({ propertyFields: 'status, type' });
+        const provider = new TestMarkdownPipelineContentProvider(context.app);
+        const file = createFile('notes/note.md');
+
+        setFrontmatter(context, file, { status: null, type: 'Project' });
+        const result = await provider.runCustomProperty(file, settings);
+
+        expect(result).toEqual([
+            { fieldKey: 'status', value: 'true', valueKind: 'boolean' },
+            { fieldKey: 'type', value: 'Project', valueKind: 'string' }
         ]);
     });
 });

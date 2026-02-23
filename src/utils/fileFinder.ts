@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +19,11 @@
 import { TFile, TFolder, App } from 'obsidian';
 import type { NotebookNavigatorSettings } from '../settings';
 import type { NavigatorContext, PinnedNotes, VisibilityPreferences } from '../types';
-import { TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
+import { ItemType, PROPERTIES_ROOT_VIRTUAL_FOLDER_ID, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
 import {
-    shouldExcludeFile,
+    createFrontmatterPropertyExclusionMatcher,
     shouldExcludeFolder,
+    shouldExcludeFileWithMatcher,
     createHiddenFileNameMatcherForVisibility,
     getFilteredDocumentFiles,
     getFilteredFiles,
@@ -31,12 +32,11 @@ import {
 } from './fileFilters';
 import { shouldDisplayFile, FILE_VISIBILITY } from './fileTypeUtils';
 import { getEffectiveSortOption, isPropertySortOption, sortFiles } from './sortUtils';
-import { TagTreeService } from '../services/TagTreeService';
 import { getDBInstanceOrNull } from '../storage/fileOperations';
 import { extractMetadata } from '../utils/metadataExtractor';
 import { METADATA_SENTINEL } from '../storage/IndexedDBStorage';
 import { getFileDisplayName as getDisplayName } from './fileNameUtils';
-import { isFolderNote } from './folderNotes';
+import { getFolderNote, getFolderNoteDetectionSettings } from './folderNotes';
 import { createHiddenTagVisibility, normalizeTagPathValue } from './tagPrefixMatcher';
 import { isRecord } from './typeGuards';
 import {
@@ -45,9 +45,22 @@ import {
     getActiveHiddenFileTags,
     getActiveHiddenFileProperties,
     getActiveHiddenFolders,
-    getActiveHiddenTags
+    getActiveHiddenTags,
+    getActivePropertyKeySet
 } from './vaultProfiles';
 import { getCachedFileTags } from './tagUtils';
+import { casefold, normalizePinnedNoteContext } from './recordUtils';
+import {
+    buildPropertyKeyNodeId,
+    buildPropertyValueNodeId,
+    isPropertyKeyOnlyValuePath,
+    matchesPropertyValuePath,
+    type PropertySelectionNodeId,
+    normalizePropertyTreeValuePath,
+    parsePropertyNodeId
+} from './propertyTree';
+import type { IPropertyTreeProvider } from '../interfaces/IPropertyTreeProvider';
+import type { ITagTreeProvider } from '../interfaces/ITagTreeProvider';
 
 interface CollectPinnedPathsOptions {
     restrictToFolderPath?: string;
@@ -59,6 +72,103 @@ function getParentFolderPath(path: string): string {
         return '/';
     }
     return path.slice(0, separatorIndex);
+}
+
+function matchesPathSelection(candidatePath: string, selectedPath: string, includeDescendants: boolean): boolean {
+    if (candidatePath === selectedPath) {
+        return true;
+    }
+
+    if (!includeDescendants) {
+        return false;
+    }
+
+    return candidatePath.startsWith(`${selectedPath}/`);
+}
+
+function getFilteredMarkdownFilesForSelection(
+    app: App,
+    settings: NotebookNavigatorSettings,
+    showHiddenItems: boolean,
+    excludedFolderPatterns: string[]
+): TFile[] {
+    const fileVisibility = getActiveFileVisibility(settings);
+    const allFiles =
+        fileVisibility === FILE_VISIBILITY.DOCUMENTS
+            ? getFilteredDocumentFiles(app, settings, { showHiddenItems })
+            : getFilteredFiles(app, settings, { showHiddenItems });
+
+    const baseFiles = showHiddenItems
+        ? allFiles
+        : allFiles.filter(file => excludedFolderPatterns.length === 0 || !isPathInExcludedFolder(file.path, excludedFolderPatterns));
+
+    return baseFiles.filter(file => file.extension === 'md');
+}
+
+function isFileVisibleForScopedSelection(
+    file: TFile,
+    options: {
+        showHiddenItems: boolean;
+        excludedFolderPatterns: string[];
+        excludedFilePropertyMatcher: ReturnType<typeof createFrontmatterPropertyExclusionMatcher>;
+        fileNameMatcher: ReturnType<typeof createHiddenFileNameMatcherForVisibility>;
+        shouldFilterHiddenFileTags: boolean;
+        hiddenFileTagVisibility: ReturnType<typeof createHiddenTagVisibility>;
+        app: App;
+        db: ReturnType<typeof getDBInstanceOrNull>;
+    }
+): boolean {
+    const {
+        showHiddenItems,
+        excludedFolderPatterns,
+        excludedFilePropertyMatcher,
+        fileNameMatcher,
+        shouldFilterHiddenFileTags,
+        hiddenFileTagVisibility,
+        app,
+        db
+    } = options;
+
+    if (!showHiddenItems && excludedFolderPatterns.length > 0 && isPathInExcludedFolder(file.path, excludedFolderPatterns)) {
+        return false;
+    }
+
+    if (
+        !showHiddenItems &&
+        excludedFilePropertyMatcher.hasCriteria &&
+        shouldExcludeFileWithMatcher(file, excludedFilePropertyMatcher, app)
+    ) {
+        return false;
+    }
+
+    if (fileNameMatcher && fileNameMatcher.matches(file)) {
+        return false;
+    }
+
+    if (shouldFilterHiddenFileTags) {
+        const fileData = db?.getFile(file.path) ?? null;
+        const tags = getCachedFileTags({ app, file, db, fileData });
+        if (tags.some(tagValue => !hiddenFileTagVisibility.isTagVisible(tagValue))) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function collectVisibleMarkdownFilesFromPaths(paths: Iterable<string>, app: App, isVisible: (file: TFile) => boolean): TFile[] {
+    const files: TFile[] = [];
+    for (const path of paths) {
+        const file = app.vault.getFileByPath(path);
+        if (!file || file.extension !== 'md') {
+            continue;
+        }
+        if (!isVisible(file)) {
+            continue;
+        }
+        files.push(file);
+    }
+    return files;
 }
 
 function extractPropertySortParts(value: unknown): string[] {
@@ -120,6 +230,67 @@ function createPropertySortValueGetter(app: App, propertySortKey: string): (file
     };
 }
 
+function sortNavigationFiles(
+    files: TFile[],
+    settings: NotebookNavigatorSettings,
+    app: App,
+    sortOption: ReturnType<typeof getEffectiveSortOption>
+): void {
+    const isPropertySort = isPropertySortOption(sortOption);
+    const propertySortKey = settings.propertySortKey.trim();
+    const getPropertySortValue =
+        isPropertySort && propertySortKey.length > 0 ? createPropertySortValueGetter(app, propertySortKey) : undefined;
+
+    if (settings.useFrontmatterMetadata) {
+        const metadataCache = new Map<string, ReturnType<typeof extractMetadata>>();
+        const getCached = (file: TFile) => {
+            let metadata = metadataCache.get(file.path);
+            if (!metadata) {
+                metadata = extractMetadata(app, file, settings);
+                metadataCache.set(file.path, metadata);
+            }
+            return metadata;
+        };
+
+        const getCreatedTime = (file: TFile) => {
+            const metadata = getCached(file);
+            if (
+                metadata.fc === undefined ||
+                metadata.fc === METADATA_SENTINEL.FIELD_NOT_CONFIGURED ||
+                metadata.fc === METADATA_SENTINEL.PARSE_FAILED
+            ) {
+                return file.stat.ctime;
+            }
+            return metadata.fc;
+        };
+
+        const getModifiedTime = (file: TFile) => {
+            const metadata = getCached(file);
+            if (
+                metadata.fm === undefined ||
+                metadata.fm === METADATA_SENTINEL.FIELD_NOT_CONFIGURED ||
+                metadata.fm === METADATA_SENTINEL.PARSE_FAILED
+            ) {
+                return file.stat.mtime;
+            }
+            return metadata.fm;
+        };
+
+        const getTitle = (file: TFile) => {
+            const metadata = getCached(file);
+            return getDisplayName(file, { fn: metadata.fn }, settings);
+        };
+
+        sortFiles(files, sortOption, getCreatedTime, getModifiedTime, getTitle, getPropertySortValue, settings.propertySortSecondary);
+        return;
+    }
+
+    const getCreatedTime = (file: TFile) => file.stat.ctime;
+    const getModifiedTime = (file: TFile) => file.stat.mtime;
+    const getTitle = (file: TFile) => file.basename;
+    sortFiles(files, sortOption, getCreatedTime, getModifiedTime, getTitle, getPropertySortValue, settings.propertySortSecondary);
+}
+
 /**
  * Collects all pinned note paths from settings
  */
@@ -138,6 +309,8 @@ export function collectPinnedPaths(
     const shouldRestrictFolderContext = contextFilter === 'folder' && restrictToFolderPath !== undefined;
 
     for (const [path, contexts] of Object.entries(pinnedNotes)) {
+        const normalizedContexts = normalizePinnedNoteContext(contexts);
+
         if (shouldRestrictFolderContext) {
             const parentPath = getParentFolderPath(path);
             if (parentPath !== restrictToFolderPath) {
@@ -148,7 +321,7 @@ export function collectPinnedPaths(
         if (!contextFilter) {
             // Include all pinned notes
             allPinnedPaths.add(path);
-        } else if (contexts[contextFilter]) {
+        } else if (normalizedContexts[contextFilter]) {
             // Include if pinned in the specified context
             allPinnedPaths.add(path);
         }
@@ -200,6 +373,7 @@ export function getFilesForFolder(
     const files: TFile[] = [];
     const excludedFolderPatterns = getActiveHiddenFolders(settings);
     const excludedFileProperties = getActiveHiddenFileProperties(settings);
+    const excludedFilePropertyMatcher = createFrontmatterPropertyExclusionMatcher(excludedFileProperties);
     const excludedFileNamePatterns = getActiveHiddenFileNames(settings);
     const excludedFileTagPatterns = getActiveHiddenFileTags(settings);
     const fileVisibility = getActiveFileVisibility(settings);
@@ -239,8 +413,8 @@ export function getFilesForFolder(
 
     collectFiles(folder, folderHiddenInitially);
     let allFiles: TFile[] = files;
-    if (!visibility.showHiddenItems && excludedFileProperties.length > 0) {
-        allFiles = files.filter(file => file.extension !== 'md' || !shouldExcludeFile(file, excludedFileProperties, app));
+    if (!visibility.showHiddenItems && excludedFilePropertyMatcher.hasCriteria) {
+        allFiles = files.filter(file => file.extension !== 'md' || !shouldExcludeFileWithMatcher(file, excludedFilePropertyMatcher, app));
     }
     if (fileNameMatcher) {
         allFiles = allFiles.filter(file => !fileNameMatcher.matches(file));
@@ -262,63 +436,25 @@ export function getFilesForFolder(
 
     // Filter out folder notes if enabled and set to hide
     if (settings.enableFolderNotes && settings.hideFolderNoteInList) {
+        const detectionSettings = getFolderNoteDetectionSettings(settings);
+        const folderNotePathByFolderPath = new Map<string, string | null>();
         allFiles = allFiles.filter(file => {
-            if (file.parent && file.parent instanceof TFolder) {
-                return !isFolderNote(file, file.parent, {
-                    enableFolderNotes: true,
-                    folderNoteName: settings.folderNoteName
-                });
+            const parent = file.parent;
+            if (!(parent instanceof TFolder)) {
+                return true;
             }
-            return true;
+
+            if (!folderNotePathByFolderPath.has(parent.path)) {
+                const folderNote = getFolderNote(parent, detectionSettings);
+                folderNotePathByFolderPath.set(parent.path, folderNote ? folderNote.path : null);
+            }
+
+            return folderNotePathByFolderPath.get(parent.path) !== file.path;
         });
     }
 
     const sortOption = getEffectiveSortOption(settings, 'folder', folder);
-    const isPropertySort = isPropertySortOption(sortOption);
-    const propertySortKey = settings.propertySortKey.trim();
-    const getPropertySortValue =
-        isPropertySort && propertySortKey.length > 0 ? createPropertySortValueGetter(app, propertySortKey) : undefined;
-
-    if (settings.useFrontmatterMetadata) {
-        const metadataCache = new Map<string, ReturnType<typeof extractMetadata>>();
-        const getCached = (file: TFile) => {
-            let v = metadataCache.get(file.path);
-            if (!v) {
-                v = extractMetadata(app, file, settings);
-                metadataCache.set(file.path, v);
-            }
-            return v;
-        };
-
-        const getCreatedTime = (file: TFile) => {
-            const md = getCached(file);
-            if (md.fc === undefined || md.fc === METADATA_SENTINEL.FIELD_NOT_CONFIGURED || md.fc === METADATA_SENTINEL.PARSE_FAILED) {
-                return file.stat.ctime;
-            }
-            return md.fc;
-        };
-
-        const getModifiedTime = (file: TFile) => {
-            const md = getCached(file);
-            if (md.fm === undefined || md.fm === METADATA_SENTINEL.FIELD_NOT_CONFIGURED || md.fm === METADATA_SENTINEL.PARSE_FAILED) {
-                return file.stat.mtime;
-            }
-            return md.fm;
-        };
-
-        const getTitle = (file: TFile) => {
-            const md = getCached(file);
-            return getDisplayName(file, { fn: md.fn }, settings);
-        };
-
-        sortFiles(allFiles, sortOption, getCreatedTime, getModifiedTime, getTitle, getPropertySortValue);
-    } else {
-        const getCreatedTime = (file: TFile) => file.stat.ctime;
-        const getModifiedTime = (file: TFile) => file.stat.mtime;
-        const getTitle = (file: TFile) => file.basename;
-
-        sortFiles(allFiles, sortOption, getCreatedTime, getModifiedTime, getTitle, getPropertySortValue);
-    }
+    sortNavigationFiles(allFiles, settings, app, sortOption);
 
     const pinnedOrderingOptions = settings.filterPinnedByFolder ? { restrictToFolderPath: folder.path } : undefined;
     return applyPinnedOrdering(allFiles, settings, 'folder', pinnedOrderingOptions);
@@ -337,46 +473,50 @@ export function getFilesForTag(
     settings: NotebookNavigatorSettings,
     visibility: VisibilityPreferences,
     app: App,
-    tagTreeService: TagTreeService | null
+    tagTreeService: ITagTreeProvider | null
 ): TFile[] {
-    // Get all files based on visibility setting, with proper filtering
-    let allFiles: TFile[] = [];
     const hiddenTags = getActiveHiddenTags(settings);
     const hiddenFileTags = getActiveHiddenFileTags(settings);
-    const fileVisibility = getActiveFileVisibility(settings);
+    const excludedFolderPatterns = getActiveHiddenFolders(settings);
+    const excludedFileProperties = getActiveHiddenFileProperties(settings);
+    const excludedFilePropertyMatcher = createFrontmatterPropertyExclusionMatcher(excludedFileProperties);
+    const excludedFileNamePatterns = getActiveHiddenFileNames(settings);
+    const fileNameMatcher = createHiddenFileNameMatcherForVisibility(excludedFileNamePatterns, visibility.showHiddenItems);
     const hiddenTagVisibility = createHiddenTagVisibility(hiddenTags, visibility.showHiddenItems);
     const shouldFilterHiddenTags = hiddenTagVisibility.shouldFilterHiddenTags;
     const hiddenFileTagVisibility = createHiddenTagVisibility(hiddenFileTags, visibility.showHiddenItems);
     const shouldFilterHiddenFileTags = hiddenFileTagVisibility.hasHiddenRules && !visibility.showHiddenItems;
+    const db = getDBInstanceOrNull();
+    let markdownFilesCache: TFile[] | null = null;
 
-    if (fileVisibility === FILE_VISIBILITY.DOCUMENTS) {
-        // Only document files (markdown, canvas, base)
-        allFiles = getFilteredDocumentFiles(app, settings, { showHiddenItems: visibility.showHiddenItems });
-    } else {
-        // Get all files with filtering
-        allFiles = getFilteredFiles(app, settings, { showHiddenItems: visibility.showHiddenItems });
-    }
+    const getMarkdownFiles = (): TFile[] => {
+        if (markdownFilesCache) {
+            return markdownFilesCache;
+        }
 
-    const excludedFolderPatterns = getActiveHiddenFolders(settings);
-    // For tag views, exclude files in excluded folders only when hidden items are not shown
-    // When showing hidden items, include files from excluded folders to match the tag tree
-    const baseFiles = visibility.showHiddenItems
-        ? allFiles
-        : allFiles.filter(
-              (file: TFile) => excludedFolderPatterns.length === 0 || !isPathInExcludedFolder(file.path, excludedFolderPatterns)
-          );
+        markdownFilesCache = getFilteredMarkdownFilesForSelection(app, settings, visibility.showHiddenItems, excludedFolderPatterns);
+        return markdownFilesCache;
+    };
+
+    const matchesCurrentVisibility = (file: TFile): boolean => {
+        return isFileVisibleForScopedSelection(file, {
+            showHiddenItems: visibility.showHiddenItems,
+            excludedFolderPatterns,
+            excludedFilePropertyMatcher,
+            fileNameMatcher,
+            shouldFilterHiddenFileTags,
+            hiddenFileTagVisibility,
+            app,
+            db
+        });
+    };
 
     let filteredFiles: TFile[] = [];
-
-    const db = getDBInstanceOrNull();
 
     // Special case for untagged files
     if (tag === UNTAGGED_TAG_ID) {
         // Only show markdown files in untagged section since only they can be tagged
-        filteredFiles = baseFiles.filter(file => {
-            if (file.extension !== 'md') {
-                return false;
-            }
+        filteredFiles = getMarkdownFiles().filter(file => {
             // Check if the markdown file has tags using our cache
             const fileTags = getCachedFileTags({ app, file, db });
             return fileTags.length === 0;
@@ -387,7 +527,7 @@ export function getFilesForTag(
         }
 
         // Include markdown files that have at least one tag, respecting hidden tag visibility
-        const markdownFiles = baseFiles.filter(file => file.extension === 'md');
+        const markdownFiles = getMarkdownFiles();
         filteredFiles = markdownFiles.filter(file => {
             const fileTags = getCachedFileTags({ app, file, db });
             if (fileTags.length === 0) {
@@ -405,30 +545,14 @@ export function getFilesForTag(
             return fileTags.some(tagValue => hiddenTagVisibility.isTagVisible(normalizeTagPathValue(tagValue)));
         });
     } else {
-        // For regular tags, only consider markdown files since only they can have tags
-        const markdownFiles = baseFiles.filter(file => file.extension === 'md');
+        const selectedNode = tagTreeService?.findTagNode(tag) ?? null;
+        const normalizedSelectedTagPath = normalizeTagPathValue(tag);
+        if (!normalizedSelectedTagPath) {
+            filteredFiles = [];
+        } else {
+            const selectedTagPath = selectedNode?.path ?? normalizedSelectedTagPath;
 
-        // Find the selected tag node using TagTreeService
-        const selectedNode = tagTreeService?.findTagNode(tag) || null;
-
-        if (selectedNode) {
-            // Collect tags to include based on setting:
-            // - When showing notes from descendants: include selected tag and all descendants
-            // - Otherwise: include only the exact selected tag
-            const tagsToInclude = visibility.includeDescendantNotes
-                ? tagTreeService?.collectTagPaths(selectedNode) || new Set<string>()
-                : new Set<string>([selectedNode.path]);
-            const normalizedTagPaths = new Set(Array.from(tagsToInclude).map(path => normalizeTagPathValue(path)));
-            const filteredTagPaths = shouldFilterHiddenTags
-                ? new Set(Array.from(normalizedTagPaths).filter(tagPath => hiddenTagVisibility.isTagVisible(tagPath)))
-                : normalizedTagPaths;
-
-            if (filteredTagPaths.size === 0) {
-                return [];
-            }
-
-            // Filter files that have any of the collected tags (case-insensitive)
-            filteredFiles = markdownFiles.filter(file => {
+            const matchesSelectedTagPath = (file: TFile): boolean => {
                 const fileTags = getCachedFileTags({ app, file, db });
                 if (fileTags.length === 0) {
                     return false;
@@ -438,70 +562,196 @@ export function getFilesForTag(
                     return false;
                 }
 
-                return fileTags.some(tag => {
-                    const normalizedTag = normalizeTagPathValue(tag);
-                    if (!filteredTagPaths.has(normalizedTag)) {
+                return fileTags.some(tagValue => {
+                    const normalizedTag = normalizeTagPathValue(tagValue);
+                    if (!matchesPathSelection(normalizedTag, selectedTagPath, visibility.includeDescendantNotes)) {
                         return false;
                     }
                     if (!shouldFilterHiddenTags) {
                         return true;
                     }
-                    return hiddenTagVisibility.isTagVisible(tag);
+                    return hiddenTagVisibility.isTagVisible(normalizedTag);
                 });
-            });
-        } else {
-            // Fallback to empty if tag not found
-            filteredFiles = [];
+            };
+
+            const candidateMarkdownFiles = (() => {
+                if (!tagTreeService || !tagTreeService.hasNodes()) {
+                    return null;
+                }
+
+                const candidatePaths = tagTreeService.collectTagFilePaths(selectedTagPath);
+                if (candidatePaths.length === 0 && !selectedNode) {
+                    return null;
+                }
+
+                return collectVisibleMarkdownFilesFromPaths(candidatePaths, app, matchesCurrentVisibility);
+            })();
+
+            const markdownFiles = candidateMarkdownFiles ?? getMarkdownFiles();
+            filteredFiles = markdownFiles.filter(matchesSelectedTagPath);
         }
     }
 
-    // Sort files
     const sortOption = getEffectiveSortOption(settings, 'tag', null, tag);
-    const isPropertySort = isPropertySortOption(sortOption);
-    const propertySortKey = settings.propertySortKey.trim();
-    const getPropertySortValue =
-        isPropertySort && propertySortKey.length > 0 ? createPropertySortValueGetter(app, propertySortKey) : undefined;
-
-    if (settings.useFrontmatterMetadata) {
-        const metadataCache = new Map<string, ReturnType<typeof extractMetadata>>();
-        const getCached = (file: TFile) => {
-            let v = metadataCache.get(file.path);
-            if (!v) {
-                v = extractMetadata(app, file, settings);
-                metadataCache.set(file.path, v);
-            }
-            return v;
-        };
-
-        const getCreatedTime = (file: TFile) => {
-            const md = getCached(file);
-            if (md.fc === undefined || md.fc === METADATA_SENTINEL.FIELD_NOT_CONFIGURED || md.fc === METADATA_SENTINEL.PARSE_FAILED) {
-                return file.stat.ctime;
-            }
-            return md.fc;
-        };
-
-        const getModifiedTime = (file: TFile) => {
-            const md = getCached(file);
-            if (md.fm === undefined || md.fm === METADATA_SENTINEL.FIELD_NOT_CONFIGURED || md.fm === METADATA_SENTINEL.PARSE_FAILED) {
-                return file.stat.mtime;
-            }
-            return md.fm;
-        };
-
-        const getTitle = (file: TFile) => {
-            const md = getCached(file);
-            return getDisplayName(file, { fn: md.fn }, settings);
-        };
-
-        sortFiles(filteredFiles, sortOption, getCreatedTime, getModifiedTime, getTitle, getPropertySortValue);
-    } else {
-        const getCreatedTime = (file: TFile) => file.stat.ctime;
-        const getModifiedTime = (file: TFile) => file.stat.mtime;
-        const getTitle = (file: TFile) => file.basename;
-
-        sortFiles(filteredFiles, sortOption, getCreatedTime, getModifiedTime, getTitle, getPropertySortValue);
-    }
+    sortNavigationFiles(filteredFiles, settings, app, sortOption);
 
     return applyPinnedOrdering(filteredFiles, settings, 'tag');
+}
+
+/**
+ * Gets a sorted list of files for a selected property tree node.
+ * @param propertyNodeId - Selected property node id (key/value) or the properties root id
+ * @param settings - Plugin settings for sorting and filtering
+ * @param visibility - Visibility preferences for descendant notes and hidden items display
+ * @param app - Obsidian app instance
+ */
+export function getFilesForProperty(
+    propertyNodeId: PropertySelectionNodeId,
+    settings: NotebookNavigatorSettings,
+    visibility: VisibilityPreferences,
+    app: App,
+    propertyTreeService: IPropertyTreeProvider | null = null
+): TFile[] {
+    const includesAnyProperty = propertyNodeId === PROPERTIES_ROOT_VIRTUAL_FOLDER_ID;
+    // Root properties selection includes every configured key that is enabled in either
+    // navigation or list visibility modes.
+    const configuredPropertyKeys = getActivePropertyKeySet(settings, 'any');
+
+    if (includesAnyProperty && configuredPropertyKeys.size === 0) {
+        return [];
+    }
+
+    const selectionNode = includesAnyProperty ? null : parsePropertyNodeId(propertyNodeId);
+    if (!includesAnyProperty && !selectionNode) {
+        return [];
+    }
+    const normalizedKey = includesAnyProperty ? null : (selectionNode?.key ?? null);
+
+    if (!includesAnyProperty && (!normalizedKey || !configuredPropertyKeys.has(normalizedKey))) {
+        return [];
+    }
+
+    const normalizedValue =
+        includesAnyProperty || !selectionNode?.valuePath ? null : normalizePropertyTreeValuePath(selectionNode.valuePath);
+    if (normalizedValue !== null && normalizedValue.length === 0) {
+        return [];
+    }
+
+    const selectedPropertyKey = normalizedKey ?? '';
+    const excludedFolderPatterns = getActiveHiddenFolders(settings);
+    const excludedFileProperties = getActiveHiddenFileProperties(settings);
+    const excludedFilePropertyMatcher = createFrontmatterPropertyExclusionMatcher(excludedFileProperties);
+    const excludedFileNamePatterns = getActiveHiddenFileNames(settings);
+    const fileNameMatcher = createHiddenFileNameMatcherForVisibility(excludedFileNamePatterns, visibility.showHiddenItems);
+
+    const hiddenFileTags = getActiveHiddenFileTags(settings);
+    const hiddenFileTagVisibility = createHiddenTagVisibility(hiddenFileTags, visibility.showHiddenItems);
+    const shouldFilterHiddenFileTags = hiddenFileTagVisibility.hasHiddenRules && !visibility.showHiddenItems;
+    const db = getDBInstanceOrNull();
+    const candidatePaths = (() => {
+        if (includesAnyProperty && !visibility.includeDescendantNotes) {
+            return new Set<string>();
+        }
+
+        if (!propertyTreeService || !propertyTreeService.hasNodes()) {
+            return null;
+        }
+
+        if (includesAnyProperty) {
+            // Root properties selection aggregates across configured keys through the provider contract.
+            return propertyTreeService.collectFilesForKeys(configuredPropertyKeys);
+        }
+
+        if (normalizedValue === null) {
+            return propertyTreeService.collectFilePaths(buildPropertyKeyNodeId(selectedPropertyKey), visibility.includeDescendantNotes);
+        }
+
+        const valueNodeId = buildPropertyValueNodeId(selectedPropertyKey, normalizedValue);
+        const valueNode = propertyTreeService.findNode(valueNodeId);
+        if (!valueNode || valueNode.kind !== 'value') {
+            return new Set<string>();
+        }
+
+        return propertyTreeService.collectFilePaths(valueNodeId, visibility.includeDescendantNotes);
+    })();
+
+    const matchesCurrentVisibility = (file: TFile): boolean => {
+        return isFileVisibleForScopedSelection(file, {
+            showHiddenItems: visibility.showHiddenItems,
+            excludedFolderPatterns,
+            excludedFilePropertyMatcher,
+            fileNameMatcher,
+            shouldFilterHiddenFileTags,
+            hiddenFileTagVisibility,
+            app,
+            db
+        });
+    };
+
+    const matchedFiles = (() => {
+        if (candidatePaths) {
+            return collectVisibleMarkdownFilesFromPaths(candidatePaths, app, matchesCurrentVisibility);
+        }
+
+        const markdownFiles = getFilteredMarkdownFilesForSelection(app, settings, visibility.showHiddenItems, excludedFolderPatterns);
+
+        return markdownFiles.filter(file => {
+            const fileData = db?.getFile(file.path) ?? null;
+            const properties = fileData?.properties;
+            if (!properties || properties.length === 0) {
+                return false;
+            }
+
+            if (shouldFilterHiddenFileTags) {
+                const tags = getCachedFileTags({ app, file, db, fileData });
+                if (tags.some(tagValue => !hiddenFileTagVisibility.isTagVisible(tagValue))) {
+                    return false;
+                }
+            }
+
+            if (includesAnyProperty) {
+                return properties.some(entry => configuredPropertyKeys.has(casefold(entry.fieldKey)));
+            }
+
+            let hasMatchingKey = false;
+            let hasDirectMatchingKey = false;
+            for (const entry of properties) {
+                if (casefold(entry.fieldKey) !== selectedPropertyKey) {
+                    continue;
+                }
+
+                hasMatchingKey = true;
+                if (normalizedValue === null) {
+                    const normalizedEntryValue = normalizePropertyTreeValuePath(entry.value);
+                    if (isPropertyKeyOnlyValuePath(normalizedEntryValue, entry.valueKind)) {
+                        hasDirectMatchingKey = true;
+                        if (!visibility.includeDescendantNotes) {
+                            return true;
+                        }
+                    }
+                    continue;
+                }
+
+                const normalizedEntryValue = normalizePropertyTreeValuePath(entry.value);
+                if (!normalizedEntryValue) {
+                    continue;
+                }
+
+                if (matchesPropertyValuePath(normalizedEntryValue, normalizedValue)) {
+                    return true;
+                }
+            }
+
+            if (normalizedValue === null) {
+                return visibility.includeDescendantNotes ? hasMatchingKey : hasDirectMatchingKey;
+            }
+
+            return false;
+        });
+    })();
+
+    const sortOption = getEffectiveSortOption(settings, ItemType.PROPERTY, null, null);
+    sortNavigationFiles(matchedFiles, settings, app, sortOption);
+
+    return applyPinnedOrdering(matchedFiles, settings, 'property');
 }

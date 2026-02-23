@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
  */
 
 import { App, WorkspaceLeaf } from 'obsidian';
+import type { CSSProperties } from 'react';
 
 /**
  * Shared types and constants for Notebook Navigator
@@ -36,22 +37,36 @@ export const NOTEBOOK_NAVIGATOR_VIEW = 'notebook-navigator';
 export const NOTEBOOK_NAVIGATOR_CALENDAR_VIEW = 'notebook-navigator-calendar';
 
 /**
- * Special tag identifier for untagged notes
- * Using double underscore to avoid conflicts with real tags
+ * Virtual tag collection id for notes without tags.
+ * Stored in tag selection state and used as a tag filter token.
  */
 export const UNTAGGED_TAG_ID = '__untagged__';
 
 /**
- * Special tag identifier representing all tagged notes
- * Mirrors untagged constant to keep virtual collections consistent
+ * Virtual tag collection id for notes that have at least one tag.
+ * Stored in tag selection state and used as a tag filter token.
  */
 export const TAGGED_TAG_ID = '__tagged__';
+
+/**
+ * Virtual folder id for the root Tags row in navigation.
+ * Used by virtual-folder expansion state and tag section rendering.
+ */
+export const TAGS_ROOT_VIRTUAL_FOLDER_ID = 'tags-root';
+
+/**
+ * Virtual folder id for the root Properties row in navigation.
+ * Stored in property selection state for the "all configured properties" view.
+ */
+export const PROPERTIES_ROOT_VIRTUAL_FOLDER_ID = 'properties-root';
 
 /**
  * Identifies which pane currently has keyboard focus
  * Used for keyboard navigation between folder tree and file list
  */
 export type FocusedPane = 'navigation' | 'files';
+
+export type CSSPropertiesWithVars = CSSProperties & Record<`--${string}`, string | number>;
 
 /**
  * Enum for all item types in the navigator
@@ -60,7 +75,8 @@ export type FocusedPane = 'navigation' | 'files';
 export const ItemType = {
     FILE: 'file',
     FOLDER: 'folder',
-    TAG: 'tag'
+    TAG: 'tag',
+    PROPERTY: 'property'
 } as const;
 
 /**
@@ -88,7 +104,7 @@ export const PINNED_SECTION_HEADER_KEY = 'header-pinned';
  * Navigator context type for context-aware features like pinning
  * Represents different browsing contexts in the navigator
  */
-export type NavigatorContext = 'folder' | 'tag';
+export type NavigatorContext = 'folder' | 'tag' | 'property';
 
 /**
  * Type alias for pinned notes storage structure
@@ -105,11 +121,14 @@ export const NavigationPaneItemType = {
     VIRTUAL_FOLDER: 'virtual-folder',
     TAG: 'tag',
     UNTAGGED: 'untagged',
+    PROPERTY_KEY: 'property-key',
+    PROPERTY_VALUE: 'property-value',
     SHORTCUT_HEADER: 'shortcut-header',
     SHORTCUT_FOLDER: 'shortcut-folder',
     SHORTCUT_NOTE: 'shortcut-note',
     SHORTCUT_SEARCH: 'shortcut-search',
     SHORTCUT_TAG: 'shortcut-tag',
+    SHORTCUT_PROPERTY: 'shortcut-property',
     RECENT_NOTE: 'recent-note',
     TOP_SPACER: 'top-spacer',
     BOTTOM_SPACER: 'bottom-spacer',
@@ -129,7 +148,8 @@ export const NavigationSectionId = {
     SHORTCUTS: 'shortcuts',
     RECENT: 'recent',
     FOLDERS: 'folders',
-    TAGS: 'tags'
+    TAGS: 'tags',
+    PROPERTIES: 'properties'
 } as const;
 
 /**
@@ -144,7 +164,8 @@ export const DEFAULT_NAVIGATION_SECTION_ORDER: NavigationSectionId[] = [
     NavigationSectionId.SHORTCUTS,
     NavigationSectionId.RECENT,
     NavigationSectionId.FOLDERS,
-    NavigationSectionId.TAGS
+    NavigationSectionId.TAGS,
+    NavigationSectionId.PROPERTIES
 ];
 
 /**
@@ -157,9 +178,6 @@ export const NAVPANE_MEASUREMENTS = {
     defaultItemHeight: 28, // Default item height
     defaultIndent: 16, // Default tree indentation
     defaultFontSize: 13, // Default desktop font size
-
-    // Navigation item components
-    lineHeight: 18, // Fixed line height for folder/tag names (--nn-nav-line-height)
 
     // Mobile adjustments
     mobileHeightIncrement: 12, // Mobile item height is desktop + 12px
@@ -214,7 +232,7 @@ export type ItemType = (typeof ItemType)[keyof typeof ItemType];
  * Either a folder from the file tree or a tag from the tag tree
  * This is a subset of ItemType that excludes 'file'
  */
-export type NavigationItemType = typeof ItemType.FOLDER | typeof ItemType.TAG;
+export type NavigationItemType = typeof ItemType.FOLDER | typeof ItemType.TAG | typeof ItemType.PROPERTY;
 
 /**
  * Keys used for persisting state in browser localStorage
@@ -223,8 +241,10 @@ export type NavigationItemType = typeof ItemType.FOLDER | typeof ItemType.TAG;
 export interface LocalStorageKeys {
     expandedFoldersKey: string;
     expandedTagsKey: string;
+    expandedPropertiesKey: string;
     expandedVirtualFoldersKey: string;
     selectedFolderKey: string;
+    selectedPropertyKey: string;
     selectedFileKey: string;
     selectedFilesKey: string;
     selectedTagKey: string;
@@ -251,6 +271,7 @@ export interface LocalStorageKeys {
     searchProviderKey: string;
     folderSortOrderKey: string;
     tagSortOrderKey: string;
+    propertySortOrderKey: string;
     recentColorsKey: string;
     paneTransitionDurationKey: string;
     toolbarVisibilityKey: string;
@@ -260,6 +281,7 @@ export interface LocalStorageKeys {
     navItemHeightKey: string;
     navItemHeightScaleTextKey: string;
     calendarPlacementKey: string;
+    calendarLeftPlacementKey: string;
     calendarWeeksToShowKey: string;
     compactItemHeightKey: string;
     compactItemHeightScaleTextKey: string;
@@ -272,8 +294,10 @@ export interface LocalStorageKeys {
 export const STORAGE_KEYS: LocalStorageKeys = {
     expandedFoldersKey: 'notebook-navigator-expanded-folders',
     expandedTagsKey: 'notebook-navigator-expanded-tags',
+    expandedPropertiesKey: 'notebook-navigator-expanded-properties',
     expandedVirtualFoldersKey: 'notebook-navigator-expanded-virtual-folders',
     selectedFolderKey: 'notebook-navigator-selected-folder',
+    selectedPropertyKey: 'notebook-navigator-selected-property',
     selectedFileKey: 'notebook-navigator-selected-file',
     selectedFilesKey: 'notebook-navigator-selected-files',
     selectedTagKey: 'notebook-navigator-selected-tag',
@@ -300,6 +324,7 @@ export const STORAGE_KEYS: LocalStorageKeys = {
     searchProviderKey: 'notebook-navigator-search-provider',
     folderSortOrderKey: 'notebook-navigator-folder-sort-order',
     tagSortOrderKey: 'notebook-navigator-tag-sort-order',
+    propertySortOrderKey: 'notebook-navigator-property-sort-order',
     recentColorsKey: 'notebook-navigator-recent-colors',
     paneTransitionDurationKey: 'notebook-navigator-pane-transition-duration',
     toolbarVisibilityKey: 'notebook-navigator-toolbar-visibility',
@@ -309,6 +334,7 @@ export const STORAGE_KEYS: LocalStorageKeys = {
     navItemHeightKey: 'notebook-navigator-nav-item-height',
     navItemHeightScaleTextKey: 'notebook-navigator-nav-item-height-scale-text',
     calendarPlacementKey: 'notebook-navigator-calendar-placement',
+    calendarLeftPlacementKey: 'notebook-navigator-calendar-left-placement',
     calendarWeeksToShowKey: 'notebook-navigator-calendar-weeks-to-show',
     compactItemHeightKey: 'notebook-navigator-compact-item-height',
     compactItemHeightScaleTextKey: 'notebook-navigator-compact-item-height-scale-text'

@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,6 @@ export const STRINGS_DE = {
         clipboardWriteError: 'Konnte nicht in Zwischenablage schreiben',
         updateBannerTitle: 'Notebook Navigator-Update verfügbar',
         updateBannerInstruction: 'In Einstellungen -> Community-Plugins aktualisieren',
-        updateIndicatorLabel: 'Neue Version verfügbar',
         previous: 'Zurück', // Generic aria label for previous navigation (English: Previous)
         next: 'Weiter' // Generic aria label for next navigation (English: Next)
     },
@@ -60,6 +59,7 @@ export const STRINGS_DE = {
         shortcutsHeader: 'Lesezeichen',
         recentNotesHeader: 'Neueste Notizen',
         recentFilesHeader: 'Neueste Dateien',
+        properties: 'Eigenschaften',
         reorderRootFoldersTitle: 'Navigation neu anordnen',
         reorderRootFoldersHint: 'Pfeile oder Ziehen zum Neuanordnen',
         vaultRootLabel: 'Tresor',
@@ -81,6 +81,16 @@ export const STRINGS_DE = {
             title: 'Neue tägliche Notiz',
             message: 'Datei {filename} existiert nicht. Möchten Sie sie erstellen?',
             confirmButton: 'Erstellen'
+        },
+        helpModal: {
+            title: 'Kalender-Tastenkürzel',
+            items: [
+                'Klicken Sie auf einen Tag, um eine tägliche Notiz zu öffnen oder zu erstellen. Wochen, Monate, Quartale und Jahre funktionieren genauso.',
+                'Ein gefüllter Punkt unter einem Tag bedeutet, dass eine Notiz vorhanden ist. Ein hohler Punkt bedeutet, dass unerledigte Aufgaben vorhanden sind.',
+                'Wenn eine Notiz ein Feature-Bild hat, wird es als Tageshintergrund angezeigt.'
+            ],
+            dateFilterCmdCtrl: '`Cmd/Ctrl`+Klick auf ein Datum, um in der Dateiliste nach diesem Datum zu filtern.',
+            dateFilterOptionAlt: '`Option/Alt`+Klick auf ein Datum, um in der Dateiliste nach diesem Datum zu filtern.'
         }
     },
 
@@ -93,6 +103,8 @@ export const STRINGS_DE = {
         folderExists: 'Ordner bereits in Lesezeichen vorhanden',
         noteExists: 'Notiz bereits in Lesezeichen vorhanden',
         tagExists: 'Tag bereits in Lesezeichen vorhanden',
+        propertyExists: 'Eigenschaft bereits in Lesezeichen vorhanden',
+        invalidProperty: 'Ungültiges Eigenschafts-Lesezeichen',
         searchExists: 'Such-Lesezeichen existiert bereits',
         emptySearchQuery: 'Geben Sie eine Suchanfrage ein, bevor Sie sie speichern',
         emptySearchName: 'Geben Sie einen Namen ein, bevor Sie die Suche speichern',
@@ -136,10 +148,107 @@ export const STRINGS_DE = {
         placeholder: 'Suchen...', // Placeholder text for search input (English: Search...)
         placeholderOmnisearch: 'Omnisearch...', // Placeholder text when Omnisearch provider is active (English: Omnisearch...)
         clearSearch: 'Suche löschen', // Tooltip for clear search button (English: Clear search)
+        switchToFilterSearch: 'Zur Filtersuche wechseln',
+        switchToOmnisearch: 'Zu Omnisearch wechseln',
         saveSearchShortcut: 'Such-Lesezeichen speichern',
         removeSearchShortcut: 'Such-Lesezeichen entfernen',
         shortcutModalTitle: 'Such-Lesezeichen speichern',
-        shortcutNamePlaceholder: 'Lesezeichen-Namen eingeben'
+        shortcutNamePlaceholder: 'Lesezeichen-Namen eingeben',
+        shortcutStartIn: 'Immer starten in: {path}',
+        searchHelp: 'Suchsyntax',
+        searchHelpTitle: 'Suchsyntax',
+        searchHelpModal: {
+            intro: 'Kombinieren Sie Dateinamen, Eigenschaften, Tags, Daten und Filter in einer Abfrage (z.B. `meeting .status=active #work @thisweek`). Installieren Sie das Omnisearch-Plugin für Volltextsuche.',
+            introSwitching:
+                'Wechseln Sie zwischen Filtersuche und Omnisearch mit den Auf-/Ab-Pfeiltasten oder durch Klicken auf das Suchsymbol.',
+            sections: {
+                fileNames: {
+                    title: 'Dateinamen',
+                    items: [
+                        '`word` Notizen mit "word" im Dateinamen finden.',
+                        '`word1 word2` Jedes Wort muss im Dateinamen vorkommen.',
+                        '`-word` Notizen mit "word" im Dateinamen ausschließen.'
+                    ]
+                },
+                tags: {
+                    title: 'Tags',
+                    items: [
+                        '`#tag` Notizen mit Tag einschließen (findet auch verschachtelte Tags wie `#tag/subtag`).',
+                        '`#` Nur Notizen mit Tags anzeigen.',
+                        '`-#tag` Notizen mit Tag ausschließen.',
+                        '`-#` Nur Notizen ohne Tags anzeigen.',
+                        '`#tag1 #tag2` Beide Tags finden (implizites AND).',
+                        '`#tag1 AND #tag2` Beide Tags finden (explizites AND).',
+                        '`#tag1 OR #tag2` Eines der Tags finden.',
+                        '`#a OR #b AND #c` AND hat höhere Priorität: findet `#a` oder beide `#b` und `#c`.',
+                        'Cmd/Ctrl+Klick auf einen Tag zum Hinzufügen mit AND. Cmd/Ctrl+Shift+Klick zum Hinzufügen mit OR.'
+                    ]
+                },
+                properties: {
+                    title: 'Eigenschaften',
+                    items: [
+                        '`.key` Notizen mit Eigenschaftsschlüssel einschließen.',
+                        '`.key=value` Notizen mit Eigenschaftswert einschließen.',
+                        '`."Reading Status"` Notizen mit einem Eigenschaftsschlüssel einschließen, der Leerzeichen enthält.',
+                        '`."Reading Status"="In Progress"` Schlüssel und Werte mit Leerzeichen müssen in Anführungszeichen stehen.',
+                        '`-.key` Notizen mit Eigenschaftsschlüssel ausschließen.',
+                        '`-.key=value` Notizen mit Eigenschaftswert ausschließen.',
+                        'Cmd/Ctrl+Klick auf eine Eigenschaft zum Hinzufügen mit AND. Cmd/Ctrl+Shift+Klick zum Hinzufügen mit OR.'
+                    ]
+                },
+                tasks: {
+                    title: 'Filter',
+                    items: [
+                        '`has:task` Notizen mit unerledigten Aufgaben einbeziehen.',
+                        '`-has:task` Notizen mit unerledigten Aufgaben ausschließen.',
+                        '`folder:meetings` Notizen einbeziehen, deren Ordnername `meetings` enthält.',
+                        '`folder:/work/meetings` Notizen nur in `work/meetings` einbeziehen (keine Unterordner).',
+                        '`folder:/` Notizen nur im Vault-Stammverzeichnis einbeziehen.',
+                        '`-folder:archive` Notizen ausschließen, deren Ordnername `archive` enthält.',
+                        '`-folder:/archive` Notizen nur in `archive` ausschließen (keine Unterordner).',
+                        '`ext:md` Notizen mit der Erweiterung `md` einbeziehen (`ext:.md` wird ebenfalls unterstützt).',
+                        '`-ext:pdf` Notizen mit der Erweiterung `pdf` ausschließen.',
+                        'Mit Tags, Namen und Daten kombinieren (zum Beispiel: `folder:/work/meetings ext:md @thisweek`).'
+                    ]
+                },
+                connectors: {
+                    title: 'AND/OR-Verhalten',
+                    items: [
+                        '`AND` und `OR` sind nur in reinen Tag-/Eigenschafts-Abfragen Operatoren.',
+                        'Reine Tag-/Eigenschafts-Abfragen enthalten nur Tag- und Eigenschafts-Filter: `#tag`, `-#tag`, `#`, `-#`, `.key`, `-.key`, `.key=value`, `-.key=value`.',
+                        'Wenn eine Abfrage Namen, Daten (`@...`), Aufgabenfilter (`has:task`), Ordnerfilter (`folder:...`) oder Erweiterungsfilter (`ext:...`) enthält, werden `AND` und `OR` als Wörter abgeglichen.',
+                        'Beispiel für Operator-Abfrage: `#work OR .status=started`.',
+                        'Beispiel für gemischte Abfrage: `#work OR ext:md` (`OR` wird in Dateinamen abgeglichen).'
+                    ]
+                },
+                dates: {
+                    title: 'Datum',
+                    items: [
+                        '`@today` Notizen von heute mit dem Standard-Datumsfeld finden.',
+                        '`@yesterday`, `@last7d`, `@last30d`, `@thisweek`, `@thismonth` Relative Datumsbereiche.',
+                        '`@2026-02-07` Einen bestimmten Tag finden (auch `@20260207` möglich).',
+                        '`@2026` Ein Kalenderjahr finden.',
+                        '`@2026-02` oder `@202602` Einen Kalendermonat finden.',
+                        '`@2026-W05` oder `@2026W05` Eine ISO-Woche finden.',
+                        '`@2026-Q2` oder `@2026Q2` Ein Kalenderquartal finden.',
+                        '`@13/02/2026` Numerische Formate mit Trennzeichen (`@07022026` folgt Ihrem Gebietsschema bei Mehrdeutigkeit).',
+                        '`@2026-02-01..2026-02-07` Einen inklusiven Datumsbereich finden (offene Enden unterstützt).',
+                        '`@c:...` oder `@m:...` Erstellungs- oder Änderungsdatum ansprechen.',
+                        '`-@...` Ein Datum ausschließen.'
+                    ]
+                },
+                omnisearch: {
+                    title: 'Omnisearch',
+                    items: [
+                        'Volltextsuche im gesamten Vault, gefiltert nach dem aktuellen Ordner oder ausgewählten Tags.',
+                        'Kann bei weniger als 3 Zeichen in großen Vaults langsam sein.',
+                        'Kann Pfade mit Nicht-ASCII-Zeichen nicht durchsuchen oder Unterpfade korrekt durchsuchen.',
+                        'Gibt begrenzte Ergebnisse vor der Ordnerfilterung zurück, sodass relevante Dateien möglicherweise nicht erscheinen, wenn viele Treffer an anderer Stelle existieren.',
+                        'Notizvorschauen zeigen Omnisearch-Auszüge anstelle des Standard-Vorschautexts.'
+                    ]
+                }
+            }
+        }
     },
 
     // Context menus
@@ -216,6 +325,11 @@ export const STRINGS_DE = {
             changeBackground: 'Hintergrund ändern',
             showTag: 'Tag anzeigen',
             hideTag: 'Tag ausblenden'
+        },
+        property: {
+            addKey: 'Eigenschaftsschlüssel konfigurieren',
+            renameKey: 'Eigenschaft umbenennen',
+            deleteKey: 'Eigenschaft löschen'
         },
         navigation: {
             addSeparator: 'Trennlinie hinzufügen',
@@ -295,11 +409,14 @@ export const STRINGS_DE = {
                 'list-new-note': 'Neue Notiz',
                 'nav-folder-open': 'Ordner geöffnet',
                 'nav-folder-closed': 'Ordner geschlossen',
-                'nav-folder-note': 'Ordnernotiz',
+                'nav-tags': 'Tags',
                 'nav-tag': 'Tag',
+                'nav-properties': 'Eigenschaften',
+                'nav-property': 'Eigenschaft',
+                'nav-property-value': 'Wert',
                 'list-pinned': 'Angeheftete Elemente',
-                'file-word-count': 'Wortanzahl',
-                'file-custom-property': 'Benutzerdefinierte Eigenschaft'
+                'file-unfinished-task': 'Unerledigte Aufgaben',
+                'file-word-count': 'Wortanzahl'
             }
         },
         colorPicker: {
@@ -342,11 +459,40 @@ export const STRINGS_DE = {
             confirmRename: 'Tag umbenennen',
             renameUnchanged: '{tag} unverändert',
             renameNoChanges: '{oldTag} → {newTag} ({countLabel})',
+            renameBatchNotFinalized:
+                'Umbenannt {renamed}/{total}. Nicht aktualisiert: {notUpdated}. Metadaten und Verknüpfungen wurden nicht aktualisiert.',
             invalidTagName: 'Geben Sie einen gültigen Tag-Namen ein.',
             descendantRenameError: 'Ein Tag kann nicht in sich selbst oder einen Nachkommen verschoben werden.',
             confirmDelete: 'Tag löschen',
+            deleteBatchNotFinalized:
+                'Entfernt aus {removed}/{total}. Nicht aktualisiert: {notUpdated}. Metadaten und Verknüpfungen wurden nicht aktualisiert.',
+            checkConsoleForDetails: 'Details in der Konsole anzeigen.',
             file: 'Datei',
-            files: 'Dateien'
+            files: 'Dateien',
+            inlineParsingWarning: {
+                title: 'Inline-Tag-Kompatibilität',
+                message:
+                    '{tag} enthält Zeichen, die Obsidian in Inline-Tags nicht verarbeiten kann. Frontmatter-Tags sind nicht betroffen.',
+                confirm: 'Trotzdem verwenden'
+            }
+        },
+        propertyOperation: {
+            renameTitle: 'Eigenschaft {property} umbenennen',
+            deleteTitle: 'Eigenschaft {property} löschen',
+            newKeyPrompt: 'Neuer Eigenschaftsname',
+            newKeyPlaceholder: 'Neuen Eigenschaftsnamen eingeben',
+            renameWarning: 'Das Umbenennen der Eigenschaft {property} ändert {count} {files}.',
+            renameConflictWarning:
+                'Die Eigenschaft {newKey} existiert bereits in {count} {files}. Das Umbenennen von {oldKey} ersetzt vorhandene {newKey}-Werte.',
+            deleteWarning: 'Das Löschen der Eigenschaft {property} ändert {count} {files}.',
+            confirmRename: 'Eigenschaft umbenennen',
+            confirmDelete: 'Eigenschaft löschen',
+            renameNoChanges: '{oldKey} → {newKey} (keine Änderungen)',
+            renameSettingsUpdateFailed: 'Eigenschaft {oldKey} → {newKey} umbenannt. Einstellungen konnten nicht aktualisiert werden.',
+            deleteSingleSuccess: 'Eigenschaft {property} aus 1 Notiz gelöscht',
+            deleteMultipleSuccess: 'Eigenschaft {property} aus {count} Notizen gelöscht',
+            deleteSettingsUpdateFailed: 'Eigenschaft {property} gelöscht. Einstellungen konnten nicht aktualisiert werden.',
+            invalidKeyName: 'Geben Sie einen gültigen Eigenschaftsnamen ein.'
         },
         fileSystem: {
             newFolderTitle: 'Neuer Ordner',
@@ -354,6 +500,7 @@ export const STRINGS_DE = {
             renameFileTitle: 'Datei umbenennen',
             deleteFolderTitle: "'{name}' löschen?",
             deleteFileTitle: "'{name}' löschen?",
+            deleteFileAttachmentsTitle: 'Dateianhänge löschen?',
             folderNamePrompt: 'Ordnernamen eingeben:',
             hideInOtherVaultProfiles: 'In anderen Tresorprofilen ausblenden',
             renamePrompt: 'Neuen Namen eingeben:',
@@ -361,6 +508,10 @@ export const STRINGS_DE = {
             renameVaultPrompt: 'Benutzerdefinierten Anzeigenamen eingeben (leer lassen für Standard):',
             deleteFolderConfirm: 'Sind Sie sicher, dass Sie diesen Ordner und seinen gesamten Inhalt löschen möchten?',
             deleteFileConfirm: 'Sind Sie sicher, dass Sie diese Datei löschen möchten?',
+            deleteFileAttachmentsDescriptionSingle: 'Dieser Anhang wird in keiner Notiz mehr verwendet. Möchten Sie ihn löschen?',
+            deleteFileAttachmentsDescriptionMultiple: 'Diese Anhänge werden in keiner Notiz mehr verwendet. Möchten Sie sie löschen?',
+            deleteFileAttachmentsViewFileTreeAriaLabel: 'Dateibaum',
+            deleteFileAttachmentsViewGalleryAriaLabel: 'Galerie',
             removeAllTagsTitle: 'Alle Tags entfernen',
             removeAllTagsFromNote: 'Sind Sie sicher, dass Sie alle Tags von dieser Notiz entfernen möchten?',
             removeAllTagsFromNotes: 'Sind Sie sicher, dass Sie alle Tags von {count} Notizen entfernen möchten?'
@@ -417,6 +568,26 @@ export const STRINGS_DE = {
                 remove: 'zum Entfernen des Tags'
             }
         },
+        propertySuggest: {
+            placeholder: 'Eigenschaftsschlüssel auswählen...',
+            navigatePlaceholder: 'Zu Eigenschaft navigieren...',
+            instructions: {
+                navigate: 'zum Navigieren',
+                select: 'zum Hinzufügen der Eigenschaft',
+                dismiss: 'zum Abbrechen'
+            }
+        },
+        propertyKeyVisibility: {
+            title: 'Sichtbarkeit der Eigenschaftsschlüssel',
+            searchPlaceholder: 'Eigenschaftsschlüssel suchen...',
+            propertyColumnLabel: 'Eigenschaft',
+            showInNavigation: 'In Navigation anzeigen',
+            showInList: 'In Liste anzeigen',
+            toggleAllInNavigation: 'Alle in Navigation umschalten',
+            toggleAllInList: 'Alle in Liste umschalten',
+            applyButton: 'Anwenden',
+            emptyState: 'Keine Eigenschaftsschlüssel gefunden.'
+        },
         welcome: {
             title: 'Willkommen bei {pluginName}',
             introText:
@@ -440,6 +611,7 @@ export const STRINGS_DE = {
             renameFile: 'Datei konnte nicht umbenannt werden: {error}',
             deleteFolder: 'Ordner konnte nicht gelöscht werden: {error}',
             deleteFile: 'Datei konnte nicht gelöscht werden: {error}',
+            deleteAttachments: 'Anhänge konnten nicht gelöscht werden: {error}',
             duplicateNote: 'Notiz konnte nicht dupliziert werden: {error}',
             duplicateFolder: 'Ordner konnte nicht dupliziert werden: {error}',
             openVersionHistory: 'Versionsverlauf konnte nicht geöffnet werden: {error}',
@@ -490,7 +662,11 @@ export const STRINGS_DE = {
             noTagsToRemove: 'Keine Tags zum Entfernen',
             noFilesSelected: 'Keine Dateien ausgewählt',
             tagOperationsNotAvailable: 'Tag-Operationen nicht verfügbar',
+            propertyOperationsNotAvailable: 'Eigenschafts-Operationen nicht verfügbar',
             tagsRequireMarkdown: 'Tags werden nur in Markdown-Notizen unterstützt',
+            propertiesRequireMarkdown: 'Eigenschaften werden nur bei Markdown-Notizen unterstützt',
+            propertySetOnNote: 'Eigenschaft bei 1 Notiz aktualisiert',
+            propertySetOnNotes: 'Eigenschaft bei {count} Notizen aktualisiert',
             iconPackDownloaded: '{provider} heruntergeladen',
             iconPackUpdated: '{provider} aktualisiert ({version})',
             iconPackRemoved: '{provider} entfernt',
@@ -513,6 +689,7 @@ export const STRINGS_DE = {
             itemAlreadyExists: 'Ein Element mit dem Namen "{name}" existiert bereits an diesem Ort.',
             failedToMove: 'Verschieben fehlgeschlagen: {error}',
             failedToAddTag: 'Hinzufügen des Tags "{tag}" fehlgeschlagen',
+            failedToSetProperty: 'Eigenschaft konnte nicht aktualisiert werden: {error}',
             failedToClearTags: 'Entfernen der Tags fehlgeschlagen',
             failedToMoveFolder: 'Ordner "{name}" konnte nicht verschoben werden',
             failedToImportFiles: 'Import fehlgeschlagen: {names}'
@@ -520,6 +697,7 @@ export const STRINGS_DE = {
         notifications: {
             filesAlreadyExist: '{count} Dateien existieren bereits am Zielort',
             filesAlreadyHaveTag: '{count} Dateien haben dieses Tag oder ein spezifischeres bereits',
+            filesAlreadyHaveProperty: '{count} Dateien haben diese Eigenschaft bereits',
             noTagsToClear: 'Keine Tags zum Entfernen',
             fileImported: '1 Datei importiert',
             filesImported: '{count} Dateien importiert'
@@ -565,11 +743,13 @@ export const STRINGS_DE = {
         pinAllFolderNotes: 'Alle Ordnernotizen anheften', // Command palette: Pins all folder notes to shortcuts (English: Pin all folder notes)
         navigateToFolder: 'Zu Ordner navigieren', // Command palette: Navigate to a folder using fuzzy search (English: Navigate to folder)
         navigateToTag: 'Zu Tag navigieren', // Command palette: Navigate to a tag using fuzzy search (English: Navigate to tag)
-        addShortcut: 'Zu Shortcuts hinzufügen', // Command palette: Adds the current file, folder, or tag to shortcuts (English: Add to shortcuts)
+        navigateToProperty: 'Zu Eigenschaft navigieren', // Command palette: Navigate to a property key or value using fuzzy search (English: Navigate to property)
+        addShortcut: 'Zu Shortcuts hinzufügen', // Command palette: Adds or removes the current file, folder, tag, or property from shortcuts (English: Add to shortcuts)
         openShortcut: 'Shortcut {number} öffnen',
         toggleDescendants: 'Nachkommen umschalten', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
         toggleHidden: 'Versteckte Ordner, Tags und Notizen umschalten', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'Tag-Sortierung umschalten', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
+        toggleCompactMode: 'Kompaktmodus umschalten', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: 'Alle Elemente ein-/ausklappen', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Tag zu ausgewählten Dateien hinzufügen', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         removeTag: 'Tag von ausgewählten Dateien entfernen', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
@@ -605,23 +785,22 @@ export const STRINGS_DE = {
         sections: {
             general: 'Allgemein',
             notes: 'Notizen',
-            navigationPane: 'Navigationsbereich',
+            navigationPane: 'Navigation',
             calendar: 'Kalender',
             icons: 'Icon-Pakete',
             tags: 'Tags',
             folders: 'Ordner',
             folderNotes: 'Ordnernotizen',
-            foldersAndTags: 'Ordner & Tags',
-            search: 'Suchen',
-            searchAndHotkeys: 'Suche & Tastenkürzel',
-            listPane: 'Listenbereich',
-            hotkeys: 'Tastenkürzel',
+            foldersAndTags: 'Ordner',
+            tagsAndProperties: 'Tags & Eigenschaften',
+            listPane: 'Liste',
             advanced: 'Erweitert'
         },
         groups: {
             general: {
                 vaultProfiles: 'Tresorprofile',
                 filtering: 'Filterung',
+                templates: 'Vorlagen',
                 behavior: 'Verhalten',
                 keyboardNavigation: 'Tastaturnavigation',
                 view: 'Darstellung',
@@ -632,7 +811,7 @@ export const STRINGS_DE = {
             },
             navigation: {
                 appearance: 'Darstellung',
-                shortcutsAndRecent: 'Verknüpfungen & Letzte Einträge',
+                leftSidebar: 'Linke Seitenleiste',
                 calendarIntegration: 'Kalenderintegration'
             },
             list: {
@@ -646,7 +825,7 @@ export const STRINGS_DE = {
                 previewText: 'Vorschautext',
                 featureImage: 'Hauptbild',
                 tags: 'Tags',
-                customProperty: 'Benutzerdefinierte Eigenschaft (Frontmatter oder Wortzahl)',
+                properties: 'Eigenschaften',
                 date: 'Datum',
                 parentFolder: 'Übergeordneter Ordner'
             }
@@ -658,38 +837,6 @@ export const STRINGS_DE = {
             switchToLocal: 'Synchronisierung deaktivieren'
         },
         items: {
-            searchProvider: {
-                name: 'Suchanbieter',
-                desc: 'Wählen Sie zwischen schneller Dateinamensuche oder Volltextsuche mit dem Omnisearch-Plugin.',
-                options: {
-                    internal: 'Filtersuche',
-                    omnisearch: 'Omnisearch (Volltext)'
-                },
-                info: {
-                    filterSearch: {
-                        title: 'Filtersuche (Standard):',
-                        description:
-                            'Filtert Dateien nach Namen und Tags im aktuellen Ordner und Unterordnern. Filtermodus: Gemischter Text und Tags entsprechen allen Begriffen (z.B. "projekt #arbeit"). Tag-Modus: Suche nur mit Tags unterstützt AND/OR-Operatoren (z.B. "#arbeit AND #dringend", "#projekt OR #persönlich"). Cmd/Strg+Klick auf Tags zum Hinzufügen mit AND, Cmd/Strg+Umschalt+Klick zum Hinzufügen mit OR. Unterstützt Ausschluss mit ! Präfix (z.B. !entwurf, !#archiviert) und das Finden von Notizen ohne Tags mit !#.'
-                    },
-                    omnisearch: {
-                        title: 'Omnisearch:',
-                        description:
-                            'Volltextsuche, die Ihren gesamten Tresor durchsucht und dann die Ergebnisse filtert, um nur Dateien aus dem aktuellen Ordner, Unterordnern oder ausgewählten Tags anzuzeigen. Erfordert die Installation des Omnisearch-Plugins - falls nicht verfügbar, fällt die Suche automatisch auf die Filtersuche zurück.',
-                        warningNotInstalled: 'Omnisearch-Plugin nicht installiert. Filtersuche wird verwendet.',
-                        limitations: {
-                            title: 'Bekannte Einschränkungen:',
-                            performance:
-                                'Leistung: Kann langsam sein, besonders bei der Suche nach weniger als 3 Zeichen in großen Tresoren',
-                            pathBug:
-                                'Pfadfehler: Kann nicht in Pfaden mit Nicht-ASCII-Zeichen suchen und durchsucht Unterpfade nicht korrekt, was die angezeigten Suchergebnisse beeinflusst',
-                            limitedResults:
-                                'Begrenzte Ergebnisse: Da Omnisearch den gesamten Tresor durchsucht und eine begrenzte Anzahl von Ergebnissen vor der Filterung zurückgibt, erscheinen relevante Dateien aus Ihrem aktuellen Ordner möglicherweise nicht, wenn zu viele Treffer an anderer Stelle im Tresor vorhanden sind',
-                            previewText:
-                                'Vorschautext: Notizvorschauen werden durch Omnisearch-Ergebnisauszüge ersetzt, die möglicherweise nicht die tatsächliche Suchtreffhervorhebung anzeigen, wenn sie an anderer Stelle in der Datei erscheint'
-                        }
-                    }
-                }
-            },
             listPaneTitle: {
                 name: 'Titel des Listenbereichs',
                 desc: 'Wählen Sie, wo der Titel des Listenbereichs angezeigt wird.',
@@ -723,6 +870,16 @@ export const STRINGS_DE = {
                 name: 'Sortier-Eigenschaft',
                 desc: 'Wird mit der Eigenschafts-Sortierung verwendet. Notizen mit dieser Frontmatter-Eigenschaft werden zuerst aufgelistet und nach dem Eigenschaftswert sortiert. Arrays werden zu einem Wert zusammengefügt.',
                 placeholder: 'order'
+            },
+            propertySortSecondary: {
+                name: 'Sekundäre Sortierung',
+                desc: 'Wird bei der Eigenschafts-Sortierung verwendet, wenn Notizen denselben Eigenschaftswert oder keinen Eigenschaftswert haben.',
+                options: {
+                    title: 'Titel',
+                    filename: 'Dateiname',
+                    created: 'Erstellungsdatum',
+                    modified: 'Bearbeitungsdatum'
+                }
             },
             revealFileOnListChanges: {
                 name: 'Zu ausgewählter Datei bei Listenänderungen scrollen',
@@ -767,7 +924,11 @@ export const STRINGS_DE = {
             },
             showFileIcons: {
                 name: 'Dateisymbole anzeigen',
-                desc: 'Dateisymbole mit linksbündigem Abstand anzeigen. Deaktivierung entfernt sowohl Symbole als auch Einrückung. Priorität: Benutzerdefiniert > Dateiname > Dateityp > Standard.'
+                desc: 'Dateisymbole mit linksbündigem Abstand anzeigen. Deaktivierung entfernt sowohl Symbole als auch Einrückung. Priorität: Unerledigte-Aufgaben-Symbol > Benutzerdefiniertes Symbol > Dateiname-Symbol > Dateityp-Symbol > Standard-Symbol.'
+            },
+            showFileIconUnfinishedTask: {
+                name: 'Symbol für unerledigte Aufgaben',
+                desc: 'Ein Aufgabensymbol anzeigen, wenn eine Notiz unerledigte Aufgaben enthält.'
             },
             showFilenameMatchIcons: {
                 name: 'Symbole nach Dateiname',
@@ -865,9 +1026,17 @@ export const STRINGS_DE = {
                 navigationLabel: 'Navigationssymbolleiste',
                 listLabel: 'Listensymbolleiste'
             },
+            createNewNotesInNewTab: {
+                name: 'Neue Notizen in neuem Tab öffnen',
+                desc: 'Wenn aktiviert, öffnet der Befehl „Neue Notiz erstellen" Notizen in einem neuen Tab. Wenn deaktiviert, ersetzen Notizen den aktuellen Tab.'
+            },
             autoRevealActiveNote: {
                 name: 'Aktive Notiz automatisch anzeigen',
                 desc: 'Notizen automatisch anzeigen, wenn sie über Schnellauswahl, Links oder Suche geöffnet werden.'
+            },
+            autoRevealShortestPath: {
+                name: 'Kürzesten Pfad verwenden',
+                desc: 'Aktiviert: Automatisches Anzeigen wählt den nächsten sichtbaren übergeordneten Ordner oder Tag. Deaktiviert: Automatisches Anzeigen wählt den tatsächlichen Ordner der Datei und den genauen Tag.'
             },
             autoRevealIgnoreRightSidebar: {
                 name: 'Ereignisse von rechter Seitenleiste ignorieren',
@@ -886,7 +1055,7 @@ export const STRINGS_DE = {
                 name: 'Auto-Scroll für Verknüpfungen deaktivieren',
                 desc: 'Navigationsbereich nicht scrollen beim Klicken auf Elemente in Verknüpfungen.'
             },
-            autoExpandFoldersTags: {
+            autoExpandNavItems: {
                 name: 'Bei Auswahl erweitern',
                 desc: 'Ordner und Tags bei Auswahl erweitern. Im Einzelfenster-Modus: erste Auswahl erweitert, zweite Auswahl zeigt Dateien.'
             },
@@ -929,6 +1098,14 @@ export const STRINGS_DE = {
                 name: 'Neueste Notizen anzeigen',
                 desc: 'Den Bereich für neueste Notizen im Navigationsbereich anzeigen.'
             },
+            hideRecentNotes: {
+                name: 'Notizen ausblenden',
+                desc: 'Wähle aus, welche Notiztypen im Bereich der neuesten Notizen ausgeblendet werden sollen.',
+                options: {
+                    none: 'Keine',
+                    folderNotes: 'Ordnernotizen'
+                }
+            },
             recentNotesCount: {
                 name: 'Anzahl neuester Notizen',
                 desc: 'Anzahl der anzuzeigenden neuesten Notizen.'
@@ -943,6 +1120,14 @@ export const STRINGS_DE = {
                 options: {
                     leftSidebar: 'Linke Seitenleiste',
                     rightSidebar: 'Rechte Seitenleiste'
+                }
+            },
+            calendarLeftPlacement: {
+                name: 'Einzelbereichs-Platzierung',
+                desc: 'Wo der Kalender im Einzelbereichs-Modus angezeigt wird.',
+                options: {
+                    navigationPane: 'Navigationsbereich',
+                    below: 'Unter den Bereichen'
                 }
             },
             calendarLocale: {
@@ -962,6 +1147,10 @@ export const STRINGS_DE = {
                     thuFri: 'Donnerstag und Freitag'
                 }
             },
+            showInfoButtons: {
+                name: 'Info-Schaltflächen anzeigen',
+                desc: 'Info-Schaltflächen in der Suchleiste und der Kalenderüberschrift anzeigen.'
+            },
             calendarWeeksToShow: {
                 name: 'Angezeigte Wochen in linker Seitenleiste',
                 desc: 'Der Kalender in der rechten Seitenleiste zeigt immer den vollen Monat an.',
@@ -973,7 +1162,7 @@ export const STRINGS_DE = {
             },
             calendarHighlightToday: {
                 name: 'Heutiges Datum hervorheben',
-                desc: 'Einen roten Kreis und fetten Text für das heutige Datum anzeigen.'
+                desc: 'Das heutige Datum mit einer Hintergrundfarbe und fettem Text hervorheben.'
             },
             calendarShowFeatureImage: {
                 name: 'Feature-Bild anzeigen',
@@ -986,6 +1175,10 @@ export const STRINGS_DE = {
             calendarShowQuarter: {
                 name: 'Quartal anzeigen',
                 desc: 'Quartalbezeichnung im Kalender-Header hinzufügen.'
+            },
+            calendarShowYearCalendar: {
+                name: 'Jahreskalender anzeigen',
+                desc: 'Jahresnavigation und Monatsraster in der rechten Seitenleiste anzeigen.'
             },
             calendarConfirmBeforeCreate: {
                 name: 'Vor Erstellung bestätigen',
@@ -1002,6 +1195,7 @@ export const STRINGS_DE = {
                     dailyNotes: 'Ordner und Datumsformat werden im Daily Notes-Core-Plugin konfiguriert.'
                 }
             },
+
             calendarCustomRootFolder: {
                 name: 'Stammordner',
                 desc: 'Basisordner für periodische Notizen. Datumsmuster können Unterordner enthalten. Ändert sich mit dem ausgewählten Tresorprofil.',
@@ -1014,11 +1208,11 @@ export const STRINGS_DE = {
             },
             calendarCustomFilePattern: {
                 name: 'Tägliche Notizen',
-                desc: 'Pfad mit Moment-Datumsformat formatieren. Unterordnernamen in Klammern setzen, z.B. [Work]/YYYY. Klicken Sie auf das Vorlagensymbol, um eine Vorlage festzulegen.',
+                desc: 'Pfad mit Moment-Datumsformat formatieren. Unterordnernamen in Klammern setzen, z.B. [Work]/YYYY. Klicken Sie auf das Vorlagensymbol, um eine Vorlage festzulegen. Vorlagenordner unter Allgemein > Vorlagen festlegen.',
                 momentDescPrefix: 'Pfad formatieren mit ',
                 momentLinkText: 'Moment-Datumsformat',
                 momentDescSuffix:
-                    '. Unterordnernamen in Klammern setzen, z.B. [Work]/YYYY. Klicken Sie auf das Vorlagensymbol, um eine Vorlage festzulegen.',
+                    '. Unterordnernamen in Klammern setzen, z.B. [Work]/YYYY. Klicken Sie auf das Vorlagensymbol, um eine Vorlage festzulegen. Vorlagenordner unter Allgemein > Vorlagen festlegen.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Aktuelle Syntax: {path}',
                 parsingError: 'Das Muster muss als vollständiges Datum (Jahr, Monat, Tag) formatiert und wieder geparst werden können.'
@@ -1093,9 +1287,9 @@ export const STRINGS_DE = {
                 desc: 'Ausgewählte Datei in neuem Tab, geteilter Ansicht oder Fenster öffnen mit Strg+Enter.'
             },
             excludedNotes: {
-                name: 'Notizen mit Eigenschaften verstecken (Tresorprofil)',
-                desc: 'Kommagetrennte Liste von Frontmatter-Eigenschaften. Notizen mit diesen Eigenschaften werden ausgeblendet (z.B. Entwurf, privat, archiviert).',
-                placeholder: 'entwurf, privat'
+                name: 'Notizen mit Eigenschaftsregeln verstecken (Tresorprofil)',
+                desc: 'Kommagetrennte Liste von Frontmatter-Regeln. Verwenden Sie `key` oder `key=value` Einträge (z.B. status=done, published=true, archived).',
+                placeholder: 'status=done, published=true, archived'
             },
             excludedFileNamePatterns: {
                 name: 'Dateien verstecken (Tresorprofil)',
@@ -1189,49 +1383,58 @@ export const STRINGS_DE = {
                 name: 'Datei-Tags im schlanken Modus anzeigen',
                 desc: 'Tags anzeigen, wenn Datum, Vorschau und Bild ausgeblendet sind.'
             },
-            customPropertyType: {
-                name: 'Eigenschaftstyp',
-                desc: 'Wählen Sie die benutzerdefinierte Eigenschaft, die in Datei-Elementen angezeigt werden soll.',
+            showFileProperties: {
+                name: 'Datei-Eigenschaften anzeigen',
+                desc: 'Klickbare Eigenschaften in Datei-Elementen anzeigen.'
+            },
+            colorFileProperties: {
+                name: 'Datei-Eigenschaften einfärben',
+                desc: 'Eigenschaftsfarben auf Eigenschafts-Badges in Datei-Elementen anwenden.'
+            },
+            prioritizeColoredFileProperties: {
+                name: 'Farbige Eigenschaften zuerst anzeigen',
+                desc: 'Farbige Eigenschaften vor anderen Eigenschaften in Datei-Elementen sortieren.'
+            },
+            showFilePropertiesInCompactMode: {
+                name: 'Eigenschaften im Kompaktmodus anzeigen',
+                desc: 'Eigenschaften anzeigen, wenn der Kompaktmodus aktiv ist.'
+            },
+            notePropertyType: {
+                name: 'Notiz-Eigenschaft',
+                desc: 'Wählen Sie die Notiz-Eigenschaft, die in Datei-Elementen angezeigt werden soll.',
                 options: {
                     frontmatter: 'Frontmatter-Eigenschaft',
                     wordCount: 'Wortanzahl',
                     none: 'Keine'
                 }
             },
-            customPropertyFields: {
-                name: 'Anzuzeigende Eigenschaften',
-                desc: 'Kommagetrennte Liste von Frontmatter-Eigenschaften zur Anzeige als Badges. Listen-Eigenschaften zeigen ein Badge pro Wert. [[Wikilink]]-Werte werden als anklickbare Links angezeigt.',
-                placeholder: 'status, typ, kategorie'
+            propertyFields: {
+                name: 'Eigenschaftsschlüssel (Tresorprofil)',
+                desc: 'Frontmatter-Eigenschaftsschlüssel mit schlüsselweiser Sichtbarkeit für Navigation und Dateiliste.',
+                addButtonTooltip: 'Eigenschaftsschlüssel konfigurieren',
+                noneConfigured: 'Keine Eigenschaften konfiguriert',
+                singleConfigured: '1 Eigenschaft konfiguriert: {properties}',
+                multipleConfigured: '{count} Eigenschaften konfiguriert: {properties}'
             },
-            showCustomPropertiesOnSeparateRows: {
+            showPropertiesOnSeparateRows: {
                 name: 'Eigenschaften in separaten Zeilen anzeigen',
                 desc: 'Jede Eigenschaft in einer eigenen Zeile anzeigen.'
             },
-            customPropertyColorMap: {
-                name: 'Eigenschaftsfarben',
-                desc: 'Ordne Frontmatter-Eigenschaften Badge-Farben zu. Eine Zuordnung pro Zeile: Eigenschaft=Farbe',
-                placeholder: '# Eigenschaft=Farbe\nstatus=#ff0000\ntype=#00ff00',
-                editTooltip: 'Zuordnungen bearbeiten'
-            },
-            showCustomPropertyInCompactMode: {
-                name: 'Benutzerdefinierte Eigenschaft im Kompaktmodus anzeigen',
-                desc: 'Die benutzerdefinierte Eigenschaft anzeigen, wenn Datum, Vorschau und Bild ausgeblendet sind.'
-            },
             dateFormat: {
                 name: 'Datumsformat',
-                desc: 'Format für die Datumsanzeige (verwendet date-fns Format).',
-                placeholder: 'dd.MM.yyyy',
-                help: 'Gängige Formate:\ndd.MM.yyyy = 25.05.2022\ndd/MM/yyyy = 25/05/2022\nyyyy-MM-dd = 2022-05-25\n\nTokens:\nyyyy/yy = Jahr\nMMMM/MMM/MM = Monat\ndd/d = Tag\nEEEE/EEE = Wochentag',
-                helpTooltip: 'Format mit date-fns',
-                dateFnsLinkText: 'date-fns-Format'
+                desc: 'Format für die Datumsanzeige (verwendet Moment-Format).',
+                placeholder: 'DD.MM.YYYY',
+                help: 'Gängige Formate:\nDD.MM.YYYY = 25.05.2022\nDD/MM/YYYY = 25/05/2022\nYYYY-MM-DD = 2022-05-25\n\nTokens:\nYYYY/YY = Jahr\nMMMM/MMM/MM = Monat\nDD/D = Tag\ndddd/ddd = Wochentag',
+                helpTooltip: 'Format mit Moment',
+                momentLinkText: 'Moment-Format'
             },
             timeFormat: {
                 name: 'Zeitformat',
-                desc: 'Format für die Zeitanzeige (verwendet date-fns Format).',
+                desc: 'Format für die Zeitanzeige (verwendet Moment-Format).',
                 placeholder: 'HH:mm',
                 help: 'Gängige Formate:\nHH:mm = 14:30 (24-Stunden)\nh:mm a = 2:30 PM (12-Stunden)\nHH:mm:ss = 14:30:45\nh:mm:ss a = 2:30:45 PM\n\nTokens:\nHH/H = 24-Stunden\nhh/h = 12-Stunden\nmm = Minuten\nss = Sekunden\na = AM/PM',
-                helpTooltip: 'Format mit date-fns',
-                dateFnsLinkText: 'date-fns-Format'
+                helpTooltip: 'Format mit Moment',
+                momentLinkText: 'Moment-Format'
             },
             showFilePreview: {
                 name: 'Notizenvorschau anzeigen',
@@ -1252,7 +1455,7 @@ export const STRINGS_DE = {
             previewProperties: {
                 name: 'Vorschau-Eigenschaften',
                 desc: 'Kommagetrennte Liste von Frontmatter-Eigenschaften für Vorschautext. Die erste Eigenschaft mit Text wird verwendet.',
-                placeholder: 'zusammenfassung, beschreibung, abstrakt',
+                placeholder: 'summary, description, abstract',
                 info: 'Wenn kein Vorschautext in den angegebenen Eigenschaften gefunden wird, wird die Vorschau aus dem Notizinhalt generiert.'
             },
             previewRows: {
@@ -1290,7 +1493,7 @@ export const STRINGS_DE = {
             featureImageExcludeProperties: {
                 name: 'Notizen mit Eigenschaften ausschließen',
                 desc: 'Kommagetrennte Liste von Frontmatter-Eigenschaften. Notizen mit einer dieser Eigenschaften speichern keine Feature-Bilder.',
-                placeholder: 'privat, vertraulich'
+                placeholder: 'private, confidential'
             },
             downloadExternalFeatureImages: {
                 name: 'Externe Bilder herunterladen',
@@ -1362,6 +1565,10 @@ export const STRINGS_DE = {
                 name: 'Text mit Zeilenhöhe skalieren',
                 desc: 'Verkleinert die Navigationsschrift, wenn die Zeilenhöhe reduziert wird.'
             },
+            showIndentGuides: {
+                name: 'Einrückungslinien anzeigen',
+                desc: 'Einrückungslinien für verschachtelte Ordner und Tags anzeigen.'
+            },
             navRootSpacing: {
                 name: 'Abstand für Wurzelelemente',
                 desc: 'Abstand zwischen Ordnern und Tags auf der obersten Ebene.'
@@ -1401,6 +1608,36 @@ export const STRINGS_DE = {
                 name: 'Tags-Eigenschaft nach Entfernen des letzten Tags beibehalten',
                 desc: 'Behält die Tags-Frontmatter-Eigenschaft, wenn alle Tags entfernt werden. Wenn deaktiviert, wird die Tags-Eigenschaft aus dem Frontmatter gelöscht.'
             },
+            showProperties: {
+                name: 'Eigenschaften anzeigen',
+                desc: 'Eigenschaftsbereich im Navigator anzeigen.',
+                propertyKeysInfoPrefix: 'Eigenschaften konfigurieren unter ',
+                propertyKeysInfoLinkText: 'Allgemein > Eigenschaftsschlüssel',
+                propertyKeysInfoSuffix: ''
+            },
+            showPropertyIcons: {
+                name: 'Eigenschafts-Symbole anzeigen',
+                desc: 'Symbole neben Eigenschaften im Navigationsbereich anzeigen.'
+            },
+            inheritPropertyColors: {
+                name: 'Eigenschaftsfarben vererben',
+                desc: 'Eigenschaftswerte erben Farbe und Hintergrund von ihrem Eigenschaftsschlüssel.'
+            },
+            propertySortOrder: {
+                name: 'Sortierreihenfolge der Eigenschaften',
+                desc: 'Rechtsklick auf eine Eigenschaft, um eine andere Sortierreihenfolge für ihre Werte festzulegen.',
+                options: {
+                    alphaAsc: 'A bis Z',
+                    alphaDesc: 'Z bis A',
+                    frequency: 'Häufigkeit',
+                    lowToHigh: 'niedrig bis hoch',
+                    highToLow: 'hoch bis niedrig'
+                }
+            },
+            showAllPropertiesFolder: {
+                name: 'Eigenschafts-Ordner anzeigen',
+                desc: '"Eigenschaften" als einklappbaren Ordner anzeigen.'
+            },
             hiddenTags: {
                 name: 'Tags verstecken (Tresorprofil)',
                 desc: 'Kommagetrennte Liste von Tag-Mustern. Namensmuster: tag* (beginnt mit), *tag (endet mit). Pfadmuster: archiv (Tag und Untergeordnete), archiv/* (nur Untergeordnete), projekte/*/entwürfe (Platzhalter in der Mitte).',
@@ -1428,12 +1665,15 @@ export const STRINGS_DE = {
             folderNoteName: {
                 name: 'Name der Ordnernotiz',
                 desc: 'Name der Ordnernotiz. Leer lassen, um denselben Namen wie der Ordner zu verwenden.',
-                placeholder: 'Leer lassen für Ordnernamen'
+                placeholder: 'index'
             },
-            folderNoteProperties: {
-                name: 'Ordnernotiz-Eigenschaften',
-                desc: 'YAML-Frontmatter, das neuen Ordnernotizen hinzugefügt wird. --- Markierungen werden automatisch hinzugefügt.',
-                placeholder: 'theme: dark\nfoldernote: true'
+            folderNoteNamePattern: {
+                name: 'Namensmuster der Ordnernotiz',
+                desc: 'Namensmuster für Ordnernotizen ohne Erweiterung. Verwende {{folder}}, um den Ordnernamen einzufügen. Wenn gesetzt, gilt der Ordnernotizname nicht.'
+            },
+            folderNoteTemplate: {
+                name: 'Ordnernotiz-Vorlage',
+                desc: 'Vorlagendatei für neue Markdown-Ordnernotizen. Vorlagenordner unter Allgemein > Vorlagen festlegen.'
             },
             openFolderNotesInNewTab: {
                 name: 'Ordnernotizen in neuem Tab öffnen',
@@ -1451,6 +1691,15 @@ export const STRINGS_DE = {
                 name: 'Vor dem Löschen bestätigen',
                 desc: 'Bestätigungsdialog beim Löschen von Notizen oder Ordnern anzeigen'
             },
+            deleteAttachments: {
+                name: 'Anhänge beim Löschen von Dateien löschen',
+                desc: 'Verknüpfte Anhänge der gelöschten Datei automatisch entfernen, wenn sie nicht anderweitig verwendet werden',
+                options: {
+                    ask: 'Jedes Mal fragen',
+                    always: 'Immer',
+                    never: 'Nie'
+                }
+            },
             metadataCleanup: {
                 name: 'Metadaten bereinigen',
                 desc: 'Entfernt verwaiste Metadaten, die zurückbleiben, wenn Dateien, Ordner oder Tags außerhalb von Obsidian gelöscht, verschoben oder umbenannt werden. Dies betrifft nur die Notebook Navigator Einstellungsdatei.',
@@ -1458,7 +1707,8 @@ export const STRINGS_DE = {
                 error: 'Einstellungen-Bereinigung fehlgeschlagen',
                 loading: 'Metadaten werden überprüft...',
                 statusClean: 'Keine Metadaten zu bereinigen',
-                statusCounts: 'Verwaiste Elemente: {folders} Ordner, {tags} Tags, {files} Dateien, {pinned} Pins, {separators} Trennlinien'
+                statusCounts:
+                    'Verwaiste Elemente: {folders} Ordner, {tags} Tags, {properties} Eigenschaften, {files} Dateien, {pinned} Pins, {separators} Trennlinien'
             },
             rebuildCache: {
                 name: 'Cache neu aufbauen',
@@ -1467,18 +1717,6 @@ export const STRINGS_DE = {
                 error: 'Cache-Neuaufbau fehlgeschlagen',
                 indexingTitle: 'Tresor wird indexiert...',
                 progress: 'Notebook Navigator-Cache wird aktualisiert.'
-            },
-            hotkeys: {
-                intro: 'Bearbeite <plugin folder>/notebook-navigator/data.json, um Notebook Navigator-Tastenkürzel anzupassen. Öffne die Datei in einem Texteditor und suche den Abschnitt "keyboardShortcuts". Jede Zuordnung nutzt diese Struktur:',
-                example: '"pane:move-up": [ { "key": "ArrowUp", "modifiers": [] }, { "key": "K", "modifiers": [] } ]',
-                modifierList: [
-                    '"Mod" = Cmd (macOS) / Strg (Win/Linux)',
-                    '"Alt" = Alt/Option',
-                    '"Shift" = Umschalt',
-                    '"Ctrl" = Steuerung ("Mod" für plattformübergreifend bevorzugen)'
-                ],
-                guidance:
-                    'Füge mehrere Zuordnungen hinzu, um alternative Tasten wie im obigen ArrowUp- und K-Beispiel zu unterstützen. Kombiniere Modifikatortasten, indem du sie gemeinsam angibst, zum Beispiel "modifiers": ["Mod", "Shift"]. Tastatursequenzen wie "gg" oder "dd" werden nicht unterstützt. Lade Obsidian nach dem Bearbeiten der Datei neu.'
             },
             externalIcons: {
                 downloadButton: 'Herunterladen',
@@ -1499,7 +1737,7 @@ export const STRINGS_DE = {
             frontmatterNameField: {
                 name: 'Namensfelder',
                 desc: 'Kommagetrennte Liste von Frontmatter-Feldern. Erster nicht-leerer Wert wird verwendet. Fällt auf Dateinamen zurück.',
-                placeholder: 'titel, name'
+                placeholder: 'title, name'
             },
             frontmatterIconField: {
                 name: 'Icon-Feld',
@@ -1511,9 +1749,10 @@ export const STRINGS_DE = {
                 desc: 'Frontmatter-Feld für Dateifarben. Leer lassen, um Farben aus den Einstellungen zu verwenden.',
                 placeholder: 'color'
             },
-            frontmatterSaveMetadata: {
-                name: 'Icons und Farben im Frontmatter speichern',
-                desc: 'Schreibt Datei-Icons und Farben automatisch ins Frontmatter über die oben konfigurierten Felder.'
+            frontmatterBackgroundField: {
+                name: 'Hintergrundfeld',
+                desc: 'Frontmatter-Feld für Hintergrundfarben. Leer lassen, um Hintergrundfarben aus den Einstellungen zu verwenden.',
+                placeholder: 'background'
             },
             frontmatterMigration: {
                 name: 'Icons und Farben aus Einstellungen migrieren',
@@ -1528,19 +1767,19 @@ export const STRINGS_DE = {
             frontmatterCreatedField: {
                 name: 'Feld für Erstellungszeitstempel',
                 desc: 'Frontmatter-Feldname für den Erstellungszeitstempel. Leer lassen, um nur das Dateisystemdatum zu verwenden.',
-                placeholder: 'erstellt'
+                placeholder: 'created'
             },
             frontmatterModifiedField: {
                 name: 'Feld für Änderungszeitstempel',
                 desc: 'Frontmatter-Feldname für den Änderungszeitstempel. Leer lassen, um nur das Dateisystemdatum zu verwenden.',
-                placeholder: 'geändert'
+                placeholder: 'modified'
             },
             frontmatterDateFormat: {
                 name: 'Zeitstempelformat',
-                desc: 'Format zum Parsen von Zeitstempeln im Frontmatter. Leer lassen, um ISO 8601-Format zu verwenden',
-                helpTooltip: 'Format mit date-fns',
-                dateFnsLinkText: 'date-fns-Format',
-                help: "Häufige Formate:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
+                desc: 'Format zum Parsen von Zeitstempeln im Frontmatter. Leer lassen, um ISO 8601-Parsing zu verwenden.',
+                helpTooltip: 'Format mit Moment',
+                momentLinkText: 'Moment-Format',
+                help: 'Häufige Formate:\nYYYY-MM-DD[T]HH:mm:ss → 2025-01-04T14:30:45\nYYYY-MM-DD[T]HH:mm:ssZ → 2025-08-07T16:53:39+02:00\nDD/MM/YYYY HH:mm:ss → 04/01/2025 14:30:45\nMM/DD/YYYY h:mm:ss a → 01/04/2025 2:30:45 PM'
             },
             supportDevelopment: {
                 name: 'Entwicklung unterstützen',

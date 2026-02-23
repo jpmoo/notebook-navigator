@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -81,6 +81,7 @@ export default class ReleaseCheckService {
         const now = Date.now();
         const lastCheck = this.plugin.getReleaseCheckTimestamp() ?? 0;
         if (!force && lastCheck && now - lastCheck < CHECK_INTERVAL_MS) {
+            this.pendingNotice = this.buildNoticeFromKnownRelease();
             return this.pendingNotice;
         }
 
@@ -100,8 +101,8 @@ export default class ReleaseCheckService {
                 const currentVersion = this.plugin.manifest.version;
                 const comparison = compareVersions(release.version, currentVersion);
 
-                // Create notice if newer version exists and hasn't been announced yet
-                if (comparison > 0 && this.plugin.settings.lastAnnouncedRelease !== release.version) {
+                // Create notice if a newer version exists
+                if (comparison > 0) {
                     this.pendingNotice = {
                         version: release.version,
                         publishedAt: release.publishedAt,
@@ -111,15 +112,37 @@ export default class ReleaseCheckService {
                     this.pendingNotice = null;
                 }
             } else {
-                this.pendingNotice = null;
+                this.pendingNotice = this.buildNoticeFromKnownRelease();
             }
 
             return this.pendingNotice;
         } catch {
+            this.pendingNotice = this.buildNoticeFromKnownRelease();
             return this.pendingNotice;
         } finally {
             this.isChecking = false;
         }
+    }
+
+    /**
+     * Builds a notice from the cached latest known release when it is newer than the current plugin version.
+     */
+    private buildNoticeFromKnownRelease(): ReleaseUpdateNotice | null {
+        const latestKnownRelease = this.plugin.getLatestKnownRelease();
+        if (!latestKnownRelease) {
+            return null;
+        }
+
+        const currentVersion = this.plugin.manifest.version;
+        if (compareVersions(latestKnownRelease, currentVersion) <= 0) {
+            return null;
+        }
+
+        return {
+            version: latestKnownRelease,
+            publishedAt: '',
+            url: ''
+        };
     }
 
     /**

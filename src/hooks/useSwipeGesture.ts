@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ interface UseSwipeGestureOptions {
     enabled?: boolean;
     allowAnywhereSwipe?: boolean;
     isRTL?: boolean;
+    shouldIgnoreTouchStart?: (event: TouchEvent) => boolean;
 }
 
 function useSwipeGesture(containerRef: React.RefObject<HTMLElement | null>, options: UseSwipeGestureOptions) {
@@ -37,7 +38,8 @@ function useSwipeGesture(containerRef: React.RefObject<HTMLElement | null>, opti
         edgeThreshold = 25, // Start swipe must be within this many pixels of edge (iOS uses ~20-25px)
         enabled = true,
         allowAnywhereSwipe = false,
-        isRTL: optionsIsRTL
+        isRTL: optionsIsRTL,
+        shouldIgnoreTouchStart
     } = options;
     const isRTL = optionsIsRTL ?? false;
 
@@ -55,6 +57,8 @@ function useSwipeGesture(containerRef: React.RefObject<HTMLElement | null>, opti
             touchStartX.current = touch.clientX;
             touchStartY.current = touch.clientY;
 
+            const shouldIgnoreSwipe = shouldIgnoreTouchStart?.(e) ?? false;
+
             // Check if touch started near the edge for edge swipe
             // In RTL mode, check right edge; in LTR mode, check left edge
             const didStartAtAllowedEdge = allowAnywhereSwipe
@@ -63,7 +67,7 @@ function useSwipeGesture(containerRef: React.RefObject<HTMLElement | null>, opti
                   ? touch.clientX >= window.innerWidth - edgeThreshold
                   : touch.clientX <= edgeThreshold;
 
-            isValidSwipe.current = didStartAtAllowedEdge;
+            isValidSwipe.current = didStartAtAllowedEdge && !shouldIgnoreSwipe;
         };
 
         const handleTouchMove = (e: TouchEvent) => {
@@ -121,7 +125,7 @@ function useSwipeGesture(containerRef: React.RefObject<HTMLElement | null>, opti
             container.removeEventListener('touchmove', handleTouchMove);
             container.removeEventListener('touchend', handleTouchEnd);
         };
-    }, [allowAnywhereSwipe, containerRef, onSwipeRight, onSwipeLeft, threshold, edgeThreshold, enabled, isRTL]);
+    }, [allowAnywhereSwipe, containerRef, onSwipeRight, onSwipeLeft, threshold, edgeThreshold, enabled, isRTL, shouldIgnoreTouchStart]);
 }
 
 /**
@@ -136,6 +140,15 @@ export function useMobileSwipeNavigation(containerRef: React.RefObject<HTMLEleme
     // Check if RTL mode is active
     const isRTL = document.body.classList.contains('mod-rtl');
     const allowAnywhereSwipe = true;
+
+    const shouldIgnoreTouchStart = useCallback((event: TouchEvent) => {
+        const target = event.target;
+        if (!(target instanceof Element)) {
+            return false;
+        }
+
+        return target.closest('.nn-breadcrumb-scroll') !== null;
+    }, []);
 
     const handleSwipeRight = useCallback(() => {
         if (!isRTL) {
@@ -158,6 +171,7 @@ export function useMobileSwipeNavigation(containerRef: React.RefObject<HTMLEleme
         onSwipeLeft: handleSwipeLeft,
         enabled: isSwipeEnabled,
         allowAnywhereSwipe,
+        shouldIgnoreTouchStart,
         isRTL
     });
 }

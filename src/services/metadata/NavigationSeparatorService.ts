@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,29 +22,35 @@ import type { ISettingsProvider } from '../../interfaces/ISettingsProvider';
 import type { NotebookNavigatorSettings } from '../../settings';
 import type { CleanupValidators } from '../MetadataService';
 import type { ITagTreeProvider } from '../../interfaces/ITagTreeProvider';
+import type { IPropertyTreeProvider } from '../../interfaces/IPropertyTreeProvider';
 import {
     NavigationSeparatorTarget,
     buildFolderSeparatorKey,
+    buildPropertySeparatorKey,
     buildSectionSeparatorKey,
     buildTagSeparatorKey,
     parseNavigationSeparatorKey
 } from '../../utils/navigationSeparators';
+import { createConfiguredPropertyNodeValidator, normalizePropertyNodeId } from '../../utils/propertyTree';
 import { normalizeTagPath } from '../../utils/tagUtils';
 import { TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../../types';
 import { ensureRecord, isBooleanRecordValue } from '../../utils/recordUtils';
+import { getDBInstanceOrNull } from '../../storage/fileOperations';
+import { getActivePropertyFields } from '../../utils/vaultProfiles';
 
 const FOLDER_PREFIX = 'folder:';
 const TAG_PREFIX = 'tag:';
 const VIRTUAL_TAG_PATHS = new Set([TAGGED_TAG_ID, UNTAGGED_TAG_ID]);
 
 /**
- * Manages persisted separator entries for navigation sections, folders, and tags.
+ * Manages persisted separator entries for navigation sections, folders, tags, and properties.
  */
 export class NavigationSeparatorService extends BaseMetadataService {
     constructor(
         app: App,
         settingsProvider: ISettingsProvider,
-        private readonly getTagTreeProvider?: () => ITagTreeProvider | null
+        private readonly getTagTreeProvider?: () => ITagTreeProvider | null,
+        private readonly getPropertyTreeProvider?: () => IPropertyTreeProvider | null
     ) {
         super(app, settingsProvider);
     }
@@ -184,10 +190,12 @@ export class NavigationSeparatorService extends BaseMetadataService {
     /** Removes separators that reference folders or tags that no longer exist */
     async cleanupSeparators(targetSettings: NotebookNavigatorSettings = this.settingsProvider.settings): Promise<boolean> {
         const tagLookup = this.getKnownTagPaths();
+        const propertyExists = this.createPropertyNodeValidator(targetSettings);
         const changed = await this.removeInvalidEntries(
             targetSettings,
             path => this.folderExists(path),
-            path => this.tagExists(path, tagLookup)
+            path => this.tagExists(path, tagLookup),
+            propertyExists ?? undefined
         );
         if (changed) {
             this.markSeparatorsChangedIfLive(targetSettings);
@@ -202,7 +210,8 @@ export class NavigationSeparatorService extends BaseMetadataService {
     ): Promise<boolean> {
         const folderExists = (path: string) => validators.vaultFolders.has(path);
         const tagExists = (path: string) => this.isVirtualTag(path) || validators.tagTree.has(path);
-        const changed = await this.removeInvalidEntries(targetSettings, folderExists, tagExists);
+        const propertyExists = this.createPropertyNodeValidator(targetSettings, validators);
+        const changed = await this.removeInvalidEntries(targetSettings, folderExists, tagExists, propertyExists ?? undefined);
         if (changed) {
             this.markSeparatorsChangedIfLive(targetSettings);
         }
@@ -216,6 +225,10 @@ export class NavigationSeparatorService extends BaseMetadataService {
         if (target.type === 'folder') {
             const normalizedFolderPath = this.normalizeFolderPath(target.path);
             return normalizedFolderPath ? buildFolderSeparatorKey(normalizedFolderPath) : null;
+        }
+        if (target.type === 'property') {
+            const normalizedNodeId = normalizePropertyNodeId(target.nodeId);
+            return normalizedNodeId ? buildPropertySeparatorKey(normalizedNodeId) : null;
         }
         const normalizedTagPath = normalizeTagPath(target.path);
         if (!normalizedTagPath) {
@@ -277,7 +290,7 @@ export class NavigationSeparatorService extends BaseMetadataService {
             if (from === to) {
                 return;
             }
-            const newKeyExists = Object.prototype.hasOwnProperty.call(store, to) as boolean;
+            const newKeyExists = Object.prototype.hasOwnProperty.call(store, to) === true;
             if (newKeyExists && preserveExisting) {
                 delete store[from];
                 changed = true;
@@ -337,10 +350,46 @@ export class NavigationSeparatorService extends BaseMetadataService {
         return new Set(provider.getAllTagPaths());
     }
 
+    private createPropertyNodeValidator(
+        targetSettings: NotebookNavigatorSettings,
+        validators?: CleanupValidators
+    ): ((nodeId: string) => boolean) | null {
+        if (validators) {
+            return createConfiguredPropertyNodeValidator({
+                propertyFields: getActivePropertyFields(targetSettings),
+                dbFiles: validators.dbFiles
+            });
+        }
+
+        const providerValidator = createConfiguredPropertyNodeValidator({
+            propertyFields: getActivePropertyFields(targetSettings),
+            propertyTreeProvider: this.getPropertyTreeProvider?.() ?? null
+        });
+        if (providerValidator) {
+            return providerValidator;
+        }
+
+        const db = getDBInstanceOrNull();
+        if (!db) {
+            return null;
+        }
+
+        const dbFiles = db.getAllFiles();
+        if (dbFiles.length === 0) {
+            return null;
+        }
+
+        return createConfiguredPropertyNodeValidator({
+            propertyFields: getActivePropertyFields(targetSettings),
+            dbFiles
+        });
+    }
+
     private async removeInvalidEntries(
         targetSettings: NotebookNavigatorSettings,
         folderExists: (path: string) => boolean,
-        tagExists: (path: string) => boolean
+        tagExists: (path: string) => boolean,
+        propertyExists?: (nodeId: string) => boolean
     ): Promise<boolean> {
         const store = targetSettings.navigationSeparators;
         if (!store) {
@@ -363,6 +412,36 @@ export class NavigationSeparatorService extends BaseMetadataService {
             if (descriptor.type === 'tag' && !tagExists(descriptor.path)) {
                 delete store[key];
                 changed = true;
+                return;
+            }
+            if (descriptor.type === 'property') {
+                const normalizedNodeId = normalizePropertyNodeId(descriptor.nodeId);
+                if (!normalizedNodeId) {
+                    delete store[key];
+                    changed = true;
+                    return;
+                }
+
+                const normalizedKey = buildPropertySeparatorKey(normalizedNodeId);
+                if (propertyExists && !propertyExists(normalizedNodeId)) {
+                    if (Object.prototype.hasOwnProperty.call(store, key)) {
+                        delete store[key];
+                        changed = true;
+                    }
+                    if (normalizedKey !== key && Object.prototype.hasOwnProperty.call(store, normalizedKey)) {
+                        delete store[normalizedKey];
+                        changed = true;
+                    }
+                    return;
+                }
+
+                if (normalizedKey !== key) {
+                    if (!Object.prototype.hasOwnProperty.call(store, normalizedKey)) {
+                        store[normalizedKey] = true;
+                    }
+                    delete store[key];
+                    changed = true;
+                }
             }
         });
 

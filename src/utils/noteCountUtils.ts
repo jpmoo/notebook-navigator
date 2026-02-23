@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ import { TFile, TFolder } from 'obsidian';
 import type { NoteCountInfo } from '../types/noteCounts';
 import { shouldDisplayFile, type FileVisibility } from './fileTypeUtils';
 import type { HiddenFileNameMatcher } from './fileFilters';
-import { shouldExcludeFile, shouldExcludeFolder } from './fileFilters';
+import { createFrontmatterPropertyExclusionMatcher, shouldExcludeFileWithMatcher, shouldExcludeFolder } from './fileFilters';
 import { isFolderNote, type FolderNoteDetectionSettings } from './folderNotes';
 import type { HiddenTagVisibility } from './tagPrefixMatcher';
 import { type CachedFileTagsDB, getCachedFileTags } from './tagUtils';
@@ -34,6 +34,7 @@ export interface FolderNoteCountOptions {
     db?: CachedFileTagsDB | null;
     fileVisibility: FileVisibility;
     excludedFiles: string[];
+    excludedFileMatcher?: ReturnType<typeof createFrontmatterPropertyExclusionMatcher>;
     excludedFolders: string[];
     fileNameMatcher: HiddenFileNameMatcher | null;
     hiddenFileTagVisibility: HiddenTagVisibility | null;
@@ -57,6 +58,7 @@ export function calculateFolderNoteCounts(folder: TFolder, options: FolderNoteCo
 
     let current = 0;
     let descendants = 0;
+    const excludedFileMatcher = options.excludedFileMatcher ?? createFrontmatterPropertyExclusionMatcher(options.excludedFiles);
 
     // Process each child item in the folder
     for (const child of folder.children) {
@@ -83,7 +85,7 @@ export function calculateFolderNoteCounts(folder: TFolder, options: FolderNoteCo
             if (
                 shouldDisplayFile(child, options.fileVisibility, options.app) &&
                 !(options.fileNameMatcher && options.fileNameMatcher.matches(child)) &&
-                !shouldExcludeFile(child, options.excludedFiles, options.app) &&
+                !shouldExcludeFileWithMatcher(child, excludedFileMatcher, options.app) &&
                 !hiddenByTags
             ) {
                 current += 1;

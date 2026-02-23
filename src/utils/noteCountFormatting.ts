@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,5 +70,26 @@ export function buildNoteCountDisplay(
     return {
         shouldDisplay,
         label: shouldDisplay ? `${combinedCount}` : ''
+    };
+}
+
+export function buildSortableNoteCountDisplay(
+    noteCountDisplay: NoteCountDisplay,
+    sortOrderIndicator: string | undefined
+): NoteCountDisplay {
+    if (!sortOrderIndicator) {
+        return noteCountDisplay;
+    }
+
+    if (!noteCountDisplay.shouldDisplay) {
+        return {
+            shouldDisplay: true,
+            label: sortOrderIndicator
+        };
+    }
+
+    return {
+        shouldDisplay: true,
+        label: `${sortOrderIndicator} ${noteCountDisplay.label}`
     };
 }

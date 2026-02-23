@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,9 +18,7 @@
 
 import { App, TFile, parseFrontMatterAliases, parseFrontMatterTags, TagCache } from 'obsidian';
 import { normalizeTagPathValue } from '../../utils/tagPrefixMatcher';
-import type { TagTreeService } from '../TagTreeService';
 import { mutateFrontmatterTagFields } from './frontmatterTagMutator';
-import { showNotice } from '../../utils/noticeUtils';
 
 /**
  * Describes a tag and provides helper utilities for normalization.
@@ -210,6 +208,18 @@ export class TagReplacement {
     }
 }
 
+export type RenameFileOutcome = 'changed' | 'skipped';
+export type RenameFileSkipReason = 'file-missing' | 'file-changed' | 'no-op';
+
+export type RenameFileApplyResult =
+    | {
+          outcome: 'changed';
+      }
+    | {
+          outcome: 'skipped';
+          reason: RenameFileSkipReason;
+      };
+
 /**
  * Represents a file that contains tag occurrences slated for renaming.
  * Stores inline tag positions and whether frontmatter contains matching tags.
@@ -230,12 +240,12 @@ export class RenameFile {
      * Applies tag replacement across inline content and frontmatter.
      * Skips the file if inline positions no longer match cached tag values.
      *
-     * @returns True when file content was updated.
+     * @returns Result describing whether updates were applied, or why the file was skipped.
      */
-    async renamed(replacement: TagReplacement): Promise<boolean> {
+    async renamed(replacement: TagReplacement): Promise<RenameFileApplyResult> {
         const file = this.app.vault.getAbstractFileByPath(this.path);
         if (!file || !(file instanceof TFile)) {
-            return false;
+            return { outcome: 'skipped', reason: 'file-missing' };
         }
 
         const original = await this.app.vault.read(file);
@@ -249,10 +259,7 @@ export class RenameFile {
             const matchesExtracted = sourceTag.matches(extracted);
             const matchesCache = typeof cacheTag === 'string' ? sourceTag.matches(cacheTag) : false;
             if (!matchesExtracted || !matchesCache) {
-                const message = `File ${this.path} changed before rename; skipping`;
-                showNotice(message, { variant: 'warning' });
-                console.error(message);
-                return false;
+                return { outcome: 'skipped', reason: 'file-changed' };
             }
             updatedText = replacement.inString(updatedText, start.offset);
         }
@@ -263,7 +270,10 @@ export class RenameFile {
         }
 
         const frontmatterChanged = this.hasFrontMatterMatches ? await this.renameFrontmatter(replacement) : false;
-        return inlineChanged || frontmatterChanged;
+        if (inlineChanged || frontmatterChanged) {
+            return { outcome: 'changed' };
+        }
+        return { outcome: 'skipped', reason: 'no-op' };
     }
 
     private async renameFrontmatter(replacement: TagReplacement): Promise<boolean> {
@@ -328,29 +338,12 @@ export class RenameFile {
  * Produces a list of RenameFile instances that capture inline tag positions
  * and whether matching values exist in frontmatter.
  */
-export function collectRenameFiles(app: App, tag: TagDescriptor, tagTreeProvider?: TagTreeService | null): RenameFile[] {
+export function collectRenameFiles(app: App, tag: TagDescriptor): RenameFile[] {
     const targets: RenameFile[] = [];
     const metadataCache = app.metadataCache;
-    const candidates = new Set<string>();
-
-    if (tagTreeProvider && tag.canonicalName.length > 0) {
-        const taggedPaths = tagTreeProvider.collectTagFilePaths(tag.canonicalName);
-        taggedPaths.forEach(path => candidates.add(path));
-    }
-
-    const filesToInspect: (TFile | null)[] =
-        candidates.size > 0
-            ? Array.from(candidates).map(path => {
-                  const abstract = app.vault.getAbstractFileByPath(path);
-                  return abstract instanceof TFile ? abstract : null;
-              })
-            : app.vault.getFiles();
+    const filesToInspect = app.vault.getMarkdownFiles();
 
     for (const file of filesToInspect) {
-        if (!file || file.extension !== 'md') {
-            continue;
-        }
-
         const path = file.path;
         const cache = metadataCache.getCache(path);
         if (!cache) {

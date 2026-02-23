@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,8 @@ class FolderNoteTypeModal extends Modal {
     constructor(
         app: App,
         private folder: TFolder,
-        private onSelect: (value: FolderNoteType | null) => void
+        private onSelect: (value: FolderNoteType | null) => void,
+        private readonly folderDisplayName?: string
     ) {
         super(app);
     }
@@ -45,7 +46,8 @@ class FolderNoteTypeModal extends Modal {
         this.titleEl.setText(strings.modals.folderNoteType.title);
 
         const infoEl = this.contentEl.createDiv('nn-folder-note-type-info');
-        infoEl.setText(strings.modals.folderNoteType.folderLabel.replace('{name}', this.folder.name));
+        const displayName = this.folderDisplayName && this.folderDisplayName.length > 0 ? this.folderDisplayName : this.folder.name;
+        infoEl.setText(strings.modals.folderNoteType.folderLabel.replace('{name}', displayName));
 
         const buttonContainer = this.contentEl.createDiv('nn-folder-note-type-buttons');
 
@@ -104,11 +106,12 @@ class FolderNoteTypeModal extends Modal {
  * Opens folder note type modal and returns chosen type
  * @param app - Obsidian application instance
  * @param folder - Folder receiving new folder note
+ * @param folderDisplayName - UI label for the folder
  * @returns Chosen folder note type or null if cancelled
  */
-export function promptForFolderNoteType(app: App, folder: TFolder): Promise<FolderNoteType | null> {
+export function promptForFolderNoteType(app: App, folder: TFolder, folderDisplayName?: string): Promise<FolderNoteType | null> {
     return new Promise(resolve => {
-        const modal = new FolderNoteTypeModal(app, folder, resolve);
+        const modal = new FolderNoteTypeModal(app, folder, resolve, folderDisplayName);
         modal.open();
     });
 }

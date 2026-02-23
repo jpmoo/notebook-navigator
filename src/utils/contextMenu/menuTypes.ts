@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,10 @@ import type { VisibilityPreferences } from '../../types';
 import { NotebookNavigatorSettings } from '../../settings';
 import { FileSystemOperations } from '../../services/FileSystemService';
 import { MetadataService } from '../../services/MetadataService';
+import { PropertyOperations } from '../../services/PropertyOperations';
 import { TagOperations } from '../../services/TagOperations';
 import { TagTreeService } from '../../services/TagTreeService';
+import type { PropertyTreeService } from '../../services/PropertyTreeService';
 import { CommandQueueService } from '../../services/CommandQueueService';
 import { SelectionState, SelectionAction } from '../../context/SelectionContext';
 import type NotebookNavigatorPlugin from '../../main';
@@ -52,6 +54,10 @@ export type MenuConfig =
           item: string; // Tag path
       }
     | {
+          type: typeof ItemType.PROPERTY;
+          item: string; // Property node id
+      }
+    | {
           type: typeof EMPTY_LIST_MENU_TYPE;
           item: TFolder | null;
       };
@@ -66,7 +72,9 @@ export interface MenuServices {
     fileSystemOps: FileSystemOperations;
     metadataService: MetadataService;
     tagOperations: TagOperations;
+    propertyOperations: PropertyOperations;
     tagTreeService: TagTreeService | null;
+    propertyTreeService: PropertyTreeService | null;
     commandQueue: CommandQueueService | null;
     shortcuts: ShortcutsContextValue | null;
     visibility: VisibilityPreferences;
@@ -79,6 +87,7 @@ export interface MenuState {
     selectionState: SelectionState;
     expandedFolders: Set<string>;
     expandedTags: Set<string>;
+    expandedProperties: Set<string>;
 }
 
 /**
@@ -109,6 +118,10 @@ export interface TagMenuOptions {
     disableNavigationSeparatorActions?: boolean;
 }
 
+export interface PropertyMenuOptions {
+    disableNavigationSeparatorActions?: boolean;
+}
+
 /**
  * Parameters for folder menu builder
  */
@@ -123,6 +136,14 @@ export interface FolderMenuBuilderParams extends MenuBuilderParams {
 export interface TagMenuBuilderParams extends MenuBuilderParams {
     tagPath: string;
     options?: TagMenuOptions;
+}
+
+/**
+ * Parameters for property menu builder
+ */
+export interface PropertyMenuBuilderParams extends MenuBuilderParams {
+    propertyNodeId: string;
+    options?: PropertyMenuOptions;
 }
 
 /**

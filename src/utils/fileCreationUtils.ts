@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ import { strings } from '../i18n';
 import { TIMEOUTS, OBSIDIAN_COMMANDS } from '../types/obsidian-extended';
 import { executeCommand } from './typeGuards';
 import { showNotice } from './noticeUtils';
+import { normalizeOptionalVaultFilePath } from './pathUtils';
 
 /**
  * Options for creating a new file
@@ -32,10 +33,20 @@ export interface CreateFileOptions {
     content?: string;
     /** Whether to open the file after creation */
     openFile?: boolean;
+    /** Whether to open the file in a new tab when opening */
+    openInNewTab?: boolean;
     /** Whether to trigger rename mode after opening */
     triggerRename?: boolean;
     /** Custom error message key */
     errorKey?: string;
+}
+
+interface CreateMarkdownFileFromTemplateOptions {
+    app: App;
+    folder: TFolder;
+    baseName: string;
+    templatePath?: string | null;
+    templateErrorContext: string;
 }
 
 /**
@@ -80,7 +91,7 @@ export function generateUniqueFilename(folderPath: string, baseName: string, ext
  * @returns The created file or null if creation failed
  */
 export async function createFileWithOptions(parent: TFolder, app: App, options: CreateFileOptions): Promise<TFile | null> {
-    const { extension, content = '', openFile = true, triggerRename = true, errorKey = 'createFile' } = options;
+    const { extension, content = '', openFile = true, openInNewTab = false, triggerRename = true, errorKey = 'createFile' } = options;
 
     try {
         // Generate unique file path
@@ -99,7 +110,7 @@ export async function createFileWithOptions(parent: TFolder, app: App, options: 
 
         // Open the file if requested
         if (openFile) {
-            const leaf = app.workspace.getLeaf(false);
+            const leaf = app.workspace.getLeaf(openInNewTab);
             const openState = extension === 'md' ? { state: { mode: 'source' }, active: true } : undefined;
             await leaf.openFile(file, openState);
 
@@ -125,6 +136,41 @@ export async function createFileWithOptions(parent: TFolder, app: App, options: 
         showNotice(errorMessage, { variant: 'warning' });
         return null;
     }
+}
+
+export async function createMarkdownFileFromTemplate({
+    app,
+    folder,
+    baseName,
+    templatePath,
+    templateErrorContext
+}: CreateMarkdownFileFromTemplateOptions): Promise<TFile> {
+    const created = await app.fileManager.createNewMarkdownFile(folder, baseName);
+
+    // Create the note first (fires Obsidian vault "create"), then apply template content.
+    // Some plugins read or modify created files asynchronously after creation.
+    if (templatePath) {
+        const normalizedTemplatePath = normalizeOptionalVaultFilePath(templatePath);
+        if (!normalizedTemplatePath) {
+            console.warn(`[${templateErrorContext} template] Invalid template path`, templatePath);
+            return created;
+        }
+
+        try {
+            const entry = app.vault.getAbstractFileByPath(normalizedTemplatePath);
+            if (!(entry instanceof TFile) || entry.extension !== 'md') {
+                console.warn(`[${templateErrorContext} template] Template file not found`, normalizedTemplatePath);
+                return created;
+            }
+
+            const content = await app.vault.read(entry);
+            await app.vault.modify(created, content);
+        } catch (error) {
+            console.error(`Failed to apply ${templateErrorContext} template`, normalizedTemplatePath, error);
+        }
+    }
+
+    return created;
 }
 
 /**

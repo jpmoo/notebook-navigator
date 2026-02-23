@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,17 +29,100 @@ import { mergeRanges, NumericRange } from './arrayUtils';
  * The returned ranges use `[start, end)` indexing (end is exclusive).
  */
 
-/**
- * Counts `>` characters in a prefix that contains only blockquote markers and whitespace.
- *
- * This is used for fences inside blockquotes so a fence opened under a certain quote depth must be
- * closed at the same depth.
- */
-function countBlockquoteDepth(prefix: string): number {
-    if (!prefix.includes('>')) {
-        return 0;
+export type FenceMarkerChar = '`' | '~';
+export type ParsedBlockquotePrefix = { depth: number; nextIndex: number };
+export type ParsedFenceMarker = { markerChar: FenceMarkerChar; markerLength: number; nextIndex: number };
+export type ParsedFenceOpen = { depth: number; markerChar: FenceMarkerChar; markerLength: number };
+
+const CHAR_CODE_TAB = 9;
+const CHAR_CODE_CARRIAGE_RETURN = 13;
+const CHAR_CODE_FORM_FEED = 12;
+const CHAR_CODE_SPACE = 32;
+
+export function isMarkdownWhitespace(code: number): boolean {
+    return code === CHAR_CODE_TAB || code === CHAR_CODE_CARRIAGE_RETURN || code === CHAR_CODE_FORM_FEED || code === CHAR_CODE_SPACE;
+}
+
+export function skipMarkdownWhitespace(line: string, startIndex: number): number {
+    let index = startIndex;
+    while (index < line.length) {
+        if (!isMarkdownWhitespace(line.charCodeAt(index))) {
+            break;
+        }
+        index += 1;
     }
-    return (prefix.match(/>/g) ?? []).length;
+    return index;
+}
+
+export function parseBlockquotePrefix(line: string): ParsedBlockquotePrefix {
+    let index = skipMarkdownWhitespace(line, 0);
+    let depth = 0;
+
+    while (index < line.length && line[index] === '>') {
+        depth += 1;
+        index += 1;
+        index = skipMarkdownWhitespace(line, index);
+    }
+
+    return { depth, nextIndex: index };
+}
+
+function parseFenceMarker(line: string, startIndex: number): ParsedFenceMarker | null {
+    if (startIndex >= line.length) {
+        return null;
+    }
+
+    const markerChar = line[startIndex];
+    if (markerChar !== '`' && markerChar !== '~') {
+        return null;
+    }
+
+    let index = startIndex + 1;
+    while (index < line.length && line[index] === markerChar) {
+        index += 1;
+    }
+
+    const markerLength = index - startIndex;
+    if (markerLength < 3) {
+        return null;
+    }
+
+    return { markerChar, markerLength, nextIndex: index };
+}
+
+export function parseFenceOpen(line: string, prefix: ParsedBlockquotePrefix): ParsedFenceOpen | null {
+    const markerIndex = skipMarkdownWhitespace(line, prefix.nextIndex);
+    const marker = parseFenceMarker(line, markerIndex);
+    if (!marker) {
+        return null;
+    }
+
+    return {
+        depth: prefix.depth,
+        markerChar: marker.markerChar,
+        markerLength: marker.markerLength
+    };
+}
+
+export function isFenceClose(
+    line: string,
+    depth: number,
+    markerChar: FenceMarkerChar,
+    markerLength: number,
+    prefix: ParsedBlockquotePrefix
+): boolean {
+    if (prefix.depth !== depth) {
+        return false;
+    }
+
+    const markerIndex = skipMarkdownWhitespace(line, prefix.nextIndex);
+    const marker = parseFenceMarker(line, markerIndex);
+    if (!marker || marker.markerChar !== markerChar || marker.markerLength < markerLength) {
+        return false;
+    }
+
+    const trailingIndex = skipMarkdownWhitespace(line, marker.nextIndex);
+    return trailingIndex === line.length;
 }
 
 type FencedSegmentKind = 'text' | 'fenced';
@@ -50,9 +133,6 @@ interface FencedSegment {
     end: number;
 }
 
-const REGEX_FENCE_OPEN_LINE = /^(\s*)((?:>\s*)*)\s*([`~]{3,}).*$/u;
-const REGEX_FENCE_CLOSE_LINE = /^(\s*)((?:>\s*)*)\s*([`~]{3,})\s*$/u;
-
 function scanFencedCodeSegments(
     content: string,
     onSegment: (segment: FencedSegment) => boolean | void,
@@ -62,43 +142,43 @@ function scanFencedCodeSegments(
     let index = 0;
     let inFence = false;
     let fenceStart = 0;
-    let fenceChar: string | null = null;
+    let fenceChar: FenceMarkerChar | null = null;
     let fenceLength = 0;
     let fenceDepth = 0;
 
     while (index < content.length) {
         const lineEnd = content.indexOf('\n', index);
-        const line = lineEnd === -1 ? content.slice(index) : content.slice(index, lineEnd);
+        let line = lineEnd === -1 ? content.slice(index) : content.slice(index, lineEnd);
+        if (line.endsWith('\r')) {
+            line = line.slice(0, -1);
+        }
         const segmentEnd = lineEnd === -1 ? content.length : lineEnd + 1;
-        const match = inFence ? line.match(REGEX_FENCE_CLOSE_LINE) : line.match(REGEX_FENCE_OPEN_LINE);
+        const prefix = parseBlockquotePrefix(line);
 
         if (!inFence) {
-            if (match && match[3]) {
+            const openFence = parseFenceOpen(line, prefix);
+            if (openFence) {
                 inFence = true;
                 fenceStart = index;
-                fenceChar = match[3][0] ?? null;
-                fenceLength = match[3].length;
-                fenceDepth = countBlockquoteDepth(match[2] ?? '');
+                fenceChar = openFence.markerChar;
+                fenceLength = openFence.markerLength;
+                fenceDepth = openFence.depth;
             } else if (emitText) {
                 const keepGoing = onSegment({ kind: 'text', start: index, end: segmentEnd });
                 if (keepGoing === false) {
                     return;
                 }
             }
-        } else if (match && match[3]) {
-            const currentDepth = countBlockquoteDepth(match[2] ?? '');
-            const matchChar = match[3][0] ?? null;
-            if (currentDepth === fenceDepth && matchChar === fenceChar && match[3].length >= fenceLength) {
-                const keepGoing = onSegment({ kind: 'fenced', start: fenceStart, end: segmentEnd });
-                if (keepGoing === false) {
-                    return;
-                }
-
-                inFence = false;
-                fenceChar = null;
-                fenceLength = 0;
-                fenceDepth = 0;
+        } else if (fenceChar !== null && isFenceClose(line, fenceDepth, fenceChar, fenceLength, prefix)) {
+            const keepGoing = onSegment({ kind: 'fenced', start: fenceStart, end: segmentEnd });
+            if (keepGoing === false) {
+                return;
             }
+
+            inFence = false;
+            fenceChar = null;
+            fenceLength = 0;
+            fenceDepth = 0;
         }
 
         if (lineEnd === -1) {

@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,20 @@
 
 import type { App, Setting } from 'obsidian';
 import type NotebookNavigatorPlugin from '../../main';
+
+export type SettingsTabId =
+    | 'general'
+    | 'navigation-pane'
+    | 'shortcuts'
+    | 'calendar'
+    | 'folders'
+    | 'tags'
+    | 'properties'
+    | 'list-pane'
+    | 'frontmatter'
+    | 'notes'
+    | 'icon-packs'
+    | 'advanced';
 
 export type AddSettingFunction = (createSetting: (setting: Setting) => void) => Setting;
 export type SettingDescription = string | DocumentFragment;
@@ -121,6 +135,8 @@ export interface SettingsTabContext {
     requestStatisticsRefresh(): void;
     /** Ensures the statistics update interval is running */
     ensureStatisticsInterval(): void;
+    /** Activates another settings tab */
+    openSettingsTab(tabId: SettingsTabId): void;
     /** Registers a listener for show tags visibility changes */
     registerShowTagsListener(listener: (visible: boolean) => void): void;
     /** Notifies all listeners of show tags visibility change */

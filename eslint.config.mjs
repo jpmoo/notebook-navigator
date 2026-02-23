@@ -90,6 +90,13 @@ export default tseslint.config(
             'no-debugger': 'error',
             'prefer-const': 'error',
             'no-var': 'error',
+            'no-restricted-syntax': [
+                'error',
+                {
+                    selector: "NewExpression[callee.name='Notice']",
+                    message: 'Use showNotice(...) instead of new Notice(...).'
+                }
+            ],
             // Upgrade obsidianmd rules from warn to error
             'obsidianmd/prefer-file-manager-trash-file': 'error',
 
@@ -110,6 +117,12 @@ export default tseslint.config(
                     acronyms: ['RRGGBB', 'RRGGBBAA']
                 }
             ]
+        }
+    },
+    {
+        files: ['src/utils/noticeUtils.ts'],
+        rules: {
+            'no-restricted-syntax': 'off'
         }
     }
 );

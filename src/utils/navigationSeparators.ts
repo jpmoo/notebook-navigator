@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,8 @@ const SECTION_KEY_BY_ID: Record<NavigationSectionId, string> = {
     [NavigationSectionId.SHORTCUTS]: 'shortcuts',
     [NavigationSectionId.RECENT]: 'recent',
     [NavigationSectionId.FOLDERS]: 'folders',
-    [NavigationSectionId.TAGS]: 'tags'
+    [NavigationSectionId.TAGS]: 'tags',
+    [NavigationSectionId.PROPERTIES]: 'properties'
 };
 
 /** Accepts canonical keys and documented aliases when parsing section entries */
@@ -32,7 +33,8 @@ const SECTION_ID_BY_KEY: Record<string, NavigationSectionId> = {
     recent: NavigationSectionId.RECENT,
     recents: NavigationSectionId.RECENT,
     folders: NavigationSectionId.FOLDERS,
-    tags: NavigationSectionId.TAGS
+    tags: NavigationSectionId.TAGS,
+    properties: NavigationSectionId.PROPERTIES
 };
 
 export type SectionSeparatorTarget = {
@@ -50,11 +52,17 @@ export type TagSeparatorTarget = {
     path: string;
 };
 
-export type NavigationSeparatorTarget = SectionSeparatorTarget | FolderSeparatorTarget | TagSeparatorTarget;
+export type PropertySeparatorTarget = {
+    type: 'property';
+    nodeId: string;
+};
+
+export type NavigationSeparatorTarget = SectionSeparatorTarget | FolderSeparatorTarget | TagSeparatorTarget | PropertySeparatorTarget;
 
 const SECTION_PREFIX = 'section:';
 const FOLDER_PREFIX = 'folder:';
 const TAG_PREFIX = 'tag:';
+const PROPERTY_PREFIX = 'property:';
 
 /** Builds the persisted key for a section separator entry */
 export function buildSectionSeparatorKey(id: NavigationSectionId): string {
@@ -70,6 +78,11 @@ export function buildFolderSeparatorKey(path: string): string {
 /** Builds the persisted key for a tag separator entry */
 export function buildTagSeparatorKey(path: string): string {
     return `${TAG_PREFIX}${path}`;
+}
+
+/** Builds the persisted key for a property separator entry */
+export function buildPropertySeparatorKey(nodeId: string): string {
+    return `${PROPERTY_PREFIX}${nodeId}`;
 }
 
 /** Parses a section key suffix (e.g. "shortcuts", "recents") into a NavigationSectionId */
@@ -104,6 +117,17 @@ export function parseNavigationSeparatorKey(key: string): NavigationSeparatorTar
         return {
             type: 'tag',
             path
+        };
+    }
+
+    if (key.startsWith(PROPERTY_PREFIX)) {
+        const nodeId = key.slice(PROPERTY_PREFIX.length);
+        if (!nodeId) {
+            return null;
+        }
+        return {
+            type: 'property',
+            nodeId
         };
     }
 

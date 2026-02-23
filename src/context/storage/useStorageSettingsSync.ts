@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,8 @@ import {
     getActiveHiddenFileNames,
     getActiveHiddenFileTags,
     getActiveHiddenFileProperties,
-    getActiveHiddenFolders
+    getActiveHiddenFolders,
+    getActivePropertyFields
 } from '../../utils/vaultProfiles';
 import { clearCacheRebuildNoticeState, getCacheRebuildNoticeState, setCacheRebuildNoticeState } from './cacheRebuildNoticeStorage';
 import { getCacheRebuildProgressTypes, getMetadataDependentTypes, haveStringArraysChanged } from './storageContentTypes';
@@ -44,8 +45,8 @@ import { getCacheRebuildProgressTypes, getMetadataDependentTypes, haveStringArra
  * It handles two categories of updates:
  * - Content provider settings: forwarded to `ContentProviderRegistry.handleSettingsChange()` and then used to queue
  *   any required regeneration work.
- * - Exclusions (hidden folders/file properties): triggers a diff so the database and tag tree reflect the new
- *   visibility rules.
+ * - Exclusions (hidden folders/file properties): triggers a diff so the database and navigation trees reflect the
+ *   new visibility rules.
  */
 export function useStorageSettingsSync(params: {
     settings: NotebookNavigatorSettings;
@@ -56,6 +57,7 @@ export function useStorageSettingsSync(params: {
     hiddenFileNames: string[];
     hiddenFileTags: string[];
     scheduleTagTreeRebuild: (options?: { flush?: boolean }) => void;
+    schedulePropertyTreeRebuild: (options?: { flush?: boolean }) => void;
     getIndexableFiles: () => TFile[];
     pendingRenameDataRef: RefObject<Map<string, DBFileData>>;
     queueMetadataContentWhenReady: (
@@ -77,6 +79,7 @@ export function useStorageSettingsSync(params: {
         hiddenFileNames,
         hiddenFileTags,
         scheduleTagTreeRebuild,
+        schedulePropertyTreeRebuild,
         getIndexableFiles,
         pendingRenameDataRef,
         queueMetadataContentWhenReady,
@@ -125,6 +128,7 @@ export function useStorageSettingsSync(params: {
 
             // Provider-level settings may change which files need content and which providers should run.
             const affectedProviders = await registry.handleSettingsChange(oldSettings, newSettings);
+
             const enabledFeatureImages = oldSettings.showFeatureImage !== newSettings.showFeatureImage && newSettings.showFeatureImage;
             const shouldShowIndexNotice = (affectedProviders.length > 0 || enabledFeatureImages) && !stoppedRef.current;
 
@@ -151,16 +155,27 @@ export function useStorageSettingsSync(params: {
                 return;
             }
 
+            const metadataDependentTypes = getMetadataDependentTypes(newSettings);
+            const affectedProviderTypeSet = new Set<ContentProviderType>(affectedProviders);
+            // Queue only metadata providers that were affected by this settings change.
+            const metadataTypesToQueue = metadataDependentTypes.filter(type => affectedProviderTypeSet.has(type));
+            // Enabling feature images requires markdown pipeline reprocessing for markdown files.
+            if (enabledFeatureImages && !metadataTypesToQueue.includes('markdownPipeline')) {
+                metadataTypesToQueue.push('markdownPipeline');
+            }
+            const shouldQueueContent = metadataTypesToQueue.length > 0 || enabledFeatureImages;
+            if (!shouldQueueContent) {
+                return;
+            }
+
             const allFiles = getIndexableFiles();
             if (stoppedRef.current || !contentRegistryRef.current) {
                 return;
             }
 
-            const metadataDependentTypes = getMetadataDependentTypes(newSettings);
             const { markdownFiles } = queueIndexableFilesForContentGeneration(allFiles, newSettings);
-
-            if (metadataDependentTypes.length > 0) {
-                queueMetadataContentWhenReady(markdownFiles, metadataDependentTypes, newSettings);
+            if (metadataTypesToQueue.length > 0) {
+                queueMetadataContentWhenReady(markdownFiles, metadataTypesToQueue, newSettings);
             }
         },
         [
@@ -245,13 +260,14 @@ export function useStorageSettingsSync(params: {
         const relevantSettings = registry?.getAllRelevantSettings() ?? [];
         const hasRelevantSettingsChange =
             !registry || relevantSettings.some(settingKey => previousSettings[settingKey] !== settings[settingKey]);
+        const propertyFieldsChanged = getActivePropertyFields(previousSettings) !== getActivePropertyFields(settings);
 
-        if (hasRelevantSettingsChange) {
+        if (hasRelevantSettingsChange || propertyFieldsChanged) {
             scheduleSettingsChanges(previousSettings, settings);
         }
 
         // Exclusion settings influence which files exist in the cache. Folder/file changes require a diff-based
-        // resync. File name pattern changes currently affect visibility and tag tree counting, but do not require
+        // resync. File name and file tag pattern changes affect navigation visibility but do not require
         // rewriting file records.
         const previousHiddenFolders = getActiveHiddenFolders(previousSettings);
         const excludedFoldersChanged = haveStringArraysChanged(previousHiddenFolders, hiddenFolders);
@@ -279,6 +295,7 @@ export function useStorageSettingsSync(params: {
                     if (settings.showTags) {
                         scheduleTagTreeRebuild();
                     }
+                    schedulePropertyTreeRebuild();
 
                     queueIndexableFilesNeedingContentGeneration([...toAdd, ...toUpdate], allFiles, settings);
                 } catch (error: unknown) {
@@ -289,6 +306,7 @@ export function useStorageSettingsSync(params: {
             if (settings.showTags) {
                 scheduleTagTreeRebuild();
             }
+            schedulePropertyTreeRebuild();
         }
 
         prevSettingsRef.current = settings;
@@ -303,6 +321,7 @@ export function useStorageSettingsSync(params: {
         queueIndexableFilesNeedingContentGeneration,
         scheduleSettingsChanges,
         scheduleTagTreeRebuild,
+        schedulePropertyTreeRebuild,
         settings
     ]);
 

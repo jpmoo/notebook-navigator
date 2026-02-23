@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 import { useMemo } from 'react';
 import { useSettingsState } from '../context/SettingsContext';
 import { useSelectionState } from '../context/SelectionContext';
-import type { CustomPropertyType, ListDisplayMode, ListNoteGroupingOption } from '../settings/types';
+import type { NotePropertyType, ListDisplayMode, ListNoteGroupingOption } from '../settings/types';
 import type { NotebookNavigatorSettings } from '../settings';
 import { ItemType } from '../types';
 import { resolveListGrouping } from '../utils/listGrouping';
@@ -28,7 +28,7 @@ export interface FolderAppearance {
     mode?: ListDisplayMode;
     titleRows?: number;
     previewRows?: number;
-    customPropertyType?: CustomPropertyType;
+    notePropertyType?: NotePropertyType;
     groupBy?: ListNoteGroupingOption;
 }
 
@@ -91,7 +91,7 @@ export function useListPaneAppearance() {
                 mode,
                 titleRows: appearance?.titleRows ?? settings.fileNameRows,
                 previewRows: appearance?.previewRows ?? settings.previewRows,
-                customPropertyType: appearance?.customPropertyType ?? settings.customPropertyType,
+                notePropertyType: appearance?.notePropertyType ?? settings.notePropertyType,
                 showDate: visibility.showDate,
                 showPreview: visibility.showPreview,
                 showImage: visibility.showImage

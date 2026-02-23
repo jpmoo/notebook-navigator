@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,13 +19,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useServices } from '../context/ServicesContext';
 import type { ReleaseUpdateNotice } from '../services/ReleaseCheckService';
-import { compareVersions } from '../releaseNotes';
 
 /** State returned by the useUpdateNotice hook */
 interface UpdateNoticeState {
     bannerNotice: ReleaseUpdateNotice | null;
-    updateAvailableVersion: string | null;
-    markAsDisplayed: (version: string) => Promise<void>;
+    markAsDisplayed: (version: string) => void;
 }
 
 /**
@@ -50,30 +48,16 @@ export function useUpdateNotice(): UpdateNoticeState {
         };
     }, [plugin]);
 
-    const updateAvailableVersion = (() => {
-        if (!plugin.settings.checkForUpdatesOnStart) {
-            return null;
-        }
-
-        const latestKnownRelease = plugin.getLatestKnownRelease();
-        if (!latestKnownRelease) {
-            return null;
-        }
-
-        return compareVersions(latestKnownRelease, plugin.manifest.version) > 0 ? latestKnownRelease : null;
-    })();
-
     // Callback to mark a specific version as having been displayed to the user
     const markAsDisplayed = useCallback(
-        async (version: string) => {
-            await plugin.markUpdateNoticeAsDisplayed(version);
+        (version: string) => {
+            plugin.markUpdateNoticeAsDisplayed(version);
         },
         [plugin]
     );
 
     return {
         bannerNotice,
-        updateAvailableVersion,
         markAsDisplayed
     };
 }

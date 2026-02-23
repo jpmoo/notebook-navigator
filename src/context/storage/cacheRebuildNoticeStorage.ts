@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,15 @@ export interface CacheRebuildNoticeState {
 }
 
 function isFileContentType(value: unknown): value is FileContentType {
-    return value === 'preview' || value === 'tags' || value === 'featureImage' || value === 'metadata' || value === 'customProperty';
+    return (
+        value === 'preview' ||
+        value === 'tags' ||
+        value === 'featureImage' ||
+        value === 'metadata' ||
+        value === 'wordCount' ||
+        value === 'tasks' ||
+        value === 'properties'
+    );
 }
 
 // Validates the vault-scoped localStorage payload before using it to drive UI.

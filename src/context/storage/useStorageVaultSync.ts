@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,13 +23,14 @@ import type { NotebookNavigatorAPI } from '../../api/NotebookNavigatorAPI';
 import type { NotebookNavigatorSettings } from '../../settings';
 import type { ContentProviderType, FileContentType } from '../../interfaces/IContentProvider';
 import type { ContentProviderRegistry } from '../../services/content/ContentProviderRegistry';
-import type { TagTreeNode } from '../../types/storage';
+import type { PropertyTreeNode, TagTreeNode } from '../../types/storage';
 import { calculateFileDiff } from '../../storage/diffCalculator';
 import { type FileData as DBFileData } from '../../storage/IndexedDBStorage';
 import { getDBInstance, markFilesForRegeneration, recordFileChanges, removeFilesFromCache } from '../../storage/fileOperations';
 import { runAsyncAction } from '../../utils/async';
 import { isMarkdownPath, isPdfFile } from '../../utils/fileTypeUtils';
-import { filterFilesRequiringMetadataSources, filterPdfFilesRequiringThumbnails } from '../storageQueueFilters';
+import { isPropertyFeatureEnabled } from '../../utils/propertyTree';
+import { filterPdfFilesRequiringThumbnails } from '../storageQueueFilters';
 import { getCacheRebuildProgressTypes, getContentWorkTotal, getMetadataDependentTypes } from './storageContentTypes';
 
 /**
@@ -40,7 +41,7 @@ import { getCacheRebuildProgressTypes, getContentWorkTotal, getMetadataDependent
  *   storage as ready.
  * - Live updates: listen to vault events (create/delete/rename/modify) and reconcile the database via diffs.
  * - Derived content: queue content providers for files that changed or still need content (tags, preview text,
- *   feature images, metadata, custom properties).
+ *   feature images, metadata, properties).
  *
  * Design notes:
  * - Vault events can arrive in bursts or in multi-step sequences (especially renames/moves). A shared debouncer
@@ -70,6 +71,9 @@ export function useStorageVaultSync(params: {
     rebuildTagTree: () => Map<string, TagTreeNode>;
     scheduleTagTreeRebuild: (options?: { flush?: boolean }) => void;
     cancelTagTreeRebuildDebouncer: (options?: { reset?: boolean }) => void;
+    rebuildPropertyTree: () => Map<string, PropertyTreeNode>;
+    schedulePropertyTreeRebuild: (options?: { flush?: boolean }) => void;
+    cancelPropertyTreeRebuildDebouncer: (options?: { reset?: boolean }) => void;
     startCacheRebuildNotice: (total: number, enabledTypes: FileContentType[]) => void;
     getIndexableFiles: () => TFile[];
     queueMetadataContentWhenReady: (
@@ -102,6 +106,9 @@ export function useStorageVaultSync(params: {
         rebuildTagTree,
         scheduleTagTreeRebuild,
         cancelTagTreeRebuildDebouncer,
+        rebuildPropertyTree,
+        schedulePropertyTreeRebuild,
+        cancelPropertyTreeRebuildDebouncer,
         startCacheRebuildNotice,
         getIndexableFiles,
         queueMetadataContentWhenReady,
@@ -133,6 +140,7 @@ export function useStorageVaultSync(params: {
                     }
 
                     rebuildTagTree();
+                    rebuildPropertyTree();
 
                     isStorageReadyRef.current = true;
                     setIsStorageReady(true);
@@ -198,6 +206,10 @@ export function useStorageVaultSync(params: {
                                     await removeFilesFromCache(toRemove);
                                     if (settings.showTags) {
                                         scheduleTagTreeRebuild();
+                                    }
+                                    if (isPropertyFeatureEnabled(settings)) {
+                                        // Flush rebuild after cache removals so deleted files are reflected in the property tree counts.
+                                        schedulePropertyTreeRebuild({ flush: true });
                                     }
                                 }
                             } catch (error: unknown) {
@@ -405,15 +417,8 @@ export function useStorageVaultSync(params: {
                     try {
                         // Obsidian's metadata cache can change after initial indexing even when the file mtime did
                         // not trigger a "modify" handler in the expected order. Mark the file for regeneration so
-                        // tags/metadata providers re-run against the updated cache.
-                        const db = getDBInstance();
-                        const record = db.getFile(file.path);
-                        const fileAlreadyNeedsWork =
-                            record !== null && filterFilesRequiringMetadataSources([file], metadataDependentTypes, liveSettings).length > 0;
-
-                        if (!record || !fileAlreadyNeedsWork) {
-                            await markFilesForRegeneration([file]);
-                        }
+                        // metadata-dependent providers re-run against the updated cache snapshot.
+                        await markFilesForRegeneration([file]);
                     } catch (error: unknown) {
                         console.error('Failed to mark file for regeneration:', error);
                         return;
@@ -443,6 +448,7 @@ export function useStorageVaultSync(params: {
 
             // Clears debouncers and pending waits so no background work continues after teardown.
             cancelTagTreeRebuildDebouncer({ reset: true });
+            cancelPropertyTreeRebuildDebouncer({ reset: true });
             disposeMetadataWaitDisposers();
         };
     }, [
@@ -452,6 +458,7 @@ export function useStorageVaultSync(params: {
         activeVaultEventRefsRef,
         buildFileCacheFnRef,
         cancelTagTreeRebuildDebouncer,
+        cancelPropertyTreeRebuildDebouncer,
         contentRegistryRef,
         disposeMetadataWaitDisposers,
         getIndexableFiles,
@@ -467,7 +474,9 @@ export function useStorageVaultSync(params: {
         queueMetadataContentWhenReady,
         rebuildFileCacheRef,
         rebuildTagTree,
+        rebuildPropertyTree,
         scheduleTagTreeRebuild,
+        schedulePropertyTreeRebuild,
         setIsStorageReady,
         settings,
         stoppedRef,

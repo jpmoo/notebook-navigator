@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type { App } from 'obsidian';
 import type { TagDescriptor } from '../tagRename/TagRenameEngine';
 
 export interface TagRenameEventPayload {
@@ -44,5 +45,5 @@ export interface TagUsageSummary {
 }
 
 export interface TagPreviewCollector {
-    collectPreviewPaths(tag: TagDescriptor): string[] | null;
+    collectPreviewPaths(app: App, tag: TagDescriptor): string[];
 }

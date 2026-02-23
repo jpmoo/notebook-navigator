@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,13 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { TagTreeNode } from '../../types/storage';
+import type { PropertyTreeNode, TagTreeNode } from '../../types/storage';
 
 /**
  * In-memory data used by the navigator UI (tag tree + counts).
  */
 export interface StorageFileData {
     tagTree: Map<string, TagTreeNode>;
+    propertyTree: Map<string, PropertyTreeNode>;
     tagged: number;
     untagged: number;
     hiddenRootTags: Map<string, TagTreeNode>;

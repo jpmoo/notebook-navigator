@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,6 +44,8 @@ let dbInstance: IndexedDBStorage | null = null;
 let appId: string | null = null;
 let isInitializing = false;
 let isShuttingDown = false;
+let isShutdownState = false;
+let initializationPromise: Promise<void> | null = null;
 // Configured feature image blob cache size for the current platform.
 let featureImageCacheMaxEntries: number | null = null;
 // Configured preview text LRU size for the current platform.
@@ -56,7 +58,7 @@ let previewLoadMaxBatch: number | null = null;
  * Used to avoid issuing write operations during teardown cycles.
  */
 export function isShutdownInProgress(): boolean {
-    return isShuttingDown;
+    return isShuttingDown || isShutdownState;
 }
 
 /**
@@ -98,7 +100,7 @@ export function getDBInstance(): IndexedDBStorage {
  * This avoids throwing during early startup when callers only need best-effort cache reads.
  */
 export function getDBInstanceOrNull(): IndexedDBStorage | null {
-    if (!appId) {
+    if (isShutdownInProgress() || !appId) {
         return null;
     }
     return getDBInstance();
@@ -118,8 +120,18 @@ export async function initializeDatabase(
         previewLoadMaxBatch?: number;
     }
 ): Promise<void> {
+    if (isShuttingDown) {
+        return;
+    }
+    if (isShutdownState) {
+        isShutdownState = false;
+    }
+
     // Idempotent: if already initialized or in progress, skip
     if (isInitializing) {
+        if (initializationPromise) {
+            await initializationPromise;
+        }
         return;
     }
     const existing = dbInstance;
@@ -129,24 +141,94 @@ export async function initializeDatabase(
     }
 
     isInitializing = true;
+    initializationPromise = (async () => {
+        try {
+            if (isShutdownInProgress()) {
+                return;
+            }
+            appId = appIdParam;
+            if (options?.featureImageCacheMaxEntries !== undefined) {
+                // Persist feature image cache size for the singleton instance.
+                featureImageCacheMaxEntries = options.featureImageCacheMaxEntries;
+            }
+            if (options?.previewTextCacheMaxEntries !== undefined) {
+                previewTextCacheMaxEntries = options.previewTextCacheMaxEntries;
+            }
+            if (options?.previewLoadMaxBatch !== undefined) {
+                previewLoadMaxBatch = options.previewLoadMaxBatch;
+            }
+            const db = getDBInstance();
+            await db.init();
+            if (isShutdownInProgress() || dbInstance !== db) {
+                return;
+            }
+            db.startPreviewTextWarmup();
+        } finally {
+            isInitializing = false;
+        }
+    })();
+
     try {
-        appId = appIdParam;
-        if (options?.featureImageCacheMaxEntries !== undefined) {
-            // Persist feature image cache size for the singleton instance.
-            featureImageCacheMaxEntries = options.featureImageCacheMaxEntries;
-        }
-        if (options?.previewTextCacheMaxEntries !== undefined) {
-            previewTextCacheMaxEntries = options.previewTextCacheMaxEntries;
-        }
-        if (options?.previewLoadMaxBatch !== undefined) {
-            previewLoadMaxBatch = options.previewLoadMaxBatch;
-        }
-        const db = getDBInstance();
-        await db.init();
-        db.startPreviewTextWarmup();
+        await initializationPromise;
     } finally {
-        isInitializing = false;
+        initializationPromise = null;
     }
+}
+
+/**
+ * Waits for shared database initialization and returns the singleton instance.
+ *
+ * Returns null when the plugin has not configured the database yet or initialization fails.
+ */
+export async function waitForDatabaseInitialization(): Promise<IndexedDBStorage | null> {
+    if (isShutdownInProgress()) {
+        return null;
+    }
+
+    if (!appId) {
+        const waitStart = Date.now();
+        while (!appId && !isShutdownInProgress() && Date.now() - waitStart < 5000) {
+            await new Promise<void>(resolve => {
+                globalThis.setTimeout(resolve, 50);
+            });
+        }
+    }
+
+    if (isShutdownInProgress() || !appId) {
+        return null;
+    }
+
+    if (initializationPromise) {
+        try {
+            await initializationPromise;
+        } catch (error) {
+            console.error('Failed while waiting for database initialization:', error);
+            return null;
+        }
+    }
+
+    const db = getDBInstanceOrNull();
+    if (!db) {
+        return null;
+    }
+
+    if (!db.isInitialized()) {
+        if (isShutdownInProgress() || dbInstance !== db) {
+            return null;
+        }
+        try {
+            await db.init();
+            if (isShutdownInProgress() || dbInstance !== db) {
+                return null;
+            }
+            db.startPreviewTextWarmup();
+        } catch (error) {
+            console.error('Failed to initialize database while waiting:', error);
+            return null;
+        }
+    }
+
+    return db;
 }
 
 /**
@@ -155,19 +237,27 @@ export async function initializeDatabase(
  */
 export function shutdownDatabase(): void {
     // Idempotent: if already shut down or in progress, skip
-    if (!dbInstance) {
+    if (!dbInstance && !appId && !isInitializing && !initializationPromise) {
         return;
     }
     if (isShuttingDown) return;
 
     isShuttingDown = true;
+    isShutdownState = true;
     try {
         try {
-            dbInstance.close();
+            dbInstance?.close();
         } catch (e) {
             console.error('Failed to close database on shutdown:', e);
         }
     } finally {
+        dbInstance = null;
+        appId = null;
+        isInitializing = false;
+        initializationPromise = null;
+        featureImageCacheMaxEntries = null;
+        previewTextCacheMaxEntries = null;
+        previewLoadMaxBatch = null;
         isShuttingDown = false;
     }
 }
@@ -192,7 +282,7 @@ export async function recordFileChanges(
     renamedData?: Map<string, FileData>,
     dbOverride?: Pick<IndexedDBStorage, 'upsertFilesWithPatch'>
 ): Promise<void> {
-    if (isShuttingDown) return;
+    if (isShutdownInProgress()) return;
     const db = dbOverride ?? getDBInstance();
     // Use patch-only upserts for existing records so provider-owned fields cannot be overwritten by stale snapshots.
     const updates: { path: string; create: FileData; patch?: Partial<FileData> }[] = [];
@@ -224,7 +314,9 @@ export async function recordFileChanges(
                 fileThumbnailsMtime: renamed.fileThumbnailsMtime,
                 tags: renamed.tags,
                 wordCount: renamed.wordCount,
-                customProperty: renamed.customProperty,
+                taskTotal: renamed.taskTotal,
+                taskUnfinished: renamed.taskUnfinished,
+                properties: renamed.properties,
                 previewStatus: renamed.previewStatus,
                 featureImageStatus: renamed.featureImageStatus,
                 featureImageKey: renamed.featureImageKey,
@@ -254,7 +346,7 @@ export async function recordFileChanges(
  * @param files - Array of Obsidian files to mark for regeneration
  */
 export async function markFilesForRegeneration(files: TFile[]): Promise<void> {
-    if (isShuttingDown) return;
+    if (isShutdownInProgress()) return;
     const db = getDBInstance();
     const paths = files.map(f => f.path);
     const existingData = db.getFiles(paths);
@@ -289,7 +381,7 @@ export async function markFilesForRegeneration(files: TFile[]): Promise<void> {
  * @param paths - Array of file paths to remove
  */
 export async function removeFilesFromCache(paths: string[]): Promise<void> {
-    if (isShuttingDown) return;
+    if (isShutdownInProgress()) return;
     const db = getDBInstance();
     await db.deleteFiles(paths);
 }

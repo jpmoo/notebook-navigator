@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,10 @@ import { App, Platform } from 'obsidian';
 import NotebookNavigatorPlugin from '../main';
 import { FileSystemOperations } from '../services/FileSystemService';
 import { MetadataService } from '../services/MetadataService';
+import { PropertyOperations } from '../services/PropertyOperations';
 import { TagOperations } from '../services/TagOperations';
 import { TagTreeService } from '../services/TagTreeService';
+import { PropertyTreeService } from '../services/PropertyTreeService';
 import { CommandQueueService } from '../services/CommandQueueService';
 import { OmnisearchService } from '../services/OmnisearchService';
 import ReleaseCheckService from '../services/ReleaseCheckService';
@@ -45,8 +47,12 @@ interface Services {
     metadataService: MetadataService | null;
     /** Tag operations service for renaming and deleting tags */
     tagOperations: TagOperations | null;
+    /** Property operations service for renaming and deleting property keys */
+    propertyOperations: PropertyOperations | null;
     /** Tag tree service for accessing the current tag tree */
     tagTreeService: TagTreeService | null;
+    /** Property tree service for accessing the current property tree */
+    propertyTreeService: PropertyTreeService | null;
     /** Command queue service for managing operations and their context */
     commandQueue: CommandQueueService | null;
     /** Omnisearch integration service */
@@ -92,7 +98,9 @@ export function ServicesProvider({ children, plugin }: { children: React.ReactNo
             fileSystemOps,
             metadataService: plugin.metadataService,
             tagOperations: plugin.tagOperations,
+            propertyOperations: plugin.propertyOperations,
             tagTreeService: plugin.tagTreeService,
+            propertyTreeService: plugin.propertyTreeService,
             commandQueue: plugin.commandQueue,
             omnisearchService: plugin.omnisearchService,
             releaseCheckService: plugin.releaseCheckService
@@ -154,6 +162,14 @@ export function useTagOperations() {
         throw new Error('TagOperations not initialized');
     }
     return tagOperations;
+}
+
+export function usePropertyOperations() {
+    const { propertyOperations } = useServices();
+    if (!propertyOperations) {
+        throw new Error('PropertyOperations not initialized');
+    }
+    return propertyOperations;
 }
 
 /**

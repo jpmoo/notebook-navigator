@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,23 +21,41 @@ import { App, TFile } from 'obsidian';
 import { TagRenameWorkflow, type TagRenameHooks } from '../../../src/services/tagOperations/TagRenameWorkflow';
 import { TagDeleteWorkflow, type TagDeleteHooks } from '../../../src/services/tagOperations/TagDeleteWorkflow';
 import { TagFileMutations } from '../../../src/services/tagOperations/TagFileMutations';
-import { TagDescriptor, type RenameFile } from '../../../src/services/tagRename/TagRenameEngine';
+import { RenameFile, TagDescriptor, TagReplacement, type RenameFileApplyResult } from '../../../src/services/tagRename/TagRenameEngine';
 import { DEFAULT_SETTINGS } from '../../../src/settings/defaultSettings';
 import { createTestTFile } from '../../utils/createTestTFile';
 
+class ControlledRenameFile extends RenameFile {
+    constructor(
+        app: App,
+        path: string,
+        private readonly shouldRename: boolean
+    ) {
+        super(app, path, [], false);
+    }
+
+    override async renamed(_replacement: TagReplacement): Promise<RenameFileApplyResult> {
+        if (this.shouldRename) {
+            return { outcome: 'changed' };
+        }
+        return { outcome: 'skipped', reason: 'no-op' };
+    }
+}
+
 describe('TagRenameWorkflow', () => {
+    let app: App;
     let hooks: TagRenameHooks;
     let workflow: TagRenameWorkflow;
 
     beforeEach(() => {
         hooks = {
-            executeRename: vi.fn().mockResolvedValue({ renamed: 1, total: 1 }),
+            executeRename: vi.fn().mockResolvedValue({ renamed: 1, total: 1, skipped: 0, failed: 0 }),
             updateTagMetadataAfterRename: vi.fn().mockResolvedValue(undefined),
             updateTagShortcutsAfterRename: vi.fn().mockResolvedValue(undefined),
             notifyTagRenamed: vi.fn()
         };
 
-        const app = new App();
+        app = new App();
         const fileMutations = new TagFileMutations(app, () => DEFAULT_SETTINGS);
         workflow = new TagRenameWorkflow(
             app,
@@ -50,7 +68,7 @@ describe('TagRenameWorkflow', () => {
     });
 
     it('runs rename workflow and notifies listeners', async () => {
-        const result = await workflow.runTagRename('Projects/Client', 'Projects/Clients', [{} as unknown as RenameFile]);
+        const result = await workflow.runTagRename('Projects/Client', 'Projects/Clients', [new RenameFile(app, 'Notes/One.md', [], false)]);
 
         expect(result).toBe(true);
         expect(hooks.executeRename).toHaveBeenCalled();
@@ -65,8 +83,30 @@ describe('TagRenameWorkflow', () => {
         });
     });
 
+    it('does not finalize metadata or events when rename batch has failures', async () => {
+        hooks.executeRename = vi.fn().mockResolvedValue({ renamed: 1, total: 2, skipped: 0, failed: 1 });
+
+        const result = await workflow.runTagRename('Projects/Client', 'Projects/Clients', [new RenameFile(app, 'Notes/One.md', [], false)]);
+
+        expect(result).toBe(true);
+        expect(hooks.updateTagMetadataAfterRename).not.toHaveBeenCalled();
+        expect(hooks.updateTagShortcutsAfterRename).not.toHaveBeenCalled();
+        expect(hooks.notifyTagRenamed).not.toHaveBeenCalled();
+    });
+
+    it('does not finalize metadata or events when rename batch has skipped files', async () => {
+        hooks.executeRename = vi.fn().mockResolvedValue({ renamed: 1, total: 2, skipped: 1, failed: 0 });
+
+        const result = await workflow.runTagRename('Projects/Client', 'Projects/Clients', [new RenameFile(app, 'Notes/One.md', [], false)]);
+
+        expect(result).toBe(true);
+        expect(hooks.updateTagMetadataAfterRename).not.toHaveBeenCalled();
+        expect(hooks.updateTagShortcutsAfterRename).not.toHaveBeenCalled();
+        expect(hooks.notifyTagRenamed).not.toHaveBeenCalled();
+    });
+
     it('rejects descendant renames', async () => {
-        const result = await workflow.runTagRename('Project', 'Project/Sub', [{} as unknown as RenameFile]);
+        const result = await workflow.runTagRename('Project', 'Project/Sub', [new RenameFile(app, 'Notes/One.md', [], false)]);
 
         expect(result).toBe(false);
         expect(hooks.executeRename).not.toHaveBeenCalled();
@@ -78,6 +118,21 @@ describe('TagRenameWorkflow', () => {
 
         expect(result).toBe(false);
         expect(hooks.executeRename).not.toHaveBeenCalled();
+    });
+
+    it('counts unchanged targets as skipped during executeRename', async () => {
+        const oldTag = new TagDescriptor('Projects/Client');
+        const newTag = new TagDescriptor('Projects/Clients');
+
+        const result = await workflow.executeRename({
+            oldTag,
+            newTag,
+            replacement: new TagReplacement(oldTag, newTag),
+            targets: [new ControlledRenameFile(app, 'Notes/One.md', true), new ControlledRenameFile(app, 'Notes/Two.md', false)],
+            mergeConflict: null
+        });
+
+        expect(result).toEqual({ renamed: 1, total: 2, skipped: 1, failed: 0 });
     });
 });
 
@@ -138,6 +193,64 @@ describe('TagDeleteWorkflow', () => {
 
         expect(result).toBe(false);
         expect(hooks.removeTagMetadataAfterDelete).not.toHaveBeenCalled();
+        expect(hooks.notifyTagDeleted).not.toHaveBeenCalled();
+    });
+
+    it('does not finalize metadata or events when delete batch has failures', async () => {
+        const failingFile = Object.assign(createTestTFile('Projects/Blocked.md'), {
+            content: '#project/client blocked'
+        });
+        app.vault.getAbstractFileByPath = vi.fn((path: string) => {
+            if (path === file.path) {
+                return file;
+            }
+            if (path === failingFile.path) {
+                return failingFile;
+            }
+            return null;
+        });
+
+        deleteTagFromFile.mockImplementation((target: TFile) => {
+            if (target.path === failingFile.path) {
+                throw new Error('read only');
+            }
+            return Promise.resolve(true);
+        });
+
+        const result = await workflow.runTagDelete('project/client', [file.path, failingFile.path]);
+
+        expect(result).toBe(true);
+        expect(hooks.removeTagMetadataAfterDelete).not.toHaveBeenCalled();
+        expect(hooks.removeTagShortcutsAfterDelete).not.toHaveBeenCalled();
+        expect(hooks.notifyTagDeleted).not.toHaveBeenCalled();
+    });
+
+    it('does not finalize metadata or events when delete batch has skipped files', async () => {
+        const skippedFile = Object.assign(createTestTFile('Projects/Skipped.md'), {
+            content: '#project/client skipped'
+        });
+        app.vault.getAbstractFileByPath = vi.fn((path: string) => {
+            if (path === file.path) {
+                return file;
+            }
+            if (path === skippedFile.path) {
+                return skippedFile;
+            }
+            return null;
+        });
+
+        deleteTagFromFile.mockImplementation((target: TFile) => {
+            if (target.path === skippedFile.path) {
+                return Promise.resolve(false);
+            }
+            return Promise.resolve(true);
+        });
+
+        const result = await workflow.runTagDelete('project/client', [file.path, skippedFile.path]);
+
+        expect(result).toBe(true);
+        expect(hooks.removeTagMetadataAfterDelete).not.toHaveBeenCalled();
+        expect(hooks.removeTagShortcutsAfterDelete).not.toHaveBeenCalled();
         expect(hooks.notifyTagDeleted).not.toHaveBeenCalled();
     });
 });

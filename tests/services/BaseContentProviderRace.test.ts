@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,16 @@ import { BaseContentProvider, type ContentProviderProcessResult } from '../../sr
 
 class FakeDB {
     private readonly files = new Map<string, FileData>();
+    private readonly providerMtimeUpdates = new Map<string, number[]>();
+
+    private getProviderMtimeUpdateKey(provider: ContentProviderType, path: string): string {
+        return `${provider}::${path}`;
+    }
+
+    // Returns applied processed-mtime updates in write order for one provider/path pair.
+    getAppliedProviderMtimeUpdates(provider: ContentProviderType, path: string): number[] {
+        return [...(this.providerMtimeUpdates.get(this.getProviderMtimeUpdateKey(provider, path)) ?? [])];
+    }
 
     async batchUpdateFileContentAndProviderProcessedMtimes(params: {
         contentUpdates: {
@@ -36,7 +46,7 @@ class FakeDB {
             featureImage?: Blob | null;
             featureImageKey?: string | null;
             metadata?: FileData['metadata'];
-            customProperty?: FileData['customProperty'];
+            properties?: FileData['properties'];
         }[];
         provider?: ContentProviderType;
         processedMtimeUpdates?: { path: string; mtime: number; expectedPreviousMtime: number }[];
@@ -90,6 +100,15 @@ class FakeDB {
                 }
                 existing.fileThumbnailsMtime = update.mtime;
             }
+
+            // Records mtime write history for race-order assertions.
+            const historyKey = this.getProviderMtimeUpdateKey(provider, update.path);
+            const history = this.providerMtimeUpdates.get(historyKey);
+            if (history) {
+                history.push(update.mtime);
+            } else {
+                this.providerMtimeUpdates.set(historyKey, [update.mtime]);
+            }
         }
     }
 
@@ -127,7 +146,9 @@ function createFileData(overrides: Partial<FileData>): FileData {
         fileThumbnailsMtime: 0,
         tags: null,
         wordCount: null,
-        customProperty: null,
+        taskTotal: 0,
+        taskUnfinished: 0,
+        properties: null,
         previewStatus: 'unprocessed',
         featureImage: null,
         featureImageStatus: 'unprocessed',
@@ -208,6 +229,117 @@ class TestTagsProvider extends BaseContentProvider {
     protected async yieldToEventLoop(): Promise<void> {}
 }
 
+// Simulates a provider that returns one retry before succeeding.
+class RetryOnceTagsProvider extends BaseContentProvider {
+    private processCalls = 0;
+
+    getCallCount(): number {
+        return this.processCalls;
+    }
+
+    async runBatch(settings: NotebookNavigatorSettings): Promise<void> {
+        this.onSettingsChanged(settings);
+        await this.processNextBatch();
+    }
+
+    getContentType(): ContentProviderType {
+        return 'tags';
+    }
+
+    getRelevantSettings(): (keyof NotebookNavigatorSettings)[] {
+        return [];
+    }
+
+    shouldRegenerate(): boolean {
+        return false;
+    }
+
+    async clearContent(): Promise<void> {}
+
+    protected needsProcessing(fileData: FileData | null, file: TFile): boolean {
+        return !fileData || fileData.tagsMtime !== file.stat.mtime;
+    }
+
+    protected async processFile(): Promise<ContentProviderProcessResult> {
+        this.processCalls += 1;
+        if (this.processCalls === 1) {
+            return { update: null, processed: false };
+        }
+        return { update: null, processed: true };
+    }
+
+    protected async yieldToEventLoop(): Promise<void> {
+        await vi.advanceTimersByTimeAsync(1);
+    }
+}
+
+// Simulates a queued retry path that is removed while another file blocks batch completion.
+class RetryAndSkipQueuedPathTagsProvider extends BaseContentProvider {
+    protected readonly QUEUE_BATCH_SIZE = 1;
+    protected readonly PARALLEL_LIMIT = 1;
+    private attemptsByPath = new Map<string, number>();
+    private startedBlockingFile = false;
+
+    constructor(
+        app: App,
+        private readonly retryPath: string,
+        private readonly blockingPath: string,
+        private readonly blockingGate: Promise<void>
+    ) {
+        super(app);
+    }
+
+    didStartBlockingFile(): boolean {
+        return this.startedBlockingFile;
+    }
+
+    async runBatch(settings: NotebookNavigatorSettings): Promise<void> {
+        this.onSettingsChanged(settings);
+        await this.processNextBatch();
+    }
+
+    getContentType(): ContentProviderType {
+        return 'tags';
+    }
+
+    getRelevantSettings(): (keyof NotebookNavigatorSettings)[] {
+        return [];
+    }
+
+    shouldRegenerate(): boolean {
+        return false;
+    }
+
+    async clearContent(): Promise<void> {}
+
+    protected needsProcessing(fileData: FileData | null, file: TFile): boolean {
+        return !fileData || fileData.tagsMtime !== file.stat.mtime;
+    }
+
+    protected async processFile(job: { file: TFile }): Promise<ContentProviderProcessResult> {
+        if (job.file.path === this.retryPath) {
+            const attempts = (this.attemptsByPath.get(job.file.path) ?? 0) + 1;
+            this.attemptsByPath.set(job.file.path, attempts);
+            if (attempts === 1) {
+                return { update: null, processed: false };
+            }
+            return { update: null, processed: true };
+        }
+
+        if (job.file.path === this.blockingPath) {
+            this.startedBlockingFile = true;
+            await this.blockingGate;
+            return { update: null, processed: true };
+        }
+
+        return { update: null, processed: true };
+    }
+
+    protected async yieldToEventLoop(): Promise<void> {
+        await vi.advanceTimersByTimeAsync(1);
+    }
+}
+
 describe('BaseContentProvider race handling', () => {
     const settings: NotebookNavigatorSettings = DEFAULT_SETTINGS;
 
@@ -259,10 +391,12 @@ describe('BaseContentProvider race handling', () => {
         firstCallGate.resolve();
 
         await firstRun;
+        await provider.waitForIdle();
 
-        expect(provider.getCallCount()).toBe(1);
-        expect(db.getFile(file.path)?.tagsMtime).toBe(100);
-        expect(provider.getQueueSize()).toBe(1);
+        expect(provider.getCallCount()).toBe(2);
+        expect(db.getFile(file.path)?.tagsMtime).toBe(200);
+        expect(provider.getQueueSize()).toBe(0);
+        expect(db.getAppliedProviderMtimeUpdates('tags', file.path)).toEqual([100, 200]);
 
         await provider.runBatch(settings);
 
@@ -312,6 +446,120 @@ describe('BaseContentProvider race handling', () => {
         await runPromise;
 
         expect(db.getFile(file.path)?.tagsMtime).toBe(0);
+
+        provider.stopProcessing();
+        vi.runAllTimers();
+    });
+
+    it('waitForIdle includes scheduled retries', async () => {
+        const app = new App();
+        const file = new TFile();
+        file.path = 'notes/note.md';
+        file.stat.mtime = 100;
+        app.vault.getAbstractFileByPath = (path: string) => (path === file.path ? file : null);
+
+        db.setFile(
+            file.path,
+            createFileData({
+                mtime: file.stat.mtime,
+                tagsMtime: 0
+            })
+        );
+
+        const provider = new RetryOnceTagsProvider(app);
+
+        provider.queueFiles([file]);
+        await provider.runBatch(settings);
+
+        let idleResolved = false;
+        const idlePromise = provider.waitForIdle().then(() => {
+            idleResolved = true;
+        });
+
+        await Promise.resolve();
+        expect(idleResolved).toBe(false);
+
+        await vi.advanceTimersByTimeAsync(1000);
+        await idlePromise;
+
+        expect(provider.getCallCount()).toBe(2);
+        expect(db.getFile(file.path)?.tagsMtime).toBe(100);
+
+        provider.stopProcessing();
+        vi.runAllTimers();
+    });
+
+    it('waitForIdle resolves after a queued retry path is removed before processing', async () => {
+        const app = new App();
+        const retryFile = new TFile();
+        retryFile.path = 'notes/retry.md';
+        retryFile.stat.mtime = 100;
+
+        const blockingFile = new TFile();
+        blockingFile.path = 'notes/blocking.md';
+        blockingFile.stat.mtime = 200;
+
+        const filesByPath = new Map<string, TFile>([
+            [retryFile.path, retryFile],
+            [blockingFile.path, blockingFile]
+        ]);
+
+        app.vault.getAbstractFileByPath = (path: string) => filesByPath.get(path) ?? null;
+
+        db.setFile(
+            retryFile.path,
+            createFileData({
+                mtime: retryFile.stat.mtime,
+                tagsMtime: 0
+            })
+        );
+        db.setFile(
+            blockingFile.path,
+            createFileData({
+                mtime: blockingFile.stat.mtime,
+                tagsMtime: 0
+            })
+        );
+
+        const blockingGate = createDeferredVoid();
+        const provider = new RetryAndSkipQueuedPathTagsProvider(app, retryFile.path, blockingFile.path, blockingGate.promise);
+
+        provider.queueFiles([retryFile]);
+        await provider.runBatch(settings);
+
+        provider.queueFiles([blockingFile]);
+        const blockingRun = provider.runBatch(settings);
+
+        while (!provider.didStartBlockingFile()) {
+            await Promise.resolve();
+        }
+
+        // Queueing while the blocking file is processing sets up a duplicate path entry before retries flush.
+        provider.queueFiles([retryFile]);
+        await vi.advanceTimersByTimeAsync(1000);
+
+        // Remove the path before the queued retry can be processed.
+        filesByPath.delete(retryFile.path);
+
+        blockingGate.resolve();
+        await blockingRun;
+
+        let idleResolved = false;
+        const idlePromise = provider.waitForIdle().then(() => {
+            idleResolved = true;
+        });
+
+        await vi.advanceTimersByTimeAsync(3000);
+        await Promise.resolve();
+        const resolvedBeforeStop = idleResolved;
+
+        if (!idleResolved) {
+            provider.stopProcessing();
+            await vi.advanceTimersByTimeAsync(100);
+        }
+        await idlePromise;
+
+        expect(resolvedBeforeStop).toBe(true);
 
         provider.stopProcessing();
         vi.runAllTimers();

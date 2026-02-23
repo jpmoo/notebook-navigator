@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 
 import { TFile, TFolder, App } from 'obsidian';
 import type { NotebookNavigatorSettings } from '../settings';
-import { isPdfFile, shouldDisplayFile } from './fileTypeUtils';
+import { isPdfFile, isPrimaryDocumentFile, shouldDisplayFile } from './fileTypeUtils';
 import {
     getActiveFileVisibility,
     getActiveHiddenFileNames,
@@ -30,7 +30,8 @@ import {
 import { getDBInstanceOrNull } from '../storage/fileOperations';
 import { createHiddenTagVisibility } from './tagPrefixMatcher';
 import { type CachedFileTagsDB, getCachedFileTags } from './tagUtils';
-import { casefold, createCaseInsensitiveKeyMatcher, type CaseInsensitiveKeyMatcher } from './recordUtils';
+import { casefold, sortAndDedupeByComparator } from './recordUtils';
+import { normalizePropertyTreeValuePath } from './propertyUtils';
 
 interface FileFilterOptions {
     showHiddenItems?: boolean;
@@ -234,18 +235,213 @@ export function shouldExcludeFileName(file: TFile, patterns: string[]): boolean 
     return createHiddenFileNameMatcher(patterns).matches(file);
 }
 
+interface FrontmatterPropertyExclusionRule {
+    key: string;
+    value: string | null;
+}
+
+interface FrontmatterPropertyExclusionMatcher {
+    hasCriteria: boolean;
+    matches: (record: Record<string, unknown> | null | undefined) => boolean;
+}
+
+const EMPTY_FRONTMATTER_PROPERTY_EXCLUSION_MATCHER: FrontmatterPropertyExclusionMatcher = {
+    hasCriteria: false,
+    matches: () => false
+};
+
+const MAX_FRONTMATTER_PROPERTY_EXCLUSION_MATCHER_CACHE = 256;
+const frontmatterPropertyExclusionMatcherCache = new Map<string, FrontmatterPropertyExclusionMatcher>();
+const frontmatterPropertyExclusionMatcherByRuleSetCache = new WeakMap<readonly string[], FrontmatterPropertyExclusionMatcher>();
+
+function setFrontmatterPropertyExclusionMatcherCacheEntry(cacheKey: string, matcher: FrontmatterPropertyExclusionMatcher): void {
+    if (frontmatterPropertyExclusionMatcherCache.size >= MAX_FRONTMATTER_PROPERTY_EXCLUSION_MATCHER_CACHE) {
+        const oldestCacheKeyResult: IteratorResult<string, undefined> = frontmatterPropertyExclusionMatcherCache.keys().next();
+        if (!oldestCacheKeyResult.done) {
+            frontmatterPropertyExclusionMatcherCache.delete(oldestCacheKeyResult.value);
+        }
+    }
+
+    frontmatterPropertyExclusionMatcherCache.set(cacheKey, matcher);
+}
+
+function parseFrontmatterPropertyExclusionRule(rawRule: string): FrontmatterPropertyExclusionRule | null {
+    const separatorIndex = rawRule.indexOf('=');
+    if (separatorIndex === -1) {
+        const normalizedKey = casefold(rawRule);
+        if (!normalizedKey) {
+            return null;
+        }
+        return { key: normalizedKey, value: null };
+    }
+
+    const normalizedKey = casefold(rawRule.slice(0, separatorIndex));
+    const normalizedValue = normalizePropertyTreeValuePath(rawRule.slice(separatorIndex + 1));
+    if (!normalizedKey || !normalizedValue) {
+        return null;
+    }
+
+    return {
+        key: normalizedKey,
+        value: normalizedValue
+    };
+}
+
+function frontmatterValueMatchesConfiguredValue(value: unknown, configuredValues: Set<string>): boolean {
+    if (value === null || value === undefined) {
+        return false;
+    }
+
+    if (typeof value === 'string') {
+        const normalized = normalizePropertyTreeValuePath(value);
+        return normalized.length > 0 && configuredValues.has(normalized);
+    }
+
+    if (typeof value === 'number') {
+        if (!Number.isFinite(value)) {
+            return false;
+        }
+
+        const normalized = normalizePropertyTreeValuePath(value.toString());
+        return normalized.length > 0 && configuredValues.has(normalized);
+    }
+
+    if (typeof value === 'boolean') {
+        return configuredValues.has(value ? 'true' : 'false');
+    }
+
+    if (Array.isArray(value)) {
+        return value.some(entry => frontmatterValueMatchesConfiguredValue(entry, configuredValues));
+    }
+
+    return false;
+}
+
+function compareFrontmatterPropertyExclusionRules(left: FrontmatterPropertyExclusionRule, right: FrontmatterPropertyExclusionRule): number {
+    const keyResult = left.key.localeCompare(right.key);
+    if (keyResult !== 0) {
+        return keyResult;
+    }
+
+    if (left.value === right.value) {
+        return 0;
+    }
+    if (left.value === null) {
+        return -1;
+    }
+    if (right.value === null) {
+        return 1;
+    }
+    return left.value.localeCompare(right.value);
+}
+
+/**
+ * Builds a matcher for frontmatter exclusion rules.
+ * Supported rule formats:
+ * - key
+ * - key=value
+ */
+export function createFrontmatterPropertyExclusionMatcher(rules: string[]): FrontmatterPropertyExclusionMatcher {
+    const cachedByRuleSet = frontmatterPropertyExclusionMatcherByRuleSetCache.get(rules);
+    if (cachedByRuleSet) {
+        return cachedByRuleSet;
+    }
+
+    if (rules.length === 0) {
+        frontmatterPropertyExclusionMatcherByRuleSetCache.set(rules, EMPTY_FRONTMATTER_PROPERTY_EXCLUSION_MATCHER);
+        return EMPTY_FRONTMATTER_PROPERTY_EXCLUSION_MATCHER;
+    }
+
+    const parsedRules = rules
+        .map(parseFrontmatterPropertyExclusionRule)
+        .filter((rule): rule is FrontmatterPropertyExclusionRule => rule !== null);
+    if (parsedRules.length === 0) {
+        frontmatterPropertyExclusionMatcherByRuleSetCache.set(rules, EMPTY_FRONTMATTER_PROPERTY_EXCLUSION_MATCHER);
+        return EMPTY_FRONTMATTER_PROPERTY_EXCLUSION_MATCHER;
+    }
+
+    const uniqueRules = sortAndDedupeByComparator(parsedRules, compareFrontmatterPropertyExclusionRules);
+
+    const cacheKey = uniqueRules
+        .map(rule => (rule.value === null ? `${rule.key}\u0001k` : `${rule.key}\u0001v${rule.value}`))
+        .join('\u0000');
+    const cached = frontmatterPropertyExclusionMatcherCache.get(cacheKey);
+    if (cached) {
+        frontmatterPropertyExclusionMatcherByRuleSetCache.set(rules, cached);
+        return cached;
+    }
+
+    const keyOnlyRules = new Set<string>();
+    const keyValueRules = new Map<string, Set<string>>();
+
+    uniqueRules.forEach(rule => {
+        if (rule.value === null) {
+            keyOnlyRules.add(rule.key);
+            return;
+        }
+
+        const values = keyValueRules.get(rule.key);
+        if (values) {
+            values.add(rule.value);
+            return;
+        }
+
+        keyValueRules.set(rule.key, new Set<string>([rule.value]));
+    });
+
+    const matcher: FrontmatterPropertyExclusionMatcher = {
+        hasCriteria: true,
+        matches: (record: Record<string, unknown> | null | undefined): boolean => {
+            if (!record) {
+                return false;
+            }
+
+            for (const [key, value] of Object.entries(record)) {
+                const normalizedKey = casefold(key);
+                if (!normalizedKey) {
+                    continue;
+                }
+
+                if (keyOnlyRules.has(normalizedKey)) {
+                    return true;
+                }
+
+                const configuredValues = keyValueRules.get(normalizedKey);
+                if (!configuredValues) {
+                    continue;
+                }
+
+                if (frontmatterValueMatchesConfiguredValue(value, configuredValues)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    };
+
+    setFrontmatterPropertyExclusionMatcherCacheEntry(cacheKey, matcher);
+    frontmatterPropertyExclusionMatcherByRuleSetCache.set(rules, matcher);
+    return matcher;
+}
+
+export function shouldExcludeFileWithMatcher(file: TFile, matcher: FrontmatterPropertyExclusionMatcher, app: App): boolean {
+    if (!matcher.hasCriteria) {
+        return false;
+    }
+
+    const metadata = app.metadataCache.getFileCache(file);
+    return matcher.matches(metadata?.frontmatter);
+}
+
 /**
  * Checks if a file should be excluded based on its frontmatter properties
  */
 export function shouldExcludeFile(file: TFile, excludedProperties: string[], app: App): boolean {
     if (excludedProperties.length === 0) return false;
 
-    const metadata = app.metadataCache.getFileCache(file);
-    const frontmatter = metadata?.frontmatter;
-    if (!frontmatter) return false;
-
-    // Hide if any of the listed properties exist in frontmatter (value is ignored)
-    return createCaseInsensitiveKeyMatcher(excludedProperties).matches(frontmatter);
+    const matcher = createFrontmatterPropertyExclusionMatcher(excludedProperties);
+    return shouldExcludeFileWithMatcher(file, matcher, app);
 }
 
 /**
@@ -459,7 +655,7 @@ export function hasSubfolders(folder: TFolder, excludePatterns: string[], showHi
  * - Optionally excludes files in excluded folders when indexing is configured to skip them
  */
 interface ExclusionFilterState {
-    excludedPropertyMatcher: CaseInsensitiveKeyMatcher;
+    excludedPropertyMatcher: FrontmatterPropertyExclusionMatcher;
     excludedFolderPatterns: string[];
     includeHiddenItems: boolean;
     fileNameMatcher: HiddenFileNameMatcher | null;
@@ -470,7 +666,7 @@ interface ExclusionFilterState {
 function createExclusionFilterState(settings: NotebookNavigatorSettings, options?: FileFilterOptions): ExclusionFilterState {
     const includeHiddenItems = options?.showHiddenItems ?? false;
     const excludedProperties = getActiveHiddenFileProperties(settings);
-    const excludedPropertyMatcher = createCaseInsensitiveKeyMatcher(excludedProperties);
+    const excludedPropertyMatcher = createFrontmatterPropertyExclusionMatcher(excludedProperties);
     const excludedFileNamePatterns = getActiveHiddenFileNames(settings);
     const fileNameMatcher = createHiddenFileNameMatcherForVisibility(excludedFileNamePatterns, includeHiddenItems);
     const hiddenFileTags = getActiveHiddenFileTags(settings);
@@ -491,7 +687,7 @@ function passesExclusionFilters(file: TFile, state: ExclusionFilterState, app: A
     const { excludedPropertyMatcher, excludedFolderPatterns, includeHiddenItems, fileNameMatcher, hiddenFileTagVisibility, db } = state;
 
     // Frontmatter based exclusion (markdown only)
-    if (!includeHiddenItems && file.extension === 'md' && excludedPropertyMatcher.hasKeys) {
+    if (!includeHiddenItems && file.extension === 'md' && excludedPropertyMatcher.hasCriteria) {
         const metadata = app.metadataCache.getFileCache(file);
         if (excludedPropertyMatcher.matches(metadata?.frontmatter)) {
             return false;
@@ -574,7 +770,7 @@ export function getFilteredDocumentFiles(app: App, settings: NotebookNavigatorSe
     const filterState = createExclusionFilterState(settings, options);
     return app.vault.getFiles().filter(file => {
         // Only include document files (md, canvas, base)
-        const isDocument = file.extension === 'md' || file.extension === 'canvas' || file.extension === 'base';
+        const isDocument = isPrimaryDocumentFile(file);
         if (!isDocument) return false;
 
         return passesExclusionFilters(file, filterState, app);

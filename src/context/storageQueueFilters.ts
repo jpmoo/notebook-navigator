@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ import type { ContentProviderType } from '../interfaces/IContentProvider';
 import type { NotebookNavigatorSettings } from '../settings/types';
 import { getDBInstance } from '../storage/fileOperations';
 import { isPdfFile } from '../utils/fileTypeUtils';
-import { hasCustomPropertyFrontmatterFields } from '../utils/customPropertyUtils';
+import { hasPropertyFrontmatterFields } from '../utils/propertyUtils';
 import { getActiveHiddenFileProperties } from '../utils/vaultProfiles';
 import { getLocalFeatureImageKey } from '../services/content/FeatureImageContentProvider';
 
@@ -52,7 +52,7 @@ export function filterFilesRequiringMetadataSources(
     const hiddenFileProperties = getActiveHiddenFileProperties(settings);
     const requiresHiddenState = hiddenFileProperties.length > 0;
     const conservativeMetadata = options?.conservativeMetadata ?? false;
-    const customPropertyEnabled = hasCustomPropertyFrontmatterFields(settings);
+    const propertiesEnabled = hasPropertyFrontmatterFields(settings);
     const needsMarkdownPipeline = types.includes('markdownPipeline');
     const needsTags = types.includes('tags');
     const needsMetadata = types.includes('metadata');
@@ -73,10 +73,11 @@ export function filterFilesRequiringMetadataSources(
             const needsPreview = settings.showFilePreview && record.previewStatus === 'unprocessed';
             const needsFeatureImage =
                 settings.showFeatureImage && (record.featureImageKey === null || record.featureImageStatus === 'unprocessed');
-            const needsCustomProperty = customPropertyEnabled && record.customProperty === null;
+            const needsProperties = propertiesEnabled && record.properties === null;
             const needsWordCount = record.wordCount === null;
+            const needsTasks = record.taskTotal === null || record.taskUnfinished === null;
             const needsRefresh = record.markdownPipelineMtime !== file.stat.mtime;
-            if (needsRefresh || needsPreview || needsFeatureImage || needsCustomProperty || needsWordCount) {
+            if (needsRefresh || needsPreview || needsFeatureImage || needsProperties || needsWordCount || needsTasks) {
                 return true;
             }
         }

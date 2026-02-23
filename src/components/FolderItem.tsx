@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,20 +57,28 @@ import { useUXPreferences } from '../context/UXPreferencesContext';
 import { useContextMenu, hideNavigatorContextMenu } from '../hooks/useContextMenu';
 import { strings } from '../i18n';
 import { getIconService, useIconServiceVersion } from '../services/icons';
-import { ItemType } from '../types';
 import { getTooltipPlacement } from '../utils/domUtils';
 import { getFolderNote } from '../utils/folderNotes';
-import { hasSubfolders, shouldExcludeFolder, shouldExcludeFile } from '../utils/fileFilters';
+import {
+    createFrontmatterPropertyExclusionMatcher,
+    hasSubfolders,
+    shouldExcludeFolder,
+    shouldExcludeFileWithMatcher
+} from '../utils/fileFilters';
 import { getEffectiveFrontmatterExclusions } from '../utils/exclusionUtils';
 import { shouldDisplayFile } from '../utils/fileTypeUtils';
+import { IndentGuideColumns } from './IndentGuideColumns';
 import type { NoteCountInfo } from '../types/noteCounts';
-import { buildNoteCountDisplay } from '../utils/noteCountFormatting';
+import { buildNoteCountDisplay, buildSortableNoteCountDisplay } from '../utils/noteCountFormatting';
 import { useActiveProfile } from '../context/SettingsContext';
 import { resolveUXIcon } from '../utils/uxIcons';
+import { ItemType, type CSSPropertiesWithVars } from '../types';
 
 interface FolderItemProps {
     folder: TFolder;
+    displayName?: string;
     level: number;
+    indentGuideLevels?: number[];
     isExpanded: boolean;
     isSelected: boolean;
     isExcluded?: boolean;
@@ -105,7 +113,9 @@ interface FolderItemProps {
  */
 export const FolderItem = React.memo(function FolderItem({
     folder,
+    displayName,
     level,
+    indentGuideLevels,
     isExpanded,
     isSelected,
     isExcluded,
@@ -136,6 +146,10 @@ export const FolderItem = React.memo(function FolderItem({
     const iconVersion = useIconServiceVersion();
     // Resolves frontmatter exclusions, returns empty array when hidden items are shown
     const effectiveExcludedFiles = getEffectiveFrontmatterExclusions(settings, showHiddenItems);
+    const effectiveExcludedFileMatcher = useMemo(
+        () => createFrontmatterPropertyExclusionMatcher(effectiveExcludedFiles),
+        [effectiveExcludedFiles]
+    );
 
     // Count folders and files for tooltip (skip on mobile to save computation)
     const folderStats = React.useMemo(() => {
@@ -150,7 +164,7 @@ export const FolderItem = React.memo(function FolderItem({
         for (const child of folder.children) {
             if (child instanceof TFile) {
                 if (shouldDisplayFile(child, fileVisibility, app)) {
-                    if (!shouldExcludeFile(child, effectiveExcludedFiles, app)) {
+                    if (!shouldExcludeFileWithMatcher(child, effectiveExcludedFileMatcher, app)) {
                         fileCount++;
                     }
                 }
@@ -170,7 +184,16 @@ export const FolderItem = React.memo(function FolderItem({
         }
 
         return { fileCount, folderCount };
-    }, [folder.children, isMobile, settings.showTooltips, showHiddenItems, fileVisibility, effectiveExcludedFiles, excludedFolders, app]);
+    }, [
+        folder.children,
+        isMobile,
+        settings.showTooltips,
+        showHiddenItems,
+        fileVisibility,
+        effectiveExcludedFileMatcher,
+        excludedFolders,
+        app
+    ]);
 
     // Merge provided count info with default values to ensure all properties are present
     const noteCounts: NoteCountInfo = countInfo ?? { current: 0, descendants: 0, total: 0 };
@@ -185,15 +208,13 @@ export const FolderItem = React.memo(function FolderItem({
     // Determine if we should show separate counts (e.g., "2 • 5") or combined count (e.g., "7")
     const useSeparateCounts = includeDescendantNotes && settings.separateNoteCounts;
     // Build formatted display object with label and visibility flags
-    const noteCountDisplay = buildNoteCountDisplay(noteCounts, includeDescendantNotes, useSeparateCounts, sortOrderIndicator ?? '•');
-    const noteCountLabel =
-        !useSeparateCounts && sortOrderIndicator && noteCountDisplay.shouldDisplay
-            ? `${sortOrderIndicator} ${noteCountDisplay.label}`
-            : sortOrderIndicator && !noteCountDisplay.shouldDisplay
-              ? sortOrderIndicator
-              : noteCountDisplay.label;
+    const noteCountDisplay = buildSortableNoteCountDisplay(
+        buildNoteCountDisplay(noteCounts, includeDescendantNotes, useSeparateCounts, '•'),
+        sortOrderIndicator
+    );
+    const noteCountLabel = noteCountDisplay.label;
     // Render count badge when note counts are enabled and there is either a count or a sort override indicator
-    const shouldDisplayCount = settings.showNoteCount && (noteCountDisplay.shouldDisplay || Boolean(sortOrderIndicator));
+    const shouldDisplayCount = settings.showNoteCount && noteCountDisplay.shouldDisplay;
 
     // Check if folder has children - not memoized because Obsidian mutates the children array
     // The hasSubfolders function handles the logic of whether to show all or only visible subfolders
@@ -215,7 +236,7 @@ export const FolderItem = React.memo(function FolderItem({
     }, [folder, settings, noteCounts.current, vaultChangeVersion]);
 
     const isRootFolder = folder.path === '/';
-    const displayName = isRootFolder ? settings.customVaultName || app.vault.getName() : folder.name;
+    const effectiveDisplayName = isRootFolder ? settings.customVaultName || app.vault.getName() : displayName || folder.name;
     const shouldShowFolderIcon = settings.showFolderIcons || isRootFolder;
 
     const dragIconId = useMemo(() => {
@@ -318,12 +339,12 @@ export const FolderItem = React.memo(function FolderItem({
                 : `${folderStats.folderCount} ${strings.tooltips.folders}`;
         const statsTooltip = `${fileText}, ${folderText}`;
 
-        const tooltip = folder.path === '/' ? statsTooltip : `${folder.name}\n\n${statsTooltip}`;
+        const tooltip = folder.path === '/' ? statsTooltip : `${effectiveDisplayName}\n\n${statsTooltip}`;
 
         setTooltip(folderRef.current, tooltip, {
             placement: getTooltipPlacement()
         });
-    }, [folder.path, folder.name, folderStats.fileCount, folderStats.folderCount, settings, isMobile]);
+    }, [folder.path, folderStats.fileCount, folderStats.folderCount, settings, isMobile, effectiveDisplayName]);
 
     useEffect(() => {
         if (chevronRef.current) {
@@ -333,7 +354,7 @@ export const FolderItem = React.memo(function FolderItem({
         }
     }, [iconVersion, isExpanded, settings.interfaceIcons]);
 
-    // Add this useEffect for the folder icon
+    // Update folder icon
     useEffect(() => {
         if (iconRef.current && shouldShowFolderIcon) {
             const iconService = getIconService();
@@ -368,6 +389,10 @@ export const FolderItem = React.memo(function FolderItem({
     useContextMenu(folderRef, folderMenuConfig);
 
     const isDraggable = !isMobile && !isRootFolder;
+    const folderStyle: CSSPropertiesWithVars = {
+        '--level': level,
+        ...(customBackground ? { '--nn-navitem-custom-bg-color': customBackground } : {})
+    };
 
     return (
         <div
@@ -393,17 +418,13 @@ export const FolderItem = React.memo(function FolderItem({
             data-level={level}
             onClick={onClick}
             onDoubleClick={handleDoubleClick}
-            style={
-                {
-                    '--level': level,
-                    ...(customBackground ? { '--nn-navitem-custom-bg-color': customBackground } : {})
-                } as React.CSSProperties
-            }
+            style={folderStyle}
             role="treeitem"
             aria-expanded={hasChildren ? isExpanded : undefined}
             aria-level={level + 1}
         >
             <div className="nn-navitem-content">
+                <IndentGuideColumns levels={indentGuideLevels} />
                 <div
                     className={`nn-navitem-chevron ${hasChildren ? 'nn-navitem-chevron--has-children' : 'nn-navitem-chevron--no-children'}`}
                     ref={chevronRef}
@@ -420,7 +441,7 @@ export const FolderItem = React.memo(function FolderItem({
                     onClick={handleNameClick}
                     onMouseDown={handleNameMouseDown}
                 >
-                    {displayName}
+                    {effectiveDisplayName}
                 </span>
                 <span className="nn-navitem-spacer" />
                 {shouldDisplayCount && <span className="nn-navitem-count">{noteCountLabel}</span>}

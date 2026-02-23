@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,12 +30,22 @@ export function isSettingSyncMode(value: unknown): value is SettingSyncMode {
     return value === 'local' || value === 'synced';
 }
 
+export type DeleteAttachmentsSetting = 'ask' | 'always' | 'never';
+
+export function isDeleteAttachmentsSetting(value: unknown): value is DeleteAttachmentsSetting {
+    return value === 'ask' || value === 'always' || value === 'never';
+}
+
+export function resolveDeleteAttachmentsSetting(value: unknown, fallback: DeleteAttachmentsSetting): DeleteAttachmentsSetting {
+    return isDeleteAttachmentsSetting(value) ? value : fallback;
+}
+
 /** Identifiers for settings that can be switched between synced and local storage. */
 export const SYNC_MODE_SETTING_IDS = [
     'vaultProfile',
     'folderSortOrder',
     'tagSortOrder',
-    'searchProvider',
+    'propertySortOrder',
     'includeDescendantNotes',
     'useFloatingToolbars',
     'dualPane',
@@ -47,6 +57,7 @@ export const SYNC_MODE_SETTING_IDS = [
     'navItemHeight',
     'navItemHeightScaleText',
     'calendarPlacement',
+    'calendarLeftPlacement',
     'calendarWeeksToShow',
     'compactItemHeight',
     'compactItemHeightScaleText',
@@ -87,6 +98,15 @@ export function isSortOption(value: unknown): value is SortOption {
     return typeof value === 'string' && SORT_OPTIONS.includes(value as SortOption);
 }
 
+/** Available secondary sort options used when sorting by frontmatter property values. */
+export type PropertySortSecondaryOption = 'title' | 'filename' | 'created' | 'modified';
+
+export const PROPERTY_SORT_SECONDARY_OPTIONS: PropertySortSecondaryOption[] = ['title', 'filename', 'created', 'modified'];
+
+export function isPropertySortSecondaryOption(value: unknown): value is PropertySortSecondaryOption {
+    return value === 'title' || value === 'filename' || value === 'created' || value === 'modified';
+}
+
 /** Alphabetical ordering options used by navigation trees. */
 export type AlphaSortOrder = 'alpha-asc' | 'alpha-desc';
 
@@ -120,6 +140,13 @@ export type ListPaneTitleOption = 'header' | 'list' | 'hidden';
 /** Display options for shortcut row badges in the navigation pane */
 export type ShortcutBadgeDisplayMode = 'index' | 'count' | 'none';
 
+/** Filter options for hidden items in the recent notes section */
+export type RecentNotesHideMode = 'none' | 'folder-notes';
+
+export function isRecentNotesHideMode(value: unknown): value is RecentNotesHideMode {
+    return value === 'none' || value === 'folder-notes';
+}
+
 /** Number of calendar week rows shown in the navigation pane */
 export type CalendarWeeksToShow = 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -128,6 +155,13 @@ export type CalendarPlacement = 'left-sidebar' | 'right-sidebar';
 
 export function isCalendarPlacement(value: unknown): value is CalendarPlacement {
     return value === 'left-sidebar' || value === 'right-sidebar';
+}
+
+/** Where the left-sidebar calendar is shown in single-pane mode. */
+export type CalendarLeftPlacement = 'navigation' | 'below';
+
+export function isCalendarLeftPlacement(value: unknown): value is CalendarLeftPlacement {
+    return value === 'navigation' || value === 'below';
 }
 
 /** Which days are highlighted as weekend days in the calendar UI. */
@@ -149,12 +183,12 @@ export type ListNoteGroupingOption = 'none' | 'date' | 'folder';
 /** Date source to display when alphabetical sorting is active */
 export type AlphabeticalDateMode = 'created' | 'modified';
 
-/** Available custom property types displayed in file items */
-export type CustomPropertyType = 'none' | 'frontmatter' | 'wordCount';
+/** Available note property types displayed in file items */
+export type NotePropertyType = 'none' | 'wordCount';
 
-/** Type guard for validating custom property type values */
-export function isCustomPropertyType(value: string): value is CustomPropertyType {
-    return value === 'none' || value === 'frontmatter' || value === 'wordCount';
+/** Type guard for validating note property type values */
+export function isNotePropertyType(value: string): value is NotePropertyType {
+    return value === 'none' || value === 'wordCount';
 }
 
 /** Buttons available in the navigation toolbar */
@@ -169,11 +203,19 @@ export interface ToolbarVisibilitySettings {
     list: Record<ListToolbarButtonId, boolean>;
 }
 
+/** Per-property visibility configuration stored in a vault profile. */
+export interface VaultProfilePropertyKey {
+    key: string;
+    showInNavigation: boolean;
+    showInList: boolean;
+}
+
 /** Vault profile storing per-profile filtering and layout preferences */
 export interface VaultProfile {
     id: string;
     name: string;
     fileVisibility: FileVisibility;
+    propertyKeys: VaultProfilePropertyKey[];
     hiddenFolders: string[];
     hiddenTags: string[];
     hiddenFileNames: string[];
@@ -195,7 +237,9 @@ export interface NotebookNavigatorSettings {
     syncModes: Record<SyncModeSettingId, SettingSyncMode>;
 
     // General tab - Behavior
+    createNewNotesInNewTab: boolean;
     autoRevealActiveFile: boolean;
+    autoRevealShortestPath: boolean;
     autoRevealIgnoreRightSidebar: boolean;
     paneTransitionDuration: number;
 
@@ -207,7 +251,7 @@ export interface NotebookNavigatorSettings {
 
     // General tab - View
     startView: 'navigation' | 'files';
-    interfaceIcons: Record<string, string>;
+    showInfoButtons: boolean;
 
     // General tab - Homepage
     homepage: string | null;
@@ -226,90 +270,92 @@ export interface NotebookNavigatorSettings {
     // General tab - Mobile appearance
     useFloatingToolbars: boolean;
 
+    // General tab - Toolbar buttons
+    toolbarVisibility: ToolbarVisibilitySettings;
+
+    // General tab - Icons
+    interfaceIcons: Record<string, string>;
+    colorIconOnly: boolean;
+
     // General tab - Formatting
     dateFormat: string;
     timeFormat: string;
-
-    // Navigation pane tab - Behavior
-    pinRecentNotesWithShortcuts: boolean;
-    collapseBehavior: ItemScope;
-    smartCollapse: boolean;
-
-    // Navigation pane tab - Shortcuts & recent items
-    showSectionIcons: boolean;
-    showShortcuts: boolean;
-    shortcutBadgeDisplay: ShortcutBadgeDisplayMode;
-    skipAutoScroll: boolean;
-    showRecentNotes: boolean;
-    recentNotesCount: number;
-
-    // Calendar tab - Calendar
-    calendarPlacement: CalendarPlacement;
-    calendarLocale: string;
-    calendarWeekendDays: CalendarWeekendDays;
-    calendarWeeksToShow: CalendarWeeksToShow;
-    calendarHighlightToday: boolean;
-    calendarShowFeatureImage: boolean;
-    calendarShowWeekNumber: boolean;
-    calendarShowQuarter: boolean;
-    calendarConfirmBeforeCreate: boolean;
-
-    // Calendar tab - Calendar integration
-    calendarIntegrationMode: CalendarIntegrationMode;
-    calendarCustomFilePattern: string;
-    calendarCustomWeekPattern: string;
-    calendarCustomMonthPattern: string;
-    calendarCustomQuarterPattern: string;
-    calendarCustomYearPattern: string;
     calendarTemplateFolder: string;
-    calendarCustomFileTemplate: string | null;
-    calendarCustomWeekTemplate: string | null;
-    calendarCustomMonthTemplate: string | null;
-    calendarCustomQuarterTemplate: string | null;
-    calendarCustomYearTemplate: string | null;
+
+    // Icon packs tab
+    externalIconProviders: Record<string, boolean>;
+
+    // Advanced tab
+    checkForUpdatesOnStart: boolean;
+    confirmBeforeDelete: boolean;
+    deleteAttachments: DeleteAttachmentsSetting;
 
     // Navigation pane tab - Appearance
-    colorIconOnly: boolean;
     showColorsInShortcutsOnly: boolean;
-    toolbarVisibility: ToolbarVisibilitySettings;
     pinNavigationBanner: boolean;
     showNoteCount: boolean;
     separateNoteCounts: boolean;
+    showIndentGuides: boolean;
     rootLevelSpacing: number;
     navIndent: number;
     navItemHeight: number;
     navItemHeightScaleText: boolean;
 
-    // Folders & tags tab
+    // Navigation pane tab - Behavior
+    collapseBehavior: ItemScope;
+    smartCollapse: boolean;
     autoSelectFirstFileOnFocusChange: boolean;
-    autoExpandFoldersTags: boolean;
+    autoExpandNavItems: boolean;
     springLoadedFolders: boolean;
     springLoadedFoldersInitialDelay: number;
     springLoadedFoldersSubsequentDelay: number;
+
+    // Shortcuts tab
+    showSectionIcons: boolean;
+    showShortcuts: boolean;
+    shortcutBadgeDisplay: ShortcutBadgeDisplayMode;
+    skipAutoScroll: boolean;
+    showRecentNotes: boolean;
+    hideRecentNotes: RecentNotesHideMode;
+    pinRecentNotesWithShortcuts: boolean;
+    recentNotesCount: number;
+
+    // Folders tab
     showFolderIcons: boolean;
     showRootFolder: boolean;
     inheritFolderColors: boolean;
     folderSortOrder: AlphaSortOrder;
-    inheritTagColors: boolean;
     enableFolderNotes: boolean;
     folderNoteType: FolderNoteCreationPreference;
     folderNoteName: string;
-    folderNoteProperties: string;
+    folderNoteNamePattern: string;
+    folderNoteTemplate: string | null;
     openFolderNotesInNewTab: boolean;
     hideFolderNoteInList: boolean;
     pinCreatedFolderNote: boolean;
+
+    // Tags tab
     showTags: boolean;
     showTagIcons: boolean;
     showAllTagsFolder: boolean;
     showUntagged: boolean;
     tagSortOrder: TagSortOrder;
+    inheritTagColors: boolean;
     keepEmptyTagsProperty: boolean;
+
+    // Properties tab
+    showProperties: boolean;
+    showPropertyIcons: boolean;
+    inheritPropertyColors: boolean;
+    propertySortOrder: TagSortOrder;
+    showAllPropertiesFolder: boolean;
 
     // List pane tab
     defaultListMode: ListDisplayMode;
     includeDescendantNotes: boolean;
     defaultFolderSort: SortOption;
     propertySortKey: string;
+    propertySortSecondary: PropertySortSecondaryOption;
     revealFileOnListChanges: boolean;
     listPaneTitle: ListPaneTitleOption;
     noteGrouping: ListNoteGroupingOption;
@@ -326,16 +372,19 @@ export interface NotebookNavigatorSettings {
     quickActionPinNote: boolean;
     quickActionOpenInNewTab: boolean;
 
-    // Notes tab
+    // Frontmatter tab
     useFrontmatterMetadata: boolean;
     frontmatterIconField: string;
     frontmatterColorField: string;
+    frontmatterBackgroundField: string;
     frontmatterNameField: string;
     frontmatterCreatedField: string;
     frontmatterModifiedField: string;
     frontmatterDateFormat: string;
-    saveMetadataToFrontmatter: boolean;
+
+    // Notes tab
     showFileIcons: boolean;
+    showFileIconUnfinishedTask: boolean;
     showFilenameMatchIcons: boolean;
     fileNameIconMap: Record<string, string>;
     showCategoryIcons: boolean;
@@ -357,11 +406,12 @@ export interface NotebookNavigatorSettings {
     prioritizeColoredFileTags: boolean;
     showFileTagAncestors: boolean;
     showFileTagsInCompactMode: boolean;
-    customPropertyType: CustomPropertyType;
-    customPropertyFields: string;
-    showCustomPropertiesOnSeparateRows: boolean;
-    customPropertyColorMap: Record<string, string>;
-    showCustomPropertyInCompactMode: boolean;
+    showFileProperties: boolean;
+    colorFileProperties: boolean;
+    prioritizeColoredFileProperties: boolean;
+    notePropertyType: NotePropertyType;
+    showFilePropertiesInCompactMode: boolean;
+    showPropertiesOnSeparateRows: boolean;
     showFileDate: boolean;
     alphabeticalDateMode: AlphabeticalDateMode;
     showParentFolder: boolean;
@@ -369,18 +419,37 @@ export interface NotebookNavigatorSettings {
     showParentFolderColor: boolean;
     showParentFolderIcon: boolean;
 
-    // Icon packs tab
-    externalIconProviders: Record<string, boolean>;
+    // Calendar tab - Calendar
+    calendarPlacement: CalendarPlacement;
+    calendarConfirmBeforeCreate: boolean;
+    calendarLocale: string;
+    calendarWeekendDays: CalendarWeekendDays;
+    calendarHighlightToday: boolean;
+    calendarShowFeatureImage: boolean;
+    calendarShowWeekNumber: boolean;
+    calendarShowQuarter: boolean;
+    calendarShowYearCalendar: boolean;
+    calendarLeftPlacement: CalendarLeftPlacement;
+    calendarWeeksToShow: CalendarWeeksToShow;
 
-    // Search & hotkeys tab
+    // Calendar tab - Calendar integration
+    calendarIntegrationMode: CalendarIntegrationMode;
+    calendarCustomFilePattern: string;
+    calendarCustomWeekPattern: string;
+    calendarCustomMonthPattern: string;
+    calendarCustomQuarterPattern: string;
+    calendarCustomYearPattern: string;
+    calendarCustomFileTemplate: string | null;
+    calendarCustomWeekTemplate: string | null;
+    calendarCustomMonthTemplate: string | null;
+    calendarCustomQuarterTemplate: string | null;
+    calendarCustomYearTemplate: string | null;
+
+    // Search settings and hotkeys
     searchProvider: SearchProvider | null;
     keyboardShortcuts: KeyboardShortcutConfig;
     shortcutCollections: ShortcutCollection[];
     activeShortcutCollection: string;
-
-    // Advanced tab
-    checkForUpdatesOnStart: boolean;
-    confirmBeforeDelete: boolean;
 
     // Runtime state and cached data
     customVaultName: string;
@@ -399,10 +468,14 @@ export interface NotebookNavigatorSettings {
     tagSortOverrides: Record<string, SortOption>;
     tagTreeSortOverrides: Record<string, AlphaSortOrder>;
     tagAppearances: Record<string, TagAppearance>;
+    propertyIcons: Record<string, string>;
+    propertyColors: Record<string, string>;
+    propertyBackgroundColors: Record<string, string>;
+    propertyTreeSortOverrides: Record<string, AlphaSortOrder>;
     navigationSeparators: Record<string, boolean>;
     userColors: string[];
     lastShownVersion: string;
-    lastAnnouncedRelease: string;
     rootFolderOrder: string[];
     rootTagOrder: string[];
+    rootPropertyOrder: string[];
 }

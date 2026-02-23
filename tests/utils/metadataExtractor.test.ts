@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -126,5 +126,22 @@ describe('extractMetadataFromCache - name extraction', () => {
         const result = extractMetadataFromCache(metadata, settings);
 
         expect(result.fn).toBe('From array');
+    });
+});
+
+describe('extractMetadataFromCache - background extraction', () => {
+    it('extracts background color from configured frontmatter field', () => {
+        const settings = createSettings({
+            frontmatterBackgroundField: 'background'
+        });
+        const metadata: CachedMetadata = {
+            frontmatter: {
+                background: '#112233'
+            }
+        };
+
+        const result = extractMetadataFromCache(metadata, settings);
+
+        expect(result.background).toBe('#112233');
     });
 });

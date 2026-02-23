@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 import { describe, expect, it } from 'vitest';
 import { IndexedDBStorage, createDefaultFileData } from '../../src/storage/IndexedDBStorage';
 import { MemoryFileCache } from '../../src/storage/MemoryFileCache';
+import type { PreviewTextCoordinator } from '../../src/storage/indexeddb/previewTextOps';
 
 class MockIDBRequest<T> {
     result: T;
@@ -165,17 +166,18 @@ describe('IndexedDBStorage preview text moves', () => {
         try {
             storage.init = async () => void 0;
             Reflect.set(storage, 'db', new MockIDBDatabase(previewTexts));
-            Reflect.set(storage, 'repairPreviewStatusRecords', async () => void 0);
+            const previewCoordinator = Reflect.get(storage, 'previewTexts') as PreviewTextCoordinator;
+            Reflect.set(previewCoordinator, 'repairPreviewStatusRecords', async () => void 0);
 
-            const previewLoadDeferred = Reflect.get(storage, 'previewLoadDeferred') as Map<string, { resolve: () => void }>;
-            const previewLoadQueue = Reflect.get(storage, 'previewLoadQueue') as Set<string>;
+            const previewLoadDeferred = Reflect.get(previewCoordinator, 'previewLoadDeferred') as Map<string, { resolve: () => void }>;
+            const previewLoadQueue = Reflect.get(previewCoordinator, 'previewLoadQueue') as Set<string>;
 
             let wasResolved = false;
             previewLoadDeferred.set(newPath, { resolve: () => (wasResolved = true) });
             previewLoadQueue.add(newPath);
 
-            const flushPreviewTextLoadQueue = Reflect.get(storage, 'flushPreviewTextLoadQueue') as () => Promise<void>;
-            await flushPreviewTextLoadQueue.call(storage);
+            const flushPreviewTextLoadQueue = Reflect.get(previewCoordinator, 'flushPreviewTextLoadQueue') as () => Promise<void>;
+            await flushPreviewTextLoadQueue.call(previewCoordinator);
 
             expect(wasResolved).toBe(true);
             expect(storage.getFile(newPath)?.previewStatus).toBe('has');

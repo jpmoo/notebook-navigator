@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,13 +18,21 @@
 
 import { TFile, TFolder } from 'obsidian';
 import type { NotebookNavigatorAPI } from '../NotebookNavigatorAPI';
-import type { FolderMetadata, TagMetadata, IconString, PinContext, Pinned } from '../types';
+import type { FolderMetadata, TagMetadata, PropertyMetadata, IconString, PinContext, Pinned } from '../types';
 import type { NotebookNavigatorSettings } from '../../settings';
 import { PinnedNotes } from '../../types';
 import { normalizeCanonicalIconId } from '../../utils/iconizeFormat';
+import { normalizePropertyNodeId } from '../../utils/propertyTree';
+import { clonePinnedNotesRecord, normalizePinnedNoteContext } from '../../utils/recordUtils';
+
+type MetadataUpdate = {
+    color?: string | null;
+    backgroundColor?: string | null;
+    icon?: IconString | null;
+};
 
 /**
- * Metadata API - Manage folder and tag appearance, icons, colors, and pinned files
+ * Metadata API - Manage folder, tag, and property appearance, icons, colors, and pinned files
  */
 export class MetadataAPI {
     /**
@@ -40,6 +48,11 @@ export class MetadataAPI {
         tagColors: {} as Record<string, string>,
         tagBackgroundColors: {} as Record<string, string>,
         tagIcons: {} as Record<string, string>,
+
+        // Property metadata
+        propertyColors: {} as Record<string, string>,
+        propertyBackgroundColors: {} as Record<string, string>,
+        propertyIcons: {} as Record<string, string>,
 
         // File metadata
         fileIcons: {} as Record<string, string>,
@@ -59,6 +72,9 @@ export class MetadataAPI {
         tagColors: Record<string, string>;
         tagBackgroundColors: Record<string, string>;
         tagIcons: Record<string, string>;
+        propertyColors: Record<string, string>;
+        propertyBackgroundColors: Record<string, string>;
+        propertyIcons: Record<string, string>;
         fileIcons: Record<string, string>;
         fileColors: Record<string, string>;
         pinnedNotes: PinnedNotes;
@@ -70,6 +86,9 @@ export class MetadataAPI {
         tagColors: {},
         tagBackgroundColors: {},
         tagIcons: {},
+        propertyColors: {},
+        propertyBackgroundColors: {},
+        propertyIcons: {},
         fileIcons: {},
         fileColors: {},
         pinnedNotes: {},
@@ -141,7 +160,11 @@ export class MetadataAPI {
             if (!oldContext) return true; // New note added
 
             const newContext = newNotes[path];
-            if (oldContext.folder !== newContext.folder || oldContext.tag !== newContext.tag) {
+            if (
+                oldContext.folder !== newContext.folder ||
+                oldContext.tag !== newContext.tag ||
+                oldContext.property !== newContext.property
+            ) {
                 return true;
             }
         }
@@ -162,9 +185,12 @@ export class MetadataAPI {
             tagColors: settings.tagColors || {},
             tagBackgroundColors: settings.tagBackgroundColors || {},
             tagIcons: settings.tagIcons || {},
+            propertyColors: settings.propertyColors || {},
+            propertyBackgroundColors: settings.propertyBackgroundColors || {},
+            propertyIcons: settings.propertyIcons || {},
             fileIcons: settings.fileIcons || {},
             fileColors: settings.fileColors || {},
-            pinnedNotes: settings.pinnedNotes || {}
+            pinnedNotes: clonePinnedNotesRecord(settings.pinnedNotes)
         };
 
         // Update the cache first
@@ -175,9 +201,12 @@ export class MetadataAPI {
             tagColors: { ...current.tagColors },
             tagBackgroundColors: { ...current.tagBackgroundColors },
             tagIcons: { ...current.tagIcons },
+            propertyColors: { ...current.propertyColors },
+            propertyBackgroundColors: { ...current.propertyBackgroundColors },
+            propertyIcons: { ...current.propertyIcons },
             fileIcons: { ...current.fileIcons },
             fileColors: { ...current.fileColors },
-            pinnedNotes: { ...current.pinnedNotes }
+            pinnedNotes: clonePinnedNotesRecord(current.pinnedNotes)
         };
 
         // Skip comparison on first run (just initialize state)
@@ -189,9 +218,12 @@ export class MetadataAPI {
                 tagColors: { ...current.tagColors },
                 tagBackgroundColors: { ...current.tagBackgroundColors },
                 tagIcons: { ...current.tagIcons },
+                propertyColors: { ...current.propertyColors },
+                propertyBackgroundColors: { ...current.propertyBackgroundColors },
+                propertyIcons: { ...current.propertyIcons },
                 fileIcons: { ...current.fileIcons },
                 fileColors: { ...current.fileColors },
-                pinnedNotes: { ...current.pinnedNotes },
+                pinnedNotes: clonePinnedNotesRecord(current.pinnedNotes),
                 initialized: true
             };
             return;
@@ -230,6 +262,24 @@ export class MetadataAPI {
             });
         }
 
+        // Find changed property nodes
+        const changedPropertyColors = this.findChangedKeys(this.previousState.propertyColors, current.propertyColors);
+        const changedPropertyBackgrounds = this.findChangedKeys(
+            this.previousState.propertyBackgroundColors,
+            current.propertyBackgroundColors
+        );
+        const changedPropertyIcons = this.findChangedKeys(this.previousState.propertyIcons, current.propertyIcons);
+        const changedProperties = new Set([...changedPropertyColors, ...changedPropertyBackgrounds, ...changedPropertyIcons]);
+
+        // Fire events for changed properties
+        for (const nodeId of changedProperties) {
+            const metadata = this.getPropertyMeta(nodeId);
+            this.api.trigger('property-changed', {
+                nodeId,
+                metadata: metadata || { color: undefined, backgroundColor: undefined, icon: undefined }
+            });
+        }
+
         // Check pinned notes
         if (this.pinnedNotesChanged(this.previousState.pinnedNotes, current.pinnedNotes)) {
             const pinnedMap = this.getPinned();
@@ -244,9 +294,12 @@ export class MetadataAPI {
             tagColors: { ...current.tagColors },
             tagBackgroundColors: { ...current.tagBackgroundColors },
             tagIcons: { ...current.tagIcons },
+            propertyColors: { ...current.propertyColors },
+            propertyBackgroundColors: { ...current.propertyBackgroundColors },
+            propertyIcons: { ...current.propertyIcons },
             fileIcons: { ...current.fileIcons },
             fileColors: { ...current.fileColors },
-            pinnedNotes: { ...current.pinnedNotes },
+            pinnedNotes: clonePinnedNotesRecord(current.pinnedNotes),
             initialized: true
         };
     }
@@ -261,7 +314,7 @@ export class MetadataAPI {
      */
     private async updateMetadata(
         key: string,
-        meta: Partial<FolderMetadata | TagMetadata>,
+        meta: MetadataUpdate,
         colorStore: Record<string, string>,
         iconStore: Record<string, string>,
         backgroundStore: Record<string, string>
@@ -317,11 +370,85 @@ export class MetadataAPI {
     // Folder Metadata
     // ===================================================================
 
+    private getFolderMetadataFromService(folder: TFolder): FolderMetadata | null {
+        const plugin = this.api.getPlugin();
+        if (!plugin.metadataService) {
+            return null;
+        }
+
+        const folderDisplayData = plugin.metadataService.getFolderDisplayData(folder.path, {
+            includeDisplayName: false,
+            includeColor: true,
+            includeBackgroundColor: true,
+            includeIcon: true,
+            includeInheritedColors: false
+        });
+        if (!folderDisplayData.color && !folderDisplayData.backgroundColor && !folderDisplayData.icon) {
+            return null;
+        }
+
+        return {
+            color: folderDisplayData.color,
+            backgroundColor: folderDisplayData.backgroundColor,
+            icon: folderDisplayData.icon as IconString | undefined
+        };
+    }
+
+    private getFolderSettingsSnapshot(folderPath: string): string {
+        const plugin = this.api.getPlugin();
+        const color = plugin.settings.folderColors[folderPath];
+        const backgroundColor = plugin.settings.folderBackgroundColors[folderPath];
+        const icon = plugin.settings.folderIcons[folderPath];
+        return `${color === undefined ? '\u0000' : color}\u0001${backgroundColor === undefined ? '\u0000' : backgroundColor}\u0001${
+            icon === undefined ? '\u0000' : icon
+        }`;
+    }
+
+    private isSameFolderMetadata(left: FolderMetadata | null, right: FolderMetadata | null): boolean {
+        return left?.color === right?.color && left?.backgroundColor === right?.backgroundColor && left?.icon === right?.icon;
+    }
+
+    private triggerFolderChanged(folder: TFolder): void {
+        if (this.api.getPlugin().metadataService) {
+            const metadata = this.getFolderMetadataFromService(folder);
+            this.api.trigger('folder-changed', {
+                folder,
+                metadata: {
+                    color: metadata?.color,
+                    backgroundColor: metadata?.backgroundColor,
+                    icon: metadata?.icon
+                }
+            });
+            return;
+        }
+
+        const metadata = this.getFolderMeta(folder);
+        this.api.trigger('folder-changed', {
+            folder,
+            metadata: metadata || { color: undefined, backgroundColor: undefined, icon: undefined }
+        });
+    }
+
+    /** @internal */
+    emitFolderChangedForPath(folderPath: string): void {
+        const folder = this.api.getApp().vault.getFolderByPath(folderPath);
+        if (!folder) {
+            return;
+        }
+
+        this.triggerFolderChanged(folder);
+    }
+
     /**
      * Get folder metadata
      * @param folder - Folder to get metadata for
      */
     getFolderMeta(folder: TFolder): FolderMetadata | null {
+        const plugin = this.api.getPlugin();
+        if (plugin.settings.useFrontmatterMetadata && plugin.metadataService) {
+            return this.getFolderMetadataFromService(folder);
+        }
+
         const path = folder.path;
         const color = this.metadataState.folderColors[path];
         const backgroundColor = this.metadataState.folderBackgroundColors[path];
@@ -346,6 +473,52 @@ export class MetadataAPI {
     async setFolderMeta(folder: TFolder, meta: Partial<FolderMetadata>): Promise<void> {
         const plugin = this.api.getPlugin();
         if (!plugin) return;
+
+        if (plugin.metadataService) {
+            const folderStyleUpdate: {
+                icon?: string | null;
+                color?: string | null;
+                backgroundColor?: string | null;
+            } = {};
+
+            if (meta.icon !== undefined) {
+                if (meta.icon === null) {
+                    folderStyleUpdate.icon = null;
+                } else if (typeof meta.icon === 'string') {
+                    const normalizedIcon = normalizeCanonicalIconId(meta.icon);
+                    if (normalizedIcon) {
+                        folderStyleUpdate.icon = normalizedIcon;
+                    }
+                }
+            }
+
+            if (meta.color !== undefined) {
+                folderStyleUpdate.color = meta.color;
+            }
+
+            if (meta.backgroundColor !== undefined) {
+                folderStyleUpdate.backgroundColor = meta.backgroundColor;
+            }
+
+            if (
+                folderStyleUpdate.icon !== undefined ||
+                folderStyleUpdate.color !== undefined ||
+                folderStyleUpdate.backgroundColor !== undefined
+            ) {
+                const isFolderStyleEventBridgeEnabled = plugin.metadataService.isFolderStyleEventBridgeEnabled?.() === true;
+                const settingsSnapshotBefore = this.getFolderSettingsSnapshot(folder.path);
+                const metadataBefore = this.getFolderMetadataFromService(folder);
+                await plugin.metadataService.setFolderStyle(folder.path, folderStyleUpdate);
+                const settingsSnapshotAfter = this.getFolderSettingsSnapshot(folder.path);
+                if (settingsSnapshotBefore === settingsSnapshotAfter && !isFolderStyleEventBridgeEnabled) {
+                    const metadataAfter = this.getFolderMetadataFromService(folder);
+                    if (!this.isSameFolderMetadata(metadataBefore, metadataAfter)) {
+                        this.triggerFolderChanged(folder);
+                    }
+                }
+            }
+            return;
+        }
 
         await this.updateMetadata(
             folder.path,
@@ -384,7 +557,7 @@ export class MetadataAPI {
     }
 
     /**
-     * Set tag metadata (color and/or icon)
+     * Set tag metadata (color and/or icon). Pass null to clear a property.
      * @param tag - Tag string (with or without '#' prefix)
      * @param meta - Partial metadata object with properties to update
      */
@@ -403,6 +576,58 @@ export class MetadataAPI {
     }
 
     // ===================================================================
+    // Property Metadata
+    // ===================================================================
+
+    /**
+     * Get property metadata
+     * @param nodeId - Property node id (key or key=value)
+     */
+    getPropertyMeta(nodeId: string): PropertyMetadata | null {
+        const normalizedNodeId = normalizePropertyNodeId(nodeId);
+        if (!normalizedNodeId) {
+            return null;
+        }
+
+        const color = this.metadataState.propertyColors[normalizedNodeId];
+        const backgroundColor = this.metadataState.propertyBackgroundColors[normalizedNodeId];
+        const icon = this.metadataState.propertyIcons[normalizedNodeId];
+
+        if (!color && !backgroundColor && !icon) {
+            return null;
+        }
+
+        return {
+            color,
+            backgroundColor,
+            icon: icon as IconString | undefined
+        };
+    }
+
+    /**
+     * Set property metadata (color and/or icon). Pass null to clear a property.
+     * @param nodeId - Property node id (key or key=value)
+     * @param meta - Partial metadata object with properties to update
+     */
+    async setPropertyMeta(nodeId: string, meta: Partial<PropertyMetadata>): Promise<void> {
+        const plugin = this.api.getPlugin();
+        if (!plugin) return;
+
+        const normalizedNodeId = normalizePropertyNodeId(nodeId);
+        if (!normalizedNodeId) {
+            return;
+        }
+
+        await this.updateMetadata(
+            normalizedNodeId,
+            meta,
+            plugin.settings.propertyColors,
+            plugin.settings.propertyIcons,
+            plugin.settings.propertyBackgroundColors
+        );
+    }
+
+    // ===================================================================
     // Pinned Files
     // ===================================================================
 
@@ -417,12 +642,14 @@ export class MetadataAPI {
 
         if (!context) {
             // No context - check if pinned in any context
-            return contexts.folder || contexts.tag;
+            return contexts.folder || contexts.tag || contexts.property;
         } else if (context === 'all') {
-            // Check if pinned in both contexts
-            return contexts.folder && contexts.tag;
+            // Check if pinned in all contexts
+            return contexts.folder && contexts.tag && contexts.property;
         } else if (context === 'folder') {
             return contexts.folder;
+        } else if (context === 'property') {
+            return contexts.property;
         }
         return contexts.tag;
     }
@@ -441,22 +668,29 @@ export class MetadataAPI {
         }
 
         if (!plugin.settings.pinnedNotes[file.path]) {
-            plugin.settings.pinnedNotes[file.path] = { folder: false, tag: false };
+            plugin.settings.pinnedNotes[file.path] = { folder: false, tag: false, property: false };
         }
 
         let changed = false;
-        const contexts = plugin.settings.pinnedNotes[file.path];
+        const contexts = normalizePinnedNoteContext(plugin.settings.pinnedNotes[file.path]);
+        plugin.settings.pinnedNotes[file.path] = contexts;
 
         if (context === 'all') {
-            // Pin in both contexts
-            if (!contexts.folder || !contexts.tag) {
+            // Pin in all contexts
+            if (!contexts.folder || !contexts.tag || !contexts.property) {
                 contexts.folder = true;
                 contexts.tag = true;
+                contexts.property = true;
                 changed = true;
             }
         } else if (context === 'folder') {
             if (!contexts.folder) {
                 contexts.folder = true;
+                changed = true;
+            }
+        } else if (context === 'property') {
+            if (!contexts.property) {
+                contexts.property = true;
                 changed = true;
             }
         } else if (context === 'tag') {
@@ -481,8 +715,11 @@ export class MetadataAPI {
         const plugin = this.api.getPlugin();
         if (!plugin?.metadataService) return;
 
-        const contexts = plugin.settings.pinnedNotes?.[file.path];
-        if (!contexts) return;
+        const currentValue = plugin.settings.pinnedNotes?.[file.path];
+        if (!currentValue) return;
+
+        const contexts = normalizePinnedNoteContext(currentValue);
+        plugin.settings.pinnedNotes[file.path] = contexts;
 
         let changed = false;
 
@@ -495,6 +732,11 @@ export class MetadataAPI {
                 contexts.folder = false;
                 changed = true;
             }
+        } else if (context === 'property') {
+            if (contexts.property) {
+                contexts.property = false;
+                changed = true;
+            }
         } else if (context === 'tag') {
             if (contexts.tag) {
                 contexts.tag = false;
@@ -503,7 +745,7 @@ export class MetadataAPI {
         }
 
         // Remove if unpinned from all contexts
-        if (changed && contexts && !contexts.folder && !contexts.tag) {
+        if (changed && contexts && !contexts.folder && !contexts.tag && !contexts.property) {
             delete plugin.settings.pinnedNotes[file.path];
         }
 

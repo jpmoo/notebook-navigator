@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,25 +18,6 @@
 
 import React from 'react';
 import { Root, createRoot } from 'react-dom/client';
-/*
- * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-// src/view/NotebookNavigatorView.tsx
 import { ItemView, WorkspaceLeaf, TFile, Platform, TFolder, requireApiVersion } from 'obsidian';
 import { NotebookNavigatorContainer } from '../components/NotebookNavigatorContainer';
 import type { NotebookNavigatorHandle } from '../components/NotebookNavigatorComponent';
@@ -202,6 +183,7 @@ export class NotebookNavigatorView extends ItemView {
                                                 app={this.plugin.app}
                                                 api={this.plugin.api}
                                                 tagTreeService={this.plugin.tagTreeService}
+                                                propertyTreeService={this.plugin.propertyTreeService}
                                                 // Wrap bound methods in arrow functions to maintain proper this context and satisfy eslint @typescript-eslint/unbound-method
                                                 onFileRename={(listenerId, callback) =>
                                                     this.plugin.registerFileRenameListener(listenerId, callback)
@@ -341,6 +323,13 @@ export class NotebookNavigatorView extends ItemView {
     }
 
     /**
+     * Navigates directly to the provided property node id
+     */
+    navigateToProperty(propertyNodeId: string) {
+        this.componentRef.current?.navigateToProperty(propertyNodeId);
+    }
+
+    /**
      * Reveals a file while attempting to preserve the current navigation context
      */
     revealFileInNearestFolder(file: TFile, options?: RevealFileOptions) {
@@ -371,8 +360,8 @@ export class NotebookNavigatorView extends ItemView {
     /**
      * Creates a new note in the currently selected folder
      */
-    async createNoteInSelectedFolder(): Promise<void> {
-        await this.componentRef.current?.createNoteInSelectedFolder();
+    async createNoteInSelectedFolder(openInNewTab = false): Promise<void> {
+        await this.componentRef.current?.createNoteInSelectedFolder(openInNewTab);
     }
 
     /**
@@ -429,6 +418,20 @@ export class NotebookNavigatorView extends ItemView {
      */
     async navigateToTagWithModal(): Promise<void> {
         this.componentRef.current?.navigateToTagWithModal();
+    }
+
+    /**
+     * Navigate to a property by showing the property suggest modal
+     */
+    async navigateToPropertyWithModal(): Promise<void> {
+        this.componentRef.current?.navigateToPropertyWithModal();
+    }
+
+    /**
+     * Sets the list pane search query to a date token.
+     */
+    addDateFilterToSearch(dateToken: string): void {
+        this.componentRef.current?.addDateFilterToSearch(dateToken);
     }
 
     /**

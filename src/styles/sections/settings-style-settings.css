@@ -43,6 +43,211 @@ settings:
         default-light: '#'
         default-dark: '#'
     -
+        id: nn-theme-foreground-faint
+        title: Faint foreground
+        description: Faint foreground color.
+        type: variable-themed-color
+        format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-borders-heading
+        title: Borders
+        description: Border colors and border widths on navigation and file items.
+        type: heading
+        level: 1
+        collapsed: true
+    -
+        id: nn-border-widths-heading
+        title: Border widths
+        type: heading
+        level: 2
+        collapsed: false
+    -
+        id: nn-theme-navitem-border-width
+        title: Navigation item border width
+        description: Border width on navigation item backgrounds, hover state, and selection.
+        type: variable-number-slider
+        default: 0
+        format: px
+        min: 0
+        max: 4
+        step: 1
+    -
+        id: nn-theme-navitem-count-border-width
+        title: File count border width
+        description: Border width on navigation file count badges.
+        type: variable-number-slider
+        default: 0
+        format: px
+        min: 0
+        max: 4
+        step: 1
+    -
+        id: nn-theme-file-border-width
+        title: File item border width
+        description: Border width on file item hover and selection states.
+        type: variable-number-slider
+        default: 0
+        format: px
+        min: 0
+        max: 4
+        step: 1
+    -
+        id: nn-theme-file-pill-border-width
+        title: Pill border width
+        description: Border width on tag and custom property pills.
+        type: variable-number-slider
+        default: 1
+        format: px
+        min: 0
+        max: 4
+        step: 1
+    -
+        id: nn-border-nav-heading
+        title: Navigation borders
+        type: heading
+        level: 2
+        collapsed: false
+    -
+        id: nn-theme-navitem-custom-border-color
+        title: Custom background border color
+        description: Border color on folders and tags with custom backgrounds.
+        type: variable-themed-color
+        opacity: true
+        format: rgb
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-navitem-hover-border-color
+        title: Hover border color
+        description: Border color on hovered navigation items.
+        type: variable-themed-color
+        opacity: true
+        format: rgb
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-navitem-selected-border-color
+        title: Selection border color
+        description: Border color on selected navigation items.
+        type: variable-themed-color
+        opacity: true
+        format: rgb
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-navitem-selected-inactive-border-color
+        title: Selection border color (inactive)
+        description: Border color on selected navigation items when pane is inactive.
+        type: variable-themed-color
+        opacity: true
+        format: rgb
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-navitem-count-border-color
+        title: File count border color
+        description: Border color on navigation file count badges.
+        type: variable-themed-color
+        opacity: true
+        format: rgb
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-navitem-selected-count-border-color
+        title: Selected file count border color
+        description: Border color on file count badges when selected.
+        type: variable-themed-color
+        opacity: true
+        format: rgb
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-navitem-selected-inactive-count-border-color
+        title: Selected file count border color (inactive)
+        description: Border color on file count badges when selected and pane is inactive.
+        type: variable-themed-color
+        opacity: true
+        format: rgb
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-border-file-heading
+        title: File item borders
+        type: heading
+        level: 2
+        collapsed: false
+    -
+        id: nn-theme-file-hover-border-color
+        title: Hover border color
+        description: Border color on hovered file items.
+        type: variable-themed-color
+        opacity: true
+        format: rgb
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-file-selected-border-color
+        title: Selection border color
+        description: Border color on selected file items.
+        type: variable-themed-color
+        opacity: true
+        format: rgb
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-file-selected-inactive-border-color
+        title: Selection border color (inactive)
+        description: Border color on selected file items when pane is inactive.
+        type: variable-themed-color
+        opacity: true
+        format: rgb
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-border-pill-heading
+        title: Pill borders
+        type: heading
+        level: 2
+        collapsed: false
+    -
+        id: nn-theme-file-tag-border-color
+        title: Tag pill border color
+        description: Border color on tag pills without custom colors.
+        type: variable-themed-color
+        opacity: true
+        format: rgb
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-file-property-border-color
+        title: Custom property pill border color
+        description: Border color on custom property pills without custom colors.
+        type: variable-themed-color
+        opacity: true
+        format: rgb
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-file-selected-tag-border-color
+        title: Selected tag pill border color
+        description: Border color on tag pills without custom colors in selected files.
+        type: variable-themed-color
+        opacity: true
+        format: rgb
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-file-selected-property-border-color
+        title: Selected custom property pill border color
+        description: Border color on custom property pills without custom colors in selected files.
+        type: variable-themed-color
+        opacity: true
+        format: rgb
+        default-light: '#'
+        default-dark: '#'
+    -
         id: nn-header-heading
         title: Headers
         description: Customize pane header appearance.
@@ -143,6 +348,14 @@ settings:
         default-light: '#'
         default-dark: '#'
     -
+        id: nn-theme-calendar-weekend-bg
+        title: Weekend day background
+        description: Background color for weekend day cells.
+        type: variable-themed-color
+        format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
         id: nn-theme-calendar-hover-bg
         title: Hover background
         description: Background color when hovering calendar buttons and days.
@@ -151,25 +364,17 @@ settings:
         default-light: '#'
         default-dark: '#'
     -
-        id: nn-theme-calendar-weekend-bg
-        title: Weekend background
-        description: Background color for weekend days (panel layout).
-        type: variable-themed-color
-        format: hex
-        default-light: '#'
-        default-dark: '#'
-    -
-        id: nn-theme-calendar-day-has-note-color
-        title: Daily note text color
-        description: Text color for dates with a daily note.
-        type: variable-themed-color
-        format: hex
-        default-light: '#'
-        default-dark: '#'
-    -
         id: nn-theme-calendar-day-has-note-bg
-        title: Daily note background
-        description: Background color for dates with a daily note.
+        title: Daily note indicator
+        description: Color for the dot indicator shown on dates with a daily note.
+        type: variable-themed-color
+        format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-calendar-day-has-unfinished-task-color
+        title: Unfinished task indicator
+        description: Color for the hollow indicator shown on dates with unfinished tasks.
         type: variable-themed-color
         format: hex
         default-light: '#'
@@ -185,7 +390,7 @@ settings:
     -
         id: nn-theme-calendar-day-today-color
         title: Day text color (today)
-        description: Text color for today's date (overlay layout).
+        description: Text color for today's date.
         type: variable-themed-color
         format: hex
         default-light: '#'
@@ -193,32 +398,11 @@ settings:
     -
         id: nn-theme-calendar-day-today-bg
         title: Today highlight background
-        description: Background color for the today highlight circle (overlay layout).
+        description: Background color for today's date highlight.
         type: variable-themed-color
         format: hex
         default-light: '#'
         default-dark: '#'
-    -
-        id: nn-theme-calendar-day-today-accent
-        title: Today accent color
-        description: Border and text color for today (panel layout).
-        type: variable-themed-color
-        format: hex
-        default-light: '#'
-        default-dark: '#'
-    -
-        id: nn-calendar-right-sidebar-date-placement
-        title: Right sidebar date placement
-        description: Position of day numbers in the right sidebar calendar.
-        type: variable-select
-        default: flex-end
-        options:
-          -
-            label: Bottom right
-            value: flex-end
-          -
-            label: Centered
-            value: center
     -
         id: nn-nav-pane-heading
         title: Navigation pane (folders, tags, shortcuts)
@@ -501,7 +685,7 @@ settings:
         title: Folder note decoration
         description: Text decoration for folders with notes.
         type: variable-select
-        default: none
+        default: underline
         options:
           -
             label: None
@@ -570,7 +754,8 @@ settings:
         title: Search border color
         description: Border and focus ring color for the search field.
         type: variable-themed-color
-        format: hex
+        opacity: true
+        format: rgb
         default-light: '#'
         default-dark: '#'
     -
@@ -638,6 +823,14 @@ settings:
         level: 2
         collapsed: false
     -
+        id: nn-theme-file-task-icon-color
+        title: Unfinished task icon color
+        description: Icon color for notes with unfinished tasks.
+        type: variable-themed-color
+        format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
         id: nn-theme-file-name-color
         title: File name color
         description: Text color for file names.
@@ -704,7 +897,7 @@ settings:
         default-light: '#'
         default-dark: '#'
     -
-        id: nn-theme-file-custom-property-color
+        id: nn-theme-file-property-color
         title: Custom property text color
         description: Text color for custom property pill.
         type: variable-themed-color
@@ -712,7 +905,7 @@ settings:
         default-light: '#'
         default-dark: '#'
     -
-        id: nn-theme-file-custom-property-bg
+        id: nn-theme-file-property-bg
         title: Custom property background
         description: Background color for custom property pill.
         type: variable-themed-color
@@ -730,7 +923,7 @@ settings:
         max: 10
         step: 1
     -
-        id: nn-theme-file-custom-property-border-radius
+        id: nn-theme-file-property-border-radius
         title: Custom property pill border radius
         description: Corner radius for custom property pills.
         type: variable-number-slider
@@ -806,7 +999,7 @@ settings:
         default-light: '#'
         default-dark: '#'
     -
-        id: nn-theme-file-selected-custom-property-color
+        id: nn-theme-file-selected-property-color
         title: Selected custom property text color
         description: Text color for custom property pill when selected.
         type: variable-themed-color
@@ -814,7 +1007,7 @@ settings:
         default-light: '#'
         default-dark: '#'
     -
-        id: nn-theme-file-selected-custom-property-bg
+        id: nn-theme-file-selected-property-bg
         title: Selected custom property background
         description: Background color for custom property pill when selected.
         type: variable-themed-color
@@ -862,7 +1055,7 @@ settings:
         default-light: '#'
         default-dark: '#'
     -
-        id: nn-theme-file-selected-inactive-custom-property-color
+        id: nn-theme-file-selected-inactive-property-color
         title: Selected custom property text color (inactive)
         description: Text color for custom property pill when file is selected and pane is inactive.
         type: variable-themed-color
@@ -870,7 +1063,7 @@ settings:
         default-light: '#'
         default-dark: '#'
     -
-        id: nn-theme-file-selected-inactive-custom-property-bg
+        id: nn-theme-file-selected-inactive-property-bg
         title: Selected custom property background (inactive)
         description: Background color for custom property pill when file is selected and pane is inactive.
         type: variable-themed-color
@@ -982,7 +1175,8 @@ settings:
         title: Toolbar border color
         description: Border color of quick actions toolbar.
         type: variable-themed-color
-        format: hex
+        opacity: true
+        format: rgb
         default-light: '#'
         default-dark: '#'
     -
@@ -1031,7 +1225,8 @@ settings:
         title: Divider border color
         description: Color of the vertical border between panes.
         type: variable-themed-color
-        format: hex
+        opacity: true
+        format: rgb
         default-light: '#'
         default-dark: '#'
     -

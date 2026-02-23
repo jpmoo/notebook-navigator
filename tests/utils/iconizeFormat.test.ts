@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,8 @@ import {
     deserializeIconFromFrontmatter,
     deserializeIconFromFrontmatterCompat
 } from '../../src/utils/iconizeFormat';
+
+const ENGLAND_FLAG_TAG_SEQUENCE = '\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}';
 
 describe('convertIconizeToIconId', () => {
     it('converts lucide identifiers without provider prefix', () => {
@@ -130,6 +132,10 @@ describe('frontmatter icon helpers', () => {
         expect(serializeIconForFrontmatter('emoji:📁')).toBe('📁');
     });
 
+    it('returns bare keycap emoji characters when serializing emoji icons', () => {
+        expect(serializeIconForFrontmatter('emoji:6️⃣')).toBe('6️⃣');
+    });
+
     it('returns null when provider has no Iconize mapping', () => {
         expect(serializeIconForFrontmatter('custom-pack:icon-name')).toBeNull();
     });
@@ -147,12 +153,32 @@ describe('frontmatter icon helpers', () => {
         expect(deserializeIconFromFrontmatter('📁')).toBe('emoji:📁');
     });
 
+    it('deserializes keycap emoji strings into canonical emoji identifiers', () => {
+        expect(deserializeIconFromFrontmatter('6️⃣')).toBe('emoji:6️⃣');
+        expect(deserializeIconFromFrontmatter('#️⃣')).toBe('emoji:#️⃣');
+        expect(deserializeIconFromFrontmatter('*️⃣')).toBe('emoji:*️⃣');
+    });
+
+    it('deserializes subdivision flag tag sequences into canonical emoji identifiers', () => {
+        expect(deserializeIconFromFrontmatter(ENGLAND_FLAG_TAG_SEQUENCE)).toBe(`emoji:${ENGLAND_FLAG_TAG_SEQUENCE}`);
+    });
+
     it('deserializes legacy lucide identifiers', () => {
         expect(deserializeIconFromFrontmatter('lucide-sun')).toBe('sun');
     });
 
     it('deserializes legacy provider-prefixed emoji values with compat helper', () => {
         expect(deserializeIconFromFrontmatterCompat('emoji:🔭')).toBe('emoji:🔭');
+    });
+
+    it('deserializes legacy provider-prefixed keycap emoji values with compat helper', () => {
+        expect(deserializeIconFromFrontmatterCompat('emoji:6️⃣')).toBe('emoji:6️⃣');
+    });
+
+    it('serializes and deserializes subdivision flag tag sequences with compat helper', () => {
+        const canonical = `emoji:${ENGLAND_FLAG_TAG_SEQUENCE}`;
+        expect(serializeIconForFrontmatter(canonical)).toBe(ENGLAND_FLAG_TAG_SEQUENCE);
+        expect(deserializeIconFromFrontmatterCompat(canonical)).toBe(canonical);
     });
 });
 

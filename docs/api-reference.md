@@ -1,17 +1,17 @@
 # Notebook Navigator API Reference
 
-Updated: January 19, 2026
+Updated: February 14, 2026
 
 The Notebook Navigator plugin exposes a public API for other plugins and scripts to interact with navigator features.
 
-**Current API Version:** 1.2.0
+**Current API Version:** 1.3.0
 
 ## Table of Contents
 
 - [Quick Start](#quick-start)
 - [API Overview](#api-overview)
 - [Metadata API](#metadata-api)
-  - [Folder and Tag Metadata](#folder-and-tag-metadata)
+  - [Folder, Tag, and Property Metadata](#folder-tag-and-property-metadata)
   - [Pinned Files](#pinned-files)
 - [Navigation API](#navigation-api)
 - [Selection API](#selection-api)
@@ -33,7 +33,7 @@ Templater:
 const nn = app.plugins.plugins['notebook-navigator']?.api;
 
 if (nn) {
-  // Pin the current file in both folder and tag contexts
+  // Pin the current file in folder, tag, and property contexts
   const file = tp.config.target_file;
   await nn.metadata.pin(file);
   new Notice('File pinned in Notebook Navigator');
@@ -60,7 +60,7 @@ if (nn) {
 
 The API provides four main namespaces:
 
-- **`metadata`** - Folder/tag colors, icons, and pinned files
+- **`metadata`** - Folder, tag, and property node colors/icons, and pinned files
 - **`navigation`** - Navigate to files in the navigator
 - **`selection`** - Query current selection state
 - **`menus`** - Add items to Notebook Navigator context menus
@@ -77,7 +77,7 @@ Core methods:
 
 ## Metadata API
 
-Customize folder and tag appearance, manage pinned files.
+Customize folder, tag, and property node appearance, manage pinned files.
 
 ### Runtime Behavior
 
@@ -94,8 +94,12 @@ Customize folder and tag appearance, manage pinned files.
   - Both `'work'` and `'#work'` are accepted as input
   - Tags are case-insensitive: `'#Work'` and `'#work'` refer to the same tag
   - Tags are stored internally without the '#' prefix as lowercase paths
+- **Property node normalization**: The `getPropertyMeta()` and `setPropertyMeta()` methods normalize property node ids:
+  - Both key ids (`'key:Status'`) and key/value ids (`'key:Status=Done'`) are accepted
+  - Keys and values are normalized to lowercase
+  - Metadata is stored under canonical node ids (`'key:status'`, `'key:status=done'`)
 
-### Folder and Tag Metadata
+### Folder, Tag, and Property Metadata
 
 | Method                        | Description                          | Returns                  |
 | ----------------------------- | ------------------------------------ | ------------------------ |
@@ -103,10 +107,12 @@ Customize folder and tag appearance, manage pinned files.
 | `setFolderMeta(folder, meta)` | Set folder metadata (partial update) | `Promise<void>`          |
 | `getTagMeta(tag)`             | Get all tag metadata                 | `TagMetadata \| null`    |
 | `setTagMeta(tag, meta)`       | Set tag metadata (partial update)    | `Promise<void>`          |
+| `getPropertyMeta(nodeId)`     | Get all property node metadata       | `PropertyMetadata \| null` |
+| `setPropertyMeta(nodeId, meta)` | Set property node metadata (partial update) | `Promise<void>`          |
 
 #### Property Update Behavior
 
-When using `setFolderMeta` or `setTagMeta`, partial updates follow this pattern:
+When using `setFolderMeta`, `setTagMeta`, or `setPropertyMeta`, partial updates follow this pattern:
 
 - **`color: 'red'`** - Sets the color to red
 - **`color: null`** - Clears the color (removes the property)
@@ -116,19 +122,19 @@ This applies to all metadata properties (color, backgroundColor, icon). Only pro
 update object are modified.
 
 **TypeScript note**: The runtime uses `null` to clear a property, but the current type definitions use
-`Partial<FolderMetadata>` / `Partial<TagMetadata>` for the `meta` argument (which does not include `null`).
+`Partial<FolderMetadata>` / `Partial<TagMetadata>` / `Partial<PropertyMetadata>` for the `meta` argument (which does not include `null`).
 
 ### Pinned Files
 
-Notes can be pinned in different contexts - they appear at the top of the file list when viewing folders or tags.
+Notes can be pinned in different contexts - they appear at the top of the file list when viewing folders, tags, or properties.
 
 #### Pin Methods
 
 | Method                     | Description                                         | Returns            |
 | -------------------------- | --------------------------------------------------- | ------------------ |
-| `pin(file, context?)`      | Pin a file (defaults to 'all' - both contexts)      | `Promise<void>`    |
-| `unpin(file, context?)`    | Unpin a file (defaults to 'all' - both contexts)    | `Promise<void>`    |
-| `isPinned(file, context?)` | Check if pinned (no context = any, 'all' = both)    | `boolean`          |
+| `pin(file, context?)`      | Pin a file (defaults to 'all' - all contexts)       | `Promise<void>`    |
+| `unpin(file, context?)`    | Unpin a file (defaults to 'all' - all contexts)     | `Promise<void>`    |
+| `isPinned(file, context?)` | Check if pinned (no context = any, 'all' = all)     | `boolean`          |
 | `getPinned()`              | Get all pinned files with their context information | `Readonly<Pinned>` |
 
 #### Understanding Pin Contexts
@@ -137,10 +143,11 @@ Pinned notes behave differently depending on the current view:
 
 - **Folder Context**: When viewing folders in the navigator, only notes pinned in the 'folder' context appear at the top
 - **Tag Context**: When viewing tags, only notes pinned in the 'tag' context appear at the top
-- **Both Contexts**: A note can be pinned in both contexts and will appear at the top in both views
-- **Default Behavior**: Pin/unpin operations default to 'all' (both contexts)
+- **Property Context**: When viewing properties, only notes pinned in the 'property' context appear at the top
+- **Multiple Contexts**: A note can be pinned in multiple contexts and appears at the top in each matching view
+- **Default Behavior**: Pin/unpin operations default to 'all' (folder, tag, and property contexts)
 
-This supports separate pinned sets for folder and tag views.
+This supports separate pinned sets for folder, tag, and property views.
 
 ```typescript
 // Set folder appearance
@@ -159,7 +166,7 @@ if (folder) {
 // Pin a file
 const file = app.workspace.getActiveFile();
 if (file) {
-  await nn.metadata.pin(file); // Pins in both folder and tag contexts by default
+  await nn.metadata.pin(file); // Pins in folder, tag, and property contexts by default
 
   // Or pin in specific context
   await nn.metadata.pin(file, 'folder');
@@ -172,8 +179,8 @@ if (file) {
 
 // Get all pinned files with context info
 const pinned = nn.metadata.getPinned();
-// Returns: Map<string, { folder: boolean, tag: boolean }>
-// Example: Map { "Notes/todo.md" => { folder: true, tag: false }, ... }
+// Returns: Map<string, { folder: boolean, tag: boolean, property: boolean }>
+// Example: Map { "Notes/todo.md" => { folder: true, tag: false, property: true }, ... }
 
 // Iterate over pinned files
 for (const [path, context] of pinned) {
@@ -190,6 +197,7 @@ for (const [path, context] of pinned) {
 | `reveal(file)`             | Reveal and select file in navigator    | `Promise<void>` |
 | `navigateToFolder(folder)` | Select a folder in the navigation pane | `Promise<void>` |
 | `navigateToTag(tag)`       | Select a tag in the navigation pane    | `Promise<void>` |
+| `navigateToProperty(nodeId)` | Select a property node in navigation | `Promise<void>` |
 
 ### Reveal Behavior
 
@@ -233,6 +241,18 @@ When calling `navigateToTag(tag)`:
 - Does nothing if the tag is not present in the current tag tree
 - Rejects if the navigator view cannot be opened
 
+### Property Navigation Behavior
+
+When calling `navigateToProperty(nodeId)`:
+
+- Accepts property key and key/value node ids (e.g. `'key:status'`, `'key:status=done'`)
+- Normalizes node ids to canonical lowercase form before selection
+- Expands the properties root when "All properties" is enabled and collapsed
+- Expands the parent key node for key/value selections when needed
+- Preserves navigation focus in single-pane mode
+- Does nothing if the target node is not present in the current property tree
+- Rejects if the navigator view cannot be opened
+
 ```typescript
 // Wait for storage if needed, then navigate
 if (!nn.isStorageReady()) {
@@ -240,6 +260,7 @@ if (!nn.isStorageReady()) {
 }
 
 await nn.navigation.navigateToTag('#work');
+await nn.navigation.navigateToProperty('key:status=done');
 ```
 
 ## Selection API
@@ -251,7 +272,7 @@ view is active, and navigation selection is restored from localStorage on startu
 
 | Method         | Description                  | Returns          |
 | -------------- | ---------------------------- | ---------------- |
-| `getNavItem()` | Get selected folder or tag   | `NavItem`        |
+| `getNavItem()` | Get selected folder, tag, or property | `NavItem`        |
 | `getCurrent()` | Get complete selection state | `SelectionState` |
 
 ```typescript
@@ -261,6 +282,8 @@ if (navItem.folder) {
   console.log('Folder selected:', navItem.folder.path);
 } else if (navItem.tag) {
   console.log('Tag selected:', navItem.tag);
+} else if (navItem.property) {
+  console.log('Property selected:', navItem.property);
 } else {
   console.log('Nothing selected in navigation pane');
 }
@@ -354,7 +377,7 @@ const dispose = nn?.menus?.registerFolderMenu(({ addItem, folder }) => {
 
 Subscribe to navigator events to react to user actions.
 
-Tag strings in events use canonical form (no `#` prefix, lowercase path).
+Tag strings in events use canonical form (no `#` prefix, lowercase path). Property node ids use canonical lowercase node ids.
 
 | Event                  | Payload                                         | Description                  |
 | ---------------------- | ----------------------------------------------- | ---------------------------- |
@@ -364,6 +387,7 @@ Tag strings in events use canonical form (no `#` prefix, lowercase path).
 | `pinned-files-changed` | `{ files: Readonly<Pinned> }`                   | Pinned files changed         |
 | `folder-changed`       | `{ folder: TFolder, metadata: FolderMetadata }` | Folder metadata changed      |
 | `tag-changed`          | `{ tag: string, metadata: TagMetadata }`        | Tag metadata changed         |
+| `property-changed`     | `{ nodeId: string, metadata: PropertyMetadata }` | Property metadata changed    |
 
 ```typescript
 // Subscribe to pin changes
@@ -387,6 +411,8 @@ const navRef = nn.on('nav-item-changed', ({ item }) => {
     console.log('Folder selected:', item.folder.path);
   } else if (item.tag) {
     console.log('Tag selected:', item.tag);
+  } else if (item.property) {
+    console.log('Property selected:', item.property);
   } else {
     console.log('Navigation selection cleared');
   }
@@ -485,6 +511,13 @@ The type definitions provide:
 Behavior sections for each API).
 
 ## Changelog
+
+### Version 1.3.0 (2026-02-14)
+
+- Added `metadata.getPropertyMeta(nodeId)`
+- Added `metadata.setPropertyMeta(nodeId, meta)`
+- Added `navigation.navigateToProperty(nodeId)`
+- Added `property-changed` event
 
 ### Version 1.2.0 (2025-12-22)
 

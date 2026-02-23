@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@ export interface AsyncErrorRecord {
     timestamp: number;
 }
 
-// Determines if a value has a Promise-like then method
-function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
+// Determines if a value has a Promise-like then method.
+export function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
     return typeof value === 'object' && value !== null && typeof (value as PromiseLike<unknown>).then === 'function';
 }
 

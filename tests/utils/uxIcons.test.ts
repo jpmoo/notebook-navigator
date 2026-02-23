@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,9 @@ import { normalizeUXIconMapRecord, resolveUXIcon } from '../../src/utils/uxIcons
 describe('resolveUXIcon', () => {
     it('returns defaults when no overrides are present', () => {
         expect(resolveUXIcon(undefined, 'list-search')).toBe('search');
-        expect(resolveUXIcon(undefined, 'nav-tag')).toBe('tags');
+        expect(resolveUXIcon(undefined, 'nav-tags')).toBe('tags');
+        expect(resolveUXIcon(undefined, 'nav-tag')).toBe('tag');
+        expect(resolveUXIcon(undefined, 'file-unfinished-task')).toBe('circle-alert');
     });
 
     it('deserializes Iconize formatted overrides', () => {

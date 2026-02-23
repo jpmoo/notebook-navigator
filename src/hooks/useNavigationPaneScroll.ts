@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -209,7 +209,12 @@ export function useNavigationPaneScroll({
                 return folderIndex;
             }
 
-            return getNavigationIndex(pathToIndex, ItemType.TAG, path);
+            const tagIndex = getNavigationIndex(pathToIndex, ItemType.TAG, path);
+            if (tagIndex !== undefined) {
+                return tagIndex;
+            }
+
+            return getNavigationIndex(pathToIndex, ItemType.PROPERTY, path);
         },
         [pathToIndex]
     );
@@ -238,7 +243,7 @@ export function useNavigationPaneScroll({
     const prevSelectedPathRef = useRef<string | null>(null);
     const prevVisibleRef = useRef<boolean>(false);
     const prevFocusedPaneRef = useRef<string | null>(null);
-    const prevSelectedTagRef = useRef<string | null>(null);
+    const prevSelectedDeferredPathRef = useRef<string | null>(null);
     const prevNavSettingsKeyRef = useRef<string>('');
     const prevShowHiddenItemsRef = useRef<boolean>(showHiddenItems);
     const prevPathToIndexSizeRef = useRef<number>(pathToIndex.size);
@@ -373,13 +378,24 @@ export function useNavigationPaneScroll({
         setPendingScrollVersion(v => v + 1);
     }, []);
 
+    const selectedItemType: ItemType | null =
+        selectionState.selectionType === ItemType.TAG
+            ? ItemType.TAG
+            : selectionState.selectionType === ItemType.PROPERTY
+              ? ItemType.PROPERTY
+              : selectionState.selectionType === ItemType.FOLDER
+                ? ItemType.FOLDER
+                : null;
+
     // Extract and normalize the currently selected path from selection state
     const selectedPath =
         selectionState.selectionType === ItemType.FOLDER && selectionState.selectedFolder
             ? normalizeNavigationPath(ItemType.FOLDER, selectionState.selectedFolder.path)
             : selectionState.selectionType === ItemType.TAG && selectionState.selectedTag
               ? normalizeNavigationPath(ItemType.TAG, selectionState.selectedTag)
-              : null;
+              : selectionState.selectionType === ItemType.PROPERTY && selectionState.selectedProperty
+                ? selectionState.selectedProperty
+                : null;
 
     /**
      * Scroll to selected folder/tag when needed
@@ -392,7 +408,16 @@ export function useNavigationPaneScroll({
     useEffect(() => {
         if (!selectedPath || !rowVirtualizer || !isScrollContainerReady) return;
 
-        const currentSelectionType = selectionState.selectionType === ItemType.TAG ? ItemType.TAG : ItemType.FOLDER;
+        if (selectionState.isRevealOperation) {
+            // Reveal operations issue explicit `requestScroll(...)` calls. Keep the previous-state refs in sync but
+            // skip selection-driven auto-scroll while the reveal flag is set.
+            prevSelectedPathRef.current = selectedPath;
+            prevVisibleRef.current = isScrollContainerReady;
+            prevFocusedPaneRef.current = uiState.focusedPane;
+            return;
+        }
+
+        const currentSelectionType = selectedItemType ?? ItemType.FOLDER;
         const suppressShortcutScroll = settings.skipAutoScroll && selectionState.revealSource === 'shortcut';
 
         // Check if this is an actual selection change vs just a tree structure update
@@ -443,9 +468,10 @@ export function useNavigationPaneScroll({
         selectedPath,
         rowVirtualizer,
         isScrollContainerReady,
+        selectionState.isRevealOperation,
         uiState.focusedPane,
         showHiddenItems,
-        selectionState.selectionType,
+        selectedItemType,
         selectionState.revealSource,
         resolveIndex,
         activeShortcutKey,
@@ -454,62 +480,68 @@ export function useNavigationPaneScroll({
     ]);
 
     /**
-     * Special handling for startup tag scrolling
-     * Tags load after folders, so we need a separate effect to catch when they become available
-     * NAV_SCROLL_STARTUP_TAG: Scrolls to selected tag after tags load
+     * Special handling for startup deferred scrolling.
+     * Tag/property selections can be restored before their navigation rows are available,
+     * so this retries scrolling when indices are rebuilt.
      */
     useEffect(() => {
-        if (selectionState.selectionType === ItemType.TAG && selectionState.selectedTag && rowVirtualizer && isScrollContainerReady) {
-            // Skip tag scrolling when a shortcut is active
-            if (activeShortcutKey) {
-                prevSelectedTagRef.current = selectionState.selectedTag;
-                return;
-            }
+        if (!selectedPath || !selectedItemType || !rowVirtualizer || !isScrollContainerReady) {
+            return;
+        }
 
-            const suppressShortcutScroll = settings.skipAutoScroll && selectionState.revealSource === 'shortcut';
-            if (suppressShortcutScroll) {
-                prevSelectedTagRef.current = selectionState.selectedTag;
-                return;
-            }
+        if (selectionState.isRevealOperation) {
+            // Tag/property reveals request scroll explicitly. This deferred-scroll effect is for restored selections
+            // where the navigation rows may not exist yet.
+            prevSelectedDeferredPathRef.current = selectedPath;
+            return;
+        }
 
-            // Check if this is an actual tag selection change
-            const isTagSelectionChange = prevSelectedTagRef.current !== selectionState.selectedTag;
+        if (selectedItemType !== ItemType.TAG && selectedItemType !== ItemType.PROPERTY) {
+            return;
+        }
 
-            // Update the ref for next comparison
-            prevSelectedTagRef.current = selectionState.selectedTag;
+        if (activeShortcutKey) {
+            prevSelectedDeferredPathRef.current = selectedPath;
+            return;
+        }
 
-            // Only scroll on actual tag selection changes
-            if (!isTagSelectionChange) return;
+        const suppressShortcutScroll = settings.skipAutoScroll && selectionState.revealSource === 'shortcut';
+        if (suppressShortcutScroll) {
+            prevSelectedDeferredPathRef.current = selectedPath;
+            return;
+        }
 
-            // During a hidden-items toggle, defer immediate tag scroll and queue a toggle-intent pending
-            if (prevShowHiddenItemsRef.current !== showHiddenItems) {
-                if (selectedPath) {
-                    pendingScrollRef.current = {
-                        path: selectedPath,
-                        align: 'auto',
-                        intent: 'visibilityToggle',
-                        minIndexVersion: indexVersionRef.current + 1,
-                        itemType: ItemType.TAG
-                    };
-                    setPendingScrollVersion(v => v + 1);
-                }
-                return;
-            }
+        const isSelectionChange = prevSelectedDeferredPathRef.current !== selectedPath;
+        prevSelectedDeferredPathRef.current = selectedPath;
+        if (!isSelectionChange) {
+            return;
+        }
 
-            const tagIndex = resolveIndex(selectionState.selectedTag, ItemType.TAG);
+        if (prevShowHiddenItemsRef.current !== showHiddenItems) {
+            pendingScrollRef.current = {
+                path: selectedPath,
+                align: 'auto',
+                intent: 'visibilityToggle',
+                minIndexVersion: indexVersionRef.current + 1,
+                itemType: selectedItemType
+            };
+            setPendingScrollVersion(v => v + 1);
+            return;
+        }
 
-            if (tagIndex !== undefined && tagIndex >= 0) {
-                scrollToIndexSafely(tagIndex, getNavAlign('selection'));
-            }
+        const index = resolveIndex(selectedPath, selectedItemType);
+
+        if (index !== undefined && index >= 0) {
+            scrollToIndexSafely(index, getNavAlign('selection'));
         }
     }, [
         pathToIndex,
-        selectionState.selectionType,
-        selectionState.selectedTag,
+        selectedItemType,
+        selectedPath,
         rowVirtualizer,
         isScrollContainerReady,
+        selectionState.isRevealOperation,
         showHiddenItems,
-        selectedPath,
         resolveIndex,
         activeShortcutKey,
         selectionState.revealSource,
@@ -592,7 +624,7 @@ export function useNavigationPaneScroll({
                 return;
             }
 
-            const targetType = selectionState.selectionType === ItemType.TAG ? ItemType.TAG : ItemType.FOLDER;
+            const targetType = selectedItemType ?? ItemType.FOLDER;
 
             if (rowVirtualizer && isScrollContainerReady) {
                 const index = resolveIndex(selectedPath, targetType);
@@ -619,7 +651,7 @@ export function useNavigationPaneScroll({
         isMobile,
         selectedPath,
         rowVirtualizer,
-        selectionState.selectionType,
+        selectedItemType,
         resolveIndex,
         activeShortcutKey,
         isScrollContainerReady,
@@ -653,7 +685,7 @@ export function useNavigationPaneScroll({
 
         if (settingsChanged) {
             if (selectedPath && isScrollContainerReady && rowVirtualizer) {
-                const index = resolveIndex(selectedPath, selectionState.selectionType === ItemType.TAG ? ItemType.TAG : ItemType.FOLDER);
+                const index = resolveIndex(selectedPath, selectedItemType ?? ItemType.FOLDER);
                 if (index !== undefined && index >= 0) {
                     // Use requestAnimationFrame to ensure measurements are complete
                     requestAnimationFrame(() => {
@@ -672,7 +704,7 @@ export function useNavigationPaneScroll({
         isScrollContainerReady,
         rowVirtualizer,
         resolveIndex,
-        selectionState.selectionType,
+        selectedItemType,
         activeShortcutKey,
         scrollToIndexSafely
     ]);
@@ -703,7 +735,7 @@ export function useNavigationPaneScroll({
             return;
         }
 
-        const selectedType = selectionState.selectionType === ItemType.TAG ? ItemType.TAG : ItemType.FOLDER;
+        const selectedType = selectedItemType ?? ItemType.FOLDER;
         const index = resolveIndex(selectedPath, selectedType);
         if (index === undefined || index < 0) {
             return;
@@ -720,7 +752,7 @@ export function useNavigationPaneScroll({
         resolveIndex,
         scrollToIndexSafely,
         selectedPath,
-        selectionState.selectionType
+        selectedItemType
     ]);
 
     /**
@@ -729,22 +761,35 @@ export function useNavigationPaneScroll({
      */
     useEffect(() => {
         if (prevShowHiddenItemsRef.current !== showHiddenItems) {
-            // When showHiddenItems changes and we have a selected tag, defer scrolling until the tree rebuilds
-            if (selectedPath && selectionState.selectionType === ItemType.TAG && isScrollContainerReady && rowVirtualizer) {
+            // When showHiddenItems changes and we have a selected tag/property item, defer scrolling until the tree rebuilds
+            if (
+                selectedPath &&
+                (selectionState.selectionType === ItemType.TAG || selectionState.selectionType === ItemType.PROPERTY) &&
+                isScrollContainerReady &&
+                rowVirtualizer
+            ) {
                 // Set a pending scroll to be processed after the next index rebuild
                 pendingScrollRef.current = {
                     path: selectedPath,
                     align: 'auto',
                     intent: 'visibilityToggle',
                     minIndexVersion: indexVersionRef.current + 1,
-                    itemType: ItemType.TAG
+                    itemType: selectedItemType ?? ItemType.FOLDER
                 };
                 setPendingScrollVersion(v => v + 1);
             }
 
             prevShowHiddenItemsRef.current = showHiddenItems;
         }
-    }, [showHiddenItems, selectedPath, isScrollContainerReady, rowVirtualizer, selectionState.selectionType, selectionState.selectedTag]);
+    }, [
+        selectedItemType,
+        showHiddenItems,
+        selectedPath,
+        isScrollContainerReady,
+        rowVirtualizer,
+        selectionState.selectionType,
+        selectionState.selectedTag
+    ]);
 
     return {
         rowVirtualizer,

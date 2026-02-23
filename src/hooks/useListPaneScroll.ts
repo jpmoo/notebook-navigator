@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,10 +53,11 @@ import { ListPaneItemType, OVERSCAN } from '../types';
 import { Align, ListScrollIntent, getListAlign, rankListPending } from '../types/scroll';
 import type { ListPaneItem } from '../types/virtualization';
 import type { NotebookNavigatorSettings } from '../settings';
-import type { CustomPropertyType } from '../settings/types';
+import type { NotePropertyType } from '../settings/types';
 import type { SelectionState } from '../context/SelectionContext';
 import { calculateCompactListMetrics } from '../utils/listPaneMetrics';
-import { getCustomPropertyRowCount, getListPaneMeasurements, shouldShowFeatureImageArea } from '../utils/listPaneMeasurements';
+import { getPropertyRowCount, getListPaneMeasurements, shouldShowFeatureImageArea } from '../utils/listPaneMeasurements';
+import type { PropertySelectionNodeId } from '../utils/propertyTree';
 
 /**
  * Parameters for the useListPaneScroll hook
@@ -72,13 +73,15 @@ interface UseListPaneScrollParams {
     selectedFolder: TFolder | null;
     /** Currently selected tag */
     selectedTag: string | null;
+    /** Currently selected property */
+    selectedProperty: PropertySelectionNodeId | null;
     /** Plugin settings */
     settings: NotebookNavigatorSettings;
     /** Effective settings for the current folder */
     folderSettings: {
         titleRows: number;
         previewRows: number;
-        customPropertyType: CustomPropertyType;
+        notePropertyType: NotePropertyType;
         showDate: boolean;
         showPreview: boolean;
         showImage: boolean;
@@ -97,6 +100,10 @@ interface UseListPaneScrollParams {
     topSpacerHeight: number;
     /** Whether descendant notes should be shown */
     includeDescendantNotes: boolean;
+    /** Visible frontmatter property keys for file list rows (normalized keys) */
+    visiblePropertyKeys: ReadonlySet<string>;
+    /** Stable key signature for visible frontmatter property keys */
+    visiblePropertyKeySignature: string;
     /** Scroll margin used to offset the visible range and scrollToIndex alignment */
     scrollMargin?: number;
     /**
@@ -135,6 +142,7 @@ export function useListPaneScroll({
     selectedFile,
     selectedFolder,
     selectedTag,
+    selectedProperty,
     settings,
     folderSettings,
     isVisible,
@@ -144,6 +152,8 @@ export function useListPaneScroll({
     suppressSearchTopScrollRef,
     topSpacerHeight,
     includeDescendantNotes,
+    visiblePropertyKeys,
+    visiblePropertyKeySignature,
     scrollMargin = 0,
     scrollPaddingEnd = 0
 }: UseListPaneScrollParams): UseListPaneScrollResult {
@@ -278,25 +288,28 @@ export function useListPaneScroll({
                 featureImageStatus
             });
 
-            // Keep the height estimator aligned with FileItem custom property rendering.
-            // `getCustomPropertyRowCount` applies the same trimming rules and separate-row behavior.
-            const customPropertyRowCount = getCustomPropertyRowCount({
-                customPropertyType: folderSettings.customPropertyType,
-                showCustomPropertiesOnSeparateRows: settings.showCustomPropertiesOnSeparateRows,
-                showCustomPropertyInCompactMode: settings.showCustomPropertyInCompactMode,
+            // Keep the height estimator aligned with FileItem property rendering.
+            // `getPropertyRowCount` applies the same trimming rules and separate-row behavior.
+            const propertyRowCount = getPropertyRowCount({
+                notePropertyType: folderSettings.notePropertyType,
+                showFileProperties: settings.showFileProperties,
+                showPropertiesOnSeparateRows: settings.showPropertiesOnSeparateRows,
+                showFilePropertiesInCompactMode: settings.showFilePropertiesInCompactMode,
                 isCompactMode,
                 file,
                 wordCount: fileRecord?.wordCount ?? undefined,
-                customProperty: fileRecord?.customProperty ?? undefined
+                properties: fileRecord?.properties ?? undefined,
+                visiblePropertyKeys
             });
 
-            const hasVisiblePillRows = hasTagRow || customPropertyRowCount > 0;
+            const hasVisiblePillRows = hasTagRow || propertyRowCount > 0;
             const shouldSuppressEmptyPreviewLines = !hasPreviewContent && hasVisiblePillRows;
 
             // Note: Preview rows are calculated differently based on context
 
             // Layout decision variables (matching FileItem.tsx logic)
             const pinnedItemShouldUseCompactLayout = item.isPinned && heightOptimizationEnabled; // Pinned items get compact treatment only when optimizing
+            const shouldShowDateForItem = folderSettings.showDate && !pinnedItemShouldUseCompactLayout;
             const shouldUseSingleLineForDateAndPreview = pinnedItemShouldUseCompactLayout || folderSettings.previewRows < 2;
             const shouldUseMultiLinePreviewLayout = !pinnedItemShouldUseCompactLayout && folderSettings.previewRows >= 2;
             const shouldCollapseEmptyPreviewSpace = heightOptimizationEnabled && !hasPreviewContent && !showFeatureImageArea; // Optimization: compact layout for empty preview
@@ -316,7 +329,7 @@ export function useListPaneScroll({
                 // Pinned items are treated as single row mode when optimization is enabled (unless using full height)
                 if (shouldUseSingleLineForDateAndPreview) {
                     // Date and preview share one line
-                    if (folderSettings.showDate || (folderSettings.showPreview && !shouldSuppressEmptyPreviewLines)) {
+                    if (shouldShowDateForItem || (folderSettings.showPreview && !shouldSuppressEmptyPreviewLines)) {
                         textContentHeight += heights.singleTextLineHeight;
                     }
 
@@ -376,9 +389,9 @@ export function useListPaneScroll({
                 textContentHeight += heights.tagRowHeight;
             }
 
-            if (customPropertyRowCount > 0) {
+            if (propertyRowCount > 0) {
                 // `tagRowHeight` mirrors the combined CSS row height + margin-top gap for pill rows.
-                textContentHeight += heights.tagRowHeight * customPropertyRowCount;
+                textContentHeight += heights.tagRowHeight * propertyRowCount;
             }
 
             // Apply min-height constraint AFTER including all content (but not in compact mode)
@@ -669,7 +682,7 @@ export function useListPaneScroll({
                     change.changes.featureImageKey !== undefined ||
                     change.changes.featureImageStatus !== undefined ||
                     change.changes.metadata !== undefined ||
-                    change.changes.customProperty !== undefined
+                    change.changes.properties !== undefined
                 ) {
                     return true;
                 }
@@ -733,8 +746,10 @@ export function useListPaneScroll({
         settings.showFeatureImage,
         settings.fileNameRows,
         settings.previewRows,
-        settings.showCustomPropertiesOnSeparateRows,
-        settings.showCustomPropertyInCompactMode,
+        settings.showFileProperties,
+        settings.showPropertiesOnSeparateRows,
+        settings.showFilePropertiesInCompactMode,
+        visiblePropertyKeySignature,
         settings.showParentFolder,
         settings.showTags,
         settings.showFileTags,
@@ -784,7 +799,7 @@ export function useListPaneScroll({
         }
 
         // Build a key from the config values that should trigger scroll preservation
-        const configKey = `${includeDescendantNotes}-${settings.optimizeNoteHeight}-${settings.noteGrouping}-${effectiveSort}-${settings.propertySortKey}-${JSON.stringify(
+        const configKey = `${includeDescendantNotes}-${settings.optimizeNoteHeight}-${settings.noteGrouping}-${effectiveSort}-${settings.propertySortKey}-${settings.propertySortSecondary}-${JSON.stringify(
             folderSettings
         )}`;
 
@@ -825,6 +840,7 @@ export function useListPaneScroll({
         settings.optimizeNoteHeight,
         settings.noteGrouping,
         settings.propertySortKey,
+        settings.propertySortSecondary,
         folderSettings,
         effectiveSort,
         setPending
@@ -837,7 +853,8 @@ export function useListPaneScroll({
     useEffect(() => {
         if (!rowVirtualizer || !isScrollContainerReady) return;
 
-        const contextKey = `${selectedFolder?.path || ''}_${selectedTag || ''}`;
+        const propertySelectionKey = selectedProperty ?? '';
+        const contextKey = `${selectedFolder?.path || ''}_${selectedTag || ''}_${propertySelectionKey}`;
         const prev = contextIndexVersionRef.current;
 
         // Initialize on first run or when context changes
@@ -866,6 +883,7 @@ export function useListPaneScroll({
         isScrollContainerReady,
         selectedFolder?.path,
         selectedTag,
+        selectedProperty,
         filePathToIndex,
         filePathToIndex.size,
         selectedFile,
@@ -885,7 +903,8 @@ export function useListPaneScroll({
         }
 
         // Create a key representing the current list context
-        const currentListKey = `${selectedFolder?.path || ''}_${selectedTag || ''}`;
+        const propertySelectionKey = selectedProperty ?? '';
+        const currentListKey = `${selectedFolder?.path || ''}_${selectedTag || ''}_${propertySelectionKey}`;
         const listChanged = prevListKeyRef.current !== currentListKey;
 
         if (listChanged) {
@@ -986,6 +1005,7 @@ export function useListPaneScroll({
         rowVirtualizer,
         selectedFolder?.path,
         selectedTag,
+        selectedProperty,
         selectedFile,
         selectionState.isFolderNavigation,
         selectionDispatch,

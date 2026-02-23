@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import type { NotebookNavigatorSettings } from '../../src/settings/types';
 import type { FileData } from '../../src/storage/IndexedDBStorage';
 import { deriveFileMetadata } from '../utils/pathMetadata';
+import { setActivePropertyFields } from '../../src/utils/vaultProfiles';
 
 class TestMarkdownPipelineContentProvider extends MarkdownPipelineContentProvider {
     async runWordCount(file: TFile, settings: NotebookNavigatorSettings): Promise<number | null> {
@@ -35,14 +36,19 @@ class TestMarkdownPipelineContentProvider extends MarkdownPipelineContentProvide
     }
 }
 
-function createSettings(overrides?: Partial<NotebookNavigatorSettings>): NotebookNavigatorSettings {
-    return {
-        ...DEFAULT_SETTINGS,
-        showFilePreview: false,
-        showFeatureImage: false,
-        customPropertyType: 'wordCount',
-        ...overrides
-    };
+function createSettings(overrides?: Partial<NotebookNavigatorSettings> & { propertyFields?: string }): NotebookNavigatorSettings {
+    const { propertyFields, ...settingsOverrides } = overrides ?? {};
+    const settings = structuredClone(DEFAULT_SETTINGS);
+    settings.showFilePreview = false;
+    settings.showFeatureImage = false;
+    settings.notePropertyType = 'wordCount';
+    Object.assign(settings, settingsOverrides);
+
+    if (typeof propertyFields === 'string') {
+        setActivePropertyFields(settings, propertyFields);
+    }
+
+    return settings;
 }
 
 function createApp() {
@@ -126,7 +132,9 @@ function createFileData(overrides: Partial<FileData>): FileData {
         fileThumbnailsMtime: 0,
         tags: null,
         wordCount: null,
-        customProperty: null,
+        taskTotal: 0,
+        taskUnfinished: 0,
+        properties: null,
         previewStatus: 'unprocessed',
         featureImage: null,
         featureImageStatus: 'unprocessed',
@@ -154,8 +162,7 @@ describe('MarkdownPipelineContentProvider word count', () => {
         const settings = createSettings({
             showFilePreview: true,
             showFeatureImage: false,
-            customPropertyFields: '',
-            customPropertyColorMap: {}
+            propertyFields: ''
         });
         const provider = new TestMarkdownPipelineContentProvider(context.app);
         const file = createFile('notes/note.md');
@@ -184,8 +191,7 @@ describe('MarkdownPipelineContentProvider word count', () => {
         const settings = createSettings({
             showFilePreview: true,
             showFeatureImage: false,
-            customPropertyFields: '',
-            customPropertyColorMap: {}
+            propertyFields: ''
         });
         const provider = new TestMarkdownPipelineContentProvider(context.app);
         const file = createFile('notes/note.md');

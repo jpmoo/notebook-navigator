@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,13 @@ type InlineExternalLinkTextParams = Readonly<{
     suffix: string;
 }>;
 
+type InlineActionLinkTextParams = Readonly<{
+    prefix: string;
+    linkText: string;
+    suffix: string;
+    onClick: () => void;
+}>;
+
 function createExternalLinkElement({ href, text }: ExternalLinkConfig): HTMLAnchorElement {
     const linkEl = document.createElement('a');
     linkEl.textContent = text;
@@ -51,5 +58,18 @@ export function createSettingDescriptionWithExternalLink(params: ExternalLinkSet
 export function createInlineExternalLinkText(params: InlineExternalLinkTextParams): DocumentFragment {
     const fragment = document.createDocumentFragment();
     fragment.append(params.prefix, createExternalLinkElement(params.link), params.suffix);
+    return fragment;
+}
+
+export function createInlineActionLinkText(params: InlineActionLinkTextParams): DocumentFragment {
+    const fragment = document.createDocumentFragment();
+    const linkEl = document.createElement('a');
+    linkEl.textContent = params.linkText;
+    linkEl.href = '#';
+    linkEl.addEventListener('click', event => {
+        event.preventDefault();
+        params.onClick();
+    });
+    fragment.append(params.prefix, linkEl, params.suffix);
     return fragment;
 }

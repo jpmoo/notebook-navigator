@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -111,6 +111,21 @@ function isPdfExtension(extension: string): boolean {
     return extension.toLowerCase() === 'pdf';
 }
 
+function isPrimaryDocumentExtension(extension: string): boolean {
+    if (!extension) {
+        return false;
+    }
+    const normalized = extension.toLowerCase();
+    return normalized === 'md' || normalized === 'canvas' || normalized === 'base';
+}
+
+export function isPrimaryDocumentFile(file: TFile): boolean {
+    if (!file?.extension) {
+        return false;
+    }
+    return isPrimaryDocumentExtension(file.extension);
+}
+
 /**
  * Check if a file should be displayed based on the visibility setting
  */
@@ -123,7 +138,7 @@ export function shouldDisplayFile(file: TFile, visibility: FileVisibility, app: 
     switch (visibility) {
         case FILE_VISIBILITY.DOCUMENTS:
             // Primary document types in Obsidian
-            return file.extension === 'md' || file.extension === 'canvas' || file.extension === 'base';
+            return isPrimaryDocumentFile(file);
 
         case FILE_VISIBILITY.SUPPORTED: {
             const extensions = getSupportedExtensions(app);
@@ -135,7 +150,7 @@ export function shouldDisplayFile(file: TFile, visibility: FileVisibility, app: 
 
         default:
             // Default to documents for safety
-            return file.extension === 'md' || file.extension === 'canvas' || file.extension === 'base';
+            return isPrimaryDocumentFile(file);
     }
 }
 
@@ -173,8 +188,7 @@ export function isMarkdownPath(path: string): boolean {
  */
 export function shouldShowExtensionSuffix(file: TFile): boolean {
     if (!file || !file.extension) return false;
-    const extension = file.extension.toLowerCase();
-    return !(extension === 'md' || extension === 'canvas' || extension === 'base');
+    return !isPrimaryDocumentFile(file);
 }
 
 /**

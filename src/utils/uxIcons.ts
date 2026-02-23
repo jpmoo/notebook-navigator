@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,8 +35,11 @@ export type UXIconId =
     | 'nav-tree-collapse'
     | 'nav-folder-open'
     | 'nav-folder-closed'
-    | 'nav-folder-note'
+    | 'nav-tags'
     | 'nav-tag'
+    | 'nav-properties'
+    | 'nav-property'
+    | 'nav-property-value'
     | 'list-search'
     | 'list-descendants'
     | 'list-sort-ascending'
@@ -44,8 +47,8 @@ export type UXIconId =
     | 'list-appearance'
     | 'list-new-note'
     | 'list-pinned'
-    | 'file-word-count'
-    | 'file-custom-property';
+    | 'file-unfinished-task'
+    | 'file-word-count';
 
 export type UXIconCategory = 'navigationPane' | 'listPane' | 'fileItems';
 
@@ -71,8 +74,11 @@ export const UX_ICON_DEFINITIONS: UXIconDefinition[] = [
     { id: 'nav-tree-collapse', category: 'navigationPane', defaultIconId: 'chevron-down' },
     { id: 'nav-folder-open', category: 'navigationPane', defaultIconId: 'folder-open' },
     { id: 'nav-folder-closed', category: 'navigationPane', defaultIconId: 'folder-closed' },
-    { id: 'nav-folder-note', category: 'navigationPane', defaultIconId: 'file-text' },
-    { id: 'nav-tag', category: 'navigationPane', defaultIconId: 'tags' },
+    { id: 'nav-tags', category: 'navigationPane', defaultIconId: 'tags' },
+    { id: 'nav-tag', category: 'navigationPane', defaultIconId: 'tag' },
+    { id: 'nav-properties', category: 'navigationPane', defaultIconId: 'file-code' },
+    { id: 'nav-property', category: 'navigationPane', defaultIconId: 'align-left' },
+    { id: 'nav-property-value', category: 'navigationPane', defaultIconId: 'equal' },
     { id: 'list-search', category: 'listPane', defaultIconId: 'search' },
     { id: 'list-descendants', category: 'listPane', defaultIconId: 'layers' },
     { id: 'list-sort-ascending', category: 'listPane', defaultIconId: 'sort-asc' },
@@ -80,8 +86,8 @@ export const UX_ICON_DEFINITIONS: UXIconDefinition[] = [
     { id: 'list-appearance', category: 'listPane', defaultIconId: 'palette' },
     { id: 'list-new-note', category: 'listPane', defaultIconId: 'pen-box' },
     { id: 'list-pinned', category: 'listPane', defaultIconId: 'pin' },
-    { id: 'file-word-count', category: 'fileItems', defaultIconId: 'case-sensitive' },
-    { id: 'file-custom-property', category: 'fileItems', defaultIconId: 'align-left' }
+    { id: 'file-unfinished-task', category: 'fileItems', defaultIconId: 'circle-alert' },
+    { id: 'file-word-count', category: 'fileItems', defaultIconId: 'sigma' }
 ];
 
 const UX_ICON_ID_SET: ReadonlySet<string> = new Set(UX_ICON_DEFINITIONS.map(definition => definition.id));

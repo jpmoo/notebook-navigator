@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ import { useSettingsState, useSettingsUpdate } from '../context/SettingsContext'
 import { useUXPreferenceActions, useUXPreferences } from '../context/UXPreferencesContext';
 import { strings } from '../i18n';
 import type { SortOption } from '../settings';
-import { ItemType } from '../types';
+import { ItemType, PROPERTIES_ROOT_VIRTUAL_FOLDER_ID, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
 import { getEffectiveSortOption, getSortIcon as getSortIconName, isPropertySortOption, SORT_OPTIONS } from '../utils/sortUtils';
 import { showListPaneAppearanceMenu } from '../components/ListPaneAppearanceMenu';
 import { getDefaultListMode } from './useListPaneAppearance';
@@ -54,15 +54,46 @@ export function useListActions() {
     const selectionDispatch = useSelectionDispatch();
     const fileSystemOps = useFileSystemOps();
     const metadataService = useMetadataService();
-    const handleNewFile = useCallback(async () => {
-        if (!selectionState.selectedFolder) return;
+    const hasFolderSelection = selectionState.selectionType === ItemType.FOLDER && Boolean(selectionState.selectedFolder);
+    const hasTagSelection = selectionState.selectionType === ItemType.TAG && Boolean(selectionState.selectedTag);
+    const hasCreatableTagSelection =
+        hasTagSelection && selectionState.selectedTag !== TAGGED_TAG_ID && selectionState.selectedTag !== UNTAGGED_TAG_ID;
+    const hasPropertySelection = selectionState.selectionType === ItemType.PROPERTY && Boolean(selectionState.selectedProperty);
+    const hasCreatablePropertySelection = hasPropertySelection && selectionState.selectedProperty !== PROPERTIES_ROOT_VIRTUAL_FOLDER_ID;
+    const hasFolderOrTagSelection = hasFolderSelection || hasTagSelection;
+    const canCreateNewFile = Boolean(selectionState.selectedFolder) || hasCreatableTagSelection || hasCreatablePropertySelection;
 
+    const handleNewFile = useCallback(async () => {
         try {
-            await fileSystemOps.createNewFile(selectionState.selectedFolder);
+            if (selectionState.selectedFolder) {
+                await fileSystemOps.createNewFile(selectionState.selectedFolder, settings.createNewNotesInNewTab);
+                return;
+            }
+
+            if (hasCreatableTagSelection && selectionState.selectedTag) {
+                const sourcePath = selectionState.selectedFile?.path ?? app.workspace.getActiveFile()?.path ?? '';
+                await fileSystemOps.createNewFileForTag(selectionState.selectedTag, sourcePath, settings.createNewNotesInNewTab);
+                return;
+            }
+
+            if (hasCreatablePropertySelection && selectionState.selectedProperty) {
+                const sourcePath = selectionState.selectedFile?.path ?? app.workspace.getActiveFile()?.path ?? '';
+                await fileSystemOps.createNewFileForProperty(selectionState.selectedProperty, sourcePath, settings.createNewNotesInNewTab);
+            }
         } catch {
             // Error is handled by FileSystemOperations with user notification
         }
-    }, [selectionState.selectedFolder, fileSystemOps]);
+    }, [
+        selectionState.selectedFolder,
+        selectionState.selectedTag,
+        selectionState.selectedProperty,
+        selectionState.selectedFile,
+        hasCreatableTagSelection,
+        hasCreatablePropertySelection,
+        settings.createNewNotesInNewTab,
+        fileSystemOps,
+        app
+    ]);
 
     const getCurrentSortOption = useCallback((): SortOption => {
         return getEffectiveSortOption(settings, selectionState.selectionType, selectionState.selectedFolder, selectionState.selectedTag);
@@ -74,6 +105,10 @@ export function useListActions() {
 
     const handleAppearanceMenu = useCallback(
         (event: React.MouseEvent) => {
+            if (!hasFolderOrTagSelection) {
+                return;
+            }
+
             showListPaneAppearanceMenu({
                 event: event.nativeEvent,
                 settings,
@@ -83,11 +118,22 @@ export function useListActions() {
                 updateSettings
             });
         },
-        [settings, selectionState.selectedFolder, selectionState.selectedTag, selectionState.selectionType, updateSettings]
+        [
+            hasFolderOrTagSelection,
+            settings,
+            selectionState.selectedFolder,
+            selectionState.selectedTag,
+            selectionState.selectionType,
+            updateSettings
+        ]
     );
 
     const handleSortMenu = useCallback(
         (event: React.MouseEvent) => {
+            if (!hasFolderOrTagSelection) {
+                return;
+            }
+
             const menu = new Menu();
             const currentSort = getCurrentSortOption();
             const propertySortKey = settings.propertySortKey.trim();
@@ -104,12 +150,10 @@ export function useListActions() {
             };
 
             const isCustomSort =
-                (selectionState.selectionType === ItemType.FOLDER &&
+                (hasFolderSelection &&
                     selectionState.selectedFolder &&
                     metadataService.getFolderSortOverride(selectionState.selectedFolder.path)) ||
-                (selectionState.selectionType === ItemType.TAG &&
-                    selectionState.selectedTag &&
-                    metadataService.getTagSortOverride(selectionState.selectedTag));
+                (hasTagSelection && selectionState.selectedTag && metadataService.getTagSortOverride(selectionState.selectedTag));
 
             menu.addItem(item => {
                 item.setTitle(`${strings.paneHeader.defaultSort}: ${getSortOptionLabel(settings.defaultFolderSort)}`)
@@ -147,10 +191,6 @@ export function useListActions() {
                                     await metadataService.setFolderSortOverride(selectionState.selectedFolder.path, option);
                                 } else if (selectionState.selectionType === ItemType.TAG && selectionState.selectedTag) {
                                     await metadataService.setTagSortOverride(selectionState.selectedTag, option);
-                                } else {
-                                    await updateSettings(s => {
-                                        s.defaultFolderSort = option;
-                                    });
                                 }
                                 app.workspace.requestSaveLayout();
                             });
@@ -161,12 +201,14 @@ export function useListActions() {
             menu.showAtMouseEvent(event.nativeEvent);
         },
         [
+            hasFolderOrTagSelection,
+            hasFolderSelection,
+            hasTagSelection,
             selectionState.selectionType,
             selectionState.selectedFolder,
             selectionState.selectedTag,
             app,
             getCurrentSortOption,
-            updateSettings,
             metadataService,
             settings
         ]
@@ -178,13 +220,13 @@ export function useListActions() {
      */
     const handleToggleDescendants = useCallback(() => {
         const wasShowingDescendants = includeDescendantNotes;
+        const activeFile = app.workspace.getActiveFile();
 
         // Toggle descendant notes preference using UX action
         setIncludeDescendantNotes(!wasShowingDescendants);
 
         // Special case: When enabling descendants, auto-select the active file if it's in the folder
         if (!wasShowingDescendants && selectionState.selectedFolder && !selectionState.selectedFile) {
-            const activeFile = app.workspace.getActiveFile();
             if (activeFile) {
                 // Check if the active file would be visible with descendants enabled
                 const filesInFolder = getFilesForFolder(
@@ -211,12 +253,10 @@ export function useListActions() {
     ]);
 
     const isCustomSort =
-        (selectionState.selectionType === ItemType.FOLDER &&
+        (hasFolderSelection &&
             selectionState.selectedFolder &&
             metadataService.getFolderSortOverride(selectionState.selectedFolder.path)) ||
-        (selectionState.selectionType === ItemType.TAG &&
-            selectionState.selectedTag &&
-            metadataService.getTagSortOverride(selectionState.selectedTag));
+        (hasTagSelection && selectionState.selectedTag && metadataService.getTagSortOverride(selectionState.selectedTag));
 
     const defaultMode = getDefaultListMode(settings);
     const hasMeaningfulOverrides = (appearance: FolderAppearance | undefined) => {
@@ -228,7 +268,7 @@ export function useListActions() {
         const otherOverrides =
             appearance.titleRows !== undefined ||
             appearance.previewRows !== undefined ||
-            appearance.customPropertyType !== undefined ||
+            appearance.notePropertyType !== undefined ||
             appearance.groupBy !== undefined;
 
         return hasModeOverride || otherOverrides;
@@ -236,8 +276,10 @@ export function useListActions() {
 
     // Check if folder or tag has custom appearance settings
     const hasCustomAppearance =
-        (selectionState.selectedFolder && hasMeaningfulOverrides(settings.folderAppearances?.[selectionState.selectedFolder.path])) ||
-        (selectionState.selectedTag && hasMeaningfulOverrides(settings.tagAppearances?.[selectionState.selectedTag]));
+        (hasFolderSelection &&
+            selectionState.selectedFolder &&
+            hasMeaningfulOverrides(settings.folderAppearances?.[selectionState.selectedFolder.path])) ||
+        (hasTagSelection && selectionState.selectedTag && hasMeaningfulOverrides(settings.tagAppearances?.[selectionState.selectedTag]));
 
     const activeFileVisibility = useMemo(() => {
         return findVaultProfileById(vaultProfiles, vaultProfileId).fileVisibility;
@@ -250,6 +292,10 @@ export function useListActions() {
             return showNotes ? strings.paneHeader.showNotesFromDescendants : strings.paneHeader.showFilesFromDescendants;
         }
 
+        if (selectionState.selectionType === ItemType.PROPERTY) {
+            return showNotes ? strings.paneHeader.showNotesFromDescendants : strings.paneHeader.showFilesFromDescendants;
+        }
+
         if (selectionState.selectionType === ItemType.FOLDER) {
             return showNotes ? strings.paneHeader.showNotesFromSubfolders : strings.paneHeader.showFilesFromSubfolders;
         }
@@ -259,6 +305,7 @@ export function useListActions() {
 
     return {
         handleNewFile,
+        canCreateNewFile,
         handleAppearanceMenu,
         handleSortMenu,
         handleToggleDescendants,

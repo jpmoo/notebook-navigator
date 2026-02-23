@@ -6,7 +6,7 @@
 
 /* Tag container */
 .nn-file-tags,
-.nn-file-custom-property-row {
+.nn-file-property-row {
     display: flex;
     flex-wrap: nowrap;
     gap: var(--nn-file-tag-row-gap);
@@ -19,58 +19,14 @@
     -ms-overflow-style: none;
 }
 
-.nn-file-pill-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: var(--nn-file-tag-row-gap);
-    height: var(--nn-file-tag-row-height);
-}
-
-.nn-file-pill-row .nn-file-tags,
-.nn-file-pill-row .nn-file-custom-property-row {
-    margin-top: 0;
-    flex: 1;
-    min-width: 0;
-}
-
-.nn-file-pill-row-icon {
-    width: 14px;
-    height: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.nn-file-pill-row-icon svg {
-    width: 14px;
-    height: 14px;
-}
-
-.nn-file-pill-row-tags .nn-file-pill-row-icon {
-    color: var(--nn-theme-file-tag-color);
-}
-
-.nn-file-pill-row-custom-property .nn-file-pill-row-icon {
-    color: var(--nn-theme-file-custom-property-color);
-}
-
-.nn-file.nn-selected .nn-file-pill-row-tags .nn-file-pill-row-icon {
-    color: var(--nn-selected-file-tag-color);
-}
-
-.nn-file.nn-selected .nn-file-pill-row-custom-property .nn-file-pill-row-icon {
-    color: var(--nn-selected-file-custom-property-color);
-}
-
 .nn-file-tags::-webkit-scrollbar,
-.nn-file-custom-property-row::-webkit-scrollbar {
+.nn-file-property-row::-webkit-scrollbar {
     display: none;
 }
 
 /* Individual tag pill */
 .nn-file-tag {
+    --nn-file-pill-border-color-resolved: var(--nn-theme-file-tag-border-color);
     display: inline-flex;
     align-items: center;
     height: 20px;
@@ -79,23 +35,41 @@
     background-color: var(--nn-theme-file-tag-bg);
     color: var(--nn-theme-file-tag-color);
     border-radius: min(10px, var(--nn-theme-file-tag-border-radius));
-    border: 1px solid transparent;
-    border-color: var(--nn-file-pill-border-color);
+    border-style: solid;
+    border-width: var(--nn-theme-file-pill-border-width);
+    border-color: var(--nn-file-pill-border-color-resolved);
     font-size: 12px;
     font-weight: var(--nn-theme-file-tag-font-weight);
     white-space: nowrap;
     flex-shrink: 0;
 }
 
-.nn-file-tag[data-has-color='true'],
-.nn-file-tag[data-has-background='true'] {
-    --nn-file-pill-border-color: color-mix(in srgb, currentColor 30%, transparent);
+.nn-file-pill-inline-icon {
+    width: 12px;
+    height: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 4px;
+    color: currentColor;
+    flex-shrink: 0;
 }
 
-.nn-file-custom-property {
-    background-color: var(--nn-theme-file-custom-property-bg);
-    color: var(--nn-theme-file-custom-property-color);
-    border-radius: min(10px, var(--nn-theme-file-custom-property-border-radius));
+.nn-file-pill-inline-icon svg {
+    width: 12px;
+    height: 12px;
+}
+
+.nn-file-tag[data-has-color='true'],
+.nn-file-tag[data-has-background='true'] {
+    --nn-file-pill-border-color-resolved: color-mix(in srgb, currentColor 30%, transparent);
+}
+
+.nn-file-property {
+    --nn-file-pill-border-color-resolved: var(--nn-theme-file-property-border-color);
+    background-color: var(--nn-theme-file-property-bg);
+    color: var(--nn-theme-file-property-color);
+    border-radius: min(10px, var(--nn-theme-file-property-border-radius));
 }
 
 .nn-file-tag[data-has-background='true'] {
@@ -126,8 +100,8 @@
     cursor: pointer;
 }
 
-/* Custom property wiki links show underline */
-.nn-file-tag.nn-file-custom-property.nn-clickable-tag {
+/* Underline property pills that render wiki-link values */
+.nn-file-tag.nn-file-property.nn-file-property-wikilink {
     text-decoration: underline;
     text-underline-offset: 2px;
 }
@@ -138,14 +112,16 @@
 }
 
 /* Selected file tag styles - only for tags without custom colors */
-.nn-file.nn-selected .nn-file-tag:not(.nn-file-custom-property):not([data-has-color='true']):not([data-has-background='true']) {
+.nn-file.nn-selected .nn-file-tag:not(.nn-file-property):not([data-has-color='true']):not([data-has-background='true']) {
+    --nn-file-pill-border-color-resolved: var(--nn-theme-file-selected-tag-border-color);
     background-color: var(--nn-selected-file-tag-bg);
     color: var(--nn-selected-file-tag-color);
 }
 
-.nn-file.nn-selected .nn-file-tag.nn-file-custom-property:not([data-has-color='true']):not([data-has-background='true']) {
-    background-color: var(--nn-selected-file-custom-property-bg);
-    color: var(--nn-selected-file-custom-property-color);
+.nn-file.nn-selected .nn-file-tag.nn-file-property:not([data-has-color='true']):not([data-has-background='true']) {
+    --nn-file-pill-border-color-resolved: var(--nn-theme-file-selected-property-border-color);
+    background-color: var(--nn-selected-file-property-bg);
+    color: var(--nn-selected-file-property-color);
 }
 
 /* Selected file text colors */

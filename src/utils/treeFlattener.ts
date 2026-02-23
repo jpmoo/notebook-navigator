@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,9 +17,9 @@
  */
 
 import { TFolder } from 'obsidian';
-import { naturalCompare } from './sortUtils';
+import { compareByAlphaSortOrder, naturalCompare, resolveFolderChildSortOrder } from './sortUtils';
 import { NavigationPaneItemType } from '../types';
-import { TagTreeNode } from '../types/storage';
+import { PropertyTreeNode, TagTreeNode } from '../types/storage';
 import type { FolderTreeItem, TagTreeItem } from '../types/virtualization';
 import { isFolderInExcludedFolder } from './fileFilters';
 import { matchesHiddenTagPattern, HiddenTagMatcher } from './tagPrefixMatcher';
@@ -43,11 +43,6 @@ interface FlattenTagTreeOptions {
     comparator?: (a: TagTreeNode, b: TagTreeNode) => number;
     /** Per-tag child sort order overrides */
     childSortOrderOverrides?: Record<string, AlphaSortOrder>;
-}
-
-function compareAlpha(a: string, b: string, order: AlphaSortOrder): number {
-    const cmp = naturalCompare(a, b);
-    return order === 'alpha-desc' ? -cmp : cmp;
 }
 
 /**
@@ -111,6 +106,35 @@ export function compareTagOrderWithFallback(
 }
 
 /**
+ * Compares property key nodes using custom order map with fallback comparator or natural order.
+ * Returns negative if a comes before b, positive if b comes before a, 0 if equal.
+ */
+export function comparePropertyOrderWithFallback(
+    a: PropertyTreeNode,
+    b: PropertyTreeNode,
+    orderMap?: Map<string, number>,
+    fallback?: (first: PropertyTreeNode, second: PropertyTreeNode) => number
+): number {
+    if (!orderMap || orderMap.size === 0) {
+        return fallback ? fallback(a, b) : naturalCompare(a.name, b.name);
+    }
+
+    const orderA = orderMap.get(a.key);
+    const orderB = orderMap.get(b.key);
+
+    if (orderA !== undefined && orderB !== undefined) {
+        return orderA - orderB;
+    }
+    if (orderA !== undefined) {
+        return -1;
+    }
+    if (orderB !== undefined) {
+        return 1;
+    }
+    return fallback ? fallback(a, b) : naturalCompare(a.name, b.name);
+}
+
+/**
  * Flattens a folder tree into a linear array for virtualization.
  * Only includes folders that are visible based on the expanded state.
  *
@@ -131,16 +155,17 @@ export function flattenFolderTree(
     const items: FolderTreeItem[] = [];
     const { rootOrderMap, childSortOrderOverrides } = options;
     const defaultSortOrder = options.defaultSortOrder ?? 'alpha-asc';
+    const childSortOrderSettings = {
+        folderSortOrder: defaultSortOrder,
+        folderTreeSortOverrides: childSortOrderOverrides
+    };
 
     const getEffectiveChildSortOrder = (folderPath: string): AlphaSortOrder => {
-        if (childSortOrderOverrides && Object.prototype.hasOwnProperty.call(childSortOrderOverrides, folderPath)) {
-            return childSortOrderOverrides[folderPath] ?? defaultSortOrder;
-        }
-        return defaultSortOrder;
+        return resolveFolderChildSortOrder(childSortOrderSettings, folderPath);
     };
 
     const compareFolderNames = (order: AlphaSortOrder) => (a: TFolder, b: TFolder) => {
-        const cmp = compareAlpha(a.name, b.name, order);
+        const cmp = compareByAlphaSortOrder(a.name, b.name, order);
         if (cmp !== 0) {
             return cmp;
         }
@@ -227,7 +252,7 @@ export function flattenTagTree(
     const sortedNodes = tagNodes.slice().sort(sortFn);
 
     const compareAlphaNodes = (order: AlphaSortOrder) => (a: TagTreeNode, b: TagTreeNode) => {
-        const cmp = compareAlpha(a.name, b.name, order);
+        const cmp = compareByAlphaSortOrder(a.name, b.name, order);
         if (cmp !== 0) {
             return cmp;
         }

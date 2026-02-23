@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import { describe, expect, it } from 'vitest';
-import { ensureRecord, sanitizeRecord, isStringRecordValue } from '../../src/utils/recordUtils';
+import {
+    clonePinnedNotesRecord,
+    ensureRecord,
+    isStringRecordValue,
+    normalizePinnedNoteContext,
+    sanitizeRecord
+} from '../../src/utils/recordUtils';
 
 describe('sanitizeRecord', () => {
     it('returns a null-prototype object while preserving own entries', () => {
@@ -76,5 +82,36 @@ describe('ensureRecord', () => {
 
         expect(ensured).toEqual({ valid: 'ok' });
         expect(Object.prototype.hasOwnProperty.call(ensured, 'invalid')).toBe(false);
+    });
+});
+
+describe('pinned note record helpers', () => {
+    it('normalizes malformed pinned context values to strict booleans', () => {
+        expect(normalizePinnedNoteContext('invalid')).toEqual({ folder: false, tag: false, property: false });
+        expect(normalizePinnedNoteContext({ folder: true, tag: 'yes', property: 1 })).toEqual({
+            folder: true,
+            tag: false,
+            property: false
+        });
+        expect(normalizePinnedNoteContext({ folder: true, tag: true })).toEqual({
+            folder: true,
+            tag: true,
+            property: true
+        });
+    });
+
+    it('clones pinned note records into null-prototype objects with normalized contexts', () => {
+        const cloned = clonePinnedNotesRecord({
+            'a.md': { folder: true, tag: false, property: false },
+            'b.md': { folder: 'true' },
+            'c.md': null,
+            'd.md': { folder: true, tag: true }
+        });
+
+        expect(Object.getPrototypeOf(cloned)).toBeNull();
+        expect(cloned['a.md']).toEqual({ folder: true, tag: false, property: false });
+        expect(cloned['b.md']).toEqual({ folder: false, tag: false, property: false });
+        expect(cloned['c.md']).toEqual({ folder: false, tag: false, property: false });
+        expect(cloned['d.md']).toEqual({ folder: true, tag: true, property: true });
     });
 });

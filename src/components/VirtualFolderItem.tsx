@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,16 +47,33 @@ import React, { useRef, useEffect, useCallback, useMemo } from 'react';
 import type { DragEvent } from 'react';
 import { useSettingsState } from '../context/SettingsContext';
 import { getIconService, useIconServiceVersion } from '../services/icons';
-import { RECENT_NOTES_VIRTUAL_FOLDER_ID, SHORTCUTS_VIRTUAL_FOLDER_ID, VirtualFolder } from '../types';
+import {
+    PROPERTIES_ROOT_VIRTUAL_FOLDER_ID,
+    RECENT_NOTES_VIRTUAL_FOLDER_ID,
+    SHORTCUTS_VIRTUAL_FOLDER_ID,
+    TAGS_ROOT_VIRTUAL_FOLDER_ID,
+    VirtualFolder,
+    type CSSPropertiesWithVars
+} from '../types';
 import { useUXPreferences } from '../context/UXPreferencesContext';
 import type { NoteCountInfo } from '../types/noteCounts';
 import { buildNoteCountDisplay } from '../utils/noteCountFormatting';
 import { buildSearchMatchContentClass } from '../utils/searchHighlight';
 import { resolveUXIcon } from '../utils/uxIcons';
+import { IndentGuideColumns } from './IndentGuideColumns';
+import { NavItemHoverActionSlot } from './NavItemHoverActionSlot';
+
+export interface VirtualFolderTrailingAction {
+    actionLabel: string;
+    icon: string;
+    onClick: () => void;
+    labelMode?: 'note-count';
+}
 
 interface VirtualFolderItemProps {
     virtualFolder: VirtualFolder; // Static data structure from NavigationPane
     level: number; // Nesting level for indentation
+    indentGuideLevels?: number[]; // Levels of expanded ancestors whose connector lines should be rendered on this row
     isExpanded: boolean; // From ExpansionContext via NavigationPane
     hasChildren: boolean; // Computed by NavigationPane from tag tree
     onToggle: () => void; // Expansion toggle handler
@@ -65,7 +82,7 @@ interface VirtualFolderItemProps {
     showFileCount?: boolean; // Whether to render note count badge
     countInfo?: NoteCountInfo; // Pre-computed note counts
     searchMatch?: 'include' | 'exclude'; // Search highlight state
-    trailingAccessory?: React.ReactNode; // Optional trailing action, rendered after spacer
+    trailingAction?: VirtualFolderTrailingAction; // Optional trailing action button
     onDragOver?: (event: DragEvent<HTMLDivElement>) => void; // Optional drag over handler for shortcuts
     onDrop?: (event: DragEvent<HTMLDivElement>) => void; // Optional drop handler for shortcuts
     onDragLeave?: (event: DragEvent<HTMLDivElement>) => void; // Optional drag leave handler for shortcuts
@@ -97,6 +114,7 @@ interface VirtualFolderItemProps {
 export const VirtualFolderComponent = React.memo(function VirtualFolderComponent({
     virtualFolder,
     level,
+    indentGuideLevels,
     isExpanded,
     hasChildren,
     onSelect,
@@ -104,7 +122,7 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
     showFileCount = false,
     countInfo,
     searchMatch,
-    trailingAccessory,
+    trailingAction,
     onToggle,
     onDragOver,
     onDrop,
@@ -137,17 +155,42 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
         if (!noteCountDisplay) {
             return false;
         }
-        if (virtualFolder.id === 'tags-root' && !includeDescendantNotes) {
+        if (
+            (virtualFolder.id === TAGS_ROOT_VIRTUAL_FOLDER_ID || virtualFolder.id === PROPERTIES_ROOT_VIRTUAL_FOLDER_ID) &&
+            !includeDescendantNotes
+        ) {
             return false;
         }
         return noteCountDisplay.shouldDisplay;
     }, [includeDescendantNotes, noteCountDisplay, showFileCount, virtualFolder.id]);
+
+    const trailingActionLabelMode = trailingAction?.labelMode;
+
+    const trailingActionLabel = useMemo(() => {
+        if (trailingActionLabelMode !== 'note-count') {
+            return undefined;
+        }
+        if (!shouldDisplayCount || !noteCountDisplay) {
+            return undefined;
+        }
+        return noteCountDisplay.label;
+    }, [noteCountDisplay, shouldDisplayCount, trailingActionLabelMode]);
+
+    const shouldRenderCountBadge = useMemo(() => {
+        if (!shouldDisplayCount || !noteCountDisplay) {
+            return false;
+        }
+        return trailingActionLabelMode !== 'note-count';
+    }, [noteCountDisplay, shouldDisplayCount, trailingActionLabelMode]);
 
     // Build CSS class name with selection state
     const className = useMemo(() => {
         const classes = ['nn-navitem'];
         if (virtualFolder.id === SHORTCUTS_VIRTUAL_FOLDER_ID) {
             classes.push('nn-shortcut-header-item');
+        }
+        if (virtualFolder.id === PROPERTIES_ROOT_VIRTUAL_FOLDER_ID) {
+            classes.push('nn-properties-header-item');
         }
         if (isSelected) {
             classes.push('nn-selected');
@@ -164,7 +207,7 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
         if (
             virtualFolder.id === SHORTCUTS_VIRTUAL_FOLDER_ID ||
             virtualFolder.id === RECENT_NOTES_VIRTUAL_FOLDER_ID ||
-            virtualFolder.id === 'tags-root'
+            virtualFolder.id === TAGS_ROOT_VIRTUAL_FOLDER_ID
         ) {
             return true;
         }
@@ -229,6 +272,8 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
         }
     }, [virtualFolder.icon, shouldShowIcon, iconVersion]);
 
+    const virtualFolderStyle: CSSPropertiesWithVars = { '--level': level };
+
     return (
         <div
             ref={folderRef}
@@ -241,7 +286,7 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
             data-allow-internal-drop={dropConfig?.allowInternalDrop === false ? 'false' : undefined}
             data-allow-external-drop={dropConfig?.allowExternalDrop === false ? 'false' : undefined}
             data-level={level}
-            style={{ '--level': level } as React.CSSProperties}
+            style={virtualFolderStyle}
             role="treeitem"
             aria-expanded={hasChildren ? isExpanded : undefined}
             aria-selected={onSelect ? isSelected : undefined}
@@ -252,6 +297,7 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
             onContextMenu={onContextMenu}
         >
             <div className={contentClassName} onClick={handleContentClick} onDoubleClick={handleDoubleClick}>
+                <IndentGuideColumns levels={indentGuideLevels} />
                 <div
                     className={`nn-navitem-chevron ${hasChildren ? 'nn-navitem-chevron--has-children' : 'nn-navitem-chevron--no-children'}`}
                     ref={chevronRef}
@@ -262,8 +308,15 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
                 {shouldShowIcon && virtualFolder.icon && <span className="nn-navitem-icon" ref={iconRef} />}
                 <span className="nn-navitem-name">{virtualFolder.name}</span>
                 <span className="nn-navitem-spacer" />
-                {shouldDisplayCount && noteCountDisplay && <span className="nn-navitem-count">{noteCountDisplay.label}</span>}
-                {trailingAccessory}
+                {shouldRenderCountBadge && noteCountDisplay && <span className="nn-navitem-count">{noteCountDisplay.label}</span>}
+                {trailingAction && (
+                    <NavItemHoverActionSlot
+                        label={trailingActionLabel}
+                        actionLabel={trailingAction.actionLabel}
+                        icon={trailingAction.icon}
+                        onClick={trailingAction.onClick}
+                    />
+                )}
             </div>
         </div>
     );

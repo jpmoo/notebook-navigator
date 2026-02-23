@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,10 +28,10 @@ export const DEFAULT_CALENDAR_CUSTOM_YEAR_PATTERN = 'YYYY';
 
 export type CalendarCustomWeekAnchorUnit = 'week' | 'isoWeek';
 
-export function getCalendarCustomWeekAnchorDate(date: MomentInstance, pattern: string, calendarRulesLocale?: string): MomentInstance {
+export function getCalendarCustomWeekAnchorDate(date: MomentInstance, pattern: string, locale?: string): MomentInstance {
     const unit = getCalendarCustomWeekAnchorUnit(pattern);
     const cloned = date.clone();
-    const localized = calendarRulesLocale ? cloned.locale(calendarRulesLocale) : cloned;
+    const localized = locale ? cloned.locale(locale) : cloned;
     return localized.startOf(unit);
 }
 
@@ -173,8 +173,11 @@ export function isCalendarCustomWeekPatternValid(pattern: string, momentApi?: Mo
      *   an anchor date to define which month/quarter contains the week.
      *
      * Choice:
-     * - We anchor weekly formatting to `startOf('week')` (using the locale’s week rules). This makes the output path stable
-     *   across all days within the same week, even if the pattern includes `YYYY-MM` or `YYYY-[Q]Q`.
+     * - Weekly formatting anchors to `startOf(anchorUnit)`, derived from the pattern tokens:
+     *   - Patterns using ISO week number/year tokens (`W` or `G`) anchor to `startOf('isoWeek')` (ISO week rules).
+     *   - Other patterns anchor to `startOf('week')` (locale week rules).
+     *   This keeps the rendered path constant across all days within the same week, even if the pattern includes `YYYY-MM`
+     *   or `YYYY-[Q]Q`.
      * - If users want week-based years around year boundaries, they should prefer `gggg` (locale week-year) or `GGGG` (ISO
      *   week-year) instead of `YYYY` (calendar year).
      */
@@ -338,7 +341,7 @@ function stripMomentLiterals(pattern: string): string {
     return result;
 }
 
-function getCalendarCustomWeekAnchorUnit(pattern: string): CalendarCustomWeekAnchorUnit {
+export function getCalendarCustomWeekAnchorUnit(pattern: string): CalendarCustomWeekAnchorUnit {
     const normalized = normalizeCalendarCustomMomentPattern(pattern);
     const tokenSource = stripMomentLiterals(normalized);
 

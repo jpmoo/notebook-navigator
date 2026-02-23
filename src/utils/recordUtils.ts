@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -84,12 +84,73 @@ export function isPlainObjectRecordValue(value: unknown): value is Record<string
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+export interface PinnedNoteContextValue {
+    folder: boolean;
+    tag: boolean;
+    property: boolean;
+}
+
+/**
+ * Normalizes a pinned note context value into strict boolean fields.
+ */
+export function normalizePinnedNoteContext(value: unknown): PinnedNoteContextValue {
+    if (!isPlainObjectRecordValue(value)) {
+        return { folder: false, tag: false, property: false };
+    }
+
+    const folder = value.folder === true;
+    const tag = value.tag === true;
+
+    return {
+        folder,
+        tag,
+        // Legacy pinned context values only stored folder+tag.
+        // Treating both as true implies the file was pinned everywhere before property context existed.
+        property: value.property === true || (!Object.prototype.hasOwnProperty.call(value, 'property') && folder && tag)
+    };
+}
+
+/**
+ * Rebuilds pinned notes into a null-prototype record with normalized context values.
+ */
+export function clonePinnedNotesRecord(value: unknown): Record<string, PinnedNoteContextValue> {
+    const cloned = sanitizeRecord<PinnedNoteContextValue>(undefined);
+    if (!isPlainObjectRecordValue(value)) {
+        return cloned;
+    }
+
+    Object.entries(value).forEach(([path, context]) => {
+        cloned[path] = normalizePinnedNoteContext(context);
+    });
+
+    return cloned;
+}
+
 export function casefold(value: string): string {
     const trimmed = value.trim();
     if (trimmed.length === 0) {
         return '';
     }
     return trimmed.toLowerCase();
+}
+
+export function sortAndDedupeByComparator<T>(values: readonly T[], compare: (left: T, right: T) => number): T[] {
+    if (values.length === 0) {
+        return [];
+    }
+
+    const sorted = [...values].sort(compare);
+    const unique: T[] = [sorted[0]];
+
+    for (let index = 1; index < sorted.length; index += 1) {
+        const current = sorted[index];
+        const previous = unique[unique.length - 1];
+        if (compare(current, previous) !== 0) {
+            unique.push(current);
+        }
+    }
+
+    return unique;
 }
 
 export interface CaseInsensitiveKeyMatcher {
@@ -114,13 +175,7 @@ export function createCaseInsensitiveKeyMatcher(keys: string[]): CaseInsensitive
         return EMPTY_CASE_INSENSITIVE_KEY_MATCHER;
     }
 
-    normalized.sort();
-    const unique: string[] = [];
-    normalized.forEach(key => {
-        if (unique.length === 0 || unique[unique.length - 1] !== key) {
-            unique.push(key);
-        }
-    });
+    const unique = sortAndDedupeByComparator(normalized, (left, right) => left.localeCompare(right));
 
     const cacheKey = unique.join('\u0000');
     const cached = caseInsensitiveKeyMatcherCache.get(cacheKey);

@@ -54,14 +54,17 @@
     --nn-selected-file-parent-color: var(--nn-theme-file-selected-parent-color);
     --nn-selected-file-tag-color: var(--nn-theme-file-selected-tag-color);
     --nn-selected-file-tag-bg: var(--nn-theme-file-selected-tag-bg);
-    --nn-selected-file-custom-property-color: var(--nn-theme-file-selected-custom-property-color);
-    --nn-selected-file-custom-property-bg: var(--nn-theme-file-selected-custom-property-bg);
+    --nn-selected-file-property-color: var(--nn-theme-file-selected-property-color);
+    --nn-selected-file-property-bg: var(--nn-theme-file-selected-property-bg);
+    --nn-selected-file-border-color: var(--nn-theme-file-selected-border-color);
     --nn-selected-navitem-bg-color: var(--nn-computed-navitem-selected-bg, var(--nn-theme-navitem-selected-bg));
     --nn-selected-navitem-name-color: var(--nn-theme-navitem-selected-name-color);
     --nn-selected-navitem-chevron-color: var(--nn-theme-navitem-selected-chevron-color);
     --nn-selected-navitem-icon-color: var(--nn-theme-navitem-selected-icon-color);
     --nn-selected-navitem-count-color: var(--nn-theme-navitem-selected-count-color);
     --nn-selected-navitem-count-bg: var(--nn-theme-navitem-selected-count-bg);
+    --nn-selected-navitem-border-color: var(--nn-theme-navitem-selected-border-color);
+    --nn-selected-navitem-count-border-color: var(--nn-theme-navitem-selected-count-border-color);
 }
 
 .nn-split-container:is([data-navigator-focused='false'], [data-focus-pane='navigation'], [data-focus-pane='search']) {
@@ -72,8 +75,9 @@
     --nn-selected-file-parent-color: var(--nn-theme-file-selected-inactive-parent-color);
     --nn-selected-file-tag-color: var(--nn-theme-file-selected-inactive-tag-color);
     --nn-selected-file-tag-bg: var(--nn-theme-file-selected-inactive-tag-bg);
-    --nn-selected-file-custom-property-color: var(--nn-theme-file-selected-inactive-custom-property-color);
-    --nn-selected-file-custom-property-bg: var(--nn-theme-file-selected-inactive-custom-property-bg);
+    --nn-selected-file-property-color: var(--nn-theme-file-selected-inactive-property-color);
+    --nn-selected-file-property-bg: var(--nn-theme-file-selected-inactive-property-bg);
+    --nn-selected-file-border-color: var(--nn-theme-file-selected-inactive-border-color);
 }
 
 .nn-split-container:is([data-navigator-focused='false'], [data-focus-pane='files'], [data-focus-pane='search']) {
@@ -83,6 +87,8 @@
     --nn-selected-navitem-icon-color: var(--nn-theme-navitem-selected-inactive-icon-color);
     --nn-selected-navitem-count-color: var(--nn-theme-navitem-selected-inactive-count-color);
     --nn-selected-navitem-count-bg: var(--nn-theme-navitem-selected-inactive-count-bg);
+    --nn-selected-navitem-border-color: var(--nn-theme-navitem-selected-inactive-border-color);
+    --nn-selected-navitem-count-border-color: var(--nn-theme-navitem-selected-inactive-count-border-color);
 }
 
 .nn-scale-wrapper {

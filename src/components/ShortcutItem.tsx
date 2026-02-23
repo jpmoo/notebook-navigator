@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ interface ShortcutItemProps {
     level: number;
     isDisabled?: boolean;
     isMissing?: boolean;
-    type: 'folder' | 'note' | 'search' | 'tag';
+    type: 'folder' | 'note' | 'search' | 'tag' | 'property';
     countInfo?: NoteCountInfo;
     badge?: string;
     forceShowCount?: boolean;
@@ -103,7 +103,7 @@ export const ShortcutItem = React.memo(function ShortcutItem({
     // Build formatted display object with label based on note count settings
     const countDisplay = buildNoteCountDisplay(countInfo, includeDescendantNotes, includeDescendantNotes && settings.separateNoteCounts);
     // Check if this item type supports displaying note counts
-    const supportsCount = type === 'folder' || type === 'tag';
+    const supportsCount = type === 'folder' || type === 'tag' || type === 'property';
     const hasBadge = typeof badge === 'string' && badge.length > 0;
     const hasRemove = Boolean(onRemove);
     // Determines whether to display the badge/count bubble

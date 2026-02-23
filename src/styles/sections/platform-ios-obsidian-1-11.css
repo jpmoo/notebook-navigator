@@ -72,7 +72,7 @@
 .notebook-navigator-obsidian-1-11-plus-ios .nn-navigation-pane,
 .notebook-navigator-obsidian-1-11-plus-ios .nn-list-pane {
     /* Obsidian 1.11+ already accounts for iOS safe areas in the view chrome. */
-    --nn-nav-calendar-safe-area: 0px;
+    --nn-calendar-safe-area: 0px;
 }
 
 /* Obsidian 1.11+ iOS glass toolbar */

@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,8 @@ declare module 'obsidian' {
 
 /** MIME type identifier for tag drag-and-drop operations */
 export const TAG_DRAG_MIME = 'application/x-notebook-navigator-tag';
+/** MIME type identifier for property drag-and-drop operations */
+export const PROPERTY_DRAG_MIME = 'application/x-notebook-navigator-property';
 
 /**
  * Extended Obsidian type definitions for internal/undocumented APIs
@@ -182,7 +184,7 @@ export const TIMEOUTS = {
     /** Debounce for content processing and tree updates */
     DEBOUNCE_CONTENT: 300,
     /** Debounce for tag tree rebuild requests */
-    DEBOUNCE_TAG_TREE: 2000,
+    DEBOUNCE_TAG_TREE: 500,
     /** Debounce for settings text input */
     DEBOUNCE_SETTINGS: 1000,
 

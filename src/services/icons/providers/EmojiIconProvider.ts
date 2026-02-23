@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  */
 
 import { IconProvider, IconDefinition, IconRenderResult } from '../types';
-import { isValidEmoji, extractFirstEmoji } from '../../../utils/emojiUtils';
+import { extractFirstEmoji } from '../../../utils/emojiUtils';
 import * as emojilib from 'emojilib';
 import { resetIconContainer } from './providerUtils';
 
@@ -96,11 +96,8 @@ export class EmojiIconProvider implements IconProvider {
             return [];
         }
 
-        // Check if the query itself is a valid emoji or can be extracted as one
-        const extractedEmoji = extractFirstEmoji(query);
-        const isValid = isValidEmoji(query);
-
-        const emoji = extractedEmoji || (isValid ? query : null);
+        // Check if the query itself is a valid emoji or starts with one
+        const emoji = extractFirstEmoji(query);
 
         if (emoji) {
             // Return the emoji as a search result

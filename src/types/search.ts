@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,21 +41,33 @@ export interface SearchResultMeta {
 }
 
 /**
- * Captures tag-related filters derived from the search query.
- * Used to highlight matching tags inside the navigation tree.
+ * Captures navigation-related filters derived from the search query.
+ * Used to highlight matching tags and properties inside the navigation tree.
  */
-export interface SearchTagFilterState {
-    include: string[];
-    exclude: string[];
-    excludeTagged: boolean;
-    includeUntagged: boolean;
-    requireTagged: boolean;
+export interface SearchNavFilterState {
+    tags: {
+        include: string[];
+        exclude: string[];
+        excludeTagged: boolean;
+        includeUntagged: boolean;
+        requireTagged: boolean;
+    };
+    properties: {
+        include: string[];
+        exclude: string[];
+    };
 }
 
-export const EMPTY_SEARCH_TAG_FILTER_STATE: SearchTagFilterState = {
-    include: [],
-    exclude: [],
-    excludeTagged: false,
-    includeUntagged: false,
-    requireTagged: false
+export const EMPTY_SEARCH_NAV_FILTER_STATE: SearchNavFilterState = {
+    tags: {
+        include: [],
+        exclude: [],
+        excludeTagged: false,
+        includeUntagged: false,
+        requireTagged: false
+    },
+    properties: {
+        include: [],
+        exclude: []
+    }
 };

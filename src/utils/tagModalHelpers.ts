@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@ import { showNotice } from './noticeUtils';
 type TagAddResult = Awaited<ReturnType<TagOperations['addTagToFiles']>>;
 
 interface AddTagModalOptions {
-    includeUntagged?: boolean;
     allowTagCreation?: boolean;
     placeholderText?: string;
     actionText?: string;
@@ -78,7 +77,6 @@ export function openAddTagToFilesModal({ app, plugin, tagOperations, files, opti
         return;
     }
 
-    const includeUntagged = options?.includeUntagged ?? false;
     const allowTagCreation = options?.allowTagCreation ?? true;
     const placeholderText = options?.placeholderText ?? strings.modals.tagSuggest.addPlaceholder;
     const actionText = options?.actionText ?? strings.modals.tagSuggest.instructions.add;
@@ -107,7 +105,6 @@ export function openAddTagToFilesModal({ app, plugin, tagOperations, files, opti
         },
         placeholderText,
         actionText,
-        includeUntagged,
         allowTagCreation
     );
     modal.open();

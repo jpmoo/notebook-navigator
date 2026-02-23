@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,8 +18,9 @@
 
 import type { TFile } from 'obsidian';
 import type { FeatureImageStatus, FileData } from '../storage/IndexedDBStorage';
-import type { CustomPropertyType } from '../settings/types';
+import type { NotePropertyType } from '../settings/types';
 import { isImageFile } from './fileTypeUtils';
+import { casefold } from './recordUtils';
 
 /**
  * Layout measurements used by the list pane virtualizer.
@@ -107,99 +108,201 @@ export function shouldShowFeatureImageArea({
     return featureImageStatus === 'has';
 }
 
-export function shouldShowCustomPropertyRow({
-    customPropertyType,
-    showCustomPropertyInCompactMode,
-    isCompactMode,
-    file,
-    wordCount,
-    customProperty
-}: {
-    customPropertyType: CustomPropertyType;
-    showCustomPropertyInCompactMode: boolean;
-    isCompactMode: boolean;
-    file: TFile | null;
-    wordCount: FileData['wordCount'] | undefined;
-    customProperty: FileData['customProperty'] | undefined;
-}): boolean {
-    if (customPropertyType === 'none') {
+type PropertyEntries = Exclude<FileData['properties'], null>;
+
+type PropertyRowSummary = {
+    hasAnyNonEmptyValue: boolean;
+    normalizedKeysWithNonEmptyValues: ReadonlySet<string>;
+    uniqueDisplayFieldKeys: readonly { displayKey: string; normalizedKey: string }[];
+};
+
+const EMPTY_PROPERTY_ROW_SUMMARY: PropertyRowSummary = {
+    hasAnyNonEmptyValue: false,
+    normalizedKeysWithNonEmptyValues: new Set<string>(),
+    uniqueDisplayFieldKeys: []
+};
+
+const propertyRowSummaryCache = new WeakMap<PropertyEntries, PropertyRowSummary>();
+
+function getPropertyRowSummary(properties: FileData['properties'] | undefined): PropertyRowSummary {
+    if (!properties || properties.length === 0) {
+        return EMPTY_PROPERTY_ROW_SUMMARY;
+    }
+
+    const cached = propertyRowSummaryCache.get(properties);
+    if (cached) {
+        return cached;
+    }
+
+    let hasAnyNonEmptyValue = false;
+    const normalizedKeysWithNonEmptyValues = new Set<string>();
+    const uniqueDisplayFieldKeys = new Map<string, string>();
+
+    properties.forEach(entry => {
+        if (entry.value.trim().length === 0) {
+            return;
+        }
+
+        hasAnyNonEmptyValue = true;
+        const normalizedFieldKey = casefold(entry.fieldKey);
+        if (normalizedFieldKey.length > 0) {
+            normalizedKeysWithNonEmptyValues.add(normalizedFieldKey);
+        }
+
+        const trimmedFieldKey = entry.fieldKey.trim();
+        if (trimmedFieldKey.length === 0 || uniqueDisplayFieldKeys.has(trimmedFieldKey)) {
+            return;
+        }
+        uniqueDisplayFieldKeys.set(trimmedFieldKey, normalizedFieldKey);
+    });
+
+    const summary: PropertyRowSummary = {
+        hasAnyNonEmptyValue,
+        normalizedKeysWithNonEmptyValues,
+        uniqueDisplayFieldKeys: Array.from(uniqueDisplayFieldKeys.entries()).map(([displayKey, normalizedKey]) => ({
+            displayKey,
+            normalizedKey
+        }))
+    };
+
+    propertyRowSummaryCache.set(properties, summary);
+    return summary;
+}
+
+function hasVisiblePropertyKeyMatch(normalizedPropertyKeys: ReadonlySet<string>, visiblePropertyKeys: ReadonlySet<string>): boolean {
+    if (normalizedPropertyKeys.size === 0 || visiblePropertyKeys.size === 0) {
         return false;
     }
 
+    const iterateKeys = normalizedPropertyKeys.size <= visiblePropertyKeys.size ? normalizedPropertyKeys : visiblePropertyKeys;
+    const lookupKeys = iterateKeys === normalizedPropertyKeys ? visiblePropertyKeys : normalizedPropertyKeys;
+    for (const key of iterateKeys) {
+        if (lookupKeys.has(key)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function shouldShowPropertyRow({
+    notePropertyType,
+    showFileProperties,
+    showFilePropertiesInCompactMode,
+    isCompactMode,
+    file,
+    wordCount,
+    properties,
+    visiblePropertyKeys
+}: {
+    notePropertyType: NotePropertyType;
+    showFileProperties: boolean;
+    showFilePropertiesInCompactMode: boolean;
+    isCompactMode: boolean;
+    file: TFile | null;
+    wordCount: FileData['wordCount'] | undefined;
+    properties: FileData['properties'] | undefined;
+    visiblePropertyKeys?: ReadonlySet<string>;
+}): boolean {
     if (!file || file.extension !== 'md') {
         return false;
     }
 
-    if (isCompactMode && !showCustomPropertyInCompactMode) {
+    if (isCompactMode && !showFilePropertiesInCompactMode) {
         return false;
     }
 
-    if (customPropertyType === 'wordCount') {
-        // Don't show `0`: it can mean "no words", a huge file (content read skipped), or an Excalidraw document.
-        return typeof wordCount === 'number' && Number.isFinite(wordCount) && wordCount > 0;
-    }
+    const hasWordCount = notePropertyType === 'wordCount' && typeof wordCount === 'number' && Number.isFinite(wordCount) && wordCount > 0;
+    const propertySummary = getPropertyRowSummary(properties);
+    const hasPropertyValues = (() => {
+        if (!showFileProperties) {
+            return false;
+        }
+        if (visiblePropertyKeys === undefined) {
+            return propertySummary.hasAnyNonEmptyValue;
+        }
+        return hasVisiblePropertyKeyMatch(propertySummary.normalizedKeysWithNonEmptyValues, visiblePropertyKeys);
+    })();
 
-    // Custom property values are stored as an array; an empty array means there are no pills to render.
-    return Boolean(customProperty && customProperty.length > 0);
+    return hasWordCount || hasPropertyValues;
 }
 
-export function getCustomPropertyRowCount({
-    customPropertyType,
-    showCustomPropertiesOnSeparateRows,
-    showCustomPropertyInCompactMode,
+export function getPropertyRowCount({
+    notePropertyType,
+    showFileProperties,
+    showPropertiesOnSeparateRows,
+    showFilePropertiesInCompactMode,
     isCompactMode,
     file,
     wordCount,
-    customProperty
+    properties,
+    visiblePropertyKeys
 }: {
-    customPropertyType: CustomPropertyType;
-    showCustomPropertiesOnSeparateRows: boolean;
-    showCustomPropertyInCompactMode: boolean;
+    notePropertyType: NotePropertyType;
+    showFileProperties: boolean;
+    showPropertiesOnSeparateRows: boolean;
+    showFilePropertiesInCompactMode: boolean;
     isCompactMode: boolean;
     file: TFile | null;
     wordCount: FileData['wordCount'] | undefined;
-    customProperty: FileData['customProperty'] | undefined;
+    properties: FileData['properties'] | undefined;
+    visiblePropertyKeys?: ReadonlySet<string>;
 }): number {
-    // Computes the number of visual rows the custom property area will occupy.
+    // Computes the number of visual rows the property area will occupy.
     // This is used by the list pane virtualizer height estimator and must stay consistent with FileItem rendering.
-    const shouldShow = shouldShowCustomPropertyRow({
-        customPropertyType,
-        showCustomPropertyInCompactMode,
+    const shouldShow = shouldShowPropertyRow({
+        notePropertyType,
+        showFileProperties,
+        showFilePropertiesInCompactMode,
         isCompactMode,
         file,
         wordCount,
-        customProperty
+        properties,
+        visiblePropertyKeys
     });
 
     if (!shouldShow) {
-        // No custom property row will be rendered.
+        // No property row will be rendered.
         return 0;
     }
 
-    if (customPropertyType === 'wordCount') {
-        // Word count is always rendered as a single pill row.
-        return 1;
-    }
+    const wordCountEnabled =
+        notePropertyType === 'wordCount' && typeof wordCount === 'number' && Number.isFinite(wordCount) && wordCount > 0;
+    const wordCountRowCount = wordCountEnabled ? 1 : 0;
 
-    const shouldUseSeparateRows = customPropertyType === 'frontmatter' && showCustomPropertiesOnSeparateRows;
-    if (!shouldUseSeparateRows) {
-        // Frontmatter values are rendered as pills on a single row when separate-row mode is disabled.
-        return 1;
-    }
+    let frontmatterPropertyRowCount = 0;
+    if (showFileProperties) {
+        const propertySummary = getPropertyRowSummary(properties);
+        const hasVisiblePropertyValues =
+            visiblePropertyKeys === undefined
+                ? propertySummary.hasAnyNonEmptyValue
+                : hasVisiblePropertyKeyMatch(propertySummary.normalizedKeysWithNonEmptyValues, visiblePropertyKeys);
 
-    if (!customProperty) {
-        // `shouldShowCustomPropertyRow` checks for non-empty arrays, but keep this guard for typed inputs.
-        return 0;
-    }
+        if (!showPropertiesOnSeparateRows) {
+            frontmatterPropertyRowCount = hasVisiblePropertyValues ? 1 : 0;
+        } else if (hasVisiblePropertyValues) {
+            if (visiblePropertyKeys === undefined) {
+                frontmatterPropertyRowCount = propertySummary.uniqueDisplayFieldKeys.length;
+            } else {
+                frontmatterPropertyRowCount = propertySummary.uniqueDisplayFieldKeys.reduce((count, entry) => {
+                    if (!entry.normalizedKey || !visiblePropertyKeys.has(entry.normalizedKey)) {
+                        return count;
+                    }
 
-    let rowCount = 0;
-    for (const entry of customProperty) {
-        // FileItem filters out empty/whitespace-only values, so the virtualizer estimator must do the same.
-        if (entry.value.trim().length === 0) {
-            continue;
+                    return count + 1;
+                }, 0);
+            }
         }
-        rowCount += 1;
     }
 
-    return rowCount;
+    if (frontmatterPropertyRowCount === 0) {
+        return wordCountRowCount;
+    }
+
+    if (!showPropertiesOnSeparateRows) {
+        // Frontmatter properties share one row in non-separate mode; word count remains its own row.
+        return 1 + wordCountRowCount;
+    }
+
+    return frontmatterPropertyRowCount + wordCountRowCount;
 }

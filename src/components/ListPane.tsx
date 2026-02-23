@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@
  */
 
 import React, { useCallback, useRef, useEffect, useImperativeHandle, forwardRef, useState, useMemo } from 'react';
-import { TFile, Platform, requireApiVersion, debounce } from 'obsidian';
+import { TFile, TFolder, Platform, requireApiVersion, debounce } from 'obsidian';
 import { Virtualizer } from '@tanstack/react-virtual';
 import { useSelectionState, useSelectionDispatch, resolvePrimarySelectedFile } from '../context/SelectionContext';
 import { useServices } from '../context/ServicesContext';
@@ -55,37 +55,65 @@ import { useMultiSelection } from '../hooks/useMultiSelection';
 import { useListPaneKeyboard } from '../hooks/useListPaneKeyboard';
 import { useListPaneData } from '../hooks/useListPaneData';
 import { useListPaneScroll } from '../hooks/useListPaneScroll';
+import { useListPaneTitle } from '../hooks/useListPaneTitle';
 import { useListPaneAppearance } from '../hooks/useListPaneAppearance';
 import { useContextMenu } from '../hooks/useContextMenu';
 import { useFileOpener } from '../hooks/useFileOpener';
 import { strings } from '../i18n';
 import { TIMEOUTS } from '../types/obsidian-extended';
-import { IOS_OBSIDIAN_1_11_PLUS_GLASS_TOOLBAR_HEIGHT_PX, ListPaneItemType, PINNED_SECTION_HEADER_KEY, UNTAGGED_TAG_ID } from '../types';
+import {
+    IOS_OBSIDIAN_1_11_PLUS_GLASS_TOOLBAR_HEIGHT_PX,
+    ListPaneItemType,
+    PINNED_SECTION_HEADER_KEY,
+    PROPERTIES_ROOT_VIRTUAL_FOLDER_ID,
+    TAGGED_TAG_ID,
+    UNTAGGED_TAG_ID,
+    type CSSPropertiesWithVars
+} from '../types';
 import { getEffectiveSortOption } from '../utils/sortUtils';
 import { FileItem } from './FileItem';
 import { ListPaneHeader } from './ListPaneHeader';
 import { ListToolbar } from './ListToolbar';
-import { NavigationPaneCalendar } from './NavigationPaneCalendar';
+import { Calendar } from './calendar';
 import { SearchInput } from './SearchInput';
 import { ListPaneTitleArea } from './ListPaneTitleArea';
 import { InputModal } from '../modals/InputModal';
 import { useShortcuts } from '../context/ShortcutsContext';
-import type { SearchShortcut } from '../types/shortcuts';
-import { EMPTY_SEARCH_TAG_FILTER_STATE, type SearchProvider, type SearchTagFilterState } from '../types/search';
+import {
+    ShortcutStartType,
+    isShortcutStartFolder,
+    isShortcutStartProperty,
+    isShortcutStartTag,
+    type SearchShortcut,
+    type ShortcutStartTarget
+} from '../types/shortcuts';
+import { EMPTY_SEARCH_NAV_FILTER_STATE, type SearchNavFilterState, type SearchProvider } from '../types/search';
 import { EMPTY_LIST_MENU_TYPE } from '../utils/contextMenu';
 import { useUXPreferenceActions, useUXPreferences } from '../context/UXPreferencesContext';
 import { normalizeTagPath } from '../utils/tagUtils';
-import { parseFilterSearchTokens, updateFilterQueryWithTag, type InclusionOperator } from '../utils/filterSearch';
+import {
+    parseFilterSearchTokens,
+    updateFilterQueryWithDateToken,
+    updateFilterQueryWithTag,
+    updateFilterQueryWithProperty,
+    type InclusionOperator
+} from '../utils/filterSearch';
 import { useSurfaceColorVariables } from '../hooks/useSurfaceColorVariables';
 import { LIST_PANE_SURFACE_COLOR_MAPPINGS } from '../constants/surfaceColorMappings';
 import { runAsyncAction } from '../utils/async';
+import { isCmdCtrlModifierPressed, isMultiSelectModifierPressed, resolveFolderNoteClickOpenContext } from '../utils/keyboardOpenContext';
 import { openFileInContext } from '../utils/openFileInContext';
 import { getListPaneMeasurements } from '../utils/listPaneMeasurements';
 import { ServiceIcon } from './ServiceIcon';
 import { resolveUXIcon } from '../utils/uxIcons';
 import { showNotice } from '../utils/noticeUtils';
-
-type CSSPropertiesWithVars = React.CSSProperties & Record<`--${string}`, string | number>;
+import { focusElementPreventScroll, isKeyboardEventContextBlocked } from '../utils/domUtils';
+import { buildPropertyKeyNodeId, buildPropertyValueNodeId, parsePropertyNodeId } from '../utils/propertyTree';
+import { getFolderNote, openFolderNoteFile } from '../utils/folderNotes';
+import { getActivePropertyKeySet } from '../utils/vaultProfiles';
+import { DateUtils } from '../utils/dateUtils';
+import { normalizeOptionalVaultFolderPath } from '../utils/pathUtils';
+import type { NavigateToFolderOptions, RevealPropertyOptions, RevealTagOptions } from '../hooks/useNavigatorReveal';
 
 /**
  * Renders the list pane displaying files from the selected folder.
@@ -119,8 +147,21 @@ export interface ListPaneHandle {
     selectFile: (file: TFile, options?: SelectFileOptions) => void;
     selectAdjacentFile: (direction: 'next' | 'previous') => boolean;
     modifySearchWithTag: (tag: string, operator: InclusionOperator) => void;
+    modifySearchWithProperty: (key: string, value: string | null, operator: InclusionOperator) => void;
+    modifySearchWithDateToken: (dateToken: string) => void;
     toggleSearch: () => void;
     executeSearchShortcut: (params: ExecuteSearchShortcutParams) => Promise<void>;
+}
+
+interface EnsureSelectionOptions {
+    openInEditor?: boolean;
+    clearIfEmpty?: boolean;
+    selectFallback?: boolean;
+    debounceOpen?: boolean;
+}
+
+interface EnsureSelectionResult {
+    selectionStateChanged: boolean;
 }
 
 interface ListPaneProps {
@@ -142,12 +183,106 @@ interface ListPaneProps {
     /**
      * Callback invoked whenever tag-related search tokens change.
      */
-    onSearchTokensChange?: (state: SearchTagFilterState) => void;
+    onSearchTokensChange?: (state: SearchNavFilterState) => void;
+    onNavigateToFolder: (folderPath: string, options?: NavigateToFolderOptions) => void;
+    onRevealTag: (tagPath: string, options?: RevealTagOptions) => void;
+    onRevealProperty: (propertyNodeId: string, options?: RevealPropertyOptions) => boolean;
+}
+
+interface ListPaneTitleChromeProps {
+    onHeaderClick?: () => void;
+    isSearchActive?: boolean;
+    onSearchToggle?: () => void;
+    shouldShowDesktopTitleArea: boolean;
+    children: React.ReactNode;
+}
+
+interface FolderGroupHeaderTarget {
+    folder: TFolder;
+    folderNote: TFile | null;
+}
+
+function formatSearchShortcutFolderLabel(folderPath: string): string {
+    if (folderPath === '/' || folderPath.startsWith('/')) {
+        return folderPath;
+    }
+
+    return `/${folderPath}`;
+}
+
+function formatSearchShortcutTagLabel(tagPath: string): string {
+    if (tagPath === TAGGED_TAG_ID) {
+        return strings.tagList.tags;
+    }
+
+    if (tagPath === UNTAGGED_TAG_ID) {
+        return strings.common.untagged;
+    }
+
+    if (tagPath.startsWith('#')) {
+        return tagPath;
+    }
+
+    return `#${tagPath}`;
+}
+
+function formatSearchShortcutPropertyLabel(nodeId: string): string {
+    if (nodeId === PROPERTIES_ROOT_VIRTUAL_FOLDER_ID) {
+        return strings.navigationPane.properties;
+    }
+
+    const parsed = parsePropertyNodeId(nodeId);
+    if (!parsed) {
+        return nodeId;
+    }
+
+    if (parsed.valuePath) {
+        return parsed.valuePath;
+    }
+
+    return parsed.key;
+}
+
+function formatSearchShortcutStartTargetPath(startTarget: ShortcutStartTarget): string {
+    switch (startTarget.type) {
+        case ShortcutStartType.FOLDER:
+            return formatSearchShortcutFolderLabel(startTarget.path);
+        case ShortcutStartType.TAG:
+            return formatSearchShortcutTagLabel(startTarget.tagPath);
+        case ShortcutStartType.PROPERTY:
+            return formatSearchShortcutPropertyLabel(startTarget.nodeId);
+    }
+}
+
+function ListPaneTitleChrome({
+    onHeaderClick,
+    isSearchActive,
+    onSearchToggle,
+    shouldShowDesktopTitleArea,
+    children
+}: ListPaneTitleChromeProps) {
+    const { desktopTitle, breadcrumbSegments, iconName, showIcon } = useListPaneTitle();
+    return (
+        <>
+            <ListPaneHeader
+                onHeaderClick={onHeaderClick}
+                isSearchActive={isSearchActive}
+                onSearchToggle={onSearchToggle}
+                desktopTitle={desktopTitle}
+                breadcrumbSegments={breadcrumbSegments}
+                iconName={iconName}
+                showIcon={showIcon}
+            />
+            {children}
+            {shouldShowDesktopTitleArea ? <ListPaneTitleArea desktopTitle={desktopTitle} /> : null}
+        </>
+    );
 }
 
 export const ListPane = React.memo(
     forwardRef<ListPaneHandle, ListPaneProps>(function ListPane(props, ref) {
         const { app, commandQueue, isMobile, plugin } = useServices();
+        const { onNavigateToFolder, onRevealTag, onRevealProperty } = props;
         const openFileInWorkspace = useFileOpener();
         const selectionState = useSelectionState();
         const selectionDispatch = useSelectionDispatch();
@@ -196,7 +331,7 @@ export const ListPane = React.memo(
         const listPaneStyle = useMemo<CSSPropertiesWithVars>(() => {
             return {
                 ...(iconColumnStyle ?? {}),
-                '--nn-nav-calendar-week-count': calendarWeekCount
+                '--nn-calendar-week-count': calendarWeekCount
             };
         }, [calendarWeekCount, iconColumnStyle]);
 
@@ -307,7 +442,7 @@ export const ListPane = React.memo(
 
             const trimmed = searchQuery.trim();
             if (!trimmed) {
-                onSearchTokensChange(EMPTY_SEARCH_TAG_FILTER_STATE);
+                onSearchTokensChange(EMPTY_SEARCH_NAV_FILTER_STATE);
                 return;
             }
 
@@ -330,12 +465,36 @@ export const ListPane = React.memo(
                 }
             });
 
+            const propertyIncludeSet = new Set<string>();
+            tokens.propertyTokens.forEach(token => {
+                if (token.value) {
+                    propertyIncludeSet.add(buildPropertyValueNodeId(token.key, token.value));
+                    return;
+                }
+                propertyIncludeSet.add(buildPropertyKeyNodeId(token.key));
+            });
+
+            const propertyExcludeSet = new Set<string>();
+            tokens.excludePropertyTokens.forEach(token => {
+                if (token.value) {
+                    propertyExcludeSet.add(buildPropertyValueNodeId(token.key, token.value));
+                    return;
+                }
+                propertyExcludeSet.add(buildPropertyKeyNodeId(token.key));
+            });
+
             onSearchTokensChange({
-                include: Array.from(includeSet),
-                exclude: Array.from(excludeSet),
-                excludeTagged: tokens.excludeTagged,
-                includeUntagged: tokens.includeUntagged,
-                requireTagged: tokens.requireTagged
+                tags: {
+                    include: Array.from(includeSet),
+                    exclude: Array.from(excludeSet),
+                    excludeTagged: tokens.excludeTagged,
+                    includeUntagged: tokens.includeUntagged,
+                    requireTagged: tokens.requireTagged
+                },
+                properties: {
+                    include: Array.from(propertyIncludeSet),
+                    exclude: Array.from(propertyExcludeSet)
+                }
             });
         }, [searchQuery, onSearchTokensChange]);
 
@@ -361,15 +520,24 @@ export const ListPane = React.memo(
          * - `keyboardOpenRequestIdRef` invalidates older scheduled opens when selection changes.
          *
          * The debouncer uses `resetTimer: true` so repeated keydown events keep pushing the open out
-         * until the user stops navigating. `commitKeyboardSelectionOpen` cancels the timer and opens
+         * until the user stops navigating. `commitPendingKeyboardSelectionOpen` cancels the timer and opens
          * immediately on keyup.
          *
          * Safety: if selection changes from any other path (e.g. auto-reveal), cancel pending opens
          * so a stale debounced open cannot override the current selection.
          */
+        // True while a debounced keyboard open is waiting to run.
         const keyboardOpenPendingRef = useRef(false);
+        // Monotonic token used to invalidate older debounced open requests.
         const keyboardOpenRequestIdRef = useRef(0);
+        // File currently targeted by keyboard-driven debounced open.
         const keyboardOpenFileRef = useRef<TFile | null>(null);
+        // Tracks whether the current folder/tag change originated from a physical navigation key.
+        const navigationPhysicalKeyOpenRef = useRef(false);
+        // Stores the latest commit callback so DOM event listeners can call current logic without re-subscribing.
+        const commitPendingKeyboardSelectionOpenRef = useRef<() => void>(() => {});
+        // Mirrors focused pane for container-level key listeners.
+        const focusedPaneRef = useRef(uiState.focusedPane);
 
         const debouncedOpenFileInWorkspace = useMemo(() => {
             return debounce(
@@ -391,6 +559,16 @@ export const ListPane = React.memo(
             return () => {
                 debouncedOpenFileInWorkspace.cancel();
             };
+        }, [debouncedOpenFileInWorkspace]);
+
+        const clearPendingKeyboardOpen = useCallback(() => {
+            // Increment request id so any older scheduled callback becomes a no-op.
+            keyboardOpenRequestIdRef.current += 1;
+            // Reset pending state and file target.
+            keyboardOpenPendingRef.current = false;
+            keyboardOpenFileRef.current = null;
+            // Cancel timer so no delayed open executes after state has moved on.
+            debouncedOpenFileInWorkspace.cancel();
         }, [debouncedOpenFileInWorkspace]);
 
         // Keep track of the last selected file path to maintain visual selection during transitions
@@ -421,30 +599,29 @@ export const ListPane = React.memo(
                 }
 
                 if (options?.suppressOpen) {
-                    keyboardOpenRequestIdRef.current += 1;
-                    keyboardOpenPendingRef.current = false;
-                    keyboardOpenFileRef.current = null;
-                    debouncedOpenFileInWorkspace.cancel();
+                    // Selection can change without opening editor (for example, new-tab shortcuts).
+                    // Cancel pending keyboard opens so this selection does not trigger an unexpected open later.
+                    clearPendingKeyboardOpen();
                     return;
                 }
 
                 // Open file in the active leaf without moving focus
                 if (options?.debounceOpen) {
+                    // New selection means new request token; older debounced callbacks are invalidated.
                     keyboardOpenRequestIdRef.current += 1;
                     const requestId = keyboardOpenRequestIdRef.current;
+                    // Mark pending state for keyup commit path.
                     keyboardOpenPendingRef.current = true;
                     keyboardOpenFileRef.current = file;
                     debouncedOpenFileInWorkspace(file, requestId);
                     return;
                 }
 
-                keyboardOpenRequestIdRef.current += 1;
-                keyboardOpenPendingRef.current = false;
-                keyboardOpenFileRef.current = null;
-                debouncedOpenFileInWorkspace.cancel();
+                // Non-debounced selection should clear any pending keyboard timer first.
+                clearPendingKeyboardOpen();
                 openFileInWorkspace(file);
             },
-            [selectionDispatch, openFileInWorkspace, debouncedOpenFileInWorkspace]
+            [selectionDispatch, openFileInWorkspace, clearPendingKeyboardOpen, debouncedOpenFileInWorkspace]
         );
 
         const scheduleKeyboardOpen = useCallback(
@@ -464,6 +641,7 @@ export const ListPane = React.memo(
 
         const scheduleKeyboardSelectionOpen = useCallback(() => {
             if (settings.enterToOpenFiles) {
+                // Enter-to-open mode does not preview files while navigating.
                 return;
             }
 
@@ -472,6 +650,7 @@ export const ListPane = React.memo(
             const primarySelectedFile = resolvePrimarySelectedFile(app, selectionState);
             const fileToOpen = primarySelectedFile ?? keyboardOpenFileRef.current;
             if (!fileToOpen) {
+                // Nothing selected and no pending fallback target.
                 return;
             }
 
@@ -481,6 +660,7 @@ export const ListPane = React.memo(
         const scheduleKeyboardSelectionOpenForFile = useCallback(
             (file: TFile) => {
                 if (settings.enterToOpenFiles) {
+                    // Enter-to-open mode disables navigation-preview opens.
                     return;
                 }
 
@@ -491,26 +671,27 @@ export const ListPane = React.memo(
             [settings.enterToOpenFiles, scheduleKeyboardOpen]
         );
 
-        const commitKeyboardSelectionOpen = useCallback(() => {
+        const commitPendingKeyboardSelectionOpen = useCallback(() => {
             if (settings.enterToOpenFiles) {
+                // Explicit Enter key is the only open action in this mode.
                 return;
             }
 
             if (!keyboardOpenPendingRef.current) {
+                // No pending request means there is nothing to commit on keyup.
                 return;
             }
 
             const selectedFileToOpen = keyboardOpenFileRef.current ?? resolvePrimarySelectedFile(app, selectionState);
             if (!selectedFileToOpen) {
+                // Pending state exists but target file was cleared.
                 return;
             }
 
-            keyboardOpenRequestIdRef.current += 1;
-            keyboardOpenPendingRef.current = false;
-            keyboardOpenFileRef.current = null;
-            debouncedOpenFileInWorkspace.cancel();
+            // Clear timer/request state before opening to avoid duplicate opens.
+            clearPendingKeyboardOpen();
             openFileInWorkspace(selectedFileToOpen);
-        }, [app, selectionState, settings.enterToOpenFiles, debouncedOpenFileInWorkspace, openFileInWorkspace]);
+        }, [app, selectionState, settings.enterToOpenFiles, clearPendingKeyboardOpen, openFileInWorkspace]);
 
         const primarySelectedFilePathForKeyboardOpen = useMemo(() => {
             if (selectionState.selectedFile) {
@@ -521,6 +702,11 @@ export const ListPane = React.memo(
         }, [selectionState.selectedFile, selectionState.selectedFiles]);
 
         useEffect(() => {
+            // Keep a stable ref to latest callback for external key listeners.
+            commitPendingKeyboardSelectionOpenRef.current = commitPendingKeyboardSelectionOpen;
+        }, [commitPendingKeyboardSelectionOpen]);
+
+        useEffect(() => {
             if (!keyboardOpenPendingRef.current) {
                 return;
             }
@@ -529,26 +715,132 @@ export const ListPane = React.memo(
             if (!pendingFilePath || pendingFilePath !== primarySelectedFilePathForKeyboardOpen) {
                 // Selection changed while a debounced open was pending.
                 // Invalidate and cancel so we don't open a file that is no longer selected.
-                keyboardOpenRequestIdRef.current += 1;
-                keyboardOpenPendingRef.current = false;
-                keyboardOpenFileRef.current = null;
-                debouncedOpenFileInWorkspace.cancel();
+                clearPendingKeyboardOpen();
             }
-        }, [primarySelectedFilePathForKeyboardOpen, debouncedOpenFileInWorkspace]);
+        }, [primarySelectedFilePathForKeyboardOpen, clearPendingKeyboardOpen]);
+
+        useEffect(() => {
+            if (!settings.enterToOpenFiles || !keyboardOpenPendingRef.current) {
+                return;
+            }
+
+            // Enter-to-open disables automatic keyboard commit paths.
+            clearPendingKeyboardOpen();
+        }, [settings.enterToOpenFiles, clearPendingKeyboardOpen]);
+
+        useEffect(() => {
+            focusedPaneRef.current = uiState.focusedPane;
+            if (uiState.focusedPane !== 'navigation') {
+                // Leaving navigation pane invalidates "physical navigation key" context.
+                navigationPhysicalKeyOpenRef.current = false;
+            }
+        }, [uiState.focusedPane]);
+
+        useEffect(() => {
+            const resetPhysicalNavigationKeyState = () => {
+                // If window loses focus, keyup may never arrive. Reset physical-key tracking.
+                navigationPhysicalKeyOpenRef.current = false;
+            };
+
+            window.addEventListener('blur', resetPhysicalNavigationKeyState);
+            return () => {
+                window.removeEventListener('blur', resetPhysicalNavigationKeyState);
+            };
+        }, []);
+
+        useEffect(() => {
+            const container = props.rootContainerRef.current;
+            if (!container) {
+                return;
+            }
+
+            const isPhysicalNavigationKey = (event: KeyboardEvent) => {
+                // These keys can trigger folder/tag traversal and first-file auto-select.
+                return event.key === 'ArrowUp' || event.key === 'ArrowDown' || event.key === 'PageUp' || event.key === 'PageDown';
+            };
+
+            const hasDisallowedModifiers = (event: KeyboardEvent) => {
+                // Ctrl/Meta/Alt variants represent command shortcuts, not plain navigation traversal.
+                return event.ctrlKey || event.metaKey || event.altKey;
+            };
+
+            const handleNavigationKeyDown = (event: KeyboardEvent) => {
+                if (focusedPaneRef.current !== 'navigation') {
+                    // Ignore events when navigation pane is not active.
+                    navigationPhysicalKeyOpenRef.current = false;
+                    return;
+                }
+
+                if (isKeyboardEventContextBlocked(event)) {
+                    // Ignore typing/modal contexts and clear stale physical-key state.
+                    navigationPhysicalKeyOpenRef.current = false;
+                    return;
+                }
+
+                if (hasDisallowedModifiers(event)) {
+                    // Modified shortcuts should not mark folder auto-open flow as physical navigation.
+                    navigationPhysicalKeyOpenRef.current = false;
+                    return;
+                }
+
+                // Store whether this keydown is one of the physical traversal keys.
+                navigationPhysicalKeyOpenRef.current = isPhysicalNavigationKey(event);
+            };
+
+            const handleNavigationKeyUp = (event: KeyboardEvent) => {
+                if (focusedPaneRef.current !== 'navigation') {
+                    // Ignore events when navigation pane is not active.
+                    navigationPhysicalKeyOpenRef.current = false;
+                    return;
+                }
+
+                if (isKeyboardEventContextBlocked(event)) {
+                    // Ignore typing/modal contexts and clear stale physical-key state.
+                    navigationPhysicalKeyOpenRef.current = false;
+                    return;
+                }
+
+                if (hasDisallowedModifiers(event)) {
+                    // Modified shortcuts should not commit keyboard preview opens.
+                    navigationPhysicalKeyOpenRef.current = false;
+                    return;
+                }
+
+                if (!isPhysicalNavigationKey(event)) {
+                    // Only Arrow/Page keyup commits pending preview-open state.
+                    navigationPhysicalKeyOpenRef.current = false;
+                    return;
+                }
+
+                // Commit the final auto-selected file after keyboard folder/tag navigation settles.
+                commitPendingKeyboardSelectionOpenRef.current();
+                navigationPhysicalKeyOpenRef.current = false;
+            };
+
+            // Capture keydown so keyboard-origin metadata is available before pane handlers update selection.
+            container.addEventListener('keydown', handleNavigationKeyDown, true);
+            // Keyup is used to commit pending file-open request when navigation settles.
+            container.addEventListener('keyup', handleNavigationKeyUp);
+            return () => {
+                container.removeEventListener('keydown', handleNavigationKeyDown, true);
+                container.removeEventListener('keyup', handleNavigationKeyUp);
+            };
+        }, [props.rootContainerRef]);
 
         // Track render count
         const renderCountRef = useRef(0);
 
-        const { selectionType, selectedFolder, selectedTag, selectedFile } = selectionState;
+        const { selectionType, selectedFolder, selectedTag, selectedProperty, selectedFile } = selectionState;
 
         // Determine if list pane is visible early to optimize
         const isVisible = !uiState.singlePane || uiState.currentSinglePaneView === 'files';
 
         // Use the new data hook
-        const { listItems, orderedFiles, orderedFileIndexMap, filePathToIndex, fileIndexMap, files } = useListPaneData({
+        const { listItems, orderedFiles, orderedFileIndexMap, filePathToIndex, fileIndexMap, files, localDayKey } = useListPaneData({
             selectionType,
             selectedFolder,
             selectedTag,
+            selectedProperty,
             settings,
             activeProfile,
             searchProvider,
@@ -557,6 +849,7 @@ export const ListPane = React.memo(
             searchTokens: isSearchActive ? debouncedSearchTokens : undefined,
             visibility: { includeDescendantNotes, showHiddenItems }
         });
+        const localDayReference = useMemo(() => DateUtils.parseLocalDayKey(localDayKey), [localDayKey]);
 
         // Determine the target folder path for drag-and-drop of external files
         const activeFolderDropPath = useMemo(() => {
@@ -566,8 +859,59 @@ export const ListPane = React.memo(
             return selectedFolder.path;
         }, [selectionType, selectedFolder]);
 
+        const activeSearchShortcutStartTarget = useMemo<ShortcutStartTarget | undefined>(() => {
+            if (selectionType === 'folder' && selectedFolder) {
+                return {
+                    type: ShortcutStartType.FOLDER,
+                    path: selectedFolder.path
+                };
+            }
+
+            if (selectionType === 'tag' && selectedTag) {
+                return {
+                    type: ShortcutStartType.TAG,
+                    tagPath: selectedTag
+                };
+            }
+
+            if (selectionType === 'property' && selectedProperty) {
+                return {
+                    type: ShortcutStartType.PROPERTY,
+                    nodeId: selectedProperty
+                };
+            }
+
+            return undefined;
+        }, [selectionType, selectedFolder, selectedTag, selectedProperty]);
+
+        const activeSearchShortcutStartTargetLabel = useMemo(() => {
+            if (!activeSearchShortcutStartTarget) {
+                return null;
+            }
+
+            return strings.searchInput.shortcutStartIn.replace(
+                '{path}',
+                formatSearchShortcutStartTargetPath(activeSearchShortcutStartTarget)
+            );
+        }, [activeSearchShortcutStartTarget]);
+
         // Flag to prevent automatic scroll to top when search is triggered from shortcut
         const suppressSearchTopScrollRef = useRef(false);
+        const { visibleListPropertyKeys, visibleNavigationPropertyKeys } = useMemo(() => {
+            return {
+                visibleListPropertyKeys: getActivePropertyKeySet(settings, 'list'),
+                visibleNavigationPropertyKeys: getActivePropertyKeySet(settings, 'navigation')
+            };
+        }, [settings]);
+        const visibleListPropertyKeySignature = useMemo(() => {
+            if (visibleListPropertyKeys.size === 0) {
+                return '';
+            }
+
+            const sortedKeys = Array.from(visibleListPropertyKeys);
+            sortedKeys.sort();
+            return sortedKeys.join('\u0001');
+        }, [visibleListPropertyKeys]);
 
         // Use the new scroll hook
         const { rowVirtualizer, scrollContainerRef, scrollContainerRefCallback, handleScrollToTop } = useListPaneScroll({
@@ -576,6 +920,7 @@ export const ListPane = React.memo(
             selectedFile,
             selectedFolder,
             selectedTag,
+            selectedProperty,
             settings,
             folderSettings: appearanceSettings,
             isVisible,
@@ -586,6 +931,8 @@ export const ListPane = React.memo(
             suppressSearchTopScrollRef,
             topSpacerHeight,
             includeDescendantNotes,
+            visiblePropertyKeys: visibleListPropertyKeys,
+            visiblePropertyKeySignature: visibleListPropertyKeySignature,
             scrollMargin: 0,
             scrollPaddingEnd
         });
@@ -654,10 +1001,15 @@ export const ListPane = React.memo(
 
         // Ensure the list has a valid selection for the current filter
         const ensureSelectionForCurrentFilter = useCallback(
-            (options?: { openInEditor?: boolean; clearIfEmpty?: boolean; selectFallback?: boolean }) => {
+            (options?: EnsureSelectionOptions): EnsureSelectionResult => {
+                // openInEditor means "open selection as part of sync"; enterToOpenFiles can disable that.
                 const openInEditor = options?.openInEditor ?? false;
                 const shouldOpenInEditor = openInEditor && !settings.enterToOpenFiles;
+                // debounceOpen applies only when openInEditor is active.
+                const debounceOpen = options?.debounceOpen ?? false;
+                // clearIfEmpty allows caller to clear selection when filtered list has no files.
                 const clearIfEmpty = options?.clearIfEmpty ?? false;
+                // selectFallback allows choosing first file when current selection is missing/invalid.
                 const selectFallback = options?.selectFallback ?? true;
                 const hasNoSelection = !selectedFile;
                 const selectedFileInList = selectedFile ? filePathToIndex.has(selectedFile.path) : false;
@@ -665,14 +1017,47 @@ export const ListPane = React.memo(
 
                 if (needsSelection) {
                     if (selectFallback && orderedFiles.length > 0) {
+                        // Use first visible file as deterministic fallback selection.
                         const firstFile = orderedFiles[0];
-                        selectFileFromList(firstFile, { suppressOpen: !shouldOpenInEditor });
-                    } else if (!selectFallback && clearIfEmpty && orderedFiles.length === 0) {
-                        selectionDispatch({ type: 'SET_SELECTED_FILE', file: null });
+                        selectFileFromList(firstFile, {
+                            suppressOpen: !shouldOpenInEditor,
+                            debounceOpen: shouldOpenInEditor && debounceOpen
+                        });
+                        return { selectionStateChanged: true };
                     }
+
+                    if (!selectFallback && clearIfEmpty && orderedFiles.length === 0) {
+                        // Caller requested explicit clear when no filtered files are available.
+                        selectionDispatch({ type: 'SET_SELECTED_FILE', file: null });
+                        return { selectionStateChanged: true };
+                    }
+
+                    // No selectable fallback and no explicit clear requested.
+                    return { selectionStateChanged: false };
                 }
+
+                if (shouldOpenInEditor && selectedFile && selectedFileInList) {
+                    if (debounceOpen) {
+                        // Schedule open for keyup/timer commit path.
+                        scheduleKeyboardOpen(selectedFile);
+                        return { selectionStateChanged: false };
+                    }
+                    // Open immediately when debounce is not requested.
+                    openFileInWorkspace(selectedFile);
+                }
+
+                return { selectionStateChanged: false };
             },
-            [selectedFile, orderedFiles, filePathToIndex, selectionDispatch, selectFileFromList, settings.enterToOpenFiles]
+            [
+                selectedFile,
+                orderedFiles,
+                filePathToIndex,
+                selectionDispatch,
+                selectFileFromList,
+                settings.enterToOpenFiles,
+                scheduleKeyboardOpen,
+                openFileInWorkspace
+            ]
         );
 
         /**
@@ -685,13 +1070,15 @@ export const ListPane = React.memo(
                 return;
             }
 
+            const startTarget = activeSearchShortcutStartTarget;
+            const startTargetLabel = activeSearchShortcutStartTargetLabel;
             let modal: InputModal | null = null;
 
             modal = new InputModal(
                 app,
                 strings.searchInput.shortcutModalTitle,
                 strings.searchInput.shortcutNamePlaceholder,
-                async rawName => {
+                async (rawName, context) => {
                     const trimmedName = rawName.trim();
                     if (trimmedName.length === 0) {
                         showNotice(strings.shortcuts.emptySearchName, { variant: 'warning' });
@@ -700,7 +1087,13 @@ export const ListPane = React.memo(
 
                     setIsSavingSearchShortcut(true);
                     try {
-                        const success = await addSearchShortcut({ name: trimmedName, query: normalizedQuery, provider: searchProvider });
+                        const saveStartTarget = context?.checkboxValue ? startTarget : undefined;
+                        const success = await addSearchShortcut({
+                            name: trimmedName,
+                            query: normalizedQuery,
+                            provider: searchProvider,
+                            startTarget: saveStartTarget
+                        });
                         if (success) {
                             modal?.close();
                         }
@@ -709,10 +1102,26 @@ export const ListPane = React.memo(
                     }
                 },
                 normalizedQuery,
-                { closeOnSubmit: false }
+                {
+                    closeOnSubmit: false,
+                    checkbox: startTargetLabel
+                        ? {
+                              label: startTargetLabel,
+                              defaultChecked: false
+                          }
+                        : undefined
+                }
             );
             modal.open();
-        }, [app, addSearchShortcut, isSavingSearchShortcut, searchProvider, searchQuery]);
+        }, [
+            activeSearchShortcutStartTarget,
+            activeSearchShortcutStartTargetLabel,
+            app,
+            addSearchShortcut,
+            isSavingSearchShortcut,
+            searchProvider,
+            searchQuery
+        ]);
 
         /**
          * Handles removing the currently active search shortcut.
@@ -795,11 +1204,8 @@ export const ListPane = React.memo(
                 isUserSelectionRef.current = true; // Mark this as a user selection
 
                 const isShiftKey = e.shiftKey;
-                const isCmdCtrlClick = e.metaKey || e.ctrlKey;
-                const isOptionClick = e.altKey;
-                const prefersCmdCtrl = settings.multiSelectModifier === 'cmdCtrl';
-
-                const shouldMultiSelect = !isMobile && ((prefersCmdCtrl && isCmdCtrlClick) || (!prefersCmdCtrl && isOptionClick));
+                const isCmdCtrlClick = isCmdCtrlModifierPressed(e);
+                const shouldMultiSelect = !isMobile && isMultiSelectModifierPressed(e, settings.multiSelectModifier);
 
                 const shouldOpenInNewTab =
                     !isMobile && !shouldMultiSelect && settings.multiSelectModifier === 'optionAlt' && isCmdCtrlClick;
@@ -864,7 +1270,7 @@ export const ListPane = React.memo(
             const scope = props.rootContainerRef.current ?? document;
             const listPaneScroller = scope.querySelector('.nn-list-pane-scroller');
             if (listPaneScroller instanceof HTMLElement) {
-                listPaneScroller.focus();
+                focusElementPreventScroll(listPaneScroller);
             }
         }, [props.rootContainerRef]);
 
@@ -876,8 +1282,25 @@ export const ListPane = React.memo(
             async ({ searchShortcut }: ExecuteSearchShortcutParams) => {
                 const normalizedQuery = searchShortcut.query.trim();
                 const targetProvider = searchShortcut.provider ?? 'internal';
+                const startTarget = searchShortcut.startTarget;
 
                 plugin.setSearchProvider(targetProvider);
+                if (startTarget) {
+                    if (isShortcutStartFolder(startTarget)) {
+                        const normalizedStartFolder = normalizeOptionalVaultFolderPath(startTarget.path);
+                        if (normalizedStartFolder) {
+                            onNavigateToFolder(normalizedStartFolder, {
+                                source: 'shortcut',
+                                suppressAutoSelect: true,
+                                skipScroll: settings.skipAutoScroll
+                            });
+                        }
+                    } else if (isShortcutStartTag(startTarget)) {
+                        onRevealTag(startTarget.tagPath, { source: 'shortcut', skipScroll: settings.skipAutoScroll });
+                    } else if (isShortcutStartProperty(startTarget)) {
+                        onRevealProperty(startTarget.nodeId, { source: 'shortcut', skipScroll: settings.skipAutoScroll });
+                    }
+                }
 
                 const needsSearchActivation = !isSearchActive;
                 if (uiState.singlePane) {
@@ -912,6 +1335,10 @@ export const ListPane = React.memo(
             },
             [
                 plugin,
+                onNavigateToFolder,
+                onRevealTag,
+                onRevealProperty,
+                settings.skipAutoScroll,
                 isSearchActive,
                 setIsSearchActive,
                 uiState.singlePane,
@@ -937,6 +1364,97 @@ export const ListPane = React.memo(
                 handleFileClick(file, event, fileIndex, orderedFiles);
             },
             [handleFileClick, orderedFiles]
+        );
+
+        const folderGroupHeaderTargets = useMemo<Map<string, FolderGroupHeaderTarget>>(() => {
+            const targets = new Map<string, FolderGroupHeaderTarget>();
+
+            listItems.forEach(item => {
+                if (item.type !== ListPaneItemType.HEADER) {
+                    return;
+                }
+
+                const folderPath = item.headerFolderPath;
+                if (!folderPath || targets.has(folderPath)) {
+                    return;
+                }
+
+                const folder = app.vault.getFolderByPath(folderPath);
+                if (!folder) {
+                    return;
+                }
+
+                const folderNote = settings.enableFolderNotes
+                    ? getFolderNote(folder, {
+                          enableFolderNotes: settings.enableFolderNotes,
+                          folderNoteName: settings.folderNoteName,
+                          folderNoteNamePattern: settings.folderNoteNamePattern
+                      })
+                    : null;
+
+                targets.set(folderPath, { folder, folderNote });
+            });
+
+            return targets;
+        }, [app.vault, listItems, settings.enableFolderNotes, settings.folderNoteName, settings.folderNoteNamePattern]);
+
+        const handleFolderGroupHeaderClick = useCallback(
+            (event: React.MouseEvent<HTMLSpanElement>, target: FolderGroupHeaderTarget) => {
+                event.stopPropagation();
+                const folderNote = target.folderNote;
+                const navigateOptions: NavigateToFolderOptions = {
+                    source: 'manual',
+                    suppressAutoSelect: Boolean(folderNote)
+                };
+                onNavigateToFolder(target.folder.path, navigateOptions);
+
+                if (!folderNote) {
+                    return;
+                }
+
+                const openContext = resolveFolderNoteClickOpenContext(
+                    event,
+                    settings.openFolderNotesInNewTab,
+                    settings.multiSelectModifier,
+                    isMobile
+                );
+
+                runAsyncAction(() =>
+                    openFolderNoteFile({
+                        app,
+                        commandQueue,
+                        folder: target.folder,
+                        folderNote,
+                        context: openContext
+                    })
+                );
+            },
+            [settings.openFolderNotesInNewTab, settings.multiSelectModifier, isMobile, app, commandQueue, onNavigateToFolder]
+        );
+
+        const handleFolderGroupHeaderMouseDown = useCallback(
+            (event: React.MouseEvent<HTMLSpanElement>, target: FolderGroupHeaderTarget) => {
+                const folderNote = target.folderNote;
+                if (event.button !== 1 || !folderNote) {
+                    return;
+                }
+
+                // Middle-click opens folder notes in a new tab.
+                event.preventDefault();
+                event.stopPropagation();
+                onNavigateToFolder(target.folder.path, { source: 'manual', suppressAutoSelect: true });
+
+                runAsyncAction(() =>
+                    openFolderNoteFile({
+                        app,
+                        commandQueue,
+                        folder: target.folder,
+                        folderNote,
+                        context: 'tab'
+                    })
+                );
+            },
+            [app, commandQueue, onNavigateToFolder]
         );
 
         // Returns array element at index or undefined if out of bounds
@@ -966,15 +1484,34 @@ export const ListPane = React.memo(
                 return;
             }
 
+            // Debounce only when folder/tag auto-select came from physical navigation keys.
+            const shouldDebounceFolderAutoOpen = isFolderChangeWithAutoSelect && navigationPhysicalKeyOpenRef.current;
+            // Tracks whether helper updated selection state in this effect pass.
+            let selectionStateChangedBySearchSync = false;
+            // Tracks whether search-specific folder auto-select branch ran.
+            let handledSearchFolderAutoSelect = false;
+
             // If search is active and auto-select is enabled, we need to select the first filtered file
             if (isSearchActive && settings.autoSelectFirstFileOnFocusChange && !isMobile && isFolderChangeWithAutoSelect) {
                 // Ensure selection respects current filter and optionally clear selection if none
-                ensureSelectionForCurrentFilter({ openInEditor: true, clearIfEmpty: true });
-                isUserSelectionRef.current = false;
-                return;
+                const ensureResult = ensureSelectionForCurrentFilter({
+                    openInEditor: true,
+                    clearIfEmpty: true,
+                    debounceOpen: shouldDebounceFolderAutoOpen
+                });
+                selectionStateChangedBySearchSync = ensureResult.selectionStateChanged;
+                // Prevent generic open branch from re-running in same effect pass.
+                handledSearchFolderAutoSelect = true;
             }
 
-            if (selectedFile && !isUserSelectionRef.current && settings.autoSelectFirstFileOnFocusChange && !isMobile) {
+            if (
+                !handledSearchFolderAutoSelect &&
+                !selectionStateChangedBySearchSync &&
+                selectedFile &&
+                !isUserSelectionRef.current &&
+                settings.autoSelectFirstFileOnFocusChange &&
+                !isMobile
+            ) {
                 // Check if we're actively navigating the navigator
                 const navigatorEl = document.querySelector('.nn-split-container');
                 const hasNavigatorFocus = navigatorEl && navigatorEl.contains(document.activeElement);
@@ -982,10 +1519,26 @@ export const ListPane = React.memo(
                 // Open the file if we're not actively using the navigator OR if this is a folder change with auto-select
                 if (!hasNavigatorFocus || isFolderChangeWithAutoSelect) {
                     if (!settings.enterToOpenFiles) {
-                        openFileInWorkspace(selectedFile);
+                        if (shouldDebounceFolderAutoOpen) {
+                            // During key traversal, delay open so rapid navigation does not reopen every intermediate file.
+                            scheduleKeyboardOpen(selectedFile);
+                        } else {
+                            // Non-physical or already-settled navigation opens immediately.
+                            openFileInWorkspace(selectedFile);
+                        }
                     }
                 }
             }
+
+            if (isFolderChangeWithAutoSelect) {
+                // If selection state did not change as part of folder/tag sync, clear the flag explicitly.
+                if (!selectionStateChangedBySearchSync) {
+                    selectionDispatch({ type: 'SET_FOLDER_CHANGE_WITH_AUTO_SELECT', isFolderChangeWithAutoSelect: false });
+                }
+                // Auto-select scope is completed for this interaction.
+                navigationPhysicalKeyOpenRef.current = false;
+            }
+
             // Reset the flag after processing
             isUserSelectionRef.current = false;
         }, [
@@ -1000,6 +1553,7 @@ export const ListPane = React.memo(
             isSearchActive,
             files,
             ensureSelectionForCurrentFilter,
+            scheduleKeyboardOpen,
             openFileInWorkspace
         ]);
 
@@ -1085,6 +1639,92 @@ export const ListPane = React.memo(
             ]
         );
 
+        const modifySearchWithProperty = useCallback(
+            (key: string, value: string | null, operator: InclusionOperator) => {
+                const normalizedKey = key.trim();
+                if (!normalizedKey) {
+                    return;
+                }
+
+                if (!isSearchActive) {
+                    setIsSearchActive(true);
+                    if (uiState.singlePane) {
+                        uiDispatch({ type: 'SET_SINGLE_PANE_VIEW', view: 'files' });
+                    }
+                }
+
+                setShouldFocusSearch(true);
+                uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'search' });
+
+                let nextQueryValue: string | null = null;
+
+                setSearchQuery(prev => {
+                    const result = updateFilterQueryWithProperty(prev, normalizedKey, value, operator);
+                    nextQueryValue = result.query;
+                    return result.query;
+                });
+
+                if (nextQueryValue !== null) {
+                    setDebouncedSearchQuery(nextQueryValue);
+                }
+            },
+            [
+                setIsSearchActive,
+                uiDispatch,
+                setShouldFocusSearch,
+                setSearchQuery,
+                setDebouncedSearchQuery,
+                isSearchActive,
+                uiState.singlePane
+            ]
+        );
+
+        const modifySearchWithDateToken = useCallback(
+            (dateToken: string) => {
+                const normalizedToken = dateToken.trim();
+                if (!normalizedToken) {
+                    return;
+                }
+
+                if (searchProvider !== 'internal') {
+                    plugin.setSearchProvider('internal');
+                }
+
+                if (!isSearchActive) {
+                    setIsSearchActive(true);
+                    if (uiState.singlePane) {
+                        uiDispatch({ type: 'SET_SINGLE_PANE_VIEW', view: 'files' });
+                    }
+                }
+
+                setShouldFocusSearch(true);
+                uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'search' });
+
+                let nextQueryValue: string | null = null;
+
+                setSearchQuery(prev => {
+                    const result = updateFilterQueryWithDateToken(prev, normalizedToken);
+                    nextQueryValue = result.query;
+                    return result.query;
+                });
+
+                if (nextQueryValue !== null) {
+                    setDebouncedSearchQuery(nextQueryValue);
+                }
+            },
+            [
+                setIsSearchActive,
+                uiDispatch,
+                setShouldFocusSearch,
+                setSearchQuery,
+                setDebouncedSearchQuery,
+                isSearchActive,
+                plugin,
+                searchProvider,
+                uiState.singlePane
+            ]
+        );
+
         useImperativeHandle(
             ref,
             () => ({
@@ -1097,6 +1737,10 @@ export const ListPane = React.memo(
                 selectAdjacentFile,
                 // Toggle or modify search query to include/exclude a tag with AND/OR operator
                 modifySearchWithTag,
+                // Toggle or modify search query to include/exclude a property with AND/OR operator
+                modifySearchWithProperty,
+                // Replace the active search query with a date token
+                modifySearchWithDateToken,
                 // Toggle search mode on/off or focus existing search
                 toggleSearch: () => {
                     if (isSearchActive) {
@@ -1134,7 +1778,9 @@ export const ListPane = React.memo(
                 executeSearchShortcut,
                 selectFileFromList,
                 selectAdjacentFile,
-                modifySearchWithTag
+                modifySearchWithTag,
+                modifySearchWithProperty,
+                modifySearchWithDateToken
             ]
         );
 
@@ -1157,11 +1803,11 @@ export const ListPane = React.memo(
                 }),
             onScheduleKeyboardOpen: scheduleKeyboardSelectionOpen,
             onScheduleKeyboardOpenForFile: scheduleKeyboardSelectionOpenForFile,
-            onCommitKeyboardOpen: commitKeyboardSelectionOpen
+            onCommitKeyboardOpen: commitPendingKeyboardSelectionOpen
         });
 
         // Determine if we're showing empty state
-        const isEmptySelection = !selectedFolder && !selectedTag;
+        const isEmptySelection = !selectedFolder && !selectedTag && !selectedProperty;
         const hasNoFiles = files.length === 0;
 
         const shouldRenderBottomToolbar = isMobile && !isAndroid;
@@ -1178,35 +1824,40 @@ export const ListPane = React.memo(
             >
                 {props.resizeHandleProps && <div className="nn-resize-handle" {...props.resizeHandleProps} />}
                 <div className="nn-list-pane-chrome">
-                    <ListPaneHeader onHeaderClick={handleScrollToTop} isSearchActive={isSearchActive} onSearchToggle={handleSearchToggle} />
-                    {/* Android - toolbar at top */}
-                    {isMobile && isAndroid ? listToolbar : null}
-                    {/* Search bar - collapsible */}
-                    <div className={`nn-search-bar-container ${isSearchActive ? 'nn-search-bar-visible' : ''}`}>
-                        {isSearchActive && (
-                            <SearchInput
-                                searchQuery={searchQuery}
-                                onSearchQueryChange={setSearchQuery}
-                                shouldFocus={shouldFocusSearch}
-                                onFocusComplete={() => setShouldFocusSearch(false)}
-                                onClose={() => {
-                                    setIsSearchActive(false);
-                                    uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'files' });
-                                }}
-                                onFocusFiles={() => {
-                                    // Ensure selection exists when focusing list from search (no editor open)
-                                    ensureSelectionForCurrentFilter({ openInEditor: false });
-                                }}
-                                containerRef={props.rootContainerRef}
-                                onSaveShortcut={!activeSearchShortcut ? handleSaveSearchShortcut : undefined}
-                                onRemoveShortcut={activeSearchShortcut ? handleRemoveSearchShortcut : undefined}
-                                isShortcutSaved={Boolean(activeSearchShortcut)}
-                                isShortcutDisabled={isSavingSearchShortcut}
-                                searchProvider={searchProvider}
-                            />
-                        )}
-                    </div>
-                    {shouldShowDesktopTitleArea ? <ListPaneTitleArea isVisible={shouldShowDesktopTitleArea} /> : null}
+                    <ListPaneTitleChrome
+                        onHeaderClick={handleScrollToTop}
+                        isSearchActive={isSearchActive}
+                        onSearchToggle={handleSearchToggle}
+                        shouldShowDesktopTitleArea={shouldShowDesktopTitleArea}
+                    >
+                        {/* Android - toolbar at top */}
+                        {isMobile && isAndroid ? listToolbar : null}
+                        {/* Search bar - collapsible */}
+                        <div className={`nn-search-bar-container ${isSearchActive ? 'nn-search-bar-visible' : ''}`}>
+                            {isSearchActive && (
+                                <SearchInput
+                                    searchQuery={searchQuery}
+                                    onSearchQueryChange={setSearchQuery}
+                                    shouldFocus={shouldFocusSearch}
+                                    onFocusComplete={() => setShouldFocusSearch(false)}
+                                    onClose={() => {
+                                        setIsSearchActive(false);
+                                        uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'files' });
+                                    }}
+                                    onFocusFiles={() => {
+                                        // Ensure selection exists when focusing list from search (no editor open)
+                                        ensureSelectionForCurrentFilter({ openInEditor: false });
+                                    }}
+                                    containerRef={props.rootContainerRef}
+                                    onSaveShortcut={!activeSearchShortcut ? handleSaveSearchShortcut : undefined}
+                                    onRemoveShortcut={activeSearchShortcut ? handleRemoveSearchShortcut : undefined}
+                                    isShortcutSaved={Boolean(activeSearchShortcut)}
+                                    isShortcutDisabled={isSavingSearchShortcut}
+                                    searchProvider={searchProvider}
+                                />
+                            )}
+                        </div>
+                    </ListPaneTitleChrome>
                 </div>
                 <div className="nn-list-pane-panel">
                     <div
@@ -1286,6 +1937,11 @@ export const ListPane = React.memo(
                                                 item.type === ListPaneItemType.HEADER && item.key === PINNED_SECTION_HEADER_KEY;
                                             const headerLabel =
                                                 item.type === ListPaneItemType.HEADER && typeof item.data === 'string' ? item.data : '';
+                                            const headerFolderPath =
+                                                item.type === ListPaneItemType.HEADER ? (item.headerFolderPath ?? null) : null;
+                                            const folderGroupHeaderTarget =
+                                                headerFolderPath !== null ? (folderGroupHeaderTargets.get(headerFolderPath) ?? null) : null;
+                                            const isClickableFolderGroupHeader = Boolean(folderGroupHeaderTarget) && !isPinnedHeader;
 
                                             // Find current date group for file items
                                             let dateGroup: string | null = null;
@@ -1293,8 +1949,12 @@ export const ListPane = React.memo(
                                                 // Look backwards to find the most recent header
                                                 for (let i = virtualItem.index - 1; i >= 0; i--) {
                                                     const prevItem = safeGetItem(listItems, i);
-                                                    if (prevItem && prevItem.type === ListPaneItemType.HEADER) {
-                                                        dateGroup = prevItem.data as string;
+                                                    if (
+                                                        prevItem &&
+                                                        prevItem.type === ListPaneItemType.HEADER &&
+                                                        typeof prevItem.data === 'string'
+                                                    ) {
+                                                        dateGroup = prevItem.data;
                                                         break;
                                                     }
                                                 }
@@ -1348,7 +2008,33 @@ export const ListPane = React.memo(
                                                                     <span className="nn-date-group-header-text">{headerLabel}</span>
                                                                 </>
                                                             ) : (
-                                                                <span className="nn-date-group-header-text">{headerLabel}</span>
+                                                                <span
+                                                                    className={`nn-date-group-header-text ${
+                                                                        isClickableFolderGroupHeader
+                                                                            ? 'nn-date-group-header-text--folder-note'
+                                                                            : ''
+                                                                    }`}
+                                                                    onClick={
+                                                                        folderGroupHeaderTarget
+                                                                            ? event =>
+                                                                                  handleFolderGroupHeaderClick(
+                                                                                      event,
+                                                                                      folderGroupHeaderTarget
+                                                                                  )
+                                                                            : undefined
+                                                                    }
+                                                                    onMouseDown={
+                                                                        folderGroupHeaderTarget
+                                                                            ? event =>
+                                                                                  handleFolderGroupHeaderMouseDown(
+                                                                                      event,
+                                                                                      folderGroupHeaderTarget
+                                                                                  )
+                                                                            : undefined
+                                                                    }
+                                                                >
+                                                                    {headerLabel}
+                                                                </span>
                                                             )}
                                                         </div>
                                                     ) : item.type === ListPaneItemType.TOP_SPACER ? (
@@ -1374,7 +2060,11 @@ export const ListPane = React.memo(
                                                             // Pass hidden state for muted rendering style
                                                             isHidden={Boolean(item.isHidden)}
                                                             onModifySearchWithTag={modifySearchWithTag}
+                                                            onModifySearchWithProperty={modifySearchWithProperty}
+                                                            localDayReference={localDayReference}
                                                             fileIconSize={listMeasurements.fileIconSize}
+                                                            visiblePropertyKeys={visibleListPropertyKeys}
+                                                            visibleNavigationPropertyKeys={visibleNavigationPropertyKeys}
                                                         />
                                                     ) : null}
                                                 </div>
@@ -1390,7 +2080,7 @@ export const ListPane = React.memo(
                 </div>
                 {shouldRenderCalendarOverlay ? (
                     <div className="nn-navigation-calendar-overlay">
-                        <NavigationPaneCalendar onWeekCountChange={setCalendarWeekCount} />
+                        <Calendar onWeekCountChange={setCalendarWeekCount} onAddDateFilter={modifySearchWithDateToken} />
                     </div>
                 ) : null}
                 {shouldRenderBottomToolbarOutsidePanel ? <div className="nn-pane-bottom-toolbar">{listToolbar}</div> : null}

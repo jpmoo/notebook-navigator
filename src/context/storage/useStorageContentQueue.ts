@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,11 +18,11 @@
 
 import { useCallback, type RefObject } from 'react';
 import { TFile } from 'obsidian';
-import type { ContentProviderType } from '../../interfaces/IContentProvider';
+import type { ContentProviderType, FileContentType } from '../../interfaces/IContentProvider';
 import type { ContentProviderRegistry } from '../../services/content/ContentProviderRegistry';
 import type { NotebookNavigatorSettings } from '../../settings';
 import { getDBInstance } from '../../storage/fileOperations';
-import { hasCustomPropertyFrontmatterFields } from '../../utils/customPropertyUtils';
+import { hasPropertyFrontmatterFields } from '../../utils/propertyUtils';
 import { isPdfFile } from '../../utils/fileTypeUtils';
 import { filterFilesRequiringMetadataSources, filterPdfFilesRequiringThumbnails } from '../storageQueueFilters';
 import { getMetadataDependentTypes } from './storageContentTypes';
@@ -87,7 +87,7 @@ export function useStorageContentQueue(params: {
             }
 
             const metadataDependentTypes = getMetadataDependentTypes(settings);
-            const hasCustomProperties = hasCustomPropertyFrontmatterFields(settings);
+            const hasCustomProperties = hasPropertyFrontmatterFields(settings);
             const contentEnabled =
                 settings.showFilePreview || settings.showFeatureImage || hasCustomProperties || metadataDependentTypes.length > 0;
 
@@ -122,9 +122,7 @@ export function useStorageContentQueue(params: {
                     // no "changed files" but still pending derived content in the database. Fall back to checking
                     // the database for any missing content types.
                     const db = getDBInstance();
-                    const contentTypesToCheck: ('tags' | 'preview' | 'featureImage' | 'metadata' | 'wordCount' | 'customProperty')[] = [
-                        'wordCount'
-                    ];
+                    const contentTypesToCheck: FileContentType[] = ['wordCount', 'tasks'];
                     if (metadataDependentTypes.includes('tags')) {
                         contentTypesToCheck.push('tags');
                     }
@@ -138,7 +136,7 @@ export function useStorageContentQueue(params: {
                         contentTypesToCheck.push('metadata');
                     }
                     if (hasCustomProperties) {
-                        contentTypesToCheck.push('customProperty');
+                        contentTypesToCheck.push('properties');
                     }
 
                     const pathsNeedingContent = db.getFilesNeedingAnyContent(contentTypesToCheck);

@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,8 @@ describe('NavigationAPI', () => {
         const view = {
             navigateToFile: vi.fn(),
             navigateToFolder: vi.fn(),
-            navigateToTag: vi.fn()
+            navigateToTag: vi.fn(),
+            navigateToProperty: vi.fn()
         };
 
         const folder = new TFolder();
@@ -56,7 +57,8 @@ describe('NavigationAPI', () => {
         const view = {
             navigateToFile: vi.fn(),
             navigateToFolder: vi.fn(),
-            navigateToTag: vi.fn()
+            navigateToTag: vi.fn(),
+            navigateToProperty: vi.fn()
         };
 
         const folder = new TFolder();
@@ -86,7 +88,8 @@ describe('NavigationAPI', () => {
         const view = {
             navigateToFile: vi.fn(),
             navigateToFolder: vi.fn(),
-            navigateToTag: vi.fn()
+            navigateToTag: vi.fn(),
+            navigateToProperty: vi.fn()
         };
 
         const api: ConstructorParameters<typeof NavigationAPI>[0] = {
@@ -113,7 +116,8 @@ describe('NavigationAPI', () => {
         const view = {
             navigateToFile: vi.fn(),
             navigateToFolder: vi.fn(),
-            navigateToTag: vi.fn()
+            navigateToTag: vi.fn(),
+            navigateToProperty: vi.fn()
         };
 
         const api: ConstructorParameters<typeof NavigationAPI>[0] = {
@@ -134,5 +138,33 @@ describe('NavigationAPI', () => {
         await navigationAPI.navigateToTag('#work');
 
         expect(view.navigateToTag).toHaveBeenCalledWith('#work');
+    });
+
+    it('navigates to a property via the navigator view', async () => {
+        const view = {
+            navigateToFile: vi.fn(),
+            navigateToFolder: vi.fn(),
+            navigateToTag: vi.fn(),
+            navigateToProperty: vi.fn()
+        };
+
+        const api: ConstructorParameters<typeof NavigationAPI>[0] = {
+            app: {
+                vault: {
+                    getFolderByPath: () => null
+                },
+                workspace: {
+                    getLeavesOfType: () => [{ view }]
+                }
+            },
+            getPlugin: () => ({
+                activateView: vi.fn(async () => null)
+            })
+        };
+
+        const navigationAPI = new NavigationAPI(api);
+        await navigationAPI.navigateToProperty('key:status=done');
+
+        expect(view.navigateToProperty).toHaveBeenCalledWith('key:status=done');
     });
 });

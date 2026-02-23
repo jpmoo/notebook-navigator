@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,11 @@ import type { NotebookNavigatorAPI } from '../NotebookNavigatorAPI';
 import type { SelectionState, NavItem } from '../types';
 import { STORAGE_KEYS } from '../../types';
 import { localStorage } from '../../utils/localStorage';
+import {
+    canRestorePropertySelectionNodeId,
+    parseStoredPropertySelectionNodeId,
+    type PropertySelectionNodeId
+} from '../../utils/propertyTree';
 
 /**
  * Selection API - Manage and query selection state in the navigator
@@ -34,13 +39,15 @@ export class SelectionAPI {
         primaryFile: TFile | null;
         navigationFolder: TFolder | null;
         navigationTag: string | null;
+        navigationProperty: PropertySelectionNodeId | null;
     } = {
         // File selection state
         files: new Set<string>(),
         primaryFile: null,
         // Navigation selection state
         navigationFolder: null,
-        navigationTag: null
+        navigationTag: null,
+        navigationProperty: null
     };
 
     // Snapshot signature of last-emitted selection to ensure events fire when
@@ -57,17 +64,38 @@ export class SelectionAPI {
      */
     private initializeNavigationState(): void {
         try {
+            const settings = this.api.getPlugin().settings;
+
+            if (settings.showProperties) {
+                const propertySelection = parseStoredPropertySelectionNodeId(localStorage.get<unknown>(STORAGE_KEYS.selectedPropertyKey));
+                if (propertySelection && canRestorePropertySelectionNodeId(settings, propertySelection)) {
+                    this.selectionState.navigationProperty = propertySelection;
+                    this.selectionState.navigationTag = null;
+                    this.selectionState.navigationFolder = null;
+                    return;
+                }
+                if (propertySelection) {
+                    try {
+                        localStorage.remove(STORAGE_KEYS.selectedPropertyKey);
+                    } catch (error) {
+                        console.error('Failed to clear invalid property selection from localStorage:', error);
+                    }
+                }
+            }
+
             const folderPath = localStorage.get<string>(STORAGE_KEYS.selectedFolderKey);
             const tagName = localStorage.get<string>(STORAGE_KEYS.selectedTagKey);
 
             if (tagName) {
                 this.selectionState.navigationTag = tagName;
                 this.selectionState.navigationFolder = null;
+                this.selectionState.navigationProperty = null;
             } else if (folderPath) {
                 const folder = this.api.app.vault.getFolderByPath(folderPath);
                 if (folder) {
                     this.selectionState.navigationFolder = folder;
                     this.selectionState.navigationTag = null;
+                    this.selectionState.navigationProperty = null;
                 }
             }
         } catch (error) {
@@ -76,24 +104,33 @@ export class SelectionAPI {
     }
 
     /**
-     * Get the currently selected navigation item (folder or tag)
-     * @returns Object with either folder or tag selected (only one can be selected at a time)
+     * Get the currently selected navigation item (folder, tag, property, or none)
+     * @returns Object with one selected navigation target (folder, tag, property, or none)
      */
     getNavItem(): NavItem {
-        if (this.selectionState.navigationFolder) {
+        if (this.selectionState.navigationProperty) {
             return {
-                folder: this.selectionState.navigationFolder,
-                tag: null
+                folder: null,
+                tag: null,
+                property: this.selectionState.navigationProperty
             };
         } else if (this.selectionState.navigationTag) {
             return {
                 folder: null,
-                tag: this.selectionState.navigationTag
+                tag: this.selectionState.navigationTag,
+                property: null
+            };
+        } else if (this.selectionState.navigationFolder) {
+            return {
+                folder: this.selectionState.navigationFolder,
+                tag: null,
+                property: null
             };
         }
         return {
             folder: null,
-            tag: null
+            tag: null,
+            property: null
         };
     }
 
@@ -102,22 +139,27 @@ export class SelectionAPI {
      * Called by React components when navigation changes
      * @internal
      */
-    updateNavigationState(folder: TFolder | null, tag: string | null): void {
-        this.selectionState.navigationFolder = folder;
-        this.selectionState.navigationTag = tag;
-
-        // Build the NavItem with proper discriminated union
-        let item: NavItem;
-        if (folder) {
-            item = { folder, tag: null };
+    updateNavigationState(folder: TFolder | null, tag: string | null, property: PropertySelectionNodeId | null): void {
+        if (property) {
+            this.selectionState.navigationFolder = null;
+            this.selectionState.navigationTag = null;
+            this.selectionState.navigationProperty = property;
         } else if (tag) {
-            item = { folder: null, tag };
+            this.selectionState.navigationFolder = null;
+            this.selectionState.navigationTag = tag;
+            this.selectionState.navigationProperty = null;
+        } else if (folder) {
+            this.selectionState.navigationFolder = folder;
+            this.selectionState.navigationTag = null;
+            this.selectionState.navigationProperty = null;
         } else {
-            item = { folder: null, tag: null };
+            this.selectionState.navigationFolder = null;
+            this.selectionState.navigationTag = null;
+            this.selectionState.navigationProperty = null;
         }
 
         // Trigger the consolidated navigation event
-        this.api.trigger('nav-item-changed', { item });
+        this.api.trigger('nav-item-changed', { item: this.getNavItem() });
     }
 
     /**

@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
  * This hook provides:
  * - Common keyboard event setup and teardown
  * - Event filtering (navigator focus, modal handling, input field detection)
- * - Debouncing logic
  * - RTL support
  * - Common navigation utilities
  * - Scroll handling through virtualizer
@@ -31,11 +30,10 @@
  * to provide consistent keyboard behavior across the plugin.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Virtualizer } from '@tanstack/react-virtual';
 import { useUIState } from '../context/UIStateContext';
-import { TIMEOUTS } from '../types/obsidian-extended';
-import { isTypingInInput } from '../utils/domUtils';
+import { isKeyboardEventContextBlocked } from '../utils/domUtils';
 
 /**
  * Common item type for virtualized lists
@@ -210,7 +208,6 @@ export function useKeyboardNavigation<T>({
     onKeyUp
 }: UseKeyboardNavigationParams<T>) {
     const uiState = useUIState();
-    const lastKeyPressTime = useRef(0);
 
     const createHelpers = useCallback((): KeyboardNavigationHelpers<T> => {
         return {
@@ -237,27 +234,18 @@ export function useKeyboardNavigation<T>({
             // 1. Check if the navigator is focused
             const navigatorContainer = containerRef.current;
             const navigatorFocused = navigatorContainer?.getAttribute('data-navigator-focused');
+            // Ignore global key events unless navigator focus state is active.
             if (navigatorFocused !== 'true') return;
 
-            // 2. Skip if user is typing in an input field
-            if (isTypingInInput(e)) return;
-
-            // 3. Skip if a modal is open
-            const activeElement = document.activeElement as HTMLElement;
-            if (activeElement && activeElement.closest('.modal-container')) {
+            // 2. Skip if keyboard handling is blocked in the current context.
+            if (isKeyboardEventContextBlocked(e)) {
+                // Block typing contexts and modal focus to avoid stealing keystrokes.
                 return;
             }
 
-            // 4. Only handle events for the currently focused pane
+            // 3. Only handle events for the currently focused pane
+            // Navigation and file panes share one container; this routes events to active pane only.
             if (uiState.focusedPane !== focusedPane) return;
-
-            // Debounce rapid key presses with a more reasonable threshold
-            const now = Date.now();
-            if (now - lastKeyPressTime.current < TIMEOUTS.KEYBOARD_THROTTLE) {
-                // ~60fps threshold
-                return;
-            }
-            lastKeyPressTime.current = now;
 
             // Delegate to pane-specific handler
             onKeyDown(e, createHelpers());
@@ -274,18 +262,17 @@ export function useKeyboardNavigation<T>({
             // 1. Check if the navigator is focused
             const navigatorContainer = containerRef.current;
             const navigatorFocused = navigatorContainer?.getAttribute('data-navigator-focused');
+            // Ignore keyup unless navigator focus state is active.
             if (navigatorFocused !== 'true') return;
 
-            // 2. Skip if user is typing in an input field
-            if (isTypingInInput(e)) return;
-
-            // 3. Skip if a modal is open
-            const activeElement = document.activeElement as HTMLElement;
-            if (activeElement && activeElement.closest('.modal-container')) {
+            // 2. Skip if keyboard handling is blocked in the current context.
+            if (isKeyboardEventContextBlocked(e)) {
+                // Block typing contexts and modal focus to avoid stealing keystrokes.
                 return;
             }
 
-            // 4. Only handle events for the currently focused pane
+            // 3. Only handle events for the currently focused pane
+            // Navigation and file panes share one container; this routes events to active pane only.
             if (uiState.focusedPane !== focusedPane) return;
 
             onKeyUp(e, createHelpers());

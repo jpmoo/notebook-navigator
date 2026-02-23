@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ function createSettings(overrides?: Partial<NotebookNavigatorSettings>): Noteboo
     return {
         ...DEFAULT_SETTINGS,
         showFilePreview: false,
-        customPropertyType: 'none',
+        notePropertyType: 'none',
         featureImageProperties: ['thumbnail'],
         downloadExternalFeatureImages: true,
         ...overrides
@@ -530,7 +530,9 @@ describe('FeatureImageContentProvider scanning', () => {
             fileThumbnailsMtime: noteFile.stat.mtime,
             tags: null,
             wordCount: null,
-            customProperty: null,
+            taskTotal: 0,
+            taskUnfinished: 0,
+            properties: null,
             previewStatus: 'unprocessed',
             featureImage: null,
             featureImageStatus: 'none',
@@ -562,7 +564,9 @@ describe('FeatureImageContentProvider scanning', () => {
             fileThumbnailsMtime: 100,
             tags: null,
             wordCount: null,
-            customProperty: null,
+            taskTotal: 0,
+            taskUnfinished: 0,
+            properties: null,
             previewStatus: 'unprocessed',
             featureImage: null,
             featureImageStatus: 'has',
@@ -594,7 +598,9 @@ describe('FeatureImageContentProvider scanning', () => {
             fileThumbnailsMtime: 100,
             tags: null,
             wordCount: null,
-            customProperty: null,
+            taskTotal: 0,
+            taskUnfinished: 0,
+            properties: null,
             previewStatus: 'unprocessed',
             featureImage: null,
             featureImageStatus: 'none',
@@ -629,7 +635,9 @@ describe('FeatureImageContentProvider scanning', () => {
             fileThumbnailsMtime: 100,
             tags: null,
             wordCount: null,
-            customProperty: null,
+            taskTotal: 0,
+            taskUnfinished: 0,
+            properties: null,
             previewStatus: 'unprocessed',
             featureImage: null,
             featureImageStatus: 'none',
@@ -684,7 +692,9 @@ describe('FeatureImageContentProvider scanning', () => {
             fileThumbnailsMtime: noteFile.stat.mtime,
             tags: null,
             wordCount: 0,
-            customProperty: null,
+            taskTotal: 0,
+            taskUnfinished: 0,
+            properties: null,
             previewStatus: 'none',
             featureImage: null,
             featureImageStatus: 'unprocessed',
@@ -850,7 +860,9 @@ describe('FeatureImageContentProvider scanning', () => {
                 fileThumbnailsMtime: excalidrawFile.stat.mtime,
                 tags: null,
                 wordCount: 0,
-                customProperty: null,
+                taskTotal: 0,
+                taskUnfinished: 0,
+                properties: null,
                 previewStatus: 'unprocessed',
                 featureImage: null,
                 featureImageStatus: 'has',

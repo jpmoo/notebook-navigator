@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,6 @@ export const STRINGS_JA = {
         clipboardWriteError: 'クリップボードに書き込めませんでした',
         updateBannerTitle: 'Notebook Navigator の更新があります',
         updateBannerInstruction: '設定 -> コミュニティプラグイン で更新',
-        updateIndicatorLabel: '新しいバージョンがあります',
         previous: '前へ', // Generic aria label for previous navigation (English: Previous)
         next: '次へ' // Generic aria label for next navigation (English: Next)
     },
@@ -60,6 +59,7 @@ export const STRINGS_JA = {
         shortcutsHeader: 'ショートカット',
         recentNotesHeader: '最近のノート',
         recentFilesHeader: '最近のファイル',
+        properties: 'プロパティ',
         reorderRootFoldersTitle: 'ナビゲーションを並び替え',
         reorderRootFoldersHint: '矢印またはドラッグで並び替え',
         vaultRootLabel: 'ボールト',
@@ -81,6 +81,16 @@ export const STRINGS_JA = {
             title: '新規デイリーノート',
             message: 'ファイル {filename} は存在しません。作成しますか？',
             confirmButton: '作成'
+        },
+        helpModal: {
+            title: 'カレンダーのショートカット',
+            items: [
+                '任意の日をクリックしてデイリーノートを開くか作成します。週、月、四半期、年も同様に機能します。',
+                '日付の下の塗りつぶされたドットはノートがあることを意味します。中空のドットは未完了のタスクがあることを意味します。',
+                'ノートにフィーチャー画像がある場合、その日の背景として表示されます。'
+            ],
+            dateFilterCmdCtrl: '`Cmd/Ctrl`+クリックで日付をファイルリストのフィルターに追加します。',
+            dateFilterOptionAlt: '`Option/Alt`+クリックで日付をファイルリストのフィルターに追加します。'
         }
     },
 
@@ -93,6 +103,8 @@ export const STRINGS_JA = {
         folderExists: 'フォルダは既にショートカットにあります',
         noteExists: 'ノートは既にショートカットにあります',
         tagExists: 'タグは既にショートカットにあります',
+        propertyExists: 'プロパティはすでにショートカットに追加されています',
+        invalidProperty: '無効なプロパティショートカット',
         searchExists: '検索ショートカットは既に存在します',
         emptySearchQuery: '保存前に検索クエリを入力してください',
         emptySearchName: '検索を保存する前に名前を入力してください',
@@ -136,10 +148,106 @@ export const STRINGS_JA = {
         placeholder: '検索...', // Placeholder text for search input (English: Search...)
         placeholderOmnisearch: 'Omnisearch...', // Placeholder text when Omnisearch provider is active (English: Omnisearch...)
         clearSearch: '検索をクリア', // Tooltip for clear search button (English: Clear search)
+        switchToFilterSearch: 'フィルター検索に切り替え',
+        switchToOmnisearch: 'Omnisearchに切り替え',
         saveSearchShortcut: '検索をショートカットに保存',
         removeSearchShortcut: 'ショートカットから検索を削除',
         shortcutModalTitle: '検索ショートカットを保存',
-        shortcutNamePlaceholder: 'ショートカット名を入力'
+        shortcutNamePlaceholder: 'ショートカット名を入力',
+        shortcutStartIn: '常にここから開始: {path}',
+        searchHelp: '検索構文',
+        searchHelpTitle: '検索構文',
+        searchHelpModal: {
+            intro: 'ファイル名、プロパティ、タグ、日付、フィルターを1つのクエリで組み合わせ可能（例：`meeting .status=active #work @thisweek`）。Omnisearch プラグインをインストールすると全文検索が使用できます。',
+            introSwitching: '上下矢印キーまたは検索アイコンのクリックで、フィルター検索と Omnisearch を切り替えられます。',
+            sections: {
+                fileNames: {
+                    title: 'ファイル名',
+                    items: [
+                        '`word` ファイル名に「word」を含むノートを検索。',
+                        '`word1 word2` すべての単語がファイル名に一致する必要があります。',
+                        '`-word` ファイル名に「word」を含むノートを除外。'
+                    ]
+                },
+                tags: {
+                    title: 'タグ',
+                    items: [
+                        '`#tag` タグを持つノートを含める（`#tag/subtag` のようなネストしたタグも一致）。',
+                        '`#` タグ付きノートのみを含める。',
+                        '`-#tag` タグを持つノートを除外。',
+                        '`-#` タグなしノートのみを含める。',
+                        '`#tag1 #tag2` 両方のタグに一致（暗黙のAND）。',
+                        '`#tag1 AND #tag2` 両方のタグに一致（明示的なAND）。',
+                        '`#tag1 OR #tag2` いずれかのタグに一致。',
+                        '`#a OR #b AND #c` ANDは優先度が高い：`#a`、または`#b`と`#c`の両方に一致。',
+                        'Cmd/Ctrl+クリックでタグを AND として追加。Cmd/Ctrl+Shift+クリックで OR として追加。'
+                    ]
+                },
+                properties: {
+                    title: 'プロパティ',
+                    items: [
+                        '`.key` プロパティキーを持つノートを含める。',
+                        '`.key=value` プロパティ値を持つノートを含める。',
+                        '`."Reading Status"` 空白を含むプロパティキーを持つノートを含める。',
+                        '`."Reading Status"="In Progress"` 空白を含むキーと値はダブルクォートで囲む必要があります。',
+                        '`-.key` プロパティキーを持つノートを除外する。',
+                        '`-.key=value` プロパティ値を持つノートを除外する。',
+                        'Cmd/Ctrl+クリックでプロパティをANDで追加。Cmd/Ctrl+Shift+クリックでORで追加。'
+                    ]
+                },
+                tasks: {
+                    title: 'フィルター',
+                    items: [
+                        '`has:task` 未完了のタスクを含むノートを表示。',
+                        '`-has:task` 未完了のタスクを含むノートを除外。',
+                        '`folder:meetings` フォルダ名に `meetings` を含むノートを表示。',
+                        '`folder:/work/meetings` `work/meetings` 内のノートのみを表示（サブフォルダを除く）。',
+                        '`folder:/` ボールトルート内のノートのみを表示。',
+                        '`-folder:archive` フォルダ名に `archive` を含むノートを除外。',
+                        '`-folder:/archive` `archive` 内のノートのみを除外（サブフォルダを除く）。',
+                        '`ext:md` 拡張子が `md` のノートを表示（`ext:.md` もサポート）。',
+                        '`-ext:pdf` 拡張子が `pdf` のノートを除外。',
+                        'タグ、名前、日付と組み合わせて使用（例：`folder:/work/meetings ext:md @thisweek`）。'
+                    ]
+                },
+                connectors: {
+                    title: 'AND/ORの動作',
+                    items: [
+                        '`AND`と`OR`はタグ/プロパティのみのクエリでのみ演算子として機能します。',
+                        'タグ/プロパティのみのクエリにはタグとプロパティのフィルターのみが含まれます: `#tag`、`-#tag`、`#`、`-#`、`.key`、`-.key`、`.key=value`、`-.key=value`。',
+                        'クエリに名前、日付（`@...`）、タスクフィルター（`has:task`）、フォルダフィルター（`folder:...`）、または拡張子フィルター（`ext:...`）が含まれる場合、`AND`と`OR`は単語として検索されます。',
+                        '演算子クエリの例: `#work OR .status=started`。',
+                        '混合クエリの例: `#work OR ext:md`（`OR`はファイル名で検索されます）。'
+                    ]
+                },
+                dates: {
+                    title: '日付',
+                    items: [
+                        '`@today` デフォルトの日付フィールドを使用して今日のノートを検索。',
+                        '`@yesterday`、`@last7d`、`@last30d`、`@thisweek`、`@thismonth` 相対的な日付範囲。',
+                        '`@2026-02-07` 特定の日を検索（`@20260207` もサポート）。',
+                        '`@2026` 暦年を検索。',
+                        '`@2026-02` または `@202602` 暦月を検索。',
+                        '`@2026-W05` または `@2026W05` ISO週を検索。',
+                        '`@2026-Q2` または `@2026Q2` 暦四半期を検索。',
+                        '`@13/02/2026` 区切り文字付きの数値形式（`@07022026` は曖昧な場合にロケールに従います）。',
+                        '`@2026-02-01..2026-02-07` 包括的な日付範囲を検索（開放端サポート）。',
+                        '`@c:...` または `@m:...` 作成日または更新日を指定。',
+                        '`-@...` 日付の一致を除外。'
+                    ]
+                },
+                omnisearch: {
+                    title: 'Omnisearch',
+                    items: [
+                        'ボールト全体の全文検索。現在のフォルダまたは選択されたタグでフィルタリングされます。',
+                        '大規模なボールトでは3文字未満の場合、動作が遅くなることがあります。',
+                        '非ASCIIパスの検索やサブパスの正確な検索はできません。',
+                        'フォルダフィルタリング前に返される結果数に制限があるため、他に多くの一致がある場合、関連ファイルが表示されないことがあります。',
+                        'ノートプレビューはデフォルトのプレビューテキストの代わりに Omnisearch の抜粋を表示します。'
+                    ]
+                }
+            }
+        }
     },
 
     // Context menus
@@ -216,6 +324,11 @@ export const STRINGS_JA = {
             changeBackground: '背景色を変更',
             showTag: 'タグを表示',
             hideTag: 'タグを非表示'
+        },
+        property: {
+            addKey: 'プロパティキーを設定',
+            renameKey: 'プロパティの名前を変更',
+            deleteKey: 'プロパティを削除'
         },
         navigation: {
             addSeparator: '区切り線を追加',
@@ -295,11 +408,14 @@ export const STRINGS_JA = {
                 'list-new-note': '新規ノート',
                 'nav-folder-open': 'フォルダ（開）',
                 'nav-folder-closed': 'フォルダ（閉）',
-                'nav-folder-note': 'フォルダノート',
+                'nav-tags': 'タグ',
                 'nav-tag': 'タグ',
+                'nav-properties': 'プロパティ',
+                'nav-property': 'プロパティ',
+                'nav-property-value': '値',
                 'list-pinned': 'ピン留め項目',
-                'file-word-count': '単語数',
-                'file-custom-property': 'カスタムプロパティ'
+                'file-unfinished-task': '未完了タスク',
+                'file-word-count': '単語数'
             }
         },
         colorPicker: {
@@ -342,11 +458,39 @@ export const STRINGS_JA = {
             confirmRename: 'タグを名前変更',
             renameUnchanged: '{tag} は変更されませんでした',
             renameNoChanges: '{oldTag} → {newTag} ({countLabel})',
+            renameBatchNotFinalized:
+                '{renamed}/{total} を名前変更しました。未更新: {notUpdated}。メタデータとショートカットは更新されませんでした。',
             invalidTagName: '有効なタグ名を入力してください。',
             descendantRenameError: 'タグを自身または子孫に移動することはできません。',
             confirmDelete: 'タグを削除',
+            deleteBatchNotFinalized:
+                '{removed}/{total} から削除しました。未更新: {notUpdated}。メタデータとショートカットは更新されませんでした。',
+            checkConsoleForDetails: '詳細はコンソールを確認してください。',
             file: 'ファイル',
-            files: 'ファイル'
+            files: 'ファイル',
+            inlineParsingWarning: {
+                title: 'インラインタグの互換性',
+                message: '{tag} には Obsidian がインラインタグで解析できない文字が含まれています。Frontmatter タグには影響しません。',
+                confirm: 'そのまま使用'
+            }
+        },
+        propertyOperation: {
+            renameTitle: 'プロパティ {property} の名前を変更',
+            deleteTitle: 'プロパティ {property} を削除',
+            newKeyPrompt: '新しいプロパティ名',
+            newKeyPlaceholder: '新しいプロパティ名を入力',
+            renameWarning: 'プロパティ {property} の名前変更は {count} {files}に影響します。',
+            renameConflictWarning:
+                'プロパティ {newKey} は既に {count} {files}に存在します。{oldKey} の名前変更は既存の {newKey} の値を置き換えます。',
+            deleteWarning: 'プロパティ {property} の削除は {count} {files}に影響します。',
+            confirmRename: 'プロパティの名前を変更',
+            confirmDelete: 'プロパティを削除',
+            renameNoChanges: '{oldKey} → {newKey}（変更なし）',
+            renameSettingsUpdateFailed: 'プロパティ {oldKey} → {newKey} の名前を変更しました。設定の更新に失敗しました。',
+            deleteSingleSuccess: 'プロパティ {property} を1件のノートから削除しました',
+            deleteMultipleSuccess: 'プロパティ {property} を {count} 件のノートから削除しました',
+            deleteSettingsUpdateFailed: 'プロパティ {property} を削除しました。設定の更新に失敗しました。',
+            invalidKeyName: '有効なプロパティ名を入力してください。'
         },
         fileSystem: {
             newFolderTitle: '新規フォルダ',
@@ -354,6 +498,7 @@ export const STRINGS_JA = {
             renameFileTitle: 'ファイルの名前を変更',
             deleteFolderTitle: "'{name}'を削除しますか？",
             deleteFileTitle: "'{name}'を削除しますか？",
+            deleteFileAttachmentsTitle: 'ファイルの添付ファイルを削除しますか？',
             folderNamePrompt: 'フォルダ名を入力：',
             hideInOtherVaultProfiles: '他の保管庫プロファイルで非表示にする',
             renamePrompt: '新しい名前を入力：',
@@ -361,6 +506,10 @@ export const STRINGS_JA = {
             renameVaultPrompt: 'カスタム表示名を入力（空にするとデフォルトを使用）：',
             deleteFolderConfirm: 'このフォルダとそのすべての内容を削除してもよろしいですか？',
             deleteFileConfirm: 'このファイルを削除してもよろしいですか？',
+            deleteFileAttachmentsDescriptionSingle: 'この添付ファイルはどのノートでも使用されていません。削除しますか？',
+            deleteFileAttachmentsDescriptionMultiple: 'これらの添付ファイルはどのノートでも使用されていません。削除しますか？',
+            deleteFileAttachmentsViewFileTreeAriaLabel: 'ファイルツリー',
+            deleteFileAttachmentsViewGalleryAriaLabel: 'ギャラリー',
             removeAllTagsTitle: 'すべてのタグを削除',
             removeAllTagsFromNote: 'このノートからすべてのタグを削除してもよろしいですか？',
             removeAllTagsFromNotes: '{count}個のノートからすべてのタグを削除してもよろしいですか？'
@@ -417,6 +566,26 @@ export const STRINGS_JA = {
                 remove: 'タグを削除'
             }
         },
+        propertySuggest: {
+            placeholder: 'プロパティキーを選択...',
+            navigatePlaceholder: 'プロパティに移動...',
+            instructions: {
+                navigate: 'でナビゲート',
+                select: 'プロパティを追加',
+                dismiss: 'でキャンセル'
+            }
+        },
+        propertyKeyVisibility: {
+            title: 'プロパティキーの表示設定',
+            searchPlaceholder: 'プロパティキーを検索...',
+            propertyColumnLabel: 'プロパティ',
+            showInNavigation: 'ナビゲーションに表示',
+            showInList: 'リストに表示',
+            toggleAllInNavigation: 'ナビゲーションの全てを切り替え',
+            toggleAllInList: 'リストの全てを切り替え',
+            applyButton: '適用',
+            emptyState: 'プロパティキーが見つかりません。'
+        },
         welcome: {
             title: '{pluginName}へようこそ',
             introText:
@@ -440,6 +609,7 @@ export const STRINGS_JA = {
             renameFile: 'ファイルの名前変更に失敗しました：{error}',
             deleteFolder: 'フォルダの削除に失敗しました：{error}',
             deleteFile: 'ファイルの削除に失敗しました：{error}',
+            deleteAttachments: '添付ファイルの削除に失敗しました: {error}',
             duplicateNote: 'ノートの複製に失敗しました：{error}',
             duplicateFolder: 'フォルダの複製に失敗しました：{error}',
             openVersionHistory: 'バージョン履歴を開くのに失敗しました：{error}',
@@ -490,7 +660,11 @@ export const STRINGS_JA = {
             noTagsToRemove: '削除するタグがありません',
             noFilesSelected: 'ファイルが選択されていません',
             tagOperationsNotAvailable: 'タグ操作は利用できません',
+            propertyOperationsNotAvailable: 'プロパティ操作は利用できません',
             tagsRequireMarkdown: 'タグはMarkdownノートでのみサポートされています',
+            propertiesRequireMarkdown: 'プロパティはMarkdownノートでのみサポートされています',
+            propertySetOnNote: '1件のノートでプロパティを更新しました',
+            propertySetOnNotes: '{count}件のノートでプロパティを更新しました',
             iconPackDownloaded: '「{provider}」をダウンロードしました',
             iconPackUpdated: '「{provider}」を更新しました ({version})',
             iconPackRemoved: '「{provider}」を削除しました',
@@ -513,6 +687,7 @@ export const STRINGS_JA = {
             itemAlreadyExists: 'この場所に "{name}" という名前のアイテムがすでに存在します。',
             failedToMove: '移動に失敗しました：{error}',
             failedToAddTag: 'タグ "{tag}" の追加に失敗しました',
+            failedToSetProperty: 'プロパティの更新に失敗しました: {error}',
             failedToClearTags: 'タグのクリアに失敗しました',
             failedToMoveFolder: 'フォルダ「{name}」の移動に失敗しました',
             failedToImportFiles: 'インポートに失敗しました: {names}'
@@ -520,6 +695,7 @@ export const STRINGS_JA = {
         notifications: {
             filesAlreadyExist: '{count}個のファイルが移動先に既に存在します',
             filesAlreadyHaveTag: '{count}個のファイルには既にこのタグまたはより具体的なタグがあります',
+            filesAlreadyHaveProperty: '{count}個のファイルにはすでにこのプロパティがあります',
             noTagsToClear: 'クリアするタグがありません',
             fileImported: '1個のファイルをインポートしました',
             filesImported: '{count}個のファイルをインポートしました'
@@ -565,11 +741,13 @@ export const STRINGS_JA = {
         pinAllFolderNotes: 'フォルダノートをすべてピン留め', // Command palette: Pins all folder notes to shortcuts (English: Pin all folder notes)
         navigateToFolder: 'フォルダにナビゲート', // Command palette: Navigate to a folder using fuzzy search (English: Navigate to folder)
         navigateToTag: 'タグにナビゲート', // Command palette: Navigate to a tag using fuzzy search (English: Navigate to tag)
-        addShortcut: 'ショートカットに追加', // Command palette: Adds the current file, folder, or tag to shortcuts (English: Add to shortcuts)
+        navigateToProperty: 'プロパティに移動', // Command palette: Navigate to a property key or value using fuzzy search (English: Navigate to property)
+        addShortcut: 'ショートカットに追加', // Command palette: Adds or removes the current file, folder, tag, or property from shortcuts (English: Add to shortcuts)
         openShortcut: 'ショートカット {number} を開く',
         toggleDescendants: '子孫切り替え', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
         toggleHidden: '非表示のフォルダ・タグ・ノートを切り替え', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'タグの並び順を切り替え', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
+        toggleCompactMode: 'コンパクトモードの切り替え', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: 'すべての項目を折りたたむ/展開', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: '選択したファイルにタグを追加', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         removeTag: '選択したファイルからタグを削除', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
@@ -605,23 +783,22 @@ export const STRINGS_JA = {
         sections: {
             general: '一般設定',
             notes: 'ノート表示',
-            navigationPane: 'フォルダ表示',
+            navigationPane: 'ナビゲーション',
             calendar: 'カレンダー',
             icons: 'アイコンパック',
             tags: 'タグ表示',
             folders: 'フォルダノート',
             folderNotes: 'フォルダノート',
-            foldersAndTags: 'フォルダとタグ',
-            search: '検索',
-            searchAndHotkeys: '検索とホットキー',
-            listPane: 'リストペイン',
-            hotkeys: 'ホットキー',
+            foldersAndTags: 'フォルダ',
+            tagsAndProperties: 'タグとプロパティ',
+            listPane: 'リスト',
             advanced: '詳細設定'
         },
         groups: {
             general: {
                 vaultProfiles: '保管庫プロファイル',
                 filtering: 'フィルター',
+                templates: 'テンプレート',
                 behavior: '動作',
                 keyboardNavigation: 'キーボード操作',
                 view: '外観',
@@ -632,7 +809,7 @@ export const STRINGS_JA = {
             },
             navigation: {
                 appearance: '外観',
-                shortcutsAndRecent: 'ショートカットと最近の項目',
+                leftSidebar: '左サイドバー',
                 calendarIntegration: 'カレンダー連携'
             },
             list: {
@@ -646,7 +823,7 @@ export const STRINGS_JA = {
                 previewText: 'プレビューテキスト',
                 featureImage: 'アイキャッチ画像',
                 tags: 'タグ',
-                customProperty: 'カスタムプロパティ（フロントマターまたは文字数）',
+                properties: 'プロパティ',
                 date: '日付',
                 parentFolder: '親フォルダ'
             }
@@ -658,37 +835,6 @@ export const STRINGS_JA = {
             switchToLocal: '同期を無効化'
         },
         items: {
-            searchProvider: {
-                name: '検索プロバイダー',
-                desc: 'クイックファイル名検索またはOmnisearchプラグインによる全文検索を選択してください。',
-                options: {
-                    internal: 'フィルター検索',
-                    omnisearch: 'Omnisearch（全文）'
-                },
-                info: {
-                    filterSearch: {
-                        title: 'フィルター検索（デフォルト）：',
-                        description:
-                            '現在のフォルダとサブフォルダ内のファイルを名前とタグでフィルタリング。フィルターモード：テキストとタグの混在で全ての条件に一致（例：「プロジェクト #仕事」）。タグモード：タグのみの検索でAND/OR演算子をサポート（例：「#仕事 AND #急ぎ」、「#プロジェクト OR #個人」）。Cmd/Ctrl+クリックでANDとして追加、Cmd/Ctrl+Shift+クリックでORとして追加。!プレフィックスによる除外（例：!下書き、!#アーカイブ済み）と!#によるタグなしノートの検索をサポート。'
-                    },
-                    omnisearch: {
-                        title: 'Omnisearch：',
-                        description:
-                            'ボールト全体を検索し、現在のフォルダ、サブフォルダ、または選択したタグからのファイルのみを表示するように結果をフィルタリングする全文検索。Omnisearchプラグインのインストールが必要 - 利用できない場合、検索は自動的にフィルター検索にフォールバックします。',
-                        warningNotInstalled: 'Omnisearchプラグインがインストールされていません。フィルター検索を使用します。',
-                        limitations: {
-                            title: '既知の制限事項：',
-                            performance: 'パフォーマンス：大きなボールトで3文字未満を検索する場合、特に遅くなることがあります',
-                            pathBug:
-                                'パスのバグ：非ASCII文字を含むパスで検索できず、サブパスを正しく検索しません。検索結果に表示されるファイルに影響します',
-                            limitedResults:
-                                '制限された結果：Omnisearchはボールト全体を検索し、フィルタリング前に限られた数の結果を返すため、ボールトの他の場所に多くの一致が存在する場合、現在のフォルダからの関連ファイルが表示されない可能性があります',
-                            previewText:
-                                'プレビューテキスト：ノートのプレビューはOmnisearchの結果の抜粋に置き換えられ、検索一致のハイライトがファイルの他の場所に表示される場合、実際のハイライトが表示されない可能性があります'
-                        }
-                    }
-                }
-            },
             listPaneTitle: {
                 name: 'リストペインのタイトル',
                 desc: 'リストペインのタイトルを表示する場所を選択します。',
@@ -722,6 +868,16 @@ export const STRINGS_JA = {
                 name: 'ソートプロパティ',
                 desc: 'プロパティソートで使用されます。このfrontmatterプロパティを持つノートが最初にリストされ、プロパティの値でソートされます。配列は1つの値に結合されます。',
                 placeholder: 'order'
+            },
+            propertySortSecondary: {
+                name: '二次ソート',
+                desc: 'プロパティソート使用時、同じプロパティ値またはプロパティ値がないノートに適用されます。',
+                options: {
+                    title: 'タイトル',
+                    filename: 'ファイル名',
+                    created: '作成日',
+                    modified: '編集日'
+                }
             },
             revealFileOnListChanges: {
                 name: 'リスト変更時に選択ファイルへスクロール',
@@ -766,7 +922,11 @@ export const STRINGS_JA = {
             },
             showFileIcons: {
                 name: 'ファイルアイコンを表示',
-                desc: 'ファイルアイコンを左寄せ間隔で表示。無効化するとアイコンとインデントの両方が削除されます。優先順位: カスタム > ファイル名 > ファイルタイプ > デフォルト。'
+                desc: 'ファイルアイコンを左寄せ間隔で表示。無効化するとアイコンとインデントの両方が削除されます。優先順位: 未完了タスクアイコン > カスタムアイコン > ファイル名アイコン > ファイルタイプアイコン > デフォルトアイコン。'
+            },
+            showFileIconUnfinishedTask: {
+                name: '未完了タスクアイコン',
+                desc: 'ノートに未完了のタスクがある場合にタスクアイコンを表示します。'
             },
             showFilenameMatchIcons: {
                 name: 'ファイル名でアイコン設定',
@@ -864,9 +1024,17 @@ export const STRINGS_JA = {
                 navigationLabel: 'ナビゲーションツールバー',
                 listLabel: 'リストツールバー'
             },
+            createNewNotesInNewTab: {
+                name: '新しいノートを新しいタブで開く',
+                desc: '有効にすると、「新しいノートを作成」コマンドでノートが新しいタブに開きます。無効にすると、ノートは現在のタブに置き換わります。'
+            },
             autoRevealActiveNote: {
                 name: 'アクティブなノートを自動表示',
                 desc: 'クイックスイッチャー、リンク、検索から開いたときに自動的にノートを表示します。'
+            },
+            autoRevealShortestPath: {
+                name: '最短パスを使用',
+                desc: '有効: 自動表示は最も近い表示中の親フォルダまたはタグを選択します。無効: 自動表示はファイルの実際のフォルダと正確なタグを選択します。'
             },
             autoRevealIgnoreRightSidebar: {
                 name: '右サイドバーのイベントを無視',
@@ -885,7 +1053,7 @@ export const STRINGS_JA = {
                 name: 'ショートカットの自動スクロールを無効化',
                 desc: 'ショートカット内のアイテムをクリックしてもナビゲーションパネルをスクロールしない。'
             },
-            autoExpandFoldersTags: {
+            autoExpandNavItems: {
                 name: '選択時に展開',
                 desc: '選択時にフォルダとタグを展開します。シングルペインモードでは、最初の選択で展開、2回目の選択でファイルを表示します。'
             },
@@ -928,6 +1096,14 @@ export const STRINGS_JA = {
                 name: '最近のノートを表示',
                 desc: 'ナビゲーションペインに最近のノートセクションを表示します。'
             },
+            hideRecentNotes: {
+                name: 'ノートを非表示',
+                desc: '最近のノートセクションで非表示にするノートの種類を選択します。',
+                options: {
+                    none: 'なし',
+                    folderNotes: 'フォルダノート'
+                }
+            },
             recentNotesCount: {
                 name: '最近のノート数',
                 desc: '表示する最近のノートの数。'
@@ -942,6 +1118,14 @@ export const STRINGS_JA = {
                 options: {
                     leftSidebar: '左サイドバー',
                     rightSidebar: '右サイドバー'
+                }
+            },
+            calendarLeftPlacement: {
+                name: 'シングルペイン配置',
+                desc: 'シングルペインモードでのカレンダー表示位置。',
+                options: {
+                    navigationPane: 'ナビゲーションペイン',
+                    below: 'ペインの下'
                 }
             },
             calendarLocale: {
@@ -961,6 +1145,10 @@ export const STRINGS_JA = {
                     thuFri: '木曜日と金曜日'
                 }
             },
+            showInfoButtons: {
+                name: '情報ボタンを表示',
+                desc: '検索バーとカレンダーヘッダーに情報ボタンを表示します。'
+            },
             calendarWeeksToShow: {
                 name: '左サイドバーの表示週数',
                 desc: '右サイドバーのカレンダーは常に月全体を表示します。',
@@ -972,7 +1160,7 @@ export const STRINGS_JA = {
             },
             calendarHighlightToday: {
                 name: '今日の日付を強調表示',
-                desc: '今日の日付に赤い円と太字のテキストを表示します。'
+                desc: '今日の日付を背景色と太字で強調表示します。'
             },
             calendarShowFeatureImage: {
                 name: 'アイキャッチ画像を表示',
@@ -985,6 +1173,10 @@ export const STRINGS_JA = {
             calendarShowQuarter: {
                 name: '四半期を表示',
                 desc: 'カレンダーヘッダーに四半期ラベルを追加します。'
+            },
+            calendarShowYearCalendar: {
+                name: '年間カレンダーを表示',
+                desc: '右サイドバーに年ナビゲーションと月グリッドを表示します。'
             },
             calendarConfirmBeforeCreate: {
                 name: '作成前に確認',
@@ -1001,6 +1193,7 @@ export const STRINGS_JA = {
                     dailyNotes: 'フォルダと日付形式はデイリーノートコアプラグインで設定されています。'
                 }
             },
+
             calendarCustomRootFolder: {
                 name: 'ルートフォルダ',
                 desc: '定期ノートの基本フォルダ。日付パターンにはサブフォルダを含めることができます。選択されたボールトプロファイルで変更されます。',
@@ -1013,11 +1206,11 @@ export const STRINGS_JA = {
             },
             calendarCustomFilePattern: {
                 name: 'デイリーノート',
-                desc: 'Moment 日付フォーマットを使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。',
+                desc: 'Moment 日付フォーマットを使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。 テンプレートフォルダの場所は一般 > テンプレートで設定してください。',
                 momentDescPrefix: '',
                 momentLinkText: 'Moment 日付フォーマット',
                 momentDescSuffix:
-                    'を使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。',
+                    'を使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。 テンプレートフォルダの場所は一般 > テンプレートで設定してください。',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: '現在の構文: {path}',
                 parsingError: 'パターンは完全な日付（年、月、日）としてフォーマットされ、再度パースできる必要があります。'
@@ -1090,9 +1283,9 @@ export const STRINGS_JA = {
                 desc: 'Ctrl+Enterで選択したファイルを新しいタブ、分割、またはウィンドウで開きます。'
             },
             excludedNotes: {
-                name: 'プロパティ付きノートを非表示 (ボルトプロファイル)',
-                desc: 'カンマ区切りのフロントマター属性のリスト。これらの属性を含むノートは非表示になります（例：draft, private, archived）。',
-                placeholder: 'draft, private'
+                name: 'プロパティルールでノートを非表示 (ボルトプロファイル)',
+                desc: 'カンマ区切りのフロントマタールールのリスト。`key` または `key=value` エントリを使用します（例：status=done, published=true, archived）。',
+                placeholder: 'status=done, published=true, archived'
             },
             excludedFileNamePatterns: {
                 name: 'ファイルを非表示 (ボルトプロファイル)',
@@ -1188,49 +1381,58 @@ export const STRINGS_JA = {
                 name: 'スリムモードでファイルタグを表示',
                 desc: '日付、プレビュー、画像が非表示のときにタグを表示します。'
             },
-            customPropertyType: {
-                name: 'プロパティタイプ',
-                desc: 'ファイルアイテムに表示するカスタムプロパティを選択します。',
+            showFileProperties: {
+                name: 'ファイルプロパティを表示',
+                desc: 'ファイル項目にクリック可能なプロパティを表示します。'
+            },
+            colorFileProperties: {
+                name: 'ファイルプロパティに色を付ける',
+                desc: 'ファイル項目のプロパティバッジにプロパティの色を適用します。'
+            },
+            prioritizeColoredFileProperties: {
+                name: '色付きプロパティを先に表示',
+                desc: 'ファイル項目で色付きプロパティを他のプロパティより前に並べ替えます。'
+            },
+            showFilePropertiesInCompactMode: {
+                name: 'コンパクトモードでプロパティを表示',
+                desc: 'コンパクトモードが有効な時にプロパティを表示します。'
+            },
+            notePropertyType: {
+                name: 'ノートプロパティ',
+                desc: 'ファイル項目に表示するノートプロパティを選択します。',
                 options: {
                     frontmatter: 'フロントマタープロパティ',
                     wordCount: '文字数',
                     none: 'なし'
                 }
             },
-            customPropertyFields: {
-                name: '表示するプロパティ',
-                desc: 'バッジとして表示するフロントマタープロパティのカンマ区切りリスト。リスト値のプロパティは値ごとに1つのバッジを表示します。[[wikilink]]値はクリック可能なリンクとして表示されます。',
-                placeholder: 'ステータス, タイプ, カテゴリ'
+            propertyFields: {
+                name: 'プロパティキー（保管庫プロファイル）',
+                desc: 'フロントマターのプロパティキー。キーごとにナビゲーションとファイルリストの表示を設定できます。',
+                addButtonTooltip: 'プロパティキーを設定',
+                noneConfigured: 'プロパティが設定されていません',
+                singleConfigured: '1件のプロパティが設定済み: {properties}',
+                multipleConfigured: '{count}件のプロパティが設定済み: {properties}'
             },
-            showCustomPropertiesOnSeparateRows: {
+            showPropertiesOnSeparateRows: {
                 name: 'プロパティを別の行に表示',
                 desc: '各プロパティを個別の行に表示します。'
             },
-            customPropertyColorMap: {
-                name: 'プロパティの色',
-                desc: 'フロントマターのプロパティをバッジの色にマッピングします。1行に1つのマッピング: プロパティ=色',
-                placeholder: '# プロパティ=色\nstatus=#ff0000\ntype=#00ff00',
-                editTooltip: 'マッピングを編集'
-            },
-            showCustomPropertyInCompactMode: {
-                name: 'スリムモードでカスタムプロパティを表示',
-                desc: '日付、プレビュー、画像が非表示のときにカスタムプロパティを表示します。'
-            },
             dateFormat: {
                 name: '日付形式',
-                desc: '日付表示の形式（date-fns形式を使用）。',
-                placeholder: 'yyyy年M月d日',
-                help: '一般的な形式：\nyyyy年M月d日 = 2022年5月25日\nyyyy-MM-dd = 2022-05-25\nMM/dd/yyyy = 05/25/2022\n\nトークン：\nyyyy/yy = 年\nMMMM/MMM/MM/M = 月\ndd/d = 日\nEEEE/EEE = 曜日',
-                helpTooltip: 'date-fns形式',
-                dateFnsLinkText: 'date-fns フォーマット'
+                desc: '日付表示の形式（Moment形式を使用）。',
+                placeholder: 'YYYY年M月D日',
+                help: '一般的な形式：\nYYYY年M月D日 = 2022年5月25日\nYYYY-MM-DD = 2022-05-25\nMM/DD/YYYY = 05/25/2022\n\nトークン：\nYYYY/YY = 年\nMMMM/MMM/MM/M = 月\nDD/D = 日\ndddd/ddd = 曜日',
+                helpTooltip: 'Moment形式',
+                momentLinkText: 'Moment フォーマット'
             },
             timeFormat: {
                 name: '時刻形式',
-                desc: '時刻を表示する形式（date-fns形式を使用）。',
+                desc: '時刻を表示する形式（Moment形式を使用）。',
                 placeholder: 'HH:mm',
                 help: '一般的な形式：\nHH:mm = 14:30（24時間制）\nh:mm a = 2:30 PM（12時間制）\nHH:mm:ss = 14:30:45\nh:mm:ss a = 2:30:45 PM\n\nトークン：\nHH/H = 24時間制\nhh/h = 12時間制\nmm = 分\nss = 秒\na = AM/PM',
-                helpTooltip: 'date-fns形式',
-                dateFnsLinkText: 'date-fns フォーマット'
+                helpTooltip: 'Moment形式',
+                momentLinkText: 'Moment フォーマット'
             },
             showFilePreview: {
                 name: 'ノートプレビューを表示',
@@ -1251,7 +1453,7 @@ export const STRINGS_JA = {
             previewProperties: {
                 name: 'プレビュープロパティ',
                 desc: 'プレビューテキストを検索するフロントマタープロパティのカンマ区切りリスト。テキストがある最初のプロパティが使用されます。',
-                placeholder: '要約, 説明, 概要',
+                placeholder: 'summary, description, abstract',
                 info: '指定されたプロパティにプレビューテキストが見つからない場合、プレビューはノートの内容から生成されます。'
             },
             previewRows: {
@@ -1289,7 +1491,7 @@ export const STRINGS_JA = {
             featureImageExcludeProperties: {
                 name: 'プロパティを持つノートを除外',
                 desc: 'フロントマタープロパティのカンマ区切りリスト。これらのプロパティを含むノートはフィーチャー画像を保存しません。',
-                placeholder: 'プライベート, 機密'
+                placeholder: 'private, confidential'
             },
 
             downloadExternalFeatureImages: {
@@ -1362,6 +1564,10 @@ export const STRINGS_JA = {
                 name: '行高に合わせて文字サイズを調整',
                 desc: '行高を下げたときにナビゲーションの文字サイズを小さくします。'
             },
+            showIndentGuides: {
+                name: 'インデントガイドを表示',
+                desc: 'ネストされたフォルダーとタグのインデントガイドを表示します。'
+            },
             navRootSpacing: {
                 name: 'ルート要素の間隔',
                 desc: '最上位のフォルダとタグの間隔。'
@@ -1401,6 +1607,36 @@ export const STRINGS_JA = {
                 name: '最後のタグを削除した後も tags プロパティを保持',
                 desc: 'すべてのタグが削除されても frontmatter の tags プロパティを保持します。無効にすると、tags プロパティは frontmatter から削除されます。'
             },
+            showProperties: {
+                name: 'プロパティを表示',
+                desc: 'ナビゲーターにプロパティセクションを表示します。',
+                propertyKeysInfoPrefix: '',
+                propertyKeysInfoLinkText: '一般 > プロパティキー',
+                propertyKeysInfoSuffix: 'でプロパティを設定'
+            },
+            showPropertyIcons: {
+                name: 'プロパティアイコンを表示',
+                desc: 'ナビゲーションペインのプロパティの横にアイコンを表示します。'
+            },
+            inheritPropertyColors: {
+                name: 'プロパティの色を継承',
+                desc: 'プロパティ値がプロパティキーの色と背景色を継承します。'
+            },
+            propertySortOrder: {
+                name: 'プロパティの並べ替え順',
+                desc: '任意のプロパティを右クリックして、その値に別の並べ替え順を設定します。',
+                options: {
+                    alphaAsc: 'A から Z',
+                    alphaDesc: 'Z から A',
+                    frequency: '頻度',
+                    lowToHigh: '低い順',
+                    highToLow: '高い順'
+                }
+            },
+            showAllPropertiesFolder: {
+                name: 'プロパティフォルダを表示',
+                desc: '「プロパティ」を折りたたみ可能なフォルダとして表示します。'
+            },
             hiddenTags: {
                 name: 'タグを非表示 (ボルトプロファイル)',
                 desc: 'カンマ区切りのタグパターンリスト。名前パターン: tag*（で始まる）、*tag（で終わる）。パスパターン: archive（タグと子孫）、archive/*（子孫のみ）、projects/*/drafts（中間ワイルドカード）。',
@@ -1428,12 +1664,15 @@ export const STRINGS_JA = {
             folderNoteName: {
                 name: 'フォルダノート名',
                 desc: 'フォルダノートの名前。空のままにするとフォルダと同じ名前を使用します。',
-                placeholder: 'フォルダ名には空のまま'
+                placeholder: 'index'
             },
-            folderNoteProperties: {
-                name: 'フォルダノートプロパティ',
-                desc: '新しいフォルダノートに追加されるYAMLフロントマター。--- マーカーは自動的に追加されます。',
-                placeholder: 'theme: dark\nfoldernote: true'
+            folderNoteNamePattern: {
+                name: 'フォルダノート名パターン',
+                desc: '拡張子なしのフォルダノートの名前パターン。{{folder}} でフォルダ名を挿入します。設定すると、フォルダノート名は適用されません。'
+            },
+            folderNoteTemplate: {
+                name: 'フォルダノートテンプレート',
+                desc: '新しいMarkdownフォルダノート用のテンプレートファイル。テンプレートフォルダの場所は一般 > テンプレートで設定してください。'
             },
             openFolderNotesInNewTab: {
                 name: 'フォルダノートを新しいタブで開く',
@@ -1451,6 +1690,15 @@ export const STRINGS_JA = {
                 name: '削除前に確認',
                 desc: 'ノートやフォルダを削除する際に確認ダイアログを表示'
             },
+            deleteAttachments: {
+                name: 'ファイル削除時に添付ファイルを削除',
+                desc: '削除されたファイルにリンクされた添付ファイルが他で使用されていない場合、自動的に削除する',
+                options: {
+                    ask: '毎回確認',
+                    always: '常に',
+                    never: 'しない'
+                }
+            },
             metadataCleanup: {
                 name: 'メタデータをクリーンアップ',
                 desc: 'Obsidian外でファイル、フォルダ、タグが削除、移動、または名前変更された際に残された孤立したメタデータを削除します。これはNotebook Navigatorの設定ファイルのみに影響します。',
@@ -1458,7 +1706,8 @@ export const STRINGS_JA = {
                 error: '設定のクリーンアップに失敗しました',
                 loading: 'メタデータを確認中...',
                 statusClean: 'クリーンアップするメタデータはありません',
-                statusCounts: '孤立した項目: {folders} フォルダ, {tags} タグ, {files} ファイル, {pinned} ピン, {separators} セパレーター'
+                statusCounts:
+                    '孤立した項目: {folders} フォルダ, {tags} タグ, {properties} プロパティ, {files} ファイル, {pinned} ピン, {separators} セパレーター'
             },
             rebuildCache: {
                 name: 'キャッシュを再構築',
@@ -1467,18 +1716,6 @@ export const STRINGS_JA = {
                 error: 'キャッシュの再構築に失敗しました',
                 indexingTitle: 'ボールトをインデックス中...',
                 progress: 'Notebook Navigator のキャッシュを更新しています.'
-            },
-            hotkeys: {
-                intro: 'Notebook Navigator のホットキーは <plugin folder>/notebook-navigator/data.json を編集してカスタマイズします。ファイルをテキストエディタで開き、"keyboardShortcuts" セクションを探してください。各エントリは次の構造です:',
-                example: '"pane:move-up": [ { "key": "ArrowUp", "modifiers": [] }, { "key": "K", "modifiers": [] } ]',
-                modifierList: [
-                    '"Mod" = Cmd (macOS) / Ctrl (Win/Linux)',
-                    '"Alt" = Alt/Option',
-                    '"Shift" = Shift',
-                    '"Ctrl" = Control（クロスプラットフォームには "Mod" を推奨）'
-                ],
-                guidance:
-                    'ArrowUp と K のような代替キーを追加する場合は、上の例と同じように同一コマンドへ複数のマッピングを登録してください。複数のモディファイアを使う場合は "modifiers": ["Mod", "Shift"] のように並べて記述します。「gg」や「dd」などのキーシーケンスには対応していません。編集後は Obsidian を再読み込みしてください。'
             },
             externalIcons: {
                 downloadButton: 'ダウンロード',
@@ -1499,7 +1736,7 @@ export const STRINGS_JA = {
             frontmatterNameField: {
                 name: '名前フィールド（複数可）',
                 desc: 'フロントマターフィールドのカンマ区切りリスト。最初の空でない値を使用。ファイル名にフォールバック。',
-                placeholder: 'タイトル, 名前'
+                placeholder: 'title, name'
             },
             frontmatterIconField: {
                 name: 'アイコンフィールド',
@@ -1511,9 +1748,10 @@ export const STRINGS_JA = {
                 desc: 'ファイルカラー用のフロントマターフィールド。空のままにすると設定に保存された色を使用。',
                 placeholder: 'color'
             },
-            frontmatterSaveMetadata: {
-                name: 'フロントマターにアイコンと色を保存',
-                desc: '上記で設定したフィールドを使ってファイルのアイコンと色を自動的にフロントマターに書き込みます。'
+            frontmatterBackgroundField: {
+                name: '背景フィールド',
+                desc: '背景色用のフロントマターフィールド。空のままにすると設定に保存された背景色を使用。',
+                placeholder: 'background'
             },
             frontmatterMigration: {
                 name: '設定からアイコンと色を移行',
@@ -1528,19 +1766,19 @@ export const STRINGS_JA = {
             frontmatterCreatedField: {
                 name: '作成タイムスタンプフィールド',
                 desc: '作成タイムスタンプのフロントマターフィールド名。空のままにするとファイルシステムの日付のみを使用。',
-                placeholder: '作成日'
+                placeholder: 'created'
             },
             frontmatterModifiedField: {
                 name: '変更タイムスタンプフィールド',
                 desc: '変更タイムスタンプのフロントマターフィールド名。空のままにするとファイルシステムの日付のみを使用。',
-                placeholder: '更新日'
+                placeholder: 'modified'
             },
             frontmatterDateFormat: {
                 name: 'タイムスタンプ形式',
-                desc: 'フロントマター内のタイムスタンプを解析するために使用される形式。空のままにするとISO 8601形式を使用',
-                helpTooltip: 'date-fns形式',
-                dateFnsLinkText: 'date-fns フォーマット',
-                help: "一般的な形式:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
+                desc: 'フロントマター内のタイムスタンプを解析するために使用される形式。空のままにするとISO 8601解析を使用。',
+                helpTooltip: 'Moment形式',
+                momentLinkText: 'Moment フォーマット',
+                help: '一般的な形式:\nYYYY-MM-DD[T]HH:mm:ss → 2025-01-04T14:30:45\nYYYY-MM-DD[T]HH:mm:ssZ → 2025-08-07T16:53:39+02:00\nDD/MM/YYYY HH:mm:ss → 04/01/2025 14:30:45\nMM/DD/YYYY h:mm:ss a → 01/04/2025 2:30:45 PM'
             },
             supportDevelopment: {
                 name: '開発をサポート',

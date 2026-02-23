@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { Platform } from 'obsidian';
 import { useSelectionState, useSelectionDispatch } from '../context/SelectionContext';
-import { useServices } from '../context/ServicesContext';
+import { useCommandQueue, useServices } from '../context/ServicesContext';
 import { useSettingsState } from '../context/SettingsContext';
 import { useUXPreferences } from '../context/UXPreferencesContext';
 import { useUIState, useUIDispatch } from '../context/UIStateContext';
@@ -27,7 +27,11 @@ import { strings } from '../i18n';
 import { getIconService, useIconServiceVersion } from '../services/icons';
 import { ServiceIcon } from './ServiceIcon';
 import { useListActions } from '../hooks/useListActions';
-import { useListPaneTitle } from '../hooks/useListPaneTitle';
+import type { BreadcrumbSegment } from '../hooks/useListPaneTitle';
+import { useSelectedFolderFileVersion } from '../hooks/useSelectedFolderFileVersion';
+import { ItemType } from '../types';
+import { getFolderNote, openFolderNoteFile } from '../utils/folderNotes';
+import { resolveFolderNoteClickOpenContext } from '../utils/keyboardOpenContext';
 import { normalizeTagPath } from '../utils/tagUtils';
 import { runAsyncAction } from '../utils/async';
 import { resolveUXIcon } from '../utils/uxIcons';
@@ -36,11 +40,24 @@ interface ListPaneHeaderProps {
     onHeaderClick?: () => void;
     isSearchActive?: boolean;
     onSearchToggle?: () => void;
+    desktopTitle: string;
+    breadcrumbSegments: BreadcrumbSegment[];
+    iconName: string;
+    showIcon: boolean;
 }
 
-export function ListPaneHeader({ onHeaderClick, isSearchActive, onSearchToggle }: ListPaneHeaderProps) {
+export function ListPaneHeader({
+    onHeaderClick,
+    isSearchActive,
+    onSearchToggle,
+    desktopTitle,
+    breadcrumbSegments,
+    iconName,
+    showIcon
+}: ListPaneHeaderProps) {
     const iconRef = React.useRef<HTMLSpanElement>(null);
     const { app, isMobile } = useServices();
+    const commandQueue = useCommandQueue();
     const settings = useSettingsState();
     const uxPreferences = useUXPreferences();
     const includeDescendantNotes = uxPreferences.includeDescendantNotes;
@@ -48,13 +65,13 @@ export function ListPaneHeader({ onHeaderClick, isSearchActive, onSearchToggle }
     const selectionDispatch = useSelectionDispatch();
     const uiState = useUIState();
     const uiDispatch = useUIDispatch();
-    const { desktopTitle, breadcrumbSegments, iconName, showIcon } = useListPaneTitle();
     const listPaneTitlePreference = settings.listPaneTitle ?? 'header';
     const iconVersion = useIconServiceVersion();
 
     // Use the shared actions hook
     const {
         handleNewFile,
+        canCreateNewFile,
         handleAppearanceMenu,
         handleSortMenu,
         handleToggleDescendants,
@@ -70,6 +87,8 @@ export function ListPaneHeader({ onHeaderClick, isSearchActive, onSearchToggle }
     const showSortButton = listToolbarVisibility.sort;
     const showAppearanceButton = listToolbarVisibility.appearance;
     const showNewNoteButton = listToolbarVisibility.newNote;
+    const hasNavigationSelection = Boolean(selectionState.selectedFolder || selectionState.selectedTag || selectionState.selectedProperty);
+    const hasAppearanceOrSortSelection = Boolean(selectionState.selectedFolder || selectionState.selectedTag);
 
     const shouldRenderBreadcrumbSegments = isMobile;
     const shouldShowHeaderTitle = !isMobile && listPaneTitlePreference === 'header';
@@ -92,18 +111,122 @@ export function ListPaneHeader({ onHeaderClick, isSearchActive, onSearchToggle }
         return resolveUXIcon(settings.interfaceIcons, sortOption.endsWith('-desc') ? 'list-sort-descending' : 'list-sort-ascending');
     }, [getCurrentSortOption, settings.interfaceIcons]);
 
+    // Folder note interactions only apply when a folder is the active selection.
+    const selectedFolder = selectionState.selectionType === ItemType.FOLDER ? selectionState.selectedFolder : null;
+    // Folder note lookup is only needed when the title/breadcrumb is rendered.
+    const shouldResolveSelectedFolderNote = shouldRenderBreadcrumbSegments || shouldShowHeaderTitle;
+    // Tracks direct child file changes so folder note lookup recalculates when names move.
+    const selectedFolderFileVersion = useSelectedFolderFileVersion(
+        app.vault,
+        selectedFolder,
+        settings.enableFolderNotes && shouldResolveSelectedFolderNote
+    );
+    // Resolves the selected folder's note file with current folder note settings.
+    const selectedFolderNote = useMemo(() => {
+        void selectedFolderFileVersion;
+
+        if (!selectedFolder || !settings.enableFolderNotes || !shouldResolveSelectedFolderNote) {
+            return null;
+        }
+
+        return getFolderNote(selectedFolder, {
+            enableFolderNotes: settings.enableFolderNotes,
+            folderNoteName: settings.folderNoteName,
+            folderNoteNamePattern: settings.folderNoteNamePattern
+        });
+    }, [
+        selectedFolder,
+        settings.enableFolderNotes,
+        settings.folderNoteName,
+        settings.folderNoteNamePattern,
+        shouldResolveSelectedFolderNote,
+        selectedFolderFileVersion
+    ]);
+
+    const handleSelectedFolderNoteClick = React.useCallback(
+        (event: React.MouseEvent<HTMLElement>) => {
+            if (!selectedFolder || !selectedFolderNote) {
+                return;
+            }
+
+            // Prevents header click handlers from also running.
+            event.stopPropagation();
+
+            const openContext = resolveFolderNoteClickOpenContext(
+                event,
+                settings.openFolderNotesInNewTab,
+                settings.multiSelectModifier,
+                isMobile
+            );
+
+            runAsyncAction(() =>
+                openFolderNoteFile({
+                    app,
+                    commandQueue,
+                    folder: selectedFolder,
+                    folderNote: selectedFolderNote,
+                    context: openContext
+                })
+            );
+        },
+        [selectedFolder, selectedFolderNote, settings.openFolderNotesInNewTab, settings.multiSelectModifier, isMobile, app, commandQueue]
+    );
+
+    const handleSelectedFolderNoteMouseDown = React.useCallback(
+        (event: React.MouseEvent<HTMLElement>) => {
+            if (event.button !== 1 || !selectedFolder || !selectedFolderNote) {
+                return;
+            }
+
+            // Middle-click opens in a new tab and suppresses default browser behavior.
+            event.preventDefault();
+            event.stopPropagation();
+
+            runAsyncAction(() =>
+                openFolderNoteFile({
+                    app,
+                    commandQueue,
+                    folder: selectedFolder,
+                    folderNote: selectedFolderNote,
+                    context: 'tab'
+                })
+            );
+        },
+        [selectedFolder, selectedFolderNote, app, commandQueue]
+    );
+
     const breadcrumbContent = useMemo((): React.ReactNode => {
         if (!shouldRenderBreadcrumbSegments) {
-            return desktopTitle;
+            if (!selectedFolderNote) {
+                return desktopTitle;
+            }
+
+            // Desktop header title becomes clickable when a folder note exists.
+            return (
+                <span
+                    className="nn-pane-header-folder-note"
+                    onClick={handleSelectedFolderNoteClick}
+                    onMouseDown={handleSelectedFolderNoteMouseDown}
+                >
+                    {desktopTitle}
+                </span>
+            );
         }
 
         const parts: React.ReactNode[] = [];
         breadcrumbSegments.forEach((segment, index) => {
             const key = `${segment.label}-${index}`;
+            // The last breadcrumb segment maps to the active selection.
+            const isCurrentFolderNoteSegment = segment.isLast && Boolean(selectedFolderNote);
 
             if (segment.isLast || segment.targetType === 'none' || !segment.targetPath) {
                 parts.push(
-                    <span key={key} className="nn-path-current">
+                    <span
+                        key={key}
+                        className={`nn-path-current${isCurrentFolderNoteSegment ? ' nn-pane-header-folder-note' : ''}`}
+                        onClick={isCurrentFolderNoteSegment ? handleSelectedFolderNoteClick : undefined}
+                        onMouseDown={isCurrentFolderNoteSegment ? handleSelectedFolderNoteMouseDown : undefined}
+                    >
                         {segment.label}
                     </span>
                 );
@@ -118,6 +241,8 @@ export function ListPaneHeader({ onHeaderClick, isSearchActive, onSearchToggle }
                         }
                     } else if (segment.targetType === 'tag' && segment.targetPath) {
                         selectionDispatch({ type: 'SET_SELECTED_TAG', tag: normalizeTagPath(segment.targetPath) });
+                    } else if (segment.targetType === 'property' && segment.targetPath) {
+                        selectionDispatch({ type: 'SET_SELECTED_PROPERTY', nodeId: segment.targetPath });
                     }
                 };
 
@@ -138,7 +263,16 @@ export function ListPaneHeader({ onHeaderClick, isSearchActive, onSearchToggle }
         });
 
         return parts;
-    }, [app.vault, breadcrumbSegments, desktopTitle, selectionDispatch, shouldRenderBreadcrumbSegments]);
+    }, [
+        app.vault,
+        breadcrumbSegments,
+        desktopTitle,
+        selectionDispatch,
+        shouldRenderBreadcrumbSegments,
+        selectedFolderNote,
+        handleSelectedFolderNoteClick,
+        handleSelectedFolderNoteMouseDown
+    ]);
 
     const scrollContainerRef = React.useRef<HTMLDivElement>(null);
     const [showFade, setShowFade] = React.useState(false);
@@ -173,7 +307,7 @@ export function ListPaneHeader({ onHeaderClick, isSearchActive, onSearchToggle }
         }, 0);
 
         return () => window.clearTimeout(timeoutId);
-    }, [selectionState.selectedFolder, selectionState.selectedTag, isMobile]);
+    }, [selectionState.selectedFolder, selectionState.selectedTag, selectionState.selectedProperty, isMobile]);
 
     // Updates fade gradient visibility based on scroll position
     const handleScroll = React.useCallback(() => {
@@ -242,7 +376,7 @@ export function ListPaneHeader({ onHeaderClick, isSearchActive, onSearchToggle }
                             className={`nn-icon-button ${isSearchActive ? 'nn-icon-button-active' : ''}`}
                             aria-label={strings.paneHeader.search}
                             onClick={onSearchToggle}
-                            disabled={!selectionState.selectedFolder && !selectionState.selectedTag}
+                            disabled={!hasNavigationSelection}
                             tabIndex={-1}
                         >
                             <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-search')} />
@@ -253,7 +387,7 @@ export function ListPaneHeader({ onHeaderClick, isSearchActive, onSearchToggle }
                             className={`nn-icon-button ${includeDescendantNotes ? 'nn-icon-button-active' : ''}`}
                             aria-label={descendantsTooltip}
                             onClick={handleToggleDescendants}
-                            disabled={!selectionState.selectedFolder && !selectionState.selectedTag}
+                            disabled={!hasNavigationSelection}
                             tabIndex={-1}
                         >
                             <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-descendants')} />
@@ -264,7 +398,7 @@ export function ListPaneHeader({ onHeaderClick, isSearchActive, onSearchToggle }
                             className={`nn-icon-button ${isCustomSort ? 'nn-icon-button-active' : ''}`}
                             aria-label={strings.paneHeader.changeSortOrder}
                             onClick={handleSortMenu}
-                            disabled={!selectionState.selectedFolder && !selectionState.selectedTag}
+                            disabled={!hasAppearanceOrSortSelection}
                             tabIndex={-1}
                         >
                             <ServiceIcon iconId={sortIconId} />
@@ -275,7 +409,7 @@ export function ListPaneHeader({ onHeaderClick, isSearchActive, onSearchToggle }
                             className={`nn-icon-button ${hasCustomAppearance ? 'nn-icon-button-active' : ''}`}
                             aria-label={strings.paneHeader.changeAppearance}
                             onClick={handleAppearanceMenu}
-                            disabled={!selectionState.selectedFolder && !selectionState.selectedTag}
+                            disabled={!hasAppearanceOrSortSelection}
                             tabIndex={-1}
                         >
                             <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-appearance')} />
@@ -288,7 +422,7 @@ export function ListPaneHeader({ onHeaderClick, isSearchActive, onSearchToggle }
                             onClick={() => {
                                 runAsyncAction(() => handleNewFile());
                             }}
-                            disabled={!selectionState.selectedFolder}
+                            disabled={!canCreateNewFile}
                             tabIndex={-1}
                         >
                             <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-new-note')} />

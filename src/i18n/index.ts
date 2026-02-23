@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ import { STRINGS_KO } from './locales/ko';
 import { STRINGS_NL } from './locales/nl';
 import { STRINGS_PL } from './locales/pl';
 import { STRINGS_PT } from './locales/pt';
+import { STRINGS_PT_BR } from './locales/pt_br';
 import { STRINGS_RU } from './locales/ru';
 import { STRINGS_TH } from './locales/th';
 import { STRINGS_TR } from './locales/tr';
@@ -44,6 +45,14 @@ import { STRINGS_ZH_TW } from './locales/zh_tw';
 
 // Type for the translation strings structure
 type TranslationStrings = typeof STRINGS_EN;
+
+type DeepPartial<T> = T extends readonly unknown[]
+    ? T
+    : T extends object
+      ? {
+            [K in keyof T]?: DeepPartial<T[K]>;
+        }
+      : T;
 
 // Map of supported languages to their translation modules
 // Just add new languages here as they are created
@@ -78,7 +87,7 @@ type TranslationStrings = typeof STRINGS_EN;
 // ✅ vi     - Vietnamese
 // ✅ zh     - Chinese (Simplified)
 // ✅ zh-TW  - Chinese (Traditional)
-const LANGUAGE_MAP: Record<string, TranslationStrings> = {
+const LANGUAGE_MAP: Record<string, DeepPartial<TranslationStrings>> = {
     ar: STRINGS_AR,
     de: STRINGS_DE,
     en: STRINGS_EN,
@@ -92,6 +101,7 @@ const LANGUAGE_MAP: Record<string, TranslationStrings> = {
     nl: STRINGS_NL,
     pl: STRINGS_PL,
     pt: STRINGS_PT,
+    'pt-BR': STRINGS_PT_BR,
     ru: STRINGS_RU,
     th: STRINGS_TH,
     tr: STRINGS_TR,
@@ -103,6 +113,59 @@ const LANGUAGE_MAP: Record<string, TranslationStrings> = {
     'zh-TW': STRINGS_ZH_TW,
     zh_tw: STRINGS_ZH_TW
 };
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function mergeTranslationValues(base: unknown, override: unknown): unknown {
+    if (override === undefined) {
+        return base;
+    }
+
+    if (Array.isArray(base)) {
+        return Array.isArray(override) ? override : base;
+    }
+
+    if (isPlainObject(base)) {
+        if (!isPlainObject(override)) {
+            return base;
+        }
+
+        const result: Record<string, unknown> = {};
+        for (const key of Object.keys(base)) {
+            result[key] = mergeTranslationValues(base[key], override[key]);
+        }
+        return result;
+    }
+
+    return typeof override === typeof base ? override : base;
+}
+
+function getMergedStrings(base: TranslationStrings, overrides: DeepPartial<TranslationStrings> | undefined): TranslationStrings {
+    if (!overrides || overrides === base) {
+        return base;
+    }
+
+    return mergeTranslationValues(base, overrides) as TranslationStrings;
+}
+
+const resolvedLanguageCache = new Map<string, TranslationStrings>();
+
+function getResolvedStrings(locale: string): TranslationStrings {
+    if (locale === 'en') {
+        return STRINGS_EN;
+    }
+
+    const cached = resolvedLanguageCache.get(locale);
+    if (cached) {
+        return cached;
+    }
+
+    const merged = getMergedStrings(STRINGS_EN, LANGUAGE_MAP[locale] ?? LANGUAGE_MAP.en);
+    resolvedLanguageCache.set(locale, merged);
+    return merged;
+}
 
 /**
  * Gets the current language setting from Obsidian
@@ -128,24 +191,22 @@ function getObsidianLanguage(): string {
 }
 
 // Export the appropriate language strings based on Obsidian's setting
-export const strings: TranslationStrings = LANGUAGE_MAP[getObsidianLanguage()];
+export const strings: TranslationStrings = getResolvedStrings(getObsidianLanguage());
 
 /**
  * Get the default date format for the current language
- * Falls back to 'MMM d, yyyy' if not found
+ * Uses Moment format tokens
  */
 export function getDefaultDateFormat(): string {
-    const lang = getObsidianLanguage();
-    const localeStrings = LANGUAGE_MAP[lang] || LANGUAGE_MAP.en;
-    return localeStrings.settings.items.dateFormat.placeholder;
+    const localeStrings = getResolvedStrings(getObsidianLanguage());
+    return localeStrings.settings.items.dateFormat.placeholder || 'MMM D, YYYY';
 }
 
 /**
  * Get the default time format for the current language
- * Falls back to 'h:mm a' if not found
+ * Uses Moment format tokens
  */
 export function getDefaultTimeFormat(): string {
-    const lang = getObsidianLanguage();
-    const localeStrings = LANGUAGE_MAP[lang] || LANGUAGE_MAP.en;
-    return localeStrings.settings.items.timeFormat.placeholder;
+    const localeStrings = getResolvedStrings(getObsidianLanguage());
+    return localeStrings.settings.items.timeFormat.placeholder || 'h:mm a';
 }

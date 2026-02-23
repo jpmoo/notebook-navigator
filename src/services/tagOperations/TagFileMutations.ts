@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,13 @@ import { App, TFile, parseFrontMatterTags } from 'obsidian';
 import { getDBInstance } from '../../storage/fileOperations';
 import type { NotebookNavigatorSettings } from '../../settings/types';
 import { normalizeTagPathValue } from '../../utils/tagPrefixMatcher';
-import { getCachedFileTags, TAG_CHARACTER_CLASS, hasValidTagCharacters } from '../../utils/tagUtils';
+import {
+    getCachedFileTags,
+    hasValidTagCharacters,
+    isInlineTagValueCompatible,
+    isValidTagPrecedingChar,
+    OBSIDIAN_INLINE_TAG_DISALLOWED_CLASS_CONTENT
+} from '../../utils/tagUtils';
 import { mutateFrontmatterTagFields } from '../tagRename/frontmatterTagMutator';
 import { mergeRanges, NumericRange } from '../../utils/arrayUtils';
 import { findFencedCodeBlockRanges, findInlineCodeRanges, isIndexInRanges } from '../../utils/codeRangeUtils';
@@ -30,21 +36,19 @@ import { parseCommaSeparatedList } from '../../utils/commaSeparatedListUtils';
  * Type for frontmatter objects that may contain a tags property
  */
 type TagsFrontmatter = Record<string, unknown> & { tags?: unknown };
+const HORIZONTAL_WHITESPACE_SOURCE = '[^\\S\\r\\n]';
+const INLINE_TAG_TOKEN_SOURCE = `#[^${OBSIDIAN_INLINE_TAG_DISALLOWED_CLASS_CONTENT}]+`;
+const INLINE_TAG_BOUNDARY_SOURCE = `(?=$|[${OBSIDIAN_INLINE_TAG_DISALLOWED_CLASS_CONTENT}])`;
 
 /**
  * Low-level tag mutation operations for individual files
  * Handles both frontmatter and inline tag modifications
  */
-const TAG_CHARACTER_CLASS_CONTENT = TAG_CHARACTER_CLASS.slice(1, -1);
-const INLINE_TAG_VALUE_PATTERN = `${TAG_CHARACTER_CLASS}+`;
-const INLINE_TAG_BOUNDARY_PATTERN = `(?=$|[^${TAG_CHARACTER_CLASS_CONTENT}])`;
-
 export class TagFileMutations {
-    private static readonly TAG_BOUNDARY = INLINE_TAG_BOUNDARY_PATTERN;
-    // Complete pattern for matching any inline tag with optional leading space
-    private static readonly INLINE_TAG_PATTERN = new RegExp(`(\\s)?#${INLINE_TAG_VALUE_PATTERN}${INLINE_TAG_BOUNDARY_PATTERN}`, 'gu');
+    // Complete pattern for matching any inline tag token with optional leading horizontal whitespace
+    private static readonly INLINE_TAG_PATTERN = new RegExp(`(${HORIZONTAL_WHITESPACE_SOURCE})?${INLINE_TAG_TOKEN_SOURCE}`, 'gu');
     // Pattern for testing if content contains any inline tags (without global flag for test())
-    private static readonly INLINE_TAG_TEST_PATTERN = new RegExp(`(\\s)?#${INLINE_TAG_VALUE_PATTERN}${INLINE_TAG_BOUNDARY_PATTERN}`, 'u');
+    private static readonly INLINE_TAG_TEST_PATTERN = new RegExp(`(?:^|\\s)${INLINE_TAG_TOKEN_SOURCE}`, 'u');
 
     constructor(
         private readonly app: App,
@@ -63,20 +67,7 @@ export class TagFileMutations {
      * Rejects empty tags, leading/trailing slashes, and double slashes
      */
     isValidTagName(tag: string): boolean {
-        const candidate = tag.trim();
-        if (candidate.length === 0) {
-            return false;
-        }
-        if (!hasValidTagCharacters(candidate)) {
-            return false;
-        }
-        if (candidate.startsWith('/') || candidate.endsWith('/')) {
-            return false;
-        }
-        if (candidate.includes('//')) {
-            return false;
-        }
-        return true;
+        return hasValidTagCharacters(tag);
     }
 
     /**
@@ -292,8 +283,23 @@ export class TagFileMutations {
         inlineTags: string[],
         failureContext: string
     ): Promise<boolean> {
-        const frontmatterChanged = await this.stripTagsFromFrontmatter(file, shouldRemove, failureContext);
+        let frontmatterChanged = false;
+        let frontmatterError: Error | null = null;
+
+        // Frontmatter mutations can fail if the YAML block is malformed or if Obsidian cannot
+        // safely read/parse/write the file. Inline tag removal can still succeed, so the method
+        // attempts both phases and throws after inline processing when frontmatter fails.
+        try {
+            frontmatterChanged = await this.stripTagsFromFrontmatter(file, shouldRemove, failureContext);
+        } catch (error: unknown) {
+            frontmatterError = error instanceof Error ? error : new Error(String(error));
+        }
+
         const inlineChanged = inlineTags.length > 0 ? await this.stripInlineTags(file, inlineTags) : false;
+
+        if (frontmatterError !== null) {
+            throw frontmatterError;
+        }
         return frontmatterChanged || inlineChanged;
     }
 
@@ -404,8 +410,12 @@ export class TagFileMutations {
                     changed = true;
                 }
             });
-        } catch (error) {
-            console.error(`[Notebook Navigator] Failed to ${failureContext}`, error);
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                error.message = `[Notebook Navigator] Failed to ${failureContext}: ${error.message}`;
+                throw error;
+            }
+            throw new Error(`[Notebook Navigator] Failed to ${failureContext}`);
         }
         return changed;
     }
@@ -564,8 +574,14 @@ export class TagFileMutations {
         if (uniqueTags.length === 0) {
             return false;
         }
-        uniqueTags.sort((a, b) => b.length - a.length);
-        const tagPatterns = uniqueTags.map(tag => ({
+
+        const inlineCompatibleTags = uniqueTags.filter(tag => isInlineTagValueCompatible(tag));
+        if (inlineCompatibleTags.length === 0) {
+            return false;
+        }
+
+        inlineCompatibleTags.sort((a, b) => b.length - a.length);
+        const tagPatterns = inlineCompatibleTags.map(tag => ({
             tag,
             pattern: this.buildSpecificTagPattern(tag)
         }));
@@ -649,8 +665,10 @@ export class TagFileMutations {
     }
 
     private buildSpecificTagPattern(tag: string): RegExp {
-        const escapedTag = this.escapeRegExp(tag);
-        return new RegExp(`(\\s)?#${escapedTag}${TagFileMutations.TAG_BOUNDARY}`, 'giu');
+        const trimmed = tag.trim();
+        const sanitized = trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
+        const escapedTag = this.escapeRegExp(sanitized);
+        return new RegExp(`(${HORIZONTAL_WHITESPACE_SOURCE})?#${escapedTag}${INLINE_TAG_BOUNDARY_SOURCE}`, 'giu');
     }
 
     /**
@@ -666,8 +684,12 @@ export class TagFileMutations {
         // Track removals to update exclusion ranges correctly
         const removals: { start: number; length: number }[] = [];
         const updatedContent = content.replace(pattern, (match: string, leadingWhitespace: string | undefined, offset: number) => {
-            const whitespace = leadingWhitespace ?? '';
-            const tagIndex = offset + whitespace.length;
+            const whitespaceLength = leadingWhitespace?.length ?? 0;
+            const tagIndex = offset + whitespaceLength;
+            const precedingChar = tagIndex > 0 ? content.charAt(tagIndex - 1) : null;
+            if (!isValidTagPrecedingChar(precedingChar)) {
+                return match;
+            }
             // Skip removal if tag is within protected context
             if (isIndexInRanges(tagIndex, ranges)) {
                 return match;

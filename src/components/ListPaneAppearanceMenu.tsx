@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 import { Menu, TFolder } from 'obsidian';
 import { strings } from '../i18n';
 import { FolderAppearance, getDefaultListMode, resolveListMode } from '../hooks/useListPaneAppearance';
-import type { CustomPropertyType, ListDisplayMode, ListNoteGroupingOption } from '../settings/types';
+import type { NotePropertyType, ListDisplayMode, ListNoteGroupingOption } from '../settings/types';
 import { NotebookNavigatorSettings } from '../settings';
 import { ItemType } from '../types';
 import { resolveListGrouping } from '../utils/listGrouping';
@@ -213,49 +213,47 @@ export function showListPaneAppearanceMenu({
 
     // Add groupBy menu section for folders and tags
     if (isFolderSelection || isTagSelection) {
-        const getCustomPropertyTypeLabel = (type: CustomPropertyType): string => {
+        const getNotePropertyTypeLabel = (type: NotePropertyType): string => {
             switch (type) {
-                case 'frontmatter':
-                    return strings.settings.items.customPropertyType.options.frontmatter;
                 case 'wordCount':
-                    return strings.settings.items.customPropertyType.options.wordCount;
+                    return strings.settings.items.notePropertyType.options.wordCount;
                 case 'none':
                 default:
-                    return strings.settings.items.customPropertyType.options.none;
+                    return strings.settings.items.notePropertyType.options.none;
             }
         };
 
         menu.addSeparator();
 
-        // Custom property header
+        // Note property header
         menu.addItem(item => {
-            item.setTitle(strings.modals.interfaceIcons.items['file-custom-property'])
-                .setIcon(resolveUXIconForMenu(settings.interfaceIcons, 'file-custom-property', 'lucide-align-left'))
+            item.setTitle(strings.settings.items.notePropertyType.name)
+                .setIcon(resolveUXIconForMenu(settings.interfaceIcons, 'file-word-count', 'lucide-sigma'))
                 .setDisabled(true);
         });
 
-        // Default custom property option (clears custom override)
-        const defaultCustomPropertyLabel = getCustomPropertyTypeLabel(settings.customPropertyType);
-        const currentCustomPropertyType = appearance?.customPropertyType;
-        const hasCustomPropertyType = currentCustomPropertyType !== undefined;
+        // Default note property option (clears custom override)
+        const defaultNotePropertyLabel = getNotePropertyTypeLabel(settings.notePropertyType);
+        const currentNotePropertyType = appearance?.notePropertyType;
+        const hasNotePropertyType = currentNotePropertyType !== undefined;
         menu.addItem(item => {
-            item.setTitle(`    ${strings.folderAppearance.defaultLabel} (${defaultCustomPropertyLabel})`)
-                .setChecked(!hasCustomPropertyType)
+            item.setTitle(`    ${strings.folderAppearance.defaultLabel} (${defaultNotePropertyLabel})`)
+                .setChecked(!hasNotePropertyType)
                 .onClick(() => {
-                    updateAppearance({ customPropertyType: undefined });
+                    updateAppearance({ notePropertyType: undefined });
                 });
         });
 
-        // Custom property options
-        const customPropertyOptions: CustomPropertyType[] = ['none', 'frontmatter', 'wordCount'];
-        customPropertyOptions.forEach(option => {
+        // Note property options
+        const notePropertyOptions: NotePropertyType[] = ['none', 'wordCount'];
+        notePropertyOptions.forEach(option => {
             menu.addItem(item => {
-                const isChecked = hasCustomPropertyType && currentCustomPropertyType === option;
-                const label = getCustomPropertyTypeLabel(option);
+                const isChecked = hasNotePropertyType && currentNotePropertyType === option;
+                const label = getNotePropertyTypeLabel(option);
                 item.setTitle(`    ${label}`)
                     .setChecked(isChecked)
                     .onClick(() => {
-                        updateAppearance({ customPropertyType: option });
+                        updateAppearance({ notePropertyType: option });
                     });
             });
         });

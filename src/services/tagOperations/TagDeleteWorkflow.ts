@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,8 +18,9 @@
 
 import { TFile } from 'obsidian';
 import type { App } from 'obsidian';
+import { LIMITS } from '../../constants/limits';
 import { strings } from '../../i18n';
-import type { TagTreeService } from '../TagTreeService';
+import type { ITagTreeProvider } from '../../interfaces/ITagTreeProvider';
 import type { MetadataService } from '../MetadataService';
 import { ConfirmModal } from '../../modals/ConfirmModal';
 import { TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../../types';
@@ -29,8 +30,12 @@ import { collectPreviewPaths, yieldToEventLoop, buildUsageSummaryFromPaths } fro
 import type { TagDeleteEventPayload } from './types';
 import { runAsyncAction } from '../../utils/async';
 import { showNotice } from '../../utils/noticeUtils';
+import { renderAffectedFilesPreview } from '../operations/OperationBatchUtils';
 
-const DELETE_BATCH_SIZE = 10;
+const DELETE_BATCH_SIZE = LIMITS.operations.metadataMutationYieldBatchSize;
+const DELETE_SAMPLE_LIMIT = 8;
+
+type TagDeleteSkipReason = 'file-missing' | 'not-markdown' | 'no-op';
 
 export interface TagDeleteHooks {
     deleteTagFromFile: (file: TFile, tag: TagDescriptor) => Promise<boolean>;
@@ -48,7 +53,7 @@ export class TagDeleteWorkflow {
     constructor(
         private readonly app: App,
         private readonly fileMutations: TagFileMutations,
-        private readonly getTagTreeService: () => TagTreeService | null,
+        private readonly getTagTreeService: () => ITagTreeProvider | null,
         private readonly getMetadataService: () => MetadataService | null,
         private readonly getHooks: () => TagDeleteHooks
     ) {}
@@ -70,11 +75,7 @@ export class TagDeleteWorkflow {
         }
 
         const descriptor = new TagDescriptor(displayPath);
-        const previewPaths = collectPreviewPaths(descriptor, tagTree);
-        if (previewPaths === null) {
-            showNotice(strings.fileSystem.notifications.tagOperationsNotAvailable, { variant: 'warning' });
-            return;
-        }
+        const previewPaths = collectPreviewPaths(this.app, descriptor, tagTree);
 
         const uniquePreview = Array.from(new Set(previewPaths));
         const usage = buildUsageSummaryFromPaths(this.app, uniquePreview);
@@ -97,24 +98,7 @@ export class TagDeleteWorkflow {
             },
             strings.modals.tagOperation.confirmDelete,
             {
-                buildContent: container => {
-                    if (usage.sample.length === 0) {
-                        return;
-                    }
-
-                    const listContainer = container.createDiv('nn-tag-rename-file-preview');
-                    listContainer.createEl('h4', { text: strings.modals.tagOperation.affectedFiles });
-                    const list = listContainer.createEl('ul');
-                    usage.sample.forEach(fileName => {
-                        list.createEl('li', { text: fileName });
-                    });
-                    const remaining = usage.total - usage.sample.length;
-                    if (remaining > 0) {
-                        listContainer.createEl('p', {
-                            text: strings.modals.tagOperation.andMore.replace('{count}', remaining.toString())
-                        });
-                    }
-                }
+                buildContent: container => renderAffectedFilesPreview(container, usage)
             }
         );
         modal.open();
@@ -137,11 +121,7 @@ export class TagDeleteWorkflow {
             });
         } else {
             const tagTree = this.getTagTreeService();
-            const previewPaths = collectPreviewPaths(descriptor, tagTree);
-            if (previewPaths === null) {
-                showNotice(strings.fileSystem.notifications.tagOperationsNotAvailable, { variant: 'warning' });
-                return false;
-            }
+            const previewPaths = collectPreviewPaths(this.app, descriptor, tagTree);
             previewPaths.forEach(path => {
                 if (typeof path === 'string' && path.length > 0) {
                     targetPathsSet.add(path);
@@ -154,33 +134,101 @@ export class TagDeleteWorkflow {
             return false;
         }
 
+        const totalTargets = targetPathsSet.size;
         let removed = 0;
+        let skipped = 0;
+        let failed = 0;
         let processed = 0;
 
+        // Skips represent paths that were part of the tag snapshot, but where the vault mutation
+        // could not be applied safely at execution time (file removed, file type changed, or
+        // the file no longer contains the expected tag).
+        const skippedByReason: Record<TagDeleteSkipReason, number> = {
+            'file-missing': 0,
+            'not-markdown': 0,
+            'no-op': 0
+        };
+        const skippedSamples: Record<TagDeleteSkipReason, string[]> = {
+            'file-missing': [],
+            'not-markdown': [],
+            'no-op': []
+        };
+        const pushSample = (bucket: string[], value: string): void => {
+            if (bucket.length >= DELETE_SAMPLE_LIMIT) {
+                return;
+            }
+            bucket.push(value);
+        };
+
         for (const path of targetPathsSet) {
+            processed += 1;
             const abstract = this.app.vault.getAbstractFileByPath(path);
             if (!(abstract instanceof TFile)) {
-                processed++;
-                continue;
-            }
-
-            try {
-                if (await hooks.deleteTagFromFile(abstract, descriptor)) {
-                    removed++;
+                skipped += 1;
+                skippedByReason['file-missing'] += 1;
+                pushSample(skippedSamples['file-missing'], path);
+            } else if (!this.fileMutations.isMarkdownFile(abstract)) {
+                skipped += 1;
+                skippedByReason['not-markdown'] += 1;
+                pushSample(skippedSamples['not-markdown'], abstract.path);
+            } else {
+                try {
+                    if (await hooks.deleteTagFromFile(abstract, descriptor)) {
+                        removed += 1;
+                    } else {
+                        skipped += 1;
+                        skippedByReason['no-op'] += 1;
+                        pushSample(skippedSamples['no-op'], abstract.path);
+                    }
+                } catch (error) {
+                    failed += 1;
+                    console.error(`[Notebook Navigator] Failed to delete tag ${descriptor.tag} in ${path}`, error);
                 }
-            } catch (error) {
-                console.error(`[Notebook Navigator] Failed to delete tag ${descriptor.tag} in ${path}`, error);
             }
 
-            processed++;
             if (processed % DELETE_BATCH_SIZE === 0) {
                 await yieldToEventLoop();
             }
         }
 
+        if (skipped > 0) {
+            console.warn('[Notebook Navigator] Tag delete skipped files', {
+                skipped,
+                total: totalTargets,
+                skippedByReason,
+                samples: skippedSamples
+            });
+        }
+
+        const hasFileIssues = skipped > 0 || failed > 0;
+        const formatBatchNotFinalizedSummary = (): string => {
+            const notUpdated = skipped + failed;
+            // This notice is shown when at least one file was skipped or failed. It avoids
+            // finalizing tag metadata/shortcuts, because those follow-up operations assume
+            // the vault edits were applied to every target file.
+            return strings.modals.tagOperation.deleteBatchNotFinalized
+                .replace('{removed}', removed.toString())
+                .replace('{total}', totalTargets.toString())
+                .replace('{notUpdated}', notUpdated.toString());
+        };
+
         if (removed === 0) {
-            showNotice(strings.fileSystem.notifications.noTagsToRemove, { variant: 'warning' });
+            const summary = hasFileIssues ? formatBatchNotFinalizedSummary() : strings.fileSystem.notifications.noTagsToRemove;
+            const withConsoleHint =
+                hasFileIssues && failed > 0 ? `${summary} ${strings.modals.tagOperation.checkConsoleForDetails}` : summary;
+
+            showNotice(`${strings.modals.tagOperation.confirmDelete}: ${descriptor.tag}. ${withConsoleHint}`, { variant: 'warning' });
             return false;
+        }
+
+        if (hasFileIssues) {
+            const summary = formatBatchNotFinalizedSummary();
+            const withConsoleHint = failed > 0 ? `${summary} ${strings.modals.tagOperation.checkConsoleForDetails}` : summary;
+
+            // Some files changed, but the batch did not fully apply across all targets.
+            // The vault is now in a mixed state, so metadata/shortcuts are not finalized.
+            showNotice(`${strings.modals.tagOperation.confirmDelete}: ${descriptor.tag}. ${withConsoleHint}`, { variant: 'warning' });
+            return true;
         }
 
         await hooks.removeTagMetadataAfterDelete(descriptor.name);

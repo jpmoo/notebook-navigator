@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,14 +27,22 @@ describe('MetadataAPI icon normalization', () => {
     let plugin: {
         settings: NotebookNavigatorSettings;
         saveSettingsAndUpdate: ReturnType<typeof vi.fn>;
+        metadataService: {
+            setFolderStyle: ReturnType<typeof vi.fn>;
+            getFolderDisplayData: ReturnType<typeof vi.fn>;
+            isFolderStyleEventBridgeEnabled?: ReturnType<typeof vi.fn>;
+        } | null;
     };
     let api: NotebookNavigatorAPI;
+    let triggerMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
         plugin = {
             settings: structuredClone(DEFAULT_SETTINGS),
-            saveSettingsAndUpdate: vi.fn().mockResolvedValue(undefined)
+            saveSettingsAndUpdate: vi.fn().mockResolvedValue(undefined),
+            metadataService: null
         };
+        triggerMock = vi.fn();
 
         api = {
             getPlugin: () => plugin,
@@ -44,7 +52,7 @@ describe('MetadataAPI icon normalization', () => {
                         getFolderByPath: () => null
                     }
                 }) as unknown,
-            trigger: vi.fn()
+            trigger: triggerMock
         } as unknown as NotebookNavigatorAPI;
     });
 
@@ -71,5 +79,240 @@ describe('MetadataAPI icon normalization', () => {
         });
 
         expect(plugin.settings.folderIcons.Folder).toBe('phosphor:apple-logo');
+    });
+
+    it('normalizes property node ids when setting property metadata', async () => {
+        const metadataAPI = new MetadataAPI(api);
+
+        await metadataAPI.setPropertyMeta('key:Status=Done', {
+            color: '#112233'
+        });
+        metadataAPI.updateFromSettings(plugin.settings);
+
+        expect(plugin.settings.propertyColors['key:status=done']).toBe('#112233');
+        expect(metadataAPI.getPropertyMeta('key:status=done')).toEqual({
+            color: '#112233',
+            backgroundColor: undefined,
+            icon: undefined
+        });
+    });
+
+    it('ignores invalid property node ids when setting property metadata', async () => {
+        const metadataAPI = new MetadataAPI(api);
+
+        await metadataAPI.setPropertyMeta('properties-root', {
+            color: '#112233'
+        });
+
+        expect(plugin.settings.propertyColors['properties-root']).toBeUndefined();
+        expect(plugin.saveSettingsAndUpdate).not.toHaveBeenCalled();
+    });
+
+    it('emits property-changed events when property metadata changes', () => {
+        const metadataAPI = new MetadataAPI(api);
+
+        const updatedSettings = structuredClone(plugin.settings);
+        updatedSettings.propertyColors['key:status'] = '#334455';
+
+        metadataAPI.updateFromSettings(updatedSettings);
+
+        expect(triggerMock).toHaveBeenCalledWith('property-changed', {
+            nodeId: 'key:status',
+            metadata: {
+                color: '#334455',
+                backgroundColor: undefined,
+                icon: undefined
+            }
+        });
+    });
+
+    it('emits property-changed events when property background metadata changes', () => {
+        const metadataAPI = new MetadataAPI(api);
+
+        const updatedSettings = structuredClone(plugin.settings);
+        updatedSettings.propertyBackgroundColors['key:status'] = '#223344';
+
+        metadataAPI.updateFromSettings(updatedSettings);
+
+        expect(triggerMock).toHaveBeenCalledWith('property-changed', {
+            nodeId: 'key:status',
+            metadata: {
+                color: undefined,
+                backgroundColor: '#223344',
+                icon: undefined
+            }
+        });
+    });
+
+    it('emits property-changed events when property icon metadata changes', () => {
+        const metadataAPI = new MetadataAPI(api);
+
+        const updatedSettings = structuredClone(plugin.settings);
+        updatedSettings.propertyIcons['key:status'] = 'lucide:hash';
+
+        metadataAPI.updateFromSettings(updatedSettings);
+
+        expect(triggerMock).toHaveBeenCalledWith('property-changed', {
+            nodeId: 'key:status',
+            metadata: {
+                color: undefined,
+                backgroundColor: undefined,
+                icon: 'lucide:hash'
+            }
+        });
+    });
+
+    it('routes folder metadata writes through metadata service when available', async () => {
+        const getFolderDisplayDataMock = vi
+            .fn()
+            .mockReturnValueOnce({
+                displayName: undefined,
+                color: undefined,
+                backgroundColor: undefined,
+                icon: undefined
+            })
+            .mockReturnValue({
+                displayName: undefined,
+                color: '#112233',
+                backgroundColor: '#223344',
+                icon: 'phosphor:apple-logo'
+            });
+        plugin.metadataService = {
+            setFolderStyle: vi.fn().mockResolvedValue(undefined),
+            getFolderDisplayData: getFolderDisplayDataMock
+        };
+        const metadataAPI = new MetadataAPI(api);
+        const folder = new TFolder();
+        folder.path = 'Folder';
+
+        await metadataAPI.setFolderMeta(folder, {
+            icon: 'phosphor:ph-apple-logo' as IconString,
+            color: '#112233',
+            backgroundColor: '#223344'
+        });
+
+        expect(plugin.metadataService.setFolderStyle).toHaveBeenCalledWith('Folder', {
+            icon: 'phosphor:apple-logo',
+            color: '#112233',
+            backgroundColor: '#223344'
+        });
+        expect(plugin.saveSettingsAndUpdate).not.toHaveBeenCalled();
+        expect(triggerMock).toHaveBeenCalledWith('folder-changed', {
+            folder,
+            metadata: {
+                color: '#112233',
+                backgroundColor: '#223344',
+                icon: 'phosphor:apple-logo'
+            }
+        });
+    });
+
+    it('defers manual folder-changed emission when metadata service bridge is enabled', async () => {
+        const getFolderDisplayDataMock = vi
+            .fn()
+            .mockReturnValueOnce({
+                displayName: undefined,
+                color: undefined,
+                backgroundColor: undefined,
+                icon: undefined
+            })
+            .mockReturnValue({
+                displayName: undefined,
+                color: '#112233',
+                backgroundColor: undefined,
+                icon: undefined
+            });
+        plugin.metadataService = {
+            setFolderStyle: vi.fn().mockResolvedValue(undefined),
+            getFolderDisplayData: getFolderDisplayDataMock,
+            isFolderStyleEventBridgeEnabled: vi.fn().mockReturnValue(true)
+        };
+        const metadataAPI = new MetadataAPI(api);
+        const folder = new TFolder();
+        folder.path = 'Folder';
+
+        await metadataAPI.setFolderMeta(folder, {
+            color: '#112233'
+        });
+
+        expect(plugin.metadataService.setFolderStyle).toHaveBeenCalledWith('Folder', {
+            color: '#112233'
+        });
+        expect(triggerMock).not.toHaveBeenCalled();
+    });
+
+    it('skips folder-changed emission when style update resolves to unchanged metadata', async () => {
+        plugin.metadataService = {
+            setFolderStyle: vi.fn().mockResolvedValue(undefined),
+            getFolderDisplayData: vi.fn().mockReturnValue({
+                displayName: undefined,
+                color: undefined,
+                backgroundColor: undefined,
+                icon: undefined
+            })
+        };
+        const metadataAPI = new MetadataAPI(api);
+        const folder = new TFolder();
+        folder.path = 'Folder';
+
+        await metadataAPI.setFolderMeta(folder, {
+            color: '#112233'
+        });
+
+        expect(triggerMock).not.toHaveBeenCalled();
+    });
+
+    it('skips manual folder-changed emission when folder settings changed during style update', async () => {
+        plugin.metadataService = {
+            setFolderStyle: vi.fn().mockImplementation(async (_folderPath: string, style: { color?: string | null }) => {
+                if (style.color) {
+                    plugin.settings.folderColors.Folder = style.color;
+                }
+            }),
+            getFolderDisplayData: vi.fn().mockReturnValue({
+                displayName: undefined,
+                color: '#112233',
+                backgroundColor: undefined,
+                icon: undefined
+            })
+        };
+        const metadataAPI = new MetadataAPI(api);
+        const folder = new TFolder();
+        folder.path = 'Folder';
+
+        await metadataAPI.setFolderMeta(folder, {
+            color: '#112233'
+        });
+
+        expect(triggerMock).not.toHaveBeenCalled();
+    });
+
+    it('reads folder metadata through metadata service when frontmatter metadata is enabled', () => {
+        plugin.settings.useFrontmatterMetadata = true;
+        plugin.metadataService = {
+            setFolderStyle: vi.fn().mockResolvedValue(undefined),
+            getFolderDisplayData: vi.fn().mockReturnValue({
+                displayName: undefined,
+                color: '#112233',
+                backgroundColor: '#223344',
+                icon: 'phosphor:apple-logo'
+            })
+        };
+        const metadataAPI = new MetadataAPI(api);
+        const folder = new TFolder();
+        folder.path = 'Folder';
+
+        expect(metadataAPI.getFolderMeta(folder)).toEqual({
+            color: '#112233',
+            backgroundColor: '#223344',
+            icon: 'phosphor:apple-logo'
+        });
+        expect(plugin.metadataService.getFolderDisplayData).toHaveBeenCalledWith('Folder', {
+            includeDisplayName: false,
+            includeColor: true,
+            includeBackgroundColor: true,
+            includeIcon: true,
+            includeInheritedColors: false
+        });
     });
 });

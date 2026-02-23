@@ -1,6 +1,6 @@
 # Notebook Navigator Theming Guide
 
-Updated: January 29, 2026
+Updated: February 10, 2026
 
 ## Table of Contents
 
@@ -9,6 +9,7 @@ Updated: January 29, 2026
   - [Theme foreground](#theme-foreground)
   - [Calendar](#calendar)
   - [Navigation pane](#navigation-pane)
+  - [Borders](#borders)
   - [Pane divider](#pane-divider-desktop-only)
   - [List pane (files)](#list-pane-files)
   - [Headers (desktop only)](#headers-desktop-only)
@@ -51,24 +52,23 @@ Most variables are colors and should resolve to a computed color (some are used 
 | `--nn-theme-foreground`       | `var(--text-normal)`                                                | Base foreground color    |
 | `--nn-theme-foreground-muted` | `color-mix(in srgb, var(--nn-theme-foreground) 70%, transparent)`   | Muted foreground color   |
 | `--nn-theme-foreground-faded` | `color-mix(in srgb, var(--nn-theme-foreground) 50%, transparent)`   | Faded foreground color   |
+| `--nn-theme-foreground-faint` | `color-mix(in srgb, var(--nn-theme-foreground) 10%, transparent)`   | Faint foreground color   |
 
 ### Calendar
 
-| Variable                                        | Default                         | Description                                             |
-| ----------------------------------------------- | ------------------------------- | ------------------------------------------------------- |
-| `--nn-theme-calendar-header-color`          | `var(--nn-theme-foreground)`          | Text color for month/year and header buttons            |
-| `--nn-theme-calendar-weekday-color`         | `var(--nn-theme-foreground-muted)`    | Text color for weekday labels (Mon, Tue, Wed...)        |
-| `--nn-theme-calendar-week-color`      | `var(--nn-theme-foreground-muted)`                 | Text color for week numbers                             |
-| `--nn-theme-calendar-day-in-month-color`    | `var(--nn-theme-foreground)`          | Text color for days within the current month            |
-| `--nn-theme-calendar-day-outside-month-color` | `var(--nn-theme-foreground-muted)`  | Text color for days outside the current month           |
-| `--nn-theme-calendar-hover-bg`              | `var(--background-modifier-hover)` | Hover background for calendar buttons and days          |
-| `--nn-theme-calendar-weekend-bg`            | `var(--background-secondary)`       | Background color for weekend days (panel layout)        |
-| `--nn-theme-calendar-day-has-note-color`    | `white`                         | Text color for dates with a daily note                  |
-| `--nn-theme-calendar-day-has-note-bg`       | `var(--text-selection)`         | Background color for dates with a daily note            |
-| `--nn-theme-calendar-day-has-feature-image-color` | `white`                  | Text color for dates with feature images                |
-| `--nn-theme-calendar-day-today-color`       | `var(--nn-theme-calendar-day-has-note-color)` | Text color for today's date (overlay layout)            |
-| `--nn-theme-calendar-day-today-bg`          | `var(--color-red)`            | Background color for the today highlight circle (overlay layout) |
-| `--nn-theme-calendar-day-today-accent`      | `var(--color-red)`            | Border and text color for today (panel layout)          |
+| Variable                                      | Default                                | Description                                     |
+| --------------------------------------------- | -------------------------------------- | ----------------------------------------------- |
+| `--nn-theme-calendar-header-color`            | `var(--nn-theme-foreground)`           | Text color for month/year and header buttons    |
+| `--nn-theme-calendar-weekday-color`           | `var(--nn-theme-foreground-muted)`     | Text color for weekday labels (Mon, Tue, Wed...) |
+| `--nn-theme-calendar-week-color`              | `var(--nn-theme-foreground-muted)`     | Text color for week numbers                     |
+| `--nn-theme-calendar-day-in-month-color`      | `var(--nn-theme-foreground)`           | Text color for days within the current month    |
+| `--nn-theme-calendar-day-outside-month-color` | `var(--nn-theme-foreground-faded)`     | Text color for days outside the current month   |
+| `--nn-theme-calendar-weekend-bg`              | `color-mix(in srgb, var(--nn-theme-foreground) 10%, transparent)` | Background color for weekend day cells |
+| `--nn-theme-calendar-hover-bg`                | `var(--background-modifier-hover)`     | Hover background for calendar buttons and days  |
+| `--nn-theme-calendar-day-has-note-bg`         | `var(--nn-theme-foreground-faint)`     | Dot color for dates with a daily note           |
+| `--nn-theme-calendar-day-has-feature-image-color` | `white`                             | Text color for dates with feature images        |
+| `--nn-theme-calendar-day-today-color`         | `var(--nn-theme-calendar-day-in-month-color)` | Text color for today's date                |
+| `--nn-theme-calendar-day-today-bg`            | `var(--text-selection)`                | Background color for today's date highlight     |
 
 ### Navigation pane
 
@@ -127,8 +127,40 @@ Priority order: folder note styles override custom color styles, which override 
 | `--nn-theme-navitem-custom-color-name-font-weight`      | `600`       | Font weight for folders/tags with custom colors (overrides default)           |
 | `--nn-theme-navitem-custom-color-file-name-font-weight` | `600`       | Font weight for file names with custom colors (overrides default file weight) |
 | `--nn-theme-navitem-folder-note-name-font-weight`       | `400`       | Font weight for folders with notes (overrides all others)                     |
-| `--nn-theme-navitem-folder-note-name-decoration`        | `none`      | Text decoration for folders with notes (none, underline, underline dotted)    |
+| `--nn-theme-navitem-folder-note-name-decoration`        | `underline` | Text decoration for folders with notes (none, underline, underline dotted)    |
 | `--nn-theme-navitem-folder-note-name-hover-decoration`  | `underline` | Text decoration when hovering folders with notes                              |
+
+### Borders
+
+Border variables apply to folder/tag rows, file rows, count badges, and file pills.
+
+#### Border widths
+
+| Variable                              | Default | Description                                                       |
+| ------------------------------------- | ------- | ----------------------------------------------------------------- |
+| `--nn-theme-navitem-border-width`     | `0px`   | Border width for navigation custom backgrounds, hover, and selection |
+| `--nn-theme-navitem-count-border-width` | `0px` | Border width for navigation file count badges                     |
+| `--nn-theme-file-border-width`        | `0px`   | Border width for file item hover and selection                    |
+| `--nn-theme-file-pill-border-width`   | `1px`   | Border width for tag and custom property pills                    |
+
+#### Border colors
+
+| Variable                                                  | Default                                           | Description                                                      |
+| --------------------------------------------------------- | ------------------------------------------------- | ---------------------------------------------------------------- |
+| `--nn-theme-navitem-custom-border-color`                  | `transparent`                                     | Border color for rows with custom backgrounds                   |
+| `--nn-theme-navitem-hover-border-color`                   | `transparent`                                     | Border color for hovered navigation rows                        |
+| `--nn-theme-navitem-selected-border-color`                | `transparent`                                     | Border color for selected navigation rows                       |
+| `--nn-theme-navitem-selected-inactive-border-color`       | `var(--nn-theme-navitem-selected-border-color)`   | Border color for selected navigation rows when pane is inactive |
+| `--nn-theme-navitem-count-border-color`                   | `transparent`                                     | Border color for navigation file count badges                   |
+| `--nn-theme-navitem-selected-count-border-color`          | `var(--nn-theme-navitem-count-border-color)`      | Border color for selected navigation file count badges          |
+| `--nn-theme-navitem-selected-inactive-count-border-color` | `var(--nn-theme-navitem-selected-count-border-color)` | Border color for selected navigation file count badges when pane is inactive |
+| `--nn-theme-file-hover-border-color`                      | `transparent`                                     | Border color for hovered file rows                              |
+| `--nn-theme-file-selected-border-color`                   | `transparent`                                     | Border color for selected file rows                             |
+| `--nn-theme-file-selected-inactive-border-color`          | `var(--nn-theme-file-selected-border-color)`      | Border color for selected file rows when pane is inactive       |
+| `--nn-theme-file-tag-border-color`                        | `color-mix(in srgb, var(--nn-theme-foreground) 30%, transparent)` | Border color for tag pills                                      |
+| `--nn-theme-file-custom-property-border-color`            | `var(--nn-theme-file-tag-border-color)`           | Border color for custom property pills                          |
+| `--nn-theme-file-selected-tag-border-color`               | `var(--nn-theme-file-tag-border-color)`           | Border color for tag pills in selected file rows                |
+| `--nn-theme-file-selected-custom-property-border-color`   | `var(--nn-theme-file-custom-property-border-color)` | Border color for custom property pills in selected file rows    |
 
 ### Pane divider (desktop only)
 
@@ -255,6 +287,7 @@ body {
   --nn-theme-foreground: #a9b7c6;
   --nn-theme-foreground-muted: #7f8b91;
   --nn-theme-foreground-faded: #6e6e6e;
+  --nn-theme-foreground-faint: #4f565a;
 
   /* Navigation pane */
   --nn-theme-nav-bg: #3c3f41;
@@ -268,15 +301,13 @@ body {
   --nn-theme-calendar-weekday-color: var(--nn-theme-foreground-muted);
   --nn-theme-calendar-week-color: var(--nn-theme-foreground-muted);
   --nn-theme-calendar-day-in-month-color: var(--nn-theme-foreground);
-  --nn-theme-calendar-day-outside-month-color: var(--nn-theme-foreground-muted);
+  --nn-theme-calendar-day-outside-month-color: var(--nn-theme-foreground-faded);
+  --nn-theme-calendar-weekend-bg: rgba(169, 183, 198, 0.1);
   --nn-theme-calendar-hover-bg: #4b5059;
-  --nn-theme-calendar-weekend-bg: #4b5059;
-  --nn-theme-calendar-day-has-note-color: #ffffff;
   --nn-theme-calendar-day-has-note-bg: #4a78c8;
   --nn-theme-calendar-day-has-feature-image-color: #ffffff;
   --nn-theme-calendar-day-today-color: #ffffff;
-  --nn-theme-calendar-day-today-bg: #db5050;
-  --nn-theme-calendar-day-today-accent: #db5050;
+  --nn-theme-calendar-day-today-bg: #4a78c8;
 
   /* Folder & tag items */
   --nn-theme-navitem-chevron-color: #6e6e6e;
@@ -300,6 +331,15 @@ body {
   --nn-theme-navitem-selected-inactive-icon-color: #b9bec6;
   --nn-theme-navitem-selected-inactive-count-color: #b9bec6;
   --nn-theme-navitem-selected-inactive-count-bg: rgba(0, 0, 0, 0.25);
+  --nn-theme-navitem-border-width: 1px;
+  --nn-theme-navitem-count-border-width: 1px;
+  --nn-theme-navitem-custom-border-color: rgba(0, 0, 0, 0.18);
+  --nn-theme-navitem-hover-border-color: rgba(255, 255, 255, 0.18);
+  --nn-theme-navitem-selected-border-color: rgba(255, 255, 255, 0.25);
+  --nn-theme-navitem-selected-inactive-border-color: rgba(255, 255, 255, 0.14);
+  --nn-theme-navitem-count-border-color: rgba(255, 255, 255, 0.2);
+  --nn-theme-navitem-selected-count-border-color: rgba(255, 255, 255, 0.3);
+  --nn-theme-navitem-selected-inactive-count-border-color: rgba(255, 255, 255, 0.2);
 
   /* Tag highlights and drop targets */
   --nn-theme-tag-positive-bg: rgba(106, 135, 89, 0.2);
@@ -314,7 +354,7 @@ body {
   --nn-theme-navitem-custom-color-name-font-weight: 600;
   --nn-theme-navitem-custom-color-file-name-font-weight: 600;
   --nn-theme-navitem-folder-note-name-font-weight: 600;
-  --nn-theme-navitem-folder-note-name-decoration: none;
+  --nn-theme-navitem-folder-note-name-decoration: underline;
   --nn-theme-navitem-folder-note-name-hover-decoration: underline;
   --nn-theme-navitem-count-font-weight: 400;
 
@@ -365,6 +405,15 @@ body {
   --nn-theme-file-selected-inactive-tag-bg: #4c5058;
   --nn-theme-file-selected-inactive-custom-property-color: #dfe3e8;
   --nn-theme-file-selected-inactive-custom-property-bg: #4c5058;
+  --nn-theme-file-border-width: 1px;
+  --nn-theme-file-pill-border-width: 1px;
+  --nn-theme-file-hover-border-color: rgba(255, 255, 255, 0.16);
+  --nn-theme-file-selected-border-color: rgba(255, 255, 255, 0.24);
+  --nn-theme-file-selected-inactive-border-color: rgba(255, 255, 255, 0.14);
+  --nn-theme-file-tag-border-color: rgba(255, 255, 255, 0.2);
+  --nn-theme-file-custom-property-border-color: rgba(255, 255, 255, 0.2);
+  --nn-theme-file-selected-tag-border-color: rgba(255, 255, 255, 0.3);
+  --nn-theme-file-selected-custom-property-border-color: rgba(255, 255, 255, 0.3);
 
   /* File text styling */
   --nn-theme-list-heading-font-weight: 600;
@@ -466,6 +515,8 @@ theme through inline styles.
 ## Style Settings Support
 
 Notebook Navigator includes a Style Settings `@settings` block for most theming variables.
+
+Border variables are available in the Style Settings **Borders** section.
 
 Not currently exposed in the Style Settings UI:
 

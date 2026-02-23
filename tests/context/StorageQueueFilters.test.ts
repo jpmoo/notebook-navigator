@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,7 +58,9 @@ function createFileData(overrides: Partial<FileData>): FileData {
         fileThumbnailsMtime: 0,
         tags: null,
         wordCount: null,
-        customProperty: null,
+        taskTotal: 0,
+        taskUnfinished: 0,
+        properties: null,
         previewStatus: 'unprocessed',
         featureImage: null,
         featureImageStatus: 'unprocessed',
@@ -111,7 +113,7 @@ describe('Storage queue filters', () => {
                 previewStatus: 'has',
                 featureImageStatus: 'has',
                 // Stored custom property items include the source field key and value.
-                customProperty: [{ fieldKey: 'status', value: '1' }]
+                properties: [{ fieldKey: 'status', value: '1' }]
             })
         );
 
@@ -136,11 +138,39 @@ describe('Storage queue filters', () => {
                 featureImageStatus: 'none',
                 featureImageKey: null,
                 // Stored custom property items include the source field key and value.
-                customProperty: [{ fieldKey: 'status', value: '1' }]
+                properties: [{ fieldKey: 'status', value: '1' }]
             })
         );
 
         settings = { ...settings, showFeatureImage: true };
+
+        const types: ContentProviderType[] = ['markdownPipeline'];
+        const result = filterFilesRequiringMetadataSources([file], types, settings);
+
+        expect(result).toEqual([file]);
+    });
+
+    it('includes markdown files when task counters are pending', () => {
+        const file = new TFile();
+        file.path = 'notes/note.md';
+        file.extension = 'md';
+        file.stat.mtime = 456;
+
+        db.setFile(
+            file.path,
+            createFileData({
+                mtime: file.stat.mtime,
+                markdownPipelineMtime: file.stat.mtime,
+                wordCount: 0,
+                taskTotal: null,
+                taskUnfinished: null,
+                previewStatus: 'none',
+                featureImageStatus: 'none',
+                featureImageKey: ''
+            })
+        );
+
+        settings = { ...settings, showFilePreview: false, showFeatureImage: false };
 
         const types: ContentProviderType[] = ['markdownPipeline'];
         const result = filterFilesRequiringMetadataSources([file], types, settings);

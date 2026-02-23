@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ import { TIMEOUTS } from '../types/obsidian-extended';
 import { ISettingsProvider } from '../interfaces/ISettingsProvider';
 import { runAsyncAction } from '../utils/async';
 import { addAsyncEventListener } from '../utils/domEventListeners';
+import { parsePropertyNodeId } from '../utils/propertyTree';
 import { isRecord } from '../utils/typeGuards';
 
 // Constants
@@ -66,7 +67,7 @@ export class IconPickerModal extends Modal {
     private static lastUsedProvider: string | null = null; // Shared session default
     private iconService = getIconService();
     private itemPath: string;
-    private itemType: typeof ItemType.FOLDER | typeof ItemType.TAG | typeof ItemType.FILE;
+    private itemType: typeof ItemType.FOLDER | typeof ItemType.TAG | typeof ItemType.PROPERTY | typeof ItemType.FILE;
     private metadataService: MetadataService;
     private settingsProvider: ISettingsProvider;
     private titleOverride?: string;
@@ -98,7 +99,7 @@ export class IconPickerModal extends Modal {
         app: App,
         metadataService: MetadataService,
         itemPath: string,
-        itemType: typeof ItemType.FOLDER | typeof ItemType.TAG | typeof ItemType.FILE = ItemType.FOLDER,
+        itemType: typeof ItemType.FOLDER | typeof ItemType.TAG | typeof ItemType.PROPERTY | typeof ItemType.FILE = ItemType.FOLDER,
         options: IconPickerModalOptions = {}
     ) {
         super(app);
@@ -123,8 +124,27 @@ export class IconPickerModal extends Modal {
 
         // Header showing the folder/tag name
         const header = contentEl.createDiv('nn-icon-picker-header');
-        const headerText =
-            this.titleOverride ?? (this.itemType === ItemType.TAG ? `#${this.itemPath}` : this.itemPath.split('/').pop() || this.itemPath);
+        const headerText = (() => {
+            if (this.titleOverride) {
+                return this.titleOverride;
+            }
+
+            if (this.itemType === ItemType.TAG) {
+                return `#${this.itemPath}`;
+            }
+
+            if (this.itemType === ItemType.PROPERTY) {
+                const parsed = parsePropertyNodeId(this.itemPath);
+                if (parsed?.valuePath) {
+                    return `${parsed.key} = ${parsed.valuePath}`;
+                }
+                if (parsed) {
+                    return parsed.key;
+                }
+            }
+
+            return this.itemPath.split('/').pop() || this.itemPath;
+        })();
         header.createEl('h3', { text: headerText });
 
         // Create tabs for providers
@@ -691,6 +711,8 @@ export class IconPickerModal extends Modal {
         // Set the icon based on item type
         if (this.itemType === ItemType.TAG) {
             await this.metadataService.setTagIcon(this.itemPath, iconId);
+        } else if (this.itemType === ItemType.PROPERTY) {
+            await this.metadataService.setPropertyIcon(this.itemPath, iconId);
         } else if (this.itemType === ItemType.FILE) {
             await this.metadataService.setFileIcon(this.itemPath, iconId);
         } else {
@@ -703,6 +725,9 @@ export class IconPickerModal extends Modal {
     private getCurrentIconForItem(): string | undefined {
         if (this.itemType === ItemType.TAG) {
             return this.metadataService.getTagIcon(this.itemPath);
+        }
+        if (this.itemType === ItemType.PROPERTY) {
+            return this.metadataService.getPropertyIcon(this.itemPath);
         }
         if (this.itemType === ItemType.FILE) {
             return this.metadataService.getFileIcon(this.itemPath);
@@ -732,6 +757,8 @@ export class IconPickerModal extends Modal {
 
             if (this.itemType === ItemType.TAG) {
                 await this.metadataService.removeTagIcon(this.itemPath);
+            } else if (this.itemType === ItemType.PROPERTY) {
+                await this.metadataService.removePropertyIcon(this.itemPath);
             } else if (this.itemType === ItemType.FILE) {
                 await this.metadataService.removeFileIcon(this.itemPath);
             } else {

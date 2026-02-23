@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ export interface ProcessedMetadata {
     fm?: number; // frontmatter modified timestamp
     icon?: string; // frontmatter icon
     color?: string; // frontmatter color
+    background?: string; // frontmatter background color
 }
 
 /**
@@ -90,6 +91,23 @@ function extractFrontmatterNameFromCache(metadata: CachedMetadata | null, frontm
     }
 
     return '';
+}
+
+function extractTrimmedFrontmatterString(value: unknown): string | undefined {
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        return trimmed.length > 0 ? trimmed : undefined;
+    }
+
+    if (Array.isArray(value)) {
+        const firstValue: unknown = value[0];
+        if (typeof firstValue === 'string') {
+            const trimmed = firstValue.trim();
+            return trimmed.length > 0 ? trimmed : undefined;
+        }
+    }
+
+    return undefined;
 }
 
 /**
@@ -159,21 +177,18 @@ export function extractMetadataFromCache(metadata: CachedMetadata | null, settin
     // Extract color if field is specified
     if (settings.frontmatterColorField && settings.frontmatterColorField.trim()) {
         const colorValue = frontmatterRecord[settings.frontmatterColorField];
+        const parsedColor = extractTrimmedFrontmatterString(colorValue);
+        if (parsedColor) {
+            result.color = parsedColor;
+        }
+    }
 
-        if (typeof colorValue === 'string') {
-            const trimmedColor = colorValue.trim();
-            if (trimmedColor) {
-                result.color = trimmedColor;
-            }
-        } else if (Array.isArray(colorValue)) {
-            const colorArray: unknown[] = colorValue;
-            const firstValue = colorArray[0];
-            if (typeof firstValue === 'string') {
-                const trimmedColor = firstValue.trim();
-                if (trimmedColor) {
-                    result.color = trimmedColor;
-                }
-            }
+    // Extract background color if field is specified
+    if (settings.frontmatterBackgroundField && settings.frontmatterBackgroundField.trim()) {
+        const backgroundValue = frontmatterRecord[settings.frontmatterBackgroundField];
+        const parsedBackground = extractTrimmedFrontmatterString(backgroundValue);
+        if (parsedBackground) {
+            result.background = parsedBackground;
         }
     }
 

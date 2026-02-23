@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,8 @@ import { useSettingsState } from '../context/SettingsContext';
 import { useUXPreferenceActions, useUXPreferences } from '../context/UXPreferencesContext';
 import { useFileCache } from '../context/StorageContext';
 import { collectAllTagPaths } from '../utils/tagTree';
+import { getPropertyKeyNodeIdFromNodeId } from '../utils/propertyTree';
+import type { PropertyTreeNode } from '../types/storage';
 
 /**
  * Custom hook that provides shared actions for navigation pane toolbars.
@@ -51,15 +53,16 @@ export function useNavigationActions() {
             ? Array.from(expansionState.expandedFolders).some(path => path !== '/')
             : expansionState.expandedFolders.size > 0;
         const hasTagsExpanded = expansionState.expandedTags.size > 0;
+        const hasPropertiesExpanded = expansionState.expandedProperties.size > 0;
 
         // Check if we should collapse based on behavior setting
         const hasItemsExpanded =
             behavior === 'all'
-                ? hasFoldersExpanded || hasTagsExpanded
+                ? hasFoldersExpanded || hasTagsExpanded || hasPropertiesExpanded
                 : behavior === 'folders-only'
                   ? hasFoldersExpanded
                   : behavior === 'tags-only'
-                    ? hasTagsExpanded
+                    ? hasTagsExpanded || hasPropertiesExpanded
                     : false;
 
         // If smart collapse is enabled and items are expanded,
@@ -71,6 +74,7 @@ export function useNavigationActions() {
             // Build the parent chain that we would keep when collapsing
             const expectedFolders = new Set<string>();
             const expectedTags = new Set<string>();
+            const expectedProperties = new Set<string>();
 
             if (shouldAffectFolders && selectionState.selectedFolder) {
                 let currentFolder: TFolder | null = selectionState.selectedFolder.parent;
@@ -91,6 +95,14 @@ export function useNavigationActions() {
                 }
             }
 
+            if (shouldAffectTags && selectionState.selectedProperty) {
+                const selectedPropertyNodeId = selectionState.selectedProperty;
+                const keyNodeId = getPropertyKeyNodeIdFromNodeId(selectedPropertyNodeId);
+                if (keyNodeId && keyNodeId !== selectedPropertyNodeId) {
+                    expectedProperties.add(keyNodeId);
+                }
+            }
+
             // Check if current expansion matches what we'd have after smart collapse
             const foldersMatch =
                 !shouldAffectFolders ||
@@ -102,8 +114,13 @@ export function useNavigationActions() {
                 (expansionState.expandedTags.size === expectedTags.size &&
                     Array.from(expansionState.expandedTags).every(t => expectedTags.has(t)));
 
+            const propertiesMatch =
+                !shouldAffectTags ||
+                (expansionState.expandedProperties.size === expectedProperties.size &&
+                    Array.from(expansionState.expandedProperties).every(nodeId => expectedProperties.has(nodeId)));
+
             // If we're already in focused state, expand all instead
-            if (foldersMatch && tagsMatch) {
+            if (foldersMatch && tagsMatch && propertiesMatch) {
                 return false;
             }
         }
@@ -115,7 +132,9 @@ export function useNavigationActions() {
         settings.smartCollapse,
         expansionState.expandedFolders,
         expansionState.expandedTags,
+        expansionState.expandedProperties,
         selectionState.selectedFolder,
+        selectionState.selectedProperty,
         selectionState.selectedTag
     ]);
 
@@ -129,9 +148,13 @@ export function useNavigationActions() {
 
         if (shouldCollapse) {
             // Smart collapse: keep selected item and its parents expanded
-            if (settings.smartCollapse && (selectionState.selectedFolder || selectionState.selectedTag)) {
+            if (
+                settings.smartCollapse &&
+                (selectionState.selectedFolder || selectionState.selectedTag || selectionState.selectedProperty)
+            ) {
                 const foldersToKeep = new Set<string>();
                 const tagsToKeep = new Set<string>();
+                const propertiesToKeep = new Set<string>();
 
                 // If a folder is selected, keep only its parent chain (not the folder itself)
                 // This way we see the selected folder but not its siblings
@@ -156,12 +179,21 @@ export function useNavigationActions() {
                     }
                 }
 
+                if (selectionState.selectedProperty && shouldAffectTags) {
+                    const selectedPropertyNodeId = selectionState.selectedProperty;
+                    const keyNodeId = getPropertyKeyNodeIdFromNodeId(selectedPropertyNodeId);
+                    if (keyNodeId && keyNodeId !== selectedPropertyNodeId) {
+                        propertiesToKeep.add(keyNodeId);
+                    }
+                }
+
                 // Apply smart collapse
                 if (shouldAffectFolders) {
                     expansionDispatch({ type: 'SET_EXPANDED_FOLDERS', folders: foldersToKeep });
                 }
                 if (shouldAffectTags) {
                     expansionDispatch({ type: 'SET_EXPANDED_TAGS', tags: tagsToKeep });
+                    expansionDispatch({ type: 'SET_EXPANDED_PROPERTIES', properties: propertiesToKeep });
                 }
             } else {
                 // Regular collapse all
@@ -175,6 +207,7 @@ export function useNavigationActions() {
 
                 if (shouldAffectTags) {
                     expansionDispatch({ type: 'SET_EXPANDED_TAGS', tags: new Set() });
+                    expansionDispatch({ type: 'SET_EXPANDED_PROPERTIES', properties: new Set() });
                 }
             }
         } else {
@@ -200,12 +233,28 @@ export function useNavigationActions() {
 
             if (shouldAffectTags) {
                 const allTagPaths = new Set<string>();
+                const allPropertyNodeIds = new Set<string>();
+                const collectExpandablePropertyNodeIds = (node: PropertyTreeNode) => {
+                    if (node.children.size === 0) {
+                        return;
+                    }
+
+                    allPropertyNodeIds.add(node.id);
+                    node.children.forEach(childNode => {
+                        collectExpandablePropertyNodeIds(childNode);
+                    });
+                };
 
                 for (const tagNode of fileData.tagTree.values()) {
                     collectAllTagPaths(tagNode, allTagPaths);
                 }
 
+                for (const propertyNode of fileData.propertyTree.values()) {
+                    collectExpandablePropertyNodeIds(propertyNode);
+                }
+
                 expansionDispatch({ type: 'SET_EXPANDED_TAGS', tags: allTagPaths });
+                expansionDispatch({ type: 'SET_EXPANDED_PROPERTIES', properties: allPropertyNodeIds });
             }
         }
     }, [
@@ -215,7 +264,9 @@ export function useNavigationActions() {
         settings.collapseBehavior,
         settings.smartCollapse,
         selectionState.selectedFolder,
+        selectionState.selectedProperty,
         selectionState.selectedTag,
+        fileData.propertyTree,
         fileData.tagTree,
         shouldCollapseItems
     ]);

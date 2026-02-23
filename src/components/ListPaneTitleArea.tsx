@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,23 +16,109 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useListPaneTitle } from '../hooks/useListPaneTitle';
+import React, { useCallback, useMemo } from 'react';
+import { useSelectionState } from '../context/SelectionContext';
+import { useCommandQueue, useServices } from '../context/ServicesContext';
+import { useSettingsState } from '../context/SettingsContext';
+import { useSelectedFolderFileVersion } from '../hooks/useSelectedFolderFileVersion';
+import { ItemType } from '../types';
+import { runAsyncAction } from '../utils/async';
+import { getFolderNote, openFolderNoteFile } from '../utils/folderNotes';
+import { resolveFolderNoteClickOpenContext } from '../utils/keyboardOpenContext';
 
 interface ListPaneTitleAreaProps {
-    isVisible: boolean;
+    desktopTitle: string;
 }
 
-export function ListPaneTitleArea({ isVisible }: ListPaneTitleAreaProps) {
-    const { desktopTitle } = useListPaneTitle();
+export function ListPaneTitleArea({ desktopTitle }: ListPaneTitleAreaProps) {
+    const { app, isMobile } = useServices();
+    const commandQueue = useCommandQueue();
+    const settings = useSettingsState();
+    const selectionState = useSelectionState();
 
-    if (!isVisible) {
-        return null;
-    }
+    // Folder note interactions only apply when a folder is selected.
+    const selectedFolder = selectionState.selectionType === ItemType.FOLDER ? selectionState.selectedFolder : null;
+    // Recomputes folder note lookup when files in the selected folder change.
+    const selectedFolderFileVersion = useSelectedFolderFileVersion(app.vault, selectedFolder, settings.enableFolderNotes);
+    // Resolves the note file that represents the selected folder.
+    const selectedFolderNote = useMemo(() => {
+        void selectedFolderFileVersion;
+
+        if (!selectedFolder || !settings.enableFolderNotes) {
+            return null;
+        }
+
+        return getFolderNote(selectedFolder, {
+            enableFolderNotes: settings.enableFolderNotes,
+            folderNoteName: settings.folderNoteName,
+            folderNoteNamePattern: settings.folderNoteNamePattern
+        });
+    }, [selectedFolder, settings.enableFolderNotes, settings.folderNoteName, settings.folderNoteNamePattern, selectedFolderFileVersion]);
+
+    const handleFolderNoteClick = useCallback(
+        (event: React.MouseEvent<HTMLSpanElement>) => {
+            if (!selectedFolder || !selectedFolderNote) {
+                return;
+            }
+
+            // Prevents parent title-area click handlers from running.
+            event.stopPropagation();
+
+            const openContext = resolveFolderNoteClickOpenContext(
+                event,
+                settings.openFolderNotesInNewTab,
+                settings.multiSelectModifier,
+                isMobile
+            );
+
+            runAsyncAction(() =>
+                openFolderNoteFile({
+                    app,
+                    commandQueue,
+                    folder: selectedFolder,
+                    folderNote: selectedFolderNote,
+                    context: openContext
+                })
+            );
+        },
+        [selectedFolder, selectedFolderNote, settings.openFolderNotesInNewTab, settings.multiSelectModifier, isMobile, app, commandQueue]
+    );
+
+    const handleFolderNoteMouseDown = useCallback(
+        (event: React.MouseEvent<HTMLSpanElement>) => {
+            if (event.button !== 1 || !selectedFolder || !selectedFolderNote) {
+                return;
+            }
+
+            // Middle-click always opens folder notes in a new tab.
+            event.preventDefault();
+            event.stopPropagation();
+
+            runAsyncAction(() =>
+                openFolderNoteFile({
+                    app,
+                    commandQueue,
+                    folder: selectedFolder,
+                    folderNote: selectedFolderNote,
+                    context: 'tab'
+                })
+            );
+        },
+        [selectedFolder, selectedFolderNote, app, commandQueue]
+    );
 
     return (
         <div className="nn-list-title-area">
             <div className="nn-list-title-content">
-                <span className="nn-list-title-text">{desktopTitle}</span>
+                <span className="nn-list-title-text">
+                    <span
+                        className={`nn-list-title-label${selectedFolderNote ? ' nn-list-title-label--folder-note' : ''}`}
+                        onClick={selectedFolderNote ? handleFolderNoteClick : undefined}
+                        onMouseDown={selectedFolderNote ? handleFolderNoteMouseDown : undefined}
+                    >
+                        {desktopTitle}
+                    </span>
+                </span>
             </div>
         </div>
     );

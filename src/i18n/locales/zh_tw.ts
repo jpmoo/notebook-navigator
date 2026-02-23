@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,6 @@ export const STRINGS_ZH_TW = {
         clipboardWriteError: '無法寫入剪貼簿',
         updateBannerTitle: 'Notebook Navigator 有可用更新',
         updateBannerInstruction: '在設定 -> 社群外掛中更新',
-        updateIndicatorLabel: '有新版本可用',
         previous: '上一個', // Generic aria label for previous navigation (English: Previous)
         next: '下一個' // Generic aria label for next navigation (English: Next)
     },
@@ -60,6 +59,7 @@ export const STRINGS_ZH_TW = {
         shortcutsHeader: '捷徑',
         recentNotesHeader: '最近筆記',
         recentFilesHeader: '最近檔案',
+        properties: '屬性',
         reorderRootFoldersTitle: '重新排列導覽',
         reorderRootFoldersHint: '使用方向鍵或拖曳來重新排列',
         vaultRootLabel: '保險庫',
@@ -81,6 +81,16 @@ export const STRINGS_ZH_TW = {
             title: '建立每日筆記',
             message: '每日筆記 {filename} 不存在。是否建立？',
             confirmButton: '建立'
+        },
+        helpModal: {
+            title: '行事曆快捷鍵',
+            items: [
+                '點擊任意日期以開啟或建立每日筆記。週、月、季度和年份的操作方式相同。',
+                '日期下方的實心圓點表示有筆記。空心圓點表示有未完成的任務。',
+                '如果筆記有特色圖片，它會顯示為該日期的背景。'
+            ],
+            dateFilterCmdCtrl: '`Cmd/Ctrl`+點擊日期，按該日期篩選檔案列表。',
+            dateFilterOptionAlt: '`Option/Alt`+點擊日期，按該日期篩選檔案列表。'
         }
     },
 
@@ -93,6 +103,8 @@ export const STRINGS_ZH_TW = {
         folderExists: '資料夾已在捷徑中',
         noteExists: '筆記已在捷徑中',
         tagExists: '標籤已在捷徑中',
+        propertyExists: '屬性已在捷徑中',
+        invalidProperty: '無效的屬性捷徑',
         searchExists: '搜尋捷徑已存在',
         emptySearchQuery: '儲存前請輸入搜尋查詢',
         emptySearchName: '儲存搜尋前請輸入名稱',
@@ -136,10 +148,106 @@ export const STRINGS_ZH_TW = {
         placeholder: '搜尋...',
         placeholderOmnisearch: 'Omnisearch...',
         clearSearch: '清除搜尋',
+        switchToFilterSearch: '切換到篩選搜尋',
+        switchToOmnisearch: '切換到 Omnisearch',
         saveSearchShortcut: '將搜尋儲存至捷徑',
         removeSearchShortcut: '從捷徑移除搜尋',
         shortcutModalTitle: '儲存搜尋捷徑',
-        shortcutNamePlaceholder: '輸入捷徑名稱'
+        shortcutNamePlaceholder: '輸入捷徑名稱',
+        shortcutStartIn: '始終從此處開始: {path}',
+        searchHelp: '搜尋語法',
+        searchHelpTitle: '搜尋語法',
+        searchHelpModal: {
+            intro: '在一個查詢中組合檔案名稱、屬性、標籤、日期和篩選器（例如：`meeting .status=active #work @thisweek`）。安裝 Omnisearch 外掛程式以使用全文搜尋。',
+            introSwitching: '使用上/下箭頭鍵或點擊搜尋圖示在篩選搜尋和 Omnisearch 之間切換。',
+            sections: {
+                fileNames: {
+                    title: '檔案名稱',
+                    items: [
+                        '`word` 尋找檔案名稱中含有 "word" 的筆記。',
+                        '`word1 word2` 每個詞都必須符合檔案名稱。',
+                        '`-word` 排除檔案名稱中含有 "word" 的筆記。'
+                    ]
+                },
+                tags: {
+                    title: '標籤',
+                    items: [
+                        '`#tag` 包含帶有標籤的筆記（也符合巢狀標籤如 `#tag/subtag`）。',
+                        '`#` 僅包含有標籤的筆記。',
+                        '`-#tag` 排除帶有標籤的筆記。',
+                        '`-#` 僅包含無標籤的筆記。',
+                        '`#tag1 #tag2` 符合兩個標籤（隱式 AND）。',
+                        '`#tag1 AND #tag2` 符合兩個標籤（顯式 AND）。',
+                        '`#tag1 OR #tag2` 符合任一標籤。',
+                        '`#a OR #b AND #c` AND 優先順序較高：符合 `#a`，或同時符合 `#b` 和 `#c`。',
+                        'Cmd/Ctrl+點擊標籤以 AND 方式新增。Cmd/Ctrl+Shift+點擊以 OR 方式新增。'
+                    ]
+                },
+                properties: {
+                    title: '屬性',
+                    items: [
+                        '`.key` 包含具有屬性鍵的筆記。',
+                        '`.key=value` 包含具有屬性值的筆記。',
+                        '`."Reading Status"` 包含屬性鍵包含空格的筆記。',
+                        '`."Reading Status"="In Progress"` 包含空格的鍵和值必須用雙引號括起來。',
+                        '`-.key` 排除具有屬性鍵的筆記。',
+                        '`-.key=value` 排除具有屬性值的筆記。',
+                        'Cmd/Ctrl+點擊屬性以 AND 方式新增。Cmd/Ctrl+Shift+點擊以 OR 方式新增。'
+                    ]
+                },
+                tasks: {
+                    title: '篩選器',
+                    items: [
+                        '`has:task` 包含有未完成任務的筆記。',
+                        '`-has:task` 排除有未完成任務的筆記。',
+                        '`folder:meetings` 包含資料夾名稱含有 `meetings` 的筆記。',
+                        '`folder:/work/meetings` 僅包含 `work/meetings` 中的筆記（不含子資料夾）。',
+                        '`folder:/` 僅包含保管庫根目錄中的筆記。',
+                        '`-folder:archive` 排除資料夾名稱含有 `archive` 的筆記。',
+                        '`-folder:/archive` 僅排除 `archive` 中的筆記（不含子資料夾）。',
+                        '`ext:md` 包含副檔名為 `md` 的筆記（也支援 `ext:.md`）。',
+                        '`-ext:pdf` 排除副檔名為 `pdf` 的筆記。',
+                        '與標籤、名稱和日期組合使用（例如：`folder:/work/meetings ext:md @thisweek`）。'
+                    ]
+                },
+                connectors: {
+                    title: 'AND/OR 行為',
+                    items: [
+                        '`AND` 和 `OR` 僅在純標籤/屬性查詢中作為運算子。',
+                        '純標籤/屬性查詢僅包含標籤和屬性篩選器: `#tag`、`-#tag`、`#`、`-#`、`.key`、`-.key`、`.key=value`、`-.key=value`。',
+                        '如果查詢包含名稱、日期（`@...`）、任務篩選器（`has:task`）、資料夾篩選器（`folder:...`）或副檔名篩選器（`ext:...`），`AND` 和 `OR` 將作為詞語進行比對。',
+                        '運算子查詢範例: `#work OR .status=started`。',
+                        '混合查詢範例：`#work OR ext:md`（`OR` 在檔案名稱中進行比對）。'
+                    ]
+                },
+                dates: {
+                    title: '日期',
+                    items: [
+                        '`@today` 使用預設日期欄位尋找今天的筆記。',
+                        '`@yesterday`、`@last7d`、`@last30d`、`@thisweek`、`@thismonth` 相對日期範圍。',
+                        '`@2026-02-07` 尋找特定日期（也支援 `@20260207`）。',
+                        '`@2026` 尋找日曆年。',
+                        '`@2026-02` 或 `@202602` 尋找日曆月。',
+                        '`@2026-W05` 或 `@2026W05` 尋找 ISO 週。',
+                        '`@2026-Q2` 或 `@2026Q2` 尋找日曆季度。',
+                        '`@13/02/2026` 帶分隔符的數字格式（`@07022026` 在歧義時遵循您的地區設定）。',
+                        '`@2026-02-01..2026-02-07` 尋找包含性日期範圍（支援開放端點）。',
+                        '`@c:...` 或 `@m:...` 指定建立或修改日期。',
+                        '`-@...` 排除日期符合。'
+                    ]
+                },
+                omnisearch: {
+                    title: 'Omnisearch',
+                    items: [
+                        '對整個保管庫進行全文搜尋，按目前資料夾或選定標籤篩選。',
+                        '在大型保管庫中輸入少於3個字元時可能會較慢。',
+                        '無法搜尋包含非ASCII字元的路徑，也無法正確搜尋子路徑。',
+                        '在資料夾篩選之前返回有限的結果，因此如果其他地方存在大量符合項，相關檔案可能不會顯示。',
+                        '筆記預覽顯示 Omnisearch 摘錄，而不是預設預覽文字。'
+                    ]
+                }
+            }
+        }
     },
 
     // Context menus
@@ -216,6 +324,11 @@ export const STRINGS_ZH_TW = {
             changeBackground: '變更背景',
             showTag: '顯示標籤',
             hideTag: '隱藏標籤'
+        },
+        property: {
+            addKey: '設定屬性鍵',
+            renameKey: '重新命名屬性',
+            deleteKey: '刪除屬性'
         },
         navigation: {
             addSeparator: '新增分隔線',
@@ -295,11 +408,14 @@ export const STRINGS_ZH_TW = {
                 'list-new-note': '新建筆記',
                 'nav-folder-open': '資料夾開啟',
                 'nav-folder-closed': '資料夾關閉',
-                'nav-folder-note': '資料夾筆記',
+                'nav-tags': '標籤',
                 'nav-tag': '標籤',
+                'nav-properties': '屬性',
+                'nav-property': '屬性',
+                'nav-property-value': '值',
                 'list-pinned': '釘選項目',
-                'file-word-count': '字數統計',
-                'file-custom-property': '自訂屬性'
+                'file-unfinished-task': '未完成任務',
+                'file-word-count': '字數統計'
             }
         },
         colorPicker: {
@@ -342,11 +458,36 @@ export const STRINGS_ZH_TW = {
             confirmRename: '重新命名標籤',
             renameUnchanged: '{tag} 未變更',
             renameNoChanges: '{oldTag} → {newTag} ({countLabel})',
+            renameBatchNotFinalized: '已重新命名 {renamed}/{total}。未更新：{notUpdated}。中繼資料和捷徑未更新。',
             invalidTagName: '請輸入有效的標籤名稱。',
             descendantRenameError: '無法將標籤移動到自身或其子標籤中。',
             confirmDelete: '刪除標籤',
+            deleteBatchNotFinalized: '已從 {removed}/{total} 中刪除。未更新：{notUpdated}。中繼資料和捷徑未更新。',
+            checkConsoleForDetails: '查看主控台了解詳情。',
             file: '個檔案',
-            files: '個檔案'
+            files: '個檔案',
+            inlineParsingWarning: {
+                title: '內嵌標籤相容性',
+                message: '{tag} 包含 Obsidian 無法在內嵌標籤中解析的字元。Frontmatter 標籤不受影響。',
+                confirm: '仍然使用'
+            }
+        },
+        propertyOperation: {
+            renameTitle: '重新命名屬性 {property}',
+            deleteTitle: '刪除屬性 {property}',
+            newKeyPrompt: '新屬性名稱',
+            newKeyPlaceholder: '輸入新屬性名稱',
+            renameWarning: '重新命名屬性 {property} 將修改 {count} 個{files}。',
+            renameConflictWarning: '屬性 {newKey} 已存在於 {count} 個{files}中。重新命名 {oldKey} 將取代現有的 {newKey} 值。',
+            deleteWarning: '刪除屬性 {property} 將修改 {count} 個{files}。',
+            confirmRename: '重新命名屬性',
+            confirmDelete: '刪除屬性',
+            renameNoChanges: '{oldKey} → {newKey}（無變更）',
+            renameSettingsUpdateFailed: '已重新命名屬性 {oldKey} → {newKey}。更新設定失敗。',
+            deleteSingleSuccess: '已從 1 篇筆記中刪除屬性 {property}',
+            deleteMultipleSuccess: '已從 {count} 篇筆記中刪除屬性 {property}',
+            deleteSettingsUpdateFailed: '已刪除屬性 {property}。更新設定失敗。',
+            invalidKeyName: '請輸入有效的屬性名稱。'
         },
         fileSystem: {
             newFolderTitle: '新建資料夾',
@@ -354,6 +495,7 @@ export const STRINGS_ZH_TW = {
             renameFileTitle: '重新命名檔案',
             deleteFolderTitle: "刪除 '{name}'？",
             deleteFileTitle: "刪除 '{name}'？",
+            deleteFileAttachmentsTitle: '刪除檔案附件？',
             folderNamePrompt: '輸入資料夾名稱：',
             hideInOtherVaultProfiles: '在其他保險庫設定檔中隱藏',
             renamePrompt: '輸入新名稱：',
@@ -361,6 +503,10 @@ export const STRINGS_ZH_TW = {
             renameVaultPrompt: '輸入自訂顯示名稱（留空使用預設值）：',
             deleteFolderConfirm: '您確定要刪除此資料夾及其所有內容嗎？',
             deleteFileConfirm: '您確定要刪除此檔案嗎？',
+            deleteFileAttachmentsDescriptionSingle: '此附件不再被任何筆記使用。是否要刪除？',
+            deleteFileAttachmentsDescriptionMultiple: '這些附件不再被任何筆記使用。是否要刪除？',
+            deleteFileAttachmentsViewFileTreeAriaLabel: '檔案樹',
+            deleteFileAttachmentsViewGalleryAriaLabel: '圖庫',
             removeAllTagsTitle: '移除所有標籤',
             removeAllTagsFromNote: '您確定要從這個筆記中移除所有標籤嗎？',
             removeAllTagsFromNotes: '您確定要從 {count} 個筆記中移除所有標籤嗎？'
@@ -417,6 +563,26 @@ export const STRINGS_ZH_TW = {
                 remove: '移除標籤'
             }
         },
+        propertySuggest: {
+            placeholder: '選擇屬性鍵...',
+            navigatePlaceholder: '導航到屬性...',
+            instructions: {
+                navigate: '導覽',
+                select: '新增屬性',
+                dismiss: '取消'
+            }
+        },
+        propertyKeyVisibility: {
+            title: '屬性鍵可見性',
+            searchPlaceholder: '搜尋屬性鍵...',
+            propertyColumnLabel: '屬性',
+            showInNavigation: '在導覽中顯示',
+            showInList: '在清單中顯示',
+            toggleAllInNavigation: '切換導覽中的全部',
+            toggleAllInList: '切換清單中的全部',
+            applyButton: '套用',
+            emptyState: '未找到屬性鍵。'
+        },
         welcome: {
             title: '歡迎使用 {pluginName}',
             introText: '您好！在開始之前，強烈建議您觀看下方影片的前五分鐘，以了解面板和「顯示子資料夾中的筆記」開關是如何運作的。',
@@ -438,6 +604,7 @@ export const STRINGS_ZH_TW = {
             renameFile: '重新命名檔案失敗：{error}',
             deleteFolder: '刪除資料夾失敗：{error}',
             deleteFile: '刪除檔案失敗：{error}',
+            deleteAttachments: '刪除附件失敗: {error}',
             duplicateNote: '複製筆記失敗：{error}',
             duplicateFolder: '複製資料夾失敗：{error}',
             openVersionHistory: '開啟版本歷史失敗：{error}',
@@ -488,7 +655,11 @@ export const STRINGS_ZH_TW = {
             noTagsToRemove: '沒有可移除的標籤',
             noFilesSelected: '未選擇檔案',
             tagOperationsNotAvailable: '標籤操作不可用',
+            propertyOperationsNotAvailable: '屬性操作不可用',
             tagsRequireMarkdown: '標籤僅支援 Markdown 筆記',
+            propertiesRequireMarkdown: '屬性僅在 Markdown 筆記中受支援',
+            propertySetOnNote: '已在 1 篇筆記中更新屬性',
+            propertySetOnNotes: '已在 {count} 篇筆記中更新屬性',
             iconPackDownloaded: '{provider} 已下載',
             iconPackUpdated: '{provider} 已更新 ({version})',
             iconPackRemoved: '{provider} 已移除',
@@ -511,6 +682,7 @@ export const STRINGS_ZH_TW = {
             itemAlreadyExists: '此位置已存在名為「{name}」的項目。',
             failedToMove: '移動失敗：{error}',
             failedToAddTag: '新增標籤「{tag}」失敗',
+            failedToSetProperty: '更新屬性失敗: {error}',
             failedToClearTags: '清除標籤失敗',
             failedToMoveFolder: '移動資料夾「{name}」失敗',
             failedToImportFiles: '匯入失敗：{names}'
@@ -518,6 +690,7 @@ export const STRINGS_ZH_TW = {
         notifications: {
             filesAlreadyExist: '{count} 個檔案在目標位置已存在',
             filesAlreadyHaveTag: '{count} 個檔案已經有此標籤或更具體的標籤',
+            filesAlreadyHaveProperty: '{count} 個檔案已擁有此屬性',
             noTagsToClear: '沒有要清除的標籤',
             fileImported: '已匯入 1 個檔案',
             filesImported: '已匯入 {count} 個檔案'
@@ -563,11 +736,13 @@ export const STRINGS_ZH_TW = {
         pinAllFolderNotes: '釘選所有資料夾筆記',
         navigateToFolder: '導覽至資料夾',
         navigateToTag: '導覽至標籤',
+        navigateToProperty: '導航到屬性',
         addShortcut: '新增至捷徑',
         openShortcut: '開啟捷徑 {number}',
         toggleDescendants: '切換後代',
         toggleHidden: '切換隱藏的資料夾、標籤和筆記',
         toggleTagSort: '切換標籤排序',
+        toggleCompactMode: '切換精簡模式', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: '摺疊/展開所有項目',
         addTag: '為選定檔案新增標籤',
         removeTag: '從選定檔案移除標籤',
@@ -603,23 +778,22 @@ export const STRINGS_ZH_TW = {
         sections: {
             general: '一般',
             notes: '筆記',
-            navigationPane: '導覽窗格',
+            navigationPane: '導覽',
             calendar: '導覽日曆',
             icons: '圖示包',
             tags: '標籤',
             folders: '資料夾',
             folderNotes: '資料夾筆記',
-            foldersAndTags: '資料夾與標籤',
-            search: '搜尋',
-            searchAndHotkeys: '搜尋與快速鍵',
-            listPane: '列表窗格',
-            hotkeys: '快速鍵',
+            foldersAndTags: '資料夾',
+            tagsAndProperties: '標籤與屬性',
+            listPane: '列表',
             advanced: '進階'
         },
         groups: {
             general: {
                 vaultProfiles: '保險庫設定檔',
                 filtering: '篩選',
+                templates: '範本',
                 behavior: '行為',
                 keyboardNavigation: '鍵盤導覽',
                 view: '外觀',
@@ -630,7 +804,7 @@ export const STRINGS_ZH_TW = {
             },
             navigation: {
                 appearance: '外觀',
-                shortcutsAndRecent: '捷徑和最近項目',
+                leftSidebar: '左側邊欄',
                 calendarIntegration: '行事曆整合'
             },
             list: {
@@ -644,7 +818,7 @@ export const STRINGS_ZH_TW = {
                 previewText: '預覽文字',
                 featureImage: '特色圖片',
                 tags: '標籤',
-                customProperty: '自訂屬性（frontmatter 或字數）',
+                properties: '屬性',
                 date: '日期',
                 parentFolder: '父資料夾'
             }
@@ -656,36 +830,6 @@ export const STRINGS_ZH_TW = {
             switchToLocal: '停用同步'
         },
         items: {
-            searchProvider: {
-                name: '搜尋提供器',
-                desc: '在快速檔名搜尋或使用 Omnisearch 外掛的全文搜尋之間選擇。',
-                options: {
-                    internal: '篩選搜尋',
-                    omnisearch: 'Omnisearch（全文）'
-                },
-                info: {
-                    filterSearch: {
-                        title: '篩選搜尋（預設）：',
-                        description:
-                            '按名稱和標籤篩選目前資料夾和子資料夾中的檔案。篩選模式：混合文字和標籤匹配所有條件（例如「專案 #工作」）。標籤模式：僅使用標籤搜尋支援 AND/OR 運算子（例如「#工作 AND #緊急」、「#專案 OR #個人」）。Cmd/Ctrl+點按標籤以 AND 方式新增，Cmd/Ctrl+Shift+點按以 OR 方式新增。支援使用 ! 前綴進行排除（例如 !草稿，!#已歸檔）以及使用 !# 尋找無標籤筆記。'
-                    },
-                    omnisearch: {
-                        title: 'Omnisearch：',
-                        description:
-                            '全文搜尋，搜尋整個保險庫，然後篩選結果以僅顯示來自目前資料夾、子資料夾或選定標籤的檔案。需要安裝 Omnisearch 外掛 - 如果不可用，搜尋將自動回退到篩選搜尋。',
-                        warningNotInstalled: '未安裝 Omnisearch 外掛。使用篩選搜尋。',
-                        limitations: {
-                            title: '已知限制：',
-                            performance: '效能：可能較慢，特別是在大型保險庫中搜尋少於 3 個字元時',
-                            pathBug: '路徑錯誤：無法在包含非 ASCII 字元的路徑中搜尋，且不能正確搜尋子路徑，影響搜尋結果中顯示的檔案',
-                            limitedResults:
-                                '結果有限：由於 Omnisearch 搜尋整個保險庫並在篩選前傳回有限數量的結果，如果保險庫其他地方存在太多匹配項，目前資料夾中的相關檔案可能不會出現',
-                            previewText:
-                                '預覽文字：筆記預覽被 Omnisearch 結果摘錄取代，如果搜尋匹配醒目顯示出現在檔案的其他位置，可能不會顯示實際的醒目顯示'
-                        }
-                    }
-                }
-            },
             listPaneTitle: {
                 name: '列表窗格標題',
                 desc: '選擇列表窗格標題的顯示位置。',
@@ -719,6 +863,16 @@ export const STRINGS_ZH_TW = {
                 name: '排序屬性',
                 desc: '用於屬性排序。具有此 frontmatter 屬性的筆記首先列出，並按屬性值排序。陣列合併為單一值。',
                 placeholder: 'order'
+            },
+            propertySortSecondary: {
+                name: '次要排序',
+                desc: '與屬性排序配合使用，當筆記具有相同的屬性值或沒有屬性值時生效。',
+                options: {
+                    title: '標題',
+                    filename: '檔案名稱',
+                    created: '建立日期',
+                    modified: '編輯日期'
+                }
             },
             revealFileOnListChanges: {
                 name: '列表變更時捲動到選定檔案',
@@ -763,7 +917,11 @@ export const STRINGS_ZH_TW = {
             },
             showFileIcons: {
                 name: '顯示檔案圖示',
-                desc: '顯示檔案圖示並保留左對齊間距。停用後將移除圖示和縮排。優先順序：自訂 > 檔名 > 檔案類型 > 預設。'
+                desc: '顯示檔案圖示並保留左對齊間距。停用後將移除圖示和縮排。優先順序：未完成任務圖示 > 自訂圖示 > 檔名圖示 > 檔案類型圖示 > 預設圖示。'
+            },
+            showFileIconUnfinishedTask: {
+                name: '未完成任務圖示',
+                desc: '當筆記包含未完成任務時顯示任務圖示。'
             },
             showFilenameMatchIcons: {
                 name: '按檔名設定圖示',
@@ -861,9 +1019,17 @@ export const STRINGS_ZH_TW = {
                 navigationLabel: '導覽工具列',
                 listLabel: '列表工具列'
             },
+            createNewNotesInNewTab: {
+                name: '在新分頁中開啟新筆記',
+                desc: '啟用後，「建立新筆記」命令會在新分頁中開啟筆記。停用後，筆記將取代目前的分頁。'
+            },
             autoRevealActiveNote: {
                 name: '自動定位使用中的筆記',
                 desc: '從快速切換器、連結或搜尋開啟筆記時自動顯示。'
+            },
+            autoRevealShortestPath: {
+                name: '使用最短路徑',
+                desc: '啟用：自動顯示選擇最近的可見祖先資料夾或標籤。停用：自動顯示選擇檔案的實際資料夾和精確標籤。'
             },
             autoRevealIgnoreRightSidebar: {
                 name: '忽略右側邊欄事件',
@@ -882,7 +1048,7 @@ export const STRINGS_ZH_TW = {
                 name: '停用捷徑自動捲動',
                 desc: '點按捷徑中的項目時不捲動導覽面板。'
             },
-            autoExpandFoldersTags: {
+            autoExpandNavItems: {
                 name: '選取時展開',
                 desc: '選取時展開資料夾和標籤。在單窗格模式下，首次選取展開，再次選取顯示檔案。'
             },
@@ -925,6 +1091,14 @@ export const STRINGS_ZH_TW = {
                 name: '顯示最近筆記',
                 desc: '在導覽窗格中顯示最近筆記區段。'
             },
+            hideRecentNotes: {
+                name: '隱藏筆記',
+                desc: '選擇在最近筆記區段中隱藏的筆記類型。',
+                options: {
+                    none: '無',
+                    folderNotes: '資料夾筆記'
+                }
+            },
             recentNotesCount: {
                 name: '最近筆記數量',
                 desc: '要顯示的最近筆記數量。'
@@ -939,6 +1113,14 @@ export const STRINGS_ZH_TW = {
                 options: {
                     leftSidebar: '左側邊欄',
                     rightSidebar: '右側邊欄'
+                }
+            },
+            calendarLeftPlacement: {
+                name: '單窗格位置',
+                desc: '單窗格模式下日曆顯示的位置。',
+                options: {
+                    navigationPane: '導航窗格',
+                    below: '窗格下方'
                 }
             },
             calendarLocale: {
@@ -958,6 +1140,10 @@ export const STRINGS_ZH_TW = {
                     thuFri: '週四和週五'
                 }
             },
+            showInfoButtons: {
+                name: '顯示資訊按鈕',
+                desc: '在搜尋列和日曆標題中顯示資訊按鈕。'
+            },
             calendarWeeksToShow: {
                 name: '左側邊欄顯示週數',
                 desc: '右側邊欄的日曆始終顯示完整月份。',
@@ -969,7 +1155,7 @@ export const STRINGS_ZH_TW = {
             },
             calendarHighlightToday: {
                 name: '醒目顯示今天日期',
-                desc: '在今天日期上顯示紅色圓圈和粗體文字。'
+                desc: '使用背景顏色和粗體文字醒目顯示今天日期。'
             },
             calendarShowFeatureImage: {
                 name: '顯示特色圖片',
@@ -982,6 +1168,10 @@ export const STRINGS_ZH_TW = {
             calendarShowQuarter: {
                 name: '顯示季度',
                 desc: '在行事曆標題中新增季度標籤。'
+            },
+            calendarShowYearCalendar: {
+                name: '顯示年曆',
+                desc: '在右側邊欄中顯示年份導覽和月份網格。'
             },
             calendarConfirmBeforeCreate: {
                 name: '建立前確認',
@@ -998,6 +1188,7 @@ export const STRINGS_ZH_TW = {
                     dailyNotes: '資料夾和日期格式在日記核心外掛程式中設定。'
                 }
             },
+
             calendarCustomRootFolder: {
                 name: '根資料夾',
                 desc: '週期筆記的基礎資料夾。日期模式可以包含子資料夾。隨所選儲存庫設定檔更改。',
@@ -1010,10 +1201,11 @@ export const STRINGS_ZH_TW = {
             },
             calendarCustomFilePattern: {
                 name: '日記',
-                desc: '使用 Moment 日期格式設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。',
+                desc: '使用 Moment 日期格式設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。在一般 > 範本中設定範本資料夾位置。',
                 momentDescPrefix: '使用 ',
                 momentLinkText: 'Moment 日期格式',
-                momentDescSuffix: ' 設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。',
+                momentDescSuffix:
+                    ' 設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。在一般 > 範本中設定範本資料夾位置。',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: '目前語法：{path}',
                 parsingError: '模式必須能格式化並重新解析為完整日期（年、月、日）。'
@@ -1086,9 +1278,9 @@ export const STRINGS_ZH_TW = {
                 desc: '按 Ctrl+Enter 在新分頁、分割或視窗中開啟所選檔案。'
             },
             excludedNotes: {
-                name: '隱藏帶有屬性的筆記（保險庫設定檔）',
-                desc: '逗號分隔的前置中繼資料屬性列表。包含任何這些屬性的筆記將被隱藏（例如：draft, private, archived）。',
-                placeholder: 'draft, private'
+                name: '依屬性規則隱藏筆記（保險庫設定檔）',
+                desc: '逗號分隔的前置中繼資料規則列表。使用 `key` 或 `key=value` 條目（例如：status=done, published=true, archived）。',
+                placeholder: 'status=done, published=true, archived'
             },
             excludedFileNamePatterns: {
                 name: '隱藏檔案（保險庫設定檔）',
@@ -1182,49 +1374,58 @@ export const STRINGS_ZH_TW = {
                 name: '在精簡模式中顯示檔案標籤',
                 desc: '當日期、預覽和圖片被隱藏時顯示標籤。'
             },
-            customPropertyType: {
-                name: '屬性類型',
-                desc: '選擇要在檔案項目中顯示的自訂屬性。',
+            showFileProperties: {
+                name: '顯示檔案屬性',
+                desc: '在檔案項目中顯示可點擊的屬性。'
+            },
+            colorFileProperties: {
+                name: '為檔案屬性著色',
+                desc: '將屬性顏色套用到檔案項目的屬性徽章上。'
+            },
+            prioritizeColoredFileProperties: {
+                name: '優先顯示彩色屬性',
+                desc: '在檔案項目中將彩色屬性排列在其他屬性之前。'
+            },
+            showFilePropertiesInCompactMode: {
+                name: '在精簡模式中顯示屬性',
+                desc: '精簡模式啟用時顯示屬性。'
+            },
+            notePropertyType: {
+                name: '筆記屬性',
+                desc: '選擇要在檔案項目中顯示的筆記屬性。',
                 options: {
                     frontmatter: '前置中繼資料屬性',
                     wordCount: '字數統計',
                     none: '無'
                 }
             },
-            customPropertyFields: {
-                name: '要顯示的屬性',
-                desc: '以逗號分隔的前置中繼資料屬性清單，用於顯示為標籤。清單值屬性每個值顯示一個標籤。[[wikilink]] 格式的值會顯示為可點擊連結。',
-                placeholder: 'status, type, category'
+            propertyFields: {
+                name: '屬性鍵（保險庫設定檔）',
+                desc: 'Frontmatter 屬性鍵，可按鍵設定導覽和檔案清單的可見性。',
+                addButtonTooltip: '設定屬性鍵',
+                noneConfigured: '未設定屬性',
+                singleConfigured: '已設定 1 個屬性：{properties}',
+                multipleConfigured: '已設定 {count} 個屬性：{properties}'
             },
-            showCustomPropertiesOnSeparateRows: {
+            showPropertiesOnSeparateRows: {
                 name: '在個別行中顯示屬性',
                 desc: '將每個屬性顯示在個別行中。'
             },
-            customPropertyColorMap: {
-                name: '屬性顏色',
-                desc: '將前置資料屬性對應到徽章顏色。每行一個對應：屬性=顏色',
-                placeholder: '# 屬性=顏色\nstatus=#ff0000\ntype=#00ff00',
-                editTooltip: '編輯對應'
-            },
-            showCustomPropertyInCompactMode: {
-                name: '在精簡模式中顯示自訂屬性',
-                desc: '當日期、預覽和圖片被隱藏時顯示自訂屬性。'
-            },
             dateFormat: {
                 name: '日期格式',
-                desc: '用於顯示日期的格式（使用 date-fns 格式）。',
-                placeholder: 'yyyy年M月d日',
-                help: '常用格式：\nyyyy年M月d日 = 2022年5月25日\nyyyy-MM-dd = 2022-05-25\nMM/dd/yyyy = 05/25/2022\n\n標記：\nyyyy/yy = 年\nMMMM/MMM/MM/M = 月\ndd/d = 日\nEEEE/EEE = 星期',
-                helpTooltip: '使用 date-fns 格式',
-                dateFnsLinkText: 'date-fns 格式'
+                desc: '用於顯示日期的格式（使用 Moment 格式）。',
+                placeholder: 'YYYY年M月D日',
+                help: '常用格式：\nYYYY年M月D日 = 2022年5月25日\nYYYY-MM-DD = 2022-05-25\nMM/DD/YYYY = 05/25/2022\n\n標記：\nYYYY/YY = 年\nMMMM/MMM/MM/M = 月\nDD/D = 日\ndddd/ddd = 星期',
+                helpTooltip: '使用 Moment 格式',
+                momentLinkText: 'Moment 格式'
             },
             timeFormat: {
                 name: '時間格式',
-                desc: '用於顯示時間的格式（使用 date-fns 格式）。',
+                desc: '用於顯示時間的格式（使用 Moment 格式）。',
                 placeholder: 'HH:mm',
-                help: '常用格式：\nHH:mm = 14:30（24小時制）\nh:mm a = 2:30 PM（12小時制）\nHH:mm:ss = 14:30:45\nh:mm:ss a = 2:30:45 PM\n\n標記：\nHH/H = 24小時制\nhh/h = 12小時制\nmm = 分鐘\nss = 秒\na = 上午/下午',
-                helpTooltip: '使用 date-fns 格式',
-                dateFnsLinkText: 'date-fns 格式'
+                help: '常用格式：\nHH:mm = 14:30（24小時制）\nAh:mm = 下午2:30（12小時制）\nHH:mm:ss = 14:30:45\nAh:mm:ss = 下午2:30:45\n\n標記：\nHH/H = 24小時制\nhh/h = 12小時制\nmm = 分鐘\nss = 秒\nA = 上午/下午',
+                helpTooltip: '使用 Moment 格式',
+                momentLinkText: 'Moment 格式'
             },
             showFilePreview: {
                 name: '顯示筆記預覽',
@@ -1245,7 +1446,7 @@ export const STRINGS_ZH_TW = {
             previewProperties: {
                 name: '預覽屬性',
                 desc: '用於尋找預覽文字的前置屬性的逗號分隔列表。將使用第一個包含文字的屬性。',
-                placeholder: '摘要, 描述, 概要',
+                placeholder: 'summary, description, abstract',
                 info: '如果在指定的屬性中找不到預覽文字，預覽將從筆記內容中產生。'
             },
             previewRows: {
@@ -1283,7 +1484,7 @@ export const STRINGS_ZH_TW = {
             featureImageExcludeProperties: {
                 name: '排除含有屬性的筆記',
                 desc: '逗號分隔的前置中繼資料屬性列表。包含這些屬性的筆記不會儲存特色圖片。',
-                placeholder: '私密, 機密'
+                placeholder: 'private, confidential'
             },
 
             downloadExternalFeatureImages: {
@@ -1356,6 +1557,10 @@ export const STRINGS_ZH_TW = {
                 name: '隨行高調整文字大小',
                 desc: '降低行高時減小導覽文字大小。'
             },
+            showIndentGuides: {
+                name: '顯示縮排參考線',
+                desc: '顯示巢狀資料夾和標籤的縮排參考線。'
+            },
             navRootSpacing: {
                 name: '根級項目間距',
                 desc: '根級資料夾和標籤之間的間距。'
@@ -1395,6 +1600,36 @@ export const STRINGS_ZH_TW = {
                 name: '刪除最後一個標籤後保留 tags 屬性',
                 desc: '當所有標籤被刪除時保留 frontmatter 中的 tags 屬性。停用時，tags 屬性將從 frontmatter 中刪除。'
             },
+            showProperties: {
+                name: '顯示屬性',
+                desc: '在導覽器中顯示屬性區段。',
+                propertyKeysInfoPrefix: '在',
+                propertyKeysInfoLinkText: '一般 > 屬性鍵',
+                propertyKeysInfoSuffix: '中設定屬性'
+            },
+            showPropertyIcons: {
+                name: '顯示屬性圖示',
+                desc: '在導覽面板中屬性旁邊顯示圖示。'
+            },
+            inheritPropertyColors: {
+                name: '繼承屬性顏色',
+                desc: '屬性值繼承其屬性鍵的顏色和背景色。'
+            },
+            propertySortOrder: {
+                name: '屬性排序方式',
+                desc: '右鍵點擊任意屬性以設定其值的不同排序方式。',
+                options: {
+                    alphaAsc: 'A 到 Z',
+                    alphaDesc: 'Z 到 A',
+                    frequency: '頻率',
+                    lowToHigh: '由低到高',
+                    highToLow: '由高到低'
+                }
+            },
+            showAllPropertiesFolder: {
+                name: '顯示屬性資料夾',
+                desc: '將「屬性」顯示為可摺疊資料夾。'
+            },
             hiddenTags: {
                 name: '隱藏標籤（保險庫設定檔）',
                 desc: '逗號分隔的標籤模式列表。名稱模式：tag*（以...開頭）、*tag（以...結尾）。路徑模式：archive（標籤及其後代）、archive/*（僅後代）、projects/*/drafts（中間萬用字元）。',
@@ -1424,10 +1659,13 @@ export const STRINGS_ZH_TW = {
                 desc: '資料夾筆記的名稱。留空以使用與資料夾相同的名稱。',
                 placeholder: 'index'
             },
-            folderNoteProperties: {
-                name: '資料夾筆記屬性',
-                desc: '新增到新資料夾筆記的 YAML 前置內容。--- 標記會自動新增。',
-                placeholder: 'theme: dark\nfoldernote: true'
+            folderNoteNamePattern: {
+                name: '資料夾筆記名稱模式',
+                desc: '不含副檔名的資料夾筆記名稱模式。使用 {{folder}} 插入資料夾名稱。設定後，資料夾筆記名稱不適用。'
+            },
+            folderNoteTemplate: {
+                name: '資料夾筆記範本',
+                desc: '新建 Markdown 資料夾筆記的範本檔案。在一般 > 範本中設定範本資料夾位置。'
             },
             openFolderNotesInNewTab: {
                 name: '在新分頁中開啟資料夾筆記',
@@ -1445,6 +1683,15 @@ export const STRINGS_ZH_TW = {
                 name: '刪除前確認',
                 desc: '刪除筆記或資料夾時顯示確認對話方塊'
             },
+            deleteAttachments: {
+                name: '刪除檔案時刪除附件',
+                desc: '如果附件未在其他地方使用，則在刪除檔案時自動刪除關聯的附件',
+                options: {
+                    ask: '每次詢問',
+                    always: '始終',
+                    never: '從不'
+                }
+            },
             metadataCleanup: {
                 name: '清理中繼資料',
                 desc: '移除在 Obsidian 外部刪除、移動或重新命名檔案、資料夾或標籤時留下的孤立中繼資料。這僅影響 Notebook Navigator 設定檔案。',
@@ -1452,7 +1699,7 @@ export const STRINGS_ZH_TW = {
                 error: '設定清理失敗',
                 loading: '正在檢查中繼資料...',
                 statusClean: '沒有需要清理的中繼資料',
-                statusCounts: '孤立項目：{folders} 資料夾，{tags} 標籤，{files} 檔案，{pinned} 釘選，{separators} 分隔線'
+                statusCounts: '孤立項目：{folders} 資料夾，{tags} 標籤，{properties} 屬性，{files} 檔案，{pinned} 釘選，{separators} 分隔線'
             },
             rebuildCache: {
                 name: '重建快取',
@@ -1461,18 +1708,6 @@ export const STRINGS_ZH_TW = {
                 error: '重建快取失敗',
                 indexingTitle: '正在索引保險庫...',
                 progress: '正在更新 Notebook Navigator 快取.'
-            },
-            hotkeys: {
-                intro: '透過編輯 <plugin folder>/notebook-navigator/data.json 來自訂 Notebook Navigator 快速鍵。用文字編輯器開啟檔案並找到 "keyboardShortcuts" 區段。每個條目都使用以下結構：',
-                example: '"pane:move-up": [ { "key": "ArrowUp", "modifiers": [] }, { "key": "K", "modifiers": [] } ]',
-                modifierList: [
-                    '"Mod" = Cmd (macOS) / Ctrl (Win/Linux)',
-                    '"Alt" = Alt/Option',
-                    '"Shift" = Shift',
-                    '"Ctrl" = Control（跨平台建議使用 "Mod"）'
-                ],
-                guidance:
-                    '如上方範例所示，需要額外按鍵時可為同一命令新增多條對應。若需組合多個修飾鍵，請在同一條目中列出所有值，例如 "modifiers": ["Mod", "Shift" ]。不支援 "gg" 或 "dd" 這類按鍵序列。編輯完成後，請重新載入 Obsidian。'
             },
             externalIcons: {
                 downloadButton: '下載',
@@ -1493,7 +1728,7 @@ export const STRINGS_ZH_TW = {
             frontmatterNameField: {
                 name: '名稱欄位（多個）',
                 desc: '逗號分隔的前置欄位列表。使用第一個非空值。回退到檔名。',
-                placeholder: '標題, 名稱'
+                placeholder: 'title, name'
             },
             frontmatterIconField: {
                 name: '圖示欄位',
@@ -1505,9 +1740,10 @@ export const STRINGS_ZH_TW = {
                 desc: '檔案顏色的前置欄位。留空使用儲存在設定中的顏色。',
                 placeholder: 'color'
             },
-            frontmatterSaveMetadata: {
-                name: '將圖示和顏色儲存到前置',
-                desc: '使用上面設定的欄位自動將檔案圖示和顏色寫入前置。'
+            frontmatterBackgroundField: {
+                name: '背景欄位',
+                desc: '背景顏色的前置欄位。留空使用儲存在設定中的背景顏色。',
+                placeholder: 'background'
             },
             frontmatterMigration: {
                 name: '從設定遷移圖示和顏色',
@@ -1522,19 +1758,19 @@ export const STRINGS_ZH_TW = {
             frontmatterCreatedField: {
                 name: '建立時間戳記欄位',
                 desc: '建立時間戳記的前置欄位名稱。留空僅使用檔案系統日期。',
-                placeholder: '建立時間'
+                placeholder: 'created'
             },
             frontmatterModifiedField: {
                 name: '修改時間戳記欄位',
                 desc: '修改時間戳記的前置欄位名稱。留空僅使用檔案系統日期。',
-                placeholder: '修改時間'
+                placeholder: 'modified'
             },
             frontmatterDateFormat: {
                 name: '時間戳記格式',
-                desc: '用於解析前置中時間戳記的格式。留空使用 ISO 8601 格式',
-                helpTooltip: '使用 date-fns 格式',
-                dateFnsLinkText: 'date-fns 格式',
-                help: "常用格式:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
+                desc: '用於解析前置中時間戳記的格式。留空使用 ISO 8601 解析。',
+                helpTooltip: '使用 Moment 格式',
+                momentLinkText: 'Moment 格式',
+                help: '常用格式:\nYYYY-MM-DD[T]HH:mm:ss → 2025-01-04T14:30:45\nYYYY-MM-DD[T]HH:mm:ssZ → 2025-08-07T16:53:39+02:00\nDD/MM/YYYY HH:mm:ss → 04/01/2025 14:30:45\nMM/DD/YYYY h:mm:ss a → 01/04/2025 2:30:45 PM'
             },
             supportDevelopment: {
                 name: '支持開發',

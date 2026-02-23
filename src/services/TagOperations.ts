@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 
 import type { App, TFile } from 'obsidian';
 import type { NotebookNavigatorSettings } from '../settings/types';
-import type { TagTreeService } from './TagTreeService';
+import type { ITagTreeProvider } from '../interfaces/ITagTreeProvider';
 import type { MetadataService } from './MetadataService';
 import type { RenameFile, TagDescriptor } from './tagRename/TagRenameEngine';
 import { TagBatchOperations } from './tagOperations/TagBatchOperations';
@@ -49,7 +49,7 @@ export class TagOperations {
     constructor(
         private readonly app: App,
         private readonly getSettings: () => NotebookNavigatorSettings,
-        private readonly getTagTreeService: () => TagTreeService | null,
+        private readonly getTagTreeService: () => ITagTreeProvider | null,
         private readonly getMetadataService: () => MetadataService | null
     ) {
         this.fileMutations = new TagFileMutations(this.app, this.getSettings);

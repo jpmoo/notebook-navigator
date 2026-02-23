@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ import type { NotebookNavigatorSettings } from '../settings/types';
 import {
     createCalendarCustomDateFormatter,
     ensureMarkdownFileName,
+    getCalendarCustomWeekAnchorDate,
     isCalendarCustomDatePatternValid,
     isCalendarCustomMonthPatternValid,
     isCalendarCustomQuarterPatternValid,
@@ -31,6 +32,7 @@ import {
     normalizeCalendarVaultFolderPath,
     splitCalendarCustomPattern
 } from './calendarCustomNotePatterns';
+import { createMarkdownFileFromTemplate } from './fileCreationUtils';
 import type { MomentApi, MomentInstance } from './moment';
 
 export type CalendarNoteKind = 'day' | 'week' | 'month' | 'quarter' | 'year';
@@ -100,6 +102,19 @@ export function getCalendarTemplatePath(kind: CalendarNoteKind, settings: Notebo
 export function buildCustomCalendarMomentPattern(calendarCustomFilePattern: string, fallbackPattern?: string): string {
     const { folderPattern, filePattern } = splitCalendarCustomPattern(calendarCustomFilePattern, fallbackPattern);
     return folderPattern ? `${folderPattern}/${filePattern}` : filePattern;
+}
+
+export function resolveCalendarCustomNotePathDate(
+    kind: CalendarNoteKind,
+    date: MomentInstance,
+    momentPattern: string,
+    displayLocale: string,
+    weekLocale?: string
+): MomentInstance {
+    if (kind === 'week') {
+        return getCalendarCustomWeekAnchorDate(date, momentPattern, weekLocale ?? displayLocale);
+    }
+    return date.clone().locale(displayLocale);
 }
 
 export function buildCustomCalendarFilePathForPattern(
@@ -180,21 +195,11 @@ export async function createCalendarMarkdownFile(
         throw new Error('Calendar folder path is not a folder');
     }
 
-    const created = await app.fileManager.createNewMarkdownFile(folder, baseName);
-
-    // Create the note first (fires Obsidian vault "create" for other plugins), then write optional template content.
-    // Note: some plugins (e.g. Templater) handle "create" asynchronously and may read/modify the file after a short delay.
-    if (templatePath) {
-        try {
-            const entry = app.vault.getAbstractFileByPath(templatePath);
-            if (entry instanceof TFile) {
-                const content = await app.vault.read(entry);
-                await app.vault.modify(created, content);
-            }
-        } catch (error) {
-            console.error('Failed to apply calendar template', templatePath, error);
-        }
-    }
-
-    return created;
+    return createMarkdownFileFromTemplate({
+        app,
+        folder,
+        baseName,
+        templatePath,
+        templateErrorContext: 'calendar'
+    });
 }

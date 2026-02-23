@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,12 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Setting, ButtonComponent, App, TAbstractFile, TFile } from 'obsidian';
+import { Setting } from 'obsidian';
 import { strings } from '../../i18n';
-import { DATE_FNS_FORMAT_DOCS_URL } from '../../constants/urls';
 import { showNotice } from '../../utils/noticeUtils';
-import { ISO_DATE_FORMAT } from '../../utils/dateUtils';
-import { TIMEOUTS } from '../../types/obsidian-extended';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { runAsyncAction } from '../../utils/async';
 import { createSettingGroupFactory } from '../settingGroups';
@@ -33,44 +30,7 @@ import {
     serializeIconMapRecord,
     type IconMapParseResult
 } from '../../utils/iconizeFormat';
-import {
-    normalizePropertyColorMapKey,
-    parsePropertyColorMapText,
-    serializePropertyColorMapRecord,
-    type PropertyColorMapParseResult
-} from '../../utils/propertyColorMapFormat';
-import { formatCommaSeparatedList, normalizeCommaSeparatedList, parseCommaSeparatedList } from '../../utils/commaSeparatedListUtils';
-import { createSettingDescriptionWithExternalLink } from './externalLink';
-
-/**
- * Type guard to check if a file is a markdown file
- * @param file - The file to check
- * @returns True if the file is a markdown file
- */
-function isMarkdownFile(file: TAbstractFile | null): file is TFile {
-    return file instanceof TFile && file.extension === 'md';
-}
-
-/**
- * Counts the number of markdown files with metadata entries
- * @param records - Record of file paths to metadata values
- * @param app - The Obsidian app instance
- * @returns The number of markdown files with metadata entries
- */
-function countMarkdownMetadataEntries(records: Record<string, string> | undefined, app: App): number {
-    if (!records) {
-        return 0;
-    }
-
-    let count = 0;
-    for (const path of Object.keys(records)) {
-        const file = app.vault.getAbstractFileByPath(path);
-        if (isMarkdownFile(file)) {
-            count += 1;
-        }
-    }
-    return count;
-}
+import { formatCommaSeparatedList, parseCommaSeparatedList } from '../../utils/commaSeparatedListUtils';
 
 function parseFileTypeIconMapText(value: string): IconMapParseResult {
     return parseIconMapText(value, normalizeFileTypeIconMapKey);
@@ -80,240 +40,17 @@ function parseFileNameIconMapText(value: string): IconMapParseResult {
     return parseIconMapText(value, normalizeFileNameIconMapKey);
 }
 
-function parseCustomPropertyColorMapText(value: string): PropertyColorMapParseResult {
-    return parsePropertyColorMapText(value, normalizePropertyColorMapKey);
-}
-
 /** Renders the notes settings tab */
 export function renderNotesTab(context: SettingsTabContext): void {
     const { app, containerEl, plugin } = context;
 
     const createGroup = createSettingGroupFactory(containerEl);
-    const frontmatterGroup = createGroup(strings.settings.groups.notes.frontmatter);
-
-    const useFrontmatterSetting = frontmatterGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.useFrontmatterDates.name).setDesc(strings.settings.items.useFrontmatterDates.desc);
-    });
-
-    const frontmatterSettingsEl = wireToggleSettingWithSubSettings(
-        useFrontmatterSetting,
-        () => plugin.settings.useFrontmatterMetadata,
-        async value => {
-            plugin.settings.useFrontmatterMetadata = value;
-            await plugin.saveSettingsAndUpdate();
-            // Use context directly to satisfy eslint exhaustive-deps requirements
-            context.requestStatisticsRefresh();
-        }
-    );
-    // Function to update visibility of frontmatter save setting based on field values
-    let updateFrontmatterSaveVisibility: (() => void) | null = null;
-
-    const frontmatterIconSetting = context.createDebouncedTextSetting(
-        frontmatterSettingsEl,
-        strings.settings.items.frontmatterIconField.name,
-        strings.settings.items.frontmatterIconField.desc,
-        strings.settings.items.frontmatterIconField.placeholder,
-        () => plugin.settings.frontmatterIconField,
-        value => {
-            plugin.settings.frontmatterIconField = value || '';
-            updateFrontmatterSaveVisibility?.();
-        },
-        undefined,
-        () => context.requestStatisticsRefresh()
-    );
-    frontmatterIconSetting.controlEl.addClass('nn-setting-wide-input');
-
-    const frontmatterColorSetting = context.createDebouncedTextSetting(
-        frontmatterSettingsEl,
-        strings.settings.items.frontmatterColorField.name,
-        strings.settings.items.frontmatterColorField.desc,
-        strings.settings.items.frontmatterColorField.placeholder,
-        () => plugin.settings.frontmatterColorField,
-        value => {
-            plugin.settings.frontmatterColorField = value || '';
-            updateFrontmatterSaveVisibility?.();
-        },
-        undefined,
-        () => context.requestStatisticsRefresh()
-    );
-    frontmatterColorSetting.controlEl.addClass('nn-setting-wide-input');
-
-    // Setting to control whether metadata is saved to frontmatter
-    const frontmatterSaveSetting = new Setting(frontmatterSettingsEl)
-        .setName(strings.settings.items.frontmatterSaveMetadata.name)
-        .setDesc(strings.settings.items.frontmatterSaveMetadata.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.saveMetadataToFrontmatter).onChange(async value => {
-                plugin.settings.saveMetadataToFrontmatter = value;
-                await plugin.saveSettingsAndUpdate();
-                updateMigrationDescription();
-                updateFrontmatterSaveVisibility?.();
-            })
-        );
-
-    // Show frontmatter save setting only when icon or color fields are configured
-    updateFrontmatterSaveVisibility = () => {
-        const hasIconField = plugin.settings.frontmatterIconField.trim().length > 0;
-        const hasColorField = plugin.settings.frontmatterColorField.trim().length > 0;
-        const canSaveMetadata = hasIconField || hasColorField;
-        setElementVisible(frontmatterSaveSetting.settingEl, canSaveMetadata);
-    };
-
-    updateFrontmatterSaveVisibility();
-
-    let migrateButton: ButtonComponent | null = null;
-
-    const migrationSetting = new Setting(frontmatterSettingsEl).setName(strings.settings.items.frontmatterMigration.name);
-
-    migrationSetting.addButton(button => {
-        migrateButton = button;
-        button.setButtonText(strings.settings.items.frontmatterMigration.button);
-        button.setCta();
-        // Migrate metadata to frontmatter without blocking the UI
-        button.onClick(() => {
-            runAsyncAction(async () => {
-                if (!plugin.metadataService) {
-                    return;
-                }
-
-                button.setDisabled(true);
-                button.setButtonText(strings.settings.items.frontmatterMigration.buttonWorking);
-
-                try {
-                    const result = await plugin.metadataService.migrateFileMetadataToFrontmatter();
-                    updateMigrationDescription();
-
-                    const { iconsBefore, colorsBefore, migratedIcons, migratedColors, failures } = result;
-
-                    if (iconsBefore === 0 && colorsBefore === 0) {
-                        showNotice(strings.settings.items.frontmatterMigration.noticeNone);
-                    } else if (migratedIcons === 0 && migratedColors === 0) {
-                        showNotice(strings.settings.items.frontmatterMigration.noticeNone);
-                    } else {
-                        let message = strings.settings.items.frontmatterMigration.noticeDone
-                            .replace('{migratedIcons}', migratedIcons.toString())
-                            .replace('{icons}', iconsBefore.toString())
-                            .replace('{migratedColors}', migratedColors.toString())
-                            .replace('{colors}', colorsBefore.toString());
-                        if (failures > 0) {
-                            message += ` ${strings.settings.items.frontmatterMigration.noticeFailures.replace('{failures}', failures.toString())}`;
-                        }
-                        showNotice(message, { variant: 'success' });
-                    }
-                } catch (error) {
-                    console.error('Failed to migrate icon/color metadata to frontmatter', error);
-                    showNotice(strings.settings.items.frontmatterMigration.noticeError, {
-                        timeout: TIMEOUTS.NOTICE_ERROR,
-                        variant: 'warning'
-                    });
-                } finally {
-                    button.setButtonText(strings.settings.items.frontmatterMigration.button);
-                    button.setDisabled(false);
-                    updateMigrationDescription();
-                    context.requestStatisticsRefresh();
-                }
-            });
-        });
-    });
-
-    /** Updates the migration setting description based on pending migrations */
-    const updateMigrationDescription = () => {
-        const descriptionEl = migrationSetting.descEl;
-        descriptionEl.empty();
-
-        const iconsBefore = countMarkdownMetadataEntries(plugin.settings.fileIcons, app);
-        const colorsBefore = countMarkdownMetadataEntries(plugin.settings.fileColors, app);
-        const noMigrationsPending = iconsBefore === 0 && colorsBefore === 0;
-
-        const descriptionText = strings.settings.items.frontmatterMigration.desc
-            .replace('{icons}', iconsBefore.toString())
-            .replace('{colors}', colorsBefore.toString());
-
-        descriptionEl.createDiv({ text: descriptionText });
-        const shouldShow = !noMigrationsPending && plugin.settings.saveMetadataToFrontmatter;
-        migrateButton?.setDisabled(!plugin.settings.saveMetadataToFrontmatter || noMigrationsPending);
-        setElementVisible(migrationSetting.settingEl, shouldShow);
-    };
-
-    updateMigrationDescription();
-
-    context.createDebouncedTextSetting(
-        frontmatterSettingsEl,
-        strings.settings.items.frontmatterNameField.name,
-        strings.settings.items.frontmatterNameField.desc,
-        strings.settings.items.frontmatterNameField.placeholder,
-        () => normalizeCommaSeparatedList(plugin.settings.frontmatterNameField),
-        value => {
-            plugin.settings.frontmatterNameField = normalizeCommaSeparatedList(value);
-        },
-        undefined,
-        () => context.requestStatisticsRefresh()
-    );
-
-    context.createDebouncedTextSetting(
-        frontmatterSettingsEl,
-        strings.settings.items.frontmatterCreatedField.name,
-        strings.settings.items.frontmatterCreatedField.desc,
-        strings.settings.items.frontmatterCreatedField.placeholder,
-        () => plugin.settings.frontmatterCreatedField,
-        value => {
-            plugin.settings.frontmatterCreatedField = value;
-        },
-        undefined,
-        () => context.requestStatisticsRefresh()
-    );
-
-    context.createDebouncedTextSetting(
-        frontmatterSettingsEl,
-        strings.settings.items.frontmatterModifiedField.name,
-        strings.settings.items.frontmatterModifiedField.desc,
-        strings.settings.items.frontmatterModifiedField.placeholder,
-        () => plugin.settings.frontmatterModifiedField,
-        value => {
-            plugin.settings.frontmatterModifiedField = value;
-        },
-        undefined,
-        () => context.requestStatisticsRefresh()
-    );
-
-    const dateFormatSetting = context
-        .createDebouncedTextSetting(
-            frontmatterSettingsEl,
-            strings.settings.items.frontmatterDateFormat.name,
-            createSettingDescriptionWithExternalLink({
-                text: strings.settings.items.frontmatterDateFormat.desc,
-                link: { text: strings.settings.items.frontmatterDateFormat.dateFnsLinkText, href: DATE_FNS_FORMAT_DOCS_URL }
-            }),
-            ISO_DATE_FORMAT,
-            () => plugin.settings.frontmatterDateFormat,
-            value => {
-                plugin.settings.frontmatterDateFormat = value;
-            },
-            undefined,
-            () => context.requestStatisticsRefresh()
-        )
-        .addExtraButton(button =>
-            button
-                .setIcon('lucide-help-circle')
-                .setTooltip(strings.settings.items.frontmatterDateFormat.helpTooltip)
-                .onClick(() => {
-                    showNotice(strings.settings.items.frontmatterDateFormat.help, { timeout: TIMEOUTS.NOTICE_HELP });
-                })
-        );
-    dateFormatSetting.controlEl.addClass('nn-setting-wide-input');
-
-    const metadataInfoContainer = frontmatterSettingsEl.createDiv('nn-setting-info-container');
-    const metadataInfoEl = metadataInfoContainer.createEl('div', {
-        cls: 'setting-item-description'
-    });
-    context.registerMetadataInfoElement(metadataInfoEl);
-
     const iconGroup = createGroup(strings.settings.groups.notes.icon);
     const titleGroup = createGroup(strings.settings.groups.notes.title);
     const previewTextGroup = createGroup(strings.settings.groups.notes.previewText);
     const featureImageGroup = createGroup(strings.settings.groups.notes.featureImage);
     const tagsGroup = createGroup(strings.settings.groups.notes.tags);
-    const customPropertyGroup = createGroup(strings.settings.groups.notes.customProperty);
+    const notePropertyGroup = createGroup(strings.settings.groups.notes.properties);
     const dateGroup = createGroup(strings.settings.groups.notes.date);
     const parentFolderGroup = createGroup(strings.settings.groups.notes.parentFolder);
 
@@ -338,6 +75,16 @@ export function renderNotesTab(context: SettingsTabContext): void {
             await plugin.saveSettingsAndUpdate();
         }
     );
+
+    new Setting(fileIconSubSettingsEl)
+        .setName(strings.settings.items.showFileIconUnfinishedTask.name)
+        .setDesc(strings.settings.items.showFileIconUnfinishedTask.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.showFileIconUnfinishedTask).onChange(async value => {
+                plugin.settings.showFileIconUnfinishedTask = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
 
     let updateFileNameIconMapVisibility: (() => void) | null = null;
     let updateFileTypeIconMapVisibility: (() => void) | null = null;
@@ -380,49 +127,6 @@ export function renderNotesTab(context: SettingsTabContext): void {
                                 const textarea = options.setting.controlEl.querySelector('textarea');
                                 if (textarea instanceof HTMLTextAreaElement) {
                                     textarea.value = serializeIconMapRecord(nextMap);
-                                }
-
-                                await plugin.saveSettingsAndUpdate();
-                            }
-                        });
-                        modal.open();
-                    });
-                })
-        );
-    };
-
-    const addPropertyColorMapEditorButton = (options: {
-        setting: Setting;
-        tooltip: string;
-        title: string;
-        getMap: () => Record<string, string>;
-        setMap: (nextMap: Record<string, string>) => void;
-        normalizeKey: (input: string) => string;
-    }): void => {
-        options.setting.addExtraButton(button =>
-            button
-                .setIcon('lucide-pencil')
-                .setTooltip(options.tooltip)
-                .onClick(() => {
-                    runAsyncAction(async () => {
-                        const metadataService = plugin.metadataService;
-                        if (!metadataService) {
-                            showNotice(strings.common.unknownError, { variant: 'warning' });
-                            return;
-                        }
-
-                        const { PropertyColorRuleEditorModal } = await import('../../modals/PropertyColorRuleEditorModal');
-                        const modal = new PropertyColorRuleEditorModal(app, {
-                            title: options.title,
-                            initialMap: options.getMap(),
-                            metadataService,
-                            normalizeKey: options.normalizeKey,
-                            onSave: async nextMap => {
-                                options.setMap(nextMap);
-
-                                const textarea = options.setting.controlEl.querySelector('textarea');
-                                if (textarea instanceof HTMLTextAreaElement) {
-                                    textarea.value = serializePropertyColorMapRecord(nextMap);
                                 }
 
                                 await plugin.saveSettingsAndUpdate();
@@ -728,99 +432,75 @@ export function renderNotesTab(context: SettingsTabContext): void {
             })
         );
 
-    let updateCustomPropertyFieldsVisibility: (() => void) | null = null;
+    const showFilePropertiesSetting = notePropertyGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.showFileProperties.name).setDesc(strings.settings.items.showFileProperties.desc);
+    });
 
-    customPropertyGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.customPropertyType.name).setDesc(strings.settings.items.customPropertyType.desc);
+    const filePropertiesSubSettingsEl = wireToggleSettingWithSubSettings(
+        showFilePropertiesSetting,
+        () => plugin.settings.showFileProperties,
+        async value => {
+            plugin.settings.showFileProperties = value;
+            await plugin.saveSettingsAndUpdate();
+        }
+    );
+
+    const colorFilePropertiesSetting = new Setting(filePropertiesSubSettingsEl)
+        .setName(strings.settings.items.colorFileProperties.name)
+        .setDesc(strings.settings.items.colorFileProperties.desc);
+
+    const colorFilePropertiesSubSettingsEl = wireToggleSettingWithSubSettings(
+        colorFilePropertiesSetting,
+        () => plugin.settings.colorFileProperties,
+        async value => {
+            plugin.settings.colorFileProperties = value;
+            await plugin.saveSettingsAndUpdate();
+        }
+    );
+
+    new Setting(colorFilePropertiesSubSettingsEl)
+        .setName(strings.settings.items.prioritizeColoredFileProperties.name)
+        .setDesc(strings.settings.items.prioritizeColoredFileProperties.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.prioritizeColoredFileProperties).onChange(async value => {
+                plugin.settings.prioritizeColoredFileProperties = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
+    new Setting(filePropertiesSubSettingsEl)
+        .setName(strings.settings.items.showFilePropertiesInCompactMode.name)
+        .setDesc(strings.settings.items.showFilePropertiesInCompactMode.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.showFilePropertiesInCompactMode).onChange(async value => {
+                plugin.settings.showFilePropertiesInCompactMode = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
+    new Setting(filePropertiesSubSettingsEl)
+        .setName(strings.settings.items.showPropertiesOnSeparateRows.name)
+        .setDesc(strings.settings.items.showPropertiesOnSeparateRows.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.showPropertiesOnSeparateRows).onChange(async value => {
+                plugin.settings.showPropertiesOnSeparateRows = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
+    notePropertyGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.notePropertyType.name).setDesc(strings.settings.items.notePropertyType.desc);
         setting.addDropdown(dropdown =>
             dropdown
-                .addOption('none', strings.settings.items.customPropertyType.options.none)
-                .addOption('frontmatter', strings.settings.items.customPropertyType.options.frontmatter)
-                .addOption('wordCount', strings.settings.items.customPropertyType.options.wordCount)
-                .setValue(plugin.settings.customPropertyType)
+                .addOption('none', strings.settings.items.notePropertyType.options.none)
+                .addOption('wordCount', strings.settings.items.notePropertyType.options.wordCount)
+                .setValue(plugin.settings.notePropertyType)
                 .onChange(async value => {
-                    plugin.settings.customPropertyType = value === 'frontmatter' || value === 'wordCount' ? value : 'none';
+                    plugin.settings.notePropertyType = value === 'wordCount' ? 'wordCount' : 'none';
                     await plugin.saveSettingsAndUpdate();
-                    updateCustomPropertyFieldsVisibility?.();
                 })
         );
     });
-
-    const customPropertyFieldsSetting = customPropertyGroup.addSetting(setting => {
-        context.configureDebouncedTextSetting(
-            setting,
-            strings.settings.items.customPropertyFields.name,
-            strings.settings.items.customPropertyFields.desc,
-            strings.settings.items.customPropertyFields.placeholder,
-            () => normalizeCommaSeparatedList(plugin.settings.customPropertyFields),
-            value => {
-                plugin.settings.customPropertyFields = normalizeCommaSeparatedList(value);
-            }
-        );
-    });
-    customPropertyFieldsSetting.controlEl.addClass('nn-setting-wide-input');
-
-    const customPropertyColorMapSetting = customPropertyGroup.addSetting(setting => {
-        context.configureDebouncedTextAreaSetting(
-            setting,
-            strings.settings.items.customPropertyColorMap.name,
-            strings.settings.items.customPropertyColorMap.desc,
-            strings.settings.items.customPropertyColorMap.placeholder,
-            () => serializePropertyColorMapRecord(plugin.settings.customPropertyColorMap),
-            value => {
-                const parsed = parseCustomPropertyColorMapText(value);
-                plugin.settings.customPropertyColorMap = parsed.map;
-            },
-            {
-                rows: 3,
-                validator: value => parseCustomPropertyColorMapText(value).invalidLines.length === 0
-            }
-        );
-    });
-
-    addPropertyColorMapEditorButton({
-        setting: customPropertyColorMapSetting,
-        tooltip: strings.settings.items.customPropertyColorMap.editTooltip,
-        title: strings.settings.items.customPropertyColorMap.name,
-        getMap: () => plugin.settings.customPropertyColorMap,
-        setMap: nextMap => {
-            plugin.settings.customPropertyColorMap = nextMap;
-        },
-        normalizeKey: normalizePropertyColorMapKey
-    });
-    customPropertyColorMapSetting.controlEl.addClass('nn-setting-wide-input');
-
-    const showCustomPropertiesOnSeparateRowsSetting = customPropertyGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.showCustomPropertiesOnSeparateRows.name)
-            .setDesc(strings.settings.items.showCustomPropertiesOnSeparateRows.desc)
-            .addToggle(toggle =>
-                toggle.setValue(plugin.settings.showCustomPropertiesOnSeparateRows).onChange(async value => {
-                    plugin.settings.showCustomPropertiesOnSeparateRows = value;
-                    await plugin.saveSettingsAndUpdate();
-                })
-            );
-    });
-
-    customPropertyGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.showCustomPropertyInCompactMode.name)
-            .setDesc(strings.settings.items.showCustomPropertyInCompactMode.desc)
-            .addToggle(toggle =>
-                toggle.setValue(plugin.settings.showCustomPropertyInCompactMode).onChange(async value => {
-                    plugin.settings.showCustomPropertyInCompactMode = value;
-                    await plugin.saveSettingsAndUpdate();
-                })
-            );
-    });
-
-    updateCustomPropertyFieldsVisibility = () => {
-        const isFrontmatter = plugin.settings.customPropertyType === 'frontmatter';
-        setElementVisible(customPropertyFieldsSetting.settingEl, isFrontmatter);
-        setElementVisible(showCustomPropertiesOnSeparateRowsSetting.settingEl, isFrontmatter);
-        setElementVisible(customPropertyColorMapSetting.settingEl, isFrontmatter);
-    };
-    updateCustomPropertyFieldsVisibility();
 
     const showFileDateSetting = dateGroup.addSetting(setting => {
         setting.setName(strings.settings.items.showFileDate.name).setDesc(strings.settings.items.showFileDate.desc);
@@ -896,6 +576,4 @@ export function renderNotesTab(context: SettingsTabContext): void {
     context.registerShowTagsListener(visible => {
         setGroupVisible(tagsGroup.rootEl, visible);
     });
-
-    context.requestStatisticsRefresh();
 }

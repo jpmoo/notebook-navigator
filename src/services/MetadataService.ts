@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,12 +20,16 @@ import { App, TFolder } from 'obsidian';
 import { SortOption, type AlphaSortOrder, type NotebookNavigatorSettings } from '../settings';
 import { ISettingsProvider } from '../interfaces/ISettingsProvider';
 import { ITagTreeProvider } from '../interfaces/ITagTreeProvider';
+import type { IPropertyTreeProvider } from '../interfaces/IPropertyTreeProvider';
 import {
     FolderMetadataService,
     TagMetadataService,
+    PropertyMetadataService,
     FileMetadataService,
     NavigationSeparatorService,
+    type FolderDisplayData,
     type TagColorData,
+    type PropertyColorData,
     type FileMetadataMigrationResult
 } from './metadata';
 import { TagTreeNode } from '../types/storage';
@@ -47,6 +51,7 @@ export interface CleanupValidators {
 export interface MetadataCleanupSummary {
     folders: number;
     tags: number;
+    properties: number;
     files: number;
     pinnedNotes: number;
     separators: number;
@@ -62,6 +67,7 @@ export class MetadataService {
     private fileService: FileMetadataService;
     private folderService: FolderMetadataService;
     private tagService: TagMetadataService;
+    private propertyService: PropertyMetadataService;
     private navigationSeparatorService: NavigationSeparatorService;
     private settingsProvider: ISettingsProvider;
 
@@ -70,14 +76,26 @@ export class MetadataService {
      * @param app - The Obsidian app instance
      * @param settingsProvider - Provider for accessing and saving settings
      * @param getTagTreeProvider - Function to get the tag tree provider
+     * @param getPropertyTreeProvider - Function to get the property tree provider
      */
-    constructor(app: App, settingsProvider: ISettingsProvider, getTagTreeProvider: () => ITagTreeProvider | null) {
+    constructor(
+        app: App,
+        settingsProvider: ISettingsProvider,
+        getTagTreeProvider: () => ITagTreeProvider | null,
+        getPropertyTreeProvider?: () => IPropertyTreeProvider | null
+    ) {
         this.settingsProvider = settingsProvider;
         // Initialize sub-services
         this.folderService = new FolderMetadataService(app, settingsProvider);
         this.tagService = new TagMetadataService(app, settingsProvider, getTagTreeProvider);
+        this.propertyService = new PropertyMetadataService(app, settingsProvider);
         this.fileService = new FileMetadataService(app, settingsProvider);
-        this.navigationSeparatorService = new NavigationSeparatorService(app, settingsProvider, getTagTreeProvider);
+        this.navigationSeparatorService = new NavigationSeparatorService(
+            app,
+            settingsProvider,
+            getTagTreeProvider,
+            getPropertyTreeProvider
+        );
     }
 
     /**
@@ -87,6 +105,19 @@ export class MetadataService {
     getSettingsProvider(): ISettingsProvider {
         return this.settingsProvider;
     }
+
+    dispose(): void {
+        this.folderService.dispose();
+    }
+
+    setFolderStyleChangeListener(listener: ((folderPath: string) => void) | null): void {
+        this.folderService.setFolderStyleChangeListener(listener);
+    }
+
+    isFolderStyleEventBridgeEnabled(): boolean {
+        return this.folderService.isFolderStyleEventBridgeEnabled();
+    }
+
     // ========== Folder Methods (delegated to FolderMetadataService) ==========
 
     async setFolderColor(folderPath: string, color: string): Promise<void> {
@@ -95,6 +126,17 @@ export class MetadataService {
 
     async setFolderBackgroundColor(folderPath: string, color: string): Promise<void> {
         return this.folderService.setFolderBackgroundColor(folderPath, color);
+    }
+
+    async setFolderStyle(
+        folderPath: string,
+        style: {
+            icon?: string | null;
+            color?: string | null;
+            backgroundColor?: string | null;
+        }
+    ): Promise<void> {
+        return this.folderService.setFolderStyle(folderPath, style);
     }
 
     async removeFolderColor(folderPath: string): Promise<void> {
@@ -123,6 +165,19 @@ export class MetadataService {
 
     getFolderIcon(folderPath: string): string | undefined {
         return this.folderService.getFolderIcon(folderPath);
+    }
+
+    getFolderDisplayData(
+        folderPath: string,
+        options?: {
+            includeDisplayName?: boolean;
+            includeColor?: boolean;
+            includeBackgroundColor?: boolean;
+            includeIcon?: boolean;
+            includeInheritedColors?: boolean;
+        }
+    ): FolderDisplayData {
+        return this.folderService.getFolderDisplayData(folderPath, options);
     }
 
     async setFolderSortOverride(folderPath: string, sortOption: SortOption): Promise<void> {
@@ -242,6 +297,60 @@ export class MetadataService {
 
     getTagChildSortOrderOverride(tagPath: string): AlphaSortOrder | undefined {
         return this.tagService.getTagChildSortOrderOverride(tagPath);
+    }
+
+    // ========== Property Methods (delegated to PropertyMetadataService) ==========
+
+    async setPropertyColor(nodeId: string, color: string): Promise<void> {
+        return this.propertyService.setPropertyColor(nodeId, color);
+    }
+
+    async setPropertyBackgroundColor(nodeId: string, color: string): Promise<void> {
+        return this.propertyService.setPropertyBackgroundColor(nodeId, color);
+    }
+
+    async removePropertyColor(nodeId: string): Promise<void> {
+        return this.propertyService.removePropertyColor(nodeId);
+    }
+
+    async removePropertyBackgroundColor(nodeId: string): Promise<void> {
+        return this.propertyService.removePropertyBackgroundColor(nodeId);
+    }
+
+    getPropertyColor(nodeId: string): string | undefined {
+        return this.propertyService.getPropertyColor(nodeId);
+    }
+
+    getPropertyBackgroundColor(nodeId: string): string | undefined {
+        return this.propertyService.getPropertyBackgroundColor(nodeId);
+    }
+
+    getPropertyColorData(nodeId: string): PropertyColorData {
+        return this.propertyService.getPropertyColorData(nodeId);
+    }
+
+    async setPropertyIcon(nodeId: string, iconId: string): Promise<void> {
+        return this.propertyService.setPropertyIcon(nodeId, iconId);
+    }
+
+    async removePropertyIcon(nodeId: string): Promise<void> {
+        return this.propertyService.removePropertyIcon(nodeId);
+    }
+
+    getPropertyIcon(nodeId: string): string | undefined {
+        return this.propertyService.getPropertyIcon(nodeId);
+    }
+
+    async setPropertyChildSortOrderOverride(nodeId: string, sortOrder: AlphaSortOrder): Promise<void> {
+        return this.propertyService.setPropertyChildSortOrderOverride(nodeId, sortOrder);
+    }
+
+    async removePropertyChildSortOrderOverride(nodeId: string): Promise<void> {
+        return this.propertyService.removePropertyChildSortOrderOverride(nodeId);
+    }
+
+    getPropertyChildSortOrderOverride(nodeId: string): AlphaSortOrder | undefined {
+        return this.propertyService.getPropertyChildSortOrderOverride(nodeId);
     }
 
     // ========== Navigation Separator Methods ==========
@@ -364,14 +473,15 @@ export class MetadataService {
      * @returns True if any changes were made
      */
     async cleanupAllMetadata(targetSettings: NotebookNavigatorSettings = this.settingsProvider.settings): Promise<boolean> {
-        const [folderChanges, tagChanges, fileChanges, separatorChanges] = await Promise.all([
+        const [folderChanges, tagChanges, propertyChanges, fileChanges, separatorChanges] = await Promise.all([
             this.folderService.cleanupFolderMetadata(targetSettings),
             this.tagService.cleanupTagMetadata(targetSettings),
+            this.propertyService.cleanupPropertyMetadata(targetSettings),
             this.fileService.cleanupPinnedNotes(targetSettings),
             this.navigationSeparatorService.cleanupSeparators(targetSettings)
         ]);
 
-        return folderChanges || tagChanges || fileChanges || separatorChanges;
+        return folderChanges || tagChanges || propertyChanges || fileChanges || separatorChanges;
     }
 
     /**
@@ -395,14 +505,15 @@ export class MetadataService {
         validators: CleanupValidators,
         targetSettings: NotebookNavigatorSettings = this.settingsProvider.settings
     ): Promise<boolean> {
-        const [folderChanges, tagChanges, fileChanges, separatorChanges] = await Promise.all([
+        const [folderChanges, tagChanges, propertyChanges, fileChanges, separatorChanges] = await Promise.all([
             this.folderService.cleanupWithValidators(validators, targetSettings),
             this.tagService.cleanupWithValidators(validators, targetSettings),
+            this.propertyService.cleanupWithValidators(validators, targetSettings),
             this.fileService.cleanupWithValidators(validators, targetSettings),
             this.navigationSeparatorService.cleanupWithValidators(validators, targetSettings)
         ]);
 
-        return folderChanges || tagChanges || fileChanges || separatorChanges;
+        return folderChanges || tagChanges || propertyChanges || fileChanges || separatorChanges;
     }
 
     async getCleanupSummary(): Promise<MetadataCleanupSummary> {
@@ -413,12 +524,13 @@ export class MetadataService {
 
         const folders = Math.max(0, before.folders - after.folders);
         const tags = Math.max(0, before.tags - after.tags);
+        const properties = Math.max(0, before.properties - after.properties);
         const files = Math.max(0, before.files - after.files);
         const pinnedNotes = Math.max(0, before.pinnedNotes - after.pinnedNotes);
         const separators = Math.max(0, before.separators - after.separators);
-        const total = folders + tags + files + pinnedNotes + separators;
+        const total = folders + tags + properties + files + pinnedNotes + separators;
 
-        return { folders, tags, files, pinnedNotes, separators, total };
+        return { folders, tags, properties, files, pinnedNotes, separators, total };
     }
 
     private static cloneSettings(settings: NotebookNavigatorSettings): NotebookNavigatorSettings {
@@ -443,6 +555,12 @@ export class MetadataService {
         ]);
 
         const fileKeys = MetadataService.collectUniqueKeys([settings.fileIcons, settings.fileColors]);
+        const propertyKeys = MetadataService.collectUniqueKeys([
+            settings.propertyColors,
+            settings.propertyBackgroundColors,
+            settings.propertyIcons,
+            settings.propertyTreeSortOverrides
+        ]);
 
         const pinnedNotes = settings.pinnedNotes ? Object.keys(settings.pinnedNotes).length : 0;
 
@@ -451,6 +569,7 @@ export class MetadataService {
         return {
             folders: folderKeys.size,
             tags: tagKeys.size,
+            properties: propertyKeys.size,
             files: fileKeys.size,
             pinnedNotes,
             separators

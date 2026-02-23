@@ -68,3 +68,42 @@
 .nn-folder-note-type-buttons button {
     width: 100%;
 }
+
+/* ========================================================================
+   Search help modal
+   ======================================================================== */
+
+.modal.nn-search-help-modal {
+    /* Desktop layout with bounded width while keeping viewport margins */
+    width: min(600px, calc(100vw - 80px));
+    max-width: min(600px, calc(100vw - 80px));
+    /* Shorter desktop layout so the modal does not dominate vertical space */
+    max-height: min(70vh, 640px);
+}
+
+.modal.nn-search-help-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.modal.nn-search-help-modal .nn-search-help-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.modal.nn-search-help-modal strong {
+    font-size: inherit;
+    font-weight: 600;
+}
+
+.is-mobile .modal.nn-search-help-modal {
+    max-height: min(560px, calc(100vh - 24px));
+    max-width: calc(100vw - 24px);
+}
+
+.is-mobile .modal.nn-search-help-modal .modal-content {
+    padding-right: 12px;
+}

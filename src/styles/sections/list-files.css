@@ -68,6 +68,15 @@ body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title
     background: transparent !important;
 }
 
+.nn-list-title-label--folder-note {
+    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration) !important;
+}
+
+.nn-list-title-label--folder-note:hover {
+    cursor: pointer;
+    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration) !important;
+}
+
 /* File - container for each file in the list */
 .nn-file {
     background: transparent;
@@ -243,6 +252,14 @@ body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title
 
 .nn-file.nn-selected .nn-file-icon[data-has-color='false'] {
     color: var(--nn-theme-navitem-selected-icon-color);
+}
+
+.nn-file-icon.nn-file-icon-unfinished-task[data-has-color='false'] {
+    color: var(--nn-theme-file-task-icon-color);
+}
+
+.nn-file.nn-selected .nn-file-icon.nn-file-icon-unfinished-task[data-has-color='false'] {
+    color: var(--nn-theme-file-task-icon-color);
 }
 
 .nn-file-icon[data-has-color='true'] svg {

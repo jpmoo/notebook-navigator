@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
             id: 'default',
             name: '',
             fileVisibility: FILE_VISIBILITY.SUPPORTED,
+            propertyKeys: [],
             hiddenFolders: [],
             hiddenTags: [],
             hiddenFileNames: [],
@@ -64,7 +65,9 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     syncModes: defaultSettingsSync,
 
     // General tab - Behavior
+    createNewNotesInNewTab: false,
     autoRevealActiveFile: true,
+    autoRevealShortestPath: true,
     autoRevealIgnoreRightSidebar: true,
     paneTransitionDuration: 150,
 
@@ -76,7 +79,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
 
     // General tab - View
     startView: 'files',
-    interfaceIcons: sanitizeRecord<string>(undefined),
+    showInfoButtons: true,
 
     // General tab - Homepage
     homepage: null,
@@ -96,51 +99,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     // General tab - Mobile appearance
     useFloatingToolbars: true,
 
-    // General tab - Formatting
-    dateFormat: 'MMM d, yyyy',
-    timeFormat: 'h:mm a',
-
-    // Navigation pane tab - Behavior
-    pinRecentNotesWithShortcuts: false,
-    collapseBehavior: 'all',
-    smartCollapse: true,
-
-    // Navigation pane tab - Shortcuts & recent items
-    showSectionIcons: true,
-    showShortcuts: true,
-    shortcutBadgeDisplay: 'index',
-    skipAutoScroll: false,
-    showRecentNotes: true,
-    recentNotesCount: 5,
-
-    // Calendar tab - Calendar
-    calendarPlacement: 'left-sidebar',
-    calendarLocale: 'system-default',
-    calendarWeekendDays: 'sat-sun',
-    calendarWeeksToShow: 1,
-    calendarHighlightToday: true,
-    calendarShowFeatureImage: true,
-    calendarShowWeekNumber: false,
-    calendarShowQuarter: false,
-    calendarConfirmBeforeCreate: true,
-
-    // Calendar tab - Calendar integration
-    calendarIntegrationMode: 'notebook-navigator',
-    calendarCustomFilePattern: DEFAULT_CALENDAR_CUSTOM_FILE_PATTERN,
-    calendarCustomWeekPattern: DEFAULT_CALENDAR_CUSTOM_WEEK_PATTERN,
-    calendarCustomMonthPattern: DEFAULT_CALENDAR_CUSTOM_MONTH_PATTERN,
-    calendarCustomQuarterPattern: DEFAULT_CALENDAR_CUSTOM_QUARTER_PATTERN,
-    calendarCustomYearPattern: DEFAULT_CALENDAR_CUSTOM_YEAR_PATTERN,
-    calendarTemplateFolder: '',
-    calendarCustomFileTemplate: null,
-    calendarCustomWeekTemplate: null,
-    calendarCustomMonthTemplate: null,
-    calendarCustomQuarterTemplate: null,
-    calendarCustomYearTemplate: null,
-
-    // Navigation pane tab - Appearance
-    colorIconOnly: false,
-    showColorsInShortcutsOnly: false,
+    // General tab - Toolbar buttons
     toolbarVisibility: {
         navigation: {
             toggleDualPane: true,
@@ -159,44 +118,90 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
             newNote: true
         }
     },
+
+    // General tab - Icons
+    interfaceIcons: sanitizeRecord<string>(undefined),
+    colorIconOnly: false,
+    showColorsInShortcutsOnly: false,
+
+    // General tab - Formatting
+    dateFormat: 'MMM D, YYYY',
+    timeFormat: 'h:mm a',
+    calendarTemplateFolder: '',
+
+    // Icon packs tab
+    externalIconProviders: {},
+
+    // Advanced tab
+    checkForUpdatesOnStart: true,
+    confirmBeforeDelete: true,
+    deleteAttachments: 'ask',
+
+    // Navigation pane tab - Appearance
     pinNavigationBanner: true,
     showNoteCount: true,
     separateNoteCounts: true,
+    showIndentGuides: false,
     rootLevelSpacing: 0,
     navIndent: NAVPANE_MEASUREMENTS.defaultIndent,
     navItemHeight: NAVPANE_MEASUREMENTS.defaultItemHeight,
     navItemHeightScaleText: true,
 
-    // Folders & tags tab
+    // Navigation pane tab - Behavior
+    collapseBehavior: 'all',
+    smartCollapse: true,
     autoSelectFirstFileOnFocusChange: false,
-    autoExpandFoldersTags: false,
+    autoExpandNavItems: false,
     springLoadedFolders: true,
     springLoadedFoldersInitialDelay: 0.5,
     springLoadedFoldersSubsequentDelay: 0.5,
+
+    // Shortcuts tab
+    showSectionIcons: true,
+    showShortcuts: true,
+    shortcutBadgeDisplay: 'index',
+    skipAutoScroll: false,
+    showRecentNotes: true,
+    hideRecentNotes: 'none',
+    pinRecentNotesWithShortcuts: false,
+    recentNotesCount: 5,
+
+    // Folders tab
     showFolderIcons: true,
     showRootFolder: true,
     inheritFolderColors: false,
     folderSortOrder: 'alpha-asc',
-    inheritTagColors: true,
     enableFolderNotes: false,
     folderNoteType: 'markdown',
     folderNoteName: '',
-    folderNoteProperties: '',
+    folderNoteNamePattern: '',
+    folderNoteTemplate: null,
     openFolderNotesInNewTab: false,
     hideFolderNoteInList: true,
     pinCreatedFolderNote: false,
+
+    // Tags tab
     showTags: true,
     showTagIcons: true,
     showAllTagsFolder: true,
     showUntagged: true,
     tagSortOrder: 'alpha-asc',
+    inheritTagColors: true,
     keepEmptyTagsProperty: false,
+
+    // Properties tab
+    showProperties: true,
+    showPropertyIcons: true,
+    inheritPropertyColors: true,
+    propertySortOrder: 'alpha-asc',
+    showAllPropertiesFolder: true,
 
     // List pane tab
     defaultListMode: 'standard',
     includeDescendantNotes: false,
     defaultFolderSort: 'modified-desc',
     propertySortKey: '',
+    propertySortSecondary: 'title',
     revealFileOnListChanges: true,
     listPaneTitle: 'header',
     noteGrouping: 'date',
@@ -213,16 +218,19 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     quickActionPinNote: true,
     quickActionOpenInNewTab: false,
 
-    // Notes tab
+    // Frontmatter tab
     useFrontmatterMetadata: false,
     frontmatterIconField: 'icon',
     frontmatterColorField: 'color',
+    frontmatterBackgroundField: 'background',
     frontmatterNameField: '',
     frontmatterCreatedField: '',
     frontmatterModifiedField: '',
     frontmatterDateFormat: '',
-    saveMetadataToFrontmatter: false,
+
+    // Notes tab
     showFileIcons: true,
+    showFileIconUnfinishedTask: false,
     showFilenameMatchIcons: false,
     fileNameIconMap: {},
     showCategoryIcons: false,
@@ -244,11 +252,12 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     prioritizeColoredFileTags: true,
     showFileTagAncestors: false,
     showFileTagsInCompactMode: false,
-    customPropertyType: 'none',
-    customPropertyFields: '',
-    showCustomPropertiesOnSeparateRows: true,
-    customPropertyColorMap: {},
-    showCustomPropertyInCompactMode: false,
+    showFileProperties: true,
+    colorFileProperties: true,
+    prioritizeColoredFileProperties: true,
+    notePropertyType: 'none',
+    showFilePropertiesInCompactMode: false,
+    showPropertiesOnSeparateRows: false,
     showFileDate: true,
     // Default to showing modified date when sorting alphabetically
     alphabeticalDateMode: 'modified',
@@ -257,10 +266,33 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     showParentFolderColor: false,
     showParentFolderIcon: false,
 
-    // Icon packs tab
-    externalIconProviders: {},
+    // Calendar tab - Calendar
+    calendarPlacement: 'left-sidebar',
+    calendarConfirmBeforeCreate: true,
+    calendarLocale: 'system-default',
+    calendarWeekendDays: 'sat-sun',
+    calendarHighlightToday: true,
+    calendarShowFeatureImage: true,
+    calendarShowWeekNumber: false,
+    calendarShowQuarter: false,
+    calendarShowYearCalendar: true,
+    calendarLeftPlacement: 'navigation',
+    calendarWeeksToShow: 1,
 
-    // Search & hotkeys tab
+    // Calendar tab - Calendar integration
+    calendarIntegrationMode: 'notebook-navigator',
+    calendarCustomFilePattern: DEFAULT_CALENDAR_CUSTOM_FILE_PATTERN,
+    calendarCustomWeekPattern: DEFAULT_CALENDAR_CUSTOM_WEEK_PATTERN,
+    calendarCustomMonthPattern: DEFAULT_CALENDAR_CUSTOM_MONTH_PATTERN,
+    calendarCustomQuarterPattern: DEFAULT_CALENDAR_CUSTOM_QUARTER_PATTERN,
+    calendarCustomYearPattern: DEFAULT_CALENDAR_CUSTOM_YEAR_PATTERN,
+    calendarCustomFileTemplate: null,
+    calendarCustomWeekTemplate: null,
+    calendarCustomMonthTemplate: null,
+    calendarCustomQuarterTemplate: null,
+    calendarCustomYearTemplate: null,
+
+    // Search settings and hotkeys
     searchProvider: 'internal',
     keyboardShortcuts: getDefaultKeyboardShortcuts(),
     shortcutCollections: [
@@ -273,10 +305,6 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
         }
     ],
     activeShortcutCollection: 'default',
-
-    // Advanced tab
-    checkForUpdatesOnStart: true,
-    confirmBeforeDelete: true,
 
     // Runtime state and cached data
     customVaultName: '',
@@ -295,10 +323,14 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     tagSortOverrides: {},
     tagTreeSortOverrides: {},
     tagAppearances: {} as Record<string, TagAppearance>,
+    propertyIcons: {},
+    propertyColors: {},
+    propertyBackgroundColors: {},
+    propertyTreeSortOverrides: {},
     navigationSeparators: {},
     userColors: [...DEFAULT_CUSTOM_COLORS],
     lastShownVersion: '',
-    lastAnnouncedRelease: '',
     rootFolderOrder: [],
-    rootTagOrder: []
+    rootTagOrder: [],
+    rootPropertyOrder: []
 };

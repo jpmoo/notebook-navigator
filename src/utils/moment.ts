@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,9 @@ export interface MomentInstance {
     subtract(amount: number, unit: string): MomentInstance;
     diff(other: MomentInstance, unit: string): number;
     week(): number;
+    weekYear(): number;
+    isoWeek(): number;
+    isoWeekYear(): number;
     month(): number;
     year(): number;
     date(): number;
@@ -43,14 +46,28 @@ export interface MomentInstance {
 }
 
 export interface MomentApi {
-    (input?: string, format?: string, strict?: boolean): MomentInstance;
+    (input?: string | number | Date, format?: unknown, strict?: boolean): MomentInstance;
+    (input: string, format: string, locale: string, strict: boolean): MomentInstance;
     locales: () => string[];
     locale: () => string;
     fn: object;
     utc: (...args: unknown[]) => unknown;
+    ISO_8601?: unknown;
 }
 
 let cachedMomentApi: MomentApi | null | undefined;
+let cachedLocaleSet: Set<string> | null = null;
+let cachedLocaleSetFor: MomentApi | null = null;
+let cachedResolvedLocales: Map<string, string> | null = null;
+let cachedResolvedLocalesFor: MomentApi | null = null;
+
+export function resetMomentApiCacheForTests(): void {
+    cachedMomentApi = undefined;
+    cachedLocaleSet = null;
+    cachedLocaleSetFor = null;
+    cachedResolvedLocales = null;
+    cachedResolvedLocalesFor = null;
+}
 
 function isMomentApi(value: unknown): value is MomentApi {
     if (typeof value !== 'function') {
@@ -73,7 +90,6 @@ export function getMomentApi(): MomentApi | null {
 
     // Tests run in Node where `window` doesn't exist.
     if (typeof window === 'undefined') {
-        cachedMomentApi = null;
         return null;
     }
 
@@ -86,6 +102,26 @@ export function getMomentApi(): MomentApi | null {
     return cachedMomentApi;
 }
 
+function getMomentLocaleSet(momentApi: MomentApi): Set<string> {
+    if (cachedLocaleSetFor === momentApi && cachedLocaleSet) {
+        return cachedLocaleSet;
+    }
+
+    cachedLocaleSetFor = momentApi;
+    cachedLocaleSet = new Set(momentApi.locales());
+    return cachedLocaleSet;
+}
+
+function getResolvedLocaleCache(momentApi: MomentApi): Map<string, string> {
+    if (cachedResolvedLocalesFor === momentApi && cachedResolvedLocales) {
+        return cachedResolvedLocales;
+    }
+
+    cachedResolvedLocalesFor = momentApi;
+    cachedResolvedLocales = new Map<string, string>();
+    return cachedResolvedLocales;
+}
+
 export function resolveMomentLocale(requestedLocale: string, momentApi: MomentApi | null, fallbackLocale: string): string {
     // `moment` locale ids are not guaranteed to be canonical BCP-47 tags (and may use `_`); normalize and fall back
     // to the best available match (full tag -> lowercase -> base language).
@@ -93,21 +129,44 @@ export function resolveMomentLocale(requestedLocale: string, momentApi: MomentAp
         return fallbackLocale || 'en';
     }
 
-    const available = new Set(momentApi.locales());
+    const cacheKey = `${requestedLocale}::${fallbackLocale}`;
+    const resolvedCache = getResolvedLocaleCache(momentApi);
+    const cached = resolvedCache.get(cacheKey);
+    if (cached) {
+        return cached;
+    }
+
+    const available = getMomentLocaleSet(momentApi);
     const normalized = (requestedLocale || '').replace(/_/g, '-');
     if (available.has(normalized)) {
+        resolvedCache.set(cacheKey, normalized);
         return normalized;
     }
 
     const lower = normalized.toLowerCase();
     if (available.has(lower)) {
+        resolvedCache.set(cacheKey, lower);
         return lower;
     }
 
     const base = lower.split('-')[0];
     if (base && available.has(base)) {
+        resolvedCache.set(cacheKey, base);
         return base;
     }
 
-    return fallbackLocale || momentApi.locale() || 'en';
+    if (base) {
+        const prefix = `${base}-`;
+        const matches = Array.from(available).filter(value => value.toLowerCase().startsWith(prefix));
+        if (matches.length > 0) {
+            matches.sort((left, right) => left.length - right.length || left.localeCompare(right));
+            const resolved = matches[0] ?? (fallbackLocale || momentApi.locale() || 'en');
+            resolvedCache.set(cacheKey, resolved);
+            return resolved;
+        }
+    }
+
+    const resolved = fallbackLocale || momentApi.locale() || 'en';
+    resolvedCache.set(cacheKey, resolved);
+    return resolved;
 }

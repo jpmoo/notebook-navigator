@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,8 +18,10 @@
 
 import { App, loadPdfJs, Platform, TFile } from 'obsidian';
 import { LIMITS } from '../../../constants/limits';
+import { isPromiseLike } from '../../../utils/async';
 import { isRecord } from '../../../utils/typeGuards';
-import { createRenderLimiter } from '../thumbnail/thumbnailRuntimeUtils';
+import { createOnceLogger, createRenderLimiter } from '../thumbnail/thumbnailRuntimeUtils';
+import { preflightPdfCoverThumbnailStageA, preflightPdfCoverThumbnailStageB, type PdfByteScanMetrics } from './pdfPreflight';
 
 // Options for rendering a PDF cover page thumbnail
 export interface PdfCoverThumbnailOptions {
@@ -46,7 +48,7 @@ type PdfJsLibrary = {
 // Minimal interface for a pdf.js document object
 type PdfDocument = {
     getPage: (pageNumber: number) => Promise<unknown>;
-    destroy?: () => void;
+    destroy?: () => void | Promise<void>;
 };
 
 // Render task returned by pdf.js page.render()
@@ -72,6 +74,25 @@ let sharedWorkerVerbosityLevel: number | null = null;
 let workerIdleTimerId: number | null = null;
 
 const renderLimiter = createRenderLimiter(Platform.isMobile ? MOBILE_MAX_PARALLEL_PDF_RENDERS : MAX_PARALLEL_PDF_RENDERS);
+const logOnce = createOnceLogger();
+
+const MOBILE_PDF_PREFLIGHT_BUDGET_BYTES = LIMITS.thumbnails.pdf.preflight.mobileBudgetBytes;
+const MOBILE_PDF_OPERATOR_LIST_TIMEOUT_MS = LIMITS.thumbnails.pdf.preflight.operatorListTimeoutMs;
+const MOBILE_PDF_PREFLIGHT_MULTIPLIERS = LIMITS.thumbnails.pdf.preflight.multipliers;
+const MOBILE_PDF_MAX_DECODED_IMAGE_PIXELS = LIMITS.thumbnails.featureImage.maxFallbackPixels.mobile;
+
+function logPdfPreflightSkip(path: string, params: { scan: PdfByteScanMetrics; reason: string; metrics?: Record<string, unknown> }): void {
+    const { scan, reason, metrics } = params;
+    logOnce(`pdf-preflight-skip:${path}:${reason}`, '[PDF preflight] pdf.preflightSkip', {
+        path,
+        reason,
+        sumImagePixels: scan.sumImagePixels,
+        maxImagePixels: scan.maxImagePixels,
+        hasSoftMask: scan.hasSoftMask,
+        hasTransparencyGroup: scan.hasTransparencyGroup,
+        ...(metrics ?? {})
+    });
+}
 
 function clearWorkerIdleTimer(): void {
     if (workerIdleTimerId === null) {
@@ -109,12 +130,13 @@ function touchWorkerIdleTimer(): void {
             touchWorkerIdleTimer();
             return;
         }
-        destroySharedWorker();
+        // Timer callbacks cannot await, so worker teardown runs in the background.
+        void destroySharedWorker();
     }, DEFAULT_WORKER_IDLE_TIMEOUT_MS);
 }
 
 // Cleans up and destroys the shared pdf.js worker instance
-function destroySharedWorker(): void {
+async function destroySharedWorker(): Promise<void> {
     clearWorkerIdleTimer();
 
     const worker = sharedWorker;
@@ -125,21 +147,17 @@ function destroySharedWorker(): void {
         return;
     }
 
-    const destroy = worker['destroy'];
-    if (typeof destroy === 'function') {
+    if (hasFunctionProperty(worker, 'destroy')) {
         try {
-            destroy.call(worker);
+            // pdf.js destroy can be sync or async depending on version/build.
+            const result = worker.destroy();
+            if (isPromiseLike(result)) {
+                await result;
+            }
         } catch {
             // ignore
         }
     }
-}
-
-function isPromiseLike(value: unknown): value is Promise<unknown> {
-    if (!isRecord(value)) {
-        return false;
-    }
-    return typeof value['then'] === 'function';
 }
 
 function isPdfDocumentLoadingTask(value: unknown): value is PdfDocumentLoadingTask {
@@ -242,7 +260,8 @@ async function getSharedWorkerInstance(pdfjs: unknown, verbosityLevel: number | 
             return sharedWorker;
         }
 
-        destroySharedWorker();
+        // Wait for the old worker shutdown before creating a new worker instance.
+        await destroySharedWorker();
     }
 
     const worker = tryCreateWorker(pdfjs, verbosityLevel);
@@ -287,8 +306,53 @@ export async function renderPdfCoverThumbnail(app: App, pdfFile: TFile, options:
 
     let doc: PdfDocument | null = null;
     let page: PdfPage | null = null;
+    let preflightScan: PdfByteScanMetrics | null = null;
 
     try {
+        if (Platform.isMobile) {
+            let buffer: ArrayBuffer;
+            try {
+                buffer = await app.vault.adapter.readBinary(pdfFile.path);
+            } catch (error) {
+                const scan: PdfByteScanMetrics = {
+                    sumImagePixels: 0,
+                    maxImagePixels: 0,
+                    imageDictHits: 0,
+                    parsedDimsHits: 0,
+                    hasSoftMask: false,
+                    hasTransparencyGroup: false,
+                    uncertain: true
+                };
+                logPdfPreflightSkip(pdfFile.path, {
+                    scan,
+                    reason: 'stageA.readBinaryFailed',
+                    metrics: { budgetBytes: MOBILE_PDF_PREFLIGHT_BUDGET_BYTES }
+                });
+                logOnce(`pdf-preflight-read-failed:${pdfFile.path}`, `[PDF preflight] Failed to read PDF bytes: ${pdfFile.path}`, error);
+                return null;
+            }
+
+            const stageA = preflightPdfCoverThumbnailStageA({
+                bytes: new Uint8Array(buffer),
+                budgetBytes: MOBILE_PDF_PREFLIGHT_BUDGET_BYTES,
+                maxDecodedImagePixels: MOBILE_PDF_MAX_DECODED_IMAGE_PIXELS
+            });
+
+            preflightScan = stageA.metrics.scan;
+
+            if (stageA.decision === 'skip') {
+                logPdfPreflightSkip(pdfFile.path, {
+                    scan: stageA.metrics.scan,
+                    reason: stageA.reason,
+                    metrics: {
+                        budgetBytes: stageA.metrics.budgetBytes,
+                        estimatedBytes: stageA.metrics.stageAEstimatedBytes ?? null
+                    }
+                });
+                return null;
+            }
+        }
+
         const pdfjs: unknown = await loadPdfJs();
         const errorsVerbosityLevel = getPdfJsErrorsVerbosityLevel(pdfjs);
         const worker = await getSharedWorkerInstance(pdfjs, errorsVerbosityLevel);
@@ -298,35 +362,7 @@ export async function renderPdfCoverThumbnail(app: App, pdfFile: TFile, options:
         }
 
         const url = app.vault.getResourcePath(pdfFile);
-        /**
-         * pdf.js `getDocument()` supports streaming and auto-fetching additional data/pages.
-         * This code path renders page 1 only.
-         *
-         * `disableAutoFetch` prevents pdf.js from prefetching data for pages not explicitly requested.
-         * `disableStream` disables progressive range streaming; pdf.js documents `disableStream` as required
-         * for `disableAutoFetch` to fully take effect.
-         *
-         * Crash notes (mobile / iOS):
-         * - Symptom: Obsidian crashes/reloads during cache rebuild when PDF cover thumbnails are being generated.
-         * - Reproduction: Trigger cache rebuild with PDFs present in the vault (example file: `_resources/unknown_filename-73467029.pdf`).
-         * - Crash location: The last observable step before reload is calling `page.render(...)` and awaiting `renderTask.promise`.
-         *   - There is no caught exception and no promise rejection before the reload.
-         *   - This is consistent with a WebView-level crash during rendering work (no JavaScript error to catch).
-         *
-         * What the flags change:
-         * - `disableAutoFetch: true` stops pdf.js from prefetching additional data/pages beyond what is explicitly requested.
-         * - `disableStream: true` disables streaming/range loading; pdf.js documents this as required for `disableAutoFetch`
-         *   to take full effect.
-         *
-         * Why we set them:
-         * - This plugin only needs page 1 to render a cover thumbnail.
-         * - With streaming/auto-fetch enabled, pdf.js may perform background fetch work that is not used by this path.
-         * - During cache rebuild, the plugin renders many PDFs back-to-back; disabling this behavior narrows the pdf.js work
-         *   to the explicitly requested page and matches the observed configuration that avoids iOS reloads.
-         *
-         * Scope:
-         * - Applied on all platforms for consistent pdf.js behavior in this "page 1 only" thumbnail pipeline.
-         */
+        // This code path renders page 1 only. Disable streaming and auto-fetch so pdf.js does not load work that is not requested.
         const documentParams: Record<string, unknown> = {
             disableAutoFetch: true,
             disableStream: true,
@@ -368,6 +404,67 @@ export async function renderPdfCoverThumbnail(app: App, pdfFile: TFile, options:
             maxWidth: options.maxWidth,
             maxHeight: options.maxHeight
         });
+
+        if (Platform.isMobile && preflightScan) {
+            const stageB = await preflightPdfCoverThumbnailStageB({
+                pdfjs,
+                page: firstPage,
+                scan: preflightScan,
+                budgetBytes: MOBILE_PDF_PREFLIGHT_BUDGET_BYTES,
+                timeoutMs: MOBILE_PDF_OPERATOR_LIST_TIMEOUT_MS,
+                viewportScale: scale,
+                maxDecodedImagePixels: MOBILE_PDF_MAX_DECODED_IMAGE_PIXELS,
+                multipliers: MOBILE_PDF_PREFLIGHT_MULTIPLIERS
+            });
+
+            if (stageB.decision === 'skip') {
+                logPdfPreflightSkip(pdfFile.path, {
+                    scan: stageB.metrics.scan,
+                    reason: stageB.reason,
+                    metrics: {
+                        budgetBytes: stageB.metrics.budgetBytes,
+                        paintOps: stageB.metrics.operators?.paintOps ?? null,
+                        xObjectPaintOps: stageB.metrics.operators?.xObjectPaintOps ?? null,
+                        inlinePaintOps: stageB.metrics.operators?.inlinePaintOps ?? null,
+                        maskPaintOps: stageB.metrics.operators?.maskPaintOps ?? null,
+                        transparencyGroupOps: stageB.metrics.operators?.transparencyGroupOps ?? null,
+                        uniqueXObjectIds: stageB.metrics.operators?.uniqueXObjectIds ?? null,
+                        maxInlineImagePixels: stageB.metrics.operators?.maxInlineImagePixels ?? null,
+                        operatorListLength: stageB.metrics.operators?.operatorListLength ?? null,
+                        operatorListTimedOut: stageB.metrics.operators?.timedOut ?? null,
+                        pagePixels: stageB.metrics.pagePixels ?? null,
+                        estimatedBytes: stageB.metrics.estimatedBytes ?? null
+                    }
+                });
+                return null;
+            }
+
+            const estimatedBytes = stageB.metrics.estimatedBytes ?? 0;
+            const budgetBytes = stageB.metrics.budgetBytes;
+            if (budgetBytes > 0 && estimatedBytes >= budgetBytes * 0.8) {
+                logOnce(`pdf-preflight-allow:${pdfFile.path}`, '[PDF preflight] pdf.preflightAllow', {
+                    path: pdfFile.path,
+                    estimatedBytes,
+                    budgetBytes,
+                    paintOps: stageB.metrics.operators?.paintOps ?? null,
+                    xObjectPaintOps: stageB.metrics.operators?.xObjectPaintOps ?? null,
+                    inlinePaintOps: stageB.metrics.operators?.inlinePaintOps ?? null,
+                    maskPaintOps: stageB.metrics.operators?.maskPaintOps ?? null,
+                    transparencyGroupOps: stageB.metrics.operators?.transparencyGroupOps ?? null,
+                    uniqueXObjectIds: stageB.metrics.operators?.uniqueXObjectIds ?? null,
+                    maxInlineImagePixels: stageB.metrics.operators?.maxInlineImagePixels ?? null,
+                    operatorListLength: stageB.metrics.operators?.operatorListLength ?? null,
+                    operatorListTimedOut: stageB.metrics.operators?.timedOut ?? null,
+                    pagePixels: stageB.metrics.pagePixels ?? null,
+                    maxImagePixels: stageB.metrics.scan.maxImagePixels,
+                    sumImagePixels: stageB.metrics.scan.sumImagePixels,
+                    hasSoftMask: stageB.metrics.scan.hasSoftMask,
+                    hasTransparencyGroup: stageB.metrics.scan.hasTransparencyGroup,
+                    reason: stageB.reason
+                });
+            }
+        }
+
         const viewport = firstPage.getViewport({ scale });
 
         const canvas = document.createElement('canvas');
@@ -399,16 +496,21 @@ export async function renderPdfCoverThumbnail(app: App, pdfFile: TFile, options:
         }
 
         try {
-            doc?.destroy?.();
+            // Document teardown can return a Promise in newer pdf.js builds.
+            const destroyResult = doc?.destroy?.();
+            if (isPromiseLike(destroyResult)) {
+                await destroyResult;
+            }
         } catch {
             // ignore
         }
 
-        release();
-
         if (Platform.isMobile) {
-            destroySharedWorker();
+            // Keep the render slot until worker teardown completes to avoid overlap on mobile.
+            await destroySharedWorker();
+            release();
         } else {
+            release();
             touchWorkerIdleTimer();
         }
     }

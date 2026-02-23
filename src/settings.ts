@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,42 +29,117 @@ import {
     type MetadataParsingStatistics
 } from './storage/statistics';
 import { renderGeneralTab } from './settings/tabs/GeneralTab';
-import { renderNavigationPaneTab } from './settings/tabs/NavigationPaneTab';
+import { renderNavigationPaneTab } from './settings/tabs/NavigationTab';
+import { renderShortcutsTab } from './settings/tabs/ShortcutsTab';
 import { renderCalendarTab } from './settings/tabs/CalendarTab';
-import { renderFoldersTagsTab } from './settings/tabs/FoldersTagsTab';
-import { renderListPaneTab } from './settings/tabs/ListPaneTab';
+import { renderFoldersTab } from './settings/tabs/FoldersTab';
+import { renderTagsTab } from './settings/tabs/TagsTab';
+import { renderPropertiesTab } from './settings/tabs/PropertiesTab';
+import { renderListPaneTab } from './settings/tabs/ListTab';
+import { renderFrontmatterTab } from './settings/tabs/FrontmatterTab';
 import { renderNotesTab } from './settings/tabs/NotesTab';
 import { renderIconPacksTab } from './settings/tabs/IconPacksTab';
-import { renderHotkeysSearchTab } from './settings/tabs/HotkeysSearchTab';
 import { renderAdvancedTab } from './settings/tabs/AdvancedTab';
 import type {
     AddSettingFunction,
     DebouncedTextAreaSettingOptions,
+    SettingsTabId,
     SettingsTabContext,
     SettingDescription
 } from './settings/tabs/SettingsTabContext';
 import { runAsyncAction } from './utils/async';
 import { NOTEBOOK_NAVIGATOR_ICON_ID } from './constants/notebookNavigatorIcon';
+import { getIconService } from './services/icons';
 import { getDBInstanceOrNull } from './storage/fileOperations';
+import { resolveFileTypeIconId } from './utils/fileIconUtils';
+import { resolveUXIcon, type UXIconId } from './utils/uxIcons';
 
 /** Identifiers for different settings tab panes */
-type SettingsPaneId =
-    | 'general'
-    | 'navigation-pane'
-    | 'calendar'
-    | 'folders-tags'
-    | 'list-pane'
-    | 'notes'
-    | 'icon-packs'
-    | 'search-hotkeys'
-    | 'advanced';
+type SettingsPaneId = SettingsTabId;
 
-/** Definition of a settings pane with its ID, label, and render function */
+/** Top-level group buttons for settings navigation */
+type SettingsGroupId = 'general' | 'navigation-pane' | 'list-pane' | 'calendar';
+
+const SETTINGS_GROUP_IDS: SettingsGroupId[] = ['general', 'navigation-pane', 'list-pane', 'calendar'];
+
+type SettingsTabIconDefinition =
+    | { kind: 'fixed'; iconId: string }
+    | { kind: 'ux'; uxIconId: UXIconId }
+    | { kind: 'fileType'; fileTypeKey: string; fallbackIconId: string };
+
+const SETTINGS_TAB_ICONS: Record<SettingsPaneId, SettingsTabIconDefinition> = {
+    general: { kind: 'fixed', iconId: 'settings' },
+    'navigation-pane': { kind: 'fixed', iconId: 'panel-left' },
+    'list-pane': { kind: 'fixed', iconId: 'list' },
+    calendar: { kind: 'fixed', iconId: 'calendar-days' },
+    'icon-packs': { kind: 'fixed', iconId: 'package' },
+    advanced: { kind: 'fixed', iconId: 'sliders-horizontal' },
+    shortcuts: { kind: 'ux', uxIconId: 'nav-shortcuts' },
+    folders: { kind: 'ux', uxIconId: 'nav-folder-closed' },
+    tags: { kind: 'ux', uxIconId: 'nav-tag' },
+    properties: { kind: 'ux', uxIconId: 'nav-property' },
+    frontmatter: { kind: 'ux', uxIconId: 'nav-properties' },
+    notes: { kind: 'fileType', fileTypeKey: 'md', fallbackIconId: 'file' }
+};
+
+const SETTINGS_GROUP_SECONDARY_TAB_IDS: Record<SettingsGroupId, SettingsPaneId[]> = {
+    general: ['icon-packs', 'advanced'],
+    'navigation-pane': ['shortcuts', 'folders', 'tags', 'properties'],
+    'list-pane': ['frontmatter', 'notes'],
+    calendar: []
+};
+
+const SETTINGS_TAB_GROUP_MAP: Record<SettingsPaneId, SettingsGroupId> = {
+    general: 'general',
+    'icon-packs': 'general',
+    advanced: 'general',
+    'navigation-pane': 'navigation-pane',
+    shortcuts: 'navigation-pane',
+    folders: 'navigation-pane',
+    tags: 'navigation-pane',
+    properties: 'navigation-pane',
+    'list-pane': 'list-pane',
+    frontmatter: 'list-pane',
+    notes: 'list-pane',
+    calendar: 'calendar'
+};
+
+const SETTINGS_SECONDARY_TAB_IDS_ORDERED: SettingsPaneId[] = [
+    ...SETTINGS_GROUP_SECONDARY_TAB_IDS.general,
+    ...SETTINGS_GROUP_SECONDARY_TAB_IDS['navigation-pane'],
+    ...SETTINGS_GROUP_SECONDARY_TAB_IDS['list-pane'],
+    ...SETTINGS_GROUP_SECONDARY_TAB_IDS.calendar
+];
+
+/** Definition of a settings pane with its ID, label resolver, and render function */
 interface SettingsPaneDefinition {
     id: SettingsPaneId;
-    label: string;
+    getLabel: () => string;
     render: (context: SettingsTabContext) => void;
 }
+
+const SETTINGS_PANE_DEFINITIONS: SettingsPaneDefinition[] = [
+    { id: 'general', getLabel: () => strings.settings.sections.general, render: renderGeneralTab },
+    { id: 'calendar', getLabel: () => strings.settings.sections.calendar, render: renderCalendarTab },
+    { id: 'navigation-pane', getLabel: () => strings.settings.sections.navigationPane, render: renderNavigationPaneTab },
+    { id: 'shortcuts', getLabel: () => strings.navigationPane.shortcutsHeader, render: renderShortcutsTab },
+    {
+        id: 'folders',
+        getLabel: () => strings.settings.sections.folders,
+        render: renderFoldersTab
+    },
+    { id: 'tags', getLabel: () => strings.settings.sections.tags, render: renderTagsTab },
+    { id: 'properties', getLabel: () => strings.navigationPane.properties, render: renderPropertiesTab },
+    { id: 'list-pane', getLabel: () => strings.settings.sections.listPane, render: renderListPaneTab },
+    { id: 'frontmatter', getLabel: () => strings.settings.groups.notes.frontmatter, render: renderFrontmatterTab },
+    { id: 'notes', getLabel: () => strings.settings.sections.notes, render: renderNotesTab },
+    { id: 'icon-packs', getLabel: () => strings.settings.sections.icons, render: renderIconPacksTab },
+    { id: 'advanced', getLabel: () => strings.settings.sections.advanced, render: renderAdvancedTab }
+];
+
+const SETTINGS_PANE_DEFINITION_MAP = new Map<SettingsPaneId, SettingsPaneDefinition>(
+    SETTINGS_PANE_DEFINITIONS.map(definition => [definition.id, definition])
+);
 
 /**
  * Settings tab for configuring the Notebook Navigator plugin
@@ -85,6 +160,9 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     private tabContentMap: Map<SettingsPaneId, HTMLElement> = new Map();
     // Map of tab IDs to their button components
     private tabButtons: Map<SettingsPaneId, ButtonComponent> = new Map();
+    private tabIconElements: Map<SettingsPaneId, HTMLElement> = new Map();
+    private primaryNavEl: HTMLElement | null = null;
+    private secondaryNavEl: HTMLElement | null = null;
     // Tracks the most recently active tab during the current session
     private lastActiveTabId: SettingsPaneId | null = null;
     // Registered listeners for show tags visibility changes
@@ -103,6 +181,137 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     private metadataInfoChangeUnsubscribe: (() => void) | null = null;
     private settingsUpdateListenerId = 'settings-tab';
     private tabSettingsUpdateListeners = new Map<string, () => void>();
+
+    private getGroupIdForTab(tabId: SettingsPaneId): SettingsGroupId {
+        return SETTINGS_TAB_GROUP_MAP[tabId];
+    }
+
+    private isMetadataInfoTab(tabId: SettingsPaneId | null): boolean {
+        return tabId === 'frontmatter';
+    }
+
+    private resolveTabButtonIconId(tabId: SettingsPaneId): string | null {
+        const iconDefinition = SETTINGS_TAB_ICONS[tabId];
+        if (!iconDefinition) {
+            return null;
+        }
+
+        if (iconDefinition.kind === 'fixed') {
+            return iconDefinition.iconId;
+        }
+
+        if (iconDefinition.kind === 'ux') {
+            return resolveUXIcon(this.plugin.settings.interfaceIcons, iconDefinition.uxIconId);
+        }
+
+        return resolveFileTypeIconId(iconDefinition.fileTypeKey, this.plugin.settings.fileTypeIconMap) ?? iconDefinition.fallbackIconId;
+    }
+
+    private renderTabButtonIcon(tabId: SettingsPaneId): void {
+        const iconEl = this.tabIconElements.get(tabId);
+        if (!iconEl) {
+            return;
+        }
+
+        iconEl.empty();
+        const iconId = this.resolveTabButtonIconId(tabId);
+        if (!iconId) {
+            return;
+        }
+
+        getIconService().renderIcon(iconEl, iconId);
+    }
+
+    private refreshTabButtonIcons(): void {
+        this.tabIconElements.forEach((_iconEl, tabId) => {
+            this.renderTabButtonIcon(tabId);
+        });
+        this.updateTabRowIconVisibility();
+    }
+
+    private rowExceedsSingleLine(rowEl: HTMLElement): boolean {
+        const overflowTolerance = 1;
+        if (rowEl.scrollWidth - rowEl.clientWidth > overflowTolerance) {
+            return true;
+        }
+
+        const buttons = Array.from(rowEl.querySelectorAll<HTMLElement>('.nn-settings-tab-button')).filter(button => {
+            if (button.hasClass('is-hidden')) {
+                return false;
+            }
+            return button.offsetParent !== null;
+        });
+
+        if (buttons.length <= 1) {
+            return false;
+        }
+
+        const firstTop = buttons[0].offsetTop;
+        return buttons.some(button => Math.abs(button.offsetTop - firstTop) > overflowTolerance);
+    }
+
+    private updateTabRowIconVisibilityForRow(rowEl: HTMLElement | null): void {
+        if (!rowEl) {
+            return;
+        }
+
+        rowEl.toggleClass('is-icons-hidden', false);
+        if (rowEl.hasClass('is-hidden')) {
+            return;
+        }
+
+        if (this.rowExceedsSingleLine(rowEl)) {
+            rowEl.toggleClass('is-icons-hidden', true);
+        }
+    }
+
+    private updateTabRowIconVisibility(): void {
+        this.updateTabRowIconVisibilityForRow(this.primaryNavEl);
+        this.updateTabRowIconVisibilityForRow(this.secondaryNavEl);
+    }
+
+    private updateTabNavigation(activeTabId: SettingsPaneId): void {
+        const activeGroupId = this.getGroupIdForTab(activeTabId);
+        this.secondaryNavEl?.toggleClass('is-hidden', SETTINGS_GROUP_SECONDARY_TAB_IDS[activeGroupId].length === 0);
+
+        for (const groupId of SETTINGS_GROUP_IDS) {
+            const groupButton = this.tabButtons.get(groupId);
+            if (!groupButton) {
+                continue;
+            }
+
+            const isActive = groupId === activeTabId;
+            const isGroupActive = groupId === activeGroupId && !isActive;
+            groupButton.buttonEl.toggleClass('is-group-active', isGroupActive);
+            groupButton.buttonEl.toggleClass('is-active', isActive);
+            groupButton.buttonEl.setAttribute('aria-selected', isActive ? 'true' : 'false');
+
+            if (isActive) {
+                groupButton.setCta();
+            } else {
+                groupButton.removeCta();
+            }
+        }
+
+        for (const tabId of SETTINGS_SECONDARY_TAB_IDS_ORDERED) {
+            const tabButton = this.tabButtons.get(tabId);
+            if (!tabButton) {
+                continue;
+            }
+
+            const isVisible = this.getGroupIdForTab(tabId) === activeGroupId;
+            tabButton.buttonEl.toggleClass('is-hidden', !isVisible);
+
+            const isActive = tabId === activeTabId;
+            tabButton.buttonEl.toggleClass('is-active', isActive);
+            tabButton.buttonEl.setAttribute('aria-selected', isActive ? 'true' : 'false');
+
+            // Keep the secondary tab row in the lighter tab-button style.
+            tabButton.removeCta();
+        }
+
+        this.updateTabRowIconVisibility();
+    }
 
     /**
      * Creates a new settings tab
@@ -126,6 +335,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
                 return;
             }
 
+            this.refreshTabButtonIcons();
             const listeners = Array.from(this.tabSettingsUpdateListeners.values());
             listeners.forEach(callback => {
                 try {
@@ -416,7 +626,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     }
 
     private async updateMetadataInfo(): Promise<void> {
-        if (this.lastActiveTabId !== 'notes') {
+        if (!this.isMetadataInfoTab(this.lastActiveTabId)) {
             return;
         }
         const metadataInfoEl = this.metadataInfoEl;
@@ -435,7 +645,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         this.isUpdatingMetadataInfo = true;
         try {
             const stats = await calculateMetadataParsingStatistics(this.plugin.settings, this.plugin.getUXPreferences().showHiddenItems);
-            if (this.lastActiveTabId !== 'notes' || this.metadataInfoEl !== metadataInfoEl) {
+            if (!this.isMetadataInfoTab(this.lastActiveTabId) || this.metadataInfoEl !== metadataInfoEl) {
                 return;
             }
             if (!this.plugin.settings.useFrontmatterMetadata) {
@@ -513,7 +723,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     private requestStatisticsRefresh(): void {
         // Tabs can request a refresh while inactive; persist the request and run on activation.
         this.pendingStatisticsRefreshRequested = true;
-        if (this.lastActiveTabId !== 'advanced' && this.lastActiveTabId !== 'notes') {
+        if (this.lastActiveTabId !== 'advanced' && !this.isMetadataInfoTab(this.lastActiveTabId)) {
             return;
         }
         this.pendingStatisticsRefreshRequested = false;
@@ -525,7 +735,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         if (this.lastActiveTabId === 'advanced') {
             return this.updateCacheStatistics();
         }
-        if (this.lastActiveTabId === 'notes') {
+        if (this.isMetadataInfoTab(this.lastActiveTabId)) {
             return this.updateMetadataInfo();
         }
         return Promise.resolve();
@@ -533,15 +743,11 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
 
     /**
      * Renders the settings tab UI
-     * Organizes settings into logical sections:
-     * - Top level (no header)
-     * - Navigation pane
-     * - Calendar
-     * - Folders
-     * - Tags
-     * - File list
-     * - Notes
-     * - Advanced
+     * Organizes settings into grouped tabs:
+     * - General: General, Icon packs, Advanced
+     * - Navigation pane: Navigation pane, Shortcuts, Folders, Tags, Properties
+     * - List pane: List pane, Frontmatter, Notes
+     * - Calendar: Calendar
      */
     display(): void {
         this.ensureSettingsUpdateListener();
@@ -565,60 +771,66 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         // Reset state for new render
         this.tabContentMap.clear();
         this.tabButtons.clear();
+        this.tabIconElements.clear();
         this.statsTextEl = null;
         this.metadataInfoEl = null;
+        this.primaryNavEl = null;
+        this.secondaryNavEl = null;
         this.tabSettingsUpdateListeners.clear();
         this.showTagsListeners = [];
         this.currentShowTagsVisible = this.plugin.settings.showTags;
-
-        // Define all settings tabs
-        const tabs: SettingsPaneDefinition[] = [
-            { id: 'general', label: strings.settings.sections.general, render: renderGeneralTab },
-            { id: 'calendar', label: strings.settings.sections.calendar, render: renderCalendarTab },
-            { id: 'navigation-pane', label: strings.settings.sections.navigationPane, render: renderNavigationPaneTab },
-            {
-                id: 'folders-tags',
-                label: strings.settings.sections.foldersAndTags,
-                render: renderFoldersTagsTab
-            },
-            { id: 'list-pane', label: strings.settings.sections.listPane, render: renderListPaneTab },
-            { id: 'notes', label: strings.settings.sections.notes, render: renderNotesTab },
-            { id: 'icon-packs', label: strings.settings.sections.icons, render: renderIconPacksTab },
-            {
-                id: 'search-hotkeys',
-                label: strings.settings.sections.searchAndHotkeys,
-                render: renderHotkeysSearchTab
-            },
-            { id: 'advanced', label: strings.settings.sections.advanced, render: renderAdvancedTab }
-        ];
 
         // Create tab navigation structure
         const tabsWrapper = containerEl.createDiv('nn-settings-tabs');
         const navEl = tabsWrapper.createDiv('nn-settings-tabs-nav');
         navEl.setAttribute('role', 'tablist');
+        const primaryNavEl = navEl.createDiv('nn-settings-tabs-nav-row nn-settings-tabs-nav-primary');
+        this.primaryNavEl = primaryNavEl;
+        const secondaryNavEl = navEl.createDiv('nn-settings-tabs-nav-row nn-settings-tabs-nav-secondary');
+        this.secondaryNavEl = secondaryNavEl;
         const contentWrapper = tabsWrapper.createDiv('nn-settings-tabs-content');
 
-        // Create navigation buttons for each tab
-        tabs.forEach(tab => {
-            const buttonComponent = new ButtonComponent(navEl);
-            buttonComponent.setButtonText(tab.label);
+        const createTabButton = (container: HTMLElement, tabId: SettingsPaneId, variant: 'primary' | 'secondary'): void => {
+            const definition = SETTINGS_PANE_DEFINITION_MAP.get(tabId);
+            if (!definition) {
+                return;
+            }
+
+            const buttonComponent = new ButtonComponent(container);
+            buttonComponent.setButtonText(definition.getLabel());
+            const iconEl = buttonComponent.buttonEl.createSpan('nn-settings-tab-icon');
+            iconEl.setAttribute('aria-hidden', 'true');
+            buttonComponent.buttonEl.prepend(iconEl);
+            this.tabIconElements.set(tabId, iconEl);
+            this.renderTabButtonIcon(tabId);
             buttonComponent.removeCta();
             buttonComponent.buttonEl.addClass('nn-settings-tab-button');
             buttonComponent.buttonEl.addClass('clickable-icon');
+            buttonComponent.buttonEl.addClass(
+                variant === 'primary' ? 'nn-settings-tab-button-primary' : 'nn-settings-tab-button-secondary'
+            );
             buttonComponent.buttonEl.setAttribute('role', 'tab');
             buttonComponent.buttonEl.setAttribute('aria-selected', 'false');
             buttonComponent.onClick(() => {
-                this.activateTab(tab.id, tabs, contentWrapper);
+                this.activateTab(tabId, contentWrapper);
             });
-            this.tabButtons.set(tab.id, buttonComponent);
+            this.tabButtons.set(tabId, buttonComponent);
+        };
+
+        SETTINGS_GROUP_IDS.forEach(groupId => {
+            createTabButton(primaryNavEl, groupId, 'primary');
+        });
+
+        SETTINGS_SECONDARY_TAB_IDS_ORDERED.forEach(tabId => {
+            createTabButton(secondaryNavEl, tabId, 'secondary');
         });
 
         // Activate previously open tab if available, otherwise default to first
-        const fallbackTabId = tabs[0]?.id ?? null;
+        const fallbackTabId = SETTINGS_PANE_DEFINITIONS[0]?.id ?? null;
         const initialTabId =
-            this.lastActiveTabId && tabs.some(tab => tab.id === this.lastActiveTabId) ? this.lastActiveTabId : fallbackTabId;
+            this.lastActiveTabId && SETTINGS_PANE_DEFINITION_MAP.has(this.lastActiveTabId) ? this.lastActiveTabId : fallbackTabId;
         if (initialTabId) {
-            this.activateTab(initialTabId, tabs, contentWrapper, { focus: shouldFocus, preserveScroll: restoreScrollTop !== undefined });
+            this.activateTab(initialTabId, contentWrapper, { focus: shouldFocus, preserveScroll: restoreScrollTop !== undefined });
         }
         if (restoreScrollTop !== undefined) {
             contentWrapper.scrollTop = restoreScrollTop;
@@ -663,6 +875,13 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
             ensureStatisticsInterval: () => {
                 this.ensureStatisticsInterval();
             },
+            openSettingsTab: (tabId: SettingsTabId) => {
+                const contentWrapper = this.containerEl.querySelector<HTMLElement>('.nn-settings-tabs-content');
+                if (!contentWrapper) {
+                    return;
+                }
+                this.activateTab(tabId, contentWrapper, { focus: true });
+            },
             registerShowTagsListener: listener => {
                 this.showTagsListeners.push(listener);
                 listener(this.currentShowTagsVisible);
@@ -679,13 +898,8 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
      * Creates tab content if it doesn't exist yet (lazy loading)
      * Updates active state for both content and buttons
      */
-    private activateTab(
-        id: SettingsPaneId,
-        tabs: SettingsPaneDefinition[],
-        contentWrapper: HTMLElement,
-        options?: { focus?: boolean; preserveScroll?: boolean }
-    ): void {
-        const definition = tabs.find(tab => tab.id === id);
+    private activateTab(id: SettingsPaneId, contentWrapper: HTMLElement, options?: { focus?: boolean; preserveScroll?: boolean }): void {
+        const definition = SETTINGS_PANE_DEFINITION_MAP.get(id);
         if (!definition) {
             return;
         }
@@ -702,22 +916,11 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         const previousTabId = this.lastActiveTabId;
         if (previousTabId && previousTabId !== id) {
             this.tabContentMap.get(previousTabId)?.toggleClass('is-active', false);
-            const previousButton = this.tabButtons.get(previousTabId);
-            if (previousButton) {
-                previousButton.buttonEl.toggleClass('is-active', false);
-                previousButton.buttonEl.setAttribute('aria-selected', 'false');
-                previousButton.removeCta();
-            }
         }
 
         this.tabContentMap.get(id)?.toggleClass('is-active', true);
-        const activeButton = this.tabButtons.get(id);
-        if (activeButton) {
-            activeButton.buttonEl.toggleClass('is-active', true);
-            activeButton.buttonEl.setAttribute('aria-selected', 'true');
-            activeButton.setCta();
-        }
         this.lastActiveTabId = id;
+        this.updateTabNavigation(id);
         if (!options?.preserveScroll) {
             contentWrapper.scrollTop = 0;
         }
@@ -729,21 +932,21 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
             this.stopStatisticsInterval();
         }
 
-        if (id === 'notes') {
+        if (this.isMetadataInfoTab(id)) {
             this.ensureMetadataInfoListener();
             runAsyncAction(() => this.updateMetadataInfo());
         } else {
             this.stopMetadataInfoListener();
         }
 
-        if (this.pendingStatisticsRefreshRequested && (id === 'advanced' || id === 'notes')) {
+        if (this.pendingStatisticsRefreshRequested && (id === 'advanced' || this.isMetadataInfoTab(id))) {
             this.pendingStatisticsRefreshRequested = false;
             runAsyncAction(() => this.updateActiveTabInfo());
             this.scheduleDeferredStatisticsRefresh();
         }
 
         if (shouldFocus) {
-            activeButton?.buttonEl.focus();
+            this.tabButtons.get(id)?.buttonEl.focus();
         }
     }
 
@@ -786,7 +989,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         }
 
         this.metadataInfoChangeUnsubscribe = db.onContentChange(changes => {
-            if (this.lastActiveTabId !== 'notes') {
+            if (!this.isMetadataInfoTab(this.lastActiveTabId)) {
                 return;
             }
             if (!this.metadataInfoEl || !this.plugin.settings.useFrontmatterMetadata) {
@@ -890,9 +1093,12 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         // Clear references and state
         this.statsTextEl = null;
         this.metadataInfoEl = null;
+        this.primaryNavEl = null;
+        this.secondaryNavEl = null;
         this.tabSettingsUpdateListeners.clear();
         this.tabContentMap.clear();
         this.tabButtons.clear();
+        this.tabIconElements.clear();
         this.showTagsListeners = [];
         this.containerEl.removeClass('nn-settings-tab-root');
     }
@@ -904,8 +1110,10 @@ export type {
     AlphaSortOrder,
     ItemScope,
     MultiSelectModifier,
+    DeleteAttachmentsSetting,
     ListPaneTitleOption,
+    PropertySortSecondaryOption,
     AlphabeticalDateMode,
-    CustomPropertyType
+    NotePropertyType
 } from './settings/types';
 export { DEFAULT_SETTINGS } from './settings/defaultSettings';

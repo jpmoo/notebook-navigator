@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 import type { TFile } from 'obsidian';
 import { NotebookNavigatorSettings } from '../../settings';
 import type { ContentProviderType, FileContentType } from '../../interfaces/IContentProvider';
-import { hasCustomPropertyFrontmatterFields } from '../../utils/customPropertyUtils';
+import { hasPropertyFrontmatterFields } from '../../utils/propertyUtils';
 import { isMarkdownPath } from '../../utils/fileTypeUtils';
 import { getActiveHiddenFileProperties } from '../../utils/vaultProfiles';
 
@@ -29,7 +29,7 @@ import { getActiveHiddenFileProperties } from '../../utils/vaultProfiles';
 export function getMetadataDependentTypes(settings: NotebookNavigatorSettings): ContentProviderType[] {
     const types: ContentProviderType[] = [];
 
-    // Always include markdownPipeline so word count + custom properties can be persisted for future per-folder overrides.
+    // Always include markdownPipeline so word count, task counters, and properties can be persisted for future per-folder overrides.
     types.push('markdownPipeline');
     if (settings.showTags) {
         types.push('tags');
@@ -50,6 +50,7 @@ export function getCacheRebuildProgressTypes(settings: NotebookNavigatorSettings
     const types = new Set<FileContentType>();
 
     types.add('wordCount');
+    types.add('tasks');
 
     if (settings.showFilePreview) {
         types.add('preview');
@@ -58,8 +59,8 @@ export function getCacheRebuildProgressTypes(settings: NotebookNavigatorSettings
         types.add('featureImage');
     }
 
-    if (hasCustomPropertyFrontmatterFields(settings)) {
-        types.add('customProperty');
+    if (hasPropertyFrontmatterFields(settings)) {
+        types.add('properties');
     }
 
     for (const providerType of getMetadataDependentTypes(settings)) {

@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,13 +54,14 @@ import { useSettingsState } from '../context/SettingsContext';
 import { useUXPreferences } from '../context/UXPreferencesContext';
 import { useContextMenu } from '../hooks/useContextMenu';
 import { getIconService, useIconServiceVersion } from '../services/icons';
-import { ItemType } from '../types';
+import { ItemType, type CSSPropertiesWithVars } from '../types';
 import { TagTreeNode } from '../types/storage';
 import type { NoteCountInfo } from '../types/noteCounts';
-import { buildNoteCountDisplay } from '../utils/noteCountFormatting';
+import { buildNoteCountDisplay, buildSortableNoteCountDisplay } from '../utils/noteCountFormatting';
 import { buildSearchMatchContentClass } from '../utils/searchHighlight';
 import { getTotalNoteCount } from '../utils/tagTree';
 import { resolveUXIcon } from '../utils/uxIcons';
+import { IndentGuideColumns } from './IndentGuideColumns';
 
 /**
  * Props for the TagTreeItem component
@@ -70,6 +71,8 @@ interface TagTreeItemProps {
     tagNode: TagTreeNode;
     /** Nesting level for indentation */
     level: number;
+    /** Levels of expanded ancestors whose connector lines should be rendered on this row */
+    indentGuideLevels?: number[];
     /** Whether this tag is expanded to show children */
     isExpanded: boolean;
     /** Whether this tag is currently selected */
@@ -108,6 +111,7 @@ export const TagTreeItem = React.memo(
         {
             tagNode,
             level,
+            indentGuideLevels,
             isExpanded,
             isSelected,
             isHidden,
@@ -157,20 +161,13 @@ export const TagTreeItem = React.memo(
         // Determine if counts should be shown separately (e.g., "2 • 5") or combined
         const useSeparateCounts = includeDescendantNotes && settings.separateNoteCounts;
         // Build formatted display object with label and visibility flags
-        const noteCountDisplay = buildNoteCountDisplay(
-            resolvedCounts,
-            includeDescendantNotes,
-            useSeparateCounts,
-            sortOrderIndicator ?? '•'
+        const noteCountDisplay = buildSortableNoteCountDisplay(
+            buildNoteCountDisplay(resolvedCounts, includeDescendantNotes, useSeparateCounts, '•'),
+            sortOrderIndicator
         );
-        const noteCountLabel =
-            !useSeparateCounts && sortOrderIndicator && noteCountDisplay.shouldDisplay
-                ? `${sortOrderIndicator} ${noteCountDisplay.label}`
-                : sortOrderIndicator && !noteCountDisplay.shouldDisplay
-                  ? sortOrderIndicator
-                  : noteCountDisplay.label;
+        const noteCountLabel = noteCountDisplay.label;
         // Render count badge when enabled and there is either a count or a sort override indicator
-        const shouldDisplayCount = showFileCount && (noteCountDisplay.shouldDisplay || Boolean(sortOrderIndicator));
+        const shouldDisplayCount = showFileCount && noteCountDisplay.shouldDisplay;
 
         // Memoize computed values
         const hasChildren = useMemo(() => tagNode.children.size > 0, [tagNode.children.size]);
@@ -267,6 +264,11 @@ export const TagTreeItem = React.memo(
             item: tagNode.path
         });
 
+        const tagStyle: CSSPropertiesWithVars = {
+            '--level': level,
+            ...(tagBackground ? { '--nn-navitem-custom-bg-color': tagBackground } : {})
+        };
+
         return (
             <div
                 ref={itemRef}
@@ -292,17 +294,13 @@ export const TagTreeItem = React.memo(
                 data-level={level}
                 // Enable native drag and drop when not on mobile and not a virtual tag
                 draggable={isDraggable}
-                style={
-                    {
-                        '--level': level,
-                        ...(tagBackground ? { '--nn-navitem-custom-bg-color': tagBackground } : {})
-                    } as React.CSSProperties
-                }
+                style={tagStyle}
                 role="treeitem"
                 aria-expanded={hasChildren ? isExpanded : undefined}
                 aria-level={level + 1}
             >
                 <div className={contentClassName} onClick={onClick} onDoubleClick={handleDoubleClick}>
+                    <IndentGuideColumns levels={indentGuideLevels} />
                     <div
                         ref={chevronRef}
                         className={`nn-navitem-chevron ${hasChildren ? 'nn-navitem-chevron--has-children' : 'nn-navitem-chevron--no-children'}`}

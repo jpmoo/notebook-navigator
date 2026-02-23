@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,12 +20,11 @@ import { useCallback, useEffect, useState } from 'react';
 import type { ReleaseUpdateNotice } from '../services/ReleaseCheckService';
 import { strings } from '../i18n';
 import { useAutoDismissFade } from '../hooks/useAutoDismissFade';
-import { runAsyncAction } from '../utils/async';
 
 /** Props for the UpdateNoticeBanner component */
 interface UpdateNoticeBannerProps {
     notice: ReleaseUpdateNotice | null;
-    onDismiss: (version: string) => Promise<void>;
+    onDismiss: (version: string) => void;
 }
 
 /**
@@ -49,7 +48,7 @@ export function UpdateNoticeBanner({ notice, onDismiss }: UpdateNoticeBannerProp
             return;
         }
 
-        runAsyncAction(() => onDismiss(visibleNotice.version));
+        onDismiss(visibleNotice.version);
         setVisibleNotice(null);
     }, [visibleNotice, onDismiss]);
 

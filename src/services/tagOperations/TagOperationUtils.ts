@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,38 +17,25 @@
  */
 
 import type { App } from 'obsidian';
-import { TFile } from 'obsidian';
-import type { TagTreeService } from '../TagTreeService';
-import type { RenameFile, TagDescriptor } from '../tagRename/TagRenameEngine';
+import { strings } from '../../i18n';
+import { ConfirmModal } from '../../modals/ConfirmModal';
+import type { ITagTreeProvider } from '../../interfaces/ITagTreeProvider';
+import { collectRenameFiles, type RenameFile, type TagDescriptor } from '../tagRename/TagRenameEngine';
 import type { TagUsageSummary } from './types';
 import { normalizeTagPathValue } from '../../utils/tagPrefixMatcher';
+import { isInlineTagValueCompatible } from '../../utils/tagUtils';
+import { buildUsageSummaryFromPaths as buildOperationUsageSummaryFromPaths, yieldToEventLoop } from '../operations/OperationBatchUtils';
+
+export { yieldToEventLoop };
 
 /**
- * Yields control back to the event loop to prevent blocking UI during batch operations
- * Uses requestAnimationFrame when available for smoother UI updates
+ * Collects all file paths in the vault that contain the specified tag.
  */
-export async function yieldToEventLoop(): Promise<void> {
-    await new Promise<void>(resolve => {
-        if (typeof requestAnimationFrame === 'function') {
-            requestAnimationFrame(() => resolve());
-            return;
-        }
-        setTimeout(resolve, 0);
-    });
-}
-
-/**
- * Collects all file paths that contain the specified tag
- * Returns null if tag tree service is unavailable
- */
-export function collectPreviewPaths(tag: TagDescriptor, tagTreeService: TagTreeService | null): string[] | null {
+export function collectPreviewPaths(app: App, tag: TagDescriptor, _tagTreeService: ITagTreeProvider | null): string[] {
     if (tag.canonicalName.length === 0) {
         return [];
     }
-    if (!tagTreeService) {
-        return null;
-    }
-    return tagTreeService.collectTagFilePaths(tag.canonicalName);
+    return collectRenameFiles(app, tag).map(target => target.filePath);
 }
 
 /**
@@ -56,23 +43,7 @@ export function collectPreviewPaths(tag: TagDescriptor, tagTreeService: TagTreeS
  * Limits sample to 8 files for display in modals
  */
 export function buildUsageSummaryFromPaths(app: App, paths: Iterable<string>): TagUsageSummary {
-    const sample: string[] = [];
-    let total = 0;
-
-    for (const filePath of paths) {
-        total += 1;
-        if (sample.length >= 8) {
-            continue;
-        }
-        const abstractFile = app.vault.getAbstractFileByPath(filePath);
-        if (abstractFile instanceof TFile) {
-            sample.push(abstractFile.basename);
-        } else {
-            sample.push(filePath);
-        }
-    }
-
-    return { total, sample };
+    return buildOperationUsageSummaryFromPaths(app, paths);
 }
 
 /**
@@ -90,7 +61,7 @@ export function buildUsageSummary(app: App, targets: RenameFile[]): TagUsageSumm
  * Resolves canonical tag path to its display path using the tag tree
  * Returns original path if tag tree is unavailable or tag not found
  */
-export function resolveDisplayTagPath(tagPath: string, tagTreeService: TagTreeService | null): string {
+export function resolveDisplayTagPath(tagPath: string, tagTreeService: ITagTreeProvider | null): string {
     const canonical = normalizeTagPathValue(tagPath);
     if (canonical.length === 0) {
         return tagPath;
@@ -100,4 +71,37 @@ export function resolveDisplayTagPath(tagPath: string, tagTreeService: TagTreeSe
     }
     const node = tagTreeService.findTagNode(canonical);
     return node?.displayPath ?? tagPath;
+}
+
+function formatTagLabel(tagValue: string): string {
+    const trimmed = tagValue.trim();
+    if (trimmed.startsWith('#')) {
+        return trimmed;
+    }
+    return `#${trimmed}`;
+}
+
+/**
+ * Shows a warning confirmation for tags that are not compatible with Obsidian inline parsing.
+ * Returns true when the action should continue.
+ */
+export async function confirmInlineTagParsingRisk(app: App, tagValue: string): Promise<boolean> {
+    if (isInlineTagValueCompatible(tagValue)) {
+        return true;
+    }
+
+    const warning = strings.modals.tagOperation.inlineParsingWarning;
+
+    return await new Promise<boolean>(resolve => {
+        const modal = new ConfirmModal(
+            app,
+            warning.title,
+            warning.message.replace('{tag}', formatTagLabel(tagValue)),
+            () => resolve(true),
+            warning.confirm,
+            { confirmButtonClass: 'mod-cta', onCancel: () => resolve(false) }
+        );
+
+        modal.open();
+    });
 }

@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,7 +56,9 @@ function createFileData(tags: string[] | null): FileData {
         fileThumbnailsMtime: 0,
         tags,
         wordCount: null,
-        customProperty: null,
+        taskTotal: 0,
+        taskUnfinished: 0,
+        properties: null,
         previewStatus: 'unprocessed',
         featureImage: null,
         featureImageStatus: 'unprocessed',
@@ -225,6 +227,23 @@ describe('tagged count visibility', () => {
 
         const unfiltered = buildTagTreeFromDatabase(db, undefined, undefined, ['archive'], true);
         expect(unfiltered.tagged).toBe(2);
+    });
+});
+
+describe('tag tree ordering', () => {
+    it('uses lexical tie-breakers when natural sorting considers paths equal', () => {
+        const db = createMockDb([
+            {
+                path: 'notes/a.md',
+                tags: ['#group/tag1', '#group/tag01']
+            }
+        ]);
+
+        const { tagTree } = buildTagTreeFromDatabase(db);
+        const groupNode = findTagNode(tagTree, 'group');
+        const childKeys = Array.from(groupNode?.children.keys() ?? []);
+
+        expect(childKeys).toEqual(['group/tag01', 'group/tag1']);
     });
 });
 

@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@ export function ListToolbar({ isSearchActive, onSearchToggle }: ListToolbarProps
     // Use the shared actions hook
     const {
         handleNewFile,
+        canCreateNewFile,
         handleAppearanceMenu,
         handleSortMenu,
         handleToggleDescendants,
@@ -54,6 +55,8 @@ export function ListToolbar({ isSearchActive, onSearchToggle }: ListToolbarProps
     const showSortButton = listVisibility.sort;
     const showAppearanceButton = listVisibility.appearance;
     const showNewNoteButton = listVisibility.newNote;
+    const hasNavigationSelection = Boolean(selectionState.selectedFolder || selectionState.selectedTag || selectionState.selectedProperty);
+    const hasAppearanceOrSortSelection = Boolean(selectionState.selectedFolder || selectionState.selectedTag);
 
     const leftButtonCount = [showSearchButton, showDescendantsButton, showSortButton, showAppearanceButton].filter(Boolean).length;
     const totalButtonCount = leftButtonCount + (showNewNoteButton ? 1 : 0);
@@ -75,7 +78,7 @@ export function ListToolbar({ isSearchActive, onSearchToggle }: ListToolbarProps
                                 className={`${leftButtonBaseClassName}${isSearchActive ? ' nn-mobile-toolbar-button-active' : ''}`}
                                 aria-label={strings.paneHeader.search}
                                 onClick={onSearchToggle}
-                                disabled={!selectionState.selectedFolder && !selectionState.selectedTag}
+                                disabled={!hasNavigationSelection}
                                 tabIndex={-1}
                             >
                                 <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-search')} />
@@ -86,7 +89,7 @@ export function ListToolbar({ isSearchActive, onSearchToggle }: ListToolbarProps
                                 className={`${leftButtonBaseClassName}${includeDescendantNotes ? ' nn-mobile-toolbar-button-active' : ''}`}
                                 aria-label={descendantsTooltip}
                                 onClick={handleToggleDescendants}
-                                disabled={!selectionState.selectedFolder && !selectionState.selectedTag}
+                                disabled={!hasNavigationSelection}
                                 tabIndex={-1}
                             >
                                 <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-descendants')} />
@@ -97,7 +100,7 @@ export function ListToolbar({ isSearchActive, onSearchToggle }: ListToolbarProps
                                 className={`${leftButtonBaseClassName}${isCustomSort ? ' nn-mobile-toolbar-button-active' : ''}`}
                                 aria-label={strings.paneHeader.changeSortOrder}
                                 onClick={handleSortMenu}
-                                disabled={!selectionState.selectedFolder && !selectionState.selectedTag}
+                                disabled={!hasAppearanceOrSortSelection}
                                 tabIndex={-1}
                             >
                                 <ServiceIcon
@@ -113,7 +116,7 @@ export function ListToolbar({ isSearchActive, onSearchToggle }: ListToolbarProps
                                 className={`${leftButtonBaseClassName}${hasCustomAppearance ? ' nn-mobile-toolbar-button-active' : ''}`}
                                 aria-label={strings.paneHeader.changeAppearance}
                                 onClick={handleAppearanceMenu}
-                                disabled={!selectionState.selectedFolder && !selectionState.selectedTag}
+                                disabled={!hasAppearanceOrSortSelection}
                                 tabIndex={-1}
                             >
                                 <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-appearance')} />
@@ -132,7 +135,7 @@ export function ListToolbar({ isSearchActive, onSearchToggle }: ListToolbarProps
                             onClick={() => {
                                 runAsyncAction(() => handleNewFile());
                             }}
-                            disabled={!selectionState.selectedFolder}
+                            disabled={!canCreateNewFile}
                             tabIndex={-1}
                         >
                             <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-new-note')} />

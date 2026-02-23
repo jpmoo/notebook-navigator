@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ import { isNoteShortcut } from '../../types/shortcuts';
 import type { NotebookNavigatorSettings } from '../../settings';
 import { getDBInstance } from '../../storage/fileOperations';
 import { deserializeIconFromFrontmatterCompat, normalizeCanonicalIconId, serializeIconForFrontmatter } from '../../utils/iconizeFormat';
+import { normalizePinnedNoteContext } from '../../utils/recordUtils';
 
 /**
  * Service for managing file-specific metadata operations
@@ -57,11 +58,11 @@ export class FileMetadataService extends BaseMetadataService {
 
     /**
      * Checks if frontmatter storage is enabled for file metadata
-     * @returns True if both frontmatter metadata reading and saving are enabled
+     * @returns True if frontmatter metadata is enabled
      */
     private shouldUseFrontmatterForFiles(): boolean {
         const settings = this.settingsProvider.settings;
-        return settings.useFrontmatterMetadata && settings.saveMetadataToFrontmatter;
+        return settings.useFrontmatterMetadata;
     }
 
     /**
@@ -356,7 +357,7 @@ export class FileMetadataService extends BaseMetadataService {
     /**
      * Toggles the pinned state of a note in a specific context
      * @param filePath - Path of the file to pin/unpin
-     * @param context - Context to toggle ('folder' or 'tag')
+     * @param context - Context to toggle ('folder', 'tag', or 'property')
      */
     async togglePinnedNote(filePath: string, context: NavigatorContext): Promise<void> {
         await this.saveAndUpdate(settings => {
@@ -364,18 +365,23 @@ export class FileMetadataService extends BaseMetadataService {
                 settings.pinnedNotes = {};
             }
 
-            if (!settings.pinnedNotes[filePath]) {
+            const existing = settings.pinnedNotes[filePath];
+            if (!existing) {
                 // Create new pin with only specified context
                 settings.pinnedNotes[filePath] = {
                     folder: context === 'folder',
-                    tag: context === 'tag'
+                    tag: context === 'tag',
+                    property: context === 'property'
                 };
             } else {
+                const normalized = normalizePinnedNoteContext(existing);
+                settings.pinnedNotes[filePath] = normalized;
+
                 // Toggle the specific context
-                settings.pinnedNotes[filePath][context] = !settings.pinnedNotes[filePath][context];
+                normalized[context] = !normalized[context];
 
                 // Remove if unpinned from all contexts
-                if (!settings.pinnedNotes[filePath].folder && !settings.pinnedNotes[filePath].tag) {
+                if (!normalized.folder && !normalized.tag && !normalized.property) {
                     delete settings.pinnedNotes[filePath];
                 }
             }
@@ -385,7 +391,7 @@ export class FileMetadataService extends BaseMetadataService {
     /**
      * Pins multiple notes in a single settings update.
      * @param filePaths - Paths of files to pin
-     * @param context - Context to pin ('folder' or 'tag')
+     * @param context - Context to pin ('folder', 'tag', or 'property')
      * @returns Number of notes newly pinned in the given context
      */
     async pinNotes(filePaths: string[], context: NavigatorContext): Promise<number> {
@@ -406,15 +412,18 @@ export class FileMetadataService extends BaseMetadataService {
                 if (!existing) {
                     settings.pinnedNotes[filePath] = {
                         folder: context === 'folder',
-                        tag: context === 'tag'
+                        tag: context === 'tag',
+                        property: context === 'property'
                     };
                     changed = true;
                     pinnedCount += 1;
                     continue;
                 }
 
-                if (!existing[context]) {
-                    existing[context] = true;
+                const normalized = normalizePinnedNoteContext(existing);
+                if (!normalized[context]) {
+                    normalized[context] = true;
+                    settings.pinnedNotes[filePath] = normalized;
                     changed = true;
                     pinnedCount += 1;
                 }
@@ -429,15 +438,17 @@ export class FileMetadataService extends BaseMetadataService {
     /**
      * Checks if a note is pinned
      * @param filePath - Path of the file to check
-     * @param context - Optional context to check ('folder' or 'tag')
+     * @param context - Optional context to check ('folder', 'tag', or 'property')
      * @returns True if the note is pinned (in any context or specified context)
      */
     isPinned(filePath: string, context?: NavigatorContext): boolean {
-        const contexts = this.settingsProvider.settings.pinnedNotes?.[filePath];
-        if (!contexts) return false;
+        const rawContexts = this.settingsProvider.settings.pinnedNotes?.[filePath];
+        if (!rawContexts) return false;
+
+        const contexts = normalizePinnedNoteContext(rawContexts);
 
         if (!context) {
-            return contexts.folder || contexts.tag;
+            return contexts.folder || contexts.tag || contexts.property;
         }
 
         return contexts[context] || false;
@@ -445,7 +456,7 @@ export class FileMetadataService extends BaseMetadataService {
 
     /**
      * Gets all pinned notes
-     * @param context - Optional context filter ('folder' or 'tag')
+     * @param context - Optional context filter ('folder', 'tag', or 'property')
      * @returns Array of pinned file paths
      */
     getPinnedNotes(context?: NavigatorContext): string[] {
@@ -456,7 +467,7 @@ export class FileMetadataService extends BaseMetadataService {
         }
 
         return Object.entries(pinnedNotes)
-            .filter(([_, contexts]) => contexts[context])
+            .filter(([_, rawContexts]) => normalizePinnedNoteContext(rawContexts)[context])
             .map(([path]) => path);
     }
 

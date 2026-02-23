@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -190,6 +190,33 @@ export const LIMITS = {
              * Maximum concurrent PDF page renders on mobile.
              */
             maxParallelRendersMobile: 1,
+            preflight: {
+                /**
+                 * Conservative mobile render work budget (bytes) used to decide whether to skip PDF cover thumbnails.
+                 *
+                 * Used by:
+                 * - `renderPdfCoverThumbnail()` via `pdfPreflight` to avoid calling `page.render(...)` on PDFs that are
+                 *   likely to exceed mobile memory/work budgets.
+                 *
+                 * Notes:
+                 * - This is a worst-case estimate; preflight is intentionally fail-closed on mobile.
+                 */
+                mobileBudgetBytes: 200_000_000,
+                /**
+                 * Maximum time (ms) to wait for `page.getOperatorList()` during preflight.
+                 */
+                operatorListTimeoutMs: 1_500,
+                multipliers: {
+                    /**
+                     * Applies when the PDF signals page group transparency.
+                     */
+                    transparencyGroup: 1.5,
+                    /**
+                     * Applies when the PDF uses soft masks.
+                     */
+                    softMask: 1.5
+                }
+            },
             /**
              * Idle timeout for the shared pdf.js worker.
              *
@@ -258,6 +285,21 @@ export const LIMITS = {
             initialDelayMs: 1000,
             maxDelayMs: 30_000,
             maxAttempts: 5
+        },
+        metadataCache: {
+            /**
+             * Controls for metadata-cache reads that can temporarily return empty results for recently created files.
+             * Providers can defer persisting empty values and allow BaseContentProvider retries.
+             */
+            emptyValueRetryLimit: 2,
+            recentFileWindowMs: 15_000
         }
+    },
+    operations: {
+        /**
+         * Number of files processed before yielding to the event loop during
+         * tag/property rename and delete workflows.
+         */
+        metadataMutationYieldBatchSize: 100
     }
 } as const;

@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,6 @@ export const STRINGS_TH = {
         clipboardWriteError: 'ไม่สามารถเขียนลงคลิปบอร์ด',
         updateBannerTitle: 'มีการอัปเดต Notebook Navigator',
         updateBannerInstruction: 'อัปเดตใน การตั้งค่า -> ปลั๊กอินชุมชน',
-        updateIndicatorLabel: 'มีเวอร์ชันใหม่',
         previous: 'ก่อนหน้า', // Generic aria label for previous navigation (English: Previous)
         next: 'ถัดไป' // Generic aria label for next navigation (English: Next)
     },
@@ -61,6 +60,7 @@ export const STRINGS_TH = {
         shortcutsHeader: 'ทางลัด',
         recentNotesHeader: 'โน้ตล่าสุด',
         recentFilesHeader: 'ไฟล์ล่าสุด',
+        properties: 'คุณสมบัติ',
         reorderRootFoldersTitle: 'จัดเรียงการนำทางใหม่',
         reorderRootFoldersHint: 'ใช้ลูกศรหรือลากเพื่อจัดเรียงใหม่',
         vaultRootLabel: 'ห้องนิรภัย',
@@ -82,6 +82,16 @@ export const STRINGS_TH = {
             title: 'บันทึกรายวันใหม่',
             message: 'ไฟล์ {filename} ไม่มีอยู่ คุณต้องการสร้างหรือไม่?',
             confirmButton: 'สร้าง'
+        },
+        helpModal: {
+            title: 'ทางลัดปฏิทิน',
+            items: [
+                'คลิกวันใดก็ได้เพื่อเปิดหรือสร้างบันทึกประจำวัน สัปดาห์ เดือน ไตรมาส และปีทำงานในลักษณะเดียวกัน',
+                'จุดทึบใต้วันหมายความว่ามีบันทึก จุดกลวงหมายความว่ามีงานที่ยังไม่เสร็จ',
+                'หากบันทึกมีภาพเด่น จะแสดงเป็นพื้นหลังของวัน'
+            ],
+            dateFilterCmdCtrl: '`Cmd/Ctrl`+คลิกที่วันที่เพื่อกรองตามวันที่นั้นในรายการไฟล์',
+            dateFilterOptionAlt: '`Option/Alt`+คลิกที่วันที่เพื่อกรองตามวันที่นั้นในรายการไฟล์'
         }
     },
 
@@ -94,6 +104,8 @@ export const STRINGS_TH = {
         folderExists: 'โฟลเดอร์อยู่ในทางลัดแล้ว',
         noteExists: 'โน้ตอยู่ในทางลัดแล้ว',
         tagExists: 'แท็กอยู่ในทางลัดแล้ว',
+        propertyExists: 'คุณสมบัติมีอยู่ในทางลัดแล้ว',
+        invalidProperty: 'ทางลัดคุณสมบัติไม่ถูกต้อง',
         searchExists: 'ทางลัดการค้นหามีอยู่แล้ว',
         emptySearchQuery: 'กรอกคำค้นหาก่อนบันทึก',
         emptySearchName: 'กรอกชื่อก่อนบันทึกการค้นหา',
@@ -137,10 +149,106 @@ export const STRINGS_TH = {
         placeholder: 'ค้นหา...',
         placeholderOmnisearch: 'Omnisearch...',
         clearSearch: 'ล้างการค้นหา',
+        switchToFilterSearch: 'สลับไปใช้การค้นหาแบบกรอง',
+        switchToOmnisearch: 'สลับไปใช้ Omnisearch',
         saveSearchShortcut: 'บันทึกทางลัดการค้นหา',
         removeSearchShortcut: 'นำทางลัดการค้นหาออก',
         shortcutModalTitle: 'บันทึกทางลัดการค้นหา',
-        shortcutNamePlaceholder: 'กรอกชื่อทางลัด'
+        shortcutNamePlaceholder: 'กรอกชื่อทางลัด',
+        shortcutStartIn: 'เริ่มต้นใน: {path} เสมอ',
+        searchHelp: 'ไวยากรณ์การค้นหา',
+        searchHelpTitle: 'ไวยากรณ์การค้นหา',
+        searchHelpModal: {
+            intro: 'รวมชื่อไฟล์ คุณสมบัติ แท็ก วันที่ และตัวกรองในคำค้นหาเดียว (เช่น `meeting .status=active #work @thisweek`) ติดตั้งปลั๊กอิน Omnisearch เพื่อใช้การค้นหาข้อความเต็ม',
+            introSwitching: 'สลับระหว่างการค้นหาแบบกรองและ Omnisearch โดยใช้ปุ่มลูกศรขึ้น/ลงหรือคลิกไอคอนค้นหา',
+            sections: {
+                fileNames: {
+                    title: 'ชื่อไฟล์',
+                    items: [
+                        '`word` ค้นหาโน้ตที่มี "word" ในชื่อไฟล์',
+                        '`word1 word2` ทุกคำต้องตรงกับชื่อไฟล์',
+                        '`-word` ไม่รวมโน้ตที่มี "word" ในชื่อไฟล์'
+                    ]
+                },
+                tags: {
+                    title: 'แท็ก',
+                    items: [
+                        '`#tag` รวมโน้ตที่มีแท็ก (ตรงกับแท็กย่อยเช่น `#tag/subtag` ด้วย)',
+                        '`#` รวมเฉพาะโน้ตที่มีแท็ก',
+                        '`-#tag` ไม่รวมโน้ตที่มีแท็ก',
+                        '`-#` รวมเฉพาะโน้ตที่ไม่มีแท็ก',
+                        '`#tag1 #tag2` ค้นหาทั้งสองแท็ก (AND โดยนัย)',
+                        '`#tag1 AND #tag2` ค้นหาทั้งสองแท็ก (AND ชัดเจน)',
+                        '`#tag1 OR #tag2` ค้นหาแท็กใดแท็กหนึ่ง',
+                        '`#a OR #b AND #c` AND มีความสำคัญสูงกว่า: ตรงกับ `#a` หรือทั้ง `#b` และ `#c`',
+                        'Cmd/Ctrl+คลิกแท็กเพื่อเพิ่มด้วย AND Cmd/Ctrl+Shift+คลิกเพื่อเพิ่มด้วย OR'
+                    ]
+                },
+                properties: {
+                    title: 'คุณสมบัติ',
+                    items: [
+                        '`.key` รวมโน้ตที่มีคีย์คุณสมบัติ',
+                        '`.key=value` รวมโน้ตที่มีค่าคุณสมบัติ',
+                        '`."Reading Status"` รวมโน้ตที่มีคีย์คุณสมบัติที่มีช่องว่าง',
+                        '`."Reading Status"="In Progress"` คีย์และค่าที่มีช่องว่างต้องอยู่ในเครื่องหมายคำพูดคู่',
+                        '`-.key` ไม่รวมโน้ตที่มีคีย์คุณสมบัติ',
+                        '`-.key=value` ไม่รวมโน้ตที่มีค่าคุณสมบัติ',
+                        'Cmd/Ctrl+คลิกคุณสมบัติเพื่อเพิ่มด้วย AND Cmd/Ctrl+Shift+คลิกเพื่อเพิ่มด้วย OR'
+                    ]
+                },
+                tasks: {
+                    title: 'ตัวกรอง',
+                    items: [
+                        '`has:task` รวมบันทึกที่มีงานที่ยังไม่เสร็จ',
+                        '`-has:task` ไม่รวมบันทึกที่มีงานที่ยังไม่เสร็จ',
+                        '`folder:meetings` รวมบันทึกที่ชื่อโฟลเดอร์มี `meetings`',
+                        '`folder:/work/meetings` รวมบันทึกเฉพาะใน `work/meetings` (ไม่รวมโฟลเดอร์ย่อย)',
+                        '`folder:/` รวมบันทึกเฉพาะในรากของห้องนิรภัย',
+                        '`-folder:archive` ไม่รวมบันทึกที่ชื่อโฟลเดอร์มี `archive`',
+                        '`-folder:/archive` ไม่รวมบันทึกเฉพาะใน `archive` (ไม่รวมโฟลเดอร์ย่อย)',
+                        '`ext:md` รวมบันทึกที่มีนามสกุล `md` (`ext:.md` รองรับเช่นกัน)',
+                        '`-ext:pdf` ไม่รวมบันทึกที่มีนามสกุล `pdf`',
+                        'รวมกับแท็ก ชื่อ และวันที่ (ตัวอย่าง: `folder:/work/meetings ext:md @thisweek`)'
+                    ]
+                },
+                connectors: {
+                    title: 'พฤติกรรม AND/OR',
+                    items: [
+                        '`AND` และ `OR` เป็นตัวดำเนินการเฉพาะในการค้นหาที่มีแท็กและคุณสมบัติเท่านั้น',
+                        'การค้นหาเฉพาะแท็กและคุณสมบัติประกอบด้วยตัวกรองแท็กและคุณสมบัติเท่านั้น: `#tag`, `-#tag`, `#`, `-#`, `.key`, `-.key`, `.key=value`, `-.key=value`',
+                        'หากคิวรีรวมชื่อ วันที่ (`@...`) ตัวกรองงาน (`has:task`) ตัวกรองโฟลเดอร์ (`folder:...`) หรือตัวกรองนามสกุล (`ext:...`) `AND` และ `OR` จะถูกค้นหาเป็นคำ',
+                        'ตัวอย่างการค้นหาด้วยตัวดำเนินการ: `#work OR .status=started`',
+                        'ตัวอย่างคิวรีผสม: `#work OR ext:md` (`OR` ถูกค้นหาในชื่อไฟล์)'
+                    ]
+                },
+                dates: {
+                    title: 'วันที่',
+                    items: [
+                        '`@today` ค้นหาโน้ตวันนี้โดยใช้ฟิลด์วันที่เริ่มต้น',
+                        '`@yesterday`, `@last7d`, `@last30d`, `@thisweek`, `@thismonth` ช่วงวันที่สัมพัทธ์',
+                        '`@2026-02-07` ค้นหาวันที่เฉพาะ (รองรับ `@20260207` ด้วย)',
+                        '`@2026` ค้นหาปีปฏิทิน',
+                        '`@2026-02` หรือ `@202602` ค้นหาเดือนปฏิทิน',
+                        '`@2026-W05` หรือ `@2026W05` ค้นหาสัปดาห์ ISO',
+                        '`@2026-Q2` หรือ `@2026Q2` ค้นหาไตรมาสปฏิทิน',
+                        '`@13/02/2026` รูปแบบตัวเลขที่มีตัวคั่น (`@07022026` ตามการตั้งค่าท้องถิ่นเมื่อคลุมเครือ)',
+                        '`@2026-02-01..2026-02-07` ค้นหาช่วงวันที่รวม (รองรับปลายเปิด)',
+                        '`@c:...` หรือ `@m:...` กำหนดเป้าหมายวันที่สร้างหรือแก้ไข',
+                        '`-@...` ไม่รวมการจับคู่วันที่'
+                    ]
+                },
+                omnisearch: {
+                    title: 'Omnisearch',
+                    items: [
+                        'ค้นหาข้อความเต็มทั่วทั้งห้องนิรภัย กรองตามโฟลเดอร์ปัจจุบันหรือแท็กที่เลือก',
+                        'อาจช้าเมื่อป้อนน้อยกว่า 3 ตัวอักษรในห้องนิรภัยขนาดใหญ่',
+                        'ไม่สามารถค้นหาเส้นทางที่มีอักขระที่ไม่ใช่ ASCII หรือค้นหาเส้นทางย่อยได้อย่างถูกต้อง',
+                        'ส่งคืนผลลัพธ์จำกัดก่อนการกรองโฟลเดอร์ ดังนั้นไฟล์ที่เกี่ยวข้องอาจไม่แสดงหากมีรายการที่ตรงกันจำนวนมากในที่อื่น',
+                        'ตัวอย่างโน้ตแสดงข้อความที่ตัดตอนจาก Omnisearch แทนข้อความตัวอย่างเริ่มต้น'
+                    ]
+                }
+            }
+        }
     },
 
     // Context menus
@@ -216,6 +324,11 @@ export const STRINGS_TH = {
             changeBackground: 'เปลี่ยนพื้นหลัง',
             showTag: 'แสดงแท็ก',
             hideTag: 'ซ่อนแท็ก'
+        },
+        property: {
+            addKey: 'กำหนดค่าคีย์คุณสมบัติ',
+            renameKey: 'เปลี่ยนชื่อคุณสมบัติ',
+            deleteKey: 'ลบคุณสมบัติ'
         },
         navigation: {
             addSeparator: 'เพิ่มตัวคั่น',
@@ -295,11 +408,14 @@ export const STRINGS_TH = {
                 'list-new-note': 'โน้ตใหม่',
                 'nav-folder-open': 'โฟลเดอร์เปิด',
                 'nav-folder-closed': 'โฟลเดอร์ปิด',
-                'nav-folder-note': 'โน้ตโฟลเดอร์',
+                'nav-tags': 'แท็ก',
                 'nav-tag': 'แท็ก',
+                'nav-properties': 'คุณสมบัติ',
+                'nav-property': 'คุณสมบัติ',
+                'nav-property-value': 'ค่า',
                 'list-pinned': 'รายการที่ปักหมุด',
-                'file-word-count': 'จำนวนคำ',
-                'file-custom-property': 'คุณสมบัติที่กำหนดเอง'
+                'file-unfinished-task': 'งานที่ยังไม่เสร็จ',
+                'file-word-count': 'จำนวนคำ'
             }
         },
         colorPicker: {
@@ -342,11 +458,37 @@ export const STRINGS_TH = {
             confirmRename: 'เปลี่ยนชื่อแท็ก',
             renameUnchanged: '{tag} ไม่เปลี่ยนแปลง',
             renameNoChanges: '{oldTag} → {newTag} ({countLabel})',
+            renameBatchNotFinalized: 'เปลี่ยนชื่อแล้ว {renamed}/{total} ไม่ได้อัปเดต: {notUpdated} ข้อมูลเมตาและทางลัดไม่ได้รับการอัปเดต',
             invalidTagName: 'กรอกชื่อแท็กที่ถูกต้อง',
             descendantRenameError: 'ไม่สามารถย้ายแท็กไปยังตัวเองหรือลูกหลาน',
             confirmDelete: 'ลบแท็ก',
+            deleteBatchNotFinalized: 'ลบออกจาก {removed}/{total} ไม่ได้อัปเดต: {notUpdated} ข้อมูลเมตาและทางลัดไม่ได้รับการอัปเดต',
+            checkConsoleForDetails: 'ตรวจสอบคอนโซลเพื่อดูรายละเอียด',
             file: 'ไฟล์',
-            files: 'ไฟล์'
+            files: 'ไฟล์',
+            inlineParsingWarning: {
+                title: 'ความเข้ากันได้ของแท็กแบบอินไลน์',
+                message: '{tag} มีอักขระที่ Obsidian ไม่สามารถแยกวิเคราะห์ในแท็กแบบอินไลน์ได้ แท็ก Frontmatter ไม่ได้รับผลกระทบ',
+                confirm: 'ใช้ต่อไป'
+            }
+        },
+        propertyOperation: {
+            renameTitle: 'เปลี่ยนชื่อคุณสมบัติ {property}',
+            deleteTitle: 'ลบคุณสมบัติ {property}',
+            newKeyPrompt: 'ชื่อคุณสมบัติใหม่',
+            newKeyPlaceholder: 'ป้อนชื่อคุณสมบัติใหม่',
+            renameWarning: 'การเปลี่ยนชื่อคุณสมบัติ {property} จะแก้ไข {count} {files}',
+            renameConflictWarning:
+                'คุณสมบัติ {newKey} มีอยู่แล้วใน {count} {files} การเปลี่ยนชื่อ {oldKey} จะแทนที่ค่าที่มีอยู่ของ {newKey}',
+            deleteWarning: 'การลบคุณสมบัติ {property} จะแก้ไข {count} {files}',
+            confirmRename: 'เปลี่ยนชื่อคุณสมบัติ',
+            confirmDelete: 'ลบคุณสมบัติ',
+            renameNoChanges: '{oldKey} → {newKey} (ไม่มีการเปลี่ยนแปลง)',
+            renameSettingsUpdateFailed: 'เปลี่ยนชื่อคุณสมบัติ {oldKey} → {newKey} แล้ว ไม่สามารถอัปเดตการตั้งค่าได้',
+            deleteSingleSuccess: 'ลบคุณสมบัติ {property} จาก 1 โน้ตแล้ว',
+            deleteMultipleSuccess: 'ลบคุณสมบัติ {property} จาก {count} โน้ตแล้ว',
+            deleteSettingsUpdateFailed: 'ลบคุณสมบัติ {property} แล้ว ไม่สามารถอัปเดตการตั้งค่าได้',
+            invalidKeyName: 'กรุณาป้อนชื่อคุณสมบัติที่ถูกต้อง'
         },
         fileSystem: {
             newFolderTitle: 'โฟลเดอร์ใหม่',
@@ -354,6 +496,7 @@ export const STRINGS_TH = {
             renameFileTitle: 'เปลี่ยนชื่อไฟล์',
             deleteFolderTitle: "ลบ '{name}'?",
             deleteFileTitle: "ลบ '{name}'?",
+            deleteFileAttachmentsTitle: 'ลบไฟล์แนบ?',
             folderNamePrompt: 'กรอกชื่อโฟลเดอร์:',
             hideInOtherVaultProfiles: 'ซ่อนในโปรไฟล์ห้องนิรภัยอื่น',
             renamePrompt: 'กรอกชื่อใหม่:',
@@ -361,6 +504,10 @@ export const STRINGS_TH = {
             renameVaultPrompt: 'กรอกชื่อแสดงที่กำหนดเอง (เว้นว่างเพื่อใช้ค่าเริ่มต้น):',
             deleteFolderConfirm: 'คุณแน่ใจหรือไม่ว่าต้องการลบโฟลเดอร์นี้และเนื้อหาทั้งหมด?',
             deleteFileConfirm: 'คุณแน่ใจหรือไม่ว่าต้องการลบไฟล์นี้?',
+            deleteFileAttachmentsDescriptionSingle: 'ไฟล์แนบนี้ไม่ได้ถูกใช้ในโน้ตใดแล้ว คุณต้องการลบหรือไม่?',
+            deleteFileAttachmentsDescriptionMultiple: 'ไฟล์แนบเหล่านี้ไม่ได้ถูกใช้ในโน้ตใดแล้ว คุณต้องการลบหรือไม่?',
+            deleteFileAttachmentsViewFileTreeAriaLabel: 'โครงสร้างไฟล์',
+            deleteFileAttachmentsViewGalleryAriaLabel: 'แกลเลอรี',
             removeAllTagsTitle: 'นำแท็กทั้งหมดออก',
             removeAllTagsFromNote: 'คุณแน่ใจหรือไม่ว่าต้องการนำแท็กทั้งหมดออกจากโน้ตนี้?',
             removeAllTagsFromNotes: 'คุณแน่ใจหรือไม่ว่าต้องการนำแท็กทั้งหมดออกจาก {count} โน้ต?'
@@ -417,6 +564,26 @@ export const STRINGS_TH = {
                 remove: 'เพื่อนำแท็กออก'
             }
         },
+        propertySuggest: {
+            placeholder: 'เลือกคีย์คุณสมบัติ...',
+            navigatePlaceholder: 'นำทางไปยังคุณสมบัติ...',
+            instructions: {
+                navigate: 'เพื่อนำทาง',
+                select: 'เพื่อเพิ่มคุณสมบัติ',
+                dismiss: 'เพื่อปิด'
+            }
+        },
+        propertyKeyVisibility: {
+            title: 'การแสดงผลคีย์คุณสมบัติ',
+            searchPlaceholder: 'ค้นหาคีย์คุณสมบัติ...',
+            propertyColumnLabel: 'คุณสมบัติ',
+            showInNavigation: 'แสดงในการนำทาง',
+            showInList: 'แสดงในรายการ',
+            toggleAllInNavigation: 'สลับทั้งหมดในการนำทาง',
+            toggleAllInList: 'สลับทั้งหมดในรายการ',
+            applyButton: 'นำไปใช้',
+            emptyState: 'ไม่พบคีย์คุณสมบัติ'
+        },
         welcome: {
             title: 'ยินดีต้อนรับสู่ {pluginName}',
             introText:
@@ -439,6 +606,7 @@ export const STRINGS_TH = {
             renameFile: 'เปลี่ยนชื่อไฟล์ล้มเหลว: {error}',
             deleteFolder: 'ลบโฟลเดอร์ล้มเหลว: {error}',
             deleteFile: 'ลบไฟล์ล้มเหลว: {error}',
+            deleteAttachments: 'ไม่สามารถลบไฟล์แนบได้: {error}',
             duplicateNote: 'ทำซ้ำโน้ตล้มเหลว: {error}',
             duplicateFolder: 'ทำซ้ำโฟลเดอร์ล้มเหลว: {error}',
             openVersionHistory: 'เปิดประวัติเวอร์ชันล้มเหลว: {error}',
@@ -489,7 +657,11 @@ export const STRINGS_TH = {
             noTagsToRemove: 'ไม่มีแท็กให้นำออก',
             noFilesSelected: 'ไม่ได้เลือกไฟล์',
             tagOperationsNotAvailable: 'การดำเนินการแท็กไม่พร้อมใช้งาน',
+            propertyOperationsNotAvailable: 'การดำเนินการคุณสมบัติไม่พร้อมใช้งาน',
             tagsRequireMarkdown: 'แท็กรองรับเฉพาะโน้ต Markdown',
+            propertiesRequireMarkdown: 'คุณสมบัติรองรับเฉพาะโน้ต Markdown เท่านั้น',
+            propertySetOnNote: 'อัปเดตคุณสมบัติใน 1 โน้ต',
+            propertySetOnNotes: 'อัปเดตคุณสมบัติใน {count} โน้ต',
             iconPackDownloaded: 'ดาวน์โหลด {provider} แล้ว',
             iconPackUpdated: 'อัปเดต {provider} แล้ว ({version})',
             iconPackRemoved: 'นำ {provider} ออกแล้ว',
@@ -512,6 +684,7 @@ export const STRINGS_TH = {
             itemAlreadyExists: 'รายการชื่อ "{name}" มีอยู่ในตำแหน่งนี้แล้ว',
             failedToMove: 'ย้ายล้มเหลว: {error}',
             failedToAddTag: 'เพิ่มแท็ก "{tag}" ล้มเหลว',
+            failedToSetProperty: 'ไม่สามารถอัปเดตคุณสมบัติ: {error}',
             failedToClearTags: 'ล้างแท็กล้มเหลว',
             failedToMoveFolder: 'ย้ายโฟลเดอร์ "{name}" ล้มเหลว',
             failedToImportFiles: 'นำเข้าล้มเหลว: {names}'
@@ -519,6 +692,7 @@ export const STRINGS_TH = {
         notifications: {
             filesAlreadyExist: '{count} ไฟล์มีอยู่ในปลายทางแล้ว',
             filesAlreadyHaveTag: '{count} ไฟล์มีแท็กนี้หรือแท็กที่เฉพาะเจาะจงกว่าอยู่แล้ว',
+            filesAlreadyHaveProperty: '{count} ไฟล์มีคุณสมบัตินี้อยู่แล้ว',
             noTagsToClear: 'ไม่มีแท็กให้ล้าง',
             fileImported: 'นำเข้า 1 ไฟล์แล้ว',
             filesImported: 'นำเข้า {count} ไฟล์แล้ว'
@@ -564,11 +738,13 @@ export const STRINGS_TH = {
         pinAllFolderNotes: 'ปักหมุดโน้ตโฟลเดอร์ทั้งหมด',
         navigateToFolder: 'นำทางไปยังโฟลเดอร์',
         navigateToTag: 'นำทางไปยังแท็ก',
+        navigateToProperty: 'นำทางไปยังคุณสมบัติ',
         addShortcut: 'เพิ่มในทางลัด',
         openShortcut: 'เปิดทางลัด {number}',
         toggleDescendants: 'สลับลูกหลาน',
         toggleHidden: 'สลับโฟลเดอร์ แท็ก และโน้ตที่ซ่อน',
         toggleTagSort: 'สลับลำดับการเรียงแท็ก',
+        toggleCompactMode: 'สลับโหมดกะทัดรัด', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: 'ยุบ / ขยายรายการทั้งหมด',
         addTag: 'เพิ่มแท็กในไฟล์ที่เลือก',
         removeTag: 'นำแท็กออกจากไฟล์ที่เลือก',
@@ -603,24 +779,23 @@ export const STRINGS_TH = {
         },
         sections: {
             general: 'ทั่วไป',
-            navigationPane: 'แผงนำทาง',
+            navigationPane: 'นำทาง',
             calendar: 'ปฏิทิน',
             icons: 'ชุดไอคอน',
             folders: 'โฟลเดอร์',
             folderNotes: 'โน้ตโฟลเดอร์',
-            foldersAndTags: 'โฟลเดอร์ & แท็ก',
+            foldersAndTags: 'โฟลเดอร์',
+            tagsAndProperties: 'แท็กและคุณสมบัติ',
             tags: 'แท็ก',
-            search: 'ค้นหา',
-            searchAndHotkeys: 'ค้นหา & ปุ่มลัด',
-            listPane: 'แผงรายการ',
+            listPane: 'รายการ',
             notes: 'โน้ต',
-            hotkeys: 'ปุ่มลัด',
             advanced: 'ขั้นสูง'
         },
         groups: {
             general: {
                 vaultProfiles: 'โปรไฟล์ห้องนิรภัย',
                 filtering: 'การกรอง',
+                templates: 'เทมเพลต',
                 behavior: 'พฤติกรรม',
                 keyboardNavigation: 'การนำทางด้วยแป้นพิมพ์',
                 view: 'ลักษณะ',
@@ -631,7 +806,7 @@ export const STRINGS_TH = {
             },
             navigation: {
                 appearance: 'ลักษณะ',
-                shortcutsAndRecent: 'ทางลัดและรายการล่าสุด',
+                leftSidebar: 'แถบด้านซ้าย',
                 calendarIntegration: 'การรวมปฏิทิน'
             },
             list: {
@@ -645,7 +820,7 @@ export const STRINGS_TH = {
                 previewText: 'ข้อความตัวอย่าง',
                 featureImage: 'รูปภาพเด่น',
                 tags: 'แท็ก',
-                customProperty: 'คุณสมบัติกำหนดเอง (ฟรอนต์แมตเตอร์หรือจำนวนคำ)',
+                properties: 'คุณสมบัติ',
                 date: 'วันที่',
                 parentFolder: 'โฟลเดอร์หลัก'
             }
@@ -657,37 +832,6 @@ export const STRINGS_TH = {
             switchToLocal: 'ปิดใช้งานการซิงค์'
         },
         items: {
-            searchProvider: {
-                name: 'ผู้ให้บริการค้นหา',
-                desc: 'เลือกระหว่างการค้นหาชื่อไฟล์อย่างรวดเร็วหรือการค้นหาข้อความเต็มด้วยปลั๊กอิน Omnisearch',
-                options: {
-                    internal: 'การค้นหาตัวกรอง',
-                    omnisearch: 'Omnisearch (ข้อความเต็ม)'
-                },
-                info: {
-                    filterSearch: {
-                        title: 'การค้นหาตัวกรอง (ค่าเริ่มต้น):',
-                        description:
-                            'กรองไฟล์ตามชื่อและแท็กภายในโฟลเดอร์และโฟลเดอร์ย่อยปัจจุบัน โหมดตัวกรอง: ข้อความและแท็กผสมจะจับคู่ทุกเงื่อนไข (เช่น "โปรเจค #งาน") โหมดแท็ก: การค้นหาด้วยแท็กเท่านั้นรองรับตัวดำเนินการ AND/OR (เช่น "#งาน AND #ด่วน", "#โปรเจค OR #ส่วนตัว") Cmd/Ctrl+คลิกที่แท็กเพื่อเพิ่มด้วย AND, Cmd/Ctrl+Shift+คลิกเพื่อเพิ่มด้วย OR รองรับการยกเว้นด้วยคำนำหน้า ! (เช่น !ฉบับร่าง, !#เก็บถาวร) และค้นหาโน้ตที่ไม่มีแท็กด้วย !#'
-                    },
-                    omnisearch: {
-                        title: 'Omnisearch:',
-                        description:
-                            'การค้นหาข้อความเต็มที่ค้นหาทั้งห้องนิรภัย จากนั้นกรองผลลัพธ์เพื่อแสดงเฉพาะไฟล์จากโฟลเดอร์ โฟลเดอร์ย่อย หรือแท็กที่เลือก ต้องติดตั้งปลั๊กอิน Omnisearch - หากไม่พร้อมใช้งาน การค้นหาจะย้อนกลับไปใช้การค้นหาตัวกรองโดยอัตโนมัติ',
-                        warningNotInstalled: 'ไม่ได้ติดตั้งปลั๊กอิน Omnisearch ใช้การค้นหาตัวกรอง',
-                        limitations: {
-                            title: 'ข้อจำกัดที่ทราบ:',
-                            performance: 'ประสิทธิภาพ: อาจช้า โดยเฉพาะเมื่อค้นหาน้อยกว่า 3 ตัวอักษรในห้องนิรภัยขนาดใหญ่',
-                            pathBug:
-                                'ข้อบกพร่องเส้นทาง: ไม่สามารถค้นหาในเส้นทางที่มีอักขระ non-ASCII และไม่ค้นหาเส้นทางย่อยอย่างถูกต้อง ส่งผลต่อไฟล์ที่ปรากฏในผลการค้นหา',
-                            limitedResults:
-                                'ผลลัพธ์จำกัด: เนื่องจาก Omnisearch ค้นหาทั้งห้องนิรภัยและส่งคืนจำนวนผลลัพธ์ที่จำกัดก่อนการกรอง ไฟล์ที่เกี่ยวข้องจากโฟลเดอร์ปัจจุบันอาจไม่ปรากฏหากมีผลลัพธ์มากเกินไปในที่อื่นในห้องนิรภัย',
-                            previewText:
-                                'ข้อความตัวอย่าง: ตัวอย่างโน้ตถูกแทนที่ด้วยข้อความผลลัพธ์ Omnisearch ซึ่งอาจไม่แสดงการเน้นผลการค้นหาจริงหากปรากฏในที่อื่นในไฟล์'
-                        }
-                    }
-                }
-            },
             listPaneTitle: {
                 name: 'ชื่อแผงรายการ',
                 desc: 'เลือกตำแหน่งที่จะแสดงชื่อแผงรายการ',
@@ -721,6 +865,16 @@ export const STRINGS_TH = {
                 name: 'คุณสมบัติสำหรับเรียงลำดับ',
                 desc: 'ใช้กับการเรียงลำดับตามคุณสมบัติ โน้ตที่มีคุณสมบัติ frontmatter นี้จะแสดงก่อนและเรียงตามค่าคุณสมบัติ อาร์เรย์จะรวมเป็นค่าเดียว',
                 placeholder: 'order'
+            },
+            propertySortSecondary: {
+                name: 'การเรียงลำดับรอง',
+                desc: 'ใช้กับการเรียงตามคุณสมบัติ เมื่อโน้ตมีค่าคุณสมบัติเดียวกันหรือไม่มีค่าคุณสมบัติ',
+                options: {
+                    title: 'ชื่อเรื่อง',
+                    filename: 'ชื่อไฟล์',
+                    created: 'วันที่สร้าง',
+                    modified: 'วันที่แก้ไข'
+                }
             },
             revealFileOnListChanges: {
                 name: 'เลื่อนไปยังไฟล์ที่เลือกเมื่อรายการเปลี่ยนแปลง',
@@ -765,7 +919,11 @@ export const STRINGS_TH = {
             },
             showFileIcons: {
                 name: 'แสดงไอคอนไฟล์',
-                desc: 'แสดงไอคอนไฟล์พร้อมระยะห่างชิดซ้าย การปิดใช้งานจะนำไอคอนและการเยื้องออก ลำดับความสำคัญ: กำหนดเอง > ชื่อไฟล์ > ประเภทไฟล์ > ค่าเริ่มต้น'
+                desc: 'แสดงไอคอนไฟล์พร้อมระยะห่างชิดซ้าย การปิดใช้งานจะนำไอคอนและการเยื้องออก ลำดับความสำคัญ: ไอคอนงานที่ยังไม่เสร็จ > ไอคอนกำหนดเอง > ไอคอนชื่อไฟล์ > ไอคอนประเภทไฟล์ > ไอคอนค่าเริ่มต้น'
+            },
+            showFileIconUnfinishedTask: {
+                name: 'ไอคอนงานที่ยังไม่เสร็จ',
+                desc: 'แสดงไอคอนงานเมื่อโน้ตมีงานที่ยังไม่เสร็จ'
             },
             showFilenameMatchIcons: {
                 name: 'ไอคอนตามชื่อไฟล์',
@@ -863,9 +1021,17 @@ export const STRINGS_TH = {
                 navigationLabel: 'แถบเครื่องมือนำทาง',
                 listLabel: 'แถบเครื่องมือรายการ'
             },
+            createNewNotesInNewTab: {
+                name: 'เปิดโน้ตใหม่ในแท็บใหม่',
+                desc: 'เมื่อเปิดใช้งาน คำสั่งสร้างโน้ตใหม่จะเปิดโน้ตในแท็บใหม่ เมื่อปิดใช้งาน โน้ตจะแทนที่แท็บปัจจุบัน'
+            },
             autoRevealActiveNote: {
                 name: 'แสดงโน้ตที่ใช้งานอัตโนมัติ',
                 desc: 'แสดงโน้ตอัตโนมัติเมื่อเปิดจาก Quick Switcher, ลิงก์, หรือการค้นหา'
+            },
+            autoRevealShortestPath: {
+                name: 'ใช้เส้นทางสั้นที่สุด',
+                desc: 'เปิด: การเปิดเผยอัตโนมัติจะเลือกโฟลเดอร์หรือแท็กบรรพบุรุษที่ใกล้ที่สุดที่มองเห็นได้ ปิด: การเปิดเผยอัตโนมัติจะเลือกโฟลเดอร์จริงและแท็กที่ตรงกันของไฟล์'
             },
             autoRevealIgnoreRightSidebar: {
                 name: 'ละเว้นเหตุการณ์จากแถบด้านขวา',
@@ -884,7 +1050,7 @@ export const STRINGS_TH = {
                 name: 'ปิดการเลื่อนอัตโนมัติสำหรับทางลัด',
                 desc: 'อย่าเลื่อนแผงนำทางเมื่อคลิกรายการในทางลัด'
             },
-            autoExpandFoldersTags: {
+            autoExpandNavItems: {
                 name: 'ขยายเมื่อเลือก',
                 desc: 'ขยายโฟลเดอร์และแท็กเมื่อเลือก ในโหมดแผงเดียว การเลือกครั้งแรกจะขยาย การเลือกครั้งที่สองจะแสดงไฟล์'
             },
@@ -927,6 +1093,14 @@ export const STRINGS_TH = {
                 name: 'แสดงโน้ตล่าสุด',
                 desc: 'แสดงส่วนโน้ตล่าสุดในแผงนำทาง'
             },
+            hideRecentNotes: {
+                name: 'ซ่อนโน้ต',
+                desc: 'เลือกประเภทโน้ตที่ต้องการซ่อนในส่วนโน้ตล่าสุด',
+                options: {
+                    none: 'ไม่มี',
+                    folderNotes: 'โน้ตโฟลเดอร์'
+                }
+            },
             recentNotesCount: {
                 name: 'จำนวนโน้ตล่าสุด',
                 desc: 'จำนวนโน้ตล่าสุดที่จะแสดง'
@@ -941,6 +1115,14 @@ export const STRINGS_TH = {
                 options: {
                     leftSidebar: 'แถบด้านซ้าย',
                     rightSidebar: 'แถบด้านขวา'
+                }
+            },
+            calendarLeftPlacement: {
+                name: 'ตำแหน่งแผงเดี่ยว',
+                desc: 'ตำแหน่งที่แสดงปฏิทินในโหมดแผงเดี่ยว',
+                options: {
+                    navigationPane: 'แผงนำทาง',
+                    below: 'ใต้แผง'
                 }
             },
             calendarLocale: {
@@ -960,6 +1142,10 @@ export const STRINGS_TH = {
                     thuFri: 'วันพฤหัสบดีและวันศุกร์'
                 }
             },
+            showInfoButtons: {
+                name: 'แสดงปุ่มข้อมูล',
+                desc: 'แสดงปุ่มข้อมูลในแถบค้นหาและส่วนหัวปฏิทิน'
+            },
             calendarWeeksToShow: {
                 name: 'สัปดาห์ที่แสดงในแถบด้านซ้าย',
                 desc: 'ปฏิทินในแถบด้านขวาจะแสดงเต็มเดือนเสมอ',
@@ -971,7 +1157,7 @@ export const STRINGS_TH = {
             },
             calendarHighlightToday: {
                 name: 'ไฮไลต์วันที่วันนี้',
-                desc: 'แสดงวงกลมสีแดงและข้อความตัวหนาบนวันที่วันนี้'
+                desc: 'ไฮไลต์วันที่วันนี้ด้วยสีพื้นหลังและข้อความตัวหนา'
             },
             calendarShowFeatureImage: {
                 name: 'แสดงรูปภาพเด่น',
@@ -984,6 +1170,10 @@ export const STRINGS_TH = {
             calendarShowQuarter: {
                 name: 'แสดงไตรมาส',
                 desc: 'เพิ่มป้ายไตรมาสในส่วนหัวปฏิทิน'
+            },
+            calendarShowYearCalendar: {
+                name: 'แสดงปฏิทินรายปี',
+                desc: 'แสดงการนำทางปีและตารางเดือนในแถบด้านข้างขวา'
             },
             calendarConfirmBeforeCreate: {
                 name: 'ยืนยันก่อนสร้าง',
@@ -1000,6 +1190,7 @@ export const STRINGS_TH = {
                     dailyNotes: 'โฟลเดอร์และรูปแบบวันที่ถูกกำหนดค่าในปลั๊กอิน Daily Notes หลัก'
                 }
             },
+
             calendarCustomRootFolder: {
                 name: 'โฟลเดอร์หลัก',
                 desc: 'โฟลเดอร์ฐานสำหรับบันทึกตามรอบ รูปแบบวันที่สามารถรวมโฟลเดอร์ย่อยได้ เปลี่ยนแปลงตามโปรไฟล์ห้องนิรภัยที่เลือก',
@@ -1012,10 +1203,11 @@ export const STRINGS_TH = {
             },
             calendarCustomFilePattern: {
                 name: 'โน้ตรายวัน',
-                desc: 'กำหนดเส้นทางโดยใช้รูปแบบวันที่ Moment ใส่ชื่อโฟลเดอร์ย่อยในวงเล็บเหลี่ยม เช่น [Work]/YYYY คลิกไอคอนเทมเพลตเพื่อตั้งค่าเทมเพลต',
+                desc: 'กำหนดเส้นทางโดยใช้รูปแบบวันที่ Moment ใส่ชื่อโฟลเดอร์ย่อยในวงเล็บเหลี่ยม เช่น [Work]/YYYY คลิกไอคอนเทมเพลตเพื่อตั้งค่าเทมเพลต ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในทั่วไป > เทมเพลต',
                 momentDescPrefix: 'กำหนดเส้นทางโดยใช้ ',
                 momentLinkText: 'รูปแบบวันที่ Moment',
-                momentDescSuffix: ' ใส่ชื่อโฟลเดอร์ย่อยในวงเล็บเหลี่ยม เช่น [Work]/YYYY คลิกไอคอนเทมเพลตเพื่อตั้งค่าเทมเพลต',
+                momentDescSuffix:
+                    ' ใส่ชื่อโฟลเดอร์ย่อยในวงเล็บเหลี่ยม เช่น [Work]/YYYY คลิกไอคอนเทมเพลตเพื่อตั้งค่าเทมเพลต ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในทั่วไป > เทมเพลต',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'รูปแบบปัจจุบัน: {path}',
                 parsingError: 'แพทเทิร์นต้องสามารถฟอร์แมตและพาร์สกลับเป็นวันที่แบบเต็ม (ปี เดือน วัน) ได้'
@@ -1109,9 +1301,9 @@ export const STRINGS_TH = {
                 }
             },
             excludedNotes: {
-                name: 'ซ่อนโน้ตที่มีคุณสมบัติ (โปรไฟล์ห้องนิรภัย)',
-                desc: 'รายการคุณสมบัติ frontmatter คั่นด้วยเครื่องหมายจุลภาค โน้ตที่มีคุณสมบัติเหล่านี้จะถูกซ่อน (เช่น ฉบับร่าง, ส่วนตัว, เก็บถาวร)',
-                placeholder: 'ฉบับร่าง, ส่วนตัว'
+                name: 'ซ่อนโน้ตตามกฎคุณสมบัติ (โปรไฟล์ห้องนิรภัย)',
+                desc: 'รายการกฎ frontmatter คั่นด้วยเครื่องหมายจุลภาค ใช้รูปแบบ `key` หรือ `key=value` (เช่น status=done, published=true, archived)',
+                placeholder: 'status=done, published=true, archived'
             },
             excludedFileNamePatterns: {
                 name: 'ซ่อนไฟล์ (โปรไฟล์ห้องนิรภัย)',
@@ -1184,49 +1376,58 @@ export const STRINGS_TH = {
                 name: 'แสดงแท็กไฟล์ในโหมดกะทัดรัด',
                 desc: 'แสดงแท็กเมื่อวันที่ ตัวอย่าง และรูปภาพถูกซ่อน'
             },
-            customPropertyType: {
-                name: 'ประเภทคุณสมบัติ',
-                desc: 'เลือกคุณสมบัติกำหนดเองที่จะแสดงในรายการไฟล์',
+            showFileProperties: {
+                name: 'แสดงคุณสมบัติไฟล์',
+                desc: 'แสดงคุณสมบัติที่คลิกได้ในรายการไฟล์'
+            },
+            colorFileProperties: {
+                name: 'ระบายสีคุณสมบัติไฟล์',
+                desc: 'ใช้สีคุณสมบัติกับป้ายคุณสมบัติบนรายการไฟล์'
+            },
+            prioritizeColoredFileProperties: {
+                name: 'แสดงคุณสมบัติที่มีสีก่อน',
+                desc: 'เรียงคุณสมบัติที่มีสีก่อนคุณสมบัติอื่นบนรายการไฟล์'
+            },
+            showFilePropertiesInCompactMode: {
+                name: 'แสดงคุณสมบัติในโหมดกะทัดรัด',
+                desc: 'แสดงคุณสมบัติเมื่อโหมดกะทัดรัดเปิดใช้งาน'
+            },
+            notePropertyType: {
+                name: 'คุณสมบัติโน้ต',
+                desc: 'เลือกคุณสมบัติโน้ตที่จะแสดงในรายการไฟล์',
                 options: {
                     frontmatter: 'คุณสมบัติ Frontmatter',
                     wordCount: 'จำนวนคำ',
                     none: 'ไม่มี'
                 }
             },
-            customPropertyFields: {
-                name: 'คุณสมบัติที่จะแสดง',
-                desc: 'รายการคุณสมบัติ frontmatter คั่นด้วยเครื่องหมายจุลภาคเพื่อแสดงเป็นป้าย คุณสมบัติที่มีค่าเป็นรายการจะแสดงหนึ่งป้ายต่อค่า ค่าในรูปแบบ [[wikilink]] จะแสดงเป็นลิงก์ที่คลิกได้',
-                placeholder: 'สถานะ, ประเภท, หมวดหมู่'
+            propertyFields: {
+                name: 'คีย์คุณสมบัติ (โปรไฟล์ห้องนิรภัย)',
+                desc: 'คีย์คุณสมบัติ frontmatter พร้อมการตั้งค่าการแสดงผลแต่ละคีย์สำหรับการนำทางและรายการไฟล์',
+                addButtonTooltip: 'กำหนดค่าคีย์คุณสมบัติ',
+                noneConfigured: 'ไม่มีคุณสมบัติที่กำหนดค่า',
+                singleConfigured: 'กำหนดค่าคุณสมบัติ 1 รายการ: {properties}',
+                multipleConfigured: 'กำหนดค่าคุณสมบัติ {count} รายการ: {properties}'
             },
-            showCustomPropertiesOnSeparateRows: {
+            showPropertiesOnSeparateRows: {
                 name: 'แสดงคุณสมบัติแยกเป็นบรรทัด',
                 desc: 'แสดงแต่ละคุณสมบัติในบรรทัดของตัวเอง'
             },
-            customPropertyColorMap: {
-                name: 'สีคุณสมบัติ',
-                desc: 'กำหนดคุณสมบัติ frontmatter ให้กับสีป้าย หนึ่งการกำหนดต่อบรรทัด: คุณสมบัติ=สี',
-                placeholder: '# คุณสมบัติ=สี\nstatus=#ff0000\ntype=#00ff00',
-                editTooltip: 'แก้ไขการกำหนด'
-            },
-            showCustomPropertyInCompactMode: {
-                name: 'แสดงคุณสมบัติกำหนดเองในโหมดกะทัดรัด',
-                desc: 'แสดงคุณสมบัติกำหนดเองเมื่อวันที่ ตัวอย่าง และรูปภาพถูกซ่อน'
-            },
             dateFormat: {
                 name: 'รูปแบบวันที่',
-                desc: 'รูปแบบสำหรับแสดงวันที่ (ใช้รูปแบบ date-fns)',
-                placeholder: 'd MMM yyyy',
-                help: 'รูปแบบทั่วไป:\nd MMM yyyy = 25 พ.ค. 2022\ndd/MM/yyyy = 25/05/2022\nyyyy-MM-dd = 2022-05-25\n\nโทเคน:\nyyyy/yy = ปี\nMMMM/MMM/MM = เดือน\ndd/d = วัน\nEEEE/EEE = วันในสัปดาห์',
-                helpTooltip: 'รูปแบบโดยใช้ date-fns',
-                dateFnsLinkText: 'รูปแบบ date-fns'
+                desc: 'รูปแบบสำหรับแสดงวันที่ (ใช้รูปแบบ Moment)',
+                placeholder: 'D MMM YYYY',
+                help: 'รูปแบบทั่วไป:\nD MMM YYYY = 25 พ.ค. 2022\nDD/MM/YYYY = 25/05/2022\nYYYY-MM-DD = 2022-05-25\n\nโทเคน:\nYYYY/YY = ปี\nMMMM/MMM/MM = เดือน\nDD/D = วัน\ndddd/ddd = วันในสัปดาห์',
+                helpTooltip: 'รูปแบบโดยใช้ Moment',
+                momentLinkText: 'รูปแบบ Moment'
             },
             timeFormat: {
                 name: 'รูปแบบเวลา',
-                desc: 'รูปแบบสำหรับแสดงเวลา (ใช้รูปแบบ date-fns)',
+                desc: 'รูปแบบสำหรับแสดงเวลา (ใช้รูปแบบ Moment)',
                 placeholder: 'HH:mm',
                 help: 'รูปแบบทั่วไป:\nHH:mm = 14:30 (24 ชั่วโมง)\nh:mm a = 2:30 PM (12 ชั่วโมง)\nHH:mm:ss = 14:30:45\nh:mm:ss a = 2:30:45 PM\n\nโทเคน:\nHH/H = 24 ชั่วโมง\nhh/h = 12 ชั่วโมง\nmm = นาที\nss = วินาที\na = AM/PM',
-                helpTooltip: 'รูปแบบโดยใช้ date-fns',
-                dateFnsLinkText: 'รูปแบบ date-fns'
+                helpTooltip: 'รูปแบบโดยใช้ Moment',
+                momentLinkText: 'รูปแบบ Moment'
             },
             showFilePreview: {
                 name: 'แสดงตัวอย่างโน้ต',
@@ -1285,7 +1486,7 @@ export const STRINGS_TH = {
             featureImageExcludeProperties: {
                 name: 'ยกเว้นโน้ตที่มีคุณสมบัติ',
                 desc: 'รายการคุณสมบัติ frontmatter คั่นด้วยเครื่องหมายจุลภาค โน้ตที่มีคุณสมบัติใดๆ เหล่านี้จะไม่เก็บภาพเด่น',
-                placeholder: 'ส่วนตัว, ลับ'
+                placeholder: 'private, confidential'
             },
 
             downloadExternalFeatureImages: {
@@ -1358,6 +1559,10 @@ export const STRINGS_TH = {
                 name: 'ปรับขนาดข้อความตามความสูงรายการ',
                 desc: 'ลดขนาดข้อความนำทางเมื่อความสูงรายการลดลง'
             },
+            showIndentGuides: {
+                name: 'แสดงเส้นนำการเยื้อง',
+                desc: 'แสดงเส้นนำการเยื้องสำหรับโฟลเดอร์และแท็กที่ซ้อนกัน'
+            },
             navRootSpacing: {
                 name: 'ระยะห่างรายการหลัก',
                 desc: 'ระยะห่างระหว่างโฟลเดอร์และแท็กระดับหลัก'
@@ -1397,6 +1602,36 @@ export const STRINGS_TH = {
                 name: 'เก็บคุณสมบัติแท็กหลังนำแท็กสุดท้ายออก',
                 desc: 'เก็บคุณสมบัติแท็ก frontmatter เมื่อนำแท็กทั้งหมดออก เมื่อปิดใช้งาน คุณสมบัติแท็กจะถูกลบออกจาก frontmatter'
             },
+            showProperties: {
+                name: 'แสดงคุณสมบัติ',
+                desc: 'แสดงส่วนคุณสมบัติในตัวนำทาง',
+                propertyKeysInfoPrefix: 'กำหนดค่าคุณสมบัติใน ',
+                propertyKeysInfoLinkText: 'ทั่วไป > คีย์คุณสมบัติ',
+                propertyKeysInfoSuffix: ''
+            },
+            showPropertyIcons: {
+                name: 'แสดงไอคอนคุณสมบัติ',
+                desc: 'แสดงไอคอนข้างคุณสมบัติในแผงนำทาง'
+            },
+            inheritPropertyColors: {
+                name: 'สืบทอดสีคุณสมบัติ',
+                desc: 'ค่าคุณสมบัติจะสืบทอดสีและพื้นหลังจากคีย์คุณสมบัติ'
+            },
+            propertySortOrder: {
+                name: 'ลำดับการเรียงคุณสมบัติ',
+                desc: 'คลิกขวาที่คุณสมบัติใดก็ได้เพื่อตั้งค่าลำดับการเรียงที่แตกต่างสำหรับค่าต่างๆ',
+                options: {
+                    alphaAsc: 'ก ถึง ฮ',
+                    alphaDesc: 'ฮ ถึง ก',
+                    frequency: 'ความถี่',
+                    lowToHigh: 'ต่ำไปสูง',
+                    highToLow: 'สูงไปต่ำ'
+                }
+            },
+            showAllPropertiesFolder: {
+                name: 'แสดงโฟลเดอร์คุณสมบัติ',
+                desc: 'แสดง "คุณสมบัติ" เป็นโฟลเดอร์ที่พับได้'
+            },
             hiddenTags: {
                 name: 'ซ่อนแท็ก (โปรไฟล์ห้องนิรภัย)',
                 desc: 'รายการรูปแบบแท็กคั่นด้วยเครื่องหมายจุลภาค รูปแบบชื่อ: tag* (ขึ้นต้นด้วย), *tag (ลงท้ายด้วย) รูปแบบเส้นทาง: archive (แท็กและลูกหลาน), archive/* (ลูกหลานเท่านั้น), projects/*/drafts (wildcard ตรงกลาง)',
@@ -1426,10 +1661,13 @@ export const STRINGS_TH = {
                 desc: 'ชื่อโน้ตโฟลเดอร์ไม่มีนามสกุล เว้นว่างเพื่อใช้ชื่อเดียวกับโฟลเดอร์',
                 placeholder: 'index'
             },
-            folderNoteProperties: {
-                name: 'คุณสมบัติโน้ตโฟลเดอร์',
-                desc: 'YAML frontmatter ที่เพิ่มในโน้ตโฟลเดอร์ใหม่ เครื่องหมาย --- จะถูกเพิ่มโดยอัตโนมัติ',
-                placeholder: 'theme: dark\nfoldernote: true'
+            folderNoteNamePattern: {
+                name: 'รูปแบบชื่อโน้ตโฟลเดอร์',
+                desc: 'รูปแบบชื่อสำหรับโน้ตโฟลเดอร์โดยไม่มีนามสกุล ใช้ {{folder}} เพื่อแทรกชื่อโฟลเดอร์ เมื่อตั้งค่าแล้ว ชื่อโน้ตโฟลเดอร์จะไม่ถูกนำไปใช้'
+            },
+            folderNoteTemplate: {
+                name: 'เทมเพลตโน้ตโฟลเดอร์',
+                desc: 'ไฟล์เทมเพลตสำหรับโน้ตโฟลเดอร์ Markdown ใหม่ ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในทั่วไป > เทมเพลต'
             },
             openFolderNotesInNewTab: {
                 name: 'เปิดโน้ตโฟลเดอร์ในแท็บใหม่',
@@ -1447,6 +1685,15 @@ export const STRINGS_TH = {
                 name: 'ยืนยันก่อนลบ',
                 desc: 'แสดงกล่องยืนยันเมื่อลบโน้ตหรือโฟลเดอร์'
             },
+            deleteAttachments: {
+                name: 'ลบไฟล์แนบเมื่อลบไฟล์',
+                desc: 'ลบไฟล์แนบที่เชื่อมโยงกับไฟล์ที่ถูกลบโดยอัตโนมัติหากไม่ได้ใช้ในที่อื่น',
+                options: {
+                    ask: 'ถามทุกครั้ง',
+                    always: 'เสมอ',
+                    never: 'ไม่เลย'
+                }
+            },
             metadataCleanup: {
                 name: 'ล้างเมตาดาต้า',
                 desc: 'ลบเมตาดาต้ากำพร้าที่เหลืออยู่เมื่อไฟล์ โฟลเดอร์ หรือแท็กถูกลบ ย้าย หรือเปลี่ยนชื่อนอก Obsidian มีผลเฉพาะไฟล์การตั้งค่า Notebook Navigator',
@@ -1454,7 +1701,8 @@ export const STRINGS_TH = {
                 error: 'ล้างการตั้งค่าล้มเหลว',
                 loading: 'กำลังตรวจสอบเมตาดาต้า...',
                 statusClean: 'ไม่มีเมตาดาต้าให้ล้าง',
-                statusCounts: 'รายการกำพร้า: {folders} โฟลเดอร์, {tags} แท็ก, {files} ไฟล์, {pinned} ปักหมุด, {separators} ตัวคั่น'
+                statusCounts:
+                    'รายการกำพร้า: {folders} โฟลเดอร์, {tags} แท็ก, {properties} คุณสมบัติ, {files} ไฟล์, {pinned} ปักหมุด, {separators} ตัวคั่น'
             },
             rebuildCache: {
                 name: 'สร้างแคชใหม่',
@@ -1463,18 +1711,6 @@ export const STRINGS_TH = {
                 error: 'สร้างแคชใหม่ล้มเหลว',
                 indexingTitle: 'กำลังสร้างดัชนีห้องนิรภัย...',
                 progress: 'Notebook Navigator กำลังอัปเดตแคช.'
-            },
-            hotkeys: {
-                intro: 'แก้ไข <โฟลเดอร์ปลั๊กอิน>/notebook-navigator/data.json เพื่อปรับแต่งปุ่มลัด Notebook Navigator เปิดไฟล์และค้นหาส่วน "keyboardShortcuts" แต่ละรายการใช้โครงสร้างนี้:',
-                example: '"pane:move-up": [ { "key": "ArrowUp", "modifiers": [] }, { "key": "K", "modifiers": [] } ]',
-                modifierList: [
-                    '"Mod" = Cmd (macOS) / Ctrl (Win/Linux)',
-                    '"Alt" = Alt/Option',
-                    '"Shift" = Shift',
-                    '"Ctrl" = Control (แนะนำ "Mod" สำหรับข้ามแพลตฟอร์ม)'
-                ],
-                guidance:
-                    'เพิ่มการจับคู่หลายรายการเพื่อรองรับปุ่มสำรอง เช่น binding ArrowUp และ K ที่แสดงด้านบน รวมตัวปรับแต่งในรายการเดียวโดยระบุแต่ละค่า เช่น "modifiers": ["Mod", "Shift"] ลำดับคีย์บอร์ดเช่น "gg" หรือ "dd" ไม่รองรับ โหลด Obsidian ใหม่หลังแก้ไขไฟล์'
             },
             externalIcons: {
                 downloadButton: 'ดาวน์โหลด',
@@ -1502,9 +1738,10 @@ export const STRINGS_TH = {
                 desc: 'ฟิลด์ frontmatter สำหรับสีไฟล์ เว้นว่างเพื่อใช้สีที่เก็บในการตั้งค่า',
                 placeholder: 'color'
             },
-            frontmatterSaveMetadata: {
-                name: 'บันทึกไอคอนและสีไปยัง frontmatter',
-                desc: 'เขียนไอคอนและสีไฟล์ไปยัง frontmatter อัตโนมัติโดยใช้ฟิลด์ที่กำหนดค่าด้านบน'
+            frontmatterBackgroundField: {
+                name: 'ฟิลด์พื้นหลัง',
+                desc: 'ฟิลด์ frontmatter สำหรับสีพื้นหลัง เว้นว่างเพื่อใช้สีพื้นหลังที่เก็บในการตั้งค่า',
+                placeholder: 'background'
             },
             frontmatterMigration: {
                 name: 'ย้ายไอคอนและสีจากการตั้งค่า',
@@ -1519,7 +1756,7 @@ export const STRINGS_TH = {
             frontmatterNameField: {
                 name: 'ฟิลด์ชื่อ (หลายรายการ)',
                 desc: 'รายการฟิลด์ frontmatter คั่นด้วยเครื่องหมายจุลภาค ใช้ค่าแรกที่ไม่ว่าง กลับไปใช้ชื่อไฟล์',
-                placeholder: 'หัวข้อ, ชื่อ'
+                placeholder: 'title, name'
             },
             frontmatterCreatedField: {
                 name: 'ฟิลด์ timestamp สร้าง',
@@ -1534,9 +1771,9 @@ export const STRINGS_TH = {
             frontmatterDateFormat: {
                 name: 'รูปแบบ timestamp',
                 desc: 'รูปแบบที่ใช้แยกวิเคราะห์ timestamp ใน frontmatter เว้นว่างเพื่อใช้รูปแบบ ISO 8601',
-                helpTooltip: 'รูปแบบโดยใช้ date-fns',
-                dateFnsLinkText: 'รูปแบบ date-fns',
-                help: "รูปแบบทั่วไป:\nyyyy-MM-dd'T'HH:mm:ss → 2025-01-04T14:30:45\nyyyy-MM-dd'T'HH:mm:ssXXX → 2025-08-07T16:53:39+02:00\ndd/MM/yyyy HH:mm:ss → 04/01/2025 14:30:45\nMM/dd/yyyy h:mm:ss a → 01/04/2025 2:30:45 PM"
+                helpTooltip: 'รูปแบบโดยใช้ Moment',
+                momentLinkText: 'รูปแบบ Moment',
+                help: 'รูปแบบทั่วไป:\nYYYY-MM-DD[T]HH:mm:ss → 2025-01-04T14:30:45\nYYYY-MM-DD[T]HH:mm:ssZ → 2025-08-07T16:53:39+02:00\nDD/MM/YYYY HH:mm:ss → 04/01/2025 14:30:45\nMM/DD/YYYY h:mm:ss a → 01/04/2025 2:30:45 PM'
             },
             supportDevelopment: {
                 name: 'สนับสนุนการพัฒนา',

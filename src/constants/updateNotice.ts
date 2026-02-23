@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  */
 
 /** Duration to display update notices before starting fade-out */
-export const UPDATE_NOTICE_DISPLAY_DURATION_MS = 7000;
+export const UPDATE_NOTICE_DISPLAY_DURATION_MS = 5000;
 
 /** Duration of the fade-out animation for update notices */
 export const UPDATE_NOTICE_FADE_DURATION_MS = 500;

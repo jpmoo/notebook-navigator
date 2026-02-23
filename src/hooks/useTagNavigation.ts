@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import { useSettingsState } from '../context/SettingsContext';
 import { useUIState, useUIDispatch } from '../context/UIStateContext';
 import { useFileCache } from '../context/StorageContext';
 import { navigateToTag as navigateToTagInternal, type NavigateToTagOptions } from '../utils/tagNavigation';
+import { navigateToProperty as navigateToPropertyInternal, type NavigateToPropertyOptions } from '../utils/propertyNavigation';
 
 /**
  * Custom hook that provides tag navigation functionality.
@@ -38,7 +39,7 @@ export function useTagNavigation() {
     const expansionDispatch = useExpansionDispatch();
     const uiState = useUIState();
     const uiDispatch = useUIDispatch();
-    const { findTagInTree } = useFileCache();
+    const { findTagInTree, getPropertyTree } = useFileCache();
 
     /**
      * Navigates to a tag, expanding parent tags if it's hierarchical.
@@ -86,7 +87,54 @@ export function useTagNavigation() {
         ]
     );
 
+    /**
+     * Navigates to a property key or value node.
+     *
+     * @param propertyNodeId - Property key/value node id
+     */
+    const navigateToProperty = useCallback(
+        (propertyNodeId: string, options?: NavigateToPropertyOptions) => {
+            navigateToPropertyInternal(
+                {
+                    showProperties: settings.showProperties,
+                    showAllPropertiesFolder: settings.showAllPropertiesFolder,
+                    propertyTree: getPropertyTree(),
+                    expandedProperties: expansionState.expandedProperties,
+                    expandedVirtualFolders: expansionState.expandedVirtualFolders,
+                    expansionDispatch,
+                    selectionDispatch,
+                    uiState: {
+                        singlePane: uiState.singlePane,
+                        currentSinglePaneView: uiState.currentSinglePaneView,
+                        focusedPane: uiState.focusedPane
+                    },
+                    uiDispatch
+                },
+                propertyNodeId,
+                {
+                    ...options,
+                    preserveNavigationFocus: options?.preserveNavigationFocus ?? false,
+                    requirePropertyInTree: options?.requirePropertyInTree ?? false
+                }
+            );
+        },
+        [
+            expansionDispatch,
+            expansionState.expandedProperties,
+            expansionState.expandedVirtualFolders,
+            getPropertyTree,
+            selectionDispatch,
+            settings.showAllPropertiesFolder,
+            settings.showProperties,
+            uiDispatch,
+            uiState.currentSinglePaneView,
+            uiState.focusedPane,
+            uiState.singlePane
+        ]
+    );
+
     return {
-        navigateToTag
+        navigateToTag,
+        navigateToProperty
     };
 }

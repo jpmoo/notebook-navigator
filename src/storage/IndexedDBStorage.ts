@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,186 +18,45 @@
 
 import { STORAGE_KEYS } from '../types';
 import { localStorage } from '../utils/localStorage';
-import {
-    DEFAULT_FEATURE_IMAGE_CACHE_MAX,
-    FEATURE_IMAGE_STORE_NAME,
-    FeatureImageBlobStore,
-    computeFeatureImageMutation
-} from './FeatureImageBlobStore';
-import { MemoryFileCache } from './MemoryFileCache';
-import { isPlainObjectRecordValue } from '../utils/recordUtils';
+import type { ContentProviderType, FileContentType } from '../interfaces/IContentProvider';
 import { isMarkdownPath } from '../utils/fileTypeUtils';
-import type { ContentProviderType } from '../interfaces/IContentProvider';
-import { getProviderProcessedMtimeField } from './providerMtime';
-import { LIMITS } from '../constants/limits';
+import { DEFAULT_FEATURE_IMAGE_CACHE_MAX, FEATURE_IMAGE_STORE_NAME, FeatureImageBlobStore } from './FeatureImageBlobStore';
+import { MemoryFileCache } from './MemoryFileCache';
+import { FeatureImageCoordinator } from './indexeddb/featureImageOps';
+import { PreviewTextCoordinator } from './indexeddb/previewTextOps';
+import { hydrateCacheFromMainStore } from './indexeddb/cacheHydration';
+import {
+    DB_CONTENT_VERSION,
+    DB_SCHEMA_VERSION,
+    DEFAULT_PREVIEW_LOAD_MAX_BATCH,
+    DEFAULT_PREVIEW_TEXT_CACHE_MAX_ENTRIES,
+    PREVIEW_STORE_NAME,
+    STORE_NAME
+} from './indexeddb/constants';
+import {
+    isVersionError as isVersionErrorValue,
+    normalizeIdbError as normalizeIdbErrorValue,
+    rejectWithTransactionError as rejectWithTransactionErrorValue
+} from './indexeddb/idbErrors';
+import { normalizeFileData as normalizeFileDataValue } from './indexeddb/normalizeFileData';
+import { handleUpgradeNeeded } from './indexeddb/schemaUpgrade';
+import { createDefaultFileData, METADATA_SENTINEL } from './indexeddb/fileData';
+import type { PropertyItem, PropertyValueKind, FeatureImageStatus, FileContentChange, FileData, PreviewStatus } from './indexeddb/fileData';
+import {
+    runBatchUpdateFileContentAndProviderProcessedMtimes,
+    type BatchUpdateFileContentAndProviderProcessedMtimesParams
+} from './indexeddb/batchContentUpdateOperation';
+import {
+    runBatchClearAllFileContent,
+    runBatchClearFeatureImageContent,
+    runBatchClearFileContent,
+    runClearFileContent,
+    runUpdateFileContent,
+    runUpdateFileMetadata
+} from './indexeddb/contentMutationOperations';
 
-const STORE_NAME = 'keyvaluepairs';
-const PREVIEW_STORE_NAME = 'filePreviews';
-const DB_SCHEMA_VERSION = 3; // IndexedDB structure version
-const DB_CONTENT_VERSION = 4; // Data format version
-
-export type FeatureImageStatus = 'unprocessed' | 'none' | 'has';
-export type PreviewStatus = 'unprocessed' | 'none' | 'has';
-
-export interface CustomPropertyItem {
-    // Frontmatter field name that produced the value.
-    // Used at render time for per-property color rules (normalized via `casefold()` before lookup).
-    fieldKey: string;
-    // Rendered pill text (raw frontmatter value after frontmatter flattening).
-    value: string;
-}
-
-function isCustomPropertyItem(value: unknown): value is CustomPropertyItem {
-    if (!isPlainObjectRecordValue(value)) {
-        return false;
-    }
-
-    // Validation is applied when reading persisted file data.
-    // Invalid entries cause the record to be treated as missing (`customProperty = null`) so providers can regenerate it.
-    // Persisted data must remain JSON-compatible.
-    const rawFieldKey = value['fieldKey'];
-    if (typeof rawFieldKey !== 'string' || rawFieldKey.trim().length === 0) {
-        return false;
-    }
-
-    const rawValue = value['value'];
-    if (typeof rawValue !== 'string') {
-        return false;
-    }
-
-    return true;
-}
-
-function isCustomPropertyData(value: unknown): value is CustomPropertyItem[] {
-    if (!Array.isArray(value)) {
-        return false;
-    }
-    return value.every(entry => isCustomPropertyItem(entry));
-}
-
-function getDefaultPreviewStatusForPath(path: string): PreviewStatus {
-    return isMarkdownPath(path) ? 'unprocessed' : 'none';
-}
-
-export function createDefaultFileData(params: { mtime: number; path: string }): FileData {
-    const isMarkdown = isMarkdownPath(params.path);
-    return {
-        mtime: params.mtime,
-        markdownPipelineMtime: 0,
-        tagsMtime: 0,
-        metadataMtime: 0,
-        fileThumbnailsMtime: 0,
-        tags: isMarkdown ? null : [],
-        wordCount: isMarkdown ? null : 0,
-        customProperty: null,
-        previewStatus: getDefaultPreviewStatusForPath(params.path),
-        featureImage: null,
-        featureImageStatus: 'unprocessed',
-        featureImageKey: null,
-        metadata: isMarkdown ? null : {}
-    };
-}
-
-/**
- * Sentinel values for metadata date fields
- */
-export const METADATA_SENTINEL = {
-    /** Indicates that the frontmatter field name is empty/not configured */
-    FIELD_NOT_CONFIGURED: 0,
-    /** Indicates that parsing the date value failed */
-    PARSE_FAILED: -1
-} as const;
-
-export interface FileData {
-    /**
-     * Last observed vault mtime for the file path.
-     *
-     * Content providers use provider-specific processed mtimes (e.g. `markdownPipelineMtime`)
-     * to determine whether their cached output is stale for the current file version.
-     */
-    mtime: number;
-    /**
-     * Last file mtime processed by the markdown pipeline provider.
-     *
-     * Used to detect markdown changes even when existing preview/feature image/custom property values remain visible
-     * until regeneration completes.
-     */
-    markdownPipelineMtime: number;
-    /**
-     * Last file mtime processed by the tags provider.
-     */
-    tagsMtime: number;
-    /**
-     * Last file mtime processed by the metadata provider.
-     */
-    metadataMtime: number;
-    /**
-     * Last file mtime processed by the file thumbnails provider (non-markdown thumbnails like PDF covers).
-     */
-    fileThumbnailsMtime: number;
-    tags: string[] | null; // null = not extracted yet (e.g. when tags disabled)
-    wordCount: number | null; // null = not generated yet
-    customProperty: CustomPropertyItem[] | null; // null = not generated yet
-    /**
-     * Preview text processing state.
-     *
-     * Semantics:
-     * - `unprocessed`: content provider has not run yet for this file
-     * - `none`: processed, but no preview text was produced
-     * - `has`: processed and a non-empty preview string exists in the preview store
-     */
-    previewStatus: PreviewStatus;
-    /**
-     * Feature image placeholder for the main record.
-     * Always null in the main store; blobs live in a dedicated blob store.
-     * Empty blobs are not persisted; the featureImageKey is the durable marker for "processed but no thumbnail".
-     */
-    featureImage: Blob | null;
-    /**
-     * Feature image processing state.
-     *
-     * Semantics:
-     * - `unprocessed`: content provider has not run yet for this file
-     * - `none`: processed, but no thumbnail blob is stored (no reference or thumbnail generation failed)
-     * - `has`: processed and a thumbnail blob is stored in the blob store
-     */
-    featureImageStatus: FeatureImageStatus;
-    /**
-     * Stable key describing the selected feature image source.
-     *
-     * Semantics:
-     * - `null`: not generated yet (pending content generation)
-     * - `''`: generated and resolved, but no image reference is selected
-     * - `f:<path>@<mtime>`: local vault file reference (image embeds, PDF cover thumbnails)
-     * - `e:<url>`: external https URL reference (normalized, without hash)
-     * - `y:<videoId>`: YouTube thumbnail reference
-     * - `x:<path>@<mtime>`: Excalidraw file preview reference
-     */
-    featureImageKey: string | null;
-    metadata: {
-        name?: string;
-        created?: number; // Valid timestamp, 0 = field not configured, -1 = parse failed
-        modified?: number; // Valid timestamp, 0 = field not configured, -1 = parse failed
-        icon?: string;
-        color?: string;
-        hidden?: boolean; // Whether file matches frontmatter exclusion patterns
-    } | null; // null = not generated yet
-}
-
-export interface FileContentChange {
-    path: string;
-    changes: {
-        preview?: string | null;
-        featureImage?: Blob | null;
-        featureImageKey?: string | null;
-        featureImageStatus?: FeatureImageStatus;
-        metadata?: FileData['metadata'] | null;
-        tags?: string[] | null;
-        wordCount?: number | null;
-        customProperty?: FileData['customProperty'];
-    };
-    changeType?: 'metadata' | 'content' | 'both';
-}
+export { createDefaultFileData, METADATA_SENTINEL };
+export type { PropertyItem, PropertyValueKind, FeatureImageStatus, FileContentChange, FileData, PreviewStatus };
 
 interface IndexedDBStorageOptions {
     featureImageCacheMaxEntries?: number;
@@ -205,10 +64,6 @@ interface IndexedDBStorageOptions {
     previewLoadMaxBatch?: number;
     cache?: MemoryFileCache;
 }
-
-// Default limits for preview text caching and load batching.
-const DEFAULT_PREVIEW_TEXT_CACHE_MAX_ENTRIES = LIMITS.storage.previewTextCacheMaxEntriesDefault;
-const DEFAULT_PREVIEW_LOAD_MAX_BATCH = LIMITS.storage.previewLoadMaxBatchDefault;
 
 /**
  * IndexedDBStorage - Browser's IndexedDB wrapper for persistent file storage
@@ -236,29 +91,9 @@ export class IndexedDBStorage {
     private dbName: string;
     // Dedicated feature image blob store with an in-memory LRU.
     private featureImageBlobs: FeatureImageBlobStore;
-    // Maximum number of preview text strings held in memory.
-    private previewTextCacheMaxEntries: number;
-    // Maximum number of preview text paths processed per load flush.
-    private previewLoadMaxBatch: number;
+    private readonly featureImages: FeatureImageCoordinator;
+    private readonly previewTexts: PreviewTextCoordinator;
     private fileChangeListeners = new Map<string, Set<(changes: FileContentChange['changes']) => void>>();
-    private previewLoadPromises = new Map<string, Promise<void>>();
-    private previewLoadDeferred = new Map<string, { resolve: () => void }>();
-    private previewLoadQueue = new Set<string>();
-    private previewLoadFlushTimer: ReturnType<typeof setTimeout> | null = null;
-    private isPreviewLoadFlushRunning = false;
-    private previewLoadSessionId = 0;
-    // Tracks preview store key moves while a rename is in progress: newPath -> { oldPath, startedAt }.
-    // Used to prevent the preview loader from downgrading `previewStatus` when the preview record is temporarily missing.
-    private previewTextMoveInFlight = new Map<string, { oldPath: string; startedAt: number }>();
-    // Tracks feature image blob store key moves while a rename is in progress: newPath -> { oldPath, startedAt }.
-    // Used so `getFeatureImageBlob(newPath)` can fall back to `oldPath` until the blob record is moved.
-    private featureImageBlobMoveInFlight = new Map<string, { oldPath: string; startedAt: number }>();
-    // Warmup state for background preview text cache population.
-    private isPreviewWarmupEnabled = false;
-    private isPreviewWarmupComplete = false;
-    private isPreviewWarmupRunning = false;
-    private previewWarmupCursorKey: string | null = null;
-    private previewWarmupTimer: ReturnType<typeof setTimeout> | null = null;
     private isClosing = false;
     private initPromise: Promise<void> | null = null;
     private pendingRebuildNotice = false;
@@ -267,11 +102,28 @@ export class IndexedDBStorage {
         this.dbName = `notebooknavigator/cache/${appId}`;
         const previewTextCacheMaxEntries = options?.previewTextCacheMaxEntries ?? DEFAULT_PREVIEW_TEXT_CACHE_MAX_ENTRIES;
         this.cache = options?.cache ?? new MemoryFileCache({ previewTextCacheMaxEntries });
-        this.previewTextCacheMaxEntries = Math.max(0, previewTextCacheMaxEntries);
-        this.previewLoadMaxBatch = Math.max(1, options?.previewLoadMaxBatch ?? DEFAULT_PREVIEW_LOAD_MAX_BATCH);
+        const normalizedPreviewTextCacheMaxEntries = Math.max(0, previewTextCacheMaxEntries);
+        const previewLoadMaxBatch = Math.max(1, options?.previewLoadMaxBatch ?? DEFAULT_PREVIEW_LOAD_MAX_BATCH);
         // Initialize the LRU size from caller options or fallback default.
         const featureImageMaxEntries = options?.featureImageCacheMaxEntries ?? DEFAULT_FEATURE_IMAGE_CACHE_MAX;
         this.featureImageBlobs = new FeatureImageBlobStore(featureImageMaxEntries);
+        this.featureImages = new FeatureImageCoordinator({
+            getDb: () => this.db,
+            init: () => this.init(),
+            isClosing: () => this.isClosing,
+            blobs: this.featureImageBlobs
+        });
+        this.previewTexts = new PreviewTextCoordinator({
+            deps: {
+                cache: this.cache,
+                getDb: () => this.db,
+                init: () => this.init(),
+                isClosing: () => this.isClosing,
+                emitChanges: changes => this.emitChanges(changes)
+            },
+            previewTextCacheMaxEntries: normalizedPreviewTextCacheMaxEntries,
+            previewLoadMaxBatch
+        });
     }
 
     consumePendingRebuildNotice(): boolean {
@@ -280,59 +132,8 @@ export class IndexedDBStorage {
         return pending;
     }
 
-    private normalizeFileDataInPlace(data: Partial<FileData> & { preview?: string | null }, pathForDefaults?: string): FileData {
-        const featureImageKey = typeof data.featureImageKey === 'string' ? data.featureImageKey : null;
-        const rawStatus = data.featureImageStatus;
-        const featureImageStatus: FeatureImageStatus =
-            rawStatus === 'unprocessed' || rawStatus === 'none' || rawStatus === 'has'
-                ? rawStatus
-                : featureImageKey === null
-                  ? 'unprocessed'
-                  : 'none';
-
-        const rawPreviewStatus = data.previewStatus;
-        const previewStatus: PreviewStatus =
-            rawPreviewStatus === 'unprocessed' || rawPreviewStatus === 'none' || rawPreviewStatus === 'has'
-                ? rawPreviewStatus
-                : typeof data.preview === 'string'
-                  ? data.preview.length > 0
-                      ? 'has'
-                      : 'none'
-                  : typeof pathForDefaults === 'string'
-                    ? getDefaultPreviewStatusForPath(pathForDefaults)
-                    : 'unprocessed';
-
-        data.mtime = typeof data.mtime === 'number' ? data.mtime : 0;
-        // Default provider processed mtimes to the stored mtime for existing databases.
-        // New files explicitly initialize these to 0 so providers run at least once.
-        data.markdownPipelineMtime = typeof data.markdownPipelineMtime === 'number' ? data.markdownPipelineMtime : data.mtime;
-        data.tagsMtime = typeof data.tagsMtime === 'number' ? data.tagsMtime : data.mtime;
-        data.metadataMtime = typeof data.metadataMtime === 'number' ? data.metadataMtime : data.mtime;
-        data.fileThumbnailsMtime = typeof data.fileThumbnailsMtime === 'number' ? data.fileThumbnailsMtime : data.mtime;
-        data.tags = Array.isArray(data.tags) ? data.tags : null;
-        data.wordCount =
-            typeof data.wordCount === 'number' && Number.isFinite(data.wordCount) && data.wordCount >= 0
-                ? Math.trunc(data.wordCount)
-                : null;
-        data.customProperty = isCustomPropertyData(data.customProperty) ? data.customProperty : null;
-        data.previewStatus = previewStatus;
-        // Feature image blobs are stored separately from the main record.
-        // The MemoryFileCache is used for synchronous rendering and should not hold blob payloads.
-        data.featureImage = null;
-        data.featureImageStatus = featureImageStatus;
-        data.featureImageKey = featureImageKey;
-        data.metadata = data.metadata && typeof data.metadata === 'object' ? (data.metadata as FileData['metadata']) : null;
-
-        if ('preview' in data) {
-            delete (data as Partial<FileData> & { preview?: string | null }).preview;
-        }
-
-        return data as FileData;
-    }
-
     private normalizeFileData(data: Partial<FileData> & { preview?: string | null }): FileData {
-        const copy: Partial<FileData> & { preview?: string | null } = { ...data };
-        return this.normalizeFileDataInPlace(copy);
+        return normalizeFileDataValue(data);
     }
 
     /**
@@ -460,7 +261,7 @@ export class IndexedDBStorage {
     }
 
     private isVersionError(error: unknown): boolean {
-        return error instanceof DOMException && error.name === 'VersionError';
+        return isVersionErrorValue(error);
     }
 
     private async checkSchemaAndInit(): Promise<void> {
@@ -554,7 +355,7 @@ export class IndexedDBStorage {
      * IndexedDB errors can be DOMExceptions, null, or undefined - this normalizes them.
      */
     private normalizeIdbError(error: unknown, fallbackMessage: string): Error {
-        return error instanceof Error ? error : new Error(fallbackMessage);
+        return normalizeIdbErrorValue(error, fallbackMessage);
     }
 
     /**
@@ -567,8 +368,7 @@ export class IndexedDBStorage {
         lastRequestError: DOMException | Error | null,
         fallbackMessage: string
     ): void {
-        const combinedError = transaction.error || lastRequestError;
-        reject(this.normalizeIdbError(combinedError, fallbackMessage));
+        rejectWithTransactionErrorValue(reject, transaction, lastRequestError, fallbackMessage);
     }
 
     private async openDatabase(skipCacheLoad: boolean = false): Promise<void> {
@@ -587,7 +387,19 @@ export class IndexedDBStorage {
             };
 
             request.onsuccess = async () => {
-                this.db = request.result;
+                const openedDb = request.result;
+                if (this.isClosing) {
+                    try {
+                        openedDb.close();
+                    } catch {
+                        // noop
+                    }
+                    this.db = null;
+                    resolve();
+                    return;
+                }
+
+                this.db = openedDb;
                 // Reset blob caches whenever a new database connection is opened.
                 this.featureImageBlobs.clearMemoryCaches();
 
@@ -608,64 +420,13 @@ export class IndexedDBStorage {
                     this.cache.resetToEmpty();
                 } else {
                     try {
-                        this.cache.clear();
-
-                        // Wrap an IndexedDB request in a promise so it can be awaited.
-                        const requestToPromise = <T>(request: IDBRequest<T>, fallbackMessage: string): Promise<T> =>
-                            new Promise((resolveRequest, rejectRequest) => {
-                                request.onsuccess = () => resolveRequest(request.result);
-                                request.onerror = () => rejectRequest(this.normalizeIdbError(request.error, fallbackMessage));
-                            });
-
-                        // Bulk-load the store to avoid per-row cursor callbacks.
-                        // Use batching to limit peak memory usage on large vaults.
-                        const batchSize = 5000;
-                        // Tracks the last key in the previous batch so the next query can resume after it.
-                        let lastKey: IDBValidKey | null = null;
-
-                        while (true) {
-                            const transaction = this.db.transaction([STORE_NAME], 'readonly');
-                            const store = transaction.objectStore(STORE_NAME);
-                            // When resuming, start strictly after the last key we processed.
-                            const range = lastKey === null ? undefined : IDBKeyRange.lowerBound(lastKey, true);
-
-                            // Fetch keys and values for the same range/count so indexes line up.
-                            const keysRequest: IDBRequest<IDBValidKey[]> = store.getAllKeys(range, batchSize);
-                            const valuesRequest = store.getAll(range, batchSize) as IDBRequest<Partial<FileData>[]>;
-                            const [keys, values] = await Promise.all([
-                                requestToPromise(keysRequest, 'getAllKeys failed'),
-                                requestToPromise(valuesRequest, 'getAll failed')
-                            ]);
-
-                            if (keys.length === 0) {
-                                break;
-                            }
-
-                            // Apply each row directly into the in-memory cache.
-                            // Records are persisted by this class and are expected to already be normalized.
-                            // Avoid allocating new objects during hydration by inserting the stored record directly.
-                            const rowCount = Math.min(keys.length, values.length);
-                            for (let index = 0; index < rowCount; index += 1) {
-                                const key = keys[index];
-                                if (typeof key !== 'string') {
-                                    continue;
-                                }
-                                this.cache.updateFile(
-                                    key,
-                                    this.normalizeFileDataInPlace(values[index] as Partial<FileData> & { preview?: string | null }, key)
-                                );
-                            }
-
-                            // Continue from the last key returned in this batch.
-                            lastKey = keys[keys.length - 1];
-                            // If IndexedDB returned fewer than the requested count, there are no more rows.
-                            if (keys.length < batchSize) {
-                                break;
-                            }
+                        const db = this.db;
+                        if (!db) {
+                            this.cache.resetToEmpty();
+                            resolve();
+                            return;
                         }
-
-                        // All data loaded, mark cache as ready.
-                        this.cache.markInitialized();
+                        await hydrateCacheFromMainStore({ db, cache: this.cache });
                     } catch (error: unknown) {
                         console.error('[DB Cache] Failed to initialize cache:', error);
                         console.error(
@@ -678,144 +439,7 @@ export class IndexedDBStorage {
                 resolve();
             };
 
-            request.onupgradeneeded = event => {
-                const target = event.target;
-                if (!(target instanceof IDBOpenDBRequest)) {
-                    return;
-                }
-                const db = target.result;
-
-                if (!db.objectStoreNames.contains(STORE_NAME)) {
-                    // Use out-of-line keys since we removed path from FileData
-                    const store = db.createObjectStore(STORE_NAME);
-
-                    store.createIndex('mtime', 'mtime', { unique: false });
-                    store.createIndex('tags', 'tags', { unique: false, multiEntry: true });
-                }
-
-                if (!db.objectStoreNames.contains(FEATURE_IMAGE_STORE_NAME)) {
-                    db.createObjectStore(FEATURE_IMAGE_STORE_NAME);
-                }
-
-                if (!db.objectStoreNames.contains(PREVIEW_STORE_NAME)) {
-                    db.createObjectStore(PREVIEW_STORE_NAME);
-                }
-
-                const transaction = target.transaction;
-                if (!transaction) {
-                    return;
-                }
-
-                if (event.oldVersion < 2) {
-                    // Schema v2 introduces a dedicated feature image blob store.
-                    // Schema v3 introduces a dedicated preview text store.
-                    //
-                    // v1 cache payloads are not migrated; clear stores so the cache is rebuilt.
-
-                    try {
-                        if (transaction.objectStoreNames.contains(STORE_NAME)) {
-                            transaction.objectStore(STORE_NAME).clear();
-                        }
-                    } catch (error: unknown) {
-                        console.error('[IndexedDB] clear failed during upgrade', { store: STORE_NAME, error });
-                    }
-
-                    try {
-                        if (transaction.objectStoreNames.contains(FEATURE_IMAGE_STORE_NAME)) {
-                            transaction.objectStore(FEATURE_IMAGE_STORE_NAME).clear();
-                        }
-                    } catch (error: unknown) {
-                        console.error('[IndexedDB] clear failed during upgrade', { store: FEATURE_IMAGE_STORE_NAME, error });
-                    }
-
-                    try {
-                        if (transaction.objectStoreNames.contains(PREVIEW_STORE_NAME)) {
-                            transaction.objectStore(PREVIEW_STORE_NAME).clear();
-                        }
-                    } catch (error: unknown) {
-                        console.error('[IndexedDB] clear failed during upgrade', { store: PREVIEW_STORE_NAME, error });
-                    }
-                }
-
-                if (event.oldVersion < 3) {
-                    const mainStore = transaction.objectStore(STORE_NAME);
-                    const previewStore = transaction.objectStore(PREVIEW_STORE_NAME);
-
-                    const cursorRequest = mainStore.openCursor();
-                    cursorRequest.onsuccess = () => {
-                        const cursor = cursorRequest.result;
-                        if (!cursor) {
-                            return;
-                        }
-
-                        const path = cursor.key;
-                        if (typeof path !== 'string') {
-                            cursor.continue();
-                            return;
-                        }
-
-                        const recordValue: unknown = cursor.value;
-                        if (!isPlainObjectRecordValue(recordValue)) {
-                            cursor.continue();
-                            return;
-                        }
-
-                        const record = recordValue as { preview?: unknown; previewStatus?: unknown; featureImage?: unknown };
-                        const legacyPreview = record.preview;
-                        const previewText = typeof legacyPreview === 'string' ? legacyPreview : null;
-
-                        const persistAndContinue = (nextPreviewStatus: PreviewStatus) => {
-                            delete record.preview;
-                            record.previewStatus = nextPreviewStatus;
-                            record.featureImage = null;
-
-                            const updateReq = cursor.update(record);
-                            updateReq.onsuccess = () => cursor.continue();
-                            updateReq.onerror = event2 => {
-                                event2.preventDefault();
-                                console.error('[IndexedDB] cursor.update failed during preview migration', {
-                                    store: STORE_NAME,
-                                    path,
-                                    name: updateReq.error?.name,
-                                    message: updateReq.error?.message
-                                });
-                                cursor.continue();
-                            };
-                        };
-
-                        if (previewText === null) {
-                            persistAndContinue('unprocessed');
-                            return;
-                        }
-
-                        if (previewText.length === 0) {
-                            persistAndContinue('none');
-                            return;
-                        }
-
-                        const putReq = previewStore.put(previewText, path);
-                        putReq.onsuccess = () => persistAndContinue('has');
-                        putReq.onerror = event2 => {
-                            event2.preventDefault();
-                            console.error('[IndexedDB] put failed during preview migration', {
-                                store: PREVIEW_STORE_NAME,
-                                path,
-                                name: putReq.error?.name,
-                                message: putReq.error?.message
-                            });
-                            // Mark as unprocessed so the preview provider can regenerate content.
-                            persistAndContinue('unprocessed');
-                        };
-                    };
-                    cursorRequest.onerror = () => {
-                        console.error('[IndexedDB] preview migration cursor failed', {
-                            store: STORE_NAME,
-                            name: cursorRequest.error?.name,
-                            message: cursorRequest.error?.message
-                        });
-                    };
-                }
-            };
+            request.onupgradeneeded = handleUpgradeNeeded;
         });
     }
 
@@ -917,97 +541,11 @@ export class IndexedDBStorage {
     }
 
     beginFeatureImageBlobMove(oldPath: string, newPath: string): void {
-        if (oldPath === newPath) {
-            return;
-        }
-        // Opportunistic cleanup for failed/abandoned moves.
-        this.pruneFeatureImageBlobMovesInFlight();
-
-        const existing = this.featureImageBlobMoveInFlight.get(newPath);
-        if (existing?.oldPath === oldPath) {
-            return;
-        }
-        this.featureImageBlobMoveInFlight.set(newPath, { oldPath, startedAt: Date.now() });
-        // Move any cached thumbnail so the UI can render without waiting for IndexedDB.
-        this.featureImageBlobs.moveCacheEntry(oldPath, newPath);
-    }
-
-    private endFeatureImageBlobMove(oldPath: string, newPath: string): void {
-        const tracked = this.featureImageBlobMoveInFlight.get(newPath);
-        if (tracked?.oldPath === oldPath) {
-            this.featureImageBlobMoveInFlight.delete(newPath);
-        }
-    }
-
-    private isFeatureImageBlobMoveInFlight(path: string): boolean {
-        return this.featureImageBlobMoveInFlight.has(path);
-    }
-
-    private pruneFeatureImageBlobMovesInFlight(): void {
-        // In-flight entries are best-effort and can remain if the IndexedDB move fails.
-        // Prune on subsequent operations to keep the map bounded.
-        const maxAgeMs = 10_000;
-        const cutoff = Date.now() - maxAgeMs;
-        for (const [newPath, tracked] of this.featureImageBlobMoveInFlight.entries()) {
-            if (tracked.startedAt <= cutoff) {
-                this.featureImageBlobMoveInFlight.delete(newPath);
-            }
-        }
+        this.featureImages.beginMove(oldPath, newPath);
     }
 
     beginPreviewTextMove(oldPath: string, newPath: string): void {
-        if (oldPath === newPath) {
-            return;
-        }
-        // Opportunistic cleanup for failed/abandoned moves.
-        this.prunePreviewTextMovesInFlight();
-
-        const existing = this.previewTextMoveInFlight.get(newPath);
-        if (existing?.oldPath === oldPath) {
-            return;
-        }
-        this.previewTextMoveInFlight.set(newPath, { oldPath, startedAt: Date.now() });
-
-        if (!this.cache.isReady()) {
-            return;
-        }
-
-        // Copy already-loaded preview text to the new path so UI can render without waiting for IndexedDB.
-        const cachedPreviewText = this.cache.getPreviewText(oldPath);
-        if (cachedPreviewText.length === 0) {
-            return;
-        }
-
-        const existingRecord = this.cache.getFile(newPath);
-        if (!existingRecord) {
-            return;
-        }
-
-        this.cache.updateFileContent(newPath, { previewText: cachedPreviewText, previewStatus: 'has' });
-        this.emitChanges([{ path: newPath, changes: { preview: cachedPreviewText }, changeType: 'content' }]);
-    }
-
-    private endPreviewTextMove(oldPath: string, newPath: string): void {
-        const tracked = this.previewTextMoveInFlight.get(newPath);
-        if (tracked?.oldPath === oldPath) {
-            this.previewTextMoveInFlight.delete(newPath);
-        }
-    }
-
-    private isPreviewTextMoveInFlight(path: string): boolean {
-        return this.previewTextMoveInFlight.has(path);
-    }
-
-    private prunePreviewTextMovesInFlight(): void {
-        // In-flight entries are best-effort and can remain if the IndexedDB move fails.
-        // Prune on subsequent operations to keep the map bounded.
-        const maxAgeMs = 10_000;
-        const cutoff = Date.now() - maxAgeMs;
-        for (const [newPath, tracked] of this.previewTextMoveInFlight.entries()) {
-            if (tracked.startedAt <= cutoff) {
-                this.previewTextMoveInFlight.delete(newPath);
-            }
-        }
+        this.previewTexts.beginMove(oldPath, newPath);
     }
 
     /**
@@ -1467,7 +1005,7 @@ export class IndexedDBStorage {
      * @param type - Type of content to check for
      * @returns Set of file paths needing content
      */
-    getFilesNeedingContent(type: 'tags' | 'preview' | 'featureImage' | 'metadata' | 'wordCount' | 'customProperty'): Set<string> {
+    getFilesNeedingContent(type: FileContentType): Set<string> {
         if (!this.cache.isReady()) {
             return new Set();
         }
@@ -1480,7 +1018,8 @@ export class IndexedDBStorage {
                 (type === 'featureImage' && (data.featureImageKey === null || data.featureImageStatus === 'unprocessed')) ||
                 (type === 'metadata' && isMarkdownPath(path) && data.metadata === null) ||
                 (type === 'wordCount' && isMarkdownPath(path) && data.wordCount === null) ||
-                (type === 'customProperty' && isMarkdownPath(path) && data.customProperty === null)
+                (type === 'tasks' && isMarkdownPath(path) && (data.taskTotal === null || data.taskUnfinished === null)) ||
+                (type === 'properties' && isMarkdownPath(path) && data.properties === null)
             ) {
                 result.add(path);
             }
@@ -1488,7 +1027,7 @@ export class IndexedDBStorage {
         return result;
     }
 
-    getFilesNeedingAnyContent(types: ('tags' | 'preview' | 'featureImage' | 'metadata' | 'wordCount' | 'customProperty')[]): Set<string> {
+    getFilesNeedingAnyContent(types: FileContentType[]): Set<string> {
         if (!this.cache.isReady() || types.length === 0) {
             return new Set();
         }
@@ -1498,7 +1037,8 @@ export class IndexedDBStorage {
         const needsFeatureImage = types.includes('featureImage');
         const needsMetadata = types.includes('metadata');
         const needsWordCount = types.includes('wordCount');
-        const needsCustomProperty = types.includes('customProperty');
+        const needsTasks = types.includes('tasks');
+        const needsProperties = types.includes('properties');
 
         const result = new Set<string>();
         this.cache.forEachFile((path, data) => {
@@ -1509,7 +1049,8 @@ export class IndexedDBStorage {
                 (needsFeatureImage && (data.featureImageKey === null || data.featureImageStatus === 'unprocessed')) ||
                 (needsMetadata && isMarkdown && data.metadata === null) ||
                 (needsWordCount && isMarkdown && data.wordCount === null) ||
-                (needsCustomProperty && isMarkdown && data.customProperty === null)
+                (needsTasks && isMarkdown && (data.taskTotal === null || data.taskUnfinished === null)) ||
+                (needsProperties && isMarkdown && data.properties === null)
             ) {
                 result.add(path);
             }
@@ -1564,178 +1105,19 @@ export class IndexedDBStorage {
     ): Promise<void> {
         await this.init();
         if (!this.db) throw new Error('Database not initialized');
-
-        const transaction = this.db.transaction([STORE_NAME, FEATURE_IMAGE_STORE_NAME, PREVIEW_STORE_NAME], 'readwrite');
-        const store = transaction.objectStore(STORE_NAME);
-        const blobStore = transaction.objectStore(FEATURE_IMAGE_STORE_NAME);
-        const previewStore = transaction.objectStore(PREVIEW_STORE_NAME);
-        const changes: FileContentChange['changes'] = {};
-        let updated: FileData | null = null;
-        let shouldClearFeatureImageCache = false;
-        const opUpdate = 'updateFileContent';
-        let lastRequestErrorUpdate: DOMException | Error | null = null;
-
-        await new Promise<void>((resolve, reject) => {
-            const getReq = store.get(path);
-            getReq.onsuccess = () => {
-                const existingRaw = (getReq.result as Partial<FileData> | undefined) || null;
-                if (!existingRaw) {
-                    resolve();
-                    return;
-                }
-                const existing = this.normalizeFileData(existingRaw);
-                const next: FileData = { ...existing };
-
-                const featureImageMutation = computeFeatureImageMutation({
-                    existingKey: existing.featureImageKey,
-                    existingStatus: existing.featureImageStatus,
-                    featureImageKey,
-                    featureImage: image
-                });
-                if (featureImageMutation.changes.featureImageKey !== undefined) {
-                    changes.featureImageKey = featureImageMutation.changes.featureImageKey;
-                }
-                if (featureImageMutation.changes.featureImageStatus !== undefined) {
-                    changes.featureImageStatus = featureImageMutation.changes.featureImageStatus;
-                }
-                if (featureImageMutation.shouldClearCache) {
-                    shouldClearFeatureImageCache = true;
-                }
-
-                if (preview !== undefined) {
-                    const previewStatus: PreviewStatus = preview.length > 0 ? 'has' : 'none';
-                    next.previewStatus = previewStatus;
-                    changes.preview = preview;
-                    if (previewStatus === 'has') {
-                        const previewReq = previewStore.put(preview, path);
-                        previewReq.onerror = () => {
-                            lastRequestErrorUpdate = previewReq.error || null;
-                            console.error('[IndexedDB] put failed', {
-                                store: PREVIEW_STORE_NAME,
-                                op: opUpdate,
-                                path,
-                                name: previewReq.error?.name,
-                                message: previewReq.error?.message
-                            });
-                        };
-                    } else {
-                        const deleteReq = previewStore.delete(path);
-                        deleteReq.onerror = () => {
-                            lastRequestErrorUpdate = deleteReq.error || null;
-                            console.error('[IndexedDB] delete failed', {
-                                store: PREVIEW_STORE_NAME,
-                                op: opUpdate,
-                                path,
-                                name: deleteReq.error?.name,
-                                message: deleteReq.error?.message
-                            });
-                        };
-                    }
-                }
-                if (metadata !== undefined) {
-                    next.metadata = metadata;
-                    changes.metadata = metadata;
-                }
-
-                // Main store records never hold blob data.
-                next.featureImageKey = featureImageMutation.nextKey;
-                next.featureImage = null;
-                next.featureImageStatus = featureImageMutation.nextStatus;
-                updated = next;
-                if (featureImageMutation.blobUpdate) {
-                    // Write the blob record with the current key.
-                    const imageReq = blobStore.put(featureImageMutation.blobUpdate, path);
-                    imageReq.onerror = () => {
-                        lastRequestErrorUpdate = imageReq.error || null;
-                        console.error('[IndexedDB] put failed', {
-                            store: FEATURE_IMAGE_STORE_NAME,
-                            op: opUpdate,
-                            path,
-                            name: imageReq.error?.name,
-                            message: imageReq.error?.message
-                        });
-                    };
-                } else if (featureImageMutation.shouldDeleteBlob) {
-                    const deleteReq = blobStore.delete(path);
-                    deleteReq.onerror = () => {
-                        lastRequestErrorUpdate = deleteReq.error || null;
-                        console.error('[IndexedDB] delete failed', {
-                            store: FEATURE_IMAGE_STORE_NAME,
-                            op: opUpdate,
-                            path,
-                            name: deleteReq.error?.name,
-                            message: deleteReq.error?.message
-                        });
-                    };
-                }
-                const putReq = store.put(next, path);
-                putReq.onerror = () => {
-                    lastRequestErrorUpdate = putReq.error || null;
-                    console.error('[IndexedDB] put failed', {
-                        store: STORE_NAME,
-                        op: opUpdate,
-                        path,
-                        name: putReq.error?.name,
-                        message: putReq.error?.message
-                    });
-                };
-            };
-            getReq.onerror = () => {
-                lastRequestErrorUpdate = getReq.error || null;
-                console.error('[IndexedDB] get failed', {
-                    store: STORE_NAME,
-                    op: opUpdate,
-                    path,
-                    name: getReq.error?.name,
-                    message: getReq.error?.message
-                });
-                try {
-                    transaction.abort();
-                } catch (e) {
-                    void e;
-                }
-            };
-            transaction.oncomplete = () => resolve();
-            transaction.onabort = () => {
-                console.error('[IndexedDB] transaction aborted', {
-                    store: STORE_NAME,
-                    op: opUpdate,
-                    path,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestErrorUpdate?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestErrorUpdate, 'Transaction aborted');
-            };
-            transaction.onerror = () => {
-                console.error('[IndexedDB] transaction error', {
-                    store: STORE_NAME,
-                    op: opUpdate,
-                    path,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestErrorUpdate?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestErrorUpdate, 'Transaction error');
-            };
-        });
-
-        if (updated) {
-            const updatedRecord: FileData = updated;
-            this.cache.updateFile(path, updatedRecord);
-            if (preview !== undefined) {
-                this.cache.updateFileContent(path, { previewText: preview, previewStatus: updatedRecord.previewStatus });
-            }
-            if (shouldClearFeatureImageCache) {
-                // Remove any cached blob for the updated path.
-                this.featureImageBlobs.deleteFromCache(path);
-            }
-            if (Object.keys(changes).length > 0) {
-                const hasContentChanges =
-                    changes.preview !== undefined || changes.featureImageKey !== undefined || changes.featureImageStatus !== undefined;
-                const hasMetadataChanges = changes.metadata !== undefined;
-                const changeType = hasContentChanges && hasMetadataChanges ? 'both' : hasContentChanges ? 'content' : 'metadata';
-                this.emitChanges([{ path, changes, changeType }]);
-            }
-        }
+        await runUpdateFileContent(
+            {
+                db: this.db,
+                cache: this.cache,
+                featureImageBlobs: this.featureImageBlobs,
+                normalizeFileData: data => this.normalizeFileData(data),
+                emitChanges: changes => this.emitChanges(changes),
+                normalizeIdbError: (error, fallbackMessage) => this.normalizeIdbError(error, fallbackMessage),
+                rejectWithTransactionError: (reject, transaction, lastRequestError, fallbackMessage) =>
+                    this.rejectWithTransactionError(reject, transaction, lastRequestError, fallbackMessage)
+            },
+            { path, preview, image, metadata, featureImageKey }
+        );
     }
 
     /**
@@ -1754,83 +1136,24 @@ export class IndexedDBStorage {
             modified?: number;
             icon?: string;
             color?: string;
+            background?: string;
         }
     ): Promise<void> {
         await this.init();
         if (!this.db) throw new Error('Database not initialized');
-
-        const transaction = this.db.transaction([STORE_NAME], 'readwrite');
-        const store = transaction.objectStore(STORE_NAME);
-        let updated: FileData | null = null;
-        const opMeta = 'updateFileMetadata';
-        let lastRequestErrorMeta: DOMException | Error | null = null;
-
-        await new Promise<void>((resolve, reject) => {
-            const getReq = store.get(path);
-            getReq.onsuccess = () => {
-                const existingRaw = (getReq.result as Partial<FileData> | undefined) || null;
-                if (!existingRaw) {
-                    resolve();
-                    return;
-                }
-                const existing = this.normalizeFileData(existingRaw);
-                const newMeta = { ...(existing.metadata || {}), ...metadata };
-                updated = { ...existing, metadata: newMeta };
-                const putReq = store.put(updated, path);
-                putReq.onerror = () => {
-                    lastRequestErrorMeta = putReq.error || null;
-                    console.error('[IndexedDB] put failed', {
-                        store: STORE_NAME,
-                        op: opMeta,
-                        path,
-                        name: putReq.error?.name,
-                        message: putReq.error?.message
-                    });
-                };
-            };
-            getReq.onerror = () => {
-                lastRequestErrorMeta = getReq.error || null;
-                console.error('[IndexedDB] get failed', {
-                    store: STORE_NAME,
-                    op: opMeta,
-                    path,
-                    name: getReq.error?.name,
-                    message: getReq.error?.message
-                });
-                try {
-                    transaction.abort();
-                } catch (e) {
-                    void e;
-                }
-            };
-            transaction.oncomplete = () => resolve();
-            transaction.onabort = () => {
-                console.error('[IndexedDB] transaction aborted', {
-                    store: STORE_NAME,
-                    op: opMeta,
-                    path,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestErrorMeta?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestErrorMeta, 'Transaction aborted');
-            };
-            transaction.onerror = () => {
-                console.error('[IndexedDB] transaction error', {
-                    store: STORE_NAME,
-                    op: opMeta,
-                    path,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestErrorMeta?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestErrorMeta, 'Transaction error');
-            };
-        });
-
-        if (updated) {
-            const updatedRecord: FileData = updated;
-            this.cache.updateFile(path, updatedRecord);
-            this.emitChanges([{ path, changes: { metadata: updatedRecord.metadata }, changeType: 'metadata' }]);
-        }
+        await runUpdateFileMetadata(
+            {
+                db: this.db,
+                cache: this.cache,
+                featureImageBlobs: this.featureImageBlobs,
+                normalizeFileData: data => this.normalizeFileData(data),
+                emitChanges: changes => this.emitChanges(changes),
+                normalizeIdbError: (error, fallbackMessage) => this.normalizeIdbError(error, fallbackMessage),
+                rejectWithTransactionError: (reject, transaction, lastRequestError, fallbackMessage) =>
+                    this.rejectWithTransactionError(reject, transaction, lastRequestError, fallbackMessage)
+            },
+            { path, metadata }
+        );
     }
 
     /**
@@ -1864,138 +1187,19 @@ export class IndexedDBStorage {
     async clearFileContent(path: string, type: 'preview' | 'featureImage' | 'metadata' | 'all'): Promise<void> {
         await this.init();
         if (!this.db) throw new Error('Database not initialized');
-
-        const transaction = this.db.transaction([STORE_NAME, FEATURE_IMAGE_STORE_NAME, PREVIEW_STORE_NAME], 'readwrite');
-        const store = transaction.objectStore(STORE_NAME);
-        const blobStore = transaction.objectStore(FEATURE_IMAGE_STORE_NAME);
-        const previewStore = transaction.objectStore(PREVIEW_STORE_NAME);
-        const changes: FileContentChange['changes'] = {};
-        let updated: FileData | null = null;
-        let shouldClearFeatureImageCache = false;
-        const op = 'clearFileContent';
-        let lastRequestError: DOMException | Error | null = null;
-
-        await new Promise<void>((resolve, reject) => {
-            const getReq = store.get(path);
-            getReq.onsuccess = () => {
-                const existingRaw = (getReq.result as Partial<FileData> | undefined) || null;
-                if (!existingRaw) {
-                    resolve();
-                    return;
-                }
-                const file = { ...this.normalizeFileData(existingRaw) };
-                if (type === 'preview' || type === 'all') {
-                    const nextPreviewStatus = getDefaultPreviewStatusForPath(path);
-                    if (file.previewStatus !== nextPreviewStatus) {
-                        file.previewStatus = nextPreviewStatus;
-                        changes.preview = null;
-                    }
-                    const deleteReq = previewStore.delete(path);
-                    deleteReq.onerror = () => {
-                        lastRequestError = deleteReq.error || null;
-                        console.error('[IndexedDB] delete failed', {
-                            store: PREVIEW_STORE_NAME,
-                            op,
-                            path,
-                            name: deleteReq.error?.name,
-                            message: deleteReq.error?.message
-                        });
-                    };
-                }
-                if (type === 'featureImage' || type === 'all') {
-                    // Clear feature image key in the main store and delete blob records.
-                    if (file.featureImageKey !== null) {
-                        file.featureImageKey = null;
-                        changes.featureImageKey = null;
-                    }
-                    if (file.featureImageStatus !== 'unprocessed') {
-                        file.featureImageStatus = 'unprocessed';
-                        changes.featureImageStatus = 'unprocessed';
-                    }
-                    file.featureImage = null;
-                    shouldClearFeatureImageCache = true;
-                    const deleteReq = blobStore.delete(path);
-                    deleteReq.onerror = () => {
-                        lastRequestError = deleteReq.error || null;
-                        console.error('[IndexedDB] delete failed', {
-                            store: FEATURE_IMAGE_STORE_NAME,
-                            op,
-                            path,
-                            name: deleteReq.error?.name,
-                            message: deleteReq.error?.message
-                        });
-                    };
-                }
-                if (type === 'metadata' || type === 'all') {
-                    if (file.metadata !== null) {
-                        file.metadata = null;
-                        changes.metadata = null;
-                    }
-                }
-                updated = file;
-                const putReq = store.put(file, path);
-                putReq.onerror = () => {
-                    lastRequestError = putReq.error || null;
-                    console.error('[IndexedDB] put failed', {
-                        store: STORE_NAME,
-                        op,
-                        path,
-                        name: putReq.error?.name,
-                        message: putReq.error?.message
-                    });
-                };
-            };
-            getReq.onerror = () => {
-                lastRequestError = getReq.error || null;
-                console.error('[IndexedDB] get failed', {
-                    store: STORE_NAME,
-                    op,
-                    path,
-                    name: getReq.error?.name,
-                    message: getReq.error?.message
-                });
-                try {
-                    transaction.abort();
-                } catch (e) {
-                    void e;
-                }
-            };
-            transaction.oncomplete = () => resolve();
-            transaction.onabort = () => {
-                console.error('[IndexedDB] transaction aborted', {
-                    store: STORE_NAME,
-                    op,
-                    path,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction aborted');
-            };
-            transaction.onerror = () => {
-                console.error('[IndexedDB] transaction error', {
-                    store: STORE_NAME,
-                    op,
-                    path,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction error');
-            };
-        });
-
-        if (updated) {
-            this.cache.updateFile(path, updated);
-            if (shouldClearFeatureImageCache) {
-                this.featureImageBlobs.deleteFromCache(path);
-            }
-            if (Object.keys(changes).length > 0) {
-                const hasContentCleared =
-                    changes.preview === null || changes.featureImageKey === null || changes.featureImageStatus !== undefined;
-                const hasMetadataCleared = changes.metadata === null;
-                const changeType = hasContentCleared && hasMetadataCleared ? 'both' : hasContentCleared ? 'content' : 'metadata';
-                this.emitChanges([{ path, changes, changeType }]);
-            }
-        }
+        await runClearFileContent(
+            {
+                db: this.db,
+                cache: this.cache,
+                featureImageBlobs: this.featureImageBlobs,
+                normalizeFileData: data => this.normalizeFileData(data),
+                emitChanges: changes => this.emitChanges(changes),
+                normalizeIdbError: (error, fallbackMessage) => this.normalizeIdbError(error, fallbackMessage),
+                rejectWithTransactionError: (reject, transaction, lastRequestError, fallbackMessage) =>
+                    this.rejectWithTransactionError(reject, transaction, lastRequestError, fallbackMessage)
+            },
+            { path, type }
+        );
     }
 
     /**
@@ -2006,189 +1210,22 @@ export class IndexedDBStorage {
      *
      * @param type - Type of content to clear or 'all'
      */
-    async batchClearAllFileContent(type: 'preview' | 'featureImage' | 'metadata' | 'tags' | 'customProperty' | 'all'): Promise<void> {
+    async batchClearAllFileContent(type: 'preview' | 'featureImage' | 'metadata' | 'tags' | 'properties' | 'all'): Promise<void> {
         await this.init();
         if (!this.db) throw new Error('Database not initialized');
-
-        const transaction = this.db.transaction([STORE_NAME, FEATURE_IMAGE_STORE_NAME, PREVIEW_STORE_NAME], 'readwrite');
-        const store = transaction.objectStore(STORE_NAME);
-        const blobStore = transaction.objectStore(FEATURE_IMAGE_STORE_NAME);
-        const previewStore = transaction.objectStore(PREVIEW_STORE_NAME);
-        const changeNotifications: FileContentChange[] = [];
-        const cacheUpdates: { path: string; data: FileData }[] = [];
-        const op = 'batchClearAllFileContent';
-        let lastRequestError: DOMException | Error | null = null;
-
-        return new Promise((resolve, reject) => {
-            if (type === 'preview' || type === 'all') {
-                const clearReq = previewStore.clear();
-                clearReq.onerror = () => {
-                    lastRequestError = clearReq.error || null;
-                    console.error('[IndexedDB] clear failed', {
-                        store: PREVIEW_STORE_NAME,
-                        op,
-                        name: clearReq.error?.name,
-                        message: clearReq.error?.message
-                    });
-                };
-            }
-            if (type === 'featureImage' || type === 'all') {
-                // Clear all feature image blobs in one operation.
-                const clearReq = blobStore.clear();
-                clearReq.onerror = () => {
-                    lastRequestError = clearReq.error || null;
-                    console.error('[IndexedDB] clear failed', {
-                        store: FEATURE_IMAGE_STORE_NAME,
-                        op,
-                        name: clearReq.error?.name,
-                        message: clearReq.error?.message
-                    });
-                };
-            }
-            const request = store.openCursor();
-
-            request.onsuccess = () => {
-                const cursor = request.result;
-                if (cursor) {
-                    const current = this.normalizeFileData(cursor.value as Partial<FileData>);
-                    const updated: FileData = { ...current };
-                    const changes: FileContentChange['changes'] = {};
-                    let hasChanges = false;
-
-                    const path = cursor.key;
-                    if (typeof path !== 'string') {
-                        cursor.continue();
-                        return;
-                    }
-                    const isMarkdown = isMarkdownPath(path);
-
-                    if (type === 'preview' || type === 'all') {
-                        const nextPreviewStatus = isMarkdown ? 'unprocessed' : 'none';
-                        if (updated.previewStatus !== nextPreviewStatus) {
-                            updated.previewStatus = nextPreviewStatus;
-                            changes.preview = null;
-                            hasChanges = true;
-                        }
-                    }
-                    if ((type === 'featureImage' || type === 'all') && updated.featureImageKey !== null) {
-                        updated.featureImageKey = null;
-                        changes.featureImageKey = null;
-                        hasChanges = true;
-                    }
-                    if (type === 'featureImage' || type === 'all') {
-                        updated.featureImage = null;
-                        if (updated.featureImageStatus !== 'unprocessed') {
-                            updated.featureImageStatus = 'unprocessed';
-                            changes.featureImageStatus = 'unprocessed';
-                            hasChanges = true;
-                        }
-                    }
-                    if (type === 'metadata' || type === 'all') {
-                        if (isMarkdown) {
-                            if (updated.metadata !== null) {
-                                updated.metadata = null;
-                                changes.metadata = null;
-                                hasChanges = true;
-                            }
-                        } else if (updated.metadata === null) {
-                            updated.metadata = {};
-                            changes.metadata = {};
-                            hasChanges = true;
-                        }
-                    }
-                    if (type === 'tags' || type === 'all') {
-                        if (isMarkdown) {
-                            if (updated.tags !== null) {
-                                updated.tags = null;
-                                changes.tags = null;
-                                hasChanges = true;
-                            }
-                        } else if (updated.tags === null) {
-                            updated.tags = [];
-                            changes.tags = [];
-                            hasChanges = true;
-                        }
-                    }
-                    if ((type === 'customProperty' || type === 'all') && updated.customProperty !== null) {
-                        updated.customProperty = null;
-                        changes.customProperty = null;
-                        hasChanges = true;
-                    }
-
-                    if (hasChanges) {
-                        const updateReq = cursor.update(updated);
-                        updateReq.onerror = () => {
-                            lastRequestError = updateReq.error || null;
-                            console.error('[IndexedDB] cursor.update failed', {
-                                store: STORE_NAME,
-                                op,
-                                path,
-                                name: updateReq.error?.name,
-                                message: updateReq.error?.message
-                            });
-                            try {
-                                transaction.abort();
-                            } catch (e) {
-                                void e;
-                            }
-                        };
-                        cacheUpdates.push({ path, data: updated });
-                        const hasContentCleared =
-                            changes.preview === null ||
-                            changes.featureImageKey === null ||
-                            changes.featureImageStatus !== undefined ||
-                            changes.customProperty === null;
-                        const hasMetadataCleared = changes.metadata === null || changes.tags !== undefined;
-                        const clearType = hasContentCleared && hasMetadataCleared ? 'both' : hasContentCleared ? 'content' : 'metadata';
-                        changeNotifications.push({ path, changes, changeType: clearType });
-                    }
-
-                    cursor.continue();
-                }
-            };
-
-            request.onerror = () => {
-                const requestError = request.error;
-                lastRequestError = requestError || null;
-                console.error('[IndexedDB] openCursor failed', {
-                    store: STORE_NAME,
-                    op,
-                    name: requestError?.name,
-                    message: requestError?.message
-                });
-                reject(this.normalizeIdbError(requestError, 'Cursor request failed'));
-            };
-
-            transaction.oncomplete = () => {
-                if (cacheUpdates.length > 0) {
-                    this.cache.batchUpdate(cacheUpdates);
-                    this.emitChanges(changeNotifications);
-                }
-                if (type === 'featureImage' || type === 'all') {
-                    // Reset the in-memory blob cache when all blobs are cleared.
-                    this.featureImageBlobs.clearMemoryCaches();
-                }
-                resolve();
-            };
-            transaction.onabort = () => {
-                console.error('[IndexedDB] transaction aborted', {
-                    store: STORE_NAME,
-                    op,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction aborted');
-            };
-            transaction.onerror = () => {
-                console.error('[IndexedDB] transaction error', {
-                    store: STORE_NAME,
-                    op,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction error');
-            };
-        });
+        await runBatchClearAllFileContent(
+            {
+                db: this.db,
+                cache: this.cache,
+                featureImageBlobs: this.featureImageBlobs,
+                normalizeFileData: data => this.normalizeFileData(data),
+                emitChanges: changes => this.emitChanges(changes),
+                normalizeIdbError: (error, fallbackMessage) => this.normalizeIdbError(error, fallbackMessage),
+                rejectWithTransactionError: (reject, transaction, lastRequestError, fallbackMessage) =>
+                    this.rejectWithTransactionError(reject, transaction, lastRequestError, fallbackMessage)
+            },
+            { type }
+        );
     }
 
     /**
@@ -2203,138 +1240,19 @@ export class IndexedDBStorage {
     async batchClearFeatureImageContent(scope: 'markdown' | 'nonMarkdown'): Promise<void> {
         await this.init();
         if (!this.db) throw new Error('Database not initialized');
-
-        const transaction = this.db.transaction([STORE_NAME, FEATURE_IMAGE_STORE_NAME], 'readwrite');
-        const store = transaction.objectStore(STORE_NAME);
-        const blobStore = transaction.objectStore(FEATURE_IMAGE_STORE_NAME);
-        const changeNotifications: FileContentChange[] = [];
-        const cacheUpdates: { path: string; data: FileData }[] = [];
-        const blobCacheUpdates: string[] = [];
-        const op = 'batchClearFeatureImageContent';
-        let lastRequestError: DOMException | Error | null = null;
-
-        await new Promise<void>((resolve, reject) => {
-            const request = store.openCursor();
-
-            request.onsuccess = () => {
-                const cursor = request.result;
-                if (!cursor) {
-                    return;
-                }
-
-                const path = cursor.key;
-                if (typeof path !== 'string') {
-                    cursor.continue();
-                    return;
-                }
-
-                const isMarkdown = isMarkdownPath(path);
-                const shouldClear = scope === 'markdown' ? isMarkdown : !isMarkdown;
-                if (!shouldClear) {
-                    cursor.continue();
-                    return;
-                }
-
-                const current = this.normalizeFileData(cursor.value as Partial<FileData>);
-                const updated: FileData = { ...current };
-                const changes: FileContentChange['changes'] = {};
-                let hasChanges = false;
-
-                if (updated.featureImageKey !== null) {
-                    updated.featureImageKey = null;
-                    changes.featureImageKey = null;
-                    hasChanges = true;
-                }
-
-                updated.featureImage = null;
-                if (updated.featureImageStatus !== 'unprocessed') {
-                    updated.featureImageStatus = 'unprocessed';
-                    changes.featureImageStatus = 'unprocessed';
-                    hasChanges = true;
-                }
-
-                if (hasChanges) {
-                    const updateReq = cursor.update(updated);
-                    updateReq.onerror = () => {
-                        lastRequestError = updateReq.error || null;
-                        console.error('[IndexedDB] cursor.update failed', {
-                            store: STORE_NAME,
-                            op,
-                            path,
-                            name: updateReq.error?.name,
-                            message: updateReq.error?.message
-                        });
-                        try {
-                            transaction.abort();
-                        } catch (e) {
-                            void e;
-                        }
-                    };
-                    cacheUpdates.push({ path, data: updated });
-                    changeNotifications.push({ path, changes, changeType: 'content' });
-                }
-
-                const shouldDeleteBlob = current.featureImageKey !== null || current.featureImageStatus === 'has';
-                if (shouldDeleteBlob) {
-                    const deleteReq = blobStore.delete(path);
-                    deleteReq.onerror = () => {
-                        lastRequestError = deleteReq.error || null;
-                        console.error('[IndexedDB] delete failed', {
-                            store: FEATURE_IMAGE_STORE_NAME,
-                            op,
-                            path,
-                            name: deleteReq.error?.name,
-                            message: deleteReq.error?.message
-                        });
-                    };
-                    blobCacheUpdates.push(path);
-                }
-
-                cursor.continue();
-            };
-
-            request.onerror = () => {
-                const requestError = request.error;
-                lastRequestError = requestError || null;
-                console.error('[IndexedDB] openCursor failed', {
-                    store: STORE_NAME,
-                    op,
-                    name: requestError?.name,
-                    message: requestError?.message
-                });
-                reject(this.normalizeIdbError(requestError, 'Cursor request failed'));
-            };
-
-            transaction.oncomplete = () => resolve();
-            transaction.onabort = () => {
-                console.error('[IndexedDB] transaction aborted', {
-                    store: STORE_NAME,
-                    op,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction aborted');
-            };
-            transaction.onerror = () => {
-                console.error('[IndexedDB] transaction error', {
-                    store: STORE_NAME,
-                    op,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction error');
-            };
-        });
-
-        if (cacheUpdates.length > 0) {
-            this.cache.batchUpdate(cacheUpdates);
-            this.emitChanges(changeNotifications);
-        }
-        if (blobCacheUpdates.length > 0) {
-            for (const path of blobCacheUpdates) {
-                this.featureImageBlobs.deleteFromCache(path);
-            }
-        }
+        await runBatchClearFeatureImageContent(
+            {
+                db: this.db,
+                cache: this.cache,
+                featureImageBlobs: this.featureImageBlobs,
+                normalizeFileData: data => this.normalizeFileData(data),
+                emitChanges: changes => this.emitChanges(changes),
+                normalizeIdbError: (error, fallbackMessage) => this.normalizeIdbError(error, fallbackMessage),
+                rejectWithTransactionError: (reject, transaction, lastRequestError, fallbackMessage) =>
+                    this.rejectWithTransactionError(reject, transaction, lastRequestError, fallbackMessage)
+            },
+            { scope }
+        );
     }
 
     /**
@@ -2348,169 +1266,23 @@ export class IndexedDBStorage {
      */
     async batchClearFileContent(
         paths: string[],
-        type: 'preview' | 'featureImage' | 'metadata' | 'tags' | 'customProperty' | 'all'
+        type: 'preview' | 'featureImage' | 'metadata' | 'tags' | 'properties' | 'all'
     ): Promise<void> {
         await this.init();
         if (!this.db) throw new Error('Database not initialized');
-
-        const transaction = this.db.transaction([STORE_NAME, FEATURE_IMAGE_STORE_NAME, PREVIEW_STORE_NAME], 'readwrite');
-        const store = transaction.objectStore(STORE_NAME);
-        const blobStore = transaction.objectStore(FEATURE_IMAGE_STORE_NAME);
-        const previewStore = transaction.objectStore(PREVIEW_STORE_NAME);
-        const updates: { path: string; data: FileData }[] = [];
-        const changeNotifications: FileContentChange[] = [];
-        const op = 'batchClearFileContent';
-        let lastRequestError: DOMException | Error | null = null;
-
-        await new Promise<void>((resolve, reject) => {
-            if (paths.length === 0) {
-                resolve();
-                return;
-            }
-
-            paths.forEach(path => {
-                const getReq = store.get(path);
-                getReq.onsuccess = () => {
-                    const existingRaw = (getReq.result as Partial<FileData> | undefined) || null;
-                    if (!existingRaw) {
-                        return;
-                    }
-                    const file = { ...this.normalizeFileData(existingRaw) };
-                    const changes: FileContentChange['changes'] = {};
-                    let hasChanges = false;
-                    if (type === 'preview' || type === 'all') {
-                        const nextPreviewStatus = getDefaultPreviewStatusForPath(path);
-                        if (file.previewStatus !== nextPreviewStatus) {
-                            file.previewStatus = nextPreviewStatus;
-                            changes.preview = null;
-                            hasChanges = true;
-                        }
-                        const deleteReq = previewStore.delete(path);
-                        deleteReq.onerror = () => {
-                            lastRequestError = deleteReq.error || null;
-                            console.error('[IndexedDB] delete failed', {
-                                store: PREVIEW_STORE_NAME,
-                                op,
-                                path,
-                                name: deleteReq.error?.name,
-                                message: deleteReq.error?.message
-                            });
-                        };
-                    }
-                    if ((type === 'featureImage' || type === 'all') && file.featureImageKey !== null) {
-                        file.featureImageKey = null;
-                        changes.featureImageKey = null;
-                        hasChanges = true;
-                    }
-                    if (type === 'featureImage' || type === 'all') {
-                        file.featureImage = null;
-                        if (file.featureImageStatus !== 'unprocessed') {
-                            file.featureImageStatus = 'unprocessed';
-                            changes.featureImageStatus = 'unprocessed';
-                            hasChanges = true;
-                        }
-                    }
-                    if ((type === 'metadata' || type === 'all') && file.metadata !== null) {
-                        file.metadata = null;
-                        changes.metadata = null;
-                        hasChanges = true;
-                    }
-                    if ((type === 'tags' || type === 'all') && file.tags !== null) {
-                        file.tags = null;
-                        changes.tags = null;
-                        hasChanges = true;
-                    }
-                    if ((type === 'customProperty' || type === 'all') && file.customProperty !== null) {
-                        file.customProperty = null;
-                        changes.customProperty = null;
-                        hasChanges = true;
-                    }
-                    if (hasChanges) {
-                        const putReq = store.put(file, path);
-                        putReq.onerror = () => {
-                            lastRequestError = putReq.error || null;
-                            console.error('[IndexedDB] put failed', {
-                                store: STORE_NAME,
-                                op,
-                                path,
-                                name: putReq.error?.name,
-                                message: putReq.error?.message
-                            });
-                        };
-                        if (type === 'featureImage' || type === 'all') {
-                            // Remove feature image blobs for the cleared paths.
-                            const deleteReq = blobStore.delete(path);
-                            deleteReq.onerror = () => {
-                                lastRequestError = deleteReq.error || null;
-                                console.error('[IndexedDB] delete failed', {
-                                    store: FEATURE_IMAGE_STORE_NAME,
-                                    op,
-                                    path,
-                                    name: deleteReq.error?.name,
-                                    message: deleteReq.error?.message
-                                });
-                            };
-                        }
-                        updates.push({ path, data: file });
-                        const hasContentCleared =
-                            changes.preview === null ||
-                            changes.featureImageKey === null ||
-                            changes.featureImageStatus !== undefined ||
-                            changes.customProperty === null;
-                        const hasMetadataCleared = changes.metadata === null || changes.tags !== undefined;
-                        const clearType = hasContentCleared && hasMetadataCleared ? 'both' : hasContentCleared ? 'content' : 'metadata';
-                        changeNotifications.push({ path, changes, changeType: clearType });
-                    }
-                    // noop
-                };
-                getReq.onerror = () => {
-                    lastRequestError = getReq.error || null;
-                    console.error('[IndexedDB] get failed', {
-                        store: STORE_NAME,
-                        op,
-                        path,
-                        name: getReq.error?.name,
-                        message: getReq.error?.message
-                    });
-                    try {
-                        transaction.abort();
-                    } catch (e) {
-                        void e;
-                    }
-                };
-            });
-
-            transaction.oncomplete = () => resolve();
-            transaction.onabort = () => {
-                console.error('[IndexedDB] transaction aborted', {
-                    store: STORE_NAME,
-                    op,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction aborted');
-            };
-            transaction.onerror = () => {
-                console.error('[IndexedDB] transaction error', {
-                    store: STORE_NAME,
-                    op,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction error');
-            };
-        });
-
-        if (updates.length > 0) {
-            this.cache.batchUpdate(updates);
-            this.emitChanges(changeNotifications);
-        }
-        if (type === 'featureImage' || type === 'all') {
-            // Drop any cached blobs for the cleared paths.
-            for (const path of paths) {
-                this.featureImageBlobs.deleteFromCache(path);
-            }
-        }
+        await runBatchClearFileContent(
+            {
+                db: this.db,
+                cache: this.cache,
+                featureImageBlobs: this.featureImageBlobs,
+                normalizeFileData: data => this.normalizeFileData(data),
+                emitChanges: changes => this.emitChanges(changes),
+                normalizeIdbError: (error, fallbackMessage) => this.normalizeIdbError(error, fallbackMessage),
+                rejectWithTransactionError: (reject, transaction, lastRequestError, fallbackMessage) =>
+                    this.rejectWithTransactionError(reject, transaction, lastRequestError, fallbackMessage)
+            },
+            { paths, type }
+        );
     }
 
     /**
@@ -2521,18 +1293,7 @@ export class IndexedDBStorage {
      *
      * @param updates - Array of content updates to apply
      */
-    async batchUpdateFileContent(
-        updates: {
-            path: string;
-            tags?: string[] | null;
-            wordCount?: number | null;
-            preview?: string;
-            featureImage?: Blob | null;
-            featureImageKey?: string | null;
-            metadata?: FileData['metadata'];
-            customProperty?: FileData['customProperty'];
-        }[]
-    ): Promise<void> {
+    async batchUpdateFileContent(updates: BatchUpdateFileContentAndProviderProcessedMtimesParams['contentUpdates']): Promise<void> {
         await this.batchUpdateFileContentAndProviderProcessedMtimes({ contentUpdates: updates });
     }
 
@@ -2546,341 +1307,19 @@ export class IndexedDBStorage {
      * Provider processed mtimes are updated with a CAS guard (`expectedPreviousMtime`) to avoid
      * overwriting forced regeneration resets that occurred mid-flight.
      */
-    async batchUpdateFileContentAndProviderProcessedMtimes(params: {
-        contentUpdates: {
-            path: string;
-            tags?: string[] | null;
-            wordCount?: number | null;
-            preview?: string;
-            featureImage?: Blob | null;
-            featureImageKey?: string | null;
-            metadata?: FileData['metadata'];
-            customProperty?: FileData['customProperty'];
-        }[];
-        provider?: ContentProviderType;
-        processedMtimeUpdates?: { path: string; mtime: number; expectedPreviousMtime: number }[];
-    }): Promise<void> {
+    async batchUpdateFileContentAndProviderProcessedMtimes(params: BatchUpdateFileContentAndProviderProcessedMtimesParams): Promise<void> {
         await this.init();
         if (!this.db) throw new Error('Database not initialized');
-
-        const contentUpdates = params.contentUpdates;
-        const processedMtimeUpdates = params.processedMtimeUpdates ?? [];
-        const provider = params.provider;
-
-        if (processedMtimeUpdates.length > 0 && !provider) {
-            throw new Error('Provider type required when updating processed mtimes');
-        }
-
-        if (contentUpdates.length === 0 && processedMtimeUpdates.length === 0) {
-            return;
-        }
-
-        const contentUpdatesByPath = new Map<string, (typeof contentUpdates)[number]>();
-        for (const update of contentUpdates) {
-            contentUpdatesByPath.set(update.path, update);
-        }
-
-        const processedMtimeUpdatesByPath = new Map<string, (typeof processedMtimeUpdates)[number]>();
-        for (const update of processedMtimeUpdates) {
-            processedMtimeUpdatesByPath.set(update.path, update);
-        }
-
-        const pathsToUpdate = new Set<string>();
-        contentUpdatesByPath.forEach((_value, path) => pathsToUpdate.add(path));
-        processedMtimeUpdatesByPath.forEach((_value, path) => pathsToUpdate.add(path));
-
-        if (pathsToUpdate.size === 0) {
-            return;
-        }
-
-        const needsPreviewStore = contentUpdates.some(update => update.preview !== undefined);
-        const needsFeatureImageStore = contentUpdates.some(
-            update => update.featureImageKey !== undefined || update.featureImage !== undefined
+        await runBatchUpdateFileContentAndProviderProcessedMtimes(
+            {
+                db: this.db,
+                cache: this.cache,
+                normalizeFileData: data => this.normalizeFileData(data),
+                featureImageBlobs: this.featureImageBlobs,
+                emitChanges: changes => this.emitChanges(changes)
+            },
+            params
         );
-        const storeNames: string[] = [STORE_NAME];
-        if (needsFeatureImageStore) {
-            storeNames.push(FEATURE_IMAGE_STORE_NAME);
-        }
-        if (needsPreviewStore) {
-            storeNames.push(PREVIEW_STORE_NAME);
-        }
-
-        const transaction = this.db.transaction(storeNames, 'readwrite');
-        const store = transaction.objectStore(STORE_NAME);
-        const blobStore = needsFeatureImageStore ? transaction.objectStore(FEATURE_IMAGE_STORE_NAME) : null;
-        const previewStore = needsPreviewStore ? transaction.objectStore(PREVIEW_STORE_NAME) : null;
-        const filesToUpdate: { path: string; data: FileData }[] = [];
-        const changeNotifications: FileContentChange[] = [];
-        const featureImageCacheUpdates = new Set<string>();
-        const previewTextUpdates: { path: string; previewText: string; previewStatus: PreviewStatus }[] = [];
-        let createdRecordWithoutKnownMtime = 0;
-        const createdRecordWithoutKnownMtimeExamples: string[] = [];
-        let skippedProviderContentUpdates = 0;
-        const skippedProviderContentUpdateExamples: { path: string; expectedPreviousMtime: number; actualPreviousMtime: number }[] = [];
-
-        await new Promise<void>((resolve, reject) => {
-            const op = 'batchUpdateFileContentAndProviderProcessedMtimes';
-            let lastRequestError: DOMException | Error | null = null;
-            pathsToUpdate.forEach(path => {
-                const update = contentUpdatesByPath.get(path);
-                const processedMtimeUpdate = processedMtimeUpdatesByPath.get(path);
-
-                const getReq = store.get(path);
-                getReq.onsuccess = () => {
-                    const existingRaw = (getReq.result as Partial<FileData> | undefined) || null;
-                    const fallbackMtime = processedMtimeUpdate?.mtime ?? 0;
-                    const existing = existingRaw
-                        ? this.normalizeFileData(existingRaw)
-                        : this.normalizeFileData(createDefaultFileData({ mtime: fallbackMtime, path }));
-                    if (!existingRaw && fallbackMtime === 0 && update) {
-                        createdRecordWithoutKnownMtime += 1;
-                        if (createdRecordWithoutKnownMtimeExamples.length < 5) {
-                            createdRecordWithoutKnownMtimeExamples.push(path);
-                        }
-                    }
-                    const newData: FileData = { ...existing };
-                    const changes: FileContentChange['changes'] = {};
-                    let hasContentChanges = false;
-                    const providerField = provider ? getProviderProcessedMtimeField(provider) : null;
-                    const expectedPreviousMtime = processedMtimeUpdate?.expectedPreviousMtime ?? null;
-                    const shouldApplyProviderContent =
-                        !provider ||
-                        !processedMtimeUpdate ||
-                        !providerField ||
-                        newData[providerField] === processedMtimeUpdate.expectedPreviousMtime;
-                    const guardedUpdate = shouldApplyProviderContent ? update : null;
-                    if (provider && providerField && update && expectedPreviousMtime !== null && !shouldApplyProviderContent) {
-                        skippedProviderContentUpdates += 1;
-                        if (skippedProviderContentUpdateExamples.length < 5) {
-                            skippedProviderContentUpdateExamples.push({
-                                path,
-                                expectedPreviousMtime,
-                                actualPreviousMtime: newData[providerField]
-                            });
-                        }
-                    }
-                    const hasFeatureImageUpdate = guardedUpdate?.featureImageKey !== undefined || guardedUpdate?.featureImage !== undefined;
-                    const featureImageMutation =
-                        guardedUpdate && hasFeatureImageUpdate
-                            ? computeFeatureImageMutation({
-                                  existingKey: existing.featureImageKey,
-                                  existingStatus: existing.featureImageStatus,
-                                  featureImageKey: guardedUpdate.featureImageKey,
-                                  featureImage: guardedUpdate.featureImage
-                              })
-                            : null;
-
-                    if (guardedUpdate) {
-                        if (guardedUpdate.tags !== undefined) {
-                            newData.tags = guardedUpdate.tags;
-                            changes.tags = guardedUpdate.tags;
-                            hasContentChanges = true;
-                        }
-                        if (guardedUpdate.wordCount !== undefined) {
-                            newData.wordCount = guardedUpdate.wordCount;
-                            changes.wordCount = guardedUpdate.wordCount;
-                            hasContentChanges = true;
-                        }
-                        if (guardedUpdate.customProperty !== undefined) {
-                            newData.customProperty = guardedUpdate.customProperty;
-                            changes.customProperty = guardedUpdate.customProperty;
-                            hasContentChanges = true;
-                        }
-                        if (guardedUpdate.preview !== undefined) {
-                            const previewStatus: PreviewStatus = guardedUpdate.preview.length > 0 ? 'has' : 'none';
-                            newData.previewStatus = previewStatus;
-                            changes.preview = guardedUpdate.preview;
-                            hasContentChanges = true;
-                            if (previewStore && previewStatus === 'has') {
-                                const previewReq = previewStore.put(guardedUpdate.preview, path);
-                                previewReq.onerror = () => {
-                                    lastRequestError = previewReq.error || null;
-                                    console.error('[IndexedDB] put failed', {
-                                        store: PREVIEW_STORE_NAME,
-                                        op,
-                                        path,
-                                        name: previewReq.error?.name,
-                                        message: previewReq.error?.message
-                                    });
-                                };
-                                previewTextUpdates.push({ path, previewText: guardedUpdate.preview, previewStatus });
-                            } else if (previewStore) {
-                                const deleteReq = previewStore.delete(path);
-                                deleteReq.onerror = () => {
-                                    lastRequestError = deleteReq.error || null;
-                                    console.error('[IndexedDB] delete failed', {
-                                        store: PREVIEW_STORE_NAME,
-                                        op,
-                                        path,
-                                        name: deleteReq.error?.name,
-                                        message: deleteReq.error?.message
-                                    });
-                                };
-                            }
-                        }
-
-                        if (featureImageMutation) {
-                            if (featureImageMutation.changes.featureImageKey !== undefined) {
-                                changes.featureImageKey = featureImageMutation.changes.featureImageKey;
-                                hasContentChanges = true;
-                            }
-                            if (featureImageMutation.changes.featureImageStatus !== undefined) {
-                                changes.featureImageStatus = featureImageMutation.changes.featureImageStatus;
-                                hasContentChanges = true;
-                            }
-                            // Main store records never hold blob data.
-                            newData.featureImageKey = featureImageMutation.nextKey;
-                            newData.featureImage = null;
-                            newData.featureImageStatus = featureImageMutation.nextStatus;
-
-                            if (featureImageMutation.shouldClearCache) {
-                                featureImageCacheUpdates.add(path);
-                            }
-                        }
-
-                        if (guardedUpdate.metadata !== undefined) {
-                            newData.metadata = guardedUpdate.metadata;
-                            changes.metadata = guardedUpdate.metadata;
-                            hasContentChanges = true;
-                        }
-                    }
-
-                    let hasProviderMtimeChanges = false;
-                    if (processedMtimeUpdate && provider) {
-                        const { mtime, expectedPreviousMtime } = processedMtimeUpdate;
-                        const field = getProviderProcessedMtimeField(provider);
-                        if (newData[field] === expectedPreviousMtime && newData[field] !== mtime) {
-                            newData[field] = mtime;
-                            hasProviderMtimeChanges = true;
-                        }
-                    }
-
-                    const hasAnyChanges = hasContentChanges || hasProviderMtimeChanges;
-                    if (hasAnyChanges) {
-                        const putReq = store.put(newData, path);
-                        putReq.onerror = () => {
-                            lastRequestError = putReq.error || null;
-                            console.error('[IndexedDB] put failed', {
-                                store: STORE_NAME,
-                                op,
-                                path,
-                                name: putReq.error?.name,
-                                message: putReq.error?.message
-                            });
-                        };
-
-                        if (blobStore && featureImageMutation) {
-                            if (featureImageMutation.blobUpdate) {
-                                // Write the blob record with the current key.
-                                const imageReq = blobStore.put(featureImageMutation.blobUpdate, path);
-                                imageReq.onerror = () => {
-                                    lastRequestError = imageReq.error || null;
-                                    console.error('[IndexedDB] put failed', {
-                                        store: FEATURE_IMAGE_STORE_NAME,
-                                        op,
-                                        path,
-                                        name: imageReq.error?.name,
-                                        message: imageReq.error?.message
-                                    });
-                                };
-                            } else if (featureImageMutation.shouldDeleteBlob) {
-                                // Remove any stored blob when the key changes or blob is empty.
-                                const deleteReq = blobStore.delete(path);
-                                deleteReq.onerror = () => {
-                                    lastRequestError = deleteReq.error || null;
-                                    console.error('[IndexedDB] delete failed', {
-                                        store: FEATURE_IMAGE_STORE_NAME,
-                                        op,
-                                        path,
-                                        name: deleteReq.error?.name,
-                                        message: deleteReq.error?.message
-                                    });
-                                };
-                            }
-                        }
-
-                        filesToUpdate.push({ path, data: newData });
-
-                        if (hasContentChanges) {
-                            const hasContentUpdates =
-                                changes.preview !== undefined ||
-                                changes.featureImageKey !== undefined ||
-                                changes.featureImageStatus !== undefined ||
-                                changes.wordCount !== undefined ||
-                                changes.customProperty !== undefined;
-                            const hasMetadataUpdates = changes.metadata !== undefined || changes.tags !== undefined;
-                            const updateType =
-                                hasContentUpdates && hasMetadataUpdates ? 'both' : hasContentUpdates ? 'content' : 'metadata';
-                            changeNotifications.push({ path, changes, changeType: updateType });
-                        }
-                    }
-                    // noop
-                };
-                getReq.onerror = () => {
-                    lastRequestError = getReq.error || null;
-                    console.error('[IndexedDB] get failed', {
-                        store: STORE_NAME,
-                        op,
-                        path,
-                        name: getReq.error?.name,
-                        message: getReq.error?.message
-                    });
-                    try {
-                        transaction.abort();
-                    } catch (e) {
-                        void e;
-                    }
-                };
-            });
-            transaction.oncomplete = () => resolve();
-            transaction.onabort = () => {
-                console.error('[IndexedDB] transaction aborted', {
-                    store: STORE_NAME,
-                    op,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction aborted');
-            };
-            transaction.onerror = () => {
-                console.error('[IndexedDB] transaction error', {
-                    store: STORE_NAME,
-                    op,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction error');
-            };
-        });
-
-        if (filesToUpdate.length > 0) {
-            this.cache.batchUpdate(filesToUpdate);
-            if (previewTextUpdates.length > 0) {
-                previewTextUpdates.forEach(update => {
-                    this.cache.updateFileContent(update.path, { previewText: update.previewText, previewStatus: update.previewStatus });
-                });
-            }
-            if (changeNotifications.length > 0) {
-                this.emitChanges(changeNotifications);
-            }
-        }
-        if (featureImageCacheUpdates.size > 0) {
-            // Drop any cached blobs for updated paths.
-            featureImageCacheUpdates.forEach(path => this.featureImageBlobs.deleteFromCache(path));
-        }
-        if (createdRecordWithoutKnownMtime > 0) {
-            console.error('[IndexedDB] Created file record without known mtime during content update', {
-                count: createdRecordWithoutKnownMtime,
-                examples: createdRecordWithoutKnownMtimeExamples
-            });
-        }
-        if (provider && skippedProviderContentUpdates > 0) {
-            console.log('[IndexedDB] Skipped stale provider content updates', {
-                provider,
-                count: skippedProviderContentUpdates,
-                examples: skippedProviderContentUpdateExamples
-            });
-        }
     }
 
     /**
@@ -2936,10 +1375,7 @@ export class IndexedDBStorage {
      * @returns Preview text or empty string
      */
     getCachedPreviewText(path: string): string {
-        if (!this.cache.isReady()) {
-            return '';
-        }
-        return this.cache.getPreviewText(path);
+        return this.previewTexts.getCachedPreviewText(path);
     }
 
     /**
@@ -2947,44 +1383,7 @@ export class IndexedDBStorage {
      * Used by UI components that need preview text without hydrating the full preview store on startup.
      */
     async ensurePreviewTextLoaded(path: string): Promise<void> {
-        if (this.isClosing) {
-            return;
-        }
-        if (!this.cache.isReady()) {
-            return;
-        }
-
-        const file = this.cache.getFile(path);
-        if (!file || file.previewStatus !== 'has') {
-            return;
-        }
-
-        if (this.cache.getPreviewText(path).length > 0) {
-            return;
-        }
-
-        const existingPromise = this.previewLoadPromises.get(path);
-        if (existingPromise) {
-            return existingPromise;
-        }
-
-        const deferred: { resolve: () => void } = {
-            resolve: () => void 0
-        };
-
-        const loadPromise = new Promise<void>(resolve => {
-            deferred.resolve = resolve;
-        }).finally(() => {
-            this.previewLoadPromises.delete(path);
-            this.previewLoadDeferred.delete(path);
-        });
-
-        this.previewLoadDeferred.set(path, deferred);
-        this.previewLoadPromises.set(path, loadPromise);
-        this.previewLoadQueue.add(path);
-        this.schedulePreviewTextLoadFlush();
-        this.enablePreviewTextWarmup();
-        return loadPromise;
+        return this.previewTexts.ensurePreviewTextLoaded(path);
     }
 
     /**
@@ -2992,630 +1391,11 @@ export class IndexedDBStorage {
      * Safe to call multiple times; warmup only runs once per session.
      */
     startPreviewTextWarmup(): void {
-        this.enablePreviewTextWarmup();
-    }
-
-    private schedulePreviewTextLoadFlush(): void {
-        if (this.isClosing) {
-            return;
-        }
-        if (this.previewLoadFlushTimer !== null) {
-            return;
-        }
-
-        this.previewLoadFlushTimer = globalThis.setTimeout(() => {
-            this.previewLoadFlushTimer = null;
-            void this.flushPreviewTextLoadQueue();
-        }, 0);
-    }
-
-    /**
-     * Enables preview text warmup and schedules the first warmup flush.
-     */
-    private enablePreviewTextWarmup(): void {
-        if (this.isClosing) {
-            return;
-        }
-        if (this.isPreviewWarmupComplete) {
-            return;
-        }
-        if (this.isPreviewWarmupEnabled) {
-            return;
-        }
-        if (this.previewTextCacheMaxEntries === 0) {
-            this.isPreviewWarmupComplete = true;
-            return;
-        }
-
-        this.isPreviewWarmupEnabled = true;
-        this.schedulePreviewTextWarmupFlush();
-    }
-
-    /**
-     * Schedules a warmup flush with an optional delay.
-     */
-    private schedulePreviewTextWarmupFlush(delayMs = 0): void {
-        if (this.isClosing) {
-            return;
-        }
-        if (!this.isPreviewWarmupEnabled || this.isPreviewWarmupComplete) {
-            return;
-        }
-        if (this.previewWarmupTimer !== null) {
-            return;
-        }
-
-        this.previewWarmupTimer = globalThis.setTimeout(() => {
-            this.previewWarmupTimer = null;
-            void this.flushPreviewTextWarmup();
-        }, delayMs);
-    }
-
-    /**
-     * Loads preview text strings from IndexedDB into the in-memory LRU.
-     */
-    private async flushPreviewTextWarmup(): Promise<void> {
-        if (this.isClosing) {
-            return;
-        }
-        if (!this.isPreviewWarmupEnabled || this.isPreviewWarmupComplete) {
-            return;
-        }
-        if (this.isPreviewWarmupRunning) {
-            return;
-        }
-        if (!this.cache.isReady()) {
-            return;
-        }
-
-        if (this.previewTextCacheMaxEntries === 0 || this.cache.getPreviewTextEntryCount() >= this.previewTextCacheMaxEntries) {
-            this.isPreviewWarmupEnabled = false;
-            this.isPreviewWarmupComplete = true;
-            return;
-        }
-
-        // Warm up after the initial preview requests have loaded.
-        if (this.isPreviewLoadFlushRunning || this.previewLoadFlushTimer !== null || this.previewLoadQueue.size > 0) {
-            this.schedulePreviewTextWarmupFlush(25);
-            return;
-        }
-
-        const sessionId = this.previewLoadSessionId;
-        this.isPreviewWarmupRunning = true;
-        try {
-            await this.init();
-            if (!this.db) {
-                this.isPreviewWarmupEnabled = false;
-                this.isPreviewWarmupComplete = true;
-                return;
-            }
-            if (this.isClosing || sessionId !== this.previewLoadSessionId) {
-                return;
-            }
-
-            const cursorStepLimit = this.previewLoadMaxBatch * 10;
-            const hasMore = await this.warmPreviewTextCacheBatch(cursorStepLimit, sessionId);
-            if (!hasMore) {
-                this.isPreviewWarmupEnabled = false;
-                this.isPreviewWarmupComplete = true;
-                return;
-            }
-        } catch (error: unknown) {
-            if (!this.isClosing && sessionId === this.previewLoadSessionId) {
-                console.error('[PreviewText] Warmup failed', error);
-            }
-            this.isPreviewWarmupEnabled = false;
-            this.isPreviewWarmupComplete = true;
-            return;
-        } finally {
-            this.isPreviewWarmupRunning = false;
-        }
-
-        if (this.isClosing || sessionId !== this.previewLoadSessionId) {
-            return;
-        }
-        if (this.cache.getPreviewTextEntryCount() >= this.previewTextCacheMaxEntries) {
-            this.isPreviewWarmupEnabled = false;
-            this.isPreviewWarmupComplete = true;
-            return;
-        }
-
-        this.schedulePreviewTextWarmupFlush();
-    }
-
-    /**
-     * Reads a cursor batch from the preview store and updates the preview text LRU.
-     */
-    private async warmPreviewTextCacheBatch(cursorStepLimit: number, sessionId: number): Promise<boolean> {
-        if (this.isClosing || sessionId !== this.previewLoadSessionId) {
-            return false;
-        }
-        if (!this.db) {
-            return false;
-        }
-        if (!this.cache.isReady()) {
-            return false;
-        }
-        if (this.previewTextCacheMaxEntries === 0) {
-            return false;
-        }
-
-        if (this.cache.getPreviewTextEntryCount() >= this.previewTextCacheMaxEntries) {
-            return false;
-        }
-
-        const db = this.db;
-        const transaction = db.transaction([PREVIEW_STORE_NAME], 'readonly');
-        const store = transaction.objectStore(PREVIEW_STORE_NAME);
-
-        let reachedEnd = false;
-
-        await new Promise<void>((resolve, reject) => {
-            const op = 'warmPreviewTextCache';
-            let lastRequestError: DOMException | Error | null = null;
-
-            const range = this.previewWarmupCursorKey ? IDBKeyRange.lowerBound(this.previewWarmupCursorKey, true) : undefined;
-            const request = store.openCursor(range);
-
-            let steps = 0;
-            request.onsuccess = () => {
-                if (this.isClosing || sessionId !== this.previewLoadSessionId) {
-                    return;
-                }
-
-                const cursor = request.result;
-                if (!cursor) {
-                    reachedEnd = true;
-                    return;
-                }
-
-                // Pause warmup when explicit preview-load requests are pending.
-                // The preview-load flush path emits change events used by UI components (e.g. FileItem state).
-                if (this.isPreviewLoadFlushRunning || this.previewLoadFlushTimer !== null || this.previewLoadQueue.size > 0) {
-                    return;
-                }
-
-                if (this.cache.getPreviewTextEntryCount() >= this.previewTextCacheMaxEntries) {
-                    return;
-                }
-
-                steps += 1;
-
-                const path = cursor.key;
-                const previewText: unknown = cursor.value;
-
-                if (typeof path === 'string') {
-                    this.previewWarmupCursorKey = path;
-                    if (typeof previewText === 'string' && previewText.length > 0) {
-                        const file = this.cache.getFile(path);
-                        if (file && file.previewStatus === 'has' && !this.cache.isPreviewTextLoaded(path)) {
-                            this.cache.updateFileContent(path, { previewText });
-                        }
-                    }
-                }
-
-                if (this.cache.getPreviewTextEntryCount() >= this.previewTextCacheMaxEntries || steps >= cursorStepLimit) {
-                    return;
-                }
-
-                cursor.continue();
-            };
-            request.onerror = () => {
-                lastRequestError = request.error || null;
-                console.error('[IndexedDB] openCursor failed', {
-                    store: PREVIEW_STORE_NAME,
-                    op,
-                    name: request.error?.name,
-                    message: request.error?.message
-                });
-                reject(this.normalizeIdbError(request.error, 'Cursor request failed'));
-            };
-
-            transaction.oncomplete = () => resolve();
-            transaction.onabort = () => {
-                if (this.isClosing || sessionId !== this.previewLoadSessionId) {
-                    resolve();
-                    return;
-                }
-                console.error('[IndexedDB] transaction aborted', {
-                    store: PREVIEW_STORE_NAME,
-                    op,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction aborted');
-            };
-            transaction.onerror = () => {
-                if (this.isClosing || sessionId !== this.previewLoadSessionId) {
-                    resolve();
-                    return;
-                }
-                console.error('[IndexedDB] transaction error', {
-                    store: PREVIEW_STORE_NAME,
-                    op,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction error');
-            };
-        });
-
-        if (this.isClosing || sessionId !== this.previewLoadSessionId) {
-            return false;
-        }
-        if (this.cache.getPreviewTextEntryCount() >= this.previewTextCacheMaxEntries) {
-            return false;
-        }
-        return !reachedEnd;
-    }
-
-    private async repairPreviewStatusRecords(updates: { path: string; previewStatus: PreviewStatus }[]): Promise<void> {
-        if (this.isClosing) {
-            return;
-        }
-        if (updates.length === 0) {
-            return;
-        }
-        await this.init();
-        if (!this.db) {
-            return;
-        }
-
-        const sessionId = this.previewLoadSessionId;
-        if (this.isClosing || sessionId !== this.previewLoadSessionId) {
-            return;
-        }
-
-        const db = this.db;
-        const transaction = db.transaction([STORE_NAME], 'readwrite');
-        const store = transaction.objectStore(STORE_NAME);
-
-        await new Promise<void>((resolve, reject) => {
-            const op = 'repairPreviewStatusRecords';
-            let lastRequestError: DOMException | Error | null = null;
-
-            updates.forEach(update => {
-                const getReq = store.get(update.path);
-                getReq.onsuccess = () => {
-                    const recordValue: unknown = getReq.result;
-                    if (!isPlainObjectRecordValue(recordValue)) {
-                        return;
-                    }
-
-                    const record = recordValue;
-                    if (record.previewStatus === update.previewStatus) {
-                        return;
-                    }
-
-                    record.previewStatus = update.previewStatus;
-                    const putReq = store.put(record, update.path);
-                    putReq.onerror = () => {
-                        lastRequestError = putReq.error || null;
-                        console.error('[IndexedDB] put failed', {
-                            store: STORE_NAME,
-                            op,
-                            path: update.path,
-                            name: putReq.error?.name,
-                            message: putReq.error?.message
-                        });
-                    };
-                };
-                getReq.onerror = () => {
-                    lastRequestError = getReq.error || null;
-                    console.error('[IndexedDB] get failed', {
-                        store: STORE_NAME,
-                        op,
-                        path: update.path,
-                        name: getReq.error?.name,
-                        message: getReq.error?.message
-                    });
-                    try {
-                        transaction.abort();
-                    } catch (e) {
-                        void e;
-                    }
-                };
-            });
-
-            transaction.oncomplete = () => resolve();
-            transaction.onabort = () => {
-                if (this.isClosing) {
-                    resolve();
-                    return;
-                }
-                console.error('[IndexedDB] transaction aborted', {
-                    store: STORE_NAME,
-                    op,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction aborted');
-            };
-            transaction.onerror = () => {
-                if (this.isClosing) {
-                    resolve();
-                    return;
-                }
-                console.error('[IndexedDB] transaction error', {
-                    store: STORE_NAME,
-                    op,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction error');
-            };
-        });
-    }
-
-    private async flushPreviewTextLoadQueue(): Promise<void> {
-        if (this.isPreviewLoadFlushRunning) {
-            return;
-        }
-
-        this.isPreviewLoadFlushRunning = true;
-        const sessionId = this.previewLoadSessionId;
-        try {
-            // Opportunistic cleanup so stuck in-flight state does not block preview loading indefinitely.
-            this.prunePreviewTextMovesInFlight();
-
-            const queuedPaths = Array.from(this.previewLoadQueue);
-            this.previewLoadQueue.clear();
-            if (queuedPaths.length === 0) {
-                return;
-            }
-
-            const pathsToProcess = queuedPaths.slice(0, this.previewLoadMaxBatch);
-            if (queuedPaths.length > this.previewLoadMaxBatch) {
-                for (const path of queuedPaths.slice(this.previewLoadMaxBatch)) {
-                    this.previewLoadQueue.add(path);
-                }
-            }
-
-            if (this.isClosing || sessionId !== this.previewLoadSessionId) {
-                for (const path of pathsToProcess) {
-                    this.previewLoadDeferred.get(path)?.resolve();
-                }
-                return;
-            }
-
-            try {
-                await this.init();
-            } catch (error: unknown) {
-                if (this.isClosing || sessionId !== this.previewLoadSessionId) {
-                    for (const path of queuedPaths) {
-                        this.previewLoadDeferred.get(path)?.resolve();
-                    }
-                    return;
-                }
-                const initError = error instanceof Error ? error : new Error('Failed to initialize database');
-                console.error('[PreviewText] Failed to initialize database for preview load', initError);
-                for (const path of queuedPaths) {
-                    this.previewLoadDeferred.get(path)?.resolve();
-                }
-                return;
-            }
-
-            if (!this.db) {
-                if (this.isClosing || sessionId !== this.previewLoadSessionId) {
-                    for (const path of pathsToProcess) {
-                        this.previewLoadDeferred.get(path)?.resolve();
-                    }
-                    return;
-                }
-                console.error('[PreviewText] Database not initialized for preview load');
-                for (const path of pathsToProcess) {
-                    this.previewLoadDeferred.get(path)?.resolve();
-                }
-                return;
-            }
-
-            const pathsToLoad: string[] = [];
-            for (const path of pathsToProcess) {
-                const deferred = this.previewLoadDeferred.get(path);
-                if (!deferred) {
-                    continue;
-                }
-
-                const file = this.cache.getFile(path);
-                if (!file || file.previewStatus !== 'has') {
-                    deferred.resolve();
-                    continue;
-                }
-
-                if (this.cache.getPreviewText(path).length > 0) {
-                    deferred.resolve();
-                    continue;
-                }
-
-                pathsToLoad.push(path);
-            }
-
-            if (pathsToLoad.length === 0) {
-                return;
-            }
-
-            const previewTexts = new Map<string, string | null>();
-            const changes: FileContentChange[] = [];
-            const previewStatusRepairs: { path: string; previewStatus: PreviewStatus }[] = [];
-
-            const db = this.db;
-            if (this.isClosing || sessionId !== this.previewLoadSessionId) {
-                for (const path of pathsToLoad) {
-                    this.previewLoadDeferred.get(path)?.resolve();
-                }
-                return;
-            }
-
-            const transaction = db.transaction([PREVIEW_STORE_NAME], 'readonly');
-            const store = transaction.objectStore(PREVIEW_STORE_NAME);
-
-            try {
-                await new Promise<void>((resolve, reject) => {
-                    const op = 'loadPreviewText:batch';
-                    let lastRequestError: DOMException | Error | null = null;
-
-                    for (const path of pathsToLoad) {
-                        const getReq = store.get(path);
-                        getReq.onsuccess = () => {
-                            const previewText: unknown = getReq.result;
-                            if (typeof previewText === 'string' && previewText.length > 0) {
-                                previewTexts.set(path, previewText);
-                            } else {
-                                previewTexts.set(path, null);
-                            }
-                        };
-                        getReq.onerror = () => {
-                            lastRequestError = getReq.error || null;
-                            if (!this.isClosing && sessionId === this.previewLoadSessionId) {
-                                console.error('[IndexedDB] get failed', {
-                                    store: PREVIEW_STORE_NAME,
-                                    op,
-                                    path,
-                                    name: getReq.error?.name,
-                                    message: getReq.error?.message
-                                });
-                            }
-                            try {
-                                transaction.abort();
-                            } catch (e) {
-                                void e;
-                            }
-                        };
-                    }
-
-                    transaction.oncomplete = () => resolve();
-                    transaction.onabort = () => {
-                        if (this.isClosing || sessionId !== this.previewLoadSessionId) {
-                            resolve();
-                            return;
-                        }
-                        console.error('[IndexedDB] transaction aborted', {
-                            store: PREVIEW_STORE_NAME,
-                            op,
-                            txError: transaction.error?.message,
-                            reqError: lastRequestError?.message
-                        });
-                        this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction aborted');
-                    };
-                    transaction.onerror = () => {
-                        if (this.isClosing || sessionId !== this.previewLoadSessionId) {
-                            resolve();
-                            return;
-                        }
-                        console.error('[IndexedDB] transaction error', {
-                            store: PREVIEW_STORE_NAME,
-                            op,
-                            txError: transaction.error?.message,
-                            reqError: lastRequestError?.message
-                        });
-                        this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction error');
-                    };
-                });
-            } catch (error: unknown) {
-                const loadError = error instanceof Error ? error : new Error('Preview load failed');
-                if (!this.isClosing && sessionId === this.previewLoadSessionId) {
-                    console.error('[PreviewText] Failed to load previews', loadError);
-                }
-                for (const path of pathsToLoad) {
-                    this.previewLoadDeferred.get(path)?.resolve();
-                }
-                return;
-            }
-
-            for (const path of pathsToLoad) {
-                const previewText = previewTexts.get(path);
-                if (typeof previewText === 'string' && previewText.length > 0) {
-                    this.cache.updateFileContent(path, { previewText, previewStatus: 'has' });
-                    changes.push({ path, changes: { preview: previewText }, changeType: 'content' });
-                    this.previewLoadDeferred.get(path)?.resolve();
-                    continue;
-                }
-
-                const file = this.cache.getFile(path);
-                if (file && file.previewStatus === 'has') {
-                    // During a rename/move, the preview record is keyed by path and may not exist at `newPath` yet.
-                    // Keep `previewStatus` intact and wait for `movePreviewText()` to finish.
-                    if (this.isPreviewTextMoveInFlight(path)) {
-                        this.previewLoadDeferred.get(path)?.resolve();
-                        continue;
-                    }
-                    const nextPreviewStatus = getDefaultPreviewStatusForPath(path);
-                    this.cache.updateFileContent(path, { previewText: '', previewStatus: nextPreviewStatus });
-                    previewStatusRepairs.push({ path, previewStatus: nextPreviewStatus });
-                    changes.push({ path, changes: { preview: null }, changeType: 'content' });
-                }
-
-                this.previewLoadDeferred.get(path)?.resolve();
-            }
-
-            if (previewStatusRepairs.length > 0 && !this.isClosing && sessionId === this.previewLoadSessionId) {
-                try {
-                    await this.repairPreviewStatusRecords(previewStatusRepairs);
-                } catch (error: unknown) {
-                    if (!this.isClosing && sessionId === this.previewLoadSessionId) {
-                        console.error('[PreviewText] Failed to persist preview status repairs', error);
-                    }
-                }
-            }
-
-            if (changes.length > 0) {
-                this.emitChanges(changes);
-            }
-        } finally {
-            this.isPreviewLoadFlushRunning = false;
-            if (sessionId === this.previewLoadSessionId && !this.isClosing && this.previewLoadQueue.size > 0) {
-                this.schedulePreviewTextLoadFlush();
-            }
-        }
+        this.previewTexts.startPreviewTextWarmup();
     }
 
     async deletePreviewText(path: string): Promise<void> {
-        await this.init();
-        if (!this.db) throw new Error('Database not initialized');
-
-        if (this.cache.isReady()) {
-            this.cache.updateFileContent(path, { previewText: '' });
-        }
-
-        const transaction = this.db.transaction([PREVIEW_STORE_NAME], 'readwrite');
-        const store = transaction.objectStore(PREVIEW_STORE_NAME);
-
-        await new Promise<void>((resolve, reject) => {
-            const op = 'deletePreviewText';
-            let lastRequestError: DOMException | Error | null = null;
-
-            const deleteReq = store.delete(path);
-            deleteReq.onerror = () => {
-                lastRequestError = deleteReq.error || null;
-                console.error('[IndexedDB] delete failed', {
-                    store: PREVIEW_STORE_NAME,
-                    op,
-                    path,
-                    name: deleteReq.error?.name,
-                    message: deleteReq.error?.message
-                });
-            };
-
-            transaction.oncomplete = () => resolve();
-            transaction.onabort = () => {
-                console.error('[IndexedDB] transaction aborted', {
-                    store: PREVIEW_STORE_NAME,
-                    op,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction aborted');
-            };
-            transaction.onerror = () => {
-                console.error('[IndexedDB] transaction error', {
-                    store: PREVIEW_STORE_NAME,
-                    op,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction error');
-            };
-        });
+        await this.previewTexts.deletePreviewText(path);
     }
 
     /**
@@ -3637,34 +1417,7 @@ export class IndexedDBStorage {
      * Reads from the in-memory LRU first, then IndexedDB.
      */
     async getFeatureImageBlob(path: string, expectedKey: string): Promise<Blob | null> {
-        if (!expectedKey) {
-            return null;
-        }
-        await this.init();
-        if (!this.db) {
-            return null;
-        }
-        // Opportunistic cleanup so fallback reads don't persist across unrelated operations.
-        this.pruneFeatureImageBlobMovesInFlight();
-        const blob = await this.featureImageBlobs.getBlob(this.db, path, expectedKey);
-        if (blob || !this.isFeatureImageBlobMoveInFlight(path)) {
-            return blob;
-        }
-
-        const tracked = this.featureImageBlobMoveInFlight.get(path);
-        const oldPath = tracked?.oldPath ?? '';
-        if (oldPath.length === 0) {
-            return blob;
-        }
-
-        const fallbackBlob = await this.featureImageBlobs.getBlob(this.db, oldPath, expectedKey);
-        if (fallbackBlob) {
-            // Seed the cache under the new path so subsequent reads are fast.
-            this.featureImageBlobs.moveCacheEntry(oldPath, path);
-            return fallbackBlob;
-        }
-
-        return blob;
+        return this.featureImages.getBlob(path, expectedKey);
     }
 
     /**
@@ -3672,11 +1425,7 @@ export class IndexedDBStorage {
      * Only yields non-empty blobs with a string key.
      */
     async forEachFeatureImageBlobRecord(callback: (path: string, record: { featureImageKey: string; blob: Blob }) => void): Promise<void> {
-        await this.init();
-        if (!this.db) {
-            return;
-        }
-        await this.featureImageBlobs.forEachBlobRecord(this.db, callback);
+        await this.featureImages.forEachBlobRecord(callback);
     }
 
     /**
@@ -3684,228 +1433,28 @@ export class IndexedDBStorage {
      * Only yields non-empty strings with a string key.
      */
     async forEachPreviewTextRecord(callback: (path: string, previewText: string) => void): Promise<void> {
-        await this.init();
-        if (!this.db) {
-            return;
-        }
-
-        const transaction = this.db.transaction([PREVIEW_STORE_NAME], 'readonly');
-        const store = transaction.objectStore(PREVIEW_STORE_NAME);
-
-        await new Promise<void>((resolve, reject) => {
-            const op = 'forEachPreviewTextRecord';
-            let lastRequestError: DOMException | Error | null = null;
-
-            const request = store.openCursor();
-            request.onsuccess = () => {
-                const cursor = request.result;
-                if (!cursor) {
-                    return;
-                }
-
-                const path = cursor.key;
-                const value: unknown = cursor.value;
-                if (typeof path === 'string' && typeof value === 'string' && value.length > 0) {
-                    callback(path, value);
-                }
-
-                cursor.continue();
-            };
-            request.onerror = () => {
-                const requestError = request.error;
-                lastRequestError = requestError || null;
-                console.error('[IndexedDB] openCursor failed', {
-                    store: PREVIEW_STORE_NAME,
-                    op,
-                    name: requestError?.name,
-                    message: requestError?.message
-                });
-                reject(this.normalizeIdbError(requestError, 'Cursor request failed'));
-            };
-
-            transaction.oncomplete = () => resolve();
-            transaction.onabort = () => {
-                console.error('[IndexedDB] transaction aborted', {
-                    store: PREVIEW_STORE_NAME,
-                    op,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction aborted');
-            };
-            transaction.onerror = () => {
-                console.error('[IndexedDB] transaction error', {
-                    store: PREVIEW_STORE_NAME,
-                    op,
-                    txError: transaction.error?.message,
-                    reqError: lastRequestError?.message
-                });
-                this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction error');
-            };
-        });
+        await this.previewTexts.forEachPreviewTextRecord(callback);
     }
 
     /**
      * Move a feature image blob between paths.
      */
     async moveFeatureImageBlob(oldPath: string, newPath: string): Promise<void> {
-        if (oldPath === newPath) {
-            return;
-        }
-        this.beginFeatureImageBlobMove(oldPath, newPath);
-
-        let didMove = false;
-        try {
-            await this.init();
-            if (!this.db) throw new Error('Database not initialized');
-            await this.featureImageBlobs.moveBlob(this.db, oldPath, newPath);
-            didMove = true;
-        } catch (error: unknown) {
-            if (!this.isClosing) {
-                console.error('[FeatureImageBlob] Failed to move feature image blob', { oldPath, newPath, error });
-            }
-        } finally {
-            if (didMove) {
-                this.endFeatureImageBlobMove(oldPath, newPath);
-            }
-        }
+        await this.featureImages.moveBlob(oldPath, newPath);
     }
 
     /**
      * Move preview text between paths.
      */
     async movePreviewText(oldPath: string, newPath: string): Promise<void> {
-        if (oldPath === newPath) {
-            return;
-        }
-        this.beginPreviewTextMove(oldPath, newPath);
-
-        try {
-            await this.init();
-            if (!this.db) throw new Error('Database not initialized');
-
-            const transaction = this.db.transaction([PREVIEW_STORE_NAME], 'readwrite');
-            const store = transaction.objectStore(PREVIEW_STORE_NAME);
-
-            const movedPreviewText = await new Promise<string | null>((resolve, reject) => {
-                const op = 'movePreviewText';
-                let lastRequestError: DOMException | Error | null = null;
-                let previewTextMoved: string | null = null;
-
-                const getReq = store.get(oldPath);
-                getReq.onsuccess = () => {
-                    const previewText: unknown = getReq.result;
-                    if (typeof previewText === 'string' && previewText.length > 0) {
-                        previewTextMoved = previewText;
-                        const putReq = store.put(previewText, newPath);
-                        putReq.onerror = () => {
-                            lastRequestError = putReq.error || null;
-                            console.error('[IndexedDB] put failed', {
-                                store: PREVIEW_STORE_NAME,
-                                op,
-                                path: newPath,
-                                name: putReq.error?.name,
-                                message: putReq.error?.message
-                            });
-                        };
-                    }
-
-                    const deleteReq = store.delete(oldPath);
-                    deleteReq.onerror = () => {
-                        lastRequestError = deleteReq.error || null;
-                        console.error('[IndexedDB] delete failed', {
-                            store: PREVIEW_STORE_NAME,
-                            op,
-                            path: oldPath,
-                            name: deleteReq.error?.name,
-                            message: deleteReq.error?.message
-                        });
-                    };
-                };
-                getReq.onerror = () => {
-                    lastRequestError = getReq.error || null;
-                    console.error('[IndexedDB] get failed', {
-                        store: PREVIEW_STORE_NAME,
-                        op,
-                        path: oldPath,
-                        name: getReq.error?.name,
-                        message: getReq.error?.message
-                    });
-                    try {
-                        transaction.abort();
-                    } catch (e) {
-                        void e;
-                    }
-                };
-
-                transaction.oncomplete = () => resolve(previewTextMoved);
-                transaction.onabort = () => {
-                    console.error('[IndexedDB] transaction aborted', {
-                        store: PREVIEW_STORE_NAME,
-                        op,
-                        txError: transaction.error?.message,
-                        reqError: lastRequestError?.message
-                    });
-                    this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction aborted');
-                };
-                transaction.onerror = () => {
-                    console.error('[IndexedDB] transaction error', {
-                        store: PREVIEW_STORE_NAME,
-                        op,
-                        txError: transaction.error?.message,
-                        reqError: lastRequestError?.message
-                    });
-                    this.rejectWithTransactionError(reject, transaction, lastRequestError, 'Transaction error');
-                };
-            });
-
-            if (this.cache.isReady()) {
-                if (movedPreviewText && movedPreviewText.length > 0) {
-                    this.cache.updateFileContent(newPath, { previewText: movedPreviewText, previewStatus: 'has' });
-                    this.emitChanges([{ path: newPath, changes: { preview: movedPreviewText }, changeType: 'content' }]);
-
-                    try {
-                        await this.repairPreviewStatusRecords([{ path: newPath, previewStatus: 'has' }]);
-                    } catch (error: unknown) {
-                        if (!this.isClosing) {
-                            console.error('[PreviewText] Failed to persist preview status after move', error);
-                        }
-                    }
-                } else {
-                    const file = this.cache.getFile(newPath);
-                    if (file && file.previewStatus === 'has') {
-                        const nextPreviewStatus = getDefaultPreviewStatusForPath(newPath);
-                        this.cache.updateFileContent(newPath, { previewText: '', previewStatus: nextPreviewStatus });
-                        this.emitChanges([{ path: newPath, changes: { preview: null }, changeType: 'content' }]);
-                        try {
-                            await this.repairPreviewStatusRecords([{ path: newPath, previewStatus: nextPreviewStatus }]);
-                        } catch (error: unknown) {
-                            if (!this.isClosing) {
-                                console.error('[PreviewText] Failed to persist preview status repair after move', error);
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (error: unknown) {
-            if (!this.isClosing) {
-                console.error('[PreviewText] Failed to move preview text', { oldPath, newPath, error });
-            }
-        } finally {
-            this.endPreviewTextMove(oldPath, newPath);
-            this.previewLoadQueue.delete(newPath);
-            // Unblock any `ensurePreviewTextLoaded(newPath)` call that was queued during the rename window.
-            this.previewLoadDeferred.get(newPath)?.resolve();
-        }
+        await this.previewTexts.movePreviewText(oldPath, newPath);
     }
 
     /**
      * Delete a feature image blob by path.
      */
     async deleteFeatureImageBlob(path: string): Promise<void> {
-        await this.init();
-        if (!this.db) throw new Error('Database not initialized');
-        await this.featureImageBlobs.deleteBlob(this.db, path);
+        await this.featureImages.deleteBlob(path);
     }
 
     /**
@@ -3914,31 +1463,14 @@ export class IndexedDBStorage {
      */
     close(): void {
         this.isClosing = true;
-        this.previewLoadSessionId += 1;
         if (this.db) {
             this.db.close();
             this.db = null;
         }
         this.initPromise = null;
         this.cache.clear();
-        if (this.previewLoadFlushTimer !== null) {
-            globalThis.clearTimeout(this.previewLoadFlushTimer);
-            this.previewLoadFlushTimer = null;
-        }
-        if (this.previewWarmupTimer !== null) {
-            globalThis.clearTimeout(this.previewWarmupTimer);
-            this.previewWarmupTimer = null;
-        }
-        this.isPreviewWarmupEnabled = false;
-        this.isPreviewWarmupComplete = true;
-        this.isPreviewWarmupRunning = false;
-        this.previewWarmupCursorKey = null;
-        this.previewLoadQueue.clear();
-        this.previewLoadDeferred.forEach(deferred => deferred.resolve());
-        this.previewLoadDeferred.clear();
-        this.previewLoadPromises.clear();
-        this.previewTextMoveInFlight.clear();
-        this.featureImageBlobMoveInFlight.clear();
+        this.previewTexts.close();
+        this.featureImages.close();
         this.featureImageBlobs.clearMemoryCaches();
     }
 }

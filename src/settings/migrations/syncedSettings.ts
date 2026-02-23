@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,11 +21,13 @@ import type { NotebookNavigatorSettings } from '../types';
 import type { LocalStorageKeys } from '../../types';
 import type { FolderAppearance } from '../../hooks/useListPaneAppearance';
 import { localStorage } from '../../utils/localStorage';
-import { isPlainObjectRecordValue } from '../../utils/recordUtils';
-import { cloneShortcuts, DEFAULT_VAULT_PROFILE_ID } from '../../utils/vaultProfiles';
+import { cloneShortcuts, createPropertyKeysFromPropertyFields, DEFAULT_VAULT_PROFILE_ID } from '../../utils/vaultProfiles';
 import { ShortcutType, type ShortcutEntry } from '../../types/shortcuts';
-import { isCustomPropertyType } from '../types';
+import { isNotePropertyType, isRecentNotesHideMode, isTagSortOrder } from '../types';
 import { normalizeCalendarCustomRootFolder } from '../../utils/calendarCustomNotePatterns';
+import { normalizeFolderNoteNamePattern } from '../../utils/folderNoteName';
+import { normalizeOptionalVaultFilePath } from '../../utils/pathUtils';
+import { normalizeCommaSeparatedList } from '../../utils/commaSeparatedListUtils';
 
 // Types/Interfaces
 export interface LegacyVisibilityMigration {
@@ -35,6 +37,18 @@ export interface LegacyVisibilityMigration {
     navigationBanner: string | null;
     shouldApplyToProfiles: boolean;
 }
+
+const SEARCH_SHORTCUT_LEGACY_NEGATION_PATTERN = /(^|\s)!(?=\S)/g;
+
+// Rewrites legacy search negation prefixes from "!" to "-" at token boundaries.
+// Returns an empty query when legacy data contains a non-string value.
+const migrateLegacySearchShortcutQuery = (query: unknown): string => {
+    if (typeof query !== 'string') {
+        return '';
+    }
+
+    return query.replace(SEARCH_SHORTCUT_LEGACY_NEGATION_PATTERN, '$1-');
+};
 
 // Migrates legacy synced settings fields into the current settings schema.
 // This runs before local-only settings are resolved from localStorage.
@@ -98,6 +112,12 @@ export function migrateLegacySyncedSettings(params: {
     }
     delete mutableSettings.groupByDate;
 
+    const legacyAutoExpandNavItems = mutableSettings['autoExpandFoldersTags'];
+    if (typeof legacyAutoExpandNavItems === 'boolean' && typeof storedData?.['autoExpandNavItems'] === 'undefined') {
+        settings.autoExpandNavItems = legacyAutoExpandNavItems;
+    }
+    delete mutableSettings['autoExpandFoldersTags'];
+
     // Validate noteGrouping value and reset to default if invalid
     if (settings.noteGrouping !== 'none' && settings.noteGrouping !== 'date' && settings.noteGrouping !== 'folder') {
         settings.noteGrouping = defaultSettings.noteGrouping;
@@ -112,26 +132,112 @@ export function migrateLegacySyncedSettings(params: {
         settings.shortcutBadgeDisplay = defaultSettings.shortcutBadgeDisplay;
     }
 
-    if (!isCustomPropertyType(settings.customPropertyType)) {
-        settings.customPropertyType = defaultSettings.customPropertyType;
+    const legacyHideFolderNotesInRecentNotes = mutableSettings['hideFolderNotesInRecentNotes'];
+    if (typeof storedData?.['hideRecentNotes'] === 'undefined' && typeof legacyHideFolderNotesInRecentNotes === 'boolean') {
+        settings.hideRecentNotes = legacyHideFolderNotesInRecentNotes ? 'folder-notes' : 'none';
+    }
+    delete mutableSettings['hideFolderNotesInRecentNotes'];
+
+    if (!isRecentNotesHideMode(settings.hideRecentNotes)) {
+        settings.hideRecentNotes = defaultSettings.hideRecentNotes;
     }
 
-    if (typeof settings.customPropertyFields !== 'string') {
-        settings.customPropertyFields = defaultSettings.customPropertyFields;
+    const legacyNotePropertyType = mutableSettings['customPropertyType'];
+    if (typeof storedData?.['notePropertyType'] === 'undefined' && typeof legacyNotePropertyType === 'string') {
+        if (legacyNotePropertyType === 'frontmatter') {
+            settings.notePropertyType = 'none';
+        } else if (isNotePropertyType(legacyNotePropertyType)) {
+            settings.notePropertyType = legacyNotePropertyType;
+        }
+    }
+    delete mutableSettings['customPropertyType'];
+
+    const currentPropertyFields = mutableSettings['propertyFields'];
+    if (typeof currentPropertyFields !== 'string') {
+        delete mutableSettings['propertyFields'];
+    } else {
+        mutableSettings['propertyFields'] = normalizeCommaSeparatedList(currentPropertyFields);
     }
 
-    if (typeof settings.showCustomPropertiesOnSeparateRows !== 'boolean') {
-        settings.showCustomPropertiesOnSeparateRows = defaultSettings.showCustomPropertiesOnSeparateRows;
+    const legacyPropertyFields = mutableSettings['customPropertyFields'];
+    if (
+        typeof mutableSettings['propertyFields'] === 'undefined' &&
+        typeof storedData?.['propertyFields'] === 'undefined' &&
+        typeof legacyPropertyFields === 'string'
+    ) {
+        mutableSettings['propertyFields'] = normalizeCommaSeparatedList(legacyPropertyFields);
+    }
+    delete mutableSettings['customPropertyFields'];
+
+    const legacyShowPropertiesOnSeparateRows = mutableSettings['showCustomPropertiesOnSeparateRows'];
+    if (typeof storedData?.['showPropertiesOnSeparateRows'] === 'undefined' && typeof legacyShowPropertiesOnSeparateRows === 'boolean') {
+        settings.showPropertiesOnSeparateRows = legacyShowPropertiesOnSeparateRows;
+    }
+    delete mutableSettings['showCustomPropertiesOnSeparateRows'];
+
+    const legacyShowFilePropertiesInCompactMode = mutableSettings['showCustomPropertyInCompactMode'];
+    if (
+        typeof storedData?.['showFilePropertiesInCompactMode'] === 'undefined' &&
+        typeof legacyShowFilePropertiesInCompactMode === 'boolean'
+    ) {
+        settings.showFilePropertiesInCompactMode = legacyShowFilePropertiesInCompactMode;
+    }
+    delete mutableSettings['showCustomPropertyInCompactMode'];
+
+    const previousShowFilePropertiesInCompactMode = mutableSettings['showNotePropertyInCompactMode'];
+    if (
+        typeof storedData?.['showFilePropertiesInCompactMode'] === 'undefined' &&
+        typeof previousShowFilePropertiesInCompactMode === 'boolean'
+    ) {
+        settings.showFilePropertiesInCompactMode = previousShowFilePropertiesInCompactMode;
+    }
+    delete mutableSettings['showNotePropertyInCompactMode'];
+
+    if (!isNotePropertyType(settings.notePropertyType)) {
+        settings.notePropertyType = defaultSettings.notePropertyType;
+    }
+
+    if (typeof settings.showPropertiesOnSeparateRows !== 'boolean') {
+        settings.showPropertiesOnSeparateRows = defaultSettings.showPropertiesOnSeparateRows;
     }
 
     delete mutableSettings['customPropertyColorFields'];
+    delete mutableSettings['customPropertyColorMap'];
 
-    if (!isPlainObjectRecordValue(settings.customPropertyColorMap)) {
-        settings.customPropertyColorMap = defaultSettings.customPropertyColorMap;
+    if (typeof settings.showFilePropertiesInCompactMode !== 'boolean') {
+        settings.showFilePropertiesInCompactMode = defaultSettings.showFilePropertiesInCompactMode;
     }
 
-    if (typeof settings.showCustomPropertyInCompactMode !== 'boolean') {
-        settings.showCustomPropertyInCompactMode = defaultSettings.showCustomPropertyInCompactMode;
+    if (typeof settings.showFileProperties !== 'boolean') {
+        settings.showFileProperties = defaultSettings.showFileProperties;
+    }
+
+    if (typeof settings.colorFileProperties !== 'boolean') {
+        settings.colorFileProperties = defaultSettings.colorFileProperties;
+    }
+
+    if (typeof settings.prioritizeColoredFileProperties !== 'boolean') {
+        settings.prioritizeColoredFileProperties = defaultSettings.prioritizeColoredFileProperties;
+    }
+
+    if (typeof settings.showProperties !== 'boolean') {
+        settings.showProperties = defaultSettings.showProperties;
+    }
+
+    if (typeof settings.showPropertyIcons !== 'boolean') {
+        settings.showPropertyIcons = defaultSettings.showPropertyIcons;
+    }
+
+    if (typeof settings.inheritPropertyColors !== 'boolean') {
+        settings.inheritPropertyColors = defaultSettings.inheritPropertyColors;
+    }
+
+    if (typeof settings.showAllPropertiesFolder !== 'boolean') {
+        settings.showAllPropertiesFolder = defaultSettings.showAllPropertiesFolder;
+    }
+
+    if (!isTagSortOrder(settings.propertySortOrder)) {
+        settings.propertySortOrder = defaultSettings.propertySortOrder;
     }
 
     type LegacyAppearance = FolderAppearance & {
@@ -170,6 +276,22 @@ export function migrateLegacySyncedSettings(params: {
         Object.entries(collection).forEach(([key, appearance]) => {
             const migratedAppearance = migrateLegacyAppearanceMode(appearance);
             if (migratedAppearance) {
+                const appearanceRecord = migratedAppearance as unknown as Record<string, unknown>;
+                const rawNotePropertyType = appearanceRecord['notePropertyType'];
+                const rawLegacyNotePropertyType = appearanceRecord['customPropertyType'];
+                const effectiveRawType =
+                    typeof rawNotePropertyType === 'string' && rawNotePropertyType.length > 0
+                        ? rawNotePropertyType
+                        : rawLegacyNotePropertyType;
+
+                if (effectiveRawType === 'frontmatter') {
+                    migratedAppearance.notePropertyType = 'none';
+                } else if (typeof effectiveRawType === 'string' && effectiveRawType.length > 0 && !isNotePropertyType(effectiveRawType)) {
+                    delete appearanceRecord['notePropertyType'];
+                } else if (typeof effectiveRawType === 'string' && isNotePropertyType(effectiveRawType)) {
+                    migratedAppearance.notePropertyType = effectiveRawType;
+                }
+                delete appearanceRecord['customPropertyType'];
                 collection[key] = migratedAppearance;
             }
         });
@@ -211,32 +333,24 @@ export function migrateLegacySyncedSettings(params: {
     delete mutableSettings['showFileTagsInSlimMode'];
 }
 
-// Migrates folderNoteProperties to the normalized string block format.
-export function migrateFolderNotePropertiesSetting(params: {
+// Migrates folder note template setting and removes legacy folderNoteProperties.
+export function migrateFolderNoteTemplateSetting(params: {
     settings: NotebookNavigatorSettings;
     defaultSettings: NotebookNavigatorSettings;
 }): void {
     const { settings, defaultSettings } = params;
-
-    const normalizeFolderNoteBlock = (input: string): string =>
-        input
-            .replace(/\r\n/g, '\n')
-            .replace(/^---\s*\n?/, '')
-            .replace(/\n?---\s*$/, '')
-            .trim();
-
-    const folderNotePropertiesSetting = settings.folderNoteProperties;
-    if (Array.isArray(folderNotePropertiesSetting)) {
-        const migratedProperties = folderNotePropertiesSetting
-            .map(entry => (typeof entry === 'string' ? entry.trim() : ''))
-            .filter(entry => entry.length > 0)
-            .map(entry => `${entry}: true`)
-            .join('\n');
-        settings.folderNoteProperties = normalizeFolderNoteBlock(migratedProperties);
-    } else if (typeof folderNotePropertiesSetting === 'string') {
-        settings.folderNoteProperties = normalizeFolderNoteBlock(folderNotePropertiesSetting);
+    const settingsRecord = settings as unknown as Record<string, unknown>;
+    const templateSetting = settings.folderNoteTemplate;
+    const normalizedTemplatePath = normalizeOptionalVaultFilePath(templateSetting);
+    settings.folderNoteTemplate = normalizedTemplatePath ?? defaultSettings.folderNoteTemplate;
+    if (typeof settings.folderNoteNamePattern !== 'string') {
+        settings.folderNoteNamePattern = defaultSettings.folderNoteNamePattern;
     } else {
-        settings.folderNoteProperties = defaultSettings.folderNoteProperties;
+        settings.folderNoteNamePattern = normalizeFolderNoteNamePattern(settings.folderNoteNamePattern);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(settingsRecord, 'folderNoteProperties')) {
+        delete settingsRecord['folderNoteProperties'];
     }
 }
 
@@ -248,6 +362,56 @@ export function applyExistingUserDefaults(params: { settings: NotebookNavigatorS
     if (typeof settings.checkForUpdatesOnStart !== 'boolean') {
         settings.checkForUpdatesOnStart = true;
     }
+}
+
+// Extracts legacy top-level propertyFields for migration into vault profiles.
+export function extractLegacyPropertyFields(params: {
+    settings: NotebookNavigatorSettings;
+    storedData: Record<string, unknown> | null;
+}): string | null {
+    const { settings, storedData } = params;
+    const settingsRecord = settings as unknown as Record<string, unknown>;
+    const settingsValue = typeof settingsRecord['propertyFields'] === 'string' ? settingsRecord['propertyFields'] : null;
+    const storedValue = typeof storedData?.['propertyFields'] === 'string' ? storedData['propertyFields'] : null;
+    if (Object.prototype.hasOwnProperty.call(settingsRecord, 'propertyFields')) {
+        delete settingsRecord['propertyFields'];
+    }
+
+    const resolved = settingsValue ?? storedValue;
+    if (resolved === null) {
+        return null;
+    }
+
+    return normalizeCommaSeparatedList(resolved);
+}
+
+// Migrates legacy property field list to vault profile property key settings.
+export function applyLegacyPropertyFieldsMigration(params: {
+    settings: NotebookNavigatorSettings;
+    legacyPropertyFields: string | null;
+}): void {
+    const { settings, legacyPropertyFields } = params;
+
+    const settingsRecord = settings as unknown as Record<string, unknown>;
+    if (Object.prototype.hasOwnProperty.call(settingsRecord, 'propertyFields')) {
+        delete settingsRecord['propertyFields'];
+    }
+
+    if (!legacyPropertyFields || legacyPropertyFields.length === 0) {
+        return;
+    }
+
+    const propertyKeys = createPropertyKeysFromPropertyFields(legacyPropertyFields);
+    if (propertyKeys.length === 0) {
+        return;
+    }
+
+    settings.vaultProfiles.forEach(profile => {
+        if (Array.isArray(profile.propertyKeys) && profile.propertyKeys.length > 0) {
+            return;
+        }
+        profile.propertyKeys = propertyKeys.map(entry => ({ ...entry }));
+    });
 }
 
 // Extracts legacy shortcuts from old settings format for migration to vault profiles
@@ -274,6 +438,7 @@ export function extractLegacyShortcuts(params: { storedData: Record<string, unkn
             shortcutType !== ShortcutType.FOLDER &&
             shortcutType !== ShortcutType.NOTE &&
             shortcutType !== ShortcutType.TAG &&
+            shortcutType !== ShortcutType.PROPERTY &&
             shortcutType !== ShortcutType.SEARCH
         ) {
             return;
@@ -313,6 +478,49 @@ export function applyLegacyShortcutsMigration(params: {
         }
         profile.shortcuts = cloneShortcuts(template);
     });
+}
+
+// Migrates saved search shortcut queries from legacy "!" negation prefixes to "-" prefixes.
+export function migrateSearchShortcutNegationSyntax(params: { settings: NotebookNavigatorSettings }): boolean {
+    const { settings } = params;
+    if (!Array.isArray(settings.vaultProfiles) || settings.vaultProfiles.length === 0) {
+        return false;
+    }
+
+    let migrated = false;
+
+    settings.vaultProfiles.forEach(profile => {
+        if (!Array.isArray(profile.shortcuts) || profile.shortcuts.length === 0) {
+            return;
+        }
+
+        let profileChanged = false;
+        const nextShortcuts = profile.shortcuts.map(shortcut => {
+            if (shortcut.type !== ShortcutType.SEARCH) {
+                return shortcut;
+            }
+
+            const nextQuery = migrateLegacySearchShortcutQuery(shortcut.query);
+            if (nextQuery === shortcut.query) {
+                return shortcut;
+            }
+
+            profileChanged = true;
+            return {
+                ...shortcut,
+                query: nextQuery
+            };
+        });
+
+        if (!profileChanged) {
+            return;
+        }
+
+        profile.shortcuts = nextShortcuts;
+        migrated = true;
+    });
+
+    return migrated;
 }
 
 // Extracts legacy exclusion settings from old format and prepares them for migration to vault profiles

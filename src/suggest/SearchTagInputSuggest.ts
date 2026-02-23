@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 import { AbstractInputSuggest, App, prepareFuzzySearch, renderMatches, SearchResult } from 'obsidian';
 import { naturalCompare } from '../utils/sortUtils';
 import { TagTreeNode } from '../types/storage';
-import { TAG_CHARACTER_CLASS, isValidTagPrecedingChar } from '../utils/tagUtils';
+import { OBSIDIAN_INLINE_TAG_DISALLOWED_CLASS_CONTENT, isValidTagPrecedingChar } from '../utils/tagUtils';
 
 interface TagSuggestionItem {
     displayPath: string;
@@ -39,8 +39,8 @@ interface SearchTagInputSuggestOptions {
 }
 
 const TAG_LIMIT = 50;
-const TAG_FRAGMENT_PATTERN = new RegExp(`^${TAG_CHARACTER_CLASS}*$`, 'u');
-const TAG_FRAGMENT_PREFIX = new RegExp(`^${TAG_CHARACTER_CLASS}*`, 'u');
+const TAG_FRAGMENT_PATTERN = new RegExp(`^[^${OBSIDIAN_INLINE_TAG_DISALLOWED_CLASS_CONTENT}]*$`, 'u');
+const TAG_FRAGMENT_PREFIX = new RegExp(`^[^${OBSIDIAN_INLINE_TAG_DISALLOWED_CLASS_CONTENT}]*`, 'u');
 
 /**
  * Provides inline tag suggestions when typing '#' inside the Notebook Navigator search input.

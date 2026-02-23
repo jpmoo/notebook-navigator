@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 import { App, Modal } from 'obsidian';
 import { strings } from '../i18n';
 import { runAsyncAction } from '../utils/async';
+import { renderAffectedFilesPreview } from '../services/operations/OperationBatchUtils';
 
 interface TagRenameModalOptions {
     tagPath: string;
@@ -86,20 +87,7 @@ export class TagRenameModal extends Modal {
         });
         warning.addClass('nn-tag-rename-warning');
 
-        if (this.sampleFiles.length > 0) {
-            const listContainer = this.contentEl.createDiv('nn-tag-rename-file-preview');
-            listContainer.createEl('h4', { text: strings.modals.tagOperation.affectedFiles });
-            const list = listContainer.createEl('ul');
-            this.sampleFiles.forEach(fileName => {
-                list.createEl('li', { text: fileName });
-            });
-            const remaining = this.affectedCount - this.sampleFiles.length;
-            if (remaining > 0) {
-                listContainer.createEl('p', {
-                    text: strings.modals.tagOperation.andMore.replace('{count}', remaining.toString())
-                });
-            }
-        }
+        renderAffectedFilesPreview(this.contentEl, { total: this.affectedCount, sample: this.sampleFiles });
 
         const buttonContainer = this.contentEl.createDiv('nn-button-container');
         const cancelBtn = buttonContainer.createEl('button', { text: strings.common.cancel });

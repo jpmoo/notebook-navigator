@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -94,7 +94,7 @@ export function useListPaneKeyboard({
     onScheduleKeyboardOpenForFile,
     onCommitKeyboardOpen
 }: UseListPaneKeyboardProps) {
-    const { app, commandQueue, isMobile, tagTreeService } = useServices();
+    const { app, commandQueue, isMobile, tagTreeService, propertyTreeService } = useServices();
     const openFileInWorkspace = useFileOpener();
     const fileSystemOps = useFileSystemOps();
     const settings = useSettingsState();
@@ -423,7 +423,8 @@ export function useListPaneKeyboard({
                             visibility: { includeDescendantNotes, showHiddenItems },
                             selectionState,
                             selectionDispatch,
-                            tagTreeService
+                            tagTreeService,
+                            propertyTreeService
                         })
                     );
                 }
@@ -502,6 +503,7 @@ export function useListPaneKeyboard({
             uiDispatch,
             fileSystemOps,
             tagTreeService,
+            propertyTreeService,
             selectionDispatch,
             selectItemAtIndex,
             handleRangeSelection,

@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@ import { describe, expect, it } from 'vitest';
 import type { NotebookNavigatorSettings } from '../../src/settings/types';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import {
+    cloneShortcuts,
     getActiveFileVisibility,
     getActiveHiddenFileNames,
     getActiveHiddenFileTags,
@@ -35,6 +36,7 @@ import {
     updateHiddenTagPrefixMatches,
     updateHiddenFolderExactMatches
 } from '../../src/utils/vaultProfiles';
+import { ShortcutStartType, ShortcutType, isSearchShortcut, type ShortcutEntry } from '../../src/types/shortcuts';
 
 function createSettings(): NotebookNavigatorSettings {
     return JSON.parse(JSON.stringify(DEFAULT_SETTINGS)) as NotebookNavigatorSettings;
@@ -504,5 +506,35 @@ describe('hidden folder matcher', () => {
 
         expect(matcher.matches('/Projects')).toBe(false);
         expect(matcher.matches('/Projects/Client')).toBe(true);
+    });
+});
+
+describe('cloneShortcuts', () => {
+    it('clones nested search start targets without sharing references', () => {
+        const source: ShortcutEntry[] = [
+            {
+                type: ShortcutType.SEARCH,
+                name: 'Active work',
+                query: '#work -#done',
+                provider: 'internal',
+                startTarget: {
+                    type: ShortcutStartType.FOLDER,
+                    path: 'projects/active'
+                }
+            }
+        ];
+
+        const cloned = cloneShortcuts(source);
+        expect(cloned).toEqual(source);
+
+        const originalShortcut = source[0];
+        const clonedShortcut = cloned[0];
+        if (!isSearchShortcut(originalShortcut) || !isSearchShortcut(clonedShortcut)) {
+            throw new Error('Expected search shortcuts in test setup.');
+        }
+
+        expect(clonedShortcut).not.toBe(originalShortcut);
+        expect(clonedShortcut.startTarget).toEqual(originalShortcut.startTarget);
+        expect(clonedShortcut.startTarget).not.toBe(originalShortcut.startTarget);
     });
 });

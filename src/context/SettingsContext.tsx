@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,13 +19,20 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect, useRef } from 'react';
 import NotebookNavigatorPlugin from '../main';
 import { NotebookNavigatorSettings } from '../settings';
-import type { DualPaneOrientation, PinnedNotes } from '../types';
+import type { DualPaneOrientation } from '../types';
 import type { VaultProfile } from '../settings/types';
 import type { FileVisibility } from '../utils/fileTypeUtils';
 import type { ShortcutEntry } from '../types/shortcuts';
-import { isFolderShortcut, isNoteShortcut, isSearchShortcut, isTagShortcut } from '../types/shortcuts';
-import { cloneShortcuts, getActiveVaultProfile } from '../utils/vaultProfiles';
-import { isStringRecordValue, sanitizeRecord } from '../utils/recordUtils';
+import {
+    getShortcutStartTargetFingerprint,
+    isFolderShortcut,
+    isNoteShortcut,
+    isSearchShortcut,
+    isTagShortcut,
+    isPropertyShortcut
+} from '../types/shortcuts';
+import { clonePropertyKeys, cloneShortcuts, getActiveVaultProfile } from '../utils/vaultProfiles';
+import { clonePinnedNotesRecord, isStringRecordValue, sanitizeRecord } from '../utils/recordUtils';
 import { areStringArraysEqual } from '../utils/arrayUtils';
 import type { FolderAppearance } from '../hooks/useListPaneAppearance';
 import { buildFileNameIconNeedles, type FileNameIconNeedle } from '../utils/fileIconUtils';
@@ -51,6 +58,40 @@ interface SettingsDerivedValue {
 }
 const SettingsDerivedContext = createContext<SettingsDerivedValue | null>(null);
 
+const normalizeShortcutAlias = (alias: string | undefined): string | undefined => {
+    return alias && alias.length > 0 ? alias : undefined;
+};
+
+const areShortcutAliasesEqual = (prevAlias: string | undefined, nextAlias: string | undefined): boolean => {
+    return normalizeShortcutAlias(prevAlias) === normalizeShortcutAlias(nextAlias);
+};
+
+const areShortcutStartTargetsEqual = (prevStartTarget: unknown, nextStartTarget: unknown): boolean => {
+    return getShortcutStartTargetFingerprint(prevStartTarget) === getShortcutStartTargetFingerprint(nextStartTarget);
+};
+
+const arePropertyKeysEqual = (prev?: VaultProfile['propertyKeys'], next?: VaultProfile['propertyKeys']): boolean => {
+    const prevEntries = Array.isArray(prev) ? prev : [];
+    const nextEntries = Array.isArray(next) ? next : [];
+    if (prevEntries.length !== nextEntries.length) {
+        return false;
+    }
+
+    for (let index = 0; index < prevEntries.length; index += 1) {
+        const previous = prevEntries[index];
+        const current = nextEntries[index];
+        if (
+            previous.key !== current.key ||
+            previous.showInNavigation !== current.showInNavigation ||
+            previous.showInList !== current.showInList
+        ) {
+            return false;
+        }
+    }
+
+    return true;
+};
+
 // Compares shortcut lists to reuse the previous profile object when entries are unchanged.
 const areShortcutsEqual = (prev?: ShortcutEntry[] | null, next?: ShortcutEntry[] | null): boolean => {
     if (prev === next) {
@@ -71,21 +112,44 @@ const areShortcutsEqual = (prev?: ShortcutEntry[] | null, next?: ShortcutEntry[]
         }
 
         if (isFolderShortcut(prevShortcut)) {
-            if (!isFolderShortcut(nextShortcut) || prevShortcut.path !== nextShortcut.path) {
+            if (
+                !isFolderShortcut(nextShortcut) ||
+                prevShortcut.path !== nextShortcut.path ||
+                !areShortcutAliasesEqual(prevShortcut.alias, nextShortcut.alias)
+            ) {
                 return false;
             }
             continue;
         }
 
         if (isNoteShortcut(prevShortcut)) {
-            if (!isNoteShortcut(nextShortcut) || prevShortcut.path !== nextShortcut.path) {
+            if (
+                !isNoteShortcut(nextShortcut) ||
+                prevShortcut.path !== nextShortcut.path ||
+                !areShortcutAliasesEqual(prevShortcut.alias, nextShortcut.alias)
+            ) {
                 return false;
             }
             continue;
         }
 
         if (isTagShortcut(prevShortcut)) {
-            if (!isTagShortcut(nextShortcut) || prevShortcut.tagPath !== nextShortcut.tagPath) {
+            if (
+                !isTagShortcut(nextShortcut) ||
+                prevShortcut.tagPath !== nextShortcut.tagPath ||
+                !areShortcutAliasesEqual(prevShortcut.alias, nextShortcut.alias)
+            ) {
+                return false;
+            }
+            continue;
+        }
+
+        if (isPropertyShortcut(prevShortcut)) {
+            if (
+                !isPropertyShortcut(nextShortcut) ||
+                prevShortcut.nodeId !== nextShortcut.nodeId ||
+                !areShortcutAliasesEqual(prevShortcut.alias, nextShortcut.alias)
+            ) {
                 return false;
             }
             continue;
@@ -97,7 +161,8 @@ const areShortcutsEqual = (prev?: ShortcutEntry[] | null, next?: ShortcutEntry[]
         if (
             prevShortcut.name !== nextShortcut.name ||
             prevShortcut.query !== nextShortcut.query ||
-            prevShortcut.provider !== nextShortcut.provider
+            prevShortcut.provider !== nextShortcut.provider ||
+            !areShortcutStartTargetsEqual(prevShortcut.startTarget, nextShortcut.startTarget)
         ) {
             return false;
         }
@@ -113,17 +178,6 @@ const cloneAppearanceMap = <T extends FolderAppearance>(map?: Record<string, T>)
     const cloned = Object.create(null) as Record<string, T>;
     Object.entries(map).forEach(([key, value]) => {
         cloned[key] = { ...value };
-    });
-    return cloned;
-};
-
-const clonePinnedNotes = (pinnedNotes?: PinnedNotes): PinnedNotes => {
-    if (!pinnedNotes) {
-        return {} as PinnedNotes;
-    }
-    const cloned = Object.create(null) as PinnedNotes;
-    Object.entries(pinnedNotes).forEach(([path, contexts]) => {
-        cloned[path] = { ...contexts };
     });
     return cloned;
 };
@@ -163,6 +217,10 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
         // Clone tag color records so settings updates change object identity and trigger consumers
         const tagColors = sanitizeRecord(plugin.settings.tagColors);
         const tagBackgroundColors = sanitizeRecord(plugin.settings.tagBackgroundColors);
+        const propertyColors = sanitizeRecord(plugin.settings.propertyColors);
+        const propertyBackgroundColors = sanitizeRecord(plugin.settings.propertyBackgroundColors);
+        const tagIcons = sanitizeRecord(plugin.settings.tagIcons, isStringRecordValue);
+        const propertyIcons = sanitizeRecord(plugin.settings.propertyIcons, isStringRecordValue);
         const rawInterfaceIcons = plugin.settings.interfaceIcons;
         const interfaceIconsCache = previousInterfaceIconsRef.current;
         const interfaceIcons =
@@ -177,10 +235,14 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
             dualPaneOrientation: plugin.getDualPaneOrientation(),
             tagColors,
             tagBackgroundColors,
+            propertyColors,
+            propertyBackgroundColors,
+            tagIcons,
+            propertyIcons,
             interfaceIcons,
             folderAppearances: cloneAppearanceMap(plugin.settings.folderAppearances),
             tagAppearances: cloneAppearanceMap(plugin.settings.tagAppearances),
-            pinnedNotes: clonePinnedNotes(plugin.settings.pinnedNotes)
+            pinnedNotes: clonePinnedNotesRecord(plugin.settings.pinnedNotes)
         };
         // Deep copy vault profiles to prevent mutations from affecting the original settings
         if (Array.isArray(plugin.settings.vaultProfiles)) {
@@ -192,6 +254,7 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
                 hiddenFileNames: Array.isArray(profile.hiddenFileNames) ? [...profile.hiddenFileNames] : [],
                 hiddenTags: Array.isArray(profile.hiddenTags) ? [...profile.hiddenTags] : [],
                 hiddenFileTags: Array.isArray(profile.hiddenFileTags) ? [...profile.hiddenFileTags] : [],
+                propertyKeys: clonePropertyKeys(profile.propertyKeys),
                 shortcuts: cloneShortcuts(profile.shortcuts)
             }));
         }
@@ -236,6 +299,7 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
         const navigationBannerEqual = previous?.navigationBanner === navigationBanner;
         const periodicNotesFolderEqual = previous?.profile.periodicNotesFolder === profile.periodicNotesFolder;
         const nameEqual = previous?.profile.name === profile.name;
+        const propertyKeysEqual = arePropertyKeysEqual(previous?.profile.propertyKeys, profile.propertyKeys);
         const shortcutsEqual = areShortcutsEqual(previous?.profile.shortcuts, profile.shortcuts);
 
         if (
@@ -249,6 +313,7 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
             navigationBannerEqual &&
             periodicNotesFolderEqual &&
             nameEqual &&
+            propertyKeysEqual &&
             shortcutsEqual &&
             previous
         ) {

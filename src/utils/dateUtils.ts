@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,13 +18,12 @@
 
 import { TFile } from 'obsidian';
 
-import { format, parse, Locale } from 'date-fns';
 import { strings, getCurrentLanguage } from '../i18n';
 import { NotebookNavigatorSettings } from '../settings';
-import { getDateFnsLocale } from './dateFnsLocale';
+import { getMomentApi, resolveMomentLocale, type MomentApi } from './moment';
 
-// Default ISO 8601 date format used when no format is specified
-export const ISO_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
+// Example ISO 8601 moment format string used as a settings placeholder
+export const ISO_DATE_FORMAT = 'YYYY-MM-DD[T]HH:mm:ssZ';
 
 export class DateUtils {
     /**
@@ -39,8 +38,7 @@ export class DateUtils {
     }
 
     /**
-     * Languages that use lowercase month names by default in date-fns
-     * Based on testing, these languages format months in lowercase
+     * Languages that use lowercase month names by default in the UI
      */
     private static lowercaseMonthLanguages = new Set([
         'es',
@@ -69,52 +67,41 @@ export class DateUtils {
         return currentLocale || 'en';
     }
 
-    /**
-     * Get the current Obsidian language setting normalized for lookups
-     */
     private static getNormalizedLanguage(): string {
         return DateUtils.normalizeLanguageCode(DateUtils.getObsidianLanguage());
     }
 
-    /**
-     * Get the appropriate date-fns locale for the current Obsidian language
-     * @returns date-fns locale object
-     */
-    private static getDateFnsLocale(normalizedLanguage?: string): Locale {
-        const normalizedLang = normalizedLanguage ?? DateUtils.getNormalizedLanguage();
-        return getDateFnsLocale(normalizedLang);
+    private static getMomentLocale(momentApi: MomentApi): string {
+        const currentLanguage = DateUtils.getObsidianLanguage();
+        const fallback = momentApi.locale() || 'en';
+        const requested = (currentLanguage || fallback).replace(/_/g, '-');
+        return resolveMomentLocale(requested, momentApi, fallback);
     }
 
-    private static formatWithFallback(
-        date: Date,
-        formatString: string,
-        fallbackFormat: string,
-        locale: Locale,
-        formatType: 'date' | 'time'
-    ): string {
-        try {
-            return format(date, formatString, { locale });
-        } catch {
-            try {
-                return format(date, fallbackFormat, { locale });
-            } catch {
-                return formatType === 'time' ? date.toLocaleTimeString() : date.toLocaleDateString();
-            }
+    private static formatWithFallback(date: Date, formatString: string, formatType: 'date' | 'time'): string {
+        const momentApi = getMomentApi();
+        if (!momentApi) {
+            return formatType === 'time' ? date.toLocaleTimeString() : date.toLocaleDateString();
         }
+
+        const locale = DateUtils.getMomentLocale(momentApi);
+        const momentValue = momentApi(date).locale(locale);
+        if (!momentValue.isValid()) {
+            return formatType === 'time' ? date.toLocaleTimeString() : date.toLocaleDateString();
+        }
+
+        return momentValue.format(formatString);
     }
 
     /**
      * Format a timestamp into a human-readable date string
-     * Uses date-fns with proper locale support
      * @param timestamp - Unix timestamp in milliseconds
-     * @param dateFormat - Date format string (date-fns format)
+     * @param dateFormat - Date format string (moment format)
      * @returns Formatted date string
      */
     static formatDate(timestamp: number, dateFormat: string): string {
         const date = new Date(timestamp);
-        const locale = DateUtils.getDateFnsLocale();
-
-        return DateUtils.formatWithFallback(date, dateFormat, 'PPP', locale, 'date');
+        return DateUtils.formatWithFallback(date, dateFormat, 'date');
     }
 
     /**
@@ -129,7 +116,6 @@ export class DateUtils {
 
     /**
      * Inserts a space between Chinese meridiem markers and the time portion.
-     * date-fns expects a space before the hour token when parsing zh formats.
      */
     private static normalizeMeridiemSpacing(value: string, normalizedLanguage: string): string {
         if (!normalizedLanguage.startsWith('zh')) {
@@ -140,12 +126,29 @@ export class DateUtils {
     }
 
     /**
+     * Parse a local day key (YYYY-MM-DD) into a local date anchored at midday.
+     */
+    static parseLocalDayKey(dayKey: string): Date | null {
+        const [yearText, monthText, dayText] = dayKey.split('-');
+        const year = Number(yearText);
+        const month = Number(monthText);
+        const day = Number(dayText);
+        if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+            return null;
+        }
+
+        const reference = new Date(year, month - 1, day, 12, 0, 0, 0);
+        return Number.isFinite(reference.getTime()) ? reference : null;
+    }
+
+    /**
      * Get a date group label for grouping files by date
      * @param timestamp - Unix timestamp in milliseconds
+     * @param nowOverride - Optional reference time for grouping comparisons
      * @returns Date group label (e.g. "Today", "Yesterday", "Previous 7 Days", etc.)
      */
-    static getDateGroup(timestamp: number): string {
-        const now = new Date();
+    static getDateGroup(timestamp: number, nowOverride?: Date): string {
+        const now = nowOverride && Number.isFinite(nowOverride.getTime()) ? nowOverride : new Date();
         const date = new Date(timestamp);
 
         // Reset times to start of day for comparison
@@ -170,8 +173,14 @@ export class DateUtils {
         } else if (date.getFullYear() === now.getFullYear()) {
             // Same year - show month name
             const normalizedLanguage = DateUtils.getNormalizedLanguage();
-            const locale = DateUtils.getDateFnsLocale(normalizedLanguage);
-            let monthName = format(date, 'MMMM', { locale });
+            const momentApi = getMomentApi();
+            let monthName = '';
+            if (momentApi) {
+                const locale = DateUtils.getMomentLocale(momentApi);
+                monthName = momentApi(date).locale(locale).format('MMMM');
+            } else {
+                monthName = date.toLocaleString(undefined, { month: 'long' });
+            }
 
             // Capitalize month name for languages that use lowercase
             if (DateUtils.lowercaseMonthLanguages.has(normalizedLanguage)) {
@@ -188,22 +197,21 @@ export class DateUtils {
      * Format a date based on its group - Apple Notes style
      * @param timestamp - Unix timestamp in milliseconds
      * @param group - The date group this timestamp belongs to
-     * @param dateFormat - Default date format string (date-fns format)
-     * @param timeFormat - Time format string (date-fns format)
+     * @param dateFormat - Default date format string (moment format)
+     * @param timeFormat - Time format string (moment format)
      * @returns Formatted date string appropriate for the group
      */
     static formatDateForGroup(timestamp: number, group: string, dateFormat: string, timeFormat: string): string {
         const date = new Date(timestamp);
-        const locale = DateUtils.getDateFnsLocale();
 
         // Today and Yesterday groups - show time only
         if (group === strings.dateGroups.today || group === strings.dateGroups.yesterday) {
-            return DateUtils.formatWithFallback(date, timeFormat, 'p', locale, 'time');
+            return DateUtils.formatWithFallback(date, timeFormat, 'time');
         }
 
         // Previous 7 days - show weekday name
         if (group === strings.dateGroups.previous7Days) {
-            return format(date, 'EEEE', { locale }); // Full weekday name
+            return DateUtils.formatWithFallback(date, 'dddd', 'date');
         }
 
         // All other groups - use default format
@@ -262,18 +270,30 @@ export class DateUtils {
 
             // If it's a string, parse it
             if (typeof value === 'string') {
-                // Use ISO format if dateFormat is empty
-                const formatToUse = dateFormat || ISO_DATE_FORMAT;
-                const trimmedValue = value.trim();
                 const normalizedLanguage = DateUtils.getNormalizedLanguage();
+                const trimmedValue = value.trim();
                 const normalizedValue = DateUtils.normalizeMeridiemSpacing(trimmedValue, normalizedLanguage);
-                const locale = DateUtils.getDateFnsLocale(normalizedLanguage);
-                const parsedDate = parse(normalizedValue, formatToUse, new Date(), { locale });
-
-                // Check if parsing succeeded
-                if (!isNaN(parsedDate.getTime())) {
-                    return parsedDate.getTime();
+                const momentApi = getMomentApi();
+                if (!momentApi) {
+                    if (!dateFormat || !dateFormat.trim()) {
+                        const parsedTimestamp = Date.parse(normalizedValue);
+                        return Number.isFinite(parsedTimestamp) ? parsedTimestamp : undefined;
+                    }
+                    return undefined;
                 }
+
+                const locale = DateUtils.getMomentLocale(momentApi);
+                if (!dateFormat || !dateFormat.trim()) {
+                    const isoToken = 'ISO_8601' in momentApi ? momentApi.ISO_8601 : undefined;
+                    if (!isoToken) {
+                        return undefined;
+                    }
+                    const parsedDate = momentApi(normalizedValue, isoToken, true).locale(locale);
+                    return parsedDate.isValid() ? parsedDate.toDate().getTime() : undefined;
+                }
+
+                const parsedDate = momentApi(normalizedValue, dateFormat, locale, true);
+                return parsedDate.isValid() ? parsedDate.toDate().getTime() : undefined;
             }
         } catch {
             // Parsing failed

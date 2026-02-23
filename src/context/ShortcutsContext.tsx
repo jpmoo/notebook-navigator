@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,11 +25,16 @@ import {
     ShortcutCollection,
     ShortcutType,
     SearchShortcut,
+    type ShortcutStartTarget,
+    getShortcutStartTargetFingerprint,
     getShortcutKey,
     isFolderShortcut,
     isNoteShortcut,
     isSearchShortcut,
-    isTagShortcut
+    isTagShortcut,
+    isPropertyShortcut,
+    normalizePropertyShortcutNodeId,
+    normalizeShortcutStartTarget
 } from '../types/shortcuts';
 import type { SearchProvider } from '../types/search';
 import { strings } from '../i18n';
@@ -39,12 +44,13 @@ import { runAsyncAction } from '../utils/async';
 
 // Generates a unique fingerprint for a shortcut based on its type and key properties
 const getShortcutFingerprint = (shortcut: ShortcutEntry): string => {
-    if (isFolderShortcut(shortcut) || isNoteShortcut(shortcut) || isTagShortcut(shortcut)) {
-        const path = isTagShortcut(shortcut) ? shortcut.tagPath : shortcut.path;
+    if (isFolderShortcut(shortcut) || isNoteShortcut(shortcut) || isTagShortcut(shortcut) || isPropertyShortcut(shortcut)) {
+        const path = isTagShortcut(shortcut) ? shortcut.tagPath : isPropertyShortcut(shortcut) ? shortcut.nodeId : shortcut.path;
         return `${shortcut.type}:${path}`;
     }
 
-    return `${shortcut.type}:${shortcut.name}:${shortcut.query}:${shortcut.provider}`;
+    const startTarget = getShortcutStartTargetFingerprint(shortcut.startTarget);
+    return `${shortcut.type}:${shortcut.name}:${shortcut.query}:${shortcut.provider}:${startTarget}`;
 };
 
 // Creates a fingerprint for an array of shortcuts to detect changes
@@ -66,6 +72,7 @@ interface HydratedShortcut {
     note: TFile | null;
     search: SearchShortcut | null;
     tagPath: string | null;
+    propertyNodeId: string | null;
     isMissing: boolean;
 }
 
@@ -79,13 +86,18 @@ export interface ShortcutsContextValue {
     folderShortcutKeysByPath: Map<string, string>;
     noteShortcutKeysByPath: Map<string, string>;
     tagShortcutKeysByPath: Map<string, string>;
+    propertyShortcutKeysByNodeId: Map<string, string>;
     searchShortcutsByName: Map<string, SearchShortcut>;
     collections: ShortcutCollection[];
     activeCollectionId: string;
     addFolderShortcut: (path: string, options?: { index?: number; collectionId?: string }) => Promise<boolean>;
     addNoteShortcut: (path: string, options?: { index?: number; collectionId?: string }) => Promise<boolean>;
     addTagShortcut: (tagPath: string, options?: { index?: number; collectionId?: string }) => Promise<boolean>;
-    addSearchShortcut: (input: { name: string; query: string; provider: SearchProvider }, options?: { index?: number; collectionId?: string }) => Promise<boolean>;
+    addPropertyShortcut: (nodeId: string, options?: { index?: number; collectionId?: string }) => Promise<boolean>;
+    addSearchShortcut: (
+        input: { name: string; query: string; provider: SearchProvider; startTarget?: ShortcutStartTarget },
+        options?: { index?: number; collectionId?: string }
+    ) => Promise<boolean>;
     addShortcutsBatch: (entries: ShortcutEntry[], options?: { index?: number; collectionId?: string }) => Promise<number>;
     removeShortcut: (key: string) => Promise<boolean>;
     renameShortcut: (key: string, alias: string, defaultLabel?: string) => Promise<boolean>;
@@ -95,6 +107,7 @@ export interface ShortcutsContextValue {
     hasFolderShortcut: (path: string) => boolean;
     hasNoteShortcut: (path: string) => boolean;
     hasTagShortcut: (tagPath: string) => boolean;
+    hasPropertyShortcut: (nodeId: string) => boolean;
     findSearchShortcut: (name: string) => SearchShortcut | undefined;
     setActiveCollection: (collectionId: string) => Promise<void>;
     addCollection: (collection: Omit<ShortcutCollection, 'id'>) => Promise<boolean>;
@@ -188,11 +201,17 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
 
         const targets = collectionsNeedingCheck.filter(snapshot =>
             snapshot.shortcuts.some(shortcut => {
-                if (!isTagShortcut(shortcut)) {
-                    return false;
+                if (isTagShortcut(shortcut)) {
+                    const normalized = normalizeTagPath(shortcut.tagPath);
+                    return normalized !== null && normalized !== shortcut.tagPath;
                 }
-                const normalized = normalizeTagPath(shortcut.tagPath);
-                return normalized !== null && normalized !== shortcut.tagPath;
+
+                if (isPropertyShortcut(shortcut)) {
+                    const normalized = normalizePropertyShortcutNodeId(shortcut.nodeId);
+                    return normalized !== null && normalized !== shortcut.nodeId;
+                }
+
+                return false;
             })
         );
 
@@ -220,7 +239,20 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                     let mutated = false;
                     const normalizedShortcuts = collection.shortcuts.map(entry => {
                         if (!isTagShortcut(entry)) {
-                            return entry;
+                            if (!isPropertyShortcut(entry)) {
+                                return entry;
+                            }
+
+                            const normalized = normalizePropertyShortcutNodeId(entry.nodeId);
+                            if (!normalized || normalized === entry.nodeId) {
+                                return entry;
+                            }
+
+                            mutated = true;
+                            return {
+                                ...entry,
+                                nodeId: normalized
+                            };
                         }
                         const normalized = normalizeTagPath(entry.tagPath);
                         if (!normalized || normalized === entry.tagPath) {
@@ -323,7 +355,20 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         return map;
     }, [collectionShortcuts]);
 
-    // Maps search shortcut names (lowercase) to shortcuts for fast lookup within the ACTIVE collection only
+    const propertyShortcutKeysByNodeId = useMemo(() => {
+        const map = new Map<string, string>();
+        collectionShortcuts.forEach(shortcut => {
+            if (isPropertyShortcut(shortcut)) {
+                const normalized = normalizePropertyShortcutNodeId(shortcut.nodeId);
+                if (normalized) {
+                    map.set(normalized, getShortcutKey(shortcut));
+                }
+            }
+        });
+        return map;
+    }, [collectionShortcuts]);
+
+    // Maps search shortcut names (lowercase) to shortcuts for fast lookup within the active collection
     const searchShortcutsByName = useMemo(() => {
         const map = new Map<string, SearchShortcut>();
         collectionShortcuts.forEach(shortcut => {
@@ -441,6 +486,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                         note: null,
                         search: null,
                         tagPath: null,
+                        propertyNodeId: null,
                         isMissing: false
                     };
                 }
@@ -451,6 +497,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                     note: null,
                     search: null,
                     tagPath: null,
+                    propertyNodeId: null,
                     isMissing: true
                 };
             }
@@ -465,6 +512,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                         note: target,
                         search: null,
                         tagPath: null,
+                        propertyNodeId: null,
                         isMissing: false
                     };
                 }
@@ -475,6 +523,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                     note: null,
                     search: null,
                     tagPath: null,
+                    propertyNodeId: null,
                     isMissing: true
                 };
             }
@@ -488,7 +537,22 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                     note: null,
                     search: null,
                     tagPath: normalizedTagPath ?? shortcut.tagPath,
+                    propertyNodeId: null,
                     isMissing: !normalizedTagPath
+                };
+            }
+
+            if (isPropertyShortcut(shortcut)) {
+                const normalizedNodeId = normalizePropertyShortcutNodeId(shortcut.nodeId);
+                return {
+                    key,
+                    shortcut,
+                    folder: null,
+                    note: null,
+                    search: null,
+                    tagPath: null,
+                    propertyNodeId: normalizedNodeId ?? shortcut.nodeId,
+                    isMissing: !normalizedNodeId
                 };
             }
 
@@ -500,6 +564,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                 note: null,
                 search: shortcut,
                 tagPath: null,
+                propertyNodeId: null,
                 isMissing: false
             };
         });
@@ -549,6 +614,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             const folderPaths = new Set(folderShortcutKeysByPath.keys());
             const notePaths = new Set(noteShortcutKeysByPath.keys());
             const tagPaths = new Set(tagShortcutKeysByPath.keys());
+            const propertyNodeIds = new Set(propertyShortcutKeysByNodeId.keys());
             const searchNames = new Set(searchShortcutsByName.keys());
 
             // Track validation errors to show notices after processing all entries
@@ -556,6 +622,8 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             let duplicateNote = false;
             let duplicateTag = false;
             let invalidTag = false;
+            let duplicateProperty = false;
+            let invalidProperty = false;
             let duplicateSearch = false;
             let emptySearchName = false;
             let emptySearchQuery = false;
@@ -601,9 +669,33 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                     return;
                 }
 
+                if (entry.type === ShortcutType.PROPERTY) {
+                    const normalizedNodeId = normalizePropertyShortcutNodeId(entry.nodeId);
+                    if (!normalizedNodeId) {
+                        invalidProperty = true;
+                        return;
+                    }
+                    if (propertyNodeIds.has(normalizedNodeId)) {
+                        duplicateProperty = true;
+                        return;
+                    }
+                    propertyNodeIds.add(normalizedNodeId);
+                    if (normalizedNodeId === entry.nodeId) {
+                        normalizedEntries.push(entry);
+                        return;
+                    }
+
+                    normalizedEntries.push({
+                        ...entry,
+                        nodeId: normalizedNodeId
+                    });
+                    return;
+                }
+
                 if (entry.type === ShortcutType.SEARCH) {
                     const normalizedName = entry.name.trim();
                     const normalizedQuery = entry.query.trim();
+                    const normalizedStartTarget = normalizeShortcutStartTarget(entry.startTarget);
                     if (!normalizedName) {
                         emptySearchName = true;
                         return;
@@ -621,7 +713,8 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                     normalizedEntries.push({
                         ...entry,
                         name: normalizedName,
-                        query: normalizedQuery
+                        query: normalizedQuery,
+                        startTarget: normalizedStartTarget
                     });
                 }
             });
@@ -638,6 +731,12 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             }
             if (invalidTag) {
                 showNotice(strings.modals.tagOperation.invalidTagName, { variant: 'warning' });
+            }
+            if (duplicateProperty) {
+                showNotice(strings.shortcuts.propertyExists, { variant: 'warning' });
+            }
+            if (invalidProperty) {
+                showNotice(strings.shortcuts.invalidProperty, { variant: 'warning' });
             }
             if (duplicateSearch) {
                 showNotice(strings.shortcuts.searchExists, { variant: 'warning' });
@@ -694,7 +793,17 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
 
             return successCount;
         },
-        [folderShortcutKeysByPath, noteShortcutKeysByPath, tagShortcutKeysByPath, searchShortcutsByName, insertShortcut, getShortcutInCollection, activeCollectionId, collections]
+        [
+            folderShortcutKeysByPath,
+            noteShortcutKeysByPath,
+            tagShortcutKeysByPath,
+            propertyShortcutKeysByNodeId,
+            searchShortcutsByName,
+            insertShortcut,
+            getShortcutInCollection,
+            activeCollectionId,
+            collections
+        ]
     );
 
     // Adds a folder shortcut if it doesn't already exist in the target collection
@@ -743,9 +852,34 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         [insertShortcut, getShortcutInCollection, activeCollectionId]
     );
 
+    const addPropertyShortcut = useCallback(
+        async (nodeId: string, options?: { index?: number; collectionId?: string }) => {
+            const normalizedNodeId = normalizePropertyShortcutNodeId(nodeId);
+            if (!normalizedNodeId) {
+                showNotice(strings.shortcuts.invalidProperty, { variant: 'warning' });
+                return false;
+            }
+            if (propertyShortcutKeysByNodeId.has(normalizedNodeId)) {
+                showNotice(strings.shortcuts.propertyExists, { variant: 'warning' });
+                return false;
+            }
+            const targetCollectionId = options?.collectionId || activeCollectionId;
+            return insertShortcut({ type: ShortcutType.PROPERTY, nodeId: normalizedNodeId }, options?.index, targetCollectionId);
+        },
+        [insertShortcut, propertyShortcutKeysByNodeId, activeCollectionId]
+    );
+
     // Adds a search shortcut with validation for name and query uniqueness
     const addSearchShortcut = useCallback(
-        async ({ name, query, provider }: { name: string; query: string; provider: SearchProvider }, options?: { index?: number; collectionId?: string }) => {
+        async (
+            {
+                name,
+                query,
+                provider,
+                startTarget
+            }: { name: string; query: string; provider: SearchProvider; startTarget?: ShortcutStartTarget },
+            options?: { index?: number; collectionId?: string }
+        ) => {
             const normalizedQuery = query.trim();
             if (!normalizedQuery) {
                 showNotice(strings.shortcuts.emptySearchQuery, { variant: 'warning' });
@@ -764,18 +898,21 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                 return false;
             }
 
+            const normalizedStartTarget = normalizeShortcutStartTarget(startTarget);
+            const targetCollectionId = options?.collectionId || activeCollectionId;
             return insertShortcut(
                 {
                     type: ShortcutType.SEARCH,
                     name: normalizedName,
                     query: normalizedQuery,
-                    provider
+                    provider,
+                    startTarget: normalizedStartTarget
                 },
                 options?.index,
-                options?.collectionId
+                targetCollectionId
             );
         },
-        [insertShortcut, searchShortcutsByName]
+        [insertShortcut, searchShortcutsByName, activeCollectionId]
     );
 
     // Removes a shortcut by its unique key
@@ -915,6 +1052,14 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         [tagShortcutKeysByPath]
     );
 
+    const hasPropertyShortcut = useCallback(
+        (nodeId: string) => {
+            const normalizedNodeId = normalizePropertyShortcutNodeId(nodeId);
+            return normalizedNodeId ? propertyShortcutKeysByNodeId.has(normalizedNodeId) : false;
+        },
+        [propertyShortcutKeysByNodeId]
+    );
+
     // Finds a search shortcut by name (case-insensitive)
     const findSearchShortcut = useCallback((name: string) => searchShortcutsByName.get(name.trim().toLowerCase()), [searchShortcutsByName]);
 
@@ -1021,12 +1166,14 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             folderShortcutKeysByPath,
             noteShortcutKeysByPath,
             tagShortcutKeysByPath,
+            propertyShortcutKeysByNodeId,
             searchShortcutsByName,
             collections,
             activeCollectionId,
             addFolderShortcut,
             addNoteShortcut,
             addTagShortcut,
+            addPropertyShortcut,
             addSearchShortcut,
             addShortcutsBatch,
             removeShortcut,
@@ -1037,6 +1184,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             hasFolderShortcut,
             hasNoteShortcut,
             hasTagShortcut,
+            hasPropertyShortcut,
             findSearchShortcut,
             setActiveCollection,
             addCollection,
@@ -1053,12 +1201,14 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             folderShortcutKeysByPath,
             noteShortcutKeysByPath,
             tagShortcutKeysByPath,
+            propertyShortcutKeysByNodeId,
             searchShortcutsByName,
             collections,
             activeCollectionId,
             addFolderShortcut,
             addNoteShortcut,
             addTagShortcut,
+            addPropertyShortcut,
             addSearchShortcut,
             addShortcutsBatch,
             removeShortcut,
@@ -1069,6 +1219,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             hasFolderShortcut,
             hasNoteShortcut,
             hasTagShortcut,
+            hasPropertyShortcut,
             findSearchShortcut,
             setActiveCollection,
             addCollection,

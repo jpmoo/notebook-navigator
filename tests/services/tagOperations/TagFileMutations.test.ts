@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +42,7 @@ describe('TagFileMutations', () => {
     let app: App;
     let settings: NotebookNavigatorSettings;
     let fileMutations: TagFileMutations;
+    let vaultProcess: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
         cachedTagsByPath.clear();
@@ -57,11 +58,12 @@ describe('TagFileMutations', () => {
         app.vault.modify = vi.fn(async (file: TFile, data: string) => {
             (file as unknown as { content: string }).content = data;
         });
-        app.vault.process = vi.fn(async (file: TFile, processor: (content: string) => string) => {
+        vaultProcess = vi.fn(async (file: TFile, processor: (content: string) => string) => {
             const next = processor((file as unknown as { content: string }).content);
             (file as unknown as { content: string }).content = next;
             return next;
         });
+        app.vault.process = vaultProcess;
 
         fileMutations = new TagFileMutations(app, () => settings);
     });
@@ -69,6 +71,12 @@ describe('TagFileMutations', () => {
     it('validates tag names using canonical rules', () => {
         expect(fileMutations.isValidTagName('project')).toBe(true);
         expect(fileMutations.isValidTagName('project/client')).toBe(true);
+        expect(fileMutations.isValidTagName('project😀')).toBe(true);
+        expect(fileMutations.isValidTagName('my‼tag')).toBe(true);
+        expect(fileMutations.isValidTagName('my👩‍💻tag')).toBe(true);
+        expect(fileMutations.isValidTagName('a\u0301')).toBe(true);
+        expect(fileMutations.isValidTagName('\u200D')).toBe(false);
+        expect(fileMutations.isValidTagName('\u0301')).toBe(false);
         expect(fileMutations.isValidTagName('project//client')).toBe(false);
         expect(fileMutations.isValidTagName('/leading')).toBe(false);
         expect(fileMutations.isValidTagName('trailing/')).toBe(false);
@@ -88,6 +96,17 @@ describe('TagFileMutations', () => {
         expect(removed).toBe(true);
         expect(file.frontmatter.tags as string[]).toEqual(['project']);
         expect(file.content).toBe('#project kickoff\nFollow up with tomorrow');
+    });
+
+    it('removes emoji inline tag occurrences when removing tag from file', async () => {
+        const file = createFile('Notes/Emoji.md', { tags: ['project😀'] }, 'Plan #project😀 today');
+        cachedTagsByPath.set(file.path, ['project😀']);
+
+        const removed = await fileMutations.removeTagFromFile(file, 'project😀');
+
+        expect(removed).toBe(true);
+        expect(Reflect.has(file.frontmatter, 'tags')).toBe(false);
+        expect(file.content).toBe('Plan today');
     });
 
     it('skips removing inline tags inside code contexts', async () => {
@@ -161,6 +180,28 @@ describe('TagFileMutations', () => {
         expect(childLine).not.toContain('#project');
         expect(textLine).not.toContain('#project');
         expect(tabLine).not.toContain('#project');
+    });
+
+    it('does not remove non-whitespace hash fragments when clearing all tags', async () => {
+        const file = createFile('Notes/AnchorFragment.md', {}, 'Visit /#anchor for section');
+        cachedTagsByPath.set(file.path, []);
+
+        const cleared = await fileMutations.clearAllTagsFromFile(file);
+
+        expect(cleared).toBe(false);
+        expect(file.content).toBe('Visit /#anchor for section');
+        expect(vaultProcess).not.toHaveBeenCalled();
+    });
+
+    it('does not remove hash fragments preceded by punctuation when clearing all tags', async () => {
+        const file = createFile('Notes/BangFragment.md', {}, 'Flag !#anchor token');
+        cachedTagsByPath.set(file.path, []);
+
+        const cleared = await fileMutations.clearAllTagsFromFile(file);
+
+        expect(cleared).toBe(false);
+        expect(file.content).toBe('Flag !#anchor token');
+        expect(vaultProcess).not.toHaveBeenCalled();
     });
 
     it('keeps matches inside html tags when removing inline tags', async () => {

@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,15 @@ describe('codeRangeUtils', () => {
 
         expect(ranges).toHaveLength(1);
         expect(ranges[0]).toEqual({ start: 'Intro\n'.length, end: content.length });
+    });
+
+    it('recognizes CRLF fenced code blocks', () => {
+        const content = ['Intro', '```js', 'const value = 1;', '```', 'Outro'].join('\r\n');
+        const ranges = findFencedCodeBlockRanges(content);
+
+        expect(ranges).toHaveLength(1);
+        const [range] = ranges;
+        expect(content.slice(range.start, range.end)).toBe(['```js', 'const value = 1;', '```', ''].join('\r\n'));
     });
 
     it('ignores inline backticks inside fenced blocks', () => {

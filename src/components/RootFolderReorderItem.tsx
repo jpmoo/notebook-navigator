@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ interface RootFolderReorderItemProps {
     chevronIcon?: string;
     isMissing?: boolean;
     color?: string;
-    itemType?: 'folder' | 'tag' | 'section'; // Type of navigation item (folder, tag, or section header)
+    itemType?: 'folder' | 'tag' | 'property' | 'section'; // Type of navigation item (folder, tag, property, or section header)
     className?: string; // Additional CSS classes to apply to the item
     dragHandleConfig?: DragHandleConfig;
     trailingAccessory?: ReactNode;
@@ -100,6 +100,8 @@ export function RootFolderReorderItem({
             classes.push('nn-folder');
         } else if (itemType === 'tag') {
             classes.push('nn-tag');
+        } else if (itemType === 'property') {
+            classes.push('nn-property');
         } else if (itemType === 'section') {
             classes.push('nn-section');
         }
@@ -123,8 +125,11 @@ export function RootFolderReorderItem({
         if (itemType === 'tag') {
             return settings.showTagIcons;
         }
+        if (itemType === 'property') {
+            return settings.showPropertyIcons;
+        }
         return true;
-    }, [itemType, settings.showFolderIcons, settings.showTagIcons]);
+    }, [itemType, settings.showFolderIcons, settings.showPropertyIcons, settings.showTagIcons]);
 
     return (
         <NavigationListRow

@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,13 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { AbstractInputSuggest, App, prepareFuzzySearch, renderMatches, SearchResult, TFolder } from 'obsidian';
-import { naturalCompare } from '../utils/sortUtils';
+import { AbstractInputSuggest, App, TFolder } from 'obsidian';
+import { buildPathSuggestionItems, renderPathSuggestion, type PathSuggestionItem } from './pathInputSuggestUtils';
 
-interface FolderSuggestionItem {
-    folder: TFolder;
-    match: SearchResult | null;
-}
+type FolderSuggestionItem = PathSuggestionItem<TFolder>;
 
 const DEFAULT_FOLDER_SUGGEST_LIMIT = 200;
 
@@ -40,49 +37,22 @@ export class FolderPathInputSuggest extends AbstractInputSuggest<FolderSuggestio
     }
 
     getSuggestions(query: string): FolderSuggestionItem[] {
-        const trimmedQuery = query.trim();
         const folders = this.app.vault.getAllLoadedFiles().filter((file): file is TFolder => file instanceof TFolder);
-        folders.sort((a, b) => naturalCompare(a.path, b.path));
-
-        if (!trimmedQuery) {
-            return folders.slice(0, this.limit).map(folder => ({ folder, match: null }));
-        }
-
-        const search = prepareFuzzySearch(trimmedQuery);
-        const matches: FolderSuggestionItem[] = [];
-
-        for (const folder of folders) {
-            const result = search(folder.path);
-            if (!result) {
-                continue;
-            }
-            matches.push({ folder, match: result });
-        }
-
-        matches.sort((a, b) => {
-            const scoreA = a.match?.score ?? Number.POSITIVE_INFINITY;
-            const scoreB = b.match?.score ?? Number.POSITIVE_INFINITY;
-            if (scoreA === scoreB) {
-                return naturalCompare(a.folder.path, b.folder.path);
-            }
-            return scoreA - scoreB;
+        return buildPathSuggestionItems({
+            items: folders,
+            query,
+            limit: this.limit,
+            getPath: folder => folder.path,
+            getDisplayPath: (_folder, path) => (path === '/' ? '' : path)
         });
-
-        return matches.slice(0, this.limit);
     }
 
     renderSuggestion(value: FolderSuggestionItem, el: HTMLElement): void {
-        const displayPath = value.folder.path === '/' ? '' : value.folder.path;
-        if (value.match && value.match.matches.length > 0) {
-            renderMatches(el, displayPath, value.match.matches);
-            return;
-        }
-        el.setText(displayPath);
+        renderPathSuggestion(value, el);
     }
 
     selectSuggestion(value: FolderSuggestionItem): void {
-        const displayPath = value.folder.path === '/' ? '' : value.folder.path;
-        this.inputEl.value = displayPath;
+        this.inputEl.value = value.displayPath;
         this.inputEl.dispatchEvent(new Event('input', { bubbles: true }));
         this.close();
     }

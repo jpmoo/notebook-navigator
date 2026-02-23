@@ -1,6 +1,6 @@
 # Notebook Navigator Service Architecture
 
-Updated: January 19, 2026
+Updated: February 18, 2026
 
 ## Table of Contents
 
@@ -27,6 +27,7 @@ a mobile flag, and the plugin-managed singletons:
 - `metadataService` (`MetadataService`)
 - `tagOperations` (`TagOperations`)
 - `tagTreeService` (`TagTreeService`)
+- `propertyTreeService` (`PropertyTreeService`)
 - `commandQueue` (`CommandQueueService`)
 - `omnisearchService` (`OmnisearchService`)
 - `releaseCheckService` (`ReleaseCheckService`)
@@ -44,10 +45,12 @@ startup and must be guarded. `IconService` is a global singleton accessed throug
 ### Ownership and lifetimes
 
 - `NotebookNavigatorPlugin` owns plugin-wide singletons (services, controllers, managers) created during `onload()`.
-- Each mounted `NotebookNavigatorView` owns a React provider tree. `ServicesContext` provides references to plugin
-  singletons, while `StorageProvider` owns view-scoped storage state and background queues.
-- `ContentProviderRegistry` is created by each mounted `StorageProvider` (via `useInitializeContentProviderRegistry`)
-  and is stopped during teardown.
+- Each mounted `NotebookNavigatorView` owns the primary React provider tree. `ServicesContext` provides references to
+  plugin singletons, while `StorageProvider` owns view-scoped storage state and background queues.
+- Each mounted `NotebookNavigatorCalendarView` owns a calendar sidebar tree (`SettingsProvider` →
+  `ServicesProvider` → `CalendarRightSidebar`) without storage, selection, or expansion providers.
+- `ContentProviderRegistry` is created by `StorageProvider` inside navigator view trees (via
+  `useInitializeContentProviderRegistry`) and is stopped during teardown.
 - `IndexedDBStorage` is initialized once per vault via `initializeDatabase()` and is accessed through `getDBInstance()`.
 
 `StorageContext` owns the IndexedDB sync lifecycle and the background content pipeline through `ContentProviderRegistry`.
@@ -71,6 +74,7 @@ graph TB
 
     subgraph "Supporting Services"
         TagTreeService["TagTreeService<br/>Tag tree state"]
+        PropertyTreeService["PropertyTreeService<br/>Property tree state"]
         CommandQueue["CommandQueueService<br/>Operation tracking"]
         TagOperations["TagOperations<br/>Tag workflows"]
         Omnisearch["OmnisearchService<br/>Omnisearch bridge"]
@@ -80,6 +84,7 @@ graph TB
     ServicesContext --> MetadataService
     ServicesContext --> FileSystemOperations
     ServicesContext --> TagTreeService
+    ServicesContext --> PropertyTreeService
     ServicesContext --> CommandQueue
     ServicesContext --> TagOperations
     ServicesContext --> Omnisearch
@@ -97,6 +102,7 @@ graph TB
         FileSystemOperations["FileSystemOperations<br/>Vault actions"]
         TagOperations["TagOperations<br/>Tag workflows"]
         TagTreeService["TagTreeService<br/>Tag tree snapshot"]
+        PropertyTreeService["PropertyTreeService<br/>Property tree snapshot"]
         CommandQueue["CommandQueueService<br/>Operation tracking"]
         Omnisearch["OmnisearchService<br/>Omnisearch bridge"]
         ReleaseCheck["ReleaseCheckService<br/>Update notices"]
@@ -106,7 +112,7 @@ graph TB
         RecentNotes["RecentNotesService<br/>Vault-local recents"]
         RecentData["RecentDataManager<br/>Vault-local persistence"]
         SyncModeRegistry["Sync mode registry<br/>Local/synced resolution"]
-        WorkspaceCoordinator["WorkspaceCoordinator<br/>Navigator leaves"]
+        WorkspaceCoordinator["WorkspaceCoordinator<br/>Navigator + calendar leaves"]
         HomepageController["HomepageController<br/>Homepage opening"]
         ExternalIcons["ExternalIconProviderController<br/>External icon packs"]
         API["NotebookNavigatorAPI<br/>Public surface"]
@@ -116,6 +122,7 @@ graph TB
     Plugin --> FileSystemOperations
     Plugin --> TagOperations
     Plugin --> TagTreeService
+    Plugin --> PropertyTreeService
     Plugin --> CommandQueue
     Plugin --> Omnisearch
     Plugin --> ReleaseCheck
@@ -138,12 +145,14 @@ graph TB
     subgraph "Sub-Services"
         FolderMeta["FolderMetadataService<br/>Colors, icons, sort, appearances"]
         TagMeta["TagMetadataService<br/>Colors, icons, sort, appearances"]
+        PropertyMeta["PropertyMetadataService<br/>Colors, icons, sort overrides"]
         FileMeta["FileMetadataService<br/>Pins, icons, colors"]
-        NavigationSeparators["NavigationSeparatorService<br/>Section/folder/tag separators"]
+        NavigationSeparators["NavigationSeparatorService<br/>Section/folder/tag/property separators"]
     end
 
     MetadataService --> FolderMeta
     MetadataService --> TagMeta
+    MetadataService --> PropertyMeta
     MetadataService --> FileMeta
     MetadataService --> NavigationSeparators
 ```
@@ -155,7 +164,7 @@ graph TB
     ContentRegistry["ContentProviderRegistry<br/>Provider coordinator"]
 
     subgraph "Content Providers"
-        MarkdownPipelineProvider["MarkdownPipelineContentProvider<br/>Preview + word count + custom property + markdown feature images"]
+        MarkdownPipelineProvider["MarkdownPipelineContentProvider<br/>Preview + word count + task counters + property pills + markdown feature images"]
         FileThumbnailsProvider["FeatureImageContentProvider<br/>Non-markdown thumbnails (images, PDFs, Excalidraw)"]
         MetadataProvider["MetadataContentProvider<br/>Frontmatter fields + hidden state"]
         TagProvider["TagContentProvider<br/>Tag extraction"]
@@ -175,18 +184,19 @@ exposed through `ServicesContext`.
 
 ### MetadataService
 
-Central coordinator for folder, tag, and file metadata. Delegates to specialized sub-services. Reads frontmatter-derived
+Central coordinator for folder, tag, property, and file metadata. Delegates to specialized sub-services. Reads frontmatter-derived
 metadata from IndexedDB when `useFrontmatterMetadata` is enabled. File icon/color writes and migrations use frontmatter
-when both `useFrontmatterMetadata` and `saveMetadataToFrontmatter` are enabled.
+when `useFrontmatterMetadata` is enabled.
 
 **Location:** `src/services/MetadataService.ts`
 
 **Responsibilities:**
 
-- Folder metadata: colors, background colors, icons, sort overrides, custom appearances, folder note metadata detection.
+- Folder metadata: colors, background colors, icons, sort overrides, custom appearances, folder note metadata detection, and folder-note frontmatter writes.
 - Tag metadata: colors, background colors, icons, sort overrides, custom appearances.
-- File metadata: pinned notes, icons, colors, frontmatter migration helpers, iconize conversion support.
-- Navigation separators: section, folder, and tag separator entries.
+- Property metadata: key/value node colors, backgrounds, icons, and child sort overrides.
+- File metadata: pinned notes, icons, colors, frontmatter writes/migration helpers, iconize conversion support.
+- Navigation separators: section, folder, tag, and property separator entries.
 - Metadata cleanup and summary reporting based on vault state.
 - Rename and delete coordination for folders, tags, and files.
 
@@ -203,13 +213,18 @@ when both `useFrontmatterMetadata` and `saveMetadataToFrontmatter` are enabled.
   - Resolves inherited tag colors/backgrounds when enabled.
   - Uses tag tree snapshots for cleanup.
 
+- **PropertyMetadataService** (`src/services/metadata/PropertyMetadataService.ts`)
+  - Tracks property key/value colors, backgrounds, icons, and child sort overrides.
+  - Normalizes property node ids and supports key/value-level metadata.
+  - Validates settings-backed property metadata against configured property fields.
+
 - **FileMetadataService** (`src/services/metadata/FileMetadataService.ts`)
-  - Manages pinned notes per folder/tag context.
-  - Stores file icons and colors with frontmatter fallback and migration.
+  - Manages pinned notes per folder/tag/property context.
+  - Stores file icons and colors with frontmatter writes, settings fallback, and migration.
   - Updates metadata during file rename/delete and syncs with IndexedDB cache.
 
 - **NavigationSeparatorService** (`src/services/metadata/NavigationSeparatorService.ts`)
-  - Persists separators for navigation sections, folders, and tags.
+  - Persists separators for navigation sections, folders, tags, and property nodes.
   - Updates separator keys on folder/tag rename and delete.
   - Cleans stale entries during metadata cleanup and exposes a versioned subscription.
 
@@ -248,6 +263,21 @@ handleTagDelete(tagPath: string): Promise<void>
 setTagSortOverride(tagPath: string, sortOption: SortOption): Promise<void>
 removeTagSortOverride(tagPath: string): Promise<void>
 getTagSortOverride(tagPath: string): SortOption | undefined
+
+// Property metadata
+setPropertyColor(nodeId: string, color: string): Promise<void>
+setPropertyBackgroundColor(nodeId: string, color: string): Promise<void>
+removePropertyColor(nodeId: string): Promise<void>
+removePropertyBackgroundColor(nodeId: string): Promise<void>
+getPropertyColor(nodeId: string): string | undefined
+getPropertyBackgroundColor(nodeId: string): string | undefined
+getPropertyColorData(nodeId: string): PropertyColorData
+setPropertyIcon(nodeId: string, iconId: string): Promise<void>
+removePropertyIcon(nodeId: string): Promise<void>
+getPropertyIcon(nodeId: string): string | undefined
+setPropertyChildSortOrderOverride(nodeId: string, sortOrder: AlphaSortOrder): Promise<void>
+removePropertyChildSortOrderOverride(nodeId: string): Promise<void>
+getPropertyChildSortOrderOverride(nodeId: string): AlphaSortOrder | undefined
 
 // Navigation separators
 getNavigationSeparators(): Record<string, boolean>
@@ -394,7 +424,7 @@ stopAllProcessing(): void
 **Content Providers:**
 
 - **MarkdownPipelineContentProvider** (`src/services/content/MarkdownPipelineContentProvider.ts`)
-  - Generates markdown-derived content in a single pass (preview text, word count, custom property, markdown feature images).
+  - Generates markdown-derived content in a single pass (preview text, word count, task counters, property pills, markdown feature images).
   - Extends `FeatureImageContentProvider`; uses its thumbnail helpers with local files and external references.
   - Uses Obsidian's metadata cache for frontmatter and frontmatter position offsets.
 
@@ -498,6 +528,7 @@ getProviderVersion(id: ExternalIconProviderId): string | null
 **Responsibilities:**
 
 - Ensures navigator leaves exist and are revealed.
+- Ensures the calendar view leaf is attached to the right sidebar when `calendarPlacement` is `right-sidebar`.
 - Coordinates manual and contextual reveal actions for files across all navigator instances.
 
 **Key Methods:**
@@ -505,6 +536,12 @@ getProviderVersion(id: ExternalIconProviderId): string | null
 ```typescript
 activateNavigatorView(): Promise<WorkspaceLeaf | null>
 getNavigatorLeaves(): WorkspaceLeaf[]
+detachCalendarViewLeaves(): void
+ensureCalendarViewInRightSidebar(options?: {
+  reveal?: boolean
+  activate?: boolean
+  shouldContinue?: () => boolean
+}): Promise<WorkspaceLeaf | null>
 revealFileInActualFolder(file: TFile, options?: RevealFileOptions): void
 revealFileInNearestFolder(file: TFile, options?: RevealFileOptions): void
 ```
@@ -562,6 +599,34 @@ getTaggedCount(): number
 findTagNode(tagPath: string): TagTreeNode | null
 getAllTagPaths(): string[]
 collectTagPaths(node: TagTreeNode): Set<string>
+```
+
+### PropertyTreeService
+
+Bridge between React storage state and non-React consumers that need property node data.
+
+**Location:** `src/services/PropertyTreeService.ts`
+
+**Responsibilities:**
+
+- Stores latest property tree snapshot keyed by normalized property key.
+- Provides property node lookup and selection id resolution.
+- Collects descendant node ids and file paths for property key/value nodes.
+- Publishes tree update events to consumers outside React.
+
+**Key Methods:**
+
+```typescript
+updatePropertyTree(tree: Map<string, PropertyTreeNode>): void
+getPropertyTree(): Map<string, PropertyTreeNode>
+hasNodes(): boolean
+addTreeUpdateListener(listener: () => void): () => void
+findNode(nodeId: string): PropertyTreeNode | null
+getKeyNode(normalizedKey: string): PropertyTreeNode | null
+resolveSelectionNodeId(selectionNodeId: PropertySelectionNodeId): PropertySelectionNodeId
+collectDescendantNodeIds(nodeId: string): Set<string>
+collectFilePaths(nodeId: string, includeDescendants: boolean): Set<string>
+collectFilesForKeys(normalizedKeys: Iterable<string>): Set<string>
 ```
 
 ### CommandQueueService
@@ -755,6 +820,23 @@ interface ITagTreeProvider {
 
 `TagTreeService` implements the interface and surfaces additional helpers for internal use.
 
+### IPropertyTreeProvider
+
+**Location:** `src/interfaces/IPropertyTreeProvider.ts`
+
+```typescript
+interface IPropertyTreeProvider {
+  addTreeUpdateListener(listener: () => void): () => void;
+  hasNodes(): boolean;
+  findNode(nodeId: string): PropertyTreeNode | null;
+  getKeyNode(normalizedKey: string): PropertyTreeNode | null;
+  resolveSelectionNodeId(selectionNodeId: PropertySelectionNodeId): PropertySelectionNodeId;
+  collectDescendantNodeIds(nodeId: string): Set<string>;
+  collectFilePaths(nodeId: string, includeDescendants: boolean): Set<string>;
+  collectFilesForKeys(normalizedKeys: Iterable<string>): Set<string>;
+}
+```
+
 ### IContentProvider
 
 **Location:** `src/interfaces/IContentProvider.ts`
@@ -788,7 +870,13 @@ this.homepageController = new HomepageController(this, this.workspaceCoordinator
 
 // Initialize services
 this.tagTreeService = new TagTreeService();
-this.metadataService = new MetadataService(this.app, this, () => this.tagTreeService);
+this.propertyTreeService = new PropertyTreeService();
+this.metadataService = new MetadataService(
+  this.app,
+  this,
+  () => this.tagTreeService,
+  () => this.propertyTreeService
+);
 this.tagOperations = new TagOperations(
   this.app,
   () => this.settings,
@@ -799,7 +887,9 @@ this.commandQueue = new CommandQueueService(this.app);
 this.fileSystemOps = new FileSystemOperations(
   this.app,
   () => this.tagTreeService,
+  () => this.propertyTreeService,
   () => this.commandQueue,
+  () => this.metadataService,
   (): VisibilityPreferences => ({
     includeDescendantNotes: this.uxPreferences.includeDescendantNotes,
     showHiddenItems: this.uxPreferences.showHiddenItems
@@ -874,7 +964,7 @@ starts when `StorageContext` queues files through `ContentProviderRegistry.queue
 4. **Database Updates**: Providers persist updates via `IndexedDBStorage.batchUpdateFileContentAndProviderProcessedMtimes(...)`
    and clear content via `batchClearAllFileContent` / `batchClearFeatureImageContent`.
 5. **Memory Sync**: `MemoryFileCache` mirrors IndexedDB updates for synchronous access.
-6. **UI Updates**: `StorageContext` listens for database events, rebuilds the tag tree, and updates React contexts.
+6. **UI Updates**: `StorageContext` listens for database events, rebuilds tag/property trees, and updates React contexts.
 
 ### Metadata Cleanup Flow
 
@@ -883,7 +973,7 @@ Triggered manually from **Settings → Notebook Navigator → Advanced → Clean
 1. **Preview**: settings UI calls `NotebookNavigatorPlugin.getMetadataCleanupSummary()` which runs
    `MetadataService.getCleanupSummary()` against a cloned settings object.
 2. **Cleanup Execution**: settings UI calls `NotebookNavigatorPlugin.runMetadataCleanup()` which runs
-   `MetadataService.cleanupAllMetadata()` (folder/tag/file/pinned note/separator cleanup).
+   `MetadataService.cleanupAllMetadata()` (folder/tag/property/file/pinned note/separator cleanup).
 3. **Persistence**: `NotebookNavigatorPlugin.runMetadataCleanup()` calls `saveSettingsAndUpdate()` when changes are detected.
 4. **Feedback**: settings UI can re-run `getMetadataCleanupSummary()` after cleanup to confirm counts.
 
@@ -895,7 +985,7 @@ Triggered manually from **Settings → Notebook Navigator → Advanced → Clean
    history opens, new-context opens, active file opens, homepage opens).
 4. Vault mutations execute through `app.fileManager` (rename/move/trash/frontmatter) and `app.vault` (creates/reads).
 5. Selection state updates via helpers from `selectionUtils`.
-6. `StorageContext` observes vault events, records changes into IndexedDB, and rebuilds the tag tree.
+6. `StorageContext` observes vault events, records changes into IndexedDB, and rebuilds tag and property trees.
 7. React contexts broadcast changes to the UI.
 
 ### Settings Update Flow
@@ -925,8 +1015,8 @@ Triggered manually from **Settings → Notebook Navigator → Advanced → Clean
 
 - **Singleton**: `IconService` and plugin-managed services are singleton instances; each mounted `StorageProvider` owns a `ContentProviderRegistry`.
 - **Provider**: `ContentProviderRegistry` and `IconService` manage lists of registered providers.
-- **Delegation**: `MetadataService` delegates specialized work to folder/tag/file/separator sub-services.
-- **Bridge**: `TagTreeService` bridges StorageContext data to non-React consumers.
+- **Delegation**: `MetadataService` delegates specialized work to folder/tag/property/file/separator sub-services.
+- **Bridge**: `TagTreeService` and `PropertyTreeService` bridge StorageContext data to non-React consumers.
 - **Observer**: `CommandQueueService`, `IconService`, recent data listeners, and `subscribeToNavigationSeparatorChanges()` publish state changes to the UI.
 - **Facade**: `TagOperations` wraps tag workflows (batch operations, rename/delete workflows, shortcut updates).
 - **Controller**: `WorkspaceCoordinator`, `HomepageController`, and `ExternalIconProviderController` coordinate multi-step plugin flows.

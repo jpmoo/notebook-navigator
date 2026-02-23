@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
  */
 
 import type { NotebookNavigatorSettings } from '../settings';
-import type { VaultProfile } from '../settings/types';
-import type { ShortcutEntry } from '../types/shortcuts';
+import type { VaultProfile, VaultProfilePropertyKey } from '../settings/types';
+import { isSearchShortcut, type ShortcutEntry } from '../types/shortcuts';
 import { strings } from '../i18n';
 import { normalizeCalendarCustomRootFolder } from './calendarCustomNotePatterns';
 import { FILE_VISIBILITY, type FileVisibility } from './fileTypeUtils';
@@ -28,6 +28,7 @@ import { casefold } from './recordUtils';
 import { normalizeTagPath } from './tagUtils';
 import { isRecord } from './typeGuards';
 import { createHiddenTagMatcher, matchesHiddenTagPattern, getHiddenTagPathPatterns, normalizeTagPathValue } from './tagPrefixMatcher';
+import { formatCommaSeparatedList, getCachedCommaSeparatedList } from './commaSeparatedListUtils';
 import {
     createPathPatternMatcher,
     getPathPatternCacheKey,
@@ -52,6 +53,7 @@ interface VaultProfileInitOptions {
     fileVisibility?: FileVisibility;
     navigationBanner?: string | null;
     periodicNotesFolder?: string;
+    propertyKeys?: VaultProfilePropertyKey[];
     shortcuts?: ShortcutEntry[];
 }
 
@@ -238,12 +240,190 @@ const clonePatterns = (patterns: string[] | undefined): string[] => {
     return patterns.map(pattern => pattern.trim()).filter(pattern => pattern.length > 0);
 };
 
+const clonePropertyKeyEntry = (entry: VaultProfilePropertyKey): VaultProfilePropertyKey => {
+    return {
+        key: entry.key,
+        showInNavigation: entry.showInNavigation,
+        showInList: entry.showInList
+    };
+};
+
+const normalizePropertyKeyToggle = (value: unknown): boolean => value !== false;
+
+const sanitizePropertyKeyEntry = (entry: unknown): VaultProfilePropertyKey | null => {
+    if (!isRecord(entry)) {
+        return null;
+    }
+
+    const key = typeof entry['key'] === 'string' ? entry['key'].trim() : '';
+    const normalizedKey = casefold(key);
+    if (!key || !normalizedKey) {
+        return null;
+    }
+
+    return {
+        key,
+        showInNavigation: normalizePropertyKeyToggle(entry['showInNavigation']),
+        showInList: normalizePropertyKeyToggle(entry['showInList'])
+    };
+};
+
+export const clonePropertyKeys = (propertyKeys: VaultProfilePropertyKey[] | undefined): VaultProfilePropertyKey[] => {
+    if (!Array.isArray(propertyKeys) || propertyKeys.length === 0) {
+        return [];
+    }
+
+    const cloned: VaultProfilePropertyKey[] = [];
+    const seenKeys = new Set<string>();
+    propertyKeys.forEach(entry => {
+        const sanitized = sanitizePropertyKeyEntry(entry);
+        if (!sanitized) {
+            return;
+        }
+        if (!sanitized.showInNavigation && !sanitized.showInList) {
+            return;
+        }
+
+        const normalizedKey = casefold(sanitized.key);
+        if (!normalizedKey || seenKeys.has(normalizedKey)) {
+            return;
+        }
+
+        seenKeys.add(normalizedKey);
+        cloned.push(clonePropertyKeyEntry(sanitized));
+    });
+
+    return cloned;
+};
+
+export function getActivePropertyKeySet(
+    settings: NotebookNavigatorSettings,
+    mode: 'any' | 'navigation' | 'list' = 'any'
+): ReadonlySet<string> {
+    const profile = getActiveVaultProfile(settings);
+    const entries = Array.isArray(profile.propertyKeys) ? profile.propertyKeys : [];
+    if (entries.length === 0) {
+        return new Set();
+    }
+
+    const keys = new Set<string>();
+    const seen = new Set<string>();
+    entries.forEach(entry => {
+        if (!entry) {
+            return;
+        }
+
+        if (mode === 'navigation' && !entry.showInNavigation) {
+            return;
+        }
+        if (mode === 'list' && !entry.showInList) {
+            return;
+        }
+
+        if (mode === 'any' && !entry.showInNavigation && !entry.showInList) {
+            return;
+        }
+
+        const displayKey = typeof entry.key === 'string' ? entry.key.trim() : '';
+        const normalized = casefold(displayKey);
+        if (!normalized || seen.has(normalized)) {
+            return;
+        }
+
+        seen.add(normalized);
+        keys.add(normalized);
+    });
+
+    return keys;
+}
+
+export function createPropertyKeysFromPropertyFields(
+    propertyFields: string,
+    existingPropertyKeys?: VaultProfilePropertyKey[]
+): VaultProfilePropertyKey[] {
+    const existingByKey = new Map<string, VaultProfilePropertyKey>();
+    clonePropertyKeys(existingPropertyKeys).forEach(entry => {
+        const normalizedKey = casefold(entry.key);
+        if (!normalizedKey) {
+            return;
+        }
+        existingByKey.set(normalizedKey, entry);
+    });
+
+    const propertyKeys: VaultProfilePropertyKey[] = [];
+    const seenKeys = new Set<string>();
+    getCachedCommaSeparatedList(propertyFields).forEach(rawKey => {
+        const key = rawKey.trim();
+        const normalizedKey = casefold(key);
+        if (!key || !normalizedKey || seenKeys.has(normalizedKey)) {
+            return;
+        }
+
+        seenKeys.add(normalizedKey);
+        const existing = existingByKey.get(normalizedKey);
+        propertyKeys.push({
+            key,
+            showInNavigation: existing?.showInNavigation ?? true,
+            showInList: existing?.showInList ?? true
+        });
+    });
+
+    return propertyKeys;
+}
+
+const propertyFieldsByPropertyKeysCache = new WeakMap<readonly VaultProfilePropertyKey[], string>();
+
+const collectPropertyFieldNames = (propertyKeys: VaultProfilePropertyKey[]): string[] => {
+    const keys: string[] = [];
+    const seenKeys = new Set<string>();
+    propertyKeys.forEach(entry => {
+        const sanitized = sanitizePropertyKeyEntry(entry);
+        if (!sanitized) {
+            return;
+        }
+
+        const normalizedKey = casefold(sanitized.key);
+        if (!normalizedKey || seenKeys.has(normalizedKey)) {
+            return;
+        }
+
+        seenKeys.add(normalizedKey);
+        keys.push(sanitized.key);
+    });
+
+    return keys;
+};
+
+const formatPropertyFieldsFromKeys = (propertyKeys: VaultProfilePropertyKey[] | undefined): string => {
+    if (!Array.isArray(propertyKeys) || propertyKeys.length === 0) {
+        return '';
+    }
+
+    const cached = propertyFieldsByPropertyKeysCache.get(propertyKeys);
+    if (cached !== undefined) {
+        return cached;
+    }
+
+    const formatted = formatCommaSeparatedList(collectPropertyFieldNames(propertyKeys));
+    propertyFieldsByPropertyKeysCache.set(propertyKeys, formatted);
+    return formatted;
+};
+
 // Creates a clone of shortcuts array to prevent shared references
 export const cloneShortcuts = (shortcuts: ShortcutEntry[] | undefined): ShortcutEntry[] => {
     if (!Array.isArray(shortcuts)) {
         return [];
     }
-    return shortcuts.map(shortcut => ({ ...shortcut }));
+    return shortcuts.map(shortcut => {
+        if (!isSearchShortcut(shortcut) || !shortcut.startTarget) {
+            return { ...shortcut };
+        }
+
+        return {
+            ...shortcut,
+            startTarget: { ...shortcut.startTarget }
+        };
+    });
 };
 
 // Applies a transformation function to shortcuts for every profile that has entries
@@ -312,6 +492,7 @@ export function createVaultProfile(name: string, options: VaultProfileInitOption
         periodicNotesFolder: normalizeCalendarCustomRootFolder(
             typeof options.periodicNotesFolder === 'string' ? options.periodicNotesFolder : ''
         ),
+        propertyKeys: clonePropertyKeys(options.propertyKeys),
         shortcuts: cloneShortcuts(options.shortcuts)
     };
 }
@@ -334,6 +515,7 @@ function createVaultProfileFromTemplate(name: string, template: VaultProfileTemp
         fileVisibility: source?.fileVisibility ?? template.fallbackFileVisibility,
         navigationBanner: source?.navigationBanner,
         periodicNotesFolder: source?.periodicNotesFolder,
+        propertyKeys: source?.propertyKeys,
         shortcuts: source?.shortcuts
     });
 }
@@ -474,6 +656,12 @@ export function ensureVaultProfiles(settings: NotebookNavigatorSettings): void {
                 profile.hiddenFileNames = migrated;
             }
             delete profileRecord['hiddenFileNamePatterns'];
+
+            const legacyPropertyFields = profileRecord['propertyFields'];
+            if (!Array.isArray(profileRecord['propertyKeys']) && typeof legacyPropertyFields === 'string') {
+                profile.propertyKeys = createPropertyKeysFromPropertyFields(legacyPropertyFields);
+            }
+            delete profileRecord['propertyFields'];
         }
 
         profile.name = resolveProfileName(profile.name);
@@ -490,6 +678,7 @@ export function ensureVaultProfiles(settings: NotebookNavigatorSettings): void {
         const profileRecordPeriodicNotesFolder =
             profileRecord && typeof profileRecord['periodicNotesFolder'] === 'string' ? profileRecord['periodicNotesFolder'] : null;
         profile.periodicNotesFolder = normalizeCalendarCustomRootFolder(profileRecordPeriodicNotesFolder ?? '');
+        profile.propertyKeys = clonePropertyKeys(profile.propertyKeys);
         profile.shortcuts = cloneShortcuts(profile.shortcuts);
     });
 
@@ -541,6 +730,23 @@ export function getActiveHiddenFileTags(settings: NotebookNavigatorSettings): st
 
 export function getActiveHiddenFileProperties(settings: NotebookNavigatorSettings): string[] {
     return getActiveVaultProfile(settings).hiddenFileProperties;
+}
+
+export function getActivePropertyFields(settings: NotebookNavigatorSettings): string {
+    return formatPropertyFieldsFromKeys(getActiveVaultProfile(settings).propertyKeys);
+}
+
+export function setActivePropertyFields(settings: NotebookNavigatorSettings, propertyFields: string): boolean {
+    const profile = getActiveVaultProfile(settings);
+    const nextPropertyKeys = createPropertyKeysFromPropertyFields(propertyFields, profile.propertyKeys);
+    const previousPropertyFields = formatPropertyFieldsFromKeys(profile.propertyKeys);
+    const nextPropertyFields = formatPropertyFieldsFromKeys(nextPropertyKeys);
+    if (previousPropertyFields === nextPropertyFields) {
+        return false;
+    }
+
+    profile.propertyKeys = nextPropertyKeys;
+    return true;
 }
 
 export function getActiveFileVisibility(settings: NotebookNavigatorSettings): FileVisibility {

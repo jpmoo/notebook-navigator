@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ import type { FileContentType } from '../../interfaces/IContentProvider';
 import type { ContentProviderRegistry } from '../../services/content/ContentProviderRegistry';
 import type { NotebookNavigatorSettings } from '../../settings';
 import { getDBInstance } from '../../storage/fileOperations';
-import type { TagTreeNode } from '../../types/storage';
+import type { PropertyTreeNode, TagTreeNode } from '../../types/storage';
 import { clearNoteCountCache } from '../../utils/tagTree';
 import type { StorageFileData } from './storageFileData';
 import { getCacheRebuildProgressTypes, getContentWorkTotal } from './storageContentTypes';
@@ -31,6 +31,10 @@ import { clearCacheRebuildNoticeState, setCacheRebuildNoticeState } from './cach
 
 interface TagTreeServiceLike {
     updateTagTree: (tree: Map<string, TagTreeNode>, tagged: number, untagged: number) => void;
+}
+
+interface PropertyTreeServiceLike {
+    updatePropertyTree: (tree: Map<string, PropertyTreeNode>) => void;
 }
 
 /**
@@ -50,11 +54,13 @@ export function useStorageCacheRebuild(params: {
     pendingSyncTimeoutIdRef: RefObject<number | null>;
     rebuildFileCacheRef: RefObject<ReturnType<typeof debounce> | null>;
     cancelTagTreeRebuildDebouncer: (options?: { reset?: boolean }) => void;
+    cancelPropertyTreeRebuildDebouncer: (options?: { reset?: boolean }) => void;
     disposeMetadataWaitDisposers: () => void;
     // Map: file path -> pending metadata-dependent wait mask (see `useMetadataCacheQueue`).
     pendingMetadataWaitPathsRef: RefObject<Map<string, number>>;
     setFileData: Dispatch<SetStateAction<StorageFileData>>;
     tagTreeService: TagTreeServiceLike | null;
+    propertyTreeService: PropertyTreeServiceLike | null;
     setIsStorageReady: Dispatch<SetStateAction<boolean>>;
     isStorageReadyRef: RefObject<boolean>;
     hasBuiltInitialCacheRef: RefObject<boolean>;
@@ -71,10 +77,12 @@ export function useStorageCacheRebuild(params: {
         pendingSyncTimeoutIdRef,
         rebuildFileCacheRef,
         cancelTagTreeRebuildDebouncer,
+        cancelPropertyTreeRebuildDebouncer,
         disposeMetadataWaitDisposers,
         pendingMetadataWaitPathsRef,
         setFileData,
         tagTreeService,
+        propertyTreeService,
         setIsStorageReady,
         isStorageReadyRef,
         hasBuiltInitialCacheRef,
@@ -117,6 +125,7 @@ export function useStorageCacheRebuild(params: {
         }
 
         cancelTagTreeRebuildDebouncer();
+        cancelPropertyTreeRebuildDebouncer();
         disposeMetadataWaitDisposers();
         pendingMetadataWaitPathsRef.current.clear();
 
@@ -131,9 +140,13 @@ export function useStorageCacheRebuild(params: {
 
         // Reset tag tree state immediately so the UI doesn't show stale counts while the rebuild is running.
         const emptyTagTree = new Map<string, TagTreeNode>();
-        setFileData({ tagTree: emptyTagTree, tagged: 0, untagged: 0, hiddenRootTags: new Map() });
+        const emptyPropertyTree = new Map<string, PropertyTreeNode>();
+        setFileData({ tagTree: emptyTagTree, propertyTree: emptyPropertyTree, tagged: 0, untagged: 0, hiddenRootTags: new Map() });
         if (tagTreeService) {
             tagTreeService.updateTagTree(emptyTagTree, 0, 0);
+        }
+        if (propertyTreeService) {
+            propertyTreeService.updatePropertyTree(emptyPropertyTree);
         }
         clearNoteCountCache();
 
@@ -176,6 +189,7 @@ export function useStorageCacheRebuild(params: {
     }, [
         api,
         buildFileCacheFnRef,
+        cancelPropertyTreeRebuildDebouncer,
         cancelTagTreeRebuildDebouncer,
         clearCacheRebuildNotice,
         contentRegistryRef,
@@ -191,6 +205,7 @@ export function useStorageCacheRebuild(params: {
         setIsStorageReady,
         startCacheRebuildNotice,
         stoppedRef,
+        propertyTreeService,
         tagTreeService
     ]);
 

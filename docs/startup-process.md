@@ -1,6 +1,6 @@
 # Notebook Navigator Startup Process
 
-Updated: January 19, 2026
+Updated: February 18, 2026
 
 ## Table of Contents
 
@@ -12,7 +12,7 @@ Updated: January 19, 2026
   - [Version System](#version-system)
 - [Startup Phases](#startup-phases)
   - [Phase 1: Plugin Registration](#phase-1-plugin-registration-maints)
-  - [Phase 2: View Creation](#phase-2-view-creation-notebooknavigatorviewtsx)
+  - [Phase 2: View Creation](#phase-2-view-creation)
   - [Phase 3: Database Version Check](#phase-3-database-version-check-and-initialization)
   - [Phase 4: Initial Data Load](#phase-4-initial-data-load-and-metadata-resolution)
   - [Phase 5: Background Processing](#phase-5-background-processing)
@@ -21,7 +21,7 @@ Updated: January 19, 2026
   - [Debouncing](#debouncing)
 - [Shutdown Process](#shutdown-process)
   - [Phase 1: Plugin Unload](#phase-1-plugin-unload-maints)
-  - [Phase 2: View Cleanup](#phase-2-view-cleanup-notebooknavigatorviewtsx)
+  - [Phase 2: View Cleanup](#phase-2-view-cleanup)
   - [Key Principles](#key-principles)
 
 ## Overview
@@ -68,6 +68,7 @@ Obsidian can restore open tabs/leaves from the saved workspace layout.
 For Notebook Navigator this matters because:
 
 - On warm boots, the navigator view is often created by layout restore (not by `activateView()`).
+- When `calendarPlacement` is `right-sidebar`, the calendar sidebar leaf is restored and managed independently of navigator leaves.
 - On first launch, the plugin explicitly activates the view in `HomepageController.handleWorkspaceReady()` after
   `workspace.onLayoutReady()`.
 
@@ -109,7 +110,7 @@ show progress.
    - Starts preview text warmup (`startPreviewTextWarmup`) after init.
 5. Load settings from `data.json` and run migrations.
    - Sanitize keyboard shortcuts and migrate legacy fields.
-   - Apply default date/time formats and normalize folder note properties.
+   - Apply default date/time formats and migrate folder note template settings.
    - Load UX preferences from vault-scoped localStorage.
 6. Handle first-launch setup when no saved data exists.
    - Normalize tag settings and clear vault-scoped localStorage keys (preserving IndexedDB version markers).
@@ -121,11 +122,13 @@ show progress.
    - `RecentNotesService` starts recording file-open history.
 8. Construct core services and controllers:
    - `WorkspaceCoordinator` and `HomepageController` manage view activation and homepage flow.
-   - `MetadataService`, `TagOperations`, `TagTreeService`, and `CommandQueueService`.
-   - `FileSystemOperations` wired with tag tree and visibility preferences.
+   - `MetadataService`, `TagOperations`, `TagTreeService`, `PropertyTreeService`, and `CommandQueueService`.
+   - `FileSystemOperations` wired with tag tree, property tree, and visibility preferences.
    - `OmnisearchService`, `NotebookNavigatorAPI`, and `ReleaseCheckService`.
    - `ExternalIconProviderController` initializes icon providers and syncs settings.
 9. Register view, commands, settings tab, and workspace integrations.
+   - Register both `NOTEBOOK_NAVIGATOR_VIEW` (`NotebookNavigatorView`) and
+     `NOTEBOOK_NAVIGATOR_CALENDAR_VIEW` (`NotebookNavigatorCalendarView`).
    - `registerNavigatorCommands` wires command palette entries.
    - `registerWorkspaceEvents` adds editor context menu actions, the ribbon icon, recent-note tracking, and
      rename/delete handlers.
@@ -133,10 +136,14 @@ show progress.
    - `HomepageController.handleWorkspaceReady()` activates the view on first launch and opens the configured homepage (if set).
    - On first launch, the Welcome modal is opened after the workspace is ready.
    - Triggers Style Settings parsing, version notice checks, and optional release polling.
+   - `applyCalendarPlacementView({ force: true, reveal: false })` syncs the calendar right-sidebar leaf with `settings.calendarPlacement`.
 
-### Phase 2: View Creation (NotebookNavigatorView.tsx)
+### Phase 2: View Creation
 
-**Trigger**: Obsidian restores the view from workspace layout, or the plugin calls `activateView()` (commands/ribbon/menu)
+**Trigger**: Obsidian restores leaves from workspace layout, the plugin calls `activateView()` (commands/ribbon/menu),
+or calendar placement changes run after layout/settings updates.
+
+#### Navigator view (`NotebookNavigatorView.tsx`)
 
 `activateView()` delegates to `WorkspaceCoordinator.activateNavigatorView()`:
 
@@ -151,7 +158,7 @@ show progress.
    - `ServicesProvider` (Obsidian app, services, and platform flags)
    - `ShortcutsProvider` (pinned shortcut hydration and operations)
    - `StorageProvider` (IndexedDB access and content pipeline)
-   - `ExpansionProvider` (expanded folders and tags)
+   - `ExpansionProvider` (expanded folders, tags, and properties)
    - `SelectionProvider` (selected items plus rename listeners from the plugin)
    - `UIStateProvider` (pane focus and layout mode)
 3. `NotebookNavigatorContainer` renders a skeleton until `StorageContext.isStorageReady` is true.
@@ -163,6 +170,18 @@ show progress.
    - `NavigationPaneHeader` and `ListPaneHeader` render at the top of the scroll content area.
    - Android mobile renders `NavigationToolbar` / `ListToolbar` at the top.
    - iOS mobile renders `NavigationToolbar` / `ListToolbar` in a bottom toolbar container.
+
+#### Calendar right sidebar view (`NotebookNavigatorCalendarView.tsx`)
+
+1. `applyCalendarPlacementView()` evaluates `settings.calendarPlacement` after layout readiness and on settings updates.
+2. When placement is `right-sidebar`, it calls `WorkspaceCoordinator.ensureCalendarViewInRightSidebar(...)`.
+3. Obsidian calls `NotebookNavigatorCalendarView.onOpen()` when the calendar leaf is created/restored.
+4. React app mounts with:
+   - `SettingsProvider`
+   - `ServicesProvider`
+   - `CalendarRightSidebar`
+5. `CalendarRightSidebar` renders `Calendar` with `weeksToShowOverride={6}` and forwards date-filter actions to the navigator view.
+6. When placement changes away from `right-sidebar`, `WorkspaceCoordinator.detachCalendarViewLeaves()` removes calendar leaves.
 
 ### Phase 3: Database Version Check and Initialization
 
@@ -227,11 +246,11 @@ tag extraction and markdown pipeline processing:
      - Modified files patch the stored `mtime` without clearing existing provider outputs. Providers compare their
        processed mtime fields (`markdownPipelineMtime`, `tagsMtime`, `metadataMtime`, `fileThumbnailsMtime`) against
        `file.stat.mtime` to detect stale content.
-4. Rebuild tag tree via `rebuildTagTree()` (`buildTagTreeFromDatabase`).
+4. Rebuild tag and property trees via `rebuildTagTree()` and `rebuildPropertyTree()`.
 5. Mark storage as ready (`setIsStorageReady(true)` and `NotebookNavigatorAPI.setStorageReady(true)`).
 6. Queue content generation:
    - Determine metadata-dependent provider types with `getMetadataDependentTypes(settings)`:
-     - Always includes `markdownPipeline` (word count, preview/custom property/feature image pipelines).
+     - Always includes `markdownPipeline` (word count, task counters, preview/property/feature image pipelines).
      - Includes `tags` when `showTags` is enabled.
      - Includes `metadata` when frontmatter metadata is enabled or hidden-file frontmatter rules are active.
    - `queueMetadataContentWhenReady(markdownFiles, metadataDependentTypes, settings)` filters to files needing work, waits for
@@ -246,6 +265,7 @@ tag extraction and markdown pipeline processing:
 - Renames seed `MemoryFileCache` with the old record, move preview/feature-image artifacts, then schedule a diff to reconcile mtimes.
 - Metadata cache `changed` events can force regeneration (`markFilesForRegeneration`) so providers re-run even when file mtimes do not change (processed mtimes reset to `0` without clearing existing outputs).
 - When files are removed and tags are enabled, tag tree rebuild is scheduled.
+- When files are removed and properties are enabled, property tree rebuild is scheduled (flushed after removals).
 
 #### Data Flow Diagram
 
@@ -262,7 +282,7 @@ graph TD
     C --> D["removeFilesFromCache (toRemove)"]
     C --> E["recordFileChanges (toAdd/toUpdate)"]
 
-    D --> F[rebuildTagTree]
+    D --> F[rebuildTagTree + rebuildPropertyTree]
     E --> F
 
     F --> G[Mark storage ready<br/>notify API]
@@ -300,6 +320,7 @@ cleanup is performed manually from settings.
 
 - Folder colors, icons, sort settings, and background colors for deleted/renamed folders
 - Tag colors, icons, sort settings, and background colors for removed tags
+- Property colors, icons, and sort overrides for property nodes no longer present
 - Pinned notes that no longer exist
 - Custom appearances for non-existent items
 - Navigation separators for missing targets
@@ -319,9 +340,10 @@ Content is generated asynchronously in the background by the ContentProviderRegi
    - MarkdownPipelineContentProvider (markdown): runs when any of the following are true:
      - `markdownPipelineMtime !== file.stat.mtime`
      - `wordCount === null`
+     - `taskTotal === null` or `taskUnfinished === null`
      - `showFilePreview` is enabled and `previewStatus === 'unprocessed'`
      - `showFeatureImage` is enabled and (`featureImageKey === null` or `featureImageStatus === 'unprocessed'`)
-     - Custom properties are configured and `customProperty === null`
+     - Property pills are configured and `properties === null`
    - FeatureImageContentProvider (PDFs): `fileThumbnailsMtime !== file.stat.mtime`, `featureImageStatus === 'unprocessed'`,
      `featureImageKey === null`, or `featureImageKey` mismatches the expected PDF key
    - MetadataContentProvider (markdown): `metadata === null`, `metadataMtime !== file.stat.mtime`, or hidden-state tracking requires an update
@@ -334,7 +356,7 @@ Content is generated asynchronously in the background by the ContentProviderRegi
 
 3. **Processing**: Each provider processes files independently
    - TagContentProvider: Extracts tags from Obsidian's metadata cache (`getAllTags(metadata)`)
-   - MarkdownPipelineContentProvider: Uses metadata cache for frontmatter/offsets, reads markdown content when needed, runs preview/custom property/feature image processors
+   - MarkdownPipelineContentProvider: Uses metadata cache for frontmatter/offsets, reads markdown content when needed, runs preview/word count/task/property/feature image processors
    - FeatureImageContentProvider: Generates thumbnails for non-markdown files (PDF cover thumbnails)
    - MetadataContentProvider: Extracts configured frontmatter fields and hidden state from Obsidian's metadata cache
 
@@ -346,6 +368,7 @@ Content is generated asynchronously in the background by the ContentProviderRegi
 
 6. **UI Updates**: StorageContext listens for database changes
    - Tag changes trigger tag tree rebuild (buildTagTreeFromDatabase)
+   - Property-related changes trigger property tree rebuild (`buildPropertyTreeFromDatabase`)
    - Components re-render with new content via React context
 
 #### Cache rebuild progress notice
@@ -376,6 +399,7 @@ The plugin uses debouncers in a few specific places where Obsidian emits bursty 
 
 - Vault syncing uses Obsidian `debounce(..., TIMEOUTS.FILE_OPERATION_DELAY)` to collapse create/delete bursts into one diff.
 - Tag tree rebuilds use Obsidian `debounce(..., TIMEOUTS.DEBOUNCE_TAG_TREE)` because tag updates can arrive in batches.
+- Property tree rebuilds use the same `TIMEOUTS.DEBOUNCE_TAG_TREE` debouncer to batch rapid updates.
 - Content providers use `TIMEOUTS.DEBOUNCE_CONTENT` (a `setTimeout`) to coalesce queueing before starting a processing batch.
 
 ## Shutdown Process
@@ -394,32 +418,34 @@ The plugin uses debouncers in a few specific places where Obsidian emits bursty 
    - Recent data listeners
 4. Release service instances:
    - `MetadataService` and `TagOperations` references set to `null`
+   - `PropertyTreeService` reference set to `null`
    - `CommandQueueService.clearAllOperations()` then set to `null`
    - `OmnisearchService` reference cleared
    - `RecentDataManager` reference cleared after disposal
-5. Stop content processing in every navigator leaf:
-   - Iterate leaves via `getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW)`
-   - Call `stopContentProcessing()` on each view to halt the `ContentProviderRegistry`
+5. Stop content processing in mounted navigator and calendar leaves:
+   - Iterate leaves via `getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW)` and call `NotebookNavigatorView.stopContentProcessing()`.
+   - Iterate leaves via `getLeavesOfType(NOTEBOOK_NAVIGATOR_CALENDAR_VIEW)` and call `NotebookNavigatorCalendarView.stopContentProcessing()`.
 6. Remove the ribbon icon element.
 7. Call `shutdownDatabase()` to:
    - Close the IndexedDB connection
    - Clear the in-memory cache
    - Keep the operation idempotent for repeated unloads
 
-### Phase 2: View Cleanup (NotebookNavigatorView.tsx)
+### Phase 2: View Cleanup
 
-**Trigger**: View.onClose() when view is destroyed
+**Trigger**: `ItemView.onClose()` when a navigator or calendar leaf is destroyed
 
-1. Remove CSS classes from container:
+1. `NotebookNavigatorView.onClose()` removes CSS classes from the container:
    - notebook-navigator
    - notebook-navigator-mobile (if applicable)
    - notebook-navigator-android / notebook-navigator-ios (if applicable)
    - notebook-navigator-obsidian-1-11-plus-android / notebook-navigator-obsidian-1-11-plus-ios (if applicable)
-2. Unmount React root:
+2. `NotebookNavigatorView.onClose()` unmounts the React root:
    - Call root.unmount()
    - Set root to null
    - Clear the container element
-3. StorageContext cleanup (via useEffect return):
+3. `NotebookNavigatorCalendarView.onClose()` unregisters the settings listener, unmounts the React root, and tears down the view container classes.
+4. StorageContext cleanup (via useEffect return):
    - Stop all content processing in ContentProviderRegistry
    - Cancel any pending timers
    - Prevent setState calls after unmount

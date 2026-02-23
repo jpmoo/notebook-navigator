@@ -1,6 +1,6 @@
 /*
  * Notebook Navigator - Plugin for Obsidian
- * Copyright (c) 2025 Johan Sanneblad
+ * Copyright (c) 2025-2026 Johan Sanneblad
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,7 +61,6 @@ function createSettings(): NotebookNavigatorSettings {
     return {
         ...DEFAULT_SETTINGS,
         useFrontmatterMetadata: true,
-        saveMetadataToFrontmatter: true,
         frontmatterIconField: 'icon',
         fileIcons: {},
         fileColors: {}
@@ -122,7 +121,44 @@ describe('FileMetadataService frontmatter integration', () => {
 
         expect(pinnedCount).toBe(2);
         expect(settingsProvider.saveSettingsAndUpdate).toHaveBeenCalledTimes(1);
-        expect(settingsProvider.settings.pinnedNotes?.['Vault/One.md']).toEqual({ folder: true, tag: false });
-        expect(settingsProvider.settings.pinnedNotes?.['Vault/Two.md']).toEqual({ folder: true, tag: false });
+        expect(settingsProvider.settings.pinnedNotes?.['Vault/One.md']).toEqual({ folder: true, tag: false, property: false });
+        expect(settingsProvider.settings.pinnedNotes?.['Vault/Two.md']).toEqual({ folder: true, tag: false, property: false });
+    });
+
+    it('pins notes in property context', async () => {
+        settingsProvider.settings.pinnedNotes = {};
+
+        const pinnedCount = await service.pinNotes(['Vault/One.md'], 'property');
+
+        expect(pinnedCount).toBe(1);
+        expect(settingsProvider.settings.pinnedNotes?.['Vault/One.md']).toEqual({ folder: false, tag: false, property: true });
+    });
+
+    it('treats legacy folder+tag pins as pinned in property context', () => {
+        settingsProvider.settings.pinnedNotes = {
+            'Vault/Legacy.md': { folder: true, tag: true }
+        } as unknown as NotebookNavigatorSettings['pinnedNotes'];
+
+        expect(service.isPinned('Vault/Legacy.md', 'property')).toBe(true);
+    });
+
+    it('unpins legacy folder+tag pins from property context on toggle', async () => {
+        settingsProvider.settings.pinnedNotes = {
+            'Vault/Legacy.md': { folder: true, tag: true }
+        } as unknown as NotebookNavigatorSettings['pinnedNotes'];
+
+        await service.togglePinnedNote('Vault/Legacy.md', 'property');
+
+        expect(settingsProvider.settings.pinnedNotes?.['Vault/Legacy.md']).toEqual({ folder: true, tag: true, property: false });
+    });
+
+    it('does not count legacy folder+tag pins as newly pinned in property context', async () => {
+        settingsProvider.settings.pinnedNotes = {
+            'Vault/Legacy.md': { folder: true, tag: true }
+        } as unknown as NotebookNavigatorSettings['pinnedNotes'];
+
+        const pinnedCount = await service.pinNotes(['Vault/Legacy.md'], 'property');
+
+        expect(pinnedCount).toBe(0);
     });
 });
