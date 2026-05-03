@@ -763,6 +763,27 @@ export function useListPaneScroll({
         }
     });
     const remeasureRafRef = useRef<number | null>(null);
+    const measureVisibleRowsNow = useCallback(() => {
+        if (!rowVirtualizer) {
+            return;
+        }
+        if (remeasureRafRef.current !== null) {
+            cancelAnimationFrame(remeasureRafRef.current);
+            remeasureRafRef.current = null;
+        }
+
+        const scrollEl = scrollContainerRef.current;
+        if (!scrollEl) {
+            return;
+        }
+
+        const visibleFileRows = scrollEl.querySelectorAll<HTMLElement>('.nn-virtual-file-item[data-index]');
+        visibleFileRows.forEach(node => {
+            if (node.isConnected) {
+                rowVirtualizer.measureElement(node);
+            }
+        });
+    }, [rowVirtualizer]);
     const remeasureVisibleRows = useCallback(() => {
         if (!rowVirtualizer) {
             return;
@@ -773,20 +794,9 @@ export function useListPaneScroll({
 
         remeasureRafRef.current = requestAnimationFrame(() => {
             remeasureRafRef.current = null;
-
-            const scrollEl = scrollContainerRef.current;
-            if (!scrollEl) {
-                return;
-            }
-
-            const visibleFileRows = scrollEl.querySelectorAll<HTMLElement>('.nn-virtual-file-item[data-index]');
-            visibleFileRows.forEach(node => {
-                if (node.isConnected) {
-                    rowVirtualizer.measureElement(node);
-                }
-            });
+            measureVisibleRowsNow();
         });
-    }, [rowVirtualizer]);
+    }, [measureVisibleRowsNow, rowVirtualizer]);
     const resetAndRemeasureVisibleRows = useCallback(() => {
         if (!rowVirtualizer) {
             return;
@@ -837,7 +847,7 @@ export function useListPaneScroll({
             if (hasMeaningfulListPaneWidthChange(previousWidth, nextWidth)) {
                 scrollContainerWidthRef.current = nextWidth;
                 if (isContainerVisible) {
-                    remeasureVisibleRows();
+                    measureVisibleRowsNow();
                 }
             }
         };
@@ -865,7 +875,7 @@ export function useListPaneScroll({
             if (hasMeaningfulListPaneWidthChange(previousWidth, nextWidth)) {
                 scrollContainerWidthRef.current = nextWidth;
                 if (isContainerVisible) {
-                    remeasureVisibleRows();
+                    measureVisibleRowsNow();
                 }
             }
         });
@@ -873,7 +883,7 @@ export function useListPaneScroll({
         observer.observe(element);
 
         return () => observer.disconnect();
-    }, [remeasureVisibleRows, scrollContainerEl]);
+    }, [measureVisibleRowsNow, scrollContainerEl]);
 
     useEffect(() => {
         return () => {

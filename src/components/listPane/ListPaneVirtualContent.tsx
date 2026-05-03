@@ -450,6 +450,7 @@ export function ListPaneVirtualContent({
                                             hasSelectedBelow={hasSelectedBelow}
                                             showQuickActionsPanel={!suppressRowHover && hoveredFilePath === item.data.path}
                                             onFileClick={onFileClick}
+                                            measureRowElement={measureFileRowElement}
                                             fileIndex={item.fileIndex}
                                             selectionType={selectionType}
                                             dateGroup={dateGroup}
