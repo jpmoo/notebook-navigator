@@ -527,6 +527,7 @@ export function useListPaneScroll({
             }),
         [selectionState.selectedProperty, selectionState.selectionType, settings.showSelectedNavigationPills]
     );
+    const getListItemKey = useCallback((index: number) => listItems[index]?.key ?? index, [listItems]);
 
     /**
      * Initialize TanStack Virtual virtualizer with dynamic height calculation.
@@ -537,7 +538,7 @@ export function useListPaneScroll({
     const measureVirtualItemElement = useCallback(getMeasuredVirtualItemHeight, []);
     const rowVirtualizer = useVirtualizer({
         count: listItems.length,
-        getItemKey: index => listItems[index]?.key ?? index,
+        getItemKey: getListItemKey,
         getScrollElement: () => {
             const element = scrollContainerRef.current;
             if (!element) {
