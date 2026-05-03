@@ -37,7 +37,7 @@
  *    - Resource paths are cached to avoid repeated vault.getResourcePath calls
  */
 
-import React, { useRef, useMemo, useEffect, useState, useCallback, useId, useLayoutEffect } from 'react';
+import React, { useRef, useMemo, useEffect, useState, useCallback, useId } from 'react';
 import { TFile, TFolder, setTooltip, setIcon } from 'obsidian';
 import { useServices } from '../context/ServicesContext';
 import { useMetadataService } from '../context/ServicesContext';
@@ -83,7 +83,6 @@ interface FileItemProps {
     hasSelectedBelow?: boolean;
     showQuickActionsPanel: boolean;
     onFileClick: (file: TFile, fileIndex: number | undefined, event: React.MouseEvent) => void;
-    measureRowElement: (element: HTMLDivElement) => void;
     fileIndex?: number;
     dateGroup?: string | null;
     sortOption?: SortOption;
@@ -203,11 +202,6 @@ function renderHighlightedText(text: string, query?: string, searchMeta?: Search
     return <>{parts}</>;
 }
 
-function getVirtualFileItemElement(fileElement: HTMLDivElement | null): HTMLDivElement | null {
-    const rowElement = fileElement?.closest('.nn-virtual-file-item') ?? null;
-    return rowElement instanceof HTMLDivElement ? rowElement : null;
-}
-
 interface ParentFolderLabelProps {
     iconId: string;
     label: string;
@@ -315,7 +309,6 @@ export const FileItem = React.memo(function FileItem({
     hasSelectedBelow,
     showQuickActionsPanel,
     onFileClick,
-    measureRowElement,
     fileIndex,
     dateGroup,
     sortOption,
@@ -992,16 +985,6 @@ export const FileItem = React.memo(function FileItem({
     }
 
     // === Effects ===
-
-    // Measure after each committed FileItem render so TanStack Virtual updates before paint when row content changes height.
-    useLayoutEffect(() => {
-        const rowElement = getVirtualFileItemElement(fileRef.current);
-        if (!rowElement) {
-            return;
-        }
-
-        measureRowElement(rowElement);
-    });
 
     // Renders the file icon in the DOM using the icon service
     useEffect(() => {

@@ -847,7 +847,7 @@ export function useListPaneScroll({
             if (hasMeaningfulListPaneWidthChange(previousWidth, nextWidth)) {
                 scrollContainerWidthRef.current = nextWidth;
                 if (isContainerVisible) {
-                    measureVisibleRowsNow();
+                    remeasureVisibleRows();
                 }
             }
         };
@@ -875,7 +875,7 @@ export function useListPaneScroll({
             if (hasMeaningfulListPaneWidthChange(previousWidth, nextWidth)) {
                 scrollContainerWidthRef.current = nextWidth;
                 if (isContainerVisible) {
-                    measureVisibleRowsNow();
+                    remeasureVisibleRows();
                 }
             }
         });
@@ -883,7 +883,7 @@ export function useListPaneScroll({
         observer.observe(element);
 
         return () => observer.disconnect();
-    }, [measureVisibleRowsNow, scrollContainerEl]);
+    }, [remeasureVisibleRows, scrollContainerEl]);
 
     useEffect(() => {
         return () => {
