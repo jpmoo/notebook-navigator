@@ -3820,7 +3820,8 @@ body {
     -webkit-box-orient: vertical;
     line-height: var(--nn-file-title-line-height);
     word-break: break-word;
-    max-height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1));
+    min-height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1));
+    height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1));
 }
 
 .nn-file-name[data-title-rows='1'] {
@@ -3987,10 +3988,11 @@ body {
     word-break: break-word;
 }
 
-/* Multi-line preview - shrink to content and cap at the configured rows */
+/* Multi-line preview - always take up configured number of lines */
 .nn-file-preview:not(.nn-file-second-line .nn-file-preview) {
-    flex: 0 0 auto;
-    max-height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1));
+    flex: 1;
+    min-height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1));
+    height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1));
 }
 
 /* Preview on same line as date - match date line-height for alignment */
@@ -4025,6 +4027,9 @@ body {
 }
 
 .nn-parent-folder-content[data-has-background='true'] {
+    box-sizing: border-box;
+    height: var(--nn-file-single-text-line-height);
+    line-height: calc(var(--nn-file-single-text-line-height) - 2px);
     border-radius: 4px;
     padding: 1px 4px;
 }
@@ -4096,22 +4101,6 @@ body {
 .nn-file-tags::-webkit-scrollbar,
 .nn-file-property-row::-webkit-scrollbar {
     display: none;
-}
-
-.nn-file-tags[data-wrap='true'],
-.nn-file-property-row[data-wrap='true'] {
-    flex-wrap: wrap;
-    align-content: flex-start;
-    overflow-x: hidden;
-    height: auto;
-    min-height: var(--nn-file-tag-row-height);
-}
-
-.nn-file-tags[data-wrap='true'] .nn-file-tag,
-.nn-file-property-row[data-wrap='true'] .nn-file-tag {
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 /* Individual tag pill */
@@ -6212,7 +6201,6 @@ body.nn-resizing {
     top: 0;
     left: 0;
     width: 100%;
-    transform: translateY(var(--nn-virtual-item-start, 0px));
 }
 
 /* Virtual navigation item (folders and tags) */
@@ -6221,7 +6209,6 @@ body.nn-resizing {
     top: 0;
     left: 0;
     width: 100%;
-    transform: translateY(var(--nn-virtual-item-start, 0px));
 }
 
 /* Virtual file item wrapper - position relative for separator positioning */
@@ -7679,7 +7666,7 @@ body.nn-resizing {
  *   reliably when the virtualizer remeasures and updates absolute positioning.
  */
 .notebook-navigator-obsidian-1-11-plus-ios .nn-list-pane .nn-virtual-item {
-    transform: translateY(var(--nn-virtual-item-start, 0px)) translateZ(0);
+    transform: translateZ(0);
 }
 /* Source: src/styles/sections/platform-android-obsidian-1-11.css */
 
@@ -7806,16 +7793,16 @@ body.nn-resizing {
     font-size: calc(var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)) * var(--nn-android-font-scale-reciprocal, 1)) !important;
 }
 
-/* Row-cap compensation - Android doesn't scale max-height, but the line-height
-   variables above are pre-divided to offset textZoom. Multiply the cap by the
-   detected font scale so the final row limit matches the rendered line height
-   while still allowing shorter titles and previews to shrink naturally. */
+/* Height compensation - Android doesn't scale height/min-height, but we need them
+   to match the compensated line-height after Android applies textZoom. */
 .notebook-navigator-android .nn-file-name {
-    max-height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1) * var(--nn-android-font-scale, 1));
+    min-height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1) * var(--nn-android-font-scale, 1));
+    height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1) * var(--nn-android-font-scale, 1));
 }
 
 .notebook-navigator-android .nn-file-preview:not(.nn-file-second-line .nn-file-preview) {
-    max-height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1) * var(--nn-android-font-scale, 1));
+    min-height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1) * var(--nn-android-font-scale, 1));
+    height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1) * var(--nn-android-font-scale, 1));
 }
 
 /* Icon vertical centering - line-height is pre-compensated, icon size is not */

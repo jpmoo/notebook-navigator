@@ -241,7 +241,8 @@
     -webkit-box-orient: vertical;
     line-height: var(--nn-file-title-line-height);
     word-break: break-word;
-    max-height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1));
+    min-height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1));
+    height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1));
 }
 
 .nn-file-name[data-title-rows='1'] {
@@ -408,10 +409,11 @@
     word-break: break-word;
 }
 
-/* Multi-line preview - shrink to content and cap at the configured rows */
+/* Multi-line preview - always take up configured number of lines */
 .nn-file-preview:not(.nn-file-second-line .nn-file-preview) {
-    flex: 0 0 auto;
-    max-height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1));
+    flex: 1;
+    min-height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1));
+    height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1));
 }
 
 /* Preview on same line as date - match date line-height for alignment */
@@ -446,6 +448,9 @@
 }
 
 .nn-parent-folder-content[data-has-background='true'] {
+    box-sizing: border-box;
+    height: var(--nn-file-single-text-line-height);
+    line-height: calc(var(--nn-file-single-text-line-height) - 2px);
     border-radius: 4px;
     padding: 1px 4px;
 }
