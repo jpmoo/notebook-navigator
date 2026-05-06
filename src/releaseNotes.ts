@@ -40,8 +40,12 @@
  * - Markdown link: [label](https://example.com)
  * - Auto-link: https://example.com
  *
+ * Supported block formats in info:
+ * - Line break: single newline or <br>
+ * - Paragraph break: blank line or two consecutive <br> markers
+ *
  * Not supported:
- * - Italics, headings, inline code, HTML
+ * - Italics, headings, inline code, HTML except <br> line break markers
  *
  * Writing rules:
  * - Use factual, concise statements
@@ -78,10 +82,16 @@ export interface ReleaseNote {
 const RELEASE_NOTES: ReleaseNote[] = [
     {
         version: '2.6.4',
-        date: '2026-05-05',
+        date: '2026-05-06',
         showOnUpdate: true,
-        bannerUrl: true,
-        info: 'After spending over 100 hours trying to get decent performance with variable title rows, variable preview rows, and variable tags/property rows, I made the decision to roll back and abandon the idea of variable item heights. As of 2.6.4 Notebook Navigator no longer supports variable items height . There are many reasons behind this, the main one is that we always have to measure the individual height of each file in the list to make scrolling to current item and scroll bar height look correct. Variable heights work well in lists with progressive scrolling, where you add content after scrolling 20 items, but it works really bad when selecting a file in the middle of a big list of 2000 items when changing folders. Or swiping to see the sidebar on mobile which triggers a full re-measure on every appearance. Performance will always be the main driving factor behind the design of Notebook Navigator, and variable item heights was the wrong decision.',
+        info: [
+            '**Important!** After spending over 100 hours trying to get decent performance with variable title rows, variable preview rows, and variable tags/property rows, I made the difficult decision to roll back and abandon the idea of variable item heights. As of 2.6.4 ==Notebook Navigator no longer supports variable item heights==.',
+            'There are many reasons behind this. The main reason is that to support variable item heights in list pane we always have to measure the rendered height of each and every file in the list pane to make scrolling to current item and scroll bar work correctly. This slows down the performance significantly when opening folders/tags/properties, and it also works poorly with the asynchronous architecture of Notebook Navigator where metadata is loaded asynchronously to improve "snappiness". In practice it means that the list will have to re-measure and re-update every time an asynchronous data update happens.',
+            'Performance will always be the main driving factor behind the software design of Notebook Navigator, and variable item heights was unfortunately the wrong decision. Thank you for your understanding.'
+        ].join('\n\n'),
+        changed: [
+            '==IMPORTANT!== Due to several technical issues and performance decradations I have rolled back variable line heights for title and preview text.'
+        ],
         improved: [
             '**Icon packs.** Updated Simple Icons to 16.18.0.',
             '**Internal.** Decreased the size of main.js by about 900 KB by changing packaging to UTF-8.'
