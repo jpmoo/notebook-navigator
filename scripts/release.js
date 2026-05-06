@@ -22,7 +22,8 @@
  * This script automates the release process for Obsidian plugins by:
  * - Incrementing version numbers in manifest.json, package.json, and versions.json
  * - Creating a release branch and pull request with the version bump
- * - Publishing a merged release by creating and pushing a git tag
+ * - Waiting for the release pull request to merge, then publishing by creating and pushing a git tag
+ * - Verifying the GitHub release assets and release workflow result
  *
  * Usage:
  *   node release.js                    # Publish an untagged merged version, or choose the next release
@@ -63,6 +64,10 @@ const os = require('os');
 const projectRoot = path.join(__dirname, '..');
 const validReleaseTypes = ['patch', 'minor', 'major'];
 const lockFilePath = path.join(projectRoot, '.release.lock');
+const releaseAssetNames = ['main.js', 'manifest.json', 'styles.css'];
+const pullRequestPollIntervalMs = 30 * 1000;
+const releasePollIntervalMs = 15 * 1000;
+const releaseVerificationTimeoutMs = 15 * 60 * 1000;
 
 // ============================================================================
 // GLOBAL STATE
@@ -140,6 +145,81 @@ function commandAvailable(command) {
     } catch (e) {
         return false;
     }
+}
+
+function stringifyCommandOutput(output) {
+    if (!output) {
+        return '';
+    }
+
+    return Buffer.isBuffer(output) ? output.toString('utf8').trim() : String(output).trim();
+}
+
+function getCommandErrorMessage(error) {
+    return stringifyCommandOutput(error?.stderr) || stringifyCommandOutput(error?.stdout) || error?.message || 'Unknown command error';
+}
+
+function sleep(ms) {
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function runGhJson(args) {
+    let output;
+
+    try {
+        output = execFileSync('gh', args, {
+            cwd: projectRoot,
+            encoding: 'utf8',
+            stdio: ['ignore', 'pipe', 'pipe']
+        });
+    } catch (error) {
+        throw new Error(getCommandErrorMessage(error));
+    }
+
+    try {
+        return JSON.parse(output);
+    } catch (error) {
+        throw new Error(`Failed to parse GitHub CLI output: ${error.message}`);
+    }
+}
+
+function tryRunGhJson(args) {
+    try {
+        return runGhJson(args);
+    } catch (error) {
+        return null;
+    }
+}
+
+function canUseGitHubCliForVerification() {
+    if (!commandAvailable('gh')) {
+        console.log('⚠️  GitHub CLI not found; verify the release and workflow manually.');
+        return false;
+    }
+
+    try {
+        execFileSync('gh', ['auth', 'status'], {
+            cwd: projectRoot,
+            encoding: 'utf8',
+            stdio: ['ignore', 'pipe', 'pipe']
+        });
+    } catch (error) {
+        console.log('⚠️  GitHub CLI is installed but not authenticated or cannot access GitHub.');
+        console.log(`   ${getCommandErrorMessage(error)}`);
+        console.log('   Verify the release and workflow manually.');
+        return false;
+    }
+
+    try {
+        runGhJson(['repo', 'view', '--json', 'nameWithOwner']);
+    } catch (error) {
+        console.log('⚠️  GitHub CLI could not read this repository.');
+        console.log(`   ${error.message}`);
+        console.log('   Verify the release and workflow manually.');
+        return false;
+    }
+
+    return true;
 }
 
 function assertOnlyExpectedChanges(expectedFiles) {
@@ -367,34 +447,61 @@ function syncMainForDefaultFlow(selectedReleaseType, dryRun) {
     }
 
     try {
-        gitExecArray(['fetch', 'origin', 'main'], { stdio: 'pipe' });
-
-        const localCommit = gitExecString(['rev-parse', 'main']);
-        const remoteCommit = gitExecString(['rev-parse', 'origin/main']);
-        if (localCommit === remoteCommit) {
-            return;
-        }
-
-        const status = gitExecString(['status', '--porcelain']);
-        if (status) {
-            console.error('❌ Local main is behind origin/main, but the worktree has uncommitted changes.');
-            console.error('   Commit or stash the changes, then run: node scripts/release.js');
-            process.exit(1);
-        }
-
-        const mergeBase = gitExecString(['merge-base', 'main', 'origin/main']);
-        if (mergeBase !== localCommit) {
-            console.error('❌ Local main cannot be fast-forwarded from origin/main.');
-            console.error('   Resolve the branch state manually, then run: node scripts/release.js');
-            process.exit(1);
-        }
-
-        gitExecArray(['merge', '--ff-only', 'origin/main'], { stdio: 'inherit' });
-        console.log('✓ Updated local main from origin/main');
+        fastForwardMainFromOrigin({
+            dirtyMessage: '❌ Local main is behind origin/main, but the worktree has uncommitted changes.',
+            dirtyGuidance: '   Commit or stash the changes, then run: node scripts/release.js'
+        });
     } catch (error) {
         console.error('❌ Failed to update local main:', error.message);
         process.exit(1);
     }
+}
+
+function requireCleanWorktree(message, guidance) {
+    const status = gitExecString(['status', '--porcelain']);
+    if (!status) {
+        return;
+    }
+
+    console.error(message);
+    console.error(
+        status
+            .split('\n')
+            .map(line => '   ' + line)
+            .join('\n')
+    );
+    if (guidance) {
+        console.error(guidance);
+    }
+    process.exit(1);
+}
+
+function fastForwardMainFromOrigin(options = {}) {
+    const {
+        dirtyMessage = '❌ Local main is behind origin/main, but the worktree has uncommitted changes.',
+        dirtyGuidance = '   Commit or stash the changes, then run: node scripts/release.js'
+    } = options;
+
+    gitExecArray(['fetch', 'origin', 'main'], { stdio: 'pipe' });
+
+    const localCommit = gitExecString(['rev-parse', 'main']);
+    const remoteCommit = gitExecString(['rev-parse', 'origin/main']);
+    if (localCommit === remoteCommit) {
+        return false;
+    }
+
+    requireCleanWorktree(dirtyMessage, dirtyGuidance);
+
+    const mergeBase = gitExecString(['merge-base', 'main', 'origin/main']);
+    if (mergeBase !== localCommit) {
+        console.error('❌ Local main cannot be fast-forwarded from origin/main.');
+        console.error('   Resolve the branch state manually, then run: node scripts/release.js');
+        process.exit(1);
+    }
+
+    gitExecArray(['merge', '--ff-only', 'origin/main'], { stdio: 'inherit' });
+    console.log('✓ Updated local main from origin/main');
+    return true;
 }
 
 function getTagStatus(version) {
@@ -627,6 +734,227 @@ function validateReleaseNotes(version) {
     console.log(`✓ Release notes found for ${version}`);
 }
 
+function getPullRequestInfo(selector) {
+    return runGhJson(['pr', 'view', String(selector), '--json', 'number,url,state,mergedAt,mergeCommit']);
+}
+
+function tryGetPullRequestInfo(selector) {
+    return tryRunGhJson(['pr', 'view', String(selector), '--json', 'number,url,state,mergedAt,mergeCommit']);
+}
+
+function waitForPullRequestMerge(prInfo) {
+    console.log('\nRelease pull request is ready:');
+    console.log(`   ${prInfo.url}`);
+    console.log('\nMerge the pull request after CI passes.');
+    console.log('This script will wait here, then publish the tag after main is updated.');
+    console.log('Press Ctrl+C to stop waiting; you can run node scripts/release.js later to publish.\n');
+
+    while (true) {
+        let latestPrInfo;
+        try {
+            latestPrInfo = getPullRequestInfo(prInfo.number);
+        } catch (error) {
+            console.log(`⚠️  Could not read pull request status: ${error.message}`);
+            sleep(pullRequestPollIntervalMs);
+            continue;
+        }
+
+        if (latestPrInfo.mergedAt || latestPrInfo.state === 'MERGED') {
+            console.log(`✓ Pull request #${latestPrInfo.number} merged`);
+            return latestPrInfo;
+        }
+
+        if (latestPrInfo.state === 'CLOSED') {
+            console.error(`❌ Pull request #${latestPrInfo.number} was closed without merging.`);
+            console.error('   Run the release script again after preparing a new release pull request.');
+            process.exit(1);
+        }
+
+        console.log(`Waiting for pull request #${latestPrInfo.number} to merge...`);
+        sleep(pullRequestPollIntervalMs);
+    }
+}
+
+function syncMergedReleaseToMain(expectedVersion) {
+    try {
+        requireCleanWorktree(
+            '❌ Worktree has uncommitted changes before syncing merged release:',
+            '   Commit or stash the changes, then run: node scripts/release.js'
+        );
+
+        const currentBranch = gitExecString(['rev-parse', '--abbrev-ref', 'HEAD']);
+        if (currentBranch !== 'main') {
+            gitExecArray(['checkout', 'main'], { stdio: 'inherit' });
+        }
+
+        fastForwardMainFromOrigin();
+
+        const mergedManifest = parseJsonFile(path.join(projectRoot, 'manifest.json'), 'manifest.json');
+        validateManifest(mergedManifest);
+
+        if (mergedManifest.version !== expectedVersion) {
+            console.error('❌ Merged main does not contain the expected release version.');
+            console.error(`   Expected: ${expectedVersion}`);
+            console.error(`   Found:    ${mergedManifest.version}`);
+            process.exit(1);
+        }
+
+        console.log(`✓ main contains merged version ${expectedVersion}`);
+        return mergedManifest;
+    } catch (error) {
+        console.error('❌ Failed to sync merged release:', error.message);
+        process.exit(1);
+    }
+}
+
+function getGitHubRelease(version) {
+    return runGhJson(['release', 'view', version, '--json', 'tagName,url,assets,isDraft,isPrerelease,publishedAt']);
+}
+
+function hasRequiredReleaseAssets(release) {
+    const assetNames = new Set((release.assets || []).map(asset => asset.name));
+    return releaseAssetNames.every(assetName => assetNames.has(assetName));
+}
+
+function isReleaseNotFoundError(error) {
+    return error.message.toLowerCase().includes('release not found');
+}
+
+function waitForGitHubRelease(version) {
+    const deadline = Date.now() + releaseVerificationTimeoutMs;
+
+    while (Date.now() < deadline) {
+        try {
+            const release = getGitHubRelease(version);
+            if (hasRequiredReleaseAssets(release)) {
+                return release;
+            }
+        } catch (error) {
+            if (!isReleaseNotFoundError(error)) {
+                console.error(`❌ Could not read GitHub release ${version}.`);
+                console.error(`   ${error.message}`);
+                console.error('   Verify the release and workflow manually.');
+                process.exit(1);
+            }
+        }
+
+        console.log(`Waiting for GitHub release ${version} assets...`);
+        sleep(releasePollIntervalMs);
+    }
+
+    console.error(`❌ Timed out waiting for GitHub release ${version} assets.`);
+    console.error(`   Required assets: ${releaseAssetNames.join(', ')}`);
+    process.exit(1);
+}
+
+function findReleaseWorkflowRun(version, targetCommit) {
+    const runs = tryRunGhJson([
+        'run',
+        'list',
+        '--workflow',
+        'Release Obsidian plugin',
+        '--limit',
+        '30',
+        '--json',
+        'databaseId,status,conclusion,url,headBranch,headSha,createdAt,displayTitle'
+    ]);
+
+    if (!Array.isArray(runs)) {
+        return null;
+    }
+
+    return runs.find(run => run.headBranch === version && run.headSha === targetCommit) || runs.find(run => run.headBranch === version);
+}
+
+function getWorkflowRun(runId) {
+    return runGhJson(['run', 'view', String(runId), '--json', 'databaseId,status,conclusion,url,jobs']);
+}
+
+function waitForReleaseWorkflow(version) {
+    const targetCommit = gitExecString(['rev-list', '-n', '1', version]);
+    const deadline = Date.now() + releaseVerificationTimeoutMs;
+    let run = null;
+
+    while (Date.now() < deadline) {
+        const listedRun = findReleaseWorkflowRun(version, targetCommit);
+        if (!listedRun) {
+            console.log(`Waiting for release workflow run for ${version}...`);
+            sleep(releasePollIntervalMs);
+            continue;
+        }
+
+        try {
+            run = getWorkflowRun(listedRun.databaseId);
+        } catch (error) {
+            console.log(`⚠️  Could not read release workflow status: ${error.message}`);
+            sleep(releasePollIntervalMs);
+            continue;
+        }
+
+        if (run.status === 'completed') {
+            return run;
+        }
+
+        console.log(`Waiting for release workflow to complete: ${run.url}`);
+        sleep(releasePollIntervalMs);
+    }
+
+    console.log(`⚠️  Release workflow did not complete within ${releaseVerificationTimeoutMs / 60000} minutes.`);
+    if (run?.url) {
+        console.log(`   Check status: ${run.url}`);
+    }
+    return null;
+}
+
+function verifyReleaseWorkflowResult(run) {
+    if (!run) {
+        return;
+    }
+
+    if (run.conclusion === 'success') {
+        console.log(`✓ Release workflow completed successfully: ${run.url}`);
+        return;
+    }
+
+    const jobs = Array.isArray(run.jobs) ? run.jobs : [];
+    const buildJob = jobs.find(job => job.name === 'build');
+    const failedJobs = jobs.filter(job => job.conclusion && !['success', 'skipped'].includes(job.conclusion));
+    const onlyProvenanceFailed = failedJobs.length > 0 && failedJobs.every(job => job.name.startsWith('provenance'));
+
+    if (buildJob?.conclusion === 'success' && onlyProvenanceFailed) {
+        console.log('⚠️  Release assets were published, but provenance failed.');
+        console.log(`   Workflow: ${run.url}`);
+        failedJobs.forEach(job => console.log(`   - ${job.name}: ${job.conclusion}`));
+        return;
+    }
+
+    console.error('❌ Release workflow failed.');
+    console.error(`   Workflow: ${run.url}`);
+    failedJobs.forEach(job => console.error(`   - ${job.name}: ${job.conclusion}`));
+    process.exit(1);
+}
+
+function verifyPublishedRelease(version) {
+    console.log('\n🔎 Verifying published release...');
+
+    const { remoteTagExists } = getTagStatus(version);
+    if (!remoteTagExists) {
+        console.error(`❌ Remote tag ${version} was not found after push.`);
+        process.exit(1);
+    }
+    console.log(`✓ Remote tag ${version} exists`);
+
+    if (!canUseGitHubCliForVerification()) {
+        return;
+    }
+
+    const release = waitForGitHubRelease(version);
+    console.log(`✓ GitHub release has required assets: ${release.url}`);
+
+    const workflowRun = waitForReleaseWorkflow(version);
+    verifyReleaseWorkflowResult(workflowRun);
+}
+
 // ============================================================================
 // RELEASE OPERATIONS
 // ============================================================================
@@ -774,6 +1102,8 @@ function prepareRelease(releaseType, manifest, currentVersion, newVersion) {
 
     verifyBuild();
 
+    let prInfo = null;
+
     // Git operations
     try {
         // Add only files that exist
@@ -797,13 +1127,9 @@ function prepareRelease(releaseType, manifest, currentVersion, newVersion) {
         if (isDryRun) {
             console.log(`\n🔍 DRY RUN COMPLETE - Release branch ${releaseBranch} would be prepared`);
         } else {
-            createReleasePullRequest(releaseBranch, newVersion);
+            prInfo = createReleasePullRequest(releaseBranch, newVersion);
             gitExecArray(['checkout', 'main'], { stdio: 'inherit' });
             console.log(`\n✓ Release PR prepared for version ${newVersion}`);
-            console.log('\nNext steps:');
-            console.log('1. Wait for CI to pass on the release pull request');
-            console.log('2. Merge the pull request into main');
-            console.log('3. Run: node scripts/release.js\n');
         }
     } catch (error) {
         // If git operations fail, rollback file changes
@@ -811,17 +1137,33 @@ function prepareRelease(releaseType, manifest, currentVersion, newVersion) {
         console.error('   Check git status and tags before retrying.');
         rollback(`Git operations failed: ${error.message}`);
     }
+
+    if (isDryRun) {
+        return;
+    }
+
+    if (prInfo) {
+        waitForPullRequestMerge(prInfo);
+        const mergedManifest = syncMergedReleaseToMain(newVersion);
+        publishRelease(mergedManifest, newVersion);
+        return;
+    }
+
+    console.log('\nNext steps:');
+    console.log('1. Wait for CI to pass on the release pull request');
+    console.log('2. Merge the pull request into main');
+    console.log('3. Run: node scripts/release.js\n');
 }
 
 function createReleasePullRequest(releaseBranch, newVersion) {
     if (!commandAvailable('gh')) {
         console.log('⚠️  GitHub CLI not found; create the release pull request manually.');
         console.log(`   Branch: ${releaseBranch}`);
-        return;
+        return null;
     }
 
     try {
-        execFileSync(
+        const output = execFileSync(
             'gh',
             [
                 'pr',
@@ -835,12 +1177,32 @@ function createReleasePullRequest(releaseBranch, newVersion) {
                 '--body',
                 `Bumps release metadata to ${newVersion}.`
             ],
-            { cwd: projectRoot, stdio: 'inherit' }
+            { cwd: projectRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] }
         );
+
+        if (output.trim()) {
+            console.log(output.trim());
+        }
+
+        const prInfo = tryGetPullRequestInfo(releaseBranch);
+        if (prInfo) {
+            console.log(`✓ Created release pull request #${prInfo.number}`);
+            return prInfo;
+        }
+
         console.log('✓ Created release pull request');
+        console.log('⚠️  Could not read pull request details; publish after merge with: node scripts/release.js');
+        return null;
     } catch (error) {
+        const existingPrInfo = tryGetPullRequestInfo(releaseBranch);
+        if (existingPrInfo) {
+            console.log(`⚠️  Release pull request already exists: ${existingPrInfo.url}`);
+            return existingPrInfo;
+        }
+
         console.log('⚠️  Could not create the release pull request automatically.');
         console.log(`   Create it manually from branch: ${releaseBranch}`);
+        return null;
     }
 }
 
@@ -861,8 +1223,9 @@ function publishRelease(manifest, currentVersion) {
         if (isDryRun) {
             console.log(`\n🔍 DRY RUN COMPLETE - Version ${currentVersion} would be published`);
         } else {
+            console.log('\nGitHub Actions will now build and publish the GitHub release.');
+            verifyPublishedRelease(currentVersion);
             console.log(`\n🎉 Successfully published version ${currentVersion}`);
-            console.log('GitHub Actions will now build and publish the GitHub release.');
         }
     } catch (error) {
         console.error('\n❌ Publish failed:', error.message);
