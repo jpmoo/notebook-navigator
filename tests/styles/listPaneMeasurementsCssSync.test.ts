@@ -117,7 +117,7 @@ describe('List pane measurements stay in sync with CSS', () => {
         expect(mobileVars).not.toMatch(/--nn-file-tag-row-gap\\s*:/);
     });
 
-    test('android text zoom keeps fixed title and preview row heights in sync', () => {
+    test('android text zoom keeps title and preview clamps in sync', () => {
         const androidCss = readTextFile('src/styles/sections/android-textzoom.css');
         const titleRule = extractRuleBlock(androidCss, '.notebook-navigator-android .nn-file-name');
         const previewRule = extractRuleBlock(
@@ -126,17 +126,15 @@ describe('List pane measurements stay in sync with CSS', () => {
         );
 
         expect(titleRule).toMatch(
-            /min-height:\s*calc\(var\(--nn-file-title-line-height\)\s*\*\s*var\(--filename-rows, 1\)\s*\*\s*var\(--nn-android-font-scale, 1\)\)/
+            /max-height:\s*calc\(var\(--nn-file-title-line-height\)\s*\*\s*var\(--filename-rows, 1\)\s*\*\s*var\(--nn-android-font-scale, 1\)\)/
         );
-        expect(titleRule).toMatch(
-            /height:\s*calc\(var\(--nn-file-title-line-height\)\s*\*\s*var\(--filename-rows, 1\)\s*\*\s*var\(--nn-android-font-scale, 1\)\)/
-        );
+        expect(titleRule).not.toMatch(/(^|\n)\s*min-height:\s*/m);
+        expect(titleRule).not.toMatch(/(^|\n)\s*height:\s*/m);
         expect(previewRule).toMatch(
-            /min-height:\s*calc\(var\(--nn-file-multiline-text-line-height\)\s*\*\s*var\(--preview-rows, 1\)\s*\*\s*var\(--nn-android-font-scale, 1\)\)/
+            /max-height:\s*calc\(var\(--nn-file-multiline-text-line-height\)\s*\*\s*var\(--preview-rows, 1\)\s*\*\s*var\(--nn-android-font-scale, 1\)\)/
         );
-        expect(previewRule).toMatch(
-            /height:\s*calc\(var\(--nn-file-multiline-text-line-height\)\s*\*\s*var\(--preview-rows, 1\)\s*\*\s*var\(--nn-android-font-scale, 1\)\)/
-        );
+        expect(previewRule).not.toMatch(/(^|\n)\s*min-height:\s*/m);
+        expect(previewRule).not.toMatch(/(^|\n)\s*height:\s*/m);
     });
 
     test('pill height uses the fixed row height as border-box height', () => {
@@ -150,18 +148,34 @@ describe('List pane measurements stay in sync with CSS', () => {
         expect(pillRule).toMatch(/(^|\n)\s*height:\s*var\(--nn-file-tag-row-height\)\s*;/m);
     });
 
-    test('preview flex behavior keeps multi-line previews at the configured fixed height', () => {
+    test('file text stack top-aligns inside fixed virtual file rows', () => {
         const listFilesCss = readTextFile('src/styles/sections/list-files.css');
+        const virtualListCss = readTextFile('src/styles/sections/layout-virtual-list.css');
+        const virtualFileItemRule = extractRuleBlock(virtualListCss, '.nn-virtual-file-item');
+        const fileRule = extractRuleBlock(listFilesCss, '.nn-file');
+        const fileContentRule = extractRuleBlock(listFilesCss, '.nn-file-content');
+        const fileInnerContentRule = extractRuleBlock(listFilesCss, '.nn-file-inner-content');
+        const fileTextContentRule = extractRuleBlock(listFilesCss, '.nn-file-text-content');
+        const fileNameRule = extractRuleBlock(listFilesCss, '.nn-file-name');
         const multiLinePreviewRule = extractRuleBlock(listFilesCss, '.nn-file-preview:not(.nn-file-second-line .nn-file-preview)');
         const secondLinePreviewRule = extractRuleBlock(listFilesCss, '.nn-file-second-line .nn-file-preview');
 
-        expect(multiLinePreviewRule).toMatch(/(^|\n)\s*flex:\s*1\s*;/m);
-        expect(multiLinePreviewRule).toMatch(
-            /(^|\n)\s*min-height:\s*calc\(var\(--nn-file-multiline-text-line-height\)\s*\*\s*var\(--preview-rows, 1\)\)\s*;/m
+        expect(virtualFileItemRule).toMatch(/(^|\n)\s*height:\s*var\(--item-height\)\s*;/m);
+        expect(fileRule).toMatch(/(^|\n)\s*height:\s*100%\s*;/m);
+        expect(fileContentRule).toMatch(/(^|\n)\s*height:\s*100%\s*;/m);
+        expect(fileContentRule).toMatch(/(^|\n)\s*box-sizing:\s*border-box\s*;/m);
+        expect(fileInnerContentRule).toMatch(/(^|\n)\s*height:\s*100%\s*;/m);
+        expect(fileTextContentRule).toMatch(/(^|\n)\s*height:\s*100%\s*;/m);
+        expect(fileTextContentRule).toMatch(/(^|\n)\s*justify-content:\s*flex-start\s*;/m);
+        expect(fileNameRule).toMatch(
+            /(^|\n)\s*max-height:\s*calc\(var\(--nn-file-title-line-height\)\s*\*\s*var\(--filename-rows, 1\)\)\s*;/m
         );
         expect(multiLinePreviewRule).toMatch(
-            /(^|\n)\s*height:\s*calc\(var\(--nn-file-multiline-text-line-height\)\s*\*\s*var\(--preview-rows, 1\)\)\s*;/m
+            /(^|\n)\s*max-height:\s*calc\(var\(--nn-file-multiline-text-line-height\)\s*\*\s*var\(--preview-rows, 1\)\)\s*;/m
         );
+        expect(multiLinePreviewRule).not.toMatch(/(^|\n)\s*flex:\s*1\s*;/m);
+        expect(multiLinePreviewRule).not.toMatch(/(^|\n)\s*min-height:\s*/m);
+        expect(multiLinePreviewRule).not.toMatch(/(^|\n)\s*height:\s*/m);
         expect(secondLinePreviewRule).toMatch(/(^|\n)\s*flex:\s*1\s*;/m);
     });
 

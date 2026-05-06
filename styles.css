@@ -3652,6 +3652,7 @@ body {
     -webkit-user-select: none;
     user-select: none;
     position: relative;
+    height: 100%;
 
     /* CSS Custom Properties for file items - themes can override these */
     /* Isolate layout and style calculations per item while allowing ::before to extend beyond bounds */
@@ -3671,6 +3672,8 @@ body {
     border-radius: var(--nn-file-item-border-radius);
     background: transparent;
     position: relative; /* For absolute positioning of reveal overlay */
+    height: 100%;
+    box-sizing: border-box;
 }
 
 .nn-file.nn-has-custom-background::before {
@@ -3720,6 +3723,7 @@ body {
     gap: var(--nn-file-row-gap);
     align-items: flex-start;
     position: relative;
+    height: 100%;
 }
 
 .nn-file-icon-slot {
@@ -3791,9 +3795,9 @@ body {
     flex-direction: column;
     gap: 0;
     order: 1; /* Ensure it appears on the left */
-    min-height: var(--nn-file-thumbnail-min-size); /* Keep short rows aligned to the shared thumbnail floor */
-    justify-content: center; /* Center short text stacks within the shared row height */
-    /* No align-self - let it stretch naturally */
+    height: 100%;
+    min-height: 0;
+    justify-content: flex-start;
 }
 
 /* Compact mode file text content - same as above but without min-height */
@@ -3820,8 +3824,7 @@ body {
     -webkit-box-orient: vertical;
     line-height: var(--nn-file-title-line-height);
     word-break: break-word;
-    min-height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1));
-    height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1));
+    max-height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1));
 }
 
 .nn-file-name[data-title-rows='1'] {
@@ -3988,11 +3991,9 @@ body {
     word-break: break-word;
 }
 
-/* Multi-line preview - always take up configured number of lines */
+/* Multi-line preview - clamp to the configured number of lines */
 .nn-file-preview:not(.nn-file-second-line .nn-file-preview) {
-    flex: 1;
-    min-height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1));
-    height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1));
+    max-height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1));
 }
 
 /* Preview on same line as date - match date line-height for alignment */
@@ -6214,6 +6215,7 @@ body.nn-resizing {
 /* Virtual file item wrapper - position relative for separator positioning */
 .nn-virtual-file-item {
     position: relative;
+    height: var(--item-height);
     /* Isolate layout and style calculations per item while allowing overlays to extend beyond bounds */
     contain: layout style;
 }
@@ -7793,16 +7795,13 @@ body.nn-resizing {
     font-size: calc(var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)) * var(--nn-android-font-scale-reciprocal, 1)) !important;
 }
 
-/* Height compensation - Android doesn't scale height/min-height, but we need them
-   to match the compensated line-height after Android applies textZoom. */
+/* Clamp height compensation - Android doesn't scale max-height, so match the compensated line-height after textZoom applies. */
 .notebook-navigator-android .nn-file-name {
-    min-height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1) * var(--nn-android-font-scale, 1));
-    height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1) * var(--nn-android-font-scale, 1));
+    max-height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1) * var(--nn-android-font-scale, 1));
 }
 
 .notebook-navigator-android .nn-file-preview:not(.nn-file-second-line .nn-file-preview) {
-    min-height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1) * var(--nn-android-font-scale, 1));
-    height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1) * var(--nn-android-font-scale, 1));
+    max-height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1) * var(--nn-android-font-scale, 1));
 }
 
 /* Icon vertical centering - line-height is pre-compensated, icon size is not */

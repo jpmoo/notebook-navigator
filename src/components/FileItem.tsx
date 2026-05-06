@@ -1157,7 +1157,7 @@ export const FileItem = React.memo(function FileItem({
                                 {/* Conditions: unpinned note AND previewRows >= 2 */}
                                 {!shouldUseSingleLineForDateAndPreview && (
                                     <>
-                                        {/* Multi-row preview uses the configured fixed row height. */}
+                                        {/* Multi-row preview clamps to the configured row count. */}
                                         {shouldShowMultilinePreview && (
                                             <div
                                                 className="nn-file-preview"
