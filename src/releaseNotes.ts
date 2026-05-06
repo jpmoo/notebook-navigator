@@ -81,17 +81,10 @@ const RELEASE_NOTES: ReleaseNote[] = [
         date: '2026-05-05',
         showOnUpdate: true,
         bannerUrl: true,
-        info: 'Notebook Navigator 2.6.4 now lets file tags and properties wrap onto multiple rows in the list pane. This is yet another feature many of you have requested for a long time, and I am glad to finally have the time to add it.',
-        new: [
-            '**Settings.** New setting: List > Notes > ==Show tags on multiple rows==. Automatically wrap tags so all tags are visible in the list pane. Default disabled.',
-            '**Settings.** New setting: List > Notes > ==Show properties on multiple rows==. Automatically wrap properties so all properties are visible in the list pane. Default disabled.'
-        ],
+        info: 'After spending over 100 hours trying to get decent performance with variable title rows, variable preview rows, and variable tags/property rows, I made the decision to roll back and abandon the idea of variable item heights. As of 2.6.4 Notebook Navigator no longer supports variable items height . There are many reasons behind this, the main one is that we always have to measure the individual height of each file in the list to make scrolling to current item and scroll bar height look correct. Variable heights work well in lists with progressive scrolling, where you add content after scrolling 20 items, but it works really bad when selecting a file in the middle of a big list of 2000 items when changing folders. Or swiping to see the sidebar on mobile which triggers a full re-measure on every appearance. Performance will always be the main driving factor behind the design of Notebook Navigator, and variable item heights was the wrong decision.',
         improved: [
             '**Icon packs.** Updated Simple Icons to 16.18.0.',
             '**Internal.** Decreased the size of main.js by about 900 KB by changing packaging to UTF-8.'
-        ],
-        changed: [
-            '**Settings.** Removed the setting: List > Notes > ==Show properties on separate rows==. It became redundant with the new setting **Show properties on multiple rows**.'
         ]
     },
     {
