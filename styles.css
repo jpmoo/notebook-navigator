@@ -4240,12 +4240,22 @@ body {
     padding: var(--nn-file-padding-vertical-compact) var(--nn-file-item-padding-horizontal); /* Reduced vertical padding */
 }
 
+/* Mobile compact file items use larger touch targets. */
+.notebook-navigator-mobile .nn-file.nn-compact .nn-file-content {
+    padding: var(--nn-file-padding-vertical-compact-mobile) var(--nn-file-item-padding-horizontal);
+}
+
 /* Compact file name - no bold, smaller font like folder items */
 .nn-file.nn-compact .nn-file-name {
     font-size: var(--nn-compact-font-size, var(--nn-file-small-size-mobile, var(--nn-file-small-size)));
     font-weight: var(--nn-theme-file-compact-name-font-weight);
     margin-bottom: 0;
     line-height: var(--nn-file-title-line-height);
+}
+
+/* Mobile compact mode file names use the mobile compact font variable. */
+.notebook-navigator-mobile .nn-file.nn-compact .nn-file-name {
+    font-size: var(--nn-compact-font-size-mobile, var(--nn-compact-font-size, 15px));
 }
 
 /* Apply standard font weight to colored file names in compact mode */
@@ -7321,6 +7331,35 @@ body.nn-resizing {
 .notebook-navigator-mobile .nn-root-reorder-remove {
     font-size: var(--nn-setting-nav-font-size-mobile);
 }
+/* Source: src/styles/sections/mobile-panes.css */
+
+/* ========================================================================
+   Mobile Pane Layout
+   ======================================================================== */
+
+/* Make panes flex containers on mobile to accommodate mobile toolbars. */
+.notebook-navigator-mobile .nn-navigation-pane,
+.notebook-navigator-mobile .nn-list-pane {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Ensure scrollers take remaining space. */
+.notebook-navigator-mobile .nn-navigation-pane-scroller,
+.notebook-navigator-mobile .nn-list-pane-scroller {
+    flex: 1;
+    min-height: 0; /* Important for proper scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Keep horizontal pane bounce/chaining disabled while allowing native vertical edge feedback. */
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: contain;
+}
+
+/* Mobile list pane scroller uses the mobile list surface. */
+.notebook-navigator-mobile .nn-list-pane-scroller {
+    background-color: var(--nn-theme-list-bg); /* Opaque background on scroller for GPU scroll layer (see .nn-list-pane-scroller) */
+}
 /* Source: src/styles/sections/mobile-tab-bars.css */
 
 /* ========================================================================
@@ -7712,39 +7751,6 @@ body.nn-resizing {
     height: 40px;
     min-width: 40px;
     min-height: 40px;
-}
-
-/* Make panes flex containers on mobile to accommodate tab bars */
-.notebook-navigator-mobile .nn-navigation-pane,
-.notebook-navigator-mobile .nn-list-pane {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-/* Ensure scrollers take remaining space */
-.notebook-navigator-mobile .nn-navigation-pane-scroller,
-.notebook-navigator-mobile .nn-list-pane-scroller {
-    flex: 1;
-    min-height: 0; /* Important for proper scrolling */
-    -webkit-overflow-scrolling: touch;
-    /* Prevent the rubber-band/glow overscroll effect on mobile. */
-    overscroll-behavior: none;
-}
-
-/* Mobile list pane scroller - use mobile background */
-.notebook-navigator-mobile .nn-list-pane-scroller {
-    background-color: var(--nn-theme-list-bg); /* Opaque background on scroller for GPU scroll layer (see .nn-list-pane-scroller) */
-}
-
-/* Mobile compact file items - larger touch targets */
-.notebook-navigator-mobile .nn-file.nn-compact .nn-file-content {
-    padding: var(--nn-file-padding-vertical-compact-mobile) var(--nn-file-item-padding-horizontal);
-}
-
-/* Mobile compact mode file names - use dedicated font variable */
-.notebook-navigator-mobile .nn-file.nn-compact .nn-file-name {
-    font-size: var(--nn-compact-font-size-mobile, var(--nn-compact-font-size, 15px));
 }
 /* Source: src/styles/sections/android-textzoom.css */
 

@@ -126,6 +126,8 @@ Keep this list ordered: later files override earlier ones.
 @import './sections/theme-folder-colors.css';
 /* mobile-variables.css: mobile typography and spacing variables, mobile nav row padding adjustments. */
 @import './sections/mobile-variables.css';
+/* mobile-panes.css: shared mobile pane/scroller layout and overscroll behavior. */
+@import './sections/mobile-panes.css';
 /* mobile-tab-bars.css: mobile bottom navigation tabs, safe-area handling, and toolbar positioning rules. */
 @import './sections/mobile-tab-bars.css';
 /* platform-ios-obsidian-1-11.css: iOS safe areas + Obsidian 1.11+ iOS glass toolbar/overlays. */
