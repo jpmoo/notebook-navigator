@@ -81,6 +81,12 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
+        version: '2.6.5',
+        date: '2026-05-11',
+        showOnUpdate: true,
+        fixed: ['Fixed the drag-and-drop ghost image that disappeared in 2.6.3.']
+    },
+    {
         version: '2.6.4',
         date: '2026-05-06',
         showOnUpdate: true,
