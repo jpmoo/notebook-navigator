@@ -1969,13 +1969,16 @@ body {
 .nn-desktop .nn-navitem:not([data-search-match]):hover::after {
     content: '';
     position: absolute;
-    top: 0.5px;
-    /* Match row overlay overdraw while avoiding overlap with the previous row */
+    top: 0px;
+    /* Match row overlay overdraw while avoiding gaps at zoomed scales */
     bottom: -0.5px;
     inset-inline-start: 0;
     inset-inline-end: 0;
     background-color: var(--nn-theme-navitem-hover-bg);
-    border-radius: min(14px, var(--nn-theme-navitem-border-radius));
+    border-top-left-radius: var(--nn-navitem-top-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));
+    border-top-right-radius: var(--nn-navitem-top-right-radius, min(14px, var(--nn-theme-navitem-border-radius)));
+    border-bottom-left-radius: var(--nn-navitem-bottom-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));
+    border-bottom-right-radius: var(--nn-navitem-bottom-right-radius, min(14px, var(--nn-theme-navitem-border-radius)));
     box-shadow: inset 0 0 0 var(--nn-theme-navitem-border-width) var(--nn-theme-navitem-hover-border-color);
     z-index: 1;
     pointer-events: none;
@@ -4604,11 +4607,6 @@ body {
     box-shadow: inset 0 0 0 var(--nn-theme-navitem-border-width) var(--nn-selected-navitem-border-color);
     z-index: 1;
     pointer-events: none;
-}
-
-.nn-split-container:is([data-navigator-focused='false'], [data-focus-pane='files'], [data-focus-pane='search'])
-    .nn-navitem.nn-selected::after {
-    top: 0.5px;
 }
 
 .nn-navitem.nn-selected > .nn-navitem-content {
