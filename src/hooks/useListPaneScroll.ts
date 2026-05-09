@@ -539,6 +539,7 @@ export function useListPaneScroll({
 
             const titleRows = folderSettings.titleRows || 1;
             const visiblePillRowCount = (hasTagRow ? 1 : 0) + propertyRowCount;
+            const pinnedPreviewRows = item.isPinned ? 1 : folderSettings.previewRows;
             if (layoutState.isCompactMode) {
                 const textContentHeight = heights.titleLineHeight * titleRows + heights.tagRowHeight * visiblePillRowCount;
                 const padding = isMobile ? compactListMetrics.mobilePaddingTotal : compactListMetrics.desktopPaddingTotal;
@@ -548,7 +549,7 @@ export function useListPaneScroll({
             return calculateNormalListFileRowHeightEstimate({
                 heights,
                 titleRows,
-                previewRows: folderSettings.previewRows,
+                previewRows: pinnedPreviewRows,
                 layoutState,
                 showFeatureImageArea,
                 showExtensionBadgeThumbnail,

@@ -634,6 +634,7 @@ export const FileItem = React.memo(function FileItem({
         () => (searchMeta ? renderHighlightedText(effectivePreviewText, searchQuery, searchMeta) : effectivePreviewText),
         [effectivePreviewText, searchMeta, searchQuery]
     );
+    const pinnedPreviewRows = isPinned ? 1 : appearanceSettings.previewRows;
 
     // Determine if we should show the feature image area (either with an image or extension badge)
     const showFeatureImageArea = shouldShowFeatureImageArea({
@@ -708,6 +709,7 @@ export const FileItem = React.memo(function FileItem({
                 onReveal={settings.parentFolderClickRevealsFile ? revealFileInNavigation : undefined}
             />
         ) : null;
+    const shouldShowMetadataLine = shouldShowDateForItem || parentFolderMeta !== null;
 
     // Reset image hidden state when the feature image URL changes
     useEffect(() => {
@@ -1172,10 +1174,7 @@ export const FileItem = React.memo(function FileItem({
 
                                 {/* Multi-row preview clamps to the configured row count. */}
                                 {shouldShowMultilinePreview && (
-                                    <div
-                                        className="nn-file-preview"
-                                        style={{ '--preview-rows': appearanceSettings.previewRows } as React.CSSProperties}
-                                    >
+                                    <div className="nn-file-preview" style={{ '--preview-rows': pinnedPreviewRows } as React.CSSProperties}>
                                         {highlightedPreview}
                                     </div>
                                 )}
@@ -1184,10 +1183,12 @@ export const FileItem = React.memo(function FileItem({
                                 {pillRows}
 
                                 {/* Date + Parent folder share the metadata line */}
-                                <div className="nn-file-second-line">
-                                    {shouldShowDateForItem && <div className="nn-file-date">{displayDate}</div>}
-                                    {renderParentFolder()}
-                                </div>
+                                {shouldShowMetadataLine && (
+                                    <div className="nn-file-second-line">
+                                        {shouldShowDateForItem && <div className="nn-file-date">{displayDate}</div>}
+                                        {renderParentFolder()}
+                                    </div>
+                                )}
                             </div>
                             {/* ========== FEATURE IMAGE AREA ========== */}
                             {/* Shows either actual image or extension badge for non-markdown files */}

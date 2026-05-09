@@ -262,6 +262,7 @@ export interface FileItemLayoutState {
     shouldShowMultilinePreview: boolean;
     shouldReplaceEmptyPreviewWithPills: boolean;
     shouldShowDateForItem: boolean;
+    isPinnedImageRow: boolean;
 }
 
 export function getFileItemLayoutState({
@@ -284,16 +285,18 @@ export function getFileItemLayoutState({
     hasVisiblePillRows: boolean;
 }): FileItemLayoutState {
     const isCompactMode = isListPaneCompactMode({ showDate, showPreview, showImage });
+    const hasImageTextArea = showFeatureImageArea && !showExtensionBadgeThumbnail;
+    const isPinnedImageRow = isPinned && hasImageTextArea;
     const shouldReplaceEmptyPreviewWithPills = !hasPreviewContent && hasVisiblePillRows;
     const shouldShowDateForItem = showDate && !isPinned;
-    const shouldShowMultilinePreview =
-        showPreview && !shouldReplaceEmptyPreviewWithPills && (hasPreviewContent || (showFeatureImageArea && !showExtensionBadgeThumbnail));
+    const shouldShowMultilinePreview = showPreview && !shouldReplaceEmptyPreviewWithPills && (hasPreviewContent || hasImageTextArea);
 
     return {
         isCompactMode,
         shouldShowMultilinePreview,
         shouldReplaceEmptyPreviewWithPills,
-        shouldShowDateForItem
+        shouldShowDateForItem,
+        isPinnedImageRow
     };
 }
 
@@ -324,20 +327,18 @@ export function calculateNormalListFileRowHeightEstimate({
     const metadataLineHeight = layoutState.shouldShowDateForItem || showParentFolderLine ? heights.singleTextLineHeight : 0;
     const singleTextLineCount = metadataLineHeight > 0 ? 1 : 0;
     const contentLineCount = singleTextLineCount + pillRowCount;
-    const reservesFeatureImageTextBucket = showFeatureImageArea && !showExtensionBadgeThumbnail;
-    const replacementPreviewSlotHeight =
-        layoutState.shouldReplaceEmptyPreviewWithPills && reservesFeatureImageTextBucket
-            ? heights.multilineTextLineHeight * previewRows
-            : 0;
-    const canUseBaseBucket = !hasPreviewSlot && !reservesFeatureImageTextBucket;
+    const hasImageTextArea = showFeatureImageArea && !showExtensionBadgeThumbnail;
+    const fillsPreviewSlotWithPills = layoutState.shouldReplaceEmptyPreviewWithPills && hasImageTextArea;
+    const replacementPreviewSlotHeight = fillsPreviewSlotWithPills ? heights.multilineTextLineHeight * previewRows : 0;
+    const canUseBaseHeight = !hasPreviewSlot && !hasImageTextArea;
     const applyFeatureImageFloor = (contentHeight: number): number =>
         showFeatureImageArea ? Math.max(contentHeight, heights.featureImageMinHeight) : contentHeight;
 
-    if (canUseBaseBucket && contentLineCount === 0) {
+    if (canUseBaseHeight && contentLineCount === 0) {
         return heights.basePadding + applyFeatureImageFloor(titleContentHeight);
     }
 
-    if (canUseBaseBucket && contentLineCount <= 1) {
+    if (canUseBaseHeight && contentLineCount <= 1) {
         const contentLineHeight = Math.max(
             singleTextLineCount > 0 ? heights.singleTextLineHeight : 0,
             hasPillRows ? heights.tagRowHeight : 0
@@ -347,14 +348,15 @@ export function calculateNormalListFileRowHeightEstimate({
     }
 
     const reservedPreviewSlotHeight = Math.max(previewSlotHeight, replacementPreviewSlotHeight);
-    const reservedMetadataLineHeight = reservesFeatureImageTextBucket ? heights.singleTextLineHeight : metadataLineHeight;
-    const richBucketHeight = titleContentHeight + reservedPreviewSlotHeight + reservedMetadataLineHeight;
+    const reserveImageMetadataLine = hasImageTextArea && !layoutState.isPinnedImageRow;
+    const reservedMetadataLineHeight = reserveImageMetadataLine ? heights.singleTextLineHeight : metadataLineHeight;
+    const richContentHeight = titleContentHeight + reservedPreviewSlotHeight + reservedMetadataLineHeight;
     const pillRowsHeight = heights.tagRowHeight * pillRowCount;
     const pillRowsExtraHeight = layoutState.shouldReplaceEmptyPreviewWithPills
         ? Math.max(0, pillRowsHeight - replacementPreviewSlotHeight)
         : pillRowsHeight;
 
-    return heights.basePadding + applyFeatureImageFloor(richBucketHeight + pillRowsExtraHeight);
+    return heights.basePadding + applyFeatureImageFloor(richContentHeight + pillRowsExtraHeight);
 }
 
 export function shouldShowFileItemParentFolderLine({

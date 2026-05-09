@@ -338,6 +338,76 @@ describe('listPaneMeasurements layout helpers', () => {
         );
     });
 
+    it('uses one preview row for pinned items', () => {
+        const layoutState = getFileItemLayoutState({
+            showDate: true,
+            showPreview: true,
+            showImage: false,
+            isPinned: true,
+            hasPreviewContent: true,
+            showFeatureImageArea: false,
+            hasVisiblePillRows: false
+        });
+        const pinnedPreviewRows = 1;
+
+        expect(layoutState.shouldShowMultilinePreview).toBe(true);
+        expect(layoutState.shouldShowDateForItem).toBe(false);
+        expect(
+            calculateNormalListFileRowHeightEstimate({
+                heights: desktopHeights,
+                titleRows: 1,
+                previewRows: pinnedPreviewRows,
+                layoutState,
+                showFeatureImageArea: false,
+                showExtensionBadgeThumbnail: false,
+                showParentFolderLine: false,
+                visiblePillRowCount: 0
+            })
+        ).toBe(desktopHeights.basePadding + desktopHeights.titleLineHeight + desktopHeights.multilineTextLineHeight);
+    });
+
+    it('does not show the pinned preview slot when preview text is disabled', () => {
+        const layoutState = getFileItemLayoutState({
+            showDate: true,
+            showPreview: false,
+            showImage: false,
+            isPinned: true,
+            hasPreviewContent: true,
+            showFeatureImageArea: false,
+            hasVisiblePillRows: false
+        });
+
+        expect(layoutState.shouldShowMultilinePreview).toBe(false);
+        expect(layoutState.shouldShowDateForItem).toBe(false);
+    });
+
+    it('uses the thumbnail minimum row height for pinned feature image rows', () => {
+        const layoutState = getFileItemLayoutState({
+            showDate: true,
+            showPreview: true,
+            showImage: true,
+            isPinned: true,
+            hasPreviewContent: true,
+            showFeatureImageArea: true,
+            hasVisiblePillRows: false
+        });
+        const pinnedPreviewRows = 1;
+
+        expect(layoutState.isPinnedImageRow).toBe(true);
+        expect(
+            calculateNormalListFileRowHeightEstimate({
+                heights: desktopHeights,
+                titleRows: 1,
+                previewRows: pinnedPreviewRows,
+                layoutState,
+                showFeatureImageArea: true,
+                showExtensionBadgeThumbnail: false,
+                showParentFolderLine: false,
+                visiblePillRowCount: 0
+            })
+        ).toBe(desktopHeights.basePadding + desktopHeights.featureImageMinHeight);
+    });
+
     it('keeps date and parent folder in one metadata row after preview rows', () => {
         const layoutState = getFileItemLayoutState({
             showDate: true,
