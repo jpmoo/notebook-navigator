@@ -80,6 +80,54 @@ function getFileItems(items: ReturnType<typeof buildListItems>): { path: string;
 }
 
 describe('buildListItems pinned display scope', () => {
+    it('splits subsequent group spacing into spacer rows around fixed-height headers', () => {
+        const app = createApp();
+        const todayFile = createTestTFile('notes/today.md');
+        const olderFile = createTestTFile('notes/older.md');
+        const db = createDb({
+            [todayFile.path]: { tags: null, properties: null },
+            [olderFile.path]: { tags: null, properties: null }
+        });
+        const timestamps = new Map([
+            [todayFile.path, new Date(2026, 2, 7).getTime()],
+            [olderFile.path, new Date(2026, 1, 20).getTime()]
+        ]);
+
+        const items = buildListItems({
+            app,
+            dayKey: '2026-03-07',
+            fileVisibility: FILE_VISIBILITY.DOCUMENTS,
+            files: [todayFile, olderFile],
+            getDB: () => db,
+            getFileTimestamps: file => {
+                const timestamp = timestamps.get(file.path) ?? 0;
+                return { created: timestamp, modified: timestamp };
+            },
+            hiddenFileState: new Map(),
+            hiddenTags: [],
+            listConfig: createListConfig({}),
+            searchMetaMap: new Map(),
+            selectedFolder: null,
+            selectedTag: null,
+            selectionType: ItemType.FOLDER,
+            showHiddenItems: false,
+            sortOption: 'modified-desc'
+        });
+
+        expect(items.map(item => item.type)).toEqual([
+            ListPaneItemType.TOP_SPACER,
+            ListPaneItemType.HEADER,
+            ListPaneItemType.FILE,
+            ListPaneItemType.HEADER_SPACER,
+            ListPaneItemType.HEADER,
+            ListPaneItemType.HEADER_SPACER,
+            ListPaneItemType.FILE,
+            ListPaneItemType.BOTTOM_SPACER
+        ]);
+        expect(items[3]).toMatchObject({ headerSpacerPosition: 'before' });
+        expect(items[5]).toMatchObject({ headerSpacerPosition: 'after' });
+    });
+
     it('keeps tag pins in the pinned section when folder pin scoping is enabled', () => {
         const app = createApp();
         const rootFile = createTestTFile('notes/root.md');

@@ -90,7 +90,8 @@ const RELEASE_NOTES: ReleaseNote[] = [
             '**List pane.** Added **Show full path** in List > Notes > Parent folder. Shows the full parent folder path instead of only the folder name.'
         ],
         improved: [
-            '**UI Polish**. Simplified list item rendering, cleaned up hover images, made many things in the UI slightly better.',
+            '**List pane.** Group headers now stay visible while scrolling.',
+            '**UI Polish**. Simplified list item rendering, cleaned up hover images, made many things in the UI slightly better.'
         ],
         fixed: ['Fixed the drag-and-drop ghost image that disappeared in 2.6.3.']
     },

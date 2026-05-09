@@ -45,7 +45,8 @@ export interface ListPaneMeasurements {
     tagRowHeight: number;
     featureImageMinHeight: number;
     firstHeader: number;
-    subsequentHeader: number;
+    headerSpacerBefore: number;
+    headerSpacerAfter: number;
     fileIconSize: number;
     topSpacer: number;
     bottomSpacer: number;
@@ -69,7 +70,8 @@ const DESKTOP_MEASUREMENTS: ListPaneMeasurements = Object.freeze({
     tagRowHeight: 26, // 22px row + 4px gap
     featureImageMinHeight: 42,
     firstHeader: 35,
-    subsequentHeader: 50,
+    headerSpacerBefore: 12,
+    headerSpacerAfter: 3,
     fileIconSize: 16,
     topSpacer: 8,
     bottomSpacer: 20
@@ -83,7 +85,8 @@ const MOBILE_MEASUREMENTS: ListPaneMeasurements = Object.freeze({
     tagRowHeight: 26, // 22px row + 4px gap
     featureImageMinHeight: 42,
     firstHeader: 43, // 35px + 8px mobile increment
-    subsequentHeader: 58, // 50px + 8px mobile increment
+    headerSpacerBefore: 12,
+    headerSpacerAfter: 3,
     fileIconSize: 20, // 16px + 4px mobile increment
     topSpacer: 8,
     bottomSpacer: 20

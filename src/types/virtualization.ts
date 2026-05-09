@@ -32,11 +32,12 @@ export interface VirtualItem<T> {
 
 export interface ListPaneItem {
     type: ListPaneItemType;
-    data: TFile | string; // File or header text
+    data: TFile | string; // File, header text, or spacer payload
     parentFolder?: string | null;
     // Folder path associated with a folder-group header.
     // Present only when grouping by folder in the list pane.
     headerFolderPath?: string | null;
+    headerSpacerPosition?: 'before' | 'after';
     key: string;
     // Pre-computed file index for stable onClick handlers
     fileIndex?: number;

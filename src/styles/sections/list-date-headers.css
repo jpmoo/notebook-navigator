@@ -6,10 +6,9 @@
 
 /* Date group headers for grouped files */
 .nn-date-group-header {
-    height: var(--nn-date-header-height-subsequent-mobile, var(--nn-date-header-height-subsequent));
+    height: var(--nn-date-header-height-mobile, var(--nn-date-header-height));
     box-sizing: border-box;
-    padding: var(--nn-date-header-padding-top-mobile, var(--nn-date-header-padding-top)) var(--nn-file-item-padding-horizontal)
-        var(--nn-date-header-padding-bottom-mobile, var(--nn-date-header-padding-bottom)) var(--nn-file-item-padding-horizontal);
+    padding: 0 var(--nn-file-item-padding-horizontal);
     font-size: var(--nn-file-small-size-mobile, var(--nn-file-small-size));
     font-weight: var(--nn-theme-list-group-header-font-weight);
     color: var(--nn-theme-list-group-header-color);
@@ -18,15 +17,40 @@
     overflow: hidden;
     text-overflow: ellipsis;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 6px;
 }
 
-/* First date header - no top margin or extra padding for first group */
-.nn-date-group-header.nn-first-header {
-    height: var(--nn-date-header-height-mobile, var(--nn-date-header-height));
-    padding: 0 var(--nn-file-item-padding-horizontal);
-    align-items: center;
+.nn-date-group-header-spacer {
+    height: var(--item-height);
+}
+
+.nn-list-sticky-header {
+    position: sticky;
+    top: 0;
+    /* Keep the sticky copy out of layout so it overlays the virtualized list rows. */
+    height: 0;
+    flex: 0 0 0;
+    overflow: visible;
+    z-index: 200;
+    pointer-events: none;
+}
+
+.nn-list-sticky-header .nn-date-group-header {
+    position: relative;
+    background-color: var(--nn-theme-list-bg) !important;
+    pointer-events: auto;
+}
+
+.nn-list-sticky-header .nn-date-group-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    inset-inline-start: calc(-1 * var(--nn-scroller-padding));
+    inset-inline-end: calc(-1 * var(--nn-scroller-padding));
+    background-color: var(--nn-theme-list-bg);
+    z-index: -1;
 }
 
 .nn-date-group-header-icon {

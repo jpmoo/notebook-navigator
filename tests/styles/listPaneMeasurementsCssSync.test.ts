@@ -74,7 +74,8 @@ describe('List pane measurements stay in sync with CSS', () => {
         expect(desktop.featureImageMinHeight).toBe(extractPxVariableValue(coreVars, 'nn-file-thumbnail-min-size'));
 
         expect(desktop.firstHeader).toBe(extractPxVariableValue(coreVars, 'nn-date-header-height'));
-        expect(desktop.subsequentHeader).toBe(extractPxVariableValue(coreVars, 'nn-date-header-height-subsequent'));
+        expect(desktop.headerSpacerBefore).toBe(extractPxVariableValue(coreVars, 'nn-date-header-spacer-before'));
+        expect(desktop.headerSpacerAfter).toBe(extractPxVariableValue(coreVars, 'nn-date-header-spacer-after'));
 
         expect(desktop.fileIconSize).toBe(extractPxVariableValue(coreVars, 'nn-file-icon-size'));
     });
@@ -101,15 +102,9 @@ describe('List pane measurements stay in sync with CSS', () => {
         expect(mobile.featureImageMinHeight).toBe(extractPxVariableValue(coreVars, 'nn-file-thumbnail-min-size'));
 
         const headerIncrement = extractCalcAddPx(mobileVars, 'nn-date-header-height-mobile', 'nn-date-header-height');
-        const subsequentHeaderIncrement = extractCalcAddPx(
-            mobileVars,
-            'nn-date-header-height-subsequent-mobile',
-            'nn-date-header-height-subsequent'
-        );
         expect(mobile.firstHeader).toBe(extractPxVariableValue(coreVars, 'nn-date-header-height') + headerIncrement);
-        expect(mobile.subsequentHeader).toBe(
-            extractPxVariableValue(coreVars, 'nn-date-header-height-subsequent') + subsequentHeaderIncrement
-        );
+        expect(mobile.headerSpacerBefore).toBe(extractPxVariableValue(coreVars, 'nn-date-header-spacer-before'));
+        expect(mobile.headerSpacerAfter).toBe(extractPxVariableValue(coreVars, 'nn-date-header-spacer-after'));
 
         const iconSize = extractPxVariableValue(coreVars, 'nn-file-icon-size');
         const iconSizeIncrement = extractCalcAddPx(mobileVars, 'nn-file-icon-size-mobile', 'nn-file-icon-size');

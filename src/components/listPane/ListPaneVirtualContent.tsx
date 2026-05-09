@@ -48,7 +48,27 @@ interface FolderGroupHeaderTarget {
     folderNote: TFile | null;
 }
 
+interface HeaderRenderModel {
+    index: number;
+    label: string;
+    isPinnedHeader: boolean;
+    folderGroupHeaderTarget: FolderGroupHeaderTarget | null;
+}
+
+interface HeaderRenderModels {
+    headerModels: HeaderRenderModel[];
+    headerModelByIndex: Map<number, HeaderRenderModel>;
+}
+
 type VirtualRowStyle = React.CSSProperties & Record<'--item-height', string>;
+
+interface ListPaneGroupHeaderProps {
+    header: HeaderRenderModel;
+    pinnedSectionIcon: string;
+    showPinnedIcon: boolean;
+    onFolderGroupHeaderClick: (event: React.MouseEvent<HTMLSpanElement>, target: FolderGroupHeaderTarget) => void;
+    onFolderGroupHeaderMouseDown: (event: React.MouseEvent<HTMLSpanElement>, target: FolderGroupHeaderTarget) => void;
+}
 
 interface ListPaneVirtualContentProps {
     listItems: ListPaneItem[];
@@ -107,6 +127,64 @@ function getDateGroupLabel(listItems: ListPaneItem[], index: number): string | n
     }
 
     return null;
+}
+
+function findActiveHeaderModel(headers: HeaderRenderModel[], firstVisibleIndex: number | null): HeaderRenderModel | null {
+    if (firstVisibleIndex === null || headers.length === 0) {
+        return null;
+    }
+
+    let low = 0;
+    let high = headers.length - 1;
+    let activeHeader: HeaderRenderModel | null = null;
+
+    while (low <= high) {
+        const middle = Math.floor((low + high) / 2);
+        const header = headers[middle];
+        if (header.index <= firstVisibleIndex) {
+            activeHeader = header;
+            low = middle + 1;
+            continue;
+        }
+
+        high = middle - 1;
+    }
+
+    return activeHeader;
+}
+
+function ListPaneGroupHeader({
+    header,
+    pinnedSectionIcon,
+    showPinnedIcon,
+    onFolderGroupHeaderClick,
+    onFolderGroupHeaderMouseDown
+}: ListPaneGroupHeaderProps) {
+    const folderGroupHeaderTarget = header.folderGroupHeaderTarget;
+    const isClickableFolderGroupHeader = Boolean(folderGroupHeaderTarget) && !header.isPinnedHeader;
+
+    return (
+        <div className={`nn-date-group-header${header.isPinnedHeader ? ' nn-pinned-section-header' : ''}`}>
+            {header.isPinnedHeader ? (
+                <>
+                    {showPinnedIcon ? (
+                        <ServiceIcon iconId={pinnedSectionIcon} className="nn-date-group-header-icon" aria-hidden={true} />
+                    ) : null}
+                    <span className="nn-date-group-header-text">{header.label}</span>
+                </>
+            ) : (
+                <span
+                    className={`nn-date-group-header-text ${isClickableFolderGroupHeader ? 'nn-date-group-header-text--folder-note' : ''}`}
+                    onClick={folderGroupHeaderTarget ? event => onFolderGroupHeaderClick(event, folderGroupHeaderTarget) : undefined}
+                    onMouseDown={
+                        folderGroupHeaderTarget ? event => onFolderGroupHeaderMouseDown(event, folderGroupHeaderTarget) : undefined
+                    }
+                >
+                    {header.label}
+                </span>
+            )}
+        </div>
+    );
 }
 
 function getHoveredFilePathFromTarget(target: EventTarget | null): string | null {
@@ -220,6 +298,33 @@ export function ListPaneVirtualContent({
         settings.folderNoteNamePattern
     ]);
 
+    const { headerModels, headerModelByIndex } = useMemo<HeaderRenderModels>(() => {
+        const models: HeaderRenderModel[] = [];
+        const modelsByIndex = new Map<number, HeaderRenderModel>();
+
+        // Build one header model set for both virtual rows and the sticky overlay so click behavior stays identical.
+        listItems.forEach((item, index) => {
+            if (item.type !== ListPaneItemType.HEADER || typeof item.data !== 'string') {
+                return;
+            }
+
+            const headerFolderPath = item.headerFolderPath ?? null;
+            const model: HeaderRenderModel = {
+                index,
+                label: item.data,
+                isPinnedHeader: item.key === PINNED_SECTION_HEADER_KEY,
+                folderGroupHeaderTarget: headerFolderPath !== null ? (folderGroupHeaderTargets.get(headerFolderPath) ?? null) : null
+            };
+            models.push(model);
+            modelsByIndex.set(index, model);
+        });
+
+        return {
+            headerModels: models,
+            headerModelByIndex: modelsByIndex
+        };
+    }, [folderGroupHeaderTargets, listItems]);
+
     const handleFolderGroupHeaderClick = useCallback(
         (event: React.MouseEvent<HTMLSpanElement>, target: FolderGroupHeaderTarget) => {
             event.stopPropagation();
@@ -293,6 +398,12 @@ export function ListPaneVirtualContent({
         onHoveredFilePathChange(null, null);
     }, [onHoveredFilePathChange]);
 
+    const virtualItems = rowVirtualizer.getVirtualItems();
+    const scrollOffset = rowVirtualizer.scrollOffset ?? 0;
+    const stickyOffset = Math.max(scrollOffset + 0.5, topSpacerHeight + 0.5);
+    const firstVisibleItem = listItems.length > 0 ? rowVirtualizer.getVirtualItemForOffset(Math.max(0, stickyOffset)) : undefined;
+    const stickyHeader = findActiveHeaderModel(headerModels, firstVisibleItem?.index ?? null);
+
     return (
         <div
             ref={scrollContainerRefCallback}
@@ -307,6 +418,17 @@ export function ListPaneVirtualContent({
             onMouseMove={handleListMouseMove}
             onMouseLeave={handleListMouseLeave}
         >
+            {stickyHeader ? (
+                <div className="nn-list-sticky-header">
+                    <ListPaneGroupHeader
+                        header={stickyHeader}
+                        pinnedSectionIcon={pinnedSectionIcon}
+                        showPinnedIcon={settings.showPinnedIcon}
+                        onFolderGroupHeaderClick={handleFolderGroupHeaderClick}
+                        onFolderGroupHeaderMouseDown={handleFolderGroupHeaderMouseDown}
+                    />
+                </div>
+            ) : null}
             <div className="nn-list-pane-content">
                 {isEmptySelection ? (
                     <div className="nn-empty-state">
@@ -323,7 +445,7 @@ export function ListPaneVirtualContent({
                             height: `${rowVirtualizer.getTotalSize()}px`
                         }}
                     >
-                        {rowVirtualizer.getVirtualItems().map(virtualItem => {
+                        {virtualItems.map(virtualItem => {
                             const item = getItemAt(listItems, virtualItem.index);
                             if (!item) {
                                 return null;
@@ -344,6 +466,7 @@ export function ListPaneVirtualContent({
                                 (virtualItem.index === listItems.length - 1 ||
                                     (nextItem &&
                                         (nextItem.type === ListPaneItemType.HEADER ||
+                                            nextItem.type === ListPaneItemType.HEADER_SPACER ||
                                             nextItem.type === ListPaneItemType.TOP_SPACER ||
                                             nextItem.type === ListPaneItemType.BOTTOM_SPACER)));
 
@@ -358,13 +481,6 @@ export function ListPaneVirtualContent({
                                 nextItem.data instanceof TFile &&
                                 isFileSelected(nextItem.data);
 
-                            const isFirstHeader = item.type === ListPaneItemType.HEADER && virtualItem.index === 1;
-                            const isPinnedHeader = item.type === ListPaneItemType.HEADER && item.key === PINNED_SECTION_HEADER_KEY;
-                            const headerLabel = item.type === ListPaneItemType.HEADER && typeof item.data === 'string' ? item.data : '';
-                            const headerFolderPath = item.type === ListPaneItemType.HEADER ? (item.headerFolderPath ?? null) : null;
-                            const folderGroupHeaderTarget =
-                                headerFolderPath !== null ? (folderGroupHeaderTargets.get(headerFolderPath) ?? null) : null;
-                            const isClickableFolderGroupHeader = Boolean(folderGroupHeaderTarget) && !isPinnedHeader;
                             const dateGroup = item.type === ListPaneItemType.FILE ? getDateGroupLabel(listItems, virtualItem.index) : null;
                             const shortcutKey =
                                 item.type === ListPaneItemType.FILE && item.data instanceof TFile
@@ -379,6 +495,7 @@ export function ListPaneVirtualContent({
                                         nextItem.data instanceof TFile &&
                                         isFileSelected(nextItem.data)));
 
+                            const headerModel = headerModelByIndex.get(virtualItem.index) ?? null;
                             const virtualItemStyle: VirtualRowStyle = {
                                 top: Math.max(0, virtualItem.start),
                                 '--item-height': `${virtualItem.size}px`
@@ -393,43 +510,16 @@ export function ListPaneVirtualContent({
                                     style={virtualItemStyle}
                                     data-index={virtualItem.index}
                                 >
-                                    {item.type === ListPaneItemType.HEADER ? (
-                                        <div
-                                            className={`nn-date-group-header ${isFirstHeader ? 'nn-first-header' : ''} ${
-                                                isPinnedHeader ? 'nn-pinned-section-header' : ''
-                                            }`}
-                                        >
-                                            {isPinnedHeader ? (
-                                                <>
-                                                    {settings.showPinnedIcon ? (
-                                                        <ServiceIcon
-                                                            iconId={pinnedSectionIcon}
-                                                            className="nn-date-group-header-icon"
-                                                            aria-hidden={true}
-                                                        />
-                                                    ) : null}
-                                                    <span className="nn-date-group-header-text">{headerLabel}</span>
-                                                </>
-                                            ) : (
-                                                <span
-                                                    className={`nn-date-group-header-text ${
-                                                        isClickableFolderGroupHeader ? 'nn-date-group-header-text--folder-note' : ''
-                                                    }`}
-                                                    onClick={
-                                                        folderGroupHeaderTarget
-                                                            ? event => handleFolderGroupHeaderClick(event, folderGroupHeaderTarget)
-                                                            : undefined
-                                                    }
-                                                    onMouseDown={
-                                                        folderGroupHeaderTarget
-                                                            ? event => handleFolderGroupHeaderMouseDown(event, folderGroupHeaderTarget)
-                                                            : undefined
-                                                    }
-                                                >
-                                                    {headerLabel}
-                                                </span>
-                                            )}
-                                        </div>
+                                    {headerModel ? (
+                                        <ListPaneGroupHeader
+                                            header={headerModel}
+                                            pinnedSectionIcon={pinnedSectionIcon}
+                                            showPinnedIcon={settings.showPinnedIcon}
+                                            onFolderGroupHeaderClick={handleFolderGroupHeaderClick}
+                                            onFolderGroupHeaderMouseDown={handleFolderGroupHeaderMouseDown}
+                                        />
+                                    ) : item.type === ListPaneItemType.HEADER_SPACER ? (
+                                        <div className="nn-date-group-header-spacer" />
                                     ) : item.type === ListPaneItemType.TOP_SPACER ? (
                                         <div className="nn-list-top-spacer" style={{ height: `${topSpacerHeight}px` }} />
                                     ) : item.type === ListPaneItemType.BOTTOM_SPACER ? (

@@ -85,6 +85,7 @@ export const ItemType = {
  */
 export const ListPaneItemType = {
     HEADER: 'header',
+    HEADER_SPACER: 'header-spacer',
     FILE: 'file',
     TOP_SPACER: 'top-spacer',
     BOTTOM_SPACER: 'bottom-spacer'

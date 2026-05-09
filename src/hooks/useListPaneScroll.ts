@@ -439,13 +439,10 @@ export function useListPaneScroll({
             const heights = listMeasurements;
 
             if (item.type === ListPaneItemType.HEADER) {
-                // Date group headers have fixed heights from CSS
-                // Index 1 because TOP_SPACER is at index 0
-                const isFirstHeader = index === 1;
-                if (isFirstHeader) {
-                    return heights.firstHeader;
-                }
-                return heights.subsequentHeader;
+                return heights.firstHeader;
+            }
+            if (item.type === ListPaneItemType.HEADER_SPACER) {
+                return item.headerSpacerPosition === 'before' ? heights.headerSpacerBefore : heights.headerSpacerAfter;
             }
 
             if (item.type === ListPaneItemType.TOP_SPACER) {
@@ -704,17 +701,27 @@ export function useListPaneScroll({
                 return -1;
             }
 
-            // Check if there's a header immediately before this file
-            const hasHeaderBefore = fileIndex > 0 && listItems[fileIndex - 1]?.type === ListPaneItemType.HEADER;
-            if (!hasHeaderBefore) {
+            let headerIndexBefore = -1;
+            for (let listIndex = fileIndex - 1; listIndex >= 0; listIndex -= 1) {
+                const item = listItems[listIndex];
+                if (item?.type === ListPaneItemType.HEADER_SPACER) {
+                    continue;
+                }
+                if (item?.type === ListPaneItemType.HEADER) {
+                    headerIndexBefore = listIndex;
+                }
+                break;
+            }
+
+            if (headerIndexBefore === -1) {
                 return fileIndex;
             }
 
             // Special case: scroll to header for the very first file to show context
-            // Index 0 is TOP_SPACER, Index 1 is first header (if exists), Index 2 is first file
-            const isFirstFile = fileIndex <= 2;
+            // Index 0 is TOP_SPACER, Index 1 is first header.
+            const isFirstFile = headerIndexBefore === 1;
             if (isFirstFile) {
-                return fileIndex - 1; // Show the header above
+                return headerIndexBefore;
             }
 
             // For all other files with headers, scroll directly to the file

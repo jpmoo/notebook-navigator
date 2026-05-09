@@ -83,15 +83,11 @@ body {
     --nn-compact-font-size: 13px; /* Compact mode desktop font size */
     --nn-compact-font-size-mobile: 15px; /* Compact mode mobile font size */
 
-    /* Date header heights and padding */
-    --nn-date-header-height: 35px; /* First header */
-    --nn-date-header-height-subsequent: 50px; /* Headers with margin */
-    --nn-date-header-padding-top: 24px; /* Top padding for subsequent headers */
-    --nn-date-header-padding-bottom: 6px; /* Bottom padding for subsequent headers */
+    /* Date header heights and spacing */
+    --nn-date-header-height: 35px; /* Header row and sticky header */
+    --nn-date-header-spacer-before: 12px; /* Spacer before subsequent headers */
+    --nn-date-header-spacer-after: 3px; /* Spacer after subsequent headers */
     --nn-date-header-height-mobile: var(--nn-date-header-height);
-    --nn-date-header-height-subsequent-mobile: var(--nn-date-header-height-subsequent);
-    --nn-date-header-padding-top-mobile: var(--nn-date-header-padding-top);
-    --nn-date-header-padding-bottom-mobile: var(--nn-date-header-padding-bottom);
 
     /* Navigation item heights - fixed pixel values to prevent fractional rendering */
     --nn-nav-line-height: 18px; /* Fixed line height for folder/tag names */

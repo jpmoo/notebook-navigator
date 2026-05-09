@@ -167,10 +167,25 @@ export function useListPaneKeyboard({
                 openFileInWorkspace(targetFile);
             }
 
-            // Scroll to target position
-            virtualizer.scrollToIndex(targetIndex, { align: 'auto' });
+            if (direction === 'home') {
+                virtualizer.scrollToIndex(0, { align: 'start' });
+                return;
+            }
+
+            const targetListIndex = pathToIndex.get(targetFile.path);
+            if (targetListIndex !== undefined) {
+                virtualizer.scrollToIndex(targetListIndex, { align: 'auto' });
+            }
         },
-        [orderedFiles, selectionState.selectedFiles, selectionDispatch, virtualizer, openFileInWorkspace, settings.enterToOpenFiles]
+        [
+            orderedFiles,
+            selectionState.selectedFiles,
+            selectionDispatch,
+            settings.enterToOpenFiles,
+            openFileInWorkspace,
+            virtualizer,
+            pathToIndex
+        ]
     );
 
     /**
@@ -481,8 +496,9 @@ export function useListPaneKeyboard({
                     selectItemAtIndex(item, { debounceOpen: shouldDebounceOpen });
                     if (shouldScrollToTop) {
                         virtualizer.scrollToIndex(0, { align: 'start' });
+                    } else {
+                        helpers.scrollToIndex(targetIndex);
                     }
-                    helpers.scrollToIndex(targetIndex);
                 }
             } else if (shouldScrollToTop) {
                 virtualizer.scrollToIndex(0, { align: 'start' });
