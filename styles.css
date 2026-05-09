@@ -1803,6 +1803,7 @@ body {
 
 /* Navigation item - container for each folder/tag in the tree */
 .nn-navitem {
+    --nn-navitem-background-bottom-overdraw: 0px;
     -webkit-user-select: none;
     user-select: none;
     background: transparent;
@@ -1841,8 +1842,7 @@ body {
     top: 0px;
     inset-inline-start: 0;
     inset-inline-end: 0;
-    /* Extend slightly beyond bottom item bounds (height rounding issue) to prevent hairline gaps when zoomed */
-    bottom: -0.5px;
+    bottom: var(--nn-navitem-background-bottom-overdraw);
     background-color: var(--nn-navitem-custom-bg-color);
     border-top-left-radius: var(--nn-navitem-top-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));
     border-top-right-radius: var(--nn-navitem-top-right-radius, min(14px, var(--nn-theme-navitem-border-radius)));
@@ -1858,29 +1858,45 @@ body {
     z-index: 2;
 }
 
-/* Zero shared corners when consecutive background overlays touch */
-.nn-navitem:is(.nn-has-custom-background, .nn-has-search-match) + .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match) {
+/* Overdraw and zero shared corners only between adjacent filled backgrounds */
+.nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected):has(
+        + .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
+    ) {
+    --nn-navitem-background-bottom-overdraw: -0.5px;
+}
+
+.nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
+    + .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected) {
     --nn-navitem-top-left-radius: 0;
     --nn-navitem-top-right-radius: 0;
 }
 
-.nn-navitem:is(.nn-has-custom-background, .nn-has-search-match):has(+ .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match)) {
+.nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected):has(
+        + .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
+    ) {
     --nn-navitem-bottom-left-radius: 0;
     --nn-navitem-bottom-right-radius: 0;
 }
 
 /* Apply the same corner trimming within the virtualized row wrapper */
-.nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match))
-    + .nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match))
-    > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match) {
+.nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)):has(
+        + .nn-virtual-nav-item > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
+    )
+    > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected) {
+    --nn-navitem-background-bottom-overdraw: -0.5px;
+}
+
+.nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected))
+    + .nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected))
+    > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected) {
     --nn-navitem-top-left-radius: 0;
     --nn-navitem-top-right-radius: 0;
 }
 
-.nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match)):has(
-        + .nn-virtual-nav-item > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match)
+.nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)):has(
+        + .nn-virtual-nav-item > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
     )
-    > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match) {
+    > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected) {
     --nn-navitem-bottom-left-radius: 0;
     --nn-navitem-bottom-right-radius: 0;
 }
@@ -1939,8 +1955,7 @@ body {
     content: '';
     position: absolute;
     top: 0px;
-    /* Extend slightly beyond bottom item bounds (height rounding issue) to prevent hairline gaps when zoomed */
-    bottom: -0.5px;
+    bottom: var(--nn-navitem-background-bottom-overdraw);
     inset-inline-end: 0;
     inset-inline-start: calc(var(--level, 0) * var(--nn-setting-nav-indent) * -1);
     border-top-left-radius: var(--nn-navitem-top-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));
@@ -1970,8 +1985,7 @@ body {
     content: '';
     position: absolute;
     top: 0px;
-    /* Match row overlay overdraw while avoiding gaps at zoomed scales */
-    bottom: -0.5px;
+    bottom: var(--nn-navitem-background-bottom-overdraw);
     inset-inline-start: 0;
     inset-inline-end: 0;
     background-color: var(--nn-theme-navitem-hover-bg);
@@ -4596,8 +4610,7 @@ body {
     top: 0px;
     inset-inline-start: 0;
     inset-inline-end: 0;
-    /* Extend slightly beyond bottom item bounds (height rounding issue) to prevent hairline gaps when zoomed */
-    bottom: -0.5px;
+    bottom: var(--nn-navitem-background-bottom-overdraw);
     /* Pre-composited solid color prevents hairlines by blending alpha with pane background */
     background-color: var(--nn-selected-navitem-bg-color);
     border-top-left-radius: var(--nn-navitem-top-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));
