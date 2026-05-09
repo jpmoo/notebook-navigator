@@ -58,6 +58,7 @@ import type { FileContentChange } from '../storage/IndexedDBStorage';
 import type { SelectionDispatch, SelectionState } from '../context/SelectionContext';
 import { calculateCompactListMetrics } from '../utils/listPaneMetrics';
 import {
+    calculateNormalListFileRowHeightEstimate,
     getFileItemLayoutState,
     getSelectedPropertyValuePillToHide,
     getSelectedTagPillToHide,
@@ -524,62 +525,30 @@ export function useListPaneScroll({
                 showDate: folderSettings.showDate,
                 showPreview: folderSettings.showPreview,
                 showImage: folderSettings.showImage,
-                previewRows: folderSettings.previewRows,
                 isPinned: Boolean(item.isPinned),
                 hasPreviewContent,
                 showFeatureImageArea,
                 hasVisiblePillRows
             });
 
-            // Start with base padding.
-            let textContentHeight = 0;
             const titleRows = folderSettings.titleRows || 1;
+            const visiblePillRowCount = (hasTagRow ? 1 : 0) + propertyRowCount;
             if (layoutState.isCompactMode) {
-                textContentHeight = heights.titleLineHeight * titleRows;
-            } else {
-                textContentHeight += heights.titleLineHeight * titleRows;
-
-                if (layoutState.shouldUseSingleLineForDateAndPreview) {
-                    if (layoutState.shouldShowSingleLineSecondLine) {
-                        textContentHeight += heights.singleTextLineHeight;
-                    }
-
-                    if (showParentFolderLine) {
-                        textContentHeight += heights.singleTextLineHeight;
-                    }
-                } else {
-                    if (layoutState.shouldShowMultilinePreview) {
-                        textContentHeight += heights.multilineTextLineHeight * folderSettings.previewRows;
-                    }
-
-                    if (layoutState.shouldShowDateForItem || showParentFolderLine) {
-                        textContentHeight += heights.singleTextLineHeight;
-                    }
-                }
+                const textContentHeight = heights.titleLineHeight * titleRows + heights.tagRowHeight * visiblePillRowCount;
+                const padding = isMobile ? compactListMetrics.mobilePaddingTotal : compactListMetrics.desktopPaddingTotal;
+                return padding + textContentHeight;
             }
 
-            // Add space for tags if file has tags and they are visible in this mode.
-            if (hasTagRow) {
-                textContentHeight += heights.tagRowHeight;
-            }
-
-            if (propertyRowCount > 0) {
-                // `tagRowHeight` mirrors the combined CSS row height + margin-top gap for pill rows.
-                textContentHeight += heights.tagRowHeight * propertyRowCount;
-            }
-
-            // Keep the estimated text area at least as tall as the shared thumbnail floor in normal mode.
-            if (!isCompactMode && textContentHeight < heights.featureImageHeight) {
-                textContentHeight = heights.featureImageHeight;
-            }
-
-            // Use reduced padding for compact mode (with mobile-specific padding)
-            const padding = isCompactMode
-                ? isMobile
-                    ? compactListMetrics.mobilePaddingTotal
-                    : compactListMetrics.desktopPaddingTotal
-                : heights.basePadding;
-            return padding + textContentHeight;
+            return calculateNormalListFileRowHeightEstimate({
+                heights,
+                titleRows,
+                previewRows: folderSettings.previewRows,
+                layoutState,
+                showFeatureImageArea,
+                isBaseOrCanvasFeatureBadge: file?.extension === 'base' || file?.extension === 'canvas',
+                showParentFolderLine,
+                visiblePillRowCount
+            });
         },
         overscan: OVERSCAN,
         scrollPaddingEnd: effectiveScrollPaddingEnd,

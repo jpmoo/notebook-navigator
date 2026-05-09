@@ -642,17 +642,10 @@ export const FileItem = React.memo(function FileItem({
         hasFeatureImageUrl: Boolean(featureImageUrl)
     });
 
-    const {
-        shouldUseSingleLineForDateAndPreview,
-        shouldShowMultilinePreview,
-        shouldReplaceEmptyPreviewWithPills,
-        shouldShowDateForItem,
-        shouldShowSingleLineSecondLine
-    } = getFileItemLayoutState({
+    const { shouldShowMultilinePreview, shouldShowDateForItem } = getFileItemLayoutState({
         showDate: appearanceSettings.showDate,
         showPreview: appearanceSettings.showPreview,
         showImage: appearanceSettings.showImage,
-        previewRows: appearanceSettings.previewRows,
         isPinned,
         hasPreviewContent,
         showFeatureImageArea,
@@ -1167,55 +1160,24 @@ export const FileItem = React.memo(function FileItem({
                             <div className="nn-file-text-content">
                                 {fileTitleElement}
 
-                                {/* ========== SINGLE LINE MODE ========== */}
-                                {/* Conditions: pinned note OR previewRows < 2 */}
-                                {/* Layout: Date+Preview share one line, pills below, parent folder last */}
-                                {shouldUseSingleLineForDateAndPreview && (
-                                    <>
-                                        {/* Date + Preview on same line */}
-                                        {shouldShowSingleLineSecondLine ? (
-                                            <div className="nn-file-second-line">
-                                                {shouldShowDateForItem && <div className="nn-file-date">{displayDate}</div>}
-                                                {appearanceSettings.showPreview && !shouldReplaceEmptyPreviewWithPills && (
-                                                    <div className="nn-file-preview" style={{ '--preview-rows': 1 } as React.CSSProperties}>
-                                                        {highlightedPreview}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ) : null}
-
-                                        {/* Pills */}
-                                        {pillRows}
-
-                                        {/* Parent folder - gets its own line */}
-                                        {renderParentFolder()}
-                                    </>
+                                {/* Multi-row preview clamps to the configured row count. */}
+                                {shouldShowMultilinePreview && (
+                                    <div
+                                        className="nn-file-preview"
+                                        style={{ '--preview-rows': appearanceSettings.previewRows } as React.CSSProperties}
+                                    >
+                                        {highlightedPreview}
+                                    </div>
                                 )}
 
-                                {/* ========== MULTI-LINE MODE ========== */}
-                                {/* Conditions: unpinned note AND previewRows >= 2 */}
-                                {!shouldUseSingleLineForDateAndPreview && (
-                                    <>
-                                        {/* Multi-row preview clamps to the configured row count. */}
-                                        {shouldShowMultilinePreview && (
-                                            <div
-                                                className="nn-file-preview"
-                                                style={{ '--preview-rows': appearanceSettings.previewRows } as React.CSSProperties}
-                                            >
-                                                {highlightedPreview}
-                                            </div>
-                                        )}
+                                {/* Pills */}
+                                {pillRows}
 
-                                        {/* Pills */}
-                                        {pillRows}
-
-                                        {/* Date + Parent folder share the metadata line */}
-                                        <div className="nn-file-second-line">
-                                            {shouldShowDateForItem && <div className="nn-file-date">{displayDate}</div>}
-                                            {renderParentFolder()}
-                                        </div>
-                                    </>
-                                )}
+                                {/* Date + Parent folder share the metadata line */}
+                                <div className="nn-file-second-line">
+                                    {shouldShowDateForItem && <div className="nn-file-date">{displayDate}</div>}
+                                    {renderParentFolder()}
+                                </div>
                             </div>
                             {/* ========== FEATURE IMAGE AREA ========== */}
                             {/* Shows either actual image or extension badge for non-markdown files */}
