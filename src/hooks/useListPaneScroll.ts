@@ -66,6 +66,7 @@ import {
     getListPaneMeasurements,
     getPropertyRowCount,
     isListPaneCompactMode,
+    shouldShowExtensionBadgeThumbnail,
     shouldShowFeatureImageArea,
     shouldShowFileItemParentFolderLine
 } from '../utils/listPaneMeasurements';
@@ -479,6 +480,10 @@ export function useListPaneScroll({
                 file,
                 featureImageStatus
             });
+            const showExtensionBadgeThumbnail = shouldShowExtensionBadgeThumbnail({
+                showFeatureImageArea,
+                file
+            });
 
             // Visibility estimate for the single-row tags area.
             const shouldShowFileTags = settings.showTags && settings.showFileTags && (!isCompactMode || settings.showFileTagsInCompactMode);
@@ -528,6 +533,7 @@ export function useListPaneScroll({
                 isPinned: Boolean(item.isPinned),
                 hasPreviewContent,
                 showFeatureImageArea,
+                showExtensionBadgeThumbnail,
                 hasVisiblePillRows
             });
 
@@ -545,7 +551,7 @@ export function useListPaneScroll({
                 previewRows: folderSettings.previewRows,
                 layoutState,
                 showFeatureImageArea,
-                isBaseOrCanvasFeatureBadge: file?.extension === 'base' || file?.extension === 'canvas',
+                showExtensionBadgeThumbnail,
                 showParentFolderLine,
                 visiblePillRowCount
             });

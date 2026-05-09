@@ -58,6 +58,7 @@ import { buildFileTooltip } from '../utils/navigationTooltipUtils';
 import {
     getFileItemLayoutState,
     isListPaneCompactMode,
+    shouldShowExtensionBadgeThumbnail,
     shouldShowFeatureImageArea,
     shouldShowFileItemParentFolderLine
 } from '../utils/listPaneMeasurements';
@@ -641,6 +642,11 @@ export const FileItem = React.memo(function FileItem({
         featureImageStatus,
         hasFeatureImageUrl: Boolean(featureImageUrl)
     });
+    const showExtensionBadgeThumbnail = shouldShowExtensionBadgeThumbnail({
+        showFeatureImageArea,
+        file,
+        hasFeatureImageUrl: Boolean(featureImageUrl)
+    });
 
     const { shouldShowMultilinePreview, shouldShowDateForItem } = getFileItemLayoutState({
         showDate: appearanceSettings.showDate,
@@ -649,6 +655,7 @@ export const FileItem = React.memo(function FileItem({
         isPinned,
         hasPreviewContent,
         showFeatureImageArea,
+        showExtensionBadgeThumbnail,
         hasVisiblePillRows
     });
 
@@ -717,12 +724,15 @@ export const FileItem = React.memo(function FileItem({
         if (featureImageUrl) {
             classes.push('nn-file-thumbnail--inset-highlight');
         }
+        if (showExtensionBadgeThumbnail) {
+            classes.push('nn-file-thumbnail--extension-badge');
+        }
         // Hide container if image failed to load
         if (isFeatureImageHidden) {
             classes.push('nn-file-thumbnail--hidden');
         }
         return classes.join(' ');
-    }, [featureImageUrl, settings.forceSquareFeatureImage, isFeatureImageHidden]);
+    }, [featureImageUrl, settings.forceSquareFeatureImage, isFeatureImageHidden, showExtensionBadgeThumbnail]);
 
     const featureImageStyle = useMemo(() => {
         if (!featureImageUrl || settings.forceSquareFeatureImage) {
@@ -1197,7 +1207,7 @@ export const FileItem = React.memo(function FileItem({
                                                 setIsFeatureImageHidden(true);
                                             }}
                                         />
-                                    ) : file.extension === 'canvas' || file.extension === 'base' ? (
+                                    ) : showExtensionBadgeThumbnail ? (
                                         <div className="nn-file-extension-badge">
                                             <span className="nn-file-extension-text">{file.extension}</span>
                                         </div>

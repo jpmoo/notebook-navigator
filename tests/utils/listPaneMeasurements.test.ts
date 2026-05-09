@@ -26,6 +26,7 @@ import {
     hasVisibleTagPills,
     getPropertyRowCount,
     isListPaneCompactMode,
+    shouldShowExtensionBadgeThumbnail,
     shouldShowFeatureImageArea,
     shouldShowFileItemParentFolderLine
 } from '../../src/utils/listPaneMeasurements';
@@ -110,14 +111,14 @@ describe('listPaneMeasurements layout helpers', () => {
                 previewRows: 3,
                 layoutState,
                 showFeatureImageArea: false,
-                isBaseOrCanvasFeatureBadge: false,
+                showExtensionBadgeThumbnail: false,
                 showParentFolderLine: false,
                 visiblePillRowCount: 0
             })
         ).toBe(desktopHeights.basePadding + desktopHeights.titleLineHeight);
     });
 
-    it('uses the one-line row height for base and canvas extension badges without note content', () => {
+    it('uses the thumbnail minimum row height for base and canvas extension badges without note content', () => {
         const layoutState = getFileItemLayoutState({
             showDate: false,
             showPreview: false,
@@ -135,11 +136,145 @@ describe('listPaneMeasurements layout helpers', () => {
                 previewRows: 3,
                 layoutState,
                 showFeatureImageArea: true,
-                isBaseOrCanvasFeatureBadge: true,
+                showExtensionBadgeThumbnail: true,
                 showParentFolderLine: false,
                 visiblePillRowCount: 0
             })
-        ).toBe(desktopHeights.basePadding + desktopHeights.titleLineHeight + desktopHeights.singleTextLineHeight);
+        ).toBe(desktopHeights.basePadding + desktopHeights.featureImageMinHeight);
+    });
+
+    it('does not reserve an empty preview slot for base and canvas extension badges', () => {
+        const layoutState = getFileItemLayoutState({
+            showDate: true,
+            showPreview: true,
+            showImage: true,
+            isPinned: false,
+            hasPreviewContent: false,
+            showFeatureImageArea: true,
+            showExtensionBadgeThumbnail: true,
+            hasVisiblePillRows: false
+        });
+
+        expect(layoutState.shouldShowMultilinePreview).toBe(false);
+        expect(
+            calculateNormalListFileRowHeightEstimate({
+                heights: desktopHeights,
+                titleRows: 1,
+                previewRows: 1,
+                layoutState,
+                showFeatureImageArea: true,
+                showExtensionBadgeThumbnail: true,
+                showParentFolderLine: false,
+                visiblePillRowCount: 0
+            })
+        ).toBe(desktopHeights.basePadding + desktopHeights.featureImageMinHeight);
+    });
+
+    it('does not add a metadata line for multi-row base and canvas extension badge titles', () => {
+        const layoutState = getFileItemLayoutState({
+            showDate: false,
+            showPreview: false,
+            showImage: true,
+            isPinned: false,
+            hasPreviewContent: false,
+            showFeatureImageArea: true,
+            showExtensionBadgeThumbnail: true,
+            hasVisiblePillRows: false
+        });
+
+        expect(
+            calculateNormalListFileRowHeightEstimate({
+                heights: desktopHeights,
+                titleRows: 3,
+                previewRows: 3,
+                layoutState,
+                showFeatureImageArea: true,
+                showExtensionBadgeThumbnail: true,
+                showParentFolderLine: false,
+                visiblePillRowCount: 0
+            })
+        ).toBe(desktopHeights.basePadding + desktopHeights.titleLineHeight * 3);
+    });
+
+    it('sizes base and canvas extension badge rows from actual metadata and pill rows', () => {
+        const layoutState = getFileItemLayoutState({
+            showDate: true,
+            showPreview: true,
+            showImage: true,
+            isPinned: false,
+            hasPreviewContent: false,
+            showFeatureImageArea: true,
+            showExtensionBadgeThumbnail: true,
+            hasVisiblePillRows: true
+        });
+
+        expect(layoutState.shouldShowMultilinePreview).toBe(false);
+        expect(layoutState.shouldReplaceEmptyPreviewWithPills).toBe(true);
+        expect(
+            calculateNormalListFileRowHeightEstimate({
+                heights: desktopHeights,
+                titleRows: 1,
+                previewRows: 3,
+                layoutState,
+                showFeatureImageArea: true,
+                showExtensionBadgeThumbnail: true,
+                showParentFolderLine: false,
+                visiblePillRowCount: 1
+            })
+        ).toBe(
+            desktopHeights.basePadding + desktopHeights.titleLineHeight + desktopHeights.singleTextLineHeight + desktopHeights.tagRowHeight
+        );
+    });
+
+    it('does not reserve a hidden metadata row for base and canvas extension badges', () => {
+        const layoutState = getFileItemLayoutState({
+            showDate: false,
+            showPreview: true,
+            showImage: true,
+            isPinned: false,
+            hasPreviewContent: false,
+            showFeatureImageArea: true,
+            showExtensionBadgeThumbnail: true,
+            hasVisiblePillRows: true
+        });
+
+        expect(
+            calculateNormalListFileRowHeightEstimate({
+                heights: desktopHeights,
+                titleRows: 1,
+                previewRows: 3,
+                layoutState,
+                showFeatureImageArea: true,
+                showExtensionBadgeThumbnail: true,
+                showParentFolderLine: false,
+                visiblePillRowCount: 2
+            })
+        ).toBe(desktopHeights.basePadding + desktopHeights.titleLineHeight + desktopHeights.tagRowHeight * 2);
+    });
+
+    it('uses the thumbnail minimum row height for short feature image rows', () => {
+        const layoutState = getFileItemLayoutState({
+            showDate: false,
+            showPreview: false,
+            showImage: true,
+            isPinned: false,
+            hasPreviewContent: false,
+            showFeatureImageArea: true,
+            hasVisiblePillRows: false
+        });
+
+        expect(
+            calculateNormalListFileRowHeightEstimate({
+                heights: desktopHeights,
+                titleRows: 1,
+                previewRows: 1,
+                layoutState,
+                showFeatureImageArea: true,
+                showExtensionBadgeThumbnail: false,
+                showParentFolderLine: false,
+                visiblePillRowCount: 0
+            })
+        ).toBe(desktopHeights.basePadding + desktopHeights.featureImageMinHeight);
     });
 
     it('uses a fixed rich row height for feature image rows', () => {
@@ -160,7 +295,7 @@ describe('listPaneMeasurements layout helpers', () => {
                 previewRows: 3,
                 layoutState,
                 showFeatureImageArea: true,
-                isBaseOrCanvasFeatureBadge: false,
+                showExtensionBadgeThumbnail: false,
                 showParentFolderLine: false,
                 visiblePillRowCount: 0
             })
@@ -191,7 +326,7 @@ describe('listPaneMeasurements layout helpers', () => {
                 previewRows: 2,
                 layoutState,
                 showFeatureImageArea: false,
-                isBaseOrCanvasFeatureBadge: false,
+                showExtensionBadgeThumbnail: false,
                 showParentFolderLine: false,
                 visiblePillRowCount: 0
             })
@@ -221,7 +356,7 @@ describe('listPaneMeasurements layout helpers', () => {
                 previewRows: 2,
                 layoutState,
                 showFeatureImageArea: false,
-                isBaseOrCanvasFeatureBadge: false,
+                showExtensionBadgeThumbnail: false,
                 showParentFolderLine: true,
                 visiblePillRowCount: 0
             })
@@ -239,7 +374,7 @@ describe('listPaneMeasurements layout helpers', () => {
             titleRows: 1,
             previewRows: 2,
             showFeatureImageArea: true,
-            isBaseOrCanvasFeatureBadge: false,
+            showExtensionBadgeThumbnail: false,
             showParentFolderLine: false,
             visiblePillRowCount: 0
         };
@@ -303,7 +438,7 @@ describe('listPaneMeasurements layout helpers', () => {
                 previewRows: 2,
                 layoutState,
                 showFeatureImageArea: true,
-                isBaseOrCanvasFeatureBadge: false,
+                showExtensionBadgeThumbnail: false,
                 showParentFolderLine: false,
                 visiblePillRowCount: 1
             })
@@ -316,7 +451,7 @@ describe('listPaneMeasurements layout helpers', () => {
                 previewRows: 2,
                 layoutState,
                 showFeatureImageArea: true,
-                isBaseOrCanvasFeatureBadge: false,
+                showExtensionBadgeThumbnail: false,
                 showParentFolderLine: false,
                 visiblePillRowCount: 3
             })
@@ -388,6 +523,32 @@ describe('listPaneMeasurements layout helpers', () => {
                 featureImageStatus: 'unprocessed'
             })
         ).toBe(true);
+    });
+
+    it('only shows extension badge thumbnails when the feature image area renders', () => {
+        const baseFile = createTestTFile('Data/Inventory.base');
+
+        expect(
+            shouldShowExtensionBadgeThumbnail({
+                showFeatureImageArea: false,
+                file: baseFile
+            })
+        ).toBe(false);
+
+        expect(
+            shouldShowExtensionBadgeThumbnail({
+                showFeatureImageArea: true,
+                file: baseFile
+            })
+        ).toBe(true);
+
+        expect(
+            shouldShowExtensionBadgeThumbnail({
+                showFeatureImageArea: true,
+                file: baseFile,
+                hasFeatureImageUrl: true
+            })
+        ).toBe(false);
     });
 
     it('counts numeric frontmatter properties as visible property rows', () => {
