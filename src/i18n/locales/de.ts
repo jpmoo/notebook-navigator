@@ -976,7 +976,11 @@ export const STRINGS_DE = {
             },
             showFileIcons: {
                 name: 'Dateisymbole anzeigen',
-                desc: 'Dateisymbole mit linksbündigem Abstand anzeigen. Deaktivierung entfernt sowohl Symbole als auch Einrückung. Priorität: Unerledigte-Aufgaben-Symbol > Benutzerdefiniertes Symbol > Dateiname-Symbol > Dateityp-Symbol > Standard-Symbol.'
+                desc: 'Dateisymbole mit linksbündigem Abstand anzeigen. Deaktivierung entfernt sowohl Symbole als auch Einrückung. Priorität: Unerledigte-Aufgaben-Symbol > Benutzerdefiniertes Symbol > Ordnersymbol > Dateiname-Symbol > Dateityp-Symbol > Standard-Symbol.'
+            },
+            useFolderIcon: {
+                name: 'Ordnersymbol verwenden',
+                desc: 'Das Symbol des übergeordneten Ordners anzeigen, wenn kein benutzerdefiniertes Dateisymbol festgelegt ist. Die Ordnerfarbe wird verwendet, wenn keine benutzerdefinierte Dateifarbe festgelegt ist.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Unerledigte-Aufgaben-Symbol',
@@ -1022,6 +1026,10 @@ export const STRINGS_DE = {
             showParentFolder: {
                 name: 'Übergeordneten Ordner anzeigen',
                 desc: 'Den übergeordneten Ordnernamen für Notizen in Unterordnern oder Tags anzeigen.'
+            },
+            showParentFolderFullPath: {
+                name: 'Vollständigen Pfad anzeigen',
+                desc: 'Den vollständigen Pfad des übergeordneten Ordners anstelle nur des Ordnernamens anzeigen.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Klick auf übergeordneten Ordner öffnet Ordner',
@@ -1623,6 +1631,10 @@ export const STRINGS_DE = {
                     '2': '2 Zeilen',
                     '3': '3 Zeilen'
                 }
+            },
+            useFolderColor: {
+                name: 'Ordnerfarbe verwenden',
+                desc: 'Notizentitel und Dateisymbole mit der Farbe des übergeordneten Ordners einfärben, wenn keine benutzerdefinierte Dateifarbe festgelegt ist. Priorität: Benutzerdefinierte Dateifarbe > Ordnerfarbe > Standardfarbe.'
             },
             showFeatureImage: {
                 name: 'Vorschaubild anzeigen',

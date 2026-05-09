@@ -975,7 +975,11 @@ export const STRINGS_TR = {
             },
             showFileIcons: {
                 name: 'Dosya simgelerini göster',
-                desc: 'Dosya simgelerini sol hizalı boşlukla göster. Devre dışı bırakma hem simgeleri hem de girintiyi kaldırır. Öncelik: tamamlanmamış görev simgesi > özel simge > dosya adı simgesi > dosya türü simgesi > varsayılan simge.'
+                desc: 'Dosya simgelerini sol hizalı boşlukla göster. Devre dışı bırakma hem simgeleri hem de girintiyi kaldırır. Öncelik: tamamlanmamış görev simgesi > özel simge > klasör simgesi > dosya adı simgesi > dosya türü simgesi > varsayılan simge.'
+            },
+            useFolderIcon: {
+                name: 'Klasör simgesini kullan',
+                desc: 'Özel dosya simgesi ayarlanmadığında üst klasörün simgesini görüntüler. Özel dosya rengi ayarlanmadığında klasör rengi kullanılır.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Tamamlanmamış görev simgesi',
@@ -1021,6 +1025,10 @@ export const STRINGS_TR = {
             showParentFolder: {
                 name: 'Üst klasörü göster',
                 desc: 'Alt klasörlerdeki veya etiketlerdeki notlar için üst klasör adını görüntüle.'
+            },
+            showParentFolderFullPath: {
+                name: 'Tam yolu göster',
+                desc: 'Yalnızca klasör adı yerine üst klasörün tam yolunu görüntüler.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Üst klasöre tıklayarak klasörü aç',
@@ -1619,6 +1627,10 @@ export const STRINGS_TR = {
                     '2': '2 satır',
                     '3': '3 satır'
                 }
+            },
+            useFolderColor: {
+                name: 'Klasör rengini kullan',
+                desc: 'Özel dosya rengi ayarlanmadığında not başlıklarını ve dosya simgelerini üst klasörün rengiyle renklendir. Öncelik: özel dosya rengi > klasör rengi > varsayılan renk.'
             },
             showFeatureImage: {
                 name: 'Öne çıkan görseli göster',

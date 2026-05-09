@@ -976,7 +976,11 @@ export const STRINGS_ES = {
             },
             showFileIcons: {
                 name: 'Mostrar iconos de archivo',
-                desc: 'Mostrar iconos de archivo con espaciado alineado a la izquierda. Desactivar elimina tanto iconos como sangría. Prioridad: icono de tareas pendientes > icono personalizado > icono de nombre de archivo > icono de tipo de archivo > icono predeterminado.'
+                desc: 'Mostrar iconos de archivo con espaciado alineado a la izquierda. Desactivar elimina tanto iconos como sangría. Prioridad: icono de tareas pendientes > icono personalizado > icono de carpeta > icono de nombre de archivo > icono de tipo de archivo > icono predeterminado.'
+            },
+            useFolderIcon: {
+                name: 'Usar icono de carpeta',
+                desc: 'Mostrar el icono de la carpeta principal cuando no hay un icono de archivo personalizado. El color de la carpeta se usa cuando no hay un color de archivo personalizado.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Icono de tareas pendientes',
@@ -1022,6 +1026,10 @@ export const STRINGS_ES = {
             showParentFolder: {
                 name: 'Mostrar carpeta principal',
                 desc: 'Muestra el nombre de la carpeta principal para las notas en subcarpetas o etiquetas.'
+            },
+            showParentFolderFullPath: {
+                name: 'Mostrar ruta completa',
+                desc: 'Mostrar la ruta completa de la carpeta principal en lugar de solo el nombre de la carpeta.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Clic en carpeta principal abre carpeta',
@@ -1623,6 +1631,10 @@ export const STRINGS_ES = {
                     '2': '2 filas',
                     '3': '3 filas'
                 }
+            },
+            useFolderColor: {
+                name: 'Usar color de carpeta',
+                desc: 'Colorear los títulos de notas y los iconos de archivo con el color de la carpeta principal cuando no hay un color de archivo personalizado. Prioridad: color de archivo personalizado > color de carpeta > color predeterminado.'
             },
             showFeatureImage: {
                 name: 'Mostrar imagen destacada',

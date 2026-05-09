@@ -968,7 +968,11 @@ export const STRINGS_ZH_TW = {
             },
             showFileIcons: {
                 name: '顯示檔案圖示',
-                desc: '顯示檔案圖示並保留左對齊間距。停用後將移除圖示和縮排。優先順序：未完成任務圖示 > 自訂圖示 > 檔名圖示 > 檔案類型圖示 > 預設圖示。'
+                desc: '顯示檔案圖示並保留左對齊間距。停用後將移除圖示和縮排。優先順序：未完成任務圖示 > 自訂圖示 > 資料夾圖示 > 檔名圖示 > 檔案類型圖示 > 預設圖示。'
+            },
+            useFolderIcon: {
+                name: '使用資料夾圖示',
+                desc: '當未設定自訂檔案圖示時顯示父資料夾圖示。當未設定自訂檔案顏色時使用資料夾顏色。'
             },
             showFileIconUnfinishedTask: {
                 name: '未完成任務圖示',
@@ -1014,6 +1018,10 @@ export const STRINGS_ZH_TW = {
             showParentFolder: {
                 name: '顯示父資料夾',
                 desc: '為子資料夾或標籤中的筆記顯示父資料夾名稱。'
+            },
+            showParentFolderFullPath: {
+                name: '顯示完整路徑',
+                desc: '顯示父資料夾的完整路徑而非僅顯示資料夾名稱。'
             },
             parentFolderClickRevealsFile: {
                 name: '點按父資料夾開啟資料夾',
@@ -1612,6 +1620,10 @@ export const STRINGS_ZH_TW = {
                     '2': '2 行',
                     '3': '3 行'
                 }
+            },
+            useFolderColor: {
+                name: '使用資料夾顏色',
+                desc: '當未設定自訂檔案顏色時，使用父資料夾的顏色為筆記標題和檔案圖示著色。優先順序：自訂檔案顏色 > 資料夾顏色 > 預設顏色。'
             },
             showFeatureImage: {
                 name: '顯示特色圖片',

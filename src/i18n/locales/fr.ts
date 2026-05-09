@@ -977,7 +977,11 @@ export const STRINGS_FR = {
             },
             showFileIcons: {
                 name: 'Afficher les icônes de fichier',
-                desc: "Afficher les icônes de fichier avec espacement aligné à gauche. La désactivation supprime les icônes et l'indentation. Priorité : icône de tâches inachevées > icône personnalisée > icône de nom de fichier > icône de type de fichier > icône par défaut."
+                desc: "Afficher les icônes de fichier avec espacement aligné à gauche. La désactivation supprime les icônes et l'indentation. Priorité : icône de tâches inachevées > icône personnalisée > icône de dossier > icône de nom de fichier > icône de type de fichier > icône par défaut."
+            },
+            useFolderIcon: {
+                name: "Utiliser l'icône du dossier",
+                desc: "Afficher l'icône du dossier parent lorsqu'aucune icône de fichier personnalisée n'est définie. La couleur du dossier est utilisée lorsqu'aucune couleur de fichier personnalisée n'est définie."
             },
             showFileIconUnfinishedTask: {
                 name: 'Icône de tâches inachevées',
@@ -1023,6 +1027,10 @@ export const STRINGS_FR = {
             showParentFolder: {
                 name: 'Afficher le dossier parent',
                 desc: 'Afficher le nom du dossier parent pour les notes dans les sous-dossiers ou étiquettes.'
+            },
+            showParentFolderFullPath: {
+                name: 'Afficher le chemin complet',
+                desc: 'Afficher le chemin complet du dossier parent au lieu du nom du dossier uniquement.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Clic sur dossier parent ouvre le dossier',
@@ -1625,6 +1633,10 @@ export const STRINGS_FR = {
                     '2': '2 lignes',
                     '3': '3 lignes'
                 }
+            },
+            useFolderColor: {
+                name: 'Utiliser la couleur du dossier',
+                desc: "Colorer les titres de notes et les icônes de fichier avec la couleur du dossier parent lorsqu'aucune couleur de fichier personnalisée n'est définie. Priorité : couleur de fichier personnalisée > couleur du dossier > couleur par défaut."
             },
             showFeatureImage: {
                 name: "Afficher l'image vedette",

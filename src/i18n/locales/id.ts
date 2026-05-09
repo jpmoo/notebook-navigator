@@ -975,7 +975,11 @@ export const STRINGS_ID = {
             },
             showFileIcons: {
                 name: 'Tampilkan ikon file',
-                desc: 'Tampilkan ikon file dengan spasi rata kiri. Menonaktifkan menghapus ikon dan indentasi. Prioritas: ikon tugas belum selesai > ikon kustom > ikon nama file > ikon tipe file > ikon default.'
+                desc: 'Tampilkan ikon file dengan spasi rata kiri. Menonaktifkan menghapus ikon dan indentasi. Prioritas: ikon tugas belum selesai > ikon kustom > ikon folder > ikon nama file > ikon tipe file > ikon default.'
+            },
+            useFolderIcon: {
+                name: 'Gunakan ikon folder',
+                desc: 'Tampilkan ikon folder induk saat tidak ada ikon file kustom yang ditetapkan. Warna folder digunakan saat tidak ada warna file kustom yang ditetapkan.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Ikon tugas belum selesai',
@@ -1021,6 +1025,10 @@ export const STRINGS_ID = {
             showParentFolder: {
                 name: 'Tampilkan folder induk',
                 desc: 'Tampilkan nama folder induk untuk catatan di subfolder atau tag.'
+            },
+            showParentFolderFullPath: {
+                name: 'Tampilkan path lengkap',
+                desc: 'Tampilkan path lengkap folder induk alih-alih hanya nama folder.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Klik folder induk untuk membuka folder',
@@ -1620,6 +1628,10 @@ export const STRINGS_ID = {
                     '2': '2 baris',
                     '3': '3 baris'
                 }
+            },
+            useFolderColor: {
+                name: 'Gunakan warna folder',
+                desc: 'Warnai judul catatan dan ikon file dengan warna folder induk saat tidak ada warna file kustom yang ditetapkan. Prioritas: warna file kustom > warna folder > warna default.'
             },
             showFeatureImage: {
                 name: 'Tampilkan gambar unggulan',

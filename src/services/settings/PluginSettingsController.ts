@@ -228,6 +228,9 @@ export class PluginSettingsController {
                 Object.prototype.hasOwnProperty.call(storedData, 'mobileHomepage') ||
                 Object.prototype.hasOwnProperty.call(storedData, 'useMobileHomepage'))
         );
+        const hadLegacyFolderColorTitleSettingInStoredData = Boolean(
+            storedData && Object.prototype.hasOwnProperty.call(storedData, 'useFolderColorForFileTitles')
+        );
         const storedSettings = storedData as Partial<NotebookNavigatorSettings> | null;
         const isFirstLaunch = storedData === null;
         this.shouldPersistDesktopScale = Boolean(storedData && 'desktopScale' in storedData);
@@ -403,6 +406,7 @@ export class PluginSettingsController {
             hadLegacyLastAnnouncedReleaseInSettings ||
             hadLegacyPropertyFieldsInStoredData ||
             hadLegacyHomepageSettingsInStoredData ||
+            hadLegacyFolderColorTitleSettingInStoredData ||
             uiScaleMigrated ||
             migratedMomentFormats ||
             migratedShortcutNegationSyntax;

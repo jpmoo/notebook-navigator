@@ -526,11 +526,13 @@ export interface NotebookNavigatorSettings {
     showFileBackgroundUnfinishedTask: boolean;
     unfinishedTaskBackgroundColor: string;
     showFileIcons: boolean;
+    useFolderIconForFiles: boolean;
     showFilenameMatchIcons: boolean;
     fileNameIconMap: Record<string, string>;
     showCategoryIcons: boolean;
     fileTypeIconMap: Record<string, string>;
     fileNameRows: number;
+    useFolderColorForTitles: boolean;
     showFilePreview: boolean;
     skipHeadingsInPreview: boolean;
     skipCodeBlocksInPreview: boolean;
@@ -562,6 +564,7 @@ export interface NotebookNavigatorSettings {
     showFileDate: boolean;
     alphabeticalDateMode: AlphabeticalDateMode;
     showParentFolder: boolean;
+    showParentFolderFullPath: boolean;
     parentFolderClickRevealsFile: boolean;
     showParentFolderColor: boolean;
     showParentFolderIcon: boolean;

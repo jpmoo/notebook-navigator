@@ -975,7 +975,11 @@ export const STRINGS_PT = {
             },
             showFileIcons: {
                 name: 'Mostrar ícones de ficheiros',
-                desc: 'Exibir ícones de ficheiros com espaçamento alinhado à esquerda. Desativar remove ícones e indentação. Prioridade: ícone de tarefas inacabadas > ícone personalizado > ícone de nome de ficheiro > ícone de tipo de ficheiro > ícone predefinido.'
+                desc: 'Exibir ícones de ficheiros com espaçamento alinhado à esquerda. Desativar remove ícones e indentação. Prioridade: ícone de tarefas inacabadas > ícone personalizado > ícone de pasta > ícone de nome de ficheiro > ícone de tipo de ficheiro > ícone predefinido.'
+            },
+            useFolderIcon: {
+                name: 'Usar ícone de pasta',
+                desc: 'Exibir o ícone da pasta pai quando não está definido um ícone de ficheiro personalizado. A cor da pasta é usada quando não está definida uma cor de ficheiro personalizada.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Ícone de tarefas inacabadas',
@@ -1021,6 +1025,10 @@ export const STRINGS_PT = {
             showParentFolder: {
                 name: 'Mostrar pasta pai',
                 desc: 'Exibir o nome da pasta pai para notas em subpastas ou etiquetas.'
+            },
+            showParentFolderFullPath: {
+                name: 'Mostrar caminho completo',
+                desc: 'Exibir o caminho completo da pasta pai em vez de apenas o nome da pasta.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Clicar na pasta pai abre pasta',
@@ -1622,6 +1630,10 @@ export const STRINGS_PT = {
                     '2': '2 linhas',
                     '3': '3 linhas'
                 }
+            },
+            useFolderColor: {
+                name: 'Usar cor da pasta',
+                desc: 'Colorir títulos de notas e ícones de ficheiros com a cor da pasta pai quando não está definida uma cor de ficheiro personalizada. Prioridade: cor de ficheiro personalizada > cor da pasta > cor predefinida.'
             },
             showFeatureImage: {
                 name: 'Mostrar imagem de destaque',

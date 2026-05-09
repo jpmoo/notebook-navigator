@@ -968,7 +968,11 @@ export const STRINGS_ZH_CN = {
             },
             showFileIcons: {
                 name: '显示文件图标',
-                desc: '显示文件图标并保留左对齐间距。禁用后将移除图标和缩进。优先级：未完成任务图标 > 自定义图标 > 文件名图标 > 文件类型图标 > 默认图标。'
+                desc: '显示文件图标并保留左对齐间距。禁用后将移除图标和缩进。优先级：未完成任务图标 > 自定义图标 > 文件夹图标 > 文件名图标 > 文件类型图标 > 默认图标。'
+            },
+            useFolderIcon: {
+                name: '使用文件夹图标',
+                desc: '当未设置自定义文件图标时显示父文件夹图标。当未设置自定义文件颜色时使用文件夹颜色。'
             },
             showFileIconUnfinishedTask: {
                 name: '未完成任务图标',
@@ -1014,6 +1018,10 @@ export const STRINGS_ZH_CN = {
             showParentFolder: {
                 name: '显示父文件夹',
                 desc: '为子文件夹或标签中的笔记显示父文件夹名称。'
+            },
+            showParentFolderFullPath: {
+                name: '显示完整路径',
+                desc: '显示父文件夹的完整路径而不仅仅是文件夹名称。'
             },
             parentFolderClickRevealsFile: {
                 name: '点击父文件夹打开文件夹',
@@ -1612,6 +1620,10 @@ export const STRINGS_ZH_CN = {
                     '2': '2 行',
                     '3': '3 行'
                 }
+            },
+            useFolderColor: {
+                name: '使用文件夹颜色',
+                desc: '当未设置自定义文件颜色时，使用父文件夹的颜色为笔记标题和文件图标着色。优先级：自定义文件颜色 > 文件夹颜色 > 默认颜色。'
             },
             showFeatureImage: {
                 name: '显示特色图片',

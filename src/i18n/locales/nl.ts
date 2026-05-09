@@ -976,7 +976,11 @@ export const STRINGS_NL = {
             },
             showFileIcons: {
                 name: 'Bestandspictogrammen tonen',
-                desc: 'Bestandspictogrammen tonen met links uitgelijnde ruimte. Uitschakelen verwijdert zowel pictogrammen als inspringing. Prioriteit: onvoltooide taken-pictogram > aangepast pictogram > bestandsnaam-pictogram > bestandstype-pictogram > standaardpictogram.'
+                desc: 'Bestandspictogrammen tonen met links uitgelijnde ruimte. Uitschakelen verwijdert zowel pictogrammen als inspringing. Prioriteit: onvoltooide taken-pictogram > aangepast pictogram > mappictogram > bestandsnaam-pictogram > bestandstype-pictogram > standaardpictogram.'
+            },
+            useFolderIcon: {
+                name: 'Mappictogram gebruiken',
+                desc: 'Het pictogram van de bovenliggende map weergeven wanneer er geen aangepast bestandspictogram is ingesteld. De mapkleur wordt gebruikt wanneer er geen aangepaste bestandskleur is ingesteld.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Onvoltooide taken-pictogram',
@@ -1022,6 +1026,10 @@ export const STRINGS_NL = {
             showParentFolder: {
                 name: 'Bovenliggende map tonen',
                 desc: 'De naam van de bovenliggende map weergeven voor notities in submappen of tags.'
+            },
+            showParentFolderFullPath: {
+                name: 'Volledig pad tonen',
+                desc: 'Het volledige pad van de bovenliggende map weergeven in plaats van alleen de mapnaam.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Klik op bovenliggende map opent map',
@@ -1622,6 +1630,10 @@ export const STRINGS_NL = {
                     '2': '2 rijen',
                     '3': '3 rijen'
                 }
+            },
+            useFolderColor: {
+                name: 'Mapkleur gebruiken',
+                desc: 'Notitietitels en bestandspictogrammen kleuren met de kleur van de bovenliggende map wanneer er geen aangepaste bestandskleur is ingesteld. Prioriteit: aangepaste bestandskleur > mapkleur > standaardkleur.'
             },
             showFeatureImage: {
                 name: 'Uitgelichte afbeelding tonen',

@@ -977,7 +977,11 @@ export const STRINGS_PT_BR = {
             },
             showFileIcons: {
                 name: 'Mostrar ícones de arquivo',
-                desc: 'Exibir ícones de arquivo com espaçamento alinhado à esquerda. Desativar remove tanto ícones quanto recuo. Prioridade: ícone de tarefas inacabadas > ícone personalizado > ícone de nome de arquivo > ícone de tipo de arquivo > ícone padrão.'
+                desc: 'Exibir ícones de arquivo com espaçamento alinhado à esquerda. Desativar remove tanto ícones quanto recuo. Prioridade: ícone de tarefas inacabadas > ícone personalizado > ícone de pasta > ícone de nome de arquivo > ícone de tipo de arquivo > ícone padrão.'
+            },
+            useFolderIcon: {
+                name: 'Usar ícone de pasta',
+                desc: 'Exibir o ícone da pasta pai quando não há um ícone de arquivo personalizado definido. A cor da pasta é usada quando não há uma cor de arquivo personalizada definida.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Ícone de tarefas inacabadas',
@@ -1023,6 +1027,10 @@ export const STRINGS_PT_BR = {
             showParentFolder: {
                 name: 'Mostrar pasta pai',
                 desc: 'Exibir o nome da pasta pai para notas em subpastas ou tags.'
+            },
+            showParentFolderFullPath: {
+                name: 'Mostrar caminho completo',
+                desc: 'Exibir o caminho completo da pasta pai em vez de apenas o nome da pasta.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Clique na pasta pai abre pasta',
@@ -1624,6 +1632,10 @@ export const STRINGS_PT_BR = {
                     '2': '2 linhas',
                     '3': '3 linhas'
                 }
+            },
+            useFolderColor: {
+                name: 'Usar cor da pasta',
+                desc: 'Colorir títulos de notas e ícones de arquivos com a cor da pasta pai quando não há uma cor de arquivo personalizada definida. Prioridade: cor de arquivo personalizada > cor da pasta > cor padrão.'
             },
             showFeatureImage: {
                 name: 'Mostrar imagem destacada',

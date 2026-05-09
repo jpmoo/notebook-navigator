@@ -974,7 +974,11 @@ export const STRINGS_KO = {
             },
             showFileIcons: {
                 name: '파일 아이콘 표시',
-                desc: '파일 아이콘을 왼쪽 정렬 간격과 함께 표시. 비활성화하면 아이콘과 들여쓰기가 모두 제거됩니다. 우선순위: 미완료 작업 아이콘 > 사용자 지정 아이콘 > 파일 이름 아이콘 > 파일 유형 아이콘 > 기본값 아이콘.'
+                desc: '파일 아이콘을 왼쪽 정렬 간격과 함께 표시. 비활성화하면 아이콘과 들여쓰기가 모두 제거됩니다. 우선순위: 미완료 작업 아이콘 > 사용자 지정 아이콘 > 폴더 아이콘 > 파일 이름 아이콘 > 파일 유형 아이콘 > 기본값 아이콘.'
+            },
+            useFolderIcon: {
+                name: '폴더 아이콘 사용',
+                desc: '사용자 지정 파일 아이콘이 설정되지 않은 경우 상위 폴더 아이콘을 표시합니다. 사용자 지정 파일 색상이 설정되지 않은 경우 폴더 색상이 사용됩니다.'
             },
             showFileIconUnfinishedTask: {
                 name: '미완료 작업 아이콘',
@@ -1020,6 +1024,10 @@ export const STRINGS_KO = {
             showParentFolder: {
                 name: '상위 폴더 표시',
                 desc: '하위 폴더나 태그의 노트에 상위 폴더 이름을 표시합니다.'
+            },
+            showParentFolderFullPath: {
+                name: '전체 경로 표시',
+                desc: '폴더 이름만이 아니라 상위 폴더의 전체 경로를 표시합니다.'
             },
             parentFolderClickRevealsFile: {
                 name: '상위 폴더 클릭 시 폴더 열기',
@@ -1618,6 +1626,10 @@ export const STRINGS_KO = {
                     '2': '2행',
                     '3': '3행'
                 }
+            },
+            useFolderColor: {
+                name: '폴더 색상 사용',
+                desc: '사용자 지정 파일 색상이 설정되지 않은 경우 노트 제목과 파일 아이콘에 상위 폴더 색상을 적용합니다. 우선순위: 사용자 지정 파일 색상 > 폴더 색상 > 기본 색상.'
             },
             showFeatureImage: {
                 name: '대표 이미지 표시',

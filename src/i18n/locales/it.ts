@@ -971,7 +971,11 @@ export const STRINGS_IT = {
             },
             showFileIcons: {
                 name: 'Mostra icone file',
-                desc: 'Visualizza icone file con spaziatura allineata a sinistra. Disabilitando rimuove sia icone che indentazione. Priorità: icona attività incomplete > icona personalizzata > icona nome file > icona tipo file > icona predefinita.'
+                desc: 'Visualizza icone file con spaziatura allineata a sinistra. Disabilitando rimuove sia icone che indentazione. Priorità: icona attività incomplete > icona personalizzata > icona cartella > icona nome file > icona tipo file > icona predefinita.'
+            },
+            useFolderIcon: {
+                name: 'Usa icona cartella',
+                desc: "Visualizza l'icona della cartella genitore quando non è impostata un'icona file personalizzata. Il colore della cartella viene usato quando non è impostato un colore file personalizzato."
             },
             showFileIconUnfinishedTask: {
                 name: 'Icona attività incomplete',
@@ -1017,6 +1021,10 @@ export const STRINGS_IT = {
             showParentFolder: {
                 name: 'Mostra cartella genitore',
                 desc: 'Visualizza il nome della cartella genitore per note in sottocartelle o tag.'
+            },
+            showParentFolderFullPath: {
+                name: 'Mostra percorso completo',
+                desc: 'Visualizza il percorso completo della cartella genitore invece del solo nome della cartella.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Click su cartella genitore apre cartella',
@@ -1619,6 +1627,10 @@ export const STRINGS_IT = {
                     '2': '2 righe',
                     '3': '3 righe'
                 }
+            },
+            useFolderColor: {
+                name: 'Usa colore cartella',
+                desc: 'Colora i titoli delle note e le icone file con il colore della cartella genitore quando non è impostato un colore file personalizzato. Priorità: colore file personalizzato > colore cartella > colore predefinito.'
             },
             showFeatureImage: {
                 name: 'Mostra immagine in evidenza',

@@ -245,6 +245,16 @@ export function renderNotesTab(context: SettingsTabContext): void {
     };
 
     new Setting(fileIconSubSettingsEl)
+        .setName(strings.settings.items.useFolderIcon.name)
+        .setDesc(strings.settings.items.useFolderIcon.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.useFolderIconForFiles).onChange(async value => {
+                plugin.settings.useFolderIconForFiles = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
+    new Setting(fileIconSubSettingsEl)
         .setName(strings.settings.items.showFilenameMatchIcons.name)
         .setDesc(strings.settings.items.showFilenameMatchIcons.desc)
         .addToggle(toggle =>
@@ -346,6 +356,18 @@ export function renderNotesTab(context: SettingsTabContext): void {
                         plugin.settings.fileNameRows = parseInt(value, 10);
                         await plugin.saveSettingsAndUpdate();
                     })
+            );
+    });
+
+    titleGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.useFolderColor.name)
+            .setDesc(strings.settings.items.useFolderColor.desc)
+            .addToggle(toggle =>
+                toggle.setValue(plugin.settings.useFolderColorForTitles).onChange(async value => {
+                    plugin.settings.useFolderColorForTitles = value;
+                    await plugin.saveSettingsAndUpdate();
+                })
             );
     });
 
@@ -728,6 +750,16 @@ export function renderNotesTab(context: SettingsTabContext): void {
             await plugin.saveSettingsAndUpdate();
         }
     );
+
+    new Setting(parentFolderSettingsEl)
+        .setName(strings.settings.items.showParentFolderFullPath.name)
+        .setDesc(strings.settings.items.showParentFolderFullPath.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.showParentFolderFullPath).onChange(async value => {
+                plugin.settings.showParentFolderFullPath = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
 
     new Setting(parentFolderSettingsEl)
         .setName(strings.settings.items.parentFolderClickRevealsFile.name)

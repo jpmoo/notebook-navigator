@@ -84,6 +84,11 @@ const RELEASE_NOTES: ReleaseNote[] = [
         version: '2.6.5',
         date: '2026-05-11',
         showOnUpdate: true,
+        new: [
+            '**List pane.** Added **Use folder icon** in List > Notes > Icon. Shows parent folder icons on notes without custom file icons.',
+            '**List pane.** Added **Use folder color** in List > Notes > Title. Shows parent folder colors on note titles and file icons without custom file colors.',
+            '**List pane.** Added **Show full path** in List > Notes > Parent folder. Shows the full parent folder path instead of only the folder name.'
+        ],
         fixed: ['Fixed the drag-and-drop ghost image that disappeared in 2.6.3.']
     },
     {

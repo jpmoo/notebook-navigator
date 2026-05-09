@@ -977,7 +977,11 @@ export const STRINGS_PL = {
             },
             showFileIcons: {
                 name: 'Pokaż ikonki plików',
-                desc: 'Wyświetla ikonki plików z wyrównaniem do lewej strony. Wyłączenie tej opcji powoduje usunięcie zarówno ikonek, jak i wcięć. Priorytet: ikonka nieukończonych zadań > ikonka niestandardowa > ikonka nazwy pliku > ikonka typu pliku > ikonka domyślna.'
+                desc: 'Wyświetla ikonki plików z wyrównaniem do lewej strony. Wyłączenie tej opcji powoduje usunięcie zarówno ikonek, jak i wcięć. Priorytet: ikonka nieukończonych zadań > ikonka niestandardowa > ikonka folderu > ikonka nazwy pliku > ikonka typu pliku > ikonka domyślna.'
+            },
+            useFolderIcon: {
+                name: 'Użyj ikonki folderu',
+                desc: 'Wyświetla ikonkę folderu nadrzędnego, gdy nie ustawiono niestandardowej ikonki pliku. Kolor folderu jest używany, gdy nie ustawiono niestandardowego koloru pliku.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Ikona nieukończonych zadań',
@@ -1023,6 +1027,10 @@ export const STRINGS_PL = {
             showParentFolder: {
                 name: 'Pokaż folder nadrzędny',
                 desc: 'Wyświetla nazwę folderu nadrzędnego dla notatek w podfolderach lub tagach.'
+            },
+            showParentFolderFullPath: {
+                name: 'Pokaż pełną ścieżkę',
+                desc: 'Wyświetla pełną ścieżkę folderu nadrzędnego zamiast tylko nazwy folderu.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Kliknięcie folderu nadrzędnego otwiera folder',
@@ -1623,6 +1631,10 @@ export const STRINGS_PL = {
                     '2': '2 wiersze',
                     '3': '3 wiersze'
                 }
+            },
+            useFolderColor: {
+                name: 'Użyj koloru folderu',
+                desc: 'Koloruje tytuły notatek i ikonki plików kolorem folderu nadrzędnego, gdy nie ustawiono niestandardowego koloru pliku. Priorytet: niestandardowy kolor pliku > kolor folderu > kolor domyślny.'
             },
             showFeatureImage: {
                 name: 'Pokaż wyróżniony obraz',

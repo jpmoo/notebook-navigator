@@ -971,7 +971,11 @@ export const STRINGS_EN = {
             },
             showFileIcons: {
                 name: 'Show file icons',
-                desc: 'Display file icons with left-aligned spacing. Disabling removes both icons and indentation. Priority: unfinished tasks icon > custom icon > file name icon > file type icon > default icon.'
+                desc: 'Display file icons with left-aligned spacing. Disabling removes both icons and indentation. Priority: unfinished tasks icon > custom icon > folder icon > file name icon > file type icon > default icon.'
+            },
+            useFolderIcon: {
+                name: 'Use folder icon',
+                desc: 'Display the parent folder icon when no custom file icon is set. Folder color is used when no custom file color is set.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Unfinished task icon',
@@ -1017,6 +1021,10 @@ export const STRINGS_EN = {
             showParentFolder: {
                 name: 'Show parent folder',
                 desc: 'Display the parent folder name for notes in subfolders or tags.'
+            },
+            showParentFolderFullPath: {
+                name: 'Show full path',
+                desc: 'Display the full parent folder path instead of only the folder name.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Click parent folder to go to folder',
@@ -1615,6 +1623,10 @@ export const STRINGS_EN = {
                     '2': '2 rows',
                     '3': '3 rows'
                 }
+            },
+            useFolderColor: {
+                name: 'Use folder color',
+                desc: 'Color note titles and file icons with their parent folder color when no custom file color is set. Priority: custom file color > folder color > default color.'
             },
             showFeatureImage: {
                 name: 'Show feature image',

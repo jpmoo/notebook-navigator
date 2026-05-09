@@ -976,7 +976,11 @@ export const STRINGS_VI = {
             },
             showFileIcons: {
                 name: 'Hiện biểu tượng tệp',
-                desc: 'Hiển thị biểu tượng tệp với khoảng cách căn trái. Tắt sẽ gỡ cả biểu tượng và thụt lề. Ưu tiên: biểu tượng tác vụ chưa hoàn thành > biểu tượng tùy chỉnh > biểu tượng tên tệp > biểu tượng loại tệp > biểu tượng mặc định.'
+                desc: 'Hiển thị biểu tượng tệp với khoảng cách căn trái. Tắt sẽ gỡ cả biểu tượng và thụt lề. Ưu tiên: biểu tượng tác vụ chưa hoàn thành > biểu tượng tùy chỉnh > biểu tượng thư mục > biểu tượng tên tệp > biểu tượng loại tệp > biểu tượng mặc định.'
+            },
+            useFolderIcon: {
+                name: 'Dùng biểu tượng thư mục',
+                desc: 'Hiển thị biểu tượng của thư mục cha khi không có biểu tượng tệp tùy chỉnh được đặt. Màu thư mục được dùng khi không có màu tệp tùy chỉnh được đặt.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Biểu tượng nhiệm vụ chưa hoàn thành',
@@ -1022,6 +1026,10 @@ export const STRINGS_VI = {
             showParentFolder: {
                 name: 'Hiện thư mục cha',
                 desc: 'Hiển thị tên thư mục cha cho ghi chú trong thư mục con hoặc thẻ.'
+            },
+            showParentFolderFullPath: {
+                name: 'Hiện đường dẫn đầy đủ',
+                desc: 'Hiển thị đường dẫn đầy đủ của thư mục cha thay vì chỉ tên thư mục.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Nhấn thư mục cha để mở thư mục',
@@ -1620,6 +1628,10 @@ export const STRINGS_VI = {
                     '2': '2 dòng',
                     '3': '3 dòng'
                 }
+            },
+            useFolderColor: {
+                name: 'Dùng màu thư mục',
+                desc: 'Tô màu tiêu đề ghi chú và biểu tượng tệp bằng màu của thư mục cha khi không có màu tệp tùy chỉnh được đặt. Ưu tiên: màu tệp tùy chỉnh > màu thư mục > màu mặc định.'
             },
             showFeatureImage: {
                 name: 'Hiện ảnh nổi bật',

@@ -234,6 +234,24 @@ export function migrateLegacySyncedSettings(params: {
         settings.showFilePropertiesInCompactMode = defaultSettings.showFilePropertiesInCompactMode;
     }
 
+    if (typeof settings.showParentFolderFullPath !== 'boolean') {
+        settings.showParentFolderFullPath = defaultSettings.showParentFolderFullPath;
+    }
+
+    const previousUseFolderColorForTitles = mutableSettings['useFolderColorForFileTitles'];
+    if (typeof storedData?.['useFolderColorForTitles'] === 'undefined' && typeof previousUseFolderColorForTitles === 'boolean') {
+        settings.useFolderColorForTitles = previousUseFolderColorForTitles;
+    }
+    delete mutableSettings['useFolderColorForFileTitles'];
+
+    if (typeof settings.useFolderColorForTitles !== 'boolean') {
+        settings.useFolderColorForTitles = defaultSettings.useFolderColorForTitles;
+    }
+
+    if (typeof settings.useFolderIconForFiles !== 'boolean') {
+        settings.useFolderIconForFiles = defaultSettings.useFolderIconForFiles;
+    }
+
     if (typeof settings.showFileProperties !== 'boolean') {
         settings.showFileProperties = defaultSettings.showFileProperties;
     }

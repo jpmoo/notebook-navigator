@@ -69,6 +69,7 @@ import { resolveUXIcon } from '../utils/uxIcons';
 import type { InclusionOperator } from '../utils/filterSearch';
 import { getNavigatorPinContext } from '../utils/selectionUtils';
 import { resolveDefaultDateField } from '../utils/sortUtils';
+import { resolveFolderDisplayPath } from '../utils/folderDisplayName';
 import type { FileNameIconNeedle } from '../utils/fileIconUtils';
 import type { FileItemPillDecorationModel } from '../utils/fileItemPillDecoration';
 import type { HiddenTagVisibility } from '../utils/tagPrefixMatcher';
@@ -411,6 +412,55 @@ export const FileItem = React.memo(function FileItem({
     const extensionSuffix = useMemo(() => getExtensionSuffix(file), [file]);
     const fileIconId = metadataService.getFileIcon(file.path);
     const fileColor = metadataService.getFileColor(file.path);
+    const parentFolderSource = file.parent;
+    const hasParentFolderSource = parentFolderSource instanceof TFolder;
+    const shouldShowParentFolderLine = shouldShowFileItemParentFolderLine({
+        showParentFolder: settings.showParentFolder,
+        isPinned,
+        selectionType,
+        includeDescendantNotes,
+        parentFolder,
+        fileParentPath: parentFolderSource?.path ?? null
+    });
+    const shouldBuildParentFolderMeta = shouldShowParentFolderLine && hasParentFolderSource && parentFolderSource.path !== '/';
+    const shouldShowParentFolderIcon = shouldBuildParentFolderMeta && settings.showParentFolderIcon;
+    const shouldShowParentFolderColor = shouldBuildParentFolderMeta && settings.showParentFolderColor;
+    const shouldResolveParentFolderDisplayName = shouldBuildParentFolderMeta && !settings.showParentFolderFullPath;
+    const canUseFolderFileDecoration = !showFileIconUnfinishedTask;
+    const shouldResolveFolderIcon = canUseFolderFileDecoration && settings.useFolderIconForFiles && !fileIconId && hasParentFolderSource;
+    const shouldResolveFolderColorForFileDecoration =
+        canUseFolderFileDecoration &&
+        !fileColor &&
+        hasParentFolderSource &&
+        (settings.useFolderColorForTitles || settings.useFolderIconForFiles);
+    const shouldResolveFolderColorForTitle =
+        !settings.colorIconOnly && settings.useFolderColorForTitles && !fileColor && hasParentFolderSource;
+    const shouldResolveFolderColor = shouldResolveFolderColorForFileDecoration || shouldResolveFolderColorForTitle;
+    const parentFolderDisplayData =
+        hasParentFolderSource &&
+        (shouldResolveFolderIcon ||
+            shouldResolveFolderColor ||
+            shouldResolveParentFolderDisplayName ||
+            shouldShowParentFolderIcon ||
+            shouldShowParentFolderColor)
+            ? metadataService.getFolderDisplayData(parentFolderSource.path, {
+                  includeDisplayName: shouldResolveParentFolderDisplayName,
+                  includeColor: shouldResolveFolderColor || shouldShowParentFolderColor,
+                  includeBackgroundColor: shouldShowParentFolderColor,
+                  includeIcon: shouldResolveFolderIcon || shouldShowParentFolderIcon,
+                  includeInheritedColors: shouldResolveFolderColor || shouldShowParentFolderColor
+              })
+            : null;
+    const folderIconId = shouldResolveFolderIcon ? parentFolderDisplayData?.icon : undefined;
+    const folderListColor =
+        shouldResolveFolderColor && hasParentFolderSource
+            ? resolveFolderDecorationColors({
+                  model: folderDecorationModel,
+                  folderPath: parentFolderSource.path,
+                  color: parentFolderDisplayData?.color,
+                  backgroundColor: undefined
+              }).color
+            : undefined;
     const customFileBackgroundColor = metadataService.getFileBackgroundColor(file.path);
     const unfinishedTaskBackgroundColor =
         settings.showFileBackgroundUnfinishedTask && hasUnfinishedTasks ? settings.unfinishedTaskBackgroundColor : undefined;
@@ -423,7 +473,8 @@ export const FileItem = React.memo(function FileItem({
     const isExternalFile = useMemo(() => {
         return !shouldDisplayFile(file, FILE_VISIBILITY.SUPPORTED, app);
     }, [app, file]);
-    const allowCategoryIcons = settings.showCategoryIcons || (settings.colorIconOnly && Boolean(fileColor));
+    const fileIconColor = fileColor ?? folderListColor;
+    const allowCategoryIcons = settings.showCategoryIcons || (settings.colorIconOnly && Boolean(fileIconColor));
     // Determine the actual icon to display, considering custom icon and colorIconOnly setting
     const effectiveFileIconId = useMemo(() => {
         void metadataVersion;
@@ -440,7 +491,7 @@ export const FileItem = React.memo(function FileItem({
                 fileTypeIconMap: settings.fileTypeIconMap
             },
             {
-                customIconId: fileIconId,
+                customIconId: fileIconId ?? folderIconId,
                 metadataCache: app.metadataCache,
                 isExternalFile,
                 allowCategoryIcons,
@@ -455,6 +506,7 @@ export const FileItem = React.memo(function FileItem({
         displayName,
         fileNameIconNeedles,
         fileIconId,
+        folderIconId,
         file,
         isExternalFile,
         metadataVersion,
@@ -465,8 +517,10 @@ export const FileItem = React.memo(function FileItem({
         showFileIconUnfinishedTask,
         unfinishedTaskIconId
     ]);
-    // Determine whether to apply color to the file name instead of the icon
-    const applyColorToName = Boolean(fileColor) && !settings.colorIconOnly;
+    const fileTitleColor = !settings.colorIconOnly
+        ? (fileColor ?? (settings.useFolderColorForTitles ? folderListColor : undefined))
+        : undefined;
+    const applyColorToName = Boolean(fileTitleColor);
     // Icon to use when dragging the file
     const dragIconId = useMemo(() => {
         void metadataVersion;
@@ -489,10 +543,10 @@ export const FileItem = React.memo(function FileItem({
         }
         return true;
     }, [effectiveFileIconId, showFileIcons]);
-    const fileIconHasColor = Boolean(fileColor) && !showFileIconUnfinishedTask;
-    const fileIconStyle = fileColor && !showFileIconUnfinishedTask ? ({ color: fileColor } as React.CSSProperties) : undefined;
+    const fileIconHasColor = Boolean(fileIconColor) && !showFileIconUnfinishedTask;
+    const fileIconStyle = fileIconColor && !showFileIconUnfinishedTask ? ({ color: fileIconColor } as React.CSSProperties) : undefined;
     const fileIconClassName = showFileIconUnfinishedTask ? 'nn-file-icon nn-file-icon-unfinished-task' : 'nn-file-icon';
-    const dragIconColor = showFileIconUnfinishedTask ? undefined : (fileColor ?? undefined);
+    const dragIconColor = showFileIconUnfinishedTask ? undefined : (fileIconColor ?? undefined);
     const shouldShowCompactExtensionBadge = isCompactMode && (isBaseFile || isCanvasFile);
 
     const fileTitleElement = useMemo(() => {
@@ -504,7 +558,7 @@ export const FileItem = React.memo(function FileItem({
                 style={
                     {
                         '--filename-rows': appearanceSettings.titleRows,
-                        ...(applyColorToName ? { '--nn-file-name-custom-color': fileColor } : {})
+                        ...(applyColorToName ? { '--nn-file-name-custom-color': fileTitleColor } : {})
                     } as React.CSSProperties
                 }
             >
@@ -512,7 +566,7 @@ export const FileItem = React.memo(function FileItem({
                 {extensionSuffix.length > 0 && <span className="nn-file-ext-suffix">{extensionSuffix}</span>}
             </div>
         );
-    }, [appearanceSettings.titleRows, extensionSuffix, fileColor, applyColorToName, highlightedName]);
+    }, [appearanceSettings.titleRows, extensionSuffix, fileTitleColor, applyColorToName, highlightedName]);
 
     const { shouldShowFileTags, hasVisiblePillRows, pillRows } = useFileItemPills({
         file,
@@ -605,16 +659,6 @@ export const FileItem = React.memo(function FileItem({
         hasVisiblePillRows
     });
 
-    // Determine parent folder display metadata
-    const parentFolderSource = file.parent;
-    const shouldShowParentFolderLine = shouldShowFileItemParentFolderLine({
-        showParentFolder: settings.showParentFolder,
-        isPinned,
-        selectionType,
-        includeDescendantNotes,
-        parentFolder,
-        fileParentPath: parentFolderSource?.path ?? null
-    });
     let parentFolderMeta: {
         name: string;
         iconId: string;
@@ -623,30 +667,25 @@ export const FileItem = React.memo(function FileItem({
         applyColorToName: boolean;
         showIcon: boolean;
     } | null = null;
-    if (shouldShowParentFolderLine && parentFolderSource instanceof TFolder && parentFolderSource.path !== '/') {
-        const shouldShowParentFolderIcon = settings.showParentFolderIcon;
-        const shouldShowParentFolderColor = settings.showParentFolderColor;
-        const parentFolderDisplayData = metadataService.getFolderDisplayData(parentFolderSource.path, {
-            includeDisplayName: true,
-            includeColor: shouldShowParentFolderColor,
-            includeBackgroundColor: shouldShowParentFolderColor,
-            includeIcon: shouldShowParentFolderIcon
-        });
-        const customParentIcon = shouldShowParentFolderIcon ? parentFolderDisplayData.icon : undefined;
+    if (shouldBuildParentFolderMeta && hasParentFolderSource) {
+        const customParentIcon = shouldShowParentFolderIcon ? parentFolderDisplayData?.icon : undefined;
         const fallbackParentIcon = 'lucide-folder-closed';
 
         const parentFolderDecorationColors = shouldShowParentFolderColor
             ? resolveFolderDecorationColors({
                   model: folderDecorationModel,
                   folderPath: parentFolderSource.path,
-                  color: parentFolderDisplayData.color,
-                  backgroundColor: parentFolderDisplayData.backgroundColor
+                  color: parentFolderDisplayData?.color,
+                  backgroundColor: parentFolderDisplayData?.backgroundColor
               })
             : { color: undefined, backgroundColor: undefined };
         const parentFolderColor = parentFolderDecorationColors.color;
         const shouldApplyParentFolderColor = Boolean(parentFolderColor);
+        const parentFolderLabel = settings.showParentFolderFullPath
+            ? resolveFolderDisplayPath({ metadataService, folderPath: parentFolderSource.path })
+            : parentFolderDisplayData?.displayName || parentFolderSource.name;
         parentFolderMeta = {
-            name: parentFolderDisplayData.displayName || parentFolderSource.name,
+            name: parentFolderLabel,
             iconId: customParentIcon ?? fallbackParentIcon,
             color: shouldApplyParentFolderColor ? parentFolderColor : undefined,
             backgroundColor: parentFolderDecorationColors.backgroundColor,
