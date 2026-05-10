@@ -62,7 +62,7 @@ import { useListPaneSearch, type SearchQueryUpdateOptions } from '../hooks/useLi
 import { useListPaneSelectionCoordinator } from '../hooks/useListPaneSelectionCoordinator';
 import type { EnsureSelectionOptions, EnsureSelectionResult, SelectFileOptions } from '../hooks/useListPaneSelectionCoordinator';
 import { useContextMenu } from '../hooks/useContextMenu';
-import { IOS_FLOATING_TOOLBAR_HEIGHT_PX, type CSSPropertiesWithVars } from '../types';
+import { IOS_FLOATING_TOOLBAR_HEIGHT_PX, ListPaneItemType, type CSSPropertiesWithVars } from '../types';
 import { getEffectiveSortOption } from '../utils/sortUtils';
 import { ListPaneHeader } from './ListPaneHeader';
 import { ListToolbar } from './ListToolbar';
@@ -327,6 +327,9 @@ export const ListPane = React.memo(
             searchTokens: isSearchActive ? debouncedSearchTokens : undefined,
             visibility: { includeDescendantNotes, showHiddenItems }
         });
+        const listStartsWithGroupHeader =
+            listItems[0]?.type === ListPaneItemType.TOP_SPACER && listItems[1]?.type === ListPaneItemType.HEADER;
+        const effectiveTopSpacerHeight = settings.stickyGroupHeaders && listStartsWithGroupHeader ? 0 : topSpacerHeight;
         const localDayReference = useMemo(() => DateUtils.parseLocalDayKey(localDayKey), [localDayKey]);
 
         // Determine the target folder path for drag-and-drop of external files
@@ -399,7 +402,7 @@ export const ListPane = React.memo(
             // Use debounced value for scroll orchestration to align with filtering
             searchQuery: isSearchActive ? debouncedSearchQuery : undefined,
             suppressSearchTopScrollRef,
-            topSpacerHeight,
+            topSpacerHeight: effectiveTopSpacerHeight,
             includeDescendantNotes,
             pinnedGroupExpanded,
             visiblePropertyKeys: visibleListPropertyKeys,
@@ -622,7 +625,7 @@ export const ListPane = React.memo(
                         isCompactMode={isCompactMode}
                         isEmptySelection={isEmptySelection}
                         hasNoFiles={hasNoFiles}
-                        topSpacerHeight={topSpacerHeight}
+                        topSpacerHeight={effectiveTopSpacerHeight}
                         settings={settings}
                         pinnedGroupExpanded={pinnedGroupExpanded}
                         onPinnedGroupHeaderToggle={togglePinnedGroupExpanded}

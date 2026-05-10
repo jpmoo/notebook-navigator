@@ -69,6 +69,22 @@
     z-index: -1;
 }
 
+.nn-list-sticky-header .nn-list-group-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    inset-inline-start: var(--nn-file-item-padding-horizontal);
+    inset-inline-end: var(--nn-file-item-padding-horizontal);
+    height: var(--nn-separator-height);
+    background-color: var(--nn-theme-list-separator-color);
+    z-index: 100;
+    pointer-events: none;
+}
+
+.nn-list-sticky-header.nn-first-list-group-header .nn-list-group-header::after {
+    display: none;
+}
+
 .nn-list-group-header-icon {
     display: inline-flex;
     align-items: center;

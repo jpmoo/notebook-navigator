@@ -451,10 +451,12 @@ export function ListPaneVirtualContent({
     const virtualItems = rowVirtualizer.getVirtualItems();
     const scrollOffset = rowVirtualizer.scrollOffset ?? 0;
     const stickyGroupHeaders = settings.stickyGroupHeaders;
-    const stickyOffset = Math.max(scrollOffset + 0.5, topSpacerHeight + 0.5);
+    const stickyOffset =
+        stickyGroupHeaders && (topSpacerHeight === 0 || scrollOffset >= topSpacerHeight) ? Math.max(0, scrollOffset + 0.5) : null;
     const firstVisibleItem =
-        stickyGroupHeaders && listItems.length > 0 ? rowVirtualizer.getVirtualItemForOffset(Math.max(0, stickyOffset)) : undefined;
+        stickyOffset !== null && listItems.length > 0 ? rowVirtualizer.getVirtualItemForOffset(stickyOffset) : undefined;
     const stickyHeader = stickyGroupHeaders ? findActiveHeaderModel(headerModels, firstVisibleItem?.index ?? null) : null;
+    const shouldSuppressStickyHeaderSeparator = stickyHeader?.isFirstHeader === true && stickyHeader.isPinnedHeader && !pinnedGroupExpanded;
 
     return (
         <div
@@ -471,7 +473,7 @@ export function ListPaneVirtualContent({
             onMouseLeave={handleListMouseLeave}
         >
             {stickyHeader ? (
-                <div className="nn-list-sticky-header">
+                <div className={`nn-list-sticky-header ${shouldSuppressStickyHeaderSeparator ? 'nn-first-list-group-header' : ''}`}>
                     <ListPaneGroupHeader
                         header={stickyHeader}
                         pinnedGroupChevronIcon={pinnedGroupChevronIcon}
@@ -543,8 +545,7 @@ export function ListPaneVirtualContent({
                             const headerModel = headerModelByIndex.get(virtualItem.index) ?? null;
                             const firstFileAfterHeader = headerModel ? getFirstFileAfterHeader(listItems, virtualItem.index) : null;
                             const shouldSuppressFirstHeaderSeparator =
-                                headerModel?.isFirstHeader === true &&
-                                (stickyGroupHeaders || (headerModel.isPinnedHeader && !pinnedGroupExpanded));
+                                headerModel?.isFirstHeader === true && headerModel.isPinnedHeader && !pinnedGroupExpanded;
                             const hideFileSeparator =
                                 item.type === ListPaneItemType.FILE &&
                                 ((isSelected && !hasSelectedBelow) ||
