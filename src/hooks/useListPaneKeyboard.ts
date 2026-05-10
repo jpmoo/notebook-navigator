@@ -221,20 +221,52 @@ export function useListPaneKeyboard({
 
             // Returns the index of the first selectable item in the list
             const getFirstSelectableIndex = () => helpers.findNextIndex(-1);
-            // Finds the nearest selectable item before the given index
-            const findSelectableBefore = (startIndex: number) => {
-                if (items.length === 0) {
-                    return -1;
+            const getVisibleSelectablePageSize = () => {
+                const virtualItems = virtualizer.getVirtualItems();
+                const scrollElement = virtualizer.scrollElement;
+                if (virtualItems.length === 0 || !scrollElement) {
+                    return helpers.getPageSize();
                 }
 
-                for (let i = Math.min(startIndex, items.length - 1); i >= 0; i--) {
-                    const candidate = helpers.getItemAt(i);
-                    if (candidate && isSelectableListItem(candidate)) {
-                        return i;
+                const viewportStart = virtualizer.scrollOffset ?? scrollElement.scrollTop;
+                const viewportEnd = viewportStart + scrollElement.clientHeight;
+                let visibleSelectableCount = 0;
+
+                for (const virtualItem of virtualItems) {
+                    const item = helpers.getItemAt(virtualItem.index);
+                    if (!item || !isSelectableListItem(item)) {
+                        continue;
+                    }
+
+                    const itemStart = virtualItem.start;
+                    const itemEnd = itemStart + virtualItem.size;
+                    if (itemEnd > viewportStart && itemStart < viewportEnd) {
+                        visibleSelectableCount += 1;
                     }
                 }
 
-                return -1;
+                if (visibleSelectableCount === 0) {
+                    return helpers.getPageSize();
+                }
+
+                // Keep one selectable row visible beyond the target so paging preserves visual context.
+                return Math.max(1, visibleSelectableCount - 2);
+            };
+
+            const findSelectablePageTarget = (startIndex: number, direction: 'up' | 'down') => {
+                const pageSize = getVisibleSelectablePageSize();
+                let targetIndex = startIndex;
+
+                for (let remaining = pageSize; remaining > 0; remaining -= 1) {
+                    const nextIndex = direction === 'down' ? helpers.findNextIndex(targetIndex) : helpers.findPreviousIndex(targetIndex);
+                    if (nextIndex < 0 || nextIndex === targetIndex) {
+                        break;
+                    }
+
+                    targetIndex = nextIndex;
+                }
+
+                return targetIndex;
             };
 
             if (settings.enterToOpenFiles && isEnterKey(e)) {
@@ -355,22 +387,7 @@ export function useListPaneKeyboard({
             } else if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.PANE_PAGE_DOWN)) {
                 e.preventDefault();
                 if (currentIndex !== -1) {
-                    const pageSize = helpers.getPageSize();
-                    const newIndex = Math.min(currentIndex + pageSize, items.length - 1);
-                    // Move down by "pageSize" rows, then snap to the next selectable file.
-                    let newTargetIndex = helpers.findNextIndex(newIndex - 1);
-                    if (newTargetIndex === currentIndex && currentIndex !== items.length - 1) {
-                        // If we couldn't find a new selectable item but we're not at the end, fall back
-                        // to the last selectable item in the list.
-                        for (let i = items.length - 1; i >= 0; i--) {
-                            const item = helpers.getItemAt(i);
-                            if (item && isSelectableListItem(item)) {
-                                newTargetIndex = i;
-                                break;
-                            }
-                        }
-                    }
-                    targetIndex = newTargetIndex;
+                    targetIndex = findSelectablePageTarget(currentIndex, 'down');
                 }
                 shouldDebounceOpen = e.key === 'PageDown';
             } else if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.PANE_PAGE_UP)) {
@@ -383,10 +400,7 @@ export function useListPaneKeyboard({
                         shouldScrollToTop = true;
                     }
                 } else {
-                    const pageSize = helpers.getPageSize();
-                    const newIndex = Math.max(0, currentIndex - pageSize);
-                    // Move up by "pageSize" rows, then snap to the nearest selectable file before that.
-                    const nearestSelectable = findSelectableBefore(newIndex);
+                    const nearestSelectable = findSelectablePageTarget(currentIndex, 'up');
 
                     if (nearestSelectable >= 0) {
                         targetIndex = nearestSelectable;
