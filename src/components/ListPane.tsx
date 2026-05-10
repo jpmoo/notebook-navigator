@@ -401,6 +401,7 @@ export const ListPane = React.memo(
             suppressSearchTopScrollRef,
             topSpacerHeight,
             includeDescendantNotes,
+            pinnedGroupExpanded,
             visiblePropertyKeys: visibleListPropertyKeys,
             visiblePropertyKeySignature: visibleListPropertyKeySignature,
             hiddenTagVisibility,

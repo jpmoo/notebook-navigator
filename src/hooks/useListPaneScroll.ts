@@ -117,6 +117,8 @@ interface UseListPaneScrollParams {
     topSpacerHeight: number;
     /** Whether descendant notes should be shown */
     includeDescendantNotes: boolean;
+    /** Whether the pinned notes group is expanded */
+    pinnedGroupExpanded: boolean;
     /** Visible frontmatter property keys for file list rows (normalized keys) */
     visiblePropertyKeys: ReadonlySet<string>;
     /** Stable key signature for visible frontmatter property keys */
@@ -344,6 +346,7 @@ export function useListPaneScroll({
     suppressSearchTopScrollRef,
     topSpacerHeight,
     includeDescendantNotes,
+    pinnedGroupExpanded,
     visiblePropertyKeys,
     visiblePropertyKeySignature,
     hiddenTagVisibility,
@@ -377,6 +380,7 @@ export function useListPaneScroll({
     const prevListKeyRef = useRef<string>(''); // Previous folder/tag context to detect navigation
     const prevScrollPreservationConfigRef = useRef<PreviousScrollPreservationConfig | null>(null);
     const prevSearchQueryRef = useRef<string | undefined>(undefined); // Track search query changes
+    const prevPinnedGroupExpandedRef = useRef<boolean>(pinnedGroupExpanded);
 
     // ========== Scroll Orchestration ==========
     // Scroll reasons determine priority and alignment behavior
@@ -1133,6 +1137,8 @@ export function useListPaneScroll({
         const propertySelectionKey = selectedProperty ?? '';
         const contextKey = `${selectedFolder?.path || ''}_${selectedTag || ''}_${propertySelectionKey}`;
         const prev = contextIndexVersionRef.current;
+        const pinnedGroupExpandedChanged = prevPinnedGroupExpandedRef.current !== pinnedGroupExpanded;
+        prevPinnedGroupExpandedRef.current = pinnedGroupExpanded;
 
         // Initialize on first run or when context changes
         if (!prev || prev.key !== contextKey) {
@@ -1143,6 +1149,9 @@ export function useListPaneScroll({
         // Same context: if index version advanced, maintain position on selected file
         if (indexVersionRef.current > prev.version) {
             contextIndexVersionRef.current = { key: contextKey, version: indexVersionRef.current };
+            if (pinnedGroupExpandedChanged) {
+                return;
+            }
 
             // Only queue a file scroll if the selected file exists in the current index
             const inList = !!(selectedFile && filePathToIndex.has(selectedFile.path));
@@ -1161,6 +1170,7 @@ export function useListPaneScroll({
         selectedFolder?.path,
         selectedTag,
         selectedProperty,
+        pinnedGroupExpanded,
         filePathToIndex,
         filePathToIndex.size,
         selectedFile,
