@@ -4453,6 +4453,7 @@ body {
 
 .nn-list-sticky-header .nn-list-group-header {
     position: relative;
+    overflow: visible;
     background-color: var(--nn-theme-list-bg) !important;
     pointer-events: auto;
 }
@@ -4472,8 +4473,8 @@ body {
     content: '';
     position: absolute;
     bottom: 0;
-    inset-inline-start: var(--nn-file-item-padding-horizontal);
-    inset-inline-end: var(--nn-file-item-padding-horizontal);
+    inset-inline-start: calc(-1 * var(--nn-scroller-padding));
+    inset-inline-end: calc(-1 * var(--nn-scroller-padding));
     height: var(--nn-separator-height);
     background-color: var(--nn-theme-list-separator-color);
     z-index: 100;
@@ -4500,6 +4501,7 @@ body {
 }
 
 .nn-list-group-header-text {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
 }
