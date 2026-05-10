@@ -303,6 +303,21 @@ export function isListRowHeightAffectingContentChange(change: FileContentChange)
     );
 }
 
+function isFileRowCoveredByStickyHeader(listItems: ListPaneItem[], index: number): boolean {
+    const item = listItems[index];
+    if (item?.type !== ListPaneItemType.FILE || !(item.data instanceof TFile)) {
+        return false;
+    }
+
+    for (let listIndex = index - 1; listIndex >= 0; listIndex -= 1) {
+        if (listItems[listIndex]?.type === ListPaneItemType.HEADER) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 /**
  * Hook that manages scrolling behavior for the ListPane component.
  * Handles virtualization, scroll position, and various scroll scenarios.
@@ -690,6 +705,53 @@ export function useListPaneScroll({
         }
     }, [isMobile]);
 
+    const ensureIndexNotCovered = useCallback(
+        (index: number) => {
+            const scrollElement = scrollContainerRef.current;
+            if (!scrollElement) {
+                return;
+            }
+
+            const row = scrollElement.querySelector(`[data-index="${index}"]`);
+            if (!(row instanceof HTMLElement)) {
+                return;
+            }
+
+            const containerRect = scrollElement.getBoundingClientRect();
+            const rowRect = row.getBoundingClientRect();
+            const topInset = isFileRowCoveredByStickyHeader(listItems, index) ? listMeasurements.firstHeader : 0;
+            const safeTop = containerRect.top + topInset;
+            const safeBottom = containerRect.bottom - effectiveScrollPaddingEnd;
+
+            if (topInset > 0 && rowRect.top < safeTop) {
+                scrollElement.scrollTop -= Math.round(safeTop - rowRect.top);
+                return;
+            }
+
+            if (effectiveScrollPaddingEnd > 0 && rowRect.bottom > safeBottom) {
+                scrollElement.scrollTop += Math.round(rowRect.bottom - safeBottom);
+            }
+        },
+        [effectiveScrollPaddingEnd, listItems, listMeasurements.firstHeader]
+    );
+
+    const scrollToIndexSafely = useCallback(
+        (index: number, align: Align) => {
+            rowVirtualizer.scrollToIndex(index, { align });
+
+            let attempts = 0;
+            const adjust = () => {
+                attempts += 1;
+                ensureIndexNotCovered(index);
+                if (attempts < 3) {
+                    requestAnimationFrame(adjust);
+                }
+            };
+            requestAnimationFrame(adjust);
+        },
+        [ensureIndexNotCovered, rowVirtualizer]
+    );
+
     // Get scroll index for a file, adjusting to show top group header when navigating folders
     // This ensures the top group header (pinned or date) is visible when changing folders/tags
     const getSelectionIndex = useCallback(
@@ -844,7 +906,7 @@ export function useListPaneScroll({
                     if (pending.reason === 'reveal' && selectionState.revealSource === 'startup') {
                         alignment = 'center';
                     }
-                    rowVirtualizer.scrollToIndex(index, { align: alignment });
+                    scrollToIndexSafely(index, alignment);
 
                     if (isStructuralChange) {
                         // Stabilization mechanism: Handle rapid consecutive rebuilds
@@ -887,6 +949,7 @@ export function useListPaneScroll({
         getSelectionIndex,
         isMobile,
         setPending,
+        scrollToIndexSafely,
         revealFileOnListChanges,
         selectionState.revealSource,
         selectedFile?.path
