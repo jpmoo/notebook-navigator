@@ -541,6 +541,9 @@ export function ListPaneVirtualContent({
 
                             const headerModel = headerModelByIndex.get(virtualItem.index) ?? null;
                             const firstFileAfterHeader = headerModel ? getFirstFileAfterHeader(listItems, virtualItem.index) : null;
+                            const shouldSuppressFirstHeaderSeparator =
+                                headerModel?.isFirstHeader === true &&
+                                (stickyGroupHeaders || (headerModel.isPinnedHeader && !pinnedGroupExpanded));
                             const hideFileSeparator =
                                 item.type === ListPaneItemType.FILE &&
                                 ((isSelected && !hasSelectedBelow) ||
@@ -562,7 +565,7 @@ export function ListPaneVirtualContent({
                                     className={`nn-virtual-item ${
                                         item.type === ListPaneItemType.FILE ? 'nn-virtual-file-item' : ''
                                     } ${headerModel ? 'nn-virtual-date-group-header' : ''} ${
-                                        headerModel?.isFirstHeader ? 'nn-first-date-group-header' : ''
+                                        shouldSuppressFirstHeaderSeparator ? 'nn-first-date-group-header' : ''
                                     } ${isLastFile ? 'nn-last-file' : ''} ${hideSeparator ? 'nn-hide-separator-selection' : ''}`}
                                     style={virtualItemStyle}
                                     data-index={virtualItem.index}
