@@ -387,31 +387,32 @@ export const ListPane = React.memo(
         }, [visibleListPropertyKeys]);
 
         // Use the new scroll hook
-        const { rowVirtualizer, scrollContainerRef, scrollContainerRefCallback, handleScrollToTop } = useListPaneScroll({
-            listItems,
-            filePathToIndex,
-            selectedFile,
-            selectedFolder,
-            selectedTag,
-            selectedProperty,
-            settings,
-            folderSettings: appearanceSettings,
-            isVisible,
-            selectionState,
-            selectionDispatch,
-            // Use debounced value for scroll orchestration to align with filtering
-            searchQuery: isSearchActive ? debouncedSearchQuery : undefined,
-            suppressSearchTopScrollRef,
-            topSpacerHeight: effectiveTopSpacerHeight,
-            includeDescendantNotes,
-            pinnedGroupExpanded,
-            visiblePropertyKeys: visibleListPropertyKeys,
-            visiblePropertyKeySignature: visibleListPropertyKeySignature,
-            hiddenTagVisibility,
-            scrollMargin: 0,
-            scrollPaddingEnd,
-            onVirtualizerScrollingChange: handleVirtualizerScrollingChange
-        });
+        const { rowVirtualizer, scrollContainerRef, scrollContainerRefCallback, handleScrollToTop, scrollToIndexSafely } =
+            useListPaneScroll({
+                listItems,
+                filePathToIndex,
+                selectedFile,
+                selectedFolder,
+                selectedTag,
+                selectedProperty,
+                settings,
+                folderSettings: appearanceSettings,
+                isVisible,
+                selectionState,
+                selectionDispatch,
+                // Use debounced value for scroll orchestration to align with filtering
+                searchQuery: isSearchActive ? debouncedSearchQuery : undefined,
+                suppressSearchTopScrollRef,
+                topSpacerHeight: effectiveTopSpacerHeight,
+                includeDescendantNotes,
+                pinnedGroupExpanded,
+                visiblePropertyKeys: visibleListPropertyKeys,
+                visiblePropertyKeySignature: visibleListPropertyKeySignature,
+                hiddenTagVisibility,
+                scrollMargin: 0,
+                scrollPaddingEnd,
+                onVirtualizerScrollingChange: handleVirtualizerScrollingChange
+            });
 
         const prevCalendarOverlayVisibleRef = useRef<boolean>(shouldRenderCalendarOverlay);
         const prevCalendarWeekCountRef = useRef<number>(calendarWeekCount);
@@ -439,7 +440,7 @@ export const ListPane = React.memo(
                 return;
             }
 
-            const scheduleScroll = () => rowVirtualizer.scrollToIndex(index, { align: 'auto' });
+            const scheduleScroll = () => scrollToIndexSafely(index, 'auto');
 
             if (typeof requestAnimationFrame !== 'undefined') {
                 requestAnimationFrame(() => {
@@ -449,7 +450,7 @@ export const ListPane = React.memo(
             }
 
             activeWindow.setTimeout(scheduleScroll, 0);
-        }, [calendarWeekCount, filePathToIndex, rowVirtualizer, selectedFile, shouldRenderCalendarOverlay]);
+        }, [calendarWeekCount, filePathToIndex, scrollToIndexSafely, selectedFile, shouldRenderCalendarOverlay]);
 
         const listToolbar = useMemo(() => {
             return <ListToolbar isSearchActive={isSearchActive} onSearchToggle={handleSearchToggle} />;
@@ -495,7 +496,7 @@ export const ListPane = React.memo(
             rootContainerRef: props.rootContainerRef,
             orderedFiles,
             filePathToIndex,
-            rowVirtualizer
+            scrollToIndexSafely
         });
         ensureSelectionForCurrentFilterRef.current = ensureSelectionForCurrentFilter;
         const toggleNoteShortcut = React.useCallback(async (file: TFile, shortcutKey: string | undefined) => {
@@ -555,6 +556,7 @@ export const ListPane = React.memo(
             pathToIndex: filePathToIndex,
             orderedFiles,
             orderedFileIndexMap,
+            scrollToIndexSafely,
             onSelectFile: (file, options) =>
                 selectFileFromList(file, {
                     markKeyboardNavigation: true,

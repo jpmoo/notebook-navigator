@@ -165,6 +165,8 @@ interface UseListPaneScrollResult {
     scrollContainerRefCallback: (element: HTMLDivElement | null) => void;
     /** Handler to scroll to top (mobile header tap) */
     handleScrollToTop: () => void;
+    /** Scrolls a list index into view while accounting for overlay chrome */
+    scrollToIndexSafely: (index: number, align: Align) => void;
 }
 
 // Path-index maps can be recreated with the same contents. Keep indexVersion tied to effective mapping changes.
@@ -1391,6 +1393,7 @@ export function useListPaneScroll({
         rowVirtualizer,
         scrollContainerRef,
         scrollContainerRefCallback,
-        handleScrollToTop
+        handleScrollToTop,
+        scrollToIndexSafely
     };
 }

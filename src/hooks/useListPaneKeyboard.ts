@@ -47,6 +47,7 @@ import { matchesShortcut, KeyboardShortcutAction } from '../utils/keyboardShortc
 import { runAsyncAction } from '../utils/async';
 import { openFileInContext } from '../utils/openFileInContext';
 import { isEnterKey, resolveKeyboardOpenContext } from '../utils/keyboardOpenContext';
+import type { Align } from '../types/scroll';
 
 /**
  * Check if a list item is selectable (file, not header or spacer)
@@ -70,6 +71,8 @@ interface UseListPaneKeyboardProps {
     orderedFileIndexMap: Map<string, number>;
     /** Handler for selecting a file from keyboard actions */
     onSelectFile: (file: TFile, options?: { markKeyboardNavigation?: boolean; suppressOpen?: boolean; debounceOpen?: boolean }) => void;
+    /** Scrolls a list index into view while accounting for list overlays */
+    scrollToIndexSafely: (index: number, align: Align) => void;
     /** Keep debounced open aligned when selection cannot move (e.g. ArrowDown at end of list) */
     onScheduleKeyboardOpen?: () => void;
     /** Schedule a debounced open for a specific file (used for Shift+Arrow multi-selection) */
@@ -90,6 +93,7 @@ export function useListPaneKeyboard({
     orderedFiles,
     orderedFileIndexMap,
     onSelectFile,
+    scrollToIndexSafely,
     onScheduleKeyboardOpen,
     onScheduleKeyboardOpenForFile,
     onCommitKeyboardOpen
@@ -174,7 +178,7 @@ export function useListPaneKeyboard({
 
             const targetListIndex = pathToIndex.get(targetFile.path);
             if (targetListIndex !== undefined) {
-                virtualizer.scrollToIndex(targetListIndex, { align: 'auto' });
+                scrollToIndexSafely(targetListIndex, 'auto');
             }
         },
         [
@@ -184,7 +188,8 @@ export function useListPaneKeyboard({
             settings.enterToOpenFiles,
             openFileInWorkspace,
             virtualizer,
-            pathToIndex
+            pathToIndex,
+            scrollToIndexSafely
         ]
     );
 
@@ -285,7 +290,7 @@ export function useListPaneKeyboard({
                             const finalFile = orderedFiles[finalFileIndex];
                             const itemIndex = pathToIndex.get(finalFile.path);
                             if (itemIndex !== undefined) {
-                                helpers.scrollToIndex(itemIndex);
+                                scrollToIndexSafely(itemIndex, 'auto');
                             }
                         }
                     }
@@ -311,7 +316,7 @@ export function useListPaneKeyboard({
                             const finalFile = orderedFiles[finalFileIndex];
                             const itemIndex = pathToIndex.get(finalFile.path);
                             if (itemIndex !== undefined) {
-                                helpers.scrollToIndex(itemIndex);
+                                scrollToIndexSafely(itemIndex, 'auto');
                             }
                         }
                     }
@@ -497,7 +502,7 @@ export function useListPaneKeyboard({
                     if (shouldScrollToTop) {
                         virtualizer.scrollToIndex(0, { align: 'start' });
                     } else {
-                        helpers.scrollToIndex(targetIndex);
+                        scrollToIndexSafely(targetIndex, 'auto');
                     }
                 }
             } else if (shouldScrollToTop) {
@@ -529,7 +534,8 @@ export function useListPaneKeyboard({
             showHiddenItems,
             openFileInWorkspace,
             onScheduleKeyboardOpen,
-            onScheduleKeyboardOpenForFile
+            onScheduleKeyboardOpenForFile,
+            scrollToIndexSafely
         ]
     );
 

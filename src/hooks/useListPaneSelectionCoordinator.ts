@@ -18,7 +18,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, type MouseEvent as ReactMouseEvent, type RefObject } from 'react';
 import { TFile, debounce } from 'obsidian';
-import { Virtualizer } from '@tanstack/react-virtual';
 import { resolvePrimarySelectedFile, useSelectionDispatch, useSelectionState } from '../context/SelectionContext';
 import { useServices } from '../context/ServicesContext';
 import { useSettingsState } from '../context/SettingsContext';
@@ -32,6 +31,7 @@ import { isKeyboardEventContextBlocked } from '../utils/domUtils';
 import { isCmdCtrlModifierPressed, isMultiSelectModifierPressed } from '../utils/keyboardOpenContext';
 import { openFileInContext } from '../utils/openFileInContext';
 import { getAdjacentFile } from '../utils/selectionUtils';
+import type { Align } from '../types/scroll';
 
 export interface SelectFileOptions {
     markKeyboardNavigation?: boolean;
@@ -55,7 +55,7 @@ interface UseListPaneSelectionCoordinatorParams {
     rootContainerRef: RefObject<HTMLDivElement | null>;
     orderedFiles: TFile[];
     filePathToIndex: Map<string, number>;
-    rowVirtualizer: Virtualizer<HTMLDivElement, Element>;
+    scrollToIndexSafely: (index: number, align: Align) => void;
 }
 
 interface UseListPaneSelectionCoordinatorResult {
@@ -74,7 +74,7 @@ export function useListPaneSelectionCoordinator({
     rootContainerRef,
     orderedFiles,
     filePathToIndex,
-    rowVirtualizer
+    scrollToIndexSafely
 }: UseListPaneSelectionCoordinatorParams): UseListPaneSelectionCoordinatorResult {
     const { app, commandQueue, isMobile } = useServices();
     const openFileInWorkspace = useFileOpener();
@@ -369,12 +369,12 @@ export function useListPaneSelectionCoordinator({
 
             const virtualIndex = filePathToIndex.get(targetFile.path);
             if (virtualIndex !== undefined) {
-                rowVirtualizer.scrollToIndex(virtualIndex, { align: 'auto' });
+                scrollToIndexSafely(virtualIndex, 'auto');
             }
 
             return true;
         },
-        [app, filePathToIndex, orderedFiles, rowVirtualizer, selectFileFromList, selectionState, settings.enterToOpenFiles]
+        [app, filePathToIndex, orderedFiles, scrollToIndexSafely, selectFileFromList, selectionState, settings.enterToOpenFiles]
     );
 
     const handleFileClick = useCallback(
