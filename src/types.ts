@@ -354,6 +354,7 @@ export interface UXPreferences {
     includeDescendantNotes: boolean;
     showHiddenItems: boolean;
     pinShortcuts: boolean;
+    pinnedGroupExpanded: boolean;
     showCalendar: boolean;
 }
 

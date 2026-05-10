@@ -100,6 +100,16 @@
 
 .nn-pinned-section-header {
     align-items: center;
+    user-select: none;
+}
+
+.nn-pinned-section-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+    cursor: pointer;
 }
 
 /* Virtual list item - absolute positioning for list pane items */

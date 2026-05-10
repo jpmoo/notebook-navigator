@@ -436,7 +436,6 @@ export const STRINGS_EN = {
                 'nav-properties': 'Properties',
                 'nav-property': 'Property',
                 'nav-property-value': 'Value',
-                'list-pinned': 'Pinned items',
                 'file-unfinished-task': 'Unfinished tasks',
                 'file-word-count': 'Word count'
             }
@@ -786,6 +785,7 @@ export const STRINGS_EN = {
         toggleTagsBySelection: 'Toggle tags by selection',
         togglePropertiesBySelection: 'Toggle properties by selection',
         toggleCompactMode: 'Toggle compact mode', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Toggle pinned section',
         collapseExpand: 'Collapse / expand all items', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Add tag to selected files', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Set property on selected files', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -957,14 +957,6 @@ export const STRINGS_EN = {
             stickyGroupHeaders: {
                 name: 'Sticky group headers',
                 desc: 'Keep the current date, folder, or pinned section header visible while scrolling.'
-            },
-            showPinnedGroupHeader: {
-                name: 'Show pinned group header',
-                desc: 'Display the pinned section header above pinned notes.'
-            },
-            showPinnedIcon: {
-                name: 'Show pinned icon',
-                desc: 'Show the icon next to the pinned section header.'
             },
             defaultListMode: {
                 name: 'Default list mode',

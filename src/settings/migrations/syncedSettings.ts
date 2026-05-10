@@ -71,10 +71,12 @@ export function migrateLegacySyncedSettings(params: {
     delete mutableSettings.preventInvalidCharacters;
     delete mutableSettings.mobileBackground;
     delete mutableSettings.optimizeNoteHeight;
+    delete mutableSettings.showPinnedIcon;
+    delete mutableSettings.showPinnedGroupHeader;
 
     const storedNoteGrouping = storedData ? storedData['noteGrouping'] : undefined;
 
-    // Migrates legacy showIcons boolean to separate icon settings for sections, folders, tags, and pinned items
+    // Migrates legacy showIcons boolean to separate icon settings for sections, folders, and tags
     const legacyShowIcons = mutableSettings.showIcons;
     if (typeof legacyShowIcons === 'boolean') {
         if (typeof storedData?.['showSectionIcons'] === 'undefined') {
@@ -85,9 +87,6 @@ export function migrateLegacySyncedSettings(params: {
         }
         if (typeof storedData?.['showTagIcons'] === 'undefined') {
             settings.showTagIcons = legacyShowIcons;
-        }
-        if (typeof storedData?.['showPinnedIcon'] === 'undefined') {
-            settings.showPinnedIcon = legacyShowIcons;
         }
     }
     delete mutableSettings.showIcons;

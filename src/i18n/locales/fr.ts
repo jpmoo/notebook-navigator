@@ -437,7 +437,6 @@ export const STRINGS_FR = {
                 'nav-properties': 'Propriétés',
                 'nav-property': 'Propriété',
                 'nav-property-value': 'Valeur',
-                'list-pinned': 'Éléments épinglés',
                 'file-unfinished-task': 'Tâches inachevées',
                 'file-word-count': 'Nombre de mots'
             }
@@ -792,6 +791,7 @@ export const STRINGS_FR = {
         toggleTagsBySelection: 'Basculer les étiquettes par sélection',
         togglePropertiesBySelection: 'Basculer les propriétés par sélection',
         toggleCompactMode: 'Basculer le mode compact', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Basculer la section épinglée',
         collapseExpand: 'Replier / déplier tous les éléments', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Ajouter une étiquette aux fichiers sélectionnés', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Définir une propriété sur les fichiers sélectionnés', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -963,14 +963,6 @@ export const STRINGS_FR = {
             stickyGroupHeaders: {
                 name: 'En-têtes de groupe épinglés',
                 desc: "Garder visible l'en-tête de section actuel (date, dossier ou épinglé) lors du défilement."
-            },
-            showPinnedGroupHeader: {
-                name: "Afficher l'en-tête du groupe épinglé",
-                desc: "Affiche l'en-tête de la section des notes épinglées."
-            },
-            showPinnedIcon: {
-                name: "Afficher l'icône épinglée",
-                desc: "Afficher l'icône à côté de l'en-tête de la section épinglée."
             },
             defaultListMode: {
                 name: 'Mode de liste par défaut',

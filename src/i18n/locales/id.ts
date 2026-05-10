@@ -437,7 +437,6 @@ export const STRINGS_ID = {
                 'nav-properties': 'Properti',
                 'nav-property': 'Properti',
                 'nav-property-value': 'Nilai',
-                'list-pinned': 'Item tersemat',
                 'file-unfinished-task': 'Tugas belum selesai',
                 'file-word-count': 'Jumlah kata'
             }
@@ -790,6 +789,7 @@ export const STRINGS_ID = {
         toggleTagsBySelection: 'Alihkan tag berdasarkan pilihan',
         togglePropertiesBySelection: 'Alihkan properti berdasarkan pilihan',
         toggleCompactMode: 'Alihkan mode kompak', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Alihkan bagian yang disematkan',
         collapseExpand: 'Ciutkan / luaskan semua item',
         addTag: 'Tambah tag ke file yang dipilih',
         setProperty: 'Atur properti pada file yang dipilih', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -961,14 +961,6 @@ export const STRINGS_ID = {
             stickyGroupHeaders: {
                 name: 'Header grup tetap',
                 desc: 'Jaga header bagian tanggal, folder, atau yang disematkan saat ini tetap terlihat saat menggulir.'
-            },
-            showPinnedGroupHeader: {
-                name: 'Tampilkan header grup yang disematkan',
-                desc: 'Tampilkan header bagian yang disematkan di atas catatan yang disematkan.'
-            },
-            showPinnedIcon: {
-                name: 'Tampilkan ikon yang disematkan',
-                desc: 'Tampilkan ikon di sebelah header bagian yang disematkan.'
             },
             defaultListMode: {
                 name: 'Mode daftar default',

@@ -82,17 +82,23 @@ export interface ReleaseNote {
 const RELEASE_NOTES: ReleaseNote[] = [
     {
         version: '2.6.5',
-        date: '2026-05-11',
+        date: '2026-05-10',
         showOnUpdate: true,
         new: [
-            '**List pane.** Added **Use folder icon** in List > Notes > Icon. Shows parent folder icons on notes without custom file icons.',
-            '**List pane.** Added **Use folder color** in List > Notes > Title. Shows parent folder colors on note titles and file icons without custom file colors.',
-            '**List pane.** Added **Show full path** in List > Notes > Parent folder. Shows the full parent folder path instead of only the folder name.',
-            '**List pane.** Added **Sticky group headers** in List > Organization. Toggles whether the current date, folder, or pinned section header stays visible while scrolling. Default enabled.'
+            '**List pane.** ==Pinned notes can now be collapsed==. Click the Pinned header to hide or show them.',
+            '**List pane.** New setting **Sticky group headers** in List > Organization. ==Group headers now stick to the top of list pane==. Default enabled.',
+            '**List pane.** New setting **Use folder icon** in List > Notes > Icon. ==Shows parent folder icons on notes without custom file icons==.',
+            '**List pane.** New setting **Use folder color** in List > Notes > Title. ==Shows parent folder colors on notes without custom file colors==.',
+            '**List pane.** New setting **Show full path** in List > Notes > Parent folder. ==Shows the full parent folder path in list pane== instead of only the folder name.',
+            '**Commands.** New command **Toggle pinned section** to collapse or expand the pinned notes section.'
         ],
         improved: [
             '**Settings.** Reorganized the List tab into Appearance, Organization, Pinned notes, and Behavior groups.',
             '**UI Polish**. Simplified list item rendering and feature images a bit, worked on the hover effect, and many other minor improvements.'
+        ],
+        changed: [
+            '**Settings.** Removed List > Pinned notes > **Show pinned icon**. No longer relevant when pinned items can be collapsed.',
+            '**Settings.** Removed List > Pinned notes > **Show pinned group header**. It added unnecessary internal complexity, most users want this enabled.'
         ],
         fixed: ['Fixed the drag-and-drop ghost image that disappeared in 2.6.3.']
     },

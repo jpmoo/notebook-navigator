@@ -533,6 +533,14 @@ export class PluginPreferencesController {
         this.updateUXPreference('pinShortcuts', value);
     }
 
+    public setPinnedGroupExpanded(value: boolean): void {
+        this.updateUXPreference('pinnedGroupExpanded', value);
+    }
+
+    public togglePinnedGroupExpanded(): void {
+        this.setPinnedGroupExpanded(!this.uxPreferences.pinnedGroupExpanded);
+    }
+
     public setShowCalendar(value: boolean): void {
         const next = Boolean(value);
         if (this.uxPreferences.showCalendar === next) {

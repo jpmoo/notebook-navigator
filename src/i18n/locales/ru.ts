@@ -437,7 +437,6 @@ export const STRINGS_RU = {
                 'nav-properties': 'Свойства',
                 'nav-property': 'Свойство',
                 'nav-property-value': 'Значение',
-                'list-pinned': 'Закреплённые элементы',
                 'file-unfinished-task': 'Незавершённые задачи',
                 'file-word-count': 'Количество слов'
             }
@@ -787,6 +786,7 @@ export const STRINGS_RU = {
         toggleTagsBySelection: 'Переключить теги по выбору',
         togglePropertiesBySelection: 'Переключить свойства по выбору',
         toggleCompactMode: 'Переключить компактный режим', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Переключить закреплённый раздел',
         collapseExpand: 'Свернуть / развернуть все элементы', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Добавить тег к выбранным файлам', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Задать свойство для выбранных файлов', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -958,14 +958,6 @@ export const STRINGS_RU = {
             stickyGroupHeaders: {
                 name: 'Закреплённые заголовки групп',
                 desc: 'Сохранять видимым заголовок текущей даты, папки или раздела закреплённых при прокрутке.'
-            },
-            showPinnedGroupHeader: {
-                name: 'Показывать заголовок закреплённых',
-                desc: 'Отображать заголовок раздела закреплённых над закреплёнными заметками.'
-            },
-            showPinnedIcon: {
-                name: 'Показывать иконку закреплённых',
-                desc: 'Показывать иконку рядом с заголовком раздела закреплённых.'
             },
             defaultListMode: {
                 name: 'Режим списка по умолчанию',

@@ -436,7 +436,6 @@ export const STRINGS_TH = {
                 'nav-properties': 'คุณสมบัติ',
                 'nav-property': 'คุณสมบัติ',
                 'nav-property-value': 'ค่า',
-                'list-pinned': 'รายการที่ปักหมุด',
                 'file-unfinished-task': 'งานที่ยังไม่เสร็จ',
                 'file-word-count': 'จำนวนคำ'
             }
@@ -786,6 +785,7 @@ export const STRINGS_TH = {
         toggleTagsBySelection: 'สลับแท็กตามการเลือก',
         togglePropertiesBySelection: 'สลับคุณสมบัติตามการเลือก',
         toggleCompactMode: 'สลับโหมดกะทัดรัด', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'สลับส่วนที่ปักหมุด',
         collapseExpand: 'ยุบ / ขยายรายการทั้งหมด',
         addTag: 'เพิ่มแท็กในไฟล์ที่เลือก',
         setProperty: 'ตั้งค่าคุณสมบัติในไฟล์ที่เลือก', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -957,14 +957,6 @@ export const STRINGS_TH = {
             stickyGroupHeaders: {
                 name: 'ส่วนหัวกลุ่มแบบติดด้านบน',
                 desc: 'แสดงส่วนหัวของวันที่ โฟลเดอร์ หรือส่วนที่ปักหมุดในปัจจุบันให้เห็นอยู่เสมอขณะเลื่อน'
-            },
-            showPinnedGroupHeader: {
-                name: 'แสดงส่วนหัวกลุ่มที่ปักหมุด',
-                desc: 'แสดงส่วนหัวส่วนที่ปักหมุดเหนือโน้ตที่ปักหมุด'
-            },
-            showPinnedIcon: {
-                name: 'แสดงไอคอนที่ปักหมุด',
-                desc: 'แสดงไอคอนข้างส่วนหัวส่วนที่ปักหมุด'
             },
             defaultListMode: {
                 name: 'โหมดรายการเริ่มต้น',

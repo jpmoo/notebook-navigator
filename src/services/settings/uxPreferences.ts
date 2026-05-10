@@ -27,6 +27,7 @@ const UX_PREFERENCES_DEFAULTS = {
         showCalendar: false,
         showHiddenItems: false,
         pinShortcuts: true,
+        pinnedGroupExpanded: true,
         includeDescendantNotes: DEFAULT_SETTINGS.includeDescendantNotes
     },
     platform: {

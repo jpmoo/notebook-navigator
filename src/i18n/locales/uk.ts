@@ -437,7 +437,6 @@ export const STRINGS_UK = {
                 'nav-properties': 'Властивості',
                 'nav-property': 'Властивість',
                 'nav-property-value': 'Значення',
-                'list-pinned': 'Закріплені елементи',
                 'file-unfinished-task': 'Незавершені завдання',
                 'file-word-count': 'Кількість слів'
             }
@@ -787,6 +786,7 @@ export const STRINGS_UK = {
         toggleTagsBySelection: 'Перемкнути теги за вибором',
         togglePropertiesBySelection: 'Перемкнути властивості за вибором',
         toggleCompactMode: 'Перемкнути компактний режим', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Перемкнути закріплений розділ',
         collapseExpand: 'Згорнути / розгорнути всі елементи', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Додати тег до вибраних файлів', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Встановити властивість для вибраних файлів', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -958,14 +958,6 @@ export const STRINGS_UK = {
             stickyGroupHeaders: {
                 name: 'Закріплені заголовки груп',
                 desc: 'Тримати заголовок поточної дати, теки або закріпленого розділу видимим під час прокручування.'
-            },
-            showPinnedGroupHeader: {
-                name: 'Показувати заголовок закріплених',
-                desc: 'Відображати заголовок розділу закріплених над закріпленими нотатками.'
-            },
-            showPinnedIcon: {
-                name: 'Показувати іконку закріплених',
-                desc: 'Показувати іконку поряд із заголовком розділу закріплених.'
             },
             defaultListMode: {
                 name: 'Режим списку за замовчуванням',

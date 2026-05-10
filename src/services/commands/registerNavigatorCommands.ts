@@ -785,6 +785,18 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
         }
     });
 
+    // Command to toggle the pinned section in the list pane
+    plugin.addCommand({
+        id: 'toggle-pinned-section',
+        name: strings.commands.togglePinnedSection,
+        callback: () => {
+            runAsyncAction(async () => {
+                await plugin.activateView();
+                plugin.togglePinnedGroupExpanded();
+            });
+        }
+    });
+
     // Command to toggle between single and dual pane layouts
     plugin.addCommand({
         id: 'toggle-dual-pane',

@@ -231,6 +231,16 @@ export class PluginSettingsController {
         const hadLegacyFolderColorTitleSettingInStoredData = Boolean(
             storedData && Object.prototype.hasOwnProperty.call(storedData, 'useFolderColorForFileTitles')
         );
+        const hadShowPinnedIconInStoredData = Boolean(storedData && Object.prototype.hasOwnProperty.call(storedData, 'showPinnedIcon'));
+        const hadShowPinnedGroupHeaderInStoredData = Boolean(
+            storedData && Object.prototype.hasOwnProperty.call(storedData, 'showPinnedGroupHeader')
+        );
+        const storedInterfaceIcons = storedData?.['interfaceIcons'];
+        const hadPinnedSectionIconInStoredData = Boolean(
+            isRecord(storedInterfaceIcons) &&
+            (Object.prototype.hasOwnProperty.call(storedInterfaceIcons, 'list-pinned') ||
+                Object.prototype.hasOwnProperty.call(storedInterfaceIcons, 'pinned-section'))
+        );
         const storedSettings = storedData as Partial<NotebookNavigatorSettings> | null;
         const isFirstLaunch = storedData === null;
         this.shouldPersistDesktopScale = Boolean(storedData && 'desktopScale' in storedData);
@@ -407,6 +417,9 @@ export class PluginSettingsController {
             hadLegacyPropertyFieldsInStoredData ||
             hadLegacyHomepageSettingsInStoredData ||
             hadLegacyFolderColorTitleSettingInStoredData ||
+            hadShowPinnedIconInStoredData ||
+            hadShowPinnedGroupHeaderInStoredData ||
+            hadPinnedSectionIconInStoredData ||
             uiScaleMigrated ||
             migratedMomentFormats ||
             migratedShortcutNegationSyntax;
@@ -573,6 +586,8 @@ export class PluginSettingsController {
         delete rest.saveMetadataToFrontmatter;
         delete rest.propertyFields;
         delete rest.optimizeNoteHeight;
+        delete rest.showPinnedIcon;
+        delete rest.showPinnedGroupHeader;
 
         const syncModeRegistry = this.getSyncModeRegistry();
         SYNC_MODE_SETTING_IDS.forEach(settingId => {

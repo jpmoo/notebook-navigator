@@ -437,7 +437,6 @@ export const STRINGS_ES = {
                 'nav-properties': 'Propiedades',
                 'nav-property': 'Propiedad',
                 'nav-property-value': 'Valor',
-                'list-pinned': 'Elementos fijados',
                 'file-unfinished-task': 'Tareas pendientes',
                 'file-word-count': 'Conteo de palabras'
             }
@@ -791,6 +790,7 @@ export const STRINGS_ES = {
         toggleTagsBySelection: 'Alternar etiquetas por selección',
         togglePropertiesBySelection: 'Alternar propiedades por selección',
         toggleCompactMode: 'Alternar modo compacto', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Alternar sección anclada',
         collapseExpand: 'Contraer / expandir todos los elementos', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Añadir etiqueta a archivos seleccionados', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Establecer propiedad en archivos seleccionados', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -962,14 +962,6 @@ export const STRINGS_ES = {
             stickyGroupHeaders: {
                 name: 'Encabezados de grupo fijos',
                 desc: 'Mantén visible el encabezado actual de fecha, carpeta o sección anclada al desplazarte.'
-            },
-            showPinnedGroupHeader: {
-                name: 'Mostrar encabezado del grupo anclado',
-                desc: 'Muestra el encabezado de la sección de notas ancladas.'
-            },
-            showPinnedIcon: {
-                name: 'Mostrar icono de anclados',
-                desc: 'Muestra el icono junto al encabezado de la sección anclada.'
             },
             defaultListMode: {
                 name: 'Modo de lista predeterminado',

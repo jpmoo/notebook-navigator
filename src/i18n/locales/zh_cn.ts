@@ -436,7 +436,6 @@ export const STRINGS_ZH_CN = {
                 'nav-properties': '属性',
                 'nav-property': '属性',
                 'nav-property-value': '值',
-                'list-pinned': '固定项目',
                 'file-unfinished-task': '未完成任务',
                 'file-word-count': '字数统计'
             }
@@ -783,6 +782,7 @@ export const STRINGS_ZH_CN = {
         toggleTagsBySelection: '按选择切换标签',
         togglePropertiesBySelection: '按选择切换属性',
         toggleCompactMode: '切换紧凑模式', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: '切换置顶区域',
         collapseExpand: '折叠/展开所有项目', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: '为选定文件添加标签', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: '为选定文件设置属性', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -954,14 +954,6 @@ export const STRINGS_ZH_CN = {
             stickyGroupHeaders: {
                 name: '固定分组标题',
                 desc: '滚动时保持当前日期、文件夹或固定部分的标题可见。'
-            },
-            showPinnedGroupHeader: {
-                name: '显示固定组标题',
-                desc: '在固定笔记上方显示分组标题。'
-            },
-            showPinnedIcon: {
-                name: '显示固定图标',
-                desc: '在固定部分标题旁显示图标。'
             },
             defaultListMode: {
                 name: '默认列表模式',

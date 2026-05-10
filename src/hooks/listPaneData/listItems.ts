@@ -36,9 +36,9 @@ export interface ListPaneConfig {
     filterPinnedByFolder: boolean;
     folderGroupSortOrder: AlphaSortOrder;
     groupBy: ListNoteGroupingOption;
+    pinnedGroupExpanded: boolean;
     pinnedNotes: NotebookNavigatorSettings['pinnedNotes'];
     showFileTags: boolean;
-    showPinnedGroupHeader: boolean;
     showTags: boolean;
 }
 
@@ -154,16 +154,16 @@ export function buildListItems({
     };
 
     if (pinnedFiles.length > 0) {
-        if (listConfig.showPinnedGroupHeader) {
-            pushHeaderItem({
-                data: strings.listPane.pinnedSection,
-                key: PINNED_SECTION_HEADER_KEY
+        pushHeaderItem({
+            data: strings.listPane.pinnedSection,
+            key: PINNED_SECTION_HEADER_KEY
+        });
+
+        if (listConfig.pinnedGroupExpanded) {
+            pinnedFiles.forEach(file => {
+                pushFileItem(file, { isPinned: true });
             });
         }
-
-        pinnedFiles.forEach(file => {
-            pushFileItem(file, { isPinned: true });
-        });
     }
 
     const groupingMode = listConfig.groupBy;

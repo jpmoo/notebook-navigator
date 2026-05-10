@@ -437,7 +437,6 @@ export const STRINGS_TR = {
                 'nav-properties': 'Özellikler',
                 'nav-property': 'Özellik',
                 'nav-property-value': 'Değer',
-                'list-pinned': 'Sabitlenmiş öğeler',
                 'file-unfinished-task': 'Tamamlanmamış görevler',
                 'file-word-count': 'Kelime sayısı'
             }
@@ -790,6 +789,7 @@ export const STRINGS_TR = {
         toggleTagsBySelection: 'Etiketleri seçime göre aç/kapat',
         togglePropertiesBySelection: 'Özellikleri seçime göre aç/kapat',
         toggleCompactMode: 'Kompakt modu aç/kapat', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Sabitlenmiş bölümü aç/kapat',
         collapseExpand: 'Tüm öğeleri daralt / genişlet', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Seçili dosyalara etiket ekle', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Seçili dosyalarda özellik ayarla', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -961,14 +961,6 @@ export const STRINGS_TR = {
             stickyGroupHeaders: {
                 name: 'Yapışkan grup başlıkları',
                 desc: 'Geçerli tarih, klasör veya sabitlenmiş bölüm başlığını kaydırırken görünür tut.'
-            },
-            showPinnedGroupHeader: {
-                name: 'Sabitlenmiş grup başlığını göster',
-                desc: 'Sabitlenmiş notların üzerinde sabitlenmiş bölüm başlığını görüntüle.'
-            },
-            showPinnedIcon: {
-                name: 'Sabitlenmiş simgesini göster',
-                desc: 'Sabitlenmiş bölüm başlığının yanında simgeyi göster.'
             },
             defaultListMode: {
                 name: 'Varsayılan liste modu',

@@ -438,7 +438,6 @@ export const STRINGS_NL = {
                 'nav-properties': 'Eigenschappen',
                 'nav-property': 'Eigenschap',
                 'nav-property-value': 'Waarde',
-                'list-pinned': 'Vastgezette items',
                 'file-unfinished-task': 'Onvoltooide taken',
                 'file-word-count': 'Aantal woorden'
             }
@@ -791,6 +790,7 @@ export const STRINGS_NL = {
         toggleTagsBySelection: 'Tags op selectie in-/uitschakelen',
         togglePropertiesBySelection: 'Eigenschappen op selectie in-/uitschakelen',
         toggleCompactMode: 'Compacte modus in-/uitschakelen', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Vastgemaakt gedeelte in-/uitschakelen',
         collapseExpand: 'Alle items in-/uitklappen',
         addTag: 'Tag toevoegen aan geselecteerde bestanden',
         setProperty: 'Eigenschap instellen op geselecteerde bestanden', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -962,14 +962,6 @@ export const STRINGS_NL = {
             stickyGroupHeaders: {
                 name: 'Plakkerige groepskoppen',
                 desc: 'Houd de huidige datum-, map- of vastgepinde sectiekop zichtbaar tijdens het scrollen.'
-            },
-            showPinnedGroupHeader: {
-                name: 'Vastgepinde groepskop tonen',
-                desc: 'De vastgepinde sectiekop boven vastgepinde notities weergeven.'
-            },
-            showPinnedIcon: {
-                name: 'Vastgepind pictogram tonen',
-                desc: 'Pictogram naast vastgepinde sectiekop weergeven.'
             },
             defaultListMode: {
                 name: 'Standaard lijstmodus',

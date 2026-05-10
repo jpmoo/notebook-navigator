@@ -438,7 +438,6 @@ export const STRINGS_PL = {
                 'nav-properties': 'Atrybuty',
                 'nav-property': 'Atrybut',
                 'nav-property-value': 'Wartość',
-                'list-pinned': 'Przypięte elementy',
                 'file-unfinished-task': 'Nieukończone zadania',
                 'file-word-count': 'Liczba słów'
             }
@@ -792,6 +791,7 @@ export const STRINGS_PL = {
         toggleTagsBySelection: 'Przełącz tagi według wyboru',
         togglePropertiesBySelection: 'Przełącz właściwości według wyboru',
         toggleCompactMode: 'Przełącz tryb kompaktowy', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Przełącz przypiętą sekcję',
         collapseExpand: 'Zwiń / rozwiń wszystkie elementy', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Dodaj tag do wybranych plików', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Ustaw właściwość dla wybranych plików', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -963,14 +963,6 @@ export const STRINGS_PL = {
             stickyGroupHeaders: {
                 name: 'Przyklejone nagłówki grup',
                 desc: 'Bieżący nagłówek sekcji daty, folderu lub przypiętej pozostaje widoczny podczas przewijania.'
-            },
-            showPinnedGroupHeader: {
-                name: 'Pokaż nagłówek grupy przypiętych',
-                desc: 'Wyświetla nagłówek sekcji przypiętych notatek.'
-            },
-            showPinnedIcon: {
-                name: 'Pokaż ikonkę przypiętych',
-                desc: 'Wyświetla ikonkę obok nagłówka sekcji przypiętych.'
             },
             defaultListMode: {
                 name: 'Domyślny tryb listy',

@@ -37,6 +37,7 @@ import type { ListPaneAppearanceSettings } from '../../hooks/useListPaneAppearan
 import type { FileNameIconNeedle } from '../../utils/fileIconUtils';
 import type { HiddenTagVisibility } from '../../utils/tagPrefixMatcher';
 import type { FileItemPillDecorationModel } from '../../utils/fileItemPillDecoration';
+import { resolveUXIcon } from '../../utils/uxIcons';
 
 export interface PointerClientPosition {
     clientX: number;
@@ -65,8 +66,8 @@ type VirtualRowStyle = React.CSSProperties & Record<'--item-height', string>;
 
 interface ListPaneGroupHeaderProps {
     header: HeaderRenderModel;
-    pinnedSectionIcon: string;
-    showPinnedIcon: boolean;
+    pinnedGroupChevronIcon: string;
+    onPinnedGroupHeaderToggle: () => void;
     onFolderGroupHeaderClick: (event: React.MouseEvent<HTMLSpanElement>, target: FolderGroupHeaderTarget) => void;
     onFolderGroupHeaderMouseDown: (event: React.MouseEvent<HTMLSpanElement>, target: FolderGroupHeaderTarget) => void;
 }
@@ -81,7 +82,8 @@ interface ListPaneVirtualContentProps {
     hasNoFiles: boolean;
     topSpacerHeight: number;
     settings: NotebookNavigatorSettings;
-    pinnedSectionIcon: string;
+    pinnedGroupExpanded: boolean;
+    onPinnedGroupHeaderToggle: () => void;
     selectionType: NavigationItemType | null;
     sortOption?: SortOption;
     searchHighlightQuery?: string;
@@ -174,34 +176,51 @@ function findActiveHeaderModel(headers: HeaderRenderModel[], firstVisibleIndex: 
 
 function ListPaneGroupHeader({
     header,
-    pinnedSectionIcon,
-    showPinnedIcon,
+    pinnedGroupChevronIcon,
+    onPinnedGroupHeaderToggle,
     onFolderGroupHeaderClick,
     onFolderGroupHeaderMouseDown
 }: ListPaneGroupHeaderProps) {
     const folderGroupHeaderTarget = header.folderGroupHeaderTarget;
     const isClickableFolderGroupHeader = Boolean(folderGroupHeaderTarget) && !header.isPinnedHeader;
+    const handlePinnedHeaderClick = useCallback(
+        (event: React.MouseEvent<HTMLDivElement>) => {
+            event.stopPropagation();
+            onPinnedGroupHeaderToggle();
+        },
+        [onPinnedGroupHeaderToggle]
+    );
+
+    if (header.isPinnedHeader) {
+        const pinnedHeaderContent = (
+            <>
+                <ServiceIcon
+                    iconId={pinnedGroupChevronIcon}
+                    className="nn-date-group-header-icon nn-pinned-section-chevron"
+                    aria-hidden={true}
+                />
+                <span className="nn-date-group-header-text">{header.label}</span>
+            </>
+        );
+
+        return (
+            <div className="nn-date-group-header nn-pinned-section-header">
+                <div className="nn-pinned-section-toggle" onClick={handlePinnedHeaderClick}>
+                    {pinnedHeaderContent}
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className={`nn-date-group-header${header.isPinnedHeader ? ' nn-pinned-section-header' : ''}`}>
-            {header.isPinnedHeader ? (
-                <>
-                    {showPinnedIcon ? (
-                        <ServiceIcon iconId={pinnedSectionIcon} className="nn-date-group-header-icon" aria-hidden={true} />
-                    ) : null}
-                    <span className="nn-date-group-header-text">{header.label}</span>
-                </>
-            ) : (
-                <span
-                    className={`nn-date-group-header-text ${isClickableFolderGroupHeader ? 'nn-date-group-header-text--folder-note' : ''}`}
-                    onClick={folderGroupHeaderTarget ? event => onFolderGroupHeaderClick(event, folderGroupHeaderTarget) : undefined}
-                    onMouseDown={
-                        folderGroupHeaderTarget ? event => onFolderGroupHeaderMouseDown(event, folderGroupHeaderTarget) : undefined
-                    }
-                >
-                    {header.label}
-                </span>
-            )}
+        <div className="nn-date-group-header">
+            <span
+                className={`nn-date-group-header-text ${isClickableFolderGroupHeader ? 'nn-date-group-header-text--folder-note' : ''}`}
+                onClick={folderGroupHeaderTarget ? event => onFolderGroupHeaderClick(event, folderGroupHeaderTarget) : undefined}
+                onMouseDown={folderGroupHeaderTarget ? event => onFolderGroupHeaderMouseDown(event, folderGroupHeaderTarget) : undefined}
+            >
+                {header.label}
+            </span>
         </div>
     );
 }
@@ -246,7 +265,8 @@ export function ListPaneVirtualContent({
     hasNoFiles,
     topSpacerHeight,
     settings,
-    pinnedSectionIcon,
+    pinnedGroupExpanded,
+    onPinnedGroupHeaderToggle,
     selectionType,
     sortOption,
     searchHighlightQuery,
@@ -276,6 +296,10 @@ export function ListPaneVirtualContent({
     getSolidBackground
 }: ListPaneVirtualContentProps) {
     const { app, commandQueue, isMobile } = useServices();
+    const pinnedGroupChevronIcon = useMemo(
+        () => resolveUXIcon(settings.interfaceIcons, pinnedGroupExpanded ? 'nav-tree-collapse' : 'nav-tree-expand'),
+        [pinnedGroupExpanded, settings.interfaceIcons]
+    );
 
     const folderGroupHeaderTargets = useMemo(() => {
         const targets = new Map<string, FolderGroupHeaderTarget>();
@@ -450,8 +474,8 @@ export function ListPaneVirtualContent({
                 <div className="nn-list-sticky-header">
                     <ListPaneGroupHeader
                         header={stickyHeader}
-                        pinnedSectionIcon={pinnedSectionIcon}
-                        showPinnedIcon={settings.showPinnedIcon}
+                        pinnedGroupChevronIcon={pinnedGroupChevronIcon}
+                        onPinnedGroupHeaderToggle={onPinnedGroupHeaderToggle}
                         onFolderGroupHeaderClick={handleFolderGroupHeaderClick}
                         onFolderGroupHeaderMouseDown={handleFolderGroupHeaderMouseDown}
                     />
@@ -546,8 +570,8 @@ export function ListPaneVirtualContent({
                                     {headerModel ? (
                                         <ListPaneGroupHeader
                                             header={headerModel}
-                                            pinnedSectionIcon={pinnedSectionIcon}
-                                            showPinnedIcon={settings.showPinnedIcon}
+                                            pinnedGroupChevronIcon={pinnedGroupChevronIcon}
+                                            onPinnedGroupHeaderToggle={onPinnedGroupHeaderToggle}
                                             onFolderGroupHeaderClick={handleFolderGroupHeaderClick}
                                             onFolderGroupHeaderMouseDown={handleFolderGroupHeaderMouseDown}
                                         />

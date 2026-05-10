@@ -436,7 +436,6 @@ export const STRINGS_ZH_TW = {
                 'nav-properties': '屬性',
                 'nav-property': '屬性',
                 'nav-property-value': '值',
-                'list-pinned': '釘選項目',
                 'file-unfinished-task': '未完成任務',
                 'file-word-count': '字數統計'
             }
@@ -783,6 +782,7 @@ export const STRINGS_ZH_TW = {
         toggleTagsBySelection: '依選擇切換標籤',
         togglePropertiesBySelection: '依選擇切換屬性',
         toggleCompactMode: '切換精簡模式', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: '切換置頂區域',
         collapseExpand: '摺疊/展開所有項目',
         addTag: '為選定檔案新增標籤',
         setProperty: '為選定檔案設定屬性', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -954,14 +954,6 @@ export const STRINGS_ZH_TW = {
             stickyGroupHeaders: {
                 name: '固定群組標題',
                 desc: '捲動時保持目前的日期、資料夾或釘選區段的標題可見。'
-            },
-            showPinnedGroupHeader: {
-                name: '顯示釘選群組標題',
-                desc: '在釘選筆記上方顯示分組標題。'
-            },
-            showPinnedIcon: {
-                name: '顯示釘選圖示',
-                desc: '在釘選區段標題旁顯示圖示。'
             },
             defaultListMode: {
                 name: '預設列表模式',

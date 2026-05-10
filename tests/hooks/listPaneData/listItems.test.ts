@@ -50,9 +50,9 @@ function createListConfig(pinnedNotes: ListPaneConfig['pinnedNotes']): ListPaneC
         filterPinnedByFolder: true,
         folderGroupSortOrder: DEFAULT_SETTINGS.folderSortOrder,
         groupBy: DEFAULT_SETTINGS.noteGrouping,
+        pinnedGroupExpanded: true,
         pinnedNotes,
         showFileTags: false,
-        showPinnedGroupHeader: true,
         showTags: false
     };
 }
@@ -282,5 +282,42 @@ describe('buildListItems pinned display scope', () => {
             { path: valueFile.path, isPinned: true },
             { path: siblingFile.path, isPinned: false }
         ]);
+    });
+
+    it('keeps the pinned header and hides pinned file rows when the pinned group is collapsed', () => {
+        const app = createApp();
+        const pinnedFile = createTestTFile('notes/pinned.md');
+        const regularFile = createTestTFile('notes/regular.md');
+        const db = createDb({
+            [pinnedFile.path]: { tags: null, properties: null },
+            [regularFile.path]: { tags: null, properties: null }
+        });
+
+        const items = buildListItems({
+            app,
+            dayKey: '2026-03-07',
+            fileVisibility: FILE_VISIBILITY.DOCUMENTS,
+            files: [pinnedFile, regularFile],
+            getDB: () => db,
+            getFileTimestamps: () => ({ created: 0, modified: 0 }),
+            hiddenFileState: new Map(),
+            hiddenTags: [],
+            listConfig: {
+                ...createListConfig({
+                    [pinnedFile.path]: { folder: true, tag: false, property: false }
+                }),
+                groupBy: 'none',
+                pinnedGroupExpanded: false
+            },
+            searchMetaMap: new Map(),
+            selectedFolder: null,
+            selectedTag: null,
+            selectionType: ItemType.FOLDER,
+            showHiddenItems: false,
+            sortOption: 'modified-desc'
+        });
+
+        expect(items.some(item => item.key === PINNED_SECTION_HEADER_KEY)).toBe(true);
+        expect(getFileItems(items)).toEqual([{ path: regularFile.path, isPinned: false }]);
     });
 });

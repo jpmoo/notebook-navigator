@@ -435,7 +435,6 @@ export const STRINGS_KO = {
                 'nav-properties': '속성',
                 'nav-property': '속성',
                 'nav-property-value': '값',
-                'list-pinned': '고정 항목',
                 'file-unfinished-task': '미완료 작업',
                 'file-word-count': '단어 수'
             }
@@ -789,6 +788,7 @@ export const STRINGS_KO = {
         toggleTagsBySelection: '선택에 따라 태그 전환',
         togglePropertiesBySelection: '선택에 따라 속성 전환',
         toggleCompactMode: '컴팩트 모드 전환', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: '고정 섹션 전환',
         collapseExpand: '모든 항목 접기 / 펼치기', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: '선택한 파일에 태그 추가', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: '선택한 파일에 속성 설정', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -960,14 +960,6 @@ export const STRINGS_KO = {
             stickyGroupHeaders: {
                 name: '그룹 헤더 고정',
                 desc: '스크롤하는 동안 현재 날짜, 폴더 또는 고정된 섹션 헤더를 계속 표시합니다.'
-            },
-            showPinnedGroupHeader: {
-                name: '고정 그룹 헤더 표시',
-                desc: '고정된 노트 위에 섹션 헤더를 표시합니다.'
-            },
-            showPinnedIcon: {
-                name: '고정 아이콘 표시',
-                desc: '고정 섹션 헤더 옆에 아이콘을 표시합니다.'
             },
             defaultListMode: {
                 name: '기본 목록 모드',

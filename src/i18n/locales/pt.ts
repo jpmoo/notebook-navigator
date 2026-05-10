@@ -437,7 +437,6 @@ export const STRINGS_PT = {
                 'nav-properties': 'Propriedades',
                 'nav-property': 'Propriedade',
                 'nav-property-value': 'Valor',
-                'list-pinned': 'Itens fixados',
                 'file-unfinished-task': 'Tarefas inacabadas',
                 'file-word-count': 'Contagem de palavras'
             }
@@ -790,6 +789,7 @@ export const STRINGS_PT = {
         toggleTagsBySelection: 'Alternar etiquetas por seleção',
         togglePropertiesBySelection: 'Alternar propriedades por seleção',
         toggleCompactMode: 'Alternar modo compacto', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Alternar secção fixada',
         collapseExpand: 'Recolher / expandir todos os itens', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Adicionar etiqueta aos ficheiros selecionados', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Definir propriedade nos ficheiros selecionados', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -961,14 +961,6 @@ export const STRINGS_PT = {
             stickyGroupHeaders: {
                 name: 'Cabeçalhos de grupo fixos',
                 desc: 'Mantém o cabeçalho atual de data, pasta ou secção fixada visível ao deslocar.'
-            },
-            showPinnedGroupHeader: {
-                name: 'Mostrar cabeçalho do grupo fixado',
-                desc: 'Exibir o cabeçalho da secção fixada acima das notas fixadas.'
-            },
-            showPinnedIcon: {
-                name: 'Mostrar ícone de fixado',
-                desc: 'Mostrar o ícone junto ao cabeçalho da secção fixada.'
             },
             defaultListMode: {
                 name: 'Modo de lista predefinido',

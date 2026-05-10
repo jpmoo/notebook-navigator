@@ -436,7 +436,6 @@ export const STRINGS_FA = {
                 'nav-properties': 'ویژگی‌ها',
                 'nav-property': 'ویژگی',
                 'nav-property-value': 'مقدار',
-                'list-pinned': 'آیتم‌های سنجاق شده',
                 'file-unfinished-task': 'وظایف ناتمام',
                 'file-word-count': 'تعداد کلمات'
             }
@@ -790,6 +789,7 @@ export const STRINGS_FA = {
         toggleTagsBySelection: 'تغییر برچسب‌ها بر اساس انتخاب',
         togglePropertiesBySelection: 'تغییر ویژگی‌ها بر اساس انتخاب',
         toggleCompactMode: 'تغییر حالت فشرده', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'تغییر بخش سنجاق‌شده',
         collapseExpand: 'جمع / باز کردن همه آیتم‌ها',
         addTag: 'افزودن برچسب به فایل‌های انتخابی',
         setProperty: 'تنظیم ویژگی روی فایل‌های انتخابی', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -961,14 +961,6 @@ export const STRINGS_FA = {
             stickyGroupHeaders: {
                 name: 'هدرهای گروه چسبان',
                 desc: 'هدر بخش تاریخ، پوشه یا قسمت سنجاق‌شده فعلی را هنگام پیمایش نمایان نگه می‌دارد.'
-            },
-            showPinnedGroupHeader: {
-                name: 'نمایش هدر گروه سنجاق‌شده',
-                desc: 'هدر بخش سنجاق‌شده را بالای یادداشت‌های سنجاق‌شده نمایش دهید.'
-            },
-            showPinnedIcon: {
-                name: 'نمایش آیکون سنجاق‌شده',
-                desc: 'آیکون را کنار هدر بخش سنجاق‌شده نمایش دهید.'
             },
             defaultListMode: {
                 name: 'حالت لیست پیش‌فرض',

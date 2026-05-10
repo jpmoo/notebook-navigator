@@ -501,8 +501,6 @@ export interface NotebookNavigatorSettings {
     showSelectedNavigationPills: boolean;
     stickyGroupHeaders: boolean;
     filterPinnedByFolder: boolean;
-    showPinnedGroupHeader: boolean;
-    showPinnedIcon: boolean;
     compactItemHeight: number;
     compactItemHeightScaleText: boolean;
     showQuickActions: boolean;

@@ -25,7 +25,7 @@ import type { SettingsTabContext } from './SettingsTabContext';
 import { runAsyncAction } from '../../utils/async';
 import { createSettingGroupFactory } from '../settingGroups';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
-import { createSubSettingsContainer, wireToggleSettingWithSubSettings } from '../subSettings';
+import { createSubSettingsContainer } from '../subSettings';
 
 type QuickActionSettingKey =
     | 'quickActionRevealInFolder'
@@ -252,29 +252,6 @@ export function renderListPaneTab(context: SettingsTabContext): void {
             plugin.settings.filterPinnedByFolder = value;
         }
     );
-
-    const showPinnedGroupHeaderSetting = pinnedNotesGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.showPinnedGroupHeader.name).setDesc(strings.settings.items.showPinnedGroupHeader.desc);
-    });
-
-    const pinnedGroupSettingsEl = wireToggleSettingWithSubSettings(
-        showPinnedGroupHeaderSetting,
-        () => plugin.settings.showPinnedGroupHeader,
-        async value => {
-            plugin.settings.showPinnedGroupHeader = value;
-            await plugin.saveSettingsAndUpdate();
-        }
-    );
-
-    new Setting(pinnedGroupSettingsEl)
-        .setName(strings.settings.items.showPinnedIcon.name)
-        .setDesc(strings.settings.items.showPinnedIcon.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.showPinnedIcon).onChange(async value => {
-                plugin.settings.showPinnedIcon = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
 
     const behaviorGroup = createGroup(strings.settings.groups.general.behavior);
 

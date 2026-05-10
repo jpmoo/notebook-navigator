@@ -74,13 +74,12 @@ import type { FileItemStorageHelpers } from './FileItem';
 import { type SearchShortcut } from '../types/shortcuts';
 import { type SearchNavFilterState } from '../types/search';
 import { EMPTY_LIST_MENU_TYPE } from '../utils/contextMenu';
-import { useUXPreferences } from '../context/UXPreferencesContext';
+import { useUXPreferenceActions, useUXPreferences } from '../context/UXPreferencesContext';
 import { type InclusionOperator } from '../utils/filterSearch';
 import type { FolderDecorationModel } from '../utils/folderDecoration';
 import { useSurfaceColorVariables } from '../hooks/useSurfaceColorVariables';
 import { LIST_PANE_SURFACE_COLOR_MAPPINGS } from '../constants/surfaceColorMappings';
 import { getListPaneMeasurements } from '../utils/listPaneMeasurements';
-import { resolveUXIcon } from '../utils/uxIcons';
 import { createHiddenTagVisibility } from '../utils/tagPrefixMatcher';
 import { getPropertyKeySet } from '../utils/vaultProfiles';
 import { DateUtils } from '../utils/dateUtils';
@@ -184,9 +183,11 @@ export const ListPane = React.memo(
         const activeProfile = useActiveProfile();
         const { fileNameIconNeedles } = useSettingsDerived();
         const uxPreferences = useUXPreferences();
+        const { togglePinnedGroupExpanded } = useUXPreferenceActions();
         const includeDescendantNotes = uxPreferences.includeDescendantNotes;
         const showHiddenItems = uxPreferences.showHiddenItems;
         const showCalendar = uxPreferences.showCalendar;
+        const pinnedGroupExpanded = uxPreferences.pinnedGroupExpanded;
         const appearanceSettings = useListPaneAppearance();
         const { getFileDisplayName, getDB, getFileTimestamps, hasPreview, regenerateFeatureImageForFile } = useFileCache();
         const { noteShortcutKeysByPath, addNoteShortcut, removeShortcut } = useShortcuts();
@@ -214,7 +215,6 @@ export const ListPane = React.memo(
         const listPaneTitle = settings.listPaneTitle ?? 'header';
         const shouldShowDesktopTitleArea = !isMobile && listPaneTitle === 'list';
         const listMeasurements = getListPaneMeasurements(isMobile);
-        const pinnedSectionIcon = useMemo(() => resolveUXIcon(settings.interfaceIcons, 'list-pinned'), [settings.interfaceIcons]);
         const topSpacerHeight = shouldShowDesktopTitleArea ? 0 : listMeasurements.topSpacer;
         const iconColumnStyle = useMemo(() => {
             if (settings.showFileIcons) {
@@ -320,6 +320,7 @@ export const ListPane = React.memo(
             settings,
             activeProfile,
             groupBy: appearanceSettings.groupBy,
+            pinnedGroupExpanded,
             searchProvider,
             // Use debounced value for filtering
             searchQuery: isSearchActive ? debouncedSearchQuery : undefined,
@@ -622,7 +623,8 @@ export const ListPane = React.memo(
                         hasNoFiles={hasNoFiles}
                         topSpacerHeight={topSpacerHeight}
                         settings={settings}
-                        pinnedSectionIcon={pinnedSectionIcon}
+                        pinnedGroupExpanded={pinnedGroupExpanded}
+                        onPinnedGroupHeaderToggle={togglePinnedGroupExpanded}
                         selectionType={selectionType}
                         sortOption={effectiveSortOption}
                         searchHighlightQuery={searchHighlightQuery}

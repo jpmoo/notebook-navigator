@@ -436,7 +436,6 @@ export const STRINGS_IT = {
                 'nav-properties': 'Proprietà',
                 'nav-property': 'Proprietà',
                 'nav-property-value': 'Valore',
-                'list-pinned': 'Elementi fissati',
                 'file-unfinished-task': 'Attività incomplete',
                 'file-word-count': 'Conteggio parole'
             }
@@ -786,6 +785,7 @@ export const STRINGS_IT = {
         toggleTagsBySelection: 'Attiva/disattiva tag per selezione',
         togglePropertiesBySelection: 'Attiva/disattiva proprietà per selezione',
         toggleCompactMode: 'Attiva/disattiva modalità compatta', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Attiva/disattiva sezione fissata',
         collapseExpand: 'Comprimi / espandi tutti gli elementi', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Aggiungi tag ai file selezionati', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Imposta proprietà sui file selezionati', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -957,14 +957,6 @@ export const STRINGS_IT = {
             stickyGroupHeaders: {
                 name: 'Intestazioni di gruppo fisse',
                 desc: "Mantieni visibile l'intestazione corrente di data, cartella o sezione fissate mentre scorri."
-            },
-            showPinnedGroupHeader: {
-                name: 'Mostra intestazione gruppo fissate',
-                desc: "Visualizza l'intestazione della sezione fissate sopra le note fissate."
-            },
-            showPinnedIcon: {
-                name: 'Mostra icona fissate',
-                desc: "Mostra l'icona accanto all'intestazione della sezione fissate."
             },
             defaultListMode: {
                 name: 'Modalità lista predefinita',

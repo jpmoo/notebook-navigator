@@ -436,7 +436,6 @@ export const STRINGS_AR = {
                 'nav-properties': 'الخصائص',
                 'nav-property': 'خاصية',
                 'nav-property-value': 'قيمة',
-                'list-pinned': 'العناصر المثبتة',
                 'file-unfinished-task': 'مهام غير مكتملة',
                 'file-word-count': 'عدد الكلمات'
             }
@@ -788,6 +787,7 @@ export const STRINGS_AR = {
         toggleTagsBySelection: 'تبديل الوسوم حسب التحديد',
         togglePropertiesBySelection: 'تبديل الخصائص حسب التحديد',
         toggleCompactMode: 'تبديل الوضع المضغوط', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'تبديل قسم المثبتة',
         collapseExpand: 'طي / توسيع جميع العناصر', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'إضافة وسم للملفات المحددة', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'تعيين خاصية على الملفات المحددة', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -959,14 +959,6 @@ export const STRINGS_AR = {
             stickyGroupHeaders: {
                 name: 'تثبيت رؤوس المجموعات',
                 desc: 'إبقاء رأس قسم التاريخ أو المجلد أو القسم المثبت الحالي مرئيًا أثناء التمرير.'
-            },
-            showPinnedGroupHeader: {
-                name: 'إظهار رأس المجموعة المثبتة',
-                desc: 'عرض رأس القسم المثبت فوق الملاحظات المثبتة.'
-            },
-            showPinnedIcon: {
-                name: 'إظهار أيقونة التثبيت',
-                desc: 'إظهار الأيقونة بجانب رأس القسم المثبت.'
             },
             defaultListMode: {
                 name: 'وضع القائمة الافتراضي',

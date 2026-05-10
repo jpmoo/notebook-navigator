@@ -437,7 +437,6 @@ export const STRINGS_DE = {
                 'nav-properties': 'Eigenschaften',
                 'nav-property': 'Eigenschaft',
                 'nav-property-value': 'Wert',
-                'list-pinned': 'Angeheftete Elemente',
                 'file-unfinished-task': 'Unerledigte Aufgaben',
                 'file-word-count': 'Wortanzahl'
             }
@@ -791,6 +790,7 @@ export const STRINGS_DE = {
         toggleTagsBySelection: 'Tags nach Auswahl umschalten',
         togglePropertiesBySelection: 'Eigenschaften nach Auswahl umschalten',
         toggleCompactMode: 'Kompaktmodus umschalten', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Angepinnten Bereich umschalten',
         collapseExpand: 'Alle Elemente ein-/ausklappen', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Tag zu ausgewählten Dateien hinzufügen', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Eigenschaft für ausgewählte Dateien setzen', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -962,14 +962,6 @@ export const STRINGS_DE = {
             stickyGroupHeaders: {
                 name: 'Gruppenüberschriften fixieren',
                 desc: 'Hält die aktuelle Datums-, Ordner- oder Anheftbereichsüberschrift beim Scrollen sichtbar.'
-            },
-            showPinnedGroupHeader: {
-                name: 'Überschrift für angeheftete Notizen anzeigen',
-                desc: 'Zeigt die Überschrift des Abschnitts für angeheftete Notizen an.'
-            },
-            showPinnedIcon: {
-                name: 'Icon für angeheftete Notizen anzeigen',
-                desc: 'Icon neben der Überschrift für angeheftete Notizen anzeigen.'
             },
             defaultListMode: {
                 name: 'Standardmodus für Listen',

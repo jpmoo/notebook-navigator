@@ -871,6 +871,14 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         this.preferencesController.setPinShortcuts(value);
     }
 
+    public setPinnedGroupExpanded(value: boolean): void {
+        this.preferencesController.setPinnedGroupExpanded(value);
+    }
+
+    public togglePinnedGroupExpanded(): void {
+        this.preferencesController.togglePinnedGroupExpanded();
+    }
+
     public setShowCalendar(value: boolean): void {
         this.preferencesController.setShowCalendar(value);
     }

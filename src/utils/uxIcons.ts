@@ -47,7 +47,6 @@ export type UXIconId =
     | 'list-sort-descending'
     | 'list-appearance'
     | 'list-new-note'
-    | 'list-pinned'
     | 'file-unfinished-task'
     | 'file-word-count';
 
@@ -87,7 +86,6 @@ export const UX_ICON_DEFINITIONS: UXIconDefinition[] = [
     { id: 'list-sort-descending', category: 'listPane', defaultIconId: 'sort-desc' },
     { id: 'list-appearance', category: 'listPane', defaultIconId: 'palette' },
     { id: 'list-new-note', category: 'listPane', defaultIconId: 'pen-box' },
-    { id: 'list-pinned', category: 'listPane', defaultIconId: 'pin' },
     { id: 'file-unfinished-task', category: 'fileItems', defaultIconId: 'circle-alert' },
     { id: 'file-word-count', category: 'fileItems', defaultIconId: 'sigma' }
 ];
@@ -118,8 +116,6 @@ function normalizeUXIconKey(key: string): UXIconId | null {
             return 'nav-folder-closed';
         case 'tag':
             return 'nav-tag';
-        case 'pinned-section':
-            return 'list-pinned';
         case 'recent-files':
             return 'nav-recent-files';
         case 'list-sort':
