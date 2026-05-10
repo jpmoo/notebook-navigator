@@ -44,9 +44,8 @@ export interface ListPaneMeasurements {
     multilineTextLineHeight: number;
     tagRowHeight: number;
     featureImageMinHeight: number;
-    firstHeader: number;
-    headerSpacerBefore: number;
-    headerSpacerAfter: number;
+    groupHeaderHeight: number;
+    groupHeaderSpacerBefore: number;
     fileIconSize: number;
     topSpacer: number;
     bottomSpacer: number;
@@ -69,9 +68,8 @@ const DESKTOP_MEASUREMENTS: ListPaneMeasurements = Object.freeze({
     multilineTextLineHeight: 18,
     tagRowHeight: 26, // 22px row + 4px gap
     featureImageMinHeight: 42,
-    firstHeader: 35,
-    headerSpacerBefore: 12,
-    headerSpacerAfter: 3,
+    groupHeaderHeight: 27,
+    groupHeaderSpacerBefore: 20,
     fileIconSize: 16,
     topSpacer: 8,
     bottomSpacer: 20
@@ -84,9 +82,8 @@ const MOBILE_MEASUREMENTS: ListPaneMeasurements = Object.freeze({
     multilineTextLineHeight: 19,
     tagRowHeight: 26, // 22px row + 4px gap
     featureImageMinHeight: 42,
-    firstHeader: 43, // 35px + 8px mobile increment
-    headerSpacerBefore: 12,
-    headerSpacerAfter: 3,
+    groupHeaderHeight: 35, // 27px + 8px mobile increment
+    groupHeaderSpacerBefore: 20,
     fileIconSize: 20, // 16px + 4px mobile increment
     topSpacer: 8,
     bottomSpacer: 20

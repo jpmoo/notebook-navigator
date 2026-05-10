@@ -461,10 +461,10 @@ export function useListPaneScroll({
             const heights = listMeasurements;
 
             if (item.type === ListPaneItemType.HEADER) {
-                return heights.firstHeader;
+                return heights.groupHeaderHeight;
             }
             if (item.type === ListPaneItemType.HEADER_SPACER) {
-                return item.headerSpacerPosition === 'before' ? heights.headerSpacerBefore : heights.headerSpacerAfter;
+                return heights.groupHeaderSpacerBefore;
             }
 
             if (item.type === ListPaneItemType.TOP_SPACER) {
@@ -727,7 +727,7 @@ export function useListPaneScroll({
             const containerRect = scrollElement.getBoundingClientRect();
             const rowRect = row.getBoundingClientRect();
             const topInset =
-                settings.stickyGroupHeaders && isFileRowCoveredByStickyHeader(listItems, index) ? listMeasurements.firstHeader : 0;
+                settings.stickyGroupHeaders && isFileRowCoveredByStickyHeader(listItems, index) ? listMeasurements.groupHeaderHeight : 0;
             const safeTop = containerRect.top + topInset;
             const safeBottom = containerRect.bottom - effectiveScrollPaddingEnd;
 
@@ -740,7 +740,7 @@ export function useListPaneScroll({
                 scrollElement.scrollTop += Math.round(rowRect.bottom - safeBottom);
             }
         },
-        [effectiveScrollPaddingEnd, listItems, listMeasurements.firstHeader, settings.stickyGroupHeaders]
+        [effectiveScrollPaddingEnd, listItems, listMeasurements.groupHeaderHeight, settings.stickyGroupHeaders]
     );
 
     const scrollToIndexSafely = useCallback(

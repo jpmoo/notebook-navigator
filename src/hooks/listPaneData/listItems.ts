@@ -131,7 +131,6 @@ export function buildListItems({
             items.push({
                 type: ListPaneItemType.HEADER_SPACER,
                 data: '',
-                headerSpacerPosition: 'before',
                 key: `${key}-spacer-before`
             });
         }
@@ -142,15 +141,6 @@ export function buildListItems({
             headerFolderPath,
             key
         });
-
-        if (useHeaderSpacers) {
-            items.push({
-                type: ListPaneItemType.HEADER_SPACER,
-                data: '',
-                headerSpacerPosition: 'after',
-                key: `${key}-spacer-after`
-            });
-        }
     };
 
     if (pinnedFiles.length > 0) {

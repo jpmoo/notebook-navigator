@@ -87,7 +87,7 @@ interface FileItemProps {
     showQuickActionsPanel: boolean;
     onFileClick: (file: TFile, fileIndex: number | undefined, event: React.MouseEvent) => void;
     fileIndex?: number;
-    dateGroup?: string | null;
+    groupHeaderLabel?: string | null;
     sortOption?: SortOption;
     parentFolder?: string | null;
     isPinned?: boolean;
@@ -313,7 +313,7 @@ export const FileItem = React.memo(function FileItem({
     showQuickActionsPanel,
     onFileClick,
     fileIndex,
-    dateGroup,
+    groupHeaderLabel,
     sortOption,
     parentFolder,
     isPinned = false,
@@ -600,9 +600,9 @@ export const FileItem = React.memo(function FileItem({
             return DateUtils.formatDateForGroup(timestamp, actualDateGroup, settings.dateFormat, settings.timeFormat);
         }
 
-        // If in a date group and not in pinned section, format relative to group
-        if (dateGroup && dateGroup !== strings.listPane.pinnedSection) {
-            return DateUtils.formatDateForGroup(timestamp, dateGroup, settings.dateFormat, settings.timeFormat);
+        // Date group labels use relative formatting; folder group labels fall back to the default date format.
+        if (groupHeaderLabel && groupHeaderLabel !== strings.listPane.pinnedSection) {
+            return DateUtils.formatDateForGroup(timestamp, groupHeaderLabel, settings.dateFormat, settings.timeFormat);
         }
 
         // Otherwise format as absolute date
@@ -615,7 +615,7 @@ export const FileItem = React.memo(function FileItem({
         file.stat.mtime,
         file.stat.ctime,
         sortOption,
-        dateGroup,
+        groupHeaderLabel,
         isPinned,
         appearanceSettings.showDate,
         settings.dateFormat,

@@ -161,7 +161,7 @@ export function useContextMenu(elementRef: React.RefObject<HTMLElement | null>, 
 
                 // Skip menu if clicking on file items or date headers
                 const isFileTarget = targetElement.closest('.nn-file') !== null;
-                const isHeaderTarget = targetElement.closest('.nn-date-group-header') !== null;
+                const isHeaderTarget = targetElement.closest('.nn-list-group-header') !== null;
                 if (isFileTarget || isHeaderTarget) {
                     return;
                 }

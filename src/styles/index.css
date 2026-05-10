@@ -60,8 +60,8 @@ Keep this list ordered: later files override earlier ones.
 @import './sections/list-compact-mode.css';
 /* list-file-thumbnails.css: file thumbnails (`.nn-file-thumbnail*`) and extension badge rendering for non-markdown files. */
 @import './sections/list-file-thumbnails.css';
-/* list-date-headers.css: date group headers (`.nn-date-group-header*`) plus skeleton view layout during load. */
-@import './sections/list-date-headers.css';
+/* list-group-headers.css: list group headers (`.nn-list-group-header*`) plus skeleton view layout during load. */
+@import './sections/list-group-headers.css';
 /* ui-empty-state.css: empty state layout for the list pane (`.nn-empty-state`, `.nn-empty-message`). */
 @import './sections/ui-empty-state.css';
 

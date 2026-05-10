@@ -80,7 +80,7 @@ function getFileItems(items: ReturnType<typeof buildListItems>): { path: string;
 }
 
 describe('buildListItems pinned display scope', () => {
-    it('splits subsequent group spacing into spacer rows around fixed-height headers', () => {
+    it('adds spacer rows before subsequent fixed-height group headers', () => {
         const app = createApp();
         const todayFile = createTestTFile('notes/today.md');
         const olderFile = createTestTFile('notes/older.md');
@@ -120,12 +120,10 @@ describe('buildListItems pinned display scope', () => {
             ListPaneItemType.FILE,
             ListPaneItemType.HEADER_SPACER,
             ListPaneItemType.HEADER,
-            ListPaneItemType.HEADER_SPACER,
             ListPaneItemType.FILE,
             ListPaneItemType.BOTTOM_SPACER
         ]);
-        expect(items[3]).toMatchObject({ headerSpacerPosition: 'before' });
-        expect(items[5]).toMatchObject({ headerSpacerPosition: 'after' });
+        expect(items[3].key).toMatch(/-spacer-before$/);
     });
 
     it('keeps tag pins in the pinned section when folder pin scoping is enabled', () => {

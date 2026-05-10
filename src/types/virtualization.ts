@@ -37,7 +37,6 @@ export interface ListPaneItem {
     // Folder path associated with a folder-group header.
     // Present only when grouping by folder in the list pane.
     headerFolderPath?: string | null;
-    headerSpacerPosition?: 'before' | 'after';
     key: string;
     // Pre-computed file index for stable onClick handlers
     fileIndex?: number;

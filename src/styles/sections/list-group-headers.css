@@ -1,12 +1,12 @@
-/* Source: src/styles/sections/list-date-headers.css */
+/* Source: src/styles/sections/list-group-headers.css */
 
 /* ========================================================================
-   Date Group Headers
+   List Group Headers
    ======================================================================== */
 
-/* Date group headers for grouped files */
-.nn-date-group-header {
-    height: var(--nn-date-header-height-mobile, var(--nn-date-header-height));
+/* List group headers for grouped files */
+.nn-list-group-header {
+    height: var(--nn-list-group-header-height-mobile, var(--nn-list-group-header-height));
     box-sizing: border-box;
     padding: 0 var(--nn-file-item-padding-horizontal);
     font-size: var(--nn-file-small-size-mobile, var(--nn-file-small-size));
@@ -21,7 +21,7 @@
     gap: 6px;
 }
 
-.nn-date-group-header-spacer {
+.nn-list-group-header-spacer {
     height: var(--item-height);
 }
 
@@ -36,10 +36,10 @@
     pointer-events: none;
 }
 
-.nn-list-pane-scroller .nn-virtual-date-group-header:not(.nn-first-date-group-header)::after {
+.nn-list-pane-scroller .nn-virtual-list-group-header:not(.nn-first-list-group-header)::after {
     content: '';
     position: absolute;
-    bottom: calc(-1 * var(--nn-date-header-spacer-after));
+    bottom: 0;
     inset-inline-start: var(--nn-file-item-padding-horizontal);
     inset-inline-end: var(--nn-file-item-padding-horizontal);
     height: var(--nn-separator-height);
@@ -48,17 +48,17 @@
     pointer-events: none;
 }
 
-.nn-list-pane-scroller .nn-virtual-date-group-header.nn-hide-separator-selection::after {
+.nn-list-pane-scroller .nn-virtual-list-group-header.nn-hide-separator-selection::after {
     display: none;
 }
 
-.nn-list-sticky-header .nn-date-group-header {
+.nn-list-sticky-header .nn-list-group-header {
     position: relative;
     background-color: var(--nn-theme-list-bg) !important;
     pointer-events: auto;
 }
 
-.nn-list-sticky-header .nn-date-group-header::before {
+.nn-list-sticky-header .nn-list-group-header::before {
     content: '';
     position: absolute;
     top: 0;
@@ -69,31 +69,31 @@
     z-index: -1;
 }
 
-.nn-date-group-header-icon {
+.nn-list-group-header-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: var(--nn-date-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
-    height: var(--nn-date-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
+    width: var(--nn-list-group-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
+    height: var(--nn-list-group-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
     color: var(--nn-theme-list-group-header-color);
     flex: 0 0 auto;
 }
 
-.nn-date-group-header-icon svg {
+.nn-list-group-header-icon svg {
     width: 100%;
     height: 100%;
 }
 
-.nn-date-group-header-text {
+.nn-list-group-header-text {
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.nn-date-group-header-text--folder-note {
+.nn-list-group-header-text--folder-note {
     text-decoration: var(--nn-theme-navitem-folder-note-name-decoration) !important;
 }
 
-.nn-date-group-header-text--folder-note:hover {
+.nn-list-group-header-text--folder-note:hover {
     cursor: pointer;
     text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration) !important;
 }

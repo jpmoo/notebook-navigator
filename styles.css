@@ -110,11 +110,10 @@ body {
     --nn-compact-font-size: 13px; /* Compact mode desktop font size */
     --nn-compact-font-size-mobile: 15px; /* Compact mode mobile font size */
 
-    /* Date header heights and spacing */
-    --nn-date-header-height: 35px; /* Header row and sticky header */
-    --nn-date-header-spacer-before: 12px; /* Spacer before subsequent headers */
-    --nn-date-header-spacer-after: 3px; /* Spacer after subsequent headers */
-    --nn-date-header-height-mobile: var(--nn-date-header-height);
+    /* List group header heights and spacing */
+    --nn-list-group-header-height: 27px; /* Header row and sticky header */
+    --nn-list-group-header-spacer-before: 20px; /* Spacer before subsequent headers */
+    --nn-list-group-header-height-mobile: var(--nn-list-group-header-height);
 
     /* Navigation item heights - fixed pixel values to prevent fractional rendering */
     --nn-nav-line-height: 18px; /* Fixed line height for folder/tag names */
@@ -463,7 +462,7 @@ body {
 
 .nn-update-banner {
     position: absolute;
-    top: calc(var(--nn-date-header-height-mobile, var(--nn-date-header-height)) + 8px);
+    top: calc(var(--nn-list-group-header-height-mobile, var(--nn-list-group-header-height)) + 8px);
     left: 50%;
     transform: translate(-50%, 0);
     z-index: 10;
@@ -4398,15 +4397,15 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.1px;
 }
-/* Source: src/styles/sections/list-date-headers.css */
+/* Source: src/styles/sections/list-group-headers.css */
 
 /* ========================================================================
-   Date Group Headers
+   List Group Headers
    ======================================================================== */
 
-/* Date group headers for grouped files */
-.nn-date-group-header {
-    height: var(--nn-date-header-height-mobile, var(--nn-date-header-height));
+/* List group headers for grouped files */
+.nn-list-group-header {
+    height: var(--nn-list-group-header-height-mobile, var(--nn-list-group-header-height));
     box-sizing: border-box;
     padding: 0 var(--nn-file-item-padding-horizontal);
     font-size: var(--nn-file-small-size-mobile, var(--nn-file-small-size));
@@ -4421,7 +4420,7 @@ body {
     gap: 6px;
 }
 
-.nn-date-group-header-spacer {
+.nn-list-group-header-spacer {
     height: var(--item-height);
 }
 
@@ -4436,10 +4435,10 @@ body {
     pointer-events: none;
 }
 
-.nn-list-pane-scroller .nn-virtual-date-group-header:not(.nn-first-date-group-header)::after {
+.nn-list-pane-scroller .nn-virtual-list-group-header:not(.nn-first-list-group-header)::after {
     content: '';
     position: absolute;
-    bottom: calc(-1 * var(--nn-date-header-spacer-after));
+    bottom: 0;
     inset-inline-start: var(--nn-file-item-padding-horizontal);
     inset-inline-end: var(--nn-file-item-padding-horizontal);
     height: var(--nn-separator-height);
@@ -4448,17 +4447,17 @@ body {
     pointer-events: none;
 }
 
-.nn-list-pane-scroller .nn-virtual-date-group-header.nn-hide-separator-selection::after {
+.nn-list-pane-scroller .nn-virtual-list-group-header.nn-hide-separator-selection::after {
     display: none;
 }
 
-.nn-list-sticky-header .nn-date-group-header {
+.nn-list-sticky-header .nn-list-group-header {
     position: relative;
     background-color: var(--nn-theme-list-bg) !important;
     pointer-events: auto;
 }
 
-.nn-list-sticky-header .nn-date-group-header::before {
+.nn-list-sticky-header .nn-list-group-header::before {
     content: '';
     position: absolute;
     top: 0;
@@ -4469,31 +4468,31 @@ body {
     z-index: -1;
 }
 
-.nn-date-group-header-icon {
+.nn-list-group-header-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: var(--nn-date-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
-    height: var(--nn-date-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
+    width: var(--nn-list-group-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
+    height: var(--nn-list-group-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
     color: var(--nn-theme-list-group-header-color);
     flex: 0 0 auto;
 }
 
-.nn-date-group-header-icon svg {
+.nn-list-group-header-icon svg {
     width: 100%;
     height: 100%;
 }
 
-.nn-date-group-header-text {
+.nn-list-group-header-text {
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.nn-date-group-header-text--folder-note {
+.nn-list-group-header-text--folder-note {
     text-decoration: var(--nn-theme-navitem-folder-note-name-decoration) !important;
 }
 
-.nn-date-group-header-text--folder-note:hover {
+.nn-list-group-header-text--folder-note:hover {
     cursor: pointer;
     text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration) !important;
 }
@@ -7348,7 +7347,7 @@ body.nn-resizing {
     --nn-file-title-line-height: var(--nn-file-title-line-height-mobile);
     --nn-file-single-text-line-height: var(--nn-file-single-text-line-height-mobile);
     --nn-file-multiline-text-line-height: var(--nn-file-multiline-text-line-height-mobile);
-    --nn-date-header-height-mobile: calc(var(--nn-date-header-height) + 8px);
+    --nn-list-group-header-height-mobile: calc(var(--nn-list-group-header-height) + 8px);
 }
 
 /* Folder text size on mobile */
@@ -7875,7 +7874,7 @@ body.nn-resizing {
 .nn-file-preview,
 .nn-file-date,
 .nn-parent-folder,
-.nn-date-group-header {
+.nn-list-group-header {
     unicode-bidi: plaintext;
 }
 
