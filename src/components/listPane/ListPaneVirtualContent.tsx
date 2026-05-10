@@ -51,6 +51,7 @@ interface FolderGroupHeaderTarget {
 interface HeaderRenderModel {
     index: number;
     label: string;
+    isFirstHeader: boolean;
     isPinnedHeader: boolean;
     folderGroupHeaderTarget: FolderGroupHeaderTarget | null;
 }
@@ -124,6 +125,24 @@ function getDateGroupLabel(listItems: ListPaneItem[], index: number): string | n
         if (item?.type === ListPaneItemType.HEADER && typeof item.data === 'string') {
             return item.data;
         }
+    }
+
+    return null;
+}
+
+function getFirstFileAfterHeader(listItems: ListPaneItem[], headerIndex: number): TFile | null {
+    for (let listIndex = headerIndex + 1; listIndex < listItems.length; listIndex += 1) {
+        const item = getItemAt(listItems, listIndex);
+
+        if (item?.type === ListPaneItemType.HEADER_SPACER) {
+            continue;
+        }
+
+        if (item?.type === ListPaneItemType.FILE && item.data instanceof TFile) {
+            return item.data;
+        }
+
+        return null;
     }
 
     return null;
@@ -301,9 +320,15 @@ export function ListPaneVirtualContent({
     const { headerModels, headerModelByIndex } = useMemo<HeaderRenderModels>(() => {
         const models: HeaderRenderModel[] = [];
         const modelsByIndex = new Map<number, HeaderRenderModel>();
+        let hasSeenFile = false;
 
         // Build one header model set for both virtual rows and the sticky overlay so click behavior stays identical.
         listItems.forEach((item, index) => {
+            if (item.type === ListPaneItemType.FILE) {
+                hasSeenFile = true;
+                return;
+            }
+
             if (item.type !== ListPaneItemType.HEADER || typeof item.data !== 'string') {
                 return;
             }
@@ -312,6 +337,7 @@ export function ListPaneVirtualContent({
             const model: HeaderRenderModel = {
                 index,
                 label: item.data,
+                isFirstHeader: models.length === 0 && !hasSeenFile,
                 isPinnedHeader: item.key === PINNED_SECTION_HEADER_KEY,
                 folderGroupHeaderTarget: headerFolderPath !== null ? (folderGroupHeaderTargets.get(headerFolderPath) ?? null) : null
             };
@@ -487,15 +513,18 @@ export function ListPaneVirtualContent({
                                     ? noteShortcutKeysByPath.get(item.data.path)
                                     : undefined;
 
-                            const hideSeparator =
+                            const headerModel = headerModelByIndex.get(virtualItem.index) ?? null;
+                            const firstFileAfterHeader = headerModel ? getFirstFileAfterHeader(listItems, virtualItem.index) : null;
+                            const hideFileSeparator =
                                 item.type === ListPaneItemType.FILE &&
                                 ((isSelected && !hasSelectedBelow) ||
                                     (!isSelected &&
                                         nextItem?.type === ListPaneItemType.FILE &&
                                         nextItem.data instanceof TFile &&
                                         isFileSelected(nextItem.data)));
+                            const hideHeaderSeparator = firstFileAfterHeader !== null && isFileSelected(firstFileAfterHeader);
+                            const hideSeparator = hideFileSeparator || hideHeaderSeparator;
 
-                            const headerModel = headerModelByIndex.get(virtualItem.index) ?? null;
                             const virtualItemStyle: VirtualRowStyle = {
                                 top: Math.max(0, virtualItem.start),
                                 '--item-height': `${virtualItem.size}px`
@@ -506,6 +535,8 @@ export function ListPaneVirtualContent({
                                     key={virtualItem.key}
                                     className={`nn-virtual-item ${
                                         item.type === ListPaneItemType.FILE ? 'nn-virtual-file-item' : ''
+                                    } ${headerModel ? 'nn-virtual-date-group-header' : ''} ${
+                                        headerModel?.isFirstHeader ? 'nn-first-date-group-header' : ''
                                     } ${isLastFile ? 'nn-last-file' : ''} ${hideSeparator ? 'nn-hide-separator-selection' : ''}`}
                                     style={virtualItemStyle}
                                     data-index={virtualItem.index}

@@ -4436,6 +4436,22 @@ body {
     pointer-events: none;
 }
 
+.nn-list-pane-scroller .nn-virtual-date-group-header:not(.nn-first-date-group-header)::after {
+    content: '';
+    position: absolute;
+    bottom: calc(-1 * var(--nn-date-header-spacer-after));
+    inset-inline-start: var(--nn-file-item-padding-horizontal);
+    inset-inline-end: var(--nn-file-item-padding-horizontal);
+    height: var(--nn-separator-height);
+    background-color: var(--nn-theme-list-separator-color);
+    z-index: 100;
+    pointer-events: none;
+}
+
+.nn-list-pane-scroller .nn-virtual-date-group-header.nn-hide-separator-selection::after {
+    display: none;
+}
+
 .nn-list-sticky-header .nn-date-group-header {
     position: relative;
     background-color: var(--nn-theme-list-bg) !important;
