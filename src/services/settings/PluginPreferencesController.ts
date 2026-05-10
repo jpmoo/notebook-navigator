@@ -45,7 +45,7 @@ import { resetHiddenToggleIfNoSources } from '../../utils/exclusionUtils';
 import { ensureVaultProfiles, DEFAULT_VAULT_PROFILE_ID } from '../../utils/vaultProfiles';
 import { runAsyncAction } from '../../utils/async';
 import { isAlphaSortOrder, isTagSortOrder } from '../../settings/types';
-import { getDefaultUXPreferences, isUXPreferencesRecord } from './uxPreferences';
+import { getDefaultUXPreferences, isUXPreferencesRecord, normalizeUXPreferencesRecord } from './uxPreferences';
 
 interface PluginPreferencesControllerOptions {
     keys: LocalStorageKeys;
@@ -142,24 +142,11 @@ export class PluginPreferencesController {
     public loadUXPreferences(): void {
         const defaults = getDefaultUXPreferences();
         const stored = localStorage.get<unknown>(this.options.keys.uxPreferencesKey);
-        if (isUXPreferencesRecord(stored)) {
-            this.uxPreferences = {
-                ...defaults,
-                ...stored
-            };
-
-            const hasAllKeys = Object.keys(defaults).every(key => {
-                return typeof stored[key as keyof UXPreferences] === 'boolean';
-            });
-
-            if (!hasAllKeys) {
-                this.persistUXPreferences(false);
-            }
-            return;
+        const normalized = normalizeUXPreferencesRecord(stored, defaults);
+        this.uxPreferences = normalized.preferences;
+        if (normalized.changed || !isUXPreferencesRecord(stored)) {
+            this.persistUXPreferences(false);
         }
-
-        this.uxPreferences = defaults;
-        this.persistUXPreferences(false);
     }
 
     public resetUXPreferencesToDefaults(): void {

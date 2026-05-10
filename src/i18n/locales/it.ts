@@ -436,7 +436,6 @@ export const STRINGS_IT = {
                 'nav-properties': 'Proprietà',
                 'nav-property': 'Proprietà',
                 'nav-property-value': 'Valore',
-                'list-pinned': 'Elementi fissati',
                 'file-unfinished-task': 'Attività incomplete',
                 'file-word-count': 'Conteggio parole'
             }
@@ -786,6 +785,7 @@ export const STRINGS_IT = {
         toggleTagsBySelection: 'Attiva/disattiva tag per selezione',
         togglePropertiesBySelection: 'Attiva/disattiva proprietà per selezione',
         toggleCompactMode: 'Attiva/disattiva modalità compatta', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Attiva/disattiva sezione fissata',
         collapseExpand: 'Comprimi / espandi tutti gli elementi', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Aggiungi tag ai file selezionati', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Imposta proprietà sui file selezionati', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -858,6 +858,7 @@ export const STRINGS_IT = {
             },
             list: {
                 display: 'Aspetto',
+                organization: 'Organizzazione',
                 pinnedNotes: 'Note fissate'
             },
             notes: {
@@ -953,13 +954,9 @@ export const STRINGS_IT = {
                 name: 'Mostra sempre tutti i badge di tag e proprietà',
                 desc: 'Quando disattivato, i badge corrispondenti alla selezione di navigazione corrente vengono nascosti (ad es. il badge del tag "ricette" viene nascosto durante la navigazione nel tag "ricette"). Attiva per mantenere tutti i badge visibili.'
             },
-            showPinnedGroupHeader: {
-                name: 'Mostra intestazione gruppo fissate',
-                desc: "Visualizza l'intestazione della sezione fissate sopra le note fissate."
-            },
-            showPinnedIcon: {
-                name: 'Mostra icona fissate',
-                desc: "Mostra l'icona accanto all'intestazione della sezione fissate."
+            stickyGroupHeaders: {
+                name: 'Intestazioni di gruppo fisse',
+                desc: "Mantieni visibile l'intestazione corrente di data, cartella o sezione fissate mentre scorri."
             },
             defaultListMode: {
                 name: 'Modalità lista predefinita',
@@ -971,7 +968,11 @@ export const STRINGS_IT = {
             },
             showFileIcons: {
                 name: 'Mostra icone file',
-                desc: 'Visualizza icone file con spaziatura allineata a sinistra. Disabilitando rimuove sia icone che indentazione. Priorità: icona attività incomplete > icona personalizzata > icona nome file > icona tipo file > icona predefinita.'
+                desc: 'Visualizza icone file con spaziatura allineata a sinistra. Disabilitando rimuove sia icone che indentazione. Priorità: icona attività incomplete > icona personalizzata > icona cartella > icona nome file > icona tipo file > icona predefinita.'
+            },
+            useFolderIcon: {
+                name: 'Usa icona cartella',
+                desc: "Visualizza l'icona della cartella genitore quando non è impostata un'icona file personalizzata. Il colore della cartella viene usato quando non è impostato un colore file personalizzato."
             },
             showFileIconUnfinishedTask: {
                 name: 'Icona attività incomplete',
@@ -1018,6 +1019,10 @@ export const STRINGS_IT = {
                 name: 'Mostra cartella genitore',
                 desc: 'Visualizza il nome della cartella genitore per note in sottocartelle o tag.'
             },
+            showParentFolderFullPath: {
+                name: 'Mostra percorso completo',
+                desc: 'Visualizza il percorso completo della cartella genitore invece del solo nome della cartella.'
+            },
             parentFolderClickRevealsFile: {
                 name: 'Click su cartella genitore apre cartella',
                 desc: "Cliccando sull'etichetta cartella genitore apre la cartella nel pannello elenco."
@@ -1061,7 +1066,7 @@ export const STRINGS_IT = {
             },
             useFloatingToolbars: {
                 name: 'Usa barre degli strumenti flottanti su iOS/iPadOS',
-                desc: 'Si applica a Obsidian 1.11 e versioni successive.'
+                desc: 'Si applica solo a iOS e iPadOS.'
             },
             startView: {
                 name: "Vista predefinita all'avvio",
@@ -1619,6 +1624,10 @@ export const STRINGS_IT = {
                     '2': '2 righe',
                     '3': '3 righe'
                 }
+            },
+            useFolderColor: {
+                name: 'Usa colore cartella',
+                desc: 'Colora i titoli delle note e le icone file con il colore della cartella genitore quando non è impostato un colore file personalizzato. Priorità: colore file personalizzato > colore cartella > colore predefinito.'
             },
             showFeatureImage: {
                 name: 'Mostra immagine in evidenza',

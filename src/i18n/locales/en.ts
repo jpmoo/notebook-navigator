@@ -436,7 +436,6 @@ export const STRINGS_EN = {
                 'nav-properties': 'Properties',
                 'nav-property': 'Property',
                 'nav-property-value': 'Value',
-                'list-pinned': 'Pinned items',
                 'file-unfinished-task': 'Unfinished tasks',
                 'file-word-count': 'Word count'
             }
@@ -786,6 +785,7 @@ export const STRINGS_EN = {
         toggleTagsBySelection: 'Toggle tags by selection',
         togglePropertiesBySelection: 'Toggle properties by selection',
         toggleCompactMode: 'Toggle compact mode', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Toggle pinned section',
         collapseExpand: 'Collapse / expand all items', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Add tag to selected files', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Set property on selected files', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -858,6 +858,7 @@ export const STRINGS_EN = {
             },
             list: {
                 display: 'Appearance',
+                organization: 'Organization',
                 pinnedNotes: 'Pinned notes'
             },
             notes: {
@@ -953,13 +954,9 @@ export const STRINGS_EN = {
                 name: 'Always show all tag and property pills',
                 desc: 'When disabled, pills matching the current navigation selection are hidden (e.g. the "recipes" tag pill is hidden when browsing the "recipes" tag). Enable to keep all pills visible.'
             },
-            showPinnedGroupHeader: {
-                name: 'Show pinned group header',
-                desc: 'Display the pinned section header above pinned notes.'
-            },
-            showPinnedIcon: {
-                name: 'Show pinned icon',
-                desc: 'Show the icon next to the pinned section header.'
+            stickyGroupHeaders: {
+                name: 'Sticky group headers',
+                desc: 'Keep the current date, folder, or pinned section header visible while scrolling.'
             },
             defaultListMode: {
                 name: 'Default list mode',
@@ -971,7 +968,11 @@ export const STRINGS_EN = {
             },
             showFileIcons: {
                 name: 'Show file icons',
-                desc: 'Display file icons with left-aligned spacing. Disabling removes both icons and indentation. Priority: unfinished tasks icon > custom icon > file name icon > file type icon > default icon.'
+                desc: 'Display file icons with left-aligned spacing. Disabling removes both icons and indentation. Priority: unfinished tasks icon > custom icon > folder icon > file name icon > file type icon > default icon.'
+            },
+            useFolderIcon: {
+                name: 'Use folder icon',
+                desc: 'Display the parent folder icon when no custom file icon is set. Folder color is used when no custom file color is set.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Unfinished task icon',
@@ -1018,6 +1019,10 @@ export const STRINGS_EN = {
                 name: 'Show parent folder',
                 desc: 'Display the parent folder name for notes in subfolders or tags.'
             },
+            showParentFolderFullPath: {
+                name: 'Show full path',
+                desc: 'Display the full parent folder path instead of only the folder name.'
+            },
             parentFolderClickRevealsFile: {
                 name: 'Click parent folder to go to folder',
                 desc: 'Clicking the parent folder label opens the folder in list pane.'
@@ -1061,7 +1066,7 @@ export const STRINGS_EN = {
             },
             useFloatingToolbars: {
                 name: 'Use floating toolbars on iOS/iPadOS',
-                desc: 'Applies to Obsidian 1.11 and later.'
+                desc: 'Applies only on iOS and iPadOS.'
             },
             startView: {
                 name: 'Default startup view',
@@ -1615,6 +1620,10 @@ export const STRINGS_EN = {
                     '2': '2 rows',
                     '3': '3 rows'
                 }
+            },
+            useFolderColor: {
+                name: 'Use folder color',
+                desc: 'Color note titles and file icons with their parent folder color when no custom file color is set. Priority: custom file color > folder color > default color.'
             },
             showFeatureImage: {
                 name: 'Show feature image',

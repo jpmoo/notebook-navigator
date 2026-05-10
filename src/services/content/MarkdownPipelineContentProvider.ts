@@ -461,8 +461,8 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
             oldSettings.previewPropertiesFallback !== newSettings.previewPropertiesFallback;
         const shouldClearPreview =
             previewExtractionSettingsChanged ||
-            // Enabling preview requires regenerated text because files may have changed while preview extraction was disabled.
-            (!oldSettings.showFilePreview && newSettings.showFilePreview);
+            // Toggling preview clears stale text while the disabled state hides the intermediate empty rows.
+            oldSettings.showFilePreview !== newSettings.showFilePreview;
 
         const shouldClearProperties = getActivePropertyFields(oldSettings) !== getActivePropertyFields(newSettings);
 

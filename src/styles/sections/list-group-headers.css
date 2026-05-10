@@ -1,15 +1,14 @@
-/* Source: src/styles/sections/list-date-headers.css */
+/* Source: src/styles/sections/list-group-headers.css */
 
 /* ========================================================================
-   Date Group Headers
+   List Group Headers
    ======================================================================== */
 
-/* Date group headers for grouped files */
-.nn-date-group-header {
-    height: var(--nn-date-header-height-subsequent-mobile, var(--nn-date-header-height-subsequent));
+/* List group headers for grouped files */
+.nn-list-group-header {
+    height: var(--nn-list-group-header-height-mobile, var(--nn-list-group-header-height));
     box-sizing: border-box;
-    padding: var(--nn-date-header-padding-top-mobile, var(--nn-date-header-padding-top)) var(--nn-file-item-padding-horizontal)
-        var(--nn-date-header-padding-bottom-mobile, var(--nn-date-header-padding-bottom)) var(--nn-file-item-padding-horizontal);
+    padding: 0 var(--nn-file-item-padding-horizontal);
     font-size: var(--nn-file-small-size-mobile, var(--nn-file-small-size));
     font-weight: var(--nn-theme-list-group-header-font-weight);
     color: var(--nn-theme-list-group-header-color);
@@ -18,48 +17,117 @@
     overflow: hidden;
     text-overflow: ellipsis;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 6px;
 }
 
-/* First date header - no top margin or extra padding for first group */
-.nn-date-group-header.nn-first-header {
-    height: var(--nn-date-header-height-mobile, var(--nn-date-header-height));
-    padding: 0 var(--nn-file-item-padding-horizontal);
-    align-items: center;
+.nn-list-group-header-spacer {
+    height: var(--item-height);
 }
 
-.nn-date-group-header-icon {
+.nn-list-sticky-header {
+    position: sticky;
+    top: 0;
+    /* Keep the sticky copy out of layout so it overlays the virtualized list rows. */
+    height: 0;
+    flex: 0 0 0;
+    overflow: visible;
+    z-index: 200;
+    pointer-events: none;
+}
+
+.nn-list-pane-scroller .nn-virtual-list-group-header:not(.nn-first-list-group-header)::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    inset-inline-start: var(--nn-file-item-padding-horizontal);
+    inset-inline-end: var(--nn-file-item-padding-horizontal);
+    height: var(--nn-separator-height);
+    background-color: var(--nn-theme-list-separator-color);
+    z-index: 100;
+    pointer-events: none;
+}
+
+.nn-list-pane-scroller .nn-virtual-list-group-header.nn-hide-separator-selection::after {
+    display: none;
+}
+
+.nn-list-sticky-header .nn-list-group-header {
+    position: relative;
+    overflow: visible;
+    background-color: var(--nn-theme-list-bg) !important;
+    pointer-events: auto;
+}
+
+.nn-list-sticky-header .nn-list-group-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    inset-inline-start: calc(-1 * var(--nn-scroller-padding));
+    inset-inline-end: calc(-1 * var(--nn-scroller-padding));
+    background-color: var(--nn-theme-list-bg);
+    z-index: -1;
+}
+
+.nn-list-sticky-header .nn-list-group-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    inset-inline-start: calc(-1 * var(--nn-scroller-padding));
+    inset-inline-end: calc(-1 * var(--nn-scroller-padding));
+    height: var(--nn-separator-height);
+    background-color: var(--nn-theme-list-separator-color);
+    z-index: 100;
+    pointer-events: none;
+}
+
+.nn-list-sticky-header.nn-first-list-group-header .nn-list-group-header::after {
+    display: none;
+}
+
+.nn-list-group-header-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: var(--nn-date-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
-    height: var(--nn-date-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
+    width: var(--nn-list-group-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
+    height: var(--nn-list-group-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
     color: var(--nn-theme-list-group-header-color);
     flex: 0 0 auto;
 }
 
-.nn-date-group-header-icon svg {
+.nn-list-group-header-icon svg {
     width: 100%;
     height: 100%;
 }
 
-.nn-date-group-header-text {
+.nn-list-group-header-text {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.nn-date-group-header-text--folder-note {
+.nn-list-group-header-text--folder-note {
     text-decoration: var(--nn-theme-navitem-folder-note-name-decoration) !important;
 }
 
-.nn-date-group-header-text--folder-note:hover {
+.nn-list-group-header-text--folder-note:hover {
     cursor: pointer;
     text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration) !important;
 }
 
 .nn-pinned-section-header {
     align-items: center;
+    user-select: none;
+}
+
+.nn-pinned-section-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+    cursor: pointer;
 }
 
 /* Virtual list item - absolute positioning for list pane items */

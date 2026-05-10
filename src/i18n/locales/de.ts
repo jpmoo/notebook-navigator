@@ -437,7 +437,6 @@ export const STRINGS_DE = {
                 'nav-properties': 'Eigenschaften',
                 'nav-property': 'Eigenschaft',
                 'nav-property-value': 'Wert',
-                'list-pinned': 'Angeheftete Elemente',
                 'file-unfinished-task': 'Unerledigte Aufgaben',
                 'file-word-count': 'Wortanzahl'
             }
@@ -791,6 +790,7 @@ export const STRINGS_DE = {
         toggleTagsBySelection: 'Tags nach Auswahl umschalten',
         togglePropertiesBySelection: 'Eigenschaften nach Auswahl umschalten',
         toggleCompactMode: 'Kompaktmodus umschalten', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Angepinnten Bereich umschalten',
         collapseExpand: 'Alle Elemente ein-/ausklappen', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Tag zu ausgewählten Dateien hinzufügen', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Eigenschaft für ausgewählte Dateien setzen', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -863,6 +863,7 @@ export const STRINGS_DE = {
             },
             list: {
                 display: 'Darstellung',
+                organization: 'Organisation',
                 pinnedNotes: 'Angeheftete Notizen'
             },
             notes: {
@@ -958,13 +959,9 @@ export const STRINGS_DE = {
                 name: 'Tag- und Eigenschaftspillen immer anzeigen',
                 desc: 'Wenn deaktiviert, werden Pillen ausgeblendet, die der aktuellen Navigationsauswahl entsprechen (z.\u00a0B. wird die „Rezepte"-Tag-Pille beim Durchsuchen des „Rezepte"-Tags ausgeblendet). Aktivieren, um alle Pillen sichtbar zu halten.'
             },
-            showPinnedGroupHeader: {
-                name: 'Überschrift für angeheftete Notizen anzeigen',
-                desc: 'Zeigt die Überschrift des Abschnitts für angeheftete Notizen an.'
-            },
-            showPinnedIcon: {
-                name: 'Icon für angeheftete Notizen anzeigen',
-                desc: 'Icon neben der Überschrift für angeheftete Notizen anzeigen.'
+            stickyGroupHeaders: {
+                name: 'Gruppenüberschriften fixieren',
+                desc: 'Hält die aktuelle Datums-, Ordner- oder Anheftbereichsüberschrift beim Scrollen sichtbar.'
             },
             defaultListMode: {
                 name: 'Standardmodus für Listen',
@@ -976,7 +973,11 @@ export const STRINGS_DE = {
             },
             showFileIcons: {
                 name: 'Dateisymbole anzeigen',
-                desc: 'Dateisymbole mit linksbündigem Abstand anzeigen. Deaktivierung entfernt sowohl Symbole als auch Einrückung. Priorität: Unerledigte-Aufgaben-Symbol > Benutzerdefiniertes Symbol > Dateiname-Symbol > Dateityp-Symbol > Standard-Symbol.'
+                desc: 'Dateisymbole mit linksbündigem Abstand anzeigen. Deaktivierung entfernt sowohl Symbole als auch Einrückung. Priorität: Unerledigte-Aufgaben-Symbol > Benutzerdefiniertes Symbol > Ordnersymbol > Dateiname-Symbol > Dateityp-Symbol > Standard-Symbol.'
+            },
+            useFolderIcon: {
+                name: 'Ordnersymbol verwenden',
+                desc: 'Das Symbol des übergeordneten Ordners anzeigen, wenn kein benutzerdefiniertes Dateisymbol festgelegt ist. Die Ordnerfarbe wird verwendet, wenn keine benutzerdefinierte Dateifarbe festgelegt ist.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Unerledigte-Aufgaben-Symbol',
@@ -1023,6 +1024,10 @@ export const STRINGS_DE = {
                 name: 'Übergeordneten Ordner anzeigen',
                 desc: 'Den übergeordneten Ordnernamen für Notizen in Unterordnern oder Tags anzeigen.'
             },
+            showParentFolderFullPath: {
+                name: 'Vollständigen Pfad anzeigen',
+                desc: 'Den vollständigen Pfad des übergeordneten Ordners anstelle nur des Ordnernamens anzeigen.'
+            },
             parentFolderClickRevealsFile: {
                 name: 'Klick auf übergeordneten Ordner öffnet Ordner',
                 desc: 'Klicken auf den übergeordneten Ordner öffnet den Ordner im Listenbereich.'
@@ -1066,7 +1071,7 @@ export const STRINGS_DE = {
             },
             useFloatingToolbars: {
                 name: 'Schwebende Symbolleisten auf iOS/iPadOS verwenden',
-                desc: 'Gilt für Obsidian 1.11 und höher.'
+                desc: 'Gilt nur für iOS und iPadOS.'
             },
             startView: {
                 name: 'Standard-Startansicht',
@@ -1623,6 +1628,10 @@ export const STRINGS_DE = {
                     '2': '2 Zeilen',
                     '3': '3 Zeilen'
                 }
+            },
+            useFolderColor: {
+                name: 'Ordnerfarbe verwenden',
+                desc: 'Notizentitel und Dateisymbole mit der Farbe des übergeordneten Ordners einfärben, wenn keine benutzerdefinierte Dateifarbe festgelegt ist. Priorität: Benutzerdefinierte Dateifarbe > Ordnerfarbe > Standardfarbe.'
             },
             showFeatureImage: {
                 name: 'Vorschaubild anzeigen',

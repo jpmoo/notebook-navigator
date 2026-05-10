@@ -281,11 +281,11 @@ navigation pane background. In `primary` and `secondary` background modes, both 
 | `--nn-theme-mobile-toolbar-button-icon-color`          | `var(--link-color)`                                              | Icon color for toolbar buttons                                                                                   |
 | `--nn-theme-mobile-toolbar-button-active-bg`           | `var(--background-modifier-hover)`                               | Background color for active toolbar button                                                                       |
 | `--nn-theme-mobile-toolbar-button-active-icon-color`   | `var(--link-color)`                                              | Icon color for active toolbar button                                                                             |
-| `--nn-theme-mobile-toolbar-glass-bg`                   | `var(--background-primary)`                                      | Base color of the Obsidian 1.11+ iOS glass toolbar (mixed with transparency)                                     |
+| `--nn-theme-mobile-toolbar-glass-bg`                   | `var(--background-primary)`                                      | Base color of the iOS glass toolbar (mixed with transparency)                                                    |
 
 Mobile navigation and list pane backgrounds follow `--nn-theme-mobile-bg`.
 
-On Obsidian 1.11+ on iOS, `.notebook-navigator-obsidian-1-11-plus-ios` overrides:
+On iOS with floating toolbars enabled, `.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars` overrides:
 
 - `--nn-theme-mobile-toolbar-button-icon-color`: `var(--nn-theme-foreground)`
 - `--nn-theme-mobile-toolbar-button-active-bg`: `transparent`

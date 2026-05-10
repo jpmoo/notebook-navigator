@@ -45,7 +45,7 @@
  */
 
 import React, { useRef, useEffect, useImperativeHandle, forwardRef, useState, useMemo, useLayoutEffect } from 'react';
-import { TFile, Platform, requireApiVersion } from 'obsidian';
+import { TFile, Platform } from 'obsidian';
 import { Virtualizer } from '@tanstack/react-virtual';
 import { useSelectionState, useSelectionDispatch } from '../context/SelectionContext';
 import { useServices } from '../context/ServicesContext';
@@ -62,7 +62,7 @@ import { useListPaneSearch, type SearchQueryUpdateOptions } from '../hooks/useLi
 import { useListPaneSelectionCoordinator } from '../hooks/useListPaneSelectionCoordinator';
 import type { EnsureSelectionOptions, EnsureSelectionResult, SelectFileOptions } from '../hooks/useListPaneSelectionCoordinator';
 import { useContextMenu } from '../hooks/useContextMenu';
-import { IOS_OBSIDIAN_1_11_PLUS_GLASS_TOOLBAR_HEIGHT_PX, type CSSPropertiesWithVars } from '../types';
+import { IOS_FLOATING_TOOLBAR_HEIGHT_PX, ListPaneItemType, type CSSPropertiesWithVars } from '../types';
 import { getEffectiveSortOption } from '../utils/sortUtils';
 import { ListPaneHeader } from './ListPaneHeader';
 import { ListToolbar } from './ListToolbar';
@@ -80,13 +80,14 @@ import type { FolderDecorationModel } from '../utils/folderDecoration';
 import { useSurfaceColorVariables } from '../hooks/useSurfaceColorVariables';
 import { LIST_PANE_SURFACE_COLOR_MAPPINGS } from '../constants/surfaceColorMappings';
 import { getListPaneMeasurements } from '../utils/listPaneMeasurements';
-import { resolveUXIcon } from '../utils/uxIcons';
 import { createHiddenTagVisibility } from '../utils/tagPrefixMatcher';
 import { getPropertyKeySet } from '../utils/vaultProfiles';
 import { DateUtils } from '../utils/dateUtils';
 import type { NavigateToFolderOptions, RevealPropertyOptions, RevealTagOptions } from '../hooks/useNavigatorReveal';
 import type { FileItemPillDecorationModel } from '../utils/fileItemPillDecoration';
 import { compositeWithBase } from '../utils/colorUtils';
+import { runAsyncAction } from '../utils/async';
+import { getPinnedSectionCollapseKey } from '../utils/selectionUtils';
 
 /**
  * Renders the list pane displaying files from the selected folder.
@@ -176,7 +177,7 @@ function ListPaneTitleChrome({
 
 export const ListPane = React.memo(
     forwardRef<ListPaneHandle, ListPaneProps>(function ListPane(props, ref) {
-        const { app, isMobile } = useServices();
+        const { app, isMobile, plugin } = useServices();
         const { onNavigateToFolder, onRevealTag, onRevealProperty, folderDecorationModel, fileItemPillDecorationModel } = props;
         const selectionState = useSelectionState();
         const selectionDispatch = useSelectionDispatch();
@@ -214,7 +215,6 @@ export const ListPane = React.memo(
         const listPaneTitle = settings.listPaneTitle ?? 'header';
         const shouldShowDesktopTitleArea = !isMobile && listPaneTitle === 'list';
         const listMeasurements = getListPaneMeasurements(isMobile);
-        const pinnedSectionIcon = useMemo(() => resolveUXIcon(settings.interfaceIcons, 'list-pinned'), [settings.interfaceIcons]);
         const topSpacerHeight = shouldShowDesktopTitleArea ? 0 : listMeasurements.topSpacer;
         const iconColumnStyle = useMemo(() => {
             if (settings.showFileIcons) {
@@ -264,17 +264,16 @@ export const ListPane = React.memo(
             };
         }, [listSurfaceColor, listSurfaceVersion]);
 
-        const isIosObsidian111Plus = Platform.isIosApp && requireApiVersion('1.11.0');
-        const shouldUseFloatingToolbars = isIosObsidian111Plus && settings.useFloatingToolbars;
+        const shouldUseFloatingToolbars = isMobile && Platform.isIosApp && settings.useFloatingToolbars;
         const scrollPaddingEnd = useMemo(() => {
-            if (!shouldUseFloatingToolbars || !isMobile || isAndroid) {
+            if (!shouldUseFloatingToolbars) {
                 return 0;
             }
 
-            // Keep in sync with `--nn-ios-pane-bottom-overlay-height` in `src/styles/sections/platform-ios-obsidian-1-11.css`.
+            // Keep in sync with `--nn-ios-pane-bottom-overlay-height` in `src/styles/sections/platform-ios.css`.
             // The calendar overlay is outside the scroller, so it is intentionally not included here.
-            return IOS_OBSIDIAN_1_11_PLUS_GLASS_TOOLBAR_HEIGHT_PX;
-        }, [isAndroid, isMobile, shouldUseFloatingToolbars]);
+            return IOS_FLOATING_TOOLBAR_HEIGHT_PX;
+        }, [shouldUseFloatingToolbars]);
         const ensureSelectionForCurrentFilterRef = useRef<((options?: EnsureSelectionOptions) => EnsureSelectionResult) | null>(null);
         const {
             isSearchActive,
@@ -308,6 +307,11 @@ export const ListPane = React.memo(
         });
 
         const { selectionType, selectedFolder, selectedTag, selectedProperty, selectedFile } = selectionState;
+        const pinnedCollapseKey = getPinnedSectionCollapseKey({ selectionType, selectedFolder, selectedTag, selectedProperty });
+        const pinnedGroupExpanded = settings.collapsedPinnedContexts[pinnedCollapseKey] !== true;
+        const handlePinnedGroupHeaderToggle = React.useCallback(() => {
+            runAsyncAction(() => plugin.togglePinnedGroupCollapsed(pinnedCollapseKey));
+        }, [pinnedCollapseKey, plugin]);
 
         // Determine if list pane is visible early to optimize
         const isVisible = !uiState.singlePane || uiState.currentSinglePaneView === 'files';
@@ -321,12 +325,16 @@ export const ListPane = React.memo(
             settings,
             activeProfile,
             groupBy: appearanceSettings.groupBy,
+            pinnedGroupExpanded,
             searchProvider,
             // Use debounced value for filtering
             searchQuery: isSearchActive ? debouncedSearchQuery : undefined,
             searchTokens: isSearchActive ? debouncedSearchTokens : undefined,
             visibility: { includeDescendantNotes, showHiddenItems }
         });
+        const listStartsWithGroupHeader =
+            listItems[0]?.type === ListPaneItemType.TOP_SPACER && listItems[1]?.type === ListPaneItemType.HEADER;
+        const effectiveTopSpacerHeight = settings.stickyGroupHeaders && listStartsWithGroupHeader ? 0 : topSpacerHeight;
         const localDayReference = useMemo(() => DateUtils.parseLocalDayKey(localDayKey), [localDayKey]);
 
         // Determine the target folder path for drag-and-drop of external files
@@ -384,30 +392,32 @@ export const ListPane = React.memo(
         }, [visibleListPropertyKeys]);
 
         // Use the new scroll hook
-        const { rowVirtualizer, scrollContainerRef, scrollContainerRefCallback, handleScrollToTop } = useListPaneScroll({
-            listItems,
-            filePathToIndex,
-            selectedFile,
-            selectedFolder,
-            selectedTag,
-            selectedProperty,
-            settings,
-            folderSettings: appearanceSettings,
-            isVisible,
-            selectionState,
-            selectionDispatch,
-            // Use debounced value for scroll orchestration to align with filtering
-            searchQuery: isSearchActive ? debouncedSearchQuery : undefined,
-            suppressSearchTopScrollRef,
-            topSpacerHeight,
-            includeDescendantNotes,
-            visiblePropertyKeys: visibleListPropertyKeys,
-            visiblePropertyKeySignature: visibleListPropertyKeySignature,
-            hiddenTagVisibility,
-            scrollMargin: 0,
-            scrollPaddingEnd,
-            onVirtualizerScrollingChange: handleVirtualizerScrollingChange
-        });
+        const { rowVirtualizer, scrollContainerRef, scrollContainerRefCallback, handleScrollToTop, scrollToIndexSafely } =
+            useListPaneScroll({
+                listItems,
+                filePathToIndex,
+                selectedFile,
+                selectedFolder,
+                selectedTag,
+                selectedProperty,
+                settings,
+                folderSettings: appearanceSettings,
+                isVisible,
+                selectionState,
+                selectionDispatch,
+                // Use debounced value for scroll orchestration to align with filtering
+                searchQuery: isSearchActive ? debouncedSearchQuery : undefined,
+                suppressSearchTopScrollRef,
+                topSpacerHeight: effectiveTopSpacerHeight,
+                includeDescendantNotes,
+                pinnedGroupExpanded,
+                visiblePropertyKeys: visibleListPropertyKeys,
+                visiblePropertyKeySignature: visibleListPropertyKeySignature,
+                hiddenTagVisibility,
+                scrollMargin: 0,
+                scrollPaddingEnd,
+                onVirtualizerScrollingChange: handleVirtualizerScrollingChange
+            });
 
         const prevCalendarOverlayVisibleRef = useRef<boolean>(shouldRenderCalendarOverlay);
         const prevCalendarWeekCountRef = useRef<number>(calendarWeekCount);
@@ -435,7 +445,7 @@ export const ListPane = React.memo(
                 return;
             }
 
-            const scheduleScroll = () => rowVirtualizer.scrollToIndex(index, { align: 'auto' });
+            const scheduleScroll = () => scrollToIndexSafely(index, 'auto');
 
             if (typeof requestAnimationFrame !== 'undefined') {
                 requestAnimationFrame(() => {
@@ -445,7 +455,7 @@ export const ListPane = React.memo(
             }
 
             activeWindow.setTimeout(scheduleScroll, 0);
-        }, [calendarWeekCount, filePathToIndex, rowVirtualizer, selectedFile, shouldRenderCalendarOverlay]);
+        }, [calendarWeekCount, filePathToIndex, scrollToIndexSafely, selectedFile, shouldRenderCalendarOverlay]);
 
         const listToolbar = useMemo(() => {
             return <ListToolbar isSearchActive={isSearchActive} onSearchToggle={handleSearchToggle} />;
@@ -491,7 +501,7 @@ export const ListPane = React.memo(
             rootContainerRef: props.rootContainerRef,
             orderedFiles,
             filePathToIndex,
-            rowVirtualizer
+            scrollToIndexSafely
         });
         ensureSelectionForCurrentFilterRef.current = ensureSelectionForCurrentFilter;
         const toggleNoteShortcut = React.useCallback(async (file: TFile, shortcutKey: string | undefined) => {
@@ -551,6 +561,7 @@ export const ListPane = React.memo(
             pathToIndex: filePathToIndex,
             orderedFiles,
             orderedFileIndexMap,
+            scrollToIndexSafely,
             onSelectFile: (file, options) =>
                 selectFileFromList(file, {
                     markKeyboardNavigation: true,
@@ -621,9 +632,10 @@ export const ListPane = React.memo(
                         isCompactMode={isCompactMode}
                         isEmptySelection={isEmptySelection}
                         hasNoFiles={hasNoFiles}
-                        topSpacerHeight={topSpacerHeight}
+                        topSpacerHeight={effectiveTopSpacerHeight}
                         settings={settings}
-                        pinnedSectionIcon={pinnedSectionIcon}
+                        pinnedGroupExpanded={pinnedGroupExpanded}
+                        onPinnedGroupHeaderToggle={handlePinnedGroupHeaderToggle}
                         selectionType={selectionType}
                         sortOption={effectiveSortOption}
                         searchHighlightQuery={searchHighlightQuery}
@@ -652,7 +664,7 @@ export const ListPane = React.memo(
                         fileItemPillDecorationModel={fileItemPillDecorationModel}
                         getSolidBackground={getSolidBackground}
                     />
-                    {/* iOS (Obsidian 1.11+): keep the floating toolbar inside the panel */}
+                    {/* iOS: keep the floating toolbar inside the panel */}
                     {shouldRenderBottomToolbarInsidePanel ? <div className="nn-pane-bottom-toolbar">{listToolbar}</div> : null}
                 </div>
                 {shouldRenderCalendarOverlay ? (

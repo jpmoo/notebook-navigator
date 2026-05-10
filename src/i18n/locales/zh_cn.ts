@@ -436,7 +436,6 @@ export const STRINGS_ZH_CN = {
                 'nav-properties': '属性',
                 'nav-property': '属性',
                 'nav-property-value': '值',
-                'list-pinned': '固定项目',
                 'file-unfinished-task': '未完成任务',
                 'file-word-count': '字数统计'
             }
@@ -783,6 +782,7 @@ export const STRINGS_ZH_CN = {
         toggleTagsBySelection: '按选择切换标签',
         togglePropertiesBySelection: '按选择切换属性',
         toggleCompactMode: '切换紧凑模式', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: '切换置顶区域',
         collapseExpand: '折叠/展开所有项目', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: '为选定文件添加标签', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: '为选定文件设置属性', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -855,6 +855,7 @@ export const STRINGS_ZH_CN = {
             },
             list: {
                 display: '外观',
+                organization: '组织',
                 pinnedNotes: '固定笔记'
             },
             notes: {
@@ -950,13 +951,9 @@ export const STRINGS_ZH_CN = {
                 name: '始终显示所有标签和属性标记',
                 desc: '禁用时，与当前导航选择匹配的标记会被隐藏（例如，浏览"食谱"标签时，"食谱"标签标记会被隐藏）。启用后所有标记始终可见。'
             },
-            showPinnedGroupHeader: {
-                name: '显示固定组标题',
-                desc: '在固定笔记上方显示分组标题。'
-            },
-            showPinnedIcon: {
-                name: '显示固定图标',
-                desc: '在固定部分标题旁显示图标。'
+            stickyGroupHeaders: {
+                name: '固定分组标题',
+                desc: '滚动时保持当前日期、文件夹或固定部分的标题可见。'
             },
             defaultListMode: {
                 name: '默认列表模式',
@@ -968,7 +965,11 @@ export const STRINGS_ZH_CN = {
             },
             showFileIcons: {
                 name: '显示文件图标',
-                desc: '显示文件图标并保留左对齐间距。禁用后将移除图标和缩进。优先级：未完成任务图标 > 自定义图标 > 文件名图标 > 文件类型图标 > 默认图标。'
+                desc: '显示文件图标并保留左对齐间距。禁用后将移除图标和缩进。优先级：未完成任务图标 > 自定义图标 > 文件夹图标 > 文件名图标 > 文件类型图标 > 默认图标。'
+            },
+            useFolderIcon: {
+                name: '使用文件夹图标',
+                desc: '当未设置自定义文件图标时显示父文件夹图标。当未设置自定义文件颜色时使用文件夹颜色。'
             },
             showFileIconUnfinishedTask: {
                 name: '未完成任务图标',
@@ -1015,6 +1016,10 @@ export const STRINGS_ZH_CN = {
                 name: '显示父文件夹',
                 desc: '为子文件夹或标签中的笔记显示父文件夹名称。'
             },
+            showParentFolderFullPath: {
+                name: '显示完整路径',
+                desc: '显示父文件夹的完整路径而不仅仅是文件夹名称。'
+            },
             parentFolderClickRevealsFile: {
                 name: '点击父文件夹打开文件夹',
                 desc: '点击父文件夹名称时，在列表面板中打开该文件夹。'
@@ -1058,7 +1063,7 @@ export const STRINGS_ZH_CN = {
             },
             useFloatingToolbars: {
                 name: '在 iOS/iPadOS 上使用浮动工具栏',
-                desc: '适用于 Obsidian 1.11 及更高版本。'
+                desc: '仅适用于 iOS 和 iPadOS。'
             },
             startView: {
                 name: '默认启动视图',
@@ -1612,6 +1617,10 @@ export const STRINGS_ZH_CN = {
                     '2': '2 行',
                     '3': '3 行'
                 }
+            },
+            useFolderColor: {
+                name: '使用文件夹颜色',
+                desc: '当未设置自定义文件颜色时，使用父文件夹的颜色为笔记标题和文件图标着色。优先级：自定义文件颜色 > 文件夹颜色 > 默认颜色。'
             },
             showFeatureImage: {
                 name: '显示特色图片',

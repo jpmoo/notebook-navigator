@@ -36,9 +36,9 @@ export interface ListPaneConfig {
     filterPinnedByFolder: boolean;
     folderGroupSortOrder: AlphaSortOrder;
     groupBy: ListNoteGroupingOption;
+    pinnedGroupExpanded: boolean;
     pinnedNotes: NotebookNavigatorSettings['pinnedNotes'];
     showFileTags: boolean;
-    showPinnedGroupHeader: boolean;
     showTags: boolean;
 }
 
@@ -125,18 +125,35 @@ export function buildListItems({
         items.push({ ...baseItem, ...overrides });
     };
 
-    if (pinnedFiles.length > 0) {
-        if (listConfig.showPinnedGroupHeader) {
+    const pushHeaderItem = ({ data, key, headerFolderPath }: Pick<ListPaneItem, 'data' | 'key' | 'headerFolderPath'>) => {
+        const useHeaderSpacers = items.length > 1;
+        if (useHeaderSpacers) {
             items.push({
-                type: ListPaneItemType.HEADER,
-                data: strings.listPane.pinnedSection,
-                key: PINNED_SECTION_HEADER_KEY
+                type: ListPaneItemType.HEADER_SPACER,
+                data: '',
+                key: `${key}-spacer-before`
             });
         }
 
-        pinnedFiles.forEach(file => {
-            pushFileItem(file, { isPinned: true });
+        items.push({
+            type: ListPaneItemType.HEADER,
+            data,
+            headerFolderPath,
+            key
         });
+    };
+
+    if (pinnedFiles.length > 0) {
+        pushHeaderItem({
+            data: strings.listPane.pinnedSection,
+            key: PINNED_SECTION_HEADER_KEY
+        });
+
+        if (listConfig.pinnedGroupExpanded) {
+            pinnedFiles.forEach(file => {
+                pushFileItem(file, { isPinned: true });
+            });
+        }
     }
 
     const groupingMode = listConfig.groupBy;
@@ -146,8 +163,7 @@ export function buildListItems({
     if (!shouldGroupByDate && !shouldGroupByFolder) {
         if (pinnedFiles.length > 0 && unpinnedFiles.length > 0) {
             const label = fileVisibility === FILE_VISIBILITY.DOCUMENTS ? strings.listPane.notesSection : strings.listPane.filesSection;
-            items.push({
-                type: ListPaneItemType.HEADER,
+            pushHeaderItem({
                 data: label,
                 key: `header-${label}`
             });
@@ -167,8 +183,7 @@ export function buildListItems({
             const groupTitle = DateUtils.getDateGroup(timestamp, now);
             if (groupTitle !== currentGroup) {
                 currentGroup = groupTitle;
-                items.push({
-                    type: ListPaneItemType.HEADER,
+                pushHeaderItem({
                     data: groupTitle,
                     key: `header-${groupTitle}`
                 });
@@ -280,8 +295,7 @@ export function buildListItems({
             }
 
             if (!group.isCurrentFolder || pinnedFiles.length > 0) {
-                items.push({
-                    type: ListPaneItemType.HEADER,
+                pushHeaderItem({
                     data: group.label,
                     headerFolderPath: group.folderPath,
                     key: `header-${group.key}`

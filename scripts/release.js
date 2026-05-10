@@ -65,6 +65,7 @@ const projectRoot = path.join(__dirname, '..');
 const validReleaseTypes = ['patch', 'minor', 'major'];
 const lockFilePath = path.join(projectRoot, '.release.lock');
 const releaseAssetNames = ['main.js', 'manifest.json', 'styles.css'];
+const signedReleaseAssetSuffixes = ['.minisig', '.asc', '.sig', '.sign', '.sigstore', '.sigstore.json', '.intoto.jsonl'];
 const pullRequestPollIntervalMs = 30 * 1000;
 const releasePollIntervalMs = 15 * 1000;
 const releaseVerificationTimeoutMs = 15 * 60 * 1000;
@@ -816,6 +817,19 @@ function hasRequiredReleaseAssets(release) {
     return releaseAssetNames.every(assetName => assetNames.has(assetName));
 }
 
+function isSignedReleaseAssetName(assetName) {
+    if (!assetName) {
+        return false;
+    }
+
+    const normalizedName = assetName.toLowerCase();
+    return signedReleaseAssetSuffixes.some(suffix => normalizedName.endsWith(suffix));
+}
+
+function hasSignedReleaseAsset(release) {
+    return (release.assets || []).some(asset => isSignedReleaseAssetName(asset.name));
+}
+
 function isReleaseNotFoundError(error) {
     return error.message.toLowerCase().includes('release not found');
 }
@@ -844,6 +858,33 @@ function waitForGitHubRelease(version) {
 
     console.error(`❌ Timed out waiting for GitHub release ${version} assets.`);
     console.error(`   Required assets: ${releaseAssetNames.join(', ')}`);
+    process.exit(1);
+}
+
+function waitForSignedReleaseAsset(version) {
+    const deadline = Date.now() + releaseVerificationTimeoutMs;
+
+    while (Date.now() < deadline) {
+        try {
+            const release = getGitHubRelease(version);
+            if (hasSignedReleaseAsset(release)) {
+                return release;
+            }
+        } catch (error) {
+            if (!isReleaseNotFoundError(error)) {
+                console.error(`❌ Could not read GitHub release ${version}.`);
+                console.error(`   ${error.message}`);
+                console.error('   Verify the release and workflow manually.');
+                process.exit(1);
+            }
+        }
+
+        console.log(`Waiting for signed release asset for ${version}...`);
+        sleep(releasePollIntervalMs);
+    }
+
+    console.error(`❌ Timed out waiting for signed release asset for ${version}.`);
+    console.error(`   Expected one of: ${signedReleaseAssetSuffixes.join(', ')}`);
     process.exit(1);
 }
 
@@ -899,16 +940,17 @@ function waitForReleaseWorkflow(version) {
         sleep(releasePollIntervalMs);
     }
 
-    console.log(`⚠️  Release workflow did not complete within ${releaseVerificationTimeoutMs / 60000} minutes.`);
+    console.error(`❌ Release workflow did not complete within ${releaseVerificationTimeoutMs / 60000} minutes.`);
     if (run?.url) {
-        console.log(`   Check status: ${run.url}`);
+        console.error(`   Check status: ${run.url}`);
     }
-    return null;
+    process.exit(1);
 }
 
 function verifyReleaseWorkflowResult(run) {
     if (!run) {
-        return;
+        console.error('❌ Could not verify release workflow result.');
+        process.exit(1);
     }
 
     if (run.conclusion === 'success') {
@@ -917,16 +959,7 @@ function verifyReleaseWorkflowResult(run) {
     }
 
     const jobs = Array.isArray(run.jobs) ? run.jobs : [];
-    const buildJob = jobs.find(job => job.name === 'build');
     const failedJobs = jobs.filter(job => job.conclusion && !['success', 'skipped'].includes(job.conclusion));
-    const onlyProvenanceFailed = failedJobs.length > 0 && failedJobs.every(job => job.name.startsWith('provenance'));
-
-    if (buildJob?.conclusion === 'success' && onlyProvenanceFailed) {
-        console.log('⚠️  Release assets were published, but provenance failed.');
-        console.log(`   Workflow: ${run.url}`);
-        failedJobs.forEach(job => console.log(`   - ${job.name}: ${job.conclusion}`));
-        return;
-    }
 
     console.error('❌ Release workflow failed.');
     console.error(`   Workflow: ${run.url}`);
@@ -953,6 +986,10 @@ function verifyPublishedRelease(version) {
 
     const workflowRun = waitForReleaseWorkflow(version);
     verifyReleaseWorkflowResult(workflowRun);
+
+    const signedRelease = waitForSignedReleaseAsset(version);
+    const signedAsset = signedRelease.assets.find(asset => isSignedReleaseAssetName(asset.name));
+    console.log(`✓ GitHub release has signed asset: ${signedAsset.name}`);
 }
 
 // ============================================================================

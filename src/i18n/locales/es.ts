@@ -437,7 +437,6 @@ export const STRINGS_ES = {
                 'nav-properties': 'Propiedades',
                 'nav-property': 'Propiedad',
                 'nav-property-value': 'Valor',
-                'list-pinned': 'Elementos fijados',
                 'file-unfinished-task': 'Tareas pendientes',
                 'file-word-count': 'Conteo de palabras'
             }
@@ -791,6 +790,7 @@ export const STRINGS_ES = {
         toggleTagsBySelection: 'Alternar etiquetas por selección',
         togglePropertiesBySelection: 'Alternar propiedades por selección',
         toggleCompactMode: 'Alternar modo compacto', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Alternar sección anclada',
         collapseExpand: 'Contraer / expandir todos los elementos', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Añadir etiqueta a archivos seleccionados', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Establecer propiedad en archivos seleccionados', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -863,6 +863,7 @@ export const STRINGS_ES = {
             },
             list: {
                 display: 'Apariencia',
+                organization: 'Organización',
                 pinnedNotes: 'Notas fijadas'
             },
             notes: {
@@ -958,13 +959,9 @@ export const STRINGS_ES = {
                 name: 'Mostrar siempre todas las etiquetas y propiedades',
                 desc: 'Cuando está desactivado, las etiquetas que coinciden con la selección de navegación actual se ocultan (p. ej., la etiqueta "recetas" se oculta al navegar por la etiqueta "recetas"). Activar para mantener todas las etiquetas visibles.'
             },
-            showPinnedGroupHeader: {
-                name: 'Mostrar encabezado del grupo anclado',
-                desc: 'Muestra el encabezado de la sección de notas ancladas.'
-            },
-            showPinnedIcon: {
-                name: 'Mostrar icono de anclados',
-                desc: 'Muestra el icono junto al encabezado de la sección anclada.'
+            stickyGroupHeaders: {
+                name: 'Encabezados de grupo fijos',
+                desc: 'Mantén visible el encabezado actual de fecha, carpeta o sección anclada al desplazarte.'
             },
             defaultListMode: {
                 name: 'Modo de lista predeterminado',
@@ -976,7 +973,11 @@ export const STRINGS_ES = {
             },
             showFileIcons: {
                 name: 'Mostrar iconos de archivo',
-                desc: 'Mostrar iconos de archivo con espaciado alineado a la izquierda. Desactivar elimina tanto iconos como sangría. Prioridad: icono de tareas pendientes > icono personalizado > icono de nombre de archivo > icono de tipo de archivo > icono predeterminado.'
+                desc: 'Mostrar iconos de archivo con espaciado alineado a la izquierda. Desactivar elimina tanto iconos como sangría. Prioridad: icono de tareas pendientes > icono personalizado > icono de carpeta > icono de nombre de archivo > icono de tipo de archivo > icono predeterminado.'
+            },
+            useFolderIcon: {
+                name: 'Usar icono de carpeta',
+                desc: 'Mostrar el icono de la carpeta principal cuando no hay un icono de archivo personalizado. El color de la carpeta se usa cuando no hay un color de archivo personalizado.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Icono de tareas pendientes',
@@ -1023,6 +1024,10 @@ export const STRINGS_ES = {
                 name: 'Mostrar carpeta principal',
                 desc: 'Muestra el nombre de la carpeta principal para las notas en subcarpetas o etiquetas.'
             },
+            showParentFolderFullPath: {
+                name: 'Mostrar ruta completa',
+                desc: 'Mostrar la ruta completa de la carpeta principal en lugar de solo el nombre de la carpeta.'
+            },
             parentFolderClickRevealsFile: {
                 name: 'Clic en carpeta principal abre carpeta',
                 desc: 'Al hacer clic en la etiqueta de la carpeta principal se abre la carpeta en el panel de lista.'
@@ -1066,7 +1071,7 @@ export const STRINGS_ES = {
             },
             useFloatingToolbars: {
                 name: 'Usar barras de herramientas flotantes en iOS/iPadOS',
-                desc: 'Aplica a Obsidian 1.11 y posteriores.'
+                desc: 'Solo se aplica en iOS y iPadOS.'
             },
             startView: {
                 name: 'Vista de inicio predeterminada',
@@ -1623,6 +1628,10 @@ export const STRINGS_ES = {
                     '2': '2 filas',
                     '3': '3 filas'
                 }
+            },
+            useFolderColor: {
+                name: 'Usar color de carpeta',
+                desc: 'Colorear los títulos de notas y los iconos de archivo con el color de la carpeta principal cuando no hay un color de archivo personalizado. Prioridad: color de archivo personalizado > color de carpeta > color predeterminado.'
             },
             showFeatureImage: {
                 name: 'Mostrar imagen destacada',

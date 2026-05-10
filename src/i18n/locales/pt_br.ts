@@ -438,7 +438,6 @@ export const STRINGS_PT_BR = {
                 'nav-properties': 'Propriedades',
                 'nav-property': 'Propriedade',
                 'nav-property-value': 'Valor',
-                'list-pinned': 'Itens fixados',
                 'file-unfinished-task': 'Tarefas inacabadas',
                 'file-word-count': 'Contagem de palavras'
             }
@@ -792,6 +791,7 @@ export const STRINGS_PT_BR = {
         toggleTagsBySelection: 'Alternar tags por seleção',
         togglePropertiesBySelection: 'Alternar propriedades por seleção',
         toggleCompactMode: 'Alternar modo compacto', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Alternar seção fixada',
         collapseExpand: 'Recolher / expandir todos os itens',
         addTag: 'Adicionar tag aos arquivos selecionados',
         setProperty: 'Definir propriedade nos arquivos selecionados', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -864,6 +864,7 @@ export const STRINGS_PT_BR = {
             },
             list: {
                 display: 'Aparência',
+                organization: 'Organização',
                 pinnedNotes: 'Notas fixadas'
             },
             notes: {
@@ -959,13 +960,9 @@ export const STRINGS_PT_BR = {
                 name: 'Sempre mostrar todas as etiquetas e propriedades',
                 desc: 'Quando desativado, as etiquetas que correspondem à seleção de navegação atual ficam ocultas (por exemplo, a etiqueta "receitas" fica oculta ao navegar na etiqueta "receitas"). Ative para manter todas as etiquetas visíveis.'
             },
-            showPinnedGroupHeader: {
-                name: 'Mostrar cabeçalho do grupo fixado',
-                desc: 'Exibir o cabeçalho da seção fixada acima das notas fixadas.'
-            },
-            showPinnedIcon: {
-                name: 'Mostrar ícone fixado',
-                desc: 'Exibir o ícone ao lado do cabeçalho da seção fixada.'
+            stickyGroupHeaders: {
+                name: 'Cabeçalhos de grupo fixos',
+                desc: 'Mantém o cabeçalho atual de data, pasta ou seção fixada visível ao rolar.'
             },
             defaultListMode: {
                 name: 'Modo padrão da lista',
@@ -977,7 +974,11 @@ export const STRINGS_PT_BR = {
             },
             showFileIcons: {
                 name: 'Mostrar ícones de arquivo',
-                desc: 'Exibir ícones de arquivo com espaçamento alinhado à esquerda. Desativar remove tanto ícones quanto recuo. Prioridade: ícone de tarefas inacabadas > ícone personalizado > ícone de nome de arquivo > ícone de tipo de arquivo > ícone padrão.'
+                desc: 'Exibir ícones de arquivo com espaçamento alinhado à esquerda. Desativar remove tanto ícones quanto recuo. Prioridade: ícone de tarefas inacabadas > ícone personalizado > ícone de pasta > ícone de nome de arquivo > ícone de tipo de arquivo > ícone padrão.'
+            },
+            useFolderIcon: {
+                name: 'Usar ícone de pasta',
+                desc: 'Exibir o ícone da pasta pai quando não há um ícone de arquivo personalizado definido. A cor da pasta é usada quando não há uma cor de arquivo personalizada definida.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Ícone de tarefas inacabadas',
@@ -1024,6 +1025,10 @@ export const STRINGS_PT_BR = {
                 name: 'Mostrar pasta pai',
                 desc: 'Exibir o nome da pasta pai para notas em subpastas ou tags.'
             },
+            showParentFolderFullPath: {
+                name: 'Mostrar caminho completo',
+                desc: 'Exibir o caminho completo da pasta pai em vez de apenas o nome da pasta.'
+            },
             parentFolderClickRevealsFile: {
                 name: 'Clique na pasta pai abre pasta',
                 desc: 'Clicar no rótulo da pasta pai abre a pasta no painel de lista.'
@@ -1067,7 +1072,7 @@ export const STRINGS_PT_BR = {
             },
             useFloatingToolbars: {
                 name: 'Usar barras de ferramentas flutuantes no iOS/iPadOS',
-                desc: 'Aplica-se ao Obsidian 1.11 e posteriores.'
+                desc: 'Aplica-se apenas ao iOS e iPadOS.'
             },
             startView: {
                 name: 'Visualização inicial padrão',
@@ -1624,6 +1629,10 @@ export const STRINGS_PT_BR = {
                     '2': '2 linhas',
                     '3': '3 linhas'
                 }
+            },
+            useFolderColor: {
+                name: 'Usar cor da pasta',
+                desc: 'Colorir títulos de notas e ícones de arquivos com a cor da pasta pai quando não há uma cor de arquivo personalizada definida. Prioridade: cor de arquivo personalizada > cor da pasta > cor padrão.'
             },
             showFeatureImage: {
                 name: 'Mostrar imagem destacada',

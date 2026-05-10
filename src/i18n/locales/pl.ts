@@ -438,7 +438,6 @@ export const STRINGS_PL = {
                 'nav-properties': 'Atrybuty',
                 'nav-property': 'Atrybut',
                 'nav-property-value': 'Wartość',
-                'list-pinned': 'Przypięte elementy',
                 'file-unfinished-task': 'Nieukończone zadania',
                 'file-word-count': 'Liczba słów'
             }
@@ -792,6 +791,7 @@ export const STRINGS_PL = {
         toggleTagsBySelection: 'Przełącz tagi według wyboru',
         togglePropertiesBySelection: 'Przełącz właściwości według wyboru',
         toggleCompactMode: 'Przełącz tryb kompaktowy', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Przełącz przypiętą sekcję',
         collapseExpand: 'Zwiń / rozwiń wszystkie elementy', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Dodaj tag do wybranych plików', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Ustaw właściwość dla wybranych plików', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -864,6 +864,7 @@ export const STRINGS_PL = {
             },
             list: {
                 display: 'Wygląd',
+                organization: 'Organizacja',
                 pinnedNotes: 'Przypięte notatki'
             },
             notes: {
@@ -959,13 +960,9 @@ export const STRINGS_PL = {
                 name: 'Zawsze pokazuj wszystkie etykiety tagów i właściwości',
                 desc: 'Po wyłączeniu etykiety odpowiadające bieżącemu wyborowi nawigacji są ukrywane (np. etykieta tagu „przepisy" jest ukrywana podczas przeglądania tagu „przepisy"). Włącz, aby wszystkie etykiety były zawsze widoczne.'
             },
-            showPinnedGroupHeader: {
-                name: 'Pokaż nagłówek grupy przypiętych',
-                desc: 'Wyświetla nagłówek sekcji przypiętych notatek.'
-            },
-            showPinnedIcon: {
-                name: 'Pokaż ikonkę przypiętych',
-                desc: 'Wyświetla ikonkę obok nagłówka sekcji przypiętych.'
+            stickyGroupHeaders: {
+                name: 'Przyklejone nagłówki grup',
+                desc: 'Bieżący nagłówek sekcji daty, folderu lub przypiętej pozostaje widoczny podczas przewijania.'
             },
             defaultListMode: {
                 name: 'Domyślny tryb listy',
@@ -977,7 +974,11 @@ export const STRINGS_PL = {
             },
             showFileIcons: {
                 name: 'Pokaż ikonki plików',
-                desc: 'Wyświetla ikonki plików z wyrównaniem do lewej strony. Wyłączenie tej opcji powoduje usunięcie zarówno ikonek, jak i wcięć. Priorytet: ikonka nieukończonych zadań > ikonka niestandardowa > ikonka nazwy pliku > ikonka typu pliku > ikonka domyślna.'
+                desc: 'Wyświetla ikonki plików z wyrównaniem do lewej strony. Wyłączenie tej opcji powoduje usunięcie zarówno ikonek, jak i wcięć. Priorytet: ikonka nieukończonych zadań > ikonka niestandardowa > ikonka folderu > ikonka nazwy pliku > ikonka typu pliku > ikonka domyślna.'
+            },
+            useFolderIcon: {
+                name: 'Użyj ikonki folderu',
+                desc: 'Wyświetla ikonkę folderu nadrzędnego, gdy nie ustawiono niestandardowej ikonki pliku. Kolor folderu jest używany, gdy nie ustawiono niestandardowego koloru pliku.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Ikona nieukończonych zadań',
@@ -1024,6 +1025,10 @@ export const STRINGS_PL = {
                 name: 'Pokaż folder nadrzędny',
                 desc: 'Wyświetla nazwę folderu nadrzędnego dla notatek w podfolderach lub tagach.'
             },
+            showParentFolderFullPath: {
+                name: 'Pokaż pełną ścieżkę',
+                desc: 'Wyświetla pełną ścieżkę folderu nadrzędnego zamiast tylko nazwy folderu.'
+            },
             parentFolderClickRevealsFile: {
                 name: 'Kliknięcie folderu nadrzędnego otwiera folder',
                 desc: 'Kliknięcie etykiety folderu nadrzędnego otwiera folder w panelu listy.'
@@ -1067,7 +1072,7 @@ export const STRINGS_PL = {
             },
             useFloatingToolbars: {
                 name: 'Użyj pływających pasków narzędzi w systemie iOS/iPadOS',
-                desc: 'Dotyczy Obsidian 1.11 i nowszych wersji.'
+                desc: 'Dotyczy tylko iOS i iPadOS.'
             },
             startView: {
                 name: 'Domyślny widok początkowy',
@@ -1623,6 +1628,10 @@ export const STRINGS_PL = {
                     '2': '2 wiersze',
                     '3': '3 wiersze'
                 }
+            },
+            useFolderColor: {
+                name: 'Użyj koloru folderu',
+                desc: 'Koloruje tytuły notatek i ikonki plików kolorem folderu nadrzędnego, gdy nie ustawiono niestandardowego koloru pliku. Priorytet: niestandardowy kolor pliku > kolor folderu > kolor domyślny.'
             },
             showFeatureImage: {
                 name: 'Pokaż wyróżniony obraz',

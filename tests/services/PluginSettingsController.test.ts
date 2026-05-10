@@ -141,6 +141,28 @@ describe('PluginSettingsController.prepareImportedUiScalePersistence', () => {
     });
 });
 
+describe('PluginSettingsController.loadSettings', () => {
+    it('persists cleanup when legacy folder color title setting is migrated', async () => {
+        const saveData = vi.fn().mockResolvedValue(undefined);
+        const controller = new PluginSettingsController({
+            keys: STORAGE_KEYS,
+            loadData: vi.fn(async () => ({
+                useFolderColorForFileTitles: true
+            })),
+            saveData,
+            mirrorUXPreferences: vi.fn()
+        });
+
+        await controller.loadSettings();
+
+        expect(controller.settings.useFolderColorForTitles).toBe(true);
+        expect(saveData).toHaveBeenCalledTimes(1);
+        const savedSettings = saveData.mock.calls[0][0] as Record<string, unknown>;
+        expect(savedSettings.useFolderColorForTitles).toBe(true);
+        expect(savedSettings.useFolderColorForFileTitles).toBeUndefined();
+    });
+});
+
 describe('PluginSettingsController.saveSettings', () => {
     it('updates local homepage storage when homepage is local', async () => {
         let storedData: Record<string, unknown> | null = null;

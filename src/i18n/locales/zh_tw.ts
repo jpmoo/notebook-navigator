@@ -436,7 +436,6 @@ export const STRINGS_ZH_TW = {
                 'nav-properties': '屬性',
                 'nav-property': '屬性',
                 'nav-property-value': '值',
-                'list-pinned': '釘選項目',
                 'file-unfinished-task': '未完成任務',
                 'file-word-count': '字數統計'
             }
@@ -783,6 +782,7 @@ export const STRINGS_ZH_TW = {
         toggleTagsBySelection: '依選擇切換標籤',
         togglePropertiesBySelection: '依選擇切換屬性',
         toggleCompactMode: '切換精簡模式', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: '切換置頂區域',
         collapseExpand: '摺疊/展開所有項目',
         addTag: '為選定檔案新增標籤',
         setProperty: '為選定檔案設定屬性', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -855,6 +855,7 @@ export const STRINGS_ZH_TW = {
             },
             list: {
                 display: '外觀',
+                organization: '組織',
                 pinnedNotes: '釘選筆記'
             },
             notes: {
@@ -950,13 +951,9 @@ export const STRINGS_ZH_TW = {
                 name: '始終顯示所有標籤和屬性標記',
                 desc: '停用時，與目前導覽選擇相符的標記會被隱藏（例如，瀏覽「食譜」標籤時，「食譜」標籤標記會被隱藏）。啟用後所有標記始終可見。'
             },
-            showPinnedGroupHeader: {
-                name: '顯示釘選群組標題',
-                desc: '在釘選筆記上方顯示分組標題。'
-            },
-            showPinnedIcon: {
-                name: '顯示釘選圖示',
-                desc: '在釘選區段標題旁顯示圖示。'
+            stickyGroupHeaders: {
+                name: '固定群組標題',
+                desc: '捲動時保持目前的日期、資料夾或釘選區段的標題可見。'
             },
             defaultListMode: {
                 name: '預設列表模式',
@@ -968,7 +965,11 @@ export const STRINGS_ZH_TW = {
             },
             showFileIcons: {
                 name: '顯示檔案圖示',
-                desc: '顯示檔案圖示並保留左對齊間距。停用後將移除圖示和縮排。優先順序：未完成任務圖示 > 自訂圖示 > 檔名圖示 > 檔案類型圖示 > 預設圖示。'
+                desc: '顯示檔案圖示並保留左對齊間距。停用後將移除圖示和縮排。優先順序：未完成任務圖示 > 自訂圖示 > 資料夾圖示 > 檔名圖示 > 檔案類型圖示 > 預設圖示。'
+            },
+            useFolderIcon: {
+                name: '使用資料夾圖示',
+                desc: '當未設定自訂檔案圖示時顯示父資料夾圖示。當未設定自訂檔案顏色時使用資料夾顏色。'
             },
             showFileIconUnfinishedTask: {
                 name: '未完成任務圖示',
@@ -1015,6 +1016,10 @@ export const STRINGS_ZH_TW = {
                 name: '顯示父資料夾',
                 desc: '為子資料夾或標籤中的筆記顯示父資料夾名稱。'
             },
+            showParentFolderFullPath: {
+                name: '顯示完整路徑',
+                desc: '顯示父資料夾的完整路徑而非僅顯示資料夾名稱。'
+            },
             parentFolderClickRevealsFile: {
                 name: '點按父資料夾開啟資料夾',
                 desc: '點按父資料夾名稱時，在列表面板中開啟該資料夾。'
@@ -1058,7 +1063,7 @@ export const STRINGS_ZH_TW = {
             },
             useFloatingToolbars: {
                 name: '在 iOS/iPadOS 上使用浮動工具列',
-                desc: '適用於 Obsidian 1.11 及更高版本。'
+                desc: '僅適用於 iOS 和 iPadOS。'
             },
             startView: {
                 name: '預設啟動檢視',
@@ -1612,6 +1617,10 @@ export const STRINGS_ZH_TW = {
                     '2': '2 行',
                     '3': '3 行'
                 }
+            },
+            useFolderColor: {
+                name: '使用資料夾顏色',
+                desc: '當未設定自訂檔案顏色時，使用父資料夾的顏色為筆記標題和檔案圖示著色。優先順序：自訂檔案顏色 > 資料夾顏色 > 預設顏色。'
             },
             showFeatureImage: {
                 name: '顯示特色圖片',

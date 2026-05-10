@@ -73,6 +73,7 @@ import {
 } from '../../utils/iconizeFormat';
 import { getDefaultDateFormat, getDefaultTimeFormat } from '../../i18n';
 import {
+    cloneCollapsedPinnedContextsRecord,
     clonePinnedNotesRecord,
     isBooleanRecordValue,
     isPlainObjectRecordValue,
@@ -227,6 +228,19 @@ export class PluginSettingsController {
             (typeof storedData['homepage'] === 'string' ||
                 Object.prototype.hasOwnProperty.call(storedData, 'mobileHomepage') ||
                 Object.prototype.hasOwnProperty.call(storedData, 'useMobileHomepage'))
+        );
+        const hadLegacyFolderColorTitleSettingInStoredData = Boolean(
+            storedData && Object.prototype.hasOwnProperty.call(storedData, 'useFolderColorForFileTitles')
+        );
+        const hadShowPinnedIconInStoredData = Boolean(storedData && Object.prototype.hasOwnProperty.call(storedData, 'showPinnedIcon'));
+        const hadShowPinnedGroupHeaderInStoredData = Boolean(
+            storedData && Object.prototype.hasOwnProperty.call(storedData, 'showPinnedGroupHeader')
+        );
+        const storedInterfaceIcons = storedData?.['interfaceIcons'];
+        const hadPinnedSectionIconInStoredData = Boolean(
+            isRecord(storedInterfaceIcons) &&
+            (Object.prototype.hasOwnProperty.call(storedInterfaceIcons, 'list-pinned') ||
+                Object.prototype.hasOwnProperty.call(storedInterfaceIcons, 'pinned-section'))
         );
         const storedSettings = storedData as Partial<NotebookNavigatorSettings> | null;
         const isFirstLaunch = storedData === null;
@@ -403,6 +417,10 @@ export class PluginSettingsController {
             hadLegacyLastAnnouncedReleaseInSettings ||
             hadLegacyPropertyFieldsInStoredData ||
             hadLegacyHomepageSettingsInStoredData ||
+            hadLegacyFolderColorTitleSettingInStoredData ||
+            hadShowPinnedIconInStoredData ||
+            hadShowPinnedGroupHeaderInStoredData ||
+            hadPinnedSectionIconInStoredData ||
             uiScaleMigrated ||
             migratedMomentFormats ||
             migratedShortcutNegationSyntax;
@@ -569,6 +587,8 @@ export class PluginSettingsController {
         delete rest.saveMetadataToFrontmatter;
         delete rest.propertyFields;
         delete rest.optimizeNoteHeight;
+        delete rest.showPinnedIcon;
+        delete rest.showPinnedGroupHeader;
 
         const syncModeRegistry = this.getSyncModeRegistry();
         SYNC_MODE_SETTING_IDS.forEach(settingId => {
@@ -912,6 +932,7 @@ export class PluginSettingsController {
         this.currentSettings.syncModes = sanitizeSettingsSyncMap(this.currentSettings.syncModes);
         this.currentSettings.calendarMonthHighlights = sanitizeStringMap(this.currentSettings.calendarMonthHighlights);
         this.currentSettings.pinnedNotes = clonePinnedNotesRecord(this.currentSettings.pinnedNotes);
+        this.currentSettings.collapsedPinnedContexts = cloneCollapsedPinnedContextsRecord(this.currentSettings.collapsedPinnedContexts);
     }
 
     private normalizeTaskSettings(): void {

@@ -436,7 +436,6 @@ export const STRINGS_TH = {
                 'nav-properties': 'คุณสมบัติ',
                 'nav-property': 'คุณสมบัติ',
                 'nav-property-value': 'ค่า',
-                'list-pinned': 'รายการที่ปักหมุด',
                 'file-unfinished-task': 'งานที่ยังไม่เสร็จ',
                 'file-word-count': 'จำนวนคำ'
             }
@@ -786,6 +785,7 @@ export const STRINGS_TH = {
         toggleTagsBySelection: 'สลับแท็กตามการเลือก',
         togglePropertiesBySelection: 'สลับคุณสมบัติตามการเลือก',
         toggleCompactMode: 'สลับโหมดกะทัดรัด', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'สลับส่วนที่ปักหมุด',
         collapseExpand: 'ยุบ / ขยายรายการทั้งหมด',
         addTag: 'เพิ่มแท็กในไฟล์ที่เลือก',
         setProperty: 'ตั้งค่าคุณสมบัติในไฟล์ที่เลือก', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -858,6 +858,7 @@ export const STRINGS_TH = {
             },
             list: {
                 display: 'ลักษณะ',
+                organization: 'การจัดระเบียบ',
                 pinnedNotes: 'โน้ตที่ปักหมุด'
             },
             notes: {
@@ -953,13 +954,9 @@ export const STRINGS_TH = {
                 name: 'แสดงป้ายแท็กและคุณสมบัติทั้งหมดเสมอ',
                 desc: 'เมื่อปิดใช้งาน ป้ายที่ตรงกับการเลือกการนำทางปัจจุบันจะถูกซ่อน (เช่น ป้ายแท็ก "สูตรอาหาร" จะถูกซ่อนเมื่อเรียกดูแท็ก "สูตรอาหาร") เปิดใช้งานเพื่อให้ป้ายทั้งหมดแสดงอยู่เสมอ'
             },
-            showPinnedGroupHeader: {
-                name: 'แสดงส่วนหัวกลุ่มที่ปักหมุด',
-                desc: 'แสดงส่วนหัวส่วนที่ปักหมุดเหนือโน้ตที่ปักหมุด'
-            },
-            showPinnedIcon: {
-                name: 'แสดงไอคอนที่ปักหมุด',
-                desc: 'แสดงไอคอนข้างส่วนหัวส่วนที่ปักหมุด'
+            stickyGroupHeaders: {
+                name: 'ส่วนหัวกลุ่มแบบติดด้านบน',
+                desc: 'แสดงส่วนหัวของวันที่ โฟลเดอร์ หรือส่วนที่ปักหมุดในปัจจุบันให้เห็นอยู่เสมอขณะเลื่อน'
             },
             defaultListMode: {
                 name: 'โหมดรายการเริ่มต้น',
@@ -971,7 +968,11 @@ export const STRINGS_TH = {
             },
             showFileIcons: {
                 name: 'แสดงไอคอนไฟล์',
-                desc: 'แสดงไอคอนไฟล์พร้อมระยะห่างชิดซ้าย การปิดใช้งานจะนำไอคอนและการเยื้องออก ลำดับความสำคัญ: ไอคอนงานที่ยังไม่เสร็จ > ไอคอนกำหนดเอง > ไอคอนชื่อไฟล์ > ไอคอนประเภทไฟล์ > ไอคอนค่าเริ่มต้น'
+                desc: 'แสดงไอคอนไฟล์พร้อมระยะห่างชิดซ้าย การปิดใช้งานจะนำไอคอนและการเยื้องออก ลำดับความสำคัญ: ไอคอนงานที่ยังไม่เสร็จ > ไอคอนกำหนดเอง > ไอคอนโฟลเดอร์ > ไอคอนชื่อไฟล์ > ไอคอนประเภทไฟล์ > ไอคอนค่าเริ่มต้น'
+            },
+            useFolderIcon: {
+                name: 'ใช้ไอคอนโฟลเดอร์',
+                desc: 'แสดงไอคอนของโฟลเดอร์หลักเมื่อไม่มีการตั้งค่าไอคอนไฟล์กำหนดเอง สีโฟลเดอร์จะถูกใช้เมื่อไม่มีการตั้งค่าสีไฟล์กำหนดเอง'
             },
             showFileIconUnfinishedTask: {
                 name: 'ไอคอนงานที่ยังไม่เสร็จ',
@@ -1018,6 +1019,10 @@ export const STRINGS_TH = {
                 name: 'แสดงโฟลเดอร์หลัก',
                 desc: 'แสดงชื่อโฟลเดอร์หลักสำหรับโน้ตในโฟลเดอร์ย่อยหรือแท็ก'
             },
+            showParentFolderFullPath: {
+                name: 'แสดงเส้นทางเต็ม',
+                desc: 'แสดงเส้นทางเต็มของโฟลเดอร์หลักแทนที่จะแสดงเฉพาะชื่อโฟลเดอร์'
+            },
             parentFolderClickRevealsFile: {
                 name: 'คลิกโฟลเดอร์หลักเพื่อเปิดโฟลเดอร์',
                 desc: 'การคลิกป้ายโฟลเดอร์หลักจะเปิดโฟลเดอร์ในแผงรายการ'
@@ -1061,7 +1066,7 @@ export const STRINGS_TH = {
             },
             useFloatingToolbars: {
                 name: 'ใช้แถบเครื่องมือลอยบน iOS/iPadOS',
-                desc: 'ใช้ได้กับ Obsidian 1.11 และใหม่กว่า'
+                desc: 'ใช้ได้เฉพาะบน iOS และ iPadOS'
             },
             startView: {
                 name: 'มุมมองเริ่มต้นเมื่อเริ่มงาน',
@@ -1615,6 +1620,10 @@ export const STRINGS_TH = {
                     '2': '2 แถว',
                     '3': '3 แถว'
                 }
+            },
+            useFolderColor: {
+                name: 'ใช้สีโฟลเดอร์',
+                desc: 'ใส่สีให้กับชื่อโน้ตและไอคอนไฟล์ตามสีของโฟลเดอร์หลักเมื่อไม่มีการตั้งค่าสีไฟล์กำหนดเอง ลำดับความสำคัญ: สีไฟล์กำหนดเอง > สีโฟลเดอร์ > สีค่าเริ่มต้น'
             },
             showFeatureImage: {
                 name: 'แสดงรูปภาพประกอบ',

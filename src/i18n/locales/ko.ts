@@ -435,7 +435,6 @@ export const STRINGS_KO = {
                 'nav-properties': '속성',
                 'nav-property': '속성',
                 'nav-property-value': '값',
-                'list-pinned': '고정 항목',
                 'file-unfinished-task': '미완료 작업',
                 'file-word-count': '단어 수'
             }
@@ -789,6 +788,7 @@ export const STRINGS_KO = {
         toggleTagsBySelection: '선택에 따라 태그 전환',
         togglePropertiesBySelection: '선택에 따라 속성 전환',
         toggleCompactMode: '컴팩트 모드 전환', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: '고정 섹션 전환',
         collapseExpand: '모든 항목 접기 / 펼치기', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: '선택한 파일에 태그 추가', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: '선택한 파일에 속성 설정', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -861,6 +861,7 @@ export const STRINGS_KO = {
             },
             list: {
                 display: '모양',
+                organization: '정리',
                 pinnedNotes: '고정된 노트'
             },
             notes: {
@@ -956,13 +957,9 @@ export const STRINGS_KO = {
                 name: '태그 및 속성 필을 항상 표시',
                 desc: '비활성화하면 현재 탐색 선택과 일치하는 필이 숨겨집니다(예: "레시피" 태그를 탐색할 때 "레시피" 태그 필이 숨겨짐). 활성화하면 모든 필이 항상 표시됩니다.'
             },
-            showPinnedGroupHeader: {
-                name: '고정 그룹 헤더 표시',
-                desc: '고정된 노트 위에 섹션 헤더를 표시합니다.'
-            },
-            showPinnedIcon: {
-                name: '고정 아이콘 표시',
-                desc: '고정 섹션 헤더 옆에 아이콘을 표시합니다.'
+            stickyGroupHeaders: {
+                name: '그룹 헤더 고정',
+                desc: '스크롤하는 동안 현재 날짜, 폴더 또는 고정된 섹션 헤더를 계속 표시합니다.'
             },
             defaultListMode: {
                 name: '기본 목록 모드',
@@ -974,7 +971,11 @@ export const STRINGS_KO = {
             },
             showFileIcons: {
                 name: '파일 아이콘 표시',
-                desc: '파일 아이콘을 왼쪽 정렬 간격과 함께 표시. 비활성화하면 아이콘과 들여쓰기가 모두 제거됩니다. 우선순위: 미완료 작업 아이콘 > 사용자 지정 아이콘 > 파일 이름 아이콘 > 파일 유형 아이콘 > 기본값 아이콘.'
+                desc: '파일 아이콘을 왼쪽 정렬 간격과 함께 표시. 비활성화하면 아이콘과 들여쓰기가 모두 제거됩니다. 우선순위: 미완료 작업 아이콘 > 사용자 지정 아이콘 > 폴더 아이콘 > 파일 이름 아이콘 > 파일 유형 아이콘 > 기본값 아이콘.'
+            },
+            useFolderIcon: {
+                name: '폴더 아이콘 사용',
+                desc: '사용자 지정 파일 아이콘이 설정되지 않은 경우 상위 폴더 아이콘을 표시합니다. 사용자 지정 파일 색상이 설정되지 않은 경우 폴더 색상이 사용됩니다.'
             },
             showFileIconUnfinishedTask: {
                 name: '미완료 작업 아이콘',
@@ -1021,6 +1022,10 @@ export const STRINGS_KO = {
                 name: '상위 폴더 표시',
                 desc: '하위 폴더나 태그의 노트에 상위 폴더 이름을 표시합니다.'
             },
+            showParentFolderFullPath: {
+                name: '전체 경로 표시',
+                desc: '폴더 이름만이 아니라 상위 폴더의 전체 경로를 표시합니다.'
+            },
             parentFolderClickRevealsFile: {
                 name: '상위 폴더 클릭 시 폴더 열기',
                 desc: '상위 폴더 레이블을 클릭하면 목록 창에서 폴더를 엽니다.'
@@ -1064,7 +1069,7 @@ export const STRINGS_KO = {
             },
             useFloatingToolbars: {
                 name: 'iOS/iPadOS에서 플로팅 툴바 사용',
-                desc: 'Obsidian 1.11 이상에 적용됩니다.'
+                desc: 'iOS 및 iPadOS에서만 적용됩니다.'
             },
             startView: {
                 name: '기본 시작 보기',
@@ -1618,6 +1623,10 @@ export const STRINGS_KO = {
                     '2': '2행',
                     '3': '3행'
                 }
+            },
+            useFolderColor: {
+                name: '폴더 색상 사용',
+                desc: '사용자 지정 파일 색상이 설정되지 않은 경우 노트 제목과 파일 아이콘에 상위 폴더 색상을 적용합니다. 우선순위: 사용자 지정 파일 색상 > 폴더 색상 > 기본 색상.'
             },
             showFeatureImage: {
                 name: '대표 이미지 표시',

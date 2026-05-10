@@ -436,7 +436,6 @@ export const STRINGS_FA = {
                 'nav-properties': 'ویژگی‌ها',
                 'nav-property': 'ویژگی',
                 'nav-property-value': 'مقدار',
-                'list-pinned': 'آیتم‌های سنجاق شده',
                 'file-unfinished-task': 'وظایف ناتمام',
                 'file-word-count': 'تعداد کلمات'
             }
@@ -790,6 +789,7 @@ export const STRINGS_FA = {
         toggleTagsBySelection: 'تغییر برچسب‌ها بر اساس انتخاب',
         togglePropertiesBySelection: 'تغییر ویژگی‌ها بر اساس انتخاب',
         toggleCompactMode: 'تغییر حالت فشرده', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'تغییر بخش سنجاق‌شده',
         collapseExpand: 'جمع / باز کردن همه آیتم‌ها',
         addTag: 'افزودن برچسب به فایل‌های انتخابی',
         setProperty: 'تنظیم ویژگی روی فایل‌های انتخابی', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -862,6 +862,7 @@ export const STRINGS_FA = {
             },
             list: {
                 display: 'ظاهر',
+                organization: 'سازماندهی',
                 pinnedNotes: 'یادداشت‌های سنجاق‌شده'
             },
             notes: {
@@ -957,13 +958,9 @@ export const STRINGS_FA = {
                 name: 'نمایش همیشگی تمام نشان‌های برچسب و ویژگی',
                 desc: 'در صورت غیرفعال بودن، نشان‌هایی که با انتخاب ناوبری فعلی مطابقت دارند پنهان می‌شوند (مثلاً نشان برچسب «دستور پخت» هنگام مرور برچسب «دستور پخت» پنهان می‌شود). فعال کنید تا همه نشان‌ها همیشه نمایش داده شوند.'
             },
-            showPinnedGroupHeader: {
-                name: 'نمایش هدر گروه سنجاق‌شده',
-                desc: 'هدر بخش سنجاق‌شده را بالای یادداشت‌های سنجاق‌شده نمایش دهید.'
-            },
-            showPinnedIcon: {
-                name: 'نمایش آیکون سنجاق‌شده',
-                desc: 'آیکون را کنار هدر بخش سنجاق‌شده نمایش دهید.'
+            stickyGroupHeaders: {
+                name: 'هدرهای گروه چسبان',
+                desc: 'هدر بخش تاریخ، پوشه یا قسمت سنجاق‌شده فعلی را هنگام پیمایش نمایان نگه می‌دارد.'
             },
             defaultListMode: {
                 name: 'حالت لیست پیش‌فرض',
@@ -975,7 +972,11 @@ export const STRINGS_FA = {
             },
             showFileIcons: {
                 name: 'نمایش آیکون‌های فایل',
-                desc: 'آیکون‌های فایل را با فاصله‌گذاری چپ‌چین نمایش دهید. غیرفعال کردن آیکون‌ها و تورفتگی را حذف می‌کند. اولویت: آیکون وظایف ناتمام > آیکون سفارشی > آیکون نام فایل > آیکون نوع فایل > آیکون پیش‌فرض.'
+                desc: 'آیکون‌های فایل را با فاصله‌گذاری چپ‌چین نمایش دهید. غیرفعال کردن آیکون‌ها و تورفتگی را حذف می‌کند. اولویت: آیکون وظایف ناتمام > آیکون سفارشی > آیکون پوشه > آیکون نام فایل > آیکون نوع فایل > آیکون پیش‌فرض.'
+            },
+            useFolderIcon: {
+                name: 'استفاده از آیکون پوشه',
+                desc: 'هنگامی که آیکون فایل سفارشی تنظیم نشده باشد، آیکون پوشه والد را نمایش دهید. هنگامی که رنگ فایل سفارشی تنظیم نشده باشد، از رنگ پوشه استفاده می‌شود.'
             },
             showFileIconUnfinishedTask: {
                 name: 'نماد وظایف ناتمام',
@@ -1022,6 +1023,10 @@ export const STRINGS_FA = {
                 name: 'نمایش پوشه والد',
                 desc: 'نام پوشه والد را برای یادداشت‌ها در زیرپوشه‌ها یا برچسب‌ها نمایش دهید.'
             },
+            showParentFolderFullPath: {
+                name: 'نمایش مسیر کامل',
+                desc: 'مسیر کامل پوشه والد را به جای فقط نام پوشه نمایش دهید.'
+            },
             parentFolderClickRevealsFile: {
                 name: 'کلیک روی پوشه والد پوشه را باز می‌کند',
                 desc: 'کلیک روی برچسب پوشه والد پوشه را در پنل لیست باز می‌کند.'
@@ -1065,7 +1070,7 @@ export const STRINGS_FA = {
             },
             useFloatingToolbars: {
                 name: 'استفاده از نوار ابزار شناور در iOS/iPadOS',
-                desc: 'برای Obsidian 1.11 و بالاتر اعمال می‌شود.'
+                desc: 'فقط برای iOS و iPadOS اعمال می‌شود.'
             },
             startView: {
                 name: 'نمای پیش‌فرض شروع',
@@ -1619,6 +1624,10 @@ export const STRINGS_FA = {
                     '2': '۲ ردیف',
                     '3': '۳ ردیف'
                 }
+            },
+            useFolderColor: {
+                name: 'استفاده از رنگ پوشه',
+                desc: 'رنگ‌آمیزی عناوین یادداشت و آیکون‌های فایل با رنگ پوشه والد هنگامی که رنگ فایل سفارشی تنظیم نشده است. اولویت: رنگ فایل سفارشی > رنگ پوشه > رنگ پیش‌فرض.'
             },
             showFeatureImage: {
                 name: 'نمایش تصویر ویژه',

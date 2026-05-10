@@ -24,6 +24,7 @@ import {
     NOTEBOOK_NAVIGATOR_VIEW,
     STORAGE_KEYS,
     type DualPaneOrientation,
+    type PinnedSectionCollapseKey,
     type UXPreferences,
     type VisibilityPreferences
 } from './types';
@@ -50,7 +51,7 @@ import { INTERNAL_NOTEBOOK_NAVIGATOR_API, NotebookNavigatorAPI } from './api/Not
 import { initializeDatabase, shutdownDatabase } from './storage/fileOperations';
 import { ExtendedApp } from './types/obsidian-extended';
 import { getLeafSplitLocation } from './utils/workspaceSplit';
-import { sanitizeRecord } from './utils/recordUtils';
+import { cloneCollapsedPinnedContextsRecord, sanitizeRecord } from './utils/recordUtils';
 import { runAsyncAction } from './utils/async';
 import WorkspaceCoordinator from './services/workspace/WorkspaceCoordinator';
 import HomepageController from './services/workspace/HomepageController';
@@ -877,6 +878,18 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
     public toggleShowCalendar(): void {
         this.preferencesController.toggleShowCalendar();
+    }
+
+    public async togglePinnedGroupCollapsed(collapseKey: PinnedSectionCollapseKey): Promise<void> {
+        const collapsedContexts = cloneCollapsedPinnedContextsRecord(this.settings.collapsedPinnedContexts);
+        if (collapsedContexts[collapseKey]) {
+            delete collapsedContexts[collapseKey];
+        } else {
+            collapsedContexts[collapseKey] = true;
+        }
+
+        this.settings.collapsedPinnedContexts = collapsedContexts;
+        await this.saveSettingsAndUpdate();
     }
 
     /**

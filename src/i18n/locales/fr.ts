@@ -437,7 +437,6 @@ export const STRINGS_FR = {
                 'nav-properties': 'Propriétés',
                 'nav-property': 'Propriété',
                 'nav-property-value': 'Valeur',
-                'list-pinned': 'Éléments épinglés',
                 'file-unfinished-task': 'Tâches inachevées',
                 'file-word-count': 'Nombre de mots'
             }
@@ -792,6 +791,7 @@ export const STRINGS_FR = {
         toggleTagsBySelection: 'Basculer les étiquettes par sélection',
         togglePropertiesBySelection: 'Basculer les propriétés par sélection',
         toggleCompactMode: 'Basculer le mode compact', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Basculer la section épinglée',
         collapseExpand: 'Replier / déplier tous les éléments', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Ajouter une étiquette aux fichiers sélectionnés', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Définir une propriété sur les fichiers sélectionnés', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -864,6 +864,7 @@ export const STRINGS_FR = {
             },
             list: {
                 display: 'Apparence',
+                organization: 'Organisation',
                 pinnedNotes: 'Notes épinglées'
             },
             notes: {
@@ -959,13 +960,9 @@ export const STRINGS_FR = {
                 name: 'Toujours afficher toutes les pastilles de tags et propriétés',
                 desc: 'Lorsque désactivé, les pastilles correspondant à la sélection de navigation actuelle sont masquées (par ex. la pastille du tag « recettes » est masquée lors de la navigation dans le tag « recettes »). Activer pour garder toutes les pastilles visibles.'
             },
-            showPinnedGroupHeader: {
-                name: "Afficher l'en-tête du groupe épinglé",
-                desc: "Affiche l'en-tête de la section des notes épinglées."
-            },
-            showPinnedIcon: {
-                name: "Afficher l'icône épinglée",
-                desc: "Afficher l'icône à côté de l'en-tête de la section épinglée."
+            stickyGroupHeaders: {
+                name: 'En-têtes de groupe épinglés',
+                desc: "Garder visible l'en-tête de section actuel (date, dossier ou épinglé) lors du défilement."
             },
             defaultListMode: {
                 name: 'Mode de liste par défaut',
@@ -977,7 +974,11 @@ export const STRINGS_FR = {
             },
             showFileIcons: {
                 name: 'Afficher les icônes de fichier',
-                desc: "Afficher les icônes de fichier avec espacement aligné à gauche. La désactivation supprime les icônes et l'indentation. Priorité : icône de tâches inachevées > icône personnalisée > icône de nom de fichier > icône de type de fichier > icône par défaut."
+                desc: "Afficher les icônes de fichier avec espacement aligné à gauche. La désactivation supprime les icônes et l'indentation. Priorité : icône de tâches inachevées > icône personnalisée > icône de dossier > icône de nom de fichier > icône de type de fichier > icône par défaut."
+            },
+            useFolderIcon: {
+                name: "Utiliser l'icône du dossier",
+                desc: "Afficher l'icône du dossier parent lorsqu'aucune icône de fichier personnalisée n'est définie. La couleur du dossier est utilisée lorsqu'aucune couleur de fichier personnalisée n'est définie."
             },
             showFileIconUnfinishedTask: {
                 name: 'Icône de tâches inachevées',
@@ -1024,6 +1025,10 @@ export const STRINGS_FR = {
                 name: 'Afficher le dossier parent',
                 desc: 'Afficher le nom du dossier parent pour les notes dans les sous-dossiers ou étiquettes.'
             },
+            showParentFolderFullPath: {
+                name: 'Afficher le chemin complet',
+                desc: 'Afficher le chemin complet du dossier parent au lieu du nom du dossier uniquement.'
+            },
             parentFolderClickRevealsFile: {
                 name: 'Clic sur dossier parent ouvre le dossier',
                 desc: "Cliquer sur l'étiquette du dossier parent ouvre le dossier dans le panneau de liste."
@@ -1067,7 +1072,7 @@ export const STRINGS_FR = {
             },
             useFloatingToolbars: {
                 name: "Utiliser les barres d'outils flottantes sur iOS/iPadOS",
-                desc: "S'applique à Obsidian 1.11 et versions ultérieures."
+                desc: "S'applique uniquement à iOS et iPadOS."
             },
             startView: {
                 name: 'Vue de démarrage par défaut',
@@ -1625,6 +1630,10 @@ export const STRINGS_FR = {
                     '2': '2 lignes',
                     '3': '3 lignes'
                 }
+            },
+            useFolderColor: {
+                name: 'Utiliser la couleur du dossier',
+                desc: "Colorer les titres de notes et les icônes de fichier avec la couleur du dossier parent lorsqu'aucune couleur de fichier personnalisée n'est définie. Priorité : couleur de fichier personnalisée > couleur du dossier > couleur par défaut."
             },
             showFeatureImage: {
                 name: "Afficher l'image vedette",

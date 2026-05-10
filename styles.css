@@ -110,15 +110,10 @@ body {
     --nn-compact-font-size: 13px; /* Compact mode desktop font size */
     --nn-compact-font-size-mobile: 15px; /* Compact mode mobile font size */
 
-    /* Date header heights and padding */
-    --nn-date-header-height: 35px; /* First header */
-    --nn-date-header-height-subsequent: 50px; /* Headers with margin */
-    --nn-date-header-padding-top: 24px; /* Top padding for subsequent headers */
-    --nn-date-header-padding-bottom: 6px; /* Bottom padding for subsequent headers */
-    --nn-date-header-height-mobile: var(--nn-date-header-height);
-    --nn-date-header-height-subsequent-mobile: var(--nn-date-header-height-subsequent);
-    --nn-date-header-padding-top-mobile: var(--nn-date-header-padding-top);
-    --nn-date-header-padding-bottom-mobile: var(--nn-date-header-padding-bottom);
+    /* List group header heights and spacing */
+    --nn-list-group-header-height: 27px; /* Header row and sticky header */
+    --nn-list-group-header-spacer-before: 20px; /* Spacer before subsequent headers */
+    --nn-list-group-header-height-mobile: var(--nn-list-group-header-height);
 
     /* Navigation item heights - fixed pixel values to prevent fractional rendering */
     --nn-nav-line-height: 18px; /* Fixed line height for folder/tag names */
@@ -467,7 +462,7 @@ body {
 
 .nn-update-banner {
     position: absolute;
-    top: calc(var(--nn-date-header-height-mobile, var(--nn-date-header-height)) + 8px);
+    top: calc(var(--nn-list-group-header-height-mobile, var(--nn-list-group-header-height)) + 8px);
     left: 50%;
     transform: translate(-50%, 0);
     z-index: 10;
@@ -1803,6 +1798,7 @@ body {
 
 /* Navigation item - container for each folder/tag in the tree */
 .nn-navitem {
+    --nn-navitem-background-bottom-overdraw: 0px;
     -webkit-user-select: none;
     user-select: none;
     background: transparent;
@@ -1841,8 +1837,7 @@ body {
     top: 0px;
     inset-inline-start: 0;
     inset-inline-end: 0;
-    /* Extend slightly beyond bottom item bounds (height rounding issue) to prevent hairline gaps when zoomed */
-    bottom: -0.5px;
+    bottom: var(--nn-navitem-background-bottom-overdraw);
     background-color: var(--nn-navitem-custom-bg-color);
     border-top-left-radius: var(--nn-navitem-top-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));
     border-top-right-radius: var(--nn-navitem-top-right-radius, min(14px, var(--nn-theme-navitem-border-radius)));
@@ -1858,29 +1853,45 @@ body {
     z-index: 2;
 }
 
-/* Zero shared corners when consecutive background overlays touch */
-.nn-navitem:is(.nn-has-custom-background, .nn-has-search-match) + .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match) {
+/* Overdraw and zero shared corners only between adjacent filled backgrounds */
+.nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected):has(
+        + .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
+    ) {
+    --nn-navitem-background-bottom-overdraw: -0.5px;
+}
+
+.nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
+    + .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected) {
     --nn-navitem-top-left-radius: 0;
     --nn-navitem-top-right-radius: 0;
 }
 
-.nn-navitem:is(.nn-has-custom-background, .nn-has-search-match):has(+ .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match)) {
+.nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected):has(
+        + .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
+    ) {
     --nn-navitem-bottom-left-radius: 0;
     --nn-navitem-bottom-right-radius: 0;
 }
 
 /* Apply the same corner trimming within the virtualized row wrapper */
-.nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match))
-    + .nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match))
-    > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match) {
+.nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)):has(
+        + .nn-virtual-nav-item > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
+    )
+    > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected) {
+    --nn-navitem-background-bottom-overdraw: -0.5px;
+}
+
+.nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected))
+    + .nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected))
+    > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected) {
     --nn-navitem-top-left-radius: 0;
     --nn-navitem-top-right-radius: 0;
 }
 
-.nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match)):has(
-        + .nn-virtual-nav-item > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match)
+.nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)):has(
+        + .nn-virtual-nav-item > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
     )
-    > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match) {
+    > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected) {
     --nn-navitem-bottom-left-radius: 0;
     --nn-navitem-bottom-right-radius: 0;
 }
@@ -1939,8 +1950,7 @@ body {
     content: '';
     position: absolute;
     top: 0px;
-    /* Extend slightly beyond bottom item bounds (height rounding issue) to prevent hairline gaps when zoomed */
-    bottom: -0.5px;
+    bottom: var(--nn-navitem-background-bottom-overdraw);
     inset-inline-end: 0;
     inset-inline-start: calc(var(--level, 0) * var(--nn-setting-nav-indent) * -1);
     border-top-left-radius: var(--nn-navitem-top-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));
@@ -1969,13 +1979,15 @@ body {
 .nn-desktop .nn-navitem:not([data-search-match]):hover::after {
     content: '';
     position: absolute;
-    top: 0.5px;
-    /* Match row overlay overdraw while avoiding overlap with the previous row */
-    bottom: -0.5px;
+    top: 0px;
+    bottom: var(--nn-navitem-background-bottom-overdraw);
     inset-inline-start: 0;
     inset-inline-end: 0;
     background-color: var(--nn-theme-navitem-hover-bg);
-    border-radius: min(14px, var(--nn-theme-navitem-border-radius));
+    border-top-left-radius: var(--nn-navitem-top-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));
+    border-top-right-radius: var(--nn-navitem-top-right-radius, min(14px, var(--nn-theme-navitem-border-radius)));
+    border-bottom-left-radius: var(--nn-navitem-bottom-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));
+    border-bottom-right-radius: var(--nn-navitem-bottom-right-radius, min(14px, var(--nn-theme-navitem-border-radius)));
     box-shadow: inset 0 0 0 var(--nn-theme-navitem-border-width) var(--nn-theme-navitem-hover-border-color);
     z-index: 1;
     pointer-events: none;
@@ -3959,11 +3971,6 @@ body {
     line-height: var(--nn-file-single-text-line-height);
 }
 
-/* Date + preview (same line): match legacy spacing. */
-.nn-file-second-line > .nn-file-date + .nn-file-preview {
-    margin-inline-start: 8px;
-}
-
 /* Date + parent folder (same line): match legacy spacing when dot separator is disabled. */
 .nn-file-second-line > .nn-file-date + .nn-parent-folder[data-dot-separator='false'] {
     margin-inline-start: 8px;
@@ -3975,6 +3982,10 @@ body {
     flex-shrink: 0;
     margin-inline-end: 4px;
     font-size: 0.65em;
+}
+
+.nn-file-second-line .nn-parent-folder {
+    flex: 0 1 auto;
 }
 
 /* File preview text - secondary line showing file content */
@@ -3989,20 +4000,7 @@ body {
     -webkit-line-clamp: var(--preview-rows, 1);
     -webkit-box-orient: vertical;
     word-break: break-word;
-}
-
-/* Multi-line preview - clamp to the configured number of lines */
-.nn-file-preview:not(.nn-file-second-line .nn-file-preview) {
     max-height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1));
-}
-
-/* Preview on same line as date - match date line-height for alignment */
-.nn-file-second-line .nn-file-preview {
-    flex: 1;
-    line-height: var(--nn-file-single-text-line-height);
-    display: block;
-    white-space: nowrap;
-    word-break: normal;
 }
 
 /* Parent folder indicator shown under file names */
@@ -4240,12 +4238,22 @@ body {
     padding: var(--nn-file-padding-vertical-compact) var(--nn-file-item-padding-horizontal); /* Reduced vertical padding */
 }
 
+/* Mobile compact file items use larger touch targets. */
+.notebook-navigator-mobile .nn-file.nn-compact .nn-file-content {
+    padding: var(--nn-file-padding-vertical-compact-mobile) var(--nn-file-item-padding-horizontal);
+}
+
 /* Compact file name - no bold, smaller font like folder items */
 .nn-file.nn-compact .nn-file-name {
     font-size: var(--nn-compact-font-size, var(--nn-file-small-size-mobile, var(--nn-file-small-size)));
     font-weight: var(--nn-theme-file-compact-name-font-weight);
     margin-bottom: 0;
     line-height: var(--nn-file-title-line-height);
+}
+
+/* Mobile compact mode file names use the mobile compact font variable. */
+.notebook-navigator-mobile .nn-file.nn-compact .nn-file-name {
+    font-size: var(--nn-compact-font-size-mobile, var(--nn-compact-font-size, 15px));
 }
 
 /* Apply standard font weight to colored file names in compact mode */
@@ -4312,7 +4320,7 @@ body {
 
 /* Dynamic sizing based on calculated item height */
 .nn-virtual-file-item .nn-file-thumbnail {
-    /* Size based on item height minus total padding */
+    /* Size based on the same padded content box as the text stack. */
     --image-size: clamp(
         var(--nn-file-thumbnail-min-size),
         calc(var(--item-height) - var(--nn-file-padding-total-mobile, var(--nn-file-padding-total))),
@@ -4323,6 +4331,11 @@ body {
 .nn-virtual-file-item .nn-file-thumbnail--square {
     width: var(--image-size);
     height: var(--image-size);
+}
+
+.nn-virtual-file-item .nn-file-thumbnail--extension-badge {
+    width: var(--nn-file-thumbnail-min-size);
+    height: var(--nn-file-thumbnail-min-size);
 }
 
 .nn-virtual-file-item .nn-file-thumbnail--natural {
@@ -4384,18 +4397,17 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.1px;
 }
-/* Source: src/styles/sections/list-date-headers.css */
+/* Source: src/styles/sections/list-group-headers.css */
 
 /* ========================================================================
-   Date Group Headers
+   List Group Headers
    ======================================================================== */
 
-/* Date group headers for grouped files */
-.nn-date-group-header {
-    height: var(--nn-date-header-height-subsequent-mobile, var(--nn-date-header-height-subsequent));
+/* List group headers for grouped files */
+.nn-list-group-header {
+    height: var(--nn-list-group-header-height-mobile, var(--nn-list-group-header-height));
     box-sizing: border-box;
-    padding: var(--nn-date-header-padding-top-mobile, var(--nn-date-header-padding-top)) var(--nn-file-item-padding-horizontal)
-        var(--nn-date-header-padding-bottom-mobile, var(--nn-date-header-padding-bottom)) var(--nn-file-item-padding-horizontal);
+    padding: 0 var(--nn-file-item-padding-horizontal);
     font-size: var(--nn-file-small-size-mobile, var(--nn-file-small-size));
     font-weight: var(--nn-theme-list-group-header-font-weight);
     color: var(--nn-theme-list-group-header-color);
@@ -4404,48 +4416,117 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 6px;
 }
 
-/* First date header - no top margin or extra padding for first group */
-.nn-date-group-header.nn-first-header {
-    height: var(--nn-date-header-height-mobile, var(--nn-date-header-height));
-    padding: 0 var(--nn-file-item-padding-horizontal);
-    align-items: center;
+.nn-list-group-header-spacer {
+    height: var(--item-height);
 }
 
-.nn-date-group-header-icon {
+.nn-list-sticky-header {
+    position: sticky;
+    top: 0;
+    /* Keep the sticky copy out of layout so it overlays the virtualized list rows. */
+    height: 0;
+    flex: 0 0 0;
+    overflow: visible;
+    z-index: 200;
+    pointer-events: none;
+}
+
+.nn-list-pane-scroller .nn-virtual-list-group-header:not(.nn-first-list-group-header)::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    inset-inline-start: var(--nn-file-item-padding-horizontal);
+    inset-inline-end: var(--nn-file-item-padding-horizontal);
+    height: var(--nn-separator-height);
+    background-color: var(--nn-theme-list-separator-color);
+    z-index: 100;
+    pointer-events: none;
+}
+
+.nn-list-pane-scroller .nn-virtual-list-group-header.nn-hide-separator-selection::after {
+    display: none;
+}
+
+.nn-list-sticky-header .nn-list-group-header {
+    position: relative;
+    overflow: visible;
+    background-color: var(--nn-theme-list-bg) !important;
+    pointer-events: auto;
+}
+
+.nn-list-sticky-header .nn-list-group-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    inset-inline-start: calc(-1 * var(--nn-scroller-padding));
+    inset-inline-end: calc(-1 * var(--nn-scroller-padding));
+    background-color: var(--nn-theme-list-bg);
+    z-index: -1;
+}
+
+.nn-list-sticky-header .nn-list-group-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    inset-inline-start: calc(-1 * var(--nn-scroller-padding));
+    inset-inline-end: calc(-1 * var(--nn-scroller-padding));
+    height: var(--nn-separator-height);
+    background-color: var(--nn-theme-list-separator-color);
+    z-index: 100;
+    pointer-events: none;
+}
+
+.nn-list-sticky-header.nn-first-list-group-header .nn-list-group-header::after {
+    display: none;
+}
+
+.nn-list-group-header-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: var(--nn-date-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
-    height: var(--nn-date-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
+    width: var(--nn-list-group-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
+    height: var(--nn-list-group-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
     color: var(--nn-theme-list-group-header-color);
     flex: 0 0 auto;
 }
 
-.nn-date-group-header-icon svg {
+.nn-list-group-header-icon svg {
     width: 100%;
     height: 100%;
 }
 
-.nn-date-group-header-text {
+.nn-list-group-header-text {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.nn-date-group-header-text--folder-note {
+.nn-list-group-header-text--folder-note {
     text-decoration: var(--nn-theme-navitem-folder-note-name-decoration) !important;
 }
 
-.nn-date-group-header-text--folder-note:hover {
+.nn-list-group-header-text--folder-note:hover {
     cursor: pointer;
     text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration) !important;
 }
 
 .nn-pinned-section-header {
     align-items: center;
+    user-select: none;
+}
+
+.nn-pinned-section-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+    cursor: pointer;
 }
 
 /* Virtual list item - absolute positioning for list pane items */
@@ -4592,8 +4673,7 @@ body {
     top: 0px;
     inset-inline-start: 0;
     inset-inline-end: 0;
-    /* Extend slightly beyond bottom item bounds (height rounding issue) to prevent hairline gaps when zoomed */
-    bottom: -0.5px;
+    bottom: var(--nn-navitem-background-bottom-overdraw);
     /* Pre-composited solid color prevents hairlines by blending alpha with pane background */
     background-color: var(--nn-selected-navitem-bg-color);
     border-top-left-radius: var(--nn-navitem-top-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));
@@ -4603,11 +4683,6 @@ body {
     box-shadow: inset 0 0 0 var(--nn-theme-navitem-border-width) var(--nn-selected-navitem-border-color);
     z-index: 1;
     pointer-events: none;
-}
-
-.nn-split-container:is([data-navigator-focused='false'], [data-focus-pane='files'], [data-focus-pane='search'])
-    .nn-navitem.nn-selected::after {
-    top: 0.5px;
 }
 
 .nn-navitem.nn-selected > .nn-navitem-content {
@@ -7290,10 +7365,7 @@ body.nn-resizing {
     --nn-file-title-line-height: var(--nn-file-title-line-height-mobile);
     --nn-file-single-text-line-height: var(--nn-file-single-text-line-height-mobile);
     --nn-file-multiline-text-line-height: var(--nn-file-multiline-text-line-height-mobile);
-    --nn-date-header-height-mobile: calc(var(--nn-date-header-height) + 8px);
-    --nn-date-header-height-subsequent-mobile: calc(var(--nn-date-header-height-subsequent) + 8px);
-    --nn-date-header-padding-top-mobile: calc(var(--nn-date-header-padding-top) + 4px);
-    --nn-date-header-padding-bottom-mobile: calc(var(--nn-date-header-padding-bottom) + 2px);
+    --nn-list-group-header-height-mobile: calc(var(--nn-list-group-header-height) + 8px);
 }
 
 /* Folder text size on mobile */
@@ -7321,6 +7393,35 @@ body.nn-resizing {
 .notebook-navigator-mobile .nn-root-reorder-remove {
     font-size: var(--nn-setting-nav-font-size-mobile);
 }
+/* Source: src/styles/sections/mobile-panes.css */
+
+/* ========================================================================
+   Mobile Pane Layout
+   ======================================================================== */
+
+/* Make panes flex containers on mobile to accommodate mobile toolbars. */
+.notebook-navigator-mobile .nn-navigation-pane,
+.notebook-navigator-mobile .nn-list-pane {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Ensure scrollers take remaining space. */
+.notebook-navigator-mobile .nn-navigation-pane-scroller,
+.notebook-navigator-mobile .nn-list-pane-scroller {
+    flex: 1;
+    min-height: 0; /* Important for proper scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Keep horizontal pane bounce/chaining disabled while allowing native vertical edge feedback. */
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: contain;
+}
+
+/* Mobile list pane scroller uses the mobile list surface. */
+.notebook-navigator-mobile .nn-list-pane-scroller {
+    background-color: var(--nn-theme-list-bg); /* Opaque background on scroller for GPU scroll layer (see .nn-list-pane-scroller) */
+}
 /* Source: src/styles/sections/mobile-tab-bars.css */
 
 /* ========================================================================
@@ -7344,7 +7445,7 @@ body.nn-resizing {
     min-height: calc(49px + var(--nn-mobile-safe-area-bottom));
 }
 
-/* Mobile toolbars: distribute buttons evenly; Obsidian 1.11+ iOS overrides this via platform stylesheet. */
+/* Mobile toolbars: distribute buttons evenly; iOS floating toolbars override this via platform stylesheet. */
 .notebook-navigator-mobile .nn-mobile-toolbar {
     justify-content: space-evenly;
 }
@@ -7441,63 +7542,44 @@ body.nn-resizing {
     opacity: 0.4;
     cursor: not-allowed;
 }
-/* Source: src/styles/sections/platform-ios-obsidian-1-11.css */
+/* Source: src/styles/sections/platform-ios.css */
 
 /* ========================================================================
-   iOS + Obsidian 1.11+ iOS Platform Overrides
+   iOS Platform Overrides
    ======================================================================== */
 
-/* Platform-specific safe area definitions */
 .notebook-navigator-ios {
-    /* iOS uses env() for dynamic safe areas (notch, home indicator) */
-    --nn-mobile-safe-area-bottom: env(safe-area-inset-bottom, 8px);
-}
-
-.notebook-navigator-obsidian-1-11-plus-ios {
-    /* Obsidian 1.11+ already accounts for iOS safe areas in the view chrome. */
+    /* Obsidian accounts for iOS safe areas in the view chrome. */
     --nn-mobile-safe-area-bottom: 0px;
 }
 
-.notebook-navigator-ios:not(.notebook-navigator-obsidian-1-11-plus-ios)
-    .nn-navigation-pane[data-calendar='true']
-    .nn-pane-bottom-toolbar
-    .nn-mobile-toolbar,
-.notebook-navigator-ios:not(.notebook-navigator-obsidian-1-11-plus-ios)
-    .nn-list-pane[data-calendar='true']
-    .nn-pane-bottom-toolbar
-    .nn-mobile-toolbar {
-    padding-bottom: 0;
-    height: 49px;
-    min-height: 49px;
-}
-
-/* Obsidian 1.11+ iOS: view container background */
+/* iOS: view container background */
 /* Targets Obsidian's `.view-content` wrapper to ensure the area behind the navigator matches the mobile pane background. */
-.view-content.notebook-navigator.notebook-navigator-obsidian-1-11-plus-ios {
+.view-content.notebook-navigator.notebook-navigator-ios {
     background-color: var(--nn-theme-mobile-bg);
 }
 
-/* Obsidian 1.11+ iOS: bottom padding inside the navigator viewport */
+/* iOS: bottom padding inside the navigator viewport */
 /* Applied to the internal split container so the bottom edge doesn't touch the view chrome and the toolbar shadow can render into the padding (8px matches the top spacer). */
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-split-container {
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-split-container {
     padding-bottom: 8px;
     box-sizing: border-box;
 }
 
-/* iOS (Obsidian 1.11+): allow the glass toolbar shadow to render into the split container padding */
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-navigation-pane,
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-list-pane {
+/* iOS: allow the glass toolbar shadow to render into the split container padding */
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-navigation-pane,
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-list-pane {
     overflow: visible;
 }
 
-/* iOS (Obsidian 1.11+): anchor floating toolbar to the panel (above the calendar). */
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-navigation-pane-panel,
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-list-pane-panel {
+/* iOS: anchor floating toolbar to the panel (above the calendar). */
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-navigation-pane-panel,
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-list-pane-panel {
     position: relative;
 }
 
-/* iOS (Obsidian 1.11+): bottom overlays are positioned above the scroller. */
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-pane-bottom-toolbar {
+/* iOS: bottom overlays are positioned above the scroller. */
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-pane-bottom-toolbar {
     position: absolute;
     left: 0;
     right: 0;
@@ -7505,21 +7587,21 @@ body.nn-resizing {
     z-index: 5;
 }
 
-/* iOS (Obsidian 1.11+): reserve scroll space for the floating toolbar so rows can scroll under it. */
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-navigation-pane-scroller,
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-list-pane-scroller {
+/* iOS: reserve scroll space for the floating toolbar so rows can scroll under it. */
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-navigation-pane-scroller,
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-list-pane-scroller {
     padding-bottom: var(--nn-ios-pane-bottom-overlay-height);
 }
 
-/* Navigation pane calendar safe area for Obsidian 1.11+ iOS */
-.notebook-navigator-obsidian-1-11-plus-ios .nn-navigation-pane,
-.notebook-navigator-obsidian-1-11-plus-ios .nn-list-pane {
-    /* Obsidian 1.11+ already accounts for iOS safe areas in the view chrome. */
+/* iOS: navigation pane calendar safe area */
+.notebook-navigator-ios .nn-navigation-pane,
+.notebook-navigator-ios .nn-list-pane {
+    /* Obsidian accounts for iOS safe areas in the view chrome. */
     --nn-calendar-safe-area: 0px;
 }
 
-/* Obsidian 1.11+ iOS glass toolbar */
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar {
+/* iOS glass toolbar */
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar {
     pointer-events: none;
     justify-content: space-between;
     align-items: flex-start;
@@ -7528,7 +7610,7 @@ body.nn-resizing {
     /* 2px for border effect + 2px to match Obsidian view selector dropdown */
     padding-left: calc(var(--nn-scroller-padding) + 4px); /* 4px horizontal spacer for glass pill */
     padding-right: calc(var(--nn-scroller-padding) + 4px); /* 4px horizontal spacer for glass pill */
-    padding-bottom: 0; /* No extra bottom padding in iOS 1.11+ */
+    padding-bottom: 0; /* No extra bottom padding in iOS */
     /* The glass outline is painted via box-shadow and extends outside the pill/circle box. Add a small top spacer so
        auto-revealed rows are not positioned behind the outline. */
     padding-top: var(--nn-ios-toolbar-glass-visual-overlap-top);
@@ -7541,19 +7623,19 @@ body.nn-resizing {
     ); /* Match toolbar box height */
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-left,
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-right {
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-left,
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-right {
     display: flex;
     pointer-events: auto;
     flex: 0 0 auto;
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-pill,
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-circle {
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-pill,
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-circle {
     display: flex;
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars {
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars {
     --nn-theme-mobile-toolbar-button-icon-color: var(--nn-theme-foreground);
     --nn-ios-toolbar-glass-bg: color-mix(in srgb, var(--nn-theme-mobile-toolbar-glass-bg) 45%, transparent);
     --nn-ios-toolbar-glass-outline: rgba(255, 255, 255, 0.6);
@@ -7572,13 +7654,13 @@ body.nn-resizing {
     );
 }
 
-.theme-dark .notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars {
+.theme-dark .notebook-navigator-ios.notebook-navigator-ios-floating-toolbars {
     --nn-ios-toolbar-glass-outline: rgba(255, 255, 255, 0.1);
     --nn-ios-toolbar-glass-shadow: 0 0 0 2px var(--nn-ios-toolbar-glass-outline), 0 16px 32px rgba(0, 0, 0, 0.3);
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-pill,
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-circle {
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-pill,
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-circle {
     position: relative;
     z-index: 0;
     border-radius: 999px;
@@ -7601,24 +7683,24 @@ body.nn-resizing {
      */
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-pill > .nn-mobile-toolbar-button,
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-circle > .nn-mobile-toolbar-button {
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-pill > .nn-mobile-toolbar-button,
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-circle > .nn-mobile-toolbar-button {
     position: relative;
     z-index: 1;
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-pill {
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-pill {
     width: auto;
     justify-content: flex-start;
     gap: 6px; /* Spacing between buttons inside the pill */
     padding: 1px 10px; /* 1px vertical + 10px horizontal pill inset */
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-circle {
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-circle {
     padding: 1px; /* 1px inset around the circular button */
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-button {
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-button {
     width: 38px; /* Button diameter inside the glass pill */
     height: 38px; /* Button diameter inside the glass pill */
     min-width: 38px; /* Prevent button shrink */
@@ -7626,18 +7708,18 @@ body.nn-resizing {
     border-radius: 999px;
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-button svg {
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-button svg {
     stroke-width: 2;
 }
 
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-navigation-pane-content,
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-list-pane-content {
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-navigation-pane-content,
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-list-pane-content {
     position: relative;
     z-index: 1;
 }
 
-/* Obsidian 1.11+ iOS: bottom fade layer */
-.notebook-navigator-obsidian-1-11-plus-ios.notebook-navigator-ios-floating-toolbars .nn-pane-bottom-toolbar::before {
+/* iOS: bottom fade layer */
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-pane-bottom-toolbar::before {
     content: '';
     position: absolute;
     left: 0;
@@ -7655,7 +7737,7 @@ body.nn-resizing {
 }
 
 /*
- * iOS + Obsidian 1.11+: WebKit paint workaround for virtualized lists.
+ * iOS: WebKit paint workaround for virtualized lists.
  *
  * Symptom:
  * - The list can render blank (rows not visible) after preview text / feature image updates when the list is short
@@ -7667,23 +7749,23 @@ body.nn-resizing {
  * - Force each rendered virtual row wrapper onto its own composited layer. This makes WebKit repaint the rows
  *   reliably when the virtualizer remeasures and updates absolute positioning.
  */
-.notebook-navigator-obsidian-1-11-plus-ios .nn-list-pane .nn-virtual-item {
+.notebook-navigator-ios .nn-list-pane .nn-virtual-item {
     transform: translateZ(0);
 }
-/* Source: src/styles/sections/platform-android-obsidian-1-11.css */
+/* Source: src/styles/sections/platform-android.css */
 
 /* ========================================================================
-   Android + Obsidian 1.11+ Platform Overrides
+   Android Platform Overrides
    ======================================================================== */
 
-/* Obsidian 1.11+ Android: match the view container background to mobile pane surfaces */
-.view-content.notebook-navigator.notebook-navigator-obsidian-1-11-plus-android {
+/* Android: match the view container background to mobile pane surfaces */
+.view-content.notebook-navigator.notebook-navigator-android {
     background-color: var(--nn-theme-mobile-bg);
 }
 
-/* Obsidian 1.11+ Android: bottom padding inside the navigator viewport */
+/* Android: bottom padding inside the navigator viewport */
 /* Applied to the internal split container so the bottom edge doesn't touch the view chrome (8px matches the top spacer). */
-.notebook-navigator-obsidian-1-11-plus-android .nn-split-container {
+.notebook-navigator-android .nn-split-container {
     background-color: var(--nn-theme-mobile-bg);
     padding-bottom: 8px;
     box-sizing: border-box;
@@ -7712,39 +7794,6 @@ body.nn-resizing {
     height: 40px;
     min-width: 40px;
     min-height: 40px;
-}
-
-/* Make panes flex containers on mobile to accommodate tab bars */
-.notebook-navigator-mobile .nn-navigation-pane,
-.notebook-navigator-mobile .nn-list-pane {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-/* Ensure scrollers take remaining space */
-.notebook-navigator-mobile .nn-navigation-pane-scroller,
-.notebook-navigator-mobile .nn-list-pane-scroller {
-    flex: 1;
-    min-height: 0; /* Important for proper scrolling */
-    -webkit-overflow-scrolling: touch;
-    /* Prevent the rubber-band/glow overscroll effect on mobile. */
-    overscroll-behavior: none;
-}
-
-/* Mobile list pane scroller - use mobile background */
-.notebook-navigator-mobile .nn-list-pane-scroller {
-    background-color: var(--nn-theme-list-bg); /* Opaque background on scroller for GPU scroll layer (see .nn-list-pane-scroller) */
-}
-
-/* Mobile compact file items - larger touch targets */
-.notebook-navigator-mobile .nn-file.nn-compact .nn-file-content {
-    padding: var(--nn-file-padding-vertical-compact-mobile) var(--nn-file-item-padding-horizontal);
-}
-
-/* Mobile compact mode file names - use dedicated font variable */
-.notebook-navigator-mobile .nn-file.nn-compact .nn-file-name {
-    font-size: var(--nn-compact-font-size-mobile, var(--nn-compact-font-size, 15px));
 }
 /* Source: src/styles/sections/android-textzoom.css */
 
@@ -7800,7 +7849,7 @@ body.nn-resizing {
     max-height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1) * var(--nn-android-font-scale, 1));
 }
 
-.notebook-navigator-android .nn-file-preview:not(.nn-file-second-line .nn-file-preview) {
+.notebook-navigator-android .nn-file-preview {
     max-height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1) * var(--nn-android-font-scale, 1));
 }
 
@@ -7843,7 +7892,7 @@ body.nn-resizing {
 .nn-file-preview,
 .nn-file-date,
 .nn-parent-folder,
-.nn-date-group-header {
+.nn-list-group-header {
     unicode-bidi: plaintext;
 }
 
@@ -9394,7 +9443,7 @@ settings:
     -
         id: nn-theme-mobile-toolbar-glass-bg
         title: iOS glass toolbar background
-        description: Background color of the Obsidian 1.11+ iOS glass toolbar (used for border and background, supports transparency).
+        description: Background color of the iOS glass toolbar (used for border and background, supports transparency).
         type: variable-themed-color
         opacity: true
         format: rgb

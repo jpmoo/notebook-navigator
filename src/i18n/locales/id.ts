@@ -437,7 +437,6 @@ export const STRINGS_ID = {
                 'nav-properties': 'Properti',
                 'nav-property': 'Properti',
                 'nav-property-value': 'Nilai',
-                'list-pinned': 'Item tersemat',
                 'file-unfinished-task': 'Tugas belum selesai',
                 'file-word-count': 'Jumlah kata'
             }
@@ -790,6 +789,7 @@ export const STRINGS_ID = {
         toggleTagsBySelection: 'Alihkan tag berdasarkan pilihan',
         togglePropertiesBySelection: 'Alihkan properti berdasarkan pilihan',
         toggleCompactMode: 'Alihkan mode kompak', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Alihkan bagian yang disematkan',
         collapseExpand: 'Ciutkan / luaskan semua item',
         addTag: 'Tambah tag ke file yang dipilih',
         setProperty: 'Atur properti pada file yang dipilih', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -862,6 +862,7 @@ export const STRINGS_ID = {
             },
             list: {
                 display: 'Tampilan',
+                organization: 'Organisasi',
                 pinnedNotes: 'Catatan yang disematkan'
             },
             notes: {
@@ -957,13 +958,9 @@ export const STRINGS_ID = {
                 name: 'Selalu tampilkan semua pil tag dan properti',
                 desc: 'Saat dinonaktifkan, pil yang cocok dengan pilihan navigasi saat ini disembunyikan (misalnya, pil tag "resep" disembunyikan saat menelusuri tag "resep"). Aktifkan untuk menampilkan semua pil.'
             },
-            showPinnedGroupHeader: {
-                name: 'Tampilkan header grup yang disematkan',
-                desc: 'Tampilkan header bagian yang disematkan di atas catatan yang disematkan.'
-            },
-            showPinnedIcon: {
-                name: 'Tampilkan ikon yang disematkan',
-                desc: 'Tampilkan ikon di sebelah header bagian yang disematkan.'
+            stickyGroupHeaders: {
+                name: 'Header grup tetap',
+                desc: 'Jaga header bagian tanggal, folder, atau yang disematkan saat ini tetap terlihat saat menggulir.'
             },
             defaultListMode: {
                 name: 'Mode daftar default',
@@ -975,7 +972,11 @@ export const STRINGS_ID = {
             },
             showFileIcons: {
                 name: 'Tampilkan ikon file',
-                desc: 'Tampilkan ikon file dengan spasi rata kiri. Menonaktifkan menghapus ikon dan indentasi. Prioritas: ikon tugas belum selesai > ikon kustom > ikon nama file > ikon tipe file > ikon default.'
+                desc: 'Tampilkan ikon file dengan spasi rata kiri. Menonaktifkan menghapus ikon dan indentasi. Prioritas: ikon tugas belum selesai > ikon kustom > ikon folder > ikon nama file > ikon tipe file > ikon default.'
+            },
+            useFolderIcon: {
+                name: 'Gunakan ikon folder',
+                desc: 'Tampilkan ikon folder induk saat tidak ada ikon file kustom yang ditetapkan. Warna folder digunakan saat tidak ada warna file kustom yang ditetapkan.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Ikon tugas belum selesai',
@@ -1022,6 +1023,10 @@ export const STRINGS_ID = {
                 name: 'Tampilkan folder induk',
                 desc: 'Tampilkan nama folder induk untuk catatan di subfolder atau tag.'
             },
+            showParentFolderFullPath: {
+                name: 'Tampilkan path lengkap',
+                desc: 'Tampilkan path lengkap folder induk alih-alih hanya nama folder.'
+            },
             parentFolderClickRevealsFile: {
                 name: 'Klik folder induk untuk membuka folder',
                 desc: 'Mengklik label folder induk membuka folder di panel daftar.'
@@ -1065,7 +1070,7 @@ export const STRINGS_ID = {
             },
             useFloatingToolbars: {
                 name: 'Gunakan toolbar mengambang di iOS/iPadOS',
-                desc: 'Berlaku untuk Obsidian 1.11 dan yang lebih baru.'
+                desc: 'Hanya berlaku di iOS dan iPadOS.'
             },
             startView: {
                 name: 'Tampilan startup default',
@@ -1620,6 +1625,10 @@ export const STRINGS_ID = {
                     '2': '2 baris',
                     '3': '3 baris'
                 }
+            },
+            useFolderColor: {
+                name: 'Gunakan warna folder',
+                desc: 'Warnai judul catatan dan ikon file dengan warna folder induk saat tidak ada warna file kustom yang ditetapkan. Prioritas: warna file kustom > warna folder > warna default.'
             },
             showFeatureImage: {
                 name: 'Tampilkan gambar unggulan',

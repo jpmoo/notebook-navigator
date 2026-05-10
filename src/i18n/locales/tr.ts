@@ -437,7 +437,6 @@ export const STRINGS_TR = {
                 'nav-properties': 'Özellikler',
                 'nav-property': 'Özellik',
                 'nav-property-value': 'Değer',
-                'list-pinned': 'Sabitlenmiş öğeler',
                 'file-unfinished-task': 'Tamamlanmamış görevler',
                 'file-word-count': 'Kelime sayısı'
             }
@@ -790,6 +789,7 @@ export const STRINGS_TR = {
         toggleTagsBySelection: 'Etiketleri seçime göre aç/kapat',
         togglePropertiesBySelection: 'Özellikleri seçime göre aç/kapat',
         toggleCompactMode: 'Kompakt modu aç/kapat', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Sabitlenmiş bölümü aç/kapat',
         collapseExpand: 'Tüm öğeleri daralt / genişlet', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Seçili dosyalara etiket ekle', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Seçili dosyalarda özellik ayarla', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -862,6 +862,7 @@ export const STRINGS_TR = {
             },
             list: {
                 display: 'Görünüm',
+                organization: 'Düzenleme',
                 pinnedNotes: 'Sabitlenmiş notlar'
             },
             notes: {
@@ -957,13 +958,9 @@ export const STRINGS_TR = {
                 name: 'Tüm etiket ve özellik rozetlerini her zaman göster',
                 desc: 'Devre dışı bırakıldığında, geçerli gezinme seçimiyle eşleşen rozetler gizlenir (ör. "tarifler" etiketine göz atarken "tarifler" etiketi rozeti gizlenir). Tüm rozetlerin görünür kalması için etkinleştirin.'
             },
-            showPinnedGroupHeader: {
-                name: 'Sabitlenmiş grup başlığını göster',
-                desc: 'Sabitlenmiş notların üzerinde sabitlenmiş bölüm başlığını görüntüle.'
-            },
-            showPinnedIcon: {
-                name: 'Sabitlenmiş simgesini göster',
-                desc: 'Sabitlenmiş bölüm başlığının yanında simgeyi göster.'
+            stickyGroupHeaders: {
+                name: 'Yapışkan grup başlıkları',
+                desc: 'Geçerli tarih, klasör veya sabitlenmiş bölüm başlığını kaydırırken görünür tut.'
             },
             defaultListMode: {
                 name: 'Varsayılan liste modu',
@@ -975,7 +972,11 @@ export const STRINGS_TR = {
             },
             showFileIcons: {
                 name: 'Dosya simgelerini göster',
-                desc: 'Dosya simgelerini sol hizalı boşlukla göster. Devre dışı bırakma hem simgeleri hem de girintiyi kaldırır. Öncelik: tamamlanmamış görev simgesi > özel simge > dosya adı simgesi > dosya türü simgesi > varsayılan simge.'
+                desc: 'Dosya simgelerini sol hizalı boşlukla göster. Devre dışı bırakma hem simgeleri hem de girintiyi kaldırır. Öncelik: tamamlanmamış görev simgesi > özel simge > klasör simgesi > dosya adı simgesi > dosya türü simgesi > varsayılan simge.'
+            },
+            useFolderIcon: {
+                name: 'Klasör simgesini kullan',
+                desc: 'Özel dosya simgesi ayarlanmadığında üst klasörün simgesini görüntüler. Özel dosya rengi ayarlanmadığında klasör rengi kullanılır.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Tamamlanmamış görev simgesi',
@@ -1022,6 +1023,10 @@ export const STRINGS_TR = {
                 name: 'Üst klasörü göster',
                 desc: 'Alt klasörlerdeki veya etiketlerdeki notlar için üst klasör adını görüntüle.'
             },
+            showParentFolderFullPath: {
+                name: 'Tam yolu göster',
+                desc: 'Yalnızca klasör adı yerine üst klasörün tam yolunu görüntüler.'
+            },
             parentFolderClickRevealsFile: {
                 name: 'Üst klasöre tıklayarak klasörü aç',
                 desc: 'Üst klasör etiketine tıklamak liste panelinde klasörü açar.'
@@ -1065,7 +1070,7 @@ export const STRINGS_TR = {
             },
             useFloatingToolbars: {
                 name: "iOS/iPadOS'ta kayan araç çubuklarını kullan",
-                desc: 'Obsidian 1.11 ve sonrası için geçerlidir.'
+                desc: 'Yalnızca iOS ve iPadOS için geçerlidir.'
             },
             startView: {
                 name: 'Varsayılan başlangıç görünümü',
@@ -1619,6 +1624,10 @@ export const STRINGS_TR = {
                     '2': '2 satır',
                     '3': '3 satır'
                 }
+            },
+            useFolderColor: {
+                name: 'Klasör rengini kullan',
+                desc: 'Özel dosya rengi ayarlanmadığında not başlıklarını ve dosya simgelerini üst klasörün rengiyle renklendir. Öncelik: özel dosya rengi > klasör rengi > varsayılan renk.'
             },
             showFeatureImage: {
                 name: 'Öne çıkan görseli göster',

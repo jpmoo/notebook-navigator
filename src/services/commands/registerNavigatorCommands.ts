@@ -69,7 +69,7 @@ import {
     parseStoredPropertySelectionNodeId,
     type PropertySelectionNodeId
 } from '../../utils/propertyTree';
-import { getAdjacentFile, getFilesForNavigationSelection } from '../../utils/selectionUtils';
+import { getAdjacentFile, getFilesForNavigationSelection, getPinnedSectionCollapseKey } from '../../utils/selectionUtils';
 
 /**
  * Reveals the navigator view and focuses whichever pane is currently visible
@@ -389,6 +389,10 @@ function resolveOpenAllFilesContext(plugin: NotebookNavigatorPlugin): CommandNav
         selectedTag: null,
         selectedProperty: null
     };
+}
+
+function getPinnedCollapseKeyForCommand(plugin: NotebookNavigatorPlugin) {
+    return getPinnedSectionCollapseKey(resolveOpenAllFilesContext(plugin));
 }
 
 function getOpenAllFilesConfirmTitle(fileCount: number): string {
@@ -781,6 +785,19 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
             runAsyncAction(async () => {
                 plugin.settings.defaultListMode = plugin.settings.defaultListMode === 'compact' ? 'standard' : 'compact';
                 await plugin.saveSettingsAndUpdate();
+            });
+        }
+    });
+
+    // Command to toggle the pinned section in the list pane
+    plugin.addCommand({
+        id: 'toggle-pinned-section',
+        name: strings.commands.togglePinnedSection,
+        callback: () => {
+            runAsyncAction(async () => {
+                const view = await ensureNavigatorOpen(plugin);
+                await view?.whenReady();
+                await plugin.togglePinnedGroupCollapsed(getPinnedCollapseKeyForCommand(plugin));
             });
         }
     });

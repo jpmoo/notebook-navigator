@@ -58,6 +58,7 @@ import type { FileContentChange } from '../storage/IndexedDBStorage';
 import type { SelectionDispatch, SelectionState } from '../context/SelectionContext';
 import { calculateCompactListMetrics } from '../utils/listPaneMetrics';
 import {
+    calculateNormalListFileRowHeightEstimate,
     getFileItemLayoutState,
     getSelectedPropertyValuePillToHide,
     getSelectedTagPillToHide,
@@ -65,6 +66,7 @@ import {
     getListPaneMeasurements,
     getPropertyRowCount,
     isListPaneCompactMode,
+    shouldShowExtensionBadgeThumbnail,
     shouldShowFeatureImageArea,
     shouldShowFileItemParentFolderLine
 } from '../utils/listPaneMeasurements';
@@ -115,6 +117,8 @@ interface UseListPaneScrollParams {
     topSpacerHeight: number;
     /** Whether descendant notes should be shown */
     includeDescendantNotes: boolean;
+    /** Whether the pinned notes group is expanded */
+    pinnedGroupExpanded: boolean;
     /** Visible frontmatter property keys for file list rows (normalized keys) */
     visiblePropertyKeys: ReadonlySet<string>;
     /** Stable key signature for visible frontmatter property keys */
@@ -161,6 +165,8 @@ interface UseListPaneScrollResult {
     scrollContainerRefCallback: (element: HTMLDivElement | null) => void;
     /** Handler to scroll to top (mobile header tap) */
     handleScrollToTop: () => void;
+    /** Scrolls a list index into view while accounting for overlay chrome */
+    scrollToIndexSafely: (index: number, align: Align) => void;
 }
 
 // Path-index maps can be recreated with the same contents. Keep indexVersion tied to effective mapping changes.
@@ -197,6 +203,7 @@ interface ScrollPreservationSignatureParams {
     listLayoutSignature: string;
     groupBy: ListPaneAppearanceLayoutSettings['groupBy'];
     noteGrouping: NotebookNavigatorSettings['noteGrouping'];
+    stickyGroupHeaders: NotebookNavigatorSettings['stickyGroupHeaders'];
     effectiveSort: SortOption;
     propertySortKey: NotebookNavigatorSettings['propertySortKey'];
     propertySortSecondary: NotebookNavigatorSettings['propertySortSecondary'];
@@ -275,6 +282,7 @@ function getScrollPreservationSignature({
     listLayoutSignature,
     groupBy,
     noteGrouping,
+    stickyGroupHeaders,
     effectiveSort,
     propertySortKey,
     propertySortSecondary
@@ -284,6 +292,7 @@ function getScrollPreservationSignature({
         listLayoutSignature,
         groupBy,
         noteGrouping,
+        stickyGroupHeaders,
         effectiveSort,
         propertySortKey: propertySortKey ?? null,
         propertySortSecondary
@@ -299,6 +308,21 @@ export function isListRowHeightAffectingContentChange(change: FileContentChange)
         change.changes.tags !== undefined ||
         change.changes.wordCount !== undefined
     );
+}
+
+function isFileRowCoveredByStickyHeader(listItems: ListPaneItem[], index: number): boolean {
+    const item = listItems[index];
+    if (item?.type !== ListPaneItemType.FILE || !(item.data instanceof TFile)) {
+        return false;
+    }
+
+    for (let listIndex = index - 1; listIndex >= 0; listIndex -= 1) {
+        if (listItems[listIndex]?.type === ListPaneItemType.HEADER) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -324,6 +348,7 @@ export function useListPaneScroll({
     suppressSearchTopScrollRef,
     topSpacerHeight,
     includeDescendantNotes,
+    pinnedGroupExpanded,
     visiblePropertyKeys,
     visiblePropertyKeySignature,
     hiddenTagVisibility,
@@ -357,6 +382,7 @@ export function useListPaneScroll({
     const prevListKeyRef = useRef<string>(''); // Previous folder/tag context to detect navigation
     const prevScrollPreservationConfigRef = useRef<PreviousScrollPreservationConfig | null>(null);
     const prevSearchQueryRef = useRef<string | undefined>(undefined); // Track search query changes
+    const prevPinnedGroupExpandedRef = useRef<boolean>(pinnedGroupExpanded);
 
     // ========== Scroll Orchestration ==========
     // Scroll reasons determine priority and alignment behavior
@@ -437,13 +463,10 @@ export function useListPaneScroll({
             const heights = listMeasurements;
 
             if (item.type === ListPaneItemType.HEADER) {
-                // Date group headers have fixed heights from CSS
-                // Index 1 because TOP_SPACER is at index 0
-                const isFirstHeader = index === 1;
-                if (isFirstHeader) {
-                    return heights.firstHeader;
-                }
-                return heights.subsequentHeader;
+                return heights.groupHeaderHeight;
+            }
+            if (item.type === ListPaneItemType.HEADER_SPACER) {
+                return heights.groupHeaderSpacerBefore;
             }
 
             if (item.type === ListPaneItemType.TOP_SPACER) {
@@ -477,6 +500,10 @@ export function useListPaneScroll({
                 showImage: folderSettings.showImage,
                 file,
                 featureImageStatus
+            });
+            const showExtensionBadgeThumbnail = shouldShowExtensionBadgeThumbnail({
+                showFeatureImageArea,
+                file
             });
 
             // Visibility estimate for the single-row tags area.
@@ -524,62 +551,32 @@ export function useListPaneScroll({
                 showDate: folderSettings.showDate,
                 showPreview: folderSettings.showPreview,
                 showImage: folderSettings.showImage,
-                previewRows: folderSettings.previewRows,
                 isPinned: Boolean(item.isPinned),
                 hasPreviewContent,
                 showFeatureImageArea,
+                showExtensionBadgeThumbnail,
                 hasVisiblePillRows
             });
 
-            // Start with base padding.
-            let textContentHeight = 0;
             const titleRows = folderSettings.titleRows || 1;
+            const visiblePillRowCount = (hasTagRow ? 1 : 0) + propertyRowCount;
+            const pinnedPreviewRows = item.isPinned ? 1 : folderSettings.previewRows;
             if (layoutState.isCompactMode) {
-                textContentHeight = heights.titleLineHeight * titleRows;
-            } else {
-                textContentHeight += heights.titleLineHeight * titleRows;
-
-                if (layoutState.shouldUseSingleLineForDateAndPreview) {
-                    if (layoutState.shouldShowSingleLineSecondLine) {
-                        textContentHeight += heights.singleTextLineHeight;
-                    }
-
-                    if (showParentFolderLine) {
-                        textContentHeight += heights.singleTextLineHeight;
-                    }
-                } else {
-                    if (layoutState.shouldShowMultilinePreview) {
-                        textContentHeight += heights.multilineTextLineHeight * folderSettings.previewRows;
-                    }
-
-                    if (layoutState.shouldShowDateForItem || showParentFolderLine) {
-                        textContentHeight += heights.singleTextLineHeight;
-                    }
-                }
+                const textContentHeight = heights.titleLineHeight * titleRows + heights.tagRowHeight * visiblePillRowCount;
+                const padding = isMobile ? compactListMetrics.mobilePaddingTotal : compactListMetrics.desktopPaddingTotal;
+                return padding + textContentHeight;
             }
 
-            // Add space for tags if file has tags and they are visible in this mode.
-            if (hasTagRow) {
-                textContentHeight += heights.tagRowHeight;
-            }
-
-            if (propertyRowCount > 0) {
-                // `tagRowHeight` mirrors the combined CSS row height + margin-top gap for pill rows.
-                textContentHeight += heights.tagRowHeight * propertyRowCount;
-            }
-
-            // Keep the estimated text area at least as tall as the shared thumbnail floor in normal mode.
-            if (!isCompactMode && textContentHeight < heights.featureImageHeight) {
-                textContentHeight = heights.featureImageHeight;
-            }
-
-            // Use reduced padding for compact mode (with mobile-specific padding)
-            const padding = isCompactMode
-                ? isMobile
-                    ? compactListMetrics.mobilePaddingTotal
-                    : compactListMetrics.desktopPaddingTotal
-                : heights.basePadding;
-            return padding + textContentHeight;
+            return calculateNormalListFileRowHeightEstimate({
+                heights,
+                titleRows,
+                previewRows: pinnedPreviewRows,
+                layoutState,
+                showFeatureImageArea,
+                showExtensionBadgeThumbnail,
+                showParentFolderLine,
+                visiblePillRowCount
+            });
         },
         overscan: OVERSCAN,
         scrollPaddingEnd: effectiveScrollPaddingEnd,
@@ -717,6 +714,54 @@ export function useListPaneScroll({
         }
     }, [isMobile]);
 
+    const ensureIndexNotCovered = useCallback(
+        (index: number) => {
+            const scrollElement = scrollContainerRef.current;
+            if (!scrollElement) {
+                return;
+            }
+
+            const row = scrollElement.querySelector(`[data-index="${index}"]`);
+            if (!(row instanceof HTMLElement)) {
+                return;
+            }
+
+            const containerRect = scrollElement.getBoundingClientRect();
+            const rowRect = row.getBoundingClientRect();
+            const topInset =
+                settings.stickyGroupHeaders && isFileRowCoveredByStickyHeader(listItems, index) ? listMeasurements.groupHeaderHeight : 0;
+            const safeTop = containerRect.top + topInset;
+            const safeBottom = containerRect.bottom - effectiveScrollPaddingEnd;
+
+            if (topInset > 0 && rowRect.top < safeTop) {
+                scrollElement.scrollTop -= Math.round(safeTop - rowRect.top);
+                return;
+            }
+
+            if (effectiveScrollPaddingEnd > 0 && rowRect.bottom > safeBottom) {
+                scrollElement.scrollTop += Math.round(rowRect.bottom - safeBottom);
+            }
+        },
+        [effectiveScrollPaddingEnd, listItems, listMeasurements.groupHeaderHeight, settings.stickyGroupHeaders]
+    );
+
+    const scrollToIndexSafely = useCallback(
+        (index: number, align: Align) => {
+            rowVirtualizer.scrollToIndex(index, { align });
+
+            let attempts = 0;
+            const adjust = () => {
+                attempts += 1;
+                ensureIndexNotCovered(index);
+                if (attempts < 3) {
+                    requestAnimationFrame(adjust);
+                }
+            };
+            requestAnimationFrame(adjust);
+        },
+        [ensureIndexNotCovered, rowVirtualizer]
+    );
+
     // Get scroll index for a file, adjusting to show top group header when navigating folders
     // This ensures the top group header (pinned or date) is visible when changing folders/tags
     const getSelectionIndex = useCallback(
@@ -728,17 +773,27 @@ export function useListPaneScroll({
                 return -1;
             }
 
-            // Check if there's a header immediately before this file
-            const hasHeaderBefore = fileIndex > 0 && listItems[fileIndex - 1]?.type === ListPaneItemType.HEADER;
-            if (!hasHeaderBefore) {
+            let headerIndexBefore = -1;
+            for (let listIndex = fileIndex - 1; listIndex >= 0; listIndex -= 1) {
+                const item = listItems[listIndex];
+                if (item?.type === ListPaneItemType.HEADER_SPACER) {
+                    continue;
+                }
+                if (item?.type === ListPaneItemType.HEADER) {
+                    headerIndexBefore = listIndex;
+                }
+                break;
+            }
+
+            if (headerIndexBefore === -1) {
                 return fileIndex;
             }
 
             // Special case: scroll to header for the very first file to show context
-            // Index 0 is TOP_SPACER, Index 1 is first header (if exists), Index 2 is first file
-            const isFirstFile = fileIndex <= 2;
+            // Index 0 is TOP_SPACER, Index 1 is first header.
+            const isFirstFile = headerIndexBefore === 1;
             if (isFirstFile) {
-                return fileIndex - 1; // Show the header above
+                return headerIndexBefore;
             }
 
             // For all other files with headers, scroll directly to the file
@@ -861,7 +916,7 @@ export function useListPaneScroll({
                     if (pending.reason === 'reveal' && selectionState.revealSource === 'startup') {
                         alignment = 'center';
                     }
-                    rowVirtualizer.scrollToIndex(index, { align: alignment });
+                    scrollToIndexSafely(index, alignment);
 
                     if (isStructuralChange) {
                         // Stabilization mechanism: Handle rapid consecutive rebuilds
@@ -904,6 +959,7 @@ export function useListPaneScroll({
         getSelectionIndex,
         isMobile,
         setPending,
+        scrollToIndexSafely,
         revealFileOnListChanges,
         selectionState.revealSource,
         selectedFile?.path
@@ -1002,6 +1058,7 @@ export function useListPaneScroll({
                 listLayoutSignature,
                 groupBy: folderSettings.groupBy,
                 noteGrouping: settings.noteGrouping,
+                stickyGroupHeaders: settings.stickyGroupHeaders,
                 effectiveSort,
                 propertySortKey: settings.propertySortKey,
                 propertySortSecondary: settings.propertySortSecondary
@@ -1011,6 +1068,7 @@ export function useListPaneScroll({
             listLayoutSignature,
             folderSettings.groupBy,
             settings.noteGrouping,
+            settings.stickyGroupHeaders,
             effectiveSort,
             settings.propertySortKey,
             settings.propertySortSecondary
@@ -1081,6 +1139,8 @@ export function useListPaneScroll({
         const propertySelectionKey = selectedProperty ?? '';
         const contextKey = `${selectedFolder?.path || ''}_${selectedTag || ''}_${propertySelectionKey}`;
         const prev = contextIndexVersionRef.current;
+        const pinnedGroupExpandedChanged = prevPinnedGroupExpandedRef.current !== pinnedGroupExpanded;
+        prevPinnedGroupExpandedRef.current = pinnedGroupExpanded;
 
         // Initialize on first run or when context changes
         if (!prev || prev.key !== contextKey) {
@@ -1091,6 +1151,9 @@ export function useListPaneScroll({
         // Same context: if index version advanced, maintain position on selected file
         if (indexVersionRef.current > prev.version) {
             contextIndexVersionRef.current = { key: contextKey, version: indexVersionRef.current };
+            if (pinnedGroupExpandedChanged) {
+                return;
+            }
 
             // Only queue a file scroll if the selected file exists in the current index
             const inList = !!(selectedFile && filePathToIndex.has(selectedFile.path));
@@ -1109,6 +1172,7 @@ export function useListPaneScroll({
         selectedFolder?.path,
         selectedTag,
         selectedProperty,
+        pinnedGroupExpanded,
         filePathToIndex,
         filePathToIndex.size,
         selectedFile,
@@ -1329,6 +1393,7 @@ export function useListPaneScroll({
         rowVirtualizer,
         scrollContainerRef,
         scrollContainerRefCallback,
-        handleScrollToTop
+        handleScrollToTop,
+        scrollToIndexSafely
     };
 }

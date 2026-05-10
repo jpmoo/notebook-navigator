@@ -436,7 +436,6 @@ export const STRINGS_VI = {
                 'nav-properties': 'Thuộc tính',
                 'nav-property': 'Thuộc tính',
                 'nav-property-value': 'Giá trị',
-                'list-pinned': 'Mục đã ghim',
                 'file-unfinished-task': 'Nhiệm vụ chưa hoàn thành',
                 'file-word-count': 'Số từ'
             }
@@ -791,6 +790,7 @@ export const STRINGS_VI = {
         toggleTagsBySelection: 'Bật/tắt thẻ theo lựa chọn',
         togglePropertiesBySelection: 'Bật/tắt thuộc tính theo lựa chọn',
         toggleCompactMode: 'Bật/tắt chế độ gọn', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Bật/tắt phần đã ghim',
         collapseExpand: 'Thu gọn / mở rộng tất cả', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Thêm thẻ vào tệp đã chọn', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Đặt thuộc tính cho tệp đã chọn', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -863,6 +863,7 @@ export const STRINGS_VI = {
             },
             list: {
                 display: 'Giao diện',
+                organization: 'Tổ chức',
                 pinnedNotes: 'Ghi chú đã ghim'
             },
             notes: {
@@ -958,13 +959,9 @@ export const STRINGS_VI = {
                 name: 'Luôn hiển thị tất cả nhãn thẻ và thuộc tính',
                 desc: 'Khi tắt, các nhãn khớp với lựa chọn điều hướng hiện tại sẽ bị ẩn (ví dụ: nhãn thẻ "công thức" bị ẩn khi duyệt thẻ "công thức"). Bật để giữ tất cả các nhãn luôn hiển thị.'
             },
-            showPinnedGroupHeader: {
-                name: 'Hiện header nhóm đã ghim',
-                desc: 'Hiển thị header phần đã ghim phía trên ghi chú đã ghim.'
-            },
-            showPinnedIcon: {
-                name: 'Hiện biểu tượng đã ghim',
-                desc: 'Hiện biểu tượng bên cạnh header phần đã ghim.'
+            stickyGroupHeaders: {
+                name: 'Header nhóm cố định',
+                desc: 'Giữ header phần ngày, thư mục hoặc đã ghim hiện tại hiển thị khi cuộn.'
             },
             defaultListMode: {
                 name: 'Chế độ danh sách mặc định',
@@ -976,7 +973,11 @@ export const STRINGS_VI = {
             },
             showFileIcons: {
                 name: 'Hiện biểu tượng tệp',
-                desc: 'Hiển thị biểu tượng tệp với khoảng cách căn trái. Tắt sẽ gỡ cả biểu tượng và thụt lề. Ưu tiên: biểu tượng tác vụ chưa hoàn thành > biểu tượng tùy chỉnh > biểu tượng tên tệp > biểu tượng loại tệp > biểu tượng mặc định.'
+                desc: 'Hiển thị biểu tượng tệp với khoảng cách căn trái. Tắt sẽ gỡ cả biểu tượng và thụt lề. Ưu tiên: biểu tượng tác vụ chưa hoàn thành > biểu tượng tùy chỉnh > biểu tượng thư mục > biểu tượng tên tệp > biểu tượng loại tệp > biểu tượng mặc định.'
+            },
+            useFolderIcon: {
+                name: 'Dùng biểu tượng thư mục',
+                desc: 'Hiển thị biểu tượng của thư mục cha khi không có biểu tượng tệp tùy chỉnh được đặt. Màu thư mục được dùng khi không có màu tệp tùy chỉnh được đặt.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Biểu tượng nhiệm vụ chưa hoàn thành',
@@ -1023,6 +1024,10 @@ export const STRINGS_VI = {
                 name: 'Hiện thư mục cha',
                 desc: 'Hiển thị tên thư mục cha cho ghi chú trong thư mục con hoặc thẻ.'
             },
+            showParentFolderFullPath: {
+                name: 'Hiện đường dẫn đầy đủ',
+                desc: 'Hiển thị đường dẫn đầy đủ của thư mục cha thay vì chỉ tên thư mục.'
+            },
             parentFolderClickRevealsFile: {
                 name: 'Nhấn thư mục cha để mở thư mục',
                 desc: 'Nhấn nhãn thư mục cha sẽ mở thư mục trong bảng danh sách.'
@@ -1066,7 +1071,7 @@ export const STRINGS_VI = {
             },
             useFloatingToolbars: {
                 name: 'Sử dụng thanh công cụ nổi trên iOS/iPadOS',
-                desc: 'Áp dụng cho Obsidian 1.11 trở lên.'
+                desc: 'Chỉ áp dụng trên iOS và iPadOS.'
             },
             startView: {
                 name: 'Chế độ xem khởi động mặc định',
@@ -1620,6 +1625,10 @@ export const STRINGS_VI = {
                     '2': '2 dòng',
                     '3': '3 dòng'
                 }
+            },
+            useFolderColor: {
+                name: 'Dùng màu thư mục',
+                desc: 'Tô màu tiêu đề ghi chú và biểu tượng tệp bằng màu của thư mục cha khi không có màu tệp tùy chỉnh được đặt. Ưu tiên: màu tệp tùy chỉnh > màu thư mục > màu mặc định.'
             },
             showFeatureImage: {
                 name: 'Hiện ảnh nổi bật',

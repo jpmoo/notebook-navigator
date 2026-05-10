@@ -18,7 +18,7 @@
 
 import type { FileVisibility } from '../utils/fileTypeUtils';
 import type { FolderAppearance, TagAppearance } from '../hooks/useListPaneAppearance';
-import type { BackgroundMode, DualPaneOrientation, PinnedNotes } from '../types';
+import type { BackgroundMode, CollapsedPinnedContexts, DualPaneOrientation, PinnedNotes } from '../types';
 import type { FolderNoteCreationPreference } from '../types/folderNote';
 import type { KeyboardShortcutConfig } from '../utils/keyboardShortcuts';
 import type { ShortcutEntry } from '../types/shortcuts';
@@ -499,9 +499,8 @@ export interface NotebookNavigatorSettings {
     listPaneTitle: ListPaneTitleOption;
     noteGrouping: ListNoteGroupingOption;
     showSelectedNavigationPills: boolean;
+    stickyGroupHeaders: boolean;
     filterPinnedByFolder: boolean;
-    showPinnedGroupHeader: boolean;
-    showPinnedIcon: boolean;
     compactItemHeight: number;
     compactItemHeightScaleText: boolean;
     showQuickActions: boolean;
@@ -526,11 +525,13 @@ export interface NotebookNavigatorSettings {
     showFileBackgroundUnfinishedTask: boolean;
     unfinishedTaskBackgroundColor: string;
     showFileIcons: boolean;
+    useFolderIconForFiles: boolean;
     showFilenameMatchIcons: boolean;
     fileNameIconMap: Record<string, string>;
     showCategoryIcons: boolean;
     fileTypeIconMap: Record<string, string>;
     fileNameRows: number;
+    useFolderColorForTitles: boolean;
     showFilePreview: boolean;
     skipHeadingsInPreview: boolean;
     skipCodeBlocksInPreview: boolean;
@@ -562,6 +563,7 @@ export interface NotebookNavigatorSettings {
     showFileDate: boolean;
     alphabeticalDateMode: AlphabeticalDateMode;
     showParentFolder: boolean;
+    showParentFolderFullPath: boolean;
     parentFolderClickRevealsFile: boolean;
     showParentFolderColor: boolean;
     showParentFolderIcon: boolean;
@@ -602,6 +604,7 @@ export interface NotebookNavigatorSettings {
     // Runtime state and cached data
     customVaultName: string;
     pinnedNotes: PinnedNotes;
+    collapsedPinnedContexts: CollapsedPinnedContexts;
     fileIcons: Record<string, string>;
     fileColors: Record<string, string>;
     fileBackgroundColors: Record<string, string>;

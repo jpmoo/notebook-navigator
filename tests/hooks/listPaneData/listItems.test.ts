@@ -50,9 +50,9 @@ function createListConfig(pinnedNotes: ListPaneConfig['pinnedNotes']): ListPaneC
         filterPinnedByFolder: true,
         folderGroupSortOrder: DEFAULT_SETTINGS.folderSortOrder,
         groupBy: DEFAULT_SETTINGS.noteGrouping,
+        pinnedGroupExpanded: true,
         pinnedNotes,
         showFileTags: false,
-        showPinnedGroupHeader: true,
         showTags: false
     };
 }
@@ -80,6 +80,52 @@ function getFileItems(items: ReturnType<typeof buildListItems>): { path: string;
 }
 
 describe('buildListItems pinned display scope', () => {
+    it('adds spacer rows before subsequent fixed-height group headers', () => {
+        const app = createApp();
+        const todayFile = createTestTFile('notes/today.md');
+        const olderFile = createTestTFile('notes/older.md');
+        const db = createDb({
+            [todayFile.path]: { tags: null, properties: null },
+            [olderFile.path]: { tags: null, properties: null }
+        });
+        const timestamps = new Map([
+            [todayFile.path, new Date(2026, 2, 7).getTime()],
+            [olderFile.path, new Date(2026, 1, 20).getTime()]
+        ]);
+
+        const items = buildListItems({
+            app,
+            dayKey: '2026-03-07',
+            fileVisibility: FILE_VISIBILITY.DOCUMENTS,
+            files: [todayFile, olderFile],
+            getDB: () => db,
+            getFileTimestamps: file => {
+                const timestamp = timestamps.get(file.path) ?? 0;
+                return { created: timestamp, modified: timestamp };
+            },
+            hiddenFileState: new Map(),
+            hiddenTags: [],
+            listConfig: createListConfig({}),
+            searchMetaMap: new Map(),
+            selectedFolder: null,
+            selectedTag: null,
+            selectionType: ItemType.FOLDER,
+            showHiddenItems: false,
+            sortOption: 'modified-desc'
+        });
+
+        expect(items.map(item => item.type)).toEqual([
+            ListPaneItemType.TOP_SPACER,
+            ListPaneItemType.HEADER,
+            ListPaneItemType.FILE,
+            ListPaneItemType.HEADER_SPACER,
+            ListPaneItemType.HEADER,
+            ListPaneItemType.FILE,
+            ListPaneItemType.BOTTOM_SPACER
+        ]);
+        expect(items[3].key).toMatch(/-spacer-before$/);
+    });
+
     it('keeps tag pins in the pinned section when folder pin scoping is enabled', () => {
         const app = createApp();
         const rootFile = createTestTFile('notes/root.md');
@@ -234,5 +280,42 @@ describe('buildListItems pinned display scope', () => {
             { path: valueFile.path, isPinned: true },
             { path: siblingFile.path, isPinned: false }
         ]);
+    });
+
+    it('keeps the pinned header and hides pinned file rows when the pinned group is collapsed', () => {
+        const app = createApp();
+        const pinnedFile = createTestTFile('notes/pinned.md');
+        const regularFile = createTestTFile('notes/regular.md');
+        const db = createDb({
+            [pinnedFile.path]: { tags: null, properties: null },
+            [regularFile.path]: { tags: null, properties: null }
+        });
+
+        const items = buildListItems({
+            app,
+            dayKey: '2026-03-07',
+            fileVisibility: FILE_VISIBILITY.DOCUMENTS,
+            files: [pinnedFile, regularFile],
+            getDB: () => db,
+            getFileTimestamps: () => ({ created: 0, modified: 0 }),
+            hiddenFileState: new Map(),
+            hiddenTags: [],
+            listConfig: {
+                ...createListConfig({
+                    [pinnedFile.path]: { folder: true, tag: false, property: false }
+                }),
+                groupBy: 'none',
+                pinnedGroupExpanded: false
+            },
+            searchMetaMap: new Map(),
+            selectedFolder: null,
+            selectedTag: null,
+            selectionType: ItemType.FOLDER,
+            showHiddenItems: false,
+            sortOption: 'modified-desc'
+        });
+
+        expect(items.some(item => item.key === PINNED_SECTION_HEADER_KEY)).toBe(true);
+        expect(getFileItems(items)).toEqual([{ path: regularFile.path, isPinned: false }]);
     });
 });

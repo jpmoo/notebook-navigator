@@ -436,7 +436,6 @@ export const STRINGS_AR = {
                 'nav-properties': 'الخصائص',
                 'nav-property': 'خاصية',
                 'nav-property-value': 'قيمة',
-                'list-pinned': 'العناصر المثبتة',
                 'file-unfinished-task': 'مهام غير مكتملة',
                 'file-word-count': 'عدد الكلمات'
             }
@@ -788,6 +787,7 @@ export const STRINGS_AR = {
         toggleTagsBySelection: 'تبديل الوسوم حسب التحديد',
         togglePropertiesBySelection: 'تبديل الخصائص حسب التحديد',
         toggleCompactMode: 'تبديل الوضع المضغوط', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'تبديل قسم المثبتة',
         collapseExpand: 'طي / توسيع جميع العناصر', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'إضافة وسم للملفات المحددة', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'تعيين خاصية على الملفات المحددة', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -860,6 +860,7 @@ export const STRINGS_AR = {
             },
             list: {
                 display: 'المظهر',
+                organization: 'التنظيم',
                 pinnedNotes: 'الملاحظات المثبتة'
             },
             notes: {
@@ -955,13 +956,9 @@ export const STRINGS_AR = {
                 name: 'إظهار جميع شارات الوسوم والخصائص دائمًا',
                 desc: 'عند التعطيل، يتم إخفاء الشارات التي تتطابق مع اختيار التنقل الحالي (مثلاً، يتم إخفاء شارة وسم "وصفات" عند تصفح وسم "وصفات"). قم بالتفعيل لإبقاء جميع الشارات مرئية.'
             },
-            showPinnedGroupHeader: {
-                name: 'إظهار رأس المجموعة المثبتة',
-                desc: 'عرض رأس القسم المثبت فوق الملاحظات المثبتة.'
-            },
-            showPinnedIcon: {
-                name: 'إظهار أيقونة التثبيت',
-                desc: 'إظهار الأيقونة بجانب رأس القسم المثبت.'
+            stickyGroupHeaders: {
+                name: 'تثبيت رؤوس المجموعات',
+                desc: 'إبقاء رأس قسم التاريخ أو المجلد أو القسم المثبت الحالي مرئيًا أثناء التمرير.'
             },
             defaultListMode: {
                 name: 'وضع القائمة الافتراضي',
@@ -973,7 +970,11 @@ export const STRINGS_AR = {
             },
             showFileIcons: {
                 name: 'إظهار أيقونات الملفات',
-                desc: 'عرض أيقونات الملفات مع مسافة محاذاة لليسار. التعطيل يزيل الأيقونات والمسافة البادئة. الأولوية: أيقونة المهام غير المكتملة > أيقونة مخصصة > أيقونة اسم الملف > أيقونة نوع الملف > أيقونة افتراضية.'
+                desc: 'عرض أيقونات الملفات مع مسافة محاذاة لليسار. التعطيل يزيل الأيقونات والمسافة البادئة. الأولوية: أيقونة المهام غير المكتملة > أيقونة مخصصة > أيقونة المجلد > أيقونة اسم الملف > أيقونة نوع الملف > أيقونة افتراضية.'
+            },
+            useFolderIcon: {
+                name: 'استخدام أيقونة المجلد',
+                desc: 'عرض أيقونة المجلد الأصلي عند عدم تعيين أيقونة ملف مخصصة. يُستخدم لون المجلد عند عدم تعيين لون ملف مخصص.'
             },
             showFileIconUnfinishedTask: {
                 name: 'أيقونة المهام غير المكتملة',
@@ -1020,6 +1021,10 @@ export const STRINGS_AR = {
                 name: 'إظهار المجلد الأصلي',
                 desc: 'عرض اسم المجلد الأصلي للملاحظات في المجلدات الفرعية أو الوسوم.'
             },
+            showParentFolderFullPath: {
+                name: 'إظهار المسار الكامل',
+                desc: 'عرض المسار الكامل للمجلد الأصلي بدلاً من اسم المجلد فقط.'
+            },
             parentFolderClickRevealsFile: {
                 name: 'النقر على المجلد الأصلي يفتح المجلد',
                 desc: 'النقر على تسمية المجلد الأصلي يفتح المجلد في لوحة القائمة.'
@@ -1063,7 +1068,7 @@ export const STRINGS_AR = {
             },
             useFloatingToolbars: {
                 name: 'استخدام أشرطة الأدوات العائمة على iOS/iPadOS',
-                desc: 'ينطبق على Obsidian 1.11 والإصدارات الأحدث.'
+                desc: 'ينطبق فقط على iOS وiPadOS.'
             },
             startView: {
                 name: 'عرض البدء الافتراضي',
@@ -1617,6 +1622,10 @@ export const STRINGS_AR = {
                     '2': 'صفان',
                     '3': '3 صفوف'
                 }
+            },
+            useFolderColor: {
+                name: 'استخدام لون المجلد',
+                desc: 'تلوين عناوين الملاحظات وأيقونات الملفات بلون المجلد الأصلي عند عدم تعيين لون ملف مخصص. الأولوية: لون الملف المخصص > لون المجلد > اللون الافتراضي.'
             },
             showFeatureImage: {
                 name: 'إظهار الصورة المميزة',

@@ -77,6 +77,8 @@ interface UseListPaneDataParams {
     activeProfile: ActiveProfileState;
     /** Effective grouping for the current list selection */
     groupBy: ListNoteGroupingOption;
+    /** Whether the pinned section is expanded in the current context */
+    pinnedGroupExpanded: boolean;
     /** Active search provider to use for filtering */
     searchProvider: SearchProvider;
     /** Optional search query to filter files */
@@ -124,6 +126,7 @@ export function useListPaneData({
     settings,
     activeProfile,
     groupBy,
+    pinnedGroupExpanded,
     searchProvider,
     searchQuery,
     searchTokens,
@@ -177,7 +180,7 @@ export function useListPaneData({
         () => ({
             pinnedNotes: settings.pinnedNotes,
             filterPinnedByFolder: settings.filterPinnedByFolder,
-            showPinnedGroupHeader: settings.showPinnedGroupHeader ?? true,
+            pinnedGroupExpanded,
             showTags: settings.showTags,
             showFileTags: settings.showFileTags,
             groupBy,
@@ -187,9 +190,9 @@ export function useListPaneData({
             settings.filterPinnedByFolder,
             selectedFolderGroupSortOrder,
             groupBy,
+            pinnedGroupExpanded,
             settings.pinnedNotes,
             settings.showFileTags,
-            settings.showPinnedGroupHeader,
             settings.showTags
         ]
     );

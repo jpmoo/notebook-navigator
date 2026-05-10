@@ -436,7 +436,6 @@ export const STRINGS_JA = {
                 'nav-properties': 'プロパティ',
                 'nav-property': 'プロパティ',
                 'nav-property-value': '値',
-                'list-pinned': 'ピン留め項目',
                 'file-unfinished-task': '未完了タスク',
                 'file-word-count': '単語数'
             }
@@ -789,6 +788,7 @@ export const STRINGS_JA = {
         toggleTagsBySelection: '選択範囲でタグを切り替え',
         togglePropertiesBySelection: '選択範囲でプロパティを切り替え',
         toggleCompactMode: 'コンパクトモードの切り替え', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'ピン留めセクションの切り替え',
         collapseExpand: 'すべての項目を折りたたむ/展開', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: '選択したファイルにタグを追加', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: '選択したファイルにプロパティを設定', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -861,6 +861,7 @@ export const STRINGS_JA = {
             },
             list: {
                 display: '外観',
+                organization: '整理',
                 pinnedNotes: 'ピン留めされたノート'
             },
             notes: {
@@ -956,13 +957,9 @@ export const STRINGS_JA = {
                 name: 'タグとプロパティのピルを常に表示',
                 desc: '無効の場合、現在のナビゲーション選択に一致するピルは非表示になります（例：「レシピ」タグを閲覧中は「レシピ」タグのピルが非表示になります）。有効にすると、すべてのピルが常に表示されます。'
             },
-            showPinnedGroupHeader: {
-                name: 'ピン留めグループヘッダーを表示',
-                desc: 'ピン留めされたノートの上にセクションヘッダーを表示します。'
-            },
-            showPinnedIcon: {
-                name: 'ピン留めアイコンを表示',
-                desc: 'ピン留めセクションヘッダーの横にアイコンを表示します。'
+            stickyGroupHeaders: {
+                name: 'グループヘッダーを固定',
+                desc: 'スクロール中も現在の日付・フォルダ・ピン留めセクションのヘッダーを表示し続けます。'
             },
             defaultListMode: {
                 name: 'リストのデフォルトモード',
@@ -974,7 +971,11 @@ export const STRINGS_JA = {
             },
             showFileIcons: {
                 name: 'ファイルアイコンを表示',
-                desc: 'ファイルアイコンを左寄せ間隔で表示。無効化するとアイコンとインデントの両方が削除されます。優先順位: 未完了タスクアイコン > カスタムアイコン > ファイル名アイコン > ファイルタイプアイコン > デフォルトアイコン。'
+                desc: 'ファイルアイコンを左寄せ間隔で表示。無効化するとアイコンとインデントの両方が削除されます。優先順位: 未完了タスクアイコン > カスタムアイコン > フォルダアイコン > ファイル名アイコン > ファイルタイプアイコン > デフォルトアイコン。'
+            },
+            useFolderIcon: {
+                name: 'フォルダアイコンを使用',
+                desc: 'カスタムファイルアイコンが設定されていない場合に親フォルダのアイコンを表示します。カスタムファイル色が設定されていない場合はフォルダの色が使用されます。'
             },
             showFileIconUnfinishedTask: {
                 name: '未完了タスクアイコン',
@@ -1021,6 +1022,10 @@ export const STRINGS_JA = {
                 name: '親フォルダを表示',
                 desc: 'サブフォルダまたはタグ内のノートに親フォルダ名を表示します。'
             },
+            showParentFolderFullPath: {
+                name: 'フルパスを表示',
+                desc: 'フォルダ名のみではなく親フォルダのフルパスを表示します。'
+            },
             parentFolderClickRevealsFile: {
                 name: '親フォルダクリックでフォルダを開く',
                 desc: '親フォルダラベルをクリックするとリストペインでフォルダを開きます。'
@@ -1064,7 +1069,7 @@ export const STRINGS_JA = {
             },
             useFloatingToolbars: {
                 name: 'iOS/iPadOSでフローティングツールバーを使用',
-                desc: 'Obsidian 1.11以降に適用されます。'
+                desc: 'iOSおよびiPadOSでのみ適用されます。'
             },
             startView: {
                 name: 'デフォルト起動ビュー',
@@ -1619,6 +1624,10 @@ export const STRINGS_JA = {
                     '2': '2行',
                     '3': '3行'
                 }
+            },
+            useFolderColor: {
+                name: 'フォルダの色を使用',
+                desc: 'カスタムファイル色が設定されていない場合に、ノートタイトルとファイルアイコンを親フォルダの色で表示します。優先順位: カスタムファイル色 > フォルダの色 > デフォルト色。'
             },
             showFeatureImage: {
                 name: 'アイキャッチ画像を表示',

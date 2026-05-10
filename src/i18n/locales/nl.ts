@@ -438,7 +438,6 @@ export const STRINGS_NL = {
                 'nav-properties': 'Eigenschappen',
                 'nav-property': 'Eigenschap',
                 'nav-property-value': 'Waarde',
-                'list-pinned': 'Vastgezette items',
                 'file-unfinished-task': 'Onvoltooide taken',
                 'file-word-count': 'Aantal woorden'
             }
@@ -791,6 +790,7 @@ export const STRINGS_NL = {
         toggleTagsBySelection: 'Tags op selectie in-/uitschakelen',
         togglePropertiesBySelection: 'Eigenschappen op selectie in-/uitschakelen',
         toggleCompactMode: 'Compacte modus in-/uitschakelen', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Vastgemaakt gedeelte in-/uitschakelen',
         collapseExpand: 'Alle items in-/uitklappen',
         addTag: 'Tag toevoegen aan geselecteerde bestanden',
         setProperty: 'Eigenschap instellen op geselecteerde bestanden', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -863,6 +863,7 @@ export const STRINGS_NL = {
             },
             list: {
                 display: 'Uiterlijk',
+                organization: 'Organisatie',
                 pinnedNotes: 'Vastgezette notities'
             },
             notes: {
@@ -958,13 +959,9 @@ export const STRINGS_NL = {
                 name: 'Tag- en eigenschapspillen altijd tonen',
                 desc: 'Wanneer uitgeschakeld, worden pillen die overeenkomen met de huidige navigatieselectie verborgen (bijv. de "recepten"-tagpil wordt verborgen bij het bladeren door de "recepten"-tag). Inschakelen om alle pillen zichtbaar te houden.'
             },
-            showPinnedGroupHeader: {
-                name: 'Vastgepinde groepskop tonen',
-                desc: 'De vastgepinde sectiekop boven vastgepinde notities weergeven.'
-            },
-            showPinnedIcon: {
-                name: 'Vastgepind pictogram tonen',
-                desc: 'Pictogram naast vastgepinde sectiekop weergeven.'
+            stickyGroupHeaders: {
+                name: 'Plakkerige groepskoppen',
+                desc: 'Houd de huidige datum-, map- of vastgepinde sectiekop zichtbaar tijdens het scrollen.'
             },
             defaultListMode: {
                 name: 'Standaard lijstmodus',
@@ -976,7 +973,11 @@ export const STRINGS_NL = {
             },
             showFileIcons: {
                 name: 'Bestandspictogrammen tonen',
-                desc: 'Bestandspictogrammen tonen met links uitgelijnde ruimte. Uitschakelen verwijdert zowel pictogrammen als inspringing. Prioriteit: onvoltooide taken-pictogram > aangepast pictogram > bestandsnaam-pictogram > bestandstype-pictogram > standaardpictogram.'
+                desc: 'Bestandspictogrammen tonen met links uitgelijnde ruimte. Uitschakelen verwijdert zowel pictogrammen als inspringing. Prioriteit: onvoltooide taken-pictogram > aangepast pictogram > mappictogram > bestandsnaam-pictogram > bestandstype-pictogram > standaardpictogram.'
+            },
+            useFolderIcon: {
+                name: 'Mappictogram gebruiken',
+                desc: 'Het pictogram van de bovenliggende map weergeven wanneer er geen aangepast bestandspictogram is ingesteld. De mapkleur wordt gebruikt wanneer er geen aangepaste bestandskleur is ingesteld.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Onvoltooide taken-pictogram',
@@ -1023,6 +1024,10 @@ export const STRINGS_NL = {
                 name: 'Bovenliggende map tonen',
                 desc: 'De naam van de bovenliggende map weergeven voor notities in submappen of tags.'
             },
+            showParentFolderFullPath: {
+                name: 'Volledig pad tonen',
+                desc: 'Het volledige pad van de bovenliggende map weergeven in plaats van alleen de mapnaam.'
+            },
             parentFolderClickRevealsFile: {
                 name: 'Klik op bovenliggende map opent map',
                 desc: 'Klik op het label van de bovenliggende map om de map te openen in het lijstpaneel.'
@@ -1066,7 +1071,7 @@ export const STRINGS_NL = {
             },
             useFloatingToolbars: {
                 name: 'Zwevende werkbalken gebruiken op iOS/iPadOS',
-                desc: 'Geldt voor Obsidian 1.11 en later.'
+                desc: 'Geldt alleen op iOS en iPadOS.'
             },
             startView: {
                 name: 'Standaard opstartweergave',
@@ -1622,6 +1627,10 @@ export const STRINGS_NL = {
                     '2': '2 rijen',
                     '3': '3 rijen'
                 }
+            },
+            useFolderColor: {
+                name: 'Mapkleur gebruiken',
+                desc: 'Notitietitels en bestandspictogrammen kleuren met de kleur van de bovenliggende map wanneer er geen aangepaste bestandskleur is ingesteld. Prioriteit: aangepaste bestandskleur > mapkleur > standaardkleur.'
             },
             showFeatureImage: {
                 name: 'Uitgelichte afbeelding tonen',

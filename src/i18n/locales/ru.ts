@@ -437,7 +437,6 @@ export const STRINGS_RU = {
                 'nav-properties': 'Свойства',
                 'nav-property': 'Свойство',
                 'nav-property-value': 'Значение',
-                'list-pinned': 'Закреплённые элементы',
                 'file-unfinished-task': 'Незавершённые задачи',
                 'file-word-count': 'Количество слов'
             }
@@ -787,6 +786,7 @@ export const STRINGS_RU = {
         toggleTagsBySelection: 'Переключить теги по выбору',
         togglePropertiesBySelection: 'Переключить свойства по выбору',
         toggleCompactMode: 'Переключить компактный режим', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Переключить закреплённый раздел',
         collapseExpand: 'Свернуть / развернуть все элементы', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Добавить тег к выбранным файлам', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Задать свойство для выбранных файлов', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -859,6 +859,7 @@ export const STRINGS_RU = {
             },
             list: {
                 display: 'Внешний вид',
+                organization: 'Организация',
                 pinnedNotes: 'Закреплённые заметки'
             },
             notes: {
@@ -954,13 +955,9 @@ export const STRINGS_RU = {
                 name: 'Всегда показывать все метки тегов и свойств',
                 desc: 'При отключении метки, совпадающие с текущим выбором навигации, скрываются (например, метка тега «рецепты» скрывается при просмотре тега «рецепты»). Включите, чтобы все метки оставались видимыми.'
             },
-            showPinnedGroupHeader: {
-                name: 'Показывать заголовок закреплённых',
-                desc: 'Отображать заголовок раздела закреплённых над закреплёнными заметками.'
-            },
-            showPinnedIcon: {
-                name: 'Показывать иконку закреплённых',
-                desc: 'Показывать иконку рядом с заголовком раздела закреплённых.'
+            stickyGroupHeaders: {
+                name: 'Закреплённые заголовки групп',
+                desc: 'Сохранять видимым заголовок текущей даты, папки или раздела закреплённых при прокрутке.'
             },
             defaultListMode: {
                 name: 'Режим списка по умолчанию',
@@ -972,7 +969,11 @@ export const STRINGS_RU = {
             },
             showFileIcons: {
                 name: 'Показывать иконки файлов',
-                desc: 'Отображать иконки файлов с выравниванием по левому краю. Отключение убирает и иконки, и отступы. Приоритет: значок незавершённых задач > пользовательский значок > значок имени файла > значок типа файла > значок по умолчанию.'
+                desc: 'Отображать иконки файлов с выравниванием по левому краю. Отключение убирает и иконки, и отступы. Приоритет: значок незавершённых задач > пользовательский значок > значок папки > значок имени файла > значок типа файла > значок по умолчанию.'
+            },
+            useFolderIcon: {
+                name: 'Использовать значок папки',
+                desc: 'Отображать значок родительской папки, когда не задан пользовательский значок файла. Цвет папки используется, когда не задан пользовательский цвет файла.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Значок незавершённых задач',
@@ -1019,6 +1020,10 @@ export const STRINGS_RU = {
                 name: 'Показывать родительскую папку',
                 desc: 'Отображать название родительской папки для заметок в подпапках или тегах.'
             },
+            showParentFolderFullPath: {
+                name: 'Показывать полный путь',
+                desc: 'Отображать полный путь к родительской папке вместо только названия папки.'
+            },
             parentFolderClickRevealsFile: {
                 name: 'Клик по родительской папке открывает папку',
                 desc: 'Клик по метке родительской папки открывает папку в панели списка.'
@@ -1062,7 +1067,7 @@ export const STRINGS_RU = {
             },
             useFloatingToolbars: {
                 name: 'Использовать плавающие панели инструментов на iOS/iPadOS',
-                desc: 'Применяется к Obsidian 1.11 и более поздним версиям.'
+                desc: 'Применяется только на iOS и iPadOS.'
             },
             startView: {
                 name: 'Начальный вид по умолчанию',
@@ -1617,6 +1622,10 @@ export const STRINGS_RU = {
                     '2': '2 строки',
                     '3': '3 строки'
                 }
+            },
+            useFolderColor: {
+                name: 'Использовать цвет папки',
+                desc: 'Окрашивать заголовки заметок и значки файлов цветом родительской папки, когда не задан пользовательский цвет файла. Приоритет: пользовательский цвет файла > цвет папки > цвет по умолчанию.'
             },
             showFeatureImage: {
                 name: 'Показывать изображение',

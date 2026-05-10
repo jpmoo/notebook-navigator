@@ -19,7 +19,7 @@
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { closestCenter, DndContext } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Platform, requireApiVersion, TFile } from 'obsidian';
+import { Platform, TFile } from 'obsidian';
 import { Virtualizer } from '@tanstack/react-virtual';
 import { useExpansionDispatch, useExpansionState } from '../../context/ExpansionContext';
 import { useSelectionDispatch, useSelectionState } from '../../context/SelectionContext';
@@ -42,7 +42,7 @@ import type { SearchNavFilterState } from '../../types/search';
 import type { NoteCountInfo } from '../../types/noteCounts';
 import type { InclusionOperator } from '../../utils/filterSearch';
 import {
-    IOS_OBSIDIAN_1_11_PLUS_GLASS_TOOLBAR_HEIGHT_PX,
+    IOS_FLOATING_TOOLBAR_HEIGHT_PX,
     ItemType,
     NavigationSectionId,
     NAVIGATION_PANE_DIMENSIONS,
@@ -593,14 +593,13 @@ export const NavigationPane = React.memo(
         }, [canReorderRootItems]);
 
         const isAndroid = Platform.isAndroidApp;
-        const isIosObsidian111Plus = Platform.isIosApp && requireApiVersion('1.11.0');
-        const shouldUseFloatingToolbars = isIosObsidian111Plus && settings.useFloatingToolbars;
+        const shouldUseFloatingToolbars = isMobile && Platform.isIosApp && settings.useFloatingToolbars;
         const scrollPaddingEnd = useMemo(() => {
-            if (!shouldUseFloatingToolbars || !isMobile || isAndroid) {
+            if (!shouldUseFloatingToolbars) {
                 return 0;
             }
-            return IOS_OBSIDIAN_1_11_PLUS_GLASS_TOOLBAR_HEIGHT_PX;
-        }, [isAndroid, isMobile, shouldUseFloatingToolbars]);
+            return IOS_FLOATING_TOOLBAR_HEIGHT_PX;
+        }, [shouldUseFloatingToolbars]);
 
         const { rowVirtualizer, scrollContainerRef, scrollContainerRefCallback, requestScroll } = useNavigationPaneScroll({
             items,

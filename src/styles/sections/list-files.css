@@ -380,11 +380,6 @@
     line-height: var(--nn-file-single-text-line-height);
 }
 
-/* Date + preview (same line): match legacy spacing. */
-.nn-file-second-line > .nn-file-date + .nn-file-preview {
-    margin-inline-start: 8px;
-}
-
 /* Date + parent folder (same line): match legacy spacing when dot separator is disabled. */
 .nn-file-second-line > .nn-file-date + .nn-parent-folder[data-dot-separator='false'] {
     margin-inline-start: 8px;
@@ -396,6 +391,10 @@
     flex-shrink: 0;
     margin-inline-end: 4px;
     font-size: 0.65em;
+}
+
+.nn-file-second-line .nn-parent-folder {
+    flex: 0 1 auto;
 }
 
 /* File preview text - secondary line showing file content */
@@ -410,20 +409,7 @@
     -webkit-line-clamp: var(--preview-rows, 1);
     -webkit-box-orient: vertical;
     word-break: break-word;
-}
-
-/* Multi-line preview - clamp to the configured number of lines */
-.nn-file-preview:not(.nn-file-second-line .nn-file-preview) {
     max-height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1));
-}
-
-/* Preview on same line as date - match date line-height for alignment */
-.nn-file-second-line .nn-file-preview {
-    flex: 1;
-    line-height: var(--nn-file-single-text-line-height);
-    display: block;
-    white-space: nowrap;
-    word-break: normal;
 }
 
 /* Parent folder indicator shown under file names */

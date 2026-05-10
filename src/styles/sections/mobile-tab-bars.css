@@ -21,7 +21,7 @@
     min-height: calc(49px + var(--nn-mobile-safe-area-bottom));
 }
 
-/* Mobile toolbars: distribute buttons evenly; Obsidian 1.11+ iOS overrides this via platform stylesheet. */
+/* Mobile toolbars: distribute buttons evenly; iOS floating toolbars override this via platform stylesheet. */
 .notebook-navigator-mobile .nn-mobile-toolbar {
     justify-content: space-evenly;
 }

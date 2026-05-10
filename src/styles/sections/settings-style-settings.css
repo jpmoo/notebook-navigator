@@ -1301,7 +1301,7 @@ settings:
     -
         id: nn-theme-mobile-toolbar-glass-bg
         title: iOS glass toolbar background
-        description: Background color of the Obsidian 1.11+ iOS glass toolbar (used for border and background, supports transparency).
+        description: Background color of the iOS glass toolbar (used for border and background, supports transparency).
         type: variable-themed-color
         opacity: true
         format: rgb

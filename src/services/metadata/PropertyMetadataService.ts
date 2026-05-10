@@ -28,7 +28,7 @@ import {
     normalizePropertyKeyNodeId,
     normalizePropertyNodeId
 } from '../../utils/propertyTree';
-import { casefold } from '../../utils/recordUtils';
+import { casefold, cleanupCollapsedPinnedContextKeys } from '../../utils/recordUtils';
 import { getActivePropertyFields } from '../../utils/vaultProfiles';
 import { BaseMetadataService } from './BaseMetadataService';
 
@@ -291,6 +291,11 @@ export class PropertyMetadataService extends BaseMetadataService {
     ): Promise<boolean> {
         const validator = this.createPropertyNodeValidator(targetSettings, validators);
         const existingPropertyKeys = this.collectExistingPropertyKeys(validators);
+        const collapsedPinnedContextChanges = cleanupCollapsedPinnedContextKeys(
+            targetSettings.collapsedPinnedContexts,
+            ItemType.PROPERTY,
+            validator
+        );
         const results = await Promise.all([
             this.cleanupMetadata(targetSettings, 'propertyColors', validator),
             this.cleanupMetadata(targetSettings, 'propertyBackgroundColors', validator),
@@ -301,6 +306,6 @@ export class PropertyMetadataService extends BaseMetadataService {
         ]);
         const propertyKeyChanges = this.pruneConfiguredPropertyKeys(targetSettings, existingPropertyKeys);
 
-        return propertyKeyChanges || results.some(changed => changed);
+        return collapsedPinnedContextChanges || propertyKeyChanges || results.some(changed => changed);
     }
 }

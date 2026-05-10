@@ -58,6 +58,7 @@ import { buildFileTooltip } from '../utils/navigationTooltipUtils';
 import {
     getFileItemLayoutState,
     isListPaneCompactMode,
+    shouldShowExtensionBadgeThumbnail,
     shouldShowFeatureImageArea,
     shouldShowFileItemParentFolderLine
 } from '../utils/listPaneMeasurements';
@@ -69,6 +70,7 @@ import { resolveUXIcon } from '../utils/uxIcons';
 import type { InclusionOperator } from '../utils/filterSearch';
 import { getNavigatorPinContext } from '../utils/selectionUtils';
 import { resolveDefaultDateField } from '../utils/sortUtils';
+import { resolveFolderDisplayPath } from '../utils/folderDisplayName';
 import type { FileNameIconNeedle } from '../utils/fileIconUtils';
 import type { FileItemPillDecorationModel } from '../utils/fileItemPillDecoration';
 import type { HiddenTagVisibility } from '../utils/tagPrefixMatcher';
@@ -85,7 +87,7 @@ interface FileItemProps {
     showQuickActionsPanel: boolean;
     onFileClick: (file: TFile, fileIndex: number | undefined, event: React.MouseEvent) => void;
     fileIndex?: number;
-    dateGroup?: string | null;
+    groupHeaderLabel?: string | null;
     sortOption?: SortOption;
     parentFolder?: string | null;
     isPinned?: boolean;
@@ -311,7 +313,7 @@ export const FileItem = React.memo(function FileItem({
     showQuickActionsPanel,
     onFileClick,
     fileIndex,
-    dateGroup,
+    groupHeaderLabel,
     sortOption,
     parentFolder,
     isPinned = false,
@@ -411,6 +413,55 @@ export const FileItem = React.memo(function FileItem({
     const extensionSuffix = useMemo(() => getExtensionSuffix(file), [file]);
     const fileIconId = metadataService.getFileIcon(file.path);
     const fileColor = metadataService.getFileColor(file.path);
+    const parentFolderSource = file.parent;
+    const hasParentFolderSource = parentFolderSource instanceof TFolder;
+    const shouldShowParentFolderLine = shouldShowFileItemParentFolderLine({
+        showParentFolder: settings.showParentFolder,
+        isPinned,
+        selectionType,
+        includeDescendantNotes,
+        parentFolder,
+        fileParentPath: parentFolderSource?.path ?? null
+    });
+    const shouldBuildParentFolderMeta = shouldShowParentFolderLine && hasParentFolderSource && parentFolderSource.path !== '/';
+    const shouldShowParentFolderIcon = shouldBuildParentFolderMeta && settings.showParentFolderIcon;
+    const shouldShowParentFolderColor = shouldBuildParentFolderMeta && settings.showParentFolderColor;
+    const shouldResolveParentFolderDisplayName = shouldBuildParentFolderMeta && !settings.showParentFolderFullPath;
+    const canUseFolderFileDecoration = !showFileIconUnfinishedTask;
+    const shouldResolveFolderIcon = canUseFolderFileDecoration && settings.useFolderIconForFiles && !fileIconId && hasParentFolderSource;
+    const shouldResolveFolderColorForFileDecoration =
+        canUseFolderFileDecoration &&
+        !fileColor &&
+        hasParentFolderSource &&
+        (settings.useFolderColorForTitles || settings.useFolderIconForFiles);
+    const shouldResolveFolderColorForTitle =
+        !settings.colorIconOnly && settings.useFolderColorForTitles && !fileColor && hasParentFolderSource;
+    const shouldResolveFolderColor = shouldResolveFolderColorForFileDecoration || shouldResolveFolderColorForTitle;
+    const parentFolderDisplayData =
+        hasParentFolderSource &&
+        (shouldResolveFolderIcon ||
+            shouldResolveFolderColor ||
+            shouldResolveParentFolderDisplayName ||
+            shouldShowParentFolderIcon ||
+            shouldShowParentFolderColor)
+            ? metadataService.getFolderDisplayData(parentFolderSource.path, {
+                  includeDisplayName: shouldResolveParentFolderDisplayName,
+                  includeColor: shouldResolveFolderColor || shouldShowParentFolderColor,
+                  includeBackgroundColor: shouldShowParentFolderColor,
+                  includeIcon: shouldResolveFolderIcon || shouldShowParentFolderIcon,
+                  includeInheritedColors: shouldResolveFolderColor || shouldShowParentFolderColor
+              })
+            : null;
+    const folderIconId = shouldResolveFolderIcon ? parentFolderDisplayData?.icon : undefined;
+    const folderListColor =
+        shouldResolveFolderColor && hasParentFolderSource
+            ? resolveFolderDecorationColors({
+                  model: folderDecorationModel,
+                  folderPath: parentFolderSource.path,
+                  color: parentFolderDisplayData?.color,
+                  backgroundColor: undefined
+              }).color
+            : undefined;
     const customFileBackgroundColor = metadataService.getFileBackgroundColor(file.path);
     const unfinishedTaskBackgroundColor =
         settings.showFileBackgroundUnfinishedTask && hasUnfinishedTasks ? settings.unfinishedTaskBackgroundColor : undefined;
@@ -423,7 +474,8 @@ export const FileItem = React.memo(function FileItem({
     const isExternalFile = useMemo(() => {
         return !shouldDisplayFile(file, FILE_VISIBILITY.SUPPORTED, app);
     }, [app, file]);
-    const allowCategoryIcons = settings.showCategoryIcons || (settings.colorIconOnly && Boolean(fileColor));
+    const fileIconColor = fileColor ?? folderListColor;
+    const allowCategoryIcons = settings.showCategoryIcons || (settings.colorIconOnly && Boolean(fileIconColor));
     // Determine the actual icon to display, considering custom icon and colorIconOnly setting
     const effectiveFileIconId = useMemo(() => {
         void metadataVersion;
@@ -440,7 +492,7 @@ export const FileItem = React.memo(function FileItem({
                 fileTypeIconMap: settings.fileTypeIconMap
             },
             {
-                customIconId: fileIconId,
+                customIconId: fileIconId ?? folderIconId,
                 metadataCache: app.metadataCache,
                 isExternalFile,
                 allowCategoryIcons,
@@ -455,6 +507,7 @@ export const FileItem = React.memo(function FileItem({
         displayName,
         fileNameIconNeedles,
         fileIconId,
+        folderIconId,
         file,
         isExternalFile,
         metadataVersion,
@@ -465,8 +518,10 @@ export const FileItem = React.memo(function FileItem({
         showFileIconUnfinishedTask,
         unfinishedTaskIconId
     ]);
-    // Determine whether to apply color to the file name instead of the icon
-    const applyColorToName = Boolean(fileColor) && !settings.colorIconOnly;
+    const fileTitleColor = !settings.colorIconOnly
+        ? (fileColor ?? (settings.useFolderColorForTitles ? folderListColor : undefined))
+        : undefined;
+    const applyColorToName = Boolean(fileTitleColor);
     // Icon to use when dragging the file
     const dragIconId = useMemo(() => {
         void metadataVersion;
@@ -489,10 +544,10 @@ export const FileItem = React.memo(function FileItem({
         }
         return true;
     }, [effectiveFileIconId, showFileIcons]);
-    const fileIconHasColor = Boolean(fileColor) && !showFileIconUnfinishedTask;
-    const fileIconStyle = fileColor && !showFileIconUnfinishedTask ? ({ color: fileColor } as React.CSSProperties) : undefined;
+    const fileIconHasColor = Boolean(fileIconColor) && !showFileIconUnfinishedTask;
+    const fileIconStyle = fileIconColor && !showFileIconUnfinishedTask ? ({ color: fileIconColor } as React.CSSProperties) : undefined;
     const fileIconClassName = showFileIconUnfinishedTask ? 'nn-file-icon nn-file-icon-unfinished-task' : 'nn-file-icon';
-    const dragIconColor = showFileIconUnfinishedTask ? undefined : (fileColor ?? undefined);
+    const dragIconColor = showFileIconUnfinishedTask ? undefined : (fileIconColor ?? undefined);
     const shouldShowCompactExtensionBadge = isCompactMode && (isBaseFile || isCanvasFile);
 
     const fileTitleElement = useMemo(() => {
@@ -504,7 +559,7 @@ export const FileItem = React.memo(function FileItem({
                 style={
                     {
                         '--filename-rows': appearanceSettings.titleRows,
-                        ...(applyColorToName ? { '--nn-file-name-custom-color': fileColor } : {})
+                        ...(applyColorToName ? { '--nn-file-name-custom-color': fileTitleColor } : {})
                     } as React.CSSProperties
                 }
             >
@@ -512,7 +567,7 @@ export const FileItem = React.memo(function FileItem({
                 {extensionSuffix.length > 0 && <span className="nn-file-ext-suffix">{extensionSuffix}</span>}
             </div>
         );
-    }, [appearanceSettings.titleRows, extensionSuffix, fileColor, applyColorToName, highlightedName]);
+    }, [appearanceSettings.titleRows, extensionSuffix, fileTitleColor, applyColorToName, highlightedName]);
 
     const { shouldShowFileTags, hasVisiblePillRows, pillRows } = useFileItemPills({
         file,
@@ -545,9 +600,9 @@ export const FileItem = React.memo(function FileItem({
             return DateUtils.formatDateForGroup(timestamp, actualDateGroup, settings.dateFormat, settings.timeFormat);
         }
 
-        // If in a date group and not in pinned section, format relative to group
-        if (dateGroup && dateGroup !== strings.listPane.pinnedSection) {
-            return DateUtils.formatDateForGroup(timestamp, dateGroup, settings.dateFormat, settings.timeFormat);
+        // Date group labels use relative formatting; folder group labels fall back to the default date format.
+        if (groupHeaderLabel && groupHeaderLabel !== strings.listPane.pinnedSection) {
+            return DateUtils.formatDateForGroup(timestamp, groupHeaderLabel, settings.dateFormat, settings.timeFormat);
         }
 
         // Otherwise format as absolute date
@@ -560,7 +615,7 @@ export const FileItem = React.memo(function FileItem({
         file.stat.mtime,
         file.stat.ctime,
         sortOption,
-        dateGroup,
+        groupHeaderLabel,
         isPinned,
         appearanceSettings.showDate,
         settings.dateFormat,
@@ -579,6 +634,7 @@ export const FileItem = React.memo(function FileItem({
         () => (searchMeta ? renderHighlightedText(effectivePreviewText, searchQuery, searchMeta) : effectivePreviewText),
         [effectivePreviewText, searchMeta, searchQuery]
     );
+    const pinnedPreviewRows = isPinned ? 1 : appearanceSettings.previewRows;
 
     // Determine if we should show the feature image area (either with an image or extension badge)
     const showFeatureImageArea = shouldShowFeatureImageArea({
@@ -587,34 +643,23 @@ export const FileItem = React.memo(function FileItem({
         featureImageStatus,
         hasFeatureImageUrl: Boolean(featureImageUrl)
     });
+    const showExtensionBadgeThumbnail = shouldShowExtensionBadgeThumbnail({
+        showFeatureImageArea,
+        file,
+        hasFeatureImageUrl: Boolean(featureImageUrl)
+    });
 
-    const {
-        shouldUseSingleLineForDateAndPreview,
-        shouldShowMultilinePreview,
-        shouldReplaceEmptyPreviewWithPills,
-        shouldShowDateForItem,
-        shouldShowSingleLineSecondLine
-    } = getFileItemLayoutState({
+    const { shouldShowMultilinePreview, shouldShowDateForItem } = getFileItemLayoutState({
         showDate: appearanceSettings.showDate,
         showPreview: appearanceSettings.showPreview,
         showImage: appearanceSettings.showImage,
-        previewRows: appearanceSettings.previewRows,
         isPinned,
         hasPreviewContent,
         showFeatureImageArea,
+        showExtensionBadgeThumbnail,
         hasVisiblePillRows
     });
 
-    // Determine parent folder display metadata
-    const parentFolderSource = file.parent;
-    const shouldShowParentFolderLine = shouldShowFileItemParentFolderLine({
-        showParentFolder: settings.showParentFolder,
-        isPinned,
-        selectionType,
-        includeDescendantNotes,
-        parentFolder,
-        fileParentPath: parentFolderSource?.path ?? null
-    });
     let parentFolderMeta: {
         name: string;
         iconId: string;
@@ -623,30 +668,25 @@ export const FileItem = React.memo(function FileItem({
         applyColorToName: boolean;
         showIcon: boolean;
     } | null = null;
-    if (shouldShowParentFolderLine && parentFolderSource instanceof TFolder && parentFolderSource.path !== '/') {
-        const shouldShowParentFolderIcon = settings.showParentFolderIcon;
-        const shouldShowParentFolderColor = settings.showParentFolderColor;
-        const parentFolderDisplayData = metadataService.getFolderDisplayData(parentFolderSource.path, {
-            includeDisplayName: true,
-            includeColor: shouldShowParentFolderColor,
-            includeBackgroundColor: shouldShowParentFolderColor,
-            includeIcon: shouldShowParentFolderIcon
-        });
-        const customParentIcon = shouldShowParentFolderIcon ? parentFolderDisplayData.icon : undefined;
+    if (shouldBuildParentFolderMeta && hasParentFolderSource) {
+        const customParentIcon = shouldShowParentFolderIcon ? parentFolderDisplayData?.icon : undefined;
         const fallbackParentIcon = 'lucide-folder-closed';
 
         const parentFolderDecorationColors = shouldShowParentFolderColor
             ? resolveFolderDecorationColors({
                   model: folderDecorationModel,
                   folderPath: parentFolderSource.path,
-                  color: parentFolderDisplayData.color,
-                  backgroundColor: parentFolderDisplayData.backgroundColor
+                  color: parentFolderDisplayData?.color,
+                  backgroundColor: parentFolderDisplayData?.backgroundColor
               })
             : { color: undefined, backgroundColor: undefined };
         const parentFolderColor = parentFolderDecorationColors.color;
         const shouldApplyParentFolderColor = Boolean(parentFolderColor);
+        const parentFolderLabel = settings.showParentFolderFullPath
+            ? resolveFolderDisplayPath({ metadataService, folderPath: parentFolderSource.path })
+            : parentFolderDisplayData?.displayName || parentFolderSource.name;
         parentFolderMeta = {
-            name: parentFolderDisplayData.displayName || parentFolderSource.name,
+            name: parentFolderLabel,
             iconId: customParentIcon ?? fallbackParentIcon,
             color: shouldApplyParentFolderColor ? parentFolderColor : undefined,
             backgroundColor: parentFolderDecorationColors.backgroundColor,
@@ -669,6 +709,7 @@ export const FileItem = React.memo(function FileItem({
                 onReveal={settings.parentFolderClickRevealsFile ? revealFileInNavigation : undefined}
             />
         ) : null;
+    const shouldShowMetadataLine = shouldShowDateForItem || parentFolderMeta !== null;
 
     // Reset image hidden state when the feature image URL changes
     useEffect(() => {
@@ -685,12 +726,15 @@ export const FileItem = React.memo(function FileItem({
         if (featureImageUrl) {
             classes.push('nn-file-thumbnail--inset-highlight');
         }
+        if (showExtensionBadgeThumbnail) {
+            classes.push('nn-file-thumbnail--extension-badge');
+        }
         // Hide container if image failed to load
         if (isFeatureImageHidden) {
             classes.push('nn-file-thumbnail--hidden');
         }
         return classes.join(' ');
-    }, [featureImageUrl, settings.forceSquareFeatureImage, isFeatureImageHidden]);
+    }, [featureImageUrl, settings.forceSquareFeatureImage, isFeatureImageHidden, showExtensionBadgeThumbnail]);
 
     const featureImageStyle = useMemo(() => {
         if (!featureImageUrl || settings.forceSquareFeatureImage) {
@@ -1128,54 +1172,22 @@ export const FileItem = React.memo(function FileItem({
                             <div className="nn-file-text-content">
                                 {fileTitleElement}
 
-                                {/* ========== SINGLE LINE MODE ========== */}
-                                {/* Conditions: pinned note OR previewRows < 2 */}
-                                {/* Layout: Date+Preview share one line, pills below, parent folder last */}
-                                {shouldUseSingleLineForDateAndPreview && (
-                                    <>
-                                        {/* Date + Preview on same line */}
-                                        {shouldShowSingleLineSecondLine ? (
-                                            <div className="nn-file-second-line">
-                                                {shouldShowDateForItem && <div className="nn-file-date">{displayDate}</div>}
-                                                {appearanceSettings.showPreview && !shouldReplaceEmptyPreviewWithPills && (
-                                                    <div className="nn-file-preview" style={{ '--preview-rows': 1 } as React.CSSProperties}>
-                                                        {highlightedPreview}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ) : null}
-
-                                        {/* Pills */}
-                                        {pillRows}
-
-                                        {/* Parent folder - gets its own line */}
-                                        {renderParentFolder()}
-                                    </>
+                                {/* Multi-row preview clamps to the configured row count. */}
+                                {shouldShowMultilinePreview && (
+                                    <div className="nn-file-preview" style={{ '--preview-rows': pinnedPreviewRows } as React.CSSProperties}>
+                                        {highlightedPreview}
+                                    </div>
                                 )}
 
-                                {/* ========== MULTI-LINE MODE ========== */}
-                                {/* Conditions: unpinned note AND previewRows >= 2 */}
-                                {!shouldUseSingleLineForDateAndPreview && (
-                                    <>
-                                        {/* Multi-row preview clamps to the configured row count. */}
-                                        {shouldShowMultilinePreview && (
-                                            <div
-                                                className="nn-file-preview"
-                                                style={{ '--preview-rows': appearanceSettings.previewRows } as React.CSSProperties}
-                                            >
-                                                {highlightedPreview}
-                                            </div>
-                                        )}
+                                {/* Pills */}
+                                {pillRows}
 
-                                        {/* Pills */}
-                                        {pillRows}
-
-                                        {/* Date + Parent folder share the metadata line */}
-                                        <div className="nn-file-second-line">
-                                            {shouldShowDateForItem && <div className="nn-file-date">{displayDate}</div>}
-                                            {renderParentFolder()}
-                                        </div>
-                                    </>
+                                {/* Date + Parent folder share the metadata line */}
+                                {shouldShowMetadataLine && (
+                                    <div className="nn-file-second-line">
+                                        {shouldShowDateForItem && <div className="nn-file-date">{displayDate}</div>}
+                                        {renderParentFolder()}
+                                    </div>
                                 )}
                             </div>
                             {/* ========== FEATURE IMAGE AREA ========== */}
@@ -1196,7 +1208,7 @@ export const FileItem = React.memo(function FileItem({
                                                 setIsFeatureImageHidden(true);
                                             }}
                                         />
-                                    ) : file.extension === 'canvas' || file.extension === 'base' ? (
+                                    ) : showExtensionBadgeThumbnail ? (
                                         <div className="nn-file-extension-badge">
                                             <span className="nn-file-extension-text">{file.extension}</span>
                                         </div>
