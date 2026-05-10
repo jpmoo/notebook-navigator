@@ -291,6 +291,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     listPaneTitle: 'header',
     noteGrouping: 'date',
     showSelectedNavigationPills: false,
+    stickyGroupHeaders: true,
     filterPinnedByFolder: false,
     showPinnedGroupHeader: true,
     showPinnedIcon: true,

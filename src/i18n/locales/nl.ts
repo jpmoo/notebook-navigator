@@ -863,6 +863,7 @@ export const STRINGS_NL = {
             },
             list: {
                 display: 'Uiterlijk',
+                organization: 'Organisatie',
                 pinnedNotes: 'Vastgezette notities'
             },
             notes: {
@@ -957,6 +958,10 @@ export const STRINGS_NL = {
             showSelectedNavigationPills: {
                 name: 'Tag- en eigenschapspillen altijd tonen',
                 desc: 'Wanneer uitgeschakeld, worden pillen die overeenkomen met de huidige navigatieselectie verborgen (bijv. de "recepten"-tagpil wordt verborgen bij het bladeren door de "recepten"-tag). Inschakelen om alle pillen zichtbaar te houden.'
+            },
+            stickyGroupHeaders: {
+                name: 'Plakkerige groepskoppen',
+                desc: 'Houd de huidige datum-, map- of vastgepinde sectiekop zichtbaar tijdens het scrollen.'
             },
             showPinnedGroupHeader: {
                 name: 'Vastgepinde groepskop tonen',

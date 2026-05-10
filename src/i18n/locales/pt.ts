@@ -862,6 +862,7 @@ export const STRINGS_PT = {
             },
             list: {
                 display: 'Aparência',
+                organization: 'Organização',
                 pinnedNotes: 'Notas fixadas'
             },
             notes: {
@@ -956,6 +957,10 @@ export const STRINGS_PT = {
             showSelectedNavigationPills: {
                 name: 'Mostrar sempre todas as etiquetas e propriedades',
                 desc: 'Quando desativado, as etiquetas que correspondem à seleção de navegação atual ficam ocultas (por exemplo, a etiqueta "receitas" fica oculta ao navegar na etiqueta "receitas"). Ative para manter todas as etiquetas visíveis.'
+            },
+            stickyGroupHeaders: {
+                name: 'Cabeçalhos de grupo fixos',
+                desc: 'Mantém o cabeçalho atual de data, pasta ou secção fixada visível ao deslocar.'
             },
             showPinnedGroupHeader: {
                 name: 'Mostrar cabeçalho do grupo fixado',

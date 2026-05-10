@@ -861,6 +861,7 @@ export const STRINGS_JA = {
             },
             list: {
                 display: '外観',
+                organization: '整理',
                 pinnedNotes: 'ピン留めされたノート'
             },
             notes: {
@@ -955,6 +956,10 @@ export const STRINGS_JA = {
             showSelectedNavigationPills: {
                 name: 'タグとプロパティのピルを常に表示',
                 desc: '無効の場合、現在のナビゲーション選択に一致するピルは非表示になります（例：「レシピ」タグを閲覧中は「レシピ」タグのピルが非表示になります）。有効にすると、すべてのピルが常に表示されます。'
+            },
+            stickyGroupHeaders: {
+                name: 'グループヘッダーを固定',
+                desc: 'スクロール中も現在の日付・フォルダ・ピン留めセクションのヘッダーを表示し続けます。'
             },
             showPinnedGroupHeader: {
                 name: 'ピン留めグループヘッダーを表示',

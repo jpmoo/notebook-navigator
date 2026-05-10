@@ -863,6 +863,7 @@ export const STRINGS_DE = {
             },
             list: {
                 display: 'Darstellung',
+                organization: 'Organisation',
                 pinnedNotes: 'Angeheftete Notizen'
             },
             notes: {
@@ -957,6 +958,10 @@ export const STRINGS_DE = {
             showSelectedNavigationPills: {
                 name: 'Tag- und Eigenschaftspillen immer anzeigen',
                 desc: 'Wenn deaktiviert, werden Pillen ausgeblendet, die der aktuellen Navigationsauswahl entsprechen (z.\u00a0B. wird die „Rezepte"-Tag-Pille beim Durchsuchen des „Rezepte"-Tags ausgeblendet). Aktivieren, um alle Pillen sichtbar zu halten.'
+            },
+            stickyGroupHeaders: {
+                name: 'Gruppenüberschriften fixieren',
+                desc: 'Hält die aktuelle Datums-, Ordner- oder Anheftbereichsüberschrift beim Scrollen sichtbar.'
             },
             showPinnedGroupHeader: {
                 name: 'Überschrift für angeheftete Notizen anzeigen',

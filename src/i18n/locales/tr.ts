@@ -862,6 +862,7 @@ export const STRINGS_TR = {
             },
             list: {
                 display: 'Görünüm',
+                organization: 'Düzenleme',
                 pinnedNotes: 'Sabitlenmiş notlar'
             },
             notes: {
@@ -956,6 +957,10 @@ export const STRINGS_TR = {
             showSelectedNavigationPills: {
                 name: 'Tüm etiket ve özellik rozetlerini her zaman göster',
                 desc: 'Devre dışı bırakıldığında, geçerli gezinme seçimiyle eşleşen rozetler gizlenir (ör. "tarifler" etiketine göz atarken "tarifler" etiketi rozeti gizlenir). Tüm rozetlerin görünür kalması için etkinleştirin.'
+            },
+            stickyGroupHeaders: {
+                name: 'Yapışkan grup başlıkları',
+                desc: 'Geçerli tarih, klasör veya sabitlenmiş bölüm başlığını kaydırırken görünür tut.'
             },
             showPinnedGroupHeader: {
                 name: 'Sabitlenmiş grup başlığını göster',

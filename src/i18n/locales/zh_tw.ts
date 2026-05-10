@@ -855,6 +855,7 @@ export const STRINGS_ZH_TW = {
             },
             list: {
                 display: '外觀',
+                organization: '組織',
                 pinnedNotes: '釘選筆記'
             },
             notes: {
@@ -949,6 +950,10 @@ export const STRINGS_ZH_TW = {
             showSelectedNavigationPills: {
                 name: '始終顯示所有標籤和屬性標記',
                 desc: '停用時，與目前導覽選擇相符的標記會被隱藏（例如，瀏覽「食譜」標籤時，「食譜」標籤標記會被隱藏）。啟用後所有標記始終可見。'
+            },
+            stickyGroupHeaders: {
+                name: '固定群組標題',
+                desc: '捲動時保持目前的日期、資料夾或釘選區段的標題可見。'
             },
             showPinnedGroupHeader: {
                 name: '顯示釘選群組標題',

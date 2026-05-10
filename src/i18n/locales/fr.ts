@@ -864,6 +864,7 @@ export const STRINGS_FR = {
             },
             list: {
                 display: 'Apparence',
+                organization: 'Organisation',
                 pinnedNotes: 'Notes épinglées'
             },
             notes: {
@@ -958,6 +959,10 @@ export const STRINGS_FR = {
             showSelectedNavigationPills: {
                 name: 'Toujours afficher toutes les pastilles de tags et propriétés',
                 desc: 'Lorsque désactivé, les pastilles correspondant à la sélection de navigation actuelle sont masquées (par ex. la pastille du tag « recettes » est masquée lors de la navigation dans le tag « recettes »). Activer pour garder toutes les pastilles visibles.'
+            },
+            stickyGroupHeaders: {
+                name: 'En-têtes de groupe épinglés',
+                desc: "Garder visible l'en-tête de section actuel (date, dossier ou épinglé) lors du défilement."
             },
             showPinnedGroupHeader: {
                 name: "Afficher l'en-tête du groupe épinglé",

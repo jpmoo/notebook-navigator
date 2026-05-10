@@ -861,6 +861,7 @@ export const STRINGS_KO = {
             },
             list: {
                 display: '모양',
+                organization: '정리',
                 pinnedNotes: '고정된 노트'
             },
             notes: {
@@ -955,6 +956,10 @@ export const STRINGS_KO = {
             showSelectedNavigationPills: {
                 name: '태그 및 속성 필을 항상 표시',
                 desc: '비활성화하면 현재 탐색 선택과 일치하는 필이 숨겨집니다(예: "레시피" 태그를 탐색할 때 "레시피" 태그 필이 숨겨짐). 활성화하면 모든 필이 항상 표시됩니다.'
+            },
+            stickyGroupHeaders: {
+                name: '그룹 헤더 고정',
+                desc: '스크롤하는 동안 현재 날짜, 폴더 또는 고정된 섹션 헤더를 계속 표시합니다.'
             },
             showPinnedGroupHeader: {
                 name: '고정 그룹 헤더 표시',

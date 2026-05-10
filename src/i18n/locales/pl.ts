@@ -864,6 +864,7 @@ export const STRINGS_PL = {
             },
             list: {
                 display: 'Wygląd',
+                organization: 'Organizacja',
                 pinnedNotes: 'Przypięte notatki'
             },
             notes: {
@@ -958,6 +959,10 @@ export const STRINGS_PL = {
             showSelectedNavigationPills: {
                 name: 'Zawsze pokazuj wszystkie etykiety tagów i właściwości',
                 desc: 'Po wyłączeniu etykiety odpowiadające bieżącemu wyborowi nawigacji są ukrywane (np. etykieta tagu „przepisy" jest ukrywana podczas przeglądania tagu „przepisy"). Włącz, aby wszystkie etykiety były zawsze widoczne.'
+            },
+            stickyGroupHeaders: {
+                name: 'Przyklejone nagłówki grup',
+                desc: 'Bieżący nagłówek sekcji daty, folderu lub przypiętej pozostaje widoczny podczas przewijania.'
             },
             showPinnedGroupHeader: {
                 name: 'Pokaż nagłówek grupy przypiętych',

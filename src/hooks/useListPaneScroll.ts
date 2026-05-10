@@ -199,6 +199,7 @@ interface ScrollPreservationSignatureParams {
     listLayoutSignature: string;
     groupBy: ListPaneAppearanceLayoutSettings['groupBy'];
     noteGrouping: NotebookNavigatorSettings['noteGrouping'];
+    stickyGroupHeaders: NotebookNavigatorSettings['stickyGroupHeaders'];
     effectiveSort: SortOption;
     propertySortKey: NotebookNavigatorSettings['propertySortKey'];
     propertySortSecondary: NotebookNavigatorSettings['propertySortSecondary'];
@@ -277,6 +278,7 @@ function getScrollPreservationSignature({
     listLayoutSignature,
     groupBy,
     noteGrouping,
+    stickyGroupHeaders,
     effectiveSort,
     propertySortKey,
     propertySortSecondary
@@ -286,6 +288,7 @@ function getScrollPreservationSignature({
         listLayoutSignature,
         groupBy,
         noteGrouping,
+        stickyGroupHeaders,
         effectiveSort,
         propertySortKey: propertySortKey ?? null,
         propertySortSecondary
@@ -719,7 +722,8 @@ export function useListPaneScroll({
 
             const containerRect = scrollElement.getBoundingClientRect();
             const rowRect = row.getBoundingClientRect();
-            const topInset = isFileRowCoveredByStickyHeader(listItems, index) ? listMeasurements.firstHeader : 0;
+            const topInset =
+                settings.stickyGroupHeaders && isFileRowCoveredByStickyHeader(listItems, index) ? listMeasurements.firstHeader : 0;
             const safeTop = containerRect.top + topInset;
             const safeBottom = containerRect.bottom - effectiveScrollPaddingEnd;
 
@@ -732,7 +736,7 @@ export function useListPaneScroll({
                 scrollElement.scrollTop += Math.round(rowRect.bottom - safeBottom);
             }
         },
-        [effectiveScrollPaddingEnd, listItems, listMeasurements.firstHeader]
+        [effectiveScrollPaddingEnd, listItems, listMeasurements.firstHeader, settings.stickyGroupHeaders]
     );
 
     const scrollToIndexSafely = useCallback(
@@ -1048,6 +1052,7 @@ export function useListPaneScroll({
                 listLayoutSignature,
                 groupBy: folderSettings.groupBy,
                 noteGrouping: settings.noteGrouping,
+                stickyGroupHeaders: settings.stickyGroupHeaders,
                 effectiveSort,
                 propertySortKey: settings.propertySortKey,
                 propertySortSecondary: settings.propertySortSecondary
@@ -1057,6 +1062,7 @@ export function useListPaneScroll({
             listLayoutSignature,
             folderSettings.groupBy,
             settings.noteGrouping,
+            settings.stickyGroupHeaders,
             effectiveSort,
             settings.propertySortKey,
             settings.propertySortSecondary

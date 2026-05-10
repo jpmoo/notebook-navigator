@@ -858,6 +858,7 @@ export const STRINGS_EN = {
             },
             list: {
                 display: 'Appearance',
+                organization: 'Organization',
                 pinnedNotes: 'Pinned notes'
             },
             notes: {
@@ -952,6 +953,10 @@ export const STRINGS_EN = {
             showSelectedNavigationPills: {
                 name: 'Always show all tag and property pills',
                 desc: 'When disabled, pills matching the current navigation selection are hidden (e.g. the "recipes" tag pill is hidden when browsing the "recipes" tag). Enable to keep all pills visible.'
+            },
+            stickyGroupHeaders: {
+                name: 'Sticky group headers',
+                desc: 'Keep the current date, folder, or pinned section header visible while scrolling.'
             },
             showPinnedGroupHeader: {
                 name: 'Show pinned group header',

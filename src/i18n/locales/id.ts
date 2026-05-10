@@ -862,6 +862,7 @@ export const STRINGS_ID = {
             },
             list: {
                 display: 'Tampilan',
+                organization: 'Organisasi',
                 pinnedNotes: 'Catatan yang disematkan'
             },
             notes: {
@@ -956,6 +957,10 @@ export const STRINGS_ID = {
             showSelectedNavigationPills: {
                 name: 'Selalu tampilkan semua pil tag dan properti',
                 desc: 'Saat dinonaktifkan, pil yang cocok dengan pilihan navigasi saat ini disembunyikan (misalnya, pil tag "resep" disembunyikan saat menelusuri tag "resep"). Aktifkan untuk menampilkan semua pil.'
+            },
+            stickyGroupHeaders: {
+                name: 'Header grup tetap',
+                desc: 'Jaga header bagian tanggal, folder, atau yang disematkan saat ini tetap terlihat saat menggulir.'
             },
             showPinnedGroupHeader: {
                 name: 'Tampilkan header grup yang disematkan',

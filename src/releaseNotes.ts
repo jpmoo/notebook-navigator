@@ -87,11 +87,12 @@ const RELEASE_NOTES: ReleaseNote[] = [
         new: [
             '**List pane.** Added **Use folder icon** in List > Notes > Icon. Shows parent folder icons on notes without custom file icons.',
             '**List pane.** Added **Use folder color** in List > Notes > Title. Shows parent folder colors on note titles and file icons without custom file colors.',
-            '**List pane.** Added **Show full path** in List > Notes > Parent folder. Shows the full parent folder path instead of only the folder name.'
+            '**List pane.** Added **Show full path** in List > Notes > Parent folder. Shows the full parent folder path instead of only the folder name.',
+            '**List pane.** Added **Sticky group headers** in List > Organization. Toggles whether the current date, folder, or pinned section header stays visible while scrolling. Default enabled.'
         ],
         improved: [
-            '**List pane.** Group headers now stay visible while scrolling.',
-            '**UI Polish**. Simplified list item rendering, cleaned up hover images, made many things in the UI slightly better.'
+            '**Settings.** Reorganized the List tab into Appearance, Organization, Pinned notes, and Behavior groups.',
+            '**UI Polish**. Simplified list item rendering and feature images a bit, worked on the hover effect, and many other minor improvements.'
         ],
         fixed: ['Fixed the drag-and-drop ghost image that disappeared in 2.6.3.']
     },

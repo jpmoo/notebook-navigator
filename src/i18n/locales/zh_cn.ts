@@ -855,6 +855,7 @@ export const STRINGS_ZH_CN = {
             },
             list: {
                 display: '外观',
+                organization: '组织',
                 pinnedNotes: '固定笔记'
             },
             notes: {
@@ -949,6 +950,10 @@ export const STRINGS_ZH_CN = {
             showSelectedNavigationPills: {
                 name: '始终显示所有标签和属性标记',
                 desc: '禁用时，与当前导航选择匹配的标记会被隐藏（例如，浏览"食谱"标签时，"食谱"标签标记会被隐藏）。启用后所有标记始终可见。'
+            },
+            stickyGroupHeaders: {
+                name: '固定分组标题',
+                desc: '滚动时保持当前日期、文件夹或固定部分的标题可见。'
             },
             showPinnedGroupHeader: {
                 name: '显示固定组标题',

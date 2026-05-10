@@ -426,9 +426,11 @@ export function ListPaneVirtualContent({
 
     const virtualItems = rowVirtualizer.getVirtualItems();
     const scrollOffset = rowVirtualizer.scrollOffset ?? 0;
+    const stickyGroupHeaders = settings.stickyGroupHeaders;
     const stickyOffset = Math.max(scrollOffset + 0.5, topSpacerHeight + 0.5);
-    const firstVisibleItem = listItems.length > 0 ? rowVirtualizer.getVirtualItemForOffset(Math.max(0, stickyOffset)) : undefined;
-    const stickyHeader = findActiveHeaderModel(headerModels, firstVisibleItem?.index ?? null);
+    const firstVisibleItem =
+        stickyGroupHeaders && listItems.length > 0 ? rowVirtualizer.getVirtualItemForOffset(Math.max(0, stickyOffset)) : undefined;
+    const stickyHeader = stickyGroupHeaders ? findActiveHeaderModel(headerModels, firstVisibleItem?.index ?? null) : null;
 
     return (
         <div

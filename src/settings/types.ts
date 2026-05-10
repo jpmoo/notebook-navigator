@@ -499,6 +499,7 @@ export interface NotebookNavigatorSettings {
     listPaneTitle: ListPaneTitleOption;
     noteGrouping: ListNoteGroupingOption;
     showSelectedNavigationPills: boolean;
+    stickyGroupHeaders: boolean;
     filterPinnedByFolder: boolean;
     showPinnedGroupHeader: boolean;
     showPinnedIcon: boolean;

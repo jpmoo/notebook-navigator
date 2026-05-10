@@ -863,6 +863,7 @@ export const STRINGS_VI = {
             },
             list: {
                 display: 'Giao diện',
+                organization: 'Tổ chức',
                 pinnedNotes: 'Ghi chú đã ghim'
             },
             notes: {
@@ -957,6 +958,10 @@ export const STRINGS_VI = {
             showSelectedNavigationPills: {
                 name: 'Luôn hiển thị tất cả nhãn thẻ và thuộc tính',
                 desc: 'Khi tắt, các nhãn khớp với lựa chọn điều hướng hiện tại sẽ bị ẩn (ví dụ: nhãn thẻ "công thức" bị ẩn khi duyệt thẻ "công thức"). Bật để giữ tất cả các nhãn luôn hiển thị.'
+            },
+            stickyGroupHeaders: {
+                name: 'Header nhóm cố định',
+                desc: 'Giữ header phần ngày, thư mục hoặc đã ghim hiện tại hiển thị khi cuộn.'
             },
             showPinnedGroupHeader: {
                 name: 'Hiện header nhóm đã ghim',
