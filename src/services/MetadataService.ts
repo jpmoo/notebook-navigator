@@ -38,7 +38,7 @@ import { getDBInstance } from '../storage/fileOperations';
 import { NavigatorContext } from '../types';
 import type { NavigationSeparatorTarget } from '../utils/navigationSeparators';
 import { buildPropertyKeyNodeId } from '../utils/propertyTree';
-import { casefold } from '../utils/recordUtils';
+import { casefold, getCollapsedPinnedContextTarget } from '../utils/recordUtils';
 import { buildTagTreeFromDatabase } from '../utils/tagTree';
 
 /**
@@ -627,6 +627,25 @@ export class MetadataService {
 
                 propertyKeys.add(buildPropertyKeyNodeId(normalizedKey));
             });
+        });
+
+        Object.keys(settings.collapsedPinnedContexts ?? {}).forEach(key => {
+            const folderTarget = getCollapsedPinnedContextTarget(key, 'folder');
+            if (folderTarget !== null) {
+                folderKeys.add(folderTarget);
+                return;
+            }
+
+            const tagTarget = getCollapsedPinnedContextTarget(key, 'tag');
+            if (tagTarget !== null) {
+                tagKeys.add(tagTarget);
+                return;
+            }
+
+            const propertyTarget = getCollapsedPinnedContextTarget(key, 'property');
+            if (propertyTarget !== null) {
+                propertyKeys.add(propertyTarget);
+            }
         });
 
         const pinnedNotes = settings.pinnedNotes ? Object.keys(settings.pinnedNotes).length : 0;

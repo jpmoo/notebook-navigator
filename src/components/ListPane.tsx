@@ -74,7 +74,7 @@ import type { FileItemStorageHelpers } from './FileItem';
 import { type SearchShortcut } from '../types/shortcuts';
 import { type SearchNavFilterState } from '../types/search';
 import { EMPTY_LIST_MENU_TYPE } from '../utils/contextMenu';
-import { useUXPreferenceActions, useUXPreferences } from '../context/UXPreferencesContext';
+import { useUXPreferences } from '../context/UXPreferencesContext';
 import { type InclusionOperator } from '../utils/filterSearch';
 import type { FolderDecorationModel } from '../utils/folderDecoration';
 import { useSurfaceColorVariables } from '../hooks/useSurfaceColorVariables';
@@ -86,6 +86,8 @@ import { DateUtils } from '../utils/dateUtils';
 import type { NavigateToFolderOptions, RevealPropertyOptions, RevealTagOptions } from '../hooks/useNavigatorReveal';
 import type { FileItemPillDecorationModel } from '../utils/fileItemPillDecoration';
 import { compositeWithBase } from '../utils/colorUtils';
+import { runAsyncAction } from '../utils/async';
+import { getPinnedSectionCollapseKey } from '../utils/selectionUtils';
 
 /**
  * Renders the list pane displaying files from the selected folder.
@@ -175,7 +177,7 @@ function ListPaneTitleChrome({
 
 export const ListPane = React.memo(
     forwardRef<ListPaneHandle, ListPaneProps>(function ListPane(props, ref) {
-        const { app, isMobile } = useServices();
+        const { app, isMobile, plugin } = useServices();
         const { onNavigateToFolder, onRevealTag, onRevealProperty, folderDecorationModel, fileItemPillDecorationModel } = props;
         const selectionState = useSelectionState();
         const selectionDispatch = useSelectionDispatch();
@@ -183,11 +185,9 @@ export const ListPane = React.memo(
         const activeProfile = useActiveProfile();
         const { fileNameIconNeedles } = useSettingsDerived();
         const uxPreferences = useUXPreferences();
-        const { togglePinnedGroupExpanded } = useUXPreferenceActions();
         const includeDescendantNotes = uxPreferences.includeDescendantNotes;
         const showHiddenItems = uxPreferences.showHiddenItems;
         const showCalendar = uxPreferences.showCalendar;
-        const pinnedGroupExpanded = uxPreferences.pinnedGroupExpanded;
         const appearanceSettings = useListPaneAppearance();
         const { getFileDisplayName, getDB, getFileTimestamps, hasPreview, regenerateFeatureImageForFile } = useFileCache();
         const { noteShortcutKeysByPath, addNoteShortcut, removeShortcut } = useShortcuts();
@@ -307,6 +307,11 @@ export const ListPane = React.memo(
         });
 
         const { selectionType, selectedFolder, selectedTag, selectedProperty, selectedFile } = selectionState;
+        const pinnedCollapseKey = getPinnedSectionCollapseKey({ selectionType, selectedFolder, selectedTag, selectedProperty });
+        const pinnedGroupExpanded = settings.collapsedPinnedContexts[pinnedCollapseKey] !== true;
+        const handlePinnedGroupHeaderToggle = React.useCallback(() => {
+            runAsyncAction(() => plugin.togglePinnedGroupCollapsed(pinnedCollapseKey));
+        }, [pinnedCollapseKey, plugin]);
 
         // Determine if list pane is visible early to optimize
         const isVisible = !uiState.singlePane || uiState.currentSinglePaneView === 'files';
@@ -630,7 +635,7 @@ export const ListPane = React.memo(
                         topSpacerHeight={effectiveTopSpacerHeight}
                         settings={settings}
                         pinnedGroupExpanded={pinnedGroupExpanded}
-                        onPinnedGroupHeaderToggle={togglePinnedGroupExpanded}
+                        onPinnedGroupHeaderToggle={handlePinnedGroupHeaderToggle}
                         selectionType={selectionType}
                         sortOption={effectiveSortOption}
                         searchHighlightQuery={searchHighlightQuery}

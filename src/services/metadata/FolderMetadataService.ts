@@ -24,7 +24,13 @@ import { isFolderShortcut } from '../../types/shortcuts';
 import type { FileContentChange } from '../../storage/IndexedDBStorage';
 import { normalizeCanonicalIconId } from '../../utils/iconizeFormat';
 import { getParentFolderPath } from '../../utils/pathUtils';
-import { ensureRecord, isStringRecordValue } from '../../utils/recordUtils';
+import {
+    cleanupCollapsedPinnedContextKeys,
+    deleteCollapsedPinnedContextKeys,
+    ensureRecord,
+    isStringRecordValue,
+    updateCollapsedPinnedContextKeys
+} from '../../utils/recordUtils';
 import type { CleanupValidators } from '../MetadataService';
 import { BaseMetadataService } from './BaseMetadataService';
 import { FolderDisplayCache } from './folderMetadata/FolderDisplayCache';
@@ -719,6 +725,10 @@ export class FolderMetadataService extends BaseMetadataService {
             changed = this.updateNestedPaths(settings.folderSortOverrides, oldPath, newPath) || changed;
             changed = this.updateNestedPaths(settings.folderTreeSortOverrides, oldPath, newPath) || changed;
             changed = this.updateNestedPaths(settings.folderAppearances, oldPath, newPath) || changed;
+            changed =
+                updateCollapsedPinnedContextKeys(settings.collapsedPinnedContexts, ItemType.FOLDER, oldPath, newPath, {
+                    descendantDelimiter: '/'
+                }) || changed;
 
             const shortcutsChanged = this.updateShortcuts(settings, shortcut => {
                 if (!isFolderShortcut(shortcut) || shortcut.path !== oldPath) {
@@ -751,6 +761,10 @@ export class FolderMetadataService extends BaseMetadataService {
             changed = this.deleteNestedPaths(settings.folderSortOverrides, folderPath) || changed;
             changed = this.deleteNestedPaths(settings.folderTreeSortOverrides, folderPath) || changed;
             changed = this.deleteNestedPaths(settings.folderAppearances, folderPath) || changed;
+            changed =
+                deleteCollapsedPinnedContextKeys(settings.collapsedPinnedContexts, ItemType.FOLDER, folderPath, {
+                    descendantDelimiter: '/'
+                }) || changed;
 
             const shortcutsChanged = this.updateShortcuts(settings, shortcut => {
                 if (!isFolderShortcut(shortcut)) {
@@ -771,6 +785,11 @@ export class FolderMetadataService extends BaseMetadataService {
     async cleanupFolderMetadata(targetSettings: NotebookNavigatorSettings = this.settingsProvider.settings): Promise<boolean> {
         this.folderDisplayCache.clear();
         const validator = (path: string) => this.app.vault.getFolderByPath(path) !== null;
+        const collapsedPinnedContextChanges = cleanupCollapsedPinnedContextKeys(
+            targetSettings.collapsedPinnedContexts,
+            ItemType.FOLDER,
+            validator
+        );
 
         const results = await Promise.all([
             this.cleanupMetadata(targetSettings, 'folderColors', validator),
@@ -781,7 +800,7 @@ export class FolderMetadataService extends BaseMetadataService {
             this.cleanupMetadata(targetSettings, 'folderAppearances', validator)
         ]);
 
-        return results.some(changed => changed);
+        return collapsedPinnedContextChanges || results.some(changed => changed);
     }
 
     async cleanupWithValidators(
@@ -790,6 +809,11 @@ export class FolderMetadataService extends BaseMetadataService {
     ): Promise<boolean> {
         this.folderDisplayCache.clear();
         const validator = (path: string) => validators.vaultFolders.has(path);
+        const collapsedPinnedContextChanges = cleanupCollapsedPinnedContextKeys(
+            targetSettings.collapsedPinnedContexts,
+            ItemType.FOLDER,
+            validator
+        );
 
         const results = await Promise.all([
             this.cleanupMetadata(targetSettings, 'folderColors', validator),
@@ -800,6 +824,6 @@ export class FolderMetadataService extends BaseMetadataService {
             this.cleanupMetadata(targetSettings, 'folderAppearances', validator)
         ]);
 
-        return results.some(changed => changed);
+        return collapsedPinnedContextChanges || results.some(changed => changed);
     }
 }

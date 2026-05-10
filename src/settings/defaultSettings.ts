@@ -397,6 +397,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     // Runtime state and cached data
     customVaultName: '',
     pinnedNotes: sanitizeRecord<PinnedNotes[string]>(undefined),
+    collapsedPinnedContexts: sanitizeRecord<boolean>(undefined),
     fileIcons: sanitizeRecord<string>(undefined),
     fileColors: sanitizeRecord<string>(undefined),
     fileBackgroundColors: sanitizeRecord<string>(undefined),

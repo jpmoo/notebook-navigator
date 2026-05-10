@@ -73,6 +73,7 @@ import {
 } from '../../utils/iconizeFormat';
 import { getDefaultDateFormat, getDefaultTimeFormat } from '../../i18n';
 import {
+    cloneCollapsedPinnedContextsRecord,
     clonePinnedNotesRecord,
     isBooleanRecordValue,
     isPlainObjectRecordValue,
@@ -931,6 +932,7 @@ export class PluginSettingsController {
         this.currentSettings.syncModes = sanitizeSettingsSyncMap(this.currentSettings.syncModes);
         this.currentSettings.calendarMonthHighlights = sanitizeStringMap(this.currentSettings.calendarMonthHighlights);
         this.currentSettings.pinnedNotes = clonePinnedNotesRecord(this.currentSettings.pinnedNotes);
+        this.currentSettings.collapsedPinnedContexts = cloneCollapsedPinnedContextsRecord(this.currentSettings.collapsedPinnedContexts);
     }
 
     private normalizeTaskSettings(): void {

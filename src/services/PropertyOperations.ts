@@ -23,7 +23,7 @@ import { strings } from '../i18n';
 import { ConfirmModal } from '../modals/ConfirmModal';
 import { PropertyKeyRenameModal } from '../modals/PropertyKeyRenameModal';
 import { LIMITS } from '../constants/limits';
-import { casefold, sanitizeRecord } from '../utils/recordUtils';
+import { casefold, deleteCollapsedPinnedContextKeys, sanitizeRecord, updateCollapsedPinnedContextKeys } from '../utils/recordUtils';
 import { showNotice } from '../utils/noticeUtils';
 import { runAsyncAction } from '../utils/async';
 import { removePropertyField, renamePropertyField } from '../utils/propertyUtils';
@@ -33,6 +33,7 @@ import { buildUsageSummaryFromPaths, renderAffectedFilesPreview, yieldToEventLoo
 import { PropertyFileMutations } from './propertyOperations/PropertyFileMutations';
 import type { PropertyKeyDeleteEventPayload, PropertyKeyRenameEventPayload } from './propertyOperations/types';
 import { getActivePropertyFields, setActivePropertyFields } from '../utils/vaultProfiles';
+import { ItemType } from '../types';
 
 export type { PropertyKeyRenameEventPayload, PropertyKeyDeleteEventPayload } from './propertyOperations/types';
 
@@ -543,14 +544,27 @@ export class PropertyOperations {
         const newKeyNodeId = buildPropertyKeyNodeId(newKeyNormalized);
         const nodeChanged = this.renamePropertyNodeMetadataFields(settings, oldKeyNodeId, newKeyNodeId);
         const keyChanged = this.renamePropertyKeyMetadataFields(settings, oldKeyNodeId, newKeyNodeId);
-        return nodeChanged || keyChanged;
+        const collapsedPinnedContextChanged = updateCollapsedPinnedContextKeys(
+            settings.collapsedPinnedContexts,
+            ItemType.PROPERTY,
+            oldKeyNodeId,
+            newKeyNodeId,
+            { descendantDelimiter: '=' }
+        );
+        return nodeChanged || keyChanged || collapsedPinnedContextChanged;
     }
 
     private removePropertyMetadataForDeletedKey(settings: NotebookNavigatorSettings, normalizedKey: string): boolean {
         const keyNodeId = buildPropertyKeyNodeId(normalizedKey);
         const nodeChanged = this.removePropertyNodeMetadataFields(settings, keyNodeId);
         const keyChanged = this.removePropertyKeyMetadataFields(settings, keyNodeId);
-        return nodeChanged || keyChanged;
+        const collapsedPinnedContextChanged = deleteCollapsedPinnedContextKeys(
+            settings.collapsedPinnedContexts,
+            ItemType.PROPERTY,
+            keyNodeId,
+            { descendantDelimiter: '=' }
+        );
+        return nodeChanged || keyChanged || collapsedPinnedContextChanged;
     }
 
     protected async updateSettingsAfterRename(oldKeyNormalized: string, newKeyDisplay: string): Promise<void> {

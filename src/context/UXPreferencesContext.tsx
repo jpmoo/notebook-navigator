@@ -39,8 +39,6 @@ interface UXPreferenceActions {
     setShowHiddenItems: (value: boolean) => void;
     toggleShowHiddenItems: () => void;
     setPinShortcuts: (value: boolean) => void;
-    setPinnedGroupExpanded: (value: boolean) => void;
-    togglePinnedGroupExpanded: () => void;
     // Per-device toggle for the navigation calendar overlay.
     setShowCalendar: (value: boolean) => void;
     toggleShowCalendar: () => void;
@@ -102,12 +100,6 @@ export function UXPreferencesProvider({ children, plugin }: UXPreferencesProvide
             },
             setPinShortcuts: (value: boolean) => {
                 plugin.setPinShortcuts(value);
-            },
-            setPinnedGroupExpanded: (value: boolean) => {
-                plugin.setPinnedGroupExpanded(value);
-            },
-            togglePinnedGroupExpanded: () => {
-                plugin.togglePinnedGroupExpanded();
             },
             setShowCalendar: (value: boolean) => {
                 plugin.setShowCalendar(value);

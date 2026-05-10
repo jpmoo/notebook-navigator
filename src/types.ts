@@ -108,6 +108,16 @@ export const PINNED_SECTION_HEADER_KEY = 'header-pinned';
 export type NavigatorContext = 'folder' | 'tag' | 'property';
 
 /**
+ * Key for a pinned section collapse state in a specific navigation item.
+ */
+export type PinnedSectionCollapseKey = `${NavigatorContext}:${string}`;
+
+/**
+ * Set-like record of navigation items where the pinned section is collapsed.
+ */
+export type CollapsedPinnedContexts = Partial<Record<PinnedSectionCollapseKey, boolean>>;
+
+/**
  * Type alias for pinned notes storage structure
  * Maps file paths to their pinning context states
  */
@@ -354,7 +364,6 @@ export interface UXPreferences {
     includeDescendantNotes: boolean;
     showHiddenItems: boolean;
     pinShortcuts: boolean;
-    pinnedGroupExpanded: boolean;
     showCalendar: boolean;
 }
 

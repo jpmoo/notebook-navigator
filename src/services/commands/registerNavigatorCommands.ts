@@ -69,7 +69,7 @@ import {
     parseStoredPropertySelectionNodeId,
     type PropertySelectionNodeId
 } from '../../utils/propertyTree';
-import { getAdjacentFile, getFilesForNavigationSelection } from '../../utils/selectionUtils';
+import { getAdjacentFile, getFilesForNavigationSelection, getPinnedSectionCollapseKey } from '../../utils/selectionUtils';
 
 /**
  * Reveals the navigator view and focuses whichever pane is currently visible
@@ -389,6 +389,10 @@ function resolveOpenAllFilesContext(plugin: NotebookNavigatorPlugin): CommandNav
         selectedTag: null,
         selectedProperty: null
     };
+}
+
+function getPinnedCollapseKeyForCommand(plugin: NotebookNavigatorPlugin) {
+    return getPinnedSectionCollapseKey(resolveOpenAllFilesContext(plugin));
 }
 
 function getOpenAllFilesConfirmTitle(fileCount: number): string {
@@ -791,8 +795,9 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
         name: strings.commands.togglePinnedSection,
         callback: () => {
             runAsyncAction(async () => {
-                await plugin.activateView();
-                plugin.togglePinnedGroupExpanded();
+                const view = await ensureNavigatorOpen(plugin);
+                await view?.whenReady();
+                await plugin.togglePinnedGroupCollapsed(getPinnedCollapseKeyForCommand(plugin));
             });
         }
     });

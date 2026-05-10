@@ -77,7 +77,7 @@ interface UseListPaneDataParams {
     activeProfile: ActiveProfileState;
     /** Effective grouping for the current list selection */
     groupBy: ListNoteGroupingOption;
-    /** Whether the local pinned section is expanded */
+    /** Whether the pinned section is expanded in the current context */
     pinnedGroupExpanded: boolean;
     /** Active search provider to use for filtering */
     searchProvider: SearchProvider;
