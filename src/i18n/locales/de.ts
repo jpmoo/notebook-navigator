@@ -1074,7 +1074,7 @@ export const STRINGS_DE = {
             },
             useFloatingToolbars: {
                 name: 'Schwebende Symbolleisten auf iOS/iPadOS verwenden',
-                desc: 'Gilt für Obsidian 1.11 und höher.'
+                desc: 'Gilt nur für iOS und iPadOS.'
             },
             startView: {
                 name: 'Standard-Startansicht',

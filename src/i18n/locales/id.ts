@@ -1073,7 +1073,7 @@ export const STRINGS_ID = {
             },
             useFloatingToolbars: {
                 name: 'Gunakan toolbar mengambang di iOS/iPadOS',
-                desc: 'Berlaku untuk Obsidian 1.11 dan yang lebih baru.'
+                desc: 'Hanya berlaku di iOS dan iPadOS.'
             },
             startView: {
                 name: 'Tampilan startup default',

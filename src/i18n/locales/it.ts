@@ -1069,7 +1069,7 @@ export const STRINGS_IT = {
             },
             useFloatingToolbars: {
                 name: 'Usa barre degli strumenti flottanti su iOS/iPadOS',
-                desc: 'Si applica a Obsidian 1.11 e versioni successive.'
+                desc: 'Si applica solo a iOS e iPadOS.'
             },
             startView: {
                 name: "Vista predefinita all'avvio",

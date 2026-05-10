@@ -175,6 +175,18 @@ export class Plugin {
 export class Menu {}
 export class MenuItem {}
 export class Setting {}
+export class SettingGroup {
+    constructor(public containerEl: HTMLElement) {}
+
+    setHeading(_heading?: string | DocumentFragment): this {
+        return this;
+    }
+
+    addSetting(callback: (setting: Setting) => void): this {
+        callback(new Setting());
+        return this;
+    }
+}
 export class ButtonComponent {}
 export class SliderComponent {}
 export class WorkspaceLeaf {}

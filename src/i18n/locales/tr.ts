@@ -1073,7 +1073,7 @@ export const STRINGS_TR = {
             },
             useFloatingToolbars: {
                 name: "iOS/iPadOS'ta kayan araç çubuklarını kullan",
-                desc: 'Obsidian 1.11 ve sonrası için geçerlidir.'
+                desc: 'Yalnızca iOS ve iPadOS için geçerlidir.'
             },
             startView: {
                 name: 'Varsayılan başlangıç görünümü',

@@ -1066,7 +1066,7 @@ export const STRINGS_ZH_TW = {
             },
             useFloatingToolbars: {
                 name: '在 iOS/iPadOS 上使用浮動工具列',
-                desc: '適用於 Obsidian 1.11 及更高版本。'
+                desc: '僅適用於 iOS 和 iPadOS。'
             },
             startView: {
                 name: '預設啟動檢視',

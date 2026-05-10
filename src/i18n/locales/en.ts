@@ -1069,7 +1069,7 @@ export const STRINGS_EN = {
             },
             useFloatingToolbars: {
                 name: 'Use floating toolbars on iOS/iPadOS',
-                desc: 'Applies to Obsidian 1.11 and later.'
+                desc: 'Applies only on iOS and iPadOS.'
             },
             startView: {
                 name: 'Default startup view',

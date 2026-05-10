@@ -1075,7 +1075,7 @@ export const STRINGS_PL = {
             },
             useFloatingToolbars: {
                 name: 'Użyj pływających pasków narzędzi w systemie iOS/iPadOS',
-                desc: 'Dotyczy Obsidian 1.11 i nowszych wersji.'
+                desc: 'Dotyczy tylko iOS i iPadOS.'
             },
             startView: {
                 name: 'Domyślny widok początkowy',

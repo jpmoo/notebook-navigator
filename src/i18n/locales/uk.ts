@@ -1070,7 +1070,7 @@ export const STRINGS_UK = {
             },
             useFloatingToolbars: {
                 name: 'Використовувати плаваючі панелі інструментів на iOS/iPadOS',
-                desc: 'Застосовується до Obsidian 1.11 і новіших версій.'
+                desc: 'Застосовується лише на iOS та iPadOS.'
             },
             startView: {
                 name: 'Вигляд при запуску за замовчуванням',

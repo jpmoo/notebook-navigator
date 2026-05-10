@@ -1072,7 +1072,7 @@ export const STRINGS_KO = {
             },
             useFloatingToolbars: {
                 name: 'iOS/iPadOS에서 플로팅 툴바 사용',
-                desc: 'Obsidian 1.11 이상에 적용됩니다.'
+                desc: 'iOS 및 iPadOS에서만 적용됩니다.'
             },
             startView: {
                 name: '기본 시작 보기',

@@ -1072,7 +1072,7 @@ export const STRINGS_JA = {
             },
             useFloatingToolbars: {
                 name: 'iOS/iPadOSでフローティングツールバーを使用',
-                desc: 'Obsidian 1.11以降に適用されます。'
+                desc: 'iOSおよびiPadOSでのみ適用されます。'
             },
             startView: {
                 name: 'デフォルト起動ビュー',

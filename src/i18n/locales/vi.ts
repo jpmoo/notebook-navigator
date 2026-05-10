@@ -1074,7 +1074,7 @@ export const STRINGS_VI = {
             },
             useFloatingToolbars: {
                 name: 'Sử dụng thanh công cụ nổi trên iOS/iPadOS',
-                desc: 'Áp dụng cho Obsidian 1.11 trở lên.'
+                desc: 'Chỉ áp dụng trên iOS và iPadOS.'
             },
             startView: {
                 name: 'Chế độ xem khởi động mặc định',

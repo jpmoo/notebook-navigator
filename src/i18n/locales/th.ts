@@ -1069,7 +1069,7 @@ export const STRINGS_TH = {
             },
             useFloatingToolbars: {
                 name: 'ใช้แถบเครื่องมือลอยบน iOS/iPadOS',
-                desc: 'ใช้ได้กับ Obsidian 1.11 และใหม่กว่า'
+                desc: 'ใช้ได้เฉพาะบน iOS และ iPadOS'
             },
             startView: {
                 name: 'มุมมองเริ่มต้นเมื่อเริ่มงาน',

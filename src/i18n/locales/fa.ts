@@ -1073,7 +1073,7 @@ export const STRINGS_FA = {
             },
             useFloatingToolbars: {
                 name: 'استفاده از نوار ابزار شناور در iOS/iPadOS',
-                desc: 'برای Obsidian 1.11 و بالاتر اعمال می‌شود.'
+                desc: 'فقط برای iOS و iPadOS اعمال می‌شود.'
             },
             startView: {
                 name: 'نمای پیش‌فرض شروع',

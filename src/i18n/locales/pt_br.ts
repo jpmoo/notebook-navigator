@@ -1075,7 +1075,7 @@ export const STRINGS_PT_BR = {
             },
             useFloatingToolbars: {
                 name: 'Usar barras de ferramentas flutuantes no iOS/iPadOS',
-                desc: 'Aplica-se ao Obsidian 1.11 e posteriores.'
+                desc: 'Aplica-se apenas ao iOS e iPadOS.'
             },
             startView: {
                 name: 'Visualização inicial padrão',

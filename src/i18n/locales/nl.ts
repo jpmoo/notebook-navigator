@@ -1074,7 +1074,7 @@ export const STRINGS_NL = {
             },
             useFloatingToolbars: {
                 name: 'Zwevende werkbalken gebruiken op iOS/iPadOS',
-                desc: 'Geldt voor Obsidian 1.11 en later.'
+                desc: 'Geldt alleen op iOS en iPadOS.'
             },
             startView: {
                 name: 'Standaard opstartweergave',

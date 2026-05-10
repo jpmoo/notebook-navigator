@@ -45,7 +45,7 @@
  */
 
 import React, { useRef, useEffect, useImperativeHandle, forwardRef, useState, useMemo, useLayoutEffect } from 'react';
-import { TFile, Platform, requireApiVersion } from 'obsidian';
+import { TFile, Platform } from 'obsidian';
 import { Virtualizer } from '@tanstack/react-virtual';
 import { useSelectionState, useSelectionDispatch } from '../context/SelectionContext';
 import { useServices } from '../context/ServicesContext';
@@ -62,7 +62,7 @@ import { useListPaneSearch, type SearchQueryUpdateOptions } from '../hooks/useLi
 import { useListPaneSelectionCoordinator } from '../hooks/useListPaneSelectionCoordinator';
 import type { EnsureSelectionOptions, EnsureSelectionResult, SelectFileOptions } from '../hooks/useListPaneSelectionCoordinator';
 import { useContextMenu } from '../hooks/useContextMenu';
-import { IOS_OBSIDIAN_1_11_PLUS_GLASS_TOOLBAR_HEIGHT_PX, type CSSPropertiesWithVars } from '../types';
+import { IOS_FLOATING_TOOLBAR_HEIGHT_PX, type CSSPropertiesWithVars } from '../types';
 import { getEffectiveSortOption } from '../utils/sortUtils';
 import { ListPaneHeader } from './ListPaneHeader';
 import { ListToolbar } from './ListToolbar';
@@ -264,17 +264,16 @@ export const ListPane = React.memo(
             };
         }, [listSurfaceColor, listSurfaceVersion]);
 
-        const isIosObsidian111Plus = Platform.isIosApp && requireApiVersion('1.11.0');
-        const shouldUseFloatingToolbars = isIosObsidian111Plus && settings.useFloatingToolbars;
+        const shouldUseFloatingToolbars = isMobile && Platform.isIosApp && settings.useFloatingToolbars;
         const scrollPaddingEnd = useMemo(() => {
-            if (!shouldUseFloatingToolbars || !isMobile || isAndroid) {
+            if (!shouldUseFloatingToolbars) {
                 return 0;
             }
 
-            // Keep in sync with `--nn-ios-pane-bottom-overlay-height` in `src/styles/sections/platform-ios-obsidian-1-11.css`.
+            // Keep in sync with `--nn-ios-pane-bottom-overlay-height` in `src/styles/sections/platform-ios.css`.
             // The calendar overlay is outside the scroller, so it is intentionally not included here.
-            return IOS_OBSIDIAN_1_11_PLUS_GLASS_TOOLBAR_HEIGHT_PX;
-        }, [isAndroid, isMobile, shouldUseFloatingToolbars]);
+            return IOS_FLOATING_TOOLBAR_HEIGHT_PX;
+        }, [shouldUseFloatingToolbars]);
         const ensureSelectionForCurrentFilterRef = useRef<((options?: EnsureSelectionOptions) => EnsureSelectionResult) | null>(null);
         const {
             isSearchActive,
@@ -652,7 +651,7 @@ export const ListPane = React.memo(
                         fileItemPillDecorationModel={fileItemPillDecorationModel}
                         getSolidBackground={getSolidBackground}
                     />
-                    {/* iOS (Obsidian 1.11+): keep the floating toolbar inside the panel */}
+                    {/* iOS: keep the floating toolbar inside the panel */}
                     {shouldRenderBottomToolbarInsidePanel ? <div className="nn-pane-bottom-toolbar">{listToolbar}</div> : null}
                 </div>
                 {shouldRenderCalendarOverlay ? (

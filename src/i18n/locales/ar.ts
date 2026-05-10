@@ -1071,7 +1071,7 @@ export const STRINGS_AR = {
             },
             useFloatingToolbars: {
                 name: 'استخدام أشرطة الأدوات العائمة على iOS/iPadOS',
-                desc: 'ينطبق على Obsidian 1.11 والإصدارات الأحدث.'
+                desc: 'ينطبق فقط على iOS وiPadOS.'
             },
             startView: {
                 name: 'عرض البدء الافتراضي',

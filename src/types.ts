@@ -212,9 +212,9 @@ export const LISTPANE_MEASUREMENTS = {
 /**
  * Platform measurements used for mobile layout math.
  *
- * Keep in sync with CSS in `src/styles/sections/platform-ios-obsidian-1-11.css`.
+ * Keep in sync with CSS in `src/styles/sections/platform-ios.css`.
  */
-export const IOS_OBSIDIAN_1_11_PLUS_GLASS_TOOLBAR_HEIGHT_PX = 58;
+export const IOS_FLOATING_TOOLBAR_HEIGHT_PX = 58;
 
 /**
  * Pane transition duration limits for single-pane view animations (milliseconds)

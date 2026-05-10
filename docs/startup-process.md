@@ -169,12 +169,11 @@ or calendar placement changes run after layout/settings updates.
 4. `NotebookNavigatorView.onOpen()` adds platform classes and (on Android) applies font scaling compensation before React renders:
    - Always adds `notebook-navigator`.
    - Adds `notebook-navigator-mobile` and platform classes on mobile (`notebook-navigator-android`, `notebook-navigator-ios`).
-   - Adds `notebook-navigator-obsidian-1-11-plus-*` when `requireApiVersion('1.11.0')` passes.
 5. Pane chrome uses headers on all platforms and toolbars on mobile:
    - `NavigationPaneHeader` and `ListPaneHeader` render in pane chrome above the scrollers.
    - Android mobile renders `NavigationToolbar` / `ListToolbar` at the top.
-   - On iOS with Obsidian 1.11+ and floating toolbars enabled, the toolbars render inside the pane; otherwise they
-     render in the bottom toolbar container.
+   - On iOS with floating toolbars enabled, the toolbars render inside the pane; otherwise they render in the bottom
+     toolbar container.
 
 #### Calendar right sidebar view (`NotebookNavigatorCalendarView.tsx`)
 
@@ -441,7 +440,7 @@ The plugin uses debouncers in a few specific places where Obsidian emits bursty 
    - notebook-navigator
    - notebook-navigator-mobile (if applicable)
    - notebook-navigator-android / notebook-navigator-ios (if applicable)
-   - notebook-navigator-obsidian-1-11-plus-android / notebook-navigator-obsidian-1-11-plus-ios (if applicable)
+   - notebook-navigator-ios-floating-toolbars (if applicable)
 2. `NotebookNavigatorView.onClose()` unmounts the React root:
    - Call root.unmount()
    - Set root to null
