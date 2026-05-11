@@ -8,10 +8,22 @@ updates:
       time: "06:00"
       timezone: Europe/Stockholm
     groups:
+      react-runtime:
+        dependency-type: production
+        patterns:
+          - "react"
+          - "react-dom"
       npm-development:
         dependency-type: development
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "eslint"
+        update-types:
+          - "version-update:semver-major"
+      - dependency-name: "@eslint/*"
+        update-types:
+          - "version-update:semver-major"
     open-pull-requests-limit: 5
 
   - package-ecosystem: github-actions
