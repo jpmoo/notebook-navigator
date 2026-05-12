@@ -40,9 +40,39 @@ interface QuickActionToggleConfig {
     label: string;
 }
 
+const STRONG_TEXT_PATTERN = /\*\*([^*]+)\*\*/g;
+
+function appendStrongText(container: HTMLElement, value: string): void {
+    let currentIndex = 0;
+
+    for (const match of value.matchAll(STRONG_TEXT_PATTERN)) {
+        const matchText = match[0];
+        const strongText = match[1];
+        if (!matchText || strongText === undefined) {
+            continue;
+        }
+
+        const matchIndex = match.index ?? -1;
+        if (matchIndex === -1) {
+            break;
+        }
+
+        if (matchIndex > currentIndex) {
+            container.appendText(value.slice(currentIndex, matchIndex));
+        }
+
+        container.createEl('strong', { text: strongText });
+        currentIndex = matchIndex + matchText.length;
+    }
+
+    if (currentIndex < value.length) {
+        container.appendText(value.slice(currentIndex));
+    }
+}
+
 /** Renders the list pane settings tab */
 export function renderListPaneTab(context: SettingsTabContext): void {
-    const { containerEl, plugin, addToggleSetting } = context;
+    const { containerEl, plugin, addToggleSetting, addInfoSetting } = context;
     const createGroup = createSettingGroupFactory(containerEl);
 
     const appearanceGroup = createGroup(strings.settings.groups.list.display);
@@ -351,4 +381,26 @@ export function renderListPaneTab(context: SettingsTabContext): void {
 
         updateButtonsDisabledState(plugin.settings.showQuickActions);
     }
+
+    const drawingPreviewsGroup = createGroup(strings.settings.groups.list.drawingPreviews);
+
+    addToggleSetting(
+        drawingPreviewsGroup.addSetting,
+        strings.settings.items.hideDrawingPreviewImages.name,
+        strings.settings.items.hideDrawingPreviewImages.desc,
+        () => plugin.settings.hideDrawingPreviewImages,
+        value => {
+            plugin.settings.hideDrawingPreviewImages = value;
+        }
+    );
+
+    addInfoSetting(drawingPreviewsGroup.addSetting, ['nn-setting-info-container', 'nn-setting-info-list'], descEl => {
+        const info = strings.settings.items.drawingIntegrationInfo;
+        descEl.createDiv({ text: info.intro });
+        const listEl = descEl.createEl('ol');
+        info.items.forEach(item => {
+            const itemEl = listEl.createEl('li');
+            appendStrongText(itemEl, item);
+        });
+    });
 }

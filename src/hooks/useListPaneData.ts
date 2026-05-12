@@ -234,6 +234,7 @@ export function useListPaneData({
         activeProfile.fileVisibility,
         settings.enableFolderNotes,
         settings.hideFolderNoteInList,
+        settings.hideDrawingPreviewImages,
         settings.folderNoteName,
         settings.folderNoteNamePattern,
         settings.useFrontmatterMetadata,
@@ -305,9 +306,20 @@ export function useListPaneData({
             hiddenFilePropertyMatcher,
             hiddenFileTags,
             hiddenFolders,
+            hideDrawingPreviewImages: settings.hideDrawingPreviewImages,
             showHiddenItems
         });
-    }, [files, getDB, hiddenFolders, hiddenFilePropertyMatcher, hiddenFileNames, hiddenFileTags, showHiddenItems, app]);
+    }, [
+        files,
+        getDB,
+        hiddenFolders,
+        hiddenFilePropertyMatcher,
+        hiddenFileNames,
+        hiddenFileTags,
+        settings.hideDrawingPreviewImages,
+        showHiddenItems,
+        app
+    ]);
 
     const searchMetaMap = useMemo(() => {
         if (useOmnisearch && omnisearchResult) {

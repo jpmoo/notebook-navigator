@@ -864,7 +864,8 @@ export const STRINGS_NL = {
             list: {
                 display: 'Uiterlijk',
                 organization: 'Organisatie',
-                pinnedNotes: 'Vastgezette notities'
+                pinnedNotes: 'Vastgezette notities',
+                drawingPreviews: 'Tekeningvoorbeelden'
             },
             notes: {
                 frontmatter: 'Frontmatter',
@@ -1672,6 +1673,19 @@ export const STRINGS_NL = {
             downloadExternalFeatureImages: {
                 name: 'Externe afbeeldingen downloaden',
                 desc: 'Download externe afbeeldingen en YouTube-miniaturen voor uitgelichte afbeeldingen.'
+            },
+            hideDrawingPreviewImages: {
+                name: 'Geëxporteerde voorbeeldafbeeldingen verbergen',
+                desc: 'Verberg geëxporteerde PNG-bestanden met tekeningvoorbeelden. Schakel "Verborgen items tonen" in om ze weer te geven.'
+            },
+            drawingIntegrationInfo: {
+                intro: 'Notebook Navigator toont door Excalidraw geëxporteerde PNG-bestanden als tekeningvoorbeelden.',
+                items: [
+                    'Open in de **Excalidraw-instellingen** **Embedding Excalidraw into your Notes and Exporting**, daarna **Export Settings**, daarna **Auto-export Settings**.',
+                    'Schakel **Auto-export PNG** in. Schakel eventueel **Export both dark- and light-themed image** in.',
+                    'Notebook Navigator zoekt naar **Drawing.excalidraw.png**, **Drawing.excalidraw.dark.png** of **Drawing.excalidraw.light.png**.',
+                    'Zolang **Geëxporteerde voorbeeldafbeeldingen verbergen** aanstaat, verschijnen de PNG-bestanden alleen als ook **Verborgen items tonen** aanstaat.'
+                ]
             },
             showRootFolder: {
                 name: 'Hoofdmap tonen',

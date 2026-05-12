@@ -865,7 +865,8 @@ export const STRINGS_PL = {
             list: {
                 display: 'Wygląd',
                 organization: 'Organizacja',
-                pinnedNotes: 'Przypięte notatki'
+                pinnedNotes: 'Przypięte notatki',
+                drawingPreviews: 'Podglądy rysunków'
             },
             notes: {
                 frontmatter: 'Metadane',
@@ -1673,6 +1674,19 @@ export const STRINGS_PL = {
             downloadExternalFeatureImages: {
                 name: 'Pobierz obrazy zewnętrzne',
                 desc: 'Pobiera zdalne obrazy i miniatury YouTube wyróżnionych obrazów.'
+            },
+            hideDrawingPreviewImages: {
+                name: 'Ukryj wyeksportowane obrazy podglądu',
+                desc: 'Ukrywa wyeksportowane pliki PNG podglądu rysunków. Włącz „Pokaż ukryte elementy”, aby je wyświetlić.'
+            },
+            drawingIntegrationInfo: {
+                intro: 'Notebook Navigator wyświetla pliki PNG wyeksportowane przez Excalidraw jako podglądy rysunków.',
+                items: [
+                    'W **ustawieniach Excalidraw** otwórz **Embedding Excalidraw into your Notes and Exporting**, następnie **Export Settings**, następnie **Auto-export Settings**.',
+                    'Włącz **Auto-export PNG**. Opcjonalnie włącz **Export both dark- and light-themed image**.',
+                    'Notebook Navigator szuka **Drawing.excalidraw.png**, **Drawing.excalidraw.dark.png** lub **Drawing.excalidraw.light.png**.',
+                    'Gdy **Ukryj wyeksportowane obrazy podglądu** jest włączone, pliki PNG pojawiają się tylko wtedy, gdy włączone jest również **Pokaż ukryte elementy**.'
+                ]
             },
             showRootFolder: {
                 name: 'Pokaż folder główny',

@@ -861,7 +861,8 @@ export const STRINGS_AR = {
             list: {
                 display: 'المظهر',
                 organization: 'التنظيم',
-                pinnedNotes: 'الملاحظات المثبتة'
+                pinnedNotes: 'الملاحظات المثبتة',
+                drawingPreviews: 'معاينات الرسومات'
             },
             notes: {
                 frontmatter: 'البيانات الأمامية',
@@ -1667,6 +1668,19 @@ export const STRINGS_AR = {
             downloadExternalFeatureImages: {
                 name: 'تنزيل الصور الخارجية',
                 desc: 'تنزيل الصور عن بُعد والصور المصغرة من YouTube للصور المميزة.'
+            },
+            hideDrawingPreviewImages: {
+                name: 'إخفاء صور المعاينة المُصدَّرة',
+                desc: 'إخفاء ملفات PNG لمعاينة الرسومات المُصدَّرة. فعِّل "إظهار العناصر المخفية" لعرضها.'
+            },
+            drawingIntegrationInfo: {
+                intro: 'يعرض Notebook Navigator ملفات PNG المُصدَّرة من Excalidraw كمعاينات للرسومات.',
+                items: [
+                    'في **إعدادات Excalidraw**، افتح **Embedding Excalidraw into your Notes and Exporting**، ثم **Export Settings**، ثم **Auto-export Settings**.',
+                    'فعِّل **Auto-export PNG**. اختياريًا فعِّل **Export both dark- and light-themed image**.',
+                    'يبحث Notebook Navigator عن **Drawing.excalidraw.png** أو **Drawing.excalidraw.dark.png** أو **Drawing.excalidraw.light.png**.',
+                    'عند تفعيل **إخفاء صور المعاينة المُصدَّرة**، تظهر ملفات PNG فقط عند تفعيل **إظهار العناصر المخفية** أيضًا.'
+                ]
             },
             showRootFolder: {
                 name: 'إظهار المجلد الجذري',

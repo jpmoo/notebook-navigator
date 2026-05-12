@@ -62,6 +62,7 @@ import {
 } from './propertyTree';
 import type { IPropertyTreeProvider } from '../interfaces/IPropertyTreeProvider';
 import type { ITagTreeProvider } from '../interfaces/ITagTreeProvider';
+import { shouldHideDrawingCompanionImageFile } from './drawingFeatureImages';
 
 interface PinnedDisplayScope {
     restrictToFolderPath?: string;
@@ -111,6 +112,7 @@ function isFileVisibleForScopedSelection(
         fileNameMatcher: ReturnType<typeof createHiddenFileNameMatcherForVisibility>;
         shouldFilterHiddenFileTags: boolean;
         hiddenFileTagVisibility: ReturnType<typeof createHiddenTagVisibility>;
+        hideDrawingPreviewImages: boolean;
         app: App;
         db: ReturnType<typeof getDBInstanceOrNull>;
     }
@@ -122,11 +124,16 @@ function isFileVisibleForScopedSelection(
         fileNameMatcher,
         shouldFilterHiddenFileTags,
         hiddenFileTagVisibility,
+        hideDrawingPreviewImages,
         app,
         db
     } = options;
 
     if (!showHiddenItems && excludedFolderPatterns.length > 0 && isPathInExcludedFolder(file.path, excludedFolderPatterns)) {
+        return false;
+    }
+
+    if (!showHiddenItems && shouldHideDrawingCompanionImageFile(app, file, { hideDrawingPreviewImages })) {
         return false;
     }
 
@@ -404,7 +411,13 @@ export function getFilesForFolder(
         for (const child of f.children) {
             if (child instanceof TFile) {
                 // Check if file should be displayed based on visibility setting
-                if (shouldDisplayFile(child, fileVisibility, app)) {
+                if (
+                    shouldDisplayFile(child, fileVisibility, app) &&
+                    (visibility.showHiddenItems ||
+                        !shouldHideDrawingCompanionImageFile(app, child, {
+                            hideDrawingPreviewImages: settings.hideDrawingPreviewImages
+                        }))
+                ) {
                     files.push(child);
                 }
             } else if (visibility.includeDescendantNotes && child instanceof TFolder) {
@@ -522,6 +535,7 @@ export function getFilesForTag(
             fileNameMatcher,
             shouldFilterHiddenFileTags,
             hiddenFileTagVisibility,
+            hideDrawingPreviewImages: settings.hideDrawingPreviewImages,
             app,
             db
         });
@@ -704,6 +718,7 @@ export function getFilesForProperty(
             fileNameMatcher,
             shouldFilterHiddenFileTags,
             hiddenFileTagVisibility,
+            hideDrawingPreviewImages: settings.hideDrawingPreviewImages,
             app,
             db
         });

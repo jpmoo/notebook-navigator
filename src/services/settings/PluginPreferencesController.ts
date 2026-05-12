@@ -41,7 +41,6 @@ import {
     type LocalStorageKeys,
     type UXPreferences
 } from '../../types';
-import { resetHiddenToggleIfNoSources } from '../../utils/exclusionUtils';
 import { ensureVaultProfiles, DEFAULT_VAULT_PROFILE_ID } from '../../utils/vaultProfiles';
 import { runAsyncAction } from '../../utils/async';
 import { isAlphaSortOrder, isTagSortOrder } from '../../settings/types';
@@ -477,12 +476,6 @@ export class PluginPreferencesController {
         settings.vaultProfile = nextProfile.id;
         localStorage.set(this.options.keys.vaultProfileKey, nextProfile.id);
         this.initializeRecentDataManager();
-
-        resetHiddenToggleIfNoSources({
-            settings,
-            showHiddenItems: this.uxPreferences.showHiddenItems,
-            setShowHiddenItems: value => this.setShowHiddenItems(value)
-        });
 
         this.options.refreshMatcherCachesIfNeeded();
         this.options.persistSyncModeSettingUpdate('vaultProfile');

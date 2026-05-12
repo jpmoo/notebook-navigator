@@ -577,6 +577,8 @@ describe('listPaneMeasurements layout helpers', () => {
     it('keeps feature image visibility aligned for image files and cached thumbnails', () => {
         const markdownFile = createTestTFile('Notes/Daily.md');
         const imageFile = createTestTFile('Images/Cover.png');
+        const excalidrawFile = createTestTFile('Drawings/Sketch.excalidraw.md');
+        const legacyExcalidrawFile = createTestTFile('Drawings/Sketch.excalidraw');
 
         expect(
             shouldShowFeatureImageArea({
@@ -593,10 +595,29 @@ describe('listPaneMeasurements layout helpers', () => {
                 featureImageStatus: 'unprocessed'
             })
         ).toBe(true);
+
+        expect(
+            shouldShowFeatureImageArea({
+                showImage: true,
+                file: excalidrawFile,
+                featureImageStatus: 'none',
+                showDrawingFeatureImage: true
+            })
+        ).toBe(true);
+
+        expect(
+            shouldShowFeatureImageArea({
+                showImage: true,
+                file: legacyExcalidrawFile,
+                featureImageStatus: 'none',
+                showDrawingFeatureImage: true
+            })
+        ).toBe(true);
     });
 
     it('only shows extension badge thumbnails when the feature image area renders', () => {
         const baseFile = createTestTFile('Data/Inventory.base');
+        const excalidrawFile = createTestTFile('Drawings/Sketch.excalidraw.md');
 
         expect(
             shouldShowExtensionBadgeThumbnail({
@@ -619,6 +640,14 @@ describe('listPaneMeasurements layout helpers', () => {
                 hasFeatureImageUrl: true
             })
         ).toBe(false);
+
+        expect(
+            shouldShowExtensionBadgeThumbnail({
+                showFeatureImageArea: true,
+                file: excalidrawFile,
+                showDrawingMissingFeatureImage: true
+            })
+        ).toBe(true);
     });
 
     it('counts numeric frontmatter properties as visible property rows', () => {

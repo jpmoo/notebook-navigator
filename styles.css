@@ -4397,6 +4397,12 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.1px;
 }
+
+.nn-file-extension-icon {
+    width: min(24px, 42%);
+    height: min(24px, 42%);
+    color: var(--nn-theme-foreground-muted);
+}
 /* Source: src/styles/sections/list-group-headers.css */
 
 /* ========================================================================
@@ -6498,6 +6504,20 @@ body.nn-resizing {
 .nn-setting-info-container.nn-setting-info-centered .setting-item-info,
 .nn-setting-info-container.nn-setting-info-centered .setting-item-description {
     text-align: center;
+}
+
+.nn-setting-info-container.nn-setting-info-list .setting-item-info,
+.nn-setting-info-container.nn-setting-info-list .setting-item-description {
+    text-align: left;
+}
+
+.nn-setting-info-list ol {
+    margin: 6px 0 0 1.5em;
+    padding: 0;
+}
+
+.nn-setting-info-list li + li {
+    margin-top: 4px;
 }
 
 .nn-sub-settings > .setting-item.nn-setting-property-keys-info:last-child {
