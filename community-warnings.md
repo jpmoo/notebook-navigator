@@ -11,9 +11,9 @@ particular only the first 49 of the 272 `!important` locations are present in th
 
 Reported count: **272** (49 locations visible in saved HTML)
 
-Status: 🔄 In progress. Header/search/button slice completed on 2026-05-12 by replacing `!important` with scoped
-`button`/`input` selector specificity. Source occurrences are now 104, and generated `styles.css` occurrences are
-now 104. Verified by local scan and `./scripts/build.sh`.
+Status: ✅ Finished in final CSS pass on 2026-05-12. Removed the remaining source `!important` declarations with scoped
+selector specificity and mobile toolbar/layout adjustments. Source occurrences are now 0, and generated `styles.css`
+occurrences are now 0. Verified by local scan and `./scripts/build.sh`.
 
 - `styles.css`: 750, 751, 800, 805, 952, 957, 1054, 1059, 1060, 1061, 1066, 1071, 1072, 1158, 1160, 1161, 1162, 1163,
   1169, 1174, 1179, 1184, 1185, 1189, 1266, 1267, 1342, 1395, 1396, 1397, 1405, 1406, 1439, 1450, 1451, 1456, 2067,
@@ -141,8 +141,9 @@ Verified by emoji/icon serialization tests, local scan, and `./scripts/build.sh`
 
 Reported count: **2**
 
-Status: ⏳ Open. Still present in the mobile toolbar grouping rule; defer until the toolbar markup/layout can be
-adjusted without changing Android/iOS button distribution.
+Status: ✅ Finished in mobile toolbar structural pass on 2026-05-12. Non-floating mobile toolbars now render flat button
+children, while iOS floating toolbars keep their pill/circle grouping wrappers. Verified by local scan and
+`./scripts/build.sh`.
 
 - `src/styles/sections/mobile-tab-bars.css`: 37
 - `styles.css`: 7461

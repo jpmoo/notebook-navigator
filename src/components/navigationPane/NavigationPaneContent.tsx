@@ -727,9 +727,10 @@ export const NavigationPane = React.memo(
                     onToggleRootFolderReorder={handleToggleRootReorder}
                     rootReorderActive={isRootReorderMode}
                     rootReorderDisabled={!canReorderRootItems}
+                    useFloatingLayout={shouldUseFloatingToolbars}
                 />
             );
-        }, [canReorderRootItems, handleToggleRootReorder, handleTreeUpdateComplete, isRootReorderMode]);
+        }, [canReorderRootItems, handleToggleRootReorder, handleTreeUpdateComplete, isRootReorderMode, shouldUseFloatingToolbars]);
 
         const showVaultTitleInHeader =
             !isMobile && (settings.vaultProfiles ?? []).length > 1 && (settings.vaultTitle ?? 'navigation') === 'header';

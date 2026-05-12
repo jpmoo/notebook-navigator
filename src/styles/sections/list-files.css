@@ -57,12 +57,12 @@
 }
 
 .nn-list-title-label--folder-note {
-    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration) !important;
+    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration);
 }
 
 .nn-list-title-label--folder-note:hover {
     cursor: pointer;
-    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration) !important;
+    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration);
 }
 
 /* File - container for each file in the list */

@@ -121,8 +121,8 @@
 /* Single-pane panes - positioned in grid and animated with transforms */
 .nn-split-container.nn-single-pane .nn-navigation-pane,
 .nn-split-container.nn-single-pane .nn-list-pane {
-    width: 100% !important;
-    max-width: 100% !important;
+    width: 100%;
+    max-width: 100%;
     height: 100%;
     grid-column: 1;
     grid-row: 1;
@@ -170,7 +170,7 @@
 
 /* Hide resize handle on mobile */
 .notebook-navigator-mobile .nn-resize-handle {
-    display: none !important;
+    display: none;
 }
 
 /* Add touch-action to prevent browser gestures interfering */

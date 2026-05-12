@@ -458,8 +458,14 @@ export const ListPane = React.memo(
         }, [calendarWeekCount, filePathToIndex, scrollToIndexSafely, selectedFile, shouldRenderCalendarOverlay]);
 
         const listToolbar = useMemo(() => {
-            return <ListToolbar isSearchActive={isSearchActive} onSearchToggle={handleSearchToggle} />;
-        }, [handleSearchToggle, isSearchActive]);
+            return (
+                <ListToolbar
+                    isSearchActive={isSearchActive}
+                    onSearchToggle={handleSearchToggle}
+                    useFloatingLayout={shouldUseFloatingToolbars}
+                />
+            );
+        }, [handleSearchToggle, isSearchActive, shouldUseFloatingToolbars]);
 
         const handleHoveredFilePathChange = React.useCallback(
             (path: string | null, pointerClientPosition: PointerClientPosition | null) => {

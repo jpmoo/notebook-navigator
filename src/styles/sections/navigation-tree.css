@@ -243,7 +243,7 @@
 /* Folder name text - truncates with ellipsis on overflow */
 .nn-navitem-name {
     font-size: var(--nn-setting-nav-font-size);
-    font-weight: var(--nn-theme-navitem-name-font-weight) !important;
+    font-weight: var(--nn-theme-navitem-name-font-weight);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -257,24 +257,24 @@
 
 /* Custom colored folder names */
 .nn-navitem-name.nn-has-custom-color {
-    font-weight: var(--nn-theme-navitem-custom-color-name-font-weight) !important;
+    font-weight: var(--nn-theme-navitem-custom-color-name-font-weight);
 }
 
 /* Folder with folder note */
 .nn-navitem-name.nn-has-folder-note {
-    font-weight: var(--nn-theme-navitem-folder-note-name-font-weight) !important;
-    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration) !important;
+    font-weight: var(--nn-theme-navitem-folder-note-name-font-weight);
+    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration);
 }
 
 /* Folder with folder note and custom color uses custom color weight */
 .nn-navitem-name.nn-has-folder-note.nn-has-custom-color {
-    font-weight: var(--nn-theme-navitem-custom-color-name-font-weight) !important;
+    font-weight: var(--nn-theme-navitem-custom-color-name-font-weight);
 }
 
 /* Folder with folder note - show pointer cursor on hover */
 .nn-navitem-name.nn-has-folder-note:hover {
     cursor: pointer;
-    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration) !important;
+    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration);
 }
 
 /* Spacer element to push count to the end */
@@ -334,7 +334,7 @@
     overflow: visible;
 }
 
-.nn-navitem-hover-action-button {
+button.nn-icon-button.nn-navitem-hover-action-button {
     position: absolute;
     top: 50%;
     inset-inline-end: 0;
@@ -342,12 +342,12 @@
     visibility: hidden;
     pointer-events: none;
     cursor: pointer;
-    height: 18px !important;
-    width: 18px !important;
-    min-height: 0 !important;
-    min-width: 0 !important;
-    padding: 0 !important;
-    border-radius: 50% !important;
+    height: 18px;
+    width: 18px;
+    min-height: 0;
+    min-width: 0;
+    padding: 0;
+    border-radius: 50%;
     z-index: 1;
 }
 
@@ -411,7 +411,7 @@
 }
 
 .nn-shortcut-item .nn-shortcut-label[data-has-color='true'] {
-    font-weight: var(--nn-theme-navitem-custom-color-file-name-font-weight) !important;
+    font-weight: var(--nn-theme-navitem-custom-color-file-name-font-weight);
 }
 
 .nn-shortcut-item--missing .nn-shortcut-label {
@@ -420,19 +420,19 @@
 
 /* Styles for shortcut labels that have an associated folder note */
 .nn-shortcut-item .nn-navitem-name.nn-has-folder-note .nn-shortcut-label {
-    font-weight: var(--nn-theme-navitem-folder-note-name-font-weight) !important;
-    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration) !important;
+    font-weight: var(--nn-theme-navitem-folder-note-name-font-weight);
+    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration);
 }
 
 /* Folder note shortcuts with custom color use custom color weight */
 .nn-shortcut-item .nn-navitem-name.nn-has-folder-note.nn-has-custom-color .nn-shortcut-label {
-    font-weight: var(--nn-theme-navitem-custom-color-file-name-font-weight) !important;
+    font-weight: var(--nn-theme-navitem-custom-color-file-name-font-weight);
 }
 
 /* Pointer cursor on hover for clickable folder note shortcuts */
 .nn-shortcut-item .nn-navitem-name.nn-has-folder-note:hover .nn-shortcut-label {
     cursor: pointer;
-    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration) !important;
+    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration);
 }
 
 .nn-drag-item .nn-shortcut-description {
@@ -548,7 +548,7 @@
 }
 
 .nn-root-reorder-item .nn-shortcut-label[data-has-color='true'] {
-    font-weight: var(--nn-theme-navitem-custom-color-name-font-weight) !important;
+    font-weight: var(--nn-theme-navitem-custom-color-name-font-weight);
 }
 
 .nn-root-reorder-item--missing .nn-shortcut-label {
