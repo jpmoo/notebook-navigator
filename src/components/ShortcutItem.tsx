@@ -34,6 +34,7 @@ interface ShortcutItemProps {
     icon: string;
     color?: string;
     backgroundColor?: string;
+    adjacentFilledClassName?: string;
     label: string;
     description?: string;
     level: number;
@@ -71,6 +72,7 @@ export const ShortcutItem = React.memo(function ShortcutItem({
     icon,
     color,
     backgroundColor,
+    adjacentFilledClassName,
     label,
     description,
     level,
@@ -124,8 +126,11 @@ export const ShortcutItem = React.memo(function ShortcutItem({
         if (hasRemove) {
             classes.push('nn-shortcut-item--removable');
         }
+        if (adjacentFilledClassName) {
+            classes.push(adjacentFilledClassName);
+        }
         return classes.join(' ');
-    }, [hasRemove, isMissing]);
+    }, [adjacentFilledClassName, hasRemove, isMissing]);
 
     // Conditionally enables label click handler based on row state
     const labelClickHandler = useMemo(() => {

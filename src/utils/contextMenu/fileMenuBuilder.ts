@@ -1019,7 +1019,7 @@ function addSingleFileDeleteOption(
             : file.extension === 'md'
               ? strings.contextMenu.file.deleteNote
               : strings.contextMenu.file.deleteFile;
-        setAsyncOnClick(item.setTitle(title).setIcon('lucide-trash'), async () => {
+        setAsyncOnClick(item.setTitle(title).setIcon('lucide-trash').setWarning(true), async () => {
             // Check if this is the currently selected file
             if (selectionState.selectedFile?.path === file.path) {
                 // Use the smart delete handler
@@ -1066,7 +1066,8 @@ function addMultipleFilesDeleteOption(
                         ? strings.contextMenu.file.deleteMultipleNotes.replace('{count}', selectedCount.toString())
                         : strings.contextMenu.file.deleteMultipleFiles.replace('{count}', selectedCount.toString())
                 )
-                .setIcon('lucide-trash'),
+                .setIcon('lucide-trash')
+                .setWarning(true),
             async () => {
                 // Use centralized delete method with smart selection
                 await fileSystemOps.deleteFilesWithSmartSelection(

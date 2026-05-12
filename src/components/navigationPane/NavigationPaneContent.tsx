@@ -71,6 +71,7 @@ import type { CombinedNavigationItem } from '../../types/virtualization';
 import { NavigationPaneItemRenderer } from './NavigationPaneItemRenderer';
 import { NavigationPaneLayout } from './NavigationPaneLayout';
 import type { NavigationPaneRowContext } from './NavigationPaneItemRenderer.types';
+import { isNavigationItemFilled } from './navigationPaneItemState';
 import type { NavigationRainbowState } from '../../hooks/useNavigationRainbowState';
 import type { NavigationPaneSourceState } from '../../hooks/navigationPane/data/useNavigationPaneSourceState';
 import type { NavigationPaneTreeSectionsResult } from '../../hooks/navigationPane/data/useNavigationPaneTreeSections';
@@ -822,8 +823,21 @@ export const NavigationPane = React.memo(
             ]
         );
 
+        const isNavigationItemFilledForAdjacency = useCallback(
+            (item: CombinedNavigationItem) =>
+                isNavigationItemFilled({
+                    item,
+                    selectionState,
+                    searchHighlights,
+                    getSolidBackground
+                }),
+            [getSolidBackground, searchHighlights, selectionState]
+        );
+
         const renderNavigationItem = useCallback(
-            (item: CombinedNavigationItem) => <NavigationPaneItemRenderer item={item} context={rowContext} />,
+            (item: CombinedNavigationItem, adjacentFilledClassName?: string) => (
+                <NavigationPaneItemRenderer item={item} context={rowContext} adjacentFilledClassName={adjacentFilledClassName} />
+            ),
             [rowContext]
         );
 
@@ -897,6 +911,7 @@ export const NavigationPane = React.memo(
                         pinnedShortcutsScrollRefCallback={pinnedShortcutsScrollRefCallback}
                         pinnedNavigationItems={pinnedNavigationItems}
                         renderNavigationItem={renderNavigationItem}
+                        isNavigationItemFilled={isNavigationItemFilledForAdjacency}
                         onPinnedShortcutsResizePointerDown={handlePinnedShortcutsResizePointerDown}
                         scrollContainerRefCallback={scrollContainerRefCallback}
                         hasNavigationBannerConfigured={hasNavigationBannerConfigured}

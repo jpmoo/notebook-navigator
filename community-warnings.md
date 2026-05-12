@@ -19,6 +19,10 @@ Reported count: **272** (49 locations visible in saved HTML)
 
 Reported count: **32**
 
+Status: ✅ Finished in structural pass on 2026-05-12. Replaced list/navigation adjacency selectors with explicit row
+classes, and replaced trash-icon menu detection with Obsidian `MenuItem.setWarning(true)`. Verified by local scan and
+`./scripts/build.sh`.
+
 - `src/styles/sections/list-files.css`: 122, 123, 127, 128, 134
 - `src/styles/sections/navigation-tree.css`: 67, 79, 87, 94, 95, 101
 - `src/styles/sections/settings-metadata-info.css`: 32, 35
@@ -117,6 +121,9 @@ Status: ✅ Finished in mechanical pass on 2026-05-12. Verified by local scan an
 ## "emoji-regex" should be replaced with an alternative package.
 
 Reported count: **2**
+
+Status: ✅ Finished in dependency pass on 2026-05-12. Replaced direct `emoji-regex` usage with `emoji-regex-xs`.
+Verified by emoji/icon serialization tests, local scan, and `./scripts/build.sh`.
 
 - `src/utils/emojiUtils.ts`: 26
 

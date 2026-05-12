@@ -64,46 +64,15 @@
 }
 
 /* Overdraw and zero shared corners only between adjacent filled backgrounds */
-.nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected):has(
-        + .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
-    ) {
+.nn-navitem.nn-navitem-has-filled-next {
     --nn-navitem-background-bottom-overdraw: -0.5px;
-}
-
-.nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
-    + .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected) {
-    --nn-navitem-top-left-radius: 0;
-    --nn-navitem-top-right-radius: 0;
-}
-
-.nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected):has(
-        + .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
-    ) {
     --nn-navitem-bottom-left-radius: 0;
     --nn-navitem-bottom-right-radius: 0;
 }
 
-/* Apply the same corner trimming within the virtualized row wrapper */
-.nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)):has(
-        + .nn-virtual-nav-item > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
-    )
-    > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected) {
-    --nn-navitem-background-bottom-overdraw: -0.5px;
-}
-
-.nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected))
-    + .nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected))
-    > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected) {
+.nn-navitem.nn-navitem-has-filled-previous {
     --nn-navitem-top-left-radius: 0;
     --nn-navitem-top-right-radius: 0;
-}
-
-.nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)):has(
-        + .nn-virtual-nav-item > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
-    )
-    > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected) {
-    --nn-navitem-bottom-left-radius: 0;
-    --nn-navitem-bottom-right-radius: 0;
 }
 
 /* Folder content - contains folder UI elements */

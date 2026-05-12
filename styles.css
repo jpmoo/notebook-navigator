@@ -1854,46 +1854,15 @@ body {
 }
 
 /* Overdraw and zero shared corners only between adjacent filled backgrounds */
-.nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected):has(
-        + .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
-    ) {
+.nn-navitem.nn-navitem-has-filled-next {
     --nn-navitem-background-bottom-overdraw: -0.5px;
-}
-
-.nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
-    + .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected) {
-    --nn-navitem-top-left-radius: 0;
-    --nn-navitem-top-right-radius: 0;
-}
-
-.nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected):has(
-        + .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
-    ) {
     --nn-navitem-bottom-left-radius: 0;
     --nn-navitem-bottom-right-radius: 0;
 }
 
-/* Apply the same corner trimming within the virtualized row wrapper */
-.nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)):has(
-        + .nn-virtual-nav-item > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
-    )
-    > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected) {
-    --nn-navitem-background-bottom-overdraw: -0.5px;
-}
-
-.nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected))
-    + .nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected))
-    > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected) {
+.nn-navitem.nn-navitem-has-filled-previous {
     --nn-navitem-top-left-radius: 0;
     --nn-navitem-top-right-radius: 0;
-}
-
-.nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)):has(
-        + .nn-virtual-nav-item > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected)
-    )
-    > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match, .nn-selected) {
-    --nn-navitem-bottom-left-radius: 0;
-    --nn-navitem-bottom-right-radius: 0;
 }
 
 /* Folder content - contains folder UI elements */
@@ -3710,20 +3679,17 @@ body {
     z-index: 2;
 }
 
-.nn-virtual-file-item:has(> .nn-file.nn-has-custom-background)::after,
-.nn-virtual-file-item:has(+ .nn-virtual-file-item > .nn-file.nn-has-custom-background)::after {
+.nn-virtual-file-item-has-custom-background::after,
+.nn-virtual-file-item-has-custom-background-next::after {
     display: none;
 }
 
-.nn-virtual-file-item:has(> .nn-file.nn-has-custom-background)
-    + .nn-virtual-file-item:has(> .nn-file.nn-has-custom-background)
-    > .nn-file.nn-has-custom-background {
+.nn-virtual-file-item-has-custom-background-previous > .nn-file.nn-has-custom-background {
     --nn-file-top-left-radius: 0;
     --nn-file-top-right-radius: 0;
 }
 
-.nn-virtual-file-item:has(> .nn-file.nn-has-custom-background):has(+ .nn-virtual-file-item > .nn-file.nn-has-custom-background)
-    > .nn-file.nn-has-custom-background {
+.nn-virtual-file-item-has-custom-background-next > .nn-file.nn-has-custom-background {
     --nn-file-bottom-left-radius: 0;
     --nn-file-bottom-right-radius: 0;
 }
@@ -8151,14 +8117,6 @@ body.nn-resizing {
 /* Export button - stays on the right */
 .nn-metadata-export-button {
     flex-shrink: 0;
-}
-
-/* Make delete menu items red (items with trash icon) */
-.menu-item:has(.menu-item-icon svg.lucide-trash) {
-    color: var(--text-error);
-}
-.menu-item:has(.menu-item-icon svg.lucide-trash) .menu-item-icon {
-    color: var(--text-error);
 }
 /* Source: src/styles/sections/settings-style-settings.css */
 

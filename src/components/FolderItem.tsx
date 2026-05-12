@@ -83,6 +83,7 @@ interface FolderItemProps {
     icon?: string;
     color?: string;
     backgroundColor?: string;
+    adjacentFilledClassName?: string;
     countInfo?: NoteCountInfo;
     excludedFolders: string[];
     vaultChangeVersion: number;
@@ -120,6 +121,7 @@ export const FolderItem = React.memo(function FolderItem({
     icon,
     color,
     backgroundColor,
+    adjacentFilledClassName,
     countInfo,
     excludedFolders,
     vaultChangeVersion,
@@ -216,8 +218,9 @@ export const FolderItem = React.memo(function FolderItem({
         if (isSelected) classes.push('nn-selected');
         if (isExcluded) classes.push('nn-excluded');
         if (customBackground) classes.push('nn-has-custom-background');
+        if (adjacentFilledClassName) classes.push(adjacentFilledClassName);
         return classes.join(' ');
-    }, [customBackground, isSelected, isExcluded]);
+    }, [adjacentFilledClassName, customBackground, isSelected, isExcluded]);
 
     const folderNameClassName = useMemo(() => {
         const classes = ['nn-navitem-name'];
