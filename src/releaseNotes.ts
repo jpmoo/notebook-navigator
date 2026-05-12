@@ -81,6 +81,14 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
+        version: '2.6.6',
+        date: '2026-05-12',
+        showOnUpdate: true,
+        changed: [
+            '**List pane.** ==Excalidraw drawing previews now use the PNG files exported by Excalidraw==. Enable **Auto-export PNG** in Excalidraw settings. The new **List > Excalidraw** settings group has the full setup instructions.'
+        ]
+    },
+    {
         version: '2.6.5',
         date: '2026-05-11',
         showOnUpdate: true,

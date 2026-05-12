@@ -27,7 +27,6 @@ import { getYoutubeThumbnailUrl } from '../../utils/youtubeUtils';
 import { BaseContentProvider, type ContentProviderProcessResult } from './BaseContentProvider';
 import type { ContentReadCache } from './ContentReadCache';
 import { isValidHttpsUrl, type FeatureImageReference } from './featureImageReferenceResolver';
-import { renderExcalidrawThumbnail } from './excalidraw/excalidrawThumbnail';
 import { renderPdfCoverThumbnail } from './pdf/pdfCoverThumbnail';
 import { detectImageMimeTypeFromBuffer, getImageDimensionsPairFromBuffer, normalizeImageMimeType } from './thumbnail/imageDimensions';
 import { createOnceLogger, createRenderBudgetLimiter, createRenderLimiter } from './thumbnail/thumbnailRuntimeUtils';
@@ -271,34 +270,6 @@ export class FeatureImageContentProvider extends BaseContentProvider {
 
     protected createEmptyBlob(): Blob {
         return new Blob([]);
-    }
-
-    // Creates a cache key for Excalidraw files based on path and modification time
-    protected getExcalidrawFeatureImageKey(file: TFile): string {
-        return `x:${file.path}@${file.stat.mtime}`;
-    }
-
-    // Renders an Excalidraw file to a resized thumbnail blob
-    protected async createExcalidrawThumbnail(file: TFile): Promise<Blob | null> {
-        const pngBlob = await renderExcalidrawThumbnail(this.app, file, { padding: 0 });
-        if (!pngBlob) {
-            return null;
-        }
-
-        try {
-            const mimeType = pngBlob.type || 'image/png';
-            const buffer = await pngBlob.arrayBuffer();
-            const thumbnail = await this.createThumbnailBlobFromBuffer(
-                buffer,
-                mimeType,
-                file.path,
-                'local',
-                this.getThumbnailDimensions(this.currentBatchSettings?.featureImagePixelSize)
-            );
-            return thumbnail ?? pngBlob;
-        } catch {
-            return pngBlob;
-        }
     }
 
     protected getFeatureImageKey(reference: FeatureImageReference): string {

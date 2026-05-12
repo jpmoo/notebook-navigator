@@ -863,7 +863,8 @@ export const STRINGS_FA = {
             list: {
                 display: 'ظاهر',
                 organization: 'سازماندهی',
-                pinnedNotes: 'یادداشت‌های سنجاق‌شده'
+                pinnedNotes: 'یادداشت‌های سنجاق‌شده',
+                excalidraw: 'Excalidraw'
             },
             notes: {
                 frontmatter: 'فرانت‌متر',
@@ -1669,6 +1670,19 @@ export const STRINGS_FA = {
             downloadExternalFeatureImages: {
                 name: 'دانلود تصاویر خارجی',
                 desc: 'دانلود تصاویر از راه دور و تصاویر کوچک YouTube برای تصاویر ویژه.'
+            },
+            hideExcalidrawPreviewImages: {
+                name: 'پنهان کردن تصاویر پیش‌نمایش صادر شده',
+                desc: 'پنهان کردن فایل‌های PNG صادر شده توسط Excalidraw. برای نمایش آن‌ها، «نمایش موارد پنهان» را روشن کنید.'
+            },
+            excalidrawIntegrationInfo: {
+                intro: 'Notebook Navigator فایل‌های PNG صادر شده توسط Excalidraw را به‌عنوان پیش‌نمایش طراحی نمایش می‌دهد.',
+                items: [
+                    'در **تنظیمات Excalidraw**، **Embedding Excalidraw into your Notes and Exporting** را باز کنید، سپس **Export Settings**، سپس **Auto-export Settings**.',
+                    '**Auto-export PNG** را فعال کنید. به‌صورت اختیاری **Export both dark- and light-themed image** را فعال کنید.',
+                    'Notebook Navigator به دنبال **Drawing.excalidraw.png**، **Drawing.excalidraw.dark.png** یا **Drawing.excalidraw.light.png** می‌گردد.',
+                    'هنگامی که **پنهان کردن تصاویر پیش‌نمایش صادر شده** روشن است، فایل‌های PNG فقط زمانی نمایش داده می‌شوند که **نمایش موارد پنهان** نیز روشن باشد.'
+                ]
             },
             showRootFolder: {
                 name: 'نمایش پوشه اصلی',

@@ -38,6 +38,7 @@ import {
 import { PreviewTextUtils } from '../../utils/previewTextUtils';
 import { createCaseInsensitiveKeyMatcher, findMatchingRecordKey } from '../../utils/recordUtils';
 import { countWordsForNoteProperty } from '../../utils/wordCountUtils';
+import { getExcalidrawDirectFeatureImageKey } from '../../utils/excalidrawFeatureImages';
 import type { ContentProviderProcessResult } from './BaseContentProvider';
 import { findFeatureImageReference, type FeatureImageReference } from './featureImageReferenceResolver';
 import { FeatureImageContentProvider } from './FeatureImageContentProvider';
@@ -1021,15 +1022,15 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
         }
 
         if (params.isExcalidraw) {
-            const featureImageKey = this.getExcalidrawFeatureImageKey(params.file);
-            if (params.fileData && params.fileData.featureImageKey === featureImageKey) {
+            const featureImageKey = getExcalidrawDirectFeatureImageKey(params.file);
+            const isUpToDate = params.fileData?.featureImageKey === featureImageKey && params.fileData.featureImageStatus === 'none';
+            if (isUpToDate) {
                 return null;
             }
 
-            const thumbnail = await this.createExcalidrawThumbnail(params.file);
             return {
                 featureImageKey,
-                featureImage: thumbnail ?? this.createEmptyBlob()
+                featureImage: this.createEmptyBlob()
             };
         }
 

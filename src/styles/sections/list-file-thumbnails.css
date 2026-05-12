@@ -109,3 +109,9 @@
     text-transform: uppercase;
     letter-spacing: 0.1px;
 }
+
+.nn-file-extension-icon {
+    width: min(24px, 42%);
+    height: min(24px, 42%);
+    color: var(--nn-theme-foreground-muted);
+}

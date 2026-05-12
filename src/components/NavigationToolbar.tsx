@@ -22,7 +22,6 @@ import { useUXPreferenceActions, useUXPreferences } from '../context/UXPreferenc
 import { strings } from '../i18n';
 import { ServiceIcon } from './ServiceIcon';
 import { useNavigationActions } from '../hooks/useNavigationActions';
-import { hasHiddenItemSources } from '../utils/exclusionUtils';
 import { runAsyncAction } from '../utils/async';
 import { resolveUXIcon } from '../utils/uxIcons';
 
@@ -49,12 +48,9 @@ export function NavigationToolbar({
 
     // Hook providing shared navigation actions (expand/collapse, folder creation, toggle visibility)
     const { shouldCollapseItems, handleExpandCollapseAll, handleNewFolder, handleToggleShowExcludedFolders } = useNavigationActions();
-    // Detects if any hidden folders, tags, or files are configured to determine if toggle should be shown
-    const hasHiddenItems = hasHiddenItemSources(settings);
-
     const showExpandCollapseButton = navigationVisibility.expandCollapse;
     const showCalendarButton = navigationVisibility.calendar && settings.calendarEnabled && settings.calendarPlacement !== 'right-sidebar';
-    const showHiddenItemsButton = navigationVisibility.hiddenItems && hasHiddenItems;
+    const showHiddenItemsButton = navigationVisibility.hiddenItems;
     const showRootReorderButton = navigationVisibility.rootReorder;
     const showNewFolderButton = navigationVisibility.newFolder;
 
@@ -111,7 +107,6 @@ export function NavigationToolbar({
                                         });
                                     }
                                 }}
-                                disabled={!hasHiddenItems}
                                 tabIndex={-1}
                             >
                                 <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'nav-hidden-items')} />

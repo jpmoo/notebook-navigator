@@ -24,7 +24,6 @@ import { executeCommand, getInternalPlugin, isFolderAncestor, isPluginInstalled 
 import { getFolderNote, createFolderNote } from '../../utils/folderNotes';
 import { cleanupExclusionPatterns, isFolderInExcludedFolder } from '../../utils/fileFilters';
 import { ItemType } from '../../types';
-import { resetHiddenToggleIfNoSources } from '../../utils/exclusionUtils';
 import { runAsyncAction } from '../async';
 import { addCopyPathSubmenu, setAsyncOnClick, tryCreateSubmenu } from './menuAsyncHelpers';
 import { addShortcutRenameMenuItem } from './shortcutRenameMenuItem';
@@ -444,7 +443,6 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
 
     // Hide/Unhide folder (not available for root folder)
     if (folder.path !== '/') {
-        const { showHiddenItems } = services.visibility;
         // Get the active vault profile to access its hidden folder patterns
         const activeProfile = getActiveVaultProfile(services.plugin.settings);
         const excludedPatterns = activeProfile.hiddenFolders;
@@ -460,11 +458,6 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
                 setAsyncOnClick(item.setTitle(strings.contextMenu.folder.unhideFolder).setIcon('lucide-eye'), async () => {
                     const currentExcluded = activeProfile.hiddenFolders;
                     activeProfile.hiddenFolders = currentExcluded.filter(pattern => pattern !== matchingHiddenPattern);
-                    resetHiddenToggleIfNoSources({
-                        settings: services.plugin.settings,
-                        showHiddenItems,
-                        setShowHiddenItems: value => services.plugin.setShowHiddenItems(value)
-                    });
                     await services.plugin.saveSettingsAndUpdate();
 
                     showNotice(strings.fileSystem.notices.showFolder.replace('{name}', folderDisplayName), { variant: 'success' });
@@ -482,11 +475,6 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
                     const cleanedPatterns = cleanupExclusionPatterns(currentExcluded, folderPath);
 
                     activeProfile.hiddenFolders = cleanedPatterns;
-                    resetHiddenToggleIfNoSources({
-                        settings: services.plugin.settings,
-                        showHiddenItems,
-                        setShowHiddenItems: value => services.plugin.setShowHiddenItems(value)
-                    });
                     await services.plugin.saveSettingsAndUpdate();
 
                     showNotice(strings.fileSystem.notices.hideFolder.replace('{name}', folderDisplayName), { variant: 'success' });

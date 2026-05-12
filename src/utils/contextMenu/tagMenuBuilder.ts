@@ -22,7 +22,6 @@ import { strings } from '../../i18n';
 import { cleanupTagPatterns, createHiddenTagMatcher, matchesHiddenTagPattern } from '../tagPrefixMatcher';
 import { ItemType, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../../types';
 import { normalizeTagPath } from '../tagUtils';
-import { resetHiddenToggleIfNoSources } from '../exclusionUtils';
 import { setAsyncOnClick, tryCreateSubmenu } from './menuAsyncHelpers';
 import { addShortcutRenameMenuItem } from './shortcutRenameMenuItem';
 import { addStyleMenu } from './styleMenuBuilder';
@@ -349,11 +348,6 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
                         const cleanedHiddenTags = cleanupTagPatterns(hiddenTags, tagPath);
 
                         activeProfile.hiddenTags = cleanedHiddenTags;
-                        resetHiddenToggleIfNoSources({
-                            settings: plugin.settings,
-                            showHiddenItems: services.visibility.showHiddenItems,
-                            setShowHiddenItems: value => plugin.setShowHiddenItems(value)
-                        });
                         await plugin.saveSettingsAndUpdate();
                     });
                 });
@@ -365,11 +359,6 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
                             return !(normalizedPattern && !normalizedPattern.includes('*') && normalizedPattern === normalizedTagPath);
                         });
 
-                        resetHiddenToggleIfNoSources({
-                            settings: plugin.settings,
-                            showHiddenItems: services.visibility.showHiddenItems,
-                            setShowHiddenItems: value => plugin.setShowHiddenItems(value)
-                        });
                         await plugin.saveSettingsAndUpdate();
                     });
                 });

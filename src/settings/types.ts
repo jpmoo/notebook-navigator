@@ -509,6 +509,7 @@ export interface NotebookNavigatorSettings {
     quickActionAddToShortcuts: boolean;
     quickActionPinNote: boolean;
     quickActionOpenInNewTab: boolean;
+    hideExcalidrawPreviewImages: boolean;
 
     // Frontmatter tab
     useFrontmatterMetadata: boolean;

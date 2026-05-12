@@ -30,6 +30,7 @@ import { getDBInstance, markFilesForRegeneration, recordFileChanges, removeFiles
 import { runAsyncAction } from '../../utils/async';
 import { isMarkdownPath, isPdfFile } from '../../utils/fileTypeUtils';
 import { isPropertyFeatureEnabled } from '../../utils/propertyTree';
+import { emitExcalidrawCompanionImageChange, findExcalidrawFileForCompanionImage } from '../../utils/excalidrawFeatureImages';
 import { filterPdfFilesRequiringThumbnails } from '../storageQueueFilters';
 import { getCacheRebuildProgressTypes, getContentWorkTotal, getMetadataDependentTypes } from './storageContentTypes';
 
@@ -275,8 +276,32 @@ export function useStorageVaultSync(params: {
             runAsyncAction(() => buildFileCache(true));
         }
 
+        const queueFileContentRefresh = (file: TFile) => {
+            if (stoppedRef.current || !contentRegistryRef.current) {
+                return;
+            }
+
+            try {
+                const liveSettings = latestSettingsRef.current;
+                const metadataDependentTypes = getMetadataDependentTypes(liveSettings);
+                const { markdownFiles } = queueIndexableFilesForContentGeneration([file], liveSettings);
+                if (metadataDependentTypes.length > 0) {
+                    queueMetadataContentWhenReady(markdownFiles, metadataDependentTypes, liveSettings);
+                }
+            } catch (error: unknown) {
+                console.error('Failed to queue content refresh for file:', file.path, error);
+            }
+        };
+
+        const notifyExcalidrawCompanionChange = (imagePath: string) => {
+            emitExcalidrawCompanionImageChange(app, imagePath);
+        };
+
         const handleRename = (file: TAbstractFile, oldPath: string) => {
             if (file instanceof TFile) {
+                notifyExcalidrawCompanionChange(oldPath);
+                notifyExcalidrawCompanionChange(file.path);
+
                 try {
                     const db = getDBInstance();
                     const existing = db.getFile(oldPath);
@@ -352,28 +377,21 @@ export function useStorageVaultSync(params: {
             rebuildFileCache?.();
         };
 
-        const queueFileContentRefresh = (file: TFile) => {
-            if (stoppedRef.current || !contentRegistryRef.current) {
-                return;
-            }
-
-            try {
-                const liveSettings = latestSettingsRef.current;
-                const metadataDependentTypes = getMetadataDependentTypes(liveSettings);
-                const { markdownFiles } = queueIndexableFilesForContentGeneration([file], liveSettings);
-                if (metadataDependentTypes.length > 0) {
-                    queueMetadataContentWhenReady(markdownFiles, metadataDependentTypes, liveSettings);
-                }
-            } catch (error: unknown) {
-                console.error('Failed to queue content refresh for file:', file.path, error);
-            }
-        };
-
         const handleModify = (file: TAbstractFile) => {
             if (stoppedRef.current) {
                 return;
             }
-            if (!(file instanceof TFile) || (file.extension !== 'md' && !isPdfFile(file))) {
+            if (!(file instanceof TFile)) {
+                return;
+            }
+
+            const excalidrawFile = findExcalidrawFileForCompanionImage(app, file.path);
+            if (excalidrawFile) {
+                notifyExcalidrawCompanionChange(file.path);
+                return;
+            }
+
+            if (file.extension !== 'md' && !isPdfFile(file)) {
                 return;
             }
 
@@ -392,9 +410,16 @@ export function useStorageVaultSync(params: {
             });
         };
 
+        const handleCreateOrDelete = (file: TAbstractFile) => {
+            rebuildFileCache?.();
+            if (file instanceof TFile) {
+                notifyExcalidrawCompanionChange(file.path);
+            }
+        };
+
         const vaultEvents = [
-            app.vault.on('create', rebuildFileCache),
-            app.vault.on('delete', rebuildFileCache),
+            app.vault.on('create', handleCreateOrDelete),
+            app.vault.on('delete', handleCreateOrDelete),
             app.vault.on('rename', handleRename),
             app.vault.on('modify', handleModify)
         ];

@@ -62,6 +62,7 @@ import {
 } from './propertyTree';
 import type { IPropertyTreeProvider } from '../interfaces/IPropertyTreeProvider';
 import type { ITagTreeProvider } from '../interfaces/ITagTreeProvider';
+import { shouldHideExcalidrawCompanionImageFile } from './excalidrawFeatureImages';
 
 interface PinnedDisplayScope {
     restrictToFolderPath?: string;
@@ -111,6 +112,7 @@ function isFileVisibleForScopedSelection(
         fileNameMatcher: ReturnType<typeof createHiddenFileNameMatcherForVisibility>;
         shouldFilterHiddenFileTags: boolean;
         hiddenFileTagVisibility: ReturnType<typeof createHiddenTagVisibility>;
+        hideExcalidrawPreviewImages: boolean;
         app: App;
         db: ReturnType<typeof getDBInstanceOrNull>;
     }
@@ -122,11 +124,16 @@ function isFileVisibleForScopedSelection(
         fileNameMatcher,
         shouldFilterHiddenFileTags,
         hiddenFileTagVisibility,
+        hideExcalidrawPreviewImages,
         app,
         db
     } = options;
 
     if (!showHiddenItems && excludedFolderPatterns.length > 0 && isPathInExcludedFolder(file.path, excludedFolderPatterns)) {
+        return false;
+    }
+
+    if (!showHiddenItems && shouldHideExcalidrawCompanionImageFile(app, file, { hideExcalidrawPreviewImages })) {
         return false;
     }
 
@@ -404,7 +411,13 @@ export function getFilesForFolder(
         for (const child of f.children) {
             if (child instanceof TFile) {
                 // Check if file should be displayed based on visibility setting
-                if (shouldDisplayFile(child, fileVisibility, app)) {
+                if (
+                    shouldDisplayFile(child, fileVisibility, app) &&
+                    (visibility.showHiddenItems ||
+                        !shouldHideExcalidrawCompanionImageFile(app, child, {
+                            hideExcalidrawPreviewImages: settings.hideExcalidrawPreviewImages
+                        }))
+                ) {
                     files.push(child);
                 }
             } else if (visibility.includeDescendantNotes && child instanceof TFolder) {
@@ -522,6 +535,7 @@ export function getFilesForTag(
             fileNameMatcher,
             shouldFilterHiddenFileTags,
             hiddenFileTagVisibility,
+            hideExcalidrawPreviewImages: settings.hideExcalidrawPreviewImages,
             app,
             db
         });
@@ -704,6 +718,7 @@ export function getFilesForProperty(
             fileNameMatcher,
             shouldFilterHiddenFileTags,
             hiddenFileTagVisibility,
+            hideExcalidrawPreviewImages: settings.hideExcalidrawPreviewImages,
             app,
             db
         });

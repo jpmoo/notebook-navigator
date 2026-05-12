@@ -220,11 +220,25 @@ export function useNavigationPaneSourceState({
 
     const recentNotesHiddenFileMatcher = useMemo(() => {
         return createFileHiddenMatcher(
-            { hiddenFileProperties, hiddenFolders: profileHiddenFolders, hiddenFileNames, hiddenFileTags },
+            {
+                hiddenFileProperties,
+                hiddenFolders: profileHiddenFolders,
+                hiddenFileNames,
+                hiddenFileTags,
+                hideExcalidrawPreviewImages: settings.hideExcalidrawPreviewImages
+            },
             app,
             showHiddenItems
         );
-    }, [app, showHiddenItems, hiddenFileProperties, profileHiddenFolders, hiddenFileNames, hiddenFileTags]);
+    }, [
+        app,
+        showHiddenItems,
+        hiddenFileProperties,
+        profileHiddenFolders,
+        hiddenFileNames,
+        hiddenFileTags,
+        settings.hideExcalidrawPreviewImages
+    ]);
 
     return useMemo(
         () => ({

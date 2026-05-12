@@ -32,6 +32,7 @@ import { createHiddenTagVisibility } from './tagPrefixMatcher';
 import { type CachedFileTagsDB, getCachedFileTags } from './tagUtils';
 import { casefold, casefoldPreservingWhitespace, sortAndDedupeByComparator } from './recordUtils';
 import { normalizePropertyTreeValuePath } from './propertyUtils';
+import { shouldHideExcalidrawCompanionImageFile } from './excalidrawFeatureImages';
 
 interface FileFilterOptions {
     showHiddenItems?: boolean;
@@ -673,6 +674,7 @@ interface ExclusionFilterState {
     excludedPropertyMatcher: FrontmatterPropertyExclusionMatcher;
     excludedFolderPatterns: string[];
     includeHiddenItems: boolean;
+    hideExcalidrawPreviewImages: boolean;
     fileNameMatcher: HiddenFileNameMatcher | null;
     hiddenFileTagVisibility: ReturnType<typeof createHiddenTagVisibility> | null;
     db: CachedFileTagsDB | null;
@@ -692,6 +694,7 @@ function createExclusionFilterState(settings: NotebookNavigatorSettings, options
         excludedPropertyMatcher,
         excludedFolderPatterns: getActiveHiddenFolders(settings),
         includeHiddenItems,
+        hideExcalidrawPreviewImages: settings.hideExcalidrawPreviewImages,
         fileNameMatcher,
         hiddenFileTagVisibility,
         db
@@ -699,7 +702,19 @@ function createExclusionFilterState(settings: NotebookNavigatorSettings, options
 }
 
 function passesExclusionFilters(file: TFile, state: ExclusionFilterState, app: App): boolean {
-    const { excludedPropertyMatcher, excludedFolderPatterns, includeHiddenItems, fileNameMatcher, hiddenFileTagVisibility, db } = state;
+    const {
+        excludedPropertyMatcher,
+        excludedFolderPatterns,
+        includeHiddenItems,
+        hideExcalidrawPreviewImages,
+        fileNameMatcher,
+        hiddenFileTagVisibility,
+        db
+    } = state;
+
+    if (!includeHiddenItems && shouldHideExcalidrawCompanionImageFile(app, file, { hideExcalidrawPreviewImages })) {
+        return false;
+    }
 
     // Frontmatter based exclusion (markdown only)
     if (!includeHiddenItems && file.extension === 'md' && excludedPropertyMatcher.hasCriteria) {

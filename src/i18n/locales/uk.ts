@@ -860,7 +860,8 @@ export const STRINGS_UK = {
             list: {
                 display: 'Вигляд',
                 organization: 'Організація',
-                pinnedNotes: 'Закріплені нотатки'
+                pinnedNotes: 'Закріплені нотатки',
+                excalidraw: 'Excalidraw'
             },
             notes: {
                 frontmatter: 'Frontmatter',
@@ -1667,6 +1668,19 @@ export const STRINGS_UK = {
             downloadExternalFeatureImages: {
                 name: 'Завантажувати зовнішні зображення',
                 desc: 'Завантажувати віддалені зображення та мініатюри YouTube для обкладинок.'
+            },
+            hideExcalidrawPreviewImages: {
+                name: 'Сховати експортовані зображення попереднього перегляду',
+                desc: 'Приховує PNG-файли, експортовані Excalidraw. Увімкніть «Показати приховані елементи», щоб відобразити їх.'
+            },
+            excalidrawIntegrationInfo: {
+                intro: 'Notebook Navigator показує PNG-файли, експортовані Excalidraw, як попередній перегляд малюнків.',
+                items: [
+                    'У **налаштуваннях Excalidraw** відкрийте **Embedding Excalidraw into your Notes and Exporting**, потім **Export Settings**, потім **Auto-export Settings**.',
+                    'Увімкніть **Auto-export PNG**. За бажанням увімкніть **Export both dark- and light-themed image**.',
+                    'Notebook Navigator шукає **Drawing.excalidraw.png**, **Drawing.excalidraw.dark.png** або **Drawing.excalidraw.light.png**.',
+                    'Поки увімкнено **Сховати експортовані зображення попереднього перегляду**, PNG-файли видно лише тоді, коли також увімкнено **Показати приховані елементи**.'
+                ]
             },
             showRootFolder: {
                 name: 'Показувати кореневу папку',

@@ -73,6 +73,9 @@ import {
 import type { PropertySelectionNodeId } from '../utils/propertyTree';
 import { getCachedFileTags } from '../utils/tagUtils';
 import type { HiddenTagVisibility } from '../utils/tagPrefixMatcher';
+import { isExcalidrawSourceFile, resolveExcalidrawFeatureImageFile } from '../utils/excalidrawFeatureImages';
+import { useThemeMode } from './useThemeMode';
+import type { ThemeMode } from '../utils/themeMode';
 
 /**
  * Parameters for the useListPaneScroll hook
@@ -189,6 +192,7 @@ interface ListLayoutSignatureParams {
     topSpacerHeight: number;
     folderSettings: ListPaneAppearanceLayoutSettings;
     settings: ListLayoutSignatureSettings;
+    themeMode: ThemeMode;
     selectionType: SelectionState['selectionType'];
     selectedTagToHide: string | null;
     selectedPropertyValueNodeIdToHide: string | null;
@@ -231,6 +235,7 @@ function getListLayoutSignature({
     topSpacerHeight,
     folderSettings,
     settings,
+    themeMode,
     selectionType,
     selectedTagToHide,
     selectedPropertyValueNodeIdToHide,
@@ -242,6 +247,9 @@ function getListLayoutSignature({
     return JSON.stringify({
         spacers: {
             topSpacerHeight
+        },
+        environment: {
+            themeMode
         },
         appearance: {
             mode: folderSettings.mode,
@@ -359,6 +367,7 @@ export function useListPaneScroll({
     const { app, isMobile } = useServices();
     const listMeasurements = getListPaneMeasurements(isMobile);
     const { hasPreview, getDB, isStorageReady } = useFileCache();
+    const themeMode = useThemeMode(app);
     // The list pane only renders after StorageContext marks storage ready.
     const db = getDB();
 
@@ -494,20 +503,29 @@ export function useListPaneScroll({
             const hasPreviewContent = hasPreviewText || hasOmnisearchExcerpt;
 
             // Keep height estimation aligned with FileItem feature image rendering.
-            // getFile reads from the in-memory cache; no IndexedDB reads occur during sizing.
+            // Vault path lookups read from Obsidian's in-memory file tree; no IndexedDB reads occur during sizing.
             const featureImageStatus = fileRecord?.featureImageStatus ?? null;
+            const showExcalidrawFeatureImage = file ? isExcalidrawSourceFile(app, file) : false;
+            const showExcalidrawMissingFeatureImage =
+                showExcalidrawFeatureImage && file ? resolveExcalidrawFeatureImageFile(app, file, themeMode) === null : false;
             const showFeatureImageArea = shouldShowFeatureImageArea({
                 showImage: folderSettings.showImage,
                 file,
-                featureImageStatus
+                featureImageStatus,
+                showExcalidrawFeatureImage
             });
             const showExtensionBadgeThumbnail = shouldShowExtensionBadgeThumbnail({
                 showFeatureImageArea,
-                file
+                file,
+                showExcalidrawMissingFeatureImage
             });
 
             // Visibility estimate for the single-row tags area.
-            const shouldShowFileTags = settings.showTags && settings.showFileTags && (!isCompactMode || settings.showFileTagsInCompactMode);
+            const shouldShowFileTags =
+                !showExcalidrawMissingFeatureImage &&
+                settings.showTags &&
+                settings.showFileTags &&
+                (!isCompactMode || settings.showFileTagsInCompactMode);
             const hasTagRow = (() => {
                 if (!shouldShowFileTags || item.type !== ListPaneItemType.FILE || !item.hasTags) {
                     return false;
@@ -533,18 +551,20 @@ export function useListPaneScroll({
             });
 
             // Keep visibility filtering aligned with FileItem rendering.
-            const propertyRowCount = getPropertyRowCount({
-                notePropertyType: folderSettings.notePropertyType,
-                showFileProperties: settings.showFileProperties,
-                showPropertiesOnSeparateRows: settings.showPropertiesOnSeparateRows,
-                showFilePropertiesInCompactMode: settings.showFilePropertiesInCompactMode,
-                isCompactMode,
-                file,
-                wordCount: fileRecord?.wordCount ?? undefined,
-                properties: fileRecord?.properties ?? undefined,
-                visiblePropertyKeys,
-                hiddenPropertyValueNodeId: selectedPropertyValueNodeIdToHide
-            });
+            const propertyRowCount = showExcalidrawMissingFeatureImage
+                ? 0
+                : getPropertyRowCount({
+                      notePropertyType: folderSettings.notePropertyType,
+                      showFileProperties: settings.showFileProperties,
+                      showPropertiesOnSeparateRows: settings.showPropertiesOnSeparateRows,
+                      showFilePropertiesInCompactMode: settings.showFilePropertiesInCompactMode,
+                      isCompactMode,
+                      file,
+                      wordCount: fileRecord?.wordCount ?? undefined,
+                      properties: fileRecord?.properties ?? undefined,
+                      visiblePropertyKeys,
+                      hiddenPropertyValueNodeId: selectedPropertyValueNodeIdToHide
+                  });
 
             const hasVisiblePillRows = hasTagRow || propertyRowCount > 0;
             const layoutState = getFileItemLayoutState({
@@ -683,6 +703,7 @@ export function useListPaneScroll({
                 topSpacerHeight,
                 folderSettings,
                 settings: listLayoutSettings,
+                themeMode,
                 selectionType: selectionState.selectionType,
                 selectedTagToHide,
                 selectedPropertyValueNodeIdToHide,
@@ -695,6 +716,7 @@ export function useListPaneScroll({
             topSpacerHeight,
             folderSettings,
             listLayoutSettings,
+            themeMode,
             selectionState.selectionType,
             selectedTagToHide,
             selectedPropertyValueNodeIdToHide,

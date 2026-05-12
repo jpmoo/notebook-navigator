@@ -392,12 +392,14 @@ export function shouldShowFeatureImageArea({
     showImage,
     file,
     featureImageStatus,
-    hasFeatureImageUrl
+    hasFeatureImageUrl,
+    showExcalidrawFeatureImage
 }: {
     showImage: boolean;
     file: TFile | null;
     featureImageStatus?: FeatureImageStatus | null;
     hasFeatureImageUrl?: boolean;
+    showExcalidrawFeatureImage?: boolean;
 }): boolean {
     if (!showImage || !file) {
         return false;
@@ -415,20 +417,30 @@ export function shouldShowFeatureImageArea({
         return true;
     }
 
+    if (showExcalidrawFeatureImage) {
+        return true;
+    }
+
     return featureImageStatus === 'has';
 }
 
 export function shouldShowExtensionBadgeThumbnail({
     showFeatureImageArea,
     file,
-    hasFeatureImageUrl
+    hasFeatureImageUrl,
+    showExcalidrawMissingFeatureImage
 }: {
     showFeatureImageArea: boolean;
     file: TFile | null;
     hasFeatureImageUrl?: boolean;
+    showExcalidrawMissingFeatureImage?: boolean;
 }): boolean {
     if (!showFeatureImageArea || !file || hasFeatureImageUrl) {
         return false;
+    }
+
+    if (showExcalidrawMissingFeatureImage) {
+        return true;
     }
 
     return file.extension === 'canvas' || file.extension === 'base';

@@ -859,7 +859,8 @@ export const STRINGS_TH = {
             list: {
                 display: 'ลักษณะ',
                 organization: 'การจัดระเบียบ',
-                pinnedNotes: 'โน้ตที่ปักหมุด'
+                pinnedNotes: 'โน้ตที่ปักหมุด',
+                excalidraw: 'Excalidraw'
             },
             notes: {
                 frontmatter: 'Frontmatter',
@@ -1665,6 +1666,19 @@ export const STRINGS_TH = {
             downloadExternalFeatureImages: {
                 name: 'ดาวน์โหลดรูปภาพภายนอก',
                 desc: 'ดาวน์โหลดรูปภาพระยะไกลและภาพขนาดย่อ YouTube สำหรับรูปภาพเด่น'
+            },
+            hideExcalidrawPreviewImages: {
+                name: 'ซ่อนรูปภาพตัวอย่างที่ส่งออก',
+                desc: 'ซ่อนไฟล์ PNG ที่ส่งออกโดย Excalidraw เปิด "แสดงรายการที่ซ่อน" เพื่อแสดงไฟล์เหล่านั้น'
+            },
+            excalidrawIntegrationInfo: {
+                intro: 'Notebook Navigator แสดงไฟล์ PNG ที่ส่งออกโดย Excalidraw เป็นภาพตัวอย่างของภาพวาด',
+                items: [
+                    'ใน **การตั้งค่า Excalidraw** เปิด **Embedding Excalidraw into your Notes and Exporting** จากนั้น **Export Settings** จากนั้น **Auto-export Settings**',
+                    'เปิดใช้งาน **Auto-export PNG** หากต้องการ ให้เปิดใช้งาน **Export both dark- and light-themed image** ด้วย',
+                    'Notebook Navigator จะมองหา **Drawing.excalidraw.png**, **Drawing.excalidraw.dark.png** หรือ **Drawing.excalidraw.light.png**',
+                    'ขณะที่ **ซ่อนรูปภาพตัวอย่างที่ส่งออก** เปิดอยู่ ไฟล์ PNG จะปรากฏเฉพาะเมื่อ **แสดงรายการที่ซ่อน** เปิดอยู่ด้วยเท่านั้น'
+                ]
             },
             showRootFolder: {
                 name: 'แสดงโฟลเดอร์หลัก',
