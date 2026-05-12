@@ -23,7 +23,7 @@
  * - Incrementing version numbers in manifest.json, package.json, and versions.json
  * - Creating a release branch and pull request with the version bump
  * - Waiting for release pull request checks, merging the pull request, then publishing by creating and pushing a git tag
- * - Verifying the GitHub release assets and release workflow result
+ * - Verifying the GitHub release assets, release workflow result, and artifact attestations
  *
  * Usage:
  *   node release.js                    # Publish an untagged merged version, or choose the next release
@@ -65,7 +65,8 @@ const projectRoot = path.join(__dirname, '..');
 const validReleaseTypes = ['patch', 'minor', 'major'];
 const lockFilePath = path.join(projectRoot, '.release.lock');
 const releaseAssetNames = ['main.js', 'manifest.json', 'styles.css'];
-const signedReleaseAssetSuffixes = ['.minisig', '.asc', '.sig', '.sign', '.sigstore', '.sigstore.json', '.intoto.jsonl'];
+const attestedReleaseAssetNames = releaseAssetNames;
+const releaseWorkflowPath = '.github/workflows/release.yml';
 const pullRequestPollIntervalMs = 30 * 1000;
 const pullRequestChecksTimeoutMs = 30 * 60 * 1000;
 const releasePollIntervalMs = 15 * 1000;
@@ -240,6 +241,14 @@ function runGh(args) {
     }
 }
 
+function getRepositoryNameWithOwner() {
+    const repository = runGhJson(['repo', 'view', '--json', 'nameWithOwner']);
+    if (!repository?.nameWithOwner) {
+        throw new Error('GitHub CLI did not return the repository name');
+    }
+    return repository.nameWithOwner;
+}
+
 function canUseGitHubCliForVerification() {
     if (!commandAvailable('gh')) {
         console.log('⚠️  GitHub CLI not found; verify the release and workflow manually.');
@@ -260,7 +269,7 @@ function canUseGitHubCliForVerification() {
     }
 
     try {
-        runGhJson(['repo', 'view', '--json', 'nameWithOwner']);
+        getRepositoryNameWithOwner();
     } catch (error) {
         console.log('⚠️  GitHub CLI could not read this repository.');
         console.log(`   ${error.message}`);
@@ -291,7 +300,7 @@ function requireGitHubCliForReleaseAutomation() {
     }
 
     try {
-        runGhJson(['repo', 'view', '--json', 'nameWithOwner']);
+        getRepositoryNameWithOwner();
     } catch (error) {
         console.error('❌ GitHub CLI could not read this repository.');
         console.error(`   ${error.message}`);
@@ -1139,17 +1148,21 @@ function hasRequiredReleaseAssets(release) {
     return releaseAssetNames.every(assetName => assetNames.has(assetName));
 }
 
-function isSignedReleaseAssetName(assetName) {
-    if (!assetName) {
-        return false;
-    }
-
-    const normalizedName = assetName.toLowerCase();
-    return signedReleaseAssetSuffixes.some(suffix => normalizedName.endsWith(suffix));
+function getUnsupportedReleaseAssetNames(release) {
+    const supportedAssetNames = new Set(releaseAssetNames);
+    return (release.assets || []).map(asset => asset.name).filter(assetName => !supportedAssetNames.has(assetName));
 }
 
-function hasSignedReleaseAsset(release) {
-    return (release.assets || []).some(asset => isSignedReleaseAssetName(asset.name));
+function validateSupportedReleaseAssets(release, version) {
+    const unsupportedAssetNames = getUnsupportedReleaseAssetNames(release);
+    if (unsupportedAssetNames.length === 0) {
+        return;
+    }
+
+    console.error(`❌ GitHub release ${version} has unsupported assets.`);
+    console.error(`   Supported assets: ${releaseAssetNames.join(', ')}`);
+    unsupportedAssetNames.forEach(assetName => console.error(`   - ${assetName}`));
+    process.exit(1);
 }
 
 function isReleaseNotFoundError(error) {
@@ -1163,6 +1176,7 @@ function waitForGitHubRelease(version) {
         try {
             const release = getGitHubRelease(version);
             if (hasRequiredReleaseAssets(release)) {
+                validateSupportedReleaseAssets(release, version);
                 return release;
             }
         } catch (error) {
@@ -1183,31 +1197,78 @@ function waitForGitHubRelease(version) {
     process.exit(1);
 }
 
-function waitForSignedReleaseAsset(version) {
-    const deadline = Date.now() + releaseVerificationTimeoutMs;
+function downloadReleaseAssets(version, assetNames, downloadDir) {
+    const args = ['release', 'download', version, '--dir', downloadDir, '--clobber'];
+    assetNames.forEach(assetName => {
+        args.push('--pattern', assetName);
+    });
+    runGh(args);
+}
 
-    while (Date.now() < deadline) {
+function getAttestationVerificationErrors(assets, repositoryName, signerWorkflow, sourceRef) {
+    const verificationErrors = [];
+
+    assets.forEach(asset => {
         try {
-            const release = getGitHubRelease(version);
-            if (hasSignedReleaseAsset(release)) {
-                return release;
-            }
+            runGh([
+                'attestation',
+                'verify',
+                asset.path,
+                '--repo',
+                repositoryName,
+                '--signer-workflow',
+                signerWorkflow,
+                '--source-ref',
+                sourceRef
+            ]);
         } catch (error) {
-            if (!isReleaseNotFoundError(error)) {
-                console.error(`❌ Could not read GitHub release ${version}.`);
-                console.error(`   ${error.message}`);
-                console.error('   Verify the release and workflow manually.');
-                process.exit(1);
-            }
+            verificationErrors.push(`${asset.name}: ${error.message}`);
         }
+    });
 
-        console.log(`Waiting for signed release asset for ${version}...`);
-        sleep(releasePollIntervalMs);
+    return verificationErrors;
+}
+
+function waitForReleaseAssetAttestations(version) {
+    const repositoryName = getRepositoryNameWithOwner();
+    const signerWorkflow = `${repositoryName}/${releaseWorkflowPath}`;
+    const sourceRef = `refs/tags/${version}`;
+    const downloadDir = fs.mkdtempSync(path.join(os.tmpdir(), `notebook-navigator-release-${version}-`));
+    const deadline = Date.now() + releaseVerificationTimeoutMs;
+    let verificationErrors = [];
+
+    try {
+        downloadReleaseAssets(version, attestedReleaseAssetNames, downloadDir);
+    } catch (error) {
+        fs.rmSync(downloadDir, { recursive: true, force: true });
+        console.error(`❌ Could not download release assets for ${version}.`);
+        console.error(`   ${error.message}`);
+        process.exit(1);
     }
 
-    console.error(`❌ Timed out waiting for signed release asset for ${version}.`);
-    console.error(`   Expected one of: ${signedReleaseAssetSuffixes.join(', ')}`);
-    process.exit(1);
+    const assets = attestedReleaseAssetNames.map(assetName => ({
+        name: assetName,
+        path: path.join(downloadDir, assetName)
+    }));
+
+    try {
+        while (Date.now() < deadline) {
+            verificationErrors = getAttestationVerificationErrors(assets, repositoryName, signerWorkflow, sourceRef);
+            if (verificationErrors.length === 0) {
+                return attestedReleaseAssetNames;
+            }
+
+            console.log(`Waiting for GitHub artifact attestations for ${version}...`);
+            sleep(releasePollIntervalMs);
+        }
+
+        console.error(`❌ Timed out waiting for GitHub artifact attestations for ${version}.`);
+        console.error(`   Expected assets: ${attestedReleaseAssetNames.join(', ')}`);
+        verificationErrors.forEach(message => console.error(`   - ${message}`));
+        process.exit(1);
+    } finally {
+        fs.rmSync(downloadDir, { recursive: true, force: true });
+    }
 }
 
 function findReleaseWorkflowRun(version, targetCommit) {
@@ -1308,10 +1369,10 @@ function verifyPublishedRelease(version) {
 
     const workflowRun = waitForReleaseWorkflow(version);
     verifyReleaseWorkflowResult(workflowRun);
+    validateSupportedReleaseAssets(getGitHubRelease(version), version);
 
-    const signedRelease = waitForSignedReleaseAsset(version);
-    const signedAsset = signedRelease.assets.find(asset => isSignedReleaseAssetName(asset.name));
-    console.log(`✓ GitHub release has signed asset: ${signedAsset.name}`);
+    const attestedAssets = waitForReleaseAssetAttestations(version);
+    console.log(`✓ GitHub release assets have artifact attestations: ${attestedAssets.join(', ')}`);
 }
 
 // ============================================================================
