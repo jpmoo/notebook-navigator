@@ -31,6 +31,7 @@ import { renderPdfCoverThumbnail } from './pdf/pdfCoverThumbnail';
 import { detectImageMimeTypeFromBuffer, getImageDimensionsPairFromBuffer, normalizeImageMimeType } from './thumbnail/imageDimensions';
 import { createOnceLogger, createRenderBudgetLimiter, createRenderLimiter } from './thumbnail/thumbnailRuntimeUtils';
 import { LIMITS } from '../../constants/limits';
+import { getDrawingDirectFeatureImageKey, getDrawingFeatureImageSource } from '../../utils/drawingFeatureImages';
 
 type FeatureImageThumbnailDimensions = {
     width: number;
@@ -216,6 +217,18 @@ export class FeatureImageContentProvider extends BaseContentProvider {
             );
         }
 
+        const drawingSource = getDrawingFeatureImageSource(this.app, file);
+        if (drawingSource) {
+            const expectedKey = getDrawingDirectFeatureImageKey(file, drawingSource.providerId);
+            return (
+                fileModified ||
+                !fileData ||
+                fileData.featureImageStatus === 'unprocessed' ||
+                fileData.featureImageKey === null ||
+                fileData.featureImageKey !== expectedKey
+            );
+        }
+
         // The featureImageKey is the durable "processed" marker even when no blob is stored.
         return fileModified || !fileData || fileData.featureImageKey === null;
     }
@@ -256,6 +269,17 @@ export class FeatureImageContentProvider extends BaseContentProvider {
             }
 
             return { update: { path: job.path, featureImage: thumbnail, featureImageKey }, processed: true };
+        }
+
+        const drawingSource = getDrawingFeatureImageSource(this.app, job.file);
+        if (drawingSource) {
+            const featureImageKey = getDrawingDirectFeatureImageKey(job.file, drawingSource.providerId);
+            const isUpToDate = fileData?.featureImageKey === featureImageKey && fileData.featureImageStatus === 'none';
+            if (isUpToDate) {
+                return { update: null, processed: true };
+            }
+
+            return { update: { path: job.path, featureImage: this.createEmptyBlob(), featureImageKey }, processed: true };
         }
 
         const nextKey = '';

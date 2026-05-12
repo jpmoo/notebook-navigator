@@ -19,7 +19,7 @@
 import { useCallback, type RefObject } from 'react';
 import type { App, TFile } from 'obsidian';
 import type { NotebookNavigatorSettings } from '../../settings';
-import { getFilteredMarkdownAndPdfFiles, getFilteredMarkdownFiles } from '../../utils/fileFilters';
+import { getFilteredIndexableFiles, getFilteredMarkdownFiles } from '../../utils/fileFilters';
 
 /**
  * Provides file lists used by the storage layer.
@@ -41,10 +41,10 @@ export function useStorageFileQueries(params: {
         return getFilteredMarkdownFiles(app, latestSettingsRef.current, { showHiddenItems });
     }, [app, latestSettingsRef, showHiddenItems]);
 
-    // Indexes markdown + PDF regardless of the current UI visibility toggle. Hidden items can still contribute
+    // Indexes storage-backed file types regardless of the current UI visibility toggle. Hidden items can still contribute
     // to background content generation and are available immediately if the user enables "show hidden items".
     const getIndexableFiles = useCallback((): TFile[] => {
-        return getFilteredMarkdownAndPdfFiles(app, latestSettingsRef.current, { showHiddenItems: true });
+        return getFilteredIndexableFiles(app, latestSettingsRef.current, { showHiddenItems: true });
     }, [app, latestSettingsRef]);
 
     return { getVisibleMarkdownFiles, getIndexableFiles };

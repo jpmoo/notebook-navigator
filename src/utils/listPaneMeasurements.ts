@@ -393,13 +393,13 @@ export function shouldShowFeatureImageArea({
     file,
     featureImageStatus,
     hasFeatureImageUrl,
-    showExcalidrawFeatureImage
+    showDrawingFeatureImage
 }: {
     showImage: boolean;
     file: TFile | null;
     featureImageStatus?: FeatureImageStatus | null;
     hasFeatureImageUrl?: boolean;
-    showExcalidrawFeatureImage?: boolean;
+    showDrawingFeatureImage?: boolean;
 }): boolean {
     if (!showImage || !file) {
         return false;
@@ -417,7 +417,7 @@ export function shouldShowFeatureImageArea({
         return true;
     }
 
-    if (showExcalidrawFeatureImage) {
+    if (showDrawingFeatureImage) {
         return true;
     }
 
@@ -428,18 +428,18 @@ export function shouldShowExtensionBadgeThumbnail({
     showFeatureImageArea,
     file,
     hasFeatureImageUrl,
-    showExcalidrawMissingFeatureImage
+    showDrawingMissingFeatureImage
 }: {
     showFeatureImageArea: boolean;
     file: TFile | null;
     hasFeatureImageUrl?: boolean;
-    showExcalidrawMissingFeatureImage?: boolean;
+    showDrawingMissingFeatureImage?: boolean;
 }): boolean {
     if (!showFeatureImageArea || !file || hasFeatureImageUrl) {
         return false;
     }
 
-    if (showExcalidrawMissingFeatureImage) {
+    if (showDrawingMissingFeatureImage) {
         return true;
     }
 

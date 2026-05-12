@@ -864,7 +864,7 @@ export const STRINGS_TR = {
                 display: 'Görünüm',
                 organization: 'Düzenleme',
                 pinnedNotes: 'Sabitlenmiş notlar',
-                excalidraw: 'Excalidraw'
+                drawingPreviews: 'Çizim önizlemeleri'
             },
             notes: {
                 frontmatter: 'Frontmatter',
@@ -1671,11 +1671,11 @@ export const STRINGS_TR = {
                 name: 'Harici görselleri indir',
                 desc: 'Öne çıkan görseller için uzak görselleri ve YouTube küçük resimlerini indir.'
             },
-            hideExcalidrawPreviewImages: {
+            hideDrawingPreviewImages: {
                 name: 'Dışa aktarılmış önizleme görsellerini gizle',
-                desc: 'Excalidraw tarafından dışa aktarılan PNG dosyalarını gizler. Görüntülemek için "Gizli ögeleri göster" seçeneğini açın.'
+                desc: 'Dışa aktarılan çizim önizleme PNG dosyalarını gizler. Görüntülemek için "Gizli ögeleri göster" seçeneğini açın.'
             },
-            excalidrawIntegrationInfo: {
+            drawingIntegrationInfo: {
                 intro: 'Notebook Navigator, Excalidraw tarafından dışa aktarılan PNG dosyalarını çizim önizlemeleri olarak gösterir.',
                 items: [
                     '**Excalidraw ayarları** içinde **Embedding Excalidraw into your Notes and Exporting** öğesini açın, ardından **Export Settings**, ardından **Auto-export Settings** öğesini açın.',

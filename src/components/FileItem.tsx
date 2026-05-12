@@ -77,8 +77,8 @@ import type { HiddenTagVisibility } from '../utils/tagPrefixMatcher';
 import { useFileItemContentState, type FileItemContentDb } from './fileItem/useFileItemContentState';
 import { useFileItemPills } from './fileItem/useFileItemPills';
 import { ServiceIcon } from './ServiceIcon';
-import { isExcalidrawSourceFile } from '../utils/excalidrawFeatureImages';
-import { useExcalidrawFeatureImage } from '../hooks/useExcalidrawFeatureImage';
+import { getDrawingFeatureImageSource } from '../utils/drawingFeatureImages';
+import { useDrawingFeatureImage } from '../hooks/useDrawingFeatureImage';
 
 const FEATURE_IMAGE_MAX_ASPECT_RATIO = 16 / 9;
 
@@ -373,7 +373,8 @@ export const FileItem = React.memo(function FileItem({
     const metadataService = useMetadataService();
     const { getFileDisplayName, getDB, getFileTimestamps, hasPreview, regenerateFeatureImageForFile } = fileItemStorage;
     const fileStatMtime = useImageFileResourceVersion(app, file, appearanceSettings.showImage && isImageFile(file));
-    const isExcalidrawFeatureImageRow = isExcalidrawSourceFile(app, file);
+    const drawingFeatureImageSource = getDrawingFeatureImageSource(app, file);
+    const isDrawingFeatureImageRow = drawingFeatureImageSource !== null;
     const {
         previewText,
         tags,
@@ -389,20 +390,20 @@ export const FileItem = React.memo(function FileItem({
         file,
         showPreview: appearanceSettings.showPreview,
         showImage: appearanceSettings.showImage,
-        skipFeatureImage: isExcalidrawFeatureImageRow,
+        skipFeatureImage: isDrawingFeatureImageRow,
         fileStatMtime,
         getDB,
         regenerateFeatureImageForFile
     });
-    const excalidrawFeatureImage = useExcalidrawFeatureImage({
+    const drawingFeatureImage = useDrawingFeatureImage({
         app,
         file,
         enabled: appearanceSettings.showImage,
-        isExcalidraw: isExcalidrawFeatureImageRow,
+        source: drawingFeatureImageSource,
         metadataVersion
     });
-    const effectiveFeatureImageUrl = excalidrawFeatureImage.url ?? (excalidrawFeatureImage.isExcalidraw ? null : featureImageUrl);
-    const effectiveFeatureImageKey = excalidrawFeatureImage.key ?? featureImageKey;
+    const effectiveFeatureImageUrl = drawingFeatureImage.url ?? (drawingFeatureImage.isDrawing ? null : featureImageUrl);
+    const effectiveFeatureImageKey = drawingFeatureImage.key ?? featureImageKey;
 
     // === State ===
     const [featureImageAspectRatio, setFeatureImageAspectRatio] = useState<number | null>(null);
@@ -693,16 +694,16 @@ export const FileItem = React.memo(function FileItem({
         file,
         featureImageStatus,
         hasFeatureImageUrl: Boolean(effectiveFeatureImageUrl),
-        showExcalidrawFeatureImage: excalidrawFeatureImage.isExcalidraw
+        showDrawingFeatureImage: drawingFeatureImage.showsFeatureImageBox
     });
-    const showExcalidrawMissingFeatureImage = excalidrawFeatureImage.isMissing;
+    const showDrawingMissingFeatureImage = drawingFeatureImage.isMissing;
     const showExtensionBadgeThumbnail = shouldShowExtensionBadgeThumbnail({
         showFeatureImageArea,
         file,
         hasFeatureImageUrl: Boolean(effectiveFeatureImageUrl),
-        showExcalidrawMissingFeatureImage
+        showDrawingMissingFeatureImage
     });
-    const shouldShowPillRows = !showExcalidrawMissingFeatureImage;
+    const shouldShowPillRows = !showDrawingMissingFeatureImage;
     const effectiveShouldShowFileTags = shouldShowPillRows && shouldShowFileTags;
     const effectiveHasVisiblePillRows = shouldShowPillRows && hasVisiblePillRows;
     const renderedPillRows = shouldShowPillRows ? pillRows : null;
@@ -774,7 +775,7 @@ export const FileItem = React.memo(function FileItem({
         setIsFeatureImageHidden(false);
     }, [effectiveFeatureImageKey, effectiveFeatureImageUrl]);
 
-    const isExcalidrawFeatureImage = excalidrawFeatureImage.isExcalidraw;
+    const isDrawingFeatureImage = drawingFeatureImage.isDrawing;
     const useSquareFeatureImage = !effectiveFeatureImageUrl || settings.forceSquareFeatureImage;
 
     const featureImageContainerClassName = useMemo(() => {
@@ -787,10 +788,10 @@ export const FileItem = React.memo(function FileItem({
         if (effectiveFeatureImageUrl) {
             classes.push('nn-file-thumbnail--inset-highlight');
         }
-        if (isExcalidrawFeatureImage) {
-            classes.push('nn-file-thumbnail--excalidraw');
+        if (isDrawingFeatureImage) {
+            classes.push('nn-file-thumbnail--drawing');
         }
-        if (showExtensionBadgeThumbnail || showExcalidrawMissingFeatureImage) {
+        if (showExtensionBadgeThumbnail || showDrawingMissingFeatureImage) {
             classes.push('nn-file-thumbnail--extension-badge');
         }
         // Hide container if image failed to load
@@ -800,9 +801,9 @@ export const FileItem = React.memo(function FileItem({
         return classes.join(' ');
     }, [
         effectiveFeatureImageUrl,
-        isExcalidrawFeatureImage,
+        isDrawingFeatureImage,
         isFeatureImageHidden,
-        showExcalidrawMissingFeatureImage,
+        showDrawingMissingFeatureImage,
         showExtensionBadgeThumbnail,
         useSquareFeatureImage
     ]);
@@ -1280,9 +1281,13 @@ export const FileItem = React.memo(function FileItem({
                                                 setIsFeatureImageHidden(true);
                                             }}
                                         />
-                                    ) : showExcalidrawMissingFeatureImage ? (
-                                        <div className="nn-file-extension-badge nn-file-extension-badge--excalidraw" aria-hidden="true">
-                                            <ServiceIcon iconId="excalidraw-icon" className="nn-file-extension-icon" aria-hidden={true} />
+                                    ) : showDrawingMissingFeatureImage ? (
+                                        <div className="nn-file-extension-badge nn-file-extension-badge--drawing" aria-hidden="true">
+                                            <ServiceIcon
+                                                iconId={drawingFeatureImage.iconId ?? 'brush'}
+                                                className="nn-file-extension-icon"
+                                                aria-hidden={true}
+                                            />
                                         </div>
                                     ) : showExtensionBadgeThumbnail ? (
                                         <div className="nn-file-extension-badge">

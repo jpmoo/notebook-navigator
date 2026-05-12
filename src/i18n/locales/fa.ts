@@ -864,7 +864,7 @@ export const STRINGS_FA = {
                 display: 'ظاهر',
                 organization: 'سازماندهی',
                 pinnedNotes: 'یادداشت‌های سنجاق‌شده',
-                excalidraw: 'Excalidraw'
+                drawingPreviews: 'پیش‌نمایش‌های طراحی'
             },
             notes: {
                 frontmatter: 'فرانت‌متر',
@@ -1671,11 +1671,11 @@ export const STRINGS_FA = {
                 name: 'دانلود تصاویر خارجی',
                 desc: 'دانلود تصاویر از راه دور و تصاویر کوچک YouTube برای تصاویر ویژه.'
             },
-            hideExcalidrawPreviewImages: {
+            hideDrawingPreviewImages: {
                 name: 'پنهان کردن تصاویر پیش‌نمایش صادر شده',
-                desc: 'پنهان کردن فایل‌های PNG صادر شده توسط Excalidraw. برای نمایش آن‌ها، «نمایش موارد پنهان» را روشن کنید.'
+                desc: 'پنهان کردن فایل‌های PNG پیش‌نمایش طراحی صادر شده. برای نمایش آن‌ها، «نمایش موارد پنهان» را روشن کنید.'
             },
-            excalidrawIntegrationInfo: {
+            drawingIntegrationInfo: {
                 intro: 'Notebook Navigator فایل‌های PNG صادر شده توسط Excalidraw را به‌عنوان پیش‌نمایش طراحی نمایش می‌دهد.',
                 items: [
                     'در **تنظیمات Excalidraw**، **Embedding Excalidraw into your Notes and Exporting** را باز کنید، سپس **Export Settings**، سپس **Auto-export Settings**.',

@@ -225,7 +225,7 @@ export function useNavigationPaneSourceState({
                 hiddenFolders: profileHiddenFolders,
                 hiddenFileNames,
                 hiddenFileTags,
-                hideExcalidrawPreviewImages: settings.hideExcalidrawPreviewImages
+                hideDrawingPreviewImages: settings.hideDrawingPreviewImages
             },
             app,
             showHiddenItems
@@ -237,7 +237,7 @@ export function useNavigationPaneSourceState({
         profileHiddenFolders,
         hiddenFileNames,
         hiddenFileTags,
-        settings.hideExcalidrawPreviewImages
+        settings.hideDrawingPreviewImages
     ]);
 
     return useMemo(

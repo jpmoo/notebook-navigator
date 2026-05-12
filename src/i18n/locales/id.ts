@@ -864,7 +864,7 @@ export const STRINGS_ID = {
                 display: 'Tampilan',
                 organization: 'Organisasi',
                 pinnedNotes: 'Catatan yang disematkan',
-                excalidraw: 'Excalidraw'
+                drawingPreviews: 'Pratinjau gambar'
             },
             notes: {
                 frontmatter: 'Frontmatter',
@@ -1672,11 +1672,11 @@ export const STRINGS_ID = {
                 name: 'Unduh gambar eksternal',
                 desc: 'Unduh gambar jarak jauh dan thumbnail YouTube untuk gambar unggulan.'
             },
-            hideExcalidrawPreviewImages: {
+            hideDrawingPreviewImages: {
                 name: 'Sembunyikan gambar pratinjau yang diekspor',
-                desc: 'Sembunyikan berkas PNG yang diekspor oleh Excalidraw. Aktifkan "Tampilkan item tersembunyi" untuk menampilkannya.'
+                desc: 'Sembunyikan berkas PNG pratinjau gambar yang diekspor. Aktifkan "Tampilkan item tersembunyi" untuk menampilkannya.'
             },
-            excalidrawIntegrationInfo: {
+            drawingIntegrationInfo: {
                 intro: 'Notebook Navigator menampilkan berkas PNG yang diekspor oleh Excalidraw sebagai pratinjau gambar.',
                 items: [
                     'Di **pengaturan Excalidraw**, buka **Embedding Excalidraw into your Notes and Exporting**, lalu **Export Settings**, lalu **Auto-export Settings**.',

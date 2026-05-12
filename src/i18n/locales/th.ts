@@ -860,7 +860,7 @@ export const STRINGS_TH = {
                 display: 'ลักษณะ',
                 organization: 'การจัดระเบียบ',
                 pinnedNotes: 'โน้ตที่ปักหมุด',
-                excalidraw: 'Excalidraw'
+                drawingPreviews: 'ตัวอย่างภาพวาด'
             },
             notes: {
                 frontmatter: 'Frontmatter',
@@ -1667,11 +1667,11 @@ export const STRINGS_TH = {
                 name: 'ดาวน์โหลดรูปภาพภายนอก',
                 desc: 'ดาวน์โหลดรูปภาพระยะไกลและภาพขนาดย่อ YouTube สำหรับรูปภาพเด่น'
             },
-            hideExcalidrawPreviewImages: {
+            hideDrawingPreviewImages: {
                 name: 'ซ่อนรูปภาพตัวอย่างที่ส่งออก',
-                desc: 'ซ่อนไฟล์ PNG ที่ส่งออกโดย Excalidraw เปิด "แสดงรายการที่ซ่อน" เพื่อแสดงไฟล์เหล่านั้น'
+                desc: 'ซ่อนไฟล์ PNG ตัวอย่างภาพวาดที่ส่งออก เปิด "แสดงรายการที่ซ่อน" เพื่อแสดงไฟล์เหล่านั้น'
             },
-            excalidrawIntegrationInfo: {
+            drawingIntegrationInfo: {
                 intro: 'Notebook Navigator แสดงไฟล์ PNG ที่ส่งออกโดย Excalidraw เป็นภาพตัวอย่างของภาพวาด',
                 items: [
                     'ใน **การตั้งค่า Excalidraw** เปิด **Embedding Excalidraw into your Notes and Exporting** จากนั้น **Export Settings** จากนั้น **Auto-export Settings**',

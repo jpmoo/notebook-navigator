@@ -62,7 +62,7 @@ import {
 } from './propertyTree';
 import type { IPropertyTreeProvider } from '../interfaces/IPropertyTreeProvider';
 import type { ITagTreeProvider } from '../interfaces/ITagTreeProvider';
-import { shouldHideExcalidrawCompanionImageFile } from './excalidrawFeatureImages';
+import { shouldHideDrawingCompanionImageFile } from './drawingFeatureImages';
 
 interface PinnedDisplayScope {
     restrictToFolderPath?: string;
@@ -112,7 +112,7 @@ function isFileVisibleForScopedSelection(
         fileNameMatcher: ReturnType<typeof createHiddenFileNameMatcherForVisibility>;
         shouldFilterHiddenFileTags: boolean;
         hiddenFileTagVisibility: ReturnType<typeof createHiddenTagVisibility>;
-        hideExcalidrawPreviewImages: boolean;
+        hideDrawingPreviewImages: boolean;
         app: App;
         db: ReturnType<typeof getDBInstanceOrNull>;
     }
@@ -124,7 +124,7 @@ function isFileVisibleForScopedSelection(
         fileNameMatcher,
         shouldFilterHiddenFileTags,
         hiddenFileTagVisibility,
-        hideExcalidrawPreviewImages,
+        hideDrawingPreviewImages,
         app,
         db
     } = options;
@@ -133,7 +133,7 @@ function isFileVisibleForScopedSelection(
         return false;
     }
 
-    if (!showHiddenItems && shouldHideExcalidrawCompanionImageFile(app, file, { hideExcalidrawPreviewImages })) {
+    if (!showHiddenItems && shouldHideDrawingCompanionImageFile(app, file, { hideDrawingPreviewImages })) {
         return false;
     }
 
@@ -414,8 +414,8 @@ export function getFilesForFolder(
                 if (
                     shouldDisplayFile(child, fileVisibility, app) &&
                     (visibility.showHiddenItems ||
-                        !shouldHideExcalidrawCompanionImageFile(app, child, {
-                            hideExcalidrawPreviewImages: settings.hideExcalidrawPreviewImages
+                        !shouldHideDrawingCompanionImageFile(app, child, {
+                            hideDrawingPreviewImages: settings.hideDrawingPreviewImages
                         }))
                 ) {
                     files.push(child);
@@ -535,7 +535,7 @@ export function getFilesForTag(
             fileNameMatcher,
             shouldFilterHiddenFileTags,
             hiddenFileTagVisibility,
-            hideExcalidrawPreviewImages: settings.hideExcalidrawPreviewImages,
+            hideDrawingPreviewImages: settings.hideDrawingPreviewImages,
             app,
             db
         });
@@ -718,7 +718,7 @@ export function getFilesForProperty(
             fileNameMatcher,
             shouldFilterHiddenFileTags,
             hiddenFileTagVisibility,
-            hideExcalidrawPreviewImages: settings.hideExcalidrawPreviewImages,
+            hideDrawingPreviewImages: settings.hideDrawingPreviewImages,
             app,
             db
         });

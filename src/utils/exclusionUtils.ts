@@ -19,7 +19,7 @@
 import type { NotebookNavigatorSettings } from '../settings';
 import type { App, TFile } from 'obsidian';
 import { isFolderInExcludedFolder, shouldExcludeFile, shouldExcludeFileName } from './fileFilters';
-import { shouldHideExcalidrawCompanionImageFile } from './excalidrawFeatureImages';
+import { shouldHideDrawingCompanionImageFile } from './drawingFeatureImages';
 import { createHiddenTagVisibility } from './tagPrefixMatcher';
 import { getCachedFileTags } from './tagUtils';
 import { getActiveHiddenFileNames, getActiveHiddenFileProperties, getActiveHiddenFileTags, getActiveHiddenFolders } from './vaultProfiles';
@@ -48,7 +48,7 @@ interface HiddenFileMatcherRules {
     hiddenFolders: string[];
     hiddenFileNames: string[];
     hiddenFileTags: string[];
-    hideExcalidrawPreviewImages?: boolean;
+    hideDrawingPreviewImages?: boolean;
 }
 
 /**
@@ -59,11 +59,11 @@ export function createFileHiddenMatcher(rules: HiddenFileMatcherRules, app: App,
         return () => false;
     }
 
-    const { hiddenFileProperties, hiddenFolders, hiddenFileNames, hiddenFileTags, hideExcalidrawPreviewImages = true } = rules;
+    const { hiddenFileProperties, hiddenFolders, hiddenFileNames, hiddenFileTags, hideDrawingPreviewImages = true } = rules;
     const hiddenFileTagVisibility = hiddenFileTags.length > 0 ? createHiddenTagVisibility(hiddenFileTags, false) : null;
 
     return (file: TFile): boolean => {
-        if (shouldHideExcalidrawCompanionImageFile(app, file, { hideExcalidrawPreviewImages })) {
+        if (shouldHideDrawingCompanionImageFile(app, file, { hideDrawingPreviewImages })) {
             return true;
         }
 
@@ -110,7 +110,7 @@ function createFileHiddenBySettingsMatcher(
             hiddenFolders,
             hiddenFileNames,
             hiddenFileTags,
-            hideExcalidrawPreviewImages: settings.hideExcalidrawPreviewImages
+            hideDrawingPreviewImages: settings.hideDrawingPreviewImages
         },
         app,
         showHiddenItems

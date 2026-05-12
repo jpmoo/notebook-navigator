@@ -47,7 +47,7 @@ import { runAsyncAction } from '../../utils/async';
 import type { SearchResultMeta } from '../../types/search';
 import type { OmnisearchService } from '../../services/OmnisearchService';
 import type { IndexedDBStorage, FileData } from '../../storage/IndexedDBStorage';
-import { shouldHideExcalidrawCompanionImageFile } from '../../utils/excalidrawFeatureImages';
+import { shouldHideDrawingCompanionImageFile } from '../../utils/drawingFeatureImages';
 
 const EMPTY_FILTER_SEARCH_PROPERTIES = new Map<string, string[]>();
 const TAG_PRESENCE_SENTINEL = ['__nn_tag_present__'];
@@ -95,7 +95,7 @@ interface BuildHiddenFileStateArgs {
     hiddenFilePropertyMatcher: ReturnType<typeof createFrontmatterPropertyExclusionMatcher>;
     hiddenFileTags: string[];
     hiddenFolders: string[];
-    hideExcalidrawPreviewImages: boolean;
+    hideDrawingPreviewImages: boolean;
     showHiddenItems: boolean;
 }
 
@@ -380,7 +380,7 @@ export function buildHiddenFileState({
     hiddenFilePropertyMatcher,
     hiddenFileTags,
     hiddenFolders,
-    hideExcalidrawPreviewImages,
+    hideDrawingPreviewImages,
     showHiddenItems
 }: BuildHiddenFileStateArgs): ReadonlyMap<string, boolean> {
     if (!showHiddenItems || files.length === 0) {
@@ -423,7 +423,7 @@ export function buildHiddenFileState({
 
         const hiddenByFileName = fileNameMatcher ? fileNameMatcher.matches(file) : false;
         const hiddenByFolder = shouldCheckFolders ? resolveFolderHidden(file.parent ?? null) : false;
-        const hiddenByExcalidrawCompanion = shouldHideExcalidrawCompanionImageFile(app, file, { hideExcalidrawPreviewImages });
+        const hiddenByDrawingCompanion = shouldHideDrawingCompanionImageFile(app, file, { hideDrawingPreviewImages });
         const hiddenByTags =
             hiddenFileTagVisibility !== null &&
             hiddenFileTagVisibility.hasHiddenRules &&
@@ -432,7 +432,7 @@ export function buildHiddenFileState({
                 tagValue => !hiddenFileTagVisibility.isTagVisible(tagValue)
             );
 
-        if (hiddenByFrontmatter || hiddenByFileName || hiddenByFolder || hiddenByExcalidrawCompanion || hiddenByTags) {
+        if (hiddenByFrontmatter || hiddenByFileName || hiddenByFolder || hiddenByDrawingCompanion || hiddenByTags) {
             result.set(file.path, true);
         }
     });

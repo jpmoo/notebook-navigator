@@ -601,7 +601,7 @@ describe('listPaneMeasurements layout helpers', () => {
                 showImage: true,
                 file: excalidrawFile,
                 featureImageStatus: 'none',
-                showExcalidrawFeatureImage: true
+                showDrawingFeatureImage: true
             })
         ).toBe(true);
 
@@ -610,7 +610,7 @@ describe('listPaneMeasurements layout helpers', () => {
                 showImage: true,
                 file: legacyExcalidrawFile,
                 featureImageStatus: 'none',
-                showExcalidrawFeatureImage: true
+                showDrawingFeatureImage: true
             })
         ).toBe(true);
     });
@@ -645,7 +645,7 @@ describe('listPaneMeasurements layout helpers', () => {
             shouldShowExtensionBadgeThumbnail({
                 showFeatureImageArea: true,
                 file: excalidrawFile,
-                showExcalidrawMissingFeatureImage: true
+                showDrawingMissingFeatureImage: true
             })
         ).toBe(true);
     });

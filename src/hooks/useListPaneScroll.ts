@@ -73,7 +73,7 @@ import {
 import type { PropertySelectionNodeId } from '../utils/propertyTree';
 import { getCachedFileTags } from '../utils/tagUtils';
 import type { HiddenTagVisibility } from '../utils/tagPrefixMatcher';
-import { isExcalidrawSourceFile, resolveExcalidrawFeatureImageFile } from '../utils/excalidrawFeatureImages';
+import { getDrawingFeatureImageSource, resolveDrawingFeatureImageFileForProvider } from '../utils/drawingFeatureImages';
 import { useThemeMode } from './useThemeMode';
 import type { ThemeMode } from '../utils/themeMode';
 
@@ -505,24 +505,29 @@ export function useListPaneScroll({
             // Keep height estimation aligned with FileItem feature image rendering.
             // Vault path lookups read from Obsidian's in-memory file tree; no IndexedDB reads occur during sizing.
             const featureImageStatus = fileRecord?.featureImageStatus ?? null;
-            const showExcalidrawFeatureImage = file ? isExcalidrawSourceFile(app, file) : false;
-            const showExcalidrawMissingFeatureImage =
-                showExcalidrawFeatureImage && file ? resolveExcalidrawFeatureImageFile(app, file, themeMode) === null : false;
+            const drawingFeatureImageSource = file ? getDrawingFeatureImageSource(app, file) : null;
+            const showDrawingFeatureImage = folderSettings.showImage && (drawingFeatureImageSource?.showsFeatureImageBox ?? false);
+            const showDrawingMissingFeatureImage =
+                showDrawingFeatureImage && file && !drawingFeatureImageSource?.supportsCompanionImages
+                    ? true
+                    : showDrawingFeatureImage && file && drawingFeatureImageSource
+                      ? resolveDrawingFeatureImageFileForProvider(app, file, drawingFeatureImageSource.providerId, themeMode) === null
+                      : false;
             const showFeatureImageArea = shouldShowFeatureImageArea({
                 showImage: folderSettings.showImage,
                 file,
                 featureImageStatus,
-                showExcalidrawFeatureImage
+                showDrawingFeatureImage
             });
             const showExtensionBadgeThumbnail = shouldShowExtensionBadgeThumbnail({
                 showFeatureImageArea,
                 file,
-                showExcalidrawMissingFeatureImage
+                showDrawingMissingFeatureImage
             });
 
             // Visibility estimate for the single-row tags area.
             const shouldShowFileTags =
-                !showExcalidrawMissingFeatureImage &&
+                !showDrawingMissingFeatureImage &&
                 settings.showTags &&
                 settings.showFileTags &&
                 (!isCompactMode || settings.showFileTagsInCompactMode);
@@ -551,7 +556,7 @@ export function useListPaneScroll({
             });
 
             // Keep visibility filtering aligned with FileItem rendering.
-            const propertyRowCount = showExcalidrawMissingFeatureImage
+            const propertyRowCount = showDrawingMissingFeatureImage
                 ? 0
                 : getPropertyRowCount({
                       notePropertyType: folderSettings.notePropertyType,

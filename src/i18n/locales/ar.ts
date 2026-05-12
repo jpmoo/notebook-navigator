@@ -862,7 +862,7 @@ export const STRINGS_AR = {
                 display: 'المظهر',
                 organization: 'التنظيم',
                 pinnedNotes: 'الملاحظات المثبتة',
-                excalidraw: 'Excalidraw'
+                drawingPreviews: 'معاينات الرسومات'
             },
             notes: {
                 frontmatter: 'البيانات الأمامية',
@@ -1669,11 +1669,11 @@ export const STRINGS_AR = {
                 name: 'تنزيل الصور الخارجية',
                 desc: 'تنزيل الصور عن بُعد والصور المصغرة من YouTube للصور المميزة.'
             },
-            hideExcalidrawPreviewImages: {
+            hideDrawingPreviewImages: {
                 name: 'إخفاء صور المعاينة المُصدَّرة',
-                desc: 'إخفاء ملفات PNG المُصدَّرة من Excalidraw. فعِّل "إظهار العناصر المخفية" لعرضها.'
+                desc: 'إخفاء ملفات PNG لمعاينة الرسومات المُصدَّرة. فعِّل "إظهار العناصر المخفية" لعرضها.'
             },
-            excalidrawIntegrationInfo: {
+            drawingIntegrationInfo: {
                 intro: 'يعرض Notebook Navigator ملفات PNG المُصدَّرة من Excalidraw كمعاينات للرسومات.',
                 items: [
                     'في **إعدادات Excalidraw**، افتح **Embedding Excalidraw into your Notes and Exporting**، ثم **Export Settings**، ثم **Auto-export Settings**.',

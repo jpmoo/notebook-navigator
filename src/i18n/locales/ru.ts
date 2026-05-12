@@ -861,7 +861,7 @@ export const STRINGS_RU = {
                 display: 'Внешний вид',
                 organization: 'Организация',
                 pinnedNotes: 'Закреплённые заметки',
-                excalidraw: 'Excalidraw'
+                drawingPreviews: 'Предпросмотр рисунков'
             },
             notes: {
                 frontmatter: 'Frontmatter',
@@ -1669,11 +1669,11 @@ export const STRINGS_RU = {
                 name: 'Загружать внешние изображения',
                 desc: 'Загружать удалённые изображения и миниатюры YouTube для обложек.'
             },
-            hideExcalidrawPreviewImages: {
+            hideDrawingPreviewImages: {
                 name: 'Скрыть экспортированные изображения предпросмотра',
-                desc: 'Скрывает PNG-файлы, экспортированные Excalidraw. Включите «Показать скрытые элементы», чтобы отобразить их.'
+                desc: 'Скрывает экспортированные PNG-файлы предпросмотра рисунков. Включите «Показать скрытые элементы», чтобы отобразить их.'
             },
-            excalidrawIntegrationInfo: {
+            drawingIntegrationInfo: {
                 intro: 'Notebook Navigator показывает PNG-файлы, экспортированные Excalidraw, как предпросмотры рисунков.',
                 items: [
                     'В **настройках Excalidraw** откройте **Embedding Excalidraw into your Notes and Exporting**, затем **Export Settings**, затем **Auto-export Settings**.',

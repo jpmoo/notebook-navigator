@@ -28,10 +28,10 @@ import { calculateFileDiff } from '../../storage/diffCalculator';
 import { type FileData as DBFileData } from '../../storage/IndexedDBStorage';
 import { getDBInstance, markFilesForRegeneration, recordFileChanges, removeFilesFromCache } from '../../storage/fileOperations';
 import { runAsyncAction } from '../../utils/async';
-import { isMarkdownPath, isPdfFile } from '../../utils/fileTypeUtils';
+import { isMarkdownPath } from '../../utils/fileTypeUtils';
 import { isPropertyFeatureEnabled } from '../../utils/propertyTree';
-import { emitExcalidrawCompanionImageChange, findExcalidrawFileForCompanionImage } from '../../utils/excalidrawFeatureImages';
-import { filterPdfFilesRequiringThumbnails } from '../storageQueueFilters';
+import { emitDrawingCompanionImageChange, findDrawingFileForCompanionImage } from '../../utils/drawingFeatureImages';
+import { filterFilesRequiringFileThumbnails, shouldQueueFileThumbnailProvider } from '../storageQueueFilters';
 import { getCacheRebuildProgressTypes, getContentWorkTotal, getMetadataDependentTypes } from './storageContentTypes';
 
 /**
@@ -153,15 +153,15 @@ export function useStorageVaultSync(params: {
 
                     if (contentRegistryRef.current && contentEnabled) {
                         const markdownFiles: TFile[] = [];
-                        const pdfFiles: TFile[] = [];
+                        const fileThumbnailFiles: TFile[] = [];
 
                         for (const file of allFiles) {
                             if (file.extension === 'md') {
                                 markdownFiles.push(file);
                                 continue;
                             }
-                            if (isPdfFile(file)) {
-                                pdfFiles.push(file);
+                            if (shouldQueueFileThumbnailProvider(file)) {
+                                fileThumbnailFiles.push(file);
                             }
                         }
 
@@ -169,8 +169,8 @@ export function useStorageVaultSync(params: {
                             queueMetadataContentWhenReady(markdownFiles, metadataDependentTypes, settings);
                         }
 
-                        if (settings.showFeatureImage && pdfFiles.length > 0) {
-                            const filesNeedingThumbnails = filterPdfFilesRequiringThumbnails(pdfFiles, settings);
+                        if (settings.showFeatureImage && fileThumbnailFiles.length > 0) {
+                            const filesNeedingThumbnails = filterFilesRequiringFileThumbnails(fileThumbnailFiles, settings);
                             if (filesNeedingThumbnails.length > 0) {
                                 contentRegistryRef.current.queueFilesForAllProviders(filesNeedingThumbnails, settings, {
                                     include: ['fileThumbnails']
@@ -293,14 +293,14 @@ export function useStorageVaultSync(params: {
             }
         };
 
-        const notifyExcalidrawCompanionChange = (imagePath: string) => {
-            emitExcalidrawCompanionImageChange(app, imagePath);
+        const notifyDrawingCompanionChange = (imagePath: string) => {
+            emitDrawingCompanionImageChange(app, imagePath);
         };
 
         const handleRename = (file: TAbstractFile, oldPath: string) => {
             if (file instanceof TFile) {
-                notifyExcalidrawCompanionChange(oldPath);
-                notifyExcalidrawCompanionChange(file.path);
+                notifyDrawingCompanionChange(oldPath);
+                notifyDrawingCompanionChange(file.path);
 
                 try {
                     const db = getDBInstance();
@@ -364,6 +364,7 @@ export function useStorageVaultSync(params: {
                                 }
 
                                 await Promise.all(operations);
+                                queueFileContentRefresh(file);
                             } finally {
                                 rebuildFileCache?.();
                             }
@@ -385,13 +386,13 @@ export function useStorageVaultSync(params: {
                 return;
             }
 
-            const excalidrawFile = findExcalidrawFileForCompanionImage(app, file.path);
-            if (excalidrawFile) {
-                notifyExcalidrawCompanionChange(file.path);
+            const drawingFile = findDrawingFileForCompanionImage(app, file.path);
+            if (drawingFile) {
+                notifyDrawingCompanionChange(file.path);
                 return;
             }
 
-            if (file.extension !== 'md' && !isPdfFile(file)) {
+            if (file.extension !== 'md' && !shouldQueueFileThumbnailProvider(file)) {
                 return;
             }
 
@@ -413,7 +414,7 @@ export function useStorageVaultSync(params: {
         const handleCreateOrDelete = (file: TAbstractFile) => {
             rebuildFileCache?.();
             if (file instanceof TFile) {
-                notifyExcalidrawCompanionChange(file.path);
+                notifyDrawingCompanionChange(file.path);
             }
         };
 

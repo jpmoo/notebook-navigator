@@ -863,7 +863,7 @@ export const STRINGS_JA = {
                 display: '外観',
                 organization: '整理',
                 pinnedNotes: 'ピン留めされたノート',
-                excalidraw: 'Excalidraw'
+                drawingPreviews: '描画プレビュー'
             },
             notes: {
                 frontmatter: 'フロントマター',
@@ -1671,11 +1671,11 @@ export const STRINGS_JA = {
                 name: '外部画像をダウンロード',
                 desc: 'リモート画像とYouTubeサムネイルをフィーチャー画像としてダウンロードします。'
             },
-            hideExcalidrawPreviewImages: {
+            hideDrawingPreviewImages: {
                 name: 'エクスポートされたプレビュー画像を非表示',
-                desc: 'Excalidraw からエクスポートされた PNG ファイルを非表示にします。表示するには「非表示の項目を表示」をオンにしてください。'
+                desc: 'エクスポートされた描画プレビューの PNG ファイルを非表示にします。表示するには「非表示の項目を表示」をオンにしてください。'
             },
-            excalidrawIntegrationInfo: {
+            drawingIntegrationInfo: {
                 intro: 'Notebook Navigator は Excalidraw からエクスポートされた PNG ファイルを図のプレビューとして表示します。',
                 items: [
                     '**Excalidraw 設定** で **Embedding Excalidraw into your Notes and Exporting** を開き、続いて **Export Settings**、次に **Auto-export Settings** を開きます。',

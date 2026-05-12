@@ -866,7 +866,7 @@ export const STRINGS_PL = {
                 display: 'Wygląd',
                 organization: 'Organizacja',
                 pinnedNotes: 'Przypięte notatki',
-                excalidraw: 'Excalidraw'
+                drawingPreviews: 'Podglądy rysunków'
             },
             notes: {
                 frontmatter: 'Metadane',
@@ -1675,11 +1675,11 @@ export const STRINGS_PL = {
                 name: 'Pobierz obrazy zewnętrzne',
                 desc: 'Pobiera zdalne obrazy i miniatury YouTube wyróżnionych obrazów.'
             },
-            hideExcalidrawPreviewImages: {
+            hideDrawingPreviewImages: {
                 name: 'Ukryj wyeksportowane obrazy podglądu',
-                desc: 'Ukrywa pliki PNG wyeksportowane przez Excalidraw. Włącz „Pokaż ukryte elementy”, aby je wyświetlić.'
+                desc: 'Ukrywa wyeksportowane pliki PNG podglądu rysunków. Włącz „Pokaż ukryte elementy”, aby je wyświetlić.'
             },
-            excalidrawIntegrationInfo: {
+            drawingIntegrationInfo: {
                 intro: 'Notebook Navigator wyświetla pliki PNG wyeksportowane przez Excalidraw jako podglądy rysunków.',
                 items: [
                     'W **ustawieniach Excalidraw** otwórz **Embedding Excalidraw into your Notes and Exporting**, następnie **Export Settings**, następnie **Auto-export Settings**.',

@@ -234,7 +234,7 @@ export function useListPaneData({
         activeProfile.fileVisibility,
         settings.enableFolderNotes,
         settings.hideFolderNoteInList,
-        settings.hideExcalidrawPreviewImages,
+        settings.hideDrawingPreviewImages,
         settings.folderNoteName,
         settings.folderNoteNamePattern,
         settings.useFrontmatterMetadata,
@@ -306,7 +306,7 @@ export function useListPaneData({
             hiddenFilePropertyMatcher,
             hiddenFileTags,
             hiddenFolders,
-            hideExcalidrawPreviewImages: settings.hideExcalidrawPreviewImages,
+            hideDrawingPreviewImages: settings.hideDrawingPreviewImages,
             showHiddenItems
         });
     }, [
@@ -316,7 +316,7 @@ export function useListPaneData({
         hiddenFilePropertyMatcher,
         hiddenFileNames,
         hiddenFileTags,
-        settings.hideExcalidrawPreviewImages,
+        settings.hideDrawingPreviewImages,
         showHiddenItems,
         app
     ]);

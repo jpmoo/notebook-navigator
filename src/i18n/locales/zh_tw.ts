@@ -857,7 +857,7 @@ export const STRINGS_ZH_TW = {
                 display: '外觀',
                 organization: '組織',
                 pinnedNotes: '釘選筆記',
-                excalidraw: 'Excalidraw'
+                drawingPreviews: '繪圖預覽'
             },
             notes: {
                 frontmatter: '前置中繼資料',
@@ -1664,11 +1664,11 @@ export const STRINGS_ZH_TW = {
                 name: '下載外部圖片',
                 desc: '下載遠端圖片和 YouTube 縮圖作為特色圖片。'
             },
-            hideExcalidrawPreviewImages: {
+            hideDrawingPreviewImages: {
                 name: '隱藏匯出的預覽圖片',
-                desc: '隱藏由 Excalidraw 匯出的 PNG 檔案。開啟「顯示隱藏項目」以顯示它們。'
+                desc: '隱藏匯出的繪圖預覽 PNG 檔案。開啟「顯示隱藏項目」以顯示它們。'
             },
-            excalidrawIntegrationInfo: {
+            drawingIntegrationInfo: {
                 intro: 'Notebook Navigator 將 Excalidraw 匯出的 PNG 檔案用作繪圖預覽。',
                 items: [
                     '在 **Excalidraw 設定** 中，依次開啟 **Embedding Excalidraw into your Notes and Exporting**、**Export Settings**、**Auto-export Settings**。',

@@ -382,20 +382,20 @@ export function renderListPaneTab(context: SettingsTabContext): void {
         updateButtonsDisabledState(plugin.settings.showQuickActions);
     }
 
-    const excalidrawGroup = createGroup(strings.settings.groups.list.excalidraw);
+    const drawingPreviewsGroup = createGroup(strings.settings.groups.list.drawingPreviews);
 
     addToggleSetting(
-        excalidrawGroup.addSetting,
-        strings.settings.items.hideExcalidrawPreviewImages.name,
-        strings.settings.items.hideExcalidrawPreviewImages.desc,
-        () => plugin.settings.hideExcalidrawPreviewImages,
+        drawingPreviewsGroup.addSetting,
+        strings.settings.items.hideDrawingPreviewImages.name,
+        strings.settings.items.hideDrawingPreviewImages.desc,
+        () => plugin.settings.hideDrawingPreviewImages,
         value => {
-            plugin.settings.hideExcalidrawPreviewImages = value;
+            plugin.settings.hideDrawingPreviewImages = value;
         }
     );
 
-    addInfoSetting(excalidrawGroup.addSetting, ['nn-setting-info-container', 'nn-setting-info-list'], descEl => {
-        const info = strings.settings.items.excalidrawIntegrationInfo;
+    addInfoSetting(drawingPreviewsGroup.addSetting, ['nn-setting-info-container', 'nn-setting-info-list'], descEl => {
+        const info = strings.settings.items.drawingIntegrationInfo;
         descEl.createDiv({ text: info.intro });
         const listEl = descEl.createEl('ol');
         info.items.forEach(item => {

@@ -861,7 +861,7 @@ export const STRINGS_UK = {
                 display: 'Вигляд',
                 organization: 'Організація',
                 pinnedNotes: 'Закріплені нотатки',
-                excalidraw: 'Excalidraw'
+                drawingPreviews: 'Перегляд малюнків'
             },
             notes: {
                 frontmatter: 'Frontmatter',
@@ -1669,11 +1669,11 @@ export const STRINGS_UK = {
                 name: 'Завантажувати зовнішні зображення',
                 desc: 'Завантажувати віддалені зображення та мініатюри YouTube для обкладинок.'
             },
-            hideExcalidrawPreviewImages: {
+            hideDrawingPreviewImages: {
                 name: 'Сховати експортовані зображення попереднього перегляду',
-                desc: 'Приховує PNG-файли, експортовані Excalidraw. Увімкніть «Показати приховані елементи», щоб відобразити їх.'
+                desc: 'Приховує експортовані PNG-файли попереднього перегляду малюнків. Увімкніть «Показати приховані елементи», щоб відобразити їх.'
             },
-            excalidrawIntegrationInfo: {
+            drawingIntegrationInfo: {
                 intro: 'Notebook Navigator показує PNG-файли, експортовані Excalidraw, як попередній перегляд малюнків.',
                 items: [
                     'У **налаштуваннях Excalidraw** відкрийте **Embedding Excalidraw into your Notes and Exporting**, потім **Export Settings**, потім **Auto-export Settings**.',

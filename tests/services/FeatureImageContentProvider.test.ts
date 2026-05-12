@@ -17,13 +17,14 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 import { App, TFile, parseYaml, type CachedMetadata, type FrontMatterCache } from 'obsidian';
+import { FeatureImageContentProvider } from '../../src/services/content/FeatureImageContentProvider';
 import { MarkdownPipelineContentProvider } from '../../src/services/content/MarkdownPipelineContentProvider';
 import { findFeatureImageReference, type FeatureImageReference } from '../../src/services/content/featureImageReferenceResolver';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import type { NotebookNavigatorSettings } from '../../src/settings/types';
 import type { FileData } from '../../src/storage/IndexedDBStorage';
 import { deriveFileMetadata } from '../utils/pathMetadata';
-import { getExcalidrawDirectFeatureImageKey } from '../../src/utils/excalidrawFeatureImages';
+import { getDrawingDirectFeatureImageKey } from '../../src/utils/drawingFeatureImages';
 
 class TestFeatureImageContentProvider extends MarkdownPipelineContentProvider {
     async runProcessFile(file: TFile, settings: NotebookNavigatorSettings) {
@@ -38,6 +39,26 @@ class TestFeatureImageContentProvider extends MarkdownPipelineContentProvider {
 
     buildKey(reference: FeatureImageReference): string {
         return this.getFeatureImageKey(reference);
+    }
+
+    shouldProcess(fileData: FileData | null, file: TFile, settings: NotebookNavigatorSettings): boolean {
+        return this.needsProcessing(fileData, file, settings);
+    }
+}
+
+class TestNonMarkdownFeatureImageContentProvider extends FeatureImageContentProvider {
+    async runProcessFile(file: TFile, settings: NotebookNavigatorSettings) {
+        const result = await this.processFile({ file, path: file.path }, null, settings);
+        return result.update;
+    }
+
+    async runProcessFileWithData(file: TFile, fileData: FileData | null, settings: NotebookNavigatorSettings) {
+        const result = await this.processFile({ file, path: file.path }, fileData, settings);
+        return result.update;
+    }
+
+    shouldProcess(fileData: FileData | null, file: TFile, settings: NotebookNavigatorSettings): boolean {
+        return this.needsProcessing(fileData, file, settings);
     }
 }
 
@@ -763,7 +784,7 @@ describe('FeatureImageContentProvider scanning', () => {
 
         const result = await provider.runProcessFile(excalidrawFile, settings);
 
-        expect(result?.featureImageKey).toBe(getExcalidrawDirectFeatureImageKey(excalidrawFile));
+        expect(result?.featureImageKey).toBe(getDrawingDirectFeatureImageKey(excalidrawFile, 'excalidraw'));
         expect(result?.featureImage).toBeInstanceOf(Blob);
         expect(result?.featureImage?.size).toBe(0);
         expect(readBinary).not.toHaveBeenCalled();
@@ -780,9 +801,168 @@ describe('FeatureImageContentProvider scanning', () => {
 
         const result = await provider.runProcessFile(excalidrawFile, settings);
 
-        expect(result?.featureImageKey).toBe(getExcalidrawDirectFeatureImageKey(excalidrawFile));
+        expect(result?.featureImageKey).toBe(getDrawingDirectFeatureImageKey(excalidrawFile, 'excalidraw'));
         expect(result?.featureImage).toBeInstanceOf(Blob);
         expect(result?.featureImage?.size).toBe(0);
+    });
+
+    it('marks frontmatter Tldraw feature images as direct drawing rows', async () => {
+        const context = createApp();
+        const { app } = context;
+        const provider = new TestFeatureImageContentProvider(app);
+        const settings = createSettings();
+        const tldrawFile = createFile('drawings/sketch.md');
+        const content = `---\ntldraw-file: true\n---\n`;
+        setMarkdownContent(context, tldrawFile, content);
+
+        const result = await provider.runProcessFile(tldrawFile, settings);
+
+        expect(result?.featureImageKey).toBe(getDrawingDirectFeatureImageKey(tldrawFile, 'tldraw'));
+        expect(result?.featureImage).toBeInstanceOf(Blob);
+        expect(result?.featureImage?.size).toBe(0);
+    });
+
+    it('replaces generic markdown feature markers for frontmatter Tldraw files', async () => {
+        const context = createApp();
+        const { app } = context;
+        const provider = new TestFeatureImageContentProvider(app);
+        const settings = createSettings();
+        const tldrawFile = createFile('drawings/sketch.md');
+        setMarkdownContent(context, tldrawFile, `---\ntldraw-file: true\n---\n`);
+        const fileData: FileData = {
+            mtime: tldrawFile.stat.mtime,
+            markdownPipelineMtime: tldrawFile.stat.mtime,
+            tagsMtime: tldrawFile.stat.mtime,
+            metadataMtime: tldrawFile.stat.mtime,
+            fileThumbnailsMtime: tldrawFile.stat.mtime,
+            tags: null,
+            wordCount: 0,
+            taskTotal: 0,
+            taskUnfinished: 0,
+            properties: null,
+            previewStatus: 'none',
+            featureImage: null,
+            featureImageStatus: 'none',
+            featureImageKey: '',
+            metadata: null
+        };
+
+        expect(provider.shouldProcess(fileData, tldrawFile, settings)).toBe(true);
+
+        const result = await provider.runProcessFileWithData(tldrawFile, fileData, settings);
+
+        expect(result?.featureImageKey).toBe(getDrawingDirectFeatureImageKey(tldrawFile, 'tldraw'));
+        expect(result?.featureImage).toBeInstanceOf(Blob);
+        expect(result?.featureImage?.size).toBe(0);
+    });
+
+    it('skips excluded frontmatter Tldraw regeneration when the empty marker is current', async () => {
+        const context = createApp();
+        const { app } = context;
+        const provider = new TestFeatureImageContentProvider(app);
+        const settings = createSettings({ featureImageExcludeProperties: ['private'] });
+        const tldrawFile = createFile('drawings/sketch.md');
+        setMarkdownContent(context, tldrawFile, `---\ntldraw-file: true\nprivate: true\n---\n`);
+        const fileData: FileData = {
+            mtime: tldrawFile.stat.mtime,
+            markdownPipelineMtime: tldrawFile.stat.mtime,
+            tagsMtime: tldrawFile.stat.mtime,
+            metadataMtime: tldrawFile.stat.mtime,
+            fileThumbnailsMtime: tldrawFile.stat.mtime,
+            tags: null,
+            wordCount: 0,
+            taskTotal: 0,
+            taskUnfinished: 0,
+            properties: null,
+            previewStatus: 'none',
+            featureImage: null,
+            featureImageStatus: 'none',
+            featureImageKey: '',
+            metadata: null
+        };
+
+        expect(provider.shouldProcess(fileData, tldrawFile, settings)).toBe(false);
+
+        const result = await provider.runProcessFileWithData(tldrawFile, fileData, settings);
+
+        expect(result).toBeNull();
+    });
+
+    it('marks raw Tldraw feature images as direct drawing rows', async () => {
+        const context = createApp();
+        const { app } = context;
+        const provider = new TestNonMarkdownFeatureImageContentProvider(app);
+        const settings = createSettings();
+        const tldrawFile = createFile('drawings/sketch.tldr');
+
+        const result = await provider.runProcessFile(tldrawFile, settings);
+
+        expect(result?.featureImageKey).toBe(getDrawingDirectFeatureImageKey(tldrawFile, 'tldraw'));
+        expect(result?.featureImage).toBeInstanceOf(Blob);
+        expect(result?.featureImage?.size).toBe(0);
+    });
+
+    it('replaces generic non-markdown feature markers for raw Tldraw files', async () => {
+        const context = createApp();
+        const { app } = context;
+        const provider = new TestNonMarkdownFeatureImageContentProvider(app);
+        const settings = createSettings();
+        const tldrawFile = createFile('drawings/sketch.tldr');
+        const fileData: FileData = {
+            mtime: tldrawFile.stat.mtime,
+            markdownPipelineMtime: tldrawFile.stat.mtime,
+            tagsMtime: tldrawFile.stat.mtime,
+            metadataMtime: tldrawFile.stat.mtime,
+            fileThumbnailsMtime: tldrawFile.stat.mtime,
+            tags: null,
+            wordCount: null,
+            taskTotal: null,
+            taskUnfinished: null,
+            properties: null,
+            previewStatus: 'none',
+            featureImage: null,
+            featureImageStatus: 'none',
+            featureImageKey: '',
+            metadata: null
+        };
+
+        expect(provider.shouldProcess(fileData, tldrawFile, settings)).toBe(true);
+
+        const result = await provider.runProcessFileWithData(tldrawFile, fileData, settings);
+
+        expect(result?.featureImageKey).toBe(getDrawingDirectFeatureImageKey(tldrawFile, 'tldraw'));
+        expect(result?.featureImage).toBeInstanceOf(Blob);
+        expect(result?.featureImage?.size).toBe(0);
+    });
+
+    it('skips raw Tldraw regeneration when the direct drawing marker matches', async () => {
+        const context = createApp();
+        const { app } = context;
+        const provider = new TestNonMarkdownFeatureImageContentProvider(app);
+        const settings = createSettings();
+        const tldrawFile = createFile('drawings/sketch.tldr');
+        const fileData: FileData = {
+            mtime: tldrawFile.stat.mtime,
+            markdownPipelineMtime: tldrawFile.stat.mtime,
+            tagsMtime: tldrawFile.stat.mtime,
+            metadataMtime: tldrawFile.stat.mtime,
+            fileThumbnailsMtime: tldrawFile.stat.mtime,
+            tags: null,
+            wordCount: null,
+            taskTotal: null,
+            taskUnfinished: null,
+            properties: null,
+            previewStatus: 'none',
+            featureImage: null,
+            featureImageStatus: 'none',
+            featureImageKey: getDrawingDirectFeatureImageKey(tldrawFile, 'tldraw'),
+            metadata: null
+        };
+
+        expect(provider.shouldProcess(fileData, tldrawFile, settings)).toBe(false);
+
+        const result = await provider.runProcessFileWithData(tldrawFile, fileData, settings);
+        expect(result).toBeNull();
     });
 
     it('skips Excalidraw regeneration when the direct companion marker matches', async () => {
@@ -808,7 +988,7 @@ describe('FeatureImageContentProvider scanning', () => {
             previewStatus: 'unprocessed',
             featureImage: null,
             featureImageStatus: 'none',
-            featureImageKey: getExcalidrawDirectFeatureImageKey(excalidrawFile),
+            featureImageKey: getDrawingDirectFeatureImageKey(excalidrawFile, 'excalidraw'),
             metadata: null
         };
 

@@ -24,7 +24,7 @@ import { TagContentProvider } from '../../src/services/content/TagContentProvide
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import type { NotebookNavigatorSettings } from '../../src/settings/types';
 import type { FileData } from '../../src/storage/IndexedDBStorage';
-import { getExcalidrawDirectFeatureImageKey } from '../../src/utils/excalidrawFeatureImages';
+import { getDrawingDirectFeatureImageKey } from '../../src/utils/drawingFeatureImages';
 import { setActivePropertyFields } from '../../src/utils/vaultProfiles';
 
 class TestTagContentProvider extends TagContentProvider {
@@ -423,7 +423,7 @@ describe('Content provider retry-later semantics', () => {
         expect(result.update?.wordCount).toBe(0);
         expect(result.update?.taskTotal).toBe(0);
         expect(result.update?.taskUnfinished).toBe(0);
-        expect(result.update?.featureImageKey).toBe(getExcalidrawDirectFeatureImageKey(file));
+        expect(result.update?.featureImageKey).toBe(getDrawingDirectFeatureImageKey(file, 'excalidraw'));
         expect(result.update?.featureImage).toBeInstanceOf(Blob);
     });
 

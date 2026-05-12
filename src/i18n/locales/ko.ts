@@ -863,7 +863,7 @@ export const STRINGS_KO = {
                 display: '모양',
                 organization: '정리',
                 pinnedNotes: '고정된 노트',
-                excalidraw: 'Excalidraw'
+                drawingPreviews: '그림 미리보기'
             },
             notes: {
                 frontmatter: '프런트매터',
@@ -1670,11 +1670,11 @@ export const STRINGS_KO = {
                 name: '외부 이미지 다운로드',
                 desc: '대표 이미지로 원격 이미지 및 YouTube 썸네일을 다운로드합니다.'
             },
-            hideExcalidrawPreviewImages: {
+            hideDrawingPreviewImages: {
                 name: '내보낸 미리보기 이미지 숨기기',
-                desc: 'Excalidraw가 내보낸 PNG 파일을 숨깁니다. 표시하려면 "숨김 항목 표시"를 켜세요.'
+                desc: '내보낸 그리기 미리보기 PNG 파일을 숨깁니다. 표시하려면 "숨김 항목 표시"를 켜세요.'
             },
-            excalidrawIntegrationInfo: {
+            drawingIntegrationInfo: {
                 intro: 'Notebook Navigator는 Excalidraw가 내보낸 PNG 파일을 드로잉 미리보기로 표시합니다.',
                 items: [
                     '**Excalidraw 설정**에서 **Embedding Excalidraw into your Notes and Exporting**, 그다음 **Export Settings**, 그다음 **Auto-export Settings**를 엽니다.',

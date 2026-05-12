@@ -865,7 +865,7 @@ export const STRINGS_NL = {
                 display: 'Uiterlijk',
                 organization: 'Organisatie',
                 pinnedNotes: 'Vastgezette notities',
-                excalidraw: 'Excalidraw'
+                drawingPreviews: 'Tekeningvoorbeelden'
             },
             notes: {
                 frontmatter: 'Frontmatter',
@@ -1674,11 +1674,11 @@ export const STRINGS_NL = {
                 name: 'Externe afbeeldingen downloaden',
                 desc: 'Download externe afbeeldingen en YouTube-miniaturen voor uitgelichte afbeeldingen.'
             },
-            hideExcalidrawPreviewImages: {
+            hideDrawingPreviewImages: {
                 name: 'Geëxporteerde voorbeeldafbeeldingen verbergen',
-                desc: 'Verberg PNG-bestanden die door Excalidraw zijn geëxporteerd. Schakel "Verborgen items tonen" in om ze weer te geven.'
+                desc: 'Verberg geëxporteerde PNG-bestanden met tekeningvoorbeelden. Schakel "Verborgen items tonen" in om ze weer te geven.'
             },
-            excalidrawIntegrationInfo: {
+            drawingIntegrationInfo: {
                 intro: 'Notebook Navigator toont door Excalidraw geëxporteerde PNG-bestanden als tekeningvoorbeelden.',
                 items: [
                     'Open in de **Excalidraw-instellingen** **Embedding Excalidraw into your Notes and Exporting**, daarna **Export Settings**, daarna **Auto-export Settings**.',

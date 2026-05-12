@@ -522,7 +522,8 @@ export function useMetadataCacheQueue(params: {
             const filesForQueue = filterFilesRequiringMetadataSources(markdownFiles, requestedTypes, baseSettings, {
                 // When metadata cache is not ready yet, prefer treating metadata as missing to avoid "false ready"
                 // files (for example when only a subset of fields has been indexed).
-                conservativeMetadata: true
+                conservativeMetadata: true,
+                app
             });
             if (filesForQueue.length === 0) {
                 return;

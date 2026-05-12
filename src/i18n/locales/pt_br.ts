@@ -866,7 +866,7 @@ export const STRINGS_PT_BR = {
                 display: 'Aparência',
                 organization: 'Organização',
                 pinnedNotes: 'Notas fixadas',
-                excalidraw: 'Excalidraw'
+                drawingPreviews: 'Pré-visualizações de desenhos'
             },
             notes: {
                 frontmatter: 'Frontmatter',
@@ -1676,11 +1676,11 @@ export const STRINGS_PT_BR = {
                 name: 'Baixar imagens externas',
                 desc: 'Baixar imagens remotas e miniaturas do YouTube para imagens de destaque.'
             },
-            hideExcalidrawPreviewImages: {
+            hideDrawingPreviewImages: {
                 name: 'Ocultar imagens de pré-visualização exportadas',
-                desc: 'Oculta arquivos PNG exportados pelo Excalidraw. Ative "Mostrar itens ocultos" para exibi-los.'
+                desc: 'Oculta arquivos PNG de pré-visualização de desenhos exportados. Ative "Mostrar itens ocultos" para exibi-los.'
             },
-            excalidrawIntegrationInfo: {
+            drawingIntegrationInfo: {
                 intro: 'O Notebook Navigator exibe arquivos PNG exportados pelo Excalidraw como pré-visualizações de desenhos.',
                 items: [
                     'Nas **configurações do Excalidraw**, abra **Embedding Excalidraw into your Notes and Exporting**, depois **Export Settings**, depois **Auto-export Settings**.',

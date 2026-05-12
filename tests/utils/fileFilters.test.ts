@@ -24,6 +24,7 @@ import {
     createFrontmatterPropertyExclusionMatcher,
     createHiddenFileNameMatcher,
     getFilteredFiles,
+    getFilteredIndexableFiles,
     shouldExcludeFileName,
     shouldExcludeFolder
 } from '../../src/utils/fileFilters';
@@ -166,13 +167,39 @@ describe('getFilteredFiles', () => {
         const companionImage = createTestTFile('Drawings/Sketch.excalidraw.png');
         const normalImage = createTestTFile('Drawings/Cover.png');
         const app = createAppWithFiles([drawing, companionImage, normalImage]);
-        const settings = { ...createSettings(), hideExcalidrawPreviewImages: false };
+        const settings = { ...createSettings(), hideDrawingPreviewImages: false };
 
         expect(toPaths(getFilteredFiles(app, settings))).toEqual([
             'Drawings/Sketch.excalidraw.md',
             'Drawings/Sketch.excalidraw.png',
             'Drawings/Cover.png'
         ]);
+    });
+});
+
+describe('getFilteredIndexableFiles', () => {
+    it('includes markdown, PDF, and raw Tldraw files', () => {
+        const note = createTestTFile('Notes/A.md');
+        const pdf = createTestTFile('Docs/File.pdf');
+        const drawing = createTestTFile('Drawings/Sketch.tldr');
+        const image = createTestTFile('Images/Cover.png');
+        const app = createAppWithFiles([note, pdf, drawing, image]);
+        const settings = createSettings();
+
+        expect(toPaths(getFilteredIndexableFiles(app, settings))).toEqual(['Notes/A.md', 'Docs/File.pdf', 'Drawings/Sketch.tldr']);
+    });
+
+    it('includes raw Tldraw files even when the extension is not visible in the UI', () => {
+        const note = createTestTFile('Notes/A.md');
+        const drawing = createTestTFile('Drawings/Sketch.tldr');
+        const app = createAppWithFiles([note, drawing]);
+        const settings = createSettings();
+        settings.vaultProfiles = settings.vaultProfiles.map(profile => ({
+            ...profile,
+            fileVisibility: FILE_VISIBILITY.SUPPORTED
+        }));
+
+        expect(toPaths(getFilteredIndexableFiles(app, settings))).toEqual(['Notes/A.md', 'Drawings/Sketch.tldr']);
     });
 });
 
