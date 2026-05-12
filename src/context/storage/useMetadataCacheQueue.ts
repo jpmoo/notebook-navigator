@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useCallback, useEffect, useRef, type RefObject } from 'react';
+import { useCallback, useEffect, useRef, type MutableRefObject } from 'react';
 import { EventRef, TFile, type App } from 'obsidian';
 import type { ContentProviderRegistry } from '../../services/content/ContentProviderRegistry';
 import type { ContentProviderType } from '../../interfaces/IContentProvider';
@@ -84,11 +84,11 @@ function getTypesForPendingMetadataWaitMask(mask: PendingMetadataWaitMask): Cont
 export function useMetadataCacheQueue(params: {
     app: App;
     settings: NotebookNavigatorSettings;
-    latestSettingsRef: RefObject<NotebookNavigatorSettings>;
-    stoppedRef: RefObject<boolean>;
-    contentRegistryRef: RefObject<ContentProviderRegistry | null>;
-    metadataWaitDisposersRef: RefObject<Set<() => void>>;
-    pendingMetadataWaitPathsRef: RefObject<Map<string, PendingMetadataWaitMask>>;
+    latestSettingsRef: MutableRefObject<NotebookNavigatorSettings>;
+    stoppedRef: MutableRefObject<boolean>;
+    contentRegistryRef: MutableRefObject<ContentProviderRegistry | null>;
+    metadataWaitDisposersRef: MutableRefObject<Set<() => void>>;
+    pendingMetadataWaitPathsRef: MutableRefObject<Map<string, PendingMetadataWaitMask>>;
 }): {
     queueMetadataContentWhenReady: (
         files: TFile[],

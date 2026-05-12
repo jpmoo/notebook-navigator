@@ -134,10 +134,10 @@ export const FolderItem = React.memo(function FolderItem({
     const uxPreferences = useUXPreferences();
     const includeDescendantNotes = uxPreferences.includeDescendantNotes;
     const showHiddenItems = uxPreferences.showHiddenItems;
-    const folderRef = useRef<HTMLDivElement>(null);
+    const folderRef = useRef<HTMLDivElement | null>(null);
 
-    const chevronRef = React.useRef<HTMLDivElement>(null);
-    const iconRef = React.useRef<HTMLSpanElement>(null);
+    const chevronRef = React.useRef<HTMLDivElement | null>(null);
+    const iconRef = React.useRef<HTMLSpanElement | null>(null);
     const iconVersion = useIconServiceVersion();
 
     // Merge provided count info with default values to ensure all properties are present

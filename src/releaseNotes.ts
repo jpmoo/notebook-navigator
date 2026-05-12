@@ -83,9 +83,13 @@ const RELEASE_NOTES: ReleaseNote[] = [
     {
         version: '2.6.6',
         date: '2026-05-12',
-        showOnUpdate: true,
+        showOnUpdate: false,
         changed: [
             '**List pane.** ==Excalidraw drawing previews now use the PNG files exported by Excalidraw==. Enable **Auto-export PNG** in Excalidraw settings. The new **List > Drawing previews** settings group has the full setup instructions.'
+        ],
+        improved: [
+            '**Community Plugin compliance.** Lots of time spent in this release to meet Obsidian community plugin compliance. Check our current rating at https://community.' +
+                'obsidian.md/plugins/notebook-navigator.'
         ]
     },
     {

@@ -86,7 +86,7 @@ export interface UseListPaneSearchResult {
     shouldFocusSearch: boolean;
     activeSearchShortcut: SearchShortcut | null;
     isSavingSearchShortcut: boolean;
-    suppressSearchTopScrollRef: RefObject<boolean>;
+    suppressSearchTopScrollRef: { current: boolean };
     setSearchQuery: Dispatch<SetStateAction<string>>;
     setShouldFocusSearch: Dispatch<SetStateAction<boolean>>;
     handleSearchToggle: () => void;

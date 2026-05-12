@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useCallback, useRef, type RefObject } from 'react';
+import { useCallback, useRef, type MutableRefObject } from 'react';
 import { TFile, type App } from 'obsidian';
 import type { FileContentType } from '../../interfaces/IContentProvider';
 import { strings } from '../../i18n';
@@ -41,7 +41,7 @@ const CACHE_REBUILD_MAX_NOTICE_RECREATE_ATTEMPTS = 2;
  *
  * The polling interval is intentionally coarse because scanning the cache is O(number of files).
  */
-export function useCacheRebuildNotice(params: { app: App; stoppedRef: RefObject<boolean>; onRebuildComplete?: () => void }): {
+export function useCacheRebuildNotice(params: { app: App; stoppedRef: MutableRefObject<boolean>; onRebuildComplete?: () => void }): {
     clearCacheRebuildNotice: () => void;
     startCacheRebuildNotice: (total: number, enabledTypes: FileContentType[]) => void;
 } {

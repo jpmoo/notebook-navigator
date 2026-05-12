@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useCallback, type RefObject } from 'react';
+import { useCallback, type MutableRefObject } from 'react';
 import { App, TFile } from 'obsidian';
 import type { ContentProviderType, FileContentType } from '../../interfaces/IContentProvider';
 import type { ContentProviderRegistry } from '../../services/content/ContentProviderRegistry';
@@ -40,7 +40,7 @@ import { getMetadataDependentTypes } from './storageContentTypes';
  */
 export function useStorageContentQueue(params: {
     app: App;
-    contentRegistryRef: RefObject<ContentProviderRegistry | null>;
+    contentRegistryRef: MutableRefObject<ContentProviderRegistry | null>;
     queueMetadataContentWhenReady: (
         files: TFile[],
         includeTypes?: ContentProviderType[],

@@ -77,10 +77,10 @@ export const PropertyTreeItem = React.memo(
         const settings = useSettingsState();
         const uxPreferences = useUXPreferences();
         const includeDescendantNotes = uxPreferences.includeDescendantNotes;
-        const chevronRef = useRef<HTMLDivElement>(null);
-        const iconRef = useRef<HTMLSpanElement>(null);
+        const chevronRef = useRef<HTMLDivElement | null>(null);
+        const iconRef = useRef<HTMLSpanElement | null>(null);
         const iconVersion = useIconServiceVersion();
-        const itemRef = useRef<HTMLDivElement>(null);
+        const itemRef = useRef<HTMLDivElement | null>(null);
 
         const resolvedCounts = useMemo<NoteCountInfo>(() => {
             if (countInfo) {

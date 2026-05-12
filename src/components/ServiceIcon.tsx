@@ -28,7 +28,7 @@ interface ServiceIconProps {
 }
 
 export function ServiceIcon({ iconId, size, className, 'aria-label': ariaLabel, 'aria-hidden': ariaHidden }: ServiceIconProps) {
-    const ref = useRef<HTMLSpanElement>(null);
+    const ref = useRef<HTMLSpanElement | null>(null);
     const iconServiceVersion = useIconServiceVersion();
 
     useEffect(() => {

@@ -159,7 +159,7 @@ export function useNavigationPaneScroll({
     const showHiddenItems = uxPreferences.showHiddenItems;
 
     // Reference to the scroll container DOM element
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const scrollContainerRef = useRef<HTMLDivElement | null>(null);
     const [scrollContainerEl, setScrollContainerEl] = useState<HTMLDivElement | null>(null);
     const [containerVisible, setContainerVisible] = useState<boolean>(false);
 

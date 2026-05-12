@@ -61,7 +61,7 @@ export function SearchInput({
     isShortcutDisabled,
     searchProvider
 }: SearchInputProps) {
-    const inputRef = useRef<HTMLInputElement>(null);
+    const inputRef = useRef<HTMLInputElement | null>(null);
     const tagSuggestRef = useRef<SearchTagInputSuggest | null>(null);
     const dateSuggestRef = useRef<SearchDateInputSuggest | null>(null);
     const { isMobile, omnisearchService, app, tagTreeService, plugin } = useServices();

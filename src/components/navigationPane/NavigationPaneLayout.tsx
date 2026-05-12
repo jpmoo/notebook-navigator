@@ -24,7 +24,7 @@ import { NavigationPaneHeader } from '../NavigationPaneHeader';
 import { VaultTitleArea } from '../VaultTitleArea';
 
 interface NavigationPaneLayoutProps {
-    navigationPaneRef: React.RefObject<HTMLDivElement | null>;
+    navigationPaneRef: React.MutableRefObject<HTMLDivElement | null>;
     navigationPaneStyle: CSSPropertiesWithVars;
     shouldRenderCalendarOverlay: boolean;
     isShortcutSorting: boolean;
@@ -41,7 +41,7 @@ interface NavigationPaneLayoutProps {
     pinNavigationBanner: boolean;
     navigationBannerContent: React.ReactNode;
     shouldRenderPinnedShortcuts: boolean;
-    pinnedShortcutsContainerRef: React.RefObject<HTMLDivElement | null>;
+    pinnedShortcutsContainerRef: React.MutableRefObject<HTMLDivElement | null>;
     pinnedShortcutsHasOverflow: boolean;
     pinnedShortcutsMaxHeight: number | null;
     allowEmptyShortcutDrop: boolean;
@@ -54,7 +54,7 @@ interface NavigationPaneLayoutProps {
     onPinnedShortcutsResizePointerDown: (event: React.PointerEvent<HTMLDivElement>) => void;
     scrollContainerRefCallback: (node: HTMLDivElement | null) => void;
     hasNavigationBannerConfigured: boolean;
-    navigationBannerRef: React.RefObject<HTMLDivElement | null>;
+    navigationBannerRef: React.MutableRefObject<HTMLDivElement | null>;
     rootReorderContent: React.ReactNode;
     isRootReorderMode: boolean;
     items: CombinedNavigationItem[];

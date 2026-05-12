@@ -139,9 +139,9 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
 }: VirtualFolderItemProps) {
     const settings = useSettingsState();
     const uxPreferences = useUXPreferences();
-    const folderRef = useRef<HTMLDivElement>(null);
-    const chevronRef = useRef<HTMLDivElement>(null);
-    const iconRef = useRef<HTMLSpanElement>(null);
+    const folderRef = useRef<HTMLDivElement | null>(null);
+    const chevronRef = useRef<HTMLDivElement | null>(null);
+    const iconRef = useRef<HTMLSpanElement | null>(null);
     const iconVersion = useIconServiceVersion();
     const includeDescendantNotes = uxPreferences.includeDescendantNotes;
     const applyColorToName = Boolean(color) && !settings.colorIconOnly;

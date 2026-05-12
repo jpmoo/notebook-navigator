@@ -139,10 +139,10 @@ export const TagTreeItem = React.memo(
         const settings = useSettingsState();
         const uxPreferences = useUXPreferences();
         const includeDescendantNotes = uxPreferences.includeDescendantNotes;
-        const chevronRef = React.useRef<HTMLDivElement>(null);
-        const iconRef = React.useRef<HTMLSpanElement>(null);
+        const chevronRef = React.useRef<HTMLDivElement | null>(null);
+        const iconRef = React.useRef<HTMLSpanElement | null>(null);
         const iconVersion = useIconServiceVersion();
-        const itemRef = React.useRef<HTMLDivElement>(null);
+        const itemRef = React.useRef<HTMLDivElement | null>(null);
 
         // Compute note counts - use provided counts or calculate from tag node
         const resolvedCounts = React.useMemo<NoteCountInfo>(() => {

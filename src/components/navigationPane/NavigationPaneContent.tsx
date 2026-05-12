@@ -162,9 +162,9 @@ export const NavigationPane = React.memo(
             }
         }, [settings.calendarWeeksToShow]);
 
-        const navigationPaneRef = useRef<HTMLDivElement>(null);
-        const navigationBannerRef = useRef<HTMLDivElement>(null);
-        const pinnedShortcutsContainerRef = useRef<HTMLDivElement>(null);
+        const navigationPaneRef = useRef<HTMLDivElement | null>(null);
+        const navigationBannerRef = useRef<HTMLDivElement | null>(null);
+        const pinnedShortcutsContainerRef = useRef<HTMLDivElement | null>(null);
         const [pinnedShortcutsScrollElement, setPinnedShortcutsScrollElement] = useState<HTMLDivElement | null>(null);
         const [pinnedShortcutsHasOverflow, setPinnedShortcutsHasOverflow] = useState(false);
         const pinnedShortcutsResizeFrameRef = useRef<number | null>(null);
