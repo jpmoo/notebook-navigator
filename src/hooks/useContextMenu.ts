@@ -70,7 +70,7 @@ export function hideNavigatorContextMenu() {
  *
  * @example
  * ```tsx
- * const ref = useRef<HTMLDivElement>(null);
+ * const ref = useRef<HTMLDivElement | null>(null);
  * useContextMenu(ref, { type: 'file', item: file });
  *
  * return <div ref={ref}>Right-click me</div>;

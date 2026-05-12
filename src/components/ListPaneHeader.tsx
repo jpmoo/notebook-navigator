@@ -55,7 +55,7 @@ export function ListPaneHeader({
     iconName,
     showIcon
 }: ListPaneHeaderProps) {
-    const iconRef = React.useRef<HTMLSpanElement>(null);
+    const iconRef = React.useRef<HTMLSpanElement | null>(null);
     const { app, isMobile } = useServices();
     const commandQueue = useCommandQueue();
     const settings = useSettingsState();
@@ -275,7 +275,7 @@ export function ListPaneHeader({
         handleSelectedFolderNoteMouseDown
     ]);
 
-    const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+    const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
     const [showFade, setShowFade] = React.useState(false);
 
     // Renders the header icon when icon name or version changes

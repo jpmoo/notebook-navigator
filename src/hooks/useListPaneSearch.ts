@@ -86,7 +86,7 @@ export interface UseListPaneSearchResult {
     shouldFocusSearch: boolean;
     activeSearchShortcut: SearchShortcut | null;
     isSavingSearchShortcut: boolean;
-    suppressSearchTopScrollRef: RefObject<boolean>;
+    suppressSearchTopScrollRef: { current: boolean };
     setSearchQuery: Dispatch<SetStateAction<string>>;
     setShouldFocusSearch: Dispatch<SetStateAction<boolean>>;
     handleSearchToggle: () => void;
@@ -461,7 +461,7 @@ export function useListPaneSearch({
 
     const waitForNextFrame = useCallback(() => {
         return new Promise<void>(resolve => {
-            requestAnimationFrame(() => resolve());
+            window.requestAnimationFrame(() => resolve());
         });
     }, []);
 

@@ -12,7 +12,7 @@
     font-size: var(--nn-file-small-size-mobile, var(--nn-file-small-size));
     font-weight: var(--nn-theme-list-group-header-font-weight);
     color: var(--nn-theme-list-group-header-color);
-    background-color: transparent !important;
+    background-color: transparent;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -55,7 +55,7 @@
 .nn-list-sticky-header .nn-list-group-header {
     position: relative;
     overflow: visible;
-    background-color: var(--nn-theme-list-bg) !important;
+    background-color: var(--nn-theme-list-bg);
     pointer-events: auto;
 }
 
@@ -108,12 +108,12 @@
 }
 
 .nn-list-group-header-text--folder-note {
-    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration) !important;
+    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration);
 }
 
 .nn-list-group-header-text--folder-note:hover {
     cursor: pointer;
-    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration) !important;
+    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration);
 }
 
 .nn-pinned-section-header {

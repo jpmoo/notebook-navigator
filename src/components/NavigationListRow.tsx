@@ -126,8 +126,8 @@ export function NavigationListRow({
 }: NavigationListRowProps) {
     const settings = useSettingsState();
     const rowRef = useRef<HTMLDivElement | null>(null);
-    const chevronRef = useRef<HTMLSpanElement>(null);
-    const iconRef = useRef<HTMLSpanElement>(null);
+    const chevronRef = useRef<HTMLSpanElement | null>(null);
+    const iconRef = useRef<HTMLSpanElement | null>(null);
     const iconVersion = useIconServiceVersion();
 
     // Determine whether to apply color to the label text instead of the icon

@@ -382,7 +382,7 @@ export function buildPropertyMenu(params: PropertyMenuBuilderParams): void {
         });
 
         menu.addItem((item: MenuItem) => {
-            setAsyncOnClick(item.setTitle(strings.contextMenu.property.deleteKey).setIcon('lucide-trash'), async () => {
+            setAsyncOnClick(item.setTitle(strings.contextMenu.property.deleteKey).setIcon('lucide-trash').setWarning(true), async () => {
                 await propertyOperations.promptDeletePropertyKey(propertyKey);
             });
         });

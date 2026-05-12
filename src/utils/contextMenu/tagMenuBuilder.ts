@@ -373,9 +373,12 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
             });
 
             menu.addItem((item: MenuItem) => {
-                setAsyncOnClick(item.setTitle(strings.modals.tagOperation.confirmDelete).setIcon('lucide-trash'), async () => {
-                    await services.tagOperations.promptDeleteTag(tagPath);
-                });
+                setAsyncOnClick(
+                    item.setTitle(strings.modals.tagOperation.confirmDelete).setIcon('lucide-trash').setWarning(true),
+                    async () => {
+                        await services.tagOperations.promptDeleteTag(tagPath);
+                    }
+                );
             });
         }
     }

@@ -262,7 +262,7 @@ export function useListPaneRefresh({
                 shouldRefresh = changes.some(change => change.metadataHiddenChanged === true && basePathSet.has(change.path));
             }
 
-            if (!shouldRefresh && hasTaskSearchFilters) {
+            if (!shouldRefresh && (hasTaskSearchFilters || settings.showFileBackgroundUnfinishedTask)) {
                 shouldRefresh = changes.some(change => change.changes.taskUnfinished !== undefined && basePathSet.has(change.path));
             }
 
@@ -298,6 +298,7 @@ export function useListPaneRefresh({
         settings.frontmatterNameField,
         settings.propertySortKey,
         settings.propertySortSecondary,
+        settings.showFileBackgroundUnfinishedTask,
         settings.useFrontmatterMetadata,
         showHiddenItems,
         sortOption

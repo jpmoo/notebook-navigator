@@ -28,9 +28,10 @@ import { resolveUXIcon } from '../utils/uxIcons';
 interface ListToolbarProps {
     isSearchActive?: boolean;
     onSearchToggle?: () => void;
+    useFloatingLayout?: boolean;
 }
 
-export function ListToolbar({ isSearchActive, onSearchToggle }: ListToolbarProps) {
+export function ListToolbar({ isSearchActive, onSearchToggle, useFloatingLayout = false }: ListToolbarProps) {
     const uxPreferences = useUXPreferences();
     const includeDescendantNotes = uxPreferences.includeDescendantNotes;
     const selectionState = useSelectionState();
@@ -68,79 +69,94 @@ export function ListToolbar({ isSearchActive, onSearchToggle }: ListToolbarProps
         return null;
     }
 
+    const leftButtons = [
+        showSearchButton ? (
+            <button
+                key="search"
+                className={`${leftButtonBaseClassName}${isSearchActive ? ' nn-mobile-toolbar-button-active' : ''}`}
+                aria-label={strings.paneHeader.search}
+                onClick={onSearchToggle}
+                disabled={!hasNavigationSelection}
+                tabIndex={-1}
+            >
+                <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-search')} />
+            </button>
+        ) : null,
+        showDescendantsButton ? (
+            <button
+                key="descendants"
+                className={`${leftButtonBaseClassName}${includeDescendantNotes ? ' nn-mobile-toolbar-button-active' : ''}`}
+                aria-label={descendantsTooltip}
+                onClick={handleToggleDescendants}
+                disabled={!hasNavigationSelection}
+                tabIndex={-1}
+            >
+                <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-descendants')} />
+            </button>
+        ) : null,
+        showSortButton ? (
+            <button
+                key="sort"
+                className={`${leftButtonBaseClassName}${hasCustomSortOrGroup ? ' nn-mobile-toolbar-button-active' : ''}`}
+                aria-label={strings.paneHeader.changeSortAndGroup}
+                onClick={handleSortMenu}
+                disabled={!hasAppearanceOrSortSelection}
+                tabIndex={-1}
+            >
+                <ServiceIcon
+                    iconId={resolveUXIcon(
+                        settings.interfaceIcons,
+                        getCurrentSortOption().endsWith('-desc') ? 'list-sort-descending' : 'list-sort-ascending'
+                    )}
+                />
+            </button>
+        ) : null,
+        showAppearanceButton ? (
+            <button
+                key="appearance"
+                className={`${leftButtonBaseClassName}${hasCustomAppearance ? ' nn-mobile-toolbar-button-active' : ''}`}
+                aria-label={strings.paneHeader.changeAppearance}
+                onClick={handleAppearanceMenu}
+                disabled={!hasAppearanceOrSortSelection}
+                tabIndex={-1}
+            >
+                <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-appearance')} />
+            </button>
+        ) : null
+    ].filter(Boolean);
+    const newNoteButton = showNewNoteButton ? (
+        <button
+            key="new-note"
+            className="nn-mobile-toolbar-button nn-mobile-toolbar-button-circle"
+            aria-label={strings.paneHeader.newNote}
+            onClick={() => {
+                runAsyncAction(() => handleNewFile());
+            }}
+            disabled={!canCreateNewFile}
+            tabIndex={-1}
+        >
+            <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-new-note')} />
+        </button>
+    ) : null;
+
+    if (!useFloatingLayout) {
+        return (
+            <div className="nn-mobile-toolbar">
+                {leftButtons}
+                {newNoteButton}
+            </div>
+        );
+    }
+
     return (
         <div className="nn-mobile-toolbar">
             <div className="nn-mobile-toolbar-left">
-                {leftButtonCount > 0 ? (
-                    <div className={leftGroupClassName}>
-                        {showSearchButton ? (
-                            <button
-                                className={`${leftButtonBaseClassName}${isSearchActive ? ' nn-mobile-toolbar-button-active' : ''}`}
-                                aria-label={strings.paneHeader.search}
-                                onClick={onSearchToggle}
-                                disabled={!hasNavigationSelection}
-                                tabIndex={-1}
-                            >
-                                <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-search')} />
-                            </button>
-                        ) : null}
-                        {showDescendantsButton ? (
-                            <button
-                                className={`${leftButtonBaseClassName}${includeDescendantNotes ? ' nn-mobile-toolbar-button-active' : ''}`}
-                                aria-label={descendantsTooltip}
-                                onClick={handleToggleDescendants}
-                                disabled={!hasNavigationSelection}
-                                tabIndex={-1}
-                            >
-                                <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-descendants')} />
-                            </button>
-                        ) : null}
-                        {showSortButton ? (
-                            <button
-                                className={`${leftButtonBaseClassName}${hasCustomSortOrGroup ? ' nn-mobile-toolbar-button-active' : ''}`}
-                                aria-label={strings.paneHeader.changeSortAndGroup}
-                                onClick={handleSortMenu}
-                                disabled={!hasAppearanceOrSortSelection}
-                                tabIndex={-1}
-                            >
-                                <ServiceIcon
-                                    iconId={resolveUXIcon(
-                                        settings.interfaceIcons,
-                                        getCurrentSortOption().endsWith('-desc') ? 'list-sort-descending' : 'list-sort-ascending'
-                                    )}
-                                />
-                            </button>
-                        ) : null}
-                        {showAppearanceButton ? (
-                            <button
-                                className={`${leftButtonBaseClassName}${hasCustomAppearance ? ' nn-mobile-toolbar-button-active' : ''}`}
-                                aria-label={strings.paneHeader.changeAppearance}
-                                onClick={handleAppearanceMenu}
-                                disabled={!hasAppearanceOrSortSelection}
-                                tabIndex={-1}
-                            >
-                                <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-appearance')} />
-                            </button>
-                        ) : null}
-                    </div>
-                ) : null}
+                {leftButtonCount > 0 ? <div className={leftGroupClassName}>{leftButtons}</div> : null}
             </div>
 
             {showNewNoteButton ? (
                 <div className="nn-mobile-toolbar-right">
-                    <div className="nn-mobile-toolbar-circle">
-                        <button
-                            className="nn-mobile-toolbar-button nn-mobile-toolbar-button-circle"
-                            aria-label={strings.paneHeader.newNote}
-                            onClick={() => {
-                                runAsyncAction(() => handleNewFile());
-                            }}
-                            disabled={!canCreateNewFile}
-                            tabIndex={-1}
-                        >
-                            <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-new-note')} />
-                        </button>
-                    </div>
+                    <div className="nn-mobile-toolbar-circle">{newNoteButton}</div>
                 </div>
             ) : null}
         </div>

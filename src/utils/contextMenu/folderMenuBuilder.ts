@@ -175,9 +175,12 @@ export function buildFolderCreationMenu(params: FolderMenuBuilderParams, folderD
 
             // Delete folder note option
             menu.addItem((item: MenuItem) => {
-                setAsyncOnClick(item.setTitle(strings.contextMenu.folder.deleteFolderNote).setIcon('lucide-trash'), async () => {
-                    await fileSystemOps.deleteFile(folderNote, settings.confirmBeforeDelete);
-                });
+                setAsyncOnClick(
+                    item.setTitle(strings.contextMenu.folder.deleteFolderNote).setIcon('lucide-trash').setWarning(true),
+                    async () => {
+                        await fileSystemOps.deleteFile(folderNote, settings.confirmBeforeDelete);
+                    }
+                );
             });
         } else if (canCreateFolderNote) {
             // Create folder note option
@@ -576,7 +579,7 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
     // Delete folder (not available for vault root)
     if (folder.path !== '/') {
         menu.addItem((item: MenuItem) => {
-            setAsyncOnClick(item.setTitle(strings.contextMenu.folder.deleteFolder).setIcon('lucide-trash'), async () => {
+            setAsyncOnClick(item.setTitle(strings.contextMenu.folder.deleteFolder).setIcon('lucide-trash').setWarning(true), async () => {
                 const parentFolder = folder.parent;
 
                 await fileSystemOps.deleteFolder(folder, settings.confirmBeforeDelete, () => {

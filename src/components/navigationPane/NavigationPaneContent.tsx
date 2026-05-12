@@ -71,6 +71,7 @@ import type { CombinedNavigationItem } from '../../types/virtualization';
 import { NavigationPaneItemRenderer } from './NavigationPaneItemRenderer';
 import { NavigationPaneLayout } from './NavigationPaneLayout';
 import type { NavigationPaneRowContext } from './NavigationPaneItemRenderer.types';
+import { isNavigationItemFilled } from './navigationPaneItemState';
 import type { NavigationRainbowState } from '../../hooks/useNavigationRainbowState';
 import type { NavigationPaneSourceState } from '../../hooks/navigationPane/data/useNavigationPaneSourceState';
 import type { NavigationPaneTreeSectionsResult } from '../../hooks/navigationPane/data/useNavigationPaneTreeSections';
@@ -161,9 +162,9 @@ export const NavigationPane = React.memo(
             }
         }, [settings.calendarWeeksToShow]);
 
-        const navigationPaneRef = useRef<HTMLDivElement>(null);
-        const navigationBannerRef = useRef<HTMLDivElement>(null);
-        const pinnedShortcutsContainerRef = useRef<HTMLDivElement>(null);
+        const navigationPaneRef = useRef<HTMLDivElement | null>(null);
+        const navigationBannerRef = useRef<HTMLDivElement | null>(null);
+        const pinnedShortcutsContainerRef = useRef<HTMLDivElement | null>(null);
         const [pinnedShortcutsScrollElement, setPinnedShortcutsScrollElement] = useState<HTMLDivElement | null>(null);
         const [pinnedShortcutsHasOverflow, setPinnedShortcutsHasOverflow] = useState(false);
         const pinnedShortcutsResizeFrameRef = useRef<number | null>(null);
@@ -669,13 +670,13 @@ export const NavigationPane = React.memo(
 
             const scheduleScroll = () => handleTreeUpdateComplete();
             if (typeof requestAnimationFrame !== 'undefined') {
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(scheduleScroll);
+                window.requestAnimationFrame(() => {
+                    window.requestAnimationFrame(scheduleScroll);
                 });
                 return;
             }
 
-            activeWindow.setTimeout(scheduleScroll, 0);
+            window.setTimeout(scheduleScroll, 0);
         }, [calendarWeekCount, handleTreeUpdateComplete, shouldRenderCalendarOverlay]);
 
         useEffect(() => {
@@ -726,9 +727,10 @@ export const NavigationPane = React.memo(
                     onToggleRootFolderReorder={handleToggleRootReorder}
                     rootReorderActive={isRootReorderMode}
                     rootReorderDisabled={!canReorderRootItems}
+                    useFloatingLayout={shouldUseFloatingToolbars}
                 />
             );
-        }, [canReorderRootItems, handleToggleRootReorder, handleTreeUpdateComplete, isRootReorderMode]);
+        }, [canReorderRootItems, handleToggleRootReorder, handleTreeUpdateComplete, isRootReorderMode, shouldUseFloatingToolbars]);
 
         const showVaultTitleInHeader =
             !isMobile && (settings.vaultProfiles ?? []).length > 1 && (settings.vaultTitle ?? 'navigation') === 'header';
@@ -822,8 +824,21 @@ export const NavigationPane = React.memo(
             ]
         );
 
+        const isNavigationItemFilledForAdjacency = useCallback(
+            (item: CombinedNavigationItem) =>
+                isNavigationItemFilled({
+                    item,
+                    selectionState,
+                    searchHighlights,
+                    getSolidBackground
+                }),
+            [getSolidBackground, searchHighlights, selectionState]
+        );
+
         const renderNavigationItem = useCallback(
-            (item: CombinedNavigationItem) => <NavigationPaneItemRenderer item={item} context={rowContext} />,
+            (item: CombinedNavigationItem, adjacentFilledClassName?: string) => (
+                <NavigationPaneItemRenderer item={item} context={rowContext} adjacentFilledClassName={adjacentFilledClassName} />
+            ),
             [rowContext]
         );
 
@@ -897,6 +912,7 @@ export const NavigationPane = React.memo(
                         pinnedShortcutsScrollRefCallback={pinnedShortcutsScrollRefCallback}
                         pinnedNavigationItems={pinnedNavigationItems}
                         renderNavigationItem={renderNavigationItem}
+                        isNavigationItemFilled={isNavigationItemFilledForAdjacency}
                         onPinnedShortcutsResizePointerDown={handlePinnedShortcutsResizePointerDown}
                         scrollContainerRefCallback={scrollContainerRefCallback}
                         hasNavigationBannerConfigured={hasNavigationBannerConfigured}

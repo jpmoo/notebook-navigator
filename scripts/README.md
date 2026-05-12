@@ -50,7 +50,7 @@ node scripts/release.js patch --dry-run    # Preview release PR preparation
 - Creates a release branch and pull request with the version bump
 - With GitHub CLI, waits for the release pull request to merge, then publishes by creating and pushing a git tag
 - Pushes the tag to trigger the GitHub Actions release workflow
-- Verifies the remote tag, GitHub release assets, and release workflow result after publishing
+- Verifies the remote tag, GitHub release assets, release workflow result, and artifact attestations after publishing
 
 **Version Types:**
 

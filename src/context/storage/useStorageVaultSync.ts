@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useEffect, type Dispatch, type RefObject, type SetStateAction } from 'react';
+import { useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import { App, EventRef, TAbstractFile, TFile, debounce } from 'obsidian';
 import { TIMEOUTS } from '../../types/obsidian-extended';
 import { INTERNAL_NOTEBOOK_NAVIGATOR_API, type NotebookNavigatorAPI } from '../../api/NotebookNavigatorAPI';
@@ -55,20 +55,20 @@ export function useStorageVaultSync(params: {
     app: App;
     api: NotebookNavigatorAPI | null;
     settings: NotebookNavigatorSettings;
-    latestSettingsRef: RefObject<NotebookNavigatorSettings>;
-    stoppedRef: RefObject<boolean>;
-    isFirstLoadRef: RefObject<boolean>;
+    latestSettingsRef: MutableRefObject<NotebookNavigatorSettings>;
+    stoppedRef: MutableRefObject<boolean>;
+    isFirstLoadRef: MutableRefObject<boolean>;
     isIndexedDBReady: boolean;
-    hasBuiltInitialCacheRef: RefObject<boolean>;
+    hasBuiltInitialCacheRef: MutableRefObject<boolean>;
     setIsStorageReady: Dispatch<SetStateAction<boolean>>;
-    isStorageReadyRef: RefObject<boolean>;
-    contentRegistryRef: RefObject<ContentProviderRegistry | null>;
-    pendingSyncTimeoutIdRef: RefObject<number | null>;
-    pendingRenameDataRef: RefObject<Map<string, DBFileData>>;
-    buildFileCacheFnRef: RefObject<((isInitialLoad?: boolean) => Promise<void>) | null>;
-    rebuildFileCacheRef: RefObject<ReturnType<typeof debounce> | null>;
-    activeVaultEventRefsRef: RefObject<EventRef[] | null>;
-    activeMetadataEventRefRef: RefObject<EventRef | null>;
+    isStorageReadyRef: MutableRefObject<boolean>;
+    contentRegistryRef: MutableRefObject<ContentProviderRegistry | null>;
+    pendingSyncTimeoutIdRef: MutableRefObject<number | null>;
+    pendingRenameDataRef: MutableRefObject<Map<string, DBFileData>>;
+    buildFileCacheFnRef: MutableRefObject<((isInitialLoad?: boolean) => Promise<void>) | null>;
+    rebuildFileCacheRef: MutableRefObject<ReturnType<typeof debounce> | null>;
+    activeVaultEventRefsRef: MutableRefObject<EventRef[] | null>;
+    activeMetadataEventRefRef: MutableRefObject<EventRef | null>;
     rebuildTagTree: () => Map<string, TagTreeNode>;
     scheduleTagTreeRebuild: (options?: { flush?: boolean }) => void;
     cancelTagTreeRebuildDebouncer: (options?: { reset?: boolean }) => void;

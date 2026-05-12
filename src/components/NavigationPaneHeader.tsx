@@ -164,7 +164,7 @@ export function NavigationPaneHeader({
                                 handleExpandCollapseAll();
                                 if (onTreeUpdateComplete) {
                                     // Defer callback until after DOM updates complete
-                                    requestAnimationFrame(() => {
+                                    window.requestAnimationFrame(() => {
                                         onTreeUpdateComplete();
                                     });
                                 }
@@ -187,7 +187,7 @@ export function NavigationPaneHeader({
                                 handleToggleShowExcludedFolders();
                                 if (onTreeUpdateComplete) {
                                     // Defer callback until after DOM updates complete
-                                    requestAnimationFrame(() => {
+                                    window.requestAnimationFrame(() => {
                                         onTreeUpdateComplete();
                                     });
                                 }

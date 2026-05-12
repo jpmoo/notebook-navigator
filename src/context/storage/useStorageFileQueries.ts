@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useCallback, type RefObject } from 'react';
+import { useCallback, type MutableRefObject } from 'react';
 import type { App, TFile } from 'obsidian';
 import type { NotebookNavigatorSettings } from '../../settings';
 import { getFilteredIndexableFiles, getFilteredMarkdownFiles } from '../../utils/fileFilters';
@@ -31,7 +31,7 @@ import { getFilteredIndexableFiles, getFilteredMarkdownFiles } from '../../utils
  */
 export function useStorageFileQueries(params: {
     app: App;
-    latestSettingsRef: RefObject<NotebookNavigatorSettings>;
+    latestSettingsRef: MutableRefObject<NotebookNavigatorSettings>;
     showHiddenItems: boolean;
 }): { getVisibleMarkdownFiles: () => TFile[]; getIndexableFiles: () => TFile[] } {
     const { app, latestSettingsRef, showHiddenItems } = params;

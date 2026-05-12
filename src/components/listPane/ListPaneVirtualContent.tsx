@@ -19,7 +19,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { TFile, TFolder } from 'obsidian';
 import { Virtualizer } from '@tanstack/react-virtual';
-import { useServices } from '../../context/ServicesContext';
+import { useMetadataService, useServices } from '../../context/ServicesContext';
 import { strings } from '../../i18n';
 import { ListPaneItemType, PINNED_SECTION_HEADER_KEY, type NavigationItemType } from '../../types';
 import { runAsyncAction } from '../../utils/async';
@@ -296,6 +296,7 @@ export function ListPaneVirtualContent({
     getSolidBackground
 }: ListPaneVirtualContentProps) {
     const { app, commandQueue, isMobile } = useServices();
+    const metadataService = useMetadataService();
     const pinnedGroupChevronIcon = useMemo(
         () => resolveUXIcon(settings.interfaceIcons, pinnedGroupExpanded ? 'nav-tree-collapse' : 'nav-tree-expand'),
         [pinnedGroupExpanded, settings.interfaceIcons]
@@ -448,6 +449,31 @@ export function ListPaneVirtualContent({
         onHoveredFilePathChange(null, null);
     }, [onHoveredFilePathChange]);
 
+    const hasFileCustomBackground = useCallback(
+        (item: ListPaneItem | undefined) => {
+            if (item?.type !== ListPaneItemType.FILE || !(item.data instanceof TFile)) {
+                return false;
+            }
+
+            const file = item.data;
+            const customFileBackgroundColor = metadataService.getFileBackgroundColor(file.path);
+            const taskUnfinished = fileItemStorage.getDB().getFile(file.path)?.taskUnfinished;
+            const unfinishedTaskBackgroundColor =
+                settings.showFileBackgroundUnfinishedTask && typeof taskUnfinished === 'number' && taskUnfinished > 0
+                    ? settings.unfinishedTaskBackgroundColor
+                    : undefined;
+
+            return Boolean(getSolidBackground(unfinishedTaskBackgroundColor ?? customFileBackgroundColor));
+        },
+        [
+            fileItemStorage,
+            getSolidBackground,
+            metadataService,
+            settings.showFileBackgroundUnfinishedTask,
+            settings.unfinishedTaskBackgroundColor
+        ]
+    );
+
     const virtualItems = rowVirtualizer.getVirtualItems();
     const scrollOffset = rowVirtualizer.scrollOffset ?? 0;
     const stickyGroupHeaders = settings.stickyGroupHeaders;
@@ -515,6 +541,10 @@ export function ListPaneVirtualContent({
 
                             const nextItem = getItemAt(listItems, virtualItem.index + 1);
                             const previousItem = getItemAt(listItems, virtualItem.index - 1);
+                            const isFileRow = item.type === ListPaneItemType.FILE && item.data instanceof TFile;
+                            const hasCustomBackground = hasFileCustomBackground(item);
+                            const hasPreviousCustomBackground = hasCustomBackground && hasFileCustomBackground(previousItem);
+                            const hasNextCustomBackground = isFileRow && hasFileCustomBackground(nextItem);
                             const isLastFile =
                                 item.type === ListPaneItemType.FILE &&
                                 (virtualItem.index === listItems.length - 1 ||
@@ -560,15 +590,36 @@ export function ListPaneVirtualContent({
                                 top: Math.max(0, virtualItem.start),
                                 '--item-height': `${virtualItem.size}px`
                             };
+                            const virtualItemClasses = ['nn-virtual-item'];
+                            if (item.type === ListPaneItemType.FILE) {
+                                virtualItemClasses.push('nn-virtual-file-item');
+                            }
+                            if (headerModel) {
+                                virtualItemClasses.push('nn-virtual-list-group-header');
+                            }
+                            if (shouldSuppressFirstHeaderSeparator) {
+                                virtualItemClasses.push('nn-first-list-group-header');
+                            }
+                            if (isLastFile) {
+                                virtualItemClasses.push('nn-last-file');
+                            }
+                            if (hideSeparator) {
+                                virtualItemClasses.push('nn-hide-separator-selection');
+                            }
+                            if (hasCustomBackground) {
+                                virtualItemClasses.push('nn-virtual-file-item-has-custom-background');
+                            }
+                            if (hasPreviousCustomBackground) {
+                                virtualItemClasses.push('nn-virtual-file-item-has-custom-background-previous');
+                            }
+                            if (hasNextCustomBackground) {
+                                virtualItemClasses.push('nn-virtual-file-item-has-custom-background-next');
+                            }
 
                             return (
                                 <div
                                     key={virtualItem.key}
-                                    className={`nn-virtual-item ${
-                                        item.type === ListPaneItemType.FILE ? 'nn-virtual-file-item' : ''
-                                    } ${headerModel ? 'nn-virtual-list-group-header' : ''} ${
-                                        shouldSuppressFirstHeaderSeparator ? 'nn-first-list-group-header' : ''
-                                    } ${isLastFile ? 'nn-last-file' : ''} ${hideSeparator ? 'nn-hide-separator-selection' : ''}`}
+                                    className={virtualItemClasses.join(' ')}
                                     style={virtualItemStyle}
                                     data-index={virtualItem.index}
                                 >

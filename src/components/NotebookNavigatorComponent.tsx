@@ -247,15 +247,15 @@ export const NotebookNavigatorComponent = React.memo(
         // This ref is passed to both NavigationPane and ListPane to ensure
         // keyboard events are captured at the navigator level, not globally.
         // This prevents interference with other Obsidian views (e.g., canvas editor).
-        const containerRef = useRef<HTMLDivElement>(null);
+        const containerRef = useRef<HTMLDivElement | null>(null);
 
         const [isNavigatorFocused, setIsNavigatorFocused] = useState(false);
         // Tracks search tokens for highlighting matching tags/properties in navigation pane
         const [searchNavFilters, setSearchNavFilters] = useState<SearchNavFilterState>(EMPTY_SEARCH_NAV_FILTER_STATE);
         const [isPaneTransitioning, setIsPaneTransitioning] = useState(false);
         const [suppressPaneTransitions, setSuppressPaneTransitions] = useState(false);
-        const navigationPaneRef = useRef<NavigationPaneHandle>(null);
-        const listPaneRef = useRef<ListPaneHandle>(null);
+        const navigationPaneRef = useRef<NavigationPaneHandle | null>(null);
+        const listPaneRef = useRef<ListPaneHandle | null>(null);
         const lastDualPaneRef = useRef(uiState.dualPane);
         const auxClickStateRef = useRef<AuxClickState>({
             mouseBackForwardAction: settings.mouseBackForwardAction,
@@ -816,13 +816,13 @@ export const NotebookNavigatorComponent = React.memo(
             };
 
             if (typeof requestAnimationFrame !== 'undefined') {
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(scheduleScroll);
+                window.requestAnimationFrame(() => {
+                    window.requestAnimationFrame(scheduleScroll);
                 });
                 return;
             }
 
-            activeWindow.setTimeout(scheduleScroll, 0);
+            window.setTimeout(scheduleScroll, 0);
         }, [ensureSelectedFileVisible, ensureSelectedNavigationItemVisible]);
 
         const prevSinglePaneCalendarWeekCountRef = useRef<number | null>(null);
@@ -1231,7 +1231,7 @@ export const NotebookNavigatorComponent = React.memo(
                 triggerCollapse: () => {
                     handleExpandCollapseAll();
                     // Request scroll to selected item after collapse/expand
-                    requestAnimationFrame(() => {
+                    window.requestAnimationFrame(() => {
                         ensureSelectedNavigationItemVisible();
                     });
                 }

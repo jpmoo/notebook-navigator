@@ -142,7 +142,7 @@ Keep this list ordered: later files override earlier ones.
 @import './sections/rtl-support.css';
 /* icons-system.css: emoji/icon font rendering, icon provider tabs, and shared icon UI primitives. */
 @import './sections/icons-system.css';
-/* settings-metadata-info.css: metadata info row styles and menu item trash coloring. */
+/* settings-metadata-info.css: metadata info row styles. */
 @import './sections/settings-metadata-info.css';
 
 /* Style settings */

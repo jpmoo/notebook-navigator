@@ -36,6 +36,11 @@ Object.defineProperty(globalThis, 'activeWindow', {
     get: () => globalThis
 });
 
+Object.defineProperty(globalThis, 'window', {
+    configurable: true,
+    get: () => globalThis
+});
+
 Object.defineProperty(globalThis, 'activeDocument', {
     configurable: true,
     get: () => (globalThis as { document?: Document }).document ?? fallbackDocument

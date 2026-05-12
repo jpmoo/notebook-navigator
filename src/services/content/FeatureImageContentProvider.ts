@@ -402,9 +402,9 @@ export class FeatureImageContentProvider extends BaseContentProvider {
         const releaseLimiter = await this.thumbnailRuntime.externalRequestLimiter.acquire();
         let limiterReleased = false;
         const timerWindow = activeWindow;
-        let hardReleaseId: ReturnType<typeof activeWindow.setTimeout> | null = null;
+        let hardReleaseId: ReturnType<typeof window.setTimeout> | null = null;
         let timeoutDebtAdded = false;
-        let timeoutDebtTimerId: ReturnType<typeof activeWindow.setTimeout> | null = null;
+        let timeoutDebtTimerId: ReturnType<typeof window.setTimeout> | null = null;
 
         const safeReleaseLimiter = () => {
             if (limiterReleased) {
@@ -447,7 +447,7 @@ export class FeatureImageContentProvider extends BaseContentProvider {
 
         hardReleaseId = timerWindow.setTimeout(() => safeReleaseLimiter(), EXTERNAL_REQUEST_MAX_LIFETIME_MS);
 
-        let timeoutId: ReturnType<typeof activeWindow.setTimeout> | null = null;
+        let timeoutId: ReturnType<typeof window.setTimeout> | null = null;
         const timeoutPromise = new Promise<null>(resolve => {
             timeoutId = timerWindow.setTimeout(() => {
                 // When a request times out, optionally free the limiter slot so other requests can proceed.

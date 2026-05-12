@@ -196,7 +196,7 @@ export const ListPane = React.memo(
         const calendarPlacement = settings.calendarPlacement;
         const shouldRenderCalendarOverlay =
             settings.calendarEnabled && calendarPlacement === 'left-sidebar' && showCalendar && isVerticalDualPane;
-        const listPaneRef = useRef<HTMLDivElement>(null);
+        const listPaneRef = useRef<HTMLDivElement | null>(null);
         const hoverPointerClientPositionRef = useRef<PointerClientPosition | null>(null);
         // Android uses toolbar at top, iOS at bottom
         const isAndroid = Platform.isAndroidApp;
@@ -448,18 +448,24 @@ export const ListPane = React.memo(
             const scheduleScroll = () => scrollToIndexSafely(index, 'auto');
 
             if (typeof requestAnimationFrame !== 'undefined') {
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(scheduleScroll);
+                window.requestAnimationFrame(() => {
+                    window.requestAnimationFrame(scheduleScroll);
                 });
                 return;
             }
 
-            activeWindow.setTimeout(scheduleScroll, 0);
+            window.setTimeout(scheduleScroll, 0);
         }, [calendarWeekCount, filePathToIndex, scrollToIndexSafely, selectedFile, shouldRenderCalendarOverlay]);
 
         const listToolbar = useMemo(() => {
-            return <ListToolbar isSearchActive={isSearchActive} onSearchToggle={handleSearchToggle} />;
-        }, [handleSearchToggle, isSearchActive]);
+            return (
+                <ListToolbar
+                    isSearchActive={isSearchActive}
+                    onSearchToggle={handleSearchToggle}
+                    useFloatingLayout={shouldUseFloatingToolbars}
+                />
+            );
+        }, [handleSearchToggle, isSearchActive, shouldUseFloatingToolbars]);
 
         const handleHoveredFilePathChange = React.useCallback(
             (path: string | null, pointerClientPosition: PointerClientPosition | null) => {

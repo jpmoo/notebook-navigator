@@ -57,12 +57,12 @@
 }
 
 .nn-list-title-label--folder-note {
-    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration) !important;
+    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration);
 }
 
 .nn-list-title-label--folder-note:hover {
     cursor: pointer;
-    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration) !important;
+    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration);
 }
 
 /* File - container for each file in the list */
@@ -119,20 +119,17 @@
     z-index: 2;
 }
 
-.nn-virtual-file-item:has(> .nn-file.nn-has-custom-background)::after,
-.nn-virtual-file-item:has(+ .nn-virtual-file-item > .nn-file.nn-has-custom-background)::after {
+.nn-virtual-file-item-has-custom-background::after,
+.nn-virtual-file-item-has-custom-background-next::after {
     display: none;
 }
 
-.nn-virtual-file-item:has(> .nn-file.nn-has-custom-background)
-    + .nn-virtual-file-item:has(> .nn-file.nn-has-custom-background)
-    > .nn-file.nn-has-custom-background {
+.nn-virtual-file-item-has-custom-background-previous > .nn-file.nn-has-custom-background {
     --nn-file-top-left-radius: 0;
     --nn-file-top-right-radius: 0;
 }
 
-.nn-virtual-file-item:has(> .nn-file.nn-has-custom-background):has(+ .nn-virtual-file-item > .nn-file.nn-has-custom-background)
-    > .nn-file.nn-has-custom-background {
+.nn-virtual-file-item-has-custom-background-next > .nn-file.nn-has-custom-background {
     --nn-file-bottom-left-radius: 0;
     --nn-file-bottom-right-radius: 0;
 }

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useCallback, useEffect, useRef, type RefObject } from 'react';
+import { useCallback, useEffect, useRef, type MutableRefObject } from 'react';
 import type { TFile } from 'obsidian';
 import { TIMEOUTS } from '../../types/obsidian-extended';
 import type { ContentProviderType, FileContentType } from '../../interfaces/IContentProvider';
@@ -50,8 +50,8 @@ import { getCacheRebuildProgressTypes, getMetadataDependentTypes, haveStringArra
  */
 export function useStorageSettingsSync(params: {
     settings: NotebookNavigatorSettings;
-    stoppedRef: RefObject<boolean>;
-    contentRegistryRef: RefObject<ContentProviderRegistry | null>;
+    stoppedRef: MutableRefObject<boolean>;
+    contentRegistryRef: MutableRefObject<ContentProviderRegistry | null>;
     hiddenFolders: string[];
     hiddenFileProperties: string[];
     hiddenFileNames: string[];
@@ -59,7 +59,7 @@ export function useStorageSettingsSync(params: {
     scheduleTagTreeRebuild: (options?: { flush?: boolean }) => void;
     schedulePropertyTreeRebuild: (options?: { flush?: boolean }) => void;
     getIndexableFiles: () => TFile[];
-    pendingRenameDataRef: RefObject<Map<string, DBFileData>>;
+    pendingRenameDataRef: MutableRefObject<Map<string, DBFileData>>;
     queueMetadataContentWhenReady: (
         files: TFile[],
         includeTypes?: ContentProviderType[],
