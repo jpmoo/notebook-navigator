@@ -174,9 +174,7 @@ export const FolderItem = React.memo(function FolderItem({
         if (!folderNoteLinksEnabled) return false;
         const folderNote = getFolderNote(folder, settings);
         return folderNote !== null;
-        // NOTE TO REVIEWER: Including **noteCounts.current** to detect folder content changes
-        // NOTE TO REVIEWER: Including **vaultChangeVersion** to react to new folder notes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- noteCounts.current and vaultChangeVersion refresh folder-note detection.
     }, [folder, settings, folderNoteLinksEnabled, noteCounts.current, vaultChangeVersion]);
 
     const isRootFolder = folder.path === '/';

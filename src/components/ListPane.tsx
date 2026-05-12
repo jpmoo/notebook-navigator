@@ -448,13 +448,13 @@ export const ListPane = React.memo(
             const scheduleScroll = () => scrollToIndexSafely(index, 'auto');
 
             if (typeof requestAnimationFrame !== 'undefined') {
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(scheduleScroll);
+                window.requestAnimationFrame(() => {
+                    window.requestAnimationFrame(scheduleScroll);
                 });
                 return;
             }
 
-            activeWindow.setTimeout(scheduleScroll, 0);
+            window.setTimeout(scheduleScroll, 0);
         }, [calendarWeekCount, filePathToIndex, scrollToIndexSafely, selectedFile, shouldRenderCalendarOverlay]);
 
         const listToolbar = useMemo(() => {

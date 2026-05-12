@@ -36,7 +36,6 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitest/coverage-v8": "^4.1.5",
-    "builtin-modules": "^5.2.0",
     "esbuild": "^0.28.0",
     "eslint": "^9.39.4",
     "eslint-plugin-obsidianmd": "^0.2.9",

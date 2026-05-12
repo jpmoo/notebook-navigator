@@ -217,9 +217,7 @@ export function useListPaneData({
             tagTreeService,
             propertyTreeService
         );
-        // NOTE: Excluding getFilesForNavigationSelection - static import
-        // updateKey triggers re-computation on storage updates
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- updateKey refreshes storage data while getFilesForNavigationSelection is static.
     }, [
         selectionType,
         selectedFolder,

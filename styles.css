@@ -817,7 +817,7 @@ body {
 
 /* Pane headers - consistent header styling for both panes */
 .nn-pane-header {
-    padding: 8px 8px;
+    padding: 8px;
     display: flex;
     justify-content: flex-end;
     align-items: center;
@@ -1112,7 +1112,7 @@ body {
     display: flex;
     align-items: center;
     height: 44px;
-    padding: 0 10px 6px 10px;
+    padding: 0 10px 6px;
     background-color: var(--nn-theme-list-bg);
 }
 
@@ -5530,7 +5530,7 @@ body.nn-resizing {
     font-weight: 600;
     color: var(--nn-theme-foreground);
     background: var(--background-secondary);
-    margin: 0 0 4px 0;
+    margin: 0 0 4px;
     padding: 6px 10px;
     border-radius: 6px;
 }
@@ -5866,7 +5866,7 @@ body.nn-resizing {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 8px 8px;
+    padding: 8px;
     border-radius: var(--radius-s);
 }
 
@@ -6954,21 +6954,21 @@ body.nn-resizing {
 .nn-checkerboard,
 .nn-preview-color.nn-no-color {
     background-image:
-        linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc),
-        linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc);
+        linear-gradient(45deg, #cccccc 25%, transparent 25%, transparent 75%, #cccccc 75%, #cccccc),
+        linear-gradient(45deg, #cccccc 25%, transparent 25%, transparent 75%, #cccccc 75%, #cccccc);
     background-size: 10px 10px;
     background-position:
         0 0,
         5px 5px;
-    background-color: #fff;
+    background-color: #ffffff;
 }
 
 .theme-dark .nn-checkerboard,
 .theme-dark .nn-preview-color.nn-no-color {
     background-image:
-        linear-gradient(45deg, #444 25%, transparent 25%, transparent 75%, #444 75%, #444),
-        linear-gradient(45deg, #444 25%, transparent 25%, transparent 75%, #444 75%, #444);
-    background-color: #222;
+        linear-gradient(45deg, #444444 25%, transparent 25%, transparent 75%, #444444 75%, #444444),
+        linear-gradient(45deg, #444444 25%, transparent 25%, transparent 75%, #444444 75%, #444444);
+    background-color: #222222;
 }
 
 .nn-preview-arrow {
@@ -8069,7 +8069,7 @@ body.nn-resizing {
 }
 
 .nn-icon-provider-link-row {
-    padding: 8px 12px 0 12px;
+    padding: 8px 12px 0;
     text-align: center;
 }
 

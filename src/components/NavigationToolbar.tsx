@@ -80,7 +80,7 @@ export function NavigationToolbar({
                                 onClick={() => {
                                     handleExpandCollapseAll();
                                     if (onTreeUpdateComplete) {
-                                        requestAnimationFrame(() => {
+                                        window.requestAnimationFrame(() => {
                                             onTreeUpdateComplete();
                                         });
                                     }
@@ -102,7 +102,7 @@ export function NavigationToolbar({
                                 onClick={() => {
                                     handleToggleShowExcludedFolders();
                                     if (onTreeUpdateComplete) {
-                                        requestAnimationFrame(() => {
+                                        window.requestAnimationFrame(() => {
                                             onTreeUpdateComplete();
                                         });
                                     }

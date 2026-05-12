@@ -237,7 +237,7 @@ export function createDragGhostManager(): DragGhostManager {
         } catch (error) {
             void error;
         }
-        activeWindow.setTimeout(() => empty.remove(), 0);
+        window.setTimeout(() => empty.remove(), 0);
     };
 
     return {

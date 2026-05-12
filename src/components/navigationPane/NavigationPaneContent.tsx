@@ -669,13 +669,13 @@ export const NavigationPane = React.memo(
 
             const scheduleScroll = () => handleTreeUpdateComplete();
             if (typeof requestAnimationFrame !== 'undefined') {
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(scheduleScroll);
+                window.requestAnimationFrame(() => {
+                    window.requestAnimationFrame(scheduleScroll);
                 });
                 return;
             }
 
-            activeWindow.setTimeout(scheduleScroll, 0);
+            window.setTimeout(scheduleScroll, 0);
         }, [calendarWeekCount, handleTreeUpdateComplete, shouldRenderCalendarOverlay]);
 
         useEffect(() => {

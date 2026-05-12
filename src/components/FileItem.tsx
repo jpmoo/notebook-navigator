@@ -451,8 +451,7 @@ export const FileItem = React.memo(function FileItem({
     // Get display name from RAM cache (handles frontmatter title)
     const displayName = useMemo(() => {
         return getFileDisplayName(file);
-        // NOTE TO REVIEWER: Recompute on frontmatter metadata changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- metadataVersion refreshes cached frontmatter display names.
     }, [file, getFileDisplayName, metadataVersion]);
 
     // Highlight matches in display name when search is active
@@ -659,9 +658,7 @@ export const FileItem = React.memo(function FileItem({
 
         // Otherwise format as absolute date
         return DateUtils.formatDate(timestamp, settings.dateFormat);
-        // NOTE TO REVIEWER: Including **file.stat.mtime**/**file.stat.ctime** to detect file changes
-        // Without them, dates won't update after file edits
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- file.stat timestamps refresh dates when Obsidian mutates TFile objects.
     }, [
         file,
         file.stat.mtime,

@@ -461,7 +461,7 @@ export function useListPaneSearch({
 
     const waitForNextFrame = useCallback(() => {
         return new Promise<void>(resolve => {
-            requestAnimationFrame(() => resolve());
+            window.requestAnimationFrame(() => resolve());
         });
     }, []);
 

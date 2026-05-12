@@ -781,10 +781,10 @@ export function useListPaneScroll({
                 attempts += 1;
                 ensureIndexNotCovered(index);
                 if (attempts < 3) {
-                    requestAnimationFrame(adjust);
+                    window.requestAnimationFrame(adjust);
                 }
             };
-            requestAnimationFrame(adjust);
+            window.requestAnimationFrame(adjust);
         },
         [ensureIndexNotCovered, rowVirtualizer]
     );
@@ -949,7 +949,7 @@ export function useListPaneScroll({
                         // Stabilization mechanism: Handle rapid consecutive rebuilds
                         const usedIndex = index;
                         const usedPath = pending.filePath;
-                        requestAnimationFrame(() => {
+                        window.requestAnimationFrame(() => {
                             const newIndex = usedPath ? getSelectionIndex(usedPath) : -1;
                             if (usedPath && newIndex >= 0 && newIndex !== usedIndex && revealFileOnListChanges) {
                                 setPending({

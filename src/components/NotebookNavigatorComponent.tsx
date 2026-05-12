@@ -816,13 +816,13 @@ export const NotebookNavigatorComponent = React.memo(
             };
 
             if (typeof requestAnimationFrame !== 'undefined') {
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(scheduleScroll);
+                window.requestAnimationFrame(() => {
+                    window.requestAnimationFrame(scheduleScroll);
                 });
                 return;
             }
 
-            activeWindow.setTimeout(scheduleScroll, 0);
+            window.setTimeout(scheduleScroll, 0);
         }, [ensureSelectedFileVisible, ensureSelectedNavigationItemVisible]);
 
         const prevSinglePaneCalendarWeekCountRef = useRef<number | null>(null);
@@ -1231,7 +1231,7 @@ export const NotebookNavigatorComponent = React.memo(
                 triggerCollapse: () => {
                     handleExpandCollapseAll();
                     // Request scroll to selected item after collapse/expand
-                    requestAnimationFrame(() => {
+                    window.requestAnimationFrame(() => {
                         ensureSelectedNavigationItemVisible();
                     });
                 }
