@@ -11,6 +11,10 @@ particular only the first 49 of the 272 `!important` locations are present in th
 
 Reported count: **272** (49 locations visible in saved HTML)
 
+Status: 🔄 In progress. Header/search/button slice completed on 2026-05-12 by replacing `!important` with scoped
+`button`/`input` selector specificity. Source occurrences are now 104, and generated `styles.css` occurrences are
+now 104. Verified by local scan and `./scripts/build.sh`.
+
 - `styles.css`: 750, 751, 800, 805, 952, 957, 1054, 1059, 1060, 1061, 1066, 1071, 1072, 1158, 1160, 1161, 1162, 1163,
   1169, 1174, 1179, 1184, 1185, 1189, 1266, 1267, 1342, 1395, 1396, 1397, 1405, 1406, 1439, 1450, 1451, 1456, 2067,
   2081, 2086, 2087, 2092, 2098, 2166, 2167, 2168, 2169, 2170, 2171, 2235
@@ -88,6 +92,9 @@ Status: ✅ Finished in mechanical pass on 2026-05-12. Verified by local scan an
 
 Reported count: **8**
 
+Status: ✅ Finished in CSS compatibility pass on 2026-05-12. Replaced calendar period-note `text-decoration-*` longhands
+with box-shadow/border styling. Verified by local scan and `./scripts/build.sh`.
+
 - `src/styles/sections/calendar.css`: 208, 209, 218, 219
 - `styles.css`: 2675, 2676, 2685, 2686
 
@@ -104,6 +111,9 @@ Status: ✅ Finished in mechanical pass on 2026-05-12. Verified by local scan an
 ## Unexpected browser feature "multicolumn" is only partially supported by Obsidian 1.11.4,144,146,148
 
 Reported count: **4**
+
+Status: ✅ Finished in CSS compatibility pass on 2026-05-12. Replaced calendar `column-gap` with `gap: 0 1px`. Verified
+by local scan and `./scripts/build.sh`.
 
 - `src/styles/sections/calendar.css`: 644, 674
 - `styles.css`: 3111, 3141
@@ -131,6 +141,9 @@ Verified by emoji/icon serialization tests, local scan, and `./scripts/build.sh`
 
 Reported count: **2**
 
+Status: ⏳ Open. Still present in the mobile toolbar grouping rule; defer until the toolbar markup/layout can be
+adjusted without changing Android/iOS button distribution.
+
 - `src/styles/sections/mobile-tab-bars.css`: 37
 - `styles.css`: 7461
 
@@ -138,12 +151,18 @@ Reported count: **2**
 
 Reported count: **2**
 
+Status: ✅ Finished in structural pass on 2026-05-12 with the `:has(...)` removal. Verified by local scan and
+`./scripts/build.sh`.
+
 - `src/styles/sections/navigation-tree.css`: 101-104
 - `styles.css`: 1891-1894
 
 ## Unexpected duplicate selector ".modal.nn-icon-picker-modal .modal-content", first used at line 5779
 
 Reported count: **2**
+
+Status: ✅ Finished in duplicate-selector pass on 2026-05-12. Moved the icon picker modal content height into
+`modal-icon-picker.css` and removed the cross-section duplicate. Verified by local scan and `./scripts/build.sh`.
 
 - `styles.css`: 5792, 7979
 
@@ -186,6 +205,10 @@ _No file locations listed on the page._
 
 ## Found `atob()`/`btoa()` base64 calls (1 total). May be used to obscure strings.
 
+Status: ✅ Finished in dependency pass on 2026-05-12. Removed `parse5`/`entities` from the runtime bundle by replacing
+the HTML range parser with a local scanner. Verified by preview/tag-operation tests, local `main.js` scan, and
+`./scripts/build.sh`.
+
 _No file locations listed on the page._
 
 ## The release contains additional files: `multiple.intoto.jsonl`. Only `main.js`, `manifest.json`, and `styles.css` are supported.
@@ -201,80 +224,140 @@ _No file locations listed on the page._
 
 ## "eslint-plugin-react" should be replaced with an alternative package.
 
+Status: ⏳ Open. Current hit is transitive in `package-lock.json` through the dev-only `eslint-plugin-obsidianmd`
+dependency, not a direct project dependency.
+
 _No file locations listed on the page._
 
 ## Unexpected duplicate selector ".nn-split-container.nn-orientation-vertical .nn-navigation-pane", first used at line 680
+
+Status: ✅ Finished in duplicate-selector pass on 2026-05-12. Merged the vertical navigation pane declarations in
+`layout-panes.css`. Verified by local scan and `./scripts/build.sh`.
 
 - `styles.css`: 693
 
 ## Unexpected duplicate selector ".notebook-navigator-mobile .nn-navigation-pane", first used at line 672
 
+Status: ✅ Finished in duplicate-selector pass on 2026-05-12. Moved mobile navigation pane declarations into
+`mobile-panes.css`. Verified by local scan and `./scripts/build.sh`.
+
 - `styles.css`: 798
 
 ## Unexpected duplicate selector ".notebook-navigator-mobile .nn-search-clear-button", first used at line 1276
+
+Status: ✅ Finished in duplicate-selector pass on 2026-05-12. Consolidated the mobile search clear button rule. Verified
+by local scan and `./scripts/build.sh`.
 
 - `styles.css`: 1329
 
 ## Unexpected duplicate selector ".notebook-navigator-mobile .nn-search-input-icon", first used at line 1271
 
+Status: ✅ Finished in duplicate-selector pass on 2026-05-12. Removed the overwritten mobile search icon rule. Verified
+by local scan and `./scripts/build.sh`.
+
 - `styles.css`: 1363
 
 ## Unexpected duplicate selector ".nn-navitem:is:has )", first used at line 1857
+
+Status: ✅ Finished in structural pass on 2026-05-12 with the `:has(...)` removal. Verified by local scan and
+`./scripts/build.sh`.
 
 - `styles.css`: 1869-1871
 
 ## Unexpected duplicate selector ".modal.nn-icon-picker-modal", first used at line 5773
 
+Status: ✅ Finished in duplicate-selector pass on 2026-05-12. Merged the modal width/height declarations in
+`modal-icon-picker.css`. Verified by local scan and `./scripts/build.sh`.
+
 - `styles.css`: 5787
 
 ## Unexpected duplicate selector ".notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-pill, .notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-circle", first used at line 7633
+
+Status: ✅ Finished in duplicate-selector pass on 2026-05-12. Merged the iOS floating toolbar group declarations.
+Verified by local scan and `./scripts/build.sh`.
 
 - `styles.css`: 7662-7663
 
 ## Unexpected duplicate selector ".nn-emoji-icon", first used at line 7915
 
+Status: ✅ Finished in duplicate-selector pass on 2026-05-12. Merged the base emoji icon declarations in
+`icons-system.css`. Verified by local scan and `./scripts/build.sh`.
+
 - `styles.css`: 7942
 
 ## Unexpected duplicate selector ".nn-icon-section-header", first used at line 5842
+
+Status: ✅ Finished in duplicate-selector pass on 2026-05-12. Moved icon picker section-header styling into
+`modal-icon-picker.css` and removed the later duplicate. Verified by local scan and `./scripts/build.sh`.
 
 - `styles.css`: 8095
 
 ## Unexpected duplicate selector ".nn-emoji-icon", first used at line 14
 
+Status: ✅ Finished in duplicate-selector pass on 2026-05-12. Merged the base emoji icon declarations in
+`icons-system.css`. Verified by local scan and `./scripts/build.sh`.
+
 - `src/styles/sections/icons-system.css`: 41
 
 ## Unexpected duplicate selector ".nn-split-container.nn-orientation-vertical .nn-navigation-pane", first used at line 61
+
+Status: ✅ Finished in duplicate-selector pass on 2026-05-12. Merged the vertical navigation pane declarations in
+`layout-panes.css`. Verified by local scan and `./scripts/build.sh`.
 
 - `src/styles/sections/layout-panes.css`: 74
 
 ## Unexpected duplicate selector ".notebook-navigator-mobile .nn-navigation-pane", first used at line 53
 
+Status: ✅ Finished in duplicate-selector pass on 2026-05-12. Moved mobile navigation pane declarations into
+`mobile-panes.css`. Verified by local scan and `./scripts/build.sh`.
+
 - `src/styles/sections/layout-panes.css`: 179
 
 ## Unexpected duplicate selector ".modal.nn-icon-picker-modal", first used at line 8
+
+Status: ✅ Finished in duplicate-selector pass on 2026-05-12. Merged the modal width/height declarations in
+`modal-icon-picker.css`. Verified by local scan and `./scripts/build.sh`.
 
 - `src/styles/sections/modal-icon-picker.css`: 22
 
 ## Unexpected duplicate selector ".modal.nn-icon-picker-modal .modal-content", first used at line 14
 
+Status: ✅ Finished in duplicate-selector pass on 2026-05-12. Merged icon picker modal content declarations in
+`modal-icon-picker.css`. Verified by local scan and `./scripts/build.sh`.
+
 - `src/styles/sections/modal-icon-picker.css`: 27
 
 ## Unexpected duplicate selector ".nn-navitem:is:has )", first used at line 67
+
+Status: ✅ Finished in structural pass on 2026-05-12 with the `:has(...)` removal. Verified by local scan and
+`./scripts/build.sh`.
 
 - `src/styles/sections/navigation-tree.css`: 79-81
 
 ## Unexpected duplicate selector ".notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-pill, .notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-circle", first used at line 89
 
+Status: ✅ Finished in duplicate-selector pass on 2026-05-12. Merged the iOS floating toolbar group declarations.
+Verified by local scan and `./scripts/build.sh`.
+
 - `src/styles/sections/platform-ios.css`: 118-119
 
 ## Unexpected duplicate selector ".notebook-navigator-mobile .nn-search-clear-button", first used at line 41
+
+Status: ✅ Finished in duplicate-selector pass on 2026-05-12. Consolidated the mobile search clear button rule. Verified
+by local scan and `./scripts/build.sh`.
 
 - `src/styles/sections/ui-search.css`: 94
 
 ## Unexpected duplicate selector ".notebook-navigator-mobile .nn-search-input-icon", first used at line 36
 
+Status: ✅ Finished in duplicate-selector pass on 2026-05-12. Removed the overwritten mobile search icon rule. Verified
+by local scan and `./scripts/build.sh`.
+
 - `src/styles/sections/ui-search.css`: 128
 
 ## Found 3 dynamic `\u003cscript\u003e` element creations
+
+Status: ⏳ Open. Current local source scan does not find direct script element creation; generated `main.js` hits appear
+to come from bundled React DOM internals and need separate investigation.
 
 _No file locations listed on the page._

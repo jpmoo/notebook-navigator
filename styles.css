@@ -669,10 +669,6 @@ body {
     --nn-theme-list-bg: var(--nn-theme-mobile-bg);
 }
 
-.notebook-navigator-mobile .nn-navigation-pane {
-    border-right: none;
-}
-
 .nn-split-container.nn-orientation-vertical {
     flex-direction: column;
 }
@@ -682,16 +678,13 @@ body {
     min-width: 0;
     min-height: var(--nn-navigation-pane-min-height);
     flex: 0 1 auto;
+    border-right: none;
 }
 
 .nn-split-container.nn-orientation-vertical .nn-list-pane {
     min-width: 0;
     width: 100%;
     min-height: var(--nn-list-pane-min-height);
-}
-
-.nn-split-container.nn-orientation-vertical .nn-navigation-pane {
-    border-right: none;
 }
 
 .nn-split-container.nn-orientation-vertical:not(.nn-single-pane) .nn-navigation-pane {
@@ -793,12 +786,6 @@ body {
 /* ========================================================================
    Mobile Layout
    ======================================================================== */
-
-/* Make navigation pane flexible on mobile to handle resize gracefully */
-.notebook-navigator-mobile .nn-navigation-pane {
-    flex: 1;
-    background-color: var(--nn-theme-nav-bg) !important;
-}
 
 /* Hide resize handle on mobile */
 .notebook-navigator-mobile .nn-resize-handle {
@@ -948,13 +935,13 @@ body {
     flex: 0 1 auto;
 }
 
-.nn-pane-header-folder-note {
-    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration) !important;
+.nn-pane-header .nn-pane-header-folder-note {
+    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration);
 }
 
-.nn-pane-header-folder-note:hover {
+.nn-pane-header .nn-pane-header-folder-note:hover {
     cursor: pointer;
-    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration) !important;
+    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration);
 }
 
 /* ========================================================================
@@ -1042,7 +1029,7 @@ body {
 }
 
 /* Mobile back button */
-.notebook-navigator-mobile .nn-back-button {
+.notebook-navigator-mobile button.nn-back-button {
     position: absolute;
     left: 0;
     width: 44px;
@@ -1051,25 +1038,25 @@ body {
     min-height: 44px;
     padding: 10px;
     z-index: 1;
-    opacity: 1 !important;
+    opacity: 1;
 }
 
 /* Increase stroke width for back button arrow and apply link color */
-.notebook-navigator-mobile .nn-back-button svg {
-    stroke: var(--nn-theme-mobile-list-header-link-color) !important;
-    width: 20px !important; /* Default size for Android */
-    height: 20px !important;
+.notebook-navigator-mobile button.nn-back-button svg {
+    stroke: var(--nn-theme-mobile-list-header-link-color);
+    width: 20px; /* Default size for Android */
+    height: 20px;
 }
 
 /* iOS/iPadOS-specific back button adjustments */
-.notebook-navigator-mobile:not(.notebook-navigator-android) .nn-back-button {
-    padding: 4px !important; /* Reduce padding to allow larger icon (44px - 8px padding = 36px space) */
+.notebook-navigator-mobile:not(.notebook-navigator-android) button.nn-back-button {
+    padding: 4px; /* Reduce padding to allow larger icon (44px - 8px padding = 36px space) */
 }
 
 /* iOS/iPadOS-specific back button chevron styling (36px actual, ~32px visual due to Lucide padding) */
-.notebook-navigator-mobile:not(.notebook-navigator-android) .nn-back-button svg {
-    width: 36px !important;
-    height: 36px !important;
+.notebook-navigator-mobile:not(.notebook-navigator-android) button.nn-back-button svg {
+    width: 36px;
+    height: 36px;
 }
 
 /* Mobile header title */
@@ -1152,41 +1139,41 @@ body {
 }
 
 /* Search input field */
-.nn-search-input {
+input.nn-search-input {
     width: 100%;
     height: 32px;
-    padding: 4px 60px 4px 36px !important;
+    padding: 4px 60px 4px 36px;
     font-size: 13px;
-    color: var(--nn-theme-file-selected-name-color) !important;
-    background: var(--nn-theme-list-bg) !important;
-    border: 1px solid var(--nn-theme-list-search-border-color) !important;
-    border-radius: 999px !important;
+    color: var(--nn-theme-file-selected-name-color);
+    background: var(--nn-theme-list-bg);
+    border: 1px solid var(--nn-theme-list-search-border-color);
+    border-radius: 999px;
     outline: none;
     box-sizing: border-box;
 }
 
-.nn-search-input-container--has-shortcut .nn-search-input {
-    padding-right: 84px !important;
+.nn-search-input-container--has-shortcut input.nn-search-input {
+    padding-right: 84px;
 }
 
 /* Active search state - when there's a search query */
-.nn-search-input.nn-search-active {
-    background: var(--nn-theme-list-search-active-bg) !important;
+input.nn-search-input.nn-search-active {
+    background: var(--nn-theme-list-search-active-bg);
 }
 
 /* Maintain highlight background on hover when search is active */
-.nn-search-input.nn-search-active:hover {
-    background: var(--nn-theme-list-search-active-bg) !important;
+input.nn-search-input.nn-search-active:hover {
+    background: var(--nn-theme-list-search-active-bg);
 }
 
 /* Focus state */
-.nn-search-input:focus {
-    border-color: var(--nn-theme-list-search-border-color) !important;
-    box-shadow: 0 0 0 2px var(--nn-theme-list-search-border-color) !important;
+input.nn-search-input:focus {
+    border-color: var(--nn-theme-list-search-border-color);
+    box-shadow: 0 0 0 2px var(--nn-theme-list-search-border-color);
 }
 
-.nn-search-input::placeholder {
-    color: var(--nn-theme-list-header-breadcrumb-color) !important;
+input.nn-search-input::placeholder {
+    color: var(--nn-theme-list-header-breadcrumb-color);
 }
 
 /* Search tag suggestion popover */
@@ -1260,21 +1247,11 @@ body {
 }
 
 /* Mobile search input field */
-.notebook-navigator-mobile .nn-search-input {
+.notebook-navigator-mobile input.nn-search-input {
     height: 36px;
     font-size: 16px; /* Prevent zoom on iOS */
-    padding: 4px 60px 4px 36px !important;
-    border-radius: 999px !important;
-}
-
-/* Mobile search icon */
-.notebook-navigator-mobile .nn-search-input-icon {
-    top: 10px;
-}
-
-/* Mobile clear button */
-.notebook-navigator-mobile .nn-search-clear-button {
-    top: 0;
+    padding: 4px 60px 4px 36px;
+    border-radius: 999px;
 }
 
 .nn-search-clear-button,
@@ -1319,27 +1296,26 @@ body {
     color: var(--interactive-accent);
 }
 
-.notebook-navigator-mobile .nn-search-clear-button,
-.notebook-navigator-mobile .nn-search-star-button,
-.notebook-navigator-mobile .nn-search-help-button {
+.notebook-navigator-mobile .nn-search-clear-button {
     top: 0;
     height: 36px;
-}
-
-.notebook-navigator-mobile .nn-search-clear-button {
     right: 10px;
 }
 
 .notebook-navigator-mobile .nn-search-star-button {
+    top: 0;
+    height: 36px;
     right: 44px;
 }
 
 .notebook-navigator-mobile .nn-search-help-button {
+    top: 0;
+    height: 36px;
     right: 10px;
 }
 
-.notebook-navigator-mobile .nn-search-input-container--has-shortcut .nn-search-input {
-    padding-right: 94px !important;
+.notebook-navigator-mobile .nn-search-input-container--has-shortcut input.nn-search-input {
+    padding-right: 94px;
 }
 
 /* Clickable path segments in header */
@@ -1391,10 +1367,10 @@ body {
    ======================================================================== */
 
 /* Icon button base style - transparent buttons matching Obsidian's design */
-.nn-icon-button {
-    background: transparent !important;
-    background-color: transparent !important;
-    border: none !important;
+button.nn-icon-button {
+    background: transparent;
+    background-color: transparent;
+    border: none;
     border-radius: var(--radius-s);
     padding: 0 8px;
     color: var(--nn-theme-header-button-icon-color);
@@ -1402,8 +1378,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: none !important;
-    outline: none !important;
+    box-shadow: none;
+    outline: none;
 }
 
 /* Desktop pane header buttons - enforce Obsidian-muted icon color */
@@ -1435,8 +1411,8 @@ body {
 }
 
 /* Icon button hover state - subtle background on hover - desktop only */
-.nn-desktop .nn-icon-button:hover {
-    background-color: var(--nn-theme-header-button-hover-bg) !important;
+.nn-desktop button.nn-icon-button:hover {
+    background-color: var(--nn-theme-header-button-hover-bg);
     opacity: 1;
 }
 
@@ -1446,14 +1422,14 @@ body {
 }
 
 /* Icon button active state - for toggle buttons that are "ON" */
-.nn-icon-button-active {
-    background-color: var(--nn-theme-header-button-active-bg) !important;
-    color: var(--nn-theme-header-button-active-icon-color) !important;
+button.nn-icon-button.nn-icon-button-active {
+    background-color: var(--nn-theme-header-button-active-bg);
+    color: var(--nn-theme-header-button-active-icon-color);
 }
 
 /* Active button icon color */
-.nn-icon-button-active svg {
-    stroke: var(--nn-theme-header-button-active-icon-color) !important;
+button.nn-icon-button.nn-icon-button-active svg {
+    stroke: var(--nn-theme-header-button-active-icon-color);
 }
 
 /* Icon button disabled state - visual indicator for unavailable actions */
@@ -2640,20 +2616,25 @@ body {
     line-height: 1;
 }
 
-.nn-navigation-calendar-period-button.has-period-note {
-    text-decoration-line: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 2px;
+.nn-navigation-calendar-period-button.has-period-note:not(.nn-navigation-calendar-quarter-button)::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    bottom: 2px;
+    height: 1px;
+    background-color: currentColor;
+    pointer-events: none;
+    z-index: 1;
 }
 
 .nn-navigation-calendar-quarter-button.has-period-note {
-    text-decoration: none;
+    box-shadow: none;
 }
 
 .nn-navigation-calendar-quarter-button.has-period-note .nn-navigation-calendar-quarter-value {
-    text-decoration-line: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 2px;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
 }
 
 .nn-navigation-calendar-period-button.is-active-editor-file .nn-navigation-calendar-active-outline,
@@ -3077,7 +3058,7 @@ body {
     min-height: var(--nn-calendar-weekday-row-height);
     display: grid;
     align-items: center;
-    column-gap: 1px;
+    gap: 0 1px;
     grid-template-columns: repeat(7, minmax(0, 1fr));
     color: var(--nn-theme-calendar-weekday-color);
     font-size: var(--nn-calendar-weekday-font-size);
@@ -3107,7 +3088,7 @@ body {
 .nn-navigation-calendar-week {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    column-gap: 1px;
+    gap: 0 1px;
     align-items: center;
 }
 
@@ -5745,23 +5726,16 @@ body.nn-resizing {
 .modal.nn-icon-picker-modal {
     width: 480px;
     max-width: calc(100vw - 40px);
+    height: auto;
 }
 
 /* Icon picker content layout */
 .modal.nn-icon-picker-modal .modal-content {
     padding: 0;
     height: 100%;
+    min-height: 380px;
     display: flex;
     flex-direction: column;
-}
-
-/* Icon picker modal height control */
-.modal.nn-icon-picker-modal {
-    height: auto;
-}
-
-/* Prevent icon picker content overflow */
-.modal.nn-icon-picker-modal .modal-content {
     overflow: hidden;
 }
 
@@ -5812,11 +5786,16 @@ body.nn-resizing {
 
 /* Icon category headers */
 .nn-icon-section-header {
-    font-size: 13px;
-    font-weight: 400;
+    font-size: var(--font-ui-small);
+    font-weight: 600;
     color: var(--nn-theme-foreground-muted);
     letter-spacing: 0.5px;
-    margin-bottom: 12px;
+    margin-top: 12px;
+    margin-bottom: 4px;
+}
+
+.nn-icon-section-header:first-child {
+    margin-top: 0;
 }
 
 /* Icon grid layout - 5 columns */
@@ -7386,7 +7365,15 @@ body.nn-resizing {
    ======================================================================== */
 
 /* Make panes flex containers on mobile to accommodate mobile toolbars. */
-.notebook-navigator-mobile .nn-navigation-pane,
+.notebook-navigator-mobile .nn-navigation-pane {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    height: 100%;
+    border-right: none;
+    background-color: var(--nn-theme-nav-bg);
+}
+
 .notebook-navigator-mobile .nn-list-pane {
     display: flex;
     flex-direction: column;
@@ -7394,8 +7381,7 @@ body.nn-resizing {
 }
 
 /* Ensure scrollers take remaining space. */
-.notebook-navigator-mobile .nn-navigation-pane-scroller,
-.notebook-navigator-mobile .nn-list-pane-scroller {
+.notebook-navigator-mobile .nn-navigation-pane-scroller {
     flex: 1;
     min-height: 0; /* Important for proper scrolling */
     -webkit-overflow-scrolling: touch;
@@ -7406,6 +7392,12 @@ body.nn-resizing {
 
 /* Mobile list pane scroller uses the mobile list surface. */
 .notebook-navigator-mobile .nn-list-pane-scroller {
+    flex: 1;
+    min-height: 0; /* Important for proper scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Keep horizontal pane bounce/chaining disabled while allowing native vertical edge feedback. */
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: contain;
     background-color: var(--nn-theme-list-bg); /* Opaque background on scroller for GPU scroll layer (see .nn-list-pane-scroller) */
 }
 /* Source: src/styles/sections/mobile-tab-bars.css */
@@ -7616,11 +7608,6 @@ body.nn-resizing {
     flex: 0 0 auto;
 }
 
-.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-pill,
-.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-circle {
-    display: flex;
-}
-
 .notebook-navigator-ios.notebook-navigator-ios-floating-toolbars {
     --nn-theme-mobile-toolbar-button-icon-color: var(--nn-theme-foreground);
     --nn-ios-toolbar-glass-bg: color-mix(in srgb, var(--nn-theme-mobile-toolbar-glass-bg) 45%, transparent);
@@ -7647,6 +7634,7 @@ body.nn-resizing {
 
 .notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-pill,
 .notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-circle {
+    display: flex;
     position: relative;
     z-index: 0;
     border-radius: 999px;
@@ -7900,12 +7888,15 @@ body.nn-resizing {
 /* Emoji icon styles */
 .nn-emoji-icon {
     font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+    font-style: normal;
+    font-weight: normal;
     line-height: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     text-align: center;
+    text-decoration: none;
 
     /* Prevent text selection of emoji icons */
     user-select: none;
@@ -7922,13 +7913,6 @@ body.nn-resizing {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-/* Prevent emoji icons from being affected by text styles */
-.nn-emoji-icon {
-    font-style: normal;
-    font-weight: normal;
-    text-decoration: none;
 }
 
 /* Ensure proper sizing when used in buttons */
@@ -7959,11 +7943,6 @@ body.nn-resizing {
 .nn-mobile-toolbar-button > span > svg,
 .nn-navigation-calendar-nav-button > span > svg {
     display: block;
-}
-
-/* Icon Picker Modal Styles */
-.modal.nn-icon-picker-modal .modal-content {
-    min-height: 380px;
 }
 
 /* Icon font styles */
@@ -8075,19 +8054,6 @@ body.nn-resizing {
 /* Emoji preview in icon picker */
 .nn-icon-item-preview.nn-emoji-preview {
     font-size: 24px;
-}
-
-/* Icon section headers for categories */
-.nn-icon-section-header {
-    font-size: var(--font-ui-small);
-    font-weight: 600;
-    color: var(--nn-theme-foreground-muted);
-    margin-top: 12px;
-    margin-bottom: 4px;
-}
-
-.nn-icon-section-header:first-child {
-    margin-top: 0;
 }
 /* Source: src/styles/sections/settings-metadata-info.css */
 

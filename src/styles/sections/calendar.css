@@ -204,20 +204,25 @@
     line-height: 1;
 }
 
-.nn-navigation-calendar-period-button.has-period-note {
-    text-decoration-line: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 2px;
+.nn-navigation-calendar-period-button.has-period-note:not(.nn-navigation-calendar-quarter-button)::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    bottom: 2px;
+    height: 1px;
+    background-color: currentColor;
+    pointer-events: none;
+    z-index: 1;
 }
 
 .nn-navigation-calendar-quarter-button.has-period-note {
-    text-decoration: none;
+    box-shadow: none;
 }
 
 .nn-navigation-calendar-quarter-button.has-period-note .nn-navigation-calendar-quarter-value {
-    text-decoration-line: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 2px;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
 }
 
 .nn-navigation-calendar-period-button.is-active-editor-file .nn-navigation-calendar-active-outline,
@@ -641,7 +646,7 @@
     min-height: var(--nn-calendar-weekday-row-height);
     display: grid;
     align-items: center;
-    column-gap: 1px;
+    gap: 0 1px;
     grid-template-columns: repeat(7, minmax(0, 1fr));
     color: var(--nn-theme-calendar-weekday-color);
     font-size: var(--nn-calendar-weekday-font-size);
@@ -671,7 +676,7 @@
 .nn-navigation-calendar-week {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    column-gap: 1px;
+    gap: 0 1px;
     align-items: center;
 }
 
