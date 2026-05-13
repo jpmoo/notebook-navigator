@@ -325,7 +325,11 @@ function getUnexpectedStatusLines(status, allowedDirtyFiles = []) {
     return status.split('\n').filter(line => !allowedFileSet.has(getGitStatusPath(line)));
 }
 
-function assertOnlyExpectedChanges(expectedFiles) {
+function assertOnlyExpectedChanges(expectedFiles, options = {}) {
+    const {
+        message = 'Build changed files outside the release metadata:',
+        guidance = 'Commit or fix these generated changes before preparing the release.'
+    } = options;
     const expectedFileSet = new Set(expectedFiles);
     const status = gitExecArray(['status', '--porcelain'], { encoding: 'utf8' }).trimEnd();
 
@@ -342,14 +346,7 @@ function assertOnlyExpectedChanges(expectedFiles) {
         return;
     }
 
-    throw new Error(
-        [
-            'Build changed files outside the release metadata:',
-            ...unexpectedChanges.map(line => `   ${line}`),
-            '',
-            'Commit or fix these generated changes before preparing the release.'
-        ].join('\n')
-    );
+    throw new Error([message, ...unexpectedChanges.map(line => `   ${line}`), '', guidance].join('\n'));
 }
 
 function updatePackageLockVersion(packageLock, newVersion) {
@@ -701,11 +698,14 @@ function verifyBuild() {
             process.exit(1);
         }
 
-        // Check if package build script exists because scripts/build.sh calls it
+        // Check package scripts used by scripts/build.sh.
         const packageJson = parseJsonFile(packageJsonPath, 'package.json');
-        if (!packageJson.scripts || !packageJson.scripts.build) {
-            console.error('❌ No build script found in package.json');
-            console.error('   Add a "build" script to package.json');
+        const requiredScripts = ['build', 'lint:styles'];
+        const missingScripts = requiredScripts.filter(scriptName => !packageJson.scripts?.[scriptName]);
+        if (missingScripts.length > 0) {
+            console.error('❌ Missing required package script(s):');
+            missingScripts.forEach(scriptName => console.error(`   - ${scriptName}`));
+            console.error('   scripts/build.sh depends on these scripts during release verification');
             process.exit(1);
         }
 
@@ -1630,6 +1630,10 @@ function publishRelease(manifest, currentVersion, options = {}) {
     preReleaseChecks({ allowedDirtyFiles });
     checkExistingTag(currentVersion);
     verifyBuild();
+    assertOnlyExpectedChanges(allowedDirtyFiles, {
+        message: 'Build verification left unexpected worktree changes:',
+        guidance: 'Commit generated changes before publishing the release.'
+    });
 
     try {
         gitExecArray(['tag', '-a', currentVersion, '-m', `Release ${currentVersion}`], { stdio: 'inherit' });
