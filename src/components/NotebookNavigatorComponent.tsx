@@ -52,7 +52,7 @@ import {
 } from '../types';
 import { getSelectedPath, getFilesForSelection } from '../utils/selectionUtils';
 import { normalizeNavigationPath } from '../utils/navigationIndex';
-import { deleteSelectedFiles, deleteSelectedFolder } from '../utils/deleteOperations';
+import { deleteSelectedFiles } from '../utils/deleteOperations';
 import { localStorage } from '../utils/localStorage';
 import { calculateCompactListMetrics } from '../utils/listPaneMetrics';
 import { getNavigationPaneSizing } from '../utils/paneSizing';
@@ -139,7 +139,7 @@ export interface NotebookNavigatorHandle {
     revealFileInNearestFolder: (file: TFile, options?: RevealFileOptions) => void;
     focusVisiblePane: () => void;
     focusNavigationPane: () => void;
-    deleteActiveFile: () => void;
+    deleteSelectedFiles: () => void;
     createNoteInSelectedFolder: (openInNewTab?: boolean) => Promise<void>;
     createNoteFromTemplateInSelectedFolder: () => Promise<void>;
     moveSelectedFiles: () => Promise<void>;
@@ -912,45 +912,25 @@ export const NotebookNavigatorComponent = React.memo(
                     }
                     return navHandle.openShortcutByNumber(shortcutNumber);
                 },
-                // Delete focused file based on current pane (files or navigation)
-                deleteActiveFile: () => {
+                deleteSelectedFiles: () => {
                     runAsyncAction(async () => {
-                        // Delete files from list pane
-                        if (uiState.focusedPane === 'files' && (selectionState.selectedFile || selectionState.selectedFiles.size > 0)) {
-                            await deleteSelectedFiles({
-                                app,
-                                fileSystemOps,
-                                settings,
-                                visibility: {
-                                    includeDescendantNotes: uxRef.current.includeDescendantNotes,
-                                    showHiddenItems: uxRef.current.showHiddenItems
-                                },
-                                selectionState,
-                                selectionDispatch,
-                                tagTreeService,
-                                propertyTreeService
-                            });
+                        if (!selectionState.selectedFile && selectionState.selectedFiles.size === 0) {
                             return;
                         }
 
-                        // Delete folder from navigation pane
-                        if (
-                            uiState.focusedPane === 'navigation' &&
-                            selectionState.selectionType === ItemType.FOLDER &&
-                            selectionState.selectedFolder
-                        ) {
-                            await deleteSelectedFolder({
-                                app,
-                                fileSystemOps,
-                                settings,
-                                visibility: {
-                                    includeDescendantNotes: uxRef.current.includeDescendantNotes,
-                                    showHiddenItems: uxRef.current.showHiddenItems
-                                },
-                                selectionState,
-                                selectionDispatch
-                            });
-                        }
+                        await deleteSelectedFiles({
+                            app,
+                            fileSystemOps,
+                            settings,
+                            visibility: {
+                                includeDescendantNotes: uxRef.current.includeDescendantNotes,
+                                showHiddenItems: uxRef.current.showHiddenItems
+                            },
+                            selectionState,
+                            selectionDispatch,
+                            tagTreeService,
+                            propertyTreeService
+                        });
                     });
                 },
                 createNoteInSelectedFolder: async (openInNewTab = false) => {
@@ -1248,7 +1228,6 @@ export const NotebookNavigatorComponent = React.memo(
             navigateSelectionHistory,
             uiState.singlePane,
             uiState.currentSinglePaneView,
-            uiState.focusedPane,
             app,
             settings,
             plugin,

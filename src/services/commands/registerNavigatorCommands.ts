@@ -1243,22 +1243,17 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
         }
     });
 
-    // Command to delete the currently active file
+    // Command to delete selected files
     plugin.addCommand({
         id: 'delete-files',
         name: strings.commands.deleteFile,
         callback: () => {
             // Wrap delete operation with error handling
             runAsyncAction(async () => {
-                await plugin.activateView();
-
-                const navigatorLeaves = plugin.getNavigatorLeaves();
-                navigatorLeaves.forEach(leaf => {
-                    const view = leaf.view;
-                    if (view instanceof NotebookNavigatorView) {
-                        view.deleteActiveFile();
-                    }
-                });
+                const view = await ensureNavigatorOpen(plugin);
+                if (view) {
+                    view.deleteSelectedFiles();
+                }
             });
         }
     });

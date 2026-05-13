@@ -84,7 +84,10 @@ const RELEASE_NOTES: ReleaseNote[] = [
         version: '2.6.7',
         date: '2026-05-13',
         showOnUpdate: false,
-        fixed: ['**List pane.** Fixed extra spacing in feature image rows when dates are hidden and tags or properties are visible.']
+        fixed: [
+            '**Commands.** When **Notebook Navigator: Delete files** was called and the navigation pane was last focused, it could delete the selected folder. It now only deletes selected files.',
+            '**List pane.** Fixed extra spacing in feature image rows when dates are hidden and tags or properties are visible.'
+        ]
     },
     {
         version: '2.6.6',
