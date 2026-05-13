@@ -906,15 +906,22 @@ export const STRINGS_EN = {
                     'property-asc': 'Property (A on top)',
                     'property-desc': 'Property (Z on top)'
                 },
-                propertyOverride: {
-                    asc: 'Property ‘{property}’ (A on top)',
-                    desc: 'Property ‘{property}’ (Z on top)'
+                directions: {
+                    asc: 'Ascending',
+                    desc: 'Descending'
+                },
+                fields: {
+                    modified: 'Date edited',
+                    created: 'Date created',
+                    title: 'Title',
+                    filename: 'File name',
+                    property: 'Property'
                 }
             },
             propertySortKey: {
-                name: 'Property to sort by',
-                desc: 'Used with Property sort. Notes with this frontmatter property are listed first and sorted by the property value. Arrays are joined into one value.',
-                placeholder: 'order'
+                name: 'Properties to sort by',
+                desc: 'Comma-separated frontmatter properties shown in the list sort menu. Arrays are joined into one value.',
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: 'Secondary sort',

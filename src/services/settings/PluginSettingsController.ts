@@ -39,9 +39,9 @@ import {
     type CalendarPlacement,
     type CalendarWeeksToShow,
     type HomepageSetting,
+    type ListSortOverrideValue,
     SYNC_MODE_SETTING_IDS,
     type SettingSyncMode,
-    type SortOption,
     type SyncModeSettingId,
     type TagSortOrder,
     type VaultProfile,
@@ -57,8 +57,8 @@ import {
     isPropertySortSecondaryOption,
     isRecentNotesHideMode,
     isSettingSyncMode,
-    isSortOption,
     isTagSortOrder,
+    normalizeListSortOverride,
     resolveDeleteAttachmentsSetting,
     resolveMoveFileConflictsSetting
 } from '../../settings/types';
@@ -896,7 +896,21 @@ export class PluginSettingsController {
 
     private sanitizeSettingsRecords(): void {
         const sanitizeStringMap = (record?: Record<string, string>): Record<string, string> => sanitizeRecord(record, isStringRecordValue);
-        const sanitizeSortMap = (record?: Record<string, SortOption>): Record<string, SortOption> => sanitizeRecord(record, isSortOption);
+        const sanitizeSortMap = (record?: Record<string, ListSortOverrideValue>): Record<string, ListSortOverrideValue> => {
+            const sanitized = Object.create(null) as Record<string, ListSortOverrideValue>;
+            if (!record) {
+                return sanitized;
+            }
+
+            for (const key of Object.keys(record)) {
+                const normalized = normalizeListSortOverride((record as Record<string, unknown>)[key]);
+                if (normalized) {
+                    sanitized[key] = normalized;
+                }
+            }
+
+            return sanitized;
+        };
         const sanitizeAlphaSortOrderMap = (
             record?: Record<string, 'alpha-asc' | 'alpha-desc'>
         ): Record<string, 'alpha-asc' | 'alpha-desc'> => sanitizeRecord(record, isAlphaSortOrder);

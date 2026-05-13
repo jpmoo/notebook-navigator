@@ -903,15 +903,22 @@ export const STRINGS_ZH_TW = {
                     'property-asc': '屬性（升序）',
                     'property-desc': '屬性（降序）'
                 },
-                propertyOverride: {
-                    asc: '屬性 ‘{property}’（升序）',
-                    desc: '屬性 ‘{property}’（降序）'
+                directions: {
+                    asc: '升序',
+                    desc: '降序'
+                },
+                fields: {
+                    modified: '編輯日期',
+                    created: '建立日期',
+                    title: '標題',
+                    filename: '檔案名稱',
+                    property: '屬性'
                 }
             },
             propertySortKey: {
-                name: '排序屬性',
-                desc: '用於屬性排序。具有此 frontmatter 屬性的筆記首先列出，並按屬性值排序。陣列合併為單一值。',
-                placeholder: 'order'
+                name: '用於排序的屬性',
+                desc: '在清單排序選單中顯示的以逗號分隔的 frontmatter 屬性。陣列合併為單一值。',
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: '次要排序',

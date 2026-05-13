@@ -907,15 +907,22 @@ export const STRINGS_UK = {
                     'property-asc': 'Властивість (А зверху)',
                     'property-desc': 'Властивість (Я зверху)'
                 },
-                propertyOverride: {
-                    asc: 'Властивість ‘{property}’ (А зверху)',
-                    desc: 'Властивість ‘{property}’ (Я зверху)'
+                directions: {
+                    asc: 'За зростанням',
+                    desc: 'За спаданням'
+                },
+                fields: {
+                    modified: 'Дата редагування',
+                    created: 'Дата створення',
+                    title: 'Заголовок',
+                    filename: "Ім'я файлу",
+                    property: 'Властивість'
                 }
             },
             propertySortKey: {
-                name: 'Властивість сортування',
-                desc: "Використовується з сортуванням за властивістю. Нотатки з цією властивістю frontmatter відображаються першими і сортуються за значенням властивості. Масиви об'єднуються в одне значення.",
-                placeholder: 'order'
+                name: 'Властивості для сортування',
+                desc: "Розділені комами властивості frontmatter, що відображаються в меню сортування списку. Масиви об'єднуються в одне значення.",
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: 'Вторинне сортування',

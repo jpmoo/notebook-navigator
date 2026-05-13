@@ -906,15 +906,22 @@ export const STRINGS_TH = {
                     'property-asc': 'คุณสมบัติ (A บน)',
                     'property-desc': 'คุณสมบัติ (Z บน)'
                 },
-                propertyOverride: {
-                    asc: 'คุณสมบัติ ‘{property}’ (A บน)',
-                    desc: 'คุณสมบัติ ‘{property}’ (Z บน)'
+                directions: {
+                    asc: 'จากน้อยไปมาก',
+                    desc: 'จากมากไปน้อย'
+                },
+                fields: {
+                    modified: 'วันที่แก้ไข',
+                    created: 'วันที่สร้าง',
+                    title: 'ชื่อเรื่อง',
+                    filename: 'ชื่อไฟล์',
+                    property: 'คุณสมบัติ'
                 }
             },
             propertySortKey: {
                 name: 'คุณสมบัติสำหรับเรียงลำดับ',
-                desc: 'ใช้กับการเรียงลำดับตามคุณสมบัติ โน้ตที่มีคุณสมบัติ frontmatter นี้จะแสดงก่อนและเรียงตามค่าคุณสมบัติ อาร์เรย์จะรวมเป็นค่าเดียว',
-                placeholder: 'order'
+                desc: 'คุณสมบัติ frontmatter ที่คั่นด้วยเครื่องหมายจุลภาคซึ่งแสดงในเมนูเรียงลำดับของรายการ อาร์เรย์จะรวมเป็นค่าเดียว',
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: 'การเรียงลำดับรอง',

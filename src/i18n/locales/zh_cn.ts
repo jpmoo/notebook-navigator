@@ -903,15 +903,22 @@ export const STRINGS_ZH_CN = {
                     'property-asc': '属性（升序）',
                     'property-desc': '属性（降序）'
                 },
-                propertyOverride: {
-                    asc: '属性 ‘{property}’（升序）',
-                    desc: '属性 ‘{property}’（降序）'
+                directions: {
+                    asc: '升序',
+                    desc: '降序'
+                },
+                fields: {
+                    modified: '编辑日期',
+                    created: '创建日期',
+                    title: '标题',
+                    filename: '文件名',
+                    property: '属性'
                 }
             },
             propertySortKey: {
-                name: '排序属性',
-                desc: '用于属性排序。具有此 frontmatter 属性的笔记首先列出，并按属性值排序。数组合并为单一值。',
-                placeholder: 'order'
+                name: '用于排序的属性',
+                desc: '在列表排序菜单中显示的以逗号分隔的 frontmatter 属性。数组合并为单一值。',
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: '次要排序',

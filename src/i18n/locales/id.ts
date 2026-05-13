@@ -910,15 +910,22 @@ export const STRINGS_ID = {
                     'property-asc': 'Properti (A di atas)',
                     'property-desc': 'Properti (Z di atas)'
                 },
-                propertyOverride: {
-                    asc: 'Properti ‘{property}’ (A di atas)',
-                    desc: 'Properti ‘{property}’ (Z di atas)'
+                directions: {
+                    asc: 'Menaik',
+                    desc: 'Menurun'
+                },
+                fields: {
+                    modified: 'Tanggal diedit',
+                    created: 'Tanggal dibuat',
+                    title: 'Judul',
+                    filename: 'Nama file',
+                    property: 'Properti'
                 }
             },
             propertySortKey: {
-                name: 'Properti pengurutan',
-                desc: 'Digunakan dengan pengurutan Properti. Catatan dengan properti frontmatter ini ditampilkan lebih dulu dan diurutkan berdasarkan nilai properti. Array digabungkan menjadi satu nilai.',
-                placeholder: 'order'
+                name: 'Properti untuk diurutkan',
+                desc: 'Properti frontmatter yang dipisahkan koma ditampilkan dalam menu pengurutan daftar. Array digabungkan menjadi satu nilai.',
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: 'Urutan sekunder',

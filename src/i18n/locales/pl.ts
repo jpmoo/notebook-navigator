@@ -912,15 +912,22 @@ export const STRINGS_PL = {
                     'property-asc': 'atrybutu (od A do Z)',
                     'property-desc': 'atrybutu (od Z do A)'
                 },
-                propertyOverride: {
-                    asc: 'atrybut ‘{property}’ (od A do Z)',
-                    desc: 'atrybut ‘{property}’ (od Z do A)'
+                directions: {
+                    asc: 'Rosnąco',
+                    desc: 'Malejąco'
+                },
+                fields: {
+                    modified: 'Data edycji',
+                    created: 'Data utworzenia',
+                    title: 'Tytuł',
+                    filename: 'Nazwa pliku',
+                    property: 'Atrybut'
                 }
             },
             propertySortKey: {
-                name: 'Atrybut do sortowania',
-                desc: 'Używane z sortowaniem według atrybutu. Notatki z tym atrybutem są widoczne jako pierwsze i sortowane według wartości. Tablice są łączone w jedną wartość.',
-                placeholder: 'order'
+                name: 'Atrybuty do sortowania',
+                desc: 'Rozdzielone przecinkami atrybuty frontmatter pokazywane w menu sortowania listy. Tablice są łączone w jedną wartość.',
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: 'Sortowanie drugorzędne',

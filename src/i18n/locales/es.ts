@@ -911,15 +911,22 @@ export const STRINGS_ES = {
                     'property-asc': 'Propiedad (A arriba)',
                     'property-desc': 'Propiedad (Z arriba)'
                 },
-                propertyOverride: {
-                    asc: 'Propiedad ‘{property}’ (A arriba)',
-                    desc: 'Propiedad ‘{property}’ (Z arriba)'
+                directions: {
+                    asc: 'Ascendente',
+                    desc: 'Descendente'
+                },
+                fields: {
+                    modified: 'Fecha de edición',
+                    created: 'Fecha de creación',
+                    title: 'Título',
+                    filename: 'Nombre de archivo',
+                    property: 'Propiedad'
                 }
             },
             propertySortKey: {
-                name: 'Propiedad de ordenación',
-                desc: 'Utilizado con la ordenación por propiedad. Las notas con esta propiedad de frontmatter se listan primero y se ordenan por el valor de la propiedad. Los arrays se combinan en un valor.',
-                placeholder: 'order'
+                name: 'Propiedades para ordenar',
+                desc: 'Propiedades del frontmatter separadas por comas que se muestran en el menú de ordenación de la lista. Los arrays se combinan en un valor.',
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: 'Orden secundario',

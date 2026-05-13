@@ -912,15 +912,22 @@ export const STRINGS_FR = {
                     'property-asc': 'Propriété (A en haut)',
                     'property-desc': 'Propriété (Z en haut)'
                 },
-                propertyOverride: {
-                    asc: 'Propriété ‘{property}’ (A en haut)',
-                    desc: 'Propriété ‘{property}’ (Z en haut)'
+                directions: {
+                    asc: 'Croissant',
+                    desc: 'Décroissant'
+                },
+                fields: {
+                    modified: 'Date de modification',
+                    created: 'Date de création',
+                    title: 'Titre',
+                    filename: 'Nom de fichier',
+                    property: 'Propriété'
                 }
             },
             propertySortKey: {
-                name: 'Propriété de tri',
-                desc: 'Utilisé avec le tri par propriété. Les notes avec cette propriété frontmatter sont listées en premier et triées par la valeur de la propriété. Les tableaux sont combinés en une seule valeur.',
-                placeholder: 'order'
+                name: 'Propriétés de tri',
+                desc: 'Propriétés frontmatter séparées par des virgules affichées dans le menu de tri de la liste. Les tableaux sont combinés en une seule valeur.',
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: 'Tri secondaire',

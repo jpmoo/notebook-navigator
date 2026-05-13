@@ -910,15 +910,22 @@ export const STRINGS_FA = {
                     'property-asc': 'ویژگی (الف بالا)',
                     'property-desc': 'ویژگی (ی بالا)'
                 },
-                propertyOverride: {
-                    asc: 'ویژگی ‘{property}’ (الف بالا)',
-                    desc: 'ویژگی ‘{property}’ (ی بالا)'
+                directions: {
+                    asc: 'صعودی',
+                    desc: 'نزولی'
+                },
+                fields: {
+                    modified: 'تاریخ ویرایش',
+                    created: 'تاریخ ایجاد',
+                    title: 'عنوان',
+                    filename: 'نام فایل',
+                    property: 'ویژگی'
                 }
             },
             propertySortKey: {
-                name: 'ویژگی مرتب‌سازی',
-                desc: 'با مرتب‌سازی ویژگی استفاده می‌شود. یادداشت‌هایی که این ویژگی frontmatter را دارند ابتدا نمایش داده شده و بر اساس مقدار ویژگی مرتب می‌شوند. آرایه‌ها به یک مقدار تبدیل می‌شوند.',
-                placeholder: 'order'
+                name: 'ویژگی‌ها برای مرتب‌سازی',
+                desc: 'ویژگی‌های frontmatter جدا شده با کاما که در منوی مرتب‌سازی فهرست نمایش داده می‌شوند. آرایه‌ها به یک مقدار تبدیل می‌شوند.',
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: 'مرتب‌سازی ثانویه',

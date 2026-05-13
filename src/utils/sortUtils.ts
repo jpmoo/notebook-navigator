@@ -17,10 +17,17 @@
  */
 
 import { TFile, TFolder } from 'obsidian';
-import type { AlphabeticalDateMode, AlphaSortOrder, SortOption, NotebookNavigatorSettings, PropertySortSecondaryOption } from '../settings';
-import { NavigationItemType, ItemType } from '../types';
-
-export { SORT_OPTIONS } from '../settings/types';
+import {
+    normalizeListSortOverride,
+    type AlphabeticalDateMode,
+    type AlphaSortOrder,
+    type ListSortOverrideValue,
+    type SortOption,
+    type NotebookNavigatorSettings,
+    type PropertySortSecondaryOption
+} from '../settings/types';
+import { NavigationItemType, ItemType, type ItemType as ItemTypeValue } from '../types';
+import { casefold } from './recordUtils';
 
 export function isDateSortOption(sortOption: SortOption): boolean {
     return sortOption.startsWith('modified') || sortOption.startsWith('created');
@@ -32,6 +39,118 @@ function isAlphabeticalSortOption(sortOption: SortOption): boolean {
 
 export function isPropertySortOption(sortOption: SortOption): sortOption is 'property-asc' | 'property-desc' {
     return sortOption === 'property-asc' || sortOption === 'property-desc';
+}
+
+export type SortDirection = 'asc' | 'desc';
+export type SortField = 'modified' | 'created' | 'title' | 'filename' | 'property';
+
+export interface EffectiveListSort {
+    option: SortOption;
+    propertyKey: string;
+    propertySortSecondary: PropertySortSecondaryOption;
+}
+
+type PropertySortKeyMapper = (key: string, normalizedKey: string) => string | null;
+
+function normalizePropertySortKeyList(value: string, mapper?: PropertySortKeyMapper): string[] {
+    const keys: string[] = [];
+    const seen = new Set<string>();
+
+    value.split(',').forEach(rawKey => {
+        const key = rawKey.trim();
+        const normalizedKey = casefold(key);
+        if (!normalizedKey) {
+            return;
+        }
+
+        const nextKey = mapper ? mapper(key, normalizedKey) : key;
+        if (!nextKey) {
+            return;
+        }
+
+        const normalizedNextKey = casefold(nextKey);
+        if (!normalizedNextKey || seen.has(normalizedNextKey)) {
+            return;
+        }
+
+        seen.add(normalizedNextKey);
+        keys.push(nextKey);
+    });
+
+    return keys;
+}
+
+export function parsePropertySortKeys(value: string): string[] {
+    return normalizePropertySortKeyList(value);
+}
+
+export function replacePropertySortKey(value: string, oldKeyNormalized: string, newKeyDisplay: string | null): string {
+    return normalizePropertySortKeyList(value, (key, normalizedKey) => (normalizedKey === oldKeyNormalized ? newKeyDisplay : key)).join(
+        ', '
+    );
+}
+
+export function getSortDirection(sortOption: SortOption): SortDirection {
+    return sortOption.endsWith('-desc') ? 'desc' : 'asc';
+}
+
+export function getSortField(sortOption: SortOption): SortField {
+    if (sortOption.startsWith('modified')) {
+        return 'modified';
+    }
+    if (sortOption.startsWith('created')) {
+        return 'created';
+    }
+    if (sortOption.startsWith('title')) {
+        return 'title';
+    }
+    if (sortOption.startsWith('filename')) {
+        return 'filename';
+    }
+    return 'property';
+}
+
+export function buildSortOption(field: SortField, direction: SortDirection): SortOption {
+    return `${field}-${direction}`;
+}
+
+export function createListSortOverride(option: SortOption, propertyKey?: string | null): ListSortOverrideValue {
+    const normalizedPropertyKey = propertyKey?.trim() ?? '';
+    if (isPropertySortOption(option) && normalizedPropertyKey.length > 0) {
+        return { option, propertyKey: normalizedPropertyKey };
+    }
+
+    return option;
+}
+
+export function cloneListSortOverride(sortOverride: ListSortOverrideValue): ListSortOverrideValue {
+    return typeof sortOverride === 'string' ? sortOverride : { ...sortOverride };
+}
+
+function getMatchingConfiguredPropertySortKey(configuredPropertyKeys: readonly string[], propertyKey: string): string {
+    const normalizedPropertyKey = casefold(propertyKey);
+    if (!normalizedPropertyKey) {
+        return '';
+    }
+
+    return configuredPropertyKeys.find(configuredKey => casefold(configuredKey) === normalizedPropertyKey) ?? '';
+}
+
+function getListSortOverrideSignature(sortOverride: ListSortOverrideValue | undefined): string {
+    const normalized = normalizeListSortOverride(sortOverride);
+    if (!normalized) {
+        return '';
+    }
+
+    if (typeof normalized === 'string') {
+        return normalized;
+    }
+
+    return `${normalized.option}\u0000${casefold(normalized.propertyKey ?? '')}`;
+}
+
+export function areListSortOverridesEqual(a: ListSortOverrideValue | undefined, b: ListSortOverrideValue | undefined): boolean {
+    return getListSortOverrideSignature(a) === getListSortOverrideSignature(b);
 }
 
 export function shouldRefreshOnFileModifyForSort(sortOption: SortOption, propertySortSecondary: PropertySortSecondaryOption): boolean {
@@ -188,16 +307,57 @@ export function getEffectiveSortOption(
     selectedTag?: string | null,
     selectedProperty?: string | null
 ): SortOption {
-    if (selectionType === ItemType.FOLDER && selectedFolder && settings.folderSortOverrides?.[selectedFolder.path]) {
-        return settings.folderSortOverrides[selectedFolder.path];
+    return getEffectiveListSort(settings, selectionType, selectedFolder, selectedTag, selectedProperty).option;
+}
+
+export function resolveListSort(settings: NotebookNavigatorSettings, sortOverride?: ListSortOverrideValue): EffectiveListSort {
+    const normalizedOverride = normalizeListSortOverride(sortOverride);
+    const option = typeof normalizedOverride === 'string' ? normalizedOverride : (normalizedOverride?.option ?? settings.defaultFolderSort);
+    const configuredPropertyKeys = parsePropertySortKeys(settings.propertySortKey);
+    const configuredPropertyKey = configuredPropertyKeys[0] ?? '';
+    const overridePropertyKey =
+        typeof normalizedOverride === 'object'
+            ? getMatchingConfiguredPropertySortKey(configuredPropertyKeys, normalizedOverride.propertyKey ?? '')
+            : '';
+    const propertyKey = isPropertySortOption(option) ? overridePropertyKey || configuredPropertyKey : '';
+
+    return {
+        option,
+        propertyKey,
+        propertySortSecondary: settings.propertySortSecondary
+    };
+}
+
+export function getListSortOverrideForSelection(
+    settings: NotebookNavigatorSettings,
+    selectionType: ItemTypeValue | null,
+    selectedFolder: TFolder | null,
+    selectedTag?: string | null,
+    selectedProperty?: string | null
+): ListSortOverrideValue | undefined {
+    if (selectionType === ItemType.FOLDER && selectedFolder) {
+        return settings.folderSortOverrides?.[selectedFolder.path];
     }
-    if (selectionType === ItemType.TAG && selectedTag && settings.tagSortOverrides?.[selectedTag]) {
-        return settings.tagSortOverrides[selectedTag];
+    if (selectionType === ItemType.TAG && selectedTag) {
+        return settings.tagSortOverrides?.[selectedTag];
     }
-    if (selectionType === ItemType.PROPERTY && selectedProperty && settings.propertySortOverrides?.[selectedProperty]) {
-        return settings.propertySortOverrides[selectedProperty];
+    if (selectionType === ItemType.PROPERTY && selectedProperty) {
+        return settings.propertySortOverrides?.[selectedProperty];
     }
-    return settings.defaultFolderSort;
+    return undefined;
+}
+
+export function getEffectiveListSort(
+    settings: NotebookNavigatorSettings,
+    selectionType: NavigationItemType,
+    selectedFolder: TFolder | null,
+    selectedTag?: string | null,
+    selectedProperty?: string | null
+): EffectiveListSort {
+    return resolveListSort(
+        settings,
+        getListSortOverrideForSelection(settings, selectionType, selectedFolder, selectedTag, selectedProperty)
+    );
 }
 
 /**

@@ -17,7 +17,7 @@
  */
 
 import { EventRef, TFile } from 'obsidian';
-import { SortOption, type AlphaSortOrder, type NotebookNavigatorSettings } from '../../settings';
+import type { AlphaSortOrder, ListSortOverrideValue, NotebookNavigatorSettings } from '../../settings';
 import { getDBInstanceOrNull } from '../../storage/fileOperations';
 import { ItemType } from '../../types';
 import { isFolderShortcut } from '../../types/shortcuts';
@@ -684,18 +684,18 @@ export class FolderMetadataService extends BaseMetadataService {
         }).icon;
     }
 
-    async setFolderSortOverride(folderPath: string, sortOption: SortOption): Promise<void> {
+    async setFolderSortOverride(folderPath: string, sortOverride: ListSortOverrideValue): Promise<void> {
         if (!this.validateFolder(folderPath)) {
             return;
         }
-        return this.setEntitySortOverride(ItemType.FOLDER, folderPath, sortOption);
+        return this.setEntitySortOverride(ItemType.FOLDER, folderPath, sortOverride);
     }
 
     async removeFolderSortOverride(folderPath: string): Promise<void> {
         return this.removeEntitySortOverride(ItemType.FOLDER, folderPath);
     }
 
-    getFolderSortOverride(folderPath: string): SortOption | undefined {
+    getFolderSortOverride(folderPath: string): ListSortOverrideValue | undefined {
         return this.getEntitySortOverride(ItemType.FOLDER, folderPath);
     }
 

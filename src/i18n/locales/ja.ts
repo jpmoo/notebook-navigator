@@ -909,15 +909,22 @@ export const STRINGS_JA = {
                     'property-asc': 'プロパティ（昇順）',
                     'property-desc': 'プロパティ（降順）'
                 },
-                propertyOverride: {
-                    asc: 'プロパティ ‘{property}’（昇順）',
-                    desc: 'プロパティ ‘{property}’（降順）'
+                directions: {
+                    asc: '昇順',
+                    desc: '降順'
+                },
+                fields: {
+                    modified: '更新日時',
+                    created: '作成日時',
+                    title: 'タイトル',
+                    filename: 'ファイル名',
+                    property: 'プロパティ'
                 }
             },
             propertySortKey: {
-                name: 'ソートプロパティ',
-                desc: 'プロパティソートで使用されます。このfrontmatterプロパティを持つノートが最初にリストされ、プロパティの値でソートされます。配列は1つの値に結合されます。',
-                placeholder: 'order'
+                name: 'ソートに使うプロパティ',
+                desc: 'リストのソートメニューに表示されるカンマ区切りのfrontmatterプロパティ。配列は1つの値に結合されます。',
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: '二次ソート',

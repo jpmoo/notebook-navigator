@@ -912,15 +912,22 @@ export const STRINGS_PT_BR = {
                     'property-asc': 'Propriedade (A no topo)',
                     'property-desc': 'Propriedade (Z no topo)'
                 },
-                propertyOverride: {
-                    asc: 'Propriedade ‘{property}’ (A no topo)',
-                    desc: 'Propriedade ‘{property}’ (Z no topo)'
+                directions: {
+                    asc: 'Ascendente',
+                    desc: 'Descendente'
+                },
+                fields: {
+                    modified: 'Data de edição',
+                    created: 'Data de criação',
+                    title: 'Título',
+                    filename: 'Nome do arquivo',
+                    property: 'Propriedade'
                 }
             },
             propertySortKey: {
-                name: 'Propriedade de ordenação',
-                desc: 'Usado com a ordenação por propriedade. Notas com esta propriedade frontmatter são listadas primeiro e ordenadas pelo valor da propriedade. Arrays são combinados em um único valor.',
-                placeholder: 'order'
+                name: 'Propriedades para ordenar',
+                desc: 'Propriedades frontmatter separadas por vírgulas exibidas no menu de ordenação da lista. Arrays são combinados em um único valor.',
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: 'Ordenação secundária',

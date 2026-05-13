@@ -911,15 +911,22 @@ export const STRINGS_NL = {
                     'property-asc': 'Eigenschap (A bovenaan)',
                     'property-desc': 'Eigenschap (Z bovenaan)'
                 },
-                propertyOverride: {
-                    asc: 'Eigenschap ‘{property}’ (A bovenaan)',
-                    desc: 'Eigenschap ‘{property}’ (Z bovenaan)'
+                directions: {
+                    asc: 'Oplopend',
+                    desc: 'Aflopend'
+                },
+                fields: {
+                    modified: 'Datum bewerkt',
+                    created: 'Datum gemaakt',
+                    title: 'Titel',
+                    filename: 'Bestandsnaam',
+                    property: 'Eigenschap'
                 }
             },
             propertySortKey: {
-                name: 'Sorteereigenschap',
-                desc: 'Gebruikt met Eigenschap-sortering. Notities met deze frontmatter-eigenschap worden eerst weergegeven en gesorteerd op de eigenschapswaarde. Arrays worden samengevoegd tot één waarde.',
-                placeholder: 'order'
+                name: 'Eigenschappen om op te sorteren',
+                desc: "Door komma's gescheiden frontmatter-eigenschappen die worden weergegeven in het sorteermenu van de lijst. Arrays worden samengevoegd tot één waarde.",
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: 'Secundaire sortering',

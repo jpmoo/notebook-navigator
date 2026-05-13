@@ -910,15 +910,22 @@ export const STRINGS_TR = {
                     'property-asc': 'Özellik (A üstte)',
                     'property-desc': 'Özellik (Z üstte)'
                 },
-                propertyOverride: {
-                    asc: 'Özellik ‘{property}’ (A üstte)',
-                    desc: 'Özellik ‘{property}’ (Z üstte)'
+                directions: {
+                    asc: 'Artan',
+                    desc: 'Azalan'
+                },
+                fields: {
+                    modified: 'Düzenleme tarihi',
+                    created: 'Oluşturma tarihi',
+                    title: 'Başlık',
+                    filename: 'Dosya adı',
+                    property: 'Özellik'
                 }
             },
             propertySortKey: {
-                name: 'Sıralama özelliği',
-                desc: 'Özellik sıralaması ile kullanılır. Bu frontmatter özelliğine sahip notlar önce listelenir ve özellik değerine göre sıralanır. Diziler tek bir değere birleştirilir.',
-                placeholder: 'order'
+                name: 'Sıralama özellikleri',
+                desc: 'Liste sıralama menüsünde gösterilen virgülle ayrılmış frontmatter özellikleri. Diziler tek bir değere birleştirilir.',
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: 'İkincil sıralama',

@@ -31,7 +31,7 @@ import {
     isFolderInExcludedFolder
 } from './fileFilters';
 import { shouldDisplayFile, FILE_VISIBILITY } from './fileTypeUtils';
-import { getEffectiveSortOption, isPropertySortOption, sortFiles } from './sortUtils';
+import { getEffectiveListSort, isPropertySortOption, sortFiles, type EffectiveListSort } from './sortUtils';
 import { getDBInstanceOrNull } from '../storage/fileOperations';
 import { extractMetadata } from '../utils/metadataExtractor';
 import { METADATA_SENTINEL } from '../storage/IndexedDBStorage';
@@ -234,14 +234,10 @@ function createPropertySortValueGetter(app: App, propertySortKey: string): (file
     };
 }
 
-function sortNavigationFiles(
-    files: TFile[],
-    settings: NotebookNavigatorSettings,
-    app: App,
-    sortOption: ReturnType<typeof getEffectiveSortOption>
-): void {
+function sortNavigationFiles(files: TFile[], settings: NotebookNavigatorSettings, app: App, sortSpec: EffectiveListSort): void {
+    const sortOption = sortSpec.option;
     const isPropertySort = isPropertySortOption(sortOption);
-    const propertySortKey = settings.propertySortKey.trim();
+    const propertySortKey = sortSpec.propertyKey.trim();
     const getPropertySortValue =
         isPropertySort && propertySortKey.length > 0 ? createPropertySortValueGetter(app, propertySortKey) : undefined;
 
@@ -285,14 +281,14 @@ function sortNavigationFiles(
             return getDisplayName(file, { fn: metadata.fn }, settings);
         };
 
-        sortFiles(files, sortOption, getCreatedTime, getModifiedTime, getTitle, getPropertySortValue, settings.propertySortSecondary);
+        sortFiles(files, sortOption, getCreatedTime, getModifiedTime, getTitle, getPropertySortValue, sortSpec.propertySortSecondary);
         return;
     }
 
     const getCreatedTime = (file: TFile) => file.stat.ctime;
     const getModifiedTime = (file: TFile) => file.stat.mtime;
     const getTitle = (file: TFile) => file.basename;
-    sortFiles(files, sortOption, getCreatedTime, getModifiedTime, getTitle, getPropertySortValue, settings.propertySortSecondary);
+    sortFiles(files, sortOption, getCreatedTime, getModifiedTime, getTitle, getPropertySortValue, sortSpec.propertySortSecondary);
 }
 
 /**
@@ -481,8 +477,8 @@ export function getFilesForFolder(
         return allFiles;
     }
 
-    const sortOption = getEffectiveSortOption(settings, 'folder', folder);
-    sortNavigationFiles(allFiles, settings, app, sortOption);
+    const sortSpec = getEffectiveListSort(settings, 'folder', folder);
+    sortNavigationFiles(allFiles, settings, app, sortSpec);
 
     const pinnedDisplayScope = settings.filterPinnedByFolder ? { restrictToFolderPath: folder.path } : undefined;
     return applyPinnedOrdering(allFiles, settings, 'folder', pinnedDisplayScope);
@@ -626,8 +622,8 @@ export function getFilesForTag(
         return filteredFiles;
     }
 
-    const sortOption = getEffectiveSortOption(settings, 'tag', null, tag);
-    sortNavigationFiles(filteredFiles, settings, app, sortOption);
+    const sortSpec = getEffectiveListSort(settings, 'tag', null, tag);
+    sortNavigationFiles(filteredFiles, settings, app, sortSpec);
 
     return applyPinnedOrdering(filteredFiles, settings, 'tag');
 }
@@ -790,8 +786,8 @@ export function getFilesForProperty(
         return matchedFiles;
     }
 
-    const sortOption = getEffectiveSortOption(settings, ItemType.PROPERTY, null, null, propertyNodeId);
-    sortNavigationFiles(matchedFiles, settings, app, sortOption);
+    const sortSpec = getEffectiveListSort(settings, ItemType.PROPERTY, null, null, propertyNodeId);
+    sortNavigationFiles(matchedFiles, settings, app, sortSpec);
 
     return applyPinnedOrdering(matchedFiles, settings, 'property');
 }

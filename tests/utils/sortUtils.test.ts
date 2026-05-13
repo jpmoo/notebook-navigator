@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+    areListSortOverridesEqual,
     compareByAlphaSortOrder,
+    getEffectiveListSort,
     getEffectiveSortOption,
     getSortIcon,
+    parsePropertySortKeys,
+    replacePropertySortKey,
     resolveFolderChildSortOrder,
     sortFiles,
     shouldRefreshOnFileModifyForSort,
@@ -460,5 +464,78 @@ describe('getEffectiveSortOption', () => {
 
         const effective = getEffectiveSortOption(settings, ItemType.PROPERTY, null, null, PROPERTIES_ROOT_VIRTUAL_FOLDER_ID);
         expect(effective).toBe('filename-asc');
+    });
+});
+
+describe('property sort keys', () => {
+    it('parses comma-separated property sort keys', () => {
+        expect(parsePropertySortKeys('published, downloaded, Published, , clipped')).toEqual(['published', 'downloaded', 'clipped']);
+    });
+
+    it('replaces and removes property sort keys with the same list normalization', () => {
+        expect(replacePropertySortKey('published, STATUS, downloaded, State', 'status', 'State')).toBe('published, State, downloaded');
+        expect(replacePropertySortKey('published, STATUS, downloaded', 'status', null)).toBe('published, downloaded');
+    });
+
+    it('uses the selected override property key when sorting by property', () => {
+        const propertyNodeId = buildPropertyKeyNodeId('status');
+        const settings = structuredClone(DEFAULT_SETTINGS);
+        settings.propertySortKey = 'published, downloaded';
+        settings.propertySortOverrides = {
+            [propertyNodeId]: { option: 'property-desc', propertyKey: 'downloaded' }
+        };
+
+        const effective = getEffectiveListSort(settings, ItemType.PROPERTY, null, null, propertyNodeId);
+
+        expect(effective).toEqual({
+            option: 'property-desc',
+            propertyKey: 'downloaded',
+            propertySortSecondary: settings.propertySortSecondary
+        });
+    });
+
+    it('matches override property keys to configured keys case-insensitively', () => {
+        const propertyNodeId = buildPropertyKeyNodeId('status');
+        const settings = structuredClone(DEFAULT_SETTINGS);
+        settings.propertySortKey = 'published, downloaded';
+        settings.propertySortOverrides = {
+            [propertyNodeId]: { option: 'property-desc', propertyKey: 'Downloaded' }
+        };
+
+        const effective = getEffectiveListSort(settings, ItemType.PROPERTY, null, null, propertyNodeId);
+
+        expect(effective.propertyKey).toBe('downloaded');
+    });
+
+    it('falls back to the first configured key when the saved override key is no longer configured', () => {
+        const propertyNodeId = buildPropertyKeyNodeId('status');
+        const settings = structuredClone(DEFAULT_SETTINGS);
+        settings.propertySortKey = 'published';
+        settings.propertySortOverrides = {
+            [propertyNodeId]: { option: 'property-desc', propertyKey: 'downloaded' }
+        };
+
+        const effective = getEffectiveListSort(settings, ItemType.PROPERTY, null, null, propertyNodeId);
+
+        expect(effective.propertyKey).toBe('published');
+    });
+
+    it('uses the first configured property key for legacy property sort overrides', () => {
+        const propertyNodeId = buildPropertyKeyNodeId('status');
+        const settings = structuredClone(DEFAULT_SETTINGS);
+        settings.propertySortKey = 'published, downloaded';
+        settings.propertySortOverrides = {
+            [propertyNodeId]: 'property-asc'
+        };
+
+        const effective = getEffectiveListSort(settings, ItemType.PROPERTY, null, null, propertyNodeId);
+
+        expect(effective.propertyKey).toBe('published');
+    });
+
+    it('compares saved override property keys case-insensitively', () => {
+        expect(
+            areListSortOverridesEqual({ option: 'property-asc', propertyKey: 'Status' }, { option: 'property-asc', propertyKey: 'status' })
+        ).toBe(true);
     });
 });

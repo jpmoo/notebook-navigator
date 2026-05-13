@@ -147,6 +147,44 @@ export function isSortOption(value: unknown): value is SortOption {
     return typeof value === 'string' && SORT_OPTIONS.includes(value as SortOption);
 }
 
+export interface ListSortOverride {
+    option: SortOption;
+    propertyKey?: string;
+}
+
+export type ListSortOverrideValue = SortOption | ListSortOverride;
+
+function isPropertySortOptionValue(value: SortOption): boolean {
+    return value === 'property-asc' || value === 'property-desc';
+}
+
+export function normalizeListSortOverride(value: unknown): ListSortOverrideValue | undefined {
+    if (isSortOption(value)) {
+        return value;
+    }
+
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+        return undefined;
+    }
+
+    const record = value as Record<string, unknown>;
+    if (!isSortOption(record.option)) {
+        return undefined;
+    }
+
+    const option = record.option;
+    if (!isPropertySortOptionValue(option)) {
+        return option;
+    }
+
+    if (typeof record.propertyKey !== 'string') {
+        return option;
+    }
+
+    const propertyKey = record.propertyKey.trim();
+    return propertyKey.length > 0 ? { option, propertyKey } : option;
+}
+
 /** Available secondary sort options used when sorting by frontmatter property values. */
 export type PropertySortSecondaryOption = 'title' | 'filename' | 'created' | 'modified';
 
@@ -612,19 +650,19 @@ export interface NotebookNavigatorSettings {
     folderIcons: Record<string, string>;
     folderColors: Record<string, string>;
     folderBackgroundColors: Record<string, string>;
-    folderSortOverrides: Record<string, SortOption>;
+    folderSortOverrides: Record<string, ListSortOverrideValue>;
     folderTreeSortOverrides: Record<string, AlphaSortOrder>;
     folderAppearances: Record<string, FolderAppearance>;
     tagIcons: Record<string, string>;
     tagColors: Record<string, string>;
     tagBackgroundColors: Record<string, string>;
-    tagSortOverrides: Record<string, SortOption>;
+    tagSortOverrides: Record<string, ListSortOverrideValue>;
     tagTreeSortOverrides: Record<string, AlphaSortOrder>;
     tagAppearances: Record<string, TagAppearance>;
     propertyIcons: Record<string, string>;
     propertyColors: Record<string, string>;
     propertyBackgroundColors: Record<string, string>;
-    propertySortOverrides: Record<string, SortOption>;
+    propertySortOverrides: Record<string, ListSortOverrideValue>;
     propertyTreeSortOverrides: Record<string, AlphaSortOrder>;
     propertyAppearances: Record<string, FolderAppearance>;
     virtualFolderColors: Record<string, string>;

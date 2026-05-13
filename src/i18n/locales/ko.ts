@@ -909,15 +909,22 @@ export const STRINGS_KO = {
                     'property-asc': '속성 (가나다 상위)',
                     'property-desc': '속성 (역순 상위)'
                 },
-                propertyOverride: {
-                    asc: '속성 ‘{property}’ (가나다 상위)',
-                    desc: '속성 ‘{property}’ (역순 상위)'
+                directions: {
+                    asc: '오름차순',
+                    desc: '내림차순'
+                },
+                fields: {
+                    modified: '수정 날짜',
+                    created: '생성 날짜',
+                    title: '제목',
+                    filename: '파일 이름',
+                    property: '속성'
                 }
             },
             propertySortKey: {
-                name: '정렬 속성',
-                desc: '속성 정렬과 함께 사용됩니다. 이 frontmatter 속성이 있는 노트가 먼저 나열되고 속성 값으로 정렬됩니다. 배열은 하나의 값으로 결합됩니다.',
-                placeholder: 'order'
+                name: '정렬에 사용할 속성',
+                desc: '목록 정렬 메뉴에 표시되는 쉼표로 구분된 frontmatter 속성. 배열은 하나의 값으로 결합됩니다.',
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: '보조 정렬',

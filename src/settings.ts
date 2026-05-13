@@ -745,6 +745,8 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
 export type {
     NotebookNavigatorSettings,
     SortOption,
+    ListSortOverride,
+    ListSortOverrideValue,
     AlphaSortOrder,
     ItemScope,
     MultiSelectModifier,

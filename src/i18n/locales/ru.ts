@@ -907,15 +907,22 @@ export const STRINGS_RU = {
                     'property-asc': 'Свойство (А сверху)',
                     'property-desc': 'Свойство (Я сверху)'
                 },
-                propertyOverride: {
-                    asc: 'Свойство ‘{property}’ (А сверху)',
-                    desc: 'Свойство ‘{property}’ (Я сверху)'
+                directions: {
+                    asc: 'По возрастанию',
+                    desc: 'По убыванию'
+                },
+                fields: {
+                    modified: 'Дата изменения',
+                    created: 'Дата создания',
+                    title: 'Название',
+                    filename: 'Имя файла',
+                    property: 'Свойство'
                 }
             },
             propertySortKey: {
-                name: 'Свойство сортировки',
-                desc: 'Используется с сортировкой по свойству. Заметки с этим свойством frontmatter отображаются первыми и сортируются по значению свойства. Массивы объединяются в одно значение.',
-                placeholder: 'order'
+                name: 'Свойства для сортировки',
+                desc: 'Разделённые запятыми свойства frontmatter, отображаемые в меню сортировки списка. Массивы объединяются в одно значение.',
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: 'Вторичная сортировка',

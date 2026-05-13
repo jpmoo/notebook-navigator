@@ -20,7 +20,7 @@ import { useEffect, useRef } from 'react';
 import { TFile } from 'obsidian';
 import { debounce } from 'obsidian';
 import type { App, TFolder } from 'obsidian';
-import type { NotebookNavigatorSettings, SortOption } from '../../settings';
+import type { NotebookNavigatorSettings, PropertySortSecondaryOption, SortOption } from '../../settings';
 import { TIMEOUTS } from '../../types/obsidian-extended';
 import { OperationType, type CommandQueueService } from '../../services/CommandQueueService';
 import { shouldExcludeFileWithMatcher } from '../../utils/fileFilters';
@@ -49,6 +49,8 @@ interface UseListPaneRefreshArgs {
     settings: NotebookNavigatorSettings;
     showHiddenItems: boolean;
     sortOption: SortOption;
+    propertySortKey: string;
+    propertySortSecondary: PropertySortSecondaryOption;
 }
 
 function fileIsWithinSelectedFolder(file: TFile, includeDescendantNotes: boolean, selectedFolder: TFolder | null): boolean {
@@ -87,7 +89,9 @@ export function useListPaneRefresh({
     selectionType,
     settings,
     showHiddenItems,
-    sortOption
+    sortOption,
+    propertySortKey,
+    propertySortSecondary
 }: UseListPaneRefreshArgs): void {
     const onRefreshRef = useRef(onRefresh);
 
@@ -149,11 +153,11 @@ export function useListPaneRefresh({
             });
         }
 
-        const shouldRefreshOnFileModify = shouldRefreshOnFileModifyForSort(sortOption, settings.propertySortSecondary);
+        const shouldRefreshOnFileModify = shouldRefreshOnFileModifyForSort(sortOption, propertySortSecondary);
         const shouldRefreshOnMetadataChange = shouldRefreshOnMetadataChangeForSort({
             sortOption,
-            propertySortKey: settings.propertySortKey,
-            propertySortSecondary: settings.propertySortSecondary,
+            propertySortKey,
+            propertySortSecondary,
             useFrontmatterMetadata: settings.useFrontmatterMetadata,
             frontmatterNameField: settings.frontmatterNameField,
             frontmatterCreatedField: settings.frontmatterCreatedField,
@@ -296,8 +300,8 @@ export function useListPaneRefresh({
         settings.frontmatterCreatedField,
         settings.frontmatterModifiedField,
         settings.frontmatterNameField,
-        settings.propertySortKey,
-        settings.propertySortSecondary,
+        propertySortKey,
+        propertySortSecondary,
         settings.showFileBackgroundUnfinishedTask,
         settings.useFrontmatterMetadata,
         showHiddenItems,

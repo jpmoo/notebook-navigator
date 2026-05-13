@@ -908,15 +908,22 @@ export const STRINGS_AR = {
                     'property-asc': 'الخاصية (أ في الأعلى)',
                     'property-desc': 'الخاصية (ي في الأعلى)'
                 },
-                propertyOverride: {
-                    asc: 'الخاصية ‘{property}’ (أ في الأعلى)',
-                    desc: 'الخاصية ‘{property}’ (ي في الأعلى)'
+                directions: {
+                    asc: 'تصاعدي',
+                    desc: 'تنازلي'
+                },
+                fields: {
+                    modified: 'تاريخ التعديل',
+                    created: 'تاريخ الإنشاء',
+                    title: 'العنوان',
+                    filename: 'اسم الملف',
+                    property: 'الخاصية'
                 }
             },
             propertySortKey: {
-                name: 'خاصية الترتيب',
-                desc: 'تُستخدم مع ترتيب الخاصية. الملاحظات التي تحتوي على هذه الخاصية في الواجهة الأمامية تُعرض أولاً وتُرتب حسب قيمة الخاصية. يتم دمج المصفوفات في قيمة واحدة.',
-                placeholder: 'order'
+                name: 'الخصائص للترتيب حسبها',
+                desc: 'خصائص الواجهة الأمامية مفصولة بفواصل تُعرض في قائمة ترتيب القائمة. يتم دمج المصفوفات في قيمة واحدة.',
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: 'الترتيب الثانوي',

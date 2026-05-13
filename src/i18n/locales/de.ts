@@ -911,15 +911,22 @@ export const STRINGS_DE = {
                     'property-asc': 'Eigenschaft (A oben)',
                     'property-desc': 'Eigenschaft (Z oben)'
                 },
-                propertyOverride: {
-                    asc: 'Eigenschaft ‘{property}’ (A oben)',
-                    desc: 'Eigenschaft ‘{property}’ (Z oben)'
+                directions: {
+                    asc: 'Aufsteigend',
+                    desc: 'Absteigend'
+                },
+                fields: {
+                    modified: 'Bearbeitungsdatum',
+                    created: 'Erstellungsdatum',
+                    title: 'Titel',
+                    filename: 'Dateiname',
+                    property: 'Eigenschaft'
                 }
             },
             propertySortKey: {
-                name: 'Sortier-Eigenschaft',
-                desc: 'Wird mit der Eigenschafts-Sortierung verwendet. Notizen mit dieser Frontmatter-Eigenschaft werden zuerst aufgelistet und nach dem Eigenschaftswert sortiert. Arrays werden zu einem Wert zusammengefügt.',
-                placeholder: 'order'
+                name: 'Eigenschaften zum Sortieren',
+                desc: 'Kommagetrennte Frontmatter-Eigenschaften, die im Listensortiermenü angezeigt werden. Arrays werden zu einem Wert zusammengefügt.',
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: 'Sekundäre Sortierung',

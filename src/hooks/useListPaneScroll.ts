@@ -49,7 +49,7 @@ import { TFile, TFolder } from 'obsidian';
 import { useVirtualizer, Virtualizer } from '@tanstack/react-virtual';
 import { useServices } from '../context/ServicesContext';
 import { useFileCache } from '../context/StorageContext';
-import { ItemType, ListPaneItemType, OVERSCAN } from '../types';
+import { ListPaneItemType, OVERSCAN } from '../types';
 import { Align, ListScrollIntent, getListAlign, rankListPending } from '../types/scroll';
 import type { ListPaneItem } from '../types/virtualization';
 import type { NotebookNavigatorSettings } from '../settings';
@@ -76,6 +76,7 @@ import type { HiddenTagVisibility } from '../utils/tagPrefixMatcher';
 import { getDrawingFeatureImageSource, resolveDrawingFeatureImageFileForProvider } from '../utils/drawingFeatureImages';
 import { useThemeMode } from './useThemeMode';
 import type { ThemeMode } from '../utils/themeMode';
+import { getListSortOverrideForSelection, resolveListSort } from '../utils/sortUtils';
 
 /**
  * Parameters for the useListPaneScroll hook
@@ -209,7 +210,7 @@ interface ScrollPreservationSignatureParams {
     noteGrouping: NotebookNavigatorSettings['noteGrouping'];
     stickyGroupHeaders: NotebookNavigatorSettings['stickyGroupHeaders'];
     effectiveSort: SortOption;
-    propertySortKey: NotebookNavigatorSettings['propertySortKey'];
+    propertySortKey: string;
     propertySortSecondary: NotebookNavigatorSettings['propertySortSecondary'];
 }
 
@@ -1066,18 +1067,15 @@ export function useListPaneScroll({
      * Effect includes all dependencies but only scrolls when config actually changes.
      */
     // Calculate effective sort order based on current selection and custom overrides.
-    const selectedFolderPath = selectionState.selectionType === ItemType.FOLDER ? (selectedFolder?.path ?? null) : null;
-    const selectedSortOverride =
-        selectionState.selectionType === ItemType.TAG && selectedTag
-            ? settings.tagSortOverrides?.[selectedTag]
-            : selectionState.selectionType === ItemType.PROPERTY && selectedProperty
-              ? settings.propertySortOverrides?.[selectedProperty]
-              : selectedFolderPath
-                ? settings.folderSortOverrides?.[selectedFolderPath]
-                : undefined;
-    const effectiveSort = useMemo(() => {
-        return selectedSortOverride ?? settings.defaultFolderSort;
-    }, [settings.defaultFolderSort, selectedSortOverride]);
+    const selectedSortOverride = getListSortOverrideForSelection(
+        settings,
+        selectionState.selectionType,
+        selectedFolder,
+        selectedTag,
+        selectedProperty
+    );
+    const effectiveSortSpec = useMemo(() => resolveListSort(settings, selectedSortOverride), [settings, selectedSortOverride]);
+    const effectiveSort = effectiveSortSpec.option;
     const scrollPreservationSignature = useMemo(
         () =>
             getScrollPreservationSignature({
@@ -1087,8 +1085,8 @@ export function useListPaneScroll({
                 noteGrouping: settings.noteGrouping,
                 stickyGroupHeaders: settings.stickyGroupHeaders,
                 effectiveSort,
-                propertySortKey: settings.propertySortKey,
-                propertySortSecondary: settings.propertySortSecondary
+                propertySortKey: effectiveSortSpec.propertyKey,
+                propertySortSecondary: effectiveSortSpec.propertySortSecondary
             }),
         [
             includeDescendantNotes,
@@ -1097,8 +1095,8 @@ export function useListPaneScroll({
             settings.noteGrouping,
             settings.stickyGroupHeaders,
             effectiveSort,
-            settings.propertySortKey,
-            settings.propertySortSecondary
+            effectiveSortSpec.propertyKey,
+            effectiveSortSpec.propertySortSecondary
         ]
     );
     useEffect(() => {

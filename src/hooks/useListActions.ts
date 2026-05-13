@@ -24,15 +24,24 @@ import { useSettingsState, useSettingsUpdate } from '../context/SettingsContext'
 import { useUXPreferenceActions, useUXPreferences } from '../context/UXPreferencesContext';
 import { strings } from '../i18n';
 import { ConfirmModal } from '../modals/ConfirmModal';
-import type { SortOption } from '../settings';
+import type { ListSortOverrideValue, SortOption } from '../settings';
 import type { ListNoteGroupingOption } from '../settings/types';
 import { ItemType, PROPERTIES_ROOT_VIRTUAL_FOLDER_ID, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
 import {
-    getEffectiveSortOption,
+    areListSortOverridesEqual,
+    buildSortOption,
+    cloneListSortOverride,
+    createListSortOverride,
+    getEffectiveListSort,
+    getListSortOverrideForSelection,
+    getSortDirection,
+    getSortField,
     getSortIcon as getSortIconName,
     isDateSortOption,
-    isPropertySortOption,
-    SORT_OPTIONS
+    parsePropertySortKeys,
+    resolveListSort,
+    type SortDirection,
+    type SortField
 } from '../utils/sortUtils';
 import { showListPaneAppearanceMenu } from '../components/ListPaneAppearanceMenu';
 import { getDefaultListMode } from './useListPaneAppearance';
@@ -42,7 +51,7 @@ import { runAsyncAction } from '../utils/async';
 import { FILE_VISIBILITY } from '../utils/fileTypeUtils';
 import { parsePropertyNodeId } from '../utils/propertyTree';
 import { findVaultProfileById } from '../utils/vaultProfiles';
-import { ensureRecord, sanitizeRecord } from '../utils/recordUtils';
+import { casefold, ensureRecord, sanitizeRecord } from '../utils/recordUtils';
 import { resolveListGrouping } from '../utils/listGrouping';
 
 type SelectionSortTarget =
@@ -406,13 +415,13 @@ export function useListActions() {
     ]);
 
     const getCurrentSortOption = useCallback((): SortOption => {
-        return getEffectiveSortOption(
+        return getEffectiveListSort(
             settings,
             selectionState.selectionType,
             selectionState.selectedFolder,
             selectionState.selectedTag,
             selectionState.selectedProperty
-        );
+        ).option;
     }, [
         settings,
         selectionState.selectionType,
@@ -425,25 +434,20 @@ export function useListActions() {
         return getSortIconName(getCurrentSortOption());
     }, [getCurrentSortOption]);
 
-    const getSelectionSortOverride = useCallback((): SortOption | undefined => {
-        if (selectionState.selectionType === ItemType.FOLDER && selectionState.selectedFolder) {
-            return settings.folderSortOverrides?.[selectionState.selectedFolder.path];
-        }
-        if (selectionState.selectionType === ItemType.TAG && selectionState.selectedTag) {
-            return settings.tagSortOverrides?.[selectionState.selectedTag];
-        }
-        if (selectionState.selectionType === ItemType.PROPERTY && selectionState.selectedProperty) {
-            return settings.propertySortOverrides?.[selectionState.selectedProperty];
-        }
-        return undefined;
+    const getSelectionSortOverride = useCallback((): ListSortOverrideValue | undefined => {
+        return getListSortOverrideForSelection(
+            settings,
+            selectionState.selectionType,
+            selectionState.selectedFolder,
+            selectionState.selectedTag,
+            selectionState.selectedProperty
+        );
     }, [
         selectionState.selectionType,
         selectionState.selectedFolder,
         selectionState.selectedTag,
         selectionState.selectedProperty,
-        settings.folderSortOverrides,
-        settings.tagSortOverrides,
-        settings.propertySortOverrides
+        settings
     ]);
 
     const getSelectionAppearanceOverride = useCallback((): FolderAppearance | undefined => {
@@ -672,20 +676,20 @@ export function useListActions() {
     }, [getSelectionSortTarget, metadataService]);
 
     const setSelectionSortOverride = useCallback(
-        async (sortOption: SortOption) => {
+        async (sortOverride: ListSortOverrideValue) => {
             const target = getSelectionSortTarget();
             if (!target) {
                 return;
             }
             if (target.type === ItemType.FOLDER) {
-                await metadataService.setFolderSortOverride(target.key, sortOption);
+                await metadataService.setFolderSortOverride(target.key, sortOverride);
                 return;
             }
             if (target.type === ItemType.TAG) {
-                await metadataService.setTagSortOverride(target.key, sortOption);
+                await metadataService.setTagSortOverride(target.key, sortOverride);
                 return;
             }
-            await metadataService.setPropertySortOverride(target.key, sortOption);
+            await metadataService.setPropertySortOverride(target.key, sortOverride);
         },
         [getSelectionSortTarget, metadataService]
     );
@@ -775,7 +779,7 @@ export function useListActions() {
             if (hasCurrentSortOverride) {
                 if (!sortByKey.has(key)) {
                     missingRequired = true;
-                } else if (sortByKey.get(key) !== selectionSortOverride) {
+                } else if (!areListSortOverridesEqual(sortByKey.get(key), selectionSortOverride)) {
                     changed = true;
                 }
             } else if (sortByKey.has(key)) {
@@ -852,7 +856,7 @@ export function useListActions() {
                       : sanitizeRecord(ensureRecord(current.propertySortOverrides));
             selectionDescendantKeys.forEach(key => {
                 if (selectionSortOverride !== undefined) {
-                    sortOverrides[key] = selectionSortOverride;
+                    sortOverrides[key] = cloneListSortOverride(selectionSortOverride);
                     return;
                 }
                 delete sortOverrides[key];
@@ -1136,20 +1140,40 @@ export function useListActions() {
             }
 
             const menu = new Menu();
-            const currentSort = getCurrentSortOption();
-            const propertySortKey = settings.propertySortKey.trim();
-
-            const getSortOptionLabel = (option: SortOption): string => {
-                if (isPropertySortOption(option) && propertySortKey.length > 0) {
-                    const template =
-                        option === 'property-asc'
-                            ? strings.settings.items.sortNotesBy.propertyOverride.asc
-                            : strings.settings.items.sortNotesBy.propertyOverride.desc;
-                    return template.replace('{property}', propertySortKey);
-                }
-                return strings.settings.items.sortNotesBy.options[option];
+            const currentSortSpec = resolveListSort(settings, selectionSortOverride);
+            const currentSort = currentSortSpec.option;
+            const currentDirection = getSortDirection(currentSort);
+            const currentField = getSortField(currentSort);
+            const propertySortKeys = parsePropertySortKeys(settings.propertySortKey);
+            const sortFieldLabels: Record<SortField, string> = {
+                modified: strings.settings.items.sortNotesBy.fields.modified,
+                created: strings.settings.items.sortNotesBy.fields.created,
+                title: strings.settings.items.sortNotesBy.fields.title,
+                filename: strings.settings.items.sortNotesBy.fields.filename,
+                property: strings.settings.items.sortNotesBy.fields.property
             };
+            const sortDirectionLabels: Record<SortDirection, string> = {
+                asc: strings.settings.items.sortNotesBy.directions.asc,
+                desc: strings.settings.items.sortNotesBy.directions.desc
+            };
+            const getSortFieldLabel = (field: SortField, propertyKey?: string): string => {
+                if (field === 'property') {
+                    return propertyKey?.trim() || sortFieldLabels.property;
+                }
 
+                return sortFieldLabels[field];
+            };
+            const getSortOptionLabel = (option: SortOption, propertyKey?: string): string => {
+                return `${getSortFieldLabel(getSortField(option), propertyKey)}, ${sortDirectionLabels[getSortDirection(option)]}`;
+            };
+            const samePropertySortKey = (left: string, right: string) => casefold(left) === casefold(right);
+            const applySort = (field: SortField, direction: SortDirection, propertyKey?: string) => {
+                const option = buildSortOption(field, direction);
+                runAsyncAction(async () => {
+                    await setSelectionSortOverride(createListSortOverride(option, propertyKey));
+                    app.workspace.requestSaveLayout();
+                });
+            };
             const hasSelectionSortOverride = selectionSortOverride !== undefined;
 
             menu.addItem(item => {
@@ -1157,7 +1181,9 @@ export function useListActions() {
             });
 
             menu.addItem(item => {
-                item.setTitle(`${strings.paneHeader.defaultSort}: ${getSortOptionLabel(settings.defaultFolderSort)}`)
+                item.setTitle(
+                    `${strings.paneHeader.defaultSort}: ${getSortOptionLabel(settings.defaultFolderSort, resolveListSort(settings).propertyKey)}`
+                )
                     .setIcon(getSortIconName(settings.defaultFolderSort))
                     .setChecked(!hasSelectionSortOverride)
                     .onClick(() => {
@@ -1171,24 +1197,40 @@ export function useListActions() {
 
             menu.addSeparator();
 
-            let lastCategory = '';
-            SORT_OPTIONS.forEach(option => {
-                const category = option.split('-')[0];
-                if (lastCategory && lastCategory !== category) {
-                    menu.addSeparator();
-                }
-                lastCategory = category;
-
+            (['asc', 'desc'] as const).forEach(direction => {
                 menu.addItem(item => {
-                    item.setTitle(getSortOptionLabel(option))
+                    const option = buildSortOption(currentField, direction);
+                    item.setTitle(sortDirectionLabels[direction])
                         .setIcon(getSortIconName(option))
-                        .setChecked(hasSelectionSortOverride && currentSort === option)
+                        .setChecked(currentDirection === direction)
                         .onClick(() => {
-                            // Apply sort option
-                            runAsyncAction(async () => {
-                                await setSelectionSortOverride(option);
-                                app.workspace.requestSaveLayout();
-                            });
+                            applySort(currentField, direction, currentField === 'property' ? currentSortSpec.propertyKey : undefined);
+                        });
+                });
+            });
+
+            menu.addSeparator();
+
+            (['modified', 'created', 'title', 'filename'] as const).forEach(field => {
+                menu.addItem(item => {
+                    const option = buildSortOption(field, currentDirection);
+                    item.setTitle(getSortFieldLabel(field))
+                        .setIcon(getSortIconName(option))
+                        .setChecked(currentField === field)
+                        .onClick(() => {
+                            applySort(field, currentDirection);
+                        });
+                });
+            });
+
+            propertySortKeys.forEach(propertyKey => {
+                menu.addItem(item => {
+                    const option = buildSortOption('property', currentDirection);
+                    item.setTitle(getSortFieldLabel('property', propertyKey))
+                        .setIcon(getSortIconName(option))
+                        .setChecked(currentField === 'property' && samePropertySortKey(currentSortSpec.propertyKey, propertyKey))
+                        .onClick(() => {
+                            applySort('property', currentDirection, propertyKey);
                         });
                 });
             });
@@ -1262,7 +1304,6 @@ export function useListActions() {
             hasFolderSelection,
             hasSelectionGroupOverride,
             app,
-            getCurrentSortOption,
             getDescendantSortAndGroupChangeStats,
             groupingInfo.defaultGrouping,
             openDefaultListSettings,

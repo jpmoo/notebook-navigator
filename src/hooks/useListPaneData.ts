@@ -46,6 +46,7 @@ import type { ActiveProfileState } from '../context/SettingsContext';
 import type { SearchProvider } from '../types/search';
 import type { PropertySelectionNodeId } from '../utils/propertyTree';
 import { getFilesForNavigationSelection } from '../utils/selectionUtils';
+import { getListSortOverrideForSelection, resolveListSort } from '../utils/sortUtils';
 import { getPropertyFieldsFromPropertyKeys } from '../utils/vaultProfiles';
 import { buildHiddenFileState, filterListPaneFiles, useOmnisearchListResult, useSearchableNames } from './listPaneData/searchPipeline';
 import {
@@ -167,14 +168,7 @@ export function useListPaneData({
         [hiddenFileProperties]
     );
     const selectedFolderPath = selectionType === ItemType.FOLDER ? (selectedFolder?.path ?? null) : null;
-    const selectedSortOverride =
-        selectionType === ItemType.TAG && selectedTag
-            ? settings.tagSortOverrides?.[selectedTag]
-            : selectionType === ItemType.PROPERTY && selectedProperty
-              ? settings.propertySortOverrides?.[selectedProperty]
-              : selectedFolderPath
-                ? settings.folderSortOverrides?.[selectedFolderPath]
-                : undefined;
+    const selectedSortOverride = getListSortOverrideForSelection(settings, selectionType, selectedFolder, selectedTag, selectedProperty);
     const selectedFolderGroupSortOrder = settings.folderTreeSortOverrides?.[selectedFolderPath ?? '/'] ?? settings.folderSortOrder;
     const listConfig = useMemo<ListPaneConfig>(
         () => ({
@@ -197,10 +191,8 @@ export function useListPaneData({
         ]
     );
 
-    const sortOption = useMemo(
-        () => selectedSortOverride ?? settings.defaultFolderSort,
-        [settings.defaultFolderSort, selectedSortOverride]
-    );
+    const sortSpec = useMemo(() => resolveListSort(settings, selectedSortOverride), [settings, selectedSortOverride]);
+    const sortOption = sortSpec.option;
     const activePropertyFields = useMemo(() => getPropertyFieldsFromPropertyKeys(activeProfile.propertyKeys), [activeProfile.propertyKeys]);
 
     const baseFiles = useMemo(() => {
@@ -392,7 +384,9 @@ export function useListPaneData({
         selectionType,
         settings,
         showHiddenItems,
-        sortOption
+        sortOption,
+        propertySortKey: sortSpec.propertyKey,
+        propertySortSecondary: sortSpec.propertySortSecondary
     });
 
     return {

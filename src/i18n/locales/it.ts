@@ -906,15 +906,22 @@ export const STRINGS_IT = {
                     'property-asc': 'Proprietà (A in alto)',
                     'property-desc': 'Proprietà (Z in alto)'
                 },
-                propertyOverride: {
-                    asc: 'Proprietà ‘{property}’ (A in alto)',
-                    desc: 'Proprietà ‘{property}’ (Z in alto)'
+                directions: {
+                    asc: 'Crescente',
+                    desc: 'Decrescente'
+                },
+                fields: {
+                    modified: 'Data di modifica',
+                    created: 'Data di creazione',
+                    title: 'Titolo',
+                    filename: 'Nome file',
+                    property: 'Proprietà'
                 }
             },
             propertySortKey: {
-                name: 'Proprietà di ordinamento',
-                desc: "Utilizzato con l'ordinamento per proprietà. Le note con questa proprietà frontmatter vengono elencate per prime e ordinate per valore della proprietà. Gli array vengono uniti in un unico valore.",
-                placeholder: 'order'
+                name: 'Proprietà per ordinare',
+                desc: 'Proprietà frontmatter separate da virgole mostrate nel menu di ordinamento della lista. Gli array vengono uniti in un unico valore.',
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: 'Ordinamento secondario',

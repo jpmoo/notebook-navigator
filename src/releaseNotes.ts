@@ -84,6 +84,9 @@ const RELEASE_NOTES: ReleaseNote[] = [
         version: '2.6.7',
         date: '2026-05-13',
         showOnUpdate: false,
+        improved: [
+            '**Settings.** List > Organization > ==Properties to sort by== now takes a comma-separated list of frontmatter properties, and each one shows up as its own option in the list pane sort menu.'
+        ],
         fixed: [
             '**Commands.** When **Notebook Navigator: Delete files** was called and the navigation pane was last focused, it could delete the selected folder. It now only deletes selected files.',
             '**List pane.** Fixed extra spacing in feature image rows when dates are hidden and tags or properties are visible.'

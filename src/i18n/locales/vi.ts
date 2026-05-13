@@ -911,15 +911,22 @@ export const STRINGS_VI = {
                     'property-asc': 'Thuộc tính (A trên)',
                     'property-desc': 'Thuộc tính (Z trên)'
                 },
-                propertyOverride: {
-                    asc: 'Thuộc tính ‘{property}’ (A trên)',
-                    desc: 'Thuộc tính ‘{property}’ (Z trên)'
+                directions: {
+                    asc: 'Tăng dần',
+                    desc: 'Giảm dần'
+                },
+                fields: {
+                    modified: 'Ngày sửa',
+                    created: 'Ngày tạo',
+                    title: 'Tiêu đề',
+                    filename: 'Tên tệp',
+                    property: 'Thuộc tính'
                 }
             },
             propertySortKey: {
-                name: 'Thuộc tính sắp xếp',
-                desc: 'Dùng với sắp xếp theo thuộc tính. Ghi chú có thuộc tính frontmatter này được liệt kê trước và sắp xếp theo giá trị thuộc tính. Mảng được kết hợp thành một giá trị.',
-                placeholder: 'order'
+                name: 'Thuộc tính để sắp xếp',
+                desc: 'Các thuộc tính frontmatter được phân tách bằng dấu phẩy hiển thị trong menu sắp xếp danh sách. Mảng được kết hợp thành một giá trị.',
+                placeholder: 'published, downloaded'
             },
             propertySortSecondary: {
                 name: 'Sắp xếp phụ',
