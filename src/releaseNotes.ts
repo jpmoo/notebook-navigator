@@ -81,6 +81,12 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
+        version: '2.6.7',
+        date: '2026-05-13',
+        showOnUpdate: false,
+        fixed: ['**List pane.** Fixed extra spacing in feature image rows when dates are hidden and tags or properties are visible.']
+    },
+    {
         version: '2.6.6',
         date: '2026-05-12',
         showOnUpdate: false,

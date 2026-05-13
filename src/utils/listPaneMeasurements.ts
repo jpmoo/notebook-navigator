@@ -350,11 +350,11 @@ export function calculateNormalListFileRowHeightEstimate({
     const reservedPreviewSlotHeight = Math.max(previewSlotHeight, replacementPreviewSlotHeight);
     const reserveImageMetadataLine = hasImageTextArea && !layoutState.isPinnedImageRow;
     const reservedMetadataLineHeight = reserveImageMetadataLine ? heights.singleTextLineHeight : metadataLineHeight;
+    const reservedEmptyMetadataLineHeight = reserveImageMetadataLine && metadataLineHeight === 0 ? reservedMetadataLineHeight : 0;
     const richContentHeight = titleContentHeight + reservedPreviewSlotHeight + reservedMetadataLineHeight;
     const pillRowsHeight = heights.tagRowHeight * pillRowCount;
-    const pillRowsExtraHeight = layoutState.shouldReplaceEmptyPreviewWithPills
-        ? Math.max(0, pillRowsHeight - replacementPreviewSlotHeight)
-        : pillRowsHeight;
+    const pillRowsReservedHeight = replacementPreviewSlotHeight + reservedEmptyMetadataLineHeight;
+    const pillRowsExtraHeight = Math.max(0, pillRowsHeight - pillRowsReservedHeight);
 
     return heights.basePadding + applyFeatureImageFloor(richContentHeight + pillRowsExtraHeight);
 }
