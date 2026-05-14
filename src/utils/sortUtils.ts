@@ -50,9 +50,20 @@ export interface EffectiveListSort {
     propertySortSecondary: PropertySortSecondaryOption;
 }
 
+export type SortOverrideRecordKey = 'folderSortOverrides' | 'tagSortOverrides' | 'propertySortOverrides';
 type PropertySortKeyMapper = (key: string, normalizedKey: string) => string | null;
 
-function normalizePropertySortKeyList(value: string, mapper?: PropertySortKeyMapper): string[] {
+export const SORT_OVERRIDE_RECORD_KEYS: readonly SortOverrideRecordKey[] = [
+    'folderSortOverrides',
+    'tagSortOverrides',
+    'propertySortOverrides'
+];
+
+function normalizePropertySortKeyList(value: unknown, mapper?: PropertySortKeyMapper): string[] {
+    if (typeof value !== 'string') {
+        return [];
+    }
+
     const keys: string[] = [];
     const seen = new Set<string>();
 
@@ -80,7 +91,7 @@ function normalizePropertySortKeyList(value: string, mapper?: PropertySortKeyMap
     return keys;
 }
 
-export function parsePropertySortKeys(value: string): string[] {
+export function parsePropertySortKeys(value: unknown): string[] {
     return normalizePropertySortKeyList(value);
 }
 
@@ -125,6 +136,43 @@ export function createListSortOverride(option: SortOption, propertyKey?: string 
 
 export function cloneListSortOverride(sortOverride: ListSortOverrideValue): ListSortOverrideValue {
     return typeof sortOverride === 'string' ? sortOverride : { ...sortOverride };
+}
+
+export function pruneUnavailablePropertySortOverrides(settings: NotebookNavigatorSettings): boolean {
+    const availablePropertyKeys = new Set(parsePropertySortKeys(settings.propertySortKey).map(key => casefold(key)));
+    let changed = false;
+
+    SORT_OVERRIDE_RECORD_KEYS.forEach(recordKey => {
+        const record = settings[recordKey] as Record<string, ListSortOverrideValue> | undefined;
+        if (!record) {
+            return;
+        }
+
+        Object.keys(record).forEach(key => {
+            const normalizedOverride = normalizeListSortOverride((record as Record<string, unknown>)[key]);
+            if (!normalizedOverride) {
+                return;
+            }
+
+            if (typeof normalizedOverride === 'string') {
+                if (availablePropertyKeys.size === 0 && isPropertySortOption(normalizedOverride)) {
+                    delete record[key];
+                    changed = true;
+                }
+                return;
+            }
+
+            const normalizedPropertyKey = casefold(normalizedOverride.propertyKey ?? '');
+            if (!normalizedPropertyKey || availablePropertyKeys.has(normalizedPropertyKey)) {
+                return;
+            }
+
+            delete record[key];
+            changed = true;
+        });
+    });
+
+    return changed;
 }
 
 function getMatchingConfiguredPropertySortKey(configuredPropertyKeys: readonly string[], propertyKey: string): string {

@@ -29,7 +29,7 @@ import { runAsyncAction } from '../utils/async';
 import { removePropertyField, renamePropertyField } from '../utils/propertyUtils';
 import { isRecord } from '../utils/typeGuards';
 import { buildPropertyKeyNodeId } from '../utils/propertyTree';
-import { replacePropertySortKey } from '../utils/sortUtils';
+import { replacePropertySortKey, SORT_OVERRIDE_RECORD_KEYS } from '../utils/sortUtils';
 import { buildUsageSummaryFromPaths, renderAffectedFilesPreview, yieldToEventLoop } from './operations/OperationBatchUtils';
 import { PropertyFileMutations } from './propertyOperations/PropertyFileMutations';
 import type { PropertyKeyDeleteEventPayload, PropertyKeyRenameEventPayload } from './propertyOperations/types';
@@ -41,7 +41,6 @@ export type { PropertyKeyRenameEventPayload, PropertyKeyDeleteEventPayload } fro
 const MUTATION_BATCH_SIZE = LIMITS.operations.metadataMutationYieldBatchSize;
 type RenameConflictSnapshot = Map<string, Set<string>>;
 type PropertyMetadataRecord = Record<string, unknown>;
-type SortOverrideRecordKey = 'folderSortOverrides' | 'tagSortOverrides' | 'propertySortOverrides';
 interface PropertyMetadataAccessor {
     read: (settings: NotebookNavigatorSettings) => PropertyMetadataRecord | undefined;
     write: (settings: NotebookNavigatorSettings, next: PropertyMetadataRecord) => void;
@@ -86,8 +85,6 @@ const PROPERTY_KEY_METADATA_ACCESSORS: readonly PropertyMetadataAccessor[] = [
         }
     }
 ];
-const SORT_OVERRIDE_RECORD_KEYS: readonly SortOverrideRecordKey[] = ['folderSortOverrides', 'tagSortOverrides', 'propertySortOverrides'];
-
 function updatePropertySortKeySetting(
     settings: NotebookNavigatorSettings,
     oldKeyNormalized: string,

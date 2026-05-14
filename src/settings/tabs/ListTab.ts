@@ -26,6 +26,7 @@ import { runAsyncAction } from '../../utils/async';
 import { createSettingGroupFactory } from '../settingGroups';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
 import { createSubSettingsContainer } from '../subSettings';
+import { pruneUnavailablePropertySortOverrides } from '../../utils/sortUtils';
 
 type QuickActionSettingKey =
     | 'quickActionRevealInFolder'
@@ -212,15 +213,31 @@ export function renderListPaneTab(context: SettingsTabContext): void {
         setting
             .setName(strings.settings.items.propertySortKey.name)
             .setDesc(strings.settings.items.propertySortKey.desc)
-            .addText(text =>
-                text
-                    .setPlaceholder(strings.settings.items.propertySortKey.placeholder)
-                    .setValue(plugin.settings.propertySortKey)
-                    .onChange(async value => {
-                        plugin.settings.propertySortKey = value;
-                        await plugin.saveSettingsAndUpdate();
-                    })
-            );
+            .addText(text => {
+                const commitPropertySortKey = async (): Promise<void> => {
+                    const value = text.getValue();
+                    if (plugin.settings.propertySortKey === value) {
+                        return;
+                    }
+                    plugin.settings.propertySortKey = value;
+                    pruneUnavailablePropertySortOverrides(plugin.settings);
+                    await plugin.saveSettingsAndUpdate();
+                };
+
+                text.inputEl.addEventListener('blur', () => {
+                    runAsyncAction(commitPropertySortKey);
+                });
+                text.inputEl.addEventListener('keydown', event => {
+                    if (event.key !== 'Enter') {
+                        return;
+                    }
+                    event.preventDefault();
+                    runAsyncAction(commitPropertySortKey);
+                    text.inputEl.blur();
+                });
+
+                return text.setPlaceholder(strings.settings.items.propertySortKey.placeholder).setValue(plugin.settings.propertySortKey);
+            });
     });
 
     const propertySortSecondarySettingsEl = createSubSettingsContainer(propertySortKeySetting);

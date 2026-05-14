@@ -6,6 +6,7 @@ import {
     getEffectiveSortOption,
     getSortIcon,
     parsePropertySortKeys,
+    pruneUnavailablePropertySortOverrides,
     replacePropertySortKey,
     resolveFolderChildSortOrder,
     sortFiles,
@@ -15,7 +16,7 @@ import {
 import type { AlphaSortOrder } from '../../src/settings';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import { ItemType, PROPERTIES_ROOT_VIRTUAL_FOLDER_ID } from '../../src/types';
-import { buildPropertyKeyNodeId } from '../../src/utils/propertyTree';
+import { buildPropertyKeyNodeId, buildPropertyValueNodeId } from '../../src/utils/propertyTree';
 import { createTestTFile } from './createTestTFile';
 
 function createFolderSortSettings(folderSortOrder: AlphaSortOrder, overrides: Record<string, AlphaSortOrder> = {}) {
@@ -472,6 +473,10 @@ describe('property sort keys', () => {
         expect(parsePropertySortKeys('published, downloaded, Published, , clipped')).toEqual(['published', 'downloaded', 'clipped']);
     });
 
+    it('ignores invalid property sort key values', () => {
+        expect(parsePropertySortKeys(['published'])).toEqual([]);
+    });
+
     it('replaces and removes property sort keys with the same list normalization', () => {
         expect(replacePropertySortKey('published, STATUS, downloaded, State', 'status', 'State')).toBe('published, State, downloaded');
         expect(replacePropertySortKey('published, STATUS, downloaded', 'status', null)).toBe('published, downloaded');
@@ -537,5 +542,49 @@ describe('property sort keys', () => {
         expect(
             areListSortOverridesEqual({ option: 'property-asc', propertyKey: 'Status' }, { option: 'property-asc', propertyKey: 'status' })
         ).toBe(true);
+    });
+
+    it('removes sort overrides that target unavailable property sort keys', () => {
+        const statusNodeId = buildPropertyKeyNodeId('status');
+        const statusValueNodeId = buildPropertyValueNodeId('status', 'todo');
+        const settings = structuredClone(DEFAULT_SETTINGS);
+        settings.propertySortKey = 'status, downloaded';
+        settings.folderSortOverrides = {
+            Books: { option: 'property-asc', propertyKey: 'Published' },
+            Notes: { option: 'property-desc', propertyKey: 'Status' },
+            Archive: 'title-asc'
+        };
+        settings.tagSortOverrides = {
+            clips: { option: 'property-desc', propertyKey: 'downloaded' }
+        };
+        settings.propertySortOverrides = {
+            [statusNodeId]: { option: 'property-asc', propertyKey: 'published' },
+            [statusValueNodeId]: { option: 'property-desc', propertyKey: 'Status' }
+        };
+
+        const changed = pruneUnavailablePropertySortOverrides(settings);
+
+        expect(changed).toBe(true);
+        expect(settings.folderSortOverrides.Books).toBeUndefined();
+        expect(settings.folderSortOverrides.Notes).toEqual({ option: 'property-desc', propertyKey: 'Status' });
+        expect(settings.folderSortOverrides.Archive).toBe('title-asc');
+        expect(settings.tagSortOverrides.clips).toEqual({ option: 'property-desc', propertyKey: 'downloaded' });
+        expect(settings.propertySortOverrides[statusNodeId]).toBeUndefined();
+        expect(settings.propertySortOverrides[statusValueNodeId]).toEqual({ option: 'property-desc', propertyKey: 'Status' });
+    });
+
+    it('removes legacy property sort overrides only when no property sort keys remain', () => {
+        const settings = structuredClone(DEFAULT_SETTINGS);
+        settings.propertySortKey = '';
+        settings.folderSortOverrides = {
+            Books: 'property-asc',
+            Archive: 'title-asc'
+        };
+
+        const changed = pruneUnavailablePropertySortOverrides(settings);
+
+        expect(changed).toBe(true);
+        expect(settings.folderSortOverrides.Books).toBeUndefined();
+        expect(settings.folderSortOverrides.Archive).toBe('title-asc');
     });
 });

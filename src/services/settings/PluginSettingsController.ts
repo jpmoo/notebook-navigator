@@ -87,6 +87,7 @@ import { normalizePropertyKeyNodeId, normalizePropertyNodeId } from '../../utils
 import { normalizeNavigationSeparatorKey } from '../../utils/navigationSeparators';
 import { normalizeUXIconMapRecord } from '../../utils/uxIcons';
 import { sanitizeKeyboardShortcuts } from '../../utils/keyboardShortcuts';
+import { pruneUnavailablePropertySortOverrides } from '../../utils/sortUtils';
 import { isRecord } from '../../utils/typeGuards';
 import { normalizeOptionalVaultFilePath } from '../../utils/pathUtils';
 import {
@@ -242,6 +243,11 @@ export class PluginSettingsController {
             (Object.prototype.hasOwnProperty.call(storedInterfaceIcons, 'list-pinned') ||
                 Object.prototype.hasOwnProperty.call(storedInterfaceIcons, 'pinned-section'))
         );
+        const hadInvalidPropertySortKeyInStoredData = Boolean(
+            storedData &&
+            Object.prototype.hasOwnProperty.call(storedData, 'propertySortKey') &&
+            typeof storedData['propertySortKey'] !== 'string'
+        );
         const storedSettings = storedData as Partial<NotebookNavigatorSettings> | null;
         const isFirstLaunch = storedData === null;
         this.shouldPersistDesktopScale = Boolean(storedData && 'desktopScale' in storedData);
@@ -265,6 +271,10 @@ export class PluginSettingsController {
         delete settingsRecord['lastAnnouncedRelease'];
         delete settingsRecord['optimizeNoteHeight'];
 
+        if (typeof this.currentSettings.propertySortKey !== 'string') {
+            this.currentSettings.propertySortKey = DEFAULT_SETTINGS.propertySortKey;
+        }
+
         this.currentSettings.keyboardShortcuts = sanitizeKeyboardShortcuts(this.currentSettings.keyboardShortcuts);
         this.normalizeSyncModes({ storedData, isFirstLaunch });
         const syncModeRegistry = this.getSyncModeRegistry();
@@ -277,6 +287,7 @@ export class PluginSettingsController {
         });
 
         this.sanitizeSettingsRecords();
+        const prunedUnavailablePropertySortOverrides = pruneUnavailablePropertySortOverrides(this.currentSettings);
 
         const migratedMomentFormats = migrateMomentDateFormats({
             settings: this.currentSettings,
@@ -421,6 +432,8 @@ export class PluginSettingsController {
             hadShowPinnedIconInStoredData ||
             hadShowPinnedGroupHeaderInStoredData ||
             hadPinnedSectionIconInStoredData ||
+            hadInvalidPropertySortKeyInStoredData ||
+            prunedUnavailablePropertySortOverrides ||
             uiScaleMigrated ||
             migratedMomentFormats ||
             migratedShortcutNegationSyntax;
