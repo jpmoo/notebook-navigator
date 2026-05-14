@@ -5,6 +5,7 @@ import {
     compareByAlphaSortOrder,
     getEffectiveListSort,
     getEffectiveSortOption,
+    getListSortToolbarIconId,
     getMatchingPropertySortKey,
     getPropertySortValueFromRecord,
     getSortIcon,
@@ -229,6 +230,48 @@ describe('sort icons', () => {
         expect(getSortIcon('title-desc')).toBe('lucide-sort-desc');
         expect(getSortIcon('property-asc')).toBe('lucide-sort-asc');
         expect(getSortIcon('property-desc')).toBe('lucide-sort-desc');
+    });
+
+    it('uses direction icons for default and direction-only overrides', () => {
+        const settings = structuredClone(DEFAULT_SETTINGS);
+        settings.defaultFolderSort = 'modified-desc';
+
+        expect(getListSortToolbarIconId(settings)).toBe('list-sort-descending');
+        expect(getListSortToolbarIconId(settings, 'modified-asc')).toBe('list-sort-ascending');
+    });
+
+    it('uses field icons when an override matches the default sort', () => {
+        const settings = structuredClone(DEFAULT_SETTINGS);
+        settings.defaultFolderSort = 'modified-desc';
+
+        expect(getListSortToolbarIconId(settings, 'modified-desc')).toBe('list-sort-modified');
+
+        settings.defaultFolderSort = 'created-asc';
+        expect(getListSortToolbarIconId(settings, 'created-asc')).toBe('list-sort-created');
+    });
+
+    it('uses field icons when the override changes the sort field', () => {
+        const settings = structuredClone(DEFAULT_SETTINGS);
+        settings.defaultFolderSort = 'modified-desc';
+
+        expect(getListSortToolbarIconId(settings, 'created-desc')).toBe('list-sort-created');
+        expect(getListSortToolbarIconId(settings, 'title-asc')).toBe('list-sort-title');
+        expect(getListSortToolbarIconId(settings, 'filename-asc')).toBe('list-sort-filename');
+        expect(getListSortToolbarIconId(settings, 'property-asc')).toBe('list-sort-property');
+
+        settings.defaultFolderSort = 'created-desc';
+        expect(getListSortToolbarIconId(settings, 'modified-desc')).toBe('list-sort-modified');
+    });
+
+    it('uses property icons when the property sort key changes', () => {
+        const settings = structuredClone(DEFAULT_SETTINGS);
+        settings.defaultFolderSort = 'property-asc';
+        settings.propertySortKey = 'status, priority';
+
+        expect(getListSortToolbarIconId(settings)).toBe('list-sort-ascending');
+        expect(getListSortToolbarIconId(settings, { option: 'property-desc', propertyKey: 'status' })).toBe('list-sort-descending');
+        expect(getListSortToolbarIconId(settings, { option: 'property-asc', propertyKey: 'status' })).toBe('list-sort-property');
+        expect(getListSortToolbarIconId(settings, { option: 'property-desc', propertyKey: 'priority' })).toBe('list-sort-property');
     });
 });
 

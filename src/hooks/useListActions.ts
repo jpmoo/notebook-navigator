@@ -34,7 +34,8 @@ import {
     buildSortOption,
     cloneListSortOverride,
     createListSortOverride,
-    getEffectiveListSort,
+    getListSortFieldIconId,
+    getListSortToolbarIconId,
     getListSortOverrideForSelection,
     getMatchingPropertySortKey,
     getSortDirection,
@@ -53,7 +54,8 @@ import { getFilesForFolder } from '../utils/fileFinder';
 import { runAsyncAction } from '../utils/async';
 import { FILE_VISIBILITY } from '../utils/fileTypeUtils';
 import { getManualSortBaselineSettings, normalizeManualSortPropertyKey, orderManualSortFiles } from '../utils/manualSort';
-import { parsePropertyNodeId } from '../utils/propertyTree';
+import { resolveIconForMenu, resolveUXIcon, resolveUXIconForMenu } from '../utils/uxIcons';
+import { buildPropertyKeyNodeId, parsePropertyNodeId } from '../utils/propertyTree';
 import { getFilesForNavigationSelection } from '../utils/selectionUtils';
 import { findVaultProfileById } from '../utils/vaultProfiles';
 import { casefold, ensureRecord, sanitizeRecord } from '../utils/recordUtils';
@@ -431,26 +433,6 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
         app
     ]);
 
-    const getCurrentSortOption = useCallback((): SortOption => {
-        return getEffectiveListSort(
-            settings,
-            selectionState.selectionType,
-            selectionState.selectedFolder,
-            selectionState.selectedTag,
-            selectionState.selectedProperty
-        ).option;
-    }, [
-        settings,
-        selectionState.selectionType,
-        selectionState.selectedFolder,
-        selectionState.selectedTag,
-        selectionState.selectedProperty
-    ]);
-
-    const getSortIcon = useCallback(() => {
-        return getSortIconName(getCurrentSortOption());
-    }, [getCurrentSortOption]);
-
     const getSelectionSortOverride = useCallback((): ListSortOverrideValue | undefined => {
         return getListSortOverrideForSelection(
             settings,
@@ -557,6 +539,28 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
     const defaultMode = getDefaultListMode(settings);
     const selectionSortTarget = useMemo(() => getSelectionSortTarget(), [getSelectionSortTarget]);
     const selectionSortOverride = useMemo(() => getSelectionSortOverride(), [getSelectionSortOverride]);
+    const resolvePropertySortIcon = useCallback(
+        (propertyKey: string): string | null => {
+            const normalizedPropertyKey = casefold(propertyKey);
+            if (!normalizedPropertyKey) {
+                return null;
+            }
+
+            return metadataService.getPropertyIcon(buildPropertyKeyNodeId(normalizedPropertyKey)) ?? null;
+        },
+        [metadataService]
+    );
+    const getSortIcon = useCallback(() => {
+        const sortIconId = getListSortToolbarIconId(settings, selectionSortOverride);
+        if (sortIconId === 'list-sort-property') {
+            const propertyIcon = resolvePropertySortIcon(resolveListSort(settings, selectionSortOverride).propertyKey);
+            if (propertyIcon) {
+                return propertyIcon;
+            }
+        }
+
+        return resolveUXIcon(settings.interfaceIcons, sortIconId);
+    }, [resolvePropertySortIcon, selectionSortOverride, settings]);
     const selectionAppearanceOverride = useMemo(() => getSelectionAppearanceOverride(), [getSelectionAppearanceOverride]);
     const selectionAppearanceFields = useMemo(
         () => normalizeAppearanceOverride(selectionAppearanceOverride, defaultMode),
@@ -1294,6 +1298,16 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
 
                 return sortFieldLabels[field];
             };
+            const getSortFieldMenuIcon = (field: SortField, propertyKey?: string): string => {
+                if (field === 'property') {
+                    const propertyMenuIcon = resolveIconForMenu(resolvePropertySortIcon(propertyKey ?? ''));
+                    if (propertyMenuIcon) {
+                        return propertyMenuIcon;
+                    }
+                }
+
+                return resolveUXIconForMenu(settings.interfaceIcons, getListSortFieldIconId(field));
+            };
             const getSortOptionLabel = (option: SortOption, propertyKey?: string): string => {
                 return `${getSortFieldLabel(getSortField(option), propertyKey)}, ${sortDirectionLabels[getSortDirection(option)]}`;
             };
@@ -1373,9 +1387,8 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
 
             (['modified', 'created', 'title', 'filename'] as const).forEach(field => {
                 menu.addItem(item => {
-                    const option = buildSortOption(field, currentDirection);
                     item.setTitle(getSortFieldLabel(field))
-                        .setIcon(getSortIconName(option))
+                        .setIcon(getSortFieldMenuIcon(field))
                         .setChecked(currentField === field)
                         .onClick(() => {
                             applySort(field, currentDirection);
@@ -1385,9 +1398,8 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
 
             propertySortKeys.forEach(propertyKey => {
                 menu.addItem(item => {
-                    const option = buildSortOption('property', currentDirection);
                     item.setTitle(getSortFieldLabel('property', propertyKey))
-                        .setIcon(getSortIconName(option))
+                        .setIcon(getSortFieldMenuIcon('property', propertyKey))
                         .setChecked(currentField === 'property' && samePropertySortKey(currentSortSpec.propertyKey, propertyKey))
                         .onClick(() => {
                             applySort('property', currentDirection, propertyKey);
@@ -1469,6 +1481,7 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
             openDefaultListSettings,
             promptApplySortAndGroupToDescendants,
             removeSelectionSortOverride,
+            resolvePropertySortIcon,
             selectionDescendantLabel,
             selectionGroupOverride,
             selectionSortOverride,
@@ -1570,7 +1583,6 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
         handleAppearanceMenu,
         handleSortMenu,
         handleToggleDescendants,
-        getCurrentSortOption,
         getSortIcon,
         hasAppearanceOrSortSelection,
         hasCustomSortOrGroup,

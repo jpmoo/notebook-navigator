@@ -80,7 +80,7 @@ export function ListPaneHeader({
         handleSortMenu,
         handleToggleDescendants,
         descendantsTooltip,
-        getCurrentSortOption,
+        getSortIcon,
         hasAppearanceOrSortSelection,
         hasCustomSortOrGroup,
         hasCustomAppearance
@@ -111,9 +111,8 @@ export function ListPaneHeader({
     }, []);
 
     const sortIconId = useMemo(() => {
-        const sortOption = getCurrentSortOption();
-        return resolveUXIcon(settings.interfaceIcons, sortOption.endsWith('-desc') ? 'list-sort-descending' : 'list-sort-ascending');
-    }, [getCurrentSortOption, settings.interfaceIcons]);
+        return getSortIcon();
+    }, [getSortIcon]);
 
     // Folder note interactions only apply when a folder is the active selection.
     const selectedFolder = selectionState.selectionType === ItemType.FOLDER ? selectionState.selectedFolder : null;

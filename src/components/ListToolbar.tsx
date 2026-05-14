@@ -48,7 +48,7 @@ export function ListToolbar({ isSearchActive, onSearchToggle, onManualSortStart,
         handleSortMenu,
         handleToggleDescendants,
         descendantsTooltip,
-        getCurrentSortOption,
+        getSortIcon,
         hasAppearanceOrSortSelection,
         hasCustomSortOrGroup,
         hasCustomAppearance
@@ -105,12 +105,7 @@ export function ListToolbar({ isSearchActive, onSearchToggle, onManualSortStart,
                 disabled={!hasAppearanceOrSortSelection}
                 tabIndex={-1}
             >
-                <ServiceIcon
-                    iconId={resolveUXIcon(
-                        settings.interfaceIcons,
-                        getCurrentSortOption().endsWith('-desc') ? 'list-sort-descending' : 'list-sort-ascending'
-                    )}
-                />
+                <ServiceIcon iconId={getSortIcon()} />
             </button>
         ) : null,
         showAppearanceButton ? (

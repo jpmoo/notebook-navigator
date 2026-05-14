@@ -1387,7 +1387,7 @@ button.nn-icon-button {
     color: var(--nn-theme-header-button-icon-color);
 }
 
-.nn-desktop .nn-pane-header .nn-icon-button svg {
+.nn-desktop .nn-pane-header .nn-icon-button svg:not(.nn-vault-icon-svg) {
     stroke: currentColor;
 }
 
@@ -1428,7 +1428,7 @@ button.nn-icon-button.nn-icon-button-active {
 }
 
 /* Active button icon color */
-button.nn-icon-button.nn-icon-button-active svg {
+button.nn-icon-button.nn-icon-button-active svg:not(.nn-vault-icon-svg) {
     stroke: var(--nn-theme-header-button-active-icon-color);
 }
 
@@ -1440,7 +1440,7 @@ button.nn-icon-button.nn-icon-button-active svg {
 }
 
 /* Disabled icon svg stroke color */
-.nn-icon-button:disabled svg {
+.nn-icon-button:disabled svg:not(.nn-vault-icon-svg) {
     stroke: currentColor;
 }
 
@@ -1451,7 +1451,7 @@ button.nn-icon-button.nn-icon-button-active svg {
 }
 
 /* Disabled icon color - maintains muted appearance */
-.nn-desktop .nn-icon-button:disabled:hover svg {
+.nn-desktop .nn-icon-button:disabled:hover svg:not(.nn-vault-icon-svg) {
     stroke: currentColor;
 }
 
@@ -1467,6 +1467,9 @@ button.nn-icon-button.nn-icon-button-active svg {
 .nn-icon-button svg {
     width: 16px;
     height: 16px;
+}
+
+.nn-icon-button svg:not(.nn-vault-icon-svg) {
     stroke: currentColor;
     stroke-width: 2;
     fill: none;
@@ -6770,7 +6773,7 @@ button.nn-toolbar-visibility-toggle.nn-mobile-toolbar-button.nn-mobile-toolbar-b
     color: var(--nn-theme-mobile-toolbar-button-active-icon-color);
 }
 
-button.nn-toolbar-visibility-toggle.nn-mobile-toolbar-button.nn-mobile-toolbar-button-active svg {
+button.nn-toolbar-visibility-toggle.nn-mobile-toolbar-button.nn-mobile-toolbar-button-active svg:not(.nn-vault-icon-svg) {
     stroke: var(--nn-theme-mobile-toolbar-button-active-icon-color);
     stroke-width: 2;
 }
@@ -6784,10 +6787,15 @@ button.nn-toolbar-visibility-toggle.nn-mobile-toolbar-button.nn-mobile-toolbar-b
     color: var(--nn-theme-foreground);
 }
 
-.nn-toolbar-visibility-icon svg {
+.nn-toolbar-visibility-icon svg:not(.nn-vault-icon-svg) {
     width: 18px;
     height: 18px;
     stroke-width: 1.5;
+}
+
+.nn-toolbar-visibility-icon svg.nn-vault-icon-svg {
+    width: 18px;
+    height: 18px;
 }
 
 /* Mobile-specific toolbar visibility button styles */
@@ -7655,6 +7663,9 @@ button.nn-mobile-toolbar-button {
 .nn-mobile-toolbar-button svg {
     width: 24px;
     height: 24px;
+}
+
+.nn-mobile-toolbar-button svg:not(.nn-vault-icon-svg) {
     stroke-width: 1.5;
     stroke: var(--nn-theme-mobile-toolbar-button-icon-color);
 }
@@ -7670,7 +7681,7 @@ button.nn-mobile-toolbar-button {
     background-color: var(--nn-theme-mobile-toolbar-button-active-bg);
 }
 
-.notebook-navigator-mobile button.nn-mobile-toolbar-button.nn-mobile-toolbar-button-active svg {
+.notebook-navigator-mobile button.nn-mobile-toolbar-button.nn-mobile-toolbar-button-active svg:not(.nn-vault-icon-svg) {
     stroke: var(--nn-theme-mobile-toolbar-button-active-icon-color);
     stroke-width: 2;
 }
@@ -7842,7 +7853,7 @@ button.nn-mobile-toolbar-button {
     border-radius: 999px;
 }
 
-.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-button svg {
+.notebook-navigator-ios.notebook-navigator-ios-floating-toolbars .nn-mobile-toolbar-button svg:not(.nn-vault-icon-svg) {
     stroke-width: 2;
 }
 

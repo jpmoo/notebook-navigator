@@ -29,6 +29,7 @@ import {
 import { NavigationItemType, ItemType, type ItemType as ItemTypeValue } from '../types';
 import { casefold, getMatchingRecordValue } from './recordUtils';
 import { isRecord } from './typeGuards';
+import type { UXIconId } from './uxIcons';
 
 export function isDateSortOption(sortOption: SortOption): boolean {
     return sortOption.startsWith('modified') || sortOption.startsWith('created');
@@ -59,6 +60,14 @@ export const SORT_OVERRIDE_RECORD_KEYS: readonly SortOverrideRecordKey[] = [
     'tagSortOverrides',
     'propertySortOverrides'
 ];
+
+const SORT_FIELD_TOOLBAR_ICON_IDS: Record<SortField, UXIconId> = {
+    modified: 'list-sort-modified',
+    created: 'list-sort-created',
+    title: 'list-sort-title',
+    filename: 'list-sort-filename',
+    property: 'list-sort-property'
+};
 
 function normalizePropertySortKeyList(value: unknown, mapper?: PropertySortKeyMapper): string[] {
     if (typeof value !== 'string') {
@@ -471,6 +480,42 @@ export function getEffectiveListSort(
         settings,
         getListSortOverrideForSelection(settings, selectionType, selectedFolder, selectedTag, selectedProperty)
     );
+}
+
+export function getListSortFieldIconId(field: SortField): UXIconId {
+    return SORT_FIELD_TOOLBAR_ICON_IDS[field];
+}
+
+function getSortDirectionToolbarIconId(sortOption: SortOption): UXIconId {
+    return sortOption.endsWith('-desc') ? 'list-sort-descending' : 'list-sort-ascending';
+}
+
+function haveSameSortField(left: EffectiveListSort, right: EffectiveListSort): boolean {
+    const leftField = getSortField(left.option);
+    const rightField = getSortField(right.option);
+    if (leftField !== rightField) {
+        return false;
+    }
+
+    if (leftField !== 'property') {
+        return true;
+    }
+
+    return casefold(left.propertyKey) === casefold(right.propertyKey);
+}
+
+export function getListSortToolbarIconId(settings: NotebookNavigatorSettings, sortOverride?: ListSortOverrideValue): UXIconId {
+    const currentSort = resolveListSort(settings, sortOverride);
+    if (sortOverride === undefined) {
+        return getSortDirectionToolbarIconId(currentSort.option);
+    }
+
+    const defaultSort = resolveListSort(settings);
+    if (haveSameSortField(currentSort, defaultSort) && getSortDirection(currentSort.option) !== getSortDirection(defaultSort.option)) {
+        return getSortDirectionToolbarIconId(currentSort.option);
+    }
+
+    return getListSortFieldIconId(getSortField(currentSort.option));
 }
 
 /**
