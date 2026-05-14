@@ -86,7 +86,8 @@ const RELEASE_NOTES: ReleaseNote[] = [
         showOnUpdate: false,
         info: 'This update finally brings manual sort to the list pane. If you are a writer used to working with Ulysses or Scrivener, this should make your daily life much easier.',
         new: [
-            '**List pane.** Manual sorting mode in list pane. Finally. Enable by using the sort button and pick "Manual sort...". Then pick a property to sort by, then just drag around files to sort in any way you want.'
+            '**List pane.** Manual sorting mode in list pane. Finally. Enable by using the sort button and pick "Manual sort...". Then pick a property to sort by, then just drag around files to sort in any way you want.',
+            '**Recent files.** You can now drag items from recent files into shortcuts, folders, tags and properties.'
         ],
         improved: [
             '**Settings.** List > Organization > ==Properties to sort by== now takes a comma-separated list of frontmatter properties, and each one shows up as its own option in the list pane sort menu.'

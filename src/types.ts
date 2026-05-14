@@ -462,6 +462,7 @@ export interface DragDropAttributes {
     'data-drag-type'?: ItemType;
     'data-drag-path'?: string;
     'data-drag-handle'?: 'true';
+    'data-drag-allow-multi-file'?: 'false';
 
     // Drop zone attributes
     'data-drop-zone'?: typeof ItemType.FOLDER;
