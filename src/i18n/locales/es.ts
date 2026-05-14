@@ -52,7 +52,7 @@ export const STRINGS_ES = {
         filesSection: 'Archivos', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (oculto)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Orden manual: {property}',
-        manualSortHint: 'Arrastra para reordenar. Se asignarán valores numéricos a los archivos en la propiedad "{property}".',
+        manualSortHint: 'Arrastra para reordenar. Los rangos numéricos se guardan en la propiedad "{property}".',
         manualSortNonMarkdownHint: 'Los archivos no Markdown se muestran al final y no se pueden reordenar.',
         unsortedSection: 'Sin ordenar',
         manualSortDone: 'Hecho',
@@ -401,8 +401,12 @@ export const STRINGS_ES = {
         manualSortConfirm: {
             propertySortTitle: '¿Usar orden por propiedad?',
             propertySortMessage: (property: string, count: number) =>
-                `Esto reemplazará el contenido de "${property}" en ${count} ${count === 1 ? 'nota' : 'notas'} de la vista actual con valores numéricos de orden.`,
-            propertySortConfirmButton: 'Usar orden por propiedad'
+                `Esto cambia la vista actual al orden por propiedad usando "${property}". Los valores existentes en ${count} ${count === 1 ? 'nota' : 'notas'} no se modifican.`,
+            propertySortConfirmButton: 'Usar orden por propiedad',
+            compactTitle: '¿Compactar rangos?',
+            compactMessage: (count: number) =>
+                `Esta reordenación necesita más espacio de rangos. ${count} ${count === 1 ? 'nota recibirá' : 'notas recibirán'} nuevos rangos numéricos.`,
+            compactConfirmButton: 'Compactar rangos'
         },
         navRainbowSection: {
             title: (section: string) => `Colores arcoíris: ${section}`

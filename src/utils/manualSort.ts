@@ -20,8 +20,9 @@ import type { App, TFile } from 'obsidian';
 import type { NotebookNavigatorSettings } from '../settings';
 import { getErrorMessage } from './errorUtils';
 import { findMatchingRecordKey } from './recordUtils';
-import { getPropertySortValueFromRecord } from './sortUtils';
 import { isRecord } from './typeGuards';
+
+export const MANUAL_SORT_RANK_STEP = 1000;
 
 export interface ManualSortFileLike {
     path: string;
@@ -55,6 +56,12 @@ export type ManualSortMoveDirection = 'up' | 'down';
 export interface ManualSortMoveResult<T extends ManualSortFileLike> {
     files: T[];
     scrollPath: string;
+}
+
+export interface ManualSortRankPlan<T extends ManualSortFileLike> {
+    files: T[];
+    assignments: ManualSortOrderAssignment[];
+    requiresCompaction: boolean;
 }
 
 export function normalizeManualSortPropertyKey(value: string): string {
@@ -232,20 +239,30 @@ export function moveManualSortSelectionByDirection<T extends ManualSortFileLike>
 export function buildManualSortOrderAssignments<T extends ManualSortFileLike>(files: readonly T[]): ManualSortOrderAssignment[] {
     return partitionManualSortFiles(files).markdown.map((file, index) => ({
         path: file.path,
-        value: index + 1
+        value: (index + 1) * MANUAL_SORT_RANK_STEP
     }));
 }
 
-export function isManualSortValueEqual(value: unknown, order: number): boolean {
+export function parseManualSortRank(value: unknown): number | null {
     if (typeof value === 'number') {
-        return Number.isFinite(value) && value === order;
+        return Number.isSafeInteger(value) && value > 0 ? value : null;
     }
 
-    if (typeof value === 'string') {
-        return value.trim() === order.toString();
+    if (typeof value !== 'string') {
+        return null;
     }
 
-    return false;
+    const trimmed = value.trim();
+    if (!/^\d+$/.test(trimmed)) {
+        return null;
+    }
+
+    const parsed = Number(trimmed);
+    return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+export function isManualSortValueEqual(value: unknown, order: number): boolean {
+    return parseManualSortRank(value) === order;
 }
 
 export function getManualSortPropertyValue(app: App, file: TFile, propertyKey: string): string | null {
@@ -253,7 +270,8 @@ export function getManualSortPropertyValue(app: App, file: TFile, propertyKey: s
         return null;
     }
 
-    return getPropertySortValueFromRecord(app.metadataCache?.getFileCache(file)?.frontmatter, propertyKey);
+    const rank = getCachedManualSortRank(app, file, propertyKey);
+    return rank === null ? null : rank.toString();
 }
 
 export function hasCachedManualSortProperty(app: App, file: TFile, propertyKey: string): boolean {
@@ -263,6 +281,20 @@ export function hasCachedManualSortProperty(app: App, file: TFile, propertyKey: 
     }
 
     return findMatchingRecordKey(frontmatter, propertyKey) !== null;
+}
+
+export function getCachedManualSortRank(app: App, file: TFile, propertyKey: string): number | null {
+    const frontmatter = app.metadataCache?.getFileCache(file)?.frontmatter;
+    if (!isRecord(frontmatter)) {
+        return null;
+    }
+
+    const targetKey = findMatchingRecordKey(frontmatter, propertyKey);
+    if (!targetKey) {
+        return null;
+    }
+
+    return parseManualSortRank(frontmatter[targetKey]);
 }
 
 function hasCachedManualSortValue(app: App, file: TFile, propertyKey: string, order: number): boolean {
@@ -275,12 +307,286 @@ function hasCachedManualSortValue(app: App, file: TFile, propertyKey: string, or
     return isManualSortValueEqual(frontmatter[targetKey], order);
 }
 
-export function hasDenseManualSortOrder(app: App, files: readonly TFile[], propertyKey: string): boolean {
-    return partitionManualSortFiles(files).markdown.every((file, index) => hasCachedManualSortValue(app, file, propertyKey, index + 1));
+function getRankFromMap(rankByPath: ReadonlyMap<string, number>, path: string): number | null {
+    return parseManualSortRank(rankByPath.get(path));
 }
 
-export async function writeManualSortOrder(app: App, files: readonly TFile[], propertyKey: string): Promise<ManualSortWriteResult> {
-    const assignments = buildManualSortOrderAssignments(files);
+function getPreviousRankedIndex<T extends ManualSortFileLike>(
+    files: readonly T[],
+    startIndex: number,
+    rankByPath: ReadonlyMap<string, number>
+): number {
+    for (let index = startIndex - 1; index >= 0; index--) {
+        if (getRankFromMap(rankByPath, files[index].path) !== null) {
+            return index;
+        }
+    }
+    return -1;
+}
+
+function getNextRankedIndex<T extends ManualSortFileLike>(
+    files: readonly T[],
+    endIndex: number,
+    rankByPath: ReadonlyMap<string, number>
+): number {
+    for (let index = endIndex + 1; index < files.length; index++) {
+        if (getRankFromMap(rankByPath, files[index].path) !== null) {
+            return index;
+        }
+    }
+    return -1;
+}
+
+function buildGapAssignments<T extends ManualSortFileLike>(
+    files: readonly T[],
+    lowerRank: number | null,
+    upperRank: number | null
+): ManualSortOrderAssignment[] | null {
+    const count = files.length;
+    if (count === 0) {
+        return [];
+    }
+
+    if (upperRank === null) {
+        const startRank = lowerRank ?? 0;
+        const lastRank = startRank + count * MANUAL_SORT_RANK_STEP;
+        if (!Number.isSafeInteger(lastRank)) {
+            return null;
+        }
+
+        return files.map((file, index) => ({
+            path: file.path,
+            value: startRank + (index + 1) * MANUAL_SORT_RANK_STEP
+        }));
+    }
+
+    const startRank = lowerRank ?? 0;
+    const gap = upperRank - startRank;
+    if (gap <= count) {
+        return null;
+    }
+
+    const step = Math.floor(gap / (count + 1));
+    if (step < 1) {
+        return null;
+    }
+
+    return files.map((file, index) => ({
+        path: file.path,
+        value: startRank + (index + 1) * step
+    }));
+}
+
+function canCompactWindow<T extends ManualSortFileLike>(
+    files: readonly T[],
+    startIndex: number,
+    endIndex: number,
+    rankByPath: ReadonlyMap<string, number>
+): boolean {
+    const count = endIndex - startIndex + 1;
+    const lowerIndex = getPreviousRankedIndex(files, startIndex, rankByPath);
+    const upperIndex = getNextRankedIndex(files, endIndex, rankByPath);
+    const lowerRank = lowerIndex === -1 ? 0 : getRankFromMap(rankByPath, files[lowerIndex].path);
+    const upperRank = upperIndex === -1 ? null : getRankFromMap(rankByPath, files[upperIndex].path);
+    const startRank = lowerRank ?? 0;
+    const lastRank = startRank + count * MANUAL_SORT_RANK_STEP;
+
+    if (!Number.isSafeInteger(lastRank)) {
+        return false;
+    }
+
+    return upperRank === null || upperRank > lastRank;
+}
+
+function findCompactionWindow<T extends ManualSortFileLike>(
+    files: readonly T[],
+    groupStartIndex: number,
+    groupEndIndex: number,
+    rankByPath: ReadonlyMap<string, number>
+): { startIndex: number; endIndex: number } {
+    let startIndex = groupStartIndex;
+    let endIndex = groupEndIndex;
+
+    while (!canCompactWindow(files, startIndex, endIndex, rankByPath)) {
+        const previousRankedIndex = getPreviousRankedIndex(files, startIndex, rankByPath);
+        const nextRankedIndex = getNextRankedIndex(files, endIndex, rankByPath);
+
+        if (previousRankedIndex === -1 && nextRankedIndex === -1) {
+            return { startIndex: 0, endIndex: files.length - 1 };
+        }
+
+        if (previousRankedIndex === -1) {
+            endIndex = nextRankedIndex;
+            continue;
+        }
+
+        if (nextRankedIndex === -1) {
+            startIndex = previousRankedIndex;
+            continue;
+        }
+
+        if (startIndex - previousRankedIndex <= nextRankedIndex - endIndex) {
+            startIndex = previousRankedIndex;
+        } else {
+            endIndex = nextRankedIndex;
+        }
+    }
+
+    return { startIndex, endIndex };
+}
+
+function buildCompactionAssignments<T extends ManualSortFileLike>(
+    files: readonly T[],
+    startIndex: number,
+    endIndex: number,
+    rankByPath: ReadonlyMap<string, number>
+): ManualSortOrderAssignment[] {
+    const lowerIndex = getPreviousRankedIndex(files, startIndex, rankByPath);
+    const lowerRank = lowerIndex === -1 ? 0 : getRankFromMap(rankByPath, files[lowerIndex].path);
+    const startRank = lowerRank ?? 0;
+
+    return files.slice(startIndex, endIndex + 1).map((file, index) => ({
+        path: file.path,
+        value: startRank + (index + 1) * MANUAL_SORT_RANK_STEP
+    }));
+}
+
+function addAssignments(
+    assignmentsByPath: Map<string, ManualSortOrderAssignment>,
+    rankByPath: Map<string, number>,
+    assignedPaths: Set<string>,
+    assignments: readonly ManualSortOrderAssignment[]
+): void {
+    assignments.forEach(assignment => {
+        assignmentsByPath.set(assignment.path, assignment);
+        rankByPath.set(assignment.path, assignment.value);
+        assignedPaths.add(assignment.path);
+    });
+}
+
+export function buildManualSortRankPlan<T extends ManualSortFileLike>(
+    nextFiles: readonly T[],
+    movedPaths: ReadonlySet<string>,
+    rankByPath: ReadonlyMap<string, number>
+): ManualSortRankPlan<T> {
+    const targetMarkdownFiles = partitionManualSortFiles(nextFiles).markdown;
+    const targetPathSet = new Set(targetMarkdownFiles.map(file => file.path));
+    const movedPathSet = new Set(Array.from(movedPaths).filter(path => targetPathSet.has(path)));
+    const plannedRankByPath = new Map<string, number>();
+    const originalRankByPath = new Map<string, number>();
+    rankByPath.forEach((rank, path) => {
+        const parsedRank = parseManualSortRank(rank);
+        if (parsedRank !== null && targetPathSet.has(path)) {
+            originalRankByPath.set(path, parsedRank);
+            if (!movedPathSet.has(path)) {
+                plannedRankByPath.set(path, parsedRank);
+            }
+        }
+    });
+
+    if (movedPathSet.size === 0) {
+        return { files: [...nextFiles], assignments: [], requiresCompaction: false };
+    }
+
+    const requiredPaths = new Set<string>(movedPathSet);
+    let rankedPrefixEndIndex = -1;
+    targetMarkdownFiles.forEach((file, index) => {
+        if (movedPathSet.has(file.path) || getRankFromMap(plannedRankByPath, file.path) !== null) {
+            rankedPrefixEndIndex = index;
+        }
+    });
+
+    for (let index = 0; index <= rankedPrefixEndIndex; index++) {
+        const path = targetMarkdownFiles[index]?.path;
+        if (path && getRankFromMap(plannedRankByPath, path) === null) {
+            requiredPaths.add(path);
+        }
+    }
+
+    let previousRank = 0;
+    targetMarkdownFiles.forEach(file => {
+        const rank = getRankFromMap(plannedRankByPath, file.path);
+        if (rank === null) {
+            return;
+        }
+        if (rank <= previousRank) {
+            requiredPaths.add(file.path);
+        }
+        previousRank = rank;
+    });
+
+    const assignmentsByPath = new Map<string, ManualSortOrderAssignment>();
+    const assignedPaths = new Set<string>();
+    let requiresCompaction = false;
+
+    for (let index = 0; index < targetMarkdownFiles.length; index++) {
+        const path = targetMarkdownFiles[index].path;
+        if (!requiredPaths.has(path) || assignedPaths.has(path)) {
+            continue;
+        }
+
+        const groupStartIndex = index;
+        let groupEndIndex = index;
+        while (
+            groupEndIndex + 1 < targetMarkdownFiles.length &&
+            requiredPaths.has(targetMarkdownFiles[groupEndIndex + 1].path) &&
+            !assignedPaths.has(targetMarkdownFiles[groupEndIndex + 1].path)
+        ) {
+            groupEndIndex += 1;
+        }
+
+        const lowerIndex = getPreviousRankedIndex(targetMarkdownFiles, groupStartIndex, plannedRankByPath);
+        const upperIndex = getNextRankedIndex(targetMarkdownFiles, groupEndIndex, plannedRankByPath);
+        const lowerRank = lowerIndex === -1 ? null : getRankFromMap(plannedRankByPath, targetMarkdownFiles[lowerIndex].path);
+        const upperRank = upperIndex === -1 ? null : getRankFromMap(plannedRankByPath, targetMarkdownFiles[upperIndex].path);
+        const groupAssignments = buildGapAssignments(targetMarkdownFiles.slice(groupStartIndex, groupEndIndex + 1), lowerRank, upperRank);
+
+        if (groupAssignments) {
+            addAssignments(assignmentsByPath, plannedRankByPath, assignedPaths, groupAssignments);
+            index = groupEndIndex;
+            continue;
+        }
+
+        requiresCompaction = true;
+        const compactionWindow = findCompactionWindow(targetMarkdownFiles, groupStartIndex, groupEndIndex, plannedRankByPath);
+        const compactionAssignments = buildCompactionAssignments(
+            targetMarkdownFiles,
+            compactionWindow.startIndex,
+            compactionWindow.endIndex,
+            plannedRankByPath
+        );
+        addAssignments(assignmentsByPath, plannedRankByPath, assignedPaths, compactionAssignments);
+        index = compactionWindow.endIndex;
+    }
+
+    return {
+        files: [...nextFiles],
+        assignments: Array.from(assignmentsByPath.values()).filter(
+            assignment => originalRankByPath.get(assignment.path) !== assignment.value
+        ),
+        requiresCompaction
+    };
+}
+
+export function areManualSortAssignmentsCached(
+    app: App,
+    files: readonly TFile[],
+    propertyKey: string,
+    assignments: readonly ManualSortOrderAssignment[]
+): boolean {
+    const fileByPath = new Map(files.map(file => [file.path, file]));
+    return assignments.every(assignment => {
+        const file = fileByPath.get(assignment.path);
+        return Boolean(file && file.extension === 'md' && hasCachedManualSortValue(app, file, propertyKey, assignment.value));
+    });
+}
+
+export async function writeManualSortAssignments(
+    app: App,
+    files: readonly TFile[],
+    propertyKey: string,
+    assignments: readonly ManualSortOrderAssignment[]
+): Promise<ManualSortWriteResult> {
     const fileByPath = new Map(files.map(file => [file.path, file]));
     let updated = 0;
     let skipped = 0;
@@ -325,4 +631,8 @@ export async function writeManualSortOrder(app: App, files: readonly TFile[], pr
     }
 
     return { updated, skipped, failed: failures.length, failures };
+}
+
+export async function writeManualSortOrder(app: App, files: readonly TFile[], propertyKey: string): Promise<ManualSortWriteResult> {
+    return writeManualSortAssignments(app, files, propertyKey, buildManualSortOrderAssignments(files));
 }

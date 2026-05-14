@@ -17,7 +17,7 @@
  */
 
 import React, { useEffect, useMemo } from 'react';
-import { Platform, type TFile } from 'obsidian';
+import { Platform } from 'obsidian';
 import { useSelectionState, useSelectionDispatch } from '../context/SelectionContext';
 import { useCommandQueue, useServices } from '../context/ServicesContext';
 import { useSettingsState } from '../context/SettingsContext';
@@ -40,7 +40,7 @@ interface ListPaneHeaderProps {
     onHeaderClick?: () => void;
     isSearchActive?: boolean;
     onSearchToggle?: () => void;
-    onManualSortStart?: (propertyKey: string, initialFiles: TFile[]) => void;
+    onManualSortStart?: (propertyKey: string) => void;
     actionsDisabled?: boolean;
     desktopTitle: string;
     breadcrumbSegments: BreadcrumbSegment[];

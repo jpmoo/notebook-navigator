@@ -52,7 +52,7 @@ export const STRINGS_EN = {
         filesSection: 'Files', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (hidden)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Manual sort: {property}',
-        manualSortHint: 'Drag to reorder. Files will be assigned numeric values in the property "{property}".',
+        manualSortHint: 'Drag to reorder. Numeric ranks are saved in the property "{property}".',
         manualSortNonMarkdownHint: 'Non-markdown files are shown at the bottom and cannot be reordered.',
         unsortedSection: 'Unsorted',
         manualSortDone: 'Done',
@@ -400,8 +400,12 @@ export const STRINGS_EN = {
         manualSortConfirm: {
             propertySortTitle: 'Use property sort?',
             propertySortMessage: (property: string, count: number) =>
-                `This will replace the contents of "${property}" in ${count} ${count === 1 ? 'note' : 'notes'} in the current view with numeric sort values.`,
-            propertySortConfirmButton: 'Use property sort'
+                `This switches the current view to property sort using "${property}". Existing values in ${count} ${count === 1 ? 'note' : 'notes'} are not changed.`,
+            propertySortConfirmButton: 'Use property sort',
+            compactTitle: 'Compact ranks?',
+            compactMessage: (count: number) =>
+                `This reorder needs more rank space. ${count} ${count === 1 ? 'note' : 'notes'} will receive new numeric ranks.`,
+            compactConfirmButton: 'Compact ranks'
         },
         navRainbowSection: {
             title: (section: string) => `Rainbow colors: ${section}`

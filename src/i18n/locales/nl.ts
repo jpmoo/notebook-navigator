@@ -52,7 +52,7 @@ export const STRINGS_NL = {
         filesSection: 'Bestanden',
         hiddenItemAriaLabel: '{name} (verborgen)',
         manualSortTitle: 'Handmatig sorteren: {property}',
-        manualSortHint: 'Sleep om opnieuw te ordenen. Bestanden krijgen numerieke waarden toegewezen in de eigenschap "{property}".',
+        manualSortHint: 'Sleep om opnieuw te ordenen. Numerieke rangen worden opgeslagen in de eigenschap "{property}".',
         manualSortNonMarkdownHint: 'Niet-Markdown-bestanden worden onderaan getoond en kunnen niet opnieuw worden geordend.',
         unsortedSection: 'Niet gesorteerd',
         manualSortDone: 'Klaar',
@@ -402,8 +402,12 @@ export const STRINGS_NL = {
         manualSortConfirm: {
             propertySortTitle: 'Sorteren op eigenschap gebruiken?',
             propertySortMessage: (property: string, count: number) =>
-                `Dit vervangt de inhoud van "${property}" in ${count} ${count === 1 ? 'notitie' : 'notities'} in de huidige weergave door numerieke sorteerwaarden.`,
-            propertySortConfirmButton: 'Sorteren op eigenschap gebruiken'
+                `Dit schakelt de huidige weergave over naar sorteren op eigenschap met "${property}". Bestaande waarden in ${count} ${count === 1 ? 'notitie' : 'notities'} worden niet gewijzigd.`,
+            propertySortConfirmButton: 'Sorteren op eigenschap gebruiken',
+            compactTitle: 'Rangen comprimeren?',
+            compactMessage: (count: number) =>
+                `Deze herordening heeft meer rangruimte nodig. ${count} ${count === 1 ? 'notitie krijgt' : 'notities krijgen'} nieuwe numerieke rangen.`,
+            compactConfirmButton: 'Rangen comprimeren'
         },
         navRainbowSection: {
             title: (section: string) => `Regenboogkleuren: ${section}`

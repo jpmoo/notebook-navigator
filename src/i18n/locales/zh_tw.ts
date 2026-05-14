@@ -52,7 +52,7 @@ export const STRINGS_ZH_TW = {
         filesSection: '檔案',
         hiddenItemAriaLabel: '{name} (已隱藏)',
         manualSortTitle: '手動排序: {property}',
-        manualSortHint: '拖曳以重新排序。檔案將在屬性「{property}」中被指派數值。',
+        manualSortHint: '拖曳以重新排序。數字排名將儲存在屬性「{property}」中。',
         manualSortNonMarkdownHint: '非 Markdown 檔案顯示於底部，無法重新排序。',
         unsortedSection: '未排序',
         manualSortDone: '完成',
@@ -400,8 +400,11 @@ export const STRINGS_ZH_TW = {
         manualSortConfirm: {
             propertySortTitle: '使用屬性排序？',
             propertySortMessage: (property: string, count: number) =>
-                `此操作會將目前檢視中 ${count} 則筆記的「${property}」內容替換為數字排序值。`,
-            propertySortConfirmButton: '使用屬性排序'
+                `這會將目前檢視切換為使用「${property}」進行屬性排序。${count} 則筆記中的現有值不會被變更。`,
+            propertySortConfirmButton: '使用屬性排序',
+            compactTitle: '壓縮排名？',
+            compactMessage: (count: number) => `此次重新排序需要更多排名空間。${count} 則筆記將獲得新的數字排名。`,
+            compactConfirmButton: '壓縮排名'
         },
         navRainbowSection: {
             title: (section: string) => `彩虹顏色: ${section}`

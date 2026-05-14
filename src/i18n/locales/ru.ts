@@ -52,7 +52,7 @@ export const STRINGS_RU = {
         filesSection: 'Файлы', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (скрыто)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Ручная сортировка: {property}',
-        manualSortHint: 'Перетаскивайте для изменения порядка. Файлам будут присвоены числовые значения в свойстве "{property}".',
+        manualSortHint: 'Перетащите для изменения порядка. Числовые ранги сохраняются в свойстве «{property}».',
         manualSortNonMarkdownHint: 'Файлы, отличные от Markdown, показаны внизу и их порядок изменить нельзя.',
         unsortedSection: 'Без сортировки',
         manualSortDone: 'Готово',
@@ -401,8 +401,12 @@ export const STRINGS_RU = {
         manualSortConfirm: {
             propertySortTitle: 'Использовать сортировку по свойству?',
             propertySortMessage: (property: string, count: number) =>
-                `Это заменит содержимое "${property}" в ${count} ${count === 1 ? 'заметке' : 'заметках'} текущего вида числовыми значениями сортировки.`,
-            propertySortConfirmButton: 'Использовать сортировку по свойству'
+                `Переключает текущий вид на сортировку по свойству «${property}». Существующие значения в ${count} ${count === 1 ? 'заметке' : 'заметках'} не изменяются.`,
+            propertySortConfirmButton: 'Использовать сортировку по свойству',
+            compactTitle: 'Сжать ранги?',
+            compactMessage: (count: number) =>
+                `Эта перестановка требует больше места для рангов. ${count} ${count === 1 ? 'заметка получит' : 'заметок получат'} новые числовые ранги.`,
+            compactConfirmButton: 'Сжать ранги'
         },
         navRainbowSection: {
             title: (section: string) => `Цвета радуги: ${section}`

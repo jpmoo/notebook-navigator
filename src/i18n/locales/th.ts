@@ -52,7 +52,7 @@ export const STRINGS_TH = {
         filesSection: 'ไฟล์',
         hiddenItemAriaLabel: '{name} (ซ่อนอยู่)',
         manualSortTitle: 'จัดเรียงด้วยตนเอง: {property}',
-        manualSortHint: 'ลากเพื่อจัดเรียงใหม่ ไฟล์จะได้รับค่าตัวเลขในคุณสมบัติ "{property}"',
+        manualSortHint: 'ลากเพื่อจัดเรียงใหม่ ลำดับตัวเลขจะถูกบันทึกในคุณสมบัติ "{property}"',
         manualSortNonMarkdownHint: 'ไฟล์ที่ไม่ใช่ Markdown จะแสดงด้านล่างและไม่สามารถจัดเรียงใหม่ได้',
         unsortedSection: 'ยังไม่จัดเรียง',
         manualSortDone: 'เสร็จ',
@@ -400,8 +400,11 @@ export const STRINGS_TH = {
         manualSortConfirm: {
             propertySortTitle: 'ใช้การจัดเรียงตามคุณสมบัติหรือไม่?',
             propertySortMessage: (property: string, count: number) =>
-                `การดำเนินการนี้จะแทนที่เนื้อหาของ "${property}" ใน ${count} โน้ตในมุมมองปัจจุบันด้วยค่าการจัดเรียงเชิงตัวเลข`,
-            propertySortConfirmButton: 'ใช้การจัดเรียงตามคุณสมบัติ'
+                `จะสลับมุมมองปัจจุบันเป็นการจัดเรียงตามคุณสมบัติโดยใช้ "${property}" ค่าที่มีอยู่ใน ${count} โน้ตจะไม่ถูกเปลี่ยนแปลง`,
+            propertySortConfirmButton: 'ใช้การจัดเรียงตามคุณสมบัติ',
+            compactTitle: 'บีบอัดลำดับหรือไม่?',
+            compactMessage: (count: number) => `การจัดเรียงนี้ต้องการพื้นที่ลำดับเพิ่มเติม ${count} โน้ตจะได้รับลำดับตัวเลขใหม่`,
+            compactConfirmButton: 'บีบอัดลำดับ'
         },
         navRainbowSection: {
             title: (section: string) => `สีรุ้ง: ${section}`

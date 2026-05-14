@@ -52,7 +52,7 @@ export const STRINGS_UK = {
         filesSection: 'Файли', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (приховано)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Ручне сортування: {property}',
-        manualSortHint: 'Перетягуйте для зміни порядку. Файлам будуть присвоєні числові значення у властивості "{property}".',
+        manualSortHint: 'Перетягуйте для зміни порядку. Числові ранги зберігаються у властивості «{property}».',
         manualSortNonMarkdownHint: 'Файли, відмінні від Markdown, показуються внизу, і їхній порядок не можна змінити.',
         unsortedSection: 'Без сортування',
         manualSortDone: 'Готово',
@@ -401,8 +401,12 @@ export const STRINGS_UK = {
         manualSortConfirm: {
             propertySortTitle: 'Використати сортування за властивістю?',
             propertySortMessage: (property: string, count: number) =>
-                `Це замінить вміст "${property}" у ${count} ${count === 1 ? 'нотатці' : 'нотатках'} поточного виду числовими значеннями сортування.`,
-            propertySortConfirmButton: 'Використати сортування за властивістю'
+                `Перемикає поточний вигляд на сортування за властивістю «${property}». Наявні значення в ${count} ${count === 1 ? 'нотатці' : 'нотатках'} не змінюються.`,
+            propertySortConfirmButton: 'Використати сортування за властивістю',
+            compactTitle: 'Стиснути ранги?',
+            compactMessage: (count: number) =>
+                `Це перевпорядкування потребує більше місця для рангів. ${count} ${count === 1 ? 'нотатка отримає' : 'нотаток отримають'} нові числові ранги.`,
+            compactConfirmButton: 'Стиснути ранги'
         },
         navRainbowSection: {
             title: (section: string) => `Кольори веселки: ${section}`

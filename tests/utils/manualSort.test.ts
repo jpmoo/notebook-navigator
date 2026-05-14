@@ -20,14 +20,19 @@ import { describe, expect, it, vi } from 'vitest';
 import type { App, TFile } from 'obsidian';
 import {
     applyManualSortMarkdownOrder,
+    areManualSortAssignmentsCached,
     buildManualSortOrderAssignments,
-    hasDenseManualSortOrder,
+    buildManualSortRankPlan,
+    getCachedManualSortRank,
     isManualSortValueEqual,
     isValidManualSortPropertyKey,
+    MANUAL_SORT_RANK_STEP,
     moveManualSortMarkdownFiles,
     moveManualSortSelectionByDirection,
     orderManualSortFiles,
     partitionManualSortFiles,
+    parseManualSortRank,
+    writeManualSortAssignments,
     writeManualSortOrder
 } from '../../src/utils/manualSort';
 import { createTestTFile } from './createTestTFile';
@@ -55,8 +60,8 @@ describe('manual sort helpers', () => {
         ];
 
         expect(buildManualSortOrderAssignments(files)).toEqual([
-            { path: 'notes/one.md', value: 1 },
-            { path: 'notes/two.md', value: 2 }
+            { path: 'notes/one.md', value: MANUAL_SORT_RANK_STEP },
+            { path: 'notes/two.md', value: MANUAL_SORT_RANK_STEP * 2 }
         ]);
     });
 
@@ -236,26 +241,155 @@ describe('manual sort helpers', () => {
         expect(isValidManualSortPropertyKey('a,b')).toBe(false);
     });
 
-    it('treats numeric strings and numbers as the same manual order value', () => {
+    it('treats integer strings and numbers as the same manual rank value', () => {
         expect(isManualSortValueEqual(3, 3)).toBe(true);
         expect(isManualSortValueEqual(' 3 ', 3)).toBe(true);
+        expect(parseManualSortRank('3.5')).toBe(null);
+        expect(parseManualSortRank(0)).toBe(null);
         expect(isManualSortValueEqual('three', 3)).toBe(false);
     });
 
-    it('detects whether cached manual sort values match dense order assignments', () => {
-        const first = createFile('notes/first.md', { Index: '1' });
-        const second = createFile('notes/second.md', { index: 2 });
-        const third = createFile('notes/third.md', { index: 10 });
+    it('reads cached manual sort ranks while ignoring nonnumeric property values', () => {
+        const first = createFile('notes/first.md', { Index: '1000' });
+        const second = createFile('notes/second.md', { index: 2000 });
+        const third = createFile('notes/third.md', { index: 'custom' });
         const nonMarkdown = createFile('assets/file.pdf', {});
         const app = createApp([first, second, third, nonMarkdown], vi.fn());
 
-        expect(hasDenseManualSortOrder(app, [first, nonMarkdown, second], 'index')).toBe(true);
-        expect(hasDenseManualSortOrder(app, [first, third, nonMarkdown], 'index')).toBe(false);
+        expect(getCachedManualSortRank(app, first, 'index')).toBe(1000);
+        expect(getCachedManualSortRank(app, second, 'index')).toBe(2000);
+        expect(getCachedManualSortRank(app, third, 'index')).toBe(null);
+        expect(getCachedManualSortRank(app, nonMarkdown, 'index')).toBe(null);
+    });
+
+    it('plans a sparse moved-file rank between ranked neighbors', () => {
+        const first = { path: 'notes/first.md', extension: 'md' };
+        const moved = { path: 'notes/moved.md', extension: 'md' };
+        const third = { path: 'notes/third.md', extension: 'md' };
+
+        const plan = buildManualSortRankPlan(
+            [first, moved, third],
+            new Set([moved.path]),
+            new Map([
+                [first.path, 1000],
+                [third.path, 2000]
+            ])
+        );
+
+        expect(plan.requiresCompaction).toBe(false);
+        expect(plan.assignments).toEqual([{ path: moved.path, value: 1500 }]);
+    });
+
+    it('does not rewrite displaced neighbors when a ranked file moves into a gap', () => {
+        const first = { path: 'notes/first.md', extension: 'md' };
+        const moved = { path: 'notes/moved.md', extension: 'md' };
+        const second = { path: 'notes/second.md', extension: 'md' };
+        const third = { path: 'notes/third.md', extension: 'md' };
+
+        const plan = buildManualSortRankPlan(
+            [first, moved, second, third],
+            new Set([moved.path]),
+            new Map([
+                [first.path, 1000],
+                [second.path, 2000],
+                [third.path, 3000],
+                [moved.path, 4000]
+            ])
+        );
+
+        expect(plan.requiresCompaction).toBe(false);
+        expect(plan.assignments).toEqual([{ path: moved.path, value: 1500 }]);
+    });
+
+    it('ranks the needed prefix when the first move starts from an unranked list', () => {
+        const first = { path: 'notes/first.md', extension: 'md' };
+        const second = { path: 'notes/second.md', extension: 'md' };
+        const third = { path: 'notes/third.md', extension: 'md' };
+        const moved = { path: 'notes/moved.md', extension: 'md' };
+
+        const plan = buildManualSortRankPlan([first, second, third, moved], new Set([moved.path]), new Map());
+
+        expect(plan.requiresCompaction).toBe(false);
+        expect(plan.assignments).toEqual([
+            { path: first.path, value: 1000 },
+            { path: second.path, value: 2000 },
+            { path: third.path, value: 3000 },
+            { path: moved.path, value: 4000 }
+        ]);
+    });
+
+    it('writes only the moved file when an unranked note moves to the top', () => {
+        const moved = { path: 'notes/moved.md', extension: 'md' };
+        const first = { path: 'notes/first.md', extension: 'md' };
+        const second = { path: 'notes/second.md', extension: 'md' };
+
+        const plan = buildManualSortRankPlan([moved, first, second], new Set([moved.path]), new Map());
+
+        expect(plan.requiresCompaction).toBe(false);
+        expect(plan.assignments).toEqual([{ path: moved.path, value: 1000 }]);
+    });
+
+    it('uses all available integer slots for a moved block before compacting', () => {
+        const first = { path: 'notes/first.md', extension: 'md' };
+        const movedOne = { path: 'notes/moved-one.md', extension: 'md' };
+        const movedTwo = { path: 'notes/moved-two.md', extension: 'md' };
+        const last = { path: 'notes/last.md', extension: 'md' };
+
+        const plan = buildManualSortRankPlan(
+            [first, movedOne, movedTwo, last],
+            new Set([movedOne.path, movedTwo.path]),
+            new Map([
+                [first.path, 1000],
+                [last.path, 1003]
+            ])
+        );
+
+        expect(plan.requiresCompaction).toBe(false);
+        expect(plan.assignments).toEqual([
+            { path: movedOne.path, value: 1001 },
+            { path: movedTwo.path, value: 1002 }
+        ]);
+    });
+
+    it('plans local compaction when a moved block has no integer gap', () => {
+        const first = { path: 'notes/first.md', extension: 'md' };
+        const moved = { path: 'notes/moved.md', extension: 'md' };
+        const last = { path: 'notes/last.md', extension: 'md' };
+
+        const plan = buildManualSortRankPlan(
+            [first, moved, last],
+            new Set([moved.path]),
+            new Map([
+                [first.path, 1],
+                [last.path, 2]
+            ])
+        );
+
+        expect(plan.requiresCompaction).toBe(true);
+        expect(plan.assignments).toEqual([
+            { path: first.path, value: 1000 },
+            { path: moved.path, value: 2000 },
+            { path: last.path, value: 3000 }
+        ]);
+    });
+
+    it('checks whether planned assignments are visible in the metadata cache', () => {
+        const first = createFile('notes/first.md', { index: 1000 });
+        const second = createFile('notes/second.md', { index: 2000 });
+        const app = createApp([first, second], vi.fn());
+
+        expect(
+            areManualSortAssignmentsCached(app, [first, second], 'index', [
+                { path: first.path, value: 1000 },
+                { path: second.path, value: 2000 }
+            ])
+        ).toBe(true);
+        expect(areManualSortAssignmentsCached(app, [first, second], 'index', [{ path: second.path, value: 3000 }])).toBe(false);
     });
 
     it('writes order values while preserving existing property key casing', async () => {
         const first = createFile('notes/first.md', { Index: 'old' });
-        const second = createFile('notes/second.md', { index: 2 });
+        const second = createFile('notes/second.md', { index: 2000 });
         const nonMarkdown = createFile('assets/file.pdf', {});
         const processFrontMatter = vi.fn(async (file: TFile, callback: (frontmatter: Record<string, unknown>) => void) => {
             callback((file as TFile & { frontmatter: Record<string, unknown> }).frontmatter);
@@ -266,12 +400,12 @@ describe('manual sort helpers', () => {
 
         expect(result).toEqual({ updated: 1, skipped: 1, failed: 0, failures: [] });
         expect(processFrontMatter).toHaveBeenCalledTimes(1);
-        expect(first.frontmatter).toEqual({ Index: 1 });
-        expect(second.frontmatter).toEqual({ index: 2 });
+        expect(first.frontmatter).toEqual({ Index: 1000 });
+        expect(second.frontmatter).toEqual({ index: 2000 });
         expect(nonMarkdown.frontmatter).toEqual({});
     });
 
-    it('normalizes existing and missing manual sort properties into dense order', async () => {
+    it('normalizes existing and missing manual sort properties into sparse order', async () => {
         const first = createFile('notes/first.md', { index: 10 });
         const second = createFile('notes/second.md', {});
         const third = createFile('notes/third.md', { Index: 'custom' });
@@ -284,9 +418,25 @@ describe('manual sort helpers', () => {
 
         expect(result).toEqual({ updated: 3, skipped: 0, failed: 0, failures: [] });
         expect(processFrontMatter).toHaveBeenCalledTimes(3);
-        expect(first.frontmatter).toEqual({ index: 1 });
-        expect(second.frontmatter).toEqual({ index: 2 });
-        expect(third.frontmatter).toEqual({ Index: 3 });
+        expect(first.frontmatter).toEqual({ index: 1000 });
+        expect(second.frontmatter).toEqual({ index: 2000 });
+        expect(third.frontmatter).toEqual({ Index: 3000 });
+    });
+
+    it('writes only explicit manual sort assignments', async () => {
+        const first = createFile('notes/first.md', { index: 'old' });
+        const second = createFile('notes/second.md', { index: 'old' });
+        const processFrontMatter = vi.fn(async (file: TFile, callback: (frontmatter: Record<string, unknown>) => void) => {
+            callback((file as TFile & { frontmatter: Record<string, unknown> }).frontmatter);
+        });
+        const app = createApp([first, second], processFrontMatter);
+
+        const result = await writeManualSortAssignments(app, [first, second], 'index', [{ path: second.path, value: 1500 }]);
+
+        expect(result).toEqual({ updated: 1, skipped: 0, failed: 0, failures: [] });
+        expect(processFrontMatter).toHaveBeenCalledTimes(1);
+        expect(first.frontmatter).toEqual({ index: 'old' });
+        expect(second.frontmatter).toEqual({ index: 1500 });
     });
 
     it('records failures and continues writing remaining files', async () => {
@@ -310,8 +460,8 @@ describe('manual sort helpers', () => {
             failures: [{ path: 'notes/second.md', message: 'YAML parse failed' }]
         });
         expect(processFrontMatter).toHaveBeenCalledTimes(3);
-        expect(first.frontmatter).toEqual({ index: 1 });
+        expect(first.frontmatter).toEqual({ index: 1000 });
         expect(second.frontmatter).toEqual({ index: 'old' });
-        expect(third.frontmatter).toEqual({ index: 3 });
+        expect(third.frontmatter).toEqual({ index: 3000 });
     });
 });

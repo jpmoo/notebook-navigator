@@ -52,7 +52,7 @@ export const STRINGS_TR = {
         filesSection: 'Dosyalar', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (gizli)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Manuel sıralama: {property}',
-        manualSortHint: 'Yeniden sıralamak için sürükleyin. Dosyalara "{property}" özelliğinde sayısal değerler atanacaktır.',
+        manualSortHint: 'Yeniden sıralamak için sürükleyin. Sayısal sıralar "{property}" özelliğine kaydedilir.',
         manualSortNonMarkdownHint: 'Markdown olmayan dosyalar altta gösterilir ve yeniden sıralanamaz.',
         unsortedSection: 'Sıralanmamış',
         manualSortDone: 'Tamam',
@@ -401,8 +401,12 @@ export const STRINGS_TR = {
         manualSortConfirm: {
             propertySortTitle: 'Özelliğe göre sıralama kullanılsın mı?',
             propertySortMessage: (property: string, count: number) =>
-                `Bu işlem, geçerli görünümdeki ${count} nottaki "${property}" içeriğini sayısal sıralama değerleriyle değiştirir.`,
-            propertySortConfirmButton: 'Özelliğe göre sıralamayı kullan'
+                `Bu, geçerli görünümü "${property}" kullanarak özelliğe göre sıralamaya geçirir. ${count} nottaki mevcut değerler değiştirilmez.`,
+            propertySortConfirmButton: 'Özelliğe göre sıralamayı kullan',
+            compactTitle: 'Sıralar sıkıştırılsın mı?',
+            compactMessage: (count: number) =>
+                `Bu yeniden sıralama daha fazla sıralama alanına ihtiyaç duyar. ${count} not yeni sayısal sıralar alacak.`,
+            compactConfirmButton: 'Sıraları sıkıştır'
         },
         navRainbowSection: {
             title: (section: string) => `Gökkuşağı renkleri: ${section}`

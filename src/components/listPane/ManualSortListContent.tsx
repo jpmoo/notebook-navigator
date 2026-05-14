@@ -32,12 +32,7 @@ import type { FileItemPillDecorationModel } from '../../utils/fileItemPillDecora
 import type { FolderDecorationModel } from '../../utils/folderDecoration';
 import type { HiddenTagVisibility } from '../../utils/tagPrefixMatcher';
 import { typeFilteredCollisionDetection, verticalAxisOnly } from '../../utils/dndConfig';
-import {
-    buildManualSortOrderAssignments,
-    getManualSortSelectedMarkdownPaths,
-    moveManualSortMarkdownFiles,
-    partitionManualSortFiles
-} from '../../utils/manualSort';
+import { getManualSortSelectedMarkdownPaths, moveManualSortMarkdownFiles, partitionManualSortFiles } from '../../utils/manualSort';
 import { ObsidianIcon } from '../ObsidianIcon';
 import { FileItem, type FileItemStorageHelpers } from '../FileItem';
 
@@ -55,7 +50,7 @@ interface ManualSortListContentProps {
     listItems: ListPaneItem[];
     hiddenFileState: ReadonlyMap<string, boolean>;
     propertyKey: string;
-    rankedMarkdownPaths: ReadonlySet<string>;
+    rankByPath: ReadonlyMap<string, number>;
     selectedFolderPath: string | null;
     isSaving: boolean;
     isDoneDisabled: boolean;
@@ -78,7 +73,7 @@ interface ManualSortListContentProps {
     selectedFiles: ReadonlySet<string>;
     onFileClick: (file: TFile, fileIndex: number | undefined, event: ReactMouseEvent) => void;
     onDone: () => void;
-    onReorder: (files: TFile[]) => void;
+    onReorder: (params: { nextFiles: TFile[]; movedPaths: ReadonlySet<string> }) => void;
 }
 
 interface ManualSortEntry {
@@ -341,7 +336,7 @@ export function ManualSortListContent({
     listItems,
     hiddenFileState,
     propertyKey,
-    rankedMarkdownPaths,
+    rankByPath,
     selectedFolderPath,
     isSaving,
     isDoneDisabled,
@@ -373,21 +368,18 @@ export function ManualSortListContent({
     const markdownFiles = filePartitions.markdown;
     const nonMarkdownFiles = filePartitions.nonMarkdown;
     const manualFileIndexByPath = useMemo(() => new Map(files.map((file, index) => [file.path, index])), [files]);
-    const rankedMarkdownFiles = useMemo(
-        () => markdownFiles.filter(file => rankedMarkdownPaths.has(file.path)),
-        [markdownFiles, rankedMarkdownPaths]
-    );
-    const unsortedMarkdownFiles = useMemo(
-        () => markdownFiles.filter(file => !rankedMarkdownPaths.has(file.path)),
-        [markdownFiles, rankedMarkdownPaths]
-    );
+    const rankedMarkdownFiles = useMemo(() => markdownFiles.filter(file => rankByPath.has(file.path)), [markdownFiles, rankByPath]);
+    const unsortedMarkdownFiles = useMemo(() => markdownFiles.filter(file => !rankByPath.has(file.path)), [markdownFiles, rankByPath]);
     const manualValueByPath = useMemo(() => {
         const map = new Map<string, number>();
-        buildManualSortOrderAssignments(rankedMarkdownFiles).forEach(assignment => {
-            map.set(assignment.path, assignment.value);
+        rankedMarkdownFiles.forEach(file => {
+            const rank = rankByPath.get(file.path);
+            if (rank !== undefined) {
+                map.set(file.path, rank);
+            }
         });
         return map;
-    }, [rankedMarkdownFiles]);
+    }, [rankByPath, rankedMarkdownFiles]);
     const nonMarkdownCount = nonMarkdownFiles.length;
     const hasNoFiles = files.length === 0;
 
@@ -505,9 +497,13 @@ export function ManualSortListContent({
                 return;
             }
 
-            onReorder(nextFiles);
+            const selectedMarkdownPaths = getManualSortSelectedMarkdownPaths(markdownFiles, active.file.path, selectedFiles);
+            onReorder({
+                nextFiles,
+                movedPaths: selectedMarkdownPaths.size > 1 ? selectedMarkdownPaths : new Set([active.file.path])
+            });
         },
-        [isSaving, moveMarkdownFiles, onReorder, sortableRegistry]
+        [isSaving, markdownFiles, moveMarkdownFiles, onReorder, selectedFiles, sortableRegistry]
     );
 
     const handleDragStart = useCallback(

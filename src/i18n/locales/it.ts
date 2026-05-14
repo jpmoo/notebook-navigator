@@ -52,7 +52,7 @@ export const STRINGS_IT = {
         filesSection: 'File', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (nascosto)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Ordinamento manuale: {property}',
-        manualSortHint: 'Trascina per riordinare. Ai file verranno assegnati valori numerici nella proprietà "{property}".',
+        manualSortHint: 'Trascina per riordinare. I ranghi numerici sono salvati nella proprietà "{property}".',
         manualSortNonMarkdownHint: 'I file non Markdown sono mostrati in fondo e non possono essere riordinati.',
         unsortedSection: 'Non ordinato',
         manualSortDone: 'Fatto',
@@ -400,8 +400,12 @@ export const STRINGS_IT = {
         manualSortConfirm: {
             propertySortTitle: 'Usare l’ordinamento per proprietà?',
             propertySortMessage: (property: string, count: number) =>
-                `Questo sostituirà il contenuto di "${property}" in ${count} ${count === 1 ? 'nota' : 'note'} della vista corrente con valori numerici di ordinamento.`,
-            propertySortConfirmButton: 'Usa ordinamento per proprietà'
+                `Questo cambia la vista corrente all'ordinamento per proprietà usando "${property}". I valori esistenti in ${count} ${count === 1 ? 'nota' : 'note'} non vengono modificati.`,
+            propertySortConfirmButton: 'Usa ordinamento per proprietà',
+            compactTitle: 'Compattare i ranghi?',
+            compactMessage: (count: number) =>
+                `Questo riordino richiede più spazio per i ranghi. ${count} ${count === 1 ? 'nota riceverà' : 'note riceveranno'} nuovi ranghi numerici.`,
+            compactConfirmButton: 'Compatta ranghi'
         },
         navRainbowSection: {
             title: (section: string) => `Colori arcobaleno: ${section}`

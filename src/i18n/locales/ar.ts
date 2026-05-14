@@ -52,7 +52,7 @@ export const STRINGS_AR = {
         filesSection: 'ملفات', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (مخفي)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'فرز يدوي: {property}',
-        manualSortHint: 'اسحب لإعادة الترتيب. سيتم تعيين قيم رقمية للملفات في الخاصية "{property}".',
+        manualSortHint: 'اسحب لإعادة الترتيب. يتم حفظ الرتب الرقمية في الخاصية "{property}".',
         manualSortNonMarkdownHint: 'الملفات غير Markdown تظهر في الأسفل ولا يمكن إعادة ترتيبها.',
         unsortedSection: 'غير مرتبة',
         manualSortDone: 'تم',
@@ -400,8 +400,11 @@ export const STRINGS_AR = {
         manualSortConfirm: {
             propertySortTitle: 'استخدام الفرز حسب الخاصية؟',
             propertySortMessage: (property: string, count: number) =>
-                `سيؤدي هذا إلى استبدال محتوى "${property}" في ${count} ملاحظة في العرض الحالي بقيم فرز رقمية.`,
-            propertySortConfirmButton: 'استخدام الفرز حسب الخاصية'
+                `يبدّل العرض الحالي إلى الفرز حسب الخاصية باستخدام "${property}". القيم الموجودة في ${count} ملاحظة لن تتغير.`,
+            propertySortConfirmButton: 'استخدام الفرز حسب الخاصية',
+            compactTitle: 'ضغط الرتب؟',
+            compactMessage: (count: number) => `إعادة الترتيب هذه تحتاج إلى مساحة رتب أكبر. ${count} ملاحظة ستحصل على رتب رقمية جديدة.`,
+            compactConfirmButton: 'ضغط الرتب'
         },
         navRainbowSection: {
             title: (section: string) => `ألوان قوس قزح: ${section}`

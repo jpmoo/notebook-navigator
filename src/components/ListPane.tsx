@@ -45,7 +45,7 @@
  */
 
 import React, { useRef, useEffect, useImperativeHandle, forwardRef, useState, useMemo, useLayoutEffect } from 'react';
-import { TFile, Platform } from 'obsidian';
+import { TFile, Platform, type App } from 'obsidian';
 import { Virtualizer } from '@tanstack/react-virtual';
 import { useSelectionState, useSelectionDispatch } from '../context/SelectionContext';
 import { useServices } from '../context/ServicesContext';
@@ -91,16 +91,21 @@ import { runAsyncAction } from '../utils/async';
 import { getPinnedSectionCollapseKey } from '../utils/selectionUtils';
 import {
     applyManualSortMarkdownOrder,
+    areManualSortAssignmentsCached,
+    buildManualSortRankPlan,
+    getCachedManualSortRank,
     getManualSortPropertyValue,
-    hasDenseManualSortOrder,
-    hasCachedManualSortProperty,
+    getManualSortSelectedMarkdownPaths,
     moveManualSortSelectionByDirection,
-    orderManualSortFiles,
-    writeManualSortOrder
+    partitionManualSortFiles,
+    writeManualSortAssignments,
+    type ManualSortOrderAssignment,
+    type ManualSortWriteResult
 } from '../utils/manualSort';
 import { showNotice } from '../utils/noticeUtils';
 import { getErrorMessage } from '../utils/errorUtils';
 import { strings } from '../i18n';
+import { ConfirmModal } from '../modals/ConfirmModal';
 
 /**
  * Renders the list pane displaying files from the selected folder.
@@ -158,6 +163,7 @@ interface ListPaneProps {
 interface ManualSortState {
     propertyKey: string;
     order: string[] | null;
+    pendingAssignments: ManualSortOrderAssignment[];
     isSaving: boolean;
     selectionKey: string;
     sessionId: number;
@@ -167,12 +173,13 @@ interface ManualSortState {
 interface PropertyKeyboardReorderState {
     propertyKey: string;
     order: string[];
+    pendingAssignments: ManualSortOrderAssignment[];
     isSaving: boolean;
     selectionKey: string;
     saveId: number;
 }
 
-function getManualSortFailureMessage(result: Awaited<ReturnType<typeof writeManualSortOrder>>): string {
+function getManualSortFailureMessage(result: ManualSortWriteResult): string {
     const firstFailure = result.failures[0];
     if (!firstFailure) {
         return strings.common.unknownError;
@@ -188,11 +195,47 @@ function getManualSortFailureMessage(result: Awaited<ReturnType<typeof writeManu
         .replace('{message}', firstFailure.message);
 }
 
+function getMarkdownPathOrder(files: readonly TFile[]): string[] {
+    return partitionManualSortFiles(files).markdown.map(file => file.path);
+}
+
+function buildManualSortRankMap(
+    app: App,
+    files: readonly TFile[],
+    propertyKey: string,
+    pendingAssignments: readonly ManualSortOrderAssignment[] = []
+): Map<string, number> {
+    const rankByPath = new Map<string, number>();
+    if (!propertyKey) {
+        return rankByPath;
+    }
+
+    const filePathSet = new Set(files.map(file => file.path));
+    files.forEach(file => {
+        if (file.extension !== 'md') {
+            return;
+        }
+
+        const rank = getCachedManualSortRank(app, file, propertyKey);
+        if (rank !== null) {
+            rankByPath.set(file.path, rank);
+        }
+    });
+
+    pendingAssignments.forEach(assignment => {
+        if (filePathSet.has(assignment.path)) {
+            rankByPath.set(assignment.path, assignment.value);
+        }
+    });
+
+    return rankByPath;
+}
+
 interface ListPaneTitleChromeProps {
     onHeaderClick?: () => void;
     isSearchActive?: boolean;
     onSearchToggle?: () => void;
-    onManualSortStart?: (propertyKey: string, initialFiles: TFile[]) => void;
+    onManualSortStart?: (propertyKey: string) => void;
     actionsDisabled?: boolean;
     shouldShowDesktopTitleArea: boolean;
     children: React.ReactNode;
@@ -423,13 +466,15 @@ export const ListPane = React.memo(
             propertyKeyboardReorderState
         ]);
 
-        const propertySortOrderOverride =
-            !isManualSortActive &&
-            !isSearchActive &&
+        const canUsePropertyKeyboardReorder =
+            !isManualSortActive && !isSearchActive && isPropertySortActive && effectivePropertySortKey.length > 0;
+        const activePropertyKeyboardReorderState =
+            canUsePropertyKeyboardReorder &&
             propertyKeyboardReorderState?.selectionKey === manualSortSelectionKey &&
             propertyKeyboardReorderState.propertyKey === effectivePropertySortKey
-                ? propertyKeyboardReorderState.order
+                ? propertyKeyboardReorderState
                 : null;
+        const propertySortOrderOverride = activePropertyKeyboardReorderState?.order ?? null;
 
         const effectiveGroupBy = isManualSortActive || isPropertySortActive ? 'none' : appearanceSettings.groupBy;
         const effectiveAppearanceSettings = useMemo(
@@ -438,12 +483,22 @@ export const ListPane = React.memo(
             [appearanceSettings, effectiveGroupBy]
         );
 
-        const saveManualSortFiles = React.useCallback(
-            (filesToWrite: TFile[], propertyKey: string, onComplete: (hasFailure: boolean) => void) => {
+        const saveManualSortAssignments = React.useCallback(
+            (
+                filesToWrite: TFile[],
+                propertyKey: string,
+                assignments: readonly ManualSortOrderAssignment[],
+                onComplete: (hasFailure: boolean) => void
+            ) => {
+                if (assignments.length === 0) {
+                    onComplete(false);
+                    return;
+                }
+
                 runAsyncAction(async () => {
                     let hasFailure = false;
                     try {
-                        const result = await writeManualSortOrder(app, filesToWrite, propertyKey);
+                        const result = await writeManualSortAssignments(app, filesToWrite, propertyKey, assignments);
                         if (result.failed > 0) {
                             hasFailure = true;
                             showNotice(
@@ -468,9 +523,16 @@ export const ListPane = React.memo(
             [app]
         );
 
-        const saveManualSortOrder = React.useCallback(
-            (filesToWrite: TFile[], propertyKey: string, selectionKey: string, sessionId: number, saveId: number) => {
-                saveManualSortFiles(filesToWrite, propertyKey, shouldResetOptimisticOrder => {
+        const saveManualSortPlan = React.useCallback(
+            (
+                filesToWrite: TFile[],
+                propertyKey: string,
+                assignments: readonly ManualSortOrderAssignment[],
+                selectionKey: string,
+                sessionId: number,
+                saveId: number
+            ) => {
+                saveManualSortAssignments(filesToWrite, propertyKey, assignments, shouldResetOptimisticOrder => {
                     setManualSortState(current => {
                         if (
                             !current ||
@@ -481,16 +543,27 @@ export const ListPane = React.memo(
                         ) {
                             return current;
                         }
-                        return { ...current, order: shouldResetOptimisticOrder ? null : current.order, isSaving: false };
+                        return {
+                            ...current,
+                            order: shouldResetOptimisticOrder ? null : current.order,
+                            pendingAssignments: shouldResetOptimisticOrder ? [] : current.pendingAssignments,
+                            isSaving: false
+                        };
                     });
                 });
             },
-            [saveManualSortFiles]
+            [saveManualSortAssignments]
         );
 
         const savePropertyKeyboardReorder = React.useCallback(
-            (filesToWrite: TFile[], propertyKey: string, selectionKey: string, saveId: number) => {
-                saveManualSortFiles(filesToWrite, propertyKey, shouldClearOptimisticOrder => {
+            (
+                filesToWrite: TFile[],
+                propertyKey: string,
+                assignments: readonly ManualSortOrderAssignment[],
+                selectionKey: string,
+                saveId: number
+            ) => {
+                saveManualSortAssignments(filesToWrite, propertyKey, assignments, shouldClearOptimisticOrder => {
                     if (propertyKeyboardReorderSaveCounterRef.current === saveId) {
                         propertyKeyboardReorderSavingRef.current = false;
                     }
@@ -507,30 +580,40 @@ export const ListPane = React.memo(
                     });
                 });
             },
-            [saveManualSortFiles]
+            [saveManualSortAssignments]
+        );
+
+        const confirmManualSortCompaction = React.useCallback(
+            (assignmentCount: number, onConfirm: () => void) => {
+                new ConfirmModal(
+                    app,
+                    strings.modals.manualSortConfirm.compactTitle,
+                    strings.modals.manualSortConfirm.compactMessage(assignmentCount),
+                    onConfirm,
+                    strings.modals.manualSortConfirm.compactConfirmButton,
+                    { confirmButtonClass: 'mod-cta' }
+                ).open();
+            },
+            [app]
         );
 
         const handleManualSortStart = React.useCallback(
-            (propertyKey: string, initialFiles: TFile[]) => {
+            (propertyKey: string) => {
                 const sessionId = manualSortSessionCounterRef.current + 1;
                 manualSortSessionCounterRef.current = sessionId;
-                const saveId = manualSortSaveCounterRef.current + 1;
-                manualSortSaveCounterRef.current = saveId;
                 const selectionKey = manualSortSelectionKey;
-                const orderedInitialFiles = orderManualSortFiles(initialFiles);
-                const initialOrder = orderedInitialFiles.filter(file => file.extension === 'md').map(file => file.path);
                 closeSearch();
                 setManualSortState({
                     propertyKey,
-                    order: initialOrder,
-                    isSaving: true,
+                    order: null,
+                    pendingAssignments: [],
+                    isSaving: false,
                     selectionKey,
                     sessionId,
-                    saveId
+                    saveId: 0
                 });
-                saveManualSortOrder(orderedInitialFiles, propertyKey, selectionKey, sessionId, saveId);
             },
-            [closeSearch, manualSortSelectionKey, saveManualSortOrder]
+            [closeSearch, manualSortSelectionKey]
         );
 
         // Determine if list pane is visible early to optimize
@@ -577,7 +660,14 @@ export const ListPane = React.memo(
                 return;
             }
 
-            if (!hasDenseManualSortOrder(app, writtenFiles, propertyKeyboardReorderState.propertyKey)) {
+            if (
+                !areManualSortAssignmentsCached(
+                    app,
+                    writtenFiles,
+                    propertyKeyboardReorderState.propertyKey,
+                    propertyKeyboardReorderState.pendingAssignments
+                )
+            ) {
                 return;
             }
 
@@ -771,6 +861,10 @@ export const ListPane = React.memo(
         }, []);
 
         const manualSortPropertyKey = manualSortState?.propertyKey ?? '';
+        const manualSortRankByPath = useMemo(
+            () => buildManualSortRankMap(app, files, manualSortPropertyKey, manualSortState?.pendingAssignments ?? []),
+            [app, files, manualSortPropertyKey, manualSortState?.pendingAssignments]
+        );
         const propertySortedManualFiles = useMemo(() => {
             if (!manualSortPropertyKey) {
                 return files;
@@ -785,7 +879,9 @@ export const ListPane = React.memo(
                     return propertyValueByPath.get(file.path) ?? null;
                 }
 
-                const value = getManualSortPropertyValue(app, file, manualSortPropertyKey);
+                const pendingRank = manualSortRankByPath.get(file.path);
+                const value =
+                    pendingRank === undefined ? getManualSortPropertyValue(app, file, manualSortPropertyKey) : pendingRank.toString();
                 propertyValueByPath.set(file.path, value);
                 return value;
             };
@@ -799,7 +895,15 @@ export const ListPane = React.memo(
                 settings.propertySortSecondary
             );
             return sortedFiles;
-        }, [app, files, getFileDisplayName, getFileTimestamps, manualSortPropertyKey, settings.propertySortSecondary]);
+        }, [
+            app,
+            files,
+            getFileDisplayName,
+            getFileTimestamps,
+            manualSortPropertyKey,
+            manualSortRankByPath,
+            settings.propertySortSecondary
+        ]);
 
         const manualSortFiles = useMemo(() => {
             const order = manualSortState?.order;
@@ -809,25 +913,24 @@ export const ListPane = React.memo(
 
             return applyManualSortMarkdownOrder(propertySortedManualFiles, order);
         }, [manualSortState?.order, propertySortedManualFiles]);
-        const manualSortRankedMarkdownPaths = useMemo(() => {
-            const rankedPaths = new Set<string>();
-            if (!manualSortPropertyKey) {
-                return rankedPaths;
+        const propertyKeyboardRankByPath = useMemo(() => {
+            if (!canUsePropertyKeyboardReorder) {
+                return new Map<string, number>();
             }
 
-            const orderedPaths = manualSortState?.order ? new Set(manualSortState.order) : null;
-            manualSortFiles.forEach(file => {
-                if (file.extension !== 'md') {
-                    return;
-                }
-
-                if (orderedPaths?.has(file.path) || hasCachedManualSortProperty(app, file, manualSortPropertyKey)) {
-                    rankedPaths.add(file.path);
-                }
-            });
-
-            return rankedPaths;
-        }, [app, manualSortFiles, manualSortPropertyKey, manualSortState?.order]);
+            return buildManualSortRankMap(
+                app,
+                orderedFiles,
+                effectivePropertySortKey,
+                activePropertyKeyboardReorderState?.pendingAssignments ?? []
+            );
+        }, [
+            activePropertyKeyboardReorderState?.pendingAssignments,
+            app,
+            canUsePropertyKeyboardReorder,
+            effectivePropertySortKey,
+            orderedFiles
+        ]);
         const isManualSortDoneDisabled = Boolean(manualSortState?.isSaving);
         const handleManualSortDone = React.useCallback(() => {
             if (!manualSortState || isManualSortDoneDisabled) {
@@ -837,22 +940,39 @@ export const ListPane = React.memo(
             setManualSortState(null);
         }, [isManualSortDoneDisabled, manualSortState]);
         const handleManualSortReorder = React.useCallback(
-            (nextFiles: TFile[]) => {
+            ({ nextFiles, movedPaths }: { nextFiles: TFile[]; movedPaths: ReadonlySet<string> }) => {
                 if (!manualSortState?.propertyKey) {
                     return;
                 }
 
                 const { propertyKey, selectionKey, sessionId } = manualSortState;
-                const saveId = manualSortSaveCounterRef.current + 1;
-                manualSortSaveCounterRef.current = saveId;
-                const orderedFilesToWrite = orderManualSortFiles(nextFiles);
-                const nextOrder = orderedFilesToWrite.filter(file => file.extension === 'md').map(file => file.path);
-                setManualSortState(current =>
-                    current && current.sessionId === sessionId ? { ...current, order: nextOrder, isSaving: true, saveId } : current
-                );
-                saveManualSortOrder(orderedFilesToWrite, propertyKey, selectionKey, sessionId, saveId);
+                const plan = buildManualSortRankPlan(nextFiles, movedPaths, manualSortRankByPath);
+                const savePlan = () => {
+                    const saveId = manualSortSaveCounterRef.current + 1;
+                    manualSortSaveCounterRef.current = saveId;
+                    const nextOrder = getMarkdownPathOrder(plan.files);
+                    setManualSortState(current =>
+                        current && current.sessionId === sessionId
+                            ? {
+                                  ...current,
+                                  order: nextOrder,
+                                  pendingAssignments: plan.assignments,
+                                  isSaving: plan.assignments.length > 0,
+                                  saveId
+                              }
+                            : current
+                    );
+                    saveManualSortPlan(plan.files, propertyKey, plan.assignments, selectionKey, sessionId, saveId);
+                };
+
+                if (plan.requiresCompaction) {
+                    confirmManualSortCompaction(plan.assignments.length, savePlan);
+                    return;
+                }
+
+                savePlan();
             },
-            [manualSortState, saveManualSortOrder]
+            [confirmManualSortCompaction, manualSortRankByPath, manualSortState, saveManualSortPlan]
         );
         const handleManualSortFileClick = React.useCallback(
             (file: TFile, fileIndex: number | undefined, event: React.MouseEvent) => {
@@ -888,7 +1008,7 @@ export const ListPane = React.memo(
         );
         const handlePropertyKeyboardReorder = React.useCallback(
             (direction: 'up' | 'down') => {
-                if (isManualSortActive || isSearchActive || !isPropertySortActive || !effectivePropertySortKey) {
+                if (!canUsePropertyKeyboardReorder) {
                     return false;
                 }
 
@@ -903,11 +1023,6 @@ export const ListPane = React.memo(
                     return true;
                 }
 
-                const saveId = propertyKeyboardReorderSaveCounterRef.current + 1;
-                propertyKeyboardReorderSaveCounterRef.current = saveId;
-                propertyKeyboardReorderSavingRef.current = true;
-                propertyKeyboardReorderScrollPathRef.current = result.scrollPath;
-
                 const reorderScopePaths = new Set(reorderScopeFiles.map(file => file.path));
                 let resultFileIndex = 0;
                 const nextOrderedFiles = orderedFiles.map(file => {
@@ -919,26 +1034,43 @@ export const ListPane = React.memo(
                     resultFileIndex += 1;
                     return resultFile ?? file;
                 });
-                const orderedFilesToWrite = orderManualSortFiles(nextOrderedFiles);
-                const nextOrder = orderedFilesToWrite.filter(file => file.extension === 'md').map(file => file.path);
-                setPropertyKeyboardReorderState({
-                    propertyKey: effectivePropertySortKey,
-                    order: nextOrder,
-                    isSaving: true,
-                    selectionKey: manualSortSelectionKey,
-                    saveId
-                });
-                savePropertyKeyboardReorder(orderedFilesToWrite, effectivePropertySortKey, manualSortSelectionKey, saveId);
+                const { markdown } = partitionManualSortFiles(reorderScopeFiles);
+                const selectedMarkdownPaths = getManualSortSelectedMarkdownPaths(markdown, activePath ?? '', selectionState.selectedFiles);
+                const movedPaths = selectedMarkdownPaths.size > 1 ? selectedMarkdownPaths : new Set(activePath ? [activePath] : []);
+                const plan = buildManualSortRankPlan(nextOrderedFiles, movedPaths, propertyKeyboardRankByPath);
+                const savePlan = () => {
+                    const saveId = propertyKeyboardReorderSaveCounterRef.current + 1;
+                    propertyKeyboardReorderSaveCounterRef.current = saveId;
+                    propertyKeyboardReorderSavingRef.current = true;
+                    propertyKeyboardReorderScrollPathRef.current = result.scrollPath;
+
+                    setPropertyKeyboardReorderState({
+                        propertyKey: effectivePropertySortKey,
+                        order: getMarkdownPathOrder(plan.files),
+                        pendingAssignments: plan.assignments,
+                        isSaving: plan.assignments.length > 0,
+                        selectionKey: manualSortSelectionKey,
+                        saveId
+                    });
+                    savePropertyKeyboardReorder(plan.files, effectivePropertySortKey, plan.assignments, manualSortSelectionKey, saveId);
+                };
+
+                if (plan.requiresCompaction) {
+                    confirmManualSortCompaction(plan.assignments.length, savePlan);
+                    return true;
+                }
+
+                savePlan();
                 return true;
             },
             [
+                canUsePropertyKeyboardReorder,
+                confirmManualSortCompaction,
                 effectivePropertySortKey,
-                isManualSortActive,
-                isPropertySortActive,
-                isSearchActive,
                 getPropertyKeyboardReorderScopeFiles,
                 manualSortSelectionKey,
                 orderedFiles,
+                propertyKeyboardRankByPath,
                 savePropertyKeyboardReorder,
                 selectedFile,
                 selectionState.selectedFiles
@@ -1079,7 +1211,7 @@ export const ListPane = React.memo(
                             listItems={listItems}
                             hiddenFileState={hiddenFileState}
                             propertyKey={manualSortState.propertyKey}
-                            rankedMarkdownPaths={manualSortRankedMarkdownPaths}
+                            rankByPath={manualSortRankByPath}
                             selectedFolderPath={selectedFolder?.path ?? null}
                             isSaving={manualSortState.isSaving}
                             isDoneDisabled={isManualSortDoneDisabled}

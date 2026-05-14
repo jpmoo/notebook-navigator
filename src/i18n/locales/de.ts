@@ -52,7 +52,7 @@ export const STRINGS_DE = {
         filesSection: 'Dateien', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (ausgeblendet)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Manuelle Sortierung: {property}',
-        manualSortHint: 'Zum Neuordnen ziehen. Dateien erhalten numerische Werte in der Eigenschaft „{property}".',
+        manualSortHint: 'Zum Neuordnen ziehen. Numerische Ränge werden in der Eigenschaft „{property}" gespeichert.',
         manualSortNonMarkdownHint: 'Nicht-Markdown-Dateien werden unten angezeigt und können nicht neu geordnet werden.',
         unsortedSection: 'Unsortiert',
         manualSortDone: 'Fertig',
@@ -401,8 +401,12 @@ export const STRINGS_DE = {
         manualSortConfirm: {
             propertySortTitle: 'Eigenschaftssortierung verwenden?',
             propertySortMessage: (property: string, count: number) =>
-                `Dies ersetzt den Inhalt von „${property}" in ${count} ${count === 1 ? 'Notiz' : 'Notizen'} in der aktuellen Ansicht durch numerische Sortierwerte.`,
-            propertySortConfirmButton: 'Eigenschaftssortierung verwenden'
+                `Wechselt die aktuelle Ansicht zur Eigenschaftssortierung mit „${property}". Vorhandene Werte in ${count} ${count === 1 ? 'Notiz' : 'Notizen'} werden nicht geändert.`,
+            propertySortConfirmButton: 'Eigenschaftssortierung verwenden',
+            compactTitle: 'Ränge verdichten?',
+            compactMessage: (count: number) =>
+                `Diese Neuanordnung benötigt mehr Rangraum. ${count} ${count === 1 ? 'Notiz erhält' : 'Notizen erhalten'} neue numerische Ränge.`,
+            compactConfirmButton: 'Ränge verdichten'
         },
         navRainbowSection: {
             title: (section: string) => `Regenbogenfarben: ${section}`

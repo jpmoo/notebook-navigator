@@ -52,7 +52,7 @@ export const STRINGS_PT_BR = {
         filesSection: 'Arquivos',
         hiddenItemAriaLabel: '{name} (oculto)',
         manualSortTitle: 'Classificação manual: {property}',
-        manualSortHint: 'Arraste para reordenar. Os arquivos receberão valores numéricos na propriedade "{property}".',
+        manualSortHint: 'Arraste para reordenar. As classificações numéricas são salvas na propriedade "{property}".',
         manualSortNonMarkdownHint: 'Arquivos não Markdown são exibidos no final e não podem ser reordenados.',
         unsortedSection: 'Não classificados',
         manualSortDone: 'Concluído',
@@ -402,8 +402,12 @@ export const STRINGS_PT_BR = {
         manualSortConfirm: {
             propertySortTitle: 'Usar classificação por propriedade?',
             propertySortMessage: (property: string, count: number) =>
-                `Isso substituirá o conteúdo de "${property}" em ${count} ${count === 1 ? 'nota' : 'notas'} na visualização atual por valores numéricos de classificação.`,
-            propertySortConfirmButton: 'Usar classificação por propriedade'
+                `Isso muda a visualização atual para classificação por propriedade usando "${property}". Os valores existentes em ${count} ${count === 1 ? 'nota' : 'notas'} não são alterados.`,
+            propertySortConfirmButton: 'Usar classificação por propriedade',
+            compactTitle: 'Compactar classificações?',
+            compactMessage: (count: number) =>
+                `Esta reordenação precisa de mais espaço de classificação. ${count} ${count === 1 ? 'nota receberá' : 'notas receberão'} novas classificações numéricas.`,
+            compactConfirmButton: 'Compactar classificações'
         },
         navRainbowSection: {
             title: (section: string) => `Cores arco-íris: ${section}`

@@ -52,7 +52,7 @@ export const STRINGS_FA = {
         filesSection: 'فایل‌ها',
         hiddenItemAriaLabel: '{name} (پنهان)',
         manualSortTitle: 'مرتب‌سازی دستی: {property}',
-        manualSortHint: 'برای تغییر ترتیب بکشید. به فایل‌ها مقادیر عددی در ویژگی "{property}" اختصاص داده می‌شود.',
+        manualSortHint: 'برای تغییر ترتیب بکشید. رتبه‌های عددی در ویژگی «{property}» ذخیره می‌شوند.',
         manualSortNonMarkdownHint: 'فایل‌های غیر مارک‌داون در پایین نمایش داده می‌شوند و قابل مرتب‌سازی مجدد نیستند.',
         unsortedSection: 'مرتب‌نشده',
         manualSortDone: 'انجام شد',
@@ -400,8 +400,12 @@ export const STRINGS_FA = {
         manualSortConfirm: {
             propertySortTitle: 'استفاده از مرتب‌سازی بر اساس ویژگی؟',
             propertySortMessage: (property: string, count: number) =>
-                `این کار محتوای "${property}" را در ${count} یادداشت در نمای فعلی با مقادیر مرتب‌سازی عددی جایگزین می‌کند.`,
-            propertySortConfirmButton: 'استفاده از مرتب‌سازی بر اساس ویژگی'
+                `این کار نمای فعلی را به مرتب‌سازی بر اساس ویژگی «${property}» تغییر می‌دهد. مقادیر موجود در ${count} یادداشت تغییر نمی‌کنند.`,
+            propertySortConfirmButton: 'استفاده از مرتب‌سازی بر اساس ویژگی',
+            compactTitle: 'فشرده‌سازی رتبه‌ها؟',
+            compactMessage: (count: number) =>
+                `این بازآرایی به فضای رتبه بیشتری نیاز دارد. ${count} یادداشت رتبه‌های عددی جدید دریافت می‌کنند.`,
+            compactConfirmButton: 'فشرده‌سازی رتبه‌ها'
         },
         navRainbowSection: {
             title: (section: string) => `رنگ‌های رنگین‌کمان: ${section}`

@@ -52,7 +52,7 @@ export const STRINGS_KO = {
         filesSection: '파일', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (숨김)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: '수동 정렬: {property}',
-        manualSortHint: '드래그하여 순서를 변경하세요. 파일에는 속성 "{property}"에 숫자 값이 할당됩니다.',
+        manualSortHint: '드래그하여 순서를 변경하세요. 숫자 순위는 속성 "{property}"에 저장됩니다.',
         manualSortNonMarkdownHint: '마크다운이 아닌 파일은 하단에 표시되며 순서를 변경할 수 없습니다.',
         unsortedSection: '정렬되지 않음',
         manualSortDone: '완료',
@@ -399,8 +399,12 @@ export const STRINGS_KO = {
         manualSortConfirm: {
             propertySortTitle: '속성 정렬을 사용하시겠습니까?',
             propertySortMessage: (property: string, count: number) =>
-                `현재 보기의 ${count}개 노트에서 "${property}"의 내용이 숫자 정렬 값으로 대체됩니다.`,
-            propertySortConfirmButton: '속성 정렬 사용'
+                `현재 보기를 "${property}"을(를) 사용한 속성 정렬로 전환합니다. ${count}개 노트의 기존 값은 변경되지 않습니다.`,
+            propertySortConfirmButton: '속성 정렬 사용',
+            compactTitle: '순위를 압축하시겠습니까?',
+            compactMessage: (count: number) =>
+                `이 재정렬에는 더 많은 순위 공간이 필요합니다. ${count}개 노트에 새로운 숫자 순위가 할당됩니다.`,
+            compactConfirmButton: '순위 압축'
         },
         navRainbowSection: {
             title: (section: string) => `무지개 색상: ${section}`

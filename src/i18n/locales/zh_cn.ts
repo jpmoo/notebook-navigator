@@ -52,7 +52,7 @@ export const STRINGS_ZH_CN = {
         filesSection: '文件', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (已隐藏)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: '手动排序: {property}',
-        manualSortHint: '拖动以重新排序。文件将在属性"{property}"中被赋予数值。',
+        manualSortHint: '拖动以重新排序。数字排名将保存在属性"{property}"中。',
         manualSortNonMarkdownHint: '非 Markdown 文件显示在底部，无法重新排序。',
         unsortedSection: '未排序',
         manualSortDone: '完成',
@@ -400,8 +400,11 @@ export const STRINGS_ZH_CN = {
         manualSortConfirm: {
             propertySortTitle: '使用属性排序？',
             propertySortMessage: (property: string, count: number) =>
-                `此操作会将当前视图中 ${count} 条笔记的"${property}"内容替换为数字排序值。`,
-            propertySortConfirmButton: '使用属性排序'
+                `这会将当前视图切换为使用"${property}"进行属性排序。${count} 条笔记中的现有值不会被更改。`,
+            propertySortConfirmButton: '使用属性排序',
+            compactTitle: '压缩排名？',
+            compactMessage: (count: number) => `此次重新排序需要更多排名空间。${count} 条笔记将获得新的数字排名。`,
+            compactConfirmButton: '压缩排名'
         },
         navRainbowSection: {
             title: (section: string) => `彩虹颜色: ${section}`

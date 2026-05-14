@@ -77,7 +77,7 @@ type DescendantApplyStats = {
 };
 
 interface UseListActionsOptions {
-    onManualSortStart?: (propertyKey: string, initialFiles: TFile[]) => void;
+    onManualSortStart?: (propertyKey: string) => void;
 }
 
 const BIDI_ISOLATE_START = '\u2068'; // First Strong Isolate
@@ -857,7 +857,7 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
     );
 
     const applyManualSortForProperty = useCallback(
-        async (propertyKey: string, target: SelectionSortTarget, initialFiles: TFile[]) => {
+        async (propertyKey: string, target: SelectionSortTarget) => {
             let resolvedPropertyKey = propertyKey;
 
             await updateSettings(current => {
@@ -893,7 +893,7 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
             });
 
             app.workspace.requestSaveLayout();
-            onManualSortStart?.(resolvedPropertyKey, initialFiles);
+            onManualSortStart?.(resolvedPropertyKey);
         },
         [app.workspace, defaultMode, onManualSortStart, updateSettings]
     );
@@ -912,7 +912,7 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
             const isCurrentPropertySort = currentField === 'property' && samePropertySortKey(currentSortSpec.propertyKey, propertyKey);
             const initialFiles = getManualSortInitialFiles(target, createListSortOverride('property-asc', propertyKey), propertyKey);
             const enterManualSort = async () => {
-                await applyManualSortForProperty(propertyKey, target, initialFiles);
+                await applyManualSortForProperty(propertyKey, target);
             };
 
             if (!isCurrentPropertySort) {

@@ -52,7 +52,7 @@ export const STRINGS_FR = {
         filesSection: 'Fichiers', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (masqué)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Tri manuel : {property}',
-        manualSortHint: 'Glissez pour réorganiser. Des valeurs numériques seront attribuées aux fichiers dans la propriété « {property} ».',
+        manualSortHint: 'Glissez pour réorganiser. Les rangs numériques sont enregistrés dans la propriété « {property} ».',
         manualSortNonMarkdownHint: 'Les fichiers non Markdown sont affichés en bas et ne peuvent pas être réorganisés.',
         unsortedSection: 'Non trié',
         manualSortDone: 'Terminé',
@@ -401,8 +401,12 @@ export const STRINGS_FR = {
         manualSortConfirm: {
             propertySortTitle: 'Utiliser le tri par propriété ?',
             propertySortMessage: (property: string, count: number) =>
-                `Ceci remplacera le contenu de « ${property} » dans ${count} ${count === 1 ? 'note' : 'notes'} de la vue actuelle par des valeurs numériques de tri.`,
-            propertySortConfirmButton: 'Utiliser le tri par propriété'
+                `Ceci bascule la vue actuelle sur le tri par propriété en utilisant « ${property} ». Les valeurs existantes dans ${count} ${count === 1 ? 'note' : 'notes'} ne sont pas modifiées.`,
+            propertySortConfirmButton: 'Utiliser le tri par propriété',
+            compactTitle: 'Compacter les rangs ?',
+            compactMessage: (count: number) =>
+                `Cette réorganisation nécessite plus d'espace de rang. ${count} ${count === 1 ? 'note recevra' : 'notes recevront'} de nouveaux rangs numériques.`,
+            compactConfirmButton: 'Compacter les rangs'
         },
         navRainbowSection: {
             title: (section: string) => `Couleurs arc-en-ciel: ${section}`

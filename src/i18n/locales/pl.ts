@@ -52,7 +52,7 @@ export const STRINGS_PL = {
         filesSection: 'Pliki', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (ukryte)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Sortowanie ręczne: {property}',
-        manualSortHint: 'Przeciągnij, aby zmienić kolejność. Plikom zostaną przypisane wartości liczbowe w atrybucie "{property}".',
+        manualSortHint: 'Przeciągnij, aby zmienić kolejność. Rangi liczbowe są zapisywane we właściwości „{property}".',
         manualSortNonMarkdownHint: 'Pliki inne niż Markdown są wyświetlane na dole i nie można zmieniać ich kolejności.',
         unsortedSection: 'Nieposortowane',
         manualSortDone: 'Gotowe',
@@ -402,8 +402,12 @@ export const STRINGS_PL = {
         manualSortConfirm: {
             propertySortTitle: 'Użyć sortowania według właściwości?',
             propertySortMessage: (property: string, count: number) =>
-                `Spowoduje to zastąpienie zawartości „${property}" w ${count} ${count === 1 ? 'notatce' : 'notatkach'} w bieżącym widoku wartościami sortowania numerycznego.`,
-            propertySortConfirmButton: 'Użyj sortowania według właściwości'
+                `Przełącza bieżący widok na sortowanie według właściwości „${property}". Istniejące wartości w ${count} ${count === 1 ? 'notatce' : 'notatkach'} nie zostaną zmienione.`,
+            propertySortConfirmButton: 'Użyj sortowania według właściwości',
+            compactTitle: 'Zagęścić rangi?',
+            compactMessage: (count: number) =>
+                `Ta zmiana kolejności wymaga więcej miejsca na rangi. ${count} ${count === 1 ? 'notatka otrzyma' : 'notatek otrzyma'} nowe rangi liczbowe.`,
+            compactConfirmButton: 'Zagęść rangi'
         },
         navRainbowSection: {
             title: (section: string) => `Kolory tęczy: ${section}`

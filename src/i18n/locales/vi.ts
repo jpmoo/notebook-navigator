@@ -52,7 +52,7 @@ export const STRINGS_VI = {
         filesSection: 'Tệp', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (ẩn)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Sắp xếp thủ công: {property}',
-        manualSortHint: 'Kéo để sắp xếp lại. Các tệp sẽ được gán giá trị số trong thuộc tính "{property}".',
+        manualSortHint: 'Kéo để sắp xếp lại. Thứ hạng số được lưu trong thuộc tính "{property}".',
         manualSortNonMarkdownHint: 'Các tệp không phải Markdown được hiển thị ở dưới cùng và không thể sắp xếp lại.',
         unsortedSection: 'Chưa sắp xếp',
         manualSortDone: 'Xong',
@@ -400,8 +400,12 @@ export const STRINGS_VI = {
         manualSortConfirm: {
             propertySortTitle: 'Sử dụng sắp xếp theo thuộc tính?',
             propertySortMessage: (property: string, count: number) =>
-                `Thao tác này sẽ thay thế nội dung của "${property}" trong ${count} ghi chú ở chế độ xem hiện tại bằng các giá trị sắp xếp số.`,
-            propertySortConfirmButton: 'Sử dụng sắp xếp theo thuộc tính'
+                `Việc này chuyển chế độ xem hiện tại sang sắp xếp theo thuộc tính bằng "${property}". Các giá trị hiện có trong ${count} ghi chú không bị thay đổi.`,
+            propertySortConfirmButton: 'Sử dụng sắp xếp theo thuộc tính',
+            compactTitle: 'Nén thứ hạng?',
+            compactMessage: (count: number) =>
+                `Việc sắp xếp lại này cần thêm khoảng trống thứ hạng. ${count} ghi chú sẽ nhận thứ hạng số mới.`,
+            compactConfirmButton: 'Nén thứ hạng'
         },
         navRainbowSection: {
             title: (section: string) => `Màu cầu vồng: ${section}`

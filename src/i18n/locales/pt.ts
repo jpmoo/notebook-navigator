@@ -52,7 +52,7 @@ export const STRINGS_PT = {
         filesSection: 'Ficheiros', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (oculto)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Ordenação manual: {property}',
-        manualSortHint: 'Arraste para reordenar. Os ficheiros receberão valores numéricos na propriedade "{property}".',
+        manualSortHint: 'Arraste para reordenar. As classificações numéricas são guardadas na propriedade "{property}".',
         manualSortNonMarkdownHint: 'Os ficheiros não Markdown são mostrados no fundo e não podem ser reordenados.',
         unsortedSection: 'Sem ordenação',
         manualSortDone: 'Concluído',
@@ -401,8 +401,12 @@ export const STRINGS_PT = {
         manualSortConfirm: {
             propertySortTitle: 'Usar ordenação por propriedade?',
             propertySortMessage: (property: string, count: number) =>
-                `Isto substituirá o conteúdo de "${property}" em ${count} ${count === 1 ? 'nota' : 'notas'} na vista atual por valores numéricos de ordenação.`,
-            propertySortConfirmButton: 'Usar ordenação por propriedade'
+                `Isto muda a vista atual para ordenação por propriedade usando "${property}". Os valores existentes em ${count} ${count === 1 ? 'nota' : 'notas'} não são alterados.`,
+            propertySortConfirmButton: 'Usar ordenação por propriedade',
+            compactTitle: 'Compactar classificações?',
+            compactMessage: (count: number) =>
+                `Esta reordenação precisa de mais espaço de classificação. ${count} ${count === 1 ? 'nota receberá' : 'notas receberão'} novas classificações numéricas.`,
+            compactConfirmButton: 'Compactar classificações'
         },
         navRainbowSection: {
             title: (section: string) => `Cores arco-íris: ${section}`

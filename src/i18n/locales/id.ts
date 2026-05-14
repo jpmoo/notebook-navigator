@@ -52,7 +52,7 @@ export const STRINGS_ID = {
         filesSection: 'File',
         hiddenItemAriaLabel: '{name} (tersembunyi)',
         manualSortTitle: 'Urutan manual: {property}',
-        manualSortHint: 'Seret untuk mengatur ulang. File akan diberi nilai numerik pada properti "{property}".',
+        manualSortHint: 'Seret untuk mengatur ulang. Peringkat numerik disimpan di properti "{property}".',
         manualSortNonMarkdownHint: 'File non-Markdown ditampilkan di bawah dan tidak dapat diatur ulang.',
         unsortedSection: 'Belum diurutkan',
         manualSortDone: 'Selesai',
@@ -401,8 +401,12 @@ export const STRINGS_ID = {
         manualSortConfirm: {
             propertySortTitle: 'Gunakan urutan properti?',
             propertySortMessage: (property: string, count: number) =>
-                `Tindakan ini akan mengganti konten "${property}" di ${count} catatan pada tampilan saat ini dengan nilai urutan numerik.`,
-            propertySortConfirmButton: 'Gunakan urutan properti'
+                `Ini akan mengalihkan tampilan saat ini ke urutan properti menggunakan "${property}". Nilai yang ada di ${count} catatan tidak diubah.`,
+            propertySortConfirmButton: 'Gunakan urutan properti',
+            compactTitle: 'Padatkan peringkat?',
+            compactMessage: (count: number) =>
+                `Pengaturan ulang ini memerlukan lebih banyak ruang peringkat. ${count} catatan akan menerima peringkat numerik baru.`,
+            compactConfirmButton: 'Padatkan peringkat'
         },
         navRainbowSection: {
             title: (section: string) => `Warna pelangi: ${section}`

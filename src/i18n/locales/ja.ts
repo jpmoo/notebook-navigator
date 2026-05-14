@@ -52,7 +52,7 @@ export const STRINGS_JA = {
         filesSection: 'ファイル', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (非表示)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: '手動並べ替え: {property}',
-        manualSortHint: 'ドラッグして並べ替えます。ファイルにはプロパティ「{property}」に数値が割り当てられます。',
+        manualSortHint: 'ドラッグして並べ替えます。数値ランクはプロパティ「{property}」に保存されます。',
         manualSortNonMarkdownHint: 'Markdown 以外のファイルは下部に表示され、並べ替えできません。',
         unsortedSection: '未ソート',
         manualSortDone: '完了',
@@ -400,8 +400,12 @@ export const STRINGS_JA = {
         manualSortConfirm: {
             propertySortTitle: 'プロパティでソートしますか？',
             propertySortMessage: (property: string, count: number) =>
-                `現在のビューの ${count} 件のノート内の「${property}」の内容が数値のソート値に置き換えられます。`,
-            propertySortConfirmButton: 'プロパティでソート'
+                `現在のビューを「${property}」を使ったプロパティソートに切り替えます。${count} 件のノートの既存の値は変更されません。`,
+            propertySortConfirmButton: 'プロパティでソート',
+            compactTitle: 'ランクを圧縮しますか？',
+            compactMessage: (count: number) =>
+                `この並べ替えにはより多くのランク領域が必要です。${count} 件のノートに新しい数値ランクが割り当てられます。`,
+            compactConfirmButton: 'ランクを圧縮'
         },
         navRainbowSection: {
             title: (section: string) => `レインボーカラー: ${section}`
