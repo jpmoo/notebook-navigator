@@ -50,7 +50,13 @@ export const STRINGS_ID = {
         pinnedSection: 'Disematkan',
         notesSection: 'Catatan',
         filesSection: 'File',
-        hiddenItemAriaLabel: '{name} (tersembunyi)'
+        hiddenItemAriaLabel: '{name} (tersembunyi)',
+        manualSortTitle: 'Urutan manual: {property}',
+        manualSortHint: 'Seret untuk mengatur ulang. File akan diberi nilai numerik pada properti "{property}".',
+        manualSortNonMarkdownHint: 'File non-Markdown ditampilkan di bawah dan tidak dapat diatur ulang.',
+        unsortedSection: 'Belum diurutkan',
+        manualSortDone: 'Selesai',
+        manualSortMultipleWriteFailure: '{count} file gagal; pertama: {path}: {message}'
     },
 
     // Tag list
@@ -132,6 +138,8 @@ export const STRINGS_ID = {
         changeChildSortOrder: 'Ubah urutan',
         changeSortAndGroup: 'Ubah urutan dan grup',
         defaultSort: 'Default',
+        manualSort: 'Urutan manual...',
+        editSortOrder: 'Edit urutan...',
         descendants: 'turunan',
         subfolders: 'subfolder',
         subtags: 'subtag',
@@ -390,6 +398,11 @@ export const STRINGS_ID = {
             applyAppearanceTitle: (target: string) => `Terapkan tampilan ke ${target}?`,
             affectedCountMessage: (count: number) => `Penimpaan yang ada dan akan berubah: ${count}.`
         },
+        manualSortConfirm: {
+            title: 'Aktifkan urutan manual?',
+            message: (count: number) => `Tindakan ini akan mengubah ${count} catatan di tampilan saat ini.`,
+            confirmButton: 'Aktifkan urutan manual'
+        },
         navRainbowSection: {
             title: (section: string) => `Warna pelangi: ${section}`
         },
@@ -428,6 +441,11 @@ export const STRINGS_ID = {
                 'list-descendants': 'Catatan dari subfolder',
                 'list-sort-ascending': 'Urutan: menaik',
                 'list-sort-descending': 'Urutan: menurun',
+                'list-sort-modified': 'Urutkan berdasarkan tanggal edit',
+                'list-sort-created': 'Urutkan berdasarkan tanggal dibuat',
+                'list-sort-title': 'Urutkan berdasarkan judul',
+                'list-sort-filename': 'Urutkan berdasarkan nama file',
+                'list-sort-property': 'Urutkan berdasarkan properti',
                 'list-appearance': 'Ubah tampilan',
                 'list-new-note': 'Catatan baru',
                 'nav-folder-open': 'Folder terbuka',
@@ -603,6 +621,15 @@ export const STRINGS_ID = {
             instructions: {
                 navigate: 'untuk navigasi',
                 select: 'untuk menambah properti',
+                dismiss: 'untuk menutup'
+            }
+        },
+        propertySortKeySuggest: {
+            placeholder: 'Properti untuk urutan manual...',
+            createNewProperty: 'Gunakan properti: {property}',
+            instructions: {
+                navigate: 'untuk navigasi',
+                select: 'untuk memilih properti',
                 dismiss: 'untuk menutup'
             }
         },

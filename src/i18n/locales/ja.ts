@@ -50,7 +50,13 @@ export const STRINGS_JA = {
         pinnedSection: 'ピン留め', // Header for the pinned notes section at the top of file list (English: Pinned)
         notesSection: 'ノート', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'ファイル', // Header shown between pinned and regular items when showing supported or all files (English: Files)
-        hiddenItemAriaLabel: '{name} (非表示)' // Accessibility label applied to list items that are normally hidden
+        hiddenItemAriaLabel: '{name} (非表示)', // Accessibility label applied to list items that are normally hidden
+        manualSortTitle: '手動並べ替え: {property}',
+        manualSortHint: 'ドラッグして並べ替えます。ファイルにはプロパティ「{property}」に数値が割り当てられます。',
+        manualSortNonMarkdownHint: 'Markdown 以外のファイルは下部に表示され、並べ替えできません。',
+        unsortedSection: '未ソート',
+        manualSortDone: '完了',
+        manualSortMultipleWriteFailure: '{count} 件のファイルが失敗しました。最初: {path}: {message}'
     },
 
     // Tag list
@@ -131,6 +137,8 @@ export const STRINGS_JA = {
         changeChildSortOrder: '並び順を変更',
         changeSortAndGroup: '並び順とグループを変更',
         defaultSort: 'デフォルト', // Label for default sorting mode (English: Default)
+        manualSort: '手動並べ替え...',
+        editSortOrder: '並べ替え順を編集...',
         descendants: '子孫',
         subfolders: 'サブフォルダー',
         subtags: 'サブタグ',
@@ -389,6 +397,11 @@ export const STRINGS_JA = {
             applyAppearanceTitle: (target: string) => `${target}に外観を適用しますか？`,
             affectedCountMessage: (count: number) => `変更される既存のオーバーライド: ${count}。`
         },
+        manualSortConfirm: {
+            title: '手動並べ替えを開始しますか？',
+            message: (count: number) => `現在のビューの ${count} 件のノートが変更されます。`,
+            confirmButton: '手動並べ替えを開始'
+        },
         navRainbowSection: {
             title: (section: string) => `レインボーカラー: ${section}`
         },
@@ -427,6 +440,11 @@ export const STRINGS_JA = {
                 'list-descendants': 'サブフォルダからのノート',
                 'list-sort-ascending': '並べ替え: 昇順',
                 'list-sort-descending': '並べ替え: 降順',
+                'list-sort-modified': '更新日時で並べ替え',
+                'list-sort-created': '作成日時で並べ替え',
+                'list-sort-title': 'タイトルで並べ替え',
+                'list-sort-filename': 'ファイル名で並べ替え',
+                'list-sort-property': 'プロパティで並べ替え',
                 'list-appearance': '外観を変更',
                 'list-new-note': '新規ノート',
                 'nav-folder-open': 'フォルダ（開）',
@@ -601,6 +619,15 @@ export const STRINGS_JA = {
             instructions: {
                 navigate: 'でナビゲート',
                 select: 'プロパティを追加',
+                dismiss: 'でキャンセル'
+            }
+        },
+        propertySortKeySuggest: {
+            placeholder: '手動並べ替え用のプロパティ...',
+            createNewProperty: 'プロパティを使用: {property}',
+            instructions: {
+                navigate: 'でナビゲート',
+                select: 'プロパティを選択',
                 dismiss: 'でキャンセル'
             }
         },

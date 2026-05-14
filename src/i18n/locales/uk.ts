@@ -50,7 +50,13 @@ export const STRINGS_UK = {
         pinnedSection: 'Закріплені', // Header for the pinned notes section at the top of file list (English: Pinned)
         notesSection: 'Нотатки', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Файли', // Header shown between pinned and regular items when showing supported or all files (English: Files)
-        hiddenItemAriaLabel: '{name} (приховано)' // Accessibility label applied to list items that are normally hidden
+        hiddenItemAriaLabel: '{name} (приховано)', // Accessibility label applied to list items that are normally hidden
+        manualSortTitle: 'Ручне сортування: {property}',
+        manualSortHint: 'Перетягуйте для зміни порядку. Файлам будуть присвоєні числові значення у властивості "{property}".',
+        manualSortNonMarkdownHint: 'Файли, відмінні від Markdown, показуються внизу, і їхній порядок не можна змінити.',
+        unsortedSection: 'Без сортування',
+        manualSortDone: 'Готово',
+        manualSortMultipleWriteFailure: '{count} файлів не вдалося обробити; перший: {path}: {message}'
     },
 
     // Tag list
@@ -132,6 +138,8 @@ export const STRINGS_UK = {
         changeChildSortOrder: 'Змінити порядок сортування',
         changeSortAndGroup: 'Змінити сортування та групування',
         defaultSort: 'За замовчуванням', // Label for default sorting mode (English: Default)
+        manualSort: 'Ручне сортування...',
+        editSortOrder: 'Редагувати порядок сортування...',
         descendants: 'нащадків',
         subfolders: 'підпапок',
         subtags: 'підтегів',
@@ -390,6 +398,11 @@ export const STRINGS_UK = {
             applyAppearanceTitle: (target: string) => `Застосувати оформлення для ${target}?`,
             affectedCountMessage: (count: number) => `Наявних перевизначень, які зміняться: ${count}.`
         },
+        manualSortConfirm: {
+            title: 'Увімкнути ручне сортування?',
+            message: (count: number) => `Це змінить ${count} нотаток у поточному вигляді.`,
+            confirmButton: 'Увімкнути ручне сортування'
+        },
         navRainbowSection: {
             title: (section: string) => `Кольори веселки: ${section}`
         },
@@ -428,6 +441,11 @@ export const STRINGS_UK = {
                 'list-descendants': 'Нотатки з підпапок',
                 'list-sort-ascending': 'Порядок сортування: за зростанням',
                 'list-sort-descending': 'Порядок сортування: за спаданням',
+                'list-sort-modified': 'Сортувати за датою зміни',
+                'list-sort-created': 'Сортувати за датою створення',
+                'list-sort-title': 'Сортувати за заголовком',
+                'list-sort-filename': 'Сортувати за іменем файлу',
+                'list-sort-property': 'Сортувати за властивістю',
                 'list-appearance': 'Змінити вигляд',
                 'list-new-note': 'Нова нотатка',
                 'nav-folder-open': 'Папка відкрита',
@@ -600,6 +618,15 @@ export const STRINGS_UK = {
             instructions: {
                 navigate: 'для навігації',
                 select: 'для додавання властивості',
+                dismiss: 'для закриття'
+            }
+        },
+        propertySortKeySuggest: {
+            placeholder: 'Властивість для ручного сортування...',
+            createNewProperty: 'Використати властивість: {property}',
+            instructions: {
+                navigate: 'для навігації',
+                select: 'для вибору властивості',
                 dismiss: 'для закриття'
             }
         },

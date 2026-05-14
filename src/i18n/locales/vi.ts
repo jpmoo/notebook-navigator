@@ -50,7 +50,13 @@ export const STRINGS_VI = {
         pinnedSection: 'Đã ghim', // Header for the pinned notes section at the top of file list (English: Pinned)
         notesSection: 'Ghi chú', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Tệp', // Header shown between pinned and regular items when showing supported or all files (English: Files)
-        hiddenItemAriaLabel: '{name} (ẩn)' // Accessibility label applied to list items that are normally hidden
+        hiddenItemAriaLabel: '{name} (ẩn)', // Accessibility label applied to list items that are normally hidden
+        manualSortTitle: 'Sắp xếp thủ công: {property}',
+        manualSortHint: 'Kéo để sắp xếp lại. Các tệp sẽ được gán giá trị số trong thuộc tính "{property}".',
+        manualSortNonMarkdownHint: 'Các tệp không phải Markdown được hiển thị ở dưới cùng và không thể sắp xếp lại.',
+        unsortedSection: 'Chưa sắp xếp',
+        manualSortDone: 'Xong',
+        manualSortMultipleWriteFailure: '{count} tệp thất bại; đầu tiên: {path}: {message}'
     },
 
     // Tag list
@@ -132,6 +138,8 @@ export const STRINGS_VI = {
         changeChildSortOrder: 'Đổi thứ tự sắp xếp',
         changeSortAndGroup: 'Đổi sắp xếp và nhóm',
         defaultSort: 'Mặc định', // Label for default sorting mode (English: Default)
+        manualSort: 'Sắp xếp thủ công...',
+        editSortOrder: 'Chỉnh sửa thứ tự sắp xếp...',
         descendants: 'phần tử con',
         subfolders: 'thư mục con',
         subtags: 'thẻ con',
@@ -389,6 +397,11 @@ export const STRINGS_VI = {
             applyAppearanceTitle: (target: string) => `Áp dụng giao diện cho ${target}?`,
             affectedCountMessage: (count: number) => `Ghi đè hiện có sẽ thay đổi: ${count}.`
         },
+        manualSortConfirm: {
+            title: 'Bật sắp xếp thủ công?',
+            message: (count: number) => `Việc này sẽ thay đổi ${count} ghi chú trong chế độ xem hiện tại.`,
+            confirmButton: 'Bật sắp xếp thủ công'
+        },
         navRainbowSection: {
             title: (section: string) => `Màu cầu vồng: ${section}`
         },
@@ -427,6 +440,11 @@ export const STRINGS_VI = {
                 'list-descendants': 'Ghi chú từ thư mục con',
                 'list-sort-ascending': 'Thứ tự: tăng dần',
                 'list-sort-descending': 'Thứ tự: giảm dần',
+                'list-sort-modified': 'Sắp xếp theo ngày chỉnh sửa',
+                'list-sort-created': 'Sắp xếp theo ngày tạo',
+                'list-sort-title': 'Sắp xếp theo tiêu đề',
+                'list-sort-filename': 'Sắp xếp theo tên tệp',
+                'list-sort-property': 'Sắp xếp theo thuộc tính',
                 'list-appearance': 'Thay đổi giao diện',
                 'list-new-note': 'Ghi chú mới',
                 'nav-folder-open': 'Thư mục mở',
@@ -604,6 +622,15 @@ export const STRINGS_VI = {
             instructions: {
                 navigate: 'để điều hướng',
                 select: 'để thêm thuộc tính',
+                dismiss: 'để đóng'
+            }
+        },
+        propertySortKeySuggest: {
+            placeholder: 'Thuộc tính cho sắp xếp thủ công...',
+            createNewProperty: 'Dùng thuộc tính: {property}',
+            instructions: {
+                navigate: 'để điều hướng',
+                select: 'để chọn thuộc tính',
                 dismiss: 'để đóng'
             }
         },

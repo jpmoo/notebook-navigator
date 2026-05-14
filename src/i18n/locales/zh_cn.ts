@@ -50,7 +50,13 @@ export const STRINGS_ZH_CN = {
         pinnedSection: '已固定', // Header for the pinned notes section at the top of file list (English: Pinned)
         notesSection: '笔记', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: '文件', // Header shown between pinned and regular items when showing supported or all files (English: Files)
-        hiddenItemAriaLabel: '{name} (已隐藏)' // Accessibility label applied to list items that are normally hidden
+        hiddenItemAriaLabel: '{name} (已隐藏)', // Accessibility label applied to list items that are normally hidden
+        manualSortTitle: '手动排序: {property}',
+        manualSortHint: '拖动以重新排序。文件将在属性"{property}"中被赋予数值。',
+        manualSortNonMarkdownHint: '非 Markdown 文件显示在底部，无法重新排序。',
+        unsortedSection: '未排序',
+        manualSortDone: '完成',
+        manualSortMultipleWriteFailure: '{count} 个文件失败；第一个: {path}: {message}'
     },
 
     // Tag list
@@ -131,6 +137,8 @@ export const STRINGS_ZH_CN = {
         changeChildSortOrder: '更改排序方式',
         changeSortAndGroup: '更改排序和分组',
         defaultSort: '默认', // Label for default sorting mode (English: Default)
+        manualSort: '手动排序...',
+        editSortOrder: '编辑排序方式...',
         descendants: '子项',
         subfolders: '子文件夹',
         subtags: '子标签',
@@ -389,6 +397,11 @@ export const STRINGS_ZH_CN = {
             applyAppearanceTitle: (target: string) => `将外观应用到${target}？`,
             affectedCountMessage: (count: number) => `将更改的现有覆盖：${count}。`
         },
+        manualSortConfirm: {
+            title: '启用手动排序？',
+            message: (count: number) => `这将更改当前视图中的 ${count} 条笔记。`,
+            confirmButton: '启用手动排序'
+        },
         navRainbowSection: {
             title: (section: string) => `彩虹颜色: ${section}`
         },
@@ -427,6 +440,11 @@ export const STRINGS_ZH_CN = {
                 'list-descendants': '子文件夹中的笔记',
                 'list-sort-ascending': '排序: 升序',
                 'list-sort-descending': '排序: 降序',
+                'list-sort-modified': '按编辑日期排序',
+                'list-sort-created': '按创建日期排序',
+                'list-sort-title': '按标题排序',
+                'list-sort-filename': '按文件名排序',
+                'list-sort-property': '按属性排序',
                 'list-appearance': '更改外观',
                 'list-new-note': '新建笔记',
                 'nav-folder-open': '文件夹打开',
@@ -598,6 +616,15 @@ export const STRINGS_ZH_CN = {
             instructions: {
                 navigate: '导航',
                 select: '添加属性',
+                dismiss: '取消'
+            }
+        },
+        propertySortKeySuggest: {
+            placeholder: '用于手动排序的属性...',
+            createNewProperty: '使用属性: {property}',
+            instructions: {
+                navigate: '导航',
+                select: '选择属性',
                 dismiss: '取消'
             }
         },

@@ -50,7 +50,13 @@ export const STRINGS_FR = {
         pinnedSection: 'Épinglées', // Header for the pinned notes section at the top of file list (English: Pinned)
         notesSection: 'Notes', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Fichiers', // Header shown between pinned and regular items when showing supported or all files (English: Files)
-        hiddenItemAriaLabel: '{name} (masqué)' // Accessibility label applied to list items that are normally hidden
+        hiddenItemAriaLabel: '{name} (masqué)', // Accessibility label applied to list items that are normally hidden
+        manualSortTitle: 'Tri manuel : {property}',
+        manualSortHint: 'Glissez pour réorganiser. Des valeurs numériques seront attribuées aux fichiers dans la propriété « {property} ».',
+        manualSortNonMarkdownHint: 'Les fichiers non Markdown sont affichés en bas et ne peuvent pas être réorganisés.',
+        unsortedSection: 'Non trié',
+        manualSortDone: 'Terminé',
+        manualSortMultipleWriteFailure: '{count} fichiers ont échoué ; premier : {path} : {message}'
     },
 
     // Tag list
@@ -131,6 +137,8 @@ export const STRINGS_FR = {
         changeChildSortOrder: "Changer l'ordre de tri",
         changeSortAndGroup: 'Changer le tri et le regroupement',
         defaultSort: 'Par défaut', // Label for default sorting mode (English: Default)
+        manualSort: 'Tri manuel...',
+        editSortOrder: "Modifier l'ordre de tri...",
         descendants: 'descendants',
         subfolders: 'sous-dossiers',
         subtags: 'sous-étiquettes',
@@ -390,6 +398,11 @@ export const STRINGS_FR = {
             applyAppearanceTitle: (target: string) => `Appliquer l'apparence aux ${target}\u202f?`,
             affectedCountMessage: (count: number) => `Remplacements existants qui seront modifiés\u202f: ${count}.`
         },
+        manualSortConfirm: {
+            title: 'Activer le tri manuel ?',
+            message: (count: number) => `Ceci modifiera ${count} notes dans la vue actuelle.`,
+            confirmButton: 'Activer le tri manuel'
+        },
         navRainbowSection: {
             title: (section: string) => `Couleurs arc-en-ciel: ${section}`
         },
@@ -428,6 +441,11 @@ export const STRINGS_FR = {
                 'list-descendants': 'Notes des sous-dossiers',
                 'list-sort-ascending': 'Ordre de tri : croissant',
                 'list-sort-descending': 'Ordre de tri : décroissant',
+                'list-sort-modified': 'Trier par date de modification',
+                'list-sort-created': 'Trier par date de création',
+                'list-sort-title': 'Trier par titre',
+                'list-sort-filename': 'Trier par nom de fichier',
+                'list-sort-property': 'Trier par propriété',
                 'list-appearance': "Modifier l'apparence",
                 'list-new-note': 'Nouvelle note',
                 'nav-folder-open': 'Dossier ouvert',
@@ -604,6 +622,15 @@ export const STRINGS_FR = {
             instructions: {
                 navigate: 'pour naviguer',
                 select: 'pour ajouter la propriété',
+                dismiss: 'pour annuler'
+            }
+        },
+        propertySortKeySuggest: {
+            placeholder: 'Propriété pour tri manuel...',
+            createNewProperty: 'Utiliser la propriété : {property}',
+            instructions: {
+                navigate: 'pour naviguer',
+                select: 'pour sélectionner la propriété',
                 dismiss: 'pour annuler'
             }
         },

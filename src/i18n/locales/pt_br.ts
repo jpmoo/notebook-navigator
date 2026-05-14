@@ -50,7 +50,13 @@ export const STRINGS_PT_BR = {
         pinnedSection: 'Fixadas',
         notesSection: 'Notas',
         filesSection: 'Arquivos',
-        hiddenItemAriaLabel: '{name} (oculto)'
+        hiddenItemAriaLabel: '{name} (oculto)',
+        manualSortTitle: 'Classificação manual: {property}',
+        manualSortHint: 'Arraste para reordenar. Os arquivos receberão valores numéricos na propriedade "{property}".',
+        manualSortNonMarkdownHint: 'Arquivos não Markdown são exibidos no final e não podem ser reordenados.',
+        unsortedSection: 'Não classificados',
+        manualSortDone: 'Concluído',
+        manualSortMultipleWriteFailure: '{count} arquivos falharam; primeiro: {path}: {message}'
     },
 
     // Tag list
@@ -132,6 +138,8 @@ export const STRINGS_PT_BR = {
         changeChildSortOrder: 'Alterar ordem de classificação',
         changeSortAndGroup: 'Alterar classificação e agrupamento',
         defaultSort: 'Padrão',
+        manualSort: 'Classificação manual...',
+        editSortOrder: 'Editar ordem de classificação...',
         descendants: 'descendentes',
         subfolders: 'subpastas',
         subtags: 'subtags',
@@ -391,6 +399,11 @@ export const STRINGS_PT_BR = {
             applyAppearanceTitle: (target: string) => `Aplicar aparência a ${target}?`,
             affectedCountMessage: (count: number) => `Substituições existentes que serão alteradas: ${count}.`
         },
+        manualSortConfirm: {
+            title: 'Ativar classificação manual?',
+            message: (count: number) => `Isso alterará ${count} notas na visualização atual.`,
+            confirmButton: 'Ativar classificação manual'
+        },
         navRainbowSection: {
             title: (section: string) => `Cores arco-íris: ${section}`
         },
@@ -429,6 +442,11 @@ export const STRINGS_PT_BR = {
                 'list-descendants': 'Notas de subpastas',
                 'list-sort-ascending': 'Ordem: crescente',
                 'list-sort-descending': 'Ordem: decrescente',
+                'list-sort-modified': 'Classificar por data de edição',
+                'list-sort-created': 'Classificar por data de criação',
+                'list-sort-title': 'Classificar por título',
+                'list-sort-filename': 'Classificar por nome do arquivo',
+                'list-sort-property': 'Classificar por propriedade',
                 'list-appearance': 'Alterar aparência',
                 'list-new-note': 'Nova nota',
                 'nav-folder-open': 'Pasta aberta',
@@ -604,6 +622,15 @@ export const STRINGS_PT_BR = {
             instructions: {
                 navigate: 'para navegar',
                 select: 'para adicionar propriedade',
+                dismiss: 'para descartar'
+            }
+        },
+        propertySortKeySuggest: {
+            placeholder: 'Propriedade para classificação manual...',
+            createNewProperty: 'Usar propriedade: {property}',
+            instructions: {
+                navigate: 'para navegar',
+                select: 'para selecionar propriedade',
                 dismiss: 'para descartar'
             }
         },

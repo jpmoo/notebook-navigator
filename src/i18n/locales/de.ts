@@ -50,7 +50,13 @@ export const STRINGS_DE = {
         pinnedSection: 'Angeheftet', // Header for the pinned notes section at the top of file list (English: Pinned)
         notesSection: 'Notizen', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Dateien', // Header shown between pinned and regular items when showing supported or all files (English: Files)
-        hiddenItemAriaLabel: '{name} (ausgeblendet)' // Accessibility label applied to list items that are normally hidden
+        hiddenItemAriaLabel: '{name} (ausgeblendet)', // Accessibility label applied to list items that are normally hidden
+        manualSortTitle: 'Manuelle Sortierung: {property}',
+        manualSortHint: 'Zum Neuordnen ziehen. Dateien erhalten numerische Werte in der Eigenschaft „{property}".',
+        manualSortNonMarkdownHint: 'Nicht-Markdown-Dateien werden unten angezeigt und können nicht neu geordnet werden.',
+        unsortedSection: 'Unsortiert',
+        manualSortDone: 'Fertig',
+        manualSortMultipleWriteFailure: '{count} Dateien fehlgeschlagen; erste: {path}: {message}'
     },
 
     // Tag list
@@ -131,6 +137,8 @@ export const STRINGS_DE = {
         changeChildSortOrder: 'Sortierreihenfolge ändern',
         changeSortAndGroup: 'Sortierung und Gruppierung ändern',
         defaultSort: 'Standard', // Label for default sorting mode (English: Default)
+        manualSort: 'Manuelle Sortierung...',
+        editSortOrder: 'Sortierreihenfolge bearbeiten...',
         descendants: 'Unterelemente',
         subfolders: 'Unterordner',
         subtags: 'Unter-Tags',
@@ -390,6 +398,11 @@ export const STRINGS_DE = {
             applyAppearanceTitle: (target: string) => `Darstellung auf ${target} anwenden?`,
             affectedCountMessage: (count: number) => `Vorhandene Überschreibungen, die sich ändern: ${count}.`
         },
+        manualSortConfirm: {
+            title: 'Manuelle Sortierung aktivieren?',
+            message: (count: number) => `Dies wird ${count} Notizen in der aktuellen Ansicht ändern.`,
+            confirmButton: 'Manuelle Sortierung aktivieren'
+        },
         navRainbowSection: {
             title: (section: string) => `Regenbogenfarben: ${section}`
         },
@@ -428,6 +441,11 @@ export const STRINGS_DE = {
                 'list-descendants': 'Notizen aus Unterordnern',
                 'list-sort-ascending': 'Sortierung: aufsteigend',
                 'list-sort-descending': 'Sortierung: absteigend',
+                'list-sort-modified': 'Nach Änderungsdatum sortieren',
+                'list-sort-created': 'Nach Erstellungsdatum sortieren',
+                'list-sort-title': 'Nach Titel sortieren',
+                'list-sort-filename': 'Nach Dateiname sortieren',
+                'list-sort-property': 'Nach Eigenschaft sortieren',
                 'list-appearance': 'Darstellung ändern',
                 'list-new-note': 'Neue Notiz',
                 'nav-folder-open': 'Ordner geöffnet',
@@ -603,6 +621,15 @@ export const STRINGS_DE = {
             instructions: {
                 navigate: 'zum Navigieren',
                 select: 'zum Hinzufügen der Eigenschaft',
+                dismiss: 'zum Abbrechen'
+            }
+        },
+        propertySortKeySuggest: {
+            placeholder: 'Eigenschaft für manuelle Sortierung...',
+            createNewProperty: 'Eigenschaft verwenden: {property}',
+            instructions: {
+                navigate: 'zum Navigieren',
+                select: 'zum Auswählen der Eigenschaft',
                 dismiss: 'zum Abbrechen'
             }
         },

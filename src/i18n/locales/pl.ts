@@ -50,7 +50,13 @@ export const STRINGS_PL = {
         pinnedSection: 'Przypięte', // Header for the pinned notes section at the top of file list (English: Pinned)
         notesSection: 'Notatki', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Pliki', // Header shown between pinned and regular items when showing supported or all files (English: Files)
-        hiddenItemAriaLabel: '{name} (ukryte)' // Accessibility label applied to list items that are normally hidden
+        hiddenItemAriaLabel: '{name} (ukryte)', // Accessibility label applied to list items that are normally hidden
+        manualSortTitle: 'Sortowanie ręczne: {property}',
+        manualSortHint: 'Przeciągnij, aby zmienić kolejność. Plikom zostaną przypisane wartości liczbowe w atrybucie "{property}".',
+        manualSortNonMarkdownHint: 'Pliki inne niż Markdown są wyświetlane na dole i nie można zmieniać ich kolejności.',
+        unsortedSection: 'Nieposortowane',
+        manualSortDone: 'Gotowe',
+        manualSortMultipleWriteFailure: '{count} plików nie powiodło się; pierwszy: {path}: {message}'
     },
 
     // Tag list
@@ -131,6 +137,8 @@ export const STRINGS_PL = {
         changeChildSortOrder: 'Zmień kolejność sortowania',
         changeSortAndGroup: 'Zmień sortowanie i grupowanie',
         defaultSort: 'Domyślne', // Label for default sorting mode (English: Default)
+        manualSort: 'Sortowanie ręczne...',
+        editSortOrder: 'Edytuj kolejność sortowania...',
         descendants: 'potomków',
         subfolders: 'podfolderów',
         subtags: 'podtagów',
@@ -391,6 +399,11 @@ export const STRINGS_PL = {
             applyAppearanceTitle: (target: string) => `Zastosuj wygląd dla ${target}?`,
             affectedCountMessage: (count: number) => `Istniejące nadpisania do zmiany: ${count}.`
         },
+        manualSortConfirm: {
+            title: 'Włączyć sortowanie ręczne?',
+            message: (count: number) => `Spowoduje to zmianę ${count} notatek w bieżącym widoku.`,
+            confirmButton: 'Włącz sortowanie ręczne'
+        },
         navRainbowSection: {
             title: (section: string) => `Kolory tęczy: ${section}`
         },
@@ -429,6 +442,11 @@ export const STRINGS_PL = {
                 'list-descendants': 'Notatki z podfolderów',
                 'list-sort-ascending': 'Kolejność: rosnąco',
                 'list-sort-descending': 'Kolejność: malejąco',
+                'list-sort-modified': 'Sortuj według daty modyfikacji',
+                'list-sort-created': 'Sortuj według daty utworzenia',
+                'list-sort-title': 'Sortuj według tytułu',
+                'list-sort-filename': 'Sortuj według nazwy pliku',
+                'list-sort-property': 'Sortuj według atrybutu',
                 'list-appearance': 'Zmień wygląd',
                 'list-new-note': 'Nowa notatka',
                 'nav-folder-open': 'Folder otwarty',
@@ -604,6 +622,15 @@ export const STRINGS_PL = {
             instructions: {
                 navigate: 'aby nawigować',
                 select: 'aby dodać atrybut',
+                dismiss: 'aby anulować'
+            }
+        },
+        propertySortKeySuggest: {
+            placeholder: 'Atrybut dla sortowania ręcznego...',
+            createNewProperty: 'Użyj atrybutu: {property}',
+            instructions: {
+                navigate: 'aby nawigować',
+                select: 'aby wybrać atrybut',
                 dismiss: 'aby anulować'
             }
         },

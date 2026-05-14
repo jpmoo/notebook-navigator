@@ -50,7 +50,13 @@ export const STRINGS_IT = {
         pinnedSection: 'Fissate', // Header for the pinned notes section at the top of file list (English: Pinned)
         notesSection: 'Note', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'File', // Header shown between pinned and regular items when showing supported or all files (English: Files)
-        hiddenItemAriaLabel: '{name} (nascosto)' // Accessibility label applied to list items that are normally hidden
+        hiddenItemAriaLabel: '{name} (nascosto)', // Accessibility label applied to list items that are normally hidden
+        manualSortTitle: 'Ordinamento manuale: {property}',
+        manualSortHint: 'Trascina per riordinare. Ai file verranno assegnati valori numerici nella proprietà "{property}".',
+        manualSortNonMarkdownHint: 'I file non Markdown sono mostrati in fondo e non possono essere riordinati.',
+        unsortedSection: 'Non ordinato',
+        manualSortDone: 'Fatto',
+        manualSortMultipleWriteFailure: '{count} file non riusciti; primo: {path}: {message}'
     },
 
     // Tag list
@@ -132,6 +138,8 @@ export const STRINGS_IT = {
         changeChildSortOrder: 'Cambia ordine',
         changeSortAndGroup: 'Cambia ordine e raggruppamento',
         defaultSort: 'Predefinito', // Label for default sorting mode (English: Default)
+        manualSort: 'Ordinamento manuale...',
+        editSortOrder: 'Modifica ordinamento...',
         descendants: 'discendenti',
         subfolders: 'sottocartelle',
         subtags: 'sotto-tag',
@@ -389,6 +397,11 @@ export const STRINGS_IT = {
             applyAppearanceTitle: (target: string) => `Applicare aspetto a ${target}?`,
             affectedCountMessage: (count: number) => `Sostituzioni esistenti che cambieranno: ${count}.`
         },
+        manualSortConfirm: {
+            title: 'Attivare ordinamento manuale?',
+            message: (count: number) => `Questo modificherà ${count} note nella vista corrente.`,
+            confirmButton: 'Attiva ordinamento manuale'
+        },
         navRainbowSection: {
             title: (section: string) => `Colori arcobaleno: ${section}`
         },
@@ -427,6 +440,11 @@ export const STRINGS_IT = {
                 'list-descendants': 'Note dalle sottocartelle',
                 'list-sort-ascending': 'Ordine: crescente',
                 'list-sort-descending': 'Ordine: decrescente',
+                'list-sort-modified': 'Ordina per data di modifica',
+                'list-sort-created': 'Ordina per data di creazione',
+                'list-sort-title': 'Ordina per titolo',
+                'list-sort-filename': 'Ordina per nome file',
+                'list-sort-property': 'Ordina per proprietà',
                 'list-appearance': 'Cambia aspetto',
                 'list-new-note': 'Nuova nota',
                 'nav-folder-open': 'Cartella aperta',
@@ -599,6 +617,15 @@ export const STRINGS_IT = {
             instructions: {
                 navigate: 'per navigare',
                 select: 'per aggiungere proprietà',
+                dismiss: 'per chiudere'
+            }
+        },
+        propertySortKeySuggest: {
+            placeholder: 'Proprietà per ordinamento manuale...',
+            createNewProperty: 'Usa proprietà: {property}',
+            instructions: {
+                navigate: 'per navigare',
+                select: 'per selezionare proprietà',
                 dismiss: 'per chiudere'
             }
         },

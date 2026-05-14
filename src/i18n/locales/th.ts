@@ -50,7 +50,13 @@ export const STRINGS_TH = {
         pinnedSection: 'ปักหมุด',
         notesSection: 'โน้ต',
         filesSection: 'ไฟล์',
-        hiddenItemAriaLabel: '{name} (ซ่อนอยู่)'
+        hiddenItemAriaLabel: '{name} (ซ่อนอยู่)',
+        manualSortTitle: 'จัดเรียงด้วยตนเอง: {property}',
+        manualSortHint: 'ลากเพื่อจัดเรียงใหม่ ไฟล์จะได้รับค่าตัวเลขในคุณสมบัติ "{property}"',
+        manualSortNonMarkdownHint: 'ไฟล์ที่ไม่ใช่ Markdown จะแสดงด้านล่างและไม่สามารถจัดเรียงใหม่ได้',
+        unsortedSection: 'ยังไม่จัดเรียง',
+        manualSortDone: 'เสร็จ',
+        manualSortMultipleWriteFailure: '{count} ไฟล์ล้มเหลว ไฟล์แรก: {path}: {message}'
     },
 
     // Tag list
@@ -132,6 +138,8 @@ export const STRINGS_TH = {
         changeChildSortOrder: 'เปลี่ยนลำดับการเรียง',
         changeSortAndGroup: 'เปลี่ยนการเรียงและการจัดกลุ่ม',
         defaultSort: 'ค่าเริ่มต้น',
+        manualSort: 'จัดเรียงด้วยตนเอง...',
+        editSortOrder: 'แก้ไขลำดับการจัดเรียง...',
         descendants: 'รายการย่อย',
         subfolders: 'โฟลเดอร์ย่อย',
         subtags: 'แท็กย่อย',
@@ -389,6 +397,11 @@ export const STRINGS_TH = {
             applyAppearanceTitle: (target: string) => `ใช้รูปลักษณ์กับ${target}?`,
             affectedCountMessage: (count: number) => `การแทนที่ที่มีอยู่ซึ่งจะเปลี่ยนแปลง: ${count}`
         },
+        manualSortConfirm: {
+            title: 'เปิดใช้การจัดเรียงด้วยตนเอง?',
+            message: (count: number) => `การดำเนินการนี้จะเปลี่ยน ${count} โน้ตในมุมมองปัจจุบัน`,
+            confirmButton: 'เปิดใช้การจัดเรียงด้วยตนเอง'
+        },
         navRainbowSection: {
             title: (section: string) => `สีรุ้ง: ${section}`
         },
@@ -427,6 +440,11 @@ export const STRINGS_TH = {
                 'list-descendants': 'โน้ตจากโฟลเดอร์ย่อย',
                 'list-sort-ascending': 'ลำดับ: น้อยไปมาก',
                 'list-sort-descending': 'ลำดับ: มากไปน้อย',
+                'list-sort-modified': 'จัดเรียงตามวันที่แก้ไข',
+                'list-sort-created': 'จัดเรียงตามวันที่สร้าง',
+                'list-sort-title': 'จัดเรียงตามชื่อเรื่อง',
+                'list-sort-filename': 'จัดเรียงตามชื่อไฟล์',
+                'list-sort-property': 'จัดเรียงตามคุณสมบัติ',
                 'list-appearance': 'เปลี่ยนรูปลักษณ์',
                 'list-new-note': 'โน้ตใหม่',
                 'nav-folder-open': 'โฟลเดอร์เปิด',
@@ -599,6 +617,15 @@ export const STRINGS_TH = {
             instructions: {
                 navigate: 'เพื่อนำทาง',
                 select: 'เพื่อเพิ่มคุณสมบัติ',
+                dismiss: 'เพื่อปิด'
+            }
+        },
+        propertySortKeySuggest: {
+            placeholder: 'คุณสมบัติสำหรับการจัดเรียงด้วยตนเอง...',
+            createNewProperty: 'ใช้คุณสมบัติ: {property}',
+            instructions: {
+                navigate: 'เพื่อนำทาง',
+                select: 'เพื่อเลือกคุณสมบัติ',
                 dismiss: 'เพื่อปิด'
             }
         },

@@ -50,7 +50,13 @@ export const STRINGS_KO = {
         pinnedSection: '고정됨', // Header for the pinned notes section at the top of file list (English: Pinned)
         notesSection: '노트', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: '파일', // Header shown between pinned and regular items when showing supported or all files (English: Files)
-        hiddenItemAriaLabel: '{name} (숨김)' // Accessibility label applied to list items that are normally hidden
+        hiddenItemAriaLabel: '{name} (숨김)', // Accessibility label applied to list items that are normally hidden
+        manualSortTitle: '수동 정렬: {property}',
+        manualSortHint: '드래그하여 순서를 변경하세요. 파일에는 속성 "{property}"에 숫자 값이 할당됩니다.',
+        manualSortNonMarkdownHint: '마크다운이 아닌 파일은 하단에 표시되며 순서를 변경할 수 없습니다.',
+        unsortedSection: '정렬되지 않음',
+        manualSortDone: '완료',
+        manualSortMultipleWriteFailure: '{count}개 파일 실패; 첫 번째: {path}: {message}'
     },
 
     // Tag list
@@ -131,6 +137,8 @@ export const STRINGS_KO = {
         changeChildSortOrder: '정렬 순서 변경',
         changeSortAndGroup: '정렬 및 그룹 변경',
         defaultSort: '기본', // Label for default sorting mode (English: Default)
+        manualSort: '수동 정렬...',
+        editSortOrder: '정렬 순서 편집...',
         descendants: '하위 항목',
         subfolders: '하위 폴더',
         subtags: '하위 태그',
@@ -388,6 +396,11 @@ export const STRINGS_KO = {
             applyAppearanceTitle: (target: string) => `${target}에 모양을 적용하시겠습니까?`,
             affectedCountMessage: (count: number) => `변경될 기존 재정의: ${count}.`
         },
+        manualSortConfirm: {
+            title: '수동 정렬을 시작하시겠습니까?',
+            message: (count: number) => `현재 보기의 ${count}개 노트가 변경됩니다.`,
+            confirmButton: '수동 정렬 시작'
+        },
         navRainbowSection: {
             title: (section: string) => `무지개 색상: ${section}`
         },
@@ -426,6 +439,11 @@ export const STRINGS_KO = {
                 'list-descendants': '하위 폴더의 노트',
                 'list-sort-ascending': '정렬 순서: 오름차순',
                 'list-sort-descending': '정렬 순서: 내림차순',
+                'list-sort-modified': '수정 날짜로 정렬',
+                'list-sort-created': '생성 날짜로 정렬',
+                'list-sort-title': '제목으로 정렬',
+                'list-sort-filename': '파일 이름으로 정렬',
+                'list-sort-property': '속성으로 정렬',
                 'list-appearance': '모양 변경',
                 'list-new-note': '새 노트',
                 'nav-folder-open': '열린 폴더',
@@ -601,6 +619,15 @@ export const STRINGS_KO = {
             instructions: {
                 navigate: '이동',
                 select: '속성 추가',
+                dismiss: '닫기'
+            }
+        },
+        propertySortKeySuggest: {
+            placeholder: '수동 정렬에 사용할 속성...',
+            createNewProperty: '속성 사용: {property}',
+            instructions: {
+                navigate: '이동',
+                select: '속성 선택',
                 dismiss: '닫기'
             }
         },

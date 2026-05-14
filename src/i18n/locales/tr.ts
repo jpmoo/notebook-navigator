@@ -50,7 +50,13 @@ export const STRINGS_TR = {
         pinnedSection: 'Sabitlenmiş', // Header for the pinned notes section at the top of file list (English: Pinned)
         notesSection: 'Notlar', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Dosyalar', // Header shown between pinned and regular items when showing supported or all files (English: Files)
-        hiddenItemAriaLabel: '{name} (gizli)' // Accessibility label applied to list items that are normally hidden
+        hiddenItemAriaLabel: '{name} (gizli)', // Accessibility label applied to list items that are normally hidden
+        manualSortTitle: 'Manuel sıralama: {property}',
+        manualSortHint: 'Yeniden sıralamak için sürükleyin. Dosyalara "{property}" özelliğinde sayısal değerler atanacaktır.',
+        manualSortNonMarkdownHint: 'Markdown olmayan dosyalar altta gösterilir ve yeniden sıralanamaz.',
+        unsortedSection: 'Sıralanmamış',
+        manualSortDone: 'Tamam',
+        manualSortMultipleWriteFailure: '{count} dosya başarısız oldu; ilki: {path}: {message}'
     },
 
     // Tag list
@@ -132,6 +138,8 @@ export const STRINGS_TR = {
         changeChildSortOrder: 'Sıralama düzenini değiştir',
         changeSortAndGroup: 'Sıralama ve gruplandırmayı değiştir',
         defaultSort: 'Varsayılan', // Label for default sorting mode (English: Default)
+        manualSort: 'Manuel sıralama...',
+        editSortOrder: 'Sıralama düzenini düzenle...',
         descendants: 'alt öğeler',
         subfolders: 'alt klasörler',
         subtags: 'alt etiketler',
@@ -390,6 +398,11 @@ export const STRINGS_TR = {
             applyAppearanceTitle: (target: string) => `Görünüm ${target} için uygulansın mı?`,
             affectedCountMessage: (count: number) => `Değişecek mevcut geçersiz kılmalar: ${count}.`
         },
+        manualSortConfirm: {
+            title: 'Manuel sıralama etkinleştirilsin mi?',
+            message: (count: number) => `Bu işlem geçerli görünümdeki ${count} notu değiştirecek.`,
+            confirmButton: 'Manuel sıralamayı etkinleştir'
+        },
         navRainbowSection: {
             title: (section: string) => `Gökkuşağı renkleri: ${section}`
         },
@@ -428,6 +441,11 @@ export const STRINGS_TR = {
                 'list-descendants': 'Alt klasörlerden notlar',
                 'list-sort-ascending': 'Sıralama: artan',
                 'list-sort-descending': 'Sıralama: azalan',
+                'list-sort-modified': 'Düzenlenme tarihine göre sırala',
+                'list-sort-created': 'Oluşturulma tarihine göre sırala',
+                'list-sort-title': 'Başlığa göre sırala',
+                'list-sort-filename': 'Dosya adına göre sırala',
+                'list-sort-property': 'Özelliğe göre sırala',
                 'list-appearance': 'Görünümü değiştir',
                 'list-new-note': 'Yeni not',
                 'nav-folder-open': 'Klasör açık',
@@ -603,6 +621,15 @@ export const STRINGS_TR = {
             instructions: {
                 navigate: 'gezinmek için',
                 select: 'özellik eklemek için',
+                dismiss: 'kapatmak için'
+            }
+        },
+        propertySortKeySuggest: {
+            placeholder: 'Manuel sıralama için özellik...',
+            createNewProperty: 'Özelliği kullan: {property}',
+            instructions: {
+                navigate: 'gezinmek için',
+                select: 'özellik seçmek için',
                 dismiss: 'kapatmak için'
             }
         },

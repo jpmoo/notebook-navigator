@@ -50,7 +50,13 @@ export const STRINGS_RU = {
         pinnedSection: 'Закреплённые', // Header for the pinned notes section at the top of file list (English: Pinned)
         notesSection: 'Заметки', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Файлы', // Header shown between pinned and regular items when showing supported or all files (English: Files)
-        hiddenItemAriaLabel: '{name} (скрыто)' // Accessibility label applied to list items that are normally hidden
+        hiddenItemAriaLabel: '{name} (скрыто)', // Accessibility label applied to list items that are normally hidden
+        manualSortTitle: 'Ручная сортировка: {property}',
+        manualSortHint: 'Перетаскивайте для изменения порядка. Файлам будут присвоены числовые значения в свойстве "{property}".',
+        manualSortNonMarkdownHint: 'Файлы, отличные от Markdown, показаны внизу и их порядок изменить нельзя.',
+        unsortedSection: 'Без сортировки',
+        manualSortDone: 'Готово',
+        manualSortMultipleWriteFailure: '{count} файлов не удалось обработать; первый: {path}: {message}'
     },
 
     // Tag list
@@ -132,6 +138,8 @@ export const STRINGS_RU = {
         changeChildSortOrder: 'Изменить сортировку',
         changeSortAndGroup: 'Изменить сортировку и группировку',
         defaultSort: 'По умолчанию', // Label for default sorting mode (English: Default)
+        manualSort: 'Ручная сортировка...',
+        editSortOrder: 'Изменить порядок сортировки...',
         descendants: 'потомков',
         subfolders: 'подпапок',
         subtags: 'подтегов',
@@ -390,6 +398,11 @@ export const STRINGS_RU = {
             applyAppearanceTitle: (target: string) => `Применить оформление для ${target}?`,
             affectedCountMessage: (count: number) => `Существующих переопределений, которые изменятся: ${count}.`
         },
+        manualSortConfirm: {
+            title: 'Включить ручную сортировку?',
+            message: (count: number) => `Это изменит ${count} заметок в текущем виде.`,
+            confirmButton: 'Включить ручную сортировку'
+        },
         navRainbowSection: {
             title: (section: string) => `Цвета радуги: ${section}`
         },
@@ -428,6 +441,11 @@ export const STRINGS_RU = {
                 'list-descendants': 'Заметки из подпапок',
                 'list-sort-ascending': 'Порядок сортировки: по возрастанию',
                 'list-sort-descending': 'Порядок сортировки: по убыванию',
+                'list-sort-modified': 'Сортировать по дате изменения',
+                'list-sort-created': 'Сортировать по дате создания',
+                'list-sort-title': 'Сортировать по заголовку',
+                'list-sort-filename': 'Сортировать по имени файла',
+                'list-sort-property': 'Сортировать по свойству',
                 'list-appearance': 'Изменить вид',
                 'list-new-note': 'Новая заметка',
                 'nav-folder-open': 'Папка открыта',
@@ -600,6 +618,15 @@ export const STRINGS_RU = {
             instructions: {
                 navigate: 'для навигации',
                 select: 'для добавления свойства',
+                dismiss: 'для закрытия'
+            }
+        },
+        propertySortKeySuggest: {
+            placeholder: 'Свойство для ручной сортировки...',
+            createNewProperty: 'Использовать свойство: {property}',
+            instructions: {
+                navigate: 'для навигации',
+                select: 'для выбора свойства',
                 dismiss: 'для закрытия'
             }
         },

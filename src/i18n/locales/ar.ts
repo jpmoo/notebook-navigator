@@ -50,7 +50,13 @@ export const STRINGS_AR = {
         pinnedSection: 'مثبت', // Header for the pinned notes section at the top of file list (English: Pinned)
         notesSection: 'ملاحظات', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'ملفات', // Header shown between pinned and regular items when showing supported or all files (English: Files)
-        hiddenItemAriaLabel: '{name} (مخفي)' // Accessibility label applied to list items that are normally hidden
+        hiddenItemAriaLabel: '{name} (مخفي)', // Accessibility label applied to list items that are normally hidden
+        manualSortTitle: 'فرز يدوي: {property}',
+        manualSortHint: 'اسحب لإعادة الترتيب. سيتم تعيين قيم رقمية للملفات في الخاصية "{property}".',
+        manualSortNonMarkdownHint: 'الملفات غير Markdown تظهر في الأسفل ولا يمكن إعادة ترتيبها.',
+        unsortedSection: 'غير مرتبة',
+        manualSortDone: 'تم',
+        manualSortMultipleWriteFailure: 'فشل {count} من الملفات؛ الأول: {path}: {message}'
     },
 
     // Tag list
@@ -132,6 +138,8 @@ export const STRINGS_AR = {
         changeChildSortOrder: 'تغيير ترتيب الفرز',
         changeSortAndGroup: 'تغيير الفرز والتجميع',
         defaultSort: 'افتراضي', // Label for default sorting mode (English: Default)
+        manualSort: 'فرز يدوي...',
+        editSortOrder: 'تحرير ترتيب الفرز...',
         descendants: 'العناصر الفرعية',
         subfolders: 'المجلدات الفرعية',
         subtags: 'الوسوم الفرعية',
@@ -389,6 +397,11 @@ export const STRINGS_AR = {
             applyAppearanceTitle: (target: string) => `تطبيق المظهر على ${target}؟`,
             affectedCountMessage: (count: number) => `التجاوزات الحالية التي ستتغير: ${count}.`
         },
+        manualSortConfirm: {
+            title: 'تفعيل الفرز اليدوي؟',
+            message: (count: number) => `سيؤدي هذا إلى تغيير ${count} ملاحظة في العرض الحالي.`,
+            confirmButton: 'تفعيل الفرز اليدوي'
+        },
         navRainbowSection: {
             title: (section: string) => `ألوان قوس قزح: ${section}`
         },
@@ -427,6 +440,11 @@ export const STRINGS_AR = {
                 'list-descendants': 'ملاحظات من المجلدات الفرعية',
                 'list-sort-ascending': 'ترتيب الفرز: تصاعدي',
                 'list-sort-descending': 'ترتيب الفرز: تنازلي',
+                'list-sort-modified': 'الفرز حسب تاريخ التعديل',
+                'list-sort-created': 'الفرز حسب تاريخ الإنشاء',
+                'list-sort-title': 'الفرز حسب العنوان',
+                'list-sort-filename': 'الفرز حسب اسم الملف',
+                'list-sort-property': 'الفرز حسب الخاصية',
                 'list-appearance': 'تغيير المظهر',
                 'list-new-note': 'ملاحظة جديدة',
                 'nav-folder-open': 'مجلد مفتوح',
@@ -601,6 +619,15 @@ export const STRINGS_AR = {
             instructions: {
                 navigate: 'للتنقل',
                 select: 'لإضافة خاصية',
+                dismiss: 'للإغلاق'
+            }
+        },
+        propertySortKeySuggest: {
+            placeholder: 'خاصية للفرز اليدوي...',
+            createNewProperty: 'استخدم الخاصية: {property}',
+            instructions: {
+                navigate: 'للتنقل',
+                select: 'لاختيار الخاصية',
                 dismiss: 'للإغلاق'
             }
         },

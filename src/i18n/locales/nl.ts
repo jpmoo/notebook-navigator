@@ -50,7 +50,13 @@ export const STRINGS_NL = {
         pinnedSection: 'Vastgepind',
         notesSection: 'Notities',
         filesSection: 'Bestanden',
-        hiddenItemAriaLabel: '{name} (verborgen)'
+        hiddenItemAriaLabel: '{name} (verborgen)',
+        manualSortTitle: 'Handmatig sorteren: {property}',
+        manualSortHint: 'Sleep om opnieuw te ordenen. Bestanden krijgen numerieke waarden toegewezen in de eigenschap "{property}".',
+        manualSortNonMarkdownHint: 'Niet-Markdown-bestanden worden onderaan getoond en kunnen niet opnieuw worden geordend.',
+        unsortedSection: 'Niet gesorteerd',
+        manualSortDone: 'Klaar',
+        manualSortMultipleWriteFailure: '{count} bestanden mislukt; eerste: {path}: {message}'
     },
 
     // Tag list
@@ -132,6 +138,8 @@ export const STRINGS_NL = {
         changeChildSortOrder: 'Sorteervolgorde wijzigen',
         changeSortAndGroup: 'Sortering en groepering wijzigen',
         defaultSort: 'Standaard',
+        manualSort: 'Handmatig sorteren...',
+        editSortOrder: 'Sorteervolgorde bewerken...',
         descendants: 'subelementen',
         subfolders: 'submappen',
         subtags: 'subtags',
@@ -391,6 +399,11 @@ export const STRINGS_NL = {
             applyAppearanceTitle: (target: string) => `Weergave toepassen op ${target}?`,
             affectedCountMessage: (count: number) => `Bestaande overschrijvingen die wijzigen: ${count}.`
         },
+        manualSortConfirm: {
+            title: 'Handmatig sorteren inschakelen?',
+            message: (count: number) => `Hiermee worden ${count} notities in de huidige weergave gewijzigd.`,
+            confirmButton: 'Handmatig sorteren inschakelen'
+        },
         navRainbowSection: {
             title: (section: string) => `Regenboogkleuren: ${section}`
         },
@@ -429,6 +442,11 @@ export const STRINGS_NL = {
                 'list-descendants': 'Notities uit submappen',
                 'list-sort-ascending': 'Sorteervolgorde: oplopend',
                 'list-sort-descending': 'Sorteervolgorde: aflopend',
+                'list-sort-modified': 'Sorteren op bewerkingsdatum',
+                'list-sort-created': 'Sorteren op aanmaakdatum',
+                'list-sort-title': 'Sorteren op titel',
+                'list-sort-filename': 'Sorteren op bestandsnaam',
+                'list-sort-property': 'Sorteren op eigenschap',
                 'list-appearance': 'Uiterlijk wijzigen',
                 'list-new-note': 'Nieuwe notitie',
                 'nav-folder-open': 'Map open',
@@ -603,6 +621,15 @@ export const STRINGS_NL = {
             instructions: {
                 navigate: 'om te navigeren',
                 select: 'om eigenschap toe te voegen',
+                dismiss: 'om te sluiten'
+            }
+        },
+        propertySortKeySuggest: {
+            placeholder: 'Eigenschap voor handmatig sorteren...',
+            createNewProperty: 'Eigenschap gebruiken: {property}',
+            instructions: {
+                navigate: 'om te navigeren',
+                select: 'om eigenschap te kiezen',
                 dismiss: 'om te sluiten'
             }
         },

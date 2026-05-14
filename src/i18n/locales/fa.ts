@@ -50,7 +50,13 @@ export const STRINGS_FA = {
         pinnedSection: 'سنجاق‌شده',
         notesSection: 'یادداشت‌ها',
         filesSection: 'فایل‌ها',
-        hiddenItemAriaLabel: '{name} (پنهان)'
+        hiddenItemAriaLabel: '{name} (پنهان)',
+        manualSortTitle: 'مرتب‌سازی دستی: {property}',
+        manualSortHint: 'برای تغییر ترتیب بکشید. به فایل‌ها مقادیر عددی در ویژگی "{property}" اختصاص داده می‌شود.',
+        manualSortNonMarkdownHint: 'فایل‌های غیر مارک‌داون در پایین نمایش داده می‌شوند و قابل مرتب‌سازی مجدد نیستند.',
+        unsortedSection: 'مرتب‌نشده',
+        manualSortDone: 'انجام شد',
+        manualSortMultipleWriteFailure: '{count} فایل ناموفق بود؛ اولین: {path}: {message}'
     },
 
     // Tag list
@@ -132,6 +138,8 @@ export const STRINGS_FA = {
         changeChildSortOrder: 'تغییر ترتیب',
         changeSortAndGroup: 'تغییر ترتیب و گروه‌بندی',
         defaultSort: 'پیش‌فرض',
+        manualSort: 'مرتب‌سازی دستی...',
+        editSortOrder: 'ویرایش ترتیب مرتب‌سازی...',
         descendants: 'فرزندان',
         subfolders: 'زیرپوشه‌ها',
         subtags: 'زیربرچسب‌ها',
@@ -389,6 +397,11 @@ export const STRINGS_FA = {
             applyAppearanceTitle: (target: string) => `ظاهر به ${target} اعمال شود؟`,
             affectedCountMessage: (count: number) => `بازنویسی‌های موجود که تغییر خواهند کرد: ${count}.`
         },
+        manualSortConfirm: {
+            title: 'فعال‌سازی مرتب‌سازی دستی؟',
+            message: (count: number) => `این کار ${count} یادداشت در نمای فعلی را تغییر می‌دهد.`,
+            confirmButton: 'فعال‌سازی مرتب‌سازی دستی'
+        },
         navRainbowSection: {
             title: (section: string) => `رنگ‌های رنگین‌کمان: ${section}`
         },
@@ -427,6 +440,11 @@ export const STRINGS_FA = {
                 'list-descendants': 'یادداشت‌ها از زیرپوشه‌ها',
                 'list-sort-ascending': 'ترتیب: صعودی',
                 'list-sort-descending': 'ترتیب: نزولی',
+                'list-sort-modified': 'مرتب‌سازی بر اساس تاریخ ویرایش',
+                'list-sort-created': 'مرتب‌سازی بر اساس تاریخ ایجاد',
+                'list-sort-title': 'مرتب‌سازی بر اساس عنوان',
+                'list-sort-filename': 'مرتب‌سازی بر اساس نام فایل',
+                'list-sort-property': 'مرتب‌سازی بر اساس ویژگی',
                 'list-appearance': 'تغییر ظاهر',
                 'list-new-note': 'یادداشت جدید',
                 'nav-folder-open': 'پوشه باز',
@@ -603,6 +621,15 @@ export const STRINGS_FA = {
             instructions: {
                 navigate: 'برای ناوبری',
                 select: 'برای افزودن ویژگی',
+                dismiss: 'برای بستن'
+            }
+        },
+        propertySortKeySuggest: {
+            placeholder: 'ویژگی برای مرتب‌سازی دستی...',
+            createNewProperty: 'استفاده از ویژگی: {property}',
+            instructions: {
+                navigate: 'برای ناوبری',
+                select: 'برای انتخاب ویژگی',
                 dismiss: 'برای بستن'
             }
         },

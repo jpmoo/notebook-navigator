@@ -50,7 +50,13 @@ export const STRINGS_ZH_TW = {
         pinnedSection: '已釘選',
         notesSection: '筆記',
         filesSection: '檔案',
-        hiddenItemAriaLabel: '{name} (已隱藏)'
+        hiddenItemAriaLabel: '{name} (已隱藏)',
+        manualSortTitle: '手動排序: {property}',
+        manualSortHint: '拖曳以重新排序。檔案將在屬性「{property}」中被指派數值。',
+        manualSortNonMarkdownHint: '非 Markdown 檔案顯示於底部，無法重新排序。',
+        unsortedSection: '未排序',
+        manualSortDone: '完成',
+        manualSortMultipleWriteFailure: '{count} 個檔案失敗；第一個: {path}: {message}'
     },
 
     // Tag list
@@ -131,6 +137,8 @@ export const STRINGS_ZH_TW = {
         changeChildSortOrder: '變更排序方式',
         changeSortAndGroup: '變更排序與分組',
         defaultSort: '預設',
+        manualSort: '手動排序...',
+        editSortOrder: '編輯排序方式...',
         descendants: '子項',
         subfolders: '子資料夾',
         subtags: '子標籤',
@@ -389,6 +397,11 @@ export const STRINGS_ZH_TW = {
             applyAppearanceTitle: (target: string) => `將外觀套用到${target}？`,
             affectedCountMessage: (count: number) => `將更改的現有覆寫：${count}。`
         },
+        manualSortConfirm: {
+            title: '啟用手動排序？',
+            message: (count: number) => `這將更改目前檢視中的 ${count} 則筆記。`,
+            confirmButton: '啟用手動排序'
+        },
         navRainbowSection: {
             title: (section: string) => `彩虹顏色: ${section}`
         },
@@ -427,6 +440,11 @@ export const STRINGS_ZH_TW = {
                 'list-descendants': '子資料夾中的筆記',
                 'list-sort-ascending': '排序: 升序',
                 'list-sort-descending': '排序: 降序',
+                'list-sort-modified': '依編輯日期排序',
+                'list-sort-created': '依建立日期排序',
+                'list-sort-title': '依標題排序',
+                'list-sort-filename': '依檔案名稱排序',
+                'list-sort-property': '依屬性排序',
                 'list-appearance': '變更外觀',
                 'list-new-note': '新建筆記',
                 'nav-folder-open': '資料夾開啟',
@@ -598,6 +616,15 @@ export const STRINGS_ZH_TW = {
             instructions: {
                 navigate: '導覽',
                 select: '新增屬性',
+                dismiss: '取消'
+            }
+        },
+        propertySortKeySuggest: {
+            placeholder: '用於手動排序的屬性...',
+            createNewProperty: '使用屬性: {property}',
+            instructions: {
+                navigate: '導覽',
+                select: '選擇屬性',
                 dismiss: '取消'
             }
         },
