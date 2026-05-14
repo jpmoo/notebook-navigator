@@ -17,7 +17,7 @@
  */
 
 import React, { useEffect, useMemo } from 'react';
-import { Platform } from 'obsidian';
+import { Platform, type TFile } from 'obsidian';
 import { useSelectionState, useSelectionDispatch } from '../context/SelectionContext';
 import { useCommandQueue, useServices } from '../context/ServicesContext';
 import { useSettingsState } from '../context/SettingsContext';
@@ -40,6 +40,8 @@ interface ListPaneHeaderProps {
     onHeaderClick?: () => void;
     isSearchActive?: boolean;
     onSearchToggle?: () => void;
+    onManualSortStart?: (propertyKey: string, initialFiles: TFile[]) => void;
+    actionsDisabled?: boolean;
     desktopTitle: string;
     breadcrumbSegments: BreadcrumbSegment[];
     iconName: string;
@@ -50,6 +52,8 @@ export function ListPaneHeader({
     onHeaderClick,
     isSearchActive,
     onSearchToggle,
+    onManualSortStart,
+    actionsDisabled = false,
     desktopTitle,
     breadcrumbSegments,
     iconName,
@@ -80,7 +84,7 @@ export function ListPaneHeader({
         hasAppearanceOrSortSelection,
         hasCustomSortOrGroup,
         hasCustomAppearance
-    } = useListActions();
+    } = useListActions({ onManualSortStart });
     const listToolbarVisibility = settings.toolbarVisibility.list;
     const showBackButton = listToolbarVisibility.back && uiState.singlePane;
     const showSearchButton = listToolbarVisibility.search;
@@ -377,7 +381,7 @@ export function ListPaneHeader({
                             className={`nn-icon-button ${isSearchActive ? 'nn-icon-button-active' : ''}`}
                             aria-label={strings.paneHeader.search}
                             onClick={onSearchToggle}
-                            disabled={!hasNavigationSelection}
+                            disabled={actionsDisabled || !hasNavigationSelection}
                             tabIndex={-1}
                         >
                             <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-search')} />
@@ -388,7 +392,7 @@ export function ListPaneHeader({
                             className={`nn-icon-button ${includeDescendantNotes ? 'nn-icon-button-active' : ''}`}
                             aria-label={descendantsTooltip}
                             onClick={handleToggleDescendants}
-                            disabled={!hasNavigationSelection}
+                            disabled={actionsDisabled || !hasNavigationSelection}
                             tabIndex={-1}
                         >
                             <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-descendants')} />
@@ -399,7 +403,7 @@ export function ListPaneHeader({
                             className={`nn-icon-button ${hasCustomSortOrGroup ? 'nn-icon-button-active' : ''}`}
                             aria-label={strings.paneHeader.changeSortAndGroup}
                             onClick={handleSortMenu}
-                            disabled={!hasAppearanceOrSortSelection}
+                            disabled={actionsDisabled || !hasAppearanceOrSortSelection}
                             tabIndex={-1}
                         >
                             <ServiceIcon iconId={sortIconId} />
@@ -410,7 +414,7 @@ export function ListPaneHeader({
                             className={`nn-icon-button ${hasCustomAppearance ? 'nn-icon-button-active' : ''}`}
                             aria-label={strings.paneHeader.changeAppearance}
                             onClick={handleAppearanceMenu}
-                            disabled={!hasAppearanceOrSortSelection}
+                            disabled={actionsDisabled || !hasAppearanceOrSortSelection}
                             tabIndex={-1}
                         >
                             <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-appearance')} />
@@ -423,7 +427,7 @@ export function ListPaneHeader({
                             onClick={() => {
                                 runAsyncAction(() => handleNewFile());
                             }}
-                            disabled={!canCreateNewFile}
+                            disabled={actionsDisabled || !canCreateNewFile}
                             tabIndex={-1}
                         >
                             <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-new-note')} />

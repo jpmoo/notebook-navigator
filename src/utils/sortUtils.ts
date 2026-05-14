@@ -27,7 +27,8 @@ import {
     type PropertySortSecondaryOption
 } from '../settings/types';
 import { NavigationItemType, ItemType, type ItemType as ItemTypeValue } from '../types';
-import { casefold } from './recordUtils';
+import { casefold, getMatchingRecordValue } from './recordUtils';
+import { isRecord } from './typeGuards';
 
 export function isDateSortOption(sortOption: SortOption): boolean {
     return sortOption.startsWith('modified') || sortOption.startsWith('created');
@@ -93,6 +94,70 @@ function normalizePropertySortKeyList(value: unknown, mapper?: PropertySortKeyMa
 
 export function parsePropertySortKeys(value: unknown): string[] {
     return normalizePropertySortKeyList(value);
+}
+
+export function getMatchingPropertySortKey(value: unknown, propertyKey: string): string {
+    const normalizedPropertyKey = casefold(propertyKey);
+    if (!normalizedPropertyKey) {
+        return '';
+    }
+
+    return parsePropertySortKeys(value).find(configuredKey => casefold(configuredKey) === normalizedPropertyKey) ?? '';
+}
+
+export function appendPropertySortKey(value: unknown, propertyKey: string): string {
+    const key = propertyKey.trim();
+    const normalizedKey = casefold(key);
+    const keys = parsePropertySortKeys(value);
+
+    if (!normalizedKey) {
+        return keys.join(', ');
+    }
+
+    if (keys.some(configuredKey => casefold(configuredKey) === normalizedKey)) {
+        return keys.join(', ');
+    }
+
+    return [...keys, key].join(', ');
+}
+
+function extractPropertySortParts(value: unknown): string[] {
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        return trimmed.length > 0 ? [trimmed] : [];
+    }
+
+    if (typeof value === 'number') {
+        return Number.isFinite(value) ? [value.toString()] : [];
+    }
+
+    if (typeof value === 'boolean') {
+        return [value ? 'true' : 'false'];
+    }
+
+    if (Array.isArray(value)) {
+        const parts: string[] = [];
+        for (const entry of value) {
+            parts.push(...extractPropertySortParts(entry));
+        }
+        return parts;
+    }
+
+    return [];
+}
+
+export function getPropertySortValueFromRecord(frontmatter: unknown, propertyKey: string): string | null {
+    if (!isRecord(frontmatter)) {
+        return null;
+    }
+
+    const parts = extractPropertySortParts(getMatchingRecordValue(frontmatter, propertyKey));
+    if (parts.length === 0) {
+        return null;
+    }
+
+    const joined = parts.join(' ').trim();
+    return joined.length > 0 ? joined : null;
 }
 
 export function replacePropertySortKey(value: string, oldKeyNormalized: string, newKeyDisplay: string | null): string {

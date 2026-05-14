@@ -149,6 +149,8 @@ interface FileItemProps {
     folderDecorationModel: FolderDecorationModel;
     fileItemPillDecorationModel: FileItemPillDecorationModel;
     getSolidBackground: (color?: string | null) => string | undefined;
+    disableNativeDrag?: boolean;
+    manualSortDisabled?: boolean;
 }
 
 export interface FileItemStorageHelpers {
@@ -365,7 +367,9 @@ export const FileItem = React.memo(function FileItem({
     onToggleNoteShortcut,
     folderDecorationModel,
     fileItemPillDecorationModel,
-    getSolidBackground
+    getSolidBackground,
+    disableNativeDrag = false,
+    manualSortDisabled = false
 }: FileItemProps) {
     // === Hooks (all hooks together at the top) ===
     const { app, isMobile, plugin, commandQueue, tagOperations } = useServices();
@@ -859,8 +863,9 @@ export const FileItem = React.memo(function FileItem({
         if (fileBackgroundColor) classes.push('nn-has-custom-background');
         // Apply muted style when file is normally hidden but shown via "show hidden items"
         if (isHidden) classes.push('nn-hidden-file');
+        if (manualSortDisabled) classes.push('nn-file-manual-sort-disabled');
         return classes.join(' ');
-    }, [isSelected, isCompactMode, hasSelectedAbove, hasSelectedBelow, fileBackgroundColor, isHidden]);
+    }, [isSelected, isCompactMode, hasSelectedAbove, hasSelectedBelow, fileBackgroundColor, isHidden, manualSortDisabled]);
 
     const fileRowStyle = useMemo(() => {
         if (!fileBackgroundColor) {
@@ -1171,14 +1176,14 @@ export const FileItem = React.memo(function FileItem({
             // Type of item being dragged (folder, file, or tag)
             data-drag-type="file"
             // Marks element as draggable for event delegation
-            data-draggable={!isMobile ? 'true' : undefined}
+            data-draggable={!isMobile && !disableNativeDrag ? 'true' : undefined}
             // Icon to display in drag ghost
             data-drag-icon={dragIconId}
             // Icon color to display in drag ghost
             data-drag-icon-color={dragIconColor}
             onClick={handleItemClick}
             onMouseDown={handleMouseDown}
-            draggable={!isMobile}
+            draggable={!isMobile && !disableNativeDrag}
             role="listitem"
             aria-describedby={hiddenDescription ? hiddenDescriptionId : undefined}
             style={fileRowStyle}

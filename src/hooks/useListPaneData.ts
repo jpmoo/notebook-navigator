@@ -106,6 +106,8 @@ interface UseListPaneDataResult {
     fileIndexMap: Map<string, number>;
     /** Raw array of files before grouping */
     files: TFile[];
+    /** Hidden-state lookup for files shown through the hidden-items override */
+    hiddenFileState: ReadonlyMap<string, boolean>;
     /** Search metadata keyed by file path (populated when using Omnisearch) */
     searchMeta: Map<string, SearchResultMeta>;
     /** Local day key in YYYY-MM-DD format */
@@ -396,6 +398,7 @@ export function useListPaneData({
         filePathToIndex,
         fileIndexMap,
         files,
+        hiddenFileState,
         searchMeta: searchMetaMap,
         localDayKey: dayKey
     };

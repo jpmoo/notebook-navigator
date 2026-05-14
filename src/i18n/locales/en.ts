@@ -50,7 +50,12 @@ export const STRINGS_EN = {
         pinnedSection: 'Pinned', // Header for the pinned notes section at the top of file list (English: Pinned)
         notesSection: 'Notes', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Files', // Header shown between pinned and regular items when showing supported or all files (English: Files)
-        hiddenItemAriaLabel: '{name} (hidden)' // Accessibility label applied to list items that are normally hidden
+        hiddenItemAriaLabel: '{name} (hidden)', // Accessibility label applied to list items that are normally hidden
+        manualSortTitle: 'Manual sort: {property}',
+        manualSortHint: 'Drag to reorder. Files will be assigned numeric values in the property "{property}".',
+        manualSortNonMarkdownHint: 'Non-markdown files are shown at the bottom and cannot be reordered.',
+        manualSortDone: 'Done',
+        manualSortMultipleWriteFailure: '{count} files failed; first: {path}: {message}'
     },
 
     // Tag list
@@ -132,6 +137,8 @@ export const STRINGS_EN = {
         changeChildSortOrder: 'Change sort order',
         changeSortAndGroup: 'Change sort and group',
         defaultSort: 'Default', // Label for default sorting mode (English: Default)
+        manualSort: 'Manual sort...',
+        editSortOrder: 'Edit sort order...',
         descendants: 'descendants',
         subfolders: 'subfolders',
         subtags: 'subtags',
@@ -389,6 +396,12 @@ export const STRINGS_EN = {
             applyAppearanceTitle: (target: string) => `Apply appearance to ${target}?`,
             affectedCountMessage: (count: number) => `Existing overrides that will change: ${count}.`
         },
+        manualSortConfirm: {
+            title: 'Enter manual sort?',
+            message: (property: string) =>
+                `Reordering in manual sort will change the property "${property}" for all notes in the current context.`,
+            confirmButton: 'Enter manual sort'
+        },
         navRainbowSection: {
             title: (section: string) => `Rainbow colors: ${section}`
         },
@@ -599,6 +612,15 @@ export const STRINGS_EN = {
             instructions: {
                 navigate: 'to navigate',
                 select: 'to add property',
+                dismiss: 'to dismiss'
+            }
+        },
+        propertySortKeySuggest: {
+            placeholder: 'Property for manual sort...',
+            createNewProperty: 'Use property: {property}',
+            instructions: {
+                navigate: 'to navigate',
+                select: 'to select property',
                 dismiss: 'to dismiss'
             }
         },

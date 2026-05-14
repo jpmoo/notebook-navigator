@@ -3770,6 +3770,160 @@ button.nn-navigation-calendar-day {
     justify-content: flex-start; /* Top-align content */
 }
 
+/* Manual property sort editing */
+.nn-manual-sort-scroller {
+    padding: 0 var(--nn-scroller-padding);
+}
+
+.nn-manual-sort-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem 0 1rem;
+}
+
+.nn-manual-sort-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0 var(--nn-file-item-padding-horizontal);
+}
+
+.nn-manual-sort-header-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.nn-manual-sort-title {
+    font-size: var(--nn-desktop-header-font-size);
+    font-weight: var(--nn-theme-list-header-breadcrumb-font-weight);
+    line-height: 1.3;
+    color: var(--nn-theme-list-heading-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nn-manual-sort-hint {
+    font-size: var(--nn-root-reorder-hint-font-size);
+    color: var(--nn-theme-foreground-muted);
+    line-height: 1.25;
+}
+
+.nn-manual-sort-done {
+    flex-shrink: 0;
+    padding: 0 0.75rem;
+    cursor: pointer;
+}
+
+.nn-manual-sort-done:disabled {
+    cursor: default;
+}
+
+.nn-manual-sort-list {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    width: 100%;
+}
+
+.nn-manual-sort-row {
+    display: flex;
+    align-items: stretch;
+    min-width: 0;
+    cursor: grab;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.nn-manual-sort-row-sorting {
+    z-index: 2;
+}
+
+.nn-manual-sort-row-sorting::after {
+    display: none;
+}
+
+.nn-manual-sort-row-disabled {
+    cursor: default;
+}
+
+.nn-manual-sort-row:not(.nn-manual-sort-row-last)::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    inset-inline-start: calc(
+        var(--nn-file-item-padding-horizontal) + var(--nn-file-icon-slot-width-mobile, var(--nn-file-icon-slot-width)) +
+            var(--nn-file-icon-slot-gap)
+    );
+    inset-inline-end: calc(var(--nn-file-item-padding-horizontal) + 2.75rem);
+    height: var(--nn-separator-height);
+    background-color: var(--nn-theme-list-separator-color);
+    z-index: 100;
+    pointer-events: none;
+}
+
+.nn-manual-sort-file {
+    flex: 1;
+    min-width: 0;
+}
+
+.nn-manual-sort-file .nn-file,
+.nn-manual-sort-file .nn-file-content,
+.nn-manual-sort-file .nn-file-inner-content {
+    height: auto;
+}
+
+.nn-manual-sort-value {
+    flex: 0 0 auto;
+    align-self: center;
+    min-width: 2.25rem;
+    max-width: 5rem;
+    margin-inline-start: 0.5rem;
+    padding-inline-end: var(--nn-file-item-padding-horizontal);
+    color: var(--nn-theme-foreground-muted);
+    font-size: var(--nn-file-small-size-mobile, var(--nn-file-small-size));
+    text-align: end;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nn-file-manual-sort-disabled {
+    opacity: 0.55;
+}
+
+.notebook-navigator-mobile .nn-manual-sort-title {
+    font-size: var(--nn-mobile-header-font-size);
+}
+
+.notebook-navigator-mobile .nn-manual-sort-hint {
+    font-size: var(--nn-root-reorder-hint-font-size-mobile);
+}
+
+.notebook-navigator-mobile .nn-manual-sort-row {
+    cursor: default;
+}
+
+.notebook-navigator-mobile .nn-manual-sort-row-draggable:not(.nn-manual-sort-row-last)::after {
+    inset-inline-start: calc(
+        var(--nn-file-item-padding-horizontal) + var(--nn-file-icon-slot-width-mobile, var(--nn-file-icon-slot-width)) +
+            var(--nn-file-icon-slot-gap)
+    );
+    inset-inline-end: calc(var(--nn-file-item-padding-horizontal) + 2.75rem + 28px + var(--nn-file-item-padding-horizontal));
+}
+
+.notebook-navigator-mobile .nn-manual-sort-row .nn-drag-handle {
+    align-self: center;
+    width: calc(28px + var(--nn-file-item-padding-horizontal));
+    padding-inline-end: var(--nn-file-item-padding-horizontal);
+    box-sizing: border-box;
+}
+
 /* File name - primary text with ellipsis overflow */
 .nn-file-name {
     font-size: var(--nn-file-name-size-mobile, var(--nn-file-name-size));

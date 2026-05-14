@@ -82,6 +82,8 @@ import { getListSortOverrideForSelection, resolveListSort } from '../utils/sortU
  * Parameters for the useListPaneScroll hook
  */
 interface UseListPaneScrollParams {
+    /** Whether scroll orchestration and the virtualizer are active */
+    enabled?: boolean;
     /** List items to be rendered in the virtual list */
     listItems: ListPaneItem[];
     /** Map from file paths to their index in listItems */
@@ -342,6 +344,7 @@ function isFileRowCoveredByStickyHeader(listItems: ListPaneItem[], index: number
  * @returns Virtualizer instance and scroll management utilities
  */
 export function useListPaneScroll({
+    enabled = true,
     listItems,
     filePathToIndex,
     selectedFile,
@@ -455,15 +458,19 @@ export function useListPaneScroll({
     const effectiveScrollMargin = Number.isFinite(scrollMargin) && scrollMargin > 0 ? scrollMargin : 0;
     const effectiveScrollPaddingEnd = Number.isFinite(scrollPaddingEnd) && scrollPaddingEnd > 0 ? scrollPaddingEnd : 0;
     const rowVirtualizer = useVirtualizer({
-        count: listItems.length,
+        count: enabled ? listItems.length : 0,
         getItemKey: getListItemKey,
         getScrollElement: () => {
+            if (!enabled) {
+                return null;
+            }
             const element = scrollContainerRef.current;
             if (!element) {
                 // No element available yet
             }
             return element;
         },
+        enabled,
         // Align virtualizer scroll math with the start of the file rows (excluding overlay chrome).
         scrollMargin: effectiveScrollMargin,
         // Ensure scrollToIndex aligns items below the overlay chrome instead of under it.
@@ -608,6 +615,9 @@ export function useListPaneScroll({
         scrollPaddingEnd: effectiveScrollPaddingEnd,
         useScrollendEvent: true,
         onChange: instance => {
+            if (!enabled) {
+                return;
+            }
             const nextIsScrolling = instance.isScrolling;
             if (lastReportedVirtualizerScrollingRef.current === nextIsScrolling) {
                 return;
@@ -635,6 +645,11 @@ export function useListPaneScroll({
      * is hidden because they will fail internally and emit retry errors.
      */
     useEffect(() => {
+        if (!enabled) {
+            setContainerVisible(false);
+            return;
+        }
+
         const element = scrollContainerEl;
         if (!element) {
             setContainerVisible(false);
@@ -670,10 +685,10 @@ export function useListPaneScroll({
         observer.observe(element);
 
         return () => observer.disconnect();
-    }, [scrollContainerEl]);
+    }, [enabled, scrollContainerEl]);
 
     // Container is ready when both the list pane and the physical container are visible
-    const isScrollContainerReady = isVisible && containerVisible;
+    const isScrollContainerReady = enabled && isVisible && containerVisible;
 
     // Tracks inputs that affect estimated row heights.
     const hiddenTagVisibilitySignature = useMemo(() => getHiddenTagVisibilitySignature(hiddenTagVisibility), [hiddenTagVisibility]);
@@ -737,10 +752,10 @@ export function useListPaneScroll({
      * Scroll to top handler for mobile header tap.
      */
     const handleScrollToTop = useCallback(() => {
-        if (isMobile && scrollContainerRef.current) {
+        if (enabled && isMobile && scrollContainerRef.current) {
             scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
         }
-    }, [isMobile]);
+    }, [enabled, isMobile]);
 
     const ensureIndexNotCovered = useCallback(
         (index: number) => {
@@ -998,7 +1013,7 @@ export function useListPaneScroll({
      * Handles preview text, feature images, tags, properties, and word count changes.
      */
     useEffect(() => {
-        if (!rowVirtualizer) return;
+        if (!enabled || !rowVirtualizer) return;
 
         const db = getDB();
         const unsubscribe = db.onContentChange(changes => {
@@ -1014,7 +1029,7 @@ export function useListPaneScroll({
         return () => {
             unsubscribe();
         };
-    }, [filePathToIndex, getDB, rowVirtualizer]);
+    }, [enabled, filePathToIndex, getDB, rowVirtualizer]);
 
     /**
      * Listen for mobile drawer visibility events.
@@ -1022,7 +1037,7 @@ export function useListPaneScroll({
      * SCROLL_MOBILE_VISIBILITY: Sets pending scroll with 'visibility-change' reason
      */
     useEffect(() => {
-        if (!isMobile) return;
+        if (!enabled || !isMobile) return;
 
         const handleVisible = () => {
             // If we have a selected file, set a pending scroll
@@ -1039,27 +1054,27 @@ export function useListPaneScroll({
 
         window.addEventListener('notebook-navigator-visible', handleVisible);
         return () => window.removeEventListener('notebook-navigator-visible', handleVisible);
-    }, [isMobile, selectedFile, rowVirtualizer, filePathToIndex, setPending]);
+    }, [enabled, isMobile, selectedFile, rowVirtualizer, filePathToIndex, setPending]);
 
     /**
      * Refresh all item size estimates when height-affecting settings change.
      * Includes date display, preview settings, feature images, etc.
      */
     useEffect(() => {
-        if (!rowVirtualizer) return;
+        if (!enabled || !rowVirtualizer) return;
 
         rowVirtualizer.measure();
-    }, [listLayoutSignature, rowVirtualizer]);
+    }, [enabled, listLayoutSignature, rowVirtualizer]);
 
     /**
      * Refresh size estimates when storage becomes ready after cold boot.
      * Ensures estimated heights are correct once preview data is available.
      */
     useEffect(() => {
-        if (isStorageReady && rowVirtualizer) {
+        if (enabled && isStorageReady && rowVirtualizer) {
             rowVirtualizer.measure();
         }
-    }, [isStorageReady, rowVirtualizer]);
+    }, [enabled, isStorageReady, rowVirtualizer]);
 
     /**
      * Handle scrolling when list configuration changes (descendants toggle, appearance, grouping, or sort).
@@ -1212,7 +1227,7 @@ export function useListPaneScroll({
      * SCROLL_FOLDER_NAVIGATION: Sets pending scroll with 'folder-navigation' reason
      */
     useEffect(() => {
-        if (!rowVirtualizer) {
+        if (!enabled || !rowVirtualizer) {
             return;
         }
 
@@ -1316,6 +1331,7 @@ export function useListPaneScroll({
         }
     }, [
         isScrollContainerReady,
+        enabled,
         rowVirtualizer,
         selectedFolder?.path,
         selectedTag,

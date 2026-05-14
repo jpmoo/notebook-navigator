@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type { TFile } from 'obsidian';
 import { useSelectionState } from '../context/SelectionContext';
 import { useSettingsState } from '../context/SettingsContext';
 import { useUXPreferences } from '../context/UXPreferencesContext';
@@ -28,10 +29,11 @@ import { resolveUXIcon } from '../utils/uxIcons';
 interface ListToolbarProps {
     isSearchActive?: boolean;
     onSearchToggle?: () => void;
+    onManualSortStart?: (propertyKey: string, initialFiles: TFile[]) => void;
     useFloatingLayout?: boolean;
 }
 
-export function ListToolbar({ isSearchActive, onSearchToggle, useFloatingLayout = false }: ListToolbarProps) {
+export function ListToolbar({ isSearchActive, onSearchToggle, onManualSortStart, useFloatingLayout = false }: ListToolbarProps) {
     const uxPreferences = useUXPreferences();
     const includeDescendantNotes = uxPreferences.includeDescendantNotes;
     const selectionState = useSelectionState();
@@ -50,7 +52,7 @@ export function ListToolbar({ isSearchActive, onSearchToggle, useFloatingLayout 
         hasAppearanceOrSortSelection,
         hasCustomSortOrGroup,
         hasCustomAppearance
-    } = useListActions();
+    } = useListActions({ onManualSortStart });
 
     const showSearchButton = listVisibility.search;
     const showDescendantsButton = listVisibility.descendants;

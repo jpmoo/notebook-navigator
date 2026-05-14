@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+    appendPropertySortKey,
     areListSortOverridesEqual,
     compareByAlphaSortOrder,
     getEffectiveListSort,
     getEffectiveSortOption,
+    getMatchingPropertySortKey,
+    getPropertySortValueFromRecord,
     getSortIcon,
     parsePropertySortKeys,
     pruneUnavailablePropertySortOverrides,
@@ -471,6 +474,22 @@ describe('getEffectiveSortOption', () => {
 describe('property sort keys', () => {
     it('parses comma-separated property sort keys', () => {
         expect(parsePropertySortKeys('published, downloaded, Published, , clipped')).toEqual(['published', 'downloaded', 'clipped']);
+    });
+
+    it('appends property sort keys without duplicating configured keys', () => {
+        expect(appendPropertySortKey('published, downloaded', 'index')).toBe('published, downloaded, index');
+        expect(appendPropertySortKey('published, downloaded', ' Downloaded ')).toBe('published, downloaded');
+        expect(appendPropertySortKey('a, b , c', 'B')).toBe('a, b, c');
+    });
+
+    it('matches configured property sort keys case-insensitively', () => {
+        expect(getMatchingPropertySortKey('published, downloaded', 'Downloaded')).toBe('downloaded');
+        expect(getMatchingPropertySortKey('published, downloaded', 'index')).toBe('');
+    });
+
+    it('extracts property sort values from nested scalar arrays', () => {
+        expect(getPropertySortValueFromRecord({ order: ['one', [2, true], null] }, 'order')).toBe('one 2 true');
+        expect(getPropertySortValueFromRecord({ order: [] }, 'order')).toBe(null);
     });
 
     it('ignores invalid property sort key values', () => {

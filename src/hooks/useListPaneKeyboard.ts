@@ -57,6 +57,8 @@ const isSelectableListItem = (item: ListPaneItem): boolean => {
 };
 
 interface UseListPaneKeyboardProps {
+    /** Whether list pane keyboard handling is active */
+    enabled?: boolean;
     /** List items to navigate through */
     items: ListPaneItem[];
     /** Virtualizer instance for scroll management */
@@ -86,6 +88,7 @@ interface UseListPaneKeyboardProps {
  * Handles file-specific keyboard interactions and multi-selection.
  */
 export function useListPaneKeyboard({
+    enabled = true,
     items,
     virtualizer,
     containerRef,
@@ -198,6 +201,10 @@ export function useListPaneKeyboard({
      */
     const handleKeyDown = useCallback(
         (e: KeyboardEvent, helpers: KeyboardNavigationHelpers<ListPaneItem>) => {
+            if (!enabled) {
+                return;
+            }
+
             const currentIndex = getCurrentIndex();
             const shortcuts = settings.keyboardShortcuts;
             const isRTL = helpers.isRTL();
@@ -525,6 +532,7 @@ export function useListPaneKeyboard({
         },
         [
             getCurrentIndex,
+            enabled,
             settings,
             isMobile,
             selectionState,
@@ -555,6 +563,9 @@ export function useListPaneKeyboard({
 
     const handleKeyUp = useCallback(
         (e: KeyboardEvent) => {
+            if (!enabled) {
+                return;
+            }
             if (!onCommitKeyboardOpen) {
                 return;
             }
@@ -571,7 +582,7 @@ export function useListPaneKeyboard({
             // Commit the last pending debounced open so the final selection opens immediately.
             onCommitKeyboardOpen();
         },
-        [onCommitKeyboardOpen]
+        [enabled, onCommitKeyboardOpen]
     );
 
     // Use the base keyboard navigation hook

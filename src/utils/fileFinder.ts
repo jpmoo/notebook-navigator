@@ -31,14 +31,13 @@ import {
     isFolderInExcludedFolder
 } from './fileFilters';
 import { shouldDisplayFile, FILE_VISIBILITY } from './fileTypeUtils';
-import { getEffectiveListSort, isPropertySortOption, sortFiles, type EffectiveListSort } from './sortUtils';
+import { getEffectiveListSort, getPropertySortValueFromRecord, isPropertySortOption, sortFiles, type EffectiveListSort } from './sortUtils';
 import { getDBInstanceOrNull } from '../storage/fileOperations';
 import { extractMetadata } from '../utils/metadataExtractor';
 import { METADATA_SENTINEL } from '../storage/IndexedDBStorage';
 import { getFileDisplayName as getDisplayName } from './fileNameUtils';
 import { getFolderNote, getFolderNoteDetectionSettings } from './folderNotes';
 import { createHiddenTagVisibility, normalizeTagPathValue } from './tagPrefixMatcher';
-import { isRecord } from './typeGuards';
 import {
     getActiveFileVisibility,
     getActiveHiddenFileNames,
@@ -49,7 +48,7 @@ import {
     getActivePropertyKeySet
 } from './vaultProfiles';
 import { getCachedFileTags } from './tagUtils';
-import { casefold, getMatchingRecordValue, normalizePinnedNoteContext } from './recordUtils';
+import { casefold, normalizePinnedNoteContext } from './recordUtils';
 import { getParentFolderPath } from './pathUtils';
 import {
     buildPropertyKeyNodeId,
@@ -175,41 +174,6 @@ function collectVisibleMarkdownFilesFromPaths(paths: Iterable<string>, app: App,
     return files;
 }
 
-function extractPropertySortParts(value: unknown): string[] {
-    if (typeof value === 'string') {
-        const trimmed = value.trim();
-        return trimmed.length > 0 ? [trimmed] : [];
-    }
-
-    if (typeof value === 'number') {
-        return Number.isFinite(value) ? [value.toString()] : [];
-    }
-
-    if (typeof value === 'boolean') {
-        return [value ? 'true' : 'false'];
-    }
-
-    if (Array.isArray(value)) {
-        const parts: string[] = [];
-        for (const entry of value) {
-            parts.push(...extractPropertySortParts(entry));
-        }
-        return parts;
-    }
-
-    return [];
-}
-
-function extractPropertySortValue(frontmatter: Record<string, unknown>, propertyKey: string): string | null {
-    const parts = extractPropertySortParts(getMatchingRecordValue(frontmatter, propertyKey));
-    if (parts.length === 0) {
-        return null;
-    }
-
-    const joined = parts.join(' ').trim();
-    return joined.length > 0 ? joined : null;
-}
-
 function createPropertySortValueGetter(app: App, propertySortKey: string): (file: TFile) => string | null {
     const trimmedKey = propertySortKey.trim();
     const cache = new Map<string, string | null>();
@@ -227,8 +191,7 @@ function createPropertySortValueGetter(app: App, propertySortKey: string): (file
         }
 
         const fileCache = app.metadataCache.getFileCache(file);
-        const frontmatter = fileCache?.frontmatter;
-        const extracted = frontmatter && isRecord(frontmatter) ? extractPropertySortValue(frontmatter, trimmedKey) : null;
+        const extracted = getPropertySortValueFromRecord(fileCache?.frontmatter, trimmedKey);
         cache.set(file.path, extracted);
         return extracted;
     };
