@@ -398,9 +398,10 @@ export const STRINGS_IT = {
             affectedCountMessage: (count: number) => `Sostituzioni esistenti che cambieranno: ${count}.`
         },
         manualSortConfirm: {
-            title: 'Attivare ordinamento manuale?',
-            message: (count: number) => `Questo modificherà ${count} note nella vista corrente.`,
-            confirmButton: 'Attiva ordinamento manuale'
+            propertySortTitle: 'Usare l’ordinamento per proprietà?',
+            propertySortMessage: (property: string, count: number) =>
+                `Questo sostituirà il contenuto di "${property}" in ${count} ${count === 1 ? 'nota' : 'note'} della vista corrente con valori numerici di ordinamento.`,
+            propertySortConfirmButton: 'Usa ordinamento per proprietà'
         },
         navRainbowSection: {
             title: (section: string) => `Colori arcobaleno: ${section}`

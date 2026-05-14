@@ -399,9 +399,10 @@ export const STRINGS_ID = {
             affectedCountMessage: (count: number) => `Penimpaan yang ada dan akan berubah: ${count}.`
         },
         manualSortConfirm: {
-            title: 'Aktifkan urutan manual?',
-            message: (count: number) => `Tindakan ini akan mengubah ${count} catatan di tampilan saat ini.`,
-            confirmButton: 'Aktifkan urutan manual'
+            propertySortTitle: 'Gunakan urutan properti?',
+            propertySortMessage: (property: string, count: number) =>
+                `Tindakan ini akan mengganti konten "${property}" di ${count} catatan pada tampilan saat ini dengan nilai urutan numerik.`,
+            propertySortConfirmButton: 'Gunakan urutan properti'
         },
         navRainbowSection: {
             title: (section: string) => `Warna pelangi: ${section}`

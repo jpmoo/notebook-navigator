@@ -399,9 +399,10 @@ export const STRINGS_RU = {
             affectedCountMessage: (count: number) => `Существующих переопределений, которые изменятся: ${count}.`
         },
         manualSortConfirm: {
-            title: 'Включить ручную сортировку?',
-            message: (count: number) => `Это изменит ${count} заметок в текущем виде.`,
-            confirmButton: 'Включить ручную сортировку'
+            propertySortTitle: 'Использовать сортировку по свойству?',
+            propertySortMessage: (property: string, count: number) =>
+                `Это заменит содержимое "${property}" в ${count} ${count === 1 ? 'заметке' : 'заметках'} текущего вида числовыми значениями сортировки.`,
+            propertySortConfirmButton: 'Использовать сортировку по свойству'
         },
         navRainbowSection: {
             title: (section: string) => `Цвета радуги: ${section}`

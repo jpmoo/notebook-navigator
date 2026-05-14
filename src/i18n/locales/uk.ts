@@ -399,9 +399,10 @@ export const STRINGS_UK = {
             affectedCountMessage: (count: number) => `Наявних перевизначень, які зміняться: ${count}.`
         },
         manualSortConfirm: {
-            title: 'Увімкнути ручне сортування?',
-            message: (count: number) => `Це змінить ${count} нотаток у поточному вигляді.`,
-            confirmButton: 'Увімкнути ручне сортування'
+            propertySortTitle: 'Використати сортування за властивістю?',
+            propertySortMessage: (property: string, count: number) =>
+                `Це замінить вміст "${property}" у ${count} ${count === 1 ? 'нотатці' : 'нотатках'} поточного виду числовими значеннями сортування.`,
+            propertySortConfirmButton: 'Використати сортування за властивістю'
         },
         navRainbowSection: {
             title: (section: string) => `Кольори веселки: ${section}`

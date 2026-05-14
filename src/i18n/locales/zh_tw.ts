@@ -398,9 +398,10 @@ export const STRINGS_ZH_TW = {
             affectedCountMessage: (count: number) => `將更改的現有覆寫：${count}。`
         },
         manualSortConfirm: {
-            title: '啟用手動排序？',
-            message: (count: number) => `這將更改目前檢視中的 ${count} 則筆記。`,
-            confirmButton: '啟用手動排序'
+            propertySortTitle: '使用屬性排序？',
+            propertySortMessage: (property: string, count: number) =>
+                `此操作會將目前檢視中 ${count} 則筆記的「${property}」內容替換為數字排序值。`,
+            propertySortConfirmButton: '使用屬性排序'
         },
         navRainbowSection: {
             title: (section: string) => `彩虹顏色: ${section}`

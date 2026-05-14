@@ -398,9 +398,10 @@ export const STRINGS_TH = {
             affectedCountMessage: (count: number) => `การแทนที่ที่มีอยู่ซึ่งจะเปลี่ยนแปลง: ${count}`
         },
         manualSortConfirm: {
-            title: 'เปิดใช้การจัดเรียงด้วยตนเอง?',
-            message: (count: number) => `การดำเนินการนี้จะเปลี่ยน ${count} โน้ตในมุมมองปัจจุบัน`,
-            confirmButton: 'เปิดใช้การจัดเรียงด้วยตนเอง'
+            propertySortTitle: 'ใช้การจัดเรียงตามคุณสมบัติหรือไม่?',
+            propertySortMessage: (property: string, count: number) =>
+                `การดำเนินการนี้จะแทนที่เนื้อหาของ "${property}" ใน ${count} โน้ตในมุมมองปัจจุบันด้วยค่าการจัดเรียงเชิงตัวเลข`,
+            propertySortConfirmButton: 'ใช้การจัดเรียงตามคุณสมบัติ'
         },
         navRainbowSection: {
             title: (section: string) => `สีรุ้ง: ${section}`

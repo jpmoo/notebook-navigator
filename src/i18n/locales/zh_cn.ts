@@ -398,9 +398,10 @@ export const STRINGS_ZH_CN = {
             affectedCountMessage: (count: number) => `将更改的现有覆盖：${count}。`
         },
         manualSortConfirm: {
-            title: '启用手动排序？',
-            message: (count: number) => `这将更改当前视图中的 ${count} 条笔记。`,
-            confirmButton: '启用手动排序'
+            propertySortTitle: '使用属性排序？',
+            propertySortMessage: (property: string, count: number) =>
+                `此操作会将当前视图中 ${count} 条笔记的"${property}"内容替换为数字排序值。`,
+            propertySortConfirmButton: '使用属性排序'
         },
         navRainbowSection: {
             title: (section: string) => `彩虹颜色: ${section}`

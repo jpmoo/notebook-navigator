@@ -399,9 +399,10 @@ export const STRINGS_TR = {
             affectedCountMessage: (count: number) => `Değişecek mevcut geçersiz kılmalar: ${count}.`
         },
         manualSortConfirm: {
-            title: 'Manuel sıralama etkinleştirilsin mi?',
-            message: (count: number) => `Bu işlem geçerli görünümdeki ${count} notu değiştirecek.`,
-            confirmButton: 'Manuel sıralamayı etkinleştir'
+            propertySortTitle: 'Özelliğe göre sıralama kullanılsın mı?',
+            propertySortMessage: (property: string, count: number) =>
+                `Bu işlem, geçerli görünümdeki ${count} nottaki "${property}" içeriğini sayısal sıralama değerleriyle değiştirir.`,
+            propertySortConfirmButton: 'Özelliğe göre sıralamayı kullan'
         },
         navRainbowSection: {
             title: (section: string) => `Gökkuşağı renkleri: ${section}`

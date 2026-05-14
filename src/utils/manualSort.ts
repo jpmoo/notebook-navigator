@@ -50,9 +50,11 @@ export interface ManualSortFilePartitions<T extends ManualSortFileLike> {
     nonMarkdown: T[];
 }
 
-export interface ManualSortPropertyCoverage {
-    markdownCount: number;
-    withPropertyCount: number;
+export type ManualSortMoveDirection = 'up' | 'down';
+
+export interface ManualSortMoveResult<T extends ManualSortFileLike> {
+    files: T[];
+    scrollPath: string;
 }
 
 export function normalizeManualSortPropertyKey(value: string): string {
@@ -90,6 +92,35 @@ export function partitionManualSortFiles<T extends ManualSortFileLike>(files: re
 export function orderManualSortFiles<T extends ManualSortFileLike>(files: readonly T[]): T[] {
     const { markdown, nonMarkdown } = partitionManualSortFiles(files);
     return [...markdown, ...nonMarkdown];
+}
+
+export function applyManualSortMarkdownOrder<T extends ManualSortFileLike>(
+    files: readonly T[],
+    orderedMarkdownPaths: readonly string[]
+): T[] {
+    const { markdown, nonMarkdown } = partitionManualSortFiles(files);
+    if (orderedMarkdownPaths.length === 0 || markdown.length === 0) {
+        return [...markdown, ...nonMarkdown];
+    }
+
+    const orderIndexByPath = new Map(orderedMarkdownPaths.map((path, index) => [path, index]));
+    const orderedMarkdown = [...markdown].sort((left, right) => {
+        const leftIndex = orderIndexByPath.get(left.path);
+        const rightIndex = orderIndexByPath.get(right.path);
+
+        if (leftIndex !== undefined && rightIndex !== undefined) {
+            return leftIndex - rightIndex;
+        }
+        if (leftIndex !== undefined) {
+            return -1;
+        }
+        if (rightIndex !== undefined) {
+            return 1;
+        }
+        return 0;
+    });
+
+    return [...orderedMarkdown, ...nonMarkdown];
 }
 
 function moveSingleManualSortMarkdownFile<T extends ManualSortFileLike>(
@@ -149,6 +180,55 @@ export function moveManualSortMarkdownFiles<T extends ManualSortFileLike>(
     return [...remainingMarkdown.slice(0, insertionIndex), ...movedMarkdown, ...remainingMarkdown.slice(insertionIndex), ...nonMarkdown];
 }
 
+export function moveManualSortSelectionByDirection<T extends ManualSortFileLike>(
+    files: readonly T[],
+    activePath: string | null,
+    selectedPaths: ReadonlySet<string>,
+    direction: ManualSortMoveDirection
+): ManualSortMoveResult<T> | null {
+    if (!activePath) {
+        return null;
+    }
+
+    const { markdown, nonMarkdown } = partitionManualSortFiles(files);
+    const activeMarkdownFile = markdown.find(file => file.path === activePath);
+    if (!activeMarkdownFile) {
+        return null;
+    }
+
+    const movedPathSet = selectedPaths.has(activePath)
+        ? new Set(markdown.filter(file => selectedPaths.has(file.path)).map(file => file.path))
+        : new Set([activePath]);
+    if (movedPathSet.size === 0) {
+        return null;
+    }
+
+    const movedMarkdown = markdown.filter(file => movedPathSet.has(file.path));
+    const remainingMarkdown = markdown.filter(file => !movedPathSet.has(file.path));
+    if (movedMarkdown.length === 0 || remainingMarkdown.length === 0) {
+        return null;
+    }
+
+    const firstMovedIndex = markdown.findIndex(file => movedPathSet.has(file.path));
+    const currentInsertionIndex = markdown.slice(0, firstMovedIndex).filter(file => !movedPathSet.has(file.path)).length;
+    const nextInsertionIndex = direction === 'up' ? currentInsertionIndex - 1 : currentInsertionIndex + 1;
+    if (nextInsertionIndex < 0 || nextInsertionIndex > remainingMarkdown.length) {
+        return null;
+    }
+
+    const nextMarkdown = [
+        ...remainingMarkdown.slice(0, nextInsertionIndex),
+        ...movedMarkdown,
+        ...remainingMarkdown.slice(nextInsertionIndex)
+    ];
+    const scrollFile = direction === 'up' ? movedMarkdown[0] : movedMarkdown[movedMarkdown.length - 1];
+
+    return {
+        files: [...nextMarkdown, ...nonMarkdown],
+        scrollPath: scrollFile.path
+    };
+}
+
 export function buildManualSortOrderAssignments<T extends ManualSortFileLike>(files: readonly T[]): ManualSortOrderAssignment[] {
     return partitionManualSortFiles(files).markdown.map((file, index) => ({
         path: file.path,
@@ -183,27 +263,6 @@ export function hasCachedManualSortProperty(app: App, file: TFile, propertyKey: 
     }
 
     return findMatchingRecordKey(frontmatter, propertyKey) !== null;
-}
-
-export function getManualSortPropertyCoverage(app: App, files: readonly TFile[], propertyKey: string): ManualSortPropertyCoverage {
-    let markdownCount = 0;
-    let withPropertyCount = 0;
-
-    for (const file of files) {
-        if (file.extension !== 'md') {
-            continue;
-        }
-
-        markdownCount += 1;
-        if (hasCachedManualSortProperty(app, file, propertyKey)) {
-            withPropertyCount += 1;
-        }
-    }
-
-    return {
-        markdownCount,
-        withPropertyCount
-    };
 }
 
 function hasCachedManualSortValue(app: App, file: TFile, propertyKey: string, order: number): boolean {

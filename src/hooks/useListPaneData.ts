@@ -47,6 +47,7 @@ import type { SearchProvider } from '../types/search';
 import type { PropertySelectionNodeId } from '../utils/propertyTree';
 import { getFilesForNavigationSelection } from '../utils/selectionUtils';
 import { getListSortOverrideForSelection, resolveListSort } from '../utils/sortUtils';
+import { applyManualSortMarkdownOrder } from '../utils/manualSort';
 import { getPropertyFieldsFromPropertyKeys } from '../utils/vaultProfiles';
 import { buildHiddenFileState, filterListPaneFiles, useOmnisearchListResult, useSearchableNames } from './listPaneData/searchPipeline';
 import {
@@ -88,6 +89,8 @@ interface UseListPaneDataParams {
     searchTokens?: FilterSearchTokens;
     /** Visibility preferences that control descendant notes and hidden items */
     visibility: VisibilityPreferences;
+    /** Optional markdown path order applied before list items are built */
+    propertySortOrderOverride?: readonly string[] | null;
 }
 
 /**
@@ -133,7 +136,8 @@ export function useListPaneData({
     searchProvider,
     searchQuery,
     searchTokens,
-    visibility
+    visibility,
+    propertySortOrderOverride
 }: UseListPaneDataParams): UseListPaneDataResult {
     const { app, tagTreeService, propertyTreeService, commandQueue, omnisearchService } = useServices();
     const { getFileTimestamps, getDB, getFileDisplayName } = useFileCache();
@@ -261,7 +265,7 @@ export function useListPaneData({
     const searchableNames = useSearchableNames({ app, baseFiles, getFileDisplayName });
     const filterSettings = useMemo(() => ({ alphabeticalDateMode: settings.alphabeticalDateMode }), [settings.alphabeticalDateMode]);
 
-    const files = useMemo(() => {
+    const filteredFiles = useMemo(() => {
         return filterListPaneFiles({
             app,
             baseFiles,
@@ -288,6 +292,14 @@ export function useListPaneData({
         trimmedQuery,
         useOmnisearch
     ]);
+
+    const files = useMemo(() => {
+        if (!propertySortOrderOverride || propertySortOrderOverride.length === 0) {
+            return filteredFiles;
+        }
+
+        return applyManualSortMarkdownOrder(filteredFiles, propertySortOrderOverride);
+    }, [filteredFiles, propertySortOrderOverride]);
 
     const hiddenFileState = useMemo(() => {
         return buildHiddenFileState({

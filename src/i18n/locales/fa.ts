@@ -398,9 +398,10 @@ export const STRINGS_FA = {
             affectedCountMessage: (count: number) => `بازنویسی‌های موجود که تغییر خواهند کرد: ${count}.`
         },
         manualSortConfirm: {
-            title: 'فعال‌سازی مرتب‌سازی دستی؟',
-            message: (count: number) => `این کار ${count} یادداشت در نمای فعلی را تغییر می‌دهد.`,
-            confirmButton: 'فعال‌سازی مرتب‌سازی دستی'
+            propertySortTitle: 'استفاده از مرتب‌سازی بر اساس ویژگی؟',
+            propertySortMessage: (property: string, count: number) =>
+                `این کار محتوای "${property}" را در ${count} یادداشت در نمای فعلی با مقادیر مرتب‌سازی عددی جایگزین می‌کند.`,
+            propertySortConfirmButton: 'استفاده از مرتب‌سازی بر اساس ویژگی'
         },
         navRainbowSection: {
             title: (section: string) => `رنگ‌های رنگین‌کمان: ${section}`

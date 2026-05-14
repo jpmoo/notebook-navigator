@@ -398,9 +398,10 @@ export const STRINGS_JA = {
             affectedCountMessage: (count: number) => `変更される既存のオーバーライド: ${count}。`
         },
         manualSortConfirm: {
-            title: '手動並べ替えを開始しますか？',
-            message: (count: number) => `現在のビューの ${count} 件のノートが変更されます。`,
-            confirmButton: '手動並べ替えを開始'
+            propertySortTitle: 'プロパティでソートしますか？',
+            propertySortMessage: (property: string, count: number) =>
+                `現在のビューの ${count} 件のノート内の「${property}」の内容が数値のソート値に置き換えられます。`,
+            propertySortConfirmButton: 'プロパティでソート'
         },
         navRainbowSection: {
             title: (section: string) => `レインボーカラー: ${section}`

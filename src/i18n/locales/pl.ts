@@ -400,9 +400,10 @@ export const STRINGS_PL = {
             affectedCountMessage: (count: number) => `Istniejące nadpisania do zmiany: ${count}.`
         },
         manualSortConfirm: {
-            title: 'Włączyć sortowanie ręczne?',
-            message: (count: number) => `Spowoduje to zmianę ${count} notatek w bieżącym widoku.`,
-            confirmButton: 'Włącz sortowanie ręczne'
+            propertySortTitle: 'Użyć sortowania według właściwości?',
+            propertySortMessage: (property: string, count: number) =>
+                `Spowoduje to zastąpienie zawartości „${property}" w ${count} ${count === 1 ? 'notatce' : 'notatkach'} w bieżącym widoku wartościami sortowania numerycznego.`,
+            propertySortConfirmButton: 'Użyj sortowania według właściwości'
         },
         navRainbowSection: {
             title: (section: string) => `Kolory tęczy: ${section}`

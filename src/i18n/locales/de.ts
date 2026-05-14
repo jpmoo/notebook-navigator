@@ -399,9 +399,10 @@ export const STRINGS_DE = {
             affectedCountMessage: (count: number) => `Vorhandene Überschreibungen, die sich ändern: ${count}.`
         },
         manualSortConfirm: {
-            title: 'Manuelle Sortierung aktivieren?',
-            message: (count: number) => `Dies wird ${count} Notizen in der aktuellen Ansicht ändern.`,
-            confirmButton: 'Manuelle Sortierung aktivieren'
+            propertySortTitle: 'Eigenschaftssortierung verwenden?',
+            propertySortMessage: (property: string, count: number) =>
+                `Dies ersetzt den Inhalt von „${property}" in ${count} ${count === 1 ? 'Notiz' : 'Notizen'} in der aktuellen Ansicht durch numerische Sortierwerte.`,
+            propertySortConfirmButton: 'Eigenschaftssortierung verwenden'
         },
         navRainbowSection: {
             title: (section: string) => `Regenbogenfarben: ${section}`

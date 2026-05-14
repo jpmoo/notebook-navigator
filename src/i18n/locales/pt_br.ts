@@ -400,9 +400,10 @@ export const STRINGS_PT_BR = {
             affectedCountMessage: (count: number) => `Substituições existentes que serão alteradas: ${count}.`
         },
         manualSortConfirm: {
-            title: 'Ativar classificação manual?',
-            message: (count: number) => `Isso alterará ${count} notas na visualização atual.`,
-            confirmButton: 'Ativar classificação manual'
+            propertySortTitle: 'Usar classificação por propriedade?',
+            propertySortMessage: (property: string, count: number) =>
+                `Isso substituirá o conteúdo de "${property}" em ${count} ${count === 1 ? 'nota' : 'notas'} na visualização atual por valores numéricos de classificação.`,
+            propertySortConfirmButton: 'Usar classificação por propriedade'
         },
         navRainbowSection: {
             title: (section: string) => `Cores arco-íris: ${section}`

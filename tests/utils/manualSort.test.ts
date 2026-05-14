@@ -19,12 +19,13 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { App, TFile } from 'obsidian';
 import {
+    applyManualSortMarkdownOrder,
     buildManualSortOrderAssignments,
-    getManualSortPropertyCoverage,
     hasDenseManualSortOrder,
     isManualSortValueEqual,
     isValidManualSortPropertyKey,
     moveManualSortMarkdownFiles,
+    moveManualSortSelectionByDirection,
     orderManualSortFiles,
     partitionManualSortFiles,
     writeManualSortOrder
@@ -71,6 +72,7 @@ describe('manual sort helpers', () => {
             nonMarkdown: [files[1]]
         });
         expect(orderManualSortFiles(files)).toEqual([files[0], files[2], files[1]]);
+        expect(applyManualSortMarkdownOrder(files, ['notes/two.md', 'notes/one.md'])).toEqual([files[2], files[0], files[1]]);
     });
 
     it('moves a selected markdown block while preserving relative order', () => {
@@ -162,6 +164,71 @@ describe('manual sort helpers', () => {
         expect(result).toBeNull();
     });
 
+    it('moves a selected markdown block down by one row for keyboard sorting', () => {
+        const files = [
+            { path: 'notes/one.md', extension: 'md' },
+            { path: 'notes/two.md', extension: 'md' },
+            { path: 'notes/three.md', extension: 'md' },
+            { path: 'notes/four.md', extension: 'md' },
+            { path: 'assets/file.pdf', extension: 'pdf' }
+        ];
+
+        const result = moveManualSortSelectionByDirection(files, 'notes/two.md', new Set(['notes/two.md', 'notes/three.md']), 'down');
+
+        expect(result?.files.map(file => file.path)).toEqual([
+            'notes/one.md',
+            'notes/four.md',
+            'notes/two.md',
+            'notes/three.md',
+            'assets/file.pdf'
+        ]);
+        expect(result?.scrollPath).toBe('notes/three.md');
+    });
+
+    it('moves non-contiguous selected markdown files as a keyboard block', () => {
+        const files = [
+            { path: 'notes/one.md', extension: 'md' },
+            { path: 'notes/two.md', extension: 'md' },
+            { path: 'notes/three.md', extension: 'md' },
+            { path: 'notes/four.md', extension: 'md' },
+            { path: 'notes/five.md', extension: 'md' }
+        ];
+
+        const result = moveManualSortSelectionByDirection(files, 'notes/four.md', new Set(['notes/two.md', 'notes/four.md']), 'up');
+
+        expect(result?.files.map(file => file.path)).toEqual([
+            'notes/two.md',
+            'notes/four.md',
+            'notes/one.md',
+            'notes/three.md',
+            'notes/five.md'
+        ]);
+        expect(result?.scrollPath).toBe('notes/two.md');
+    });
+
+    it('moves only the active markdown file when it is not selected', () => {
+        const files = [
+            { path: 'notes/one.md', extension: 'md' },
+            { path: 'notes/two.md', extension: 'md' },
+            { path: 'notes/three.md', extension: 'md' }
+        ];
+
+        const result = moveManualSortSelectionByDirection(files, 'notes/one.md', new Set(['notes/two.md']), 'down');
+
+        expect(result?.files.map(file => file.path)).toEqual(['notes/two.md', 'notes/one.md', 'notes/three.md']);
+    });
+
+    it('does not keyboard-move markdown selections past list boundaries', () => {
+        const files = [
+            { path: 'notes/one.md', extension: 'md' },
+            { path: 'notes/two.md', extension: 'md' },
+            { path: 'notes/three.md', extension: 'md' }
+        ];
+
+        expect(moveManualSortSelectionByDirection(files, 'notes/one.md', new Set(['notes/one.md']), 'up')).toBeNull();
+        expect(moveManualSortSelectionByDirection(files, 'notes/two.md', new Set(files.map(file => file.path)), 'down')).toBeNull();
+    });
+
     it('validates property keys used for manual sort', () => {
         expect(isValidManualSortPropertyKey('index')).toBe(true);
         expect(isValidManualSortPropertyKey('  index  ')).toBe(true);
@@ -175,21 +242,7 @@ describe('manual sort helpers', () => {
         expect(isManualSortValueEqual('three', 3)).toBe(false);
     });
 
-    it('counts manual sort property coverage for markdown files only', () => {
-        const first = createFile('notes/first.md', { Index: '3.5' });
-        const second = createFile('notes/second.md', {});
-        const third = createFile('notes/third.md', { index: null });
-        const fourth = createFile('notes/fourth.md', { index: 4 });
-        const nonMarkdown = createFile('assets/file.pdf', {});
-        const app = createApp([first, second, third, fourth, nonMarkdown], vi.fn());
-
-        expect(getManualSortPropertyCoverage(app, [first, second, third, fourth, nonMarkdown], 'index')).toEqual({
-            markdownCount: 4,
-            withPropertyCount: 3
-        });
-    });
-
-    it('detects whether manual sort values already match dense order assignments', () => {
+    it('detects whether cached manual sort values match dense order assignments', () => {
         const first = createFile('notes/first.md', { Index: '1' });
         const second = createFile('notes/second.md', { index: 2 });
         const third = createFile('notes/third.md', { index: 10 });

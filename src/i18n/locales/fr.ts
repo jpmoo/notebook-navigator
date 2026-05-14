@@ -399,9 +399,10 @@ export const STRINGS_FR = {
             affectedCountMessage: (count: number) => `Remplacements existants qui seront modifiés\u202f: ${count}.`
         },
         manualSortConfirm: {
-            title: 'Activer le tri manuel ?',
-            message: (count: number) => `Ceci modifiera ${count} notes dans la vue actuelle.`,
-            confirmButton: 'Activer le tri manuel'
+            propertySortTitle: 'Utiliser le tri par propriété ?',
+            propertySortMessage: (property: string, count: number) =>
+                `Ceci remplacera le contenu de « ${property} » dans ${count} ${count === 1 ? 'note' : 'notes'} de la vue actuelle par des valeurs numériques de tri.`,
+            propertySortConfirmButton: 'Utiliser le tri par propriété'
         },
         navRainbowSection: {
             title: (section: string) => `Couleurs arc-en-ciel: ${section}`

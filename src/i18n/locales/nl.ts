@@ -400,9 +400,10 @@ export const STRINGS_NL = {
             affectedCountMessage: (count: number) => `Bestaande overschrijvingen die wijzigen: ${count}.`
         },
         manualSortConfirm: {
-            title: 'Handmatig sorteren inschakelen?',
-            message: (count: number) => `Hiermee worden ${count} notities in de huidige weergave gewijzigd.`,
-            confirmButton: 'Handmatig sorteren inschakelen'
+            propertySortTitle: 'Sorteren op eigenschap gebruiken?',
+            propertySortMessage: (property: string, count: number) =>
+                `Dit vervangt de inhoud van "${property}" in ${count} ${count === 1 ? 'notitie' : 'notities'} in de huidige weergave door numerieke sorteerwaarden.`,
+            propertySortConfirmButton: 'Sorteren op eigenschap gebruiken'
         },
         navRainbowSection: {
             title: (section: string) => `Regenboogkleuren: ${section}`

@@ -398,9 +398,10 @@ export const STRINGS_AR = {
             affectedCountMessage: (count: number) => `التجاوزات الحالية التي ستتغير: ${count}.`
         },
         manualSortConfirm: {
-            title: 'تفعيل الفرز اليدوي؟',
-            message: (count: number) => `سيؤدي هذا إلى تغيير ${count} ملاحظة في العرض الحالي.`,
-            confirmButton: 'تفعيل الفرز اليدوي'
+            propertySortTitle: 'استخدام الفرز حسب الخاصية؟',
+            propertySortMessage: (property: string, count: number) =>
+                `سيؤدي هذا إلى استبدال محتوى "${property}" في ${count} ملاحظة في العرض الحالي بقيم فرز رقمية.`,
+            propertySortConfirmButton: 'استخدام الفرز حسب الخاصية'
         },
         navRainbowSection: {
             title: (section: string) => `ألوان قوس قزح: ${section}`

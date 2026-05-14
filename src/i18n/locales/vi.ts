@@ -398,9 +398,10 @@ export const STRINGS_VI = {
             affectedCountMessage: (count: number) => `Ghi đè hiện có sẽ thay đổi: ${count}.`
         },
         manualSortConfirm: {
-            title: 'Bật sắp xếp thủ công?',
-            message: (count: number) => `Việc này sẽ thay đổi ${count} ghi chú trong chế độ xem hiện tại.`,
-            confirmButton: 'Bật sắp xếp thủ công'
+            propertySortTitle: 'Sử dụng sắp xếp theo thuộc tính?',
+            propertySortMessage: (property: string, count: number) =>
+                `Thao tác này sẽ thay thế nội dung của "${property}" trong ${count} ghi chú ở chế độ xem hiện tại bằng các giá trị sắp xếp số.`,
+            propertySortConfirmButton: 'Sử dụng sắp xếp theo thuộc tính'
         },
         navRainbowSection: {
             title: (section: string) => `Màu cầu vồng: ${section}`

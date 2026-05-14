@@ -397,9 +397,10 @@ export const STRINGS_KO = {
             affectedCountMessage: (count: number) => `변경될 기존 재정의: ${count}.`
         },
         manualSortConfirm: {
-            title: '수동 정렬을 시작하시겠습니까?',
-            message: (count: number) => `현재 보기의 ${count}개 노트가 변경됩니다.`,
-            confirmButton: '수동 정렬 시작'
+            propertySortTitle: '속성 정렬을 사용하시겠습니까?',
+            propertySortMessage: (property: string, count: number) =>
+                `현재 보기의 ${count}개 노트에서 "${property}"의 내용이 숫자 정렬 값으로 대체됩니다.`,
+            propertySortConfirmButton: '속성 정렬 사용'
         },
         navRainbowSection: {
             title: (section: string) => `무지개 색상: ${section}`

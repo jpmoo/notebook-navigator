@@ -398,9 +398,10 @@ export const STRINGS_EN = {
             affectedCountMessage: (count: number) => `Existing overrides that will change: ${count}.`
         },
         manualSortConfirm: {
-            title: 'Enter manual sort?',
-            message: (count: number) => `This will change ${count} notes in the current view.`,
-            confirmButton: 'Enter manual sort'
+            propertySortTitle: 'Use property sort?',
+            propertySortMessage: (property: string, count: number) =>
+                `This will replace the contents of "${property}" in ${count} ${count === 1 ? 'note' : 'notes'} in the current view with numeric sort values.`,
+            propertySortConfirmButton: 'Use property sort'
         },
         navRainbowSection: {
             title: (section: string) => `Rainbow colors: ${section}`

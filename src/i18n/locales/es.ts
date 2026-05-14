@@ -399,9 +399,10 @@ export const STRINGS_ES = {
             affectedCountMessage: (count: number) => `Anulaciones existentes que cambiarán: ${count}.`
         },
         manualSortConfirm: {
-            title: '¿Activar orden manual?',
-            message: (count: number) => `Esto cambiará ${count} notas en la vista actual.`,
-            confirmButton: 'Activar orden manual'
+            propertySortTitle: '¿Usar orden por propiedad?',
+            propertySortMessage: (property: string, count: number) =>
+                `Esto reemplazará el contenido de "${property}" en ${count} ${count === 1 ? 'nota' : 'notas'} de la vista actual con valores numéricos de orden.`,
+            propertySortConfirmButton: 'Usar orden por propiedad'
         },
         navRainbowSection: {
             title: (section: string) => `Colores arcoíris: ${section}`
