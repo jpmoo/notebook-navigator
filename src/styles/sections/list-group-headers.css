@@ -62,7 +62,7 @@
 .nn-list-sticky-header .nn-list-group-header::before {
     content: '';
     position: absolute;
-    top: 0;
+    top: -0.5px;
     bottom: 0;
     inset-inline-start: calc(-1 * var(--nn-scroller-padding));
     inset-inline-end: calc(-1 * var(--nn-scroller-padding));
