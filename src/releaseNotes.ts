@@ -82,14 +82,19 @@ export interface ReleaseNote {
 const RELEASE_NOTES: ReleaseNote[] = [
     {
         version: '2.6.7',
-        date: '2026-05-13',
+        date: '2026-05-18',
         showOnUpdate: false,
+        info: 'This update finally brings manual sort to the list pane. If you are a writer used to working with Ulysses or Scrivener, this should make your daily life much easier.',
+        new: [
+            '**List pane.** Manual sorting mode in list pane. Finally. Enable by using the sort button and pick "Manual sort...". Then pick a property to sort by, then just drag around files to sort in any way you want.'
+        ],
         improved: [
             '**Settings.** List > Organization > ==Properties to sort by== now takes a comma-separated list of frontmatter properties, and each one shows up as its own option in the list pane sort menu.'
         ],
         fixed: [
             '**Commands.** When **Notebook Navigator: Delete files** was called and the navigation pane was last focused, it could delete the selected folder. It now only deletes selected files.',
-            '**List pane.** Fixed extra spacing in feature image rows when dates are hidden and tags or properties are visible.'
+            '**List pane.** Fixed extra spacing in feature image rows when dates are hidden and tags or properties are visible.',
+            '**List pane.** Removed tiny hairline gap above the sticky group header showing on some scaling modes.'
         ]
     },
     {
