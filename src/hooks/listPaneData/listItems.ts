@@ -23,8 +23,9 @@ import { ListPaneItemType, ItemType, PINNED_SECTION_HEADER_KEY } from '../../typ
 import type { ListPaneItem } from '../../types/virtualization';
 import { strings } from '../../i18n';
 import { FILE_VISIBILITY, type FileVisibility } from '../../utils/fileTypeUtils';
-import { compareByAlphaSortOrder, getDateField, isDateSortOption } from '../../utils/sortUtils';
+import { compareByAlphaSortOrder, getDateField, isDateSortOption, isPropertySortOption } from '../../utils/sortUtils';
 import { partitionPinnedFiles } from '../../utils/fileFinder';
+import { hasCachedManualSortProperty } from '../../utils/manualSort';
 import { createHiddenTagVisibility } from '../../utils/tagPrefixMatcher';
 import { getCachedFileTags } from '../../utils/tagUtils';
 import { DateUtils } from '../../utils/dateUtils';
@@ -57,6 +58,7 @@ interface BuildListItemsArgs {
     selectionType: ItemType | null;
     showHiddenItems: boolean;
     sortOption: SortOption;
+    propertySortKey?: string;
 }
 
 export function buildListItems({
@@ -73,7 +75,8 @@ export function buildListItems({
     selectedFolder,
     selectionType,
     showHiddenItems,
-    sortOption
+    sortOption,
+    propertySortKey = ''
 }: BuildListItemsArgs): ListPaneItem[] {
     const items: ListPaneItem[] = [
         {
@@ -159,9 +162,24 @@ export function buildListItems({
     const groupingMode = listConfig.groupBy;
     const shouldGroupByDate = groupingMode === 'date' && isDateSortOption(sortOption);
     const shouldGroupByFolder = groupingMode === 'folder' && selectionType === ItemType.FOLDER;
+    const shouldShowUnsortedSection = isPropertySortOption(sortOption) && propertySortKey.trim().length > 0;
 
     if (!shouldGroupByDate && !shouldGroupByFolder) {
-        if (pinnedFiles.length > 0 && unpinnedFiles.length > 0) {
+        const sortedFiles: TFile[] = [];
+        const unsortedFiles: TFile[] = [];
+        if (shouldShowUnsortedSection) {
+            unpinnedFiles.forEach(file => {
+                if (file.extension === 'md' && !hasCachedManualSortProperty(app, file, propertySortKey)) {
+                    unsortedFiles.push(file);
+                    return;
+                }
+                sortedFiles.push(file);
+            });
+        } else {
+            sortedFiles.push(...unpinnedFiles);
+        }
+
+        if (pinnedFiles.length > 0 && sortedFiles.length > 0) {
             const label = fileVisibility === FILE_VISIBILITY.DOCUMENTS ? strings.listPane.notesSection : strings.listPane.filesSection;
             pushHeaderItem({
                 data: label,
@@ -169,9 +187,19 @@ export function buildListItems({
             });
         }
 
-        unpinnedFiles.forEach(file => {
+        sortedFiles.forEach(file => {
             pushFileItem(file);
         });
+
+        if (unsortedFiles.length > 0) {
+            pushHeaderItem({
+                data: strings.listPane.unsortedSection,
+                key: 'header-unsorted'
+            });
+            unsortedFiles.forEach(file => {
+                pushFileItem(file);
+            });
+        }
     } else if (shouldGroupByDate) {
         const now = DateUtils.parseLocalDayKey(dayKey) ?? new Date();
         const dateField = getDateField(sortOption);

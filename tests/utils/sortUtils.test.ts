@@ -269,7 +269,7 @@ describe('sort icons', () => {
         settings.propertySortKey = 'status, priority';
 
         expect(getListSortToolbarIconId(settings)).toBe('list-sort-ascending');
-        expect(getListSortToolbarIconId(settings, { option: 'property-desc', propertyKey: 'status' })).toBe('list-sort-descending');
+        expect(getListSortToolbarIconId(settings, { option: 'property-desc', propertyKey: 'status' })).toBe('list-sort-property');
         expect(getListSortToolbarIconId(settings, { option: 'property-asc', propertyKey: 'status' })).toBe('list-sort-property');
         expect(getListSortToolbarIconId(settings, { option: 'property-desc', propertyKey: 'priority' })).toBe('list-sort-property');
     });
@@ -555,7 +555,7 @@ describe('property sort keys', () => {
         const effective = getEffectiveListSort(settings, ItemType.PROPERTY, null, null, propertyNodeId);
 
         expect(effective).toEqual({
-            option: 'property-desc',
+            option: 'property-asc',
             propertyKey: 'downloaded',
             propertySortSecondary: settings.propertySortSecondary
         });

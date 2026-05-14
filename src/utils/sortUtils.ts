@@ -434,7 +434,10 @@ export function getEffectiveSortOption(
 
 export function resolveListSort(settings: NotebookNavigatorSettings, sortOverride?: ListSortOverrideValue): EffectiveListSort {
     const normalizedOverride = normalizeListSortOverride(sortOverride);
-    const option = typeof normalizedOverride === 'string' ? normalizedOverride : (normalizedOverride?.option ?? settings.defaultFolderSort);
+    const rawOption =
+        typeof normalizedOverride === 'string' ? normalizedOverride : (normalizedOverride?.option ?? settings.defaultFolderSort);
+    // Keep property-desc as a valid stored/reserved option while current property sorting resolves to ascending manual order.
+    const option = rawOption === 'property-desc' ? 'property-asc' : rawOption;
     const configuredPropertyKeys = parsePropertySortKeys(settings.propertySortKey);
     const configuredPropertyKey = configuredPropertyKeys[0] ?? '';
     const overridePropertyKey =

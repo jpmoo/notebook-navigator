@@ -50,6 +50,11 @@ export interface ManualSortFilePartitions<T extends ManualSortFileLike> {
     nonMarkdown: T[];
 }
 
+export interface ManualSortPropertyCoverage {
+    markdownCount: number;
+    withPropertyCount: number;
+}
+
 export function normalizeManualSortPropertyKey(value: string): string {
     return value.trim();
 }
@@ -114,6 +119,36 @@ export function getManualSortPropertyValue(app: App, file: TFile, propertyKey: s
     return getPropertySortValueFromRecord(app.metadataCache?.getFileCache(file)?.frontmatter, propertyKey);
 }
 
+export function hasCachedManualSortProperty(app: App, file: TFile, propertyKey: string): boolean {
+    const frontmatter = app.metadataCache?.getFileCache(file)?.frontmatter;
+    if (!isRecord(frontmatter)) {
+        return false;
+    }
+
+    return findMatchingRecordKey(frontmatter, propertyKey) !== null;
+}
+
+export function getManualSortPropertyCoverage(app: App, files: readonly TFile[], propertyKey: string): ManualSortPropertyCoverage {
+    let markdownCount = 0;
+    let withPropertyCount = 0;
+
+    for (const file of files) {
+        if (file.extension !== 'md') {
+            continue;
+        }
+
+        markdownCount += 1;
+        if (hasCachedManualSortProperty(app, file, propertyKey)) {
+            withPropertyCount += 1;
+        }
+    }
+
+    return {
+        markdownCount,
+        withPropertyCount
+    };
+}
+
 function hasCachedManualSortValue(app: App, file: TFile, propertyKey: string, order: number): boolean {
     const frontmatter = app.metadataCache?.getFileCache(file)?.frontmatter;
     if (!isRecord(frontmatter)) {
@@ -122,6 +157,10 @@ function hasCachedManualSortValue(app: App, file: TFile, propertyKey: string, or
 
     const targetKey = findMatchingRecordKey(frontmatter, propertyKey) ?? propertyKey;
     return isManualSortValueEqual(frontmatter[targetKey], order);
+}
+
+export function hasDenseManualSortOrder(app: App, files: readonly TFile[], propertyKey: string): boolean {
+    return partitionManualSortFiles(files).markdown.every((file, index) => hasCachedManualSortValue(app, file, propertyKey, index + 1));
 }
 
 export async function writeManualSortOrder(app: App, files: readonly TFile[], propertyKey: string): Promise<ManualSortWriteResult> {
@@ -145,7 +184,8 @@ export async function writeManualSortOrder(app: App, files: readonly TFile[], pr
         let didChange = false;
         try {
             await app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
-                const targetKey = findMatchingRecordKey(frontmatter, propertyKey) ?? propertyKey;
+                const existingKey = findMatchingRecordKey(frontmatter, propertyKey);
+                const targetKey = existingKey ?? propertyKey;
                 if (isManualSortValueEqual(frontmatter[targetKey], assignment.value)) {
                     return;
                 }

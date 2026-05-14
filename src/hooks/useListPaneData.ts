@@ -335,7 +335,8 @@ export function useListPaneData({
             selectedFolder,
             selectionType,
             showHiddenItems,
-            sortOption
+            sortOption,
+            propertySortKey: sortSpec.propertyKey
         });
     }, [
         app,
@@ -351,7 +352,8 @@ export function useListPaneData({
         selectionType,
         searchMetaMap,
         showHiddenItems,
-        sortOption
+        sortOption,
+        sortSpec.propertyKey
     ]);
 
     const filePathToIndex = useMemo(() => {

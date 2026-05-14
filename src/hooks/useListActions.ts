@@ -25,7 +25,7 @@ import { useUXPreferenceActions, useUXPreferences } from '../context/UXPreferenc
 import { strings } from '../i18n';
 import { ConfirmModal } from '../modals/ConfirmModal';
 import { PropertySortKeySuggestModal } from '../modals/PropertySortKeySuggestModal';
-import type { ListSortOverrideValue, SortOption } from '../settings';
+import type { ListSortOverrideValue, NotebookNavigatorSettings, SortOption } from '../settings';
 import type { ListNoteGroupingOption } from '../settings/types';
 import { ItemType, PROPERTIES_ROOT_VIRTUAL_FOLDER_ID, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
 import {
@@ -53,7 +53,13 @@ import type { FolderAppearance } from './useListPaneAppearance';
 import { getFilesForFolder } from '../utils/fileFinder';
 import { runAsyncAction } from '../utils/async';
 import { FILE_VISIBILITY } from '../utils/fileTypeUtils';
-import { getManualSortBaselineSettings, normalizeManualSortPropertyKey, orderManualSortFiles } from '../utils/manualSort';
+import {
+    getManualSortBaselineSettings,
+    getManualSortPropertyCoverage,
+    hasDenseManualSortOrder,
+    normalizeManualSortPropertyKey,
+    orderManualSortFiles
+} from '../utils/manualSort';
 import { resolveIconForMenu, resolveUXIcon, resolveUXIconForMenu } from '../utils/uxIcons';
 import { buildPropertyKeyNodeId, parsePropertyNodeId } from '../utils/propertyTree';
 import { getFilesForNavigationSelection } from '../utils/selectionUtils';
@@ -86,6 +92,45 @@ const BIDI_ISOLATE_END = '\u2069'; // Pop Directional Isolate
 function isolateBidiText(value: string): string {
     // Keeps user-authored LTR property keys from reordering quotes and punctuation inside RTL labels.
     return `${BIDI_ISOLATE_START}${value}${BIDI_ISOLATE_END}`;
+}
+
+function getSortOverridesForTarget(
+    settings: NotebookNavigatorSettings,
+    target: SelectionSortTarget
+): Record<string, ListSortOverrideValue> {
+    if (target.type === ItemType.FOLDER) {
+        return sanitizeRecord(ensureRecord(settings.folderSortOverrides));
+    }
+    if (target.type === ItemType.TAG) {
+        return sanitizeRecord(ensureRecord(settings.tagSortOverrides));
+    }
+    return sanitizeRecord(ensureRecord(settings.propertySortOverrides));
+}
+
+function setSortOverridesForTarget(
+    settings: NotebookNavigatorSettings,
+    target: SelectionSortTarget,
+    sortOverrides: Record<string, ListSortOverrideValue>
+): void {
+    if (target.type === ItemType.FOLDER) {
+        settings.folderSortOverrides = sortOverrides;
+        return;
+    }
+    if (target.type === ItemType.TAG) {
+        settings.tagSortOverrides = sortOverrides;
+        return;
+    }
+    settings.propertySortOverrides = sortOverrides;
+}
+
+function setSortOverrideForTarget(
+    settings: NotebookNavigatorSettings,
+    target: SelectionSortTarget,
+    sortOverride: ListSortOverrideValue
+): void {
+    const sortOverrides = getSortOverridesForTarget(settings, target);
+    sortOverrides[target.key] = cloneListSortOverride(sortOverride);
+    setSortOverridesForTarget(settings, target, sortOverrides);
 }
 
 function collectFolderDescendantPaths(folder: TFolder): string[] {
@@ -539,6 +584,8 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
     const defaultMode = getDefaultListMode(settings);
     const selectionSortTarget = useMemo(() => getSelectionSortTarget(), [getSelectionSortTarget]);
     const selectionSortOverride = useMemo(() => getSelectionSortOverride(), [getSelectionSortOverride]);
+    const selectionSortSpec = useMemo(() => resolveListSort(settings, selectionSortOverride), [settings, selectionSortOverride]);
+    const isSelectionPropertySortActive = getSortField(selectionSortSpec.option) === 'property';
     const resolvePropertySortIcon = useCallback(
         (propertyKey: string): string | null => {
             const normalizedPropertyKey = casefold(propertyKey);
@@ -553,14 +600,14 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
     const getSortIcon = useCallback(() => {
         const sortIconId = getListSortToolbarIconId(settings, selectionSortOverride);
         if (sortIconId === 'list-sort-property') {
-            const propertyIcon = resolvePropertySortIcon(resolveListSort(settings, selectionSortOverride).propertyKey);
+            const propertyIcon = resolvePropertySortIcon(selectionSortSpec.propertyKey);
             if (propertyIcon) {
                 return propertyIcon;
             }
         }
 
         return resolveUXIcon(settings.interfaceIcons, sortIconId);
-    }, [resolvePropertySortIcon, selectionSortOverride, settings]);
+    }, [resolvePropertySortIcon, selectionSortOverride, selectionSortSpec.propertyKey, settings]);
     const selectionAppearanceOverride = useMemo(() => getSelectionAppearanceOverride(), [getSelectionAppearanceOverride]);
     const selectionAppearanceFields = useMemo(
         () => normalizeAppearanceOverride(selectionAppearanceOverride, defaultMode),
@@ -580,6 +627,7 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
     );
     const selectionGroupOverride = groupingInfo.normalizedOverride;
     const hasSelectionGroupOverride = groupingInfo.hasCustomOverride;
+    const effectiveSelectionGroupOverride = isSelectionPropertySortActive ? undefined : selectionGroupOverride;
     const selectionDescendantLabel = useMemo(() => getSelectionDescendantLabel(), [getSelectionDescendantLabel]);
     const [folderTreeVersion, setFolderTreeVersion] = useState(0);
     const [tagTreeVersion, setTagTreeVersion] = useState(0);
@@ -755,39 +803,46 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
         [defaultMode, getSelectionSortTarget, updateSettings]
     );
 
-    const getManualSortInitialFiles = useCallback((): TFile[] => {
-        const baselineSettings = getManualSortBaselineSettings(settings);
-        return orderManualSortFiles(
-            getFilesForNavigationSelection(
-                {
-                    selectionType: selectionState.selectionType,
-                    selectedFolder: selectionState.selectedFolder,
-                    selectedTag: selectionState.selectedTag,
-                    selectedProperty: selectionState.selectedProperty
-                },
-                baselineSettings,
-                { includeDescendantNotes, showHiddenItems },
-                app,
-                tagTreeService,
-                propertyTreeService
-            )
-        );
-    }, [
-        app,
-        includeDescendantNotes,
-        propertyTreeService,
-        selectionState.selectedFolder,
-        selectionState.selectedProperty,
-        selectionState.selectedTag,
-        selectionState.selectionType,
-        settings,
-        showHiddenItems,
-        tagTreeService
-    ]);
+    const getManualSortInitialFiles = useCallback(
+        (target: SelectionSortTarget, sortOverride: ListSortOverrideValue, propertyKeyToConfigure?: string): TFile[] => {
+            const baselineSettings = getManualSortBaselineSettings(settings);
+            if (propertyKeyToConfigure) {
+                baselineSettings.propertySortKey = appendPropertySortKey(baselineSettings.propertySortKey, propertyKeyToConfigure);
+            }
+            setSortOverrideForTarget(baselineSettings, target, sortOverride);
+
+            return orderManualSortFiles(
+                getFilesForNavigationSelection(
+                    {
+                        selectionType: selectionState.selectionType,
+                        selectedFolder: selectionState.selectedFolder,
+                        selectedTag: selectionState.selectedTag,
+                        selectedProperty: selectionState.selectedProperty
+                    },
+                    baselineSettings,
+                    { includeDescendantNotes, showHiddenItems },
+                    app,
+                    tagTreeService,
+                    propertyTreeService
+                )
+            );
+        },
+        [
+            app,
+            includeDescendantNotes,
+            propertyTreeService,
+            selectionState.selectedFolder,
+            selectionState.selectedProperty,
+            selectionState.selectedTag,
+            selectionState.selectionType,
+            settings,
+            showHiddenItems,
+            tagTreeService
+        ]
+    );
 
     const applyManualSortForProperty = useCallback(
-        async (propertyKey: string, target: SelectionSortTarget) => {
-            const initialFiles = getManualSortInitialFiles();
+        async (propertyKey: string, target: SelectionSortTarget, initialFiles: TFile[]) => {
             let resolvedPropertyKey = propertyKey;
 
             await updateSettings(current => {
@@ -795,21 +850,7 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
                 resolvedPropertyKey = existingPropertyKey || propertyKey;
                 current.propertySortKey = appendPropertySortKey(current.propertySortKey, resolvedPropertyKey);
 
-                const sortOverrides =
-                    target.type === ItemType.FOLDER
-                        ? sanitizeRecord(ensureRecord(current.folderSortOverrides))
-                        : target.type === ItemType.TAG
-                          ? sanitizeRecord(ensureRecord(current.tagSortOverrides))
-                          : sanitizeRecord(ensureRecord(current.propertySortOverrides));
-                sortOverrides[target.key] = createListSortOverride('property-asc', resolvedPropertyKey);
-
-                if (target.type === ItemType.FOLDER) {
-                    current.folderSortOverrides = sortOverrides;
-                } else if (target.type === ItemType.TAG) {
-                    current.tagSortOverrides = sortOverrides;
-                } else {
-                    current.propertySortOverrides = sortOverrides;
-                }
+                setSortOverrideForTarget(current, target, createListSortOverride('property-asc', resolvedPropertyKey));
 
                 const appearances =
                     target.type === ItemType.FOLDER
@@ -817,10 +858,7 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
                         : target.type === ItemType.TAG
                           ? sanitizeRecord(ensureRecord(current.tagAppearances))
                           : sanitizeRecord(ensureRecord(current.propertyAppearances));
-                const normalizedAppearance = mergeAppearanceAndGrouping(
-                    normalizeAppearanceOverride(appearances[target.key], defaultMode),
-                    'none'
-                );
+                const normalizedAppearance = normalizeAppearanceOverride(appearances[target.key], defaultMode);
 
                 if (normalizedAppearance) {
                     appearances[target.key] = normalizedAppearance;
@@ -842,7 +880,7 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
             app.workspace.requestSaveLayout();
             onManualSortStart?.(resolvedPropertyKey, initialFiles);
         },
-        [app.workspace, defaultMode, getManualSortInitialFiles, onManualSortStart, updateSettings]
+        [app.workspace, defaultMode, onManualSortStart, updateSettings]
     );
 
     const startManualSortForProperty = useCallback(
@@ -853,17 +891,35 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
                 return;
             }
 
+            const currentSortSpec = resolveListSort(settings, selectionSortOverride);
+            const currentSort = currentSortSpec.option;
+            const currentField = getSortField(currentSort);
+            const currentSortOverride = createListSortOverride(
+                currentSort,
+                currentField === 'property' ? currentSortSpec.propertyKey : undefined
+            );
+            const currentOrderFiles = getManualSortInitialFiles(target, currentSortOverride);
+            const coverage = getManualSortPropertyCoverage(app, currentOrderFiles, propertyKey);
+            const initialFiles =
+                coverage.withPropertyCount > 0
+                    ? getManualSortInitialFiles(target, createListSortOverride('property-asc', propertyKey), propertyKey)
+                    : currentOrderFiles;
+            if (hasDenseManualSortOrder(app, initialFiles, propertyKey)) {
+                await applyManualSortForProperty(propertyKey, target, initialFiles);
+                return;
+            }
+
             new ConfirmModal(
                 app,
                 strings.modals.manualSortConfirm.title,
-                strings.modals.manualSortConfirm.message(isolateBidiText(propertyKey)),
+                strings.modals.manualSortConfirm.message(coverage.markdownCount),
                 async () => {
-                    await applyManualSortForProperty(propertyKey, target);
+                    await applyManualSortForProperty(propertyKey, target, initialFiles);
                 },
                 strings.modals.manualSortConfirm.confirmButton
             ).open();
         },
-        [app, applyManualSortForProperty, getSelectionSortTarget]
+        [app, applyManualSortForProperty, getManualSortInitialFiles, getSelectionSortTarget, selectionSortOverride, settings]
     );
 
     const getDescendantSortAndGroupChangeStats = useCallback((): DescendantApplyStats => {
@@ -902,7 +958,7 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
         const missingRequiredKeys = new Set<string>();
         const matchingSavedKeys = new Set<string>();
         const hasCurrentSortOverride = selectionSortOverride !== undefined;
-        const hasCurrentGroupOverride = selectionGroupOverride !== undefined;
+        const hasCurrentGroupOverride = effectiveSelectionGroupOverride !== undefined;
 
         savedKeys.forEach(key => {
             let changed = false;
@@ -921,7 +977,7 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
             if (hasCurrentGroupOverride) {
                 if (!groupByKey.has(key)) {
                     missingRequired = true;
-                } else if (groupByKey.get(key) !== selectionGroupOverride) {
+                } else if (groupByKey.get(key) !== effectiveSelectionGroupOverride) {
                     changed = true;
                 }
             } else if (groupByKey.has(key)) {
@@ -957,7 +1013,7 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
     }, [
         isSelectionDescendantSettingKey,
         selectionDescendantCount,
-        selectionGroupOverride,
+        effectiveSelectionGroupOverride,
         selectionSortOverride,
         selectionSortTarget,
         settings.folderAppearances,
@@ -1011,7 +1067,7 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
             selectionDescendantKeys.forEach(key => {
                 const normalizedAppearance = mergeAppearanceAndGrouping(
                     normalizeAppearanceOverride(appearances[key], defaultMode),
-                    selectionGroupOverride
+                    effectiveSelectionGroupOverride
                 );
                 if (normalizedAppearance) {
                     appearances[key] = normalizedAppearance;
@@ -1031,7 +1087,15 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
             current.propertyAppearances = appearances;
         });
         app.workspace.requestSaveLayout();
-    }, [app, defaultMode, getSelectionDescendantKeys, selectionGroupOverride, selectionSortOverride, selectionSortTarget, updateSettings]);
+    }, [
+        app,
+        defaultMode,
+        effectiveSelectionGroupOverride,
+        getSelectionDescendantKeys,
+        selectionSortOverride,
+        selectionSortTarget,
+        updateSettings
+    ]);
 
     const promptApplySortAndGroupToDescendants = useCallback(() => {
         const target = selectionSortTarget;
@@ -1273,9 +1337,11 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
 
             const menu = new Menu();
             const currentSortSpec = resolveListSort(settings, selectionSortOverride);
+            const defaultSortSpec = resolveListSort(settings);
             const currentSort = currentSortSpec.option;
             const currentDirection = getSortDirection(currentSort);
             const currentField = getSortField(currentSort);
+            const isPropertySortActive = currentField === 'property';
             const propertySortKeys = parsePropertySortKeys(settings.propertySortKey);
             const sortFieldLabels: Record<SortField, string> = {
                 modified: strings.settings.items.sortNotesBy.fields.modified,
@@ -1313,9 +1379,12 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
             };
             const samePropertySortKey = (left: string, right: string) => casefold(left) === casefold(right);
             const applySort = (field: SortField, direction: SortDirection, propertyKey?: string) => {
-                const option = buildSortOption(field, direction);
+                const option = buildSortOption(field, field === 'property' ? 'asc' : direction);
                 runAsyncAction(async () => {
                     await setSelectionSortOverride(createListSortOverride(option, propertyKey));
+                    if (field === 'property' && hasSelectionGroupOverride) {
+                        await setSelectionGroupOverride(undefined);
+                    }
                     app.workspace.requestSaveLayout();
                 });
             };
@@ -1327,14 +1396,17 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
 
             menu.addItem(item => {
                 item.setTitle(
-                    `${strings.paneHeader.defaultSort}: ${getSortOptionLabel(settings.defaultFolderSort, resolveListSort(settings).propertyKey)}`
+                    `${strings.paneHeader.defaultSort}: ${getSortOptionLabel(defaultSortSpec.option, defaultSortSpec.propertyKey)}`
                 )
-                    .setIcon(getSortIconName(settings.defaultFolderSort))
+                    .setIcon(getSortIconName(defaultSortSpec.option))
                     .setChecked(!hasSelectionSortOverride)
                     .onClick(() => {
                         // Reset to default sort
                         runAsyncAction(async () => {
                             await removeSelectionSortOverride();
+                            if (getSortField(defaultSortSpec.option) === 'property' && hasSelectionGroupOverride) {
+                                await setSelectionGroupOverride(undefined);
+                            }
                             app.workspace.requestSaveLayout();
                         });
                     });
@@ -1376,9 +1448,13 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
                     const option = buildSortOption(currentField, direction);
                     item.setTitle(sortDirectionLabels[direction])
                         .setIcon(getSortIconName(option))
+                        .setDisabled(isPropertySortActive)
                         .setChecked(currentDirection === direction)
                         .onClick(() => {
-                            applySort(currentField, direction, currentField === 'property' ? currentSortSpec.propertyKey : undefined);
+                            if (isPropertySortActive) {
+                                return;
+                            }
+                            applySort(currentField, direction);
                         });
                 });
             });
@@ -1402,7 +1478,7 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
                         .setIcon(getSortFieldMenuIcon('property', propertyKey))
                         .setChecked(currentField === 'property' && samePropertySortKey(currentSortSpec.propertyKey, propertyKey))
                         .onClick(() => {
-                            applySort('property', currentDirection, propertyKey);
+                            applySort('property', 'asc', propertyKey);
                         });
                 });
             });
@@ -1417,8 +1493,12 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
             menu.addItem(item => {
                 item.setTitle(`    ${strings.folderAppearance.defaultGroupOption(defaultGroupLabel)}`)
                     .setIcon(getGroupingIcon(groupingInfo.defaultGrouping))
-                    .setChecked(!hasSelectionGroupOverride)
+                    .setDisabled(isPropertySortActive)
+                    .setChecked(!isPropertySortActive && !hasSelectionGroupOverride)
                     .onClick(() => {
+                        if (isPropertySortActive) {
+                            return;
+                        }
                         runAsyncAction(async () => {
                             await setSelectionGroupOverride(undefined);
                             app.workspace.requestSaveLayout();
@@ -1428,12 +1508,14 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
 
             const groupOptions: ListNoteGroupingOption[] = hasFolderSelection ? ['none', 'date', 'folder'] : ['none', 'date'];
             groupOptions.forEach(option => {
-                const isDisabled = option === 'date' && !isDateSortOption(currentSort);
+                const isDisabled = isPropertySortActive || (option === 'date' && !isDateSortOption(currentSort));
                 menu.addItem(item => {
                     item.setTitle(`    ${strings.settings.items.groupNotes.options[option]}`)
                         .setIcon(getGroupingIcon(option))
                         .setDisabled(isDisabled)
-                        .setChecked(hasSelectionGroupOverride && selectionGroupOverride === option)
+                        .setChecked(
+                            isPropertySortActive ? option === 'none' : hasSelectionGroupOverride && selectionGroupOverride === option
+                        )
                         .onClick(() => {
                             if (isDisabled) {
                                 return;

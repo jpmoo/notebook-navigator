@@ -50,6 +50,7 @@ interface ManualSortListContentProps {
     listItems: ListPaneItem[];
     hiddenFileState: ReadonlyMap<string, boolean>;
     propertyKey: string;
+    rankedMarkdownPaths: ReadonlySet<string>;
     selectedFolderPath: string | null;
     isSaving: boolean;
     isDoneDisabled: boolean;
@@ -236,32 +237,54 @@ function ManualSortStaticRow(props: ManualSortRowProps) {
 }
 
 interface ManualSortGroupProps {
-    entries: ManualSortEntry[];
+    rankedEntries: ManualSortEntry[];
+    unsortedEntries: ManualSortEntry[];
+    nonMarkdownEntries: ManualSortEntry[];
     sortableIds: string[];
     canReorder: boolean;
     rowContext: ManualSortRowContext;
     noteShortcutKeysByPath: ReadonlyMap<string, string>;
 }
 
-function ManualSortGroup({ entries, sortableIds, canReorder, rowContext, noteShortcutKeysByPath }: ManualSortGroupProps) {
+function ManualSortGroup({
+    rankedEntries,
+    unsortedEntries,
+    nonMarkdownEntries,
+    sortableIds,
+    canReorder,
+    rowContext,
+    noteShortcutKeysByPath
+}: ManualSortGroupProps) {
+    const renderEntries = (entries: ManualSortEntry[]) =>
+        entries.map((entry, index) => {
+            const isLastEntry = index === entries.length - 1;
+            const rowProps: ManualSortRowProps = {
+                ...rowContext,
+                entry,
+                isLastEntry,
+                canReorder: canReorder && entry.file.extension === 'md',
+                shortcutKey: noteShortcutKeysByPath.get(entry.file.path)
+            };
+
+            if (entry.file.extension !== 'md') {
+                return <ManualSortStaticRow key={entry.sortableId} {...rowProps} />;
+            }
+
+            return <SortableManualSortRow key={entry.sortableId} {...rowProps} />;
+        });
+
     return (
         <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
-            {entries.map((entry, index) => {
-                const isLastEntry = index === entries.length - 1;
-                const rowProps: ManualSortRowProps = {
-                    ...rowContext,
-                    entry,
-                    isLastEntry,
-                    canReorder: canReorder && entry.file.extension === 'md',
-                    shortcutKey: noteShortcutKeysByPath.get(entry.file.path)
-                };
-
-                if (entry.file.extension !== 'md') {
-                    return <ManualSortStaticRow key={entry.sortableId} {...rowProps} />;
-                }
-
-                return <SortableManualSortRow key={entry.sortableId} {...rowProps} />;
-            })}
+            {renderEntries(rankedEntries)}
+            {unsortedEntries.length > 0 ? (
+                <>
+                    <div className="nn-list-group-header nn-manual-sort-section-header">
+                        <span className="nn-list-group-header-text">{strings.listPane.unsortedSection}</span>
+                    </div>
+                    {renderEntries(unsortedEntries)}
+                </>
+            ) : null}
+            {renderEntries(nonMarkdownEntries)}
         </SortableContext>
     );
 }
@@ -287,6 +310,7 @@ export function ManualSortListContent({
     listItems,
     hiddenFileState,
     propertyKey,
+    rankedMarkdownPaths,
     selectedFolderPath,
     isSaving,
     isDoneDisabled,
@@ -314,35 +338,52 @@ export function ManualSortListContent({
     const filePartitions = useMemo(() => partitionManualSortFiles(files), [files]);
     const markdownFiles = filePartitions.markdown;
     const nonMarkdownFiles = filePartitions.nonMarkdown;
+    const rankedMarkdownFiles = useMemo(
+        () => markdownFiles.filter(file => rankedMarkdownPaths.has(file.path)),
+        [markdownFiles, rankedMarkdownPaths]
+    );
+    const unsortedMarkdownFiles = useMemo(
+        () => markdownFiles.filter(file => !rankedMarkdownPaths.has(file.path)),
+        [markdownFiles, rankedMarkdownPaths]
+    );
     const manualValueByPath = useMemo(() => {
         const map = new Map<string, number>();
-        buildManualSortOrderAssignments(markdownFiles).forEach(assignment => {
+        buildManualSortOrderAssignments(rankedMarkdownFiles).forEach(assignment => {
             map.set(assignment.path, assignment.value);
         });
         return map;
-    }, [markdownFiles]);
+    }, [rankedMarkdownFiles]);
     const nonMarkdownCount = nonMarkdownFiles.length;
     const hasNoFiles = files.length === 0;
 
+    const buildEntries = useCallback(
+        (sourceFiles: TFile[]): ManualSortEntry[] =>
+            sourceFiles.map(file => {
+                const info = fileInfoByPath.get(file.path) ?? {};
+                return {
+                    file,
+                    sortableId: file.path,
+                    manualValue: manualValueByPath.get(file.path) ?? null,
+                    info: {
+                        ...info,
+                        parentFolder: info.parentFolder ?? selectedFolderPath,
+                        isHidden: info.isHidden ?? hiddenFileState.get(file.path)
+                    }
+                };
+            }),
+        [fileInfoByPath, hiddenFileState, manualValueByPath, selectedFolderPath]
+    );
+    const rankedEntries = useMemo<ManualSortEntry[]>(() => buildEntries(rankedMarkdownFiles), [buildEntries, rankedMarkdownFiles]);
+    const unsortedEntries = useMemo<ManualSortEntry[]>(() => buildEntries(unsortedMarkdownFiles), [buildEntries, unsortedMarkdownFiles]);
+    const nonMarkdownEntries = useMemo<ManualSortEntry[]>(() => buildEntries(nonMarkdownFiles), [buildEntries, nonMarkdownFiles]);
     const entries = useMemo<ManualSortEntry[]>(() => {
-        return [...markdownFiles, ...nonMarkdownFiles].map(file => {
-            const info = fileInfoByPath.get(file.path) ?? {};
-            return {
-                file,
-                sortableId: file.path,
-                manualValue: manualValueByPath.get(file.path) ?? null,
-                info: {
-                    ...info,
-                    parentFolder: info.parentFolder ?? selectedFolderPath,
-                    isHidden: info.isHidden ?? hiddenFileState.get(file.path)
-                }
-            };
-        });
-    }, [fileInfoByPath, hiddenFileState, manualValueByPath, markdownFiles, nonMarkdownFiles, selectedFolderPath]);
+        return [...rankedEntries, ...unsortedEntries, ...nonMarkdownEntries];
+    }, [nonMarkdownEntries, rankedEntries, unsortedEntries]);
     const sortableRegistry = useMemo(() => {
         return new Map(entries.map(entry => [entry.sortableId, entry]));
     }, [entries]);
     const sortableIds = useMemo(() => markdownFiles.map(file => file.path), [markdownFiles]);
+
     const rowContext = useMemo<ManualSortRowContext>(
         () => ({
             isMobile,
@@ -459,7 +500,9 @@ export function ManualSortListContent({
                         <div className="nn-manual-sort-list" aria-busy={isSaving ? 'true' : undefined}>
                             {entries.length > 0 ? (
                                 <ManualSortGroup
-                                    entries={entries}
+                                    rankedEntries={rankedEntries}
+                                    unsortedEntries={unsortedEntries}
+                                    nonMarkdownEntries={nonMarkdownEntries}
                                     sortableIds={sortableIds}
                                     canReorder={!isSaving}
                                     rowContext={rowContext}

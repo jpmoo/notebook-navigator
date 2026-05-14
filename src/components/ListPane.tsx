@@ -63,7 +63,7 @@ import { useListPaneSelectionCoordinator } from '../hooks/useListPaneSelectionCo
 import type { EnsureSelectionOptions, EnsureSelectionResult, SelectFileOptions } from '../hooks/useListPaneSelectionCoordinator';
 import { useContextMenu } from '../hooks/useContextMenu';
 import { IOS_FLOATING_TOOLBAR_HEIGHT_PX, ItemType, ListPaneItemType, type CSSPropertiesWithVars } from '../types';
-import { getEffectiveSortOption, sortFiles } from '../utils/sortUtils';
+import { getEffectiveSortOption, getSortField, sortFiles } from '../utils/sortUtils';
 import { ListPaneHeader } from './ListPaneHeader';
 import { ListToolbar } from './ListToolbar';
 import { Calendar } from './calendar';
@@ -89,7 +89,13 @@ import type { FileItemPillDecorationModel } from '../utils/fileItemPillDecoratio
 import { compositeWithBase } from '../utils/colorUtils';
 import { runAsyncAction } from '../utils/async';
 import { getPinnedSectionCollapseKey } from '../utils/selectionUtils';
-import { getManualSortPropertyValue, orderManualSortFiles, partitionManualSortFiles, writeManualSortOrder } from '../utils/manualSort';
+import {
+    getManualSortPropertyValue,
+    hasCachedManualSortProperty,
+    orderManualSortFiles,
+    partitionManualSortFiles,
+    writeManualSortOrder
+} from '../utils/manualSort';
 import { showNotice } from '../utils/noticeUtils';
 import { getErrorMessage } from '../utils/errorUtils';
 import { strings } from '../i18n';
@@ -346,6 +352,8 @@ export const ListPane = React.memo(
         });
 
         const { selectionType, selectedFolder, selectedTag, selectedProperty, selectedFile } = selectionState;
+        const effectiveSortOption = getEffectiveSortOption(settings, selectionType, selectedFolder, selectedTag, selectedProperty);
+        const isPropertySortActive = getSortField(effectiveSortOption) === 'property';
         const manualSortSelectionKey = useMemo(() => {
             if (selectionType === ItemType.FOLDER && selectedFolder) {
                 return `${selectionType}:${selectedFolder.path}`;
@@ -366,13 +374,19 @@ export const ListPane = React.memo(
         }, [pinnedCollapseKey, plugin]);
 
         useEffect(() => {
-            setManualSortState(current => {
-                if (!current || current.selectionKey === manualSortSelectionKey) {
-                    return current;
-                }
-                return null;
-            });
-        }, [manualSortSelectionKey]);
+            if (!manualSortState || manualSortState.selectionKey === manualSortSelectionKey) {
+                return;
+            }
+
+            setManualSortState(null);
+        }, [manualSortSelectionKey, manualSortState]);
+
+        const effectiveGroupBy = isManualSortActive || isPropertySortActive ? 'none' : appearanceSettings.groupBy;
+        const effectiveAppearanceSettings = useMemo(
+            () =>
+                effectiveGroupBy === appearanceSettings.groupBy ? appearanceSettings : { ...appearanceSettings, groupBy: effectiveGroupBy },
+            [appearanceSettings, effectiveGroupBy]
+        );
 
         const saveManualSortOrder = React.useCallback(
             (filesToWrite: TFile[], propertyKey: string, selectionKey: string, sessionId: number, saveId: number) => {
@@ -449,7 +463,7 @@ export const ListPane = React.memo(
             selectedProperty,
             settings,
             activeProfile,
-            groupBy: isManualSortActive ? 'none' : appearanceSettings.groupBy,
+            groupBy: effectiveAppearanceSettings.groupBy,
             pinnedGroupExpanded,
             searchProvider,
             // Use debounced value for filtering
@@ -527,7 +541,7 @@ export const ListPane = React.memo(
                 selectedTag,
                 selectedProperty,
                 settings,
-                folderSettings: appearanceSettings,
+                folderSettings: effectiveAppearanceSettings,
                 isVisible,
                 selectionState,
                 selectionDispatch,
@@ -646,7 +660,6 @@ export const ListPane = React.memo(
             await addNoteShortcutRef.current(file.path);
         }, []);
 
-        const effectiveSortOption = getEffectiveSortOption(settings, selectionType, selectedFolder, selectedTag, selectedProperty);
         const manualSortPropertyKey = manualSortState?.propertyKey ?? '';
         const propertySortedManualFiles = useMemo(() => {
             if (!manualSortPropertyKey) {
@@ -703,14 +716,33 @@ export const ListPane = React.memo(
             });
             return [...orderedMarkdown, ...nonMarkdown];
         }, [manualSortState?.order, propertySortedManualFiles]);
+        const manualSortRankedMarkdownPaths = useMemo(() => {
+            const rankedPaths = new Set<string>();
+            if (!manualSortPropertyKey) {
+                return rankedPaths;
+            }
+
+            const orderedPaths = manualSortState?.order ? new Set(manualSortState.order) : null;
+            manualSortFiles.forEach(file => {
+                if (file.extension !== 'md') {
+                    return;
+                }
+
+                if (orderedPaths?.has(file.path) || hasCachedManualSortProperty(app, file, manualSortPropertyKey)) {
+                    rankedPaths.add(file.path);
+                }
+            });
+
+            return rankedPaths;
+        }, [app, manualSortFiles, manualSortPropertyKey, manualSortState?.order]);
         const isManualSortDoneDisabled = Boolean(manualSortState?.isSaving);
         const handleManualSortDone = React.useCallback(() => {
-            if (isManualSortDoneDisabled) {
+            if (!manualSortState || isManualSortDoneDisabled) {
                 return;
             }
 
             setManualSortState(null);
-        }, [isManualSortDoneDisabled]);
+        }, [isManualSortDoneDisabled, manualSortState]);
         const handleManualSortReorder = React.useCallback(
             (nextFiles: TFile[]) => {
                 if (!manualSortState?.propertyKey) {
@@ -848,6 +880,7 @@ export const ListPane = React.memo(
                             listItems={listItems}
                             hiddenFileState={hiddenFileState}
                             propertyKey={manualSortState.propertyKey}
+                            rankedMarkdownPaths={manualSortRankedMarkdownPaths}
                             selectedFolderPath={selectedFolder?.path ?? null}
                             isSaving={manualSortState.isSaving}
                             isDoneDisabled={isManualSortDoneDisabled}
@@ -856,7 +889,7 @@ export const ListPane = React.memo(
                             sortOption={effectiveSortOption}
                             localDayReference={localDayReference}
                             fileIconSize={listMeasurements.fileIconSize}
-                            appearanceSettings={appearanceSettings}
+                            appearanceSettings={effectiveAppearanceSettings}
                             includeDescendantNotes={includeDescendantNotes}
                             hiddenTagVisibility={hiddenTagVisibility}
                             fileNameIconNeedles={fileNameIconNeedles}
@@ -897,7 +930,7 @@ export const ListPane = React.memo(
                             onModifySearchWithProperty={modifySearchWithProperty}
                             localDayReference={localDayReference}
                             fileIconSize={listMeasurements.fileIconSize}
-                            appearanceSettings={appearanceSettings}
+                            appearanceSettings={effectiveAppearanceSettings}
                             includeDescendantNotes={includeDescendantNotes}
                             hiddenTagVisibility={hiddenTagVisibility}
                             fileNameIconNeedles={fileNameIconNeedles}

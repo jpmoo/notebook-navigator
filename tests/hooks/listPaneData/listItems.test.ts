@@ -126,6 +126,51 @@ describe('buildListItems pinned display scope', () => {
         expect(items[3].key).toMatch(/-spacer-before$/);
     });
 
+    it('adds an Unsorted section for property-sorted markdown files missing the property', () => {
+        const app = createApp();
+        const rankedFile = createTestTFile('notes/ranked.md');
+        const unsortedFile = createTestTFile('notes/unsorted.md');
+        app.metadataCache.getFileCache = (file: TFile) => ({
+            frontmatter: file.path === rankedFile.path ? { index: 1 } : {}
+        });
+        const db = createDb({
+            [rankedFile.path]: { tags: null, properties: null },
+            [unsortedFile.path]: { tags: null, properties: null }
+        });
+
+        const items = buildListItems({
+            app,
+            dayKey: '2026-03-07',
+            fileVisibility: FILE_VISIBILITY.DOCUMENTS,
+            files: [rankedFile, unsortedFile],
+            getDB: () => db,
+            getFileTimestamps: () => ({ created: 0, modified: 0 }),
+            hiddenFileState: new Map(),
+            hiddenTags: [],
+            listConfig: { ...createListConfig({}), groupBy: 'none' },
+            searchMetaMap: new Map(),
+            selectedFolder: null,
+            selectionType: ItemType.FOLDER,
+            showHiddenItems: false,
+            sortOption: 'property-asc',
+            propertySortKey: 'index'
+        });
+
+        expect(items.map(item => item.type)).toEqual([
+            ListPaneItemType.TOP_SPACER,
+            ListPaneItemType.FILE,
+            ListPaneItemType.HEADER_SPACER,
+            ListPaneItemType.HEADER,
+            ListPaneItemType.FILE,
+            ListPaneItemType.BOTTOM_SPACER
+        ]);
+        expect(items[3].data).toBe('Unsorted');
+        expect(getFileItems(items)).toEqual([
+            { path: rankedFile.path, isPinned: false },
+            { path: unsortedFile.path, isPinned: false }
+        ]);
+    });
+
     it('keeps tag pins in the pinned section when folder pin scoping is enabled', () => {
         const app = createApp();
         const rootFile = createTestTFile('notes/root.md');

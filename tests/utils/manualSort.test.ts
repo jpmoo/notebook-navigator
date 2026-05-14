@@ -20,6 +20,8 @@ import { describe, expect, it, vi } from 'vitest';
 import type { App, TFile } from 'obsidian';
 import {
     buildManualSortOrderAssignments,
+    getManualSortPropertyCoverage,
+    hasDenseManualSortOrder,
     isManualSortValueEqual,
     isValidManualSortPropertyKey,
     orderManualSortFiles,
@@ -83,6 +85,31 @@ describe('manual sort helpers', () => {
         expect(isManualSortValueEqual('three', 3)).toBe(false);
     });
 
+    it('counts manual sort property coverage for markdown files only', () => {
+        const first = createFile('notes/first.md', { Index: '3.5' });
+        const second = createFile('notes/second.md', {});
+        const third = createFile('notes/third.md', { index: null });
+        const fourth = createFile('notes/fourth.md', { index: 4 });
+        const nonMarkdown = createFile('assets/file.pdf', {});
+        const app = createApp([first, second, third, fourth, nonMarkdown], vi.fn());
+
+        expect(getManualSortPropertyCoverage(app, [first, second, third, fourth, nonMarkdown], 'index')).toEqual({
+            markdownCount: 4,
+            withPropertyCount: 3
+        });
+    });
+
+    it('detects whether manual sort values already match dense order assignments', () => {
+        const first = createFile('notes/first.md', { Index: '1' });
+        const second = createFile('notes/second.md', { index: 2 });
+        const third = createFile('notes/third.md', { index: 10 });
+        const nonMarkdown = createFile('assets/file.pdf', {});
+        const app = createApp([first, second, third, nonMarkdown], vi.fn());
+
+        expect(hasDenseManualSortOrder(app, [first, nonMarkdown, second], 'index')).toBe(true);
+        expect(hasDenseManualSortOrder(app, [first, third, nonMarkdown], 'index')).toBe(false);
+    });
+
     it('writes order values while preserving existing property key casing', async () => {
         const first = createFile('notes/first.md', { Index: 'old' });
         const second = createFile('notes/second.md', { index: 2 });
@@ -99,6 +126,24 @@ describe('manual sort helpers', () => {
         expect(first.frontmatter).toEqual({ Index: 1 });
         expect(second.frontmatter).toEqual({ index: 2 });
         expect(nonMarkdown.frontmatter).toEqual({});
+    });
+
+    it('normalizes existing and missing manual sort properties into dense order', async () => {
+        const first = createFile('notes/first.md', { index: 10 });
+        const second = createFile('notes/second.md', {});
+        const third = createFile('notes/third.md', { Index: 'custom' });
+        const processFrontMatter = vi.fn(async (file: TFile, callback: (frontmatter: Record<string, unknown>) => void) => {
+            callback((file as TFile & { frontmatter: Record<string, unknown> }).frontmatter);
+        });
+        const app = createApp([first, second, third], processFrontMatter);
+
+        const result = await writeManualSortOrder(app, [first, second, third], 'index');
+
+        expect(result).toEqual({ updated: 3, skipped: 0, failed: 0, failures: [] });
+        expect(processFrontMatter).toHaveBeenCalledTimes(3);
+        expect(first.frontmatter).toEqual({ index: 1 });
+        expect(second.frontmatter).toEqual({ index: 2 });
+        expect(third.frontmatter).toEqual({ Index: 3 });
     });
 
     it('records failures and continues writing remaining files', async () => {

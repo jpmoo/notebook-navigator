@@ -289,6 +289,14 @@
     width: 100%;
 }
 
+.nn-manual-sort-section-header {
+    margin-top: var(--nn-list-group-header-spacer-before);
+}
+
+.nn-manual-sort-list > .nn-manual-sort-section-header:first-child {
+    margin-top: 0;
+}
+
 .nn-manual-sort-row {
     display: flex;
     align-items: stretch;

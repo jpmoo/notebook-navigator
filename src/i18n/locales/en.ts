@@ -54,6 +54,7 @@ export const STRINGS_EN = {
         manualSortTitle: 'Manual sort: {property}',
         manualSortHint: 'Drag to reorder. Files will be assigned numeric values in the property "{property}".',
         manualSortNonMarkdownHint: 'Non-markdown files are shown at the bottom and cannot be reordered.',
+        unsortedSection: 'Unsorted',
         manualSortDone: 'Done',
         manualSortMultipleWriteFailure: '{count} files failed; first: {path}: {message}'
     },
@@ -398,8 +399,7 @@ export const STRINGS_EN = {
         },
         manualSortConfirm: {
             title: 'Enter manual sort?',
-            message: (property: string) =>
-                `Reordering in manual sort will change the property "${property}" for all notes in the current context.`,
+            message: (count: number) => `This will change ${count} notes in the current view.`,
             confirmButton: 'Enter manual sort'
         },
         navRainbowSection: {

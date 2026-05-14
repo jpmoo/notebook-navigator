@@ -197,9 +197,14 @@ export function renderListPaneTab(context: SettingsTabContext): void {
             .setDesc(strings.settings.items.sortNotesBy.desc)
             .addDropdown((dropdown: DropdownComponent) => {
                 SORT_OPTIONS.forEach(option => {
+                    if (option === 'property-desc') {
+                        return;
+                    }
                     dropdown.addOption(option, strings.settings.items.sortNotesBy.options[option]);
                 });
-                return dropdown.setValue(plugin.settings.defaultFolderSort).onChange(async value => {
+                const defaultFolderSort =
+                    plugin.settings.defaultFolderSort === 'property-desc' ? 'property-asc' : plugin.settings.defaultFolderSort;
+                return dropdown.setValue(defaultFolderSort).onChange(async value => {
                     if (!isSortOption(value)) {
                         return;
                     }
