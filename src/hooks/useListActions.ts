@@ -69,6 +69,14 @@ type DescendantApplyStats = {
     disabled: boolean;
 };
 
+const BIDI_ISOLATE_START = '\u2068'; // First Strong Isolate
+const BIDI_ISOLATE_END = '\u2069'; // Pop Directional Isolate
+
+function isolateBidiText(value: string): string {
+    // Keeps user-authored LTR property keys from reordering quotes and punctuation inside RTL labels.
+    return `${BIDI_ISOLATE_START}${value}${BIDI_ISOLATE_END}`;
+}
+
 function collectFolderDescendantPaths(folder: TFolder): string[] {
     const paths: string[] = [];
     const stack: TFolder[] = [];
@@ -1158,7 +1166,10 @@ export function useListActions() {
             };
             const getSortFieldLabel = (field: SortField, propertyKey?: string): string => {
                 if (field === 'property') {
-                    return propertyKey?.trim() || sortFieldLabels.property;
+                    const trimmedPropertyKey = propertyKey?.trim();
+                    return trimmedPropertyKey
+                        ? `${sortFieldLabels.property} \u2018${isolateBidiText(trimmedPropertyKey)}\u2019`
+                        : sortFieldLabels.property;
                 }
 
                 return sortFieldLabels[field];
