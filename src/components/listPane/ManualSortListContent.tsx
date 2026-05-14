@@ -16,9 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useCallback, useMemo, type ReactNode } from 'react';
-import { DndContext, MouseSensor, TouchSensor, type DragEndEvent, useSensor, useSensors } from '@dnd-kit/core';
-import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { useCallback, useMemo, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
+import { DndContext, MouseSensor, TouchSensor, type DragEndEvent, type DragStartEvent, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { TFile } from 'obsidian';
 import { useServices } from '../../context/ServicesContext';
@@ -32,7 +32,12 @@ import type { FileItemPillDecorationModel } from '../../utils/fileItemPillDecora
 import type { FolderDecorationModel } from '../../utils/folderDecoration';
 import type { HiddenTagVisibility } from '../../utils/tagPrefixMatcher';
 import { typeFilteredCollisionDetection, verticalAxisOnly } from '../../utils/dndConfig';
-import { buildManualSortOrderAssignments, partitionManualSortFiles } from '../../utils/manualSort';
+import {
+    buildManualSortOrderAssignments,
+    getManualSortSelectedMarkdownPaths,
+    moveManualSortMarkdownFiles,
+    partitionManualSortFiles
+} from '../../utils/manualSort';
 import { ObsidianIcon } from '../ObsidianIcon';
 import { FileItem, type FileItemStorageHelpers } from '../FileItem';
 
@@ -70,6 +75,8 @@ interface ManualSortListContentProps {
     folderDecorationModel: FolderDecorationModel;
     fileItemPillDecorationModel: FileItemPillDecorationModel;
     getSolidBackground: (color?: string | null) => string | undefined;
+    selectedFiles: ReadonlySet<string>;
+    onFileClick: (file: TFile, fileIndex: number | undefined, event: ReactMouseEvent) => void;
     onDone: () => void;
     onReorder: (files: TFile[]) => void;
 }
@@ -98,17 +105,18 @@ interface ManualSortRowContext {
     folderDecorationModel: FolderDecorationModel;
     fileItemPillDecorationModel: FileItemPillDecorationModel;
     getSolidBackground: (color?: string | null) => string | undefined;
+    onFileClick: (file: TFile, fileIndex: number | undefined, event: ReactMouseEvent) => void;
 }
 
 interface ManualSortRowProps extends ManualSortRowContext {
     entry: ManualSortEntry;
     isLastEntry: boolean;
     canReorder: boolean;
+    isSelected: boolean;
+    hasSelectedAbove: boolean;
+    hasSelectedBelow: boolean;
+    isDragBlockMember: boolean;
     shortcutKey?: string;
-}
-
-function noopFileClick(): void {
-    return;
 }
 
 function noopModifySearch(): void {
@@ -139,6 +147,10 @@ function ManualSortRowContent({
     folderDecorationModel,
     fileItemPillDecorationModel,
     getSolidBackground,
+    onFileClick,
+    isSelected,
+    hasSelectedAbove,
+    hasSelectedBelow,
     dragHandle
 }: ManualSortRowProps & { dragHandle?: ReactNode }) {
     const valueLabel = entry.manualValue === null ? null : entry.manualValue.toString();
@@ -148,9 +160,11 @@ function ManualSortRowContent({
             <div className="nn-manual-sort-file">
                 <FileItem
                     file={entry.file}
-                    isSelected={false}
+                    isSelected={isSelected}
+                    hasSelectedAbove={hasSelectedAbove}
+                    hasSelectedBelow={hasSelectedBelow}
                     showQuickActionsPanel={false}
-                    onFileClick={noopFileClick}
+                    onFileClick={onFileClick}
                     fileIndex={entry.info.fileIndex}
                     sortOption={sortOption}
                     parentFolder={entry.info.parentFolder}
@@ -186,7 +200,7 @@ function ManualSortRowContent({
 }
 
 function SortableManualSortRow(props: ManualSortRowProps) {
-    const { entry, isLastEntry, canReorder, isMobile } = props;
+    const { entry, isLastEntry, canReorder, isMobile, isDragBlockMember } = props;
     const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isSorting } = useSortable({
         id: entry.sortableId,
         disabled: !canReorder,
@@ -216,7 +230,9 @@ function SortableManualSortRow(props: ManualSortRowProps) {
             ref={setNodeRef}
             className={`nn-manual-sort-row${
                 canReorder ? ' nn-manual-sort-row-draggable' : ' nn-manual-sort-row-disabled'
-            }${isSorting ? ' nn-manual-sort-row-sorting' : ''}${isLastEntry ? ' nn-manual-sort-row-last' : ''}`}
+            }${isDragBlockMember ? ' nn-manual-sort-row-drag-block' : ''}${isSorting ? ' nn-manual-sort-row-sorting' : ''}${
+                isLastEntry ? ' nn-manual-sort-row-last' : ''
+            }`}
             style={dragStyle}
             {...(bindRowDrag ? attributes : undefined)}
             {...(bindRowDrag ? listeners : undefined)}
@@ -227,10 +243,14 @@ function SortableManualSortRow(props: ManualSortRowProps) {
 }
 
 function ManualSortStaticRow(props: ManualSortRowProps) {
-    const { isLastEntry } = props;
+    const { isLastEntry, isDragBlockMember } = props;
 
     return (
-        <div className={`nn-manual-sort-row nn-manual-sort-row-disabled${isLastEntry ? ' nn-manual-sort-row-last' : ''}`}>
+        <div
+            className={`nn-manual-sort-row nn-manual-sort-row-disabled${isDragBlockMember ? ' nn-manual-sort-row-drag-block' : ''}${
+                isLastEntry ? ' nn-manual-sort-row-last' : ''
+            }`}
+        >
             <ManualSortRowContent {...props} canReorder={false} />
         </div>
     );
@@ -244,6 +264,8 @@ interface ManualSortGroupProps {
     canReorder: boolean;
     rowContext: ManualSortRowContext;
     noteShortcutKeysByPath: ReadonlyMap<string, string>;
+    selectedFiles: ReadonlySet<string>;
+    activeDragPaths: ReadonlySet<string>;
 }
 
 function ManualSortGroup({
@@ -253,16 +275,25 @@ function ManualSortGroup({
     sortableIds,
     canReorder,
     rowContext,
-    noteShortcutKeysByPath
+    noteShortcutKeysByPath,
+    selectedFiles,
+    activeDragPaths
 }: ManualSortGroupProps) {
     const renderEntries = (entries: ManualSortEntry[]) =>
         entries.map((entry, index) => {
             const isLastEntry = index === entries.length - 1;
+            const previousEntry = entries[index - 1];
+            const nextEntry = entries[index + 1];
+            const isSelected = selectedFiles.has(entry.file.path);
             const rowProps: ManualSortRowProps = {
                 ...rowContext,
                 entry,
                 isLastEntry,
                 canReorder: canReorder && entry.file.extension === 'md',
+                isSelected,
+                hasSelectedAbove: Boolean(previousEntry && selectedFiles.has(previousEntry.file.path)),
+                hasSelectedBelow: Boolean(nextEntry && selectedFiles.has(nextEntry.file.path)),
+                isDragBlockMember: activeDragPaths.has(entry.file.path),
                 shortcutKey: noteShortcutKeysByPath.get(entry.file.path)
             };
 
@@ -330,14 +361,18 @@ export function ManualSortListContent({
     folderDecorationModel,
     fileItemPillDecorationModel,
     getSolidBackground,
+    selectedFiles,
+    onFileClick,
     onDone,
     onReorder
 }: ManualSortListContentProps) {
     const { isMobile } = useServices();
+    const [activeDragPaths, setActiveDragPaths] = useState<ReadonlySet<string>>(() => new Set());
     const fileInfoByPath = useMemo(() => buildFileInfoMap(listItems), [listItems]);
     const filePartitions = useMemo(() => partitionManualSortFiles(files), [files]);
     const markdownFiles = filePartitions.markdown;
     const nonMarkdownFiles = filePartitions.nonMarkdown;
+    const manualFileIndexByPath = useMemo(() => new Map(files.map((file, index) => [file.path, index])), [files]);
     const rankedMarkdownFiles = useMemo(
         () => markdownFiles.filter(file => rankedMarkdownPaths.has(file.path)),
         [markdownFiles, rankedMarkdownPaths]
@@ -366,12 +401,13 @@ export function ManualSortListContent({
                     manualValue: manualValueByPath.get(file.path) ?? null,
                     info: {
                         ...info,
+                        fileIndex: manualFileIndexByPath.get(file.path) ?? info.fileIndex,
                         parentFolder: info.parentFolder ?? selectedFolderPath,
                         isHidden: info.isHidden ?? hiddenFileState.get(file.path)
                     }
                 };
             }),
-        [fileInfoByPath, hiddenFileState, manualValueByPath, selectedFolderPath]
+        [fileInfoByPath, hiddenFileState, manualFileIndexByPath, manualValueByPath, selectedFolderPath]
     );
     const rankedEntries = useMemo<ManualSortEntry[]>(() => buildEntries(rankedMarkdownFiles), [buildEntries, rankedMarkdownFiles]);
     const unsortedEntries = useMemo<ManualSortEntry[]>(() => buildEntries(unsortedMarkdownFiles), [buildEntries, unsortedMarkdownFiles]);
@@ -401,7 +437,8 @@ export function ManualSortListContent({
             fileItemStorage,
             folderDecorationModel,
             fileItemPillDecorationModel,
-            getSolidBackground
+            getSolidBackground,
+            onFileClick
         }),
         [
             isMobile,
@@ -419,22 +456,24 @@ export function ManualSortListContent({
             fileItemStorage,
             folderDecorationModel,
             fileItemPillDecorationModel,
-            getSolidBackground
+            getSolidBackground,
+            onFileClick
         ]
     );
 
-    const moveMarkdownFile = useCallback(
-        (activePath: string, overPath: string): TFile[] | null => {
-            const oldIndex = markdownFiles.findIndex(file => file.path === activePath);
-            const newIndex = markdownFiles.findIndex(file => file.path === overPath);
-            if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) {
-                return null;
-            }
-
-            const reorderedMarkdown = arrayMove(markdownFiles, oldIndex, newIndex);
-            return [...reorderedMarkdown, ...nonMarkdownFiles];
+    const getDragBlockPaths = useCallback(
+        (activePath: string): ReadonlySet<string> => {
+            const selectedMarkdownPaths = getManualSortSelectedMarkdownPaths(markdownFiles, activePath, selectedFiles);
+            return selectedMarkdownPaths.size > 1 ? selectedMarkdownPaths : new Set();
         },
-        [markdownFiles, nonMarkdownFiles]
+        [markdownFiles, selectedFiles]
+    );
+
+    const moveMarkdownFiles = useCallback(
+        (activePath: string, overPath: string): TFile[] | null => {
+            return moveManualSortMarkdownFiles(files, activePath, overPath, selectedFiles);
+        },
+        [files, selectedFiles]
     );
 
     const sensors = useSensors(
@@ -444,6 +483,7 @@ export function ManualSortListContent({
 
     const handleDragEnd = useCallback(
         (event: DragEndEvent) => {
+            setActiveDragPaths(new Set());
             if (isSaving) {
                 return;
             }
@@ -460,15 +500,31 @@ export function ManualSortListContent({
                 return;
             }
 
-            const nextFiles = moveMarkdownFile(active.file.path, over.file.path);
+            const nextFiles = moveMarkdownFiles(active.file.path, over.file.path);
             if (!nextFiles) {
                 return;
             }
 
             onReorder(nextFiles);
         },
-        [isSaving, moveMarkdownFile, onReorder, sortableRegistry]
+        [isSaving, moveMarkdownFiles, onReorder, sortableRegistry]
     );
+
+    const handleDragStart = useCallback(
+        (event: DragStartEvent) => {
+            if (isSaving) {
+                return;
+            }
+
+            const activeId = event.active.id as string;
+            setActiveDragPaths(getDragBlockPaths(activeId));
+        },
+        [getDragBlockPaths, isSaving]
+    );
+
+    const handleDragCancel = useCallback(() => {
+        setActiveDragPaths(new Set());
+    }, []);
 
     return (
         <div className="nn-list-pane-scroller nn-manual-sort-scroller" role="list" tabIndex={-1}>
@@ -495,6 +551,8 @@ export function ManualSortListContent({
                         sensors={sensors}
                         collisionDetection={typeFilteredCollisionDetection}
                         modifiers={[verticalAxisOnly]}
+                        onDragStart={handleDragStart}
+                        onDragCancel={handleDragCancel}
                         onDragEnd={handleDragEnd}
                     >
                         <div className="nn-manual-sort-list" aria-busy={isSaving ? 'true' : undefined}>
@@ -507,6 +565,8 @@ export function ManualSortListContent({
                                     canReorder={!isSaving}
                                     rowContext={rowContext}
                                     noteShortcutKeysByPath={noteShortcutKeysByPath}
+                                    selectedFiles={selectedFiles}
+                                    activeDragPaths={activeDragPaths}
                                 />
                             ) : null}
                         </div>

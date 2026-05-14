@@ -761,6 +761,12 @@ export const ListPane = React.memo(
             },
             [manualSortState, saveManualSortOrder]
         );
+        const handleManualSortFileClick = React.useCallback(
+            (file: TFile, fileIndex: number | undefined, event: React.MouseEvent) => {
+                handleFileItemClick(file, fileIndex, event, manualSortFiles);
+            },
+            [handleFileItemClick, manualSortFiles]
+        );
 
         // Expose the virtualizer instance and file lookup method via the ref
         useImperativeHandle(
@@ -900,6 +906,8 @@ export const ListPane = React.memo(
                             folderDecorationModel={folderDecorationModel}
                             fileItemPillDecorationModel={fileItemPillDecorationModel}
                             getSolidBackground={getSolidBackground}
+                            selectedFiles={selectionState.selectedFiles}
+                            onFileClick={handleManualSortFileClick}
                             onDone={handleManualSortDone}
                             onReorder={handleManualSortReorder}
                         />

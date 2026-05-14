@@ -92,6 +92,63 @@ export function orderManualSortFiles<T extends ManualSortFileLike>(files: readon
     return [...markdown, ...nonMarkdown];
 }
 
+function moveSingleManualSortMarkdownFile<T extends ManualSortFileLike>(
+    markdownFiles: readonly T[],
+    activeIndex: number,
+    overIndex: number
+): T[] {
+    const reorderedMarkdown = [...markdownFiles];
+    const [activeFile] = reorderedMarkdown.splice(activeIndex, 1);
+    reorderedMarkdown.splice(overIndex, 0, activeFile);
+    return reorderedMarkdown;
+}
+
+export function getManualSortSelectedMarkdownPaths<T extends ManualSortFileLike>(
+    markdownFiles: readonly T[],
+    activePath: string,
+    selectedPaths: ReadonlySet<string>
+): Set<string> {
+    if (!selectedPaths.has(activePath)) {
+        return new Set();
+    }
+
+    return new Set(markdownFiles.filter(file => selectedPaths.has(file.path)).map(file => file.path));
+}
+
+export function moveManualSortMarkdownFiles<T extends ManualSortFileLike>(
+    files: readonly T[],
+    activePath: string,
+    overPath: string,
+    selectedPaths: ReadonlySet<string>
+): T[] | null {
+    const { markdown, nonMarkdown } = partitionManualSortFiles(files);
+    const activeIndex = markdown.findIndex(file => file.path === activePath);
+    const overIndex = markdown.findIndex(file => file.path === overPath);
+    if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex) {
+        return null;
+    }
+
+    const selectedMarkdownPaths = getManualSortSelectedMarkdownPaths(markdown, activePath, selectedPaths);
+
+    if (selectedMarkdownPaths.size <= 1) {
+        return [...moveSingleManualSortMarkdownFile(markdown, activeIndex, overIndex), ...nonMarkdown];
+    }
+
+    if (selectedMarkdownPaths.has(overPath)) {
+        return null;
+    }
+
+    const movedMarkdown = markdown.filter(file => selectedMarkdownPaths.has(file.path));
+    const remainingMarkdown = markdown.filter(file => !selectedMarkdownPaths.has(file.path));
+    const overRemainingIndex = remainingMarkdown.findIndex(file => file.path === overPath);
+    if (overRemainingIndex === -1) {
+        return null;
+    }
+
+    const insertionIndex = overIndex > activeIndex ? overRemainingIndex + 1 : overRemainingIndex;
+    return [...remainingMarkdown.slice(0, insertionIndex), ...movedMarkdown, ...remainingMarkdown.slice(insertionIndex), ...nonMarkdown];
+}
+
 export function buildManualSortOrderAssignments<T extends ManualSortFileLike>(files: readonly T[]): ManualSortOrderAssignment[] {
     return partitionManualSortFiles(files).markdown.map((file, index) => ({
         path: file.path,

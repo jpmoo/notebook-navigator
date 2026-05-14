@@ -24,6 +24,7 @@ import {
     hasDenseManualSortOrder,
     isManualSortValueEqual,
     isValidManualSortPropertyKey,
+    moveManualSortMarkdownFiles,
     orderManualSortFiles,
     partitionManualSortFiles,
     writeManualSortOrder
@@ -70,6 +71,95 @@ describe('manual sort helpers', () => {
             nonMarkdown: [files[1]]
         });
         expect(orderManualSortFiles(files)).toEqual([files[0], files[2], files[1]]);
+    });
+
+    it('moves a selected markdown block while preserving relative order', () => {
+        const files = [
+            { path: 'notes/one.md', extension: 'md' },
+            { path: 'notes/two.md', extension: 'md' },
+            { path: 'notes/three.md', extension: 'md' },
+            { path: 'assets/file.pdf', extension: 'pdf' },
+            { path: 'notes/four.md', extension: 'md' }
+        ];
+
+        const result = moveManualSortMarkdownFiles(
+            files,
+            'notes/two.md',
+            'notes/four.md',
+            new Set(['notes/two.md', 'notes/three.md', 'assets/file.pdf'])
+        );
+
+        expect(result?.map(file => file.path)).toEqual([
+            'notes/one.md',
+            'notes/four.md',
+            'notes/two.md',
+            'notes/three.md',
+            'assets/file.pdf'
+        ]);
+    });
+
+    it('moves a selected markdown block upward', () => {
+        const files = [
+            { path: 'notes/one.md', extension: 'md' },
+            { path: 'notes/two.md', extension: 'md' },
+            { path: 'notes/three.md', extension: 'md' },
+            { path: 'notes/four.md', extension: 'md' },
+            { path: 'notes/five.md', extension: 'md' }
+        ];
+
+        const result = moveManualSortMarkdownFiles(files, 'notes/three.md', 'notes/one.md', new Set(['notes/three.md', 'notes/four.md']));
+
+        expect(result?.map(file => file.path)).toEqual([
+            'notes/three.md',
+            'notes/four.md',
+            'notes/one.md',
+            'notes/two.md',
+            'notes/five.md'
+        ]);
+    });
+
+    it('moves non-contiguous selected markdown files as a block in markdown order', () => {
+        const files = [
+            { path: 'notes/one.md', extension: 'md' },
+            { path: 'notes/two.md', extension: 'md' },
+            { path: 'notes/three.md', extension: 'md' },
+            { path: 'notes/four.md', extension: 'md' },
+            { path: 'notes/five.md', extension: 'md' }
+        ];
+
+        const result = moveManualSortMarkdownFiles(files, 'notes/two.md', 'notes/five.md', new Set(['notes/two.md', 'notes/four.md']));
+
+        expect(result?.map(file => file.path)).toEqual([
+            'notes/one.md',
+            'notes/three.md',
+            'notes/five.md',
+            'notes/two.md',
+            'notes/four.md'
+        ]);
+    });
+
+    it('uses the existing single-file behavior when the dragged markdown file is not selected', () => {
+        const files = [
+            { path: 'notes/one.md', extension: 'md' },
+            { path: 'notes/two.md', extension: 'md' },
+            { path: 'notes/three.md', extension: 'md' }
+        ];
+
+        const result = moveManualSortMarkdownFiles(files, 'notes/one.md', 'notes/three.md', new Set(['notes/two.md']));
+
+        expect(result?.map(file => file.path)).toEqual(['notes/two.md', 'notes/three.md', 'notes/one.md']);
+    });
+
+    it('does not move a selected markdown block onto itself', () => {
+        const files = [
+            { path: 'notes/one.md', extension: 'md' },
+            { path: 'notes/two.md', extension: 'md' },
+            { path: 'notes/three.md', extension: 'md' }
+        ];
+
+        const result = moveManualSortMarkdownFiles(files, 'notes/one.md', 'notes/two.md', new Set(['notes/one.md', 'notes/two.md']));
+
+        expect(result).toBeNull();
     });
 
     it('validates property keys used for manual sort', () => {

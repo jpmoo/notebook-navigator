@@ -315,6 +315,10 @@
     display: none;
 }
 
+.nn-manual-sort-row-drag-block .nn-file.nn-selected .nn-file-content::before {
+    box-shadow: inset 0 0 0 2px var(--interactive-accent);
+}
+
 .nn-manual-sort-row-disabled {
     cursor: default;
 }
