@@ -38,6 +38,7 @@ import type { FileNameIconNeedle } from '../../utils/fileIconUtils';
 import type { HiddenTagVisibility } from '../../utils/tagPrefixMatcher';
 import type { FileItemPillDecorationModel } from '../../utils/fileItemPillDecoration';
 import { resolveUXIcon } from '../../utils/uxIcons';
+import { hasSolidFileRowBackground } from '../../utils/colorUtils';
 
 export interface PointerClientPosition {
     clientX: number;
@@ -456,14 +457,16 @@ export function ListPaneVirtualContent({
             }
 
             const file = item.data;
-            const customFileBackgroundColor = metadataService.getFileBackgroundColor(file.path);
-            const taskUnfinished = fileItemStorage.getDB().getFile(file.path)?.taskUnfinished;
-            const unfinishedTaskBackgroundColor =
-                settings.showFileBackgroundUnfinishedTask && typeof taskUnfinished === 'number' && taskUnfinished > 0
-                    ? settings.unfinishedTaskBackgroundColor
-                    : undefined;
-
-            return Boolean(getSolidBackground(unfinishedTaskBackgroundColor ?? customFileBackgroundColor));
+            const taskUnfinished = settings.showFileBackgroundUnfinishedTask
+                ? fileItemStorage.getDB().getFile(file.path)?.taskUnfinished
+                : undefined;
+            return hasSolidFileRowBackground({
+                customBackgroundColor: metadataService.getFileBackgroundColor(file.path),
+                taskUnfinished,
+                showUnfinishedTaskBackground: settings.showFileBackgroundUnfinishedTask,
+                unfinishedTaskBackgroundColor: settings.unfinishedTaskBackgroundColor,
+                getSolidBackground
+            });
         },
         [
             fileItemStorage,

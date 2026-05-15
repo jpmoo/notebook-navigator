@@ -297,6 +297,15 @@
     margin-top: 0;
 }
 
+.nn-manual-sort-sortable-item {
+    position: relative;
+    width: 100%;
+}
+
+.nn-manual-sort-sortable-item-sorting {
+    z-index: 2;
+}
+
 .nn-manual-sort-row {
     display: flex;
     align-items: stretch;
@@ -313,6 +322,22 @@
 
 .nn-manual-sort-row-sorting::after {
     display: none;
+}
+
+.nn-manual-sort-row-hide-separator::after,
+.nn-manual-sort-row-has-custom-background::after,
+.nn-manual-sort-row-has-custom-background-next::after {
+    display: none;
+}
+
+.nn-manual-sort-row-has-custom-background-previous .nn-file.nn-has-custom-background {
+    --nn-file-top-left-radius: 0;
+    --nn-file-top-right-radius: 0;
+}
+
+.nn-manual-sort-row-has-custom-background-next .nn-file.nn-has-custom-background {
+    --nn-file-bottom-left-radius: 0;
+    --nn-file-bottom-right-radius: 0;
 }
 
 .nn-manual-sort-row-drag-block .nn-file.nn-selected .nn-file-content::before {

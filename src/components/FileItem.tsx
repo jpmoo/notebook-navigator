@@ -79,6 +79,7 @@ import { useFileItemPills } from './fileItem/useFileItemPills';
 import { ServiceIcon } from './ServiceIcon';
 import { getDrawingFeatureImageSource } from '../utils/drawingFeatureImages';
 import { useDrawingFeatureImage } from '../hooks/useDrawingFeatureImage';
+import { resolveFileRowBackgroundColor } from '../utils/colorUtils';
 
 const FEATURE_IMAGE_MAX_ASPECT_RATIO = 16 / 9;
 
@@ -518,10 +519,23 @@ export const FileItem = React.memo(function FileItem({
               }).color
             : undefined;
     const customFileBackgroundColor = metadataService.getFileBackgroundColor(file.path);
-    const unfinishedTaskBackgroundColor =
-        settings.showFileBackgroundUnfinishedTask && hasUnfinishedTasks ? settings.unfinishedTaskBackgroundColor : undefined;
-    const rawFileBackgroundColor = unfinishedTaskBackgroundColor ?? customFileBackgroundColor;
-    const fileBackgroundColor = useMemo(() => getSolidBackground(rawFileBackgroundColor), [getSolidBackground, rawFileBackgroundColor]);
+    const fileBackgroundColor = useMemo(
+        () =>
+            resolveFileRowBackgroundColor({
+                customBackgroundColor: customFileBackgroundColor,
+                taskUnfinished,
+                showUnfinishedTaskBackground: settings.showFileBackgroundUnfinishedTask,
+                unfinishedTaskBackgroundColor: settings.unfinishedTaskBackgroundColor,
+                getSolidBackground
+            }),
+        [
+            customFileBackgroundColor,
+            getSolidBackground,
+            settings.showFileBackgroundUnfinishedTask,
+            settings.unfinishedTaskBackgroundColor,
+            taskUnfinished
+        ]
+    );
     const fileExtension = file.extension.toLowerCase();
     const isBaseFile = fileExtension === 'base';
     const isCanvasFile = fileExtension === 'canvas';

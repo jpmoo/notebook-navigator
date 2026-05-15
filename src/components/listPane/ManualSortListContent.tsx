@@ -20,8 +20,9 @@ import { useCallback, useMemo, useState, type MouseEvent as ReactMouseEvent, typ
 import { DndContext, MouseSensor, TouchSensor, type DragEndEvent, type DragStartEvent, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { TFile, type App } from 'obsidian';
-import { useServices } from '../../context/ServicesContext';
+import { Menu, TFile, type App } from 'obsidian';
+import { useMetadataService, useServices } from '../../context/ServicesContext';
+import { useSettingsState } from '../../context/SettingsContext';
 import { strings } from '../../i18n';
 import type { SortOption } from '../../settings';
 import { ListPaneItemType, type NavigationItemType } from '../../types';
@@ -38,6 +39,8 @@ import {
     moveManualSortMarkdownFiles,
     partitionManualSortFiles
 } from '../../utils/manualSort';
+import { hasSolidFileRowBackground } from '../../utils/colorUtils';
+import { addManualSortGroupHeaderMenuItems } from '../../utils/contextMenu/manualSortGroupHeaderMenuItems';
 import { ObsidianIcon } from '../ObsidianIcon';
 import { FileItem, type FileItemStorageHelpers } from '../FileItem';
 
@@ -87,20 +90,12 @@ interface ManualSortEntry {
     info: ManualSortFileInfo;
 }
 
-interface ManualSortHeaderRenderRow {
-    type: 'header';
-    key: string;
-    label: string;
-}
-
-interface ManualSortFileRenderRow {
-    type: 'file';
+interface ManualSortRenderRow {
     key: string;
     entry: ManualSortEntry;
     segmentKey: string;
+    headerLabel?: string;
 }
-
-type ManualSortRenderRow = ManualSortHeaderRenderRow | ManualSortFileRenderRow;
 
 interface ManualSortRowContext {
     isMobile: boolean;
@@ -129,7 +124,45 @@ interface ManualSortRowProps extends ManualSortRowContext {
     hasSelectedAbove: boolean;
     hasSelectedBelow: boolean;
     isDragBlockMember: boolean;
+    hideSeparator: boolean;
+    hasCustomBackground: boolean;
+    hasPreviousCustomBackground: boolean;
+    hasNextCustomBackground: boolean;
+    headerLabel?: string;
+    suppressHeaderTopSpacing?: boolean;
     shortcutKey?: string;
+}
+
+function getManualSortRowClassName({
+    canReorder,
+    isDragBlockMember,
+    isSorting = false,
+    isLastEntry,
+    hideSeparator,
+    hasCustomBackground,
+    hasPreviousCustomBackground,
+    hasNextCustomBackground
+}: Pick<
+    ManualSortRowProps,
+    | 'canReorder'
+    | 'isDragBlockMember'
+    | 'isLastEntry'
+    | 'hideSeparator'
+    | 'hasCustomBackground'
+    | 'hasPreviousCustomBackground'
+    | 'hasNextCustomBackground'
+> & {
+    isSorting?: boolean;
+}): string {
+    const classes = ['nn-manual-sort-row', canReorder ? 'nn-manual-sort-row-draggable' : 'nn-manual-sort-row-disabled'];
+    if (isDragBlockMember) classes.push('nn-manual-sort-row-drag-block');
+    if (isSorting) classes.push('nn-manual-sort-row-sorting');
+    if (isLastEntry) classes.push('nn-manual-sort-row-last');
+    if (hideSeparator) classes.push('nn-manual-sort-row-hide-separator');
+    if (hasCustomBackground) classes.push('nn-manual-sort-row-has-custom-background');
+    if (hasPreviousCustomBackground) classes.push('nn-manual-sort-row-has-custom-background-previous');
+    if (hasNextCustomBackground) classes.push('nn-manual-sort-row-has-custom-background-next');
+    return classes.join(' ');
 }
 
 function noopModifySearch(): void {
@@ -207,7 +240,19 @@ function ManualSortRowContent({
 }
 
 function SortableManualSortRow(props: ManualSortRowProps) {
-    const { entry, isLastEntry, canReorder, isMobile, isDragBlockMember } = props;
+    const {
+        entry,
+        isLastEntry,
+        canReorder,
+        isMobile,
+        isDragBlockMember,
+        hideSeparator,
+        hasCustomBackground,
+        hasPreviousCustomBackground,
+        hasNextCustomBackground,
+        headerLabel,
+        suppressHeaderTopSpacing
+    } = props;
     const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isSorting } = useSortable({
         id: entry.sortableId,
         disabled: !canReorder,
@@ -235,28 +280,49 @@ function SortableManualSortRow(props: ManualSortRowProps) {
     return (
         <div
             ref={setNodeRef}
-            className={`nn-manual-sort-row${
-                canReorder ? ' nn-manual-sort-row-draggable' : ' nn-manual-sort-row-disabled'
-            }${isDragBlockMember ? ' nn-manual-sort-row-drag-block' : ''}${isSorting ? ' nn-manual-sort-row-sorting' : ''}${
-                isLastEntry ? ' nn-manual-sort-row-last' : ''
-            }`}
+            className={`nn-manual-sort-sortable-item${isSorting ? ' nn-manual-sort-sortable-item-sorting' : ''}`}
             style={dragStyle}
-            {...(bindRowDrag ? attributes : undefined)}
-            {...(bindRowDrag ? listeners : undefined)}
         >
-            <ManualSortRowContent {...props} dragHandle={dragHandle} />
+            {headerLabel ? (
+                <div className={`nn-list-group-header${suppressHeaderTopSpacing ? '' : ' nn-manual-sort-section-header'}`}>
+                    <span className="nn-list-group-header-text">{headerLabel}</span>
+                </div>
+            ) : null}
+            <div
+                className={getManualSortRowClassName({
+                    canReorder,
+                    isDragBlockMember,
+                    isSorting,
+                    isLastEntry,
+                    hideSeparator,
+                    hasCustomBackground,
+                    hasPreviousCustomBackground,
+                    hasNextCustomBackground
+                })}
+                {...(bindRowDrag ? attributes : undefined)}
+                {...(bindRowDrag ? listeners : undefined)}
+            >
+                <ManualSortRowContent {...props} dragHandle={dragHandle} />
+            </div>
         </div>
     );
 }
 
 function ManualSortStaticRow(props: ManualSortRowProps) {
-    const { isLastEntry, isDragBlockMember } = props;
+    const { isLastEntry, isDragBlockMember, hideSeparator, hasCustomBackground, hasPreviousCustomBackground, hasNextCustomBackground } =
+        props;
 
     return (
         <div
-            className={`nn-manual-sort-row nn-manual-sort-row-disabled${isDragBlockMember ? ' nn-manual-sort-row-drag-block' : ''}${
-                isLastEntry ? ' nn-manual-sort-row-last' : ''
-            }`}
+            className={getManualSortRowClassName({
+                canReorder: false,
+                isDragBlockMember,
+                isLastEntry,
+                hideSeparator,
+                hasCustomBackground,
+                hasPreviousCustomBackground,
+                hasNextCustomBackground
+            })}
         >
             <ManualSortRowContent {...props} canReorder={false} />
         </div>
@@ -273,23 +339,20 @@ function buildManualSortRenderRows(
     let segmentIndex = 0;
 
     entries.forEach(entry => {
+        let headerLabel: string | undefined;
         if (groupHeaderPropertyKey && entry.file.extension === 'md') {
             const header = getCachedManualSortGroupHeaderValue(app, entry.file, groupHeaderPropertyKey);
             if (header) {
                 segmentIndex += 1;
-                rows.push({
-                    type: 'header',
-                    key: `${sectionKey}-manual-sort-custom-header-${entry.file.path}`,
-                    label: header
-                });
+                headerLabel = header;
             }
         }
 
         rows.push({
-            type: 'file',
             key: entry.sortableId,
             entry,
-            segmentKey: `${sectionKey}:${segmentIndex}`
+            segmentKey: `${sectionKey}:${segmentIndex}`,
+            headerLabel
         });
     });
 
@@ -319,23 +382,46 @@ function ManualSortGroup({
     selectedFiles,
     activeDragPaths
 }: ManualSortGroupProps) {
-    const renderRows = (rows: ManualSortRenderRow[]) =>
-        rows.map((row, index) => {
-            if (row.type === 'header') {
-                return (
-                    <div key={row.key} className="nn-list-group-header nn-manual-sort-section-header">
-                        <span className="nn-list-group-header-text">{row.label}</span>
-                    </div>
-                );
-            }
+    const { fileItemStorage, getSolidBackground } = rowContext;
+    const settings = useSettingsState();
+    const metadataService = useMetadataService();
+    const backgroundCache = new Map<string, boolean>();
+    const hasFileBackground = (entry: ManualSortEntry | undefined): boolean => {
+        if (!entry) {
+            return false;
+        }
 
+        const cached = backgroundCache.get(entry.file.path);
+        if (cached !== undefined) {
+            return cached;
+        }
+
+        const taskUnfinished = settings.showFileBackgroundUnfinishedTask
+            ? fileItemStorage.getDB().getFile(entry.file.path)?.taskUnfinished
+            : undefined;
+        const hasBackground = hasSolidFileRowBackground({
+            customBackgroundColor: metadataService.getFileBackgroundColor(entry.file.path),
+            taskUnfinished,
+            showUnfinishedTaskBackground: settings.showFileBackgroundUnfinishedTask,
+            unfinishedTaskBackgroundColor: settings.unfinishedTaskBackgroundColor,
+            getSolidBackground
+        });
+        backgroundCache.set(entry.file.path, hasBackground);
+        return hasBackground;
+    };
+    const renderRows = (rows: ManualSortRenderRow[], suppressFirstHeaderSpacing = false) =>
+        rows.map((row, index) => {
             const entry = row.entry;
             const previousRow = rows[index - 1];
             const nextRow = rows[index + 1];
-            const previousEntry = previousRow?.type === 'file' && previousRow.segmentKey === row.segmentKey ? previousRow.entry : undefined;
-            const nextEntry = nextRow?.type === 'file' && nextRow.segmentKey === row.segmentKey ? nextRow.entry : undefined;
+            const previousEntry = previousRow?.segmentKey === row.segmentKey ? previousRow.entry : undefined;
+            const nextEntry = nextRow?.segmentKey === row.segmentKey ? nextRow.entry : undefined;
             const isLastEntry = !nextEntry;
             const isSelected = selectedFiles.has(entry.file.path);
+            const isNextSelected = nextEntry ? selectedFiles.has(nextEntry.file.path) : false;
+            const entryHasCustomBackground = hasFileBackground(entry);
+            const previousEntryHasCustomBackground = entryHasCustomBackground && hasFileBackground(previousEntry);
+            const nextEntryHasCustomBackground = hasFileBackground(nextEntry);
             const rowProps: ManualSortRowProps = {
                 ...rowContext,
                 entry,
@@ -345,6 +431,12 @@ function ManualSortGroup({
                 hasSelectedAbove: Boolean(previousEntry && selectedFiles.has(previousEntry.file.path)),
                 hasSelectedBelow: Boolean(nextEntry && selectedFiles.has(nextEntry.file.path)),
                 isDragBlockMember: activeDragPaths.has(entry.file.path),
+                hideSeparator: (isSelected && !isNextSelected) || (!isSelected && isNextSelected),
+                hasCustomBackground: entryHasCustomBackground,
+                hasPreviousCustomBackground: previousEntryHasCustomBackground,
+                hasNextCustomBackground: nextEntryHasCustomBackground,
+                headerLabel: row.headerLabel,
+                suppressHeaderTopSpacing: Boolean(row.headerLabel && suppressFirstHeaderSpacing && index === 0),
                 shortcutKey: noteShortcutKeysByPath.get(entry.file.path)
             };
 
@@ -357,7 +449,7 @@ function ManualSortGroup({
 
     return (
         <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
-            {renderRows(rankedRows)}
+            {renderRows(rankedRows, true)}
             {unsortedRows.length > 0 ? (
                 <>
                     <div className="nn-list-group-header nn-manual-sort-section-header">
@@ -576,9 +668,40 @@ export function ManualSortListContent({
     const handleDragCancel = useCallback(() => {
         setActiveDragPaths(new Set());
     }, []);
+    const handleContextMenu = useCallback(
+        (event: ReactMouseEvent<HTMLDivElement>) => {
+            if (!manualSortGroupHeaderPropertyKey) {
+                return;
+            }
+
+            const target = event.target;
+            if (!(target instanceof Element)) {
+                return;
+            }
+
+            const fileElement = target.closest('.nn-file');
+            if (!(fileElement instanceof HTMLElement)) {
+                return;
+            }
+
+            const filePath = fileElement.dataset.path;
+            const file = filePath ? app.vault.getFileByPath(filePath) : null;
+            if (!(file instanceof TFile) || file.extension !== 'md') {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            const menu = new Menu();
+            addManualSortGroupHeaderMenuItems({ menu, app, file, propertyKey: manualSortGroupHeaderPropertyKey });
+            menu.showAtMouseEvent(event.nativeEvent);
+        },
+        [app, manualSortGroupHeaderPropertyKey]
+    );
 
     return (
-        <div className="nn-list-pane-scroller nn-manual-sort-scroller" role="list" tabIndex={-1}>
+        <div className="nn-list-pane-scroller nn-manual-sort-scroller" role="list" tabIndex={-1} onContextMenu={handleContextMenu}>
             <div className="nn-manual-sort-panel">
                 <div className="nn-manual-sort-header">
                     <div className="nn-manual-sort-header-text">

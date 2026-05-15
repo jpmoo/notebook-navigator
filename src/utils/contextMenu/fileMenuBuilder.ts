@@ -40,8 +40,9 @@ import { isFolderNote } from '../../utils/folderNotes';
 import { getFilesForNavigationSelection, getNavigatorPinContext } from '../selectionUtils';
 import { collectFileMenuPropertyActions, type FileMenuPropertyAction } from '../../utils/propertyMenuActions';
 import { INTERNAL_NOTEBOOK_NAVIGATOR_API } from '../../api/NotebookNavigatorAPI';
-import { getCachedManualSortGroupHeaderValue, getManualSortGroupHeaderPropertyKey, writeManualSortGroupHeader } from '../manualSort';
+import { getManualSortGroupHeaderPropertyKey } from '../manualSort';
 import { getEffectiveListSort, getSortField, isManualSortPropertyKey } from '../sortUtils';
+import { addManualSortGroupHeaderMenuItems } from './manualSortGroupHeaderMenuItems';
 
 type FileStyleTarget = { type: 'folder'; folderPath: string } | { type: 'files'; files: TFile[] };
 
@@ -558,27 +559,7 @@ function addManualSortGroupHeaderAction(params: AddManualSortGroupHeaderActionPa
         return false;
     }
 
-    menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(item.setTitle(strings.contextMenu.file.setManualSortGroupHeader).setIcon('lucide-heading'), async () => {
-            const { InputModal } = await import('../../modals/InputModal');
-            const currentValue = getCachedManualSortGroupHeaderValue(app, file, propertyKey) ?? '';
-            const modal = new InputModal(
-                app,
-                strings.modals.manualSortGroupHeader.title,
-                strings.modals.manualSortGroupHeader.placeholder,
-                async value => {
-                    await writeManualSortGroupHeader(app, file, propertyKey, value);
-                },
-                currentValue,
-                {
-                    description: strings.modals.manualSortGroupHeader.description.replace('{property}', propertyKey)
-                }
-            );
-            modal.open();
-        });
-    });
-
-    return true;
+    return addManualSortGroupHeaderMenuItems({ menu, app, file, propertyKey });
 }
 
 function resolveFileStyleTarget(params: ResolveFileStyleTargetParams): FileStyleTarget {
