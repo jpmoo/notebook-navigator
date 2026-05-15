@@ -87,7 +87,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
         info: 'This update finally brings manual sort to the list pane! If you are a writer used to working with Ulysses or Scrivener, this should make your daily life much easier.',
         new: [
             '**Manual sort.** ==New manual sorting mode in list pane.== You can now arrange notes in any order you want. The position is saved as a numeric index value in a frontmatter property, and works in single folders as well as with **Show notes from descendants** enabled.',
-            '**Manual sort.** You can reorder notes directly in the list pane — select one or more notes and press Cmd/Ctrl + Arrow Up/Down. Or pick **Edit sort order...** from the sort menu to open a dedicated drag-and-drop view, which supports multi-select on desktop and touch on mobile.',
+            '**Manual sort.** You can reorder notes directly in the list pane. Select one or more notes and press Cmd/Ctrl + Arrow Up/Down. Or pick **Edit sort order...** from the sort menu to open a dedicated drag-and-drop view, which supports multi-select on desktop and touch on mobile.',
             '**Manual sort.** You can add custom group headers above any note. Right-click a note in the list pane or in Edit sort order... and choose **Set group header**.',
             '**Manual sort.** Custom group headers can show total word count or progress against a target word count.',
             '**Manual sort.** New setting: List > Manual sort > ==New note placement== controls where new notes are added when manual sort is active — Top, Bottom, Below selected note, or Unsorted. Default is below selected note.',
