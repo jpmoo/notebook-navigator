@@ -21,7 +21,7 @@ import { strings } from '../i18n';
 import type { NotebookNavigatorSettings } from '../settings';
 import type { ManualSortNewNotePlacement } from '../settings/types';
 import { getErrorMessage } from './errorUtils';
-import { findMatchingRecordKey } from './recordUtils';
+import { casefold, findMatchingRecordKey } from './recordUtils';
 import { isRecord } from './typeGuards';
 
 export const MANUAL_SORT_RANK_STEP = 1000;
@@ -120,6 +120,22 @@ export function getLocalizedManualSortWriteFailureMessage(result: ManualSortWrit
 export function isValidManualSortPropertyKey(value: string): boolean {
     const key = normalizeManualSortPropertyKey(value);
     return key.length > 0 && !key.includes(',');
+}
+
+export function getManualSortGroupHeaderPropertyKey(
+    settings: Pick<NotebookNavigatorSettings, 'manualSortGroupHeaderProperty' | 'manualSortPropertyKey'>
+): string | null {
+    const key = typeof settings.manualSortGroupHeaderProperty === 'string' ? settings.manualSortGroupHeaderProperty.trim() : '';
+    if (!key || key.includes(',')) {
+        return null;
+    }
+
+    const manualSortPropertyKey = normalizeManualSortPropertyKey(settings.manualSortPropertyKey);
+    if (manualSortPropertyKey && casefold(key) === casefold(manualSortPropertyKey)) {
+        return null;
+    }
+
+    return key;
 }
 
 export function getManualSortBaselineSettings(settings: NotebookNavigatorSettings): NotebookNavigatorSettings {
@@ -344,6 +360,30 @@ export function getCachedManualSortRank(app: App, file: TFile, propertyKey: stri
     }
 
     return parseManualSortRank(frontmatter[targetKey]);
+}
+
+export function getCachedManualSortGroupHeaderValue(app: App, file: TFile, propertyKey: string): string | null {
+    if (file.extension !== 'md') {
+        return null;
+    }
+
+    const frontmatter = app.metadataCache?.getFileCache(file)?.frontmatter;
+    if (!isRecord(frontmatter)) {
+        return null;
+    }
+
+    const targetKey = findMatchingRecordKey(frontmatter, propertyKey);
+    if (!targetKey) {
+        return null;
+    }
+
+    const value = frontmatter[targetKey];
+    if (typeof value !== 'string') {
+        return null;
+    }
+
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
 }
 
 function hasCachedManualSortValue(app: App, file: TFile, propertyKey: string, order: number): boolean {
@@ -784,4 +824,25 @@ export async function writeManualSortAssignments(
 
 export async function writeManualSortOrder(app: App, files: readonly TFile[], propertyKey: string): Promise<ManualSortWriteResult> {
     return writeManualSortAssignments(app, files, propertyKey, buildManualSortOrderAssignments(files));
+}
+
+export async function writeManualSortGroupHeader(app: App, file: TFile, propertyKey: string, value: string): Promise<void> {
+    if (file.extension !== 'md') {
+        return;
+    }
+
+    const nextValue = value.trim();
+    await app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
+        const existingKey = findMatchingRecordKey(frontmatter, propertyKey);
+        const targetKey = existingKey ?? propertyKey;
+
+        if (!nextValue) {
+            if (existingKey) {
+                delete frontmatter[existingKey];
+            }
+            return;
+        }
+
+        frontmatter[targetKey] = nextValue;
+    });
 }

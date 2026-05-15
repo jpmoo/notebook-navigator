@@ -20,7 +20,7 @@ import { useCallback, useMemo, useState, type MouseEvent as ReactMouseEvent, typ
 import { DndContext, MouseSensor, TouchSensor, type DragEndEvent, type DragStartEvent, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { TFile } from 'obsidian';
+import { TFile, type App } from 'obsidian';
 import { useServices } from '../../context/ServicesContext';
 import { strings } from '../../i18n';
 import type { SortOption } from '../../settings';
@@ -32,7 +32,12 @@ import type { FileItemPillDecorationModel } from '../../utils/fileItemPillDecora
 import type { FolderDecorationModel } from '../../utils/folderDecoration';
 import type { HiddenTagVisibility } from '../../utils/tagPrefixMatcher';
 import { typeFilteredCollisionDetection, verticalAxisOnly } from '../../utils/dndConfig';
-import { getManualSortSelectedMarkdownPaths, moveManualSortMarkdownFiles, partitionManualSortFiles } from '../../utils/manualSort';
+import {
+    getCachedManualSortGroupHeaderValue,
+    getManualSortSelectedMarkdownPaths,
+    moveManualSortMarkdownFiles,
+    partitionManualSortFiles
+} from '../../utils/manualSort';
 import { ObsidianIcon } from '../ObsidianIcon';
 import { FileItem, type FileItemStorageHelpers } from '../FileItem';
 
@@ -50,6 +55,7 @@ interface ManualSortListContentProps {
     listItems: ListPaneItem[];
     hiddenFileState: ReadonlyMap<string, boolean>;
     propertyKey: string;
+    manualSortGroupHeaderPropertyKey: string | null;
     rankByPath: ReadonlyMap<string, number>;
     selectedFolderPath: string | null;
     isSaving: boolean;
@@ -80,6 +86,21 @@ interface ManualSortEntry {
     sortableId: string;
     info: ManualSortFileInfo;
 }
+
+interface ManualSortHeaderRenderRow {
+    type: 'header';
+    key: string;
+    label: string;
+}
+
+interface ManualSortFileRenderRow {
+    type: 'file';
+    key: string;
+    entry: ManualSortEntry;
+    segmentKey: string;
+}
+
+type ManualSortRenderRow = ManualSortHeaderRenderRow | ManualSortFileRenderRow;
 
 interface ManualSortRowContext {
     isMobile: boolean;
@@ -242,10 +263,43 @@ function ManualSortStaticRow(props: ManualSortRowProps) {
     );
 }
 
+function buildManualSortRenderRows(
+    app: App,
+    entries: readonly ManualSortEntry[],
+    groupHeaderPropertyKey: string | null,
+    sectionKey: string
+): ManualSortRenderRow[] {
+    const rows: ManualSortRenderRow[] = [];
+    let segmentIndex = 0;
+
+    entries.forEach(entry => {
+        if (groupHeaderPropertyKey && entry.file.extension === 'md') {
+            const header = getCachedManualSortGroupHeaderValue(app, entry.file, groupHeaderPropertyKey);
+            if (header) {
+                segmentIndex += 1;
+                rows.push({
+                    type: 'header',
+                    key: `${sectionKey}-manual-sort-custom-header-${entry.file.path}`,
+                    label: header
+                });
+            }
+        }
+
+        rows.push({
+            type: 'file',
+            key: entry.sortableId,
+            entry,
+            segmentKey: `${sectionKey}:${segmentIndex}`
+        });
+    });
+
+    return rows;
+}
+
 interface ManualSortGroupProps {
-    rankedEntries: ManualSortEntry[];
-    unsortedEntries: ManualSortEntry[];
-    nonMarkdownEntries: ManualSortEntry[];
+    rankedRows: ManualSortRenderRow[];
+    unsortedRows: ManualSortRenderRow[];
+    nonMarkdownRows: ManualSortRenderRow[];
     sortableIds: string[];
     canReorder: boolean;
     rowContext: ManualSortRowContext;
@@ -255,9 +309,9 @@ interface ManualSortGroupProps {
 }
 
 function ManualSortGroup({
-    rankedEntries,
-    unsortedEntries,
-    nonMarkdownEntries,
+    rankedRows,
+    unsortedRows,
+    nonMarkdownRows,
     sortableIds,
     canReorder,
     rowContext,
@@ -265,11 +319,22 @@ function ManualSortGroup({
     selectedFiles,
     activeDragPaths
 }: ManualSortGroupProps) {
-    const renderEntries = (entries: ManualSortEntry[]) =>
-        entries.map((entry, index) => {
-            const isLastEntry = index === entries.length - 1;
-            const previousEntry = entries[index - 1];
-            const nextEntry = entries[index + 1];
+    const renderRows = (rows: ManualSortRenderRow[]) =>
+        rows.map((row, index) => {
+            if (row.type === 'header') {
+                return (
+                    <div key={row.key} className="nn-list-group-header nn-manual-sort-section-header">
+                        <span className="nn-list-group-header-text">{row.label}</span>
+                    </div>
+                );
+            }
+
+            const entry = row.entry;
+            const previousRow = rows[index - 1];
+            const nextRow = rows[index + 1];
+            const previousEntry = previousRow?.type === 'file' && previousRow.segmentKey === row.segmentKey ? previousRow.entry : undefined;
+            const nextEntry = nextRow?.type === 'file' && nextRow.segmentKey === row.segmentKey ? nextRow.entry : undefined;
+            const isLastEntry = !nextEntry;
             const isSelected = selectedFiles.has(entry.file.path);
             const rowProps: ManualSortRowProps = {
                 ...rowContext,
@@ -284,24 +349,24 @@ function ManualSortGroup({
             };
 
             if (entry.file.extension !== 'md') {
-                return <ManualSortStaticRow key={entry.sortableId} {...rowProps} />;
+                return <ManualSortStaticRow key={row.key} {...rowProps} />;
             }
 
-            return <SortableManualSortRow key={entry.sortableId} {...rowProps} />;
+            return <SortableManualSortRow key={row.key} {...rowProps} />;
         });
 
     return (
         <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
-            {renderEntries(rankedEntries)}
-            {unsortedEntries.length > 0 ? (
+            {renderRows(rankedRows)}
+            {unsortedRows.length > 0 ? (
                 <>
                     <div className="nn-list-group-header nn-manual-sort-section-header">
                         <span className="nn-list-group-header-text">{strings.listPane.unsortedSection}</span>
                     </div>
-                    {renderEntries(unsortedEntries)}
+                    {renderRows(unsortedRows)}
                 </>
             ) : null}
-            {renderEntries(nonMarkdownEntries)}
+            {renderRows(nonMarkdownRows)}
         </SortableContext>
     );
 }
@@ -327,6 +392,7 @@ export function ManualSortListContent({
     listItems,
     hiddenFileState,
     propertyKey,
+    manualSortGroupHeaderPropertyKey,
     rankByPath,
     selectedFolderPath,
     isSaving,
@@ -351,7 +417,7 @@ export function ManualSortListContent({
     onDone,
     onReorder
 }: ManualSortListContentProps) {
-    const { isMobile } = useServices();
+    const { app, isMobile } = useServices();
     const [activeDragPaths, setActiveDragPaths] = useState<ReadonlySet<string>>(() => new Set());
     const fileInfoByPath = useMemo(() => buildFileInfoMap(listItems), [listItems]);
     const filePartitions = useMemo(() => partitionManualSortFiles(files), [files]);
@@ -383,6 +449,18 @@ export function ManualSortListContent({
     const rankedEntries = useMemo<ManualSortEntry[]>(() => buildEntries(rankedMarkdownFiles), [buildEntries, rankedMarkdownFiles]);
     const unsortedEntries = useMemo<ManualSortEntry[]>(() => buildEntries(unsortedMarkdownFiles), [buildEntries, unsortedMarkdownFiles]);
     const nonMarkdownEntries = useMemo<ManualSortEntry[]>(() => buildEntries(nonMarkdownFiles), [buildEntries, nonMarkdownFiles]);
+    const rankedRows = useMemo(
+        () => buildManualSortRenderRows(app, rankedEntries, manualSortGroupHeaderPropertyKey, 'ranked'),
+        [app, manualSortGroupHeaderPropertyKey, rankedEntries]
+    );
+    const unsortedRows = useMemo(
+        () => buildManualSortRenderRows(app, unsortedEntries, manualSortGroupHeaderPropertyKey, 'unsorted'),
+        [app, manualSortGroupHeaderPropertyKey, unsortedEntries]
+    );
+    const nonMarkdownRows = useMemo(
+        () => buildManualSortRenderRows(app, nonMarkdownEntries, null, 'non-markdown'),
+        [app, nonMarkdownEntries]
+    );
     const entries = useMemo<ManualSortEntry[]>(() => {
         return [...rankedEntries, ...unsortedEntries, ...nonMarkdownEntries];
     }, [nonMarkdownEntries, rankedEntries, unsortedEntries]);
@@ -531,9 +609,9 @@ export function ManualSortListContent({
                         <div className="nn-manual-sort-list" aria-busy={isSaving ? 'true' : undefined}>
                             {entries.length > 0 ? (
                                 <ManualSortGroup
-                                    rankedEntries={rankedEntries}
-                                    unsortedEntries={unsortedEntries}
-                                    nonMarkdownEntries={nonMarkdownEntries}
+                                    rankedRows={rankedRows}
+                                    unsortedRows={unsortedRows}
+                                    nonMarkdownRows={nonMarkdownRows}
                                     sortableIds={sortableIds}
                                     canReorder={!isSaving}
                                     rowContext={rowContext}

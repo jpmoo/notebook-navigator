@@ -34,7 +34,7 @@ import { createSettingGroupFactory } from '../settingGroups';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
 import { createSubSettingsContainer } from '../subSettings';
 import { pruneUnavailablePropertySortOverrides } from '../../utils/sortUtils';
-import { isValidManualSortPropertyKey, normalizeManualSortPropertyKey } from '../../utils/manualSort';
+import { getManualSortGroupHeaderPropertyKey, isValidManualSortPropertyKey, normalizeManualSortPropertyKey } from '../../utils/manualSort';
 
 type QuickActionSettingKey =
     | 'quickActionRevealInFolder'
@@ -320,6 +320,7 @@ export function renderListPaneTab(context: SettingsTabContext): void {
                         text.setValue(plugin.settings.manualSortPropertyKey);
                         return;
                     }
+                    text.setValue(value);
                     if (plugin.settings.manualSortPropertyKey === value) {
                         return;
                     }
@@ -353,6 +354,17 @@ export function renderListPaneTab(context: SettingsTabContext): void {
             .addText(text => {
                 const commitGroupHeaderProperty = async (): Promise<void> => {
                     const value = text.getValue().trim();
+                    if (
+                        value.length > 0 &&
+                        getManualSortGroupHeaderPropertyKey({
+                            manualSortGroupHeaderProperty: value,
+                            manualSortPropertyKey: plugin.settings.manualSortPropertyKey
+                        }) === null
+                    ) {
+                        text.setValue(plugin.settings.manualSortGroupHeaderProperty);
+                        return;
+                    }
+                    text.setValue(value);
                     if (plugin.settings.manualSortGroupHeaderProperty === value) {
                         return;
                     }

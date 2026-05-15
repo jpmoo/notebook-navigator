@@ -30,6 +30,8 @@ export interface VirtualItem<T> {
     level?: number; // For hierarchical items
 }
 
+export type ListPaneHeaderKind = 'date' | 'folder' | 'pinned' | 'section' | 'manual-sort-custom';
+
 export interface ListPaneItem {
     type: ListPaneItemType;
     data: TFile | string; // File, header text, or spacer payload
@@ -37,6 +39,7 @@ export interface ListPaneItem {
     // Folder path associated with a folder-group header.
     // Present only when grouping by folder in the list pane.
     headerFolderPath?: string | null;
+    headerKind?: ListPaneHeaderKind;
     key: string;
     // Pre-computed file index for stable onClick handlers
     fileIndex?: number;

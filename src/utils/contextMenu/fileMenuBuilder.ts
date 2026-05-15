@@ -40,6 +40,8 @@ import { isFolderNote } from '../../utils/folderNotes';
 import { getFilesForNavigationSelection, getNavigatorPinContext } from '../selectionUtils';
 import { collectFileMenuPropertyActions, type FileMenuPropertyAction } from '../../utils/propertyMenuActions';
 import { INTERNAL_NOTEBOOK_NAVIGATOR_API } from '../../api/NotebookNavigatorAPI';
+import { getCachedManualSortGroupHeaderValue, getManualSortGroupHeaderPropertyKey, writeManualSortGroupHeader } from '../manualSort';
+import { getEffectiveListSort, getSortField, isManualSortPropertyKey } from '../sortUtils';
 
 type FileStyleTarget = { type: 'folder'; folderPath: string } | { type: 'files'; files: TFile[] };
 
@@ -82,6 +84,16 @@ interface FileStyleRemovalAvailability {
     hasRemovableBackground: boolean;
 }
 
+interface AddManualSortGroupHeaderActionParams {
+    menu: Menu;
+    app: App;
+    settings: NotebookNavigatorSettings;
+    file: TFile;
+    source: NonNullable<FileMenuBuilderParams['options']>['source'] | undefined;
+    selectionState: SelectionState;
+    shouldShowMultiOptions: boolean;
+}
+
 /**
  * Resolves an icon for a file-menu property action.
  */
@@ -109,7 +121,7 @@ function resolveFileMenuPropertyActionIcon(
  * Builds the context menu for a file
  */
 export function buildFileMenu(params: FileMenuBuilderParams): void {
-    const { file, menu, services, settings, state, dispatchers } = params;
+    const { file, menu, services, settings, state, dispatchers, options } = params;
     const { app, isMobile, fileSystemOps, metadataService, tagTreeService, propertyTreeService, commandQueue, visibility } = services;
     const { selectionState } = state;
     const { selectionDispatch } = dispatchers;
@@ -194,6 +206,20 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
     });
 
     menu.addSeparator();
+
+    if (
+        addManualSortGroupHeaderAction({
+            menu,
+            app,
+            settings,
+            file,
+            source: options?.source,
+            selectionState,
+            shouldShowMultiOptions
+        })
+    ) {
+        menu.addSeparator();
+    }
 
     const filesForTagOps = shouldShowMultiOptions ? cachedSelectedFiles : [file];
     // Only show tag operations if all files are markdown (tags only work with markdown)
@@ -511,6 +537,48 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
         // Delete note
         addSingleFileDeleteOption(menu, file, selectionState, settings, fileSystemOps, selectionDispatch, isFolderNoteFile);
     }
+}
+
+function addManualSortGroupHeaderAction(params: AddManualSortGroupHeaderActionParams): boolean {
+    const { menu, app, settings, file, source, selectionState, shouldShowMultiOptions } = params;
+    const propertyKey = getManualSortGroupHeaderPropertyKey(settings);
+    if (source !== 'list-pane' || shouldShowMultiOptions || file.extension !== 'md' || !propertyKey) {
+        return false;
+    }
+
+    const sortSpec = getEffectiveListSort(
+        settings,
+        selectionState.selectionType,
+        selectionState.selectedFolder,
+        selectionState.selectedTag,
+        selectionState.selectedProperty
+    );
+    const isManualSortActive = getSortField(sortSpec.option) === 'property' && isManualSortPropertyKey(settings, sortSpec.propertyKey);
+    if (!isManualSortActive) {
+        return false;
+    }
+
+    menu.addItem((item: MenuItem) => {
+        setAsyncOnClick(item.setTitle(strings.contextMenu.file.setManualSortGroupHeader).setIcon('lucide-heading'), async () => {
+            const { InputModal } = await import('../../modals/InputModal');
+            const currentValue = getCachedManualSortGroupHeaderValue(app, file, propertyKey) ?? '';
+            const modal = new InputModal(
+                app,
+                strings.modals.manualSortGroupHeader.title,
+                strings.modals.manualSortGroupHeader.placeholder,
+                async value => {
+                    await writeManualSortGroupHeader(app, file, propertyKey, value);
+                },
+                currentValue,
+                {
+                    description: strings.modals.manualSortGroupHeader.description.replace('{property}', propertyKey)
+                }
+            );
+            modal.open();
+        });
+    });
+
+    return true;
 }
 
 function resolveFileStyleTarget(params: ResolveFileStyleTargetParams): FileStyleTarget {

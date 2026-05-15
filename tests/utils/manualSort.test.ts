@@ -24,7 +24,9 @@ import {
     buildManualSortInsertionRankPlan,
     buildManualSortOrderAssignments,
     buildManualSortRankPlan,
+    getCachedManualSortGroupHeaderValue,
     getCachedManualSortRank,
+    getManualSortGroupHeaderPropertyKey,
     isManualSortValueEqual,
     isValidManualSortPropertyKey,
     MANUAL_SORT_RANK_STEP,
@@ -33,9 +35,11 @@ import {
     orderManualSortFiles,
     partitionManualSortFiles,
     parseManualSortRank,
+    writeManualSortGroupHeader,
     writeManualSortAssignments,
     writeManualSortOrder
 } from '../../src/utils/manualSort';
+import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import { createTestTFile } from './createTestTFile';
 
 function createFile(path: string, frontmatter: Record<string, unknown>): TFile & { frontmatter: Record<string, unknown> } {
@@ -242,6 +246,23 @@ describe('manual sort helpers', () => {
         expect(isValidManualSortPropertyKey('a,b')).toBe(false);
     });
 
+    it('resolves the manual sort group header property key when it is valid', () => {
+        const settings = structuredClone(DEFAULT_SETTINGS);
+        settings.manualSortPropertyKey = 'sortindex';
+        settings.manualSortGroupHeaderProperty = ' groupheader ';
+
+        expect(getManualSortGroupHeaderPropertyKey(settings)).toBe('groupheader');
+
+        settings.manualSortGroupHeaderProperty = '';
+        expect(getManualSortGroupHeaderPropertyKey(settings)).toBeNull();
+
+        settings.manualSortGroupHeaderProperty = 'group,header';
+        expect(getManualSortGroupHeaderPropertyKey(settings)).toBeNull();
+
+        settings.manualSortGroupHeaderProperty = 'SORTINDEX';
+        expect(getManualSortGroupHeaderPropertyKey(settings)).toBeNull();
+    });
+
     it('treats integer strings and numbers as the same manual rank value', () => {
         expect(isManualSortValueEqual(3, 3)).toBe(true);
         expect(isManualSortValueEqual(' 3 ', 3)).toBe(true);
@@ -261,6 +282,23 @@ describe('manual sort helpers', () => {
         expect(getCachedManualSortRank(app, second, 'index')).toBe(2000);
         expect(getCachedManualSortRank(app, third, 'index')).toBe(null);
         expect(getCachedManualSortRank(app, nonMarkdown, 'index')).toBe(null);
+    });
+
+    it('reads cached manual sort group header values from string frontmatter only', () => {
+        const stringFile = createFile('notes/string.md', { Group: '  Overview  ' });
+        const numberFile = createFile('notes/number.md', { group: 3 });
+        const booleanFile = createFile('notes/boolean.md', { group: false });
+        const emptyStringFile = createFile('notes/empty.md', { group: '  ' });
+        const arrayFile = createFile('notes/array.md', { group: ['Overview'] });
+        const nonMarkdown = createFile('assets/file.pdf', { group: 'Overview' });
+        const app = createApp([stringFile, numberFile, booleanFile, emptyStringFile, arrayFile, nonMarkdown], vi.fn());
+
+        expect(getCachedManualSortGroupHeaderValue(app, stringFile, 'group')).toBe('Overview');
+        expect(getCachedManualSortGroupHeaderValue(app, numberFile, 'group')).toBeNull();
+        expect(getCachedManualSortGroupHeaderValue(app, booleanFile, 'group')).toBeNull();
+        expect(getCachedManualSortGroupHeaderValue(app, emptyStringFile, 'group')).toBeNull();
+        expect(getCachedManualSortGroupHeaderValue(app, arrayFile, 'group')).toBeNull();
+        expect(getCachedManualSortGroupHeaderValue(app, nonMarkdown, 'group')).toBeNull();
     });
 
     it('plans a sparse moved-file rank between ranked neighbors', () => {
@@ -556,6 +594,23 @@ describe('manual sort helpers', () => {
         expect(processFrontMatter).toHaveBeenCalledTimes(1);
         expect(first.frontmatter).toEqual({ index: 'old' });
         expect(second.frontmatter).toEqual({ index: 1500 });
+    });
+
+    it('writes and clears manual sort group headers as strings', async () => {
+        const first = createFile('notes/first.md', { Group: 3 });
+        const second = createFile('notes/second.md', {});
+        const processFrontMatter = vi.fn(async (file: TFile, callback: (frontmatter: Record<string, unknown>) => void) => {
+            callback((file as TFile & { frontmatter: Record<string, unknown> }).frontmatter);
+        });
+        const app = createApp([first, second], processFrontMatter);
+
+        await writeManualSortGroupHeader(app, first, 'group', '  Overview  ');
+        await writeManualSortGroupHeader(app, second, 'group', 'Next');
+        await writeManualSortGroupHeader(app, first, 'group', '   ');
+
+        expect(processFrontMatter).toHaveBeenCalledTimes(3);
+        expect(first.frontmatter).toEqual({});
+        expect(second.frontmatter).toEqual({ group: 'Next' });
     });
 
     it('records failures and continues writing remaining files', async () => {

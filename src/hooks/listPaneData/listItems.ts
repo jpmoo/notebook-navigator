@@ -25,7 +25,7 @@ import { strings } from '../../i18n';
 import { FILE_VISIBILITY, type FileVisibility } from '../../utils/fileTypeUtils';
 import { compareByAlphaSortOrder, getDateField, isDateSortOption, isPropertySortOption } from '../../utils/sortUtils';
 import { partitionPinnedFiles } from '../../utils/fileFinder';
-import { hasCachedManualSortProperty } from '../../utils/manualSort';
+import { getCachedManualSortGroupHeaderValue, hasCachedManualSortProperty } from '../../utils/manualSort';
 import { createHiddenTagVisibility } from '../../utils/tagPrefixMatcher';
 import { getCachedFileTags } from '../../utils/tagUtils';
 import { DateUtils } from '../../utils/dateUtils';
@@ -60,6 +60,7 @@ interface BuildListItemsArgs {
     sortOption: SortOption;
     propertySortKey?: string;
     isManualSortActive?: boolean;
+    manualSortGroupHeaderPropertyKey?: string | null;
 }
 
 export function buildListItems({
@@ -78,7 +79,8 @@ export function buildListItems({
     showHiddenItems,
     sortOption,
     propertySortKey = '',
-    isManualSortActive = false
+    isManualSortActive = false,
+    manualSortGroupHeaderPropertyKey = null
 }: BuildListItemsArgs): ListPaneItem[] {
     const items: ListPaneItem[] = [
         {
@@ -130,7 +132,12 @@ export function buildListItems({
         items.push({ ...baseItem, ...overrides });
     };
 
-    const pushHeaderItem = ({ data, key, headerFolderPath }: Pick<ListPaneItem, 'data' | 'key' | 'headerFolderPath'>) => {
+    const pushHeaderItem = ({
+        data,
+        key,
+        headerFolderPath,
+        headerKind
+    }: Pick<ListPaneItem, 'data' | 'key' | 'headerFolderPath' | 'headerKind'>) => {
         const useHeaderSpacers = items.length > 1;
         if (useHeaderSpacers) {
             items.push({
@@ -144,19 +151,41 @@ export function buildListItems({
             type: ListPaneItemType.HEADER,
             data,
             headerFolderPath,
+            headerKind,
             key
         });
+    };
+    const maybePushManualSortCustomHeader = (file: TFile) => {
+        if (!isManualSortActive || !manualSortGroupHeaderPropertyKey || file.extension !== 'md') {
+            return;
+        }
+
+        const header = getCachedManualSortGroupHeaderValue(app, file, manualSortGroupHeaderPropertyKey);
+        if (!header) {
+            return;
+        }
+
+        pushHeaderItem({
+            data: header,
+            headerKind: 'manual-sort-custom',
+            key: `manual-sort-custom-header-${file.path}`
+        });
+    };
+    const pushManualSortAwareFileItem = (file: TFile, overrides: FileItemOverrides = {}) => {
+        maybePushManualSortCustomHeader(file);
+        pushFileItem(file, overrides);
     };
 
     if (pinnedFiles.length > 0) {
         pushHeaderItem({
             data: strings.listPane.pinnedSection,
-            key: PINNED_SECTION_HEADER_KEY
+            key: PINNED_SECTION_HEADER_KEY,
+            headerKind: 'pinned'
         });
 
         if (listConfig.pinnedGroupExpanded) {
             pinnedFiles.forEach(file => {
-                pushFileItem(file, { isPinned: true });
+                pushManualSortAwareFileItem(file, { isPinned: true });
             });
         }
     }
@@ -185,21 +214,23 @@ export function buildListItems({
             const label = fileVisibility === FILE_VISIBILITY.DOCUMENTS ? strings.listPane.notesSection : strings.listPane.filesSection;
             pushHeaderItem({
                 data: label,
-                key: `header-${label}`
+                key: `header-${label}`,
+                headerKind: 'section'
             });
         }
 
         sortedFiles.forEach(file => {
-            pushFileItem(file);
+            pushManualSortAwareFileItem(file);
         });
 
         if (unsortedFiles.length > 0) {
             pushHeaderItem({
                 data: strings.listPane.unsortedSection,
-                key: 'header-unsorted'
+                key: 'header-unsorted',
+                headerKind: 'section'
             });
             unsortedFiles.forEach(file => {
-                pushFileItem(file);
+                pushManualSortAwareFileItem(file);
             });
         }
     } else if (shouldGroupByDate) {
@@ -215,7 +246,8 @@ export function buildListItems({
                 currentGroup = groupTitle;
                 pushHeaderItem({
                     data: groupTitle,
-                    key: `header-${groupTitle}`
+                    key: `header-${groupTitle}`,
+                    headerKind: 'date'
                 });
             }
 
@@ -328,7 +360,8 @@ export function buildListItems({
                 pushHeaderItem({
                     data: group.label,
                     headerFolderPath: group.folderPath,
-                    key: `header-${group.key}`
+                    key: `header-${group.key}`,
+                    headerKind: 'folder'
                 });
             }
 

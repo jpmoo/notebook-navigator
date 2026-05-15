@@ -47,7 +47,7 @@ import type { SearchProvider } from '../types/search';
 import type { PropertySelectionNodeId } from '../utils/propertyTree';
 import { getFilesForNavigationSelection } from '../utils/selectionUtils';
 import { getListSortOverrideForSelection, isManualSortPropertyKey, resolveListSort } from '../utils/sortUtils';
-import { applyManualSortMarkdownOrder } from '../utils/manualSort';
+import { applyManualSortMarkdownOrder, getManualSortGroupHeaderPropertyKey } from '../utils/manualSort';
 import { getPropertyFieldsFromPropertyKeys } from '../utils/vaultProfiles';
 import { buildHiddenFileState, filterListPaneFiles, useOmnisearchListResult, useSearchableNames } from './listPaneData/searchPipeline';
 import {
@@ -336,6 +336,7 @@ export function useListPaneData({
         () => isManualSortPropertyKey({ manualSortPropertyKey: settings.manualSortPropertyKey }, sortSpec.propertyKey),
         [settings.manualSortPropertyKey, sortSpec.propertyKey]
     );
+    const manualSortGroupHeaderPropertyKey = getManualSortGroupHeaderPropertyKey(settings);
 
     const listItems = useMemo(() => {
         return buildListItems({
@@ -354,7 +355,8 @@ export function useListPaneData({
             showHiddenItems,
             sortOption,
             propertySortKey: sortSpec.propertyKey,
-            isManualSortActive
+            isManualSortActive,
+            manualSortGroupHeaderPropertyKey
         });
     }, [
         app,
@@ -372,7 +374,8 @@ export function useListPaneData({
         showHiddenItems,
         sortOption,
         sortSpec.propertyKey,
-        isManualSortActive
+        isManualSortActive,
+        manualSortGroupHeaderPropertyKey
     ]);
 
     const filePathToIndex = useMemo(() => {

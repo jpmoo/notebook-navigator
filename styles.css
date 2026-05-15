@@ -5093,6 +5093,12 @@ body.nn-resizing {
     border-color: var(--interactive-accent);
 }
 
+.nn-input-description {
+    color: var(--nn-theme-foreground-muted);
+    font-size: var(--font-ui-small);
+    margin-top: 12px;
+}
+
 .nn-input-checkbox-row {
     display: flex;
     align-items: center;

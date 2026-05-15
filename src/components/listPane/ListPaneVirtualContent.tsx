@@ -124,7 +124,7 @@ function getItemAt<T>(items: T[], index: number): T | undefined {
 function getGroupHeaderLabel(listItems: ListPaneItem[], index: number): string | null {
     for (let listIndex = index - 1; listIndex >= 0; listIndex -= 1) {
         const item = getItemAt(listItems, listIndex);
-        if (item?.type === ListPaneItemType.HEADER && typeof item.data === 'string') {
+        if (item?.type === ListPaneItemType.HEADER && item.headerKind === 'date' && typeof item.data === 'string') {
             return item.data;
         }
     }

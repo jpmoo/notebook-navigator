@@ -76,6 +76,7 @@ describe('PropertyOperations settings updates', () => {
         setActivePropertyFields(settings, 'Status, priority');
         settings.propertySortKey = 'STATUS';
         settings.manualSortPropertyKey = 'STATUS';
+        settings.manualSortGroupHeaderProperty = 'STATUS';
 
         await operations.renameSettings('status', 'State');
 
@@ -83,6 +84,7 @@ describe('PropertyOperations settings updates', () => {
         expect(getActivePropertyFields(settings)).toBe('State, priority');
         expect(settings.propertySortKey).toBe('State');
         expect(settings.manualSortPropertyKey).toBe('State');
+        expect(settings.manualSortGroupHeaderProperty).toBe('State');
     });
 
     it('renames comma-separated propertySortKey entries and sort override property keys', async () => {
@@ -109,6 +111,7 @@ describe('PropertyOperations settings updates', () => {
         setActivePropertyFields(settings, 'State, priority');
         settings.propertySortKey = 'State';
         settings.manualSortPropertyKey = 'State';
+        settings.manualSortGroupHeaderProperty = 'State';
 
         await operations.deleteSettings('state');
 
@@ -116,6 +119,7 @@ describe('PropertyOperations settings updates', () => {
         expect(getActivePropertyFields(settings)).toBe('priority');
         expect(settings.propertySortKey).toBe('');
         expect(settings.manualSortPropertyKey).toBe('');
+        expect(settings.manualSortGroupHeaderProperty).toBe('');
     });
 
     it('removes deleted propertySortKey entries and matching sort overrides', async () => {

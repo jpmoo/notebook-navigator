@@ -96,6 +96,7 @@ import {
     getCachedManualSortRank,
     getLocalizedManualSortWriteFailureMessage,
     getManualSortPropertyValue,
+    getManualSortGroupHeaderPropertyKey,
     getManualSortSelectedMarkdownPaths,
     moveManualSortSelectionByDirection,
     partitionManualSortFiles,
@@ -403,6 +404,7 @@ export const ListPane = React.memo(
         const effectivePropertySortKey = effectiveSortSpec.propertyKey.trim();
         const isPropertySortActive = getSortField(effectiveSortOption) === 'property';
         const isManualSortActive = isPropertySortActive && isManualSortPropertyKey(settings, effectivePropertySortKey);
+        const manualSortGroupHeaderPropertyKey = getManualSortGroupHeaderPropertyKey(settings);
         const manualSortSelectionKey = useMemo(() => {
             if (selectionType === ItemType.FOLDER && selectedFolder) {
                 return `${selectionType}:${selectedFolder.path}`;
@@ -1267,6 +1269,7 @@ export const ListPane = React.memo(
                             listItems={listItems}
                             hiddenFileState={hiddenFileState}
                             propertyKey={manualSortEditState.propertyKey}
+                            manualSortGroupHeaderPropertyKey={manualSortGroupHeaderPropertyKey}
                             rankByPath={manualSortEditRankByPath}
                             selectedFolderPath={selectedFolder?.path ?? null}
                             isSaving={manualSortEditState.isSaving}
