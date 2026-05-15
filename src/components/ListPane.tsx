@@ -51,6 +51,7 @@ import { useSelectionState, useSelectionDispatch } from '../context/SelectionCon
 import { useServices } from '../context/ServicesContext';
 import { useSettingsState, useActiveProfile, useSettingsDerived } from '../context/SettingsContext';
 import { useUIState } from '../context/UIStateContext';
+import { useExpansionDispatch, useExpansionState } from '../context/ExpansionContext';
 import { useFileCache } from '../context/StorageContext';
 import { useShortcuts } from '../context/ShortcutsContext';
 import { useListPaneKeyboard } from '../hooks/useListPaneKeyboard';
@@ -108,6 +109,8 @@ import { showNotice } from '../utils/noticeUtils';
 import { getErrorMessage } from '../utils/errorUtils';
 import { strings } from '../i18n';
 import { ConfirmModal } from '../modals/ConfirmModal';
+
+const EMPTY_COLLAPSED_LIST_GROUPS = new Set<string>();
 
 /**
  * Renders the list pane displaying files from the selected folder.
@@ -269,6 +272,8 @@ export const ListPane = React.memo(
         const settings = useSettingsState();
         const activeProfile = useActiveProfile();
         const { fileNameIconNeedles } = useSettingsDerived();
+        const expansionState = useExpansionState();
+        const expansionDispatch = useExpansionDispatch();
         const uxPreferences = useUXPreferences();
         const includeDescendantNotes = uxPreferences.includeDescendantNotes;
         const showHiddenItems = uxPreferences.showHiddenItems;
@@ -423,6 +428,18 @@ export const ListPane = React.memo(
         const handlePinnedGroupHeaderToggle = React.useCallback(() => {
             runAsyncAction(() => plugin.togglePinnedGroupCollapsed(pinnedCollapseKey));
         }, [pinnedCollapseKey, plugin]);
+        const collapsedListGroups = isManualSortEditActive ? EMPTY_COLLAPSED_LIST_GROUPS : expansionState.collapsedListGroups;
+        const groupCollapseStateSignature = useMemo(() => {
+            const collapsedGroupKeys = Array.from(collapsedListGroups);
+            collapsedGroupKeys.sort();
+            return `${pinnedGroupExpanded ? 'expanded' : 'collapsed'}:${collapsedGroupKeys.join('\u0001')}`;
+        }, [collapsedListGroups, pinnedGroupExpanded]);
+        const handleListGroupHeaderToggle = React.useCallback(
+            (collapseKey: string) => {
+                expansionDispatch({ type: 'TOGGLE_LIST_GROUP_COLLAPSED', collapseKey });
+            },
+            [expansionDispatch]
+        );
 
         useEffect(() => {
             if (!manualSortEditState || manualSortEditState.selectionKey === manualSortSelectionKey) {
@@ -624,6 +641,7 @@ export const ListPane = React.memo(
             activeProfile,
             groupBy: effectiveAppearanceSettings.groupBy,
             pinnedGroupExpanded,
+            collapsedListGroups,
             searchProvider,
             // Use debounced value for filtering
             searchQuery: !isManualSortEditActive && isSearchActive ? debouncedSearchQuery : undefined,
@@ -745,7 +763,7 @@ export const ListPane = React.memo(
                 suppressSearchTopScrollRef,
                 topSpacerHeight: effectiveTopSpacerHeight,
                 includeDescendantNotes,
-                pinnedGroupExpanded,
+                groupCollapseStateSignature,
                 visiblePropertyKeys: visibleListPropertyKeys,
                 visiblePropertyKeySignature: visibleListPropertyKeySignature,
                 hiddenTagVisibility,
@@ -1307,6 +1325,7 @@ export const ListPane = React.memo(
                             settings={settings}
                             pinnedGroupExpanded={pinnedGroupExpanded}
                             onPinnedGroupHeaderToggle={handlePinnedGroupHeaderToggle}
+                            onListGroupHeaderToggle={handleListGroupHeaderToggle}
                             selectionType={selectionType}
                             sortOption={effectiveSortOption}
                             searchHighlightQuery={searchHighlightQuery}

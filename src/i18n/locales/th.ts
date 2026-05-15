@@ -51,6 +51,8 @@ export const STRINGS_TH = {
         notesSection: 'โน้ต',
         filesSection: 'ไฟล์',
         hiddenItemAriaLabel: '{name} (ซ่อนอยู่)',
+        collapseGroup: 'ยุบกลุ่ม',
+        expandGroup: 'ขยายกลุ่ม',
         manualSortTitle: 'จัดเรียงด้วยตนเอง: {property}',
         manualSortHint: 'ลากเพื่อจัดเรียงใหม่ ลำดับจะถูกบันทึกเป็นค่าดัชนีตัวเลขในคุณสมบัติ "{property}"',
         manualSortNonMarkdownHint: 'ไฟล์ที่ไม่ใช่ Markdown จะแสดงด้านล่างและไม่สามารถจัดเรียงใหม่ได้',

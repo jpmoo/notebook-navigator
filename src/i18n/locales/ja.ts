@@ -51,6 +51,8 @@ export const STRINGS_JA = {
         notesSection: 'ノート', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'ファイル', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (非表示)', // Accessibility label applied to list items that are normally hidden
+        collapseGroup: 'グループを折りたたむ',
+        expandGroup: 'グループを展開',
         manualSortTitle: '手動並べ替え: {property}',
         manualSortHint: 'ドラッグして並べ替えます。並び順は数値インデックス値としてプロパティ「{property}」に保存されます。',
         manualSortNonMarkdownHint: 'Markdown 以外のファイルは下部に表示され、並べ替えできません。',

@@ -51,6 +51,8 @@ export const STRINGS_VI = {
         notesSection: 'Ghi chú', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Tệp', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (ẩn)', // Accessibility label applied to list items that are normally hidden
+        collapseGroup: 'Thu gọn nhóm',
+        expandGroup: 'Mở rộng nhóm',
         manualSortTitle: 'Sắp xếp thủ công: {property}',
         manualSortHint: 'Kéo để sắp xếp lại. Thứ tự được lưu dưới dạng giá trị chỉ số trong thuộc tính "{property}".',
         manualSortNonMarkdownHint: 'Các tệp không phải Markdown được hiển thị ở dưới cùng và không thể sắp xếp lại.',

@@ -51,6 +51,8 @@ export const STRINGS_NL = {
         notesSection: 'Notities',
         filesSection: 'Bestanden',
         hiddenItemAriaLabel: '{name} (verborgen)',
+        collapseGroup: 'Groep samenvouwen',
+        expandGroup: 'Groep uitvouwen',
         manualSortTitle: 'Handmatig sorteren: {property}',
         manualSortHint:
             'Sleep om opnieuw te ordenen. De volgorde wordt opgeslagen als numerieke indexwaarden in de eigenschap "{property}".',

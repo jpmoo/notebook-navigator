@@ -51,6 +51,8 @@ export const STRINGS_DE = {
         notesSection: 'Notizen', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Dateien', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (ausgeblendet)', // Accessibility label applied to list items that are normally hidden
+        collapseGroup: 'Gruppe einklappen',
+        expandGroup: 'Gruppe ausklappen',
         manualSortTitle: 'Manuelle Sortierung: {property}',
         manualSortHint: 'Zum Neuordnen ziehen. Die Reihenfolge wird als numerische Indexwerte in der Eigenschaft „{property}" gespeichert.',
         manualSortNonMarkdownHint: 'Nicht-Markdown-Dateien werden unten angezeigt und können nicht neu geordnet werden.',

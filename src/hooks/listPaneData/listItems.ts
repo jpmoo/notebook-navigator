@@ -29,9 +29,11 @@ import { getCachedManualSortGroupHeaderValue, hasCachedManualSortProperty } from
 import { createHiddenTagVisibility } from '../../utils/tagPrefixMatcher';
 import { getCachedFileTags } from '../../utils/tagUtils';
 import { DateUtils } from '../../utils/dateUtils';
+import { buildListGroupCollapseKey } from '../../utils/listGroupCollapse';
 import type { SearchResultMeta } from '../../types/search';
 import type { IndexedDBStorage } from '../../storage/IndexedDBStorage';
 import type { ListNoteGroupingOption } from '../../settings/types';
+import type { PropertySelectionNodeId } from '../../utils/propertyTree';
 
 export interface ListPaneConfig {
     filterPinnedByFolder: boolean;
@@ -53,8 +55,11 @@ interface BuildListItemsArgs {
     hiddenFileState: ReadonlyMap<string, boolean>;
     hiddenTags: string[];
     listConfig: ListPaneConfig;
+    collapsedListGroups?: ReadonlySet<string>;
     searchMetaMap: ReadonlyMap<string, SearchResultMeta>;
     selectedFolder: TFolder | null;
+    selectedTag?: string | null;
+    selectedProperty?: PropertySelectionNodeId | null;
     selectionType: ItemType | null;
     showHiddenItems: boolean;
     sortOption: SortOption;
@@ -73,8 +78,11 @@ export function buildListItems({
     hiddenFileState,
     hiddenTags,
     listConfig,
+    collapsedListGroups,
     searchMetaMap,
     selectedFolder,
+    selectedTag = null,
+    selectedProperty = null,
     selectionType,
     showHiddenItems,
     sortOption,
@@ -116,9 +124,41 @@ export function buildListItems({
           }
         : () => false;
 
+    const groupingMode = listConfig.groupBy;
+    const selectedFolderPath = selectedFolder?.path ?? null;
+    const createCollapseKey = (groupId: string): string =>
+        buildListGroupCollapseKey({
+            selectionType,
+            selectedFolderPath,
+            selectedTag,
+            selectedProperty,
+            groupingMode,
+            groupId
+        });
+
+    let activeListGroupCollapsed = false;
+    let activeCollapsedHeaderKind: ListPaneItem['headerKind'] | null = null;
     let fileIndexCounter = 0;
+    const manualSortCustomHeaderByPath = new Map<string, string | null>();
+    const getManualSortCustomHeaderValue = (file: TFile): string | null => {
+        if (!isManualSortActive || !manualSortGroupHeaderPropertyKey || file.extension !== 'md') {
+            return null;
+        }
+
+        if (manualSortCustomHeaderByPath.has(file.path)) {
+            return manualSortCustomHeaderByPath.get(file.path) ?? null;
+        }
+
+        const header = getCachedManualSortGroupHeaderValue(app, file, manualSortGroupHeaderPropertyKey);
+        manualSortCustomHeaderByPath.set(file.path, header);
+        return header;
+    };
     type FileItemOverrides = Partial<Omit<ListPaneItem, 'type' | 'data' | 'fileIndex' | 'hasTags' | 'isHidden' | 'key' | 'searchMeta'>>;
     const pushFileItem = (file: TFile, overrides: FileItemOverrides = {}) => {
+        if (activeListGroupCollapsed) {
+            return;
+        }
+
         const baseItem: ListPaneItem = {
             type: ListPaneItemType.FILE,
             data: file,
@@ -136,8 +176,16 @@ export function buildListItems({
         data,
         key,
         headerFolderPath,
-        headerKind
-    }: Pick<ListPaneItem, 'data' | 'key' | 'headerFolderPath' | 'headerKind'>) => {
+        headerKind,
+        collapseKey
+    }: Pick<ListPaneItem, 'data' | 'key' | 'headerFolderPath' | 'headerKind' | 'collapseKey'>) => {
+        if (activeListGroupCollapsed && activeCollapsedHeaderKind !== 'manual-sort-custom' && headerKind === 'manual-sort-custom') {
+            return;
+        }
+
+        const isCollapsed = collapseKey ? collapsedListGroups?.has(collapseKey) === true : false;
+        activeListGroupCollapsed = isCollapsed;
+        activeCollapsedHeaderKind = isCollapsed ? (headerKind ?? null) : null;
         const useHeaderSpacers = items.length > 1;
         if (useHeaderSpacers) {
             items.push({
@@ -152,15 +200,13 @@ export function buildListItems({
             data,
             headerFolderPath,
             headerKind,
+            collapseKey,
+            isCollapsed,
             key
         });
     };
     const maybePushManualSortCustomHeader = (file: TFile) => {
-        if (!isManualSortActive || !manualSortGroupHeaderPropertyKey || file.extension !== 'md') {
-            return;
-        }
-
-        const header = getCachedManualSortGroupHeaderValue(app, file, manualSortGroupHeaderPropertyKey);
+        const header = getManualSortCustomHeaderValue(file);
         if (!header) {
             return;
         }
@@ -168,6 +214,7 @@ export function buildListItems({
         pushHeaderItem({
             data: header,
             headerKind: 'manual-sort-custom',
+            collapseKey: createCollapseKey(`manual-sort-custom:${file.path}`),
             key: `manual-sort-custom-header-${file.path}`
         });
     };
@@ -190,7 +237,6 @@ export function buildListItems({
         }
     }
 
-    const groupingMode = listConfig.groupBy;
     const shouldGroupByDate = groupingMode === 'date' && isDateSortOption(sortOption);
     const shouldGroupByFolder = groupingMode === 'folder' && selectionType === ItemType.FOLDER;
     const shouldShowUnsortedSection = isPropertySortOption(sortOption) && isManualSortActive && propertySortKey.trim().length > 0;
@@ -210,7 +256,10 @@ export function buildListItems({
             sortedFiles.push(...unpinnedFiles);
         }
 
-        if (pinnedFiles.length > 0 && sortedFiles.length > 0) {
+        const firstSortedFile = sortedFiles[0] ?? null;
+        const firstSortedFileHasManualSortCustomHeader =
+            firstSortedFile !== null && getManualSortCustomHeaderValue(firstSortedFile) !== null;
+        if (pinnedFiles.length > 0 && sortedFiles.length > 0 && !firstSortedFileHasManualSortCustomHeader) {
             const label = fileVisibility === FILE_VISIBILITY.DOCUMENTS ? strings.listPane.notesSection : strings.listPane.filesSection;
             pushHeaderItem({
                 data: label,
@@ -226,6 +275,7 @@ export function buildListItems({
         if (unsortedFiles.length > 0) {
             pushHeaderItem({
                 data: strings.listPane.unsortedSection,
+                collapseKey: createCollapseKey('section:unsorted'),
                 key: 'header-unsorted',
                 headerKind: 'section'
             });
@@ -236,17 +286,19 @@ export function buildListItems({
     } else if (shouldGroupByDate) {
         const now = DateUtils.parseLocalDayKey(dayKey) ?? new Date();
         const dateField = getDateField(sortOption);
-        let currentGroup: string | null = null;
+        let currentGroupKey: string | null = null;
 
         unpinnedFiles.forEach(file => {
             const timestamps = getFileTimestamps(file);
             const timestamp = dateField === 'ctime' ? timestamps.created : timestamps.modified;
-            const groupTitle = DateUtils.getDateGroup(timestamp, now);
-            if (groupTitle !== currentGroup) {
-                currentGroup = groupTitle;
+            const group = DateUtils.getDateGroupInfo(timestamp, now);
+            const groupKey = group.key;
+            if (groupKey !== currentGroupKey) {
+                currentGroupKey = groupKey;
                 pushHeaderItem({
-                    data: groupTitle,
-                    key: `header-${groupTitle}`,
+                    data: group.label,
+                    collapseKey: createCollapseKey(`date:${dateField}:${groupKey}`),
+                    key: `header-${group.label}`,
                     headerKind: 'date'
                 });
             }
@@ -359,6 +411,7 @@ export function buildListItems({
             if (!group.isCurrentFolder || pinnedFiles.length > 0) {
                 pushHeaderItem({
                     data: group.label,
+                    collapseKey: createCollapseKey(group.key),
                     headerFolderPath: group.folderPath,
                     key: `header-${group.key}`,
                     headerKind: 'folder'

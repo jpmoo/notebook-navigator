@@ -51,6 +51,8 @@ export const STRINGS_AR = {
         notesSection: 'ملاحظات', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'ملفات', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (مخفي)', // Accessibility label applied to list items that are normally hidden
+        collapseGroup: 'طي المجموعة',
+        expandGroup: 'توسيع المجموعة',
         manualSortTitle: 'فرز يدوي: {property}',
         manualSortHint: 'اسحب لإعادة الترتيب. يتم حفظ الترتيب كقيم رقمية للفهرس في الخاصية "{property}".',
         manualSortNonMarkdownHint: 'الملفات غير Markdown تظهر في الأسفل ولا يمكن إعادة ترتيبها.',

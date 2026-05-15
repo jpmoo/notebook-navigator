@@ -55,6 +55,9 @@ interface HeaderRenderModel {
     label: string;
     isFirstHeader: boolean;
     isPinnedHeader: boolean;
+    collapseKey: string | null;
+    isCollapsed: boolean;
+    isCollapsible: boolean;
     folderGroupHeaderTarget: FolderGroupHeaderTarget | null;
 }
 
@@ -67,8 +70,12 @@ type VirtualRowStyle = React.CSSProperties & Record<'--item-height', string>;
 
 interface ListPaneGroupHeaderProps {
     header: HeaderRenderModel;
-    pinnedGroupChevronIcon: string;
+    collapseChevronIcons: {
+        collapsed: string;
+        expanded: string;
+    };
     onPinnedGroupHeaderToggle: () => void;
+    onListGroupHeaderToggle: (collapseKey: string) => void;
     onFolderGroupHeaderClick: (event: React.MouseEvent<HTMLSpanElement>, target: FolderGroupHeaderTarget) => void;
     onFolderGroupHeaderMouseDown: (event: React.MouseEvent<HTMLSpanElement>, target: FolderGroupHeaderTarget) => void;
 }
@@ -85,6 +92,7 @@ interface ListPaneVirtualContentProps {
     settings: NotebookNavigatorSettings;
     pinnedGroupExpanded: boolean;
     onPinnedGroupHeaderToggle: () => void;
+    onListGroupHeaderToggle: (collapseKey: string) => void;
     selectionType: NavigationItemType | null;
     sortOption?: SortOption;
     searchHighlightQuery?: string;
@@ -175,46 +183,41 @@ function findActiveHeaderModel(headers: HeaderRenderModel[], firstVisibleIndex: 
     return activeHeader;
 }
 
+function shouldHideCollapsedHeaderSeparator(header: HeaderRenderModel | null): boolean {
+    return header?.isCollapsed === true;
+}
+
 function ListPaneGroupHeader({
     header,
-    pinnedGroupChevronIcon,
+    collapseChevronIcons,
     onPinnedGroupHeaderToggle,
+    onListGroupHeaderToggle,
     onFolderGroupHeaderClick,
     onFolderGroupHeaderMouseDown
 }: ListPaneGroupHeaderProps) {
     const folderGroupHeaderTarget = header.folderGroupHeaderTarget;
     const isClickableFolderGroupHeader = Boolean(folderGroupHeaderTarget) && !header.isPinnedHeader;
-    const handlePinnedHeaderClick = useCallback(
-        (event: React.MouseEvent<HTMLDivElement>) => {
+    const handleCollapseButtonClick = useCallback(
+        (event: React.MouseEvent<HTMLButtonElement>) => {
             event.stopPropagation();
-            onPinnedGroupHeaderToggle();
+            if (header.isPinnedHeader) {
+                onPinnedGroupHeaderToggle();
+                return;
+            }
+
+            if (header.collapseKey) {
+                onListGroupHeaderToggle(header.collapseKey);
+            }
         },
-        [onPinnedGroupHeaderToggle]
+        [header.collapseKey, header.isPinnedHeader, onListGroupHeaderToggle, onPinnedGroupHeaderToggle]
     );
-
+    const headerClasses = ['nn-list-group-header'];
     if (header.isPinnedHeader) {
-        const pinnedHeaderContent = (
-            <>
-                <ServiceIcon
-                    iconId={pinnedGroupChevronIcon}
-                    className="nn-list-group-header-icon nn-pinned-section-chevron"
-                    aria-hidden={true}
-                />
-                <span className="nn-list-group-header-text">{header.label}</span>
-            </>
-        );
-
-        return (
-            <div className="nn-list-group-header nn-pinned-section-header">
-                <div className="nn-pinned-section-toggle" onClick={handlePinnedHeaderClick}>
-                    {pinnedHeaderContent}
-                </div>
-            </div>
-        );
+        headerClasses.push('nn-pinned-section-header');
     }
 
     return (
-        <div className="nn-list-group-header">
+        <div className={headerClasses.join(' ')}>
             <span
                 className={`nn-list-group-header-text ${isClickableFolderGroupHeader ? 'nn-list-group-header-text--folder-note' : ''}`}
                 onClick={folderGroupHeaderTarget ? event => onFolderGroupHeaderClick(event, folderGroupHeaderTarget) : undefined}
@@ -222,6 +225,21 @@ function ListPaneGroupHeader({
             >
                 {header.label}
             </span>
+            {header.isCollapsible ? (
+                <button
+                    type="button"
+                    className="nn-list-group-header-collapse-button"
+                    aria-label={header.isCollapsed ? strings.listPane.expandGroup : strings.listPane.collapseGroup}
+                    aria-expanded={!header.isCollapsed}
+                    onClick={handleCollapseButtonClick}
+                >
+                    <ServiceIcon
+                        iconId={header.isCollapsed ? collapseChevronIcons.collapsed : collapseChevronIcons.expanded}
+                        className="nn-list-group-header-icon"
+                        aria-hidden={true}
+                    />
+                </button>
+            ) : null}
         </div>
     );
 }
@@ -268,6 +286,7 @@ export function ListPaneVirtualContent({
     settings,
     pinnedGroupExpanded,
     onPinnedGroupHeaderToggle,
+    onListGroupHeaderToggle,
     selectionType,
     sortOption,
     searchHighlightQuery,
@@ -298,9 +317,12 @@ export function ListPaneVirtualContent({
 }: ListPaneVirtualContentProps) {
     const { app, commandQueue, isMobile } = useServices();
     const metadataService = useMetadataService();
-    const pinnedGroupChevronIcon = useMemo(
-        () => resolveUXIcon(settings.interfaceIcons, pinnedGroupExpanded ? 'nav-tree-collapse' : 'nav-tree-expand'),
-        [pinnedGroupExpanded, settings.interfaceIcons]
+    const collapseChevronIcons = useMemo(
+        () => ({
+            collapsed: resolveUXIcon(settings.interfaceIcons, 'nav-tree-expand'),
+            expanded: resolveUXIcon(settings.interfaceIcons, 'nav-tree-collapse')
+        }),
+        [settings.interfaceIcons]
     );
 
     const folderGroupHeaderTargets = useMemo(() => {
@@ -360,11 +382,16 @@ export function ListPaneVirtualContent({
             }
 
             const headerFolderPath = item.headerFolderPath ?? null;
+            const isPinnedHeader = item.key === PINNED_SECTION_HEADER_KEY;
+            const collapseKey = item.collapseKey ?? null;
             const model: HeaderRenderModel = {
                 index,
                 label: item.data,
                 isFirstHeader: models.length === 0 && !hasSeenFile,
-                isPinnedHeader: item.key === PINNED_SECTION_HEADER_KEY,
+                isPinnedHeader,
+                collapseKey,
+                isCollapsed: isPinnedHeader ? !pinnedGroupExpanded : item.isCollapsed === true,
+                isCollapsible: isPinnedHeader || collapseKey !== null,
                 folderGroupHeaderTarget: headerFolderPath !== null ? (folderGroupHeaderTargets.get(headerFolderPath) ?? null) : null
             };
             models.push(model);
@@ -375,7 +402,7 @@ export function ListPaneVirtualContent({
             headerModels: models,
             headerModelByIndex: modelsByIndex
         };
-    }, [folderGroupHeaderTargets, listItems]);
+    }, [folderGroupHeaderTargets, listItems, pinnedGroupExpanded]);
 
     const handleFolderGroupHeaderClick = useCallback(
         (event: React.MouseEvent<HTMLSpanElement>, target: FolderGroupHeaderTarget) => {
@@ -485,7 +512,7 @@ export function ListPaneVirtualContent({
     const firstVisibleItem =
         stickyOffset !== null && listItems.length > 0 ? rowVirtualizer.getVirtualItemForOffset(stickyOffset) : undefined;
     const stickyHeader = stickyGroupHeaders ? findActiveHeaderModel(headerModels, firstVisibleItem?.index ?? null) : null;
-    const shouldSuppressStickyHeaderSeparator = stickyHeader?.isFirstHeader === true && stickyHeader.isPinnedHeader && !pinnedGroupExpanded;
+    const shouldHideStickyHeaderSeparator = shouldHideCollapsedHeaderSeparator(stickyHeader);
 
     return (
         <div
@@ -502,11 +529,12 @@ export function ListPaneVirtualContent({
             onMouseLeave={handleListMouseLeave}
         >
             {stickyHeader ? (
-                <div className={`nn-list-sticky-header ${shouldSuppressStickyHeaderSeparator ? 'nn-first-list-group-header' : ''}`}>
+                <div className={`nn-list-sticky-header ${shouldHideStickyHeaderSeparator ? 'nn-hide-list-group-header-separator' : ''}`}>
                     <ListPaneGroupHeader
                         header={stickyHeader}
-                        pinnedGroupChevronIcon={pinnedGroupChevronIcon}
+                        collapseChevronIcons={collapseChevronIcons}
                         onPinnedGroupHeaderToggle={onPinnedGroupHeaderToggle}
+                        onListGroupHeaderToggle={onListGroupHeaderToggle}
                         onFolderGroupHeaderClick={handleFolderGroupHeaderClick}
                         onFolderGroupHeaderMouseDown={handleFolderGroupHeaderMouseDown}
                     />
@@ -577,8 +605,7 @@ export function ListPaneVirtualContent({
 
                             const headerModel = headerModelByIndex.get(virtualItem.index) ?? null;
                             const firstFileAfterHeader = headerModel ? getFirstFileAfterHeader(listItems, virtualItem.index) : null;
-                            const shouldSuppressFirstHeaderSeparator =
-                                headerModel?.isFirstHeader === true && headerModel.isPinnedHeader && !pinnedGroupExpanded;
+                            const shouldHideHeaderSeparatorForCollapsedGroup = shouldHideCollapsedHeaderSeparator(headerModel);
                             const hideFileSeparator =
                                 item.type === ListPaneItemType.FILE &&
                                 ((isSelected && !hasSelectedBelow) ||
@@ -600,8 +627,8 @@ export function ListPaneVirtualContent({
                             if (headerModel) {
                                 virtualItemClasses.push('nn-virtual-list-group-header');
                             }
-                            if (shouldSuppressFirstHeaderSeparator) {
-                                virtualItemClasses.push('nn-first-list-group-header');
+                            if (shouldHideHeaderSeparatorForCollapsedGroup) {
+                                virtualItemClasses.push('nn-hide-list-group-header-separator');
                             }
                             if (isLastFile) {
                                 virtualItemClasses.push('nn-last-file');
@@ -629,8 +656,9 @@ export function ListPaneVirtualContent({
                                     {headerModel ? (
                                         <ListPaneGroupHeader
                                             header={headerModel}
-                                            pinnedGroupChevronIcon={pinnedGroupChevronIcon}
+                                            collapseChevronIcons={collapseChevronIcons}
                                             onPinnedGroupHeaderToggle={onPinnedGroupHeaderToggle}
+                                            onListGroupHeaderToggle={onListGroupHeaderToggle}
                                             onFolderGroupHeaderClick={handleFolderGroupHeaderClick}
                                             onFolderGroupHeaderMouseDown={handleFolderGroupHeaderMouseDown}
                                         />

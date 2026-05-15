@@ -40,6 +40,8 @@ export interface ListPaneItem {
     // Present only when grouping by folder in the list pane.
     headerFolderPath?: string | null;
     headerKind?: ListPaneHeaderKind;
+    collapseKey?: string;
+    isCollapsed?: boolean;
     key: string;
     // Pre-computed file index for stable onClick handlers
     fileIndex?: number;

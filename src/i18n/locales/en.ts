@@ -51,6 +51,8 @@ export const STRINGS_EN = {
         notesSection: 'Notes', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Files', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (hidden)', // Accessibility label applied to list items that are normally hidden
+        collapseGroup: 'Collapse group',
+        expandGroup: 'Expand group',
         manualSortTitle: 'Manual sort: {property}',
         manualSortHint: 'Drag to reorder. The order is saved as numeric index values in the property "{property}".',
         manualSortNonMarkdownHint: 'Non-markdown files are shown at the bottom and cannot be reordered.',

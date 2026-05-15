@@ -51,6 +51,8 @@ export const STRINGS_FR = {
         notesSection: 'Notes', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Fichiers', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (masqué)', // Accessibility label applied to list items that are normally hidden
+        collapseGroup: 'Réduire le groupe',
+        expandGroup: 'Développer le groupe',
         manualSortTitle: 'Tri manuel : {property}',
         manualSortHint:
             "Glissez pour réorganiser. L'ordre est enregistré sous forme de valeurs numériques dans la propriété « {property} ».",

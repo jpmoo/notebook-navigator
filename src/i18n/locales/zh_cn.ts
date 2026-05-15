@@ -51,6 +51,8 @@ export const STRINGS_ZH_CN = {
         notesSection: '笔记', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: '文件', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (已隐藏)', // Accessibility label applied to list items that are normally hidden
+        collapseGroup: '折叠分组',
+        expandGroup: '展开分组',
         manualSortTitle: '手动排序: {property}',
         manualSortHint: '拖动以重新排序。顺序以数字索引值的形式保存在属性"{property}"中。',
         manualSortNonMarkdownHint: '非 Markdown 文件显示在底部，无法重新排序。',

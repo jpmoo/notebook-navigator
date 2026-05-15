@@ -51,6 +51,8 @@ export const STRINGS_RU = {
         notesSection: 'Заметки', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Файлы', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (скрыто)', // Accessibility label applied to list items that are normally hidden
+        collapseGroup: 'Свернуть группу',
+        expandGroup: 'Развернуть группу',
         manualSortTitle: 'Ручная сортировка: {property}',
         manualSortHint: 'Перетащите для изменения порядка. Порядок сохраняется как числовые значения индекса в свойстве «{property}».',
         manualSortNonMarkdownHint: 'Файлы, отличные от Markdown, показаны внизу и их порядок изменить нельзя.',

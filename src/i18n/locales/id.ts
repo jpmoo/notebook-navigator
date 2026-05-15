@@ -51,6 +51,8 @@ export const STRINGS_ID = {
         notesSection: 'Catatan',
         filesSection: 'File',
         hiddenItemAriaLabel: '{name} (tersembunyi)',
+        collapseGroup: 'Ciutkan grup',
+        expandGroup: 'Bentangkan grup',
         manualSortTitle: 'Urutan manual: {property}',
         manualSortHint: 'Seret untuk mengatur ulang. Urutan disimpan sebagai nilai indeks numerik di properti "{property}".',
         manualSortNonMarkdownHint: 'File non-Markdown ditampilkan di bawah dan tidak dapat diatur ulang.',

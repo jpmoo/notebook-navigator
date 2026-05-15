@@ -81,6 +81,8 @@ interface UseListPaneDataParams {
     groupBy: ListNoteGroupingOption;
     /** Whether the pinned section is expanded in the current context */
     pinnedGroupExpanded: boolean;
+    /** Collapsed list group keys for the current vault */
+    collapsedListGroups: ReadonlySet<string>;
     /** Active search provider to use for filtering */
     searchProvider: SearchProvider;
     /** Optional search query to filter files */
@@ -133,6 +135,7 @@ export function useListPaneData({
     activeProfile,
     groupBy,
     pinnedGroupExpanded,
+    collapsedListGroups,
     searchProvider,
     searchQuery,
     searchTokens,
@@ -349,8 +352,11 @@ export function useListPaneData({
             hiddenFileState,
             hiddenTags,
             listConfig,
+            collapsedListGroups,
             searchMetaMap,
             selectedFolder,
+            selectedTag,
+            selectedProperty,
             selectionType,
             showHiddenItems,
             sortOption,
@@ -368,7 +374,10 @@ export function useListPaneData({
         hiddenFileState,
         hiddenTags,
         listConfig,
+        collapsedListGroups,
         selectedFolder,
+        selectedTag,
+        selectedProperty,
         selectionType,
         searchMetaMap,
         showHiddenItems,

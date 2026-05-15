@@ -51,6 +51,8 @@ export const STRINGS_PT_BR = {
         notesSection: 'Notas',
         filesSection: 'Arquivos',
         hiddenItemAriaLabel: '{name} (oculto)',
+        collapseGroup: 'Recolher grupo',
+        expandGroup: 'Expandir grupo',
         manualSortTitle: 'Classificação manual: {property}',
         manualSortHint: 'Arraste para reordenar. A ordem é salva como valores numéricos de índice na propriedade "{property}".',
         manualSortNonMarkdownHint: 'Arquivos não Markdown são exibidos no final e não podem ser reordenados.',

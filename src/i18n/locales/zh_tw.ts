@@ -51,6 +51,8 @@ export const STRINGS_ZH_TW = {
         notesSection: '筆記',
         filesSection: '檔案',
         hiddenItemAriaLabel: '{name} (已隱藏)',
+        collapseGroup: '摺疊群組',
+        expandGroup: '展開群組',
         manualSortTitle: '手動排序: {property}',
         manualSortHint: '拖曳以重新排序。順序會以數字索引值儲存在屬性「{property}」中。',
         manualSortNonMarkdownHint: '非 Markdown 檔案顯示於底部，無法重新排序。',

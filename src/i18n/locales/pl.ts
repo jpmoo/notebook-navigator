@@ -51,6 +51,8 @@ export const STRINGS_PL = {
         notesSection: 'Notatki', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Pliki', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (ukryte)', // Accessibility label applied to list items that are normally hidden
+        collapseGroup: 'Zwiń grupę',
+        expandGroup: 'Rozwiń grupę',
         manualSortTitle: 'Sortowanie ręczne: {property}',
         manualSortHint:
             'Przeciągnij, aby zmienić kolejność. Kolejność jest zapisywana jako wartości indeksu liczbowego we właściwości „{property}".',

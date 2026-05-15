@@ -51,6 +51,8 @@ export const STRINGS_TR = {
         notesSection: 'Notlar', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Dosyalar', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (gizli)', // Accessibility label applied to list items that are normally hidden
+        collapseGroup: 'Grubu daralt',
+        expandGroup: 'Grubu genişlet',
         manualSortTitle: 'Manuel sıralama: {property}',
         manualSortHint: 'Yeniden sıralamak için sürükleyin. Sıra, "{property}" özelliğinde sayısal indeks değerleri olarak kaydedilir.',
         manualSortNonMarkdownHint: 'Markdown olmayan dosyalar altta gösterilir ve yeniden sıralanamaz.',

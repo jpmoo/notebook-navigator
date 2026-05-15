@@ -36,7 +36,7 @@
     pointer-events: none;
 }
 
-.nn-list-pane-scroller .nn-virtual-list-group-header:not(.nn-first-list-group-header)::after {
+.nn-list-pane-scroller .nn-virtual-list-group-header:not(.nn-hide-list-group-header-separator)::after {
     content: '';
     position: absolute;
     bottom: 0;
@@ -82,7 +82,7 @@
     pointer-events: none;
 }
 
-.nn-list-sticky-header.nn-first-list-group-header .nn-list-group-header::after {
+.nn-list-sticky-header.nn-hide-list-group-header-separator .nn-list-group-header::after {
     display: none;
 }
 
@@ -102,9 +102,39 @@
 }
 
 .nn-list-group-header-text {
+    flex: 0 1 auto;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+button.nn-list-group-header-collapse-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: var(--nn-list-group-header-height-mobile, var(--nn-list-group-header-height));
+    height: var(--nn-list-group-header-height-mobile, var(--nn-list-group-header-height));
+    margin-inline-start: -6px;
+    margin-inline-end: -6px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    color: var(--nn-theme-list-group-header-color);
+    background: transparent;
+    box-shadow: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+button.nn-list-group-header-collapse-button:focus-visible {
+    color: var(--text-normal);
+    background-color: var(--background-modifier-hover);
+}
+
+button.nn-list-group-header-collapse-button .nn-list-group-header-icon {
+    width: var(--nn-list-group-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
+    height: var(--nn-list-group-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
 }
 
 .nn-list-group-header-text--folder-note {
@@ -119,15 +149,6 @@
 .nn-pinned-section-header {
     align-items: center;
     user-select: none;
-}
-
-.nn-pinned-section-toggle {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-    min-width: 0;
-    cursor: pointer;
 }
 
 /* Virtual list item - absolute positioning for list pane items */

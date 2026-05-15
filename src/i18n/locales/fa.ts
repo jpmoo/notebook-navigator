@@ -51,6 +51,8 @@ export const STRINGS_FA = {
         notesSection: 'یادداشت‌ها',
         filesSection: 'فایل‌ها',
         hiddenItemAriaLabel: '{name} (پنهان)',
+        collapseGroup: 'بستن گروه',
+        expandGroup: 'باز کردن گروه',
         manualSortTitle: 'مرتب‌سازی دستی: {property}',
         manualSortHint: 'برای تغییر ترتیب بکشید. ترتیب به صورت مقادیر شاخص عددی در ویژگی «{property}» ذخیره می‌شود.',
         manualSortNonMarkdownHint: 'فایل‌های غیر مارک‌داون در پایین نمایش داده می‌شوند و قابل مرتب‌سازی مجدد نیستند.',

@@ -51,6 +51,8 @@ export const STRINGS_KO = {
         notesSection: '노트', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: '파일', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (숨김)', // Accessibility label applied to list items that are normally hidden
+        collapseGroup: '그룹 접기',
+        expandGroup: '그룹 펼치기',
         manualSortTitle: '수동 정렬: {property}',
         manualSortHint: '드래그하여 순서를 변경하세요. 순서는 숫자 인덱스 값으로 속성 "{property}"에 저장됩니다.',
         manualSortNonMarkdownHint: '마크다운이 아닌 파일은 하단에 표시되며 순서를 변경할 수 없습니다.',

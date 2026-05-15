@@ -51,6 +51,8 @@ export const STRINGS_UK = {
         notesSection: 'Нотатки', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Файли', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (приховано)', // Accessibility label applied to list items that are normally hidden
+        collapseGroup: 'Згорнути групу',
+        expandGroup: 'Розгорнути групу',
         manualSortTitle: 'Ручне сортування: {property}',
         manualSortHint:
             'Перетягуйте для зміни порядку. Порядок зберігається у вигляді числових значень індексу у властивості «{property}».',

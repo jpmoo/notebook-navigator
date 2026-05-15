@@ -300,6 +300,7 @@ export interface LocalStorageKeys {
     compactItemHeightScaleTextKey: string;
     featureImageSizeKey: string;
     featureImagePixelSizeKey: string;
+    collapsedListGroupsKey: string;
 }
 
 /**
@@ -356,7 +357,8 @@ export const STORAGE_KEYS: LocalStorageKeys = {
     compactItemHeightKey: 'notebook-navigator-compact-item-height',
     compactItemHeightScaleTextKey: 'notebook-navigator-compact-item-height-scale-text',
     featureImageSizeKey: 'notebook-navigator-feature-image-size',
-    featureImagePixelSizeKey: 'notebook-navigator-feature-image-pixel-size'
+    featureImagePixelSizeKey: 'notebook-navigator-feature-image-pixel-size',
+    collapsedListGroupsKey: 'notebook-navigator-collapsed-list-groups'
 };
 
 export interface UXPreferences {
