@@ -94,15 +94,14 @@ import {
     areManualSortAssignmentsCached,
     buildManualSortRankPlan,
     getCachedManualSortRank,
+    getLocalizedManualSortWriteFailureMessage,
     getManualSortPropertyValue,
     getManualSortSelectedMarkdownPaths,
-    getManualSortWriteFailureMessage,
     moveManualSortSelectionByDirection,
     partitionManualSortFiles,
     writeManualSortAssignments,
     type ManualSortOrderAssignment,
-    type ManualSortNewFilePlacementContext,
-    type ManualSortWriteResult
+    type ManualSortNewFilePlacementContext
 } from '../utils/manualSort';
 import { showNotice } from '../utils/noticeUtils';
 import { getErrorMessage } from '../utils/errorUtils';
@@ -180,17 +179,6 @@ interface PropertyKeyboardReorderState {
     isSaving: boolean;
     selectionKey: string;
     saveId: number;
-}
-
-function getManualSortFailureMessage(result: ManualSortWriteResult): string {
-    return getManualSortWriteFailureMessage(result, {
-        unknownError: strings.common.unknownError,
-        multipleFailureMessage: (count, path, message) =>
-            strings.listPane.manualSortMultipleWriteFailure
-                .replace('{count}', count.toString())
-                .replace('{path}', path)
-                .replace('{message}', message)
-    });
 }
 
 function getMarkdownPathOrder(files: readonly TFile[]): string[] {
@@ -504,7 +492,10 @@ export const ListPane = React.memo(
                         if (result.failed > 0) {
                             hasFailure = true;
                             showNotice(
-                                strings.dragDrop.errors.failedToSetProperty.replace('{error}', getManualSortFailureMessage(result)),
+                                strings.dragDrop.errors.failedToSetProperty.replace(
+                                    '{error}',
+                                    getLocalizedManualSortWriteFailureMessage(result)
+                                ),
                                 { variant: 'warning' }
                             );
                         }

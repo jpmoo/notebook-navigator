@@ -70,12 +70,11 @@ import { FileMoveService } from './fileSystem/FileMoveService';
 import { FileDeletionService } from './fileSystem/FileDeletionService';
 import {
     buildManualSortInsertionRankPlan,
-    getManualSortWriteFailureMessage,
+    getLocalizedManualSortWriteFailureMessage,
     normalizeManualSortPropertyKey,
     writeManualSortAssignments,
     type ManualSortRankPlan,
-    type ManualSortNewFilePlacementContext,
-    type ManualSortWriteResult
+    type ManualSortNewFilePlacementContext
 } from '../utils/manualSort';
 import type {
     MoveFilesOptions,
@@ -250,24 +249,14 @@ export class FileSystemOperations {
         return null;
     }
 
-    private getManualSortFailureMessage(result: ManualSortWriteResult): string {
-        return getManualSortWriteFailureMessage(result, {
-            unknownError: strings.common.unknownError,
-            multipleFailureMessage: (count, path, message) =>
-                strings.listPane.manualSortMultipleWriteFailure
-                    .replace('{count}', count.toString())
-                    .replace('{path}', path)
-                    .replace('{message}', message)
-        });
-    }
-
     private async writeManualSortNewFilePlacement(propertyKey: string, plan: ManualSortRankPlan<TFile>): Promise<void> {
         try {
             const result = await writeManualSortAssignments(this.app, plan.files, propertyKey, plan.assignments);
             if (result.failed > 0) {
-                showNotice(strings.dragDrop.errors.failedToSetProperty.replace('{error}', this.getManualSortFailureMessage(result)), {
-                    variant: 'warning'
-                });
+                showNotice(
+                    strings.dragDrop.errors.failedToSetProperty.replace('{error}', getLocalizedManualSortWriteFailureMessage(result)),
+                    { variant: 'warning' }
+                );
             }
         } catch (error) {
             showNotice(

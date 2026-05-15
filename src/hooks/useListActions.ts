@@ -17,7 +17,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Menu, TFolder, type TFile } from 'obsidian';
+import { Menu, TFolder, type App, type TFile } from 'obsidian';
 import { useSelectionState, useSelectionDispatch } from '../context/SelectionContext';
 import { useServices, useFileSystemOps, useMetadataService } from '../context/ServicesContext';
 import { useSettingsState, useSettingsUpdate } from '../context/SettingsContext';
@@ -54,8 +54,11 @@ import { runAsyncAction } from '../utils/async';
 import { FILE_VISIBILITY } from '../utils/fileTypeUtils';
 import {
     getManualSortBaselineSettings,
+    getLocalizedManualSortWriteFailureMessage,
+    hasCachedManualSortProperty,
     isValidManualSortPropertyKey,
     orderManualSortFiles,
+    writeManualSortOrder,
     type ManualSortNewFilePlacementContext
 } from '../utils/manualSort';
 import { resolveIconForMenu, resolveUXIcon, resolveUXIconForMenu } from '../utils/uxIcons';
@@ -64,6 +67,8 @@ import { getFilesForNavigationSelection } from '../utils/selectionUtils';
 import { findVaultProfileById } from '../utils/vaultProfiles';
 import { casefold, ensureRecord, sanitizeRecord } from '../utils/recordUtils';
 import { resolveListGrouping } from '../utils/listGrouping';
+import { getErrorMessage } from '../utils/errorUtils';
+import { showNotice } from '../utils/noticeUtils';
 
 type SelectionSortTarget =
     | { type: typeof ItemType.FOLDER; key: string }
@@ -95,6 +100,15 @@ function isolateBidiText(value: string): string {
 
 function countMarkdownFiles(files: readonly TFile[]): number {
     return files.reduce((count, file) => (file.extension === 'md' ? count + 1 : count), 0);
+}
+
+function countMarkdownFilesWithManualSortProperty(app: App, files: readonly TFile[], propertyKey: string): number {
+    return files.reduce((count, file) => {
+        if (file.extension !== 'md') {
+            return count;
+        }
+        return hasCachedManualSortProperty(app, file, propertyKey) ? count + 1 : count;
+    }, 0);
 }
 
 function samePropertySortKey(left: string, right: string): boolean {
@@ -618,6 +632,9 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
     );
     const getSortIcon = useCallback(() => {
         const sortIconId = getListSortToolbarIconId(settings, selectionSortOverride);
+        if (isManualSortPropertyKey(settings, selectionSortSpec.propertyKey)) {
+            return 'list-ordered';
+        }
         if (sortIconId === 'list-sort-property') {
             const propertyIcon = resolvePropertySortIcon(selectionSortSpec.propertyKey);
             if (propertyIcon) {
@@ -836,9 +853,11 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
     );
 
     const getManualSortInitialFiles = useCallback(
-        (target: SelectionSortTarget, sortOverride: ListSortOverrideValue): TFile[] => {
+        (target: SelectionSortTarget, sortOverride?: ListSortOverrideValue): TFile[] => {
             const baselineSettings = getManualSortBaselineSettings(settings);
-            setSortOverrideForTarget(baselineSettings, target, sortOverride);
+            if (sortOverride !== undefined) {
+                setSortOverrideForTarget(baselineSettings, target, sortOverride);
+            }
 
             return orderManualSortFiles(
                 getFilesForNavigationSelection(
@@ -905,6 +924,29 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
         [app.workspace, defaultMode, updateSettings]
     );
 
+    const writeInitialManualSortOrder = useCallback(
+        async (files: readonly TFile[], propertyKey: string): Promise<boolean> => {
+            try {
+                const result = await writeManualSortOrder(app, files, propertyKey);
+                if (result.failed > 0) {
+                    showNotice(
+                        strings.dragDrop.errors.failedToSetProperty.replace('{error}', getLocalizedManualSortWriteFailureMessage(result)),
+                        { variant: 'warning' }
+                    );
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                showNotice(
+                    strings.dragDrop.errors.failedToSetProperty.replace('{error}', getErrorMessage(error, strings.common.unknownError)),
+                    { variant: 'warning' }
+                );
+                return false;
+            }
+        },
+        [app]
+    );
+
     const applyManualSortMode = useCallback(async () => {
         const normalizedPropertyKey = getManualSortPropertyKey(settings);
         const target = getSelectionSortTarget();
@@ -914,24 +956,38 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
 
         const currentSortSpec = resolveListSort(settings, selectionSortOverride);
         const isCurrentManualSort = isManualSortPropertyKey(settings, currentSortSpec.propertyKey);
-        const initialFiles = getManualSortInitialFiles(target, createListSortOverride('property-asc', normalizedPropertyKey));
+        const initialFiles = getManualSortInitialFiles(target, selectionSortOverride);
+        const markdownCount = countMarkdownFiles(initialFiles);
+        const existingManualSortPropertyCount = countMarkdownFilesWithManualSortProperty(app, initialFiles, normalizedPropertyKey);
+        const shouldInitializeManualSort = !isCurrentManualSort && markdownCount > 0 && existingManualSortPropertyCount === 0;
         const applyManualSort = async () => {
             await applyManualSortForProperty(normalizedPropertyKey, target);
+            if (!shouldInitializeManualSort) {
+                return;
+            }
+
+            const initialized = await writeInitialManualSortOrder(initialFiles, normalizedPropertyKey);
+            if (initialized) {
+                onManualSortStart?.(normalizedPropertyKey);
+            }
         };
 
         if (!isCurrentManualSort) {
-            openManualSortConfirm(normalizedPropertyKey, countMarkdownFiles(initialFiles), applyManualSort);
+            openManualSortConfirm(normalizedPropertyKey, markdownCount, applyManualSort);
             return;
         }
 
         await applyManualSort();
     }, [
+        app,
         applyManualSortForProperty,
         getManualSortInitialFiles,
         getSelectionSortTarget,
+        onManualSortStart,
         openManualSortConfirm,
         selectionSortOverride,
-        settings
+        settings,
+        writeInitialManualSortOrder
     ]);
 
     const getDescendantSortAndGroupChangeStats = useCallback((): DescendantApplyStats => {
@@ -1464,25 +1520,18 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
             });
 
             propertySortKeys.forEach(propertyKey => {
-                (['asc', 'desc'] as const).forEach(direction => {
-                    const option = buildSortOption('property', direction);
-                    menu.addItem(item => {
-                        item.setTitle(getSortOptionLabel(option, propertyKey))
-                            .setIcon(getSortFieldMenuIcon('property', propertyKey))
-                            .setChecked(
-                                currentField === 'property' &&
-                                    samePropertySortKey(currentSortSpec.propertyKey, propertyKey) &&
-                                    currentDirection === direction
-                            )
-                            .onClick(() => {
-                                applySort('property', direction, propertyKey);
-                            });
-                    });
+                menu.addItem(item => {
+                    item.setTitle(getSortFieldLabel('property', propertyKey))
+                        .setIcon(getSortFieldMenuIcon('property', propertyKey))
+                        .setChecked(currentField === 'property' && samePropertySortKey(currentSortSpec.propertyKey, propertyKey))
+                        .onClick(() => {
+                            applySort('property', currentDirection, propertyKey);
+                        });
                 });
             });
 
             menu.addItem(item => {
-                item.setTitle(strings.paneHeader.manualSortProperty(isolateBidiText(manualSortPropertyKey)))
+                item.setTitle(strings.paneHeader.manualSort)
                     .setIcon('lucide-list-ordered')
                     .setDisabled(!hasManualSortPropertyKey)
                     .setChecked(isManualSortActive)

@@ -17,6 +17,7 @@
  */
 
 import type { App, TFile } from 'obsidian';
+import { strings } from '../i18n';
 import type { NotebookNavigatorSettings } from '../settings';
 import type { ManualSortNewNotePlacement } from '../settings/types';
 import { getErrorMessage } from './errorUtils';
@@ -47,7 +48,7 @@ export interface ManualSortWriteResult {
     failures: ManualSortWriteFailure[];
 }
 
-export interface ManualSortWriteFailureMessageOptions {
+interface ManualSortWriteFailureMessageOptions {
     unknownError: string;
     multipleFailureMessage: (count: number, path: string, message: string) => string;
 }
@@ -92,7 +93,7 @@ export function normalizeManualSortPropertyKey(value: string): string {
     return value.trim();
 }
 
-export function getManualSortWriteFailureMessage(result: ManualSortWriteResult, options: ManualSortWriteFailureMessageOptions): string {
+function getManualSortWriteFailureMessage(result: ManualSortWriteResult, options: ManualSortWriteFailureMessageOptions): string {
     const firstFailure = result.failures[0];
     if (!firstFailure) {
         return options.unknownError;
@@ -103,6 +104,17 @@ export function getManualSortWriteFailureMessage(result: ManualSortWriteResult, 
     }
 
     return options.multipleFailureMessage(result.failed, firstFailure.path, firstFailure.message);
+}
+
+export function getLocalizedManualSortWriteFailureMessage(result: ManualSortWriteResult): string {
+    return getManualSortWriteFailureMessage(result, {
+        unknownError: strings.common.unknownError,
+        multipleFailureMessage: (count, path, message) =>
+            strings.listPane.manualSortMultipleWriteFailure
+                .replace('{count}', count.toString())
+                .replace('{path}', path)
+                .replace('{message}', message)
+    });
 }
 
 export function isValidManualSortPropertyKey(value: string): boolean {
