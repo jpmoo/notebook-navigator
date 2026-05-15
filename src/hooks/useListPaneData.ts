@@ -46,7 +46,7 @@ import type { ActiveProfileState } from '../context/SettingsContext';
 import type { SearchProvider } from '../types/search';
 import type { PropertySelectionNodeId } from '../utils/propertyTree';
 import { getFilesForNavigationSelection } from '../utils/selectionUtils';
-import { getListSortOverrideForSelection, resolveListSort } from '../utils/sortUtils';
+import { getListSortOverrideForSelection, isManualSortPropertyKey, resolveListSort } from '../utils/sortUtils';
 import { applyManualSortMarkdownOrder } from '../utils/manualSort';
 import { getPropertyFieldsFromPropertyKeys } from '../utils/vaultProfiles';
 import { buildHiddenFileState, filterListPaneFiles, useOmnisearchListResult, useSearchableNames } from './listPaneData/searchPipeline';
@@ -242,6 +242,7 @@ export function useListPaneData({
         settings.pinnedNotes,
         settings.defaultFolderSort,
         settings.propertySortKey,
+        settings.manualSortPropertyKey,
         settings.propertySortSecondary,
         activePropertyFields,
         settings.showProperties,
@@ -331,6 +332,10 @@ export function useListPaneData({
         }
         return EMPTY_SEARCH_META;
     }, [useOmnisearch, omnisearchResult]);
+    const isManualSortActive = useMemo(
+        () => isManualSortPropertyKey({ manualSortPropertyKey: settings.manualSortPropertyKey }, sortSpec.propertyKey),
+        [settings.manualSortPropertyKey, sortSpec.propertyKey]
+    );
 
     const listItems = useMemo(() => {
         return buildListItems({
@@ -348,7 +353,8 @@ export function useListPaneData({
             selectionType,
             showHiddenItems,
             sortOption,
-            propertySortKey: sortSpec.propertyKey
+            propertySortKey: sortSpec.propertyKey,
+            isManualSortActive
         });
     }, [
         app,
@@ -365,7 +371,8 @@ export function useListPaneData({
         searchMetaMap,
         showHiddenItems,
         sortOption,
-        sortSpec.propertyKey
+        sortSpec.propertyKey,
+        isManualSortActive
     ]);
 
     const filePathToIndex = useMemo(() => {

@@ -63,7 +63,7 @@ import { useListPaneSelectionCoordinator } from '../hooks/useListPaneSelectionCo
 import type { EnsureSelectionOptions, EnsureSelectionResult, SelectFileOptions } from '../hooks/useListPaneSelectionCoordinator';
 import { useContextMenu } from '../hooks/useContextMenu';
 import { IOS_FLOATING_TOOLBAR_HEIGHT_PX, ItemType, ListPaneItemType, type CSSPropertiesWithVars } from '../types';
-import { getEffectiveListSort, getSortField, sortFiles } from '../utils/sortUtils';
+import { getEffectiveListSort, getSortField, isManualSortPropertyKey, sortFiles } from '../utils/sortUtils';
 import { ListPaneHeader } from './ListPaneHeader';
 import { ListToolbar } from './ListToolbar';
 import { Calendar } from './calendar';
@@ -414,6 +414,7 @@ export const ListPane = React.memo(
         const effectiveSortOption = effectiveSortSpec.option;
         const effectivePropertySortKey = effectiveSortSpec.propertyKey.trim();
         const isPropertySortActive = getSortField(effectiveSortOption) === 'property';
+        const isManualSortActive = isPropertySortActive && isManualSortPropertyKey(settings, effectivePropertySortKey);
         const manualSortSelectionKey = useMemo(() => {
             if (selectionType === ItemType.FOLDER && selectedFolder) {
                 return `${selectionType}:${selectedFolder.path}`;
@@ -449,7 +450,7 @@ export const ListPane = React.memo(
             if (
                 isManualSortEditActive ||
                 isSearchActive ||
-                !isPropertySortActive ||
+                !isManualSortActive ||
                 !effectivePropertySortKey ||
                 propertyKeyboardReorderState.selectionKey !== manualSortSelectionKey ||
                 propertyKeyboardReorderState.propertyKey !== effectivePropertySortKey
@@ -461,14 +462,14 @@ export const ListPane = React.memo(
         }, [
             effectivePropertySortKey,
             isManualSortEditActive,
-            isPropertySortActive,
+            isManualSortActive,
             isSearchActive,
             manualSortSelectionKey,
             propertyKeyboardReorderState
         ]);
 
         const canUsePropertyKeyboardReorder =
-            !isManualSortEditActive && !isSearchActive && isPropertySortActive && effectivePropertySortKey.length > 0;
+            !isManualSortEditActive && !isSearchActive && isManualSortActive && effectivePropertySortKey.length > 0;
         const activePropertyKeyboardReorderState =
             canUsePropertyKeyboardReorder &&
             propertyKeyboardReorderState?.selectionKey === manualSortSelectionKey &&

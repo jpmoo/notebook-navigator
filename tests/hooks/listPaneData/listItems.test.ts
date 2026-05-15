@@ -153,7 +153,8 @@ describe('buildListItems pinned display scope', () => {
             selectionType: ItemType.FOLDER,
             showHiddenItems: false,
             sortOption: 'property-asc',
-            propertySortKey: 'index'
+            propertySortKey: 'index',
+            isManualSortActive: true
         });
 
         expect(items.map(item => item.type)).toEqual([
@@ -168,6 +169,45 @@ describe('buildListItems pinned display scope', () => {
         expect(getFileItems(items)).toEqual([
             { path: rankedFile.path, isPinned: false },
             { path: unsortedFile.path, isPinned: false }
+        ]);
+    });
+
+    it('does not split missing values into Unsorted for normal property sort', () => {
+        const app = createApp();
+        const rankedFile = createTestTFile('notes/ranked.md');
+        const missingFile = createTestTFile('notes/missing.md');
+        app.metadataCache.getFileCache = (file: TFile) => ({
+            frontmatter: file.path === rankedFile.path ? { author: 'Ada' } : {}
+        });
+        const db = createDb({
+            [rankedFile.path]: { tags: null, properties: null },
+            [missingFile.path]: { tags: null, properties: null }
+        });
+
+        const items = buildListItems({
+            app,
+            dayKey: '2026-03-07',
+            fileVisibility: FILE_VISIBILITY.DOCUMENTS,
+            files: [rankedFile, missingFile],
+            getDB: () => db,
+            getFileTimestamps: () => ({ created: 0, modified: 0 }),
+            hiddenFileState: new Map(),
+            hiddenTags: [],
+            listConfig: { ...createListConfig({}), groupBy: 'none' },
+            searchMetaMap: new Map(),
+            selectedFolder: null,
+            selectionType: ItemType.FOLDER,
+            showHiddenItems: false,
+            sortOption: 'property-asc',
+            propertySortKey: 'author',
+            isManualSortActive: false
+        });
+
+        expect(items.map(item => item.type)).toEqual([
+            ListPaneItemType.TOP_SPACER,
+            ListPaneItemType.FILE,
+            ListPaneItemType.FILE,
+            ListPaneItemType.BOTTOM_SPACER
         ]);
     });
 

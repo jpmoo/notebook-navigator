@@ -287,6 +287,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     defaultFolderSort: 'modified-desc',
     propertySortKey: '',
     propertySortSecondary: 'title',
+    manualSortPropertyKey: 'sortindex',
     manualSortGroupHeaderProperty: 'groupheader',
     manualSortNewNotePlacement: 'below-selected-note',
     revealFileOnListChanges: true,

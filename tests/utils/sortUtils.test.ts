@@ -269,7 +269,7 @@ describe('sort icons', () => {
         settings.propertySortKey = 'status, priority';
 
         expect(getListSortToolbarIconId(settings)).toBe('list-sort-ascending');
-        expect(getListSortToolbarIconId(settings, { option: 'property-desc', propertyKey: 'status' })).toBe('list-sort-property');
+        expect(getListSortToolbarIconId(settings, { option: 'property-desc', propertyKey: 'status' })).toBe('list-sort-descending');
         expect(getListSortToolbarIconId(settings, { option: 'property-asc', propertyKey: 'status' })).toBe('list-sort-property');
         expect(getListSortToolbarIconId(settings, { option: 'property-desc', propertyKey: 'priority' })).toBe('list-sort-property');
     });
@@ -555,7 +555,7 @@ describe('property sort keys', () => {
         const effective = getEffectiveListSort(settings, ItemType.PROPERTY, null, null, propertyNodeId);
 
         expect(effective).toEqual({
-            option: 'property-asc',
+            option: 'property-desc',
             propertyKey: 'downloaded',
             propertySortSecondary: settings.propertySortSecondary
         });
@@ -598,6 +598,21 @@ describe('property sort keys', () => {
         const effective = getEffectiveListSort(settings, ItemType.PROPERTY, null, null, propertyNodeId);
 
         expect(effective.propertyKey).toBe('published');
+    });
+
+    it('uses the manual sort property even when it is not a property sort key', () => {
+        const propertyNodeId = buildPropertyKeyNodeId('status');
+        const settings = structuredClone(DEFAULT_SETTINGS);
+        settings.propertySortKey = 'published, downloaded';
+        settings.manualSortPropertyKey = 'sortindex';
+        settings.propertySortOverrides = {
+            [propertyNodeId]: { option: 'property-asc', propertyKey: 'SortIndex' }
+        };
+
+        const effective = getEffectiveListSort(settings, ItemType.PROPERTY, null, null, propertyNodeId);
+
+        expect(effective.propertyKey).toBe('sortindex');
+        expect(effective.option).toBe('property-asc');
     });
 
     it('compares saved override property keys case-insensitively', () => {
@@ -648,5 +663,21 @@ describe('property sort keys', () => {
         expect(changed).toBe(true);
         expect(settings.folderSortOverrides.Books).toBeUndefined();
         expect(settings.folderSortOverrides.Archive).toBe('title-asc');
+    });
+
+    it('keeps manual sort overrides when the manual property is not configured for property sort', () => {
+        const settings = structuredClone(DEFAULT_SETTINGS);
+        settings.propertySortKey = '';
+        settings.manualSortPropertyKey = 'sortindex';
+        settings.folderSortOverrides = {
+            Books: 'property-asc',
+            Manual: { option: 'property-asc', propertyKey: 'SortIndex' }
+        };
+
+        const changed = pruneUnavailablePropertySortOverrides(settings);
+
+        expect(changed).toBe(true);
+        expect(settings.folderSortOverrides.Books).toBeUndefined();
+        expect(settings.folderSortOverrides.Manual).toEqual({ option: 'property-asc', propertyKey: 'SortIndex' });
     });
 });

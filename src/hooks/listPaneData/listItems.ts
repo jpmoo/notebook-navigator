@@ -59,6 +59,7 @@ interface BuildListItemsArgs {
     showHiddenItems: boolean;
     sortOption: SortOption;
     propertySortKey?: string;
+    isManualSortActive?: boolean;
 }
 
 export function buildListItems({
@@ -76,7 +77,8 @@ export function buildListItems({
     selectionType,
     showHiddenItems,
     sortOption,
-    propertySortKey = ''
+    propertySortKey = '',
+    isManualSortActive = false
 }: BuildListItemsArgs): ListPaneItem[] {
     const items: ListPaneItem[] = [
         {
@@ -162,7 +164,7 @@ export function buildListItems({
     const groupingMode = listConfig.groupBy;
     const shouldGroupByDate = groupingMode === 'date' && isDateSortOption(sortOption);
     const shouldGroupByFolder = groupingMode === 'folder' && selectionType === ItemType.FOLDER;
-    const shouldShowUnsortedSection = isPropertySortOption(sortOption) && propertySortKey.trim().length > 0;
+    const shouldShowUnsortedSection = isPropertySortOption(sortOption) && isManualSortActive && propertySortKey.trim().length > 0;
 
     if (!shouldGroupByDate && !shouldGroupByFolder) {
         const sortedFiles: TFile[] = [];

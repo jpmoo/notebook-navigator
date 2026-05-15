@@ -545,6 +545,7 @@ export interface NotebookNavigatorSettings {
     defaultFolderSort: SortOption;
     propertySortKey: string;
     propertySortSecondary: PropertySortSecondaryOption;
+    manualSortPropertyKey: string;
     manualSortGroupHeaderProperty: string;
     manualSortNewNotePlacement: ManualSortNewNotePlacement;
     revealFileOnListChanges: boolean;

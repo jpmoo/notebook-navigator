@@ -34,6 +34,7 @@ import { createSettingGroupFactory } from '../settingGroups';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
 import { createSubSettingsContainer } from '../subSettings';
 import { pruneUnavailablePropertySortOverrides } from '../../utils/sortUtils';
+import { isValidManualSortPropertyKey, normalizeManualSortPropertyKey } from '../../utils/manualSort';
 
 type QuickActionSettingKey =
     | 'quickActionRevealInFolder'
@@ -83,104 +84,106 @@ export function renderListPaneTab(context: SettingsTabContext): void {
     const { containerEl, plugin, addToggleSetting, addInfoSetting } = context;
     const createGroup = createSettingGroupFactory(containerEl);
 
-    const appearanceGroup = createGroup(strings.settings.groups.list.display);
+    const renderAppearanceGroup = (): void => {
+        const appearanceGroup = createGroup(strings.settings.groups.list.display);
 
-    if (!Platform.isMobile) {
+        if (!Platform.isMobile) {
+            appearanceGroup.addSetting(setting => {
+                setting
+                    .setName(strings.settings.items.listPaneTitle.name)
+                    .setDesc(strings.settings.items.listPaneTitle.desc)
+                    .addDropdown(dropdown =>
+                        dropdown
+                            .addOption('header', strings.settings.items.listPaneTitle.options.header)
+                            .addOption('list', strings.settings.items.listPaneTitle.options.list)
+                            .addOption('hidden', strings.settings.items.listPaneTitle.options.hidden)
+                            .setValue(plugin.settings.listPaneTitle)
+                            .onChange(async value => {
+                                if (!isListPaneTitleOption(value)) {
+                                    return;
+                                }
+                                plugin.settings.listPaneTitle = value;
+                                await plugin.saveSettingsAndUpdate();
+                            })
+                    );
+            });
+        }
+
         appearanceGroup.addSetting(setting => {
             setting
-                .setName(strings.settings.items.listPaneTitle.name)
-                .setDesc(strings.settings.items.listPaneTitle.desc)
+                .setName(strings.settings.items.defaultListMode.name)
+                .setDesc(strings.settings.items.defaultListMode.desc)
                 .addDropdown(dropdown =>
                     dropdown
-                        .addOption('header', strings.settings.items.listPaneTitle.options.header)
-                        .addOption('list', strings.settings.items.listPaneTitle.options.list)
-                        .addOption('hidden', strings.settings.items.listPaneTitle.options.hidden)
-                        .setValue(plugin.settings.listPaneTitle)
+                        .addOption('standard', strings.settings.items.defaultListMode.options.standard)
+                        .addOption('compact', strings.settings.items.defaultListMode.options.compact)
+                        .setValue(plugin.settings.defaultListMode)
                         .onChange(async value => {
-                            if (!isListPaneTitleOption(value)) {
+                            if (!isListDisplayMode(value)) {
                                 return;
                             }
-                            plugin.settings.listPaneTitle = value;
+                            plugin.settings.defaultListMode = value === 'compact' ? 'compact' : 'standard';
                             await plugin.saveSettingsAndUpdate();
                         })
                 );
         });
-    }
 
-    appearanceGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.defaultListMode.name)
-            .setDesc(strings.settings.items.defaultListMode.desc)
-            .addDropdown(dropdown =>
-                dropdown
-                    .addOption('standard', strings.settings.items.defaultListMode.options.standard)
-                    .addOption('compact', strings.settings.items.defaultListMode.options.compact)
-                    .setValue(plugin.settings.defaultListMode)
-                    .onChange(async value => {
-                        if (!isListDisplayMode(value)) {
-                            return;
-                        }
-                        plugin.settings.defaultListMode = value === 'compact' ? 'compact' : 'standard';
-                        await plugin.saveSettingsAndUpdate();
-                    })
-            );
-    });
-
-    let compactItemHeightSlider: SliderComponent;
-    const compactItemHeightSetting = appearanceGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.compactItemHeight.name)
-            .setDesc(strings.settings.items.compactItemHeight.desc)
-            .addSlider(slider => {
-                compactItemHeightSlider = slider
-                    .setLimits(20, 28, 1)
-                    .setValue(plugin.settings.compactItemHeight)
-                    .setInstant(false)
-                    .setDynamicTooltip()
-                    .onChange(value => {
-                        plugin.setCompactItemHeight(value);
-                    });
-                return slider;
-            })
-            .addExtraButton(button =>
-                button
-                    .setIcon('lucide-rotate-ccw')
-                    .setTooltip(strings.settings.items.compactItemHeight.resetTooltip)
-                    .onClick(() => {
-                        // Reset item height to default without blocking the UI
-                        runAsyncAction(() => {
-                            const defaultValue = DEFAULT_SETTINGS.compactItemHeight;
-                            compactItemHeightSlider.setValue(defaultValue);
-                            plugin.setCompactItemHeight(defaultValue);
+        let compactItemHeightSlider: SliderComponent;
+        const compactItemHeightSetting = appearanceGroup.addSetting(setting => {
+            setting
+                .setName(strings.settings.items.compactItemHeight.name)
+                .setDesc(strings.settings.items.compactItemHeight.desc)
+                .addSlider(slider => {
+                    compactItemHeightSlider = slider
+                        .setLimits(20, 28, 1)
+                        .setValue(plugin.settings.compactItemHeight)
+                        .setInstant(false)
+                        .setDynamicTooltip()
+                        .onChange(value => {
+                            plugin.setCompactItemHeight(value);
                         });
-                    })
+                    return slider;
+                })
+                .addExtraButton(button =>
+                    button
+                        .setIcon('lucide-rotate-ccw')
+                        .setTooltip(strings.settings.items.compactItemHeight.resetTooltip)
+                        .onClick(() => {
+                            // Reset item height to default without blocking the UI
+                            runAsyncAction(() => {
+                                const defaultValue = DEFAULT_SETTINGS.compactItemHeight;
+                                compactItemHeightSlider.setValue(defaultValue);
+                                plugin.setCompactItemHeight(defaultValue);
+                            });
+                        })
+                );
+        });
+
+        addSettingSyncModeToggle({ setting: compactItemHeightSetting, plugin, settingId: 'compactItemHeight' });
+
+        const compactItemHeightSettingsEl = createSubSettingsContainer(compactItemHeightSetting);
+
+        const compactItemHeightScaleTextSetting = new Setting(compactItemHeightSettingsEl)
+            .setName(strings.settings.items.compactItemHeightScaleText.name)
+            .setDesc(strings.settings.items.compactItemHeightScaleText.desc)
+            .addToggle(toggle =>
+                toggle.setValue(plugin.settings.compactItemHeightScaleText).onChange(value => {
+                    plugin.setCompactItemHeightScaleText(value);
+                })
             );
-    });
 
-    addSettingSyncModeToggle({ setting: compactItemHeightSetting, plugin, settingId: 'compactItemHeight' });
+        addSettingSyncModeToggle({ setting: compactItemHeightScaleTextSetting, plugin, settingId: 'compactItemHeightScaleText' });
 
-    const compactItemHeightSettingsEl = createSubSettingsContainer(compactItemHeightSetting);
-
-    const compactItemHeightScaleTextSetting = new Setting(compactItemHeightSettingsEl)
-        .setName(strings.settings.items.compactItemHeightScaleText.name)
-        .setDesc(strings.settings.items.compactItemHeightScaleText.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.compactItemHeightScaleText).onChange(value => {
-                plugin.setCompactItemHeightScaleText(value);
-            })
+        addToggleSetting(
+            appearanceGroup.addSetting,
+            strings.settings.items.showSelectedNavigationPills.name,
+            strings.settings.items.showSelectedNavigationPills.desc,
+            () => plugin.settings.showSelectedNavigationPills,
+            value => {
+                plugin.settings.showSelectedNavigationPills = value;
+            }
         );
-
-    addSettingSyncModeToggle({ setting: compactItemHeightScaleTextSetting, plugin, settingId: 'compactItemHeightScaleText' });
-
-    addToggleSetting(
-        appearanceGroup.addSetting,
-        strings.settings.items.showSelectedNavigationPills.name,
-        strings.settings.items.showSelectedNavigationPills.desc,
-        () => plugin.settings.showSelectedNavigationPills,
-        value => {
-            plugin.settings.showSelectedNavigationPills = value;
-        }
-    );
+    };
 
     const organizationGroup = createGroup(strings.settings.groups.list.organization);
 
@@ -204,13 +207,15 @@ export function renderListPaneTab(context: SettingsTabContext): void {
             .setDesc(strings.settings.items.sortNotesBy.desc)
             .addDropdown((dropdown: DropdownComponent) => {
                 SORT_OPTIONS.forEach(option => {
-                    if (option === 'property-desc') {
+                    if (option === 'property-asc' || option === 'property-desc') {
                         return;
                     }
                     dropdown.addOption(option, strings.settings.items.sortNotesBy.options[option]);
                 });
                 const defaultFolderSort =
-                    plugin.settings.defaultFolderSort === 'property-desc' ? 'property-asc' : plugin.settings.defaultFolderSort;
+                    plugin.settings.defaultFolderSort === 'property-asc' || plugin.settings.defaultFolderSort === 'property-desc'
+                        ? DEFAULT_SETTINGS.defaultFolderSort
+                        : plugin.settings.defaultFolderSort;
                 return dropdown.setValue(defaultFolderSort).onChange(async value => {
                     if (!isSortOption(value)) {
                         return;
@@ -251,9 +256,9 @@ export function renderListPaneTab(context: SettingsTabContext): void {
         }
     );
 
-    const manualSortGroup = createGroup(strings.settings.groups.list.manualSort);
+    const propertySortGroup = createGroup(strings.settings.groups.list.propertySort);
 
-    const propertySortKeySetting = manualSortGroup.addSetting(setting => {
+    const propertySortKeySetting = propertySortGroup.addSetting(setting => {
         setting
             .setName(strings.settings.items.propertySortKey.name)
             .setDesc(strings.settings.items.propertySortKey.desc)
@@ -301,6 +306,45 @@ export function renderListPaneTab(context: SettingsTabContext): void {
                 await plugin.saveSettingsAndUpdate();
             });
         });
+
+    const manualSortGroup = createGroup(strings.settings.groups.list.manualSort);
+
+    manualSortGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.manualSortPropertyKey.name)
+            .setDesc(strings.settings.items.manualSortPropertyKey.desc)
+            .addText(text => {
+                const commitManualSortPropertyKey = async (): Promise<void> => {
+                    const value = normalizeManualSortPropertyKey(text.getValue());
+                    if (!isValidManualSortPropertyKey(value)) {
+                        text.setValue(plugin.settings.manualSortPropertyKey);
+                        return;
+                    }
+                    if (plugin.settings.manualSortPropertyKey === value) {
+                        return;
+                    }
+                    plugin.settings.manualSortPropertyKey = value;
+                    pruneUnavailablePropertySortOverrides(plugin.settings);
+                    await plugin.saveSettingsAndUpdate();
+                };
+
+                text.inputEl.addEventListener('blur', () => {
+                    runAsyncAction(commitManualSortPropertyKey);
+                });
+                text.inputEl.addEventListener('keydown', event => {
+                    if (event.key !== 'Enter') {
+                        return;
+                    }
+                    event.preventDefault();
+                    runAsyncAction(commitManualSortPropertyKey);
+                    text.inputEl.blur();
+                });
+
+                return text
+                    .setPlaceholder(strings.settings.items.manualSortPropertyKey.placeholder)
+                    .setValue(plugin.settings.manualSortPropertyKey);
+            });
+    });
 
     manualSortGroup.addSetting(setting => {
         setting
@@ -373,6 +417,8 @@ export function renderListPaneTab(context: SettingsTabContext): void {
             plugin.settings.filterPinnedByFolder = value;
         }
     );
+
+    renderAppearanceGroup();
 
     const behaviorGroup = createGroup(strings.settings.groups.general.behavior);
 

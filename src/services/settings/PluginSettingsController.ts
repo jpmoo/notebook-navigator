@@ -58,6 +58,7 @@ import {
     isPropertySortSecondaryOption,
     isRecentNotesHideMode,
     isSettingSyncMode,
+    isSortOption,
     isTagSortOrder,
     normalizeListSortOverride,
     resolveDeleteAttachmentsSetting,
@@ -88,7 +89,7 @@ import { normalizePropertyKeyNodeId, normalizePropertyNodeId } from '../../utils
 import { normalizeNavigationSeparatorKey } from '../../utils/navigationSeparators';
 import { normalizeUXIconMapRecord } from '../../utils/uxIcons';
 import { sanitizeKeyboardShortcuts } from '../../utils/keyboardShortcuts';
-import { pruneUnavailablePropertySortOverrides } from '../../utils/sortUtils';
+import { isPropertySortOption, pruneUnavailablePropertySortOverrides } from '../../utils/sortUtils';
 import { isRecord } from '../../utils/typeGuards';
 import { normalizeOptionalVaultFilePath } from '../../utils/pathUtils';
 import {
@@ -249,6 +250,16 @@ export class PluginSettingsController {
             Object.prototype.hasOwnProperty.call(storedData, 'propertySortKey') &&
             typeof storedData['propertySortKey'] !== 'string'
         );
+        const hadInvalidManualSortPropertyKeyInStoredData = Boolean(
+            storedData &&
+            Object.prototype.hasOwnProperty.call(storedData, 'manualSortPropertyKey') &&
+            typeof storedData['manualSortPropertyKey'] !== 'string'
+        );
+        const hadUnavailableDefaultFolderSortInStoredData = Boolean(
+            storedData &&
+            Object.prototype.hasOwnProperty.call(storedData, 'defaultFolderSort') &&
+            (!isSortOption(storedData['defaultFolderSort']) || isPropertySortOption(storedData['defaultFolderSort']))
+        );
         const storedSettings = storedData as Partial<NotebookNavigatorSettings> | null;
         const isFirstLaunch = storedData === null;
         this.shouldPersistDesktopScale = Boolean(storedData && 'desktopScale' in storedData);
@@ -274,6 +285,14 @@ export class PluginSettingsController {
 
         if (typeof this.currentSettings.propertySortKey !== 'string') {
             this.currentSettings.propertySortKey = DEFAULT_SETTINGS.propertySortKey;
+        }
+
+        if (typeof this.currentSettings.manualSortPropertyKey !== 'string') {
+            this.currentSettings.manualSortPropertyKey = DEFAULT_SETTINGS.manualSortPropertyKey;
+        }
+
+        if (!isSortOption(this.currentSettings.defaultFolderSort) || isPropertySortOption(this.currentSettings.defaultFolderSort)) {
+            this.currentSettings.defaultFolderSort = DEFAULT_SETTINGS.defaultFolderSort;
         }
 
         if (typeof this.currentSettings.manualSortGroupHeaderProperty !== 'string') {
@@ -442,6 +461,8 @@ export class PluginSettingsController {
             hadShowPinnedGroupHeaderInStoredData ||
             hadPinnedSectionIconInStoredData ||
             hadInvalidPropertySortKeyInStoredData ||
+            hadInvalidManualSortPropertyKeyInStoredData ||
+            hadUnavailableDefaultFolderSortInStoredData ||
             prunedUnavailablePropertySortOverrides ||
             uiScaleMigrated ||
             migratedMomentFormats ||

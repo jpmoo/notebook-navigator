@@ -103,6 +103,20 @@ function updatePropertySortKeySetting(
     return true;
 }
 
+function updateManualSortPropertyKeySetting(
+    settings: NotebookNavigatorSettings,
+    oldKeyNormalized: string,
+    newKeyDisplay: string | null
+): boolean {
+    const currentKey = settings.manualSortPropertyKey.trim();
+    if (!currentKey || casefold(currentKey) !== oldKeyNormalized) {
+        return false;
+    }
+
+    settings.manualSortPropertyKey = newKeyDisplay ?? '';
+    return true;
+}
+
 function updateSortOverridePropertyKeys(
     record: Record<string, ListSortOverrideValue> | undefined,
     oldKeyNormalized: string,
@@ -638,6 +652,7 @@ export class PropertyOperations {
         changed = setActivePropertyFields(settings, nextPropertyFields) || changed;
 
         changed = updatePropertySortKeySetting(settings, oldKeyNormalized, newKeyDisplay) || changed;
+        changed = updateManualSortPropertyKeySetting(settings, oldKeyNormalized, newKeyDisplay) || changed;
         changed = updateSortOverridePropertyKeySettings(settings, oldKeyNormalized, newKeyDisplay) || changed;
 
         if (newKeyNormalized) {
@@ -658,6 +673,7 @@ export class PropertyOperations {
         changed = setActivePropertyFields(settings, nextPropertyFields) || changed;
 
         changed = updatePropertySortKeySetting(settings, normalizedKey, null) || changed;
+        changed = updateManualSortPropertyKeySetting(settings, normalizedKey, null) || changed;
         changed = updateSortOverridePropertyKeySettings(settings, normalizedKey, null) || changed;
 
         changed = this.removePropertyMetadataForDeletedKey(settings, normalizedKey) || changed;
