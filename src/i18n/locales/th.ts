@@ -413,7 +413,11 @@ export const STRINGS_TH = {
         },
         manualSortGroupHeader: {
             title: 'ตั้งค่าส่วนหัวกลุ่ม',
+            headerLabel: 'ส่วนหัวกลุ่ม',
             placeholder: 'ส่วนหัวกลุ่ม',
+            showWordCount: 'แสดงจำนวนคำทั้งหมด',
+            targetWordCount: 'จำนวนคำเป้าหมาย',
+            targetWordCountPlaceholder: '10,000',
             description: 'ส่วนหัวจะถูกบันทึกลงในคุณสมบัติ {property} ของโน้ตที่เลือก เว้นช่องว่างเพื่อล้างส่วนหัว'
         },
         navRainbowSection: {
@@ -967,13 +971,11 @@ export const STRINGS_TH = {
             },
             manualSortPropertyKey: {
                 name: 'คุณสมบัติสำหรับการจัดเรียงด้วยตนเอง',
-                desc: 'คุณสมบัติ frontmatter ที่ใช้เก็บค่าดัชนีตัวเลขสำหรับการจัดเรียงด้วยตนเอง',
-                placeholder: 'sortindex'
+                desc: 'คุณสมบัติ frontmatter ที่ใช้เก็บค่าดัชนีตัวเลขสำหรับการจัดเรียงด้วยตนเอง'
             },
             manualSortGroupHeaderProperty: {
                 name: 'คุณสมบัติส่วนหัวกลุ่ม',
-                desc: 'คุณสมบัติ frontmatter ที่ใช้เก็บข้อความส่วนหัวกลุ่มกำหนดเองในการจัดเรียงด้วยตนเอง',
-                placeholder: 'groupheader'
+                desc: 'คุณสมบัติ frontmatter ที่ใช้เก็บข้อความส่วนหัวกลุ่มกำหนดเองในการจัดเรียงด้วยตนเอง'
             },
             manualSortNewNotePlacement: {
                 name: 'ตำแหน่งโน้ตใหม่',

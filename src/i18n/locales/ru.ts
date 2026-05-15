@@ -415,7 +415,11 @@ export const STRINGS_RU = {
         },
         manualSortGroupHeader: {
             title: 'Задать заголовок группы',
+            headerLabel: 'Заголовок группы',
             placeholder: 'Заголовок группы',
+            showWordCount: 'Показывать общее количество слов',
+            targetWordCount: 'Целевое количество слов',
+            targetWordCountPlaceholder: '10,000',
             description: 'Заголовок сохраняется в свойстве {property} выбранной заметки. Оставьте поле пустым, чтобы удалить заголовок.'
         },
         navRainbowSection: {
@@ -969,13 +973,11 @@ export const STRINGS_RU = {
             },
             manualSortPropertyKey: {
                 name: 'Свойство ручной сортировки',
-                desc: 'Свойство frontmatter, используемое для хранения числовых значений индекса для ручной сортировки.',
-                placeholder: 'sortindex'
+                desc: 'Свойство frontmatter, используемое для хранения числовых значений индекса для ручной сортировки.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Свойство заголовка группы',
-                desc: 'Свойство frontmatter, используемое для хранения произвольного текста заголовка группы в ручной сортировке.',
-                placeholder: 'groupheader'
+                desc: 'Свойство frontmatter, используемое для хранения произвольного текста заголовка группы в ручной сортировке.'
             },
             manualSortNewNotePlacement: {
                 name: 'Размещение новых заметок',

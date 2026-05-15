@@ -342,7 +342,7 @@ export function renderListPaneTab(context: SettingsTabContext): void {
                 });
 
                 return text
-                    .setPlaceholder(strings.settings.items.manualSortPropertyKey.placeholder)
+                    .setPlaceholder(DEFAULT_SETTINGS.manualSortPropertyKey)
                     .setValue(plugin.settings.manualSortPropertyKey);
             });
     });
@@ -385,7 +385,7 @@ export function renderListPaneTab(context: SettingsTabContext): void {
                 });
 
                 return text
-                    .setPlaceholder(strings.settings.items.manualSortGroupHeaderProperty.placeholder)
+                    .setPlaceholder(DEFAULT_SETTINGS.manualSortGroupHeaderProperty)
                     .setValue(plugin.settings.manualSortGroupHeaderProperty);
             });
     });

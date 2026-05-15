@@ -415,7 +415,11 @@ export const STRINGS_ID = {
         },
         manualSortGroupHeader: {
             title: 'Atur header grup',
+            headerLabel: 'Header grup',
             placeholder: 'Header grup',
+            showWordCount: 'Tampilkan jumlah kata total',
+            targetWordCount: 'Target jumlah kata',
+            targetWordCountPlaceholder: '10,000',
             description: 'Header disimpan ke properti {property} pada catatan yang dipilih. Biarkan kolom kosong untuk menghapus header.'
         },
         navRainbowSection: {
@@ -972,13 +976,11 @@ export const STRINGS_ID = {
             },
             manualSortPropertyKey: {
                 name: 'Properti urutan manual',
-                desc: 'Properti frontmatter yang digunakan untuk menyimpan nilai indeks numerik untuk urutan manual.',
-                placeholder: 'sortindex'
+                desc: 'Properti frontmatter yang digunakan untuk menyimpan nilai indeks numerik untuk urutan manual.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Properti header grup',
-                desc: 'Properti frontmatter yang digunakan untuk menyimpan teks header grup kustom dalam urutan manual.',
-                placeholder: 'groupheader'
+                desc: 'Properti frontmatter yang digunakan untuk menyimpan teks header grup kustom dalam urutan manual.'
             },
             manualSortNewNotePlacement: {
                 name: 'Penempatan catatan baru',

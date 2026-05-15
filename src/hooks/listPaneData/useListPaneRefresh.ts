@@ -36,10 +36,12 @@ interface UseListPaneRefreshArgs {
     basePathSet: ReadonlySet<string>;
     commandQueue: CommandQueueService | null;
     getDB: () => IndexedDBStorage;
+    hasManualSortWordCountGroupHeaders: boolean;
     hasTaskSearchFilters: boolean;
     hiddenFilePropertyMatcher: ReturnType<typeof createFrontmatterPropertyExclusionMatcher>;
     hiddenFileTags: string[];
     includeDescendantNotes: boolean;
+    isManualSortActive: boolean;
     onRefresh: () => void;
     propertyTreeService: IPropertyTreeProvider | null;
     selectedFolder: TFolder | null;
@@ -77,10 +79,12 @@ export function useListPaneRefresh({
     basePathSet,
     commandQueue,
     getDB,
+    hasManualSortWordCountGroupHeaders,
     hasTaskSearchFilters,
     hiddenFilePropertyMatcher,
     hiddenFileTags,
     includeDescendantNotes,
+    isManualSortActive,
     onRefresh,
     propertyTreeService,
     selectedFolder,
@@ -270,6 +274,10 @@ export function useListPaneRefresh({
                 shouldRefresh = changes.some(change => change.changes.taskUnfinished !== undefined && basePathSet.has(change.path));
             }
 
+            if (!shouldRefresh && isManualSortActive && hasManualSortWordCountGroupHeaders) {
+                shouldRefresh = changes.some(change => change.changes.wordCount !== undefined && basePathSet.has(change.path));
+            }
+
             if (shouldRefresh) {
                 queueRefresh();
             }
@@ -288,10 +296,12 @@ export function useListPaneRefresh({
         basePathSet,
         commandQueue,
         getDB,
+        hasManualSortWordCountGroupHeaders,
         hasTaskSearchFilters,
         hiddenFilePropertyMatcher,
         hiddenFileTags,
         includeDescendantNotes,
+        isManualSortActive,
         propertyTreeService,
         selectedFolder,
         selectedProperty,

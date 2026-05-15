@@ -413,7 +413,11 @@ export const STRINGS_AR = {
         },
         manualSortGroupHeader: {
             title: 'تعيين عنوان المجموعة',
+            headerLabel: 'عنوان المجموعة',
             placeholder: 'عنوان المجموعة',
+            showWordCount: 'إظهار إجمالي عدد الكلمات',
+            targetWordCount: 'عدد الكلمات المستهدف',
+            targetWordCountPlaceholder: '10,000',
             description: 'يتم حفظ العنوان إلى الخاصية {property} على الملاحظة المحددة. اترك الحقل فارغًا لمسح العنوان.'
         },
         navRainbowSection: {
@@ -969,13 +973,11 @@ export const STRINGS_AR = {
             },
             manualSortPropertyKey: {
                 name: 'خاصية الفرز اليدوي',
-                desc: 'خاصية الواجهة الأمامية المستخدمة لتخزين قيم الفهرس الرقمية للفرز اليدوي.',
-                placeholder: 'sortindex'
+                desc: 'خاصية الواجهة الأمامية المستخدمة لتخزين قيم الفهرس الرقمية للفرز اليدوي.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'خاصية عنوان المجموعة',
-                desc: 'خاصية الواجهة الأمامية المستخدمة لتخزين نص عنوان المجموعة المخصص في الفرز اليدوي.',
-                placeholder: 'groupheader'
+                desc: 'خاصية الواجهة الأمامية المستخدمة لتخزين نص عنوان المجموعة المخصص في الفرز اليدوي.'
             },
             manualSortNewNotePlacement: {
                 name: 'موضع الملاحظة الجديدة',

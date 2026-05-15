@@ -413,7 +413,11 @@ export const STRINGS_KO = {
         },
         manualSortGroupHeader: {
             title: '그룹 머리글 설정',
+            headerLabel: '그룹 머리글',
             placeholder: '그룹 머리글',
+            showWordCount: '전체 단어 수 표시',
+            targetWordCount: '목표 단어 수',
+            targetWordCountPlaceholder: '10,000',
             description: '머리글은 선택된 노트의 속성 {property}에 저장됩니다. 머리글을 지우려면 필드를 비워 두세요.'
         },
         navRainbowSection: {
@@ -971,13 +975,11 @@ export const STRINGS_KO = {
             },
             manualSortPropertyKey: {
                 name: '수동 정렬 속성',
-                desc: '수동 정렬에서 숫자 인덱스 값을 저장하는 데 사용되는 frontmatter 속성입니다.',
-                placeholder: 'sortindex'
+                desc: '수동 정렬에서 숫자 인덱스 값을 저장하는 데 사용되는 frontmatter 속성입니다.'
             },
             manualSortGroupHeaderProperty: {
                 name: '그룹 머리글 속성',
-                desc: '수동 정렬에서 사용자 지정 그룹 머리글 텍스트를 저장하는 데 사용되는 frontmatter 속성입니다.',
-                placeholder: 'groupheader'
+                desc: '수동 정렬에서 사용자 지정 그룹 머리글 텍스트를 저장하는 데 사용되는 frontmatter 속성입니다.'
             },
             manualSortNewNotePlacement: {
                 name: '새 노트 배치',

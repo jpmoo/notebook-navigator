@@ -17,7 +17,7 @@
  */
 
 import React, { useCallback, useMemo } from 'react';
-import { TFile, TFolder } from 'obsidian';
+import { Menu, TFile, TFolder } from 'obsidian';
 import { Virtualizer } from '@tanstack/react-virtual';
 import { useMetadataService, useServices } from '../../context/ServicesContext';
 import { strings } from '../../i18n';
@@ -39,6 +39,8 @@ import type { HiddenTagVisibility } from '../../utils/tagPrefixMatcher';
 import type { FileItemPillDecorationModel } from '../../utils/fileItemPillDecoration';
 import { resolveUXIcon } from '../../utils/uxIcons';
 import { hasSolidFileRowBackground } from '../../utils/colorUtils';
+import { getManualSortGroupHeaderPropertyKey } from '../../utils/manualSort';
+import { addManualSortGroupHeaderMenuItems } from '../../utils/contextMenu/manualSortGroupHeaderMenuItems';
 
 export interface PointerClientPosition {
     clientX: number;
@@ -59,6 +61,7 @@ interface HeaderRenderModel {
     isCollapsed: boolean;
     isCollapsible: boolean;
     folderGroupHeaderTarget: FolderGroupHeaderTarget | null;
+    manualSortHeaderFilePath: string | null;
 }
 
 interface HeaderRenderModels {
@@ -78,6 +81,7 @@ interface ListPaneGroupHeaderProps {
     onListGroupHeaderToggle: (collapseKey: string) => void;
     onFolderGroupHeaderClick: (event: React.MouseEvent<HTMLSpanElement>, target: FolderGroupHeaderTarget) => void;
     onFolderGroupHeaderMouseDown: (event: React.MouseEvent<HTMLSpanElement>, target: FolderGroupHeaderTarget) => void;
+    onManualSortGroupHeaderContextMenu: (event: React.MouseEvent<HTMLDivElement>, filePath: string) => void;
 }
 
 interface ListPaneVirtualContentProps {
@@ -193,7 +197,8 @@ function ListPaneGroupHeader({
     onPinnedGroupHeaderToggle,
     onListGroupHeaderToggle,
     onFolderGroupHeaderClick,
-    onFolderGroupHeaderMouseDown
+    onFolderGroupHeaderMouseDown,
+    onManualSortGroupHeaderContextMenu
 }: ListPaneGroupHeaderProps) {
     const folderGroupHeaderTarget = header.folderGroupHeaderTarget;
     const isClickableFolderGroupHeader = Boolean(folderGroupHeaderTarget) && !header.isPinnedHeader;
@@ -215,9 +220,13 @@ function ListPaneGroupHeader({
     if (header.isPinnedHeader) {
         headerClasses.push('nn-pinned-section-header');
     }
+    const manualSortHeaderFilePath = header.manualSortHeaderFilePath;
+    const handleContextMenu = manualSortHeaderFilePath
+        ? (event: React.MouseEvent<HTMLDivElement>) => onManualSortGroupHeaderContextMenu(event, manualSortHeaderFilePath)
+        : undefined;
 
     return (
-        <div className={headerClasses.join(' ')}>
+        <div className={headerClasses.join(' ')} onContextMenu={handleContextMenu}>
             <span
                 className={`nn-list-group-header-text ${isClickableFolderGroupHeader ? 'nn-list-group-header-text--folder-note' : ''}`}
                 onClick={folderGroupHeaderTarget ? event => onFolderGroupHeaderClick(event, folderGroupHeaderTarget) : undefined}
@@ -324,6 +333,14 @@ export function ListPaneVirtualContent({
         }),
         [settings.interfaceIcons]
     );
+    const manualSortGroupHeaderPropertyKey = useMemo(
+        () =>
+            getManualSortGroupHeaderPropertyKey({
+                manualSortGroupHeaderProperty: settings.manualSortGroupHeaderProperty,
+                manualSortPropertyKey: settings.manualSortPropertyKey
+            }),
+        [settings.manualSortGroupHeaderProperty, settings.manualSortPropertyKey]
+    );
 
     const folderGroupHeaderTargets = useMemo(() => {
         const targets = new Map<string, FolderGroupHeaderTarget>();
@@ -392,7 +409,8 @@ export function ListPaneVirtualContent({
                 collapseKey,
                 isCollapsed: isPinnedHeader ? !pinnedGroupExpanded : item.isCollapsed === true,
                 isCollapsible: isPinnedHeader || collapseKey !== null,
-                folderGroupHeaderTarget: headerFolderPath !== null ? (folderGroupHeaderTargets.get(headerFolderPath) ?? null) : null
+                folderGroupHeaderTarget: headerFolderPath !== null ? (folderGroupHeaderTargets.get(headerFolderPath) ?? null) : null,
+                manualSortHeaderFilePath: item.headerKind === 'manual-sort-custom' ? (item.manualSortHeaderFilePath ?? null) : null
             };
             models.push(model);
             modelsByIndex.set(index, model);
@@ -461,6 +479,27 @@ export function ListPaneVirtualContent({
             );
         },
         [app, commandQueue, onNavigateToFolder]
+    );
+
+    const handleManualSortGroupHeaderContextMenu = useCallback(
+        (event: React.MouseEvent<HTMLDivElement>, filePath: string) => {
+            if (!manualSortGroupHeaderPropertyKey) {
+                return;
+            }
+
+            const file = app.vault.getFileByPath(filePath);
+            if (!(file instanceof TFile) || file.extension !== 'md') {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            const menu = new Menu();
+            addManualSortGroupHeaderMenuItems({ menu, app, file, propertyKey: manualSortGroupHeaderPropertyKey });
+            menu.showAtMouseEvent(event.nativeEvent);
+        },
+        [app, manualSortGroupHeaderPropertyKey]
     );
 
     const handleListMouseMove = useCallback(
@@ -537,6 +576,7 @@ export function ListPaneVirtualContent({
                         onListGroupHeaderToggle={onListGroupHeaderToggle}
                         onFolderGroupHeaderClick={handleFolderGroupHeaderClick}
                         onFolderGroupHeaderMouseDown={handleFolderGroupHeaderMouseDown}
+                        onManualSortGroupHeaderContextMenu={handleManualSortGroupHeaderContextMenu}
                     />
                 </div>
             ) : null}
@@ -661,6 +701,7 @@ export function ListPaneVirtualContent({
                                             onListGroupHeaderToggle={onListGroupHeaderToggle}
                                             onFolderGroupHeaderClick={handleFolderGroupHeaderClick}
                                             onFolderGroupHeaderMouseDown={handleFolderGroupHeaderMouseDown}
+                                            onManualSortGroupHeaderContextMenu={handleManualSortGroupHeaderContextMenu}
                                         />
                                     ) : item.type === ListPaneItemType.HEADER_SPACER ? (
                                         <div className="nn-list-group-header-spacer" />

@@ -417,7 +417,11 @@ export const STRINGS_NL = {
         },
         manualSortGroupHeader: {
             title: 'Groepskop instellen',
+            headerLabel: 'Groepskop',
             placeholder: 'Groepskop',
+            showWordCount: 'Totaal aantal woorden tonen',
+            targetWordCount: 'Doel aantal woorden',
+            targetWordCountPlaceholder: '10,000',
             description:
                 'De kop wordt opgeslagen in eigenschap {property} van de geselecteerde notitie. Laat het veld leeg om de kop te wissen.'
         },
@@ -975,13 +979,11 @@ export const STRINGS_NL = {
             },
             manualSortPropertyKey: {
                 name: 'Eigenschap voor handmatig sorteren',
-                desc: 'Frontmatter-eigenschap gebruikt om numerieke indexwaarden voor handmatig sorteren op te slaan.',
-                placeholder: 'sortindex'
+                desc: 'Frontmatter-eigenschap gebruikt om numerieke indexwaarden voor handmatig sorteren op te slaan.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Eigenschap voor groepskop',
-                desc: 'Frontmatter-eigenschap gebruikt om aangepaste groepskoptekst bij handmatig sorteren op te slaan.',
-                placeholder: 'groupheader'
+                desc: 'Frontmatter-eigenschap gebruikt om aangepaste groepskoptekst bij handmatig sorteren op te slaan.'
             },
             manualSortNewNotePlacement: {
                 name: 'Plaatsing nieuwe notitie',

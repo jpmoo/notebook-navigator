@@ -413,7 +413,11 @@ export const STRINGS_ZH_CN = {
         },
         manualSortGroupHeader: {
             title: '设置分组标题',
+            headerLabel: '分组标题',
             placeholder: '分组标题',
+            showWordCount: '显示总字数',
+            targetWordCount: '目标字数',
+            targetWordCountPlaceholder: '10,000',
             description: '该标题会保存到所选笔记的属性 {property} 中。将字段留空可清除标题。'
         },
         navRainbowSection: {
@@ -964,13 +968,11 @@ export const STRINGS_ZH_CN = {
             },
             manualSortPropertyKey: {
                 name: '手动排序属性',
-                desc: '用于存储手动排序数字索引值的 frontmatter 属性。',
-                placeholder: 'sortindex'
+                desc: '用于存储手动排序数字索引值的 frontmatter 属性。'
             },
             manualSortGroupHeaderProperty: {
                 name: '分组标题属性',
-                desc: '用于在手动排序中存储自定义分组标题文本的 frontmatter 属性。',
-                placeholder: 'groupheader'
+                desc: '用于在手动排序中存储自定义分组标题文本的 frontmatter 属性。'
             },
             manualSortNewNotePlacement: {
                 name: '新笔记位置',

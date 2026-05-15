@@ -18,7 +18,7 @@
 
 import { App, Menu, MenuItem, TFile } from 'obsidian';
 import { strings } from '../../i18n';
-import { getCachedManualSortGroupHeaderValue, writeManualSortGroupHeader } from '../manualSort';
+import { getCachedManualSortGroupHeader, writeManualSortGroupHeader, type ManualSortGroupHeaderData } from '../manualSort';
 import { setAsyncOnClick } from './menuAsyncHelpers';
 
 interface AddManualSortGroupHeaderMenuItemsParams {
@@ -28,20 +28,25 @@ interface AddManualSortGroupHeaderMenuItemsParams {
     propertyKey: string;
 }
 
-function addGroupHeaderEditorItem(menu: Menu, app: App, file: TFile, propertyKey: string, title: string, currentValue: string): void {
+function addGroupHeaderEditorItem(
+    menu: Menu,
+    app: App,
+    file: TFile,
+    propertyKey: string,
+    title: string,
+    currentValue: ManualSortGroupHeaderData | null
+): void {
     menu.addItem((item: MenuItem) => {
         setAsyncOnClick(item.setTitle(title).setIcon('lucide-heading'), async () => {
-            const { InputModal } = await import('../../modals/InputModal');
-            const modal = new InputModal(
+            const { ManualSortGroupHeaderModal } = await import('../../modals/ManualSortGroupHeaderModal');
+            const modal = new ManualSortGroupHeaderModal(
                 app,
-                strings.modals.manualSortGroupHeader.title,
-                strings.modals.manualSortGroupHeader.placeholder,
-                async value => {
-                    await writeManualSortGroupHeader(app, file, propertyKey, value);
-                },
                 currentValue,
+                async header => {
+                    await writeManualSortGroupHeader(app, file, propertyKey, header);
+                },
                 {
-                    description: strings.modals.manualSortGroupHeader.description.replace('{property}', propertyKey)
+                    propertyKey
                 }
             );
             modal.open();
@@ -54,7 +59,7 @@ export function addManualSortGroupHeaderMenuItems({ menu, app, file, propertyKey
         return false;
     }
 
-    const currentValue = getCachedManualSortGroupHeaderValue(app, file, propertyKey) ?? '';
+    const currentValue = getCachedManualSortGroupHeader(app, file, propertyKey);
     if (!currentValue) {
         addGroupHeaderEditorItem(menu, app, file, propertyKey, strings.contextMenu.file.setManualSortGroupHeader, currentValue);
         return true;

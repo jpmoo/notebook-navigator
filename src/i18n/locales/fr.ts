@@ -416,7 +416,11 @@ export const STRINGS_FR = {
         },
         manualSortGroupHeader: {
             title: "Définir l'en-tête de groupe",
+            headerLabel: 'En-tête de groupe',
             placeholder: 'En-tête de groupe',
+            showWordCount: 'Afficher le nombre total de mots',
+            targetWordCount: 'Nombre de mots cible',
+            targetWordCountPlaceholder: '10,000',
             description:
                 "L'en-tête est enregistré dans la propriété {property} de la note sélectionnée. Laissez le champ vide pour effacer l'en-tête."
         },
@@ -976,13 +980,11 @@ export const STRINGS_FR = {
             },
             manualSortPropertyKey: {
                 name: 'Propriété de tri manuel',
-                desc: 'Propriété frontmatter utilisée pour enregistrer les valeurs numériques du tri manuel.',
-                placeholder: 'sortindex'
+                desc: 'Propriété frontmatter utilisée pour enregistrer les valeurs numériques du tri manuel.'
             },
             manualSortGroupHeaderProperty: {
                 name: "Propriété d'en-tête de groupe",
-                desc: 'Propriété frontmatter utilisée pour enregistrer le texte personnalisé des en-têtes de groupe en tri manuel.',
-                placeholder: 'groupheader'
+                desc: 'Propriété frontmatter utilisée pour enregistrer le texte personnalisé des en-têtes de groupe en tri manuel.'
             },
             manualSortNewNotePlacement: {
                 name: 'Emplacement des nouvelles notes',

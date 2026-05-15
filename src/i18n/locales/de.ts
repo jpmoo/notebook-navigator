@@ -415,7 +415,11 @@ export const STRINGS_DE = {
         },
         manualSortGroupHeader: {
             title: 'Gruppenüberschrift festlegen',
+            headerLabel: 'Gruppenüberschrift',
             placeholder: 'Gruppenüberschrift',
+            showWordCount: 'Gesamte Wortzahl anzeigen',
+            targetWordCount: 'Zielwortzahl',
+            targetWordCountPlaceholder: '10,000',
             description:
                 'Die Überschrift wird in der Eigenschaft {property} der ausgewählten Notiz gespeichert. Lassen Sie das Feld leer, um die Überschrift zu entfernen.'
         },
@@ -974,13 +978,11 @@ export const STRINGS_DE = {
             },
             manualSortPropertyKey: {
                 name: 'Eigenschaft für manuelle Sortierung',
-                desc: 'Frontmatter-Eigenschaft zum Speichern der numerischen Indexwerte für die manuelle Sortierung.',
-                placeholder: 'sortindex'
+                desc: 'Frontmatter-Eigenschaft zum Speichern der numerischen Indexwerte für die manuelle Sortierung.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Eigenschaft für Gruppenüberschriften',
-                desc: 'Frontmatter-Eigenschaft zum Speichern des benutzerdefinierten Gruppenüberschriftentexts in der manuellen Sortierung.',
-                placeholder: 'groupheader'
+                desc: 'Frontmatter-Eigenschaft zum Speichern des benutzerdefinierten Gruppenüberschriftentexts in der manuellen Sortierung.'
             },
             manualSortNewNotePlacement: {
                 name: 'Platzierung neuer Notizen',

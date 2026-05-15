@@ -415,7 +415,11 @@ export const STRINGS_ES = {
         },
         manualSortGroupHeader: {
             title: 'Establecer encabezado de grupo',
+            headerLabel: 'Encabezado de grupo',
             placeholder: 'Encabezado de grupo',
+            showWordCount: 'Mostrar el recuento total de palabras',
+            targetWordCount: 'Recuento de palabras objetivo',
+            targetWordCountPlaceholder: '10,000',
             description:
                 'El encabezado se guarda en la propiedad {property} de la nota seleccionada. Deja el campo vacío para borrar el encabezado.'
         },
@@ -974,13 +978,11 @@ export const STRINGS_ES = {
             },
             manualSortPropertyKey: {
                 name: 'Propiedad de orden manual',
-                desc: 'Propiedad del frontmatter usada para almacenar los valores numéricos de índice del orden manual.',
-                placeholder: 'sortindex'
+                desc: 'Propiedad del frontmatter usada para almacenar los valores numéricos de índice del orden manual.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Propiedad de encabezado de grupo',
-                desc: 'Propiedad del frontmatter usada para almacenar el texto personalizado del encabezado de grupo en el orden manual.',
-                placeholder: 'groupheader'
+                desc: 'Propiedad del frontmatter usada para almacenar el texto personalizado del encabezado de grupo en el orden manual.'
             },
             manualSortNewNotePlacement: {
                 name: 'Ubicación de notas nuevas',

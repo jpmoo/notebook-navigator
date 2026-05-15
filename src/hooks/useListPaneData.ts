@@ -33,7 +33,7 @@ import { TFile, TFolder } from 'obsidian';
 import { useServices } from '../context/ServicesContext';
 import { useFileCache } from '../context/StorageContext';
 import { useLocalDayKey } from './useLocalDayKey';
-import { ItemType } from '../types';
+import { ItemType, ListPaneItemType } from '../types';
 import type { VisibilityPreferences } from '../types';
 import type { ListPaneItem } from '../types/virtualization';
 import { createFrontmatterPropertyExclusionMatcher } from '../utils/fileFilters';
@@ -401,16 +401,28 @@ export function useListPaneData({
     }>(() => {
         return buildOrderedFiles(listItems);
     }, [listItems]);
+    const hasManualSortWordCountGroupHeaders = useMemo(
+        () =>
+            listItems.some(
+                item =>
+                    item.type === ListPaneItemType.HEADER &&
+                    item.headerKind === 'manual-sort-custom' &&
+                    item.manualSortHeaderShowsWordCount === true
+            ),
+        [listItems]
+    );
 
     useListPaneRefresh({
         app,
         basePathSet,
         commandQueue,
         getDB,
+        hasManualSortWordCountGroupHeaders,
         hasTaskSearchFilters,
         hiddenFilePropertyMatcher,
         hiddenFileTags,
         includeDescendantNotes,
+        isManualSortActive,
         onRefresh: () => setUpdateKey(current => current + 1),
         propertyTreeService,
         selectedFolder,

@@ -34,10 +34,13 @@ import type { FolderDecorationModel } from '../../utils/folderDecoration';
 import type { HiddenTagVisibility } from '../../utils/tagPrefixMatcher';
 import { typeFilteredCollisionDetection, verticalAxisOnly } from '../../utils/dndConfig';
 import {
-    getCachedManualSortGroupHeaderValue,
+    formatManualSortGroupHeaderLabel,
+    getCachedManualSortGroupHeader,
     getManualSortSelectedMarkdownPaths,
     moveManualSortMarkdownFiles,
-    partitionManualSortFiles
+    normalizeManualSortGroupHeaderWordCount,
+    partitionManualSortFiles,
+    type ManualSortGroupHeaderData
 } from '../../utils/manualSort';
 import { hasSolidFileRowBackground } from '../../utils/colorUtils';
 import { addManualSortGroupHeaderMenuItems } from '../../utils/contextMenu/manualSortGroupHeaderMenuItems';
@@ -95,6 +98,7 @@ interface ManualSortRenderRow {
     entry: ManualSortEntry;
     segmentKey: string;
     headerLabel?: string;
+    headerFilePath?: string;
 }
 
 interface ManualSortRowContext {
@@ -129,6 +133,7 @@ interface ManualSortRowProps extends ManualSortRowContext {
     hasPreviousCustomBackground: boolean;
     hasNextCustomBackground: boolean;
     headerLabel?: string;
+    headerFilePath?: string;
     suppressHeaderTopSpacing?: boolean;
     shortcutKey?: string;
 }
@@ -250,6 +255,7 @@ function SortableManualSortRow(props: ManualSortRowProps) {
         hasCustomBackground,
         hasPreviousCustomBackground,
         hasNextCustomBackground,
+        headerFilePath,
         headerLabel,
         suppressHeaderTopSpacing
     } = props;
@@ -284,7 +290,10 @@ function SortableManualSortRow(props: ManualSortRowProps) {
             style={dragStyle}
         >
             {headerLabel ? (
-                <div className={`nn-list-group-header${suppressHeaderTopSpacing ? '' : ' nn-manual-sort-section-header'}`}>
+                <div
+                    className={`nn-list-group-header nn-manual-sort-custom-header${suppressHeaderTopSpacing ? '' : ' nn-manual-sort-section-header'}`}
+                    data-manual-sort-header-file-path={headerFilePath}
+                >
                     <span className="nn-list-group-header-text">{headerLabel}</span>
                 </div>
             ) : null}
@@ -333,27 +342,50 @@ function buildManualSortRenderRows(
     app: App,
     entries: readonly ManualSortEntry[],
     groupHeaderPropertyKey: string | null,
-    sectionKey: string
+    sectionKey: string,
+    getWordCount: (file: TFile) => number
 ): ManualSortRenderRow[] {
     const rows: ManualSortRenderRow[] = [];
     let segmentIndex = 0;
+    let activeHeaderRow: ManualSortRenderRow | null = null;
+    let activeHeader: ManualSortGroupHeaderData | null = null;
+    let activeWordCount = 0;
+    const updateActiveHeaderLabel = (): void => {
+        if (!activeHeaderRow || !activeHeader) {
+            return;
+        }
+
+        activeHeaderRow.headerLabel = formatManualSortGroupHeaderLabel(activeHeader, activeWordCount);
+    };
 
     entries.forEach(entry => {
         let headerLabel: string | undefined;
         if (groupHeaderPropertyKey && entry.file.extension === 'md') {
-            const header = getCachedManualSortGroupHeaderValue(app, entry.file, groupHeaderPropertyKey);
+            const header = getCachedManualSortGroupHeader(app, entry.file, groupHeaderPropertyKey);
             if (header) {
                 segmentIndex += 1;
-                headerLabel = header;
+                headerLabel = header.title;
+                activeHeader = header;
+                activeWordCount = 0;
             }
         }
 
-        rows.push({
+        const row: ManualSortRenderRow = {
             key: entry.sortableId,
             entry,
             segmentKey: `${sectionKey}:${segmentIndex}`,
             headerLabel
-        });
+        };
+        rows.push(row);
+        if (activeHeader && headerLabel) {
+            activeHeaderRow = row;
+            activeHeaderRow.headerFilePath = entry.file.path;
+            updateActiveHeaderLabel();
+        }
+        if (activeHeader && activeHeader.showWordCount && entry.file.extension === 'md') {
+            activeWordCount += getWordCount(entry.file);
+            updateActiveHeaderLabel();
+        }
     });
 
     return rows;
@@ -435,6 +467,7 @@ function ManualSortGroup({
                 hasCustomBackground: entryHasCustomBackground,
                 hasPreviousCustomBackground: previousEntryHasCustomBackground,
                 hasNextCustomBackground: nextEntryHasCustomBackground,
+                headerFilePath: row.headerFilePath,
                 headerLabel: row.headerLabel,
                 suppressHeaderTopSpacing: Boolean(row.headerLabel && suppressFirstHeaderSpacing && index === 0),
                 shortcutKey: noteShortcutKeysByPath.get(entry.file.path)
@@ -541,17 +574,23 @@ export function ManualSortListContent({
     const rankedEntries = useMemo<ManualSortEntry[]>(() => buildEntries(rankedMarkdownFiles), [buildEntries, rankedMarkdownFiles]);
     const unsortedEntries = useMemo<ManualSortEntry[]>(() => buildEntries(unsortedMarkdownFiles), [buildEntries, unsortedMarkdownFiles]);
     const nonMarkdownEntries = useMemo<ManualSortEntry[]>(() => buildEntries(nonMarkdownFiles), [buildEntries, nonMarkdownFiles]);
+    const getWordCount = useCallback(
+        (file: TFile): number => {
+            return normalizeManualSortGroupHeaderWordCount(fileItemStorage.getDB().getFile(file.path)?.wordCount);
+        },
+        [fileItemStorage]
+    );
     const rankedRows = useMemo(
-        () => buildManualSortRenderRows(app, rankedEntries, manualSortGroupHeaderPropertyKey, 'ranked'),
-        [app, manualSortGroupHeaderPropertyKey, rankedEntries]
+        () => buildManualSortRenderRows(app, rankedEntries, manualSortGroupHeaderPropertyKey, 'ranked', getWordCount),
+        [app, getWordCount, manualSortGroupHeaderPropertyKey, rankedEntries]
     );
     const unsortedRows = useMemo(
-        () => buildManualSortRenderRows(app, unsortedEntries, manualSortGroupHeaderPropertyKey, 'unsorted'),
-        [app, manualSortGroupHeaderPropertyKey, unsortedEntries]
+        () => buildManualSortRenderRows(app, unsortedEntries, manualSortGroupHeaderPropertyKey, 'unsorted', getWordCount),
+        [app, getWordCount, manualSortGroupHeaderPropertyKey, unsortedEntries]
     );
     const nonMarkdownRows = useMemo(
-        () => buildManualSortRenderRows(app, nonMarkdownEntries, null, 'non-markdown'),
-        [app, nonMarkdownEntries]
+        () => buildManualSortRenderRows(app, nonMarkdownEntries, null, 'non-markdown', getWordCount),
+        [app, getWordCount, nonMarkdownEntries]
     );
     const entries = useMemo<ManualSortEntry[]>(() => {
         return [...rankedEntries, ...unsortedEntries, ...nonMarkdownEntries];
@@ -679,12 +718,20 @@ export function ManualSortListContent({
                 return;
             }
 
-            const fileElement = target.closest('.nn-file');
-            if (!(fileElement instanceof HTMLElement)) {
-                return;
+            let filePath: string | undefined;
+            const headerElement = target.closest('.nn-manual-sort-custom-header');
+            if (headerElement instanceof HTMLElement) {
+                filePath = headerElement.dataset.manualSortHeaderFilePath;
             }
 
-            const filePath = fileElement.dataset.path;
+            if (!filePath) {
+                const fileElement = target.closest('.nn-file');
+                if (!(fileElement instanceof HTMLElement)) {
+                    return;
+                }
+                filePath = fileElement.dataset.path;
+            }
+
             const file = filePath ? app.vault.getFileByPath(filePath) : null;
             if (!(file instanceof TFile) || file.extension !== 'md') {
                 return;

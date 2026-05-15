@@ -414,7 +414,11 @@ export const STRINGS_FA = {
         },
         manualSortGroupHeader: {
             title: 'تنظیم هدر گروه',
+            headerLabel: 'هدر گروه',
             placeholder: 'هدر گروه',
+            showWordCount: 'نمایش تعداد کل کلمات',
+            targetWordCount: 'تعداد کلمات هدف',
+            targetWordCountPlaceholder: '10,000',
             description: 'هدر در ویژگی {property} در یادداشت انتخاب‌شده ذخیره می‌شود. برای پاک کردن هدر، فیلد را خالی بگذارید.'
         },
         navRainbowSection: {
@@ -972,13 +976,11 @@ export const STRINGS_FA = {
             },
             manualSortPropertyKey: {
                 name: 'ویژگی مرتب‌سازی دستی',
-                desc: 'ویژگی frontmatter که برای ذخیره مقادیر شاخص عددی در مرتب‌سازی دستی استفاده می‌شود.',
-                placeholder: 'sortindex'
+                desc: 'ویژگی frontmatter که برای ذخیره مقادیر شاخص عددی در مرتب‌سازی دستی استفاده می‌شود.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'ویژگی هدر گروه',
-                desc: 'ویژگی frontmatter که برای ذخیره متن سفارشی هدر گروه در مرتب‌سازی دستی استفاده می‌شود.',
-                placeholder: 'groupheader'
+                desc: 'ویژگی frontmatter که برای ذخیره متن سفارشی هدر گروه در مرتب‌سازی دستی استفاده می‌شود.'
             },
             manualSortNewNotePlacement: {
                 name: 'محل قرارگیری یادداشت جدید',

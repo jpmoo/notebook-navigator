@@ -25,7 +25,14 @@ import { strings } from '../../i18n';
 import { FILE_VISIBILITY, type FileVisibility } from '../../utils/fileTypeUtils';
 import { compareByAlphaSortOrder, getDateField, isDateSortOption, isPropertySortOption } from '../../utils/sortUtils';
 import { partitionPinnedFiles } from '../../utils/fileFinder';
-import { getCachedManualSortGroupHeaderValue, hasCachedManualSortProperty } from '../../utils/manualSort';
+import {
+    formatManualSortGroupHeaderLabel,
+    getCachedManualSortGroupHeader,
+    hasCachedManualSortProperty,
+    normalizeManualSortGroupHeaderWordCount,
+    shouldShowManualSortGroupHeaderWordCount,
+    type ManualSortGroupHeaderData
+} from '../../utils/manualSort';
 import { createHiddenTagVisibility } from '../../utils/tagPrefixMatcher';
 import { getCachedFileTags } from '../../utils/tagUtils';
 import { DateUtils } from '../../utils/dateUtils';
@@ -139,8 +146,11 @@ export function buildListItems({
     let activeListGroupCollapsed = false;
     let activeCollapsedHeaderKind: ListPaneItem['headerKind'] | null = null;
     let fileIndexCounter = 0;
-    const manualSortCustomHeaderByPath = new Map<string, string | null>();
-    const getManualSortCustomHeaderValue = (file: TFile): string | null => {
+    const getFileWordCount = (file: TFile): number => {
+        return normalizeManualSortGroupHeaderWordCount(db.getFile(file.path)?.wordCount);
+    };
+    const manualSortCustomHeaderByPath = new Map<string, ManualSortGroupHeaderData | null>();
+    const getManualSortCustomHeaderValue = (file: TFile): ManualSortGroupHeaderData | null => {
         if (!isManualSortActive || !manualSortGroupHeaderPropertyKey || file.extension !== 'md') {
             return null;
         }
@@ -149,12 +159,32 @@ export function buildListItems({
             return manualSortCustomHeaderByPath.get(file.path) ?? null;
         }
 
-        const header = getCachedManualSortGroupHeaderValue(app, file, manualSortGroupHeaderPropertyKey);
+        const header = getCachedManualSortGroupHeader(app, file, manualSortGroupHeaderPropertyKey);
         manualSortCustomHeaderByPath.set(file.path, header);
         return header;
     };
+    let activeManualSortHeader: {
+        item: ListPaneItem;
+        header: ManualSortGroupHeaderData;
+        wordCount: number;
+    } | null = null;
+    const updateActiveManualSortHeaderLabel = (): void => {
+        if (!activeManualSortHeader) {
+            return;
+        }
+
+        activeManualSortHeader.item.data = formatManualSortGroupHeaderLabel(
+            activeManualSortHeader.header,
+            activeManualSortHeader.wordCount
+        );
+    };
     type FileItemOverrides = Partial<Omit<ListPaneItem, 'type' | 'data' | 'fileIndex' | 'hasTags' | 'isHidden' | 'key' | 'searchMeta'>>;
     const pushFileItem = (file: TFile, overrides: FileItemOverrides = {}) => {
+        if (activeManualSortHeader && shouldShowManualSortGroupHeaderWordCount(activeManualSortHeader.header) && file.extension === 'md') {
+            activeManualSortHeader.wordCount += getFileWordCount(file);
+            updateActiveManualSortHeaderLabel();
+        }
+
         if (activeListGroupCollapsed) {
             return;
         }
@@ -177,8 +207,12 @@ export function buildListItems({
         key,
         headerFolderPath,
         headerKind,
-        collapseKey
-    }: Pick<ListPaneItem, 'data' | 'key' | 'headerFolderPath' | 'headerKind' | 'collapseKey'>) => {
+        collapseKey,
+        manualSortHeader,
+        manualSortHeaderFilePath
+    }: Pick<ListPaneItem, 'data' | 'key' | 'headerFolderPath' | 'headerKind' | 'collapseKey' | 'manualSortHeaderFilePath'> & {
+        manualSortHeader?: ManualSortGroupHeaderData;
+    }) => {
         if (activeListGroupCollapsed && activeCollapsedHeaderKind !== 'manual-sort-custom' && headerKind === 'manual-sort-custom') {
             return;
         }
@@ -195,15 +229,27 @@ export function buildListItems({
             });
         }
 
-        items.push({
+        const headerItem: ListPaneItem = {
             type: ListPaneItemType.HEADER,
             data,
             headerFolderPath,
+            manualSortHeaderFilePath,
+            manualSortHeaderShowsWordCount: manualSortHeader ? shouldShowManualSortGroupHeaderWordCount(manualSortHeader) : undefined,
             headerKind,
             collapseKey,
             isCollapsed,
             key
-        });
+        };
+        items.push(headerItem);
+        activeManualSortHeader = null;
+        if (headerKind === 'manual-sort-custom' && manualSortHeader) {
+            activeManualSortHeader = {
+                item: headerItem,
+                header: manualSortHeader,
+                wordCount: 0
+            };
+            updateActiveManualSortHeaderLabel();
+        }
     };
     const maybePushManualSortCustomHeader = (file: TFile) => {
         const header = getManualSortCustomHeaderValue(file);
@@ -212,7 +258,9 @@ export function buildListItems({
         }
 
         pushHeaderItem({
-            data: header,
+            data: header.title,
+            manualSortHeader: header,
+            manualSortHeaderFilePath: file.path,
             headerKind: 'manual-sort-custom',
             collapseKey: createCollapseKey(`manual-sort-custom:${file.path}`),
             key: `manual-sort-custom-header-${file.path}`

@@ -416,7 +416,11 @@ export const STRINGS_UK = {
         },
         manualSortGroupHeader: {
             title: 'Встановити заголовок групи',
+            headerLabel: 'Заголовок групи',
             placeholder: 'Заголовок групи',
+            showWordCount: 'Показувати загальну кількість слів',
+            targetWordCount: 'Цільова кількість слів',
+            targetWordCountPlaceholder: '10,000',
             description: 'Заголовок зберігається у властивості {property} вибраної нотатки. Залиште поле порожнім, щоб очистити заголовок.'
         },
         navRainbowSection: {
@@ -970,13 +974,11 @@ export const STRINGS_UK = {
             },
             manualSortPropertyKey: {
                 name: 'Властивість ручного сортування',
-                desc: 'Властивість frontmatter, що використовується для зберігання числових значень індексу для ручного сортування.',
-                placeholder: 'sortindex'
+                desc: 'Властивість frontmatter, що використовується для зберігання числових значень індексу для ручного сортування.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Властивість заголовка групи',
-                desc: 'Властивість frontmatter, що використовується для зберігання тексту користувацького заголовка групи при ручному сортуванні.',
-                placeholder: 'groupheader'
+                desc: 'Властивість frontmatter, що використовується для зберігання тексту користувацького заголовка групи при ручному сортуванні.'
             },
             manualSortNewNotePlacement: {
                 name: 'Розміщення нової нотатки',

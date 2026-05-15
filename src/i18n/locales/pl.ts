@@ -417,7 +417,11 @@ export const STRINGS_PL = {
         },
         manualSortGroupHeader: {
             title: 'Ustaw nagłówek grupy',
+            headerLabel: 'Nagłówek grupy',
             placeholder: 'Nagłówek grupy',
+            showWordCount: 'Pokaż łączną liczbę słów',
+            targetWordCount: 'Docelowa liczba słów',
+            targetWordCountPlaceholder: '10,000',
             description:
                 'Nagłówek jest zapisywany we właściwości {property} w wybranej notatce. Pozostaw pole puste, aby wyczyścić nagłówek.'
         },
@@ -976,13 +980,11 @@ export const STRINGS_PL = {
             },
             manualSortPropertyKey: {
                 name: 'Atrybut sortowania ręcznego',
-                desc: 'Atrybut frontmatter używany do przechowywania wartości indeksu liczbowego dla sortowania ręcznego.',
-                placeholder: 'sortindex'
+                desc: 'Atrybut frontmatter używany do przechowywania wartości indeksu liczbowego dla sortowania ręcznego.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Atrybut nagłówka grupy',
-                desc: 'Atrybut frontmatter używany do przechowywania niestandardowego tekstu nagłówka grupy w sortowaniu ręcznym.',
-                placeholder: 'groupheader'
+                desc: 'Atrybut frontmatter używany do przechowywania niestandardowego tekstu nagłówka grupy w sortowaniu ręcznym.'
             },
             manualSortNewNotePlacement: {
                 name: 'Umiejscowienie nowych notatek',

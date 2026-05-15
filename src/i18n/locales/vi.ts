@@ -414,7 +414,11 @@ export const STRINGS_VI = {
         },
         manualSortGroupHeader: {
             title: 'Đặt header nhóm',
+            headerLabel: 'Header nhóm',
             placeholder: 'Header nhóm',
+            showWordCount: 'Hiển thị tổng số từ',
+            targetWordCount: 'Số từ mục tiêu',
+            targetWordCountPlaceholder: '10,000',
             description: 'Header được lưu vào thuộc tính {property} trên ghi chú đã chọn. Để trống trường này để xóa header.'
         },
         navRainbowSection: {
@@ -973,13 +977,11 @@ export const STRINGS_VI = {
             },
             manualSortPropertyKey: {
                 name: 'Thuộc tính sắp xếp thủ công',
-                desc: 'Thuộc tính frontmatter dùng để lưu giá trị chỉ số cho sắp xếp thủ công.',
-                placeholder: 'sortindex'
+                desc: 'Thuộc tính frontmatter dùng để lưu giá trị chỉ số cho sắp xếp thủ công.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Thuộc tính header nhóm',
-                desc: 'Thuộc tính frontmatter dùng để lưu văn bản header nhóm tùy chỉnh trong sắp xếp thủ công.',
-                placeholder: 'groupheader'
+                desc: 'Thuộc tính frontmatter dùng để lưu văn bản header nhóm tùy chỉnh trong sắp xếp thủ công.'
             },
             manualSortNewNotePlacement: {
                 name: 'Vị trí ghi chú mới',

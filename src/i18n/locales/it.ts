@@ -414,7 +414,11 @@ export const STRINGS_IT = {
         },
         manualSortGroupHeader: {
             title: 'Imposta intestazione gruppo',
+            headerLabel: 'Intestazione gruppo',
             placeholder: 'Intestazione gruppo',
+            showWordCount: 'Mostra il conteggio totale delle parole',
+            targetWordCount: 'Conteggio parole obiettivo',
+            targetWordCountPlaceholder: '10,000',
             description:
                 "L'intestazione è salvata nella proprietà {property} sulla nota selezionata. Lascia il campo vuoto per rimuovere l'intestazione."
         },
@@ -969,13 +973,11 @@ export const STRINGS_IT = {
             },
             manualSortPropertyKey: {
                 name: 'Proprietà ordinamento manuale',
-                desc: "Proprietà frontmatter usata per memorizzare i valori indice numerici per l'ordinamento manuale.",
-                placeholder: 'sortindex'
+                desc: "Proprietà frontmatter usata per memorizzare i valori indice numerici per l'ordinamento manuale."
             },
             manualSortGroupHeaderProperty: {
                 name: 'Proprietà intestazione gruppo',
-                desc: "Proprietà frontmatter usata per memorizzare il testo personalizzato dell'intestazione di gruppo nell'ordinamento manuale.",
-                placeholder: 'groupheader'
+                desc: "Proprietà frontmatter usata per memorizzare il testo personalizzato dell'intestazione di gruppo nell'ordinamento manuale."
             },
             manualSortNewNotePlacement: {
                 name: 'Posizionamento nuove note',

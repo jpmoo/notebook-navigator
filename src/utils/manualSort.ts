@@ -48,6 +48,18 @@ export interface ManualSortWriteResult {
     failures: ManualSortWriteFailure[];
 }
 
+export interface ManualSortGroupHeaderData {
+    title: string;
+    showWordCount: boolean;
+    targetWordCount: number | null;
+}
+
+export interface ManualSortGroupHeaderWriteValue {
+    title: string;
+    showWordCount?: boolean;
+    targetWordCount?: number | string | null;
+}
+
 interface ManualSortWriteFailureMessageOptions {
     unknownError: string;
     multipleFailureMessage: (count: number, path: string, message: string) => string;
@@ -326,6 +338,24 @@ export function parseManualSortRank(value: unknown): number | null {
     return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
 }
 
+export function parseManualSortGroupHeaderTargetWordCount(value: unknown): number | null {
+    if (typeof value === 'number') {
+        return Number.isSafeInteger(value) && value > 0 ? value : null;
+    }
+
+    if (typeof value !== 'string') {
+        return null;
+    }
+
+    const normalized = value.replace(/,/g, '').trim();
+    if (!/^\d+$/.test(normalized)) {
+        return null;
+    }
+
+    const parsed = Number(normalized);
+    return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
 export function isManualSortValueEqual(value: unknown, order: number): boolean {
     return parseManualSortRank(value) === order;
 }
@@ -363,6 +393,32 @@ export function getCachedManualSortRank(app: App, file: TFile, propertyKey: stri
 }
 
 export function getCachedManualSortGroupHeaderValue(app: App, file: TFile, propertyKey: string): string | null {
+    return getCachedManualSortGroupHeader(app, file, propertyKey)?.title ?? null;
+}
+
+function parseManualSortGroupHeaderValue(value: unknown): ManualSortGroupHeaderData | null {
+    if (typeof value !== 'string') {
+        if (!isRecord(value)) {
+            return null;
+        }
+
+        const title = typeof value.title === 'string' ? value.title.trim() : '';
+        if (!title) {
+            return null;
+        }
+
+        return {
+            title,
+            showWordCount: value.showWordCount === true,
+            targetWordCount: parseManualSortGroupHeaderTargetWordCount(value.targetWordCount)
+        };
+    }
+
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? { title: trimmed, showWordCount: false, targetWordCount: null } : null;
+}
+
+export function getCachedManualSortGroupHeader(app: App, file: TFile, propertyKey: string): ManualSortGroupHeaderData | null {
     if (file.extension !== 'md') {
         return null;
     }
@@ -377,13 +433,29 @@ export function getCachedManualSortGroupHeaderValue(app: App, file: TFile, prope
         return null;
     }
 
-    const value = frontmatter[targetKey];
-    if (typeof value !== 'string') {
-        return null;
+    return parseManualSortGroupHeaderValue(frontmatter[targetKey]);
+}
+
+export function shouldShowManualSortGroupHeaderWordCount(header: ManualSortGroupHeaderData): boolean {
+    return header.showWordCount;
+}
+
+export function normalizeManualSortGroupHeaderWordCount(value: unknown): number {
+    return typeof value === 'number' && Number.isFinite(value) && value > 0 ? Math.trunc(value) : 0;
+}
+
+export function formatManualSortGroupHeaderLabel(header: ManualSortGroupHeaderData, wordCount: number): string {
+    if (!shouldShowManualSortGroupHeaderWordCount(header)) {
+        return header.title;
     }
 
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : null;
+    const targetWordCount = header.targetWordCount;
+    const formattedWordCount = Math.trunc(wordCount).toLocaleString();
+    if (targetWordCount !== null) {
+        return `${header.title} (${formattedWordCount} / ${targetWordCount.toLocaleString()})`;
+    }
+
+    return `${header.title} (${formattedWordCount})`;
 }
 
 function hasCachedManualSortValue(app: App, file: TFile, propertyKey: string, order: number): boolean {
@@ -826,12 +898,50 @@ export async function writeManualSortOrder(app: App, files: readonly TFile[], pr
     return writeManualSortAssignments(app, files, propertyKey, buildManualSortOrderAssignments(files));
 }
 
-export async function writeManualSortGroupHeader(app: App, file: TFile, propertyKey: string, value: string): Promise<void> {
+function normalizeManualSortGroupHeaderWriteValue(value: string | ManualSortGroupHeaderWriteValue): ManualSortGroupHeaderData | null {
+    if (typeof value === 'string') {
+        const title = value.trim();
+        return title ? { title, showWordCount: false, targetWordCount: null } : null;
+    }
+
+    const title = value.title.trim();
+    if (!title) {
+        return null;
+    }
+
+    return {
+        title,
+        showWordCount: value.showWordCount === true,
+        targetWordCount: parseManualSortGroupHeaderTargetWordCount(value.targetWordCount)
+    };
+}
+
+function serializeManualSortGroupHeaderValue(header: ManualSortGroupHeaderData): string | Record<string, unknown> {
+    if (!header.showWordCount && header.targetWordCount === null) {
+        return header.title;
+    }
+
+    const serialized: Record<string, unknown> = {
+        title: header.title,
+        showWordCount: header.showWordCount
+    };
+    if (header.targetWordCount !== null) {
+        serialized.targetWordCount = header.targetWordCount;
+    }
+    return serialized;
+}
+
+export async function writeManualSortGroupHeader(
+    app: App,
+    file: TFile,
+    propertyKey: string,
+    value: string | ManualSortGroupHeaderWriteValue
+): Promise<void> {
     if (file.extension !== 'md') {
         return;
     }
 
-    const nextValue = value.trim();
+    const nextValue = normalizeManualSortGroupHeaderWriteValue(value);
     await app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
         const existingKey = findMatchingRecordKey(frontmatter, propertyKey);
         const targetKey = existingKey ?? propertyKey;
@@ -843,6 +953,6 @@ export async function writeManualSortGroupHeader(app: App, file: TFile, property
             return;
         }
 
-        frontmatter[targetKey] = nextValue;
+        frontmatter[targetKey] = serializeManualSortGroupHeaderValue(nextValue);
     });
 }

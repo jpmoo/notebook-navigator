@@ -414,7 +414,11 @@ export const STRINGS_JA = {
         },
         manualSortGroupHeader: {
             title: 'グループヘッダーを設定',
+            headerLabel: 'グループヘッダー',
             placeholder: 'グループヘッダー',
+            showWordCount: '合計ワード数を表示',
+            targetWordCount: '目標ワード数',
+            targetWordCountPlaceholder: '10,000',
             description:
                 'ヘッダーは選択したノートのプロパティ {property} に保存されます。フィールドを空にすると、ヘッダーがクリアされます。'
         },
@@ -972,13 +976,11 @@ export const STRINGS_JA = {
             },
             manualSortPropertyKey: {
                 name: '手動並べ替え用プロパティ',
-                desc: '手動並べ替えの数値インデックス値を保存するために使用される frontmatter プロパティ。',
-                placeholder: 'sortindex'
+                desc: '手動並べ替えの数値インデックス値を保存するために使用される frontmatter プロパティ。'
             },
             manualSortGroupHeaderProperty: {
                 name: 'グループヘッダープロパティ',
-                desc: '手動並べ替えでカスタムグループヘッダーテキストを保存するために使用される frontmatter プロパティ。',
-                placeholder: 'groupheader'
+                desc: '手動並べ替えでカスタムグループヘッダーテキストを保存するために使用される frontmatter プロパティ。'
             },
             manualSortNewNotePlacement: {
                 name: '新規ノートの配置',

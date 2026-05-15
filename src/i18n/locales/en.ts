@@ -414,7 +414,11 @@ export const STRINGS_EN = {
         },
         manualSortGroupHeader: {
             title: 'Set group header',
+            headerLabel: 'Group header',
             placeholder: 'Group header',
+            showWordCount: 'Show total word count',
+            targetWordCount: 'Target word count',
+            targetWordCountPlaceholder: '10,000',
             description: 'The header is saved to property {property} on the selected note. Leave the field empty to clear the header.'
         },
         navRainbowSection: {
@@ -968,13 +972,11 @@ export const STRINGS_EN = {
             },
             manualSortPropertyKey: {
                 name: 'Manual sort property',
-                desc: 'Frontmatter property used to store numeric index values for manual sort.',
-                placeholder: 'sortindex'
+                desc: 'Frontmatter property used to store numeric index values for manual sort.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Group header property',
-                desc: 'Frontmatter property used to store custom group header text in manual sort.',
-                placeholder: 'groupheader'
+                desc: 'Frontmatter property used to store custom group header text in manual sort.'
             },
             manualSortNewNotePlacement: {
                 name: 'New note placement',

@@ -413,7 +413,11 @@ export const STRINGS_ZH_TW = {
         },
         manualSortGroupHeader: {
             title: '設定群組標題',
+            headerLabel: '群組標題',
             placeholder: '群組標題',
+            showWordCount: '顯示總字數',
+            targetWordCount: '目標字數',
+            targetWordCountPlaceholder: '10,000',
             description: '標題會儲存到所選筆記的屬性 {property}。將欄位留空以清除標題。'
         },
         navRainbowSection: {
@@ -964,13 +968,11 @@ export const STRINGS_ZH_TW = {
             },
             manualSortPropertyKey: {
                 name: '手動排序屬性',
-                desc: '用於儲存手動排序數字索引值的 frontmatter 屬性。',
-                placeholder: 'sortindex'
+                desc: '用於儲存手動排序數字索引值的 frontmatter 屬性。'
             },
             manualSortGroupHeaderProperty: {
                 name: '群組標題屬性',
-                desc: '用於儲存手動排序中自訂群組標題文字的 frontmatter 屬性。',
-                placeholder: 'groupheader'
+                desc: '用於儲存手動排序中自訂群組標題文字的 frontmatter 屬性。'
             },
             manualSortNewNotePlacement: {
                 name: '新筆記位置',

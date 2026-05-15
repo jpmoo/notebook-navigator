@@ -24,6 +24,8 @@ import {
     buildManualSortInsertionRankPlan,
     buildManualSortOrderAssignments,
     buildManualSortRankPlan,
+    formatManualSortGroupHeaderLabel,
+    getCachedManualSortGroupHeader,
     getCachedManualSortGroupHeaderValue,
     getCachedManualSortRank,
     getManualSortGroupHeaderPropertyKey,
@@ -34,6 +36,7 @@ import {
     moveManualSortSelectionByDirection,
     orderManualSortFiles,
     partitionManualSortFiles,
+    parseManualSortGroupHeaderTargetWordCount,
     parseManualSortRank,
     writeManualSortGroupHeader,
     writeManualSortAssignments,
@@ -248,10 +251,10 @@ describe('manual sort helpers', () => {
 
     it('resolves the manual sort group header property key when it is valid', () => {
         const settings = structuredClone(DEFAULT_SETTINGS);
-        settings.manualSortPropertyKey = 'sortindex';
-        settings.manualSortGroupHeaderProperty = ' groupheader ';
+        settings.manualSortPropertyKey = 'sortIndex';
+        settings.manualSortGroupHeaderProperty = ' groupHeader ';
 
-        expect(getManualSortGroupHeaderPropertyKey(settings)).toBe('groupheader');
+        expect(getManualSortGroupHeaderPropertyKey(settings)).toBe('groupHeader');
 
         settings.manualSortGroupHeaderProperty = '';
         expect(getManualSortGroupHeaderPropertyKey(settings)).toBeNull();
@@ -271,6 +274,15 @@ describe('manual sort helpers', () => {
         expect(isManualSortValueEqual('three', 3)).toBe(false);
     });
 
+    it('parses manual sort group header target word counts', () => {
+        expect(parseManualSortGroupHeaderTargetWordCount(10000)).toBe(10000);
+        expect(parseManualSortGroupHeaderTargetWordCount('10,000')).toBe(10000);
+        expect(parseManualSortGroupHeaderTargetWordCount(' 2500 ')).toBe(2500);
+        expect(parseManualSortGroupHeaderTargetWordCount(0)).toBeNull();
+        expect(parseManualSortGroupHeaderTargetWordCount('10.5')).toBeNull();
+        expect(parseManualSortGroupHeaderTargetWordCount('ten')).toBeNull();
+    });
+
     it('reads cached manual sort ranks while ignoring nonnumeric property values', () => {
         const first = createFile('notes/first.md', { Index: '1000' });
         const second = createFile('notes/second.md', { index: 2000 });
@@ -284,21 +296,45 @@ describe('manual sort helpers', () => {
         expect(getCachedManualSortRank(app, nonMarkdown, 'index')).toBe(null);
     });
 
-    it('reads cached manual sort group header values from string frontmatter only', () => {
+    it('reads cached manual sort group header values from string and object frontmatter', () => {
         const stringFile = createFile('notes/string.md', { Group: '  Overview  ' });
+        const objectFile = createFile('notes/object.md', {
+            group: {
+                title: ' Chapter 1 ',
+                showWordCount: true,
+                targetWordCount: '10,000'
+            }
+        });
         const numberFile = createFile('notes/number.md', { group: 3 });
         const booleanFile = createFile('notes/boolean.md', { group: false });
         const emptyStringFile = createFile('notes/empty.md', { group: '  ' });
         const arrayFile = createFile('notes/array.md', { group: ['Overview'] });
         const nonMarkdown = createFile('assets/file.pdf', { group: 'Overview' });
-        const app = createApp([stringFile, numberFile, booleanFile, emptyStringFile, arrayFile, nonMarkdown], vi.fn());
+        const app = createApp([stringFile, objectFile, numberFile, booleanFile, emptyStringFile, arrayFile, nonMarkdown], vi.fn());
 
         expect(getCachedManualSortGroupHeaderValue(app, stringFile, 'group')).toBe('Overview');
+        expect(getCachedManualSortGroupHeader(app, objectFile, 'group')).toEqual({
+            title: 'Chapter 1',
+            showWordCount: true,
+            targetWordCount: 10000
+        });
+        expect(getCachedManualSortGroupHeaderValue(app, objectFile, 'group')).toBe('Chapter 1');
         expect(getCachedManualSortGroupHeaderValue(app, numberFile, 'group')).toBeNull();
         expect(getCachedManualSortGroupHeaderValue(app, booleanFile, 'group')).toBeNull();
         expect(getCachedManualSortGroupHeaderValue(app, emptyStringFile, 'group')).toBeNull();
         expect(getCachedManualSortGroupHeaderValue(app, arrayFile, 'group')).toBeNull();
         expect(getCachedManualSortGroupHeaderValue(app, nonMarkdown, 'group')).toBeNull();
+    });
+
+    it('formats manual sort group headers with word count progress', () => {
+        expect(formatManualSortGroupHeaderLabel({ title: 'Draft', showWordCount: false, targetWordCount: null }, 1234)).toBe('Draft');
+        expect(formatManualSortGroupHeaderLabel({ title: 'Draft', showWordCount: true, targetWordCount: null }, 1234)).toBe(
+            'Draft (1,234)'
+        );
+        expect(formatManualSortGroupHeaderLabel({ title: 'Draft', showWordCount: false, targetWordCount: 10000 }, 4123)).toBe('Draft');
+        expect(formatManualSortGroupHeaderLabel({ title: 'Draft', showWordCount: true, targetWordCount: 10000 }, 4123)).toBe(
+            'Draft (4,123 / 10,000)'
+        );
     });
 
     it('plans a sparse moved-file rank between ranked neighbors', () => {
@@ -611,6 +647,29 @@ describe('manual sort helpers', () => {
         expect(processFrontMatter).toHaveBeenCalledTimes(3);
         expect(first.frontmatter).toEqual({});
         expect(second.frontmatter).toEqual({ group: 'Next' });
+    });
+
+    it('writes manual sort group header word count options as an object', async () => {
+        const file = createFile('notes/first.md', {});
+        const processFrontMatter = vi.fn(async (targetFile: TFile, callback: (frontmatter: Record<string, unknown>) => void) => {
+            callback((targetFile as TFile & { frontmatter: Record<string, unknown> }).frontmatter);
+        });
+        const app = createApp([file], processFrontMatter);
+
+        await writeManualSortGroupHeader(app, file, 'group', {
+            title: '  Draft  ',
+            showWordCount: true,
+            targetWordCount: '10,000'
+        });
+
+        expect(processFrontMatter).toHaveBeenCalledTimes(1);
+        expect(file.frontmatter).toEqual({
+            group: {
+                title: 'Draft',
+                showWordCount: true,
+                targetWordCount: 10000
+            }
+        });
     });
 
     it('records failures and continues writing remaining files', async () => {

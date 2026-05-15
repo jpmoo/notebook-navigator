@@ -416,7 +416,11 @@ export const STRINGS_PT_BR = {
         },
         manualSortGroupHeader: {
             title: 'Definir cabeçalho de grupo',
+            headerLabel: 'Cabeçalho de grupo',
             placeholder: 'Cabeçalho de grupo',
+            showWordCount: 'Mostrar contagem total de palavras',
+            targetWordCount: 'Contagem de palavras alvo',
+            targetWordCountPlaceholder: '10,000',
             description:
                 'O cabeçalho é salvo na propriedade {property} na nota selecionada. Deixe o campo em branco para limpar o cabeçalho.'
         },
@@ -975,13 +979,11 @@ export const STRINGS_PT_BR = {
             },
             manualSortPropertyKey: {
                 name: 'Propriedade da classificação manual',
-                desc: 'Propriedade frontmatter usada para armazenar valores numéricos de índice para a classificação manual.',
-                placeholder: 'sortindex'
+                desc: 'Propriedade frontmatter usada para armazenar valores numéricos de índice para a classificação manual.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Propriedade do cabeçalho de grupo',
-                desc: 'Propriedade frontmatter usada para armazenar o texto personalizado do cabeçalho de grupo na classificação manual.',
-                placeholder: 'groupheader'
+                desc: 'Propriedade frontmatter usada para armazenar o texto personalizado do cabeçalho de grupo na classificação manual.'
             },
             manualSortNewNotePlacement: {
                 name: 'Posicionamento de novas notas',

@@ -39,6 +39,11 @@ export interface ListPaneItem {
     // Folder path associated with a folder-group header.
     // Present only when grouping by folder in the list pane.
     headerFolderPath?: string | null;
+    // Markdown file path that owns a manual sort custom header.
+    // Present only on manual-sort-custom headers.
+    manualSortHeaderFilePath?: string | null;
+    // Whether a manual sort custom header label depends on stored word counts.
+    manualSortHeaderShowsWordCount?: boolean;
     headerKind?: ListPaneHeaderKind;
     collapseKey?: string;
     isCollapsed?: boolean;

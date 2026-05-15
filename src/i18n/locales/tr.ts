@@ -415,7 +415,11 @@ export const STRINGS_TR = {
         },
         manualSortGroupHeader: {
             title: 'Grup başlığını ayarla',
+            headerLabel: 'Grup başlığı',
             placeholder: 'Grup başlığı',
+            showWordCount: 'Toplam kelime sayısını göster',
+            targetWordCount: 'Hedef kelime sayısı',
+            targetWordCountPlaceholder: '10,000',
             description: 'Başlık, seçili nottaki {property} özelliğine kaydedilir. Başlığı temizlemek için alanı boş bırakın.'
         },
         navRainbowSection: {
@@ -972,13 +976,11 @@ export const STRINGS_TR = {
             },
             manualSortPropertyKey: {
                 name: 'Manuel sıralama özelliği',
-                desc: 'Manuel sıralama için sayısal indeks değerlerini saklamak üzere kullanılan frontmatter özelliği.',
-                placeholder: 'sortindex'
+                desc: 'Manuel sıralama için sayısal indeks değerlerini saklamak üzere kullanılan frontmatter özelliği.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Grup başlığı özelliği',
-                desc: 'Manuel sıralamada özel grup başlığı metnini saklamak üzere kullanılan frontmatter özelliği.',
-                placeholder: 'groupheader'
+                desc: 'Manuel sıralamada özel grup başlığı metnini saklamak üzere kullanılan frontmatter özelliği.'
             },
             manualSortNewNotePlacement: {
                 name: 'Yeni not yerleşimi',
