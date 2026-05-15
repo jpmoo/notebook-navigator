@@ -35,12 +35,14 @@ import { resolveFolderNoteClickOpenContext } from '../utils/keyboardOpenContext'
 import { normalizeTagPath } from '../utils/tagUtils';
 import { runAsyncAction } from '../utils/async';
 import { resolveUXIcon } from '../utils/uxIcons';
+import type { ManualSortNewFilePlacementContext } from '../utils/manualSort';
 
 interface ListPaneHeaderProps {
     onHeaderClick?: () => void;
     isSearchActive?: boolean;
     onSearchToggle?: () => void;
     onManualSortStart?: (propertyKey: string) => void;
+    getManualSortNewFileContext?: () => ManualSortNewFilePlacementContext | null;
     actionsDisabled?: boolean;
     desktopTitle: string;
     breadcrumbSegments: BreadcrumbSegment[];
@@ -53,6 +55,7 @@ export function ListPaneHeader({
     isSearchActive,
     onSearchToggle,
     onManualSortStart,
+    getManualSortNewFileContext,
     actionsDisabled = false,
     desktopTitle,
     breadcrumbSegments,
@@ -84,7 +87,7 @@ export function ListPaneHeader({
         hasAppearanceOrSortSelection,
         hasCustomSortOrGroup,
         hasCustomAppearance
-    } = useListActions({ onManualSortStart });
+    } = useListActions({ onManualSortStart, getManualSortNewFileContext });
     const listToolbarVisibility = settings.toolbarVisibility.list;
     const showBackButton = listToolbarVisibility.back && uiState.singlePane;
     const showSearchButton = listToolbarVisibility.search;

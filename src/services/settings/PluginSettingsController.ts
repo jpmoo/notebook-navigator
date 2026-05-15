@@ -54,6 +54,7 @@ import {
     isFeatureImageSizeSetting,
     isHomepageSource,
     isMouseBackForwardAction,
+    isManualSortNewNotePlacement,
     isPropertySortSecondaryOption,
     isRecentNotesHideMode,
     isSettingSyncMode,
@@ -275,6 +276,10 @@ export class PluginSettingsController {
             this.currentSettings.propertySortKey = DEFAULT_SETTINGS.propertySortKey;
         }
 
+        if (typeof this.currentSettings.manualSortGroupHeaderProperty !== 'string') {
+            this.currentSettings.manualSortGroupHeaderProperty = DEFAULT_SETTINGS.manualSortGroupHeaderProperty;
+        }
+
         this.currentSettings.keyboardShortcuts = sanitizeKeyboardShortcuts(this.currentSettings.keyboardShortcuts);
         this.normalizeSyncModes({ storedData, isFirstLaunch });
         const syncModeRegistry = this.getSyncModeRegistry();
@@ -318,6 +323,10 @@ export class PluginSettingsController {
 
         if (!isPropertySortSecondaryOption(this.currentSettings.propertySortSecondary)) {
             this.currentSettings.propertySortSecondary = DEFAULT_SETTINGS.propertySortSecondary;
+        }
+
+        if (!isManualSortNewNotePlacement(this.currentSettings.manualSortNewNotePlacement)) {
+            this.currentSettings.manualSortNewNotePlacement = DEFAULT_SETTINGS.manualSortNewNotePlacement;
         }
 
         if (!isCalendarWeekendDays(this.currentSettings.calendarWeekendDays)) {

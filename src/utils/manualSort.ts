@@ -18,6 +18,7 @@
 
 import type { App, TFile } from 'obsidian';
 import type { NotebookNavigatorSettings } from '../settings';
+import type { ManualSortNewNotePlacement } from '../settings/types';
 import { getErrorMessage } from './errorUtils';
 import { findMatchingRecordKey } from './recordUtils';
 import { isRecord } from './typeGuards';
@@ -46,6 +47,11 @@ export interface ManualSortWriteResult {
     failures: ManualSortWriteFailure[];
 }
 
+export interface ManualSortWriteFailureMessageOptions {
+    unknownError: string;
+    multipleFailureMessage: (count: number, path: string, message: string) => string;
+}
+
 export interface ManualSortFilePartitions<T extends ManualSortFileLike> {
     markdown: T[];
     nonMarkdown: T[];
@@ -64,8 +70,39 @@ export interface ManualSortRankPlan<T extends ManualSortFileLike> {
     requiresCompaction: boolean;
 }
 
+export interface ManualSortNewFilePlacementContext {
+    targetType: 'folder' | 'tag' | 'property';
+    targetKey: string;
+    propertyKey: string;
+    files: readonly TFile[];
+    selectedFilePath: string | null;
+    rankByPath: ReadonlyMap<string, number>;
+    placement: ManualSortNewNotePlacement;
+}
+
+interface ManualSortInsertionRankPlanOptions<T extends ManualSortFileLike> {
+    files: readonly T[];
+    insertedFile: T;
+    placement: ManualSortNewNotePlacement;
+    selectedPath: string | null;
+    rankByPath: ReadonlyMap<string, number>;
+}
+
 export function normalizeManualSortPropertyKey(value: string): string {
     return value.trim();
+}
+
+export function getManualSortWriteFailureMessage(result: ManualSortWriteResult, options: ManualSortWriteFailureMessageOptions): string {
+    const firstFailure = result.failures[0];
+    if (!firstFailure) {
+        return options.unknownError;
+    }
+
+    if (result.failed === 1) {
+        return `${firstFailure.path}: ${firstFailure.message}`;
+    }
+
+    return options.multipleFailureMessage(result.failed, firstFailure.path, firstFailure.message);
 }
 
 export function isValidManualSortPropertyKey(value: string): boolean {
@@ -309,6 +346,105 @@ function hasCachedManualSortValue(app: App, file: TFile, propertyKey: string, or
 
 function getRankFromMap(rankByPath: ReadonlyMap<string, number>, path: string): number | null {
     return parseManualSortRank(rankByPath.get(path));
+}
+
+function hasRankInMap<T extends ManualSortFileLike>(rankByPath: ReadonlyMap<string, number>, file: T): boolean {
+    return getRankFromMap(rankByPath, file.path) !== null;
+}
+
+function buildSingleInsertionAssignment<T extends ManualSortFileLike>(
+    file: T,
+    lowerRank: number | null,
+    upperRank: number | null
+): ManualSortOrderAssignment[] | null {
+    if (upperRank === null) {
+        const startRank = lowerRank ?? 0;
+        const value = startRank + MANUAL_SORT_RANK_STEP;
+        return Number.isSafeInteger(value) ? [{ path: file.path, value }] : null;
+    }
+
+    const startRank = lowerRank ?? 0;
+    const gap = upperRank - startRank;
+    if (gap <= 1) {
+        return null;
+    }
+
+    return [{ path: file.path, value: startRank + Math.floor(gap / 2) }];
+}
+
+function resolveBottomInsertion<T extends ManualSortFileLike>(
+    markdown: readonly T[],
+    rankByPath: ReadonlyMap<string, number>
+): { insertionIndex: number; lowerRank: number | null } {
+    let lastRankedIndex = -1;
+    markdown.forEach((file, index) => {
+        if (hasRankInMap(rankByPath, file)) {
+            lastRankedIndex = index;
+        }
+    });
+
+    if (lastRankedIndex === -1) {
+        return { insertionIndex: markdown.length, lowerRank: null };
+    }
+
+    return {
+        insertionIndex: lastRankedIndex + 1,
+        lowerRank: getRankFromMap(rankByPath, markdown[lastRankedIndex].path)
+    };
+}
+
+export function buildManualSortInsertionRankPlan<T extends ManualSortFileLike>({
+    files,
+    insertedFile,
+    placement,
+    selectedPath,
+    rankByPath
+}: ManualSortInsertionRankPlanOptions<T>): ManualSortRankPlan<T> | null {
+    if (insertedFile.extension !== 'md' || placement === 'unsorted') {
+        return null;
+    }
+
+    const currentFiles = files.filter(file => file.path !== insertedFile.path);
+    const { markdown, nonMarkdown } = partitionManualSortFiles(currentFiles);
+    let insertionIndex: number | null = null;
+    let lowerRank: number | null = null;
+    let upperRank: number | null = null;
+
+    if (placement === 'below-selected-note') {
+        const selectedRank = selectedPath ? getRankFromMap(rankByPath, selectedPath) : null;
+        const selectedIndex = selectedPath ? markdown.findIndex(file => file.path === selectedPath) : -1;
+
+        if (selectedRank !== null && selectedIndex !== -1) {
+            insertionIndex = selectedIndex + 1;
+            lowerRank = selectedRank;
+            for (let index = selectedIndex + 1; index < markdown.length; index++) {
+                upperRank = getRankFromMap(rankByPath, markdown[index].path);
+                if (upperRank !== null) {
+                    break;
+                }
+            }
+        } else {
+            const bottomInsertion = resolveBottomInsertion(markdown, rankByPath);
+            insertionIndex = bottomInsertion.insertionIndex;
+            lowerRank = bottomInsertion.lowerRank;
+        }
+    } else if (placement === 'top') {
+        const firstRankedIndex = markdown.findIndex(file => hasRankInMap(rankByPath, file));
+        insertionIndex = firstRankedIndex === -1 ? 0 : firstRankedIndex;
+        upperRank = firstRankedIndex === -1 ? null : getRankFromMap(rankByPath, markdown[firstRankedIndex].path);
+    } else {
+        const bottomInsertion = resolveBottomInsertion(markdown, rankByPath);
+        insertionIndex = bottomInsertion.insertionIndex;
+        lowerRank = bottomInsertion.lowerRank;
+    }
+
+    const singleAssignment = buildSingleInsertionAssignment(insertedFile, lowerRank, upperRank);
+    if (singleAssignment) {
+        return { files: [insertedFile], assignments: singleAssignment, requiresCompaction: false };
+    }
+
+    const nextMarkdown = [...markdown.slice(0, insertionIndex), insertedFile, ...markdown.slice(insertionIndex)];
+    return buildManualSortRankPlan([...nextMarkdown, ...nonMarkdown], new Set([insertedFile.path]), rankByPath);
 }
 
 function getPreviousRankedIndex<T extends ManualSortFileLike>(
@@ -587,7 +723,8 @@ export async function writeManualSortAssignments(
     propertyKey: string,
     assignments: readonly ManualSortOrderAssignment[]
 ): Promise<ManualSortWriteResult> {
-    const fileByPath = new Map(files.map(file => [file.path, file]));
+    const assignmentPaths = new Set(assignments.map(assignment => assignment.path));
+    const fileByPath = new Map(files.filter(file => assignmentPaths.has(file.path)).map(file => [file.path, file]));
     let updated = 0;
     let skipped = 0;
     const failures: ManualSortWriteFailure[] = [];

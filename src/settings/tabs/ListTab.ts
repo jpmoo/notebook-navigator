@@ -19,8 +19,15 @@
 import { DropdownComponent, Platform, Setting, SliderComponent, setIcon } from 'obsidian';
 import { strings } from '../../i18n';
 import { DEFAULT_SETTINGS } from '../defaultSettings';
-import { isListDisplayMode, isListNoteGroupingOption, isListPaneTitleOption, isPropertySortSecondaryOption, isSortOption } from '../types';
-import { PROPERTY_SORT_SECONDARY_OPTIONS, SORT_OPTIONS } from '../types';
+import {
+    isListDisplayMode,
+    isListNoteGroupingOption,
+    isListPaneTitleOption,
+    isManualSortNewNotePlacement,
+    isPropertySortSecondaryOption,
+    isSortOption
+} from '../types';
+import { MANUAL_SORT_NEW_NOTE_PLACEMENT_OPTIONS, PROPERTY_SORT_SECONDARY_OPTIONS, SORT_OPTIONS } from '../types';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { runAsyncAction } from '../../utils/async';
 import { createSettingGroupFactory } from '../settingGroups';
@@ -214,7 +221,39 @@ export function renderListPaneTab(context: SettingsTabContext): void {
             });
     });
 
-    const propertySortKeySetting = organizationGroup.addSetting(setting => {
+    organizationGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.groupNotes.name)
+            .setDesc(strings.settings.items.groupNotes.desc)
+            .addDropdown(dropdown =>
+                dropdown
+                    .addOption('none', strings.settings.items.groupNotes.options.none)
+                    .addOption('date', strings.settings.items.groupNotes.options.date)
+                    .addOption('folder', strings.settings.items.groupNotes.options.folder)
+                    .setValue(plugin.settings.noteGrouping)
+                    .onChange(async value => {
+                        if (!isListNoteGroupingOption(value)) {
+                            return;
+                        }
+                        plugin.settings.noteGrouping = value;
+                        await plugin.saveSettingsAndUpdate();
+                    })
+            );
+    });
+
+    addToggleSetting(
+        organizationGroup.addSetting,
+        strings.settings.items.stickyGroupHeaders.name,
+        strings.settings.items.stickyGroupHeaders.desc,
+        () => plugin.settings.stickyGroupHeaders,
+        value => {
+            plugin.settings.stickyGroupHeaders = value;
+        }
+    );
+
+    const manualSortGroup = createGroup(strings.settings.groups.list.manualSort);
+
+    const propertySortKeySetting = manualSortGroup.addSetting(setting => {
         setting
             .setName(strings.settings.items.propertySortKey.name)
             .setDesc(strings.settings.items.propertySortKey.desc)
@@ -263,35 +302,65 @@ export function renderListPaneTab(context: SettingsTabContext): void {
             });
         });
 
-    organizationGroup.addSetting(setting => {
+    manualSortGroup.addSetting(setting => {
         setting
-            .setName(strings.settings.items.groupNotes.name)
-            .setDesc(strings.settings.items.groupNotes.desc)
-            .addDropdown(dropdown =>
-                dropdown
-                    .addOption('none', strings.settings.items.groupNotes.options.none)
-                    .addOption('date', strings.settings.items.groupNotes.options.date)
-                    .addOption('folder', strings.settings.items.groupNotes.options.folder)
-                    .setValue(plugin.settings.noteGrouping)
-                    .onChange(async value => {
-                        if (!isListNoteGroupingOption(value)) {
-                            return;
-                        }
-                        plugin.settings.noteGrouping = value;
-                        await plugin.saveSettingsAndUpdate();
-                    })
-            );
+            .setName(strings.settings.items.manualSortGroupHeaderProperty.name)
+            .setDesc(strings.settings.items.manualSortGroupHeaderProperty.desc)
+            .addText(text => {
+                const commitGroupHeaderProperty = async (): Promise<void> => {
+                    const value = text.getValue().trim();
+                    if (plugin.settings.manualSortGroupHeaderProperty === value) {
+                        return;
+                    }
+                    plugin.settings.manualSortGroupHeaderProperty = value;
+                    await plugin.saveSettingsAndUpdate();
+                };
+
+                text.inputEl.addEventListener('blur', () => {
+                    runAsyncAction(commitGroupHeaderProperty);
+                });
+                text.inputEl.addEventListener('keydown', event => {
+                    if (event.key !== 'Enter') {
+                        return;
+                    }
+                    event.preventDefault();
+                    runAsyncAction(commitGroupHeaderProperty);
+                    text.inputEl.blur();
+                });
+
+                return text
+                    .setPlaceholder(strings.settings.items.manualSortGroupHeaderProperty.placeholder)
+                    .setValue(plugin.settings.manualSortGroupHeaderProperty);
+            });
     });
 
-    addToggleSetting(
-        organizationGroup.addSetting,
-        strings.settings.items.stickyGroupHeaders.name,
-        strings.settings.items.stickyGroupHeaders.desc,
-        () => plugin.settings.stickyGroupHeaders,
-        value => {
-            plugin.settings.stickyGroupHeaders = value;
-        }
-    );
+    manualSortGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.manualSortNewNotePlacement.name)
+            .setDesc(strings.settings.items.manualSortNewNotePlacement.desc)
+            .addDropdown(dropdown => {
+                MANUAL_SORT_NEW_NOTE_PLACEMENT_OPTIONS.forEach(option => {
+                    dropdown.addOption(option, strings.settings.items.manualSortNewNotePlacement.options[option]);
+                });
+                return dropdown.setValue(plugin.settings.manualSortNewNotePlacement).onChange(async value => {
+                    if (!isManualSortNewNotePlacement(value)) {
+                        return;
+                    }
+                    plugin.settings.manualSortNewNotePlacement = value;
+                    await plugin.saveSettingsAndUpdate();
+                });
+            });
+    });
+
+    addInfoSetting(manualSortGroup.addSetting, ['nn-setting-info-container', 'nn-setting-info-list'], descEl => {
+        const info = strings.settings.items.manualSortInstructions;
+        descEl.createDiv({ text: info.intro });
+        const listEl = descEl.createEl('ol');
+        info.items.forEach(item => {
+            const itemEl = listEl.createEl('li');
+            appendStrongText(itemEl, item);
+        });
+    });
 
     const pinnedNotesGroup = createGroup(strings.settings.groups.list.pinnedNotes);
 

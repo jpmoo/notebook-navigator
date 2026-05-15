@@ -21,6 +21,7 @@ import type { App, TFile } from 'obsidian';
 import {
     applyManualSortMarkdownOrder,
     areManualSortAssignmentsCached,
+    buildManualSortInsertionRankPlan,
     buildManualSortOrderAssignments,
     buildManualSortRankPlan,
     getCachedManualSortRank,
@@ -371,6 +372,124 @@ describe('manual sort helpers', () => {
             { path: moved.path, value: 2000 },
             { path: last.path, value: 3000 }
         ]);
+    });
+
+    it('assigns a new note between the selected ranked note and next ranked note', () => {
+        const first = { path: 'notes/first.md', extension: 'md' };
+        const second = { path: 'notes/second.md', extension: 'md' };
+        const inserted = { path: 'notes/new.md', extension: 'md' };
+
+        const plan = buildManualSortInsertionRankPlan({
+            files: [first, second],
+            insertedFile: inserted,
+            placement: 'below-selected-note',
+            selectedPath: first.path,
+            rankByPath: new Map([
+                [first.path, 1000],
+                [second.path, 3000]
+            ])
+        });
+
+        expect(plan).not.toBeNull();
+        expect(plan?.files).toEqual([inserted]);
+        expect(plan?.assignments).toEqual([{ path: inserted.path, value: 2000 }]);
+        expect(plan?.requiresCompaction).toBe(false);
+    });
+
+    it('compacts ranks when a new note is inserted below a selected note without a gap', () => {
+        const first = { path: 'notes/first.md', extension: 'md' };
+        const second = { path: 'notes/second.md', extension: 'md' };
+        const inserted = { path: 'notes/new.md', extension: 'md' };
+
+        const plan = buildManualSortInsertionRankPlan({
+            files: [first, second],
+            insertedFile: inserted,
+            placement: 'below-selected-note',
+            selectedPath: first.path,
+            rankByPath: new Map([
+                [first.path, 1000],
+                [second.path, 1001]
+            ])
+        });
+
+        expect(plan?.requiresCompaction).toBe(true);
+        expect(plan?.assignments).toEqual([
+            { path: inserted.path, value: MANUAL_SORT_RANK_STEP * 2 },
+            { path: second.path, value: MANUAL_SORT_RANK_STEP * 3 }
+        ]);
+    });
+
+    it('places a new note at the bottom of sorted notes when below selected has no selected ranked note', () => {
+        const unranked = { path: 'notes/unranked.md', extension: 'md' };
+        const inserted = { path: 'notes/new.md', extension: 'md' };
+
+        const noSelectionPlan = buildManualSortInsertionRankPlan({
+            files: [unranked],
+            insertedFile: inserted,
+            placement: 'below-selected-note',
+            selectedPath: null,
+            rankByPath: new Map()
+        });
+        const unrankedSelectionPlan = buildManualSortInsertionRankPlan({
+            files: [unranked],
+            insertedFile: inserted,
+            placement: 'below-selected-note',
+            selectedPath: unranked.path,
+            rankByPath: new Map()
+        });
+
+        expect(noSelectionPlan?.assignments).toEqual([{ path: inserted.path, value: MANUAL_SORT_RANK_STEP }]);
+        expect(unrankedSelectionPlan?.assignments).toEqual([{ path: inserted.path, value: MANUAL_SORT_RANK_STEP }]);
+    });
+
+    it('assigns a new note after the last ranked note when bottom has no selected anchor', () => {
+        const ranked = { path: 'notes/ranked.md', extension: 'md' };
+        const unranked = { path: 'notes/unranked.md', extension: 'md' };
+        const inserted = { path: 'notes/new.md', extension: 'md' };
+
+        const plan = buildManualSortInsertionRankPlan({
+            files: [ranked, unranked],
+            insertedFile: inserted,
+            placement: 'below-selected-note',
+            selectedPath: unranked.path,
+            rankByPath: new Map([[ranked.path, MANUAL_SORT_RANK_STEP]])
+        });
+
+        expect(plan?.files).toEqual([inserted]);
+        expect(plan?.assignments).toEqual([{ path: inserted.path, value: MANUAL_SORT_RANK_STEP * 2 }]);
+        expect(plan?.requiresCompaction).toBe(false);
+    });
+
+    it('assigns a new note when bottom has no ranked notes yet', () => {
+        const unranked = { path: 'notes/unranked.md', extension: 'md' };
+        const inserted = { path: 'notes/new.md', extension: 'md' };
+
+        const plan = buildManualSortInsertionRankPlan({
+            files: [unranked],
+            insertedFile: inserted,
+            placement: 'bottom',
+            selectedPath: null,
+            rankByPath: new Map()
+        });
+
+        expect(plan?.files).toEqual([inserted]);
+        expect(plan?.assignments).toEqual([{ path: inserted.path, value: MANUAL_SORT_RANK_STEP }]);
+        expect(plan?.requiresCompaction).toBe(false);
+    });
+
+    it('leaves a new note unsorted when placement is unsorted', () => {
+        const ranked = { path: 'notes/ranked.md', extension: 'md' };
+        const inserted = { path: 'notes/new.md', extension: 'md' };
+
+        expect(
+            buildManualSortInsertionRankPlan({
+                files: [ranked],
+                insertedFile: inserted,
+                placement: 'unsorted',
+                selectedPath: ranked.path,
+                rankByPath: new Map([[ranked.path, MANUAL_SORT_RANK_STEP]])
+            })
+        ).toBeNull();
     });
 
     it('checks whether planned assignments are visible in the metadata cache', () => {

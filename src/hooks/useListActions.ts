@@ -53,7 +53,12 @@ import type { FolderAppearance } from './useListPaneAppearance';
 import { getFilesForFolder } from '../utils/fileFinder';
 import { runAsyncAction } from '../utils/async';
 import { FILE_VISIBILITY } from '../utils/fileTypeUtils';
-import { getManualSortBaselineSettings, normalizeManualSortPropertyKey, orderManualSortFiles } from '../utils/manualSort';
+import {
+    getManualSortBaselineSettings,
+    normalizeManualSortPropertyKey,
+    orderManualSortFiles,
+    type ManualSortNewFilePlacementContext
+} from '../utils/manualSort';
 import { resolveIconForMenu, resolveUXIcon, resolveUXIconForMenu } from '../utils/uxIcons';
 import { buildPropertyKeyNodeId, parsePropertyNodeId } from '../utils/propertyTree';
 import { getFilesForNavigationSelection } from '../utils/selectionUtils';
@@ -78,6 +83,7 @@ type DescendantApplyStats = {
 
 interface UseListActionsOptions {
     onManualSortStart?: (propertyKey: string) => void;
+    getManualSortNewFileContext?: () => ManualSortNewFilePlacementContext | null;
 }
 
 const BIDI_ISOLATE_START = '\u2068'; // First Strong Isolate
@@ -404,7 +410,7 @@ function collectAllPropertyNodeIds(propertyTreeService: NonNullable<ReturnType<t
  *
  * @returns Object containing action handlers and computed values for list pane operations
  */
-export function useListActions({ onManualSortStart }: UseListActionsOptions = {}) {
+export function useListActions({ onManualSortStart, getManualSortNewFileContext }: UseListActionsOptions = {}) {
     const { app, plugin, tagTreeService, propertyTreeService } = useServices();
     const settings = useSettingsState();
     const vaultProfileId = settings.vaultProfile;
@@ -450,20 +456,31 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
 
     const handleNewFile = useCallback(async () => {
         try {
+            const manualSortContext = getManualSortNewFileContext?.() ?? null;
             if (selectionState.selectedFolder) {
-                await fileSystemOps.createNewFile(selectionState.selectedFolder, settings.createNewNotesInNewTab);
+                await fileSystemOps.createNewFile(selectionState.selectedFolder, settings.createNewNotesInNewTab, manualSortContext);
                 return;
             }
 
             if (hasCreatableTagSelection && selectionState.selectedTag) {
                 const sourcePath = selectionState.selectedFile?.path ?? app.workspace.getActiveFile()?.path ?? '';
-                await fileSystemOps.createNewFileForTag(selectionState.selectedTag, sourcePath, settings.createNewNotesInNewTab);
+                await fileSystemOps.createNewFileForTag(
+                    selectionState.selectedTag,
+                    sourcePath,
+                    settings.createNewNotesInNewTab,
+                    manualSortContext
+                );
                 return;
             }
 
             if (hasCreatablePropertySelection && selectionState.selectedProperty) {
                 const sourcePath = selectionState.selectedFile?.path ?? app.workspace.getActiveFile()?.path ?? '';
-                await fileSystemOps.createNewFileForProperty(selectionState.selectedProperty, sourcePath, settings.createNewNotesInNewTab);
+                await fileSystemOps.createNewFileForProperty(
+                    selectionState.selectedProperty,
+                    sourcePath,
+                    settings.createNewNotesInNewTab,
+                    manualSortContext
+                );
             }
         } catch {
             // Error is handled by FileSystemOperations with user notification
@@ -476,6 +493,7 @@ export function useListActions({ onManualSortStart }: UseListActionsOptions = {}
         hasCreatableTagSelection,
         hasCreatablePropertySelection,
         settings.createNewNotesInNewTab,
+        getManualSortNewFileContext,
         fileSystemOps,
         app
     ]);

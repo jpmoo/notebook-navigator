@@ -934,8 +934,10 @@ export const NotebookNavigatorComponent = React.memo(
                     });
                 },
                 createNoteInSelectedFolder: async (openInNewTab = false) => {
+                    const manualSortContext = listPaneRef.current?.getManualSortNewFileContext() ?? null;
+
                     if (selectionState.selectedFolder) {
-                        await fileSystemOps.createNewFile(selectionState.selectedFolder, openInNewTab);
+                        await fileSystemOps.createNewFile(selectionState.selectedFolder, openInNewTab, manualSortContext);
                         return;
                     }
 
@@ -946,7 +948,7 @@ export const NotebookNavigatorComponent = React.memo(
                         selectionState.selectedTag !== UNTAGGED_TAG_ID
                     ) {
                         const sourcePath = selectionState.selectedFile?.path ?? app.workspace.getActiveFile()?.path ?? '';
-                        await fileSystemOps.createNewFileForTag(selectionState.selectedTag, sourcePath, openInNewTab);
+                        await fileSystemOps.createNewFileForTag(selectionState.selectedTag, sourcePath, openInNewTab, manualSortContext);
                         return;
                     }
 
@@ -956,7 +958,12 @@ export const NotebookNavigatorComponent = React.memo(
                         selectionState.selectedProperty !== PROPERTIES_ROOT_VIRTUAL_FOLDER_ID
                     ) {
                         const sourcePath = selectionState.selectedFile?.path ?? app.workspace.getActiveFile()?.path ?? '';
-                        await fileSystemOps.createNewFileForProperty(selectionState.selectedProperty, sourcePath, openInNewTab);
+                        await fileSystemOps.createNewFileForProperty(
+                            selectionState.selectedProperty,
+                            sourcePath,
+                            openInNewTab,
+                            manualSortContext
+                        );
                         return;
                     }
 

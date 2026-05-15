@@ -182,7 +182,11 @@ export function normalizeListSortOverride(value: unknown): ListSortOverrideValue
     }
 
     const propertyKey = record.propertyKey.trim();
-    return propertyKey.length > 0 ? { option, propertyKey } : option;
+    if (propertyKey.length === 0) {
+        return option;
+    }
+
+    return { option, propertyKey };
 }
 
 /** Available secondary sort options used when sorting by frontmatter property values. */
@@ -192,6 +196,14 @@ export const PROPERTY_SORT_SECONDARY_OPTIONS: PropertySortSecondaryOption[] = ['
 
 export function isPropertySortSecondaryOption(value: unknown): value is PropertySortSecondaryOption {
     return value === 'title' || value === 'filename' || value === 'created' || value === 'modified';
+}
+
+export type ManualSortNewNotePlacement = 'top' | 'bottom' | 'below-selected-note' | 'unsorted';
+
+export const MANUAL_SORT_NEW_NOTE_PLACEMENT_OPTIONS: ManualSortNewNotePlacement[] = ['top', 'bottom', 'below-selected-note', 'unsorted'];
+
+export function isManualSortNewNotePlacement(value: unknown): value is ManualSortNewNotePlacement {
+    return value === 'top' || value === 'bottom' || value === 'below-selected-note' || value === 'unsorted';
 }
 
 /** Alphabetical ordering options used by navigation trees. */
@@ -533,6 +545,8 @@ export interface NotebookNavigatorSettings {
     defaultFolderSort: SortOption;
     propertySortKey: string;
     propertySortSecondary: PropertySortSecondaryOption;
+    manualSortGroupHeaderProperty: string;
+    manualSortNewNotePlacement: ManualSortNewNotePlacement;
     revealFileOnListChanges: boolean;
     listPaneTitle: ListPaneTitleOption;
     noteGrouping: ListNoteGroupingOption;

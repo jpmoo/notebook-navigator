@@ -96,10 +96,12 @@ import {
     getCachedManualSortRank,
     getManualSortPropertyValue,
     getManualSortSelectedMarkdownPaths,
+    getManualSortWriteFailureMessage,
     moveManualSortSelectionByDirection,
     partitionManualSortFiles,
     writeManualSortAssignments,
     type ManualSortOrderAssignment,
+    type ManualSortNewFilePlacementContext,
     type ManualSortWriteResult
 } from '../utils/manualSort';
 import { showNotice } from '../utils/noticeUtils';
@@ -131,6 +133,7 @@ export interface ListPaneHandle {
     modifySearchWithDateToken: (dateToken: string, options?: SearchQueryUpdateOptions) => void;
     toggleSearch: () => void;
     executeSearchShortcut: (params: ExecuteSearchShortcutParams) => Promise<void>;
+    getManualSortNewFileContext: () => ManualSortNewFilePlacementContext | null;
 }
 
 interface ListPaneProps {
@@ -160,7 +163,7 @@ interface ListPaneProps {
     onRevealProperty: (propertyNodeId: string, options?: RevealPropertyOptions) => boolean;
 }
 
-interface ManualSortState {
+interface ManualSortEditState {
     propertyKey: string;
     order: string[] | null;
     pendingAssignments: ManualSortOrderAssignment[];
@@ -180,19 +183,14 @@ interface PropertyKeyboardReorderState {
 }
 
 function getManualSortFailureMessage(result: ManualSortWriteResult): string {
-    const firstFailure = result.failures[0];
-    if (!firstFailure) {
-        return strings.common.unknownError;
-    }
-
-    if (result.failed === 1) {
-        return `${firstFailure.path}: ${firstFailure.message}`;
-    }
-
-    return strings.listPane.manualSortMultipleWriteFailure
-        .replace('{count}', result.failed.toString())
-        .replace('{path}', firstFailure.path)
-        .replace('{message}', firstFailure.message);
+    return getManualSortWriteFailureMessage(result, {
+        unknownError: strings.common.unknownError,
+        multipleFailureMessage: (count, path, message) =>
+            strings.listPane.manualSortMultipleWriteFailure
+                .replace('{count}', count.toString())
+                .replace('{path}', path)
+                .replace('{message}', message)
+    });
 }
 
 function getMarkdownPathOrder(files: readonly TFile[]): string[] {
@@ -236,6 +234,7 @@ interface ListPaneTitleChromeProps {
     isSearchActive?: boolean;
     onSearchToggle?: () => void;
     onManualSortStart?: (propertyKey: string) => void;
+    getManualSortNewFileContext?: () => ManualSortNewFilePlacementContext | null;
     actionsDisabled?: boolean;
     shouldShowDesktopTitleArea: boolean;
     children: React.ReactNode;
@@ -246,6 +245,7 @@ function ListPaneTitleChrome({
     isSearchActive,
     onSearchToggle,
     onManualSortStart,
+    getManualSortNewFileContext,
     actionsDisabled,
     shouldShowDesktopTitleArea,
     children
@@ -258,6 +258,7 @@ function ListPaneTitleChrome({
                 isSearchActive={isSearchActive}
                 onSearchToggle={onSearchToggle}
                 onManualSortStart={onManualSortStart}
+                getManualSortNewFileContext={getManualSortNewFileContext}
                 actionsDisabled={actionsDisabled}
                 desktopTitle={desktopTitle}
                 breadcrumbSegments={breadcrumbSegments}
@@ -272,7 +273,7 @@ function ListPaneTitleChrome({
 
 export const ListPane = React.memo(
     forwardRef<ListPaneHandle, ListPaneProps>(function ListPane(props, ref) {
-        const { app, isMobile, plugin } = useServices();
+        const { app, isMobile, plugin, fileSystemOps } = useServices();
         const { onNavigateToFolder, onRevealTag, onRevealProperty, folderDecorationModel, fileItemPillDecorationModel } = props;
         const selectionState = useSelectionState();
         const selectionDispatch = useSelectionDispatch();
@@ -305,10 +306,10 @@ export const ListPane = React.memo(
         const [calendarWeekCount, setCalendarWeekCount] = useState<number>(() => settings.calendarWeeksToShow);
         const [isListScrolling, setIsListScrolling] = useState(false);
         const [hoveredFilePath, setHoveredFilePath] = useState<string | null>(null);
-        const [manualSortState, setManualSortState] = useState<ManualSortState | null>(null);
+        const [manualSortEditState, setManualSortEditState] = useState<ManualSortEditState | null>(null);
         const [propertyKeyboardReorderState, setPropertyKeyboardReorderState] = useState<PropertyKeyboardReorderState | null>(null);
-        const manualSortSessionCounterRef = useRef(0);
-        const manualSortSaveCounterRef = useRef(0);
+        const manualSortEditSessionCounterRef = useRef(0);
+        const manualSortEditSaveCounterRef = useRef(0);
         const propertyKeyboardReorderSaveCounterRef = useRef(0);
         const propertyKeyboardReorderSavingRef = useRef(false);
         const propertyKeyboardReorderScrollPathRef = useRef<string | null>(null);
@@ -425,7 +426,7 @@ export const ListPane = React.memo(
             }
             return 'none';
         }, [selectedFolder, selectedProperty, selectedTag, selectionType]);
-        const isManualSortActive = manualSortState !== null;
+        const isManualSortEditActive = manualSortEditState !== null;
         const pinnedCollapseKey = getPinnedSectionCollapseKey({ selectionType, selectedFolder, selectedTag, selectedProperty });
         const pinnedGroupExpanded = settings.collapsedPinnedContexts[pinnedCollapseKey] !== true;
         const handlePinnedGroupHeaderToggle = React.useCallback(() => {
@@ -433,12 +434,12 @@ export const ListPane = React.memo(
         }, [pinnedCollapseKey, plugin]);
 
         useEffect(() => {
-            if (!manualSortState || manualSortState.selectionKey === manualSortSelectionKey) {
+            if (!manualSortEditState || manualSortEditState.selectionKey === manualSortSelectionKey) {
                 return;
             }
 
-            setManualSortState(null);
-        }, [manualSortSelectionKey, manualSortState]);
+            setManualSortEditState(null);
+        }, [manualSortSelectionKey, manualSortEditState]);
 
         useEffect(() => {
             if (!propertyKeyboardReorderState) {
@@ -446,7 +447,7 @@ export const ListPane = React.memo(
             }
 
             if (
-                isManualSortActive ||
+                isManualSortEditActive ||
                 isSearchActive ||
                 !isPropertySortActive ||
                 !effectivePropertySortKey ||
@@ -459,7 +460,7 @@ export const ListPane = React.memo(
             }
         }, [
             effectivePropertySortKey,
-            isManualSortActive,
+            isManualSortEditActive,
             isPropertySortActive,
             isSearchActive,
             manualSortSelectionKey,
@@ -467,7 +468,7 @@ export const ListPane = React.memo(
         ]);
 
         const canUsePropertyKeyboardReorder =
-            !isManualSortActive && !isSearchActive && isPropertySortActive && effectivePropertySortKey.length > 0;
+            !isManualSortEditActive && !isSearchActive && isPropertySortActive && effectivePropertySortKey.length > 0;
         const activePropertyKeyboardReorderState =
             canUsePropertyKeyboardReorder &&
             propertyKeyboardReorderState?.selectionKey === manualSortSelectionKey &&
@@ -476,7 +477,7 @@ export const ListPane = React.memo(
                 : null;
         const propertySortOrderOverride = activePropertyKeyboardReorderState?.order ?? null;
 
-        const effectiveGroupBy = isManualSortActive || isPropertySortActive ? 'none' : appearanceSettings.groupBy;
+        const effectiveGroupBy = isManualSortEditActive || isPropertySortActive ? 'none' : appearanceSettings.groupBy;
         const effectiveAppearanceSettings = useMemo(
             () =>
                 effectiveGroupBy === appearanceSettings.groupBy ? appearanceSettings : { ...appearanceSettings, groupBy: effectiveGroupBy },
@@ -533,7 +534,7 @@ export const ListPane = React.memo(
                 saveId: number
             ) => {
                 saveManualSortAssignments(filesToWrite, propertyKey, assignments, shouldResetOptimisticOrder => {
-                    setManualSortState(current => {
+                    setManualSortEditState(current => {
                         if (
                             !current ||
                             current.propertyKey !== propertyKey ||
@@ -599,11 +600,11 @@ export const ListPane = React.memo(
 
         const handleManualSortStart = React.useCallback(
             (propertyKey: string) => {
-                const sessionId = manualSortSessionCounterRef.current + 1;
-                manualSortSessionCounterRef.current = sessionId;
+                const sessionId = manualSortEditSessionCounterRef.current + 1;
+                manualSortEditSessionCounterRef.current = sessionId;
                 const selectionKey = manualSortSelectionKey;
                 closeSearch();
-                setManualSortState({
+                setManualSortEditState({
                     propertyKey,
                     order: null,
                     pendingAssignments: [],
@@ -631,8 +632,8 @@ export const ListPane = React.memo(
             pinnedGroupExpanded,
             searchProvider,
             // Use debounced value for filtering
-            searchQuery: !isManualSortActive && isSearchActive ? debouncedSearchQuery : undefined,
-            searchTokens: !isManualSortActive && isSearchActive ? debouncedSearchTokens : undefined,
+            searchQuery: !isManualSortEditActive && isSearchActive ? debouncedSearchQuery : undefined,
+            searchTokens: !isManualSortEditActive && isSearchActive ? debouncedSearchTokens : undefined,
             visibility: { includeDescendantNotes, showHiddenItems },
             propertySortOrderOverride
         });
@@ -733,7 +734,7 @@ export const ListPane = React.memo(
         // Use the new scroll hook
         const { rowVirtualizer, scrollContainerRef, scrollContainerRefCallback, handleScrollToTop, scrollToIndexSafely } =
             useListPaneScroll({
-                enabled: !isManualSortActive,
+                enabled: !isManualSortEditActive,
                 listItems,
                 filePathToIndex,
                 selectedFile,
@@ -746,7 +747,7 @@ export const ListPane = React.memo(
                 selectionState,
                 selectionDispatch,
                 // Use debounced value for scroll orchestration to align with filtering
-                searchQuery: !isManualSortActive && isSearchActive ? debouncedSearchQuery : undefined,
+                searchQuery: !isManualSortEditActive && isSearchActive ? debouncedSearchQuery : undefined,
                 suppressSearchTopScrollRef,
                 topSpacerHeight: effectiveTopSpacerHeight,
                 includeDescendantNotes,
@@ -796,17 +797,6 @@ export const ListPane = React.memo(
 
             window.setTimeout(scheduleScroll, 0);
         }, [calendarWeekCount, filePathToIndex, scrollToIndexSafely, selectedFile, shouldRenderCalendarOverlay]);
-
-        const listToolbar = useMemo(() => {
-            return (
-                <ListToolbar
-                    isSearchActive={isSearchActive}
-                    onSearchToggle={handleSearchToggle}
-                    onManualSortStart={handleManualSortStart}
-                    useFloatingLayout={shouldUseFloatingToolbars}
-                />
-            );
-        }, [handleManualSortStart, handleSearchToggle, isSearchActive, shouldUseFloatingToolbars]);
 
         const handleHoveredFilePathChange = React.useCallback(
             (path: string | null, pointerClientPosition: PointerClientPosition | null) => {
@@ -860,13 +850,13 @@ export const ListPane = React.memo(
             await addNoteShortcutRef.current(file.path);
         }, []);
 
-        const manualSortPropertyKey = manualSortState?.propertyKey ?? '';
-        const manualSortRankByPath = useMemo(
-            () => buildManualSortRankMap(app, files, manualSortPropertyKey, manualSortState?.pendingAssignments ?? []),
-            [app, files, manualSortPropertyKey, manualSortState?.pendingAssignments]
+        const manualSortEditPropertyKey = manualSortEditState?.propertyKey ?? '';
+        const manualSortEditRankByPath = useMemo(
+            () => buildManualSortRankMap(app, files, manualSortEditPropertyKey, manualSortEditState?.pendingAssignments ?? []),
+            [app, files, manualSortEditPropertyKey, manualSortEditState?.pendingAssignments]
         );
         const propertySortedManualFiles = useMemo(() => {
-            if (!manualSortPropertyKey) {
+            if (!manualSortEditPropertyKey) {
                 return files;
             }
 
@@ -879,9 +869,9 @@ export const ListPane = React.memo(
                     return propertyValueByPath.get(file.path) ?? null;
                 }
 
-                const pendingRank = manualSortRankByPath.get(file.path);
+                const pendingRank = manualSortEditRankByPath.get(file.path);
                 const value =
-                    pendingRank === undefined ? getManualSortPropertyValue(app, file, manualSortPropertyKey) : pendingRank.toString();
+                    pendingRank === undefined ? getManualSortPropertyValue(app, file, manualSortEditPropertyKey) : pendingRank.toString();
                 propertyValueByPath.set(file.path, value);
                 return value;
             };
@@ -900,19 +890,19 @@ export const ListPane = React.memo(
             files,
             getFileDisplayName,
             getFileTimestamps,
-            manualSortPropertyKey,
-            manualSortRankByPath,
+            manualSortEditPropertyKey,
+            manualSortEditRankByPath,
             settings.propertySortSecondary
         ]);
 
-        const manualSortFiles = useMemo(() => {
-            const order = manualSortState?.order;
+        const manualSortEditFiles = useMemo(() => {
+            const order = manualSortEditState?.order;
             if (!order) {
                 return propertySortedManualFiles;
             }
 
             return applyManualSortMarkdownOrder(propertySortedManualFiles, order);
-        }, [manualSortState?.order, propertySortedManualFiles]);
+        }, [manualSortEditState?.order, propertySortedManualFiles]);
         const propertyKeyboardRankByPath = useMemo(() => {
             if (!canUsePropertyKeyboardReorder) {
                 return new Map<string, number>();
@@ -931,27 +921,27 @@ export const ListPane = React.memo(
             effectivePropertySortKey,
             orderedFiles
         ]);
-        const isManualSortDoneDisabled = Boolean(manualSortState?.isSaving);
+        const isManualSortEditDoneDisabled = Boolean(manualSortEditState?.isSaving);
         const handleManualSortDone = React.useCallback(() => {
-            if (!manualSortState || isManualSortDoneDisabled) {
+            if (!manualSortEditState || isManualSortEditDoneDisabled) {
                 return;
             }
 
-            setManualSortState(null);
-        }, [isManualSortDoneDisabled, manualSortState]);
+            setManualSortEditState(null);
+        }, [isManualSortEditDoneDisabled, manualSortEditState]);
         const handleManualSortReorder = React.useCallback(
             ({ nextFiles, movedPaths }: { nextFiles: TFile[]; movedPaths: ReadonlySet<string> }) => {
-                if (!manualSortState?.propertyKey) {
+                if (!manualSortEditState?.propertyKey) {
                     return;
                 }
 
-                const { propertyKey, selectionKey, sessionId } = manualSortState;
-                const plan = buildManualSortRankPlan(nextFiles, movedPaths, manualSortRankByPath);
+                const { propertyKey, selectionKey, sessionId } = manualSortEditState;
+                const plan = buildManualSortRankPlan(nextFiles, movedPaths, manualSortEditRankByPath);
                 const savePlan = () => {
-                    const saveId = manualSortSaveCounterRef.current + 1;
-                    manualSortSaveCounterRef.current = saveId;
+                    const saveId = manualSortEditSaveCounterRef.current + 1;
+                    manualSortEditSaveCounterRef.current = saveId;
                     const nextOrder = getMarkdownPathOrder(plan.files);
-                    setManualSortState(current =>
+                    setManualSortEditState(current =>
                         current && current.sessionId === sessionId
                             ? {
                                   ...current,
@@ -972,13 +962,13 @@ export const ListPane = React.memo(
 
                 savePlan();
             },
-            [confirmManualSortCompaction, manualSortRankByPath, manualSortState, saveManualSortPlan]
+            [confirmManualSortCompaction, manualSortEditRankByPath, manualSortEditState, saveManualSortPlan]
         );
         const handleManualSortFileClick = React.useCallback(
             (file: TFile, fileIndex: number | undefined, event: React.MouseEvent) => {
-                handleFileItemClick(file, fileIndex, event, manualSortFiles);
+                handleFileItemClick(file, fileIndex, event, manualSortEditFiles);
             },
-            [handleFileItemClick, manualSortFiles]
+            [handleFileItemClick, manualSortEditFiles]
         );
         const getPropertyKeyboardReorderScopeFiles = React.useCallback(
             (activePath: string | null): TFile[] => {
@@ -1077,6 +1067,77 @@ export const ListPane = React.memo(
             ]
         );
 
+        const getManualSortNewFileContext = React.useCallback((): ManualSortNewFilePlacementContext | null => {
+            const selectedFilePath = selectedFile?.path ?? null;
+            const placement = settings.manualSortNewNotePlacement;
+            const target =
+                selectionType === ItemType.FOLDER && selectedFolder
+                    ? { targetType: 'folder' as const, targetKey: selectedFolder.path }
+                    : selectionType === ItemType.TAG && selectedTag
+                      ? { targetType: 'tag' as const, targetKey: selectedTag }
+                      : selectionType === ItemType.PROPERTY && selectedProperty
+                        ? { targetType: 'property' as const, targetKey: selectedProperty }
+                        : null;
+
+            if (!target) {
+                return null;
+            }
+
+            if (manualSortEditState?.propertyKey) {
+                return {
+                    ...target,
+                    propertyKey: manualSortEditState.propertyKey,
+                    files: manualSortEditFiles,
+                    selectedFilePath,
+                    rankByPath: manualSortEditRankByPath,
+                    placement
+                };
+            }
+
+            if (!canUsePropertyKeyboardReorder || !effectivePropertySortKey) {
+                return null;
+            }
+
+            return {
+                ...target,
+                propertyKey: effectivePropertySortKey,
+                files: orderedFiles,
+                selectedFilePath,
+                rankByPath: propertyKeyboardRankByPath,
+                placement
+            };
+        }, [
+            canUsePropertyKeyboardReorder,
+            effectivePropertySortKey,
+            manualSortEditFiles,
+            manualSortEditRankByPath,
+            manualSortEditState?.propertyKey,
+            orderedFiles,
+            propertyKeyboardRankByPath,
+            selectedFolder,
+            selectedFile,
+            selectedProperty,
+            selectedTag,
+            selectionType,
+            settings.manualSortNewNotePlacement
+        ]);
+
+        const listToolbar = useMemo(() => {
+            return (
+                <ListToolbar
+                    isSearchActive={isSearchActive}
+                    onSearchToggle={handleSearchToggle}
+                    onManualSortStart={handleManualSortStart}
+                    getManualSortNewFileContext={getManualSortNewFileContext}
+                    useFloatingLayout={shouldUseFloatingToolbars}
+                />
+            );
+        }, [getManualSortNewFileContext, handleManualSortStart, handleSearchToggle, isSearchActive, shouldUseFloatingToolbars]);
+
+        useEffect(() => {
+            return fileSystemOps.setManualSortNewFileContextProvider(getManualSortNewFileContext);
+        }, [fileSystemOps, getManualSortNewFileContext]);
+
         useEffect(() => {
             const scrollPath = propertyKeyboardReorderScrollPathRef.current;
             if (!scrollPath) {
@@ -1111,7 +1172,8 @@ export const ListPane = React.memo(
                 modifySearchWithDateToken,
                 // Toggle search mode on/off or focus existing search
                 toggleSearch,
-                executeSearchShortcut
+                executeSearchShortcut,
+                getManualSortNewFileContext
             }),
             [
                 filePathToIndex,
@@ -1123,7 +1185,8 @@ export const ListPane = React.memo(
                 selectAdjacentFile,
                 modifySearchWithTag,
                 modifySearchWithProperty,
-                modifySearchWithDateToken
+                modifySearchWithDateToken,
+                getManualSortNewFileContext
             ]
         );
 
@@ -1132,7 +1195,7 @@ export const ListPane = React.memo(
         // This ensures keyboard events work across the entire navigator, allowing
         // users to navigate between panes (navigation <-> files) with Tab/Arrow keys.
         useListPaneKeyboard({
-            enabled: !isManualSortActive,
+            enabled: !isManualSortEditActive,
             items: listItems,
             virtualizer: rowVirtualizer,
             containerRef: props.rootContainerRef,
@@ -1175,11 +1238,12 @@ export const ListPane = React.memo(
                         isSearchActive={isSearchActive}
                         onSearchToggle={handleSearchToggle}
                         onManualSortStart={handleManualSortStart}
-                        actionsDisabled={isManualSortActive}
+                        getManualSortNewFileContext={getManualSortNewFileContext}
+                        actionsDisabled={isManualSortEditActive}
                         shouldShowDesktopTitleArea={shouldShowDesktopTitleArea}
                     >
                         {/* Android - toolbar at top */}
-                        {isMobile && isAndroid && !manualSortState ? listToolbar : null}
+                        {isMobile && isAndroid && !manualSortEditState ? listToolbar : null}
                         {/* Search bar - collapsible */}
                         <div className={`nn-search-bar-container ${isSearchActive ? 'nn-search-bar-visible' : ''}`}>
                             {isSearchActive && (
@@ -1205,16 +1269,16 @@ export const ListPane = React.memo(
                     </ListPaneTitleChrome>
                 </div>
                 <div className="nn-list-pane-panel">
-                    {manualSortState ? (
+                    {manualSortEditState ? (
                         <ManualSortListContent
-                            files={manualSortFiles}
+                            files={manualSortEditFiles}
                             listItems={listItems}
                             hiddenFileState={hiddenFileState}
-                            propertyKey={manualSortState.propertyKey}
-                            rankByPath={manualSortRankByPath}
+                            propertyKey={manualSortEditState.propertyKey}
+                            rankByPath={manualSortEditRankByPath}
                             selectedFolderPath={selectedFolder?.path ?? null}
-                            isSaving={manualSortState.isSaving}
-                            isDoneDisabled={isManualSortDoneDisabled}
+                            isSaving={manualSortEditState.isSaving}
+                            isDoneDisabled={isManualSortEditDoneDisabled}
                             settings={settings}
                             selectionType={selectionType}
                             sortOption={effectiveSortOption}
@@ -1279,7 +1343,7 @@ export const ListPane = React.memo(
                         />
                     )}
                     {/* iOS: keep the floating toolbar inside the panel */}
-                    {shouldRenderBottomToolbarInsidePanel && !manualSortState ? (
+                    {shouldRenderBottomToolbarInsidePanel && !manualSortEditState ? (
                         <div className="nn-pane-bottom-toolbar">{listToolbar}</div>
                     ) : null}
                 </div>
@@ -1288,7 +1352,7 @@ export const ListPane = React.memo(
                         <Calendar onWeekCountChange={setCalendarWeekCount} onAddDateFilter={modifySearchWithDateToken} />
                     </div>
                 ) : null}
-                {shouldRenderBottomToolbarOutsidePanel && !manualSortState ? (
+                {shouldRenderBottomToolbarOutsidePanel && !manualSortEditState ? (
                     <div className="nn-pane-bottom-toolbar">{listToolbar}</div>
                 ) : null}
             </div>
