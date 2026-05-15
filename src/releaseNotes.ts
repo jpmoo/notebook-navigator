@@ -90,7 +90,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
             '**Manual sort.** You can reorder notes directly in the list pane. Select one or more notes and press Cmd/Ctrl + Arrow Up/Down. Or pick **Edit sort order...** from the sort menu to open a dedicated drag-and-drop view, which supports multi-select on desktop and touch on mobile.',
             '**Manual sort.** You can add custom group headers above any note. Right-click a note in the list pane or in Edit sort order... and choose **Set group header**.',
             '**Manual sort.** Custom group headers can show total word count or progress against a target word count.',
-            '**Manual sort.** New setting: List > Manual sort > ==New note placement== controls where new notes are added when manual sort is active — Top, Bottom, Below selected note, or Unsorted. Default is below selected note.',
+            '**Manual sort.** New setting: List > Manual sort > ==New note placement== controls where new notes are added when manual sort is active: Top, Bottom, Below selected note, or Unsorted. Default is below selected note.',
             '**List pane.** ==Group headers can now be collapsed.== Click the chevron next to a group header to collapse or expand it.',
             '**Recent files.** You can now drag items from recent files into shortcuts, folders, tags and properties.',
             '**Calendar.** New setting Calendar > Calendar integration > ==Periodic notes locale== controls whether Notebook Navigator periodic note paths use the selected calendar locale or Obsidian locale.'
