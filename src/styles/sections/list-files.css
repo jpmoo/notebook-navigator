@@ -331,7 +331,7 @@
         var(--nn-file-item-padding-horizontal) + var(--nn-file-icon-slot-width-mobile, var(--nn-file-icon-slot-width)) +
             var(--nn-file-icon-slot-gap)
     );
-    inset-inline-end: calc(var(--nn-file-item-padding-horizontal) + 2.75rem);
+    inset-inline-end: var(--nn-file-item-padding-horizontal);
     height: var(--nn-separator-height);
     background-color: var(--nn-theme-list-separator-color);
     z-index: 100;
@@ -347,21 +347,6 @@
 .nn-manual-sort-file .nn-file-content,
 .nn-manual-sort-file .nn-file-inner-content {
     height: auto;
-}
-
-.nn-manual-sort-value {
-    flex: 0 0 auto;
-    align-self: center;
-    min-width: 2.25rem;
-    max-width: 5rem;
-    margin-inline-start: 0.5rem;
-    padding-inline-end: var(--nn-file-item-padding-horizontal);
-    color: var(--nn-theme-foreground-muted);
-    font-size: var(--nn-file-small-size-mobile, var(--nn-file-small-size));
-    text-align: end;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .nn-file-manual-sort-disabled {
@@ -385,7 +370,7 @@
         var(--nn-file-item-padding-horizontal) + var(--nn-file-icon-slot-width-mobile, var(--nn-file-icon-slot-width)) +
             var(--nn-file-icon-slot-gap)
     );
-    inset-inline-end: calc(var(--nn-file-item-padding-horizontal) + 2.75rem + 28px + var(--nn-file-item-padding-horizontal));
+    inset-inline-end: calc(var(--nn-file-item-padding-horizontal) + 28px + var(--nn-file-item-padding-horizontal));
 }
 
 .notebook-navigator-mobile .nn-manual-sort-row .nn-drag-handle {

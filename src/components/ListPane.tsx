@@ -1271,7 +1271,6 @@ export const ListPane = React.memo(
                             selectedFolderPath={selectedFolder?.path ?? null}
                             isSaving={manualSortEditState.isSaving}
                             isDoneDisabled={isManualSortEditDoneDisabled}
-                            settings={settings}
                             selectionType={selectionType}
                             sortOption={effectiveSortOption}
                             localDayReference={localDayReference}

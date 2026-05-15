@@ -1490,24 +1490,6 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
 
             menu.addSeparator();
 
-            (['asc', 'desc'] as const).forEach(direction => {
-                menu.addItem(item => {
-                    const option = buildSortOption(currentField, direction);
-                    item.setTitle(sortDirectionLabels[direction])
-                        .setIcon(getSortIconName(option))
-                        .setDisabled(isManualSortActive)
-                        .setChecked(currentDirection === direction)
-                        .onClick(() => {
-                            if (isManualSortActive) {
-                                return;
-                            }
-                            applySort(currentField, direction, currentField === 'property' ? currentSortSpec.propertyKey : undefined);
-                        });
-                });
-            });
-
-            menu.addSeparator();
-
             (['modified', 'created', 'title', 'filename'] as const).forEach(field => {
                 menu.addItem(item => {
                     item.setTitle(getSortFieldLabel(field))
@@ -1553,6 +1535,24 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
                         }
                         onManualSortStart(currentSortSpec.propertyKey);
                     });
+            });
+
+            menu.addSeparator();
+
+            (['asc', 'desc'] as const).forEach(direction => {
+                menu.addItem(item => {
+                    const option = buildSortOption(currentField, direction);
+                    item.setTitle(sortDirectionLabels[direction])
+                        .setIcon(getSortIconName(option))
+                        .setDisabled(isManualSortActive)
+                        .setChecked(currentDirection === direction)
+                        .onClick(() => {
+                            if (isManualSortActive) {
+                                return;
+                            }
+                            applySort(currentField, direction, currentField === 'property' ? currentSortSpec.propertyKey : undefined);
+                        });
+                });
             });
 
             menu.addSeparator();

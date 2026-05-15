@@ -23,7 +23,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { TFile } from 'obsidian';
 import { useServices } from '../../context/ServicesContext';
 import { strings } from '../../i18n';
-import type { NotebookNavigatorSettings, SortOption } from '../../settings';
+import type { SortOption } from '../../settings';
 import { ListPaneItemType, type NavigationItemType } from '../../types';
 import type { ListPaneItem } from '../../types/virtualization';
 import type { ListPaneAppearanceSettings } from '../../hooks/useListPaneAppearance';
@@ -54,7 +54,6 @@ interface ManualSortListContentProps {
     selectedFolderPath: string | null;
     isSaving: boolean;
     isDoneDisabled: boolean;
-    settings: NotebookNavigatorSettings;
     selectionType: NavigationItemType | null;
     sortOption?: SortOption;
     localDayReference: Date | null;
@@ -79,13 +78,11 @@ interface ManualSortListContentProps {
 interface ManualSortEntry {
     file: TFile;
     sortableId: string;
-    manualValue: number | null;
     info: ManualSortFileInfo;
 }
 
 interface ManualSortRowContext {
     isMobile: boolean;
-    settings: NotebookNavigatorSettings;
     selectionType: NavigationItemType | null;
     sortOption?: SortOption;
     localDayReference: Date | null;
@@ -126,7 +123,6 @@ function ManualSortRowContent({
     entry,
     canReorder,
     isMobile,
-    settings,
     selectionType,
     sortOption,
     localDayReference,
@@ -148,8 +144,6 @@ function ManualSortRowContent({
     hasSelectedBelow,
     dragHandle
 }: ManualSortRowProps & { dragHandle?: ReactNode }) {
-    const valueLabel = entry.manualValue === null ? null : entry.manualValue.toString();
-
     return (
         <>
             <div className="nn-manual-sort-file">
@@ -186,9 +180,6 @@ function ManualSortRowContent({
                     manualSortDisabled={!canReorder}
                 />
             </div>
-            <span className="nn-manual-sort-value" title={settings.showTooltips ? undefined : (valueLabel ?? undefined)}>
-                {valueLabel ?? '-'}
-            </span>
             {isMobile && canReorder ? dragHandle : null}
         </>
     );
@@ -340,7 +331,6 @@ export function ManualSortListContent({
     selectedFolderPath,
     isSaving,
     isDoneDisabled,
-    settings,
     selectionType,
     sortOption,
     localDayReference,
@@ -370,16 +360,6 @@ export function ManualSortListContent({
     const manualFileIndexByPath = useMemo(() => new Map(files.map((file, index) => [file.path, index])), [files]);
     const rankedMarkdownFiles = useMemo(() => markdownFiles.filter(file => rankByPath.has(file.path)), [markdownFiles, rankByPath]);
     const unsortedMarkdownFiles = useMemo(() => markdownFiles.filter(file => !rankByPath.has(file.path)), [markdownFiles, rankByPath]);
-    const manualValueByPath = useMemo(() => {
-        const map = new Map<string, number>();
-        rankedMarkdownFiles.forEach(file => {
-            const rank = rankByPath.get(file.path);
-            if (rank !== undefined) {
-                map.set(file.path, rank);
-            }
-        });
-        return map;
-    }, [rankByPath, rankedMarkdownFiles]);
     const nonMarkdownCount = nonMarkdownFiles.length;
     const hasNoFiles = files.length === 0;
 
@@ -390,7 +370,6 @@ export function ManualSortListContent({
                 return {
                     file,
                     sortableId: file.path,
-                    manualValue: manualValueByPath.get(file.path) ?? null,
                     info: {
                         ...info,
                         fileIndex: manualFileIndexByPath.get(file.path) ?? info.fileIndex,
@@ -399,7 +378,7 @@ export function ManualSortListContent({
                     }
                 };
             }),
-        [fileInfoByPath, hiddenFileState, manualFileIndexByPath, manualValueByPath, selectedFolderPath]
+        [fileInfoByPath, hiddenFileState, manualFileIndexByPath, selectedFolderPath]
     );
     const rankedEntries = useMemo<ManualSortEntry[]>(() => buildEntries(rankedMarkdownFiles), [buildEntries, rankedMarkdownFiles]);
     const unsortedEntries = useMemo<ManualSortEntry[]>(() => buildEntries(unsortedMarkdownFiles), [buildEntries, unsortedMarkdownFiles]);
@@ -415,7 +394,6 @@ export function ManualSortListContent({
     const rowContext = useMemo<ManualSortRowContext>(
         () => ({
             isMobile,
-            settings,
             selectionType,
             sortOption,
             localDayReference,
@@ -434,7 +412,6 @@ export function ManualSortListContent({
         }),
         [
             isMobile,
-            settings,
             selectionType,
             sortOption,
             localDayReference,
