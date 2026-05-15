@@ -383,6 +383,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
 
     // Calendar tab - Calendar integration
     calendarIntegrationMode: 'notebook-navigator',
+    calendarPeriodicNotesLocaleSource: 'calendar',
     calendarCustomFilePattern: DEFAULT_CALENDAR_CUSTOM_FILE_PATTERN,
     calendarCustomWeekPattern: DEFAULT_CALENDAR_CUSTOM_WEEK_PATTERN,
     calendarCustomMonthPattern: DEFAULT_CALENDAR_CUSTOM_MONTH_PATTERN,

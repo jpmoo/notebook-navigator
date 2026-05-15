@@ -1273,8 +1273,8 @@ export const STRINGS_PL = {
             calendarLocale: {
                 name: 'Ustawienia regionalne',
                 desc: 'Kontroluje formatowanie dat kalendarza, numerację tygodni i pierwszy dzień tygodnia.',
-                incompatibleWeekPatternWarning:
-                    'Wzór notatek tygodniowych używa tokenów tygodnia ISO ("W" lub "G"). Kalendarz będzie wyświetlał tygodnie zaczynające się od poniedziałku zamiast od pierwszego dnia tygodnia tych ustawień regionalnych.',
+                weekPathMismatchWarning:
+                    'Widoczny kalendarz i ścieżki notatek tygodniowych używają różnych początków tygodni lub numeracji tygodni.',
                 options: {
                     systemDefault: 'Domyślne'
                 }
@@ -1345,6 +1345,14 @@ export const STRINGS_PL = {
                     dailyNotes: 'Folder i format daty można zmienić w ustawieniach wtyczki.'
                 }
             },
+            calendarPeriodicNotesLocale: {
+                name: 'Ustawienia regionalne notatek okresowych',
+                desc: 'Kontroluje zlokalizowane nazwy miesięcy, dni tygodnia, numery tygodni oraz początki tygodni w ścieżkach notatek okresowych Notebook Navigator.',
+                options: {
+                    calendar: 'Kalendarz',
+                    obsidian: 'Obsidian'
+                }
+            },
 
             calendarCustomRootFolder: {
                 name: 'Folder główny',
@@ -1370,8 +1378,10 @@ export const STRINGS_PL = {
             calendarCustomWeekPattern: {
                 name: 'Notatki tygodniowe',
                 parsingError: 'Wzór musi być tak sformatowany, aby można było odczytać kompletną datę (rok tygodnia, numer tygodnia).',
-                localeMismatchWarning:
-                    'Ten wzór używa tokenów tygodnia ISO ("W" lub "G"). Kalendarz będzie wyświetlał tygodnie zaczynające się od poniedziałku. Użyj "w" lub "g", jeśli notatki tygodniowe mają być zgodne z wybranymi ustawieniami regionalnymi.'
+                weekPathMismatchWarning:
+                    'Ścieżki notatek tygodniowych używają ustawień regionalnych notatek okresowych. Użyj pasujących ustawień regionalnych lub użyj "GGGG" z "WW" dla tygodni rozpoczynających się w poniedziałek.',
+                mixedWeekTokensWarning:
+                    'Ten wzór miesza tokeny tygodnia rozpoczynające się w poniedziałek ("W" lub "G") z tokenami tygodnia opartymi na ustawieniach regionalnych ("w" lub "g"). Użyj konsekwentnie jednego zestawu: "GGGG" z "WW" dla tygodni rozpoczynających się w poniedziałek lub "gggg" z "ww", jeśli notatki tygodniowe mają być zgodne z wybranymi ustawieniami regionalnymi.'
             },
             calendarCustomMonthPattern: {
                 name: 'Notatki miesięczne',

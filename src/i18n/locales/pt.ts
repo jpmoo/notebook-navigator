@@ -1270,8 +1270,8 @@ export const STRINGS_PT = {
             calendarLocale: {
                 name: 'Idioma',
                 desc: 'Controla a formatação das datas do calendário, a numeração das semanas e o primeiro dia da semana.',
-                incompatibleWeekPatternWarning:
-                    'O padrão de notas semanais usa tokens de semana ISO ("W" ou "G"). O calendário apresentará as semanas a começar na segunda-feira em vez do primeiro dia da semana desta língua.',
+                weekPathMismatchWarning:
+                    'O calendário visível e os caminhos das notas semanais usam inícios de semana ou numeração de semana diferentes.',
                 options: {
                     systemDefault: 'Predefinido'
                 }
@@ -1342,6 +1342,14 @@ export const STRINGS_PT = {
                     dailyNotes: 'Pasta e formato de data são configurados no plugin Daily Notes.'
                 }
             },
+            calendarPeriodicNotesLocale: {
+                name: 'Idioma das notas periódicas',
+                desc: 'Controla nomes de meses, nomes de dias da semana, números de semana e inícios de semana localizados nos caminhos das notas periódicas do Notebook Navigator.',
+                options: {
+                    calendar: 'Calendário',
+                    obsidian: 'Obsidian'
+                }
+            },
 
             calendarCustomRootFolder: {
                 name: 'Pasta raiz',
@@ -1368,8 +1376,10 @@ export const STRINGS_PT = {
                 name: 'Notas semanais',
                 parsingError:
                     'O padrão deve ser formatado e analisado novamente como uma semana completa (ano da semana, número da semana).',
-                localeMismatchWarning:
-                    'Este padrão usa tokens de semana ISO ("W" ou "G"). O calendário apresentará as semanas a começar na segunda-feira. Use "w" ou "g" se as notas semanais devem seguir a língua selecionada.'
+                weekPathMismatchWarning:
+                    'Os caminhos das notas semanais usam o idioma das notas periódicas. Use idiomas correspondentes ou use "GGGG" com "WW" para semanas baseadas na segunda-feira.',
+                mixedWeekTokensWarning:
+                    'Este padrão mistura tokens de semana baseados na segunda-feira ("W" ou "G") com tokens de semana baseados no idioma ("w" ou "g"). Use um conjunto de forma consistente: "GGGG" com "WW" para semanas baseadas na segunda-feira, ou "gggg" com "ww" se as notas semanais devem seguir a língua selecionada.'
             },
             calendarCustomMonthPattern: {
                 name: 'Notas mensais',

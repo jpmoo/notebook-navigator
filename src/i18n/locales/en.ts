@@ -1265,8 +1265,7 @@ export const STRINGS_EN = {
             calendarLocale: {
                 name: 'Locale',
                 desc: 'Controls calendar date formatting, week numbering, and first day of the week.',
-                incompatibleWeekPatternWarning:
-                    'Weekly notes pattern uses ISO week tokens ("W" or "G"). The calendar will display weeks starting on Monday instead of this locale\'s first day of week.',
+                weekPathMismatchWarning: 'The visible calendar and weekly note paths use different week starts or week numbering.',
                 options: {
                     systemDefault: 'Default'
                 }
@@ -1337,6 +1336,14 @@ export const STRINGS_EN = {
                     dailyNotes: 'Folder and date format are configured in the Daily Notes core plugin.'
                 }
             },
+            calendarPeriodicNotesLocale: {
+                name: 'Periodic notes locale',
+                desc: 'Controls localized month names, weekday names, week numbers, and week starts in Notebook Navigator periodic note paths.',
+                options: {
+                    calendar: 'Calendar',
+                    obsidian: 'Obsidian'
+                }
+            },
 
             calendarCustomRootFolder: {
                 name: 'Root folder (vault profile)',
@@ -1362,8 +1369,10 @@ export const STRINGS_EN = {
             calendarCustomWeekPattern: {
                 name: 'Weekly notes',
                 parsingError: 'Pattern must format and parse back to a full week (week year, week number).',
-                localeMismatchWarning:
-                    'This pattern uses ISO week tokens ("W" or "G"). The calendar will display weeks starting on Monday. Use "w" or "g" if weekly notes should follow the selected locale.'
+                weekPathMismatchWarning:
+                    'Weekly note paths use the periodic notes locale. Use matching locales, or use "GGGG" with "WW" for Monday-based weeks.',
+                mixedWeekTokensWarning:
+                    'This pattern mixes Monday-based week tokens ("W" or "G") with locale-based week tokens ("w" or "g"). Use one set consistently: "GGGG" with "WW" for Monday-based weeks, or "gggg" with "ww" if weekly notes should follow the selected locale.'
             },
             calendarCustomMonthPattern: {
                 name: 'Monthly notes',

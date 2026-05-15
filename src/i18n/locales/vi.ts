@@ -1270,8 +1270,8 @@ export const STRINGS_VI = {
             calendarLocale: {
                 name: 'Ngôn ngữ',
                 desc: 'Điều khiển định dạng ngày trong lịch, đánh số tuần và ngày đầu tuần.',
-                incompatibleWeekPatternWarning:
-                    'Mẫu ghi chú hàng tuần sử dụng token tuần ISO ("W" hoặc "G"). Lịch sẽ hiển thị tuần bắt đầu từ thứ Hai thay vì ngày đầu tuần của ngôn ngữ này.',
+                weekPathMismatchWarning:
+                    'Lịch hiển thị và đường dẫn ghi chú hàng tuần sử dụng các ngày bắt đầu tuần hoặc cách đánh số tuần khác nhau.',
                 options: {
                     systemDefault: 'Mặc định'
                 }
@@ -1342,6 +1342,14 @@ export const STRINGS_VI = {
                     dailyNotes: 'Thư mục và định dạng ngày được cấu hình trong plugin Daily Notes cốt lõi.'
                 }
             },
+            calendarPeriodicNotesLocale: {
+                name: 'Ngôn ngữ ghi chú định kỳ',
+                desc: 'Điều khiển tên tháng, tên ngày trong tuần, số tuần và ngày bắt đầu tuần được bản địa hóa trong đường dẫn ghi chú định kỳ của Notebook Navigator.',
+                options: {
+                    calendar: 'Lịch',
+                    obsidian: 'Obsidian'
+                }
+            },
 
             calendarCustomRootFolder: {
                 name: 'Thư mục gốc',
@@ -1367,8 +1375,10 @@ export const STRINGS_VI = {
             calendarCustomWeekPattern: {
                 name: 'Ghi chú hàng tuần',
                 parsingError: 'Mẫu phải có thể định dạng và phân tích lại thành một tuần đầy đủ (năm tuần, số tuần).',
-                localeMismatchWarning:
-                    'Mẫu này sử dụng token tuần ISO ("W" hoặc "G"). Lịch sẽ hiển thị tuần bắt đầu từ thứ Hai. Sử dụng "w" hoặc "g" nếu ghi chú hàng tuần cần tuân theo ngôn ngữ đã chọn.'
+                weekPathMismatchWarning:
+                    'Đường dẫn ghi chú hàng tuần sử dụng ngôn ngữ ghi chú định kỳ. Sử dụng ngôn ngữ phù hợp, hoặc sử dụng "GGGG" với "WW" cho tuần bắt đầu từ thứ Hai.',
+                mixedWeekTokensWarning:
+                    'Mẫu này trộn lẫn token tuần bắt đầu từ thứ Hai ("W" hoặc "G") với token tuần dựa trên ngôn ngữ ("w" hoặc "g"). Sử dụng một bộ một cách nhất quán: "GGGG" với "WW" cho tuần bắt đầu từ thứ Hai, hoặc "gggg" với "ww" nếu ghi chú hàng tuần cần tuân theo ngôn ngữ đã chọn.'
             },
             calendarCustomMonthPattern: {
                 name: 'Ghi chú hàng tháng',

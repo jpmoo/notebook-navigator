@@ -1273,8 +1273,8 @@ export const STRINGS_FR = {
             calendarLocale: {
                 name: 'Langue',
                 desc: 'Contrôle le formatage des dates du calendrier, la numérotation des semaines et le premier jour de la semaine.',
-                incompatibleWeekPatternWarning:
-                    'Le modèle de notes hebdomadaires utilise des jetons de semaine ISO ("W" ou "G"). Le calendrier affichera les semaines commençant le lundi au lieu du premier jour de la semaine de cette langue.',
+                weekPathMismatchWarning:
+                    'Le calendrier visible et les chemins des notes hebdomadaires utilisent des débuts de semaine ou une numérotation des semaines différents.',
                 options: {
                     systemDefault: 'Par défaut'
                 }
@@ -1345,6 +1345,14 @@ export const STRINGS_FR = {
                     dailyNotes: 'Le dossier et le format de date sont configurés dans le plugin Notes quotidiennes.'
                 }
             },
+            calendarPeriodicNotesLocale: {
+                name: 'Langue des notes périodiques',
+                desc: 'Contrôle les noms de mois localisés, les noms de jours de la semaine, les numéros de semaine et les débuts de semaine dans les chemins de notes périodiques de Notebook Navigator.',
+                options: {
+                    calendar: 'Calendrier',
+                    obsidian: 'Obsidian'
+                }
+            },
 
             calendarCustomRootFolder: {
                 name: 'Dossier racine',
@@ -1371,8 +1379,10 @@ export const STRINGS_FR = {
                 name: 'Notes hebdomadaires',
                 parsingError:
                     'Le modèle doit pouvoir être formaté et ré-analysé comme une semaine complète (année de semaine, numéro de semaine).',
-                localeMismatchWarning:
-                    'Ce modèle utilise des jetons de semaine ISO ("W" ou "G"). Le calendrier affichera les semaines commençant le lundi. Utilisez "w" ou "g" si les notes hebdomadaires doivent suivre la langue sélectionnée.'
+                weekPathMismatchWarning:
+                    'Les chemins des notes hebdomadaires utilisent la langue des notes périodiques. Utilisez des langues correspondantes, ou utilisez "GGGG" avec "WW" pour des semaines basées sur le lundi.',
+                mixedWeekTokensWarning:
+                    'Ce modèle mélange des jetons de semaine basés sur le lundi ("W" ou "G") avec des jetons de semaine basés sur la langue ("w" ou "g"). Utilisez un seul ensemble de manière cohérente : "GGGG" avec "WW" pour des semaines basées sur le lundi, ou "gggg" avec "ww" si les notes hebdomadaires doivent suivre la langue sélectionnée.'
             },
             calendarCustomMonthPattern: {
                 name: 'Notes mensuelles',

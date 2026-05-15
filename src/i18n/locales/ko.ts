@@ -1268,8 +1268,7 @@ export const STRINGS_KO = {
             calendarLocale: {
                 name: '지역',
                 desc: '달력 날짜 형식, 주 번호, 그리고 한 주의 첫 번째 요일을 제어합니다.',
-                incompatibleWeekPatternWarning:
-                    '주간 노트 패턴이 ISO 주 토큰("W" 또는 "G")을 사용합니다. 캘린더는 이 지역의 시작 요일 대신 월요일부터 시작하는 주를 표시합니다.',
+                weekPathMismatchWarning: '표시되는 캘린더와 주간 노트 경로가 주의 시작 요일 또는 주 번호 매김이 서로 다릅니다.',
                 options: {
                     systemDefault: '기본값'
                 }
@@ -1340,6 +1339,14 @@ export const STRINGS_KO = {
                     dailyNotes: '폴더 및 날짜 형식은 데일리 노트 코어 플러그인에서 설정됩니다.'
                 }
             },
+            calendarPeriodicNotesLocale: {
+                name: '정기 노트 지역',
+                desc: 'Notebook Navigator의 정기 노트 경로에서 지역화된 월 이름, 요일 이름, 주 번호, 주의 시작 요일을 제어합니다.',
+                options: {
+                    calendar: '캘린더',
+                    obsidian: 'Obsidian'
+                }
+            },
 
             calendarCustomRootFolder: {
                 name: '루트 폴더',
@@ -1365,8 +1372,10 @@ export const STRINGS_KO = {
             calendarCustomWeekPattern: {
                 name: '주간 노트',
                 parsingError: '패턴은 전체 주(주 연도, 주 번호)로 포맷되고 다시 파싱될 수 있어야 합니다.',
-                localeMismatchWarning:
-                    '이 패턴은 ISO 주 토큰("W" 또는 "G")을 사용합니다. 캘린더는 월요일부터 시작하는 주를 표시합니다. 주간 노트가 선택한 지역 설정을 따르려면 "w" 또는 "g"를 사용하세요.'
+                weekPathMismatchWarning:
+                    '주간 노트 경로는 정기 노트 지역을 사용합니다. 일치하는 지역을 사용하거나 월요일 기준 주에는 "GGGG"와 "WW"를 사용하세요.',
+                mixedWeekTokensWarning:
+                    '이 패턴은 월요일 기준 주 토큰("W" 또는 "G")과 지역 기준 주 토큰("w" 또는 "g")을 혼합하여 사용합니다. 일관되게 한 가지 세트를 사용하세요. 월요일 기준 주에는 "GGGG"와 "WW", 주간 노트가 선택한 지역 설정을 따라야 하는 경우 "gggg"와 "ww"를 사용하세요.'
             },
             calendarCustomMonthPattern: {
                 name: '월간 노트',

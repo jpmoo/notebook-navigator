@@ -1269,8 +1269,7 @@ export const STRINGS_JA = {
             calendarLocale: {
                 name: 'ロケール',
                 desc: 'カレンダーの日付形式、週番号、週の開始曜日を制御します。',
-                incompatibleWeekPatternWarning:
-                    'ウィークリーノートのパターンがISO週トークン（"W" または "G"）を使用しています。カレンダーはこのロケールの週の開始曜日ではなく、月曜日から始まる週を表示します。',
+                weekPathMismatchWarning: '表示されるカレンダーとウィークリーノートのパスで、週の開始曜日または週番号が異なります。',
                 options: {
                     systemDefault: 'デフォルト'
                 }
@@ -1341,6 +1340,14 @@ export const STRINGS_JA = {
                     dailyNotes: 'フォルダと日付形式はデイリーノートコアプラグインで設定されています。'
                 }
             },
+            calendarPeriodicNotesLocale: {
+                name: '定期ノートのロケール',
+                desc: 'Notebook Navigator の定期ノートのパスでローカライズされた月名、曜日名、週番号、週の開始曜日を制御します。',
+                options: {
+                    calendar: 'カレンダー',
+                    obsidian: 'Obsidian'
+                }
+            },
 
             calendarCustomRootFolder: {
                 name: 'ルートフォルダ',
@@ -1366,8 +1373,10 @@ export const STRINGS_JA = {
             calendarCustomWeekPattern: {
                 name: 'ウィークリーノート',
                 parsingError: 'パターンは完全な週（週年、週番号）としてフォーマットされ、再度パースできる必要があります。',
-                localeMismatchWarning:
-                    'このパターンはISO週トークン（"W" または "G"）を使用しています。カレンダーは月曜日から始まる週を表示します。ウィークリーノートが選択したロケールに従う場合は、"w" または "g" を使用してください。'
+                weekPathMismatchWarning:
+                    'ウィークリーノートのパスは定期ノートのロケールを使用します。一致するロケールを使用するか、月曜日から始まる週には "GGGG" と "WW" を使用してください。',
+                mixedWeekTokensWarning:
+                    'このパターンは月曜日基準の週トークン（"W" または "G"）とロケール基準の週トークン（"w" または "g"）を混在させています。一貫して 1 つのセットを使用してください。月曜日から始まる週には "GGGG" と "WW"、ウィークリーノートが選択したロケールに従う場合は "gggg" と "ww" を使用してください。'
             },
             calendarCustomMonthPattern: {
                 name: 'マンスリーノート',

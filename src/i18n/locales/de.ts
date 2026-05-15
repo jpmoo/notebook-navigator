@@ -1271,8 +1271,8 @@ export const STRINGS_DE = {
             calendarLocale: {
                 name: 'Gebietsschema',
                 desc: 'Steuert Kalenderdatumsformat, Wochennummerierung und ersten Wochentag.',
-                incompatibleWeekPatternWarning:
-                    'Das Muster f\u00fcr w\u00f6chentliche Notizen verwendet ISO-Wochen-Token ("W" oder "G"). Der Kalender zeigt Wochen ab Montag statt ab dem ersten Wochentag dieses Gebietsschemas an.',
+                weekPathMismatchWarning:
+                    'Der sichtbare Kalender und die Pfade f\u00fcr w\u00f6chentliche Notizen verwenden unterschiedliche Wochenanf\u00e4nge oder Wochennummerierungen.',
                 options: {
                     systemDefault: 'Standard'
                 }
@@ -1343,6 +1343,14 @@ export const STRINGS_DE = {
                     dailyNotes: 'Ordner und Datumsformat werden im Daily Notes-Core-Plugin konfiguriert.'
                 }
             },
+            calendarPeriodicNotesLocale: {
+                name: 'Gebietsschema für periodische Notizen',
+                desc: 'Steuert lokalisierte Monatsnamen, Wochentagsnamen, Wochennummern und Wochenanfänge in den Pfaden für periodische Notizen von Notebook Navigator.',
+                options: {
+                    calendar: 'Kalender',
+                    obsidian: 'Obsidian'
+                }
+            },
 
             calendarCustomRootFolder: {
                 name: 'Stammordner',
@@ -1369,8 +1377,10 @@ export const STRINGS_DE = {
                 name: 'Wöchentliche Notizen',
                 parsingError:
                     'Das Muster muss als vollständige Woche (Wochenjahr, Wochennummer) formatiert und wieder geparst werden können.',
-                localeMismatchWarning:
-                    'Dieses Muster verwendet ISO-Wochen-Token ("W" oder "G"). Der Kalender zeigt Wochen ab Montag an. Verwenden Sie "w" oder "g", wenn w\u00f6chentliche Notizen dem gew\u00e4hlten Gebietsschema folgen sollen.'
+                weekPathMismatchWarning:
+                    'Pfade f\u00fcr w\u00f6chentliche Notizen verwenden das Gebietsschema f\u00fcr periodische Notizen. Verwenden Sie \u00fcbereinstimmende Gebietsschemata oder "GGGG" mit "WW" f\u00fcr montagsbasierte Wochen.',
+                mixedWeekTokensWarning:
+                    'Dieses Muster mischt montagsbasierte Wochen-Token ("W" oder "G") mit gebietsschemabasierten Wochen-Token ("w" oder "g"). Verwenden Sie konsequent einen Satz: "GGGG" mit "WW" f\u00fcr montagsbasierte Wochen oder "gggg" mit "ww", wenn w\u00f6chentliche Notizen dem gew\u00e4hlten Gebietsschema folgen sollen.'
             },
             calendarCustomMonthPattern: {
                 name: 'Monatliche Notizen',

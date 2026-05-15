@@ -1271,8 +1271,8 @@ export const STRINGS_ES = {
             calendarLocale: {
                 name: 'Configuración regional',
                 desc: 'Controla el formato de fechas del calendario, la numeración de semanas y el primer día de la semana.',
-                incompatibleWeekPatternWarning:
-                    'El patrón de notas semanales usa tokens de semana ISO ("W" o "G"). El calendario mostrará las semanas empezando en lunes en lugar del primer día de la semana de esta configuración regional.',
+                weekPathMismatchWarning:
+                    'El calendario visible y las rutas de notas semanales utilizan diferentes inicios de semana o numeración de semanas.',
                 options: {
                     systemDefault: 'Predeterminado'
                 }
@@ -1343,6 +1343,14 @@ export const STRINGS_ES = {
                     dailyNotes: 'La carpeta y el formato de fecha se configuran en el plugin de notas diarias.'
                 }
             },
+            calendarPeriodicNotesLocale: {
+                name: 'Configuración regional de notas periódicas',
+                desc: 'Controla los nombres localizados de meses, días de la semana, números de semana e inicios de semana en las rutas de notas periódicas de Notebook Navigator.',
+                options: {
+                    calendar: 'Calendario',
+                    obsidian: 'Obsidian'
+                }
+            },
 
             calendarCustomRootFolder: {
                 name: 'Carpeta raíz',
@@ -1368,8 +1376,10 @@ export const STRINGS_ES = {
             calendarCustomWeekPattern: {
                 name: 'Notas semanales',
                 parsingError: 'El patrón debe formatear y volver a analizarse como una semana completa (año de semana, número de semana).',
-                localeMismatchWarning:
-                    'Este patrón usa tokens de semana ISO ("W" o "G"). El calendario mostrará las semanas empezando en lunes. Use "w" o "g" si las notas semanales deben seguir la configuración regional seleccionada.'
+                weekPathMismatchWarning:
+                    'Las rutas de notas semanales utilizan la configuración regional de notas periódicas. Use configuraciones regionales coincidentes, o use "GGGG" con "WW" para semanas basadas en lunes.',
+                mixedWeekTokensWarning:
+                    'Este patrón mezcla tokens de semana basados en lunes ("W" o "G") con tokens de semana basados en la configuración regional ("w" o "g"). Use un conjunto de forma coherente: "GGGG" con "WW" para semanas basadas en lunes, o "gggg" con "ww" si las notas semanales deben seguir la configuración regional seleccionada.'
             },
             calendarCustomMonthPattern: {
                 name: 'Notas mensuales',

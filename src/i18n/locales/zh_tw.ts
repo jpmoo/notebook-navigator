@@ -1261,8 +1261,7 @@ export const STRINGS_ZH_TW = {
             calendarLocale: {
                 name: '日曆語言',
                 desc: '控制日曆日期格式、週編號和每週的第一天。',
-                incompatibleWeekPatternWarning:
-                    '週記模式使用了 ISO 週標記（"W" 或 "G"）。日曆將從星期一開始顯示每週，而不是此語言設定的每週第一天。',
+                weekPathMismatchWarning: '可見日曆和週記路徑使用了不同的每週起始日或週編號方式。',
                 options: {
                     systemDefault: '系統預設'
                 }
@@ -1333,6 +1332,14 @@ export const STRINGS_ZH_TW = {
                     dailyNotes: '資料夾和日期格式在日記核心外掛程式中設定。'
                 }
             },
+            calendarPeriodicNotesLocale: {
+                name: '週期筆記語言',
+                desc: '控制 Notebook Navigator 週期筆記路徑中本地化的月份名稱、星期名稱、週號和每週起始日。',
+                options: {
+                    calendar: '日曆',
+                    obsidian: 'Obsidian'
+                }
+            },
 
             calendarCustomRootFolder: {
                 name: '根資料夾',
@@ -1358,8 +1365,9 @@ export const STRINGS_ZH_TW = {
             calendarCustomWeekPattern: {
                 name: '週記',
                 parsingError: '模式必須能格式化並重新解析為完整週（週年、週數）。',
-                localeMismatchWarning:
-                    '此模式使用了 ISO 週標記（"W" 或 "G"）。日曆將從星期一開始顯示每週。如果週記應遵循所選語言設定，請使用 "w" 或 "g"。'
+                weekPathMismatchWarning: '週記路徑使用週期筆記語言。請使用相符的語言，或使用 "GGGG" 搭配 "WW" 以星期一為基準的週。',
+                mixedWeekTokensWarning:
+                    '此模式混用了以星期一為基準的週標記（"W" 或 "G"）和以語言為基準的週標記（"w" 或 "g"）。請始終使用同一組：以星期一為基準的週使用 "GGGG" 搭配 "WW"，若週記應遵循所選語言設定，則使用 "gggg" 搭配 "ww"。'
             },
             calendarCustomMonthPattern: {
                 name: '月記',

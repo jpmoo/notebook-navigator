@@ -1269,8 +1269,8 @@ export const STRINGS_TR = {
             calendarLocale: {
                 name: 'Dil',
                 desc: 'Takvim tarih biçimlendirmesini, hafta numaralandırmasını ve haftanın ilk gününü kontrol eder.',
-                incompatibleWeekPatternWarning:
-                    'Haftalık not deseni ISO hafta belirteçleri ("W" veya "G") kullanıyor. Takvim, bu dilin haftanın ilk günü yerine Pazartesi\'den başlayan haftaları gösterecek.',
+                weekPathMismatchWarning:
+                    'Görünen takvim ve haftalık not yolları farklı hafta başlangıçları veya hafta numaralandırması kullanıyor.',
                 options: {
                     systemDefault: 'Varsayılan'
                 }
@@ -1341,6 +1341,14 @@ export const STRINGS_TR = {
                     dailyNotes: 'Klasör ve tarih formatı Daily Notes çekirdek eklentisinde yapılandırılır.'
                 }
             },
+            calendarPeriodicNotesLocale: {
+                name: 'Periyodik not dili',
+                desc: 'Notebook Navigator periyodik not yollarındaki yerelleştirilmiş ay adlarını, gün adlarını, hafta numaralarını ve hafta başlangıçlarını kontrol eder.',
+                options: {
+                    calendar: 'Takvim',
+                    obsidian: 'Obsidian'
+                }
+            },
 
             calendarCustomRootFolder: {
                 name: 'Kök klasör',
@@ -1366,8 +1374,10 @@ export const STRINGS_TR = {
             calendarCustomWeekPattern: {
                 name: 'Haftalık notlar',
                 parsingError: 'Desen, tam bir hafta (hafta yılı, hafta numarası) olarak biçimlendirilmeli ve tekrar ayrıştırılabilmelidir.',
-                localeMismatchWarning:
-                    'Bu desen ISO hafta belirteçleri ("W" veya "G") kullanıyor. Takvim, Pazartesi\'den başlayan haftaları gösterecek. Haftalık notların seçilen dili izlemesi gerekiyorsa "w" veya "g" kullanın.'
+                weekPathMismatchWarning:
+                    'Haftalık not yolları periyodik not dilini kullanır. Eşleşen diller kullanın veya Pazartesi tabanlı haftalar için "GGGG" ile "WW" kullanın.',
+                mixedWeekTokensWarning:
+                    'Bu desen Pazartesi tabanlı hafta belirteçleri ("W" veya "G") ile dil tabanlı hafta belirteçlerini ("w" veya "g") karıştırıyor. Tutarlı olarak tek bir set kullanın: Pazartesi tabanlı haftalar için "GGGG" ile "WW" veya haftalık notların seçilen dili izlemesi gerekiyorsa "gggg" ile "ww" kullanın.'
             },
             calendarCustomMonthPattern: {
                 name: 'Aylık notlar',

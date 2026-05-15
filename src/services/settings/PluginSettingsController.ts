@@ -48,6 +48,7 @@ import {
     isAlphaSortOrder,
     isCalendarMonthHeadingFormat,
     isCalendarLeftPlacement,
+    isCalendarPeriodicNotesLocaleSource,
     isCalendarPlacement,
     isCalendarWeekendDays,
     isFeatureImagePixelSizeSetting,
@@ -354,6 +355,10 @@ export class PluginSettingsController {
 
         if (!isCalendarMonthHeadingFormat(this.currentSettings.calendarMonthHeadingFormat)) {
             this.currentSettings.calendarMonthHeadingFormat = DEFAULT_SETTINGS.calendarMonthHeadingFormat;
+        }
+
+        if (!isCalendarPeriodicNotesLocaleSource(this.currentSettings.calendarPeriodicNotesLocaleSource)) {
+            this.currentSettings.calendarPeriodicNotesLocaleSource = DEFAULT_SETTINGS.calendarPeriodicNotesLocaleSource;
         }
 
         if (!isFeatureImageSizeSetting(this.currentSettings.featureImageSize)) {

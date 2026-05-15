@@ -1269,8 +1269,8 @@ export const STRINGS_ID = {
             calendarLocale: {
                 name: 'Bahasa',
                 desc: 'Mengontrol format tanggal kalender, penomoran minggu, dan hari pertama dalam seminggu.',
-                incompatibleWeekPatternWarning:
-                    'Pola catatan mingguan menggunakan token minggu ISO ("W" atau "G"). Kalender akan menampilkan minggu dimulai dari Senin, bukan hari pertama minggu dari bahasa ini.',
+                weekPathMismatchWarning:
+                    'Kalender yang terlihat dan jalur catatan mingguan menggunakan awal minggu atau penomoran minggu yang berbeda.',
                 options: {
                     systemDefault: 'Default'
                 }
@@ -1341,6 +1341,14 @@ export const STRINGS_ID = {
                     dailyNotes: 'Folder dan format tanggal dikonfigurasi di plugin inti Daily Notes.'
                 }
             },
+            calendarPeriodicNotesLocale: {
+                name: 'Bahasa catatan berkala',
+                desc: 'Mengontrol nama bulan, nama hari, nomor minggu, dan awal minggu yang dilokalkan di jalur catatan berkala Notebook Navigator.',
+                options: {
+                    calendar: 'Kalender',
+                    obsidian: 'Obsidian'
+                }
+            },
 
             calendarCustomRootFolder: {
                 name: 'Folder root',
@@ -1366,8 +1374,10 @@ export const STRINGS_ID = {
             calendarCustomWeekPattern: {
                 name: 'Catatan mingguan',
                 parsingError: 'Pola harus dapat diformat dan diparse kembali sebagai minggu lengkap (tahun minggu, nomor minggu).',
-                localeMismatchWarning:
-                    'Pola ini menggunakan token minggu ISO ("W" atau "G"). Kalender akan menampilkan minggu dimulai dari Senin. Gunakan "w" atau "g" jika catatan mingguan harus mengikuti bahasa yang dipilih.'
+                weekPathMismatchWarning:
+                    'Jalur catatan mingguan menggunakan bahasa catatan berkala. Gunakan bahasa yang cocok, atau gunakan "GGGG" dengan "WW" untuk minggu berbasis Senin.',
+                mixedWeekTokensWarning:
+                    'Pola ini menggabungkan token minggu berbasis Senin ("W" atau "G") dengan token minggu berbasis bahasa ("w" atau "g"). Gunakan satu set secara konsisten: "GGGG" dengan "WW" untuk minggu berbasis Senin, atau "gggg" dengan "ww" jika catatan mingguan harus mengikuti bahasa yang dipilih.'
             },
             calendarCustomMonthPattern: {
                 name: 'Catatan bulanan',

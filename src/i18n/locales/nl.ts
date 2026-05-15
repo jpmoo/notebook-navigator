@@ -1272,8 +1272,8 @@ export const STRINGS_NL = {
             calendarLocale: {
                 name: 'Taal',
                 desc: 'Bepaalt datumopmaak van de kalender, weeknummering en eerste dag van de week.',
-                incompatibleWeekPatternWarning:
-                    'Het patroon voor wekelijkse notities gebruikt ISO-weektokens ("W" of "G"). De kalender toont weken beginnend op maandag in plaats van de eerste dag van de week van deze taal.',
+                weekPathMismatchWarning:
+                    'De zichtbare kalender en de paden voor wekelijkse notities gebruiken verschillende weekbegindagen of weeknummering.',
                 options: {
                     systemDefault: 'Standaard'
                 }
@@ -1344,6 +1344,14 @@ export const STRINGS_NL = {
                     dailyNotes: 'Map en datumformaat worden geconfigureerd in de Daily Notes core plugin.'
                 }
             },
+            calendarPeriodicNotesLocale: {
+                name: 'Taal voor periodieke notities',
+                desc: 'Bepaalt gelokaliseerde maandnamen, dagnamen, weeknummers en weekbegindagen in de paden voor periodieke notities van Notebook Navigator.',
+                options: {
+                    calendar: 'Kalender',
+                    obsidian: 'Obsidian'
+                }
+            },
 
             calendarCustomRootFolder: {
                 name: 'Hoofdmap',
@@ -1369,8 +1377,10 @@ export const STRINGS_NL = {
             calendarCustomWeekPattern: {
                 name: 'Wekelijkse notities',
                 parsingError: 'Het patroon moet kunnen formatteren en terug-parsen naar een volledige week (weekjaar, weeknummer).',
-                localeMismatchWarning:
-                    'Dit patroon gebruikt ISO-weektokens ("W" of "G"). De kalender toont weken beginnend op maandag. Gebruik "w" of "g" als wekelijkse notities de geselecteerde taal moeten volgen.'
+                weekPathMismatchWarning:
+                    'De paden voor wekelijkse notities gebruiken de taal voor periodieke notities. Gebruik overeenkomende talen, of gebruik "GGGG" met "WW" voor maandag-gebaseerde weken.',
+                mixedWeekTokensWarning:
+                    'Dit patroon combineert maandag-gebaseerde weektokens ("W" of "G") met taal-gebaseerde weektokens ("w" of "g"). Gebruik consistent één set: "GGGG" met "WW" voor maandag-gebaseerde weken, of "gggg" met "ww" als wekelijkse notities de geselecteerde taal moeten volgen.'
             },
             calendarCustomMonthPattern: {
                 name: 'Maandelijkse notities',

@@ -42,7 +42,13 @@ import { getFolderNote, getFolderNoteDetectionSettings, isFolderNote, isSupporte
 import { createFrontmatterPropertyExclusionMatcher, isFolderInExcludedFolder, shouldExcludeFileWithMatcher } from '../../utils/fileFilters';
 import { getEffectiveFrontmatterExclusions } from '../../utils/exclusionUtils';
 import { runAsyncAction } from '../../utils/async';
-import { getMomentApi, resolveCalendarLocales, resolveDailyNoteLocale, type MomentInstance } from '../../utils/moment';
+import {
+    getMomentApi,
+    resolveCalendarLocales,
+    resolveCalendarPeriodicNotesLocale,
+    resolveDailyNoteLocale,
+    type MomentInstance
+} from '../../utils/moment';
 import { NotebookNavigatorView } from '../../view/NotebookNavigatorView';
 import { getActiveHiddenFolders, getActiveVaultProfile } from '../../utils/vaultProfiles';
 import { showNotice } from '../../utils/noticeUtils';
@@ -516,6 +522,11 @@ async function openCalendarNoteForToday(plugin: NotebookNavigatorPlugin, kind: C
 
     const currentLanguage = getCurrentLanguage();
     const { calendarRulesLocale } = resolveCalendarLocales(plugin.settings.calendarLocale, momentApi, currentLanguage);
+    const periodicNotesLocale = resolveCalendarPeriodicNotesLocale(
+        plugin.settings.calendarPeriodicNotesLocaleSource,
+        calendarRulesLocale,
+        momentApi
+    );
     const date: MomentInstance = momentApi().startOf('day');
 
     if (kind === 'day' && plugin.settings.calendarIntegrationMode === 'daily-notes') {
@@ -567,7 +578,7 @@ async function openCalendarNoteForToday(plugin: NotebookNavigatorPlugin, kind: C
         return;
     }
 
-    const dateForPath = resolveCalendarCustomNotePathDate(kind, date, momentPattern, calendarRulesLocale, calendarRulesLocale);
+    const dateForPath = resolveCalendarCustomNotePathDate(kind, date, momentPattern, periodicNotesLocale, periodicNotesLocale);
 
     const settings = { calendarCustomRootFolder: getActiveVaultProfile(plugin.settings).periodicNotesFolder };
     const expected = buildCustomCalendarFilePathForPattern(dateForPath, settings, config.calendarCustomFilePattern, config.fallbackPattern);
