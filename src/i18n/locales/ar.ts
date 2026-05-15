@@ -52,7 +52,7 @@ export const STRINGS_AR = {
         filesSection: 'ملفات', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (مخفي)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'فرز يدوي: {property}',
-        manualSortHint: 'اسحب لإعادة الترتيب. يتم حفظ الرتب الرقمية في الخاصية "{property}".',
+        manualSortHint: 'اسحب لإعادة الترتيب. يتم حفظ الترتيب كقيم رقمية للفهرس في الخاصية "{property}".',
         manualSortNonMarkdownHint: 'الملفات غير Markdown تظهر في الأسفل ولا يمكن إعادة ترتيبها.',
         unsortedSection: 'غير مرتبة',
         manualSortDone: 'تم',
@@ -138,7 +138,7 @@ export const STRINGS_AR = {
         changeChildSortOrder: 'تغيير ترتيب الفرز',
         changeSortAndGroup: 'تغيير الفرز والتجميع',
         defaultSort: 'افتراضي', // Label for default sorting mode (English: Default)
-        manualSort: 'فرز يدوي...',
+        manualSort: 'فرز يدوي',
         editSortOrder: 'تحرير ترتيب الفرز...',
         descendants: 'العناصر الفرعية',
         subfolders: 'المجلدات الفرعية',
@@ -308,6 +308,9 @@ export const STRINGS_AR = {
             moveFileToFolder: 'نقل الملف إلى...',
             moveMultipleNotesToFolder: 'نقل {count} ملاحظة إلى...',
             moveMultipleFilesToFolder: 'نقل {count} ملف إلى...',
+            setManualSortGroupHeader: 'تعيين عنوان المجموعة',
+            changeManualSortGroupHeader: 'تغيير عنوان المجموعة',
+            removeManualSortGroupHeader: 'إزالة عنوان المجموعة',
             addTag: 'إضافة وسم',
             addPropertyKey: 'تعيين خاصية',
             removeTag: 'إزالة وسم',
@@ -398,13 +401,18 @@ export const STRINGS_AR = {
             affectedCountMessage: (count: number) => `التجاوزات الحالية التي ستتغير: ${count}.`
         },
         manualSortConfirm: {
-            propertySortTitle: 'استخدام الفرز حسب الخاصية؟',
+            propertySortTitle: 'استخدام الفرز اليدوي؟',
             propertySortMessage: (property: string, count: number) =>
-                `يبدّل العرض الحالي إلى الفرز حسب الخاصية باستخدام "${property}". القيم الموجودة في ${count} ملاحظة لن تتغير.`,
-            propertySortConfirmButton: 'استخدام الفرز حسب الخاصية',
-            compactTitle: 'ضغط الرتب؟',
-            compactMessage: (count: number) => `إعادة الترتيب هذه تحتاج إلى مساحة رتب أكبر. ${count} ملاحظة ستحصل على رتب رقمية جديدة.`,
-            compactConfirmButton: 'ضغط الرتب'
+                `يبدّل العرض الحالي إلى الفرز اليدوي باستخدام "${property}". تحرير الترتيب يكتب قيم فهرس رقمية إلى تلك الخاصية في ${count} ملاحظة حسب الحاجة.`,
+            propertySortConfirmButton: 'استخدام الفرز اليدوي',
+            compactTitle: 'ضغط قيم الفهرس؟',
+            compactMessage: (count: number) => `إعادة الترتيب هذه تحتاج إلى مساحة رقمية أكبر. ${count} ملاحظة ستحصل على قيم فهرس جديدة.`,
+            compactConfirmButton: 'ضغط قيم الفهرس'
+        },
+        manualSortGroupHeader: {
+            title: 'تعيين عنوان المجموعة',
+            placeholder: 'عنوان المجموعة',
+            description: 'يتم حفظ العنوان إلى الخاصية {property} على الملاحظة المحددة. اترك الحقل فارغًا لمسح العنوان.'
         },
         navRainbowSection: {
             title: (section: string) => `ألوان قوس قزح: ${section}`
@@ -623,15 +631,6 @@ export const STRINGS_AR = {
             instructions: {
                 navigate: 'للتنقل',
                 select: 'لإضافة خاصية',
-                dismiss: 'للإغلاق'
-            }
-        },
-        propertySortKeySuggest: {
-            placeholder: 'خاصية للفرز اليدوي...',
-            createNewProperty: 'استخدم الخاصية: {property}',
-            instructions: {
-                navigate: 'للتنقل',
-                select: 'لاختيار الخاصية',
                 dismiss: 'للإغلاق'
             }
         },
@@ -892,6 +891,8 @@ export const STRINGS_AR = {
             list: {
                 display: 'المظهر',
                 organization: 'التنظيم',
+                propertySort: 'الفرز حسب الخاصية',
+                manualSort: 'الفرز اليدوي',
                 pinnedNotes: 'الملاحظات المثبتة',
                 drawingPreviews: 'معاينات الرسومات'
             },
@@ -925,8 +926,8 @@ export const STRINGS_AR = {
                 }
             },
             sortNotesBy: {
-                name: 'ترتيب الملاحظات حسب',
-                desc: 'اختر كيفية ترتيب الملاحظات في قائمة الملاحظات.',
+                name: 'ترتيب الفرز الافتراضي',
+                desc: 'اختر ترتيب الفرز الافتراضي للملاحظات.',
                 options: {
                     'modified-desc': 'تاريخ التعديل (الأحدث في الأعلى)',
                     'modified-asc': 'تاريخ التعديل (الأقدم في الأعلى)',
@@ -935,9 +936,7 @@ export const STRINGS_AR = {
                     'title-asc': 'العنوان (أ في الأعلى)',
                     'title-desc': 'العنوان (ي في الأعلى)',
                     'filename-asc': 'اسم الملف (أ في الأعلى)',
-                    'filename-desc': 'اسم الملف (ي في الأعلى)',
-                    'property-asc': 'الخاصية (أ في الأعلى)',
-                    'property-desc': 'الخاصية (ي في الأعلى)'
+                    'filename-desc': 'اسم الملف (ي في الأعلى)'
                 },
                 directions: {
                     asc: 'تصاعدي',
@@ -953,8 +952,8 @@ export const STRINGS_AR = {
             },
             propertySortKey: {
                 name: 'الخصائص للترتيب حسبها',
-                desc: 'خصائص الواجهة الأمامية مفصولة بفواصل تُعرض في قائمة ترتيب القائمة. يتم دمج المصفوفات في قيمة واحدة.',
-                placeholder: 'published, downloaded'
+                desc: 'خصائص الواجهة الأمامية مفصولة بفواصل تُعرض كخيارات للفرز حسب الخاصية. يتم دمج قيم المصفوفات في سلسلة واحدة. هذه الخصائص لا يتم تغييرها.',
+                placeholder: 'published, author'
             },
             propertySortSecondary: {
                 name: 'الترتيب الثانوي',
@@ -965,6 +964,35 @@ export const STRINGS_AR = {
                     created: 'تاريخ الإنشاء',
                     modified: 'تاريخ التعديل'
                 }
+            },
+            manualSortPropertyKey: {
+                name: 'خاصية الفرز اليدوي',
+                desc: 'خاصية الواجهة الأمامية المستخدمة لتخزين قيم الفهرس الرقمية للفرز اليدوي.',
+                placeholder: 'sortindex'
+            },
+            manualSortGroupHeaderProperty: {
+                name: 'خاصية عنوان المجموعة',
+                desc: 'خاصية الواجهة الأمامية المستخدمة لتخزين نص عنوان المجموعة المخصص في الفرز اليدوي.',
+                placeholder: 'groupheader'
+            },
+            manualSortNewNotePlacement: {
+                name: 'موضع الملاحظة الجديدة',
+                desc: 'اختر مكان وضع الملاحظات الجديدة عندما تستخدم القائمة الحالية الفرز اليدوي.',
+                options: {
+                    top: 'الأعلى',
+                    bottom: 'الأسفل',
+                    'below-selected-note': 'أسفل الملاحظة المحددة',
+                    unsorted: 'غير مرتبة'
+                }
+            },
+            manualSortInstructions: {
+                intro: 'يكتب الفرز اليدوي قيمة فهرس رقمية إلى خاصية الواجهة الأمامية على كل ملاحظة. تظهر الملاحظات بدون فهرس ضمن "غير مرتبة".',
+                items: [
+                    'فعّل الفرز اليدوي باختيار **فرز يدوي** من قائمة الفرز. بعد ذلك، توجد طريقتان لإعادة ترتيب الملاحظات.',
+                    'اختر **تحرير ترتيب الفرز...** من قائمة الفرز لفتح عرض إعادة الترتيب. اسحب الملاحظات بالفأرة، أو باللمس على الجوال. على سطح المكتب، النقر مع **Cmd/Ctrl** أو **Shift** يحدد عدة ملاحظات، ثم سحب أي منها ينقل المجموعة بأكملها.',
+                    'في لوحة القائمة، حدد ملاحظة واحدة أو حدد عدة ملاحظات، ثم اضغط **Cmd/Ctrl + Arrow Up/Down** لنقل التحديد لأعلى أو لأسفل.',
+                    'انقر بزر الفأرة الأيمن على ملاحظة في لوحة القائمة أو في **تحرير ترتيب الفرز...** واختر **تعيين عنوان المجموعة** لوضع عنوان مخصص فوق الملاحظة.'
+                ]
             },
             revealFileOnListChanges: {
                 name: 'التمرير إلى الملف المحدد عند تغيير القائمة',
@@ -983,8 +1011,8 @@ export const STRINGS_AR = {
                 desc: 'عرض عدد الملاحظات بتنسيق "الحالي ▾ الفروع" في المجلدات والوسوم.'
             },
             groupNotes: {
-                name: 'تجميع الملاحظات',
-                desc: 'عرض رؤوس بين الملاحظات مجمعة حسب التاريخ أو المجلد. تستخدم طرق عرض الوسوم تجميع التاريخ عند تمكين تجميع المجلدات.',
+                name: 'التجميع الافتراضي',
+                desc: 'اختر التجميع الافتراضي للملاحظات. تستخدم طرق عرض الوسوم تجميع التاريخ عند تمكين تجميع المجلدات.',
                 options: {
                     none: 'بدون تجميع',
                     date: 'تجميع حسب التاريخ',

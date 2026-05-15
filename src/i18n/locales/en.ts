@@ -52,7 +52,7 @@ export const STRINGS_EN = {
         filesSection: 'Files', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (hidden)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Manual sort: {property}',
-        manualSortHint: 'Drag to reorder. Numeric ranks are saved in the property "{property}".',
+        manualSortHint: 'Drag to reorder. The order is saved as numeric index values in the property "{property}".',
         manualSortNonMarkdownHint: 'Non-markdown files are shown at the bottom and cannot be reordered.',
         unsortedSection: 'Unsorted',
         manualSortDone: 'Done',
@@ -138,7 +138,7 @@ export const STRINGS_EN = {
         changeChildSortOrder: 'Change sort order',
         changeSortAndGroup: 'Change sort and group',
         defaultSort: 'Default', // Label for default sorting mode (English: Default)
-        manualSort: 'Manual sort...',
+        manualSort: 'Manual sort',
         editSortOrder: 'Edit sort order...',
         descendants: 'descendants',
         subfolders: 'subfolders',
@@ -308,6 +308,9 @@ export const STRINGS_EN = {
             moveFileToFolder: 'Move file to...',
             moveMultipleNotesToFolder: 'Move {count} notes to...',
             moveMultipleFilesToFolder: 'Move {count} files to...',
+            setManualSortGroupHeader: 'Set group header',
+            changeManualSortGroupHeader: 'Change group header',
+            removeManualSortGroupHeader: 'Remove group header',
             addTag: 'Add tag',
             addPropertyKey: 'Set property',
             removeTag: 'Remove tag',
@@ -398,14 +401,19 @@ export const STRINGS_EN = {
             affectedCountMessage: (count: number) => `Existing overrides that will change: ${count}.`
         },
         manualSortConfirm: {
-            propertySortTitle: 'Use property sort?',
+            propertySortTitle: 'Use manual sort?',
             propertySortMessage: (property: string, count: number) =>
-                `This switches the current view to property sort using "${property}". Existing values in ${count} ${count === 1 ? 'note' : 'notes'} are not changed.`,
-            propertySortConfirmButton: 'Use property sort',
-            compactTitle: 'Compact ranks?',
+                `This switches the current view to manual sort using "${property}". Editing the order writes numeric index values to that property in ${count} ${count === 1 ? 'note' : 'notes'} as needed.`,
+            propertySortConfirmButton: 'Use manual sort',
+            compactTitle: 'Compact index values?',
             compactMessage: (count: number) =>
-                `This reorder needs more rank space. ${count} ${count === 1 ? 'note' : 'notes'} will receive new numeric ranks.`,
-            compactConfirmButton: 'Compact ranks'
+                `This reorder needs more numeric space. ${count} ${count === 1 ? 'note' : 'notes'} will receive new index values.`,
+            compactConfirmButton: 'Compact index values'
+        },
+        manualSortGroupHeader: {
+            title: 'Set group header',
+            placeholder: 'Group header',
+            description: 'The header is saved to property {property} on the selected note. Leave the field empty to clear the header.'
         },
         navRainbowSection: {
             title: (section: string) => `Rainbow colors: ${section}`
@@ -622,15 +630,6 @@ export const STRINGS_EN = {
             instructions: {
                 navigate: 'to navigate',
                 select: 'to add property',
-                dismiss: 'to dismiss'
-            }
-        },
-        propertySortKeySuggest: {
-            placeholder: 'Property for manual sort...',
-            createNewProperty: 'Use property: {property}',
-            instructions: {
-                navigate: 'to navigate',
-                select: 'to select property',
                 dismiss: 'to dismiss'
             }
         },
@@ -891,6 +890,8 @@ export const STRINGS_EN = {
             list: {
                 display: 'Appearance',
                 organization: 'Organization',
+                propertySort: 'Property sort',
+                manualSort: 'Manual sort',
                 pinnedNotes: 'Pinned notes',
                 drawingPreviews: 'Drawing previews'
             },
@@ -924,8 +925,8 @@ export const STRINGS_EN = {
                 }
             },
             sortNotesBy: {
-                name: 'Sort notes by',
-                desc: 'Choose how notes are sorted in the note list.',
+                name: 'Default sort order',
+                desc: 'Choose the default sort order for notes.',
                 options: {
                     'modified-desc': 'Date edited (newest on top)',
                     'modified-asc': 'Date edited (oldest on top)',
@@ -934,9 +935,7 @@ export const STRINGS_EN = {
                     'title-asc': 'Title (A on top)',
                     'title-desc': 'Title (Z on top)',
                     'filename-asc': 'File name (A on top)',
-                    'filename-desc': 'File name (Z on top)',
-                    'property-asc': 'Property (A on top)',
-                    'property-desc': 'Property (Z on top)'
+                    'filename-desc': 'File name (Z on top)'
                 },
                 directions: {
                     asc: 'Ascending',
@@ -952,8 +951,8 @@ export const STRINGS_EN = {
             },
             propertySortKey: {
                 name: 'Properties to sort by',
-                desc: 'Comma-separated frontmatter properties shown in the list sort menu. Arrays are joined into one value.',
-                placeholder: 'published, downloaded'
+                desc: 'Comma-separated frontmatter properties shown as property sort options. Array values are joined into a single string. These properties are not changed.',
+                placeholder: 'published, author'
             },
             propertySortSecondary: {
                 name: 'Secondary sort',
@@ -964,6 +963,35 @@ export const STRINGS_EN = {
                     created: 'Date created',
                     modified: 'Date edited'
                 }
+            },
+            manualSortPropertyKey: {
+                name: 'Manual sort property',
+                desc: 'Frontmatter property used to store numeric index values for manual sort.',
+                placeholder: 'sortindex'
+            },
+            manualSortGroupHeaderProperty: {
+                name: 'Group header property',
+                desc: 'Frontmatter property used to store custom group header text in manual sort.',
+                placeholder: 'groupheader'
+            },
+            manualSortNewNotePlacement: {
+                name: 'New note placement',
+                desc: 'Choose where new notes are placed when the current list uses manual sort.',
+                options: {
+                    top: 'Top',
+                    bottom: 'Bottom',
+                    'below-selected-note': 'Below selected note',
+                    unsorted: 'Unsorted'
+                }
+            },
+            manualSortInstructions: {
+                intro: 'Manual sort writes a numeric index value to a frontmatter property on each note. Notes without an index appear under Unsorted.',
+                items: [
+                    'Enable manual sort by choosing **Manual sort** from the sort menu. After that, there are two ways to rearrange notes.',
+                    'Pick **Edit sort order...** from the sort menu to open a reorder view. Drag notes with the mouse, or with touch on mobile. On desktop, **Cmd/Ctrl** or **Shift** click selects multiple notes, then dragging any of them moves the whole group.',
+                    'In the list pane, select one note or multi-select several, then press **Cmd/Ctrl + Arrow Up/Down** to move the selection up or down.',
+                    'Right-click a note in the list pane or in **Edit sort order...** and choose **Set group header** to place a custom header above the note.'
+                ]
             },
             revealFileOnListChanges: {
                 name: 'Scroll to selected file on list changes',
@@ -982,8 +1010,8 @@ export const STRINGS_EN = {
                 desc: 'Display note counts as "current ▾ descendants" format in folders and tags.'
             },
             groupNotes: {
-                name: 'Group notes',
-                desc: 'Display headers between notes grouped by date or folder. Tag views use date groups when folder grouping is enabled.',
+                name: 'Default grouping',
+                desc: 'Choose the default grouping for notes. Tag views use date groups when folder grouping is enabled.',
                 options: {
                     none: "Don't group",
                     date: 'Group by date',

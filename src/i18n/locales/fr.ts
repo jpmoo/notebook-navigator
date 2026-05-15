@@ -52,7 +52,8 @@ export const STRINGS_FR = {
         filesSection: 'Fichiers', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (masqué)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Tri manuel : {property}',
-        manualSortHint: 'Glissez pour réorganiser. Les rangs numériques sont enregistrés dans la propriété « {property} ».',
+        manualSortHint:
+            "Glissez pour réorganiser. L'ordre est enregistré sous forme de valeurs numériques dans la propriété « {property} ».",
         manualSortNonMarkdownHint: 'Les fichiers non Markdown sont affichés en bas et ne peuvent pas être réorganisés.',
         unsortedSection: 'Non trié',
         manualSortDone: 'Terminé',
@@ -137,7 +138,7 @@ export const STRINGS_FR = {
         changeChildSortOrder: "Changer l'ordre de tri",
         changeSortAndGroup: 'Changer le tri et le regroupement',
         defaultSort: 'Par défaut', // Label for default sorting mode (English: Default)
-        manualSort: 'Tri manuel...',
+        manualSort: 'Tri manuel',
         editSortOrder: "Modifier l'ordre de tri...",
         descendants: 'descendants',
         subfolders: 'sous-dossiers',
@@ -294,6 +295,9 @@ export const STRINGS_FR = {
             moveFileToFolder: 'Déplacer le fichier vers...',
             moveMultipleNotesToFolder: 'Déplacer {count} notes vers...',
             moveMultipleFilesToFolder: 'Déplacer {count} fichiers vers...',
+            setManualSortGroupHeader: "Définir l'en-tête de groupe",
+            changeManualSortGroupHeader: "Modifier l'en-tête de groupe",
+            removeManualSortGroupHeader: "Supprimer l'en-tête de groupe",
             addTag: 'Ajouter une étiquette',
             addPropertyKey: 'Définir la propriété',
             removeTag: 'Supprimer l’étiquette',
@@ -399,14 +403,20 @@ export const STRINGS_FR = {
             affectedCountMessage: (count: number) => `Remplacements existants qui seront modifiés\u202f: ${count}.`
         },
         manualSortConfirm: {
-            propertySortTitle: 'Utiliser le tri par propriété ?',
+            propertySortTitle: 'Utiliser le tri manuel ?',
             propertySortMessage: (property: string, count: number) =>
-                `Ceci bascule la vue actuelle sur le tri par propriété en utilisant « ${property} ». Les valeurs existantes dans ${count} ${count === 1 ? 'note' : 'notes'} ne sont pas modifiées.`,
-            propertySortConfirmButton: 'Utiliser le tri par propriété',
-            compactTitle: 'Compacter les rangs ?',
+                `Ceci bascule la vue actuelle sur le tri manuel en utilisant « ${property} ». La modification de l'ordre écrit des valeurs numériques dans cette propriété sur ${count} ${count === 1 ? 'note' : 'notes'} au besoin.`,
+            propertySortConfirmButton: 'Utiliser le tri manuel',
+            compactTitle: 'Compacter les valeurs numériques ?',
             compactMessage: (count: number) =>
-                `Cette réorganisation nécessite plus d'espace de rang. ${count} ${count === 1 ? 'note recevra' : 'notes recevront'} de nouveaux rangs numériques.`,
-            compactConfirmButton: 'Compacter les rangs'
+                `Cette réorganisation nécessite plus d'espace numérique. ${count} ${count === 1 ? 'note recevra' : 'notes recevront'} de nouvelles valeurs numériques.`,
+            compactConfirmButton: 'Compacter les valeurs numériques'
+        },
+        manualSortGroupHeader: {
+            title: "Définir l'en-tête de groupe",
+            placeholder: 'En-tête de groupe',
+            description:
+                "L'en-tête est enregistré dans la propriété {property} de la note sélectionnée. Laissez le champ vide pour effacer l'en-tête."
         },
         navRainbowSection: {
             title: (section: string) => `Couleurs arc-en-ciel: ${section}`
@@ -627,15 +637,6 @@ export const STRINGS_FR = {
             instructions: {
                 navigate: 'pour naviguer',
                 select: 'pour ajouter la propriété',
-                dismiss: 'pour annuler'
-            }
-        },
-        propertySortKeySuggest: {
-            placeholder: 'Propriété pour tri manuel...',
-            createNewProperty: 'Utiliser la propriété : {property}',
-            instructions: {
-                navigate: 'pour naviguer',
-                select: 'pour sélectionner la propriété',
                 dismiss: 'pour annuler'
             }
         },
@@ -897,6 +898,8 @@ export const STRINGS_FR = {
             list: {
                 display: 'Apparence',
                 organization: 'Organisation',
+                propertySort: 'Tri par propriété',
+                manualSort: 'Tri manuel',
                 pinnedNotes: 'Notes épinglées',
                 drawingPreviews: 'Aperçus des dessins'
             },
@@ -930,8 +933,8 @@ export const STRINGS_FR = {
                 }
             },
             sortNotesBy: {
-                name: 'Trier les notes par',
-                desc: 'Choisissez comment les notes sont triées dans la liste des notes.',
+                name: 'Ordre de tri par défaut',
+                desc: "Choisissez l'ordre de tri par défaut des notes.",
                 options: {
                     'modified-desc': 'Date de modification (plus récente en haut)',
                     'modified-asc': 'Date de modification (plus ancienne en haut)',
@@ -940,9 +943,7 @@ export const STRINGS_FR = {
                     'title-asc': 'Titre (A en haut)',
                     'title-desc': 'Titre (Z en haut)',
                     'filename-asc': 'Nom de fichier (A en haut)',
-                    'filename-desc': 'Nom de fichier (Z en haut)',
-                    'property-asc': 'Propriété (A en haut)',
-                    'property-desc': 'Propriété (Z en haut)'
+                    'filename-desc': 'Nom de fichier (Z en haut)'
                 },
                 directions: {
                     asc: 'Croissant',
@@ -958,8 +959,8 @@ export const STRINGS_FR = {
             },
             propertySortKey: {
                 name: 'Propriétés de tri',
-                desc: 'Propriétés frontmatter séparées par des virgules affichées dans le menu de tri de la liste. Les tableaux sont combinés en une seule valeur.',
-                placeholder: 'published, downloaded'
+                desc: 'Propriétés frontmatter séparées par des virgules affichées comme options de tri par propriété. Les valeurs de tableau sont jointes en une seule chaîne. Ces propriétés ne sont pas modifiées.',
+                placeholder: 'published, author'
             },
             propertySortSecondary: {
                 name: 'Tri secondaire',
@@ -970,6 +971,35 @@ export const STRINGS_FR = {
                     created: 'Date de création',
                     modified: 'Date de modification'
                 }
+            },
+            manualSortPropertyKey: {
+                name: 'Propriété de tri manuel',
+                desc: 'Propriété frontmatter utilisée pour enregistrer les valeurs numériques du tri manuel.',
+                placeholder: 'sortindex'
+            },
+            manualSortGroupHeaderProperty: {
+                name: "Propriété d'en-tête de groupe",
+                desc: 'Propriété frontmatter utilisée pour enregistrer le texte personnalisé des en-têtes de groupe en tri manuel.',
+                placeholder: 'groupheader'
+            },
+            manualSortNewNotePlacement: {
+                name: 'Emplacement des nouvelles notes',
+                desc: 'Choisissez où sont placées les nouvelles notes lorsque la liste actuelle utilise le tri manuel.',
+                options: {
+                    top: 'En haut',
+                    bottom: 'En bas',
+                    'below-selected-note': 'Sous la note sélectionnée',
+                    unsorted: 'Non trié'
+                }
+            },
+            manualSortInstructions: {
+                intro: 'Le tri manuel écrit une valeur numérique dans une propriété frontmatter sur chaque note. Les notes sans valeur apparaissent sous Non trié.',
+                items: [
+                    'Activez le tri manuel en choisissant **Tri manuel** dans le menu de tri. Ensuite, il existe deux façons de réorganiser les notes.',
+                    "Choisissez **Modifier l'ordre de tri...** dans le menu de tri pour ouvrir une vue de réorganisation. Glissez les notes avec la souris, ou par toucher sur mobile. Sur ordinateur, **Cmd/Ctrl** ou **Shift** clic sélectionne plusieurs notes, puis glisser l'une d'elles déplace tout le groupe.",
+                    'Dans le panneau de liste, sélectionnez une note ou plusieurs notes, puis appuyez sur **Cmd/Ctrl + Arrow Up/Down** pour déplacer la sélection vers le haut ou le bas.',
+                    "Cliquez avec le bouton droit sur une note dans le panneau de liste ou dans **Modifier l'ordre de tri...** et choisissez **Définir l'en-tête de groupe** pour placer un en-tête personnalisé au-dessus de la note."
+                ]
             },
             revealFileOnListChanges: {
                 name: 'Défiler vers le fichier sélectionné lors des changements de liste',
@@ -988,8 +1018,8 @@ export const STRINGS_FR = {
                 desc: 'Affiche le nombre de notes au format "actuel ▾ descendants" dans les dossiers et étiquettes.'
             },
             groupNotes: {
-                name: 'Grouper les notes',
-                desc: 'Affiche des en-têtes entre les notes groupées par date ou par dossier. Les vues de tags utilisent des groupes de dates lorsque le regroupement par dossier est activé.',
+                name: 'Regroupement par défaut',
+                desc: 'Choisissez le regroupement par défaut des notes. Les vues de tags utilisent des groupes de dates lorsque le regroupement par dossier est activé.',
                 options: {
                     none: 'Ne pas grouper',
                     date: 'Grouper par date',

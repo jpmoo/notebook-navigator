@@ -52,7 +52,7 @@ export const STRINGS_IT = {
         filesSection: 'File', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (nascosto)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Ordinamento manuale: {property}',
-        manualSortHint: 'Trascina per riordinare. I ranghi numerici sono salvati nella proprietà "{property}".',
+        manualSortHint: 'Trascina per riordinare. L\'ordine è salvato come valori indice numerici nella proprietà "{property}".',
         manualSortNonMarkdownHint: 'I file non Markdown sono mostrati in fondo e non possono essere riordinati.',
         unsortedSection: 'Non ordinato',
         manualSortDone: 'Fatto',
@@ -138,7 +138,7 @@ export const STRINGS_IT = {
         changeChildSortOrder: 'Cambia ordine',
         changeSortAndGroup: 'Cambia ordine e raggruppamento',
         defaultSort: 'Predefinito', // Label for default sorting mode (English: Default)
-        manualSort: 'Ordinamento manuale...',
+        manualSort: 'Ordinamento manuale',
         editSortOrder: 'Modifica ordinamento...',
         descendants: 'discendenti',
         subfolders: 'sottocartelle',
@@ -308,6 +308,9 @@ export const STRINGS_IT = {
             moveFileToFolder: 'Sposta file in...',
             moveMultipleNotesToFolder: 'Sposta {count} note in...',
             moveMultipleFilesToFolder: 'Sposta {count} file in...',
+            setManualSortGroupHeader: 'Imposta intestazione gruppo',
+            changeManualSortGroupHeader: 'Cambia intestazione gruppo',
+            removeManualSortGroupHeader: 'Rimuovi intestazione gruppo',
             addTag: 'Aggiungi tag',
             addPropertyKey: 'Imposta proprietà',
             removeTag: 'Rimuovi tag',
@@ -398,14 +401,20 @@ export const STRINGS_IT = {
             affectedCountMessage: (count: number) => `Sostituzioni esistenti che cambieranno: ${count}.`
         },
         manualSortConfirm: {
-            propertySortTitle: 'Usare l’ordinamento per proprietà?',
+            propertySortTitle: "Usare l'ordinamento manuale?",
             propertySortMessage: (property: string, count: number) =>
-                `Questo cambia la vista corrente all'ordinamento per proprietà usando "${property}". I valori esistenti in ${count} ${count === 1 ? 'nota' : 'note'} non vengono modificati.`,
-            propertySortConfirmButton: 'Usa ordinamento per proprietà',
-            compactTitle: 'Compattare i ranghi?',
+                `Questo cambia la vista corrente all'ordinamento manuale usando "${property}". La modifica dell'ordine scrive valori indice numerici in quella proprietà in ${count} ${count === 1 ? 'nota' : 'note'} secondo necessità.`,
+            propertySortConfirmButton: 'Usa ordinamento manuale',
+            compactTitle: 'Compattare i valori indice?',
             compactMessage: (count: number) =>
-                `Questo riordino richiede più spazio per i ranghi. ${count} ${count === 1 ? 'nota riceverà' : 'note riceveranno'} nuovi ranghi numerici.`,
-            compactConfirmButton: 'Compatta ranghi'
+                `Questo riordino richiede più spazio numerico. ${count} ${count === 1 ? 'nota riceverà' : 'note riceveranno'} nuovi valori indice.`,
+            compactConfirmButton: 'Compatta valori indice'
+        },
+        manualSortGroupHeader: {
+            title: 'Imposta intestazione gruppo',
+            placeholder: 'Intestazione gruppo',
+            description:
+                "L'intestazione è salvata nella proprietà {property} sulla nota selezionata. Lascia il campo vuoto per rimuovere l'intestazione."
         },
         navRainbowSection: {
             title: (section: string) => `Colori arcobaleno: ${section}`
@@ -622,15 +631,6 @@ export const STRINGS_IT = {
             instructions: {
                 navigate: 'per navigare',
                 select: 'per aggiungere proprietà',
-                dismiss: 'per chiudere'
-            }
-        },
-        propertySortKeySuggest: {
-            placeholder: 'Proprietà per ordinamento manuale...',
-            createNewProperty: 'Usa proprietà: {property}',
-            instructions: {
-                navigate: 'per navigare',
-                select: 'per selezionare proprietà',
                 dismiss: 'per chiudere'
             }
         },
@@ -891,6 +891,8 @@ export const STRINGS_IT = {
             list: {
                 display: 'Aspetto',
                 organization: 'Organizzazione',
+                propertySort: 'Ordinamento per proprietà',
+                manualSort: 'Ordinamento manuale',
                 pinnedNotes: 'Note fissate',
                 drawingPreviews: 'Anteprime dei disegni'
             },
@@ -924,8 +926,8 @@ export const STRINGS_IT = {
                 }
             },
             sortNotesBy: {
-                name: 'Ordina note per',
-                desc: "Scegli come ordinare le note nell'elenco.",
+                name: 'Ordinamento predefinito',
+                desc: "Scegli l'ordinamento predefinito per le note.",
                 options: {
                     'modified-desc': 'Data modifica (più recenti in alto)',
                     'modified-asc': 'Data modifica (più vecchie in alto)',
@@ -934,9 +936,7 @@ export const STRINGS_IT = {
                     'title-asc': 'Titolo (A in alto)',
                     'title-desc': 'Titolo (Z in alto)',
                     'filename-asc': 'Nome file (A in alto)',
-                    'filename-desc': 'Nome file (Z in alto)',
-                    'property-asc': 'Proprietà (A in alto)',
-                    'property-desc': 'Proprietà (Z in alto)'
+                    'filename-desc': 'Nome file (Z in alto)'
                 },
                 directions: {
                     asc: 'Crescente',
@@ -952,8 +952,8 @@ export const STRINGS_IT = {
             },
             propertySortKey: {
                 name: 'Proprietà per ordinare',
-                desc: 'Proprietà frontmatter separate da virgole mostrate nel menu di ordinamento della lista. Gli array vengono uniti in un unico valore.',
-                placeholder: 'published, downloaded'
+                desc: 'Proprietà frontmatter separate da virgola mostrate come opzioni di ordinamento per proprietà. I valori array vengono uniti in una singola stringa. Queste proprietà non vengono modificate.',
+                placeholder: 'published, author'
             },
             propertySortSecondary: {
                 name: 'Ordinamento secondario',
@@ -964,6 +964,35 @@ export const STRINGS_IT = {
                     created: 'Data di creazione',
                     modified: 'Data di modifica'
                 }
+            },
+            manualSortPropertyKey: {
+                name: 'Proprietà ordinamento manuale',
+                desc: "Proprietà frontmatter usata per memorizzare i valori indice numerici per l'ordinamento manuale.",
+                placeholder: 'sortindex'
+            },
+            manualSortGroupHeaderProperty: {
+                name: 'Proprietà intestazione gruppo',
+                desc: "Proprietà frontmatter usata per memorizzare il testo personalizzato dell'intestazione di gruppo nell'ordinamento manuale.",
+                placeholder: 'groupheader'
+            },
+            manualSortNewNotePlacement: {
+                name: 'Posizionamento nuove note',
+                desc: "Scegli dove sono posizionate le nuove note quando la lista corrente usa l'ordinamento manuale.",
+                options: {
+                    top: 'In alto',
+                    bottom: 'In basso',
+                    'below-selected-note': 'Sotto la nota selezionata',
+                    unsorted: 'Non ordinato'
+                }
+            },
+            manualSortInstructions: {
+                intro: "L'ordinamento manuale scrive un valore indice numerico in una proprietà frontmatter su ogni nota. Le note senza indice appaiono sotto Non ordinato.",
+                items: [
+                    "Abilita l'ordinamento manuale scegliendo **Ordinamento manuale** dal menu di ordinamento. Successivamente, ci sono due modi per riordinare le note.",
+                    "Scegli **Modifica ordinamento...** dal menu di ordinamento per aprire una vista di riordinamento. Trascina le note con il mouse, o con il tocco su mobile. Su desktop, **Cmd/Ctrl** o **Shift** clic seleziona più note, quindi trascinandone una qualsiasi sposta l'intero gruppo.",
+                    'Nel pannello lista, seleziona una nota o selezionane più, quindi premi **Cmd/Ctrl + Arrow Up/Down** per spostare la selezione su o giù.',
+                    "Fai clic destro su una nota nel pannello lista o in **Modifica ordinamento...** e scegli **Imposta intestazione gruppo** per posizionare un'intestazione personalizzata sopra la nota."
+                ]
             },
             revealFileOnListChanges: {
                 name: 'Scorri al file selezionato quando la lista cambia',
@@ -982,8 +1011,8 @@ export const STRINGS_IT = {
                 desc: 'Visualizza i conteggi note nel formato "correnti ▾ discendenti" in cartelle e tag.'
             },
             groupNotes: {
-                name: 'Raggruppa note',
-                desc: 'Visualizza intestazioni tra note raggruppate per data o cartella. Le viste tag usano gruppi per data quando il raggruppamento per cartella è abilitato.',
+                name: 'Raggruppamento predefinito',
+                desc: 'Scegli il raggruppamento predefinito per le note. Le viste tag usano gruppi per data quando il raggruppamento per cartella è abilitato.',
                 options: {
                     none: 'Non raggruppare',
                     date: 'Raggruppa per data',

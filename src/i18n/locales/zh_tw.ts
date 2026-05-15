@@ -52,7 +52,7 @@ export const STRINGS_ZH_TW = {
         filesSection: '檔案',
         hiddenItemAriaLabel: '{name} (已隱藏)',
         manualSortTitle: '手動排序: {property}',
-        manualSortHint: '拖曳以重新排序。數字排名將儲存在屬性「{property}」中。',
+        manualSortHint: '拖曳以重新排序。順序會以數字索引值儲存在屬性「{property}」中。',
         manualSortNonMarkdownHint: '非 Markdown 檔案顯示於底部，無法重新排序。',
         unsortedSection: '未排序',
         manualSortDone: '完成',
@@ -137,7 +137,7 @@ export const STRINGS_ZH_TW = {
         changeChildSortOrder: '變更排序方式',
         changeSortAndGroup: '變更排序與分組',
         defaultSort: '預設',
-        manualSort: '手動排序...',
+        manualSort: '手動排序',
         editSortOrder: '編輯排序方式...',
         descendants: '子項',
         subfolders: '子資料夾',
@@ -293,6 +293,9 @@ export const STRINGS_ZH_TW = {
             moveFileToFolder: '移動檔案至...',
             moveMultipleNotesToFolder: '將 {count} 個筆記移動至...',
             moveMultipleFilesToFolder: '將 {count} 個檔案移動至...',
+            setManualSortGroupHeader: '設定群組標題',
+            changeManualSortGroupHeader: '變更群組標題',
+            removeManualSortGroupHeader: '移除群組標題',
             addTag: '新增標籤',
             addPropertyKey: '設定屬性',
             removeTag: '移除標籤',
@@ -398,13 +401,18 @@ export const STRINGS_ZH_TW = {
             affectedCountMessage: (count: number) => `將更改的現有覆寫：${count}。`
         },
         manualSortConfirm: {
-            propertySortTitle: '使用屬性排序？',
+            propertySortTitle: '使用手動排序？',
             propertySortMessage: (property: string, count: number) =>
-                `這會將目前檢視切換為使用「${property}」進行屬性排序。${count} 則筆記中的現有值不會被變更。`,
-            propertySortConfirmButton: '使用屬性排序',
-            compactTitle: '壓縮排名？',
-            compactMessage: (count: number) => `此次重新排序需要更多排名空間。${count} 則筆記將獲得新的數字排名。`,
-            compactConfirmButton: '壓縮排名'
+                `這會將目前檢視切換為使用「${property}」的手動排序。編輯順序時會依需要將數字索引值寫入該屬性，影響 ${count} 則筆記。`,
+            propertySortConfirmButton: '使用手動排序',
+            compactTitle: '壓縮索引值？',
+            compactMessage: (count: number) => `此次重新排序需要更多數字空間。${count} 則筆記將獲得新的索引值。`,
+            compactConfirmButton: '壓縮索引值'
+        },
+        manualSortGroupHeader: {
+            title: '設定群組標題',
+            placeholder: '群組標題',
+            description: '標題會儲存到所選筆記的屬性 {property}。將欄位留空以清除標題。'
         },
         navRainbowSection: {
             title: (section: string) => `彩虹顏色: ${section}`
@@ -620,15 +628,6 @@ export const STRINGS_ZH_TW = {
             instructions: {
                 navigate: '導覽',
                 select: '新增屬性',
-                dismiss: '取消'
-            }
-        },
-        propertySortKeySuggest: {
-            placeholder: '用於手動排序的屬性...',
-            createNewProperty: '使用屬性: {property}',
-            instructions: {
-                navigate: '導覽',
-                select: '選擇屬性',
                 dismiss: '取消'
             }
         },
@@ -887,6 +886,8 @@ export const STRINGS_ZH_TW = {
             list: {
                 display: '外觀',
                 organization: '組織',
+                propertySort: '屬性排序',
+                manualSort: '手動排序',
                 pinnedNotes: '釘選筆記',
                 drawingPreviews: '繪圖預覽'
             },
@@ -920,8 +921,8 @@ export const STRINGS_ZH_TW = {
                 }
             },
             sortNotesBy: {
-                name: '筆記排序方式',
-                desc: '選擇筆記列表中的筆記排序方式。',
+                name: '預設排序方式',
+                desc: '選擇筆記的預設排序方式。',
                 options: {
                     'modified-desc': '編輯日期（最新在頂部）',
                     'modified-asc': '編輯日期（最舊在頂部）',
@@ -930,9 +931,7 @@ export const STRINGS_ZH_TW = {
                     'title-asc': '標題（升序）',
                     'title-desc': '標題（降序）',
                     'filename-asc': '檔案名稱（升序）',
-                    'filename-desc': '檔案名稱（降序）',
-                    'property-asc': '屬性（升序）',
-                    'property-desc': '屬性（降序）'
+                    'filename-desc': '檔案名稱（降序）'
                 },
                 directions: {
                     asc: '升序',
@@ -948,8 +947,8 @@ export const STRINGS_ZH_TW = {
             },
             propertySortKey: {
                 name: '用於排序的屬性',
-                desc: '在清單排序選單中顯示的以逗號分隔的 frontmatter 屬性。陣列合併為單一值。',
-                placeholder: 'published, downloaded'
+                desc: '顯示為屬性排序選項的以逗號分隔的 frontmatter 屬性。陣列值會合併為單一字串。這些屬性不會被變更。',
+                placeholder: 'published, author'
             },
             propertySortSecondary: {
                 name: '次要排序',
@@ -960,6 +959,35 @@ export const STRINGS_ZH_TW = {
                     created: '建立日期',
                     modified: '編輯日期'
                 }
+            },
+            manualSortPropertyKey: {
+                name: '手動排序屬性',
+                desc: '用於儲存手動排序數字索引值的 frontmatter 屬性。',
+                placeholder: 'sortindex'
+            },
+            manualSortGroupHeaderProperty: {
+                name: '群組標題屬性',
+                desc: '用於儲存手動排序中自訂群組標題文字的 frontmatter 屬性。',
+                placeholder: 'groupheader'
+            },
+            manualSortNewNotePlacement: {
+                name: '新筆記位置',
+                desc: '選擇當目前列表使用手動排序時新筆記的放置位置。',
+                options: {
+                    top: '頂部',
+                    bottom: '底部',
+                    'below-selected-note': '在選定筆記下方',
+                    unsorted: '未排序'
+                }
+            },
+            manualSortInstructions: {
+                intro: '手動排序會將數字索引值寫入每則筆記的 frontmatter 屬性。沒有索引的筆記會顯示在「未排序」之下。',
+                items: [
+                    '從排序選單中選擇 **手動排序** 以啟用手動排序。之後有兩種方式可以重新排列筆記。',
+                    '從排序選單中選擇 **編輯排序方式...** 以開啟重新排序檢視。使用滑鼠拖曳筆記，或在行動裝置上使用觸控。在桌面上，**Cmd/Ctrl** 或 **Shift** 點擊可選取多則筆記，拖曳其中任何一則即可移動整個群組。',
+                    '在列表面板中，選取一則筆記或多選數則，然後按 **Cmd/Ctrl + Arrow Up/Down** 將所選項目上移或下移。',
+                    '在列表面板或 **編輯排序方式...** 中右鍵點擊筆記並選擇 **設定群組標題**，即可在該筆記上方放置自訂標題。'
+                ]
             },
             revealFileOnListChanges: {
                 name: '列表變更時捲動到選定檔案',
@@ -978,8 +1006,8 @@ export const STRINGS_ZH_TW = {
                 desc: '在資料夾和標籤中以「目前 ▾ 後代」格式顯示筆記計數。'
             },
             groupNotes: {
-                name: '分組筆記',
-                desc: '在按日期或資料夾分組的筆記之間顯示標題。啟用資料夾分組時，標籤檢視使用日期分組。',
+                name: '預設分組',
+                desc: '選擇筆記的預設分組方式。啟用資料夾分組時，標籤檢視使用日期分組。',
                 options: {
                     none: '不分組',
                     date: '按日期分組',

@@ -52,7 +52,7 @@ export const STRINGS_ES = {
         filesSection: 'Archivos', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (oculto)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Orden manual: {property}',
-        manualSortHint: 'Arrastra para reordenar. Los rangos numéricos se guardan en la propiedad "{property}".',
+        manualSortHint: 'Arrastra para reordenar. El orden se guarda como valores numéricos de índice en la propiedad "{property}".',
         manualSortNonMarkdownHint: 'Los archivos no Markdown se muestran al final y no se pueden reordenar.',
         unsortedSection: 'Sin ordenar',
         manualSortDone: 'Hecho',
@@ -137,7 +137,7 @@ export const STRINGS_ES = {
         changeChildSortOrder: 'Cambiar orden de clasificación',
         changeSortAndGroup: 'Cambiar orden y agrupación',
         defaultSort: 'Predeterminado', // Label for default sorting mode (English: Default)
-        manualSort: 'Orden manual...',
+        manualSort: 'Orden manual',
         editSortOrder: 'Editar orden de clasificación...',
         descendants: 'descendientes',
         subfolders: 'subcarpetas',
@@ -294,6 +294,9 @@ export const STRINGS_ES = {
             moveFileToFolder: 'Mover archivo a...',
             moveMultipleNotesToFolder: 'Mover {count} notas a...',
             moveMultipleFilesToFolder: 'Mover {count} archivos a...',
+            setManualSortGroupHeader: 'Establecer encabezado de grupo',
+            changeManualSortGroupHeader: 'Cambiar encabezado de grupo',
+            removeManualSortGroupHeader: 'Eliminar encabezado de grupo',
             addTag: 'Añadir etiqueta',
             addPropertyKey: 'Establecer propiedad',
             removeTag: 'Eliminar etiqueta',
@@ -399,14 +402,20 @@ export const STRINGS_ES = {
             affectedCountMessage: (count: number) => `Anulaciones existentes que cambiarán: ${count}.`
         },
         manualSortConfirm: {
-            propertySortTitle: '¿Usar orden por propiedad?',
+            propertySortTitle: '¿Usar orden manual?',
             propertySortMessage: (property: string, count: number) =>
-                `Esto cambia la vista actual al orden por propiedad usando "${property}". Los valores existentes en ${count} ${count === 1 ? 'nota' : 'notas'} no se modifican.`,
-            propertySortConfirmButton: 'Usar orden por propiedad',
-            compactTitle: '¿Compactar rangos?',
+                `Esto cambia la vista actual al orden manual usando "${property}". Editar el orden escribe valores numéricos de índice en esa propiedad en ${count} ${count === 1 ? 'nota' : 'notas'} según sea necesario.`,
+            propertySortConfirmButton: 'Usar orden manual',
+            compactTitle: '¿Compactar valores de índice?',
             compactMessage: (count: number) =>
-                `Esta reordenación necesita más espacio de rangos. ${count} ${count === 1 ? 'nota recibirá' : 'notas recibirán'} nuevos rangos numéricos.`,
-            compactConfirmButton: 'Compactar rangos'
+                `Esta reordenación necesita más espacio numérico. ${count} ${count === 1 ? 'nota recibirá' : 'notas recibirán'} nuevos valores de índice.`,
+            compactConfirmButton: 'Compactar valores de índice'
+        },
+        manualSortGroupHeader: {
+            title: 'Establecer encabezado de grupo',
+            placeholder: 'Encabezado de grupo',
+            description:
+                'El encabezado se guarda en la propiedad {property} de la nota seleccionada. Deja el campo vacío para borrar el encabezado.'
         },
         navRainbowSection: {
             title: (section: string) => `Colores arcoíris: ${section}`
@@ -626,15 +635,6 @@ export const STRINGS_ES = {
             instructions: {
                 navigate: 'para navegar',
                 select: 'para añadir propiedad',
-                dismiss: 'para cancelar'
-            }
-        },
-        propertySortKeySuggest: {
-            placeholder: 'Propiedad para orden manual...',
-            createNewProperty: 'Usar propiedad: {property}',
-            instructions: {
-                navigate: 'para navegar',
-                select: 'para seleccionar propiedad',
                 dismiss: 'para cancelar'
             }
         },
@@ -896,6 +896,8 @@ export const STRINGS_ES = {
             list: {
                 display: 'Apariencia',
                 organization: 'Organización',
+                propertySort: 'Orden por propiedad',
+                manualSort: 'Orden manual',
                 pinnedNotes: 'Notas fijadas',
                 drawingPreviews: 'Vistas previas de dibujos'
             },
@@ -929,8 +931,8 @@ export const STRINGS_ES = {
                 }
             },
             sortNotesBy: {
-                name: 'Ordenar notas por',
-                desc: 'Elige cómo se ordenan las notas en la lista de notas.',
+                name: 'Orden predeterminado',
+                desc: 'Elige el orden predeterminado para las notas.',
                 options: {
                     'modified-desc': 'Fecha de edición (más reciente arriba)',
                     'modified-asc': 'Fecha de edición (más antigua arriba)',
@@ -939,9 +941,7 @@ export const STRINGS_ES = {
                     'title-asc': 'Título (A arriba)',
                     'title-desc': 'Título (Z arriba)',
                     'filename-asc': 'Nombre de archivo (A arriba)',
-                    'filename-desc': 'Nombre de archivo (Z arriba)',
-                    'property-asc': 'Propiedad (A arriba)',
-                    'property-desc': 'Propiedad (Z arriba)'
+                    'filename-desc': 'Nombre de archivo (Z arriba)'
                 },
                 directions: {
                     asc: 'Ascendente',
@@ -957,8 +957,8 @@ export const STRINGS_ES = {
             },
             propertySortKey: {
                 name: 'Propiedades para ordenar',
-                desc: 'Propiedades del frontmatter separadas por comas que se muestran en el menú de ordenación de la lista. Los arrays se combinan en un valor.',
-                placeholder: 'published, downloaded'
+                desc: 'Propiedades del frontmatter separadas por comas que se muestran como opciones de orden por propiedad. Los valores de tipo array se combinan en una sola cadena. Estas propiedades no se modifican.',
+                placeholder: 'published, author'
             },
             propertySortSecondary: {
                 name: 'Orden secundario',
@@ -969,6 +969,35 @@ export const STRINGS_ES = {
                     created: 'Fecha de creación',
                     modified: 'Fecha de edición'
                 }
+            },
+            manualSortPropertyKey: {
+                name: 'Propiedad de orden manual',
+                desc: 'Propiedad del frontmatter usada para almacenar los valores numéricos de índice del orden manual.',
+                placeholder: 'sortindex'
+            },
+            manualSortGroupHeaderProperty: {
+                name: 'Propiedad de encabezado de grupo',
+                desc: 'Propiedad del frontmatter usada para almacenar el texto personalizado del encabezado de grupo en el orden manual.',
+                placeholder: 'groupheader'
+            },
+            manualSortNewNotePlacement: {
+                name: 'Ubicación de notas nuevas',
+                desc: 'Elige dónde se colocan las notas nuevas cuando la lista actual usa orden manual.',
+                options: {
+                    top: 'Arriba',
+                    bottom: 'Abajo',
+                    'below-selected-note': 'Debajo de la nota seleccionada',
+                    unsorted: 'Sin ordenar'
+                }
+            },
+            manualSortInstructions: {
+                intro: 'El orden manual escribe un valor numérico de índice en una propiedad del frontmatter de cada nota. Las notas sin índice aparecen en Sin ordenar.',
+                items: [
+                    'Activa el orden manual eligiendo **Orden manual** en el menú de ordenación. Después hay dos formas de reorganizar las notas.',
+                    'Selecciona **Editar orden de clasificación...** en el menú de ordenación para abrir una vista de reordenación. Arrastra las notas con el ratón o con el dedo en móvil. En escritorio, **Cmd/Ctrl** o **Shift** clic selecciona varias notas, y al arrastrar cualquiera de ellas se mueve todo el grupo.',
+                    'En el panel de lista, selecciona una nota o varias, y luego pulsa **Cmd/Ctrl + Arrow Up/Down** para mover la selección hacia arriba o hacia abajo.',
+                    'Haz clic derecho en una nota en el panel de lista o en **Editar orden de clasificación...** y elige **Establecer encabezado de grupo** para colocar un encabezado personalizado sobre la nota.'
+                ]
             },
             revealFileOnListChanges: {
                 name: 'Desplazar al archivo seleccionado cuando cambia la lista',
@@ -987,8 +1016,8 @@ export const STRINGS_ES = {
                 desc: 'Muestra el conteo de notas como formato "actual ▾ descendientes" en carpetas y etiquetas.'
             },
             groupNotes: {
-                name: 'Agrupar notas',
-                desc: 'Muestra encabezados entre notas agrupadas por fecha o carpeta. Las vistas de etiquetas usan grupos por fecha cuando la agrupación por carpeta está activada.',
+                name: 'Agrupación predeterminada',
+                desc: 'Elige la agrupación predeterminada para las notas. Las vistas de etiquetas usan grupos por fecha cuando la agrupación por carpeta está activada.',
                 options: {
                     none: 'No agrupar',
                     date: 'Agrupar por fecha',

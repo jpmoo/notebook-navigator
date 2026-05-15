@@ -52,7 +52,7 @@ export const STRINGS_FA = {
         filesSection: 'فایل‌ها',
         hiddenItemAriaLabel: '{name} (پنهان)',
         manualSortTitle: 'مرتب‌سازی دستی: {property}',
-        manualSortHint: 'برای تغییر ترتیب بکشید. رتبه‌های عددی در ویژگی «{property}» ذخیره می‌شوند.',
+        manualSortHint: 'برای تغییر ترتیب بکشید. ترتیب به صورت مقادیر شاخص عددی در ویژگی «{property}» ذخیره می‌شود.',
         manualSortNonMarkdownHint: 'فایل‌های غیر مارک‌داون در پایین نمایش داده می‌شوند و قابل مرتب‌سازی مجدد نیستند.',
         unsortedSection: 'مرتب‌نشده',
         manualSortDone: 'انجام شد',
@@ -138,7 +138,7 @@ export const STRINGS_FA = {
         changeChildSortOrder: 'تغییر ترتیب',
         changeSortAndGroup: 'تغییر ترتیب و گروه‌بندی',
         defaultSort: 'پیش‌فرض',
-        manualSort: 'مرتب‌سازی دستی...',
+        manualSort: 'مرتب‌سازی دستی',
         editSortOrder: 'ویرایش ترتیب مرتب‌سازی...',
         descendants: 'فرزندان',
         subfolders: 'زیرپوشه‌ها',
@@ -308,6 +308,9 @@ export const STRINGS_FA = {
             moveFileToFolder: 'انتقال فایل به...',
             moveMultipleNotesToFolder: 'انتقال {count} یادداشت به...',
             moveMultipleFilesToFolder: 'انتقال {count} فایل به...',
+            setManualSortGroupHeader: 'تنظیم هدر گروه',
+            changeManualSortGroupHeader: 'تغییر هدر گروه',
+            removeManualSortGroupHeader: 'حذف هدر گروه',
             addTag: 'افزودن برچسب',
             addPropertyKey: 'تنظیم ویژگی',
             removeTag: 'حذف برچسب',
@@ -398,14 +401,19 @@ export const STRINGS_FA = {
             affectedCountMessage: (count: number) => `بازنویسی‌های موجود که تغییر خواهند کرد: ${count}.`
         },
         manualSortConfirm: {
-            propertySortTitle: 'استفاده از مرتب‌سازی بر اساس ویژگی؟',
+            propertySortTitle: 'استفاده از مرتب‌سازی دستی؟',
             propertySortMessage: (property: string, count: number) =>
-                `این کار نمای فعلی را به مرتب‌سازی بر اساس ویژگی «${property}» تغییر می‌دهد. مقادیر موجود در ${count} یادداشت تغییر نمی‌کنند.`,
-            propertySortConfirmButton: 'استفاده از مرتب‌سازی بر اساس ویژگی',
-            compactTitle: 'فشرده‌سازی رتبه‌ها؟',
+                `این کار نمای فعلی را به مرتب‌سازی دستی با استفاده از «${property}» تغییر می‌دهد. ویرایش ترتیب، مقادیر شاخص عددی را در صورت نیاز در این ویژگی برای ${count} یادداشت می‌نویسد.`,
+            propertySortConfirmButton: 'استفاده از مرتب‌سازی دستی',
+            compactTitle: 'فشرده‌سازی مقادیر شاخص؟',
             compactMessage: (count: number) =>
-                `این بازآرایی به فضای رتبه بیشتری نیاز دارد. ${count} یادداشت رتبه‌های عددی جدید دریافت می‌کنند.`,
-            compactConfirmButton: 'فشرده‌سازی رتبه‌ها'
+                `این بازآرایی به فضای عددی بیشتری نیاز دارد. ${count} یادداشت مقادیر شاخص جدید دریافت می‌کنند.`,
+            compactConfirmButton: 'فشرده‌سازی مقادیر شاخص'
+        },
+        manualSortGroupHeader: {
+            title: 'تنظیم هدر گروه',
+            placeholder: 'هدر گروه',
+            description: 'هدر در ویژگی {property} در یادداشت انتخاب‌شده ذخیره می‌شود. برای پاک کردن هدر، فیلد را خالی بگذارید.'
         },
         navRainbowSection: {
             title: (section: string) => `رنگ‌های رنگین‌کمان: ${section}`
@@ -626,15 +634,6 @@ export const STRINGS_FA = {
             instructions: {
                 navigate: 'برای ناوبری',
                 select: 'برای افزودن ویژگی',
-                dismiss: 'برای بستن'
-            }
-        },
-        propertySortKeySuggest: {
-            placeholder: 'ویژگی برای مرتب‌سازی دستی...',
-            createNewProperty: 'استفاده از ویژگی: {property}',
-            instructions: {
-                navigate: 'برای ناوبری',
-                select: 'برای انتخاب ویژگی',
                 dismiss: 'برای بستن'
             }
         },
@@ -895,6 +894,8 @@ export const STRINGS_FA = {
             list: {
                 display: 'ظاهر',
                 organization: 'سازماندهی',
+                propertySort: 'مرتب‌سازی بر اساس ویژگی',
+                manualSort: 'مرتب‌سازی دستی',
                 pinnedNotes: 'یادداشت‌های سنجاق‌شده',
                 drawingPreviews: 'پیش‌نمایش‌های طراحی'
             },
@@ -928,8 +929,8 @@ export const STRINGS_FA = {
                 }
             },
             sortNotesBy: {
-                name: 'مرتب‌سازی یادداشت‌ها بر اساس',
-                desc: 'نحوه مرتب‌سازی یادداشت‌ها در لیست را انتخاب کنید.',
+                name: 'ترتیب پیش‌فرض مرتب‌سازی',
+                desc: 'ترتیب پیش‌فرض مرتب‌سازی یادداشت‌ها را انتخاب کنید.',
                 options: {
                     'modified-desc': 'تاریخ ویرایش (جدیدترین بالا)',
                     'modified-asc': 'تاریخ ویرایش (قدیمی‌ترین بالا)',
@@ -938,9 +939,7 @@ export const STRINGS_FA = {
                     'title-asc': 'عنوان (الف بالا)',
                     'title-desc': 'عنوان (ی بالا)',
                     'filename-asc': 'نام فایل (الف بالا)',
-                    'filename-desc': 'نام فایل (ی بالا)',
-                    'property-asc': 'ویژگی (الف بالا)',
-                    'property-desc': 'ویژگی (ی بالا)'
+                    'filename-desc': 'نام فایل (ی بالا)'
                 },
                 directions: {
                     asc: 'صعودی',
@@ -956,8 +955,8 @@ export const STRINGS_FA = {
             },
             propertySortKey: {
                 name: 'ویژگی‌ها برای مرتب‌سازی',
-                desc: 'ویژگی‌های frontmatter جدا شده با کاما که در منوی مرتب‌سازی فهرست نمایش داده می‌شوند. آرایه‌ها به یک مقدار تبدیل می‌شوند.',
-                placeholder: 'published, downloaded'
+                desc: 'ویژگی‌های frontmatter جدا شده با کاما که به عنوان گزینه‌های مرتب‌سازی بر اساس ویژگی نمایش داده می‌شوند. مقادیر آرایه به یک رشته واحد متصل می‌شوند. این ویژگی‌ها تغییر داده نمی‌شوند.',
+                placeholder: 'published, author'
             },
             propertySortSecondary: {
                 name: 'مرتب‌سازی ثانویه',
@@ -968,6 +967,35 @@ export const STRINGS_FA = {
                     created: 'تاریخ ایجاد',
                     modified: 'تاریخ ویرایش'
                 }
+            },
+            manualSortPropertyKey: {
+                name: 'ویژگی مرتب‌سازی دستی',
+                desc: 'ویژگی frontmatter که برای ذخیره مقادیر شاخص عددی در مرتب‌سازی دستی استفاده می‌شود.',
+                placeholder: 'sortindex'
+            },
+            manualSortGroupHeaderProperty: {
+                name: 'ویژگی هدر گروه',
+                desc: 'ویژگی frontmatter که برای ذخیره متن سفارشی هدر گروه در مرتب‌سازی دستی استفاده می‌شود.',
+                placeholder: 'groupheader'
+            },
+            manualSortNewNotePlacement: {
+                name: 'محل قرارگیری یادداشت جدید',
+                desc: 'محل قرارگیری یادداشت‌های جدید را زمانی که فهرست فعلی از مرتب‌سازی دستی استفاده می‌کند، انتخاب کنید.',
+                options: {
+                    top: 'بالا',
+                    bottom: 'پایین',
+                    'below-selected-note': 'زیر یادداشت انتخاب‌شده',
+                    unsorted: 'مرتب‌نشده'
+                }
+            },
+            manualSortInstructions: {
+                intro: 'مرتب‌سازی دستی یک مقدار شاخص عددی را در یک ویژگی frontmatter بر روی هر یادداشت می‌نویسد. یادداشت‌های بدون شاخص در زیر بخش مرتب‌نشده ظاهر می‌شوند.',
+                items: [
+                    'مرتب‌سازی دستی را با انتخاب **مرتب‌سازی دستی** از منوی مرتب‌سازی فعال کنید. پس از آن، دو روش برای بازآرایی یادداشت‌ها وجود دارد.',
+                    '**ویرایش ترتیب مرتب‌سازی...** را از منوی مرتب‌سازی انتخاب کنید تا نمای بازآرایی باز شود. یادداشت‌ها را با ماوس بکشید یا روی موبایل با لمس. در دسکتاپ، کلیک **Cmd/Ctrl** یا **Shift** چندین یادداشت را انتخاب می‌کند، سپس کشیدن هر یک از آن‌ها کل گروه را جابه‌جا می‌کند.',
+                    'در پنل لیست، یک یادداشت را انتخاب کنید یا چندین یادداشت را به صورت چندانتخابی انتخاب کنید، سپس **Cmd/Ctrl + Arrow Up/Down** را فشار دهید تا انتخاب به بالا یا پایین جابه‌جا شود.',
+                    'روی یک یادداشت در پنل لیست یا در **ویرایش ترتیب مرتب‌سازی...** کلیک راست کنید و **تنظیم هدر گروه** را انتخاب کنید تا یک هدر سفارشی بالای یادداشت قرار گیرد.'
+                ]
             },
             revealFileOnListChanges: {
                 name: 'اسکرول به فایل انتخابی هنگام تغییر لیست',
@@ -986,8 +1014,8 @@ export const STRINGS_FA = {
                 desc: 'تعداد یادداشت‌ها را به صورت "فعلی ▾ زیرمجموعه" در پوشه‌ها و برچسب‌ها نمایش دهید.'
             },
             groupNotes: {
-                name: 'گروه‌بندی یادداشت‌ها',
-                desc: 'هدرها بین یادداشت‌های گروه‌بندی شده بر اساس تاریخ یا پوشه نمایش دهید. نماهای برچسب از گروه‌های تاریخ هنگام فعال بودن گروه‌بندی پوشه استفاده می‌کنند.',
+                name: 'گروه‌بندی پیش‌فرض',
+                desc: 'گروه‌بندی پیش‌فرض یادداشت‌ها را انتخاب کنید. نماهای برچسب از گروه‌های تاریخ هنگام فعال بودن گروه‌بندی پوشه استفاده می‌کنند.',
                 options: {
                     none: 'گروه‌بندی نکن',
                     date: 'گروه‌بندی بر اساس تاریخ',

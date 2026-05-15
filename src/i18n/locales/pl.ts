@@ -52,7 +52,8 @@ export const STRINGS_PL = {
         filesSection: 'Pliki', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (ukryte)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Sortowanie ręczne: {property}',
-        manualSortHint: 'Przeciągnij, aby zmienić kolejność. Rangi liczbowe są zapisywane we właściwości „{property}".',
+        manualSortHint:
+            'Przeciągnij, aby zmienić kolejność. Kolejność jest zapisywana jako wartości indeksu liczbowego we właściwości „{property}".',
         manualSortNonMarkdownHint: 'Pliki inne niż Markdown są wyświetlane na dole i nie można zmieniać ich kolejności.',
         unsortedSection: 'Nieposortowane',
         manualSortDone: 'Gotowe',
@@ -137,7 +138,7 @@ export const STRINGS_PL = {
         changeChildSortOrder: 'Zmień kolejność sortowania',
         changeSortAndGroup: 'Zmień sortowanie i grupowanie',
         defaultSort: 'Domyślne', // Label for default sorting mode (English: Default)
-        manualSort: 'Sortowanie ręczne...',
+        manualSort: 'Sortowanie ręczne',
         editSortOrder: 'Edytuj kolejność sortowania...',
         descendants: 'potomków',
         subfolders: 'podfolderów',
@@ -308,6 +309,9 @@ export const STRINGS_PL = {
             moveFileToFolder: 'Przenieś plik do...',
             moveMultipleNotesToFolder: 'Przenieś notatki ({count}) do...',
             moveMultipleFilesToFolder: 'Przenieś pliki ({count}) do...',
+            setManualSortGroupHeader: 'Ustaw nagłówek grupy',
+            changeManualSortGroupHeader: 'Zmień nagłówek grupy',
+            removeManualSortGroupHeader: 'Usuń nagłówek grupy',
             addTag: 'Dodaj tag',
             addPropertyKey: 'Ustaw właściwość',
             removeTag: 'Usuń tag',
@@ -400,14 +404,20 @@ export const STRINGS_PL = {
             affectedCountMessage: (count: number) => `Istniejące nadpisania do zmiany: ${count}.`
         },
         manualSortConfirm: {
-            propertySortTitle: 'Użyć sortowania według właściwości?',
+            propertySortTitle: 'Użyć sortowania ręcznego?',
             propertySortMessage: (property: string, count: number) =>
-                `Przełącza bieżący widok na sortowanie według właściwości „${property}". Istniejące wartości w ${count} ${count === 1 ? 'notatce' : 'notatkach'} nie zostaną zmienione.`,
-            propertySortConfirmButton: 'Użyj sortowania według właściwości',
-            compactTitle: 'Zagęścić rangi?',
+                `Przełącza bieżący widok na sortowanie ręczne z użyciem „${property}". Edycja kolejności w razie potrzeby zapisuje wartości indeksu liczbowego do tej właściwości w ${count} ${count === 1 ? 'notatce' : 'notatkach'}.`,
+            propertySortConfirmButton: 'Użyj sortowania ręcznego',
+            compactTitle: 'Zagęścić wartości indeksu?',
             compactMessage: (count: number) =>
-                `Ta zmiana kolejności wymaga więcej miejsca na rangi. ${count} ${count === 1 ? 'notatka otrzyma' : 'notatek otrzyma'} nowe rangi liczbowe.`,
-            compactConfirmButton: 'Zagęść rangi'
+                `Ta zmiana kolejności wymaga więcej miejsca na wartości liczbowe. ${count} ${count === 1 ? 'notatka otrzyma' : 'notatek otrzyma'} nowe wartości indeksu.`,
+            compactConfirmButton: 'Zagęść wartości indeksu'
+        },
+        manualSortGroupHeader: {
+            title: 'Ustaw nagłówek grupy',
+            placeholder: 'Nagłówek grupy',
+            description:
+                'Nagłówek jest zapisywany we właściwości {property} w wybranej notatce. Pozostaw pole puste, aby wyczyścić nagłówek.'
         },
         navRainbowSection: {
             title: (section: string) => `Kolory tęczy: ${section}`
@@ -627,15 +637,6 @@ export const STRINGS_PL = {
             instructions: {
                 navigate: 'aby nawigować',
                 select: 'aby dodać atrybut',
-                dismiss: 'aby anulować'
-            }
-        },
-        propertySortKeySuggest: {
-            placeholder: 'Atrybut dla sortowania ręcznego...',
-            createNewProperty: 'Użyj atrybutu: {property}',
-            instructions: {
-                navigate: 'aby nawigować',
-                select: 'aby wybrać atrybut',
                 dismiss: 'aby anulować'
             }
         },
@@ -897,6 +898,8 @@ export const STRINGS_PL = {
             list: {
                 display: 'Wygląd',
                 organization: 'Organizacja',
+                propertySort: 'Sortowanie według właściwości',
+                manualSort: 'Sortowanie ręczne',
                 pinnedNotes: 'Przypięte notatki',
                 drawingPreviews: 'Podglądy rysunków'
             },
@@ -930,8 +933,8 @@ export const STRINGS_PL = {
                 }
             },
             sortNotesBy: {
-                name: 'Sortuj notatki według',
-                desc: 'Wybierz sposób sortowania notatek na liście.',
+                name: 'Domyślny porządek sortowania',
+                desc: 'Wybierz domyślny porządek sortowania notatek.',
                 options: {
                     'modified-desc': 'daty edycji (od najnowszych)',
                     'modified-asc': 'daty edycji (od najstarszych)',
@@ -940,9 +943,7 @@ export const STRINGS_PL = {
                     'title-asc': 'tytułu (od A do Z)',
                     'title-desc': 'tytułu (od Z do A)',
                     'filename-asc': 'nazwy (od A do Z)',
-                    'filename-desc': 'nazwy (od Z do A)',
-                    'property-asc': 'atrybutu (od A do Z)',
-                    'property-desc': 'atrybutu (od Z do A)'
+                    'filename-desc': 'nazwy (od Z do A)'
                 },
                 directions: {
                     asc: 'Rosnąco',
@@ -958,8 +959,8 @@ export const STRINGS_PL = {
             },
             propertySortKey: {
                 name: 'Atrybuty do sortowania',
-                desc: 'Rozdzielone przecinkami atrybuty frontmatter pokazywane w menu sortowania listy. Tablice są łączone w jedną wartość.',
-                placeholder: 'published, downloaded'
+                desc: 'Rozdzielone przecinkami atrybuty frontmatter pokazywane jako opcje sortowania według właściwości. Tablice są łączone w jeden ciąg. Te atrybuty nie są zmieniane.',
+                placeholder: 'published, author'
             },
             propertySortSecondary: {
                 name: 'Sortowanie drugorzędne',
@@ -970,6 +971,35 @@ export const STRINGS_PL = {
                     created: 'Data utworzenia',
                     modified: 'Data edycji'
                 }
+            },
+            manualSortPropertyKey: {
+                name: 'Atrybut sortowania ręcznego',
+                desc: 'Atrybut frontmatter używany do przechowywania wartości indeksu liczbowego dla sortowania ręcznego.',
+                placeholder: 'sortindex'
+            },
+            manualSortGroupHeaderProperty: {
+                name: 'Atrybut nagłówka grupy',
+                desc: 'Atrybut frontmatter używany do przechowywania niestandardowego tekstu nagłówka grupy w sortowaniu ręcznym.',
+                placeholder: 'groupheader'
+            },
+            manualSortNewNotePlacement: {
+                name: 'Umiejscowienie nowych notatek',
+                desc: 'Wybierz, gdzie umieszczane są nowe notatki, gdy bieżąca lista używa sortowania ręcznego.',
+                options: {
+                    top: 'Na górze',
+                    bottom: 'Na dole',
+                    'below-selected-note': 'Pod wybraną notatką',
+                    unsorted: 'Nieposortowane'
+                }
+            },
+            manualSortInstructions: {
+                intro: 'Sortowanie ręczne zapisuje wartość indeksu liczbowego do atrybutu frontmatter w każdej notatce. Notatki bez indeksu pojawiają się w sekcji Nieposortowane.',
+                items: [
+                    'Włącz sortowanie ręczne, wybierając **Sortowanie ręczne** z menu sortowania. Następnie istnieją dwa sposoby zmiany kolejności notatek.',
+                    'Wybierz **Edytuj kolejność sortowania...** z menu sortowania, aby otworzyć widok zmiany kolejności. Przeciągaj notatki myszą lub dotykiem na urządzeniach mobilnych. Na komputerze kliknięcie z **Cmd/Ctrl** lub **Shift** zaznacza wiele notatek, a następnie przeciągnięcie którejkolwiek z nich przenosi całą grupę.',
+                    'W panelu listy zaznacz jedną notatkę lub zaznacz wiele, a następnie naciśnij **Cmd/Ctrl + Arrow Up/Down**, aby przesunąć zaznaczenie w górę lub w dół.',
+                    'Kliknij prawym przyciskiem myszy notatkę w panelu listy lub w **Edytuj kolejność sortowania...** i wybierz **Ustaw nagłówek grupy**, aby umieścić niestandardowy nagłówek nad notatką.'
+                ]
             },
             revealFileOnListChanges: {
                 name: 'Przewiń do wybranego pliku podczas zmian na liście',
@@ -988,8 +1018,8 @@ export const STRINGS_PL = {
                 desc: 'Wyświetla liczbę notatek jako "nadrzędne ▾ podrzędne" w folderach i tagach.'
             },
             groupNotes: {
-                name: 'Grupuj notatki',
-                desc: 'Wyświetla nagłówki pomiędzy grupami notatek na podstawie daty lub folderu. Tagi są grupowane według dat, gdy włączone jest grupowanie według folderów.',
+                name: 'Domyślne grupowanie',
+                desc: 'Wybierz domyślne grupowanie notatek. Widoki tagów używają grup dat, gdy włączone jest grupowanie według folderów.',
                 options: {
                     none: 'Nie grupuj',
                     date: 'Grupuj według daty',

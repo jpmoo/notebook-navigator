@@ -52,7 +52,7 @@ export const STRINGS_TR = {
         filesSection: 'Dosyalar', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (gizli)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Manuel sıralama: {property}',
-        manualSortHint: 'Yeniden sıralamak için sürükleyin. Sayısal sıralar "{property}" özelliğine kaydedilir.',
+        manualSortHint: 'Yeniden sıralamak için sürükleyin. Sıra, "{property}" özelliğinde sayısal indeks değerleri olarak kaydedilir.',
         manualSortNonMarkdownHint: 'Markdown olmayan dosyalar altta gösterilir ve yeniden sıralanamaz.',
         unsortedSection: 'Sıralanmamış',
         manualSortDone: 'Tamam',
@@ -138,7 +138,7 @@ export const STRINGS_TR = {
         changeChildSortOrder: 'Sıralama düzenini değiştir',
         changeSortAndGroup: 'Sıralama ve gruplandırmayı değiştir',
         defaultSort: 'Varsayılan', // Label for default sorting mode (English: Default)
-        manualSort: 'Manuel sıralama...',
+        manualSort: 'Manuel sıralama',
         editSortOrder: 'Sıralama düzenini düzenle...',
         descendants: 'alt öğeler',
         subfolders: 'alt klasörler',
@@ -309,6 +309,9 @@ export const STRINGS_TR = {
             moveFileToFolder: 'Dosyayı taşı...',
             moveMultipleNotesToFolder: '{count} notu taşı...',
             moveMultipleFilesToFolder: '{count} dosyayı taşı...',
+            setManualSortGroupHeader: 'Grup başlığını ayarla',
+            changeManualSortGroupHeader: 'Grup başlığını değiştir',
+            removeManualSortGroupHeader: 'Grup başlığını kaldır',
             addTag: 'Etiket ekle',
             addPropertyKey: 'Özellik ayarla',
             removeTag: 'Etiketi kaldır',
@@ -399,14 +402,19 @@ export const STRINGS_TR = {
             affectedCountMessage: (count: number) => `Değişecek mevcut geçersiz kılmalar: ${count}.`
         },
         manualSortConfirm: {
-            propertySortTitle: 'Özelliğe göre sıralama kullanılsın mı?',
+            propertySortTitle: 'Manuel sıralama kullanılsın mı?',
             propertySortMessage: (property: string, count: number) =>
-                `Bu, geçerli görünümü "${property}" kullanarak özelliğe göre sıralamaya geçirir. ${count} nottaki mevcut değerler değiştirilmez.`,
-            propertySortConfirmButton: 'Özelliğe göre sıralamayı kullan',
-            compactTitle: 'Sıralar sıkıştırılsın mı?',
+                `Bu, geçerli görünümü "${property}" kullanarak manuel sıralamaya geçirir. Sıralamayı düzenlemek, gerektiğinde ${count} ${count === 1 ? 'nottaki' : 'nottaki'} bu özelliğe sayısal indeks değerleri yazar.`,
+            propertySortConfirmButton: 'Manuel sıralamayı kullan',
+            compactTitle: 'İndeks değerleri sıkıştırılsın mı?',
             compactMessage: (count: number) =>
-                `Bu yeniden sıralama daha fazla sıralama alanına ihtiyaç duyar. ${count} not yeni sayısal sıralar alacak.`,
-            compactConfirmButton: 'Sıraları sıkıştır'
+                `Bu yeniden sıralama daha fazla sayısal alana ihtiyaç duyar. ${count} ${count === 1 ? 'not' : 'not'} yeni indeks değerleri alacak.`,
+            compactConfirmButton: 'İndeks değerlerini sıkıştır'
+        },
+        manualSortGroupHeader: {
+            title: 'Grup başlığını ayarla',
+            placeholder: 'Grup başlığı',
+            description: 'Başlık, seçili nottaki {property} özelliğine kaydedilir. Başlığı temizlemek için alanı boş bırakın.'
         },
         navRainbowSection: {
             title: (section: string) => `Gökkuşağı renkleri: ${section}`
@@ -626,15 +634,6 @@ export const STRINGS_TR = {
             instructions: {
                 navigate: 'gezinmek için',
                 select: 'özellik eklemek için',
-                dismiss: 'kapatmak için'
-            }
-        },
-        propertySortKeySuggest: {
-            placeholder: 'Manuel sıralama için özellik...',
-            createNewProperty: 'Özelliği kullan: {property}',
-            instructions: {
-                navigate: 'gezinmek için',
-                select: 'özellik seçmek için',
                 dismiss: 'kapatmak için'
             }
         },
@@ -895,6 +894,8 @@ export const STRINGS_TR = {
             list: {
                 display: 'Görünüm',
                 organization: 'Düzenleme',
+                propertySort: 'Özelliğe göre sıralama',
+                manualSort: 'Manuel sıralama',
                 pinnedNotes: 'Sabitlenmiş notlar',
                 drawingPreviews: 'Çizim önizlemeleri'
             },
@@ -928,8 +929,8 @@ export const STRINGS_TR = {
                 }
             },
             sortNotesBy: {
-                name: 'Notları sırala',
-                desc: 'Not listesinde notların nasıl sıralanacağını seçin.',
+                name: 'Varsayılan sıralama düzeni',
+                desc: 'Notlar için varsayılan sıralama düzenini seçin.',
                 options: {
                     'modified-desc': 'Düzenleme tarihi (en yeni üstte)',
                     'modified-asc': 'Düzenleme tarihi (en eski üstte)',
@@ -938,9 +939,7 @@ export const STRINGS_TR = {
                     'title-asc': 'Başlık (A üstte)',
                     'title-desc': 'Başlık (Z üstte)',
                     'filename-asc': 'Dosya adı (A üstte)',
-                    'filename-desc': 'Dosya adı (Z üstte)',
-                    'property-asc': 'Özellik (A üstte)',
-                    'property-desc': 'Özellik (Z üstte)'
+                    'filename-desc': 'Dosya adı (Z üstte)'
                 },
                 directions: {
                     asc: 'Artan',
@@ -956,8 +955,8 @@ export const STRINGS_TR = {
             },
             propertySortKey: {
                 name: 'Sıralama özellikleri',
-                desc: 'Liste sıralama menüsünde gösterilen virgülle ayrılmış frontmatter özellikleri. Diziler tek bir değere birleştirilir.',
-                placeholder: 'published, downloaded'
+                desc: 'Özelliğe göre sıralama seçenekleri olarak gösterilen virgülle ayrılmış frontmatter özellikleri. Dizi değerleri tek bir dizede birleştirilir. Bu özellikler değiştirilmez.',
+                placeholder: 'published, author'
             },
             propertySortSecondary: {
                 name: 'İkincil sıralama',
@@ -968,6 +967,35 @@ export const STRINGS_TR = {
                     created: 'Oluşturma tarihi',
                     modified: 'Düzenleme tarihi'
                 }
+            },
+            manualSortPropertyKey: {
+                name: 'Manuel sıralama özelliği',
+                desc: 'Manuel sıralama için sayısal indeks değerlerini saklamak üzere kullanılan frontmatter özelliği.',
+                placeholder: 'sortindex'
+            },
+            manualSortGroupHeaderProperty: {
+                name: 'Grup başlığı özelliği',
+                desc: 'Manuel sıralamada özel grup başlığı metnini saklamak üzere kullanılan frontmatter özelliği.',
+                placeholder: 'groupheader'
+            },
+            manualSortNewNotePlacement: {
+                name: 'Yeni not yerleşimi',
+                desc: 'Geçerli liste manuel sıralama kullandığında yeni notların nereye yerleştirileceğini seçin.',
+                options: {
+                    top: 'Üst',
+                    bottom: 'Alt',
+                    'below-selected-note': 'Seçili notun altında',
+                    unsorted: 'Sıralanmamış'
+                }
+            },
+            manualSortInstructions: {
+                intro: 'Manuel sıralama, her notun frontmatter özelliğine sayısal bir indeks değeri yazar. İndeksi olmayan notlar Sıralanmamış altında görünür.',
+                items: [
+                    'Sıralama menüsünden **Manuel sıralama** seçeneğini seçerek manuel sıralamayı etkinleştirin. Bundan sonra, notları yeniden düzenlemenin iki yolu vardır.',
+                    'Yeniden sıralama görünümünü açmak için sıralama menüsünden **Sıralama düzenini düzenle...** seçeneğini seçin. Notları fareyle veya mobilde dokunarak sürükleyin. Masaüstünde, **Cmd/Ctrl** veya **Shift** ile tıklayarak birden fazla not seçin, ardından herhangi birini sürüklediğinizde tüm grup taşınır.',
+                    'Liste bölmesinde, bir notu seçin veya birden fazlasını çoklu seçin, ardından seçimi yukarı veya aşağı taşımak için **Cmd/Ctrl + Arrow Up/Down** tuşlarına basın.',
+                    'Liste bölmesinde veya **Sıralama düzenini düzenle...** içinde bir nota sağ tıklayın ve notun üstüne özel bir başlık yerleştirmek için **Grup başlığını ayarla** seçeneğini seçin.'
+                ]
             },
             revealFileOnListChanges: {
                 name: 'Liste değişikliklerinde seçili dosyaya kaydır',
@@ -986,8 +1014,8 @@ export const STRINGS_TR = {
                 desc: 'Klasör ve etiketlerde not sayılarını "mevcut ▾ alt öğeler" biçiminde göster.'
             },
             groupNotes: {
-                name: 'Notları grupla',
-                desc: 'Tarihe veya klasöre göre gruplandırılmış notlar arasında başlıklar görüntüle. Etiket görünümleri klasör gruplandırması etkinken tarih gruplarını kullanır.',
+                name: 'Varsayılan gruplama',
+                desc: 'Notlar için varsayılan gruplamayı seçin. Etiket görünümleri klasör gruplandırması etkinken tarih gruplarını kullanır.',
                 options: {
                     none: 'Gruplama yok',
                     date: 'Tarihe göre grupla',

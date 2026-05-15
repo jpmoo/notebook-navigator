@@ -52,7 +52,8 @@ export const STRINGS_UK = {
         filesSection: 'Файли', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (приховано)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Ручне сортування: {property}',
-        manualSortHint: 'Перетягуйте для зміни порядку. Числові ранги зберігаються у властивості «{property}».',
+        manualSortHint:
+            'Перетягуйте для зміни порядку. Порядок зберігається у вигляді числових значень індексу у властивості «{property}».',
         manualSortNonMarkdownHint: 'Файли, відмінні від Markdown, показуються внизу, і їхній порядок не можна змінити.',
         unsortedSection: 'Без сортування',
         manualSortDone: 'Готово',
@@ -138,7 +139,7 @@ export const STRINGS_UK = {
         changeChildSortOrder: 'Змінити порядок сортування',
         changeSortAndGroup: 'Змінити сортування та групування',
         defaultSort: 'За замовчуванням', // Label for default sorting mode (English: Default)
-        manualSort: 'Ручне сортування...',
+        manualSort: 'Ручне сортування',
         editSortOrder: 'Редагувати порядок сортування...',
         descendants: 'нащадків',
         subfolders: 'підпапок',
@@ -309,6 +310,9 @@ export const STRINGS_UK = {
             moveFileToFolder: 'Перемістити файл до...',
             moveMultipleNotesToFolder: 'Перемістити {count} нотаток до...',
             moveMultipleFilesToFolder: 'Перемістити {count} файлів до...',
+            setManualSortGroupHeader: 'Встановити заголовок групи',
+            changeManualSortGroupHeader: 'Змінити заголовок групи',
+            removeManualSortGroupHeader: 'Вилучити заголовок групи',
             addTag: 'Додати тег',
             addPropertyKey: 'Встановити властивість',
             removeTag: 'Вилучити тег',
@@ -399,14 +403,19 @@ export const STRINGS_UK = {
             affectedCountMessage: (count: number) => `Наявних перевизначень, які зміняться: ${count}.`
         },
         manualSortConfirm: {
-            propertySortTitle: 'Використати сортування за властивістю?',
+            propertySortTitle: 'Використати ручне сортування?',
             propertySortMessage: (property: string, count: number) =>
-                `Перемикає поточний вигляд на сортування за властивістю «${property}». Наявні значення в ${count} ${count === 1 ? 'нотатці' : 'нотатках'} не змінюються.`,
-            propertySortConfirmButton: 'Використати сортування за властивістю',
-            compactTitle: 'Стиснути ранги?',
+                `Перемикає поточний вигляд на ручне сортування з використанням «${property}». Редагування порядку записує числові значення індексу в цю властивість у ${count} ${count === 1 ? 'нотатці' : 'нотатках'} за потреби.`,
+            propertySortConfirmButton: 'Використати ручне сортування',
+            compactTitle: 'Стиснути значення індексу?',
             compactMessage: (count: number) =>
-                `Це перевпорядкування потребує більше місця для рангів. ${count} ${count === 1 ? 'нотатка отримає' : 'нотаток отримають'} нові числові ранги.`,
-            compactConfirmButton: 'Стиснути ранги'
+                `Це перевпорядкування потребує більше числового простору. ${count} ${count === 1 ? 'нотатка отримає' : 'нотаток отримають'} нові значення індексу.`,
+            compactConfirmButton: 'Стиснути значення індексу'
+        },
+        manualSortGroupHeader: {
+            title: 'Встановити заголовок групи',
+            placeholder: 'Заголовок групи',
+            description: 'Заголовок зберігається у властивості {property} вибраної нотатки. Залиште поле порожнім, щоб очистити заголовок.'
         },
         navRainbowSection: {
             title: (section: string) => `Кольори веселки: ${section}`
@@ -623,15 +632,6 @@ export const STRINGS_UK = {
             instructions: {
                 navigate: 'для навігації',
                 select: 'для додавання властивості',
-                dismiss: 'для закриття'
-            }
-        },
-        propertySortKeySuggest: {
-            placeholder: 'Властивість для ручного сортування...',
-            createNewProperty: 'Використати властивість: {property}',
-            instructions: {
-                navigate: 'для навігації',
-                select: 'для вибору властивості',
                 dismiss: 'для закриття'
             }
         },
@@ -892,6 +892,8 @@ export const STRINGS_UK = {
             list: {
                 display: 'Вигляд',
                 organization: 'Організація',
+                propertySort: 'Сортування за властивістю',
+                manualSort: 'Ручне сортування',
                 pinnedNotes: 'Закріплені нотатки',
                 drawingPreviews: 'Перегляд малюнків'
             },
@@ -925,8 +927,8 @@ export const STRINGS_UK = {
                 }
             },
             sortNotesBy: {
-                name: 'Сортувати нотатки за',
-                desc: 'Виберіть спосіб сортування нотаток у списку.',
+                name: 'Порядок сортування за замовчуванням',
+                desc: 'Виберіть порядок сортування нотаток за замовчуванням.',
                 options: {
                     'modified-desc': 'Дата редагування (найновіші зверху)',
                     'modified-asc': 'Дата редагування (найстаріші зверху)',
@@ -935,9 +937,7 @@ export const STRINGS_UK = {
                     'title-asc': 'Заголовок (А зверху)',
                     'title-desc': 'Заголовок (Я зверху)',
                     'filename-asc': "Ім'я файлу (А зверху)",
-                    'filename-desc': "Ім'я файлу (Я зверху)",
-                    'property-asc': 'Властивість (А зверху)',
-                    'property-desc': 'Властивість (Я зверху)'
+                    'filename-desc': "Ім'я файлу (Я зверху)"
                 },
                 directions: {
                     asc: 'За зростанням',
@@ -953,8 +953,8 @@ export const STRINGS_UK = {
             },
             propertySortKey: {
                 name: 'Властивості для сортування',
-                desc: "Розділені комами властивості frontmatter, що відображаються в меню сортування списку. Масиви об'єднуються в одне значення.",
-                placeholder: 'published, downloaded'
+                desc: "Розділені комами властивості frontmatter, що відображаються як опції сортування за властивістю. Значення масивів об'єднуються в один рядок. Ці властивості не змінюються.",
+                placeholder: 'published, author'
             },
             propertySortSecondary: {
                 name: 'Вторинне сортування',
@@ -965,6 +965,35 @@ export const STRINGS_UK = {
                     created: 'Дата створення',
                     modified: 'Дата редагування'
                 }
+            },
+            manualSortPropertyKey: {
+                name: 'Властивість ручного сортування',
+                desc: 'Властивість frontmatter, що використовується для зберігання числових значень індексу для ручного сортування.',
+                placeholder: 'sortindex'
+            },
+            manualSortGroupHeaderProperty: {
+                name: 'Властивість заголовка групи',
+                desc: 'Властивість frontmatter, що використовується для зберігання тексту користувацького заголовка групи при ручному сортуванні.',
+                placeholder: 'groupheader'
+            },
+            manualSortNewNotePlacement: {
+                name: 'Розміщення нової нотатки',
+                desc: 'Виберіть, де розміщуються нові нотатки, коли поточний список використовує ручне сортування.',
+                options: {
+                    top: 'Зверху',
+                    bottom: 'Знизу',
+                    'below-selected-note': 'Під вибраною нотаткою',
+                    unsorted: 'Без сортування'
+                }
+            },
+            manualSortInstructions: {
+                intro: 'Ручне сортування записує числове значення індексу у властивість frontmatter кожної нотатки. Нотатки без індексу відображаються в розділі «Без сортування».',
+                items: [
+                    'Увімкніть ручне сортування, вибравши **Ручне сортування** в меню сортування. Після цього є два способи переставити нотатки.',
+                    "Виберіть **Редагувати порядок сортування...** в меню сортування, щоб відкрити перегляд для зміни порядку. Перетягуйте нотатки мишею або дотиком на мобільному пристрої. На комп'ютері клік з **Cmd/Ctrl** або **Shift** вибирає кілька нотаток, після чого перетягування будь-якої з них переміщує всю групу.",
+                    'У панелі списку виберіть одну нотатку або кілька з мульти-вибором, потім натисніть **Cmd/Ctrl + Arrow Up/Down**, щоб перемістити вибране вгору або вниз.',
+                    'Клацніть правою кнопкою миші на нотатці в панелі списку або в **Редагувати порядок сортування...** та виберіть **Встановити заголовок групи**, щоб розмістити користувацький заголовок над нотаткою.'
+                ]
             },
             revealFileOnListChanges: {
                 name: 'Прокручувати до вибраного файлу при змінах списку',
@@ -983,8 +1012,8 @@ export const STRINGS_UK = {
                 desc: 'Відображати кількість нотаток у форматі "поточні ▾ нащадки" в папках і тегах.'
             },
             groupNotes: {
-                name: 'Групувати нотатки',
-                desc: 'Відображати заголовки між нотатками, згрупованими за датою або папкою. Перегляди тегів використовують групи за датою, коли увімкнено групування за папками.',
+                name: 'Групування за замовчуванням',
+                desc: 'Виберіть групування нотаток за замовчуванням. Перегляди тегів використовують групи за датою, коли увімкнено групування за папками.',
                 options: {
                     none: 'Не групувати',
                     date: 'Групувати за датою',

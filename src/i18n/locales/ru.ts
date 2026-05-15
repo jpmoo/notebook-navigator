@@ -52,7 +52,7 @@ export const STRINGS_RU = {
         filesSection: 'Файлы', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (скрыто)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Ручная сортировка: {property}',
-        manualSortHint: 'Перетащите для изменения порядка. Числовые ранги сохраняются в свойстве «{property}».',
+        manualSortHint: 'Перетащите для изменения порядка. Порядок сохраняется как числовые значения индекса в свойстве «{property}».',
         manualSortNonMarkdownHint: 'Файлы, отличные от Markdown, показаны внизу и их порядок изменить нельзя.',
         unsortedSection: 'Без сортировки',
         manualSortDone: 'Готово',
@@ -138,7 +138,7 @@ export const STRINGS_RU = {
         changeChildSortOrder: 'Изменить сортировку',
         changeSortAndGroup: 'Изменить сортировку и группировку',
         defaultSort: 'По умолчанию', // Label for default sorting mode (English: Default)
-        manualSort: 'Ручная сортировка...',
+        manualSort: 'Ручная сортировка',
         editSortOrder: 'Изменить порядок сортировки...',
         descendants: 'потомков',
         subfolders: 'подпапок',
@@ -309,6 +309,9 @@ export const STRINGS_RU = {
             moveFileToFolder: 'Переместить файл в...',
             moveMultipleNotesToFolder: 'Переместить {count} заметок в...',
             moveMultipleFilesToFolder: 'Переместить {count} файлов в...',
+            setManualSortGroupHeader: 'Задать заголовок группы',
+            changeManualSortGroupHeader: 'Изменить заголовок группы',
+            removeManualSortGroupHeader: 'Удалить заголовок группы',
             addTag: 'Добавить тег',
             addPropertyKey: 'Задать свойство',
             removeTag: 'Удалить тег',
@@ -399,14 +402,19 @@ export const STRINGS_RU = {
             affectedCountMessage: (count: number) => `Существующих переопределений, которые изменятся: ${count}.`
         },
         manualSortConfirm: {
-            propertySortTitle: 'Использовать сортировку по свойству?',
+            propertySortTitle: 'Использовать ручную сортировку?',
             propertySortMessage: (property: string, count: number) =>
-                `Переключает текущий вид на сортировку по свойству «${property}». Существующие значения в ${count} ${count === 1 ? 'заметке' : 'заметках'} не изменяются.`,
-            propertySortConfirmButton: 'Использовать сортировку по свойству',
-            compactTitle: 'Сжать ранги?',
+                `Переключает текущий вид на ручную сортировку с использованием «${property}». При изменении порядка числовые значения индекса записываются в это свойство в ${count} ${count === 1 ? 'заметке' : 'заметках'} по мере необходимости.`,
+            propertySortConfirmButton: 'Использовать ручную сортировку',
+            compactTitle: 'Сжать значения индекса?',
             compactMessage: (count: number) =>
-                `Эта перестановка требует больше места для рангов. ${count} ${count === 1 ? 'заметка получит' : 'заметок получат'} новые числовые ранги.`,
-            compactConfirmButton: 'Сжать ранги'
+                `Эта перестановка требует больше числового пространства. ${count} ${count === 1 ? 'заметка получит' : 'заметок получат'} новые значения индекса.`,
+            compactConfirmButton: 'Сжать значения индекса'
+        },
+        manualSortGroupHeader: {
+            title: 'Задать заголовок группы',
+            placeholder: 'Заголовок группы',
+            description: 'Заголовок сохраняется в свойстве {property} выбранной заметки. Оставьте поле пустым, чтобы удалить заголовок.'
         },
         navRainbowSection: {
             title: (section: string) => `Цвета радуги: ${section}`
@@ -623,15 +631,6 @@ export const STRINGS_RU = {
             instructions: {
                 navigate: 'для навигации',
                 select: 'для добавления свойства',
-                dismiss: 'для закрытия'
-            }
-        },
-        propertySortKeySuggest: {
-            placeholder: 'Свойство для ручной сортировки...',
-            createNewProperty: 'Использовать свойство: {property}',
-            instructions: {
-                navigate: 'для навигации',
-                select: 'для выбора свойства',
                 dismiss: 'для закрытия'
             }
         },
@@ -892,6 +891,8 @@ export const STRINGS_RU = {
             list: {
                 display: 'Внешний вид',
                 organization: 'Организация',
+                propertySort: 'Сортировка по свойству',
+                manualSort: 'Ручная сортировка',
                 pinnedNotes: 'Закреплённые заметки',
                 drawingPreviews: 'Предпросмотр рисунков'
             },
@@ -925,8 +926,8 @@ export const STRINGS_RU = {
                 }
             },
             sortNotesBy: {
-                name: 'Сортировка заметок',
-                desc: 'Выберите способ сортировки заметок в списке.',
+                name: 'Сортировка по умолчанию',
+                desc: 'Выберите порядок сортировки заметок по умолчанию.',
                 options: {
                     'modified-desc': 'По дате изменения (новые сверху)',
                     'modified-asc': 'По дате изменения (старые сверху)',
@@ -935,9 +936,7 @@ export const STRINGS_RU = {
                     'title-asc': 'По названию (А сверху)',
                     'title-desc': 'По названию (Я сверху)',
                     'filename-asc': 'Имя файла (А сверху)',
-                    'filename-desc': 'Имя файла (Я сверху)',
-                    'property-asc': 'Свойство (А сверху)',
-                    'property-desc': 'Свойство (Я сверху)'
+                    'filename-desc': 'Имя файла (Я сверху)'
                 },
                 directions: {
                     asc: 'По возрастанию',
@@ -953,8 +952,8 @@ export const STRINGS_RU = {
             },
             propertySortKey: {
                 name: 'Свойства для сортировки',
-                desc: 'Разделённые запятыми свойства frontmatter, отображаемые в меню сортировки списка. Массивы объединяются в одно значение.',
-                placeholder: 'published, downloaded'
+                desc: 'Разделённые запятыми свойства frontmatter, отображаемые как варианты сортировки по свойству. Массивы объединяются в одну строку. Эти свойства не изменяются.',
+                placeholder: 'published, author'
             },
             propertySortSecondary: {
                 name: 'Вторичная сортировка',
@@ -965,6 +964,35 @@ export const STRINGS_RU = {
                     created: 'Дата создания',
                     modified: 'Дата редактирования'
                 }
+            },
+            manualSortPropertyKey: {
+                name: 'Свойство ручной сортировки',
+                desc: 'Свойство frontmatter, используемое для хранения числовых значений индекса для ручной сортировки.',
+                placeholder: 'sortindex'
+            },
+            manualSortGroupHeaderProperty: {
+                name: 'Свойство заголовка группы',
+                desc: 'Свойство frontmatter, используемое для хранения произвольного текста заголовка группы в ручной сортировке.',
+                placeholder: 'groupheader'
+            },
+            manualSortNewNotePlacement: {
+                name: 'Размещение новых заметок',
+                desc: 'Выберите, где размещаются новые заметки, когда текущий список использует ручную сортировку.',
+                options: {
+                    top: 'Сверху',
+                    bottom: 'Снизу',
+                    'below-selected-note': 'Под выбранной заметкой',
+                    unsorted: 'Без сортировки'
+                }
+            },
+            manualSortInstructions: {
+                intro: 'Ручная сортировка записывает числовое значение индекса в свойство frontmatter каждой заметки. Заметки без индекса отображаются в разделе «Без сортировки».',
+                items: [
+                    'Включите ручную сортировку, выбрав **Ручная сортировка** в меню сортировки. После этого есть два способа изменить порядок заметок.',
+                    'Выберите **Изменить порядок сортировки...** в меню сортировки, чтобы открыть представление для изменения порядка. Перетаскивайте заметки мышью или касанием на мобильных устройствах. На компьютере **Cmd/Ctrl** или **Shift** клик выбирает несколько заметок, после чего перетаскивание любой из них перемещает всю группу.',
+                    'В панели списка выберите одну заметку или несколько, затем нажмите **Cmd/Ctrl + Arrow Up/Down**, чтобы переместить выделение вверх или вниз.',
+                    'Щёлкните правой кнопкой мыши по заметке в панели списка или в **Изменить порядок сортировки...** и выберите **Задать заголовок группы**, чтобы поместить произвольный заголовок над заметкой.'
+                ]
             },
             revealFileOnListChanges: {
                 name: 'Прокрутка к выбранному файлу при изменениях списка',
@@ -983,8 +1011,8 @@ export const STRINGS_RU = {
                 desc: 'Отображать количество заметок в формате "текущие ▾ потомки" в папках и тегах.'
             },
             groupNotes: {
-                name: 'Группировка заметок',
-                desc: 'Показывать заголовки между заметками, сгруппированными по дате или папке. При просмотре тегов используются группы по дате, если включена группировка по папкам.',
+                name: 'Группировка по умолчанию',
+                desc: 'Выберите группировку заметок по умолчанию. При просмотре тегов используются группы по дате, если включена группировка по папкам.',
                 options: {
                     none: 'Не группировать',
                     date: 'Группировать по дате',

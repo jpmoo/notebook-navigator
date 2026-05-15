@@ -52,7 +52,7 @@ export const STRINGS_TH = {
         filesSection: 'ไฟล์',
         hiddenItemAriaLabel: '{name} (ซ่อนอยู่)',
         manualSortTitle: 'จัดเรียงด้วยตนเอง: {property}',
-        manualSortHint: 'ลากเพื่อจัดเรียงใหม่ ลำดับตัวเลขจะถูกบันทึกในคุณสมบัติ "{property}"',
+        manualSortHint: 'ลากเพื่อจัดเรียงใหม่ ลำดับจะถูกบันทึกเป็นค่าดัชนีตัวเลขในคุณสมบัติ "{property}"',
         manualSortNonMarkdownHint: 'ไฟล์ที่ไม่ใช่ Markdown จะแสดงด้านล่างและไม่สามารถจัดเรียงใหม่ได้',
         unsortedSection: 'ยังไม่จัดเรียง',
         manualSortDone: 'เสร็จ',
@@ -138,7 +138,7 @@ export const STRINGS_TH = {
         changeChildSortOrder: 'เปลี่ยนลำดับการเรียง',
         changeSortAndGroup: 'เปลี่ยนการเรียงและการจัดกลุ่ม',
         defaultSort: 'ค่าเริ่มต้น',
-        manualSort: 'จัดเรียงด้วยตนเอง...',
+        manualSort: 'จัดเรียงด้วยตนเอง',
         editSortOrder: 'แก้ไขลำดับการจัดเรียง...',
         descendants: 'รายการย่อย',
         subfolders: 'โฟลเดอร์ย่อย',
@@ -308,6 +308,9 @@ export const STRINGS_TH = {
             moveFileToFolder: 'ย้ายไฟล์ไปยัง...',
             moveMultipleNotesToFolder: 'ย้าย {count} โน้ตไปยัง...',
             moveMultipleFilesToFolder: 'ย้าย {count} ไฟล์ไปยัง...',
+            setManualSortGroupHeader: 'ตั้งค่าส่วนหัวกลุ่ม',
+            changeManualSortGroupHeader: 'เปลี่ยนส่วนหัวกลุ่ม',
+            removeManualSortGroupHeader: 'นำส่วนหัวกลุ่มออก',
             addTag: 'เพิ่มแท็ก',
             addPropertyKey: 'ตั้งค่าคุณสมบัติ',
             removeTag: 'นำแท็กออก',
@@ -398,13 +401,18 @@ export const STRINGS_TH = {
             affectedCountMessage: (count: number) => `การแทนที่ที่มีอยู่ซึ่งจะเปลี่ยนแปลง: ${count}`
         },
         manualSortConfirm: {
-            propertySortTitle: 'ใช้การจัดเรียงตามคุณสมบัติหรือไม่?',
+            propertySortTitle: 'ใช้การจัดเรียงด้วยตนเองหรือไม่?',
             propertySortMessage: (property: string, count: number) =>
-                `จะสลับมุมมองปัจจุบันเป็นการจัดเรียงตามคุณสมบัติโดยใช้ "${property}" ค่าที่มีอยู่ใน ${count} โน้ตจะไม่ถูกเปลี่ยนแปลง`,
-            propertySortConfirmButton: 'ใช้การจัดเรียงตามคุณสมบัติ',
-            compactTitle: 'บีบอัดลำดับหรือไม่?',
-            compactMessage: (count: number) => `การจัดเรียงนี้ต้องการพื้นที่ลำดับเพิ่มเติม ${count} โน้ตจะได้รับลำดับตัวเลขใหม่`,
-            compactConfirmButton: 'บีบอัดลำดับ'
+                `จะสลับมุมมองปัจจุบันเป็นการจัดเรียงด้วยตนเองโดยใช้ "${property}" การแก้ไขลำดับจะเขียนค่าดัชนีตัวเลขลงในคุณสมบัตินั้นใน ${count} โน้ต ตามความจำเป็น`,
+            propertySortConfirmButton: 'ใช้การจัดเรียงด้วยตนเอง',
+            compactTitle: 'บีบอัดค่าดัชนีหรือไม่?',
+            compactMessage: (count: number) => `การจัดเรียงใหม่นี้ต้องการพื้นที่ตัวเลขเพิ่มเติม ${count} โน้ต จะได้รับค่าดัชนีใหม่`,
+            compactConfirmButton: 'บีบอัดค่าดัชนี'
+        },
+        manualSortGroupHeader: {
+            title: 'ตั้งค่าส่วนหัวกลุ่ม',
+            placeholder: 'ส่วนหัวกลุ่ม',
+            description: 'ส่วนหัวจะถูกบันทึกลงในคุณสมบัติ {property} ของโน้ตที่เลือก เว้นช่องว่างเพื่อล้างส่วนหัว'
         },
         navRainbowSection: {
             title: (section: string) => `สีรุ้ง: ${section}`
@@ -621,15 +629,6 @@ export const STRINGS_TH = {
             instructions: {
                 navigate: 'เพื่อนำทาง',
                 select: 'เพื่อเพิ่มคุณสมบัติ',
-                dismiss: 'เพื่อปิด'
-            }
-        },
-        propertySortKeySuggest: {
-            placeholder: 'คุณสมบัติสำหรับการจัดเรียงด้วยตนเอง...',
-            createNewProperty: 'ใช้คุณสมบัติ: {property}',
-            instructions: {
-                navigate: 'เพื่อนำทาง',
-                select: 'เพื่อเลือกคุณสมบัติ',
                 dismiss: 'เพื่อปิด'
             }
         },
@@ -890,6 +889,8 @@ export const STRINGS_TH = {
             list: {
                 display: 'ลักษณะ',
                 organization: 'การจัดระเบียบ',
+                propertySort: 'การจัดเรียงตามคุณสมบัติ',
+                manualSort: 'การจัดเรียงด้วยตนเอง',
                 pinnedNotes: 'โน้ตที่ปักหมุด',
                 drawingPreviews: 'ตัวอย่างภาพวาด'
             },
@@ -923,8 +924,8 @@ export const STRINGS_TH = {
                 }
             },
             sortNotesBy: {
-                name: 'เรียงโน้ตตาม',
-                desc: 'เลือกวิธีเรียงโน้ตในรายการโน้ต',
+                name: 'ลำดับการเรียงเริ่มต้น',
+                desc: 'เลือกลำดับการเรียงเริ่มต้นสำหรับโน้ต',
                 options: {
                     'modified-desc': 'วันที่แก้ไข (ใหม่สุดบน)',
                     'modified-asc': 'วันที่แก้ไข (เก่าสุดบน)',
@@ -933,9 +934,7 @@ export const STRINGS_TH = {
                     'title-asc': 'ชื่อเรื่อง (A บน)',
                     'title-desc': 'ชื่อเรื่อง (Z บน)',
                     'filename-asc': 'ชื่อไฟล์ (A บน)',
-                    'filename-desc': 'ชื่อไฟล์ (Z บน)',
-                    'property-asc': 'คุณสมบัติ (A บน)',
-                    'property-desc': 'คุณสมบัติ (Z บน)'
+                    'filename-desc': 'ชื่อไฟล์ (Z บน)'
                 },
                 directions: {
                     asc: 'จากน้อยไปมาก',
@@ -951,8 +950,8 @@ export const STRINGS_TH = {
             },
             propertySortKey: {
                 name: 'คุณสมบัติสำหรับเรียงลำดับ',
-                desc: 'คุณสมบัติ frontmatter ที่คั่นด้วยเครื่องหมายจุลภาคซึ่งแสดงในเมนูเรียงลำดับของรายการ อาร์เรย์จะรวมเป็นค่าเดียว',
-                placeholder: 'published, downloaded'
+                desc: 'คุณสมบัติ frontmatter ที่คั่นด้วยเครื่องหมายจุลภาคซึ่งแสดงเป็นตัวเลือกการจัดเรียงตามคุณสมบัติ ค่าอาร์เรย์จะรวมเป็นข้อความเดียว คุณสมบัติเหล่านี้จะไม่ถูกเปลี่ยนแปลง',
+                placeholder: 'published, author'
             },
             propertySortSecondary: {
                 name: 'การเรียงลำดับรอง',
@@ -963,6 +962,35 @@ export const STRINGS_TH = {
                     created: 'วันที่สร้าง',
                     modified: 'วันที่แก้ไข'
                 }
+            },
+            manualSortPropertyKey: {
+                name: 'คุณสมบัติสำหรับการจัดเรียงด้วยตนเอง',
+                desc: 'คุณสมบัติ frontmatter ที่ใช้เก็บค่าดัชนีตัวเลขสำหรับการจัดเรียงด้วยตนเอง',
+                placeholder: 'sortindex'
+            },
+            manualSortGroupHeaderProperty: {
+                name: 'คุณสมบัติส่วนหัวกลุ่ม',
+                desc: 'คุณสมบัติ frontmatter ที่ใช้เก็บข้อความส่วนหัวกลุ่มกำหนดเองในการจัดเรียงด้วยตนเอง',
+                placeholder: 'groupheader'
+            },
+            manualSortNewNotePlacement: {
+                name: 'ตำแหน่งโน้ตใหม่',
+                desc: 'เลือกตำแหน่งที่จะวางโน้ตใหม่เมื่อรายการปัจจุบันใช้การจัดเรียงด้วยตนเอง',
+                options: {
+                    top: 'ด้านบน',
+                    bottom: 'ด้านล่าง',
+                    'below-selected-note': 'ใต้โน้ตที่เลือก',
+                    unsorted: 'ยังไม่จัดเรียง'
+                }
+            },
+            manualSortInstructions: {
+                intro: 'การจัดเรียงด้วยตนเองจะเขียนค่าดัชนีตัวเลขลงในคุณสมบัติ frontmatter ของแต่ละโน้ต โน้ตที่ไม่มีดัชนีจะปรากฏอยู่ใต้ยังไม่จัดเรียง',
+                items: [
+                    'เปิดใช้การจัดเรียงด้วยตนเองโดยเลือก **จัดเรียงด้วยตนเอง** จากเมนูจัดเรียง หลังจากนั้น มีสองวิธีในการจัดเรียงโน้ตใหม่',
+                    'เลือก **แก้ไขลำดับการจัดเรียง...** จากเมนูจัดเรียงเพื่อเปิดมุมมองจัดเรียงใหม่ ลากโน้ตด้วยเมาส์หรือสัมผัสบนมือถือ บนเดสก์ท็อป **Cmd/Ctrl** หรือ **Shift** คลิกเพื่อเลือกหลายโน้ต จากนั้นลากโน้ตใดโน้ตหนึ่งเพื่อย้ายทั้งกลุ่ม',
+                    'ในแผงรายการ เลือกโน้ตหนึ่งโน้ตหรือเลือกหลายโน้ต จากนั้นกด **Cmd/Ctrl + Arrow Up/Down** เพื่อเลื่อนการเลือกขึ้นหรือลง',
+                    'คลิกขวาที่โน้ตในแผงรายการหรือใน **แก้ไขลำดับการจัดเรียง...** แล้วเลือก **ตั้งค่าส่วนหัวกลุ่ม** เพื่อวางส่วนหัวกำหนดเองเหนือโน้ต'
+                ]
             },
             revealFileOnListChanges: {
                 name: 'เลื่อนไปยังไฟล์ที่เลือกเมื่อรายการเปลี่ยนแปลง',
@@ -981,8 +1009,8 @@ export const STRINGS_TH = {
                 desc: 'แสดงจำนวนโน้ตเป็นรูปแบบ "ปัจจุบัน ▾ ลูกหลาน" ในโฟลเดอร์และแท็ก'
             },
             groupNotes: {
-                name: 'จัดกลุ่มโน้ต',
-                desc: 'แสดงส่วนหัวระหว่างโน้ตที่จัดกลุ่มตามวันที่หรือโฟลเดอร์ มุมมองแท็กใช้กลุ่มวันที่เมื่อเปิดใช้งานการจัดกลุ่มโฟลเดอร์',
+                name: 'การจัดกลุ่มเริ่มต้น',
+                desc: 'เลือกการจัดกลุ่มเริ่มต้นสำหรับโน้ต มุมมองแท็กใช้กลุ่มวันที่เมื่อเปิดใช้งานการจัดกลุ่มโฟลเดอร์',
                 options: {
                     none: 'ไม่จัดกลุ่ม',
                     date: 'จัดกลุ่มตามวันที่',

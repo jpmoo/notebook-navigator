@@ -52,7 +52,8 @@ export const STRINGS_NL = {
         filesSection: 'Bestanden',
         hiddenItemAriaLabel: '{name} (verborgen)',
         manualSortTitle: 'Handmatig sorteren: {property}',
-        manualSortHint: 'Sleep om opnieuw te ordenen. Numerieke rangen worden opgeslagen in de eigenschap "{property}".',
+        manualSortHint:
+            'Sleep om opnieuw te ordenen. De volgorde wordt opgeslagen als numerieke indexwaarden in de eigenschap "{property}".',
         manualSortNonMarkdownHint: 'Niet-Markdown-bestanden worden onderaan getoond en kunnen niet opnieuw worden geordend.',
         unsortedSection: 'Niet gesorteerd',
         manualSortDone: 'Klaar',
@@ -138,7 +139,7 @@ export const STRINGS_NL = {
         changeChildSortOrder: 'Sorteervolgorde wijzigen',
         changeSortAndGroup: 'Sortering en groepering wijzigen',
         defaultSort: 'Standaard',
-        manualSort: 'Handmatig sorteren...',
+        manualSort: 'Handmatig sorteren',
         editSortOrder: 'Sorteervolgorde bewerken...',
         descendants: 'subelementen',
         subfolders: 'submappen',
@@ -310,6 +311,9 @@ export const STRINGS_NL = {
             moveFileToFolder: 'Bestand verplaatsen naar...',
             moveMultipleNotesToFolder: '{count} notities verplaatsen naar...',
             moveMultipleFilesToFolder: '{count} bestanden verplaatsen naar...',
+            setManualSortGroupHeader: 'Groepskop instellen',
+            changeManualSortGroupHeader: 'Groepskop wijzigen',
+            removeManualSortGroupHeader: 'Groepskop verwijderen',
             addTag: 'Tag toevoegen',
             addPropertyKey: 'Eigenschap instellen',
             removeTag: 'Tag verwijderen',
@@ -400,14 +404,20 @@ export const STRINGS_NL = {
             affectedCountMessage: (count: number) => `Bestaande overschrijvingen die wijzigen: ${count}.`
         },
         manualSortConfirm: {
-            propertySortTitle: 'Sorteren op eigenschap gebruiken?',
+            propertySortTitle: 'Handmatig sorteren gebruiken?',
             propertySortMessage: (property: string, count: number) =>
-                `Dit schakelt de huidige weergave over naar sorteren op eigenschap met "${property}". Bestaande waarden in ${count} ${count === 1 ? 'notitie' : 'notities'} worden niet gewijzigd.`,
-            propertySortConfirmButton: 'Sorteren op eigenschap gebruiken',
-            compactTitle: 'Rangen comprimeren?',
+                `Dit schakelt de huidige weergave over naar handmatig sorteren met "${property}". Bij het bewerken van de volgorde worden indien nodig numerieke indexwaarden naar die eigenschap geschreven in ${count} ${count === 1 ? 'notitie' : 'notities'}.`,
+            propertySortConfirmButton: 'Handmatig sorteren gebruiken',
+            compactTitle: 'Indexwaarden comprimeren?',
             compactMessage: (count: number) =>
-                `Deze herordening heeft meer rangruimte nodig. ${count} ${count === 1 ? 'notitie krijgt' : 'notities krijgen'} nieuwe numerieke rangen.`,
-            compactConfirmButton: 'Rangen comprimeren'
+                `Deze herordening heeft meer numerieke ruimte nodig. ${count} ${count === 1 ? 'notitie krijgt' : 'notities krijgen'} nieuwe indexwaarden.`,
+            compactConfirmButton: 'Indexwaarden comprimeren'
+        },
+        manualSortGroupHeader: {
+            title: 'Groepskop instellen',
+            placeholder: 'Groepskop',
+            description:
+                'De kop wordt opgeslagen in eigenschap {property} van de geselecteerde notitie. Laat het veld leeg om de kop te wissen.'
         },
         navRainbowSection: {
             title: (section: string) => `Regenboogkleuren: ${section}`
@@ -626,15 +636,6 @@ export const STRINGS_NL = {
             instructions: {
                 navigate: 'om te navigeren',
                 select: 'om eigenschap toe te voegen',
-                dismiss: 'om te sluiten'
-            }
-        },
-        propertySortKeySuggest: {
-            placeholder: 'Eigenschap voor handmatig sorteren...',
-            createNewProperty: 'Eigenschap gebruiken: {property}',
-            instructions: {
-                navigate: 'om te navigeren',
-                select: 'om eigenschap te kiezen',
                 dismiss: 'om te sluiten'
             }
         },
@@ -896,6 +897,8 @@ export const STRINGS_NL = {
             list: {
                 display: 'Uiterlijk',
                 organization: 'Organisatie',
+                propertySort: 'Sorteren op eigenschap',
+                manualSort: 'Handmatig sorteren',
                 pinnedNotes: 'Vastgezette notities',
                 drawingPreviews: 'Tekeningvoorbeelden'
             },
@@ -929,8 +932,8 @@ export const STRINGS_NL = {
                 }
             },
             sortNotesBy: {
-                name: 'Notities sorteren op',
-                desc: 'Kies hoe notities worden gesorteerd in de notitielijst.',
+                name: 'Standaard sorteervolgorde',
+                desc: 'Kies de standaard sorteervolgorde voor notities.',
                 options: {
                     'modified-desc': 'Datum bewerkt (nieuwste bovenaan)',
                     'modified-asc': 'Datum bewerkt (oudste bovenaan)',
@@ -939,9 +942,7 @@ export const STRINGS_NL = {
                     'title-asc': 'Titel (A bovenaan)',
                     'title-desc': 'Titel (Z bovenaan)',
                     'filename-asc': 'Bestandsnaam (A bovenaan)',
-                    'filename-desc': 'Bestandsnaam (Z bovenaan)',
-                    'property-asc': 'Eigenschap (A bovenaan)',
-                    'property-desc': 'Eigenschap (Z bovenaan)'
+                    'filename-desc': 'Bestandsnaam (Z bovenaan)'
                 },
                 directions: {
                     asc: 'Oplopend',
@@ -957,8 +958,8 @@ export const STRINGS_NL = {
             },
             propertySortKey: {
                 name: 'Eigenschappen om op te sorteren',
-                desc: "Door komma's gescheiden frontmatter-eigenschappen die worden weergegeven in het sorteermenu van de lijst. Arrays worden samengevoegd tot één waarde.",
-                placeholder: 'published, downloaded'
+                desc: "Door komma's gescheiden frontmatter-eigenschappen die worden weergegeven als sorteeropties op eigenschap. Arraywaarden worden samengevoegd tot één string. Deze eigenschappen worden niet gewijzigd.",
+                placeholder: 'published, author'
             },
             propertySortSecondary: {
                 name: 'Secundaire sortering',
@@ -969,6 +970,35 @@ export const STRINGS_NL = {
                     created: 'Aanmaakdatum',
                     modified: 'Bewerkingsdatum'
                 }
+            },
+            manualSortPropertyKey: {
+                name: 'Eigenschap voor handmatig sorteren',
+                desc: 'Frontmatter-eigenschap gebruikt om numerieke indexwaarden voor handmatig sorteren op te slaan.',
+                placeholder: 'sortindex'
+            },
+            manualSortGroupHeaderProperty: {
+                name: 'Eigenschap voor groepskop',
+                desc: 'Frontmatter-eigenschap gebruikt om aangepaste groepskoptekst bij handmatig sorteren op te slaan.',
+                placeholder: 'groupheader'
+            },
+            manualSortNewNotePlacement: {
+                name: 'Plaatsing nieuwe notitie',
+                desc: 'Kies waar nieuwe notities worden geplaatst wanneer de huidige lijst handmatig sorteren gebruikt.',
+                options: {
+                    top: 'Bovenaan',
+                    bottom: 'Onderaan',
+                    'below-selected-note': 'Onder geselecteerde notitie',
+                    unsorted: 'Niet gesorteerd'
+                }
+            },
+            manualSortInstructions: {
+                intro: 'Handmatig sorteren schrijft een numerieke indexwaarde naar een frontmatter-eigenschap op elke notitie. Notities zonder index verschijnen onder Niet gesorteerd.',
+                items: [
+                    'Schakel handmatig sorteren in door **Handmatig sorteren** te kiezen uit het sorteermenu. Daarna zijn er twee manieren om notities te herschikken.',
+                    'Kies **Sorteervolgorde bewerken...** uit het sorteermenu om een herschikweergave te openen. Sleep notities met de muis, of met aanraking op mobiel. Op desktop selecteert **Cmd/Ctrl** of **Shift** klikken meerdere notities, daarna verplaatst slepen van een ervan de hele groep.',
+                    'Selecteer in het lijstpaneel één notitie of selecteer er meerdere, en druk vervolgens op **Cmd/Ctrl + Arrow Up/Down** om de selectie omhoog of omlaag te verplaatsen.',
+                    'Klik met de rechtermuisknop op een notitie in het lijstpaneel of in **Sorteervolgorde bewerken...** en kies **Groepskop instellen** om een aangepaste kop boven de notitie te plaatsen.'
+                ]
             },
             revealFileOnListChanges: {
                 name: 'Scroll naar geselecteerd bestand bij lijstwijzigingen',
@@ -987,8 +1017,8 @@ export const STRINGS_NL = {
                 desc: 'Notitietelingen weergeven in "huidig ▾ afstammelingen" formaat in mappen en tags.'
             },
             groupNotes: {
-                name: 'Notities groeperen',
-                desc: 'Koppen tussen notities weergeven gegroepeerd op datum of map. Tagweergaven gebruiken datumgroepen wanneer mapgroepering is ingeschakeld.',
+                name: 'Standaard groepering',
+                desc: 'Kies de standaard groepering voor notities. Tagweergaven gebruiken datumgroepen wanneer mapgroepering is ingeschakeld.',
                 options: {
                     none: 'Niet groeperen',
                     date: 'Groeperen op datum',

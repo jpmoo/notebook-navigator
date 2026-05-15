@@ -52,7 +52,7 @@ export const STRINGS_DE = {
         filesSection: 'Dateien', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (ausgeblendet)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: 'Manuelle Sortierung: {property}',
-        manualSortHint: 'Zum Neuordnen ziehen. Numerische Ränge werden in der Eigenschaft „{property}" gespeichert.',
+        manualSortHint: 'Zum Neuordnen ziehen. Die Reihenfolge wird als numerische Indexwerte in der Eigenschaft „{property}" gespeichert.',
         manualSortNonMarkdownHint: 'Nicht-Markdown-Dateien werden unten angezeigt und können nicht neu geordnet werden.',
         unsortedSection: 'Unsortiert',
         manualSortDone: 'Fertig',
@@ -137,7 +137,7 @@ export const STRINGS_DE = {
         changeChildSortOrder: 'Sortierreihenfolge ändern',
         changeSortAndGroup: 'Sortierung und Gruppierung ändern',
         defaultSort: 'Standard', // Label for default sorting mode (English: Default)
-        manualSort: 'Manuelle Sortierung...',
+        manualSort: 'Manuelle Sortierung',
         editSortOrder: 'Sortierreihenfolge bearbeiten...',
         descendants: 'Unterelemente',
         subfolders: 'Unterordner',
@@ -294,6 +294,9 @@ export const STRINGS_DE = {
             moveFileToFolder: 'Datei verschieben nach...',
             moveMultipleNotesToFolder: '{count} Notizen verschieben nach...',
             moveMultipleFilesToFolder: '{count} Dateien verschieben nach...',
+            setManualSortGroupHeader: 'Gruppenüberschrift festlegen',
+            changeManualSortGroupHeader: 'Gruppenüberschrift ändern',
+            removeManualSortGroupHeader: 'Gruppenüberschrift entfernen',
             addTag: 'Tag hinzufügen',
             addPropertyKey: 'Eigenschaft setzen',
             removeTag: 'Tag entfernen',
@@ -399,14 +402,20 @@ export const STRINGS_DE = {
             affectedCountMessage: (count: number) => `Vorhandene Überschreibungen, die sich ändern: ${count}.`
         },
         manualSortConfirm: {
-            propertySortTitle: 'Eigenschaftssortierung verwenden?',
+            propertySortTitle: 'Manuelle Sortierung verwenden?',
             propertySortMessage: (property: string, count: number) =>
-                `Wechselt die aktuelle Ansicht zur Eigenschaftssortierung mit „${property}". Vorhandene Werte in ${count} ${count === 1 ? 'Notiz' : 'Notizen'} werden nicht geändert.`,
-            propertySortConfirmButton: 'Eigenschaftssortierung verwenden',
-            compactTitle: 'Ränge verdichten?',
+                `Wechselt die aktuelle Ansicht zur manuellen Sortierung mit „${property}". Beim Bearbeiten der Reihenfolge werden numerische Indexwerte bei Bedarf in diese Eigenschaft in ${count} ${count === 1 ? 'Notiz' : 'Notizen'} geschrieben.`,
+            propertySortConfirmButton: 'Manuelle Sortierung verwenden',
+            compactTitle: 'Indexwerte verdichten?',
             compactMessage: (count: number) =>
-                `Diese Neuanordnung benötigt mehr Rangraum. ${count} ${count === 1 ? 'Notiz erhält' : 'Notizen erhalten'} neue numerische Ränge.`,
-            compactConfirmButton: 'Ränge verdichten'
+                `Diese Neuanordnung benötigt mehr numerischen Raum. ${count} ${count === 1 ? 'Notiz erhält' : 'Notizen erhalten'} neue Indexwerte.`,
+            compactConfirmButton: 'Indexwerte verdichten'
+        },
+        manualSortGroupHeader: {
+            title: 'Gruppenüberschrift festlegen',
+            placeholder: 'Gruppenüberschrift',
+            description:
+                'Die Überschrift wird in der Eigenschaft {property} der ausgewählten Notiz gespeichert. Lassen Sie das Feld leer, um die Überschrift zu entfernen.'
         },
         navRainbowSection: {
             title: (section: string) => `Regenbogenfarben: ${section}`
@@ -626,15 +635,6 @@ export const STRINGS_DE = {
             instructions: {
                 navigate: 'zum Navigieren',
                 select: 'zum Hinzufügen der Eigenschaft',
-                dismiss: 'zum Abbrechen'
-            }
-        },
-        propertySortKeySuggest: {
-            placeholder: 'Eigenschaft für manuelle Sortierung...',
-            createNewProperty: 'Eigenschaft verwenden: {property}',
-            instructions: {
-                navigate: 'zum Navigieren',
-                select: 'zum Auswählen der Eigenschaft',
                 dismiss: 'zum Abbrechen'
             }
         },
@@ -896,6 +896,8 @@ export const STRINGS_DE = {
             list: {
                 display: 'Darstellung',
                 organization: 'Organisation',
+                propertySort: 'Eigenschaftssortierung',
+                manualSort: 'Manuelle Sortierung',
                 pinnedNotes: 'Angeheftete Notizen',
                 drawingPreviews: 'Zeichnungsvorschauen'
             },
@@ -929,8 +931,8 @@ export const STRINGS_DE = {
                 }
             },
             sortNotesBy: {
-                name: 'Notizen sortieren nach',
-                desc: 'Wählen Sie, wie Notizen in der Notizenliste sortiert werden.',
+                name: 'Standard-Sortierreihenfolge',
+                desc: 'Wählen Sie die Standard-Sortierreihenfolge für Notizen.',
                 options: {
                     'modified-desc': 'Bearbeitungsdatum (neueste oben)',
                     'modified-asc': 'Bearbeitungsdatum (älteste oben)',
@@ -939,9 +941,7 @@ export const STRINGS_DE = {
                     'title-asc': 'Titel (A oben)',
                     'title-desc': 'Titel (Z oben)',
                     'filename-asc': 'Dateiname (A oben)',
-                    'filename-desc': 'Dateiname (Z oben)',
-                    'property-asc': 'Eigenschaft (A oben)',
-                    'property-desc': 'Eigenschaft (Z oben)'
+                    'filename-desc': 'Dateiname (Z oben)'
                 },
                 directions: {
                     asc: 'Aufsteigend',
@@ -957,8 +957,8 @@ export const STRINGS_DE = {
             },
             propertySortKey: {
                 name: 'Eigenschaften zum Sortieren',
-                desc: 'Kommagetrennte Frontmatter-Eigenschaften, die im Listensortiermenü angezeigt werden. Arrays werden zu einem Wert zusammengefügt.',
-                placeholder: 'published, downloaded'
+                desc: 'Kommagetrennte Frontmatter-Eigenschaften, die als Eigenschaftssortier-Optionen angezeigt werden. Array-Werte werden zu einer einzelnen Zeichenkette zusammengefügt. Diese Eigenschaften werden nicht geändert.',
+                placeholder: 'published, author'
             },
             propertySortSecondary: {
                 name: 'Sekundäre Sortierung',
@@ -969,6 +969,35 @@ export const STRINGS_DE = {
                     created: 'Erstellungsdatum',
                     modified: 'Bearbeitungsdatum'
                 }
+            },
+            manualSortPropertyKey: {
+                name: 'Eigenschaft für manuelle Sortierung',
+                desc: 'Frontmatter-Eigenschaft zum Speichern der numerischen Indexwerte für die manuelle Sortierung.',
+                placeholder: 'sortindex'
+            },
+            manualSortGroupHeaderProperty: {
+                name: 'Eigenschaft für Gruppenüberschriften',
+                desc: 'Frontmatter-Eigenschaft zum Speichern des benutzerdefinierten Gruppenüberschriftentexts in der manuellen Sortierung.',
+                placeholder: 'groupheader'
+            },
+            manualSortNewNotePlacement: {
+                name: 'Platzierung neuer Notizen',
+                desc: 'Wählen Sie, wo neue Notizen platziert werden, wenn die aktuelle Liste die manuelle Sortierung verwendet.',
+                options: {
+                    top: 'Oben',
+                    bottom: 'Unten',
+                    'below-selected-note': 'Unter ausgewählter Notiz',
+                    unsorted: 'Unsortiert'
+                }
+            },
+            manualSortInstructions: {
+                intro: 'Die manuelle Sortierung schreibt einen numerischen Indexwert in eine Frontmatter-Eigenschaft jeder Notiz. Notizen ohne Index erscheinen unter Unsortiert.',
+                items: [
+                    'Aktivieren Sie die manuelle Sortierung, indem Sie **Manuelle Sortierung** aus dem Sortiermenü wählen. Danach gibt es zwei Möglichkeiten, Notizen neu anzuordnen.',
+                    'Wählen Sie **Sortierreihenfolge bearbeiten...** aus dem Sortiermenü, um eine Neuordnungsansicht zu öffnen. Ziehen Sie Notizen mit der Maus oder per Touch auf Mobilgeräten. Auf dem Desktop wählt **Cmd/Ctrl**- oder **Shift**-Klick mehrere Notizen aus; das Ziehen einer beliebigen verschiebt dann die gesamte Gruppe.',
+                    'Wählen Sie im Listenbereich eine Notiz aus oder markieren Sie mehrere und drücken Sie **Cmd/Ctrl + Arrow Up/Down**, um die Auswahl nach oben oder unten zu verschieben.',
+                    'Klicken Sie mit der rechten Maustaste auf eine Notiz im Listenbereich oder in **Sortierreihenfolge bearbeiten...** und wählen Sie **Gruppenüberschrift festlegen**, um eine benutzerdefinierte Überschrift über der Notiz zu platzieren.'
+                ]
             },
             revealFileOnListChanges: {
                 name: 'Zu ausgewählter Datei bei Listenänderungen scrollen',
@@ -987,8 +1016,8 @@ export const STRINGS_DE = {
                 desc: 'Zeigt Notizanzahl als "aktuell ▾ Nachkommen" Format in Ordnern und Tags.'
             },
             groupNotes: {
-                name: 'Notizen gruppieren',
-                desc: 'Zeigt Überschriften zwischen Notizen gruppiert nach Datum oder Ordner an. Tag-Ansichten verwenden Datumsgruppen, wenn Ordnergruppierung aktiviert ist.',
+                name: 'Standardgruppierung',
+                desc: 'Wählen Sie die Standardgruppierung für Notizen. Tag-Ansichten verwenden Datumsgruppen, wenn Ordnergruppierung aktiviert ist.',
                 options: {
                     none: 'Nicht gruppieren',
                     date: 'Nach Datum gruppieren',

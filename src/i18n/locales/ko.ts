@@ -52,7 +52,7 @@ export const STRINGS_KO = {
         filesSection: '파일', // Header shown between pinned and regular items when showing supported or all files (English: Files)
         hiddenItemAriaLabel: '{name} (숨김)', // Accessibility label applied to list items that are normally hidden
         manualSortTitle: '수동 정렬: {property}',
-        manualSortHint: '드래그하여 순서를 변경하세요. 숫자 순위는 속성 "{property}"에 저장됩니다.',
+        manualSortHint: '드래그하여 순서를 변경하세요. 순서는 숫자 인덱스 값으로 속성 "{property}"에 저장됩니다.',
         manualSortNonMarkdownHint: '마크다운이 아닌 파일은 하단에 표시되며 순서를 변경할 수 없습니다.',
         unsortedSection: '정렬되지 않음',
         manualSortDone: '완료',
@@ -137,7 +137,7 @@ export const STRINGS_KO = {
         changeChildSortOrder: '정렬 순서 변경',
         changeSortAndGroup: '정렬 및 그룹 변경',
         defaultSort: '기본', // Label for default sorting mode (English: Default)
-        manualSort: '수동 정렬...',
+        manualSort: '수동 정렬',
         editSortOrder: '정렬 순서 편집...',
         descendants: '하위 항목',
         subfolders: '하위 폴더',
@@ -307,6 +307,9 @@ export const STRINGS_KO = {
             moveFileToFolder: '파일 이동...',
             moveMultipleNotesToFolder: '{count}개의 노트 이동...',
             moveMultipleFilesToFolder: '{count}개의 파일 이동...',
+            setManualSortGroupHeader: '그룹 머리글 설정',
+            changeManualSortGroupHeader: '그룹 머리글 변경',
+            removeManualSortGroupHeader: '그룹 머리글 제거',
             addTag: '태그 추가',
             addPropertyKey: '속성 설정',
             removeTag: '태그 제거',
@@ -397,14 +400,19 @@ export const STRINGS_KO = {
             affectedCountMessage: (count: number) => `변경될 기존 재정의: ${count}.`
         },
         manualSortConfirm: {
-            propertySortTitle: '속성 정렬을 사용하시겠습니까?',
+            propertySortTitle: '수동 정렬을 사용하시겠습니까?',
             propertySortMessage: (property: string, count: number) =>
-                `현재 보기를 "${property}"을(를) 사용한 속성 정렬로 전환합니다. ${count}개 노트의 기존 값은 변경되지 않습니다.`,
-            propertySortConfirmButton: '속성 정렬 사용',
-            compactTitle: '순위를 압축하시겠습니까?',
+                `현재 보기를 "${property}"을(를) 사용한 수동 정렬로 전환합니다. 순서를 편집하면 필요에 따라 ${count}개 노트의 해당 속성에 숫자 인덱스 값이 기록됩니다.`,
+            propertySortConfirmButton: '수동 정렬 사용',
+            compactTitle: '인덱스 값을 압축하시겠습니까?',
             compactMessage: (count: number) =>
-                `이 재정렬에는 더 많은 순위 공간이 필요합니다. ${count}개 노트에 새로운 숫자 순위가 할당됩니다.`,
-            compactConfirmButton: '순위 압축'
+                `이 재정렬에는 더 많은 숫자 공간이 필요합니다. ${count}개 노트에 새로운 인덱스 값이 할당됩니다.`,
+            compactConfirmButton: '인덱스 값 압축'
+        },
+        manualSortGroupHeader: {
+            title: '그룹 머리글 설정',
+            placeholder: '그룹 머리글',
+            description: '머리글은 선택된 노트의 속성 {property}에 저장됩니다. 머리글을 지우려면 필드를 비워 두세요.'
         },
         navRainbowSection: {
             title: (section: string) => `무지개 색상: ${section}`
@@ -624,15 +632,6 @@ export const STRINGS_KO = {
             instructions: {
                 navigate: '이동',
                 select: '속성 추가',
-                dismiss: '닫기'
-            }
-        },
-        propertySortKeySuggest: {
-            placeholder: '수동 정렬에 사용할 속성...',
-            createNewProperty: '속성 사용: {property}',
-            instructions: {
-                navigate: '이동',
-                select: '속성 선택',
                 dismiss: '닫기'
             }
         },
@@ -894,6 +893,8 @@ export const STRINGS_KO = {
             list: {
                 display: '모양',
                 organization: '정리',
+                propertySort: '속성 정렬',
+                manualSort: '수동 정렬',
                 pinnedNotes: '고정된 노트',
                 drawingPreviews: '그림 미리보기'
             },
@@ -927,8 +928,8 @@ export const STRINGS_KO = {
                 }
             },
             sortNotesBy: {
-                name: '노트 정렬 기준',
-                desc: '노트 목록에서 노트를 정렬하는 방법을 선택하세요.',
+                name: '기본 정렬 순서',
+                desc: '노트의 기본 정렬 순서를 선택하세요.',
                 options: {
                     'modified-desc': '수정 날짜 (최신 상위)',
                     'modified-asc': '수정 날짜 (오래된 상위)',
@@ -937,9 +938,7 @@ export const STRINGS_KO = {
                     'title-asc': '제목 (가나다 상위)',
                     'title-desc': '제목 (역순 상위)',
                     'filename-asc': '파일 이름 (가나다 상위)',
-                    'filename-desc': '파일 이름 (역순 상위)',
-                    'property-asc': '속성 (가나다 상위)',
-                    'property-desc': '속성 (역순 상위)'
+                    'filename-desc': '파일 이름 (역순 상위)'
                 },
                 directions: {
                     asc: '오름차순',
@@ -955,8 +954,8 @@ export const STRINGS_KO = {
             },
             propertySortKey: {
                 name: '정렬에 사용할 속성',
-                desc: '목록 정렬 메뉴에 표시되는 쉼표로 구분된 frontmatter 속성. 배열은 하나의 값으로 결합됩니다.',
-                placeholder: 'published, downloaded'
+                desc: '속성 정렬 옵션으로 표시되는 쉼표로 구분된 frontmatter 속성. 배열 값은 하나의 문자열로 결합됩니다. 이 속성들은 변경되지 않습니다.',
+                placeholder: 'published, author'
             },
             propertySortSecondary: {
                 name: '보조 정렬',
@@ -967,6 +966,35 @@ export const STRINGS_KO = {
                     created: '생성 날짜',
                     modified: '편집 날짜'
                 }
+            },
+            manualSortPropertyKey: {
+                name: '수동 정렬 속성',
+                desc: '수동 정렬에서 숫자 인덱스 값을 저장하는 데 사용되는 frontmatter 속성입니다.',
+                placeholder: 'sortindex'
+            },
+            manualSortGroupHeaderProperty: {
+                name: '그룹 머리글 속성',
+                desc: '수동 정렬에서 사용자 지정 그룹 머리글 텍스트를 저장하는 데 사용되는 frontmatter 속성입니다.',
+                placeholder: 'groupheader'
+            },
+            manualSortNewNotePlacement: {
+                name: '새 노트 배치',
+                desc: '현재 목록이 수동 정렬을 사용할 때 새 노트가 배치될 위치를 선택하세요.',
+                options: {
+                    top: '상단',
+                    bottom: '하단',
+                    'below-selected-note': '선택한 노트 아래',
+                    unsorted: '정렬되지 않음'
+                }
+            },
+            manualSortInstructions: {
+                intro: '수동 정렬은 각 노트의 frontmatter 속성에 숫자 인덱스 값을 기록합니다. 인덱스가 없는 노트는 정렬되지 않음 아래에 표시됩니다.',
+                items: [
+                    '정렬 메뉴에서 **수동 정렬**을 선택하여 수동 정렬을 활성화합니다. 그 후 노트를 재정렬하는 두 가지 방법이 있습니다.',
+                    '정렬 메뉴에서 **정렬 순서 편집...**을 선택하여 재정렬 보기를 엽니다. 마우스로, 또는 모바일에서는 터치로 노트를 드래그합니다. 데스크톱에서는 **Cmd/Ctrl** 또는 **Shift** 클릭으로 여러 노트를 선택한 다음, 그 중 하나를 드래그하여 전체 그룹을 이동합니다.',
+                    '목록 창에서 한 노트를 선택하거나 여러 노트를 다중 선택한 다음, **Cmd/Ctrl + Arrow Up/Down**을 눌러 선택 항목을 위아래로 이동합니다.',
+                    '목록 창이나 **정렬 순서 편집...**에서 노트를 마우스 오른쪽 버튼으로 클릭하고 **그룹 머리글 설정**을 선택하여 노트 위에 사용자 지정 머리글을 배치합니다.'
+                ]
             },
             revealFileOnListChanges: {
                 name: '목록 변경 시 선택된 파일로 스크롤',
@@ -985,8 +1013,8 @@ export const STRINGS_KO = {
                 desc: '폴더와 태그의 노트 수를 "현재 ▾ 하위" 형식으로 표시합니다.'
             },
             groupNotes: {
-                name: '노트 그룹화',
-                desc: '날짜 또는 폴더별로 그룹화된 노트 사이에 머리글을 표시합니다. 폴더 그룹화가 활성화되면 태그 보기는 날짜 그룹을 사용합니다.',
+                name: '기본 그룹화',
+                desc: '노트의 기본 그룹화를 선택하세요. 폴더 그룹화가 활성화되면 태그 보기는 날짜 그룹을 사용합니다.',
                 options: {
                     none: '그룹화 안 함',
                     date: '날짜별 그룹',
