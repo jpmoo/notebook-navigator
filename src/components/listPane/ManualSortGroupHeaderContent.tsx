@@ -23,6 +23,7 @@ import { ServiceIcon } from '../ServiceIcon';
 
 type ManualSortGroupHeaderStyle = CSSProperties & {
     '--nn-manual-sort-group-header-accent'?: string;
+    '--nn-manual-sort-group-header-icon-color'?: string;
     '--nn-manual-sort-group-header-progress'?: string;
 };
 
@@ -58,6 +59,7 @@ function getManualSortGroupHeaderRenderData(header: ManualSortGroupHeaderData, w
 
     if (header.color) {
         style['--nn-manual-sort-group-header-accent'] = header.color;
+        style['--nn-manual-sort-group-header-icon-color'] = header.color;
     }
     if (progressWidth !== null) {
         style['--nn-manual-sort-group-header-progress'] = `${progressWidth}%`;
@@ -74,9 +76,13 @@ function getManualSortGroupHeaderRenderData(header: ManualSortGroupHeaderData, w
 export function ManualSortGroupHeaderContent({ header, wordCount }: ManualSortGroupHeaderContentProps) {
     const shouldShowWordCount = shouldShowManualSortGroupHeaderWordCount(header);
     const { countText, progressPercent, style } = getManualSortGroupHeaderRenderData(header, wordCount);
+    const contentClasses = ['nn-manual-sort-group-header-content'];
+    if (header.color && progressPercent === null) {
+        contentClasses.push('nn-manual-sort-group-header-content--accent-all');
+    }
 
     return (
-        <div className="nn-manual-sort-group-header-content" style={style}>
+        <div className={contentClasses.join(' ')} style={style}>
             {header.iconId ? (
                 <ServiceIcon iconId={header.iconId} className="nn-manual-sort-group-header-custom-icon" aria-hidden={true} />
             ) : null}

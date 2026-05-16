@@ -96,10 +96,6 @@ export class ManualSortGroupHeaderModal extends Modal {
         });
         this.colorButtonTextEl = colorButtonEl.createSpan({ cls: 'nn-manual-sort-header-style-text' });
         this.updateColorControls();
-        appearanceSectionEl.createDiv({
-            cls: 'nn-manual-sort-header-hint',
-            text: strings.modals.manualSortGroupHeader.appearanceDescription
-        });
 
         const wordCountSectionEl = this.createSection(contentEl);
         const wordCountSetting = new Setting(wordCountSectionEl).setName(strings.modals.manualSortGroupHeader.wordCount).addToggle(toggle =>

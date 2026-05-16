@@ -52,12 +52,6 @@
     min-width: 0;
 }
 
-.nn-manual-sort-header-hint {
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-    line-height: 1.4;
-}
-
 .nn-manual-sort-header-style-button {
     display: inline-flex;
     align-items: center;

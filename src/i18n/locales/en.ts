@@ -429,7 +429,6 @@ export const STRINGS_EN = {
             placeholder: 'Group header',
             icon: 'Icon',
             color: 'Color',
-            appearanceDescription: 'Color affects the icon and progress bar.',
             wordCount: 'Show word count',
             wordCountTarget: 'Target word count',
             wordCountTargetPlaceholder: '10,000',

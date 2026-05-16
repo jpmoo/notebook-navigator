@@ -4679,11 +4679,15 @@ button.nn-navigation-calendar-day {
     gap: 5px;
 }
 
+.nn-manual-sort-group-header-content--accent-all {
+    color: var(--nn-manual-sort-group-header-accent);
+}
+
 .nn-manual-sort-group-header-custom-icon {
     flex: 0 0 auto;
     width: var(--nn-list-group-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
     height: var(--nn-list-group-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
-    color: var(--nn-manual-sort-group-header-accent);
+    color: var(--nn-manual-sort-group-header-icon-color, currentColor);
 }
 
 .nn-manual-sort-group-header-custom-icon svg {
@@ -4705,6 +4709,10 @@ button.nn-navigation-calendar-day {
     text-overflow: ellipsis;
     font-weight: 400;
     color: var(--nn-theme-foreground-muted);
+}
+
+.nn-manual-sort-group-header-content--accent-all .nn-manual-sort-group-header-count {
+    color: inherit;
 }
 
 .nn-manual-sort-group-header-percent {
@@ -6550,12 +6558,6 @@ body.nn-resizing {
     align-items: center;
     gap: 4px;
     min-width: 0;
-}
-
-.nn-manual-sort-header-hint {
-    color: var(--text-muted);
-    font-size: var(--font-ui-smaller);
-    line-height: 1.4;
 }
 
 .nn-manual-sort-header-style-button {
