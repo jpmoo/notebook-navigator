@@ -143,6 +143,7 @@ export const STRINGS_NL = {
         defaultSort: 'Standaard',
         manualSort: 'Handmatig sorteren',
         editSortOrder: 'Sorteervolgorde bewerken...',
+        removeSortProperty: 'Sorteereigenschap verwijderen',
         descendants: 'subelementen',
         subfolders: 'submappen',
         subtags: 'subtags',
@@ -410,6 +411,10 @@ export const STRINGS_NL = {
             propertySortMessage: (property: string, count: number) =>
                 `Dit schakelt de huidige weergave over naar handmatig sorteren met "${property}". Bij het bewerken van de volgorde worden indien nodig numerieke indexwaarden naar die eigenschap geschreven in ${count} ${count === 1 ? 'notitie' : 'notities'}.`,
             propertySortConfirmButton: 'Handmatig sorteren gebruiken',
+            removePropertyTitle: 'Sorteereigenschap verwijderen?',
+            removePropertyMessage: (property: string, count: number) =>
+                `Dit verwijdert "${property}" uit ${count} ${count === 1 ? 'notitie' : 'notities'} in de huidige lijst. Voor die notities wordt de handmatige sorteervolgorde gewist.`,
+            removePropertyConfirmButton: 'Eigenschap verwijderen',
             compactTitle: 'Indexwaarden comprimeren?',
             compactMessage: (count: number) =>
                 `Deze herordening heeft meer numerieke ruimte nodig. ${count} ${count === 1 ? 'notitie krijgt' : 'notities krijgen'} nieuwe indexwaarden.`,
@@ -741,6 +746,8 @@ export const STRINGS_NL = {
             propertiesRequireMarkdown: 'Eigenschappen worden alleen ondersteund in Markdown-notities',
             propertySetOnNote: 'Eigenschap bijgewerkt op 1 notitie',
             propertySetOnNotes: 'Eigenschap bijgewerkt op {count} notities',
+            manualSortPropertyRemovedFromNote: 'Sorteereigenschap verwijderd uit 1 notitie',
+            manualSortPropertyRemovedFromNotes: 'Sorteereigenschap verwijderd uit {count} notities',
             iconPackDownloaded: '{provider} gedownload',
             iconPackUpdated: '{provider} bijgewerkt ({version})',
             iconPackRemoved: '{provider} verwijderd',
@@ -903,6 +910,7 @@ export const STRINGS_NL = {
             list: {
                 display: 'Uiterlijk',
                 organization: 'Organisatie',
+                groupHeaders: 'Groepskoppen',
                 propertySort: 'Sorteren op eigenschap',
                 manualSort: 'Handmatig sorteren',
                 pinnedNotes: 'Vastgezette notities',
@@ -977,13 +985,23 @@ export const STRINGS_NL = {
                     modified: 'Bewerkingsdatum'
                 }
             },
+            propertySortInstructions: {
+                intro: 'Elke hierboven vermelde eigenschap verschijnt als sorteeroptie in het sorteermenu van het lijstpaneel. Een keuze sorteert notities op de frontmatter-waarde ervan.'
+            },
             manualSortPropertyKey: {
                 name: 'Eigenschap voor handmatig sorteren',
                 desc: 'Frontmatter-eigenschap gebruikt om numerieke indexwaarden voor handmatig sorteren op te slaan.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Eigenschap voor groepskop',
-                desc: 'Frontmatter-eigenschap gebruikt om aangepaste groepskoptekst bij handmatig sorteren op te slaan.'
+                desc: 'Frontmatter-eigenschap gebruikt om aangepaste groepskoppen op te slaan.'
+            },
+            groupHeadersInstructions: {
+                intro: 'Aangepaste groepskoppen verschijnen boven notities in het lijstpaneel.',
+                items: [
+                    'Stel in het sorteermenu van het lijstpaneel groepering in op **Aangepast**.',
+                    'Klik met de rechtermuisknop op een notitie en kies **Groepskop instellen** om een kop boven de notitie te plaatsen.'
+                ]
             },
             manualSortNewNotePlacement: {
                 name: 'Plaatsing nieuwe notitie',
@@ -995,13 +1013,16 @@ export const STRINGS_NL = {
                     unsorted: 'Niet gesorteerd'
                 }
             },
+            confirmBeforeManualSort: {
+                name: 'Bevestigen voor handmatig sorteren',
+                desc: 'Toon een bevestigingsdialoog voordat de huidige lijst wordt overgeschakeld naar handmatig sorteren.'
+            },
             manualSortInstructions: {
                 intro: 'Handmatig sorteren schrijft een numerieke indexwaarde naar een frontmatter-eigenschap op elke notitie. Notities zonder index verschijnen onder Niet gesorteerd.',
                 items: [
                     'Schakel handmatig sorteren in door **Handmatig sorteren** te kiezen uit het sorteermenu. Daarna zijn er twee manieren om notities te herschikken.',
                     'Kies **Sorteervolgorde bewerken...** uit het sorteermenu om een herschikweergave te openen. Sleep notities met de muis, of met aanraking op mobiel. Op desktop selecteert **Cmd/Ctrl** of **Shift** klikken meerdere notities, daarna verplaatst slepen van een ervan de hele groep.',
-                    'Selecteer in het lijstpaneel één notitie of selecteer er meerdere, en druk vervolgens op **Cmd/Ctrl + Arrow Up/Down** om de selectie omhoog of omlaag te verplaatsen.',
-                    'Klik met de rechtermuisknop op een notitie in het lijstpaneel of in **Sorteervolgorde bewerken...** en kies **Groepskop instellen** om een aangepaste kop boven de notitie te plaatsen.'
+                    'Selecteer in het lijstpaneel één notitie of selecteer er meerdere, en druk vervolgens op **Cmd/Ctrl + Arrow Up/Down** om de selectie omhoog of omlaag te verplaatsen.'
                 ]
             },
             revealFileOnListChanges: {
@@ -1022,11 +1043,11 @@ export const STRINGS_NL = {
             },
             groupNotes: {
                 name: 'Standaard groepering',
-                desc: 'Kies de standaard groepering voor notities. Tagweergaven gebruiken datumgroepen wanneer mapgroepering is ingeschakeld.',
+                desc: 'Aangepast toont koppen gedefinieerd in frontmatter. Datum groepeert notities op datum. Map groepeert notities op map. Tag- en eigenschapweergaven gebruiken datumgroepen wanneer een map is geselecteerd.',
                 options: {
-                    none: 'Niet groeperen',
-                    date: 'Groeperen op datum',
-                    folder: 'Groeperen op map'
+                    custom: 'Aangepast',
+                    date: 'Datum',
+                    folder: 'Map'
                 }
             },
             showSelectedNavigationPills: {

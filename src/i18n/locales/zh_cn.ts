@@ -141,6 +141,7 @@ export const STRINGS_ZH_CN = {
         defaultSort: '默认', // Label for default sorting mode (English: Default)
         manualSort: '手动排序',
         editSortOrder: '编辑排序方式...',
+        removeSortProperty: '移除排序属性',
         descendants: '子项',
         subfolders: '子文件夹',
         subtags: '子标签',
@@ -407,6 +408,10 @@ export const STRINGS_ZH_CN = {
             propertySortMessage: (property: string, count: number) =>
                 `这会将当前视图切换为使用"${property}"的手动排序。编辑顺序时会按需将数字索引值写入 ${count} 条笔记的该属性。`,
             propertySortConfirmButton: '使用手动排序',
+            removePropertyTitle: '移除排序属性？',
+            removePropertyMessage: (property: string, count: number) =>
+                `这将从当前列表中的 ${count} 篇笔记中移除"${property}"。这些笔记的手动排序顺序将被清除。`,
+            removePropertyConfirmButton: '移除属性',
             compactTitle: '压缩索引值？',
             compactMessage: (count: number) => `此次重新排序需要更多数字空间。${count} 条笔记将获得新的索引值。`,
             compactConfirmButton: '压缩索引值'
@@ -730,6 +735,8 @@ export const STRINGS_ZH_CN = {
             propertiesRequireMarkdown: '属性仅在 Markdown 笔记中受支持',
             propertySetOnNote: '已在 1 篇笔记中更新属性',
             propertySetOnNotes: '已在 {count} 篇笔记中更新属性',
+            manualSortPropertyRemovedFromNote: '已从 1 篇笔记中移除排序属性',
+            manualSortPropertyRemovedFromNotes: '已从 {count} 篇笔记中移除排序属性',
             iconPackDownloaded: '{provider} 已下载',
             iconPackUpdated: '{provider} 已更新 ({version})',
             iconPackRemoved: '{provider} 已移除',
@@ -892,6 +899,7 @@ export const STRINGS_ZH_CN = {
             list: {
                 display: '外观',
                 organization: '组织',
+                groupHeaders: '分组标题',
                 propertySort: '属性排序',
                 manualSort: '手动排序',
                 pinnedNotes: '固定笔记',
@@ -966,13 +974,20 @@ export const STRINGS_ZH_CN = {
                     modified: '编辑日期'
                 }
             },
+            propertySortInstructions: {
+                intro: '上面列出的每个属性会在列表窗格的排序菜单中作为排序选项显示。选择某个属性会按其 frontmatter 值对笔记排序。'
+            },
             manualSortPropertyKey: {
                 name: '手动排序属性',
                 desc: '用于存储手动排序数字索引值的 frontmatter 属性。'
             },
             manualSortGroupHeaderProperty: {
                 name: '分组标题属性',
-                desc: '用于在手动排序中存储自定义分组标题文本的 frontmatter 属性。'
+                desc: '用于存储自定义分组标题的 frontmatter 属性。'
+            },
+            groupHeadersInstructions: {
+                intro: '自定义分组标题显示在列表窗格中笔记的上方。',
+                items: ['在列表窗格的排序菜单中，将分组设置为 **自定义**。', '右键点击笔记并选择 **设置分组标题**，在其上方添加标题。']
             },
             manualSortNewNotePlacement: {
                 name: '新笔记位置',
@@ -984,13 +999,16 @@ export const STRINGS_ZH_CN = {
                     unsorted: '未排序'
                 }
             },
+            confirmBeforeManualSort: {
+                name: '手动排序前确认',
+                desc: '在将当前列表切换到手动排序之前显示确认对话框。'
+            },
             manualSortInstructions: {
                 intro: '手动排序会将数字索引值写入每条笔记的 frontmatter 属性。没有索引的笔记会显示在"未排序"下。',
                 items: [
                     '从排序菜单中选择 **手动排序** 启用手动排序。之后有两种方式重新排列笔记。',
                     '从排序菜单中选择 **编辑排序方式...** 打开重新排序视图。用鼠标拖动笔记，或在移动端使用触摸。在桌面端，按 **Cmd/Ctrl** 或 **Shift** 点击可选择多条笔记，然后拖动其中任意一条即可移动整组。',
-                    '在列表窗格中，选择一条笔记或多选若干条，然后按 **Cmd/Ctrl + Arrow Up/Down** 向上或向下移动所选内容。',
-                    '在列表窗格或 **编辑排序方式...** 中右键点击笔记，选择 **设置分组标题** 在笔记上方放置自定义标题。'
+                    '在列表窗格中，选择一条笔记或多选若干条，然后按 **Cmd/Ctrl + Arrow Up/Down** 向上或向下移动所选内容。'
                 ]
             },
             revealFileOnListChanges: {
@@ -1011,11 +1029,11 @@ export const STRINGS_ZH_CN = {
             },
             groupNotes: {
                 name: '默认分组',
-                desc: '选择笔记的默认分组方式。启用文件夹分组时，标签视图使用日期分组。',
+                desc: '自定义显示在 frontmatter 中定义的标题。日期按日期对笔记分组。文件夹按文件夹对笔记分组。当选择文件夹时，标签和属性视图使用日期分组。',
                 options: {
-                    none: '不分组',
-                    date: '按日期分组',
-                    folder: '按文件夹分组'
+                    custom: '自定义',
+                    date: '日期',
+                    folder: '文件夹'
                 }
             },
             showSelectedNavigationPills: {

@@ -141,6 +141,7 @@ export const STRINGS_KO = {
         defaultSort: '기본', // Label for default sorting mode (English: Default)
         manualSort: '수동 정렬',
         editSortOrder: '정렬 순서 편집...',
+        removeSortProperty: '정렬 속성 제거',
         descendants: '하위 항목',
         subfolders: '하위 폴더',
         subtags: '하위 태그',
@@ -406,6 +407,10 @@ export const STRINGS_KO = {
             propertySortMessage: (property: string, count: number) =>
                 `현재 보기를 "${property}"을(를) 사용한 수동 정렬로 전환합니다. 순서를 편집하면 필요에 따라 ${count}개 노트의 해당 속성에 숫자 인덱스 값이 기록됩니다.`,
             propertySortConfirmButton: '수동 정렬 사용',
+            removePropertyTitle: '정렬 속성을 제거하시겠습니까?',
+            removePropertyMessage: (property: string, count: number) =>
+                `현재 목록의 ${count}개 노트에서 "${property}"을(를) 제거합니다. 해당 노트의 수동 정렬 순서가 초기화됩니다.`,
+            removePropertyConfirmButton: '속성 제거',
             compactTitle: '인덱스 값을 압축하시겠습니까?',
             compactMessage: (count: number) =>
                 `이 재정렬에는 더 많은 숫자 공간이 필요합니다. ${count}개 노트에 새로운 인덱스 값이 할당됩니다.`,
@@ -737,6 +742,8 @@ export const STRINGS_KO = {
             propertiesRequireMarkdown: '속성은 Markdown 노트에서만 지원됩니다',
             propertySetOnNote: '1개 노트의 속성을 업데이트했습니다',
             propertySetOnNotes: '{count}개 노트의 속성을 업데이트했습니다',
+            manualSortPropertyRemovedFromNote: '1개 노트에서 정렬 속성을 제거했습니다',
+            manualSortPropertyRemovedFromNotes: '{count}개 노트에서 정렬 속성을 제거했습니다',
             iconPackDownloaded: '{provider} 다운로드됨',
             iconPackUpdated: '{provider} 업데이트됨 ({version})',
             iconPackRemoved: '{provider} 제거됨',
@@ -899,6 +906,7 @@ export const STRINGS_KO = {
             list: {
                 display: '모양',
                 organization: '정리',
+                groupHeaders: '그룹 머리글',
                 propertySort: '속성 정렬',
                 manualSort: '수동 정렬',
                 pinnedNotes: '고정된 노트',
@@ -973,13 +981,23 @@ export const STRINGS_KO = {
                     modified: '편집 날짜'
                 }
             },
+            propertySortInstructions: {
+                intro: '위에 나열된 각 속성은 목록 창의 정렬 메뉴에 정렬 옵션으로 표시됩니다. 그중 하나를 선택하면 해당 frontmatter 값으로 노트가 정렬됩니다.'
+            },
             manualSortPropertyKey: {
                 name: '수동 정렬 속성',
                 desc: '수동 정렬에서 숫자 인덱스 값을 저장하는 데 사용되는 frontmatter 속성입니다.'
             },
             manualSortGroupHeaderProperty: {
                 name: '그룹 머리글 속성',
-                desc: '수동 정렬에서 사용자 지정 그룹 머리글 텍스트를 저장하는 데 사용되는 frontmatter 속성입니다.'
+                desc: '사용자 지정 그룹 머리글을 저장하는 데 사용되는 frontmatter 속성입니다.'
+            },
+            groupHeadersInstructions: {
+                intro: '사용자 지정 그룹 머리글은 목록 창에서 노트 위에 표시됩니다.',
+                items: [
+                    '목록 창의 정렬 메뉴에서 그룹화를 **사용자 지정**으로 설정합니다.',
+                    '노트를 마우스 오른쪽 버튼으로 클릭하고 **그룹 머리글 설정**을 선택하여 노트 위에 머리글을 추가합니다.'
+                ]
             },
             manualSortNewNotePlacement: {
                 name: '새 노트 배치',
@@ -991,13 +1009,16 @@ export const STRINGS_KO = {
                     unsorted: '정렬되지 않음'
                 }
             },
+            confirmBeforeManualSort: {
+                name: '수동 정렬 전 확인',
+                desc: '현재 목록을 수동 정렬로 전환하기 전에 확인 대화 상자를 표시합니다.'
+            },
             manualSortInstructions: {
                 intro: '수동 정렬은 각 노트의 frontmatter 속성에 숫자 인덱스 값을 기록합니다. 인덱스가 없는 노트는 정렬되지 않음 아래에 표시됩니다.',
                 items: [
                     '정렬 메뉴에서 **수동 정렬**을 선택하여 수동 정렬을 활성화합니다. 그 후 노트를 재정렬하는 두 가지 방법이 있습니다.',
                     '정렬 메뉴에서 **정렬 순서 편집...**을 선택하여 재정렬 보기를 엽니다. 마우스로, 또는 모바일에서는 터치로 노트를 드래그합니다. 데스크톱에서는 **Cmd/Ctrl** 또는 **Shift** 클릭으로 여러 노트를 선택한 다음, 그 중 하나를 드래그하여 전체 그룹을 이동합니다.',
-                    '목록 창에서 한 노트를 선택하거나 여러 노트를 다중 선택한 다음, **Cmd/Ctrl + Arrow Up/Down**을 눌러 선택 항목을 위아래로 이동합니다.',
-                    '목록 창이나 **정렬 순서 편집...**에서 노트를 마우스 오른쪽 버튼으로 클릭하고 **그룹 머리글 설정**을 선택하여 노트 위에 사용자 지정 머리글을 배치합니다.'
+                    '목록 창에서 한 노트를 선택하거나 여러 노트를 다중 선택한 다음, **Cmd/Ctrl + Arrow Up/Down**을 눌러 선택 항목을 위아래로 이동합니다.'
                 ]
             },
             revealFileOnListChanges: {
@@ -1018,11 +1039,11 @@ export const STRINGS_KO = {
             },
             groupNotes: {
                 name: '기본 그룹화',
-                desc: '노트의 기본 그룹화를 선택하세요. 폴더 그룹화가 활성화되면 태그 보기는 날짜 그룹을 사용합니다.',
+                desc: '사용자 지정은 frontmatter에 정의된 머리글을 표시합니다. 날짜는 노트를 날짜별로 그룹화합니다. 폴더는 노트를 폴더별로 그룹화합니다. 태그와 속성 보기는 폴더가 선택되어 있으면 날짜 그룹을 사용합니다.',
                 options: {
-                    none: '그룹화 안 함',
-                    date: '날짜별 그룹',
-                    folder: '폴더별 그룹'
+                    custom: '사용자 지정',
+                    date: '날짜',
+                    folder: '폴더'
                 }
             },
             showSelectedNavigationPills: {

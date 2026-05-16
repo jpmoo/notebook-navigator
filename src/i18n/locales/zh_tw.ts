@@ -141,6 +141,7 @@ export const STRINGS_ZH_TW = {
         defaultSort: '預設',
         manualSort: '手動排序',
         editSortOrder: '編輯排序方式...',
+        removeSortProperty: '移除排序屬性',
         descendants: '子項',
         subfolders: '子資料夾',
         subtags: '子標籤',
@@ -407,6 +408,10 @@ export const STRINGS_ZH_TW = {
             propertySortMessage: (property: string, count: number) =>
                 `這會將目前檢視切換為使用「${property}」的手動排序。編輯順序時會依需要將數字索引值寫入該屬性，影響 ${count} 則筆記。`,
             propertySortConfirmButton: '使用手動排序',
+            removePropertyTitle: '移除排序屬性？',
+            removePropertyMessage: (property: string, count: number) =>
+                `這會從目前列表中的 ${count} 則筆記移除「${property}」。這些筆記的手動排序順序將被清除。`,
+            removePropertyConfirmButton: '移除屬性',
             compactTitle: '壓縮索引值？',
             compactMessage: (count: number) => `此次重新排序需要更多數字空間。${count} 則筆記將獲得新的索引值。`,
             compactConfirmButton: '壓縮索引值'
@@ -730,6 +735,8 @@ export const STRINGS_ZH_TW = {
             propertiesRequireMarkdown: '屬性僅在 Markdown 筆記中受支援',
             propertySetOnNote: '已在 1 篇筆記中更新屬性',
             propertySetOnNotes: '已在 {count} 篇筆記中更新屬性',
+            manualSortPropertyRemovedFromNote: '已從 1 則筆記移除排序屬性',
+            manualSortPropertyRemovedFromNotes: '已從 {count} 則筆記移除排序屬性',
             iconPackDownloaded: '{provider} 已下載',
             iconPackUpdated: '{provider} 已更新 ({version})',
             iconPackRemoved: '{provider} 已移除',
@@ -892,6 +899,7 @@ export const STRINGS_ZH_TW = {
             list: {
                 display: '外觀',
                 organization: '組織',
+                groupHeaders: '群組標題',
                 propertySort: '屬性排序',
                 manualSort: '手動排序',
                 pinnedNotes: '釘選筆記',
@@ -966,13 +974,20 @@ export const STRINGS_ZH_TW = {
                     modified: '編輯日期'
                 }
             },
+            propertySortInstructions: {
+                intro: '上面列出的每個屬性都會在列表面板的排序選單中顯示為排序選項。選擇其中一個會依其 frontmatter 值排序筆記。'
+            },
             manualSortPropertyKey: {
                 name: '手動排序屬性',
                 desc: '用於儲存手動排序數字索引值的 frontmatter 屬性。'
             },
             manualSortGroupHeaderProperty: {
                 name: '群組標題屬性',
-                desc: '用於儲存手動排序中自訂群組標題文字的 frontmatter 屬性。'
+                desc: '用於儲存自訂群組標題的 frontmatter 屬性。'
+            },
+            groupHeadersInstructions: {
+                intro: '自訂群組標題會顯示在列表面板的筆記上方。',
+                items: ['從列表面板的排序選單中，將分組設定為 **自訂**。', '右鍵點擊筆記並選擇 **設定群組標題** 以在其上方新增標題。']
             },
             manualSortNewNotePlacement: {
                 name: '新筆記位置',
@@ -984,13 +999,16 @@ export const STRINGS_ZH_TW = {
                     unsorted: '未排序'
                 }
             },
+            confirmBeforeManualSort: {
+                name: '手動排序前確認',
+                desc: '將目前列表切換為手動排序之前顯示確認對話框。'
+            },
             manualSortInstructions: {
                 intro: '手動排序會將數字索引值寫入每則筆記的 frontmatter 屬性。沒有索引的筆記會顯示在「未排序」之下。',
                 items: [
                     '從排序選單中選擇 **手動排序** 以啟用手動排序。之後有兩種方式可以重新排列筆記。',
                     '從排序選單中選擇 **編輯排序方式...** 以開啟重新排序檢視。使用滑鼠拖曳筆記，或在行動裝置上使用觸控。在桌面上，**Cmd/Ctrl** 或 **Shift** 點擊可選取多則筆記，拖曳其中任何一則即可移動整個群組。',
-                    '在列表面板中，選取一則筆記或多選數則，然後按 **Cmd/Ctrl + Arrow Up/Down** 將所選項目上移或下移。',
-                    '在列表面板或 **編輯排序方式...** 中右鍵點擊筆記並選擇 **設定群組標題**，即可在該筆記上方放置自訂標題。'
+                    '在列表面板中，選取一則筆記或多選數則，然後按 **Cmd/Ctrl + Arrow Up/Down** 將所選項目上移或下移。'
                 ]
             },
             revealFileOnListChanges: {
@@ -1011,11 +1029,11 @@ export const STRINGS_ZH_TW = {
             },
             groupNotes: {
                 name: '預設分組',
-                desc: '選擇筆記的預設分組方式。啟用資料夾分組時，標籤檢視使用日期分組。',
+                desc: '自訂顯示在 frontmatter 中定義的標題。日期按日期分組筆記。資料夾按資料夾分組筆記。選擇資料夾時，標籤和屬性檢視使用日期分組。',
                 options: {
-                    none: '不分組',
-                    date: '按日期分組',
-                    folder: '按資料夾分組'
+                    custom: '自訂',
+                    date: '日期',
+                    folder: '資料夾'
                 }
             },
             showSelectedNavigationPills: {

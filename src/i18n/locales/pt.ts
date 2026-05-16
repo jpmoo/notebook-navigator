@@ -142,6 +142,7 @@ export const STRINGS_PT = {
         defaultSort: 'Predefinido', // Label for default sorting mode (English: Default)
         manualSort: 'Ordenação manual',
         editSortOrder: 'Editar ordenação...',
+        removeSortProperty: 'Remover propriedade de ordenação',
         descendants: 'descendentes',
         subfolders: 'subpastas',
         subtags: 'subetiquetas',
@@ -408,6 +409,10 @@ export const STRINGS_PT = {
             propertySortMessage: (property: string, count: number) =>
                 `Isto muda a vista atual para ordenação manual usando "${property}". Editar a ordem escreve valores de índice numéricos nessa propriedade em ${count} ${count === 1 ? 'nota' : 'notas'} conforme necessário.`,
             propertySortConfirmButton: 'Usar ordenação manual',
+            removePropertyTitle: 'Remover propriedade de ordenação?',
+            removePropertyMessage: (property: string, count: number) =>
+                `Isto remove "${property}" de ${count} ${count === 1 ? 'nota' : 'notas'} na lista atual. A ordem de ordenação manual será apagada para essas notas.`,
+            removePropertyConfirmButton: 'Remover propriedade',
             compactTitle: 'Compactar valores de índice?',
             compactMessage: (count: number) =>
                 `Esta reordenação precisa de mais espaço numérico. ${count} ${count === 1 ? 'nota receberá' : 'notas receberão'} novos valores de índice.`,
@@ -739,6 +744,8 @@ export const STRINGS_PT = {
             propertiesRequireMarkdown: 'As propriedades só são suportadas em notas Markdown',
             propertySetOnNote: 'Propriedade atualizada em 1 nota',
             propertySetOnNotes: 'Propriedade atualizada em {count} notas',
+            manualSortPropertyRemovedFromNote: 'Propriedade de ordenação removida de 1 nota',
+            manualSortPropertyRemovedFromNotes: 'Propriedade de ordenação removida de {count} notas',
             iconPackDownloaded: '{provider} transferido',
             iconPackUpdated: '{provider} atualizado ({version})',
             iconPackRemoved: '{provider} removido',
@@ -901,6 +908,7 @@ export const STRINGS_PT = {
             list: {
                 display: 'Aparência',
                 organization: 'Organização',
+                groupHeaders: 'Cabeçalhos de grupo',
                 propertySort: 'Ordenação por propriedade',
                 manualSort: 'Ordenação manual',
                 pinnedNotes: 'Notas fixadas',
@@ -975,13 +983,23 @@ export const STRINGS_PT = {
                     modified: 'Data de edição'
                 }
             },
+            propertySortInstructions: {
+                intro: 'Cada propriedade listada acima aparece como uma opção de ordenação no menu de ordenação do painel de lista. Ao selecionar uma, as notas são ordenadas pelo seu valor frontmatter.'
+            },
             manualSortPropertyKey: {
                 name: 'Propriedade de ordenação manual',
                 desc: 'Propriedade frontmatter usada para guardar valores de índice numéricos para ordenação manual.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Propriedade de cabeçalho de grupo',
-                desc: 'Propriedade frontmatter usada para guardar texto de cabeçalho de grupo personalizado na ordenação manual.'
+                desc: 'Propriedade frontmatter usada para guardar cabeçalhos de grupo personalizados.'
+            },
+            groupHeadersInstructions: {
+                intro: 'Os cabeçalhos de grupo personalizados são exibidos acima das notas no painel de lista.',
+                items: [
+                    'No menu de ordenação do painel de lista, defina o agrupamento como **Personalizado**.',
+                    'Clique com o botão direito numa nota e escolha **Definir cabeçalho de grupo** para adicionar um cabeçalho acima dela.'
+                ]
             },
             manualSortNewNotePlacement: {
                 name: 'Colocação de novas notas',
@@ -993,13 +1011,16 @@ export const STRINGS_PT = {
                     unsorted: 'Sem ordenação'
                 }
             },
+            confirmBeforeManualSort: {
+                name: 'Confirmar antes da ordenação manual',
+                desc: 'Mostrar uma caixa de diálogo de confirmação antes de mudar a lista atual para ordenação manual.'
+            },
             manualSortInstructions: {
                 intro: 'A ordenação manual escreve um valor de índice numérico numa propriedade frontmatter em cada nota. As notas sem índice aparecem em Sem ordenação.',
                 items: [
                     'Ative a ordenação manual escolhendo **Ordenação manual** no menu de ordenação. Depois, há duas formas de reorganizar as notas.',
                     'Selecione **Editar ordenação...** no menu de ordenação para abrir uma vista de reordenação. Arraste notas com o rato, ou com toque no telemóvel. No computador, **Cmd/Ctrl** ou **Shift** clique seleciona várias notas, e ao arrastar qualquer uma delas move o grupo inteiro.',
-                    'No painel de lista, selecione uma nota ou várias notas, e prima **Cmd/Ctrl + Arrow Up/Down** para mover a seleção para cima ou para baixo.',
-                    'Clique com o botão direito numa nota no painel de lista ou em **Editar ordenação...** e escolha **Definir cabeçalho de grupo** para colocar um cabeçalho personalizado acima da nota.'
+                    'No painel de lista, selecione uma nota ou várias notas, e prima **Cmd/Ctrl + Arrow Up/Down** para mover a seleção para cima ou para baixo.'
                 ]
             },
             revealFileOnListChanges: {
@@ -1020,11 +1041,11 @@ export const STRINGS_PT = {
             },
             groupNotes: {
                 name: 'Agrupamento predefinido',
-                desc: 'Escolha o agrupamento predefinido para notas. As vistas de etiquetas usam grupos de data quando o agrupamento por pasta está ativado.',
+                desc: 'Personalizado mostra cabeçalhos definidos no frontmatter. Data agrupa as notas por data. Pasta agrupa as notas por pasta. As vistas de etiqueta e propriedade usam grupos de data quando uma pasta está selecionada.',
                 options: {
-                    none: 'Não agrupar',
-                    date: 'Agrupar por data',
-                    folder: 'Agrupar por pasta'
+                    custom: 'Personalizado',
+                    date: 'Data',
+                    folder: 'Pasta'
                 }
             },
             showSelectedNavigationPills: {

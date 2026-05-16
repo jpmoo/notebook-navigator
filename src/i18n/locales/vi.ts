@@ -142,6 +142,7 @@ export const STRINGS_VI = {
         defaultSort: 'Mặc định', // Label for default sorting mode (English: Default)
         manualSort: 'Sắp xếp thủ công',
         editSortOrder: 'Chỉnh sửa thứ tự sắp xếp...',
+        removeSortProperty: 'Xóa thuộc tính sắp xếp',
         descendants: 'phần tử con',
         subfolders: 'thư mục con',
         subtags: 'thẻ con',
@@ -407,6 +408,10 @@ export const STRINGS_VI = {
             propertySortMessage: (property: string, count: number) =>
                 `Việc này chuyển chế độ xem hiện tại sang sắp xếp thủ công bằng "${property}". Việc chỉnh sửa thứ tự sẽ ghi giá trị chỉ số vào thuộc tính đó trong ${count} ghi chú khi cần.`,
             propertySortConfirmButton: 'Sử dụng sắp xếp thủ công',
+            removePropertyTitle: 'Xóa thuộc tính sắp xếp?',
+            removePropertyMessage: (property: string, count: number) =>
+                `Việc này xóa "${property}" khỏi ${count} ghi chú trong danh sách hiện tại. Thứ tự sắp xếp thủ công sẽ bị xóa cho các ghi chú đó.`,
+            removePropertyConfirmButton: 'Xóa thuộc tính',
             compactTitle: 'Nén giá trị chỉ số?',
             compactMessage: (count: number) =>
                 `Việc sắp xếp lại này cần thêm khoảng trống số. ${count} ghi chú sẽ nhận giá trị chỉ số mới.`,
@@ -739,6 +744,8 @@ export const STRINGS_VI = {
             propertiesRequireMarkdown: 'Thuộc tính chỉ được hỗ trợ trên ghi chú Markdown',
             propertySetOnNote: 'Đã cập nhật thuộc tính trên 1 ghi chú',
             propertySetOnNotes: 'Đã cập nhật thuộc tính trên {count} ghi chú',
+            manualSortPropertyRemovedFromNote: 'Đã xóa thuộc tính sắp xếp khỏi 1 ghi chú',
+            manualSortPropertyRemovedFromNotes: 'Đã xóa thuộc tính sắp xếp khỏi {count} ghi chú',
             iconPackDownloaded: 'Đã tải {provider}',
             iconPackUpdated: 'Đã cập nhật {provider} ({version})',
             iconPackRemoved: 'Đã gỡ {provider}',
@@ -901,6 +908,7 @@ export const STRINGS_VI = {
             list: {
                 display: 'Giao diện',
                 organization: 'Tổ chức',
+                groupHeaders: 'Header nhóm',
                 propertySort: 'Sắp xếp theo thuộc tính',
                 manualSort: 'Sắp xếp thủ công',
                 pinnedNotes: 'Ghi chú đã ghim',
@@ -975,13 +983,23 @@ export const STRINGS_VI = {
                     modified: 'Ngày chỉnh sửa'
                 }
             },
+            propertySortInstructions: {
+                intro: 'Mỗi thuộc tính được liệt kê ở trên xuất hiện làm tùy chọn sắp xếp trong menu sắp xếp ở ngăn danh sách. Chọn một sẽ sắp xếp ghi chú theo giá trị frontmatter của nó.'
+            },
             manualSortPropertyKey: {
                 name: 'Thuộc tính sắp xếp thủ công',
                 desc: 'Thuộc tính frontmatter dùng để lưu giá trị chỉ số cho sắp xếp thủ công.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Thuộc tính header nhóm',
-                desc: 'Thuộc tính frontmatter dùng để lưu văn bản header nhóm tùy chỉnh trong sắp xếp thủ công.'
+                desc: 'Thuộc tính frontmatter dùng để lưu header nhóm tùy chỉnh.'
+            },
+            groupHeadersInstructions: {
+                intro: 'Header nhóm tùy chỉnh hiển thị phía trên ghi chú trong ngăn danh sách.',
+                items: [
+                    'Từ menu sắp xếp trong ngăn danh sách, đặt nhóm thành **Tùy chỉnh**.',
+                    'Nhấp chuột phải vào ghi chú và chọn **Đặt header nhóm** để thêm header phía trên nó.'
+                ]
             },
             manualSortNewNotePlacement: {
                 name: 'Vị trí ghi chú mới',
@@ -993,13 +1011,16 @@ export const STRINGS_VI = {
                     unsorted: 'Chưa sắp xếp'
                 }
             },
+            confirmBeforeManualSort: {
+                name: 'Xác nhận trước khi sắp xếp thủ công',
+                desc: 'Hiển thị hộp thoại xác nhận trước khi chuyển danh sách hiện tại sang sắp xếp thủ công.'
+            },
             manualSortInstructions: {
                 intro: 'Sắp xếp thủ công ghi giá trị chỉ số vào thuộc tính frontmatter trên mỗi ghi chú. Ghi chú không có chỉ số sẽ xuất hiện trong mục Chưa sắp xếp.',
                 items: [
                     'Bật sắp xếp thủ công bằng cách chọn **Sắp xếp thủ công** từ menu sắp xếp. Sau đó, có hai cách để sắp xếp lại ghi chú.',
                     'Chọn **Chỉnh sửa thứ tự sắp xếp...** từ menu sắp xếp để mở chế độ xem sắp xếp lại. Kéo ghi chú bằng chuột, hoặc bằng cảm ứng trên di động. Trên máy tính, **Cmd/Ctrl** hoặc **Shift** kèm nhấp chọn nhiều ghi chú, sau đó kéo bất kỳ ghi chú nào sẽ di chuyển cả nhóm.',
-                    'Trong ngăn danh sách, chọn một ghi chú hoặc chọn nhiều, sau đó nhấn **Cmd/Ctrl + Arrow Up/Down** để di chuyển lựa chọn lên hoặc xuống.',
-                    'Nhấp chuột phải vào ghi chú trong ngăn danh sách hoặc trong **Chỉnh sửa thứ tự sắp xếp...** và chọn **Đặt header nhóm** để đặt header tùy chỉnh phía trên ghi chú.'
+                    'Trong ngăn danh sách, chọn một ghi chú hoặc chọn nhiều, sau đó nhấn **Cmd/Ctrl + Arrow Up/Down** để di chuyển lựa chọn lên hoặc xuống.'
                 ]
             },
             revealFileOnListChanges: {
@@ -1020,11 +1041,11 @@ export const STRINGS_VI = {
             },
             groupNotes: {
                 name: 'Nhóm mặc định',
-                desc: 'Chọn cách nhóm mặc định cho ghi chú. Chế độ xem thẻ dùng nhóm ngày khi bật nhóm thư mục.',
+                desc: 'Tùy chỉnh hiển thị header được định nghĩa trong frontmatter. Ngày nhóm ghi chú theo ngày. Thư mục nhóm ghi chú theo thư mục. Chế độ xem thẻ và thuộc tính dùng nhóm ngày khi thư mục được chọn.',
                 options: {
-                    none: 'Không nhóm',
-                    date: 'Nhóm theo ngày',
-                    folder: 'Nhóm theo thư mục'
+                    custom: 'Tùy chỉnh',
+                    date: 'Ngày',
+                    folder: 'Thư mục'
                 }
             },
             showSelectedNavigationPills: {

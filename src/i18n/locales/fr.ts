@@ -142,6 +142,7 @@ export const STRINGS_FR = {
         defaultSort: 'Par défaut', // Label for default sorting mode (English: Default)
         manualSort: 'Tri manuel',
         editSortOrder: "Modifier l'ordre de tri...",
+        removeSortProperty: 'Supprimer la propriété de tri',
         descendants: 'descendants',
         subfolders: 'sous-dossiers',
         subtags: 'sous-étiquettes',
@@ -409,6 +410,10 @@ export const STRINGS_FR = {
             propertySortMessage: (property: string, count: number) =>
                 `Ceci bascule la vue actuelle sur le tri manuel en utilisant « ${property} ». La modification de l'ordre écrit des valeurs numériques dans cette propriété sur ${count} ${count === 1 ? 'note' : 'notes'} au besoin.`,
             propertySortConfirmButton: 'Utiliser le tri manuel',
+            removePropertyTitle: 'Supprimer la propriété de tri ?',
+            removePropertyMessage: (property: string, count: number) =>
+                `Ceci supprime « ${property} » de ${count} ${count === 1 ? 'note' : 'notes'} dans la liste actuelle. L'ordre de tri manuel sera effacé pour ces notes.`,
+            removePropertyConfirmButton: 'Supprimer la propriété',
             compactTitle: 'Compacter les valeurs numériques ?',
             compactMessage: (count: number) =>
                 `Cette réorganisation nécessite plus d'espace numérique. ${count} ${count === 1 ? 'note recevra' : 'notes recevront'} de nouvelles valeurs numériques.`,
@@ -742,6 +747,8 @@ export const STRINGS_FR = {
             propertiesRequireMarkdown: 'Les propriétés ne sont prises en charge que sur les notes Markdown',
             propertySetOnNote: 'Propriété mise à jour sur 1 note',
             propertySetOnNotes: 'Propriété mise à jour sur {count} notes',
+            manualSortPropertyRemovedFromNote: 'Propriété de tri supprimée de 1 note',
+            manualSortPropertyRemovedFromNotes: 'Propriété de tri supprimée de {count} notes',
             iconPackDownloaded: '{provider} téléchargé',
             iconPackUpdated: '{provider} mis à jour ({version})',
             iconPackRemoved: '{provider} supprimé',
@@ -904,6 +911,7 @@ export const STRINGS_FR = {
             list: {
                 display: 'Apparence',
                 organization: 'Organisation',
+                groupHeaders: 'En-têtes de groupe',
                 propertySort: 'Tri par propriété',
                 manualSort: 'Tri manuel',
                 pinnedNotes: 'Notes épinglées',
@@ -978,13 +986,23 @@ export const STRINGS_FR = {
                     modified: 'Date de modification'
                 }
             },
+            propertySortInstructions: {
+                intro: 'Chaque propriété listée ci-dessus apparaît comme option de tri dans le menu de tri du panneau de liste. En sélectionner une trie les notes selon sa valeur frontmatter.'
+            },
             manualSortPropertyKey: {
                 name: 'Propriété de tri manuel',
                 desc: 'Propriété frontmatter utilisée pour enregistrer les valeurs numériques du tri manuel.'
             },
             manualSortGroupHeaderProperty: {
                 name: "Propriété d'en-tête de groupe",
-                desc: 'Propriété frontmatter utilisée pour enregistrer le texte personnalisé des en-têtes de groupe en tri manuel.'
+                desc: 'Propriété frontmatter utilisée pour enregistrer les en-têtes de groupe personnalisés.'
+            },
+            groupHeadersInstructions: {
+                intro: 'Les en-têtes de groupe personnalisés sont affichés au-dessus des notes dans le panneau de liste.',
+                items: [
+                    'Depuis le menu de tri du panneau de liste, définissez le regroupement sur **Personnalisé**.',
+                    "Cliquez avec le bouton droit sur une note et choisissez **Définir l'en-tête de groupe** pour ajouter un en-tête au-dessus."
+                ]
             },
             manualSortNewNotePlacement: {
                 name: 'Emplacement des nouvelles notes',
@@ -996,13 +1014,16 @@ export const STRINGS_FR = {
                     unsorted: 'Non trié'
                 }
             },
+            confirmBeforeManualSort: {
+                name: 'Confirmer avant le tri manuel',
+                desc: 'Afficher une boîte de dialogue de confirmation avant de basculer la liste actuelle en tri manuel.'
+            },
             manualSortInstructions: {
                 intro: 'Le tri manuel écrit une valeur numérique dans une propriété frontmatter sur chaque note. Les notes sans valeur apparaissent sous Non trié.',
                 items: [
                     'Activez le tri manuel en choisissant **Tri manuel** dans le menu de tri. Ensuite, il existe deux façons de réorganiser les notes.',
                     "Choisissez **Modifier l'ordre de tri...** dans le menu de tri pour ouvrir une vue de réorganisation. Glissez les notes avec la souris, ou par toucher sur mobile. Sur ordinateur, **Cmd/Ctrl** ou **Shift** clic sélectionne plusieurs notes, puis glisser l'une d'elles déplace tout le groupe.",
-                    'Dans le panneau de liste, sélectionnez une note ou plusieurs notes, puis appuyez sur **Cmd/Ctrl + Arrow Up/Down** pour déplacer la sélection vers le haut ou le bas.',
-                    "Cliquez avec le bouton droit sur une note dans le panneau de liste ou dans **Modifier l'ordre de tri...** et choisissez **Définir l'en-tête de groupe** pour placer un en-tête personnalisé au-dessus de la note."
+                    'Dans le panneau de liste, sélectionnez une note ou plusieurs notes, puis appuyez sur **Cmd/Ctrl + Arrow Up/Down** pour déplacer la sélection vers le haut ou le bas.'
                 ]
             },
             revealFileOnListChanges: {
@@ -1023,11 +1044,11 @@ export const STRINGS_FR = {
             },
             groupNotes: {
                 name: 'Regroupement par défaut',
-                desc: 'Choisissez le regroupement par défaut des notes. Les vues de tags utilisent des groupes de dates lorsque le regroupement par dossier est activé.',
+                desc: 'Personnalisé affiche les en-têtes définis dans le frontmatter. Date regroupe les notes par date. Dossier regroupe les notes par dossier. Les vues par étiquette et par propriété utilisent des groupes de dates lorsque dossier est sélectionné.',
                 options: {
-                    none: 'Ne pas grouper',
-                    date: 'Grouper par date',
-                    folder: 'Grouper par dossier'
+                    custom: 'Personnalisé',
+                    date: 'Date',
+                    folder: 'Dossier'
                 }
             },
             showSelectedNavigationPills: {

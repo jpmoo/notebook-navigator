@@ -141,6 +141,7 @@ export const STRINGS_ES = {
         defaultSort: 'Predeterminado', // Label for default sorting mode (English: Default)
         manualSort: 'Orden manual',
         editSortOrder: 'Editar orden de clasificación...',
+        removeSortProperty: 'Eliminar propiedad de orden',
         descendants: 'descendientes',
         subfolders: 'subcarpetas',
         subtags: 'subetiquetas',
@@ -408,6 +409,10 @@ export const STRINGS_ES = {
             propertySortMessage: (property: string, count: number) =>
                 `Esto cambia la vista actual al orden manual usando "${property}". Editar el orden escribe valores numéricos de índice en esa propiedad en ${count} ${count === 1 ? 'nota' : 'notas'} según sea necesario.`,
             propertySortConfirmButton: 'Usar orden manual',
+            removePropertyTitle: '¿Eliminar propiedad de orden?',
+            removePropertyMessage: (property: string, count: number) =>
+                `Esto elimina "${property}" de ${count} ${count === 1 ? 'nota' : 'notas'} en la lista actual. Se borrará el orden manual de esas notas.`,
+            removePropertyConfirmButton: 'Eliminar propiedad',
             compactTitle: '¿Compactar valores de índice?',
             compactMessage: (count: number) =>
                 `Esta reordenación necesita más espacio numérico. ${count} ${count === 1 ? 'nota recibirá' : 'notas recibirán'} nuevos valores de índice.`,
@@ -740,6 +745,8 @@ export const STRINGS_ES = {
             propertiesRequireMarkdown: 'Las propiedades solo son compatibles con notas Markdown',
             propertySetOnNote: 'Propiedad actualizada en 1 nota',
             propertySetOnNotes: 'Propiedad actualizada en {count} notas',
+            manualSortPropertyRemovedFromNote: 'Propiedad de orden eliminada de 1 nota',
+            manualSortPropertyRemovedFromNotes: 'Propiedad de orden eliminada de {count} notas',
             iconPackDownloaded: '{provider} descargado',
             iconPackUpdated: '{provider} actualizado ({version})',
             iconPackRemoved: '{provider} eliminado',
@@ -902,6 +909,7 @@ export const STRINGS_ES = {
             list: {
                 display: 'Apariencia',
                 organization: 'Organización',
+                groupHeaders: 'Encabezados de grupo',
                 propertySort: 'Orden por propiedad',
                 manualSort: 'Orden manual',
                 pinnedNotes: 'Notas fijadas',
@@ -976,13 +984,23 @@ export const STRINGS_ES = {
                     modified: 'Fecha de edición'
                 }
             },
+            propertySortInstructions: {
+                intro: 'Cada propiedad listada arriba aparece como una opción de orden en el menú de ordenación del panel de lista. Al seleccionar una se ordenan las notas por su valor del frontmatter.'
+            },
             manualSortPropertyKey: {
                 name: 'Propiedad de orden manual',
                 desc: 'Propiedad del frontmatter usada para almacenar los valores numéricos de índice del orden manual.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Propiedad de encabezado de grupo',
-                desc: 'Propiedad del frontmatter usada para almacenar el texto personalizado del encabezado de grupo en el orden manual.'
+                desc: 'Propiedad del frontmatter usada para almacenar los encabezados de grupo personalizados.'
+            },
+            groupHeadersInstructions: {
+                intro: 'Los encabezados de grupo personalizados se muestran encima de las notas en el panel de lista.',
+                items: [
+                    'En el menú de ordenación del panel de lista, establece la agrupación en **Personalizada**.',
+                    'Haz clic derecho en una nota y elige **Establecer encabezado de grupo** para añadir un encabezado encima.'
+                ]
             },
             manualSortNewNotePlacement: {
                 name: 'Ubicación de notas nuevas',
@@ -994,13 +1012,16 @@ export const STRINGS_ES = {
                     unsorted: 'Sin ordenar'
                 }
             },
+            confirmBeforeManualSort: {
+                name: 'Confirmar antes del orden manual',
+                desc: 'Mostrar un diálogo de confirmación antes de cambiar la lista actual al orden manual.'
+            },
             manualSortInstructions: {
                 intro: 'El orden manual escribe un valor numérico de índice en una propiedad del frontmatter de cada nota. Las notas sin índice aparecen en Sin ordenar.',
                 items: [
                     'Activa el orden manual eligiendo **Orden manual** en el menú de ordenación. Después hay dos formas de reorganizar las notas.',
                     'Selecciona **Editar orden de clasificación...** en el menú de ordenación para abrir una vista de reordenación. Arrastra las notas con el ratón o con el dedo en móvil. En escritorio, **Cmd/Ctrl** o **Shift** clic selecciona varias notas, y al arrastrar cualquiera de ellas se mueve todo el grupo.',
-                    'En el panel de lista, selecciona una nota o varias, y luego pulsa **Cmd/Ctrl + Arrow Up/Down** para mover la selección hacia arriba o hacia abajo.',
-                    'Haz clic derecho en una nota en el panel de lista o en **Editar orden de clasificación...** y elige **Establecer encabezado de grupo** para colocar un encabezado personalizado sobre la nota.'
+                    'En el panel de lista, selecciona una nota o varias, y luego pulsa **Cmd/Ctrl + Arrow Up/Down** para mover la selección hacia arriba o hacia abajo.'
                 ]
             },
             revealFileOnListChanges: {
@@ -1021,11 +1042,11 @@ export const STRINGS_ES = {
             },
             groupNotes: {
                 name: 'Agrupación predeterminada',
-                desc: 'Elige la agrupación predeterminada para las notas. Las vistas de etiquetas usan grupos por fecha cuando la agrupación por carpeta está activada.',
+                desc: 'Personalizada muestra los encabezados definidos en el frontmatter. Fecha agrupa las notas por fecha. Carpeta agrupa las notas por carpeta. Las vistas de etiquetas y propiedades usan grupos por fecha cuando se selecciona carpeta.',
                 options: {
-                    none: 'No agrupar',
-                    date: 'Agrupar por fecha',
-                    folder: 'Agrupar por carpeta'
+                    custom: 'Personalizada',
+                    date: 'Fecha',
+                    folder: 'Carpeta'
                 }
             },
             showSelectedNavigationPills: {

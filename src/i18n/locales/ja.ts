@@ -141,6 +141,7 @@ export const STRINGS_JA = {
         defaultSort: 'デフォルト', // Label for default sorting mode (English: Default)
         manualSort: '手動並べ替え',
         editSortOrder: '並べ替え順を編集...',
+        removeSortProperty: '並べ替えプロパティを削除',
         descendants: '子孫',
         subfolders: 'サブフォルダー',
         subtags: 'サブタグ',
@@ -407,6 +408,10 @@ export const STRINGS_JA = {
             propertySortMessage: (property: string, count: number) =>
                 `現在のビューを「${property}」を使った手動並べ替えに切り替えます。並び順を編集すると、必要に応じて ${count} 件のノートのそのプロパティに数値インデックス値が書き込まれます。`,
             propertySortConfirmButton: '手動並べ替えを使用',
+            removePropertyTitle: '並べ替えプロパティを削除しますか？',
+            removePropertyMessage: (property: string, count: number) =>
+                `現在のリストの ${count} 件のノートから「${property}」を削除します。それらのノートの手動並べ替え順はクリアされます。`,
+            removePropertyConfirmButton: 'プロパティを削除',
             compactTitle: 'インデックス値を圧縮しますか？',
             compactMessage: (count: number) =>
                 `この並べ替えにはより多くの数値領域が必要です。${count} 件のノートに新しいインデックス値が割り当てられます。`,
@@ -738,6 +743,8 @@ export const STRINGS_JA = {
             propertiesRequireMarkdown: 'プロパティはMarkdownノートでのみサポートされています',
             propertySetOnNote: '1件のノートでプロパティを更新しました',
             propertySetOnNotes: '{count}件のノートでプロパティを更新しました',
+            manualSortPropertyRemovedFromNote: '1件のノートから並べ替えプロパティを削除しました',
+            manualSortPropertyRemovedFromNotes: '{count}件のノートから並べ替えプロパティを削除しました',
             iconPackDownloaded: '「{provider}」をダウンロードしました',
             iconPackUpdated: '「{provider}」を更新しました ({version})',
             iconPackRemoved: '「{provider}」を削除しました',
@@ -900,6 +907,7 @@ export const STRINGS_JA = {
             list: {
                 display: '外観',
                 organization: '整理',
+                groupHeaders: 'グループヘッダー',
                 propertySort: 'プロパティで並べ替え',
                 manualSort: '手動並べ替え',
                 pinnedNotes: 'ピン留めされたノート',
@@ -974,13 +982,23 @@ export const STRINGS_JA = {
                     modified: '編集日'
                 }
             },
+            propertySortInstructions: {
+                intro: '上記の各プロパティは、リストペインの並べ替えメニューに並べ替えオプションとして表示されます。選択すると、そのフロントマターの値でノートが並べ替えられます。'
+            },
             manualSortPropertyKey: {
                 name: '手動並べ替え用プロパティ',
                 desc: '手動並べ替えの数値インデックス値を保存するために使用される frontmatter プロパティ。'
             },
             manualSortGroupHeaderProperty: {
                 name: 'グループヘッダープロパティ',
-                desc: '手動並べ替えでカスタムグループヘッダーテキストを保存するために使用される frontmatter プロパティ。'
+                desc: 'カスタムグループヘッダーを保存するために使用される frontmatter プロパティ。'
+            },
+            groupHeadersInstructions: {
+                intro: 'カスタムグループヘッダーは、リストペインでノートの上に表示されます。',
+                items: [
+                    'リストペインの並べ替えメニューから、グループ化を **カスタム** に設定します。',
+                    'ノートを右クリックして **グループヘッダーを設定** を選ぶと、その上にヘッダーを追加できます。'
+                ]
             },
             manualSortNewNotePlacement: {
                 name: '新規ノートの配置',
@@ -992,13 +1010,16 @@ export const STRINGS_JA = {
                     unsorted: '未ソート'
                 }
             },
+            confirmBeforeManualSort: {
+                name: '手動並べ替えの前に確認',
+                desc: '現在のリストを手動並べ替えに切り替える前に確認ダイアログを表示します。'
+            },
             manualSortInstructions: {
                 intro: '手動並べ替えは、各ノートの frontmatter プロパティに数値インデックス値を書き込みます。インデックスのないノートは「未ソート」の下に表示されます。',
                 items: [
                     'ソートメニューから **手動並べ替え** を選択して手動並べ替えを有効にします。その後、ノートを並べ替える方法は 2 つあります。',
                     'ソートメニューから **並べ替え順を編集...** を選んで並べ替えビューを開きます。マウスでドラッグするか、モバイルではタッチでドラッグします。デスクトップでは、**Cmd/Ctrl** または **Shift** クリックで複数のノートを選択し、いずれかをドラッグするとグループ全体が移動します。',
-                    'リストペインで 1 つのノートを選択するか複数選択し、**Cmd/Ctrl + Arrow Up/Down** を押すと選択範囲を上下に移動できます。',
-                    'リストペインまたは **並べ替え順を編集...** でノートを右クリックし、**グループヘッダーを設定** を選ぶとノートの上にカスタムヘッダーを配置できます。'
+                    'リストペインで 1 つのノートを選択するか複数選択し、**Cmd/Ctrl + Arrow Up/Down** を押すと選択範囲を上下に移動できます。'
                 ]
             },
             revealFileOnListChanges: {
@@ -1019,11 +1040,11 @@ export const STRINGS_JA = {
             },
             groupNotes: {
                 name: 'デフォルトのグループ化',
-                desc: 'ノートのデフォルトのグループ化を選択します。フォルダでのグループ化が有効な場合、タグビューは日付グループを使用します。',
+                desc: 'カスタムは frontmatter で定義されたヘッダーを表示します。日付はノートを日付でグループ化します。フォルダはノートをフォルダでグループ化します。タグとプロパティビューでは、フォルダが選択されている場合は日付グループが使用されます。',
                 options: {
-                    none: 'グループ化しない',
-                    date: '日付でグループ化',
-                    folder: 'フォルダでグループ化'
+                    custom: 'カスタム',
+                    date: '日付',
+                    folder: 'フォルダ'
                 }
             },
             showSelectedNavigationPills: {

@@ -142,6 +142,7 @@ export const STRINGS_IT = {
         defaultSort: 'Predefinito', // Label for default sorting mode (English: Default)
         manualSort: 'Ordinamento manuale',
         editSortOrder: 'Modifica ordinamento...',
+        removeSortProperty: 'Rimuovi proprietà di ordinamento',
         descendants: 'discendenti',
         subfolders: 'sottocartelle',
         subtags: 'sotto-tag',
@@ -407,6 +408,10 @@ export const STRINGS_IT = {
             propertySortMessage: (property: string, count: number) =>
                 `Questo cambia la vista corrente all'ordinamento manuale usando "${property}". La modifica dell'ordine scrive valori indice numerici in quella proprietà in ${count} ${count === 1 ? 'nota' : 'note'} secondo necessità.`,
             propertySortConfirmButton: 'Usa ordinamento manuale',
+            removePropertyTitle: 'Rimuovere la proprietà di ordinamento?',
+            removePropertyMessage: (property: string, count: number) =>
+                `Questo rimuove "${property}" da ${count} ${count === 1 ? 'nota' : 'note'} nella lista corrente. L'ordinamento manuale verrà cancellato per quelle note.`,
+            removePropertyConfirmButton: 'Rimuovi proprietà',
             compactTitle: 'Compattare i valori indice?',
             compactMessage: (count: number) =>
                 `Questo riordino richiede più spazio numerico. ${count} ${count === 1 ? 'nota riceverà' : 'note riceveranno'} nuovi valori indice.`,
@@ -735,6 +740,8 @@ export const STRINGS_IT = {
             propertiesRequireMarkdown: 'Le proprietà sono supportate solo nelle note Markdown',
             propertySetOnNote: 'Proprietà aggiornata su 1 nota',
             propertySetOnNotes: 'Proprietà aggiornata su {count} note',
+            manualSortPropertyRemovedFromNote: 'Proprietà di ordinamento rimossa da 1 nota',
+            manualSortPropertyRemovedFromNotes: 'Proprietà di ordinamento rimossa da {count} note',
             iconPackDownloaded: '{provider} scaricato',
             iconPackUpdated: '{provider} aggiornato ({version})',
             iconPackRemoved: '{provider} rimosso',
@@ -897,6 +904,7 @@ export const STRINGS_IT = {
             list: {
                 display: 'Aspetto',
                 organization: 'Organizzazione',
+                groupHeaders: 'Intestazioni di gruppo',
                 propertySort: 'Ordinamento per proprietà',
                 manualSort: 'Ordinamento manuale',
                 pinnedNotes: 'Note fissate',
@@ -971,13 +979,23 @@ export const STRINGS_IT = {
                     modified: 'Data di modifica'
                 }
             },
+            propertySortInstructions: {
+                intro: 'Ogni proprietà elencata sopra appare come opzione di ordinamento nel menu di ordinamento nel pannello lista. Selezionandone una si ordinano le note per il suo valore frontmatter.'
+            },
             manualSortPropertyKey: {
                 name: 'Proprietà ordinamento manuale',
                 desc: "Proprietà frontmatter usata per memorizzare i valori indice numerici per l'ordinamento manuale."
             },
             manualSortGroupHeaderProperty: {
                 name: 'Proprietà intestazione gruppo',
-                desc: "Proprietà frontmatter usata per memorizzare il testo personalizzato dell'intestazione di gruppo nell'ordinamento manuale."
+                desc: 'Proprietà frontmatter usata per memorizzare le intestazioni di gruppo personalizzate.'
+            },
+            groupHeadersInstructions: {
+                intro: 'Le intestazioni di gruppo personalizzate vengono visualizzate sopra le note nel pannello lista.',
+                items: [
+                    'Dal menu di ordinamento nel pannello lista, imposta il raggruppamento su **Personalizzato**.',
+                    "Fai clic destro su una nota e scegli **Imposta intestazione gruppo** per aggiungere un'intestazione sopra di essa."
+                ]
             },
             manualSortNewNotePlacement: {
                 name: 'Posizionamento nuove note',
@@ -989,13 +1007,16 @@ export const STRINGS_IT = {
                     unsorted: 'Non ordinato'
                 }
             },
+            confirmBeforeManualSort: {
+                name: "Conferma prima dell'ordinamento manuale",
+                desc: "Mostra una finestra di conferma prima di passare la lista corrente all'ordinamento manuale."
+            },
             manualSortInstructions: {
                 intro: "L'ordinamento manuale scrive un valore indice numerico in una proprietà frontmatter su ogni nota. Le note senza indice appaiono sotto Non ordinato.",
                 items: [
                     "Abilita l'ordinamento manuale scegliendo **Ordinamento manuale** dal menu di ordinamento. Successivamente, ci sono due modi per riordinare le note.",
                     "Scegli **Modifica ordinamento...** dal menu di ordinamento per aprire una vista di riordinamento. Trascina le note con il mouse, o con il tocco su mobile. Su desktop, **Cmd/Ctrl** o **Shift** clic seleziona più note, quindi trascinandone una qualsiasi sposta l'intero gruppo.",
-                    'Nel pannello lista, seleziona una nota o selezionane più, quindi premi **Cmd/Ctrl + Arrow Up/Down** per spostare la selezione su o giù.',
-                    "Fai clic destro su una nota nel pannello lista o in **Modifica ordinamento...** e scegli **Imposta intestazione gruppo** per posizionare un'intestazione personalizzata sopra la nota."
+                    'Nel pannello lista, seleziona una nota o selezionane più, quindi premi **Cmd/Ctrl + Arrow Up/Down** per spostare la selezione su o giù.'
                 ]
             },
             revealFileOnListChanges: {
@@ -1016,11 +1037,11 @@ export const STRINGS_IT = {
             },
             groupNotes: {
                 name: 'Raggruppamento predefinito',
-                desc: 'Scegli il raggruppamento predefinito per le note. Le viste tag usano gruppi per data quando il raggruppamento per cartella è abilitato.',
+                desc: 'Personalizzato mostra le intestazioni definite nel frontmatter. Data raggruppa le note per data. Cartella raggruppa le note per cartella. Le viste per tag e proprietà usano gruppi per data quando è selezionata una cartella.',
                 options: {
-                    none: 'Non raggruppare',
-                    date: 'Raggruppa per data',
-                    folder: 'Raggruppa per cartella'
+                    custom: 'Personalizzato',
+                    date: 'Data',
+                    folder: 'Cartella'
                 }
             },
             showSelectedNavigationPills: {

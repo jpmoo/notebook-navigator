@@ -142,6 +142,7 @@ export const STRINGS_TR = {
         defaultSort: 'Varsayılan', // Label for default sorting mode (English: Default)
         manualSort: 'Manuel sıralama',
         editSortOrder: 'Sıralama düzenini düzenle...',
+        removeSortProperty: 'Sıralama özelliğini kaldır',
         descendants: 'alt öğeler',
         subfolders: 'alt klasörler',
         subtags: 'alt etiketler',
@@ -408,6 +409,10 @@ export const STRINGS_TR = {
             propertySortMessage: (property: string, count: number) =>
                 `Bu, geçerli görünümü "${property}" kullanarak manuel sıralamaya geçirir. Sıralamayı düzenlemek, gerektiğinde ${count} ${count === 1 ? 'nottaki' : 'nottaki'} bu özelliğe sayısal indeks değerleri yazar.`,
             propertySortConfirmButton: 'Manuel sıralamayı kullan',
+            removePropertyTitle: 'Sıralama özelliği kaldırılsın mı?',
+            removePropertyMessage: (property: string, count: number) =>
+                `Bu işlem, geçerli listedeki ${count} ${count === 1 ? 'nottan' : 'nottan'} "${property}" özelliğini kaldırır. Bu notlar için manuel sıralama düzeni temizlenecek.`,
+            removePropertyConfirmButton: 'Özelliği kaldır',
             compactTitle: 'İndeks değerleri sıkıştırılsın mı?',
             compactMessage: (count: number) =>
                 `Bu yeniden sıralama daha fazla sayısal alana ihtiyaç duyar. ${count} ${count === 1 ? 'not' : 'not'} yeni indeks değerleri alacak.`,
@@ -738,6 +743,8 @@ export const STRINGS_TR = {
             propertiesRequireMarkdown: 'Özellikler yalnızca Markdown notlarında desteklenir',
             propertySetOnNote: '1 notta özellik güncellendi',
             propertySetOnNotes: '{count} notta özellik güncellendi',
+            manualSortPropertyRemovedFromNote: '1 nottan sıralama özelliği kaldırıldı',
+            manualSortPropertyRemovedFromNotes: '{count} nottan sıralama özelliği kaldırıldı',
             iconPackDownloaded: '{provider} indirildi',
             iconPackUpdated: '{provider} güncellendi ({version})',
             iconPackRemoved: '{provider} kaldırıldı',
@@ -900,6 +907,7 @@ export const STRINGS_TR = {
             list: {
                 display: 'Görünüm',
                 organization: 'Düzenleme',
+                groupHeaders: 'Grup başlıkları',
                 propertySort: 'Özelliğe göre sıralama',
                 manualSort: 'Manuel sıralama',
                 pinnedNotes: 'Sabitlenmiş notlar',
@@ -974,13 +982,23 @@ export const STRINGS_TR = {
                     modified: 'Düzenleme tarihi'
                 }
             },
+            propertySortInstructions: {
+                intro: 'Yukarıda listelenen her özellik, liste bölmesindeki sıralama menüsünde bir sıralama seçeneği olarak görünür. Birini seçmek, notları frontmatter değerine göre sıralar.'
+            },
             manualSortPropertyKey: {
                 name: 'Manuel sıralama özelliği',
                 desc: 'Manuel sıralama için sayısal indeks değerlerini saklamak üzere kullanılan frontmatter özelliği.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Grup başlığı özelliği',
-                desc: 'Manuel sıralamada özel grup başlığı metnini saklamak üzere kullanılan frontmatter özelliği.'
+                desc: 'Özel grup başlıklarını saklamak üzere kullanılan frontmatter özelliği.'
+            },
+            groupHeadersInstructions: {
+                intro: 'Özel grup başlıkları, liste bölmesinde notların üstünde görüntülenir.',
+                items: [
+                    'Liste bölmesindeki sıralama menüsünden gruplamayı **Özel** olarak ayarlayın.',
+                    'Bir nota sağ tıklayın ve üstüne bir başlık eklemek için **Grup başlığını ayarla** seçeneğini seçin.'
+                ]
             },
             manualSortNewNotePlacement: {
                 name: 'Yeni not yerleşimi',
@@ -992,13 +1010,16 @@ export const STRINGS_TR = {
                     unsorted: 'Sıralanmamış'
                 }
             },
+            confirmBeforeManualSort: {
+                name: 'Manuel sıralamadan önce onayla',
+                desc: 'Geçerli listeyi manuel sıralamaya geçirmeden önce bir onay iletişim kutusu göster.'
+            },
             manualSortInstructions: {
                 intro: 'Manuel sıralama, her notun frontmatter özelliğine sayısal bir indeks değeri yazar. İndeksi olmayan notlar Sıralanmamış altında görünür.',
                 items: [
                     'Sıralama menüsünden **Manuel sıralama** seçeneğini seçerek manuel sıralamayı etkinleştirin. Bundan sonra, notları yeniden düzenlemenin iki yolu vardır.',
                     'Yeniden sıralama görünümünü açmak için sıralama menüsünden **Sıralama düzenini düzenle...** seçeneğini seçin. Notları fareyle veya mobilde dokunarak sürükleyin. Masaüstünde, **Cmd/Ctrl** veya **Shift** ile tıklayarak birden fazla not seçin, ardından herhangi birini sürüklediğinizde tüm grup taşınır.',
-                    'Liste bölmesinde, bir notu seçin veya birden fazlasını çoklu seçin, ardından seçimi yukarı veya aşağı taşımak için **Cmd/Ctrl + Arrow Up/Down** tuşlarına basın.',
-                    'Liste bölmesinde veya **Sıralama düzenini düzenle...** içinde bir nota sağ tıklayın ve notun üstüne özel bir başlık yerleştirmek için **Grup başlığını ayarla** seçeneğini seçin.'
+                    'Liste bölmesinde, bir notu seçin veya birden fazlasını çoklu seçin, ardından seçimi yukarı veya aşağı taşımak için **Cmd/Ctrl + Arrow Up/Down** tuşlarına basın.'
                 ]
             },
             revealFileOnListChanges: {
@@ -1019,11 +1040,11 @@ export const STRINGS_TR = {
             },
             groupNotes: {
                 name: 'Varsayılan gruplama',
-                desc: 'Notlar için varsayılan gruplamayı seçin. Etiket görünümleri klasör gruplandırması etkinken tarih gruplarını kullanır.',
+                desc: "Özel, frontmatter'da tanımlanan başlıkları gösterir. Tarih, notları tarihe göre gruplar. Klasör, notları klasöre göre gruplar. Etiket ve özellik görünümleri, klasör seçildiğinde tarih gruplarını kullanır.",
                 options: {
-                    none: 'Gruplama yok',
-                    date: 'Tarihe göre grupla',
-                    folder: 'Klasöre göre grupla'
+                    custom: 'Özel',
+                    date: 'Tarih',
+                    folder: 'Klasör'
                 }
             },
             showSelectedNavigationPills: {

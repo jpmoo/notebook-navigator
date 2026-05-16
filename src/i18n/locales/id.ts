@@ -142,6 +142,7 @@ export const STRINGS_ID = {
         defaultSort: 'Default',
         manualSort: 'Urutan manual',
         editSortOrder: 'Edit urutan...',
+        removeSortProperty: 'Hapus properti urutan',
         descendants: 'turunan',
         subfolders: 'subfolder',
         subtags: 'subtag',
@@ -408,6 +409,10 @@ export const STRINGS_ID = {
             propertySortMessage: (property: string, count: number) =>
                 `Ini akan mengalihkan tampilan saat ini ke urutan manual menggunakan "${property}". Mengedit urutan akan menulis nilai indeks numerik ke properti tersebut di ${count} catatan sesuai kebutuhan.`,
             propertySortConfirmButton: 'Gunakan urutan manual',
+            removePropertyTitle: 'Hapus properti urutan?',
+            removePropertyMessage: (property: string, count: number) =>
+                `Ini akan menghapus "${property}" dari ${count} catatan di daftar saat ini. Urutan manual akan dihapus untuk catatan tersebut.`,
+            removePropertyConfirmButton: 'Hapus properti',
             compactTitle: 'Padatkan nilai indeks?',
             compactMessage: (count: number) =>
                 `Pengaturan ulang ini memerlukan lebih banyak ruang numerik. ${count} catatan akan menerima nilai indeks baru.`,
@@ -738,6 +743,8 @@ export const STRINGS_ID = {
             propertiesRequireMarkdown: 'Properti hanya didukung pada catatan Markdown',
             propertySetOnNote: 'Properti diperbarui pada 1 catatan',
             propertySetOnNotes: 'Properti diperbarui pada {count} catatan',
+            manualSortPropertyRemovedFromNote: 'Properti urutan dihapus dari 1 catatan',
+            manualSortPropertyRemovedFromNotes: 'Properti urutan dihapus dari {count} catatan',
             iconPackDownloaded: '{provider} diunduh',
             iconPackUpdated: '{provider} diperbarui ({version})',
             iconPackRemoved: '{provider} dihapus',
@@ -900,6 +907,7 @@ export const STRINGS_ID = {
             list: {
                 display: 'Tampilan',
                 organization: 'Organisasi',
+                groupHeaders: 'Header grup',
                 propertySort: 'Urutan properti',
                 manualSort: 'Urutan manual',
                 pinnedNotes: 'Catatan yang disematkan',
@@ -974,13 +982,23 @@ export const STRINGS_ID = {
                     modified: 'Tanggal diedit'
                 }
             },
+            propertySortInstructions: {
+                intro: 'Setiap properti yang tercantum di atas muncul sebagai opsi urutan di menu urutan pada panel daftar. Memilih salah satu akan mengurutkan catatan berdasarkan nilai frontmatter-nya.'
+            },
             manualSortPropertyKey: {
                 name: 'Properti urutan manual',
                 desc: 'Properti frontmatter yang digunakan untuk menyimpan nilai indeks numerik untuk urutan manual.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Properti header grup',
-                desc: 'Properti frontmatter yang digunakan untuk menyimpan teks header grup kustom dalam urutan manual.'
+                desc: 'Properti frontmatter yang digunakan untuk menyimpan header grup kustom.'
+            },
+            groupHeadersInstructions: {
+                intro: 'Header grup kustom ditampilkan di atas catatan di panel daftar.',
+                items: [
+                    'Dari menu urutan di panel daftar, atur pengelompokan ke **Kustom**.',
+                    'Klik kanan catatan dan pilih **Atur header grup** untuk menambahkan header di atasnya.'
+                ]
             },
             manualSortNewNotePlacement: {
                 name: 'Penempatan catatan baru',
@@ -992,13 +1010,16 @@ export const STRINGS_ID = {
                     unsorted: 'Belum diurutkan'
                 }
             },
+            confirmBeforeManualSort: {
+                name: 'Konfirmasi sebelum urutan manual',
+                desc: 'Tampilkan dialog konfirmasi sebelum mengalihkan daftar saat ini ke urutan manual.'
+            },
             manualSortInstructions: {
                 intro: 'Urutan manual menulis nilai indeks numerik ke properti frontmatter pada setiap catatan. Catatan tanpa indeks muncul di bawah Belum diurutkan.',
                 items: [
                     'Aktifkan urutan manual dengan memilih **Urutan manual** dari menu urutan. Setelah itu, ada dua cara untuk mengatur ulang catatan.',
                     'Pilih **Edit urutan...** dari menu urutan untuk membuka tampilan pengaturan ulang. Seret catatan dengan mouse, atau dengan sentuhan di seluler. Di desktop, klik **Cmd/Ctrl** atau **Shift** memilih beberapa catatan, lalu menyeret salah satunya akan memindahkan seluruh grup.',
-                    'Di panel daftar, pilih satu catatan atau pilih beberapa, lalu tekan **Cmd/Ctrl + Arrow Up/Down** untuk memindahkan pilihan ke atas atau ke bawah.',
-                    'Klik kanan catatan di panel daftar atau di **Edit urutan...** dan pilih **Atur header grup** untuk menempatkan header kustom di atas catatan.'
+                    'Di panel daftar, pilih satu catatan atau pilih beberapa, lalu tekan **Cmd/Ctrl + Arrow Up/Down** untuk memindahkan pilihan ke atas atau ke bawah.'
                 ]
             },
             revealFileOnListChanges: {
@@ -1019,11 +1040,11 @@ export const STRINGS_ID = {
             },
             groupNotes: {
                 name: 'Pengelompokan default',
-                desc: 'Pilih pengelompokan default untuk catatan. Tampilan tag menggunakan grup tanggal saat pengelompokan folder diaktifkan.',
+                desc: 'Kustom menampilkan header yang didefinisikan dalam frontmatter. Tanggal mengelompokkan catatan berdasarkan tanggal. Folder mengelompokkan catatan berdasarkan folder. Tampilan tag dan properti menggunakan grup tanggal saat folder dipilih.',
                 options: {
-                    none: 'Jangan kelompokkan',
-                    date: 'Kelompokkan berdasarkan tanggal',
-                    folder: 'Kelompokkan berdasarkan folder'
+                    custom: 'Kustom',
+                    date: 'Tanggal',
+                    folder: 'Folder'
                 }
             },
             showSelectedNavigationPills: {

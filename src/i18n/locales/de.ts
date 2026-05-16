@@ -141,6 +141,7 @@ export const STRINGS_DE = {
         defaultSort: 'Standard', // Label for default sorting mode (English: Default)
         manualSort: 'Manuelle Sortierung',
         editSortOrder: 'Sortierreihenfolge bearbeiten...',
+        removeSortProperty: 'Sortier-Eigenschaft entfernen',
         descendants: 'Unterelemente',
         subfolders: 'Unterordner',
         subtags: 'Unter-Tags',
@@ -408,6 +409,10 @@ export const STRINGS_DE = {
             propertySortMessage: (property: string, count: number) =>
                 `Wechselt die aktuelle Ansicht zur manuellen Sortierung mit „${property}". Beim Bearbeiten der Reihenfolge werden numerische Indexwerte bei Bedarf in diese Eigenschaft in ${count} ${count === 1 ? 'Notiz' : 'Notizen'} geschrieben.`,
             propertySortConfirmButton: 'Manuelle Sortierung verwenden',
+            removePropertyTitle: 'Sortier-Eigenschaft entfernen?',
+            removePropertyMessage: (property: string, count: number) =>
+                `Entfernt „${property}" aus ${count} ${count === 1 ? 'Notiz' : 'Notizen'} in der aktuellen Liste. Die manuelle Sortierreihenfolge dieser Notizen wird gelöscht.`,
+            removePropertyConfirmButton: 'Eigenschaft entfernen',
             compactTitle: 'Indexwerte verdichten?',
             compactMessage: (count: number) =>
                 `Diese Neuanordnung benötigt mehr numerischen Raum. ${count} ${count === 1 ? 'Notiz erhält' : 'Notizen erhalten'} neue Indexwerte.`,
@@ -740,6 +745,8 @@ export const STRINGS_DE = {
             propertiesRequireMarkdown: 'Eigenschaften werden nur bei Markdown-Notizen unterstützt',
             propertySetOnNote: 'Eigenschaft bei 1 Notiz aktualisiert',
             propertySetOnNotes: 'Eigenschaft bei {count} Notizen aktualisiert',
+            manualSortPropertyRemovedFromNote: 'Sortier-Eigenschaft aus 1 Notiz entfernt',
+            manualSortPropertyRemovedFromNotes: 'Sortier-Eigenschaft aus {count} Notizen entfernt',
             iconPackDownloaded: '{provider} heruntergeladen',
             iconPackUpdated: '{provider} aktualisiert ({version})',
             iconPackRemoved: '{provider} entfernt',
@@ -902,6 +909,7 @@ export const STRINGS_DE = {
             list: {
                 display: 'Darstellung',
                 organization: 'Organisation',
+                groupHeaders: 'Gruppenüberschriften',
                 propertySort: 'Eigenschaftssortierung',
                 manualSort: 'Manuelle Sortierung',
                 pinnedNotes: 'Angeheftete Notizen',
@@ -976,13 +984,23 @@ export const STRINGS_DE = {
                     modified: 'Bearbeitungsdatum'
                 }
             },
+            propertySortInstructions: {
+                intro: 'Jede oben aufgeführte Eigenschaft erscheint als Sortieroption im Sortiermenü des Listenbereichs. Bei Auswahl werden Notizen nach ihrem Frontmatter-Wert sortiert.'
+            },
             manualSortPropertyKey: {
                 name: 'Eigenschaft für manuelle Sortierung',
                 desc: 'Frontmatter-Eigenschaft zum Speichern der numerischen Indexwerte für die manuelle Sortierung.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Eigenschaft für Gruppenüberschriften',
-                desc: 'Frontmatter-Eigenschaft zum Speichern des benutzerdefinierten Gruppenüberschriftentexts in der manuellen Sortierung.'
+                desc: 'Frontmatter-Eigenschaft zum Speichern der benutzerdefinierten Gruppenüberschriften.'
+            },
+            groupHeadersInstructions: {
+                intro: 'Benutzerdefinierte Gruppenüberschriften werden über Notizen im Listenbereich angezeigt.',
+                items: [
+                    'Stellen Sie im Sortiermenü des Listenbereichs die Gruppierung auf **Benutzerdefiniert**.',
+                    'Klicken Sie mit der rechten Maustaste auf eine Notiz und wählen Sie **Gruppenüberschrift festlegen**, um eine Überschrift darüber hinzuzufügen.'
+                ]
             },
             manualSortNewNotePlacement: {
                 name: 'Platzierung neuer Notizen',
@@ -994,13 +1012,16 @@ export const STRINGS_DE = {
                     unsorted: 'Unsortiert'
                 }
             },
+            confirmBeforeManualSort: {
+                name: 'Vor manueller Sortierung bestätigen',
+                desc: 'Vor dem Umschalten der aktuellen Liste auf manuelle Sortierung einen Bestätigungsdialog anzeigen.'
+            },
             manualSortInstructions: {
                 intro: 'Die manuelle Sortierung schreibt einen numerischen Indexwert in eine Frontmatter-Eigenschaft jeder Notiz. Notizen ohne Index erscheinen unter Unsortiert.',
                 items: [
                     'Aktivieren Sie die manuelle Sortierung, indem Sie **Manuelle Sortierung** aus dem Sortiermenü wählen. Danach gibt es zwei Möglichkeiten, Notizen neu anzuordnen.',
                     'Wählen Sie **Sortierreihenfolge bearbeiten...** aus dem Sortiermenü, um eine Neuordnungsansicht zu öffnen. Ziehen Sie Notizen mit der Maus oder per Touch auf Mobilgeräten. Auf dem Desktop wählt **Cmd/Ctrl**- oder **Shift**-Klick mehrere Notizen aus; das Ziehen einer beliebigen verschiebt dann die gesamte Gruppe.',
-                    'Wählen Sie im Listenbereich eine Notiz aus oder markieren Sie mehrere und drücken Sie **Cmd/Ctrl + Arrow Up/Down**, um die Auswahl nach oben oder unten zu verschieben.',
-                    'Klicken Sie mit der rechten Maustaste auf eine Notiz im Listenbereich oder in **Sortierreihenfolge bearbeiten...** und wählen Sie **Gruppenüberschrift festlegen**, um eine benutzerdefinierte Überschrift über der Notiz zu platzieren.'
+                    'Wählen Sie im Listenbereich eine Notiz aus oder markieren Sie mehrere und drücken Sie **Cmd/Ctrl + Arrow Up/Down**, um die Auswahl nach oben oder unten zu verschieben.'
                 ]
             },
             revealFileOnListChanges: {
@@ -1021,11 +1042,11 @@ export const STRINGS_DE = {
             },
             groupNotes: {
                 name: 'Standardgruppierung',
-                desc: 'Wählen Sie die Standardgruppierung für Notizen. Tag-Ansichten verwenden Datumsgruppen, wenn Ordnergruppierung aktiviert ist.',
+                desc: 'Benutzerdefiniert zeigt im Frontmatter definierte Überschriften. Datum gruppiert Notizen nach Datum. Ordner gruppiert Notizen nach Ordner. Tag- und Eigenschaftsansichten verwenden Datumsgruppen, wenn Ordner ausgewählt ist.',
                 options: {
-                    none: 'Nicht gruppieren',
-                    date: 'Nach Datum gruppieren',
-                    folder: 'Nach Ordner gruppieren'
+                    custom: 'Benutzerdefiniert',
+                    date: 'Datum',
+                    folder: 'Ordner'
                 }
             },
             showSelectedNavigationPills: {

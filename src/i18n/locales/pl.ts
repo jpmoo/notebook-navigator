@@ -142,6 +142,7 @@ export const STRINGS_PL = {
         defaultSort: 'Domyślne', // Label for default sorting mode (English: Default)
         manualSort: 'Sortowanie ręczne',
         editSortOrder: 'Edytuj kolejność sortowania...',
+        removeSortProperty: 'Usuń atrybut sortowania',
         descendants: 'potomków',
         subfolders: 'podfolderów',
         subtags: 'podtagów',
@@ -410,6 +411,10 @@ export const STRINGS_PL = {
             propertySortMessage: (property: string, count: number) =>
                 `Przełącza bieżący widok na sortowanie ręczne z użyciem „${property}". Edycja kolejności w razie potrzeby zapisuje wartości indeksu liczbowego do tej właściwości w ${count} ${count === 1 ? 'notatce' : 'notatkach'}.`,
             propertySortConfirmButton: 'Użyj sortowania ręcznego',
+            removePropertyTitle: 'Usunąć atrybut sortowania?',
+            removePropertyMessage: (property: string, count: number) =>
+                `Usuwa „${property}" z ${count} ${count === 1 ? 'notatki' : 'notatek'} na bieżącej liście. Kolejność sortowania ręcznego zostanie wyczyszczona dla tych notatek.`,
+            removePropertyConfirmButton: 'Usuń atrybut',
             compactTitle: 'Zagęścić wartości indeksu?',
             compactMessage: (count: number) =>
                 `Ta zmiana kolejności wymaga więcej miejsca na wartości liczbowe. ${count} ${count === 1 ? 'notatka otrzyma' : 'notatek otrzyma'} nowe wartości indeksu.`,
@@ -742,6 +747,8 @@ export const STRINGS_PL = {
             propertiesRequireMarkdown: 'Atrybuty są obsługiwane tylko w notatkach Markdown',
             propertySetOnNote: 'Zaktualizowano atrybut w 1 notatce',
             propertySetOnNotes: 'Zaktualizowano atrybut w wielu ({count}) notatkach',
+            manualSortPropertyRemovedFromNote: 'Usunięto atrybut sortowania z 1 notatki',
+            manualSortPropertyRemovedFromNotes: 'Usunięto atrybut sortowania z {count} notatek',
             iconPackDownloaded: '{provider} pobrano',
             iconPackUpdated: '{provider} zaktualizowano ({version})',
             iconPackRemoved: '{provider} usunięto',
@@ -904,6 +911,7 @@ export const STRINGS_PL = {
             list: {
                 display: 'Wygląd',
                 organization: 'Organizacja',
+                groupHeaders: 'Nagłówki grup',
                 propertySort: 'Sortowanie według właściwości',
                 manualSort: 'Sortowanie ręczne',
                 pinnedNotes: 'Przypięte notatki',
@@ -978,13 +986,23 @@ export const STRINGS_PL = {
                     modified: 'Data edycji'
                 }
             },
+            propertySortInstructions: {
+                intro: 'Każdy wymieniony powyżej atrybut pojawia się jako opcja sortowania w menu sortowania w panelu listy. Wybranie jednego sortuje notatki według jego wartości frontmatter.'
+            },
             manualSortPropertyKey: {
                 name: 'Atrybut sortowania ręcznego',
                 desc: 'Atrybut frontmatter używany do przechowywania wartości indeksu liczbowego dla sortowania ręcznego.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Atrybut nagłówka grupy',
-                desc: 'Atrybut frontmatter używany do przechowywania niestandardowego tekstu nagłówka grupy w sortowaniu ręcznym.'
+                desc: 'Atrybut frontmatter używany do przechowywania niestandardowych nagłówków grup.'
+            },
+            groupHeadersInstructions: {
+                intro: 'Niestandardowe nagłówki grup wyświetlają się nad notatkami w panelu listy.',
+                items: [
+                    'W menu sortowania w panelu listy ustaw grupowanie na **Niestandardowe**.',
+                    'Kliknij notatkę prawym przyciskiem myszy i wybierz **Ustaw nagłówek grupy**, aby dodać nagłówek nad nią.'
+                ]
             },
             manualSortNewNotePlacement: {
                 name: 'Umiejscowienie nowych notatek',
@@ -996,13 +1014,16 @@ export const STRINGS_PL = {
                     unsorted: 'Nieposortowane'
                 }
             },
+            confirmBeforeManualSort: {
+                name: 'Potwierdzaj przed sortowaniem ręcznym',
+                desc: 'Pokaż okno potwierdzenia przed przełączeniem bieżącej listy na sortowanie ręczne.'
+            },
             manualSortInstructions: {
                 intro: 'Sortowanie ręczne zapisuje wartość indeksu liczbowego do atrybutu frontmatter w każdej notatce. Notatki bez indeksu pojawiają się w sekcji Nieposortowane.',
                 items: [
                     'Włącz sortowanie ręczne, wybierając **Sortowanie ręczne** z menu sortowania. Następnie istnieją dwa sposoby zmiany kolejności notatek.',
                     'Wybierz **Edytuj kolejność sortowania...** z menu sortowania, aby otworzyć widok zmiany kolejności. Przeciągaj notatki myszą lub dotykiem na urządzeniach mobilnych. Na komputerze kliknięcie z **Cmd/Ctrl** lub **Shift** zaznacza wiele notatek, a następnie przeciągnięcie którejkolwiek z nich przenosi całą grupę.',
-                    'W panelu listy zaznacz jedną notatkę lub zaznacz wiele, a następnie naciśnij **Cmd/Ctrl + Arrow Up/Down**, aby przesunąć zaznaczenie w górę lub w dół.',
-                    'Kliknij prawym przyciskiem myszy notatkę w panelu listy lub w **Edytuj kolejność sortowania...** i wybierz **Ustaw nagłówek grupy**, aby umieścić niestandardowy nagłówek nad notatką.'
+                    'W panelu listy zaznacz jedną notatkę lub zaznacz wiele, a następnie naciśnij **Cmd/Ctrl + Arrow Up/Down**, aby przesunąć zaznaczenie w górę lub w dół.'
                 ]
             },
             revealFileOnListChanges: {
@@ -1023,11 +1044,11 @@ export const STRINGS_PL = {
             },
             groupNotes: {
                 name: 'Domyślne grupowanie',
-                desc: 'Wybierz domyślne grupowanie notatek. Widoki tagów używają grup dat, gdy włączone jest grupowanie według folderów.',
+                desc: 'Niestandardowe wyświetla nagłówki zdefiniowane w metadanych. Data grupuje notatki według daty. Folder grupuje notatki według folderu. Widoki tagów i właściwości używają grup dat, gdy wybrany jest folder.',
                 options: {
-                    none: 'Nie grupuj',
-                    date: 'Grupuj według daty',
-                    folder: 'Grupuj według folderu'
+                    custom: 'Niestandardowe',
+                    date: 'Data',
+                    folder: 'Folder'
                 }
             },
             showSelectedNavigationPills: {
