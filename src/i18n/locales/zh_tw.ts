@@ -29,6 +29,7 @@ export const STRINGS_ZH_TW = {
         remove: '移除',
         restoreDefault: '恢復預設', // Button text for restoring values to defaults (English: Restore default)
         submit: '提交',
+        save: '儲存', // Button text for saving settings and dialogs (English: Save)
         configure: '設定', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: '淺色模式', // Label for light theme mode (English: Light mode)
         darkMode: '深色模式', // Label for dark theme mode (English: Dark mode)
@@ -298,7 +299,12 @@ export const STRINGS_ZH_TW = {
             moveMultipleFilesToFolder: '將 {count} 個檔案移動至...',
             setManualSortGroupHeader: '設定群組標題',
             changeManualSortGroupHeader: '變更群組標題',
-            removeManualSortGroupHeader: '移除群組標題',
+            manualSortGroupHeader: {
+                title: '群組標題',
+                copyStyle: '複製標題樣式',
+                pasteStyle: '貼上標題樣式',
+                remove: '移除群組標題'
+            },
             addTag: '新增標籤',
             addPropertyKey: '設定屬性',
             removeTag: '移除標籤',
@@ -418,12 +424,14 @@ export const STRINGS_ZH_TW = {
         },
         manualSortGroupHeader: {
             title: '設定群組標題',
-            headerLabel: '群組標題',
+            titleLabel: '標題',
             placeholder: '群組標題',
-            showWordCount: '顯示總字數',
-            targetWordCount: '目標字數',
-            targetWordCountPlaceholder: '10,000',
-            description: '標題會儲存到所選筆記的屬性 {property}。將欄位留空以清除標題。'
+            icon: '圖示',
+            color: '顏色',
+            wordCount: '顯示字數',
+            wordCountTarget: '目標字數',
+            wordCountTargetPlaceholder: '10,000',
+            description: '為此筆記自訂群組標題。將標題留空以移除標題。'
         },
         navRainbowSection: {
             title: (section: string) => `彩虹顏色: ${section}`

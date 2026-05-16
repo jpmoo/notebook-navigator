@@ -29,6 +29,7 @@ export const STRINGS_ZH_CN = {
         remove: '移除', // Button text for remove operations in dialogs (English: Remove)
         restoreDefault: '恢复默认', // Button text for restoring values to defaults (English: Restore default)
         submit: '提交', // Button text for submitting forms and dialogs (English: Submit)
+        save: '保存', // Button text for saving settings and dialogs (English: Save)
         configure: '配置', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: '浅色模式', // Label for light theme mode (English: Light mode)
         darkMode: '深色模式', // Label for dark theme mode (English: Dark mode)
@@ -298,7 +299,12 @@ export const STRINGS_ZH_CN = {
             moveMultipleFilesToFolder: '将 {count} 个文件移动到...',
             setManualSortGroupHeader: '设置分组标题',
             changeManualSortGroupHeader: '更改分组标题',
-            removeManualSortGroupHeader: '移除分组标题',
+            manualSortGroupHeader: {
+                title: '分组标题',
+                copyStyle: '复制标题样式',
+                pasteStyle: '粘贴标题样式',
+                remove: '移除分组标题'
+            },
             addTag: '添加标签',
             addPropertyKey: '设置属性',
             removeTag: '移除标签',
@@ -418,12 +424,14 @@ export const STRINGS_ZH_CN = {
         },
         manualSortGroupHeader: {
             title: '设置分组标题',
-            headerLabel: '分组标题',
+            titleLabel: '标题',
             placeholder: '分组标题',
-            showWordCount: '显示总字数',
-            targetWordCount: '目标字数',
-            targetWordCountPlaceholder: '10,000',
-            description: '该标题会保存到所选笔记的属性 {property} 中。将字段留空可清除标题。'
+            icon: '图标',
+            color: '颜色',
+            wordCount: '显示字数',
+            wordCountTarget: '目标字数',
+            wordCountTargetPlaceholder: '10,000',
+            description: '为此笔记自定义分组标题。将标题留空以移除该标题。'
         },
         navRainbowSection: {
             title: (section: string) => `彩虹颜色: ${section}`

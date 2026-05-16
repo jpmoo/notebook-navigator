@@ -22,6 +22,7 @@ import type { SearchResultMeta } from './search';
 import { PropertyTreeNode, TagTreeNode } from '../types/storage';
 import type { SearchShortcut, ShortcutEntry } from '../types/shortcuts';
 import type { NoteCountInfo } from '../types/noteCounts';
+import type { ManualSortGroupHeaderData } from '../utils/manualSort';
 
 export interface VirtualItem<T> {
     type: string;
@@ -44,6 +45,10 @@ export interface ListPaneItem {
     manualSortHeaderFilePath?: string | null;
     // Whether a manual sort custom header label depends on stored word counts.
     manualSortHeaderShowsWordCount?: boolean;
+    // Parsed manual sort custom header display data.
+    manualSortHeader?: ManualSortGroupHeaderData;
+    // Accumulated word count for the manual sort custom header segment.
+    manualSortHeaderWordCount?: number;
     headerKind?: ListPaneHeaderKind;
     collapseKey?: string;
     isCollapsed?: boolean;

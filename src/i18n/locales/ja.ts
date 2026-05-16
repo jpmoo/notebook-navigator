@@ -29,6 +29,7 @@ export const STRINGS_JA = {
         remove: '削除', // Button text for remove operations in dialogs (English: Remove)
         restoreDefault: 'デフォルトに戻す', // Button text for restoring values to defaults (English: Restore default)
         submit: '送信', // Button text for submitting forms and dialogs (English: Submit)
+        save: '保存', // Button text for saving settings and dialogs (English: Save)
         configure: '設定', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'ライトモード', // Label for light theme mode (English: Light mode)
         darkMode: 'ダークモード', // Label for dark theme mode (English: Dark mode)
@@ -298,7 +299,12 @@ export const STRINGS_JA = {
             moveMultipleFilesToFolder: '{count}個のファイルを移動先...',
             setManualSortGroupHeader: 'グループヘッダーを設定',
             changeManualSortGroupHeader: 'グループヘッダーを変更',
-            removeManualSortGroupHeader: 'グループヘッダーを削除',
+            manualSortGroupHeader: {
+                title: 'グループヘッダー',
+                copyStyle: 'ヘッダースタイルをコピー',
+                pasteStyle: 'ヘッダースタイルを貼り付け',
+                remove: 'グループヘッダーを削除'
+            },
             addTag: 'タグを追加',
             addPropertyKey: 'プロパティを設定',
             removeTag: 'タグを削除',
@@ -419,13 +425,14 @@ export const STRINGS_JA = {
         },
         manualSortGroupHeader: {
             title: 'グループヘッダーを設定',
-            headerLabel: 'グループヘッダー',
+            titleLabel: 'タイトル',
             placeholder: 'グループヘッダー',
-            showWordCount: '合計ワード数を表示',
-            targetWordCount: '目標ワード数',
-            targetWordCountPlaceholder: '10,000',
-            description:
-                'ヘッダーは選択したノートのプロパティ {property} に保存されます。フィールドを空にすると、ヘッダーがクリアされます。'
+            icon: 'アイコン',
+            color: '色',
+            wordCount: 'ワード数を表示',
+            wordCountTarget: '目標ワード数',
+            wordCountTargetPlaceholder: '10,000',
+            description: 'このノートのグループヘッダーをカスタマイズします。ヘッダーを削除するには、タイトルを空のままにします。'
         },
         navRainbowSection: {
             title: (section: string) => `レインボーカラー: ${section}`

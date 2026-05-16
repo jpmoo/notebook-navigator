@@ -29,6 +29,7 @@ export const STRINGS_IT = {
         remove: 'Rimuovi', // Button text for remove operations in dialogs (English: Remove)
         restoreDefault: 'Ripristina predefinito', // Button text for restoring values to defaults (English: Restore default)
         submit: 'Invia', // Button text for submitting forms and dialogs (English: Submit)
+        save: 'Salva', // Button text for saving settings and dialogs (English: Save)
         configure: 'Configura', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'Modalità chiara', // Label for light theme mode (English: Light mode)
         darkMode: 'Modalità scura', // Label for dark theme mode (English: Dark mode)
@@ -313,7 +314,12 @@ export const STRINGS_IT = {
             moveMultipleFilesToFolder: 'Sposta {count} file in...',
             setManualSortGroupHeader: 'Imposta intestazione gruppo',
             changeManualSortGroupHeader: 'Cambia intestazione gruppo',
-            removeManualSortGroupHeader: 'Rimuovi intestazione gruppo',
+            manualSortGroupHeader: {
+                title: 'Intestazione gruppo',
+                copyStyle: 'Copia stile intestazione',
+                pasteStyle: 'Incolla stile intestazione',
+                remove: 'Rimuovi intestazione gruppo'
+            },
             addTag: 'Aggiungi tag',
             addPropertyKey: 'Imposta proprietà',
             removeTag: 'Rimuovi tag',
@@ -419,13 +425,14 @@ export const STRINGS_IT = {
         },
         manualSortGroupHeader: {
             title: 'Imposta intestazione gruppo',
-            headerLabel: 'Intestazione gruppo',
+            titleLabel: 'Titolo',
             placeholder: 'Intestazione gruppo',
-            showWordCount: 'Mostra il conteggio totale delle parole',
-            targetWordCount: 'Conteggio parole obiettivo',
-            targetWordCountPlaceholder: '10,000',
-            description:
-                "L'intestazione è salvata nella proprietà {property} sulla nota selezionata. Lascia il campo vuoto per rimuovere l'intestazione."
+            icon: 'Icona',
+            color: 'Colore',
+            wordCount: 'Mostra il conteggio parole',
+            wordCountTarget: 'Conteggio parole obiettivo',
+            wordCountTargetPlaceholder: '10,000',
+            description: "Personalizza l'intestazione di gruppo per questa nota. Lascia il titolo vuoto per rimuovere l'intestazione."
         },
         navRainbowSection: {
             title: (section: string) => `Colori arcobaleno: ${section}`

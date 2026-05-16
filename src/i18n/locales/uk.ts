@@ -29,6 +29,7 @@ export const STRINGS_UK = {
         remove: 'Вилучити', // Button text for remove operations in dialogs (English: Remove)
         restoreDefault: 'Відновити за замовчуванням', // Button text for restoring values to defaults (English: Restore default)
         submit: 'Надіслати', // Button text for submitting forms and dialogs (English: Submit)
+        save: 'Зберегти', // Button text for saving settings and dialogs (English: Save)
         configure: 'Налаштувати', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'Світлий режим', // Label for light theme mode (English: Light mode)
         darkMode: 'Темний режим', // Label for dark theme mode (English: Dark mode)
@@ -315,7 +316,12 @@ export const STRINGS_UK = {
             moveMultipleFilesToFolder: 'Перемістити {count} файлів до...',
             setManualSortGroupHeader: 'Встановити заголовок групи',
             changeManualSortGroupHeader: 'Змінити заголовок групи',
-            removeManualSortGroupHeader: 'Вилучити заголовок групи',
+            manualSortGroupHeader: {
+                title: 'Заголовок групи',
+                copyStyle: 'Копіювати стиль заголовка',
+                pasteStyle: 'Вставити стиль заголовка',
+                remove: 'Вилучити заголовок групи'
+            },
             addTag: 'Додати тег',
             addPropertyKey: 'Встановити властивість',
             removeTag: 'Вилучити тег',
@@ -421,12 +427,14 @@ export const STRINGS_UK = {
         },
         manualSortGroupHeader: {
             title: 'Встановити заголовок групи',
-            headerLabel: 'Заголовок групи',
+            titleLabel: 'Заголовок',
             placeholder: 'Заголовок групи',
-            showWordCount: 'Показувати загальну кількість слів',
-            targetWordCount: 'Цільова кількість слів',
-            targetWordCountPlaceholder: '10,000',
-            description: 'Заголовок зберігається у властивості {property} вибраної нотатки. Залиште поле порожнім, щоб очистити заголовок.'
+            icon: 'Значок',
+            color: 'Колір',
+            wordCount: 'Показувати кількість слів',
+            wordCountTarget: 'Цільова кількість слів',
+            wordCountTargetPlaceholder: '10,000',
+            description: 'Налаштуйте заголовок групи для цієї нотатки. Залиште заголовок порожнім, щоб видалити його.'
         },
         navRainbowSection: {
             title: (section: string) => `Кольори веселки: ${section}`

@@ -29,6 +29,7 @@ export const STRINGS_KO = {
         remove: '제거', // Button text for remove operations in dialogs (English: Remove)
         restoreDefault: '기본값 복원', // Button text for restoring values to defaults (English: Restore default)
         submit: '제출', // Button text for submitting forms and dialogs (English: Submit)
+        save: '저장', // Button text for saving settings and dialogs (English: Save)
         configure: '구성', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: '라이트 모드', // Label for light theme mode (English: Light mode)
         darkMode: '다크 모드', // Label for dark theme mode (English: Dark mode)
@@ -312,7 +313,12 @@ export const STRINGS_KO = {
             moveMultipleFilesToFolder: '{count}개의 파일 이동...',
             setManualSortGroupHeader: '그룹 머리글 설정',
             changeManualSortGroupHeader: '그룹 머리글 변경',
-            removeManualSortGroupHeader: '그룹 머리글 제거',
+            manualSortGroupHeader: {
+                title: '그룹 머리글',
+                copyStyle: '머리글 스타일 복사',
+                pasteStyle: '머리글 스타일 붙여넣기',
+                remove: '그룹 머리글 제거'
+            },
             addTag: '태그 추가',
             addPropertyKey: '속성 설정',
             removeTag: '태그 제거',
@@ -418,12 +424,14 @@ export const STRINGS_KO = {
         },
         manualSortGroupHeader: {
             title: '그룹 머리글 설정',
-            headerLabel: '그룹 머리글',
+            titleLabel: '제목',
             placeholder: '그룹 머리글',
-            showWordCount: '전체 단어 수 표시',
-            targetWordCount: '목표 단어 수',
-            targetWordCountPlaceholder: '10,000',
-            description: '머리글은 선택된 노트의 속성 {property}에 저장됩니다. 머리글을 지우려면 필드를 비워 두세요.'
+            icon: '아이콘',
+            color: '색상',
+            wordCount: '단어 수 표시',
+            wordCountTarget: '목표 단어 수',
+            wordCountTargetPlaceholder: '10,000',
+            description: '이 노트의 그룹 머리글을 사용자 지정합니다. 머리글을 제거하려면 제목을 비워 두세요.'
         },
         navRainbowSection: {
             title: (section: string) => `무지개 색상: ${section}`

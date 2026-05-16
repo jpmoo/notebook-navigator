@@ -29,6 +29,7 @@ export const STRINGS_VI = {
         remove: 'Gỡ bỏ', // Button text for remove operations in dialogs (English: Remove)
         restoreDefault: 'Khôi phục mặc định', // Button text for restoring values to defaults (English: Restore default)
         submit: 'Gửi', // Button text for submitting forms and dialogs (English: Submit)
+        save: 'Lưu', // Button text for saving settings and dialogs (English: Save)
         configure: 'Cấu hình', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'Chế độ sáng', // Label for light theme mode (English: Light mode)
         darkMode: 'Chế độ tối', // Label for dark theme mode (English: Dark mode)
@@ -313,7 +314,12 @@ export const STRINGS_VI = {
             moveMultipleFilesToFolder: 'Di chuyển {count} tệp...',
             setManualSortGroupHeader: 'Đặt header nhóm',
             changeManualSortGroupHeader: 'Đổi header nhóm',
-            removeManualSortGroupHeader: 'Gỡ header nhóm',
+            manualSortGroupHeader: {
+                title: 'Header nhóm',
+                copyStyle: 'Sao chép kiểu header',
+                pasteStyle: 'Dán kiểu header',
+                remove: 'Xóa header nhóm'
+            },
             addTag: 'Thêm thẻ',
             addPropertyKey: 'Đặt thuộc tính',
             removeTag: 'Gỡ thẻ',
@@ -419,12 +425,14 @@ export const STRINGS_VI = {
         },
         manualSortGroupHeader: {
             title: 'Đặt header nhóm',
-            headerLabel: 'Header nhóm',
+            titleLabel: 'Tiêu đề',
             placeholder: 'Header nhóm',
-            showWordCount: 'Hiển thị tổng số từ',
-            targetWordCount: 'Số từ mục tiêu',
-            targetWordCountPlaceholder: '10,000',
-            description: 'Header được lưu vào thuộc tính {property} trên ghi chú đã chọn. Để trống trường này để xóa header.'
+            icon: 'Biểu tượng',
+            color: 'Màu sắc',
+            wordCount: 'Hiển thị số từ',
+            wordCountTarget: 'Số từ mục tiêu',
+            wordCountTargetPlaceholder: '10,000',
+            description: 'Tùy chỉnh header nhóm cho ghi chú này. Để trống tiêu đề để xóa header.'
         },
         navRainbowSection: {
             title: (section: string) => `Màu cầu vồng: ${section}`

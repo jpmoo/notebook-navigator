@@ -21,6 +21,7 @@ import { strings } from '../i18n';
 import type { NotebookNavigatorSettings } from '../settings';
 import type { ManualSortNewNotePlacement } from '../settings/types';
 import { getErrorMessage } from './errorUtils';
+import { deserializeIconFromFrontmatterCompat, normalizeCanonicalIconId, serializeIconForFrontmatter } from './iconizeFormat';
 import { casefold, findMatchingRecordKey } from './recordUtils';
 import { isRecord } from './typeGuards';
 
@@ -52,12 +53,16 @@ export interface ManualSortGroupHeaderData {
     title: string;
     showWordCount: boolean;
     targetWordCount: number | null;
+    iconId: string | null;
+    color: string | null;
 }
 
 export interface ManualSortGroupHeaderWriteValue {
     title: string;
     showWordCount?: boolean;
     targetWordCount?: number | string | null;
+    iconId?: string | null;
+    color?: string | null;
 }
 
 interface ManualSortWriteFailureMessageOptions {
@@ -410,12 +415,14 @@ function parseManualSortGroupHeaderValue(value: unknown): ManualSortGroupHeaderD
         return {
             title,
             showWordCount: value.showWordCount === true,
-            targetWordCount: parseManualSortGroupHeaderTargetWordCount(value.targetWordCount)
+            targetWordCount: parseManualSortGroupHeaderTargetWordCount(value.targetWordCount),
+            iconId: parseManualSortGroupHeaderIcon(value.icon),
+            color: parseManualSortGroupHeaderColor(value.color)
         };
     }
 
     const trimmed = value.trim();
-    return trimmed.length > 0 ? { title: trimmed, showWordCount: false, targetWordCount: null } : null;
+    return trimmed.length > 0 ? { title: trimmed, showWordCount: false, targetWordCount: null, iconId: null, color: null } : null;
 }
 
 export function getCachedManualSortGroupHeader(app: App, file: TFile, propertyKey: string): ManualSortGroupHeaderData | null {
@@ -456,6 +463,29 @@ export function formatManualSortGroupHeaderLabel(header: ManualSortGroupHeaderDa
     }
 
     return `${header.title} (${formattedWordCount})`;
+}
+
+function parseManualSortGroupHeaderIcon(value: unknown): string | null {
+    if (typeof value !== 'string') {
+        return null;
+    }
+
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return null;
+    }
+
+    const normalized = deserializeIconFromFrontmatterCompat(trimmed) ?? normalizeCanonicalIconId(trimmed);
+    return normalized.length > 0 ? normalized : null;
+}
+
+function parseManualSortGroupHeaderColor(value: unknown): string | null {
+    if (typeof value !== 'string') {
+        return null;
+    }
+
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
 }
 
 function hasCachedManualSortValue(app: App, file: TFile, propertyKey: string, order: number): boolean {
@@ -951,7 +981,7 @@ export async function removeManualSortProperty(app: App, files: readonly TFile[]
 function normalizeManualSortGroupHeaderWriteValue(value: string | ManualSortGroupHeaderWriteValue): ManualSortGroupHeaderData | null {
     if (typeof value === 'string') {
         const title = value.trim();
-        return title ? { title, showWordCount: false, targetWordCount: null } : null;
+        return title ? { title, showWordCount: false, targetWordCount: null, iconId: null, color: null } : null;
     }
 
     const title = value.title.trim();
@@ -962,12 +992,15 @@ function normalizeManualSortGroupHeaderWriteValue(value: string | ManualSortGrou
     return {
         title,
         showWordCount: value.showWordCount === true,
-        targetWordCount: parseManualSortGroupHeaderTargetWordCount(value.targetWordCount)
+        targetWordCount: parseManualSortGroupHeaderTargetWordCount(value.targetWordCount),
+        iconId: parseManualSortGroupHeaderIcon(value.iconId),
+        color: parseManualSortGroupHeaderColor(value.color)
     };
 }
 
 function serializeManualSortGroupHeaderValue(header: ManualSortGroupHeaderData): string | Record<string, unknown> {
-    if (!header.showWordCount && header.targetWordCount === null) {
+    const serializedIcon = header.iconId ? serializeIconForFrontmatter(header.iconId) : null;
+    if (!header.showWordCount && header.targetWordCount === null && !serializedIcon && header.color === null) {
         return header.title;
     }
 
@@ -977,6 +1010,12 @@ function serializeManualSortGroupHeaderValue(header: ManualSortGroupHeaderData):
     };
     if (header.targetWordCount !== null) {
         serialized.targetWordCount = header.targetWordCount;
+    }
+    if (serializedIcon) {
+        serialized.icon = serializedIcon;
+    }
+    if (header.color !== null) {
+        serialized.color = header.color;
     }
     return serialized;
 }

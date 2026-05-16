@@ -85,8 +85,11 @@ body {
 
     /* List group header heights and spacing */
     --nn-list-group-header-height: 27px; /* Header row and sticky header */
+    --nn-list-group-progress-gap-after: 5px; /* Space below manual sort progress bars */
+    --nn-list-group-goal-header-height: calc(var(--nn-list-group-header-height) + var(--nn-list-group-progress-gap-after));
     --nn-list-group-header-spacer-before: 20px; /* Spacer before subsequent headers */
     --nn-list-group-header-height-mobile: var(--nn-list-group-header-height);
+    --nn-list-group-goal-header-height-mobile: var(--nn-list-group-goal-header-height);
 
     /* Navigation item heights - fixed pixel values to prevent fractional rendering */
     --nn-nav-line-height: 18px; /* Fixed line height for folder/tag names */

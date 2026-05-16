@@ -29,6 +29,7 @@ export const STRINGS_TH = {
         remove: 'นำออก',
         restoreDefault: 'คืนค่าเริ่มต้น', // Button text for restoring values to defaults (English: Restore default)
         submit: 'ส่ง',
+        save: 'บันทึก', // Button text for saving settings and dialogs (English: Save)
         configure: 'กำหนดค่า', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'โหมดสว่าง', // Label for light theme mode (English: Light mode)
         darkMode: 'โหมดมืด', // Label for dark theme mode (English: Dark mode)
@@ -313,7 +314,12 @@ export const STRINGS_TH = {
             moveMultipleFilesToFolder: 'ย้าย {count} ไฟล์ไปยัง...',
             setManualSortGroupHeader: 'ตั้งค่าส่วนหัวกลุ่ม',
             changeManualSortGroupHeader: 'เปลี่ยนส่วนหัวกลุ่ม',
-            removeManualSortGroupHeader: 'นำส่วนหัวกลุ่มออก',
+            manualSortGroupHeader: {
+                title: 'ส่วนหัวกลุ่ม',
+                copyStyle: 'คัดลอกสไตล์ส่วนหัว',
+                pasteStyle: 'วางสไตล์ส่วนหัว',
+                remove: 'นำส่วนหัวกลุ่มออก'
+            },
             addTag: 'เพิ่มแท็ก',
             addPropertyKey: 'ตั้งค่าคุณสมบัติ',
             removeTag: 'นำแท็กออก',
@@ -418,12 +424,14 @@ export const STRINGS_TH = {
         },
         manualSortGroupHeader: {
             title: 'ตั้งค่าส่วนหัวกลุ่ม',
-            headerLabel: 'ส่วนหัวกลุ่ม',
+            titleLabel: 'ชื่อเรื่อง',
             placeholder: 'ส่วนหัวกลุ่ม',
-            showWordCount: 'แสดงจำนวนคำทั้งหมด',
-            targetWordCount: 'จำนวนคำเป้าหมาย',
-            targetWordCountPlaceholder: '10,000',
-            description: 'ส่วนหัวจะถูกบันทึกลงในคุณสมบัติ {property} ของโน้ตที่เลือก เว้นช่องว่างเพื่อล้างส่วนหัว'
+            icon: 'ไอคอน',
+            color: 'สี',
+            wordCount: 'แสดงจำนวนคำ',
+            wordCountTarget: 'จำนวนคำเป้าหมาย',
+            wordCountTargetPlaceholder: '10,000',
+            description: 'ปรับแต่งส่วนหัวกลุ่มสำหรับโน้ตนี้ เว้นชื่อเรื่องว่างเพื่อนำส่วนหัวออก'
         },
         navRainbowSection: {
             title: (section: string) => `สีรุ้ง: ${section}`

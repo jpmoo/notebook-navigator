@@ -29,6 +29,7 @@ export const STRINGS_FA = {
         remove: 'حذف',
         restoreDefault: 'بازگردانی پیش‌فرض', // Button text for restoring values to defaults (English: Restore default)
         submit: 'ارسال',
+        save: 'ذخیره', // Button text for saving settings and dialogs (English: Save)
         configure: 'پیکربندی', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'حالت روشن', // Label for light theme mode (English: Light mode)
         darkMode: 'حالت تاریک', // Label for dark theme mode (English: Dark mode)
@@ -313,7 +314,12 @@ export const STRINGS_FA = {
             moveMultipleFilesToFolder: 'انتقال {count} فایل به...',
             setManualSortGroupHeader: 'تنظیم هدر گروه',
             changeManualSortGroupHeader: 'تغییر هدر گروه',
-            removeManualSortGroupHeader: 'حذف هدر گروه',
+            manualSortGroupHeader: {
+                title: 'هدر گروه',
+                copyStyle: 'کپی سبک هدر',
+                pasteStyle: 'چسباندن سبک هدر',
+                remove: 'حذف هدر گروه'
+            },
             addTag: 'افزودن برچسب',
             addPropertyKey: 'تنظیم ویژگی',
             removeTag: 'حذف برچسب',
@@ -419,12 +425,14 @@ export const STRINGS_FA = {
         },
         manualSortGroupHeader: {
             title: 'تنظیم هدر گروه',
-            headerLabel: 'هدر گروه',
+            titleLabel: 'عنوان',
             placeholder: 'هدر گروه',
-            showWordCount: 'نمایش تعداد کل کلمات',
-            targetWordCount: 'تعداد کلمات هدف',
-            targetWordCountPlaceholder: '10,000',
-            description: 'هدر در ویژگی {property} در یادداشت انتخاب‌شده ذخیره می‌شود. برای پاک کردن هدر، فیلد را خالی بگذارید.'
+            icon: 'نماد',
+            color: 'رنگ',
+            wordCount: 'نمایش تعداد کلمات',
+            wordCountTarget: 'تعداد کلمات هدف',
+            wordCountTargetPlaceholder: '10,000',
+            description: 'هدر گروه را برای این یادداشت سفارشی کنید. عنوان را خالی بگذارید تا هدر حذف شود.'
         },
         navRainbowSection: {
             title: (section: string) => `رنگ‌های رنگین‌کمان: ${section}`

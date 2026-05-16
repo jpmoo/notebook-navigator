@@ -29,6 +29,7 @@ export const STRINGS_TR = {
         remove: 'Kaldır', // Button text for remove operations in dialogs (English: Remove)
         restoreDefault: 'Varsayılana geri yükle', // Button text for restoring values to defaults (English: Restore default)
         submit: 'Gönder', // Button text for submitting forms and dialogs (English: Submit)
+        save: 'Kaydet', // Button text for saving settings and dialogs (English: Save)
         configure: 'Yapılandır', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'Açık mod', // Label for light theme mode (English: Light mode)
         darkMode: 'Koyu mod', // Label for dark theme mode (English: Dark mode)
@@ -314,7 +315,12 @@ export const STRINGS_TR = {
             moveMultipleFilesToFolder: '{count} dosyayı taşı...',
             setManualSortGroupHeader: 'Grup başlığını ayarla',
             changeManualSortGroupHeader: 'Grup başlığını değiştir',
-            removeManualSortGroupHeader: 'Grup başlığını kaldır',
+            manualSortGroupHeader: {
+                title: 'Grup başlığı',
+                copyStyle: 'Başlık stilini kopyala',
+                pasteStyle: 'Başlık stilini yapıştır',
+                remove: 'Grup başlığını kaldır'
+            },
             addTag: 'Etiket ekle',
             addPropertyKey: 'Özellik ayarla',
             removeTag: 'Etiketi kaldır',
@@ -420,12 +426,14 @@ export const STRINGS_TR = {
         },
         manualSortGroupHeader: {
             title: 'Grup başlığını ayarla',
-            headerLabel: 'Grup başlığı',
+            titleLabel: 'Başlık',
             placeholder: 'Grup başlığı',
-            showWordCount: 'Toplam kelime sayısını göster',
-            targetWordCount: 'Hedef kelime sayısı',
-            targetWordCountPlaceholder: '10,000',
-            description: 'Başlık, seçili nottaki {property} özelliğine kaydedilir. Başlığı temizlemek için alanı boş bırakın.'
+            icon: 'Simge',
+            color: 'Renk',
+            wordCount: 'Kelime sayısını göster',
+            wordCountTarget: 'Hedef kelime sayısı',
+            wordCountTargetPlaceholder: '10,000',
+            description: 'Bu not için grup başlığını özelleştirin. Başlığı kaldırmak için başlığı boş bırakın.'
         },
         navRainbowSection: {
             title: (section: string) => `Gökkuşağı renkleri: ${section}`

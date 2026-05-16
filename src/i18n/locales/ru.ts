@@ -29,6 +29,7 @@ export const STRINGS_RU = {
         remove: 'Убрать', // Button text for remove operations in dialogs (English: Remove)
         restoreDefault: 'Восстановить по умолчанию', // Button text for restoring values to defaults (English: Restore default)
         submit: 'Отправить', // Button text for submitting forms and dialogs (English: Submit)
+        save: 'Сохранить', // Button text for saving settings and dialogs (English: Save)
         configure: 'Настроить', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'Светлый режим', // Label for light theme mode (English: Light mode)
         darkMode: 'Тёмный режим', // Label for dark theme mode (English: Dark mode)
@@ -314,7 +315,12 @@ export const STRINGS_RU = {
             moveMultipleFilesToFolder: 'Переместить {count} файлов в...',
             setManualSortGroupHeader: 'Задать заголовок группы',
             changeManualSortGroupHeader: 'Изменить заголовок группы',
-            removeManualSortGroupHeader: 'Удалить заголовок группы',
+            manualSortGroupHeader: {
+                title: 'Заголовок группы',
+                copyStyle: 'Копировать стиль заголовка',
+                pasteStyle: 'Вставить стиль заголовка',
+                remove: 'Удалить заголовок группы'
+            },
             addTag: 'Добавить тег',
             addPropertyKey: 'Задать свойство',
             removeTag: 'Удалить тег',
@@ -420,12 +426,14 @@ export const STRINGS_RU = {
         },
         manualSortGroupHeader: {
             title: 'Задать заголовок группы',
-            headerLabel: 'Заголовок группы',
+            titleLabel: 'Заголовок',
             placeholder: 'Заголовок группы',
-            showWordCount: 'Показывать общее количество слов',
-            targetWordCount: 'Целевое количество слов',
-            targetWordCountPlaceholder: '10,000',
-            description: 'Заголовок сохраняется в свойстве {property} выбранной заметки. Оставьте поле пустым, чтобы удалить заголовок.'
+            icon: 'Значок',
+            color: 'Цвет',
+            wordCount: 'Показывать количество слов',
+            wordCountTarget: 'Целевое количество слов',
+            wordCountTargetPlaceholder: '10,000',
+            description: 'Настройте заголовок группы для этой заметки. Оставьте заголовок пустым, чтобы удалить его.'
         },
         navRainbowSection: {
             title: (section: string) => `Цвета радуги: ${section}`

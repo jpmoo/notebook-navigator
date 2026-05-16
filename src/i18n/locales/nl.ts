@@ -29,6 +29,7 @@ export const STRINGS_NL = {
         remove: 'Verwijderen',
         restoreDefault: 'Standaard herstellen', // Button text for restoring values to defaults (English: Restore default)
         submit: 'Verzenden',
+        save: 'Opslaan', // Button text for saving settings and dialogs (English: Save)
         configure: 'Configureren', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'Lichte modus', // Label for light theme mode (English: Light mode)
         darkMode: 'Donkere modus', // Label for dark theme mode (English: Dark mode)
@@ -316,7 +317,12 @@ export const STRINGS_NL = {
             moveMultipleFilesToFolder: '{count} bestanden verplaatsen naar...',
             setManualSortGroupHeader: 'Groepskop instellen',
             changeManualSortGroupHeader: 'Groepskop wijzigen',
-            removeManualSortGroupHeader: 'Groepskop verwijderen',
+            manualSortGroupHeader: {
+                title: 'Groepskop',
+                copyStyle: 'Kopstijl kopiëren',
+                pasteStyle: 'Kopstijl plakken',
+                remove: 'Groepskop verwijderen'
+            },
             addTag: 'Tag toevoegen',
             addPropertyKey: 'Eigenschap instellen',
             removeTag: 'Tag verwijderen',
@@ -422,13 +428,14 @@ export const STRINGS_NL = {
         },
         manualSortGroupHeader: {
             title: 'Groepskop instellen',
-            headerLabel: 'Groepskop',
+            titleLabel: 'Titel',
             placeholder: 'Groepskop',
-            showWordCount: 'Totaal aantal woorden tonen',
-            targetWordCount: 'Doel aantal woorden',
-            targetWordCountPlaceholder: '10,000',
-            description:
-                'De kop wordt opgeslagen in eigenschap {property} van de geselecteerde notitie. Laat het veld leeg om de kop te wissen.'
+            icon: 'Pictogram',
+            color: 'Kleur',
+            wordCount: 'Aantal woorden tonen',
+            wordCountTarget: 'Doel aantal woorden',
+            wordCountTargetPlaceholder: '10,000',
+            description: 'Pas de groepskop voor deze notitie aan. Laat de titel leeg om de kop te verwijderen.'
         },
         navRainbowSection: {
             title: (section: string) => `Regenboogkleuren: ${section}`

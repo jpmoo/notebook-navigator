@@ -40,7 +40,9 @@ import type { FileItemPillDecorationModel } from '../../utils/fileItemPillDecora
 import { resolveUXIcon } from '../../utils/uxIcons';
 import { hasSolidFileRowBackground } from '../../utils/colorUtils';
 import { getManualSortGroupHeaderPropertyKey } from '../../utils/manualSort';
+import type { ManualSortGroupHeaderData } from '../../utils/manualSort';
 import { addManualSortGroupHeaderMenuItems } from '../../utils/contextMenu/manualSortGroupHeaderMenuItems';
+import { ManualSortGroupHeaderContent, ManualSortGroupHeaderProgress } from './ManualSortGroupHeaderContent';
 
 export interface PointerClientPosition {
     clientX: number;
@@ -62,6 +64,9 @@ interface HeaderRenderModel {
     isCollapsible: boolean;
     folderGroupHeaderTarget: FolderGroupHeaderTarget | null;
     manualSortHeaderFilePath: string | null;
+    manualSortHeader: ManualSortGroupHeaderData | null;
+    manualSortHeaderShowsWordCount: boolean;
+    manualSortHeaderWordCount: number;
 }
 
 interface HeaderRenderModels {
@@ -191,6 +196,10 @@ function shouldHideCollapsedHeaderSeparator(header: HeaderRenderModel | null): b
     return header?.isCollapsed === true;
 }
 
+function shouldHideManualSortGoalHeaderSeparator(header: HeaderRenderModel | null): boolean {
+    return Boolean(header?.manualSortHeader && header.manualSortHeaderShowsWordCount && header.manualSortHeader.targetWordCount !== null);
+}
+
 function ListPaneGroupHeader({
     header,
     collapseChevronIcons,
@@ -201,7 +210,10 @@ function ListPaneGroupHeader({
     onManualSortGroupHeaderContextMenu
 }: ListPaneGroupHeaderProps) {
     const folderGroupHeaderTarget = header.folderGroupHeaderTarget;
+    const manualSortHeader = header.manualSortHeader;
     const isClickableFolderGroupHeader = Boolean(folderGroupHeaderTarget) && !header.isPinnedHeader;
+    const hasManualSortGoal =
+        manualSortHeader !== null && header.manualSortHeaderShowsWordCount && manualSortHeader.targetWordCount !== null;
     const handleCollapseButtonClick = useCallback(
         (event: React.MouseEvent<HTMLButtonElement>) => {
             event.stopPropagation();
@@ -220,20 +232,29 @@ function ListPaneGroupHeader({
     if (header.isPinnedHeader) {
         headerClasses.push('nn-pinned-section-header');
     }
+    if (manualSortHeader) {
+        headerClasses.push('nn-list-group-header--manual-sort');
+    }
     const manualSortHeaderFilePath = header.manualSortHeaderFilePath;
     const handleContextMenu = manualSortHeaderFilePath
         ? (event: React.MouseEvent<HTMLDivElement>) => onManualSortGroupHeaderContextMenu(event, manualSortHeaderFilePath)
         : undefined;
 
-    return (
-        <div className={headerClasses.join(' ')} onContextMenu={handleContextMenu}>
-            <span
-                className={`nn-list-group-header-text ${isClickableFolderGroupHeader ? 'nn-list-group-header-text--folder-note' : ''}`}
-                onClick={folderGroupHeaderTarget ? event => onFolderGroupHeaderClick(event, folderGroupHeaderTarget) : undefined}
-                onMouseDown={folderGroupHeaderTarget ? event => onFolderGroupHeaderMouseDown(event, folderGroupHeaderTarget) : undefined}
-            >
-                {header.label}
-            </span>
+    const headerRow = (
+        <div className={headerClasses.join(' ')} onContextMenu={hasManualSortGoal ? undefined : handleContextMenu}>
+            {manualSortHeader ? (
+                <ManualSortGroupHeaderContent header={manualSortHeader} wordCount={header.manualSortHeaderWordCount} />
+            ) : (
+                <span
+                    className={`nn-list-group-header-text ${isClickableFolderGroupHeader ? 'nn-list-group-header-text--folder-note' : ''}`}
+                    onClick={folderGroupHeaderTarget ? event => onFolderGroupHeaderClick(event, folderGroupHeaderTarget) : undefined}
+                    onMouseDown={
+                        folderGroupHeaderTarget ? event => onFolderGroupHeaderMouseDown(event, folderGroupHeaderTarget) : undefined
+                    }
+                >
+                    {header.label}
+                </span>
+            )}
             {header.isCollapsible ? (
                 <button
                     type="button"
@@ -251,6 +272,17 @@ function ListPaneGroupHeader({
             ) : null}
         </div>
     );
+
+    if (hasManualSortGoal) {
+        return (
+            <div className="nn-manual-sort-group-header-shell" onContextMenu={handleContextMenu}>
+                {headerRow}
+                <ManualSortGroupHeaderProgress header={manualSortHeader} wordCount={header.manualSortHeaderWordCount} />
+            </div>
+        );
+    }
+
+    return headerRow;
 }
 
 function getHoveredFilePathFromTarget(target: EventTarget | null): string | null {
@@ -401,6 +433,7 @@ export function ListPaneVirtualContent({
             const headerFolderPath = item.headerFolderPath ?? null;
             const isPinnedHeader = item.key === PINNED_SECTION_HEADER_KEY;
             const collapseKey = item.collapseKey ?? null;
+            const manualSortHeader = item.headerKind === 'manual-sort-custom' ? (item.manualSortHeader ?? null) : null;
             const model: HeaderRenderModel = {
                 index,
                 label: item.data,
@@ -410,7 +443,10 @@ export function ListPaneVirtualContent({
                 isCollapsed: isPinnedHeader ? !pinnedGroupExpanded : item.isCollapsed === true,
                 isCollapsible: isPinnedHeader || collapseKey !== null,
                 folderGroupHeaderTarget: headerFolderPath !== null ? (folderGroupHeaderTargets.get(headerFolderPath) ?? null) : null,
-                manualSortHeaderFilePath: item.headerKind === 'manual-sort-custom' ? (item.manualSortHeaderFilePath ?? null) : null
+                manualSortHeaderFilePath: item.headerKind === 'manual-sort-custom' ? (item.manualSortHeaderFilePath ?? null) : null,
+                manualSortHeader,
+                manualSortHeaderShowsWordCount: item.manualSortHeaderShowsWordCount === true,
+                manualSortHeaderWordCount: item.manualSortHeaderWordCount ?? 0
             };
             models.push(model);
             modelsByIndex.set(index, model);
@@ -496,10 +532,10 @@ export function ListPaneVirtualContent({
             event.stopPropagation();
 
             const menu = new Menu();
-            addManualSortGroupHeaderMenuItems({ menu, app, file, propertyKey: manualSortGroupHeaderPropertyKey });
+            addManualSortGroupHeaderMenuItems({ menu, app, file, propertyKey: manualSortGroupHeaderPropertyKey, metadataService });
             menu.showAtMouseEvent(event.nativeEvent);
         },
-        [app, manualSortGroupHeaderPropertyKey]
+        [app, manualSortGroupHeaderPropertyKey, metadataService]
     );
 
     const handleListMouseMove = useCallback(
@@ -644,7 +680,8 @@ export function ListPaneVirtualContent({
 
                             const headerModel = headerModelByIndex.get(virtualItem.index) ?? null;
                             const firstFileAfterHeader = headerModel ? getFirstFileAfterHeader(listItems, virtualItem.index) : null;
-                            const shouldHideHeaderSeparatorForCollapsedGroup = shouldHideCollapsedHeaderSeparator(headerModel);
+                            const shouldHideHeaderSeparatorForGroup =
+                                shouldHideCollapsedHeaderSeparator(headerModel) || shouldHideManualSortGoalHeaderSeparator(headerModel);
                             const hideFileSeparator =
                                 item.type === ListPaneItemType.FILE &&
                                 ((isSelected && !hasSelectedBelow) ||
@@ -666,7 +703,7 @@ export function ListPaneVirtualContent({
                             if (headerModel) {
                                 virtualItemClasses.push('nn-virtual-list-group-header');
                             }
-                            if (shouldHideHeaderSeparatorForCollapsedGroup) {
+                            if (shouldHideHeaderSeparatorForGroup) {
                                 virtualItemClasses.push('nn-hide-list-group-header-separator');
                             }
                             if (isLastFile) {

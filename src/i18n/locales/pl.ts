@@ -29,6 +29,7 @@ export const STRINGS_PL = {
         remove: 'Usuń', // Button text for remove operations in dialogs (English: Remove)
         restoreDefault: 'Przywróć domyślne', // Button text for restoring values to defaults (English: Restore default)
         submit: 'Wyślij', // Button text for submitting forms and dialogs (English: Submit)
+        save: 'Zapisz', // Button text for saving settings and dialogs (English: Save)
         configure: 'Konfiguruj', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'Tryb jasny', // Label for light theme mode (English: Light mode)
         darkMode: 'Tryb ciemny', // Label for dark theme mode (English: Dark mode)
@@ -314,7 +315,12 @@ export const STRINGS_PL = {
             moveMultipleFilesToFolder: 'Przenieś pliki ({count}) do...',
             setManualSortGroupHeader: 'Ustaw nagłówek grupy',
             changeManualSortGroupHeader: 'Zmień nagłówek grupy',
-            removeManualSortGroupHeader: 'Usuń nagłówek grupy',
+            manualSortGroupHeader: {
+                title: 'Nagłówek grupy',
+                copyStyle: 'Kopiuj styl nagłówka',
+                pasteStyle: 'Wklej styl nagłówka',
+                remove: 'Usuń nagłówek grupy'
+            },
             addTag: 'Dodaj tag',
             addPropertyKey: 'Ustaw właściwość',
             removeTag: 'Usuń tag',
@@ -422,13 +428,14 @@ export const STRINGS_PL = {
         },
         manualSortGroupHeader: {
             title: 'Ustaw nagłówek grupy',
-            headerLabel: 'Nagłówek grupy',
+            titleLabel: 'Tytuł',
             placeholder: 'Nagłówek grupy',
-            showWordCount: 'Pokaż łączną liczbę słów',
-            targetWordCount: 'Docelowa liczba słów',
-            targetWordCountPlaceholder: '10,000',
-            description:
-                'Nagłówek jest zapisywany we właściwości {property} w wybranej notatce. Pozostaw pole puste, aby wyczyścić nagłówek.'
+            icon: 'Ikona',
+            color: 'Kolor',
+            wordCount: 'Pokaż liczbę słów',
+            wordCountTarget: 'Docelowa liczba słów',
+            wordCountTargetPlaceholder: '10,000',
+            description: 'Dostosuj nagłówek grupy dla tej notatki. Pozostaw tytuł pusty, aby usunąć nagłówek.'
         },
         navRainbowSection: {
             title: (section: string) => `Kolory tęczy: ${section}`

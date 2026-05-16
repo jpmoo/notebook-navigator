@@ -63,6 +63,7 @@ import {
     getSelectedPropertyValuePillToHide,
     getSelectedTagPillToHide,
     hasVisibleTagPills,
+    getListPaneHeaderHeight,
     getListPaneMeasurements,
     getPropertyRowCount,
     isListPaneCompactMode,
@@ -321,19 +322,24 @@ export function isListRowHeightAffectingContentChange(change: FileContentChange)
     );
 }
 
-function isFileRowCoveredByStickyHeader(listItems: ListPaneItem[], index: number): boolean {
+function getStickyHeaderHeightBeforeIndex(
+    listItems: ListPaneItem[],
+    index: number,
+    measurements: ReturnType<typeof getListPaneMeasurements>
+): number {
     const item = listItems[index];
     if (item?.type !== ListPaneItemType.FILE || !(item.data instanceof TFile)) {
-        return false;
+        return 0;
     }
 
     for (let listIndex = index - 1; listIndex >= 0; listIndex -= 1) {
-        if (listItems[listIndex]?.type === ListPaneItemType.HEADER) {
-            return true;
+        const candidate = listItems[listIndex];
+        if (candidate?.type === ListPaneItemType.HEADER) {
+            return getListPaneHeaderHeight(candidate, measurements);
         }
     }
 
-    return false;
+    return 0;
 }
 
 /**
@@ -480,7 +486,7 @@ export function useListPaneScroll({
             const heights = listMeasurements;
 
             if (item.type === ListPaneItemType.HEADER) {
-                return heights.groupHeaderHeight;
+                return getListPaneHeaderHeight(item, heights);
             }
             if (item.type === ListPaneItemType.HEADER_SPACER) {
                 return heights.groupHeaderSpacerBefore;
@@ -771,8 +777,7 @@ export function useListPaneScroll({
 
             const containerRect = scrollElement.getBoundingClientRect();
             const rowRect = row.getBoundingClientRect();
-            const topInset =
-                settings.stickyGroupHeaders && isFileRowCoveredByStickyHeader(listItems, index) ? listMeasurements.groupHeaderHeight : 0;
+            const topInset = settings.stickyGroupHeaders ? getStickyHeaderHeightBeforeIndex(listItems, index, listMeasurements) : 0;
             const safeTop = containerRect.top + topInset;
             const safeBottom = containerRect.bottom - effectiveScrollPaddingEnd;
 
@@ -785,7 +790,7 @@ export function useListPaneScroll({
                 scrollElement.scrollTop += Math.round(rowRect.bottom - safeBottom);
             }
         },
-        [effectiveScrollPaddingEnd, listItems, listMeasurements.groupHeaderHeight, settings.stickyGroupHeaders]
+        [effectiveScrollPaddingEnd, listItems, listMeasurements, settings.stickyGroupHeaders]
     );
 
     const scrollToIndexSafely = useCallback(

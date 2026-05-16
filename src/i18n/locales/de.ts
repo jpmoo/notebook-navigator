@@ -29,6 +29,7 @@ export const STRINGS_DE = {
         remove: 'Entfernen', // Button text for remove operations in dialogs (English: Remove)
         restoreDefault: 'Standard wiederherstellen', // Button text for restoring values to defaults (English: Restore default)
         submit: 'OK', // Button text for submitting forms and dialogs (English: Submit)
+        save: 'Speichern', // Button text for saving settings and dialogs (English: Save)
         configure: 'Konfigurieren', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'Heller Modus', // Label for light theme mode (English: Light mode)
         darkMode: 'Dunkler Modus', // Label for dark theme mode (English: Dark mode)
@@ -299,7 +300,12 @@ export const STRINGS_DE = {
             moveMultipleFilesToFolder: '{count} Dateien verschieben nach...',
             setManualSortGroupHeader: 'Gruppenüberschrift festlegen',
             changeManualSortGroupHeader: 'Gruppenüberschrift ändern',
-            removeManualSortGroupHeader: 'Gruppenüberschrift entfernen',
+            manualSortGroupHeader: {
+                title: 'Gruppenüberschrift',
+                copyStyle: 'Kopfzeilenstil kopieren',
+                pasteStyle: 'Kopfzeilenstil einfügen',
+                remove: 'Gruppenüberschrift entfernen'
+            },
             addTag: 'Tag hinzufügen',
             addPropertyKey: 'Eigenschaft setzen',
             removeTag: 'Tag entfernen',
@@ -420,13 +426,14 @@ export const STRINGS_DE = {
         },
         manualSortGroupHeader: {
             title: 'Gruppenüberschrift festlegen',
-            headerLabel: 'Gruppenüberschrift',
+            titleLabel: 'Titel',
             placeholder: 'Gruppenüberschrift',
-            showWordCount: 'Gesamte Wortzahl anzeigen',
-            targetWordCount: 'Zielwortzahl',
-            targetWordCountPlaceholder: '10,000',
-            description:
-                'Die Überschrift wird in der Eigenschaft {property} der ausgewählten Notiz gespeichert. Lassen Sie das Feld leer, um die Überschrift zu entfernen.'
+            icon: 'Symbol',
+            color: 'Farbe',
+            wordCount: 'Wortzahl anzeigen',
+            wordCountTarget: 'Zielwortzahl',
+            wordCountTargetPlaceholder: '10,000',
+            description: 'Passen Sie die Gruppenüberschrift für diese Notiz an. Lassen Sie den Titel leer, um die Überschrift zu entfernen.'
         },
         navRainbowSection: {
             title: (section: string) => `Regenbogenfarben: ${section}`

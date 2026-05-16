@@ -29,6 +29,7 @@ export const STRINGS_FR = {
         remove: 'Supprimer', // Button text for remove operations in dialogs (English: Remove)
         restoreDefault: 'Restaurer la valeur par défaut', // Button text for restoring values to defaults (English: Restore default)
         submit: 'Soumettre', // Button text for submitting forms and dialogs (English: Submit)
+        save: 'Enregistrer', // Button text for saving settings and dialogs (English: Save)
         configure: 'Configurer', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'Mode clair', // Label for light theme mode (English: Light mode)
         darkMode: 'Mode sombre', // Label for dark theme mode (English: Dark mode)
@@ -300,7 +301,12 @@ export const STRINGS_FR = {
             moveMultipleFilesToFolder: 'Déplacer {count} fichiers vers...',
             setManualSortGroupHeader: "Définir l'en-tête de groupe",
             changeManualSortGroupHeader: "Modifier l'en-tête de groupe",
-            removeManualSortGroupHeader: "Supprimer l'en-tête de groupe",
+            manualSortGroupHeader: {
+                title: 'En-tête de groupe',
+                copyStyle: "Copier le style d'en-tête",
+                pasteStyle: "Coller le style d'en-tête",
+                remove: "Supprimer l'en-tête de groupe"
+            },
             addTag: 'Ajouter une étiquette',
             addPropertyKey: 'Définir la propriété',
             removeTag: 'Supprimer l’étiquette',
@@ -421,13 +427,14 @@ export const STRINGS_FR = {
         },
         manualSortGroupHeader: {
             title: "Définir l'en-tête de groupe",
-            headerLabel: 'En-tête de groupe',
+            titleLabel: 'Titre',
             placeholder: 'En-tête de groupe',
-            showWordCount: 'Afficher le nombre total de mots',
-            targetWordCount: 'Nombre de mots cible',
-            targetWordCountPlaceholder: '10,000',
-            description:
-                "L'en-tête est enregistré dans la propriété {property} de la note sélectionnée. Laissez le champ vide pour effacer l'en-tête."
+            icon: 'Icône',
+            color: 'Couleur',
+            wordCount: 'Afficher le nombre de mots',
+            wordCountTarget: 'Nombre de mots cible',
+            wordCountTargetPlaceholder: '10,000',
+            description: "Personnalisez l'en-tête de groupe pour cette note. Laissez le titre vide pour supprimer l'en-tête."
         },
         navRainbowSection: {
             title: (section: string) => `Couleurs arc-en-ciel: ${section}`

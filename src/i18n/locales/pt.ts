@@ -29,6 +29,7 @@ export const STRINGS_PT = {
         remove: 'Remover', // Button text for remove operations in dialogs (English: Remove)
         restoreDefault: 'Restaurar padrão', // Button text for restoring values to defaults (English: Restore default)
         submit: 'Submeter', // Button text for submitting forms and dialogs (English: Submit)
+        save: 'Guardar', // Button text for saving settings and dialogs (English: Save)
         configure: 'Configurar', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'Modo claro', // Label for light theme mode (English: Light mode)
         darkMode: 'Modo escuro', // Label for dark theme mode (English: Dark mode)
@@ -314,7 +315,12 @@ export const STRINGS_PT = {
             moveMultipleFilesToFolder: 'Mover {count} ficheiros para...',
             setManualSortGroupHeader: 'Definir cabeçalho de grupo',
             changeManualSortGroupHeader: 'Alterar cabeçalho de grupo',
-            removeManualSortGroupHeader: 'Remover cabeçalho de grupo',
+            manualSortGroupHeader: {
+                title: 'Cabeçalho de grupo',
+                copyStyle: 'Copiar estilo de cabeçalho',
+                pasteStyle: 'Colar estilo de cabeçalho',
+                remove: 'Remover cabeçalho de grupo'
+            },
             addTag: 'Adicionar etiqueta',
             addPropertyKey: 'Definir propriedade',
             removeTag: 'Remover etiqueta',
@@ -420,13 +426,14 @@ export const STRINGS_PT = {
         },
         manualSortGroupHeader: {
             title: 'Definir cabeçalho de grupo',
-            headerLabel: 'Cabeçalho de grupo',
+            titleLabel: 'Título',
             placeholder: 'Cabeçalho de grupo',
-            showWordCount: 'Mostrar contagem total de palavras',
-            targetWordCount: 'Contagem de palavras objetivo',
-            targetWordCountPlaceholder: '10,000',
-            description:
-                'O cabeçalho é guardado na propriedade {property} da nota selecionada. Deixe o campo vazio para limpar o cabeçalho.'
+            icon: 'Ícone',
+            color: 'Cor',
+            wordCount: 'Mostrar contagem de palavras',
+            wordCountTarget: 'Contagem de palavras objetivo',
+            wordCountTargetPlaceholder: '10,000',
+            description: 'Personalize o cabeçalho de grupo para esta nota. Deixe o título vazio para remover o cabeçalho.'
         },
         navRainbowSection: {
             title: (section: string) => `Cores arco-íris: ${section}`

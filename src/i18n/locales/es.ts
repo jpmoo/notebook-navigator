@@ -29,6 +29,7 @@ export const STRINGS_ES = {
         remove: 'Eliminar', // Button text for remove operations in dialogs (English: Remove)
         restoreDefault: 'Restaurar predeterminado', // Button text for restoring values to defaults (English: Restore default)
         submit: 'Enviar', // Button text for submitting forms and dialogs (English: Submit)
+        save: 'Guardar', // Button text for saving settings and dialogs (English: Save)
         configure: 'Configurar', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'Modo claro', // Label for light theme mode (English: Light mode)
         darkMode: 'Modo oscuro', // Label for dark theme mode (English: Dark mode)
@@ -299,7 +300,12 @@ export const STRINGS_ES = {
             moveMultipleFilesToFolder: 'Mover {count} archivos a...',
             setManualSortGroupHeader: 'Establecer encabezado de grupo',
             changeManualSortGroupHeader: 'Cambiar encabezado de grupo',
-            removeManualSortGroupHeader: 'Eliminar encabezado de grupo',
+            manualSortGroupHeader: {
+                title: 'Encabezado de grupo',
+                copyStyle: 'Copiar estilo de encabezado',
+                pasteStyle: 'Pegar estilo de encabezado',
+                remove: 'Eliminar encabezado de grupo'
+            },
             addTag: 'Añadir etiqueta',
             addPropertyKey: 'Establecer propiedad',
             removeTag: 'Eliminar etiqueta',
@@ -420,13 +426,14 @@ export const STRINGS_ES = {
         },
         manualSortGroupHeader: {
             title: 'Establecer encabezado de grupo',
-            headerLabel: 'Encabezado de grupo',
+            titleLabel: 'Título',
             placeholder: 'Encabezado de grupo',
-            showWordCount: 'Mostrar el recuento total de palabras',
-            targetWordCount: 'Recuento de palabras objetivo',
-            targetWordCountPlaceholder: '10,000',
-            description:
-                'El encabezado se guarda en la propiedad {property} de la nota seleccionada. Deja el campo vacío para borrar el encabezado.'
+            icon: 'Icono',
+            color: 'Color',
+            wordCount: 'Mostrar el recuento de palabras',
+            wordCountTarget: 'Recuento de palabras objetivo',
+            wordCountTargetPlaceholder: '10,000',
+            description: 'Personaliza el encabezado de grupo para esta nota. Deja el título vacío para eliminar el encabezado.'
         },
         navRainbowSection: {
             title: (section: string) => `Colores arcoíris: ${section}`

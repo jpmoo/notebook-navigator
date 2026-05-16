@@ -29,6 +29,7 @@ export const STRINGS_AR = {
         remove: 'إزالة', // Button text for remove operations in dialogs (English: Remove)
         restoreDefault: 'استعادة الافتراضي', // Button text for restoring values to defaults (English: Restore default)
         submit: 'إرسال', // Button text for submitting forms and dialogs (English: Submit)
+        save: 'حفظ', // Button text for saving settings and dialogs (English: Save)
         configure: 'تكوين', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'الوضع الفاتح', // Label for light theme mode (English: Light mode)
         darkMode: 'الوضع الداكن', // Label for dark theme mode (English: Dark mode)
@@ -313,7 +314,12 @@ export const STRINGS_AR = {
             moveMultipleFilesToFolder: 'نقل {count} ملف إلى...',
             setManualSortGroupHeader: 'تعيين عنوان المجموعة',
             changeManualSortGroupHeader: 'تغيير عنوان المجموعة',
-            removeManualSortGroupHeader: 'إزالة عنوان المجموعة',
+            manualSortGroupHeader: {
+                title: 'عنوان المجموعة',
+                copyStyle: 'نسخ نمط العنوان',
+                pasteStyle: 'لصق نمط العنوان',
+                remove: 'إزالة عنوان المجموعة'
+            },
             addTag: 'إضافة وسم',
             addPropertyKey: 'تعيين خاصية',
             removeTag: 'إزالة وسم',
@@ -418,12 +424,14 @@ export const STRINGS_AR = {
         },
         manualSortGroupHeader: {
             title: 'تعيين عنوان المجموعة',
-            headerLabel: 'عنوان المجموعة',
+            titleLabel: 'العنوان',
             placeholder: 'عنوان المجموعة',
-            showWordCount: 'إظهار إجمالي عدد الكلمات',
-            targetWordCount: 'عدد الكلمات المستهدف',
-            targetWordCountPlaceholder: '10,000',
-            description: 'يتم حفظ العنوان إلى الخاصية {property} على الملاحظة المحددة. اترك الحقل فارغًا لمسح العنوان.'
+            icon: 'الأيقونة',
+            color: 'اللون',
+            wordCount: 'إظهار عدد الكلمات',
+            wordCountTarget: 'عدد الكلمات المستهدف',
+            wordCountTargetPlaceholder: '10,000',
+            description: 'خصص عنوان المجموعة لهذه الملاحظة. اترك العنوان فارغًا لإزالة العنوان.'
         },
         navRainbowSection: {
             title: (section: string) => `ألوان قوس قزح: ${section}`

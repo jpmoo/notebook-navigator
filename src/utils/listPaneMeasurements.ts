@@ -17,9 +17,10 @@
  */
 
 import type { TFile } from 'obsidian';
-import { ItemType, type NavigationItemType } from '../types';
+import { ItemType, ListPaneItemType, type NavigationItemType } from '../types';
 import type { FeatureImageStatus, FileData } from '../storage/IndexedDBStorage';
 import { type FeatureImageSizeSetting, type NotePropertyType } from '../settings/types';
+import type { ListPaneItem } from '../types/virtualization';
 import { isImageFile } from './fileTypeUtils';
 import {
     buildPropertyKeyNodeId,
@@ -45,6 +46,7 @@ export interface ListPaneMeasurements {
     tagRowHeight: number;
     featureImageMinHeight: number;
     groupHeaderHeight: number;
+    manualSortGoalHeaderHeight: number;
     groupHeaderSpacerBefore: number;
     fileIconSize: number;
     topSpacer: number;
@@ -69,6 +71,7 @@ const DESKTOP_MEASUREMENTS: ListPaneMeasurements = Object.freeze({
     tagRowHeight: 26, // 22px row + 4px gap
     featureImageMinHeight: 42,
     groupHeaderHeight: 27,
+    manualSortGoalHeaderHeight: 32,
     groupHeaderSpacerBefore: 20,
     fileIconSize: 16,
     topSpacer: 8,
@@ -83,6 +86,7 @@ const MOBILE_MEASUREMENTS: ListPaneMeasurements = Object.freeze({
     tagRowHeight: 26, // 22px row + 4px gap
     featureImageMinHeight: 42,
     groupHeaderHeight: 35, // 27px + 8px mobile increment
+    manualSortGoalHeaderHeight: 40, // 35px header row + 5px below progress
     groupHeaderSpacerBefore: 20,
     fileIconSize: 20, // 16px + 4px mobile increment
     topSpacer: 8,
@@ -98,6 +102,20 @@ export function getFeatureImageDisplayMeasurements(featureImageSize: FeatureImag
 
 export function getListPaneMeasurements(isMobile: boolean): ListPaneMeasurements {
     return isMobile ? MOBILE_MEASUREMENTS : DESKTOP_MEASUREMENTS;
+}
+
+export function getListPaneHeaderHeight(item: ListPaneItem | undefined, measurements: ListPaneMeasurements): number {
+    if (
+        item?.type === ListPaneItemType.HEADER &&
+        item.headerKind === 'manual-sort-custom' &&
+        item.manualSortHeaderShowsWordCount === true &&
+        item.manualSortHeader?.targetWordCount !== null &&
+        item.manualSortHeader?.targetWordCount !== undefined
+    ) {
+        return measurements.manualSortGoalHeaderHeight;
+    }
+
+    return measurements.groupHeaderHeight;
 }
 
 export function getSelectedTagPillToHide({

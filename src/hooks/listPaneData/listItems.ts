@@ -177,6 +177,7 @@ export function buildListItems({
             activeManualSortHeader.header,
             activeManualSortHeader.wordCount
         );
+        activeManualSortHeader.item.manualSortHeaderWordCount = activeManualSortHeader.wordCount;
     };
     type FileItemOverrides = Partial<Omit<ListPaneItem, 'type' | 'data' | 'fileIndex' | 'hasTags' | 'isHidden' | 'key' | 'searchMeta'>>;
     const pushFileItem = (file: TFile, overrides: FileItemOverrides = {}) => {
@@ -235,6 +236,8 @@ export function buildListItems({
             headerFolderPath,
             manualSortHeaderFilePath,
             manualSortHeaderShowsWordCount: manualSortHeader ? shouldShowManualSortGroupHeaderWordCount(manualSortHeader) : undefined,
+            manualSortHeader,
+            manualSortHeaderWordCount: manualSortHeader ? 0 : undefined,
             headerKind,
             collapseKey,
             isCollapsed,

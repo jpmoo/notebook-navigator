@@ -89,6 +89,7 @@ interface FileStyleRemovalAvailability {
 interface AddManualSortGroupHeaderActionParams {
     menu: Menu;
     app: App;
+    metadataService: MetadataService;
     settings: NotebookNavigatorSettings;
     file: TFile;
     source: NonNullable<FileMenuBuilderParams['options']>['source'] | undefined;
@@ -213,6 +214,7 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
         addManualSortGroupHeaderAction({
             menu,
             app,
+            metadataService,
             settings,
             file,
             source: options?.source,
@@ -542,7 +544,7 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
 }
 
 function addManualSortGroupHeaderAction(params: AddManualSortGroupHeaderActionParams): boolean {
-    const { menu, app, settings, file, source, selectionState, shouldShowMultiOptions } = params;
+    const { menu, app, metadataService, settings, file, source, selectionState, shouldShowMultiOptions } = params;
     const propertyKey = getManualSortGroupHeaderPropertyKey(settings);
     if (source !== 'list-pane' || shouldShowMultiOptions || file.extension !== 'md' || !propertyKey) {
         return false;
@@ -572,7 +574,7 @@ function addManualSortGroupHeaderAction(params: AddManualSortGroupHeaderActionPa
         return false;
     }
 
-    return addManualSortGroupHeaderMenuItems({ menu, app, file, propertyKey });
+    return addManualSortGroupHeaderMenuItems({ menu, app, file, propertyKey, metadataService });
 }
 
 function resolveFileStyleTarget(params: ResolveFileStyleTargetParams): FileStyleTarget {

@@ -81,7 +81,7 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
-        version: '2.7.0',
+        version: '3.0.0',
         date: '2026-05-18',
         showOnUpdate: true,
         info: 'This update finally brings manual sort to the list pane! If you are a writer used to working with Ulysses or Scrivener, this should make your daily life much easier.',
@@ -90,7 +90,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
             '**Manual sort.** You can reorder notes directly in the list pane. Select one or more notes and press Cmd/Ctrl + Arrow Up/Down. Or pick **Edit sort order...** from the sort menu to open a dedicated drag-and-drop view, which supports multi-select on desktop and touch on mobile.',
             '**Manual sort.** New setting: List > Manual sort > ==New note placement== controls where new notes are added when manual sort is active: Top, Bottom, Below selected note, or Unsorted. Default is below selected note.',
             '**List pane.** ==Custom group headers==. Set group mode to the new "Custom" option then create or edit group headers by right clicking files.',
-            '**List pane.** Custom group headers can show total word count or progress against a target word count.',
+            '**List pane.** Custom group headers can show icons, colors, total word count, and progress against a target word count.',
             '**List pane.** ==Group headers can now be collapsed.== Click the chevron next to a group header to collapse or expand it.',
             '**Recent files.** You can now drag items from recent files into shortcuts, folders, tags and properties.',
             '**Calendar.** New setting Calendar > Calendar integration > ==Periodic notes locale== controls whether Notebook Navigator periodic note paths use the selected calendar locale or Obsidian locale.'

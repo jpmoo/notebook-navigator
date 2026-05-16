@@ -29,6 +29,7 @@ export const STRINGS_ID = {
         remove: 'Buang',
         restoreDefault: 'Pulihkan default', // Button text for restoring values to defaults (English: Restore default)
         submit: 'Kirim',
+        save: 'Simpan', // Button text for saving settings and dialogs (English: Save)
         configure: 'Konfigurasi', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'Mode terang', // Label for light theme mode (English: Light mode)
         darkMode: 'Mode gelap', // Label for dark theme mode (English: Dark mode)
@@ -314,7 +315,12 @@ export const STRINGS_ID = {
             moveMultipleFilesToFolder: 'Pindahkan {count} file ke...',
             setManualSortGroupHeader: 'Atur header grup',
             changeManualSortGroupHeader: 'Ubah header grup',
-            removeManualSortGroupHeader: 'Hapus header grup',
+            manualSortGroupHeader: {
+                title: 'Header grup',
+                copyStyle: 'Salin gaya header',
+                pasteStyle: 'Tempel gaya header',
+                remove: 'Hapus header grup'
+            },
             addTag: 'Tambah tag',
             addPropertyKey: 'Atur properti',
             removeTag: 'Hapus tag',
@@ -420,12 +426,14 @@ export const STRINGS_ID = {
         },
         manualSortGroupHeader: {
             title: 'Atur header grup',
-            headerLabel: 'Header grup',
+            titleLabel: 'Judul',
             placeholder: 'Header grup',
-            showWordCount: 'Tampilkan jumlah kata total',
-            targetWordCount: 'Target jumlah kata',
-            targetWordCountPlaceholder: '10,000',
-            description: 'Header disimpan ke properti {property} pada catatan yang dipilih. Biarkan kolom kosong untuk menghapus header.'
+            icon: 'Ikon',
+            color: 'Warna',
+            wordCount: 'Tampilkan jumlah kata',
+            wordCountTarget: 'Target jumlah kata',
+            wordCountTargetPlaceholder: '10,000',
+            description: 'Sesuaikan header grup untuk catatan ini. Biarkan judul kosong untuk menghapus header.'
         },
         navRainbowSection: {
             title: (section: string) => `Warna pelangi: ${section}`

@@ -29,6 +29,7 @@ export const STRINGS_EN = {
         remove: 'Remove', // Button text for remove operations in dialogs (English: Remove)
         restoreDefault: 'Restore default', // Button text for restoring values to defaults (English: Restore default)
         submit: 'Submit', // Button text for submitting forms and dialogs (English: Submit)
+        save: 'Save', // Button text for saving settings and dialogs (English: Save)
         configure: 'Configure', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'Light mode',
         darkMode: 'Dark mode',
@@ -313,7 +314,12 @@ export const STRINGS_EN = {
             moveMultipleFilesToFolder: 'Move {count} files to...',
             setManualSortGroupHeader: 'Set group header',
             changeManualSortGroupHeader: 'Change group header',
-            removeManualSortGroupHeader: 'Remove group header',
+            manualSortGroupHeader: {
+                title: 'Group header',
+                copyStyle: 'Copy header style',
+                pasteStyle: 'Paste header style',
+                remove: 'Remove group header'
+            },
             addTag: 'Add tag',
             addPropertyKey: 'Set property',
             removeTag: 'Remove tag',
@@ -419,12 +425,15 @@ export const STRINGS_EN = {
         },
         manualSortGroupHeader: {
             title: 'Set group header',
-            headerLabel: 'Group header',
+            titleLabel: 'Title',
             placeholder: 'Group header',
-            showWordCount: 'Show total word count',
-            targetWordCount: 'Target word count',
-            targetWordCountPlaceholder: '10,000',
-            description: 'The header is saved to property {property} on the selected note. Leave the field empty to clear the header.'
+            icon: 'Icon',
+            color: 'Color',
+            appearanceDescription: 'Color affects the icon and progress bar.',
+            wordCount: 'Show word count',
+            wordCountTarget: 'Target word count',
+            wordCountTargetPlaceholder: '10,000',
+            description: 'Customize the group header for this note. Leave the title empty to remove the header.'
         },
         navRainbowSection: {
             title: (section: string) => `Rainbow colors: ${section}`

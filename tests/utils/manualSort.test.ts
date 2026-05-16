@@ -317,7 +317,9 @@ describe('manual sort helpers', () => {
         expect(getCachedManualSortGroupHeader(app, objectFile, 'group')).toEqual({
             title: 'Chapter 1',
             showWordCount: true,
-            targetWordCount: 10000
+            targetWordCount: 10000,
+            iconId: null,
+            color: null
         });
         expect(getCachedManualSortGroupHeaderValue(app, objectFile, 'group')).toBe('Chapter 1');
         expect(getCachedManualSortGroupHeaderValue(app, numberFile, 'group')).toBeNull();
@@ -328,14 +330,30 @@ describe('manual sort helpers', () => {
     });
 
     it('formats manual sort group headers with word count progress', () => {
-        expect(formatManualSortGroupHeaderLabel({ title: 'Draft', showWordCount: false, targetWordCount: null }, 1234)).toBe('Draft');
-        expect(formatManualSortGroupHeaderLabel({ title: 'Draft', showWordCount: true, targetWordCount: null }, 1234)).toBe(
-            'Draft (1,234)'
-        );
-        expect(formatManualSortGroupHeaderLabel({ title: 'Draft', showWordCount: false, targetWordCount: 10000 }, 4123)).toBe('Draft');
-        expect(formatManualSortGroupHeaderLabel({ title: 'Draft', showWordCount: true, targetWordCount: 10000 }, 4123)).toBe(
-            'Draft (4,123 / 10,000)'
-        );
+        expect(
+            formatManualSortGroupHeaderLabel(
+                { title: 'Draft', showWordCount: false, targetWordCount: null, iconId: null, color: null },
+                1234
+            )
+        ).toBe('Draft');
+        expect(
+            formatManualSortGroupHeaderLabel(
+                { title: 'Draft', showWordCount: true, targetWordCount: null, iconId: null, color: null },
+                1234
+            )
+        ).toBe('Draft (1,234)');
+        expect(
+            formatManualSortGroupHeaderLabel(
+                { title: 'Draft', showWordCount: false, targetWordCount: 10000, iconId: null, color: null },
+                4123
+            )
+        ).toBe('Draft');
+        expect(
+            formatManualSortGroupHeaderLabel(
+                { title: 'Draft', showWordCount: true, targetWordCount: 10000, iconId: null, color: null },
+                4123
+            )
+        ).toBe('Draft (4,123 / 10,000)');
     });
 
     it('plans a sparse moved-file rank between ranked neighbors', () => {
@@ -704,7 +722,9 @@ describe('manual sort helpers', () => {
         await writeManualSortGroupHeader(app, file, 'group', {
             title: '  Draft  ',
             showWordCount: true,
-            targetWordCount: '10,000'
+            targetWordCount: '10,000',
+            iconId: 'lucide:book-open',
+            color: '#3b82f6'
         });
 
         expect(processFrontMatter).toHaveBeenCalledTimes(1);
@@ -712,7 +732,9 @@ describe('manual sort helpers', () => {
             group: {
                 title: 'Draft',
                 showWordCount: true,
-                targetWordCount: 10000
+                targetWordCount: 10000,
+                icon: 'book-open',
+                color: '#3b82f6'
             }
         });
     });
