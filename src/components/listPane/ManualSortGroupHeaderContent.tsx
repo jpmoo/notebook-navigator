@@ -18,12 +18,11 @@
 
 import type { CSSProperties } from 'react';
 import type { ManualSortGroupHeaderData } from '../../utils/manualSort';
-import { shouldShowManualSortGroupHeaderWordCount } from '../../utils/manualSort';
+import { shouldShowManualSortGroupHeaderProgress, shouldShowManualSortGroupHeaderWordCount } from '../../utils/manualSort';
 import { ServiceIcon } from '../ServiceIcon';
 
 type ManualSortGroupHeaderStyle = CSSProperties & {
     '--nn-manual-sort-group-header-accent'?: string;
-    '--nn-manual-sort-group-header-icon-color'?: string;
     '--nn-manual-sort-group-header-progress'?: string;
 };
 
@@ -32,53 +31,70 @@ interface ManualSortGroupHeaderContentProps {
     wordCount: number;
 }
 
-interface ManualSortGroupHeaderRenderData {
-    countText: string;
+interface ManualSortGroupHeaderProgressData {
     progressPercent: number | null;
     progressWidth: number | null;
-    style: ManualSortGroupHeaderStyle;
 }
 
-function getProgressPercent(wordCount: number, targetWordCount: number | null): number | null {
-    if (targetWordCount === null || targetWordCount <= 0) {
+function getDisplayWordCount(wordCount: number): number {
+    return Math.max(0, Math.trunc(wordCount));
+}
+
+function formatManualSortGroupHeaderCountText(header: ManualSortGroupHeaderData, wordCount: number): string {
+    const formattedWordCount = getDisplayWordCount(wordCount).toLocaleString();
+    if (shouldShowManualSortGroupHeaderProgress(header)) {
+        return `${formattedWordCount} / ${header.targetWordCount.toLocaleString()}`;
+    }
+
+    return formattedWordCount;
+}
+
+function getProgressPercent(wordCount: number, targetWordCount: number): number | null {
+    if (targetWordCount <= 0) {
         return null;
     }
 
-    const percent = Math.round((Math.max(0, Math.trunc(wordCount)) / targetWordCount) * 100);
+    const percent = Math.round((getDisplayWordCount(wordCount) / targetWordCount) * 100);
     return Number.isFinite(percent) ? percent : 0;
 }
 
-function getManualSortGroupHeaderRenderData(header: ManualSortGroupHeaderData, wordCount: number): ManualSortGroupHeaderRenderData {
-    const shouldShowWordCount = shouldShowManualSortGroupHeaderWordCount(header);
-    const targetWordCount = shouldShowWordCount ? header.targetWordCount : null;
-    const progressPercent = getProgressPercent(wordCount, targetWordCount);
+function getManualSortGroupHeaderProgress(header: ManualSortGroupHeaderData, wordCount: number): ManualSortGroupHeaderProgressData {
+    const progressPercent = shouldShowManualSortGroupHeaderProgress(header) ? getProgressPercent(wordCount, header.targetWordCount) : null;
     const progressWidth = progressPercent === null ? null : Math.min(100, Math.max(0, progressPercent));
-    const formattedWordCount = Math.max(0, Math.trunc(wordCount)).toLocaleString();
-    const countText = targetWordCount !== null ? `${formattedWordCount} / ${targetWordCount.toLocaleString()}` : formattedWordCount;
+
+    return {
+        progressPercent,
+        progressWidth
+    };
+}
+
+function getManualSortGroupHeaderStyle(
+    header: ManualSortGroupHeaderData,
+    progress: ManualSortGroupHeaderProgressData
+): ManualSortGroupHeaderStyle {
     const style: ManualSortGroupHeaderStyle = {};
 
     if (header.color) {
         style['--nn-manual-sort-group-header-accent'] = header.color;
-        style['--nn-manual-sort-group-header-icon-color'] = header.color;
     }
-    if (progressWidth !== null) {
-        style['--nn-manual-sort-group-header-progress'] = `${progressWidth}%`;
+    if (progress.progressWidth !== null) {
+        style['--nn-manual-sort-group-header-progress'] = `${progress.progressWidth}%`;
     }
 
-    return {
-        countText,
-        progressPercent,
-        progressWidth,
-        style
-    };
+    return style;
 }
 
 export function ManualSortGroupHeaderContent({ header, wordCount }: ManualSortGroupHeaderContentProps) {
     const shouldShowWordCount = shouldShowManualSortGroupHeaderWordCount(header);
-    const { countText, progressPercent, style } = getManualSortGroupHeaderRenderData(header, wordCount);
+    const countText = formatManualSortGroupHeaderCountText(header, wordCount);
+    const progress = getManualSortGroupHeaderProgress(header, wordCount);
+    const style = getManualSortGroupHeaderStyle(header, progress);
     const contentClasses = ['nn-manual-sort-group-header-content'];
-    if (header.color && progressPercent === null) {
+    if (header.color && progress.progressPercent === null) {
         contentClasses.push('nn-manual-sort-group-header-content--accent-all');
+    }
+    if (header.color || progress.progressPercent !== null) {
+        contentClasses.push('nn-manual-sort-group-header-content--accent-icon');
     }
 
     return (
@@ -88,17 +104,21 @@ export function ManualSortGroupHeaderContent({ header, wordCount }: ManualSortGr
             ) : null}
             <span className="nn-manual-sort-group-header-title">{header.title}</span>
             {shouldShowWordCount ? <span className="nn-manual-sort-group-header-count">({countText})</span> : null}
-            {progressPercent !== null ? <span className="nn-manual-sort-group-header-percent">{progressPercent}%</span> : null}
+            {progress.progressPercent !== null ? (
+                <span className="nn-manual-sort-group-header-percent">{progress.progressPercent}%</span>
+            ) : null}
         </div>
     );
 }
 
 export function ManualSortGroupHeaderProgress({ header, wordCount }: ManualSortGroupHeaderContentProps) {
-    const { progressWidth, style } = getManualSortGroupHeaderRenderData(header, wordCount);
+    const progress = getManualSortGroupHeaderProgress(header, wordCount);
 
-    if (progressWidth === null) {
+    if (progress.progressWidth === null) {
         return null;
     }
+
+    const style = getManualSortGroupHeaderStyle(header, progress);
 
     return (
         <div className="nn-manual-sort-group-header-progress-row" style={style} aria-hidden={true}>

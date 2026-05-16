@@ -39,7 +39,7 @@ import type { HiddenTagVisibility } from '../../utils/tagPrefixMatcher';
 import type { FileItemPillDecorationModel } from '../../utils/fileItemPillDecoration';
 import { resolveUXIcon } from '../../utils/uxIcons';
 import { hasSolidFileRowBackground } from '../../utils/colorUtils';
-import { getManualSortGroupHeaderPropertyKey } from '../../utils/manualSort';
+import { getManualSortGroupHeaderPropertyKey, shouldShowManualSortGroupHeaderProgress } from '../../utils/manualSort';
 import type { ManualSortGroupHeaderData } from '../../utils/manualSort';
 import { addManualSortGroupHeaderMenuItems } from '../../utils/contextMenu/manualSortGroupHeaderMenuItems';
 import { ManualSortGroupHeaderContent, ManualSortGroupHeaderProgress } from './ManualSortGroupHeaderContent';
@@ -65,7 +65,6 @@ interface HeaderRenderModel {
     folderGroupHeaderTarget: FolderGroupHeaderTarget | null;
     manualSortHeaderFilePath: string | null;
     manualSortHeader: ManualSortGroupHeaderData | null;
-    manualSortHeaderShowsWordCount: boolean;
     manualSortHeaderWordCount: number;
 }
 
@@ -197,7 +196,7 @@ function shouldHideCollapsedHeaderSeparator(header: HeaderRenderModel | null): b
 }
 
 function shouldHideManualSortGoalHeaderSeparator(header: HeaderRenderModel | null): boolean {
-    return Boolean(header?.manualSortHeader && header.manualSortHeaderShowsWordCount && header.manualSortHeader.targetWordCount !== null);
+    return header?.manualSortHeader ? shouldShowManualSortGroupHeaderProgress(header.manualSortHeader) : false;
 }
 
 function ListPaneGroupHeader({
@@ -212,8 +211,7 @@ function ListPaneGroupHeader({
     const folderGroupHeaderTarget = header.folderGroupHeaderTarget;
     const manualSortHeader = header.manualSortHeader;
     const isClickableFolderGroupHeader = Boolean(folderGroupHeaderTarget) && !header.isPinnedHeader;
-    const hasManualSortGoal =
-        manualSortHeader !== null && header.manualSortHeaderShowsWordCount && manualSortHeader.targetWordCount !== null;
+    const hasManualSortGoal = manualSortHeader !== null && shouldShowManualSortGroupHeaderProgress(manualSortHeader);
     const handleCollapseButtonClick = useCallback(
         (event: React.MouseEvent<HTMLButtonElement>) => {
             event.stopPropagation();
@@ -445,7 +443,6 @@ export function ListPaneVirtualContent({
                 folderGroupHeaderTarget: headerFolderPath !== null ? (folderGroupHeaderTargets.get(headerFolderPath) ?? null) : null,
                 manualSortHeaderFilePath: item.headerKind === 'manual-sort-custom' ? (item.manualSortHeaderFilePath ?? null) : null,
                 manualSortHeader,
-                manualSortHeaderShowsWordCount: item.manualSortHeaderShowsWordCount === true,
                 manualSortHeaderWordCount: item.manualSortHeaderWordCount ?? 0
             };
             models.push(model);

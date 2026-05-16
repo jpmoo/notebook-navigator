@@ -39,6 +39,7 @@ import {
     moveManualSortMarkdownFiles,
     normalizeManualSortGroupHeaderWordCount,
     partitionManualSortFiles,
+    shouldShowManualSortGroupHeaderProgress,
     shouldShowManualSortGroupHeaderWordCount,
     type ManualSortGroupHeaderData
 } from '../../utils/manualSort';
@@ -274,7 +275,7 @@ function SortableManualSortRow(props: ManualSortRowProps) {
     };
     const bindRowDrag = canReorder && !isMobile;
     const bindHandleDrag = canReorder && isMobile;
-    const hasManualSortGoal = header ? shouldShowManualSortGroupHeaderWordCount(header) && header.targetWordCount !== null : false;
+    const hasManualSortGoal = header ? shouldShowManualSortGroupHeaderProgress(header) : false;
     const dragHandle = (
         <span
             ref={setActivatorNodeRef}

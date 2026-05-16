@@ -33,6 +33,7 @@ import {
 import { casefold } from './recordUtils';
 import type { HiddenTagVisibility } from './tagPrefixMatcher';
 import { normalizeTagPath } from './tagUtils';
+import { shouldShowManualSortGroupHeaderProgress } from './manualSort';
 
 /**
  * Layout measurements used by the list pane virtualizer.
@@ -108,9 +109,8 @@ export function getListPaneHeaderHeight(item: ListPaneItem | undefined, measurem
     if (
         item?.type === ListPaneItemType.HEADER &&
         item.headerKind === 'manual-sort-custom' &&
-        item.manualSortHeaderShowsWordCount === true &&
-        item.manualSortHeader?.targetWordCount !== null &&
-        item.manualSortHeader?.targetWordCount !== undefined
+        item.manualSortHeader !== undefined &&
+        shouldShowManualSortGroupHeaderProgress(item.manualSortHeader)
     ) {
         return measurements.manualSortGoalHeaderHeight;
     }

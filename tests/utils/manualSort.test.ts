@@ -39,6 +39,7 @@ import {
     parseManualSortGroupHeaderTargetWordCount,
     parseManualSortRank,
     removeManualSortProperty,
+    shouldShowManualSortGroupHeaderProgress,
     writeManualSortGroupHeader,
     writeManualSortAssignments,
     writeManualSortOrder
@@ -282,6 +283,36 @@ describe('manual sort helpers', () => {
         expect(parseManualSortGroupHeaderTargetWordCount(0)).toBeNull();
         expect(parseManualSortGroupHeaderTargetWordCount('10.5')).toBeNull();
         expect(parseManualSortGroupHeaderTargetWordCount('ten')).toBeNull();
+    });
+
+    it('detects manual sort group header progress', () => {
+        expect(
+            shouldShowManualSortGroupHeaderProgress({
+                title: 'Draft',
+                showWordCount: false,
+                targetWordCount: 10000,
+                iconId: null,
+                color: null
+            })
+        ).toBe(false);
+        expect(
+            shouldShowManualSortGroupHeaderProgress({
+                title: 'Draft',
+                showWordCount: true,
+                targetWordCount: null,
+                iconId: null,
+                color: null
+            })
+        ).toBe(false);
+        expect(
+            shouldShowManualSortGroupHeaderProgress({
+                title: 'Draft',
+                showWordCount: true,
+                targetWordCount: 10000,
+                iconId: null,
+                color: null
+            })
+        ).toBe(true);
     });
 
     it('reads cached manual sort ranks while ignoring nonnumeric property values', () => {

@@ -447,6 +447,12 @@ export function shouldShowManualSortGroupHeaderWordCount(header: ManualSortGroup
     return header.showWordCount;
 }
 
+export function shouldShowManualSortGroupHeaderProgress(
+    header: ManualSortGroupHeaderData
+): header is ManualSortGroupHeaderData & { targetWordCount: number } {
+    return shouldShowManualSortGroupHeaderWordCount(header) && header.targetWordCount !== null;
+}
+
 export function normalizeManualSortGroupHeaderWordCount(value: unknown): number {
     return typeof value === 'number' && Number.isFinite(value) && value > 0 ? Math.trunc(value) : 0;
 }
@@ -456,10 +462,9 @@ export function formatManualSortGroupHeaderLabel(header: ManualSortGroupHeaderDa
         return header.title;
     }
 
-    const targetWordCount = header.targetWordCount;
     const formattedWordCount = Math.trunc(wordCount).toLocaleString();
-    if (targetWordCount !== null) {
-        return `${header.title} (${formattedWordCount} / ${targetWordCount.toLocaleString()})`;
+    if (shouldShowManualSortGroupHeaderProgress(header)) {
+        return `${header.title} (${formattedWordCount} / ${header.targetWordCount.toLocaleString()})`;
     }
 
     return `${header.title} (${formattedWordCount})`;

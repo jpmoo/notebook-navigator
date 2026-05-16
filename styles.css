@@ -4687,7 +4687,11 @@ button.nn-navigation-calendar-day {
     flex: 0 0 auto;
     width: var(--nn-list-group-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
     height: var(--nn-list-group-header-icon-size, var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)));
-    color: var(--nn-manual-sort-group-header-icon-color, currentColor);
+    color: currentColor;
+}
+
+.nn-manual-sort-group-header-content--accent-icon .nn-manual-sort-group-header-custom-icon {
+    color: var(--nn-manual-sort-group-header-accent);
 }
 
 .nn-manual-sort-group-header-custom-icon svg {
