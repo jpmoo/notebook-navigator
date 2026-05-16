@@ -46,8 +46,13 @@ export function normalizeStoredCollapsedListGroupKeys(value: unknown): string[] 
             return;
         }
 
-        seen.add(key);
-        normalizedKeys.push(key);
+        const normalizedKey = key.replace(';group=none;', ';group=custom;');
+        if (seen.has(normalizedKey)) {
+            return;
+        }
+
+        seen.add(normalizedKey);
+        normalizedKeys.push(normalizedKey);
     });
 
     return normalizedKeys;

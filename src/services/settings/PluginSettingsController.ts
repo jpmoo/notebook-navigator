@@ -61,6 +61,7 @@ import {
     isSettingSyncMode,
     isSortOption,
     isTagSortOrder,
+    normalizeAppearanceGroupBy,
     normalizeListSortOverride,
     resolveDeleteAttachmentsSetting,
     resolveMoveFileConflictsSetting
@@ -141,6 +142,27 @@ const LEGACY_LOCAL_SYNC_MODE_SETTING_IDS = new Set<SyncModeSettingId>([
     'compactItemHeightScaleText',
     'uiScale'
 ]);
+
+function hasLegacyNoneGroupingInAppearanceMap(value: unknown): boolean {
+    if (!isRecord(value)) {
+        return false;
+    }
+
+    return Object.values(value).some(appearance => isRecord(appearance) && appearance.groupBy === 'none');
+}
+
+function containsLegacyNoneGroupingInStoredData(storedData: Record<string, unknown> | null): boolean {
+    if (!storedData) {
+        return false;
+    }
+
+    return (
+        storedData.noteGrouping === 'none' ||
+        hasLegacyNoneGroupingInAppearanceMap(storedData.folderAppearances) ||
+        hasLegacyNoneGroupingInAppearanceMap(storedData.tagAppearances) ||
+        hasLegacyNoneGroupingInAppearanceMap(storedData.propertyAppearances)
+    );
+}
 
 export class PluginSettingsController {
     private currentSettings: NotebookNavigatorSettings = { ...DEFAULT_SETTINGS };
@@ -261,6 +283,7 @@ export class PluginSettingsController {
             Object.prototype.hasOwnProperty.call(storedData, 'defaultFolderSort') &&
             (!isSortOption(storedData['defaultFolderSort']) || isPropertySortOption(storedData['defaultFolderSort']))
         );
+        const hadLegacyNoneGroupingInStoredData = containsLegacyNoneGroupingInStoredData(storedData);
         const storedSettings = storedData as Partial<NotebookNavigatorSettings> | null;
         const isFirstLaunch = storedData === null;
         this.shouldPersistDesktopScale = Boolean(storedData && 'desktopScale' in storedData);
@@ -468,6 +491,7 @@ export class PluginSettingsController {
             hadInvalidPropertySortKeyInStoredData ||
             hadInvalidManualSortPropertyKeyInStoredData ||
             hadUnavailableDefaultFolderSortInStoredData ||
+            hadLegacyNoneGroupingInStoredData ||
             prunedUnavailablePropertySortOverrides ||
             uiScaleMigrated ||
             migratedMomentFormats ||
@@ -963,8 +987,11 @@ export class PluginSettingsController {
             record?: Record<string, 'alpha-asc' | 'alpha-desc'>
         ): Record<string, 'alpha-asc' | 'alpha-desc'> => sanitizeRecord(record, isAlphaSortOrder);
         const isAppearanceValue = (value: unknown): value is FolderAppearance => isPlainObjectRecordValue(value);
-        const sanitizeAppearanceMap = (record?: Record<string, FolderAppearance>): Record<string, FolderAppearance> =>
-            sanitizeRecord(record, isAppearanceValue);
+        const sanitizeAppearanceMap = (record?: Record<string, FolderAppearance>): Record<string, FolderAppearance> => {
+            const sanitized = sanitizeRecord(record, isAppearanceValue);
+            Object.values(sanitized).forEach(normalizeAppearanceGroupBy);
+            return sanitized;
+        };
         const sanitizeBooleanMap = (record?: Record<string, boolean>): Record<string, boolean> =>
             sanitizeRecord(record, isBooleanRecordValue);
         const sanitizeSettingsSyncMap = (record?: Record<string, SettingSyncMode>): Record<string, SettingSyncMode> =>

@@ -340,6 +340,7 @@ export function useListPaneData({
         [settings.manualSortPropertyKey, sortSpec.propertyKey]
     );
     const manualSortGroupHeaderPropertyKey = getManualSortGroupHeaderPropertyKey(settings);
+    const shouldRefreshOnCustomGroupHeaderMetadataChange = groupBy === 'custom' && manualSortGroupHeaderPropertyKey !== null;
 
     const listItems = useMemo(() => {
         return buildListItems({
@@ -401,28 +402,39 @@ export function useListPaneData({
     }>(() => {
         return buildOrderedFiles(listItems);
     }, [listItems]);
-    const hasManualSortWordCountGroupHeaders = useMemo(
-        () =>
-            listItems.some(
-                item =>
-                    item.type === ListPaneItemType.HEADER &&
-                    item.headerKind === 'manual-sort-custom' &&
-                    item.manualSortHeaderShowsWordCount === true
-            ),
-        [listItems]
-    );
+    const customGroupHeaderState = useMemo(() => {
+        const filePaths = new Set<string>();
+        let hasWordCountGroupHeaders = false;
+
+        listItems.forEach(item => {
+            if (item.type !== ListPaneItemType.HEADER || item.headerKind !== 'manual-sort-custom') {
+                return;
+            }
+
+            if (item.manualSortHeaderFilePath) {
+                filePaths.add(item.manualSortHeaderFilePath);
+            }
+
+            if (item.manualSortHeaderShowsWordCount === true) {
+                hasWordCountGroupHeaders = true;
+            }
+        });
+
+        return { filePaths, hasWordCountGroupHeaders };
+    }, [listItems]);
 
     useListPaneRefresh({
         app,
         basePathSet,
         commandQueue,
+        customGroupHeaderFilePaths: customGroupHeaderState.filePaths,
         getDB,
-        hasManualSortWordCountGroupHeaders,
+        hasManualSortWordCountGroupHeaders: customGroupHeaderState.hasWordCountGroupHeaders,
         hasTaskSearchFilters,
         hiddenFilePropertyMatcher,
         hiddenFileTags,
         includeDescendantNotes,
-        isManualSortActive,
+        manualSortGroupHeaderPropertyKey,
         onRefresh: () => setUpdateKey(current => current + 1),
         propertyTreeService,
         selectedFolder,
@@ -430,6 +442,7 @@ export function useListPaneData({
         selectedTag,
         selectionType,
         settings,
+        shouldRefreshOnCustomGroupHeaderMetadataChange,
         showHiddenItems,
         sortOption,
         propertySortKey: sortSpec.propertyKey,

@@ -66,7 +66,7 @@ import { buildPropertyKeyNodeId, parsePropertyNodeId } from '../utils/propertyTr
 import { getFilesForNavigationSelection } from '../utils/selectionUtils';
 import { findVaultProfileById } from '../utils/vaultProfiles';
 import { casefold, ensureRecord, sanitizeRecord } from '../utils/recordUtils';
-import { resolveListGrouping } from '../utils/listGrouping';
+import { resolveEffectiveListGroupingForSort, resolveListGrouping } from '../utils/listGrouping';
 import { getErrorMessage } from '../utils/errorUtils';
 import { showNotice } from '../utils/noticeUtils';
 
@@ -310,13 +310,14 @@ function buildDescendantApplyStats<T>({
 
 function getGroupingIcon(option: ListNoteGroupingOption): string {
     switch (option) {
+        case 'custom':
+            return 'lucide-heading';
         case 'date':
             return 'lucide-calendar';
         case 'folder':
             return 'lucide-folder';
-        case 'none':
         default:
-            return 'lucide-x';
+            return 'lucide-heading';
     }
 }
 
@@ -618,7 +619,7 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
     const selectionSortTarget = useMemo(() => getSelectionSortTarget(), [getSelectionSortTarget]);
     const selectionSortOverride = useMemo(() => getSelectionSortOverride(), [getSelectionSortOverride]);
     const selectionSortSpec = useMemo(() => resolveListSort(settings, selectionSortOverride), [settings, selectionSortOverride]);
-    const isSelectionPropertySortActive = getSortField(selectionSortSpec.option) === 'property';
+    const isSelectionManualSortActive = isManualSortPropertyKey(settings, selectionSortSpec.propertyKey);
     const resolvePropertySortIcon = useCallback(
         (propertyKey: string): string | null => {
             const normalizedPropertyKey = casefold(propertyKey);
@@ -663,7 +664,15 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
     );
     const selectionGroupOverride = groupingInfo.normalizedOverride;
     const hasSelectionGroupOverride = groupingInfo.hasCustomOverride;
-    const effectiveSelectionGroupOverride = isSelectionPropertySortActive ? undefined : selectionGroupOverride;
+    const effectiveSelectionGroupOverride = isSelectionManualSortActive
+        ? 'custom'
+        : selectionGroupOverride === undefined
+          ? undefined
+          : resolveEffectiveListGroupingForSort({
+                groupBy: selectionGroupOverride,
+                sortOption: selectionSortSpec.option,
+                selectionType: selectionState.selectionType
+            });
     const selectionDescendantLabel = useMemo(() => getSelectionDescendantLabel(), [getSelectionDescendantLabel]);
     const [folderTreeVersion, setFolderTreeVersion] = useState(0);
     const [tagTreeVersion, setTagTreeVersion] = useState(0);
@@ -1409,12 +1418,12 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
             const currentSort = currentSortSpec.option;
             const currentDirection = getSortDirection(currentSort);
             const currentField = getSortField(currentSort);
-            const isPropertySortActive = currentField === 'property';
             const manualSortPropertyKey = getManualSortPropertyKey(settings);
             const propertySortKeys = parsePropertySortKeys(settings.propertySortKey).filter(
                 propertyKey => !isManualSortPropertyKey(settings, propertyKey)
             );
             const hasManualSortPropertyKey = isValidManualSortPropertyKey(manualSortPropertyKey);
+            const isPropertySortActive = currentField === 'property';
             const isManualSortActive = isPropertySortActive && isManualSortPropertyKey(settings, currentSortSpec.propertyKey);
             const sortFieldLabels: Record<SortField, string> = {
                 modified: strings.settings.items.sortNotesBy.fields.modified,
@@ -1454,9 +1463,6 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
                 const option = buildSortOption(field, direction);
                 const applySortOverride = async () => {
                     await setSelectionSortOverride(createListSortOverride(option, propertyKey));
-                    if (field === 'property' && hasSelectionGroupOverride) {
-                        await setSelectionGroupOverride(undefined);
-                    }
                     app.workspace.requestSaveLayout();
                 };
 
@@ -1478,9 +1484,6 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
                         // Reset to default sort
                         const resetSortOverride = async () => {
                             await removeSelectionSortOverride();
-                            if (getSortField(defaultSortSpec.option) === 'property' && hasSelectionGroupOverride) {
-                                await setSelectionGroupOverride(undefined);
-                            }
                             app.workspace.requestSaveLayout();
                         };
 
@@ -1561,14 +1564,23 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
                 item.setTitle(strings.folderAppearance.groupBy).setIcon('lucide-layers').setDisabled(true);
             });
 
+            const effectiveCurrentGroup = resolveEffectiveListGroupingForSort({
+                groupBy: groupingInfo.effectiveGrouping,
+                sortOption: currentSort,
+                selectionType: selectionState.selectionType,
+                isManualSortActive
+            });
+            const isGroupOptionDisabled = (option: ListNoteGroupingOption): boolean =>
+                isManualSortActive || (option === 'date' && !isDateSortOption(currentSort));
             const defaultGroupLabel = strings.settings.items.groupNotes.options[groupingInfo.defaultGrouping];
+            const isDefaultGroupDisabled = isGroupOptionDisabled(groupingInfo.defaultGrouping);
             menu.addItem(item => {
                 item.setTitle(`    ${strings.folderAppearance.defaultGroupOption(defaultGroupLabel)}`)
                     .setIcon(getGroupingIcon(groupingInfo.defaultGrouping))
-                    .setDisabled(isPropertySortActive)
-                    .setChecked(!isPropertySortActive && !hasSelectionGroupOverride)
+                    .setDisabled(isDefaultGroupDisabled)
+                    .setChecked(!isDefaultGroupDisabled && !hasSelectionGroupOverride)
                     .onClick(() => {
-                        if (isPropertySortActive) {
+                        if (isDefaultGroupDisabled) {
                             return;
                         }
                         runAsyncAction(async () => {
@@ -1578,15 +1590,17 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
                     });
             });
 
-            const groupOptions: ListNoteGroupingOption[] = hasFolderSelection ? ['none', 'date', 'folder'] : ['none', 'date'];
+            const groupOptions: ListNoteGroupingOption[] = hasFolderSelection ? ['custom', 'date', 'folder'] : ['custom', 'date'];
             groupOptions.forEach(option => {
-                const isDisabled = isPropertySortActive || (option === 'date' && !isDateSortOption(currentSort));
+                const isDisabled = isGroupOptionDisabled(option);
                 menu.addItem(item => {
                     item.setTitle(`    ${strings.settings.items.groupNotes.options[option]}`)
                         .setIcon(getGroupingIcon(option))
                         .setDisabled(isDisabled)
                         .setChecked(
-                            isPropertySortActive ? option === 'none' : hasSelectionGroupOverride && selectionGroupOverride === option
+                            isManualSortActive
+                                ? option === 'custom'
+                                : (hasSelectionGroupOverride || isDefaultGroupDisabled) && effectiveCurrentGroup === option
                         )
                         .onClick(() => {
                             if (isDisabled) {
@@ -1633,13 +1647,14 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
             applyManualSortMode,
             getDescendantSortAndGroupChangeStats,
             groupingInfo.defaultGrouping,
+            groupingInfo.effectiveGrouping,
             openDefaultListSettings,
             promptApplySortAndGroupToDescendants,
             removeSelectionSortOverride,
             resolvePropertySortIcon,
             selectionDescendantLabel,
-            selectionGroupOverride,
             selectionSortOverride,
+            selectionState.selectionType,
             setSelectionGroupOverride,
             setSelectionSortOverride,
             settings,

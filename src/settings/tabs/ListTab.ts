@@ -232,7 +232,7 @@ export function renderListPaneTab(context: SettingsTabContext): void {
             .setDesc(strings.settings.items.groupNotes.desc)
             .addDropdown(dropdown =>
                 dropdown
-                    .addOption('none', strings.settings.items.groupNotes.options.none)
+                    .addOption('custom', strings.settings.items.groupNotes.options.custom)
                     .addOption('date', strings.settings.items.groupNotes.options.date)
                     .addOption('folder', strings.settings.items.groupNotes.options.folder)
                     .setValue(plugin.settings.noteGrouping)
@@ -246,8 +246,10 @@ export function renderListPaneTab(context: SettingsTabContext): void {
             );
     });
 
+    const groupHeadersGroup = createGroup(strings.settings.groups.list.groupHeaders);
+
     addToggleSetting(
-        organizationGroup.addSetting,
+        groupHeadersGroup.addSetting,
         strings.settings.items.stickyGroupHeaders.name,
         strings.settings.items.stickyGroupHeaders.desc,
         () => plugin.settings.stickyGroupHeaders,
@@ -255,6 +257,59 @@ export function renderListPaneTab(context: SettingsTabContext): void {
             plugin.settings.stickyGroupHeaders = value;
         }
     );
+
+    groupHeadersGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.manualSortGroupHeaderProperty.name)
+            .setDesc(strings.settings.items.manualSortGroupHeaderProperty.desc)
+            .addText(text => {
+                const commitGroupHeaderProperty = async (): Promise<void> => {
+                    const value = text.getValue().trim();
+                    if (
+                        value.length > 0 &&
+                        getManualSortGroupHeaderPropertyKey({
+                            manualSortGroupHeaderProperty: value,
+                            manualSortPropertyKey: plugin.settings.manualSortPropertyKey
+                        }) === null
+                    ) {
+                        text.setValue(plugin.settings.manualSortGroupHeaderProperty);
+                        return;
+                    }
+                    text.setValue(value);
+                    if (plugin.settings.manualSortGroupHeaderProperty === value) {
+                        return;
+                    }
+                    plugin.settings.manualSortGroupHeaderProperty = value;
+                    await plugin.saveSettingsAndUpdate();
+                };
+
+                text.inputEl.addEventListener('blur', () => {
+                    runAsyncAction(commitGroupHeaderProperty);
+                });
+                text.inputEl.addEventListener('keydown', event => {
+                    if (event.key !== 'Enter') {
+                        return;
+                    }
+                    event.preventDefault();
+                    runAsyncAction(commitGroupHeaderProperty);
+                    text.inputEl.blur();
+                });
+
+                return text
+                    .setPlaceholder(DEFAULT_SETTINGS.manualSortGroupHeaderProperty)
+                    .setValue(plugin.settings.manualSortGroupHeaderProperty);
+            });
+    });
+
+    addInfoSetting(groupHeadersGroup.addSetting, ['nn-setting-info-container', 'nn-setting-info-list'], descEl => {
+        const info = strings.settings.items.groupHeadersInstructions;
+        descEl.createDiv({ text: info.intro });
+        const listEl = descEl.createEl('ol');
+        info.items.forEach(item => {
+            const itemEl = listEl.createEl('li');
+            appendStrongText(itemEl, item);
+        });
+    });
 
     const propertySortGroup = createGroup(strings.settings.groups.list.propertySort);
 
@@ -307,6 +362,10 @@ export function renderListPaneTab(context: SettingsTabContext): void {
             });
         });
 
+    addInfoSetting(propertySortGroup.addSetting, 'nn-setting-info-container', descEl => {
+        descEl.createDiv({ text: strings.settings.items.propertySortInstructions.intro });
+    });
+
     const manualSortGroup = createGroup(strings.settings.groups.list.manualSort);
 
     manualSortGroup.addSetting(setting => {
@@ -342,49 +401,6 @@ export function renderListPaneTab(context: SettingsTabContext): void {
                 });
 
                 return text.setPlaceholder(DEFAULT_SETTINGS.manualSortPropertyKey).setValue(plugin.settings.manualSortPropertyKey);
-            });
-    });
-
-    manualSortGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.manualSortGroupHeaderProperty.name)
-            .setDesc(strings.settings.items.manualSortGroupHeaderProperty.desc)
-            .addText(text => {
-                const commitGroupHeaderProperty = async (): Promise<void> => {
-                    const value = text.getValue().trim();
-                    if (
-                        value.length > 0 &&
-                        getManualSortGroupHeaderPropertyKey({
-                            manualSortGroupHeaderProperty: value,
-                            manualSortPropertyKey: plugin.settings.manualSortPropertyKey
-                        }) === null
-                    ) {
-                        text.setValue(plugin.settings.manualSortGroupHeaderProperty);
-                        return;
-                    }
-                    text.setValue(value);
-                    if (plugin.settings.manualSortGroupHeaderProperty === value) {
-                        return;
-                    }
-                    plugin.settings.manualSortGroupHeaderProperty = value;
-                    await plugin.saveSettingsAndUpdate();
-                };
-
-                text.inputEl.addEventListener('blur', () => {
-                    runAsyncAction(commitGroupHeaderProperty);
-                });
-                text.inputEl.addEventListener('keydown', event => {
-                    if (event.key !== 'Enter') {
-                        return;
-                    }
-                    event.preventDefault();
-                    runAsyncAction(commitGroupHeaderProperty);
-                    text.inputEl.blur();
-                });
-
-                return text
-                    .setPlaceholder(DEFAULT_SETTINGS.manualSortGroupHeaderProperty)
-                    .setValue(plugin.settings.manualSortGroupHeaderProperty);
             });
     });
 

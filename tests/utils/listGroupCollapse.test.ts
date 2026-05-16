@@ -29,6 +29,12 @@ describe('normalizeStoredCollapsedListGroupKeys', () => {
         expect(normalizeStoredCollapsedListGroupKeys({ key: 'group:a' })).toEqual([]);
         expect(normalizeStoredCollapsedListGroupKeys(null)).toEqual([]);
     });
+
+    it('migrates legacy none grouping keys to custom grouping', () => {
+        expect(normalizeStoredCollapsedListGroupKeys(['scope=folder:%2F;group=none;id=section%3Aunsorted'])).toEqual([
+            'scope=folder:%2F;group=custom;id=section%3Aunsorted'
+        ]);
+    });
 });
 
 describe('buildListGroupCollapseKey', () => {

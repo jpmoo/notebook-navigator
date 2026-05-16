@@ -109,6 +109,7 @@ import { showNotice } from '../utils/noticeUtils';
 import { getErrorMessage } from '../utils/errorUtils';
 import { strings } from '../i18n';
 import { ConfirmModal } from '../modals/ConfirmModal';
+import { resolveEffectiveListGroupingForSort } from '../utils/listGrouping';
 
 const EMPTY_COLLAPSED_LIST_GROUPS = new Set<string>();
 
@@ -485,7 +486,13 @@ export const ListPane = React.memo(
                 : null;
         const propertySortOrderOverride = activePropertyKeyboardReorderState?.order ?? null;
 
-        const effectiveGroupBy = isManualSortEditActive || isPropertySortActive ? 'none' : appearanceSettings.groupBy;
+        const effectiveGroupBy = resolveEffectiveListGroupingForSort({
+            groupBy: appearanceSettings.groupBy,
+            sortOption: effectiveSortOption,
+            selectionType,
+            isManualSortActive,
+            isManualSortEditActive
+        });
         const effectiveAppearanceSettings = useMemo(
             () =>
                 effectiveGroupBy === appearanceSettings.groupBy ? appearanceSettings : { ...appearanceSettings, groupBy: effectiveGroupBy },

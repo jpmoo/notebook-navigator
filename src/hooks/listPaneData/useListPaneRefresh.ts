@@ -30,18 +30,20 @@ import type { IPropertyTreeProvider } from '../../interfaces/IPropertyTreeProvid
 import { ItemType } from '../../types';
 import type { PropertySelectionNodeId } from '../../utils/propertyTree';
 import { createFrontmatterPropertyExclusionMatcher } from '../../utils/fileFilters';
+import { getCachedManualSortGroupHeader } from '../../utils/manualSort';
 
 interface UseListPaneRefreshArgs {
     app: App;
     basePathSet: ReadonlySet<string>;
     commandQueue: CommandQueueService | null;
+    customGroupHeaderFilePaths: ReadonlySet<string>;
     getDB: () => IndexedDBStorage;
     hasManualSortWordCountGroupHeaders: boolean;
     hasTaskSearchFilters: boolean;
     hiddenFilePropertyMatcher: ReturnType<typeof createFrontmatterPropertyExclusionMatcher>;
     hiddenFileTags: string[];
     includeDescendantNotes: boolean;
-    isManualSortActive: boolean;
+    manualSortGroupHeaderPropertyKey: string | null;
     onRefresh: () => void;
     propertyTreeService: IPropertyTreeProvider | null;
     selectedFolder: TFolder | null;
@@ -49,6 +51,7 @@ interface UseListPaneRefreshArgs {
     selectedTag: string | null;
     selectionType: ItemType | null;
     settings: NotebookNavigatorSettings;
+    shouldRefreshOnCustomGroupHeaderMetadataChange: boolean;
     showHiddenItems: boolean;
     sortOption: SortOption;
     propertySortKey: string;
@@ -78,13 +81,14 @@ export function useListPaneRefresh({
     app,
     basePathSet,
     commandQueue,
+    customGroupHeaderFilePaths,
     getDB,
     hasManualSortWordCountGroupHeaders,
     hasTaskSearchFilters,
     hiddenFilePropertyMatcher,
     hiddenFileTags,
     includeDescendantNotes,
-    isManualSortActive,
+    manualSortGroupHeaderPropertyKey,
     onRefresh,
     propertyTreeService,
     selectedFolder,
@@ -92,6 +96,7 @@ export function useListPaneRefresh({
     selectedTag,
     selectionType,
     settings,
+    shouldRefreshOnCustomGroupHeaderMetadataChange,
     showHiddenItems,
     sortOption,
     propertySortKey,
@@ -208,6 +213,17 @@ export function useListPaneRefresh({
                 return;
             }
 
+            if (shouldRefreshOnCustomGroupHeaderMetadataChange && file.extension === 'md' && basePathSet.has(file.path)) {
+                const hadVisibleHeader = customGroupHeaderFilePaths.has(file.path);
+                const hasCurrentHeader =
+                    manualSortGroupHeaderPropertyKey !== null &&
+                    getCachedManualSortGroupHeader(app, file, manualSortGroupHeaderPropertyKey) !== null;
+                if (hadVisibleHeader || hasCurrentHeader) {
+                    queueRefresh();
+                    return;
+                }
+            }
+
             if (hiddenFilePropertyMatcher.hasCriteria && file.extension === 'md') {
                 const db = getDB();
                 const record = db.getFile(file.path);
@@ -274,7 +290,7 @@ export function useListPaneRefresh({
                 shouldRefresh = changes.some(change => change.changes.taskUnfinished !== undefined && basePathSet.has(change.path));
             }
 
-            if (!shouldRefresh && isManualSortActive && hasManualSortWordCountGroupHeaders) {
+            if (!shouldRefresh && hasManualSortWordCountGroupHeaders) {
                 shouldRefresh = changes.some(change => change.changes.wordCount !== undefined && basePathSet.has(change.path));
             }
 
@@ -295,18 +311,20 @@ export function useListPaneRefresh({
         app,
         basePathSet,
         commandQueue,
+        customGroupHeaderFilePaths,
         getDB,
         hasManualSortWordCountGroupHeaders,
         hasTaskSearchFilters,
         hiddenFilePropertyMatcher,
         hiddenFileTags,
         includeDescendantNotes,
-        isManualSortActive,
+        manualSortGroupHeaderPropertyKey,
         propertyTreeService,
         selectedFolder,
         selectedProperty,
         selectedTag,
         selectionType,
+        shouldRefreshOnCustomGroupHeaderMetadataChange,
         settings.frontmatterCreatedField,
         settings.frontmatterModifiedField,
         settings.frontmatterNameField,

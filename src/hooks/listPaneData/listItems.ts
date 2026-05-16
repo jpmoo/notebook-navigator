@@ -151,7 +151,7 @@ export function buildListItems({
     };
     const manualSortCustomHeaderByPath = new Map<string, ManualSortGroupHeaderData | null>();
     const getManualSortCustomHeaderValue = (file: TFile): ManualSortGroupHeaderData | null => {
-        if (!isManualSortActive || !manualSortGroupHeaderPropertyKey || file.extension !== 'md') {
+        if (groupingMode !== 'custom' || !manualSortGroupHeaderPropertyKey || file.extension !== 'md') {
             return null;
         }
 
@@ -306,7 +306,7 @@ export function buildListItems({
 
         const firstSortedFile = sortedFiles[0] ?? null;
         const firstSortedFileHasManualSortCustomHeader =
-            firstSortedFile !== null && getManualSortCustomHeaderValue(firstSortedFile) !== null;
+            groupingMode === 'custom' && firstSortedFile !== null && getManualSortCustomHeaderValue(firstSortedFile) !== null;
         if (pinnedFiles.length > 0 && sortedFiles.length > 0 && !firstSortedFileHasManualSortCustomHeader) {
             const label = fileVisibility === FILE_VISIBILITY.DOCUMENTS ? strings.listPane.notesSection : strings.listPane.filesSection;
             pushHeaderItem({

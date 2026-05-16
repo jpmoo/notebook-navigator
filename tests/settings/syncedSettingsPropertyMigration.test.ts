@@ -104,4 +104,28 @@ describe('migrateLegacySyncedSettings property key migration', () => {
         expect(settings.folderAppearances['Inbox']?.notePropertyType).toBe('none');
         expect(Object.prototype.hasOwnProperty.call(appearanceRecord, 'customPropertyType')).toBe(false);
     });
+
+    it('migrates legacy none grouping to custom groups', () => {
+        const settings = createSettings();
+        const settingsRecord = settings as unknown as Record<string, unknown>;
+        settingsRecord['noteGrouping'] = 'none';
+        settings.folderAppearances = { Inbox: { groupBy: 'date' } };
+        (settings.folderAppearances.Inbox as unknown as Record<string, unknown>)['groupBy'] = 'none';
+        settings.tagAppearances = { '#work': { groupBy: 'date' } };
+        (settings.tagAppearances['#work'] as unknown as Record<string, unknown>)['groupBy'] = 'none';
+        settings.propertyAppearances = { 'key:status': { groupBy: 'date' } };
+        (settings.propertyAppearances['key:status'] as unknown as Record<string, unknown>)['groupBy'] = 'none';
+
+        migrateLegacySyncedSettings({
+            settings,
+            storedData: { noteGrouping: 'none' },
+            keys: STORAGE_KEYS,
+            defaultSettings: DEFAULT_SETTINGS
+        });
+
+        expect(settings.noteGrouping).toBe('custom');
+        expect(settings.folderAppearances.Inbox?.groupBy).toBe('custom');
+        expect(settings.tagAppearances['#work']?.groupBy).toBe('custom');
+        expect(settings.propertyAppearances['key:status']?.groupBy).toBe('custom');
+    });
 });

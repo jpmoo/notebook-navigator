@@ -360,10 +360,33 @@ export function isListDisplayMode(value: unknown): value is ListDisplayMode {
 }
 
 /** Grouping options for list pane notes */
-export type ListNoteGroupingOption = 'none' | 'date' | 'folder';
+export type ListNoteGroupingOption = 'custom' | 'date' | 'folder';
 
 export function isListNoteGroupingOption(value: unknown): value is ListNoteGroupingOption {
-    return value === 'none' || value === 'date' || value === 'folder';
+    return value === 'custom' || value === 'date' || value === 'folder';
+}
+
+export function normalizeListNoteGroupingOption(value: unknown): ListNoteGroupingOption | null {
+    if (value === 'none') {
+        return 'custom';
+    }
+
+    return isListNoteGroupingOption(value) ? value : null;
+}
+
+export interface AppearanceGroupingValue {
+    groupBy?: ListNoteGroupingOption;
+}
+
+export function normalizeAppearanceGroupBy<T extends AppearanceGroupingValue>(appearance: T): void {
+    const appearanceRecord = appearance as unknown as Record<string, unknown>;
+    const groupBy = normalizeListNoteGroupingOption(appearanceRecord.groupBy);
+    if (groupBy) {
+        appearance.groupBy = groupBy;
+        return;
+    }
+
+    delete appearance.groupBy;
 }
 
 /** Date source to display when alphabetical sorting is active */

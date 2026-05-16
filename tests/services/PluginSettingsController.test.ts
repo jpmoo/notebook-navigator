@@ -213,6 +213,41 @@ describe('PluginSettingsController.loadSettings', () => {
         expect((saveData.mock.calls[0][0] as Record<string, unknown>).propertySortKey).toBe(DEFAULT_SETTINGS.propertySortKey);
         expect((saveData.mock.calls[0][0] as Record<string, unknown>).manualSortPropertyKey).toBe(DEFAULT_SETTINGS.manualSortPropertyKey);
     });
+
+    it('persists cleanup when legacy none grouping is migrated', async () => {
+        const saveData = vi.fn().mockResolvedValue(undefined);
+        const statusNodeId = buildPropertyKeyNodeId('status');
+        const controller = new PluginSettingsController({
+            keys: STORAGE_KEYS,
+            loadData: vi.fn(async () => ({
+                noteGrouping: 'none',
+                folderAppearances: {
+                    Inbox: { groupBy: 'none' }
+                },
+                tagAppearances: {
+                    '#work': { groupBy: 'none' }
+                },
+                propertyAppearances: {
+                    [statusNodeId]: { groupBy: 'none' }
+                }
+            })),
+            saveData,
+            mirrorUXPreferences: vi.fn()
+        });
+
+        await controller.loadSettings();
+
+        expect(controller.settings.noteGrouping).toBe('custom');
+        expect(controller.settings.folderAppearances.Inbox?.groupBy).toBe('custom');
+        expect(controller.settings.tagAppearances['#work']?.groupBy).toBe('custom');
+        expect(controller.settings.propertyAppearances[statusNodeId]?.groupBy).toBe('custom');
+        expect(saveData).toHaveBeenCalledTimes(1);
+        const savedSettings = saveData.mock.calls[0][0] as Record<string, unknown>;
+        expect(savedSettings.noteGrouping).toBe('custom');
+        expect((savedSettings.folderAppearances as Record<string, Record<string, unknown>>).Inbox?.groupBy).toBe('custom');
+        expect((savedSettings.tagAppearances as Record<string, Record<string, unknown>>)['#work']?.groupBy).toBe('custom');
+        expect((savedSettings.propertyAppearances as Record<string, Record<string, unknown>>)[statusNodeId]?.groupBy).toBe('custom');
+    });
 });
 
 describe('PluginSettingsController.saveSettings', () => {

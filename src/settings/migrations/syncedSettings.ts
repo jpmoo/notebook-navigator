@@ -23,7 +23,13 @@ import type { FolderAppearance } from '../../hooks/useListPaneAppearance';
 import { localStorage } from '../../utils/localStorage';
 import { cloneShortcuts, createPropertyKeysFromPropertyFields, DEFAULT_VAULT_PROFILE_ID } from '../../utils/vaultProfiles';
 import { ShortcutType, type ShortcutEntry } from '../../types/shortcuts';
-import { isNotePropertyType, isRecentNotesHideMode, isTagSortOrder } from '../types';
+import {
+    isNotePropertyType,
+    isRecentNotesHideMode,
+    isTagSortOrder,
+    normalizeAppearanceGroupBy,
+    normalizeListNoteGroupingOption
+} from '../types';
 import { normalizeCalendarCustomRootFolder } from '../../utils/calendarCustomNotePatterns';
 import { normalizeFolderNoteNamePattern } from '../../utils/folderNoteName';
 import { normalizeOptionalVaultFilePath } from '../../utils/pathUtils';
@@ -108,7 +114,7 @@ export function migrateLegacySyncedSettings(params: {
     // Migrate legacy groupByDate boolean to noteGrouping dropdown
     const legacyGroupByDate = mutableSettings.groupByDate;
     if (typeof legacyGroupByDate === 'boolean' && typeof storedNoteGrouping === 'undefined') {
-        settings.noteGrouping = legacyGroupByDate ? 'date' : 'none';
+        settings.noteGrouping = legacyGroupByDate ? 'date' : 'custom';
     }
     delete mutableSettings.groupByDate;
 
@@ -139,10 +145,18 @@ export function migrateLegacySyncedSettings(params: {
     delete mutableSettings['mobileHomepage'];
     delete mutableSettings['useMobileHomepage'];
 
-    // Validate noteGrouping value and reset to default if invalid
-    if (settings.noteGrouping !== 'none' && settings.noteGrouping !== 'date' && settings.noteGrouping !== 'folder') {
-        settings.noteGrouping = defaultSettings.noteGrouping;
-    }
+    settings.noteGrouping = normalizeListNoteGroupingOption(settings.noteGrouping) ?? defaultSettings.noteGrouping;
+
+    const normalizeAppearanceGrouping = (collection: Record<string, FolderAppearance> | undefined): void => {
+        if (!collection) {
+            return;
+        }
+
+        Object.values(collection).forEach(normalizeAppearanceGroupBy);
+    };
+    normalizeAppearanceGrouping(settings.folderAppearances);
+    normalizeAppearanceGrouping(settings.tagAppearances);
+    normalizeAppearanceGrouping(settings.propertyAppearances);
 
     if (typeof settings.showSelectedNavigationPills !== 'boolean') {
         settings.showSelectedNavigationPills = defaultSettings.showSelectedNavigationPills;

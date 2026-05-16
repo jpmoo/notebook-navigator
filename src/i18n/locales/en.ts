@@ -896,6 +896,7 @@ export const STRINGS_EN = {
             list: {
                 display: 'Appearance',
                 organization: 'Organization',
+                groupHeaders: 'Group headers',
                 propertySort: 'Property sort',
                 manualSort: 'Manual sort',
                 pinnedNotes: 'Pinned notes',
@@ -970,13 +971,23 @@ export const STRINGS_EN = {
                     modified: 'Date edited'
                 }
             },
+            propertySortInstructions: {
+                intro: 'Each property listed above appears as a sort option in the sort menu in the list pane. Selecting one sorts notes by its frontmatter value.'
+            },
             manualSortPropertyKey: {
                 name: 'Manual sort property',
                 desc: 'Frontmatter property used to store numeric index values for manual sort.'
             },
             manualSortGroupHeaderProperty: {
                 name: 'Group header property',
-                desc: 'Frontmatter property used to store custom group header text in manual sort.'
+                desc: 'Frontmatter property used to store custom group headers.'
+            },
+            groupHeadersInstructions: {
+                intro: 'Custom group headers display above notes in the list pane.',
+                items: [
+                    'From the sort menu in the list pane, set grouping to **Custom**.',
+                    'Right-click a note and choose **Set group header** to add a header above it.'
+                ]
             },
             manualSortNewNotePlacement: {
                 name: 'New note placement',
@@ -993,8 +1004,7 @@ export const STRINGS_EN = {
                 items: [
                     'Enable manual sort by choosing **Manual sort** from the sort menu. After that, there are two ways to rearrange notes.',
                     'Pick **Edit sort order...** from the sort menu to open a reorder view. Drag notes with the mouse, or with touch on mobile. On desktop, **Cmd/Ctrl** or **Shift** click selects multiple notes, then dragging any of them moves the whole group.',
-                    'In the list pane, select one note or multi-select several, then press **Cmd/Ctrl + Arrow Up/Down** to move the selection up or down.',
-                    'Right-click a note in the list pane or in **Edit sort order...** and choose **Set group header** to place a custom header above the note.'
+                    'In the list pane, select one note or multi-select several, then press **Cmd/Ctrl + Arrow Up/Down** to move the selection up or down.'
                 ]
             },
             revealFileOnListChanges: {
@@ -1015,11 +1025,11 @@ export const STRINGS_EN = {
             },
             groupNotes: {
                 name: 'Default grouping',
-                desc: 'Choose the default grouping for notes. Tag views use date groups when folder grouping is enabled.',
+                desc: 'Custom shows headers defined in frontmatter. Date groups notes by date. Folder groups notes by folder. Tag and property views use date groups when folder is selected.',
                 options: {
-                    none: "Don't group",
-                    date: 'Group by date',
-                    folder: 'Group by folder'
+                    custom: 'Custom',
+                    date: 'Date',
+                    folder: 'Folder'
                 }
             },
             showSelectedNavigationPills: {

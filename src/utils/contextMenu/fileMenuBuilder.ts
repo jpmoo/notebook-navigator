@@ -41,8 +41,9 @@ import { getFilesForNavigationSelection, getNavigatorPinContext } from '../selec
 import { collectFileMenuPropertyActions, type FileMenuPropertyAction } from '../../utils/propertyMenuActions';
 import { INTERNAL_NOTEBOOK_NAVIGATOR_API } from '../../api/NotebookNavigatorAPI';
 import { getManualSortGroupHeaderPropertyKey } from '../manualSort';
-import { getEffectiveListSort, getSortField, isManualSortPropertyKey } from '../sortUtils';
+import { getEffectiveListSort, isManualSortPropertyKey } from '../sortUtils';
 import { addManualSortGroupHeaderMenuItems } from './manualSortGroupHeaderMenuItems';
+import { resolveEffectiveListGroupingForSort, resolveListGrouping } from '../listGrouping';
 
 type FileStyleTarget = { type: 'folder'; folderPath: string } | { type: 'files'; files: TFile[] };
 
@@ -554,8 +555,20 @@ function addManualSortGroupHeaderAction(params: AddManualSortGroupHeaderActionPa
         selectionState.selectedTag,
         selectionState.selectedProperty
     );
-    const isManualSortActive = getSortField(sortSpec.option) === 'property' && isManualSortPropertyKey(settings, sortSpec.propertyKey);
-    if (!isManualSortActive) {
+    const groupingInfo = resolveListGrouping({
+        settings,
+        selectionType: selectionState.selectionType,
+        folderPath: selectionState.selectedFolder?.path ?? null,
+        tag: selectionState.selectedTag ?? null,
+        propertyNodeId: selectionState.selectedProperty ?? null
+    });
+    const effectiveGrouping = resolveEffectiveListGroupingForSort({
+        groupBy: groupingInfo.effectiveGrouping,
+        sortOption: sortSpec.option,
+        selectionType: selectionState.selectionType,
+        isManualSortActive: isManualSortPropertyKey(settings, sortSpec.propertyKey)
+    });
+    if (effectiveGrouping !== 'custom') {
         return false;
     }
 

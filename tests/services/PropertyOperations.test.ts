@@ -222,7 +222,7 @@ describe('PropertyOperations settings updates', () => {
         };
         settings.propertyAppearances = {
             [deletedKeyNodeId]: { groupBy: 'date' },
-            [keptKeyNodeId]: { groupBy: 'none' }
+            [keptKeyNodeId]: { groupBy: 'custom' }
         };
         settings.propertyTreeSortOverrides = {
             [deletedKeyNodeId]: 'alpha-desc',
@@ -245,7 +245,7 @@ describe('PropertyOperations settings updates', () => {
             [keptKeyNodeId]: 'title-desc'
         });
         expect(settings.propertyAppearances).toEqual({
-            [keptKeyNodeId]: { groupBy: 'none' }
+            [keptKeyNodeId]: { groupBy: 'custom' }
         });
         expect(settings.propertyTreeSortOverrides).toEqual({
             [keptKeyNodeId]: 'alpha-asc'

@@ -181,7 +181,7 @@ describe('buildListItems pinned display scope', () => {
             getFileTimestamps: () => ({ created: 0, modified: 0 }),
             hiddenFileState: new Map(),
             hiddenTags: [],
-            listConfig: { ...createListConfig({}), groupBy: 'none' },
+            listConfig: { ...createListConfig({}), groupBy: 'custom' },
             searchMetaMap: new Map(),
             selectedFolder: null,
             selectionType: ItemType.FOLDER,
@@ -245,7 +245,7 @@ describe('buildListItems pinned display scope', () => {
                 ...createListConfig({
                     [pinnedFile.path]: { folder: true, tag: false, property: false }
                 }),
-                groupBy: 'none'
+                groupBy: 'custom'
             },
             searchMetaMap: new Map(),
             selectedFolder: null,
@@ -306,7 +306,7 @@ describe('buildListItems pinned display scope', () => {
             getFileTimestamps: () => ({ created: 0, modified: 0 }),
             hiddenFileState: new Map(),
             hiddenTags: [],
-            listConfig: { ...createListConfig({}), groupBy: 'none' },
+            listConfig: { ...createListConfig({}), groupBy: 'custom' },
             searchMetaMap: new Map(),
             selectedFolder: null,
             selectionType: ItemType.FOLDER,
@@ -350,7 +350,7 @@ describe('buildListItems pinned display scope', () => {
             getFileTimestamps: () => ({ created: 0, modified: 0 }),
             hiddenFileState: new Map(),
             hiddenTags: [],
-            listConfig: { ...createListConfig({}), groupBy: 'none' },
+            listConfig: { ...createListConfig({}), groupBy: 'custom' },
             searchMetaMap: new Map(),
             selectedFolder: null,
             selectionType: ItemType.FOLDER,
@@ -385,7 +385,7 @@ describe('buildListItems pinned display scope', () => {
             getFileTimestamps: () => ({ created: 0, modified: 0 }),
             hiddenFileState: new Map(),
             hiddenTags: [],
-            listConfig: { ...createListConfig({}), groupBy: 'none' },
+            listConfig: { ...createListConfig({}), groupBy: 'custom' },
             searchMetaMap: new Map(),
             selectedFolder: null,
             selectionType: ItemType.FOLDER,
@@ -537,9 +537,9 @@ describe('buildListItems pinned display scope', () => {
                 ...createListConfig({
                     [pinnedFile.path]: { folder: true, tag: false, property: false }
                 }),
-                groupBy: 'none'
+                groupBy: 'custom'
             },
-            collapsedListGroups: new Set([createCollapseKey('none', 'section:notes')]),
+            collapsedListGroups: new Set([createCollapseKey('custom', 'section:notes')]),
             searchMetaMap: new Map(),
             selectedFolder: null,
             selectionType: ItemType.FOLDER,
@@ -581,8 +581,8 @@ describe('buildListItems pinned display scope', () => {
             getFileTimestamps: () => ({ created: 0, modified: 0 }),
             hiddenFileState: new Map(),
             hiddenTags: [],
-            listConfig: { ...createListConfig({}), groupBy: 'none' },
-            collapsedListGroups: new Set([createCollapseKey('none', 'section:unsorted')]),
+            listConfig: { ...createListConfig({}), groupBy: 'custom' },
+            collapsedListGroups: new Set([createCollapseKey('custom', 'section:unsorted')]),
             searchMetaMap: new Map(),
             selectedFolder: null,
             selectionType: ItemType.FOLDER,
@@ -626,7 +626,7 @@ describe('buildListItems pinned display scope', () => {
                 ...createListConfig({
                     [pinnedFile.path]: { folder: true, tag: false, property: false }
                 }),
-                groupBy: 'none'
+                groupBy: 'custom'
             },
             searchMetaMap: new Map(),
             selectedFolder: null,
@@ -679,7 +679,7 @@ describe('buildListItems pinned display scope', () => {
                 ...createListConfig({
                     [pinnedFile.path]: { folder: true, tag: false, property: false }
                 }),
-                groupBy: 'none'
+                groupBy: 'custom'
             },
             searchMetaMap: new Map(),
             selectedFolder: null,
@@ -762,8 +762,8 @@ describe('buildListItems pinned display scope', () => {
             getFileTimestamps: () => ({ created: 0, modified: 0 }),
             hiddenFileState: new Map(),
             hiddenTags: [],
-            listConfig: { ...createListConfig({}), groupBy: 'none' },
-            collapsedListGroups: new Set([createCollapseKey('none', `manual-sort-custom:${groupedFile.path}`)]),
+            listConfig: { ...createListConfig({}), groupBy: 'custom' },
+            collapsedListGroups: new Set([createCollapseKey('custom', `manual-sort-custom:${groupedFile.path}`)]),
             searchMetaMap: new Map(),
             selectedFolder: createFolder('/'),
             selectionType: ItemType.FOLDER,
@@ -956,7 +956,7 @@ describe('buildListItems pinned display scope', () => {
                 ...createListConfig({
                     [pinnedFile.path]: { folder: true, tag: false, property: false }
                 }),
-                groupBy: 'none',
+                groupBy: 'custom',
                 pinnedGroupExpanded: false
             },
             searchMetaMap: new Map(),
