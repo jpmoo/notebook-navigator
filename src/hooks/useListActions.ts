@@ -58,6 +58,7 @@ import {
     hasCachedManualSortProperty,
     isValidManualSortPropertyKey,
     orderManualSortFiles,
+    removeManualSortProperty,
     writeManualSortOrder,
     type ManualSortNewFilePlacementContext
 } from '../utils/manualSort';
@@ -898,6 +899,36 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
         ]
     );
 
+    const getManualSortPropertyRemovalFiles = useCallback((): TFile[] => {
+        const baselineSettings = getManualSortBaselineSettings(settings);
+
+        return getFilesForNavigationSelection(
+            {
+                selectionType: selectionState.selectionType,
+                selectedFolder: selectionState.selectedFolder,
+                selectedTag: selectionState.selectedTag,
+                selectedProperty: selectionState.selectedProperty
+            },
+            baselineSettings,
+            { includeDescendantNotes, showHiddenItems },
+            app,
+            tagTreeService,
+            propertyTreeService,
+            { orderResults: false }
+        );
+    }, [
+        app,
+        includeDescendantNotes,
+        propertyTreeService,
+        selectionState.selectedFolder,
+        selectionState.selectedProperty,
+        selectionState.selectedTag,
+        selectionState.selectionType,
+        settings,
+        showHiddenItems,
+        tagTreeService
+    ]);
+
     const applyManualSortForProperty = useCallback(
         async (propertyKey: string, target: SelectionSortTarget) => {
             await updateSettings(current => {
@@ -954,6 +985,55 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
             }
         },
         [app]
+    );
+
+    const removeManualSortPropertyFromFiles = useCallback(
+        async (files: readonly TFile[], propertyKey: string): Promise<void> => {
+            try {
+                const result = await removeManualSortProperty(app, files, propertyKey);
+                if (result.updated > 0) {
+                    const message =
+                        result.updated === 1
+                            ? strings.fileSystem.notifications.manualSortPropertyRemovedFromNote
+                            : strings.fileSystem.notifications.manualSortPropertyRemovedFromNotes.replace(
+                                  '{count}',
+                                  result.updated.toString()
+                              );
+                    showNotice(message, { variant: 'success' });
+                }
+                if (result.failed > 0) {
+                    showNotice(
+                        strings.dragDrop.errors.failedToSetProperty.replace('{error}', getLocalizedManualSortWriteFailureMessage(result)),
+                        { variant: 'warning' }
+                    );
+                }
+            } catch (error) {
+                showNotice(
+                    strings.dragDrop.errors.failedToSetProperty.replace('{error}', getErrorMessage(error, strings.common.unknownError)),
+                    { variant: 'warning' }
+                );
+            }
+        },
+        [app]
+    );
+
+    const promptRemoveManualSortProperty = useCallback(
+        (propertyKey: string, files: readonly TFile[], affectedCount: number) => {
+            if (!isValidManualSortPropertyKey(propertyKey) || affectedCount === 0) {
+                return;
+            }
+
+            new ConfirmModal(
+                app,
+                strings.modals.manualSortConfirm.removePropertyTitle,
+                strings.modals.manualSortConfirm.removePropertyMessage(propertyKey, affectedCount),
+                async () => {
+                    await removeManualSortPropertyFromFiles(files, propertyKey);
+                },
+                strings.modals.manualSortConfirm.removePropertyConfirmButton
+            ).open();
+        },
+        [app, removeManualSortPropertyFromFiles]
     );
 
     const applyManualSortMode = useCallback(async () => {
@@ -1423,6 +1503,10 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
                 propertyKey => !isManualSortPropertyKey(settings, propertyKey)
             );
             const hasManualSortPropertyKey = isValidManualSortPropertyKey(manualSortPropertyKey);
+            const manualSortPropertyFiles = hasManualSortPropertyKey && selectionSortTarget ? getManualSortPropertyRemovalFiles() : [];
+            const manualSortPropertyCount = hasManualSortPropertyKey
+                ? countMarkdownFilesWithManualSortProperty(app, manualSortPropertyFiles, manualSortPropertyKey)
+                : 0;
             const isPropertySortActive = currentField === 'property';
             const isManualSortActive = isPropertySortActive && isManualSortPropertyKey(settings, currentSortSpec.propertyKey);
             const sortFieldLabels: Record<SortField, string> = {
@@ -1540,6 +1624,18 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
                     });
             });
 
+            menu.addItem(item => {
+                item.setTitle(strings.paneHeader.removeSortProperty)
+                    .setIcon('lucide-eraser')
+                    .setDisabled(manualSortPropertyCount === 0)
+                    .onClick(() => {
+                        if (manualSortPropertyCount === 0) {
+                            return;
+                        }
+                        promptRemoveManualSortProperty(manualSortPropertyKey, manualSortPropertyFiles, manualSortPropertyCount);
+                    });
+            });
+
             menu.addSeparator();
 
             (['asc', 'desc'] as const).forEach(direction => {
@@ -1646,13 +1742,16 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
             app,
             applyManualSortMode,
             getDescendantSortAndGroupChangeStats,
+            getManualSortPropertyRemovalFiles,
             groupingInfo.defaultGrouping,
             groupingInfo.effectiveGrouping,
             openDefaultListSettings,
             promptApplySortAndGroupToDescendants,
+            promptRemoveManualSortProperty,
             removeSelectionSortOverride,
             resolvePropertySortIcon,
             selectionDescendantLabel,
+            selectionSortTarget,
             selectionSortOverride,
             selectionState.selectionType,
             setSelectionGroupOverride,

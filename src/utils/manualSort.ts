@@ -898,6 +898,56 @@ export async function writeManualSortOrder(app: App, files: readonly TFile[], pr
     return writeManualSortAssignments(app, files, propertyKey, buildManualSortOrderAssignments(files));
 }
 
+export async function removeManualSortProperty(app: App, files: readonly TFile[], propertyKey: string): Promise<ManualSortWriteResult> {
+    const normalizedPropertyKey = normalizeManualSortPropertyKey(propertyKey);
+    const targetKey = casefold(normalizedPropertyKey);
+    if (!targetKey) {
+        return { updated: 0, skipped: 0, failed: 0, failures: [] };
+    }
+
+    let updated = 0;
+    let skipped = 0;
+    const failures: ManualSortWriteFailure[] = [];
+
+    for (const file of files) {
+        if (file.extension !== 'md') {
+            continue;
+        }
+
+        if (!hasCachedManualSortProperty(app, file, normalizedPropertyKey)) {
+            skipped += 1;
+            continue;
+        }
+
+        let didChange = false;
+        try {
+            await app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
+                Object.keys(frontmatter).forEach(key => {
+                    if (casefold(key) !== targetKey) {
+                        return;
+                    }
+                    delete frontmatter[key];
+                    didChange = true;
+                });
+            });
+        } catch (error) {
+            failures.push({
+                path: file.path,
+                message: getErrorMessage(error)
+            });
+            continue;
+        }
+
+        if (didChange) {
+            updated += 1;
+        } else {
+            skipped += 1;
+        }
+    }
+
+    return { updated, skipped, failed: failures.length, failures };
+}
+
 function normalizeManualSortGroupHeaderWriteValue(value: string | ManualSortGroupHeaderWriteValue): ManualSortGroupHeaderData | null {
     if (typeof value === 'string') {
         const title = value.trim();

@@ -38,6 +38,7 @@ import {
     partitionManualSortFiles,
     parseManualSortGroupHeaderTargetWordCount,
     parseManualSortRank,
+    removeManualSortProperty,
     writeManualSortGroupHeader,
     writeManualSortAssignments,
     writeManualSortOrder
@@ -630,6 +631,50 @@ describe('manual sort helpers', () => {
         expect(processFrontMatter).toHaveBeenCalledTimes(1);
         expect(first.frontmatter).toEqual({ index: 'old' });
         expect(second.frontmatter).toEqual({ index: 1500 });
+    });
+
+    it('removes manual sort properties while preserving unrelated frontmatter', async () => {
+        const first = createFile('notes/first.md', { Index: 1000, title: 'First' });
+        const second = createFile('notes/second.md', { index: 2000 });
+        const third = createFile('notes/third.md', { status: 'todo' });
+        const nonMarkdown = createFile('assets/file.pdf', { index: 3000 });
+        const processFrontMatter = vi.fn(async (file: TFile, callback: (frontmatter: Record<string, unknown>) => void) => {
+            callback((file as TFile & { frontmatter: Record<string, unknown> }).frontmatter);
+        });
+        const app = createApp([first, second, third, nonMarkdown], processFrontMatter);
+
+        const result = await removeManualSortProperty(app, [first, second, third, nonMarkdown], 'index');
+
+        expect(result).toEqual({ updated: 2, skipped: 1, failed: 0, failures: [] });
+        expect(processFrontMatter).toHaveBeenCalledTimes(2);
+        expect(first.frontmatter).toEqual({ title: 'First' });
+        expect(second.frontmatter).toEqual({});
+        expect(third.frontmatter).toEqual({ status: 'todo' });
+        expect(nonMarkdown.frontmatter).toEqual({ index: 3000 });
+    });
+
+    it('records manual sort property removal failures and continues', async () => {
+        const first = createFile('notes/first.md', { index: 1000 });
+        const second = createFile('notes/second.md', { index: 2000 });
+        const processFrontMatter = vi.fn(async (file: TFile, callback: (frontmatter: Record<string, unknown>) => void) => {
+            if (file.path === first.path) {
+                throw new Error('YAML parse failed');
+            }
+            callback((file as TFile & { frontmatter: Record<string, unknown> }).frontmatter);
+        });
+        const app = createApp([first, second], processFrontMatter);
+
+        const result = await removeManualSortProperty(app, [first, second], 'index');
+
+        expect(result).toEqual({
+            updated: 1,
+            skipped: 0,
+            failed: 1,
+            failures: [{ path: 'notes/first.md', message: 'YAML parse failed' }]
+        });
+        expect(processFrontMatter).toHaveBeenCalledTimes(2);
+        expect(first.frontmatter).toEqual({ index: 1000 });
+        expect(second.frontmatter).toEqual({});
     });
 
     it('writes and clears manual sort group headers as strings', async () => {

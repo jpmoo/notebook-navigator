@@ -142,6 +142,7 @@ export const STRINGS_EN = {
         defaultSort: 'Default', // Label for default sorting mode (English: Default)
         manualSort: 'Manual sort',
         editSortOrder: 'Edit sort order...',
+        removeSortProperty: 'Remove sort property',
         descendants: 'descendants',
         subfolders: 'subfolders',
         subtags: 'subtags',
@@ -407,6 +408,10 @@ export const STRINGS_EN = {
             propertySortMessage: (property: string, count: number) =>
                 `This switches the current view to manual sort using "${property}". Editing the order writes numeric index values to that property in ${count} ${count === 1 ? 'note' : 'notes'} as needed.`,
             propertySortConfirmButton: 'Use manual sort',
+            removePropertyTitle: 'Remove sort property?',
+            removePropertyMessage: (property: string, count: number) =>
+                `This removes "${property}" from ${count} ${count === 1 ? 'note' : 'notes'} in the current list. Manual sort order will be cleared for those notes.`,
+            removePropertyConfirmButton: 'Remove property',
             compactTitle: 'Compact index values?',
             compactMessage: (count: number) =>
                 `This reorder needs more numeric space. ${count} ${count === 1 ? 'note' : 'notes'} will receive new index values.`,
@@ -734,6 +739,8 @@ export const STRINGS_EN = {
             propertiesRequireMarkdown: 'Properties are only supported on Markdown notes',
             propertySetOnNote: 'Updated property on 1 note',
             propertySetOnNotes: 'Updated property on {count} notes',
+            manualSortPropertyRemovedFromNote: 'Removed sort property from 1 note',
+            manualSortPropertyRemovedFromNotes: 'Removed sort property from {count} notes',
             iconPackDownloaded: '{provider} downloaded',
             iconPackUpdated: '{provider} updated ({version})',
             iconPackRemoved: '{provider} removed',
