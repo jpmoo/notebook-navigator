@@ -551,7 +551,6 @@ export function ListPaneVirtualContent({
     const firstVisibleItem =
         stickyOffset !== null && listItems.length > 0 ? rowVirtualizer.getVirtualItemForOffset(stickyOffset) : undefined;
     const stickyHeader = stickyGroupHeaders ? findActiveHeaderModel(headerModels, firstVisibleItem?.index ?? null) : null;
-    const shouldHideStickyHeaderSeparator = shouldHideCollapsedHeaderSeparator(stickyHeader);
 
     return (
         <div
@@ -568,7 +567,7 @@ export function ListPaneVirtualContent({
             onMouseLeave={handleListMouseLeave}
         >
             {stickyHeader ? (
-                <div className={`nn-list-sticky-header ${shouldHideStickyHeaderSeparator ? 'nn-hide-list-group-header-separator' : ''}`}>
+                <div className="nn-list-sticky-header">
                     <ListPaneGroupHeader
                         header={stickyHeader}
                         collapseChevronIcons={collapseChevronIcons}
