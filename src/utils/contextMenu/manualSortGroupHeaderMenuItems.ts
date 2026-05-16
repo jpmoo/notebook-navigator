@@ -72,7 +72,7 @@ function addGroupHeaderEditorItem(
     currentValue: ManualSortGroupHeaderData | null
 ): void {
     menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(item.setTitle(title).setIcon('lucide-heading'), async () => {
+        setAsyncOnClick(item.setTitle(title).setIcon('lucide-pencil'), async () => {
             const { ManualSortGroupHeaderModal } = await import('../../modals/ManualSortGroupHeaderModal');
             const modal = new ManualSortGroupHeaderModal(
                 app,
