@@ -24,6 +24,7 @@ import { isFolderShortcut } from '../../types/shortcuts';
 import type { FileContentChange } from '../../storage/IndexedDBStorage';
 import { normalizeCanonicalIconId } from '../../utils/iconizeFormat';
 import { getParentFolderPath } from '../../utils/pathUtils';
+import { createShortcutTargetPathEventMatcher } from '../../utils/shortcutPathResolver';
 import {
     cleanupCollapsedPinnedContextKeys,
     deleteCollapsedPinnedContextKeys,
@@ -716,6 +717,7 @@ export class FolderMetadataService extends BaseMetadataService {
 
     async handleFolderRename(oldPath: string, newPath: string, extraMutation?: SettingsMutation): Promise<void> {
         this.folderDisplayCache.clear();
+        const matchesShortcutPath = createShortcutTargetPathEventMatcher(this.app, 'folder', oldPath, newPath);
         await this.saveAndUpdate(settings => {
             let changed = false;
 
@@ -731,7 +733,7 @@ export class FolderMetadataService extends BaseMetadataService {
                 }) || changed;
 
             const shortcutsChanged = this.updateShortcuts(settings, shortcut => {
-                if (!isFolderShortcut(shortcut) || shortcut.path !== oldPath) {
+                if (!isFolderShortcut(shortcut) || !matchesShortcutPath(shortcut.path)) {
                     return undefined;
                 }
 
@@ -752,6 +754,7 @@ export class FolderMetadataService extends BaseMetadataService {
 
     async handleFolderDelete(folderPath: string, extraMutation?: SettingsMutation): Promise<void> {
         this.folderDisplayCache.clear();
+        const matchesShortcutPath = createShortcutTargetPathEventMatcher(this.app, 'folder', folderPath);
         await this.saveAndUpdate(settings => {
             let changed = false;
 
@@ -770,7 +773,7 @@ export class FolderMetadataService extends BaseMetadataService {
                 if (!isFolderShortcut(shortcut)) {
                     return undefined;
                 }
-                return shortcut.path === folderPath ? null : undefined;
+                return matchesShortcutPath(shortcut.path) ? null : undefined;
             });
             changed = shortcutsChanged || changed;
 

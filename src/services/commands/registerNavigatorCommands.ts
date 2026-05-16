@@ -67,6 +67,7 @@ import { isNoteShortcut, type ShortcutEntry } from '../../types/shortcuts';
 import { getTemplaterCreateNewNoteFromTemplate } from '../../utils/templaterIntegration';
 import { getLeafSplitLocation } from '../../utils/workspaceSplit';
 import { openFileInContext } from '../../utils/openFileInContext';
+import { resolveNoteShortcutTarget } from '../../utils/shortcutPathResolver';
 import {
     canRestorePropertySelectionNodeId,
     isPropertySelectionNodeIdConfigured,
@@ -1450,8 +1451,8 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
         }
 
         const { app } = plugin;
-        const target = app.vault.getAbstractFileByPath(shortcut.path);
-        if (!(target instanceof TFile)) {
+        const target = resolveNoteShortcutTarget(app, shortcut.path);
+        if (!target) {
             return false;
         }
 

@@ -100,6 +100,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
         ],
         fixed: [
             '**Commands.** When **Notebook Navigator: Delete files** was called and the navigation pane was last focused, it could delete the selected folder. It now only deletes selected files.',
+            '**Shortcuts.** Folder and note shortcuts no longer break when synced between devices with different path case sensitivity, for example **appLab/SKILLS-WORKFLOWS** vs **applab/skills-workflows**.',
             '**List pane.** Fixed extra spacing in feature image rows when dates are hidden and tags or properties are visible.',
             '**List pane.** Removed tiny hairline gap above the sticky group header showing on some scaling modes.'
         ]

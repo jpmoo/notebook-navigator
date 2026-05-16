@@ -341,9 +341,7 @@ export function renderListPaneTab(context: SettingsTabContext): void {
                     text.inputEl.blur();
                 });
 
-                return text
-                    .setPlaceholder(DEFAULT_SETTINGS.manualSortPropertyKey)
-                    .setValue(plugin.settings.manualSortPropertyKey);
+                return text.setPlaceholder(DEFAULT_SETTINGS.manualSortPropertyKey).setValue(plugin.settings.manualSortPropertyKey);
             });
     });
 
