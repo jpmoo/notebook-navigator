@@ -578,6 +578,7 @@ export interface NotebookNavigatorSettings {
     manualSortPropertyKey: string;
     manualSortGroupHeaderProperty: string;
     manualSortNewNotePlacement: ManualSortNewNotePlacement;
+    confirmBeforeManualSort: boolean;
     revealFileOnListChanges: boolean;
     listPaneTitle: ListPaneTitleOption;
     noteGrouping: ListNoteGroupingOption;

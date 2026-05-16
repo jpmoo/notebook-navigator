@@ -999,6 +999,10 @@ export const STRINGS_EN = {
                     unsorted: 'Unsorted'
                 }
             },
+            confirmBeforeManualSort: {
+                name: 'Confirm before manual sort',
+                desc: 'Show a confirmation dialog before switching the current list to manual sort.'
+            },
             manualSortInstructions: {
                 intro: 'Manual sort writes a numeric index value to a frontmatter property on each note. Notes without an index appear under Unsorted.',
                 items: [

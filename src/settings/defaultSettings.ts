@@ -290,6 +290,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     manualSortPropertyKey: 'sortIndex',
     manualSortGroupHeaderProperty: 'groupHeader',
     manualSortNewNotePlacement: 'below-selected-note',
+    confirmBeforeManualSort: true,
     revealFileOnListChanges: true,
     listPaneTitle: 'header',
     noteGrouping: 'date',

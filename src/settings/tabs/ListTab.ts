@@ -422,6 +422,16 @@ export function renderListPaneTab(context: SettingsTabContext): void {
             });
     });
 
+    addToggleSetting(
+        manualSortGroup.addSetting,
+        strings.settings.items.confirmBeforeManualSort.name,
+        strings.settings.items.confirmBeforeManualSort.desc,
+        () => plugin.settings.confirmBeforeManualSort,
+        value => {
+            plugin.settings.confirmBeforeManualSort = value;
+        }
+    );
+
     addInfoSetting(manualSortGroup.addSetting, ['nn-setting-info-container', 'nn-setting-info-list'], descEl => {
         const info = strings.settings.items.manualSortInstructions;
         descEl.createDiv({ text: info.intro });

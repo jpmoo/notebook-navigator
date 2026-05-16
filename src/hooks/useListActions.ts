@@ -981,7 +981,7 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
             }
         };
 
-        if (!isCurrentManualSort) {
+        if (!isCurrentManualSort && settings.confirmBeforeManualSort) {
             openManualSortConfirm(normalizedPropertyKey, markdownCount, applyManualSort);
             return;
         }
