@@ -302,8 +302,8 @@ export const STRINGS_DE = {
             changeManualSortGroupHeader: 'Gruppenüberschrift ändern',
             manualSortGroupHeader: {
                 title: 'Gruppenüberschrift',
-                copyStyle: 'Kopfzeilenstil kopieren',
-                pasteStyle: 'Kopfzeilenstil einfügen',
+                copyStyle: 'Stil der Gruppenüberschrift kopieren',
+                pasteStyle: 'Stil der Gruppenüberschrift einfügen',
                 remove: 'Gruppenüberschrift entfernen'
             },
             addTag: 'Tag hinzufügen',
