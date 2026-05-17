@@ -4794,7 +4794,7 @@ button.nn-list-group-header-collapse-button {
     flex: 0 0 auto;
     width: var(--nn-list-group-header-height-mobile, var(--nn-list-group-header-height));
     height: var(--nn-list-group-header-height-mobile, var(--nn-list-group-header-height));
-    margin-inline-start: -6px;
+    margin-inline-start: auto;
     margin-inline-end: -6px;
     padding: 0;
     border: 0;
