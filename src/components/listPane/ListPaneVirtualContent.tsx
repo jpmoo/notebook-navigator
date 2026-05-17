@@ -196,14 +196,10 @@ function shouldHideCollapsedHeaderSeparator(header: HeaderRenderModel | null): b
     return header?.isCollapsed === true;
 }
 
-function hasManualSortGoalHeader(header: HeaderRenderModel | null): boolean {
+function shouldHideManualSortGoalHeaderSeparator(header: HeaderRenderModel | null): boolean {
     return header?.manualSortHeader
         ? shouldShowManualSortGroupHeaderProgress(header.manualSortHeader, header.manualSortHeaderTargetWordCount)
         : false;
-}
-
-function shouldHideManualSortGoalHeaderSeparator(header: HeaderRenderModel | null): boolean {
-    return hasManualSortGoalHeader(header);
 }
 
 function ListPaneGroupHeader({
@@ -601,9 +597,6 @@ export function ListPaneVirtualContent({
     const firstVisibleItem =
         stickyOffset !== null && listItems.length > 0 ? rowVirtualizer.getVirtualItemForOffset(stickyOffset) : undefined;
     const stickyHeader = stickyGroupHeaders ? findActiveHeaderModel(headerModels, firstVisibleItem?.index ?? null) : null;
-    const stickyHeaderClassName = hasManualSortGoalHeader(stickyHeader)
-        ? 'nn-list-sticky-header nn-list-sticky-header--manual-sort-goal'
-        : 'nn-list-sticky-header';
 
     return (
         <div
@@ -620,7 +613,7 @@ export function ListPaneVirtualContent({
             onMouseLeave={handleListMouseLeave}
         >
             {stickyHeader ? (
-                <div className={stickyHeaderClassName}>
+                <div className="nn-list-sticky-header">
                     <ListPaneGroupHeader
                         header={stickyHeader}
                         collapseChevronIcons={collapseChevronIcons}
