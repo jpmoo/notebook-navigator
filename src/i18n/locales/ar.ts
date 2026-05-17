@@ -1655,8 +1655,7 @@ export const STRINGS_AR = {
             },
             wordCountTargetProperty: {
                 name: 'خاصية الهدف',
-                desc: 'مفتاح خاصية الواجهة الأمامية الذي يحتوي على عدد الكلمات المستهدف. اتركه فارغاً لإخفاء الأهداف.',
-                placeholder: 'wordCountTarget'
+                desc: 'مفتاح خاصية الواجهة الأمامية الذي يحتوي على عدد الكلمات المستهدف. اتركه فارغاً لإخفاء الأهداف.'
             },
             showWordCountPercentage: {
                 name: 'إظهار نسبة الهدف',

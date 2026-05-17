@@ -813,7 +813,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
         wordCountSettingsEl,
         strings.settings.items.wordCountTargetProperty.name,
         strings.settings.items.wordCountTargetProperty.desc,
-        strings.settings.items.wordCountTargetProperty.placeholder,
+        DEFAULT_SETTINGS.wordCountTargetProperty,
         () => plugin.settings.wordCountTargetProperty,
         value => {
             plugin.settings.wordCountTargetProperty = value.trim();

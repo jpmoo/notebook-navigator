@@ -1645,8 +1645,7 @@ export const STRINGS_ZH_CN = {
             },
             wordCountTargetProperty: {
                 name: '目标属性',
-                desc: '包含目标字数的前置元数据属性键。留空可隐藏目标。',
-                placeholder: 'wordCountTarget'
+                desc: '包含目标字数的前置元数据属性键。留空可隐藏目标。'
             },
             showWordCountPercentage: {
                 name: '显示目标百分比',

@@ -1657,8 +1657,7 @@ export const STRINGS_KO = {
             },
             wordCountTargetProperty: {
                 name: '대상 속성',
-                desc: '목표 단어 수가 들어 있는 프런트매터 속성 키입니다. 대상을 숨기려면 비워 두세요.',
-                placeholder: 'wordCountTarget'
+                desc: '목표 단어 수가 들어 있는 프런트매터 속성 키입니다. 대상을 숨기려면 비워 두세요.'
             },
             showWordCountPercentage: {
                 name: '대상 백분율 표시',

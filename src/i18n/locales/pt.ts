@@ -1662,8 +1662,7 @@ export const STRINGS_PT = {
             },
             wordCountTargetProperty: {
                 name: 'Propriedade de destino',
-                desc: 'Chave da propriedade frontmatter que contém a contagem de palavras de destino. Deixe em branco para ocultar destinos.',
-                placeholder: 'wordCountTarget'
+                desc: 'Chave da propriedade frontmatter que contém a contagem de palavras de destino. Deixe em branco para ocultar destinos.'
             },
             showWordCountPercentage: {
                 name: 'Mostrar percentagem de destino',

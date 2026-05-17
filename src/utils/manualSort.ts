@@ -421,8 +421,8 @@ function parseManualSortGroupHeaderValue(value: unknown): ManualSortGroupHeaderD
 
         return {
             title,
-            showWordCount: value.showWordCount === true,
-            targetWordCount: parseManualSortGroupHeaderTargetWordCount(value.targetWordCount),
+            showWordCount: value.show_word_count === true,
+            targetWordCount: parseManualSortGroupHeaderTargetWordCount(value.target_word_count),
             iconId: parseManualSortGroupHeaderIcon(value.icon),
             color: parseManualSortGroupHeaderColor(value.color)
         };
@@ -1045,10 +1045,10 @@ function serializeManualSortGroupHeaderValue(header: ManualSortGroupHeaderData):
 
     const serialized: Record<string, unknown> = {
         title: header.title,
-        showWordCount: header.showWordCount
+        show_word_count: header.showWordCount
     };
     if (header.targetWordCount !== null) {
-        serialized.targetWordCount = header.targetWordCount;
+        serialized.target_word_count = header.targetWordCount;
     }
     if (serializedIcon) {
         serialized.icon = serializedIcon;

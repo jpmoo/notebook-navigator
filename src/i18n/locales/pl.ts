@@ -1664,8 +1664,7 @@ export const STRINGS_PL = {
             },
             wordCountTargetProperty: {
                 name: 'Właściwość celu',
-                desc: 'Klucz właściwości frontmatter zawierający docelową liczbę słów. Pozostaw puste, aby ukryć cele.',
-                placeholder: 'wordCountTarget'
+                desc: 'Klucz właściwości frontmatter zawierający docelową liczbę słów. Pozostaw puste, aby ukryć cele.'
             },
             showWordCountPercentage: {
                 name: 'Pokaż procent celu',

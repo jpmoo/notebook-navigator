@@ -216,13 +216,13 @@ describe('buildListItems pinned display scope', () => {
         app.metadataCache.getFileCache = (file: TFile) => ({
             frontmatter:
                 file.path === pinnedFile.path
-                    ? { index: 1000, GroupHeader: 'Pinned header' }
+                    ? { index: 1000, Group_Header: 'Pinned header' }
                     : file.path === rankedHeaderFile.path
-                      ? { index: 2000, groupHeader: 'Ranked header' }
+                      ? { index: 2000, group_header: 'Ranked header' }
                       : file.path === rankedPlainFile.path
                         ? { index: 3000 }
                         : file.path === unsortedHeaderFile.path
-                          ? { groupHeader: 'Unsorted header' }
+                          ? { group_header: 'Unsorted header' }
                           : {}
         });
         const db = createDb({
@@ -254,7 +254,7 @@ describe('buildListItems pinned display scope', () => {
             sortOption: 'property-asc',
             propertySortKey: 'index',
             isManualSortActive: true,
-            manualSortGroupHeaderPropertyKey: 'groupHeader'
+            manualSortGroupHeaderPropertyKey: 'group_header'
         });
 
         expect(getHeaderItems(items)).toEqual([
@@ -281,23 +281,23 @@ describe('buildListItems pinned display scope', () => {
         app.metadataCache.getFileCache = (file: TFile) => ({
             frontmatter:
                 file.path === firstFile.path
-                    ? { index: 1000, groupHeader: { title: 'Part 1', showWordCount: true } }
+                    ? { index: 1000, group_header: { title: 'Part 1', show_word_count: true } }
                     : file.path === secondFile.path
-                      ? { index: 2000, wordCountTarget: 2000 }
+                      ? { index: 2000, 'word-goal': 2000 }
                       : file.path === targetFile.path
                         ? {
                               index: 3000,
-                              wordCountTarget: 9999,
-                              groupHeader: { title: 'Part 2', showWordCount: true, targetWordCount: 10000 }
+                              'word-goal': 9999,
+                              group_header: { title: 'Part 2', show_word_count: true, target_word_count: 10000 }
                           }
                         : file.path === hiddenTargetFile.path
-                          ? { index: 4000, groupHeader: { title: 'Part 3', showWordCount: false, targetWordCount: 5000 } }
+                          ? { index: 4000, group_header: { title: 'Part 3', show_word_count: false, target_word_count: 5000 } }
                           : {}
         });
         const db = createDb({
             [firstFile.path]: {
                 tags: null,
-                properties: [{ fieldKey: 'wordCountTarget', value: '1,000', valueKind: 'string' }],
+                properties: [{ fieldKey: 'word-goal', value: '1,000', valueKind: 'string' }],
                 wordCount: 1000
             },
             [secondFile.path]: {
@@ -312,7 +312,7 @@ describe('buildListItems pinned display scope', () => {
             },
             [hiddenTargetFile.path]: {
                 tags: null,
-                properties: [{ fieldKey: 'wordCountTarget', value: 5000, valueKind: 'number' }],
+                properties: [{ fieldKey: 'word-goal', value: 5000, valueKind: 'number' }],
                 wordCount: 99
             }
         });
@@ -334,8 +334,8 @@ describe('buildListItems pinned display scope', () => {
             sortOption: 'property-asc',
             propertySortKey: 'index',
             isManualSortActive: true,
-            manualSortGroupHeaderPropertyKey: 'groupHeader',
-            wordCountTargetProperty: 'wordCountTarget'
+            manualSortGroupHeaderPropertyKey: 'group_header',
+            wordCountTargetProperty: 'word-goal'
         });
 
         expect(getHeaderItems(items)).toEqual([
@@ -357,7 +357,7 @@ describe('buildListItems pinned display scope', () => {
         const app = createApp();
         const rankedFile = createTestTFile('notes/ranked.md');
         app.metadataCache.getFileCache = () => ({
-            frontmatter: { index: 1000, groupHeader: 'Ranked header' }
+            frontmatter: { index: 1000, group_header: 'Ranked header' }
         });
         const db = createDb({
             [rankedFile.path]: { tags: null, properties: null }
@@ -626,7 +626,7 @@ describe('buildListItems pinned display scope', () => {
         app.metadataCache.getFileCache = file => ({
             frontmatter: {
                 index: file.path === pinnedFile.path ? 1000 : file.path === groupedFile.path ? 2000 : 3000,
-                ...(file.path === groupedFile.path ? { groupHeader: 'Group A' } : {})
+                ...(file.path === groupedFile.path ? { group_header: 'Group A' } : {})
             }
         });
         const db = createDb({
@@ -657,7 +657,7 @@ describe('buildListItems pinned display scope', () => {
             sortOption: 'property-asc',
             propertySortKey: 'index',
             isManualSortActive: true,
-            manualSortGroupHeaderPropertyKey: 'groupHeader'
+            manualSortGroupHeaderPropertyKey: 'group_header'
         });
 
         expect(getHeaderItems(items)).toEqual([
@@ -679,7 +679,7 @@ describe('buildListItems pinned display scope', () => {
         app.metadataCache.getFileCache = file => ({
             frontmatter: {
                 index: file.path === pinnedFile.path ? 1000 : file.path === regularFile.path ? 2000 : 3000,
-                ...(file.path === groupedFile.path ? { groupHeader: 'Group A' } : {})
+                ...(file.path === groupedFile.path ? { group_header: 'Group A' } : {})
             }
         });
         const db = createDb({
@@ -710,7 +710,7 @@ describe('buildListItems pinned display scope', () => {
             sortOption: 'property-asc',
             propertySortKey: 'index',
             isManualSortActive: true,
-            manualSortGroupHeaderPropertyKey: 'groupHeader'
+            manualSortGroupHeaderPropertyKey: 'group_header'
         });
 
         expect(getHeaderItems(items)).toEqual([
@@ -730,7 +730,7 @@ describe('buildListItems pinned display scope', () => {
         const groupedFile = assignParent(createTestTFile('Alpha/grouped.md'), 'Alpha');
         const betaFile = assignParent(createTestTFile('Beta/two.md'), 'Beta');
         app.metadataCache.getFileCache = file => ({
-            frontmatter: file.path === groupedFile.path ? { index: 1000, groupHeader: 'Group A' } : { index: 2000 }
+            frontmatter: file.path === groupedFile.path ? { index: 1000, group_header: 'Group A' } : { index: 2000 }
         });
         const db = createDb({
             [groupedFile.path]: { tags: null, properties: null },
@@ -755,7 +755,7 @@ describe('buildListItems pinned display scope', () => {
             sortOption: 'property-asc',
             propertySortKey: 'index',
             isManualSortActive: true,
-            manualSortGroupHeaderPropertyKey: 'groupHeader'
+            manualSortGroupHeaderPropertyKey: 'group_header'
         });
 
         expect(getHeaderItems(items)).toEqual([
@@ -769,7 +769,7 @@ describe('buildListItems pinned display scope', () => {
         const app = createApp();
         const groupedFile = createTestTFile('notes/grouped.md');
         app.metadataCache.getFileCache = () => ({
-            frontmatter: { index: 1000, groupHeader: 'Ranked header' }
+            frontmatter: { index: 1000, group_header: 'Ranked header' }
         });
         const db = createDb({
             [groupedFile.path]: { tags: null, properties: null }
@@ -793,7 +793,7 @@ describe('buildListItems pinned display scope', () => {
             sortOption: 'property-asc',
             propertySortKey: 'index',
             isManualSortActive: true,
-            manualSortGroupHeaderPropertyKey: 'groupHeader'
+            manualSortGroupHeaderPropertyKey: 'group_header'
         });
 
         expect(getHeaderItems(items)).toEqual([{ data: 'Ranked header', kind: 'manual-sort-custom' }]);

@@ -30,9 +30,9 @@ describe('wordCountUtils', () => {
         const target = getWordCountTargetFromProperties(
             [
                 { fieldKey: 'status', value: 'draft' },
-                { fieldKey: 'WordCountTarget', value: '5,000', valueKind: 'string' }
+                { fieldKey: 'Word-Goal', value: '5,000', valueKind: 'string' }
             ],
-            'wordCountTarget'
+            'word-goal'
         );
 
         expect(target).toBe(5000);
@@ -42,18 +42,18 @@ describe('wordCountUtils', () => {
         const app = new App();
         const file = createTestTFile('notes/draft.md');
         app.metadataCache.getFileCache = (target: TFile) => ({
-            frontmatter: target.path === file.path ? { WordCountTarget: '5,000' } : {}
+            frontmatter: target.path === file.path ? { 'Word-Goal': '5,000' } : {}
         });
 
-        expect(getCachedWordCountTargetFromFrontmatter(app, file, 'wordCountTarget')).toBe(5000);
+        expect(getCachedWordCountTargetFromFrontmatter(app, file, 'word-goal')).toBe(5000);
     });
 
     it('formats target percentage display as percentage only', () => {
         expect(
             getWordCountDisplayText({
                 wordCount: 1250,
-                properties: [{ fieldKey: 'wordCountTarget', value: '5000', valueKind: 'number' }],
-                targetProperty: 'wordCountTarget',
+                properties: [{ fieldKey: 'word-goal', value: '5000', valueKind: 'number' }],
+                targetProperty: 'word-goal',
                 showTargetPercentage: true
             })
         ).toBe('25%');
@@ -63,8 +63,8 @@ describe('wordCountUtils', () => {
         expect(
             getWordCountDisplayText({
                 wordCount: 1250,
-                properties: [{ fieldKey: 'wordCountTarget', value: '5000', valueKind: 'number' }],
-                targetProperty: 'wordCountTarget',
+                properties: [{ fieldKey: 'word-goal', value: '5000', valueKind: 'number' }],
+                targetProperty: 'word-goal',
                 showTargetPercentage: false
             })
         ).toBe('1,250 / 5,000');

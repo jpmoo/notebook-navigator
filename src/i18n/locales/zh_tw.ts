@@ -1645,8 +1645,7 @@ export const STRINGS_ZH_TW = {
             },
             wordCountTargetProperty: {
                 name: '目標屬性',
-                desc: '包含目標字數的前置元資料屬性鍵。留空可隱藏目標。',
-                placeholder: 'wordCountTarget'
+                desc: '包含目標字數的前置元資料屬性鍵。留空可隱藏目標。'
             },
             showWordCountPercentage: {
                 name: '顯示目標百分比',

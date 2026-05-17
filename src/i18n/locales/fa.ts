@@ -1659,8 +1659,7 @@ export const STRINGS_FA = {
             },
             wordCountTargetProperty: {
                 name: 'ویژگی هدف',
-                desc: 'کلید ویژگی فرانت‌متر که تعداد کلمات هدف را نگه می‌دارد. برای پنهان کردن هدف‌ها خالی بگذارید.',
-                placeholder: 'wordCountTarget'
+                desc: 'کلید ویژگی فرانت‌متر که تعداد کلمات هدف را نگه می‌دارد. برای پنهان کردن هدف‌ها خالی بگذارید.'
             },
             showWordCountPercentage: {
                 name: 'نمایش درصد هدف',

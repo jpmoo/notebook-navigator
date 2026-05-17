@@ -1663,8 +1663,7 @@ export const STRINGS_NL = {
             },
             wordCountTargetProperty: {
                 name: 'Doeleigenschap',
-                desc: 'Frontmatter-eigenschapssleutel met het doelaantal woorden. Laat leeg om doelen te verbergen.',
-                placeholder: 'wordCountTarget'
+                desc: 'Frontmatter-eigenschapssleutel met het doelaantal woorden. Laat leeg om doelen te verbergen.'
             },
             showWordCountPercentage: {
                 name: 'Doelpercentage tonen',

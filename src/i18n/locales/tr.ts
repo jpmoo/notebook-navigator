@@ -1659,8 +1659,7 @@ export const STRINGS_TR = {
             },
             wordCountTargetProperty: {
                 name: 'Hedef özelliği',
-                desc: 'Hedef kelime sayısını içeren frontmatter özellik anahtarı. Hedefleri gizlemek için boş bırakın.',
-                placeholder: 'wordCountTarget'
+                desc: 'Hedef kelime sayısını içeren frontmatter özellik anahtarı. Hedefleri gizlemek için boş bırakın.'
             },
             showWordCountPercentage: {
                 name: 'Hedef yüzdesini göster',

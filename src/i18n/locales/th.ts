@@ -1654,8 +1654,7 @@ export const STRINGS_TH = {
             },
             wordCountTargetProperty: {
                 name: 'คุณสมบัติเป้าหมาย',
-                desc: 'คีย์คุณสมบัติ frontmatter ที่มีจำนวนคำเป้าหมาย เว้นว่างไว้เพื่อซ่อนเป้าหมาย',
-                placeholder: 'wordCountTarget'
+                desc: 'คีย์คุณสมบัติ frontmatter ที่มีจำนวนคำเป้าหมาย เว้นว่างไว้เพื่อซ่อนเป้าหมาย'
             },
             showWordCountPercentage: {
                 name: 'แสดงเปอร์เซ็นต์เป้าหมาย',

@@ -253,10 +253,10 @@ describe('manual sort helpers', () => {
 
     it('resolves the manual sort group header property key when it is valid', () => {
         const settings = structuredClone(DEFAULT_SETTINGS);
-        settings.manualSortPropertyKey = 'sortIndex';
-        settings.manualSortGroupHeaderProperty = ' groupHeader ';
+        settings.manualSortPropertyKey = 'sort_index';
+        settings.manualSortGroupHeaderProperty = ' group_header ';
 
-        expect(getManualSortGroupHeaderPropertyKey(settings)).toBe('groupHeader');
+        expect(getManualSortGroupHeaderPropertyKey(settings)).toBe('group_header');
 
         settings.manualSortGroupHeaderProperty = '';
         expect(getManualSortGroupHeaderPropertyKey(settings)).toBeNull();
@@ -264,7 +264,7 @@ describe('manual sort helpers', () => {
         settings.manualSortGroupHeaderProperty = 'group,header';
         expect(getManualSortGroupHeaderPropertyKey(settings)).toBeNull();
 
-        settings.manualSortGroupHeaderProperty = 'SORTINDEX';
+        settings.manualSortGroupHeaderProperty = 'SORT_INDEX';
         expect(getManualSortGroupHeaderPropertyKey(settings)).toBeNull();
     });
 
@@ -333,8 +333,8 @@ describe('manual sort helpers', () => {
         const objectFile = createFile('notes/object.md', {
             group: {
                 title: ' Chapter 1 ',
-                showWordCount: true,
-                targetWordCount: '10,000'
+                show_word_count: true,
+                target_word_count: '10,000'
             }
         });
         const numberFile = createFile('notes/number.md', { group: 3 });
@@ -776,8 +776,8 @@ describe('manual sort helpers', () => {
         expect(file.frontmatter).toEqual({
             group: {
                 title: 'Draft',
-                showWordCount: true,
-                targetWordCount: 10000,
+                show_word_count: true,
+                target_word_count: 10000,
                 icon: 'book-open',
                 color: '#3b82f6'
             }

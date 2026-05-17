@@ -1658,8 +1658,7 @@ export const STRINGS_UK = {
             },
             wordCountTargetProperty: {
                 name: 'Цільова властивість',
-                desc: 'Ключ властивості frontmatter із цільовою кількістю слів. Залиште порожнім, щоб приховати цілі.',
-                placeholder: 'wordCountTarget'
+                desc: 'Ключ властивості frontmatter із цільовою кількістю слів. Залиште порожнім, щоб приховати цілі.'
             },
             showWordCountPercentage: {
                 name: 'Показувати відсоток цілі',

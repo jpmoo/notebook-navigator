@@ -1664,8 +1664,7 @@ export const STRINGS_PT_BR = {
             },
             wordCountTargetProperty: {
                 name: 'Propriedade alvo',
-                desc: 'Chave da propriedade frontmatter que contém a contagem de palavras alvo. Deixe em branco para ocultar alvos.',
-                placeholder: 'wordCountTarget'
+                desc: 'Chave da propriedade frontmatter que contém a contagem de palavras alvo. Deixe em branco para ocultar alvos.'
             },
             showWordCountPercentage: {
                 name: 'Mostrar porcentagem da meta',

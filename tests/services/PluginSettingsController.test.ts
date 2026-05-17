@@ -195,7 +195,7 @@ describe('PluginSettingsController.loadSettings', () => {
             keys: STORAGE_KEYS,
             loadData: vi.fn(async () => ({
                 propertySortKey: ['status'],
-                manualSortPropertyKey: ['sortIndex'],
+                manualSortPropertyKey: ['sort_index'],
                 folderSortOverrides: {
                     Books: { option: 'property-asc', propertyKey: 'published' }
                 }

@@ -1674,8 +1674,7 @@ export const STRINGS_EN = {
             },
             wordCountTargetProperty: {
                 name: 'Target property',
-                desc: 'Frontmatter property key containing the target word count. Leave empty to hide targets.',
-                placeholder: 'wordCountTarget'
+                desc: 'Frontmatter property key containing the target word count. Leave empty to hide targets.'
             },
             showWordCountPercentage: {
                 name: 'Show target percentage',

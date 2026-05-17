@@ -1663,8 +1663,7 @@ export const STRINGS_ES = {
             },
             wordCountTargetProperty: {
                 name: 'Propiedad objetivo',
-                desc: 'Clave de propiedad del frontmatter que contiene el recuento de palabras objetivo. Déjela vacía para ocultar objetivos.',
-                placeholder: 'wordCountTarget'
+                desc: 'Clave de propiedad del frontmatter que contiene el recuento de palabras objetivo. Déjela vacía para ocultar objetivos.'
             },
             showWordCountPercentage: {
                 name: 'Mostrar porcentaje objetivo',

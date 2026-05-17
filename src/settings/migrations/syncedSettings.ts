@@ -20,6 +20,7 @@
 import type { NotebookNavigatorSettings } from '../types';
 import type { LocalStorageKeys } from '../../types';
 import type { FolderAppearance } from '../../hooks/useListPaneAppearance';
+import { DEFAULT_SETTINGS } from '../defaultSettings';
 import { localStorage } from '../../utils/localStorage';
 import { cloneShortcuts, createPropertyKeysFromPropertyFields, DEFAULT_VAULT_PROFILE_ID } from '../../utils/vaultProfiles';
 import { ShortcutType, type ShortcutEntry } from '../../types/shortcuts';
@@ -446,7 +447,7 @@ export function applyExistingUserDefaults(params: { settings: NotebookNavigatorS
     }
 
     if (typeof settings.wordCountTargetProperty !== 'string') {
-        settings.wordCountTargetProperty = 'wordCountTarget';
+        settings.wordCountTargetProperty = DEFAULT_SETTINGS.wordCountTargetProperty;
     } else {
         settings.wordCountTargetProperty = settings.wordCountTargetProperty.trim();
     }

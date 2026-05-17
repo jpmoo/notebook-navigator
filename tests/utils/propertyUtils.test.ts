@@ -26,7 +26,7 @@ describe('propertyUtils', () => {
             ...DEFAULT_SETTINGS,
             showWordCount: false,
             noteGrouping: 'date',
-            wordCountTargetProperty: 'wordCountTarget'
+            wordCountTargetProperty: 'word-goal'
         });
 
         expect(fields).toEqual([]);
@@ -36,10 +36,10 @@ describe('propertyUtils', () => {
         const fields = getPropertyFrontmatterFields({
             ...DEFAULT_SETTINGS,
             showWordCount: true,
-            wordCountTargetProperty: 'wordCountTarget'
+            wordCountTargetProperty: 'word-goal'
         });
 
-        expect(fields).toEqual(['wordCountTarget']);
+        expect(fields).toEqual(['word-goal']);
     });
 
     it('includes the word count target property when custom group headers are configured', () => {
@@ -47,10 +47,10 @@ describe('propertyUtils', () => {
             ...DEFAULT_SETTINGS,
             showWordCount: false,
             noteGrouping: 'custom',
-            wordCountTargetProperty: 'wordCountTarget'
+            wordCountTargetProperty: 'word-goal'
         });
 
-        expect(fields).toEqual(['wordCountTarget']);
+        expect(fields).toEqual(['word-goal']);
     });
 
     it('does not duplicate a configured visible property used as the word count target', () => {
@@ -62,18 +62,18 @@ describe('propertyUtils', () => {
         const fields = getPropertyFrontmatterFields({
             ...DEFAULT_SETTINGS,
             showWordCount: true,
-            wordCountTargetProperty: 'wordCountTarget',
+            wordCountTargetProperty: 'word-goal',
             vaultProfiles: [
                 {
                     ...defaultProfile,
                     propertyKeys: [
                         { key: 'status', showInNavigation: true, showInList: true, showInFileMenu: false },
-                        { key: 'WordCountTarget', showInNavigation: true, showInList: true, showInFileMenu: false }
+                        { key: 'Word-Goal', showInNavigation: true, showInList: true, showInFileMenu: false }
                     ]
                 }
             ]
         });
 
-        expect(fields).toEqual(['status', 'WordCountTarget']);
+        expect(fields).toEqual(['status', 'Word-Goal']);
     });
 });

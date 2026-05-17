@@ -1658,8 +1658,7 @@ export const STRINGS_JA = {
             },
             wordCountTargetProperty: {
                 name: '目標プロパティ',
-                desc: '目標単語数を含むフロントマターのプロパティキー。目標を非表示にするには空にします。',
-                placeholder: 'wordCountTarget'
+                desc: '目標単語数を含むフロントマターのプロパティキー。目標を非表示にするには空にします。'
             },
             showWordCountPercentage: {
                 name: '目標パーセントを表示',

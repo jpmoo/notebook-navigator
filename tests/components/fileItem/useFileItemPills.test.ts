@@ -266,7 +266,7 @@ describe('useFileItemPills', () => {
             file: createTestTFile('Notes/Target.md'),
             isCompactMode: false,
             tags: [],
-            properties: [{ fieldKey: 'wordCountTarget', value: '5000', valueKind: 'number' }],
+            properties: [{ fieldKey: 'word-goal', value: '5000', valueKind: 'number' }],
             wordCount: 1250,
             wordCountDisplayText: '25%',
             settings: {

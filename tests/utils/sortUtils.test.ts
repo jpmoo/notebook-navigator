@@ -604,14 +604,14 @@ describe('property sort keys', () => {
         const propertyNodeId = buildPropertyKeyNodeId('status');
         const settings = structuredClone(DEFAULT_SETTINGS);
         settings.propertySortKey = 'published, downloaded';
-        settings.manualSortPropertyKey = 'sortIndex';
+        settings.manualSortPropertyKey = 'sort_index';
         settings.propertySortOverrides = {
-            [propertyNodeId]: { option: 'property-asc', propertyKey: 'SortIndex' }
+            [propertyNodeId]: { option: 'property-asc', propertyKey: 'Sort_Index' }
         };
 
         const effective = getEffectiveListSort(settings, ItemType.PROPERTY, null, null, propertyNodeId);
 
-        expect(effective.propertyKey).toBe('sortIndex');
+        expect(effective.propertyKey).toBe('sort_index');
         expect(effective.option).toBe('property-asc');
     });
 
@@ -668,16 +668,16 @@ describe('property sort keys', () => {
     it('keeps manual sort overrides when the manual property is not configured for property sort', () => {
         const settings = structuredClone(DEFAULT_SETTINGS);
         settings.propertySortKey = '';
-        settings.manualSortPropertyKey = 'sortIndex';
+        settings.manualSortPropertyKey = 'sort_index';
         settings.folderSortOverrides = {
             Books: 'property-asc',
-            Manual: { option: 'property-asc', propertyKey: 'SortIndex' }
+            Manual: { option: 'property-asc', propertyKey: 'Sort_Index' }
         };
 
         const changed = pruneUnavailablePropertySortOverrides(settings);
 
         expect(changed).toBe(true);
         expect(settings.folderSortOverrides.Books).toBeUndefined();
-        expect(settings.folderSortOverrides.Manual).toEqual({ option: 'property-asc', propertyKey: 'SortIndex' });
+        expect(settings.folderSortOverrides.Manual).toEqual({ option: 'property-asc', propertyKey: 'Sort_Index' });
     });
 });

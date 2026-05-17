@@ -1657,8 +1657,7 @@ export const STRINGS_RU = {
             },
             wordCountTargetProperty: {
                 name: 'Целевое свойство',
-                desc: 'Ключ свойства frontmatter с целевым количеством слов. Оставьте пустым, чтобы скрыть цели.',
-                placeholder: 'wordCountTarget'
+                desc: 'Ключ свойства frontmatter с целевым количеством слов. Оставьте пустым, чтобы скрыть цели.'
             },
             showWordCountPercentage: {
                 name: 'Показывать процент цели',

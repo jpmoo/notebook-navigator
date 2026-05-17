@@ -1660,8 +1660,7 @@ export const STRINGS_VI = {
             },
             wordCountTargetProperty: {
                 name: 'Thuộc tính mục tiêu',
-                desc: 'Khóa thuộc tính frontmatter chứa số từ mục tiêu. Để trống để ẩn mục tiêu.',
-                placeholder: 'wordCountTarget'
+                desc: 'Khóa thuộc tính frontmatter chứa số từ mục tiêu. Để trống để ẩn mục tiêu.'
             },
             showWordCountPercentage: {
                 name: 'Hiển thị phần trăm mục tiêu',

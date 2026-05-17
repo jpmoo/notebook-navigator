@@ -1660,8 +1660,7 @@ export const STRINGS_ID = {
             },
             wordCountTargetProperty: {
                 name: 'Properti target',
-                desc: 'Kunci properti frontmatter yang berisi target jumlah kata. Biarkan kosong untuk menyembunyikan target.',
-                placeholder: 'wordCountTarget'
+                desc: 'Kunci properti frontmatter yang berisi target jumlah kata. Biarkan kosong untuk menyembunyikan target.'
             },
             showWordCountPercentage: {
                 name: 'Tampilkan persentase target',

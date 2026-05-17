@@ -1663,8 +1663,7 @@ export const STRINGS_DE = {
             },
             wordCountTargetProperty: {
                 name: 'Zieleigenschaft',
-                desc: 'Frontmatter-Eigenschaftsschlüssel mit der Zielwortanzahl. Leer lassen, um Ziele auszublenden.',
-                placeholder: 'wordCountTarget'
+                desc: 'Frontmatter-Eigenschaftsschlüssel mit der Zielwortanzahl. Leer lassen, um Ziele auszublenden.'
             },
             showWordCountPercentage: {
                 name: 'Zielprozentsatz anzeigen',
