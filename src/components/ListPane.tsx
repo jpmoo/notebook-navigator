@@ -1315,6 +1315,7 @@ export const ListPane = React.memo(
                             fileItemPillDecorationModel={fileItemPillDecorationModel}
                             getSolidBackground={getSolidBackground}
                             selectedFiles={selectionState.selectedFiles}
+                            selectedFilePath={selectedFile?.path ?? null}
                             onFileClick={handleManualSortFileClick}
                             onDone={handleManualSortDone}
                             onReorder={handleManualSortReorder}

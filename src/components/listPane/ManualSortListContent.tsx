@@ -16,7 +16,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useCallback, useMemo, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
+import {
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+    type MouseEvent as ReactMouseEvent,
+    type ReactNode
+} from 'react';
 import { DndContext, MouseSensor, TouchSensor, type DragEndEvent, type DragStartEvent, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -33,6 +42,7 @@ import type { FileItemPillDecorationModel } from '../../utils/fileItemPillDecora
 import type { FolderDecorationModel } from '../../utils/folderDecoration';
 import type { HiddenTagVisibility } from '../../utils/tagPrefixMatcher';
 import { typeFilteredCollisionDetection, verticalAxisOnly } from '../../utils/dndConfig';
+import { focusElementPreventScroll } from '../../utils/domUtils';
 import {
     getCachedManualSortGroupHeader,
     getManualSortSelectedMarkdownPaths,
@@ -84,6 +94,7 @@ interface ManualSortListContentProps {
     fileItemPillDecorationModel: FileItemPillDecorationModel;
     getSolidBackground: (color?: string | null) => string | undefined;
     selectedFiles: ReadonlySet<string>;
+    selectedFilePath: string | null;
     onFileClick: (file: TFile, fileIndex: number | undefined, event: ReactMouseEvent) => void;
     onDone: () => void;
     onReorder: (params: { nextFiles: TFile[]; movedPaths: ReadonlySet<string> }) => void;
@@ -561,12 +572,14 @@ export function ManualSortListContent({
     fileItemPillDecorationModel,
     getSolidBackground,
     selectedFiles,
+    selectedFilePath,
     onFileClick,
     onDone,
     onReorder
 }: ManualSortListContentProps) {
     const { app, isMobile } = useServices();
     const metadataService = useMetadataService();
+    const scrollContainerRef = useRef<HTMLDivElement | null>(null);
     const [activeDragPaths, setActiveDragPaths] = useState<ReadonlySet<string>>(() => new Set());
     const fileInfoByPath = useMemo(() => buildFileInfoMap(listItems), [listItems]);
     const filePartitions = useMemo(() => partitionManualSortFiles(files), [files]);
@@ -683,6 +696,54 @@ export function ManualSortListContent({
         useSensor(TouchSensor, { activationConstraint: MANUAL_SORT_TOUCH_CONSTRAINT })
     );
 
+    useLayoutEffect(() => {
+        const scrollElement = scrollContainerRef.current;
+        if (!scrollElement) {
+            return;
+        }
+
+        focusElementPreventScroll(scrollElement);
+    }, []);
+
+    useEffect(() => {
+        if (!selectedFilePath) {
+            return;
+        }
+
+        const frameId = window.requestAnimationFrame(() => {
+            const scrollElement = scrollContainerRef.current;
+            if (!scrollElement) {
+                return;
+            }
+
+            const selectedElement = Array.from(scrollElement.querySelectorAll<HTMLElement>('.nn-file')).find(
+                element => element.dataset.path === selectedFilePath
+            );
+            if (!selectedElement) {
+                return;
+            }
+
+            const scrollRect = scrollElement.getBoundingClientRect();
+            const selectedRect = selectedElement.getBoundingClientRect();
+            if (selectedRect.top >= scrollRect.top && selectedRect.bottom <= scrollRect.bottom) {
+                return;
+            }
+
+            scrollElement.scrollTo({
+                top:
+                    scrollElement.scrollTop +
+                    selectedRect.top -
+                    scrollRect.top -
+                    Math.max((scrollElement.clientHeight - selectedRect.height) / 2, 0),
+                behavior: 'auto'
+            });
+        });
+
+        return () => {
+            window.cancelAnimationFrame(frameId);
+        };
+    }, [selectedFilePath]);
+
     const handleDragEnd = useCallback(
         (event: DragEndEvent) => {
             setActiveDragPaths(new Set());
@@ -772,7 +833,13 @@ export function ManualSortListContent({
     );
 
     return (
-        <div className="nn-list-pane-scroller nn-manual-sort-scroller" role="list" tabIndex={-1} onContextMenu={handleContextMenu}>
+        <div
+            ref={scrollContainerRef}
+            className="nn-list-pane-scroller nn-manual-sort-scroller"
+            role="list"
+            tabIndex={-1}
+            onContextMenu={handleContextMenu}
+        >
             <div className="nn-manual-sort-panel">
                 <div className="nn-manual-sort-header">
                     <div className="nn-manual-sort-header-text">
