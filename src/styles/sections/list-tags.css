@@ -143,7 +143,7 @@
 }
 
 .nn-file.nn-selected .nn-file-word-count-suffix {
-    color: var(--nn-selected-file-date-color);
+    color: var(--nn-selected-file-word-count-color);
 }
 
 .nn-file.nn-selected .nn-parent-folder {

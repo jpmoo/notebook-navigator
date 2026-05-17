@@ -432,8 +432,8 @@
 }
 
 .nn-file-word-count-suffix {
-    color: var(--nn-theme-file-date-color);
-    font-weight: var(--nn-theme-file-date-font-weight);
+    color: var(--nn-theme-file-word-count-color);
+    font-weight: var(--nn-theme-file-word-count-font-weight);
 }
 
 .nn-file-icon {
