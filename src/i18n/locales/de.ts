@@ -433,6 +433,8 @@ export const STRINGS_DE = {
             wordCount: 'Wortzahl anzeigen',
             wordCountTarget: 'Zielwortzahl',
             wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                'Wenn dieses Feld leer ist, verwendet das Gruppenziel die Zieleigenschaft aus Einstellungen > Notizen > Wortzahl. Überschreiben Sie sie, indem Sie einen Zielwert für diese Gruppe festlegen.',
             description: 'Passen Sie die Gruppenüberschrift für diese Notiz an. Lassen Sie den Titel leer, um die Überschrift zu entfernen.'
         },
         navRainbowSection: {

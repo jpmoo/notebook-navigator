@@ -235,6 +235,16 @@ export function useListPaneRefresh({
                 }
             }
 
+            if (
+                hasManualSortWordCountGroupHeaders &&
+                settings.wordCountTargetProperty.trim().length > 0 &&
+                file.extension === 'md' &&
+                basePathSet.has(file.path)
+            ) {
+                queueRefresh();
+                return;
+            }
+
             if (shouldRefreshOnMetadataChange && file.extension === 'md' && basePathSet.has(file.path)) {
                 queueRefresh();
             }
@@ -291,7 +301,10 @@ export function useListPaneRefresh({
             }
 
             if (!shouldRefresh && hasManualSortWordCountGroupHeaders) {
-                shouldRefresh = changes.some(change => change.changes.wordCount !== undefined && basePathSet.has(change.path));
+                shouldRefresh = changes.some(
+                    change =>
+                        (change.changes.wordCount !== undefined || change.changes.properties !== undefined) && basePathSet.has(change.path)
+                );
             }
 
             if (shouldRefresh) {
@@ -332,6 +345,7 @@ export function useListPaneRefresh({
         propertySortSecondary,
         settings.showFileBackgroundUnfinishedTask,
         settings.useFrontmatterMetadata,
+        settings.wordCountTargetProperty,
         showHiddenItems,
         sortOption
     ]);

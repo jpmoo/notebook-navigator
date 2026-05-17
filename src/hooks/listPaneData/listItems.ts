@@ -33,6 +33,7 @@ import {
     shouldShowManualSortGroupHeaderWordCount,
     type ManualSortGroupHeaderData
 } from '../../utils/manualSort';
+import { getCachedWordCountTargetFromFrontmatter, getWordCountTargetFromProperties } from '../../utils/wordCountUtils';
 import { createHiddenTagVisibility } from '../../utils/tagPrefixMatcher';
 import { getCachedFileTags } from '../../utils/tagUtils';
 import { DateUtils } from '../../utils/dateUtils';
@@ -73,6 +74,7 @@ interface BuildListItemsArgs {
     propertySortKey?: string;
     isManualSortActive?: boolean;
     manualSortGroupHeaderPropertyKey?: string | null;
+    wordCountTargetProperty?: string;
 }
 
 export function buildListItems({
@@ -95,7 +97,8 @@ export function buildListItems({
     sortOption,
     propertySortKey = '',
     isManualSortActive = false,
-    manualSortGroupHeaderPropertyKey = null
+    manualSortGroupHeaderPropertyKey = null,
+    wordCountTargetProperty = ''
 }: BuildListItemsArgs): ListPaneItem[] {
     const items: ListPaneItem[] = [
         {
@@ -149,6 +152,12 @@ export function buildListItems({
     const getFileWordCount = (file: TFile): number => {
         return normalizeManualSortGroupHeaderWordCount(db.getFile(file.path)?.wordCount);
     };
+    const getFileWordCountTarget = (file: TFile): number | null => {
+        return (
+            getWordCountTargetFromProperties(db.getFile(file.path)?.properties, wordCountTargetProperty) ??
+            getCachedWordCountTargetFromFrontmatter(app, file, wordCountTargetProperty)
+        );
+    };
     const manualSortCustomHeaderByPath = new Map<string, ManualSortGroupHeaderData | null>();
     const getManualSortCustomHeaderValue = (file: TFile): ManualSortGroupHeaderData | null => {
         if (groupingMode !== 'custom' || !manualSortGroupHeaderPropertyKey || file.extension !== 'md') {
@@ -167,6 +176,7 @@ export function buildListItems({
         item: ListPaneItem;
         header: ManualSortGroupHeaderData;
         wordCount: number;
+        targetWordCount: number | null;
     } | null = null;
     const updateActiveManualSortHeaderLabel = (): void => {
         if (!activeManualSortHeader) {
@@ -175,14 +185,22 @@ export function buildListItems({
 
         activeManualSortHeader.item.data = formatManualSortGroupHeaderLabel(
             activeManualSortHeader.header,
-            activeManualSortHeader.wordCount
+            activeManualSortHeader.wordCount,
+            activeManualSortHeader.targetWordCount
         );
         activeManualSortHeader.item.manualSortHeaderWordCount = activeManualSortHeader.wordCount;
+        activeManualSortHeader.item.manualSortHeaderTargetWordCount = activeManualSortHeader.targetWordCount;
     };
     type FileItemOverrides = Partial<Omit<ListPaneItem, 'type' | 'data' | 'fileIndex' | 'hasTags' | 'isHidden' | 'key' | 'searchMeta'>>;
     const pushFileItem = (file: TFile, overrides: FileItemOverrides = {}) => {
         if (activeManualSortHeader && shouldShowManualSortGroupHeaderWordCount(activeManualSortHeader.header) && file.extension === 'md') {
             activeManualSortHeader.wordCount += getFileWordCount(file);
+            if (activeManualSortHeader.header.targetWordCount === null) {
+                const fileTargetWordCount = getFileWordCountTarget(file);
+                if (fileTargetWordCount !== null) {
+                    activeManualSortHeader.targetWordCount = (activeManualSortHeader.targetWordCount ?? 0) + fileTargetWordCount;
+                }
+            }
             updateActiveManualSortHeaderLabel();
         }
 
@@ -238,6 +256,7 @@ export function buildListItems({
             manualSortHeaderShowsWordCount: manualSortHeader ? shouldShowManualSortGroupHeaderWordCount(manualSortHeader) : undefined,
             manualSortHeader,
             manualSortHeaderWordCount: manualSortHeader ? 0 : undefined,
+            manualSortHeaderTargetWordCount: manualSortHeader ? manualSortHeader.targetWordCount : undefined,
             headerKind,
             collapseKey,
             isCollapsed,
@@ -249,7 +268,8 @@ export function buildListItems({
             activeManualSortHeader = {
                 item: headerItem,
                 header: manualSortHeader,
-                wordCount: 0
+                wordCount: 0,
+                targetWordCount: manualSortHeader.targetWordCount
             };
             updateActiveManualSortHeaderLabel();
         }

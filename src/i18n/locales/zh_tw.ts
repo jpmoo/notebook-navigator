@@ -431,6 +431,7 @@ export const STRINGS_ZH_TW = {
             wordCount: '顯示字數',
             wordCountTarget: '目標字數',
             wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription: '此欄位為空時，群組目標會使用「設定 > 筆記 > 字數」中設定的目標屬性。為此群組設定目標值即可覆寫。',
             description: '為此筆記自訂群組標題。將標題留空以移除標題。'
         },
         navRainbowSection: {

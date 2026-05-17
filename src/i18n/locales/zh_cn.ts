@@ -431,6 +431,7 @@ export const STRINGS_ZH_CN = {
             wordCount: '显示字数',
             wordCountTarget: '目标字数',
             wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription: '此字段为空时，组目标使用“设置 > 笔记 > 字数”中设置的目标属性。为此组设置目标值即可覆盖它。',
             description: '为此笔记自定义分组标题。将标题留空以移除该标题。'
         },
         navRainbowSection: {

@@ -435,6 +435,8 @@ export const STRINGS_PL = {
             wordCount: 'Pokaż liczbę słów',
             wordCountTarget: 'Docelowa liczba słów',
             wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                'Gdy to pole jest puste, cel grupy używa właściwości celu ustawionej w Ustawienia > Notatki > Liczba słów. Nadpisz go, ustawiając wartość docelową dla tej grupy.',
             description: 'Dostosuj nagłówek grupy dla tej notatki. Pozostaw tytuł pusty, aby usunąć nagłówek.'
         },
         navRainbowSection: {

@@ -110,7 +110,7 @@ export function getListPaneHeaderHeight(item: ListPaneItem | undefined, measurem
         item?.type === ListPaneItemType.HEADER &&
         item.headerKind === 'manual-sort-custom' &&
         item.manualSortHeader !== undefined &&
-        shouldShowManualSortGroupHeaderProgress(item.manualSortHeader)
+        shouldShowManualSortGroupHeaderProgress(item.manualSortHeader, item.manualSortHeaderTargetWordCount)
     ) {
         return measurements.manualSortGoalHeaderHeight;
     }

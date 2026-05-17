@@ -363,7 +363,8 @@ export function useListPaneData({
             sortOption,
             propertySortKey: sortSpec.propertyKey,
             isManualSortActive,
-            manualSortGroupHeaderPropertyKey
+            manualSortGroupHeaderPropertyKey,
+            wordCountTargetProperty: settings.wordCountTargetProperty
         });
     }, [
         app,
@@ -385,7 +386,8 @@ export function useListPaneData({
         sortOption,
         sortSpec.propertyKey,
         isManualSortActive,
-        manualSortGroupHeaderPropertyKey
+        manualSortGroupHeaderPropertyKey,
+        settings.wordCountTargetProperty
     ]);
 
     const filePathToIndex = useMemo(() => {

@@ -385,6 +385,20 @@ describe('manual sort helpers', () => {
                 4123
             )
         ).toBe('Draft (4,123 / 10,000)');
+        expect(
+            formatManualSortGroupHeaderLabel(
+                { title: 'Draft', showWordCount: true, targetWordCount: null, iconId: null, color: null },
+                4123,
+                8000
+            )
+        ).toBe('Draft (4,123 / 8,000)');
+        expect(
+            formatManualSortGroupHeaderLabel(
+                { title: 'Draft', showWordCount: true, targetWordCount: 10000, iconId: null, color: null },
+                4123,
+                8000
+            )
+        ).toBe('Draft (4,123 / 10,000)');
     });
 
     it('plans a sparse moved-file rank between ranked neighbors', () => {

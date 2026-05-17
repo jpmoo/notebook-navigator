@@ -283,18 +283,38 @@ describe('buildListItems pinned display scope', () => {
                 file.path === firstFile.path
                     ? { index: 1000, groupHeader: { title: 'Part 1', showWordCount: true } }
                     : file.path === secondFile.path
-                      ? { index: 2000 }
+                      ? { index: 2000, wordCountTarget: 2000 }
                       : file.path === targetFile.path
-                        ? { index: 3000, groupHeader: { title: 'Part 2', showWordCount: true, targetWordCount: 10000 } }
+                        ? {
+                              index: 3000,
+                              wordCountTarget: 9999,
+                              groupHeader: { title: 'Part 2', showWordCount: true, targetWordCount: 10000 }
+                          }
                         : file.path === hiddenTargetFile.path
                           ? { index: 4000, groupHeader: { title: 'Part 3', showWordCount: false, targetWordCount: 5000 } }
                           : {}
         });
         const db = createDb({
-            [firstFile.path]: { tags: null, properties: null, wordCount: 1000 },
-            [secondFile.path]: { tags: null, properties: null, wordCount: 234 },
-            [targetFile.path]: { tags: null, properties: null, wordCount: 4123 },
-            [hiddenTargetFile.path]: { tags: null, properties: null, wordCount: 99 }
+            [firstFile.path]: {
+                tags: null,
+                properties: [{ fieldKey: 'wordCountTarget', value: '1,000', valueKind: 'string' }],
+                wordCount: 1000
+            },
+            [secondFile.path]: {
+                tags: null,
+                properties: null,
+                wordCount: 234
+            },
+            [targetFile.path]: {
+                tags: null,
+                properties: null,
+                wordCount: 4123
+            },
+            [hiddenTargetFile.path]: {
+                tags: null,
+                properties: [{ fieldKey: 'wordCountTarget', value: 5000, valueKind: 'number' }],
+                wordCount: 99
+            }
         });
 
         const items = buildListItems({
@@ -314,11 +334,12 @@ describe('buildListItems pinned display scope', () => {
             sortOption: 'property-asc',
             propertySortKey: 'index',
             isManualSortActive: true,
-            manualSortGroupHeaderPropertyKey: 'groupHeader'
+            manualSortGroupHeaderPropertyKey: 'groupHeader',
+            wordCountTargetProperty: 'wordCountTarget'
         });
 
         expect(getHeaderItems(items)).toEqual([
-            { data: 'Part 1 (1,234)', kind: 'manual-sort-custom' },
+            { data: 'Part 1 (1,234 / 3,000)', kind: 'manual-sort-custom' },
             { data: 'Part 2 (4,123 / 10,000)', kind: 'manual-sort-custom' },
             { data: 'Part 3', kind: 'manual-sort-custom' }
         ]);
@@ -329,6 +350,7 @@ describe('buildListItems pinned display scope', () => {
             hiddenTargetFile.path
         ]);
         expect(manualSortHeaders.map(item => item.manualSortHeaderShowsWordCount)).toEqual([true, true, false]);
+        expect(manualSortHeaders.map(item => item.manualSortHeaderTargetWordCount)).toEqual([3000, 10000, 5000]);
     });
 
     it('does not add manual sort custom headers when the group header key is disabled', () => {

@@ -432,6 +432,8 @@ export const STRINGS_JA = {
             wordCount: 'ワード数を表示',
             wordCountTarget: '目標ワード数',
             wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                'このフィールドが空の場合、グループ目標には設定 > ノート > ワード数で設定した目標プロパティが使われます。このグループに目標値を設定すると上書きできます。',
             description: 'このノートのグループヘッダーをカスタマイズします。ヘッダーを削除するには、タイトルを空のままにします。'
         },
         navRainbowSection: {

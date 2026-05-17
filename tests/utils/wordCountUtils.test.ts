@@ -17,7 +17,13 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { getWordCountDisplayText, getWordCountTargetFromProperties } from '../../src/utils/wordCountUtils';
+import { App, TFile } from 'obsidian';
+import {
+    getCachedWordCountTargetFromFrontmatter,
+    getWordCountDisplayText,
+    getWordCountTargetFromProperties
+} from '../../src/utils/wordCountUtils';
+import { createTestTFile } from './createTestTFile';
 
 describe('wordCountUtils', () => {
     it('reads the configured target property case-insensitively', () => {
@@ -30,6 +36,16 @@ describe('wordCountUtils', () => {
         );
 
         expect(target).toBe(5000);
+    });
+
+    it('reads cached frontmatter target properties case-insensitively', () => {
+        const app = new App();
+        const file = createTestTFile('notes/draft.md');
+        app.metadataCache.getFileCache = (target: TFile) => ({
+            frontmatter: target.path === file.path ? { WordCountTarget: '5,000' } : {}
+        });
+
+        expect(getCachedWordCountTargetFromFrontmatter(app, file, 'wordCountTarget')).toBe(5000);
     });
 
     it('formats target percentage display as percentage only', () => {

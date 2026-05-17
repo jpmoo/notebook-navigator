@@ -433,6 +433,8 @@ export const STRINGS_TR = {
             wordCount: 'Kelime sayısını göster',
             wordCountTarget: 'Hedef kelime sayısı',
             wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                'Bu alan boş olduğunda, grup hedefi Ayarlar > Notlar > Kelime sayısı bölümünde ayarlanan hedef özelliğini kullanır. Bu grup için bir hedef değeri ayarlayarak geçersiz kılın.',
             description: 'Bu not için grup başlığını özelleştirin. Başlığı kaldırmak için başlığı boş bırakın.'
         },
         navRainbowSection: {

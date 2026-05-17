@@ -431,6 +431,8 @@ export const STRINGS_AR = {
             wordCount: 'إظهار عدد الكلمات',
             wordCountTarget: 'عدد الكلمات المستهدف',
             wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                'عندما يكون هذا الحقل فارغًا، يستخدم هدف المجموعة خاصية الهدف المحددة في الإعدادات > الملاحظات > عدد الكلمات. يمكنك تجاوزه بتعيين قيمة هدف لهذه المجموعة.',
             description: 'خصص عنوان المجموعة لهذه الملاحظة. اترك العنوان فارغًا لإزالة العنوان.'
         },
         navRainbowSection: {

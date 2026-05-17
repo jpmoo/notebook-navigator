@@ -432,6 +432,8 @@ export const STRINGS_FA = {
             wordCount: 'نمایش تعداد کلمات',
             wordCountTarget: 'تعداد کلمات هدف',
             wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                'وقتی این فیلد خالی باشد، هدف گروه از ویژگی هدف تنظیم‌شده در تنظیمات > یادداشت‌ها > تعداد کلمات استفاده می‌کند. با تعیین مقدار هدف برای این گروه، آن را بازنویسی کنید.',
             description: 'هدر گروه را برای این یادداشت سفارشی کنید. عنوان را خالی بگذارید تا هدر حذف شود.'
         },
         navRainbowSection: {

@@ -433,6 +433,8 @@ export const STRINGS_PT = {
             wordCount: 'Mostrar contagem de palavras',
             wordCountTarget: 'Contagem de palavras objetivo',
             wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                'Quando este campo está vazio, o objetivo do grupo usa a propriedade de objetivo definida em Definições > Notas > Contagem de palavras. Substitua-a definindo um valor de objetivo para este grupo.',
             description: 'Personalize o cabeçalho de grupo para esta nota. Deixe o título vazio para remover o cabeçalho.'
         },
         navRainbowSection: {

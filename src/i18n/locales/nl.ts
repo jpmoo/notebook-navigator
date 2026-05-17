@@ -435,6 +435,8 @@ export const STRINGS_NL = {
             wordCount: 'Aantal woorden tonen',
             wordCountTarget: 'Doel aantal woorden',
             wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                'Wanneer dit veld leeg is, gebruikt het groepsdoel de doeleigenschap die is ingesteld in Instellingen > Notities > Aantal woorden. Overschrijf dit door een doelwaarde voor deze groep in te stellen.',
             description: 'Pas de groepskop voor deze notitie aan. Laat de titel leeg om de kop te verwijderen.'
         },
         navRainbowSection: {

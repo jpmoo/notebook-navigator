@@ -434,6 +434,8 @@ export const STRINGS_FR = {
             wordCount: 'Afficher le nombre de mots',
             wordCountTarget: 'Nombre de mots cible',
             wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                "Lorsque ce champ est vide, l'objectif du groupe utilise la propriété cible définie dans Paramètres > Notes > Nombre de mots. Remplacez-la en définissant une valeur cible pour ce groupe.",
             description: "Personnalisez l'en-tête de groupe pour cette note. Laissez le titre vide pour supprimer l'en-tête."
         },
         navRainbowSection: {

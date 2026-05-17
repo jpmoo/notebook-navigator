@@ -433,6 +433,8 @@ export const STRINGS_ES = {
             wordCount: 'Mostrar el recuento de palabras',
             wordCountTarget: 'Recuento de palabras objetivo',
             wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                'Cuando este campo está vacío, el objetivo del grupo usa la propiedad objetivo definida en Ajustes > Notas > Recuento de palabras. Sobrescríbelo definiendo un valor objetivo para este grupo.',
             description: 'Personaliza el encabezado de grupo para esta nota. Deja el título vacío para eliminar el encabezado.'
         },
         navRainbowSection: {

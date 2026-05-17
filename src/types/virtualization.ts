@@ -49,6 +49,8 @@ export interface ListPaneItem {
     manualSortHeader?: ManualSortGroupHeaderData;
     // Accumulated word count for the manual sort custom header segment.
     manualSortHeaderWordCount?: number;
+    // Resolved target word count for the manual sort custom header segment.
+    manualSortHeaderTargetWordCount?: number | null;
     headerKind?: ListPaneHeaderKind;
     collapseKey?: string;
     isCollapsed?: boolean;

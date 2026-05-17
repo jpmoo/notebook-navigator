@@ -431,6 +431,8 @@ export const STRINGS_TH = {
             wordCount: 'แสดงจำนวนคำ',
             wordCountTarget: 'จำนวนคำเป้าหมาย',
             wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                'เมื่อช่องนี้ว่าง เป้าหมายของกลุ่มจะใช้คุณสมบัติเป้าหมายที่ตั้งไว้ใน การตั้งค่า > โน้ต > จำนวนคำ แทนที่ได้โดยตั้งค่าเป้าหมายสำหรับกลุ่มนี้',
             description: 'ปรับแต่งส่วนหัวกลุ่มสำหรับโน้ตนี้ เว้นชื่อเรื่องว่างเพื่อนำส่วนหัวออก'
         },
         navRainbowSection: {

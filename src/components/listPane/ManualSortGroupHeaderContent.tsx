@@ -18,7 +18,7 @@
 
 import type { CSSProperties } from 'react';
 import type { ManualSortGroupHeaderData } from '../../utils/manualSort';
-import { shouldShowManualSortGroupHeaderProgress, shouldShowManualSortGroupHeaderWordCount } from '../../utils/manualSort';
+import { getManualSortGroupHeaderTargetWordCount, shouldShowManualSortGroupHeaderWordCount } from '../../utils/manualSort';
 import { ServiceIcon } from '../ServiceIcon';
 
 type ManualSortGroupHeaderStyle = CSSProperties & {
@@ -29,6 +29,7 @@ type ManualSortGroupHeaderStyle = CSSProperties & {
 interface ManualSortGroupHeaderContentProps {
     header: ManualSortGroupHeaderData;
     wordCount: number;
+    targetWordCount?: number | null;
 }
 
 interface ManualSortGroupHeaderProgressData {
@@ -40,10 +41,15 @@ function getDisplayWordCount(wordCount: number): number {
     return Math.max(0, Math.trunc(wordCount));
 }
 
-function formatManualSortGroupHeaderCountText(header: ManualSortGroupHeaderData, wordCount: number): string {
+function formatManualSortGroupHeaderCountText(
+    header: ManualSortGroupHeaderData,
+    wordCount: number,
+    targetWordCount: number | null | undefined
+): string {
     const formattedWordCount = getDisplayWordCount(wordCount).toLocaleString();
-    if (shouldShowManualSortGroupHeaderProgress(header)) {
-        return `${formattedWordCount} / ${header.targetWordCount.toLocaleString()}`;
+    const resolvedTargetWordCount = getManualSortGroupHeaderTargetWordCount(header, targetWordCount);
+    if (resolvedTargetWordCount !== null) {
+        return `${formattedWordCount} / ${resolvedTargetWordCount.toLocaleString()}`;
     }
 
     return formattedWordCount;
@@ -58,8 +64,13 @@ function getProgressPercent(wordCount: number, targetWordCount: number): number 
     return Number.isFinite(percent) ? percent : 0;
 }
 
-function getManualSortGroupHeaderProgress(header: ManualSortGroupHeaderData, wordCount: number): ManualSortGroupHeaderProgressData {
-    const progressPercent = shouldShowManualSortGroupHeaderProgress(header) ? getProgressPercent(wordCount, header.targetWordCount) : null;
+function getManualSortGroupHeaderProgress(
+    header: ManualSortGroupHeaderData,
+    wordCount: number,
+    targetWordCount: number | null | undefined
+): ManualSortGroupHeaderProgressData {
+    const resolvedTargetWordCount = getManualSortGroupHeaderTargetWordCount(header, targetWordCount);
+    const progressPercent = resolvedTargetWordCount !== null ? getProgressPercent(wordCount, resolvedTargetWordCount) : null;
     const progressWidth = progressPercent === null ? null : Math.min(100, Math.max(0, progressPercent));
 
     return {
@@ -84,10 +95,10 @@ function getManualSortGroupHeaderStyle(
     return style;
 }
 
-export function ManualSortGroupHeaderContent({ header, wordCount }: ManualSortGroupHeaderContentProps) {
+export function ManualSortGroupHeaderContent({ header, wordCount, targetWordCount }: ManualSortGroupHeaderContentProps) {
     const shouldShowWordCount = shouldShowManualSortGroupHeaderWordCount(header);
-    const countText = formatManualSortGroupHeaderCountText(header, wordCount);
-    const progress = getManualSortGroupHeaderProgress(header, wordCount);
+    const countText = formatManualSortGroupHeaderCountText(header, wordCount, targetWordCount);
+    const progress = getManualSortGroupHeaderProgress(header, wordCount, targetWordCount);
     const style = getManualSortGroupHeaderStyle(header, progress);
     const contentClasses = ['nn-manual-sort-group-header-content'];
     if (header.color && progress.progressPercent === null) {
@@ -111,8 +122,8 @@ export function ManualSortGroupHeaderContent({ header, wordCount }: ManualSortGr
     );
 }
 
-export function ManualSortGroupHeaderProgress({ header, wordCount }: ManualSortGroupHeaderContentProps) {
-    const progress = getManualSortGroupHeaderProgress(header, wordCount);
+export function ManualSortGroupHeaderProgress({ header, wordCount, targetWordCount }: ManualSortGroupHeaderContentProps) {
+    const progress = getManualSortGroupHeaderProgress(header, wordCount, targetWordCount);
 
     if (progress.progressWidth === null) {
         return null;

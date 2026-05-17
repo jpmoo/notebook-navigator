@@ -433,6 +433,8 @@ export const STRINGS_ID = {
             wordCount: 'Tampilkan jumlah kata',
             wordCountTarget: 'Target jumlah kata',
             wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                'Saat bidang ini kosong, target grup menggunakan properti target yang diatur di Pengaturan > Catatan > Jumlah kata. Timpa dengan menetapkan nilai target untuk grup ini.',
             description: 'Sesuaikan header grup untuk catatan ini. Biarkan judul kosong untuk menghapus header.'
         },
         navRainbowSection: {

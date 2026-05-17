@@ -120,6 +120,10 @@ export class ManualSortGroupHeaderModal extends Modal {
         this.targetInputEl.placeholder = strings.modals.manualSortGroupHeader.wordCountTargetPlaceholder;
         this.targetInputEl.value = this.showWordCount ? (this.initialValue?.targetWordCount?.toString() ?? '') : '';
         this.targetInputEl.addEventListener('input', this.filterTargetInput);
+        targetFieldEl.createDiv({
+            cls: 'nn-input-description nn-manual-sort-header-target-description',
+            text: strings.modals.manualSortGroupHeader.wordCountTargetDescription
+        });
         this.updateWordCountTargetControl();
 
         const buttonContainer = contentEl.createDiv('nn-button-container');

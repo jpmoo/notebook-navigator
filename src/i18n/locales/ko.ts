@@ -431,6 +431,8 @@ export const STRINGS_KO = {
             wordCount: '단어 수 표시',
             wordCountTarget: '목표 단어 수',
             wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                '이 필드가 비어 있으면 그룹 목표는 설정 > 노트 > 단어 수에서 설정한 목표 속성을 사용합니다. 이 그룹의 목표값을 설정하면 재정의할 수 있습니다.',
             description: '이 노트의 그룹 머리글을 사용자 지정합니다. 머리글을 제거하려면 제목을 비워 두세요.'
         },
         navRainbowSection: {

@@ -21,10 +21,32 @@ import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import { getPropertyFrontmatterFields } from '../../src/utils/propertyUtils';
 
 describe('propertyUtils', () => {
+    it('omits the word count target property when nothing consumes it', () => {
+        const fields = getPropertyFrontmatterFields({
+            ...DEFAULT_SETTINGS,
+            showWordCount: false,
+            noteGrouping: 'date',
+            wordCountTargetProperty: 'wordCountTarget'
+        });
+
+        expect(fields).toEqual([]);
+    });
+
     it('includes the word count target property when word count display is enabled', () => {
         const fields = getPropertyFrontmatterFields({
             ...DEFAULT_SETTINGS,
             showWordCount: true,
+            wordCountTargetProperty: 'wordCountTarget'
+        });
+
+        expect(fields).toEqual(['wordCountTarget']);
+    });
+
+    it('includes the word count target property when custom group headers are configured', () => {
+        const fields = getPropertyFrontmatterFields({
+            ...DEFAULT_SETTINGS,
+            showWordCount: false,
+            noteGrouping: 'custom',
             wordCountTargetProperty: 'wordCountTarget'
         });
 

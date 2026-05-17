@@ -66,6 +66,7 @@ interface HeaderRenderModel {
     manualSortHeaderFilePath: string | null;
     manualSortHeader: ManualSortGroupHeaderData | null;
     manualSortHeaderWordCount: number;
+    manualSortHeaderTargetWordCount: number | null;
 }
 
 interface HeaderRenderModels {
@@ -196,7 +197,9 @@ function shouldHideCollapsedHeaderSeparator(header: HeaderRenderModel | null): b
 }
 
 function shouldHideManualSortGoalHeaderSeparator(header: HeaderRenderModel | null): boolean {
-    return header?.manualSortHeader ? shouldShowManualSortGroupHeaderProgress(header.manualSortHeader) : false;
+    return header?.manualSortHeader
+        ? shouldShowManualSortGroupHeaderProgress(header.manualSortHeader, header.manualSortHeaderTargetWordCount)
+        : false;
 }
 
 function ListPaneGroupHeader({
@@ -211,7 +214,8 @@ function ListPaneGroupHeader({
     const folderGroupHeaderTarget = header.folderGroupHeaderTarget;
     const manualSortHeader = header.manualSortHeader;
     const isClickableFolderGroupHeader = Boolean(folderGroupHeaderTarget) && !header.isPinnedHeader;
-    const hasManualSortGoal = manualSortHeader !== null && shouldShowManualSortGroupHeaderProgress(manualSortHeader);
+    const hasManualSortGoal =
+        manualSortHeader !== null && shouldShowManualSortGroupHeaderProgress(manualSortHeader, header.manualSortHeaderTargetWordCount);
     const handleCollapseButtonClick = useCallback(
         (event: React.MouseEvent<HTMLButtonElement>) => {
             event.stopPropagation();
@@ -241,7 +245,11 @@ function ListPaneGroupHeader({
     const headerRow = (
         <div className={headerClasses.join(' ')} onContextMenu={hasManualSortGoal ? undefined : handleContextMenu}>
             {manualSortHeader ? (
-                <ManualSortGroupHeaderContent header={manualSortHeader} wordCount={header.manualSortHeaderWordCount} />
+                <ManualSortGroupHeaderContent
+                    header={manualSortHeader}
+                    wordCount={header.manualSortHeaderWordCount}
+                    targetWordCount={header.manualSortHeaderTargetWordCount}
+                />
             ) : (
                 <span
                     className={`nn-list-group-header-text ${isClickableFolderGroupHeader ? 'nn-list-group-header-text--folder-note' : ''}`}
@@ -275,7 +283,11 @@ function ListPaneGroupHeader({
         return (
             <div className="nn-manual-sort-group-header-shell" onContextMenu={handleContextMenu}>
                 {headerRow}
-                <ManualSortGroupHeaderProgress header={manualSortHeader} wordCount={header.manualSortHeaderWordCount} />
+                <ManualSortGroupHeaderProgress
+                    header={manualSortHeader}
+                    wordCount={header.manualSortHeaderWordCount}
+                    targetWordCount={header.manualSortHeaderTargetWordCount}
+                />
             </div>
         );
     }
@@ -443,7 +455,8 @@ export function ListPaneVirtualContent({
                 folderGroupHeaderTarget: headerFolderPath !== null ? (folderGroupHeaderTargets.get(headerFolderPath) ?? null) : null,
                 manualSortHeaderFilePath: item.headerKind === 'manual-sort-custom' ? (item.manualSortHeaderFilePath ?? null) : null,
                 manualSortHeader,
-                manualSortHeaderWordCount: item.manualSortHeaderWordCount ?? 0
+                manualSortHeaderWordCount: item.manualSortHeaderWordCount ?? 0,
+                manualSortHeaderTargetWordCount: item.manualSortHeaderTargetWordCount ?? null
             };
             models.push(model);
             modelsByIndex.set(index, model);

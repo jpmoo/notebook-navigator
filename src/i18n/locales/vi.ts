@@ -432,6 +432,8 @@ export const STRINGS_VI = {
             wordCount: 'Hiển thị số từ',
             wordCountTarget: 'Số từ mục tiêu',
             wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                'Khi trường này để trống, mục tiêu nhóm dùng thuộc tính mục tiêu được đặt trong Cài đặt > Ghi chú > Số từ. Ghi đè bằng cách đặt giá trị mục tiêu cho nhóm này.',
             description: 'Tùy chỉnh header nhóm cho ghi chú này. Để trống tiêu đề để xóa header.'
         },
         navRainbowSection: {

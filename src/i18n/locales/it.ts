@@ -432,6 +432,8 @@ export const STRINGS_IT = {
             wordCount: 'Mostra il conteggio parole',
             wordCountTarget: 'Conteggio parole obiettivo',
             wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                "Quando questo campo è vuoto, l'obiettivo del gruppo usa la proprietà obiettivo impostata in Impostazioni > Note > Conteggio parole. Sostituiscilo impostando un valore obiettivo per questo gruppo.",
             description: "Personalizza l'intestazione di gruppo per questa nota. Lascia il titolo vuoto per rimuovere l'intestazione."
         },
         navRainbowSection: {

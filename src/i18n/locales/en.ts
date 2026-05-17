@@ -432,6 +432,8 @@ export const STRINGS_EN = {
             wordCount: 'Show word count',
             wordCountTarget: 'Target word count',
             wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                'When this field is empty, the group goal uses the target property set in Settings > Notes > Word count. Override it by setting a target value for this group.',
             description: 'Customize the group header for this note. Leave the title empty to remove the header.'
         },
         navRainbowSection: {

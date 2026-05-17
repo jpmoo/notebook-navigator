@@ -454,24 +454,51 @@ export function shouldShowManualSortGroupHeaderWordCount(header: ManualSortGroup
     return header.showWordCount;
 }
 
+export function getManualSortGroupHeaderTargetWordCount(
+    header: ManualSortGroupHeaderData,
+    targetWordCount: number | null | undefined = header.targetWordCount
+): number | null {
+    if (!shouldShowManualSortGroupHeaderWordCount(header)) {
+        return null;
+    }
+
+    const resolvedTargetWordCount = header.targetWordCount ?? targetWordCount;
+    return typeof resolvedTargetWordCount === 'number' && Number.isFinite(resolvedTargetWordCount) && resolvedTargetWordCount > 0
+        ? Math.trunc(resolvedTargetWordCount)
+        : null;
+}
+
 export function shouldShowManualSortGroupHeaderProgress(
     header: ManualSortGroupHeaderData
-): header is ManualSortGroupHeaderData & { targetWordCount: number } {
-    return shouldShowManualSortGroupHeaderWordCount(header) && header.targetWordCount !== null;
+): header is ManualSortGroupHeaderData & { targetWordCount: number };
+export function shouldShowManualSortGroupHeaderProgress(
+    header: ManualSortGroupHeaderData,
+    targetWordCount: number | null | undefined
+): boolean;
+export function shouldShowManualSortGroupHeaderProgress(
+    header: ManualSortGroupHeaderData,
+    targetWordCount: number | null | undefined = header.targetWordCount
+): boolean {
+    return getManualSortGroupHeaderTargetWordCount(header, targetWordCount) !== null;
 }
 
 export function normalizeManualSortGroupHeaderWordCount(value: unknown): number {
     return typeof value === 'number' && Number.isFinite(value) && value > 0 ? Math.trunc(value) : 0;
 }
 
-export function formatManualSortGroupHeaderLabel(header: ManualSortGroupHeaderData, wordCount: number): string {
+export function formatManualSortGroupHeaderLabel(
+    header: ManualSortGroupHeaderData,
+    wordCount: number,
+    targetWordCount: number | null | undefined = header.targetWordCount
+): string {
     if (!shouldShowManualSortGroupHeaderWordCount(header)) {
         return header.title;
     }
 
     const formattedWordCount = Math.trunc(wordCount).toLocaleString();
-    if (shouldShowManualSortGroupHeaderProgress(header)) {
-        return `${header.title} (${formattedWordCount} / ${header.targetWordCount.toLocaleString()})`;
+    const resolvedTargetWordCount = getManualSortGroupHeaderTargetWordCount(header, targetWordCount);
+    if (resolvedTargetWordCount !== null) {
+        return `${header.title} (${formattedWordCount} / ${resolvedTargetWordCount.toLocaleString()})`;
     }
 
     return `${header.title} (${formattedWordCount})`;

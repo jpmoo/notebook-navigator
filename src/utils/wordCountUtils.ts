@@ -18,8 +18,10 @@
 
 // Matches Obsidian's current word count tokenization behavior.
 
+import type { App, TFile } from 'obsidian';
 import type { PropertyItem } from '../storage/IndexedDBStorage';
-import { casefold } from './recordUtils';
+import { casefold, findMatchingRecordKey } from './recordUtils';
+import { isRecord } from './typeGuards';
 
 // CJK characters that count as individual words (Obsidian splits these out)
 const CJK_SINGLE_CHARS =
@@ -49,7 +51,7 @@ export function countWordsForNoteProperty(content: string, startIndex: number): 
     return count;
 }
 
-function parseWordCountTarget(value: unknown): number | null {
+function parseWordCountTargetValue(value: unknown): number | null {
     if (typeof value === 'number') {
         return Number.isSafeInteger(value) && value > 0 ? value : null;
     }
@@ -81,13 +83,28 @@ export function getWordCountTargetFromProperties(
             continue;
         }
 
-        const target = parseWordCountTarget(property.value);
+        const target = parseWordCountTargetValue(property.value);
         if (target !== null) {
             return target;
         }
     }
 
     return null;
+}
+
+export function getCachedWordCountTargetFromFrontmatter(app: App, file: TFile, targetProperty: string): number | null {
+    const trimmedTargetProperty = targetProperty.trim();
+    if (file.extension !== 'md' || !trimmedTargetProperty) {
+        return null;
+    }
+
+    const frontmatter = app.metadataCache?.getFileCache(file)?.frontmatter;
+    if (!isRecord(frontmatter)) {
+        return null;
+    }
+
+    const targetKey = findMatchingRecordKey(frontmatter, trimmedTargetProperty);
+    return targetKey ? parseWordCountTargetValue(frontmatter[targetKey]) : null;
 }
 
 function formatWordCountDisplayText(params: {
