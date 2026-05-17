@@ -4590,14 +4590,21 @@ button.nn-navigation-calendar-day {
 }
 
 .nn-list-sticky-header {
+    --nn-sticky-group-header-height: var(--nn-list-group-header-height-mobile, var(--nn-list-group-header-height));
+
     position: sticky;
     top: 0;
-    /* Keep the sticky copy out of layout so it overlays the virtualized list rows. */
-    height: 0;
-    flex: 0 0 0;
+    /* Keep the sticky copy overlaying the virtualized list rows while preserving a real sticky box. */
+    height: var(--nn-sticky-group-header-height);
+    margin-bottom: calc(0px - var(--nn-sticky-group-header-height));
+    flex: 0 0 var(--nn-sticky-group-header-height);
     overflow: visible;
     z-index: 200;
     pointer-events: none;
+}
+
+.nn-list-sticky-header--manual-sort-goal {
+    --nn-sticky-group-header-height: var(--nn-list-group-goal-header-height-mobile, var(--nn-list-group-goal-header-height));
 }
 
 .nn-list-pane-scroller .nn-virtual-list-group-header:not(.nn-hide-list-group-header-separator)::after {
