@@ -103,6 +103,8 @@ export function useListPaneRefresh({
     propertySortSecondary
 }: UseListPaneRefreshArgs): void {
     const onRefreshRef = useRef(onRefresh);
+    const operationActiveRef = useRef(false);
+    const pendingRefreshRef = useRef(false);
 
     useEffect(() => {
         onRefreshRef.current = onRefresh;
@@ -111,32 +113,31 @@ export function useListPaneRefresh({
     useEffect(() => {
         const scheduleRefresh = debounce(
             () => {
+                pendingRefreshRef.current = false;
                 onRefreshRef.current();
             },
             TIMEOUTS.FILE_OPERATION_DELAY,
             true
         );
 
-        const operationActiveRef = { current: false };
-        const pendingRefreshRef = { current: false };
-        const isTrackedOperationActive = () =>
-            operationActiveRef.current ||
+        const hasActiveQueuedOperation = () =>
             Boolean(
                 commandQueue?.hasActiveOperation(OperationType.MOVE_FILE) || commandQueue?.hasActiveOperation(OperationType.DELETE_FILES)
             );
+        operationActiveRef.current = hasActiveQueuedOperation();
+        const isTrackedOperationActive = () => operationActiveRef.current || hasActiveQueuedOperation();
 
         const flushPendingWhenIdle = () => {
             if (!pendingRefreshRef.current || isTrackedOperationActive()) {
                 return;
             }
 
-            pendingRefreshRef.current = false;
             scheduleRefresh();
         };
 
         const queueRefresh = () => {
+            pendingRefreshRef.current = true;
             if (isTrackedOperationActive()) {
-                pendingRefreshRef.current = true;
                 return;
             }
 
@@ -154,6 +155,7 @@ export function useListPaneRefresh({
                 }
             });
         }
+        flushPendingWhenIdle();
 
         let unsubscribePropertyTree: (() => void) | null = null;
         if (selectionType === ItemType.PROPERTY && selectedProperty && propertyTreeService) {
