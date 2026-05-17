@@ -28,7 +28,7 @@ import { partitionPinnedFiles } from '../../utils/fileFinder';
 import {
     formatManualSortGroupHeaderLabel,
     getCachedManualSortGroupHeader,
-    hasCachedManualSortProperty,
+    getCachedManualSortRank,
     normalizeManualSortGroupHeaderWordCount,
     shouldShowManualSortGroupHeaderWordCount,
     type ManualSortGroupHeaderData
@@ -317,7 +317,7 @@ export function buildListItems({
         const unsortedFiles: TFile[] = [];
         if (shouldShowUnsortedSection) {
             unpinnedFiles.forEach(file => {
-                if (file.extension === 'md' && !hasCachedManualSortProperty(app, file, propertySortKey)) {
+                if (file.extension === 'md' && getCachedManualSortRank(app, file, propertySortKey) === null) {
                     unsortedFiles.push(file);
                     return;
                 }

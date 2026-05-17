@@ -160,15 +160,17 @@ describe('buildListItems pinned display scope', () => {
         expect(items[3].key).toMatch(/-spacer-before$/);
     });
 
-    it('adds an Unsorted section for property-sorted markdown files missing the property', () => {
+    it('adds an Unsorted section for manual sort files missing a valid rank', () => {
         const app = createApp();
         const rankedFile = createTestTFile('notes/ranked.md');
+        const invalidRankFile = createTestTFile('notes/invalid-rank.md');
         const unsortedFile = createTestTFile('notes/unsorted.md');
         app.metadataCache.getFileCache = (file: TFile) => ({
-            frontmatter: file.path === rankedFile.path ? { index: 1 } : {}
+            frontmatter: file.path === rankedFile.path ? { index: 1 } : file.path === invalidRankFile.path ? { index: 'custom' } : {}
         });
         const db = createDb({
             [rankedFile.path]: { tags: null, properties: null },
+            [invalidRankFile.path]: { tags: null, properties: null },
             [unsortedFile.path]: { tags: null, properties: null }
         });
 
@@ -176,7 +178,7 @@ describe('buildListItems pinned display scope', () => {
             app,
             dayKey: '2026-03-07',
             fileVisibility: FILE_VISIBILITY.DOCUMENTS,
-            files: [rankedFile, unsortedFile],
+            files: [rankedFile, invalidRankFile, unsortedFile],
             getDB: () => db,
             getFileTimestamps: () => ({ created: 0, modified: 0 }),
             hiddenFileState: new Map(),
@@ -197,12 +199,14 @@ describe('buildListItems pinned display scope', () => {
             ListPaneItemType.HEADER_SPACER,
             ListPaneItemType.HEADER,
             ListPaneItemType.FILE,
+            ListPaneItemType.FILE,
             ListPaneItemType.BOTTOM_SPACER
         ]);
         expect(items[3].data).toBe('Unsorted');
         expect(items[3].headerKind).toBe('section');
         expect(getFileItems(items)).toEqual([
             { path: rankedFile.path, isPinned: false },
+            { path: invalidRankFile.path, isPinned: false },
             { path: unsortedFile.path, isPinned: false }
         ]);
     });

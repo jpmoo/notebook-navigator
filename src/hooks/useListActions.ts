@@ -89,7 +89,6 @@ type DescendantApplyStats = {
 
 type ManualSortPropertyStats = {
     markdownCount: number;
-    propertyCount: number;
     validRankCount: number;
     invalidPropertyCount: number;
 };
@@ -129,7 +128,6 @@ function getManualSortPropertyStats(app: App, files: readonly TFile[], propertyK
                 return stats;
             }
 
-            stats.propertyCount += 1;
             if (manualSortProperty.rank === null) {
                 stats.invalidPropertyCount += 1;
             } else {
@@ -139,7 +137,6 @@ function getManualSortPropertyStats(app: App, files: readonly TFile[], propertyK
         },
         {
             markdownCount: 0,
-            propertyCount: 0,
             validRankCount: 0,
             invalidPropertyCount: 0
         }
@@ -1079,18 +1076,20 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
         const allMarkdownFilesHaveValidManualSortRanks =
             propertyStats.markdownCount > 0 && propertyStats.validRankCount === propertyStats.markdownCount;
         const hasInvalidManualSortProperty = propertyStats.invalidPropertyCount > 0;
-        const shouldInitializeManualSort = !isCurrentManualSort && propertyStats.markdownCount > 0 && propertyStats.propertyCount === 0;
+        const shouldInitializeManualSort = !isCurrentManualSort && propertyStats.markdownCount > 0 && propertyStats.validRankCount === 0;
         const shouldConfirmManualSort =
             !isCurrentManualSort &&
             !allMarkdownFilesHaveValidManualSortRanks &&
             (hasInvalidManualSortProperty || settings.confirmBeforeManualSort);
         const applyManualSort = async () => {
-            await applyManualSortForProperty(normalizedPropertyKey, target);
-            if (!shouldInitializeManualSort) {
-                return;
+            if (shouldInitializeManualSort) {
+                const didWriteInitialOrder = await writeInitialManualSortOrder(initialFiles, normalizedPropertyKey);
+                if (!didWriteInitialOrder) {
+                    return;
+                }
             }
 
-            await writeInitialManualSortOrder(initialFiles, normalizedPropertyKey);
+            await applyManualSortForProperty(normalizedPropertyKey, target);
         };
 
         if (shouldConfirmManualSort) {
