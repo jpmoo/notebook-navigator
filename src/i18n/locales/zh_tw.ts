@@ -1009,7 +1009,7 @@ export const STRINGS_ZH_TW = {
             },
             confirmBeforeManualSort: {
                 name: '手動排序前確認',
-                desc: '將目前列表切換為手動排序之前顯示確認對話框。'
+                desc: '在首次將手動排序屬性寫入筆記之前顯示警告。停用時，筆記將不顯示警告即接收該屬性。'
             },
             manualSortInstructions: {
                 intro: '手動排序會將數字索引值寫入每則筆記的 frontmatter 屬性。沒有索引的筆記會顯示在「未排序」之下。',

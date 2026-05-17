@@ -1020,7 +1020,7 @@ export const STRINGS_TR = {
             },
             confirmBeforeManualSort: {
                 name: 'Manuel sıralamadan önce onayla',
-                desc: 'Geçerli listeyi manuel sıralamaya geçirmeden önce bir onay iletişim kutusu göster.'
+                desc: 'Manuel sıralama özelliği notlara ilk kez yazılmadan önce bir uyarı göster. Devre dışı bırakıldığında notlar uyarı olmadan özelliği alır.'
             },
             manualSortInstructions: {
                 intro: 'Manuel sıralama, her notun frontmatter özelliğine sayısal bir indeks değeri yazar. İndeksi olmayan notlar Sıralanmamış altında görünür.',

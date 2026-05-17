@@ -1016,7 +1016,7 @@ export const STRINGS_IT = {
             },
             confirmBeforeManualSort: {
                 name: "Conferma prima dell'ordinamento manuale",
-                desc: "Mostra una finestra di conferma prima di passare la lista corrente all'ordinamento manuale."
+                desc: 'Mostra un avviso prima di scrivere la proprietà di ordinamento manuale nelle note per la prima volta. Quando disattivato, le note ricevono la proprietà senza avviso.'
             },
             manualSortInstructions: {
                 intro: "L'ordinamento manuale scrive un valore indice numerico in una proprietà frontmatter su ogni nota. Le note senza indice appaiono sotto Non ordinato.",

@@ -1022,7 +1022,7 @@ export const STRINGS_PT_BR = {
             },
             confirmBeforeManualSort: {
                 name: 'Confirmar antes da classificação manual',
-                desc: 'Mostrar um diálogo de confirmação antes de mudar a lista atual para classificação manual.'
+                desc: 'Mostrar um aviso antes de gravar a propriedade de classificação manual nas notas pela primeira vez. Quando desativado, as notas recebem a propriedade sem aviso.'
             },
             manualSortInstructions: {
                 intro: 'A classificação manual grava um valor numérico de índice em uma propriedade frontmatter de cada nota. Notas sem índice aparecem em Não classificadas.',

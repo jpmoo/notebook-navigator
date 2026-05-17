@@ -1023,7 +1023,7 @@ export const STRINGS_PL = {
             },
             confirmBeforeManualSort: {
                 name: 'Potwierdzaj przed sortowaniem ręcznym',
-                desc: 'Pokaż okno potwierdzenia przed przełączeniem bieżącej listy na sortowanie ręczne.'
+                desc: 'Pokaż ostrzeżenie przed pierwszym zapisaniem właściwości sortowania ręcznego w notatkach. Po wyłączeniu notatki otrzymują właściwość bez ostrzeżenia.'
             },
             manualSortInstructions: {
                 intro: 'Sortowanie ręczne zapisuje wartość indeksu liczbowego do atrybutu frontmatter w każdej notatce. Notatki bez indeksu pojawiają się w sekcji Nieposortowane.',

@@ -1021,7 +1021,7 @@ export const STRINGS_VI = {
             },
             confirmBeforeManualSort: {
                 name: 'Xác nhận trước khi sắp xếp thủ công',
-                desc: 'Hiển thị hộp thoại xác nhận trước khi chuyển danh sách hiện tại sang sắp xếp thủ công.'
+                desc: 'Hiển thị cảnh báo trước khi ghi thuộc tính sắp xếp thủ công vào ghi chú lần đầu tiên. Khi bị tắt, ghi chú nhận thuộc tính mà không có cảnh báo.'
             },
             manualSortInstructions: {
                 intro: 'Sắp xếp thủ công ghi giá trị chỉ số vào thuộc tính frontmatter trên mỗi ghi chú. Ghi chú không có chỉ số sẽ xuất hiện trong mục Chưa sắp xếp.',

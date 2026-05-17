@@ -1020,7 +1020,7 @@ export const STRINGS_ID = {
             },
             confirmBeforeManualSort: {
                 name: 'Konfirmasi sebelum urutan manual',
-                desc: 'Tampilkan dialog konfirmasi sebelum mengalihkan daftar saat ini ke urutan manual.'
+                desc: 'Tampilkan peringatan sebelum menulis properti urutan manual ke catatan untuk pertama kalinya. Saat dinonaktifkan, catatan menerima properti tanpa peringatan.'
             },
             manualSortInstructions: {
                 intro: 'Urutan manual menulis nilai indeks numerik ke properti frontmatter pada setiap catatan. Catatan tanpa indeks muncul di bawah Belum diurutkan.',

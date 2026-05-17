@@ -1021,7 +1021,7 @@ export const STRINGS_ES = {
             },
             confirmBeforeManualSort: {
                 name: 'Confirmar antes del orden manual',
-                desc: 'Mostrar un diálogo de confirmación antes de cambiar la lista actual al orden manual.'
+                desc: 'Mostrar una advertencia antes de escribir la propiedad de orden manual en las notas por primera vez. Cuando está desactivado, las notas reciben la propiedad sin advertencia.'
             },
             manualSortInstructions: {
                 intro: 'El orden manual escribe un valor numérico de índice en una propiedad del frontmatter de cada nota. Las notas sin índice aparecen en Sin ordenar.',

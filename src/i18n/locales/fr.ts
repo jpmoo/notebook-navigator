@@ -1023,7 +1023,7 @@ export const STRINGS_FR = {
             },
             confirmBeforeManualSort: {
                 name: 'Confirmer avant le tri manuel',
-                desc: 'Afficher une boîte de dialogue de confirmation avant de basculer la liste actuelle en tri manuel.'
+                desc: 'Afficher un avertissement avant d’écrire la propriété de tri manuel dans les notes pour la première fois. Lorsque désactivé, les notes reçoivent la propriété sans avertissement.'
             },
             manualSortInstructions: {
                 intro: 'Le tri manuel écrit une valeur numérique dans une propriété frontmatter sur chaque note. Les notes sans valeur apparaissent sous Non trié.',

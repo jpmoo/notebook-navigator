@@ -1021,7 +1021,7 @@ export const STRINGS_DE = {
             },
             confirmBeforeManualSort: {
                 name: 'Vor manueller Sortierung bestätigen',
-                desc: 'Vor dem Umschalten der aktuellen Liste auf manuelle Sortierung einen Bestätigungsdialog anzeigen.'
+                desc: 'Eine Warnung anzeigen, bevor die Eigenschaft für die manuelle Sortierung erstmals in Notizen geschrieben wird. Wenn deaktiviert, erhalten Notizen die Eigenschaft ohne Warnung.'
             },
             manualSortInstructions: {
                 intro: 'Die manuelle Sortierung schreibt einen numerischen Indexwert in eine Frontmatter-Eigenschaft jeder Notiz. Notizen ohne Index erscheinen unter Unsortiert.',

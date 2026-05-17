@@ -1019,7 +1019,7 @@ export const STRINGS_KO = {
             },
             confirmBeforeManualSort: {
                 name: '수동 정렬 전 확인',
-                desc: '현재 목록을 수동 정렬로 전환하기 전에 확인 대화 상자를 표시합니다.'
+                desc: '수동 정렬 속성을 처음으로 노트에 기록하기 전에 경고를 표시합니다. 비활성화하면 노트는 경고 없이 속성을 받습니다.'
             },
             manualSortInstructions: {
                 intro: '수동 정렬은 각 노트의 frontmatter 속성에 숫자 인덱스 값을 기록합니다. 인덱스가 없는 노트는 정렬되지 않음 아래에 표시됩니다.',

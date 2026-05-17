@@ -1022,7 +1022,7 @@ export const STRINGS_NL = {
             },
             confirmBeforeManualSort: {
                 name: 'Bevestigen voor handmatig sorteren',
-                desc: 'Toon een bevestigingsdialoog voordat de huidige lijst wordt overgeschakeld naar handmatig sorteren.'
+                desc: 'Toon een waarschuwing voordat de eigenschap voor handmatig sorteren voor het eerst naar notities wordt geschreven. Wanneer uitgeschakeld, ontvangen notities de eigenschap zonder waarschuwing.'
             },
             manualSortInstructions: {
                 intro: 'Handmatig sorteren schrijft een numerieke indexwaarde naar een frontmatter-eigenschap op elke notitie. Notities zonder index verschijnen onder Niet gesorteerd.',

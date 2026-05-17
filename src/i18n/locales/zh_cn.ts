@@ -1009,7 +1009,7 @@ export const STRINGS_ZH_CN = {
             },
             confirmBeforeManualSort: {
                 name: '手动排序前确认',
-                desc: '在将当前列表切换到手动排序之前显示确认对话框。'
+                desc: '在首次将手动排序属性写入笔记之前显示警告。禁用时，笔记将不显示警告即接收该属性。'
             },
             manualSortInstructions: {
                 intro: '手动排序会将数字索引值写入每条笔记的 frontmatter 属性。没有索引的笔记会显示在"未排序"下。',
