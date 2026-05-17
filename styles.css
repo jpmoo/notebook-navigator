@@ -926,10 +926,6 @@ body {
     line-height: var(--nn-nav-icon-size);
 }
 
-.nn-pane-header-icon[data-has-color='true'] svg {
-    stroke-width: 2.4;
-}
-
 .nn-pane-header-text {
     line-height: var(--nn-nav-line-height);
     overflow: hidden;
@@ -2022,10 +2018,6 @@ button.nn-icon-button.nn-icon-button-active svg:not(.nn-vault-icon-svg) {
 .nn-navitem-icon.nn-iconfont {
     font-size: var(--nn-nav-icon-size);
     line-height: var(--nn-nav-icon-size);
-}
-
-.nn-navitem-icon[data-has-color='true'] svg {
-    stroke-width: 2.4;
 }
 
 /* Folder name text - truncates with ellipsis on overflow */
@@ -4046,10 +4038,6 @@ button.nn-navigation-calendar-day {
     color: var(--nn-theme-file-task-icon-color);
 }
 
-.nn-file-icon[data-has-color='true'] svg {
-    stroke-width: 2.4;
-}
-
 /* Quick actions panel - horizontal container for action icons */
 .nn-quick-actions-panel {
     position: absolute;
@@ -4218,10 +4206,6 @@ button.nn-navigation-calendar-day {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-}
-
-.nn-parent-folder-icon[data-has-color='true'] svg {
-    stroke-width: 2.4;
 }
 
 .nn-parent-folder-label {
@@ -4785,6 +4769,10 @@ button.nn-navigation-calendar-day {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.nn-list-group-header-text--custom-color {
+    font-weight: var(--nn-theme-navitem-custom-color-name-font-weight);
 }
 
 button.nn-list-group-header-collapse-button {

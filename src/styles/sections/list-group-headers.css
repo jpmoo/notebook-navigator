@@ -223,6 +223,10 @@
     text-overflow: ellipsis;
 }
 
+.nn-list-group-header-text--custom-color {
+    font-weight: var(--nn-theme-navitem-custom-color-name-font-weight);
+}
+
 button.nn-list-group-header-collapse-button {
     display: inline-flex;
     align-items: center;

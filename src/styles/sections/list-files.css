@@ -478,10 +478,6 @@
     color: var(--nn-theme-file-task-icon-color);
 }
 
-.nn-file-icon[data-has-color='true'] svg {
-    stroke-width: 2.4;
-}
-
 /* Quick actions panel - horizontal container for action icons */
 .nn-quick-actions-panel {
     position: absolute;
@@ -650,10 +646,6 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-}
-
-.nn-parent-folder-icon[data-has-color='true'] svg {
-    stroke-width: 2.4;
 }
 
 .nn-parent-folder-label {

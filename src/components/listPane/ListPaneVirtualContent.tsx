@@ -41,6 +41,7 @@ import { resolveUXIcon } from '../../utils/uxIcons';
 import { hasSolidFileRowBackground } from '../../utils/colorUtils';
 import { getManualSortGroupHeaderPropertyKey, shouldShowManualSortGroupHeaderProgress } from '../../utils/manualSort';
 import type { ManualSortGroupHeaderData } from '../../utils/manualSort';
+import { resolveFolderDecorationColors } from '../../utils/folderDecoration';
 import { addManualSortGroupHeaderMenuItems } from '../../utils/contextMenu/manualSortGroupHeaderMenuItems';
 import { ManualSortGroupHeaderContent, ManualSortGroupHeaderProgress } from './ManualSortGroupHeaderContent';
 
@@ -67,6 +68,9 @@ interface HeaderRenderModel {
     manualSortHeader: ManualSortGroupHeaderData | null;
     manualSortHeaderWordCount: number;
     manualSortHeaderTargetWordCount: number | null;
+    folderIconId: string | null;
+    folderColor: string | null;
+    applyFolderColorToLabel: boolean;
 }
 
 interface HeaderRenderModels {
@@ -216,6 +220,9 @@ function ListPaneGroupHeader({
     const isClickableFolderGroupHeader = Boolean(folderGroupHeaderTarget) && !header.isPinnedHeader;
     const hasManualSortGoal =
         manualSortHeader !== null && shouldShowManualSortGroupHeaderProgress(manualSortHeader, header.manualSortHeaderTargetWordCount);
+    const folderColor = header.folderColor ?? undefined;
+    const folderIconStyle = folderColor ? { color: folderColor } : undefined;
+    const folderLabelStyle = header.applyFolderColorToLabel && folderColor ? { color: folderColor } : undefined;
     const handleCollapseButtonClick = useCallback(
         (event: React.MouseEvent<HTMLButtonElement>) => {
             event.stopPropagation();
@@ -251,15 +258,29 @@ function ListPaneGroupHeader({
                     targetWordCount={header.manualSortHeaderTargetWordCount}
                 />
             ) : (
-                <span
-                    className={`nn-list-group-header-text ${isClickableFolderGroupHeader ? 'nn-list-group-header-text--folder-note' : ''}`}
-                    onClick={folderGroupHeaderTarget ? event => onFolderGroupHeaderClick(event, folderGroupHeaderTarget) : undefined}
-                    onMouseDown={
-                        folderGroupHeaderTarget ? event => onFolderGroupHeaderMouseDown(event, folderGroupHeaderTarget) : undefined
-                    }
-                >
-                    {header.label}
-                </span>
+                <>
+                    {header.folderIconId ? (
+                        <ServiceIcon
+                            iconId={header.folderIconId}
+                            className="nn-list-group-header-icon nn-list-group-header-folder-icon"
+                            aria-hidden={true}
+                            data-has-color={folderColor ? 'true' : 'false'}
+                            style={folderIconStyle}
+                        />
+                    ) : null}
+                    <span
+                        className={`nn-list-group-header-text ${
+                            isClickableFolderGroupHeader ? 'nn-list-group-header-text--folder-note' : ''
+                        } ${header.applyFolderColorToLabel ? 'nn-list-group-header-text--custom-color' : ''}`}
+                        style={folderLabelStyle}
+                        onClick={folderGroupHeaderTarget ? event => onFolderGroupHeaderClick(event, folderGroupHeaderTarget) : undefined}
+                        onMouseDown={
+                            folderGroupHeaderTarget ? event => onFolderGroupHeaderMouseDown(event, folderGroupHeaderTarget) : undefined
+                        }
+                    >
+                        {header.label}
+                    </span>
+                </>
             )}
             {header.isCollapsible ? (
                 <button
@@ -443,20 +464,54 @@ export function ListPaneVirtualContent({
             const headerFolderPath = item.headerFolderPath ?? null;
             const isPinnedHeader = item.key === PINNED_SECTION_HEADER_KEY;
             const collapseKey = item.collapseKey ?? null;
+            const isCollapsed = isPinnedHeader ? !pinnedGroupExpanded : item.isCollapsed === true;
             const manualSortHeader = item.headerKind === 'manual-sort-custom' ? (item.manualSortHeader ?? null) : null;
+            const folderGroupDecorationPath = item.headerKind === 'folder' ? (headerFolderPath ?? '/') : null;
+            let folderIconId: string | null = null;
+            let folderColor: string | null = null;
+            const shouldResolveFolderIcon = settings.showFolderIcons;
+            const shouldResolveFolderColor = settings.showFolderIcons || !settings.colorIconOnly;
+            if (folderGroupDecorationPath !== null && (shouldResolveFolderIcon || shouldResolveFolderColor)) {
+                const folderDisplayData = metadataService.getFolderDisplayData(folderGroupDecorationPath, {
+                    includeDisplayName: false,
+                    includeColor: shouldResolveFolderColor,
+                    includeBackgroundColor: false,
+                    includeIcon: shouldResolveFolderIcon,
+                    includeInheritedColors: shouldResolveFolderColor
+                });
+                folderIconId = shouldResolveFolderIcon
+                    ? (folderDisplayData.icon ??
+                      resolveUXIcon(
+                          settings.interfaceIcons,
+                          folderGroupDecorationPath === '/' ? 'nav-folder-root' : isCollapsed ? 'nav-folder-closed' : 'nav-folder-open'
+                      ))
+                    : null;
+                if (shouldResolveFolderColor) {
+                    folderColor =
+                        resolveFolderDecorationColors({
+                            model: folderDecorationModel,
+                            folderPath: folderGroupDecorationPath,
+                            color: folderDisplayData.color,
+                            backgroundColor: undefined
+                        }).color ?? null;
+                }
+            }
             const model: HeaderRenderModel = {
                 index,
                 label: item.data,
                 isFirstHeader: models.length === 0 && !hasSeenFile,
                 isPinnedHeader,
                 collapseKey,
-                isCollapsed: isPinnedHeader ? !pinnedGroupExpanded : item.isCollapsed === true,
+                isCollapsed,
                 isCollapsible: isPinnedHeader || collapseKey !== null,
                 folderGroupHeaderTarget: headerFolderPath !== null ? (folderGroupHeaderTargets.get(headerFolderPath) ?? null) : null,
                 manualSortHeaderFilePath: item.headerKind === 'manual-sort-custom' ? (item.manualSortHeaderFilePath ?? null) : null,
                 manualSortHeader,
                 manualSortHeaderWordCount: item.manualSortHeaderWordCount ?? 0,
-                manualSortHeaderTargetWordCount: item.manualSortHeaderTargetWordCount ?? null
+                manualSortHeaderTargetWordCount: item.manualSortHeaderTargetWordCount ?? null,
+                folderIconId,
+                folderColor,
+                applyFolderColorToLabel: folderColor !== null && !settings.colorIconOnly
             };
             models.push(model);
             modelsByIndex.set(index, model);
@@ -466,7 +521,16 @@ export function ListPaneVirtualContent({
             headerModels: models,
             headerModelByIndex: modelsByIndex
         };
-    }, [folderGroupHeaderTargets, listItems, pinnedGroupExpanded]);
+    }, [
+        folderDecorationModel,
+        folderGroupHeaderTargets,
+        listItems,
+        metadataService,
+        pinnedGroupExpanded,
+        settings.colorIconOnly,
+        settings.interfaceIcons,
+        settings.showFolderIcons
+    ]);
 
     const handleFolderGroupHeaderClick = useCallback(
         (event: React.MouseEvent<HTMLSpanElement>, target: FolderGroupHeaderTarget) => {
