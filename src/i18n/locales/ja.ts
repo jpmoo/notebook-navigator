@@ -930,7 +930,8 @@ export const STRINGS_JA = {
                 tags: 'タグ',
                 properties: 'プロパティ',
                 date: '日付',
-                parentFolder: '親フォルダ'
+                parentFolder: '親フォルダ',
+                wordCount: '単語数'
             }
         },
         syncMode: {
@@ -1641,14 +1642,26 @@ export const STRINGS_JA = {
                 name: 'コンパクトモードでプロパティを表示',
                 desc: 'コンパクトモードが有効な時にプロパティを表示します。'
             },
-            notePropertyType: {
-                name: 'ノートプロパティ',
-                desc: 'ファイル項目に表示するノートプロパティを選択します。',
+            showWordCount: {
+                name: '単語数を表示',
+                desc: 'ファイル項目にノートの単語数を表示します。'
+            },
+            wordCountPlacement: {
+                name: '配置',
+                desc: '単語数を表示する場所を選択します。',
                 options: {
-                    frontmatter: 'フロントマタープロパティ',
-                    wordCount: '文字数',
-                    none: 'なし'
+                    title: 'タイトル内',
+                    property: 'プロパティとして'
                 }
+            },
+            wordCountTargetProperty: {
+                name: '目標プロパティ',
+                desc: '目標単語数を含むフロントマターのプロパティキー。目標を非表示にするには空にします。',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: '目標パーセントを表示',
+                desc: '目標単語数がある場合、進捗パーセントのみを表示します。'
             },
             propertyFields: {
                 name: 'プロパティキー（保管庫プロファイル）',

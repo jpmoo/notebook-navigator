@@ -932,7 +932,8 @@ export const STRINGS_ES = {
                 tags: 'Etiquetas',
                 properties: 'Propiedades',
                 date: 'Fecha',
-                parentFolder: 'Carpeta superior'
+                parentFolder: 'Carpeta superior',
+                wordCount: 'Recuento de palabras'
             }
         },
         syncMode: {
@@ -1646,14 +1647,26 @@ export const STRINGS_ES = {
                 name: 'Mostrar propiedades en modo compacto',
                 desc: 'Mostrar propiedades cuando el modo compacto está activo.'
             },
-            notePropertyType: {
-                name: 'Propiedad de nota',
-                desc: 'Seleccione la propiedad de nota a mostrar en los elementos de archivo.',
+            showWordCount: {
+                name: 'Mostrar recuento de palabras',
+                desc: 'Mostrar recuentos de palabras de notas en los elementos de archivo.'
+            },
+            wordCountPlacement: {
+                name: 'Ubicación',
+                desc: 'Elija dónde aparecen los recuentos de palabras.',
                 options: {
-                    frontmatter: 'Propiedad del frontmatter',
-                    wordCount: 'Conteo de palabras',
-                    none: 'Ninguno'
+                    title: 'En el título',
+                    property: 'Como propiedad'
                 }
+            },
+            wordCountTargetProperty: {
+                name: 'Propiedad objetivo',
+                desc: 'Clave de propiedad del frontmatter que contiene el recuento de palabras objetivo. Déjela vacía para ocultar objetivos.',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: 'Mostrar porcentaje objetivo',
+                desc: 'Mostrar solo el porcentaje de progreso cuando haya un recuento de palabras objetivo disponible.'
             },
             propertyFields: {
                 name: 'Claves de propiedades (perfil de bóveda)',

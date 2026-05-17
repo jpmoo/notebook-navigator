@@ -658,6 +658,7 @@ export class PluginSettingsController {
         delete rest.calendarCustomPromptForTitle;
         delete rest.saveMetadataToFrontmatter;
         delete rest.propertyFields;
+        delete rest.notePropertyType;
         delete rest.optimizeNoteHeight;
         delete rest.showPinnedIcon;
         delete rest.showPinnedGroupHeader;
@@ -989,7 +990,10 @@ export class PluginSettingsController {
         const isAppearanceValue = (value: unknown): value is FolderAppearance => isPlainObjectRecordValue(value);
         const sanitizeAppearanceMap = (record?: Record<string, FolderAppearance>): Record<string, FolderAppearance> => {
             const sanitized = sanitizeRecord(record, isAppearanceValue);
-            Object.values(sanitized).forEach(normalizeAppearanceGroupBy);
+            Object.values(sanitized).forEach(appearance => {
+                delete (appearance as Record<string, unknown>)['notePropertyType'];
+                normalizeAppearanceGroupBy(appearance);
+            });
             return sanitized;
         };
         const sanitizeBooleanMap = (record?: Record<string, boolean>): Record<string, boolean> =>

@@ -53,7 +53,7 @@ import { ListPaneItemType, OVERSCAN } from '../types';
 import { Align, ListScrollIntent, getListAlign, rankListPending } from '../types/scroll';
 import type { ListPaneItem } from '../types/virtualization';
 import type { NotebookNavigatorSettings } from '../settings';
-import type { ListDisplayMode, ListNoteGroupingOption, NotePropertyType, SortOption } from '../settings/types';
+import type { ListDisplayMode, ListNoteGroupingOption, SortOption } from '../settings/types';
 import type { FileContentChange } from '../storage/IndexedDBStorage';
 import type { SelectionDispatch, SelectionState } from '../context/SelectionContext';
 import { calculateCompactListMetrics } from '../utils/listPaneMetrics';
@@ -104,7 +104,6 @@ interface UseListPaneScrollParams {
         mode: ListDisplayMode;
         titleRows: number;
         previewRows: number;
-        notePropertyType: NotePropertyType;
         showDate: boolean;
         showPreview: boolean;
         showImage: boolean;
@@ -153,6 +152,8 @@ type ListLayoutSignatureSettings = Pick<
     | 'showFileProperties'
     | 'showFilePropertiesInCompactMode'
     | 'showPropertiesOnSeparateRows'
+    | 'showWordCount'
+    | 'wordCountPlacement'
     | 'showFileTags'
     | 'showFileTagsInCompactMode'
     | 'showParentFolder'
@@ -259,7 +260,6 @@ function getListLayoutSignature({
             mode: folderSettings.mode,
             titleRows: folderSettings.titleRows,
             previewRows: folderSettings.previewRows,
-            notePropertyType: folderSettings.notePropertyType,
             groupBy: folderSettings.groupBy,
             showDate: folderSettings.showDate,
             showPreview: folderSettings.showPreview,
@@ -269,6 +269,8 @@ function getListLayoutSignature({
             showFileProperties: settings.showFileProperties,
             showFilePropertiesInCompactMode: settings.showFilePropertiesInCompactMode,
             showPropertiesOnSeparateRows: settings.showPropertiesOnSeparateRows,
+            showWordCount: settings.showWordCount,
+            wordCountPlacement: settings.wordCountPlacement,
             showSelectedNavigationPills: settings.showSelectedNavigationPills,
             visiblePropertyKeySignature,
             showParentFolder: settings.showParentFolder,
@@ -573,7 +575,7 @@ export function useListPaneScroll({
             const propertyRowCount = showDrawingMissingFeatureImage
                 ? 0
                 : getPropertyRowCount({
-                      notePropertyType: folderSettings.notePropertyType,
+                      showWordCountProperty: settings.showWordCount && settings.wordCountPlacement === 'property',
                       showFileProperties: settings.showFileProperties,
                       showPropertiesOnSeparateRows: settings.showPropertiesOnSeparateRows,
                       showFilePropertiesInCompactMode: settings.showFilePropertiesInCompactMode,
@@ -705,6 +707,8 @@ export function useListPaneScroll({
             showFileProperties: settings.showFileProperties,
             showFilePropertiesInCompactMode: settings.showFilePropertiesInCompactMode,
             showPropertiesOnSeparateRows: settings.showPropertiesOnSeparateRows,
+            showWordCount: settings.showWordCount,
+            wordCountPlacement: settings.wordCountPlacement,
             showFileTags: settings.showFileTags,
             showFileTagsInCompactMode: settings.showFileTagsInCompactMode,
             showParentFolder: settings.showParentFolder,
@@ -717,6 +721,8 @@ export function useListPaneScroll({
             settings.showFileProperties,
             settings.showFilePropertiesInCompactMode,
             settings.showPropertiesOnSeparateRows,
+            settings.showWordCount,
+            settings.wordCountPlacement,
             settings.showFileTags,
             settings.showFileTagsInCompactMode,
             settings.showParentFolder,

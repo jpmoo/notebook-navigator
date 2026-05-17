@@ -95,6 +95,9 @@ const RELEASE_NOTES: ReleaseNote[] = [
             '**Recent files.** You can now drag items from recent files into shortcuts, folders, tags and properties.',
             '**Calendar.** New setting Calendar > Calendar integration > ==Periodic notes locale== controls whether Notebook Navigator periodic note paths use the selected calendar locale or Obsidian locale.'
         ],
+        improved: [
+            '**List pane.** ==Word count display== now supports title placement, property placement, target word counts, and target percentage display. Change it in List > Notes > Word count.'
+        ],
         changed: [
             '**Settings.** "Property to sort by" was renamed to ==Properties to sort by==. It now takes a comma-separated list of frontmatter properties, and each one shows up as its own option in the list pane sort menu.'
         ],

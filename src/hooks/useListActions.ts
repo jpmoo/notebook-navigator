@@ -378,10 +378,6 @@ function normalizeAppearanceOverride(
         normalized.previewRows = appearance.previewRows;
     }
 
-    if (appearance.notePropertyType !== undefined) {
-        normalized.notePropertyType = appearance.notePropertyType;
-    }
-
     return Object.keys(normalized).length > 0 ? normalized : null;
 }
 
@@ -420,8 +416,7 @@ function areAppearanceOverridesEqual(
     return (
         normalizedLeft.mode === normalizedRight.mode &&
         normalizedLeft.titleRows === normalizedRight.titleRows &&
-        normalizedLeft.previewRows === normalizedRight.previewRows &&
-        normalizedLeft.notePropertyType === normalizedRight.notePropertyType
+        normalizedLeft.previewRows === normalizedRight.previewRows
     );
 }
 
@@ -1843,8 +1838,7 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
         }
 
         const hasModeOverride = (appearance.mode === 'compact' || appearance.mode === 'standard') && appearance.mode !== defaultMode;
-        const otherOverrides =
-            appearance.titleRows !== undefined || appearance.previewRows !== undefined || appearance.notePropertyType !== undefined;
+        const otherOverrides = appearance.titleRows !== undefined || appearance.previewRows !== undefined;
 
         return hasModeOverride || otherOverrides;
     };

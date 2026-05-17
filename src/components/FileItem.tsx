@@ -80,6 +80,7 @@ import { ServiceIcon } from './ServiceIcon';
 import { getDrawingFeatureImageSource } from '../utils/drawingFeatureImages';
 import { useDrawingFeatureImage } from '../hooks/useDrawingFeatureImage';
 import { resolveFileRowBackgroundColor } from '../utils/colorUtils';
+import { getWordCountDisplayText } from '../utils/wordCountUtils';
 
 const FEATURE_IMAGE_MAX_ASPECT_RATIO = 16 / 9;
 
@@ -618,6 +619,19 @@ export const FileItem = React.memo(function FileItem({
     const fileIconClassName = showFileIconUnfinishedTask ? 'nn-file-icon nn-file-icon-unfinished-task' : 'nn-file-icon';
     const dragIconColor = showFileIconUnfinishedTask ? undefined : (fileIconColor ?? undefined);
     const shouldShowCompactExtensionBadge = isCompactMode && (isBaseFile || isCanvasFile);
+    const wordCountDisplayText = useMemo(() => {
+        if (!settings.showWordCount || file.extension !== 'md') {
+            return null;
+        }
+
+        return getWordCountDisplayText({
+            wordCount,
+            properties,
+            targetProperty: settings.wordCountTargetProperty,
+            showTargetPercentage: settings.showWordCountPercentage
+        });
+    }, [file.extension, properties, settings.showWordCount, settings.showWordCountPercentage, settings.wordCountTargetProperty, wordCount]);
+    const shouldShowWordCountInTitle = settings.showWordCount && settings.wordCountPlacement === 'title' && wordCountDisplayText !== null;
 
     const fileTitleElement = useMemo(() => {
         return (
@@ -633,10 +647,19 @@ export const FileItem = React.memo(function FileItem({
                 }
             >
                 {highlightedName}
+                {shouldShowWordCountInTitle ? <span className="nn-file-word-count-suffix"> ({wordCountDisplayText})</span> : null}
                 {extensionSuffix.length > 0 && <span className="nn-file-ext-suffix">{extensionSuffix}</span>}
             </div>
         );
-    }, [appearanceSettings.titleRows, extensionSuffix, fileTitleColor, applyColorToName, highlightedName]);
+    }, [
+        appearanceSettings.titleRows,
+        extensionSuffix,
+        fileTitleColor,
+        applyColorToName,
+        highlightedName,
+        shouldShowWordCountInTitle,
+        wordCountDisplayText
+    ]);
 
     const { shouldShowFileTags, hasVisiblePillRows, pillRows } = useFileItemPills({
         file,
@@ -644,7 +667,7 @@ export const FileItem = React.memo(function FileItem({
         tags,
         properties,
         wordCount,
-        notePropertyType: appearanceSettings.notePropertyType,
+        wordCountDisplayText,
         settings,
         visiblePropertyKeys,
         visibleNavigationPropertyKeys,

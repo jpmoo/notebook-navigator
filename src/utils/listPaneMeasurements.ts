@@ -19,7 +19,7 @@
 import type { TFile } from 'obsidian';
 import { ItemType, ListPaneItemType, type NavigationItemType } from '../types';
 import type { FeatureImageStatus, FileData } from '../storage/IndexedDBStorage';
-import { type FeatureImageSizeSetting, type NotePropertyType } from '../settings/types';
+import { type FeatureImageSizeSetting } from '../settings/types';
 import type { ListPaneItem } from '../types/virtualization';
 import { isImageFile } from './fileTypeUtils';
 import {
@@ -551,7 +551,7 @@ function getVisibleFrontmatterPropertySummary({
 }
 
 export function getPropertyRowCount({
-    notePropertyType,
+    showWordCountProperty,
     showFileProperties,
     showPropertiesOnSeparateRows,
     showFilePropertiesInCompactMode,
@@ -562,7 +562,7 @@ export function getPropertyRowCount({
     visiblePropertyKeys,
     hiddenPropertyValueNodeId
 }: {
-    notePropertyType: NotePropertyType;
+    showWordCountProperty: boolean;
     showFileProperties: boolean;
     showPropertiesOnSeparateRows: boolean;
     showFilePropertiesInCompactMode: boolean;
@@ -583,8 +583,7 @@ export function getPropertyRowCount({
         return 0;
     }
 
-    const wordCountEnabled =
-        notePropertyType === 'wordCount' && typeof wordCount === 'number' && Number.isFinite(wordCount) && wordCount > 0;
+    const wordCountEnabled = showWordCountProperty && typeof wordCount === 'number' && Number.isFinite(wordCount) && wordCount > 0;
     const propertySummary = showFileProperties
         ? getVisibleFrontmatterPropertySummary({
               properties,

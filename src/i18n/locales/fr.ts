@@ -934,7 +934,8 @@ export const STRINGS_FR = {
                 tags: 'Étiquettes',
                 properties: 'Propriétés',
                 date: 'Date',
-                parentFolder: 'Dossier parent'
+                parentFolder: 'Dossier parent',
+                wordCount: 'Nombre de mots'
             }
         },
         syncMode: {
@@ -1649,14 +1650,26 @@ export const STRINGS_FR = {
                 name: 'Afficher les propriétés en mode compact',
                 desc: 'Afficher les propriétés lorsque le mode compact est actif.'
             },
-            notePropertyType: {
-                name: 'Propriété de note',
-                desc: 'Sélectionnez la propriété de note à afficher dans les éléments de fichier.',
+            showWordCount: {
+                name: 'Afficher le nombre de mots',
+                desc: 'Afficher le nombre de mots des notes dans les éléments de fichier.'
+            },
+            wordCountPlacement: {
+                name: 'Emplacement',
+                desc: 'Choisissez où le nombre de mots apparaît.',
                 options: {
-                    frontmatter: 'Propriété frontmatter',
-                    wordCount: 'Nombre de mots',
-                    none: 'Aucun'
+                    title: 'Dans le titre',
+                    property: 'Comme propriété'
                 }
+            },
+            wordCountTargetProperty: {
+                name: 'Propriété cible',
+                desc: 'Clé de propriété frontmatter contenant l’objectif de nombre de mots. Laissez vide pour masquer les objectifs.',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: 'Afficher le pourcentage cible',
+                desc: 'Afficher uniquement le pourcentage de progression lorsqu’un objectif de nombre de mots est disponible.'
             },
             propertyFields: {
                 name: 'Clés de propriétés (profil de coffre)',

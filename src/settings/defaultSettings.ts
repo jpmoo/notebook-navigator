@@ -356,7 +356,10 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     showPropertiesOnSeparateRows: false,
     enablePropertyInternalLinks: true,
     enablePropertyExternalLinks: true,
-    notePropertyType: 'none',
+    showWordCount: false,
+    wordCountPlacement: 'title',
+    wordCountTargetProperty: 'wordCountTarget',
+    showWordCountPercentage: false,
     showFileDate: true,
     // Default to showing modified date when sorting alphabetically
     alphabeticalDateMode: 'modified',

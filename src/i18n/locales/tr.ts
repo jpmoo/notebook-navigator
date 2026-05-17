@@ -931,7 +931,8 @@ export const STRINGS_TR = {
                 tags: 'Etiketler',
                 properties: 'Özellikler',
                 date: 'Tarih',
-                parentFolder: 'Üst klasör'
+                parentFolder: 'Üst klasör',
+                wordCount: 'Kelime sayısı'
             }
         },
         syncMode: {
@@ -1642,14 +1643,26 @@ export const STRINGS_TR = {
                 name: 'Kompakt modda özellikleri göster',
                 desc: 'Kompakt mod etkinken özellikleri görüntüle.'
             },
-            notePropertyType: {
-                name: 'Not özelliği',
-                desc: 'Dosya öğelerinde görüntülenecek not özelliğini seçin.',
+            showWordCount: {
+                name: 'Kelime sayısını göster',
+                desc: 'Dosya öğelerinde notların kelime sayısını göster.'
+            },
+            wordCountPlacement: {
+                name: 'Yerleşim',
+                desc: 'Kelime sayılarının nerede görüneceğini seçin.',
                 options: {
-                    frontmatter: 'Frontmatter özelliği',
-                    wordCount: 'Kelime sayısı',
-                    none: 'Hiçbiri'
+                    title: 'Başlıkta',
+                    property: 'Özellik olarak'
                 }
+            },
+            wordCountTargetProperty: {
+                name: 'Hedef özelliği',
+                desc: 'Hedef kelime sayısını içeren frontmatter özellik anahtarı. Hedefleri gizlemek için boş bırakın.',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: 'Hedef yüzdesini göster',
+                desc: 'Hedef kelime sayısı varsa yalnızca ilerleme yüzdesini göster.'
             },
             propertyFields: {
                 name: 'Özellik anahtarları (kasa profili)',

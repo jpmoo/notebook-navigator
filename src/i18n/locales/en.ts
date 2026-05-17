@@ -927,7 +927,8 @@ export const STRINGS_EN = {
                 tags: 'Tags',
                 properties: 'Properties',
                 date: 'Date',
-                parentFolder: 'Parent folder'
+                parentFolder: 'Parent folder',
+                wordCount: 'Word count'
             }
         },
         syncMode: {
@@ -1657,14 +1658,26 @@ export const STRINGS_EN = {
                 name: 'Link property pills to URLs',
                 desc: 'Click a property pill to open the linked URL.'
             },
-            notePropertyType: {
-                name: 'Note property',
-                desc: 'Select the note property to display in file items.',
+            showWordCount: {
+                name: 'Show word count',
+                desc: 'Display note word counts in file items.'
+            },
+            wordCountPlacement: {
+                name: 'Placement',
+                desc: 'Choose where word counts appear.',
                 options: {
-                    frontmatter: 'Frontmatter property',
-                    wordCount: 'Word count',
-                    none: 'None'
+                    title: 'In title',
+                    property: 'As property'
                 }
+            },
+            wordCountTargetProperty: {
+                name: 'Target property',
+                desc: 'Frontmatter property key containing the target word count. Leave empty to hide targets.',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: 'Show target percentage',
+                desc: 'Display only the progress percentage when a target word count is available.'
             },
             dateFormat: {
                 name: 'Date format',

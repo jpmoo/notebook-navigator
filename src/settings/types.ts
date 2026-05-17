@@ -392,12 +392,12 @@ export function normalizeAppearanceGroupBy<T extends AppearanceGroupingValue>(ap
 /** Date source to display when alphabetical sorting is active */
 export type AlphabeticalDateMode = 'created' | 'modified';
 
-/** Available note property types displayed in file items */
-export type NotePropertyType = 'none' | 'wordCount';
+/** Placement options for note word counts */
+export type WordCountPlacement = 'title' | 'property';
 
-/** Type guard for validating note property type values */
-export function isNotePropertyType(value: string): value is NotePropertyType {
-    return value === 'none' || value === 'wordCount';
+/** Type guard for validating word count placement values */
+export function isWordCountPlacement(value: unknown): value is WordCountPlacement {
+    return value === 'title' || value === 'property';
 }
 
 /** Buttons available in the navigation toolbar */
@@ -644,7 +644,10 @@ export interface NotebookNavigatorSettings {
     showPropertiesOnSeparateRows: boolean;
     enablePropertyInternalLinks: boolean;
     enablePropertyExternalLinks: boolean;
-    notePropertyType: NotePropertyType;
+    showWordCount: boolean;
+    wordCountPlacement: WordCountPlacement;
+    wordCountTargetProperty: string;
+    showWordCountPercentage: boolean;
     showFileDate: boolean;
     alphabeticalDateMode: AlphabeticalDateMode;
     showParentFolder: boolean;

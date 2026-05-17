@@ -929,7 +929,8 @@ export const STRINGS_UK = {
                 tags: 'Теги',
                 properties: 'Властивості',
                 date: 'Дата',
-                parentFolder: 'Батьківська папка'
+                parentFolder: 'Батьківська папка',
+                wordCount: 'Кількість слів'
             }
         },
         syncMode: {
@@ -1641,14 +1642,26 @@ export const STRINGS_UK = {
                 name: 'Показувати властивості в компактному режимі',
                 desc: 'Відображати властивості при активному компактному режимі.'
             },
-            notePropertyType: {
-                name: 'Властивість нотатки',
-                desc: 'Виберіть властивість нотатки для відображення в елементах файлів.',
+            showWordCount: {
+                name: 'Показувати кількість слів',
+                desc: 'Показувати кількість слів нотаток в елементах файлів.'
+            },
+            wordCountPlacement: {
+                name: 'Розміщення',
+                desc: 'Виберіть, де відображати кількість слів.',
                 options: {
-                    frontmatter: 'Властивість frontmatter',
-                    wordCount: 'Кількість слів',
-                    none: 'Немає'
+                    title: 'У заголовку',
+                    property: 'Як властивість'
                 }
+            },
+            wordCountTargetProperty: {
+                name: 'Цільова властивість',
+                desc: 'Ключ властивості frontmatter із цільовою кількістю слів. Залиште порожнім, щоб приховати цілі.',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: 'Показувати відсоток цілі',
+                desc: 'Показувати лише відсоток прогресу, коли доступна цільова кількість слів.'
             },
             propertyFields: {
                 name: 'Ключі властивостей (профіль сховища)',

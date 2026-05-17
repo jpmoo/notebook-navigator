@@ -932,7 +932,8 @@ export const STRINGS_DE = {
                 tags: 'Tags',
                 properties: 'Eigenschaften',
                 date: 'Datum',
-                parentFolder: 'Übergeordneter Ordner'
+                parentFolder: 'Übergeordneter Ordner',
+                wordCount: 'Wortanzahl'
             }
         },
         syncMode: {
@@ -1646,14 +1647,26 @@ export const STRINGS_DE = {
                 name: 'Eigenschaften im Kompaktmodus anzeigen',
                 desc: 'Eigenschaften anzeigen, wenn der Kompaktmodus aktiv ist.'
             },
-            notePropertyType: {
-                name: 'Notiz-Eigenschaft',
-                desc: 'Wählen Sie die Notiz-Eigenschaft, die in Datei-Elementen angezeigt werden soll.',
+            showWordCount: {
+                name: 'Wortanzahl anzeigen',
+                desc: 'Wortanzahlen von Notizen in Dateielementen anzeigen.'
+            },
+            wordCountPlacement: {
+                name: 'Platzierung',
+                desc: 'Wählen Sie, wo Wortanzahlen angezeigt werden.',
                 options: {
-                    frontmatter: 'Frontmatter-Eigenschaft',
-                    wordCount: 'Wortanzahl',
-                    none: 'Keine'
+                    title: 'Im Titel',
+                    property: 'Als Eigenschaft'
                 }
+            },
+            wordCountTargetProperty: {
+                name: 'Zieleigenschaft',
+                desc: 'Frontmatter-Eigenschaftsschlüssel mit der Zielwortanzahl. Leer lassen, um Ziele auszublenden.',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: 'Zielprozentsatz anzeigen',
+                desc: 'Nur den Fortschrittsprozentsatz anzeigen, wenn eine Zielwortanzahl verfügbar ist.'
             },
             propertyFields: {
                 name: 'Eigenschaftsschlüssel (Tresorprofil)',

@@ -930,7 +930,8 @@ export const STRINGS_KO = {
                 tags: '태그',
                 properties: '속성',
                 date: '날짜',
-                parentFolder: '상위 폴더'
+                parentFolder: '상위 폴더',
+                wordCount: '단어 수'
             }
         },
         syncMode: {
@@ -1640,14 +1641,26 @@ export const STRINGS_KO = {
                 name: '간결 모드에서 속성 표시',
                 desc: '간결 모드가 활성화되면 속성을 표시합니다.'
             },
-            notePropertyType: {
-                name: '노트 속성',
-                desc: '파일 항목에 표시할 노트 속성을 선택합니다.',
+            showWordCount: {
+                name: '단어 수 표시',
+                desc: '파일 항목에 노트 단어 수를 표시합니다.'
+            },
+            wordCountPlacement: {
+                name: '위치',
+                desc: '단어 수가 표시될 위치를 선택합니다.',
                 options: {
-                    frontmatter: '프론트매터 속성',
-                    wordCount: '단어 수',
-                    none: '없음'
+                    title: '제목에 표시',
+                    property: '속성으로 표시'
                 }
+            },
+            wordCountTargetProperty: {
+                name: '대상 속성',
+                desc: '목표 단어 수가 들어 있는 프런트매터 속성 키입니다. 대상을 숨기려면 비워 두세요.',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: '대상 백분율 표시',
+                desc: '목표 단어 수가 있을 때 진행률 백분율만 표시합니다.'
             },
             propertyFields: {
                 name: '속성 키 (보관함 프로필)',

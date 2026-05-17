@@ -3993,6 +3993,11 @@ button.nn-navigation-calendar-day {
     color: var(--nn-file-name-custom-color);
 }
 
+.nn-file-word-count-suffix {
+    color: var(--nn-theme-file-date-color);
+    font-weight: var(--nn-theme-file-date-font-weight);
+}
+
 .nn-file-icon {
     width: var(--nn-file-icon-size-mobile, var(--nn-file-icon-size));
     height: var(--nn-file-icon-size-mobile, var(--nn-file-icon-size));
@@ -4361,6 +4366,10 @@ button.nn-navigation-calendar-day {
 }
 
 .nn-file.nn-selected .nn-file-date {
+    color: var(--nn-selected-file-date-color);
+}
+
+.nn-file.nn-selected .nn-file-word-count-suffix {
     color: var(--nn-selected-file-date-color);
 }
 

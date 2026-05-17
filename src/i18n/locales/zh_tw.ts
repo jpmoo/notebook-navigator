@@ -923,7 +923,8 @@ export const STRINGS_ZH_TW = {
                 tags: '標籤',
                 properties: '屬性',
                 date: '日期',
-                parentFolder: '父資料夾'
+                parentFolder: '父資料夾',
+                wordCount: '字數'
             }
         },
         syncMode: {
@@ -1629,14 +1630,26 @@ export const STRINGS_ZH_TW = {
                 name: '在精簡模式中顯示屬性',
                 desc: '精簡模式啟用時顯示屬性。'
             },
-            notePropertyType: {
-                name: '筆記屬性',
-                desc: '選擇要在檔案項目中顯示的筆記屬性。',
+            showWordCount: {
+                name: '顯示字數',
+                desc: '在檔案項目中顯示筆記字數。'
+            },
+            wordCountPlacement: {
+                name: '位置',
+                desc: '選擇字數的顯示位置。',
                 options: {
-                    frontmatter: '前置中繼資料屬性',
-                    wordCount: '字數統計',
-                    none: '無'
+                    title: '在標題中',
+                    property: '作為屬性'
                 }
+            },
+            wordCountTargetProperty: {
+                name: '目標屬性',
+                desc: '包含目標字數的前置元資料屬性鍵。留空可隱藏目標。',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: '顯示目標百分比',
+                desc: '有目標字數時，只顯示進度百分比。'
             },
             propertyFields: {
                 name: '屬性鍵（保險庫設定檔）',

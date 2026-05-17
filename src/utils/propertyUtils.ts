@@ -46,7 +46,26 @@ const BLOCKED_EXTERNAL_URI_PROTOCOLS = new Set(['data:', 'javascript:', 'vbscrip
 const ALLOWED_NON_SLASH_EXTERNAL_URI_PROTOCOLS = new Set(['mailto:', 'sms:', 'tel:']);
 
 export function hasPropertyFrontmatterFields(settings: NotebookNavigatorSettings): boolean {
-    return getCachedCommaSeparatedList(getActivePropertyFields(settings)).length > 0;
+    if (getActivePropertyFields(settings).trim().length > 0) {
+        return true;
+    }
+
+    return settings.showWordCount && settings.wordCountTargetProperty.trim().length > 0;
+}
+
+export function getPropertyFrontmatterFields(settings: NotebookNavigatorSettings): string[] {
+    const fields = [...getCachedCommaSeparatedList(getActivePropertyFields(settings))];
+    const wordCountTargetProperty = settings.showWordCount ? settings.wordCountTargetProperty.trim() : '';
+    const normalizedWordCountTargetProperty = casefold(wordCountTargetProperty);
+    if (normalizedWordCountTargetProperty && !fields.some(field => casefold(field) === normalizedWordCountTargetProperty)) {
+        fields.push(wordCountTargetProperty);
+    }
+
+    return fields;
+}
+
+export function getPropertyFrontmatterFieldSignature(settings: NotebookNavigatorSettings): string {
+    return formatCommaSeparatedList(getPropertyFrontmatterFields(settings));
 }
 
 export function collectVaultPropertyKeys(app: App): PropertyKeySuggestion[] {

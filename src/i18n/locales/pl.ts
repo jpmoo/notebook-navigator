@@ -934,7 +934,8 @@ export const STRINGS_PL = {
                 tags: 'Tagi',
                 properties: 'Atrybuty',
                 date: 'Data',
-                parentFolder: 'Folder nadrzędny'
+                parentFolder: 'Folder nadrzędny',
+                wordCount: 'Liczba słów'
             }
         },
         syncMode: {
@@ -1647,14 +1648,26 @@ export const STRINGS_PL = {
                 name: 'Pokaż atrybuty w trybie kompaktowym',
                 desc: 'Wyświetlaj atrybuty, gdy tryb kompaktowy jest aktywny.'
             },
-            notePropertyType: {
-                name: 'Atrybut notatki',
-                desc: 'Wybierz atrybut notatki do wyświetlenia w elementach plików.',
+            showWordCount: {
+                name: 'Pokaż liczbę słów',
+                desc: 'Wyświetlaj liczbę słów notatek w elementach plików.'
+            },
+            wordCountPlacement: {
+                name: 'Położenie',
+                desc: 'Wybierz, gdzie pojawia się liczba słów.',
                 options: {
-                    frontmatter: 'Atrybut',
-                    wordCount: 'Liczba słów',
-                    none: 'Brak'
+                    title: 'W tytule',
+                    property: 'Jako właściwość'
                 }
+            },
+            wordCountTargetProperty: {
+                name: 'Właściwość celu',
+                desc: 'Klucz właściwości frontmatter zawierający docelową liczbę słów. Pozostaw puste, aby ukryć cele.',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: 'Pokaż procent celu',
+                desc: 'Wyświetlaj tylko procent postępu, gdy dostępna jest docelowa liczba słów.'
             },
             propertyFields: {
                 name: 'Klucze atrybutów (profil sejfu)',

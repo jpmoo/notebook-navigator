@@ -928,7 +928,8 @@ export const STRINGS_RU = {
                 tags: 'Теги',
                 properties: 'Свойства',
                 date: 'Дата',
-                parentFolder: 'Родительская папка'
+                parentFolder: 'Родительская папка',
+                wordCount: 'Количество слов'
             }
         },
         syncMode: {
@@ -1640,14 +1641,26 @@ export const STRINGS_RU = {
                 name: 'Показывать свойства в компактном режиме',
                 desc: 'Отображать свойства при активном компактном режиме.'
             },
-            notePropertyType: {
-                name: 'Свойство заметки',
-                desc: 'Выберите свойство заметки для отображения в элементах файлов.',
+            showWordCount: {
+                name: 'Показывать количество слов',
+                desc: 'Показывать количество слов в заметках в элементах файлов.'
+            },
+            wordCountPlacement: {
+                name: 'Размещение',
+                desc: 'Выберите, где показывать количество слов.',
                 options: {
-                    frontmatter: 'Свойство frontmatter',
-                    wordCount: 'Количество слов',
-                    none: 'Нет'
+                    title: 'В заголовке',
+                    property: 'Как свойство'
                 }
+            },
+            wordCountTargetProperty: {
+                name: 'Целевое свойство',
+                desc: 'Ключ свойства frontmatter с целевым количеством слов. Оставьте пустым, чтобы скрыть цели.',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: 'Показывать процент цели',
+                desc: 'Показывать только процент выполнения, когда доступно целевое количество слов.'
             },
             propertyFields: {
                 name: 'Ключи свойств (профиль хранилища)',

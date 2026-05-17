@@ -928,7 +928,8 @@ export const STRINGS_AR = {
                 tags: 'الوسوم',
                 properties: 'الخصائص',
                 date: 'التاريخ',
-                parentFolder: 'المجلد الأصلي'
+                parentFolder: 'المجلد الأصلي',
+                wordCount: 'عدد الكلمات'
             }
         },
         syncMode: {
@@ -1638,14 +1639,26 @@ export const STRINGS_AR = {
                 name: 'إظهار الخصائص في الوضع المضغوط',
                 desc: 'عرض الخصائص عند تفعيل الوضع المضغوط.'
             },
-            notePropertyType: {
-                name: 'خاصية الملاحظة',
-                desc: 'حدد خاصية الملاحظة لعرضها في عناصر الملفات.',
+            showWordCount: {
+                name: 'إظهار عدد الكلمات',
+                desc: 'عرض عدد كلمات الملاحظات في عناصر الملفات.'
+            },
+            wordCountPlacement: {
+                name: 'الموضع',
+                desc: 'اختر مكان ظهور عدد الكلمات.',
                 options: {
-                    frontmatter: 'خاصية الواجهة الأمامية',
-                    wordCount: 'عدد الكلمات',
-                    none: 'لا شيء'
+                    title: 'في العنوان',
+                    property: 'كخاصية'
                 }
+            },
+            wordCountTargetProperty: {
+                name: 'خاصية الهدف',
+                desc: 'مفتاح خاصية الواجهة الأمامية الذي يحتوي على عدد الكلمات المستهدف. اتركه فارغاً لإخفاء الأهداف.',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: 'إظهار نسبة الهدف',
+                desc: 'عرض نسبة التقدم فقط عند توفر عدد كلمات مستهدف.'
             },
             propertyFields: {
                 name: 'مفاتيح الخصائص (ملف القبو)',

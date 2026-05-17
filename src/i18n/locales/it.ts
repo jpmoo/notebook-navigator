@@ -927,7 +927,8 @@ export const STRINGS_IT = {
                 tags: 'Tag',
                 properties: 'Proprietà',
                 date: 'Data',
-                parentFolder: 'Cartella superiore'
+                parentFolder: 'Cartella superiore',
+                wordCount: 'Conteggio parole'
             }
         },
         syncMode: {
@@ -1642,14 +1643,26 @@ export const STRINGS_IT = {
                 name: 'Mostra proprietà in modalità compatta',
                 desc: 'Visualizza le proprietà quando la modalità compatta è attiva.'
             },
-            notePropertyType: {
-                name: 'Proprietà della nota',
-                desc: 'Seleziona la proprietà della nota da visualizzare negli elementi file.',
+            showWordCount: {
+                name: 'Mostra conteggio parole',
+                desc: 'Mostra il conteggio parole delle note negli elementi file.'
+            },
+            wordCountPlacement: {
+                name: 'Posizione',
+                desc: 'Scegli dove appare il conteggio parole.',
                 options: {
-                    frontmatter: 'Proprietà frontmatter',
-                    wordCount: 'Conteggio parole',
-                    none: 'Nessuno'
+                    title: 'Nel titolo',
+                    property: 'Come proprietà'
                 }
+            },
+            wordCountTargetProperty: {
+                name: 'Proprietà obiettivo',
+                desc: 'Chiave della proprietà frontmatter contenente l’obiettivo di conteggio parole. Lascia vuoto per nascondere gli obiettivi.',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: 'Mostra percentuale obiettivo',
+                desc: 'Mostra solo la percentuale di avanzamento quando è disponibile un obiettivo di conteggio parole.'
             },
             propertyFields: {
                 name: 'Chiavi proprietà (profilo cassaforte)',

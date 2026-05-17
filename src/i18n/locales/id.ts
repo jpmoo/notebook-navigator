@@ -931,7 +931,8 @@ export const STRINGS_ID = {
                 tags: 'Tag',
                 properties: 'Properti',
                 date: 'Tanggal',
-                parentFolder: 'Folder induk'
+                parentFolder: 'Folder induk',
+                wordCount: 'Jumlah kata'
             }
         },
         syncMode: {
@@ -1643,14 +1644,26 @@ export const STRINGS_ID = {
                 name: 'Tampilkan properti dalam mode kompak',
                 desc: 'Tampilkan properti saat mode kompak aktif.'
             },
-            notePropertyType: {
-                name: 'Properti catatan',
-                desc: 'Pilih properti catatan untuk ditampilkan di item file.',
+            showWordCount: {
+                name: 'Tampilkan jumlah kata',
+                desc: 'Tampilkan jumlah kata catatan pada item file.'
+            },
+            wordCountPlacement: {
+                name: 'Penempatan',
+                desc: 'Pilih tempat jumlah kata muncul.',
                 options: {
-                    frontmatter: 'Properti frontmatter',
-                    wordCount: 'Jumlah kata',
-                    none: 'Tidak ada'
+                    title: 'Di judul',
+                    property: 'Sebagai properti'
                 }
+            },
+            wordCountTargetProperty: {
+                name: 'Properti target',
+                desc: 'Kunci properti frontmatter yang berisi target jumlah kata. Biarkan kosong untuk menyembunyikan target.',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: 'Tampilkan persentase target',
+                desc: 'Tampilkan hanya persentase kemajuan saat target jumlah kata tersedia.'
             },
             propertyFields: {
                 name: 'Kunci properti (profil brankas)',

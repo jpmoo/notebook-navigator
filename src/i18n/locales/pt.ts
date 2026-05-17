@@ -931,7 +931,8 @@ export const STRINGS_PT = {
                 tags: 'Etiquetas',
                 properties: 'Propriedades',
                 date: 'Data',
-                parentFolder: 'Pasta superior'
+                parentFolder: 'Pasta superior',
+                wordCount: 'Contagem de palavras'
             }
         },
         syncMode: {
@@ -1645,14 +1646,26 @@ export const STRINGS_PT = {
                 name: 'Mostrar propriedades no modo compacto',
                 desc: 'Exibir propriedades quando o modo compacto está ativo.'
             },
-            notePropertyType: {
-                name: 'Propriedade da nota',
-                desc: 'Selecione a propriedade da nota a exibir nos itens de ficheiro.',
+            showWordCount: {
+                name: 'Mostrar contagem de palavras',
+                desc: 'Mostrar contagens de palavras das notas nos itens de ficheiro.'
+            },
+            wordCountPlacement: {
+                name: 'Posicionamento',
+                desc: 'Escolha onde as contagens de palavras aparecem.',
                 options: {
-                    frontmatter: 'Propriedade frontmatter',
-                    wordCount: 'Contagem de palavras',
-                    none: 'Nenhum'
+                    title: 'No título',
+                    property: 'Como propriedade'
                 }
+            },
+            wordCountTargetProperty: {
+                name: 'Propriedade de destino',
+                desc: 'Chave da propriedade frontmatter que contém a contagem de palavras de destino. Deixe em branco para ocultar destinos.',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: 'Mostrar percentagem de destino',
+                desc: 'Mostrar apenas a percentagem de progresso quando houver uma contagem de palavras de destino disponível.'
             },
             propertyFields: {
                 name: 'Chaves de propriedades (perfil do cofre)',

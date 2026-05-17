@@ -931,7 +931,8 @@ export const STRINGS_FA = {
                 tags: 'برچسب‌ها',
                 properties: 'ویژگی‌ها',
                 date: 'تاریخ',
-                parentFolder: 'پوشه والد'
+                parentFolder: 'پوشه والد',
+                wordCount: 'تعداد کلمات'
             }
         },
         syncMode: {
@@ -1642,14 +1643,26 @@ export const STRINGS_FA = {
                 name: 'نمایش ویژگی‌ها در حالت فشرده',
                 desc: 'نمایش ویژگی‌ها هنگام فعال بودن حالت فشرده.'
             },
-            notePropertyType: {
-                name: 'ویژگی یادداشت',
-                desc: 'ویژگی یادداشت را برای نمایش در موارد فایل انتخاب کنید.',
+            showWordCount: {
+                name: 'نمایش تعداد کلمات',
+                desc: 'تعداد کلمات یادداشت‌ها را در موارد فایل نمایش دهید.'
+            },
+            wordCountPlacement: {
+                name: 'محل نمایش',
+                desc: 'انتخاب کنید تعداد کلمات کجا نمایش داده شود.',
                 options: {
-                    frontmatter: 'ویژگی Frontmatter',
-                    wordCount: 'تعداد کلمات',
-                    none: 'هیچ‌کدام'
+                    title: 'در عنوان',
+                    property: 'به‌عنوان ویژگی'
                 }
+            },
+            wordCountTargetProperty: {
+                name: 'ویژگی هدف',
+                desc: 'کلید ویژگی فرانت‌متر که تعداد کلمات هدف را نگه می‌دارد. برای پنهان کردن هدف‌ها خالی بگذارید.',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: 'نمایش درصد هدف',
+                desc: 'وقتی تعداد کلمات هدف موجود است، فقط درصد پیشرفت را نمایش دهید.'
             },
             propertyFields: {
                 name: 'کلیدهای ویژگی (پروفایل خزانه)',

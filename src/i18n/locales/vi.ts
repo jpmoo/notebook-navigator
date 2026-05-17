@@ -932,7 +932,8 @@ export const STRINGS_VI = {
                 tags: 'Thẻ',
                 properties: 'Thuộc tính',
                 date: 'Ngày',
-                parentFolder: 'Thư mục cha'
+                parentFolder: 'Thư mục cha',
+                wordCount: 'Số từ'
             }
         },
         syncMode: {
@@ -1643,14 +1644,26 @@ export const STRINGS_VI = {
                 name: 'Hiện thuộc tính ở chế độ gọn',
                 desc: 'Hiển thị thuộc tính khi chế độ gọn đang hoạt động.'
             },
-            notePropertyType: {
-                name: 'Thuộc tính ghi chú',
-                desc: 'Chọn thuộc tính ghi chú để hiển thị trong các mục tệp.',
+            showWordCount: {
+                name: 'Hiển thị số từ',
+                desc: 'Hiển thị số từ của ghi chú trong các mục tệp.'
+            },
+            wordCountPlacement: {
+                name: 'Vị trí',
+                desc: 'Chọn nơi hiển thị số từ.',
                 options: {
-                    frontmatter: 'Thuộc tính frontmatter',
-                    wordCount: 'Số từ',
-                    none: 'Không'
+                    title: 'Trong tiêu đề',
+                    property: 'Dưới dạng thuộc tính'
                 }
+            },
+            wordCountTargetProperty: {
+                name: 'Thuộc tính mục tiêu',
+                desc: 'Khóa thuộc tính frontmatter chứa số từ mục tiêu. Để trống để ẩn mục tiêu.',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: 'Hiển thị phần trăm mục tiêu',
+                desc: 'Chỉ hiển thị phần trăm tiến độ khi có số từ mục tiêu.'
             },
             propertyFields: {
                 name: 'Khóa thuộc tính (hồ sơ kho)',

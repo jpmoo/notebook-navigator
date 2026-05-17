@@ -923,7 +923,8 @@ export const STRINGS_ZH_CN = {
                 tags: '标签',
                 properties: '属性',
                 date: '日期',
-                parentFolder: '父文件夹'
+                parentFolder: '父文件夹',
+                wordCount: '字数'
             }
         },
         syncMode: {
@@ -1629,14 +1630,26 @@ export const STRINGS_ZH_CN = {
                 name: '在精简模式中显示属性',
                 desc: '精简模式启用时显示属性。'
             },
-            notePropertyType: {
-                name: '笔记属性',
-                desc: '选择要在文件项中显示的笔记属性。',
+            showWordCount: {
+                name: '显示字数',
+                desc: '在文件项中显示笔记字数。'
+            },
+            wordCountPlacement: {
+                name: '位置',
+                desc: '选择字数的显示位置。',
                 options: {
-                    frontmatter: '前置元数据属性',
-                    wordCount: '字数统计',
-                    none: '无'
+                    title: '在标题中',
+                    property: '作为属性'
                 }
+            },
+            wordCountTargetProperty: {
+                name: '目标属性',
+                desc: '包含目标字数的前置元数据属性键。留空可隐藏目标。',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: '显示目标百分比',
+                desc: '有目标字数时，仅显示进度百分比。'
             },
             propertyFields: {
                 name: '属性键（保险库配置）',

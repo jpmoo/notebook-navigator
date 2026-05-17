@@ -933,7 +933,8 @@ export const STRINGS_NL = {
                 tags: 'Tags',
                 properties: 'Eigenschappen',
                 date: 'Datum',
-                parentFolder: 'Bovenliggende map'
+                parentFolder: 'Bovenliggende map',
+                wordCount: 'Aantal woorden'
             }
         },
         syncMode: {
@@ -1646,14 +1647,26 @@ export const STRINGS_NL = {
                 name: 'Eigenschappen tonen in compacte modus',
                 desc: 'Eigenschappen weergeven wanneer de compacte modus actief is.'
             },
-            notePropertyType: {
-                name: 'Notitie-eigenschap',
-                desc: 'Selecteer de notitie-eigenschap om weer te geven in bestandsitems.',
+            showWordCount: {
+                name: 'Aantal woorden tonen',
+                desc: 'Toon het aantal woorden van notities in bestandsitems.'
+            },
+            wordCountPlacement: {
+                name: 'Plaatsing',
+                desc: 'Kies waar het aantal woorden verschijnt.',
                 options: {
-                    frontmatter: 'Frontmatter eigenschap',
-                    wordCount: 'Woordentelling',
-                    none: 'Geen'
+                    title: 'In titel',
+                    property: 'Als eigenschap'
                 }
+            },
+            wordCountTargetProperty: {
+                name: 'Doeleigenschap',
+                desc: 'Frontmatter-eigenschapssleutel met het doelaantal woorden. Laat leeg om doelen te verbergen.',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: 'Doelpercentage tonen',
+                desc: 'Toon alleen het voortgangspercentage wanneer een doelaantal woorden beschikbaar is.'
             },
             propertyFields: {
                 name: 'Eigenschapssleutels (kluisprofiel)',

@@ -18,6 +18,9 @@
 
 // Matches Obsidian's current word count tokenization behavior.
 
+import type { PropertyItem } from '../storage/IndexedDBStorage';
+import { casefold } from './recordUtils';
+
 // CJK characters that count as individual words (Obsidian splits these out)
 const CJK_SINGLE_CHARS =
     '\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8C' + // Tibetan
@@ -44,4 +47,85 @@ export function countWordsForNoteProperty(content: string, startIndex: number): 
         count += 1;
     }
     return count;
+}
+
+function parseWordCountTarget(value: unknown): number | null {
+    if (typeof value === 'number') {
+        return Number.isSafeInteger(value) && value > 0 ? value : null;
+    }
+
+    if (typeof value !== 'string') {
+        return null;
+    }
+
+    const normalized = value.replace(/,/g, '').trim();
+    if (!/^\d+$/.test(normalized)) {
+        return null;
+    }
+
+    const parsed = Number(normalized);
+    return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+export function getWordCountTargetFromProperties(
+    properties: readonly PropertyItem[] | null | undefined,
+    targetProperty: string
+): number | null {
+    const normalizedTargetProperty = casefold(targetProperty);
+    if (!properties || !normalizedTargetProperty) {
+        return null;
+    }
+
+    for (const property of properties) {
+        if (casefold(property.fieldKey) !== normalizedTargetProperty) {
+            continue;
+        }
+
+        const target = parseWordCountTarget(property.value);
+        if (target !== null) {
+            return target;
+        }
+    }
+
+    return null;
+}
+
+function formatWordCountDisplayText(params: {
+    wordCount: number | null | undefined;
+    targetWordCount?: number | null;
+    showTargetPercentage: boolean;
+}): string | null {
+    const { wordCount, targetWordCount = null, showTargetPercentage } = params;
+    if (typeof wordCount !== 'number' || !Number.isFinite(wordCount) || wordCount <= 0) {
+        return null;
+    }
+
+    const displayWordCount = Math.trunc(wordCount);
+    const formattedWordCount = displayWordCount.toLocaleString();
+    if (targetWordCount === null) {
+        return formattedWordCount;
+    }
+
+    const percent = Math.round((displayWordCount / targetWordCount) * 100);
+    const formattedPercent = Number.isFinite(percent) ? percent : 0;
+    if (showTargetPercentage) {
+        return `${formattedPercent}%`;
+    }
+
+    const formattedTarget = targetWordCount.toLocaleString();
+    return `${formattedWordCount} / ${formattedTarget}`;
+}
+
+export function getWordCountDisplayText(params: {
+    wordCount: number | null | undefined;
+    properties: readonly PropertyItem[] | null | undefined;
+    targetProperty: string;
+    showTargetPercentage: boolean;
+}): string | null {
+    const targetWordCount = getWordCountTargetFromProperties(params.properties, params.targetProperty);
+    return formatWordCountDisplayText({
+        wordCount: params.wordCount,
+        targetWordCount,
+        showTargetPercentage: params.showTargetPercentage
+    });
 }

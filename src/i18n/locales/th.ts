@@ -926,7 +926,8 @@ export const STRINGS_TH = {
                 tags: 'แท็ก',
                 properties: 'คุณสมบัติ',
                 date: 'วันที่',
-                parentFolder: 'โฟลเดอร์หลัก'
+                parentFolder: 'โฟลเดอร์หลัก',
+                wordCount: 'จำนวนคำ'
             }
         },
         syncMode: {
@@ -1637,14 +1638,26 @@ export const STRINGS_TH = {
                 name: 'แสดงคุณสมบัติในโหมดกะทัดรัด',
                 desc: 'แสดงคุณสมบัติเมื่อโหมดกะทัดรัดเปิดใช้งาน'
             },
-            notePropertyType: {
-                name: 'คุณสมบัติโน้ต',
-                desc: 'เลือกคุณสมบัติโน้ตที่จะแสดงในรายการไฟล์',
+            showWordCount: {
+                name: 'แสดงจำนวนคำ',
+                desc: 'แสดงจำนวนคำของโน้ตในรายการไฟล์'
+            },
+            wordCountPlacement: {
+                name: 'ตำแหน่ง',
+                desc: 'เลือกตำแหน่งที่จำนวนคำจะแสดง',
                 options: {
-                    frontmatter: 'คุณสมบัติ Frontmatter',
-                    wordCount: 'จำนวนคำ',
-                    none: 'ไม่มี'
+                    title: 'ในชื่อเรื่อง',
+                    property: 'เป็นคุณสมบัติ'
                 }
+            },
+            wordCountTargetProperty: {
+                name: 'คุณสมบัติเป้าหมาย',
+                desc: 'คีย์คุณสมบัติ frontmatter ที่มีจำนวนคำเป้าหมาย เว้นว่างไว้เพื่อซ่อนเป้าหมาย',
+                placeholder: 'wordCountTarget'
+            },
+            showWordCountPercentage: {
+                name: 'แสดงเปอร์เซ็นต์เป้าหมาย',
+                desc: 'แสดงเฉพาะเปอร์เซ็นต์ความคืบหน้าเมื่อมีจำนวนคำเป้าหมาย'
             },
             propertyFields: {
                 name: 'คีย์คุณสมบัติ (โปรไฟล์ห้องนิรภัย)',

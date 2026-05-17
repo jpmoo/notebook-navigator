@@ -755,7 +755,6 @@ export type {
     FeatureImageSizeSetting,
     ListPaneTitleOption,
     PropertySortSecondaryOption,
-    AlphabeticalDateMode,
-    NotePropertyType
+    AlphabeticalDateMode
 } from './settings/types';
 export { DEFAULT_SETTINGS } from './settings/defaultSettings';
