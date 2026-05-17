@@ -105,25 +105,24 @@ export function useListPaneRefresh({
     const onRefreshRef = useRef(onRefresh);
     const operationActiveRef = useRef(false);
     const pendingRefreshRef = useRef(false);
+    const pendingImmediateRefreshRef = useRef(false);
 
     useEffect(() => {
         onRefreshRef.current = onRefresh;
     }, [onRefresh]);
 
     useEffect(() => {
-        const scheduleRefresh = debounce(
-            () => {
-                pendingRefreshRef.current = false;
-                onRefreshRef.current();
-            },
-            TIMEOUTS.FILE_OPERATION_DELAY,
-            true
-        );
+        const runRefresh = () => {
+            pendingRefreshRef.current = false;
+            pendingImmediateRefreshRef.current = false;
+            onRefreshRef.current();
+        };
 
+        const scheduleRefresh = debounce(runRefresh, TIMEOUTS.FILE_OPERATION_DELAY, true);
+
+        const hasActiveDeleteOperation = () => Boolean(commandQueue?.hasActiveOperation(OperationType.DELETE_FILES));
         const hasActiveQueuedOperation = () =>
-            Boolean(
-                commandQueue?.hasActiveOperation(OperationType.MOVE_FILE) || commandQueue?.hasActiveOperation(OperationType.DELETE_FILES)
-            );
+            Boolean(commandQueue?.hasActiveOperation(OperationType.MOVE_FILE) || hasActiveDeleteOperation());
         operationActiveRef.current = hasActiveQueuedOperation();
         const isTrackedOperationActive = () => operationActiveRef.current || hasActiveQueuedOperation();
 
@@ -132,12 +131,28 @@ export function useListPaneRefresh({
                 return;
             }
 
+            if (pendingImmediateRefreshRef.current) {
+                scheduleRefresh.cancel();
+                runRefresh();
+                return;
+            }
+
             scheduleRefresh();
         };
 
-        const queueRefresh = () => {
+        const queueRefresh = (options?: { immediateWhenIdle?: boolean }) => {
             pendingRefreshRef.current = true;
+            if (options?.immediateWhenIdle) {
+                pendingImmediateRefreshRef.current = true;
+            }
+
             if (isTrackedOperationActive()) {
+                return;
+            }
+
+            if (pendingImmediateRefreshRef.current) {
+                scheduleRefresh.cancel();
+                runRefresh();
                 return;
             }
 
@@ -176,9 +191,15 @@ export function useListPaneRefresh({
         });
 
         const vaultEvents = [
-            app.vault.on('create', queueRefresh),
-            app.vault.on('delete', queueRefresh),
-            app.vault.on('rename', queueRefresh),
+            app.vault.on('create', () => {
+                queueRefresh();
+            }),
+            app.vault.on('delete', () => {
+                queueRefresh({ immediateWhenIdle: hasActiveDeleteOperation() });
+            }),
+            app.vault.on('rename', () => {
+                queueRefresh();
+            }),
             app.vault.on('modify', file => {
                 if (!shouldRefreshOnFileModify || !(file instanceof TFile) || !basePathSet.has(file.path)) {
                     return;
