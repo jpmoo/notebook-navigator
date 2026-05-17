@@ -1016,7 +1016,7 @@ export const STRINGS_EN = {
             },
             confirmBeforeManualSort: {
                 name: 'Confirm before manual sort',
-                desc: 'Show a confirmation dialog before switching the current list to manual sort.'
+                desc: 'Show a warning before writing the manual sort property to notes the first time. When disabled, notes receive the property without warning.'
             },
             manualSortInstructions: {
                 intro: 'Manual sort writes a numeric index value to a frontmatter property on each note. Notes without an index appear under Unsorted.',

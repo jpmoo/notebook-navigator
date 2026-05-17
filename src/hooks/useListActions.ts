@@ -54,6 +54,7 @@ import { runAsyncAction } from '../utils/async';
 import { FILE_VISIBILITY } from '../utils/fileTypeUtils';
 import {
     getManualSortBaselineSettings,
+    getCachedManualSortPropertyState,
     getLocalizedManualSortWriteFailureMessage,
     hasCachedManualSortProperty,
     isValidManualSortPropertyKey,
@@ -86,6 +87,13 @@ type DescendantApplyStats = {
     disabled: boolean;
 };
 
+type ManualSortPropertyStats = {
+    markdownCount: number;
+    propertyCount: number;
+    validRankCount: number;
+    invalidPropertyCount: number;
+};
+
 interface UseListActionsOptions {
     onManualSortStart?: (propertyKey: string) => void;
     getManualSortNewFileContext?: () => ManualSortNewFilePlacementContext | null;
@@ -99,10 +107,6 @@ function isolateBidiText(value: string): string {
     return `${BIDI_ISOLATE_START}${value}${BIDI_ISOLATE_END}`;
 }
 
-function countMarkdownFiles(files: readonly TFile[]): number {
-    return files.reduce((count, file) => (file.extension === 'md' ? count + 1 : count), 0);
-}
-
 function countMarkdownFilesWithManualSortProperty(app: App, files: readonly TFile[], propertyKey: string): number {
     return files.reduce((count, file) => {
         if (file.extension !== 'md') {
@@ -110,6 +114,36 @@ function countMarkdownFilesWithManualSortProperty(app: App, files: readonly TFil
         }
         return hasCachedManualSortProperty(app, file, propertyKey) ? count + 1 : count;
     }, 0);
+}
+
+function getManualSortPropertyStats(app: App, files: readonly TFile[], propertyKey: string): ManualSortPropertyStats {
+    return files.reduce<ManualSortPropertyStats>(
+        (stats, file) => {
+            if (file.extension !== 'md') {
+                return stats;
+            }
+
+            stats.markdownCount += 1;
+            const manualSortProperty = getCachedManualSortPropertyState(app, file, propertyKey);
+            if (!manualSortProperty.hasProperty) {
+                return stats;
+            }
+
+            stats.propertyCount += 1;
+            if (manualSortProperty.rank === null) {
+                stats.invalidPropertyCount += 1;
+            } else {
+                stats.validRankCount += 1;
+            }
+            return stats;
+        },
+        {
+            markdownCount: 0,
+            propertyCount: 0,
+            validRankCount: 0,
+            invalidPropertyCount: 0
+        }
+    );
 }
 
 function samePropertySortKey(left: string, right: string): boolean {
@@ -1046,23 +1080,26 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
         const currentSortSpec = resolveListSort(settings, selectionSortOverride);
         const isCurrentManualSort = isManualSortPropertyKey(settings, currentSortSpec.propertyKey);
         const initialFiles = getManualSortInitialFiles(target, selectionSortOverride);
-        const markdownCount = countMarkdownFiles(initialFiles);
-        const existingManualSortPropertyCount = countMarkdownFilesWithManualSortProperty(app, initialFiles, normalizedPropertyKey);
-        const shouldInitializeManualSort = !isCurrentManualSort && markdownCount > 0 && existingManualSortPropertyCount === 0;
+        const propertyStats = getManualSortPropertyStats(app, initialFiles, normalizedPropertyKey);
+        const allMarkdownFilesHaveValidManualSortRanks =
+            propertyStats.markdownCount > 0 && propertyStats.validRankCount === propertyStats.markdownCount;
+        const hasInvalidManualSortProperty = propertyStats.invalidPropertyCount > 0;
+        const shouldInitializeManualSort = !isCurrentManualSort && propertyStats.markdownCount > 0 && propertyStats.propertyCount === 0;
+        const shouldConfirmManualSort =
+            !isCurrentManualSort &&
+            !allMarkdownFilesHaveValidManualSortRanks &&
+            (hasInvalidManualSortProperty || settings.confirmBeforeManualSort);
         const applyManualSort = async () => {
             await applyManualSortForProperty(normalizedPropertyKey, target);
             if (!shouldInitializeManualSort) {
                 return;
             }
 
-            const initialized = await writeInitialManualSortOrder(initialFiles, normalizedPropertyKey);
-            if (initialized) {
-                onManualSortStart?.(normalizedPropertyKey);
-            }
+            await writeInitialManualSortOrder(initialFiles, normalizedPropertyKey);
         };
 
-        if (!isCurrentManualSort && settings.confirmBeforeManualSort) {
-            openManualSortConfirm(normalizedPropertyKey, markdownCount, applyManualSort);
+        if (shouldConfirmManualSort) {
+            openManualSortConfirm(normalizedPropertyKey, propertyStats.markdownCount, applyManualSort);
             return;
         }
 
@@ -1072,7 +1109,6 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
         applyManualSortForProperty,
         getManualSortInitialFiles,
         getSelectionSortTarget,
-        onManualSortStart,
         openManualSortConfirm,
         selectionSortOverride,
         settings,

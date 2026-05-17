@@ -65,6 +65,11 @@ export interface ManualSortGroupHeaderWriteValue {
     color?: string | null;
 }
 
+export interface CachedManualSortPropertyState {
+    hasProperty: boolean;
+    rank: number | null;
+}
+
 interface ManualSortWriteFailureMessageOptions {
     unknownError: string;
     multipleFailureMessage: (count: number, path: string, message: string) => string;
@@ -374,27 +379,29 @@ export function getManualSortPropertyValue(app: App, file: TFile, propertyKey: s
     return rank === null ? null : rank.toString();
 }
 
-export function hasCachedManualSortProperty(app: App, file: TFile, propertyKey: string): boolean {
+export function getCachedManualSortPropertyState(app: App, file: TFile, propertyKey: string): CachedManualSortPropertyState {
     const frontmatter = app.metadataCache?.getFileCache(file)?.frontmatter;
     if (!isRecord(frontmatter)) {
-        return false;
-    }
-
-    return findMatchingRecordKey(frontmatter, propertyKey) !== null;
-}
-
-export function getCachedManualSortRank(app: App, file: TFile, propertyKey: string): number | null {
-    const frontmatter = app.metadataCache?.getFileCache(file)?.frontmatter;
-    if (!isRecord(frontmatter)) {
-        return null;
+        return { hasProperty: false, rank: null };
     }
 
     const targetKey = findMatchingRecordKey(frontmatter, propertyKey);
-    if (!targetKey) {
-        return null;
+    if (targetKey === null) {
+        return { hasProperty: false, rank: null };
     }
 
-    return parseManualSortRank(frontmatter[targetKey]);
+    return {
+        hasProperty: true,
+        rank: parseManualSortRank(frontmatter[targetKey])
+    };
+}
+
+export function hasCachedManualSortProperty(app: App, file: TFile, propertyKey: string): boolean {
+    return getCachedManualSortPropertyState(app, file, propertyKey).hasProperty;
+}
+
+export function getCachedManualSortRank(app: App, file: TFile, propertyKey: string): number | null {
+    return getCachedManualSortPropertyState(app, file, propertyKey).rank;
 }
 
 export function getCachedManualSortGroupHeaderValue(app: App, file: TFile, propertyKey: string): string | null {
