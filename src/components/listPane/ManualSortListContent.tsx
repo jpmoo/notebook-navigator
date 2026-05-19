@@ -16,16 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import {
-    useCallback,
-    useEffect,
-    useLayoutEffect,
-    useMemo,
-    useRef,
-    useState,
-    type MouseEvent as ReactMouseEvent,
-    type ReactNode
-} from 'react';
+import { useCallback, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
 import { DndContext, MouseSensor, TouchSensor, type DragEndEvent, type DragStartEvent, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -37,12 +28,12 @@ import type { SortOption } from '../../settings';
 import { ListPaneItemType, type NavigationItemType } from '../../types';
 import type { ListPaneItem } from '../../types/virtualization';
 import type { ListPaneAppearanceSettings } from '../../hooks/useListPaneAppearance';
+import { useManualSortKeyboard } from '../../hooks/useManualSortKeyboard';
 import type { FileNameIconNeedle } from '../../utils/fileIconUtils';
 import type { FileItemPillDecorationModel } from '../../utils/fileItemPillDecoration';
 import type { FolderDecorationModel } from '../../utils/folderDecoration';
 import type { HiddenTagVisibility } from '../../utils/tagPrefixMatcher';
 import { typeFilteredCollisionDetection, verticalAxisOnly } from '../../utils/dndConfig';
-import { focusElementPreventScroll } from '../../utils/domUtils';
 import {
     getCachedManualSortGroupHeader,
     getManualSortSelectedMarkdownPaths,
@@ -98,8 +89,12 @@ interface ManualSortListContentProps {
     selectedFiles: ReadonlySet<string>;
     selectedFilePath: string | null;
     onFileClick: (file: TFile, fileIndex: number | undefined, event: ReactMouseEvent) => void;
+    onKeyboardSelect: (file: TFile, options?: { debounceOpen?: boolean }) => void;
+    onScheduleKeyboardOpen?: () => void;
+    onScheduleKeyboardOpenForFile?: (file: TFile) => void;
+    onCommitKeyboardOpen?: () => void;
     onDone: () => void;
-    onReorder: (params: { nextFiles: TFile[]; movedPaths: ReadonlySet<string> }) => void;
+    onReorder: (params: { nextFiles: TFile[]; movedPaths: ReadonlySet<string>; onApplied?: () => void }) => void;
 }
 
 interface ManualSortEntry {
@@ -603,6 +598,10 @@ export function ManualSortListContent({
     selectedFiles,
     selectedFilePath,
     onFileClick,
+    onKeyboardSelect,
+    onScheduleKeyboardOpen,
+    onScheduleKeyboardOpenForFile,
+    onCommitKeyboardOpen,
     onDone,
     onReorder
 }: ManualSortListContentProps) {
@@ -735,53 +734,19 @@ export function ManualSortListContent({
         useSensor(TouchSensor, { activationConstraint: MANUAL_SORT_TOUCH_CONSTRAINT })
     );
 
-    useLayoutEffect(() => {
-        const scrollElement = scrollContainerRef.current;
-        if (!scrollElement) {
-            return;
-        }
-
-        focusElementPreventScroll(scrollElement);
-    }, []);
-
-    useEffect(() => {
-        if (!selectedFilePath) {
-            return;
-        }
-
-        const frameId = window.requestAnimationFrame(() => {
-            const scrollElement = scrollContainerRef.current;
-            if (!scrollElement) {
-                return;
-            }
-
-            const selectedElement = Array.from(scrollElement.querySelectorAll<HTMLElement>('.nn-file')).find(
-                element => element.dataset.path === selectedFilePath
-            );
-            if (!selectedElement) {
-                return;
-            }
-
-            const scrollRect = scrollElement.getBoundingClientRect();
-            const selectedRect = selectedElement.getBoundingClientRect();
-            if (selectedRect.top >= scrollRect.top && selectedRect.bottom <= scrollRect.bottom) {
-                return;
-            }
-
-            scrollElement.scrollTo({
-                top:
-                    scrollElement.scrollTop +
-                    selectedRect.top -
-                    scrollRect.top -
-                    Math.max((scrollElement.clientHeight - selectedRect.height) / 2, 0),
-                behavior: 'auto'
-            });
-        });
-
-        return () => {
-            window.cancelAnimationFrame(frameId);
-        };
-    }, [selectedFilePath]);
+    const { handleKeyDown, handleKeyUp } = useManualSortKeyboard({
+        scrollContainerRef,
+        files,
+        markdownFiles,
+        selectedFiles,
+        selectedFilePath,
+        isSaving,
+        onKeyboardSelect,
+        onScheduleKeyboardOpen,
+        onScheduleKeyboardOpenForFile,
+        onCommitKeyboardOpen,
+        onReorder
+    });
 
     const handleDragEnd = useCallback(
         (event: DragEndEvent) => {
@@ -877,6 +842,8 @@ export function ManualSortListContent({
             className="nn-list-pane-scroller nn-manual-sort-scroller"
             role="list"
             tabIndex={-1}
+            onKeyDown={handleKeyDown}
+            onKeyUp={handleKeyUp}
             onContextMenu={handleContextMenu}
         >
             <div className="nn-manual-sort-panel">

@@ -34,7 +34,6 @@ import { Virtualizer } from '@tanstack/react-virtual';
 import { useSelectionState, useSelectionDispatch, resolvePrimarySelectedFile } from '../context/SelectionContext';
 import { useServices, useFileSystemOps } from '../context/ServicesContext';
 import { useSettingsState } from '../context/SettingsContext';
-import type { MultiSelectModifier } from '../settings/types';
 import { useUXPreferences } from '../context/UXPreferencesContext';
 import { useUIState, useUIDispatch } from '../context/UIStateContext';
 import { getSupportedLeaves, ListPaneItemType } from '../types';
@@ -47,7 +46,7 @@ import { useFileOpener } from './useFileOpener';
 import { matchesShortcut, KeyboardShortcutAction } from '../utils/keyboardShortcuts';
 import { runAsyncAction } from '../utils/async';
 import { openFileInContext } from '../utils/openFileInContext';
-import { isEnterKey, isMultiSelectModifierPressed, resolveKeyboardOpenContext } from '../utils/keyboardOpenContext';
+import { isEnterKey, isModifierArrowReorderShortcut, resolveKeyboardOpenContext } from '../utils/keyboardOpenContext';
 import type { Align } from '../types/scroll';
 
 /**
@@ -55,23 +54,6 @@ import type { Align } from '../types/scroll';
  */
 const isSelectableListItem = (item: ListPaneItem): boolean => {
     return item.type === ListPaneItemType.FILE;
-};
-
-const isPropertyReorderShortcut = (event: KeyboardEvent, multiSelectModifier: MultiSelectModifier): boolean => {
-    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
-        return false;
-    }
-    if (event.shiftKey) {
-        return false;
-    }
-    if (!isMultiSelectModifierPressed(event, multiSelectModifier)) {
-        return false;
-    }
-    if (multiSelectModifier === 'optionAlt') {
-        return !event.metaKey && !event.ctrlKey;
-    }
-
-    return !event.altKey;
 };
 
 interface UseListPaneKeyboardProps {
@@ -332,7 +314,7 @@ export function useListPaneKeyboard({
                 openFileInWorkspace(file);
             };
 
-            if (isPropertyReorderShortcut(e, settings.multiSelectModifier)) {
+            if (isModifierArrowReorderShortcut(e, settings.multiSelectModifier)) {
                 const direction = e.key === 'ArrowDown' ? 'down' : 'up';
                 if (onReorderPropertySort?.(direction) === true) {
                     e.preventDefault();
