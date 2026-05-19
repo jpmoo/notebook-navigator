@@ -50,7 +50,7 @@ import { Virtualizer } from '@tanstack/react-virtual';
 import { useSelectionState, useSelectionDispatch } from '../context/SelectionContext';
 import { useServices } from '../context/ServicesContext';
 import { useSettingsState, useActiveProfile, useSettingsDerived } from '../context/SettingsContext';
-import { useUIState } from '../context/UIStateContext';
+import { useUIDispatch, useUIState } from '../context/UIStateContext';
 import { useExpansionDispatch, useExpansionState } from '../context/ExpansionContext';
 import { useFileCache } from '../context/StorageContext';
 import { useShortcuts } from '../context/ShortcutsContext';
@@ -284,6 +284,7 @@ export const ListPane = React.memo(
         const { getFileDisplayName, getDB, getFileTimestamps, hasPreview, regenerateFeatureImageForFile } = useFileCache();
         const { noteShortcutKeysByPath, addNoteShortcut, removeShortcut } = useShortcuts();
         const uiState = useUIState();
+        const uiDispatch = useUIDispatch();
         const isVerticalDualPane = !uiState.singlePane && settings.dualPaneOrientation === 'vertical';
         const calendarPlacement = settings.calendarPlacement;
         const shouldRenderCalendarOverlay =
@@ -636,6 +637,10 @@ export const ListPane = React.memo(
                 manualSortEditSessionCounterRef.current = sessionId;
                 const selectionKey = manualSortSelectionKey;
                 closeSearch();
+                if (uiState.singlePane) {
+                    uiDispatch({ type: 'SET_SINGLE_PANE_VIEW', view: 'files' });
+                }
+                uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'files' });
                 setManualSortEditState({
                     propertyKey,
                     order: null,
@@ -646,7 +651,7 @@ export const ListPane = React.memo(
                     saveId: 0
                 });
             },
-            [closeSearch, manualSortSelectionKey]
+            [closeSearch, manualSortSelectionKey, uiDispatch, uiState.singlePane]
         );
 
         // Determine if list pane is visible early to optimize
@@ -963,7 +968,7 @@ export const ListPane = React.memo(
             setManualSortEditState(null);
         }, [isManualSortEditDoneDisabled, manualSortEditState]);
         const handleManualSortReorder = React.useCallback(
-            ({ nextFiles, movedPaths }: { nextFiles: TFile[]; movedPaths: ReadonlySet<string> }) => {
+            ({ nextFiles, movedPaths, onApplied }: { nextFiles: TFile[]; movedPaths: ReadonlySet<string>; onApplied?: () => void }) => {
                 if (!manualSortEditState?.propertyKey) {
                     return;
                 }
@@ -974,6 +979,7 @@ export const ListPane = React.memo(
                     const saveId = manualSortEditSaveCounterRef.current + 1;
                     manualSortEditSaveCounterRef.current = saveId;
                     const nextOrder = getMarkdownPathOrder(plan.files);
+                    onApplied?.();
                     setManualSortEditState(current =>
                         current && current.sessionId === sessionId
                             ? {
@@ -1002,6 +1008,16 @@ export const ListPane = React.memo(
                 handleFileItemClick(file, fileIndex, event, manualSortEditFiles);
             },
             [handleFileItemClick, manualSortEditFiles]
+        );
+        const handleManualSortKeyboardSelect = React.useCallback(
+            (file: TFile, options?: { debounceOpen?: boolean }) => {
+                selectFileFromList(file, {
+                    markKeyboardNavigation: true,
+                    suppressOpen: settings.enterToOpenFiles,
+                    debounceOpen: options?.debounceOpen
+                });
+            },
+            [selectFileFromList, settings.enterToOpenFiles]
         );
         const getPropertyKeyboardReorderScopeFiles = React.useCallback(
             (activePath: string | null): TFile[] => {
@@ -1332,6 +1348,10 @@ export const ListPane = React.memo(
                             selectedFiles={selectionState.selectedFiles}
                             selectedFilePath={selectedFile?.path ?? null}
                             onFileClick={handleManualSortFileClick}
+                            onKeyboardSelect={handleManualSortKeyboardSelect}
+                            onScheduleKeyboardOpen={scheduleKeyboardSelectionOpen}
+                            onScheduleKeyboardOpenForFile={scheduleKeyboardSelectionOpenForFile}
+                            onCommitKeyboardOpen={commitPendingKeyboardSelectionOpen}
                             onDone={handleManualSortDone}
                             onReorder={handleManualSortReorder}
                         />
