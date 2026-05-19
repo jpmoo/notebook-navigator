@@ -110,6 +110,7 @@ import { getErrorMessage } from '../utils/errorUtils';
 import { strings } from '../i18n';
 import { ConfirmModal } from '../modals/ConfirmModal';
 import { resolveEffectiveListGroupingForSort } from '../utils/listGrouping';
+import { focusElementPreventScroll } from '../utils/domUtils';
 
 const EMPTY_COLLAPSED_LIST_GROUPS = new Set<string>();
 
@@ -308,6 +309,7 @@ export const ListPane = React.memo(
         const propertyKeyboardReorderSaveCounterRef = useRef(0);
         const propertyKeyboardReorderSavingRef = useRef(false);
         const propertyKeyboardReorderScrollPathRef = useRef<string | null>(null);
+        const wasManualSortEditActiveRef = useRef(false);
         const addNoteShortcutRef = useRef(addNoteShortcut);
         const removeShortcutRef = useRef(removeShortcut);
         const listPaneTitle = settings.listPaneTitle ?? 'header';
@@ -424,6 +426,18 @@ export const ListPane = React.memo(
             return 'none';
         }, [selectedFolder, selectedProperty, selectedTag, selectionType]);
         const isManualSortEditActive = manualSortEditState !== null;
+        useLayoutEffect(() => {
+            const wasManualSortEditActive = wasManualSortEditActiveRef.current;
+            wasManualSortEditActiveRef.current = isManualSortEditActive;
+            if (!wasManualSortEditActive || isManualSortEditActive) {
+                return;
+            }
+
+            const container = props.rootContainerRef.current;
+            if (container) {
+                focusElementPreventScroll(container);
+            }
+        }, [isManualSortEditActive, props.rootContainerRef]);
         const pinnedCollapseKey = getPinnedSectionCollapseKey({ selectionType, selectedFolder, selectedTag, selectedProperty });
         const pinnedGroupExpanded = settings.collapsedPinnedContexts[pinnedCollapseKey] !== true;
         const handlePinnedGroupHeaderToggle = React.useCallback(() => {
