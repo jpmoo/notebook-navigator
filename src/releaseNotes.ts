@@ -84,9 +84,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
         version: '3.0.1',
         date: '2026-05-26',
         showOnUpdate: true,
-        improved: [
-            '**Manual sort.** **Edit sort order...** now supports keyboard navigation.'
-        ]
+        improved: ['**Manual sort.** **Edit sort order...** now supports keyboard navigation.']
     },
     {
         version: '3.0.0',
