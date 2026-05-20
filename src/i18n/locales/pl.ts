@@ -884,23 +884,53 @@ export const STRINGS_PL = {
         },
         sections: {
             general: 'Ogólne',
-            navigationPane: 'Nawigacja',
+            vaultFilters: 'Filtry wyświetlania',
+            appearanceBehavior: 'Wygląd i zachowanie',
+            navigationPane: 'Panel nawigacji',
             calendar: 'Kalendarz',
             files: 'Pliki',
+            fileOperations: 'Operacje na plikach',
             icons: 'Pakiety ikon',
             folders: 'Foldery',
             folderNotes: 'Notatki folderu',
+            foldersAndFolderNotes: 'Foldery i notatki folderu',
             foldersAndTags: 'Foldery',
             tagsAndProperties: 'Tagi i atrybuty',
             tags: 'Tagi',
-            listPane: 'Lista',
-            notes: 'Notatki',
+            listPane: 'Panel listy',
+            notes: 'Wyświetlanie plików',
+            shortcutsAndRecentFiles: 'Skróty i ostatnie pliki',
             advanced: 'Zaawansowane'
+        },
+        pageGroups: {
+            gettingStarted: 'Start',
+            configuration: 'Konfiguracja',
+            navigationAndContent: 'Panel nawigacji',
+            notesAndLists: 'Panel listy',
+            calendarAndTools: 'Kalendarz i narzędzia'
+        },
+        pageDescriptions: {
+            general: 'Informacje o wydaniu, wsparcie, profil sejfu, typy plików i klucze atrybutów.',
+            vaultFilters: 'Ukryte foldery, tagi, pliki, tagi plików i reguły atrybutów.',
+            appearanceBehavior: 'Szablony, zachowanie, nawigacja klawiaturą, przyciski myszy, wygląd i formatowanie.',
+            navigationPane: 'Układ, wygląd, liczba notatek, zachowanie zwijania i kolory tęczy.',
+            shortcuts: 'Widoczność skrótów, odznaki, ostatnie pliki i przypięte elementy.',
+            calendar: 'Wyświetlanie kalendarza, notatki dat, szablony, lokalizacja i położenie paska bocznego.',
+            fileOperations: 'Potwierdzenia usunięcia, załączniki i zachowanie przy konflikcie przenoszenia plików.',
+            foldersAndFolderNotes: 'Wyświetlanie folderów, notatki folderu, szablony notatek folderu i zachowanie notatek folderu.',
+            tagsProperties: 'Sekcje tagów i atrybutów, ikony, sortowanie, zakres i dziedziczenie.',
+            listPane: 'Sortowanie, grupowanie, tryby listy, przypięte notatki i podglądy rysunków.',
+            frontmatter: 'Pola metadanych dla nazw wyświetlanych, znaczników czasu, ikon i kolorów.',
+            notes: 'Tytuły, tekst podglądu, wyróżnione obrazy, tagi, atrybuty, daty i liczba słów.',
+            iconPacks: 'Ikony interfejsu, ikony plików i zarządzanie pakietami ikon.',
+            advanced: 'Diagnostyka, czyszczenie metadanych, import/eksport i resetowanie.'
         },
         groups: {
             general: {
+                vaultConfiguration: 'Konfiguracja sejfu',
                 vaultProfiles: 'Profile sejfu',
-                filtering: 'Filtrowanie',
+                vaultContent: 'Zawartość sejfu',
+                filtering: 'Ukryta zawartość',
                 templates: 'Szablony',
                 behavior: 'Zachowanie',
                 keyboardNavigation: 'Nawigacja klawiaturą',
@@ -927,7 +957,7 @@ export const STRINGS_PL = {
                 drawingPreviews: 'Podglądy rysunków'
             },
             notes: {
-                frontmatter: 'Metadane',
+                frontmatter: 'Pola metadanych',
                 tasks: 'Zadania',
                 icon: 'Ikonka',
                 title: 'Tytuł',
@@ -1401,11 +1431,11 @@ export const STRINGS_PL = {
             },
             calendarCustomFilePattern: {
                 name: 'Notatki dzienne',
-                desc: 'Sformatuj ścieżkę przy użyciu formatu daty Moment. Nazwy podfolderów umieść w nawiasach, np. [Work]/YYYY. Kliknij ikonkę szablonu, aby ustawić szablon. Ustaw lokalizację folderu szablonów w sekcji Ogólne > Szablony.',
+                desc: 'Sformatuj ścieżkę przy użyciu formatu daty Moment. Nazwy podfolderów umieść w nawiasach, np. [Work]/YYYY. Kliknij ikonkę szablonu, aby ustawić szablon. Ustaw lokalizację folderu szablonów w sekcji Wygląd i zachowanie > Szablony.',
                 momentDescPrefix: 'Sformatuj ścieżkę przy użyciu ',
                 momentLinkText: 'formatu daty Moment',
                 momentDescSuffix:
-                    '. Nazwy podfolderów umieść w nawiasach, np. [Work]/YYYY. Kliknij ikonkę szablonu, aby ustawić szablon. Ustaw lokalizację folderu szablonów w sekcji Ogólne > Szablony.',
+                    '. Nazwy podfolderów umieść w nawiasach, np. [Work]/YYYY. Kliknij ikonkę szablonu, aby ustawić szablon. Ustaw lokalizację folderu szablonów w sekcji Wygląd i zachowanie > Szablony.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Aktywna składnia: {path}',
                 parsingError: 'Wzór musi być tak sformatowany, aby można było odczytać kompletną datę (rok, miesiąc, dzień).'
@@ -2008,7 +2038,7 @@ export const STRINGS_PL = {
                 name: 'Pokaż atrybuty',
                 desc: 'Wyświetl sekcję atrybutów w panelu nawigacji.',
                 propertyKeysInfoPrefix: 'Konfiguruj atrybuty w ',
-                propertyKeysInfoLinkText: 'Ogólne > Klucze atrybutów',
+                propertyKeysInfoLinkText: 'Start > Klucze atrybutów',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {

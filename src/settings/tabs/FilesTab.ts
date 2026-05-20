@@ -22,11 +22,11 @@ import { isDeleteAttachmentsSetting, isMoveFileConflictsSetting } from '../types
 import type { SettingsTabContext } from './SettingsTabContext';
 
 /** Renders the files settings tab */
-export function renderFilesTab(context: SettingsTabContext): void {
+export function renderFilesTab(context: SettingsTabContext, heading?: string): void {
     const { containerEl, plugin } = context;
 
     const createGroup = createSettingGroupFactory(containerEl);
-    const filesGroup = createGroup(undefined);
+    const filesGroup = createGroup(heading);
 
     filesGroup.addSetting(setting => {
         setting

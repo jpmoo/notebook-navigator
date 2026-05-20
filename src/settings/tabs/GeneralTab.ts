@@ -70,12 +70,79 @@ import { createSettingDescriptionWithExternalLink } from './externalLink';
 import { normalizeCalendarCustomRootFolder } from '../../utils/calendarCustomNotePatterns';
 import { FolderPathInputSuggest } from '../../suggest/FolderPathInputSuggest';
 
-/** Renders the general settings tab */
-export function renderGeneralTab(context: SettingsTabContext): void {
-    const { containerEl, plugin, addToggleSetting, configureDebouncedTextSetting } = context;
-    const pluginVersion = plugin.manifest.version;
-    ensureVaultProfiles(plugin.settings);
+interface GeneralTabSectionOptions {
+    resources?: boolean;
+    vaultAndFiltering?: boolean;
+    vaultProfiles?: boolean;
+    vaultContent?: boolean;
+    filteringMode?: 'summary' | 'all';
+    mergeVaultConfiguration?: boolean;
+    nativeGroupHeadings?: boolean;
+    appearanceBehavior?: boolean;
+}
 
+type CreateSettingGroup = ReturnType<typeof createSettingGroupFactory>;
+
+/** Renders the settings start tab */
+export function renderGeneralTab(context: SettingsTabContext): void {
+    renderGeneralSections(context, {
+        resources: true,
+        vaultAndFiltering: true,
+        mergeVaultConfiguration: true,
+        filteringMode: 'summary'
+    });
+}
+
+/** Renders the start resources section */
+export function renderStartResourcesSection(context: SettingsTabContext): void {
+    renderGeneralSections(context, {
+        resources: true
+    });
+}
+
+/** Renders the start vault configuration section */
+export function renderStartVaultConfigurationSection(context: SettingsTabContext): void {
+    renderGeneralSections(context, {
+        vaultAndFiltering: true,
+        mergeVaultConfiguration: true,
+        filteringMode: 'summary',
+        nativeGroupHeadings: true
+    });
+}
+
+/** Renders hidden content filter settings */
+export function renderVaultProfilesAndFiltersTab(context: SettingsTabContext): void {
+    renderGeneralSections(context, {
+        vaultAndFiltering: true,
+        vaultProfiles: false,
+        filteringMode: 'all'
+    });
+}
+
+/** Renders appearance and behavior settings */
+export function renderAppearanceBehaviorTab(context: SettingsTabContext): void {
+    renderGeneralSections(context, {
+        appearanceBehavior: true
+    });
+}
+
+function renderGeneralSections(context: SettingsTabContext, options: GeneralTabSectionOptions): void {
+    if (options.resources) {
+        renderResourcesSection(context);
+    }
+
+    if (options.vaultAndFiltering) {
+        renderVaultAndFilteringSections(context, options);
+    }
+
+    if (options.appearanceBehavior) {
+        renderAppearanceBehaviorSections(context);
+    }
+}
+
+function renderResourcesSection(context: SettingsTabContext): void {
+    const { containerEl, plugin } = context;
+    const pluginVersion = plugin.manifest.version;
     const createGroup = createSettingGroupFactory(containerEl);
     const topGroup = createGroup(undefined);
 
@@ -161,9 +228,33 @@ export function renderGeneralTab(context: SettingsTabContext): void {
                 button.buttonEl.setAttr('aria-label', strings.modals.welcome.openVideoButton);
             });
     });
+}
 
-    const vaultProfilesGroup = createGroup(strings.settings.groups.general.vaultProfiles);
-    const filteringGroup = createGroup(strings.settings.groups.general.filtering);
+function renderVaultAndFilteringSections(context: SettingsTabContext, options: GeneralTabSectionOptions): void {
+    const { containerEl, plugin, configureDebouncedTextSetting } = context;
+    ensureVaultProfiles(plugin.settings);
+    const createGroup = createSettingGroupFactory(containerEl);
+
+    const shouldRenderVaultProfiles = options.vaultProfiles ?? true;
+    const shouldRenderVaultContent = options.vaultContent ?? true;
+    const shouldMergeVaultConfiguration =
+        options.mergeVaultConfiguration && shouldRenderVaultProfiles && shouldRenderVaultContent && options.filteringMode === 'summary';
+    const vaultProfilesGroup = shouldRenderVaultProfiles
+        ? createGroup(
+              options.nativeGroupHeadings
+                  ? undefined
+                  : shouldMergeVaultConfiguration
+                    ? strings.settings.groups.general.vaultConfiguration
+                    : strings.settings.groups.general.vaultProfiles
+          )
+        : null;
+    const filteringHeading =
+        options.filteringMode === 'summary' ? strings.settings.groups.general.vaultContent : strings.settings.groups.general.filtering;
+    const filteringGroup = shouldRenderVaultContent
+        ? shouldMergeVaultConfiguration
+            ? vaultProfilesGroup
+            : createGroup(options.nativeGroupHeadings ? undefined : filteringHeading)
+        : null;
 
     const fallbackProfileName = strings.settings.items.vaultProfiles.defaultName || 'Default';
     const getProfileDisplayName = (name?: string): string => {
@@ -313,247 +404,258 @@ export function renderGeneralTab(context: SettingsTabContext): void {
         modal.open();
     };
 
-    const profileSetting = vaultProfilesGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.vaultProfiles.name).setDesc(strings.settings.items.vaultProfiles.desc);
-    });
+    if (vaultProfilesGroup) {
+        const profileSetting = vaultProfilesGroup.addSetting(setting => {
+            setting.setName(strings.settings.items.vaultProfiles.name).setDesc(strings.settings.items.vaultProfiles.desc);
+        });
 
-    profileSetting.addDropdown(dropdown => {
-        profileDropdown = dropdown;
-        refreshProfileControls();
-        dropdown.onChange(value => {
-            // Handle "Add new profile" option by opening the input modal
-            if (value === ADD_PROFILE_OPTION_VALUE) {
-                if (profileDropdown) {
-                    profileDropdown.selectEl.value = plugin.settings.vaultProfile;
+        profileSetting.addDropdown(dropdown => {
+            profileDropdown = dropdown;
+            refreshProfileControls();
+            dropdown.onChange(value => {
+                // Handle "Add new profile" option by opening the input modal
+                if (value === ADD_PROFILE_OPTION_VALUE) {
+                    if (profileDropdown) {
+                        profileDropdown.selectEl.value = plugin.settings.vaultProfile;
+                    }
+                    const modal = new InputModal(
+                        context.app,
+                        strings.settings.items.vaultProfiles.addModalTitle,
+                        strings.settings.items.vaultProfiles.addModalPlaceholder,
+                        profileName => handleAddProfile(profileName)
+                    );
+                    modal.open();
+                    return;
                 }
-                const modal = new InputModal(
-                    context.app,
-                    strings.settings.items.vaultProfiles.addModalTitle,
-                    strings.settings.items.vaultProfiles.addModalPlaceholder,
-                    profileName => handleAddProfile(profileName)
-                );
-                modal.open();
-                return;
-            }
-            runAsyncAction(() => {
-                plugin.setVaultProfile(value);
-                refreshProfileControls();
+                runAsyncAction(() => {
+                    plugin.setVaultProfile(value);
+                    refreshProfileControls();
+                });
             });
+            return dropdown;
         });
-        return dropdown;
-    });
 
-    profileSetting.addButton(button => {
-        button.setButtonText(strings.settings.items.vaultProfiles.editProfilesButton).onClick(() => {
-            openEditProfilesModal();
+        profileSetting.addButton(button => {
+            button.setButtonText(strings.settings.items.vaultProfiles.editProfilesButton).onClick(() => {
+                openEditProfilesModal();
+            });
+            return button;
         });
-        return button;
-    });
 
-    profileSetting.controlEl.addClass('nn-setting-profile-dropdown');
-    addSettingSyncModeToggle({ setting: profileSetting, plugin, settingId: 'vaultProfile' });
+        profileSetting.controlEl.addClass('nn-setting-profile-dropdown');
+        addSettingSyncModeToggle({ setting: profileSetting, plugin, settingId: 'vaultProfile' });
 
-    if (!Platform.isMobile) {
-        vaultProfilesGroup.addSetting(setting => {
+        if (!Platform.isMobile) {
+            vaultProfilesGroup.addSetting(setting => {
+                setting
+                    .setName(strings.settings.items.vaultTitle.name)
+                    .setDesc(strings.settings.items.vaultTitle.desc)
+                    .addDropdown(dropdown =>
+                        dropdown
+                            .addOption('header', strings.settings.items.vaultTitle.options.header)
+                            .addOption('navigation', strings.settings.items.vaultTitle.options.navigation)
+                            .setValue(plugin.settings.vaultTitle)
+                            .onChange(async value => {
+                                if (!isVaultTitleOption(value)) {
+                                    return;
+                                }
+                                plugin.settings.vaultTitle = value;
+                                await plugin.saveSettingsAndUpdate();
+                            })
+                    );
+            });
+        }
+    }
+
+    if (filteringGroup && options.filteringMode === 'summary') {
+        filteringGroup.addSetting(setting => {
             setting
-                .setName(strings.settings.items.vaultTitle.name)
-                .setDesc(strings.settings.items.vaultTitle.desc)
-                .addDropdown(dropdown =>
+                .setName(strings.settings.items.fileVisibility.name)
+                .setDesc(strings.settings.items.fileVisibility.desc)
+                .addDropdown(dropdown => {
+                    fileVisibilityDropdown = dropdown;
                     dropdown
-                        .addOption('header', strings.settings.items.vaultTitle.options.header)
-                        .addOption('navigation', strings.settings.items.vaultTitle.options.navigation)
-                        .setValue(plugin.settings.vaultTitle)
+                        .addOption(FILE_VISIBILITY.DOCUMENTS, strings.settings.items.fileVisibility.options.documents)
+                        .addOption(FILE_VISIBILITY.SUPPORTED, strings.settings.items.fileVisibility.options.supported)
+                        .addOption(FILE_VISIBILITY.ALL, strings.settings.items.fileVisibility.options.all)
+                        .setValue(getActiveProfile()?.fileVisibility ?? FILE_VISIBILITY.SUPPORTED)
                         .onChange(async value => {
-                            if (!isVaultTitleOption(value)) {
+                            if (!isFileVisibility(value)) {
                                 return;
                             }
-                            plugin.settings.vaultTitle = value;
+                            const activeProfile = plugin.settings.vaultProfiles.find(
+                                profile => profile.id === plugin.settings.vaultProfile
+                            );
+                            if (activeProfile) {
+                                activeProfile.fileVisibility = value;
+                            }
                             await plugin.saveSettingsAndUpdate();
-                        })
-                );
+                            refreshProfileControls();
+                        });
+                    return dropdown;
+                });
         });
-    }
 
-    filteringGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.fileVisibility.name)
-            .setDesc(strings.settings.items.fileVisibility.desc)
-            .addDropdown(dropdown => {
-                fileVisibilityDropdown = dropdown;
-                dropdown
-                    .addOption(FILE_VISIBILITY.DOCUMENTS, strings.settings.items.fileVisibility.options.documents)
-                    .addOption(FILE_VISIBILITY.SUPPORTED, strings.settings.items.fileVisibility.options.supported)
-                    .addOption(FILE_VISIBILITY.ALL, strings.settings.items.fileVisibility.options.all)
-                    .setValue(getActiveProfile()?.fileVisibility ?? FILE_VISIBILITY.SUPPORTED)
-                    .onChange(async value => {
-                        if (!isFileVisibility(value)) {
-                            return;
-                        }
-                        const activeProfile = plugin.settings.vaultProfiles.find(profile => profile.id === plugin.settings.vaultProfile);
-                        if (activeProfile) {
-                            activeProfile.fileVisibility = value;
-                        }
+        const propertyKeysSetting = filteringGroup.addSetting(setting => {
+            setting.setName(strings.settings.items.propertyFields.name).setDesc(strings.settings.items.propertyFields.desc);
+        });
+
+        const propertyKeysCountLineEl = propertyKeysSetting.descEl.createDiv({
+            cls: 'nn-setting-property-keys-count-line'
+        });
+        propertyKeysSummaryTextEl = propertyKeysCountLineEl.createSpan({ cls: 'nn-setting-property-keys-summary-text' });
+
+        propertyKeysSetting.addButton(button =>
+            button.setButtonText(strings.settings.items.propertyFields.addButtonTooltip).onClick(() => {
+                const activeProfile = getActiveProfile();
+                if (!activeProfile) {
+                    return;
+                }
+                const modal = new PropertyKeyVisibilityModal(context.app, {
+                    initialKeys: activeProfile.propertyKeys,
+                    onSave: async nextKeys => {
+                        activeProfile.propertyKeys = nextKeys;
                         await plugin.saveSettingsAndUpdate();
                         refreshProfileControls();
-                    });
-                return dropdown;
-            });
-    });
-
-    const propertyKeysSetting = filteringGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.propertyFields.name).setDesc(strings.settings.items.propertyFields.desc);
-    });
-
-    const propertyKeysCountLineEl = propertyKeysSetting.descEl.createDiv({
-        cls: 'nn-setting-property-keys-count-line'
-    });
-    propertyKeysSummaryTextEl = propertyKeysCountLineEl.createSpan({ cls: 'nn-setting-property-keys-summary-text' });
-
-    propertyKeysSetting.addButton(button =>
-        button.setButtonText(strings.settings.items.propertyFields.addButtonTooltip).onClick(() => {
-            const activeProfile = getActiveProfile();
-            if (!activeProfile) {
-                return;
-            }
-            const modal = new PropertyKeyVisibilityModal(context.app, {
-                initialKeys: activeProfile.propertyKeys,
-                onSave: async nextKeys => {
-                    activeProfile.propertyKeys = nextKeys;
-                    await plugin.saveSettingsAndUpdate();
-                    refreshProfileControls();
-                }
-            });
-            modal.open();
-        })
-    );
-
-    const hiddenFileNamesSetting = filteringGroup.addSetting(setting => {
-        configureDebouncedTextSetting(
-            setting,
-            strings.settings.items.excludedFileNamePatterns.name,
-            strings.settings.items.excludedFileNamePatterns.desc,
-            strings.settings.items.excludedFileNamePatterns.placeholder,
-            () => formatCommaSeparatedList(getActiveProfile()?.hiddenFileNames ?? []),
-            value => {
-                const activeProfile = getActiveProfile();
-                if (!activeProfile) {
-                    return;
-                }
-                const nextHiddenPatterns = parseCommaSeparatedList(value);
-                activeProfile.hiddenFileNames = Array.from(new Set(nextHiddenPatterns));
-            }
+                    }
+                });
+                modal.open();
+            })
         );
-    });
-    hiddenFileNamesSetting.controlEl.addClass('nn-setting-wide-input');
-    hiddenFileNamesInput = hiddenFileNamesSetting.controlEl.querySelector('input');
-
-    const excludedFoldersSetting = filteringGroup.addSetting(setting => {
-        configureDebouncedTextSetting(
-            setting,
-            strings.settings.items.excludedFolders.name,
-            strings.settings.items.excludedFolders.desc,
-            strings.settings.items.excludedFolders.placeholder,
-            () => formatCommaSeparatedList(getActiveProfile()?.hiddenFolders ?? []),
-            value => {
-                const activeProfile = getActiveProfile();
-                if (!activeProfile) {
-                    return;
-                }
-                const nextHiddenFolders = parseCommaSeparatedList(value);
-                activeProfile.hiddenFolders = Array.from(new Set(nextHiddenFolders));
-            }
-        );
-    });
-    excludedFoldersSetting.controlEl.addClass('nn-setting-wide-input');
-    excludedFoldersInput = excludedFoldersSetting.controlEl.querySelector('input');
-
-    const hiddenTagsSetting = filteringGroup.addSetting(setting => {
-        configureDebouncedTextSetting(
-            setting,
-            strings.settings.items.hiddenTags.name,
-            strings.settings.items.hiddenTags.desc,
-            strings.settings.items.hiddenTags.placeholder,
-            () => formatCommaSeparatedList(getActiveProfile()?.hiddenTags ?? []),
-            value => {
-                const activeProfile = getActiveProfile();
-                if (!activeProfile) {
-                    return;
-                }
-                const normalizedHiddenTags = parseCommaSeparatedList(value)
-                    .map(entry => normalizeTagPath(entry))
-                    .filter((entry): entry is string => entry !== null);
-
-                activeProfile.hiddenTags = Array.from(new Set(normalizedHiddenTags));
-            }
-        );
-    });
-    hiddenTagsSetting.controlEl.addClass('nn-setting-wide-input');
-    hiddenTagsInput = hiddenTagsSetting.controlEl.querySelector('input');
-
-    const hiddenFileTagsSetting = filteringGroup.addSetting(setting => {
-        configureDebouncedTextSetting(
-            setting,
-            strings.settings.items.hiddenFileTags.name,
-            strings.settings.items.hiddenFileTags.desc,
-            strings.settings.items.hiddenFileTags.placeholder,
-            () => formatCommaSeparatedList(getActiveProfile()?.hiddenFileTags ?? []),
-            value => {
-                const activeProfile = getActiveProfile();
-                if (!activeProfile) {
-                    return;
-                }
-
-                const normalizedHiddenFileTags = parseCommaSeparatedList(value)
-                    .map(entry => normalizeTagPath(entry))
-                    .filter((entry): entry is string => entry !== null);
-
-                activeProfile.hiddenFileTags = Array.from(new Set(normalizedHiddenFileTags));
-            }
-        );
-    });
-    hiddenFileTagsSetting.controlEl.addClass('nn-setting-wide-input');
-    hiddenFileTagsInput = hiddenFileTagsSetting.controlEl.querySelector('input');
-
-    const excludedFilesSetting = filteringGroup.addSetting(setting => {
-        configureDebouncedTextSetting(
-            setting,
-            strings.settings.items.excludedNotes.name,
-            strings.settings.items.excludedNotes.desc,
-            strings.settings.items.excludedNotes.placeholder,
-            () => formatCommaSeparatedList(getActiveProfile()?.hiddenFileProperties ?? []),
-            value => {
-                const activeProfile = getActiveProfile();
-                if (!activeProfile) {
-                    return;
-                }
-                const nextHiddenFiles = parseCommaSeparatedList(value);
-                activeProfile.hiddenFileProperties = Array.from(new Set(nextHiddenFiles));
-            }
-        );
-    });
-    excludedFilesSetting.controlEl.addClass('nn-setting-wide-input');
-    excludedFilesInput = excludedFilesSetting.controlEl.querySelector('input');
-    refreshProfileControls();
-
-    const templatesGroup = createGroup(strings.settings.groups.general.templates);
-    const templateFolderSetting = templatesGroup.addSetting(setting => {
-        configureDebouncedTextSetting(
-            setting,
-            strings.settings.items.calendarTemplateFolder.name,
-            strings.settings.items.calendarTemplateFolder.desc,
-            strings.settings.items.calendarTemplateFolder.placeholder,
-            () => normalizeCalendarCustomRootFolder(plugin.settings.calendarTemplateFolder),
-            value => {
-                plugin.settings.calendarTemplateFolder = normalizeCalendarCustomRootFolder(value);
-            }
-        );
-    });
-    templateFolderSetting.controlEl.addClass('nn-setting-wide-input');
-    const templateFolderInputEl = templateFolderSetting.controlEl.querySelector<HTMLInputElement>('input');
-    if (templateFolderInputEl) {
-        const folderSuggest = new FolderPathInputSuggest(context.app, templateFolderInputEl);
-        templateFolderInputEl.addEventListener('click', () => folderSuggest.open());
     }
+
+    if (filteringGroup && options.filteringMode === 'all') {
+        const hiddenFileNamesSetting = filteringGroup.addSetting(setting => {
+            configureDebouncedTextSetting(
+                setting,
+                strings.settings.items.excludedFileNamePatterns.name,
+                strings.settings.items.excludedFileNamePatterns.desc,
+                strings.settings.items.excludedFileNamePatterns.placeholder,
+                () => formatCommaSeparatedList(getActiveProfile()?.hiddenFileNames ?? []),
+                value => {
+                    const activeProfile = getActiveProfile();
+                    if (!activeProfile) {
+                        return;
+                    }
+                    const nextHiddenPatterns = parseCommaSeparatedList(value);
+                    activeProfile.hiddenFileNames = Array.from(new Set(nextHiddenPatterns));
+                }
+            );
+        });
+        hiddenFileNamesSetting.controlEl.addClass('nn-setting-wide-input');
+        hiddenFileNamesInput = hiddenFileNamesSetting.controlEl.querySelector('input');
+
+        const excludedFoldersSetting = filteringGroup.addSetting(setting => {
+            configureDebouncedTextSetting(
+                setting,
+                strings.settings.items.excludedFolders.name,
+                strings.settings.items.excludedFolders.desc,
+                strings.settings.items.excludedFolders.placeholder,
+                () => formatCommaSeparatedList(getActiveProfile()?.hiddenFolders ?? []),
+                value => {
+                    const activeProfile = getActiveProfile();
+                    if (!activeProfile) {
+                        return;
+                    }
+                    const nextHiddenFolders = parseCommaSeparatedList(value);
+                    activeProfile.hiddenFolders = Array.from(new Set(nextHiddenFolders));
+                }
+            );
+        });
+        excludedFoldersSetting.controlEl.addClass('nn-setting-wide-input');
+        excludedFoldersInput = excludedFoldersSetting.controlEl.querySelector('input');
+
+        const hiddenTagsSetting = filteringGroup.addSetting(setting => {
+            configureDebouncedTextSetting(
+                setting,
+                strings.settings.items.hiddenTags.name,
+                strings.settings.items.hiddenTags.desc,
+                strings.settings.items.hiddenTags.placeholder,
+                () => formatCommaSeparatedList(getActiveProfile()?.hiddenTags ?? []),
+                value => {
+                    const activeProfile = getActiveProfile();
+                    if (!activeProfile) {
+                        return;
+                    }
+                    const normalizedHiddenTags = parseCommaSeparatedList(value)
+                        .map(entry => normalizeTagPath(entry))
+                        .filter((entry): entry is string => entry !== null);
+
+                    activeProfile.hiddenTags = Array.from(new Set(normalizedHiddenTags));
+                }
+            );
+        });
+        hiddenTagsSetting.controlEl.addClass('nn-setting-wide-input');
+        hiddenTagsInput = hiddenTagsSetting.controlEl.querySelector('input');
+
+        const hiddenFileTagsSetting = filteringGroup.addSetting(setting => {
+            configureDebouncedTextSetting(
+                setting,
+                strings.settings.items.hiddenFileTags.name,
+                strings.settings.items.hiddenFileTags.desc,
+                strings.settings.items.hiddenFileTags.placeholder,
+                () => formatCommaSeparatedList(getActiveProfile()?.hiddenFileTags ?? []),
+                value => {
+                    const activeProfile = getActiveProfile();
+                    if (!activeProfile) {
+                        return;
+                    }
+
+                    const normalizedHiddenFileTags = parseCommaSeparatedList(value)
+                        .map(entry => normalizeTagPath(entry))
+                        .filter((entry): entry is string => entry !== null);
+
+                    activeProfile.hiddenFileTags = Array.from(new Set(normalizedHiddenFileTags));
+                }
+            );
+        });
+        hiddenFileTagsSetting.controlEl.addClass('nn-setting-wide-input');
+        hiddenFileTagsInput = hiddenFileTagsSetting.controlEl.querySelector('input');
+
+        const excludedFilesSetting = filteringGroup.addSetting(setting => {
+            configureDebouncedTextSetting(
+                setting,
+                strings.settings.items.excludedNotes.name,
+                strings.settings.items.excludedNotes.desc,
+                strings.settings.items.excludedNotes.placeholder,
+                () => formatCommaSeparatedList(getActiveProfile()?.hiddenFileProperties ?? []),
+                value => {
+                    const activeProfile = getActiveProfile();
+                    if (!activeProfile) {
+                        return;
+                    }
+                    const nextHiddenFiles = parseCommaSeparatedList(value);
+                    activeProfile.hiddenFileProperties = Array.from(new Set(nextHiddenFiles));
+                }
+            );
+        });
+        excludedFilesSetting.controlEl.addClass('nn-setting-wide-input');
+        excludedFilesInput = excludedFilesSetting.controlEl.querySelector('input');
+    }
+
+    refreshProfileControls();
+}
+
+function renderAppearanceBehaviorSections(context: SettingsTabContext): void {
+    const createGroup = createSettingGroupFactory(context.containerEl);
+
+    renderBehaviorSettings(context, createGroup);
+
+    if (!Platform.isMobile) {
+        renderKeyboardNavigationSettings(context, createGroup);
+        renderDesktopAppearanceSettings(context, createGroup);
+    } else {
+        renderMobileAppearanceSettings(context, createGroup);
+    }
+
+    renderViewSettings(context, createGroup);
+    renderIconSettings(context, createGroup);
+    renderFormattingSettings(context, createGroup);
+    renderTemplateSettings(context, createGroup);
+}
+
+function renderBehaviorSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
+    const { plugin, addToggleSetting } = context;
 
     const behaviorGroup = createGroup(strings.settings.groups.general.behavior);
 
@@ -649,214 +751,220 @@ export function renderGeneralTab(context: SettingsTabContext): void {
         );
 
     addSettingSyncModeToggle({ setting: paneTransitionSetting, plugin, settingId: 'paneTransitionDuration' });
+}
 
-    if (!Platform.isMobile) {
-        const keyboardNavigationGroup = createGroup(strings.settings.groups.general.keyboardNavigation);
+function renderKeyboardNavigationSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
+    const { plugin } = context;
+    const keyboardNavigationGroup = createGroup(strings.settings.groups.general.keyboardNavigation);
 
-        keyboardNavigationGroup.addSetting(setting => {
-            setting
-                .setName(strings.settings.items.multiSelectModifier.name)
-                .setDesc(strings.settings.items.multiSelectModifier.desc)
-                .addDropdown(dropdown =>
-                    dropdown
-                        .addOption('cmdCtrl', strings.settings.items.multiSelectModifier.options.cmdCtrl)
-                        .addOption('optionAlt', strings.settings.items.multiSelectModifier.options.optionAlt)
-                        .setValue(plugin.settings.multiSelectModifier)
-                        .onChange(async value => {
-                            if (!isMultiSelectModifier(value)) {
-                                return;
-                            }
-                            plugin.settings.multiSelectModifier = value;
-                            await plugin.saveSettingsAndUpdate();
-                        })
-                );
-        });
-
-        const enterToOpenSetting = keyboardNavigationGroup.addSetting(setting => {
-            setting.setName(strings.settings.items.enterToOpenFiles.name).setDesc(strings.settings.items.enterToOpenFiles.desc);
-        });
-
-        const enterToOpenSettingsEl = wireToggleSettingWithSubSettings(
-            enterToOpenSetting,
-            () => plugin.settings.enterToOpenFiles,
-            async value => {
-                plugin.settings.enterToOpenFiles = value;
-                await plugin.saveSettingsAndUpdate();
-            }
-        );
-
-        const normalizeOpenContext = (value: string): FileOpenContext => {
-            if (value === 'split' || value === 'window') {
-                return value;
-            }
-            return 'tab';
-        };
-
-        new Setting(enterToOpenSettingsEl)
-            .setName(strings.settings.items.shiftEnterOpenContext.name)
-            .setDesc(strings.settings.items.shiftEnterOpenContext.desc)
+    keyboardNavigationGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.multiSelectModifier.name)
+            .setDesc(strings.settings.items.multiSelectModifier.desc)
             .addDropdown(dropdown =>
                 dropdown
-                    .addOption('tab', strings.contextMenu.file.openInNewTab)
-                    .addOption('split', strings.contextMenu.file.openToRight)
-                    .addOption('window', strings.contextMenu.file.openInNewWindow)
-                    .setValue(plugin.settings.shiftEnterOpenContext)
+                    .addOption('cmdCtrl', strings.settings.items.multiSelectModifier.options.cmdCtrl)
+                    .addOption('optionAlt', strings.settings.items.multiSelectModifier.options.optionAlt)
+                    .setValue(plugin.settings.multiSelectModifier)
                     .onChange(async value => {
-                        plugin.settings.shiftEnterOpenContext = normalizeOpenContext(value);
+                        if (!isMultiSelectModifier(value)) {
+                            return;
+                        }
+                        plugin.settings.multiSelectModifier = value;
                         await plugin.saveSettingsAndUpdate();
                     })
             );
+    });
 
-        const cmdCtrlStrings = Platform.isMacOS ? strings.settings.items.cmdEnterOpenContext : strings.settings.items.ctrlEnterOpenContext;
+    const enterToOpenSetting = keyboardNavigationGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.enterToOpenFiles.name).setDesc(strings.settings.items.enterToOpenFiles.desc);
+    });
 
-        new Setting(enterToOpenSettingsEl)
-            .setName(cmdCtrlStrings.name)
-            .setDesc(cmdCtrlStrings.desc)
+    const enterToOpenSettingsEl = wireToggleSettingWithSubSettings(
+        enterToOpenSetting,
+        () => plugin.settings.enterToOpenFiles,
+        async value => {
+            plugin.settings.enterToOpenFiles = value;
+            await plugin.saveSettingsAndUpdate();
+        }
+    );
+
+    const normalizeOpenContext = (value: string): FileOpenContext => {
+        if (value === 'split' || value === 'window') {
+            return value;
+        }
+        return 'tab';
+    };
+
+    new Setting(enterToOpenSettingsEl)
+        .setName(strings.settings.items.shiftEnterOpenContext.name)
+        .setDesc(strings.settings.items.shiftEnterOpenContext.desc)
+        .addDropdown(dropdown =>
+            dropdown
+                .addOption('tab', strings.contextMenu.file.openInNewTab)
+                .addOption('split', strings.contextMenu.file.openToRight)
+                .addOption('window', strings.contextMenu.file.openInNewWindow)
+                .setValue(plugin.settings.shiftEnterOpenContext)
+                .onChange(async value => {
+                    plugin.settings.shiftEnterOpenContext = normalizeOpenContext(value);
+                    await plugin.saveSettingsAndUpdate();
+                })
+        );
+
+    const cmdCtrlStrings = Platform.isMacOS ? strings.settings.items.cmdEnterOpenContext : strings.settings.items.ctrlEnterOpenContext;
+
+    new Setting(enterToOpenSettingsEl)
+        .setName(cmdCtrlStrings.name)
+        .setDesc(cmdCtrlStrings.desc)
+        .addDropdown(dropdown =>
+            dropdown
+                .addOption('tab', strings.contextMenu.file.openInNewTab)
+                .addOption('split', strings.contextMenu.file.openToRight)
+                .addOption('window', strings.contextMenu.file.openInNewWindow)
+                .setValue(plugin.settings.cmdCtrlEnterOpenContext)
+                .onChange(async value => {
+                    plugin.settings.cmdCtrlEnterOpenContext = normalizeOpenContext(value);
+                    await plugin.saveSettingsAndUpdate();
+                })
+        );
+
+    const mouseButtonsGroup = createGroup(strings.settings.groups.general.mouseButtons);
+    const normalizeMouseBackForwardAction = (value: string): MouseBackForwardAction => {
+        if (value === 'singlePaneSwitch' || value === 'history') {
+            return value;
+        }
+        return 'none';
+    };
+
+    mouseButtonsGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.mouseBackForwardAction.name)
+            .setDesc(strings.settings.items.mouseBackForwardAction.desc)
             .addDropdown(dropdown =>
                 dropdown
-                    .addOption('tab', strings.contextMenu.file.openInNewTab)
-                    .addOption('split', strings.contextMenu.file.openToRight)
-                    .addOption('window', strings.contextMenu.file.openInNewWindow)
-                    .setValue(plugin.settings.cmdCtrlEnterOpenContext)
+                    .addOption('none', strings.settings.items.mouseBackForwardAction.options.none)
+                    .addOption('singlePaneSwitch', strings.settings.items.mouseBackForwardAction.options.singlePaneSwitch)
+                    .addOption('history', strings.settings.items.mouseBackForwardAction.options.history)
+                    .setValue(plugin.settings.mouseBackForwardAction)
                     .onChange(async value => {
-                        plugin.settings.cmdCtrlEnterOpenContext = normalizeOpenContext(value);
+                        plugin.settings.mouseBackForwardAction = normalizeMouseBackForwardAction(value);
                         await plugin.saveSettingsAndUpdate();
                     })
             );
+    });
+}
 
-        const mouseButtonsGroup = createGroup(strings.settings.groups.general.mouseButtons);
-        const normalizeMouseBackForwardAction = (value: string): MouseBackForwardAction => {
-            if (value === 'singlePaneSwitch' || value === 'history') {
-                return value;
-            }
-            return 'none';
-        };
+function renderDesktopAppearanceSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
+    const { plugin } = context;
+    const desktopAppearanceGroup = createGroup(strings.settings.groups.general.desktopAppearance);
 
-        mouseButtonsGroup.addSetting(setting => {
-            setting
-                .setName(strings.settings.items.mouseBackForwardAction.name)
-                .setDesc(strings.settings.items.mouseBackForwardAction.desc)
-                .addDropdown(dropdown =>
-                    dropdown
-                        .addOption('none', strings.settings.items.mouseBackForwardAction.options.none)
-                        .addOption('singlePaneSwitch', strings.settings.items.mouseBackForwardAction.options.singlePaneSwitch)
-                        .addOption('history', strings.settings.items.mouseBackForwardAction.options.history)
-                        .setValue(plugin.settings.mouseBackForwardAction)
-                        .onChange(async value => {
-                            plugin.settings.mouseBackForwardAction = normalizeMouseBackForwardAction(value);
-                            await plugin.saveSettingsAndUpdate();
-                        })
-                );
-        });
-    }
+    const dualPaneSetting = desktopAppearanceGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.dualPane.name)
+            .setDesc(strings.settings.items.dualPane.desc)
+            .addToggle(toggle =>
+                toggle.setValue(plugin.useDualPane()).onChange(value => {
+                    plugin.setDualPanePreference(value);
+                })
+            );
+    });
 
-    if (!Platform.isMobile) {
-        const desktopAppearanceGroup = createGroup(strings.settings.groups.general.desktopAppearance);
+    addSettingSyncModeToggle({ setting: dualPaneSetting, plugin, settingId: 'dualPane' });
 
-        const dualPaneSetting = desktopAppearanceGroup.addSetting(setting => {
-            setting
-                .setName(strings.settings.items.dualPane.name)
-                .setDesc(strings.settings.items.dualPane.desc)
-                .addToggle(toggle =>
-                    toggle.setValue(plugin.useDualPane()).onChange(value => {
-                        plugin.setDualPanePreference(value);
+    const dualPaneOrientationSetting = desktopAppearanceGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.dualPaneOrientation.name)
+            .setDesc(strings.settings.items.dualPaneOrientation.desc)
+            .addDropdown(dropdown => {
+                dropdown
+                    .addOptions({
+                        horizontal: strings.settings.items.dualPaneOrientation.options.horizontal,
+                        vertical: strings.settings.items.dualPaneOrientation.options.vertical
                     })
-                );
-        });
+                    .setValue(plugin.getDualPaneOrientation())
+                    .onChange(async value => {
+                        const nextOrientation = value === 'vertical' ? 'vertical' : 'horizontal';
+                        await plugin.setDualPaneOrientation(nextOrientation);
+                    });
+            });
+    });
 
-        addSettingSyncModeToggle({ setting: dualPaneSetting, plugin, settingId: 'dualPane' });
+    addSettingSyncModeToggle({ setting: dualPaneOrientationSetting, plugin, settingId: 'dualPaneOrientation' });
 
-        const dualPaneOrientationSetting = desktopAppearanceGroup.addSetting(setting => {
-            setting
-                .setName(strings.settings.items.dualPaneOrientation.name)
-                .setDesc(strings.settings.items.dualPaneOrientation.desc)
-                .addDropdown(dropdown => {
-                    dropdown
-                        .addOptions({
-                            horizontal: strings.settings.items.dualPaneOrientation.options.horizontal,
-                            vertical: strings.settings.items.dualPaneOrientation.options.vertical
-                        })
-                        .setValue(plugin.getDualPaneOrientation())
-                        .onChange(async value => {
-                            const nextOrientation = value === 'vertical' ? 'vertical' : 'horizontal';
-                            await plugin.setDualPaneOrientation(nextOrientation);
-                        });
-                });
-        });
+    desktopAppearanceGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.appearanceBackground.name)
+            .setDesc(strings.settings.items.appearanceBackground.desc)
+            .addDropdown(dropdown =>
+                dropdown
+                    .addOptions({
+                        separate: strings.settings.items.appearanceBackground.options.separate,
+                        primary: strings.settings.items.appearanceBackground.options.primary,
+                        secondary: strings.settings.items.appearanceBackground.options.secondary
+                    })
+                    .setValue(plugin.settings.desktopBackground ?? 'separate')
+                    .onChange(async value => {
+                        const nextValue: BackgroundMode = value === 'primary' || value === 'secondary' ? value : 'separate';
+                        plugin.settings.desktopBackground = nextValue;
+                        await plugin.saveSettingsAndUpdate();
+                    })
+            );
+    });
 
-        addSettingSyncModeToggle({ setting: dualPaneOrientationSetting, plugin, settingId: 'dualPaneOrientation' });
+    const showTooltipsSetting = desktopAppearanceGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.showTooltips.name).setDesc(strings.settings.items.showTooltips.desc);
+    });
 
-        desktopAppearanceGroup.addSetting(setting => {
-            setting
-                .setName(strings.settings.items.appearanceBackground.name)
-                .setDesc(strings.settings.items.appearanceBackground.desc)
-                .addDropdown(dropdown =>
-                    dropdown
-                        .addOptions({
-                            separate: strings.settings.items.appearanceBackground.options.separate,
-                            primary: strings.settings.items.appearanceBackground.options.primary,
-                            secondary: strings.settings.items.appearanceBackground.options.secondary
-                        })
-                        .setValue(plugin.settings.desktopBackground ?? 'separate')
-                        .onChange(async value => {
-                            const nextValue: BackgroundMode = value === 'primary' || value === 'secondary' ? value : 'separate';
-                            plugin.settings.desktopBackground = nextValue;
-                            await plugin.saveSettingsAndUpdate();
-                        })
-                );
-        });
+    const showTooltipsSubSettings = wireToggleSettingWithSubSettings(
+        showTooltipsSetting,
+        () => plugin.settings.showTooltips,
+        async value => {
+            plugin.settings.showTooltips = value;
+            await plugin.saveSettingsAndUpdate();
+        }
+    );
 
-        const showTooltipsSetting = desktopAppearanceGroup.addSetting(setting => {
-            setting.setName(strings.settings.items.showTooltips.name).setDesc(strings.settings.items.showTooltips.desc);
-        });
-
-        const showTooltipsSubSettings = wireToggleSettingWithSubSettings(
-            showTooltipsSetting,
-            () => plugin.settings.showTooltips,
-            async value => {
-                plugin.settings.showTooltips = value;
+    new Setting(showTooltipsSubSettings)
+        .setName(strings.settings.items.showTooltipPath.name)
+        .setDesc(strings.settings.items.showTooltipPath.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.showTooltipPath).onChange(async value => {
+                plugin.settings.showTooltipPath = value;
                 await plugin.saveSettingsAndUpdate();
-            }
+            })
         );
 
-        new Setting(showTooltipsSubSettings)
-            .setName(strings.settings.items.showTooltipPath.name)
-            .setDesc(strings.settings.items.showTooltipPath.desc)
+    new Setting(showTooltipsSubSettings)
+        .setName(strings.settings.items.showTooltipWordCount.name)
+        .setDesc(strings.settings.items.showTooltipWordCount.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.showTooltipWordCount).onChange(async value => {
+                plugin.settings.showTooltipWordCount = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+}
+
+function renderMobileAppearanceSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
+    const { plugin } = context;
+    const mobileAppearanceGroup = createGroup(strings.settings.groups.general.mobileAppearance);
+
+    const useFloatingToolbarsSetting = mobileAppearanceGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.useFloatingToolbars.name)
+            .setDesc(strings.settings.items.useFloatingToolbars.desc)
             .addToggle(toggle =>
-                toggle.setValue(plugin.settings.showTooltipPath).onChange(async value => {
-                    plugin.settings.showTooltipPath = value;
-                    await plugin.saveSettingsAndUpdate();
+                toggle.setValue(plugin.settings.useFloatingToolbars).onChange(value => {
+                    plugin.setUseFloatingToolbars(value);
                 })
             );
+    });
 
-        new Setting(showTooltipsSubSettings)
-            .setName(strings.settings.items.showTooltipWordCount.name)
-            .setDesc(strings.settings.items.showTooltipWordCount.desc)
-            .addToggle(toggle =>
-                toggle.setValue(plugin.settings.showTooltipWordCount).onChange(async value => {
-                    plugin.settings.showTooltipWordCount = value;
-                    await plugin.saveSettingsAndUpdate();
-                })
-            );
-    }
+    addSettingSyncModeToggle({ setting: useFloatingToolbarsSetting, plugin, settingId: 'useFloatingToolbars' });
+}
 
-    if (Platform.isMobile) {
-        const mobileAppearanceGroup = createGroup(strings.settings.groups.general.mobileAppearance);
-
-        const useFloatingToolbarsSetting = mobileAppearanceGroup.addSetting(setting => {
-            setting
-                .setName(strings.settings.items.useFloatingToolbars.name)
-                .setDesc(strings.settings.items.useFloatingToolbars.desc)
-                .addToggle(toggle =>
-                    toggle.setValue(plugin.settings.useFloatingToolbars).onChange(value => {
-                        plugin.setUseFloatingToolbars(value);
-                    })
-                );
-        });
-
-        addSettingSyncModeToggle({ setting: useFloatingToolbarsSetting, plugin, settingId: 'useFloatingToolbars' });
-    }
-
+function renderViewSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
+    const { plugin } = context;
     const viewGroup = createGroup(strings.settings.groups.general.view);
 
     const uiScaleSetting = viewGroup.addSetting(setting => {
@@ -1044,7 +1152,10 @@ export function renderGeneralTab(context: SettingsTabContext): void {
         );
 
     renderToolbarVisibilitySetting(createSetting => viewGroup.addSetting(createSetting), plugin);
+}
 
+function renderIconSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
+    const { plugin, addToggleSetting } = context;
     const iconsGroup = createGroup(strings.settings.groups.general.icons);
 
     iconsGroup.addSetting(setting => {
@@ -1082,7 +1193,10 @@ export function renderGeneralTab(context: SettingsTabContext): void {
             plugin.settings.colorIconOnly = value;
         }
     );
+}
 
+function renderFormattingSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
+    const { plugin, configureDebouncedTextSetting } = context;
     const formattingGroup = createGroup(strings.settings.groups.general.formatting);
 
     const dateFormatSetting = formattingGroup.addSetting(setting => {
@@ -1134,6 +1248,29 @@ export function renderGeneralTab(context: SettingsTabContext): void {
             })
     );
     timeFormatSetting.controlEl.addClass('nn-setting-wide-input');
+}
+
+function renderTemplateSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
+    const { plugin, configureDebouncedTextSetting } = context;
+    const templatesGroup = createGroup(strings.settings.groups.general.templates);
+    const templateFolderSetting = templatesGroup.addSetting(setting => {
+        configureDebouncedTextSetting(
+            setting,
+            strings.settings.items.calendarTemplateFolder.name,
+            strings.settings.items.calendarTemplateFolder.desc,
+            strings.settings.items.calendarTemplateFolder.placeholder,
+            () => normalizeCalendarCustomRootFolder(plugin.settings.calendarTemplateFolder),
+            value => {
+                plugin.settings.calendarTemplateFolder = normalizeCalendarCustomRootFolder(value);
+            }
+        );
+    });
+    templateFolderSetting.controlEl.addClass('nn-setting-wide-input');
+    const templateFolderInputEl = templateFolderSetting.controlEl.querySelector<HTMLInputElement>('input');
+    if (templateFolderInputEl) {
+        const folderSuggest = new FolderPathInputSuggest(context.app, templateFolderInputEl);
+        templateFolderInputEl.addEventListener('click', () => folderSuggest.open());
+    }
 }
 
 type ToolbarButtonConfig<T extends string> = {

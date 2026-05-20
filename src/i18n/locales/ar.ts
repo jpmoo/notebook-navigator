@@ -878,23 +878,53 @@ export const STRINGS_AR = {
         },
         sections: {
             general: 'عام',
-            navigationPane: 'التنقل',
+            vaultFilters: 'مرشحات العرض',
+            appearanceBehavior: 'المظهر والسلوك',
+            navigationPane: 'لوحة التنقل',
             calendar: 'التقويم',
             files: 'الملفات',
+            fileOperations: 'عمليات الملفات',
             icons: 'حزم الأيقونات',
             folders: 'مجلدات',
             folderNotes: 'ملاحظات المجلد',
+            foldersAndFolderNotes: 'المجلدات وملاحظات المجلد',
             foldersAndTags: 'مجلدات',
             tagsAndProperties: 'الوسوم والخصائص',
             tags: 'وسوم',
-            listPane: 'القائمة',
-            notes: 'ملاحظات',
+            listPane: 'لوحة القائمة',
+            notes: 'عرض الملفات',
+            shortcutsAndRecentFiles: 'الاختصارات والملفات الأخيرة',
             advanced: 'متقدم'
+        },
+        pageGroups: {
+            gettingStarted: 'البداية',
+            configuration: 'التكوين',
+            navigationAndContent: 'لوحة التنقل',
+            notesAndLists: 'لوحة القائمة',
+            calendarAndTools: 'التقويم والأدوات'
+        },
+        pageDescriptions: {
+            general: 'ملاحظات الإصدار والدعم وملف الخزنة وأنواع الملفات ومفاتيح الخصائص.',
+            vaultFilters: 'المجلدات والوسوم والملفات ووسوم الملفات وقواعد الخصائص المخفية.',
+            appearanceBehavior: 'القوالب والسلوك والتنقل بلوحة المفاتيح وأزرار الفأرة والمظهر والتنسيق.',
+            navigationPane: 'التخطيط والمظهر وعدد الملاحظات وسلوك الطي وألوان قوس قزح.',
+            shortcuts: 'رؤية الاختصارات والشارات والملفات الأخيرة والعناصر المثبتة.',
+            calendar: 'عرض التقويم وملاحظات التاريخ والقوالب والإعدادات المحلية وموضع الشريط الجانبي.',
+            fileOperations: 'تأكيدات الحذف والمرفقات وسلوك تعارض نقل الملفات.',
+            foldersAndFolderNotes: 'عرض المجلدات وملاحظات المجلد وقوالب ملاحظات المجلد وسلوك ملاحظات المجلد.',
+            tagsProperties: 'أقسام الوسوم والخصائص والأيقونات والفرز والنطاق والوراثة.',
+            listPane: 'الفرز والتجميع وأوضاع القائمة والملاحظات المثبتة ومعاينات الرسومات.',
+            frontmatter: 'حقول البيانات الأمامية لأسماء العرض والطوابع الزمنية والأيقونات والألوان.',
+            notes: 'العناوين ونص المعاينة والصور المميزة والوسوم والخصائص والتواريخ وعدد الكلمات.',
+            iconPacks: 'أيقونات الواجهة وأيقونات الملفات وإدارة حزم الأيقونات.',
+            advanced: 'التشخيص وتنظيف البيانات الوصفية والاستيراد/التصدير وإعادة التعيين.'
         },
         groups: {
             general: {
+                vaultConfiguration: 'إعداد الخزنة',
                 vaultProfiles: 'ملفات الخزنة',
-                filtering: 'التصفية',
+                vaultContent: 'محتوى الخزنة',
+                filtering: 'المحتوى المخفي',
                 templates: 'قوالب',
                 behavior: 'السلوك',
                 keyboardNavigation: 'التنقل بلوحة المفاتيح',
@@ -921,7 +951,7 @@ export const STRINGS_AR = {
                 drawingPreviews: 'معاينات الرسومات'
             },
             notes: {
-                frontmatter: 'البيانات الأمامية',
+                frontmatter: 'حقول البيانات الأمامية',
                 tasks: 'المهام',
                 icon: 'الأيقونة',
                 title: 'العنوان',
@@ -1394,11 +1424,11 @@ export const STRINGS_AR = {
             },
             calendarCustomFilePattern: {
                 name: 'الملاحظات اليومية',
-                desc: 'تنسيق المسار باستخدام تنسيق تاريخ Moment. ضع أسماء المجلدات الفرعية بين أقواس معقوفة، مثال [Work]/YYYY. انقر على أيقونة القالب لتعيين قالب. حدد موقع مجلد القوالب في عام > قوالب.',
+                desc: 'تنسيق المسار باستخدام تنسيق تاريخ Moment. ضع أسماء المجلدات الفرعية بين أقواس معقوفة، مثال [Work]/YYYY. انقر على أيقونة القالب لتعيين قالب. حدد موقع مجلد القوالب في المظهر والسلوك > قوالب.',
                 momentDescPrefix: 'تنسيق المسار باستخدام ',
                 momentLinkText: 'تنسيق تاريخ Moment',
                 momentDescSuffix:
-                    '. ضع أسماء المجلدات الفرعية بين أقواس معقوفة، مثال [Work]/YYYY. انقر على أيقونة القالب لتعيين قالب. حدد موقع مجلد القوالب في عام > قوالب.',
+                    '. ضع أسماء المجلدات الفرعية بين أقواس معقوفة، مثال [Work]/YYYY. انقر على أيقونة القالب لتعيين قالب. حدد موقع مجلد القوالب في المظهر والسلوك > قوالب.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'الصيغة الحالية: {path}',
                 parsingError: 'يجب أن يقوم النمط بتنسيق التاريخ ثم تحليله مرة أخرى كتاريخ كامل (السنة، الشهر، اليوم).'
@@ -1999,7 +2029,7 @@ export const STRINGS_AR = {
                 name: 'إظهار الخصائص',
                 desc: 'عرض قسم الخصائص في المتصفح.',
                 propertyKeysInfoPrefix: 'تكوين الخصائص في ',
-                propertyKeysInfoLinkText: 'عام > مفاتيح الخصائص',
+                propertyKeysInfoLinkText: 'البداية > مفاتيح الخصائص',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {
@@ -2064,7 +2094,7 @@ export const STRINGS_AR = {
             },
             folderNoteTemplate: {
                 name: 'قالب ملاحظة المجلد',
-                desc: 'ملف قالب لملاحظات المجلد الجديدة بتنسيق Markdown. حدد موقع مجلد القوالب في عام > قوالب.'
+                desc: 'ملف قالب لملاحظات المجلد الجديدة بتنسيق Markdown. حدد موقع مجلد القوالب في المظهر والسلوك > قوالب.'
             },
             enableFolderNoteLinks: {
                 name: 'تفعيل روابط ملاحظات المجلدات',

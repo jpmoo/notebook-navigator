@@ -882,23 +882,53 @@ export const STRINGS_DE = {
         },
         sections: {
             general: 'Allgemein',
-            notes: 'Notizen',
-            navigationPane: 'Navigation',
+            vaultFilters: 'Anzeigefilter',
+            appearanceBehavior: 'Darstellung & Verhalten',
+            navigationPane: 'Navigationsbereich',
             calendar: 'Kalender',
             files: 'Dateien',
+            fileOperations: 'Dateioperationen',
             icons: 'Icon-Pakete',
-            tags: 'Tags',
             folders: 'Ordner',
             folderNotes: 'Ordnernotizen',
+            foldersAndFolderNotes: 'Ordner & Ordnernotizen',
             foldersAndTags: 'Ordner',
             tagsAndProperties: 'Tags & Eigenschaften',
-            listPane: 'Liste',
+            tags: 'Tags',
+            listPane: 'Listenbereich',
+            notes: 'Dateianzeige',
+            shortcutsAndRecentFiles: 'Verknüpfungen & zuletzt verwendete Dateien',
             advanced: 'Erweitert'
+        },
+        pageGroups: {
+            gettingStarted: 'Start',
+            configuration: 'Konfiguration',
+            navigationAndContent: 'Navigationsbereich',
+            notesAndLists: 'Listenbereich',
+            calendarAndTools: 'Kalender und Werkzeuge'
+        },
+        pageDescriptions: {
+            general: 'Versionshinweise, Support, Tresorprofil, Dateitypen und Eigenschaftsschlüssel.',
+            vaultFilters: 'Versteckte Ordner, Tags, Dateien, Datei-Tags und Eigenschaftsregeln.',
+            appearanceBehavior: 'Vorlagen, Verhalten, Tastaturnavigation, Maustasten, Darstellung und Formatierung.',
+            navigationPane: 'Layout, Darstellung, Notizenanzahl, Einklappverhalten und Regenbogenfarben.',
+            shortcuts: 'Verknüpfungssichtbarkeit, Abzeichen, zuletzt verwendete Dateien und angeheftete Elemente.',
+            calendar: 'Kalenderanzeige, Datumsnotizen, Vorlagen, Sprachumgebung und Seitenleistenposition.',
+            fileOperations: 'Löschbestätigungen, Anhänge und Verhalten bei Dateikonflikten beim Verschieben.',
+            foldersAndFolderNotes: 'Ordneranzeige, Ordnernotizen, Ordnernotiz-Vorlagen und Ordnernotiz-Verhalten.',
+            tagsProperties: 'Tag- und Eigenschaftsbereiche, Symbole, Sortierung, Geltungsbereich und Vererbung.',
+            listPane: 'Sortierung, Gruppierung, Listenmodi, angeheftete Notizen und Zeichnungsvorschauen.',
+            frontmatter: 'Frontmatter-Felder für Anzeigenamen, Zeitstempel, Symbole und Farben.',
+            notes: 'Titel, Vorschautext, Hauptbilder, Tags, Eigenschaften, Daten und Wortanzahl.',
+            iconPacks: 'Oberflächensymbole, Dateisymbole und Icon-Paket-Verwaltung.',
+            advanced: 'Diagnose, Metadatenbereinigung, Import/Export und Zurücksetzen.'
         },
         groups: {
             general: {
+                vaultConfiguration: 'Tresor-Einrichtung',
                 vaultProfiles: 'Tresorprofile',
-                filtering: 'Filterung',
+                vaultContent: 'Tresor-Inhalte',
+                filtering: 'Versteckte Inhalte',
                 templates: 'Vorlagen',
                 behavior: 'Verhalten',
                 keyboardNavigation: 'Tastaturnavigation',
@@ -925,7 +955,7 @@ export const STRINGS_DE = {
                 drawingPreviews: 'Zeichnungsvorschauen'
             },
             notes: {
-                frontmatter: 'Frontmatter',
+                frontmatter: 'Frontmatter-Felder',
                 tasks: 'Aufgaben',
                 icon: 'Symbol',
                 title: 'Titel',
@@ -1399,11 +1429,11 @@ export const STRINGS_DE = {
             },
             calendarCustomFilePattern: {
                 name: 'Tägliche Notizen',
-                desc: 'Pfad mit Moment-Datumsformat formatieren. Unterordnernamen in Klammern setzen, z.B. [Work]/YYYY. Klicken Sie auf das Vorlagensymbol, um eine Vorlage festzulegen. Vorlagenordner unter Allgemein > Vorlagen festlegen.',
+                desc: 'Pfad mit Moment-Datumsformat formatieren. Unterordnernamen in Klammern setzen, z.B. [Work]/YYYY. Klicken Sie auf das Vorlagensymbol, um eine Vorlage festzulegen. Vorlagenordner unter Darstellung & Verhalten > Vorlagen festlegen.',
                 momentDescPrefix: 'Pfad formatieren mit ',
                 momentLinkText: 'Moment-Datumsformat',
                 momentDescSuffix:
-                    '. Unterordnernamen in Klammern setzen, z.B. [Work]/YYYY. Klicken Sie auf das Vorlagensymbol, um eine Vorlage festzulegen. Vorlagenordner unter Allgemein > Vorlagen festlegen.',
+                    '. Unterordnernamen in Klammern setzen, z.B. [Work]/YYYY. Klicken Sie auf das Vorlagensymbol, um eine Vorlage festzulegen. Vorlagenordner unter Darstellung & Verhalten > Vorlagen festlegen.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Aktuelle Syntax: {path}',
                 parsingError: 'Das Muster muss als vollständiges Datum (Jahr, Monat, Tag) formatiert und wieder geparst werden können.'
@@ -2006,7 +2036,7 @@ export const STRINGS_DE = {
                 name: 'Eigenschaften anzeigen',
                 desc: 'Eigenschaftsbereich im Navigator anzeigen.',
                 propertyKeysInfoPrefix: 'Eigenschaften konfigurieren unter ',
-                propertyKeysInfoLinkText: 'Allgemein > Eigenschaftsschlüssel',
+                propertyKeysInfoLinkText: 'Start > Eigenschaftsschlüssel',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {
@@ -2071,7 +2101,7 @@ export const STRINGS_DE = {
             },
             folderNoteTemplate: {
                 name: 'Ordnernotiz-Vorlage',
-                desc: 'Vorlagendatei für neue Markdown-Ordnernotizen. Vorlagenordner unter Allgemein > Vorlagen festlegen.'
+                desc: 'Vorlagendatei für neue Markdown-Ordnernotizen. Vorlagenordner unter Darstellung & Verhalten > Vorlagen festlegen.'
             },
             enableFolderNoteLinks: {
                 name: 'Ordnernotiz-Links aktivieren',

@@ -882,23 +882,53 @@ export const STRINGS_VI = {
         },
         sections: {
             general: 'Chung',
-            navigationPane: 'Điều hướng',
+            vaultFilters: 'Bộ lọc hiển thị',
+            appearanceBehavior: 'Giao diện và hành vi',
+            navigationPane: 'Bảng điều hướng',
             calendar: 'Lịch',
             files: 'Tệp',
+            fileOperations: 'Thao tác tệp',
             icons: 'Gói biểu tượng',
             folders: 'Thư mục',
             folderNotes: 'Ghi chú thư mục',
+            foldersAndFolderNotes: 'Thư mục và ghi chú thư mục',
             foldersAndTags: 'Thư mục',
             tagsAndProperties: 'Thẻ và thuộc tính',
             tags: 'Thẻ',
-            listPane: 'Danh sách',
-            notes: 'Ghi chú',
+            listPane: 'Bảng danh sách',
+            notes: 'Hiển thị tệp',
+            shortcutsAndRecentFiles: 'Lối tắt và tệp gần đây',
             advanced: 'Nâng cao'
+        },
+        pageGroups: {
+            gettingStarted: 'Bắt đầu',
+            configuration: 'Cấu hình',
+            navigationAndContent: 'Bảng điều hướng',
+            notesAndLists: 'Bảng danh sách',
+            calendarAndTools: 'Lịch và công cụ'
+        },
+        pageDescriptions: {
+            general: 'Ghi chú phát hành, hỗ trợ, hồ sơ vault, loại tệp và khóa thuộc tính.',
+            vaultFilters: 'Thư mục, thẻ, tệp, thẻ tệp và quy tắc thuộc tính bị ẩn.',
+            appearanceBehavior: 'Mẫu, hành vi, điều hướng bằng bàn phím, nút chuột, giao diện và định dạng.',
+            navigationPane: 'Bố cục, giao diện, số lượng ghi chú, hành vi thu gọn và màu cầu vồng.',
+            shortcuts: 'Khả năng hiển thị lối tắt, huy hiệu, tệp gần đây và mục đã ghim.',
+            calendar: 'Hiển thị lịch, ghi chú ngày, mẫu, ngôn ngữ và vị trí thanh bên.',
+            fileOperations: 'Xác nhận xóa, tệp đính kèm và hành vi xung đột khi di chuyển tệp.',
+            foldersAndFolderNotes: 'Hiển thị thư mục, ghi chú thư mục, mẫu ghi chú thư mục và hành vi ghi chú thư mục.',
+            tagsProperties: 'Phần thẻ và thuộc tính, biểu tượng, sắp xếp, phạm vi và kế thừa.',
+            listPane: 'Sắp xếp, nhóm, chế độ danh sách, ghi chú đã ghim và xem trước bản vẽ.',
+            frontmatter: 'Trường frontmatter cho tên hiển thị, dấu thời gian, biểu tượng và màu sắc.',
+            notes: 'Tiêu đề, văn bản xem trước, hình ảnh nổi bật, thẻ, thuộc tính, ngày và số từ.',
+            iconPacks: 'Biểu tượng giao diện, biểu tượng tệp và quản lý gói biểu tượng.',
+            advanced: 'Chẩn đoán, dọn dẹp metadata, nhập/xuất và đặt lại.'
         },
         groups: {
             general: {
+                vaultConfiguration: 'Thiết lập vault',
                 vaultProfiles: 'Hồ sơ vault',
-                filtering: 'Lọc',
+                vaultContent: 'Nội dung vault',
+                filtering: 'Nội dung ẩn',
                 templates: 'Mẫu',
                 behavior: 'Hành vi',
                 keyboardNavigation: 'Điều hướng bằng bàn phím',
@@ -925,7 +955,7 @@ export const STRINGS_VI = {
                 drawingPreviews: 'Xem trước bản vẽ'
             },
             notes: {
-                frontmatter: 'Frontmatter',
+                frontmatter: 'Trường frontmatter',
                 tasks: 'Nhiệm vụ',
                 icon: 'Biểu tượng',
                 title: 'Tiêu đề',
@@ -1399,11 +1429,11 @@ export const STRINGS_VI = {
             },
             calendarCustomFilePattern: {
                 name: 'Ghi chú hàng ngày',
-                desc: 'Định dạng đường dẫn sử dụng định dạng ngày Moment. Đặt tên thư mục con trong dấu ngoặc vuông, vd: [Work]/YYYY. Nhấp vào biểu tượng mẫu để đặt mẫu. Đặt vị trí thư mục mẫu trong Chung > Mẫu.',
+                desc: 'Định dạng đường dẫn sử dụng định dạng ngày Moment. Đặt tên thư mục con trong dấu ngoặc vuông, vd: [Work]/YYYY. Nhấp vào biểu tượng mẫu để đặt mẫu. Đặt vị trí thư mục mẫu trong Giao diện và hành vi > Mẫu.',
                 momentDescPrefix: 'Định dạng đường dẫn sử dụng ',
                 momentLinkText: 'định dạng ngày Moment',
                 momentDescSuffix:
-                    '. Đặt tên thư mục con trong dấu ngoặc vuông, vd: [Work]/YYYY. Nhấp vào biểu tượng mẫu để đặt mẫu. Đặt vị trí thư mục mẫu trong Chung > Mẫu.',
+                    '. Đặt tên thư mục con trong dấu ngoặc vuông, vd: [Work]/YYYY. Nhấp vào biểu tượng mẫu để đặt mẫu. Đặt vị trí thư mục mẫu trong Giao diện và hành vi > Mẫu.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Cú pháp hiện tại: {path}',
                 parsingError: 'Mẫu phải có thể định dạng và phân tích lại thành một ngày đầy đủ (năm, tháng, ngày).'
@@ -2004,7 +2034,7 @@ export const STRINGS_VI = {
                 name: 'Hiển thị thuộc tính',
                 desc: 'Hiển thị phần thuộc tính trong trình điều hướng.',
                 propertyKeysInfoPrefix: 'Cấu hình thuộc tính trong ',
-                propertyKeysInfoLinkText: 'Chung > Khóa thuộc tính',
+                propertyKeysInfoLinkText: 'Bắt đầu > Khóa thuộc tính',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {
@@ -2069,7 +2099,7 @@ export const STRINGS_VI = {
             },
             folderNoteTemplate: {
                 name: 'Mẫu ghi chú thư mục',
-                desc: 'Tệp mẫu cho ghi chú thư mục Markdown mới. Đặt vị trí thư mục mẫu trong Chung > Mẫu.'
+                desc: 'Tệp mẫu cho ghi chú thư mục Markdown mới. Đặt vị trí thư mục mẫu trong Giao diện và hành vi > Mẫu.'
             },
             enableFolderNoteLinks: {
                 name: 'Bật liên kết ghi chú thư mục',

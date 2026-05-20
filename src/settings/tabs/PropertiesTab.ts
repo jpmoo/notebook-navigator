@@ -26,11 +26,11 @@ import { wireToggleSettingWithSubSettings } from '../subSettings';
 import { createInlineActionLinkText } from './externalLink';
 
 /** Renders the properties settings tab */
-export function renderPropertiesTab(context: SettingsTabContext): void {
+export function renderPropertiesTab(context: SettingsTabContext, heading?: string): void {
     const { containerEl, plugin } = context;
     const createGroup = createSettingGroupFactory(containerEl);
 
-    const propertiesGroup = createGroup(undefined);
+    const propertiesGroup = createGroup(heading);
 
     const showPropertiesSetting = propertiesGroup.addSetting(setting => {
         setting.setName(strings.settings.items.showProperties.name).setDesc(strings.settings.items.showProperties.desc);

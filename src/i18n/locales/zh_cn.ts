@@ -872,23 +872,53 @@ export const STRINGS_ZH_CN = {
         },
         sections: {
             general: '通用',
-            notes: '笔记',
-            navigationPane: '导航',
+            vaultFilters: '显示过滤器',
+            appearanceBehavior: '外观和行为',
+            navigationPane: '导航窗格',
             calendar: '导航日历',
             files: '文件',
+            fileOperations: '文件操作',
             icons: '图标包',
-            tags: '标签',
             folders: '文件夹',
             folderNotes: '文件夹笔记',
+            foldersAndFolderNotes: '文件夹和文件夹笔记',
             foldersAndTags: '文件夹',
             tagsAndProperties: '标签与属性',
-            listPane: '列表',
+            tags: '标签',
+            listPane: '列表窗格',
+            notes: '文件显示',
+            shortcutsAndRecentFiles: '快捷方式与最近文件',
             advanced: '高级'
+        },
+        pageGroups: {
+            gettingStarted: '开始',
+            configuration: '配置',
+            navigationAndContent: '导航窗格',
+            notesAndLists: '列表窗格',
+            calendarAndTools: '日历和工具'
+        },
+        pageDescriptions: {
+            general: '发行说明、支持、仓库配置文件、文件类型和属性键。',
+            vaultFilters: '隐藏的文件夹、标签、文件、文件标签和属性规则。',
+            appearanceBehavior: '模板、行为、键盘导航、鼠标按钮、外观和格式。',
+            navigationPane: '布局、外观、笔记数量、折叠行为和彩虹颜色。',
+            shortcuts: '快捷方式可见性、徽章、最近文件和固定项目。',
+            calendar: '日历显示、日期笔记、模板、区域设置和侧边栏位置。',
+            fileOperations: '删除确认、附件和文件移动冲突行为。',
+            foldersAndFolderNotes: '文件夹显示、文件夹笔记、文件夹笔记模板和文件夹笔记行为。',
+            tagsProperties: '标签和属性部分、图标、排序、范围和继承。',
+            listPane: '排序、分组、列表模式、固定笔记和绘图预览。',
+            frontmatter: '用于显示名称、时间戳、图标和颜色的前置元数据字段。',
+            notes: '标题、预览文本、特色图片、标签、属性、日期和字数。',
+            iconPacks: '界面图标、文件图标和图标包管理。',
+            advanced: '诊断、元数据清理、导入/导出和重置。'
         },
         groups: {
             general: {
+                vaultConfiguration: '仓库设置',
                 vaultProfiles: '仓库配置文件',
-                filtering: '过滤',
+                vaultContent: '仓库内容',
+                filtering: '隐藏内容',
                 templates: '模板',
                 behavior: '行为',
                 keyboardNavigation: '键盘导航',
@@ -915,7 +945,7 @@ export const STRINGS_ZH_CN = {
                 drawingPreviews: '绘图预览'
             },
             notes: {
-                frontmatter: '前置元数据',
+                frontmatter: '前置元数据字段',
                 tasks: '任务',
                 icon: '图标',
                 title: '标题',
@@ -1385,11 +1415,11 @@ export const STRINGS_ZH_CN = {
             },
             calendarCustomFilePattern: {
                 name: '日记',
-                desc: '使用 Moment 日期格式设置路径。将子文件夹名称用方括号括起来，例如 [Work]/YYYY。点击模板图标设置模板。在常规 > 模板中设置模板文件夹位置。',
+                desc: '使用 Moment 日期格式设置路径。将子文件夹名称用方括号括起来，例如 [Work]/YYYY。点击模板图标设置模板。在外观和行为 > 模板中设置模板文件夹位置。',
                 momentDescPrefix: '使用 ',
                 momentLinkText: 'Moment 日期格式',
                 momentDescSuffix:
-                    ' 设置路径。将子文件夹名称用方括号括起来，例如 [Work]/YYYY。点击模板图标设置模板。在常规 > 模板中设置模板文件夹位置。',
+                    ' 设置路径。将子文件夹名称用方括号括起来，例如 [Work]/YYYY。点击模板图标设置模板。在外观和行为 > 模板中设置模板文件夹位置。',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: '当前语法：{path}',
                 parsingError: '模式必须能格式化并重新解析为完整日期（年、月、日）。'
@@ -1989,7 +2019,7 @@ export const STRINGS_ZH_CN = {
                 name: '显示属性',
                 desc: '在导航器中显示属性部分。',
                 propertyKeysInfoPrefix: '在',
-                propertyKeysInfoLinkText: '常规 > 属性键',
+                propertyKeysInfoLinkText: '开始 > 属性键',
                 propertyKeysInfoSuffix: '中配置属性'
             },
             showPropertyIcons: {
@@ -2054,7 +2084,7 @@ export const STRINGS_ZH_CN = {
             },
             folderNoteTemplate: {
                 name: '文件夹笔记模板',
-                desc: '新建 Markdown 文件夹笔记的模板文件。在常规 > 模板中设置模板文件夹位置。'
+                desc: '新建 Markdown 文件夹笔记的模板文件。在外观和行为 > 模板中设置模板文件夹位置。'
             },
             enableFolderNoteLinks: {
                 name: '启用文件夹笔记链接',

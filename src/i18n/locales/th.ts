@@ -876,23 +876,53 @@ export const STRINGS_TH = {
         },
         sections: {
             general: 'ทั่วไป',
-            navigationPane: 'นำทาง',
+            vaultFilters: 'ตัวกรองการแสดงผล',
+            appearanceBehavior: 'ลักษณะและพฤติกรรม',
+            navigationPane: 'แผงนำทาง',
             calendar: 'ปฏิทิน',
             files: 'ไฟล์',
+            fileOperations: 'การดำเนินการกับไฟล์',
             icons: 'ชุดไอคอน',
             folders: 'โฟลเดอร์',
             folderNotes: 'โน้ตโฟลเดอร์',
+            foldersAndFolderNotes: 'โฟลเดอร์และโน้ตโฟลเดอร์',
             foldersAndTags: 'โฟลเดอร์',
             tagsAndProperties: 'แท็กและคุณสมบัติ',
             tags: 'แท็ก',
-            listPane: 'รายการ',
-            notes: 'โน้ต',
+            listPane: 'แผงรายการ',
+            notes: 'การแสดงไฟล์',
+            shortcutsAndRecentFiles: 'ทางลัดและไฟล์ล่าสุด',
             advanced: 'ขั้นสูง'
+        },
+        pageGroups: {
+            gettingStarted: 'เริ่มต้น',
+            configuration: 'การกำหนดค่า',
+            navigationAndContent: 'แผงนำทาง',
+            notesAndLists: 'แผงรายการ',
+            calendarAndTools: 'ปฏิทินและเครื่องมือ'
+        },
+        pageDescriptions: {
+            general: 'บันทึกการเผยแพร่ การสนับสนุน โปรไฟล์ห้องนิรภัย ประเภทไฟล์ และคีย์คุณสมบัติ',
+            vaultFilters: 'โฟลเดอร์ที่ซ่อน แท็ก ไฟล์ แท็กไฟล์ และกฎคุณสมบัติ',
+            appearanceBehavior: 'เทมเพลต พฤติกรรม การนำทางด้วยแป้นพิมพ์ ปุ่มเมาส์ ลักษณะ และการจัดรูปแบบ',
+            navigationPane: 'เค้าโครง ลักษณะ จำนวนโน้ต พฤติกรรมการยุบ และสีรุ้ง',
+            shortcuts: 'การมองเห็นทางลัด เครื่องหมาย ไฟล์ล่าสุด และรายการที่ปักหมุด',
+            calendar: 'การแสดงปฏิทิน โน้ตวันที่ เทมเพลต โลแคล และตำแหน่งแถบด้านข้าง',
+            fileOperations: 'การยืนยันการลบ ไฟล์แนบ และพฤติกรรมความขัดแย้งเมื่อย้ายไฟล์',
+            foldersAndFolderNotes: 'การแสดงโฟลเดอร์ โน้ตโฟลเดอร์ เทมเพลตโน้ตโฟลเดอร์ และพฤติกรรมโน้ตโฟลเดอร์',
+            tagsProperties: 'ส่วนแท็กและคุณสมบัติ ไอคอน การจัดเรียง ขอบเขต และการสืบทอด',
+            listPane: 'การจัดเรียง การจัดกลุ่ม โหมดรายการ โน้ตที่ปักหมุด และตัวอย่างภาพวาด',
+            frontmatter: 'ฟิลด์ frontmatter สำหรับชื่อที่แสดง การประทับเวลา ไอคอน และสี',
+            notes: 'ชื่อเรื่อง ข้อความตัวอย่าง รูปภาพเด่น แท็ก คุณสมบัติ วันที่ และจำนวนคำ',
+            iconPacks: 'ไอคอนอินเทอร์เฟซ ไอคอนไฟล์ และการจัดการชุดไอคอน',
+            advanced: 'การวินิจฉัย การล้างข้อมูลเมตา การนำเข้า/ส่งออก และการรีเซ็ต'
         },
         groups: {
             general: {
+                vaultConfiguration: 'การตั้งค่าห้องนิรภัย',
                 vaultProfiles: 'โปรไฟล์ห้องนิรภัย',
-                filtering: 'การกรอง',
+                vaultContent: 'เนื้อหาห้องนิรภัย',
+                filtering: 'เนื้อหาที่ซ่อน',
                 templates: 'เทมเพลต',
                 behavior: 'พฤติกรรม',
                 keyboardNavigation: 'การนำทางด้วยแป้นพิมพ์',
@@ -919,7 +949,7 @@ export const STRINGS_TH = {
                 drawingPreviews: 'ตัวอย่างภาพวาด'
             },
             notes: {
-                frontmatter: 'Frontmatter',
+                frontmatter: 'ฟิลด์ Frontmatter',
                 tasks: 'งาน',
                 icon: 'ไอคอน',
                 title: 'ชื่อเรื่อง',
@@ -1393,11 +1423,11 @@ export const STRINGS_TH = {
             },
             calendarCustomFilePattern: {
                 name: 'โน้ตรายวัน',
-                desc: 'กำหนดเส้นทางโดยใช้รูปแบบวันที่ Moment ใส่ชื่อโฟลเดอร์ย่อยในวงเล็บเหลี่ยม เช่น [Work]/YYYY คลิกไอคอนเทมเพลตเพื่อตั้งค่าเทมเพลต ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในทั่วไป > เทมเพลต',
+                desc: 'กำหนดเส้นทางโดยใช้รูปแบบวันที่ Moment ใส่ชื่อโฟลเดอร์ย่อยในวงเล็บเหลี่ยม เช่น [Work]/YYYY คลิกไอคอนเทมเพลตเพื่อตั้งค่าเทมเพลต ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในลักษณะและพฤติกรรม > เทมเพลต',
                 momentDescPrefix: 'กำหนดเส้นทางโดยใช้ ',
                 momentLinkText: 'รูปแบบวันที่ Moment',
                 momentDescSuffix:
-                    ' ใส่ชื่อโฟลเดอร์ย่อยในวงเล็บเหลี่ยม เช่น [Work]/YYYY คลิกไอคอนเทมเพลตเพื่อตั้งค่าเทมเพลต ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในทั่วไป > เทมเพลต',
+                    ' ใส่ชื่อโฟลเดอร์ย่อยในวงเล็บเหลี่ยม เช่น [Work]/YYYY คลิกไอคอนเทมเพลตเพื่อตั้งค่าเทมเพลต ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในลักษณะและพฤติกรรม > เทมเพลต',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'รูปแบบปัจจุบัน: {path}',
                 parsingError: 'แพทเทิร์นต้องสามารถฟอร์แมตและพาร์สกลับเป็นวันที่แบบเต็ม (ปี เดือน วัน) ได้'
@@ -1998,7 +2028,7 @@ export const STRINGS_TH = {
                 name: 'แสดงคุณสมบัติ',
                 desc: 'แสดงส่วนคุณสมบัติในตัวนำทาง',
                 propertyKeysInfoPrefix: 'กำหนดค่าคุณสมบัติใน ',
-                propertyKeysInfoLinkText: 'ทั่วไป > คีย์คุณสมบัติ',
+                propertyKeysInfoLinkText: 'เริ่มต้น > คีย์คุณสมบัติ',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {
@@ -2063,7 +2093,7 @@ export const STRINGS_TH = {
             },
             folderNoteTemplate: {
                 name: 'เทมเพลตโน้ตโฟลเดอร์',
-                desc: 'ไฟล์เทมเพลตสำหรับโน้ตโฟลเดอร์ Markdown ใหม่ ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในทั่วไป > เทมเพลต'
+                desc: 'ไฟล์เทมเพลตสำหรับโน้ตโฟลเดอร์ Markdown ใหม่ ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในลักษณะและพฤติกรรม > เทมเพลต'
             },
             enableFolderNoteLinks: {
                 name: 'เปิดใช้งานลิงก์โน้ตโฟลเดอร์',

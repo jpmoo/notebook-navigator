@@ -21,16 +21,20 @@ import type NotebookNavigatorPlugin from '../../main';
 
 export type SettingsTabId =
     | 'general'
+    | 'vault-filters'
+    | 'appearance-behavior'
     | 'navigation-pane'
     | 'shortcuts'
-    | 'calendar'
     | 'folders'
-    | 'tags'
-    | 'properties'
+    | 'tags-properties'
     | 'list-pane'
+    | 'file-operations'
     | 'frontmatter'
     | 'notes'
+    | 'calendar'
     | 'files'
+    | 'tags'
+    | 'properties'
     | 'icon-packs'
     | 'advanced';
 

@@ -877,23 +877,53 @@ export const STRINGS_IT = {
         },
         sections: {
             general: 'Generale',
-            navigationPane: 'Navigazione',
+            vaultFilters: 'Filtri di visualizzazione',
+            appearanceBehavior: 'Aspetto e comportamento',
+            navigationPane: 'Pannello di navigazione',
             calendar: 'Calendario',
             files: 'File',
+            fileOperations: 'Operazioni sui file',
             icons: 'Pacchetti icone',
             folders: 'Cartelle',
             folderNotes: 'Note cartella',
+            foldersAndFolderNotes: 'Cartelle e note cartella',
             foldersAndTags: 'Cartelle',
             tagsAndProperties: 'Tag e proprietà',
             tags: 'Tag',
-            listPane: 'Lista',
-            notes: 'Note',
+            listPane: 'Pannello lista',
+            notes: 'Visualizzazione file',
+            shortcutsAndRecentFiles: 'Scorciatoie e file recenti',
             advanced: 'Avanzate'
+        },
+        pageGroups: {
+            gettingStarted: 'Avvio',
+            configuration: 'Configurazione',
+            navigationAndContent: 'Pannello di navigazione',
+            notesAndLists: 'Pannello lista',
+            calendarAndTools: 'Calendario e strumenti'
+        },
+        pageDescriptions: {
+            general: 'Note di rilascio, supporto, profilo vault, tipi di file e chiavi delle proprietà.',
+            vaultFilters: 'Cartelle, tag, file, tag dei file e regole delle proprietà nascosti.',
+            appearanceBehavior: 'Modelli, comportamento, navigazione da tastiera, pulsanti del mouse, aspetto e formattazione.',
+            navigationPane: 'Layout, aspetto, conteggio note, comportamento del collasso e colori arcobaleno.',
+            shortcuts: 'Visibilità delle scorciatoie, badge, file recenti ed elementi fissati.',
+            calendar: 'Visualizzazione calendario, note data, modelli, locale e posizionamento della barra laterale.',
+            fileOperations: 'Conferme di eliminazione, allegati e comportamento in caso di conflitti di spostamento dei file.',
+            foldersAndFolderNotes: 'Visualizzazione cartelle, note cartella, modelli di note cartella e comportamento delle note cartella.',
+            tagsProperties: 'Sezioni tag e proprietà, icone, ordinamento, ambito ed ereditarietà.',
+            listPane: 'Ordinamento, raggruppamento, modalità lista, note fissate e anteprime dei disegni.',
+            frontmatter: 'Campi frontmatter per nomi visualizzati, timestamp, icone e colori.',
+            notes: 'Titoli, testo anteprima, immagini in evidenza, tag, proprietà, date e conteggio parole.',
+            iconPacks: 'Icone interfaccia, icone file e gestione pacchetti icone.',
+            advanced: 'Diagnostica, pulizia metadati, importazione/esportazione e ripristino.'
         },
         groups: {
             general: {
+                vaultConfiguration: 'Configurazione vault',
                 vaultProfiles: 'Profili vault',
-                filtering: 'Filtri',
+                vaultContent: 'Contenuto del vault',
+                filtering: 'Contenuto nascosto',
                 templates: 'Modelli',
                 behavior: 'Comportamento',
                 keyboardNavigation: 'Navigazione da tastiera',
@@ -920,7 +950,7 @@ export const STRINGS_IT = {
                 drawingPreviews: 'Anteprime dei disegni'
             },
             notes: {
-                frontmatter: 'Frontmatter',
+                frontmatter: 'Campi frontmatter',
                 tasks: 'Attività',
                 icon: 'Icona',
                 title: 'Titolo',
@@ -1394,11 +1424,11 @@ export const STRINGS_IT = {
             },
             calendarCustomFilePattern: {
                 name: 'Note giornaliere',
-                desc: "Formatta percorso usando formato data Moment. Racchiudi i nomi delle sottocartelle tra parentesi quadre, es. [Work]/YYYY. Clicca sull'icona del modello per impostare un modello. Impostare la posizione della cartella modelli in Generale > Modelli.",
+                desc: "Formatta percorso usando formato data Moment. Racchiudi i nomi delle sottocartelle tra parentesi quadre, es. [Work]/YYYY. Clicca sull'icona del modello per impostare un modello. Impostare la posizione della cartella modelli in Aspetto e comportamento > Modelli.",
                 momentDescPrefix: 'Formatta percorso usando ',
                 momentLinkText: 'formato data Moment',
                 momentDescSuffix:
-                    ". Racchiudi i nomi delle sottocartelle tra parentesi quadre, es. [Work]/YYYY. Clicca sull'icona del modello per impostare un modello. Impostare la posizione della cartella modelli in Generale > Modelli.",
+                    ". Racchiudi i nomi delle sottocartelle tra parentesi quadre, es. [Work]/YYYY. Clicca sull'icona del modello per impostare un modello. Impostare la posizione della cartella modelli in Aspetto e comportamento > Modelli.",
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Sintassi attuale: {path}',
                 parsingError: 'Il modello deve poter essere formattato e rianalizzato come una data completa (anno, mese, giorno).'
@@ -2003,7 +2033,7 @@ export const STRINGS_IT = {
                 name: 'Mostra proprietà',
                 desc: 'Visualizza la sezione proprietà nel navigatore.',
                 propertyKeysInfoPrefix: 'Configura le proprietà in ',
-                propertyKeysInfoLinkText: 'Generale > Chiavi proprietà',
+                propertyKeysInfoLinkText: 'Avvio > Chiavi proprietà',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {
@@ -2068,7 +2098,7 @@ export const STRINGS_IT = {
             },
             folderNoteTemplate: {
                 name: 'Modello nota cartella',
-                desc: 'File modello per le nuove note cartella Markdown. Impostare la posizione della cartella modelli in Generale > Modelli.'
+                desc: 'File modello per le nuove note cartella Markdown. Impostare la posizione della cartella modelli in Aspetto e comportamento > Modelli.'
             },
             enableFolderNoteLinks: {
                 name: 'Attiva link note cartella',

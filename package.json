@@ -44,7 +44,7 @@
     "globals": "^17.6.0",
     "jscodeshift": "^17.3.0",
     "knip": "^6.14.1",
-    "obsidian": "^1.12.3",
+    "obsidian": "git+https://github.com/obsidianmd/obsidian-api.git#8e116bf516c1310fda89422131a489b42dabdfe2",
     "prettier": "^3.8.3",
     "recast": "^0.23.11",
     "stylelint": "^17.11.1",

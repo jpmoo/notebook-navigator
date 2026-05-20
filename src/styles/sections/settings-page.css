@@ -16,6 +16,10 @@
     padding-bottom: var(--size-4-4);
 }
 
+.nn-sub-settings > .nn-setting-info-container:last-child {
+    padding-bottom: var(--size-4-4);
+}
+
 /* Settings layout root */
 .nn-settings-tab-root {
     display: block;
@@ -216,10 +220,6 @@
 
 .nn-setting-info-list li + li {
     margin-top: 4px;
-}
-
-.nn-sub-settings > .setting-item.nn-setting-property-keys-info:last-child {
-    padding-bottom: 0;
 }
 
 /* Wider text inputs for settings that benefit from more space */

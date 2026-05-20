@@ -25,11 +25,11 @@ import { addSettingSyncModeToggle } from '../syncModeToggle';
 import { wireToggleSettingWithSubSettings } from '../subSettings';
 
 /** Renders the tags settings tab */
-export function renderTagsTab(context: SettingsTabContext): void {
+export function renderTagsTab(context: SettingsTabContext, heading?: string): void {
     const { containerEl, plugin } = context;
     const createGroup = createSettingGroupFactory(containerEl);
 
-    const tagsGroup = createGroup(undefined);
+    const tagsGroup = createGroup(heading);
 
     const showTagsSetting = tagsGroup.addSetting(setting => {
         setting.setName(strings.settings.items.showTags.name).setDesc(strings.settings.items.showTags.desc);

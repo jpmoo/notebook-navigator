@@ -76,6 +76,7 @@ import { PluginSettingsController } from './services/settings/PluginSettingsCont
 import { PluginPreferencesController } from './services/settings/PluginPreferencesController';
 import { consumePendingPdfProcessingDiagnostic } from './services/content/pdf/pdfCrashDiagnostics';
 import { applyModifiedSettingsTransfer, createModifiedSettingsTransfer } from './settings/transfer';
+import { DEFAULT_SETTINGS } from './settings/defaultSettings';
 
 interface ObsidianSettingsModal {
     open(): void;
@@ -108,6 +109,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     tagTreeService: TagTreeService | null = null;
     propertyTreeService: PropertyTreeService | null = null;
     commandQueue: CommandQueueService | null = null;
+    public settings: NotebookNavigatorSettings = { ...DEFAULT_SETTINGS };
     fileSystemOps: FileSystemOperations | null = null;
     omnisearchService: OmnisearchService | null = null;
     externalIconController: ExternalIconProviderController | null = null;
@@ -153,14 +155,6 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         refreshMatcherCachesIfNeeded: () => this.settingsController.refreshMatcherCachesIfNeeded()
     });
 
-    public get settings(): NotebookNavigatorSettings {
-        return this.settingsController.settings;
-    }
-
-    public set settings(settings: NotebookNavigatorSettings) {
-        this.settingsController.settings = settings;
-    }
-
     public getSyncMode(settingId: SyncModeSettingId): SettingSyncMode {
         return this.settingsController.getSyncMode(settingId);
     }
@@ -190,6 +184,9 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             settingsModal.open();
             settingsModal.openTabById(this.manifest.id);
             settingTab.selectTab(tabId, { focus: true });
+            window.requestAnimationFrame(() => {
+                settingTab.selectTab(tabId, { focus: true });
+            });
             return true;
         } catch {
             return false;
@@ -246,7 +243,14 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
      * Returns true if this is the first launch (no saved data)
      */
     async loadSettings(): Promise<boolean> {
-        return this.settingsController.loadSettings();
+        const isFirstLaunch = await this.settingsController.loadSettings();
+        this.settings = this.settingsController.settings;
+        return isFirstLaunch;
+    }
+
+    private replaceSettings(settings: NotebookNavigatorSettings): void {
+        this.settings = settings;
+        this.settingsController.settings = settings;
     }
 
     /**
@@ -1103,7 +1107,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             throw new Error('Plugin is unloading');
         }
 
-        this.settings = applyModifiedSettingsTransfer(this.settings, transferData);
+        this.replaceSettings(applyModifiedSettingsTransfer(this.settings, transferData));
         this.settingsController.normalizeTagSettings();
         this.settingsController.normalizePropertySettings();
         this.settingsController.normalizeNavigationSeparatorSettings();

@@ -16,21 +16,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { App, ButtonComponent, PluginSettingTab, Setting } from 'obsidian';
+import { App, ButtonComponent, Platform, PluginSettingTab, Setting } from 'obsidian';
+import type { SettingDefinition, SettingDefinitionItem, SettingDefinitionPage } from 'obsidian';
 import NotebookNavigatorPlugin from './main';
 import { strings } from './i18n';
 import { TIMEOUTS } from './types/obsidian-extended';
-import { renderGeneralTab } from './settings/tabs/GeneralTab';
+import {
+    renderAppearanceBehaviorTab,
+    renderGeneralTab,
+    renderStartResourcesSection,
+    renderStartVaultConfigurationSection,
+    renderVaultProfilesAndFiltersTab
+} from './settings/tabs/GeneralTab';
 import { renderNavigationPaneTab } from './settings/tabs/NavigationTab';
 import { renderShortcutsTab } from './settings/tabs/ShortcutsTab';
 import { renderCalendarTab } from './settings/tabs/CalendarTab';
-import { renderFoldersTab } from './settings/tabs/FoldersTab';
-import { renderTagsTab } from './settings/tabs/TagsTab';
-import { renderPropertiesTab } from './settings/tabs/PropertiesTab';
 import { renderListPaneTab } from './settings/tabs/ListTab';
 import { renderFrontmatterTab } from './settings/tabs/FrontmatterTab';
 import { renderNotesTab } from './settings/tabs/NotesTab';
 import { renderFilesTab } from './settings/tabs/FilesTab';
+import { renderFoldersAndFolderNotesTab, renderTagsPropertiesTab } from './settings/tabs/ContentTab';
 import { renderIconPacksTab } from './settings/tabs/IconPacksTab';
 import { renderAdvancedTab } from './settings/tabs/AdvancedTab';
 import type {
@@ -48,12 +53,12 @@ import { resolveUXIcon, type UXIconId } from './utils/uxIcons';
 import { SettingsDiagnosticsController } from './settings/SettingsDiagnosticsController';
 
 /** Identifiers for different settings tab panes */
-type SettingsPaneId = SettingsTabId;
+type SettingsPaneId = Exclude<SettingsTabId, 'files' | 'tags' | 'properties'>;
 
 /** Top-level group buttons for settings navigation */
-type SettingsGroupId = 'general' | 'navigation-pane' | 'list-pane' | 'calendar';
+type SettingsGroupId = 'general' | 'navigation-pane' | 'list-pane' | 'calendar' | 'advanced';
 
-const SETTINGS_GROUP_IDS: SettingsGroupId[] = ['general', 'navigation-pane', 'list-pane', 'calendar'];
+const SETTINGS_GROUP_IDS: SettingsGroupId[] = ['general', 'navigation-pane', 'list-pane', 'calendar', 'advanced'];
 
 type SettingsTabIconDefinition =
     | { kind: 'fixed'; iconId: string }
@@ -61,42 +66,428 @@ type SettingsTabIconDefinition =
     | { kind: 'fileType'; fileTypeKey: string; fallbackIconId: string };
 
 const SETTINGS_TAB_ICONS: Record<SettingsPaneId, SettingsTabIconDefinition> = {
-    general: { kind: 'fixed', iconId: 'settings' },
+    general: { kind: 'fixed', iconId: 'home' },
+    'vault-filters': { kind: 'fixed', iconId: 'filter' },
+    'appearance-behavior': { kind: 'fixed', iconId: 'sliders-horizontal' },
     'navigation-pane': { kind: 'fixed', iconId: 'panel-left' },
     'list-pane': { kind: 'fixed', iconId: 'list' },
     calendar: { kind: 'fixed', iconId: 'calendar-days' },
-    files: { kind: 'fixed', iconId: 'file' },
+    folders: { kind: 'ux', uxIconId: 'nav-folder-closed' },
+    'tags-properties': { kind: 'fixed', iconId: 'tags' },
+    'file-operations': { kind: 'fixed', iconId: 'file-cog' },
     'icon-packs': { kind: 'fixed', iconId: 'package' },
     advanced: { kind: 'fixed', iconId: 'sliders-horizontal' },
     shortcuts: { kind: 'ux', uxIconId: 'nav-shortcuts' },
-    folders: { kind: 'ux', uxIconId: 'nav-folder-closed' },
-    tags: { kind: 'ux', uxIconId: 'nav-tag' },
-    properties: { kind: 'ux', uxIconId: 'nav-property' },
     frontmatter: { kind: 'ux', uxIconId: 'nav-properties' },
     notes: { kind: 'fileType', fileTypeKey: 'md', fallbackIconId: 'file' }
 };
 
 const SETTINGS_GROUP_SECONDARY_TAB_IDS: Record<SettingsGroupId, SettingsPaneId[]> = {
-    general: ['files', 'icon-packs', 'advanced'],
-    'navigation-pane': ['shortcuts', 'folders', 'tags', 'properties'],
-    'list-pane': ['frontmatter', 'notes'],
-    calendar: []
+    general: ['vault-filters', 'appearance-behavior', 'icon-packs'],
+    'navigation-pane': ['shortcuts', 'folders', 'tags-properties'],
+    'list-pane': ['file-operations', 'frontmatter', 'notes'],
+    calendar: [],
+    advanced: []
+};
+
+interface SettingsPageGroupDefinition {
+    getHeading: () => string;
+    items: SettingsPaneId[];
+}
+
+const SETTINGS_PAGE_GROUP_DEFINITIONS: SettingsPageGroupDefinition[] = [
+    {
+        getHeading: () => strings.settings.pageGroups.configuration,
+        items: ['vault-filters', 'appearance-behavior']
+    },
+    {
+        getHeading: () => strings.settings.pageGroups.navigationAndContent,
+        items: ['navigation-pane', 'shortcuts', 'folders', 'tags-properties']
+    },
+    {
+        getHeading: () => strings.settings.pageGroups.notesAndLists,
+        items: ['list-pane', 'file-operations', 'frontmatter', 'notes']
+    },
+    {
+        getHeading: () => strings.settings.pageGroups.calendarAndTools,
+        items: ['calendar', 'icon-packs', 'advanced']
+    }
+];
+
+const SETTINGS_PAGE_DESCRIPTION_GETTERS: Record<SettingsPaneId, () => string> = {
+    general: () => strings.settings.pageDescriptions.general,
+    'vault-filters': () => strings.settings.pageDescriptions.vaultFilters,
+    'appearance-behavior': () => strings.settings.pageDescriptions.appearanceBehavior,
+    'navigation-pane': () => strings.settings.pageDescriptions.navigationPane,
+    shortcuts: () => strings.settings.pageDescriptions.shortcuts,
+    calendar: () => strings.settings.pageDescriptions.calendar,
+    folders: () => strings.settings.pageDescriptions.foldersAndFolderNotes,
+    'tags-properties': () => strings.settings.pageDescriptions.tagsProperties,
+    'file-operations': () => strings.settings.pageDescriptions.fileOperations,
+    'list-pane': () => strings.settings.pageDescriptions.listPane,
+    frontmatter: () => strings.settings.pageDescriptions.frontmatter,
+    notes: () => strings.settings.pageDescriptions.notes,
+    'icon-packs': () => strings.settings.pageDescriptions.iconPacks,
+    advanced: () => strings.settings.pageDescriptions.advanced
+};
+
+type SettingsItemKey = keyof typeof strings.settings.items;
+
+const RENDERED_SETTING_ITEM_SELECTOR = '.setting-item:not(.setting-item-heading):not(.nn-setting-hidden)';
+
+const SETTINGS_PANE_SEARCH_ITEM_KEYS: Record<SettingsPaneId, readonly SettingsItemKey[]> = {
+    general: ['fileVisibility', 'masteringVideo', 'propertyFields', 'supportDevelopment', 'vaultProfiles', 'vaultTitle', 'whatsNew'],
+    'vault-filters': ['excludedFileNamePatterns', 'excludedFolders', 'excludedNotes', 'hiddenFileTags', 'hiddenTags'],
+    'appearance-behavior': [
+        'appearanceBackground',
+        'appearanceScale',
+        'autoRevealActiveNote',
+        'autoRevealIgnoreOtherWindows',
+        'autoRevealIgnoreRightSidebar',
+        'autoRevealShortestPath',
+        'createNewNotesInNewTab',
+        'dateFormat',
+        'dualPane',
+        'dualPaneOrientation',
+        'enterToOpenFiles',
+        'cmdEnterOpenContext',
+        'ctrlEnterOpenContext',
+        'homepage',
+        'interfaceIcons',
+        'mouseBackForwardAction',
+        'multiSelectModifier',
+        'paneTransitionDuration',
+        'shiftEnterOpenContext',
+        'showIconsColorOnly',
+        'showInfoButtons',
+        'showTooltipPath',
+        'showTooltipWordCount',
+        'showTooltips',
+        'startView',
+        'timeFormat',
+        'toolbarButtons',
+        'useFloatingToolbars',
+        'calendarTemplateFolder'
+    ],
+    'navigation-pane': [
+        'autoExpandNavItems',
+        'autoSelectFirstFileOnFocusChange',
+        'collapseBehavior',
+        'navIndent',
+        'navItemHeight',
+        'navItemHeightScaleText',
+        'navRainbowApplyToFolders',
+        'navRainbowApplyToProperties',
+        'navRainbowApplyToRecent',
+        'navRainbowApplyToShortcuts',
+        'navRainbowApplyToTags',
+        'navRainbowBalanceHueLuminance',
+        'navRainbowMode',
+        'navRainbowSeparateThemeColors',
+        'navRootSpacing',
+        'navigationBanner',
+        'pinNavigationBanner',
+        'separateNoteCounts',
+        'showIndentGuides',
+        'showNoteCount',
+        'smartCollapse',
+        'springLoadedFolders',
+        'springLoadedFoldersInitialDelay',
+        'springLoadedFoldersSubsequentDelay'
+    ],
+    shortcuts: [
+        'hideRecentNotes',
+        'pinRecentNotesWithShortcuts',
+        'recentNotesCount',
+        'shortcutBadgeDisplay',
+        'showRecentNotes',
+        'showSectionIcons',
+        'showShortcuts',
+        'skipAutoScroll'
+    ],
+    calendar: [
+        'calendarConfirmBeforeCreate',
+        'calendarCustomFilePattern',
+        'calendarCustomMonthPattern',
+        'calendarCustomQuarterPattern',
+        'calendarCustomRootFolder',
+        'calendarCustomWeekPattern',
+        'calendarCustomYearPattern',
+        'calendarEnabled',
+        'calendarHighlightToday',
+        'calendarIntegrationMode',
+        'calendarLeftPlacement',
+        'calendarLocale',
+        'calendarMonthHeadingFormat',
+        'calendarPeriodicNotesLocale',
+        'calendarPlacement',
+        'calendarShowFeatureImage',
+        'calendarShowQuarter',
+        'calendarShowWeekNumber',
+        'calendarShowYearCalendar',
+        'calendarWeekendDays',
+        'calendarWeeksToShow'
+    ],
+    'file-operations': ['confirmBeforeDelete', 'deleteAttachments', 'moveFileConflicts'],
+    folders: [
+        'enableFolderNoteLinks',
+        'enableFolderNotes',
+        'folderNoteName',
+        'folderNoteNamePattern',
+        'folderNoteTemplate',
+        'folderNoteType',
+        'folderSortOrder',
+        'hideFolderNoteInList',
+        'inheritFolderColors',
+        'openFolderNotesInNewTab',
+        'pinCreatedFolderNote',
+        'showFolderIcons',
+        'showRootFolder'
+    ],
+    'tags-properties': [
+        'inheritTagColors',
+        'keepEmptyTagsProperty',
+        'scopeTagsToCurrentContext',
+        'showAllTagsFolder',
+        'showTagIcons',
+        'showTags',
+        'showUntagged',
+        'tagSortOrder',
+        'inheritPropertyColors',
+        'propertySortOrder',
+        'scopePropertiesToCurrentContext',
+        'showAllPropertiesFolder',
+        'showProperties',
+        'showPropertyIcons'
+    ],
+    'list-pane': [
+        'compactItemHeight',
+        'compactItemHeightScaleText',
+        'confirmBeforeManualSort',
+        'defaultListMode',
+        'groupNotes',
+        'hideDrawingPreviewImages',
+        'includeDescendantNotes',
+        'limitPinnedToCurrentFolder',
+        'listPaneTitle',
+        'manualSortGroupHeaderProperty',
+        'manualSortNewNotePlacement',
+        'manualSortPropertyKey',
+        'propertySortKey',
+        'propertySortSecondary',
+        'revealFileOnListChanges',
+        'showQuickActions',
+        'showSelectedNavigationPills',
+        'sortNotesBy',
+        'stickyGroupHeaders'
+    ],
+    frontmatter: [
+        'frontmatterBackgroundField',
+        'frontmatterColorField',
+        'frontmatterCreatedField',
+        'frontmatterDateFormat',
+        'frontmatterIconField',
+        'frontmatterMigration',
+        'frontmatterModifiedField',
+        'frontmatterNameField',
+        'useFrontmatterDates'
+    ],
+    notes: [
+        'alphabeticalDateMode',
+        'colorFileProperties',
+        'colorFileTags',
+        'downloadExternalFeatureImages',
+        'enablePropertyExternalLinks',
+        'enablePropertyInternalLinks',
+        'featureImageExcludeProperties',
+        'featureImagePixelSize',
+        'featureImageProperties',
+        'featureImageSize',
+        'fileNameIconMap',
+        'fileNameRows',
+        'fileTypeIconMap',
+        'forceSquareFeatureImage',
+        'parentFolderClickRevealsFile',
+        'previewProperties',
+        'previewPropertiesFallback',
+        'previewRows',
+        'prioritizeColoredFileProperties',
+        'prioritizeColoredFileTags',
+        'showCategoryIcons',
+        'showFeatureImage',
+        'showFileBackgroundUnfinishedTask',
+        'showFileDate',
+        'showFileIconUnfinishedTask',
+        'showFileIcons',
+        'showFilePreview',
+        'showFileProperties',
+        'showFilePropertiesInCompactMode',
+        'showFileTagAncestors',
+        'showFileTags',
+        'showFileTagsInCompactMode',
+        'showFilenameMatchIcons',
+        'showParentFolder',
+        'showParentFolderColor',
+        'showParentFolderFullPath',
+        'showParentFolderIcon',
+        'showPropertiesOnSeparateRows',
+        'showWordCount',
+        'showWordCountPercentage',
+        'skipCodeBlocksInPreview',
+        'skipHeadingsInPreview',
+        'stripHtmlInPreview',
+        'stripLatexInPreview',
+        'unfinishedTaskBackgroundColor',
+        'useFolderColor',
+        'useFolderIcon',
+        'wordCountPlacement',
+        'wordCountTargetProperty'
+    ],
+    'icon-packs': [],
+    advanced: ['metadataCleanup', 'rebuildCache', 'resetAllSettings', 'resetPaneSeparator', 'settingsTransfer', 'updateCheckOnStart']
+};
+
+type SettingsSearchVisibilityGetter = (plugin: NotebookNavigatorPlugin) => boolean;
+
+function isActiveNavRainbowVisible(plugin: NotebookNavigatorPlugin): boolean {
+    const profiles = plugin.settings.vaultProfiles;
+    const activeProfile = Array.isArray(profiles)
+        ? (profiles.find(profile => profile.id === plugin.settings.vaultProfile) ?? profiles[0])
+        : null;
+
+    const mode = activeProfile?.navRainbow?.mode;
+    return Boolean(mode && mode !== 'none');
+}
+
+function isCustomCalendarIntegration(plugin: NotebookNavigatorPlugin): boolean {
+    return plugin.settings.calendarIntegrationMode === 'notebook-navigator';
+}
+
+const SETTINGS_SEARCH_VISIBILITY_GETTERS: Partial<Record<SettingsItemKey, SettingsSearchVisibilityGetter>> = {
+    appearanceBackground: () => !Platform.isMobile,
+    autoRevealIgnoreOtherWindows: plugin => plugin.settings.autoRevealActiveFile,
+    autoRevealIgnoreRightSidebar: plugin => plugin.settings.autoRevealActiveFile,
+    autoRevealShortestPath: plugin => plugin.settings.autoRevealActiveFile,
+    alphabeticalDateMode: plugin => plugin.settings.showFileDate,
+    cmdEnterOpenContext: plugin => !Platform.isMobile && Platform.isMacOS && plugin.settings.enterToOpenFiles,
+    colorFileProperties: plugin => plugin.settings.showFileProperties,
+    colorFileTags: plugin => plugin.settings.showTags && plugin.settings.showFileTags,
+    ctrlEnterOpenContext: plugin => !Platform.isMobile && !Platform.isMacOS && plugin.settings.enterToOpenFiles,
+    dualPane: () => !Platform.isMobile,
+    dualPaneOrientation: () => !Platform.isMobile,
+    enterToOpenFiles: () => !Platform.isMobile,
+    featureImageExcludeProperties: plugin => plugin.settings.showFeatureImage,
+    featureImagePixelSize: plugin => plugin.settings.showFeatureImage,
+    featureImageProperties: plugin => plugin.settings.showFeatureImage,
+    featureImageSize: plugin => plugin.settings.showFeatureImage,
+    fileNameIconMap: plugin => plugin.settings.showFileIcons && plugin.settings.showFilenameMatchIcons,
+    fileTypeIconMap: plugin => plugin.settings.showFileIcons && plugin.settings.showCategoryIcons,
+    forceSquareFeatureImage: plugin => plugin.settings.showFeatureImage,
+    frontmatterBackgroundField: plugin => plugin.settings.useFrontmatterMetadata,
+    frontmatterColorField: plugin => plugin.settings.useFrontmatterMetadata,
+    frontmatterCreatedField: plugin => plugin.settings.useFrontmatterMetadata,
+    frontmatterDateFormat: plugin => plugin.settings.useFrontmatterMetadata,
+    frontmatterIconField: plugin => plugin.settings.useFrontmatterMetadata,
+    frontmatterMigration: plugin => plugin.settings.useFrontmatterMetadata,
+    frontmatterModifiedField: plugin => plugin.settings.useFrontmatterMetadata,
+    frontmatterNameField: plugin => plugin.settings.useFrontmatterMetadata,
+    hideFolderNoteInList: plugin => plugin.settings.enableFolderNotes,
+    hideRecentNotes: plugin => plugin.settings.showRecentNotes,
+    inheritPropertyColors: plugin => plugin.settings.showProperties,
+    inheritTagColors: plugin => plugin.settings.showTags,
+    keepEmptyTagsProperty: plugin => plugin.settings.showTags,
+    listPaneTitle: () => !Platform.isMobile,
+    mouseBackForwardAction: () => !Platform.isMobile,
+    multiSelectModifier: () => !Platform.isMobile,
+    navRainbowApplyToFolders: isActiveNavRainbowVisible,
+    navRainbowApplyToProperties: isActiveNavRainbowVisible,
+    navRainbowApplyToRecent: isActiveNavRainbowVisible,
+    navRainbowApplyToShortcuts: isActiveNavRainbowVisible,
+    navRainbowApplyToTags: isActiveNavRainbowVisible,
+    navRainbowBalanceHueLuminance: isActiveNavRainbowVisible,
+    navRainbowSeparateThemeColors: isActiveNavRainbowVisible,
+    openFolderNotesInNewTab: plugin => plugin.settings.enableFolderNotes,
+    parentFolderClickRevealsFile: plugin => plugin.settings.showParentFolder,
+    pinCreatedFolderNote: plugin => plugin.settings.enableFolderNotes,
+    pinRecentNotesWithShortcuts: plugin => plugin.settings.showRecentNotes,
+    previewProperties: plugin => plugin.settings.showFilePreview,
+    previewPropertiesFallback: plugin => plugin.settings.showFilePreview && plugin.settings.previewProperties.length > 0,
+    previewRows: plugin => plugin.settings.showFilePreview,
+    prioritizeColoredFileProperties: plugin => plugin.settings.showFileProperties && plugin.settings.colorFileProperties,
+    prioritizeColoredFileTags: plugin => plugin.settings.showTags && plugin.settings.showFileTags && plugin.settings.colorFileTags,
+    propertySortOrder: plugin => plugin.settings.showProperties,
+    recentNotesCount: plugin => plugin.settings.showRecentNotes,
+    scopePropertiesToCurrentContext: plugin => plugin.settings.showProperties,
+    scopeTagsToCurrentContext: plugin => plugin.settings.showTags,
+    separateNoteCounts: plugin => plugin.settings.showNoteCount,
+    shiftEnterOpenContext: plugin => !Platform.isMobile && plugin.settings.enterToOpenFiles,
+    showAllPropertiesFolder: plugin => plugin.settings.showProperties,
+    showAllTagsFolder: plugin => plugin.settings.showTags,
+    showCategoryIcons: plugin => plugin.settings.showFileIcons,
+    showFilePropertiesInCompactMode: plugin => plugin.settings.showFileProperties,
+    showFileTagAncestors: plugin => plugin.settings.showTags && plugin.settings.showFileTags,
+    showFileTags: plugin => plugin.settings.showTags,
+    showFileTagsInCompactMode: plugin => plugin.settings.showTags && plugin.settings.showFileTags,
+    showFilenameMatchIcons: plugin => plugin.settings.showFileIcons,
+    showParentFolderColor: plugin => plugin.settings.showParentFolder,
+    showParentFolderFullPath: plugin => plugin.settings.showParentFolder,
+    showParentFolderIcon: plugin => plugin.settings.showParentFolder,
+    showPropertiesOnSeparateRows: plugin => plugin.settings.showFileProperties,
+    showPropertyIcons: plugin => plugin.settings.showProperties,
+    showQuickActions: () => !Platform.isMobile,
+    showTagIcons: plugin => plugin.settings.showTags,
+    showTooltipPath: plugin => !Platform.isMobile && plugin.settings.showTooltips,
+    showTooltips: () => !Platform.isMobile,
+    showTooltipWordCount: plugin => !Platform.isMobile && plugin.settings.showTooltips,
+    showUntagged: plugin => plugin.settings.showTags,
+    showWordCountPercentage: plugin => plugin.settings.showWordCount,
+    skipAutoScroll: plugin => plugin.settings.showShortcuts,
+    shortcutBadgeDisplay: plugin => plugin.settings.showShortcuts,
+    skipCodeBlocksInPreview: plugin => plugin.settings.showFilePreview,
+    skipHeadingsInPreview: plugin => plugin.settings.showFilePreview,
+    springLoadedFolders: () => !Platform.isMobile,
+    springLoadedFoldersInitialDelay: plugin => !Platform.isMobile && plugin.settings.springLoadedFolders,
+    springLoadedFoldersSubsequentDelay: plugin => !Platform.isMobile && plugin.settings.springLoadedFolders,
+    stripHtmlInPreview: plugin => plugin.settings.showFilePreview,
+    stripLatexInPreview: plugin => plugin.settings.showFilePreview,
+    tagSortOrder: plugin => plugin.settings.showTags,
+    unfinishedTaskBackgroundColor: plugin => plugin.settings.showFileBackgroundUnfinishedTask,
+    useFloatingToolbars: () => Platform.isMobile,
+    useFolderIcon: plugin => plugin.settings.showFileIcons,
+    wordCountPlacement: plugin => plugin.settings.showWordCount,
+    wordCountTargetProperty: plugin => plugin.settings.showWordCount,
+    calendarCustomFilePattern: isCustomCalendarIntegration,
+    calendarCustomMonthPattern: isCustomCalendarIntegration,
+    calendarCustomQuarterPattern: isCustomCalendarIntegration,
+    calendarCustomRootFolder: isCustomCalendarIntegration,
+    calendarCustomWeekPattern: isCustomCalendarIntegration,
+    calendarCustomYearPattern: isCustomCalendarIntegration,
+    calendarPeriodicNotesLocale: isCustomCalendarIntegration,
+    downloadExternalFeatureImages: plugin => plugin.settings.showFeatureImage,
+    enableFolderNoteLinks: plugin => plugin.settings.enableFolderNotes,
+    enablePropertyExternalLinks: plugin => plugin.settings.showFileProperties,
+    enablePropertyInternalLinks: plugin => plugin.settings.showFileProperties,
+    folderNoteName: plugin => plugin.settings.enableFolderNotes,
+    folderNoteNamePattern: plugin => plugin.settings.enableFolderNotes,
+    folderNoteTemplate: plugin => plugin.settings.enableFolderNotes,
+    folderNoteType: plugin => plugin.settings.enableFolderNotes
 };
 
 const SETTINGS_TAB_GROUP_MAP: Record<SettingsPaneId, SettingsGroupId> = {
     general: 'general',
-    files: 'general',
-    'icon-packs': 'general',
-    advanced: 'general',
+    'vault-filters': 'general',
+    'appearance-behavior': 'general',
     'navigation-pane': 'navigation-pane',
     shortcuts: 'navigation-pane',
     folders: 'navigation-pane',
-    tags: 'navigation-pane',
-    properties: 'navigation-pane',
+    'tags-properties': 'navigation-pane',
     'list-pane': 'list-pane',
+    'file-operations': 'list-pane',
     frontmatter: 'list-pane',
     notes: 'list-pane',
-    calendar: 'calendar'
+    calendar: 'calendar',
+    'icon-packs': 'general',
+    advanced: 'advanced'
 };
 
 const SETTINGS_SECONDARY_TAB_IDS_ORDERED: SettingsPaneId[] = [
@@ -115,20 +506,17 @@ interface SettingsPaneDefinition {
 
 const SETTINGS_PANE_DEFINITIONS: SettingsPaneDefinition[] = [
     { id: 'general', getLabel: () => strings.settings.sections.general, render: renderGeneralTab },
-    { id: 'calendar', getLabel: () => strings.settings.sections.calendar, render: renderCalendarTab },
+    { id: 'vault-filters', getLabel: () => strings.settings.sections.vaultFilters, render: renderVaultProfilesAndFiltersTab },
+    { id: 'appearance-behavior', getLabel: () => strings.settings.sections.appearanceBehavior, render: renderAppearanceBehaviorTab },
     { id: 'navigation-pane', getLabel: () => strings.settings.sections.navigationPane, render: renderNavigationPaneTab },
-    { id: 'shortcuts', getLabel: () => strings.navigationPane.shortcutsHeader, render: renderShortcutsTab },
-    {
-        id: 'folders',
-        getLabel: () => strings.settings.sections.folders,
-        render: renderFoldersTab
-    },
-    { id: 'tags', getLabel: () => strings.settings.sections.tags, render: renderTagsTab },
-    { id: 'properties', getLabel: () => strings.navigationPane.properties, render: renderPropertiesTab },
+    { id: 'shortcuts', getLabel: () => strings.settings.sections.shortcutsAndRecentFiles, render: renderShortcutsTab },
+    { id: 'folders', getLabel: () => strings.settings.sections.foldersAndFolderNotes, render: renderFoldersAndFolderNotesTab },
+    { id: 'tags-properties', getLabel: () => strings.settings.sections.tagsAndProperties, render: renderTagsPropertiesTab },
     { id: 'list-pane', getLabel: () => strings.settings.sections.listPane, render: renderListPaneTab },
+    { id: 'file-operations', getLabel: () => strings.settings.sections.fileOperations, render: renderFilesTab },
     { id: 'frontmatter', getLabel: () => strings.settings.groups.notes.frontmatter, render: renderFrontmatterTab },
     { id: 'notes', getLabel: () => strings.settings.sections.notes, render: renderNotesTab },
-    { id: 'files', getLabel: () => strings.settings.sections.files, render: renderFilesTab },
+    { id: 'calendar', getLabel: () => strings.settings.sections.calendar, render: renderCalendarTab },
     { id: 'icon-packs', getLabel: () => strings.settings.sections.icons, render: renderIconPacksTab },
     { id: 'advanced', getLabel: () => strings.settings.sections.advanced, render: renderAdvancedTab }
 ];
@@ -136,6 +524,18 @@ const SETTINGS_PANE_DEFINITIONS: SettingsPaneDefinition[] = [
 const SETTINGS_PANE_DEFINITION_MAP = new Map<SettingsPaneId, SettingsPaneDefinition>(
     SETTINGS_PANE_DEFINITIONS.map(definition => [definition.id, definition])
 );
+
+function resolveSettingsPaneId(tabId: SettingsTabId): SettingsPaneId {
+    switch (tabId) {
+        case 'files':
+            return 'file-operations';
+        case 'tags':
+        case 'properties':
+            return 'tags-properties';
+        default:
+            return tabId;
+    }
+}
 
 /**
  * Settings tab for configuring the Notebook Navigator plugin
@@ -162,6 +562,10 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     private settingsUpdateListenerId = 'settings-tab';
     private tabSettingsUpdateListeners = new Map<string, () => void>();
     private readonly diagnosticsController: SettingsDiagnosticsController;
+    private settingsRenderContainerEl: HTMLElement | null = null;
+    private activeNativePaneId: SettingsPaneId | null = null;
+    // Index-only native definitions are visually hidden but remain searchable.
+    private hiddenSearchDefinitionTargets = new Map<SettingDefinition, HTMLElement>();
 
     private getGroupIdForTab(tabId: SettingsPaneId): SettingsGroupId {
         return SETTINGS_TAB_GROUP_MAP[tabId];
@@ -309,14 +713,65 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     }
 
     public selectTab(tabId: SettingsTabId, options?: { focus?: boolean }): void {
-        this.lastActiveTabId = tabId;
+        const paneId = resolveSettingsPaneId(tabId);
+        this.lastActiveTabId = paneId;
 
         const contentWrapper = this.containerEl.querySelector<HTMLElement>('.nn-settings-tabs-content');
         if (!contentWrapper) {
+            if (paneId === 'general') {
+                this.returnToNativeSettingsIndex();
+                return;
+            }
+
+            if (!this.openNativeSettingsPage(paneId)) {
+                this.returnToNativeSettingsIndex(paneId);
+            }
             return;
         }
 
-        this.activateTab(tabId, contentWrapper, { focus: options?.focus ?? false });
+        this.activateTab(paneId, contentWrapper, { focus: options?.focus ?? false });
+    }
+
+    private openNativeSettingsPage(tabId: SettingsPaneId): boolean {
+        if (tabId === 'general') {
+            return false;
+        }
+
+        const definition = SETTINGS_PANE_DEFINITION_MAP.get(tabId);
+        if (!definition) {
+            return false;
+        }
+
+        const pageName = definition.getLabel();
+        const settingItems = Array.from(this.containerEl.querySelectorAll<HTMLElement>('.setting-item'));
+        const targetItem = settingItems.find(settingItem => {
+            const nameEl = settingItem.querySelector<HTMLElement>('.setting-item-name');
+            return nameEl?.textContent?.trim() === pageName;
+        });
+
+        if (!targetItem) {
+            return false;
+        }
+
+        const pageButton = targetItem.querySelector<HTMLElement>('.setting-item-control button, .setting-item-control .clickable-icon');
+        (pageButton ?? targetItem).click();
+        return true;
+    }
+
+    private returnToNativeSettingsIndex(tabId?: SettingsPaneId): void {
+        const backButton = this.containerEl.querySelector<HTMLElement>('.setting-page-back-button');
+        if (!backButton) {
+            return;
+        }
+
+        backButton.click();
+        if (!tabId) {
+            return;
+        }
+
+        window.requestAnimationFrame(() => {
+            this.openNativeSettingsPage(tabId);
+        });
     }
 
     private ensureSettingsUpdateListener(): void {
@@ -326,6 +781,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
                 return;
             }
 
+            this.refreshNativeSettingsDomState();
             this.refreshTabButtonIcons();
             const listeners = Array.from(this.tabSettingsUpdateListeners.values());
             listeners.forEach(callback => {
@@ -338,10 +794,38 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         });
     }
 
+    private refreshNativeSettingsDomState(): void {
+        const refreshDomState: unknown = Reflect.get(this, 'refreshDomState');
+        if (typeof refreshDomState === 'function') {
+            refreshDomState.call(this);
+        }
+    }
+
     private refreshFromExternalSettingsUpdate(): void {
-        const contentWrapper = this.containerEl.querySelector<HTMLElement>('.nn-settings-tabs-content');
-        const scrollTop = contentWrapper?.scrollTop ?? 0;
-        this.renderSettingsTab({ focus: false, restoreScrollTop: scrollTop });
+        const renderContainerEl = this.settingsRenderContainerEl ?? this.containerEl;
+        const contentWrapper = renderContainerEl.querySelector<HTMLElement>('.nn-settings-tabs-content');
+        const scrollTop = contentWrapper?.scrollTop ?? renderContainerEl.scrollTop;
+
+        if (this.activeNativePaneId) {
+            this.renderSettingsPane(this.activeNativePaneId, renderContainerEl);
+            renderContainerEl.scrollTop = scrollTop;
+            return;
+        }
+
+        if (!contentWrapper) {
+            this.updateNativeSettingsDefinitions();
+            renderContainerEl.scrollTop = scrollTop;
+            return;
+        }
+
+        this.renderSettingsTab({ focus: false, restoreScrollTop: scrollTop, containerEl: renderContainerEl });
+    }
+
+    private updateNativeSettingsDefinitions(): void {
+        const update: unknown = Reflect.get(this, 'update');
+        if (typeof update === 'function') {
+            update.call(this);
+        }
     }
 
     /**
@@ -536,25 +1020,264 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     /**
      * Renders the settings tab UI
      * Organizes settings into grouped tabs:
-     * - General: General, Files, Icon packs, Advanced
-     * - Navigation pane: Navigation pane, Shortcuts, Folders, Tags, Properties
-     * - List pane: List pane, Frontmatter, Notes
+     * - General: General, Display filters, Appearance & behavior, Icon packs
+     * - Navigation pane: Navigation pane, Shortcuts, Folders & folder notes, Tags & properties
+     * - List pane: List pane, File operations, Frontmatter fields, File display
      * - Calendar: Calendar
+     * - Advanced: Advanced
      */
     display(): void {
         this.ensureSettingsUpdateListener();
         this.renderSettingsTab({ focus: true });
     }
 
-    private renderSettingsTab(options?: { focus?: boolean; restoreScrollTop?: number }): void {
-        const shouldFocus = options?.focus ?? false;
-        const restoreScrollTop = options?.restoreScrollTop;
+    getSettingDefinitions(): SettingDefinitionItem[] {
+        return [
+            ...this.createNativeSettingsLandingStartItems(),
+            ...SETTINGS_PAGE_GROUP_DEFINITIONS.map(group => ({
+                type: 'group' as const,
+                heading: group.getHeading(),
+                items: group.items.map(tabId => this.createNativeSettingsPageDefinition(tabId))
+            }))
+        ];
+    }
 
-        const { containerEl } = this;
+    /**
+     * Obsidian renders this declarative shell for pages and search, while Notebook Navigator
+     * keeps ownership of each setting row through its existing custom renderers.
+     */
+    private createNativeSettingsLandingStartItems(): SettingDefinitionItem[] {
+        const searchDefinitions = this.createHiddenNativeSearchDefinitions('general');
+        let nativeStartContentEl: HTMLElement | null = null;
+
+        return [
+            this.createNativeSettingsLandingItem(strings.settings.sections.general, renderStartResourcesSection, rootEl => {
+                nativeStartContentEl = rootEl;
+            }),
+            this.createNativeSettingsLandingSection(
+                strings.settings.groups.general.vaultConfiguration,
+                renderStartVaultConfigurationSection,
+                rootEl => {
+                    nativeStartContentEl = rootEl;
+                }
+            ),
+            ...searchDefinitions,
+            this.createNativeSearchTargetMapper(strings.settings.sections.general, searchDefinitions, settingEl => {
+                return nativeStartContentEl ?? this.resolveNativePageContentEl(settingEl);
+            })
+        ];
+    }
+
+    private createNativeSettingsLandingItem(
+        name: string,
+        render: (context: SettingsTabContext) => void,
+        onRender?: (rootEl: HTMLElement) => void
+    ): SettingDefinition {
+        return {
+            name,
+            searchable: false,
+            element: listEl => {
+                this.ensureSettingsUpdateListener();
+                this.activeNativePaneId = null;
+                this.settingsRenderContainerEl = this.containerEl;
+                const rootEl = this.resolveNativePageContentEl(listEl);
+                const contentEl = listEl.createDiv('nn-settings-native-start-content nn-settings-tab-root');
+                onRender?.(rootEl);
+                render(this.createTabContext(contentEl));
+            }
+        };
+    }
+
+    private createNativeSettingsLandingSection(
+        heading: string,
+        render: (context: SettingsTabContext) => void,
+        onRender?: (rootEl: HTMLElement) => void
+    ): SettingDefinitionItem {
+        return {
+            type: 'group' as const,
+            heading,
+            items: [this.createNativeSettingsLandingItem(heading, render, onRender)]
+        };
+    }
+
+    private createNativeSettingsPageDefinition(tabId: SettingsPaneId): SettingDefinitionPage {
+        const definition = SETTINGS_PANE_DEFINITION_MAP.get(tabId);
+        const name = definition?.getLabel() ?? tabId;
+        const searchDefinitions = this.createHiddenNativeSearchDefinitions(tabId);
+        let nativePageContentEl: HTMLElement | null = null;
+
+        return {
+            type: 'page' as const,
+            name,
+            desc: SETTINGS_PAGE_DESCRIPTION_GETTERS[tabId](),
+            items: [
+                {
+                    name,
+                    searchable: false,
+                    element: (listEl: HTMLElement) => {
+                        this.ensureSettingsUpdateListener();
+                        nativePageContentEl = this.resolveNativePageContentEl(listEl);
+                        this.renderSettingsPane(tabId, nativePageContentEl);
+                    }
+                },
+                ...searchDefinitions,
+                this.createNativeSearchTargetMapper(name, searchDefinitions, settingEl => {
+                    return nativePageContentEl ?? this.resolveNativePageContentEl(settingEl);
+                })
+            ]
+        };
+    }
+
+    /**
+     * Adds an index-only row after each rendered page that maps searchable native
+     * definitions to the custom Setting rows currently in the DOM.
+     */
+    private createNativeSearchTargetMapper(
+        name: string,
+        definitions: SettingDefinition[],
+        resolveContainerEl: (settingEl: HTMLElement) => HTMLElement
+    ): SettingDefinition {
+        return {
+            name: `${name} search targets`,
+            searchable: false,
+            render: setting => {
+                setting.settingEl.addClass('nn-setting-hidden');
+                this.mapHiddenSearchDefinitionsToRenderedRows(resolveContainerEl(setting.settingEl), definitions);
+            }
+        };
+    }
+
+    private resolveNativePageContentEl(listEl: HTMLElement): HTMLElement {
+        return listEl.closest<HTMLElement>('.setting-page-content') ?? listEl;
+    }
+
+    private createHiddenNativeSearchDefinitions(tabId: SettingsPaneId): SettingDefinition[] {
+        const definitions: SettingDefinition[] = [];
+        const seenNames = new Set<string>();
+
+        for (const itemKey of SETTINGS_PANE_SEARCH_ITEM_KEYS[tabId]) {
+            const definition = this.createHiddenNativeSearchDefinition(itemKey, seenNames);
+            if (definition) {
+                definitions.push(definition);
+            }
+        }
+
+        return definitions;
+    }
+
+    private createHiddenNativeSearchDefinition(itemKey: SettingsItemKey, seenNames: Set<string>): SettingDefinition | null {
+        const value = strings.settings.items[itemKey] as unknown;
+        const name = this.getSearchableSettingName(value);
+        if (!name || seenNames.has(name)) {
+            return null;
+        }
+
+        seenNames.add(name);
+        const visible = SETTINGS_SEARCH_VISIBILITY_GETTERS[itemKey];
+        return {
+            name,
+            desc: this.collectSearchText(value)
+                .filter(text => text !== name)
+                .join(' '),
+            ...(visible ? { visible: () => visible(this.plugin) } : {}),
+            render: setting => {
+                setting.settingEl.addClass('nn-setting-hidden');
+            }
+        };
+    }
+
+    private getSearchableSettingName(value: unknown): string | null {
+        if (typeof value !== 'object' || value === null || !('name' in value) || typeof value.name !== 'string') {
+            return null;
+        }
+
+        const name = value.name.trim();
+        return name.length > 0 ? name : null;
+    }
+
+    private mapHiddenSearchDefinitionsToRenderedRows(containerEl: HTMLElement, definitions: SettingDefinition[]): void {
+        const settingElements = Array.from(containerEl.querySelectorAll<HTMLElement>(RENDERED_SETTING_ITEM_SELECTOR));
+        const settingElementsByName = new Map<string, HTMLElement[]>();
+
+        for (const settingEl of settingElements) {
+            const name = settingEl.querySelector<HTMLElement>('.setting-item-name')?.textContent?.trim();
+            if (!name) {
+                continue;
+            }
+
+            const existingElements = settingElementsByName.get(name) ?? [];
+            existingElements.push(settingEl);
+            settingElementsByName.set(name, existingElements);
+        }
+
+        for (const definition of definitions) {
+            const matchingElements = settingElementsByName.get(definition.name);
+            const targetEl = matchingElements?.find(element => element.offsetParent !== null) ?? matchingElements?.[0];
+            if (targetEl) {
+                this.hiddenSearchDefinitionTargets.set(definition, targetEl);
+            }
+        }
+    }
+
+    /**
+     * Obsidian calls this when a search result is selected. Search results backed by
+     * index-only definitions should scroll to the visible custom Setting row.
+     */
+    getElementForDefinition(definition: SettingDefinition): HTMLElement | undefined {
+        const mappedTargetEl = this.hiddenSearchDefinitionTargets.get(definition);
+        if (mappedTargetEl?.isConnected) {
+            return mappedTargetEl;
+        }
+
+        const renderContainerEl = this.settingsRenderContainerEl ?? this.containerEl;
+        const fallbackTargetEl = this.findRenderedSettingElement(renderContainerEl, definition.name);
+        if (fallbackTargetEl) {
+            this.hiddenSearchDefinitionTargets.set(definition, fallbackTargetEl);
+            return fallbackTargetEl;
+        }
+
+        if (mappedTargetEl) {
+            this.hiddenSearchDefinitionTargets.delete(definition);
+        }
+
+        return undefined;
+    }
+
+    private findRenderedSettingElement(containerEl: HTMLElement, name: string): HTMLElement | undefined {
+        const settingElements = Array.from(containerEl.querySelectorAll<HTMLElement>(RENDERED_SETTING_ITEM_SELECTOR));
+        const matchingElements = settingElements.filter(
+            settingEl => settingEl.querySelector<HTMLElement>('.setting-item-name')?.textContent?.trim() === name
+        );
+        return matchingElements.find(element => element.offsetParent !== null) ?? matchingElements[0];
+    }
+
+    private clearHiddenSearchDefinitionTargets(): void {
+        this.hiddenSearchDefinitionTargets.clear();
+    }
+
+    private collectSearchText(value: unknown): string[] {
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+            return trimmed ? [trimmed] : [];
+        }
+
+        if (Array.isArray(value)) {
+            return value.flatMap(item => this.collectSearchText(item));
+        }
+
+        if (typeof value !== 'object' || value === null) {
+            return [];
+        }
+
+        return Object.values(value).flatMap(item => this.collectSearchText(item));
+    }
+
+    private prepareSettingsRender(containerEl: HTMLElement): void {
+        this.clearHiddenSearchDefinitionTargets();
+        this.settingsRenderContainerEl = containerEl;
         containerEl.empty();
         containerEl.addClass('nn-settings-tab-root');
 
-        // Reset state for new render
         this.diagnosticsController.prepareForRender();
         this.tabContentMap.clear();
         this.tabButtons.clear();
@@ -564,6 +1287,31 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         this.tabSettingsUpdateListeners.clear();
         this.showTagsListeners = [];
         this.currentShowTagsVisible = this.plugin.settings.showTags;
+    }
+
+    private renderSettingsPane(tabId: SettingsPaneId, containerEl: HTMLElement): void {
+        const definition = SETTINGS_PANE_DEFINITION_MAP.get(tabId);
+        if (!definition) {
+            return;
+        }
+
+        this.activeNativePaneId = tabId;
+        this.prepareSettingsRender(containerEl);
+
+        const tabContainer = containerEl.createDiv('nn-settings-tab is-active');
+        const context = this.createTabContext(tabContainer);
+        definition.render(context);
+        this.lastActiveTabId = tabId;
+        this.diagnosticsController.handleTabActivation(tabId);
+    }
+
+    private renderSettingsTab(options?: { focus?: boolean; restoreScrollTop?: number; containerEl?: HTMLElement }): void {
+        const shouldFocus = options?.focus ?? false;
+        const restoreScrollTop = options?.restoreScrollTop;
+
+        const containerEl = options?.containerEl ?? this.containerEl;
+        this.activeNativePaneId = null;
+        this.prepareSettingsRender(containerEl);
 
         // Create tab navigation structure
         const tabsWrapper = containerEl.createDiv('nn-settings-tabs');
@@ -661,11 +1409,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
                 this.diagnosticsController.ensureStatisticsInterval();
             },
             openSettingsTab: (tabId: SettingsTabId) => {
-                const contentWrapper = this.containerEl.querySelector<HTMLElement>('.nn-settings-tabs-content');
-                if (!contentWrapper) {
-                    return;
-                }
-                this.activateTab(tabId, contentWrapper, { focus: true });
+                this.plugin.openSettingsTab(tabId);
             },
             registerShowTagsListener: listener => {
                 this.showTagsListeners.push(listener);
@@ -723,6 +1467,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
      */
     hide(): void {
         this.plugin.unregisterSettingsUpdateListener(this.settingsUpdateListenerId);
+        this.clearHiddenSearchDefinitionTargets();
 
         // Clean up all pending debounce timers when settings tab is closed
         this.debounceTimers.forEach(timer => window.clearTimeout(timer));
@@ -738,6 +1483,9 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         this.tabButtons.clear();
         this.tabIconElements.clear();
         this.showTagsListeners = [];
+        this.settingsRenderContainerEl?.removeClass('nn-settings-tab-root');
+        this.settingsRenderContainerEl = null;
+        this.activeNativePaneId = null;
         this.containerEl.removeClass('nn-settings-tab-root');
     }
 }

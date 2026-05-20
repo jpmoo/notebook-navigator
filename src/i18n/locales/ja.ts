@@ -880,23 +880,53 @@ export const STRINGS_JA = {
         },
         sections: {
             general: '一般設定',
-            notes: 'ノート表示',
-            navigationPane: 'ナビゲーション',
+            vaultFilters: '表示フィルター',
+            appearanceBehavior: '外観と動作',
+            navigationPane: 'ナビゲーションペイン',
             calendar: 'カレンダー',
             files: 'ファイル',
+            fileOperations: 'ファイル操作',
             icons: 'アイコンパック',
-            tags: 'タグ表示',
             folders: 'フォルダノート',
             folderNotes: 'フォルダノート',
+            foldersAndFolderNotes: 'フォルダとフォルダノート',
             foldersAndTags: 'フォルダ',
             tagsAndProperties: 'タグとプロパティ',
-            listPane: 'リスト',
+            tags: 'タグ表示',
+            listPane: 'リストペイン',
+            notes: 'ファイル表示',
+            shortcutsAndRecentFiles: 'ショートカットと最近のファイル',
             advanced: '詳細設定'
+        },
+        pageGroups: {
+            gettingStarted: 'スタート',
+            configuration: '設定',
+            navigationAndContent: 'ナビゲーションペイン',
+            notesAndLists: 'リストペイン',
+            calendarAndTools: 'カレンダーとツール'
+        },
+        pageDescriptions: {
+            general: 'リリースノート、サポート、保管庫プロファイル、ファイルタイプ、プロパティキー。',
+            vaultFilters: '非表示のフォルダ、タグ、ファイル、ファイルタグ、プロパティルール。',
+            appearanceBehavior: 'テンプレート、動作、キーボード操作、マウスボタン、外観、書式。',
+            navigationPane: 'レイアウト、外観、ノート数、折りたたみ動作、レインボーカラー。',
+            shortcuts: 'ショートカットの表示、バッジ、最近のファイル、ピン留めされた項目。',
+            calendar: 'カレンダー表示、日付ノート、テンプレート、ロケール、サイドバーの配置。',
+            fileOperations: '削除確認、添付ファイル、ファイル移動時の競合動作。',
+            foldersAndFolderNotes: 'フォルダ表示、フォルダノート、フォルダノートのテンプレート、フォルダノートの動作。',
+            tagsProperties: 'タグとプロパティのセクション、アイコン、並べ替え、スコープ、継承。',
+            listPane: '並べ替え、グループ化、リストモード、ピン留めされたノート、描画プレビュー。',
+            frontmatter: '表示名、タイムスタンプ、アイコン、色のフロントマターフィールド。',
+            notes: 'タイトル、プレビューテキスト、アイキャッチ画像、タグ、プロパティ、日付、単語数。',
+            iconPacks: 'インターフェースアイコン、ファイルアイコン、アイコンパック管理。',
+            advanced: '診断、メタデータのクリーンアップ、インポート/エクスポート、リセット。'
         },
         groups: {
             general: {
+                vaultConfiguration: '保管庫のセットアップ',
                 vaultProfiles: '保管庫プロファイル',
-                filtering: 'フィルター',
+                vaultContent: '保管庫のコンテンツ',
+                filtering: '非表示コンテンツ',
                 templates: 'テンプレート',
                 behavior: '動作',
                 keyboardNavigation: 'キーボード操作',
@@ -923,7 +953,7 @@ export const STRINGS_JA = {
                 drawingPreviews: '描画プレビュー'
             },
             notes: {
-                frontmatter: 'フロントマター',
+                frontmatter: 'フロントマターフィールド',
                 tasks: 'タスク',
                 icon: 'アイコン',
                 title: 'タイトル',
@@ -1396,11 +1426,11 @@ export const STRINGS_JA = {
             },
             calendarCustomFilePattern: {
                 name: 'デイリーノート',
-                desc: 'Moment 日付フォーマットを使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。 テンプレートフォルダの場所は一般 > テンプレートで設定してください。',
+                desc: 'Moment 日付フォーマットを使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。 テンプレートフォルダの場所は外観と動作 > テンプレートで設定してください。',
                 momentDescPrefix: '',
                 momentLinkText: 'Moment 日付フォーマット',
                 momentDescSuffix:
-                    'を使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。 テンプレートフォルダの場所は一般 > テンプレートで設定してください。',
+                    'を使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。 テンプレートフォルダの場所は外観と動作 > テンプレートで設定してください。',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: '現在の構文: {path}',
                 parsingError: 'パターンは完全な日付（年、月、日）としてフォーマットされ、再度パースできる必要があります。'
@@ -2002,7 +2032,7 @@ export const STRINGS_JA = {
                 name: 'プロパティを表示',
                 desc: 'ナビゲーターにプロパティセクションを表示します。',
                 propertyKeysInfoPrefix: '',
-                propertyKeysInfoLinkText: '一般 > プロパティキー',
+                propertyKeysInfoLinkText: 'スタート > プロパティキー',
                 propertyKeysInfoSuffix: 'でプロパティを設定'
             },
             showPropertyIcons: {
@@ -2067,7 +2097,7 @@ export const STRINGS_JA = {
             },
             folderNoteTemplate: {
                 name: 'フォルダノートテンプレート',
-                desc: '新しいMarkdownフォルダノート用のテンプレートファイル。テンプレートフォルダの場所は一般 > テンプレートで設定してください。'
+                desc: '新しいMarkdownフォルダノート用のテンプレートファイル。テンプレートフォルダの場所は外観と動作 > テンプレートで設定してください。'
             },
             enableFolderNoteLinks: {
                 name: 'フォルダーノートリンクを有効にする',

@@ -29,11 +29,11 @@ import { FOLDER_NOTE_NAME_PATTERN_PLACEHOLDER } from '../../utils/folderNoteName
 import { normalizeOptionalVaultFilePath } from '../../utils/pathUtils';
 
 /** Renders the folders settings tab */
-export function renderFoldersTab(context: SettingsTabContext): void {
+export function renderFoldersTab(context: SettingsTabContext, heading?: string): void {
     const { containerEl, plugin, addToggleSetting } = context;
     const createGroup = createSettingGroupFactory(containerEl);
 
-    const foldersGroup = createGroup(undefined);
+    const foldersGroup = createGroup(heading);
 
     addToggleSetting(
         foldersGroup.addSetting,
