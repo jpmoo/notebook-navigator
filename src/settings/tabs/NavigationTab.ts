@@ -27,7 +27,7 @@ import { runAsyncAction } from '../../utils/async';
 import { getActiveVaultProfile } from '../../utils/vaultProfiles';
 import { createSettingGroupFactory } from '../settingGroups';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
-import { createSubSettingsContainer, setElementVisible, wireToggleSettingWithSubSettings } from '../subSettings';
+import { createDependentSettingsSection, setElementVisible, wireToggleSettingWithDependentSection } from '../dependentSettings';
 import { createHueInterpolator, toCssRgba } from '../../utils/colorUtils';
 import { NAV_RAINBOW_DEFAULT_END, NAV_RAINBOW_DEFAULT_START } from '../../utils/navigationRainbow';
 
@@ -124,8 +124,8 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
         renderNavigationBannerValue();
     });
 
-    const navigationBannerSubSettingsEl = createSubSettingsContainer(navigationBannerSetting);
-    const pinNavigationBannerSetting = new Setting(navigationBannerSubSettingsEl)
+    const navigationBannerDependentSettingsEl = createDependentSettingsSection(navigationBannerSetting);
+    const pinNavigationBannerSetting = new Setting(navigationBannerDependentSettingsEl)
         .setName(strings.settings.items.pinNavigationBanner.name)
         .setDesc(strings.settings.items.pinNavigationBanner.desc)
         .addToggle(toggle =>
@@ -135,11 +135,13 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
         );
     addSettingSyncModeToggle({ setting: pinNavigationBannerSetting, plugin, settingId: 'pinNavigationBanner' });
 
-    const showNoteCountSetting = appearanceGroup.addSetting(setting => {
+    const noteCountGroup = createGroup();
+
+    const showNoteCountSetting = noteCountGroup.addSetting(setting => {
         setting.setName(strings.settings.items.showNoteCount.name).setDesc(strings.settings.items.showNoteCount.desc);
     });
 
-    const noteCountSubSettingsEl = wireToggleSettingWithSubSettings(
+    const noteCountDependentSettingsEl = wireToggleSettingWithDependentSection(
         showNoteCountSetting,
         () => plugin.settings.showNoteCount,
         async value => {
@@ -148,7 +150,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
         }
     );
 
-    new Setting(noteCountSubSettingsEl)
+    new Setting(noteCountDependentSettingsEl)
         .setName(strings.settings.items.separateNoteCounts.name)
         .setDesc(strings.settings.items.separateNoteCounts.desc)
         .addToggle(toggle =>
@@ -158,7 +160,9 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
             })
         );
 
-    appearanceGroup.addSetting(setting => {
+    const navigationMetricsGroup = createGroup();
+
+    navigationMetricsGroup.addSetting(setting => {
         setting
             .setName(strings.settings.items.showIndentGuides.name)
             .setDesc(strings.settings.items.showIndentGuides.desc)
@@ -171,7 +175,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
     });
 
     let rootSpacingSlider: SliderComponent;
-    appearanceGroup.addSetting(setting => {
+    navigationMetricsGroup.addSetting(setting => {
         setting
             .setName(strings.settings.items.navRootSpacing.name)
             .setDesc(strings.settings.items.navRootSpacing.desc)
@@ -204,7 +208,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
     });
 
     let indentationSlider: SliderComponent;
-    const navIndentSetting = appearanceGroup.addSetting(setting => {
+    const navIndentSetting = navigationMetricsGroup.addSetting(setting => {
         setting
             .setName(strings.settings.items.navIndent.name)
             .setDesc(strings.settings.items.navIndent.desc)
@@ -236,8 +240,10 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
 
     addSettingSyncModeToggle({ setting: navIndentSetting, plugin, settingId: 'navIndent' });
 
+    const navItemHeightGroup = createGroup();
+
     let lineHeightSlider: SliderComponent;
-    const navItemHeightSetting = appearanceGroup.addSetting(setting => {
+    const navItemHeightSetting = navItemHeightGroup.addSetting(setting => {
         setting
             .setName(strings.settings.items.navItemHeight.name)
             .setDesc(strings.settings.items.navItemHeight.desc)
@@ -269,7 +275,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
 
     addSettingSyncModeToggle({ setting: navItemHeightSetting, plugin, settingId: 'navItemHeight' });
 
-    const navItemHeightSettingsEl = createSubSettingsContainer(navItemHeightSetting);
+    const navItemHeightSettingsEl = createDependentSettingsSection(navItemHeightSetting);
 
     const navItemHeightScaleTextSetting = new Setting(navItemHeightSettingsEl)
         .setName(strings.settings.items.navItemHeightScaleText.name)
@@ -288,7 +294,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
         setting.setName(strings.settings.items.navRainbowMode.name).setDesc(strings.settings.items.navRainbowMode.desc);
     });
 
-    const rainbowSubSettingsEl = createSubSettingsContainer(rainbowModeSetting);
+    const rainbowDependentSettingsEl = createDependentSettingsSection(rainbowModeSetting);
     let navRainbowModeDropdown: DropdownComponent | null = null;
     const refreshRainbowSectionControls: (() => void)[] = [];
 
@@ -300,7 +306,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
 
     const refreshNavRainbowControls = (): void => {
         const navRainbow = getActiveProfile().navRainbow;
-        setElementVisible(rainbowSubSettingsEl, navRainbow.mode !== 'none');
+        setElementVisible(rainbowDependentSettingsEl, navRainbow.mode !== 'none');
         navRainbowModeDropdown?.setValue(navRainbow.mode);
         refreshRainbowSectionControls.forEach(refresh => {
             refresh();
@@ -320,7 +326,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
                     }
 
                     await updateNavRainbow(settings => ({ ...settings, mode: value }));
-                    setElementVisible(rainbowSubSettingsEl, value !== 'none');
+                    setElementVisible(rainbowDependentSettingsEl, value !== 'none');
                 }))
     );
 
@@ -331,7 +337,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
         setEnabled: (value: boolean) => Promise<void>;
         onConfigure: () => void;
     }): void => {
-        const setting = new Setting(rainbowSubSettingsEl).setName(params.name).setDesc(params.desc);
+        const setting = new Setting(rainbowDependentSettingsEl).setName(params.name).setDesc(params.desc);
         let toggleComponent: ToggleComponent | null = null;
 
         const refreshToggle = (): void => {
@@ -418,7 +424,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
         navRainbowBalanceHueLuminanceToggle?.setValue(getActiveProfile().navRainbow.balanceHueLuminance);
     });
 
-    new Setting(rainbowSubSettingsEl)
+    new Setting(rainbowDependentSettingsEl)
         .setName(strings.settings.items.navRainbowBalanceHueLuminance.name)
         .setDesc(strings.settings.items.navRainbowBalanceHueLuminance.desc)
         .addToggle(toggle => {
@@ -434,7 +440,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
         navRainbowSeparateThemeColorsToggle?.setValue(getActiveProfile().navRainbow.separateThemeColors);
     });
 
-    new Setting(rainbowSubSettingsEl)
+    new Setting(rainbowDependentSettingsEl)
         .setName(strings.settings.items.navRainbowSeparateThemeColors.name)
         .setDesc(strings.settings.items.navRainbowSeparateThemeColors.desc)
         .addToggle(toggle => {
@@ -506,10 +512,12 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
     );
 
     if (!Platform.isMobile) {
-        const springLoadedFoldersSetting = behaviorGroup.addSetting(setting => {
+        const springLoadedFoldersGroup = createGroup();
+
+        const springLoadedFoldersSetting = springLoadedFoldersGroup.addSetting(setting => {
             setting.setName(strings.settings.items.springLoadedFolders.name).setDesc(strings.settings.items.springLoadedFolders.desc);
         });
-        const springLoadedFoldersSubSettings = wireToggleSettingWithSubSettings(
+        const springLoadedFoldersDependentSettings = wireToggleSettingWithDependentSection(
             springLoadedFoldersSetting,
             () => plugin.settings.springLoadedFolders,
             async value => {
@@ -518,7 +526,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
             }
         );
 
-        new Setting(springLoadedFoldersSubSettings)
+        new Setting(springLoadedFoldersDependentSettings)
             .setName(strings.settings.items.springLoadedFoldersInitialDelay.name)
             .setDesc(strings.settings.items.springLoadedFoldersInitialDelay.desc)
             .addSlider(slider =>
@@ -533,7 +541,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
                     })
             );
 
-        new Setting(springLoadedFoldersSubSettings)
+        new Setting(springLoadedFoldersDependentSettings)
             .setName(strings.settings.items.springLoadedFoldersSubsequentDelay.name)
             .setDesc(strings.settings.items.springLoadedFoldersSubsequentDelay.desc)
             .addSlider(slider =>

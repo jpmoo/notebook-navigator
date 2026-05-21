@@ -27,7 +27,7 @@ import {
 } from '../../utils/moment';
 import { getActiveVaultProfile } from '../../utils/vaultProfiles';
 import type { createSettingGroupFactory } from '../settingGroups';
-import { createSubSettingsContainer, setElementVisible } from '../subSettings';
+import { createDependentSettingsSection, setElementVisible } from '../dependentSettings';
 import { isCalendarPeriodicNotesLocaleSource } from '../types';
 import { renderCalendarCustomPatternSection, type CalendarSelectedLocales } from './CalendarCustomPatternSection';
 import type { SettingsTabContext } from './SettingsTabContext';
@@ -98,8 +98,8 @@ export function renderCalendarIntegrationSection(
             );
     });
 
-    const dailyNotesInfoSettingsEl = createSubSettingsContainer(calendarIntegrationSetting);
-    const customCalendarSettingsEl = createSubSettingsContainer(calendarIntegrationSetting, '');
+    const dailyNotesInfoSettingsEl = createDependentSettingsSection(calendarIntegrationSetting);
+    const customCalendarSettingsEl = createDependentSettingsSection(calendarIntegrationSetting);
 
     const dailyNotesInfoSetting = new Setting(dailyNotesInfoSettingsEl).setName('').setDesc('');
     dailyNotesInfoSetting.settingEl.addClass('nn-setting-info-container');

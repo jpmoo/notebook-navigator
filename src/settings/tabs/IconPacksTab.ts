@@ -19,9 +19,11 @@
 import { strings } from '../../i18n';
 import { EXTERNAL_ICON_PROVIDERS } from '../../services/icons/external/providerRegistry';
 import type { SettingsTabContext } from './SettingsTabContext';
+import { ICON_ASSETS_REPOSITORY_URL } from '../../constants/urls';
 import { runAsyncAction } from '../../utils/async';
 import { showNotice } from '../../utils/noticeUtils';
 import { createSettingGroupFactory } from '../settingGroups';
+import { createExternalLinkText } from './externalLink';
 
 /** Renders the icon packs settings tab */
 export function renderIconPacksTab(context: SettingsTabContext): void {
@@ -111,6 +113,11 @@ export function renderIconPacksTab(context: SettingsTabContext): void {
     });
 
     addInfoSetting(iconPacksGroup.addSetting, 'nn-setting-info-container', descEl => {
-        descEl.createDiv({ text: strings.settings.items.externalIcons.infoNote });
+        descEl.createDiv().append(
+            createExternalLinkText({
+                text: strings.settings.items.externalIcons.infoNote,
+                link: { text: ICON_ASSETS_REPOSITORY_URL, href: ICON_ASSETS_REPOSITORY_URL }
+            })
+        );
     });
 }

@@ -21,7 +21,7 @@ import { strings } from '../../i18n';
 import { isRecentNotesHideMode, isShortcutBadgeDisplayMode } from '../types';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { createSettingGroupFactory } from '../settingGroups';
-import { wireToggleSettingWithSubSettings } from '../subSettings';
+import { wireToggleSettingWithDependentSection } from '../dependentSettings';
 
 /** Renders the shortcuts settings tab */
 export function renderShortcutsTab(context: SettingsTabContext): void {
@@ -39,11 +39,13 @@ export function renderShortcutsTab(context: SettingsTabContext): void {
         }
     );
 
-    const showShortcutsSetting = shortcutsGroup.addSetting(setting => {
+    const shortcutsSection = createGroup();
+
+    const showShortcutsSetting = shortcutsSection.addSetting(setting => {
         setting.setName(strings.settings.items.showShortcuts.name).setDesc(strings.settings.items.showShortcuts.desc);
     });
 
-    const shortcutsSubSettings = wireToggleSettingWithSubSettings(
+    const shortcutsDependentSettings = wireToggleSettingWithDependentSection(
         showShortcutsSetting,
         () => plugin.settings.showShortcuts,
         async value => {
@@ -52,7 +54,7 @@ export function renderShortcutsTab(context: SettingsTabContext): void {
         }
     );
 
-    new Setting(shortcutsSubSettings)
+    new Setting(shortcutsDependentSettings)
         .setName(strings.settings.items.shortcutBadgeDisplay.name)
         .setDesc(strings.settings.items.shortcutBadgeDisplay.desc)
         .addDropdown((dropdown: DropdownComponent) =>
@@ -70,7 +72,7 @@ export function renderShortcutsTab(context: SettingsTabContext): void {
                 })
         );
 
-    new Setting(shortcutsSubSettings)
+    new Setting(shortcutsDependentSettings)
         .setName(strings.settings.items.skipAutoScroll.name)
         .setDesc(strings.settings.items.skipAutoScroll.desc)
         .addToggle(toggle =>
@@ -80,11 +82,13 @@ export function renderShortcutsTab(context: SettingsTabContext): void {
             })
         );
 
-    const showRecentNotesSetting = shortcutsGroup.addSetting(setting => {
+    const recentNotesSection = createGroup();
+
+    const showRecentNotesSetting = recentNotesSection.addSetting(setting => {
         setting.setName(strings.settings.items.showRecentNotes.name).setDesc(strings.settings.items.showRecentNotes.desc);
     });
 
-    const recentNotesSubSettings = wireToggleSettingWithSubSettings(
+    const recentNotesDependentSettings = wireToggleSettingWithDependentSection(
         showRecentNotesSetting,
         () => plugin.settings.showRecentNotes,
         async value => {
@@ -93,7 +97,7 @@ export function renderShortcutsTab(context: SettingsTabContext): void {
         }
     );
 
-    new Setting(recentNotesSubSettings)
+    new Setting(recentNotesDependentSettings)
         .setName(strings.settings.items.hideRecentNotes.name)
         .setDesc(strings.settings.items.hideRecentNotes.desc)
         .addDropdown((dropdown: DropdownComponent) =>
@@ -110,7 +114,7 @@ export function renderShortcutsTab(context: SettingsTabContext): void {
                 })
         );
 
-    new Setting(recentNotesSubSettings)
+    new Setting(recentNotesDependentSettings)
         .setName(strings.settings.items.pinRecentNotesWithShortcuts.name)
         .setDesc(strings.settings.items.pinRecentNotesWithShortcuts.desc)
         .addToggle(toggle =>
@@ -120,7 +124,7 @@ export function renderShortcutsTab(context: SettingsTabContext): void {
             })
         );
 
-    new Setting(recentNotesSubSettings)
+    new Setting(recentNotesDependentSettings)
         .setName(strings.settings.items.recentNotesCount.name)
         .setDesc(strings.settings.items.recentNotesCount.desc)
         .addSlider(slider =>

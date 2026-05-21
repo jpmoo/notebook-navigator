@@ -22,7 +22,7 @@ import { isTagSortOrder } from '../types';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { createSettingGroupFactory } from '../settingGroups';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
-import { wireToggleSettingWithSubSettings } from '../subSettings';
+import { wireToggleSettingWithDependentSection } from '../dependentSettings';
 
 /** Renders the tags settings tab */
 export function renderTagsTab(context: SettingsTabContext, heading?: string): void {
@@ -34,7 +34,7 @@ export function renderTagsTab(context: SettingsTabContext, heading?: string): vo
     const showTagsSetting = tagsGroup.addSetting(setting => {
         setting.setName(strings.settings.items.showTags.name).setDesc(strings.settings.items.showTags.desc);
     });
-    const tagSubSettingsEl = wireToggleSettingWithSubSettings(
+    const tagDependentSettingsEl = wireToggleSettingWithDependentSection(
         showTagsSetting,
         () => plugin.settings.showTags,
         async value => {
@@ -44,7 +44,7 @@ export function renderTagsTab(context: SettingsTabContext, heading?: string): vo
         }
     );
 
-    new Setting(tagSubSettingsEl)
+    new Setting(tagDependentSettingsEl)
         .setName(strings.settings.items.showTagIcons.name)
         .setDesc(strings.settings.items.showTagIcons.desc)
         .addToggle(toggle =>
@@ -54,7 +54,7 @@ export function renderTagsTab(context: SettingsTabContext, heading?: string): vo
             })
         );
 
-    new Setting(tagSubSettingsEl)
+    new Setting(tagDependentSettingsEl)
         .setName(strings.settings.items.inheritTagColors.name)
         .setDesc(strings.settings.items.inheritTagColors.desc)
         .addToggle(toggle =>
@@ -65,7 +65,7 @@ export function renderTagsTab(context: SettingsTabContext, heading?: string): vo
         );
 
     /** Setting for choosing tag sort order in the navigation pane */
-    const tagSortOrderSetting = new Setting(tagSubSettingsEl)
+    const tagSortOrderSetting = new Setting(tagDependentSettingsEl)
         .setName(strings.settings.items.tagSortOrder.name)
         .setDesc(strings.settings.items.tagSortOrder.desc)
         .addDropdown(dropdown => {
@@ -88,7 +88,7 @@ export function renderTagsTab(context: SettingsTabContext, heading?: string): vo
 
     addSettingSyncModeToggle({ setting: tagSortOrderSetting, plugin, settingId: 'tagSortOrder' });
 
-    new Setting(tagSubSettingsEl)
+    new Setting(tagDependentSettingsEl)
         .setName(strings.settings.items.showAllTagsFolder.name)
         .setDesc(strings.settings.items.showAllTagsFolder.desc)
         .addToggle(toggle =>
@@ -98,7 +98,7 @@ export function renderTagsTab(context: SettingsTabContext, heading?: string): vo
             })
         );
 
-    new Setting(tagSubSettingsEl)
+    new Setting(tagDependentSettingsEl)
         .setName(strings.settings.items.showUntagged.name)
         .setDesc(strings.settings.items.showUntagged.desc)
         .addToggle(toggle =>
@@ -108,7 +108,7 @@ export function renderTagsTab(context: SettingsTabContext, heading?: string): vo
             })
         );
 
-    new Setting(tagSubSettingsEl)
+    new Setting(tagDependentSettingsEl)
         .setName(strings.settings.items.scopeTagsToCurrentContext.name)
         .setDesc(strings.settings.items.scopeTagsToCurrentContext.desc)
         .addToggle(toggle =>
@@ -118,7 +118,7 @@ export function renderTagsTab(context: SettingsTabContext, heading?: string): vo
             })
         );
 
-    new Setting(tagSubSettingsEl)
+    new Setting(tagDependentSettingsEl)
         .setName(strings.settings.items.keepEmptyTagsProperty.name)
         .setDesc(strings.settings.items.keepEmptyTagsProperty.desc)
         .addToggle(toggle =>

@@ -32,7 +32,7 @@ import type { SettingsTabContext } from './SettingsTabContext';
 import { runAsyncAction } from '../../utils/async';
 import { createSettingGroupFactory } from '../settingGroups';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
-import { createSubSettingsContainer } from '../subSettings';
+import { createDependentSettingsSection } from '../dependentSettings';
 import { pruneUnavailablePropertySortOverrides } from '../../utils/sortUtils';
 import { getManualSortGroupHeaderPropertyKey, isValidManualSortPropertyKey, normalizeManualSortPropertyKey } from '../../utils/manualSort';
 
@@ -128,8 +128,10 @@ export function renderListPaneTab(context: SettingsTabContext): void {
                 );
         });
 
+        const compactItemHeightGroup = createGroup();
+
         let compactItemHeightSlider: SliderComponent;
-        const compactItemHeightSetting = appearanceGroup.addSetting(setting => {
+        const compactItemHeightSetting = compactItemHeightGroup.addSetting(setting => {
             setting
                 .setName(strings.settings.items.compactItemHeight.name)
                 .setDesc(strings.settings.items.compactItemHeight.desc)
@@ -161,7 +163,7 @@ export function renderListPaneTab(context: SettingsTabContext): void {
 
         addSettingSyncModeToggle({ setting: compactItemHeightSetting, plugin, settingId: 'compactItemHeight' });
 
-        const compactItemHeightSettingsEl = createSubSettingsContainer(compactItemHeightSetting);
+        const compactItemHeightSettingsEl = createDependentSettingsSection(compactItemHeightSetting);
 
         const compactItemHeightScaleTextSetting = new Setting(compactItemHeightSettingsEl)
             .setName(strings.settings.items.compactItemHeightScaleText.name)
@@ -174,8 +176,10 @@ export function renderListPaneTab(context: SettingsTabContext): void {
 
         addSettingSyncModeToggle({ setting: compactItemHeightScaleTextSetting, plugin, settingId: 'compactItemHeightScaleText' });
 
+        const displayOptionsGroup = createGroup();
+
         addToggleSetting(
-            appearanceGroup.addSetting,
+            displayOptionsGroup.addSetting,
             strings.settings.items.showSelectedNavigationPills.name,
             strings.settings.items.showSelectedNavigationPills.desc,
             () => plugin.settings.showSelectedNavigationPills,
@@ -344,7 +348,7 @@ export function renderListPaneTab(context: SettingsTabContext): void {
             });
     });
 
-    const propertySortSecondarySettingsEl = createSubSettingsContainer(propertySortKeySetting);
+    const propertySortSecondarySettingsEl = createDependentSettingsSection(propertySortKeySetting);
 
     new Setting(propertySortSecondarySettingsEl)
         .setName(strings.settings.items.propertySortSecondary.name)

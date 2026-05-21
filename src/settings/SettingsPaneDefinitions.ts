@@ -85,33 +85,69 @@ export const SETTINGS_PAGE_DESCRIPTION_GETTERS: Record<SettingsPaneId, () => str
 
 export const SETTINGS_PANE_DEFINITIONS: SettingsPaneDefinition[] = [
     { id: 'general', getLabel: () => strings.settings.sections.general, render: renderGeneralTab },
-    { id: 'vault-filters', getLabel: () => strings.settings.sections.vaultFilters, render: renderDisplayFiltersTab },
-    { id: 'appearance-behavior', getLabel: () => strings.settings.sections.appearanceBehavior, render: renderAppearanceBehaviorTab },
-    { id: 'navigation-pane', getLabel: () => strings.settings.sections.navigationPane, render: renderNavigationPaneTab },
-    { id: 'shortcuts', getLabel: () => strings.settings.sections.shortcutsAndRecentFiles, render: renderShortcutsTab },
-    { id: 'folders', getLabel: () => strings.settings.sections.foldersAndFolderNotes, render: renderFoldersAndFolderNotesTab },
-    { id: 'tags-properties', getLabel: () => strings.settings.sections.tagsAndProperties, render: renderTagsPropertiesTab },
-    { id: 'list-pane', getLabel: () => strings.settings.sections.listPane, render: renderListPaneTab },
-    { id: 'file-operations', getLabel: () => strings.settings.sections.fileOperations, render: renderFilesTab },
-    { id: 'frontmatter', getLabel: () => strings.settings.groups.notes.frontmatter, render: renderFrontmatterTab },
+    {
+        id: 'vault-filters',
+        getLabel: () => strings.settings.sections.vaultFilters,
+        render: renderDisplayFiltersTab
+    },
+    {
+        id: 'appearance-behavior',
+        getLabel: () => strings.settings.sections.appearanceBehavior,
+        render: renderAppearanceBehaviorTab
+    },
+    {
+        id: 'navigation-pane',
+        getLabel: () => strings.settings.sections.navigationPane,
+        render: renderNavigationPaneTab
+    },
+    {
+        id: 'shortcuts',
+        getLabel: () => strings.settings.sections.shortcutsAndRecentFiles,
+        render: renderShortcutsTab
+    },
+    {
+        id: 'folders',
+        getLabel: () => strings.settings.sections.foldersAndFolderNotes,
+        render: renderFoldersAndFolderNotesTab
+    },
+    {
+        id: 'tags-properties',
+        getLabel: () => strings.settings.sections.tagsAndProperties,
+        render: renderTagsPropertiesTab
+    },
+    {
+        id: 'list-pane',
+        getLabel: () => strings.settings.sections.listPane,
+        render: renderListPaneTab
+    },
+    {
+        id: 'file-operations',
+        getLabel: () => strings.settings.sections.fileOperations,
+        render: renderFilesTab
+    },
+    {
+        id: 'frontmatter',
+        getLabel: () => strings.settings.groups.notes.frontmatter,
+        render: renderFrontmatterTab
+    },
     { id: 'notes', getLabel: () => strings.settings.sections.notes, render: renderNotesTab },
-    { id: 'calendar', getLabel: () => strings.settings.sections.calendar, render: renderCalendarTab },
-    { id: 'icon-packs', getLabel: () => strings.settings.sections.icons, render: renderIconPacksTab },
-    { id: 'advanced', getLabel: () => strings.settings.sections.advanced, render: renderAdvancedTab }
+    {
+        id: 'calendar',
+        getLabel: () => strings.settings.sections.calendar,
+        render: renderCalendarTab
+    },
+    {
+        id: 'icon-packs',
+        getLabel: () => strings.settings.sections.icons,
+        render: renderIconPacksTab
+    },
+    {
+        id: 'advanced',
+        getLabel: () => strings.settings.sections.advanced,
+        render: renderAdvancedTab
+    }
 ];
 
 export const SETTINGS_PANE_DEFINITION_MAP = new Map<SettingsPaneId, SettingsPaneDefinition>(
     SETTINGS_PANE_DEFINITIONS.map(definition => [definition.id, definition])
 );
-
-export function resolveSettingsPaneId(tabId: SettingsTabId): SettingsPaneId {
-    switch (tabId) {
-        case 'files':
-            return 'file-operations';
-        case 'tags':
-        case 'properties':
-            return 'tags-properties';
-        default:
-            return tabId;
-    }
-}

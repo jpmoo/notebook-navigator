@@ -44,7 +44,7 @@ import {
 } from '../../utils/calendarCustomNotePatterns';
 import { resolveCalendarCustomNotePathDate, type CalendarNoteKind } from '../../utils/calendarNotes';
 import { getMomentApi, type MomentApi } from '../../utils/moment';
-import { setElementVisible } from '../subSettings';
+import { setElementVisible } from '../dependentSettings';
 import { createInlineExternalLinkText } from './externalLink';
 import type { SettingsTabContext } from './SettingsTabContext';
 
@@ -62,7 +62,7 @@ interface CalendarCustomPatternSectionOptions {
     requestVisibilityRefresh: () => void;
 }
 
-interface CalendarCustomPatternSectionController {
+export interface CalendarCustomPatternSectionController {
     refresh: () => void;
     hideMessages: () => void;
 }

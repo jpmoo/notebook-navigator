@@ -20,7 +20,7 @@ import type { SettingsTabContext } from './SettingsTabContext';
 import { renderStartResourcesSection } from './StartResourcesSection';
 import { renderGeneralVaultSetupSection } from './VaultSetupSection';
 
-/** Renders the pre-1.13 custom General tab. */
+/** Renders the General settings page. */
 export function renderGeneralTab(context: SettingsTabContext): void {
     renderStartResourcesSection(context);
     renderGeneralVaultSetupSection(context);

@@ -17,6 +17,7 @@
  */
 
 import { DropdownComponent, Platform } from 'obsidian';
+import type { Setting, SettingDefinitionGroup } from 'obsidian';
 import { strings } from '../../i18n';
 import { EditVaultProfilesModal } from '../../modals/EditVaultProfilesModal';
 import { InputModal } from '../../modals/InputModal';
@@ -40,23 +41,74 @@ interface VaultSetupSectionOptions {
     heading?: string;
 }
 
-/** Renders the vault setup section inside the pre-1.13 custom General tab. */
+interface VaultSetupRenderers {
+    renderProfileSetting(setting: Setting): void;
+    renderVaultTitleSetting(setting: Setting): void;
+    renderFileVisibilitySetting(setting: Setting): void;
+    renderPropertyKeysSetting(setting: Setting): void;
+}
+
+/** Renders the vault setup section inside the General settings page. */
 export function renderGeneralVaultSetupSection(context: SettingsTabContext): void {
     renderVaultSetupSection(context, {
         heading: strings.settings.groups.general.vaultConfiguration
     });
 }
 
-/** Renders the vault setup section inside Obsidian's native settings start page. */
-export function renderStartVaultConfigurationSection(context: SettingsTabContext): void {
-    renderVaultSetupSection(context, {});
-}
-
 function renderVaultSetupSection(context: SettingsTabContext, options: VaultSetupSectionOptions): void {
-    const { containerEl, plugin } = context;
-    ensureVaultProfiles(plugin.settings);
+    const { containerEl } = context;
+    const renderers = createVaultSetupRenderers(context);
     const createGroup = createSettingGroupFactory(containerEl);
     const vaultSetupGroup = createGroup(options.heading);
+
+    vaultSetupGroup.addSetting(setting => renderers.renderProfileSetting(setting));
+    if (!Platform.isMobile) {
+        vaultSetupGroup.addSetting(setting => renderers.renderVaultTitleSetting(setting));
+    }
+    vaultSetupGroup.addSetting(setting => renderers.renderFileVisibilitySetting(setting));
+    vaultSetupGroup.addSetting(setting => renderers.renderPropertyKeysSetting(setting));
+}
+
+export function createVaultSetupSettingDefinitions(context: SettingsTabContext): SettingDefinitionGroup[] {
+    const renderers = createVaultSetupRenderers(context);
+    const items: NonNullable<SettingDefinitionGroup['items']> = [
+        {
+            name: strings.settings.items.vaultProfiles.name,
+            desc: strings.settings.items.vaultProfiles.desc,
+            render: setting => renderers.renderProfileSetting(setting)
+        },
+        {
+            name: strings.settings.items.fileVisibility.name,
+            desc: strings.settings.items.fileVisibility.desc,
+            render: setting => renderers.renderFileVisibilitySetting(setting)
+        },
+        {
+            name: strings.settings.items.propertyFields.name,
+            desc: strings.settings.items.propertyFields.desc,
+            render: setting => renderers.renderPropertyKeysSetting(setting)
+        }
+    ];
+
+    if (!Platform.isMobile) {
+        items.splice(1, 0, {
+            name: strings.settings.items.vaultTitle.name,
+            desc: strings.settings.items.vaultTitle.desc,
+            render: setting => renderers.renderVaultTitleSetting(setting)
+        });
+    }
+
+    return [
+        {
+            type: 'group',
+            heading: strings.settings.groups.general.vaultConfiguration,
+            items
+        }
+    ];
+}
+
+function createVaultSetupRenderers(context: SettingsTabContext): VaultSetupRenderers {
+    const { plugin } = context;
+    ensureVaultProfiles(plugin.settings);
 
     const fallbackProfileName = strings.settings.items.vaultProfiles.defaultName || 'Default';
     const getProfileDisplayName = (name?: string): string => {
@@ -186,67 +238,65 @@ function renderVaultSetupSection(context: SettingsTabContext, options: VaultSetu
         modal.open();
     };
 
-    const profileSetting = vaultSetupGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.vaultProfiles.name).setDesc(strings.settings.items.vaultProfiles.desc);
-    });
+    const renderProfileSetting = (profileSetting: Setting): void => {
+        profileSetting.setName(strings.settings.items.vaultProfiles.name).setDesc(strings.settings.items.vaultProfiles.desc);
 
-    profileSetting.addDropdown(dropdown => {
-        profileDropdown = dropdown;
-        refreshProfileControls();
-        dropdown.onChange(value => {
-            if (value === ADD_PROFILE_OPTION_VALUE) {
-                if (profileDropdown) {
-                    profileDropdown.selectEl.value = plugin.settings.vaultProfile;
+        profileSetting.addDropdown(dropdown => {
+            profileDropdown = dropdown;
+            refreshProfileControls();
+            dropdown.onChange(value => {
+                if (value === ADD_PROFILE_OPTION_VALUE) {
+                    if (profileDropdown) {
+                        profileDropdown.selectEl.value = plugin.settings.vaultProfile;
+                    }
+                    const modal = new InputModal(
+                        context.app,
+                        strings.settings.items.vaultProfiles.addModalTitle,
+                        strings.settings.items.vaultProfiles.addModalPlaceholder,
+                        profileName => handleAddProfile(profileName)
+                    );
+                    modal.open();
+                    return;
                 }
-                const modal = new InputModal(
-                    context.app,
-                    strings.settings.items.vaultProfiles.addModalTitle,
-                    strings.settings.items.vaultProfiles.addModalPlaceholder,
-                    profileName => handleAddProfile(profileName)
-                );
-                modal.open();
-                return;
-            }
-            runAsyncAction(() => {
-                plugin.setVaultProfile(value);
-                refreshProfileControls();
+                runAsyncAction(() => {
+                    plugin.setVaultProfile(value);
+                    refreshProfileControls();
+                });
             });
+            return dropdown;
         });
-        return dropdown;
-    });
 
-    profileSetting.addButton(button => {
-        button.setButtonText(strings.settings.items.vaultProfiles.editProfilesButton).onClick(() => {
-            openEditProfilesModal();
+        profileSetting.addButton(button => {
+            button.setButtonText(strings.settings.items.vaultProfiles.editProfilesButton).onClick(() => {
+                openEditProfilesModal();
+            });
+            return button;
         });
-        return button;
-    });
 
-    profileSetting.controlEl.addClass('nn-setting-profile-dropdown');
-    addSettingSyncModeToggle({ setting: profileSetting, plugin, settingId: 'vaultProfile' });
+        profileSetting.controlEl.addClass('nn-setting-profile-dropdown');
+        addSettingSyncModeToggle({ setting: profileSetting, plugin, settingId: 'vaultProfile' });
+    };
 
-    if (!Platform.isMobile) {
-        vaultSetupGroup.addSetting(setting => {
-            setting
-                .setName(strings.settings.items.vaultTitle.name)
-                .setDesc(strings.settings.items.vaultTitle.desc)
-                .addDropdown(dropdown =>
-                    dropdown
-                        .addOption('header', strings.settings.items.vaultTitle.options.header)
-                        .addOption('navigation', strings.settings.items.vaultTitle.options.navigation)
-                        .setValue(plugin.settings.vaultTitle)
-                        .onChange(async value => {
-                            if (!isVaultTitleOption(value)) {
-                                return;
-                            }
-                            plugin.settings.vaultTitle = value;
-                            await plugin.saveSettingsAndUpdate();
-                        })
-                );
-        });
-    }
+    const renderVaultTitleSetting = (setting: Setting): void => {
+        setting
+            .setName(strings.settings.items.vaultTitle.name)
+            .setDesc(strings.settings.items.vaultTitle.desc)
+            .addDropdown(dropdown =>
+                dropdown
+                    .addOption('header', strings.settings.items.vaultTitle.options.header)
+                    .addOption('navigation', strings.settings.items.vaultTitle.options.navigation)
+                    .setValue(plugin.settings.vaultTitle)
+                    .onChange(async value => {
+                        if (!isVaultTitleOption(value)) {
+                            return;
+                        }
+                        plugin.settings.vaultTitle = value;
+                        await plugin.saveSettingsAndUpdate();
+                    })
+            );
+    };
 
-    vaultSetupGroup.addSetting(setting => {
+    const renderFileVisibilitySetting = (setting: Setting): void => {
         setting
             .setName(strings.settings.items.fileVisibility.name)
             .setDesc(strings.settings.items.fileVisibility.desc)
@@ -270,34 +320,41 @@ function renderVaultSetupSection(context: SettingsTabContext, options: VaultSetu
                     });
                 return dropdown;
             });
-    });
+    };
 
-    const propertyKeysSetting = vaultSetupGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.propertyFields.name).setDesc(strings.settings.items.propertyFields.desc);
-    });
+    const renderPropertyKeysSetting = (propertyKeysSetting: Setting): void => {
+        propertyKeysSetting.setName(strings.settings.items.propertyFields.name).setDesc(strings.settings.items.propertyFields.desc);
 
-    const propertyKeysCountLineEl = propertyKeysSetting.descEl.createDiv({
-        cls: 'nn-setting-property-keys-count-line'
-    });
-    propertyKeysSummaryTextEl = propertyKeysCountLineEl.createSpan({ cls: 'nn-setting-property-keys-summary-text' });
+        const propertyKeysCountLineEl = propertyKeysSetting.descEl.createDiv({
+            cls: 'nn-setting-property-keys-count-line'
+        });
+        propertyKeysSummaryTextEl = propertyKeysCountLineEl.createSpan({ cls: 'nn-setting-property-keys-summary-text' });
 
-    propertyKeysSetting.addButton(button =>
-        button.setButtonText(strings.settings.items.propertyFields.addButtonTooltip).onClick(() => {
-            const activeProfile = getActiveProfile();
-            if (!activeProfile) {
-                return;
-            }
-            const modal = new PropertyKeyVisibilityModal(context.app, {
-                initialKeys: activeProfile.propertyKeys,
-                onSave: async nextKeys => {
-                    activeProfile.propertyKeys = nextKeys;
-                    await plugin.saveSettingsAndUpdate();
-                    refreshProfileControls();
+        propertyKeysSetting.addButton(button =>
+            button.setButtonText(strings.settings.items.propertyFields.addButtonTooltip).onClick(() => {
+                const activeProfile = getActiveProfile();
+                if (!activeProfile) {
+                    return;
                 }
-            });
-            modal.open();
-        })
-    );
+                const modal = new PropertyKeyVisibilityModal(context.app, {
+                    initialKeys: activeProfile.propertyKeys,
+                    onSave: async nextKeys => {
+                        activeProfile.propertyKeys = nextKeys;
+                        await plugin.saveSettingsAndUpdate();
+                        refreshProfileControls();
+                    }
+                });
+                modal.open();
+            })
+        );
 
-    refreshProfileControls();
+        refreshProfileControls();
+    };
+
+    return {
+        renderProfileSetting,
+        renderVaultTitleSetting,
+        renderFileVisibilitySetting,
+        renderPropertyKeysSetting
+    };
 }

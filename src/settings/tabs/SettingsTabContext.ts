@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { App, Setting } from 'obsidian';
+import type { App, ButtonComponent, Setting } from 'obsidian';
 import type NotebookNavigatorPlugin from '../../main';
 
 export type SettingsTabId =
@@ -132,16 +132,16 @@ export interface SettingsTabContext {
     registerSettingsUpdateListener(id: string, listener: () => void): void;
     /** Unregisters a previously registered settings update listener */
     unregisterSettingsUpdateListener(id: string): void;
-    /** Registers the element where metadata info should be displayed */
-    registerMetadataInfoElement(element: HTMLElement): void;
+    /** Registers the elements where metadata info should be displayed */
+    registerMetadataInfoElement(element: HTMLElement, exportButton: ButtonComponent): void;
     /** Registers the element where statistics should be displayed */
     registerStatsTextElement(element: HTMLElement): void;
     /** Requests an immediate statistics refresh */
     requestStatisticsRefresh(): void;
+    /** Re-evaluates native setting visibility and disabled states */
+    refreshSettingsDomState(): void;
     /** Ensures the statistics update interval is running */
     ensureStatisticsInterval(): void;
-    /** Activates another settings tab */
-    openSettingsTab(tabId: SettingsTabId): void;
     /** Registers a listener for show tags visibility changes */
     registerShowTagsListener(listener: (visible: boolean) => void): void;
     /** Notifies all listeners of show tags visibility change */

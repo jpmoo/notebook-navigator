@@ -42,7 +42,7 @@ import {
 } from '../../utils/uiScale';
 import { DEFAULT_SETTINGS } from '../defaultSettings';
 import { createSettingGroupFactory } from '../settingGroups';
-import { createSubSettingsContainer, setElementVisible, wireToggleSettingWithSubSettings } from '../subSettings';
+import { createDependentSettingsSection, setElementVisible, wireToggleSettingWithDependentSection } from '../dependentSettings';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
 import type { FileOpenContext, MouseBackForwardAction } from '../types';
 import { isHomepageSource, isMultiSelectModifier, isPeriodicHomepageSource } from '../types';
@@ -86,11 +86,13 @@ function renderBehaviorSettings(context: SettingsTabContext, createGroup: Create
         }
     );
 
-    const autoRevealSetting = behaviorGroup.addSetting(setting => {
+    const autoRevealGroup = createGroup();
+
+    const autoRevealSetting = autoRevealGroup.addSetting(setting => {
         setting.setName(strings.settings.items.autoRevealActiveNote.name).setDesc(strings.settings.items.autoRevealActiveNote.desc);
     });
 
-    const autoRevealSettingsEl = wireToggleSettingWithSubSettings(
+    const autoRevealSettingsEl = wireToggleSettingWithDependentSection(
         autoRevealSetting,
         () => plugin.settings.autoRevealActiveFile,
         async value => {
@@ -128,46 +130,6 @@ function renderBehaviorSettings(context: SettingsTabContext, createGroup: Create
                 await plugin.saveSettingsAndUpdate();
             })
         );
-
-    const paneTransitionSetting = behaviorGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.paneTransitionDuration.name).setDesc(strings.settings.items.paneTransitionDuration.desc);
-    });
-
-    const paneTransitionValueEl = paneTransitionSetting.controlEl.createDiv({ cls: 'nn-slider-value' });
-    const updatePaneTransitionLabel = (ms: number) => {
-        paneTransitionValueEl.setText(`${ms} ms`);
-    };
-    updatePaneTransitionLabel(plugin.settings.paneTransitionDuration);
-
-    let paneTransitionSlider: SliderComponent;
-    paneTransitionSetting
-        .addSlider(slider => {
-            paneTransitionSlider = slider
-                .setLimits(MIN_PANE_TRANSITION_DURATION_MS, MAX_PANE_TRANSITION_DURATION_MS, PANE_TRANSITION_DURATION_STEP_MS)
-                .setValue(plugin.settings.paneTransitionDuration)
-                .setInstant(false)
-                .setDynamicTooltip()
-                .onChange(value => {
-                    plugin.setPaneTransitionDuration(value);
-                    updatePaneTransitionLabel(value);
-                });
-            return slider;
-        })
-        .addExtraButton(button =>
-            button
-                .setIcon('lucide-rotate-ccw')
-                .setTooltip(strings.settings.items.paneTransitionDuration.resetTooltip)
-                .onClick(() => {
-                    runAsyncAction(() => {
-                        const defaultValue = DEFAULT_SETTINGS.paneTransitionDuration;
-                        paneTransitionSlider.setValue(defaultValue);
-                        plugin.setPaneTransitionDuration(defaultValue);
-                        updatePaneTransitionLabel(defaultValue);
-                    });
-                })
-        );
-
-    addSettingSyncModeToggle({ setting: paneTransitionSetting, plugin, settingId: 'paneTransitionDuration' });
 }
 
 function renderKeyboardNavigationSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
@@ -193,11 +155,13 @@ function renderKeyboardNavigationSettings(context: SettingsTabContext, createGro
             );
     });
 
-    const enterToOpenSetting = keyboardNavigationGroup.addSetting(setting => {
+    const enterToOpenGroup = createGroup();
+
+    const enterToOpenSetting = enterToOpenGroup.addSetting(setting => {
         setting.setName(strings.settings.items.enterToOpenFiles.name).setDesc(strings.settings.items.enterToOpenFiles.desc);
     });
 
-    const enterToOpenSettingsEl = wireToggleSettingWithSubSettings(
+    const enterToOpenSettingsEl = wireToggleSettingWithDependentSection(
         enterToOpenSetting,
         () => plugin.settings.enterToOpenFiles,
         async value => {
@@ -328,11 +292,13 @@ function renderDesktopAppearanceSettings(context: SettingsTabContext, createGrou
             );
     });
 
-    const showTooltipsSetting = desktopAppearanceGroup.addSetting(setting => {
+    const tooltipsGroup = createGroup();
+
+    const showTooltipsSetting = tooltipsGroup.addSetting(setting => {
         setting.setName(strings.settings.items.showTooltips.name).setDesc(strings.settings.items.showTooltips.desc);
     });
 
-    const showTooltipsSubSettings = wireToggleSettingWithSubSettings(
+    const showTooltipsDependentSettings = wireToggleSettingWithDependentSection(
         showTooltipsSetting,
         () => plugin.settings.showTooltips,
         async value => {
@@ -341,7 +307,7 @@ function renderDesktopAppearanceSettings(context: SettingsTabContext, createGrou
         }
     );
 
-    new Setting(showTooltipsSubSettings)
+    new Setting(showTooltipsDependentSettings)
         .setName(strings.settings.items.showTooltipPath.name)
         .setDesc(strings.settings.items.showTooltipPath.desc)
         .addToggle(toggle =>
@@ -351,7 +317,7 @@ function renderDesktopAppearanceSettings(context: SettingsTabContext, createGrou
             })
         );
 
-    new Setting(showTooltipsSubSettings)
+    new Setting(showTooltipsDependentSettings)
         .setName(strings.settings.items.showTooltipWordCount.name)
         .setDesc(strings.settings.items.showTooltipWordCount.desc)
         .addToggle(toggle =>
@@ -426,6 +392,46 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
 
     updateUIScaleLabel(initialUIScalePercent);
 
+    const paneTransitionSetting = viewGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.paneTransitionDuration.name).setDesc(strings.settings.items.paneTransitionDuration.desc);
+    });
+
+    const paneTransitionValueEl = paneTransitionSetting.controlEl.createDiv({ cls: 'nn-slider-value' });
+    const updatePaneTransitionLabel = (ms: number) => {
+        paneTransitionValueEl.setText(`${ms} ms`);
+    };
+    updatePaneTransitionLabel(plugin.settings.paneTransitionDuration);
+
+    let paneTransitionSlider: SliderComponent;
+    paneTransitionSetting
+        .addSlider(slider => {
+            paneTransitionSlider = slider
+                .setLimits(MIN_PANE_TRANSITION_DURATION_MS, MAX_PANE_TRANSITION_DURATION_MS, PANE_TRANSITION_DURATION_STEP_MS)
+                .setValue(plugin.settings.paneTransitionDuration)
+                .setInstant(false)
+                .setDynamicTooltip()
+                .onChange(value => {
+                    plugin.setPaneTransitionDuration(value);
+                    updatePaneTransitionLabel(value);
+                });
+            return slider;
+        })
+        .addExtraButton(button =>
+            button
+                .setIcon('lucide-rotate-ccw')
+                .setTooltip(strings.settings.items.paneTransitionDuration.resetTooltip)
+                .onClick(() => {
+                    runAsyncAction(() => {
+                        const defaultValue = DEFAULT_SETTINGS.paneTransitionDuration;
+                        paneTransitionSlider.setValue(defaultValue);
+                        plugin.setPaneTransitionDuration(defaultValue);
+                        updatePaneTransitionLabel(defaultValue);
+                    });
+                })
+        );
+
+    addSettingSyncModeToggle({ setting: paneTransitionSetting, plugin, settingId: 'paneTransitionDuration' });
+
     viewGroup.addSetting(setting => {
         setting
             .setName(strings.settings.items.startView.name)
@@ -445,7 +451,9 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
             });
     });
 
-    const homepageSetting = viewGroup.addSetting(setting => {
+    const homepageGroup = createGroup();
+
+    const homepageSetting = homepageGroup.addSetting(setting => {
         setting.setName(strings.settings.items.homepage.name);
     });
     homepageSetting.setDesc(strings.settings.items.homepage.desc).addDropdown(dropdown =>
@@ -467,15 +475,15 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
                     ...plugin.settings.homepage,
                     source: value
                 };
-                renderHomepageSubSettings();
+                renderHomepageDependentSettings();
                 await plugin.saveSettingsAndUpdate();
             })
     );
 
     addSettingSyncModeToggle({ setting: homepageSetting, plugin, settingId: 'homepage' });
 
-    const homepageFileSubSettingsEl = createSubSettingsContainer(homepageSetting);
-    const homepageFileSetting = new Setting(homepageFileSubSettingsEl);
+    const homepageFileDependentSettingsEl = createDependentSettingsSection(homepageSetting);
+    const homepageFileSetting = new Setting(homepageFileDependentSettingsEl);
     let homepageFileValueEl: HTMLDivElement | null = null;
     let clearHomepageButton: ButtonComponent | null = null;
 
@@ -498,7 +506,7 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
                     ...plugin.settings.homepage,
                     file: file.path
                 };
-                renderHomepageSubSettings();
+                renderHomepageDependentSettings();
                 runAsyncAction(() => plugin.saveSettingsAndUpdate());
             }).open();
         });
@@ -517,14 +525,14 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
                     ...plugin.settings.homepage,
                     file: null
                 };
-                renderHomepageSubSettings();
+                renderHomepageDependentSettings();
                 await plugin.saveSettingsAndUpdate();
             });
         });
     });
 
-    const homepagePeriodicSubSettingsEl = createSubSettingsContainer(homepageSetting);
-    new Setting(homepagePeriodicSubSettingsEl)
+    const homepagePeriodicDependentSettingsEl = createDependentSettingsSection(homepageSetting);
+    new Setting(homepagePeriodicDependentSettingsEl)
         .setName(strings.settings.items.homepage.createMissing.name)
         .setDesc(strings.settings.items.homepage.createMissing.desc)
         .addToggle(toggle =>
@@ -537,10 +545,10 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
             })
         );
 
-    const renderHomepageSubSettings = () => {
+    const renderHomepageDependentSettings = () => {
         const isFileHomepage = plugin.settings.homepage.source === 'file';
-        setElementVisible(homepageFileSubSettingsEl, isFileHomepage);
-        setElementVisible(homepagePeriodicSubSettingsEl, isPeriodicHomepageSource(plugin.settings.homepage.source));
+        setElementVisible(homepageFileDependentSettingsEl, isFileHomepage);
+        setElementVisible(homepagePeriodicDependentSettingsEl, isPeriodicHomepageSource(plugin.settings.homepage.source));
 
         if (homepageFileValueEl) {
             homepageFileValueEl.setText(
@@ -555,9 +563,11 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
         }
     };
 
-    renderHomepageSubSettings();
+    renderHomepageDependentSettings();
 
-    viewGroup
+    const viewControlsGroup = createGroup();
+
+    viewControlsGroup
         .addSetting(setting => {
             setting.setName(strings.settings.items.showInfoButtons.name).setDesc(strings.settings.items.showInfoButtons.desc);
         })
@@ -568,7 +578,7 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
             })
         );
 
-    renderToolbarButtonsSetting(createSetting => viewGroup.addSetting(createSetting), plugin);
+    renderToolbarButtonsSetting(createSetting => viewControlsGroup.addSetting(createSetting), plugin);
 }
 
 function renderIconSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {

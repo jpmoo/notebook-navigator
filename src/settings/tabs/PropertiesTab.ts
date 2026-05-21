@@ -22,8 +22,7 @@ import { isTagSortOrder } from '../types';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { createSettingGroupFactory } from '../settingGroups';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
-import { wireToggleSettingWithSubSettings } from '../subSettings';
-import { createInlineActionLinkText } from './externalLink';
+import { wireToggleSettingWithDependentSection } from '../dependentSettings';
 
 /** Renders the properties settings tab */
 export function renderPropertiesTab(context: SettingsTabContext, heading?: string): void {
@@ -36,7 +35,7 @@ export function renderPropertiesTab(context: SettingsTabContext, heading?: strin
         setting.setName(strings.settings.items.showProperties.name).setDesc(strings.settings.items.showProperties.desc);
     });
 
-    const propertiesSubSettingsEl = wireToggleSettingWithSubSettings(
+    const propertiesDependentSettingsEl = wireToggleSettingWithDependentSection(
         showPropertiesSetting,
         () => plugin.settings.showProperties,
         async value => {
@@ -45,7 +44,7 @@ export function renderPropertiesTab(context: SettingsTabContext, heading?: strin
         }
     );
 
-    new Setting(propertiesSubSettingsEl)
+    new Setting(propertiesDependentSettingsEl)
         .setName(strings.settings.items.showPropertyIcons.name)
         .setDesc(strings.settings.items.showPropertyIcons.desc)
         .addToggle(toggle =>
@@ -55,7 +54,7 @@ export function renderPropertiesTab(context: SettingsTabContext, heading?: strin
             })
         );
 
-    new Setting(propertiesSubSettingsEl)
+    new Setting(propertiesDependentSettingsEl)
         .setName(strings.settings.items.inheritPropertyColors.name)
         .setDesc(strings.settings.items.inheritPropertyColors.desc)
         .addToggle(toggle =>
@@ -65,7 +64,7 @@ export function renderPropertiesTab(context: SettingsTabContext, heading?: strin
             })
         );
 
-    const propertySortOrderSetting = new Setting(propertiesSubSettingsEl)
+    const propertySortOrderSetting = new Setting(propertiesDependentSettingsEl)
         .setName(strings.settings.items.propertySortOrder.name)
         .setDesc(strings.settings.items.propertySortOrder.desc)
         .addDropdown(dropdown => {
@@ -88,7 +87,7 @@ export function renderPropertiesTab(context: SettingsTabContext, heading?: strin
 
     addSettingSyncModeToggle({ setting: propertySortOrderSetting, plugin, settingId: 'propertySortOrder' });
 
-    new Setting(propertiesSubSettingsEl)
+    new Setting(propertiesDependentSettingsEl)
         .setName(strings.settings.items.showAllPropertiesFolder.name)
         .setDesc(strings.settings.items.showAllPropertiesFolder.desc)
         .addToggle(toggle =>
@@ -98,7 +97,7 @@ export function renderPropertiesTab(context: SettingsTabContext, heading?: strin
             })
         );
 
-    new Setting(propertiesSubSettingsEl)
+    new Setting(propertiesDependentSettingsEl)
         .setName(strings.settings.items.scopePropertiesToCurrentContext.name)
         .setDesc(strings.settings.items.scopePropertiesToCurrentContext.desc)
         .addToggle(toggle =>
@@ -108,19 +107,11 @@ export function renderPropertiesTab(context: SettingsTabContext, heading?: strin
             })
         );
 
-    const propertyKeysInfoSetting = new Setting(propertiesSubSettingsEl).setName('').setDesc('');
+    const propertyKeysInfoSetting = new Setting(propertiesDependentSettingsEl).setName('').setDesc('');
     propertyKeysInfoSetting.settingEl.addClass('nn-setting-info-container');
     propertyKeysInfoSetting.settingEl.addClass('nn-setting-info-centered');
     propertyKeysInfoSetting.settingEl.addClass('nn-setting-property-keys-info');
-    propertyKeysInfoSetting.descEl.empty();
-    propertyKeysInfoSetting.descEl.append(
-        createInlineActionLinkText({
-            prefix: strings.settings.items.showProperties.propertyKeysInfoPrefix,
-            linkText: strings.settings.items.showProperties.propertyKeysInfoLinkText,
-            suffix: strings.settings.items.showProperties.propertyKeysInfoSuffix,
-            onClick: () => {
-                context.openSettingsTab('general');
-            }
-        })
+    propertyKeysInfoSetting.setDesc(
+        `${strings.settings.items.showProperties.propertyKeysInfoPrefix}${strings.settings.items.showProperties.propertyKeysInfoLinkText}${strings.settings.items.showProperties.propertyKeysInfoSuffix}`
     );
 }

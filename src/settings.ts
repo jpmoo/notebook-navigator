@@ -16,41 +16,35 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { App, ButtonComponent, PluginSettingTab, Setting } from 'obsidian';
-import type { SettingDefinition, SettingDefinitionItem, SettingDefinitionPage } from 'obsidian';
+import * as Obsidian from 'obsidian';
+import { App, PluginSettingTab, Setting } from 'obsidian';
+import type {
+    SettingDefinitionGroup,
+    SettingDefinitionItem,
+    SettingDefinitionPage,
+    SettingDefinitionRender,
+    SettingGroupItem
+} from 'obsidian';
 import NotebookNavigatorPlugin from './main';
-import { strings } from './i18n';
 import { TIMEOUTS } from './types/obsidian-extended';
-import { renderStartResourcesSection } from './settings/tabs/StartResourcesSection';
-import { renderStartVaultConfigurationSection } from './settings/tabs/VaultSetupSection';
 import type {
     AddSettingFunction,
     DebouncedTextAreaSettingOptions,
-    SettingsTabId,
     SettingsTabContext,
     SettingDescription
 } from './settings/tabs/SettingsTabContext';
+import { createStartResourcesSettingDefinitions } from './settings/tabs/StartResourcesSection';
+import { createVaultSetupSettingDefinitions } from './settings/tabs/VaultSetupSection';
 import { runAsyncAction } from './utils/async';
 import { NOTEBOOK_NAVIGATOR_ICON_ID } from './constants/notebookNavigatorIcon';
-import { getIconService } from './services/icons';
 import { SettingsDiagnosticsController } from './settings/SettingsDiagnosticsController';
-import {
-    SETTINGS_GROUP_IDS,
-    SETTINGS_GROUP_SECONDARY_TAB_IDS,
-    SETTINGS_SECONDARY_TAB_IDS_ORDERED,
-    SETTINGS_TAB_GROUP_MAP,
-    resolveSettingsTabIconId,
-    type SettingsGroupId
-} from './settings/LegacySettingsNavigation';
 import {
     SETTINGS_PAGE_DESCRIPTION_GETTERS,
     SETTINGS_PAGE_GROUP_DEFINITIONS,
     SETTINGS_PANE_DEFINITION_MAP,
     SETTINGS_PANE_DEFINITIONS,
-    resolveSettingsPaneId,
     type SettingsPaneId
 } from './settings/SettingsPaneDefinitions';
-import { createSettingsSearchDefinitions, RENDERED_SETTING_ITEM_SELECTOR } from './settings/SettingsSearchDefinitions';
 
 /**
  * Settings tab for configuring the Notebook Navigator plugin
@@ -61,15 +55,6 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     plugin: NotebookNavigatorPlugin;
     // Map of active debounce timers for text inputs
     private debounceTimers: Map<string, number> = new Map();
-    // Map of tab IDs to their content elements
-    private tabContentMap: Map<SettingsPaneId, HTMLElement> = new Map();
-    // Map of tab IDs to their button components
-    private tabButtons: Map<SettingsPaneId, ButtonComponent> = new Map();
-    private tabIconElements: Map<SettingsPaneId, HTMLElement> = new Map();
-    private primaryNavEl: HTMLElement | null = null;
-    private secondaryNavEl: HTMLElement | null = null;
-    // Tracks the most recently active tab during the current session
-    private lastActiveTabId: SettingsPaneId | null = null;
     // Registered listeners for show tags visibility changes
     private showTagsListeners: ((visible: boolean) => void)[] = [];
     // Current visibility state of show tags setting
@@ -78,123 +63,8 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     private tabSettingsUpdateListeners = new Map<string, () => void>();
     private readonly diagnosticsController: SettingsDiagnosticsController;
     private settingsRenderContainerEl: HTMLElement | null = null;
-    private activeNativePaneId: SettingsPaneId | null = null;
-    // Index-only native definitions are visually hidden but remain searchable.
-    private hiddenSearchDefinitionTargets = new Map<SettingDefinition, HTMLElement>();
-
-    private getGroupIdForTab(tabId: SettingsPaneId): SettingsGroupId {
-        return SETTINGS_TAB_GROUP_MAP[tabId];
-    }
-
-    private resolveTabButtonIconId(tabId: SettingsPaneId): string | null {
-        return resolveSettingsTabIconId(this.plugin, tabId);
-    }
-
-    private renderTabButtonIcon(tabId: SettingsPaneId): void {
-        const iconEl = this.tabIconElements.get(tabId);
-        if (!iconEl) {
-            return;
-        }
-
-        iconEl.empty();
-        const iconId = this.resolveTabButtonIconId(tabId);
-        if (!iconId) {
-            return;
-        }
-
-        getIconService().renderIcon(iconEl, iconId);
-    }
-
-    private refreshTabButtonIcons(): void {
-        this.tabIconElements.forEach((_iconEl, tabId) => {
-            this.renderTabButtonIcon(tabId);
-        });
-        this.updateTabRowIconVisibility();
-    }
-
-    private rowExceedsSingleLine(rowEl: HTMLElement): boolean {
-        const overflowTolerance = 1;
-        if (rowEl.scrollWidth - rowEl.clientWidth > overflowTolerance) {
-            return true;
-        }
-
-        const buttons = Array.from(rowEl.querySelectorAll<HTMLElement>('.nn-settings-tab-button')).filter(button => {
-            if (button.hasClass('is-hidden')) {
-                return false;
-            }
-            return button.offsetParent !== null;
-        });
-
-        if (buttons.length <= 1) {
-            return false;
-        }
-
-        const firstTop = buttons[0].offsetTop;
-        return buttons.some(button => Math.abs(button.offsetTop - firstTop) > overflowTolerance);
-    }
-
-    private updateTabRowIconVisibilityForRow(rowEl: HTMLElement | null): void {
-        if (!rowEl) {
-            return;
-        }
-
-        rowEl.toggleClass('is-icons-hidden', false);
-        if (rowEl.hasClass('is-hidden')) {
-            return;
-        }
-
-        if (this.rowExceedsSingleLine(rowEl)) {
-            rowEl.toggleClass('is-icons-hidden', true);
-        }
-    }
-
-    private updateTabRowIconVisibility(): void {
-        this.updateTabRowIconVisibilityForRow(this.primaryNavEl);
-        this.updateTabRowIconVisibilityForRow(this.secondaryNavEl);
-    }
-
-    private updateTabNavigation(activeTabId: SettingsPaneId): void {
-        const activeGroupId = this.getGroupIdForTab(activeTabId);
-        this.secondaryNavEl?.toggleClass('is-hidden', SETTINGS_GROUP_SECONDARY_TAB_IDS[activeGroupId].length === 0);
-
-        for (const groupId of SETTINGS_GROUP_IDS) {
-            const groupButton = this.tabButtons.get(groupId);
-            if (!groupButton) {
-                continue;
-            }
-
-            const isActive = groupId === activeTabId;
-            const isGroupActive = groupId === activeGroupId && !isActive;
-            groupButton.buttonEl.toggleClass('is-group-active', isGroupActive);
-            groupButton.buttonEl.toggleClass('is-active', isActive);
-            groupButton.buttonEl.setAttribute('aria-selected', isActive ? 'true' : 'false');
-
-            if (isActive) {
-                groupButton.setCta();
-            } else {
-                groupButton.removeCta();
-            }
-        }
-
-        for (const tabId of SETTINGS_SECONDARY_TAB_IDS_ORDERED) {
-            const tabButton = this.tabButtons.get(tabId);
-            if (!tabButton) {
-                continue;
-            }
-
-            const isVisible = this.getGroupIdForTab(tabId) === activeGroupId;
-            tabButton.buttonEl.toggleClass('is-hidden', !isVisible);
-
-            const isActive = tabId === activeTabId;
-            tabButton.buttonEl.toggleClass('is-active', isActive);
-            tabButton.buttonEl.setAttribute('aria-selected', isActive ? 'true' : 'false');
-
-            // Keep the secondary tab row in the lighter tab-button style.
-            tabButton.removeCta();
-        }
-
-        this.updateTabRowIconVisibility();
-    }
+    private activeSettingsPage: { tabId: SettingsPaneId; containerEl: HTMLElement } | null = null;
+    private isFallbackSettingsDisplay = false;
 
     /**
      * Creates a new settings tab
@@ -214,68 +84,6 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         this.icon = NOTEBOOK_NAVIGATOR_ICON_ID;
     }
 
-    public selectTab(tabId: SettingsTabId, options?: { focus?: boolean }): void {
-        const paneId = resolveSettingsPaneId(tabId);
-        this.lastActiveTabId = paneId;
-
-        const contentWrapper = this.containerEl.querySelector<HTMLElement>('.nn-settings-tabs-content');
-        if (!contentWrapper) {
-            if (paneId === 'general') {
-                this.returnToNativeSettingsIndex();
-                return;
-            }
-
-            if (!this.openNativeSettingsPage(paneId)) {
-                this.returnToNativeSettingsIndex(paneId);
-            }
-            return;
-        }
-
-        this.activateTab(paneId, contentWrapper, { focus: options?.focus ?? false });
-    }
-
-    private openNativeSettingsPage(tabId: SettingsPaneId): boolean {
-        if (tabId === 'general') {
-            return false;
-        }
-
-        const definition = SETTINGS_PANE_DEFINITION_MAP.get(tabId);
-        if (!definition) {
-            return false;
-        }
-
-        const pageName = definition.getLabel();
-        const settingItems = Array.from(this.containerEl.querySelectorAll<HTMLElement>('.setting-item'));
-        const targetItem = settingItems.find(settingItem => {
-            const nameEl = settingItem.querySelector<HTMLElement>('.setting-item-name');
-            return nameEl?.textContent?.trim() === pageName;
-        });
-
-        if (!targetItem) {
-            return false;
-        }
-
-        const pageButton = targetItem.querySelector<HTMLElement>('.setting-item-control button, .setting-item-control .clickable-icon');
-        (pageButton ?? targetItem).click();
-        return true;
-    }
-
-    private returnToNativeSettingsIndex(tabId?: SettingsPaneId): void {
-        const backButton = this.containerEl.querySelector<HTMLElement>('.setting-page-back-button');
-        if (!backButton) {
-            return;
-        }
-
-        backButton.click();
-        if (!tabId) {
-            return;
-        }
-
-        window.requestAnimationFrame(() => {
-            this.openNativeSettingsPage(tabId);
-        });
-    }
-
     private ensureSettingsUpdateListener(): void {
         this.plugin.registerSettingsUpdateListener(this.settingsUpdateListenerId, () => {
             if (this.plugin.isExternalSettingsUpdate()) {
@@ -284,7 +92,6 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
             }
 
             this.refreshNativeSettingsDomState();
-            this.refreshTabButtonIcons();
             const listeners = Array.from(this.tabSettingsUpdateListeners.values());
             listeners.forEach(callback => {
                 try {
@@ -305,22 +112,24 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
 
     private refreshFromExternalSettingsUpdate(): void {
         const renderContainerEl = this.settingsRenderContainerEl ?? this.containerEl;
-        const contentWrapper = renderContainerEl.querySelector<HTMLElement>('.nn-settings-tabs-content');
-        const scrollTop = contentWrapper?.scrollTop ?? renderContainerEl.scrollTop;
+        const scrollTop = renderContainerEl.scrollTop;
 
-        if (this.activeNativePaneId) {
-            this.renderSettingsPane(this.activeNativePaneId, renderContainerEl);
-            renderContainerEl.scrollTop = scrollTop;
+        if (this.isFallbackSettingsDisplay) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- Fallback refresh for Obsidian versions before getSettingDefinitions.
+            this.display();
+            this.containerEl.scrollTop = scrollTop;
             return;
         }
 
-        if (!contentWrapper) {
-            this.updateNativeSettingsDefinitions();
-            renderContainerEl.scrollTop = scrollTop;
+        if (this.activeSettingsPage?.containerEl.isConnected) {
+            const { tabId, containerEl } = this.activeSettingsPage;
+            this.renderNativeSettingsPage(tabId, containerEl);
+            containerEl.scrollTop = scrollTop;
             return;
         }
 
-        this.renderSettingsTab({ focus: false, restoreScrollTop: scrollTop, containerEl: renderContainerEl });
+        this.updateNativeSettingsDefinitions();
+        renderContainerEl.scrollTop = scrollTop;
     }
 
     private updateNativeSettingsDefinitions(): void {
@@ -520,295 +329,181 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     }
 
     /**
-     * Renders the settings tab UI
-     * Organizes settings into grouped tabs:
-     * - General: General, Display filters, Appearance & behavior, Icon packs
-     * - Navigation pane: Navigation pane, Shortcuts, Folders & folder notes, Tags & properties
-     * - List pane: List pane, File operations, Frontmatter fields, File display
-     * - Calendar: Calendar
-     * - Advanced: Advanced
+     * Fallback used by Obsidian versions before native settings pages.
      */
     display(): void {
         this.ensureSettingsUpdateListener();
-        this.renderSettingsTab({ focus: true });
+        this.isFallbackSettingsDisplay = true;
+        this.activeSettingsPage = null;
+        this.prepareSettingsRender(this.containerEl);
+
+        SETTINGS_PANE_DEFINITIONS.forEach(definition => {
+            new Setting(this.containerEl).setName(definition.getLabel()).setHeading();
+            definition.render(this.createTabContext(this.containerEl));
+        });
     }
 
     getSettingDefinitions(): SettingDefinitionItem[] {
-        return [
-            ...this.createNativeSettingsLandingStartItems(),
+        this.isFallbackSettingsDisplay = false;
+        const context = this.createTabContext(this.containerEl);
+
+        const items: SettingDefinitionItem[] = [
+            ...createStartResourcesSettingDefinitions(context),
+            ...createVaultSetupSettingDefinitions(context),
             ...SETTINGS_PAGE_GROUP_DEFINITIONS.map(group => ({
                 type: 'group' as const,
                 heading: group.getHeading(),
                 items: group.items.map(tabId => this.createNativeSettingsPageDefinition(tabId))
             }))
         ];
-    }
 
-    /**
-     * Obsidian renders this declarative shell for pages and search, while Notebook Navigator
-     * keeps ownership of each setting row through its existing custom renderers.
-     */
-    private createNativeSettingsLandingStartItems(): SettingDefinitionItem[] {
-        const searchDefinitions = createSettingsSearchDefinitions('general', this.plugin);
-        let nativeStartContentEl: HTMLElement | null = null;
-
-        return [
-            this.createNativeSettingsLandingItem(strings.settings.sections.general, renderStartResourcesSection, rootEl => {
-                nativeStartContentEl = rootEl;
-            }),
-            this.createNativeSettingsLandingSection(
-                strings.settings.groups.general.vaultConfiguration,
-                renderStartVaultConfigurationSection,
-                rootEl => {
-                    nativeStartContentEl = rootEl;
-                }
-            ),
-            ...searchDefinitions,
-            this.createNativeSearchTargetMapper(strings.settings.sections.general, searchDefinitions, settingEl => {
-                return nativeStartContentEl ?? this.resolveNativePageContentEl(settingEl);
-            })
-        ];
-    }
-
-    private createNativeSettingsLandingItem(
-        name: string,
-        render: (context: SettingsTabContext) => void,
-        onRender?: (rootEl: HTMLElement) => void
-    ): SettingDefinition {
-        return {
-            name,
-            searchable: false,
-            element: listEl => {
-                this.ensureSettingsUpdateListener();
-                this.activeNativePaneId = null;
-                this.settingsRenderContainerEl = this.containerEl;
-                const rootEl = this.resolveNativePageContentEl(listEl);
-                const contentEl = listEl.createDiv('nn-settings-native-start-content nn-settings-tab-root');
-                onRender?.(rootEl);
-                render(this.createTabContext(contentEl));
-            }
-        };
-    }
-
-    private createNativeSettingsLandingSection(
-        heading: string,
-        render: (context: SettingsTabContext) => void,
-        onRender?: (rootEl: HTMLElement) => void
-    ): SettingDefinitionItem {
-        return {
-            type: 'group' as const,
-            heading,
-            items: [this.createNativeSettingsLandingItem(heading, render, onRender)]
-        };
+        return this.createNativeDefinitionItems(
+            items,
+            () => this.prepareNativeSettingsIndexRender(),
+            () => this.finishNativeSettingsIndexRender()
+        );
     }
 
     private createNativeSettingsPageDefinition(tabId: SettingsPaneId): SettingDefinitionPage {
         const definition = SETTINGS_PANE_DEFINITION_MAP.get(tabId);
         const name = definition?.getLabel() ?? tabId;
-        const searchDefinitions = createSettingsSearchDefinitions(tabId, this.plugin);
-        let nativePageContentEl: HTMLElement | null = null;
 
         return {
             type: 'page' as const,
             name,
             desc: SETTINGS_PAGE_DESCRIPTION_GETTERS[tabId](),
-            items: [
-                {
-                    name,
-                    searchable: false,
-                    element: (listEl: HTMLElement) => {
-                        this.ensureSettingsUpdateListener();
-                        nativePageContentEl = this.resolveNativePageContentEl(listEl);
-                        this.renderSettingsPane(tabId, nativePageContentEl);
-                    }
-                },
-                ...searchDefinitions,
-                this.createNativeSearchTargetMapper(name, searchDefinitions, settingEl => {
-                    return nativePageContentEl ?? this.resolveNativePageContentEl(settingEl);
+            page: () =>
+                createNativeSettingsPage({
+                    title: name,
+                    display: containerEl => this.renderNativeSettingsPage(tabId, containerEl),
+                    hide: containerEl => this.hideNativeSettingsPage(containerEl)
                 })
-            ]
         };
     }
 
-    /**
-     * Adds an index-only row after each rendered page that maps searchable native
-     * definitions to the custom Setting rows currently in the DOM.
-     */
-    private createNativeSearchTargetMapper(
-        name: string,
-        definitions: SettingDefinition[],
-        resolveContainerEl: (settingEl: HTMLElement) => HTMLElement
-    ): SettingDefinition {
-        return {
-            name: `${name} search targets`,
-            searchable: false,
-            render: setting => {
-                setting.settingEl.addClass('nn-setting-hidden');
-                this.mapHiddenSearchDefinitionsToRenderedRows(resolveContainerEl(setting.settingEl), definitions);
+    private createNativeDefinitionItems(
+        items: SettingDefinitionItem[],
+        onFirstRender: () => void,
+        onLastCleanup: () => void
+    ): SettingDefinitionItem[] {
+        let activeRenderCount = 0;
+
+        const beginRender = (): void => {
+            if (activeRenderCount === 0) {
+                onFirstRender();
+            }
+            activeRenderCount += 1;
+        };
+
+        const endRender = (): void => {
+            activeRenderCount = Math.max(0, activeRenderCount - 1);
+            if (activeRenderCount === 0) {
+                onLastCleanup();
             }
         };
-    }
 
-    private resolveNativePageContentEl(listEl: HTMLElement): HTMLElement {
-        return listEl.closest<HTMLElement>('.setting-page-content') ?? listEl;
-    }
+        const wrapRenderDefinition = (item: SettingDefinitionRender): SettingDefinitionRender => {
+            const render = item.render;
+            return {
+                ...item,
+                render: (setting, group) => {
+                    beginRender();
+                    const cleanup = render(setting, group);
+                    return () => {
+                        cleanup?.();
+                        endRender();
+                    };
+                }
+            };
+        };
 
-    private mapHiddenSearchDefinitionsToRenderedRows(containerEl: HTMLElement, definitions: SettingDefinition[]): void {
-        const settingElements = Array.from(containerEl.querySelectorAll<HTMLElement>(RENDERED_SETTING_ITEM_SELECTOR));
-        const settingElementsByName = new Map<string, HTMLElement[]>();
-
-        for (const settingEl of settingElements) {
-            const name = settingEl.querySelector<HTMLElement>('.setting-item-name')?.textContent?.trim();
-            if (!name) {
-                continue;
+        const wrapGroupItem = (item: SettingGroupItem): SettingGroupItem => {
+            if ('type' in item) {
+                return item;
             }
 
-            const existingElements = settingElementsByName.get(name) ?? [];
-            existingElements.push(settingEl);
-            settingElementsByName.set(name, existingElements);
-        }
-
-        for (const definition of definitions) {
-            const matchingElements = settingElementsByName.get(definition.name);
-            const targetEl = matchingElements?.find(element => element.offsetParent !== null) ?? matchingElements?.[0];
-            if (targetEl) {
-                this.hiddenSearchDefinitionTargets.set(definition, targetEl);
+            if ('render' in item && typeof item.render === 'function') {
+                return wrapRenderDefinition(item);
             }
-        }
+
+            return item;
+        };
+
+        const wrapItem = (item: SettingDefinitionItem): SettingDefinitionItem => {
+            if ('type' in item) {
+                if (item.type !== 'group') {
+                    return item;
+                }
+
+                const group: SettingDefinitionGroup = {
+                    ...item,
+                    items: item.items?.map(groupItem => wrapGroupItem(groupItem))
+                };
+                return group;
+            }
+
+            if ('render' in item && typeof item.render === 'function') {
+                return wrapRenderDefinition(item);
+            }
+
+            return item;
+        };
+
+        return items.map(item => wrapItem(item));
     }
 
-    /**
-     * Obsidian calls this when a search result is selected. Search results backed by
-     * index-only definitions should scroll to the visible custom Setting row.
-     */
-    getElementForDefinition(definition: SettingDefinition): HTMLElement | undefined {
-        const mappedTargetEl = this.hiddenSearchDefinitionTargets.get(definition);
-        if (mappedTargetEl?.isConnected) {
-            return mappedTargetEl;
-        }
-
-        const renderContainerEl = this.settingsRenderContainerEl ?? this.containerEl;
-        const fallbackTargetEl = this.findRenderedSettingElement(renderContainerEl, definition.name);
-        if (fallbackTargetEl) {
-            this.hiddenSearchDefinitionTargets.set(definition, fallbackTargetEl);
-            return fallbackTargetEl;
-        }
-
-        if (mappedTargetEl) {
-            this.hiddenSearchDefinitionTargets.delete(definition);
-        }
-
-        return undefined;
-    }
-
-    private findRenderedSettingElement(containerEl: HTMLElement, name: string): HTMLElement | undefined {
-        const settingElements = Array.from(containerEl.querySelectorAll<HTMLElement>(RENDERED_SETTING_ITEM_SELECTOR));
-        const matchingElements = settingElements.filter(
-            settingEl => settingEl.querySelector<HTMLElement>('.setting-item-name')?.textContent?.trim() === name
-        );
-        return matchingElements.find(element => element.offsetParent !== null) ?? matchingElements[0];
-    }
-
-    private clearHiddenSearchDefinitionTargets(): void {
-        this.hiddenSearchDefinitionTargets.clear();
-    }
-
-    private prepareSettingsRender(containerEl: HTMLElement): void {
-        this.clearHiddenSearchDefinitionTargets();
-        this.settingsRenderContainerEl = containerEl;
-        containerEl.empty();
-        containerEl.addClass('nn-settings-tab-root');
-
-        this.diagnosticsController.prepareForRender();
-        this.tabContentMap.clear();
-        this.tabButtons.clear();
-        this.tabIconElements.clear();
-        this.primaryNavEl = null;
-        this.secondaryNavEl = null;
-        this.tabSettingsUpdateListeners.clear();
-        this.showTagsListeners = [];
-        this.currentShowTagsVisible = this.plugin.settings.showTags;
-    }
-
-    private renderSettingsPane(tabId: SettingsPaneId, containerEl: HTMLElement): void {
+    private renderNativeSettingsPage(tabId: SettingsPaneId, containerEl: HTMLElement): void {
         const definition = SETTINGS_PANE_DEFINITION_MAP.get(tabId);
         if (!definition) {
             return;
         }
 
-        this.activeNativePaneId = tabId;
-        this.prepareSettingsRender(containerEl);
-
-        const tabContainer = containerEl.createDiv('nn-settings-tab is-active');
-        const context = this.createTabContext(tabContainer);
-        definition.render(context);
-        this.lastActiveTabId = tabId;
+        this.ensureSettingsUpdateListener();
+        this.settingsRenderContainerEl = containerEl;
+        this.activeSettingsPage = { tabId, containerEl };
+        containerEl.empty();
+        containerEl.addClass('nn-settings-tab-root');
+        this.resetRenderedSettingsState();
         this.diagnosticsController.handleTabActivation(tabId);
+        definition.render(this.createTabContext(containerEl));
     }
 
-    private renderSettingsTab(options?: { focus?: boolean; restoreScrollTop?: number; containerEl?: HTMLElement }): void {
-        const shouldFocus = options?.focus ?? false;
-        const restoreScrollTop = options?.restoreScrollTop;
-
-        const containerEl = options?.containerEl ?? this.containerEl;
-        this.activeNativePaneId = null;
-        this.prepareSettingsRender(containerEl);
-
-        // Create tab navigation structure
-        const tabsWrapper = containerEl.createDiv('nn-settings-tabs');
-        const navEl = tabsWrapper.createDiv('nn-settings-tabs-nav');
-        navEl.setAttribute('role', 'tablist');
-        const primaryNavEl = navEl.createDiv('nn-settings-tabs-nav-row nn-settings-tabs-nav-primary');
-        this.primaryNavEl = primaryNavEl;
-        const secondaryNavEl = navEl.createDiv('nn-settings-tabs-nav-row nn-settings-tabs-nav-secondary');
-        this.secondaryNavEl = secondaryNavEl;
-        const contentWrapper = tabsWrapper.createDiv('nn-settings-tabs-content');
-
-        const createTabButton = (container: HTMLElement, tabId: SettingsPaneId, variant: 'primary' | 'secondary'): void => {
-            const definition = SETTINGS_PANE_DEFINITION_MAP.get(tabId);
-            if (!definition) {
-                return;
-            }
-
-            const buttonComponent = new ButtonComponent(container);
-            buttonComponent.setButtonText(definition.getLabel());
-            const iconEl = buttonComponent.buttonEl.createSpan('nn-settings-tab-icon');
-            iconEl.setAttribute('aria-hidden', 'true');
-            buttonComponent.buttonEl.prepend(iconEl);
-            this.tabIconElements.set(tabId, iconEl);
-            this.renderTabButtonIcon(tabId);
-            buttonComponent.removeCta();
-            buttonComponent.buttonEl.addClass('nn-settings-tab-button');
-            buttonComponent.buttonEl.addClass('clickable-icon');
-            buttonComponent.buttonEl.addClass(
-                variant === 'primary' ? 'nn-settings-tab-button-primary' : 'nn-settings-tab-button-secondary'
-            );
-            buttonComponent.buttonEl.setAttribute('role', 'tab');
-            buttonComponent.buttonEl.setAttribute('aria-selected', 'false');
-            buttonComponent.onClick(() => {
-                this.activateTab(tabId, contentWrapper);
-            });
-            this.tabButtons.set(tabId, buttonComponent);
-        };
-
-        SETTINGS_GROUP_IDS.forEach(groupId => {
-            createTabButton(primaryNavEl, groupId, 'primary');
-        });
-
-        SETTINGS_SECONDARY_TAB_IDS_ORDERED.forEach(tabId => {
-            createTabButton(secondaryNavEl, tabId, 'secondary');
-        });
-
-        // Activate previously open tab if available, otherwise default to first
-        const fallbackTabId = SETTINGS_PANE_DEFINITIONS[0]?.id ?? null;
-        const initialTabId =
-            this.lastActiveTabId && SETTINGS_PANE_DEFINITION_MAP.has(this.lastActiveTabId) ? this.lastActiveTabId : fallbackTabId;
-        if (initialTabId) {
-            this.activateTab(initialTabId, contentWrapper, { focus: shouldFocus, preserveScroll: restoreScrollTop !== undefined });
+    private hideNativeSettingsPage(containerEl: HTMLElement): void {
+        containerEl.removeClass('nn-settings-tab-root');
+        if (this.settingsRenderContainerEl === containerEl) {
+            this.settingsRenderContainerEl = null;
         }
-        if (restoreScrollTop !== undefined) {
-            contentWrapper.scrollTop = restoreScrollTop;
+        if (this.activeSettingsPage?.containerEl === containerEl) {
+            this.activeSettingsPage = null;
         }
+        this.resetRenderedSettingsState();
+    }
+
+    private prepareSettingsRender(containerEl: HTMLElement): void {
+        this.settingsRenderContainerEl = containerEl;
+        containerEl.empty();
+        containerEl.addClass('nn-settings-tab-root');
+
+        this.resetRenderedSettingsState();
+    }
+
+    private prepareNativeSettingsIndexRender(): void {
+        this.ensureSettingsUpdateListener();
+        this.activeSettingsPage = null;
+        this.settingsRenderContainerEl = this.containerEl;
+        this.containerEl.addClass('nn-settings-tab-root');
+        this.resetRenderedSettingsState();
+    }
+
+    private finishNativeSettingsIndexRender(): void {
+        this.resetRenderedSettingsState();
+    }
+
+    private resetRenderedSettingsState(): void {
+        this.diagnosticsController.prepareForRender();
+        this.tabSettingsUpdateListeners.clear();
+        this.showTagsListeners = [];
+        this.currentShowTagsVisible = this.plugin.settings.showTags;
     }
 
     /**
@@ -837,8 +532,8 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
             unregisterSettingsUpdateListener: id => {
                 this.tabSettingsUpdateListeners.delete(id);
             },
-            registerMetadataInfoElement: element => {
-                this.diagnosticsController.registerMetadataInfoElement(element);
+            registerMetadataInfoElement: (element, exportButton) => {
+                this.diagnosticsController.registerMetadataInfoElement(element, exportButton);
             },
             registerStatsTextElement: element => {
                 this.diagnosticsController.registerStatsTextElement(element);
@@ -846,11 +541,11 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
             requestStatisticsRefresh: () => {
                 this.diagnosticsController.requestRefresh();
             },
+            refreshSettingsDomState: () => {
+                this.refreshNativeSettingsDomState();
+            },
             ensureStatisticsInterval: () => {
                 this.diagnosticsController.ensureStatisticsInterval();
-            },
-            openSettingsTab: (tabId: SettingsTabId) => {
-                this.plugin.openSettingsTab(tabId);
             },
             registerShowTagsListener: listener => {
                 this.showTagsListeners.push(listener);
@@ -864,51 +559,11 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     }
 
     /**
-     * Activates a settings tab by ID
-     * Creates tab content if it doesn't exist yet (lazy loading)
-     * Updates active state for both content and buttons
-     */
-    private activateTab(id: SettingsPaneId, contentWrapper: HTMLElement, options?: { focus?: boolean; preserveScroll?: boolean }): void {
-        const definition = SETTINGS_PANE_DEFINITION_MAP.get(id);
-        if (!definition) {
-            return;
-        }
-        const shouldFocus = options?.focus ?? false;
-
-        // Lazy load tab content on first access
-        if (!this.tabContentMap.has(id)) {
-            const tabContainer = contentWrapper.createDiv('nn-settings-tab');
-            const context = this.createTabContext(tabContainer);
-            definition.render(context);
-            this.tabContentMap.set(id, tabContainer);
-        }
-
-        const previousTabId = this.lastActiveTabId;
-        if (previousTabId && previousTabId !== id) {
-            this.tabContentMap.get(previousTabId)?.toggleClass('is-active', false);
-        }
-
-        this.tabContentMap.get(id)?.toggleClass('is-active', true);
-        this.lastActiveTabId = id;
-        this.updateTabNavigation(id);
-        if (!options?.preserveScroll) {
-            contentWrapper.scrollTop = 0;
-        }
-
-        this.diagnosticsController.handleTabActivation(id);
-
-        if (shouldFocus) {
-            this.tabButtons.get(id)?.buttonEl.focus();
-        }
-    }
-
-    /**
      * Called when settings tab is closed
      * Cleans up any pending debounce timers and intervals to prevent memory leaks
      */
     hide(): void {
         this.plugin.unregisterSettingsUpdateListener(this.settingsUpdateListenerId);
-        this.clearHiddenSearchDefinitionTargets();
 
         // Clean up all pending debounce timers when settings tab is closed
         this.debounceTimers.forEach(timer => window.clearTimeout(timer));
@@ -917,19 +572,58 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         this.diagnosticsController.dispose();
 
         // Clear references and state
-        this.primaryNavEl = null;
-        this.secondaryNavEl = null;
         this.tabSettingsUpdateListeners.clear();
-        this.tabContentMap.clear();
-        this.tabButtons.clear();
-        this.tabIconElements.clear();
         this.showTagsListeners = [];
+        this.activeSettingsPage = null;
         this.settingsRenderContainerEl?.removeClass('nn-settings-tab-root');
         this.settingsRenderContainerEl = null;
-        this.activeNativePaneId = null;
         this.containerEl.removeClass('nn-settings-tab-root');
     }
 }
+
+interface NotebookNavigatorSettingsPageOptions {
+    title: string;
+    display(containerEl: HTMLElement): void;
+    hide(containerEl: HTMLElement): void;
+}
+
+type NativeSettingPage = ReturnType<NonNullable<SettingDefinitionPage['page']>>;
+type NativeSettingPageConstructor = new () => NativeSettingPage;
+
+function isNativeSettingPageConstructor(value: unknown): value is NativeSettingPageConstructor {
+    return typeof value === 'function';
+}
+
+/* eslint-disable obsidianmd/no-unsupported-api -- SettingPage is looked up lazily and used only by native settings pages on Obsidian 1.13+. */
+function getNativeSettingPageConstructor(): NativeSettingPageConstructor {
+    const settingPageConstructor = Obsidian.SettingPage;
+    if (!isNativeSettingPageConstructor(settingPageConstructor)) {
+        throw new Error('Obsidian SettingPage API is unavailable.');
+    }
+
+    return settingPageConstructor;
+}
+
+function createNativeSettingsPage(options: NotebookNavigatorSettingsPageOptions): NativeSettingPage {
+    const SettingPageBase = getNativeSettingPageConstructor();
+
+    return new (class NotebookNavigatorSettingsPage extends SettingPageBase {
+        constructor() {
+            super();
+            this.title = options.title;
+        }
+
+        display(): void {
+            options.display(this.containerEl);
+        }
+
+        hide(): void {
+            super.hide();
+            options.hide(this.containerEl);
+        }
+    })();
+}
+/* eslint-enable obsidianmd/no-unsupported-api */
 
 export type {
     NotebookNavigatorSettings,

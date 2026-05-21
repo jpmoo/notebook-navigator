@@ -23,7 +23,7 @@ import { isAlphaSortOrder } from '../types';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { createSettingGroupFactory } from '../settingGroups';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
-import { wireToggleSettingWithSubSettings } from '../subSettings';
+import { wireToggleSettingWithDependentSection } from '../dependentSettings';
 import { FilePathInputSuggest } from '../../suggest/FilePathInputSuggest';
 import { FOLDER_NOTE_NAME_PATTERN_PLACEHOLDER } from '../../utils/folderNoteName';
 import { normalizeOptionalVaultFilePath } from '../../utils/pathUtils';
@@ -88,7 +88,7 @@ export function renderFoldersTab(context: SettingsTabContext, heading?: string):
     const enableFolderNotesSetting = folderNotesGroup.addSetting(setting => {
         setting.setName(strings.settings.items.enableFolderNotes.name).setDesc(strings.settings.items.enableFolderNotes.desc);
     });
-    const folderNotesSettingsEl = wireToggleSettingWithSubSettings(
+    const folderNotesSettingsEl = wireToggleSettingWithDependentSection(
         enableFolderNotesSetting,
         () => plugin.settings.enableFolderNotes,
         async value => {

@@ -23,7 +23,7 @@ import type { SettingsTabContext } from './SettingsTabContext';
 import { runAsyncAction } from '../../utils/async';
 import { createSettingGroupFactory } from '../settingGroups';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
-import { setElementVisible, wireToggleSettingWithSubSettings } from '../subSettings';
+import { createDependentSettingsSection, setElementVisible, wireToggleSettingWithDependentSection } from '../dependentSettings';
 import { DEFAULT_SETTINGS } from '../defaultSettings';
 import { isFeatureImagePixelSizeSetting, isFeatureImageSizeSetting, isWordCountPlacement } from '../types';
 import {
@@ -55,6 +55,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
 
     const createGroup = createSettingGroupFactory(containerEl);
     const tasksGroup = createGroup(strings.settings.groups.notes.tasks);
+    const unfinishedTaskBackgroundGroup = createGroup();
     const iconGroup = createGroup(strings.settings.groups.notes.icon);
     const titleGroup = createGroup(strings.settings.groups.notes.title);
     const previewTextGroup = createGroup(strings.settings.groups.notes.previewText);
@@ -152,13 +153,13 @@ export function renderNotesTab(context: SettingsTabContext): void {
             );
     });
 
-    const showFileBackgroundUnfinishedTaskSetting = tasksGroup.addSetting(setting => {
+    const showFileBackgroundUnfinishedTaskSetting = unfinishedTaskBackgroundGroup.addSetting(setting => {
         setting
             .setName(strings.settings.items.showFileBackgroundUnfinishedTask.name)
             .setDesc(strings.settings.items.showFileBackgroundUnfinishedTask.desc);
     });
 
-    const unfinishedTaskBackgroundSettingsEl = wireToggleSettingWithSubSettings(
+    const unfinishedTaskBackgroundSettingsEl = wireToggleSettingWithDependentSection(
         showFileBackgroundUnfinishedTaskSetting,
         () => plugin.settings.showFileBackgroundUnfinishedTask,
         async value => {
@@ -184,7 +185,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
         setting.setName(strings.settings.items.showFileIcons.name).setDesc(strings.settings.items.showFileIcons.desc);
     });
 
-    const fileIconSubSettingsEl = wireToggleSettingWithSubSettings(
+    const fileIconDependentSettingsEl = wireToggleSettingWithDependentSection(
         showFileIconsSetting,
         () => plugin.settings.showFileIcons,
         async value => {
@@ -245,7 +246,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
         );
     };
 
-    new Setting(fileIconSubSettingsEl)
+    new Setting(fileIconDependentSettingsEl)
         .setName(strings.settings.items.useFolderIcon.name)
         .setDesc(strings.settings.items.useFolderIcon.desc)
         .addToggle(toggle =>
@@ -255,7 +256,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
             })
         );
 
-    new Setting(fileIconSubSettingsEl)
+    const showFilenameMatchIconsSetting = new Setting(fileIconDependentSettingsEl)
         .setName(strings.settings.items.showFilenameMatchIcons.name)
         .setDesc(strings.settings.items.showFilenameMatchIcons.desc)
         .addToggle(toggle =>
@@ -265,9 +266,10 @@ export function renderNotesTab(context: SettingsTabContext): void {
                 updateFileNameIconMapVisibility?.();
             })
         );
+    const fileNameIconMapSettingsEl = createDependentSettingsSection(showFilenameMatchIconsSetting);
 
     const fileNameIconMapSetting = context.createDebouncedTextAreaSetting(
-        fileIconSubSettingsEl,
+        fileNameIconMapSettingsEl,
         strings.settings.items.fileNameIconMap.name,
         strings.settings.items.fileNameIconMap.desc,
         strings.settings.items.fileNameIconMap.placeholder,
@@ -295,11 +297,11 @@ export function renderNotesTab(context: SettingsTabContext): void {
     });
     fileNameIconMapSetting.controlEl.addClass('nn-setting-wide-input');
     updateFileNameIconMapVisibility = () => {
-        setElementVisible(fileNameIconMapSetting.settingEl, plugin.settings.showFilenameMatchIcons);
+        setElementVisible(fileNameIconMapSettingsEl, plugin.settings.showFilenameMatchIcons);
     };
     updateFileNameIconMapVisibility();
 
-    new Setting(fileIconSubSettingsEl)
+    const showCategoryIconsSetting = new Setting(fileIconDependentSettingsEl)
         .setName(strings.settings.items.showCategoryIcons.name)
         .setDesc(strings.settings.items.showCategoryIcons.desc)
         .addToggle(toggle =>
@@ -309,9 +311,10 @@ export function renderNotesTab(context: SettingsTabContext): void {
                 updateFileTypeIconMapVisibility?.();
             })
         );
+    const fileTypeIconMapSettingsEl = createDependentSettingsSection(showCategoryIconsSetting);
 
     const fileTypeIconMapSetting = context.createDebouncedTextAreaSetting(
-        fileIconSubSettingsEl,
+        fileTypeIconMapSettingsEl,
         strings.settings.items.fileTypeIconMap.name,
         strings.settings.items.fileTypeIconMap.desc,
         strings.settings.items.fileTypeIconMap.placeholder,
@@ -339,7 +342,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
     });
     fileTypeIconMapSetting.controlEl.addClass('nn-setting-wide-input');
     updateFileTypeIconMapVisibility = () => {
-        setElementVisible(fileTypeIconMapSetting.settingEl, plugin.settings.showCategoryIcons);
+        setElementVisible(fileTypeIconMapSettingsEl, plugin.settings.showCategoryIcons);
     };
     updateFileTypeIconMapVisibility();
 
@@ -376,7 +379,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
         setting.setName(strings.settings.items.showFilePreview.name).setDesc(strings.settings.items.showFilePreview.desc);
     });
 
-    const previewSettingsEl = wireToggleSettingWithSubSettings(
+    const previewSettingsEl = wireToggleSettingWithDependentSection(
         showPreviewSetting,
         () => plugin.settings.showFilePreview,
         async value => {
@@ -477,7 +480,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
         setting.setName(strings.settings.items.showFeatureImage.name).setDesc(strings.settings.items.showFeatureImage.desc);
     });
 
-    const featureImageSettingsEl = wireToggleSettingWithSubSettings(
+    const featureImageSettingsEl = wireToggleSettingWithDependentSection(
         showFeatureImageSetting,
         () => plugin.settings.showFeatureImage,
         async value => {
@@ -570,7 +573,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
         setting.setName(strings.settings.items.showFileTags.name).setDesc(strings.settings.items.showFileTags.desc);
     });
 
-    const fileTagsSubSettingsEl = wireToggleSettingWithSubSettings(
+    const fileTagsDependentSettingsEl = wireToggleSettingWithDependentSection(
         showFileTagsSetting,
         () => plugin.settings.showFileTags,
         async value => {
@@ -579,10 +582,10 @@ export function renderNotesTab(context: SettingsTabContext): void {
         }
     );
 
-    const colorFileTagsSetting = new Setting(fileTagsSubSettingsEl)
+    const colorFileTagsSetting = new Setting(fileTagsDependentSettingsEl)
         .setName(strings.settings.items.colorFileTags.name)
         .setDesc(strings.settings.items.colorFileTags.desc);
-    const colorFileTagsSubSettingsEl = wireToggleSettingWithSubSettings(
+    const colorFileTagsDependentSettingsEl = wireToggleSettingWithDependentSection(
         colorFileTagsSetting,
         () => plugin.settings.colorFileTags,
         async value => {
@@ -591,7 +594,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
         }
     );
 
-    new Setting(colorFileTagsSubSettingsEl)
+    new Setting(colorFileTagsDependentSettingsEl)
         .setName(strings.settings.items.prioritizeColoredFileTags.name)
         .setDesc(strings.settings.items.prioritizeColoredFileTags.desc)
         .addToggle(toggle =>
@@ -601,7 +604,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
             })
         );
 
-    new Setting(fileTagsSubSettingsEl)
+    new Setting(fileTagsDependentSettingsEl)
         .setName(strings.settings.items.showFileTagAncestors.name)
         .setDesc(strings.settings.items.showFileTagAncestors.desc)
         .addToggle(toggle =>
@@ -611,7 +614,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
             })
         );
 
-    new Setting(fileTagsSubSettingsEl)
+    new Setting(fileTagsDependentSettingsEl)
         .setName(strings.settings.items.showFileTagsInCompactMode.name)
         .setDesc(strings.settings.items.showFileTagsInCompactMode.desc)
         .addToggle(toggle =>
@@ -625,7 +628,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
         setting.setName(strings.settings.items.showFileProperties.name).setDesc(strings.settings.items.showFileProperties.desc);
     });
 
-    const filePropertiesSubSettingsEl = wireToggleSettingWithSubSettings(
+    const filePropertiesDependentSettingsEl = wireToggleSettingWithDependentSection(
         showFilePropertiesSetting,
         () => plugin.settings.showFileProperties,
         async value => {
@@ -634,11 +637,11 @@ export function renderNotesTab(context: SettingsTabContext): void {
         }
     );
 
-    const colorFilePropertiesSetting = new Setting(filePropertiesSubSettingsEl)
+    const colorFilePropertiesSetting = new Setting(filePropertiesDependentSettingsEl)
         .setName(strings.settings.items.colorFileProperties.name)
         .setDesc(strings.settings.items.colorFileProperties.desc);
 
-    const colorFilePropertiesSubSettingsEl = wireToggleSettingWithSubSettings(
+    const colorFilePropertiesDependentSettingsEl = wireToggleSettingWithDependentSection(
         colorFilePropertiesSetting,
         () => plugin.settings.colorFileProperties,
         async value => {
@@ -647,7 +650,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
         }
     );
 
-    new Setting(colorFilePropertiesSubSettingsEl)
+    new Setting(colorFilePropertiesDependentSettingsEl)
         .setName(strings.settings.items.prioritizeColoredFileProperties.name)
         .setDesc(strings.settings.items.prioritizeColoredFileProperties.desc)
         .addToggle(toggle =>
@@ -657,7 +660,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
             })
         );
 
-    new Setting(filePropertiesSubSettingsEl)
+    new Setting(filePropertiesDependentSettingsEl)
         .setName(strings.settings.items.showFilePropertiesInCompactMode.name)
         .setDesc(strings.settings.items.showFilePropertiesInCompactMode.desc)
         .addToggle(toggle =>
@@ -667,7 +670,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
             })
         );
 
-    new Setting(filePropertiesSubSettingsEl)
+    new Setting(filePropertiesDependentSettingsEl)
         .setName(strings.settings.items.showPropertiesOnSeparateRows.name)
         .setDesc(strings.settings.items.showPropertiesOnSeparateRows.desc)
         .addToggle(toggle =>
@@ -677,7 +680,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
             })
         );
 
-    new Setting(filePropertiesSubSettingsEl)
+    new Setting(filePropertiesDependentSettingsEl)
         .setName(strings.settings.items.enablePropertyInternalLinks.name)
         .setDesc(strings.settings.items.enablePropertyInternalLinks.desc)
         .addToggle(toggle =>
@@ -687,7 +690,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
             })
         );
 
-    new Setting(filePropertiesSubSettingsEl)
+    new Setting(filePropertiesDependentSettingsEl)
         .setName(strings.settings.items.enablePropertyExternalLinks.name)
         .setDesc(strings.settings.items.enablePropertyExternalLinks.desc)
         .addToggle(toggle =>
@@ -701,7 +704,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
         setting.setName(strings.settings.items.showFileDate.name).setDesc(strings.settings.items.showFileDate.desc);
     });
 
-    const fileDateSubSettingsEl = wireToggleSettingWithSubSettings(
+    const fileDateDependentSettingsEl = wireToggleSettingWithDependentSection(
         showFileDateSetting,
         () => plugin.settings.showFileDate,
         async value => {
@@ -711,7 +714,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
     );
 
     // Dropdown to choose which date to display when sorting alphabetically
-    new Setting(fileDateSubSettingsEl)
+    new Setting(fileDateDependentSettingsEl)
         .setName(strings.settings.items.alphabeticalDateMode.name)
         .setDesc(strings.settings.items.alphabeticalDateMode.desc)
         .addDropdown(dropdown =>
@@ -729,7 +732,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
         setting.setName(strings.settings.items.showParentFolder.name).setDesc(strings.settings.items.showParentFolder.desc);
     });
 
-    const parentFolderSettingsEl = wireToggleSettingWithSubSettings(
+    const parentFolderSettingsEl = wireToggleSettingWithDependentSection(
         showParentFolderSetting,
         () => plugin.settings.showParentFolder,
         async value => {
@@ -782,7 +785,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
         setting.setName(strings.settings.items.showWordCount.name).setDesc(strings.settings.items.showWordCount.desc);
     });
 
-    const wordCountSettingsEl = wireToggleSettingWithSubSettings(
+    const wordCountSettingsEl = wireToggleSettingWithDependentSection(
         showWordCountSetting,
         () => plugin.settings.showWordCount,
         async value => {

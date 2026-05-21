@@ -70,7 +70,6 @@ import {
     type SyncModeSettingId,
     type TagSortOrder
 } from './settings/types';
-import type { SettingsTabId } from './settings/tabs/SettingsTabContext';
 import { NOTEBOOK_NAVIGATOR_ICON_ID, NOTEBOOK_NAVIGATOR_ICON_SVG } from './constants/notebookNavigatorIcon';
 import { PluginSettingsController } from './services/settings/PluginSettingsController';
 import { PluginPreferencesController } from './services/settings/PluginPreferencesController';
@@ -167,14 +166,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         return this.settingsController.isSynced(settingId);
     }
 
-    public openSettingsTab(tabId: SettingsTabId): boolean {
-        const settingTab = this.settingTab;
-        if (!settingTab) {
-            return false;
-        }
-
-        settingTab.selectTab(tabId);
-
+    public openSettings(): boolean {
         const settingsModal = getSettingsModal(this.app);
         if (!settingsModal) {
             return false;
@@ -183,10 +175,6 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         try {
             settingsModal.open();
             settingsModal.openTabById(this.manifest.id);
-            settingTab.selectTab(tabId, { focus: true });
-            window.requestAnimationFrame(() => {
-                settingTab.selectTab(tabId, { focus: true });
-            });
             return true;
         } catch {
             return false;

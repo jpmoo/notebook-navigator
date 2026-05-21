@@ -25,7 +25,7 @@ import { TIMEOUTS } from '../../types/obsidian-extended';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { runAsyncAction } from '../../utils/async';
 import { createSettingGroupFactory } from '../settingGroups';
-import { setElementVisible, wireToggleSettingWithSubSettings } from '../subSettings';
+import { setElementVisible, wireToggleSettingWithDependentSection } from '../dependentSettings';
 import { normalizeCommaSeparatedList } from '../../utils/commaSeparatedListUtils';
 import { createSettingDescriptionWithExternalLink } from './externalLink';
 
@@ -72,7 +72,7 @@ export function renderFrontmatterTab(context: SettingsTabContext): void {
         setting.setName(strings.settings.items.useFrontmatterDates.name).setDesc(strings.settings.items.useFrontmatterDates.desc);
     });
 
-    const frontmatterSettingsEl = wireToggleSettingWithSubSettings(
+    const frontmatterSettingsEl = wireToggleSettingWithDependentSection(
         useFrontmatterSetting,
         () => plugin.settings.useFrontmatterMetadata,
         async value => {
@@ -275,9 +275,10 @@ export function renderFrontmatterTab(context: SettingsTabContext): void {
         );
     dateFormatSetting.controlEl.addClass('nn-setting-wide-input');
 
-    const metadataInfoContainer = frontmatterSettingsEl.createDiv('nn-setting-info-container');
-    const metadataInfoEl = metadataInfoContainer.createDiv({
-        cls: 'setting-item-description'
+    const metadataInfoSetting = new Setting(frontmatterSettingsEl).setName('').setDesc('');
+    metadataInfoSetting.settingEl.addClass('nn-setting-info-container');
+    metadataInfoSetting.descEl.empty();
+    metadataInfoSetting.addButton(button => {
+        context.registerMetadataInfoElement(metadataInfoSetting.descEl, button);
     });
-    context.registerMetadataInfoElement(metadataInfoEl);
 }
