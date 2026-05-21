@@ -27,10 +27,15 @@ import { createExternalLinkText } from './externalLink';
 
 /** Renders the icon packs settings tab */
 export function renderIconPacksTab(context: SettingsTabContext): void {
-    const { containerEl, plugin, addInfoSetting } = context;
-    containerEl.empty();
+    const iconPacksRootEl = context.containerEl.createDiv();
+    renderIconPacksContent(context, iconPacksRootEl);
+}
 
-    const createGroup = createSettingGroupFactory(containerEl);
+function renderIconPacksContent(context: SettingsTabContext, iconPacksRootEl: HTMLElement): void {
+    const { plugin, addInfoSetting } = context;
+    iconPacksRootEl.empty();
+
+    const createGroup = createSettingGroupFactory(iconPacksRootEl);
     const iconPacksGroup = createGroup(undefined);
 
     Object.values(EXTERNAL_ICON_PROVIDERS).forEach(config => {
@@ -73,7 +78,7 @@ export function renderIconPacksTab(context: SettingsTabContext): void {
                         button.setDisabled(true);
                         try {
                             await plugin.removeExternalIconProvider(config.id);
-                            renderIconPacksTab(context);
+                            renderIconPacksContent(context, iconPacksRootEl);
                         } catch (error) {
                             console.error('Failed to remove icon provider', error);
                             showNotice(strings.settings.items.externalIcons.removeFailed.replace('{name}', config.name), {
@@ -98,7 +103,7 @@ export function renderIconPacksTab(context: SettingsTabContext): void {
                         button.setDisabled(true);
                         try {
                             await plugin.downloadExternalIconProvider(config.id);
-                            renderIconPacksTab(context);
+                            renderIconPacksContent(context, iconPacksRootEl);
                         } catch (error) {
                             console.error('Failed to download icon provider', error);
                             showNotice(strings.settings.items.externalIcons.downloadFailed.replace('{name}', config.name), {

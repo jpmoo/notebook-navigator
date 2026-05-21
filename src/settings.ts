@@ -17,7 +17,7 @@
  */
 
 import * as Obsidian from 'obsidian';
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { App, ButtonComponent, PluginSettingTab, Setting } from 'obsidian';
 import type {
     SettingDefinitionGroup,
     SettingDefinitionItem,
@@ -33,8 +33,10 @@ import type {
     SettingsTabContext,
     SettingDescription
 } from './settings/tabs/SettingsTabContext';
+import { strings } from './i18n';
 import { createStartResourcesSettingDefinitions } from './settings/tabs/StartResourcesSection';
 import { createVaultSetupSettingDefinitions } from './settings/tabs/VaultSetupSection';
+import { createSettingGroupFactory } from './settings/settingGroups';
 import { runAsyncAction } from './utils/async';
 import { NOTEBOOK_NAVIGATOR_ICON_ID } from './constants/notebookNavigatorIcon';
 import { SettingsDiagnosticsController } from './settings/SettingsDiagnosticsController';
@@ -42,7 +44,6 @@ import {
     SETTINGS_PAGE_DESCRIPTION_GETTERS,
     SETTINGS_PAGE_GROUP_DEFINITIONS,
     SETTINGS_PANE_DEFINITION_MAP,
-    SETTINGS_PANE_DEFINITIONS,
     type SettingsPaneId
 } from './settings/SettingsPaneDefinitions';
 
@@ -65,6 +66,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     private settingsRenderContainerEl: HTMLElement | null = null;
     private activeSettingsPage: { tabId: SettingsPaneId; containerEl: HTMLElement } | null = null;
     private isFallbackSettingsDisplay = false;
+    private legacySettingsLandingScrollTop = 0;
 
     /**
      * Creates a new settings tab
@@ -115,8 +117,12 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         const scrollTop = renderContainerEl.scrollTop;
 
         if (this.isFallbackSettingsDisplay) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- Fallback refresh for Obsidian versions before getSettingDefinitions.
-            this.display();
+            const activeLegacyTabId = this.activeSettingsPage?.containerEl === this.containerEl ? this.activeSettingsPage.tabId : null;
+            if (activeLegacyTabId) {
+                this.renderLegacySettingsPage(activeLegacyTabId);
+            } else {
+                this.renderLegacySettingsLanding();
+            }
             this.containerEl.scrollTop = scrollTop;
             return;
         }
@@ -332,15 +338,103 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
      * Fallback used by Obsidian versions before native settings pages.
      */
     display(): void {
+        this.renderLegacySettingsLanding();
+    }
+
+    private renderLegacySettingsLanding(): void {
         this.ensureSettingsUpdateListener();
         this.isFallbackSettingsDisplay = true;
         this.activeSettingsPage = null;
         this.prepareSettingsRender(this.containerEl);
 
-        SETTINGS_PANE_DEFINITIONS.forEach(definition => {
-            new Setting(this.containerEl).setName(definition.getLabel()).setHeading();
-            definition.render(this.createTabContext(this.containerEl));
+        const generalDefinition = SETTINGS_PANE_DEFINITION_MAP.get('general');
+        generalDefinition?.render(this.createTabContext(this.containerEl));
+
+        const createGroup = createSettingGroupFactory(this.containerEl);
+        SETTINGS_PAGE_GROUP_DEFINITIONS.forEach(group => {
+            const pageGroup = createGroup(group.getHeading());
+            group.items.forEach(tabId => {
+                this.addLegacySettingsPageLink(pageGroup.addSetting, tabId);
+            });
         });
+    }
+
+    private addLegacySettingsPageLink(addSetting: AddSettingFunction, tabId: SettingsPaneId): void {
+        const definition = SETTINGS_PANE_DEFINITION_MAP.get(tabId);
+        if (!definition) {
+            return;
+        }
+
+        const name = definition.getLabel();
+        const setting = addSetting(setting => {
+            setting.setName(name).setDesc(SETTINGS_PAGE_DESCRIPTION_GETTERS[tabId]());
+            setting.addExtraButton(button =>
+                button
+                    .setIcon('lucide-chevron-right')
+                    .setTooltip(name)
+                    .onClick(() => this.openLegacySettingsPage(tabId))
+            );
+        });
+
+        setting.settingEl.addClass('nn-settings-legacy-page-link');
+        setting.settingEl.tabIndex = 0;
+        setting.settingEl.setAttr('role', 'button');
+        setting.settingEl.setAttr('aria-label', name);
+        setting.settingEl.addEventListener('click', event => {
+            if (isLegacySettingsInteractiveTarget(event.target)) {
+                return;
+            }
+            this.openLegacySettingsPage(tabId);
+        });
+        setting.settingEl.addEventListener('keydown', event => {
+            if (event.key !== 'Enter' && event.key !== ' ') {
+                return;
+            }
+            event.preventDefault();
+            this.openLegacySettingsPage(tabId);
+        });
+    }
+
+    private openLegacySettingsPage(tabId: SettingsPaneId): void {
+        this.legacySettingsLandingScrollTop = this.containerEl.scrollTop;
+        this.renderLegacySettingsPage(tabId);
+    }
+
+    private returnToLegacySettingsLanding(): void {
+        const scrollTop = this.legacySettingsLandingScrollTop;
+        this.renderLegacySettingsLanding();
+        this.containerEl.scrollTop = scrollTop;
+    }
+
+    private renderLegacySettingsPage(tabId: SettingsPaneId): void {
+        const definition = SETTINGS_PANE_DEFINITION_MAP.get(tabId);
+        if (!definition) {
+            return;
+        }
+
+        this.ensureSettingsUpdateListener();
+        this.isFallbackSettingsDisplay = true;
+        this.prepareSettingsRender(this.containerEl);
+        this.activeSettingsPage = { tabId, containerEl: this.containerEl };
+        this.renderLegacySettingsPageTitle(definition.getLabel());
+        this.diagnosticsController.handleTabActivation(tabId);
+        definition.render(this.createTabContext(this.containerEl));
+        this.containerEl.scrollTop = 0;
+    }
+
+    private renderLegacySettingsPageTitle(title: string): void {
+        const titleSetting = new Setting(this.containerEl).setName(title).setHeading();
+        titleSetting.settingEl.addClass('nn-settings-legacy-titlebar');
+        titleSetting.nameEl.empty();
+        const backButton = new ButtonComponent(titleSetting.nameEl);
+        backButton
+            .setIcon('lucide-chevron-left')
+            .setTooltip(strings.commands.navigateBack)
+            .onClick(() => this.returnToLegacySettingsLanding());
+        backButton.buttonEl.addClass('clickable-icon');
+        backButton.buttonEl.addClass('nn-settings-legacy-back-button');
+        backButton.buttonEl.setAttr('aria-label', strings.commands.navigateBack);
+        titleSetting.nameEl.createSpan({ text: title });
     }
 
     getSettingDefinitions(): SettingDefinitionItem[] {
@@ -579,6 +673,14 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         this.settingsRenderContainerEl = null;
         this.containerEl.removeClass('nn-settings-tab-root');
     }
+}
+
+function isLegacySettingsInteractiveTarget(target: EventTarget | null): boolean {
+    if (!(target instanceof HTMLElement)) {
+        return false;
+    }
+
+    return Boolean(target.closest('button, a, input, select, textarea, .clickable-icon, [contenteditable="true"]'));
 }
 
 interface NotebookNavigatorSettingsPageOptions {
