@@ -2103,7 +2103,7 @@ export const STRINGS_PL = {
             },
             folderNoteTemplate: {
                 name: 'Szablon notatki folderu',
-                desc: 'Plik szablonu dla nowych notatek folderów Markdown. Ustaw lokalizację folderu szablonów w Ogólne > Szablony.'
+                desc: 'Plik szablonu dla nowych notatek folderów Markdown. Ustaw lokalizację folderu szablonów w Wygląd i zachowanie > Szablony.'
             },
             enableFolderNoteLinks: {
                 name: 'Włącz linki notatek folderów',
