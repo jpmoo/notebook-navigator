@@ -105,20 +105,6 @@
     margin-bottom: 8px;
 }
 
-.nn-setting-info-container.nn-setting-info-centered.setting-item {
-    justify-content: center;
-}
-
-.nn-setting-info-container.nn-setting-info-centered .setting-item-info,
-.nn-setting-info-container.nn-setting-info-centered .setting-item-description {
-    text-align: center;
-}
-
-.nn-setting-info-container.nn-setting-info-list .setting-item-info,
-.nn-setting-info-container.nn-setting-info-list .setting-item-description {
-    text-align: left;
-}
-
 .nn-setting-info-list ol {
     margin: 6px 0 0 1.5em;
     padding: 0;

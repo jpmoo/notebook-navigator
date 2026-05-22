@@ -109,7 +109,6 @@ export function renderPropertiesTab(context: SettingsTabContext, heading?: strin
 
     const propertyKeysInfoSetting = new Setting(propertiesDependentSettingsEl).setName('').setDesc('');
     propertyKeysInfoSetting.settingEl.addClass('nn-setting-info-container');
-    propertyKeysInfoSetting.settingEl.addClass('nn-setting-info-centered');
     propertyKeysInfoSetting.settingEl.addClass('nn-setting-property-keys-info');
     propertyKeysInfoSetting.setDesc(
         `${strings.settings.items.showProperties.propertyKeysInfoPrefix}${strings.settings.items.showProperties.propertyKeysInfoLinkText}${strings.settings.items.showProperties.propertyKeysInfoSuffix}`

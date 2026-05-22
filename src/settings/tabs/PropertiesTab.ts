@@ -99,7 +99,6 @@ function renderPropertySortOrderSetting(setting: Setting, context: SettingsTabCo
 function renderPropertyKeysInfoSetting(setting: Setting): void {
     setting.setName('').setDesc('');
     setting.settingEl.addClass('nn-setting-info-container');
-    setting.settingEl.addClass('nn-setting-info-centered');
     setting.settingEl.addClass('nn-setting-property-keys-info');
     setting.setDesc(
         `${strings.settings.items.showProperties.propertyKeysInfoPrefix}${strings.settings.items.showProperties.propertyKeysInfoLinkText}${strings.settings.items.showProperties.propertyKeysInfoSuffix}`

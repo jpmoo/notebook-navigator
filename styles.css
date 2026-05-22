@@ -6799,20 +6799,6 @@ body.nn-resizing {
     margin-bottom: 8px;
 }
 
-.nn-setting-info-container.nn-setting-info-centered.setting-item {
-    justify-content: center;
-}
-
-.nn-setting-info-container.nn-setting-info-centered .setting-item-info,
-.nn-setting-info-container.nn-setting-info-centered .setting-item-description {
-    text-align: center;
-}
-
-.nn-setting-info-container.nn-setting-info-list .setting-item-info,
-.nn-setting-info-container.nn-setting-info-list .setting-item-description {
-    text-align: left;
-}
-
 .nn-setting-info-list ol {
     margin: 6px 0 0 1.5em;
     padding: 0;
@@ -7132,7 +7118,6 @@ button.nn-youtube-button svg {
 .nn-stats-text {
     font-size: var(--font-ui-smaller);
     color: var(--nn-theme-foreground-muted);
-    text-align: center;
     line-height: 1.5;
 }
 
@@ -7141,19 +7126,6 @@ button.nn-youtube-button svg {
     border: none;
     padding: 0;
     margin-top: 0;
-}
-
-/* Advanced > Local cache: center text by removing the empty control column */
-.nn-local-cache-stats-setting .setting-item-control {
-    display: none;
-}
-
-.nn-local-cache-stats-setting .setting-item-info {
-    width: 100%;
-}
-
-.nn-local-cache-stats-setting .nn-stats-text {
-    text-align: center;
 }
 /* Source: src/styles/sections/modal-color-picker.css */
 

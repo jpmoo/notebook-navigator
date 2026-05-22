@@ -242,7 +242,6 @@ function renderCacheStatsSetting(setting: Setting, context: SettingsTabContext):
     setting.setName('').setDesc('');
     setting.settingEl.addClass('nn-database-stats');
     setting.settingEl.addClass('nn-stats-section');
-    setting.settingEl.addClass('nn-local-cache-stats-setting');
 
     const statsTextEl = setting.descEl.createDiv({ cls: 'nn-stats-text' });
     context.registerStatsTextElement(statsTextEl);

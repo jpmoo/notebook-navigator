@@ -208,11 +208,7 @@ export function renderAdvancedTab(context: SettingsTabContext): void {
             );
     });
 
-    const cacheStatsSetting = addInfoSetting(
-        advancedGroup.addSetting,
-        ['nn-database-stats', 'nn-stats-section', 'nn-local-cache-stats-setting'],
-        () => {}
-    );
+    const cacheStatsSetting = addInfoSetting(advancedGroup.addSetting, ['nn-database-stats', 'nn-stats-section'], () => {});
 
     const statsTextEl = cacheStatsSetting.descEl.createDiv({ cls: 'nn-stats-text' });
 

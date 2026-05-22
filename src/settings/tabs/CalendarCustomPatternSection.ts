@@ -410,7 +410,6 @@ export function createCalendarCustomPatternRenderers(options: CalendarCustomPatt
     const renderPatternInfoSetting = (setting: Setting): void => {
         setting.setName('').setDesc('');
         setting.settingEl.addClass('nn-setting-info-container');
-        setting.settingEl.addClass('nn-setting-info-centered');
         setting.descEl.empty();
         setting.descEl.append(
             createInlineExternalLinkText({
