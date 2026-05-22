@@ -34,6 +34,7 @@ import { showNotice } from '../../utils/noticeUtils';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
 import type { VaultProfilePropertyKey } from '../types';
 import { isVaultTitleOption } from '../types';
+import { createGroupDefinition, createRenderDefinition } from '../nativeSettingControls';
 import { createSettingGroupFactory } from '../settingGroups';
 import type { SettingsTabContext } from './SettingsTabContext';
 
@@ -72,38 +73,36 @@ function renderVaultSetupSection(context: SettingsTabContext, options: VaultSetu
 export function createVaultSetupSettingDefinitions(context: SettingsTabContext): SettingDefinitionGroup[] {
     const renderers = createVaultSetupRenderers(context);
     const items: NonNullable<SettingDefinitionGroup['items']> = [
-        {
+        createRenderDefinition({
             name: strings.settings.items.vaultProfiles.name,
             desc: strings.settings.items.vaultProfiles.desc,
             render: setting => renderers.renderProfileSetting(setting)
-        },
-        {
+        }),
+        createRenderDefinition({
             name: strings.settings.items.fileVisibility.name,
             desc: strings.settings.items.fileVisibility.desc,
             render: setting => renderers.renderFileVisibilitySetting(setting)
-        },
-        {
+        }),
+        createRenderDefinition({
             name: strings.settings.items.propertyFields.name,
             desc: strings.settings.items.propertyFields.desc,
             render: setting => renderers.renderPropertyKeysSetting(setting)
-        }
+        })
     ];
 
     if (!Platform.isMobile) {
-        items.splice(1, 0, {
-            name: strings.settings.items.vaultTitle.name,
-            desc: strings.settings.items.vaultTitle.desc,
-            render: setting => renderers.renderVaultTitleSetting(setting)
-        });
+        items.splice(
+            1,
+            0,
+            createRenderDefinition({
+                name: strings.settings.items.vaultTitle.name,
+                desc: strings.settings.items.vaultTitle.desc,
+                render: setting => renderers.renderVaultTitleSetting(setting)
+            })
+        );
     }
 
-    return [
-        {
-            type: 'group',
-            heading: strings.settings.groups.general.vaultConfiguration,
-            items
-        }
-    ];
+    return [createGroupDefinition(strings.settings.groups.general.vaultConfiguration, items)];
 }
 
 function createVaultSetupRenderers(context: SettingsTabContext): VaultSetupRenderers {

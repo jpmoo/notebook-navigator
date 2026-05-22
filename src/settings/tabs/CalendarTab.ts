@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { Setting, SettingDefinitionItem, SettingDefinitionRender } from 'obsidian';
+import type { Setting, SettingDefinitionItem } from 'obsidian';
 import { DropdownComponent } from 'obsidian';
 import { strings } from '../../i18n';
 import { getMomentApi } from '../../utils/moment';
@@ -33,7 +33,7 @@ const CALENDAR_LOCALE_SYSTEM_DEFAULT = 'system-default';
 export function createCalendarSettingDefinitions(context: SettingsTabContext): SettingDefinitionItem[] {
     let calendarLocaleWarningEl: HTMLElement | null = null;
 
-    const integrationRenderDefinition: SettingDefinitionRender = {
+    const integrationRenderDefinition = createRenderDefinition({
         name: strings.settings.groups.navigation.calendarIntegration,
         render: (setting, group) => {
             setting.settingEl.detach();
@@ -48,7 +48,7 @@ export function createCalendarSettingDefinitions(context: SettingsTabContext): S
             });
             refreshCalendarIntegration();
         }
-    };
+    });
 
     return [
         createGroupDefinition(undefined, [

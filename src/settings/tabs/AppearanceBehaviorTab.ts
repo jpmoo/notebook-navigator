@@ -21,11 +21,9 @@ import type { SettingDefinitionControl, SettingDefinitionGroup, SettingDefinitio
 import { MOMENT_FORMAT_DOCS_URL } from '../../constants/urls';
 import { strings } from '../../i18n';
 import { HomepageModal } from '../../modals/HomepageModal';
-import { FolderPathInputSuggest } from '../../suggest/FolderPathInputSuggest';
 import { MAX_PANE_TRANSITION_DURATION_MS, MIN_PANE_TRANSITION_DURATION_MS, PANE_TRANSITION_DURATION_STEP_MS } from '../../types';
 import { TIMEOUTS } from '../../types/obsidian-extended';
 import { runAsyncAction } from '../../utils/async';
-import { normalizeCalendarCustomRootFolder } from '../../utils/calendarCustomNotePatterns';
 import { showNotice } from '../../utils/noticeUtils';
 import {
     DEFAULT_UI_SCALE,
@@ -37,19 +35,19 @@ import {
     UI_SCALE_PERCENT_STEP
 } from '../../utils/uiScale';
 import { DEFAULT_SETTINGS } from '../defaultSettings';
+import {
+    createDropdownControlDefinition,
+    createFolderDefinition,
+    createGroupDefinition,
+    createRenderDefinition,
+    createToggleControlDefinition
+} from '../nativeSettingControls';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
 import { isHomepageSource, isPeriodicHomepageSource } from '../types';
-import type {
-    AppearanceBehaviorControlKey,
-    AppearanceBehaviorDropdownKey,
-    AppearanceBehaviorToggleKey
-} from './AppearanceBehaviorControlBindings';
+import type { AppearanceBehaviorDropdownKey, AppearanceBehaviorToggleKey } from './AppearanceBehaviorControlBindings';
 import { createSettingDescriptionWithExternalLink } from './externalLink';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { renderToolbarButtonsSetting } from './ToolbarButtonsSetting';
-
-type RenderSetting = (setting: Setting) => void | (() => void);
-type GroupItems = NonNullable<SettingDefinitionGroup['items']>;
 
 interface DefinitionOptions {
     aliases?: string[];
@@ -83,7 +81,7 @@ export function createAppearanceBehaviorSettingDefinitions(context: SettingsTabC
         createViewDefinitionGroup(context),
         createIconDefinitionGroup(context),
         createFormattingDefinitionGroup(context),
-        createTemplateDefinitionGroup(context)
+        createTemplateDefinitionGroup()
     );
 
     return groups;
@@ -406,13 +404,14 @@ function createFormattingDefinitionGroup(context: SettingsTabContext): SettingDe
     ]);
 }
 
-function createTemplateDefinitionGroup(context: SettingsTabContext): SettingDefinitionGroup {
+function createTemplateDefinitionGroup(): SettingDefinitionGroup {
     return createGroupDefinition(strings.settings.groups.general.templates, [
-        createRenderDefinition({
+        createFolderDefinition('calendarTemplateFolder', {
             name: strings.settings.items.calendarTemplateFolder.name,
             desc: strings.settings.items.calendarTemplateFolder.desc,
             aliases: [strings.settings.items.calendarTemplateFolder.placeholder],
-            render: setting => renderCalendarTemplateFolderSetting(setting, context)
+            placeholder: strings.settings.items.calendarTemplateFolder.placeholder,
+            includeRoot: true
         })
     ]);
 }
@@ -647,27 +646,6 @@ function renderTimeFormatSetting(setting: Setting, context: SettingsTabContext):
     setting.controlEl.addClass('nn-setting-wide-input');
 }
 
-function renderCalendarTemplateFolderSetting(setting: Setting, context: SettingsTabContext): void {
-    const { plugin, configureDebouncedTextSetting } = context;
-
-    configureDebouncedTextSetting(
-        setting,
-        strings.settings.items.calendarTemplateFolder.name,
-        strings.settings.items.calendarTemplateFolder.desc,
-        strings.settings.items.calendarTemplateFolder.placeholder,
-        () => normalizeCalendarCustomRootFolder(plugin.settings.calendarTemplateFolder),
-        value => {
-            plugin.settings.calendarTemplateFolder = normalizeCalendarCustomRootFolder(value);
-        }
-    );
-    setting.controlEl.addClass('nn-setting-wide-input');
-    const templateFolderInputEl = setting.controlEl.querySelector<HTMLInputElement>('input');
-    if (templateFolderInputEl) {
-        const folderSuggest = new FolderPathInputSuggest(context.app, templateFolderInputEl);
-        templateFolderInputEl.addEventListener('click', () => folderSuggest.open());
-    }
-}
-
 interface RenderedToggleOptions extends DefinitionOptions {
     name: string;
     desc: string;
@@ -679,13 +657,9 @@ function createToggleDefinition(
     key: AppearanceBehaviorToggleKey,
     options: ControlDefinitionOptions
 ): SettingDefinitionControl<AppearanceBehaviorToggleKey> {
-    return createControlDefinition({
+    return createToggleControlDefinition(key, {
         ...options,
-        control: {
-            type: 'toggle',
-            key,
-            defaultValue: DEFAULT_SETTINGS[key]
-        }
+        defaultValue: DEFAULT_SETTINGS[key]
     });
 }
 
@@ -693,17 +667,9 @@ function createDropdownDefinition(
     key: AppearanceBehaviorDropdownKey,
     options: DropdownDefinitionOptions
 ): SettingDefinitionControl<AppearanceBehaviorDropdownKey> {
-    return createControlDefinition({
-        name: options.name,
-        desc: options.desc,
-        aliases: options.aliases,
-        visible: options.visible,
-        control: {
-            type: 'dropdown',
-            key,
-            defaultValue: DEFAULT_SETTINGS[key],
-            options: options.options
-        }
+    return createDropdownControlDefinition(key, {
+        ...options,
+        defaultValue: DEFAULT_SETTINGS[key]
     });
 }
 
@@ -723,61 +689,6 @@ function createRenderedToggleDefinition(context: SettingsTabContext, options: Re
             );
         }
     });
-}
-
-function createGroupDefinition(heading: string | undefined, items: GroupItems): SettingDefinitionGroup {
-    const group: SettingDefinitionGroup = {
-        type: 'group',
-        items
-    };
-
-    if (heading) {
-        group.heading = heading;
-    }
-
-    return group;
-}
-
-function createRenderDefinition(options: {
-    name: string;
-    desc?: string | DocumentFragment;
-    aliases?: string[];
-    visible?: boolean | (() => boolean);
-    render: RenderSetting;
-}): SettingDefinitionRender {
-    const setting: SettingDefinitionRender = {
-        name: options.name,
-        desc: options.desc,
-        render: setting => options.render(setting)
-    };
-
-    if (options.aliases) {
-        setting.aliases = options.aliases;
-    }
-    if (options.visible !== undefined) {
-        setting.visible = options.visible;
-    }
-
-    return setting;
-}
-
-function createControlDefinition<K extends AppearanceBehaviorControlKey>(
-    options: ControlDefinitionOptions & { control: SettingDefinitionControl<K>['control'] }
-): SettingDefinitionControl<K> {
-    const setting: SettingDefinitionControl<K> = {
-        name: options.name,
-        desc: options.desc,
-        control: options.control
-    };
-
-    if (options.aliases) {
-        setting.aliases = options.aliases;
-    }
-    if (options.visible !== undefined) {
-        setting.visible = options.visible;
-    }
-
-    return setting;
 }
 
 function optionAliases(options: Record<string, string>): string[] {

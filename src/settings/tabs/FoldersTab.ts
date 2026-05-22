@@ -79,12 +79,14 @@ export function createFoldersSettingDefinitions(context: SettingsTabContext, hea
                 name: strings.settings.items.folderNoteName.name,
                 desc: strings.settings.items.folderNoteName.desc,
                 aliases: [strings.settings.items.folderNoteName.placeholder],
+                placeholder: strings.settings.items.folderNoteName.placeholder,
                 visible: () => plugin.settings.enableFolderNotes
             }),
             createTextDefinition('folderNoteNamePattern', {
                 name: strings.settings.items.folderNoteNamePattern.name,
                 desc: strings.settings.items.folderNoteNamePattern.desc,
                 aliases: [FOLDER_NOTE_NAME_PATTERN_PLACEHOLDER],
+                placeholder: FOLDER_NOTE_NAME_PATTERN_PLACEHOLDER,
                 visible: () => plugin.settings.enableFolderNotes
             }),
             createRenderDefinition({

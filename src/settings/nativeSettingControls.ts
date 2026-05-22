@@ -17,15 +17,18 @@
  */
 
 import type {
-    Setting,
     SettingDefinitionControl,
     SettingDefinitionGroup,
     SettingDefinitionRender,
     SettingDropdownControl,
-    SettingSliderControl
+    SettingFolderControl,
+    SettingSliderControl,
+    SettingTextControl,
+    SettingToggleControl
 } from 'obsidian';
 import { DEFAULT_SETTINGS } from './defaultSettings';
 import type { NotebookNavigatorSettings } from './types';
+import { normalizeCalendarCustomRootFolder } from '../utils/calendarCustomNotePatterns';
 
 type SettingsKeyOfType<T> = Extract<
     {
@@ -35,7 +38,7 @@ type SettingsKeyOfType<T> = Extract<
 >;
 
 type DefinitionItems = NonNullable<SettingDefinitionGroup['items']>;
-type RenderSetting = (setting: Setting) => void | (() => void);
+type RenderSetting = SettingDefinitionRender['render'];
 
 interface DefinitionOptions {
     name: string;
@@ -45,18 +48,40 @@ interface DefinitionOptions {
     visible?: boolean | (() => boolean);
 }
 
-interface DropdownDefinitionOptions<K extends string> extends DefinitionOptions {
+interface ControlDefinitionOptions extends DefinitionOptions {
+    disabled?: boolean | (() => boolean);
+}
+
+interface DropdownDefinitionOptions<K extends string> extends ControlDefinitionOptions {
     options: Record<string, string>;
     defaultValue?: string;
     validate?: SettingDropdownControl<K>['validate'];
 }
 
-interface SliderDefinitionOptions<K extends string> extends DefinitionOptions {
+interface FolderDefinitionOptions<K extends string> extends ControlDefinitionOptions {
+    placeholder?: string;
+    defaultValue?: string;
+    validate?: SettingFolderControl<K>['validate'];
+    filter?: SettingFolderControl<K>['filter'];
+    includeRoot?: SettingFolderControl<K>['includeRoot'];
+}
+
+interface SliderDefinitionOptions<K extends string> extends ControlDefinitionOptions {
     min: number;
     max: number;
     step: number;
     defaultValue?: number;
     validate?: SettingSliderControl<K>['validate'];
+}
+
+interface TextDefinitionOptions<K extends string> extends ControlDefinitionOptions {
+    placeholder?: string;
+    defaultValue?: string;
+    validate?: SettingTextControl<K>['validate'];
+}
+
+interface ToggleDefinitionOptions extends ControlDefinitionOptions {
+    defaultValue?: boolean;
 }
 
 // These keys are bound through native SettingDefinitionControl rows.
@@ -157,6 +182,7 @@ const STRING_SETTING_KEYS = [
     'hideRecentNotes',
     'calendarWeekendDays',
     'calendarMonthHeadingFormat',
+    'calendarTemplateFolder',
     'wordCountPlacement',
     'alphabeticalDateMode',
     'listPaneTitle',
@@ -264,14 +290,50 @@ export function createGroupDefinition(
     return group;
 }
 
-export function createToggleDefinition<K extends NativeBooleanControlKey>(key: K, options: DefinitionOptions): SettingDefinitionControl<K> {
+export function createToggleControlDefinition<K extends string>(key: K, options: ToggleDefinitionOptions): SettingDefinitionControl<K> {
+    const control: SettingToggleControl<K> = {
+        type: 'toggle',
+        key,
+        defaultValue: options.defaultValue
+    };
+    applyControlState(control, options);
+
     return createControlDefinition({
         ...options,
-        control: {
-            type: 'toggle',
-            key,
-            defaultValue: DEFAULT_SETTINGS[key]
-        }
+        control
+    });
+}
+
+export function createToggleDefinition<K extends NativeBooleanControlKey>(
+    key: K,
+    options: ControlDefinitionOptions
+): SettingDefinitionControl<K> {
+    return createToggleControlDefinition(key, {
+        ...options,
+        defaultValue: DEFAULT_SETTINGS[key]
+    });
+}
+
+export function createDropdownControlDefinition<K extends string>(
+    key: K,
+    options: DropdownDefinitionOptions<K>
+): SettingDefinitionControl<K> {
+    const control: SettingDropdownControl<K> = {
+        type: 'dropdown',
+        key,
+        defaultValue: options.defaultValue,
+        options: options.options,
+        validate: options.validate
+    };
+    applyControlState(control, options);
+
+    return createControlDefinition({
+        name: options.name,
+        desc: options.desc,
+        aliases: options.aliases,
+        searchable: options.searchable,
+        visible: options.visible,
+        control
     });
 }
 
@@ -279,30 +341,60 @@ export function createDropdownDefinition<K extends NativeStringControlKey>(
     key: K,
     options: DropdownDefinitionOptions<K>
 ): SettingDefinitionControl<K> {
+    return createDropdownControlDefinition(key, {
+        ...options,
+        defaultValue: options.defaultValue ?? DEFAULT_SETTINGS[key]
+    });
+}
+
+function createTextControlDefinition<K extends string>(key: K, options: TextDefinitionOptions<K>): SettingDefinitionControl<K> {
+    const control: SettingTextControl<K> = {
+        type: 'text',
+        key,
+        defaultValue: options.defaultValue,
+        placeholder: options.placeholder,
+        validate: options.validate
+    };
+    applyControlState(control, options);
+
+    return createControlDefinition({
+        ...options,
+        control
+    });
+}
+
+export function createTextDefinition<K extends NativeStringControlKey>(
+    key: K,
+    options: TextDefinitionOptions<K>
+): SettingDefinitionControl<K> {
+    return createTextControlDefinition(key, {
+        ...options,
+        defaultValue: options.defaultValue ?? DEFAULT_SETTINGS[key]
+    });
+}
+
+export function createFolderDefinition<K extends NativeStringControlKey>(
+    key: K,
+    options: FolderDefinitionOptions<K>
+): SettingDefinitionControl<K> {
+    const control: SettingFolderControl<K> = {
+        type: 'folder',
+        key,
+        defaultValue: options.defaultValue ?? DEFAULT_SETTINGS[key],
+        placeholder: options.placeholder,
+        validate: options.validate,
+        filter: options.filter,
+        includeRoot: options.includeRoot
+    };
+    applyControlState(control, options);
+
     return createControlDefinition({
         name: options.name,
         desc: options.desc,
         aliases: options.aliases,
         searchable: options.searchable,
         visible: options.visible,
-        control: {
-            type: 'dropdown',
-            key,
-            defaultValue: options.defaultValue ?? DEFAULT_SETTINGS[key],
-            options: options.options,
-            validate: options.validate
-        }
-    });
-}
-
-export function createTextDefinition<K extends NativeStringControlKey>(key: K, options: DefinitionOptions): SettingDefinitionControl<K> {
-    return createControlDefinition({
-        ...options,
-        control: {
-            type: 'text',
-            key,
-            defaultValue: DEFAULT_SETTINGS[key]
-        }
+        control
     });
 }
 
@@ -310,21 +402,24 @@ export function createSliderDefinition<K extends NativeNumberControlKey>(
     key: K,
     options: SliderDefinitionOptions<K>
 ): SettingDefinitionControl<K> {
+    const control: SettingSliderControl<K> = {
+        type: 'slider',
+        key,
+        defaultValue: options.defaultValue ?? DEFAULT_SETTINGS[key],
+        min: options.min,
+        max: options.max,
+        step: options.step,
+        validate: options.validate
+    };
+    applyControlState(control, options);
+
     return createControlDefinition({
         name: options.name,
         desc: options.desc,
         aliases: options.aliases,
         searchable: options.searchable,
         visible: options.visible,
-        control: {
-            type: 'slider',
-            key,
-            defaultValue: options.defaultValue ?? DEFAULT_SETTINGS[key],
-            min: options.min,
-            max: options.max,
-            step: options.step,
-            validate: options.validate
-        }
+        control
     });
 }
 
@@ -332,7 +427,7 @@ export function createRenderDefinition(options: DefinitionOptions & { render: Re
     const setting: SettingDefinitionRender = {
         name: options.name,
         desc: options.desc,
-        render: setting => options.render(setting)
+        render: (setting, group) => options.render(setting, group)
     };
 
     if (options.aliases) {
@@ -375,7 +470,7 @@ export function applyNativeSettingControlValue(settings: NotebookNavigatorSettin
             return false;
         }
 
-        setStringSetting(settings, key, value);
+        setStringSetting(settings, key, normalizeStringSettingValue(key, value));
         return true;
     }
 
@@ -396,7 +491,7 @@ export function applyNativeSettingControlValue(settings: NotebookNavigatorSettin
     return false;
 }
 
-function createControlDefinition<K extends NativeSettingControlKey>(
+function createControlDefinition<K extends string>(
     options: DefinitionOptions & { control: SettingDefinitionControl<K>['control'] }
 ): SettingDefinitionControl<K> {
     const setting: SettingDefinitionControl<K> = {
@@ -418,6 +513,12 @@ function createControlDefinition<K extends NativeSettingControlKey>(
     return setting;
 }
 
+function applyControlState(control: { disabled?: boolean | (() => boolean) }, options: ControlDefinitionOptions): void {
+    if (options.disabled !== undefined) {
+        control.disabled = options.disabled;
+    }
+}
+
 function isNativeBooleanControlKey(key: NativeSettingControlKey): key is NativeBooleanControlKey {
     return BOOLEAN_SETTING_KEY_SET.has(key);
 }
@@ -433,4 +534,12 @@ function isNativeNumberControlKey(key: NativeSettingControlKey): key is NativeNu
 function setStringSetting(settings: NotebookNavigatorSettings, key: NativeStringControlKey, value: string): void {
     const target = settings as unknown as Record<NativeStringControlKey, string>;
     target[key] = value;
+}
+
+function normalizeStringSettingValue(key: NativeStringControlKey, value: string): string {
+    if (key === 'calendarTemplateFolder') {
+        return normalizeCalendarCustomRootFolder(value);
+    }
+
+    return value;
 }
