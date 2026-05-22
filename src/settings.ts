@@ -545,11 +545,6 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
             return;
         }
 
-        if (key === 'recentNotesCount') {
-            this.plugin.applyRecentNotesLimit();
-            return;
-        }
-
         if (key === 'checkForUpdatesOnStart' && !this.plugin.settings.checkForUpdatesOnStart) {
             this.plugin.dismissPendingUpdateNotice();
         }

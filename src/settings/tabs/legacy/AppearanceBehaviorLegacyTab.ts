@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { ButtonComponent, Platform, Setting, SliderComponent } from 'obsidian';
+import { ButtonComponent, Platform, Setting } from 'obsidian';
 import { MOMENT_FORMAT_DOCS_URL } from '../../../constants/urls';
 import { strings } from '../../../i18n';
 import { HomepageModal } from '../../../modals/HomepageModal';
@@ -47,6 +47,7 @@ import { addSettingSyncModeToggle } from '../../syncModeToggle';
 import type { FileOpenContext, MouseBackForwardAction } from '../../types';
 import { isHomepageSource, isMultiSelectModifier, isPeriodicHomepageSource } from '../../types';
 import { createSettingDescriptionWithExternalLink } from '../externalLink';
+import { renderSliderSetting } from '../SliderSetting';
 import type { SettingsTabContext } from '../SettingsTabContext';
 import { renderToolbarButtonsSetting } from '../ToolbarButtonsSetting';
 
@@ -344,85 +345,41 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
     const { plugin } = context;
     const viewGroup = createGroup(strings.settings.groups.general.view);
 
-    const uiScaleSetting = viewGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.appearanceScale.name).setDesc(strings.settings.items.appearanceScale.desc);
-    });
-
-    const uiScaleValueEl = uiScaleSetting.controlEl.createDiv({ cls: 'nn-slider-value' });
-    const updateUIScaleLabel = (percentValue: number) => {
-        uiScaleValueEl.setText(formatUIScalePercent(percentToScale(percentValue)));
-    };
-
-    let uiScaleSlider: SliderComponent;
     const initialUIScalePercent = scaleToPercent(plugin.getUIScale());
-
-    uiScaleSetting
-        .addSlider(slider => {
-            uiScaleSlider = slider
-                .setLimits(MIN_UI_SCALE_PERCENT, MAX_UI_SCALE_PERCENT, UI_SCALE_PERCENT_STEP)
-                .setInstant(false)
-                .setDynamicTooltip()
-                .setValue(initialUIScalePercent)
-                .onChange(value => {
-                    const nextValue = percentToScale(value);
-                    plugin.setUIScale(nextValue);
-                    updateUIScaleLabel(value);
-                });
-            return slider;
-        })
-        .addExtraButton(button =>
-            button
-                .setIcon('lucide-rotate-ccw')
-                .setTooltip(strings.common.restoreDefault)
-                .onClick(() => {
-                    const defaultPercent = scaleToPercent(DEFAULT_UI_SCALE);
-                    uiScaleSlider.setValue(defaultPercent);
-                    plugin.setUIScale(DEFAULT_UI_SCALE);
-                    updateUIScaleLabel(defaultPercent);
-                })
-        );
+    const uiScaleSetting = viewGroup.addSetting(setting => {
+        renderSliderSetting(setting, {
+            name: strings.settings.items.appearanceScale.name,
+            desc: strings.settings.items.appearanceScale.desc,
+            value: initialUIScalePercent,
+            defaultValue: scaleToPercent(DEFAULT_UI_SCALE),
+            min: MIN_UI_SCALE_PERCENT,
+            max: MAX_UI_SCALE_PERCENT,
+            step: UI_SCALE_PERCENT_STEP,
+            formatValue: value => formatUIScalePercent(percentToScale(value)),
+            onChange: value => {
+                plugin.setUIScale(percentToScale(value));
+            }
+        });
+    });
 
     addSettingSyncModeToggle({ setting: uiScaleSetting, plugin, settingId: 'uiScale' });
 
-    updateUIScaleLabel(initialUIScalePercent);
-
     const paneTransitionSetting = viewGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.paneTransitionDuration.name).setDesc(strings.settings.items.paneTransitionDuration.desc);
+        renderSliderSetting(setting, {
+            name: strings.settings.items.paneTransitionDuration.name,
+            desc: strings.settings.items.paneTransitionDuration.desc,
+            value: plugin.settings.paneTransitionDuration,
+            defaultValue: DEFAULT_SETTINGS.paneTransitionDuration,
+            min: MIN_PANE_TRANSITION_DURATION_MS,
+            max: MAX_PANE_TRANSITION_DURATION_MS,
+            step: PANE_TRANSITION_DURATION_STEP_MS,
+            resetTooltip: strings.settings.items.paneTransitionDuration.resetTooltip,
+            formatValue: value => `${value} ms`,
+            onChange: value => {
+                plugin.setPaneTransitionDuration(value);
+            }
+        });
     });
-
-    const paneTransitionValueEl = paneTransitionSetting.controlEl.createDiv({ cls: 'nn-slider-value' });
-    const updatePaneTransitionLabel = (ms: number) => {
-        paneTransitionValueEl.setText(`${ms} ms`);
-    };
-    updatePaneTransitionLabel(plugin.settings.paneTransitionDuration);
-
-    let paneTransitionSlider: SliderComponent;
-    paneTransitionSetting
-        .addSlider(slider => {
-            paneTransitionSlider = slider
-                .setLimits(MIN_PANE_TRANSITION_DURATION_MS, MAX_PANE_TRANSITION_DURATION_MS, PANE_TRANSITION_DURATION_STEP_MS)
-                .setValue(plugin.settings.paneTransitionDuration)
-                .setInstant(false)
-                .setDynamicTooltip()
-                .onChange(value => {
-                    plugin.setPaneTransitionDuration(value);
-                    updatePaneTransitionLabel(value);
-                });
-            return slider;
-        })
-        .addExtraButton(button =>
-            button
-                .setIcon('lucide-rotate-ccw')
-                .setTooltip(strings.settings.items.paneTransitionDuration.resetTooltip)
-                .onClick(() => {
-                    runAsyncAction(() => {
-                        const defaultValue = DEFAULT_SETTINGS.paneTransitionDuration;
-                        paneTransitionSlider.setValue(defaultValue);
-                        plugin.setPaneTransitionDuration(defaultValue);
-                        updatePaneTransitionLabel(defaultValue);
-                    });
-                })
-        );
 
     addSettingSyncModeToggle({ setting: paneTransitionSetting, plugin, settingId: 'paneTransitionDuration' });
 

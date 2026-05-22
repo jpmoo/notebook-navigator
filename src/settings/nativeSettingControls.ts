@@ -22,7 +22,6 @@ import type {
     SettingDefinitionRender,
     SettingDropdownControl,
     SettingFolderControl,
-    SettingSliderControl,
     SettingTextControl,
     SettingToggleControl
 } from 'obsidian';
@@ -64,14 +63,6 @@ interface FolderDefinitionOptions<K extends string> extends ControlDefinitionOpt
     validate?: SettingFolderControl<K>['validate'];
     filter?: SettingFolderControl<K>['filter'];
     includeRoot?: SettingFolderControl<K>['includeRoot'];
-}
-
-interface SliderDefinitionOptions<K extends string> extends ControlDefinitionOptions {
-    min: number;
-    max: number;
-    step: number;
-    defaultValue?: number;
-    validate?: SettingSliderControl<K>['validate'];
 }
 
 interface TextDefinitionOptions<K extends string> extends ControlDefinitionOptions {
@@ -194,22 +185,14 @@ const STRING_SETTING_KEYS = [
     'collapseBehavior'
 ] as const satisfies readonly SettingsKeyOfType<string>[];
 
-const NUMBER_SETTING_KEYS = [
-    'recentNotesCount',
-    'springLoadedFoldersInitialDelay',
-    'springLoadedFoldersSubsequentDelay'
-] as const satisfies readonly SettingsKeyOfType<number>[];
-
 type NativeBooleanControlKey = (typeof BOOLEAN_SETTING_KEYS)[number];
 type NativeStringControlKey = (typeof STRING_SETTING_KEYS)[number];
-type NativeNumberControlKey = (typeof NUMBER_SETTING_KEYS)[number];
 
 // Native control keys whose values are scalar fields on NotebookNavigatorSettings.
-export type NativeSettingControlKey = NativeBooleanControlKey | NativeStringControlKey | NativeNumberControlKey;
+export type NativeSettingControlKey = NativeBooleanControlKey | NativeStringControlKey;
 
 const BOOLEAN_SETTING_KEY_SET: ReadonlySet<string> = new Set(BOOLEAN_SETTING_KEYS);
 const STRING_SETTING_KEY_SET: ReadonlySet<string> = new Set(STRING_SETTING_KEYS);
-const NUMBER_SETTING_KEY_SET: ReadonlySet<string> = new Set(NUMBER_SETTING_KEYS);
 
 const STRING_SETTING_OPTIONS: Partial<Record<NativeStringControlKey, readonly string[]>> = {
     deleteAttachments: ['ask', 'always', 'never'],
@@ -237,12 +220,6 @@ const STRING_SETTING_OPTIONS: Partial<Record<NativeStringControlKey, readonly st
     propertySortSecondary: ['title', 'filename', 'created', 'modified'],
     manualSortNewNotePlacement: ['top', 'bottom', 'below-selected-note', 'unsorted'],
     collapseBehavior: ['all', 'folders-only', 'tags-only', 'properties-only']
-};
-
-const NUMBER_SETTING_RANGES: Partial<Record<NativeNumberControlKey, { min: number; max: number }>> = {
-    recentNotesCount: { min: 1, max: 10 },
-    springLoadedFoldersInitialDelay: { min: 0.1, max: 2 },
-    springLoadedFoldersSubsequentDelay: { min: 0.1, max: 2 }
 };
 
 export const NATIVE_SETTING_DOM_STATE_REFRESH_KEYS: ReadonlySet<NativeSettingControlKey> = new Set([
@@ -397,31 +374,6 @@ export function createFolderDefinition<K extends NativeStringControlKey>(
     });
 }
 
-export function createSliderDefinition<K extends NativeNumberControlKey>(
-    key: K,
-    options: SliderDefinitionOptions<K>
-): SettingDefinitionControl<K> {
-    const control: SettingSliderControl<K> = {
-        type: 'slider',
-        key,
-        defaultValue: options.defaultValue ?? DEFAULT_SETTINGS[key],
-        min: options.min,
-        max: options.max,
-        step: options.step,
-        validate: options.validate
-    };
-    applyControlState(control, options);
-
-    return createControlDefinition({
-        name: options.name,
-        desc: options.desc,
-        aliases: options.aliases,
-        searchable: options.searchable,
-        visible: options.visible,
-        control
-    });
-}
-
 export function createRenderDefinition(options: DefinitionOptions & { render: RenderSetting }): SettingDefinitionRender {
     const setting: SettingDefinitionRender = {
         name: options.name,
@@ -443,7 +395,7 @@ export function createRenderDefinition(options: DefinitionOptions & { render: Re
 }
 
 export function isNativeSettingControlKey(key: string): key is NativeSettingControlKey {
-    return BOOLEAN_SETTING_KEY_SET.has(key) || STRING_SETTING_KEY_SET.has(key) || NUMBER_SETTING_KEY_SET.has(key);
+    return BOOLEAN_SETTING_KEY_SET.has(key) || STRING_SETTING_KEY_SET.has(key);
 }
 
 export function getNativeSettingControlValue(settings: NotebookNavigatorSettings, key: NativeSettingControlKey): unknown {
@@ -471,20 +423,6 @@ export function applyNativeSettingControlValue(settings: NotebookNavigatorSettin
         }
 
         setStringSetting(settings, key, normalizeStringSettingValue(key, value));
-        return true;
-    }
-
-    if (isNativeNumberControlKey(key)) {
-        if (typeof value !== 'number' || !Number.isFinite(value)) {
-            return false;
-        }
-
-        const range = NUMBER_SETTING_RANGES[key];
-        if (range && (value < range.min || value > range.max)) {
-            return false;
-        }
-
-        settings[key] = value;
         return true;
     }
 
@@ -525,10 +463,6 @@ function isNativeBooleanControlKey(key: NativeSettingControlKey): key is NativeB
 
 function isNativeStringControlKey(key: NativeSettingControlKey): key is NativeStringControlKey {
     return STRING_SETTING_KEY_SET.has(key);
-}
-
-function isNativeNumberControlKey(key: NativeSettingControlKey): key is NativeNumberControlKey {
-    return NUMBER_SETTING_KEY_SET.has(key);
 }
 
 function setStringSetting(settings: NotebookNavigatorSettings, key: NativeStringControlKey, value: string): void {

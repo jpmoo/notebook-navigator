@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Platform, Setting, SliderComponent, setIcon } from 'obsidian';
+import { Platform, Setting, setIcon } from 'obsidian';
 import type { SettingDefinitionItem } from 'obsidian';
 import { strings } from '../../i18n';
 import { DEFAULT_SETTINGS } from '../defaultSettings';
@@ -27,6 +27,7 @@ import { runAsyncAction } from '../../utils/async';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
 import { pruneUnavailablePropertySortOverrides } from '../../utils/sortUtils';
 import { getManualSortGroupHeaderPropertyKey, isValidManualSortPropertyKey, normalizeManualSortPropertyKey } from '../../utils/manualSort';
+import { formatPixelSliderValue, renderSliderSetting } from './SliderSetting';
 
 type QuickActionSettingKey =
     | 'quickActionRevealInFolder'
@@ -295,34 +296,21 @@ function renderIncludeDescendantNotesSetting(setting: Setting, context: Settings
 
 function renderCompactItemHeightSetting(setting: Setting, context: SettingsTabContext): void {
     const { plugin } = context;
-    let compactItemHeightSlider: SliderComponent;
 
-    setting
-        .setName(strings.settings.items.compactItemHeight.name)
-        .setDesc(strings.settings.items.compactItemHeight.desc)
-        .addSlider(slider => {
-            compactItemHeightSlider = slider
-                .setLimits(20, 28, 1)
-                .setValue(plugin.settings.compactItemHeight)
-                .setInstant(false)
-                .setDynamicTooltip()
-                .onChange(value => {
-                    plugin.setCompactItemHeight(value);
-                });
-            return slider;
-        })
-        .addExtraButton(button =>
-            button
-                .setIcon('lucide-rotate-ccw')
-                .setTooltip(strings.settings.items.compactItemHeight.resetTooltip)
-                .onClick(() => {
-                    runAsyncAction(() => {
-                        const defaultValue = DEFAULT_SETTINGS.compactItemHeight;
-                        compactItemHeightSlider.setValue(defaultValue);
-                        plugin.setCompactItemHeight(defaultValue);
-                    });
-                })
-        );
+    renderSliderSetting(setting, {
+        name: strings.settings.items.compactItemHeight.name,
+        desc: strings.settings.items.compactItemHeight.desc,
+        value: plugin.settings.compactItemHeight,
+        defaultValue: DEFAULT_SETTINGS.compactItemHeight,
+        min: 20,
+        max: 28,
+        step: 1,
+        resetTooltip: strings.settings.items.compactItemHeight.resetTooltip,
+        formatValue: formatPixelSliderValue,
+        onChange: value => {
+            plugin.setCompactItemHeight(value);
+        }
+    });
 
     addSettingSyncModeToggle({ setting, plugin, settingId: 'compactItemHeight' });
 }

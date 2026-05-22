@@ -383,11 +383,20 @@ button.nn-youtube-button svg {
     max-width: none;
 }
 
+.nn-slider-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nn-slider-control input[type='range'] {
+    flex: 0 0 100px;
+}
+
 .nn-slider-value {
-    margin-left: 12px;
+    flex: 0 0 48px;
     font-size: var(--font-ui-smaller);
     color: var(--nn-theme-foreground-muted);
-    min-width: 48px;
     text-align: right;
     font-variant-numeric: tabular-nums;
 }

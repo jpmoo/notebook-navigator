@@ -17,9 +17,12 @@
  */
 
 import type { SettingDefinitionItem } from 'obsidian';
+import type { Setting } from 'obsidian';
 import { strings } from '../../i18n';
+import { DEFAULT_SETTINGS } from '../defaultSettings';
 import type { SettingsTabContext } from './SettingsTabContext';
-import { createDropdownDefinition, createGroupDefinition, createSliderDefinition, createToggleDefinition } from '../nativeSettingControls';
+import { createDropdownDefinition, createGroupDefinition, createRenderDefinition, createToggleDefinition } from '../nativeSettingControls';
+import { renderSliderSetting } from './SliderSetting';
 
 /** Builds native 1.13 setting definitions for shortcut and recent note settings. */
 export function createShortcutsSettingDefinitions(context: SettingsTabContext): SettingDefinitionItem[] {
@@ -70,14 +73,31 @@ export function createShortcutsSettingDefinitions(context: SettingsTabContext): 
                 desc: strings.settings.items.pinRecentNotesWithShortcuts.desc,
                 visible: () => plugin.settings.showRecentNotes
             }),
-            createSliderDefinition('recentNotesCount', {
+            createRenderDefinition({
                 name: strings.settings.items.recentNotesCount.name,
                 desc: strings.settings.items.recentNotesCount.desc,
                 visible: () => plugin.settings.showRecentNotes,
-                min: 1,
-                max: 10,
-                step: 1
+                render: setting => renderRecentNotesCountSetting(setting, context)
             })
         ])
     ];
+}
+
+function renderRecentNotesCountSetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
+
+    renderSliderSetting(setting, {
+        name: strings.settings.items.recentNotesCount.name,
+        desc: strings.settings.items.recentNotesCount.desc,
+        value: plugin.settings.recentNotesCount,
+        defaultValue: DEFAULT_SETTINGS.recentNotesCount,
+        min: 1,
+        max: 10,
+        step: 1,
+        onChange: async value => {
+            plugin.settings.recentNotesCount = value;
+            plugin.applyRecentNotesLimit();
+            await plugin.saveSettingsAndUpdate();
+        }
+    });
 }

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { ButtonComponent, DropdownComponent, Platform, Setting, SliderComponent, ToggleComponent } from 'obsidian';
+import { ButtonComponent, DropdownComponent, Platform, Setting, ToggleComponent } from 'obsidian';
 import { strings } from '../../../i18n';
 import { NavigationBannerModal } from '../../../modals/NavigationBannerModal';
 import { NavRainbowSectionModal } from '../../../modals/NavRainbowSectionModal';
@@ -30,6 +30,7 @@ import { addSettingSyncModeToggle } from '../../syncModeToggle';
 import { createDependentSettingsSection, setElementVisible, wireToggleSettingWithDependentSection } from '../../dependentSettings';
 import { createHueInterpolator, toCssRgba } from '../../../utils/colorUtils';
 import { NAV_RAINBOW_DEFAULT_END, NAV_RAINBOW_DEFAULT_START } from '../../../utils/navigationRainbow';
+import { formatPixelSliderValue, formatSecondsSliderValue, renderSliderSetting } from '../SliderSetting';
 
 /** Legacy settings renderer used only by Obsidian versions before native 1.13 setting definitions. */
 export function renderNavigationPaneTab(context: SettingsTabContext): void {
@@ -172,101 +173,55 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
             );
     });
 
-    let rootSpacingSlider: SliderComponent;
     appearanceGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.navRootSpacing.name)
-            .setDesc(strings.settings.items.navRootSpacing.desc)
-            .addSlider(slider => {
-                rootSpacingSlider = slider
-                    .setLimits(0, 6, 1)
-                    .setValue(plugin.settings.rootLevelSpacing)
-                    .setInstant(false)
-                    .setDynamicTooltip()
-                    .onChange(async value => {
-                        plugin.settings.rootLevelSpacing = value;
-                        await plugin.saveSettingsAndUpdate();
-                    });
-                return slider;
-            })
-            .addExtraButton(button =>
-                button
-                    .setIcon('lucide-rotate-ccw')
-                    .setTooltip(strings.common.restoreDefault)
-                    .onClick(() => {
-                        // Reset root spacing to default without blocking the UI
-                        runAsyncAction(async () => {
-                            const defaultValue = DEFAULT_SETTINGS.rootLevelSpacing;
-                            rootSpacingSlider.setValue(defaultValue);
-                            plugin.settings.rootLevelSpacing = defaultValue;
-                            await plugin.saveSettingsAndUpdate();
-                        });
-                    })
-            );
+        renderSliderSetting(setting, {
+            name: strings.settings.items.navRootSpacing.name,
+            desc: strings.settings.items.navRootSpacing.desc,
+            value: plugin.settings.rootLevelSpacing,
+            defaultValue: DEFAULT_SETTINGS.rootLevelSpacing,
+            min: 0,
+            max: 6,
+            step: 1,
+            formatValue: formatPixelSliderValue,
+            onChange: async value => {
+                plugin.settings.rootLevelSpacing = value;
+                await plugin.saveSettingsAndUpdate();
+            }
+        });
     });
 
-    let indentationSlider: SliderComponent;
     const navIndentSetting = appearanceGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.navIndent.name)
-            .setDesc(strings.settings.items.navIndent.desc)
-            .addSlider(slider => {
-                indentationSlider = slider
-                    .setLimits(10, 24, 1)
-                    .setValue(plugin.settings.navIndent)
-                    .setInstant(false)
-                    .setDynamicTooltip()
-                    .onChange(value => {
-                        plugin.setNavIndent(value);
-                    });
-                return slider;
-            })
-            .addExtraButton(button =>
-                button
-                    .setIcon('lucide-rotate-ccw')
-                    .setTooltip(strings.common.restoreDefault)
-                    .onClick(() => {
-                        // Reset indentation to default without blocking the UI
-                        runAsyncAction(() => {
-                            const defaultValue = DEFAULT_SETTINGS.navIndent;
-                            indentationSlider.setValue(defaultValue);
-                            plugin.setNavIndent(defaultValue);
-                        });
-                    })
-            );
+        renderSliderSetting(setting, {
+            name: strings.settings.items.navIndent.name,
+            desc: strings.settings.items.navIndent.desc,
+            value: plugin.settings.navIndent,
+            defaultValue: DEFAULT_SETTINGS.navIndent,
+            min: 10,
+            max: 24,
+            step: 1,
+            formatValue: formatPixelSliderValue,
+            onChange: value => {
+                plugin.setNavIndent(value);
+            }
+        });
     });
 
     addSettingSyncModeToggle({ setting: navIndentSetting, plugin, settingId: 'navIndent' });
 
-    let lineHeightSlider: SliderComponent;
     const navItemHeightSetting = appearanceGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.navItemHeight.name)
-            .setDesc(strings.settings.items.navItemHeight.desc)
-            .addSlider(slider => {
-                lineHeightSlider = slider
-                    .setLimits(20, 28, 1)
-                    .setValue(plugin.settings.navItemHeight)
-                    .setInstant(false)
-                    .setDynamicTooltip()
-                    .onChange(value => {
-                        plugin.setNavItemHeight(value);
-                    });
-                return slider;
-            })
-            .addExtraButton(button =>
-                button
-                    .setIcon('lucide-rotate-ccw')
-                    .setTooltip(strings.common.restoreDefault)
-                    .onClick(() => {
-                        // Reset line height to default without blocking the UI
-                        runAsyncAction(() => {
-                            const defaultValue = DEFAULT_SETTINGS.navItemHeight;
-                            lineHeightSlider.setValue(defaultValue);
-                            plugin.setNavItemHeight(defaultValue);
-                        });
-                    })
-            );
+        renderSliderSetting(setting, {
+            name: strings.settings.items.navItemHeight.name,
+            desc: strings.settings.items.navItemHeight.desc,
+            value: plugin.settings.navItemHeight,
+            defaultValue: DEFAULT_SETTINGS.navItemHeight,
+            min: 20,
+            max: 28,
+            step: 1,
+            formatValue: formatPixelSliderValue,
+            onChange: value => {
+                plugin.setNavItemHeight(value);
+            }
+        });
     });
 
     addSettingSyncModeToggle({ setting: navItemHeightSetting, plugin, settingId: 'navItemHeight' });
@@ -516,34 +471,47 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
             }
         );
 
-        new Setting(springLoadedFoldersDependentSettings)
-            .setName(strings.settings.items.springLoadedFoldersInitialDelay.name)
-            .setDesc(strings.settings.items.springLoadedFoldersInitialDelay.desc)
-            .addSlider(slider =>
-                slider
-                    .setLimits(0.1, 2, 0.1)
-                    .setValue(plugin.settings.springLoadedFoldersInitialDelay)
-                    .setInstant(false)
-                    .setDynamicTooltip()
-                    .onChange(async value => {
-                        plugin.settings.springLoadedFoldersInitialDelay = Math.round(value * 10) / 10;
-                        await plugin.saveSettingsAndUpdate();
-                    })
-            );
-
-        new Setting(springLoadedFoldersDependentSettings)
-            .setName(strings.settings.items.springLoadedFoldersSubsequentDelay.name)
-            .setDesc(strings.settings.items.springLoadedFoldersSubsequentDelay.desc)
-            .addSlider(slider =>
-                slider
-                    .setLimits(0.1, 2, 0.1)
-                    .setValue(plugin.settings.springLoadedFoldersSubsequentDelay)
-                    .setInstant(false)
-                    .setDynamicTooltip()
-                    .onChange(async value => {
-                        plugin.settings.springLoadedFoldersSubsequentDelay = Math.round(value * 10) / 10;
-                        await plugin.saveSettingsAndUpdate();
-                    })
-            );
+        renderSpringLoadedFoldersInitialDelaySetting(new Setting(springLoadedFoldersDependentSettings), context);
+        renderSpringLoadedFoldersSubsequentDelaySetting(new Setting(springLoadedFoldersDependentSettings), context);
     }
+}
+
+function renderSpringLoadedFoldersInitialDelaySetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
+
+    renderSliderSetting(setting, {
+        name: strings.settings.items.springLoadedFoldersInitialDelay.name,
+        desc: strings.settings.items.springLoadedFoldersInitialDelay.desc,
+        value: plugin.settings.springLoadedFoldersInitialDelay,
+        defaultValue: DEFAULT_SETTINGS.springLoadedFoldersInitialDelay,
+        min: 0.1,
+        max: 2,
+        step: 0.1,
+        formatValue: formatSecondsSliderValue,
+        normalizeValue: value => Math.round(value * 10) / 10,
+        onChange: async value => {
+            plugin.settings.springLoadedFoldersInitialDelay = value;
+            await plugin.saveSettingsAndUpdate();
+        }
+    });
+}
+
+function renderSpringLoadedFoldersSubsequentDelaySetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
+
+    renderSliderSetting(setting, {
+        name: strings.settings.items.springLoadedFoldersSubsequentDelay.name,
+        desc: strings.settings.items.springLoadedFoldersSubsequentDelay.desc,
+        value: plugin.settings.springLoadedFoldersSubsequentDelay,
+        defaultValue: DEFAULT_SETTINGS.springLoadedFoldersSubsequentDelay,
+        min: 0.1,
+        max: 2,
+        step: 0.1,
+        formatValue: formatSecondsSliderValue,
+        normalizeValue: value => Math.round(value * 10) / 10,
+        onChange: async value => {
+            plugin.settings.springLoadedFoldersSubsequentDelay = value;
+            await plugin.saveSettingsAndUpdate();
+        }
+    });
 }
