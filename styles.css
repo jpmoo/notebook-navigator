@@ -6714,6 +6714,10 @@ body.nn-resizing {
     margin-top: 0;
 }
 
+.nn-settings-legacy-titlebar {
+    padding-inline: 0;
+}
+
 .nn-settings-legacy-titlebar .setting-item-name {
     display: flex;
     align-items: center;
