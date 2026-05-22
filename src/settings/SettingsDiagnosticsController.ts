@@ -73,6 +73,10 @@ export class SettingsDiagnosticsController {
             .setButtonText(strings.settings.items.metadataInfo.exportFailed)
             .onClick(() => runAsyncAction(() => this.exportFailedMetadataReport()));
         exportButton.buttonEl.addClass('nn-setting-hidden');
+
+        if (this.isMetadataInfoTab(this.activeTabId)) {
+            runAsyncAction(() => this.updateMetadataInfo());
+        }
     }
 
     prepareForRender(): void {

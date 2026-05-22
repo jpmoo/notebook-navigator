@@ -249,9 +249,10 @@ export function renderCalendarIntegrationSection(
     const resolveSelectedCalendarLocales = createSelectedCalendarLocalesResolver(context);
 
     const calendarIntegrationGroup = createGroup(strings.settings.groups.navigation.calendarIntegration);
+    let renderCalendarIntegrationVisibility = (): void => {};
 
     const calendarIntegrationSetting = calendarIntegrationGroup.addSetting(setting => {
-        renderCalendarIntegrationModeSetting(setting, context, renderCalendarIntegrationVisibility);
+        renderCalendarIntegrationModeSetting(setting, context, () => renderCalendarIntegrationVisibility());
     });
 
     const dailyNotesInfoSettingsEl = createDependentSettingsSection(calendarIntegrationSetting);
@@ -281,7 +282,7 @@ export function renderCalendarIntegrationSection(
         requestVisibilityRefresh: () => renderCalendarIntegrationVisibility()
     });
 
-    const renderCalendarIntegrationVisibility = (): void => {
+    renderCalendarIntegrationVisibility = (): void => {
         const isDailyNotes = plugin.settings.calendarIntegrationMode === 'daily-notes';
         const isCustom = plugin.settings.calendarIntegrationMode === 'notebook-navigator';
 
