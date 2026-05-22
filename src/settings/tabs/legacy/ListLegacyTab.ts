@@ -32,7 +32,7 @@ import type { SettingsTabContext } from '../SettingsTabContext';
 import { runAsyncAction } from '../../../utils/async';
 import { createSettingGroupFactory } from '../../settingGroups';
 import { addSettingSyncModeToggle } from '../../syncModeToggle';
-import { createDependentSettingsSection } from '../../dependentSettings';
+import { createDependentSettingsSection, setElementVisible } from '../../dependentSettings';
 import { pruneUnavailablePropertySortOverrides } from '../../../utils/sortUtils';
 import {
     getManualSortGroupHeaderPropertyKey,
@@ -303,6 +303,7 @@ export function renderListPaneTab(context: SettingsTabContext): void {
     });
 
     const propertySortGroup = createGroup(strings.settings.groups.list.propertySort);
+    let refreshPropertySortSecondaryVisibility = (): void => {};
 
     const propertySortKeySetting = propertySortGroup.addSetting(setting => {
         setting
@@ -316,6 +317,7 @@ export function renderListPaneTab(context: SettingsTabContext): void {
                     }
                     plugin.settings.propertySortKey = value;
                     pruneUnavailablePropertySortOverrides(plugin.settings);
+                    refreshPropertySortSecondaryVisibility();
                     await plugin.saveSettingsAndUpdate();
                 };
 
@@ -336,6 +338,9 @@ export function renderListPaneTab(context: SettingsTabContext): void {
     });
 
     const propertySortSecondarySettingsEl = createDependentSettingsSection(propertySortKeySetting);
+    refreshPropertySortSecondaryVisibility = (): void => {
+        setElementVisible(propertySortSecondarySettingsEl, plugin.settings.propertySortKey.trim().length > 0);
+    };
 
     new Setting(propertySortSecondarySettingsEl)
         .setName(strings.settings.items.propertySortSecondary.name)
@@ -352,6 +357,7 @@ export function renderListPaneTab(context: SettingsTabContext): void {
                 await plugin.saveSettingsAndUpdate();
             });
         });
+    refreshPropertySortSecondaryVisibility();
 
     addInfoSetting(propertySortGroup.addSetting, 'nn-setting-info-container', descEl => {
         descEl.createDiv({ text: strings.settings.items.propertySortInstructions.intro });
