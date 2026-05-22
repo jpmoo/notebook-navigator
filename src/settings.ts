@@ -46,6 +46,19 @@ import {
     SETTINGS_PANE_DEFINITION_MAP,
     type SettingsPaneId
 } from './settings/SettingsPaneDefinitions';
+import {
+    applyAppearanceBehaviorControlValue,
+    getAppearanceBehaviorControlValue,
+    isAppearanceBehaviorControlKey,
+    needsAppearanceBehaviorDomStateRefresh
+} from './settings/tabs/AppearanceBehaviorControlBindings';
+import {
+    applyNativeSettingControlValue,
+    getNativeSettingControlValue,
+    isNativeSettingControlKey,
+    NATIVE_SETTING_DOM_STATE_REFRESH_KEYS,
+    type NativeSettingControlKey
+} from './settings/nativeSettingControls';
 
 /**
  * Settings tab for configuring the Notebook Navigator plugin
@@ -458,14 +471,107 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         );
     }
 
+    getControlValue(key: string): unknown {
+        if (isAppearanceBehaviorControlKey(key)) {
+            return getAppearanceBehaviorControlValue(this.plugin.settings, key);
+        }
+
+        if (isNativeSettingControlKey(key)) {
+            return getNativeSettingControlValue(this.plugin.settings, key);
+        }
+
+        return super.getControlValue(key);
+    }
+
+    async setControlValue(key: string, value: unknown): Promise<void> {
+        if (isAppearanceBehaviorControlKey(key)) {
+            const didApply = applyAppearanceBehaviorControlValue(this.plugin.settings, key, value);
+            if (!didApply) {
+                return;
+            }
+
+            if (needsAppearanceBehaviorDomStateRefresh(key)) {
+                this.refreshNativeSettingsDomState();
+            }
+
+            await this.plugin.saveSettingsAndUpdate();
+            return;
+        }
+
+        if (!isNativeSettingControlKey(key)) {
+            await super.setControlValue(key, value);
+            return;
+        }
+
+        const didApply = applyNativeSettingControlValue(this.plugin.settings, key, value);
+        if (!didApply) {
+            return;
+        }
+
+        this.handleNativeSettingControlPreSaveSideEffects(key);
+
+        if (NATIVE_SETTING_DOM_STATE_REFRESH_KEYS.has(key)) {
+            this.refreshNativeSettingsDomState();
+        }
+
+        await this.plugin.saveSettingsAndUpdate();
+        await this.handleNativeSettingControlPostSaveSideEffects(key);
+    }
+
+    private handleNativeSettingControlPreSaveSideEffects(key: NativeSettingControlKey): void {
+        if (key === 'showTags') {
+            this.currentShowTagsVisible = this.plugin.settings.showTags;
+            this.showTagsListeners.forEach(callback => callback(this.currentShowTagsVisible));
+            return;
+        }
+
+        if (key === 'recentNotesCount') {
+            this.plugin.applyRecentNotesLimit();
+            return;
+        }
+
+        if (key === 'checkForUpdatesOnStart' && !this.plugin.settings.checkForUpdatesOnStart) {
+            this.plugin.dismissPendingUpdateNotice();
+        }
+    }
+
+    private async handleNativeSettingControlPostSaveSideEffects(key: NativeSettingControlKey): Promise<void> {
+        if (key === 'checkForUpdatesOnStart' && this.plugin.settings.checkForUpdatesOnStart) {
+            await this.plugin.runReleaseUpdateCheck(true);
+        }
+    }
+
     private createNativeSettingsPageDefinition(tabId: SettingsPaneId): SettingDefinitionPage {
         const definition = SETTINGS_PANE_DEFINITION_MAP.get(tabId);
         const name = definition?.getLabel() ?? tabId;
+        const desc = SETTINGS_PAGE_DESCRIPTION_GETTERS[tabId]();
+        const definitionItems = definition?.createDefinitions?.(this.createTabContext(this.containerEl));
+        if (definitionItems) {
+            let pageContainerEl: HTMLElement | null = null;
+            return {
+                type: 'page' as const,
+                name,
+                desc,
+                items: this.createNativeDefinitionItems(
+                    definitionItems,
+                    group => {
+                        pageContainerEl = group.listEl;
+                        this.prepareNativeSettingsPageDefinitionRender(tabId, group.listEl);
+                    },
+                    () => {
+                        if (pageContainerEl) {
+                            this.hideNativeSettingsPage(pageContainerEl);
+                            pageContainerEl = null;
+                        }
+                    }
+                )
+            };
+        }
 
         return {
             type: 'page' as const,
             name,
-            desc: SETTINGS_PAGE_DESCRIPTION_GETTERS[tabId](),
+            desc,
             page: () =>
                 createNativeSettingsPage({
                     title: name,
@@ -477,14 +583,14 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
 
     private createNativeDefinitionItems(
         items: SettingDefinitionItem[],
-        onFirstRender: () => void,
+        onFirstRender: (group: Parameters<SettingDefinitionRender['render']>[1]) => void,
         onLastCleanup: () => void
     ): SettingDefinitionItem[] {
         let activeRenderCount = 0;
 
-        const beginRender = (): void => {
+        const beginRender = (group: Parameters<SettingDefinitionRender['render']>[1]): void => {
             if (activeRenderCount === 0) {
-                onFirstRender();
+                onFirstRender(group);
             }
             activeRenderCount += 1;
         };
@@ -501,7 +607,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
             return {
                 ...item,
                 render: (setting, group) => {
-                    beginRender();
+                    beginRender(group);
                     const cleanup = render(setting, group);
                     return () => {
                         cleanup?.();
@@ -587,6 +693,15 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         this.settingsRenderContainerEl = this.containerEl;
         this.containerEl.addClass('nn-settings-tab-root');
         this.resetRenderedSettingsState();
+    }
+
+    private prepareNativeSettingsPageDefinitionRender(tabId: SettingsPaneId, containerEl: HTMLElement): void {
+        this.ensureSettingsUpdateListener();
+        this.activeSettingsPage = null;
+        this.settingsRenderContainerEl = containerEl;
+        containerEl.addClass('nn-settings-tab-root');
+        this.resetRenderedSettingsState();
+        this.diagnosticsController.handleTabActivation(tabId);
     }
 
     private finishNativeSettingsIndexRender(): void {

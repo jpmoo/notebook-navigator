@@ -17,28 +17,59 @@
  */
 
 import { strings } from '../../i18n';
+import type { Setting, SettingDefinitionItem } from 'obsidian';
 import { EXTERNAL_ICON_PROVIDERS } from '../../services/icons/external/providerRegistry';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { ICON_ASSETS_REPOSITORY_URL } from '../../constants/urls';
 import { runAsyncAction } from '../../utils/async';
 import { showNotice } from '../../utils/noticeUtils';
-import { createSettingGroupFactory } from '../settingGroups';
+import { createGroupDefinition, createRenderDefinition } from '../nativeSettingControls';
 import { createExternalLinkText } from './externalLink';
 
-/** Renders the icon packs settings tab */
-export function renderIconPacksTab(context: SettingsTabContext): void {
-    const iconPacksRootEl = context.containerEl.createDiv();
-    renderIconPacksContent(context, iconPacksRootEl);
+/** Builds native 1.13 setting definitions for icon pack settings. */
+export function createIconPacksSettingDefinitions(context: SettingsTabContext): SettingDefinitionItem[] {
+    return [
+        createGroupDefinition(undefined, [
+            ...Object.values(EXTERNAL_ICON_PROVIDERS).map(config =>
+                createRenderDefinition({
+                    name: config.name,
+                    desc: config.catalogUrl,
+                    aliases: [
+                        strings.settings.items.externalIcons.downloadButton,
+                        strings.settings.items.externalIcons.removeButton,
+                        config.catalogUrl
+                    ],
+                    render: setting => renderIconProviderSetting(setting, context, config)
+                })
+            ),
+            createRenderDefinition({
+                name: strings.settings.items.externalIcons.infoNote,
+                searchable: false,
+                render: setting => {
+                    setting.setName('').setDesc('');
+                    setting.settingEl.addClass('nn-setting-info-container');
+                    setting.descEl.empty();
+                    setting.descEl.createDiv().append(
+                        createExternalLinkText({
+                            text: strings.settings.items.externalIcons.infoNote,
+                            link: { text: ICON_ASSETS_REPOSITORY_URL, href: ICON_ASSETS_REPOSITORY_URL }
+                        })
+                    );
+                }
+            })
+        ])
+    ];
 }
 
-function renderIconPacksContent(context: SettingsTabContext, iconPacksRootEl: HTMLElement): void {
-    const { plugin, addInfoSetting } = context;
-    iconPacksRootEl.empty();
+function renderIconProviderSetting(
+    setting: Setting,
+    context: SettingsTabContext,
+    config: (typeof EXTERNAL_ICON_PROVIDERS)[keyof typeof EXTERNAL_ICON_PROVIDERS]
+): void {
+    const { plugin } = context;
 
-    const createGroup = createSettingGroupFactory(iconPacksRootEl);
-    const iconPacksGroup = createGroup(undefined);
-
-    Object.values(EXTERNAL_ICON_PROVIDERS).forEach(config => {
+    const renderState = () => {
+        setting.clear();
         const isInstalled = plugin.isExternalIconProviderInstalled(config.id);
         const isDownloading = plugin.isExternalIconProviderDownloading(config.id);
         const version = plugin.getExternalIconProviderVersion(config.id);
@@ -50,9 +81,7 @@ function renderIconPacksContent(context: SettingsTabContext, iconPacksRootEl: HT
               )
             : strings.settings.items.externalIcons.statusNotInstalled;
 
-        const setting = iconPacksGroup.addSetting(setting => {
-            setting.setName(config.name).setDesc('');
-        });
+        setting.setName(config.name).setDesc('');
 
         const descriptionEl = setting.descEl;
         descriptionEl.empty();
@@ -72,13 +101,12 @@ function renderIconPacksContent(context: SettingsTabContext, iconPacksRootEl: HT
             setting.addButton(button => {
                 button.setButtonText(strings.settings.items.externalIcons.removeButton);
                 button.setDisabled(isDownloading);
-                // Remove icon pack without blocking the UI
                 button.onClick(() => {
                     runAsyncAction(async () => {
                         button.setDisabled(true);
                         try {
                             await plugin.removeExternalIconProvider(config.id);
-                            renderIconPacksContent(context, iconPacksRootEl);
+                            renderState();
                         } catch (error) {
                             console.error('Failed to remove icon provider', error);
                             showNotice(strings.settings.items.externalIcons.removeFailed.replace('{name}', config.name), {
@@ -89,40 +117,31 @@ function renderIconPacksContent(context: SettingsTabContext, iconPacksRootEl: HT
                     });
                 });
             });
-        } else {
-            setting.addButton(button => {
-                button.setButtonText(
-                    isDownloading
-                        ? strings.settings.items.externalIcons.downloadingLabel
-                        : strings.settings.items.externalIcons.downloadButton
-                );
-                button.setDisabled(isDownloading);
-                // Download icon pack without blocking the UI
-                button.onClick(() => {
-                    runAsyncAction(async () => {
-                        button.setDisabled(true);
-                        try {
-                            await plugin.downloadExternalIconProvider(config.id);
-                            renderIconPacksContent(context, iconPacksRootEl);
-                        } catch (error) {
-                            console.error('Failed to download icon provider', error);
-                            showNotice(strings.settings.items.externalIcons.downloadFailed.replace('{name}', config.name), {
-                                variant: 'warning'
-                            });
-                            button.setDisabled(false);
-                        }
-                    });
+            return;
+        }
+
+        setting.addButton(button => {
+            button.setButtonText(
+                isDownloading ? strings.settings.items.externalIcons.downloadingLabel : strings.settings.items.externalIcons.downloadButton
+            );
+            button.setDisabled(isDownloading);
+            button.onClick(() => {
+                runAsyncAction(async () => {
+                    button.setDisabled(true);
+                    try {
+                        await plugin.downloadExternalIconProvider(config.id);
+                        renderState();
+                    } catch (error) {
+                        console.error('Failed to download icon provider', error);
+                        showNotice(strings.settings.items.externalIcons.downloadFailed.replace('{name}', config.name), {
+                            variant: 'warning'
+                        });
+                        button.setDisabled(false);
+                    }
                 });
             });
-        }
-    });
+        });
+    };
 
-    addInfoSetting(iconPacksGroup.addSetting, 'nn-setting-info-container', descEl => {
-        descEl.createDiv().append(
-            createExternalLinkText({
-                text: strings.settings.items.externalIcons.infoNote,
-                link: { text: ICON_ASSETS_REPOSITORY_URL, href: ICON_ASSETS_REPOSITORY_URL }
-            })
-        );
-    });
+    renderState();
 }

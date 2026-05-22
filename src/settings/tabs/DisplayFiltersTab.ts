@@ -17,24 +17,17 @@
  */
 
 import { strings } from '../../i18n';
+import type { SettingDefinitionItem } from 'obsidian';
 import { formatCommaSeparatedList, parseCommaSeparatedList } from '../../utils/commaSeparatedListUtils';
 import { normalizeTagPath } from '../../utils/tagUtils';
 import { ensureVaultProfiles } from '../../utils/vaultProfiles';
-import { createSettingGroupFactory } from '../settingGroups';
+import { createGroupDefinition, createRenderDefinition } from '../nativeSettingControls';
 import type { SettingsTabContext } from './SettingsTabContext';
 
-/** Renders hidden content filters for the active vault profile. */
-export function renderDisplayFiltersTab(context: SettingsTabContext): void {
-    const { containerEl, plugin, configureDebouncedTextSetting } = context;
+/** Builds native 1.13 setting definitions for active-profile filter settings. */
+export function createDisplayFiltersSettingDefinitions(context: SettingsTabContext): SettingDefinitionItem[] {
+    const { plugin } = context;
     ensureVaultProfiles(plugin.settings);
-    const createGroup = createSettingGroupFactory(containerEl);
-    const filteringGroup = createGroup(undefined);
-
-    let excludedFoldersInput: HTMLInputElement | null = null;
-    let hiddenTagsInput: HTMLInputElement | null = null;
-    let hiddenFileTagsInput: HTMLInputElement | null = null;
-    let excludedFilesInput: HTMLInputElement | null = null;
-    let hiddenFileNamesInput: HTMLInputElement | null = null;
 
     const getActiveProfile = () => {
         return (
@@ -44,131 +37,127 @@ export function renderDisplayFiltersTab(context: SettingsTabContext): void {
         );
     };
 
-    const refreshFilterControls = () => {
-        const activeProfile = getActiveProfile();
-        if (excludedFoldersInput) {
-            excludedFoldersInput.value = activeProfile ? formatCommaSeparatedList(activeProfile.hiddenFolders) : '';
-        }
-        if (hiddenTagsInput) {
-            hiddenTagsInput.value = activeProfile ? formatCommaSeparatedList(activeProfile.hiddenTags) : '';
-        }
-        if (hiddenFileTagsInput) {
-            hiddenFileTagsInput.value = activeProfile ? formatCommaSeparatedList(activeProfile.hiddenFileTags) : '';
-        }
-        if (excludedFilesInput) {
-            excludedFilesInput.value = activeProfile ? formatCommaSeparatedList(activeProfile.hiddenFileProperties) : '';
-        }
-        if (hiddenFileNamesInput) {
-            hiddenFileNamesInput.value = activeProfile ? formatCommaSeparatedList(activeProfile.hiddenFileNames) : '';
-        }
-    };
-
-    const hiddenFileNamesSetting = filteringGroup.addSetting(setting => {
-        configureDebouncedTextSetting(
-            setting,
-            strings.settings.items.excludedFileNamePatterns.name,
-            strings.settings.items.excludedFileNamePatterns.desc,
-            strings.settings.items.excludedFileNamePatterns.placeholder,
-            () => formatCommaSeparatedList(getActiveProfile()?.hiddenFileNames ?? []),
-            value => {
-                const activeProfile = getActiveProfile();
-                if (!activeProfile) {
-                    return;
+    return [
+        createGroupDefinition(undefined, [
+            createRenderDefinition({
+                name: strings.settings.items.excludedFileNamePatterns.name,
+                desc: strings.settings.items.excludedFileNamePatterns.desc,
+                aliases: [strings.settings.items.excludedFileNamePatterns.placeholder],
+                render: setting => {
+                    context.configureDebouncedTextSetting(
+                        setting,
+                        strings.settings.items.excludedFileNamePatterns.name,
+                        strings.settings.items.excludedFileNamePatterns.desc,
+                        strings.settings.items.excludedFileNamePatterns.placeholder,
+                        () => formatCommaSeparatedList(getActiveProfile()?.hiddenFileNames ?? []),
+                        value => {
+                            const activeProfile = getActiveProfile();
+                            if (!activeProfile) {
+                                return;
+                            }
+                            activeProfile.hiddenFileNames = Array.from(new Set(parseCommaSeparatedList(value)));
+                        }
+                    );
+                    setting.controlEl.addClass('nn-setting-wide-input');
                 }
-                const nextHiddenPatterns = parseCommaSeparatedList(value);
-                activeProfile.hiddenFileNames = Array.from(new Set(nextHiddenPatterns));
-            }
-        );
-    });
-    hiddenFileNamesSetting.controlEl.addClass('nn-setting-wide-input');
-    hiddenFileNamesInput = hiddenFileNamesSetting.controlEl.querySelector('input');
-
-    const excludedFoldersSetting = filteringGroup.addSetting(setting => {
-        configureDebouncedTextSetting(
-            setting,
-            strings.settings.items.excludedFolders.name,
-            strings.settings.items.excludedFolders.desc,
-            strings.settings.items.excludedFolders.placeholder,
-            () => formatCommaSeparatedList(getActiveProfile()?.hiddenFolders ?? []),
-            value => {
-                const activeProfile = getActiveProfile();
-                if (!activeProfile) {
-                    return;
+            }),
+            createRenderDefinition({
+                name: strings.settings.items.excludedFolders.name,
+                desc: strings.settings.items.excludedFolders.desc,
+                aliases: [strings.settings.items.excludedFolders.placeholder],
+                render: setting => {
+                    context.configureDebouncedTextSetting(
+                        setting,
+                        strings.settings.items.excludedFolders.name,
+                        strings.settings.items.excludedFolders.desc,
+                        strings.settings.items.excludedFolders.placeholder,
+                        () => formatCommaSeparatedList(getActiveProfile()?.hiddenFolders ?? []),
+                        value => {
+                            const activeProfile = getActiveProfile();
+                            if (!activeProfile) {
+                                return;
+                            }
+                            activeProfile.hiddenFolders = Array.from(new Set(parseCommaSeparatedList(value)));
+                        }
+                    );
+                    setting.controlEl.addClass('nn-setting-wide-input');
                 }
-                const nextHiddenFolders = parseCommaSeparatedList(value);
-                activeProfile.hiddenFolders = Array.from(new Set(nextHiddenFolders));
-            }
-        );
-    });
-    excludedFoldersSetting.controlEl.addClass('nn-setting-wide-input');
-    excludedFoldersInput = excludedFoldersSetting.controlEl.querySelector('input');
+            }),
+            createRenderDefinition({
+                name: strings.settings.items.hiddenTags.name,
+                desc: strings.settings.items.hiddenTags.desc,
+                aliases: [strings.settings.items.hiddenTags.placeholder],
+                render: setting => {
+                    context.configureDebouncedTextSetting(
+                        setting,
+                        strings.settings.items.hiddenTags.name,
+                        strings.settings.items.hiddenTags.desc,
+                        strings.settings.items.hiddenTags.placeholder,
+                        () => formatCommaSeparatedList(getActiveProfile()?.hiddenTags ?? []),
+                        value => {
+                            const activeProfile = getActiveProfile();
+                            if (!activeProfile) {
+                                return;
+                            }
+                            const normalizedHiddenTags = parseCommaSeparatedList(value)
+                                .map(entry => normalizeTagPath(entry))
+                                .filter((entry): entry is string => entry !== null);
 
-    const hiddenTagsSetting = filteringGroup.addSetting(setting => {
-        configureDebouncedTextSetting(
-            setting,
-            strings.settings.items.hiddenTags.name,
-            strings.settings.items.hiddenTags.desc,
-            strings.settings.items.hiddenTags.placeholder,
-            () => formatCommaSeparatedList(getActiveProfile()?.hiddenTags ?? []),
-            value => {
-                const activeProfile = getActiveProfile();
-                if (!activeProfile) {
-                    return;
+                            activeProfile.hiddenTags = Array.from(new Set(normalizedHiddenTags));
+                        }
+                    );
+                    setting.controlEl.addClass('nn-setting-wide-input');
                 }
-                const normalizedHiddenTags = parseCommaSeparatedList(value)
-                    .map(entry => normalizeTagPath(entry))
-                    .filter((entry): entry is string => entry !== null);
+            }),
+            createRenderDefinition({
+                name: strings.settings.items.hiddenFileTags.name,
+                desc: strings.settings.items.hiddenFileTags.desc,
+                aliases: [strings.settings.items.hiddenFileTags.placeholder],
+                render: setting => {
+                    context.configureDebouncedTextSetting(
+                        setting,
+                        strings.settings.items.hiddenFileTags.name,
+                        strings.settings.items.hiddenFileTags.desc,
+                        strings.settings.items.hiddenFileTags.placeholder,
+                        () => formatCommaSeparatedList(getActiveProfile()?.hiddenFileTags ?? []),
+                        value => {
+                            const activeProfile = getActiveProfile();
+                            if (!activeProfile) {
+                                return;
+                            }
 
-                activeProfile.hiddenTags = Array.from(new Set(normalizedHiddenTags));
-            }
-        );
-    });
-    hiddenTagsSetting.controlEl.addClass('nn-setting-wide-input');
-    hiddenTagsInput = hiddenTagsSetting.controlEl.querySelector('input');
+                            const normalizedHiddenFileTags = parseCommaSeparatedList(value)
+                                .map(entry => normalizeTagPath(entry))
+                                .filter((entry): entry is string => entry !== null);
 
-    const hiddenFileTagsSetting = filteringGroup.addSetting(setting => {
-        configureDebouncedTextSetting(
-            setting,
-            strings.settings.items.hiddenFileTags.name,
-            strings.settings.items.hiddenFileTags.desc,
-            strings.settings.items.hiddenFileTags.placeholder,
-            () => formatCommaSeparatedList(getActiveProfile()?.hiddenFileTags ?? []),
-            value => {
-                const activeProfile = getActiveProfile();
-                if (!activeProfile) {
-                    return;
+                            activeProfile.hiddenFileTags = Array.from(new Set(normalizedHiddenFileTags));
+                        }
+                    );
+                    setting.controlEl.addClass('nn-setting-wide-input');
                 }
-
-                const normalizedHiddenFileTags = parseCommaSeparatedList(value)
-                    .map(entry => normalizeTagPath(entry))
-                    .filter((entry): entry is string => entry !== null);
-
-                activeProfile.hiddenFileTags = Array.from(new Set(normalizedHiddenFileTags));
-            }
-        );
-    });
-    hiddenFileTagsSetting.controlEl.addClass('nn-setting-wide-input');
-    hiddenFileTagsInput = hiddenFileTagsSetting.controlEl.querySelector('input');
-
-    const excludedFilesSetting = filteringGroup.addSetting(setting => {
-        configureDebouncedTextSetting(
-            setting,
-            strings.settings.items.excludedNotes.name,
-            strings.settings.items.excludedNotes.desc,
-            strings.settings.items.excludedNotes.placeholder,
-            () => formatCommaSeparatedList(getActiveProfile()?.hiddenFileProperties ?? []),
-            value => {
-                const activeProfile = getActiveProfile();
-                if (!activeProfile) {
-                    return;
+            }),
+            createRenderDefinition({
+                name: strings.settings.items.excludedNotes.name,
+                desc: strings.settings.items.excludedNotes.desc,
+                aliases: [strings.settings.items.excludedNotes.placeholder],
+                render: setting => {
+                    context.configureDebouncedTextSetting(
+                        setting,
+                        strings.settings.items.excludedNotes.name,
+                        strings.settings.items.excludedNotes.desc,
+                        strings.settings.items.excludedNotes.placeholder,
+                        () => formatCommaSeparatedList(getActiveProfile()?.hiddenFileProperties ?? []),
+                        value => {
+                            const activeProfile = getActiveProfile();
+                            if (!activeProfile) {
+                                return;
+                            }
+                            activeProfile.hiddenFileProperties = Array.from(new Set(parseCommaSeparatedList(value)));
+                        }
+                    );
+                    setting.controlEl.addClass('nn-setting-wide-input');
                 }
-                const nextHiddenFiles = parseCommaSeparatedList(value);
-                activeProfile.hiddenFileProperties = Array.from(new Set(nextHiddenFiles));
-            }
-        );
-    });
-    excludedFilesSetting.controlEl.addClass('nn-setting-wide-input');
-    excludedFilesInput = excludedFilesSetting.controlEl.querySelector('input');
-
-    refreshFilterControls();
+            })
+        ])
+    ];
 }

@@ -17,18 +17,21 @@
  */
 
 import { strings } from '../../i18n';
+import type { SettingDefinitionItem } from 'obsidian';
 import type { SettingsTabContext } from './SettingsTabContext';
-import { renderFoldersTab } from './FoldersTab';
-import { renderTagsTab } from './TagsTab';
-import { renderPropertiesTab } from './PropertiesTab';
+import { createFoldersSettingDefinitions } from './FoldersTab';
+import { createPropertiesSettingDefinitions } from './PropertiesTab';
+import { createTagsSettingDefinitions } from './TagsTab';
 
-/** Renders folder display and folder note settings together */
-export function renderFoldersAndFolderNotesTab(context: SettingsTabContext): void {
-    renderFoldersTab(context, strings.settings.sections.folders);
+/** Builds native 1.13 setting definitions for folder display and folder note settings. */
+export function createFoldersAndFolderNotesSettingDefinitions(context: SettingsTabContext): SettingDefinitionItem[] {
+    return createFoldersSettingDefinitions(context, strings.settings.sections.folders);
 }
 
-/** Renders tag and property settings together */
-export function renderTagsPropertiesTab(context: SettingsTabContext): void {
-    renderTagsTab(context, strings.settings.sections.tags);
-    renderPropertiesTab(context, strings.navigationPane.properties);
+/** Builds native 1.13 setting definitions for tag and property settings. */
+export function createTagsPropertiesSettingDefinitions(context: SettingsTabContext): SettingDefinitionItem[] {
+    return [
+        ...createTagsSettingDefinitions(context, strings.settings.sections.tags),
+        ...createPropertiesSettingDefinitions(context, strings.navigationPane.properties)
+    ];
 }

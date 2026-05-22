@@ -17,19 +17,32 @@
  */
 
 import { strings } from '../i18n';
-import { renderAdvancedTab } from './tabs/AdvancedTab';
-import { renderCalendarTab } from './tabs/CalendarTab';
-import { renderFoldersAndFolderNotesTab, renderTagsPropertiesTab } from './tabs/ContentTab';
-import { renderDisplayFiltersTab } from './tabs/DisplayFiltersTab';
-import { renderFilesTab } from './tabs/FilesTab';
-import { renderFrontmatterTab } from './tabs/FrontmatterTab';
-import { renderGeneralTab } from './tabs/GeneralTab';
-import { renderIconPacksTab } from './tabs/IconPacksTab';
-import { renderListPaneTab } from './tabs/ListTab';
-import { renderNavigationPaneTab } from './tabs/NavigationTab';
-import { renderNotesTab } from './tabs/NotesTab';
-import { renderShortcutsTab } from './tabs/ShortcutsTab';
-import { renderAppearanceBehaviorTab } from './tabs/AppearanceBehaviorTab';
+import type { SettingDefinitionItem } from 'obsidian';
+import { createAdvancedSettingDefinitions } from './tabs/AdvancedTab';
+import { createCalendarSettingDefinitions } from './tabs/CalendarTab';
+import { createFoldersAndFolderNotesSettingDefinitions, createTagsPropertiesSettingDefinitions } from './tabs/ContentTab';
+import { createDisplayFiltersSettingDefinitions } from './tabs/DisplayFiltersTab';
+import { createFilesSettingDefinitions } from './tabs/FilesTab';
+import { createFrontmatterSettingDefinitions } from './tabs/FrontmatterTab';
+import { createIconPacksSettingDefinitions } from './tabs/IconPacksTab';
+import { createListPaneSettingDefinitions } from './tabs/ListTab';
+import { createNavigationPaneSettingDefinitions } from './tabs/NavigationTab';
+import { createNotesSettingDefinitions } from './tabs/NotesTab';
+import { createShortcutsSettingDefinitions } from './tabs/ShortcutsTab';
+import { createAppearanceBehaviorSettingDefinitions } from './tabs/AppearanceBehaviorTab';
+import { renderAdvancedTab } from './tabs/legacy/AdvancedLegacyTab';
+import { renderAppearanceBehaviorTab } from './tabs/legacy/AppearanceBehaviorLegacyTab';
+import { renderCalendarTab } from './tabs/legacy/CalendarLegacyTab';
+import { renderFoldersAndFolderNotesTab, renderTagsPropertiesTab } from './tabs/legacy/ContentLegacyTab';
+import { renderDisplayFiltersTab } from './tabs/legacy/DisplayFiltersLegacyTab';
+import { renderFilesTab } from './tabs/legacy/FilesLegacyTab';
+import { renderFrontmatterTab } from './tabs/legacy/FrontmatterLegacyTab';
+import { renderGeneralTab } from './tabs/legacy/GeneralLegacyTab';
+import { renderIconPacksTab } from './tabs/legacy/IconPacksLegacyTab';
+import { renderListPaneTab } from './tabs/legacy/ListLegacyTab';
+import { renderNavigationPaneTab } from './tabs/legacy/NavigationLegacyTab';
+import { renderNotesTab } from './tabs/legacy/NotesLegacyTab';
+import { renderShortcutsTab } from './tabs/legacy/ShortcutsLegacyTab';
 import type { SettingsTabContext, SettingsTabId } from './tabs/SettingsTabContext';
 
 /** Identifiers for settings panes rendered as native settings pages. */
@@ -45,6 +58,7 @@ export interface SettingsPaneDefinition {
     id: SettingsPaneId;
     getLabel: () => string;
     render: (context: SettingsTabContext) => void;
+    createDefinitions?: (context: SettingsTabContext) => SettingDefinitionItem[];
 }
 
 export const SETTINGS_PAGE_GROUP_DEFINITIONS: SettingsPageGroupDefinition[] = [
@@ -88,63 +102,80 @@ export const SETTINGS_PANE_DEFINITIONS: SettingsPaneDefinition[] = [
     {
         id: 'vault-filters',
         getLabel: () => strings.settings.sections.vaultFilters,
-        render: renderDisplayFiltersTab
+        render: renderDisplayFiltersTab,
+        createDefinitions: createDisplayFiltersSettingDefinitions
     },
     {
         id: 'appearance-behavior',
         getLabel: () => strings.settings.sections.appearanceBehavior,
-        render: renderAppearanceBehaviorTab
+        render: renderAppearanceBehaviorTab,
+        createDefinitions: createAppearanceBehaviorSettingDefinitions
     },
     {
         id: 'navigation-pane',
         getLabel: () => strings.settings.sections.navigationPane,
-        render: renderNavigationPaneTab
+        render: renderNavigationPaneTab,
+        createDefinitions: createNavigationPaneSettingDefinitions
     },
     {
         id: 'shortcuts',
         getLabel: () => strings.settings.sections.shortcutsAndRecentFiles,
-        render: renderShortcutsTab
+        render: renderShortcutsTab,
+        createDefinitions: createShortcutsSettingDefinitions
     },
     {
         id: 'folders',
         getLabel: () => strings.settings.sections.foldersAndFolderNotes,
-        render: renderFoldersAndFolderNotesTab
+        render: renderFoldersAndFolderNotesTab,
+        createDefinitions: createFoldersAndFolderNotesSettingDefinitions
     },
     {
         id: 'tags-properties',
         getLabel: () => strings.settings.sections.tagsAndProperties,
-        render: renderTagsPropertiesTab
+        render: renderTagsPropertiesTab,
+        createDefinitions: createTagsPropertiesSettingDefinitions
     },
     {
         id: 'list-pane',
         getLabel: () => strings.settings.sections.listPane,
-        render: renderListPaneTab
+        render: renderListPaneTab,
+        createDefinitions: createListPaneSettingDefinitions
     },
     {
         id: 'file-operations',
         getLabel: () => strings.settings.sections.fileOperations,
-        render: renderFilesTab
+        render: renderFilesTab,
+        createDefinitions: () => createFilesSettingDefinitions()
     },
     {
         id: 'frontmatter',
         getLabel: () => strings.settings.groups.notes.frontmatter,
-        render: renderFrontmatterTab
+        render: renderFrontmatterTab,
+        createDefinitions: createFrontmatterSettingDefinitions
     },
-    { id: 'notes', getLabel: () => strings.settings.sections.notes, render: renderNotesTab },
+    {
+        id: 'notes',
+        getLabel: () => strings.settings.sections.notes,
+        render: renderNotesTab,
+        createDefinitions: createNotesSettingDefinitions
+    },
     {
         id: 'calendar',
         getLabel: () => strings.settings.sections.calendar,
-        render: renderCalendarTab
+        render: renderCalendarTab,
+        createDefinitions: createCalendarSettingDefinitions
     },
     {
         id: 'icon-packs',
         getLabel: () => strings.settings.sections.icons,
-        render: renderIconPacksTab
+        render: renderIconPacksTab,
+        createDefinitions: createIconPacksSettingDefinitions
     },
     {
         id: 'advanced',
         getLabel: () => strings.settings.sections.advanced,
-        render: renderAdvancedTab
+        render: renderAdvancedTab,
+        createDefinitions: createAdvancedSettingDefinitions
     }
 ];
 

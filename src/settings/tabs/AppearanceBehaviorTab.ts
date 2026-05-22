@@ -17,16 +17,12 @@
  */
 
 import { ButtonComponent, Platform, Setting, SliderComponent } from 'obsidian';
+import type { SettingDefinitionControl, SettingDefinitionGroup, SettingDefinitionItem, SettingDefinitionRender } from 'obsidian';
 import { MOMENT_FORMAT_DOCS_URL } from '../../constants/urls';
 import { strings } from '../../i18n';
 import { HomepageModal } from '../../modals/HomepageModal';
 import { FolderPathInputSuggest } from '../../suggest/FolderPathInputSuggest';
-import {
-    MAX_PANE_TRANSITION_DURATION_MS,
-    MIN_PANE_TRANSITION_DURATION_MS,
-    PANE_TRANSITION_DURATION_STEP_MS,
-    type BackgroundMode
-} from '../../types';
+import { MAX_PANE_TRANSITION_DURATION_MS, MIN_PANE_TRANSITION_DURATION_MS, PANE_TRANSITION_DURATION_STEP_MS } from '../../types';
 import { TIMEOUTS } from '../../types/obsidian-extended';
 import { runAsyncAction } from '../../utils/async';
 import { normalizeCalendarCustomRootFolder } from '../../utils/calendarCustomNotePatterns';
@@ -41,314 +37,392 @@ import {
     UI_SCALE_PERCENT_STEP
 } from '../../utils/uiScale';
 import { DEFAULT_SETTINGS } from '../defaultSettings';
-import { createSettingGroupFactory } from '../settingGroups';
-import { createDependentSettingsSection, setElementVisible, wireToggleSettingWithDependentSection } from '../dependentSettings';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
-import type { FileOpenContext, MouseBackForwardAction } from '../types';
-import { isHomepageSource, isMultiSelectModifier, isPeriodicHomepageSource } from '../types';
+import { isHomepageSource, isPeriodicHomepageSource } from '../types';
+import type {
+    AppearanceBehaviorControlKey,
+    AppearanceBehaviorDropdownKey,
+    AppearanceBehaviorToggleKey
+} from './AppearanceBehaviorControlBindings';
 import { createSettingDescriptionWithExternalLink } from './externalLink';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { renderToolbarButtonsSetting } from './ToolbarButtonsSetting';
 
-type CreateSettingGroup = ReturnType<typeof createSettingGroupFactory>;
+type RenderSetting = (setting: Setting) => void | (() => void);
+type GroupItems = NonNullable<SettingDefinitionGroup['items']>;
 
-/** Renders appearance, behavior, keyboard, formatting, and template settings. */
-export function renderAppearanceBehaviorTab(context: SettingsTabContext): void {
-    const createGroup = createSettingGroupFactory(context.containerEl);
+interface DefinitionOptions {
+    aliases?: string[];
+    visible?: boolean | (() => boolean);
+}
 
-    renderBehaviorSettings(context, createGroup);
+interface ControlDefinitionOptions extends DefinitionOptions {
+    name: string;
+    desc?: string | DocumentFragment;
+}
+
+interface DropdownDefinitionOptions extends ControlDefinitionOptions {
+    options: Record<string, string>;
+}
+
+/** Builds native 1.13 setting definitions for appearance and behavior settings. */
+export function createAppearanceBehaviorSettingDefinitions(context: SettingsTabContext): SettingDefinitionItem[] {
+    const groups: SettingDefinitionGroup[] = [createBehaviorDefinitionGroup(context)];
 
     if (!Platform.isMobile) {
-        renderKeyboardNavigationSettings(context, createGroup);
-        renderDesktopAppearanceSettings(context, createGroup);
+        groups.push(
+            createKeyboardNavigationDefinitionGroup(context),
+            createMouseButtonsDefinitionGroup(),
+            createDesktopAppearanceDefinitionGroup(context)
+        );
     } else {
-        renderMobileAppearanceSettings(context, createGroup);
+        groups.push(createMobileAppearanceDefinitionGroup(context));
     }
 
-    renderViewSettings(context, createGroup);
-    renderIconSettings(context, createGroup);
-    renderFormattingSettings(context, createGroup);
-    renderTemplateSettings(context, createGroup);
-}
-
-function renderBehaviorSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
-    const { plugin, addToggleSetting } = context;
-
-    const behaviorGroup = createGroup(undefined);
-
-    addToggleSetting(
-        behaviorGroup.addSetting,
-        strings.settings.items.createNewNotesInNewTab.name,
-        strings.settings.items.createNewNotesInNewTab.desc,
-        () => plugin.settings.createNewNotesInNewTab,
-        value => {
-            plugin.settings.createNewNotesInNewTab = value;
-        }
+    groups.push(
+        createViewDefinitionGroup(context),
+        createIconDefinitionGroup(context),
+        createFormattingDefinitionGroup(context),
+        createTemplateDefinitionGroup(context)
     );
 
-    const autoRevealSetting = behaviorGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.autoRevealActiveNote.name).setDesc(strings.settings.items.autoRevealActiveNote.desc);
-    });
-
-    const autoRevealSettingsEl = wireToggleSettingWithDependentSection(
-        autoRevealSetting,
-        () => plugin.settings.autoRevealActiveFile,
-        async value => {
-            plugin.settings.autoRevealActiveFile = value;
-            await plugin.saveSettingsAndUpdate();
-        }
-    );
-
-    new Setting(autoRevealSettingsEl)
-        .setName(strings.settings.items.autoRevealShortestPath.name)
-        .setDesc(strings.settings.items.autoRevealShortestPath.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.autoRevealShortestPath).onChange(async value => {
-                plugin.settings.autoRevealShortestPath = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
-
-    new Setting(autoRevealSettingsEl)
-        .setName(strings.settings.items.autoRevealIgnoreRightSidebar.name)
-        .setDesc(strings.settings.items.autoRevealIgnoreRightSidebar.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.autoRevealIgnoreRightSidebar).onChange(async value => {
-                plugin.settings.autoRevealIgnoreRightSidebar = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
-
-    new Setting(autoRevealSettingsEl)
-        .setName(strings.settings.items.autoRevealIgnoreOtherWindows.name)
-        .setDesc(strings.settings.items.autoRevealIgnoreOtherWindows.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.autoRevealIgnoreOtherWindows).onChange(async value => {
-                plugin.settings.autoRevealIgnoreOtherWindows = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
+    return groups;
 }
 
-function renderKeyboardNavigationSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
+function createBehaviorDefinitionGroup(context: SettingsTabContext): SettingDefinitionGroup {
     const { plugin } = context;
-    const keyboardNavigationGroup = createGroup(strings.settings.groups.general.keyboardNavigation);
 
-    keyboardNavigationGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.multiSelectModifier.name)
-            .setDesc(strings.settings.items.multiSelectModifier.desc)
-            .addDropdown(dropdown =>
-                dropdown
-                    .addOption('cmdCtrl', strings.settings.items.multiSelectModifier.options.cmdCtrl)
-                    .addOption('optionAlt', strings.settings.items.multiSelectModifier.options.optionAlt)
-                    .setValue(plugin.settings.multiSelectModifier)
-                    .onChange(async value => {
-                        if (!isMultiSelectModifier(value)) {
-                            return;
-                        }
-                        plugin.settings.multiSelectModifier = value;
-                        await plugin.saveSettingsAndUpdate();
-                    })
-            );
-    });
+    return createGroupDefinition(undefined, [
+        createToggleDefinition('createNewNotesInNewTab', {
+            name: strings.settings.items.createNewNotesInNewTab.name,
+            desc: strings.settings.items.createNewNotesInNewTab.desc
+        }),
+        createToggleDefinition('autoRevealActiveFile', {
+            name: strings.settings.items.autoRevealActiveNote.name,
+            desc: strings.settings.items.autoRevealActiveNote.desc
+        }),
+        createToggleDefinition('autoRevealShortestPath', {
+            name: strings.settings.items.autoRevealShortestPath.name,
+            desc: strings.settings.items.autoRevealShortestPath.desc,
+            visible: () => plugin.settings.autoRevealActiveFile
+        }),
+        createToggleDefinition('autoRevealIgnoreRightSidebar', {
+            name: strings.settings.items.autoRevealIgnoreRightSidebar.name,
+            desc: strings.settings.items.autoRevealIgnoreRightSidebar.desc,
+            visible: () => plugin.settings.autoRevealActiveFile
+        }),
+        createToggleDefinition('autoRevealIgnoreOtherWindows', {
+            name: strings.settings.items.autoRevealIgnoreOtherWindows.name,
+            desc: strings.settings.items.autoRevealIgnoreOtherWindows.desc,
+            visible: () => plugin.settings.autoRevealActiveFile
+        })
+    ]);
+}
 
-    const enterToOpenSetting = keyboardNavigationGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.enterToOpenFiles.name).setDesc(strings.settings.items.enterToOpenFiles.desc);
-    });
-
-    const enterToOpenSettingsEl = wireToggleSettingWithDependentSection(
-        enterToOpenSetting,
-        () => plugin.settings.enterToOpenFiles,
-        async value => {
-            plugin.settings.enterToOpenFiles = value;
-            await plugin.saveSettingsAndUpdate();
-        }
-    );
-
-    const normalizeOpenContext = (value: string): FileOpenContext => {
-        if (value === 'split' || value === 'window') {
-            return value;
-        }
-        return 'tab';
+function createKeyboardNavigationDefinitionGroup(context: SettingsTabContext): SettingDefinitionGroup {
+    const { plugin } = context;
+    const openContextOptions = {
+        tab: strings.contextMenu.file.openInNewTab,
+        split: strings.contextMenu.file.openToRight,
+        window: strings.contextMenu.file.openInNewWindow
     };
-
-    new Setting(enterToOpenSettingsEl)
-        .setName(strings.settings.items.shiftEnterOpenContext.name)
-        .setDesc(strings.settings.items.shiftEnterOpenContext.desc)
-        .addDropdown(dropdown =>
-            dropdown
-                .addOption('tab', strings.contextMenu.file.openInNewTab)
-                .addOption('split', strings.contextMenu.file.openToRight)
-                .addOption('window', strings.contextMenu.file.openInNewWindow)
-                .setValue(plugin.settings.shiftEnterOpenContext)
-                .onChange(async value => {
-                    plugin.settings.shiftEnterOpenContext = normalizeOpenContext(value);
-                    await plugin.saveSettingsAndUpdate();
-                })
-        );
-
     const cmdCtrlStrings = Platform.isMacOS ? strings.settings.items.cmdEnterOpenContext : strings.settings.items.ctrlEnterOpenContext;
 
-    new Setting(enterToOpenSettingsEl)
-        .setName(cmdCtrlStrings.name)
-        .setDesc(cmdCtrlStrings.desc)
-        .addDropdown(dropdown =>
-            dropdown
-                .addOption('tab', strings.contextMenu.file.openInNewTab)
-                .addOption('split', strings.contextMenu.file.openToRight)
-                .addOption('window', strings.contextMenu.file.openInNewWindow)
-                .setValue(plugin.settings.cmdCtrlEnterOpenContext)
-                .onChange(async value => {
-                    plugin.settings.cmdCtrlEnterOpenContext = normalizeOpenContext(value);
-                    await plugin.saveSettingsAndUpdate();
-                })
-        );
-
-    const mouseButtonsGroup = createGroup(strings.settings.groups.general.mouseButtons);
-    const normalizeMouseBackForwardAction = (value: string): MouseBackForwardAction => {
-        if (value === 'singlePaneSwitch' || value === 'history') {
-            return value;
-        }
-        return 'none';
-    };
-
-    mouseButtonsGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.mouseBackForwardAction.name)
-            .setDesc(strings.settings.items.mouseBackForwardAction.desc)
-            .addDropdown(dropdown =>
-                dropdown
-                    .addOption('none', strings.settings.items.mouseBackForwardAction.options.none)
-                    .addOption('singlePaneSwitch', strings.settings.items.mouseBackForwardAction.options.singlePaneSwitch)
-                    .addOption('history', strings.settings.items.mouseBackForwardAction.options.history)
-                    .setValue(plugin.settings.mouseBackForwardAction)
-                    .onChange(async value => {
-                        plugin.settings.mouseBackForwardAction = normalizeMouseBackForwardAction(value);
-                        await plugin.saveSettingsAndUpdate();
-                    })
-            );
-    });
+    return createGroupDefinition(strings.settings.groups.general.keyboardNavigation, [
+        createDropdownDefinition('multiSelectModifier', {
+            name: strings.settings.items.multiSelectModifier.name,
+            desc: strings.settings.items.multiSelectModifier.desc,
+            aliases: optionAliases(strings.settings.items.multiSelectModifier.options),
+            options: {
+                cmdCtrl: strings.settings.items.multiSelectModifier.options.cmdCtrl,
+                optionAlt: strings.settings.items.multiSelectModifier.options.optionAlt
+            }
+        }),
+        createToggleDefinition('enterToOpenFiles', {
+            name: strings.settings.items.enterToOpenFiles.name,
+            desc: strings.settings.items.enterToOpenFiles.desc
+        }),
+        createDropdownDefinition('shiftEnterOpenContext', {
+            name: strings.settings.items.shiftEnterOpenContext.name,
+            desc: strings.settings.items.shiftEnterOpenContext.desc,
+            aliases: optionAliases(openContextOptions),
+            options: openContextOptions,
+            visible: () => plugin.settings.enterToOpenFiles
+        }),
+        createDropdownDefinition('cmdCtrlEnterOpenContext', {
+            name: cmdCtrlStrings.name,
+            desc: cmdCtrlStrings.desc,
+            aliases: optionAliases(openContextOptions),
+            options: openContextOptions,
+            visible: () => plugin.settings.enterToOpenFiles
+        })
+    ]);
 }
 
-function renderDesktopAppearanceSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
+function createMouseButtonsDefinitionGroup(): SettingDefinitionGroup {
+    const mouseBackForwardOptions = strings.settings.items.mouseBackForwardAction.options;
+
+    return createGroupDefinition(strings.settings.groups.general.mouseButtons, [
+        createDropdownDefinition('mouseBackForwardAction', {
+            name: strings.settings.items.mouseBackForwardAction.name,
+            desc: strings.settings.items.mouseBackForwardAction.desc,
+            aliases: optionAliases(mouseBackForwardOptions),
+            options: {
+                none: mouseBackForwardOptions.none,
+                singlePaneSwitch: mouseBackForwardOptions.singlePaneSwitch,
+                history: mouseBackForwardOptions.history
+            }
+        })
+    ]);
+}
+
+function createDesktopAppearanceDefinitionGroup(context: SettingsTabContext): SettingDefinitionGroup {
     const { plugin } = context;
-    const desktopAppearanceGroup = createGroup(strings.settings.groups.general.desktopAppearance);
 
-    const dualPaneSetting = desktopAppearanceGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.dualPane.name)
-            .setDesc(strings.settings.items.dualPane.desc)
-            .addToggle(toggle =>
-                toggle.setValue(plugin.useDualPane()).onChange(value => {
-                    plugin.setDualPanePreference(value);
-                })
-            );
-    });
-
-    addSettingSyncModeToggle({ setting: dualPaneSetting, plugin, settingId: 'dualPane' });
-
-    const dualPaneOrientationSetting = desktopAppearanceGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.dualPaneOrientation.name)
-            .setDesc(strings.settings.items.dualPaneOrientation.desc)
-            .addDropdown(dropdown => {
-                dropdown
-                    .addOptions({
-                        horizontal: strings.settings.items.dualPaneOrientation.options.horizontal,
-                        vertical: strings.settings.items.dualPaneOrientation.options.vertical
-                    })
-                    .setValue(plugin.getDualPaneOrientation())
-                    .onChange(async value => {
-                        const nextOrientation = value === 'vertical' ? 'vertical' : 'horizontal';
-                        await plugin.setDualPaneOrientation(nextOrientation);
+    return createGroupDefinition(strings.settings.groups.general.desktopAppearance, [
+        createRenderDefinition({
+            name: strings.settings.items.dualPane.name,
+            desc: strings.settings.items.dualPane.desc,
+            render: setting => {
+                setting
+                    .setName(strings.settings.items.dualPane.name)
+                    .setDesc(strings.settings.items.dualPane.desc)
+                    .addToggle(toggle =>
+                        toggle.setValue(plugin.useDualPane()).onChange(value => {
+                            plugin.setDualPanePreference(value);
+                        })
+                    );
+                addSettingSyncModeToggle({ setting, plugin, settingId: 'dualPane' });
+            }
+        }),
+        createRenderDefinition({
+            name: strings.settings.items.dualPaneOrientation.name,
+            desc: strings.settings.items.dualPaneOrientation.desc,
+            aliases: optionAliases(strings.settings.items.dualPaneOrientation.options),
+            render: setting => {
+                setting
+                    .setName(strings.settings.items.dualPaneOrientation.name)
+                    .setDesc(strings.settings.items.dualPaneOrientation.desc)
+                    .addDropdown(dropdown => {
+                        dropdown
+                            .addOptions({
+                                horizontal: strings.settings.items.dualPaneOrientation.options.horizontal,
+                                vertical: strings.settings.items.dualPaneOrientation.options.vertical
+                            })
+                            .setValue(plugin.getDualPaneOrientation())
+                            .onChange(async value => {
+                                await plugin.setDualPaneOrientation(value === 'vertical' ? 'vertical' : 'horizontal');
+                            });
                     });
-            });
-    });
-
-    addSettingSyncModeToggle({ setting: dualPaneOrientationSetting, plugin, settingId: 'dualPaneOrientation' });
-
-    desktopAppearanceGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.appearanceBackground.name)
-            .setDesc(strings.settings.items.appearanceBackground.desc)
-            .addDropdown(dropdown =>
-                dropdown
-                    .addOptions({
-                        separate: strings.settings.items.appearanceBackground.options.separate,
-                        primary: strings.settings.items.appearanceBackground.options.primary,
-                        secondary: strings.settings.items.appearanceBackground.options.secondary
-                    })
-                    .setValue(plugin.settings.desktopBackground ?? 'separate')
-                    .onChange(async value => {
-                        const nextValue: BackgroundMode = value === 'primary' || value === 'secondary' ? value : 'separate';
-                        plugin.settings.desktopBackground = nextValue;
-                        await plugin.saveSettingsAndUpdate();
-                    })
-            );
-    });
-
-    const showTooltipsSetting = desktopAppearanceGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.showTooltips.name).setDesc(strings.settings.items.showTooltips.desc);
-    });
-
-    const showTooltipsDependentSettings = wireToggleSettingWithDependentSection(
-        showTooltipsSetting,
-        () => plugin.settings.showTooltips,
-        async value => {
-            plugin.settings.showTooltips = value;
-            await plugin.saveSettingsAndUpdate();
-        }
-    );
-
-    new Setting(showTooltipsDependentSettings)
-        .setName(strings.settings.items.showTooltipPath.name)
-        .setDesc(strings.settings.items.showTooltipPath.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.showTooltipPath).onChange(async value => {
-                plugin.settings.showTooltipPath = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
-
-    new Setting(showTooltipsDependentSettings)
-        .setName(strings.settings.items.showTooltipWordCount.name)
-        .setDesc(strings.settings.items.showTooltipWordCount.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.showTooltipWordCount).onChange(async value => {
-                plugin.settings.showTooltipWordCount = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
+                addSettingSyncModeToggle({ setting, plugin, settingId: 'dualPaneOrientation' });
+            }
+        }),
+        createDropdownDefinition('desktopBackground', {
+            name: strings.settings.items.appearanceBackground.name,
+            desc: strings.settings.items.appearanceBackground.desc,
+            aliases: optionAliases(strings.settings.items.appearanceBackground.options),
+            options: {
+                separate: strings.settings.items.appearanceBackground.options.separate,
+                primary: strings.settings.items.appearanceBackground.options.primary,
+                secondary: strings.settings.items.appearanceBackground.options.secondary
+            }
+        }),
+        createToggleDefinition('showTooltips', {
+            name: strings.settings.items.showTooltips.name,
+            desc: strings.settings.items.showTooltips.desc
+        }),
+        createToggleDefinition('showTooltipPath', {
+            name: strings.settings.items.showTooltipPath.name,
+            desc: strings.settings.items.showTooltipPath.desc,
+            visible: () => plugin.settings.showTooltips
+        }),
+        createToggleDefinition('showTooltipWordCount', {
+            name: strings.settings.items.showTooltipWordCount.name,
+            desc: strings.settings.items.showTooltipWordCount.desc,
+            visible: () => plugin.settings.showTooltips
+        })
+    ]);
 }
 
-function renderMobileAppearanceSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
+function createMobileAppearanceDefinitionGroup(context: SettingsTabContext): SettingDefinitionGroup {
     const { plugin } = context;
-    const mobileAppearanceGroup = createGroup(strings.settings.groups.general.mobileAppearance);
 
-    const useFloatingToolbarsSetting = mobileAppearanceGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.useFloatingToolbars.name)
-            .setDesc(strings.settings.items.useFloatingToolbars.desc)
-            .addToggle(toggle =>
-                toggle.setValue(plugin.settings.useFloatingToolbars).onChange(value => {
-                    plugin.setUseFloatingToolbars(value);
-                })
-            );
-    });
-
-    addSettingSyncModeToggle({ setting: useFloatingToolbarsSetting, plugin, settingId: 'useFloatingToolbars' });
+    return createGroupDefinition(strings.settings.groups.general.mobileAppearance, [
+        createRenderDefinition({
+            name: strings.settings.items.useFloatingToolbars.name,
+            desc: strings.settings.items.useFloatingToolbars.desc,
+            render: setting => {
+                setting
+                    .setName(strings.settings.items.useFloatingToolbars.name)
+                    .setDesc(strings.settings.items.useFloatingToolbars.desc)
+                    .addToggle(toggle =>
+                        toggle.setValue(plugin.settings.useFloatingToolbars).onChange(value => {
+                            plugin.setUseFloatingToolbars(value);
+                        })
+                    );
+                addSettingSyncModeToggle({ setting, plugin, settingId: 'useFloatingToolbars' });
+            }
+        })
+    ]);
 }
 
-function renderViewSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
+function createViewDefinitionGroup(context: SettingsTabContext): SettingDefinitionGroup {
     const { plugin } = context;
-    const viewGroup = createGroup(strings.settings.groups.general.view);
 
-    const uiScaleSetting = viewGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.appearanceScale.name).setDesc(strings.settings.items.appearanceScale.desc);
-    });
+    return createGroupDefinition(strings.settings.groups.general.view, [
+        createRenderDefinition({
+            name: strings.settings.items.appearanceScale.name,
+            desc: strings.settings.items.appearanceScale.desc,
+            render: setting => renderUIScaleSetting(setting, context)
+        }),
+        createRenderDefinition({
+            name: strings.settings.items.paneTransitionDuration.name,
+            desc: strings.settings.items.paneTransitionDuration.desc,
+            aliases: [strings.settings.items.paneTransitionDuration.resetTooltip],
+            render: setting => renderPaneTransitionSetting(setting, context)
+        }),
+        createDropdownDefinition('startView', {
+            name: strings.settings.items.startView.name,
+            desc: strings.settings.items.startView.desc,
+            aliases: optionAliases(strings.settings.items.startView.options),
+            options: {
+                navigation: strings.settings.items.startView.options.navigation,
+                files: strings.settings.items.startView.options.files
+            }
+        }),
+        createRenderDefinition({
+            name: strings.settings.items.homepage.name,
+            desc: strings.settings.items.homepage.desc,
+            aliases: optionAliases(strings.settings.items.homepage.options),
+            render: setting => renderHomepageSetting(setting, context)
+        }),
+        createRenderDefinition({
+            name: strings.settings.items.homepage.file.name,
+            desc: strings.settings.items.homepage.file.empty,
+            aliases: [strings.settings.items.homepage.chooseButton, strings.common.clear],
+            visible: () => plugin.settings.homepage.source === 'file',
+            render: setting => renderHomepageFileSetting(setting, context)
+        }),
+        createRenderedToggleDefinition(context, {
+            name: strings.settings.items.homepage.createMissing.name,
+            desc: strings.settings.items.homepage.createMissing.desc,
+            getValue: () => plugin.settings.homepage.createMissingPeriodicNote,
+            setValue: value => {
+                plugin.settings.homepage = {
+                    ...plugin.settings.homepage,
+                    createMissingPeriodicNote: value
+                };
+            },
+            visible: () => isPeriodicHomepageSource(plugin.settings.homepage.source)
+        }),
+        createToggleDefinition('showInfoButtons', {
+            name: strings.settings.items.showInfoButtons.name,
+            desc: strings.settings.items.showInfoButtons.desc
+        }),
+        createRenderDefinition({
+            name: strings.settings.items.toolbarButtons.name,
+            desc: strings.settings.items.toolbarButtons.desc,
+            aliases: [
+                strings.settings.items.toolbarButtons.navigationLabel,
+                strings.settings.items.toolbarButtons.listLabel,
+                strings.paneHeader.showDualPane,
+                strings.paneHeader.expandAllFolders,
+                strings.paneHeader.showExcludedItems,
+                strings.paneHeader.showCalendar,
+                strings.paneHeader.reorderRootFolders,
+                strings.paneHeader.newFolder,
+                strings.paneHeader.showFolders,
+                strings.paneHeader.search,
+                strings.settings.items.includeDescendantNotes.name,
+                strings.paneHeader.changeSortAndGroup,
+                strings.paneHeader.changeAppearance,
+                strings.paneHeader.newNote
+            ],
+            render: setting => {
+                renderToolbarButtonsSetting(createSetting => {
+                    createSetting(setting);
+                    return setting;
+                }, plugin);
+            }
+        })
+    ]);
+}
 
-    const uiScaleValueEl = uiScaleSetting.controlEl.createDiv({ cls: 'nn-slider-value' });
+function createIconDefinitionGroup(context: SettingsTabContext): SettingDefinitionGroup {
+    const { plugin } = context;
+
+    return createGroupDefinition(strings.settings.groups.general.icons, [
+        createRenderDefinition({
+            name: strings.settings.items.interfaceIcons.name,
+            desc: strings.settings.items.interfaceIcons.desc,
+            aliases: [strings.settings.items.interfaceIcons.buttonText],
+            render: setting => {
+                setting.setName(strings.settings.items.interfaceIcons.name).setDesc(strings.settings.items.interfaceIcons.desc);
+                setting.addButton(button => {
+                    button.setButtonText(strings.settings.items.interfaceIcons.buttonText).onClick(() => {
+                        runAsyncAction(async () => {
+                            const metadataService = plugin.metadataService;
+                            if (!metadataService) {
+                                showNotice(strings.common.unknownError, { variant: 'warning' });
+                                return;
+                            }
+
+                            const { UXIconMapModal } = await import('../../modals/UXIconMapModal');
+                            const modal = new UXIconMapModal(context.app, {
+                                metadataService,
+                                initialMap: plugin.settings.interfaceIcons,
+                                onSave: async nextMap => {
+                                    plugin.settings.interfaceIcons = nextMap;
+                                    await plugin.saveSettingsAndUpdate();
+                                }
+                            });
+                            modal.open();
+                        });
+                    });
+                });
+            }
+        }),
+        createToggleDefinition('colorIconOnly', {
+            name: strings.settings.items.showIconsColorOnly.name,
+            desc: strings.settings.items.showIconsColorOnly.desc
+        })
+    ]);
+}
+
+function createFormattingDefinitionGroup(context: SettingsTabContext): SettingDefinitionGroup {
+    return createGroupDefinition(strings.settings.groups.general.formatting, [
+        createRenderDefinition({
+            name: strings.settings.items.dateFormat.name,
+            desc: strings.settings.items.dateFormat.desc,
+            aliases: [strings.settings.items.dateFormat.momentLinkText, strings.settings.items.dateFormat.helpTooltip],
+            render: setting => renderDateFormatSetting(setting, context)
+        }),
+        createRenderDefinition({
+            name: strings.settings.items.timeFormat.name,
+            desc: strings.settings.items.timeFormat.desc,
+            aliases: [strings.settings.items.timeFormat.momentLinkText, strings.settings.items.timeFormat.helpTooltip],
+            render: setting => renderTimeFormatSetting(setting, context)
+        })
+    ]);
+}
+
+function createTemplateDefinitionGroup(context: SettingsTabContext): SettingDefinitionGroup {
+    return createGroupDefinition(strings.settings.groups.general.templates, [
+        createRenderDefinition({
+            name: strings.settings.items.calendarTemplateFolder.name,
+            desc: strings.settings.items.calendarTemplateFolder.desc,
+            aliases: [strings.settings.items.calendarTemplateFolder.placeholder],
+            render: setting => renderCalendarTemplateFolderSetting(setting, context)
+        })
+    ]);
+}
+
+function renderUIScaleSetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
+
+    setting.setName(strings.settings.items.appearanceScale.name).setDesc(strings.settings.items.appearanceScale.desc);
+
+    const uiScaleValueEl = setting.controlEl.createDiv({ cls: 'nn-slider-value' });
     const updateUIScaleLabel = (percentValue: number) => {
         uiScaleValueEl.setText(formatUIScalePercent(percentToScale(percentValue)));
     };
@@ -356,7 +430,7 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
     let uiScaleSlider: SliderComponent;
     const initialUIScalePercent = scaleToPercent(plugin.getUIScale());
 
-    uiScaleSetting
+    setting
         .addSlider(slider => {
             uiScaleSlider = slider
                 .setLimits(MIN_UI_SCALE_PERCENT, MAX_UI_SCALE_PERCENT, UI_SCALE_PERCENT_STEP)
@@ -382,22 +456,23 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
                 })
         );
 
-    addSettingSyncModeToggle({ setting: uiScaleSetting, plugin, settingId: 'uiScale' });
-
+    addSettingSyncModeToggle({ setting, plugin, settingId: 'uiScale' });
     updateUIScaleLabel(initialUIScalePercent);
+}
 
-    const paneTransitionSetting = viewGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.paneTransitionDuration.name).setDesc(strings.settings.items.paneTransitionDuration.desc);
-    });
+function renderPaneTransitionSetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
 
-    const paneTransitionValueEl = paneTransitionSetting.controlEl.createDiv({ cls: 'nn-slider-value' });
+    setting.setName(strings.settings.items.paneTransitionDuration.name).setDesc(strings.settings.items.paneTransitionDuration.desc);
+
+    const paneTransitionValueEl = setting.controlEl.createDiv({ cls: 'nn-slider-value' });
     const updatePaneTransitionLabel = (ms: number) => {
         paneTransitionValueEl.setText(`${ms} ms`);
     };
     updatePaneTransitionLabel(plugin.settings.paneTransitionDuration);
 
     let paneTransitionSlider: SliderComponent;
-    paneTransitionSetting
+    setting
         .addSlider(slider => {
             paneTransitionSlider = slider
                 .setLimits(MIN_PANE_TRANSITION_DURATION_MS, MAX_PANE_TRANSITION_DURATION_MS, PANE_TRANSITION_DURATION_STEP_MS)
@@ -424,69 +499,54 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
                 })
         );
 
-    addSettingSyncModeToggle({ setting: paneTransitionSetting, plugin, settingId: 'paneTransitionDuration' });
+    addSettingSyncModeToggle({ setting, plugin, settingId: 'paneTransitionDuration' });
+}
 
-    viewGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.startView.name)
-            .setDesc(strings.settings.items.startView.desc)
-            .addDropdown(dropdown => {
-                dropdown
-                    .addOptions({
-                        navigation: strings.settings.items.startView.options.navigation,
-                        files: strings.settings.items.startView.options.files
-                    })
-                    .setValue(plugin.settings.startView)
-                    .onChange(async value => {
-                        const nextView = value === 'navigation' ? 'navigation' : 'files';
-                        plugin.settings.startView = nextView;
-                        await plugin.saveSettingsAndUpdate();
-                    });
-            });
-    });
+function renderHomepageSetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
 
-    const homepageSetting = viewGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.homepage.name);
-    });
-    homepageSetting.setDesc(strings.settings.items.homepage.desc).addDropdown(dropdown =>
-        dropdown
-            .addOption('none', strings.settings.items.homepage.options.none)
-            .addOption('file', strings.settings.items.homepage.options.file)
-            .addOption('daily-note', strings.settings.items.homepage.options.dailyNote)
-            .addOption('weekly-note', strings.settings.items.homepage.options.weeklyNote)
-            .addOption('monthly-note', strings.settings.items.homepage.options.monthlyNote)
-            .addOption('quarterly-note', strings.settings.items.homepage.options.quarterlyNote)
-            .addOption('yearly-note', strings.settings.items.homepage.options.yearlyNote)
-            .setValue(plugin.settings.homepage.source)
-            .onChange(async value => {
-                if (!isHomepageSource(value)) {
-                    return;
-                }
+    setting
+        .setName(strings.settings.items.homepage.name)
+        .setDesc(strings.settings.items.homepage.desc)
+        .addDropdown(dropdown =>
+            dropdown
+                .addOption('none', strings.settings.items.homepage.options.none)
+                .addOption('file', strings.settings.items.homepage.options.file)
+                .addOption('daily-note', strings.settings.items.homepage.options.dailyNote)
+                .addOption('weekly-note', strings.settings.items.homepage.options.weeklyNote)
+                .addOption('monthly-note', strings.settings.items.homepage.options.monthlyNote)
+                .addOption('quarterly-note', strings.settings.items.homepage.options.quarterlyNote)
+                .addOption('yearly-note', strings.settings.items.homepage.options.yearlyNote)
+                .setValue(plugin.settings.homepage.source)
+                .onChange(async value => {
+                    if (!isHomepageSource(value)) {
+                        return;
+                    }
 
-                plugin.settings.homepage = {
-                    ...plugin.settings.homepage,
-                    source: value
-                };
-                renderHomepageDependentSettings();
-                await plugin.saveSettingsAndUpdate();
-            })
-    );
+                    plugin.settings.homepage = {
+                        ...plugin.settings.homepage,
+                        source: value
+                    };
+                    context.refreshSettingsDomState();
+                    await plugin.saveSettingsAndUpdate();
+                })
+        );
 
-    addSettingSyncModeToggle({ setting: homepageSetting, plugin, settingId: 'homepage' });
+    addSettingSyncModeToggle({ setting, plugin, settingId: 'homepage' });
+}
 
-    const homepageFileDependentSettingsEl = createDependentSettingsSection(homepageSetting);
-    const homepageFileSetting = new Setting(homepageFileDependentSettingsEl);
-    let homepageFileValueEl: HTMLDivElement | null = null;
+function renderHomepageFileSetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
+
+    setting.setName(strings.settings.items.homepage.file.name);
+    setting.setDesc('');
+
+    const homepageFileDescEl = setting.descEl;
+    homepageFileDescEl.empty();
+    const homepageFileValueEl = homepageFileDescEl.createDiv();
     let clearHomepageButton: ButtonComponent | null = null;
 
-    homepageFileSetting.setName(strings.settings.items.homepage.file.name);
-    homepageFileSetting.setDesc('');
-
-    const homepageFileDescEl = homepageFileSetting.descEl;
-    homepageFileDescEl.empty();
-    homepageFileValueEl = homepageFileDescEl.createDiv();
-
-    homepageFileSetting.addButton(button => {
+    setting.addButton(button => {
         button.setButtonText(strings.settings.items.homepage.chooseButton);
         button.onClick(() => {
             if (plugin.settings.homepage.source !== 'file') {
@@ -498,15 +558,17 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
                     ...plugin.settings.homepage,
                     file: file.path
                 };
-                renderHomepageDependentSettings();
+                homepageFileValueEl.setText(strings.settings.items.homepage.current.replace('{path}', file.path));
+                clearHomepageButton?.setDisabled(false);
                 runAsyncAction(() => plugin.saveSettingsAndUpdate());
             }).open();
         });
     });
 
-    homepageFileSetting.addButton(button => {
+    setting.addButton(button => {
         button.setButtonText(strings.common.clear);
         clearHomepageButton = button;
+        button.setDisabled(!plugin.settings.homepage.file);
         button.onClick(() => {
             runAsyncAction(async () => {
                 if (plugin.settings.homepage.source !== 'file' || !plugin.settings.homepage.file) {
@@ -517,121 +579,37 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
                     ...plugin.settings.homepage,
                     file: null
                 };
-                renderHomepageDependentSettings();
+                homepageFileValueEl.setText(strings.settings.items.homepage.file.empty);
+                button.setDisabled(true);
                 await plugin.saveSettingsAndUpdate();
             });
         });
     });
 
-    const homepagePeriodicDependentSettingsEl = createDependentSettingsSection(homepageSetting);
-    new Setting(homepagePeriodicDependentSettingsEl)
-        .setName(strings.settings.items.homepage.createMissing.name)
-        .setDesc(strings.settings.items.homepage.createMissing.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.homepage.createMissingPeriodicNote).onChange(async value => {
-                plugin.settings.homepage = {
-                    ...plugin.settings.homepage,
-                    createMissingPeriodicNote: value
-                };
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
-
-    const renderHomepageDependentSettings = () => {
-        const isFileHomepage = plugin.settings.homepage.source === 'file';
-        setElementVisible(homepageFileDependentSettingsEl, isFileHomepage);
-        setElementVisible(homepagePeriodicDependentSettingsEl, isPeriodicHomepageSource(plugin.settings.homepage.source));
-
-        if (homepageFileValueEl) {
-            homepageFileValueEl.setText(
-                plugin.settings.homepage.file
-                    ? strings.settings.items.homepage.current.replace('{path}', plugin.settings.homepage.file)
-                    : strings.settings.items.homepage.file.empty
-            );
-        }
-
-        if (clearHomepageButton) {
-            clearHomepageButton.setDisabled(!plugin.settings.homepage.file);
-        }
-    };
-
-    renderHomepageDependentSettings();
-
-    viewGroup
-        .addSetting(setting => {
-            setting.setName(strings.settings.items.showInfoButtons.name).setDesc(strings.settings.items.showInfoButtons.desc);
-        })
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.showInfoButtons).onChange(async value => {
-                plugin.settings.showInfoButtons = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
-
-    renderToolbarButtonsSetting(createSetting => viewGroup.addSetting(createSetting), plugin);
-}
-
-function renderIconSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
-    const { plugin, addToggleSetting } = context;
-    const iconsGroup = createGroup(strings.settings.groups.general.icons);
-
-    iconsGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.interfaceIcons.name).setDesc(strings.settings.items.interfaceIcons.desc);
-        setting.addButton(button => {
-            button.setButtonText(strings.settings.items.interfaceIcons.buttonText).onClick(() => {
-                runAsyncAction(async () => {
-                    const metadataService = plugin.metadataService;
-                    if (!metadataService) {
-                        showNotice(strings.common.unknownError, { variant: 'warning' });
-                        return;
-                    }
-
-                    const { UXIconMapModal } = await import('../../modals/UXIconMapModal');
-                    const modal = new UXIconMapModal(context.app, {
-                        metadataService,
-                        initialMap: plugin.settings.interfaceIcons,
-                        onSave: async nextMap => {
-                            plugin.settings.interfaceIcons = nextMap;
-                            await plugin.saveSettingsAndUpdate();
-                        }
-                    });
-                    modal.open();
-                });
-            });
-        });
-    });
-
-    addToggleSetting(
-        iconsGroup.addSetting,
-        strings.settings.items.showIconsColorOnly.name,
-        strings.settings.items.showIconsColorOnly.desc,
-        () => plugin.settings.colorIconOnly,
-        value => {
-            plugin.settings.colorIconOnly = value;
-        }
+    homepageFileValueEl.setText(
+        plugin.settings.homepage.file
+            ? strings.settings.items.homepage.current.replace('{path}', plugin.settings.homepage.file)
+            : strings.settings.items.homepage.file.empty
     );
 }
 
-function renderFormattingSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
+function renderDateFormatSetting(setting: Setting, context: SettingsTabContext): void {
     const { plugin, configureDebouncedTextSetting } = context;
-    const formattingGroup = createGroup(strings.settings.groups.general.formatting);
 
-    const dateFormatSetting = formattingGroup.addSetting(setting => {
-        configureDebouncedTextSetting(
-            setting,
-            strings.settings.items.dateFormat.name,
-            createSettingDescriptionWithExternalLink({
-                text: strings.settings.items.dateFormat.desc,
-                link: { text: strings.settings.items.dateFormat.momentLinkText, href: MOMENT_FORMAT_DOCS_URL }
-            }),
-            strings.settings.items.dateFormat.placeholder,
-            () => plugin.settings.dateFormat,
-            value => {
-                plugin.settings.dateFormat = value || 'MMM D, YYYY';
-            }
-        );
-    });
-    dateFormatSetting.addExtraButton(button =>
+    configureDebouncedTextSetting(
+        setting,
+        strings.settings.items.dateFormat.name,
+        createSettingDescriptionWithExternalLink({
+            text: strings.settings.items.dateFormat.desc,
+            link: { text: strings.settings.items.dateFormat.momentLinkText, href: MOMENT_FORMAT_DOCS_URL }
+        }),
+        strings.settings.items.dateFormat.placeholder,
+        () => plugin.settings.dateFormat,
+        value => {
+            plugin.settings.dateFormat = value || 'MMM D, YYYY';
+        }
+    );
+    setting.addExtraButton(button =>
         button
             .setIcon('lucide-help-circle')
             .setTooltip(strings.settings.items.dateFormat.helpTooltip)
@@ -639,24 +617,26 @@ function renderFormattingSettings(context: SettingsTabContext, createGroup: Crea
                 showNotice(strings.settings.items.dateFormat.help, { timeout: TIMEOUTS.NOTICE_HELP });
             })
     );
-    dateFormatSetting.controlEl.addClass('nn-setting-wide-input');
+    setting.controlEl.addClass('nn-setting-wide-input');
+}
 
-    const timeFormatSetting = formattingGroup.addSetting(setting => {
-        configureDebouncedTextSetting(
-            setting,
-            strings.settings.items.timeFormat.name,
-            createSettingDescriptionWithExternalLink({
-                text: strings.settings.items.timeFormat.desc,
-                link: { text: strings.settings.items.timeFormat.momentLinkText, href: MOMENT_FORMAT_DOCS_URL }
-            }),
-            strings.settings.items.timeFormat.placeholder,
-            () => plugin.settings.timeFormat,
-            value => {
-                plugin.settings.timeFormat = value || 'h:mm a';
-            }
-        );
-    });
-    timeFormatSetting.addExtraButton(button =>
+function renderTimeFormatSetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin, configureDebouncedTextSetting } = context;
+
+    configureDebouncedTextSetting(
+        setting,
+        strings.settings.items.timeFormat.name,
+        createSettingDescriptionWithExternalLink({
+            text: strings.settings.items.timeFormat.desc,
+            link: { text: strings.settings.items.timeFormat.momentLinkText, href: MOMENT_FORMAT_DOCS_URL }
+        }),
+        strings.settings.items.timeFormat.placeholder,
+        () => plugin.settings.timeFormat,
+        value => {
+            plugin.settings.timeFormat = value || 'h:mm a';
+        }
+    );
+    setting.addExtraButton(button =>
         button
             .setIcon('lucide-help-circle')
             .setTooltip(strings.settings.items.timeFormat.helpTooltip)
@@ -664,28 +644,142 @@ function renderFormattingSettings(context: SettingsTabContext, createGroup: Crea
                 showNotice(strings.settings.items.timeFormat.help, { timeout: TIMEOUTS.NOTICE_HELP });
             })
     );
-    timeFormatSetting.controlEl.addClass('nn-setting-wide-input');
+    setting.controlEl.addClass('nn-setting-wide-input');
 }
 
-function renderTemplateSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
+function renderCalendarTemplateFolderSetting(setting: Setting, context: SettingsTabContext): void {
     const { plugin, configureDebouncedTextSetting } = context;
-    const templatesGroup = createGroup(strings.settings.groups.general.templates);
-    const templateFolderSetting = templatesGroup.addSetting(setting => {
-        configureDebouncedTextSetting(
-            setting,
-            strings.settings.items.calendarTemplateFolder.name,
-            strings.settings.items.calendarTemplateFolder.desc,
-            strings.settings.items.calendarTemplateFolder.placeholder,
-            () => normalizeCalendarCustomRootFolder(plugin.settings.calendarTemplateFolder),
-            value => {
-                plugin.settings.calendarTemplateFolder = normalizeCalendarCustomRootFolder(value);
-            }
-        );
-    });
-    templateFolderSetting.controlEl.addClass('nn-setting-wide-input');
-    const templateFolderInputEl = templateFolderSetting.controlEl.querySelector<HTMLInputElement>('input');
+
+    configureDebouncedTextSetting(
+        setting,
+        strings.settings.items.calendarTemplateFolder.name,
+        strings.settings.items.calendarTemplateFolder.desc,
+        strings.settings.items.calendarTemplateFolder.placeholder,
+        () => normalizeCalendarCustomRootFolder(plugin.settings.calendarTemplateFolder),
+        value => {
+            plugin.settings.calendarTemplateFolder = normalizeCalendarCustomRootFolder(value);
+        }
+    );
+    setting.controlEl.addClass('nn-setting-wide-input');
+    const templateFolderInputEl = setting.controlEl.querySelector<HTMLInputElement>('input');
     if (templateFolderInputEl) {
         const folderSuggest = new FolderPathInputSuggest(context.app, templateFolderInputEl);
         templateFolderInputEl.addEventListener('click', () => folderSuggest.open());
     }
+}
+
+interface RenderedToggleOptions extends DefinitionOptions {
+    name: string;
+    desc: string;
+    getValue: () => boolean;
+    setValue: (value: boolean) => void;
+}
+
+function createToggleDefinition(
+    key: AppearanceBehaviorToggleKey,
+    options: ControlDefinitionOptions
+): SettingDefinitionControl<AppearanceBehaviorToggleKey> {
+    return createControlDefinition({
+        ...options,
+        control: {
+            type: 'toggle',
+            key,
+            defaultValue: DEFAULT_SETTINGS[key]
+        }
+    });
+}
+
+function createDropdownDefinition(
+    key: AppearanceBehaviorDropdownKey,
+    options: DropdownDefinitionOptions
+): SettingDefinitionControl<AppearanceBehaviorDropdownKey> {
+    return createControlDefinition({
+        name: options.name,
+        desc: options.desc,
+        aliases: options.aliases,
+        visible: options.visible,
+        control: {
+            type: 'dropdown',
+            key,
+            defaultValue: DEFAULT_SETTINGS[key],
+            options: options.options
+        }
+    });
+}
+
+function createRenderedToggleDefinition(context: SettingsTabContext, options: RenderedToggleOptions): SettingDefinitionRender {
+    return createRenderDefinition({
+        name: options.name,
+        desc: options.desc,
+        aliases: options.aliases,
+        visible: options.visible,
+        render: setting => {
+            setting.setName(options.name).setDesc(options.desc);
+            setting.addToggle(toggle =>
+                toggle.setValue(options.getValue()).onChange(async value => {
+                    options.setValue(value);
+                    await context.plugin.saveSettingsAndUpdate();
+                })
+            );
+        }
+    });
+}
+
+function createGroupDefinition(heading: string | undefined, items: GroupItems): SettingDefinitionGroup {
+    const group: SettingDefinitionGroup = {
+        type: 'group',
+        items
+    };
+
+    if (heading) {
+        group.heading = heading;
+    }
+
+    return group;
+}
+
+function createRenderDefinition(options: {
+    name: string;
+    desc?: string | DocumentFragment;
+    aliases?: string[];
+    visible?: boolean | (() => boolean);
+    render: RenderSetting;
+}): SettingDefinitionRender {
+    const setting: SettingDefinitionRender = {
+        name: options.name,
+        desc: options.desc,
+        render: setting => options.render(setting)
+    };
+
+    if (options.aliases) {
+        setting.aliases = options.aliases;
+    }
+    if (options.visible !== undefined) {
+        setting.visible = options.visible;
+    }
+
+    return setting;
+}
+
+function createControlDefinition<K extends AppearanceBehaviorControlKey>(
+    options: ControlDefinitionOptions & { control: SettingDefinitionControl<K>['control'] }
+): SettingDefinitionControl<K> {
+    const setting: SettingDefinitionControl<K> = {
+        name: options.name,
+        desc: options.desc,
+        control: options.control
+    };
+
+    if (options.aliases) {
+        setting.aliases = options.aliases;
+    }
+    if (options.visible !== undefined) {
+        setting.visible = options.visible;
+    }
+
+    return setting;
+}
+
+function optionAliases(options: Record<string, string>): string[] {
+    return Object.values(options);
 }
