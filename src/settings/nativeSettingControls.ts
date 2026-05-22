@@ -204,6 +204,7 @@ type NativeBooleanControlKey = (typeof BOOLEAN_SETTING_KEYS)[number];
 type NativeStringControlKey = (typeof STRING_SETTING_KEYS)[number];
 type NativeNumberControlKey = (typeof NUMBER_SETTING_KEYS)[number];
 
+// Native control keys whose values are scalar fields on NotebookNavigatorSettings.
 export type NativeSettingControlKey = NativeBooleanControlKey | NativeStringControlKey | NativeNumberControlKey;
 
 const BOOLEAN_SETTING_KEY_SET: ReadonlySet<string> = new Set(BOOLEAN_SETTING_KEYS);
@@ -451,6 +452,7 @@ export function getNativeSettingControlValue(settings: NotebookNavigatorSettings
     return settings[key];
 }
 
+// Applies native control values after Obsidian validates the control shape.
 export function applyNativeSettingControlValue(settings: NotebookNavigatorSettings, key: NativeSettingControlKey, value: unknown): boolean {
     if (isNativeBooleanControlKey(key)) {
         if (typeof value !== 'boolean') {

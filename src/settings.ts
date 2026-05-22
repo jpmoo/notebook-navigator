@@ -18,13 +18,7 @@
 
 import * as Obsidian from 'obsidian';
 import { App, ButtonComponent, PluginSettingTab, Setting } from 'obsidian';
-import type {
-    SettingDefinitionGroup,
-    SettingDefinitionItem,
-    SettingDefinitionPage,
-    SettingDefinitionRender,
-    SettingGroupItem
-} from 'obsidian';
+import type { SettingDefinitionItem, SettingDefinitionPage, SettingDefinitionRender } from 'obsidian';
 import NotebookNavigatorPlugin from './main';
 import { TIMEOUTS } from './types/obsidian-extended';
 import type {
@@ -60,15 +54,22 @@ import {
     type NativeSettingControlKey
 } from './settings/nativeSettingControls';
 
+type DebouncedSettingUpdater = () => Promise<void> | void;
+
+interface PendingDebouncedSettingUpdate {
+    timer: number;
+    updater: DebouncedSettingUpdater;
+}
+
 /**
  * Settings tab for configuring the Notebook Navigator plugin
- * Provides organized sections for different aspects of the plugin
- * Implements debounced text inputs to prevent excessive updates
+ * Obsidian 1.13 renders this tab from native setting definitions.
+ * display() remains the fallback for Obsidian versions before native settings pages.
  */
 export class NotebookNavigatorSettingTab extends PluginSettingTab {
     plugin: NotebookNavigatorPlugin;
-    // Map of active debounce timers for text inputs
-    private debounceTimers: Map<string, number> = new Map();
+    // Pending debounced updates keyed by setting name
+    private debouncedSettingUpdates: Map<string, PendingDebouncedSettingUpdate> = new Map();
     // Registered listeners for show tags visibility changes
     private showTagsListeners: ((visible: boolean) => void)[] = [];
     // Current visibility state of show tags setting
@@ -161,24 +162,40 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     /**
      * Ensures only the most recent change for a given setting runs after the debounce delay.
      */
-    private scheduleDebouncedSettingUpdate(name: string, updater: () => Promise<void> | void): void {
+    private scheduleDebouncedSettingUpdate(name: string, updater: DebouncedSettingUpdater): void {
         const timerId = `setting-${name}`;
-        const existingTimer = this.debounceTimers.get(timerId);
-        if (existingTimer !== undefined) {
-            window.clearTimeout(existingTimer);
+        const existingUpdate = this.debouncedSettingUpdates.get(timerId);
+        if (existingUpdate) {
+            window.clearTimeout(existingUpdate.timer);
         }
 
         const timer = window.setTimeout(() => {
-            runAsyncAction(async () => {
-                try {
-                    await updater();
-                } finally {
-                    this.debounceTimers.delete(timerId);
-                }
-            });
+            const pendingUpdate = this.debouncedSettingUpdates.get(timerId);
+            if (!pendingUpdate || pendingUpdate.timer !== timer) {
+                return;
+            }
+
+            this.debouncedSettingUpdates.delete(timerId);
+            runAsyncAction(pendingUpdate.updater);
         }, TIMEOUTS.DEBOUNCE_SETTINGS);
 
-        this.debounceTimers.set(timerId, timer);
+        this.debouncedSettingUpdates.set(timerId, { timer, updater });
+    }
+
+    private flushDebouncedSettingUpdates(): void {
+        const pendingUpdates = Array.from(this.debouncedSettingUpdates.values());
+        this.debouncedSettingUpdates.clear();
+
+        pendingUpdates.forEach(update => window.clearTimeout(update.timer));
+        if (pendingUpdates.length === 0 || this.plugin.isShuttingDown()) {
+            return;
+        }
+
+        runAsyncAction(async () => {
+            for (const { updater } of pendingUpdates) {
+                await updater();
+            }
+        });
     }
 
     private addToggleSetting(
@@ -454,6 +471,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         this.isFallbackSettingsDisplay = false;
         const context = this.createTabContext(this.containerEl);
 
+        // Native settings index: start resources, vault setup, then grouped page links.
         const items: SettingDefinitionItem[] = [
             ...createStartResourcesSettingDefinitions(context),
             ...createVaultSetupSettingDefinitions(context),
@@ -471,6 +489,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         );
     }
 
+    // Native controls route through the same plugin save/update pipeline as legacy rows.
     getControlValue(key: string): unknown {
         if (isAppearanceBehaviorControlKey(key)) {
             return getAppearanceBehaviorControlValue(this.plugin.settings, key);
@@ -586,70 +605,18 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         onFirstRender: (group: Parameters<SettingDefinitionRender['render']>[1]) => void,
         onLastCleanup: () => void
     ): SettingDefinitionItem[] {
-        let activeRenderCount = 0;
-
-        const beginRender = (group: Parameters<SettingDefinitionRender['render']>[1]): void => {
-            if (activeRenderCount === 0) {
+        // Sentinel row provides page/index lifecycle hooks while Obsidian renders the visible rows.
+        const lifecycleDefinition: SettingDefinitionRender = {
+            name: '',
+            searchable: false,
+            render: (setting, group) => {
+                setting.settingEl.detach();
                 onFirstRender(group);
-            }
-            activeRenderCount += 1;
-        };
-
-        const endRender = (): void => {
-            activeRenderCount = Math.max(0, activeRenderCount - 1);
-            if (activeRenderCount === 0) {
-                onLastCleanup();
+                return onLastCleanup;
             }
         };
 
-        const wrapRenderDefinition = (item: SettingDefinitionRender): SettingDefinitionRender => {
-            const render = item.render;
-            return {
-                ...item,
-                render: (setting, group) => {
-                    beginRender(group);
-                    const cleanup = render(setting, group);
-                    return () => {
-                        cleanup?.();
-                        endRender();
-                    };
-                }
-            };
-        };
-
-        const wrapGroupItem = (item: SettingGroupItem): SettingGroupItem => {
-            if ('type' in item) {
-                return item;
-            }
-
-            if ('render' in item && typeof item.render === 'function') {
-                return wrapRenderDefinition(item);
-            }
-
-            return item;
-        };
-
-        const wrapItem = (item: SettingDefinitionItem): SettingDefinitionItem => {
-            if ('type' in item) {
-                if (item.type !== 'group') {
-                    return item;
-                }
-
-                const group: SettingDefinitionGroup = {
-                    ...item,
-                    items: item.items?.map(groupItem => wrapGroupItem(groupItem))
-                };
-                return group;
-            }
-
-            if ('render' in item && typeof item.render === 'function') {
-                return wrapRenderDefinition(item);
-            }
-
-            return item;
-        };
-
-        return items.map(item => wrapItem(item));
+        return [lifecycleDefinition, ...items];
     }
 
     private renderNativeSettingsPage(tabId: SettingsPaneId, containerEl: HTMLElement): void {
@@ -772,11 +739,12 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
      * Cleans up any pending debounce timers and intervals to prevent memory leaks
      */
     hide(): void {
+        this.flushDebouncedSettingUpdates();
+        super.hide();
         this.plugin.unregisterSettingsUpdateListener(this.settingsUpdateListenerId);
 
-        // Clean up all pending debounce timers when settings tab is closed
-        this.debounceTimers.forEach(timer => window.clearTimeout(timer));
-        this.debounceTimers.clear();
+        this.debouncedSettingUpdates.forEach(update => window.clearTimeout(update.timer));
+        this.debouncedSettingUpdates.clear();
 
         this.diagnosticsController.dispose();
 

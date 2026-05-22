@@ -46,6 +46,7 @@ interface MetadataInfoText {
     failurePercentage: number;
 }
 
+// Owns diagnostics UI state across native and legacy settings page lifecycles.
 export class SettingsDiagnosticsController {
     private activeTabId: SettingsTabId | null = null;
     private statsTextEl: HTMLElement | null = null;

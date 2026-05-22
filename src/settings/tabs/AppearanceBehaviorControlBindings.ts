@@ -19,6 +19,7 @@
 import type { BackgroundMode } from '../../types';
 import type { FileOpenContext, MouseBackForwardAction, MultiSelectModifier, NotebookNavigatorSettings } from '../types';
 
+// Native controls for appearance/behavior include union-typed settings outside the scalar control registry.
 export type AppearanceBehaviorControlKey = AppearanceBehaviorToggleKey | AppearanceBehaviorDropdownKey;
 
 export type AppearanceBehaviorToggleKey =

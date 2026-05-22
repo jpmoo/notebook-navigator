@@ -53,7 +53,7 @@ export interface SettingsPageGroupDefinition {
     items: SettingsPaneId[];
 }
 
-/** Definition of a settings pane with its ID, label resolver, and render function. */
+/** Registry entry shared by native setting pages and the legacy display() fallback. */
 export interface SettingsPaneDefinition {
     id: SettingsPaneId;
     getLabel: () => string;
@@ -97,6 +97,7 @@ export const SETTINGS_PAGE_DESCRIPTION_GETTERS: Record<SettingsPaneId, () => str
     advanced: () => strings.settings.pageDescriptions.advanced
 };
 
+// Native pages use createDefinitions; legacy pages use render.
 export const SETTINGS_PANE_DEFINITIONS: SettingsPaneDefinition[] = [
     { id: 'general', getLabel: () => strings.settings.sections.general, render: renderGeneralTab },
     {

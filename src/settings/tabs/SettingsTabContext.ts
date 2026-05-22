@@ -116,7 +116,7 @@ export type InfoSettingFactory = (
 
 /**
  * Context object passed to settings tab render functions
- * Provides access to app, plugin, and utility methods for tab rendering
+ * Shared by native render definitions and the legacy display() path.
  */
 export interface SettingsTabContext {
     app: App;
