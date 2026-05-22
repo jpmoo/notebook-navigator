@@ -373,7 +373,7 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
         .addExtraButton(button =>
             button
                 .setIcon('lucide-rotate-ccw')
-                .setTooltip('Restore to default (100%)')
+                .setTooltip(strings.common.restoreDefault)
                 .onClick(() => {
                     const defaultPercent = scaleToPercent(DEFAULT_UI_SCALE);
                     uiScaleSlider.setValue(defaultPercent);

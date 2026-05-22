@@ -98,7 +98,7 @@ export const SETTINGS_PAGE_DESCRIPTION_GETTERS: Record<SettingsPaneId, () => str
 };
 
 // Native pages use createDefinitions; legacy pages use render.
-export const SETTINGS_PANE_DEFINITIONS: SettingsPaneDefinition[] = [
+const SETTINGS_PANE_DEFINITIONS: SettingsPaneDefinition[] = [
     { id: 'general', getLabel: () => strings.settings.sections.general, render: renderGeneralTab },
     {
         id: 'vault-filters',

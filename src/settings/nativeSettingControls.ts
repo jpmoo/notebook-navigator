@@ -231,9 +231,7 @@ const STRING_SETTING_OPTIONS: Partial<Record<NativeStringControlKey, readonly st
         'title-asc',
         'title-desc',
         'filename-asc',
-        'filename-desc',
-        'property-asc',
-        'property-desc'
+        'filename-desc'
     ],
     noteGrouping: ['custom', 'date', 'folder'],
     propertySortSecondary: ['title', 'filename', 'created', 'modified'],

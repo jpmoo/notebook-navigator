@@ -21,10 +21,9 @@ import { DropdownComponent } from 'obsidian';
 import { strings } from '../../i18n';
 import { getMomentApi } from '../../utils/moment';
 import { createDropdownDefinition, createGroupDefinition, createRenderDefinition, createToggleDefinition } from '../nativeSettingControls';
-import { createSettingGroupFactory } from '../settingGroups';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
 import { isCalendarLeftPlacement, isCalendarPlacement, type CalendarWeeksToShow } from '../types';
-import { renderCalendarIntegrationSection } from './CalendarIntegrationSection';
+import { createCalendarIntegrationSettingDefinitions } from './CalendarIntegrationSection';
 import type { SettingsTabContext } from './SettingsTabContext';
 
 const CALENDAR_LOCALE_SYSTEM_DEFAULT = 'system-default';
@@ -32,23 +31,6 @@ const CALENDAR_LOCALE_SYSTEM_DEFAULT = 'system-default';
 /** Builds native 1.13 setting definitions for calendar settings. */
 export function createCalendarSettingDefinitions(context: SettingsTabContext): SettingDefinitionItem[] {
     let calendarLocaleWarningEl: HTMLElement | null = null;
-
-    const integrationRenderDefinition = createRenderDefinition({
-        name: strings.settings.groups.navigation.calendarIntegration,
-        render: (setting, group) => {
-            setting.settingEl.detach();
-            const warningEl =
-                calendarLocaleWarningEl ??
-                group.listEl.createDiv({
-                    cls: 'setting-item-description nn-setting-hidden nn-setting-warning'
-                });
-            const createGroup = createSettingGroupFactory(group.listEl);
-            const refreshCalendarIntegration = renderCalendarIntegrationSection(context, createGroup, {
-                calendarLocaleWarningEl: warningEl
-            });
-            refreshCalendarIntegration();
-        }
-    });
 
     return [
         createGroupDefinition(undefined, [
@@ -132,7 +114,9 @@ export function createCalendarSettingDefinitions(context: SettingsTabContext): S
                 desc: strings.settings.items.calendarShowYearCalendar.desc
             })
         ]),
-        integrationRenderDefinition
+        ...createCalendarIntegrationSettingDefinitions(context, {
+            getCalendarLocaleWarningEl: () => calendarLocaleWarningEl
+        })
     ];
 }
 

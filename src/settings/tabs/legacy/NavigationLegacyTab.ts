@@ -192,7 +192,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
             .addExtraButton(button =>
                 button
                     .setIcon('lucide-rotate-ccw')
-                    .setTooltip('Restore to default (0px)')
+                    .setTooltip(strings.common.restoreDefault)
                     .onClick(() => {
                         // Reset root spacing to default without blocking the UI
                         runAsyncAction(async () => {
@@ -224,7 +224,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
             .addExtraButton(button =>
                 button
                     .setIcon('lucide-rotate-ccw')
-                    .setTooltip('Restore to default (16px)')
+                    .setTooltip(strings.common.restoreDefault)
                     .onClick(() => {
                         // Reset indentation to default without blocking the UI
                         runAsyncAction(() => {
@@ -257,7 +257,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
             .addExtraButton(button =>
                 button
                     .setIcon('lucide-rotate-ccw')
-                    .setTooltip('Restore to default (28px)')
+                    .setTooltip(strings.common.restoreDefault)
                     .onClick(() => {
                         // Reset line height to default without blocking the UI
                         runAsyncAction(() => {

@@ -81,6 +81,9 @@ export function renderStartResourcesSection(context: SettingsTabContext): void {
     plugin.registerUpdateNoticeListener(updateStatusListenerId, notice => {
         renderUpdateStatus(notice?.version ?? null);
     });
+    context.registerSettingsRenderCleanup(() => {
+        plugin.unregisterUpdateNoticeListener(updateStatusListenerId);
+    });
 
     const supportSetting = topGroup.addSetting(setting => {
         setting.setName(strings.settings.items.supportDevelopment.name).setDesc(strings.settings.items.supportDevelopment.desc);

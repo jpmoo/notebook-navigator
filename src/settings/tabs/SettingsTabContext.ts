@@ -132,6 +132,8 @@ export interface SettingsTabContext {
     registerSettingsUpdateListener(id: string, listener: () => void): void;
     /** Unregisters a previously registered settings update listener */
     unregisterSettingsUpdateListener(id: string): void;
+    /** Registers cleanup work tied to the current settings render lifecycle */
+    registerSettingsRenderCleanup(cleanup: () => void): void;
     /** Registers the elements where metadata info should be displayed */
     registerMetadataInfoElement(element: HTMLElement, exportButton: ButtonComponent): void;
     /** Registers the element where statistics should be displayed */

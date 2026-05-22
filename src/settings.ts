@@ -81,6 +81,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     private activeSettingsPage: { tabId: SettingsPaneId; containerEl: HTMLElement } | null = null;
     private isFallbackSettingsDisplay = false;
     private legacySettingsLandingScrollTop = 0;
+    private settingsRenderCleanupCallbacks: (() => void)[] = [];
 
     /**
      * Creates a new settings tab
@@ -676,10 +677,24 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     }
 
     private resetRenderedSettingsState(): void {
+        this.runSettingsRenderCleanup();
         this.diagnosticsController.prepareForRender();
         this.tabSettingsUpdateListeners.clear();
         this.showTagsListeners = [];
         this.currentShowTagsVisible = this.plugin.settings.showTags;
+    }
+
+    private runSettingsRenderCleanup(): void {
+        const cleanupCallbacks = this.settingsRenderCleanupCallbacks;
+        this.settingsRenderCleanupCallbacks = [];
+
+        cleanupCallbacks.forEach(cleanup => {
+            try {
+                cleanup();
+            } catch {
+                // Ignore errors from settings-tab UI cleanup callbacks
+            }
+        });
     }
 
     /**
@@ -707,6 +722,9 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
             },
             unregisterSettingsUpdateListener: id => {
                 this.tabSettingsUpdateListeners.delete(id);
+            },
+            registerSettingsRenderCleanup: cleanup => {
+                this.settingsRenderCleanupCallbacks.push(cleanup);
             },
             registerMetadataInfoElement: (element, exportButton) => {
                 this.diagnosticsController.registerMetadataInfoElement(element, exportButton);
@@ -746,6 +764,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         this.debouncedSettingUpdates.forEach(update => window.clearTimeout(update.timer));
         this.debouncedSettingUpdates.clear();
 
+        this.runSettingsRenderCleanup();
         this.diagnosticsController.dispose();
 
         // Clear references and state

@@ -446,7 +446,7 @@ function renderUIScaleSetting(setting: Setting, context: SettingsTabContext): vo
         .addExtraButton(button =>
             button
                 .setIcon('lucide-rotate-ccw')
-                .setTooltip('Restore to default (100%)')
+                .setTooltip(strings.common.restoreDefault)
                 .onClick(() => {
                     const defaultPercent = scaleToPercent(DEFAULT_UI_SCALE);
                     uiScaleSlider.setValue(defaultPercent);

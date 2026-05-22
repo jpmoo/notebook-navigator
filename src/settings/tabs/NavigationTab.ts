@@ -285,7 +285,7 @@ function renderRootLevelSpacingSetting(setting: Setting, context: SettingsTabCon
         .addExtraButton(button =>
             button
                 .setIcon('lucide-rotate-ccw')
-                .setTooltip('Restore to default (0px)')
+                .setTooltip(strings.common.restoreDefault)
                 .onClick(() => {
                     runAsyncAction(async () => {
                         const defaultValue = DEFAULT_SETTINGS.rootLevelSpacing;
@@ -318,7 +318,7 @@ function renderNavIndentSetting(setting: Setting, context: SettingsTabContext): 
         .addExtraButton(button =>
             button
                 .setIcon('lucide-rotate-ccw')
-                .setTooltip('Restore to default (16px)')
+                .setTooltip(strings.common.restoreDefault)
                 .onClick(() => {
                     runAsyncAction(() => {
                         const defaultValue = DEFAULT_SETTINGS.navIndent;
@@ -352,7 +352,7 @@ function renderNavItemHeightSetting(setting: Setting, context: SettingsTabContex
         .addExtraButton(button =>
             button
                 .setIcon('lucide-rotate-ccw')
-                .setTooltip('Restore to default (28px)')
+                .setTooltip(strings.common.restoreDefault)
                 .onClick(() => {
                     runAsyncAction(() => {
                         const defaultValue = DEFAULT_SETTINGS.navItemHeight;

@@ -17,6 +17,7 @@
  */
 
 import { DropdownComponent, Setting } from 'obsidian';
+import type { SettingDefinitionItem } from 'obsidian';
 import { getCurrentLanguage, strings } from '../../i18n';
 import {
     getMomentApi,
@@ -29,13 +30,23 @@ import { getActiveVaultProfile } from '../../utils/vaultProfiles';
 import type { createSettingGroupFactory } from '../settingGroups';
 import { createDependentSettingsSection, setElementVisible } from '../dependentSettings';
 import { isCalendarPeriodicNotesLocaleSource } from '../types';
-import { renderCalendarCustomPatternSection, type CalendarSelectedLocales } from './CalendarCustomPatternSection';
+import { createGroupDefinition, createRenderDefinition } from '../nativeSettingControls';
+import {
+    createCalendarCustomPatternRenderers,
+    createCalendarCustomPatternSettingDefinitions,
+    renderCalendarCustomPatternSection,
+    type CalendarSelectedLocales
+} from './CalendarCustomPatternSection';
 import type { SettingsTabContext } from './SettingsTabContext';
 
 type CreateSettingGroup = ReturnType<typeof createSettingGroupFactory>;
 
 interface CalendarIntegrationSectionOptions {
     calendarLocaleWarningEl: HTMLElement;
+}
+
+interface CalendarIntegrationSettingDefinitionOptions {
+    getCalendarLocaleWarningEl: () => HTMLElement | null;
 }
 
 function formatLocaleWeekdayExample(locale: string): string {
@@ -55,16 +66,10 @@ function formatPeriodicNotesLocaleOption(label: string, locale: string): string 
     return example ? `${label} - ${locale} (${example})` : `${label} - ${locale}`;
 }
 
-export function renderCalendarIntegrationSection(
-    context: SettingsTabContext,
-    createGroup: CreateSettingGroup,
-    options: CalendarIntegrationSectionOptions
-): () => void {
-    const { calendarLocaleWarningEl } = options;
+function createSelectedCalendarLocalesResolver(context: SettingsTabContext): (momentApi: MomentApi | null) => CalendarSelectedLocales {
     const { plugin } = context;
-    const getActiveProfile = () => getActiveVaultProfile(plugin.settings);
 
-    const resolveSelectedCalendarLocales = (momentApi: MomentApi | null): CalendarSelectedLocales => {
+    return (momentApi: MomentApi | null): CalendarSelectedLocales => {
         const locales = resolveCalendarLocales(plugin.settings.calendarLocale, momentApi, getCurrentLanguage());
         return {
             calendarRulesLocale: locales.calendarRulesLocale,
@@ -75,69 +80,77 @@ export function renderCalendarIntegrationSection(
             )
         };
     };
+}
 
-    const calendarIntegrationGroup = createGroup(strings.settings.groups.navigation.calendarIntegration);
+function renderDailyNotesInfoSetting(setting: Setting): void {
+    setting.setName('').setDesc('');
+    setting.settingEl.addClass('nn-setting-info-container');
+    setting.settingEl.addClass('nn-setting-info-centered');
+    setting.descEl.empty();
+    setting.descEl.createDiv({ text: strings.settings.items.calendarIntegrationMode.info.dailyNotes });
+}
 
-    const calendarIntegrationSetting = calendarIntegrationGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.calendarIntegrationMode.name)
-            .setDesc(strings.settings.items.calendarIntegrationMode.desc)
-            .addDropdown(dropdown =>
-                dropdown
-                    .addOption('daily-notes', strings.settings.items.calendarIntegrationMode.options.dailyNotes)
-                    .addOption('notebook-navigator', strings.settings.items.calendarIntegrationMode.options.notebookNavigator)
-                    .setValue(plugin.settings.calendarIntegrationMode)
-                    .onChange(async value => {
-                        if (value !== 'daily-notes' && value !== 'notebook-navigator') {
-                            return;
-                        }
-                        plugin.settings.calendarIntegrationMode = value;
-                        await plugin.saveSettingsAndUpdate();
-                        renderCalendarIntegrationVisibility();
-                    })
-            );
-    });
+function renderCalendarIntegrationModeSetting(setting: Setting, context: SettingsTabContext, onChange: () => void): void {
+    const { plugin } = context;
 
-    const dailyNotesInfoSettingsEl = createDependentSettingsSection(calendarIntegrationSetting);
-    const customCalendarSettingsEl = createDependentSettingsSection(calendarIntegrationSetting);
+    setting
+        .setName(strings.settings.items.calendarIntegrationMode.name)
+        .setDesc(strings.settings.items.calendarIntegrationMode.desc)
+        .addDropdown(dropdown =>
+            dropdown
+                .addOption('daily-notes', strings.settings.items.calendarIntegrationMode.options.dailyNotes)
+                .addOption('notebook-navigator', strings.settings.items.calendarIntegrationMode.options.notebookNavigator)
+                .setValue(plugin.settings.calendarIntegrationMode)
+                .onChange(async value => {
+                    if (value !== 'daily-notes' && value !== 'notebook-navigator') {
+                        return;
+                    }
+                    plugin.settings.calendarIntegrationMode = value;
+                    onChange();
+                    await plugin.saveSettingsAndUpdate();
+                })
+        );
+}
 
-    const dailyNotesInfoSetting = new Setting(dailyNotesInfoSettingsEl).setName('').setDesc('');
-    dailyNotesInfoSetting.settingEl.addClass('nn-setting-info-container');
-    dailyNotesInfoSetting.settingEl.addClass('nn-setting-info-centered');
-    dailyNotesInfoSetting.descEl.empty();
-    dailyNotesInfoSetting.descEl.createDiv({ text: strings.settings.items.calendarIntegrationMode.info.dailyNotes });
+function renderCalendarPeriodicNotesLocaleOptions(
+    dropdown: DropdownComponent | null,
+    resolveSelectedCalendarLocales: (momentApi: MomentApi | null) => CalendarSelectedLocales
+): void {
+    if (!dropdown) {
+        return;
+    }
 
-    let calendarPeriodicNotesLocaleDropdown: DropdownComponent | null = null;
-
-    const renderCalendarPeriodicNotesLocaleOptions = (): void => {
-        if (!calendarPeriodicNotesLocaleDropdown) {
-            return;
-        }
-
-        const currentMomentApi = getMomentApi();
-        const { calendarRulesLocale } = resolveSelectedCalendarLocales(currentMomentApi);
-        const obsidianLocale = resolveDailyNoteLocale(currentMomentApi);
-        const optionLabels = {
-            calendar: formatPeriodicNotesLocaleOption(
-                strings.settings.items.calendarPeriodicNotesLocale.options.calendar,
-                calendarRulesLocale
-            ),
-            obsidian: formatPeriodicNotesLocaleOption(strings.settings.items.calendarPeriodicNotesLocale.options.obsidian, obsidianLocale)
-        };
-
-        Object.entries(optionLabels).forEach(([value, label]) => {
-            const optionEl = calendarPeriodicNotesLocaleDropdown?.selectEl.querySelector<HTMLOptionElement>(`option[value="${value}"]`);
-            if (optionEl) {
-                optionEl.text = label;
-            }
-        });
+    const currentMomentApi = getMomentApi();
+    const { calendarRulesLocale } = resolveSelectedCalendarLocales(currentMomentApi);
+    const obsidianLocale = resolveDailyNoteLocale(currentMomentApi);
+    const optionLabels = {
+        calendar: formatPeriodicNotesLocaleOption(strings.settings.items.calendarPeriodicNotesLocale.options.calendar, calendarRulesLocale),
+        obsidian: formatPeriodicNotesLocaleOption(strings.settings.items.calendarPeriodicNotesLocale.options.obsidian, obsidianLocale)
     };
 
-    new Setting(customCalendarSettingsEl)
+    Object.entries(optionLabels).forEach(([value, label]) => {
+        const optionEl = dropdown.selectEl.querySelector<HTMLOptionElement>(`option[value="${value}"]`);
+        if (optionEl) {
+            optionEl.text = label;
+        }
+    });
+}
+
+function renderCalendarPeriodicNotesLocaleSetting(
+    setting: Setting,
+    context: SettingsTabContext,
+    options: {
+        setDropdown(dropdown: DropdownComponent): void;
+        refresh(): void;
+    }
+): void {
+    const { plugin } = context;
+
+    setting
         .setName(strings.settings.items.calendarPeriodicNotesLocale.name)
         .setDesc(strings.settings.items.calendarPeriodicNotesLocale.desc)
         .addDropdown(dropdown => {
-            calendarPeriodicNotesLocaleDropdown = dropdown;
+            options.setDropdown(dropdown);
             dropdown
                 .addOption('calendar', strings.settings.items.calendarPeriodicNotesLocale.options.calendar)
                 .addOption('obsidian', strings.settings.items.calendarPeriodicNotesLocale.options.obsidian)
@@ -148,16 +161,121 @@ export function renderCalendarIntegrationSection(
                     }
 
                     plugin.settings.calendarPeriodicNotesLocaleSource = value;
-                    renderCalendarIntegrationVisibility();
+                    options.refresh();
                     await plugin.saveSettingsAndUpdate();
                 });
-            renderCalendarPeriodicNotesLocaleOptions();
+            options.refresh();
         });
+}
+
+export function createCalendarIntegrationSettingDefinitions(
+    context: SettingsTabContext,
+    options: CalendarIntegrationSettingDefinitionOptions
+): SettingDefinitionItem[] {
+    const { plugin } = context;
+    const getActiveProfile = () => getActiveVaultProfile(plugin.settings);
+    const resolveSelectedCalendarLocales = createSelectedCalendarLocalesResolver(context);
+    const isNotebookNavigatorIntegration = () => plugin.settings.calendarIntegrationMode === 'notebook-navigator';
+    let calendarPeriodicNotesLocaleDropdown: DropdownComponent | null = null;
+
+    const customPatternRenderers = createCalendarCustomPatternRenderers({
+        context,
+        getCalendarLocaleWarningEl: options.getCalendarLocaleWarningEl,
+        getActiveProfile,
+        resolveSelectedCalendarLocales,
+        requestVisibilityRefresh: () => refreshCalendarIntegrationContent()
+    });
+
+    const refreshCalendarIntegrationContent = (): void => {
+        renderCalendarPeriodicNotesLocaleOptions(calendarPeriodicNotesLocaleDropdown, resolveSelectedCalendarLocales);
+
+        if (!isNotebookNavigatorIntegration()) {
+            customPatternRenderers.hideMessages();
+            return;
+        }
+
+        customPatternRenderers.refresh();
+    };
+
+    const refreshCalendarIntegrationDomState = (): void => {
+        context.refreshSettingsDomState();
+        refreshCalendarIntegrationContent();
+    };
+
+    return [
+        createGroupDefinition(strings.settings.groups.navigation.calendarIntegration, [
+            createRenderDefinition({
+                name: strings.settings.items.calendarIntegrationMode.name,
+                desc: strings.settings.items.calendarIntegrationMode.desc,
+                aliases: Object.values(strings.settings.items.calendarIntegrationMode.options),
+                render: setting => {
+                    renderCalendarIntegrationModeSetting(setting, context, refreshCalendarIntegrationDomState);
+                    context.registerSettingsUpdateListener('calendar-tab-calendar-integration', refreshCalendarIntegrationDomState);
+                    refreshCalendarIntegrationContent();
+                }
+            }),
+            createRenderDefinition({
+                name: strings.settings.items.calendarIntegrationMode.info.dailyNotes,
+                searchable: false,
+                visible: () => plugin.settings.calendarIntegrationMode === 'daily-notes',
+                render: setting => renderDailyNotesInfoSetting(setting)
+            }),
+            createRenderDefinition({
+                name: strings.settings.items.calendarPeriodicNotesLocale.name,
+                desc: strings.settings.items.calendarPeriodicNotesLocale.desc,
+                aliases: Object.values(strings.settings.items.calendarPeriodicNotesLocale.options),
+                visible: isNotebookNavigatorIntegration,
+                render: setting =>
+                    renderCalendarPeriodicNotesLocaleSetting(setting, context, {
+                        setDropdown: dropdown => {
+                            calendarPeriodicNotesLocaleDropdown = dropdown;
+                        },
+                        refresh: refreshCalendarIntegrationContent
+                    })
+            }),
+            ...createCalendarCustomPatternSettingDefinitions(customPatternRenderers, isNotebookNavigatorIntegration)
+        ])
+    ];
+}
+
+export function renderCalendarIntegrationSection(
+    context: SettingsTabContext,
+    createGroup: CreateSettingGroup,
+    options: CalendarIntegrationSectionOptions
+): () => void {
+    const { calendarLocaleWarningEl } = options;
+    const { plugin } = context;
+    const getActiveProfile = () => getActiveVaultProfile(plugin.settings);
+    const resolveSelectedCalendarLocales = createSelectedCalendarLocalesResolver(context);
+
+    const calendarIntegrationGroup = createGroup(strings.settings.groups.navigation.calendarIntegration);
+
+    const calendarIntegrationSetting = calendarIntegrationGroup.addSetting(setting => {
+        renderCalendarIntegrationModeSetting(setting, context, renderCalendarIntegrationVisibility);
+    });
+
+    const dailyNotesInfoSettingsEl = createDependentSettingsSection(calendarIntegrationSetting);
+    const customCalendarSettingsEl = createDependentSettingsSection(calendarIntegrationSetting);
+
+    renderDailyNotesInfoSetting(new Setting(dailyNotesInfoSettingsEl));
+
+    let calendarPeriodicNotesLocaleDropdown: DropdownComponent | null = null;
+
+    const refreshCalendarPeriodicNotesLocaleOptions = (): void => {
+        renderCalendarPeriodicNotesLocaleOptions(calendarPeriodicNotesLocaleDropdown, resolveSelectedCalendarLocales);
+    };
+
+    renderCalendarPeriodicNotesLocaleSetting(new Setting(customCalendarSettingsEl), context, {
+        setDropdown: dropdown => {
+            calendarPeriodicNotesLocaleDropdown = dropdown;
+        },
+        refresh: () => renderCalendarIntegrationVisibility()
+    });
 
     const customPatternController = renderCalendarCustomPatternSection({
         context,
         containerEl: customCalendarSettingsEl,
-        calendarLocaleWarningEl,
+        getCalendarLocaleWarningEl: () => calendarLocaleWarningEl,
         getActiveProfile,
         resolveSelectedCalendarLocales,
         requestVisibilityRefresh: () => renderCalendarIntegrationVisibility()
@@ -167,7 +285,7 @@ export function renderCalendarIntegrationSection(
         const isDailyNotes = plugin.settings.calendarIntegrationMode === 'daily-notes';
         const isCustom = plugin.settings.calendarIntegrationMode === 'notebook-navigator';
 
-        renderCalendarPeriodicNotesLocaleOptions();
+        refreshCalendarPeriodicNotesLocaleOptions();
         setElementVisible(dailyNotesInfoSettingsEl, isDailyNotes);
         setElementVisible(customCalendarSettingsEl, isCustom);
 
