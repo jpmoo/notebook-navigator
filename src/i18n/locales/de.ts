@@ -1077,7 +1077,7 @@ export const STRINGS_DE = {
                 desc: 'Angeheftete Notizen erscheinen nur in ihrem eigenen Ordner als angeheftet. Nützlich für Ordnernotizen oder bei vielen angehefteten Notizen. Hat keinen Einfluss auf Tag- oder Eigenschaftsansichten.'
             },
             separateNoteCounts: {
-                name: 'Aktuelle und Nachkommen-Anzahl getrennt anzeigen',
+                name: 'Aktuelle und Nachkommen-Notizanzahl getrennt anzeigen',
                 desc: 'Zeigt Notizanzahl als "aktuell ▾ Nachkommen" Format in Ordnern und Tags.'
             },
             groupNotes: {
@@ -1122,7 +1122,7 @@ export const STRINGS_DE = {
                 desc: 'Eine Hintergrundfarbe anwenden, wenn eine Notiz unerledigte Aufgaben enthält.'
             },
             unfinishedTaskBackgroundColor: {
-                name: 'Hintergrundfarbe',
+                name: 'Hintergrundfarbe für unerledigte Aufgaben',
                 desc: 'Die Hintergrundfarbe festlegen, die verwendet wird, wenn eine Notiz unerledigte Aufgaben enthält.'
             },
             showFilenameMatchIcons: {
@@ -1230,15 +1230,15 @@ export const STRINGS_DE = {
                 desc: 'Notizen automatisch anzeigen, wenn sie über Schnellauswahl, Links oder Suche geöffnet werden.'
             },
             autoRevealShortestPath: {
-                name: 'Kürzesten Pfad verwenden',
+                name: 'Automatisches Anzeigen: Kürzesten Pfad verwenden',
                 desc: 'Aktiviert: Automatisches Anzeigen wählt den nächsten sichtbaren übergeordneten Ordner oder Tag. Deaktiviert: Automatisches Anzeigen wählt den tatsächlichen Ordner der Datei und den genauen Tag.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Ereignisse von rechter Seitenleiste ignorieren',
+                name: 'Automatisches Anzeigen: Ereignisse von rechter Seitenleiste ignorieren',
                 desc: 'Aktive Notiz nicht ändern, wenn in der rechten Seitenleiste auf Notizen geklickt oder diese gewechselt werden.'
             },
             autoRevealIgnoreOtherWindows: {
-                name: 'Ereignisse von anderen Fenstern ignorieren',
+                name: 'Automatisches Anzeigen: Ereignisse von anderen Fenstern ignorieren',
                 desc: 'Aktive Notiz nicht ändern, wenn mit Notizen in einem anderen Fenster gearbeitet wird.'
             },
             paneTransitionDuration: {
@@ -1263,11 +1263,11 @@ export const STRINGS_DE = {
                 desc: 'Ordner und Tags beim Überfahren während des Ziehens erweitern.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'Verzögerung beim ersten Erweitern',
+                name: 'Beim Ziehen erweitern: Verzögerung beim ersten Erweitern',
                 desc: 'Verzögerung, bevor der erste Ordner oder Tag während eines Ziehvorgangs erweitert wird (Sekunden).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'Verzögerung bei weiteren Erweiterungen',
+                name: 'Beim Ziehen erweitern: Verzögerung bei weiteren Erweiterungen',
                 desc: 'Verzögerung, bevor weitere Ordner oder Tags während desselben Ziehvorgangs erweitert werden (Sekunden).'
             },
             navigationBanner: {
@@ -1298,7 +1298,7 @@ export const STRINGS_DE = {
                 desc: 'Den Bereich für neueste Dateien im Navigationsbereich anzeigen.'
             },
             hideRecentNotes: {
-                name: 'Dateitypen ausblenden',
+                name: 'Dateitypen aus neuesten Dateien ausblenden',
                 desc: 'Wähle aus, welche Dateitypen im Bereich der neuesten Dateien ausgeblendet werden sollen.',
                 options: {
                     none: 'Keine',
@@ -1467,11 +1467,11 @@ export const STRINGS_DE = {
                 desc: 'Zeige Hover-Tooltips mit zusätzlichen Informationen für Notizen und Ordner an.'
             },
             showTooltipPath: {
-                name: 'Pfad anzeigen',
+                name: 'Pfad in Tooltips anzeigen',
                 desc: 'Zeigt den Ordnerpfad unter den Notiznamen in Tooltips an.'
             },
             showTooltipWordCount: {
-                name: 'Wortanzahl anzeigen',
+                name: 'Wortanzahl in Tooltips anzeigen',
                 desc: 'Zeigt die Wortanzahl von Notizen in Tooltips an.'
             },
             resetPaneSeparator: {
@@ -1623,11 +1623,11 @@ export const STRINGS_DE = {
                     yearlyNote: 'Jahresnotiz'
                 },
                 file: {
-                    name: 'Startdatei',
+                    name: 'Startseite: Startdatei',
                     empty: 'Keine Datei ausgewählt'
                 },
                 createMissing: {
-                    name: 'Notiz erstellen, falls nicht vorhanden',
+                    name: 'Startseite: Notiz erstellen, falls nicht vorhanden',
                     desc: 'Erstellt die periodische Notiz beim Start oder per Befehl, falls sie nicht existiert.'
                 }
             },

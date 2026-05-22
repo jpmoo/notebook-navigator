@@ -28,7 +28,7 @@ export function renderDisplayFiltersTab(context: SettingsTabContext): void {
     const { containerEl, plugin, configureDebouncedTextSetting } = context;
     ensureVaultProfiles(plugin.settings);
     const createGroup = createSettingGroupFactory(containerEl);
-    const filteringGroup = createGroup(strings.settings.groups.general.filtering);
+    const filteringGroup = createGroup(undefined);
 
     let excludedFoldersInput: HTMLInputElement | null = null;
     let hiddenTagsInput: HTMLInputElement | null = null;

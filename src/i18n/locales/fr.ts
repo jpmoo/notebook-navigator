@@ -1079,7 +1079,7 @@ export const STRINGS_FR = {
                 desc: 'Les notes épinglées n’apparaissent épinglées que dans leur propre dossier. Utile pour les notes de dossier ou si vous avez beaucoup de notes épinglées. N’affecte pas les vues par étiquette ou propriété.'
             },
             separateNoteCounts: {
-                name: 'Afficher les comptes actuels et descendants séparément',
+                name: 'Afficher les nombres de notes actuelles et descendantes séparément',
                 desc: 'Affiche le nombre de notes au format "actuel ▾ descendants" dans les dossiers et étiquettes.'
             },
             groupNotes: {
@@ -1124,7 +1124,7 @@ export const STRINGS_FR = {
                 desc: "Appliquer une couleur de fond lorsqu'une note contient des tâches inachevées."
             },
             unfinishedTaskBackgroundColor: {
-                name: 'Couleur de fond',
+                name: 'Couleur de fond des tâches inachevées',
                 desc: "Définir la couleur de fond utilisée lorsqu'une note contient des tâches inachevées."
             },
             showFilenameMatchIcons: {
@@ -1232,15 +1232,15 @@ export const STRINGS_FR = {
                 desc: "Révéler automatiquement les notes lorsqu'elles sont ouvertes depuis le Commutateur rapide, les liens ou la recherche."
             },
             autoRevealShortestPath: {
-                name: 'Utiliser le chemin le plus court',
+                name: 'Révélation automatique : Utiliser le chemin le plus court',
                 desc: 'Activé : La révélation automatique sélectionne le dossier parent ou le tag visible le plus proche. Désactivé : La révélation automatique sélectionne le dossier réel du fichier et le tag exact.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Ignorer les événements du panneau de droite',
+                name: 'Révélation automatique : Ignorer les événements du panneau de droite',
                 desc: "Ne pas changer la note active lors d'un clic ou du changement de notes dans le panneau de droite."
             },
             autoRevealIgnoreOtherWindows: {
-                name: "Ignorer les événements d'autres fenêtres",
+                name: "Révélation automatique : Ignorer les événements d'autres fenêtres",
                 desc: 'Ne pas changer la note active lorsque vous travaillez avec des notes dans une autre fenêtre.'
             },
             paneTransitionDuration: {
@@ -1265,11 +1265,11 @@ export const STRINGS_FR = {
                 desc: 'Développer les dossiers et les étiquettes au survol pendant le glisser-déposer.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'Délai de première expansion',
+                name: 'Développer au survol : Délai de première expansion',
                 desc: 'Délai avant que le premier dossier ou étiquette se développe pendant un glisser-déposer (secondes).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: "Délai d'expansion suivante",
+                name: "Développer au survol : Délai d'expansion suivante",
                 desc: "Délai avant de développer d'autres dossiers ou étiquettes pendant le même glisser-déposer (secondes)."
             },
             navigationBanner: {
@@ -1300,7 +1300,7 @@ export const STRINGS_FR = {
                 desc: 'Afficher la section des fichiers récents dans le panneau de navigation.'
             },
             hideRecentNotes: {
-                name: 'Masquer les types de fichiers',
+                name: 'Masquer les types de fichiers des fichiers récents',
                 desc: 'Choisir les types de fichiers à masquer dans la section des fichiers récents.',
                 options: {
                     none: 'Aucun',
@@ -1469,11 +1469,11 @@ export const STRINGS_FR = {
                 desc: 'Affiche des infobulles avec des informations supplémentaires pour les notes et dossiers au survol.'
             },
             showTooltipPath: {
-                name: 'Afficher le chemin',
+                name: 'Afficher le chemin dans les infobulles',
                 desc: 'Affiche le chemin du dossier sous le nom des notes dans les infobulles.'
             },
             showTooltipWordCount: {
-                name: 'Afficher le nombre de mots',
+                name: 'Afficher le nombre de mots dans les infobulles',
                 desc: 'Affiche le nombre de mots des notes dans les infobulles.'
             },
             resetPaneSeparator: {
@@ -1626,11 +1626,11 @@ export const STRINGS_FR = {
                     yearlyNote: 'Note annuelle'
                 },
                 file: {
-                    name: 'Fichier de démarrage',
+                    name: 'Page d’accueil : Fichier de démarrage',
                     empty: 'Aucun fichier sélectionné'
                 },
                 createMissing: {
-                    name: 'Créer la note si absente',
+                    name: 'Page d’accueil : Créer la note si absente',
                     desc: "Crée la note périodique au démarrage ou via la commande si elle n'existe pas."
                 }
             },

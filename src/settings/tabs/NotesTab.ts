@@ -55,7 +55,6 @@ export function renderNotesTab(context: SettingsTabContext): void {
 
     const createGroup = createSettingGroupFactory(containerEl);
     const tasksGroup = createGroup(strings.settings.groups.notes.tasks);
-    const unfinishedTaskBackgroundGroup = createGroup();
     const iconGroup = createGroup(strings.settings.groups.notes.icon);
     const titleGroup = createGroup(strings.settings.groups.notes.title);
     const previewTextGroup = createGroup(strings.settings.groups.notes.previewText);
@@ -153,7 +152,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
             );
     });
 
-    const showFileBackgroundUnfinishedTaskSetting = unfinishedTaskBackgroundGroup.addSetting(setting => {
+    const showFileBackgroundUnfinishedTaskSetting = tasksGroup.addSetting(setting => {
         setting
             .setName(strings.settings.items.showFileBackgroundUnfinishedTask.name)
             .setDesc(strings.settings.items.showFileBackgroundUnfinishedTask.desc);

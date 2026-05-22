@@ -1075,7 +1075,7 @@ export const STRINGS_JA = {
                 desc: '固定したノートは自身のフォルダーでのみ固定済みとして表示されます。フォルダーノートや固定ノートが多い場合に便利です。タグやプロパティビューには影響しません。'
             },
             separateNoteCounts: {
-                name: '現在と子孫のカウントを個別に表示',
+                name: '現在と子孫のノート数を個別に表示',
                 desc: 'フォルダとタグのノート数を「現在 ▾ 子孫」形式で表示します。'
             },
             groupNotes: {
@@ -1120,7 +1120,7 @@ export const STRINGS_JA = {
                 desc: 'ノートに未完了のタスクがある場合に背景色を適用します。'
             },
             unfinishedTaskBackgroundColor: {
-                name: '背景色',
+                name: '未完了タスクの背景色',
                 desc: 'ノートに未完了のタスクがある場合に使用する背景色を設定します。'
             },
             showFilenameMatchIcons: {
@@ -1228,15 +1228,15 @@ export const STRINGS_JA = {
                 desc: 'クイックスイッチャー、リンク、検索から開いたときに自動的にノートを表示します。'
             },
             autoRevealShortestPath: {
-                name: '最短パスを使用',
+                name: '自動表示: 最短パスを使用',
                 desc: '有効: 自動表示は最も近い表示中の親フォルダまたはタグを選択します。無効: 自動表示はファイルの実際のフォルダと正確なタグを選択します。'
             },
             autoRevealIgnoreRightSidebar: {
-                name: '右サイドバーのイベントを無視',
+                name: '自動表示: 右サイドバーのイベントを無視',
                 desc: '右サイドバーでのクリックやノートの変更時にアクティブノートを変更しません。'
             },
             autoRevealIgnoreOtherWindows: {
-                name: '他のウィンドウのイベントを無視',
+                name: '自動表示: 他のウィンドウのイベントを無視',
                 desc: '別のウィンドウでノートを操作しているときにアクティブノートを変更しません。'
             },
             paneTransitionDuration: {
@@ -1261,11 +1261,11 @@ export const STRINGS_JA = {
                 desc: 'ドラッグ操作中にホバーするとフォルダとタグを展開します。'
             },
             springLoadedFoldersInitialDelay: {
-                name: '最初の展開遅延',
+                name: 'ドラッグ時に展開: 最初の展開遅延',
                 desc: 'ドラッグ操作中に最初のフォルダまたはタグを展開するまでの遅延（秒）。'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: '次の展開遅延',
+                name: 'ドラッグ時に展開: 次の展開遅延',
                 desc: '同じドラッグ操作中に追加のフォルダまたはタグを展開するまでの遅延（秒）。'
             },
             navigationBanner: {
@@ -1296,7 +1296,7 @@ export const STRINGS_JA = {
                 desc: 'ナビゲーションペインに最近のファイルセクションを表示します。'
             },
             hideRecentNotes: {
-                name: 'ファイルの種類を非表示',
+                name: '最近のファイルからファイルの種類を非表示',
                 desc: '最近のファイルセクションで非表示にするファイルの種類を選択します。',
                 options: {
                     none: 'なし',
@@ -1463,11 +1463,11 @@ export const STRINGS_JA = {
                 desc: 'ノートとフォルダの追加情報をホバー時にツールチップで表示します。'
             },
             showTooltipPath: {
-                name: 'パスを表示',
+                name: 'ツールチップにパスを表示',
                 desc: 'ツールチップでノート名の下にフォルダパスを表示します。'
             },
             showTooltipWordCount: {
-                name: '単語数を表示',
+                name: 'ツールチップに単語数を表示',
                 desc: 'ツールチップにノートの単語数を表示します。'
             },
             resetPaneSeparator: {
@@ -1618,11 +1618,11 @@ export const STRINGS_JA = {
                     yearlyNote: 'イヤリーノート'
                 },
                 file: {
-                    name: '起動ファイル',
+                    name: 'ホームページ: 起動ファイル',
                     empty: 'ファイルが選択されていません'
                 },
                 createMissing: {
-                    name: 'ノートが存在しない場合に作成',
+                    name: 'ホームページ: ノートが存在しない場合に作成',
                     desc: '起動時またはコマンド実行時に、定期ノートが存在しなければ作成します。'
                 }
             },

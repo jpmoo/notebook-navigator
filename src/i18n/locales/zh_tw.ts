@@ -1064,7 +1064,7 @@ export const STRINGS_ZH_TW = {
                 desc: '釘選筆記僅在其所在資料夾中顯示為已釘選。適用於資料夾筆記或釘選筆記較多的情況。不影響標籤或屬性檢視。'
             },
             separateNoteCounts: {
-                name: '分別顯示目前和後代計數',
+                name: '分別顯示目前和後代筆記計數',
                 desc: '在資料夾和標籤中以「目前 ▾ 後代」格式顯示筆記計數。'
             },
             groupNotes: {
@@ -1109,7 +1109,7 @@ export const STRINGS_ZH_TW = {
                 desc: '當筆記包含未完成任務時套用背景顏色。'
             },
             unfinishedTaskBackgroundColor: {
-                name: '背景顏色',
+                name: '未完成任務背景顏色',
                 desc: '設定筆記包含未完成任務時使用的背景顏色。'
             },
             showFilenameMatchIcons: {
@@ -1217,15 +1217,15 @@ export const STRINGS_ZH_TW = {
                 desc: '從快速切換器、連結或搜尋開啟筆記時自動顯示。'
             },
             autoRevealShortestPath: {
-                name: '使用最短路徑',
+                name: '自動顯示：使用最短路徑',
                 desc: '啟用：自動顯示選擇最近的可見祖先資料夾或標籤。停用：自動顯示選擇檔案的實際資料夾和精確標籤。'
             },
             autoRevealIgnoreRightSidebar: {
-                name: '忽略右側邊欄事件',
+                name: '自動顯示：忽略右側邊欄事件',
                 desc: '在右側邊欄中點按或變更筆記時不變更使用中的筆記。'
             },
             autoRevealIgnoreOtherWindows: {
-                name: '忽略其他視窗的事件',
+                name: '自動顯示：忽略其他視窗的事件',
                 desc: '在其他視窗中操作筆記時不變更使用中的筆記。'
             },
             paneTransitionDuration: {
@@ -1250,11 +1250,11 @@ export const STRINGS_ZH_TW = {
                 desc: '拖曳操作中懸停時展開資料夾和標籤。'
             },
             springLoadedFoldersInitialDelay: {
-                name: '首次展開延遲',
+                name: '拖曳時展開：首次展開延遲',
                 desc: '拖曳時首次展開資料夾或標籤前的延遲（秒）。'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: '後續展開延遲',
+                name: '拖曳時展開：後續展開延遲',
                 desc: '同一次拖曳中展開更多資料夾或標籤前的延遲（秒）。'
             },
             navigationBanner: {
@@ -1285,7 +1285,7 @@ export const STRINGS_ZH_TW = {
                 desc: '在導覽窗格中顯示最近檔案區段。'
             },
             hideRecentNotes: {
-                name: '隱藏檔案類型',
+                name: '從最近檔案中隱藏檔案類型',
                 desc: '選擇在最近檔案區段中隱藏的檔案類型。',
                 options: {
                     none: '無',
@@ -1451,11 +1451,11 @@ export const STRINGS_ZH_TW = {
                 desc: '懸停時顯示筆記和資料夾的額外資訊工具提示。'
             },
             showTooltipPath: {
-                name: '顯示路徑',
+                name: '在工具提示中顯示路徑',
                 desc: '在工具提示中的筆記名稱下方顯示資料夾路徑。'
             },
             showTooltipWordCount: {
-                name: '顯示字數',
+                name: '在工具提示中顯示字數',
                 desc: '在工具提示中顯示筆記字數。'
             },
             resetPaneSeparator: {
@@ -1605,11 +1605,11 @@ export const STRINGS_ZH_TW = {
                     yearlyNote: '年度筆記'
                 },
                 file: {
-                    name: '啟動檔案',
+                    name: '首頁：啟動檔案',
                     empty: '未選擇檔案'
                 },
                 createMissing: {
-                    name: '不存在時建立筆記',
+                    name: '首頁：不存在時建立筆記',
                     desc: '啟動或執行命令時，如果定期筆記不存在則建立。'
                 }
             },

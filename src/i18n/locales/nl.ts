@@ -1078,7 +1078,7 @@ export const STRINGS_NL = {
                 desc: 'Vastgemaakte notities worden alleen als vastgemaakt weergegeven in hun eigen map. Handig voor mapnotities of als je veel vastgemaakte notities hebt. Heeft geen invloed op tag- of eigenschapweergaven.'
             },
             separateNoteCounts: {
-                name: 'Huidige en afstammeling-tellingen apart tonen',
+                name: 'Huidige en afstammeling-notitietellingen apart tonen',
                 desc: 'Notitietelingen weergeven in "huidig ▾ afstammelingen" formaat in mappen en tags.'
             },
             groupNotes: {
@@ -1123,7 +1123,7 @@ export const STRINGS_NL = {
                 desc: 'Een achtergrondkleur toepassen wanneer een notitie onvoltooide taken bevat.'
             },
             unfinishedTaskBackgroundColor: {
-                name: 'Achtergrondkleur',
+                name: 'Achtergrondkleur voor onvoltooide taken',
                 desc: 'De achtergrondkleur instellen die wordt gebruikt wanneer een notitie onvoltooide taken bevat.'
             },
             showFilenameMatchIcons: {
@@ -1231,15 +1231,15 @@ export const STRINGS_NL = {
                 desc: 'Notities automatisch tonen wanneer geopend vanuit Snelle Wisselaar, links of zoeken.'
             },
             autoRevealShortestPath: {
-                name: 'Kortste pad gebruiken',
+                name: 'Automatisch tonen: Kortste pad gebruiken',
                 desc: 'Ingeschakeld: Automatisch tonen selecteert de dichtstbijzijnde zichtbare bovenliggende map of tag. Uitgeschakeld: Automatisch tonen selecteert de werkelijke map en exacte tag van het bestand.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Gebeurtenissen van rechter zijbalk negeren',
+                name: 'Automatisch tonen: Gebeurtenissen van rechter zijbalk negeren',
                 desc: 'Actieve notitie niet wijzigen bij klikken of wijzigen van notities in de rechter zijbalk.'
             },
             autoRevealIgnoreOtherWindows: {
-                name: 'Gebeurtenissen van andere vensters negeren',
+                name: 'Automatisch tonen: Gebeurtenissen van andere vensters negeren',
                 desc: 'Actieve notitie niet wijzigen bij het werken met notities in een ander venster.'
             },
             paneTransitionDuration: {
@@ -1264,11 +1264,11 @@ export const STRINGS_NL = {
                 desc: 'Mappen en tags uitvouwen bij zweven tijdens slepen.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'Vertraging bij eerste uitvouw',
+                name: 'Uitvouwen bij slepen: Vertraging bij eerste uitvouw',
                 desc: 'Vertraging voordat de eerste map of tag uitvouwt tijdens slepen (seconden).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'Vertraging bij volgende uitvouwen',
+                name: 'Uitvouwen bij slepen: Vertraging bij volgende uitvouwen',
                 desc: 'Vertraging voordat extra mappen of tags uitvouwen tijdens dezelfde sleepactie (seconden).'
             },
             navigationBanner: {
@@ -1299,7 +1299,7 @@ export const STRINGS_NL = {
                 desc: 'De sectie recente bestanden weergeven in het navigatiepaneel.'
             },
             hideRecentNotes: {
-                name: 'Bestandstypen verbergen',
+                name: 'Bestandstypen uit recente bestanden verbergen',
                 desc: 'Kies welke soorten bestanden verborgen worden in de sectie recente bestanden.',
                 options: {
                     none: 'Geen',
@@ -1467,11 +1467,11 @@ export const STRINGS_NL = {
                 desc: 'Zweeftips met extra informatie weergeven voor notities en mappen.'
             },
             showTooltipPath: {
-                name: 'Pad tonen',
+                name: 'Pad in tooltips tonen',
                 desc: 'Het mappad onder notitienamen in tooltips weergeven.'
             },
             showTooltipWordCount: {
-                name: 'Aantal woorden tonen',
+                name: 'Aantal woorden in tooltips tonen',
                 desc: 'Het aantal woorden van notities in tooltips weergeven.'
             },
             resetPaneSeparator: {
@@ -1578,11 +1578,11 @@ export const STRINGS_NL = {
                     yearlyNote: 'Jaarnotitie'
                 },
                 file: {
-                    name: 'Opstartbestand',
+                    name: 'Startpagina: Opstartbestand',
                     empty: 'Geen bestand geselecteerd'
                 },
                 createMissing: {
-                    name: 'Notitie aanmaken als deze ontbreekt',
+                    name: 'Startpagina: Notitie aanmaken als deze ontbreekt',
                     desc: 'Maakt de periodieke notitie aan bij opstarten of via opdracht als deze niet bestaat.'
                 }
             },

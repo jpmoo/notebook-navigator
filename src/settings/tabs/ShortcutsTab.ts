@@ -39,9 +39,7 @@ export function renderShortcutsTab(context: SettingsTabContext): void {
         }
     );
 
-    const shortcutsSection = createGroup();
-
-    const showShortcutsSetting = shortcutsSection.addSetting(setting => {
+    const showShortcutsSetting = shortcutsGroup.addSetting(setting => {
         setting.setName(strings.settings.items.showShortcuts.name).setDesc(strings.settings.items.showShortcuts.desc);
     });
 
@@ -82,9 +80,7 @@ export function renderShortcutsTab(context: SettingsTabContext): void {
             })
         );
 
-    const recentNotesSection = createGroup();
-
-    const showRecentNotesSetting = recentNotesSection.addSetting(setting => {
+    const showRecentNotesSetting = shortcutsGroup.addSetting(setting => {
         setting.setName(strings.settings.items.showRecentNotes.name).setDesc(strings.settings.items.showRecentNotes.desc);
     });
 

@@ -1076,7 +1076,7 @@ export const STRINGS_ID = {
                 desc: 'Catatan yang disematkan hanya tampil disematkan di folder miliknya sendiri. Berguna untuk catatan folder atau jika Anda memiliki banyak catatan yang disematkan. Tidak memengaruhi tampilan tag atau properti.'
             },
             separateNoteCounts: {
-                name: 'Tampilkan jumlah saat ini dan turunan secara terpisah',
+                name: 'Tampilkan jumlah catatan saat ini dan turunan secara terpisah',
                 desc: 'Tampilkan jumlah catatan sebagai format "saat ini ▾ turunan" di folder dan tag.'
             },
             groupNotes: {
@@ -1121,7 +1121,7 @@ export const STRINGS_ID = {
                 desc: 'Terapkan warna latar belakang saat catatan memiliki tugas yang belum selesai.'
             },
             unfinishedTaskBackgroundColor: {
-                name: 'Warna latar belakang',
+                name: 'Warna latar belakang tugas belum selesai',
                 desc: 'Atur warna latar belakang yang digunakan saat catatan memiliki tugas yang belum selesai.'
             },
             showFilenameMatchIcons: {
@@ -1229,15 +1229,15 @@ export const STRINGS_ID = {
                 desc: 'Secara otomatis menampilkan catatan saat dibuka dari Quick Switcher, tautan, atau pencarian.'
             },
             autoRevealShortestPath: {
-                name: 'Gunakan jalur terpendek',
+                name: 'Auto-reveal: Gunakan jalur terpendek',
                 desc: 'Diaktifkan: Auto-reveal memilih folder atau tag induk terdekat yang terlihat. Dinonaktifkan: Auto-reveal memilih folder asli dan tag persis dari file.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Abaikan peristiwa dari sidebar kanan',
+                name: 'Auto-reveal: Abaikan peristiwa dari sidebar kanan',
                 desc: 'Jangan ubah catatan aktif saat mengklik atau mengubah catatan di sidebar kanan.'
             },
             autoRevealIgnoreOtherWindows: {
-                name: 'Abaikan peristiwa dari jendela lain',
+                name: 'Auto-reveal: Abaikan peristiwa dari jendela lain',
                 desc: 'Jangan ubah catatan aktif saat bekerja dengan catatan di jendela lain.'
             },
             paneTransitionDuration: {
@@ -1262,11 +1262,11 @@ export const STRINGS_ID = {
                 desc: 'Luaskan folder dan tag saat mengarahkan kursor selama menyeret.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'Tunda perluasan pertama',
+                name: 'Luaskan saat menyeret: Tunda perluasan pertama',
                 desc: 'Penundaan sebelum folder atau tag pertama diluaskan selama penyeretan (detik).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'Tunda perluasan berikutnya',
+                name: 'Luaskan saat menyeret: Tunda perluasan berikutnya',
                 desc: 'Penundaan sebelum meluaskan folder atau tag tambahan selama penyeretan yang sama (detik).'
             },
             navigationBanner: {
@@ -1297,7 +1297,7 @@ export const STRINGS_ID = {
                 desc: 'Tampilkan bagian file terbaru di panel navigasi.'
             },
             hideRecentNotes: {
-                name: 'Sembunyikan jenis file',
+                name: 'Sembunyikan jenis file dari file terbaru',
                 desc: 'Pilih jenis file yang disembunyikan di bagian file terbaru.',
                 options: {
                     none: 'Tidak ada',
@@ -1465,11 +1465,11 @@ export const STRINGS_ID = {
                 desc: 'Tampilkan tooltip hover dengan informasi tambahan untuk catatan dan folder.'
             },
             showTooltipPath: {
-                name: 'Tampilkan path',
+                name: 'Tampilkan path di tooltip',
                 desc: 'Tampilkan path folder di bawah nama catatan di tooltip.'
             },
             showTooltipWordCount: {
-                name: 'Tampilkan jumlah kata',
+                name: 'Tampilkan jumlah kata di tooltip',
                 desc: 'Tampilkan jumlah kata catatan di tooltip.'
             },
             resetPaneSeparator: {
@@ -1575,11 +1575,11 @@ export const STRINGS_ID = {
                     yearlyNote: 'Catatan tahunan'
                 },
                 file: {
-                    name: 'File awal',
+                    name: 'Beranda: File awal',
                     empty: 'Tidak ada file dipilih'
                 },
                 createMissing: {
-                    name: 'Buat catatan jika tidak ada',
+                    name: 'Beranda: Buat catatan jika tidak ada',
                     desc: 'Membuat catatan berkala saat startup atau perintah jika belum ada.'
                 }
             },

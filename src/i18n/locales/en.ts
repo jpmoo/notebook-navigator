@@ -1072,7 +1072,7 @@ export const STRINGS_EN = {
                 desc: 'Pinned notes appear pinned only in their own folder. Useful for folder notes or if you have many pinned notes. Does not affect tag or property views.'
             },
             separateNoteCounts: {
-                name: 'Show current and descendant counts separately',
+                name: 'Show current and descendant note counts separately',
                 desc: 'Display note counts as "current ▾ descendants" format in folders and tags.'
             },
             groupNotes: {
@@ -1117,7 +1117,7 @@ export const STRINGS_EN = {
                 desc: 'Apply a background color when a note has unfinished tasks.'
             },
             unfinishedTaskBackgroundColor: {
-                name: 'Background color',
+                name: 'Unfinished task background color',
                 desc: 'Set the background color used when a note has unfinished tasks.'
             },
             showFilenameMatchIcons: {
@@ -1225,15 +1225,15 @@ export const STRINGS_EN = {
                 desc: 'Automatically reveal notes when opened from Quick Switcher, links, or search.'
             },
             autoRevealShortestPath: {
-                name: 'Use shortest path',
+                name: 'Auto-reveal: Use shortest path',
                 desc: "Enabled: Auto-reveal selects the nearest visible ancestor folder or tag. Disabled: Auto-reveal selects the file's actual folder and exact tag."
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Ignore events from right sidebar',
+                name: 'Auto-reveal: Ignore events from right sidebar',
                 desc: 'Do not change active note when clicking or changing notes in the right sidebar.'
             },
             autoRevealIgnoreOtherWindows: {
-                name: 'Ignore events from other windows',
+                name: 'Auto-reveal: Ignore events from other windows',
                 desc: 'Do not change active note when clicking or changing notes in another window.'
             },
             paneTransitionDuration: {
@@ -1258,11 +1258,11 @@ export const STRINGS_EN = {
                 desc: 'Expand folders and tags on hover during drag operations.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'First expand delay',
+                name: 'Spring-loaded folders: First expand delay',
                 desc: 'Delay before the first folder or tag expands during a drag operation (seconds).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'Subsequent expand delay',
+                name: 'Spring-loaded folders: Subsequent expand delay',
                 desc: 'Delay before expanding additional folders or tags during the same drag operation (seconds).'
             },
             navigationBanner: {
@@ -1293,7 +1293,7 @@ export const STRINGS_EN = {
                 desc: 'Display the recent files section in the navigation pane.'
             },
             hideRecentNotes: {
-                name: 'Hide file types',
+                name: 'Hide file types from recent files',
                 desc: 'Choose which file types to hide in the recent files section.',
                 options: {
                     none: 'None',
@@ -1460,11 +1460,11 @@ export const STRINGS_EN = {
                 desc: 'Display hover tooltips with additional information for notes and folders.'
             },
             showTooltipPath: {
-                name: 'Show path',
+                name: 'Show path in tooltips',
                 desc: 'Display the folder path below note names in tooltips.'
             },
             showTooltipWordCount: {
-                name: 'Show word count',
+                name: 'Show word count in tooltips',
                 desc: 'Display note word counts in tooltips.'
             },
             resetPaneSeparator: {
@@ -1570,11 +1570,11 @@ export const STRINGS_EN = {
                     yearlyNote: 'Yearly note'
                 },
                 file: {
-                    name: 'Startup file',
+                    name: 'Homepage: Startup file',
                     empty: 'No file selected'
                 },
                 createMissing: {
-                    name: 'Create note if missing',
+                    name: 'Homepage: Create note if missing',
                     desc: 'Create the periodic note on startup or command if it does not exist.'
                 }
             },

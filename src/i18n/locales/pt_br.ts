@@ -1078,7 +1078,7 @@ export const STRINGS_PT_BR = {
                 desc: 'Notas fixadas aparecem fixadas apenas na sua própria pasta. Útil para notas de pasta ou se você tem muitas notas fixadas. Não afeta as visualizações de tags ou propriedades.'
             },
             separateNoteCounts: {
-                name: 'Mostrar contagens atuais e descendentes separadamente',
+                name: 'Mostrar contagens de notas atuais e descendentes separadamente',
                 desc: 'Exibir contagens de notas no formato "atual ▾ descendentes" em pastas e tags.'
             },
             groupNotes: {
@@ -1123,7 +1123,7 @@ export const STRINGS_PT_BR = {
                 desc: 'Aplicar uma cor de fundo quando uma nota possui tarefas inacabadas.'
             },
             unfinishedTaskBackgroundColor: {
-                name: 'Cor de fundo',
+                name: 'Cor de fundo de tarefas inacabadas',
                 desc: 'Definir a cor de fundo usada quando uma nota possui tarefas inacabadas.'
             },
             showFilenameMatchIcons: {
@@ -1231,15 +1231,15 @@ export const STRINGS_PT_BR = {
                 desc: 'Revelar automaticamente notas quando abertas pelo Alternador Rápido, links ou pesquisa.'
             },
             autoRevealShortestPath: {
-                name: 'Usar caminho mais curto',
+                name: 'Revelação automática: Usar caminho mais curto',
                 desc: 'Ativado: A revelação automática seleciona a pasta ancestral ou tag visível mais próxima. Desativado: A revelação automática seleciona a pasta real do arquivo e a tag exata.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Ignorar eventos da barra lateral direita',
+                name: 'Revelação automática: Ignorar eventos da barra lateral direita',
                 desc: 'Não alterar a nota ativa ao clicar ou alterar notas na barra lateral direita.'
             },
             autoRevealIgnoreOtherWindows: {
-                name: 'Ignorar eventos de outras janelas',
+                name: 'Revelação automática: Ignorar eventos de outras janelas',
                 desc: 'Não alterar a nota ativa ao trabalhar com notas em uma janela diferente.'
             },
             paneTransitionDuration: {
@@ -1264,11 +1264,11 @@ export const STRINGS_PT_BR = {
                 desc: 'Expandir pastas e tags ao passar o mouse sobre elas durante o arraste.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'Atraso da primeira expansão',
+                name: 'Expandir ao arrastar: Atraso da primeira expansão',
                 desc: 'Atraso antes de expandir a primeira pasta ou tag durante um arraste (segundos).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'Atraso das expansões seguintes',
+                name: 'Expandir ao arrastar: Atraso das expansões seguintes',
                 desc: 'Atraso antes de expandir pastas ou tags adicionais durante o mesmo arraste (segundos).'
             },
             navigationBanner: {
@@ -1299,7 +1299,7 @@ export const STRINGS_PT_BR = {
                 desc: 'Exibir a seção de arquivos recentes no painel de navegação.'
             },
             hideRecentNotes: {
-                name: 'Ocultar tipos de arquivos',
+                name: 'Ocultar tipos de arquivos dos arquivos recentes',
                 desc: 'Escolher os tipos de arquivos a ocultar na seção de arquivos recentes.',
                 options: {
                     none: 'Nenhum',
@@ -1468,11 +1468,11 @@ export const STRINGS_PT_BR = {
                 desc: 'Exibir dicas de ferramentas ao passar o mouse com informações adicionais para notas e pastas.'
             },
             showTooltipPath: {
-                name: 'Mostrar caminho',
+                name: 'Mostrar caminho nas dicas de ferramentas',
                 desc: 'Exibir o caminho da pasta abaixo dos nomes de notas nas dicas de ferramentas.'
             },
             showTooltipWordCount: {
-                name: 'Mostrar contagem de palavras',
+                name: 'Mostrar contagem de palavras nas dicas de ferramentas',
                 desc: 'Exibir a contagem de palavras das notas nas dicas de ferramentas.'
             },
             resetPaneSeparator: {
@@ -1579,11 +1579,11 @@ export const STRINGS_PT_BR = {
                     yearlyNote: 'Nota anual'
                 },
                 file: {
-                    name: 'Arquivo de inicialização',
+                    name: 'Página inicial: Arquivo de inicialização',
                     empty: 'Nenhum arquivo selecionado'
                 },
                 createMissing: {
-                    name: 'Criar nota se não existir',
+                    name: 'Página inicial: Criar nota se não existir',
                     desc: 'Cria a nota periódica ao iniciar ou via comando se não existir.'
                 }
             },

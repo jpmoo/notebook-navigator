@@ -128,10 +128,8 @@ export function renderListPaneTab(context: SettingsTabContext): void {
                 );
         });
 
-        const compactItemHeightGroup = createGroup();
-
         let compactItemHeightSlider: SliderComponent;
-        const compactItemHeightSetting = compactItemHeightGroup.addSetting(setting => {
+        const compactItemHeightSetting = appearanceGroup.addSetting(setting => {
             setting
                 .setName(strings.settings.items.compactItemHeight.name)
                 .setDesc(strings.settings.items.compactItemHeight.desc)
@@ -176,10 +174,8 @@ export function renderListPaneTab(context: SettingsTabContext): void {
 
         addSettingSyncModeToggle({ setting: compactItemHeightScaleTextSetting, plugin, settingId: 'compactItemHeightScaleText' });
 
-        const displayOptionsGroup = createGroup();
-
         addToggleSetting(
-            displayOptionsGroup.addSetting,
+            appearanceGroup.addSetting,
             strings.settings.items.showSelectedNavigationPills.name,
             strings.settings.items.showSelectedNavigationPills.desc,
             () => plugin.settings.showSelectedNavigationPills,
@@ -189,7 +185,7 @@ export function renderListPaneTab(context: SettingsTabContext): void {
         );
     };
 
-    const organizationGroup = createGroup(strings.settings.groups.list.organization);
+    const organizationGroup = createGroup(undefined);
 
     const includeDescendantNotesSetting = organizationGroup.addSetting(setting => {
         setting

@@ -1064,7 +1064,7 @@ export const STRINGS_ZH_CN = {
                 desc: '固定笔记仅在其所在文件夹中显示为已固定。适用于文件夹笔记或固定笔记较多的情况。不影响标签或属性视图。'
             },
             separateNoteCounts: {
-                name: '分别显示当前和后代计数',
+                name: '分别显示当前和后代笔记计数',
                 desc: '在文件夹和标签中以"当前 ▾ 后代"格式显示笔记计数。'
             },
             groupNotes: {
@@ -1109,7 +1109,7 @@ export const STRINGS_ZH_CN = {
                 desc: '当笔记包含未完成任务时应用背景颜色。'
             },
             unfinishedTaskBackgroundColor: {
-                name: '背景颜色',
+                name: '未完成任务背景颜色',
                 desc: '设置笔记包含未完成任务时使用的背景颜色。'
             },
             showFilenameMatchIcons: {
@@ -1217,15 +1217,15 @@ export const STRINGS_ZH_CN = {
                 desc: '从快速切换器、链接或搜索打开笔记时自动显示。'
             },
             autoRevealShortestPath: {
-                name: '使用最短路径',
+                name: '自动显示：使用最短路径',
                 desc: '启用：自动显示选择最近的可见祖先文件夹或标签。禁用：自动显示选择文件的实际文件夹和精确标签。'
             },
             autoRevealIgnoreRightSidebar: {
-                name: '忽略右侧边栏事件',
+                name: '自动显示：忽略右侧边栏事件',
                 desc: '在右侧边栏中点击或更改笔记时不更改活动笔记。'
             },
             autoRevealIgnoreOtherWindows: {
-                name: '忽略其他窗口的事件',
+                name: '自动显示：忽略其他窗口的事件',
                 desc: '在其他窗口中操作笔记时不更改活动笔记。'
             },
             paneTransitionDuration: {
@@ -1250,11 +1250,11 @@ export const STRINGS_ZH_CN = {
                 desc: '拖动操作中悬停时展开文件夹和标签。'
             },
             springLoadedFoldersInitialDelay: {
-                name: '首次展开延迟',
+                name: '拖动时展开：首次展开延迟',
                 desc: '拖动时首次展开文件夹或标签前的延迟（秒）。'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: '后续展开延迟',
+                name: '拖动时展开：后续展开延迟',
                 desc: '同一次拖动中展开更多文件夹或标签前的延迟（秒）。'
             },
             navigationBanner: {
@@ -1285,7 +1285,7 @@ export const STRINGS_ZH_CN = {
                 desc: '在导航窗格中显示最近文件部分。'
             },
             hideRecentNotes: {
-                name: '隐藏文件类型',
+                name: '从最近文件中隐藏文件类型',
                 desc: '选择在最近文件部分中隐藏的文件类型。',
                 options: {
                     none: '无',
@@ -1451,11 +1451,11 @@ export const STRINGS_ZH_CN = {
                 desc: '悬停时显示笔记和文件夹的额外信息工具提示。'
             },
             showTooltipPath: {
-                name: '显示路径',
+                name: '在工具提示中显示路径',
                 desc: '在工具提示中的笔记名称下方显示文件夹路径。'
             },
             showTooltipWordCount: {
-                name: '显示字数',
+                name: '在工具提示中显示字数',
                 desc: '在工具提示中显示笔记字数。'
             },
             resetPaneSeparator: {
@@ -1605,11 +1605,11 @@ export const STRINGS_ZH_CN = {
                     yearlyNote: '年度笔记'
                 },
                 file: {
-                    name: '启动文件',
+                    name: '主页：启动文件',
                     empty: '未选择文件'
                 },
                 createMissing: {
-                    name: '不存在时创建笔记',
+                    name: '主页：不存在时创建笔记',
                     desc: '启动或执行命令时，如果定期笔记不存在则创建。'
                 }
             },

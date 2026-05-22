@@ -63,6 +63,8 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
     };
 
     const createGroup = createSettingGroupFactory(containerEl);
+    const behaviorGroup = createGroup(undefined);
+    const rainbowGroup = createGroup(createRainbowHeading(strings.settings.groups.navigation.rainbowColors));
     const appearanceGroup = createGroup(strings.settings.groups.navigation.appearance);
 
     const navigationBannerSetting = appearanceGroup.addSetting(setting => {
@@ -135,9 +137,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
         );
     addSettingSyncModeToggle({ setting: pinNavigationBannerSetting, plugin, settingId: 'pinNavigationBanner' });
 
-    const noteCountGroup = createGroup();
-
-    const showNoteCountSetting = noteCountGroup.addSetting(setting => {
+    const showNoteCountSetting = appearanceGroup.addSetting(setting => {
         setting.setName(strings.settings.items.showNoteCount.name).setDesc(strings.settings.items.showNoteCount.desc);
     });
 
@@ -160,9 +160,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
             })
         );
 
-    const navigationMetricsGroup = createGroup();
-
-    navigationMetricsGroup.addSetting(setting => {
+    appearanceGroup.addSetting(setting => {
         setting
             .setName(strings.settings.items.showIndentGuides.name)
             .setDesc(strings.settings.items.showIndentGuides.desc)
@@ -175,7 +173,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
     });
 
     let rootSpacingSlider: SliderComponent;
-    navigationMetricsGroup.addSetting(setting => {
+    appearanceGroup.addSetting(setting => {
         setting
             .setName(strings.settings.items.navRootSpacing.name)
             .setDesc(strings.settings.items.navRootSpacing.desc)
@@ -208,7 +206,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
     });
 
     let indentationSlider: SliderComponent;
-    const navIndentSetting = navigationMetricsGroup.addSetting(setting => {
+    const navIndentSetting = appearanceGroup.addSetting(setting => {
         setting
             .setName(strings.settings.items.navIndent.name)
             .setDesc(strings.settings.items.navIndent.desc)
@@ -240,10 +238,8 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
 
     addSettingSyncModeToggle({ setting: navIndentSetting, plugin, settingId: 'navIndent' });
 
-    const navItemHeightGroup = createGroup();
-
     let lineHeightSlider: SliderComponent;
-    const navItemHeightSetting = navItemHeightGroup.addSetting(setting => {
+    const navItemHeightSetting = appearanceGroup.addSetting(setting => {
         setting
             .setName(strings.settings.items.navItemHeight.name)
             .setDesc(strings.settings.items.navItemHeight.desc)
@@ -287,8 +283,6 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
         );
 
     addSettingSyncModeToggle({ setting: navItemHeightScaleTextSetting, plugin, settingId: 'navItemHeightScaleText' });
-
-    const rainbowGroup = createGroup(createRainbowHeading(strings.settings.groups.navigation.rainbowColors));
 
     const rainbowModeSetting = rainbowGroup.addSetting(setting => {
         setting.setName(strings.settings.items.navRainbowMode.name).setDesc(strings.settings.items.navRainbowMode.desc);
@@ -456,8 +450,6 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
         refreshNavRainbowControls();
     });
 
-    const behaviorGroup = createGroup(strings.settings.groups.general.behavior);
-
     behaviorGroup.addSetting(setting => {
         setting
             .setName(strings.settings.items.collapseBehavior.name)
@@ -512,9 +504,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
     );
 
     if (!Platform.isMobile) {
-        const springLoadedFoldersGroup = createGroup();
-
-        const springLoadedFoldersSetting = springLoadedFoldersGroup.addSetting(setting => {
+        const springLoadedFoldersSetting = behaviorGroup.addSetting(setting => {
             setting.setName(strings.settings.items.springLoadedFolders.name).setDesc(strings.settings.items.springLoadedFolders.desc);
         });
         const springLoadedFoldersDependentSettings = wireToggleSettingWithDependentSection(

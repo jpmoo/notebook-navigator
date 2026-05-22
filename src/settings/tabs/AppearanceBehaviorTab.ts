@@ -74,7 +74,7 @@ export function renderAppearanceBehaviorTab(context: SettingsTabContext): void {
 function renderBehaviorSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
     const { plugin, addToggleSetting } = context;
 
-    const behaviorGroup = createGroup(strings.settings.groups.general.behavior);
+    const behaviorGroup = createGroup(undefined);
 
     addToggleSetting(
         behaviorGroup.addSetting,
@@ -86,9 +86,7 @@ function renderBehaviorSettings(context: SettingsTabContext, createGroup: Create
         }
     );
 
-    const autoRevealGroup = createGroup();
-
-    const autoRevealSetting = autoRevealGroup.addSetting(setting => {
+    const autoRevealSetting = behaviorGroup.addSetting(setting => {
         setting.setName(strings.settings.items.autoRevealActiveNote.name).setDesc(strings.settings.items.autoRevealActiveNote.desc);
     });
 
@@ -155,9 +153,7 @@ function renderKeyboardNavigationSettings(context: SettingsTabContext, createGro
             );
     });
 
-    const enterToOpenGroup = createGroup();
-
-    const enterToOpenSetting = enterToOpenGroup.addSetting(setting => {
+    const enterToOpenSetting = keyboardNavigationGroup.addSetting(setting => {
         setting.setName(strings.settings.items.enterToOpenFiles.name).setDesc(strings.settings.items.enterToOpenFiles.desc);
     });
 
@@ -292,9 +288,7 @@ function renderDesktopAppearanceSettings(context: SettingsTabContext, createGrou
             );
     });
 
-    const tooltipsGroup = createGroup();
-
-    const showTooltipsSetting = tooltipsGroup.addSetting(setting => {
+    const showTooltipsSetting = desktopAppearanceGroup.addSetting(setting => {
         setting.setName(strings.settings.items.showTooltips.name).setDesc(strings.settings.items.showTooltips.desc);
     });
 
@@ -451,9 +445,7 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
             });
     });
 
-    const homepageGroup = createGroup();
-
-    const homepageSetting = homepageGroup.addSetting(setting => {
+    const homepageSetting = viewGroup.addSetting(setting => {
         setting.setName(strings.settings.items.homepage.name);
     });
     homepageSetting.setDesc(strings.settings.items.homepage.desc).addDropdown(dropdown =>
@@ -565,9 +557,7 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
 
     renderHomepageDependentSettings();
 
-    const viewControlsGroup = createGroup();
-
-    viewControlsGroup
+    viewGroup
         .addSetting(setting => {
             setting.setName(strings.settings.items.showInfoButtons.name).setDesc(strings.settings.items.showInfoButtons.desc);
         })
@@ -578,7 +568,7 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
             })
         );
 
-    renderToolbarButtonsSetting(createSetting => viewControlsGroup.addSetting(createSetting), plugin);
+    renderToolbarButtonsSetting(createSetting => viewGroup.addSetting(createSetting), plugin);
 }
 
 function renderIconSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {

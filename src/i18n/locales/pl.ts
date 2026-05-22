@@ -1079,7 +1079,7 @@ export const STRINGS_PL = {
                 desc: 'Przypięte notatki są wyświetlane jako przypięte tylko w swoim własnym folderze. Przydatne dla notatek folderów lub jeśli masz wiele przypiętych notatek. Nie wpływa na widoki tagów ani właściwości.'
             },
             separateNoteCounts: {
-                name: 'Pokaż liczbę elementów nadrzędnych i podrzędnych oddzielnie',
+                name: 'Pokaż bieżącą i podrzędną liczbę notatek oddzielnie',
                 desc: 'Wyświetla liczbę notatek jako "nadrzędne ▾ podrzędne" w folderach i tagach.'
             },
             groupNotes: {
@@ -1124,7 +1124,7 @@ export const STRINGS_PL = {
                 desc: 'Zastosuj kolor tła, gdy notatka zawiera nieukończone zadania.'
             },
             unfinishedTaskBackgroundColor: {
-                name: 'Kolor tła',
+                name: 'Kolor tła nieukończonych zadań',
                 desc: 'Ustaw kolor tła używany, gdy notatka zawiera nieukończone zadania.'
             },
             showFilenameMatchIcons: {
@@ -1232,15 +1232,15 @@ export const STRINGS_PL = {
                 desc: 'Automatycznie wyświetla notatki po otwarciu za pomocą okna szybkiego wyboru, linków lub wyszukiwania.'
             },
             autoRevealShortestPath: {
-                name: 'Użyj najkrótszej ścieżki',
+                name: 'Automatyczne ujawnianie: Użyj najkrótszej ścieżki',
                 desc: 'Włączone: Automatyczne ujawnianie wybiera najbliższy widoczny folder nadrzędny lub tag. Wyłączone: Automatyczne ujawnianie wybiera rzeczywisty folder pliku i dokładny tag.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Ignoruj zdarzenia z prawego paska bocznego',
+                name: 'Automatyczne ujawnianie: Ignoruj zdarzenia z prawego paska bocznego',
                 desc: 'Nie zmieniaj aktywnej notatki podczas klikania lub zmiany notatek w prawym pasku bocznym.'
             },
             autoRevealIgnoreOtherWindows: {
-                name: 'Ignoruj zdarzenia z innych okien',
+                name: 'Automatyczne ujawnianie: Ignoruj zdarzenia z innych okien',
                 desc: 'Nie zmieniaj aktywnej notatki podczas pracy z notatkami w innym oknie.'
             },
             paneTransitionDuration: {
@@ -1265,11 +1265,11 @@ export const STRINGS_PL = {
                 desc: 'Rozwija foldery i tagi po najechaniu kursorem podczas przeciągania.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'Opóźnienie pierwszego rozwinięcia',
+                name: 'Rozwiń podczas przeciągania: Opóźnienie pierwszego rozwinięcia',
                 desc: 'Opóźnienie przed rozwinięciem pierwszego folderu lub tagu podczas przeciągania (w sekundach).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'Opóźnienie kolejnych rozwinięć',
+                name: 'Rozwiń podczas przeciągania: Opóźnienie kolejnych rozwinięć',
                 desc: 'Opóźnienie przed rozwinięciem kolejnych folderów lub tagów podczas tego samego przeciągania (w sekundach).'
             },
             navigationBanner: {
@@ -1300,7 +1300,7 @@ export const STRINGS_PL = {
                 desc: 'Wyświetla sekcję ostatnich plików w panelu nawigacji.'
             },
             hideRecentNotes: {
-                name: 'Ukryj typy plików',
+                name: 'Ukryj typy plików z ostatnich plików',
                 desc: 'Wybierz typy plików do ukrycia w sekcji ostatnich plików.',
                 options: {
                     none: 'Brak',
@@ -1468,11 +1468,11 @@ export const STRINGS_PL = {
                 desc: 'Po najechaniu kursorem wyświetla dodatkowe informacje dotyczące notatek i folderów.'
             },
             showTooltipPath: {
-                name: 'Pokaż ścieżkę',
+                name: 'Pokaż ścieżkę w podpowiedziach',
                 desc: 'Po najechaniu kursorem wyświetla ścieżkę folderu pod nazwami notatek.'
             },
             showTooltipWordCount: {
-                name: 'Pokaż liczbę słów',
+                name: 'Pokaż liczbę słów w podpowiedziach',
                 desc: 'Wyświetla liczbę słów notatek w podpowiedziach.'
             },
             resetPaneSeparator: {
@@ -1579,11 +1579,11 @@ export const STRINGS_PL = {
                     yearlyNote: 'Notatka roczna'
                 },
                 file: {
-                    name: 'Plik startowy',
+                    name: 'Strona główna: Plik startowy',
                     empty: 'Nie wybrano pliku'
                 },
                 createMissing: {
-                    name: 'Utwórz notatkę, jeśli jej brak',
+                    name: 'Strona główna: Utwórz notatkę, jeśli jej brak',
                     desc: 'Tworzy notatkę okresową podczas uruchamiania lub po wywołaniu polecenia, jeśli nie istnieje.'
                 }
             },

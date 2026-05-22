@@ -1076,7 +1076,7 @@ export const STRINGS_TR = {
                 desc: 'Sabitlenen notlar yalnızca kendi klasörlerinde sabitlenmiş olarak görünür. Klasör notları veya çok sayıda sabitlenmiş notunuz varsa kullanışlıdır. Etiket veya özellik görünümlerini etkilemez.'
             },
             separateNoteCounts: {
-                name: 'Mevcut ve alt öğe sayılarını ayrı göster',
+                name: 'Mevcut ve alt not sayılarını ayrı göster',
                 desc: 'Klasör ve etiketlerde not sayılarını "mevcut ▾ alt öğeler" biçiminde göster.'
             },
             groupNotes: {
@@ -1121,7 +1121,7 @@ export const STRINGS_TR = {
                 desc: 'Bir notta tamamlanmamış görevler olduğunda arka plan rengi uygular.'
             },
             unfinishedTaskBackgroundColor: {
-                name: 'Arka plan rengi',
+                name: 'Tamamlanmamış görev arka plan rengi',
                 desc: 'Bir notta tamamlanmamış görevler olduğunda kullanılacak arka plan rengini ayarlar.'
             },
             showFilenameMatchIcons: {
@@ -1229,15 +1229,15 @@ export const STRINGS_TR = {
                 desc: 'Hızlı Geçiş, bağlantılar veya aramadan açıldığında notları otomatik olarak göster.'
             },
             autoRevealShortestPath: {
-                name: 'En kısa yolu kullan',
+                name: 'Otomatik gösterim: En kısa yolu kullan',
                 desc: 'Etkin: Otomatik gösterim en yakın görünür üst klasörü veya etiketi seçer. Devre dışı: Otomatik gösterim dosyanın gerçek klasörünü ve tam etiketini seçer.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Sağ kenar çubuğundaki olayları yoksay',
+                name: 'Otomatik gösterim: Sağ kenar çubuğundaki olayları yoksay',
                 desc: 'Sağ kenar çubuğunda notlara tıklarken veya değiştirirken aktif notu değiştirme.'
             },
             autoRevealIgnoreOtherWindows: {
-                name: 'Diğer pencerelerden gelen olayları yoksay',
+                name: 'Otomatik gösterim: Diğer pencerelerden gelen olayları yoksay',
                 desc: 'Başka bir pencerede notlarla çalışırken aktif notu değiştirme.'
             },
             paneTransitionDuration: {
@@ -1262,11 +1262,11 @@ export const STRINGS_TR = {
                 desc: 'Sürükleme sırasında üzerine gelirken klasörleri ve etiketleri genişlet.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'İlk genişletme gecikmesi',
+                name: 'Sürüklerken genişlet: İlk genişletme gecikmesi',
                 desc: 'Sürükleme sırasında ilk klasör veya etiket genişlemeden önceki gecikme (saniye).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'Sonraki genişletme gecikmesi',
+                name: 'Sürüklerken genişlet: Sonraki genişletme gecikmesi',
                 desc: 'Aynı sürükleme sırasında ek klasörler veya etiketler genişlemeden önceki gecikme (saniye).'
             },
             navigationBanner: {
@@ -1297,7 +1297,7 @@ export const STRINGS_TR = {
                 desc: 'Gezinme bölmesinde son dosyalar bölümünü görüntüle.'
             },
             hideRecentNotes: {
-                name: 'Dosya türlerini gizle',
+                name: 'Son dosyalardan dosya türlerini gizle',
                 desc: 'Son dosyalar bölümünde gizlenecek dosya türlerini seç.',
                 options: {
                     none: 'Hiçbiri',
@@ -1465,11 +1465,11 @@ export const STRINGS_TR = {
                 desc: 'Notlar ve klasörler için ek bilgi içeren fareyle üzerine gelme ipuçlarını görüntüle.'
             },
             showTooltipPath: {
-                name: 'Yolu göster',
+                name: 'İpuçlarında yolu göster',
                 desc: 'İpuçlarında not adlarının altında klasör yolunu görüntüle.'
             },
             showTooltipWordCount: {
-                name: 'Kelime sayısını göster',
+                name: 'İpuçlarında kelime sayısını göster',
                 desc: 'İpuçlarında not kelime sayılarını görüntüle.'
             },
             resetPaneSeparator: {
@@ -1575,11 +1575,11 @@ export const STRINGS_TR = {
                     yearlyNote: 'Yıllık not'
                 },
                 file: {
-                    name: 'Başlangıç dosyası',
+                    name: 'Ana sayfa: Başlangıç dosyası',
                     empty: 'Dosya seçilmedi'
                 },
                 createMissing: {
-                    name: 'Not yoksa oluştur',
+                    name: 'Ana sayfa: Not yoksa oluştur',
                     desc: 'Başlangıçta veya komutla, periyodik not yoksa oluşturur.'
                 }
             },

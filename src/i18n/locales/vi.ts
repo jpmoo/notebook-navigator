@@ -1077,7 +1077,7 @@ export const STRINGS_VI = {
                 desc: 'Ghi chú đã ghim chỉ hiển thị là đã ghim trong thư mục riêng của nó. Hữu ích cho ghi chú thư mục hoặc nếu bạn có nhiều ghi chú đã ghim. Không ảnh hưởng đến chế độ xem thẻ hoặc thuộc tính.'
             },
             separateNoteCounts: {
-                name: 'Hiện số lượng hiện tại và con riêng biệt',
+                name: 'Hiện số lượng ghi chú hiện tại và con riêng biệt',
                 desc: 'Hiển thị số lượng ghi chú theo định dạng "hiện tại ▾ con" trong thư mục và thẻ.'
             },
             groupNotes: {
@@ -1122,7 +1122,7 @@ export const STRINGS_VI = {
                 desc: 'Áp dụng màu nền khi ghi chú có nhiệm vụ chưa hoàn thành.'
             },
             unfinishedTaskBackgroundColor: {
-                name: 'Màu nền',
+                name: 'Màu nền nhiệm vụ chưa hoàn thành',
                 desc: 'Đặt màu nền được sử dụng khi ghi chú có nhiệm vụ chưa hoàn thành.'
             },
             showFilenameMatchIcons: {
@@ -1230,15 +1230,15 @@ export const STRINGS_VI = {
                 desc: 'Tự động hiện ghi chú khi mở từ Quick Switcher, liên kết hoặc tìm kiếm.'
             },
             autoRevealShortestPath: {
-                name: 'Sử dụng đường dẫn ngắn nhất',
+                name: 'Tự động hiển thị: Sử dụng đường dẫn ngắn nhất',
                 desc: 'Bật: Tự động hiển thị chọn thư mục cha hoặc thẻ gần nhất có thể nhìn thấy. Tắt: Tự động hiển thị chọn thư mục thực tế và thẻ chính xác của tệp.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Bỏ qua sự kiện từ thanh bên phải',
+                name: 'Tự động hiển thị: Bỏ qua sự kiện từ thanh bên phải',
                 desc: 'Không đổi ghi chú đang hoạt động khi nhấn hoặc đổi ghi chú ở thanh bên phải.'
             },
             autoRevealIgnoreOtherWindows: {
-                name: 'Bỏ qua sự kiện từ cửa sổ khác',
+                name: 'Tự động hiển thị: Bỏ qua sự kiện từ cửa sổ khác',
                 desc: 'Không đổi ghi chú đang hoạt động khi làm việc với ghi chú ở cửa sổ khác.'
             },
             paneTransitionDuration: {
@@ -1263,11 +1263,11 @@ export const STRINGS_VI = {
                 desc: 'Mở rộng thư mục và thẻ khi di chuột qua trong lúc kéo.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'Độ trễ mở rộng lần đầu',
+                name: 'Mở rộng khi kéo: Độ trễ mở rộng lần đầu',
                 desc: 'Độ trễ trước khi thư mục hoặc thẻ đầu tiên được mở rộng trong lúc kéo (giây).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'Độ trễ mở rộng tiếp theo',
+                name: 'Mở rộng khi kéo: Độ trễ mở rộng tiếp theo',
                 desc: 'Độ trễ trước khi mở rộng thêm thư mục hoặc thẻ trong cùng một lần kéo (giây).'
             },
             navigationBanner: {
@@ -1298,7 +1298,7 @@ export const STRINGS_VI = {
                 desc: 'Hiển thị phần tệp gần đây trong ngăn điều hướng.'
             },
             hideRecentNotes: {
-                name: 'Ẩn loại tệp',
+                name: 'Ẩn loại tệp khỏi tệp gần đây',
                 desc: 'Chọn loại tệp cần ẩn trong phần tệp gần đây.',
                 options: {
                     none: 'Không',
@@ -1466,11 +1466,11 @@ export const STRINGS_VI = {
                 desc: 'Hiển thị chú thích khi di chuột với thông tin bổ sung cho ghi chú và thư mục.'
             },
             showTooltipPath: {
-                name: 'Hiện đường dẫn',
+                name: 'Hiện đường dẫn trong chú thích',
                 desc: 'Hiển thị đường dẫn thư mục bên dưới tên ghi chú trong chú thích.'
             },
             showTooltipWordCount: {
-                name: 'Hiện số từ',
+                name: 'Hiện số từ trong chú thích',
                 desc: 'Hiển thị số từ của ghi chú trong chú thích.'
             },
             resetPaneSeparator: {
@@ -1576,11 +1576,11 @@ export const STRINGS_VI = {
                     yearlyNote: 'Ghi chú hàng năm'
                 },
                 file: {
-                    name: 'Tệp khởi động',
+                    name: 'Trang chủ: Tệp khởi động',
                     empty: 'Chưa chọn tệp'
                 },
                 createMissing: {
-                    name: 'Tạo ghi chú nếu thiếu',
+                    name: 'Trang chủ: Tạo ghi chú nếu thiếu',
                     desc: 'Tạo ghi chú định kỳ khi khởi động hoặc qua lệnh nếu chưa tồn tại.'
                 }
             },
