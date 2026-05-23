@@ -264,7 +264,7 @@ export function NavigationPaneShortcutRow({ item, context, adjacentFilledClassNa
                 },
                 onClick: () => shortcuts.handleShortcutSearchActivate(item.key, searchShortcut),
                 onContextMenu: (event: React.MouseEvent<HTMLDivElement>) =>
-                    shortcuts.handleShortcutContextMenu(event, { type: 'search', key: item.key }),
+                    shortcuts.handleShortcutContextMenu(event, { type: 'search', key: item.key, searchShortcut }),
                 dragHandlers: shortcuts.buildShortcutExternalHandlers(item.key),
                 dragHandleConfig: shortcuts.shortcutDragHandleConfig
             };

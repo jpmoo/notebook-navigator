@@ -87,7 +87,10 @@ const RELEASE_NOTES: ReleaseNote[] = [
         changed: [
             '**Settings.** Settings structure was rewritten for easier navigation. You can now navigate to all sub pages from the first settings page.'
         ],
-        improved: ['**Manual sort.** **Edit sort order...** now supports keyboard navigation.']
+        improved: [
+            '**Manual sort.** **Edit sort order...** now supports keyboard navigation.',
+            '**Search shortcuts.** Search shortcuts can now be renamed from the shortcut context menu.'
+        ]
     },
     {
         version: '3.0.0',
