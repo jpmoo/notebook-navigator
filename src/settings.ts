@@ -17,7 +17,7 @@
  */
 
 import * as Obsidian from 'obsidian';
-import { App, ButtonComponent, PluginSettingTab, Setting } from 'obsidian';
+import { App, ButtonComponent, PluginSettingTab, requireApiVersion, Setting } from 'obsidian';
 import type { SettingDefinitionItem, SettingDefinitionPage, SettingDefinitionRender } from 'obsidian';
 import NotebookNavigatorPlugin from './main';
 import { TIMEOUTS } from './types/obsidian-extended';
@@ -469,6 +469,10 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     }
 
     getSettingDefinitions(): SettingDefinitionItem[] {
+        if (!requireApiVersion('1.13.0')) {
+            return [];
+        }
+
         this.isFallbackSettingsDisplay = false;
         const context = this.createTabContext(this.containerEl);
 
@@ -500,7 +504,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
             return getNativeSettingControlValue(this.plugin.settings, key);
         }
 
-        return super.getControlValue(key);
+        return this.getObsidianControlValue(key);
     }
 
     async setControlValue(key: string, value: unknown): Promise<void> {
@@ -519,7 +523,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         }
 
         if (!isNativeSettingControlKey(key)) {
-            await super.setControlValue(key, value);
+            await this.setObsidianControlValue(key, value);
             return;
         }
 
@@ -536,6 +540,21 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
 
         await this.plugin.saveSettingsAndUpdate();
         await this.handleNativeSettingControlPostSaveSideEffects(key);
+    }
+
+    // Obsidian calls native control hooks only for 1.13 settings pages.
+    private getObsidianControlValue(key: string): unknown {
+        if (requireApiVersion('1.13.0')) {
+            return super.getControlValue(key);
+        }
+
+        return undefined;
+    }
+
+    private async setObsidianControlValue(key: string, value: unknown): Promise<void> {
+        if (requireApiVersion('1.13.0')) {
+            await super.setControlValue(key, value);
+        }
     }
 
     private handleNativeSettingControlPreSaveSideEffects(key: NativeSettingControlKey): void {
@@ -789,18 +808,52 @@ interface NotebookNavigatorSettingsPageOptions {
 type NativeSettingPage = ReturnType<NonNullable<SettingDefinitionPage['page']>>;
 type NativeSettingPageConstructor = new () => NativeSettingPage;
 
+// Bridge for Obsidian 1.13 SettingPage while keeping this module loadable on 1.11.
 function isNativeSettingPageConstructor(value: unknown): value is NativeSettingPageConstructor {
     return typeof value === 'function';
 }
 
-/* eslint-disable obsidianmd/no-unsupported-api -- SettingPage is looked up lazily and used only by native settings pages on Obsidian 1.13+. */
+function isHtmlElement(value: unknown): value is HTMLElement {
+    if (typeof value !== 'object' || value === null) {
+        return false;
+    }
+
+    const instanceOf: unknown = Reflect.get(value, 'instanceOf');
+    if (typeof instanceOf !== 'function') {
+        return false;
+    }
+
+    const result: unknown = Reflect.apply(instanceOf, value, [HTMLElement]);
+    return result === true;
+}
+
 function getNativeSettingPageConstructor(): NativeSettingPageConstructor {
-    const settingPageConstructor = Obsidian.SettingPage;
+    if (!requireApiVersion('1.13.0')) {
+        throw new Error('Obsidian SettingPage API is unavailable.');
+    }
+
+    const settingPageConstructor = Reflect.get(Obsidian, 'SettingPage');
     if (!isNativeSettingPageConstructor(settingPageConstructor)) {
         throw new Error('Obsidian SettingPage API is unavailable.');
     }
 
     return settingPageConstructor;
+}
+
+function getNativeSettingPageContainer(page: NativeSettingPage): HTMLElement {
+    const containerEl = Reflect.get(page, 'containerEl');
+    if (!isHtmlElement(containerEl)) {
+        throw new Error('Obsidian SettingPage container is unavailable.');
+    }
+
+    return containerEl;
+}
+
+function hideNativeSettingPageBase(page: NativeSettingPage, pageConstructor: NativeSettingPageConstructor): void {
+    const hide: unknown = Reflect.get(pageConstructor.prototype, 'hide');
+    if (typeof hide === 'function') {
+        Reflect.apply(hide, page, []);
+    }
 }
 
 function createNativeSettingsPage(options: NotebookNavigatorSettingsPageOptions): NativeSettingPage {
@@ -809,20 +862,19 @@ function createNativeSettingsPage(options: NotebookNavigatorSettingsPageOptions)
     return new (class NotebookNavigatorSettingsPage extends SettingPageBase {
         constructor() {
             super();
-            this.title = options.title;
+            Reflect.set(this, 'title', options.title);
         }
 
         display(): void {
-            options.display(this.containerEl);
+            options.display(getNativeSettingPageContainer(this));
         }
 
         hide(): void {
-            super.hide();
-            options.hide(this.containerEl);
+            hideNativeSettingPageBase(this, SettingPageBase);
+            options.hide(getNativeSettingPageContainer(this));
         }
     })();
 }
-/* eslint-enable obsidianmd/no-unsupported-api */
 
 export type {
     NotebookNavigatorSettings,
