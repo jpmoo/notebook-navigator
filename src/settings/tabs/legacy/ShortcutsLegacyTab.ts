@@ -29,10 +29,12 @@ import { renderSliderSetting } from '../SliderSetting';
 export function renderShortcutsTab(context: SettingsTabContext): void {
     const { containerEl, plugin, addToggleSetting } = context;
     const createGroup = createSettingGroupFactory(containerEl);
-    const shortcutsGroup = createGroup(undefined);
+    const sharedGroup = createGroup(undefined);
+    const shortcutsGroup = createGroup(strings.navigationPane.shortcutsHeader);
+    const recentFilesGroup = createGroup(strings.navigationPane.recentFilesHeader);
 
     addToggleSetting(
-        shortcutsGroup.addSetting,
+        sharedGroup.addSetting,
         strings.settings.items.showSectionIcons.name,
         strings.settings.items.showSectionIcons.desc,
         () => plugin.settings.showSectionIcons,
@@ -82,7 +84,7 @@ export function renderShortcutsTab(context: SettingsTabContext): void {
             })
         );
 
-    const showRecentNotesSetting = shortcutsGroup.addSetting(setting => {
+    const showRecentNotesSetting = recentFilesGroup.addSetting(setting => {
         setting.setName(strings.settings.items.showRecentNotes.name).setDesc(strings.settings.items.showRecentNotes.desc);
     });
 
