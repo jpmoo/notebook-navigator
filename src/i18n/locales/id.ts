@@ -881,23 +881,53 @@ export const STRINGS_ID = {
         },
         sections: {
             general: 'Umum',
-            navigationPane: 'Navigasi',
+            vaultFilters: 'Filter tampilan',
+            appearanceBehavior: 'Tampilan & perilaku',
+            navigationPane: 'Panel navigasi',
             calendar: 'Kalender',
             files: 'File',
+            fileOperations: 'Operasi file',
             icons: 'Paket ikon',
             folders: 'Folder',
             folderNotes: 'Catatan folder',
+            foldersAndFolderNotes: 'Folder & catatan folder',
             foldersAndTags: 'Folder',
             tagsAndProperties: 'Tag & properti',
             tags: 'Tag',
-            listPane: 'Daftar',
-            notes: 'Catatan',
+            listPane: 'Panel daftar',
+            notes: 'Tampilan file',
+            shortcutsAndRecentFiles: 'Pintasan & file terbaru',
             advanced: 'Lanjutan'
+        },
+        pageGroups: {
+            gettingStarted: 'Mulai',
+            configuration: 'Konfigurasi',
+            navigationAndContent: 'Panel navigasi',
+            notesAndLists: 'Panel daftar',
+            calendarAndTools: 'Kalender dan alat'
+        },
+        pageDescriptions: {
+            general: 'Catatan rilis, dukungan, profil vault, tipe file, dan kunci properti.',
+            vaultFilters: 'Folder, tag, file, tag file, dan aturan properti tersembunyi.',
+            appearanceBehavior: 'Templat, perilaku, navigasi keyboard, tombol mouse, tampilan, dan pemformatan.',
+            navigationPane: 'Tata letak, tampilan, jumlah catatan, perilaku menciutkan, dan warna pelangi.',
+            shortcuts: 'Visibilitas pintasan, lencana, file terbaru, dan item yang disematkan.',
+            calendar: 'Tampilan kalender, catatan tanggal, templat, lokal, dan penempatan bilah sisi.',
+            fileOperations: 'Konfirmasi hapus, lampiran, dan perilaku konflik saat memindahkan file.',
+            foldersAndFolderNotes: 'Tampilan folder, catatan folder, templat catatan folder, dan perilaku catatan folder.',
+            tagsProperties: 'Bagian tag dan properti, ikon, pengurutan, cakupan, dan pewarisan.',
+            listPane: 'Pengurutan, pengelompokan, mode daftar, catatan yang disematkan, dan pratinjau gambar.',
+            frontmatter: 'Bidang frontmatter untuk nama tampilan, stempel waktu, ikon, dan warna.',
+            notes: 'Judul, teks pratinjau, gambar fitur, tag, properti, tanggal, dan jumlah kata.',
+            iconPacks: 'Ikon antarmuka, ikon file, dan manajemen paket ikon.',
+            advanced: 'Diagnostik, pembersihan metadata, impor/ekspor, dan reset.'
         },
         groups: {
             general: {
+                vaultConfiguration: 'Penyiapan vault',
                 vaultProfiles: 'Profil vault',
-                filtering: 'Penyaringan',
+                vaultContent: 'Konten vault',
+                filtering: 'Konten tersembunyi',
                 templates: 'Templat',
                 behavior: 'Perilaku',
                 keyboardNavigation: 'Navigasi keyboard',
@@ -924,7 +954,7 @@ export const STRINGS_ID = {
                 drawingPreviews: 'Pratinjau gambar'
             },
             notes: {
-                frontmatter: 'Frontmatter',
+                frontmatter: 'Bidang frontmatter',
                 tasks: 'Tugas',
                 icon: 'Ikon',
                 title: 'Judul',
@@ -1046,7 +1076,7 @@ export const STRINGS_ID = {
                 desc: 'Catatan yang disematkan hanya tampil disematkan di folder miliknya sendiri. Berguna untuk catatan folder atau jika Anda memiliki banyak catatan yang disematkan. Tidak memengaruhi tampilan tag atau properti.'
             },
             separateNoteCounts: {
-                name: 'Tampilkan jumlah saat ini dan turunan secara terpisah',
+                name: 'Tampilkan jumlah catatan saat ini dan turunan secara terpisah',
                 desc: 'Tampilkan jumlah catatan sebagai format "saat ini ▾ turunan" di folder dan tag.'
             },
             groupNotes: {
@@ -1091,7 +1121,7 @@ export const STRINGS_ID = {
                 desc: 'Terapkan warna latar belakang saat catatan memiliki tugas yang belum selesai.'
             },
             unfinishedTaskBackgroundColor: {
-                name: 'Warna latar belakang',
+                name: 'Warna latar belakang tugas belum selesai',
                 desc: 'Atur warna latar belakang yang digunakan saat catatan memiliki tugas yang belum selesai.'
             },
             showFilenameMatchIcons: {
@@ -1199,15 +1229,15 @@ export const STRINGS_ID = {
                 desc: 'Secara otomatis menampilkan catatan saat dibuka dari Quick Switcher, tautan, atau pencarian.'
             },
             autoRevealShortestPath: {
-                name: 'Gunakan jalur terpendek',
+                name: 'Auto-reveal: Gunakan jalur terpendek',
                 desc: 'Diaktifkan: Auto-reveal memilih folder atau tag induk terdekat yang terlihat. Dinonaktifkan: Auto-reveal memilih folder asli dan tag persis dari file.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Abaikan peristiwa dari sidebar kanan',
+                name: 'Auto-reveal: Abaikan peristiwa dari sidebar kanan',
                 desc: 'Jangan ubah catatan aktif saat mengklik atau mengubah catatan di sidebar kanan.'
             },
             autoRevealIgnoreOtherWindows: {
-                name: 'Abaikan peristiwa dari jendela lain',
+                name: 'Auto-reveal: Abaikan peristiwa dari jendela lain',
                 desc: 'Jangan ubah catatan aktif saat bekerja dengan catatan di jendela lain.'
             },
             paneTransitionDuration: {
@@ -1232,11 +1262,11 @@ export const STRINGS_ID = {
                 desc: 'Luaskan folder dan tag saat mengarahkan kursor selama menyeret.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'Tunda perluasan pertama',
+                name: 'Luaskan saat menyeret: Tunda perluasan pertama',
                 desc: 'Penundaan sebelum folder atau tag pertama diluaskan selama penyeretan (detik).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'Tunda perluasan berikutnya',
+                name: 'Luaskan saat menyeret: Tunda perluasan berikutnya',
                 desc: 'Penundaan sebelum meluaskan folder atau tag tambahan selama penyeretan yang sama (detik).'
             },
             navigationBanner: {
@@ -1267,7 +1297,7 @@ export const STRINGS_ID = {
                 desc: 'Tampilkan bagian file terbaru di panel navigasi.'
             },
             hideRecentNotes: {
-                name: 'Sembunyikan jenis file',
+                name: 'Sembunyikan jenis file dari file terbaru',
                 desc: 'Pilih jenis file yang disembunyikan di bagian file terbaru.',
                 options: {
                     none: 'Tidak ada',
@@ -1398,11 +1428,11 @@ export const STRINGS_ID = {
             },
             calendarCustomFilePattern: {
                 name: 'Catatan harian',
-                desc: 'Format jalur menggunakan format tanggal Moment. Bungkus nama subfolder dalam tanda kurung, misal [Work]/YYYY. Klik ikon template untuk mengatur template. Atur lokasi folder templat di Umum > Templat.',
+                desc: 'Format jalur menggunakan format tanggal Moment. Bungkus nama subfolder dalam tanda kurung, misal [Work]/YYYY. Klik ikon template untuk mengatur template. Atur lokasi folder templat di Tampilan & perilaku > Templat.',
                 momentDescPrefix: 'Format jalur menggunakan ',
                 momentLinkText: 'format tanggal Moment',
                 momentDescSuffix:
-                    '. Bungkus nama subfolder dalam tanda kurung, misal [Work]/YYYY. Klik ikon template untuk mengatur template. Atur lokasi folder templat di Umum > Templat.',
+                    '. Bungkus nama subfolder dalam tanda kurung, misal [Work]/YYYY. Klik ikon template untuk mengatur template. Atur lokasi folder templat di Tampilan & perilaku > Templat.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Sintaks saat ini: {path}',
                 parsingError: 'Pola harus dapat diformat dan diparse kembali sebagai tanggal lengkap (tahun, bulan, hari).'
@@ -1435,11 +1465,11 @@ export const STRINGS_ID = {
                 desc: 'Tampilkan tooltip hover dengan informasi tambahan untuk catatan dan folder.'
             },
             showTooltipPath: {
-                name: 'Tampilkan path',
+                name: 'Tampilkan path di tooltip',
                 desc: 'Tampilkan path folder di bawah nama catatan di tooltip.'
             },
             showTooltipWordCount: {
-                name: 'Tampilkan jumlah kata',
+                name: 'Tampilkan jumlah kata di tooltip',
                 desc: 'Tampilkan jumlah kata catatan di tooltip.'
             },
             resetPaneSeparator: {
@@ -1545,11 +1575,11 @@ export const STRINGS_ID = {
                     yearlyNote: 'Catatan tahunan'
                 },
                 file: {
-                    name: 'File awal',
+                    name: 'Beranda: File awal',
                     empty: 'Tidak ada file dipilih'
                 },
                 createMissing: {
-                    name: 'Buat catatan jika tidak ada',
+                    name: 'Beranda: Buat catatan jika tidak ada',
                     desc: 'Membuat catatan berkala saat startup atau perintah jika belum ada.'
                 }
             },
@@ -2004,7 +2034,7 @@ export const STRINGS_ID = {
                 name: 'Tampilkan properti',
                 desc: 'Tampilkan bagian properti di navigator.',
                 propertyKeysInfoPrefix: 'Konfigurasi properti di ',
-                propertyKeysInfoLinkText: 'Umum > Kunci properti',
+                propertyKeysInfoLinkText: 'Mulai > Kunci properti',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {
@@ -2069,7 +2099,7 @@ export const STRINGS_ID = {
             },
             folderNoteTemplate: {
                 name: 'Templat catatan folder',
-                desc: 'File templat untuk catatan folder markdown baru. Atur lokasi folder templat di Umum > Templat.'
+                desc: 'File templat untuk catatan folder markdown baru. Atur lokasi folder templat di Tampilan & perilaku > Templat.'
             },
             enableFolderNoteLinks: {
                 name: 'Aktifkan tautan catatan folder',

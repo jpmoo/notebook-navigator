@@ -17,65 +17,36 @@
  */
 
 import { strings } from '../../i18n';
-import { createSettingGroupFactory } from '../settingGroups';
-import { isDeleteAttachmentsSetting, isMoveFileConflictsSetting } from '../types';
-import type { SettingsTabContext } from './SettingsTabContext';
+import type { SettingDefinitionItem } from 'obsidian';
+import { createDropdownDefinition, createGroupDefinition, createToggleDefinition } from '../nativeSettingControls';
 
-/** Renders the files settings tab */
-export function renderFilesTab(context: SettingsTabContext): void {
-    const { containerEl, plugin } = context;
-
-    const createGroup = createSettingGroupFactory(containerEl);
-    const filesGroup = createGroup(undefined);
-
-    filesGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.confirmBeforeDelete.name)
-            .setDesc(strings.settings.items.confirmBeforeDelete.desc)
-            .addToggle(toggle =>
-                toggle.setValue(plugin.settings.confirmBeforeDelete).onChange(async value => {
-                    plugin.settings.confirmBeforeDelete = value;
-                    await plugin.saveSettingsAndUpdate();
-                })
-            );
-    });
-
-    filesGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.deleteAttachments.name)
-            .setDesc(strings.settings.items.deleteAttachments.desc)
-            .addDropdown(dropdown => {
-                dropdown
-                    .addOption('ask', strings.settings.items.deleteAttachments.options.ask)
-                    .addOption('always', strings.settings.items.deleteAttachments.options.always)
-                    .addOption('never', strings.settings.items.deleteAttachments.options.never)
-                    .setValue(plugin.settings.deleteAttachments)
-                    .onChange(async value => {
-                        if (!isDeleteAttachmentsSetting(value)) {
-                            return;
-                        }
-                        plugin.settings.deleteAttachments = value;
-                        await plugin.saveSettingsAndUpdate();
-                    });
-            });
-    });
-
-    filesGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.moveFileConflicts.name)
-            .setDesc(strings.settings.items.moveFileConflicts.desc)
-            .addDropdown(dropdown => {
-                dropdown
-                    .addOption('ask', strings.settings.items.moveFileConflicts.options.ask)
-                    .addOption('rename', strings.settings.items.moveFileConflicts.options.rename)
-                    .setValue(plugin.settings.moveFileConflicts)
-                    .onChange(async value => {
-                        if (!isMoveFileConflictsSetting(value)) {
-                            return;
-                        }
-                        plugin.settings.moveFileConflicts = value;
-                        await plugin.saveSettingsAndUpdate();
-                    });
-            });
-    });
+/** Builds native 1.13 setting definitions for file operations settings. */
+export function createFilesSettingDefinitions(heading?: string): SettingDefinitionItem[] {
+    return [
+        createGroupDefinition(heading, [
+            createToggleDefinition('confirmBeforeDelete', {
+                name: strings.settings.items.confirmBeforeDelete.name,
+                desc: strings.settings.items.confirmBeforeDelete.desc
+            }),
+            createDropdownDefinition('deleteAttachments', {
+                name: strings.settings.items.deleteAttachments.name,
+                desc: strings.settings.items.deleteAttachments.desc,
+                aliases: Object.values(strings.settings.items.deleteAttachments.options),
+                options: {
+                    ask: strings.settings.items.deleteAttachments.options.ask,
+                    always: strings.settings.items.deleteAttachments.options.always,
+                    never: strings.settings.items.deleteAttachments.options.never
+                }
+            }),
+            createDropdownDefinition('moveFileConflicts', {
+                name: strings.settings.items.moveFileConflicts.name,
+                desc: strings.settings.items.moveFileConflicts.desc,
+                aliases: Object.values(strings.settings.items.moveFileConflicts.options),
+                options: {
+                    ask: strings.settings.items.moveFileConflicts.options.ask,
+                    rename: strings.settings.items.moveFileConflicts.options.rename
+                }
+            })
+        ])
+    ];
 }

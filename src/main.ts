@@ -70,12 +70,12 @@ import {
     type SyncModeSettingId,
     type TagSortOrder
 } from './settings/types';
-import type { SettingsTabId } from './settings/tabs/SettingsTabContext';
 import { NOTEBOOK_NAVIGATOR_ICON_ID, NOTEBOOK_NAVIGATOR_ICON_SVG } from './constants/notebookNavigatorIcon';
 import { PluginSettingsController } from './services/settings/PluginSettingsController';
 import { PluginPreferencesController } from './services/settings/PluginPreferencesController';
 import { consumePendingPdfProcessingDiagnostic } from './services/content/pdf/pdfCrashDiagnostics';
 import { applyModifiedSettingsTransfer, createModifiedSettingsTransfer } from './settings/transfer';
+import { DEFAULT_SETTINGS } from './settings/defaultSettings';
 
 interface ObsidianSettingsModal {
     open(): void;
@@ -108,6 +108,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     tagTreeService: TagTreeService | null = null;
     propertyTreeService: PropertyTreeService | null = null;
     commandQueue: CommandQueueService | null = null;
+    public settings: NotebookNavigatorSettings = { ...DEFAULT_SETTINGS };
     fileSystemOps: FileSystemOperations | null = null;
     omnisearchService: OmnisearchService | null = null;
     externalIconController: ExternalIconProviderController | null = null;
@@ -153,14 +154,6 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         refreshMatcherCachesIfNeeded: () => this.settingsController.refreshMatcherCachesIfNeeded()
     });
 
-    public get settings(): NotebookNavigatorSettings {
-        return this.settingsController.settings;
-    }
-
-    public set settings(settings: NotebookNavigatorSettings) {
-        this.settingsController.settings = settings;
-    }
-
     public getSyncMode(settingId: SyncModeSettingId): SettingSyncMode {
         return this.settingsController.getSyncMode(settingId);
     }
@@ -173,14 +166,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         return this.settingsController.isSynced(settingId);
     }
 
-    public openSettingsTab(tabId: SettingsTabId): boolean {
-        const settingTab = this.settingTab;
-        if (!settingTab) {
-            return false;
-        }
-
-        settingTab.selectTab(tabId);
-
+    public openSettings(): boolean {
         const settingsModal = getSettingsModal(this.app);
         if (!settingsModal) {
             return false;
@@ -189,7 +175,6 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         try {
             settingsModal.open();
             settingsModal.openTabById(this.manifest.id);
-            settingTab.selectTab(tabId, { focus: true });
             return true;
         } catch {
             return false;
@@ -246,7 +231,14 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
      * Returns true if this is the first launch (no saved data)
      */
     async loadSettings(): Promise<boolean> {
-        return this.settingsController.loadSettings();
+        const isFirstLaunch = await this.settingsController.loadSettings();
+        this.settings = this.settingsController.settings;
+        return isFirstLaunch;
+    }
+
+    private replaceSettings(settings: NotebookNavigatorSettings): void {
+        this.settings = settings;
+        this.settingsController.settings = settings;
     }
 
     /**
@@ -1103,7 +1095,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             throw new Error('Plugin is unloading');
         }
 
-        this.settings = applyModifiedSettingsTransfer(this.settings, transferData);
+        this.replaceSettings(applyModifiedSettingsTransfer(this.settings, transferData));
         this.settingsController.normalizeTagSettings();
         this.settingsController.normalizePropertySettings();
         this.settingsController.normalizeNavigationSeparatorSettings();

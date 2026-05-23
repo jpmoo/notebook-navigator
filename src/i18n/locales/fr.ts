@@ -884,23 +884,53 @@ export const STRINGS_FR = {
         },
         sections: {
             general: 'Général',
-            notes: 'Notes',
-            navigationPane: 'Navigation',
+            vaultFilters: "Filtres d'affichage",
+            appearanceBehavior: 'Apparence et comportement',
+            navigationPane: 'Panneau de navigation',
             calendar: 'Calendrier',
             files: 'Fichiers',
+            fileOperations: 'Opérations sur les fichiers',
             icons: "Packs d'icônes",
-            tags: 'Étiquettes',
             folders: 'Dossiers',
             folderNotes: 'Notes de dossier',
+            foldersAndFolderNotes: 'Dossiers et notes de dossier',
             foldersAndTags: 'Dossiers',
             tagsAndProperties: 'Tags et propriétés',
-            listPane: 'Liste',
+            tags: 'Étiquettes',
+            listPane: 'Panneau de liste',
+            notes: 'Affichage des fichiers',
+            shortcutsAndRecentFiles: 'Raccourcis et fichiers récents',
             advanced: 'Avancé'
+        },
+        pageGroups: {
+            gettingStarted: 'Démarrage',
+            configuration: 'Configuration',
+            navigationAndContent: 'Panneau de navigation',
+            notesAndLists: 'Panneau de liste',
+            calendarAndTools: 'Calendrier et outils'
+        },
+        pageDescriptions: {
+            general: 'Notes de version, support, profil du coffre, types de fichiers et clés de propriétés.',
+            vaultFilters: 'Dossiers, étiquettes, fichiers, étiquettes de fichiers et règles de propriétés masqués.',
+            appearanceBehavior: 'Modèles, comportement, navigation au clavier, boutons de souris, apparence et formatage.',
+            navigationPane: 'Disposition, apparence, comptage des notes, comportement de repli et couleurs arc-en-ciel.',
+            shortcuts: 'Visibilité des raccourcis, badges, fichiers récents et éléments épinglés.',
+            calendar: 'Affichage du calendrier, notes de date, modèles, paramètres régionaux et emplacement de la barre latérale.',
+            fileOperations: 'Confirmations de suppression, pièces jointes et comportement en cas de conflit de déplacement de fichiers.',
+            foldersAndFolderNotes: 'Affichage des dossiers, notes de dossier, modèles et comportement des notes de dossier.',
+            tagsProperties: 'Sections de tags et propriétés, icônes, tri, portée et héritage.',
+            listPane: 'Tri, regroupement, modes de liste, notes épinglées et aperçus de dessins.',
+            frontmatter: "Champs frontmatter pour noms d'affichage, horodatages, icônes et couleurs.",
+            notes: "Titres, texte d'aperçu, images vedettes, étiquettes, propriétés, dates et nombre de mots.",
+            iconPacks: "Icônes d'interface, icônes de fichiers et gestion des packs d'icônes.",
+            advanced: 'Diagnostics, nettoyage des métadonnées, import/export et réinitialisation.'
         },
         groups: {
             general: {
+                vaultConfiguration: 'Configuration du coffre',
                 vaultProfiles: 'Profils du coffre',
-                filtering: 'Filtrage',
+                vaultContent: 'Contenu du coffre',
+                filtering: 'Contenu masqué',
                 templates: 'Modèles',
                 behavior: 'Comportement',
                 keyboardNavigation: 'Navigation au clavier',
@@ -927,7 +957,7 @@ export const STRINGS_FR = {
                 drawingPreviews: 'Aperçus des dessins'
             },
             notes: {
-                frontmatter: 'Frontmatter',
+                frontmatter: 'Champs frontmatter',
                 tasks: 'Tâches',
                 icon: 'Icône',
                 title: 'Titre',
@@ -1049,7 +1079,7 @@ export const STRINGS_FR = {
                 desc: 'Les notes épinglées n’apparaissent épinglées que dans leur propre dossier. Utile pour les notes de dossier ou si vous avez beaucoup de notes épinglées. N’affecte pas les vues par étiquette ou propriété.'
             },
             separateNoteCounts: {
-                name: 'Afficher les comptes actuels et descendants séparément',
+                name: 'Afficher les nombres de notes actuelles et descendantes séparément',
                 desc: 'Affiche le nombre de notes au format "actuel ▾ descendants" dans les dossiers et étiquettes.'
             },
             groupNotes: {
@@ -1094,7 +1124,7 @@ export const STRINGS_FR = {
                 desc: "Appliquer une couleur de fond lorsqu'une note contient des tâches inachevées."
             },
             unfinishedTaskBackgroundColor: {
-                name: 'Couleur de fond',
+                name: 'Couleur de fond des tâches inachevées',
                 desc: "Définir la couleur de fond utilisée lorsqu'une note contient des tâches inachevées."
             },
             showFilenameMatchIcons: {
@@ -1202,15 +1232,15 @@ export const STRINGS_FR = {
                 desc: "Révéler automatiquement les notes lorsqu'elles sont ouvertes depuis le Commutateur rapide, les liens ou la recherche."
             },
             autoRevealShortestPath: {
-                name: 'Utiliser le chemin le plus court',
+                name: 'Révélation automatique : Utiliser le chemin le plus court',
                 desc: 'Activé : La révélation automatique sélectionne le dossier parent ou le tag visible le plus proche. Désactivé : La révélation automatique sélectionne le dossier réel du fichier et le tag exact.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Ignorer les événements du panneau de droite',
+                name: 'Révélation automatique : Ignorer les événements du panneau de droite',
                 desc: "Ne pas changer la note active lors d'un clic ou du changement de notes dans le panneau de droite."
             },
             autoRevealIgnoreOtherWindows: {
-                name: "Ignorer les événements d'autres fenêtres",
+                name: "Révélation automatique : Ignorer les événements d'autres fenêtres",
                 desc: 'Ne pas changer la note active lorsque vous travaillez avec des notes dans une autre fenêtre.'
             },
             paneTransitionDuration: {
@@ -1235,11 +1265,11 @@ export const STRINGS_FR = {
                 desc: 'Développer les dossiers et les étiquettes au survol pendant le glisser-déposer.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'Délai de première expansion',
+                name: 'Développer au survol : Délai de première expansion',
                 desc: 'Délai avant que le premier dossier ou étiquette se développe pendant un glisser-déposer (secondes).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: "Délai d'expansion suivante",
+                name: "Développer au survol : Délai d'expansion suivante",
                 desc: "Délai avant de développer d'autres dossiers ou étiquettes pendant le même glisser-déposer (secondes)."
             },
             navigationBanner: {
@@ -1270,7 +1300,7 @@ export const STRINGS_FR = {
                 desc: 'Afficher la section des fichiers récents dans le panneau de navigation.'
             },
             hideRecentNotes: {
-                name: 'Masquer les types de fichiers',
+                name: 'Masquer les types de fichiers des fichiers récents',
                 desc: 'Choisir les types de fichiers à masquer dans la section des fichiers récents.',
                 options: {
                     none: 'Aucun',
@@ -1401,11 +1431,11 @@ export const STRINGS_FR = {
             },
             calendarCustomFilePattern: {
                 name: 'Notes quotidiennes',
-                desc: "Formater le chemin en utilisant le format de date Moment. Entourez les noms de sous-dossiers de crochets, par ex. [Work]/YYYY. Cliquez sur l'icône de modèle pour définir un modèle. Définir l'emplacement du dossier de modèles dans Général > Modèles.",
+                desc: "Formater le chemin en utilisant le format de date Moment. Entourez les noms de sous-dossiers de crochets, par ex. [Work]/YYYY. Cliquez sur l'icône de modèle pour définir un modèle. Définir l'emplacement du dossier de modèles dans Apparence et comportement > Modèles.",
                 momentDescPrefix: 'Formater le chemin en utilisant le ',
                 momentLinkText: 'format de date Moment',
                 momentDescSuffix:
-                    ". Entourez les noms de sous-dossiers de crochets, par ex. [Work]/YYYY. Cliquez sur l'icône de modèle pour définir un modèle. Définir l'emplacement du dossier de modèles dans Général > Modèles.",
+                    ". Entourez les noms de sous-dossiers de crochets, par ex. [Work]/YYYY. Cliquez sur l'icône de modèle pour définir un modèle. Définir l'emplacement du dossier de modèles dans Apparence et comportement > Modèles.",
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Syntaxe actuelle : {path}',
                 parsingError: 'Le modèle doit pouvoir être formaté et ré-analysé comme une date complète (année, mois, jour).'
@@ -1439,11 +1469,11 @@ export const STRINGS_FR = {
                 desc: 'Affiche des infobulles avec des informations supplémentaires pour les notes et dossiers au survol.'
             },
             showTooltipPath: {
-                name: 'Afficher le chemin',
+                name: 'Afficher le chemin dans les infobulles',
                 desc: 'Affiche le chemin du dossier sous le nom des notes dans les infobulles.'
             },
             showTooltipWordCount: {
-                name: 'Afficher le nombre de mots',
+                name: 'Afficher le nombre de mots dans les infobulles',
                 desc: 'Affiche le nombre de mots des notes dans les infobulles.'
             },
             resetPaneSeparator: {
@@ -1596,11 +1626,11 @@ export const STRINGS_FR = {
                     yearlyNote: 'Note annuelle'
                 },
                 file: {
-                    name: 'Fichier de démarrage',
+                    name: 'Page d’accueil : Fichier de démarrage',
                     empty: 'Aucun fichier sélectionné'
                 },
                 createMissing: {
-                    name: 'Créer la note si absente',
+                    name: 'Page d’accueil : Créer la note si absente',
                     desc: "Crée la note périodique au démarrage ou via la commande si elle n'existe pas."
                 }
             },
@@ -2010,7 +2040,7 @@ export const STRINGS_FR = {
                 name: 'Afficher les propriétés',
                 desc: 'Afficher la section des propriétés dans le navigateur.',
                 propertyKeysInfoPrefix: 'Configurer les propriétés dans ',
-                propertyKeysInfoLinkText: 'Général > Clés de propriétés',
+                propertyKeysInfoLinkText: 'Démarrage > Clés de propriétés',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {
@@ -2075,7 +2105,7 @@ export const STRINGS_FR = {
             },
             folderNoteTemplate: {
                 name: 'Modèle de note de dossier',
-                desc: "Fichier modèle pour les nouvelles notes de dossier Markdown. Définir l'emplacement du dossier de modèles dans Général > Modèles."
+                desc: "Fichier modèle pour les nouvelles notes de dossier Markdown. Définir l'emplacement du dossier de modèles dans Apparence et comportement > Modèles."
             },
             enableFolderNoteLinks: {
                 name: 'Activer les liens de notes de dossier',

@@ -872,23 +872,53 @@ export const STRINGS_ZH_TW = {
         },
         sections: {
             general: '一般',
-            notes: '筆記',
-            navigationPane: '導覽',
+            vaultFilters: '顯示篩選器',
+            appearanceBehavior: '外觀與行為',
+            navigationPane: '導覽窗格',
             calendar: '導覽日曆',
             files: '檔案',
+            fileOperations: '檔案操作',
             icons: '圖示包',
-            tags: '標籤',
             folders: '資料夾',
             folderNotes: '資料夾筆記',
+            foldersAndFolderNotes: '資料夾與資料夾筆記',
             foldersAndTags: '資料夾',
             tagsAndProperties: '標籤與屬性',
-            listPane: '列表',
+            tags: '標籤',
+            listPane: '列表窗格',
+            notes: '檔案顯示',
+            shortcutsAndRecentFiles: '快捷方式與最近檔案',
             advanced: '進階'
+        },
+        pageGroups: {
+            gettingStarted: '開始',
+            configuration: '設定',
+            navigationAndContent: '導覽窗格',
+            notesAndLists: '列表窗格',
+            calendarAndTools: '日曆與工具'
+        },
+        pageDescriptions: {
+            general: '發行說明、支援、保險庫設定檔、檔案類型與屬性鍵。',
+            vaultFilters: '隱藏的資料夾、標籤、檔案、檔案標籤與屬性規則。',
+            appearanceBehavior: '範本、行為、鍵盤導覽、滑鼠按鈕、外觀與格式。',
+            navigationPane: '版面配置、外觀、筆記數量、摺疊行為與彩虹顏色。',
+            shortcuts: '快捷方式可見性、徽章、最近檔案與釘選項目。',
+            calendar: '日曆顯示、日期筆記、範本、區域設定與側邊欄位置。',
+            fileOperations: '刪除確認、附件與檔案移動衝突行為。',
+            foldersAndFolderNotes: '資料夾顯示、資料夾筆記、資料夾筆記範本與資料夾筆記行為。',
+            tagsProperties: '標籤與屬性區段、圖示、排序、範圍與繼承。',
+            listPane: '排序、群組、列表模式、釘選筆記與繪圖預覽。',
+            frontmatter: '用於顯示名稱、時間戳記、圖示與顏色的前置中繼資料欄位。',
+            notes: '標題、預覽文字、特色圖片、標籤、屬性、日期與字數。',
+            iconPacks: '介面圖示、檔案圖示與圖示包管理。',
+            advanced: '診斷、中繼資料清理、匯入/匯出與重設。'
         },
         groups: {
             general: {
+                vaultConfiguration: '保險庫設定',
                 vaultProfiles: '保險庫設定檔',
-                filtering: '篩選',
+                vaultContent: '保險庫內容',
+                filtering: '隱藏內容',
                 templates: '範本',
                 behavior: '行為',
                 keyboardNavigation: '鍵盤導覽',
@@ -915,7 +945,7 @@ export const STRINGS_ZH_TW = {
                 drawingPreviews: '繪圖預覽'
             },
             notes: {
-                frontmatter: '前置中繼資料',
+                frontmatter: '前置中繼資料欄位',
                 tasks: '任務',
                 icon: '圖示',
                 title: '標題',
@@ -1034,7 +1064,7 @@ export const STRINGS_ZH_TW = {
                 desc: '釘選筆記僅在其所在資料夾中顯示為已釘選。適用於資料夾筆記或釘選筆記較多的情況。不影響標籤或屬性檢視。'
             },
             separateNoteCounts: {
-                name: '分別顯示目前和後代計數',
+                name: '分別顯示目前和後代筆記計數',
                 desc: '在資料夾和標籤中以「目前 ▾ 後代」格式顯示筆記計數。'
             },
             groupNotes: {
@@ -1079,7 +1109,7 @@ export const STRINGS_ZH_TW = {
                 desc: '當筆記包含未完成任務時套用背景顏色。'
             },
             unfinishedTaskBackgroundColor: {
-                name: '背景顏色',
+                name: '未完成任務背景顏色',
                 desc: '設定筆記包含未完成任務時使用的背景顏色。'
             },
             showFilenameMatchIcons: {
@@ -1187,15 +1217,15 @@ export const STRINGS_ZH_TW = {
                 desc: '從快速切換器、連結或搜尋開啟筆記時自動顯示。'
             },
             autoRevealShortestPath: {
-                name: '使用最短路徑',
+                name: '自動顯示：使用最短路徑',
                 desc: '啟用：自動顯示選擇最近的可見祖先資料夾或標籤。停用：自動顯示選擇檔案的實際資料夾和精確標籤。'
             },
             autoRevealIgnoreRightSidebar: {
-                name: '忽略右側邊欄事件',
+                name: '自動顯示：忽略右側邊欄事件',
                 desc: '在右側邊欄中點按或變更筆記時不變更使用中的筆記。'
             },
             autoRevealIgnoreOtherWindows: {
-                name: '忽略其他視窗的事件',
+                name: '自動顯示：忽略其他視窗的事件',
                 desc: '在其他視窗中操作筆記時不變更使用中的筆記。'
             },
             paneTransitionDuration: {
@@ -1220,11 +1250,11 @@ export const STRINGS_ZH_TW = {
                 desc: '拖曳操作中懸停時展開資料夾和標籤。'
             },
             springLoadedFoldersInitialDelay: {
-                name: '首次展開延遲',
+                name: '拖曳時展開：首次展開延遲',
                 desc: '拖曳時首次展開資料夾或標籤前的延遲（秒）。'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: '後續展開延遲',
+                name: '拖曳時展開：後續展開延遲',
                 desc: '同一次拖曳中展開更多資料夾或標籤前的延遲（秒）。'
             },
             navigationBanner: {
@@ -1255,7 +1285,7 @@ export const STRINGS_ZH_TW = {
                 desc: '在導覽窗格中顯示最近檔案區段。'
             },
             hideRecentNotes: {
-                name: '隱藏檔案類型',
+                name: '從最近檔案中隱藏檔案類型',
                 desc: '選擇在最近檔案區段中隱藏的檔案類型。',
                 options: {
                     none: '無',
@@ -1385,11 +1415,11 @@ export const STRINGS_ZH_TW = {
             },
             calendarCustomFilePattern: {
                 name: '日記',
-                desc: '使用 Moment 日期格式設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。在一般 > 範本中設定範本資料夾位置。',
+                desc: '使用 Moment 日期格式設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。在外觀與行為 > 範本中設定範本資料夾位置。',
                 momentDescPrefix: '使用 ',
                 momentLinkText: 'Moment 日期格式',
                 momentDescSuffix:
-                    ' 設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。在一般 > 範本中設定範本資料夾位置。',
+                    ' 設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。在外觀與行為 > 範本中設定範本資料夾位置。',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: '目前語法：{path}',
                 parsingError: '模式必須能格式化並重新解析為完整日期（年、月、日）。'
@@ -1421,11 +1451,11 @@ export const STRINGS_ZH_TW = {
                 desc: '懸停時顯示筆記和資料夾的額外資訊工具提示。'
             },
             showTooltipPath: {
-                name: '顯示路徑',
+                name: '在工具提示中顯示路徑',
                 desc: '在工具提示中的筆記名稱下方顯示資料夾路徑。'
             },
             showTooltipWordCount: {
-                name: '顯示字數',
+                name: '在工具提示中顯示字數',
                 desc: '在工具提示中顯示筆記字數。'
             },
             resetPaneSeparator: {
@@ -1575,11 +1605,11 @@ export const STRINGS_ZH_TW = {
                     yearlyNote: '年度筆記'
                 },
                 file: {
-                    name: '啟動檔案',
+                    name: '首頁：啟動檔案',
                     empty: '未選擇檔案'
                 },
                 createMissing: {
-                    name: '不存在時建立筆記',
+                    name: '首頁：不存在時建立筆記',
                     desc: '啟動或執行命令時，如果定期筆記不存在則建立。'
                 }
             },
@@ -1989,7 +2019,7 @@ export const STRINGS_ZH_TW = {
                 name: '顯示屬性',
                 desc: '在導覽器中顯示屬性區段。',
                 propertyKeysInfoPrefix: '在',
-                propertyKeysInfoLinkText: '一般 > 屬性鍵',
+                propertyKeysInfoLinkText: '開始 > 屬性鍵',
                 propertyKeysInfoSuffix: '中設定屬性'
             },
             showPropertyIcons: {
@@ -2054,7 +2084,7 @@ export const STRINGS_ZH_TW = {
             },
             folderNoteTemplate: {
                 name: '資料夾筆記範本',
-                desc: '新建 Markdown 資料夾筆記的範本檔案。在一般 > 範本中設定範本資料夾位置。'
+                desc: '新建 Markdown 資料夾筆記的範本檔案。在外觀與行為 > 範本中設定範本資料夾位置。'
             },
             enableFolderNoteLinks: {
                 name: '啟用資料夾筆記連結',

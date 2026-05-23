@@ -884,23 +884,53 @@ export const STRINGS_PL = {
         },
         sections: {
             general: 'Ogólne',
-            navigationPane: 'Nawigacja',
+            vaultFilters: 'Filtry wyświetlania',
+            appearanceBehavior: 'Wygląd i zachowanie',
+            navigationPane: 'Panel nawigacji',
             calendar: 'Kalendarz',
             files: 'Pliki',
+            fileOperations: 'Operacje na plikach',
             icons: 'Pakiety ikon',
             folders: 'Foldery',
             folderNotes: 'Notatki folderu',
+            foldersAndFolderNotes: 'Foldery i notatki folderu',
             foldersAndTags: 'Foldery',
             tagsAndProperties: 'Tagi i atrybuty',
             tags: 'Tagi',
-            listPane: 'Lista',
-            notes: 'Notatki',
+            listPane: 'Panel listy',
+            notes: 'Wyświetlanie plików',
+            shortcutsAndRecentFiles: 'Skróty i ostatnie pliki',
             advanced: 'Zaawansowane'
+        },
+        pageGroups: {
+            gettingStarted: 'Start',
+            configuration: 'Konfiguracja',
+            navigationAndContent: 'Panel nawigacji',
+            notesAndLists: 'Panel listy',
+            calendarAndTools: 'Kalendarz i narzędzia'
+        },
+        pageDescriptions: {
+            general: 'Informacje o wydaniu, wsparcie, profil sejfu, typy plików i klucze atrybutów.',
+            vaultFilters: 'Ukryte foldery, tagi, pliki, tagi plików i reguły atrybutów.',
+            appearanceBehavior: 'Szablony, zachowanie, nawigacja klawiaturą, przyciski myszy, wygląd i formatowanie.',
+            navigationPane: 'Układ, wygląd, liczba notatek, zachowanie zwijania i kolory tęczy.',
+            shortcuts: 'Widoczność skrótów, odznaki, ostatnie pliki i przypięte elementy.',
+            calendar: 'Wyświetlanie kalendarza, notatki dat, szablony, lokalizacja i położenie paska bocznego.',
+            fileOperations: 'Potwierdzenia usunięcia, załączniki i zachowanie przy konflikcie przenoszenia plików.',
+            foldersAndFolderNotes: 'Wyświetlanie folderów, notatki folderu, szablony notatek folderu i zachowanie notatek folderu.',
+            tagsProperties: 'Sekcje tagów i atrybutów, ikony, sortowanie, zakres i dziedziczenie.',
+            listPane: 'Sortowanie, grupowanie, tryby listy, przypięte notatki i podglądy rysunków.',
+            frontmatter: 'Pola metadanych dla nazw wyświetlanych, znaczników czasu, ikon i kolorów.',
+            notes: 'Tytuły, tekst podglądu, wyróżnione obrazy, tagi, atrybuty, daty i liczba słów.',
+            iconPacks: 'Ikony interfejsu, ikony plików i zarządzanie pakietami ikon.',
+            advanced: 'Diagnostyka, czyszczenie metadanych, import/eksport i resetowanie.'
         },
         groups: {
             general: {
+                vaultConfiguration: 'Konfiguracja sejfu',
                 vaultProfiles: 'Profile sejfu',
-                filtering: 'Filtrowanie',
+                vaultContent: 'Zawartość sejfu',
+                filtering: 'Ukryta zawartość',
                 templates: 'Szablony',
                 behavior: 'Zachowanie',
                 keyboardNavigation: 'Nawigacja klawiaturą',
@@ -927,7 +957,7 @@ export const STRINGS_PL = {
                 drawingPreviews: 'Podglądy rysunków'
             },
             notes: {
-                frontmatter: 'Metadane',
+                frontmatter: 'Pola metadanych',
                 tasks: 'Zadania',
                 icon: 'Ikonka',
                 title: 'Tytuł',
@@ -1049,7 +1079,7 @@ export const STRINGS_PL = {
                 desc: 'Przypięte notatki są wyświetlane jako przypięte tylko w swoim własnym folderze. Przydatne dla notatek folderów lub jeśli masz wiele przypiętych notatek. Nie wpływa na widoki tagów ani właściwości.'
             },
             separateNoteCounts: {
-                name: 'Pokaż liczbę elementów nadrzędnych i podrzędnych oddzielnie',
+                name: 'Pokaż bieżącą i podrzędną liczbę notatek oddzielnie',
                 desc: 'Wyświetla liczbę notatek jako "nadrzędne ▾ podrzędne" w folderach i tagach.'
             },
             groupNotes: {
@@ -1094,7 +1124,7 @@ export const STRINGS_PL = {
                 desc: 'Zastosuj kolor tła, gdy notatka zawiera nieukończone zadania.'
             },
             unfinishedTaskBackgroundColor: {
-                name: 'Kolor tła',
+                name: 'Kolor tła nieukończonych zadań',
                 desc: 'Ustaw kolor tła używany, gdy notatka zawiera nieukończone zadania.'
             },
             showFilenameMatchIcons: {
@@ -1202,15 +1232,15 @@ export const STRINGS_PL = {
                 desc: 'Automatycznie wyświetla notatki po otwarciu za pomocą okna szybkiego wyboru, linków lub wyszukiwania.'
             },
             autoRevealShortestPath: {
-                name: 'Użyj najkrótszej ścieżki',
+                name: 'Automatyczne ujawnianie: Użyj najkrótszej ścieżki',
                 desc: 'Włączone: Automatyczne ujawnianie wybiera najbliższy widoczny folder nadrzędny lub tag. Wyłączone: Automatyczne ujawnianie wybiera rzeczywisty folder pliku i dokładny tag.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Ignoruj zdarzenia z prawego paska bocznego',
+                name: 'Automatyczne ujawnianie: Ignoruj zdarzenia z prawego paska bocznego',
                 desc: 'Nie zmieniaj aktywnej notatki podczas klikania lub zmiany notatek w prawym pasku bocznym.'
             },
             autoRevealIgnoreOtherWindows: {
-                name: 'Ignoruj zdarzenia z innych okien',
+                name: 'Automatyczne ujawnianie: Ignoruj zdarzenia z innych okien',
                 desc: 'Nie zmieniaj aktywnej notatki podczas pracy z notatkami w innym oknie.'
             },
             paneTransitionDuration: {
@@ -1235,11 +1265,11 @@ export const STRINGS_PL = {
                 desc: 'Rozwija foldery i tagi po najechaniu kursorem podczas przeciągania.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'Opóźnienie pierwszego rozwinięcia',
+                name: 'Rozwiń podczas przeciągania: Opóźnienie pierwszego rozwinięcia',
                 desc: 'Opóźnienie przed rozwinięciem pierwszego folderu lub tagu podczas przeciągania (w sekundach).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'Opóźnienie kolejnych rozwinięć',
+                name: 'Rozwiń podczas przeciągania: Opóźnienie kolejnych rozwinięć',
                 desc: 'Opóźnienie przed rozwinięciem kolejnych folderów lub tagów podczas tego samego przeciągania (w sekundach).'
             },
             navigationBanner: {
@@ -1270,7 +1300,7 @@ export const STRINGS_PL = {
                 desc: 'Wyświetla sekcję ostatnich plików w panelu nawigacji.'
             },
             hideRecentNotes: {
-                name: 'Ukryj typy plików',
+                name: 'Ukryj typy plików z ostatnich plików',
                 desc: 'Wybierz typy plików do ukrycia w sekcji ostatnich plików.',
                 options: {
                     none: 'Brak',
@@ -1401,11 +1431,11 @@ export const STRINGS_PL = {
             },
             calendarCustomFilePattern: {
                 name: 'Notatki dzienne',
-                desc: 'Sformatuj ścieżkę przy użyciu formatu daty Moment. Nazwy podfolderów umieść w nawiasach, np. [Work]/YYYY. Kliknij ikonkę szablonu, aby ustawić szablon. Ustaw lokalizację folderu szablonów w sekcji Ogólne > Szablony.',
+                desc: 'Sformatuj ścieżkę przy użyciu formatu daty Moment. Nazwy podfolderów umieść w nawiasach, np. [Work]/YYYY. Kliknij ikonkę szablonu, aby ustawić szablon. Ustaw lokalizację folderu szablonów w sekcji Wygląd i zachowanie > Szablony.',
                 momentDescPrefix: 'Sformatuj ścieżkę przy użyciu ',
                 momentLinkText: 'formatu daty Moment',
                 momentDescSuffix:
-                    '. Nazwy podfolderów umieść w nawiasach, np. [Work]/YYYY. Kliknij ikonkę szablonu, aby ustawić szablon. Ustaw lokalizację folderu szablonów w sekcji Ogólne > Szablony.',
+                    '. Nazwy podfolderów umieść w nawiasach, np. [Work]/YYYY. Kliknij ikonkę szablonu, aby ustawić szablon. Ustaw lokalizację folderu szablonów w sekcji Wygląd i zachowanie > Szablony.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Aktywna składnia: {path}',
                 parsingError: 'Wzór musi być tak sformatowany, aby można było odczytać kompletną datę (rok, miesiąc, dzień).'
@@ -1438,11 +1468,11 @@ export const STRINGS_PL = {
                 desc: 'Po najechaniu kursorem wyświetla dodatkowe informacje dotyczące notatek i folderów.'
             },
             showTooltipPath: {
-                name: 'Pokaż ścieżkę',
+                name: 'Pokaż ścieżkę w podpowiedziach',
                 desc: 'Po najechaniu kursorem wyświetla ścieżkę folderu pod nazwami notatek.'
             },
             showTooltipWordCount: {
-                name: 'Pokaż liczbę słów',
+                name: 'Pokaż liczbę słów w podpowiedziach',
                 desc: 'Wyświetla liczbę słów notatek w podpowiedziach.'
             },
             resetPaneSeparator: {
@@ -1549,11 +1579,11 @@ export const STRINGS_PL = {
                     yearlyNote: 'Notatka roczna'
                 },
                 file: {
-                    name: 'Plik startowy',
+                    name: 'Strona główna: Plik startowy',
                     empty: 'Nie wybrano pliku'
                 },
                 createMissing: {
-                    name: 'Utwórz notatkę, jeśli jej brak',
+                    name: 'Strona główna: Utwórz notatkę, jeśli jej brak',
                     desc: 'Tworzy notatkę okresową podczas uruchamiania lub po wywołaniu polecenia, jeśli nie istnieje.'
                 }
             },
@@ -2008,7 +2038,7 @@ export const STRINGS_PL = {
                 name: 'Pokaż atrybuty',
                 desc: 'Wyświetl sekcję atrybutów w panelu nawigacji.',
                 propertyKeysInfoPrefix: 'Konfiguruj atrybuty w ',
-                propertyKeysInfoLinkText: 'Ogólne > Klucze atrybutów',
+                propertyKeysInfoLinkText: 'Start > Klucze atrybutów',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {
@@ -2073,7 +2103,7 @@ export const STRINGS_PL = {
             },
             folderNoteTemplate: {
                 name: 'Szablon notatki folderu',
-                desc: 'Plik szablonu dla nowych notatek folderów Markdown. Ustaw lokalizację folderu szablonów w Ogólne > Szablony.'
+                desc: 'Plik szablonu dla nowych notatek folderów Markdown. Ustaw lokalizację folderu szablonów w Wygląd i zachowanie > Szablony.'
             },
             enableFolderNoteLinks: {
                 name: 'Włącz linki notatek folderów',

@@ -877,23 +877,53 @@ export const STRINGS_IT = {
         },
         sections: {
             general: 'Generale',
-            navigationPane: 'Navigazione',
+            vaultFilters: 'Filtri di visualizzazione',
+            appearanceBehavior: 'Aspetto e comportamento',
+            navigationPane: 'Pannello di navigazione',
             calendar: 'Calendario',
             files: 'File',
+            fileOperations: 'Operazioni sui file',
             icons: 'Pacchetti icone',
             folders: 'Cartelle',
             folderNotes: 'Note cartella',
+            foldersAndFolderNotes: 'Cartelle e note cartella',
             foldersAndTags: 'Cartelle',
             tagsAndProperties: 'Tag e proprietà',
             tags: 'Tag',
-            listPane: 'Lista',
-            notes: 'Note',
+            listPane: 'Pannello lista',
+            notes: 'Visualizzazione file',
+            shortcutsAndRecentFiles: 'Scorciatoie e file recenti',
             advanced: 'Avanzate'
+        },
+        pageGroups: {
+            gettingStarted: 'Avvio',
+            configuration: 'Configurazione',
+            navigationAndContent: 'Pannello di navigazione',
+            notesAndLists: 'Pannello lista',
+            calendarAndTools: 'Calendario e strumenti'
+        },
+        pageDescriptions: {
+            general: 'Note di rilascio, supporto, profilo vault, tipi di file e chiavi delle proprietà.',
+            vaultFilters: 'Cartelle, tag, file, tag dei file e regole delle proprietà nascosti.',
+            appearanceBehavior: 'Modelli, comportamento, navigazione da tastiera, pulsanti del mouse, aspetto e formattazione.',
+            navigationPane: 'Layout, aspetto, conteggio note, comportamento del collasso e colori arcobaleno.',
+            shortcuts: 'Visibilità delle scorciatoie, badge, file recenti ed elementi fissati.',
+            calendar: 'Visualizzazione calendario, note data, modelli, locale e posizionamento della barra laterale.',
+            fileOperations: 'Conferme di eliminazione, allegati e comportamento in caso di conflitti di spostamento dei file.',
+            foldersAndFolderNotes: 'Visualizzazione cartelle, note cartella, modelli di note cartella e comportamento delle note cartella.',
+            tagsProperties: 'Sezioni tag e proprietà, icone, ordinamento, ambito ed ereditarietà.',
+            listPane: 'Ordinamento, raggruppamento, modalità lista, note fissate e anteprime dei disegni.',
+            frontmatter: 'Campi frontmatter per nomi visualizzati, timestamp, icone e colori.',
+            notes: 'Titoli, testo anteprima, immagini in evidenza, tag, proprietà, date e conteggio parole.',
+            iconPacks: 'Icone interfaccia, icone file e gestione pacchetti icone.',
+            advanced: 'Diagnostica, pulizia metadati, importazione/esportazione e ripristino.'
         },
         groups: {
             general: {
+                vaultConfiguration: 'Configurazione vault',
                 vaultProfiles: 'Profili vault',
-                filtering: 'Filtri',
+                vaultContent: 'Contenuto del vault',
+                filtering: 'Contenuto nascosto',
                 templates: 'Modelli',
                 behavior: 'Comportamento',
                 keyboardNavigation: 'Navigazione da tastiera',
@@ -920,7 +950,7 @@ export const STRINGS_IT = {
                 drawingPreviews: 'Anteprime dei disegni'
             },
             notes: {
-                frontmatter: 'Frontmatter',
+                frontmatter: 'Campi frontmatter',
                 tasks: 'Attività',
                 icon: 'Icona',
                 title: 'Titolo',
@@ -1042,7 +1072,7 @@ export const STRINGS_IT = {
                 desc: 'Le note fissate appaiono fissate solo nella propria cartella. Utile per le note cartella o se hai molte note fissate. Non influisce sulle viste per tag o proprietà.'
             },
             separateNoteCounts: {
-                name: 'Mostra conteggi correnti e discendenti separatamente',
+                name: 'Mostra conteggi note correnti e discendenti separatamente',
                 desc: 'Visualizza i conteggi note nel formato "correnti ▾ discendenti" in cartelle e tag.'
             },
             groupNotes: {
@@ -1087,7 +1117,7 @@ export const STRINGS_IT = {
                 desc: 'Applica un colore di sfondo quando una nota ha attività incomplete.'
             },
             unfinishedTaskBackgroundColor: {
-                name: 'Colore di sfondo',
+                name: 'Colore sfondo attività incomplete',
                 desc: 'Imposta il colore di sfondo usato quando una nota ha attività incomplete.'
             },
             showFilenameMatchIcons: {
@@ -1195,15 +1225,15 @@ export const STRINGS_IT = {
                 desc: 'Mostra automaticamente le note quando aperte da Switcher rapido, link o ricerca.'
             },
             autoRevealShortestPath: {
-                name: 'Usa il percorso più breve',
+                name: 'Rivelazione automatica: Usa il percorso più breve',
                 desc: 'Attivato: La rivelazione automatica seleziona la cartella antenata o il tag visibile più vicino. Disattivato: La rivelazione automatica seleziona la cartella effettiva del file e il tag esatto.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Ignora eventi dalla barra laterale destra',
+                name: 'Rivelazione automatica: Ignora eventi dalla barra laterale destra',
                 desc: 'Non cambiare nota attiva quando clicchi o cambi note nella barra laterale destra.'
             },
             autoRevealIgnoreOtherWindows: {
-                name: 'Ignora eventi da altre finestre',
+                name: 'Rivelazione automatica: Ignora eventi da altre finestre',
                 desc: "Non cambiare nota attiva quando lavori con note in un'altra finestra."
             },
             paneTransitionDuration: {
@@ -1228,11 +1258,11 @@ export const STRINGS_IT = {
                 desc: 'Espandi cartelle e tag al passaggio del mouse durante il trascinamento.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'Ritardo prima espansione',
+                name: 'Espandi durante il trascinamento: Ritardo prima espansione',
                 desc: 'Ritardo prima che la prima cartella o tag si espanda durante un trascinamento (secondi).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'Ritardo espansioni successive',
+                name: 'Espandi durante il trascinamento: Ritardo espansioni successive',
                 desc: 'Ritardo prima di espandere cartelle o tag aggiuntivi durante lo stesso trascinamento (secondi).'
             },
             navigationBanner: {
@@ -1263,7 +1293,7 @@ export const STRINGS_IT = {
                 desc: 'Visualizza la sezione file recenti nel pannello navigazione.'
             },
             hideRecentNotes: {
-                name: 'Nascondi tipi di file',
+                name: 'Nascondi tipi di file dai file recenti',
                 desc: 'Scegli quali tipi di file nascondere nella sezione file recenti.',
                 options: {
                     none: 'Nessuno',
@@ -1394,11 +1424,11 @@ export const STRINGS_IT = {
             },
             calendarCustomFilePattern: {
                 name: 'Note giornaliere',
-                desc: "Formatta percorso usando formato data Moment. Racchiudi i nomi delle sottocartelle tra parentesi quadre, es. [Work]/YYYY. Clicca sull'icona del modello per impostare un modello. Impostare la posizione della cartella modelli in Generale > Modelli.",
+                desc: "Formatta percorso usando formato data Moment. Racchiudi i nomi delle sottocartelle tra parentesi quadre, es. [Work]/YYYY. Clicca sull'icona del modello per impostare un modello. Impostare la posizione della cartella modelli in Aspetto e comportamento > Modelli.",
                 momentDescPrefix: 'Formatta percorso usando ',
                 momentLinkText: 'formato data Moment',
                 momentDescSuffix:
-                    ". Racchiudi i nomi delle sottocartelle tra parentesi quadre, es. [Work]/YYYY. Clicca sull'icona del modello per impostare un modello. Impostare la posizione della cartella modelli in Generale > Modelli.",
+                    ". Racchiudi i nomi delle sottocartelle tra parentesi quadre, es. [Work]/YYYY. Clicca sull'icona del modello per impostare un modello. Impostare la posizione della cartella modelli in Aspetto e comportamento > Modelli.",
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Sintassi attuale: {path}',
                 parsingError: 'Il modello deve poter essere formattato e rianalizzato come una data completa (anno, mese, giorno).'
@@ -1432,11 +1462,11 @@ export const STRINGS_IT = {
                 desc: 'Visualizza tooltip al passaggio del mouse con informazioni aggiuntive per note e cartelle.'
             },
             showTooltipPath: {
-                name: 'Mostra percorso',
+                name: 'Mostra percorso nei tooltip',
                 desc: 'Visualizza il percorso cartella sotto i nomi note nei tooltip.'
             },
             showTooltipWordCount: {
-                name: 'Mostra conteggio parole',
+                name: 'Mostra conteggio parole nei tooltip',
                 desc: 'Visualizza il conteggio delle parole delle note nei tooltip.'
             },
             resetPaneSeparator: {
@@ -1544,11 +1574,11 @@ export const STRINGS_IT = {
                     yearlyNote: 'Nota annuale'
                 },
                 file: {
-                    name: 'File di avvio',
+                    name: 'Homepage: File di avvio',
                     empty: 'Nessun file selezionato'
                 },
                 createMissing: {
-                    name: 'Crea nota se mancante',
+                    name: 'Homepage: Crea nota se mancante',
                     desc: "Crea la nota periodica all'avvio o tramite comando se non esiste."
                 }
             },
@@ -2003,7 +2033,7 @@ export const STRINGS_IT = {
                 name: 'Mostra proprietà',
                 desc: 'Visualizza la sezione proprietà nel navigatore.',
                 propertyKeysInfoPrefix: 'Configura le proprietà in ',
-                propertyKeysInfoLinkText: 'Generale > Chiavi proprietà',
+                propertyKeysInfoLinkText: 'Avvio > Chiavi proprietà',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {
@@ -2068,7 +2098,7 @@ export const STRINGS_IT = {
             },
             folderNoteTemplate: {
                 name: 'Modello nota cartella',
-                desc: 'File modello per le nuove note cartella Markdown. Impostare la posizione della cartella modelli in Generale > Modelli.'
+                desc: 'File modello per le nuove note cartella Markdown. Impostare la posizione della cartella modelli in Aspetto e comportamento > Modelli.'
             },
             enableFolderNoteLinks: {
                 name: 'Attiva link note cartella',

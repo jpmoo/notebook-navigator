@@ -883,23 +883,53 @@ export const STRINGS_NL = {
         },
         sections: {
             general: 'Algemeen',
-            navigationPane: 'Navigatie',
+            vaultFilters: 'Weergavefilters',
+            appearanceBehavior: 'Uiterlijk & gedrag',
+            navigationPane: 'Navigatiepaneel',
             calendar: 'Kalender',
             files: 'Bestanden',
+            fileOperations: 'Bestandsbewerkingen',
             icons: 'Pictogrampakketten',
             folders: 'Mappen',
             folderNotes: 'Mapnotities',
+            foldersAndFolderNotes: 'Mappen & mapnotities',
             foldersAndTags: 'Mappen',
             tagsAndProperties: 'Tags & eigenschappen',
             tags: 'Tags',
-            listPane: 'Lijst',
-            notes: 'Notities',
+            listPane: 'Lijstpaneel',
+            notes: 'Bestandsweergave',
+            shortcutsAndRecentFiles: 'Snelkoppelingen & recente bestanden',
             advanced: 'Geavanceerd'
+        },
+        pageGroups: {
+            gettingStarted: 'Start',
+            configuration: 'Configuratie',
+            navigationAndContent: 'Navigatiepaneel',
+            notesAndLists: 'Lijstpaneel',
+            calendarAndTools: 'Kalender en hulpmiddelen'
+        },
+        pageDescriptions: {
+            general: 'Releasenotities, ondersteuning, kluisprofiel, bestandstypen en eigenschapssleutels.',
+            vaultFilters: 'Verborgen mappen, tags, bestanden, bestandstags en eigenschapsregels.',
+            appearanceBehavior: 'Sjablonen, gedrag, toetsenbordnavigatie, muisknoppen, uiterlijk en opmaak.',
+            navigationPane: 'Indeling, uiterlijk, aantal notities, inklapgedrag en regenboogkleuren.',
+            shortcuts: 'Zichtbaarheid van snelkoppelingen, badges, recente bestanden en vastgezette items.',
+            calendar: 'Kalenderweergave, datumnotities, sjablonen, taalinstellingen en zijbalkplaatsing.',
+            fileOperations: 'Verwijderingsbevestigingen, bijlagen en gedrag bij bestandsverplaatsingsconflicten.',
+            foldersAndFolderNotes: 'Mapweergave, mapnotities, mapnotitiesjablonen en mapnotitiegedrag.',
+            tagsProperties: 'Tag- en eigenschapssecties, pictogrammen, sortering, bereik en overerving.',
+            listPane: 'Sortering, groepering, lijstmodi, vastgezette notities en tekeningvoorbeelden.',
+            frontmatter: 'Frontmattervelden voor weergavenamen, tijdstempels, pictogrammen en kleuren.',
+            notes: 'Titels, voorbeeldtekst, uitgelichte afbeeldingen, tags, eigenschappen, datums en aantal woorden.',
+            iconPacks: 'Interfacepictogrammen, bestandspictogrammen en beheer van pictogrampakketten.',
+            advanced: 'Diagnostiek, opschonen van metadata, import/export en herstellen.'
         },
         groups: {
             general: {
+                vaultConfiguration: 'Kluisinstelling',
                 vaultProfiles: 'Kluisprofielen',
-                filtering: 'Filteren',
+                vaultContent: 'Kluisinhoud',
+                filtering: 'Verborgen inhoud',
                 templates: 'Sjablonen',
                 behavior: 'Gedrag',
                 keyboardNavigation: 'Toetsenbordnavigatie',
@@ -926,7 +956,7 @@ export const STRINGS_NL = {
                 drawingPreviews: 'Tekeningvoorbeelden'
             },
             notes: {
-                frontmatter: 'Frontmatter',
+                frontmatter: 'Frontmattervelden',
                 tasks: 'Taken',
                 icon: 'Icoon',
                 title: 'Titel',
@@ -1048,7 +1078,7 @@ export const STRINGS_NL = {
                 desc: 'Vastgemaakte notities worden alleen als vastgemaakt weergegeven in hun eigen map. Handig voor mapnotities of als je veel vastgemaakte notities hebt. Heeft geen invloed op tag- of eigenschapweergaven.'
             },
             separateNoteCounts: {
-                name: 'Huidige en afstammeling-tellingen apart tonen',
+                name: 'Huidige en afstammeling-notitietellingen apart tonen',
                 desc: 'Notitietelingen weergeven in "huidig ▾ afstammelingen" formaat in mappen en tags.'
             },
             groupNotes: {
@@ -1093,7 +1123,7 @@ export const STRINGS_NL = {
                 desc: 'Een achtergrondkleur toepassen wanneer een notitie onvoltooide taken bevat.'
             },
             unfinishedTaskBackgroundColor: {
-                name: 'Achtergrondkleur',
+                name: 'Achtergrondkleur voor onvoltooide taken',
                 desc: 'De achtergrondkleur instellen die wordt gebruikt wanneer een notitie onvoltooide taken bevat.'
             },
             showFilenameMatchIcons: {
@@ -1201,15 +1231,15 @@ export const STRINGS_NL = {
                 desc: 'Notities automatisch tonen wanneer geopend vanuit Snelle Wisselaar, links of zoeken.'
             },
             autoRevealShortestPath: {
-                name: 'Kortste pad gebruiken',
+                name: 'Automatisch tonen: Kortste pad gebruiken',
                 desc: 'Ingeschakeld: Automatisch tonen selecteert de dichtstbijzijnde zichtbare bovenliggende map of tag. Uitgeschakeld: Automatisch tonen selecteert de werkelijke map en exacte tag van het bestand.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Gebeurtenissen van rechter zijbalk negeren',
+                name: 'Automatisch tonen: Gebeurtenissen van rechter zijbalk negeren',
                 desc: 'Actieve notitie niet wijzigen bij klikken of wijzigen van notities in de rechter zijbalk.'
             },
             autoRevealIgnoreOtherWindows: {
-                name: 'Gebeurtenissen van andere vensters negeren',
+                name: 'Automatisch tonen: Gebeurtenissen van andere vensters negeren',
                 desc: 'Actieve notitie niet wijzigen bij het werken met notities in een ander venster.'
             },
             paneTransitionDuration: {
@@ -1234,11 +1264,11 @@ export const STRINGS_NL = {
                 desc: 'Mappen en tags uitvouwen bij zweven tijdens slepen.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'Vertraging bij eerste uitvouw',
+                name: 'Uitvouwen bij slepen: Vertraging bij eerste uitvouw',
                 desc: 'Vertraging voordat de eerste map of tag uitvouwt tijdens slepen (seconden).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'Vertraging bij volgende uitvouwen',
+                name: 'Uitvouwen bij slepen: Vertraging bij volgende uitvouwen',
                 desc: 'Vertraging voordat extra mappen of tags uitvouwen tijdens dezelfde sleepactie (seconden).'
             },
             navigationBanner: {
@@ -1269,7 +1299,7 @@ export const STRINGS_NL = {
                 desc: 'De sectie recente bestanden weergeven in het navigatiepaneel.'
             },
             hideRecentNotes: {
-                name: 'Bestandstypen verbergen',
+                name: 'Bestandstypen uit recente bestanden verbergen',
                 desc: 'Kies welke soorten bestanden verborgen worden in de sectie recente bestanden.',
                 options: {
                     none: 'Geen',
@@ -1400,11 +1430,11 @@ export const STRINGS_NL = {
             },
             calendarCustomFilePattern: {
                 name: 'Dagelijkse notities',
-                desc: 'Pad formatteren met Moment-datumnotatie. Zet submapnamen tussen haakjes, bijv. [Work]/YYYY. Klik op het sjabloonpictogram om een sjabloon in te stellen. Stel de sjabloonmaplocatie in bij Algemeen > Sjablonen.',
+                desc: 'Pad formatteren met Moment-datumnotatie. Zet submapnamen tussen haakjes, bijv. [Work]/YYYY. Klik op het sjabloonpictogram om een sjabloon in te stellen. Stel de sjabloonmaplocatie in bij Uiterlijk & gedrag > Sjablonen.',
                 momentDescPrefix: 'Pad formatteren met ',
                 momentLinkText: 'Moment-datumnotatie',
                 momentDescSuffix:
-                    '. Zet submapnamen tussen haakjes, bijv. [Work]/YYYY. Klik op het sjabloonpictogram om een sjabloon in te stellen. Stel de sjabloonmaplocatie in bij Algemeen > Sjablonen.',
+                    '. Zet submapnamen tussen haakjes, bijv. [Work]/YYYY. Klik op het sjabloonpictogram om een sjabloon in te stellen. Stel de sjabloonmaplocatie in bij Uiterlijk & gedrag > Sjablonen.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Huidige syntaxis: {path}',
                 parsingError: 'Het patroon moet kunnen formatteren en terug-parsen naar een volledige datum (jaar, maand, dag).'
@@ -1437,11 +1467,11 @@ export const STRINGS_NL = {
                 desc: 'Zweeftips met extra informatie weergeven voor notities en mappen.'
             },
             showTooltipPath: {
-                name: 'Pad tonen',
+                name: 'Pad in tooltips tonen',
                 desc: 'Het mappad onder notitienamen in tooltips weergeven.'
             },
             showTooltipWordCount: {
-                name: 'Aantal woorden tonen',
+                name: 'Aantal woorden in tooltips tonen',
                 desc: 'Het aantal woorden van notities in tooltips weergeven.'
             },
             resetPaneSeparator: {
@@ -1548,11 +1578,11 @@ export const STRINGS_NL = {
                     yearlyNote: 'Jaarnotitie'
                 },
                 file: {
-                    name: 'Opstartbestand',
+                    name: 'Startpagina: Opstartbestand',
                     empty: 'Geen bestand geselecteerd'
                 },
                 createMissing: {
-                    name: 'Notitie aanmaken als deze ontbreekt',
+                    name: 'Startpagina: Notitie aanmaken als deze ontbreekt',
                     desc: 'Maakt de periodieke notitie aan bij opstarten of via opdracht als deze niet bestaat.'
                 }
             },
@@ -2007,7 +2037,7 @@ export const STRINGS_NL = {
                 name: 'Eigenschappen tonen',
                 desc: 'Eigenschappensectie tonen in de navigator.',
                 propertyKeysInfoPrefix: 'Configureer eigenschappen in ',
-                propertyKeysInfoLinkText: 'Algemeen > Eigenschapssleutels',
+                propertyKeysInfoLinkText: 'Start > Eigenschapssleutels',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {
@@ -2072,7 +2102,7 @@ export const STRINGS_NL = {
             },
             folderNoteTemplate: {
                 name: 'Mapnotitiesjabloon',
-                desc: 'Sjabloonbestand voor nieuwe Markdown-mapnotities. Stel de sjabloonmaplocatie in bij Algemeen > Sjablonen.'
+                desc: 'Sjabloonbestand voor nieuwe Markdown-mapnotities. Stel de sjabloonmaplocatie in bij Uiterlijk & gedrag > Sjablonen.'
             },
             enableFolderNoteLinks: {
                 name: 'Mapnotitiekoppelingen inschakelen',

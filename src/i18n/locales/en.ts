@@ -877,23 +877,53 @@ export const STRINGS_EN = {
         },
         sections: {
             general: 'General',
-            navigationPane: 'Navigation',
+            vaultFilters: 'Display filters',
+            appearanceBehavior: 'Appearance & behavior',
+            navigationPane: 'Navigation pane',
             calendar: 'Calendar',
             files: 'Files',
+            fileOperations: 'File operations',
             icons: 'Icon packs',
             folders: 'Folders',
             folderNotes: 'Folder notes',
+            foldersAndFolderNotes: 'Folders & folder notes',
             foldersAndTags: 'Folders',
             tagsAndProperties: 'Tags & properties',
             tags: 'Tags',
-            listPane: 'List',
-            notes: 'Notes',
+            listPane: 'List pane',
+            notes: 'File display',
+            shortcutsAndRecentFiles: 'Shortcuts & recent files',
             advanced: 'Advanced'
+        },
+        pageGroups: {
+            gettingStarted: 'Start',
+            configuration: 'Configuration',
+            navigationAndContent: 'Navigation pane',
+            notesAndLists: 'List pane',
+            calendarAndTools: 'Calendar and tools'
+        },
+        pageDescriptions: {
+            general: 'Release notes, support, vault profile, file types, and property keys.',
+            vaultFilters: 'Hidden folders, tags, files, file tags, and property rules.',
+            appearanceBehavior: 'Templates, behavior, keyboard navigation, mouse buttons, appearance, and formatting.',
+            navigationPane: 'Layout, appearance, note counts, collapse behavior, and rainbow colors.',
+            shortcuts: 'Shortcut visibility, badges, recent files, and pinned items.',
+            calendar: 'Calendar display, date notes, templates, locale, and sidebar placement.',
+            fileOperations: 'Delete confirmations, attachments, and file move conflict behavior.',
+            foldersAndFolderNotes: 'Folder display, folder notes, folder note templates, and folder note behavior.',
+            tagsProperties: 'Tag and property sections, icons, sorting, scope, and inheritance.',
+            listPane: 'Sorting, grouping, list modes, pinned notes, and drawing previews.',
+            frontmatter: 'Frontmatter fields for display names, timestamps, icons, and colors.',
+            notes: 'Titles, preview text, feature images, tags, properties, dates, and word counts.',
+            iconPacks: 'Interface icons, file icons, and icon pack management.',
+            advanced: 'Diagnostics, metadata cleanup, import/export, and reset.'
         },
         groups: {
             general: {
+                vaultConfiguration: 'Vault setup',
                 vaultProfiles: 'Vault profiles',
-                filtering: 'Filtering',
+                vaultContent: 'Vault content',
+                filtering: 'Hidden content',
                 templates: 'Templates',
                 behavior: 'Behavior',
                 keyboardNavigation: 'Keyboard navigation',
@@ -920,7 +950,7 @@ export const STRINGS_EN = {
                 drawingPreviews: 'Drawing previews'
             },
             notes: {
-                frontmatter: 'Frontmatter',
+                frontmatter: 'Frontmatter fields',
                 tasks: 'Tasks',
                 icon: 'Icon',
                 title: 'Title',
@@ -1042,7 +1072,7 @@ export const STRINGS_EN = {
                 desc: 'Pinned notes appear pinned only in their own folder. Useful for folder notes or if you have many pinned notes. Does not affect tag or property views.'
             },
             separateNoteCounts: {
-                name: 'Show current and descendant counts separately',
+                name: 'Show current and descendant note counts separately',
                 desc: 'Display note counts as "current ▾ descendants" format in folders and tags.'
             },
             groupNotes: {
@@ -1087,7 +1117,7 @@ export const STRINGS_EN = {
                 desc: 'Apply a background color when a note has unfinished tasks.'
             },
             unfinishedTaskBackgroundColor: {
-                name: 'Background color',
+                name: 'Unfinished task background color',
                 desc: 'Set the background color used when a note has unfinished tasks.'
             },
             showFilenameMatchIcons: {
@@ -1195,15 +1225,15 @@ export const STRINGS_EN = {
                 desc: 'Automatically reveal notes when opened from Quick Switcher, links, or search.'
             },
             autoRevealShortestPath: {
-                name: 'Use shortest path',
+                name: 'Auto-reveal: Use shortest path',
                 desc: "Enabled: Auto-reveal selects the nearest visible ancestor folder or tag. Disabled: Auto-reveal selects the file's actual folder and exact tag."
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Ignore events from right sidebar',
+                name: 'Auto-reveal: Ignore events from right sidebar',
                 desc: 'Do not change active note when clicking or changing notes in the right sidebar.'
             },
             autoRevealIgnoreOtherWindows: {
-                name: 'Ignore events from other windows',
+                name: 'Auto-reveal: Ignore events from other windows',
                 desc: 'Do not change active note when clicking or changing notes in another window.'
             },
             paneTransitionDuration: {
@@ -1228,11 +1258,11 @@ export const STRINGS_EN = {
                 desc: 'Expand folders and tags on hover during drag operations.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'First expand delay',
+                name: 'Spring-loaded folders: First expand delay',
                 desc: 'Delay before the first folder or tag expands during a drag operation (seconds).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'Subsequent expand delay',
+                name: 'Spring-loaded folders: Subsequent expand delay',
                 desc: 'Delay before expanding additional folders or tags during the same drag operation (seconds).'
             },
             navigationBanner: {
@@ -1263,7 +1293,7 @@ export const STRINGS_EN = {
                 desc: 'Display the recent files section in the navigation pane.'
             },
             hideRecentNotes: {
-                name: 'Hide file types',
+                name: 'Hide file types from recent files',
                 desc: 'Choose which file types to hide in the recent files section.',
                 options: {
                     none: 'None',
@@ -1393,11 +1423,11 @@ export const STRINGS_EN = {
             },
             calendarCustomFilePattern: {
                 name: 'Daily notes',
-                desc: 'Format path using Moment date format. Wrap subfolder names in brackets, e.g., [Work]/YYYY. Click template icon to set template. Set template folder location in General > Templates.',
+                desc: 'Format path using Moment date format. Wrap subfolder names in brackets, e.g., [Work]/YYYY. Click template icon to set template. Set template folder location in Appearance & behavior > Templates.',
                 momentDescPrefix: 'Format path using ',
                 momentLinkText: 'Moment date format',
                 momentDescSuffix:
-                    '. Wrap subfolder names in brackets, e.g., [Work]/YYYY. Click template icon to set template. Set template folder location in General > Templates.',
+                    '. Wrap subfolder names in brackets, e.g., [Work]/YYYY. Click template icon to set template. Set template folder location in Appearance & behavior > Templates.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Current syntax: {path}',
                 parsingError: 'Pattern must format and parse back to a full date (year, month, day).'
@@ -1430,11 +1460,11 @@ export const STRINGS_EN = {
                 desc: 'Display hover tooltips with additional information for notes and folders.'
             },
             showTooltipPath: {
-                name: 'Show path',
+                name: 'Show path in tooltips',
                 desc: 'Display the folder path below note names in tooltips.'
             },
             showTooltipWordCount: {
-                name: 'Show word count',
+                name: 'Show word count in tooltips',
                 desc: 'Display note word counts in tooltips.'
             },
             resetPaneSeparator: {
@@ -1540,11 +1570,11 @@ export const STRINGS_EN = {
                     yearlyNote: 'Yearly note'
                 },
                 file: {
-                    name: 'Startup file',
+                    name: 'Homepage: Startup file',
                     empty: 'No file selected'
                 },
                 createMissing: {
-                    name: 'Create note if missing',
+                    name: 'Homepage: Create note if missing',
                     desc: 'Create the periodic note on startup or command if it does not exist.'
                 }
             },
@@ -1997,7 +2027,7 @@ export const STRINGS_EN = {
                 name: 'Show properties',
                 desc: 'Display properties section in the navigator.',
                 propertyKeysInfoPrefix: 'Configure properties in ',
-                propertyKeysInfoLinkText: 'General > Property keys',
+                propertyKeysInfoLinkText: 'Start > Property keys',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {
@@ -2062,7 +2092,7 @@ export const STRINGS_EN = {
             },
             folderNoteTemplate: {
                 name: 'Folder note template',
-                desc: 'Template file for new markdown folder notes. Set template folder location in General > Templates.'
+                desc: 'Template file for new markdown folder notes. Set template folder location in Appearance & behavior > Templates.'
             },
             enableFolderNoteLinks: {
                 name: 'Enable folder note links',

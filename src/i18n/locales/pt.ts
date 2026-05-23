@@ -881,23 +881,53 @@ export const STRINGS_PT = {
         },
         sections: {
             general: 'Geral',
-            navigationPane: 'Navegação',
+            vaultFilters: 'Filtros de exibição',
+            appearanceBehavior: 'Aparência e comportamento',
+            navigationPane: 'Painel de navegação',
             calendar: 'Calendário',
             files: 'Ficheiros',
+            fileOperations: 'Operações de ficheiros',
             icons: 'Pacotes de ícones',
             folders: 'Pastas',
             folderNotes: 'Notas de pasta',
+            foldersAndFolderNotes: 'Pastas e notas de pasta',
             foldersAndTags: 'Pastas',
             tagsAndProperties: 'Etiquetas e propriedades',
             tags: 'Etiquetas',
-            listPane: 'Lista',
-            notes: 'Notas',
+            listPane: 'Painel de lista',
+            notes: 'Exibição de ficheiros',
+            shortcutsAndRecentFiles: 'Atalhos e ficheiros recentes',
             advanced: 'Avançado'
+        },
+        pageGroups: {
+            gettingStarted: 'Início',
+            configuration: 'Configuração',
+            navigationAndContent: 'Painel de navegação',
+            notesAndLists: 'Painel de lista',
+            calendarAndTools: 'Calendário e ferramentas'
+        },
+        pageDescriptions: {
+            general: 'Notas de versão, suporte, perfil do cofre, tipos de ficheiro e chaves de propriedades.',
+            vaultFilters: 'Pastas, etiquetas, ficheiros, etiquetas de ficheiro e regras de propriedades ocultas.',
+            appearanceBehavior: 'Modelos, comportamento, navegação por teclado, botões do rato, aparência e formatação.',
+            navigationPane: 'Esquema, aparência, contagem de notas, comportamento de recolha e cores arco-íris.',
+            shortcuts: 'Visibilidade de atalhos, distintivos, ficheiros recentes e itens fixados.',
+            calendar: 'Exibição do calendário, notas de data, modelos, localização e posicionamento da barra lateral.',
+            fileOperations: 'Confirmações de eliminação, anexos e comportamento de conflitos ao mover ficheiros.',
+            foldersAndFolderNotes: 'Exibição de pastas, notas de pasta, modelos de notas de pasta e comportamento das notas de pasta.',
+            tagsProperties: 'Secções de etiquetas e propriedades, ícones, ordenação, âmbito e herança.',
+            listPane: 'Ordenação, agrupamento, modos de lista, notas fixadas e pré-visualizações de desenhos.',
+            frontmatter: 'Campos de frontmatter para nomes de exibição, carimbos de data/hora, ícones e cores.',
+            notes: 'Títulos, texto de pré-visualização, imagens de destaque, etiquetas, propriedades, datas e contagem de palavras.',
+            iconPacks: 'Ícones de interface, ícones de ficheiros e gestão de pacotes de ícones.',
+            advanced: 'Diagnósticos, limpeza de metadados, importação/exportação e reposição.'
         },
         groups: {
             general: {
+                vaultConfiguration: 'Configuração do cofre',
                 vaultProfiles: 'Perfis do cofre',
-                filtering: 'Filtragem',
+                vaultContent: 'Conteúdo do cofre',
+                filtering: 'Conteúdo oculto',
                 templates: 'Modelos',
                 behavior: 'Comportamento',
                 keyboardNavigation: 'Navegação por teclado',
@@ -924,7 +954,7 @@ export const STRINGS_PT = {
                 drawingPreviews: 'Pré-visualizações de desenhos'
             },
             notes: {
-                frontmatter: 'Frontmatter',
+                frontmatter: 'Campos de frontmatter',
                 tasks: 'Tarefas',
                 icon: 'Ícone',
                 title: 'Título',
@@ -1046,7 +1076,7 @@ export const STRINGS_PT = {
                 desc: 'As notas fixadas aparecem fixadas apenas na sua própria pasta. Útil para notas de pasta ou se tiver muitas notas fixadas. Não afeta as vistas de etiquetas ou propriedades.'
             },
             separateNoteCounts: {
-                name: 'Mostrar contagens atuais e descendentes separadamente',
+                name: 'Mostrar contagens de notas atuais e descendentes separadamente',
                 desc: 'Exibir contagens de notas no formato "atuais ▾ descendentes" em pastas e etiquetas.'
             },
             groupNotes: {
@@ -1091,7 +1121,7 @@ export const STRINGS_PT = {
                 desc: 'Aplicar uma cor de fundo quando uma nota tem tarefas inacabadas.'
             },
             unfinishedTaskBackgroundColor: {
-                name: 'Cor de fundo',
+                name: 'Cor de fundo de tarefas inacabadas',
                 desc: 'Definir a cor de fundo usada quando uma nota tem tarefas inacabadas.'
             },
             showFilenameMatchIcons: {
@@ -1199,15 +1229,15 @@ export const STRINGS_PT = {
                 desc: 'Revelar notas automaticamente quando abertas pelo Alternador Rápido, links ou pesquisa.'
             },
             autoRevealShortestPath: {
-                name: 'Usar caminho mais curto',
+                name: 'Revelação automática: Usar caminho mais curto',
                 desc: 'Ativado: A revelação automática seleciona a pasta ancestral ou etiqueta visível mais próxima. Desativado: A revelação automática seleciona a pasta real do ficheiro e a etiqueta exata.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Ignorar eventos da barra lateral direita',
+                name: 'Revelação automática: Ignorar eventos da barra lateral direita',
                 desc: 'Não alterar a nota ativa ao clicar ou alterar notas na barra lateral direita.'
             },
             autoRevealIgnoreOtherWindows: {
-                name: 'Ignorar eventos de outras janelas',
+                name: 'Revelação automática: Ignorar eventos de outras janelas',
                 desc: 'Não alterar a nota ativa ao trabalhar com notas numa janela diferente.'
             },
             paneTransitionDuration: {
@@ -1232,11 +1262,11 @@ export const STRINGS_PT = {
                 desc: 'Expandir pastas e etiquetas ao passar sobre elas durante o arrasto.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'Atraso da primeira expansão',
+                name: 'Expandir ao arrastar: Atraso da primeira expansão',
                 desc: 'Atraso antes de expandir a primeira pasta ou etiqueta durante um arrasto (segundos).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'Atraso das expansões seguintes',
+                name: 'Expandir ao arrastar: Atraso das expansões seguintes',
                 desc: 'Atraso antes de expandir pastas ou etiquetas adicionais durante o mesmo arrasto (segundos).'
             },
             navigationBanner: {
@@ -1267,7 +1297,7 @@ export const STRINGS_PT = {
                 desc: 'Exibir a secção de ficheiros recentes no painel de navegação.'
             },
             hideRecentNotes: {
-                name: 'Ocultar tipos de ficheiros',
+                name: 'Ocultar tipos de ficheiros dos ficheiros recentes',
                 desc: 'Escolher os tipos de ficheiros a ocultar na secção de ficheiros recentes.',
                 options: {
                     none: 'Nenhum',
@@ -1398,11 +1428,11 @@ export const STRINGS_PT = {
             },
             calendarCustomFilePattern: {
                 name: 'Notas diárias',
-                desc: 'Formatar caminho usando formato de data Moment. Coloque nomes de subpastas entre colchetes, ex. [Work]/YYYY. Clique no ícone de modelo para definir um modelo. Definir localização da pasta de modelos em Geral > Modelos.',
+                desc: 'Formatar caminho usando formato de data Moment. Coloque nomes de subpastas entre colchetes, ex. [Work]/YYYY. Clique no ícone de modelo para definir um modelo. Definir localização da pasta de modelos em Aparência e comportamento > Modelos.',
                 momentDescPrefix: 'Formatar caminho usando ',
                 momentLinkText: 'formato de data Moment',
                 momentDescSuffix:
-                    '. Coloque nomes de subpastas entre colchetes, ex. [Work]/YYYY. Clique no ícone de modelo para definir um modelo. Definir localização da pasta de modelos em Geral > Modelos.',
+                    '. Coloque nomes de subpastas entre colchetes, ex. [Work]/YYYY. Clique no ícone de modelo para definir um modelo. Definir localização da pasta de modelos em Aparência e comportamento > Modelos.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Sintaxe atual: {path}',
                 parsingError: 'O padrão deve ser formatado e analisado novamente como uma data completa (ano, mês, dia).'
@@ -1436,11 +1466,11 @@ export const STRINGS_PT = {
                 desc: 'Exibir dicas ao passar com informações adicionais para notas e pastas.'
             },
             showTooltipPath: {
-                name: 'Mostrar caminho',
+                name: 'Mostrar caminho nas dicas',
                 desc: 'Exibir o caminho da pasta abaixo dos nomes das notas nas dicas.'
             },
             showTooltipWordCount: {
-                name: 'Mostrar contagem de palavras',
+                name: 'Mostrar contagem de palavras nas dicas',
                 desc: 'Exibir a contagem de palavras das notas nas dicas.'
             },
             resetPaneSeparator: {
@@ -1547,11 +1577,11 @@ export const STRINGS_PT = {
                     yearlyNote: 'Nota anual'
                 },
                 file: {
-                    name: 'Ficheiro de arranque',
+                    name: 'Página inicial: Ficheiro de arranque',
                     empty: 'Nenhum ficheiro selecionado'
                 },
                 createMissing: {
-                    name: 'Criar nota se não existir',
+                    name: 'Página inicial: Criar nota se não existir',
                     desc: 'Cria a nota periódica ao iniciar ou através do comando se não existir.'
                 }
             },
@@ -2006,7 +2036,7 @@ export const STRINGS_PT = {
                 name: 'Mostrar propriedades',
                 desc: 'Exibir a secção de propriedades no navegador.',
                 propertyKeysInfoPrefix: 'Configurar propriedades em ',
-                propertyKeysInfoLinkText: 'Geral > Chaves de propriedades',
+                propertyKeysInfoLinkText: 'Início > Chaves de propriedades',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {
@@ -2071,7 +2101,7 @@ export const STRINGS_PT = {
             },
             folderNoteTemplate: {
                 name: 'Modelo de nota de pasta',
-                desc: 'Ficheiro de modelo para novas notas de pasta Markdown. Definir localização da pasta de modelos em Geral > Modelos.'
+                desc: 'Ficheiro de modelo para novas notas de pasta Markdown. Definir localização da pasta de modelos em Aparência e comportamento > Modelos.'
             },
             enableFolderNoteLinks: {
                 name: 'Ativar ligações de notas de pasta',

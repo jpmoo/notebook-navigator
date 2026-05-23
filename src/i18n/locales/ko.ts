@@ -880,23 +880,53 @@ export const STRINGS_KO = {
         },
         sections: {
             general: '일반',
-            navigationPane: '탐색',
+            vaultFilters: '표시 필터',
+            appearanceBehavior: '모양 및 동작',
+            navigationPane: '탐색 창',
             calendar: '달력',
             files: '파일',
+            fileOperations: '파일 작업',
             icons: '아이콘 팩',
             folders: '폴더',
             folderNotes: '폴더 노트',
+            foldersAndFolderNotes: '폴더 및 폴더 노트',
             foldersAndTags: '폴더',
             tagsAndProperties: '태그 및 속성',
             tags: '태그',
-            listPane: '목록',
-            notes: '노트',
+            listPane: '목록 창',
+            notes: '파일 표시',
+            shortcutsAndRecentFiles: '바로 가기 및 최근 파일',
             advanced: '고급'
+        },
+        pageGroups: {
+            gettingStarted: '시작',
+            configuration: '구성',
+            navigationAndContent: '탐색 창',
+            notesAndLists: '목록 창',
+            calendarAndTools: '달력 및 도구'
+        },
+        pageDescriptions: {
+            general: '릴리스 노트, 지원, 보관소 프로필, 파일 유형, 속성 키.',
+            vaultFilters: '숨겨진 폴더, 태그, 파일, 파일 태그 및 속성 규칙.',
+            appearanceBehavior: '템플릿, 동작, 키보드 탐색, 마우스 버튼, 모양 및 서식.',
+            navigationPane: '레이아웃, 모양, 노트 수, 접기 동작 및 무지개 색상.',
+            shortcuts: '바로 가기 표시, 배지, 최근 파일 및 고정된 항목.',
+            calendar: '달력 표시, 날짜 노트, 템플릿, 로케일 및 사이드바 위치.',
+            fileOperations: '삭제 확인, 첨부 파일 및 파일 이동 충돌 동작.',
+            foldersAndFolderNotes: '폴더 표시, 폴더 노트, 폴더 노트 템플릿 및 폴더 노트 동작.',
+            tagsProperties: '태그 및 속성 섹션, 아이콘, 정렬, 범위 및 상속.',
+            listPane: '정렬, 그룹화, 목록 모드, 고정된 노트 및 그림 미리보기.',
+            frontmatter: '표시 이름, 타임스탬프, 아이콘, 색상에 대한 프런트매터 필드.',
+            notes: '제목, 미리보기 텍스트, 대표 이미지, 태그, 속성, 날짜 및 단어 수.',
+            iconPacks: '인터페이스 아이콘, 파일 아이콘 및 아이콘 팩 관리.',
+            advanced: '진단, 메타데이터 정리, 가져오기/내보내기 및 초기화.'
         },
         groups: {
             general: {
+                vaultConfiguration: '보관소 설정',
                 vaultProfiles: '보관소 프로필',
-                filtering: '필터링',
+                vaultContent: '보관소 콘텐츠',
+                filtering: '숨겨진 콘텐츠',
                 templates: '템플릿',
                 behavior: '동작',
                 keyboardNavigation: '키보드 탐색',
@@ -923,7 +953,7 @@ export const STRINGS_KO = {
                 drawingPreviews: '그림 미리보기'
             },
             notes: {
-                frontmatter: '프런트매터',
+                frontmatter: '프런트매터 필드',
                 tasks: '작업',
                 icon: '아이콘',
                 title: '제목',
@@ -1045,7 +1075,7 @@ export const STRINGS_KO = {
                 desc: '고정된 노트는 자신의 폴더에서만 고정된 것으로 표시됩니다. 폴더 노트이거나 고정된 노트가 많을 때 유용합니다. 태그 또는 속성 보기에는 영향을 주지 않습니다.'
             },
             separateNoteCounts: {
-                name: '현재와 하위 항목 수를 별도로 표시',
+                name: '현재와 하위 노트 수를 별도로 표시',
                 desc: '폴더와 태그의 노트 수를 "현재 ▾ 하위" 형식으로 표시합니다.'
             },
             groupNotes: {
@@ -1090,7 +1120,7 @@ export const STRINGS_KO = {
                 desc: '노트에 미완료 작업이 있을 때 배경색을 적용합니다.'
             },
             unfinishedTaskBackgroundColor: {
-                name: '배경색',
+                name: '미완료 작업 배경색',
                 desc: '노트에 미완료 작업이 있을 때 사용할 배경색을 설정합니다.'
             },
             showFilenameMatchIcons: {
@@ -1198,15 +1228,15 @@ export const STRINGS_KO = {
                 desc: '빠른 전환기, 링크 또는 검색에서 열 때 노트를 자동으로 표시합니다.'
             },
             autoRevealShortestPath: {
-                name: '최단 경로 사용',
+                name: '자동 표시: 최단 경로 사용',
                 desc: '활성화: 자동 표시가 가장 가까운 보이는 상위 폴더 또는 태그를 선택합니다. 비활성화: 자동 표시가 파일의 실제 폴더와 정확한 태그를 선택합니다.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: '오른쪽 사이드바의 이벤트 무시',
+                name: '자동 표시: 오른쪽 사이드바의 이벤트 무시',
                 desc: '오른쪽 사이드바에서 클릭하거나 노트를 변경할 때 활성 노트를 변경하지 않습니다.'
             },
             autoRevealIgnoreOtherWindows: {
-                name: '다른 창의 이벤트 무시',
+                name: '자동 표시: 다른 창의 이벤트 무시',
                 desc: '다른 창에서 노트를 작업할 때 활성 노트를 변경하지 않습니다.'
             },
             paneTransitionDuration: {
@@ -1231,11 +1261,11 @@ export const STRINGS_KO = {
                 desc: '드래그 작업 중에 마우스를 올리면 폴더와 태그를 확장합니다.'
             },
             springLoadedFoldersInitialDelay: {
-                name: '첫 확장 지연',
+                name: '드래그 중 확장: 첫 확장 지연',
                 desc: '드래그 작업 중 첫 번째 폴더 또는 태그가 확장되기 전 지연(초).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: '후속 확장 지연',
+                name: '드래그 중 확장: 후속 확장 지연',
                 desc: '같은 드래그 작업 중 추가 폴더 또는 태그가 확장되기 전 지연(초).'
             },
             navigationBanner: {
@@ -1266,7 +1296,7 @@ export const STRINGS_KO = {
                 desc: '탐색 창에 최근 파일 섹션을 표시합니다.'
             },
             hideRecentNotes: {
-                name: '파일 유형 숨기기',
+                name: '최근 파일에서 파일 유형 숨기기',
                 desc: '최근 파일 섹션에서 숨길 파일 유형을 선택합니다.',
                 options: {
                     none: '없음',
@@ -1396,11 +1426,11 @@ export const STRINGS_KO = {
             },
             calendarCustomFilePattern: {
                 name: '일일 노트',
-                desc: 'Moment 날짜 형식을 사용하여 경로 지정. 하위 폴더 이름은 대괄호로 감싸세요, 예: [Work]/YYYY. 템플릿 아이콘을 클릭하여 템플릿을 설정하세요. 템플릿 폴더 위치는 일반 > 템플릿에서 설정하세요.',
+                desc: 'Moment 날짜 형식을 사용하여 경로 지정. 하위 폴더 이름은 대괄호로 감싸세요, 예: [Work]/YYYY. 템플릿 아이콘을 클릭하여 템플릿을 설정하세요. 템플릿 폴더 위치는 모양 및 동작 > 템플릿에서 설정하세요.',
                 momentDescPrefix: '',
                 momentLinkText: 'Moment 날짜 형식',
                 momentDescSuffix:
-                    '을 사용하여 경로 지정. 하위 폴더 이름은 대괄호로 감싸세요, 예: [Work]/YYYY. 템플릿 아이콘을 클릭하여 템플릿을 설정하세요. 템플릿 폴더 위치는 일반 > 템플릿에서 설정하세요.',
+                    '을 사용하여 경로 지정. 하위 폴더 이름은 대괄호로 감싸세요, 예: [Work]/YYYY. 템플릿 아이콘을 클릭하여 템플릿을 설정하세요. 템플릿 폴더 위치는 모양 및 동작 > 템플릿에서 설정하세요.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: '현재 구문: {path}',
                 parsingError: '패턴은 전체 날짜(연, 월, 일)로 포맷되고 다시 파싱될 수 있어야 합니다.'
@@ -1433,11 +1463,11 @@ export const STRINGS_KO = {
                 desc: '노트와 폴더에 대한 추가 정보가 있는 호버 도구 설명을 표시합니다.'
             },
             showTooltipPath: {
-                name: '경로 표시',
+                name: '도구 설명에 경로 표시',
                 desc: '도구 설명에서 노트 이름 아래에 폴더 경로를 표시합니다.'
             },
             showTooltipWordCount: {
-                name: '단어 수 표시',
+                name: '도구 설명에 단어 수 표시',
                 desc: '도구 설명에 노트의 단어 수를 표시합니다.'
             },
             resetPaneSeparator: {
@@ -1543,11 +1573,11 @@ export const STRINGS_KO = {
                     yearlyNote: '연간 노트'
                 },
                 file: {
-                    name: '시작 파일',
+                    name: '홈페이지: 시작 파일',
                     empty: '선택된 파일 없음'
                 },
                 createMissing: {
-                    name: '없으면 노트 생성',
+                    name: '홈페이지: 없으면 노트 생성',
                     desc: '시작 시 또는 명령 실행 시 정기 노트가 없으면 생성합니다.'
                 }
             },
@@ -2001,7 +2031,7 @@ export const STRINGS_KO = {
                 name: '속성 표시',
                 desc: '탐색기에 속성 섹션을 표시합니다.',
                 propertyKeysInfoPrefix: '',
-                propertyKeysInfoLinkText: '일반 > 속성 키',
+                propertyKeysInfoLinkText: '시작 > 속성 키',
                 propertyKeysInfoSuffix: '에서 속성 구성'
             },
             showPropertyIcons: {
@@ -2066,7 +2096,7 @@ export const STRINGS_KO = {
             },
             folderNoteTemplate: {
                 name: '폴더 노트 템플릿',
-                desc: '새 마크다운 폴더 노트용 템플릿 파일. 템플릿 폴더 위치는 일반 > 템플릿에서 설정하세요.'
+                desc: '새 마크다운 폴더 노트용 템플릿 파일. 템플릿 폴더 위치는 모양 및 동작 > 템플릿에서 설정하세요.'
             },
             enableFolderNoteLinks: {
                 name: '폴더 노트 링크 활성화',

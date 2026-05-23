@@ -882,23 +882,53 @@ export const STRINGS_ES = {
         },
         sections: {
             general: 'General',
-            notes: 'Notas',
-            navigationPane: 'Navegación',
+            vaultFilters: 'Filtros de visualización',
+            appearanceBehavior: 'Apariencia y comportamiento',
+            navigationPane: 'Panel de navegación',
             calendar: 'Calendario',
             files: 'Archivos',
+            fileOperations: 'Operaciones de archivos',
             icons: 'Paquetes de iconos',
-            tags: 'Etiquetas',
             folders: 'Carpetas',
             folderNotes: 'Notas de carpeta',
+            foldersAndFolderNotes: 'Carpetas y notas de carpeta',
             foldersAndTags: 'Carpetas',
             tagsAndProperties: 'Etiquetas y propiedades',
-            listPane: 'Lista',
+            tags: 'Etiquetas',
+            listPane: 'Panel de lista',
+            notes: 'Visualización de archivos',
+            shortcutsAndRecentFiles: 'Accesos directos y archivos recientes',
             advanced: 'Avanzado'
+        },
+        pageGroups: {
+            gettingStarted: 'Inicio',
+            configuration: 'Configuración',
+            navigationAndContent: 'Panel de navegación',
+            notesAndLists: 'Panel de lista',
+            calendarAndTools: 'Calendario y herramientas'
+        },
+        pageDescriptions: {
+            general: 'Notas de versión, soporte, perfil de bóveda, tipos de archivo y claves de propiedades.',
+            vaultFilters: 'Carpetas, etiquetas, archivos, etiquetas de archivo y reglas de propiedades ocultos.',
+            appearanceBehavior: 'Plantillas, comportamiento, navegación con teclado, botones del ratón, apariencia y formato.',
+            navigationPane: 'Diseño, apariencia, recuento de notas, comportamiento de colapso y colores arcoíris.',
+            shortcuts: 'Visibilidad de accesos directos, insignias, archivos recientes y elementos fijados.',
+            calendar: 'Visualización del calendario, notas de fecha, plantillas, configuración regional y ubicación de la barra lateral.',
+            fileOperations: 'Confirmaciones de eliminación, adjuntos y comportamiento ante conflictos al mover archivos.',
+            foldersAndFolderNotes: 'Visualización de carpetas, notas de carpeta, plantillas y comportamiento de notas de carpeta.',
+            tagsProperties: 'Secciones de etiquetas y propiedades, iconos, ordenación, alcance y herencia.',
+            listPane: 'Ordenación, agrupación, modos de lista, notas fijadas y vistas previas de dibujos.',
+            frontmatter: 'Campos de frontmatter para nombres mostrados, marcas de tiempo, iconos y colores.',
+            notes: 'Títulos, texto de vista previa, imágenes destacadas, etiquetas, propiedades, fechas y recuento de palabras.',
+            iconPacks: 'Iconos de interfaz, iconos de archivos y gestión de paquetes de iconos.',
+            advanced: 'Diagnósticos, limpieza de metadatos, importación/exportación y restablecimiento.'
         },
         groups: {
             general: {
+                vaultConfiguration: 'Configuración de la bóveda',
                 vaultProfiles: 'Perfiles de bóveda',
-                filtering: 'Filtrado',
+                vaultContent: 'Contenido de la bóveda',
+                filtering: 'Contenido oculto',
                 templates: 'Plantillas',
                 behavior: 'Comportamiento',
                 keyboardNavigation: 'Navegación con teclado',
@@ -925,7 +955,7 @@ export const STRINGS_ES = {
                 drawingPreviews: 'Vistas previas de dibujos'
             },
             notes: {
-                frontmatter: 'Frontmatter',
+                frontmatter: 'Campos de frontmatter',
                 tasks: 'Tareas',
                 icon: 'Icono',
                 title: 'Título',
@@ -1047,7 +1077,7 @@ export const STRINGS_ES = {
                 desc: 'Las notas fijadas aparecen fijadas solo en su propia carpeta. Útil para notas de carpeta o si tiene muchas notas fijadas. No afecta las vistas de etiquetas o propiedades.'
             },
             separateNoteCounts: {
-                name: 'Mostrar conteos actuales y descendientes por separado',
+                name: 'Mostrar recuentos de notas actuales y descendientes por separado',
                 desc: 'Muestra el conteo de notas como formato "actual ▾ descendientes" en carpetas y etiquetas.'
             },
             groupNotes: {
@@ -1092,7 +1122,7 @@ export const STRINGS_ES = {
                 desc: 'Aplicar un color de fondo cuando una nota tiene tareas pendientes.'
             },
             unfinishedTaskBackgroundColor: {
-                name: 'Color de fondo',
+                name: 'Color de fondo de tareas pendientes',
                 desc: 'Establecer el color de fondo usado cuando una nota tiene tareas pendientes.'
             },
             showFilenameMatchIcons: {
@@ -1200,15 +1230,15 @@ export const STRINGS_ES = {
                 desc: 'Muestra automáticamente las notas cuando se abren desde el Conmutador rápido, enlaces o búsqueda.'
             },
             autoRevealShortestPath: {
-                name: 'Usar la ruta más corta',
+                name: 'Revelación automática: Usar la ruta más corta',
                 desc: 'Activado: La revelación automática selecciona la carpeta ancestral o etiqueta visible más cercana. Desactivado: La revelación automática selecciona la carpeta real del archivo y la etiqueta exacta.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Ignorar eventos de la barra lateral derecha',
+                name: 'Revelación automática: Ignorar eventos de la barra lateral derecha',
                 desc: 'No cambiar la nota activa al hacer clic o cambiar notas en la barra lateral derecha.'
             },
             autoRevealIgnoreOtherWindows: {
-                name: 'Ignorar eventos de otras ventanas',
+                name: 'Revelación automática: Ignorar eventos de otras ventanas',
                 desc: 'No cambiar la nota activa al trabajar con notas en otra ventana.'
             },
             paneTransitionDuration: {
@@ -1233,11 +1263,11 @@ export const STRINGS_ES = {
                 desc: 'Expandir carpetas y etiquetas al pasar sobre ellas durante el arrastre.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'Retraso de primera expansión',
+                name: 'Expandir al arrastrar: Retraso de primera expansión',
                 desc: 'Retraso antes de que se expanda la primera carpeta o etiqueta durante un arrastre (segundos).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'Retraso de expansión posterior',
+                name: 'Expandir al arrastrar: Retraso de expansión posterior',
                 desc: 'Retraso antes de expandir carpetas o etiquetas adicionales durante el mismo arrastre (segundos).'
             },
             navigationBanner: {
@@ -1268,7 +1298,7 @@ export const STRINGS_ES = {
                 desc: 'Mostrar la sección de archivos recientes en el panel de navegación.'
             },
             hideRecentNotes: {
-                name: 'Ocultar tipos de archivos',
+                name: 'Ocultar tipos de archivos de archivos recientes',
                 desc: 'Elige qué tipos de archivos ocultar en la sección de archivos recientes.',
                 options: {
                     none: 'Ninguno',
@@ -1399,11 +1429,11 @@ export const STRINGS_ES = {
             },
             calendarCustomFilePattern: {
                 name: 'Notas diarias',
-                desc: 'Formatear ruta usando formato de fecha de Moment. Envuelve los nombres de subcarpetas entre corchetes, ej. [Work]/YYYY. Haz clic en el icono de plantilla para establecer una plantilla. Establecer ubicación de carpeta de plantillas en General > Plantillas.',
+                desc: 'Formatear ruta usando formato de fecha de Moment. Envuelve los nombres de subcarpetas entre corchetes, ej. [Work]/YYYY. Haz clic en el icono de plantilla para establecer una plantilla. Establecer ubicación de carpeta de plantillas en Apariencia y comportamiento > Plantillas.',
                 momentDescPrefix: 'Formatear ruta usando ',
                 momentLinkText: 'formato de fecha Moment',
                 momentDescSuffix:
-                    '. Envuelve los nombres de subcarpetas entre corchetes, ej. [Work]/YYYY. Haz clic en el icono de plantilla para establecer una plantilla. Establecer ubicación de carpeta de plantillas en General > Plantillas.',
+                    '. Envuelve los nombres de subcarpetas entre corchetes, ej. [Work]/YYYY. Haz clic en el icono de plantilla para establecer una plantilla. Establecer ubicación de carpeta de plantillas en Apariencia y comportamiento > Plantillas.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Sintaxis actual: {path}',
                 parsingError: 'El patrón debe formatear y volver a analizarse como una fecha completa (año, mes, día).'
@@ -1436,11 +1466,11 @@ export const STRINGS_ES = {
                 desc: 'Muestra tooltips con información adicional para notas y carpetas al pasar el cursor.'
             },
             showTooltipPath: {
-                name: 'Mostrar ruta',
+                name: 'Mostrar ruta en tooltips',
                 desc: 'Muestra la ruta de la carpeta debajo del nombre de las notas en los tooltips.'
             },
             showTooltipWordCount: {
-                name: 'Mostrar recuento de palabras',
+                name: 'Mostrar recuento de palabras en tooltips',
                 desc: 'Muestra el recuento de palabras de las notas en los tooltips.'
             },
             resetPaneSeparator: {
@@ -1593,11 +1623,11 @@ export const STRINGS_ES = {
                     yearlyNote: 'Nota anual'
                 },
                 file: {
-                    name: 'Archivo de inicio',
+                    name: 'Página de inicio: Archivo de inicio',
                     empty: 'Ningún archivo seleccionado'
                 },
                 createMissing: {
-                    name: 'Crear nota si no existe',
+                    name: 'Página de inicio: Crear nota si no existe',
                     desc: 'Crea la nota periódica al iniciar o mediante el comando si no existe.'
                 }
             },
@@ -2007,7 +2037,7 @@ export const STRINGS_ES = {
                 name: 'Mostrar propiedades',
                 desc: 'Mostrar la sección de propiedades en el navegador.',
                 propertyKeysInfoPrefix: 'Configurar propiedades en ',
-                propertyKeysInfoLinkText: 'General > Claves de propiedades',
+                propertyKeysInfoLinkText: 'Inicio > Claves de propiedades',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {
@@ -2072,7 +2102,7 @@ export const STRINGS_ES = {
             },
             folderNoteTemplate: {
                 name: 'Plantilla de nota de carpeta',
-                desc: 'Archivo de plantilla para nuevas notas de carpeta en Markdown. Establecer ubicación de carpeta de plantillas en General > Plantillas.'
+                desc: 'Archivo de plantilla para nuevas notas de carpeta en Markdown. Establecer ubicación de carpeta de plantillas en Apariencia y comportamiento > Plantillas.'
             },
             enableFolderNoteLinks: {
                 name: 'Activar enlaces de notas de carpeta',
