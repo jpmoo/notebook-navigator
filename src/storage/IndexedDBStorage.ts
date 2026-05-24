@@ -1057,6 +1057,9 @@ export class IndexedDBStorage {
                 (type === 'featureImage' && (data.featureImageKey === null || data.featureImageStatus === 'unprocessed')) ||
                 (type === 'metadata' && isMarkdownPath(path) && data.metadata === null) ||
                 (type === 'wordCount' && isMarkdownPath(path) && data.wordCount === null) ||
+                (type === 'characterCount' &&
+                    isMarkdownPath(path) &&
+                    (data.characterCountWithSpaces === null || data.characterCountWithoutSpaces === null)) ||
                 (type === 'tasks' && isMarkdownPath(path) && (data.taskTotal === null || data.taskUnfinished === null)) ||
                 (type === 'properties' && isMarkdownPath(path) && data.properties === null)
             ) {
@@ -1076,6 +1079,7 @@ export class IndexedDBStorage {
         const needsFeatureImage = types.includes('featureImage');
         const needsMetadata = types.includes('metadata');
         const needsWordCount = types.includes('wordCount');
+        const needsCharacterCount = types.includes('characterCount');
         const needsTasks = types.includes('tasks');
         const needsProperties = types.includes('properties');
 
@@ -1088,6 +1092,9 @@ export class IndexedDBStorage {
                 (needsFeatureImage && (data.featureImageKey === null || data.featureImageStatus === 'unprocessed')) ||
                 (needsMetadata && isMarkdown && data.metadata === null) ||
                 (needsWordCount && isMarkdown && data.wordCount === null) ||
+                (needsCharacterCount &&
+                    isMarkdown &&
+                    (data.characterCountWithSpaces === null || data.characterCountWithoutSpaces === null)) ||
                 (needsTasks && isMarkdown && (data.taskTotal === null || data.taskUnfinished === null)) ||
                 (needsProperties && isMarkdown && data.properties === null)
             ) {
@@ -1249,7 +1256,9 @@ export class IndexedDBStorage {
      *
      * @param type - Type of content to clear or 'all'
      */
-    async batchClearAllFileContent(type: 'preview' | 'featureImage' | 'metadata' | 'tags' | 'properties' | 'all'): Promise<void> {
+    async batchClearAllFileContent(
+        type: 'preview' | 'featureImage' | 'metadata' | 'tags' | 'characterCount' | 'properties' | 'all'
+    ): Promise<void> {
         await this.init();
         if (!this.db) throw new Error('Database not initialized');
         await runBatchClearAllFileContent(

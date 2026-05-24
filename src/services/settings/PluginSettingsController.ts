@@ -666,6 +666,10 @@ export class PluginSettingsController {
         delete rest.optimizeNoteHeight;
         delete rest.showPinnedIcon;
         delete rest.showPinnedGroupHeader;
+        delete rest.showWordCount;
+        delete rest.wordCountPlacement;
+        delete rest.wordCharacterCountDisplay;
+        delete rest.characterCountMode;
 
         const syncModeRegistry = this.getSyncModeRegistry();
         SYNC_MODE_SETTING_IDS.forEach(settingId => {

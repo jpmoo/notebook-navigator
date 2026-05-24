@@ -36,6 +36,8 @@ export type ContentProviderUpdate = {
     path: string;
     tags?: string[] | null;
     wordCount?: number | null;
+    characterCountWithSpaces?: number | null;
+    characterCountWithoutSpaces?: number | null;
     taskTotal?: number | null;
     taskUnfinished?: number | null;
     preview?: string;

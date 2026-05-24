@@ -114,6 +114,8 @@ export function createDefaultFileData(params: { mtime: number; path: string }): 
         fileThumbnailsMtime: 0,
         tags: isMarkdown ? null : [],
         wordCount: isMarkdown ? null : 0,
+        characterCountWithSpaces: isMarkdown ? null : 0,
+        characterCountWithoutSpaces: isMarkdown ? null : 0,
         taskTotal: isMarkdown ? null : 0,
         taskUnfinished: isMarkdown ? null : 0,
         properties: null,
@@ -164,6 +166,8 @@ export interface FileData {
     fileThumbnailsMtime: number;
     tags: string[] | null; // null = not extracted yet (e.g. when tags disabled)
     wordCount: number | null; // null = not generated yet
+    characterCountWithSpaces: number | null; // null = not generated yet or disabled
+    characterCountWithoutSpaces: number | null; // null = not generated yet or disabled
     taskTotal: number | null; // null = not generated yet
     taskUnfinished: number | null; // null = not generated yet
     properties: PropertyItem[] | null; // null = not generated yet
@@ -224,6 +228,8 @@ export interface FileContentChange {
         metadata?: FileData['metadata'] | null;
         tags?: string[] | null;
         wordCount?: number | null;
+        characterCountWithSpaces?: number | null;
+        characterCountWithoutSpaces?: number | null;
         taskTotal?: number | null;
         taskUnfinished?: number | null;
         properties?: FileData['properties'];

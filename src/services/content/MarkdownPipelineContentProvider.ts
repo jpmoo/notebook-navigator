@@ -20,6 +20,7 @@ import { Platform, parseYaml, type CachedMetadata, type FrontMatterCache, type T
 import { LIMITS } from '../../constants/limits';
 import { type ContentProviderType } from '../../interfaces/IContentProvider';
 import { NotebookNavigatorSettings } from '../../settings';
+import { showsCharacterCount } from '../../settings/types';
 import { type PropertyItem, type PropertyValueKind, FileData } from '../../storage/IndexedDBStorage';
 import { getDBInstance } from '../../storage/fileOperations';
 import { areStringArraysEqual } from '../../utils/arrayUtils';
@@ -39,7 +40,7 @@ import {
 } from '../../utils/codeRangeUtils';
 import { PreviewTextUtils } from '../../utils/previewTextUtils';
 import { createCaseInsensitiveKeyMatcher, findMatchingRecordKey } from '../../utils/recordUtils';
-import { countWordsForNoteProperty } from '../../utils/wordCountUtils';
+import { countCharactersForNoteProperty, countWordsForNoteProperty, getObsidianTextCountStartIndex } from '../../utils/wordCountUtils';
 import {
     getDrawingDirectFeatureImageKey,
     getDrawingSourceProviderIdWithFrontmatter,
@@ -56,6 +57,7 @@ type MarkdownPipelineContext = {
     content: string;
     frontmatter: FrontMatterCache | null;
     bodyStartIndex: number;
+    textCountStartIndex: number;
     isDrawing: boolean;
     drawingProviderId: DrawingFeatureImageProviderId | null;
     fileModified: boolean;
@@ -68,6 +70,8 @@ type MarkdownPipelineContext = {
 
 type MarkdownPipelineUpdate = {
     wordCount?: number | null;
+    characterCountWithSpaces?: number | null;
+    characterCountWithoutSpaces?: number | null;
     taskTotal?: number | null;
     taskUnfinished?: number | null;
     preview?: string;
@@ -76,7 +80,7 @@ type MarkdownPipelineUpdate = {
     featureImage?: Blob | null;
 };
 
-type MarkdownPipelineProcessorId = 'preview' | 'wordCount' | 'tasks' | 'properties' | 'featureImage';
+type MarkdownPipelineProcessorId = 'preview' | 'wordCount' | 'characterCount' | 'tasks' | 'properties' | 'featureImage';
 
 type MarkdownPipelineProcessor = {
     id: MarkdownPipelineProcessorId;
@@ -366,6 +370,26 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
             run: async context => await this.processWordCount(context)
         },
         {
+            id: 'characterCount',
+            needsProcessing: context => {
+                if (!showsCharacterCount(context.settings.textCountDisplay)) {
+                    return false;
+                }
+
+                if (
+                    !context.fileData ||
+                    context.fileModified ||
+                    context.fileData.characterCountWithSpaces === null ||
+                    context.fileData.characterCountWithoutSpaces === null
+                ) {
+                    return context.isDrawing || context.hasContent;
+                }
+
+                return false;
+            },
+            run: async context => await this.processCharacterCount(context)
+        },
+        {
             id: 'tasks',
             needsProcessing: context => {
                 if (
@@ -433,7 +457,8 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
             'featureImageProperties',
             'featureImageExcludeProperties',
             'featureImagePixelSize',
-            'downloadExternalFeatureImages'
+            'downloadExternalFeatureImages',
+            'textCountDisplay'
         ];
     }
 
@@ -452,12 +477,16 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
         shouldClearPreview: boolean;
         shouldClearProperties: boolean;
         shouldClearFeatureImage: boolean;
+        shouldClearCharacterCounts: boolean;
+        shouldQueueCharacterCounts: boolean;
     } {
         if (!context) {
             return {
                 shouldClearPreview: true,
                 shouldClearProperties: true,
-                shouldClearFeatureImage: true
+                shouldClearFeatureImage: true,
+                shouldClearCharacterCounts: true,
+                shouldQueueCharacterCounts: true
             };
         }
 
@@ -491,18 +520,33 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
             (newSettings.showFeatureImage &&
                 (featureImagePropertiesChanged || oldSettings.downloadExternalFeatureImages !== newSettings.downloadExternalFeatureImages));
 
-        return { shouldClearPreview, shouldClearProperties, shouldClearFeatureImage };
+        const oldShowsCharacterCount = showsCharacterCount(oldSettings.textCountDisplay);
+        const newShowsCharacterCount = showsCharacterCount(newSettings.textCountDisplay);
+        const shouldClearCharacterCounts = oldShowsCharacterCount && !newShowsCharacterCount;
+        const shouldQueueCharacterCounts = oldShowsCharacterCount !== newShowsCharacterCount;
+
+        return {
+            shouldClearPreview,
+            shouldClearProperties,
+            shouldClearFeatureImage,
+            shouldClearCharacterCounts,
+            shouldQueueCharacterCounts
+        };
     }
 
     shouldRegenerate(oldSettings: NotebookNavigatorSettings, newSettings: NotebookNavigatorSettings): boolean {
-        const { shouldClearPreview, shouldClearProperties, shouldClearFeatureImage } = this.getClearFlags({ oldSettings, newSettings });
-        return shouldClearPreview || shouldClearProperties || shouldClearFeatureImage;
+        const { shouldClearPreview, shouldClearProperties, shouldClearFeatureImage, shouldQueueCharacterCounts } = this.getClearFlags({
+            oldSettings,
+            newSettings
+        });
+        return shouldClearPreview || shouldClearProperties || shouldClearFeatureImage || shouldQueueCharacterCounts;
     }
 
     async clearContent(context?: { oldSettings: NotebookNavigatorSettings; newSettings: NotebookNavigatorSettings }): Promise<void> {
-        const { shouldClearPreview, shouldClearProperties, shouldClearFeatureImage } = this.getClearFlags(context);
+        const { shouldClearPreview, shouldClearProperties, shouldClearFeatureImage, shouldClearCharacterCounts } =
+            this.getClearFlags(context);
 
-        if (!shouldClearPreview && !shouldClearProperties && !shouldClearFeatureImage) {
+        if (!shouldClearPreview && !shouldClearProperties && !shouldClearFeatureImage && !shouldClearCharacterCounts) {
             return;
         }
 
@@ -518,6 +562,10 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
 
         if (shouldClearFeatureImage) {
             await db.batchClearFeatureImageContent('markdown');
+        }
+
+        if (shouldClearCharacterCounts) {
+            await db.batchClearAllFileContent('characterCount');
         }
 
         this.emptyFrontmatterRetryCounts.clear();
@@ -549,9 +597,12 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
         }
         const needsProperties = propertiesEnabled && fileData.properties === null;
         const needsWordCount = fileData.wordCount === null;
+        const needsCharacterCount =
+            showsCharacterCount(settings.textCountDisplay) &&
+            (fileData.characterCountWithSpaces === null || fileData.characterCountWithoutSpaces === null);
         const needsTasks = fileData.taskTotal === null || fileData.taskUnfinished === null;
 
-        return needsPreview || needsFeatureImage || needsProperties || needsWordCount || needsTasks;
+        return needsPreview || needsFeatureImage || needsProperties || needsWordCount || needsCharacterCount || needsTasks;
     }
 
     protected async processFile(
@@ -601,6 +652,10 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
         const featureImageExcluded = settings.showFeatureImage && frontmatter !== null && featureImageExcludeMatcher.matches(frontmatter);
         const needsWordCount = !fileData || fileModified || fileData.wordCount === null;
         const needsWordCountContent = needsWordCount && !isDrawing;
+        const needsCharacterCount =
+            showsCharacterCount(settings.textCountDisplay) &&
+            (!fileData || fileModified || fileData.characterCountWithSpaces === null || fileData.characterCountWithoutSpaces === null);
+        const needsCharacterCountContent = needsCharacterCount && !isDrawing;
         const needsTasks = !fileData || fileModified || fileData.taskTotal === null || fileData.taskUnfinished === null;
         const needsTasksContent = needsTasks && !isDrawing;
 
@@ -619,12 +674,15 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
         const needsContent =
             needsPreview ||
             needsWordCountContent ||
+            needsCharacterCountContent ||
             needsTasksContent ||
             (needsFeatureImage && !featureImageExcluded && !frontmatterFeatureImageReference);
 
         const update: {
             path: string;
             wordCount?: number | null;
+            characterCountWithSpaces?: number | null;
+            characterCountWithoutSpaces?: number | null;
             taskTotal?: number | null;
             taskUnfinished?: number | null;
             preview?: string;
@@ -655,6 +713,15 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
 
                 if (needsWordCountContent && (!fileData || fileData.wordCount !== 0)) {
                     update.wordCount = 0;
+                    hasSafeUpdate = true;
+                }
+
+                if (
+                    needsCharacterCountContent &&
+                    (!fileData || fileData.characterCountWithSpaces !== 0 || fileData.characterCountWithoutSpaces !== 0)
+                ) {
+                    update.characterCountWithSpaces = 0;
+                    update.characterCountWithoutSpaces = 0;
                     hasSafeUpdate = true;
                 }
 
@@ -721,11 +788,15 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
         let content: string;
         let hasContent = false;
         let bodyStartIndex = 0;
+        let textCountStartIndex = 0;
         try {
             if (needsContent) {
                 content = await this.readFileContent(job.file);
                 hasContent = true;
                 bodyStartIndex = resolveMarkdownBodyStartIndex(cachedMetadata, content);
+                // Text counts match Obsidian's word-count plugin, which keeps the first blank line after frontmatter.
+                // Tasks and feature-image scans use the metadata-derived body start below.
+                textCountStartIndex = getObsidianTextCountStartIndex(content);
                 this.clearReadFailures(job.path);
             } else {
                 content = '';
@@ -740,6 +811,19 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
                 const shouldSetWordCountZero = !fileData || fileData.wordCount === null || (shouldFallback && fileData.wordCount !== 0);
                 if (shouldSetWordCountZero) {
                     update.wordCount = 0;
+                    hasSafeUpdate = true;
+                }
+            }
+
+            if (needsCharacterCountContent) {
+                const shouldSetCharacterCountZero =
+                    !fileData ||
+                    fileData.characterCountWithSpaces === null ||
+                    fileData.characterCountWithoutSpaces === null ||
+                    (shouldFallback && (fileData.characterCountWithSpaces !== 0 || fileData.characterCountWithoutSpaces !== 0));
+                if (shouldSetCharacterCountZero) {
+                    update.characterCountWithSpaces = 0;
+                    update.characterCountWithoutSpaces = 0;
                     hasSafeUpdate = true;
                 }
             }
@@ -840,6 +924,7 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
             content,
             frontmatter,
             bodyStartIndex,
+            textCountStartIndex,
             isDrawing,
             drawingProviderId,
             fileModified,
@@ -863,6 +948,12 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
             if (processorUpdate.wordCount !== undefined) {
                 update.wordCount = processorUpdate.wordCount;
             }
+            if (processorUpdate.characterCountWithSpaces !== undefined) {
+                update.characterCountWithSpaces = processorUpdate.characterCountWithSpaces;
+            }
+            if (processorUpdate.characterCountWithoutSpaces !== undefined) {
+                update.characterCountWithoutSpaces = processorUpdate.characterCountWithoutSpaces;
+            }
             if (processorUpdate.taskTotal !== undefined) {
                 update.taskTotal = processorUpdate.taskTotal;
             }
@@ -885,6 +976,8 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
 
         const hasContentUpdate =
             update.wordCount !== undefined ||
+            update.characterCountWithSpaces !== undefined ||
+            update.characterCountWithoutSpaces !== undefined ||
             update.taskTotal !== undefined ||
             update.taskUnfinished !== undefined ||
             update.preview !== undefined ||
@@ -932,7 +1025,7 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
 
     private async processWordCount(context: MarkdownPipelineContext): Promise<MarkdownPipelineUpdate | null> {
         try {
-            const count = context.isDrawing ? 0 : countWordsForNoteProperty(context.content, context.bodyStartIndex);
+            const count = context.isDrawing ? 0 : countWordsForNoteProperty(context.content, context.textCountStartIndex);
             if (!context.fileData || context.fileData.wordCount === null || context.fileData.wordCount !== count) {
                 return { wordCount: count };
             }
@@ -941,6 +1034,41 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
             console.error(`Error generating word count for ${context.file.path}:`, error);
             if (!context.fileData || context.fileData.wordCount === null) {
                 return { wordCount: 0 };
+            }
+            return null;
+        }
+    }
+
+    private async processCharacterCount(context: MarkdownPipelineContext): Promise<MarkdownPipelineUpdate | null> {
+        try {
+            const counts = context.isDrawing
+                ? { withSpaces: 0, withoutSpaces: 0 }
+                : countCharactersForNoteProperty(context.content, context.textCountStartIndex);
+
+            if (
+                !context.fileData ||
+                context.fileData.characterCountWithSpaces === null ||
+                context.fileData.characterCountWithoutSpaces === null ||
+                context.fileData.characterCountWithSpaces !== counts.withSpaces ||
+                context.fileData.characterCountWithoutSpaces !== counts.withoutSpaces
+            ) {
+                return {
+                    characterCountWithSpaces: counts.withSpaces,
+                    characterCountWithoutSpaces: counts.withoutSpaces
+                };
+            }
+            return null;
+        } catch (error) {
+            console.error(`Error generating character count for ${context.file.path}:`, error);
+            if (
+                !context.fileData ||
+                context.fileData.characterCountWithSpaces === null ||
+                context.fileData.characterCountWithoutSpaces === null
+            ) {
+                return {
+                    characterCountWithSpaces: 0,
+                    characterCountWithoutSpaces: 0
+                };
             }
             return null;
         }

@@ -91,6 +91,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
             '**Settings.** Settings structure was rewritten for easier navigation. You can now navigate to all sub pages from the first settings page.'
         ],
         improved: [
+            '**List pane.** File items can show character counts, with or without spaces, from Settings > Notes > Word and character count.',
             '**Manual sort.** **Edit sort order...** now supports keyboard navigation.',
             '**Shortcuts.** Search shortcuts can now be renamed from the shortcut context menu.'
         ]

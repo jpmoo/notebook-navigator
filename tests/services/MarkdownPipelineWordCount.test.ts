@@ -131,6 +131,8 @@ function createFileData(overrides: Partial<FileData>): FileData {
         fileThumbnailsMtime: 0,
         tags: null,
         wordCount: null,
+        characterCountWithSpaces: null,
+        characterCountWithoutSpaces: null,
         taskTotal: 0,
         taskUnfinished: 0,
         properties: null,
@@ -316,6 +318,19 @@ describe('MarkdownPipelineContentProvider word count', () => {
         const result = await provider.runWordCount(file, settings);
 
         expect(result).toBe(2);
+    });
+
+    it('counts characters using Obsidian frontmatter slicing', async () => {
+        const context = createApp();
+        const settings = createSettings({ textCountDisplay: 'characters' });
+        const provider = new TestMarkdownPipelineContentProvider(context.app);
+        const file = createFile('notes/note.md');
+
+        setMarkdownContent(context, file, '---\ntitle: Draft\n---\n\nBody');
+        const result = await provider.runProcessFile(file, null, settings);
+
+        expect(result.update?.characterCountWithSpaces).toBe(5);
+        expect(result.update?.characterCountWithoutSpaces).toBe(4);
     });
 
     it('counts isolated punctuation when Math Alphanumeric Symbols are present', async () => {

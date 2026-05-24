@@ -325,6 +325,8 @@ export async function recordFileChanges(
                 fileThumbnailsMtime: renamed.fileThumbnailsMtime,
                 tags: renamed.tags,
                 wordCount: renamed.wordCount,
+                characterCountWithSpaces: renamed.characterCountWithSpaces,
+                characterCountWithoutSpaces: renamed.characterCountWithoutSpaces,
                 taskTotal: renamed.taskTotal,
                 taskUnfinished: renamed.taskUnfinished,
                 properties: renamed.properties,

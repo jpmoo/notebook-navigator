@@ -22,6 +22,7 @@ import type { ContentProviderType, FileContentType } from '../../interfaces/ICon
 import { hasPropertyFrontmatterFields } from '../../utils/propertyUtils';
 import { isMarkdownPath } from '../../utils/fileTypeUtils';
 import { getActiveHiddenFileProperties } from '../../utils/vaultProfiles';
+import { showsCharacterCount } from '../../settings/types';
 
 /**
  * Returns provider types that require Obsidian's metadata cache to be ready.
@@ -50,6 +51,9 @@ export function getCacheRebuildProgressTypes(settings: NotebookNavigatorSettings
     const types = new Set<FileContentType>();
 
     types.add('wordCount');
+    if (showsCharacterCount(settings.textCountDisplay)) {
+        types.add('characterCount');
+    }
     types.add('tasks');
 
     if (settings.showFilePreview) {

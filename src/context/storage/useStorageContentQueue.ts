@@ -21,6 +21,7 @@ import { App, TFile } from 'obsidian';
 import type { ContentProviderType, FileContentType } from '../../interfaces/IContentProvider';
 import type { ContentProviderRegistry } from '../../services/content/ContentProviderRegistry';
 import type { NotebookNavigatorSettings } from '../../settings';
+import { showsCharacterCount } from '../../settings/types';
 import { getDBInstance } from '../../storage/fileOperations';
 import { hasPropertyFrontmatterFields } from '../../utils/propertyUtils';
 import {
@@ -127,6 +128,9 @@ export function useStorageContentQueue(params: {
                     // the database for any missing content types.
                     const db = getDBInstance();
                     const contentTypesToCheck: FileContentType[] = ['wordCount', 'tasks'];
+                    if (showsCharacterCount(settings.textCountDisplay)) {
+                        contentTypesToCheck.push('characterCount');
+                    }
                     if (metadataDependentTypes.includes('tags')) {
                         contentTypesToCheck.push('tags');
                     }

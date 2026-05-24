@@ -551,24 +551,26 @@ function getVisibleFrontmatterPropertySummary({
 }
 
 export function getPropertyRowCount({
-    showWordCountProperty,
+    showTextCountProperty,
     showFileProperties,
     showPropertiesOnSeparateRows,
     showFilePropertiesInCompactMode,
     isCompactMode,
     file,
     wordCount,
+    characterCount,
     properties,
     visiblePropertyKeys,
     hiddenPropertyValueNodeId
 }: {
-    showWordCountProperty: boolean;
+    showTextCountProperty: boolean;
     showFileProperties: boolean;
     showPropertiesOnSeparateRows: boolean;
     showFilePropertiesInCompactMode: boolean;
     isCompactMode: boolean;
     file: TFile | null;
     wordCount: FileData['wordCount'] | undefined;
+    characterCount: FileData['characterCountWithSpaces'] | undefined;
     properties: FileData['properties'] | undefined;
     visiblePropertyKeys?: ReadonlySet<string>;
     hiddenPropertyValueNodeId?: string | null;
@@ -583,7 +585,9 @@ export function getPropertyRowCount({
         return 0;
     }
 
-    const wordCountEnabled = showWordCountProperty && typeof wordCount === 'number' && Number.isFinite(wordCount) && wordCount > 0;
+    const wordCountEnabled = showTextCountProperty && typeof wordCount === 'number' && Number.isFinite(wordCount) && wordCount > 0;
+    const characterCountEnabled =
+        showTextCountProperty && typeof characterCount === 'number' && Number.isFinite(characterCount) && characterCount > 0;
     const propertySummary = showFileProperties
         ? getVisibleFrontmatterPropertySummary({
               properties,
@@ -592,11 +596,11 @@ export function getPropertyRowCount({
           })
         : EMPTY_VISIBLE_FRONTMATTER_PROPERTY_SUMMARY;
 
-    if (!wordCountEnabled && !propertySummary.hasVisiblePills) {
+    if (!wordCountEnabled && !characterCountEnabled && !propertySummary.hasVisiblePills) {
         return 0;
     }
 
-    const wordCountRowCount = wordCountEnabled ? 1 : 0;
+    const textCountRowCount = wordCountEnabled || characterCountEnabled ? 1 : 0;
 
     let frontmatterPropertyRowCount = 0;
     if (!showPropertiesOnSeparateRows) {
@@ -606,12 +610,12 @@ export function getPropertyRowCount({
     }
 
     if (frontmatterPropertyRowCount === 0) {
-        return wordCountRowCount;
+        return textCountRowCount;
     }
 
     if (!showPropertiesOnSeparateRows) {
-        return 1 + wordCountRowCount;
+        return 1 + textCountRowCount;
     }
 
-    return frontmatterPropertyRowCount + wordCountRowCount;
+    return frontmatterPropertyRowCount + textCountRowCount;
 }

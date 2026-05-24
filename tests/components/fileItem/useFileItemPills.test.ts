@@ -75,10 +75,15 @@ vi.mock('../../../src/components/ServiceIcon', () => ({
 }));
 
 function renderPillRows(
-    params: Omit<UseFileItemPillsParams, 'hiddenTagVisibility' | 'fileItemPillDecorationModel' | 'wordCountDisplayText'> & {
+    params: Omit<
+        UseFileItemPillsParams,
+        'hiddenTagVisibility' | 'fileItemPillDecorationModel' | 'wordCountDisplayText' | 'characterCount' | 'characterCountDisplayText'
+    > & {
         hiddenTagVisibility?: HiddenTagVisibility;
         fileItemPillDecorationModel?: FileItemPillDecorationModel;
         wordCountDisplayText?: string | null;
+        characterCount?: number | null;
+        characterCountDisplayText?: string | null;
     }
 ): string {
     const emptyDecorationModel: FileItemPillDecorationModel = {
@@ -102,6 +107,10 @@ function renderPillRows(
             wordCountDisplayText:
                 params.wordCountDisplayText ??
                 (typeof params.wordCount === 'number' ? Math.trunc(params.wordCount).toLocaleString() : null),
+            characterCount: params.characterCount ?? null,
+            characterCountDisplayText:
+                params.characterCountDisplayText ??
+                (typeof params.characterCount === 'number' ? Math.trunc(params.characterCount).toLocaleString() : null),
             hiddenTagVisibility: params.hiddenTagVisibility ?? createHiddenTagVisibility([], false),
             fileItemPillDecorationModel: params.fileItemPillDecorationModel ?? emptyDecorationModel
         });
@@ -110,7 +119,7 @@ function renderPillRows(
             {
                 'data-show-tags': state.shouldShowFileTags ? 'true' : 'false',
                 'data-show-properties': state.shouldShowProperty ? 'true' : 'false',
-                'data-show-word-count': state.shouldShowWordCountProperty ? 'true' : 'false'
+                'data-show-text-count': state.shouldShowTextCountProperty ? 'true' : 'false'
             },
             state.pillRows
         );
@@ -250,15 +259,39 @@ describe('useFileItemPills', () => {
             settings: {
                 ...DEFAULT_SETTINGS,
                 showFileProperties: true,
-                showWordCount: true,
-                wordCountPlacement: 'property'
+                textCountDisplay: 'words',
+                textCountPlacement: 'property'
             },
             visiblePropertyKeys: new Set<string>(),
             visibleNavigationPropertyKeys: new Set<string>()
         });
 
-        expect(markup).toContain('data-show-word-count="true"');
+        expect(markup).toContain('data-show-text-count="true"');
         expect(markup).toContain('1,234');
+    });
+
+    it('renders character count pill rows for markdown notes when character count is active', () => {
+        const markup = renderPillRows({
+            file: createTestTFile('Notes/Characters.md'),
+            isCompactMode: false,
+            tags: [],
+            properties: null,
+            wordCount: null,
+            characterCount: 2048,
+            settings: {
+                ...DEFAULT_SETTINGS,
+                showFileProperties: true,
+                textCountDisplay: 'characters',
+                textCountPlacement: 'property'
+            },
+            visiblePropertyKeys: new Set<string>(),
+            visibleNavigationPropertyKeys: new Set<string>()
+        });
+
+        expect(markup).toContain('data-show-text-count="true"');
+        expect(markup).toContain('2,048');
+        expect(markup).not.toContain('chars');
+        expect(markup).toContain('data-icon-id="type"');
     });
 
     it('renders configured word count target text as a property pill', () => {
@@ -271,14 +304,14 @@ describe('useFileItemPills', () => {
             wordCountDisplayText: '25%',
             settings: {
                 ...DEFAULT_SETTINGS,
-                showWordCount: true,
-                wordCountPlacement: 'property'
+                textCountDisplay: 'words',
+                textCountPlacement: 'property'
             },
             visiblePropertyKeys: new Set<string>(),
             visibleNavigationPropertyKeys: new Set<string>()
         });
 
-        expect(markup).toContain('data-show-word-count="true"');
+        expect(markup).toContain('data-show-text-count="true"');
         expect(markup).toContain('25%');
     });
 
