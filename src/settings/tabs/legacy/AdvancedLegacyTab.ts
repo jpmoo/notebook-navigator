@@ -26,6 +26,7 @@ import { localStorage } from '../../../utils/localStorage';
 import { showNotice } from '../../../utils/noticeUtils';
 import { getNavigationPaneSizing } from '../../../utils/paneSizing';
 import { createSettingGroupFactory } from '../../settingGroups';
+import { getNotSyncedSettingName } from '../../syncModeToggle';
 import type { SettingsTabContext } from '../SettingsTabContext';
 
 /** Legacy settings renderer used only by Obsidian versions before native 1.13 setting definitions. */
@@ -55,7 +56,7 @@ export function renderAdvancedTab(context: SettingsTabContext): void {
 
     advancedGroup.addSetting(setting => {
         setting
-            .setName(strings.settings.items.debugLogging.name)
+            .setName(getNotSyncedSettingName(strings.settings.items.debugLogging.name))
             .setDesc(strings.settings.items.debugLogging.desc)
             .addToggle(toggle =>
                 toggle.setValue(plugin.isDebugLoggingEnabled()).onChange(value => {

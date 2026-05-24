@@ -6768,23 +6768,6 @@ body.nn-resizing {
     opacity: 1;
 }
 
-/* Setting name marker appended to setting names */
-.nn-settings-tab-root .setting-item-name.nn-setting-name-marker::after {
-    content: ' ' attr(data-nn-setting-marker);
-    color: var(--text-muted);
-    font-weight: normal;
-}
-
-.mod-rtl .nn-settings-tab-root .setting-item-name.nn-setting-name-marker::after {
-    content: '';
-}
-
-.mod-rtl .nn-settings-tab-root .setting-item-name.nn-setting-name-marker::before {
-    content: attr(data-nn-setting-marker) ' ';
-    color: var(--text-muted);
-    font-weight: normal;
-}
-
 /* Dim disabled calendar pattern text inputs */
 .nn-settings-tab-root .setting-item.nn-setting-disabled input[type='text']:disabled {
     opacity: 0.6;
