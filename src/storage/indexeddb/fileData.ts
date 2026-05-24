@@ -166,8 +166,8 @@ export interface FileData {
     fileThumbnailsMtime: number;
     tags: string[] | null; // null = not extracted yet (e.g. when tags disabled)
     wordCount: number | null; // null = not generated yet
-    characterCountWithSpaces: number | null; // null = not generated yet or disabled
-    characterCountWithoutSpaces: number | null; // null = not generated yet or disabled
+    characterCountWithSpaces: number | null; // null = not generated yet
+    characterCountWithoutSpaces: number | null; // null = not generated yet
     taskTotal: number | null; // null = not generated yet
     taskUnfinished: number | null; // null = not generated yet
     properties: PropertyItem[] | null; // null = not generated yet

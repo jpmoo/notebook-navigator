@@ -20,7 +20,6 @@ import { Platform, parseYaml, type CachedMetadata, type FrontMatterCache, type T
 import { LIMITS } from '../../constants/limits';
 import { type ContentProviderType } from '../../interfaces/IContentProvider';
 import { NotebookNavigatorSettings } from '../../settings';
-import { showsCharacterCount } from '../../settings/types';
 import { type PropertyItem, type PropertyValueKind, FileData } from '../../storage/IndexedDBStorage';
 import { getDBInstance } from '../../storage/fileOperations';
 import { areStringArraysEqual } from '../../utils/arrayUtils';
@@ -372,10 +371,6 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
         {
             id: 'characterCount',
             needsProcessing: context => {
-                if (!showsCharacterCount(context.settings.textCountDisplay)) {
-                    return false;
-                }
-
                 if (
                     !context.fileData ||
                     context.fileModified ||
@@ -457,8 +452,7 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
             'featureImageProperties',
             'featureImageExcludeProperties',
             'featureImagePixelSize',
-            'downloadExternalFeatureImages',
-            'textCountDisplay'
+            'downloadExternalFeatureImages'
         ];
     }
 
@@ -478,15 +472,13 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
         shouldClearProperties: boolean;
         shouldClearFeatureImage: boolean;
         shouldClearCharacterCounts: boolean;
-        shouldQueueCharacterCounts: boolean;
     } {
         if (!context) {
             return {
                 shouldClearPreview: true,
                 shouldClearProperties: true,
                 shouldClearFeatureImage: true,
-                shouldClearCharacterCounts: true,
-                shouldQueueCharacterCounts: true
+                shouldClearCharacterCounts: true
             };
         }
 
@@ -520,26 +512,20 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
             (newSettings.showFeatureImage &&
                 (featureImagePropertiesChanged || oldSettings.downloadExternalFeatureImages !== newSettings.downloadExternalFeatureImages));
 
-        const oldShowsCharacterCount = showsCharacterCount(oldSettings.textCountDisplay);
-        const newShowsCharacterCount = showsCharacterCount(newSettings.textCountDisplay);
-        const shouldClearCharacterCounts = oldShowsCharacterCount && !newShowsCharacterCount;
-        const shouldQueueCharacterCounts = oldShowsCharacterCount !== newShowsCharacterCount;
-
         return {
             shouldClearPreview,
             shouldClearProperties,
             shouldClearFeatureImage,
-            shouldClearCharacterCounts,
-            shouldQueueCharacterCounts
+            shouldClearCharacterCounts: false
         };
     }
 
     shouldRegenerate(oldSettings: NotebookNavigatorSettings, newSettings: NotebookNavigatorSettings): boolean {
-        const { shouldClearPreview, shouldClearProperties, shouldClearFeatureImage, shouldQueueCharacterCounts } = this.getClearFlags({
+        const { shouldClearPreview, shouldClearProperties, shouldClearFeatureImage } = this.getClearFlags({
             oldSettings,
             newSettings
         });
-        return shouldClearPreview || shouldClearProperties || shouldClearFeatureImage || shouldQueueCharacterCounts;
+        return shouldClearPreview || shouldClearProperties || shouldClearFeatureImage;
     }
 
     async clearContent(context?: { oldSettings: NotebookNavigatorSettings; newSettings: NotebookNavigatorSettings }): Promise<void> {
@@ -597,9 +583,7 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
         }
         const needsProperties = propertiesEnabled && fileData.properties === null;
         const needsWordCount = fileData.wordCount === null;
-        const needsCharacterCount =
-            showsCharacterCount(settings.textCountDisplay) &&
-            (fileData.characterCountWithSpaces === null || fileData.characterCountWithoutSpaces === null);
+        const needsCharacterCount = fileData.characterCountWithSpaces === null || fileData.characterCountWithoutSpaces === null;
         const needsTasks = fileData.taskTotal === null || fileData.taskUnfinished === null;
 
         return needsPreview || needsFeatureImage || needsProperties || needsWordCount || needsCharacterCount || needsTasks;
@@ -653,8 +637,7 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
         const needsWordCount = !fileData || fileModified || fileData.wordCount === null;
         const needsWordCountContent = needsWordCount && !isDrawing;
         const needsCharacterCount =
-            showsCharacterCount(settings.textCountDisplay) &&
-            (!fileData || fileModified || fileData.characterCountWithSpaces === null || fileData.characterCountWithoutSpaces === null);
+            !fileData || fileModified || fileData.characterCountWithSpaces === null || fileData.characterCountWithoutSpaces === null;
         const needsCharacterCountContent = needsCharacterCount && !isDrawing;
         const needsTasks = !fileData || fileModified || fileData.taskTotal === null || fileData.taskUnfinished === null;
         const needsTasksContent = needsTasks && !isDrawing;

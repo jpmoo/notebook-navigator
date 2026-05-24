@@ -18,7 +18,7 @@
 
 import { App, TFile } from 'obsidian';
 import type { ContentProviderType } from '../interfaces/IContentProvider';
-import { showsCharacterCount, type NotebookNavigatorSettings } from '../settings/types';
+import type { NotebookNavigatorSettings } from '../settings/types';
 import { getDBInstance } from '../storage/fileOperations';
 import { isPdfFile } from '../utils/fileTypeUtils';
 import { hasPropertyFrontmatterFields } from '../utils/propertyUtils';
@@ -96,9 +96,7 @@ export function filterFilesRequiringMetadataSources(
             }
             const needsProperties = propertiesEnabled && record.properties === null;
             const needsWordCount = record.wordCount === null;
-            const needsCharacterCount =
-                showsCharacterCount(settings.textCountDisplay) &&
-                (record.characterCountWithSpaces === null || record.characterCountWithoutSpaces === null);
+            const needsCharacterCount = record.characterCountWithSpaces === null || record.characterCountWithoutSpaces === null;
             const needsTasks = record.taskTotal === null || record.taskUnfinished === null;
             const needsRefresh = record.markdownPipelineMtime !== file.stat.mtime;
             if (

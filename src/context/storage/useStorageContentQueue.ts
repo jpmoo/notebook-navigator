@@ -21,7 +21,6 @@ import { App, TFile } from 'obsidian';
 import type { ContentProviderType, FileContentType } from '../../interfaces/IContentProvider';
 import type { ContentProviderRegistry } from '../../services/content/ContentProviderRegistry';
 import type { NotebookNavigatorSettings } from '../../settings';
-import { showsCharacterCount } from '../../settings/types';
 import { getDBInstance } from '../../storage/fileOperations';
 import { hasPropertyFrontmatterFields } from '../../utils/propertyUtils';
 import {
@@ -127,10 +126,7 @@ export function useStorageContentQueue(params: {
                     // no "changed files" but still pending derived content in the database. Fall back to checking
                     // the database for any missing content types.
                     const db = getDBInstance();
-                    const contentTypesToCheck: FileContentType[] = ['wordCount', 'tasks'];
-                    if (showsCharacterCount(settings.textCountDisplay)) {
-                        contentTypesToCheck.push('characterCount');
-                    }
+                    const contentTypesToCheck: FileContentType[] = ['wordCount', 'characterCount', 'tasks'];
                     if (metadataDependentTypes.includes('tags')) {
                         contentTypesToCheck.push('tags');
                     }
