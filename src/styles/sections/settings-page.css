@@ -30,10 +30,6 @@
     gap: var(--size-2-2);
 }
 
-.nn-settings-legacy-page-link {
-    cursor: pointer;
-}
-
 .nn-settings-legacy-page-link:focus-visible {
     outline: 2px solid var(--background-modifier-border-focus);
     outline-offset: -2px;
