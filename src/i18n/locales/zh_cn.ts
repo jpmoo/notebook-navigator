@@ -2214,6 +2214,10 @@ export const STRINGS_ZH_CN = {
                 desc: '启动时检查新的插件版本，当有可用更新时显示通知。检查最多每天一次。',
                 status: '有新版本可用：{version}'
             },
+            debugLogging: {
+                name: '启动调试日志',
+                desc: '将启动诊断写入保管库根目录中带时间戳的 Markdown 文件，并在启动稳定后停止。该文件可能会同步，并且可能包含文件路径。'
+            },
             whatsNew: {
                 name: 'Notebook Navigator {version} 的最新动态',
                 desc: '查看最近的更新和改进',

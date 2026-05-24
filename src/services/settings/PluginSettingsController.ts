@@ -234,7 +234,11 @@ export class PluginSettingsController {
     public clearAllLocalStorage(): void {
         const storageKeyNames = Object.keys(STORAGE_KEYS) as (keyof LocalStorageKeys)[];
         storageKeyNames.forEach(storageKey => {
-            if (storageKey === 'databaseSchemaVersionKey' || storageKey === 'databaseContentVersionKey') {
+            if (
+                storageKey === 'databaseSchemaVersionKey' ||
+                storageKey === 'databaseContentVersionKey' ||
+                storageKey === 'debugLoggingEnabledKey'
+            ) {
                 return;
             }
 

@@ -2236,6 +2236,10 @@ export const STRINGS_FR = {
                 desc: "Vérifie les nouvelles versions du plugin au démarrage et affiche une notification lorsqu'une mise à jour est disponible. Les vérifications ont lieu au maximum une fois par jour.",
                 status: 'Nouvelle version disponible : {version}'
             },
+            debugLogging: {
+                name: 'Journal de débogage du démarrage',
+                desc: 'Écrit les diagnostics de démarrage dans un fichier Markdown horodaté à la racine du coffre, puis s’arrête une fois le démarrage stabilisé. Le fichier peut être synchronisé et contenir des chemins de fichiers.'
+            },
             whatsNew: {
                 name: 'Nouveautés dans Notebook Navigator {version}',
                 desc: 'Voir les mises à jour et améliorations récentes',

@@ -2233,6 +2233,10 @@ export const STRINGS_NL = {
                 desc: 'Controleert bij het opstarten op nieuwe plugin-releases en toont een melding wanneer een update beschikbaar is. Controles vinden hooguit één keer per dag plaats.',
                 status: 'Nieuwe versie beschikbaar: {version}'
             },
+            debugLogging: {
+                name: 'Debuglogboek bij opstarten',
+                desc: 'Schrijft opstartdiagnoses naar een Markdown-bestand met tijdstempel in de hoofdmap van de vault en stopt nadat het opstarten is gestabiliseerd. Het bestand kan worden gesynchroniseerd en bestandspaden bevatten.'
+            },
             whatsNew: {
                 name: 'Wat is er nieuw in Notebook Navigator {version}',
                 desc: 'Bekijk recente updates en verbeteringen',

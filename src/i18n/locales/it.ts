@@ -2229,6 +2229,10 @@ export const STRINGS_IT = {
                 desc: "Controlla nuovi rilasci plugin all'avvio e mostra notifica quando un aggiornamento è disponibile. I controlli avvengono al massimo una volta al giorno.",
                 status: 'Nuova versione disponibile: {version}'
             },
+            debugLogging: {
+                name: 'Registro di debug all’avvio',
+                desc: 'Scrive la diagnostica di avvio in un file Markdown con data e ora nella radice del vault, poi si ferma quando l’avvio si stabilizza. Il file può essere sincronizzato e può includere percorsi di file.'
+            },
             whatsNew: {
                 name: 'Novità in Notebook Navigator {version}',
                 desc: 'Vedi aggiornamenti e miglioramenti recenti',

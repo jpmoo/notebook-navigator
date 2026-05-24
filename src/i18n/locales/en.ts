@@ -2223,6 +2223,10 @@ export const STRINGS_EN = {
                 desc: 'Checks for new plugin releases on startup and shows a notification when an update is available. Checks occur at most once per day.',
                 status: 'New version available: {version}'
             },
+            debugLogging: {
+                name: 'Startup debug logging',
+                desc: 'Write startup diagnostics to a timestamped markdown file in the vault root, then stop after startup settles. The file may sync and can include file paths.'
+            },
             whatsNew: {
                 name: "What's new in Notebook Navigator {version}",
                 desc: 'See recent updates and improvements',

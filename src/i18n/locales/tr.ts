@@ -2229,6 +2229,10 @@ export const STRINGS_TR = {
                 desc: 'Başlangıçta yeni eklenti sürümlerini kontrol eder ve güncelleme mevcut olduğunda bildirim gösterir. Kontroller günde en fazla bir kez yapılır.',
                 status: 'Yeni sürüm mevcut: {version}'
             },
+            debugLogging: {
+                name: 'Başlangıç hata ayıklama günlüğü',
+                desc: 'Başlangıç tanılarını kasanın kökünde zaman damgalı bir Markdown dosyasına yazar ve başlangıç kararlı hale geldikten sonra durur. Dosya eşitlenebilir ve dosya yolları içerebilir.'
+            },
             whatsNew: {
                 name: 'Notebook Navigator {version} yenilikleri',
                 desc: 'Son güncellemeleri ve iyileştirmeleri görün',

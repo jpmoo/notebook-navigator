@@ -2232,6 +2232,10 @@ export const STRINGS_PT = {
                 desc: 'Verifica novos lançamentos do plugin ao iniciar e mostra uma notificação quando uma atualização está disponível. As verificações ocorrem no máximo uma vez por dia.',
                 status: 'Nova versão disponível: {version}'
             },
+            debugLogging: {
+                name: 'Registo de depuração no arranque',
+                desc: 'Escreve diagnósticos de arranque num ficheiro Markdown com carimbo de data/hora na raiz do cofre e para depois de o arranque estabilizar. O ficheiro pode ser sincronizado e pode incluir caminhos de ficheiros.'
+            },
             whatsNew: {
                 name: 'Novidades no Notebook Navigator {version}',
                 desc: 'Ver atualizações e melhorias recentes',

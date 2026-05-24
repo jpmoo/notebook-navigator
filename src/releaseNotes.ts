@@ -84,12 +84,15 @@ const RELEASE_NOTES: ReleaseNote[] = [
         version: '3.0.1',
         date: '2026-05-26',
         showOnUpdate: true,
+        new: [
+            '**Debugging.** New Advanced setting **Startup debug logging** records startup diagnostics in a timestamped markdown file at the vault root and stops after startup settles. This is useful if startup takes longer than expected on your devices.'
+        ],
         changed: [
             '**Settings.** Settings structure was rewritten for easier navigation. You can now navigate to all sub pages from the first settings page.'
         ],
         improved: [
             '**Manual sort.** **Edit sort order...** now supports keyboard navigation.',
-            '**Search shortcuts.** Search shortcuts can now be renamed from the shortcut context menu.'
+            '**Shortcuts.** Search shortcuts can now be renamed from the shortcut context menu.'
         ]
     },
     {

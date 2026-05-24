@@ -2230,6 +2230,10 @@ export const STRINGS_VI = {
                 desc: 'Kiểm tra bản phát hành plugin mới khi khởi động và hiện thông báo khi có bản cập nhật. Kiểm tra xảy ra tối đa một lần mỗi ngày.',
                 status: 'Có phiên bản mới: {version}'
             },
+            debugLogging: {
+                name: 'Ghi log gỡ lỗi khi khởi động',
+                desc: 'Ghi chẩn đoán khởi động vào một tệp Markdown có dấu thời gian ở thư mục gốc của kho, rồi dừng sau khi khởi động ổn định. Tệp có thể được đồng bộ hóa và có thể bao gồm đường dẫn tệp.'
+            },
             whatsNew: {
                 name: 'Có gì mới trong Notebook Navigator {version}',
                 desc: 'Xem cập nhật và cải tiến gần đây',

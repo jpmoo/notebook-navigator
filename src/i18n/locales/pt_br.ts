@@ -2234,6 +2234,10 @@ export const STRINGS_PT_BR = {
                 desc: 'Verifica novas versões do plugin na inicialização e mostra uma notificação quando uma atualização está disponível. As verificações ocorrem no máximo uma vez por dia.',
                 status: 'Nova versão disponível: {version}'
             },
+            debugLogging: {
+                name: 'Registro de depuração na inicialização',
+                desc: 'Grava diagnósticos de inicialização em um arquivo Markdown com carimbo de data/hora na raiz do cofre e para depois que a inicialização se estabiliza. O arquivo pode ser sincronizado e pode incluir caminhos de arquivos.'
+            },
             whatsNew: {
                 name: 'O que há de novo no Notebook Navigator {version}',
                 desc: 'Veja atualizações e melhorias recentes',

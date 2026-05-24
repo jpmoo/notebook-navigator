@@ -2214,6 +2214,10 @@ export const STRINGS_ZH_TW = {
                 desc: '啟動時檢查新的外掛版本，當有可用更新時顯示通知。檢查最多每天一次。',
                 status: '有新版本可用：{version}'
             },
+            debugLogging: {
+                name: '啟動偵錯記錄',
+                desc: '將啟動診斷寫入保存庫根目錄中含時間戳的 Markdown 檔案，並在啟動穩定後停止。該檔案可能會同步，且可能包含檔案路徑。'
+            },
             whatsNew: {
                 name: 'Notebook Navigator {version} 的最新動態',
                 desc: '查看最近的更新和改進',

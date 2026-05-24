@@ -2234,6 +2234,10 @@ export const STRINGS_PL = {
                 desc: 'Sprawdza dostępność nowych wersji wtyczki podczas uruchamiania i wyświetla powiadomienie, gdy dostępna jest aktualizacja. Sprawdzanie odbywa się maksymalnie raz dziennie.',
                 status: 'Nowa wersja dostępna: {version}'
             },
+            debugLogging: {
+                name: 'Rejestrowanie debugowania przy starcie',
+                desc: 'Zapisuje diagnostykę startu w pliku Markdown ze znacznikiem czasu w katalogu głównym sejfu, a następnie zatrzymuje się po ustabilizowaniu startu. Plik może być synchronizowany i zawierać ścieżki plików.'
+            },
             whatsNew: {
                 name: 'Co nowego w Notebook Navigator {version}',
                 desc: 'Zobacz najnowsze aktualizacje i ulepszenia',

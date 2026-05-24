@@ -2226,6 +2226,10 @@ export const STRINGS_KO = {
                 desc: '시작 시 새로운 플러그인 릴리스를 확인하고 업데이트가 있으면 알림을 표시합니다. 확인은 하루에 최대 한 번 수행됩니다.',
                 status: '새 버전 사용 가능: {version}'
             },
+            debugLogging: {
+                name: '시작 디버그 로그',
+                desc: '시작 진단 정보를 보관소 루트의 타임스탬프가 있는 Markdown 파일에 기록한 뒤 시작이 안정되면 중지합니다. 이 파일은 동기화될 수 있으며 파일 경로를 포함할 수 있습니다.'
+            },
             whatsNew: {
                 name: 'Notebook Navigator {version}의 새로운 기능',
                 desc: '최근 업데이트와 개선 사항 보기',

@@ -53,6 +53,17 @@ export function renderAdvancedTab(context: SettingsTabContext): void {
             );
     });
 
+    advancedGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.debugLogging.name)
+            .setDesc(strings.settings.items.debugLogging.desc)
+            .addToggle(toggle =>
+                toggle.setValue(plugin.isDebugLoggingEnabled()).onChange(value => {
+                    plugin.setDebugLoggingEnabled(value);
+                })
+            );
+    });
+
     if (!Platform.isMobile) {
         advancedGroup.addSetting(setting => {
             setting

@@ -2230,6 +2230,10 @@ export const STRINGS_ID = {
                 desc: 'Memeriksa rilis plugin baru saat startup dan menampilkan notifikasi saat pembaruan tersedia. Pemeriksaan terjadi paling banyak sekali sehari.',
                 status: 'Versi baru tersedia: {version}'
             },
+            debugLogging: {
+                name: 'Log debug saat startup',
+                desc: 'Menulis diagnostik startup ke file Markdown bertanda waktu di root vault, lalu berhenti setelah startup stabil. File dapat disinkronkan dan dapat menyertakan jalur file.'
+            },
             whatsNew: {
                 name: 'Apa yang baru di Notebook Navigator {version}',
                 desc: 'Lihat pembaruan dan peningkatan terbaru',
