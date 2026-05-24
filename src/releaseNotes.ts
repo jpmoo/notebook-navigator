@@ -94,7 +94,8 @@ const RELEASE_NOTES: ReleaseNote[] = [
         improved: [
             '**Manual sort.** **Edit sort order...** now supports keyboard navigation.',
             '**Shortcuts.** Search shortcuts can now be renamed from the shortcut context menu.'
-        ]
+        ],
+        fixed: ['**Navigation pane.** Fixed duplicated folder rows showing after folders were copied into the vault while Obsidian was open.']
     },
     {
         version: '3.0.0',
