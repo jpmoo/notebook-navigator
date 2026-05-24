@@ -432,7 +432,7 @@ export const STRINGS_AR = {
             wordCountTarget: 'عدد الكلمات المستهدف',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'عندما يكون هذا الحقل فارغًا، يستخدم هدف المجموعة خاصية الهدف المحددة في الإعدادات > الملاحظات > عدد الكلمات. يمكنك تجاوزه بتعيين قيمة هدف لهذه المجموعة.',
+                'عندما يكون هذا الحقل فارغًا، يستخدم هدف المجموعة خاصية الهدف المحددة في الإعدادات > الملاحظات > عدد الكلمات والأحرف. يمكنك تجاوزه بتعيين قيمة هدف لهذه المجموعة.',
             description: 'خصص عنوان المجموعة لهذه الملاحظة. اترك العنوان فارغًا لإزالة العنوان.'
         },
         navRainbowSection: {
@@ -488,7 +488,8 @@ export const STRINGS_AR = {
                 'nav-property': 'خاصية',
                 'nav-property-value': 'قيمة',
                 'file-unfinished-task': 'مهام غير مكتملة',
-                'file-word-count': 'عدد الكلمات'
+                'file-word-count': 'عدد الكلمات',
+                'file-character-count': 'عدد الأحرف'
             }
         },
         colorPicker: {
@@ -869,6 +870,12 @@ export const STRINGS_AR = {
         wordCount: 'عدد الكلمات'
     },
 
+    fileCounts: {
+        words: '{count} كلمة',
+        characters: '{count} حرفاً',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'تغيير الإعدادات الافتراضية',
@@ -915,7 +922,7 @@ export const STRINGS_AR = {
             tagsProperties: 'أقسام الوسوم والخصائص والأيقونات والفرز والنطاق والوراثة.',
             listPane: 'الفرز والتجميع وأوضاع القائمة والملاحظات المثبتة ومعاينات الرسومات.',
             frontmatter: 'حقول البيانات الأمامية لأسماء العرض والطوابع الزمنية والأيقونات والألوان.',
-            notes: 'العناوين ونص المعاينة والصور المميزة والوسوم والخصائص والتواريخ وعدد الكلمات.',
+            notes: 'العناوين ونص المعاينة والصور المميزة والوسوم والخصائص والتواريخ وعدد الكلمات وعدد الأحرف.',
             iconPacks: 'أيقونات الواجهة وأيقونات الملفات وإدارة حزم الأيقونات.',
             advanced: 'التشخيص وتنظيف البيانات الوصفية والاستيراد/التصدير وإعادة التعيين.'
         },
@@ -961,7 +968,7 @@ export const STRINGS_AR = {
                 properties: 'الخصائص',
                 date: 'التاريخ',
                 parentFolder: 'المجلد الأصلي',
-                wordCount: 'عدد الكلمات'
+                wordCount: 'عدد الكلمات والأحرف'
             }
         },
         syncMode: {
@@ -1671,16 +1678,30 @@ export const STRINGS_AR = {
                 name: 'إظهار الخصائص في الوضع المضغوط',
                 desc: 'عرض الخصائص عند تفعيل الوضع المضغوط.'
             },
-            showWordCount: {
-                name: 'إظهار عدد الكلمات',
-                desc: 'عرض عدد كلمات الملاحظات في عناصر الملفات.'
+            textCountDisplay: {
+                name: 'نوع العدد',
+                desc: 'اختر أي أعداد ملاحظات تظهر في عناصر الملفات.',
+                options: {
+                    none: 'لا شيء',
+                    words: 'عدد الكلمات',
+                    characters: 'عدد الأحرف',
+                    both: 'عدد الكلمات والأحرف'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'الموضع',
-                desc: 'اختر مكان ظهور عدد الكلمات.',
+                desc: 'اختر مكان ظهور أعداد الملاحظات.',
                 options: {
                     title: 'في العنوان',
                     property: 'كخاصية'
+                }
+            },
+            characterCountSpaces: {
+                name: 'عدد الأحرف',
+                desc: 'اختر ما إذا كانت المسافات تُحتسب ضمن عدد الأحرف.',
+                options: {
+                    include: 'مع المسافات',
+                    exclude: 'بدون المسافات'
                 }
             },
             wordCountTargetProperty: {

@@ -432,7 +432,7 @@ export const STRINGS_TH = {
             wordCountTarget: 'จำนวนคำเป้าหมาย',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'เมื่อช่องนี้ว่าง เป้าหมายของกลุ่มจะใช้คุณสมบัติเป้าหมายที่ตั้งไว้ใน การตั้งค่า > โน้ต > จำนวนคำ แทนที่ได้โดยตั้งค่าเป้าหมายสำหรับกลุ่มนี้',
+                'เมื่อฟิลด์นี้ว่าง เป้าหมายกลุ่มจะใช้คุณสมบัติเป้าหมายที่ตั้งไว้ใน การตั้งค่า > โน้ต > จำนวนคำและอักขระ แทนที่ได้โดยตั้งค่าเป้าหมายสำหรับกลุ่มนี้',
             description: 'ปรับแต่งส่วนหัวกลุ่มสำหรับโน้ตนี้ เว้นชื่อเรื่องว่างเพื่อนำส่วนหัวออก'
         },
         navRainbowSection: {
@@ -488,7 +488,8 @@ export const STRINGS_TH = {
                 'nav-property': 'คุณสมบัติ',
                 'nav-property-value': 'ค่า',
                 'file-unfinished-task': 'งานที่ยังไม่เสร็จ',
-                'file-word-count': 'จำนวนคำ'
+                'file-word-count': 'จำนวนคำ',
+                'file-character-count': 'จำนวนอักขระ'
             }
         },
         colorPicker: {
@@ -867,6 +868,12 @@ export const STRINGS_TH = {
         wordCount: 'จำนวนคำ'
     },
 
+    fileCounts: {
+        words: '{count} คำ',
+        characters: '{count} อักขระ',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'เปลี่ยนการตั้งค่าเริ่มต้น',
@@ -913,7 +920,7 @@ export const STRINGS_TH = {
             tagsProperties: 'ส่วนแท็กและคุณสมบัติ ไอคอน การจัดเรียง ขอบเขต และการสืบทอด',
             listPane: 'การจัดเรียง การจัดกลุ่ม โหมดรายการ โน้ตที่ปักหมุด และตัวอย่างภาพวาด',
             frontmatter: 'ฟิลด์ frontmatter สำหรับชื่อที่แสดง การประทับเวลา ไอคอน และสี',
-            notes: 'ชื่อเรื่อง ข้อความตัวอย่าง รูปภาพเด่น แท็ก คุณสมบัติ วันที่ และจำนวนคำ',
+            notes: 'ชื่อเรื่อง ข้อความตัวอย่าง รูปภาพเด่น แท็ก คุณสมบัติ วันที่ จำนวนคำ และจำนวนอักขระ',
             iconPacks: 'ไอคอนอินเทอร์เฟซ ไอคอนไฟล์ และการจัดการชุดไอคอน',
             advanced: 'การวินิจฉัย การล้างข้อมูลเมตา การนำเข้า/ส่งออก และการรีเซ็ต'
         },
@@ -959,7 +966,7 @@ export const STRINGS_TH = {
                 properties: 'คุณสมบัติ',
                 date: 'วันที่',
                 parentFolder: 'โฟลเดอร์หลัก',
-                wordCount: 'จำนวนคำ'
+                wordCount: 'จำนวนคำและอักขระ'
             }
         },
         syncMode: {
@@ -1670,16 +1677,30 @@ export const STRINGS_TH = {
                 name: 'แสดงคุณสมบัติในโหมดกะทัดรัด',
                 desc: 'แสดงคุณสมบัติเมื่อโหมดกะทัดรัดเปิดใช้งาน'
             },
-            showWordCount: {
-                name: 'แสดงจำนวนคำ',
-                desc: 'แสดงจำนวนคำของโน้ตในรายการไฟล์'
+            textCountDisplay: {
+                name: 'ประเภทการนับ',
+                desc: 'เลือกจำนวนของโน้ตที่จะแสดงในรายการไฟล์',
+                options: {
+                    none: 'ไม่มี',
+                    words: 'จำนวนคำ',
+                    characters: 'จำนวนอักขระ',
+                    both: 'จำนวนคำและอักขระ'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'ตำแหน่ง',
-                desc: 'เลือกตำแหน่งที่จำนวนคำจะแสดง',
+                desc: 'เลือกตำแหน่งที่จะแสดงจำนวนของโน้ต',
                 options: {
                     title: 'ในชื่อเรื่อง',
                     property: 'เป็นคุณสมบัติ'
+                }
+            },
+            characterCountSpaces: {
+                name: 'จำนวนอักขระ',
+                desc: 'เลือกว่าจะนับช่องว่างรวมในจำนวนอักขระหรือไม่',
+                options: {
+                    include: 'รวมช่องว่าง',
+                    exclude: 'ไม่รวมช่องว่าง'
                 }
             },
             wordCountTargetProperty: {

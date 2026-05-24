@@ -433,7 +433,7 @@ export const STRINGS_JA = {
             wordCountTarget: '目標ワード数',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'このフィールドが空の場合、グループ目標には設定 > ノート > ワード数で設定した目標プロパティが使われます。このグループに目標値を設定すると上書きできます。',
+                'このフィールドが空の場合、グループ目標は 設定 > ノート > 単語数と文字数 で設定された目標プロパティを使用します。このグループに目標値を設定すると上書きできます。',
             description: 'このノートのグループヘッダーをカスタマイズします。ヘッダーを削除するには、タイトルを空のままにします。'
         },
         navRainbowSection: {
@@ -489,7 +489,8 @@ export const STRINGS_JA = {
                 'nav-property': 'プロパティ',
                 'nav-property-value': '値',
                 'file-unfinished-task': '未完了タスク',
-                'file-word-count': '単語数'
+                'file-word-count': '単語数',
+                'file-character-count': '文字数'
             }
         },
         colorPicker: {
@@ -871,6 +872,12 @@ export const STRINGS_JA = {
         wordCount: '単語数'
     },
 
+    fileCounts: {
+        words: '{count} 語',
+        characters: '{count} 文字',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'デフォルト設定を変更',
@@ -917,7 +924,7 @@ export const STRINGS_JA = {
             tagsProperties: 'タグとプロパティのセクション、アイコン、並べ替え、スコープ、継承。',
             listPane: '並べ替え、グループ化、リストモード、ピン留めされたノート、描画プレビュー。',
             frontmatter: '表示名、タイムスタンプ、アイコン、色のフロントマターフィールド。',
-            notes: 'タイトル、プレビューテキスト、アイキャッチ画像、タグ、プロパティ、日付、単語数。',
+            notes: 'タイトル、プレビューテキスト、アイキャッチ画像、タグ、プロパティ、日付、単語数、文字数。',
             iconPacks: 'インターフェースアイコン、ファイルアイコン、アイコンパック管理。',
             advanced: '診断、メタデータのクリーンアップ、インポート/エクスポート、リセット。'
         },
@@ -963,7 +970,7 @@ export const STRINGS_JA = {
                 properties: 'プロパティ',
                 date: '日付',
                 parentFolder: '親フォルダ',
-                wordCount: '単語数'
+                wordCount: '単語数と文字数'
             }
         },
         syncMode: {
@@ -1674,16 +1681,30 @@ export const STRINGS_JA = {
                 name: 'コンパクトモードでプロパティを表示',
                 desc: 'コンパクトモードが有効な時にプロパティを表示します。'
             },
-            showWordCount: {
-                name: '単語数を表示',
-                desc: 'ファイル項目にノートの単語数を表示します。'
+            textCountDisplay: {
+                name: 'カウントの種類',
+                desc: 'ファイル項目に表示するノートのカウントを選択します。',
+                options: {
+                    none: 'なし',
+                    words: '単語数',
+                    characters: '文字数',
+                    both: '単語数と文字数'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: '配置',
-                desc: '単語数を表示する場所を選択します。',
+                desc: 'ノートのカウントを表示する場所を選択します。',
                 options: {
                     title: 'タイトル内',
                     property: 'プロパティとして'
+                }
+            },
+            characterCountSpaces: {
+                name: '文字数',
+                desc: '文字数にスペースを含めるかを選択します。',
+                options: {
+                    include: 'スペースを含む',
+                    exclude: 'スペースを除く'
                 }
             },
             wordCountTargetProperty: {

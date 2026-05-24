@@ -432,7 +432,7 @@ export const STRINGS_KO = {
             wordCountTarget: '목표 단어 수',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                '이 필드가 비어 있으면 그룹 목표는 설정 > 노트 > 단어 수에서 설정한 목표 속성을 사용합니다. 이 그룹의 목표값을 설정하면 재정의할 수 있습니다.',
+                '이 필드가 비어 있으면 그룹 목표는 설정 > 노트 > 단어 및 문자 수에 설정된 목표 속성을 사용합니다. 이 그룹의 목표 값을 설정하여 재정의하세요.',
             description: '이 노트의 그룹 머리글을 사용자 지정합니다. 머리글을 제거하려면 제목을 비워 두세요.'
         },
         navRainbowSection: {
@@ -488,7 +488,8 @@ export const STRINGS_KO = {
                 'nav-property': '속성',
                 'nav-property-value': '값',
                 'file-unfinished-task': '미완료 작업',
-                'file-word-count': '단어 수'
+                'file-word-count': '단어 수',
+                'file-character-count': '문자 수'
             }
         },
         colorPicker: {
@@ -871,6 +872,12 @@ export const STRINGS_KO = {
         wordCount: '단어 수'
     },
 
+    fileCounts: {
+        words: '{count}개 단어',
+        characters: '{count}자',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: '기본 설정 변경',
@@ -917,7 +924,7 @@ export const STRINGS_KO = {
             tagsProperties: '태그 및 속성 섹션, 아이콘, 정렬, 범위 및 상속.',
             listPane: '정렬, 그룹화, 목록 모드, 고정된 노트 및 그림 미리보기.',
             frontmatter: '표시 이름, 타임스탬프, 아이콘, 색상에 대한 프런트매터 필드.',
-            notes: '제목, 미리보기 텍스트, 대표 이미지, 태그, 속성, 날짜 및 단어 수.',
+            notes: '제목, 미리보기 텍스트, 대표 이미지, 태그, 속성, 날짜, 단어 수 및 문자 수.',
             iconPacks: '인터페이스 아이콘, 파일 아이콘 및 아이콘 팩 관리.',
             advanced: '진단, 메타데이터 정리, 가져오기/내보내기 및 초기화.'
         },
@@ -963,7 +970,7 @@ export const STRINGS_KO = {
                 properties: '속성',
                 date: '날짜',
                 parentFolder: '상위 폴더',
-                wordCount: '단어 수'
+                wordCount: '단어 및 문자 수'
             }
         },
         syncMode: {
@@ -1673,16 +1680,30 @@ export const STRINGS_KO = {
                 name: '간결 모드에서 속성 표시',
                 desc: '간결 모드가 활성화되면 속성을 표시합니다.'
             },
-            showWordCount: {
-                name: '단어 수 표시',
-                desc: '파일 항목에 노트 단어 수를 표시합니다.'
-            },
-            wordCountPlacement: {
-                name: '위치',
-                desc: '단어 수가 표시될 위치를 선택합니다.',
+            textCountDisplay: {
+                name: '카운트 유형',
+                desc: '파일 항목에 표시할 노트 카운트를 선택합니다.',
                 options: {
-                    title: '제목에 표시',
-                    property: '속성으로 표시'
+                    none: '없음',
+                    words: '단어 수',
+                    characters: '문자 수',
+                    both: '단어 및 문자 수'
+                }
+            },
+            textCountPlacement: {
+                name: '배치',
+                desc: '노트 카운트가 표시될 위치를 선택합니다.',
+                options: {
+                    title: '제목 안',
+                    property: '속성으로'
+                }
+            },
+            characterCountSpaces: {
+                name: '문자 수',
+                desc: '문자 수에 공백을 포함할지 선택합니다.',
+                options: {
+                    include: '공백 포함',
+                    exclude: '공백 제외'
                 }
             },
             wordCountTargetProperty: {

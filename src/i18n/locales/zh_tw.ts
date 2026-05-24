@@ -431,7 +431,8 @@ export const STRINGS_ZH_TW = {
             wordCount: '顯示字數',
             wordCountTarget: '目標字數',
             wordCountTargetPlaceholder: '10,000',
-            wordCountTargetDescription: '此欄位為空時，群組目標會使用「設定 > 筆記 > 字數」中設定的目標屬性。為此群組設定目標值即可覆寫。',
+            wordCountTargetDescription:
+                '此欄位為空時，群組目標會使用「設定 > 筆記 > 字數與字元數」中設定的目標屬性。為此群組設定目標值即可覆寫。',
             description: '為此筆記自訂群組標題。將標題留空以移除標題。'
         },
         navRainbowSection: {
@@ -487,7 +488,8 @@ export const STRINGS_ZH_TW = {
                 'nav-property': '屬性',
                 'nav-property-value': '值',
                 'file-unfinished-task': '未完成任務',
-                'file-word-count': '字數統計'
+                'file-word-count': '字數統計',
+                'file-character-count': '字元數'
             }
         },
         colorPicker: {
@@ -863,6 +865,12 @@ export const STRINGS_ZH_TW = {
         wordCount: '字數'
     },
 
+    fileCounts: {
+        words: '{count} 個詞',
+        characters: '{count} 個字元',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: '變更預設設定',
@@ -909,7 +917,7 @@ export const STRINGS_ZH_TW = {
             tagsProperties: '標籤與屬性區段、圖示、排序、範圍與繼承。',
             listPane: '排序、群組、列表模式、釘選筆記與繪圖預覽。',
             frontmatter: '用於顯示名稱、時間戳記、圖示與顏色的前置中繼資料欄位。',
-            notes: '標題、預覽文字、特色圖片、標籤、屬性、日期與字數。',
+            notes: '標題、預覽文字、特色圖片、標籤、屬性、日期、字數與字元數。',
             iconPacks: '介面圖示、檔案圖示與圖示包管理。',
             advanced: '診斷、中繼資料清理、匯入/匯出與重設。'
         },
@@ -955,7 +963,7 @@ export const STRINGS_ZH_TW = {
                 properties: '屬性',
                 date: '日期',
                 parentFolder: '父資料夾',
-                wordCount: '字數'
+                wordCount: '字數與字元數'
             }
         },
         syncMode: {
@@ -1661,16 +1669,30 @@ export const STRINGS_ZH_TW = {
                 name: '在精簡模式中顯示屬性',
                 desc: '精簡模式啟用時顯示屬性。'
             },
-            showWordCount: {
-                name: '顯示字數',
-                desc: '在檔案項目中顯示筆記字數。'
+            textCountDisplay: {
+                name: '計數類型',
+                desc: '選擇檔案項目中要顯示哪些筆記計數。',
+                options: {
+                    none: '無',
+                    words: '字數',
+                    characters: '字元數',
+                    both: '字數與字元數'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: '位置',
-                desc: '選擇字數的顯示位置。',
+                desc: '選擇筆記計數的顯示位置。',
                 options: {
                     title: '在標題中',
                     property: '作為屬性'
+                }
+            },
+            characterCountSpaces: {
+                name: '字元數',
+                desc: '選擇字元數是否包含空格。',
+                options: {
+                    include: '包含空格',
+                    exclude: '不含空格'
                 }
             },
             wordCountTargetProperty: {

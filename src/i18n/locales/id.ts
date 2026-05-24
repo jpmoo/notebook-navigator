@@ -434,7 +434,7 @@ export const STRINGS_ID = {
             wordCountTarget: 'Target jumlah kata',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'Saat bidang ini kosong, target grup menggunakan properti target yang diatur di Pengaturan > Catatan > Jumlah kata. Timpa dengan menetapkan nilai target untuk grup ini.',
+                'Saat bidang ini kosong, target grup menggunakan properti target yang diatur di Pengaturan > Catatan > Jumlah kata dan karakter. Timpa dengan menetapkan nilai target untuk grup ini.',
             description: 'Sesuaikan header grup untuk catatan ini. Biarkan judul kosong untuk menghapus header.'
         },
         navRainbowSection: {
@@ -490,7 +490,8 @@ export const STRINGS_ID = {
                 'nav-property': 'Properti',
                 'nav-property-value': 'Nilai',
                 'file-unfinished-task': 'Tugas belum selesai',
-                'file-word-count': 'Jumlah kata'
+                'file-word-count': 'Jumlah kata',
+                'file-character-count': 'Jumlah karakter'
             }
         },
         colorPicker: {
@@ -872,6 +873,12 @@ export const STRINGS_ID = {
         wordCount: 'Jumlah kata'
     },
 
+    fileCounts: {
+        words: '{count} kata',
+        characters: '{count} karakter',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Ubah pengaturan default',
@@ -918,7 +925,7 @@ export const STRINGS_ID = {
             tagsProperties: 'Bagian tag dan properti, ikon, pengurutan, cakupan, dan pewarisan.',
             listPane: 'Pengurutan, pengelompokan, mode daftar, catatan yang disematkan, dan pratinjau gambar.',
             frontmatter: 'Bidang frontmatter untuk nama tampilan, stempel waktu, ikon, dan warna.',
-            notes: 'Judul, teks pratinjau, gambar fitur, tag, properti, tanggal, dan jumlah kata.',
+            notes: 'Judul, teks pratinjau, gambar fitur, tag, properti, tanggal, jumlah kata, dan jumlah karakter.',
             iconPacks: 'Ikon antarmuka, ikon file, dan manajemen paket ikon.',
             advanced: 'Diagnostik, pembersihan metadata, impor/ekspor, dan reset.'
         },
@@ -964,7 +971,7 @@ export const STRINGS_ID = {
                 properties: 'Properti',
                 date: 'Tanggal',
                 parentFolder: 'Folder induk',
-                wordCount: 'Jumlah kata'
+                wordCount: 'Jumlah kata dan karakter'
             }
         },
         syncMode: {
@@ -1676,16 +1683,30 @@ export const STRINGS_ID = {
                 name: 'Tampilkan properti dalam mode kompak',
                 desc: 'Tampilkan properti saat mode kompak aktif.'
             },
-            showWordCount: {
-                name: 'Tampilkan jumlah kata',
-                desc: 'Tampilkan jumlah kata catatan pada item file.'
+            textCountDisplay: {
+                name: 'Jenis hitungan',
+                desc: 'Pilih hitungan catatan yang muncul di item file.',
+                options: {
+                    none: 'Tidak ada',
+                    words: 'Jumlah kata',
+                    characters: 'Jumlah karakter',
+                    both: 'Jumlah kata dan karakter'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'Penempatan',
-                desc: 'Pilih tempat jumlah kata muncul.',
+                desc: 'Pilih tempat hitungan catatan muncul.',
                 options: {
                     title: 'Di judul',
                     property: 'Sebagai properti'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Jumlah karakter',
+                desc: 'Pilih apakah spasi disertakan dalam jumlah karakter.',
+                options: {
+                    include: 'Termasuk spasi',
+                    exclude: 'Tanpa spasi'
                 }
             },
             wordCountTargetProperty: {

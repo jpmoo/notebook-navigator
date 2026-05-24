@@ -434,7 +434,7 @@ export const STRINGS_ES = {
             wordCountTarget: 'Recuento de palabras objetivo',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'Cuando este campo está vacío, el objetivo del grupo usa la propiedad objetivo definida en Ajustes > Notas > Recuento de palabras. Sobrescríbelo definiendo un valor objetivo para este grupo.',
+                'Cuando este campo está vacío, el objetivo del grupo usa la propiedad de objetivo configurada en Ajustes > Notas > Recuento de palabras y caracteres. Sobrescríbelo definiendo un valor objetivo para este grupo.',
             description: 'Personaliza el encabezado de grupo para esta nota. Deja el título vacío para eliminar el encabezado.'
         },
         navRainbowSection: {
@@ -490,7 +490,8 @@ export const STRINGS_ES = {
                 'nav-property': 'Propiedad',
                 'nav-property-value': 'Valor',
                 'file-unfinished-task': 'Tareas pendientes',
-                'file-word-count': 'Conteo de palabras'
+                'file-word-count': 'Conteo de palabras',
+                'file-character-count': 'Recuento de caracteres'
             }
         },
         colorPicker: {
@@ -873,6 +874,12 @@ export const STRINGS_ES = {
         wordCount: 'Recuento de palabras'
     },
 
+    fileCounts: {
+        words: '{count} palabras',
+        characters: '{count} caracteres',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Cambiar ajustes predeterminados',
@@ -919,7 +926,7 @@ export const STRINGS_ES = {
             tagsProperties: 'Secciones de etiquetas y propiedades, iconos, ordenación, alcance y herencia.',
             listPane: 'Ordenación, agrupación, modos de lista, notas fijadas y vistas previas de dibujos.',
             frontmatter: 'Campos de frontmatter para nombres mostrados, marcas de tiempo, iconos y colores.',
-            notes: 'Títulos, texto de vista previa, imágenes destacadas, etiquetas, propiedades, fechas y recuento de palabras.',
+            notes: 'Títulos, texto de vista previa, imágenes destacadas, etiquetas, propiedades, fechas, recuento de palabras y recuento de caracteres.',
             iconPacks: 'Iconos de interfaz, iconos de archivos y gestión de paquetes de iconos.',
             advanced: 'Diagnósticos, limpieza de metadatos, importación/exportación y restablecimiento.'
         },
@@ -965,7 +972,7 @@ export const STRINGS_ES = {
                 properties: 'Propiedades',
                 date: 'Fecha',
                 parentFolder: 'Carpeta superior',
-                wordCount: 'Recuento de palabras'
+                wordCount: 'Recuento de palabras y caracteres'
             }
         },
         syncMode: {
@@ -1679,16 +1686,30 @@ export const STRINGS_ES = {
                 name: 'Mostrar propiedades en modo compacto',
                 desc: 'Mostrar propiedades cuando el modo compacto está activo.'
             },
-            showWordCount: {
-                name: 'Mostrar recuento de palabras',
-                desc: 'Mostrar recuentos de palabras de notas en los elementos de archivo.'
+            textCountDisplay: {
+                name: 'Tipo de recuento',
+                desc: 'Elige qué recuentos de notas aparecen en los elementos de archivo.',
+                options: {
+                    none: 'Ninguno',
+                    words: 'Recuento de palabras',
+                    characters: 'Recuento de caracteres',
+                    both: 'Recuento de palabras y caracteres'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'Ubicación',
-                desc: 'Elija dónde aparecen los recuentos de palabras.',
+                desc: 'Elige dónde aparecen los recuentos de notas.',
                 options: {
                     title: 'En el título',
                     property: 'Como propiedad'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Recuento de caracteres',
+                desc: 'Elige si los espacios se incluyen en el recuento de caracteres.',
+                options: {
+                    include: 'Incluyendo espacios',
+                    exclude: 'Excluyendo espacios'
                 }
             },
             wordCountTargetProperty: {

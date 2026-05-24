@@ -435,7 +435,7 @@ export const STRINGS_PT_BR = {
             wordCountTarget: 'Contagem de palavras alvo',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'Quando este campo estiver vazio, a meta do grupo usa a propriedade de meta definida em Configurações > Notas > Contagem de palavras. Substitua-a definindo um valor de meta para este grupo.',
+                'Quando este campo está vazio, a meta do grupo usa a propriedade de meta definida em Configurações > Notas > Contagem de palavras e caracteres. Substitua definindo um valor de meta para este grupo.',
             description: 'Personalize o cabeçalho de grupo para esta nota. Deixe o título em branco para remover o cabeçalho.'
         },
         navRainbowSection: {
@@ -491,7 +491,8 @@ export const STRINGS_PT_BR = {
                 'nav-property': 'Propriedade',
                 'nav-property-value': 'Valor',
                 'file-unfinished-task': 'Tarefas inacabadas',
-                'file-word-count': 'Contagem de palavras'
+                'file-word-count': 'Contagem de palavras',
+                'file-character-count': 'Contagem de caracteres'
             }
         },
         colorPicker: {
@@ -874,6 +875,12 @@ export const STRINGS_PT_BR = {
         wordCount: 'Contagem de palavras'
     },
 
+    fileCounts: {
+        words: '{count} palavras',
+        characters: '{count} caracteres',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Alterar configurações padrão',
@@ -920,7 +927,7 @@ export const STRINGS_PT_BR = {
             tagsProperties: 'Seções de tags e propriedades, ícones, classificação, escopo e herança.',
             listPane: 'Classificação, agrupamento, modos de lista, notas fixadas e pré-visualizações de desenhos.',
             frontmatter: 'Campos de frontmatter para nomes de exibição, carimbos de data/hora, ícones e cores.',
-            notes: 'Títulos, texto de pré-visualização, imagens de destaque, tags, propriedades, datas e contagem de palavras.',
+            notes: 'Títulos, texto de pré-visualização, imagens de destaque, tags, propriedades, datas, contagem de palavras e contagem de caracteres.',
             iconPacks: 'Ícones de interface, ícones de arquivo e gerenciamento de pacotes de ícones.',
             advanced: 'Diagnóstico, limpeza de metadados, importação/exportação e redefinição.'
         },
@@ -966,7 +973,7 @@ export const STRINGS_PT_BR = {
                 properties: 'Propriedades',
                 date: 'Data',
                 parentFolder: 'Pasta superior',
-                wordCount: 'Contagem de palavras'
+                wordCount: 'Contagem de palavras e caracteres'
             }
         },
         syncMode: {
@@ -1680,16 +1687,30 @@ export const STRINGS_PT_BR = {
                 name: 'Mostrar propriedades no modo compacto',
                 desc: 'Exibir propriedades quando o modo compacto está ativo.'
             },
-            showWordCount: {
-                name: 'Mostrar contagem de palavras',
-                desc: 'Mostrar contagens de palavras das notas nos itens de arquivo.'
+            textCountDisplay: {
+                name: 'Tipo de contagem',
+                desc: 'Escolha quais contagens da nota aparecem nos itens de arquivo.',
+                options: {
+                    none: 'Nenhuma',
+                    words: 'Contagem de palavras',
+                    characters: 'Contagem de caracteres',
+                    both: 'Contagem de palavras e caracteres'
+                }
             },
-            wordCountPlacement: {
-                name: 'Posição',
-                desc: 'Escolha onde as contagens de palavras aparecem.',
+            textCountPlacement: {
+                name: 'Posicionamento',
+                desc: 'Escolha onde as contagens da nota aparecem.',
                 options: {
                     title: 'No título',
                     property: 'Como propriedade'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Contagem de caracteres',
+                desc: 'Escolha se os espaços são incluídos na contagem de caracteres.',
+                options: {
+                    include: 'Incluindo espaços',
+                    exclude: 'Excluindo espaços'
                 }
             },
             wordCountTargetProperty: {

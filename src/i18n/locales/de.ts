@@ -434,7 +434,7 @@ export const STRINGS_DE = {
             wordCountTarget: 'Zielwortzahl',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'Wenn dieses Feld leer ist, verwendet das Gruppenziel die Zieleigenschaft aus Einstellungen > Notizen > Wortzahl. Überschreiben Sie sie, indem Sie einen Zielwert für diese Gruppe festlegen.',
+                'Wenn dieses Feld leer ist, verwendet das Gruppenziel die Zieleigenschaft aus Einstellungen > Notizen > Wort- und Zeichenanzahl. Überschreiben Sie sie, indem Sie einen Zielwert für diese Gruppe festlegen.',
             description: 'Passen Sie die Gruppenüberschrift für diese Notiz an. Lassen Sie den Titel leer, um die Überschrift zu entfernen.'
         },
         navRainbowSection: {
@@ -490,7 +490,8 @@ export const STRINGS_DE = {
                 'nav-property': 'Eigenschaft',
                 'nav-property-value': 'Wert',
                 'file-unfinished-task': 'Unerledigte Aufgaben',
-                'file-word-count': 'Wortanzahl'
+                'file-word-count': 'Wortanzahl',
+                'file-character-count': 'Zeichenanzahl'
             }
         },
         colorPicker: {
@@ -873,6 +874,12 @@ export const STRINGS_DE = {
         wordCount: 'Wortanzahl'
     },
 
+    fileCounts: {
+        words: '{count} Wörter',
+        characters: '{count} Zeichen',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Standardeinstellungen ändern',
@@ -919,7 +926,7 @@ export const STRINGS_DE = {
             tagsProperties: 'Tag- und Eigenschaftsbereiche, Symbole, Sortierung, Geltungsbereich und Vererbung.',
             listPane: 'Sortierung, Gruppierung, Listenmodi, angeheftete Notizen und Zeichnungsvorschauen.',
             frontmatter: 'Frontmatter-Felder für Anzeigenamen, Zeitstempel, Symbole und Farben.',
-            notes: 'Titel, Vorschautext, Hauptbilder, Tags, Eigenschaften, Daten und Wortanzahl.',
+            notes: 'Titel, Vorschautext, Hauptbilder, Tags, Eigenschaften, Daten, Wortanzahlen und Zeichenanzahlen.',
             iconPacks: 'Oberflächensymbole, Dateisymbole und Icon-Paket-Verwaltung.',
             advanced: 'Diagnose, Metadatenbereinigung, Import/Export und Zurücksetzen.'
         },
@@ -965,7 +972,7 @@ export const STRINGS_DE = {
                 properties: 'Eigenschaften',
                 date: 'Datum',
                 parentFolder: 'Übergeordneter Ordner',
-                wordCount: 'Wortanzahl'
+                wordCount: 'Wort- und Zeichenanzahl'
             }
         },
         syncMode: {
@@ -1679,16 +1686,30 @@ export const STRINGS_DE = {
                 name: 'Eigenschaften im Kompaktmodus anzeigen',
                 desc: 'Eigenschaften anzeigen, wenn der Kompaktmodus aktiv ist.'
             },
-            showWordCount: {
-                name: 'Wortanzahl anzeigen',
-                desc: 'Wortanzahlen von Notizen in Dateielementen anzeigen.'
+            textCountDisplay: {
+                name: 'Zähltyp',
+                desc: 'Wählen Sie, welche Notizzählungen in Dateielementen angezeigt werden.',
+                options: {
+                    none: 'Keine',
+                    words: 'Wortanzahl',
+                    characters: 'Zeichenanzahl',
+                    both: 'Wort- und Zeichenanzahl'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'Platzierung',
-                desc: 'Wählen Sie, wo Wortanzahlen angezeigt werden.',
+                desc: 'Wählen Sie, wo Notizzählungen angezeigt werden.',
                 options: {
                     title: 'Im Titel',
                     property: 'Als Eigenschaft'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Zeichenanzahl',
+                desc: 'Wählen Sie, ob Leerzeichen in der Zeichenanzahl enthalten sind.',
+                options: {
+                    include: 'Mit Leerzeichen',
+                    exclude: 'Ohne Leerzeichen'
                 }
             },
             wordCountTargetProperty: {

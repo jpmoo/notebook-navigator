@@ -85,13 +85,13 @@ const RELEASE_NOTES: ReleaseNote[] = [
         date: '2026-05-26',
         showOnUpdate: true,
         new: [
-            '**Debugging.** New Advanced setting **Startup debug logging** records startup diagnostics in a timestamped markdown file at the vault root and stops after startup settles. This is useful if startup takes longer than expected on your devices.'
+            '**List pane.** ==Files can show character counts==, with or without spaces. Enable it in Settings > Notes > Word and character count.',
+            '**Debugging.** New setting **Startup debug logging**. Enable this in Advanced settings if you experience slow startup times, then upload the debug file to our GitHub page.'
         ],
         changed: [
             '**Settings.** Settings structure was rewritten for easier navigation. You can now navigate to all sub pages from the first settings page.'
         ],
         improved: [
-            '**List pane.** File items can show character counts, with or without spaces, from Settings > Notes > Word and character count.',
             '**Manual sort.** **Edit sort order...** now supports keyboard navigation.',
             '**Shortcuts.** Search shortcuts can now be renamed from the shortcut context menu.'
         ]

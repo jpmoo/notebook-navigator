@@ -434,7 +434,7 @@ export const STRINGS_TR = {
             wordCountTarget: 'Hedef kelime sayısı',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'Bu alan boş olduğunda, grup hedefi Ayarlar > Notlar > Kelime sayısı bölümünde ayarlanan hedef özelliğini kullanır. Bu grup için bir hedef değeri ayarlayarak geçersiz kılın.',
+                'Bu alan boş olduğunda grup hedefi, Ayarlar > Notlar > Kelime ve karakter sayısı içinde ayarlanan hedef özelliğini kullanır. Bu grup için bir hedef değeri ayarlayarak geçersiz kılın.',
             description: 'Bu not için grup başlığını özelleştirin. Başlığı kaldırmak için başlığı boş bırakın.'
         },
         navRainbowSection: {
@@ -490,7 +490,8 @@ export const STRINGS_TR = {
                 'nav-property': 'Özellik',
                 'nav-property-value': 'Değer',
                 'file-unfinished-task': 'Tamamlanmamış görevler',
-                'file-word-count': 'Kelime sayısı'
+                'file-word-count': 'Kelime sayısı',
+                'file-character-count': 'Karakter sayısı'
             }
         },
         colorPicker: {
@@ -872,6 +873,12 @@ export const STRINGS_TR = {
         wordCount: 'Kelime sayısı'
     },
 
+    fileCounts: {
+        words: '{count} kelime',
+        characters: '{count} karakter',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Varsayılan ayarları değiştir',
@@ -918,7 +925,7 @@ export const STRINGS_TR = {
             tagsProperties: 'Etiket ve özellik bölümleri, simgeler, sıralama, kapsam ve kalıtım.',
             listPane: 'Sıralama, gruplama, liste modları, sabitlenmiş notlar ve çizim önizlemeleri.',
             frontmatter: 'Görüntülenen adlar, zaman damgaları, simgeler ve renkler için frontmatter alanları.',
-            notes: 'Başlıklar, önizleme metni, öne çıkan görseller, etiketler, özellikler, tarihler ve kelime sayıları.',
+            notes: 'Başlıklar, önizleme metni, öne çıkan görseller, etiketler, özellikler, tarihler, kelime sayıları ve karakter sayıları.',
             iconPacks: 'Arayüz simgeleri, dosya simgeleri ve simge paketi yönetimi.',
             advanced: 'Tanılama, meta veri temizliği, içe/dışa aktarma ve sıfırlama.'
         },
@@ -964,7 +971,7 @@ export const STRINGS_TR = {
                 properties: 'Özellikler',
                 date: 'Tarih',
                 parentFolder: 'Üst klasör',
-                wordCount: 'Kelime sayısı'
+                wordCount: 'Kelime ve karakter sayısı'
             }
         },
         syncMode: {
@@ -1675,16 +1682,30 @@ export const STRINGS_TR = {
                 name: 'Kompakt modda özellikleri göster',
                 desc: 'Kompakt mod etkinken özellikleri görüntüle.'
             },
-            showWordCount: {
-                name: 'Kelime sayısını göster',
-                desc: 'Dosya öğelerinde notların kelime sayısını göster.'
+            textCountDisplay: {
+                name: 'Sayım türü',
+                desc: 'Dosya öğelerinde hangi not sayımlarının görüneceğini seçin.',
+                options: {
+                    none: 'Yok',
+                    words: 'Kelime sayısı',
+                    characters: 'Karakter sayısı',
+                    both: 'Kelime ve karakter sayısı'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'Yerleşim',
-                desc: 'Kelime sayılarının nerede görüneceğini seçin.',
+                desc: 'Not sayımlarının nerede görüneceğini seçin.',
                 options: {
                     title: 'Başlıkta',
                     property: 'Özellik olarak'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Karakter sayısı',
+                desc: 'Karakter sayısına boşlukların dahil edilip edilmeyeceğini seçin.',
+                options: {
+                    include: 'Boşluklar dahil',
+                    exclude: 'Boşluklar hariç'
                 }
             },
             wordCountTargetProperty: {

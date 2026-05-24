@@ -433,7 +433,7 @@ export const STRINGS_VI = {
             wordCountTarget: 'Số từ mục tiêu',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'Khi trường này để trống, mục tiêu nhóm dùng thuộc tính mục tiêu được đặt trong Cài đặt > Ghi chú > Số từ. Ghi đè bằng cách đặt giá trị mục tiêu cho nhóm này.',
+                'Khi trường này trống, mục tiêu nhóm dùng thuộc tính mục tiêu được đặt trong Cài đặt > Ghi chú > Số từ và ký tự. Ghi đè bằng cách đặt giá trị mục tiêu cho nhóm này.',
             description: 'Tùy chỉnh header nhóm cho ghi chú này. Để trống tiêu đề để xóa header.'
         },
         navRainbowSection: {
@@ -489,7 +489,8 @@ export const STRINGS_VI = {
                 'nav-property': 'Thuộc tính',
                 'nav-property-value': 'Giá trị',
                 'file-unfinished-task': 'Nhiệm vụ chưa hoàn thành',
-                'file-word-count': 'Số từ'
+                'file-word-count': 'Số từ',
+                'file-character-count': 'Số ký tự'
             }
         },
         colorPicker: {
@@ -873,6 +874,12 @@ export const STRINGS_VI = {
         wordCount: 'Số từ'
     },
 
+    fileCounts: {
+        words: '{count} từ',
+        characters: '{count} ký tự',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Thay đổi cài đặt mặc định',
@@ -919,7 +926,7 @@ export const STRINGS_VI = {
             tagsProperties: 'Phần thẻ và thuộc tính, biểu tượng, sắp xếp, phạm vi và kế thừa.',
             listPane: 'Sắp xếp, nhóm, chế độ danh sách, ghi chú đã ghim và xem trước bản vẽ.',
             frontmatter: 'Trường frontmatter cho tên hiển thị, dấu thời gian, biểu tượng và màu sắc.',
-            notes: 'Tiêu đề, văn bản xem trước, hình ảnh nổi bật, thẻ, thuộc tính, ngày và số từ.',
+            notes: 'Tiêu đề, văn bản xem trước, hình ảnh nổi bật, thẻ, thuộc tính, ngày, số từ và số ký tự.',
             iconPacks: 'Biểu tượng giao diện, biểu tượng tệp và quản lý gói biểu tượng.',
             advanced: 'Chẩn đoán, dọn dẹp metadata, nhập/xuất và đặt lại.'
         },
@@ -965,7 +972,7 @@ export const STRINGS_VI = {
                 properties: 'Thuộc tính',
                 date: 'Ngày',
                 parentFolder: 'Thư mục cha',
-                wordCount: 'Số từ'
+                wordCount: 'Số từ và ký tự'
             }
         },
         syncMode: {
@@ -1676,16 +1683,30 @@ export const STRINGS_VI = {
                 name: 'Hiện thuộc tính ở chế độ gọn',
                 desc: 'Hiển thị thuộc tính khi chế độ gọn đang hoạt động.'
             },
-            showWordCount: {
-                name: 'Hiển thị số từ',
-                desc: 'Hiển thị số từ của ghi chú trong các mục tệp.'
+            textCountDisplay: {
+                name: 'Loại bộ đếm',
+                desc: 'Chọn số liệu ghi chú xuất hiện trong mục tệp.',
+                options: {
+                    none: 'Không',
+                    words: 'Số từ',
+                    characters: 'Số ký tự',
+                    both: 'Số từ và ký tự'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'Vị trí',
-                desc: 'Chọn nơi hiển thị số từ.',
+                desc: 'Chọn nơi hiển thị số liệu ghi chú.',
                 options: {
                     title: 'Trong tiêu đề',
                     property: 'Dưới dạng thuộc tính'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Số ký tự',
+                desc: 'Chọn có tính khoảng trắng trong số ký tự hay không.',
+                options: {
+                    include: 'Bao gồm khoảng trắng',
+                    exclude: 'Không bao gồm khoảng trắng'
                 }
             },
             wordCountTargetProperty: {

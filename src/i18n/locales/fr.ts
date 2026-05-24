@@ -435,7 +435,7 @@ export const STRINGS_FR = {
             wordCountTarget: 'Nombre de mots cible',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                "Lorsque ce champ est vide, l'objectif du groupe utilise la propriété cible définie dans Paramètres > Notes > Nombre de mots. Remplacez-la en définissant une valeur cible pour ce groupe.",
+                'Lorsque ce champ est vide, l’objectif du groupe utilise la propriété cible définie dans Réglages > Notes > Nombre de mots et de caractères. Remplacez-la en définissant une valeur cible pour ce groupe.',
             description: "Personnalisez l'en-tête de groupe pour cette note. Laissez le titre vide pour supprimer l'en-tête."
         },
         navRainbowSection: {
@@ -491,7 +491,8 @@ export const STRINGS_FR = {
                 'nav-property': 'Propriété',
                 'nav-property-value': 'Valeur',
                 'file-unfinished-task': 'Tâches inachevées',
-                'file-word-count': 'Nombre de mots'
+                'file-word-count': 'Nombre de mots',
+                'file-character-count': 'Nombre de caractères'
             }
         },
         colorPicker: {
@@ -875,6 +876,12 @@ export const STRINGS_FR = {
         wordCount: 'Nombre de mots'
     },
 
+    fileCounts: {
+        words: '{count} mots',
+        characters: '{count} caractères',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Modifier les paramètres par défaut',
@@ -921,7 +928,7 @@ export const STRINGS_FR = {
             tagsProperties: 'Sections de tags et propriétés, icônes, tri, portée et héritage.',
             listPane: 'Tri, regroupement, modes de liste, notes épinglées et aperçus de dessins.',
             frontmatter: "Champs frontmatter pour noms d'affichage, horodatages, icônes et couleurs.",
-            notes: "Titres, texte d'aperçu, images vedettes, étiquettes, propriétés, dates et nombre de mots.",
+            notes: 'Titres, texte d’aperçu, images mises en avant, tags, propriétés, dates, nombres de mots et nombres de caractères.',
             iconPacks: "Icônes d'interface, icônes de fichiers et gestion des packs d'icônes.",
             advanced: 'Diagnostics, nettoyage des métadonnées, import/export et réinitialisation.'
         },
@@ -967,7 +974,7 @@ export const STRINGS_FR = {
                 properties: 'Propriétés',
                 date: 'Date',
                 parentFolder: 'Dossier parent',
-                wordCount: 'Nombre de mots'
+                wordCount: 'Nombre de mots et de caractères'
             }
         },
         syncMode: {
@@ -1682,16 +1689,30 @@ export const STRINGS_FR = {
                 name: 'Afficher les propriétés en mode compact',
                 desc: 'Afficher les propriétés lorsque le mode compact est actif.'
             },
-            showWordCount: {
-                name: 'Afficher le nombre de mots',
-                desc: 'Afficher le nombre de mots des notes dans les éléments de fichier.'
+            textCountDisplay: {
+                name: 'Type de compteur',
+                desc: 'Choisissez les compteurs de note affichés dans les éléments de fichier.',
+                options: {
+                    none: 'Aucun',
+                    words: 'Nombre de mots',
+                    characters: 'Nombre de caractères',
+                    both: 'Nombre de mots et de caractères'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'Emplacement',
-                desc: 'Choisissez où le nombre de mots apparaît.',
+                desc: 'Choisissez où les compteurs de note apparaissent.',
                 options: {
                     title: 'Dans le titre',
                     property: 'Comme propriété'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Nombre de caractères',
+                desc: 'Choisissez si les espaces sont inclus dans le nombre de caractères.',
+                options: {
+                    include: 'Espaces inclus',
+                    exclude: 'Espaces exclus'
                 }
             },
             wordCountTargetProperty: {

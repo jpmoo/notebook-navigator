@@ -433,7 +433,7 @@ export const STRINGS_EN = {
             wordCountTarget: 'Target word count',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'When this field is empty, the group goal uses the target property set in Settings > Notes > Word count. Override it by setting a target value for this group.',
+                'When this field is empty, the group goal uses the target property set in Settings > Notes > Word and character count. Override it by setting a target value for this group.',
             description: 'Customize the group header for this note. Leave the title empty to remove the header.'
         },
         navRainbowSection: {
@@ -489,7 +489,8 @@ export const STRINGS_EN = {
                 'nav-property': 'Property',
                 'nav-property-value': 'Value',
                 'file-unfinished-task': 'Unfinished tasks',
-                'file-word-count': 'Word count'
+                'file-word-count': 'Word count',
+                'file-character-count': 'Character count'
             }
         },
         colorPicker: {
@@ -868,6 +869,12 @@ export const STRINGS_EN = {
         wordCount: 'Word count'
     },
 
+    fileCounts: {
+        words: '{count} words',
+        characters: '{count} chars',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Change default settings',
@@ -914,7 +921,7 @@ export const STRINGS_EN = {
             tagsProperties: 'Tag and property sections, icons, sorting, scope, and inheritance.',
             listPane: 'Sorting, grouping, list modes, pinned notes, and drawing previews.',
             frontmatter: 'Frontmatter fields for display names, timestamps, icons, and colors.',
-            notes: 'Titles, preview text, feature images, tags, properties, dates, and word counts.',
+            notes: 'Titles, preview text, feature images, tags, properties, dates, word counts, and character counts.',
             iconPacks: 'Interface icons, file icons, and icon pack management.',
             advanced: 'Diagnostics, metadata cleanup, import/export, and reset.'
         },
@@ -960,7 +967,7 @@ export const STRINGS_EN = {
                 properties: 'Properties',
                 date: 'Date',
                 parentFolder: 'Parent folder',
-                wordCount: 'Word count'
+                wordCount: 'Word and character count'
             }
         },
         syncMode: {
@@ -1690,16 +1697,30 @@ export const STRINGS_EN = {
                 name: 'Link property pills to URLs',
                 desc: 'Click a property pill to open the linked URL.'
             },
-            showWordCount: {
-                name: 'Show word count',
-                desc: 'Display note word counts in file items.'
+            textCountDisplay: {
+                name: 'Count type',
+                desc: 'Choose which note counts appear in file items.',
+                options: {
+                    none: 'None',
+                    words: 'Word count',
+                    characters: 'Character count',
+                    both: 'Word and character count'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'Placement',
-                desc: 'Choose where word counts appear.',
+                desc: 'Choose where note counts appear.',
                 options: {
                     title: 'In title',
                     property: 'As property'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Character count',
+                desc: 'Choose whether spaces are included in character counts.',
+                options: {
+                    include: 'Including spaces',
+                    exclude: 'Excluding spaces'
                 }
             },
             wordCountTargetProperty: {

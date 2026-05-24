@@ -431,7 +431,8 @@ export const STRINGS_ZH_CN = {
             wordCount: '显示字数',
             wordCountTarget: '目标字数',
             wordCountTargetPlaceholder: '10,000',
-            wordCountTargetDescription: '此字段为空时，组目标使用“设置 > 笔记 > 字数”中设置的目标属性。为此组设置目标值即可覆盖它。',
+            wordCountTargetDescription:
+                '此字段为空时，组目标使用“设置 > 笔记 > 字数和字符数”中设置的目标属性。为此组设置目标值即可覆盖它。',
             description: '为此笔记自定义分组标题。将标题留空以移除该标题。'
         },
         navRainbowSection: {
@@ -487,7 +488,8 @@ export const STRINGS_ZH_CN = {
                 'nav-property': '属性',
                 'nav-property-value': '值',
                 'file-unfinished-task': '未完成任务',
-                'file-word-count': '字数统计'
+                'file-word-count': '字数统计',
+                'file-character-count': '字符数'
             }
         },
         colorPicker: {
@@ -863,6 +865,12 @@ export const STRINGS_ZH_CN = {
         wordCount: '字数'
     },
 
+    fileCounts: {
+        words: '{count} 个词',
+        characters: '{count} 个字符',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: '更改默认设置',
@@ -909,7 +917,7 @@ export const STRINGS_ZH_CN = {
             tagsProperties: '标签和属性部分、图标、排序、范围和继承。',
             listPane: '排序、分组、列表模式、固定笔记和绘图预览。',
             frontmatter: '用于显示名称、时间戳、图标和颜色的前置元数据字段。',
-            notes: '标题、预览文本、特色图片、标签、属性、日期和字数。',
+            notes: '标题、预览文本、特色图片、标签、属性、日期、字数和字符数。',
             iconPacks: '界面图标、文件图标和图标包管理。',
             advanced: '诊断、元数据清理、导入/导出和重置。'
         },
@@ -955,7 +963,7 @@ export const STRINGS_ZH_CN = {
                 properties: '属性',
                 date: '日期',
                 parentFolder: '父文件夹',
-                wordCount: '字数'
+                wordCount: '字数和字符数'
             }
         },
         syncMode: {
@@ -1661,16 +1669,30 @@ export const STRINGS_ZH_CN = {
                 name: '在精简模式中显示属性',
                 desc: '精简模式启用时显示属性。'
             },
-            showWordCount: {
-                name: '显示字数',
-                desc: '在文件项中显示笔记字数。'
+            textCountDisplay: {
+                name: '计数类型',
+                desc: '选择文件项目中显示哪些笔记计数。',
+                options: {
+                    none: '无',
+                    words: '字数',
+                    characters: '字符数',
+                    both: '字数和字符数'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: '位置',
-                desc: '选择字数的显示位置。',
+                desc: '选择笔记计数的显示位置。',
                 options: {
                     title: '在标题中',
                     property: '作为属性'
+                }
+            },
+            characterCountSpaces: {
+                name: '字符数',
+                desc: '选择字符数是否包含空格。',
+                options: {
+                    include: '包含空格',
+                    exclude: '不含空格'
                 }
             },
             wordCountTargetProperty: {

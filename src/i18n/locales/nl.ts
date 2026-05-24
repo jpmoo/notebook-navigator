@@ -436,7 +436,7 @@ export const STRINGS_NL = {
             wordCountTarget: 'Doel aantal woorden',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'Wanneer dit veld leeg is, gebruikt het groepsdoel de doeleigenschap die is ingesteld in Instellingen > Notities > Aantal woorden. Overschrijf dit door een doelwaarde voor deze groep in te stellen.',
+                'Wanneer dit veld leeg is, gebruikt het groepsdoel de doeleigenschap die is ingesteld in Instellingen > Notities > Aantal woorden en tekens. Overschrijf dit door een doelwaarde voor deze groep in te stellen.',
             description: 'Pas de groepskop voor deze notitie aan. Laat de titel leeg om de kop te verwijderen.'
         },
         navRainbowSection: {
@@ -492,7 +492,8 @@ export const STRINGS_NL = {
                 'nav-property': 'Eigenschap',
                 'nav-property-value': 'Waarde',
                 'file-unfinished-task': 'Onvoltooide taken',
-                'file-word-count': 'Aantal woorden'
+                'file-word-count': 'Aantal woorden',
+                'file-character-count': 'Aantal tekens'
             }
         },
         colorPicker: {
@@ -874,6 +875,12 @@ export const STRINGS_NL = {
         wordCount: 'Aantal woorden'
     },
 
+    fileCounts: {
+        words: '{count} woorden',
+        characters: '{count} tekens',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Standaardinstellingen wijzigen',
@@ -920,7 +927,7 @@ export const STRINGS_NL = {
             tagsProperties: 'Tag- en eigenschapssecties, pictogrammen, sortering, bereik en overerving.',
             listPane: 'Sortering, groepering, lijstmodi, vastgezette notities en tekeningvoorbeelden.',
             frontmatter: 'Frontmattervelden voor weergavenamen, tijdstempels, pictogrammen en kleuren.',
-            notes: 'Titels, voorbeeldtekst, uitgelichte afbeeldingen, tags, eigenschappen, datums en aantal woorden.',
+            notes: 'Titels, voorbeeldtekst, uitgelichte afbeeldingen, tags, eigenschappen, datums, aantal woorden en aantal tekens.',
             iconPacks: 'Interfacepictogrammen, bestandspictogrammen en beheer van pictogrampakketten.',
             advanced: 'Diagnostiek, opschonen van metadata, import/export en herstellen.'
         },
@@ -966,7 +973,7 @@ export const STRINGS_NL = {
                 properties: 'Eigenschappen',
                 date: 'Datum',
                 parentFolder: 'Bovenliggende map',
-                wordCount: 'Aantal woorden'
+                wordCount: 'Aantal woorden en tekens'
             }
         },
         syncMode: {
@@ -1679,16 +1686,30 @@ export const STRINGS_NL = {
                 name: 'Eigenschappen tonen in compacte modus',
                 desc: 'Eigenschappen weergeven wanneer de compacte modus actief is.'
             },
-            showWordCount: {
-                name: 'Aantal woorden tonen',
-                desc: 'Toon het aantal woorden van notities in bestandsitems.'
+            textCountDisplay: {
+                name: 'Type telling',
+                desc: 'Kies welke notitietellingen in bestandsitems verschijnen.',
+                options: {
+                    none: 'Geen',
+                    words: 'Aantal woorden',
+                    characters: 'Aantal tekens',
+                    both: 'Aantal woorden en tekens'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'Plaatsing',
-                desc: 'Kies waar het aantal woorden verschijnt.',
+                desc: 'Kies waar notitietellingen verschijnen.',
                 options: {
                     title: 'In titel',
                     property: 'Als eigenschap'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Aantal tekens',
+                desc: 'Kies of spaties worden meegeteld in het aantal tekens.',
+                options: {
+                    include: 'Inclusief spaties',
+                    exclude: 'Exclusief spaties'
                 }
             },
             wordCountTargetProperty: {

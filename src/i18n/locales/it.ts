@@ -433,7 +433,7 @@ export const STRINGS_IT = {
             wordCountTarget: 'Conteggio parole obiettivo',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                "Quando questo campo è vuoto, l'obiettivo del gruppo usa la proprietà obiettivo impostata in Impostazioni > Note > Conteggio parole. Sostituiscilo impostando un valore obiettivo per questo gruppo.",
+                'Quando questo campo è vuoto, l’obiettivo del gruppo usa la proprietà obiettivo impostata in Impostazioni > Note > Conteggio parole e caratteri. Sovrascrivila impostando un valore obiettivo per questo gruppo.',
             description: "Personalizza l'intestazione di gruppo per questa nota. Lascia il titolo vuoto per rimuovere l'intestazione."
         },
         navRainbowSection: {
@@ -489,7 +489,8 @@ export const STRINGS_IT = {
                 'nav-property': 'Proprietà',
                 'nav-property-value': 'Valore',
                 'file-unfinished-task': 'Attività incomplete',
-                'file-word-count': 'Conteggio parole'
+                'file-word-count': 'Conteggio parole',
+                'file-character-count': 'Conteggio caratteri'
             }
         },
         colorPicker: {
@@ -868,6 +869,12 @@ export const STRINGS_IT = {
         wordCount: 'Conteggio parole'
     },
 
+    fileCounts: {
+        words: '{count} parole',
+        characters: '{count} caratteri',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Modifica impostazioni predefinite',
@@ -914,7 +921,7 @@ export const STRINGS_IT = {
             tagsProperties: 'Sezioni tag e proprietà, icone, ordinamento, ambito ed ereditarietà.',
             listPane: 'Ordinamento, raggruppamento, modalità lista, note fissate e anteprime dei disegni.',
             frontmatter: 'Campi frontmatter per nomi visualizzati, timestamp, icone e colori.',
-            notes: 'Titoli, testo anteprima, immagini in evidenza, tag, proprietà, date e conteggio parole.',
+            notes: 'Titoli, testo anteprima, immagini in evidenza, tag, proprietà, date, conteggio parole e conteggio caratteri.',
             iconPacks: 'Icone interfaccia, icone file e gestione pacchetti icone.',
             advanced: 'Diagnostica, pulizia metadati, importazione/esportazione e ripristino.'
         },
@@ -960,7 +967,7 @@ export const STRINGS_IT = {
                 properties: 'Proprietà',
                 date: 'Data',
                 parentFolder: 'Cartella superiore',
-                wordCount: 'Conteggio parole'
+                wordCount: 'Conteggio parole e caratteri'
             }
         },
         syncMode: {
@@ -1675,16 +1682,30 @@ export const STRINGS_IT = {
                 name: 'Mostra proprietà in modalità compatta',
                 desc: 'Visualizza le proprietà quando la modalità compatta è attiva.'
             },
-            showWordCount: {
-                name: 'Mostra conteggio parole',
-                desc: 'Mostra il conteggio parole delle note negli elementi file.'
+            textCountDisplay: {
+                name: 'Tipo di conteggio',
+                desc: 'Scegli quali conteggi delle note mostrare negli elementi file.',
+                options: {
+                    none: 'Nessuno',
+                    words: 'Conteggio parole',
+                    characters: 'Conteggio caratteri',
+                    both: 'Conteggio parole e caratteri'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'Posizione',
-                desc: 'Scegli dove appare il conteggio parole.',
+                desc: 'Scegli dove mostrare i conteggi delle note.',
                 options: {
                     title: 'Nel titolo',
                     property: 'Come proprietà'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Conteggio caratteri',
+                desc: 'Scegli se includere gli spazi nel conteggio caratteri.',
+                options: {
+                    include: 'Spazi inclusi',
+                    exclude: 'Spazi esclusi'
                 }
             },
             wordCountTargetProperty: {
