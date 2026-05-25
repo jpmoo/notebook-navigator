@@ -311,6 +311,8 @@ export const STRINGS_KO = {
             moveFileToFolder: '파일 이동...',
             moveMultipleNotesToFolder: '{count}개의 노트 이동...',
             moveMultipleFilesToFolder: '{count}개의 파일 이동...',
+            mergeNotes: '{count}개의 노트 병합...',
+            mergeNotesInGroup: '그룹의 노트 병합...',
             setManualSortGroupHeader: '그룹 머리글 설정',
             changeManualSortGroupHeader: '그룹 머리글 변경',
             manualSortGroupHeader: {
@@ -432,8 +434,27 @@ export const STRINGS_KO = {
             wordCountTarget: '목표 단어 수',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                '이 필드가 비어 있으면 그룹 목표는 설정 > 노트 > 단어 수에서 설정한 목표 속성을 사용합니다. 이 그룹의 목표값을 설정하면 재정의할 수 있습니다.',
+                '이 필드가 비어 있으면 그룹 목표는 설정 > 노트 > 단어 및 문자 수에 설정된 목표 속성을 사용합니다. 이 그룹의 목표 값을 설정하여 재정의하세요.',
             description: '이 노트의 그룹 머리글을 사용자 지정합니다. 머리글을 제거하려면 제목을 비워 두세요.'
+        },
+        mergeNotes: {
+            title: '노트 병합',
+            summary: '{folder}의 {count}개 노트에서 하나의 노트를 만듭니다.',
+            frontmatterRule: '첫 번째 노트의 프론트매터는 유지됩니다. 다른 노트의 프론트매터는 제거됩니다.',
+            crossFolderWarning: '원본 노트가 서로 다른 폴더에 있습니다. 병합된 노트에서 상대 링크와 임베드가 작동하지 않을 수 있습니다.',
+            outputName: '출력 이름',
+            outputNameDesc: '병합된 노트는 위에 표시된 폴더에 생성됩니다.',
+            outputNamePlaceholder: '병합된 노트',
+            separator: '구분자',
+            separatorDesc: '노트 사이에 삽입됩니다.',
+            separatorOptions: {
+                none: '없음',
+                blankLine: '빈 줄',
+                horizontalRule: '수평선',
+                heading: '노트 제목이 있는 헤딩'
+            },
+            moveSourcesToTrash: '병합 후 원본 노트를 휴지통으로 이동',
+            mergeButton: '병합'
         },
         navRainbowSection: {
             title: (section: string) => `무지개 색상: ${section}`
@@ -488,7 +509,8 @@ export const STRINGS_KO = {
                 'nav-property': '속성',
                 'nav-property-value': '값',
                 'file-unfinished-task': '미완료 작업',
-                'file-word-count': '단어 수'
+                'file-word-count': '단어 수',
+                'file-character-count': '문자 수'
             }
         },
         colorPicker: {
@@ -695,6 +717,10 @@ export const STRINGS_KO = {
             deleteFolder: '폴더 삭제 실패: {error}',
             deleteFile: '파일 삭제 실패: {error}',
             deleteAttachments: '첨부 파일 삭제 실패: {error}',
+            mergeNotes: '노트 병합 실패: {error}',
+            mergeNotesOpenOutput: '병합된 노트가 {name}(으)로 생성되었지만 열 수 없습니다: {error}. 원본 노트는 변경되지 않았습니다.',
+            mergeNotesOpenSkipped: '다른 파일 열기 요청이 우선되었습니다.',
+            mergeNotesTrashSources: '병합된 노트가 생성되었습니다. 원본 노트 {count}개를 휴지통으로 이동하지 못했습니다.',
             duplicateNote: '노트 복제 실패: {error}',
             duplicateFolder: '폴더 복제 실패: {error}',
             openVersionHistory: '버전 기록 열기 실패: {error}',
@@ -728,7 +754,8 @@ export const STRINGS_KO = {
         },
         notices: {
             hideFolder: '폴더 숨김: {name}',
-            showFolder: '폴더 표시: {name}'
+            showFolder: '폴더 표시: {name}',
+            mergeNotes: '{count}개 노트를 {name}에 병합했습니다'
         },
         notifications: {
             deletedMultipleFiles: '{count}개의 파일이 삭제됨',
@@ -746,6 +773,7 @@ export const STRINGS_KO = {
             tagsClearedFromNotes: '{count}개의 노트에서 모든 태그 제거됨',
             noTagsToRemove: '제거할 태그 없음',
             noFilesSelected: '선택된 파일 없음',
+            mergeNotesRequireMultipleMarkdown: '병합할 Markdown 노트를 두 개 이상 선택하세요',
             tagOperationsNotAvailable: '태그 작업을 사용할 수 없음',
             propertyOperationsNotAvailable: '속성 작업을 사용할 수 없습니다',
             tagsRequireMarkdown: '태그는 마크다운 노트에서만 지원됩니다',
@@ -823,6 +851,7 @@ export const STRINGS_KO = {
         createNewNote: '새 노트 만들기', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: '템플릿으로 새 노트', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: '파일 이동', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: '노트 병합', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: '다음 파일 선택', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: '이전 파일 선택', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: '뒤로 이동',
@@ -871,6 +900,12 @@ export const STRINGS_KO = {
         wordCount: '단어 수'
     },
 
+    fileCounts: {
+        words: '{count}개 단어',
+        characters: '{count}자',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: '기본 설정 변경',
@@ -917,7 +952,7 @@ export const STRINGS_KO = {
             tagsProperties: '태그 및 속성 섹션, 아이콘, 정렬, 범위 및 상속.',
             listPane: '정렬, 그룹화, 목록 모드, 고정된 노트 및 그림 미리보기.',
             frontmatter: '표시 이름, 타임스탬프, 아이콘, 색상에 대한 프런트매터 필드.',
-            notes: '제목, 미리보기 텍스트, 대표 이미지, 태그, 속성, 날짜 및 단어 수.',
+            notes: '제목, 미리보기 텍스트, 대표 이미지, 태그, 속성, 날짜, 단어 수 및 문자 수.',
             iconPacks: '인터페이스 아이콘, 파일 아이콘 및 아이콘 팩 관리.',
             advanced: '진단, 메타데이터 정리, 가져오기/내보내기 및 초기화.'
         },
@@ -963,7 +998,7 @@ export const STRINGS_KO = {
                 properties: '속성',
                 date: '날짜',
                 parentFolder: '상위 폴더',
-                wordCount: '단어 수'
+                wordCount: '단어 및 문자 수'
             }
         },
         syncMode: {
@@ -1673,16 +1708,30 @@ export const STRINGS_KO = {
                 name: '간결 모드에서 속성 표시',
                 desc: '간결 모드가 활성화되면 속성을 표시합니다.'
             },
-            showWordCount: {
-                name: '단어 수 표시',
-                desc: '파일 항목에 노트 단어 수를 표시합니다.'
-            },
-            wordCountPlacement: {
-                name: '위치',
-                desc: '단어 수가 표시될 위치를 선택합니다.',
+            textCountDisplay: {
+                name: '카운트 유형',
+                desc: '파일 항목에 표시할 노트 카운트를 선택합니다.',
                 options: {
-                    title: '제목에 표시',
-                    property: '속성으로 표시'
+                    none: '없음',
+                    words: '단어 수',
+                    characters: '문자 수',
+                    both: '단어 및 문자 수'
+                }
+            },
+            textCountPlacement: {
+                name: '배치',
+                desc: '노트 카운트가 표시될 위치를 선택합니다.',
+                options: {
+                    title: '제목 안',
+                    property: '속성으로'
+                }
+            },
+            characterCountSpaces: {
+                name: '문자 수',
+                desc: '문자 수에 공백을 포함할지 선택합니다.',
+                options: {
+                    include: '공백 포함',
+                    exclude: '공백 제외'
                 }
             },
             wordCountTargetProperty: {
@@ -2225,6 +2274,10 @@ export const STRINGS_KO = {
                 name: '시작 시 새 버전 확인',
                 desc: '시작 시 새로운 플러그인 릴리스를 확인하고 업데이트가 있으면 알림을 표시합니다. 확인은 하루에 최대 한 번 수행됩니다.',
                 status: '새 버전 사용 가능: {version}'
+            },
+            debugLogging: {
+                name: '시작 디버그 로그',
+                desc: '시작 진단 정보를 보관소 루트의 타임스탬프가 있는 Markdown 파일에 기록한 뒤 시작이 안정되면 중지합니다. 이 파일은 동기화될 수 있으며 파일 경로를 포함할 수 있습니다.'
             },
             whatsNew: {
                 name: 'Notebook Navigator {version}의 새로운 기능',

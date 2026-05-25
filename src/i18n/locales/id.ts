@@ -313,6 +313,8 @@ export const STRINGS_ID = {
             moveFileToFolder: 'Pindahkan file ke...',
             moveMultipleNotesToFolder: 'Pindahkan {count} catatan ke...',
             moveMultipleFilesToFolder: 'Pindahkan {count} file ke...',
+            mergeNotes: 'Gabungkan {count} catatan...',
+            mergeNotesInGroup: 'Gabungkan catatan dalam grup...',
             setManualSortGroupHeader: 'Atur header grup',
             changeManualSortGroupHeader: 'Ubah header grup',
             manualSortGroupHeader: {
@@ -434,8 +436,28 @@ export const STRINGS_ID = {
             wordCountTarget: 'Target jumlah kata',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'Saat bidang ini kosong, target grup menggunakan properti target yang diatur di Pengaturan > Catatan > Jumlah kata. Timpa dengan menetapkan nilai target untuk grup ini.',
+                'Saat bidang ini kosong, target grup menggunakan properti target yang diatur di Pengaturan > Catatan > Jumlah kata dan karakter. Timpa dengan menetapkan nilai target untuk grup ini.',
             description: 'Sesuaikan header grup untuk catatan ini. Biarkan judul kosong untuk menghapus header.'
+        },
+        mergeNotes: {
+            title: 'Gabungkan catatan',
+            summary: 'Buat satu catatan dari {count} catatan di {folder}.',
+            frontmatterRule: 'Frontmatter dari catatan pertama dipertahankan. Frontmatter dari catatan lain dihapus.',
+            crossFolderWarning:
+                'Catatan sumber berada di folder yang berbeda. Tautan relatif dan embed mungkin berhenti berfungsi di catatan gabungan.',
+            outputName: 'Nama output',
+            outputNameDesc: 'Catatan gabungan dibuat di folder yang ditampilkan di atas.',
+            outputNamePlaceholder: 'Catatan gabungan',
+            separator: 'Pemisah',
+            separatorDesc: 'Disisipkan di antara catatan.',
+            separatorOptions: {
+                none: 'Tidak ada',
+                blankLine: 'Baris kosong',
+                horizontalRule: 'Garis horizontal',
+                heading: 'Judul dengan judul catatan'
+            },
+            moveSourcesToTrash: 'Pindahkan catatan sumber ke sampah setelah digabung',
+            mergeButton: 'Gabungkan'
         },
         navRainbowSection: {
             title: (section: string) => `Warna pelangi: ${section}`
@@ -490,7 +512,8 @@ export const STRINGS_ID = {
                 'nav-property': 'Properti',
                 'nav-property-value': 'Nilai',
                 'file-unfinished-task': 'Tugas belum selesai',
-                'file-word-count': 'Jumlah kata'
+                'file-word-count': 'Jumlah kata',
+                'file-character-count': 'Jumlah karakter'
             }
         },
         colorPicker: {
@@ -696,6 +719,11 @@ export const STRINGS_ID = {
             deleteFolder: 'Gagal menghapus folder: {error}',
             deleteFile: 'Gagal menghapus file: {error}',
             deleteAttachments: 'Gagal menghapus lampiran: {error}',
+            mergeNotes: 'Gagal menggabungkan catatan: {error}',
+            mergeNotesOpenOutput:
+                'Catatan gabungan dibuat sebagai {name}, tetapi tidak dapat dibuka: {error}. Catatan sumber tidak diubah.',
+            mergeNotesOpenSkipped: 'Permintaan pembukaan file lain didahulukan.',
+            mergeNotesTrashSources: 'Catatan gabungan dibuat. Gagal memindahkan {count} catatan sumber ke sampah.',
             duplicateNote: 'Gagal menduplikat catatan: {error}',
             duplicateFolder: 'Gagal menduplikat folder: {error}',
             openVersionHistory: 'Gagal membuka riwayat versi: {error}',
@@ -729,7 +757,8 @@ export const STRINGS_ID = {
         },
         notices: {
             hideFolder: 'Folder disembunyikan: {name}',
-            showFolder: 'Folder ditampilkan: {name}'
+            showFolder: 'Folder ditampilkan: {name}',
+            mergeNotes: 'Menggabungkan {count} catatan menjadi {name}'
         },
         notifications: {
             deletedMultipleFiles: 'Menghapus {count} file',
@@ -747,6 +776,7 @@ export const STRINGS_ID = {
             tagsClearedFromNotes: 'Menghapus semua tag dari {count} catatan',
             noTagsToRemove: 'Tidak ada tag untuk dihapus',
             noFilesSelected: 'Tidak ada file yang dipilih',
+            mergeNotesRequireMultipleMarkdown: 'Pilih setidaknya dua catatan Markdown untuk digabungkan',
             tagOperationsNotAvailable: 'Operasi tag tidak tersedia',
             propertyOperationsNotAvailable: 'Operasi properti tidak tersedia',
             tagsRequireMarkdown: 'Tag hanya didukung pada catatan Markdown',
@@ -824,6 +854,7 @@ export const STRINGS_ID = {
         createNewNote: 'Buat catatan baru',
         createNewNoteFromTemplate: 'Catatan baru dari template',
         moveFiles: 'Pindahkan file',
+        mergeNotes: 'Gabungkan catatan', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Pilih file berikutnya',
         selectPreviousFile: 'Pilih file sebelumnya',
         navigateBack: 'Navigasi mundur',
@@ -872,6 +903,12 @@ export const STRINGS_ID = {
         wordCount: 'Jumlah kata'
     },
 
+    fileCounts: {
+        words: '{count} kata',
+        characters: '{count} karakter',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Ubah pengaturan default',
@@ -918,7 +955,7 @@ export const STRINGS_ID = {
             tagsProperties: 'Bagian tag dan properti, ikon, pengurutan, cakupan, dan pewarisan.',
             listPane: 'Pengurutan, pengelompokan, mode daftar, catatan yang disematkan, dan pratinjau gambar.',
             frontmatter: 'Bidang frontmatter untuk nama tampilan, stempel waktu, ikon, dan warna.',
-            notes: 'Judul, teks pratinjau, gambar fitur, tag, properti, tanggal, dan jumlah kata.',
+            notes: 'Judul, teks pratinjau, gambar fitur, tag, properti, tanggal, jumlah kata, dan jumlah karakter.',
             iconPacks: 'Ikon antarmuka, ikon file, dan manajemen paket ikon.',
             advanced: 'Diagnostik, pembersihan metadata, impor/ekspor, dan reset.'
         },
@@ -964,7 +1001,7 @@ export const STRINGS_ID = {
                 properties: 'Properti',
                 date: 'Tanggal',
                 parentFolder: 'Folder induk',
-                wordCount: 'Jumlah kata'
+                wordCount: 'Jumlah kata dan karakter'
             }
         },
         syncMode: {
@@ -1676,16 +1713,30 @@ export const STRINGS_ID = {
                 name: 'Tampilkan properti dalam mode kompak',
                 desc: 'Tampilkan properti saat mode kompak aktif.'
             },
-            showWordCount: {
-                name: 'Tampilkan jumlah kata',
-                desc: 'Tampilkan jumlah kata catatan pada item file.'
+            textCountDisplay: {
+                name: 'Jenis hitungan',
+                desc: 'Pilih hitungan catatan yang muncul di item file.',
+                options: {
+                    none: 'Tidak ada',
+                    words: 'Jumlah kata',
+                    characters: 'Jumlah karakter',
+                    both: 'Jumlah kata dan karakter'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'Penempatan',
-                desc: 'Pilih tempat jumlah kata muncul.',
+                desc: 'Pilih tempat hitungan catatan muncul.',
                 options: {
                     title: 'Di judul',
                     property: 'Sebagai properti'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Jumlah karakter',
+                desc: 'Pilih apakah spasi disertakan dalam jumlah karakter.',
+                options: {
+                    include: 'Termasuk spasi',
+                    exclude: 'Tanpa spasi'
                 }
             },
             wordCountTargetProperty: {
@@ -2229,6 +2280,10 @@ export const STRINGS_ID = {
                 name: 'Periksa versi baru saat mulai',
                 desc: 'Memeriksa rilis plugin baru saat startup dan menampilkan notifikasi saat pembaruan tersedia. Pemeriksaan terjadi paling banyak sekali sehari.',
                 status: 'Versi baru tersedia: {version}'
+            },
+            debugLogging: {
+                name: 'Log debug saat startup',
+                desc: 'Menulis diagnostik startup ke file Markdown bertanda waktu di root vault, lalu berhenti setelah startup stabil. File dapat disinkronkan dan dapat menyertakan jalur file.'
             },
             whatsNew: {
                 name: 'Apa yang baru di Notebook Navigator {version}',

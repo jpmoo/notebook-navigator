@@ -399,12 +399,10 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         const name = definition.getLabel();
         const setting = addSetting(setting => {
             setting.setName(name).setDesc(SETTINGS_PAGE_DESCRIPTION_GETTERS[tabId]());
-            setting.addExtraButton(button =>
-                button
-                    .setIcon('lucide-chevron-right')
-                    .setTooltip(name)
-                    .onClick(() => this.openLegacySettingsPage(tabId))
-            );
+            setting.addExtraButton(button => {
+                button.setIcon('lucide-chevron-right').onClick(() => this.openLegacySettingsPage(tabId));
+                button.extraSettingsEl.setAttr('aria-label', name);
+            });
         });
 
         setting.settingEl.addClass('nn-settings-legacy-page-link');

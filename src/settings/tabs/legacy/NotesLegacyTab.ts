@@ -25,7 +25,15 @@ import { createSettingGroupFactory } from '../../settingGroups';
 import { addSettingSyncModeToggle } from '../../syncModeToggle';
 import { createDependentSettingsSection, setElementVisible, wireToggleSettingWithDependentSection } from '../../dependentSettings';
 import { DEFAULT_SETTINGS } from '../../defaultSettings';
-import { isFeatureImagePixelSizeSetting, isFeatureImageSizeSetting, isWordCountPlacement } from '../../types';
+import {
+    isCharacterCountSpaces,
+    isFeatureImagePixelSizeSetting,
+    isFeatureImageSizeSetting,
+    isTextCountDisplay,
+    isTextCountPlacement,
+    showsCharacterCount,
+    showsWordCount
+} from '../../types';
 import {
     normalizeFileNameIconMapKey,
     normalizeFileTypeIconMapKey,
@@ -780,33 +788,69 @@ export function renderNotesTab(context: SettingsTabContext): void {
             })
         );
 
-    const showWordCountSetting = wordCountGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.showWordCount.name).setDesc(strings.settings.items.showWordCount.desc);
+    const textCountDisplaySetting = wordCountGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.textCountDisplay.name).setDesc(strings.settings.items.textCountDisplay.desc);
     });
+    const textCountSettingsEl = createDependentSettingsSection(textCountDisplaySetting);
+    const wordCountSettingsEl = textCountSettingsEl.createDiv();
+    const characterCountSettingsEl = textCountSettingsEl.createDiv();
+    const refreshTextCountSections = (): void => {
+        setElementVisible(textCountSettingsEl, plugin.settings.textCountDisplay !== 'none');
+        setElementVisible(wordCountSettingsEl, showsWordCount(plugin.settings.textCountDisplay));
+        setElementVisible(characterCountSettingsEl, showsCharacterCount(plugin.settings.textCountDisplay));
+    };
+    refreshTextCountSections();
 
-    const wordCountSettingsEl = wireToggleSettingWithDependentSection(
-        showWordCountSetting,
-        () => plugin.settings.showWordCount,
-        async value => {
-            plugin.settings.showWordCount = value;
-            await plugin.saveSettingsAndUpdate();
-        }
+    textCountDisplaySetting.addDropdown(dropdown =>
+        dropdown
+            .addOption('none', strings.settings.items.textCountDisplay.options.none)
+            .addOption('words', strings.settings.items.textCountDisplay.options.words)
+            .addOption('characters', strings.settings.items.textCountDisplay.options.characters)
+            .addOption('both', strings.settings.items.textCountDisplay.options.both)
+            .setValue(plugin.settings.textCountDisplay)
+            .onChange(async value => {
+                if (!isTextCountDisplay(value)) {
+                    return;
+                }
+
+                plugin.settings.textCountDisplay = value;
+                await plugin.saveSettingsAndUpdate();
+                refreshTextCountSections();
+            })
     );
 
-    new Setting(wordCountSettingsEl)
-        .setName(strings.settings.items.wordCountPlacement.name)
-        .setDesc(strings.settings.items.wordCountPlacement.desc)
+    new Setting(textCountSettingsEl)
+        .setName(strings.settings.items.textCountPlacement.name)
+        .setDesc(strings.settings.items.textCountPlacement.desc)
         .addDropdown(dropdown =>
             dropdown
-                .addOption('title', strings.settings.items.wordCountPlacement.options.title)
-                .addOption('property', strings.settings.items.wordCountPlacement.options.property)
-                .setValue(plugin.settings.wordCountPlacement)
+                .addOption('title', strings.settings.items.textCountPlacement.options.title)
+                .addOption('property', strings.settings.items.textCountPlacement.options.property)
+                .setValue(plugin.settings.textCountPlacement)
                 .onChange(async value => {
-                    if (!isWordCountPlacement(value)) {
+                    if (!isTextCountPlacement(value)) {
                         return;
                     }
 
-                    plugin.settings.wordCountPlacement = value;
+                    plugin.settings.textCountPlacement = value;
+                    await plugin.saveSettingsAndUpdate();
+                })
+        );
+
+    new Setting(characterCountSettingsEl)
+        .setName(strings.settings.items.characterCountSpaces.name)
+        .setDesc(strings.settings.items.characterCountSpaces.desc)
+        .addDropdown(dropdown =>
+            dropdown
+                .addOption('include', strings.settings.items.characterCountSpaces.options.include)
+                .addOption('exclude', strings.settings.items.characterCountSpaces.options.exclude)
+                .setValue(plugin.settings.characterCountSpaces)
+                .onChange(async value => {
+                    if (!isCharacterCountSpaces(value)) {
+                        return;
+                    }
+
+                    plugin.settings.characterCountSpaces = value;
                     await plugin.saveSettingsAndUpdate();
                 })
         );

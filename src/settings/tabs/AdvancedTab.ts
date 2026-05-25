@@ -28,6 +28,7 @@ import { localStorage } from '../../utils/localStorage';
 import { runAsyncAction } from '../../utils/async';
 import { showNotice } from '../../utils/noticeUtils';
 import { createGroupDefinition, createRenderDefinition, createToggleDefinition } from '../nativeSettingControls';
+import { getNotSyncedSettingName } from '../syncModeToggle';
 
 /** Builds native 1.13 setting definitions for advanced settings. */
 export function createAdvancedSettingDefinitions(context: SettingsTabContext): SettingDefinitionItem[] {
@@ -35,6 +36,12 @@ export function createAdvancedSettingDefinitions(context: SettingsTabContext): S
         createToggleDefinition('checkForUpdatesOnStart', {
             name: strings.settings.items.updateCheckOnStart.name,
             desc: strings.settings.items.updateCheckOnStart.desc
+        }),
+        createRenderDefinition({
+            name: getNotSyncedSettingName(strings.settings.items.debugLogging.name),
+            desc: strings.settings.items.debugLogging.desc,
+            aliases: [strings.settings.items.debugLogging.name],
+            render: setting => renderDebugLoggingSetting(setting, context)
         })
     ];
 
@@ -109,6 +116,19 @@ export function createAdvancedSettingDefinitions(context: SettingsTabContext): S
     );
 
     return [createGroupDefinition(undefined, items)];
+}
+
+function renderDebugLoggingSetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
+
+    setting
+        .setName(getNotSyncedSettingName(strings.settings.items.debugLogging.name))
+        .setDesc(strings.settings.items.debugLogging.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.isDebugLoggingEnabled()).onChange(value => {
+                plugin.setDebugLoggingEnabled(value);
+            })
+        );
 }
 
 function renderResetAllSettingsSetting(setting: Setting, context: SettingsTabContext): void {

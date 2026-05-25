@@ -313,6 +313,8 @@ export const STRINGS_PL = {
             moveFileToFolder: 'Przenieś plik do...',
             moveMultipleNotesToFolder: 'Przenieś notatki ({count}) do...',
             moveMultipleFilesToFolder: 'Przenieś pliki ({count}) do...',
+            mergeNotes: 'Scal notatki ({count})...',
+            mergeNotesInGroup: 'Scal notatki w grupie...',
             setManualSortGroupHeader: 'Ustaw nagłówek grupy',
             changeManualSortGroupHeader: 'Zmień nagłówek grupy',
             manualSortGroupHeader: {
@@ -436,8 +438,28 @@ export const STRINGS_PL = {
             wordCountTarget: 'Docelowa liczba słów',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'Gdy to pole jest puste, cel grupy używa właściwości celu ustawionej w Ustawienia > Notatki > Liczba słów. Nadpisz go, ustawiając wartość docelową dla tej grupy.',
+                'Gdy to pole jest puste, cel grupy używa właściwości celu ustawionej w Ustawienia > Notatki > Liczba słów i znaków. Nadpisz ją, ustawiając wartość celu dla tej grupy.',
             description: 'Dostosuj nagłówek grupy dla tej notatki. Pozostaw tytuł pusty, aby usunąć nagłówek.'
+        },
+        mergeNotes: {
+            title: 'Scal notatki',
+            summary: 'Utwórz jedną notatkę z {count} notatek w {folder}.',
+            frontmatterRule: 'Frontmatter z pierwszej notatki zostaje zachowany. Frontmatter z pozostałych notatek zostaje usunięty.',
+            crossFolderWarning:
+                'Notatki źródłowe znajdują się w różnych folderach. Linki względne i osadzenia mogą przestać działać w scalonej notatce.',
+            outputName: 'Nazwa wyjściowa',
+            outputNameDesc: 'Scalona notatka zostanie utworzona w folderze pokazanym powyżej.',
+            outputNamePlaceholder: 'Scalone notatki',
+            separator: 'Separator',
+            separatorDesc: 'Wstawiany między notatkami.',
+            separatorOptions: {
+                none: 'Brak',
+                blankLine: 'Pusty wiersz',
+                horizontalRule: 'Linia pozioma',
+                heading: 'Nagłówek z tytułem notatki'
+            },
+            moveSourcesToTrash: 'Przenieś notatki źródłowe do kosza po scaleniu',
+            mergeButton: 'Scal'
         },
         navRainbowSection: {
             title: (section: string) => `Kolory tęczy: ${section}`
@@ -492,7 +514,8 @@ export const STRINGS_PL = {
                 'nav-property': 'Atrybut',
                 'nav-property-value': 'Wartość',
                 'file-unfinished-task': 'Nieukończone zadania',
-                'file-word-count': 'Liczba słów'
+                'file-word-count': 'Liczba słów',
+                'file-character-count': 'Liczba znaków'
             }
         },
         colorPicker: {
@@ -699,6 +722,11 @@ export const STRINGS_PL = {
             deleteFolder: 'Nie udało się usunąć folderu: {error}',
             deleteFile: 'Nie udało się usunąć pliku: {error}',
             deleteAttachments: 'Nie udało się usunąć załączników: {error}',
+            mergeNotes: 'Nie udało się scalić notatek: {error}',
+            mergeNotesOpenOutput:
+                'Scalona notatka została utworzona jako {name}, ale nie można jej otworzyć: {error}. Notatki źródłowe nie zostały zmienione.',
+            mergeNotesOpenSkipped: 'Inne żądanie otwarcia pliku miało pierwszeństwo.',
+            mergeNotesTrashSources: 'Utworzono scaloną notatkę. Nie udało się przenieść {count} notatek źródłowych do kosza.',
             duplicateNote: 'Nie udało się zduplikować notatki: {error}',
             duplicateFolder: 'Nie udało się zduplikować folderu: {error}',
             openVersionHistory: 'Nie udało się otworzyć historii wersji: {error}',
@@ -732,7 +760,8 @@ export const STRINGS_PL = {
         },
         notices: {
             hideFolder: 'Ukryty folder: {name}',
-            showFolder: 'Widoczny folder: {name}'
+            showFolder: 'Widoczny folder: {name}',
+            mergeNotes: 'Scalono {count} notatek w {name}'
         },
         notifications: {
             deletedMultipleFiles: 'Usunięto pliki: {count}',
@@ -750,6 +779,7 @@ export const STRINGS_PL = {
             tagsClearedFromNotes: 'Wyczyszczono wszystkie tagi z wielu ({count}) notatek',
             noTagsToRemove: 'Brak tagów do usunięcia',
             noFilesSelected: 'Nie wybrano plików',
+            mergeNotesRequireMultipleMarkdown: 'Wybierz co najmniej dwie notatki Markdown do scalenia',
             tagOperationsNotAvailable: 'Operacje na tagach niedostępne',
             propertyOperationsNotAvailable: 'Operacje na właściwościach niedostępne',
             tagsRequireMarkdown: 'Tagi są obsługiwane tylko w notatkach Markdown',
@@ -827,6 +857,7 @@ export const STRINGS_PL = {
         createNewNote: 'Utwórz nową notatkę', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'Utwórz nową notatkę na podstawie szablonu', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Przenieś pliki', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'Scal notatki', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Wybierz następny plik', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Wybierz poprzedni plik', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'Nawiguj wstecz',
@@ -875,6 +906,12 @@ export const STRINGS_PL = {
         wordCount: 'Liczba słów'
     },
 
+    fileCounts: {
+        words: '{count} słów',
+        characters: '{count} znaków',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Zmień ustawienia domyślne',
@@ -921,7 +958,7 @@ export const STRINGS_PL = {
             tagsProperties: 'Sekcje tagów i atrybutów, ikony, sortowanie, zakres i dziedziczenie.',
             listPane: 'Sortowanie, grupowanie, tryby listy, przypięte notatki i podglądy rysunków.',
             frontmatter: 'Pola metadanych dla nazw wyświetlanych, znaczników czasu, ikon i kolorów.',
-            notes: 'Tytuły, tekst podglądu, wyróżnione obrazy, tagi, atrybuty, daty i liczba słów.',
+            notes: 'Tytuły, tekst podglądu, wyróżnione obrazy, tagi, atrybuty, daty, liczba słów i liczba znaków.',
             iconPacks: 'Ikony interfejsu, ikony plików i zarządzanie pakietami ikon.',
             advanced: 'Diagnostyka, czyszczenie metadanych, import/eksport i resetowanie.'
         },
@@ -967,7 +1004,7 @@ export const STRINGS_PL = {
                 properties: 'Atrybuty',
                 date: 'Data',
                 parentFolder: 'Folder nadrzędny',
-                wordCount: 'Liczba słów'
+                wordCount: 'Liczba słów i znaków'
             }
         },
         syncMode: {
@@ -1680,16 +1717,30 @@ export const STRINGS_PL = {
                 name: 'Pokaż atrybuty w trybie kompaktowym',
                 desc: 'Wyświetlaj atrybuty, gdy tryb kompaktowy jest aktywny.'
             },
-            showWordCount: {
-                name: 'Pokaż liczbę słów',
-                desc: 'Wyświetlaj liczbę słów notatek w elementach plików.'
+            textCountDisplay: {
+                name: 'Typ licznika',
+                desc: 'Wybierz, które liczniki notatek pojawiają się w elementach plików.',
+                options: {
+                    none: 'Brak',
+                    words: 'Liczba słów',
+                    characters: 'Liczba znaków',
+                    both: 'Liczba słów i znaków'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'Położenie',
-                desc: 'Wybierz, gdzie pojawia się liczba słów.',
+                desc: 'Wybierz, gdzie pojawiają się liczniki notatek.',
                 options: {
                     title: 'W tytule',
                     property: 'Jako właściwość'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Liczba znaków',
+                desc: 'Wybierz, czy spacje są uwzględniane w liczbie znaków.',
+                options: {
+                    include: 'Ze spacjami',
+                    exclude: 'Bez spacji'
                 }
             },
             wordCountTargetProperty: {
@@ -2233,6 +2284,10 @@ export const STRINGS_PL = {
                 name: 'Sprawdź nową wersję podczas uruchamiania',
                 desc: 'Sprawdza dostępność nowych wersji wtyczki podczas uruchamiania i wyświetla powiadomienie, gdy dostępna jest aktualizacja. Sprawdzanie odbywa się maksymalnie raz dziennie.',
                 status: 'Nowa wersja dostępna: {version}'
+            },
+            debugLogging: {
+                name: 'Rejestrowanie debugowania przy starcie',
+                desc: 'Zapisuje diagnostykę startu w pliku Markdown ze znacznikiem czasu w katalogu głównym sejfu, a następnie zatrzymuje się po ustabilizowaniu startu. Plik może być synchronizowany i zawierać ścieżki plików.'
             },
             whatsNew: {
                 name: 'Co nowego w Notebook Navigator {version}',

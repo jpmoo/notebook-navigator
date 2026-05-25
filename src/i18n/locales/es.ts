@@ -298,6 +298,8 @@ export const STRINGS_ES = {
             moveFileToFolder: 'Mover archivo a...',
             moveMultipleNotesToFolder: 'Mover {count} notas a...',
             moveMultipleFilesToFolder: 'Mover {count} archivos a...',
+            mergeNotes: 'Combinar {count} notas...',
+            mergeNotesInGroup: 'Combinar notas del grupo...',
             setManualSortGroupHeader: 'Establecer encabezado de grupo',
             changeManualSortGroupHeader: 'Cambiar encabezado de grupo',
             manualSortGroupHeader: {
@@ -434,8 +436,28 @@ export const STRINGS_ES = {
             wordCountTarget: 'Recuento de palabras objetivo',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'Cuando este campo está vacío, el objetivo del grupo usa la propiedad objetivo definida en Ajustes > Notas > Recuento de palabras. Sobrescríbelo definiendo un valor objetivo para este grupo.',
+                'Cuando este campo está vacío, el objetivo del grupo usa la propiedad de objetivo configurada en Ajustes > Notas > Recuento de palabras y caracteres. Sobrescríbelo definiendo un valor objetivo para este grupo.',
             description: 'Personaliza el encabezado de grupo para esta nota. Deja el título vacío para eliminar el encabezado.'
+        },
+        mergeNotes: {
+            title: 'Combinar notas',
+            summary: 'Crear una nota a partir de {count} notas en {folder}.',
+            frontmatterRule: 'Se conserva el frontmatter de la primera nota. Se elimina el frontmatter de las demás notas.',
+            crossFolderWarning:
+                'Las notas de origen están en carpetas diferentes. Los enlaces relativos y las incrustaciones pueden dejar de funcionar en la nota combinada.',
+            outputName: 'Nombre de salida',
+            outputNameDesc: 'La nota combinada se crea en la carpeta mostrada arriba.',
+            outputNamePlaceholder: 'Notas combinadas',
+            separator: 'Separador',
+            separatorDesc: 'Se inserta entre notas.',
+            separatorOptions: {
+                none: 'Ninguno',
+                blankLine: 'Línea en blanco',
+                horizontalRule: 'Línea horizontal',
+                heading: 'Encabezado con el título de la nota'
+            },
+            moveSourcesToTrash: 'Mover las notas de origen a la papelera después de combinarlas',
+            mergeButton: 'Combinar'
         },
         navRainbowSection: {
             title: (section: string) => `Colores arcoíris: ${section}`
@@ -490,7 +512,8 @@ export const STRINGS_ES = {
                 'nav-property': 'Propiedad',
                 'nav-property-value': 'Valor',
                 'file-unfinished-task': 'Tareas pendientes',
-                'file-word-count': 'Conteo de palabras'
+                'file-word-count': 'Conteo de palabras',
+                'file-character-count': 'Recuento de caracteres'
             }
         },
         colorPicker: {
@@ -697,6 +720,11 @@ export const STRINGS_ES = {
             deleteFolder: 'Error al eliminar la carpeta: {error}',
             deleteFile: 'Error al eliminar el archivo: {error}',
             deleteAttachments: 'Error al eliminar los adjuntos: {error}',
+            mergeNotes: 'Error al combinar notas: {error}',
+            mergeNotesOpenOutput:
+                'La nota combinada se creó como {name}, pero no se pudo abrir: {error}. Las notas de origen no se modificaron.',
+            mergeNotesOpenSkipped: 'Otra solicitud de apertura de archivo tuvo prioridad.',
+            mergeNotesTrashSources: 'Nota combinada creada. Error al mover {count} notas de origen a la papelera.',
             duplicateNote: 'Error al duplicar la nota: {error}',
             duplicateFolder: 'Error al duplicar la carpeta: {error}',
             openVersionHistory: 'Error al abrir el historial de versiones: {error}',
@@ -730,7 +758,8 @@ export const STRINGS_ES = {
         },
         notices: {
             hideFolder: 'Carpeta oculta: {name}',
-            showFolder: 'Carpeta mostrada: {name}'
+            showFolder: 'Carpeta mostrada: {name}',
+            mergeNotes: 'Se combinaron {count} notas en {name}'
         },
         notifications: {
             deletedMultipleFiles: '{count} archivos eliminados',
@@ -748,6 +777,7 @@ export const STRINGS_ES = {
             tagsClearedFromNotes: 'Todas las etiquetas eliminadas de {count} notas',
             noTagsToRemove: 'No hay etiquetas para eliminar',
             noFilesSelected: 'No hay archivos seleccionados',
+            mergeNotesRequireMultipleMarkdown: 'Selecciona al menos dos notas Markdown para combinarlas',
             tagOperationsNotAvailable: 'Operaciones de etiquetas no disponibles',
             propertyOperationsNotAvailable: 'Operaciones de propiedades no disponibles',
             tagsRequireMarkdown: 'Las etiquetas solo son compatibles con notas Markdown',
@@ -825,6 +855,7 @@ export const STRINGS_ES = {
         createNewNote: 'Crear nueva nota', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'Nueva nota desde plantilla', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Mover archivos', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'Combinar notas', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Seleccionar siguiente archivo', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Seleccionar archivo anterior', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'Navegar atrás',
@@ -873,6 +904,12 @@ export const STRINGS_ES = {
         wordCount: 'Recuento de palabras'
     },
 
+    fileCounts: {
+        words: '{count} palabras',
+        characters: '{count} caracteres',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Cambiar ajustes predeterminados',
@@ -919,7 +956,7 @@ export const STRINGS_ES = {
             tagsProperties: 'Secciones de etiquetas y propiedades, iconos, ordenación, alcance y herencia.',
             listPane: 'Ordenación, agrupación, modos de lista, notas fijadas y vistas previas de dibujos.',
             frontmatter: 'Campos de frontmatter para nombres mostrados, marcas de tiempo, iconos y colores.',
-            notes: 'Títulos, texto de vista previa, imágenes destacadas, etiquetas, propiedades, fechas y recuento de palabras.',
+            notes: 'Títulos, texto de vista previa, imágenes destacadas, etiquetas, propiedades, fechas, recuento de palabras y recuento de caracteres.',
             iconPacks: 'Iconos de interfaz, iconos de archivos y gestión de paquetes de iconos.',
             advanced: 'Diagnósticos, limpieza de metadatos, importación/exportación y restablecimiento.'
         },
@@ -965,7 +1002,7 @@ export const STRINGS_ES = {
                 properties: 'Propiedades',
                 date: 'Fecha',
                 parentFolder: 'Carpeta superior',
-                wordCount: 'Recuento de palabras'
+                wordCount: 'Recuento de palabras y caracteres'
             }
         },
         syncMode: {
@@ -1679,16 +1716,30 @@ export const STRINGS_ES = {
                 name: 'Mostrar propiedades en modo compacto',
                 desc: 'Mostrar propiedades cuando el modo compacto está activo.'
             },
-            showWordCount: {
-                name: 'Mostrar recuento de palabras',
-                desc: 'Mostrar recuentos de palabras de notas en los elementos de archivo.'
+            textCountDisplay: {
+                name: 'Tipo de recuento',
+                desc: 'Elige qué recuentos de notas aparecen en los elementos de archivo.',
+                options: {
+                    none: 'Ninguno',
+                    words: 'Recuento de palabras',
+                    characters: 'Recuento de caracteres',
+                    both: 'Recuento de palabras y caracteres'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'Ubicación',
-                desc: 'Elija dónde aparecen los recuentos de palabras.',
+                desc: 'Elige dónde aparecen los recuentos de notas.',
                 options: {
                     title: 'En el título',
                     property: 'Como propiedad'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Recuento de caracteres',
+                desc: 'Elige si los espacios se incluyen en el recuento de caracteres.',
+                options: {
+                    include: 'Incluyendo espacios',
+                    exclude: 'Excluyendo espacios'
                 }
             },
             wordCountTargetProperty: {
@@ -2232,6 +2283,10 @@ export const STRINGS_ES = {
                 name: 'Buscar nueva versión al iniciar',
                 desc: 'Busca nuevas versiones del complemento al iniciar y muestra una notificación cuando hay una actualización disponible. Las comprobaciones se realizan como máximo una vez al día.',
                 status: 'Nueva versión disponible: {version}'
+            },
+            debugLogging: {
+                name: 'Registro de depuración de inicio',
+                desc: 'Escribe diagnósticos de inicio en un archivo Markdown con marca de tiempo en la raíz de la bóveda y se detiene cuando el inicio se estabiliza. El archivo puede sincronizarse y puede incluir rutas de archivos.'
             },
             whatsNew: {
                 name: 'Novedades en Notebook Navigator {version}',

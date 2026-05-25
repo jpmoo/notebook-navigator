@@ -234,7 +234,11 @@ export class PluginSettingsController {
     public clearAllLocalStorage(): void {
         const storageKeyNames = Object.keys(STORAGE_KEYS) as (keyof LocalStorageKeys)[];
         storageKeyNames.forEach(storageKey => {
-            if (storageKey === 'databaseSchemaVersionKey' || storageKey === 'databaseContentVersionKey') {
+            if (
+                storageKey === 'databaseSchemaVersionKey' ||
+                storageKey === 'databaseContentVersionKey' ||
+                storageKey === 'debugLoggingEnabledKey'
+            ) {
                 return;
             }
 
@@ -662,6 +666,10 @@ export class PluginSettingsController {
         delete rest.optimizeNoteHeight;
         delete rest.showPinnedIcon;
         delete rest.showPinnedGroupHeader;
+        delete rest.showWordCount;
+        delete rest.wordCountPlacement;
+        delete rest.wordCharacterCountDisplay;
+        delete rest.characterCountMode;
 
         const syncModeRegistry = this.getSyncModeRegistry();
         SYNC_MODE_SETTING_IDS.forEach(settingId => {

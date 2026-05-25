@@ -110,6 +110,7 @@ export function useNavigationPaneShortcuts({
         addShortcutsBatch,
         clearShortcuts,
         removeShortcut,
+        renameShortcut,
         hasFolderShortcut,
         hasNoteShortcut
     } = shortcuts;
@@ -250,6 +251,7 @@ export function useNavigationPaneShortcuts({
         expansionDispatch,
         uiDispatch,
         removeShortcut,
+        renameShortcut,
         setIsShortcutContextMenuOpen: shortcutState.setIsShortcutContextMenuOpen
     });
 

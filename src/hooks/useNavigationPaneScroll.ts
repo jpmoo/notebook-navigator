@@ -55,7 +55,7 @@ import { useUXPreferences } from '../context/UXPreferencesContext';
 import { NavigationPaneItemType, ItemType, NAVPANE_MEASUREMENTS, OVERSCAN } from '../types';
 import { Align, NavScrollIntent, getNavAlign } from '../types/scroll';
 import type { CombinedNavigationItem } from '../types/virtualization';
-import { getNavigationIndex, normalizeNavigationPath } from '../utils/navigationIndex';
+import { getNavigationIndex, getNavigationItemRenderKey, normalizeNavigationPath } from '../utils/navigationIndex';
 
 /**
  * Parameters for the useNavigationPaneScroll hook
@@ -283,6 +283,13 @@ export function useNavigationPaneScroll({
      */
     const effectiveScrollMargin = Number.isFinite(scrollMargin) && scrollMargin > 0 ? scrollMargin : 0;
     const effectiveScrollPaddingEnd = Number.isFinite(scrollPaddingEnd) && scrollPaddingEnd > 0 ? scrollPaddingEnd : 0;
+    const getVirtualItemKey = useCallback(
+        (index: number) => {
+            const item = items[index];
+            return item ? getNavigationItemRenderKey(item) : index;
+        },
+        [items]
+    );
 
     const ensureIndexNotCovered = useCallback(
         (index: number) => {
@@ -315,7 +322,7 @@ export function useNavigationPaneScroll({
 
     const rowVirtualizer = useVirtualizer({
         count: items.length,
-        getItemKey: index => items[index]?.key ?? index,
+        getItemKey: getVirtualItemKey,
         getScrollElement: () => scrollContainerRef.current,
         // Align virtualizer scroll math with the start of the tree rows (excluding non-virtualized scroll content).
         scrollMargin: effectiveScrollMargin,

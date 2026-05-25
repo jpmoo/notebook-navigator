@@ -5284,6 +5284,22 @@ body.nn-resizing {
     margin-top: 12px;
 }
 
+.nn-merge-notes-summary {
+    margin-bottom: 8px;
+}
+
+.nn-merge-notes-details {
+    color: var(--nn-theme-foreground-muted);
+    font-size: var(--font-ui-small);
+    unicode-bidi: plaintext;
+}
+
+.nn-merge-notes-warning {
+    color: var(--text-error);
+    font-weight: 700;
+    unicode-bidi: plaintext;
+}
+
 .nn-input-checkbox-row {
     display: flex;
     align-items: center;
@@ -6724,10 +6740,6 @@ body.nn-resizing {
     gap: var(--size-2-2);
 }
 
-.nn-settings-legacy-page-link {
-    cursor: pointer;
-}
-
 .nn-settings-legacy-page-link:focus-visible {
     outline: 2px solid var(--background-modifier-border-focus);
     outline-offset: -2px;
@@ -6766,23 +6778,6 @@ body.nn-resizing {
 .nn-setting-sync-toggle:hover {
     color: var(--text-normal);
     opacity: 1;
-}
-
-/* Setting name marker appended to setting names */
-.nn-settings-tab-root .setting-item-name.nn-setting-name-marker::after {
-    content: ' ' attr(data-nn-setting-marker);
-    color: var(--text-muted);
-    font-weight: normal;
-}
-
-.mod-rtl .nn-settings-tab-root .setting-item-name.nn-setting-name-marker::after {
-    content: '';
-}
-
-.mod-rtl .nn-settings-tab-root .setting-item-name.nn-setting-name-marker::before {
-    content: attr(data-nn-setting-marker) ' ';
-    color: var(--text-muted);
-    font-weight: normal;
 }
 
 /* Dim disabled calendar pattern text inputs */
