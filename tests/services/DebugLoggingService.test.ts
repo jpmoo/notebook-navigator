@@ -208,6 +208,23 @@ describe('DebugLoggingService', () => {
         expect(text).toContain('- Ready markers: storage not recorded, layout 0 ms');
     });
 
+    it('escapes markdown table characters in startup timeline cells', async () => {
+        mockLocalStorageStore.set(STORAGE_KEYS.debugLoggingEnabledKey, true);
+        const append = vi.fn(async () => undefined);
+        const service = new DebugLoggingService(createApp({ append }), { pluginVersion: '1.0.0' });
+
+        service.initialize();
+        setDebugLoggingService(service);
+
+        recordStartupDiagnostic('folder\\|ready', { path: 'notes\\|daily', label: 'one\ntwo' });
+        service.finishStartupReport('timeout', { status: 'partial' });
+        await service.flush();
+
+        expect(append).toHaveBeenCalledTimes(1);
+        const text = append.mock.calls[0]?.[1] ?? '';
+        expect(text).toContain(`|  0.000s | ${String.raw`folder\\\|ready`} | ${String.raw`path=notes\\\|daily, label=one two`} |`);
+    });
+
     it('stops writing debug reports after startup settles while keeping the setting enabled', async () => {
         mockLocalStorageStore.set(STORAGE_KEYS.debugLoggingEnabledKey, true);
         const append = vi.fn(async () => undefined);

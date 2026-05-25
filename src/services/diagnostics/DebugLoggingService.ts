@@ -241,7 +241,7 @@ function formatScalar(value: unknown): string {
 }
 
 function escapeTableCell(value: string): string {
-    return value.replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
+    return value.replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
 }
 
 function formatEventDetails(details: unknown): string {
