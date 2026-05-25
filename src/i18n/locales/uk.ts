@@ -314,6 +314,8 @@ export const STRINGS_UK = {
             moveFileToFolder: 'Перемістити файл до...',
             moveMultipleNotesToFolder: 'Перемістити {count} нотаток до...',
             moveMultipleFilesToFolder: 'Перемістити {count} файлів до...',
+            mergeNotes: 'Об’єднати {count} нотаток...',
+            mergeNotesInGroup: 'Об’єднати нотатки в групі...',
             setManualSortGroupHeader: 'Встановити заголовок групи',
             changeManualSortGroupHeader: 'Змінити заголовок групи',
             manualSortGroupHeader: {
@@ -437,6 +439,26 @@ export const STRINGS_UK = {
             wordCountTargetDescription:
                 'Коли це поле порожнє, ціль групи використовує цільову властивість, задану в Налаштування > Нотатки > Кількість слів і символів. Перевизначте її, задавши цільове значення для цієї групи.',
             description: 'Налаштуйте заголовок групи для цієї нотатки. Залиште заголовок порожнім, щоб видалити його.'
+        },
+        mergeNotes: {
+            title: 'Об’єднати нотатки',
+            summary: 'Створити одну нотатку з {count} нотаток у {folder}.',
+            frontmatterRule: 'Frontmatter першої нотатки зберігається. Frontmatter інших нотаток видаляється.',
+            crossFolderWarning:
+                'Вихідні нотатки розташовані в різних папках. Відносні посилання та вбудування можуть перестати працювати в об’єднаній нотатці.',
+            outputName: 'Назва результату',
+            outputNameDesc: 'Об’єднана нотатка буде створена в папці, показаній вище.',
+            outputNamePlaceholder: 'Об’єднані нотатки',
+            separator: 'Розділювач',
+            separatorDesc: 'Вставляється між нотатками.',
+            separatorOptions: {
+                none: 'Немає',
+                blankLine: 'Порожній рядок',
+                horizontalRule: 'Горизонтальна лінія',
+                heading: 'Заголовок із назвою нотатки'
+            },
+            moveSourcesToTrash: 'Перемістити вихідні нотатки до кошика після об’єднання',
+            mergeButton: 'Об’єднати'
         },
         navRainbowSection: {
             title: (section: string) => `Кольори веселки: ${section}`
@@ -695,6 +717,10 @@ export const STRINGS_UK = {
             deleteFolder: 'Не вдалося видалити папку: {error}',
             deleteFile: 'Не вдалося видалити файл: {error}',
             deleteAttachments: 'Не вдалося видалити вкладення: {error}',
+            mergeNotes: 'Не вдалося об’єднати нотатки: {error}',
+            mergeNotesOpenOutput: 'Об’єднану нотатку створено як {name}, але її не вдалося відкрити: {error}. Вихідні нотатки не змінено.',
+            mergeNotesOpenSkipped: 'Інший запит на відкриття файлу отримав пріоритет.',
+            mergeNotesTrashSources: 'Об’єднану нотатку створено. Не вдалося перемістити {count} вихідних нотаток до кошика.',
             duplicateNote: 'Не вдалося дублювати нотатку: {error}',
             duplicateFolder: 'Не вдалося дублювати папку: {error}',
             openVersionHistory: 'Не вдалося відкрити історію версій: {error}',
@@ -728,7 +754,8 @@ export const STRINGS_UK = {
         },
         notices: {
             hideFolder: 'Папку сховано: {name}',
-            showFolder: 'Папку показано: {name}'
+            showFolder: 'Папку показано: {name}',
+            mergeNotes: 'Об’єднано {count} нотаток у {name}'
         },
         notifications: {
             deletedMultipleFiles: 'Видалено {count} файлів',
@@ -746,6 +773,7 @@ export const STRINGS_UK = {
             tagsClearedFromNotes: 'Очищено всі теги з {count} нотаток',
             noTagsToRemove: 'Немає тегів для вилучення',
             noFilesSelected: 'Файли не вибрано',
+            mergeNotesRequireMultipleMarkdown: 'Виберіть щонайменше дві Markdown-нотатки для об’єднання',
             tagOperationsNotAvailable: 'Операції з тегами недоступні',
             propertyOperationsNotAvailable: 'Операції з властивостями недоступні',
             tagsRequireMarkdown: 'Теги підтримуються лише для Markdown нотаток',
@@ -823,6 +851,7 @@ export const STRINGS_UK = {
         createNewNote: 'Створити нову нотатку', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'Нова нотатка з шаблону', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Перемістити файли', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'Об’єднати нотатки', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Вибрати наступний файл', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Вибрати попередній файл', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'Назад',

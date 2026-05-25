@@ -311,6 +311,8 @@ export const STRINGS_KO = {
             moveFileToFolder: '파일 이동...',
             moveMultipleNotesToFolder: '{count}개의 노트 이동...',
             moveMultipleFilesToFolder: '{count}개의 파일 이동...',
+            mergeNotes: '{count}개의 노트 병합...',
+            mergeNotesInGroup: '그룹의 노트 병합...',
             setManualSortGroupHeader: '그룹 머리글 설정',
             changeManualSortGroupHeader: '그룹 머리글 변경',
             manualSortGroupHeader: {
@@ -434,6 +436,25 @@ export const STRINGS_KO = {
             wordCountTargetDescription:
                 '이 필드가 비어 있으면 그룹 목표는 설정 > 노트 > 단어 및 문자 수에 설정된 목표 속성을 사용합니다. 이 그룹의 목표 값을 설정하여 재정의하세요.',
             description: '이 노트의 그룹 머리글을 사용자 지정합니다. 머리글을 제거하려면 제목을 비워 두세요.'
+        },
+        mergeNotes: {
+            title: '노트 병합',
+            summary: '{folder}의 {count}개 노트에서 하나의 노트를 만듭니다.',
+            frontmatterRule: '첫 번째 노트의 프론트매터는 유지됩니다. 다른 노트의 프론트매터는 제거됩니다.',
+            crossFolderWarning: '원본 노트가 서로 다른 폴더에 있습니다. 병합된 노트에서 상대 링크와 임베드가 작동하지 않을 수 있습니다.',
+            outputName: '출력 이름',
+            outputNameDesc: '병합된 노트는 위에 표시된 폴더에 생성됩니다.',
+            outputNamePlaceholder: '병합된 노트',
+            separator: '구분자',
+            separatorDesc: '노트 사이에 삽입됩니다.',
+            separatorOptions: {
+                none: '없음',
+                blankLine: '빈 줄',
+                horizontalRule: '수평선',
+                heading: '노트 제목이 있는 헤딩'
+            },
+            moveSourcesToTrash: '병합 후 원본 노트를 휴지통으로 이동',
+            mergeButton: '병합'
         },
         navRainbowSection: {
             title: (section: string) => `무지개 색상: ${section}`
@@ -696,6 +717,10 @@ export const STRINGS_KO = {
             deleteFolder: '폴더 삭제 실패: {error}',
             deleteFile: '파일 삭제 실패: {error}',
             deleteAttachments: '첨부 파일 삭제 실패: {error}',
+            mergeNotes: '노트 병합 실패: {error}',
+            mergeNotesOpenOutput: '병합된 노트가 {name}(으)로 생성되었지만 열 수 없습니다: {error}. 원본 노트는 변경되지 않았습니다.',
+            mergeNotesOpenSkipped: '다른 파일 열기 요청이 우선되었습니다.',
+            mergeNotesTrashSources: '병합된 노트가 생성되었습니다. 원본 노트 {count}개를 휴지통으로 이동하지 못했습니다.',
             duplicateNote: '노트 복제 실패: {error}',
             duplicateFolder: '폴더 복제 실패: {error}',
             openVersionHistory: '버전 기록 열기 실패: {error}',
@@ -729,7 +754,8 @@ export const STRINGS_KO = {
         },
         notices: {
             hideFolder: '폴더 숨김: {name}',
-            showFolder: '폴더 표시: {name}'
+            showFolder: '폴더 표시: {name}',
+            mergeNotes: '{count}개 노트를 {name}에 병합했습니다'
         },
         notifications: {
             deletedMultipleFiles: '{count}개의 파일이 삭제됨',
@@ -747,6 +773,7 @@ export const STRINGS_KO = {
             tagsClearedFromNotes: '{count}개의 노트에서 모든 태그 제거됨',
             noTagsToRemove: '제거할 태그 없음',
             noFilesSelected: '선택된 파일 없음',
+            mergeNotesRequireMultipleMarkdown: '병합할 Markdown 노트를 두 개 이상 선택하세요',
             tagOperationsNotAvailable: '태그 작업을 사용할 수 없음',
             propertyOperationsNotAvailable: '속성 작업을 사용할 수 없습니다',
             tagsRequireMarkdown: '태그는 마크다운 노트에서만 지원됩니다',
@@ -824,6 +851,7 @@ export const STRINGS_KO = {
         createNewNote: '새 노트 만들기', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: '템플릿으로 새 노트', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: '파일 이동', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: '노트 병합', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: '다음 파일 선택', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: '이전 파일 선택', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: '뒤로 이동',

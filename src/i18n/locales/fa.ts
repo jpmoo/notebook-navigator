@@ -312,6 +312,8 @@ export const STRINGS_FA = {
             moveFileToFolder: 'انتقال فایل به...',
             moveMultipleNotesToFolder: 'انتقال {count} یادداشت به...',
             moveMultipleFilesToFolder: 'انتقال {count} فایل به...',
+            mergeNotes: 'ادغام {count} یادداشت...',
+            mergeNotesInGroup: 'ادغام یادداشت‌های گروه...',
             setManualSortGroupHeader: 'تنظیم هدر گروه',
             changeManualSortGroupHeader: 'تغییر هدر گروه',
             manualSortGroupHeader: {
@@ -435,6 +437,26 @@ export const STRINGS_FA = {
             wordCountTargetDescription:
                 'وقتی این فیلد خالی است، هدف گروه از ویژگی هدف تنظیم‌شده در تنظیمات > یادداشت‌ها > تعداد کلمات و نویسه‌ها استفاده می‌کند. با تنظیم مقدار هدف برای این گروه آن را بازنویسی کنید.',
             description: 'هدر گروه را برای این یادداشت سفارشی کنید. عنوان را خالی بگذارید تا هدر حذف شود.'
+        },
+        mergeNotes: {
+            title: 'ادغام یادداشت‌ها',
+            summary: 'ایجاد یک یادداشت از {count} یادداشت در {folder}.',
+            frontmatterRule: 'فرانت‌متر یادداشت اول حفظ می‌شود. فرانت‌متر یادداشت‌های دیگر حذف می‌شود.',
+            crossFolderWarning:
+                'یادداشت‌های مبدأ در پوشه‌های مختلف هستند. پیوندها و جاسازی‌های نسبی ممکن است در یادداشت ادغام‌شده از کار بیفتند.',
+            outputName: 'نام خروجی',
+            outputNameDesc: 'یادداشت ادغام‌شده در پوشه نشان‌داده‌شده در بالا ایجاد می‌شود.',
+            outputNamePlaceholder: 'یادداشت‌های ادغام‌شده',
+            separator: 'جداکننده',
+            separatorDesc: 'بین یادداشت‌ها درج می‌شود.',
+            separatorOptions: {
+                none: 'هیچ‌کدام',
+                blankLine: 'خط خالی',
+                horizontalRule: 'خط افقی',
+                heading: 'عنوان با نام یادداشت'
+            },
+            moveSourcesToTrash: 'انتقال یادداشت‌های مبدأ به زباله‌دان پس از ادغام',
+            mergeButton: 'ادغام'
         },
         navRainbowSection: {
             title: (section: string) => `رنگ‌های رنگین‌کمان: ${section}`
@@ -697,6 +719,11 @@ export const STRINGS_FA = {
             deleteFolder: 'حذف پوشه ناموفق بود: {error}',
             deleteFile: 'حذف فایل ناموفق بود: {error}',
             deleteAttachments: 'حذف پیوست‌ها ناموفق بود: {error}',
+            mergeNotes: 'ادغام یادداشت‌ها ناموفق بود: {error}',
+            mergeNotesOpenOutput:
+                'یادداشت ادغام‌شده با نام {name} ایجاد شد، اما باز نشد: {error}. یادداشت‌های مبدأ بدون تغییر باقی ماندند.',
+            mergeNotesOpenSkipped: 'درخواست دیگری برای باز کردن فایل اولویت پیدا کرد.',
+            mergeNotesTrashSources: 'یادداشت ادغام‌شده ایجاد شد. انتقال {count} یادداشت مبدأ به زباله‌دان ناموفق بود.',
             duplicateNote: 'کپی یادداشت ناموفق بود: {error}',
             duplicateFolder: 'کپی پوشه ناموفق بود: {error}',
             openVersionHistory: 'باز کردن تاریخچه نسخه ناموفق بود: {error}',
@@ -730,7 +757,8 @@ export const STRINGS_FA = {
         },
         notices: {
             hideFolder: 'پوشه مخفی شد: {name}',
-            showFolder: 'پوشه نمایش داده شد: {name}'
+            showFolder: 'پوشه نمایش داده شد: {name}',
+            mergeNotes: '{count} یادداشت در {name} ادغام شد'
         },
         notifications: {
             deletedMultipleFiles: '{count} فایل حذف شد',
@@ -748,6 +776,7 @@ export const STRINGS_FA = {
             tagsClearedFromNotes: 'همه برچسب‌ها از {count} یادداشت پاک شد',
             noTagsToRemove: 'برچسبی برای حذف نیست',
             noFilesSelected: 'فایلی انتخاب نشده است',
+            mergeNotesRequireMultipleMarkdown: 'حداقل دو یادداشت Markdown برای ادغام انتخاب کنید',
             tagOperationsNotAvailable: 'عملیات برچسب در دسترس نیست',
             propertyOperationsNotAvailable: 'عملیات ویژگی‌ها در دسترس نیست',
             tagsRequireMarkdown: 'برچسب‌ها فقط روی یادداشت‌های Markdown پشتیبانی می‌شوند',
@@ -825,6 +854,7 @@ export const STRINGS_FA = {
         createNewNote: 'ایجاد یادداشت جدید',
         createNewNoteFromTemplate: 'یادداشت جدید از قالب',
         moveFiles: 'انتقال فایل‌ها',
+        mergeNotes: 'ادغام یادداشت‌ها', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'انتخاب فایل بعدی',
         selectPreviousFile: 'انتخاب فایل قبلی',
         navigateBack: 'بازگشت',

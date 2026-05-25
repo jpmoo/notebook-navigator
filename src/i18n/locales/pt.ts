@@ -313,6 +313,8 @@ export const STRINGS_PT = {
             moveFileToFolder: 'Mover ficheiro para...',
             moveMultipleNotesToFolder: 'Mover {count} notas para...',
             moveMultipleFilesToFolder: 'Mover {count} ficheiros para...',
+            mergeNotes: 'Unir {count} notas...',
+            mergeNotesInGroup: 'Unir notas no grupo...',
             setManualSortGroupHeader: 'Definir cabeçalho de grupo',
             changeManualSortGroupHeader: 'Alterar cabeçalho de grupo',
             manualSortGroupHeader: {
@@ -436,6 +438,26 @@ export const STRINGS_PT = {
             wordCountTargetDescription:
                 'Quando este campo está vazio, o objetivo do grupo usa a propriedade de objetivo definida em Definições > Notas > Contagem de palavras e caracteres. Substitua-a definindo um valor de objetivo para este grupo.',
             description: 'Personalize o cabeçalho de grupo para esta nota. Deixe o título vazio para remover o cabeçalho.'
+        },
+        mergeNotes: {
+            title: 'Unir notas',
+            summary: 'Criar uma nota a partir de {count} notas em {folder}.',
+            frontmatterRule: 'O frontmatter da primeira nota é mantido. O frontmatter das outras notas é removido.',
+            crossFolderWarning:
+                'As notas de origem estão em pastas diferentes. Links relativos e incorporações podem deixar de funcionar na nota unida.',
+            outputName: 'Nome de saída',
+            outputNameDesc: 'A nota unida é criada na pasta mostrada acima.',
+            outputNamePlaceholder: 'Notas unidas',
+            separator: 'Separador',
+            separatorDesc: 'Inserido entre notas.',
+            separatorOptions: {
+                none: 'Nenhum',
+                blankLine: 'Linha em branco',
+                horizontalRule: 'Linha horizontal',
+                heading: 'Cabeçalho com o título da nota'
+            },
+            moveSourcesToTrash: 'Mover notas de origem para o lixo após unir',
+            mergeButton: 'Unir'
         },
         navRainbowSection: {
             title: (section: string) => `Cores arco-íris: ${section}`
@@ -697,6 +719,11 @@ export const STRINGS_PT = {
             deleteFolder: 'Falha ao eliminar pasta: {error}',
             deleteFile: 'Falha ao eliminar ficheiro: {error}',
             deleteAttachments: 'Falha ao eliminar os anexos: {error}',
+            mergeNotes: 'Falha ao unir notas: {error}',
+            mergeNotesOpenOutput:
+                'A nota unida foi criada como {name}, mas não foi possível abri-la: {error}. As notas de origem não foram alteradas.',
+            mergeNotesOpenSkipped: 'Outro pedido para abrir ficheiro teve prioridade.',
+            mergeNotesTrashSources: 'Nota unida criada. Falha ao mover {count} notas de origem para o lixo.',
             duplicateNote: 'Falha ao duplicar nota: {error}',
             duplicateFolder: 'Falha ao duplicar pasta: {error}',
             openVersionHistory: 'Falha ao abrir histórico de versões: {error}',
@@ -730,7 +757,8 @@ export const STRINGS_PT = {
         },
         notices: {
             hideFolder: 'Pasta ocultada: {name}',
-            showFolder: 'Pasta mostrada: {name}'
+            showFolder: 'Pasta mostrada: {name}',
+            mergeNotes: 'Unidas {count} notas em {name}'
         },
         notifications: {
             deletedMultipleFiles: '{count} ficheiros eliminados',
@@ -748,6 +776,7 @@ export const STRINGS_PT = {
             tagsClearedFromNotes: 'Todas as etiquetas removidas de {count} notas',
             noTagsToRemove: 'Sem etiquetas para remover',
             noFilesSelected: 'Nenhum ficheiro selecionado',
+            mergeNotesRequireMultipleMarkdown: 'Selecione pelo menos duas notas Markdown para unir',
             tagOperationsNotAvailable: 'Operações de etiqueta não disponíveis',
             propertyOperationsNotAvailable: 'Operações de propriedades não disponíveis',
             tagsRequireMarkdown: 'As etiquetas são suportadas apenas em notas Markdown',
@@ -825,6 +854,7 @@ export const STRINGS_PT = {
         createNewNote: 'Criar nova nota', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'Nova nota a partir de modelo', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Mover ficheiros', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'Unir notas', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Selecionar ficheiro seguinte', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Selecionar ficheiro anterior', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'Navegar para trás',

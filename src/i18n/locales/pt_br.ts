@@ -314,6 +314,8 @@ export const STRINGS_PT_BR = {
             moveFileToFolder: 'Mover arquivo para...',
             moveMultipleNotesToFolder: 'Mover {count} notas para...',
             moveMultipleFilesToFolder: 'Mover {count} arquivos para...',
+            mergeNotes: 'Mesclar {count} notas...',
+            mergeNotesInGroup: 'Mesclar notas no grupo...',
             setManualSortGroupHeader: 'Definir cabeçalho de grupo',
             changeManualSortGroupHeader: 'Alterar cabeçalho de grupo',
             manualSortGroupHeader: {
@@ -437,6 +439,26 @@ export const STRINGS_PT_BR = {
             wordCountTargetDescription:
                 'Quando este campo está vazio, a meta do grupo usa a propriedade de meta definida em Configurações > Notas > Contagem de palavras e caracteres. Substitua definindo um valor de meta para este grupo.',
             description: 'Personalize o cabeçalho de grupo para esta nota. Deixe o título em branco para remover o cabeçalho.'
+        },
+        mergeNotes: {
+            title: 'Mesclar notas',
+            summary: 'Criar uma nota a partir de {count} notas em {folder}.',
+            frontmatterRule: 'O frontmatter da primeira nota é mantido. O frontmatter das outras notas é removido.',
+            crossFolderWarning:
+                'As notas de origem estão em pastas diferentes. Links relativos e incorporações podem parar de funcionar na nota mesclada.',
+            outputName: 'Nome de saída',
+            outputNameDesc: 'A nota mesclada é criada na pasta mostrada acima.',
+            outputNamePlaceholder: 'Notas mescladas',
+            separator: 'Separador',
+            separatorDesc: 'Inserido entre notas.',
+            separatorOptions: {
+                none: 'Nenhum',
+                blankLine: 'Linha em branco',
+                horizontalRule: 'Linha horizontal',
+                heading: 'Cabeçalho com o título da nota'
+            },
+            moveSourcesToTrash: 'Mover notas de origem para a lixeira após mesclar',
+            mergeButton: 'Mesclar'
         },
         navRainbowSection: {
             title: (section: string) => `Cores arco-íris: ${section}`
@@ -699,6 +721,11 @@ export const STRINGS_PT_BR = {
             deleteFolder: 'Falha ao excluir pasta: {error}',
             deleteFile: 'Falha ao excluir arquivo: {error}',
             deleteAttachments: 'Falha ao excluir os anexos: {error}',
+            mergeNotes: 'Falha ao mesclar notas: {error}',
+            mergeNotesOpenOutput:
+                'A nota mesclada foi criada como {name}, mas não pôde ser aberta: {error}. As notas de origem não foram alteradas.',
+            mergeNotesOpenSkipped: 'Outra solicitação para abrir arquivo teve prioridade.',
+            mergeNotesTrashSources: 'Nota mesclada criada. Falha ao mover {count} notas de origem para a lixeira.',
             duplicateNote: 'Falha ao duplicar nota: {error}',
             duplicateFolder: 'Falha ao duplicar pasta: {error}',
             openVersionHistory: 'Falha ao abrir histórico de versões: {error}',
@@ -732,7 +759,8 @@ export const STRINGS_PT_BR = {
         },
         notices: {
             hideFolder: 'Pasta oculta: {name}',
-            showFolder: 'Pasta exibida: {name}'
+            showFolder: 'Pasta exibida: {name}',
+            mergeNotes: '{count} notas mescladas em {name}'
         },
         notifications: {
             deletedMultipleFiles: '{count} arquivos excluídos',
@@ -750,6 +778,7 @@ export const STRINGS_PT_BR = {
             tagsClearedFromNotes: 'Todas as tags removidas de {count} notas',
             noTagsToRemove: 'Sem tags para remover',
             noFilesSelected: 'Nenhum arquivo selecionado',
+            mergeNotesRequireMultipleMarkdown: 'Selecione pelo menos duas notas Markdown para mesclar',
             tagOperationsNotAvailable: 'Operações de tag não disponíveis',
             propertyOperationsNotAvailable: 'Operações de propriedades não disponíveis',
             tagsRequireMarkdown: 'Tags só são suportadas em notas Markdown',
@@ -827,6 +856,7 @@ export const STRINGS_PT_BR = {
         createNewNote: 'Criar nova nota',
         createNewNoteFromTemplate: 'Nova nota a partir de modelo',
         moveFiles: 'Mover arquivos',
+        mergeNotes: 'Mesclar notas', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Selecionar próximo arquivo',
         selectPreviousFile: 'Selecionar arquivo anterior',
         navigateBack: 'Navegar para trás',

@@ -312,6 +312,8 @@ export const STRINGS_VI = {
             moveFileToFolder: 'Di chuyển tệp...',
             moveMultipleNotesToFolder: 'Di chuyển {count} ghi chú...',
             moveMultipleFilesToFolder: 'Di chuyển {count} tệp...',
+            mergeNotes: 'Hợp nhất {count} ghi chú...',
+            mergeNotesInGroup: 'Hợp nhất ghi chú trong nhóm...',
             setManualSortGroupHeader: 'Đặt header nhóm',
             changeManualSortGroupHeader: 'Đổi header nhóm',
             manualSortGroupHeader: {
@@ -435,6 +437,26 @@ export const STRINGS_VI = {
             wordCountTargetDescription:
                 'Khi trường này trống, mục tiêu nhóm dùng thuộc tính mục tiêu được đặt trong Cài đặt > Ghi chú > Số từ và ký tự. Ghi đè bằng cách đặt giá trị mục tiêu cho nhóm này.',
             description: 'Tùy chỉnh header nhóm cho ghi chú này. Để trống tiêu đề để xóa header.'
+        },
+        mergeNotes: {
+            title: 'Hợp nhất ghi chú',
+            summary: 'Tạo một ghi chú từ {count} ghi chú trong {folder}.',
+            frontmatterRule: 'Frontmatter từ ghi chú đầu tiên được giữ lại. Frontmatter từ các ghi chú khác bị xóa.',
+            crossFolderWarning:
+                'Ghi chú nguồn nằm trong các thư mục khác nhau. Liên kết tương đối và nhúng có thể ngừng hoạt động trong ghi chú đã hợp nhất.',
+            outputName: 'Tên đầu ra',
+            outputNameDesc: 'Ghi chú đã hợp nhất được tạo trong thư mục hiển thị ở trên.',
+            outputNamePlaceholder: 'Ghi chú đã hợp nhất',
+            separator: 'Dấu phân cách',
+            separatorDesc: 'Được chèn giữa các ghi chú.',
+            separatorOptions: {
+                none: 'Không có',
+                blankLine: 'Dòng trống',
+                horizontalRule: 'Đường ngang',
+                heading: 'Tiêu đề với tên ghi chú'
+            },
+            moveSourcesToTrash: 'Di chuyển ghi chú nguồn vào thùng rác sau khi hợp nhất',
+            mergeButton: 'Hợp nhất'
         },
         navRainbowSection: {
             title: (section: string) => `Màu cầu vồng: ${section}`
@@ -698,6 +720,11 @@ export const STRINGS_VI = {
             deleteFolder: 'Không thể xóa thư mục: {error}',
             deleteFile: 'Không thể xóa tệp: {error}',
             deleteAttachments: 'Không thể xóa tệp đính kèm: {error}',
+            mergeNotes: 'Không thể hợp nhất ghi chú: {error}',
+            mergeNotesOpenOutput:
+                'Ghi chú đã hợp nhất được tạo dưới tên {name}, nhưng không thể mở: {error}. Ghi chú nguồn không bị thay đổi.',
+            mergeNotesOpenSkipped: 'Một yêu cầu mở tệp khác được ưu tiên.',
+            mergeNotesTrashSources: 'Ghi chú đã hợp nhất đã được tạo. Không thể di chuyển {count} ghi chú nguồn vào thùng rác.',
             duplicateNote: 'Không thể nhân bản ghi chú: {error}',
             duplicateFolder: 'Không thể nhân bản thư mục: {error}',
             openVersionHistory: 'Không thể mở lịch sử phiên bản: {error}',
@@ -731,7 +758,8 @@ export const STRINGS_VI = {
         },
         notices: {
             hideFolder: 'Đã ẩn thư mục: {name}',
-            showFolder: 'Đã hiện thư mục: {name}'
+            showFolder: 'Đã hiện thư mục: {name}',
+            mergeNotes: 'Đã hợp nhất {count} ghi chú vào {name}'
         },
         notifications: {
             deletedMultipleFiles: 'Đã xóa {count} tệp',
@@ -749,6 +777,7 @@ export const STRINGS_VI = {
             tagsClearedFromNotes: 'Đã xóa tất cả thẻ khỏi {count} ghi chú',
             noTagsToRemove: 'Không có thẻ để gỡ',
             noFilesSelected: 'Chưa chọn tệp',
+            mergeNotesRequireMultipleMarkdown: 'Chọn ít nhất hai ghi chú Markdown để hợp nhất',
             tagOperationsNotAvailable: 'Thao tác thẻ không khả dụng',
             propertyOperationsNotAvailable: 'Thao tác thuộc tính không khả dụng',
             tagsRequireMarkdown: 'Thẻ chỉ được hỗ trợ trên ghi chú Markdown',
@@ -826,6 +855,7 @@ export const STRINGS_VI = {
         createNewNote: 'Tạo ghi chú mới', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'Ghi chú mới từ mẫu', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Di chuyển tệp', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'Hợp nhất ghi chú', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Chọn tệp tiếp theo', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Chọn tệp trước', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'Điều hướng lùi',

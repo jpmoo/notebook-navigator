@@ -297,6 +297,8 @@ export const STRINGS_ZH_TW = {
             moveFileToFolder: '移動檔案至...',
             moveMultipleNotesToFolder: '將 {count} 個筆記移動至...',
             moveMultipleFilesToFolder: '將 {count} 個檔案移動至...',
+            mergeNotes: '合併 {count} 則筆記...',
+            mergeNotesInGroup: '合併群組中的筆記...',
             setManualSortGroupHeader: '設定群組標題',
             changeManualSortGroupHeader: '變更群組標題',
             manualSortGroupHeader: {
@@ -434,6 +436,25 @@ export const STRINGS_ZH_TW = {
             wordCountTargetDescription:
                 '此欄位為空時，群組目標會使用「設定 > 筆記 > 字數與字元數」中設定的目標屬性。為此群組設定目標值即可覆寫。',
             description: '為此筆記自訂群組標題。將標題留空以移除標題。'
+        },
+        mergeNotes: {
+            title: '合併筆記',
+            summary: '從 {folder} 中的 {count} 則筆記建立一則筆記。',
+            frontmatterRule: '保留第一則筆記的 frontmatter。移除其他筆記的 frontmatter。',
+            crossFolderWarning: '來源筆記位於不同資料夾。相對連結和嵌入在合併後的筆記中可能會停止運作。',
+            outputName: '輸出名稱',
+            outputNameDesc: '合併後的筆記會建立在上方顯示的資料夾中。',
+            outputNamePlaceholder: '合併的筆記',
+            separator: '分隔符',
+            separatorDesc: '插入到筆記之間。',
+            separatorOptions: {
+                none: '無',
+                blankLine: '空白行',
+                horizontalRule: '水平線',
+                heading: '含筆記標題的標題'
+            },
+            moveSourcesToTrash: '合併後將來源筆記移至回收桶',
+            mergeButton: '合併'
         },
         navRainbowSection: {
             title: (section: string) => `彩虹顏色: ${section}`
@@ -689,6 +710,10 @@ export const STRINGS_ZH_TW = {
             deleteFolder: '刪除資料夾失敗：{error}',
             deleteFile: '刪除檔案失敗：{error}',
             deleteAttachments: '刪除附件失敗: {error}',
+            mergeNotes: '合併筆記失敗: {error}',
+            mergeNotesOpenOutput: '合併後的筆記已建立為 {name}，但無法開啟: {error}。來源筆記未變更。',
+            mergeNotesOpenSkipped: '另一個檔案開啟請求已優先執行。',
+            mergeNotesTrashSources: '合併後的筆記已建立。無法將 {count} 則來源筆記移至回收桶。',
             duplicateNote: '複製筆記失敗：{error}',
             duplicateFolder: '複製資料夾失敗：{error}',
             openVersionHistory: '開啟版本歷史失敗：{error}',
@@ -722,7 +747,8 @@ export const STRINGS_ZH_TW = {
         },
         notices: {
             hideFolder: '已隱藏資料夾：{name}',
-            showFolder: '已顯示資料夾：{name}'
+            showFolder: '已顯示資料夾：{name}',
+            mergeNotes: '已將 {count} 則筆記合併到 {name}'
         },
         notifications: {
             deletedMultipleFiles: '已刪除 {count} 個檔案',
@@ -740,6 +766,7 @@ export const STRINGS_ZH_TW = {
             tagsClearedFromNotes: '已從 {count} 個筆記中清除所有標籤',
             noTagsToRemove: '沒有可移除的標籤',
             noFilesSelected: '未選擇檔案',
+            mergeNotesRequireMultipleMarkdown: '請選擇至少兩則 Markdown 筆記進行合併',
             tagOperationsNotAvailable: '標籤操作不可用',
             propertyOperationsNotAvailable: '屬性操作不可用',
             tagsRequireMarkdown: '標籤僅支援 Markdown 筆記',
@@ -817,6 +844,7 @@ export const STRINGS_ZH_TW = {
         createNewNote: '建立新筆記',
         createNewNoteFromTemplate: '從範本新建筆記',
         moveFiles: '移動檔案',
+        mergeNotes: '合併筆記', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: '選擇下一個檔案',
         selectPreviousFile: '選擇上一個檔案',
         navigateBack: '向後導覽',

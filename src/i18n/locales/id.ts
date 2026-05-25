@@ -313,6 +313,8 @@ export const STRINGS_ID = {
             moveFileToFolder: 'Pindahkan file ke...',
             moveMultipleNotesToFolder: 'Pindahkan {count} catatan ke...',
             moveMultipleFilesToFolder: 'Pindahkan {count} file ke...',
+            mergeNotes: 'Gabungkan {count} catatan...',
+            mergeNotesInGroup: 'Gabungkan catatan dalam grup...',
             setManualSortGroupHeader: 'Atur header grup',
             changeManualSortGroupHeader: 'Ubah header grup',
             manualSortGroupHeader: {
@@ -436,6 +438,26 @@ export const STRINGS_ID = {
             wordCountTargetDescription:
                 'Saat bidang ini kosong, target grup menggunakan properti target yang diatur di Pengaturan > Catatan > Jumlah kata dan karakter. Timpa dengan menetapkan nilai target untuk grup ini.',
             description: 'Sesuaikan header grup untuk catatan ini. Biarkan judul kosong untuk menghapus header.'
+        },
+        mergeNotes: {
+            title: 'Gabungkan catatan',
+            summary: 'Buat satu catatan dari {count} catatan di {folder}.',
+            frontmatterRule: 'Frontmatter dari catatan pertama dipertahankan. Frontmatter dari catatan lain dihapus.',
+            crossFolderWarning:
+                'Catatan sumber berada di folder yang berbeda. Tautan relatif dan embed mungkin berhenti berfungsi di catatan gabungan.',
+            outputName: 'Nama output',
+            outputNameDesc: 'Catatan gabungan dibuat di folder yang ditampilkan di atas.',
+            outputNamePlaceholder: 'Catatan gabungan',
+            separator: 'Pemisah',
+            separatorDesc: 'Disisipkan di antara catatan.',
+            separatorOptions: {
+                none: 'Tidak ada',
+                blankLine: 'Baris kosong',
+                horizontalRule: 'Garis horizontal',
+                heading: 'Judul dengan judul catatan'
+            },
+            moveSourcesToTrash: 'Pindahkan catatan sumber ke sampah setelah digabung',
+            mergeButton: 'Gabungkan'
         },
         navRainbowSection: {
             title: (section: string) => `Warna pelangi: ${section}`
@@ -697,6 +719,11 @@ export const STRINGS_ID = {
             deleteFolder: 'Gagal menghapus folder: {error}',
             deleteFile: 'Gagal menghapus file: {error}',
             deleteAttachments: 'Gagal menghapus lampiran: {error}',
+            mergeNotes: 'Gagal menggabungkan catatan: {error}',
+            mergeNotesOpenOutput:
+                'Catatan gabungan dibuat sebagai {name}, tetapi tidak dapat dibuka: {error}. Catatan sumber tidak diubah.',
+            mergeNotesOpenSkipped: 'Permintaan pembukaan file lain didahulukan.',
+            mergeNotesTrashSources: 'Catatan gabungan dibuat. Gagal memindahkan {count} catatan sumber ke sampah.',
             duplicateNote: 'Gagal menduplikat catatan: {error}',
             duplicateFolder: 'Gagal menduplikat folder: {error}',
             openVersionHistory: 'Gagal membuka riwayat versi: {error}',
@@ -730,7 +757,8 @@ export const STRINGS_ID = {
         },
         notices: {
             hideFolder: 'Folder disembunyikan: {name}',
-            showFolder: 'Folder ditampilkan: {name}'
+            showFolder: 'Folder ditampilkan: {name}',
+            mergeNotes: 'Menggabungkan {count} catatan menjadi {name}'
         },
         notifications: {
             deletedMultipleFiles: 'Menghapus {count} file',
@@ -748,6 +776,7 @@ export const STRINGS_ID = {
             tagsClearedFromNotes: 'Menghapus semua tag dari {count} catatan',
             noTagsToRemove: 'Tidak ada tag untuk dihapus',
             noFilesSelected: 'Tidak ada file yang dipilih',
+            mergeNotesRequireMultipleMarkdown: 'Pilih setidaknya dua catatan Markdown untuk digabungkan',
             tagOperationsNotAvailable: 'Operasi tag tidak tersedia',
             propertyOperationsNotAvailable: 'Operasi properti tidak tersedia',
             tagsRequireMarkdown: 'Tag hanya didukung pada catatan Markdown',
@@ -825,6 +854,7 @@ export const STRINGS_ID = {
         createNewNote: 'Buat catatan baru',
         createNewNoteFromTemplate: 'Catatan baru dari template',
         moveFiles: 'Pindahkan file',
+        mergeNotes: 'Gabungkan catatan', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Pilih file berikutnya',
         selectPreviousFile: 'Pilih file sebelumnya',
         navigateBack: 'Navigasi mundur',

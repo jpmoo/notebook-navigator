@@ -84,16 +84,18 @@ const RELEASE_NOTES: ReleaseNote[] = [
         version: '3.0.1',
         date: '2026-05-26',
         showOnUpdate: true,
+        info: 'Notebook Navigator should start quickly on all devices. If you feel Notebook Navigator starts slowly, then please enable the new setting "Startup debug logging", restart, and upload the generated markdown file to https://github.com/johansan/notebook-navigator as a bug report and I will take a look at it.',
         new: [
+            '**List pane.** You can now ==merge notes in the list pane==! Right click several files or a group header to create a new note from selected files. You can also use it through the command "Merge notes".',
             '**List pane.** ==Files can show character counts==, with or without spaces. Enable it in Settings > Notes > Word and character count.',
-            '**Debugging.** New setting **Startup debug logging**. Enable this in Advanced settings if you experience slow startup times, then upload the debug file to our GitHub page.'
+            '**Startup.** New setting ==Startup debug logging==. Enable this in Advanced settings if you experience slow startup times, then upload the debug file to our GitHub page.'
         ],
         changed: [
             '**Settings.** Settings structure was rewritten for easier navigation. You can now navigate to all sub pages from the first settings page.'
         ],
         improved: [
-            '**Manual sort.** **Edit sort order...** now supports keyboard navigation.',
-            '**Shortcuts.** Search shortcuts can now be renamed from the shortcut context menu.'
+            '**Shortcuts.** Search shortcuts can now be renamed from the context menu.',
+            '**List pane.** The **Edit sort order...** mode now fully supports keyboard navigation, including CMD+arrow up / down.'
         ],
         fixed: [
             '**Navigation pane.** Fixed duplicated folder rows showing after folders were copied into the vault while Obsidian was open.'

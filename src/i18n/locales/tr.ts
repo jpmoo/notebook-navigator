@@ -313,6 +313,8 @@ export const STRINGS_TR = {
             moveFileToFolder: 'Dosyayı taşı...',
             moveMultipleNotesToFolder: '{count} notu taşı...',
             moveMultipleFilesToFolder: '{count} dosyayı taşı...',
+            mergeNotes: '{count} notu birleştir...',
+            mergeNotesInGroup: 'Gruptaki notları birleştir...',
             setManualSortGroupHeader: 'Grup başlığını ayarla',
             changeManualSortGroupHeader: 'Grup başlığını değiştir',
             manualSortGroupHeader: {
@@ -436,6 +438,25 @@ export const STRINGS_TR = {
             wordCountTargetDescription:
                 'Bu alan boş olduğunda grup hedefi, Ayarlar > Notlar > Kelime ve karakter sayısı içinde ayarlanan hedef özelliğini kullanır. Bu grup için bir hedef değeri ayarlayarak geçersiz kılın.',
             description: 'Bu not için grup başlığını özelleştirin. Başlığı kaldırmak için başlığı boş bırakın.'
+        },
+        mergeNotes: {
+            title: 'Notları birleştir',
+            summary: '{folder} içindeki {count} nottan tek bir not oluştur.',
+            frontmatterRule: 'İlk notun frontmatter bölümü korunur. Diğer notların frontmatter bölümü kaldırılır.',
+            crossFolderWarning: 'Kaynak notlar farklı klasörlerde. Birleştirilen notta göreli bağlantılar ve gömmeler çalışmayabilir.',
+            outputName: 'Çıktı adı',
+            outputNameDesc: 'Birleştirilen not yukarıda gösterilen klasörde oluşturulur.',
+            outputNamePlaceholder: 'Birleştirilmiş notlar',
+            separator: 'Ayırıcı',
+            separatorDesc: 'Notların arasına eklenir.',
+            separatorOptions: {
+                none: 'Yok',
+                blankLine: 'Boş satır',
+                horizontalRule: 'Yatay çizgi',
+                heading: 'Not başlığıyla başlık'
+            },
+            moveSourcesToTrash: 'Birleştirdikten sonra kaynak notları çöp kutusuna taşı',
+            mergeButton: 'Birleştir'
         },
         navRainbowSection: {
             title: (section: string) => `Gökkuşağı renkleri: ${section}`
@@ -697,6 +718,10 @@ export const STRINGS_TR = {
             deleteFolder: 'Klasör silinemedi: {error}',
             deleteFile: 'Dosya silinemedi: {error}',
             deleteAttachments: 'Ekler silinemedi: {error}',
+            mergeNotes: 'Notlar birleştirilemedi: {error}',
+            mergeNotesOpenOutput: 'Birleştirilmiş not {name} olarak oluşturuldu, ancak açılamadı: {error}. Kaynak notlar değiştirilmedi.',
+            mergeNotesOpenSkipped: 'Başka bir dosya açma isteği öncelik kazandı.',
+            mergeNotesTrashSources: 'Birleştirilmiş not oluşturuldu. {count} kaynak not çöp kutusuna taşınamadı.',
             duplicateNote: 'Not çoğaltılamadı: {error}',
             duplicateFolder: 'Klasör çoğaltılamadı: {error}',
             openVersionHistory: 'Sürüm geçmişi açılamadı: {error}',
@@ -730,7 +755,8 @@ export const STRINGS_TR = {
         },
         notices: {
             hideFolder: 'Klasör gizlendi: {name}',
-            showFolder: 'Klasör gösterildi: {name}'
+            showFolder: 'Klasör gösterildi: {name}',
+            mergeNotes: '{count} not {name} içine birleştirildi'
         },
         notifications: {
             deletedMultipleFiles: '{count} dosya silindi',
@@ -748,6 +774,7 @@ export const STRINGS_TR = {
             tagsClearedFromNotes: '{count} nottan tüm etiketler temizlendi',
             noTagsToRemove: 'Kaldırılacak etiket yok',
             noFilesSelected: 'Dosya seçili değil',
+            mergeNotesRequireMultipleMarkdown: 'Birleştirmek için en az iki Markdown notu seçin',
             tagOperationsNotAvailable: 'Etiket işlemleri kullanılamıyor',
             propertyOperationsNotAvailable: 'Özellik işlemleri kullanılamıyor',
             tagsRequireMarkdown: 'Etiketler yalnızca Markdown notlarında desteklenir',
@@ -825,6 +852,7 @@ export const STRINGS_TR = {
         createNewNote: 'Yeni not oluştur', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'Şablondan yeni not', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Dosyaları taşı', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'Notları birleştir', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Sonraki dosyayı seç', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Önceki dosyayı seç', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'Geri git',

@@ -312,6 +312,8 @@ export const STRINGS_EN = {
             moveFileToFolder: 'Move file to...',
             moveMultipleNotesToFolder: 'Move {count} notes to...',
             moveMultipleFilesToFolder: 'Move {count} files to...',
+            mergeNotes: 'Merge {count} notes...',
+            mergeNotesInGroup: 'Merge notes in group...',
             setManualSortGroupHeader: 'Set group header',
             changeManualSortGroupHeader: 'Change group header',
             manualSortGroupHeader: {
@@ -435,6 +437,25 @@ export const STRINGS_EN = {
             wordCountTargetDescription:
                 'When this field is empty, the group goal uses the target property set in Settings > Notes > Word and character count. Override it by setting a target value for this group.',
             description: 'Customize the group header for this note. Leave the title empty to remove the header.'
+        },
+        mergeNotes: {
+            title: 'Merge notes',
+            summary: 'Create one note from {count} notes in {folder}.',
+            frontmatterRule: 'Frontmatter from the first note is kept. Frontmatter from the other notes is removed.',
+            crossFolderWarning: 'Source notes are in different folders. Relative links and embeds may stop working in the merged note.',
+            outputName: 'Output name',
+            outputNameDesc: 'The merged note is created in the folder shown above.',
+            outputNamePlaceholder: 'Merged notes',
+            separator: 'Separator',
+            separatorDesc: 'Inserted between notes.',
+            separatorOptions: {
+                none: 'None',
+                blankLine: 'Blank line',
+                horizontalRule: 'Horizontal rule',
+                heading: 'Heading with note title'
+            },
+            moveSourcesToTrash: 'Move source notes to trash after merging',
+            mergeButton: 'Merge'
         },
         navRainbowSection: {
             title: (section: string) => `Rainbow colors: ${section}`
@@ -693,6 +714,10 @@ export const STRINGS_EN = {
             deleteFolder: 'Failed to delete folder: {error}',
             deleteFile: 'Failed to delete file: {error}',
             deleteAttachments: 'Failed to delete attachments: {error}',
+            mergeNotes: 'Failed to merge notes: {error}',
+            mergeNotesOpenOutput: 'Merged note created as {name}, but it could not be opened: {error}. Source notes were left unchanged.',
+            mergeNotesOpenSkipped: 'Another file open request took precedence.',
+            mergeNotesTrashSources: 'Merged note created. Failed to move {count} source notes to trash.',
             duplicateNote: 'Failed to duplicate note: {error}',
             duplicateFolder: 'Failed to duplicate folder: {error}',
             openVersionHistory: 'Failed to open version history: {error}',
@@ -726,7 +751,8 @@ export const STRINGS_EN = {
         },
         notices: {
             hideFolder: 'Folder hidden: {name}',
-            showFolder: 'Folder shown: {name}'
+            showFolder: 'Folder shown: {name}',
+            mergeNotes: 'Merged {count} notes into {name}'
         },
         notifications: {
             deletedMultipleFiles: 'Deleted {count} files',
@@ -744,6 +770,7 @@ export const STRINGS_EN = {
             tagsClearedFromNotes: 'Cleared all tags from {count} notes',
             noTagsToRemove: 'No tags to remove',
             noFilesSelected: 'No files selected',
+            mergeNotesRequireMultipleMarkdown: 'Select at least two Markdown notes to merge',
             tagOperationsNotAvailable: 'Tag operations not available',
             propertyOperationsNotAvailable: 'Property operations not available',
             tagsRequireMarkdown: 'Tags are only supported on Markdown notes',
@@ -821,6 +848,7 @@ export const STRINGS_EN = {
         createNewNote: 'Create new note', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'Create new note from template', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Move files', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'Merge notes', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Select next file', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Select previous file', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'Navigate back',

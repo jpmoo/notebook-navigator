@@ -299,6 +299,8 @@ export const STRINGS_FR = {
             moveFileToFolder: 'Déplacer le fichier vers...',
             moveMultipleNotesToFolder: 'Déplacer {count} notes vers...',
             moveMultipleFilesToFolder: 'Déplacer {count} fichiers vers...',
+            mergeNotes: 'Fusionner {count} notes...',
+            mergeNotesInGroup: 'Fusionner les notes du groupe...',
             setManualSortGroupHeader: "Définir l'en-tête de groupe",
             changeManualSortGroupHeader: "Modifier l'en-tête de groupe",
             manualSortGroupHeader: {
@@ -437,6 +439,26 @@ export const STRINGS_FR = {
             wordCountTargetDescription:
                 'Lorsque ce champ est vide, l’objectif du groupe utilise la propriété cible définie dans Réglages > Notes > Nombre de mots et de caractères. Remplacez-la en définissant une valeur cible pour ce groupe.',
             description: "Personnalisez l'en-tête de groupe pour cette note. Laissez le titre vide pour supprimer l'en-tête."
+        },
+        mergeNotes: {
+            title: 'Fusionner les notes',
+            summary: 'Créer une note à partir de {count} notes dans {folder}.',
+            frontmatterRule: 'Le frontmatter de la première note est conservé. Le frontmatter des autres notes est supprimé.',
+            crossFolderWarning:
+                'Les notes sources se trouvent dans des dossiers différents. Les liens relatifs et les intégrations peuvent ne plus fonctionner dans la note fusionnée.',
+            outputName: 'Nom de sortie',
+            outputNameDesc: 'La note fusionnée est créée dans le dossier affiché ci-dessus.',
+            outputNamePlaceholder: 'Notes fusionnées',
+            separator: 'Séparateur',
+            separatorDesc: 'Inséré entre les notes.',
+            separatorOptions: {
+                none: 'Aucun',
+                blankLine: 'Ligne vide',
+                horizontalRule: 'Ligne horizontale',
+                heading: 'Titre avec le titre de la note'
+            },
+            moveSourcesToTrash: 'Déplacer les notes sources vers la corbeille après la fusion',
+            mergeButton: 'Fusionner'
         },
         navRainbowSection: {
             title: (section: string) => `Couleurs arc-en-ciel: ${section}`
@@ -700,6 +722,11 @@ export const STRINGS_FR = {
             deleteFolder: 'Échec de la suppression du dossier : {error}',
             deleteFile: 'Échec de la suppression du fichier : {error}',
             deleteAttachments: 'Échec de la suppression des pièces jointes : {error}',
+            mergeNotes: 'Échec de la fusion des notes : {error}',
+            mergeNotesOpenOutput:
+                'La note fusionnée a été créée sous le nom {name}, mais elle n’a pas pu être ouverte : {error}. Les notes sources n’ont pas été modifiées.',
+            mergeNotesOpenSkipped: 'Une autre demande d’ouverture de fichier a pris la priorité.',
+            mergeNotesTrashSources: 'Note fusionnée créée. Échec du déplacement de {count} notes sources vers la corbeille.',
             duplicateNote: 'Échec de la duplication de la note : {error}',
             duplicateFolder: 'Échec de la duplication du dossier : {error}',
             openVersionHistory: "Échec de l'ouverture de l'historique des versions : {error}",
@@ -733,7 +760,8 @@ export const STRINGS_FR = {
         },
         notices: {
             hideFolder: 'Dossier masqué : {name}',
-            showFolder: 'Dossier affiché : {name}'
+            showFolder: 'Dossier affiché : {name}',
+            mergeNotes: '{count} notes fusionnées dans {name}'
         },
         notifications: {
             deletedMultipleFiles: '{count} fichiers supprimés',
@@ -751,6 +779,7 @@ export const STRINGS_FR = {
             tagsClearedFromNotes: 'Toutes les étiquettes supprimées de {count} notes',
             noTagsToRemove: 'Aucune étiquette à supprimer',
             noFilesSelected: 'Aucun fichier sélectionné',
+            mergeNotesRequireMultipleMarkdown: 'Sélectionnez au moins deux notes Markdown à fusionner',
             tagOperationsNotAvailable: "Opérations d'étiquettes non disponibles",
             propertyOperationsNotAvailable: 'Opérations de propriétés non disponibles',
             tagsRequireMarkdown: 'Les étiquettes ne sont prises en charge que sur les notes Markdown',
@@ -828,6 +857,7 @@ export const STRINGS_FR = {
         createNewNote: 'Créer une nouvelle note', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'Nouvelle note depuis un modèle', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Déplacer les fichiers', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'Fusionner les notes', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Sélectionner le fichier suivant', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Sélectionner le fichier précédent', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'Naviguer en arrière',

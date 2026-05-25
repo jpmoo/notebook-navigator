@@ -297,6 +297,8 @@ export const STRINGS_JA = {
             moveFileToFolder: 'ファイルを移動先...',
             moveMultipleNotesToFolder: '{count}個のノートを移動先...',
             moveMultipleFilesToFolder: '{count}個のファイルを移動先...',
+            mergeNotes: '{count}個のノートを結合...',
+            mergeNotesInGroup: 'グループ内のノートを結合...',
             setManualSortGroupHeader: 'グループヘッダーを設定',
             changeManualSortGroupHeader: 'グループヘッダーを変更',
             manualSortGroupHeader: {
@@ -435,6 +437,26 @@ export const STRINGS_JA = {
             wordCountTargetDescription:
                 'このフィールドが空の場合、グループ目標は 設定 > ノート > 単語数と文字数 で設定された目標プロパティを使用します。このグループに目標値を設定すると上書きできます。',
             description: 'このノートのグループヘッダーをカスタマイズします。ヘッダーを削除するには、タイトルを空のままにします。'
+        },
+        mergeNotes: {
+            title: 'ノートを結合',
+            summary: '{folder} の {count} 個のノートから1つのノートを作成します。',
+            frontmatterRule: '最初のノートのフロントマターは保持されます。他のノートのフロントマターは削除されます。',
+            crossFolderWarning:
+                '元のノートが異なるフォルダにあります。結合されたノートでは相対リンクと埋め込みが機能しなくなる可能性があります。',
+            outputName: '出力名',
+            outputNameDesc: '結合されたノートは上に表示されたフォルダに作成されます。',
+            outputNamePlaceholder: '結合されたノート',
+            separator: '区切り',
+            separatorDesc: 'ノート間に挿入されます。',
+            separatorOptions: {
+                none: 'なし',
+                blankLine: '空行',
+                horizontalRule: '水平線',
+                heading: 'ノートタイトル付き見出し'
+            },
+            moveSourcesToTrash: '結合後に元のノートをゴミ箱に移動',
+            mergeButton: '結合'
         },
         navRainbowSection: {
             title: (section: string) => `レインボーカラー: ${section}`
@@ -696,6 +718,11 @@ export const STRINGS_JA = {
             deleteFolder: 'フォルダの削除に失敗しました：{error}',
             deleteFile: 'ファイルの削除に失敗しました：{error}',
             deleteAttachments: '添付ファイルの削除に失敗しました: {error}',
+            mergeNotes: 'ノートの結合に失敗しました: {error}',
+            mergeNotesOpenOutput:
+                '結合されたノートは {name} として作成されましたが、開けませんでした: {error}。元のノートは変更されませんでした。',
+            mergeNotesOpenSkipped: '別のファイルを開くリクエストが優先されました。',
+            mergeNotesTrashSources: '結合されたノートを作成しました。{count} 個の元ノートをゴミ箱に移動できませんでした。',
             duplicateNote: 'ノートの複製に失敗しました：{error}',
             duplicateFolder: 'フォルダの複製に失敗しました：{error}',
             openVersionHistory: 'バージョン履歴を開くのに失敗しました：{error}',
@@ -729,7 +756,8 @@ export const STRINGS_JA = {
         },
         notices: {
             hideFolder: 'フォルダを非表示: {name}',
-            showFolder: 'フォルダを表示: {name}'
+            showFolder: 'フォルダを表示: {name}',
+            mergeNotes: '{count} 個のノートを {name} に結合しました'
         },
         notifications: {
             deletedMultipleFiles: '{count}個のファイルを削除しました',
@@ -747,6 +775,7 @@ export const STRINGS_JA = {
             tagsClearedFromNotes: '{count}個のノートからすべてのタグをクリアしました',
             noTagsToRemove: '削除するタグがありません',
             noFilesSelected: 'ファイルが選択されていません',
+            mergeNotesRequireMultipleMarkdown: '結合するには少なくとも2つのMarkdownノートを選択してください',
             tagOperationsNotAvailable: 'タグ操作は利用できません',
             propertyOperationsNotAvailable: 'プロパティ操作は利用できません',
             tagsRequireMarkdown: 'タグはMarkdownノートでのみサポートされています',
@@ -824,6 +853,7 @@ export const STRINGS_JA = {
         createNewNote: '新規ノートを作成', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'テンプレートから新規ノート', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'ファイルを移動', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'ノートを結合', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: '次のファイルを選択', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: '前のファイルを選択', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: '前に戻る',

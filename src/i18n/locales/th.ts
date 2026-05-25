@@ -312,6 +312,8 @@ export const STRINGS_TH = {
             moveFileToFolder: 'ย้ายไฟล์ไปยัง...',
             moveMultipleNotesToFolder: 'ย้าย {count} โน้ตไปยัง...',
             moveMultipleFilesToFolder: 'ย้าย {count} ไฟล์ไปยัง...',
+            mergeNotes: 'รวม {count} โน้ต...',
+            mergeNotesInGroup: 'รวมโน้ตในกลุ่ม...',
             setManualSortGroupHeader: 'ตั้งค่าส่วนหัวกลุ่ม',
             changeManualSortGroupHeader: 'เปลี่ยนส่วนหัวกลุ่ม',
             manualSortGroupHeader: {
@@ -434,6 +436,25 @@ export const STRINGS_TH = {
             wordCountTargetDescription:
                 'เมื่อฟิลด์นี้ว่าง เป้าหมายกลุ่มจะใช้คุณสมบัติเป้าหมายที่ตั้งไว้ใน การตั้งค่า > โน้ต > จำนวนคำและอักขระ แทนที่ได้โดยตั้งค่าเป้าหมายสำหรับกลุ่มนี้',
             description: 'ปรับแต่งส่วนหัวกลุ่มสำหรับโน้ตนี้ เว้นชื่อเรื่องว่างเพื่อนำส่วนหัวออก'
+        },
+        mergeNotes: {
+            title: 'รวมโน้ต',
+            summary: 'สร้างโน้ตหนึ่งรายการจาก {count} โน้ตใน {folder}',
+            frontmatterRule: 'Frontmatter จากโน้ตแรกจะถูกเก็บไว้ Frontmatter จากโน้ตอื่นจะถูกลบออก',
+            crossFolderWarning: 'โน้ตต้นทางอยู่ในโฟลเดอร์ต่างกัน ลิงก์สัมพัทธ์และการฝังอาจหยุดทำงานในโน้ตที่รวมแล้ว',
+            outputName: 'ชื่อผลลัพธ์',
+            outputNameDesc: 'โน้ตที่รวมแล้วจะถูกสร้างในโฟลเดอร์ที่แสดงด้านบน',
+            outputNamePlaceholder: 'โน้ตที่รวมแล้ว',
+            separator: 'ตัวคั่น',
+            separatorDesc: 'แทรกระหว่างโน้ต',
+            separatorOptions: {
+                none: 'ไม่มี',
+                blankLine: 'บรรทัดว่าง',
+                horizontalRule: 'เส้นแนวนอน',
+                heading: 'หัวเรื่องพร้อมชื่อโน้ต'
+            },
+            moveSourcesToTrash: 'ย้ายโน้ตต้นทางไปที่ถังขยะหลังจากรวม',
+            mergeButton: 'รวม'
         },
         navRainbowSection: {
             title: (section: string) => `สีรุ้ง: ${section}`
@@ -692,6 +713,10 @@ export const STRINGS_TH = {
             deleteFolder: 'ลบโฟลเดอร์ล้มเหลว: {error}',
             deleteFile: 'ลบไฟล์ล้มเหลว: {error}',
             deleteAttachments: 'ไม่สามารถลบไฟล์แนบได้: {error}',
+            mergeNotes: 'รวมโน้ตไม่สำเร็จ: {error}',
+            mergeNotesOpenOutput: 'สร้างโน้ตที่รวมแล้วเป็น {name} แล้ว แต่ไม่สามารถเปิดได้: {error} โน้ตต้นทางไม่ได้ถูกเปลี่ยนแปลง',
+            mergeNotesOpenSkipped: 'คำขอเปิดไฟล์อื่นมีความสำคัญกว่า',
+            mergeNotesTrashSources: 'สร้างโน้ตที่รวมแล้วแล้ว ไม่สามารถย้ายโน้ตต้นทาง {count} รายการไปที่ถังขยะได้',
             duplicateNote: 'ทำซ้ำโน้ตล้มเหลว: {error}',
             duplicateFolder: 'ทำซ้ำโฟลเดอร์ล้มเหลว: {error}',
             openVersionHistory: 'เปิดประวัติเวอร์ชันล้มเหลว: {error}',
@@ -725,7 +750,8 @@ export const STRINGS_TH = {
         },
         notices: {
             hideFolder: 'ซ่อนโฟลเดอร์แล้ว: {name}',
-            showFolder: 'แสดงโฟลเดอร์แล้ว: {name}'
+            showFolder: 'แสดงโฟลเดอร์แล้ว: {name}',
+            mergeNotes: 'รวม {count} โน้ตเป็น {name} แล้ว'
         },
         notifications: {
             deletedMultipleFiles: 'ลบ {count} ไฟล์แล้ว',
@@ -743,6 +769,7 @@ export const STRINGS_TH = {
             tagsClearedFromNotes: 'ล้างแท็กทั้งหมดจาก {count} โน้ตแล้ว',
             noTagsToRemove: 'ไม่มีแท็กให้นำออก',
             noFilesSelected: 'ไม่ได้เลือกไฟล์',
+            mergeNotesRequireMultipleMarkdown: 'เลือกโน้ต Markdown อย่างน้อยสองรายการเพื่อรวม',
             tagOperationsNotAvailable: 'การดำเนินการแท็กไม่พร้อมใช้งาน',
             propertyOperationsNotAvailable: 'การดำเนินการคุณสมบัติไม่พร้อมใช้งาน',
             tagsRequireMarkdown: 'แท็กรองรับเฉพาะโน้ต Markdown',
@@ -820,6 +847,7 @@ export const STRINGS_TH = {
         createNewNote: 'สร้างโน้ตใหม่',
         createNewNoteFromTemplate: 'โน้ตใหม่จากเทมเพลต',
         moveFiles: 'ย้ายไฟล์',
+        mergeNotes: 'รวมโน้ต', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'เลือกไฟล์ถัดไป',
         selectPreviousFile: 'เลือกไฟล์ก่อนหน้า',
         navigateBack: 'นำทางย้อนกลับ',

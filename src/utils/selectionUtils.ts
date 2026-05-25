@@ -211,6 +211,37 @@ export function findFileIndex(files: TFile[], targetFile: TFile | null): number 
     return files.findIndex(f => f.path === targetFile.path);
 }
 
+export function orderFilesByReference(files: readonly TFile[], orderedFiles?: readonly TFile[]): TFile[] {
+    if (!orderedFiles || files.length < 2) {
+        return [...files];
+    }
+
+    const fileByPath = new Map(files.map(file => [file.path, file]));
+    const ordered: TFile[] = [];
+    const seenPaths = new Set<string>();
+
+    orderedFiles.forEach(file => {
+        const matchedFile = fileByPath.get(file.path);
+        if (!matchedFile || seenPaths.has(file.path)) {
+            return;
+        }
+
+        seenPaths.add(file.path);
+        ordered.push(matchedFile);
+    });
+
+    files.forEach(file => {
+        if (seenPaths.has(file.path)) {
+            return;
+        }
+
+        seenPaths.add(file.path);
+        ordered.push(file);
+    });
+
+    return ordered;
+}
+
 /**
  * Resolve the adjacent file in a visible file order.
  * Returns the first or last file when there is no current selection.

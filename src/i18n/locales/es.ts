@@ -298,6 +298,8 @@ export const STRINGS_ES = {
             moveFileToFolder: 'Mover archivo a...',
             moveMultipleNotesToFolder: 'Mover {count} notas a...',
             moveMultipleFilesToFolder: 'Mover {count} archivos a...',
+            mergeNotes: 'Combinar {count} notas...',
+            mergeNotesInGroup: 'Combinar notas del grupo...',
             setManualSortGroupHeader: 'Establecer encabezado de grupo',
             changeManualSortGroupHeader: 'Cambiar encabezado de grupo',
             manualSortGroupHeader: {
@@ -436,6 +438,26 @@ export const STRINGS_ES = {
             wordCountTargetDescription:
                 'Cuando este campo está vacío, el objetivo del grupo usa la propiedad de objetivo configurada en Ajustes > Notas > Recuento de palabras y caracteres. Sobrescríbelo definiendo un valor objetivo para este grupo.',
             description: 'Personaliza el encabezado de grupo para esta nota. Deja el título vacío para eliminar el encabezado.'
+        },
+        mergeNotes: {
+            title: 'Combinar notas',
+            summary: 'Crear una nota a partir de {count} notas en {folder}.',
+            frontmatterRule: 'Se conserva el frontmatter de la primera nota. Se elimina el frontmatter de las demás notas.',
+            crossFolderWarning:
+                'Las notas de origen están en carpetas diferentes. Los enlaces relativos y las incrustaciones pueden dejar de funcionar en la nota combinada.',
+            outputName: 'Nombre de salida',
+            outputNameDesc: 'La nota combinada se crea en la carpeta mostrada arriba.',
+            outputNamePlaceholder: 'Notas combinadas',
+            separator: 'Separador',
+            separatorDesc: 'Se inserta entre notas.',
+            separatorOptions: {
+                none: 'Ninguno',
+                blankLine: 'Línea en blanco',
+                horizontalRule: 'Línea horizontal',
+                heading: 'Encabezado con el título de la nota'
+            },
+            moveSourcesToTrash: 'Mover las notas de origen a la papelera después de combinarlas',
+            mergeButton: 'Combinar'
         },
         navRainbowSection: {
             title: (section: string) => `Colores arcoíris: ${section}`
@@ -698,6 +720,11 @@ export const STRINGS_ES = {
             deleteFolder: 'Error al eliminar la carpeta: {error}',
             deleteFile: 'Error al eliminar el archivo: {error}',
             deleteAttachments: 'Error al eliminar los adjuntos: {error}',
+            mergeNotes: 'Error al combinar notas: {error}',
+            mergeNotesOpenOutput:
+                'La nota combinada se creó como {name}, pero no se pudo abrir: {error}. Las notas de origen no se modificaron.',
+            mergeNotesOpenSkipped: 'Otra solicitud de apertura de archivo tuvo prioridad.',
+            mergeNotesTrashSources: 'Nota combinada creada. Error al mover {count} notas de origen a la papelera.',
             duplicateNote: 'Error al duplicar la nota: {error}',
             duplicateFolder: 'Error al duplicar la carpeta: {error}',
             openVersionHistory: 'Error al abrir el historial de versiones: {error}',
@@ -731,7 +758,8 @@ export const STRINGS_ES = {
         },
         notices: {
             hideFolder: 'Carpeta oculta: {name}',
-            showFolder: 'Carpeta mostrada: {name}'
+            showFolder: 'Carpeta mostrada: {name}',
+            mergeNotes: 'Se combinaron {count} notas en {name}'
         },
         notifications: {
             deletedMultipleFiles: '{count} archivos eliminados',
@@ -749,6 +777,7 @@ export const STRINGS_ES = {
             tagsClearedFromNotes: 'Todas las etiquetas eliminadas de {count} notas',
             noTagsToRemove: 'No hay etiquetas para eliminar',
             noFilesSelected: 'No hay archivos seleccionados',
+            mergeNotesRequireMultipleMarkdown: 'Selecciona al menos dos notas Markdown para combinarlas',
             tagOperationsNotAvailable: 'Operaciones de etiquetas no disponibles',
             propertyOperationsNotAvailable: 'Operaciones de propiedades no disponibles',
             tagsRequireMarkdown: 'Las etiquetas solo son compatibles con notas Markdown',
@@ -826,6 +855,7 @@ export const STRINGS_ES = {
         createNewNote: 'Crear nueva nota', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'Nueva nota desde plantilla', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Mover archivos', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'Combinar notas', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Seleccionar siguiente archivo', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Seleccionar archivo anterior', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'Navegar atrás',

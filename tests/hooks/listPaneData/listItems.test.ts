@@ -160,6 +160,44 @@ describe('buildListItems pinned display scope', () => {
         expect(items[3].key).toMatch(/-spacer-before$/);
     });
 
+    it('tracks group file paths when a group is collapsed', () => {
+        const app = createApp();
+        const first = assignParent(createTestTFile('Projects/First.md'), 'Projects');
+        const second = assignParent(createTestTFile('Projects/Second.md'), 'Projects');
+        const db = createDb({
+            [first.path]: { tags: null, properties: null },
+            [second.path]: { tags: null, properties: null }
+        });
+        const listConfig = {
+            ...createListConfig({}),
+            groupBy: 'folder' as const
+        };
+
+        const items = buildListItems({
+            app,
+            dayKey: '2026-03-07',
+            fileVisibility: FILE_VISIBILITY.DOCUMENTS,
+            files: [first, second],
+            getDB: () => db,
+            getFileTimestamps: file => ({ created: file.stat.ctime, modified: file.stat.mtime }),
+            hiddenFileState: new Map(),
+            hiddenTags: [],
+            listConfig,
+            collapsedListGroups: new Set([createCollapseKey('folder', 'folder:/Projects')]),
+            searchMetaMap: new Map(),
+            selectedFolder: createFolder('/'),
+            selectedTag: null,
+            selectionType: ItemType.FOLDER,
+            showHiddenItems: false,
+            sortOption: 'alphabetical-asc'
+        });
+
+        const header = items.find(item => item.type === ListPaneItemType.HEADER && item.headerKind === 'folder');
+
+        expect(header?.groupFilePaths).toEqual([first.path, second.path]);
+        expect(items.some(item => item.type === ListPaneItemType.FILE)).toBe(false);
+    });
+
     it('adds an Unsorted section for manual sort files missing a valid rank', () => {
         const app = createApp();
         const rankedFile = createTestTFile('notes/ranked.md');
@@ -274,6 +312,8 @@ describe('buildListItems pinned display scope', () => {
             { path: rankedPlainFile.path, isPinned: false },
             { path: unsortedHeaderFile.path, isPinned: false }
         ]);
+        expect(items.find(item => item.key === PINNED_SECTION_HEADER_KEY)?.groupFilePaths).toEqual([pinnedFile.path]);
+        expect(items.find(item => item.key === 'header-unsorted')?.groupFilePaths).toEqual([unsortedHeaderFile.path]);
     });
 
     it('adds manual sort custom header word counts and targets', () => {
@@ -727,6 +767,7 @@ describe('buildListItems pinned display scope', () => {
             { path: regularFile.path, isPinned: false },
             { path: groupedFile.path, isPinned: false }
         ]);
+        expect(items.find(item => item.key === 'header-Files')?.groupFilePaths).toEqual([regularFile.path, groupedFile.path]);
     });
 
     it('does not render manual sort custom headers inside collapsed folder groups', () => {

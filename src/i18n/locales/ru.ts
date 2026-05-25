@@ -313,6 +313,8 @@ export const STRINGS_RU = {
             moveFileToFolder: 'Переместить файл в...',
             moveMultipleNotesToFolder: 'Переместить {count} заметок в...',
             moveMultipleFilesToFolder: 'Переместить {count} файлов в...',
+            mergeNotes: 'Объединить {count} заметок...',
+            mergeNotesInGroup: 'Объединить заметки в группе...',
             setManualSortGroupHeader: 'Задать заголовок группы',
             changeManualSortGroupHeader: 'Изменить заголовок группы',
             manualSortGroupHeader: {
@@ -436,6 +438,26 @@ export const STRINGS_RU = {
             wordCountTargetDescription:
                 'Если это поле пустое, цель группы использует целевое свойство, заданное в Настройки > Заметки > Количество слов и символов. Переопределите его, задав целевое значение для этой группы.',
             description: 'Настройте заголовок группы для этой заметки. Оставьте заголовок пустым, чтобы удалить его.'
+        },
+        mergeNotes: {
+            title: 'Объединить заметки',
+            summary: 'Создать одну заметку из {count} заметок в {folder}.',
+            frontmatterRule: 'Frontmatter из первой заметки сохраняется. Frontmatter из остальных заметок удаляется.',
+            crossFolderWarning:
+                'Исходные заметки находятся в разных папках. Относительные ссылки и встраивания могут перестать работать в объединенной заметке.',
+            outputName: 'Имя результата',
+            outputNameDesc: 'Объединенная заметка будет создана в папке, показанной выше.',
+            outputNamePlaceholder: 'Объединенные заметки',
+            separator: 'Разделитель',
+            separatorDesc: 'Вставляется между заметками.',
+            separatorOptions: {
+                none: 'Нет',
+                blankLine: 'Пустая строка',
+                horizontalRule: 'Горизонтальная линия',
+                heading: 'Заголовок с названием заметки'
+            },
+            moveSourcesToTrash: 'Переместить исходные заметки в корзину после объединения',
+            mergeButton: 'Объединить'
         },
         navRainbowSection: {
             title: (section: string) => `Цвета радуги: ${section}`
@@ -694,6 +716,11 @@ export const STRINGS_RU = {
             deleteFolder: 'Не удалось удалить папку: {error}',
             deleteFile: 'Не удалось удалить файл: {error}',
             deleteAttachments: 'Не удалось удалить вложения: {error}',
+            mergeNotes: 'Не удалось объединить заметки: {error}',
+            mergeNotesOpenOutput:
+                'Объединенная заметка создана как {name}, но ее не удалось открыть: {error}. Исходные заметки не изменены.',
+            mergeNotesOpenSkipped: 'Другой запрос на открытие файла получил приоритет.',
+            mergeNotesTrashSources: 'Объединенная заметка создана. Не удалось переместить {count} исходных заметок в корзину.',
             duplicateNote: 'Не удалось дублировать заметку: {error}',
             duplicateFolder: 'Не удалось дублировать папку: {error}',
             openVersionHistory: 'Не удалось открыть историю версий: {error}',
@@ -727,7 +754,8 @@ export const STRINGS_RU = {
         },
         notices: {
             hideFolder: 'Папка скрыта: {name}',
-            showFolder: 'Папка показана: {name}'
+            showFolder: 'Папка показана: {name}',
+            mergeNotes: 'Объединено {count} заметок в {name}'
         },
         notifications: {
             deletedMultipleFiles: 'Удалено файлов: {count}',
@@ -745,6 +773,7 @@ export const STRINGS_RU = {
             tagsClearedFromNotes: 'Все теги удалены из {count} заметок',
             noTagsToRemove: 'Нет тегов для удаления',
             noFilesSelected: 'Файлы не выбраны',
+            mergeNotesRequireMultipleMarkdown: 'Выберите не менее двух Markdown-заметок для объединения',
             tagOperationsNotAvailable: 'Операции с тегами недоступны',
             propertyOperationsNotAvailable: 'Операции со свойствами недоступны',
             tagsRequireMarkdown: 'Теги поддерживаются только для Markdown-заметок',
@@ -822,6 +851,7 @@ export const STRINGS_RU = {
         createNewNote: 'Создать новую заметку', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'Новая заметка из шаблона', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Переместить файлы', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'Объединить заметки', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Выбрать следующий файл', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Выбрать предыдущий файл', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'Назад',

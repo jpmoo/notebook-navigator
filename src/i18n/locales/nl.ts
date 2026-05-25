@@ -315,6 +315,8 @@ export const STRINGS_NL = {
             moveFileToFolder: 'Bestand verplaatsen naar...',
             moveMultipleNotesToFolder: '{count} notities verplaatsen naar...',
             moveMultipleFilesToFolder: '{count} bestanden verplaatsen naar...',
+            mergeNotes: '{count} notities samenvoegen...',
+            mergeNotesInGroup: 'Notities in groep samenvoegen...',
             setManualSortGroupHeader: 'Groepskop instellen',
             changeManualSortGroupHeader: 'Groepskop wijzigen',
             manualSortGroupHeader: {
@@ -438,6 +440,26 @@ export const STRINGS_NL = {
             wordCountTargetDescription:
                 'Wanneer dit veld leeg is, gebruikt het groepsdoel de doeleigenschap die is ingesteld in Instellingen > Notities > Aantal woorden en tekens. Overschrijf dit door een doelwaarde voor deze groep in te stellen.',
             description: 'Pas de groepskop voor deze notitie aan. Laat de titel leeg om de kop te verwijderen.'
+        },
+        mergeNotes: {
+            title: 'Notities samenvoegen',
+            summary: 'Maak één notitie van {count} notities in {folder}.',
+            frontmatterRule: 'Frontmatter van de eerste notitie blijft behouden. Frontmatter van de andere notities wordt verwijderd.',
+            crossFolderWarning:
+                'Bronnotities staan in verschillende mappen. Relatieve links en embeds werken mogelijk niet meer in de samengevoegde notitie.',
+            outputName: 'Uitvoernaam',
+            outputNameDesc: 'De samengevoegde notitie wordt gemaakt in de hierboven weergegeven map.',
+            outputNamePlaceholder: 'Samengevoegde notities',
+            separator: 'Scheiding',
+            separatorDesc: 'Ingevoegd tussen notities.',
+            separatorOptions: {
+                none: 'Geen',
+                blankLine: 'Lege regel',
+                horizontalRule: 'Horizontale lijn',
+                heading: 'Kop met notitietitel'
+            },
+            moveSourcesToTrash: 'Bronnotities naar prullenbak verplaatsen na samenvoegen',
+            mergeButton: 'Samenvoegen'
         },
         navRainbowSection: {
             title: (section: string) => `Regenboogkleuren: ${section}`
@@ -699,6 +721,11 @@ export const STRINGS_NL = {
             deleteFolder: 'Kan map niet verwijderen: {error}',
             deleteFile: 'Kan bestand niet verwijderen: {error}',
             deleteAttachments: 'Kan bijlagen niet verwijderen: {error}',
+            mergeNotes: 'Kan notities niet samenvoegen: {error}',
+            mergeNotesOpenOutput:
+                'Samengevoegde notitie gemaakt als {name}, maar deze kon niet worden geopend: {error}. Bronnotities zijn niet gewijzigd.',
+            mergeNotesOpenSkipped: 'Een ander verzoek om een bestand te openen kreeg voorrang.',
+            mergeNotesTrashSources: 'Samengevoegde notitie gemaakt. Kan {count} bronnotities niet naar prullenbak verplaatsen.',
             duplicateNote: 'Kan notitie niet dupliceren: {error}',
             duplicateFolder: 'Kan map niet dupliceren: {error}',
             openVersionHistory: 'Kan versiegeschiedenis niet openen: {error}',
@@ -732,7 +759,8 @@ export const STRINGS_NL = {
         },
         notices: {
             hideFolder: 'Map verborgen: {name}',
-            showFolder: 'Map zichtbaar: {name}'
+            showFolder: 'Map zichtbaar: {name}',
+            mergeNotes: '{count} notities samengevoegd in {name}'
         },
         notifications: {
             deletedMultipleFiles: '{count} bestanden verwijderd',
@@ -750,6 +778,7 @@ export const STRINGS_NL = {
             tagsClearedFromNotes: 'Alle tags verwijderd van {count} notities',
             noTagsToRemove: 'Geen tags om te verwijderen',
             noFilesSelected: 'Geen bestanden geselecteerd',
+            mergeNotesRequireMultipleMarkdown: 'Selecteer ten minste twee Markdown-notities om samen te voegen',
             tagOperationsNotAvailable: 'Tagbewerkingen niet beschikbaar',
             propertyOperationsNotAvailable: 'Eigenschapbewerkingen niet beschikbaar',
             tagsRequireMarkdown: 'Tags worden alleen ondersteund op Markdown-notities',
@@ -827,6 +856,7 @@ export const STRINGS_NL = {
         createNewNote: 'Nieuwe notitie maken',
         createNewNoteFromTemplate: 'Nieuwe notitie uit sjabloon',
         moveFiles: 'Bestanden verplaatsen',
+        mergeNotes: 'Notities samenvoegen', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Volgend bestand selecteren',
         selectPreviousFile: 'Vorig bestand selecteren',
         navigateBack: 'Terug navigeren',

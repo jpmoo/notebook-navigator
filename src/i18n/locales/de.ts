@@ -298,6 +298,8 @@ export const STRINGS_DE = {
             moveFileToFolder: 'Datei verschieben nach...',
             moveMultipleNotesToFolder: '{count} Notizen verschieben nach...',
             moveMultipleFilesToFolder: '{count} Dateien verschieben nach...',
+            mergeNotes: '{count} Notizen zusammenführen...',
+            mergeNotesInGroup: 'Notizen in Gruppe zusammenführen...',
             setManualSortGroupHeader: 'Gruppenüberschrift festlegen',
             changeManualSortGroupHeader: 'Gruppenüberschrift ändern',
             manualSortGroupHeader: {
@@ -436,6 +438,26 @@ export const STRINGS_DE = {
             wordCountTargetDescription:
                 'Wenn dieses Feld leer ist, verwendet das Gruppenziel die Zieleigenschaft aus Einstellungen > Notizen > Wort- und Zeichenanzahl. Überschreiben Sie sie, indem Sie einen Zielwert für diese Gruppe festlegen.',
             description: 'Passen Sie die Gruppenüberschrift für diese Notiz an. Lassen Sie den Titel leer, um die Überschrift zu entfernen.'
+        },
+        mergeNotes: {
+            title: 'Notizen zusammenführen',
+            summary: 'Eine Notiz aus {count} Notizen in {folder} erstellen.',
+            frontmatterRule: 'Frontmatter der ersten Notiz bleibt erhalten. Frontmatter der anderen Notizen wird entfernt.',
+            crossFolderWarning:
+                'Quellnotizen befinden sich in verschiedenen Ordnern. Relative Links und Einbettungen funktionieren in der zusammengeführten Notiz möglicherweise nicht mehr.',
+            outputName: 'Ausgabename',
+            outputNameDesc: 'Die zusammengeführte Notiz wird im oben angezeigten Ordner erstellt.',
+            outputNamePlaceholder: 'Zusammengeführte Notizen',
+            separator: 'Trennzeichen',
+            separatorDesc: 'Wird zwischen Notizen eingefügt.',
+            separatorOptions: {
+                none: 'Keine',
+                blankLine: 'Leerzeile',
+                horizontalRule: 'Horizontale Linie',
+                heading: 'Überschrift mit Notiztitel'
+            },
+            moveSourcesToTrash: 'Quellnotizen nach dem Zusammenführen in den Papierkorb verschieben',
+            mergeButton: 'Zusammenführen'
         },
         navRainbowSection: {
             title: (section: string) => `Regenbogenfarben: ${section}`
@@ -698,6 +720,12 @@ export const STRINGS_DE = {
             deleteFolder: 'Ordner konnte nicht gelöscht werden: {error}',
             deleteFile: 'Datei konnte nicht gelöscht werden: {error}',
             deleteAttachments: 'Anhänge konnten nicht gelöscht werden: {error}',
+            mergeNotes: 'Notizen konnten nicht zusammengeführt werden: {error}',
+            mergeNotesOpenOutput:
+                'Zusammengeführte Notiz wurde als {name} erstellt, konnte aber nicht geöffnet werden: {error}. Quellnotizen wurden nicht verändert.',
+            mergeNotesOpenSkipped: 'Eine andere Dateiöffnungsanfrage hatte Vorrang.',
+            mergeNotesTrashSources:
+                'Zusammengeführte Notiz erstellt. {count} Quellnotizen konnten nicht in den Papierkorb verschoben werden.',
             duplicateNote: 'Notiz konnte nicht dupliziert werden: {error}',
             duplicateFolder: 'Ordner konnte nicht dupliziert werden: {error}',
             openVersionHistory: 'Versionsverlauf konnte nicht geöffnet werden: {error}',
@@ -731,7 +759,8 @@ export const STRINGS_DE = {
         },
         notices: {
             hideFolder: 'Ordner ausgeblendet: {name}',
-            showFolder: 'Ordner eingeblendet: {name}'
+            showFolder: 'Ordner eingeblendet: {name}',
+            mergeNotes: '{count} Notizen in {name} zusammengeführt'
         },
         notifications: {
             deletedMultipleFiles: '{count} Dateien gelöscht',
@@ -749,6 +778,7 @@ export const STRINGS_DE = {
             tagsClearedFromNotes: 'Alle Tags von {count} Notizen entfernt',
             noTagsToRemove: 'Keine Tags zum Entfernen',
             noFilesSelected: 'Keine Dateien ausgewählt',
+            mergeNotesRequireMultipleMarkdown: 'Wählen Sie mindestens zwei Markdown-Notizen zum Zusammenführen aus',
             tagOperationsNotAvailable: 'Tag-Operationen nicht verfügbar',
             propertyOperationsNotAvailable: 'Eigenschafts-Operationen nicht verfügbar',
             tagsRequireMarkdown: 'Tags werden nur in Markdown-Notizen unterstützt',
@@ -826,6 +856,7 @@ export const STRINGS_DE = {
         createNewNote: 'Neue Notiz erstellen', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'Neue Notiz aus Vorlage', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Dateien verschieben', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'Notizen zusammenführen', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Nächste Datei auswählen', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Vorherige Datei auswählen', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'Zurück navigieren',

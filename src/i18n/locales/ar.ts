@@ -312,6 +312,8 @@ export const STRINGS_AR = {
             moveFileToFolder: 'نقل الملف إلى...',
             moveMultipleNotesToFolder: 'نقل {count} ملاحظة إلى...',
             moveMultipleFilesToFolder: 'نقل {count} ملف إلى...',
+            mergeNotes: 'دمج {count} ملاحظة...',
+            mergeNotesInGroup: 'دمج الملاحظات في المجموعة...',
             setManualSortGroupHeader: 'تعيين عنوان المجموعة',
             changeManualSortGroupHeader: 'تغيير عنوان المجموعة',
             manualSortGroupHeader: {
@@ -434,6 +436,25 @@ export const STRINGS_AR = {
             wordCountTargetDescription:
                 'عندما يكون هذا الحقل فارغًا، يستخدم هدف المجموعة خاصية الهدف المحددة في الإعدادات > الملاحظات > عدد الكلمات والأحرف. يمكنك تجاوزه بتعيين قيمة هدف لهذه المجموعة.',
             description: 'خصص عنوان المجموعة لهذه الملاحظة. اترك العنوان فارغًا لإزالة العنوان.'
+        },
+        mergeNotes: {
+            title: 'دمج الملاحظات',
+            summary: 'إنشاء ملاحظة واحدة من {count} ملاحظة في {folder}.',
+            frontmatterRule: 'يتم الاحتفاظ بالبيانات الأمامية من الملاحظة الأولى. تتم إزالة البيانات الأمامية من الملاحظات الأخرى.',
+            crossFolderWarning: 'الملاحظات المصدر في مجلدات مختلفة. قد تتوقف الروابط والتضمينات النسبية عن العمل في الملاحظة المدمجة.',
+            outputName: 'اسم الناتج',
+            outputNameDesc: 'يتم إنشاء الملاحظة المدمجة في المجلد الموضح أعلاه.',
+            outputNamePlaceholder: 'ملاحظات مدمجة',
+            separator: 'فاصل',
+            separatorDesc: 'يتم إدراجه بين الملاحظات.',
+            separatorOptions: {
+                none: 'لا شيء',
+                blankLine: 'سطر فارغ',
+                horizontalRule: 'خط أفقي',
+                heading: 'عنوان باسم الملاحظة'
+            },
+            moveSourcesToTrash: 'نقل الملاحظات المصدر إلى سلة المهملات بعد الدمج',
+            mergeButton: 'دمج'
         },
         navRainbowSection: {
             title: (section: string) => `ألوان قوس قزح: ${section}`
@@ -694,6 +715,10 @@ export const STRINGS_AR = {
             deleteFolder: 'فشل حذف المجلد: {error}',
             deleteFile: 'فشل حذف الملف: {error}',
             deleteAttachments: 'فشل في حذف المرفقات: {error}',
+            mergeNotes: 'فشل في دمج الملاحظات: {error}',
+            mergeNotesOpenOutput: 'تم إنشاء الملاحظة المدمجة باسم {name}، لكن تعذر فتحها: {error}. لم يتم تغيير الملاحظات المصدر.',
+            mergeNotesOpenSkipped: 'أخذ طلب آخر لفتح ملف الأولوية.',
+            mergeNotesTrashSources: 'تم إنشاء الملاحظة المدمجة. فشل نقل {count} ملاحظة مصدر إلى سلة المهملات.',
             duplicateNote: 'فشل تكرار الملاحظة: {error}',
             duplicateFolder: 'فشل تكرار المجلد: {error}',
             openVersionHistory: 'فشل فتح سجل الإصدارات: {error}',
@@ -727,7 +752,8 @@ export const STRINGS_AR = {
         },
         notices: {
             hideFolder: 'تم إخفاء المجلد: {name}',
-            showFolder: 'تم إظهار المجلد: {name}'
+            showFolder: 'تم إظهار المجلد: {name}',
+            mergeNotes: 'تم دمج {count} ملاحظة في {name}'
         },
         notifications: {
             deletedMultipleFiles: 'تم حذف {count} ملفات',
@@ -745,6 +771,7 @@ export const STRINGS_AR = {
             tagsClearedFromNotes: 'تم مسح جميع الوسوم من {count} ملاحظات',
             noTagsToRemove: 'لا توجد وسوم لإزالتها',
             noFilesSelected: 'لم يتم تحديد ملفات',
+            mergeNotesRequireMultipleMarkdown: 'حدد ملاحظتي Markdown على الأقل للدمج',
             tagOperationsNotAvailable: 'عمليات الوسوم غير متاحة',
             propertyOperationsNotAvailable: 'عمليات الخصائص غير متاحة',
             tagsRequireMarkdown: 'الوسوم مدعومة فقط على ملاحظات Markdown',
@@ -822,6 +849,7 @@ export const STRINGS_AR = {
         createNewNote: 'إنشاء ملاحظة جديدة', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'ملاحظة جديدة من قالب', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'نقل الملفات', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'دمج الملاحظات', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'تحديد الملف التالي', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'تحديد الملف السابق', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'الانتقال للخلف',
