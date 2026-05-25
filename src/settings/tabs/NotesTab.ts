@@ -25,7 +25,7 @@ import { runAsyncAction } from '../../utils/async';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
 import { DEFAULT_SETTINGS } from '../defaultSettings';
 import { createDropdownDefinition, createGroupDefinition, createRenderDefinition, createToggleDefinition } from '../nativeSettingControls';
-import { isFeatureImagePixelSizeSetting, isFeatureImageSizeSetting } from '../types';
+import { isFeatureImagePixelSizeSetting, isFeatureImageSizeSetting, showsCharacterCount, showsWordCount } from '../types';
 import {
     normalizeFileNameIconMapKey,
     normalizeFileTypeIconMapKey,
@@ -380,25 +380,42 @@ export function createNotesSettingDefinitions(context: SettingsTabContext): Sett
             })
         ]),
         createGroupDefinition(strings.settings.groups.notes.wordCount, [
-            createToggleDefinition('showWordCount', {
-                name: strings.settings.items.showWordCount.name,
-                desc: strings.settings.items.showWordCount.desc
-            }),
-            createDropdownDefinition('wordCountPlacement', {
-                name: strings.settings.items.wordCountPlacement.name,
-                desc: strings.settings.items.wordCountPlacement.desc,
-                aliases: Object.values(strings.settings.items.wordCountPlacement.options),
-                visible: () => plugin.settings.showWordCount,
+            createDropdownDefinition('textCountDisplay', {
+                name: strings.settings.items.textCountDisplay.name,
+                desc: strings.settings.items.textCountDisplay.desc,
+                aliases: Object.values(strings.settings.items.textCountDisplay.options),
                 options: {
-                    title: strings.settings.items.wordCountPlacement.options.title,
-                    property: strings.settings.items.wordCountPlacement.options.property
+                    none: strings.settings.items.textCountDisplay.options.none,
+                    words: strings.settings.items.textCountDisplay.options.words,
+                    characters: strings.settings.items.textCountDisplay.options.characters,
+                    both: strings.settings.items.textCountDisplay.options.both
+                }
+            }),
+            createDropdownDefinition('textCountPlacement', {
+                name: strings.settings.items.textCountPlacement.name,
+                desc: strings.settings.items.textCountPlacement.desc,
+                aliases: Object.values(strings.settings.items.textCountPlacement.options),
+                visible: () => plugin.settings.textCountDisplay !== 'none',
+                options: {
+                    title: strings.settings.items.textCountPlacement.options.title,
+                    property: strings.settings.items.textCountPlacement.options.property
+                }
+            }),
+            createDropdownDefinition('characterCountSpaces', {
+                name: strings.settings.items.characterCountSpaces.name,
+                desc: strings.settings.items.characterCountSpaces.desc,
+                aliases: Object.values(strings.settings.items.characterCountSpaces.options),
+                visible: () => showsCharacterCount(plugin.settings.textCountDisplay),
+                options: {
+                    include: strings.settings.items.characterCountSpaces.options.include,
+                    exclude: strings.settings.items.characterCountSpaces.options.exclude
                 }
             }),
             createRenderDefinition({
                 name: strings.settings.items.wordCountTargetProperty.name,
                 desc: strings.settings.items.wordCountTargetProperty.desc,
                 aliases: [DEFAULT_SETTINGS.wordCountTargetProperty],
-                visible: () => plugin.settings.showWordCount,
+                visible: () => showsWordCount(plugin.settings.textCountDisplay),
                 render: setting => {
                     context.configureDebouncedTextSetting(
                         setting,
@@ -416,7 +433,7 @@ export function createNotesSettingDefinitions(context: SettingsTabContext): Sett
             createToggleDefinition('showWordCountPercentage', {
                 name: strings.settings.items.showWordCountPercentage.name,
                 desc: strings.settings.items.showWordCountPercentage.desc,
-                visible: () => plugin.settings.showWordCount
+                visible: () => showsWordCount(plugin.settings.textCountDisplay)
             })
         ])
     ];

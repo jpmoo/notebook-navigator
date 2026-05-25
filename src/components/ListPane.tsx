@@ -131,6 +131,7 @@ export interface ListPaneHandle {
     getIndexOfPath: (path: string) => number;
     virtualizer: Virtualizer<HTMLDivElement, Element> | null;
     scrollContainerRef: HTMLDivElement | null;
+    getOrderedFiles: () => TFile[];
     selectFile: (file: TFile, options?: SelectFileOptions) => void;
     selectAdjacentFile: (direction: 'next' | 'previous') => boolean;
     modifySearchWithTag: (tag: string, operator: InclusionOperator, options?: SearchQueryUpdateOptions) => void;
@@ -858,7 +859,7 @@ export const ListPane = React.memo(
         }, [addNoteShortcut, removeShortcut]);
 
         // Attach context menu to empty areas in the list pane for file creation
-        useContextMenu(scrollContainerRef, { type: EMPTY_LIST_MENU_TYPE, item: selectedFolder ?? null });
+        useContextMenu(scrollContainerRef, { type: EMPTY_LIST_MENU_TYPE, item: selectedFolder ?? null, options: { orderedFiles } });
 
         // Check if we're in compact mode
         const isCompactMode = !appearanceSettings.showDate && !appearanceSettings.showPreview && !appearanceSettings.showImage;
@@ -1209,6 +1210,7 @@ export const ListPane = React.memo(
                 getIndexOfPath: (path: string) => filePathToIndex.get(path) ?? -1,
                 virtualizer: rowVirtualizer,
                 scrollContainerRef: scrollContainerRef.current,
+                getOrderedFiles: () => orderedFiles,
                 // Allow parent components to trigger file selection programmatically
                 selectFile: selectFileFromList,
                 // Provide imperative adjacent navigation for command handlers
@@ -1226,6 +1228,7 @@ export const ListPane = React.memo(
             }),
             [
                 filePathToIndex,
+                orderedFiles,
                 rowVirtualizer,
                 scrollContainerRef,
                 toggleSearch,

@@ -25,9 +25,11 @@ import { localStorage } from '../../utils/localStorage';
 import { cloneShortcuts, createPropertyKeysFromPropertyFields, DEFAULT_VAULT_PROFILE_ID } from '../../utils/vaultProfiles';
 import { ShortcutType, type ShortcutEntry } from '../../types/shortcuts';
 import {
+    isCharacterCountSpaces,
     isRecentNotesHideMode,
     isTagSortOrder,
-    isWordCountPlacement,
+    isTextCountDisplay,
+    isTextCountPlacement,
     normalizeAppearanceGroupBy,
     normalizeListNoteGroupingOption
 } from '../types';
@@ -56,6 +58,39 @@ const migrateLegacySearchShortcutQuery = (query: unknown): string => {
 
     return query.replace(SEARCH_SHORTCUT_LEGACY_NEGATION_PATTERN, '$1-');
 };
+
+function migrateLegacyTextCountDisplay(value: unknown): NotebookNavigatorSettings['textCountDisplay'] | null {
+    if (isTextCountDisplay(value)) {
+        return value;
+    }
+
+    if (value === 'word') {
+        return 'words';
+    }
+    if (value === 'character') {
+        return 'characters';
+    }
+    if (value === 'word-character') {
+        return 'both';
+    }
+
+    return null;
+}
+
+function migrateLegacyCharacterCountSpaces(value: unknown): NotebookNavigatorSettings['characterCountSpaces'] | null {
+    if (isCharacterCountSpaces(value)) {
+        return value;
+    }
+
+    if (value === 'with-spaces') {
+        return 'include';
+    }
+    if (value === 'without-spaces') {
+        return 'exclude';
+    }
+
+    return null;
+}
 
 // Migrates legacy synced settings fields into the current settings schema.
 // This runs before local-only settings are resolved from localStorage.
@@ -187,14 +222,38 @@ export function migrateLegacySyncedSettings(params: {
             ? mutableSettings['customPropertyType']
             : mutableSettings['notePropertyType'];
     const migratedNotePropertyType = typeof legacyNotePropertyType === 'string' ? legacyNotePropertyType : null;
-    if (migratedNotePropertyType === 'wordCount' && typeof storedData?.['showWordCount'] === 'undefined') {
-        settings.showWordCount = true;
-        if (typeof storedData?.['wordCountPlacement'] === 'undefined') {
-            settings.wordCountPlacement = defaultSettings.wordCountPlacement;
+    if (migratedNotePropertyType === 'wordCount' && typeof storedData?.['textCountDisplay'] === 'undefined') {
+        settings.textCountDisplay = 'words';
+        if (typeof storedData?.['textCountPlacement'] === 'undefined') {
+            settings.textCountPlacement = defaultSettings.textCountPlacement;
         }
     }
     delete mutableSettings['customPropertyType'];
     delete mutableSettings['notePropertyType'];
+
+    if (typeof storedData?.['textCountDisplay'] === 'undefined') {
+        const legacyTextCountDisplay = migrateLegacyTextCountDisplay(mutableSettings['wordCharacterCountDisplay']);
+        if (legacyTextCountDisplay !== null) {
+            settings.textCountDisplay = legacyTextCountDisplay;
+        } else if (typeof mutableSettings['showWordCount'] === 'boolean') {
+            settings.textCountDisplay = mutableSettings['showWordCount'] ? 'words' : 'none';
+        }
+    }
+    delete mutableSettings['showWordCount'];
+    delete mutableSettings['wordCharacterCountDisplay'];
+
+    if (typeof storedData?.['textCountPlacement'] === 'undefined' && isTextCountPlacement(mutableSettings['wordCountPlacement'])) {
+        settings.textCountPlacement = mutableSettings['wordCountPlacement'];
+    }
+    delete mutableSettings['wordCountPlacement'];
+
+    if (typeof storedData?.['characterCountSpaces'] === 'undefined') {
+        const legacyCharacterCountSpaces = migrateLegacyCharacterCountSpaces(mutableSettings['characterCountMode']);
+        if (legacyCharacterCountSpaces !== null) {
+            settings.characterCountSpaces = legacyCharacterCountSpaces;
+        }
+    }
+    delete mutableSettings['characterCountMode'];
 
     const currentPropertyFields = mutableSettings['propertyFields'];
     if (typeof currentPropertyFields !== 'string') {
@@ -306,12 +365,16 @@ export function migrateLegacySyncedSettings(params: {
         settings.enablePropertyExternalLinks = defaultSettings.enablePropertyExternalLinks;
     }
 
-    if (typeof settings.showWordCount !== 'boolean') {
-        settings.showWordCount = defaultSettings.showWordCount;
+    if (!isTextCountDisplay(settings.textCountDisplay)) {
+        settings.textCountDisplay = defaultSettings.textCountDisplay;
     }
 
-    if (!isWordCountPlacement(settings.wordCountPlacement)) {
-        settings.wordCountPlacement = defaultSettings.wordCountPlacement;
+    if (!isTextCountPlacement(settings.textCountPlacement)) {
+        settings.textCountPlacement = defaultSettings.textCountPlacement;
+    }
+
+    if (!isCharacterCountSpaces(settings.characterCountSpaces)) {
+        settings.characterCountSpaces = defaultSettings.characterCountSpaces;
     }
 
     if (typeof settings.wordCountTargetProperty !== 'string') {
@@ -438,12 +501,16 @@ export function applyExistingUserDefaults(params: { settings: NotebookNavigatorS
         settings.checkForUpdatesOnStart = true;
     }
 
-    if (typeof settings.showWordCount !== 'boolean') {
-        settings.showWordCount = false;
+    if (!isTextCountDisplay(settings.textCountDisplay)) {
+        settings.textCountDisplay = 'none';
     }
 
-    if (!isWordCountPlacement(settings.wordCountPlacement)) {
-        settings.wordCountPlacement = 'title';
+    if (!isTextCountPlacement(settings.textCountPlacement)) {
+        settings.textCountPlacement = 'title';
+    }
+
+    if (!isCharacterCountSpaces(settings.characterCountSpaces)) {
+        settings.characterCountSpaces = 'include';
     }
 
     if (typeof settings.wordCountTargetProperty !== 'string') {

@@ -322,6 +322,7 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 - `Notebook Navigator: Create new note` Create note in currently selected folder. **Suggestion:** Bind `Cmd/Ctrl+N` to this command (unbind from Obsidian's default "Create new note" first)
 - `Notebook Navigator: Create new note from template` Create note from template in currently selected folder (requires Templater)
 - `Notebook Navigator: Move files` Move selected files to another folder. Selects next file in current folder
+- `Notebook Navigator: Merge notes` Create one note from selected Markdown notes in the current list order
 - `Notebook Navigator: Convert to folder note` Create a folder matching the file name and move the file inside as the folder note
 - `Notebook Navigator: Set as folder note` Rename the active file to its folder note name
 - `Notebook Navigator: Detach folder note` Detach the folder note in the selected folder and rename it
@@ -388,6 +389,7 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 | `notebook-navigator:new-note`                       | Notebook Navigator: Create new note                                                                  |
 | `notebook-navigator:new-note-from-template`         | Notebook Navigator: Create new note from template                                                    |
 | `notebook-navigator:move-files`                     | Notebook Navigator: Move files                                                                       |
+| `notebook-navigator:merge-notes`                    | Notebook Navigator: Merge notes                                                                      |
 | `notebook-navigator:select-next-file`               | Notebook Navigator: Select next file                                                                 |
 | `notebook-navigator:select-previous-file`           | Notebook Navigator: Select previous file                                                             |
 | `notebook-navigator:convert-to-folder-note`         | Notebook Navigator: Convert to folder note                                                           |

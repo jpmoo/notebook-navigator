@@ -67,7 +67,7 @@ import { resolveFolderDisplayName } from '../utils/folderDisplayName';
 import { normalizeTagPath } from '../utils/tagUtils';
 import { FolderPathSettingsSync } from './fileSystem/FolderPathSettingsSync';
 import { FileMoveService } from './fileSystem/FileMoveService';
-import { FileDeletionService } from './fileSystem/FileDeletionService';
+import { FileDeletionService, type FileTrashResult } from './fileSystem/FileDeletionService';
 import {
     buildManualSortInsertionRankPlan,
     getLocalizedManualSortWriteFailureMessage,
@@ -85,6 +85,7 @@ import type {
     SelectionContext
 } from './fileSystem/types';
 export { FolderMoveError } from './fileSystem/FileMoveService';
+export type { FileTrashResult };
 export type { ManualSortNewFilePlacementContext };
 
 /**
@@ -1368,6 +1369,10 @@ export class FileSystemOperations {
 
     async deleteMultipleFiles(files: TFile[], confirmBeforeDelete = true, preDeleteAction?: () => void | Promise<void>): Promise<void> {
         await this.deletionService.deleteMultipleFiles(files, confirmBeforeDelete, preDeleteAction);
+    }
+
+    async trashFilesWithOpenLeafCleanup(files: readonly TFile[]): Promise<FileTrashResult> {
+        return this.deletionService.trashFilesWithOpenLeafCleanup(files);
     }
 
     async deleteFilesWithSmartSelection(

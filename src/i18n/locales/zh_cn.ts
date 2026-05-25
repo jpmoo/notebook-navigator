@@ -297,6 +297,8 @@ export const STRINGS_ZH_CN = {
             moveFileToFolder: '移动文件到...',
             moveMultipleNotesToFolder: '将 {count} 个笔记移动到...',
             moveMultipleFilesToFolder: '将 {count} 个文件移动到...',
+            mergeNotes: '合并 {count} 个笔记...',
+            mergeNotesInGroup: '合并组中的笔记...',
             setManualSortGroupHeader: '设置分组标题',
             changeManualSortGroupHeader: '更改分组标题',
             manualSortGroupHeader: {
@@ -431,8 +433,28 @@ export const STRINGS_ZH_CN = {
             wordCount: '显示字数',
             wordCountTarget: '目标字数',
             wordCountTargetPlaceholder: '10,000',
-            wordCountTargetDescription: '此字段为空时，组目标使用“设置 > 笔记 > 字数”中设置的目标属性。为此组设置目标值即可覆盖它。',
+            wordCountTargetDescription:
+                '此字段为空时，组目标使用“设置 > 笔记 > 字数和字符数”中设置的目标属性。为此组设置目标值即可覆盖它。',
             description: '为此笔记自定义分组标题。将标题留空以移除该标题。'
+        },
+        mergeNotes: {
+            title: '合并笔记',
+            summary: '从 {folder} 中的 {count} 个笔记创建一个笔记。',
+            frontmatterRule: '保留第一个笔记的 frontmatter。移除其他笔记的 frontmatter。',
+            crossFolderWarning: '源笔记位于不同文件夹。相对链接和嵌入在合并后的笔记中可能会停止工作。',
+            outputName: '输出名称',
+            outputNameDesc: '合并后的笔记会创建在上方显示的文件夹中。',
+            outputNamePlaceholder: '合并的笔记',
+            separator: '分隔符',
+            separatorDesc: '插入到笔记之间。',
+            separatorOptions: {
+                none: '无',
+                blankLine: '空行',
+                horizontalRule: '水平线',
+                heading: '带笔记标题的标题'
+            },
+            moveSourcesToTrash: '合并后将源笔记移至回收站',
+            mergeButton: '合并'
         },
         navRainbowSection: {
             title: (section: string) => `彩虹颜色: ${section}`
@@ -487,7 +509,8 @@ export const STRINGS_ZH_CN = {
                 'nav-property': '属性',
                 'nav-property-value': '值',
                 'file-unfinished-task': '未完成任务',
-                'file-word-count': '字数统计'
+                'file-word-count': '字数统计',
+                'file-character-count': '字符数'
             }
         },
         colorPicker: {
@@ -687,6 +710,10 @@ export const STRINGS_ZH_CN = {
             deleteFolder: '删除文件夹失败：{error}',
             deleteFile: '删除文件失败：{error}',
             deleteAttachments: '删除附件失败: {error}',
+            mergeNotes: '合并笔记失败: {error}',
+            mergeNotesOpenOutput: '合并后的笔记已创建为 {name}，但无法打开: {error}。源笔记未被更改。',
+            mergeNotesOpenSkipped: '另一个文件打开请求已优先执行。',
+            mergeNotesTrashSources: '合并后的笔记已创建。无法将 {count} 个源笔记移至回收站。',
             duplicateNote: '复制笔记失败：{error}',
             duplicateFolder: '复制文件夹失败：{error}',
             openVersionHistory: '打开版本历史失败：{error}',
@@ -720,7 +747,8 @@ export const STRINGS_ZH_CN = {
         },
         notices: {
             hideFolder: '已隐藏文件夹：{name}',
-            showFolder: '已显示文件夹：{name}'
+            showFolder: '已显示文件夹：{name}',
+            mergeNotes: '已将 {count} 个笔记合并到 {name}'
         },
         notifications: {
             deletedMultipleFiles: '已删除 {count} 个文件',
@@ -738,6 +766,7 @@ export const STRINGS_ZH_CN = {
             tagsClearedFromNotes: '已从 {count} 个笔记中清除所有标签',
             noTagsToRemove: '没有可移除的标签',
             noFilesSelected: '未选择文件',
+            mergeNotesRequireMultipleMarkdown: '请选择至少两个 Markdown 笔记进行合并',
             tagOperationsNotAvailable: '标签操作不可用',
             propertyOperationsNotAvailable: '属性操作不可用',
             tagsRequireMarkdown: '标签仅支持Markdown笔记',
@@ -815,6 +844,7 @@ export const STRINGS_ZH_CN = {
         createNewNote: '创建新笔记', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: '从模板新建笔记', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: '移动文件', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: '合并笔记', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: '选择下一个文件', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: '选择上一个文件', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: '向后导航',
@@ -863,6 +893,12 @@ export const STRINGS_ZH_CN = {
         wordCount: '字数'
     },
 
+    fileCounts: {
+        words: '{count} 个词',
+        characters: '{count} 个字符',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: '更改默认设置',
@@ -909,7 +945,7 @@ export const STRINGS_ZH_CN = {
             tagsProperties: '标签和属性部分、图标、排序、范围和继承。',
             listPane: '排序、分组、列表模式、固定笔记和绘图预览。',
             frontmatter: '用于显示名称、时间戳、图标和颜色的前置元数据字段。',
-            notes: '标题、预览文本、特色图片、标签、属性、日期和字数。',
+            notes: '标题、预览文本、特色图片、标签、属性、日期、字数和字符数。',
             iconPacks: '界面图标、文件图标和图标包管理。',
             advanced: '诊断、元数据清理、导入/导出和重置。'
         },
@@ -955,7 +991,7 @@ export const STRINGS_ZH_CN = {
                 properties: '属性',
                 date: '日期',
                 parentFolder: '父文件夹',
-                wordCount: '字数'
+                wordCount: '字数和字符数'
             }
         },
         syncMode: {
@@ -1661,16 +1697,30 @@ export const STRINGS_ZH_CN = {
                 name: '在精简模式中显示属性',
                 desc: '精简模式启用时显示属性。'
             },
-            showWordCount: {
-                name: '显示字数',
-                desc: '在文件项中显示笔记字数。'
+            textCountDisplay: {
+                name: '计数类型',
+                desc: '选择文件项目中显示哪些笔记计数。',
+                options: {
+                    none: '无',
+                    words: '字数',
+                    characters: '字符数',
+                    both: '字数和字符数'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: '位置',
-                desc: '选择字数的显示位置。',
+                desc: '选择笔记计数的显示位置。',
                 options: {
                     title: '在标题中',
                     property: '作为属性'
+                }
+            },
+            characterCountSpaces: {
+                name: '字符数',
+                desc: '选择字符数是否包含空格。',
+                options: {
+                    include: '包含空格',
+                    exclude: '不含空格'
                 }
             },
             wordCountTargetProperty: {
@@ -2213,6 +2263,10 @@ export const STRINGS_ZH_CN = {
                 name: '启动时检查新版本',
                 desc: '启动时检查新的插件版本，当有可用更新时显示通知。检查最多每天一次。',
                 status: '有新版本可用：{version}'
+            },
+            debugLogging: {
+                name: '启动调试日志',
+                desc: '将启动诊断写入保管库根目录中带时间戳的 Markdown 文件，并在启动稳定后停止。该文件可能会同步，并且可能包含文件路径。'
             },
             whatsNew: {
                 name: 'Notebook Navigator {version} 的最新动态',

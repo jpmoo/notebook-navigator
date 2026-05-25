@@ -70,8 +70,10 @@ function createService() {
 
 type FileDeletionServiceTestAccess = {
     readonly app: App;
+    hasOpenLeafForFiles(files: readonly TFile[]): boolean;
     getLeavesDisplayingFile(file: TFile): WorkspaceLeaf[];
     getActiveFileViewLeaf(): WorkspaceLeaf | null;
+    clearOpenLeavesForFileDelete(file: TFile): Promise<void>;
     replaceOpenLeavesForFileDelete(fileToReplace: TFile, replacement: TFile): Promise<void>;
     replaceOpenLeavesForFilesDelete(filesToReplace: readonly TFile[], replacement: TFile): Promise<void>;
 };
@@ -81,6 +83,38 @@ function getTestAccess(service: FileDeletionService): FileDeletionServiceTestAcc
 }
 
 describe('FileDeletionService replacement file activation', () => {
+    it('uses open-leaf cleanup when trashing files directly', async () => {
+        const first = createTestTFile('daily/2026-03-24.md');
+        const second = createTestTFile('daily/2026-03-25.md');
+        const service = createService();
+        const serviceAccess = getTestAccess(service);
+        const app = serviceAccess.app;
+        const trashFile = vi.fn(async () => undefined);
+        const hasOpenLeafSpy = vi.spyOn(serviceAccess, 'hasOpenLeafForFiles').mockReturnValue(true);
+        const clearOpenLeavesSpy = vi.spyOn(serviceAccess, 'clearOpenLeavesForFileDelete').mockResolvedValue(undefined);
+
+        Object.defineProperty(app, 'fileManager', {
+            configurable: true,
+            value: {
+                trashFile
+            }
+        });
+
+        const result = await service.trashFilesWithOpenLeafCleanup([first, second]);
+
+        expect(result).toMatchObject({
+            trashedCount: 2,
+            failedCount: 0,
+            trashedSourcePaths: [first.path, second.path],
+            errors: []
+        });
+        expect(hasOpenLeafSpy).toHaveBeenCalledWith([first, second]);
+        expect(clearOpenLeavesSpy).toHaveBeenNthCalledWith(1, first);
+        expect(clearOpenLeavesSpy).toHaveBeenNthCalledWith(2, second);
+        expect(trashFile).toHaveBeenNthCalledWith(1, first);
+        expect(trashFile).toHaveBeenNthCalledWith(2, second);
+    });
+
     it('opens the replacement file as active in a fallback leaf when the deleted file is not open', async () => {
         const deletedFile = createTestTFile('daily/2026-03-24.md');
         const replacementFile = createTestTFile('daily/2026-03-25.md');

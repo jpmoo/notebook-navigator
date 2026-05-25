@@ -994,6 +994,20 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
         }
     });
 
+    // Command to merge selected Markdown notes
+    plugin.addCommand({
+        id: 'merge-notes',
+        name: strings.commands.mergeNotes,
+        callback: () => {
+            runAsyncAction(async () => {
+                const view = await ensureNavigatorOpen(plugin);
+                if (view) {
+                    await view.mergeSelectedFiles();
+                }
+            });
+        }
+    });
+
     // Command to select the next file in the current view
     plugin.addCommand({
         id: 'select-next-file',

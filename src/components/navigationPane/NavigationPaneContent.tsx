@@ -56,7 +56,12 @@ import { NavigationRootReorderPanel } from '../NavigationRootReorderPanel';
 import { NavigationToolbar } from '../NavigationToolbar';
 import { localStorage } from '../../utils/localStorage';
 import { getSelectedPath } from '../../utils/selectionUtils';
-import { buildIndentGuideLevelsMap, getNavigationIndex, normalizeNavigationPath } from '../../utils/navigationIndex';
+import {
+    buildIndentGuideLevelsMap,
+    getNavigationIndex,
+    getNavigationItemRenderKey,
+    normalizeNavigationPath
+} from '../../utils/navigationIndex';
 import { collectAllTagPaths } from '../../utils/tagTree';
 import type { TagTreeNode } from '../../types/storage';
 import { normalizeNavigationSectionOrderInput } from '../../utils/navigationSections';
@@ -460,7 +465,7 @@ export const NavigationPane = React.memo(
         ]);
 
         const indentGuideLevelsByKey = useMemo(
-            () => (settings.showIndentGuides ? buildIndentGuideLevelsMap(items) : EMPTY_INDENT_GUIDE_MAP),
+            () => (settings.showIndentGuides ? buildIndentGuideLevelsMap(items, getNavigationItemRenderKey) : EMPTY_INDENT_GUIDE_MAP),
             [items, settings.showIndentGuides]
         );
 

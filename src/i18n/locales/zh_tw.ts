@@ -297,6 +297,8 @@ export const STRINGS_ZH_TW = {
             moveFileToFolder: '移動檔案至...',
             moveMultipleNotesToFolder: '將 {count} 個筆記移動至...',
             moveMultipleFilesToFolder: '將 {count} 個檔案移動至...',
+            mergeNotes: '合併 {count} 則筆記...',
+            mergeNotesInGroup: '合併群組中的筆記...',
             setManualSortGroupHeader: '設定群組標題',
             changeManualSortGroupHeader: '變更群組標題',
             manualSortGroupHeader: {
@@ -431,8 +433,28 @@ export const STRINGS_ZH_TW = {
             wordCount: '顯示字數',
             wordCountTarget: '目標字數',
             wordCountTargetPlaceholder: '10,000',
-            wordCountTargetDescription: '此欄位為空時，群組目標會使用「設定 > 筆記 > 字數」中設定的目標屬性。為此群組設定目標值即可覆寫。',
+            wordCountTargetDescription:
+                '此欄位為空時，群組目標會使用「設定 > 筆記 > 字數與字元數」中設定的目標屬性。為此群組設定目標值即可覆寫。',
             description: '為此筆記自訂群組標題。將標題留空以移除標題。'
+        },
+        mergeNotes: {
+            title: '合併筆記',
+            summary: '從 {folder} 中的 {count} 則筆記建立一則筆記。',
+            frontmatterRule: '保留第一則筆記的 frontmatter。移除其他筆記的 frontmatter。',
+            crossFolderWarning: '來源筆記位於不同資料夾。相對連結和嵌入在合併後的筆記中可能會停止運作。',
+            outputName: '輸出名稱',
+            outputNameDesc: '合併後的筆記會建立在上方顯示的資料夾中。',
+            outputNamePlaceholder: '合併的筆記',
+            separator: '分隔符',
+            separatorDesc: '插入到筆記之間。',
+            separatorOptions: {
+                none: '無',
+                blankLine: '空白行',
+                horizontalRule: '水平線',
+                heading: '含筆記標題的標題'
+            },
+            moveSourcesToTrash: '合併後將來源筆記移至回收桶',
+            mergeButton: '合併'
         },
         navRainbowSection: {
             title: (section: string) => `彩虹顏色: ${section}`
@@ -487,7 +509,8 @@ export const STRINGS_ZH_TW = {
                 'nav-property': '屬性',
                 'nav-property-value': '值',
                 'file-unfinished-task': '未完成任務',
-                'file-word-count': '字數統計'
+                'file-word-count': '字數統計',
+                'file-character-count': '字元數'
             }
         },
         colorPicker: {
@@ -687,6 +710,10 @@ export const STRINGS_ZH_TW = {
             deleteFolder: '刪除資料夾失敗：{error}',
             deleteFile: '刪除檔案失敗：{error}',
             deleteAttachments: '刪除附件失敗: {error}',
+            mergeNotes: '合併筆記失敗: {error}',
+            mergeNotesOpenOutput: '合併後的筆記已建立為 {name}，但無法開啟: {error}。來源筆記未變更。',
+            mergeNotesOpenSkipped: '另一個檔案開啟請求已優先執行。',
+            mergeNotesTrashSources: '合併後的筆記已建立。無法將 {count} 則來源筆記移至回收桶。',
             duplicateNote: '複製筆記失敗：{error}',
             duplicateFolder: '複製資料夾失敗：{error}',
             openVersionHistory: '開啟版本歷史失敗：{error}',
@@ -720,7 +747,8 @@ export const STRINGS_ZH_TW = {
         },
         notices: {
             hideFolder: '已隱藏資料夾：{name}',
-            showFolder: '已顯示資料夾：{name}'
+            showFolder: '已顯示資料夾：{name}',
+            mergeNotes: '已將 {count} 則筆記合併到 {name}'
         },
         notifications: {
             deletedMultipleFiles: '已刪除 {count} 個檔案',
@@ -738,6 +766,7 @@ export const STRINGS_ZH_TW = {
             tagsClearedFromNotes: '已從 {count} 個筆記中清除所有標籤',
             noTagsToRemove: '沒有可移除的標籤',
             noFilesSelected: '未選擇檔案',
+            mergeNotesRequireMultipleMarkdown: '請選擇至少兩則 Markdown 筆記進行合併',
             tagOperationsNotAvailable: '標籤操作不可用',
             propertyOperationsNotAvailable: '屬性操作不可用',
             tagsRequireMarkdown: '標籤僅支援 Markdown 筆記',
@@ -815,6 +844,7 @@ export const STRINGS_ZH_TW = {
         createNewNote: '建立新筆記',
         createNewNoteFromTemplate: '從範本新建筆記',
         moveFiles: '移動檔案',
+        mergeNotes: '合併筆記', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: '選擇下一個檔案',
         selectPreviousFile: '選擇上一個檔案',
         navigateBack: '向後導覽',
@@ -863,6 +893,12 @@ export const STRINGS_ZH_TW = {
         wordCount: '字數'
     },
 
+    fileCounts: {
+        words: '{count} 個詞',
+        characters: '{count} 個字元',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: '變更預設設定',
@@ -909,7 +945,7 @@ export const STRINGS_ZH_TW = {
             tagsProperties: '標籤與屬性區段、圖示、排序、範圍與繼承。',
             listPane: '排序、群組、列表模式、釘選筆記與繪圖預覽。',
             frontmatter: '用於顯示名稱、時間戳記、圖示與顏色的前置中繼資料欄位。',
-            notes: '標題、預覽文字、特色圖片、標籤、屬性、日期與字數。',
+            notes: '標題、預覽文字、特色圖片、標籤、屬性、日期、字數與字元數。',
             iconPacks: '介面圖示、檔案圖示與圖示包管理。',
             advanced: '診斷、中繼資料清理、匯入/匯出與重設。'
         },
@@ -955,7 +991,7 @@ export const STRINGS_ZH_TW = {
                 properties: '屬性',
                 date: '日期',
                 parentFolder: '父資料夾',
-                wordCount: '字數'
+                wordCount: '字數與字元數'
             }
         },
         syncMode: {
@@ -1661,16 +1697,30 @@ export const STRINGS_ZH_TW = {
                 name: '在精簡模式中顯示屬性',
                 desc: '精簡模式啟用時顯示屬性。'
             },
-            showWordCount: {
-                name: '顯示字數',
-                desc: '在檔案項目中顯示筆記字數。'
+            textCountDisplay: {
+                name: '計數類型',
+                desc: '選擇檔案項目中要顯示哪些筆記計數。',
+                options: {
+                    none: '無',
+                    words: '字數',
+                    characters: '字元數',
+                    both: '字數與字元數'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: '位置',
-                desc: '選擇字數的顯示位置。',
+                desc: '選擇筆記計數的顯示位置。',
                 options: {
                     title: '在標題中',
                     property: '作為屬性'
+                }
+            },
+            characterCountSpaces: {
+                name: '字元數',
+                desc: '選擇字元數是否包含空格。',
+                options: {
+                    include: '包含空格',
+                    exclude: '不含空格'
                 }
             },
             wordCountTargetProperty: {
@@ -2213,6 +2263,10 @@ export const STRINGS_ZH_TW = {
                 name: '啟動時檢查新版本',
                 desc: '啟動時檢查新的外掛版本，當有可用更新時顯示通知。檢查最多每天一次。',
                 status: '有新版本可用：{version}'
+            },
+            debugLogging: {
+                name: '啟動偵錯記錄',
+                desc: '將啟動診斷寫入保存庫根目錄中含時間戳的 Markdown 檔案，並在啟動穩定後停止。該檔案可能會同步，且可能包含檔案路徑。'
             },
             whatsNew: {
                 name: 'Notebook Navigator {version} 的最新動態',

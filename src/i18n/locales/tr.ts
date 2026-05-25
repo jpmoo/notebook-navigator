@@ -313,6 +313,8 @@ export const STRINGS_TR = {
             moveFileToFolder: 'Dosyayı taşı...',
             moveMultipleNotesToFolder: '{count} notu taşı...',
             moveMultipleFilesToFolder: '{count} dosyayı taşı...',
+            mergeNotes: '{count} notu birleştir...',
+            mergeNotesInGroup: 'Gruptaki notları birleştir...',
             setManualSortGroupHeader: 'Grup başlığını ayarla',
             changeManualSortGroupHeader: 'Grup başlığını değiştir',
             manualSortGroupHeader: {
@@ -434,8 +436,27 @@ export const STRINGS_TR = {
             wordCountTarget: 'Hedef kelime sayısı',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'Bu alan boş olduğunda, grup hedefi Ayarlar > Notlar > Kelime sayısı bölümünde ayarlanan hedef özelliğini kullanır. Bu grup için bir hedef değeri ayarlayarak geçersiz kılın.',
+                'Bu alan boş olduğunda grup hedefi, Ayarlar > Notlar > Kelime ve karakter sayısı içinde ayarlanan hedef özelliğini kullanır. Bu grup için bir hedef değeri ayarlayarak geçersiz kılın.',
             description: 'Bu not için grup başlığını özelleştirin. Başlığı kaldırmak için başlığı boş bırakın.'
+        },
+        mergeNotes: {
+            title: 'Notları birleştir',
+            summary: '{folder} içindeki {count} nottan tek bir not oluştur.',
+            frontmatterRule: 'İlk notun frontmatter bölümü korunur. Diğer notların frontmatter bölümü kaldırılır.',
+            crossFolderWarning: 'Kaynak notlar farklı klasörlerde. Birleştirilen notta göreli bağlantılar ve gömmeler çalışmayabilir.',
+            outputName: 'Çıktı adı',
+            outputNameDesc: 'Birleştirilen not yukarıda gösterilen klasörde oluşturulur.',
+            outputNamePlaceholder: 'Birleştirilmiş notlar',
+            separator: 'Ayırıcı',
+            separatorDesc: 'Notların arasına eklenir.',
+            separatorOptions: {
+                none: 'Yok',
+                blankLine: 'Boş satır',
+                horizontalRule: 'Yatay çizgi',
+                heading: 'Not başlığıyla başlık'
+            },
+            moveSourcesToTrash: 'Birleştirdikten sonra kaynak notları çöp kutusuna taşı',
+            mergeButton: 'Birleştir'
         },
         navRainbowSection: {
             title: (section: string) => `Gökkuşağı renkleri: ${section}`
@@ -490,7 +511,8 @@ export const STRINGS_TR = {
                 'nav-property': 'Özellik',
                 'nav-property-value': 'Değer',
                 'file-unfinished-task': 'Tamamlanmamış görevler',
-                'file-word-count': 'Kelime sayısı'
+                'file-word-count': 'Kelime sayısı',
+                'file-character-count': 'Karakter sayısı'
             }
         },
         colorPicker: {
@@ -696,6 +718,10 @@ export const STRINGS_TR = {
             deleteFolder: 'Klasör silinemedi: {error}',
             deleteFile: 'Dosya silinemedi: {error}',
             deleteAttachments: 'Ekler silinemedi: {error}',
+            mergeNotes: 'Notlar birleştirilemedi: {error}',
+            mergeNotesOpenOutput: 'Birleştirilmiş not {name} olarak oluşturuldu, ancak açılamadı: {error}. Kaynak notlar değiştirilmedi.',
+            mergeNotesOpenSkipped: 'Başka bir dosya açma isteği öncelik kazandı.',
+            mergeNotesTrashSources: 'Birleştirilmiş not oluşturuldu. {count} kaynak not çöp kutusuna taşınamadı.',
             duplicateNote: 'Not çoğaltılamadı: {error}',
             duplicateFolder: 'Klasör çoğaltılamadı: {error}',
             openVersionHistory: 'Sürüm geçmişi açılamadı: {error}',
@@ -729,7 +755,8 @@ export const STRINGS_TR = {
         },
         notices: {
             hideFolder: 'Klasör gizlendi: {name}',
-            showFolder: 'Klasör gösterildi: {name}'
+            showFolder: 'Klasör gösterildi: {name}',
+            mergeNotes: '{count} not {name} içine birleştirildi'
         },
         notifications: {
             deletedMultipleFiles: '{count} dosya silindi',
@@ -747,6 +774,7 @@ export const STRINGS_TR = {
             tagsClearedFromNotes: '{count} nottan tüm etiketler temizlendi',
             noTagsToRemove: 'Kaldırılacak etiket yok',
             noFilesSelected: 'Dosya seçili değil',
+            mergeNotesRequireMultipleMarkdown: 'Birleştirmek için en az iki Markdown notu seçin',
             tagOperationsNotAvailable: 'Etiket işlemleri kullanılamıyor',
             propertyOperationsNotAvailable: 'Özellik işlemleri kullanılamıyor',
             tagsRequireMarkdown: 'Etiketler yalnızca Markdown notlarında desteklenir',
@@ -824,6 +852,7 @@ export const STRINGS_TR = {
         createNewNote: 'Yeni not oluştur', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'Şablondan yeni not', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Dosyaları taşı', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'Notları birleştir', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Sonraki dosyayı seç', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Önceki dosyayı seç', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'Geri git',
@@ -872,6 +901,12 @@ export const STRINGS_TR = {
         wordCount: 'Kelime sayısı'
     },
 
+    fileCounts: {
+        words: '{count} kelime',
+        characters: '{count} karakter',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Varsayılan ayarları değiştir',
@@ -918,7 +953,7 @@ export const STRINGS_TR = {
             tagsProperties: 'Etiket ve özellik bölümleri, simgeler, sıralama, kapsam ve kalıtım.',
             listPane: 'Sıralama, gruplama, liste modları, sabitlenmiş notlar ve çizim önizlemeleri.',
             frontmatter: 'Görüntülenen adlar, zaman damgaları, simgeler ve renkler için frontmatter alanları.',
-            notes: 'Başlıklar, önizleme metni, öne çıkan görseller, etiketler, özellikler, tarihler ve kelime sayıları.',
+            notes: 'Başlıklar, önizleme metni, öne çıkan görseller, etiketler, özellikler, tarihler, kelime sayıları ve karakter sayıları.',
             iconPacks: 'Arayüz simgeleri, dosya simgeleri ve simge paketi yönetimi.',
             advanced: 'Tanılama, meta veri temizliği, içe/dışa aktarma ve sıfırlama.'
         },
@@ -964,7 +999,7 @@ export const STRINGS_TR = {
                 properties: 'Özellikler',
                 date: 'Tarih',
                 parentFolder: 'Üst klasör',
-                wordCount: 'Kelime sayısı'
+                wordCount: 'Kelime ve karakter sayısı'
             }
         },
         syncMode: {
@@ -1675,16 +1710,30 @@ export const STRINGS_TR = {
                 name: 'Kompakt modda özellikleri göster',
                 desc: 'Kompakt mod etkinken özellikleri görüntüle.'
             },
-            showWordCount: {
-                name: 'Kelime sayısını göster',
-                desc: 'Dosya öğelerinde notların kelime sayısını göster.'
+            textCountDisplay: {
+                name: 'Sayım türü',
+                desc: 'Dosya öğelerinde hangi not sayımlarının görüneceğini seçin.',
+                options: {
+                    none: 'Yok',
+                    words: 'Kelime sayısı',
+                    characters: 'Karakter sayısı',
+                    both: 'Kelime ve karakter sayısı'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'Yerleşim',
-                desc: 'Kelime sayılarının nerede görüneceğini seçin.',
+                desc: 'Not sayımlarının nerede görüneceğini seçin.',
                 options: {
                     title: 'Başlıkta',
                     property: 'Özellik olarak'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Karakter sayısı',
+                desc: 'Karakter sayısına boşlukların dahil edilip edilmeyeceğini seçin.',
+                options: {
+                    include: 'Boşluklar dahil',
+                    exclude: 'Boşluklar hariç'
                 }
             },
             wordCountTargetProperty: {
@@ -2228,6 +2277,10 @@ export const STRINGS_TR = {
                 name: 'Başlangıçta yeni sürüm kontrolü',
                 desc: 'Başlangıçta yeni eklenti sürümlerini kontrol eder ve güncelleme mevcut olduğunda bildirim gösterir. Kontroller günde en fazla bir kez yapılır.',
                 status: 'Yeni sürüm mevcut: {version}'
+            },
+            debugLogging: {
+                name: 'Başlangıç hata ayıklama günlüğü',
+                desc: 'Başlangıç tanılarını kasanın kökünde zaman damgalı bir Markdown dosyasına yazar ve başlangıç kararlı hale geldikten sonra durur. Dosya eşitlenebilir ve dosya yolları içerebilir.'
             },
             whatsNew: {
                 name: 'Notebook Navigator {version} yenilikleri',

@@ -312,6 +312,8 @@ export const STRINGS_VI = {
             moveFileToFolder: 'Di chuyển tệp...',
             moveMultipleNotesToFolder: 'Di chuyển {count} ghi chú...',
             moveMultipleFilesToFolder: 'Di chuyển {count} tệp...',
+            mergeNotes: 'Hợp nhất {count} ghi chú...',
+            mergeNotesInGroup: 'Hợp nhất ghi chú trong nhóm...',
             setManualSortGroupHeader: 'Đặt header nhóm',
             changeManualSortGroupHeader: 'Đổi header nhóm',
             manualSortGroupHeader: {
@@ -433,8 +435,28 @@ export const STRINGS_VI = {
             wordCountTarget: 'Số từ mục tiêu',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'Khi trường này để trống, mục tiêu nhóm dùng thuộc tính mục tiêu được đặt trong Cài đặt > Ghi chú > Số từ. Ghi đè bằng cách đặt giá trị mục tiêu cho nhóm này.',
+                'Khi trường này trống, mục tiêu nhóm dùng thuộc tính mục tiêu được đặt trong Cài đặt > Ghi chú > Số từ và ký tự. Ghi đè bằng cách đặt giá trị mục tiêu cho nhóm này.',
             description: 'Tùy chỉnh header nhóm cho ghi chú này. Để trống tiêu đề để xóa header.'
+        },
+        mergeNotes: {
+            title: 'Hợp nhất ghi chú',
+            summary: 'Tạo một ghi chú từ {count} ghi chú trong {folder}.',
+            frontmatterRule: 'Frontmatter từ ghi chú đầu tiên được giữ lại. Frontmatter từ các ghi chú khác bị xóa.',
+            crossFolderWarning:
+                'Ghi chú nguồn nằm trong các thư mục khác nhau. Liên kết tương đối và nhúng có thể ngừng hoạt động trong ghi chú đã hợp nhất.',
+            outputName: 'Tên đầu ra',
+            outputNameDesc: 'Ghi chú đã hợp nhất được tạo trong thư mục hiển thị ở trên.',
+            outputNamePlaceholder: 'Ghi chú đã hợp nhất',
+            separator: 'Dấu phân cách',
+            separatorDesc: 'Được chèn giữa các ghi chú.',
+            separatorOptions: {
+                none: 'Không có',
+                blankLine: 'Dòng trống',
+                horizontalRule: 'Đường ngang',
+                heading: 'Tiêu đề với tên ghi chú'
+            },
+            moveSourcesToTrash: 'Di chuyển ghi chú nguồn vào thùng rác sau khi hợp nhất',
+            mergeButton: 'Hợp nhất'
         },
         navRainbowSection: {
             title: (section: string) => `Màu cầu vồng: ${section}`
@@ -489,7 +511,8 @@ export const STRINGS_VI = {
                 'nav-property': 'Thuộc tính',
                 'nav-property-value': 'Giá trị',
                 'file-unfinished-task': 'Nhiệm vụ chưa hoàn thành',
-                'file-word-count': 'Số từ'
+                'file-word-count': 'Số từ',
+                'file-character-count': 'Số ký tự'
             }
         },
         colorPicker: {
@@ -697,6 +720,11 @@ export const STRINGS_VI = {
             deleteFolder: 'Không thể xóa thư mục: {error}',
             deleteFile: 'Không thể xóa tệp: {error}',
             deleteAttachments: 'Không thể xóa tệp đính kèm: {error}',
+            mergeNotes: 'Không thể hợp nhất ghi chú: {error}',
+            mergeNotesOpenOutput:
+                'Ghi chú đã hợp nhất được tạo dưới tên {name}, nhưng không thể mở: {error}. Ghi chú nguồn không bị thay đổi.',
+            mergeNotesOpenSkipped: 'Một yêu cầu mở tệp khác được ưu tiên.',
+            mergeNotesTrashSources: 'Ghi chú đã hợp nhất đã được tạo. Không thể di chuyển {count} ghi chú nguồn vào thùng rác.',
             duplicateNote: 'Không thể nhân bản ghi chú: {error}',
             duplicateFolder: 'Không thể nhân bản thư mục: {error}',
             openVersionHistory: 'Không thể mở lịch sử phiên bản: {error}',
@@ -730,7 +758,8 @@ export const STRINGS_VI = {
         },
         notices: {
             hideFolder: 'Đã ẩn thư mục: {name}',
-            showFolder: 'Đã hiện thư mục: {name}'
+            showFolder: 'Đã hiện thư mục: {name}',
+            mergeNotes: 'Đã hợp nhất {count} ghi chú vào {name}'
         },
         notifications: {
             deletedMultipleFiles: 'Đã xóa {count} tệp',
@@ -748,6 +777,7 @@ export const STRINGS_VI = {
             tagsClearedFromNotes: 'Đã xóa tất cả thẻ khỏi {count} ghi chú',
             noTagsToRemove: 'Không có thẻ để gỡ',
             noFilesSelected: 'Chưa chọn tệp',
+            mergeNotesRequireMultipleMarkdown: 'Chọn ít nhất hai ghi chú Markdown để hợp nhất',
             tagOperationsNotAvailable: 'Thao tác thẻ không khả dụng',
             propertyOperationsNotAvailable: 'Thao tác thuộc tính không khả dụng',
             tagsRequireMarkdown: 'Thẻ chỉ được hỗ trợ trên ghi chú Markdown',
@@ -825,6 +855,7 @@ export const STRINGS_VI = {
         createNewNote: 'Tạo ghi chú mới', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'Ghi chú mới từ mẫu', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Di chuyển tệp', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'Hợp nhất ghi chú', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Chọn tệp tiếp theo', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Chọn tệp trước', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'Điều hướng lùi',
@@ -873,6 +904,12 @@ export const STRINGS_VI = {
         wordCount: 'Số từ'
     },
 
+    fileCounts: {
+        words: '{count} từ',
+        characters: '{count} ký tự',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Thay đổi cài đặt mặc định',
@@ -919,7 +956,7 @@ export const STRINGS_VI = {
             tagsProperties: 'Phần thẻ và thuộc tính, biểu tượng, sắp xếp, phạm vi và kế thừa.',
             listPane: 'Sắp xếp, nhóm, chế độ danh sách, ghi chú đã ghim và xem trước bản vẽ.',
             frontmatter: 'Trường frontmatter cho tên hiển thị, dấu thời gian, biểu tượng và màu sắc.',
-            notes: 'Tiêu đề, văn bản xem trước, hình ảnh nổi bật, thẻ, thuộc tính, ngày và số từ.',
+            notes: 'Tiêu đề, văn bản xem trước, hình ảnh nổi bật, thẻ, thuộc tính, ngày, số từ và số ký tự.',
             iconPacks: 'Biểu tượng giao diện, biểu tượng tệp và quản lý gói biểu tượng.',
             advanced: 'Chẩn đoán, dọn dẹp metadata, nhập/xuất và đặt lại.'
         },
@@ -965,7 +1002,7 @@ export const STRINGS_VI = {
                 properties: 'Thuộc tính',
                 date: 'Ngày',
                 parentFolder: 'Thư mục cha',
-                wordCount: 'Số từ'
+                wordCount: 'Số từ và ký tự'
             }
         },
         syncMode: {
@@ -1676,16 +1713,30 @@ export const STRINGS_VI = {
                 name: 'Hiện thuộc tính ở chế độ gọn',
                 desc: 'Hiển thị thuộc tính khi chế độ gọn đang hoạt động.'
             },
-            showWordCount: {
-                name: 'Hiển thị số từ',
-                desc: 'Hiển thị số từ của ghi chú trong các mục tệp.'
+            textCountDisplay: {
+                name: 'Loại bộ đếm',
+                desc: 'Chọn số liệu ghi chú xuất hiện trong mục tệp.',
+                options: {
+                    none: 'Không',
+                    words: 'Số từ',
+                    characters: 'Số ký tự',
+                    both: 'Số từ và ký tự'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'Vị trí',
-                desc: 'Chọn nơi hiển thị số từ.',
+                desc: 'Chọn nơi hiển thị số liệu ghi chú.',
                 options: {
                     title: 'Trong tiêu đề',
                     property: 'Dưới dạng thuộc tính'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Số ký tự',
+                desc: 'Chọn có tính khoảng trắng trong số ký tự hay không.',
+                options: {
+                    include: 'Bao gồm khoảng trắng',
+                    exclude: 'Không bao gồm khoảng trắng'
                 }
             },
             wordCountTargetProperty: {
@@ -2229,6 +2280,10 @@ export const STRINGS_VI = {
                 name: 'Kiểm tra phiên bản mới khi khởi động',
                 desc: 'Kiểm tra bản phát hành plugin mới khi khởi động và hiện thông báo khi có bản cập nhật. Kiểm tra xảy ra tối đa một lần mỗi ngày.',
                 status: 'Có phiên bản mới: {version}'
+            },
+            debugLogging: {
+                name: 'Ghi log gỡ lỗi khi khởi động',
+                desc: 'Ghi chẩn đoán khởi động vào một tệp Markdown có dấu thời gian ở thư mục gốc của kho, rồi dừng sau khi khởi động ổn định. Tệp có thể được đồng bộ hóa và có thể bao gồm đường dẫn tệp.'
             },
             whatsNew: {
                 name: 'Có gì mới trong Notebook Navigator {version}',

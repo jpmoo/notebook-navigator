@@ -40,6 +40,8 @@ export interface FileItemCacheSnapshot {
     featureImageUrl: string | null;
     properties: PropertyItem[] | null;
     wordCount: number | null;
+    characterCountWithSpaces: number | null;
+    characterCountWithoutSpaces: number | null;
     taskUnfinished: number | null;
 }
 
@@ -62,6 +64,8 @@ export interface FileItemContentState {
     featureImageUrl: string | null;
     properties: PropertyItem[] | null;
     wordCount: number | null;
+    characterCountWithSpaces: number | null;
+    characterCountWithoutSpaces: number | null;
     taskUnfinished: number | null;
     metadataVersion: number;
 }
@@ -104,6 +108,8 @@ export function loadFileItemCacheSnapshot({
     const featureImageStatus: FeatureImageStatus = record?.featureImageStatus ?? 'unprocessed';
     const properties = clonePropertyItems(record?.properties ?? null);
     const wordCount = record?.wordCount ?? null;
+    const characterCountWithSpaces = record?.characterCountWithSpaces ?? null;
+    const characterCountWithoutSpaces = record?.characterCountWithoutSpaces ?? null;
     const taskUnfinished = record?.taskUnfinished ?? null;
 
     let featureImageUrl: string | null = null;
@@ -123,6 +129,8 @@ export function loadFileItemCacheSnapshot({
         featureImageUrl,
         properties,
         wordCount,
+        characterCountWithSpaces,
+        characterCountWithoutSpaces,
         taskUnfinished
     };
 }
@@ -160,6 +168,8 @@ export function useFileItemContentState({
     const [featureImageUrl, setFeatureImageUrl] = useState<string | null>(initialData.featureImageUrl);
     const [properties, setProperties] = useState<PropertyItem[] | null>(initialData.properties);
     const [wordCount, setWordCount] = useState<number | null>(initialData.wordCount);
+    const [characterCountWithSpaces, setCharacterCountWithSpaces] = useState<number | null>(initialData.characterCountWithSpaces);
+    const [characterCountWithoutSpaces, setCharacterCountWithoutSpaces] = useState<number | null>(initialData.characterCountWithoutSpaces);
     const [taskUnfinished, setTaskUnfinished] = useState<number | null>(initialData.taskUnfinished);
     const [metadataVersion, setMetadataVersion] = useState(0);
 
@@ -182,6 +192,12 @@ export function useFileItemContentState({
                     setProperties(initialSnapshot.properties);
                 }
                 setWordCount(prev => (prev === initialSnapshot.wordCount ? prev : initialSnapshot.wordCount));
+                setCharacterCountWithSpaces(prev =>
+                    prev === initialSnapshot.characterCountWithSpaces ? prev : initialSnapshot.characterCountWithSpaces
+                );
+                setCharacterCountWithoutSpaces(prev =>
+                    prev === initialSnapshot.characterCountWithoutSpaces ? prev : initialSnapshot.characterCountWithoutSpaces
+                );
                 setTaskUnfinished(prev => (prev === initialSnapshot.taskUnfinished ? prev : initialSnapshot.taskUnfinished));
             },
             onChange: (changes: FileContentChange['changes']) => {
@@ -209,6 +225,18 @@ export function useFileItemContentState({
                 if (changes.wordCount !== undefined) {
                     const nextWordCount = changes.wordCount ?? null;
                     setWordCount(prev => (prev === nextWordCount ? prev : nextWordCount));
+                }
+
+                if (changes.characterCountWithSpaces !== undefined) {
+                    const nextCharacterCountWithSpaces = changes.characterCountWithSpaces ?? null;
+                    setCharacterCountWithSpaces(prev => (prev === nextCharacterCountWithSpaces ? prev : nextCharacterCountWithSpaces));
+                }
+
+                if (changes.characterCountWithoutSpaces !== undefined) {
+                    const nextCharacterCountWithoutSpaces = changes.characterCountWithoutSpaces ?? null;
+                    setCharacterCountWithoutSpaces(prev =>
+                        prev === nextCharacterCountWithoutSpaces ? prev : nextCharacterCountWithoutSpaces
+                    );
                 }
 
                 if (changes.taskUnfinished !== undefined) {
@@ -324,6 +352,8 @@ export function useFileItemContentState({
         featureImageUrl,
         properties,
         wordCount,
+        characterCountWithSpaces,
+        characterCountWithoutSpaces,
         taskUnfinished,
         metadataVersion
     };

@@ -73,7 +73,13 @@ import {
 import { NOTEBOOK_NAVIGATOR_ICON_ID, NOTEBOOK_NAVIGATOR_ICON_SVG } from './constants/notebookNavigatorIcon';
 import { PluginSettingsController } from './services/settings/PluginSettingsController';
 import { PluginPreferencesController } from './services/settings/PluginPreferencesController';
-import { consumePendingPdfProcessingDiagnostic } from './services/content/pdf/pdfCrashDiagnostics';
+import { clearPendingPdfProcessingDiagnostic, consumePendingPdfProcessingDiagnostic } from './services/content/pdf/pdfCrashDiagnostics';
+import {
+    DebugLoggingService,
+    recordStartupDiagnostic,
+    recordStartupUserVisible,
+    setDebugLoggingService
+} from './services/diagnostics/DebugLoggingService';
 import { applyModifiedSettingsTransfer, createModifiedSettingsTransfer } from './settings/transfer';
 import { DEFAULT_SETTINGS } from './settings/defaultSettings';
 
@@ -115,6 +121,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     api: NotebookNavigatorAPI | null = null;
     recentNotesService: RecentNotesService | null = null;
     releaseCheckService: ReleaseCheckService | null = null;
+    debugLoggingService: DebugLoggingService | null = null;
     // Keys used for persisting UI state in browser localStorage
     keys: LocalStorageKeys = STORAGE_KEYS;
     // Map of callbacks to notify open React views when settings change
@@ -178,6 +185,17 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             return true;
         } catch {
             return false;
+        }
+    }
+
+    public isDebugLoggingEnabled(): boolean {
+        return this.debugLoggingService?.isEnabled() ?? false;
+    }
+
+    public setDebugLoggingEnabled(enabled: boolean): void {
+        this.debugLoggingService?.setEnabled(enabled);
+        if (!enabled) {
+            clearPendingPdfProcessingDiagnostic();
         }
     }
 
@@ -343,6 +361,16 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     async onload() {
         // Initialize localStorage before database so version checks work
         localStorage.init(this.app);
+        this.debugLoggingService = new DebugLoggingService(this.app, { pluginVersion: this.manifest.version });
+        setDebugLoggingService(this.debugLoggingService);
+        this.debugLoggingService.initialize();
+        if (!this.debugLoggingService.isEnabled()) {
+            clearPendingPdfProcessingDiagnostic();
+        }
+        recordStartupDiagnostic('onload.start', {
+            pluginVersion: this.manifest.version,
+            minAppVersion: this.manifest.minAppVersion
+        });
 
         if (typeof addIcon === 'function') {
             addIcon(NOTEBOOK_NAVIGATOR_ICON_ID, NOTEBOOK_NAVIGATOR_ICON_SVG);
@@ -356,16 +384,25 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         const previewTextCacheMaxEntries = Platform.isMobile ? 10000 : 50000;
         // Limit the number of preview text paths processed per load flush.
         const previewLoadMaxBatch = Platform.isMobile ? 20 : 50;
+        recordStartupDiagnostic('database.init.scheduled', {
+            featureImageCacheMaxEntries,
+            previewTextCacheMaxEntries,
+            previewLoadMaxBatch
+        });
         runAsyncAction(
             async () => {
                 try {
+                    recordStartupDiagnostic('database.init.start');
                     await initializeDatabase(appId, { featureImageCacheMaxEntries, previewTextCacheMaxEntries, previewLoadMaxBatch });
+                    recordStartupDiagnostic('database.init.complete');
                 } catch (error: unknown) {
+                    recordStartupDiagnostic('database.init.failed', { error });
                     console.error('Failed to initialize database:', error);
                 }
             },
             {
                 onError: (error: unknown) => {
+                    recordStartupDiagnostic('database.init.failed', { error });
                     console.error('Failed to initialize database:', error);
                 }
             }
@@ -373,6 +410,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
         // Load settings and check if this is first launch
         const isFirstLaunch = await this.loadSettings();
+        recordStartupDiagnostic('settings.loaded', { isFirstLaunch });
         this.preferencesController.syncMirrorsFromSettings();
         const storedLocalStorageVersion = this.settingsController.getStoredLocalStorageVersion();
         this.preferencesController.loadUXPreferences();
@@ -462,6 +500,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             this.api[INTERNAL_NOTEBOOK_NAVIGATOR_API].metadata.emitFolderChangedForPath(folderPath);
         });
         this.releaseCheckService = new ReleaseCheckService(this);
+        recordStartupDiagnostic('services.initialized');
 
         const iconService = getIconService();
         iconService.registerProvider(new VaultIconProvider(this.app));
@@ -513,8 +552,10 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
         this.app.workspace.onLayoutReady(() => {
             this.hasWorkspaceLayoutReady = true;
+            recordStartupDiagnostic('layout.ready');
             // Execute startup tasks asynchronously to avoid blocking the layout
             runAsyncAction(async () => {
+                recordStartupDiagnostic('layout.readyTasks.start');
                 if (this.isUnloading) {
                     return;
                 }
@@ -529,6 +570,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
                 // PDF_CRASH_DIAGNOSTICS: show the last unfinished mobile PDF path from the previous session.
                 const pendingPdfPath = consumePendingPdfProcessingDiagnostic();
                 if (pendingPdfPath) {
+                    this.debugLoggingService?.logReport('PDF processing from previous run', { path: pendingPdfPath });
                     const { InfoModal } = await import('./modals/InfoModal');
                     new InfoModal(this.app, {
                         title: 'PDF processing from previous run',
@@ -565,8 +607,11 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
                 if (this.settings.checkForUpdatesOnStart) {
                     runAsyncAction(() => this.runReleaseUpdateCheck());
                 }
+                recordStartupDiagnostic('layout.readyTasks.complete');
+                recordStartupUserVisible({ shouldActivateOnStartup });
             });
         });
+        recordStartupDiagnostic('onload.complete');
     }
 
     /**
@@ -1036,6 +1081,9 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
      */
     onunload() {
         this.initiateShutdown();
+        this.debugLoggingService?.dispose();
+        setDebugLoggingService(null);
+        this.debugLoggingService = null;
 
         this.preferencesController.dispose();
 

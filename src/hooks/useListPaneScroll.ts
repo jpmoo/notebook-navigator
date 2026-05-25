@@ -53,7 +53,7 @@ import { ListPaneItemType, OVERSCAN } from '../types';
 import { Align, ListScrollIntent, getListAlign, rankListPending } from '../types/scroll';
 import type { ListPaneItem } from '../types/virtualization';
 import type { NotebookNavigatorSettings } from '../settings';
-import type { ListDisplayMode, ListNoteGroupingOption, SortOption } from '../settings/types';
+import { showsCharacterCount, showsWordCount, type ListDisplayMode, type ListNoteGroupingOption, type SortOption } from '../settings/types';
 import type { FileContentChange } from '../storage/IndexedDBStorage';
 import type { SelectionDispatch, SelectionState } from '../context/SelectionContext';
 import { calculateCompactListMetrics } from '../utils/listPaneMetrics';
@@ -152,8 +152,9 @@ type ListLayoutSignatureSettings = Pick<
     | 'showFileProperties'
     | 'showFilePropertiesInCompactMode'
     | 'showPropertiesOnSeparateRows'
-    | 'showWordCount'
-    | 'wordCountPlacement'
+    | 'textCountDisplay'
+    | 'textCountPlacement'
+    | 'characterCountSpaces'
     | 'showFileTags'
     | 'showFileTagsInCompactMode'
     | 'showParentFolder'
@@ -269,8 +270,9 @@ function getListLayoutSignature({
             showFileProperties: settings.showFileProperties,
             showFilePropertiesInCompactMode: settings.showFilePropertiesInCompactMode,
             showPropertiesOnSeparateRows: settings.showPropertiesOnSeparateRows,
-            showWordCount: settings.showWordCount,
-            wordCountPlacement: settings.wordCountPlacement,
+            textCountDisplay: settings.textCountDisplay,
+            textCountPlacement: settings.textCountPlacement,
+            characterCountSpaces: settings.characterCountSpaces,
             showSelectedNavigationPills: settings.showSelectedNavigationPills,
             visiblePropertyKeySignature,
             showParentFolder: settings.showParentFolder,
@@ -320,7 +322,9 @@ export function isListRowHeightAffectingContentChange(change: FileContentChange)
         change.changes.featureImageStatus !== undefined ||
         change.changes.properties !== undefined ||
         change.changes.tags !== undefined ||
-        change.changes.wordCount !== undefined
+        change.changes.wordCount !== undefined ||
+        change.changes.characterCountWithSpaces !== undefined ||
+        change.changes.characterCountWithoutSpaces !== undefined
     );
 }
 
@@ -575,13 +579,18 @@ export function useListPaneScroll({
             const propertyRowCount = showDrawingMissingFeatureImage
                 ? 0
                 : getPropertyRowCount({
-                      showWordCountProperty: settings.showWordCount && settings.wordCountPlacement === 'property',
+                      showTextCountProperty: settings.textCountDisplay !== 'none' && settings.textCountPlacement === 'property',
                       showFileProperties: settings.showFileProperties,
                       showPropertiesOnSeparateRows: settings.showPropertiesOnSeparateRows,
                       showFilePropertiesInCompactMode: settings.showFilePropertiesInCompactMode,
                       isCompactMode,
                       file,
-                      wordCount: fileRecord?.wordCount ?? undefined,
+                      wordCount: showsWordCount(settings.textCountDisplay) ? (fileRecord?.wordCount ?? undefined) : undefined,
+                      characterCount: showsCharacterCount(settings.textCountDisplay)
+                          ? settings.characterCountSpaces === 'include'
+                              ? (fileRecord?.characterCountWithSpaces ?? undefined)
+                              : (fileRecord?.characterCountWithoutSpaces ?? undefined)
+                          : undefined,
                       properties: fileRecord?.properties ?? undefined,
                       visiblePropertyKeys,
                       hiddenPropertyValueNodeId: selectedPropertyValueNodeIdToHide
@@ -707,8 +716,9 @@ export function useListPaneScroll({
             showFileProperties: settings.showFileProperties,
             showFilePropertiesInCompactMode: settings.showFilePropertiesInCompactMode,
             showPropertiesOnSeparateRows: settings.showPropertiesOnSeparateRows,
-            showWordCount: settings.showWordCount,
-            wordCountPlacement: settings.wordCountPlacement,
+            textCountDisplay: settings.textCountDisplay,
+            textCountPlacement: settings.textCountPlacement,
+            characterCountSpaces: settings.characterCountSpaces,
             showFileTags: settings.showFileTags,
             showFileTagsInCompactMode: settings.showFileTagsInCompactMode,
             showParentFolder: settings.showParentFolder,
@@ -721,8 +731,9 @@ export function useListPaneScroll({
             settings.showFileProperties,
             settings.showFilePropertiesInCompactMode,
             settings.showPropertiesOnSeparateRows,
-            settings.showWordCount,
-            settings.wordCountPlacement,
+            settings.textCountDisplay,
+            settings.textCountPlacement,
+            settings.characterCountSpaces,
             settings.showFileTags,
             settings.showFileTagsInCompactMode,
             settings.showParentFolder,

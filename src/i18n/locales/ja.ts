@@ -297,6 +297,8 @@ export const STRINGS_JA = {
             moveFileToFolder: 'ファイルを移動先...',
             moveMultipleNotesToFolder: '{count}個のノートを移動先...',
             moveMultipleFilesToFolder: '{count}個のファイルを移動先...',
+            mergeNotes: '{count}個のノートを結合...',
+            mergeNotesInGroup: 'グループ内のノートを結合...',
             setManualSortGroupHeader: 'グループヘッダーを設定',
             changeManualSortGroupHeader: 'グループヘッダーを変更',
             manualSortGroupHeader: {
@@ -433,8 +435,28 @@ export const STRINGS_JA = {
             wordCountTarget: '目標ワード数',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'このフィールドが空の場合、グループ目標には設定 > ノート > ワード数で設定した目標プロパティが使われます。このグループに目標値を設定すると上書きできます。',
+                'このフィールドが空の場合、グループ目標は 設定 > ノート > 単語数と文字数 で設定された目標プロパティを使用します。このグループに目標値を設定すると上書きできます。',
             description: 'このノートのグループヘッダーをカスタマイズします。ヘッダーを削除するには、タイトルを空のままにします。'
+        },
+        mergeNotes: {
+            title: 'ノートを結合',
+            summary: '{folder} の {count} 個のノートから1つのノートを作成します。',
+            frontmatterRule: '最初のノートのフロントマターは保持されます。他のノートのフロントマターは削除されます。',
+            crossFolderWarning:
+                '元のノートが異なるフォルダにあります。結合されたノートでは相対リンクと埋め込みが機能しなくなる可能性があります。',
+            outputName: '出力名',
+            outputNameDesc: '結合されたノートは上に表示されたフォルダに作成されます。',
+            outputNamePlaceholder: '結合されたノート',
+            separator: '区切り',
+            separatorDesc: 'ノート間に挿入されます。',
+            separatorOptions: {
+                none: 'なし',
+                blankLine: '空行',
+                horizontalRule: '水平線',
+                heading: 'ノートタイトル付き見出し'
+            },
+            moveSourcesToTrash: '結合後に元のノートをゴミ箱に移動',
+            mergeButton: '結合'
         },
         navRainbowSection: {
             title: (section: string) => `レインボーカラー: ${section}`
@@ -489,7 +511,8 @@ export const STRINGS_JA = {
                 'nav-property': 'プロパティ',
                 'nav-property-value': '値',
                 'file-unfinished-task': '未完了タスク',
-                'file-word-count': '単語数'
+                'file-word-count': '単語数',
+                'file-character-count': '文字数'
             }
         },
         colorPicker: {
@@ -695,6 +718,11 @@ export const STRINGS_JA = {
             deleteFolder: 'フォルダの削除に失敗しました：{error}',
             deleteFile: 'ファイルの削除に失敗しました：{error}',
             deleteAttachments: '添付ファイルの削除に失敗しました: {error}',
+            mergeNotes: 'ノートの結合に失敗しました: {error}',
+            mergeNotesOpenOutput:
+                '結合されたノートは {name} として作成されましたが、開けませんでした: {error}。元のノートは変更されませんでした。',
+            mergeNotesOpenSkipped: '別のファイルを開くリクエストが優先されました。',
+            mergeNotesTrashSources: '結合されたノートを作成しました。{count} 個の元ノートをゴミ箱に移動できませんでした。',
             duplicateNote: 'ノートの複製に失敗しました：{error}',
             duplicateFolder: 'フォルダの複製に失敗しました：{error}',
             openVersionHistory: 'バージョン履歴を開くのに失敗しました：{error}',
@@ -728,7 +756,8 @@ export const STRINGS_JA = {
         },
         notices: {
             hideFolder: 'フォルダを非表示: {name}',
-            showFolder: 'フォルダを表示: {name}'
+            showFolder: 'フォルダを表示: {name}',
+            mergeNotes: '{count} 個のノートを {name} に結合しました'
         },
         notifications: {
             deletedMultipleFiles: '{count}個のファイルを削除しました',
@@ -746,6 +775,7 @@ export const STRINGS_JA = {
             tagsClearedFromNotes: '{count}個のノートからすべてのタグをクリアしました',
             noTagsToRemove: '削除するタグがありません',
             noFilesSelected: 'ファイルが選択されていません',
+            mergeNotesRequireMultipleMarkdown: '結合するには少なくとも2つのMarkdownノートを選択してください',
             tagOperationsNotAvailable: 'タグ操作は利用できません',
             propertyOperationsNotAvailable: 'プロパティ操作は利用できません',
             tagsRequireMarkdown: 'タグはMarkdownノートでのみサポートされています',
@@ -823,6 +853,7 @@ export const STRINGS_JA = {
         createNewNote: '新規ノートを作成', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'テンプレートから新規ノート', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'ファイルを移動', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'ノートを結合', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: '次のファイルを選択', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: '前のファイルを選択', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: '前に戻る',
@@ -871,6 +902,12 @@ export const STRINGS_JA = {
         wordCount: '単語数'
     },
 
+    fileCounts: {
+        words: '{count} 語',
+        characters: '{count} 文字',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'デフォルト設定を変更',
@@ -917,7 +954,7 @@ export const STRINGS_JA = {
             tagsProperties: 'タグとプロパティのセクション、アイコン、並べ替え、スコープ、継承。',
             listPane: '並べ替え、グループ化、リストモード、ピン留めされたノート、描画プレビュー。',
             frontmatter: '表示名、タイムスタンプ、アイコン、色のフロントマターフィールド。',
-            notes: 'タイトル、プレビューテキスト、アイキャッチ画像、タグ、プロパティ、日付、単語数。',
+            notes: 'タイトル、プレビューテキスト、アイキャッチ画像、タグ、プロパティ、日付、単語数、文字数。',
             iconPacks: 'インターフェースアイコン、ファイルアイコン、アイコンパック管理。',
             advanced: '診断、メタデータのクリーンアップ、インポート/エクスポート、リセット。'
         },
@@ -963,7 +1000,7 @@ export const STRINGS_JA = {
                 properties: 'プロパティ',
                 date: '日付',
                 parentFolder: '親フォルダ',
-                wordCount: '単語数'
+                wordCount: '単語数と文字数'
             }
         },
         syncMode: {
@@ -1674,16 +1711,30 @@ export const STRINGS_JA = {
                 name: 'コンパクトモードでプロパティを表示',
                 desc: 'コンパクトモードが有効な時にプロパティを表示します。'
             },
-            showWordCount: {
-                name: '単語数を表示',
-                desc: 'ファイル項目にノートの単語数を表示します。'
+            textCountDisplay: {
+                name: 'カウントの種類',
+                desc: 'ファイル項目に表示するノートのカウントを選択します。',
+                options: {
+                    none: 'なし',
+                    words: '単語数',
+                    characters: '文字数',
+                    both: '単語数と文字数'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: '配置',
-                desc: '単語数を表示する場所を選択します。',
+                desc: 'ノートのカウントを表示する場所を選択します。',
                 options: {
                     title: 'タイトル内',
                     property: 'プロパティとして'
+                }
+            },
+            characterCountSpaces: {
+                name: '文字数',
+                desc: '文字数にスペースを含めるかを選択します。',
+                options: {
+                    include: 'スペースを含む',
+                    exclude: 'スペースを除く'
                 }
             },
             wordCountTargetProperty: {
@@ -2227,6 +2278,10 @@ export const STRINGS_JA = {
                 name: '起動時に新しいバージョンを確認',
                 desc: '起動時に新しいプラグインリリースを確認し、アップデートが利用可能な場合に通知を表示します。確認は最大1日1回行われます。',
                 status: '新しいバージョンが利用可能: {version}'
+            },
+            debugLogging: {
+                name: '起動デバッグログ',
+                desc: '起動診断を保管庫のルートにタイムスタンプ付きの Markdown ファイルとして書き込み、起動が落ち着いた後に停止します。このファイルは同期される場合があり、ファイルパスを含むことがあります。'
             },
             whatsNew: {
                 name: 'Notebook Navigator {version} の新着情報',

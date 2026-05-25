@@ -312,6 +312,8 @@ export const STRINGS_AR = {
             moveFileToFolder: 'نقل الملف إلى...',
             moveMultipleNotesToFolder: 'نقل {count} ملاحظة إلى...',
             moveMultipleFilesToFolder: 'نقل {count} ملف إلى...',
+            mergeNotes: 'دمج {count} ملاحظة...',
+            mergeNotesInGroup: 'دمج الملاحظات في المجموعة...',
             setManualSortGroupHeader: 'تعيين عنوان المجموعة',
             changeManualSortGroupHeader: 'تغيير عنوان المجموعة',
             manualSortGroupHeader: {
@@ -432,8 +434,27 @@ export const STRINGS_AR = {
             wordCountTarget: 'عدد الكلمات المستهدف',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'عندما يكون هذا الحقل فارغًا، يستخدم هدف المجموعة خاصية الهدف المحددة في الإعدادات > الملاحظات > عدد الكلمات. يمكنك تجاوزه بتعيين قيمة هدف لهذه المجموعة.',
+                'عندما يكون هذا الحقل فارغًا، يستخدم هدف المجموعة خاصية الهدف المحددة في الإعدادات > الملاحظات > عدد الكلمات والأحرف. يمكنك تجاوزه بتعيين قيمة هدف لهذه المجموعة.',
             description: 'خصص عنوان المجموعة لهذه الملاحظة. اترك العنوان فارغًا لإزالة العنوان.'
+        },
+        mergeNotes: {
+            title: 'دمج الملاحظات',
+            summary: 'إنشاء ملاحظة واحدة من {count} ملاحظة في {folder}.',
+            frontmatterRule: 'يتم الاحتفاظ بالبيانات الأمامية من الملاحظة الأولى. تتم إزالة البيانات الأمامية من الملاحظات الأخرى.',
+            crossFolderWarning: 'الملاحظات المصدر في مجلدات مختلفة. قد تتوقف الروابط والتضمينات النسبية عن العمل في الملاحظة المدمجة.',
+            outputName: 'اسم الناتج',
+            outputNameDesc: 'يتم إنشاء الملاحظة المدمجة في المجلد الموضح أعلاه.',
+            outputNamePlaceholder: 'ملاحظات مدمجة',
+            separator: 'فاصل',
+            separatorDesc: 'يتم إدراجه بين الملاحظات.',
+            separatorOptions: {
+                none: 'لا شيء',
+                blankLine: 'سطر فارغ',
+                horizontalRule: 'خط أفقي',
+                heading: 'عنوان باسم الملاحظة'
+            },
+            moveSourcesToTrash: 'نقل الملاحظات المصدر إلى سلة المهملات بعد الدمج',
+            mergeButton: 'دمج'
         },
         navRainbowSection: {
             title: (section: string) => `ألوان قوس قزح: ${section}`
@@ -488,7 +509,8 @@ export const STRINGS_AR = {
                 'nav-property': 'خاصية',
                 'nav-property-value': 'قيمة',
                 'file-unfinished-task': 'مهام غير مكتملة',
-                'file-word-count': 'عدد الكلمات'
+                'file-word-count': 'عدد الكلمات',
+                'file-character-count': 'عدد الأحرف'
             }
         },
         colorPicker: {
@@ -693,6 +715,10 @@ export const STRINGS_AR = {
             deleteFolder: 'فشل حذف المجلد: {error}',
             deleteFile: 'فشل حذف الملف: {error}',
             deleteAttachments: 'فشل في حذف المرفقات: {error}',
+            mergeNotes: 'فشل في دمج الملاحظات: {error}',
+            mergeNotesOpenOutput: 'تم إنشاء الملاحظة المدمجة باسم {name}، لكن تعذر فتحها: {error}. لم يتم تغيير الملاحظات المصدر.',
+            mergeNotesOpenSkipped: 'أخذ طلب آخر لفتح ملف الأولوية.',
+            mergeNotesTrashSources: 'تم إنشاء الملاحظة المدمجة. فشل نقل {count} ملاحظة مصدر إلى سلة المهملات.',
             duplicateNote: 'فشل تكرار الملاحظة: {error}',
             duplicateFolder: 'فشل تكرار المجلد: {error}',
             openVersionHistory: 'فشل فتح سجل الإصدارات: {error}',
@@ -726,7 +752,8 @@ export const STRINGS_AR = {
         },
         notices: {
             hideFolder: 'تم إخفاء المجلد: {name}',
-            showFolder: 'تم إظهار المجلد: {name}'
+            showFolder: 'تم إظهار المجلد: {name}',
+            mergeNotes: 'تم دمج {count} ملاحظة في {name}'
         },
         notifications: {
             deletedMultipleFiles: 'تم حذف {count} ملفات',
@@ -744,6 +771,7 @@ export const STRINGS_AR = {
             tagsClearedFromNotes: 'تم مسح جميع الوسوم من {count} ملاحظات',
             noTagsToRemove: 'لا توجد وسوم لإزالتها',
             noFilesSelected: 'لم يتم تحديد ملفات',
+            mergeNotesRequireMultipleMarkdown: 'حدد ملاحظتي Markdown على الأقل للدمج',
             tagOperationsNotAvailable: 'عمليات الوسوم غير متاحة',
             propertyOperationsNotAvailable: 'عمليات الخصائص غير متاحة',
             tagsRequireMarkdown: 'الوسوم مدعومة فقط على ملاحظات Markdown',
@@ -821,6 +849,7 @@ export const STRINGS_AR = {
         createNewNote: 'إنشاء ملاحظة جديدة', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'ملاحظة جديدة من قالب', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'نقل الملفات', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'دمج الملاحظات', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'تحديد الملف التالي', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'تحديد الملف السابق', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'الانتقال للخلف',
@@ -869,6 +898,12 @@ export const STRINGS_AR = {
         wordCount: 'عدد الكلمات'
     },
 
+    fileCounts: {
+        words: '{count} كلمة',
+        characters: '{count} حرفاً',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'تغيير الإعدادات الافتراضية',
@@ -915,7 +950,7 @@ export const STRINGS_AR = {
             tagsProperties: 'أقسام الوسوم والخصائص والأيقونات والفرز والنطاق والوراثة.',
             listPane: 'الفرز والتجميع وأوضاع القائمة والملاحظات المثبتة ومعاينات الرسومات.',
             frontmatter: 'حقول البيانات الأمامية لأسماء العرض والطوابع الزمنية والأيقونات والألوان.',
-            notes: 'العناوين ونص المعاينة والصور المميزة والوسوم والخصائص والتواريخ وعدد الكلمات.',
+            notes: 'العناوين ونص المعاينة والصور المميزة والوسوم والخصائص والتواريخ وعدد الكلمات وعدد الأحرف.',
             iconPacks: 'أيقونات الواجهة وأيقونات الملفات وإدارة حزم الأيقونات.',
             advanced: 'التشخيص وتنظيف البيانات الوصفية والاستيراد/التصدير وإعادة التعيين.'
         },
@@ -961,7 +996,7 @@ export const STRINGS_AR = {
                 properties: 'الخصائص',
                 date: 'التاريخ',
                 parentFolder: 'المجلد الأصلي',
-                wordCount: 'عدد الكلمات'
+                wordCount: 'عدد الكلمات والأحرف'
             }
         },
         syncMode: {
@@ -1671,16 +1706,30 @@ export const STRINGS_AR = {
                 name: 'إظهار الخصائص في الوضع المضغوط',
                 desc: 'عرض الخصائص عند تفعيل الوضع المضغوط.'
             },
-            showWordCount: {
-                name: 'إظهار عدد الكلمات',
-                desc: 'عرض عدد كلمات الملاحظات في عناصر الملفات.'
+            textCountDisplay: {
+                name: 'نوع العدد',
+                desc: 'اختر أي أعداد ملاحظات تظهر في عناصر الملفات.',
+                options: {
+                    none: 'لا شيء',
+                    words: 'عدد الكلمات',
+                    characters: 'عدد الأحرف',
+                    both: 'عدد الكلمات والأحرف'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'الموضع',
-                desc: 'اختر مكان ظهور عدد الكلمات.',
+                desc: 'اختر مكان ظهور أعداد الملاحظات.',
                 options: {
                     title: 'في العنوان',
                     property: 'كخاصية'
+                }
+            },
+            characterCountSpaces: {
+                name: 'عدد الأحرف',
+                desc: 'اختر ما إذا كانت المسافات تُحتسب ضمن عدد الأحرف.',
+                options: {
+                    include: 'مع المسافات',
+                    exclude: 'بدون المسافات'
                 }
             },
             wordCountTargetProperty: {
@@ -2224,6 +2273,10 @@ export const STRINGS_AR = {
                 name: 'التحقق من إصدار جديد عند البدء',
                 desc: 'التحقق من إصدارات الإضافة الجديدة عند البدء وإظهار إشعار عند توفر تحديث. التحقق يحدث مرة واحدة يوميًا على الأكثر.',
                 status: 'إصدار جديد متاح: {version}'
+            },
+            debugLogging: {
+                name: 'تسجيل تصحيح أخطاء بدء التشغيل',
+                desc: 'يكتب تشخيصات بدء التشغيل في ملف Markdown يحمل طابعًا زمنيًا في جذر الخزنة، ثم يتوقف بعد استقرار بدء التشغيل. قد تتم مزامنة الملف وقد يتضمن مسارات ملفات.'
             },
             whatsNew: {
                 name: 'الجديد في متصفح الدفتر {version}',

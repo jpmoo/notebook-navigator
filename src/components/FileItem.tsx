@@ -29,7 +29,7 @@
  *
  * 3. Extracted subsystems:
  *    - useFileItemContentState: Cache hydration, content subscriptions, feature-image URL lifecycle
- *    - useFileItemPills: Tag/property/word-count pill models and rendering
+ *    - useFileItemPills: Tag/property/text-count pill models and rendering
  *    - listPaneMeasurements helpers: Shared layout rules with the virtualizer
  *
  * 4. Image optimization:
@@ -81,8 +81,38 @@ import { getDrawingFeatureImageSource } from '../utils/drawingFeatureImages';
 import { useDrawingFeatureImage } from '../hooks/useDrawingFeatureImage';
 import { resolveFileRowBackgroundColor } from '../utils/colorUtils';
 import { getWordCountDisplayText } from '../utils/wordCountUtils';
+import { showsCharacterCount, showsWordCount } from '../settings/types';
 
 const FEATURE_IMAGE_MAX_ASPECT_RATIO = 16 / 9;
+
+function formatCountTextLabel(template: string, countText: string): string {
+    return template.replace('{count}', countText);
+}
+
+function getCharacterCountDisplayText(count: number | null | undefined): string | null {
+    if (typeof count !== 'number' || !Number.isFinite(count) || count <= 0) {
+        return null;
+    }
+
+    return Math.trunc(count).toLocaleString();
+}
+
+function getTitleCountDisplayText(params: {
+    wordCountDisplayText: string | null;
+    characterCountDisplayText: string | null;
+}): string | null {
+    const { wordCountDisplayText, characterCountDisplayText } = params;
+    if (wordCountDisplayText && characterCountDisplayText) {
+        const wordText =
+            !wordCountDisplayText.includes('/') && !wordCountDisplayText.includes('%')
+                ? formatCountTextLabel(strings.fileCounts.words, wordCountDisplayText)
+                : wordCountDisplayText;
+        const characterText = formatCountTextLabel(strings.fileCounts.characters, characterCountDisplayText);
+        return `${wordText}${strings.fileCounts.separator}${characterText}`;
+    }
+
+    return wordCountDisplayText ?? characterCountDisplayText;
+}
 
 function useImageFileResourceVersion(app: ReturnType<typeof useServices>['app'], file: TFile, enabled: boolean): number {
     const [version, setVersion] = useState(file.stat.mtime);
@@ -389,6 +419,8 @@ export const FileItem = React.memo(function FileItem({
         featureImageUrl,
         properties,
         wordCount,
+        characterCountWithSpaces,
+        characterCountWithoutSpaces,
         taskUnfinished,
         metadataVersion
     } = useFileItemContentState({
@@ -619,8 +651,10 @@ export const FileItem = React.memo(function FileItem({
     const fileIconClassName = showFileIconUnfinishedTask ? 'nn-file-icon nn-file-icon-unfinished-task' : 'nn-file-icon';
     const dragIconColor = showFileIconUnfinishedTask ? undefined : (fileIconColor ?? undefined);
     const shouldShowCompactExtensionBadge = isCompactMode && (isBaseFile || isCanvasFile);
+    const shouldShowWordCount = showsWordCount(settings.textCountDisplay);
+    const shouldShowCharacterCount = showsCharacterCount(settings.textCountDisplay);
     const wordCountDisplayText = useMemo(() => {
-        if (!settings.showWordCount || file.extension !== 'md') {
+        if (!shouldShowWordCount || file.extension !== 'md') {
             return null;
         }
 
@@ -630,8 +664,20 @@ export const FileItem = React.memo(function FileItem({
             targetProperty: settings.wordCountTargetProperty,
             showTargetPercentage: settings.showWordCountPercentage
         });
-    }, [file.extension, properties, settings.showWordCount, settings.showWordCountPercentage, settings.wordCountTargetProperty, wordCount]);
-    const shouldShowWordCountInTitle = settings.showWordCount && settings.wordCountPlacement === 'title' && wordCountDisplayText !== null;
+    }, [file.extension, properties, settings.showWordCountPercentage, settings.wordCountTargetProperty, shouldShowWordCount, wordCount]);
+    const selectedCharacterCount = settings.characterCountSpaces === 'include' ? characterCountWithSpaces : characterCountWithoutSpaces;
+    const characterCountDisplayText = useMemo(() => {
+        if (!shouldShowCharacterCount || file.extension !== 'md') {
+            return null;
+        }
+
+        return getCharacterCountDisplayText(selectedCharacterCount);
+    }, [file.extension, selectedCharacterCount, shouldShowCharacterCount]);
+    const titleCountDisplayText = useMemo(
+        () => getTitleCountDisplayText({ wordCountDisplayText, characterCountDisplayText }),
+        [characterCountDisplayText, wordCountDisplayText]
+    );
+    const shouldShowCountInTitle = settings.textCountPlacement === 'title' && titleCountDisplayText !== null;
 
     const fileTitleElement = useMemo(() => {
         return (
@@ -647,7 +693,7 @@ export const FileItem = React.memo(function FileItem({
                 }
             >
                 {highlightedName}
-                {shouldShowWordCountInTitle ? <span className="nn-file-word-count-suffix"> ({wordCountDisplayText})</span> : null}
+                {shouldShowCountInTitle ? <span className="nn-file-word-count-suffix"> ({titleCountDisplayText})</span> : null}
                 {extensionSuffix.length > 0 && <span className="nn-file-ext-suffix">{extensionSuffix}</span>}
             </div>
         );
@@ -657,8 +703,8 @@ export const FileItem = React.memo(function FileItem({
         fileTitleColor,
         applyColorToName,
         highlightedName,
-        shouldShowWordCountInTitle,
-        wordCountDisplayText
+        shouldShowCountInTitle,
+        titleCountDisplayText
     ]);
 
     const { shouldShowFileTags, hasVisiblePillRows, pillRows } = useFileItemPills({
@@ -667,7 +713,9 @@ export const FileItem = React.memo(function FileItem({
         tags,
         properties,
         wordCount,
+        characterCount: selectedCharacterCount,
         wordCountDisplayText,
+        characterCountDisplayText,
         settings,
         visiblePropertyKeys,
         visibleNavigationPropertyKeys,
