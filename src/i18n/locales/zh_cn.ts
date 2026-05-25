@@ -965,6 +965,10 @@ export const STRINGS_ZH_CN = {
                 mobileAppearance: '移动端外观',
                 formatting: '格式'
             },
+            advanced: {
+                maintenance: '维护',
+                resetSettings: '重置设置'
+            },
             navigation: {
                 appearance: '外观',
                 rainbowColors: '彩虹颜色',

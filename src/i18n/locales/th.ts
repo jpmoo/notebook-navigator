@@ -968,6 +968,10 @@ export const STRINGS_TH = {
                 mobileAppearance: 'รูปลักษณ์บนมือถือ',
                 formatting: 'การจัดรูปแบบ'
             },
+            advanced: {
+                maintenance: 'การบำรุงรักษา',
+                resetSettings: 'รีเซ็ตการตั้งค่า'
+            },
             navigation: {
                 appearance: 'ลักษณะ',
                 rainbowColors: 'สีรุ้ง',

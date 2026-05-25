@@ -972,6 +972,10 @@ export const STRINGS_KO = {
                 mobileAppearance: '모바일 모양',
                 formatting: '서식'
             },
+            advanced: {
+                maintenance: '유지 관리',
+                resetSettings: '설정 초기화'
+            },
             navigation: {
                 appearance: '모양',
                 rainbowColors: '무지개 색상',

@@ -970,6 +970,10 @@ export const STRINGS_AR = {
                 mobileAppearance: 'مظهر الهاتف المحمول',
                 formatting: 'التنسيق'
             },
+            advanced: {
+                maintenance: 'الصيانة',
+                resetSettings: 'إعادة ضبط الإعدادات'
+            },
             navigation: {
                 appearance: 'المظهر',
                 rainbowColors: 'ألوان قوس قزح',

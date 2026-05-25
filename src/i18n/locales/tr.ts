@@ -973,6 +973,10 @@ export const STRINGS_TR = {
                 mobileAppearance: 'Mobil görünüm',
                 formatting: 'Biçimlendirme'
             },
+            advanced: {
+                maintenance: 'Bakım',
+                resetSettings: 'Ayarları sıfırla'
+            },
             navigation: {
                 appearance: 'Görünüm',
                 rainbowColors: 'Gökkuşağı renkleri',

@@ -965,6 +965,10 @@ export const STRINGS_ZH_TW = {
                 mobileAppearance: '行動裝置外觀',
                 formatting: '格式'
             },
+            advanced: {
+                maintenance: '維護',
+                resetSettings: '重設設定'
+            },
             navigation: {
                 appearance: '外觀',
                 rainbowColors: '彩虹顏色',

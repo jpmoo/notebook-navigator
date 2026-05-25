@@ -975,6 +975,10 @@ export const STRINGS_PT = {
                 mobileAppearance: 'Aparência móvel',
                 formatting: 'Formatação'
             },
+            advanced: {
+                maintenance: 'Manutenção',
+                resetSettings: 'Repor definições'
+            },
             navigation: {
                 appearance: 'Aparência',
                 rainbowColors: 'Cores arco-íris',

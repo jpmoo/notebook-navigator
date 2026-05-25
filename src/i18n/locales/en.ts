@@ -969,6 +969,10 @@ export const STRINGS_EN = {
                 mobileAppearance: 'Mobile appearance',
                 formatting: 'Formatting'
             },
+            advanced: {
+                maintenance: 'Maintenance',
+                resetSettings: 'Reset settings'
+            },
             navigation: {
                 appearance: 'Appearance',
                 rainbowColors: 'Rainbow colors',

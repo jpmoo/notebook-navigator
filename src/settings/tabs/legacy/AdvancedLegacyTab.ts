@@ -35,6 +35,8 @@ export function renderAdvancedTab(context: SettingsTabContext): void {
 
     const createGroup = createSettingGroupFactory(containerEl);
     const advancedGroup = createGroup(undefined);
+    const maintenanceGroup = createGroup(strings.settings.groups.advanced.maintenance);
+    const resetGroup = createGroup(strings.settings.groups.advanced.resetSettings);
 
     advancedGroup.addSetting(setting => {
         setting
@@ -66,7 +68,7 @@ export function renderAdvancedTab(context: SettingsTabContext): void {
     });
 
     if (!Platform.isMobile) {
-        advancedGroup.addSetting(setting => {
+        maintenanceGroup.addSetting(setting => {
             setting
                 .setName(strings.settings.items.resetPaneSeparator.name)
                 .setDesc(strings.settings.items.resetPaneSeparator.desc)
@@ -95,36 +97,6 @@ export function renderAdvancedTab(context: SettingsTabContext): void {
                     new SettingsExportModal(context.app, plugin).open();
                 })
             );
-    });
-
-    advancedGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.resetAllSettings.name)
-            .setDesc(strings.settings.items.resetAllSettings.desc)
-            .addButton(button => {
-                button.setButtonText(strings.settings.items.resetAllSettings.buttonText);
-                button.buttonEl.addClass('mod-warning');
-                button.onClick(() => {
-                    new ConfirmModal(
-                        context.app,
-                        strings.settings.items.resetAllSettings.confirmTitle,
-                        strings.settings.items.resetAllSettings.confirmMessage,
-                        async () => {
-                            button.setDisabled(true);
-                            try {
-                                await plugin.resetAllSettings();
-                                showNotice(strings.settings.items.resetAllSettings.notice);
-                            } catch (error) {
-                                console.error('Failed to reset all settings', error);
-                                showNotice(strings.settings.items.resetAllSettings.error, { variant: 'warning' });
-                            } finally {
-                                button.setDisabled(false);
-                            }
-                        },
-                        strings.settings.items.resetAllSettings.confirmButtonText
-                    ).open();
-                });
-            });
     });
 
     let metadataCleanupButton: ButtonComponent | null = null;
@@ -169,7 +141,7 @@ export function renderAdvancedTab(context: SettingsTabContext): void {
         }
     };
 
-    const metadataCleanupSetting = advancedGroup.addSetting(setting => {
+    const metadataCleanupSetting = maintenanceGroup.addSetting(setting => {
         setting.setName(strings.settings.items.metadataCleanup.name).setDesc(strings.settings.items.metadataCleanup.desc);
     });
 
@@ -199,7 +171,7 @@ export function renderAdvancedTab(context: SettingsTabContext): void {
 
     runAsyncAction(() => refreshMetadataCleanupSummary());
 
-    advancedGroup.addSetting(setting => {
+    maintenanceGroup.addSetting(setting => {
         setting
             .setName(strings.settings.items.rebuildCache.name)
             .setDesc(strings.settings.items.rebuildCache.desc)
@@ -220,11 +192,41 @@ export function renderAdvancedTab(context: SettingsTabContext): void {
             );
     });
 
-    const cacheStatsSetting = addInfoSetting(advancedGroup.addSetting, ['nn-database-stats', 'nn-stats-section'], () => {});
+    const cacheStatsSetting = addInfoSetting(maintenanceGroup.addSetting, ['nn-database-stats', 'nn-stats-section'], () => {});
 
     const statsTextEl = cacheStatsSetting.descEl.createDiv({ cls: 'nn-stats-text' });
 
     context.registerStatsTextElement(statsTextEl);
     context.requestStatisticsRefresh();
     context.ensureStatisticsInterval();
+
+    resetGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.resetAllSettings.name)
+            .setDesc(strings.settings.items.resetAllSettings.desc)
+            .addButton(button => {
+                button.setButtonText(strings.settings.items.resetAllSettings.buttonText);
+                button.buttonEl.addClass('mod-warning');
+                button.onClick(() => {
+                    new ConfirmModal(
+                        context.app,
+                        strings.settings.items.resetAllSettings.confirmTitle,
+                        strings.settings.items.resetAllSettings.confirmMessage,
+                        async () => {
+                            button.setDisabled(true);
+                            try {
+                                await plugin.resetAllSettings();
+                                showNotice(strings.settings.items.resetAllSettings.notice);
+                            } catch (error) {
+                                console.error('Failed to reset all settings', error);
+                                showNotice(strings.settings.items.resetAllSettings.error, { variant: 'warning' });
+                            } finally {
+                                button.setDisabled(false);
+                            }
+                        },
+                        strings.settings.items.resetAllSettings.confirmButtonText
+                    ).open();
+                });
+            });
+    });
 }

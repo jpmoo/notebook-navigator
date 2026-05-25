@@ -972,6 +972,10 @@ export const STRINGS_RU = {
                 mobileAppearance: 'Мобильный вид',
                 formatting: 'Форматирование'
             },
+            advanced: {
+                maintenance: 'Обслуживание',
+                resetSettings: 'Сброс настроек'
+            },
             navigation: {
                 appearance: 'Внешний вид',
                 rainbowColors: 'Цвета радуги',

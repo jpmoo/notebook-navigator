@@ -978,6 +978,10 @@ export const STRINGS_PL = {
                 mobileAppearance: 'Wygląd mobilny',
                 formatting: 'Formatowanie'
             },
+            advanced: {
+                maintenance: 'Konserwacja',
+                resetSettings: 'Resetowanie ustawień'
+            },
             navigation: {
                 appearance: 'Wygląd',
                 rainbowColors: 'Kolory tęczy',

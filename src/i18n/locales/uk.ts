@@ -972,6 +972,10 @@ export const STRINGS_UK = {
                 mobileAppearance: 'Мобільний вигляд',
                 formatting: 'Форматування'
             },
+            advanced: {
+                maintenance: 'Обслуговування',
+                resetSettings: 'Скидання налаштувань'
+            },
             navigation: {
                 appearance: 'Вигляд',
                 rainbowColors: 'Кольори веселки',
