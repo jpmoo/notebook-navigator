@@ -314,6 +314,8 @@ export const STRINGS_UK = {
             moveFileToFolder: 'Перемістити файл до...',
             moveMultipleNotesToFolder: 'Перемістити {count} нотаток до...',
             moveMultipleFilesToFolder: 'Перемістити {count} файлів до...',
+            mergeNotes: 'Об’єднати {count} нотаток...',
+            mergeNotesInGroup: 'Об’єднати нотатки в групі...',
             setManualSortGroupHeader: 'Встановити заголовок групи',
             changeManualSortGroupHeader: 'Змінити заголовок групи',
             manualSortGroupHeader: {
@@ -435,8 +437,28 @@ export const STRINGS_UK = {
             wordCountTarget: 'Цільова кількість слів',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'Коли це поле порожнє, ціль групи використовує цільову властивість, задану в Налаштування > Нотатки > Кількість слів. Перевизначте її, задавши цільове значення для цієї групи.',
+                'Коли це поле порожнє, ціль групи використовує цільову властивість, задану в Налаштування > Нотатки > Кількість слів і символів. Перевизначте її, задавши цільове значення для цієї групи.',
             description: 'Налаштуйте заголовок групи для цієї нотатки. Залиште заголовок порожнім, щоб видалити його.'
+        },
+        mergeNotes: {
+            title: 'Об’єднати нотатки',
+            summary: 'Створити одну нотатку з {count} нотаток у {folder}.',
+            frontmatterRule: 'Frontmatter першої нотатки зберігається. Frontmatter інших нотаток видаляється.',
+            crossFolderWarning:
+                'Вихідні нотатки розташовані в різних папках. Відносні посилання та вбудування можуть перестати працювати в об’єднаній нотатці.',
+            outputName: 'Назва результату',
+            outputNameDesc: 'Об’єднана нотатка буде створена в папці, показаній вище.',
+            outputNamePlaceholder: 'Об’єднані нотатки',
+            separator: 'Розділювач',
+            separatorDesc: 'Вставляється між нотатками.',
+            separatorOptions: {
+                none: 'Немає',
+                blankLine: 'Порожній рядок',
+                horizontalRule: 'Горизонтальна лінія',
+                heading: 'Заголовок із назвою нотатки'
+            },
+            moveSourcesToTrash: 'Перемістити вихідні нотатки до кошика після об’єднання',
+            mergeButton: 'Об’єднати'
         },
         navRainbowSection: {
             title: (section: string) => `Кольори веселки: ${section}`
@@ -491,7 +513,8 @@ export const STRINGS_UK = {
                 'nav-property': 'Властивість',
                 'nav-property-value': 'Значення',
                 'file-unfinished-task': 'Незавершені завдання',
-                'file-word-count': 'Кількість слів'
+                'file-word-count': 'Кількість слів',
+                'file-character-count': 'Кількість символів'
             }
         },
         colorPicker: {
@@ -694,6 +717,10 @@ export const STRINGS_UK = {
             deleteFolder: 'Не вдалося видалити папку: {error}',
             deleteFile: 'Не вдалося видалити файл: {error}',
             deleteAttachments: 'Не вдалося видалити вкладення: {error}',
+            mergeNotes: 'Не вдалося об’єднати нотатки: {error}',
+            mergeNotesOpenOutput: 'Об’єднану нотатку створено як {name}, але її не вдалося відкрити: {error}. Вихідні нотатки не змінено.',
+            mergeNotesOpenSkipped: 'Інший запит на відкриття файлу отримав пріоритет.',
+            mergeNotesTrashSources: 'Об’єднану нотатку створено. Не вдалося перемістити {count} вихідних нотаток до кошика.',
             duplicateNote: 'Не вдалося дублювати нотатку: {error}',
             duplicateFolder: 'Не вдалося дублювати папку: {error}',
             openVersionHistory: 'Не вдалося відкрити історію версій: {error}',
@@ -727,7 +754,8 @@ export const STRINGS_UK = {
         },
         notices: {
             hideFolder: 'Папку сховано: {name}',
-            showFolder: 'Папку показано: {name}'
+            showFolder: 'Папку показано: {name}',
+            mergeNotes: 'Об’єднано {count} нотаток у {name}'
         },
         notifications: {
             deletedMultipleFiles: 'Видалено {count} файлів',
@@ -745,6 +773,7 @@ export const STRINGS_UK = {
             tagsClearedFromNotes: 'Очищено всі теги з {count} нотаток',
             noTagsToRemove: 'Немає тегів для вилучення',
             noFilesSelected: 'Файли не вибрано',
+            mergeNotesRequireMultipleMarkdown: 'Виберіть щонайменше дві Markdown-нотатки для об’єднання',
             tagOperationsNotAvailable: 'Операції з тегами недоступні',
             propertyOperationsNotAvailable: 'Операції з властивостями недоступні',
             tagsRequireMarkdown: 'Теги підтримуються лише для Markdown нотаток',
@@ -822,6 +851,7 @@ export const STRINGS_UK = {
         createNewNote: 'Створити нову нотатку', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'Нова нотатка з шаблону', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Перемістити файли', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'Об’єднати нотатки', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Вибрати наступний файл', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Вибрати попередній файл', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'Назад',
@@ -870,6 +900,12 @@ export const STRINGS_UK = {
         wordCount: 'Кількість слів'
     },
 
+    fileCounts: {
+        words: '{count} слів',
+        characters: '{count} символів',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Змінити стандартні налаштування',
@@ -916,7 +952,7 @@ export const STRINGS_UK = {
             tagsProperties: 'Розділи тегів і властивостей, іконки, сортування, область дії та успадкування.',
             listPane: 'Сортування, групування, режими списку, закріплені нотатки та перегляд малюнків.',
             frontmatter: 'Поля frontmatter для відображуваних імен, часових позначок, іконок і кольорів.',
-            notes: 'Заголовки, текст попереднього перегляду, зображення записів, теги, властивості, дати та кількість слів.',
+            notes: 'Заголовки, текст попереднього перегляду, зображення записів, теги, властивості, дати, кількість слів і кількість символів.',
             iconPacks: 'Іконки інтерфейсу, іконки файлів і керування пакетами іконок.',
             advanced: 'Діагностика, очищення метаданих, імпорт/експорт і скидання.'
         },
@@ -962,7 +998,7 @@ export const STRINGS_UK = {
                 properties: 'Властивості',
                 date: 'Дата',
                 parentFolder: 'Батьківська папка',
-                wordCount: 'Кількість слів'
+                wordCount: 'Кількість слів і символів'
             }
         },
         syncMode: {
@@ -1674,16 +1710,30 @@ export const STRINGS_UK = {
                 name: 'Показувати властивості в компактному режимі',
                 desc: 'Відображати властивості при активному компактному режимі.'
             },
-            showWordCount: {
-                name: 'Показувати кількість слів',
-                desc: 'Показувати кількість слів нотаток в елементах файлів.'
+            textCountDisplay: {
+                name: 'Тип лічильника',
+                desc: 'Виберіть, які лічильники нотаток відображаються в елементах файлів.',
+                options: {
+                    none: 'Немає',
+                    words: 'Кількість слів',
+                    characters: 'Кількість символів',
+                    both: 'Кількість слів і символів'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'Розміщення',
-                desc: 'Виберіть, де відображати кількість слів.',
+                desc: 'Виберіть, де відображаються лічильники нотаток.',
                 options: {
                     title: 'У заголовку',
                     property: 'Як властивість'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Кількість символів',
+                desc: 'Виберіть, чи враховувати пробіли в кількості символів.',
+                options: {
+                    include: 'З пробілами',
+                    exclude: 'Без пробілів'
                 }
             },
             wordCountTargetProperty: {
@@ -2227,6 +2277,10 @@ export const STRINGS_UK = {
                 name: 'Перевіряти нову версію при запуску',
                 desc: 'Перевіряє нові релізи плагіна при запуску та показує сповіщення, коли доступне оновлення. Перевірки відбуваються не частіше одного разу на день.',
                 status: 'Доступна нова версія: {version}'
+            },
+            debugLogging: {
+                name: 'Журнал налагодження запуску',
+                desc: 'Записує діагностику запуску у Markdown-файл із часовою міткою в корені сховища, а потім зупиняється після стабілізації запуску. Файл може синхронізуватися та містити шляхи до файлів.'
             },
             whatsNew: {
                 name: 'Що нового в Notebook Navigator {version}',

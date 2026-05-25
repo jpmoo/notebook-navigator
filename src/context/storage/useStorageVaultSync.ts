@@ -33,6 +33,7 @@ import { isPropertyFeatureEnabled } from '../../utils/propertyTree';
 import { emitDrawingCompanionImageChange, findDrawingFileForCompanionImage } from '../../utils/drawingFeatureImages';
 import { filterFilesRequiringFileThumbnails, shouldQueueFileThumbnailProvider } from '../storageQueueFilters';
 import { getCacheRebuildProgressTypes, getContentWorkTotal, getMetadataDependentTypes } from './storageContentTypes';
+import { finishStartupDiagnostics, isDebugLogPath, recordStartupDiagnostic } from '../../services/diagnostics/DebugLoggingService';
 
 /**
  * Syncs vault changes into the IndexedDB cache and triggers derived-content generation.
@@ -129,8 +130,12 @@ export function useStorageVaultSync(params: {
             }
 
             if (isInitialLoad) {
+                const initialLoadStartMs = performance.now();
                 try {
+                    recordStartupDiagnostic('storage.initialLoad.start', { indexableFileCount: allFiles.length });
+                    const diffStartMs = performance.now();
                     const { toAdd, toUpdate, toRemove, cachedFiles } = await calculateFileDiff(allFiles);
+                    const diffElapsedMs = Math.round(performance.now() - diffStartMs);
 
                     if (toRemove.length > 0) {
                         await removeFilesFromCache(toRemove);
@@ -140,8 +145,12 @@ export function useStorageVaultSync(params: {
                         await recordFileChanges([...toAdd, ...toUpdate], cachedFiles, pendingRenameDataRef.current);
                     }
 
+                    const tagTreeStartMs = performance.now();
                     rebuildTagTree();
+                    const tagTreeElapsedMs = Math.round(performance.now() - tagTreeStartMs);
+                    const propertyTreeStartMs = performance.now();
                     rebuildPropertyTree();
+                    const propertyTreeElapsedMs = Math.round(performance.now() - propertyTreeStartMs);
 
                     isStorageReadyRef.current = true;
                     setIsStorageReady(true);
@@ -150,10 +159,12 @@ export function useStorageVaultSync(params: {
 
                     const metadataDependentTypes = getMetadataDependentTypes(settings);
                     const contentEnabled = metadataDependentTypes.length > 0;
+                    const queuedStartupDetails: Record<string, unknown> = { metadataDependentTypes };
 
                     if (contentRegistryRef.current && contentEnabled) {
                         const markdownFiles: TFile[] = [];
                         const fileThumbnailFiles: TFile[] = [];
+                        let filesNeedingThumbnailCount = 0;
 
                         for (const file of allFiles) {
                             if (file.extension === 'md') {
@@ -171,14 +182,43 @@ export function useStorageVaultSync(params: {
 
                         if (settings.showFeatureImage && fileThumbnailFiles.length > 0) {
                             const filesNeedingThumbnails = filterFilesRequiringFileThumbnails(fileThumbnailFiles, settings);
+                            filesNeedingThumbnailCount = filesNeedingThumbnails.length;
                             if (filesNeedingThumbnails.length > 0) {
                                 contentRegistryRef.current.queueFilesForAllProviders(filesNeedingThumbnails, settings, {
                                     include: ['fileThumbnails']
                                 });
                             }
                         }
+
+                        queuedStartupDetails.markdownFiles = markdownFiles.length;
+                        queuedStartupDetails.fileThumbnailFiles = fileThumbnailFiles.length;
+                        queuedStartupDetails.filesNeedingThumbnails = filesNeedingThumbnailCount;
                     }
+
+                    finishStartupDiagnostics({
+                        status: 'storageReady',
+                        indexableFileCount: allFiles.length,
+                        cachedFileCount: cachedFiles.size,
+                        diff: {
+                            toAdd: toAdd.length,
+                            toUpdate: toUpdate.length,
+                            toRemove: toRemove.length
+                        },
+                        queued: queuedStartupDetails,
+                        timingsMs: {
+                            diff: diffElapsedMs,
+                            tagTree: tagTreeElapsedMs,
+                            propertyTree: propertyTreeElapsedMs,
+                            initialLoad: Math.round(performance.now() - initialLoadStartMs)
+                        }
+                    });
                 } catch (error: unknown) {
+                    recordStartupDiagnostic('storage.initialLoad.failed', { error });
+                    finishStartupDiagnostics({
+                        status: 'initialLoadFailed',
+                        indexableFileCount: allFiles.length,
+                        error
+                    });
                     console.error('Failed during initial load sequence:', error);
                 }
             } else {
@@ -193,6 +233,13 @@ export function useStorageVaultSync(params: {
                     if (stoppedRef.current) return;
                     try {
                         const { toAdd, toUpdate, toRemove, cachedFiles } = await calculateFileDiff(allFiles);
+                        recordStartupDiagnostic('storage.diff.processed', {
+                            indexableFileCount: allFiles.length,
+                            cachedFileCount: cachedFiles.size,
+                            toAdd: toAdd.length,
+                            toUpdate: toUpdate.length,
+                            toRemove: toRemove.length
+                        });
 
                         if (toAdd.length > 0 || toUpdate.length > 0 || toRemove.length > 0) {
                             try {
@@ -385,6 +432,9 @@ export function useStorageVaultSync(params: {
             if (!(file instanceof TFile)) {
                 return;
             }
+            if (isDebugLogPath(file.path)) {
+                return;
+            }
 
             const drawingFile = findDrawingFileForCompanionImage(app, file.path);
             if (drawingFile) {
@@ -412,6 +462,9 @@ export function useStorageVaultSync(params: {
         };
 
         const handleCreateOrDelete = (file: TAbstractFile) => {
+            if (file instanceof TFile && isDebugLogPath(file.path)) {
+                return;
+            }
             rebuildFileCache?.();
             if (file instanceof TFile) {
                 notifyDrawingCompanionChange(file.path);
@@ -430,7 +483,7 @@ export function useStorageVaultSync(params: {
             if (stoppedRef.current) {
                 return;
             }
-            if (!(file instanceof TFile) || file.extension !== 'md') {
+            if (!(file instanceof TFile) || file.extension !== 'md' || isDebugLogPath(file.path)) {
                 return;
             }
 

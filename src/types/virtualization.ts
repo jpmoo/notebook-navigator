@@ -43,6 +43,8 @@ export interface ListPaneItem {
     // Markdown file path that owns a manual sort custom header.
     // Present only on manual-sort-custom headers.
     manualSortHeaderFilePath?: string | null;
+    // File paths belonging to this rendered group. Used by group-header actions even when the group is collapsed.
+    groupFilePaths?: string[];
     // Whether a manual sort custom header label depends on stored word counts.
     manualSortHeaderShowsWordCount?: boolean;
     // Parsed manual sort custom header display data.

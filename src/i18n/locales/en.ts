@@ -312,6 +312,8 @@ export const STRINGS_EN = {
             moveFileToFolder: 'Move file to...',
             moveMultipleNotesToFolder: 'Move {count} notes to...',
             moveMultipleFilesToFolder: 'Move {count} files to...',
+            mergeNotes: 'Merge {count} notes...',
+            mergeNotesInGroup: 'Merge notes in group...',
             setManualSortGroupHeader: 'Set group header',
             changeManualSortGroupHeader: 'Change group header',
             manualSortGroupHeader: {
@@ -433,8 +435,27 @@ export const STRINGS_EN = {
             wordCountTarget: 'Target word count',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'When this field is empty, the group goal uses the target property set in Settings > Notes > Word count. Override it by setting a target value for this group.',
+                'When this field is empty, the group goal uses the target property set in Settings > Notes > Word and character count. Override it by setting a target value for this group.',
             description: 'Customize the group header for this note. Leave the title empty to remove the header.'
+        },
+        mergeNotes: {
+            title: 'Merge notes',
+            summary: 'Create one note from {count} notes in {folder}.',
+            frontmatterRule: 'Frontmatter from the first note is kept. Frontmatter from the other notes is removed.',
+            crossFolderWarning: 'Source notes are in different folders. Relative links and embeds may stop working in the merged note.',
+            outputName: 'Output name',
+            outputNameDesc: 'The merged note is created in the folder shown above.',
+            outputNamePlaceholder: 'Merged notes',
+            separator: 'Separator',
+            separatorDesc: 'Inserted between notes.',
+            separatorOptions: {
+                none: 'None',
+                blankLine: 'Blank line',
+                horizontalRule: 'Horizontal rule',
+                heading: 'Heading with note title'
+            },
+            moveSourcesToTrash: 'Move source notes to trash after merging',
+            mergeButton: 'Merge'
         },
         navRainbowSection: {
             title: (section: string) => `Rainbow colors: ${section}`
@@ -489,7 +510,8 @@ export const STRINGS_EN = {
                 'nav-property': 'Property',
                 'nav-property-value': 'Value',
                 'file-unfinished-task': 'Unfinished tasks',
-                'file-word-count': 'Word count'
+                'file-word-count': 'Word count',
+                'file-character-count': 'Character count'
             }
         },
         colorPicker: {
@@ -692,6 +714,10 @@ export const STRINGS_EN = {
             deleteFolder: 'Failed to delete folder: {error}',
             deleteFile: 'Failed to delete file: {error}',
             deleteAttachments: 'Failed to delete attachments: {error}',
+            mergeNotes: 'Failed to merge notes: {error}',
+            mergeNotesOpenOutput: 'Merged note created as {name}, but it could not be opened: {error}. Source notes were left unchanged.',
+            mergeNotesOpenSkipped: 'Another file open request took precedence.',
+            mergeNotesTrashSources: 'Merged note created. Failed to move {count} source notes to trash.',
             duplicateNote: 'Failed to duplicate note: {error}',
             duplicateFolder: 'Failed to duplicate folder: {error}',
             openVersionHistory: 'Failed to open version history: {error}',
@@ -725,7 +751,8 @@ export const STRINGS_EN = {
         },
         notices: {
             hideFolder: 'Folder hidden: {name}',
-            showFolder: 'Folder shown: {name}'
+            showFolder: 'Folder shown: {name}',
+            mergeNotes: 'Merged {count} notes into {name}'
         },
         notifications: {
             deletedMultipleFiles: 'Deleted {count} files',
@@ -743,6 +770,7 @@ export const STRINGS_EN = {
             tagsClearedFromNotes: 'Cleared all tags from {count} notes',
             noTagsToRemove: 'No tags to remove',
             noFilesSelected: 'No files selected',
+            mergeNotesRequireMultipleMarkdown: 'Select at least two Markdown notes to merge',
             tagOperationsNotAvailable: 'Tag operations not available',
             propertyOperationsNotAvailable: 'Property operations not available',
             tagsRequireMarkdown: 'Tags are only supported on Markdown notes',
@@ -820,6 +848,7 @@ export const STRINGS_EN = {
         createNewNote: 'Create new note', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'Create new note from template', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Move files', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'Merge notes', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Select next file', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Select previous file', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'Navigate back',
@@ -868,6 +897,12 @@ export const STRINGS_EN = {
         wordCount: 'Word count'
     },
 
+    fileCounts: {
+        words: '{count} words',
+        characters: '{count} chars',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Change default settings',
@@ -914,7 +949,7 @@ export const STRINGS_EN = {
             tagsProperties: 'Tag and property sections, icons, sorting, scope, and inheritance.',
             listPane: 'Sorting, grouping, list modes, pinned notes, and drawing previews.',
             frontmatter: 'Frontmatter fields for display names, timestamps, icons, and colors.',
-            notes: 'Titles, preview text, feature images, tags, properties, dates, and word counts.',
+            notes: 'Titles, preview text, feature images, tags, properties, dates, word counts, and character counts.',
             iconPacks: 'Interface icons, file icons, and icon pack management.',
             advanced: 'Diagnostics, metadata cleanup, import/export, and reset.'
         },
@@ -960,7 +995,7 @@ export const STRINGS_EN = {
                 properties: 'Properties',
                 date: 'Date',
                 parentFolder: 'Parent folder',
-                wordCount: 'Word count'
+                wordCount: 'Word and character count'
             }
         },
         syncMode: {
@@ -1690,16 +1725,30 @@ export const STRINGS_EN = {
                 name: 'Link property pills to URLs',
                 desc: 'Click a property pill to open the linked URL.'
             },
-            showWordCount: {
-                name: 'Show word count',
-                desc: 'Display note word counts in file items.'
+            textCountDisplay: {
+                name: 'Count type',
+                desc: 'Choose which note counts appear in file items.',
+                options: {
+                    none: 'None',
+                    words: 'Word count',
+                    characters: 'Character count',
+                    both: 'Word and character count'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'Placement',
-                desc: 'Choose where word counts appear.',
+                desc: 'Choose where note counts appear.',
                 options: {
                     title: 'In title',
                     property: 'As property'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Character count',
+                desc: 'Choose whether spaces are included in character counts.',
+                options: {
+                    include: 'Including spaces',
+                    exclude: 'Excluding spaces'
                 }
             },
             wordCountTargetProperty: {
@@ -2222,6 +2271,10 @@ export const STRINGS_EN = {
                 name: 'Check for new version on start',
                 desc: 'Checks for new plugin releases on startup and shows a notification when an update is available. Checks occur at most once per day.',
                 status: 'New version available: {version}'
+            },
+            debugLogging: {
+                name: 'Startup debug logging',
+                desc: 'Write startup diagnostics to a timestamped markdown file in the vault root, then stop after startup settles. The file may sync and can include file paths.'
             },
             whatsNew: {
                 name: "What's new in Notebook Navigator {version}",
