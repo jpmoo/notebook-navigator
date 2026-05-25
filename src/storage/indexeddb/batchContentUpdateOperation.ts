@@ -36,6 +36,8 @@ export interface BatchContentUpdate {
     path: string;
     tags?: string[] | null;
     wordCount?: number | null;
+    characterCountWithSpaces?: number | null;
+    characterCountWithoutSpaces?: number | null;
     taskTotal?: number | null;
     taskUnfinished?: number | null;
     preview?: string;
@@ -172,6 +174,16 @@ export async function runBatchUpdateFileContentAndProviderProcessedMtimes(
                     if (guardedUpdate.wordCount !== undefined) {
                         newData.wordCount = guardedUpdate.wordCount;
                         changes.wordCount = guardedUpdate.wordCount;
+                        hasContentChanges = true;
+                    }
+                    if (guardedUpdate.characterCountWithSpaces !== undefined) {
+                        newData.characterCountWithSpaces = guardedUpdate.characterCountWithSpaces;
+                        changes.characterCountWithSpaces = guardedUpdate.characterCountWithSpaces;
+                        hasContentChanges = true;
+                    }
+                    if (guardedUpdate.characterCountWithoutSpaces !== undefined) {
+                        newData.characterCountWithoutSpaces = guardedUpdate.characterCountWithoutSpaces;
+                        changes.characterCountWithoutSpaces = guardedUpdate.characterCountWithoutSpaces;
                         hasContentChanges = true;
                     }
                     const hasTaskUpdate = guardedUpdate.taskTotal !== undefined || guardedUpdate.taskUnfinished !== undefined;
@@ -312,6 +324,8 @@ export async function runBatchUpdateFileContentAndProviderProcessedMtimes(
                             changes.featureImageKey !== undefined ||
                             changes.featureImageStatus !== undefined ||
                             changes.wordCount !== undefined ||
+                            changes.characterCountWithSpaces !== undefined ||
+                            changes.characterCountWithoutSpaces !== undefined ||
                             changes.taskTotal !== undefined ||
                             changes.taskUnfinished !== undefined ||
                             changes.properties !== undefined;

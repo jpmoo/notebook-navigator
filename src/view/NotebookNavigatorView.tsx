@@ -391,6 +391,13 @@ export class NotebookNavigatorView extends ItemView {
     }
 
     /**
+     * Merges selected Markdown notes.
+     */
+    async mergeSelectedFiles(): Promise<void> {
+        await this.componentHandle?.mergeSelectedFiles();
+    }
+
+    /**
      * Creates a new note in the currently selected folder
      */
     async createNoteInSelectedFolder(openInNewTab = false): Promise<void> {

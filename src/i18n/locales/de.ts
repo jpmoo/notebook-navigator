@@ -298,6 +298,8 @@ export const STRINGS_DE = {
             moveFileToFolder: 'Datei verschieben nach...',
             moveMultipleNotesToFolder: '{count} Notizen verschieben nach...',
             moveMultipleFilesToFolder: '{count} Dateien verschieben nach...',
+            mergeNotes: '{count} Notizen zusammenführen...',
+            mergeNotesInGroup: 'Notizen in Gruppe zusammenführen...',
             setManualSortGroupHeader: 'Gruppenüberschrift festlegen',
             changeManualSortGroupHeader: 'Gruppenüberschrift ändern',
             manualSortGroupHeader: {
@@ -434,8 +436,28 @@ export const STRINGS_DE = {
             wordCountTarget: 'Zielwortzahl',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'Wenn dieses Feld leer ist, verwendet das Gruppenziel die Zieleigenschaft aus Einstellungen > Notizen > Wortzahl. Überschreiben Sie sie, indem Sie einen Zielwert für diese Gruppe festlegen.',
+                'Wenn dieses Feld leer ist, verwendet das Gruppenziel die Zieleigenschaft aus Einstellungen > Notizen > Wort- und Zeichenanzahl. Überschreiben Sie sie, indem Sie einen Zielwert für diese Gruppe festlegen.',
             description: 'Passen Sie die Gruppenüberschrift für diese Notiz an. Lassen Sie den Titel leer, um die Überschrift zu entfernen.'
+        },
+        mergeNotes: {
+            title: 'Notizen zusammenführen',
+            summary: 'Eine Notiz aus {count} Notizen in {folder} erstellen.',
+            frontmatterRule: 'Frontmatter der ersten Notiz bleibt erhalten. Frontmatter der anderen Notizen wird entfernt.',
+            crossFolderWarning:
+                'Quellnotizen befinden sich in verschiedenen Ordnern. Relative Links und Einbettungen funktionieren in der zusammengeführten Notiz möglicherweise nicht mehr.',
+            outputName: 'Ausgabename',
+            outputNameDesc: 'Die zusammengeführte Notiz wird im oben angezeigten Ordner erstellt.',
+            outputNamePlaceholder: 'Zusammengeführte Notizen',
+            separator: 'Trennzeichen',
+            separatorDesc: 'Wird zwischen Notizen eingefügt.',
+            separatorOptions: {
+                none: 'Keine',
+                blankLine: 'Leerzeile',
+                horizontalRule: 'Horizontale Linie',
+                heading: 'Überschrift mit Notiztitel'
+            },
+            moveSourcesToTrash: 'Quellnotizen nach dem Zusammenführen in den Papierkorb verschieben',
+            mergeButton: 'Zusammenführen'
         },
         navRainbowSection: {
             title: (section: string) => `Regenbogenfarben: ${section}`
@@ -490,7 +512,8 @@ export const STRINGS_DE = {
                 'nav-property': 'Eigenschaft',
                 'nav-property-value': 'Wert',
                 'file-unfinished-task': 'Unerledigte Aufgaben',
-                'file-word-count': 'Wortanzahl'
+                'file-word-count': 'Wortanzahl',
+                'file-character-count': 'Zeichenanzahl'
             }
         },
         colorPicker: {
@@ -697,6 +720,12 @@ export const STRINGS_DE = {
             deleteFolder: 'Ordner konnte nicht gelöscht werden: {error}',
             deleteFile: 'Datei konnte nicht gelöscht werden: {error}',
             deleteAttachments: 'Anhänge konnten nicht gelöscht werden: {error}',
+            mergeNotes: 'Notizen konnten nicht zusammengeführt werden: {error}',
+            mergeNotesOpenOutput:
+                'Zusammengeführte Notiz wurde als {name} erstellt, konnte aber nicht geöffnet werden: {error}. Quellnotizen wurden nicht verändert.',
+            mergeNotesOpenSkipped: 'Eine andere Dateiöffnungsanfrage hatte Vorrang.',
+            mergeNotesTrashSources:
+                'Zusammengeführte Notiz erstellt. {count} Quellnotizen konnten nicht in den Papierkorb verschoben werden.',
             duplicateNote: 'Notiz konnte nicht dupliziert werden: {error}',
             duplicateFolder: 'Ordner konnte nicht dupliziert werden: {error}',
             openVersionHistory: 'Versionsverlauf konnte nicht geöffnet werden: {error}',
@@ -730,7 +759,8 @@ export const STRINGS_DE = {
         },
         notices: {
             hideFolder: 'Ordner ausgeblendet: {name}',
-            showFolder: 'Ordner eingeblendet: {name}'
+            showFolder: 'Ordner eingeblendet: {name}',
+            mergeNotes: '{count} Notizen in {name} zusammengeführt'
         },
         notifications: {
             deletedMultipleFiles: '{count} Dateien gelöscht',
@@ -748,6 +778,7 @@ export const STRINGS_DE = {
             tagsClearedFromNotes: 'Alle Tags von {count} Notizen entfernt',
             noTagsToRemove: 'Keine Tags zum Entfernen',
             noFilesSelected: 'Keine Dateien ausgewählt',
+            mergeNotesRequireMultipleMarkdown: 'Wählen Sie mindestens zwei Markdown-Notizen zum Zusammenführen aus',
             tagOperationsNotAvailable: 'Tag-Operationen nicht verfügbar',
             propertyOperationsNotAvailable: 'Eigenschafts-Operationen nicht verfügbar',
             tagsRequireMarkdown: 'Tags werden nur in Markdown-Notizen unterstützt',
@@ -825,6 +856,7 @@ export const STRINGS_DE = {
         createNewNote: 'Neue Notiz erstellen', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'Neue Notiz aus Vorlage', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Dateien verschieben', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'Notizen zusammenführen', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Nächste Datei auswählen', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Vorherige Datei auswählen', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'Zurück navigieren',
@@ -873,6 +905,12 @@ export const STRINGS_DE = {
         wordCount: 'Wortanzahl'
     },
 
+    fileCounts: {
+        words: '{count} Wörter',
+        characters: '{count} Zeichen',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Standardeinstellungen ändern',
@@ -919,7 +957,7 @@ export const STRINGS_DE = {
             tagsProperties: 'Tag- und Eigenschaftsbereiche, Symbole, Sortierung, Geltungsbereich und Vererbung.',
             listPane: 'Sortierung, Gruppierung, Listenmodi, angeheftete Notizen und Zeichnungsvorschauen.',
             frontmatter: 'Frontmatter-Felder für Anzeigenamen, Zeitstempel, Symbole und Farben.',
-            notes: 'Titel, Vorschautext, Hauptbilder, Tags, Eigenschaften, Daten und Wortanzahl.',
+            notes: 'Titel, Vorschautext, Hauptbilder, Tags, Eigenschaften, Daten, Wortanzahlen und Zeichenanzahlen.',
             iconPacks: 'Oberflächensymbole, Dateisymbole und Icon-Paket-Verwaltung.',
             advanced: 'Diagnose, Metadatenbereinigung, Import/Export und Zurücksetzen.'
         },
@@ -965,7 +1003,7 @@ export const STRINGS_DE = {
                 properties: 'Eigenschaften',
                 date: 'Datum',
                 parentFolder: 'Übergeordneter Ordner',
-                wordCount: 'Wortanzahl'
+                wordCount: 'Wort- und Zeichenanzahl'
             }
         },
         syncMode: {
@@ -1679,16 +1717,30 @@ export const STRINGS_DE = {
                 name: 'Eigenschaften im Kompaktmodus anzeigen',
                 desc: 'Eigenschaften anzeigen, wenn der Kompaktmodus aktiv ist.'
             },
-            showWordCount: {
-                name: 'Wortanzahl anzeigen',
-                desc: 'Wortanzahlen von Notizen in Dateielementen anzeigen.'
+            textCountDisplay: {
+                name: 'Zähltyp',
+                desc: 'Wählen Sie, welche Notizzählungen in Dateielementen angezeigt werden.',
+                options: {
+                    none: 'Keine',
+                    words: 'Wortanzahl',
+                    characters: 'Zeichenanzahl',
+                    both: 'Wort- und Zeichenanzahl'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'Platzierung',
-                desc: 'Wählen Sie, wo Wortanzahlen angezeigt werden.',
+                desc: 'Wählen Sie, wo Notizzählungen angezeigt werden.',
                 options: {
                     title: 'Im Titel',
                     property: 'Als Eigenschaft'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Zeichenanzahl',
+                desc: 'Wählen Sie, ob Leerzeichen in der Zeichenanzahl enthalten sind.',
+                options: {
+                    include: 'Mit Leerzeichen',
+                    exclude: 'Ohne Leerzeichen'
                 }
             },
             wordCountTargetProperty: {
@@ -2231,6 +2283,10 @@ export const STRINGS_DE = {
                 name: 'Beim Start nach neuer Version suchen',
                 desc: 'Prüft beim Start auf neue Plugin-Versionen und zeigt eine Benachrichtigung an, wenn ein Update verfügbar ist. Überprüfungen erfolgen höchstens einmal täglich.',
                 status: 'Neue Version verfügbar: {version}'
+            },
+            debugLogging: {
+                name: 'Start-Debugprotokollierung',
+                desc: 'Schreibt Startdiagnosen in eine Markdown-Datei mit Zeitstempel im Stammverzeichnis des Vaults und stoppt, nachdem der Start abgeschlossen ist. Die Datei kann synchronisiert werden und Dateipfade enthalten.'
             },
             whatsNew: {
                 name: 'Neuigkeiten in Notebook Navigator {version}',

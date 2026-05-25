@@ -50,7 +50,7 @@ import {
     type BackgroundMode,
     type DualPaneOrientation
 } from '../types';
-import { getSelectedPath, getFilesForSelection } from '../utils/selectionUtils';
+import { getSelectedPath, getFilesForSelection, orderFilesByReference } from '../utils/selectionUtils';
 import { normalizeNavigationPath } from '../utils/navigationIndex';
 import { deleteSelectedFiles } from '../utils/deleteOperations';
 import { localStorage } from '../utils/localStorage';
@@ -63,6 +63,8 @@ import { normalizeTagPath } from '../utils/tagUtils';
 import { getTemplaterCreateNewNoteFromTemplate } from '../utils/templaterIntegration';
 import { normalizePropertyNodeId } from '../utils/propertyTree';
 import { collectFileMenuPropertyActions } from '../utils/propertyMenuActions';
+import { openMergeNotesModal } from '../utils/mergeNotesModal';
+import { getMarkdownFilesInOrder } from '../utils/noteMerge';
 import { useNavigatorScale } from '../hooks/useNavigatorScale';
 import { ListPane } from './ListPane';
 import type { ListPaneHandle } from './ListPane';
@@ -140,6 +142,7 @@ export interface NotebookNavigatorHandle {
     focusVisiblePane: () => void;
     focusNavigationPane: () => void;
     deleteSelectedFiles: () => void;
+    mergeSelectedFiles: () => Promise<void>;
     createNoteInSelectedFolder: (openInNewTab?: boolean) => Promise<void>;
     createNoteFromTemplateInSelectedFolder: () => Promise<void>;
     moveSelectedFiles: () => Promise<void>;
@@ -863,6 +866,12 @@ export const NotebookNavigatorComponent = React.memo(
                 return selectedFiles;
             };
 
+            const getSelectedFilesInCurrentListOrder = (): TFile[] => {
+                const selectedFiles = getSelectedFiles();
+                const orderedFiles = listPaneRef.current?.getOrderedFiles() ?? [];
+                return orderFilesByReference(selectedFiles, orderedFiles);
+            };
+
             // Routes adjacent file selection requests through the list pane reference
             const navigateToAdjacentFile = (direction: 'next' | 'previous'): boolean => {
                 const listHandle = listPaneRef.current;
@@ -931,6 +940,25 @@ export const NotebookNavigatorComponent = React.memo(
                             tagTreeService,
                             propertyTreeService
                         });
+                    });
+                },
+                mergeSelectedFiles: async () => {
+                    const selectedFiles = getSelectedFilesInCurrentListOrder();
+                    const markdownFiles = getMarkdownFilesInOrder(selectedFiles);
+                    if (markdownFiles.length < 2) {
+                        showNotice(strings.fileSystem.notifications.mergeNotesRequireMultipleMarkdown, { variant: 'warning' });
+                        return;
+                    }
+
+                    const firstFile = markdownFiles[0];
+                    const outputFolder = firstFile.parent instanceof TFolder ? firstFile.parent : app.vault.getRoot();
+                    await openMergeNotesModal({
+                        app,
+                        commandQueue,
+                        fileSystemOps,
+                        files: markdownFiles,
+                        outputFolder,
+                        defaultOutputName: strings.modals.mergeNotes.outputNamePlaceholder
                     });
                 },
                 createNoteInSelectedFolder: async (openInNewTab = false) => {
@@ -1228,6 +1256,7 @@ export const NotebookNavigatorComponent = React.memo(
             revealFileInNearestFolder,
             selectionState,
             fileSystemOps,
+            commandQueue,
             selectionDispatch,
             navigateToFolder,
             navigateToTag,

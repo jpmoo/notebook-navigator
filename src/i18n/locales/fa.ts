@@ -312,6 +312,8 @@ export const STRINGS_FA = {
             moveFileToFolder: 'انتقال فایل به...',
             moveMultipleNotesToFolder: 'انتقال {count} یادداشت به...',
             moveMultipleFilesToFolder: 'انتقال {count} فایل به...',
+            mergeNotes: 'ادغام {count} یادداشت...',
+            mergeNotesInGroup: 'ادغام یادداشت‌های گروه...',
             setManualSortGroupHeader: 'تنظیم هدر گروه',
             changeManualSortGroupHeader: 'تغییر هدر گروه',
             manualSortGroupHeader: {
@@ -433,8 +435,28 @@ export const STRINGS_FA = {
             wordCountTarget: 'تعداد کلمات هدف',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'وقتی این فیلد خالی باشد، هدف گروه از ویژگی هدف تنظیم‌شده در تنظیمات > یادداشت‌ها > تعداد کلمات استفاده می‌کند. با تعیین مقدار هدف برای این گروه، آن را بازنویسی کنید.',
+                'وقتی این فیلد خالی است، هدف گروه از ویژگی هدف تنظیم‌شده در تنظیمات > یادداشت‌ها > تعداد کلمات و نویسه‌ها استفاده می‌کند. با تنظیم مقدار هدف برای این گروه آن را بازنویسی کنید.',
             description: 'هدر گروه را برای این یادداشت سفارشی کنید. عنوان را خالی بگذارید تا هدر حذف شود.'
+        },
+        mergeNotes: {
+            title: 'ادغام یادداشت‌ها',
+            summary: 'ایجاد یک یادداشت از {count} یادداشت در {folder}.',
+            frontmatterRule: 'فرانت‌متر یادداشت اول حفظ می‌شود. فرانت‌متر یادداشت‌های دیگر حذف می‌شود.',
+            crossFolderWarning:
+                'یادداشت‌های مبدأ در پوشه‌های مختلف هستند. پیوندها و جاسازی‌های نسبی ممکن است در یادداشت ادغام‌شده از کار بیفتند.',
+            outputName: 'نام خروجی',
+            outputNameDesc: 'یادداشت ادغام‌شده در پوشه نشان‌داده‌شده در بالا ایجاد می‌شود.',
+            outputNamePlaceholder: 'یادداشت‌های ادغام‌شده',
+            separator: 'جداکننده',
+            separatorDesc: 'بین یادداشت‌ها درج می‌شود.',
+            separatorOptions: {
+                none: 'هیچ‌کدام',
+                blankLine: 'خط خالی',
+                horizontalRule: 'خط افقی',
+                heading: 'عنوان با نام یادداشت'
+            },
+            moveSourcesToTrash: 'انتقال یادداشت‌های مبدأ به زباله‌دان پس از ادغام',
+            mergeButton: 'ادغام'
         },
         navRainbowSection: {
             title: (section: string) => `رنگ‌های رنگین‌کمان: ${section}`
@@ -489,7 +511,8 @@ export const STRINGS_FA = {
                 'nav-property': 'ویژگی',
                 'nav-property-value': 'مقدار',
                 'file-unfinished-task': 'وظایف ناتمام',
-                'file-word-count': 'تعداد کلمات'
+                'file-word-count': 'تعداد کلمات',
+                'file-character-count': 'تعداد نویسه‌ها'
             }
         },
         colorPicker: {
@@ -696,6 +719,11 @@ export const STRINGS_FA = {
             deleteFolder: 'حذف پوشه ناموفق بود: {error}',
             deleteFile: 'حذف فایل ناموفق بود: {error}',
             deleteAttachments: 'حذف پیوست‌ها ناموفق بود: {error}',
+            mergeNotes: 'ادغام یادداشت‌ها ناموفق بود: {error}',
+            mergeNotesOpenOutput:
+                'یادداشت ادغام‌شده با نام {name} ایجاد شد، اما باز نشد: {error}. یادداشت‌های مبدأ بدون تغییر باقی ماندند.',
+            mergeNotesOpenSkipped: 'درخواست دیگری برای باز کردن فایل اولویت پیدا کرد.',
+            mergeNotesTrashSources: 'یادداشت ادغام‌شده ایجاد شد. انتقال {count} یادداشت مبدأ به زباله‌دان ناموفق بود.',
             duplicateNote: 'کپی یادداشت ناموفق بود: {error}',
             duplicateFolder: 'کپی پوشه ناموفق بود: {error}',
             openVersionHistory: 'باز کردن تاریخچه نسخه ناموفق بود: {error}',
@@ -729,7 +757,8 @@ export const STRINGS_FA = {
         },
         notices: {
             hideFolder: 'پوشه مخفی شد: {name}',
-            showFolder: 'پوشه نمایش داده شد: {name}'
+            showFolder: 'پوشه نمایش داده شد: {name}',
+            mergeNotes: '{count} یادداشت در {name} ادغام شد'
         },
         notifications: {
             deletedMultipleFiles: '{count} فایل حذف شد',
@@ -747,6 +776,7 @@ export const STRINGS_FA = {
             tagsClearedFromNotes: 'همه برچسب‌ها از {count} یادداشت پاک شد',
             noTagsToRemove: 'برچسبی برای حذف نیست',
             noFilesSelected: 'فایلی انتخاب نشده است',
+            mergeNotesRequireMultipleMarkdown: 'حداقل دو یادداشت Markdown برای ادغام انتخاب کنید',
             tagOperationsNotAvailable: 'عملیات برچسب در دسترس نیست',
             propertyOperationsNotAvailable: 'عملیات ویژگی‌ها در دسترس نیست',
             tagsRequireMarkdown: 'برچسب‌ها فقط روی یادداشت‌های Markdown پشتیبانی می‌شوند',
@@ -824,6 +854,7 @@ export const STRINGS_FA = {
         createNewNote: 'ایجاد یادداشت جدید',
         createNewNoteFromTemplate: 'یادداشت جدید از قالب',
         moveFiles: 'انتقال فایل‌ها',
+        mergeNotes: 'ادغام یادداشت‌ها', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'انتخاب فایل بعدی',
         selectPreviousFile: 'انتخاب فایل قبلی',
         navigateBack: 'بازگشت',
@@ -872,6 +903,12 @@ export const STRINGS_FA = {
         wordCount: 'تعداد کلمات'
     },
 
+    fileCounts: {
+        words: '{count} کلمه',
+        characters: '{count} نویسه',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'تغییر تنظیمات پیش‌فرض',
@@ -918,7 +955,7 @@ export const STRINGS_FA = {
             tagsProperties: 'بخش‌های برچسب و ویژگی، آیکون‌ها، مرتب‌سازی، محدوده و وراثت.',
             listPane: 'مرتب‌سازی، گروه‌بندی، حالت‌های لیست، یادداشت‌های سنجاق‌شده و پیش‌نمایش‌های طراحی.',
             frontmatter: 'فیلدهای فرانت‌متر برای نام‌های نمایشی، نشانه‌های زمانی، آیکون‌ها و رنگ‌ها.',
-            notes: 'عناوین، متن پیش‌نمایش، تصاویر ویژه، برچسب‌ها، ویژگی‌ها، تاریخ‌ها و تعداد کلمات.',
+            notes: 'عناوین، متن پیش‌نمایش، تصاویر ویژه، برچسب‌ها، ویژگی‌ها، تاریخ‌ها، تعداد کلمات و تعداد نویسه‌ها.',
             iconPacks: 'آیکون‌های رابط کاربری، آیکون‌های فایل و مدیریت بسته‌های آیکون.',
             advanced: 'تشخیص، پاکسازی متادیتا، واردکردن/صادرکردن و بازنشانی.'
         },
@@ -964,7 +1001,7 @@ export const STRINGS_FA = {
                 properties: 'ویژگی‌ها',
                 date: 'تاریخ',
                 parentFolder: 'پوشه والد',
-                wordCount: 'تعداد کلمات'
+                wordCount: 'تعداد کلمات و نویسه‌ها'
             }
         },
         syncMode: {
@@ -1675,16 +1712,30 @@ export const STRINGS_FA = {
                 name: 'نمایش ویژگی‌ها در حالت فشرده',
                 desc: 'نمایش ویژگی‌ها هنگام فعال بودن حالت فشرده.'
             },
-            showWordCount: {
-                name: 'نمایش تعداد کلمات',
-                desc: 'تعداد کلمات یادداشت‌ها را در موارد فایل نمایش دهید.'
+            textCountDisplay: {
+                name: 'نوع شمارش',
+                desc: 'انتخاب کنید کدام شمارش‌های یادداشت در موارد فایل نمایش داده شوند.',
+                options: {
+                    none: 'هیچ‌کدام',
+                    words: 'تعداد کلمات',
+                    characters: 'تعداد نویسه‌ها',
+                    both: 'تعداد کلمات و نویسه‌ها'
+                }
             },
-            wordCountPlacement: {
-                name: 'محل نمایش',
-                desc: 'انتخاب کنید تعداد کلمات کجا نمایش داده شود.',
+            textCountPlacement: {
+                name: 'جایگاه',
+                desc: 'انتخاب کنید شمارش‌های یادداشت کجا نمایش داده شوند.',
                 options: {
                     title: 'در عنوان',
                     property: 'به‌عنوان ویژگی'
+                }
+            },
+            characterCountSpaces: {
+                name: 'تعداد نویسه‌ها',
+                desc: 'انتخاب کنید فاصله‌ها در شمارش نویسه‌ها لحاظ شوند یا نه.',
+                options: {
+                    include: 'با فاصله‌ها',
+                    exclude: 'بدون فاصله‌ها'
                 }
             },
             wordCountTargetProperty: {
@@ -2228,6 +2279,10 @@ export const STRINGS_FA = {
                 name: 'بررسی نسخه جدید هنگام شروع',
                 desc: 'هنگام شروع نسخه‌های جدید افزونه را بررسی می‌کند و هنگام در دسترس بودن به‌روزرسانی اعلان نمایش می‌دهد. بررسی‌ها حداکثر روزی یک بار انجام می‌شوند.',
                 status: 'نسخه جدید موجود: {version}'
+            },
+            debugLogging: {
+                name: 'ثبت اشکال‌زدایی راه‌اندازی',
+                desc: 'تشخیص‌های راه‌اندازی را در یک فایل Markdown زمان‌دار در ریشه خزانه می‌نویسد و پس از پایدار شدن راه‌اندازی متوقف می‌شود. فایل ممکن است همگام‌سازی شود و می‌تواند مسیرهای فایل را شامل شود.'
             },
             whatsNew: {
                 name: 'چه چیزی جدید است در Notebook Navigator {version}',

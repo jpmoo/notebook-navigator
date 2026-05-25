@@ -275,6 +275,7 @@ export interface LocalStorageKeys {
     databaseSchemaVersionKey: string;
     databaseContentVersionKey: string;
     cacheRebuildNoticeKey: string;
+    debugLoggingEnabledKey: string;
     // PDF_CRASH_DIAGNOSTICS: vault-scoped key used by the PDF crash diagnostic flow.
     pdfProcessingDiagnosticKey: string;
     localStorageVersionKey: string;
@@ -301,6 +302,8 @@ export interface LocalStorageKeys {
     featureImageSizeKey: string;
     featureImagePixelSizeKey: string;
     collapsedListGroupsKey: string;
+    mergeNotesSeparatorKey: string;
+    mergeNotesMoveSourcesToTrashKey: string;
 }
 
 /**
@@ -333,6 +336,7 @@ export const STORAGE_KEYS: LocalStorageKeys = {
     databaseSchemaVersionKey: 'notebook-navigator-db-schema-version',
     databaseContentVersionKey: 'notebook-navigator-db-content-version',
     cacheRebuildNoticeKey: 'notebook-navigator-cache-rebuild-notice',
+    debugLoggingEnabledKey: 'notebook-navigator-debug-logging-enabled',
     // PDF_CRASH_DIAGNOSTICS: persists the last PDF path being processed on mobile support builds.
     pdfProcessingDiagnosticKey: 'notebook-navigator-pdf-processing-diagnostic',
     localStorageVersionKey: 'notebook-navigator-localstorage-version',
@@ -358,7 +362,9 @@ export const STORAGE_KEYS: LocalStorageKeys = {
     compactItemHeightScaleTextKey: 'notebook-navigator-compact-item-height-scale-text',
     featureImageSizeKey: 'notebook-navigator-feature-image-size',
     featureImagePixelSizeKey: 'notebook-navigator-feature-image-pixel-size',
-    collapsedListGroupsKey: 'notebook-navigator-collapsed-list-groups'
+    collapsedListGroupsKey: 'notebook-navigator-collapsed-list-groups',
+    mergeNotesSeparatorKey: 'notebook-navigator-merge-notes-separator',
+    mergeNotesMoveSourcesToTrashKey: 'notebook-navigator-merge-notes-move-sources-to-trash'
 };
 
 export interface UXPreferences {
