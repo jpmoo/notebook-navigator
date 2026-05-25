@@ -32,7 +32,7 @@ import { getNotSyncedSettingName } from '../syncModeToggle';
 
 /** Builds native 1.13 setting definitions for advanced settings. */
 export function createAdvancedSettingDefinitions(context: SettingsTabContext): SettingDefinitionItem[] {
-    const items: NonNullable<SettingDefinitionGroup['items']> = [
+    const generalItems: NonNullable<SettingDefinitionGroup['items']> = [
         createToggleDefinition('checkForUpdatesOnStart', {
             name: strings.settings.items.updateCheckOnStart.name,
             desc: strings.settings.items.updateCheckOnStart.desc
@@ -42,11 +42,34 @@ export function createAdvancedSettingDefinitions(context: SettingsTabContext): S
             desc: strings.settings.items.debugLogging.desc,
             aliases: [strings.settings.items.debugLogging.name],
             render: setting => renderDebugLoggingSetting(setting, context)
+        }),
+        createRenderDefinition({
+            name: strings.settings.items.settingsTransfer.name,
+            desc: strings.settings.items.settingsTransfer.desc,
+            aliases: [strings.settings.items.settingsTransfer.importButtonText, strings.settings.items.settingsTransfer.exportButtonText],
+            render: setting => {
+                const { plugin } = context;
+                setting
+                    .setName(strings.settings.items.settingsTransfer.name)
+                    .setDesc(strings.settings.items.settingsTransfer.desc)
+                    .addButton(button =>
+                        button.setButtonText(strings.settings.items.settingsTransfer.importButtonText).onClick(() => {
+                            new SettingsImportModal(context.app, plugin).open();
+                        })
+                    )
+                    .addButton(button =>
+                        button.setButtonText(strings.settings.items.settingsTransfer.exportButtonText).onClick(() => {
+                            new SettingsExportModal(context.app, plugin).open();
+                        })
+                    );
+            }
         })
     ];
 
+    const maintenanceItems: NonNullable<SettingDefinitionGroup['items']> = [];
+
     if (!Platform.isMobile) {
-        items.push(
+        maintenanceItems.push(
             createRenderDefinition({
                 name: strings.settings.items.resetPaneSeparator.name,
                 desc: strings.settings.items.resetPaneSeparator.desc,
@@ -69,34 +92,7 @@ export function createAdvancedSettingDefinitions(context: SettingsTabContext): S
         );
     }
 
-    items.push(
-        createRenderDefinition({
-            name: strings.settings.items.settingsTransfer.name,
-            desc: strings.settings.items.settingsTransfer.desc,
-            aliases: [strings.settings.items.settingsTransfer.importButtonText, strings.settings.items.settingsTransfer.exportButtonText],
-            render: setting => {
-                const { plugin } = context;
-                setting
-                    .setName(strings.settings.items.settingsTransfer.name)
-                    .setDesc(strings.settings.items.settingsTransfer.desc)
-                    .addButton(button =>
-                        button.setButtonText(strings.settings.items.settingsTransfer.importButtonText).onClick(() => {
-                            new SettingsImportModal(context.app, plugin).open();
-                        })
-                    )
-                    .addButton(button =>
-                        button.setButtonText(strings.settings.items.settingsTransfer.exportButtonText).onClick(() => {
-                            new SettingsExportModal(context.app, plugin).open();
-                        })
-                    );
-            }
-        }),
-        createRenderDefinition({
-            name: strings.settings.items.resetAllSettings.name,
-            desc: strings.settings.items.resetAllSettings.desc,
-            aliases: [strings.settings.items.resetAllSettings.buttonText],
-            render: setting => renderResetAllSettingsSetting(setting, context)
-        }),
+    maintenanceItems.push(
         createRenderDefinition({
             name: strings.settings.items.metadataCleanup.name,
             desc: strings.settings.items.metadataCleanup.desc,
@@ -115,7 +111,20 @@ export function createAdvancedSettingDefinitions(context: SettingsTabContext): S
         })
     );
 
-    return [createGroupDefinition(undefined, items)];
+    const resetItems: NonNullable<SettingDefinitionGroup['items']> = [
+        createRenderDefinition({
+            name: strings.settings.items.resetAllSettings.name,
+            desc: strings.settings.items.resetAllSettings.desc,
+            aliases: [strings.settings.items.resetAllSettings.buttonText],
+            render: setting => renderResetAllSettingsSetting(setting, context)
+        })
+    ];
+
+    return [
+        createGroupDefinition(undefined, generalItems),
+        createGroupDefinition(strings.settings.groups.advanced.maintenance, maintenanceItems),
+        createGroupDefinition(strings.settings.groups.advanced.resetSettings, resetItems)
+    ];
 }
 
 function renderDebugLoggingSetting(setting: Setting, context: SettingsTabContext): void {

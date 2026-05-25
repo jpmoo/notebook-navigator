@@ -971,6 +971,10 @@ export const STRINGS_IT = {
                 mobileAppearance: 'Aspetto mobile',
                 formatting: 'Formattazione'
             },
+            advanced: {
+                maintenance: 'Manutenzione',
+                resetSettings: 'Reimposta impostazioni'
+            },
             navigation: {
                 appearance: 'Aspetto',
                 rainbowColors: 'Colori arcobaleno',

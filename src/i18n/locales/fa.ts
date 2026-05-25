@@ -975,6 +975,10 @@ export const STRINGS_FA = {
                 mobileAppearance: 'ظاهر موبایل',
                 formatting: 'قالب‌بندی'
             },
+            advanced: {
+                maintenance: 'نگهداری',
+                resetSettings: 'بازنشانی تنظیمات'
+            },
             navigation: {
                 appearance: 'ظاهر',
                 rainbowColors: 'رنگ‌های رنگین‌کمان',

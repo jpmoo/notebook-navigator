@@ -977,6 +977,10 @@ export const STRINGS_PT_BR = {
                 mobileAppearance: 'Aparência móvel',
                 formatting: 'Formatação'
             },
+            advanced: {
+                maintenance: 'Manutenção',
+                resetSettings: 'Redefinir configurações'
+            },
             navigation: {
                 appearance: 'Aparência',
                 rainbowColors: 'Cores arco-íris',

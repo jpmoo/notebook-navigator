@@ -975,6 +975,10 @@ export const STRINGS_ID = {
                 mobileAppearance: 'Tampilan seluler',
                 formatting: 'Pemformatan'
             },
+            advanced: {
+                maintenance: 'Pemeliharaan',
+                resetSettings: 'Atur ulang pengaturan'
+            },
             navigation: {
                 appearance: 'Tampilan',
                 rainbowColors: 'Warna pelangi',

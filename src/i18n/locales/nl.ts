@@ -977,6 +977,10 @@ export const STRINGS_NL = {
                 mobileAppearance: 'Mobiele weergave',
                 formatting: 'Opmaak'
             },
+            advanced: {
+                maintenance: 'Onderhoud',
+                resetSettings: 'Instellingen resetten'
+            },
             navigation: {
                 appearance: 'Uiterlijk',
                 rainbowColors: 'Regenboogkleuren',

@@ -976,6 +976,10 @@ export const STRINGS_VI = {
                 mobileAppearance: 'Giao diện di động',
                 formatting: 'Định dạng'
             },
+            advanced: {
+                maintenance: 'Bảo trì',
+                resetSettings: 'Đặt lại cài đặt'
+            },
             navigation: {
                 appearance: 'Giao diện',
                 rainbowColors: 'Màu cầu vồng',

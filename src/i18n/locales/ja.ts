@@ -974,6 +974,10 @@ export const STRINGS_JA = {
                 mobileAppearance: 'モバイルの外観',
                 formatting: '書式'
             },
+            advanced: {
+                maintenance: 'メンテナンス',
+                resetSettings: '設定をリセット'
+            },
             navigation: {
                 appearance: '外観',
                 rainbowColors: 'レインボーカラー',

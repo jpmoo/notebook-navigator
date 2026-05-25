@@ -976,6 +976,10 @@ export const STRINGS_ES = {
                 mobileAppearance: 'Apariencia móvil',
                 formatting: 'Formato'
             },
+            advanced: {
+                maintenance: 'Mantenimiento',
+                resetSettings: 'Restablecer ajustes'
+            },
             navigation: {
                 appearance: 'Apariencia',
                 rainbowColors: 'Colores arcoíris',
