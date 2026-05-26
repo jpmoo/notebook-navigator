@@ -85,11 +85,11 @@ const RELEASE_NOTES: ReleaseNote[] = [
         date: '2026-05-26',
         showOnUpdate: true,
         bannerUrl: true,
-        info: 'Notebook Navigator should start quickly on all devices. If you feel Notebook Navigator starts slowly, then please enable the new setting "Startup debug logging", restart, and upload the generated markdown file to https://github.com/johansan/notebook-navigator as a bug report and I will take a look at it.',
+        info: 'Notebook Navigator should start quickly on all devices. If you feel Notebook Navigator starts slowly, then please enable the new setting "Startup debug logging", restart, review the generated markdown file, and upload it to https://github.com/johansan/notebook-navigator as a bug report and I will take a look at it.',
         new: [
             '**List pane.** You can now ==merge notes in the list pane==! Right click several files or a group header to create a new note from selected files. You can also use it through the command "Merge notes".',
             '**List pane.** ==Files can show character counts==, with or without spaces. Enable it in Settings > Notes > Word and character count.',
-            '**Startup.** New setting ==Startup debug logging==. Enable this in Advanced settings if you experience slow startup times, then upload the debug file to our GitHub page.'
+            '**Startup.** New setting ==Startup debug logging==. Enable this in Advanced settings if you experience slow startup times, then review and upload the debug file to our GitHub page.'
         ],
         changed: [
             '**Settings.** Settings structure was rewritten for easier navigation. You can now navigate to all sub pages from the first settings page.'
