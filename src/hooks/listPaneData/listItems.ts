@@ -389,7 +389,7 @@ export function buildListItems({
     } else {
         const baseFolderPath = selectedFolder?.path ?? null;
         const baseFolderName = selectedFolder?.name ?? null;
-        const basePrefix = baseFolderPath ? `${baseFolderPath}/` : null;
+        const basePrefix = baseFolderPath && baseFolderPath !== '/' ? `${baseFolderPath}/` : null;
         const vaultRootLabel = strings.navigationPane.vaultRootLabel;
         const folderGroupSortOrder = listConfig.folderGroupSortOrder;
 
@@ -419,17 +419,23 @@ export function buildListItems({
                     };
                 }
 
+                if (baseFolderPath === '/' && parent.path !== '/') {
+                    return {
+                        key: `folder:/${parent.path}`,
+                        label: parent.path,
+                        isCurrentFolder: false,
+                        folderPath: normalizePath(parent.path)
+                    };
+                }
+
                 if (basePrefix && parent.path.startsWith(basePrefix)) {
                     const relativePath = parent.path.slice(basePrefix.length);
-                    const [firstSegment] = relativePath.split('/');
-                    if (firstSegment && firstSegment.length > 0) {
+                    if (relativePath.length > 0) {
                         return {
-                            key: `folder:${baseFolderPath}/${firstSegment}`,
-                            label: firstSegment,
+                            key: `folder:${parent.path}`,
+                            label: relativePath,
                             isCurrentFolder: false,
-                            folderPath: normalizePath(
-                                !baseFolderPath || baseFolderPath === '/' ? firstSegment : `${baseFolderPath}/${firstSegment}`
-                            )
+                            folderPath: normalizePath(parent.path)
                         };
                     }
                 }
