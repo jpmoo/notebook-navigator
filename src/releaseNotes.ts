@@ -81,6 +81,12 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
+        version: '3.0.2',
+        date: '2026-06-01',
+        showOnUpdate: true,
+        fixed: ['**List pane.** Fixed parent folder labels missing from notes in property views when **Show parent folder** was enabled.']
+    },
+    {
         version: '3.0.1',
         date: '2026-05-26',
         showOnUpdate: true,

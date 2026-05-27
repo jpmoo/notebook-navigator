@@ -571,7 +571,7 @@ describe('listPaneMeasurements layout helpers', () => {
         ).toBe(richBaseHeight + desktopHeights.tagRowHeight * 3 - desktopHeights.multilineTextLineHeight * 2);
     });
 
-    it('matches the parent folder line rules for tag and descendant views', () => {
+    it('matches the parent folder line rules for tag, property, and descendant views', () => {
         expect(
             shouldShowFileItemParentFolderLine({
                 showParentFolder: true,
@@ -579,6 +579,17 @@ describe('listPaneMeasurements layout helpers', () => {
                 selectionType: 'tag',
                 includeDescendantNotes: false,
                 parentFolder: 'Projects',
+                fileParentPath: 'Projects/Archive'
+            })
+        ).toBe(true);
+
+        expect(
+            shouldShowFileItemParentFolderLine({
+                showParentFolder: true,
+                isPinned: false,
+                selectionType: 'property',
+                includeDescendantNotes: false,
+                parentFolder: null,
                 fileParentPath: 'Projects/Archive'
             })
         ).toBe(true);
