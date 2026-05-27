@@ -52,6 +52,7 @@ import {
 } from '../types';
 import { getSelectedPath, getFilesForSelection, orderFilesByReference } from '../utils/selectionUtils';
 import { normalizeNavigationPath } from '../utils/navigationIndex';
+import { createIndexMap } from '../utils/arrayUtils';
 import { deleteSelectedFiles } from '../utils/deleteOperations';
 import { localStorage } from '../utils/localStorage';
 import { calculateCompactListMetrics } from '../utils/listPaneMetrics';
@@ -79,6 +80,7 @@ import { getFeatureImageDisplayMeasurements, getListPaneMeasurements } from '../
 import type { InclusionOperator } from '../utils/filterSearch';
 import { useFolderDecorationState } from '../hooks/useFolderDecorationState';
 import { useFileItemPillDecorationState } from '../hooks/useFileItemPillDecorationState';
+import type { FileItemPillOrderModel } from '../utils/fileItemPillOrder';
 import { useNavigationPaneTreeSections } from '../hooks/navigationPane/data/useNavigationPaneTreeSections';
 import { useNavigationPaneSourceState } from '../hooks/navigationPane/data/useNavigationPaneSourceState';
 import type { SelectionHistoryEntry } from '../context/selection/types';
@@ -1442,6 +1444,20 @@ export const NotebookNavigatorComponent = React.memo(
             includeDescendantNotes: uxPreferences.includeDescendantNotes,
             navRainbowState
         });
+        const fileItemPillOrderModel = useMemo<FileItemPillOrderModel>(
+            () => ({
+                tagTree: navigationSourceState.tagTreeForOrdering,
+                rootTagOrderMap: navigationSourceState.rootTagOrderMap,
+                tagComparator: navigationSourceState.tagComparator,
+                rootPropertyNavigationOrderMap: createIndexMap(navigationTreeSections.resolvedRootPropertyKeys)
+            }),
+            [
+                navigationTreeSections.resolvedRootPropertyKeys,
+                navigationSourceState.rootTagOrderMap,
+                navigationSourceState.tagComparator,
+                navigationSourceState.tagTreeForOrdering
+            ]
+        );
 
         return (
             <div className="nn-scale-wrapper" data-ui-scale={scaleWrapperDataAttr} style={scaleWrapperStyle}>
@@ -1491,6 +1507,7 @@ export const NotebookNavigatorComponent = React.memo(
                         rootContainerRef={containerRef}
                         folderDecorationModel={folderDecorationModel}
                         fileItemPillDecorationModel={fileItemPillDecorationModel}
+                        fileItemPillOrderModel={fileItemPillOrderModel}
                         onSearchTokensChange={handleSearchTokensChange}
                         onNavigateToFolder={navigateToFolder}
                         onRevealTag={revealTag}

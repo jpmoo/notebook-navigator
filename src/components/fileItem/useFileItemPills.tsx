@@ -49,6 +49,11 @@ import {
     resolveFileItemTagDecorationColors,
     type FileItemPillDecorationModel
 } from '../../utils/fileItemPillDecoration';
+import {
+    compareFileItemPropertyKeysByNavigationOrder,
+    compareFileItemTagsByNavigationOrder,
+    type FileItemPillOrderModel
+} from '../../utils/fileItemPillOrder';
 import { ServiceIcon } from '../ServiceIcon';
 
 type PropertyPill = {
@@ -83,6 +88,7 @@ export interface UseFileItemPillsParams {
     onModifySearchWithTag?: (tag: string, operator: InclusionOperator) => void;
     onModifySearchWithProperty?: (key: string, value: string | null, operator: InclusionOperator) => void;
     fileItemPillDecorationModel: FileItemPillDecorationModel;
+    fileItemPillOrderModel: FileItemPillOrderModel;
 }
 
 export interface FileItemPillsState {
@@ -98,8 +104,19 @@ type TagPillColorData = { color?: string; background?: string; hasCustomColor: b
 const EMPTY_COLOR_MAP = new Map<string, TagPillColorData>();
 const EXTERNAL_PROPERTY_LINK_ICON_ID = 'external-link';
 
-function sortTagsAlphabetically(tags: string[]): void {
-    tags.sort((firstTag, secondTag) => naturalCompare(firstTag, secondTag));
+function sortTagsByNavigationOrder(
+    tags: string[],
+    orderModel: FileItemPillOrderModel,
+    childSortOrderOverrides: NotebookNavigatorSettings['tagTreeSortOverrides']
+): void {
+    tags.sort((firstTag, secondTag) =>
+        compareFileItemTagsByNavigationOrder({
+            leftTag: firstTag,
+            rightTag: secondTag,
+            orderModel,
+            childSortOrderOverrides
+        })
+    );
 }
 
 function sortPropertyPillsAlphabetically(pills: PropertyPill[]): void {
@@ -147,6 +164,46 @@ function sortPropertyPillGroup(pills: readonly PropertyPill[], prioritizeCustomC
     return [...customColoredPills, ...regularPills];
 }
 
+function hasCustomColoredPropertyPill(pills: readonly PropertyPill[] | undefined): boolean {
+    if (!pills) {
+        return false;
+    }
+
+    return pills.some(pill => pill.hasCustomColor === true);
+}
+
+function sortPropertyGroupOrder(
+    groupOrder: readonly string[],
+    groupedPills: ReadonlyMap<string, readonly PropertyPill[]>,
+    prioritizeCustomColoredPills: boolean,
+    orderModel: FileItemPillOrderModel,
+    visibleNavigationPropertyKeys: ReadonlySet<string>
+): string[] {
+    if (groupOrder.length <= 1) {
+        return [...groupOrder];
+    }
+
+    const sortedGroupOrder = [...groupOrder];
+    sortedGroupOrder.sort((leftGroupKey, rightGroupKey) => {
+        if (prioritizeCustomColoredPills) {
+            const leftHasCustomColor = hasCustomColoredPropertyPill(groupedPills.get(leftGroupKey));
+            const rightHasCustomColor = hasCustomColoredPropertyPill(groupedPills.get(rightGroupKey));
+            if (leftHasCustomColor !== rightHasCustomColor) {
+                return leftHasCustomColor ? -1 : 1;
+            }
+        }
+
+        return compareFileItemPropertyKeysByNavigationOrder(
+            leftGroupKey,
+            rightGroupKey,
+            orderModel.rootPropertyNavigationOrderMap,
+            visibleNavigationPropertyKeys
+        );
+    });
+
+    return sortedGroupOrder;
+}
+
 function resolveNormalizedPropertyKeyNodeId(fieldKey: string | undefined): string | undefined {
     const trimmedFieldKey = fieldKey?.trim() ?? '';
     if (!trimmedFieldKey) {
@@ -186,7 +243,8 @@ export function useFileItemPills({
     hiddenTagVisibility,
     onModifySearchWithTag,
     onModifySearchWithProperty,
-    fileItemPillDecorationModel
+    fileItemPillDecorationModel,
+    fileItemPillOrderModel
 }: UseFileItemPillsParams): FileItemPillsState {
     const { app, isMobile } = useServices();
     const metadataService = useMetadataService();
@@ -356,7 +414,7 @@ export function useFileItemPills({
 
         if (!settings.prioritizeColoredFileTags || !settings.colorFileTags) {
             const sortedTags = [...visibleTags];
-            sortTagsAlphabetically(sortedTags);
+            sortTagsByNavigationOrder(sortedTags, fileItemPillOrderModel, settings.tagTreeSortOverrides);
             return sortedTags;
         }
 
@@ -374,11 +432,18 @@ export function useFileItemPills({
             regularTags.push(tag);
         });
 
-        sortTagsAlphabetically(coloredTags);
-        sortTagsAlphabetically(regularTags);
+        sortTagsByNavigationOrder(coloredTags, fileItemPillOrderModel, settings.tagTreeSortOverrides);
+        sortTagsByNavigationOrder(regularTags, fileItemPillOrderModel, settings.tagTreeSortOverrides);
 
         return [...coloredTags, ...regularTags];
-    }, [settings.colorFileTags, settings.prioritizeColoredFileTags, tagColorData, visibleTags]);
+    }, [
+        fileItemPillOrderModel,
+        settings.colorFileTags,
+        settings.prioritizeColoredFileTags,
+        settings.tagTreeSortOverrides,
+        tagColorData,
+        visibleTags
+    ]);
 
     const shouldShowFileTags = useMemo(() => {
         if (!settings.showTags || !settings.showFileTags) {
@@ -619,7 +684,15 @@ export function useFileItemPills({
             groupOrder.push(key);
         });
 
-        groupOrder.forEach(groupKey => {
+        const sortedGroupOrder = sortPropertyGroupOrder(
+            groupOrder,
+            groupedPills,
+            prioritizeColoredPills,
+            fileItemPillOrderModel,
+            visibleNavigationPropertyKeys
+        );
+
+        sortedGroupOrder.forEach(groupKey => {
             const group = groupedPills.get(groupKey);
             if (!group || group.length === 0) {
                 return;
@@ -632,6 +705,7 @@ export function useFileItemPills({
     }, [
         canShowPropertyPills,
         fileItemPillDecorationModel,
+        fileItemPillOrderModel,
         metadataService,
         propertyColorSignature,
         settings.colorFileProperties,

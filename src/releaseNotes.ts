@@ -84,6 +84,9 @@ const RELEASE_NOTES: ReleaseNote[] = [
         version: '3.0.2',
         date: '2026-06-01',
         showOnUpdate: true,
+        improved: [
+            '**List pane.** File tag and property pills now follow the navigation pane sort order. Colored items are still showing first if that setting is enabled.'
+        ],
         fixed: ['**List pane.** Fixed parent folder labels missing from notes in property views when **Show parent folder** was enabled.']
     },
     {

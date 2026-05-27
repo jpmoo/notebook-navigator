@@ -24,6 +24,8 @@ import { useFileItemPills, type UseFileItemPillsParams } from '../../../src/comp
 import { buildPropertyKeyNodeId, buildPropertyValueNodeId } from '../../../src/utils/propertyTree';
 import { createHiddenTagVisibility, type HiddenTagVisibility } from '../../../src/utils/tagPrefixMatcher';
 import type { FileItemPillDecorationModel } from '../../../src/utils/fileItemPillDecoration';
+import type { FileItemPillOrderModel } from '../../../src/utils/fileItemPillOrder';
+import type { TagTreeNode } from '../../../src/types/storage';
 import { createTestTFile } from '../../utils/createTestTFile';
 import { ItemType } from '../../../src/types';
 
@@ -74,13 +76,33 @@ vi.mock('../../../src/components/ServiceIcon', () => ({
         React.createElement('span', { 'data-icon-id': iconId, className })
 }));
 
+function createTagNode(path: string, children: TagTreeNode[] = []): TagTreeNode {
+    const node: TagTreeNode = {
+        name: path.split('/').pop() ?? path,
+        path,
+        displayPath: path,
+        children: new Map(),
+        notesWithTag: new Set()
+    };
+    children.forEach(child => {
+        node.children.set(child.path, child);
+    });
+    return node;
+}
+
 function renderPillRows(
     params: Omit<
         UseFileItemPillsParams,
-        'hiddenTagVisibility' | 'fileItemPillDecorationModel' | 'wordCountDisplayText' | 'characterCount' | 'characterCountDisplayText'
+        | 'hiddenTagVisibility'
+        | 'fileItemPillDecorationModel'
+        | 'fileItemPillOrderModel'
+        | 'wordCountDisplayText'
+        | 'characterCount'
+        | 'characterCountDisplayText'
     > & {
         hiddenTagVisibility?: HiddenTagVisibility;
         fileItemPillDecorationModel?: FileItemPillDecorationModel;
+        fileItemPillOrderModel?: FileItemPillOrderModel;
         wordCountDisplayText?: string | null;
         characterCount?: number | null;
         characterCountDisplayText?: string | null;
@@ -100,6 +122,12 @@ function renderPillRows(
         },
         inheritPropertyColors: false
     };
+    const emptyOrderModel: FileItemPillOrderModel = {
+        tagTree: new Map(),
+        rootTagOrderMap: new Map(),
+        tagComparator: undefined,
+        rootPropertyNavigationOrderMap: new Map()
+    };
 
     function Host() {
         const state = useFileItemPills({
@@ -112,7 +140,8 @@ function renderPillRows(
                 params.characterCountDisplayText ??
                 (typeof params.characterCount === 'number' ? Math.trunc(params.characterCount).toLocaleString() : null),
             hiddenTagVisibility: params.hiddenTagVisibility ?? createHiddenTagVisibility([], false),
-            fileItemPillDecorationModel: params.fileItemPillDecorationModel ?? emptyDecorationModel
+            fileItemPillDecorationModel: params.fileItemPillDecorationModel ?? emptyDecorationModel,
+            fileItemPillOrderModel: params.fileItemPillOrderModel ?? emptyOrderModel
         });
         return React.createElement(
             'div',
@@ -213,6 +242,46 @@ describe('useFileItemPills', () => {
 
         expect(markup.indexOf('>alpha<')).toBeLessThan(markup.indexOf('>beta<'));
         expect(markup).toContain('style="color:#00ff00"');
+    });
+
+    it('orders file tags by navigation order inside color priority buckets', () => {
+        const alphaIdeaNode = createTagNode('alpha/idea');
+        const alphaTaskNode = createTagNode('alpha/task');
+        const alphaNode = createTagNode('alpha', [alphaIdeaNode, alphaTaskNode]);
+        const betaTaskNode = createTagNode('beta/task');
+        const betaNode = createTagNode('beta', [betaTaskNode]);
+
+        const markup = renderPillRows({
+            file: createTestTFile('Notes/OrderedTags.md'),
+            isCompactMode: false,
+            tags: ['alpha/idea', 'alpha/task', 'beta/task'],
+            properties: null,
+            wordCount: null,
+            settings: {
+                ...DEFAULT_SETTINGS,
+                showTags: true,
+                showFileTags: true,
+                showFileTagAncestors: true,
+                tagTreeSortOverrides: { alpha: 'alpha-desc' }
+            },
+            visiblePropertyKeys: new Set<string>(),
+            visibleNavigationPropertyKeys: new Set<string>(),
+            fileItemPillOrderModel: {
+                tagTree: new Map([
+                    ['alpha', alphaNode],
+                    ['beta', betaNode]
+                ]),
+                rootTagOrderMap: new Map([
+                    ['beta', 0],
+                    ['alpha', 1]
+                ]),
+                tagComparator: undefined,
+                rootPropertyNavigationOrderMap: new Map()
+            }
+        });
+
+        expect(markup.indexOf('>beta/task<')).toBeLessThan(markup.indexOf('>alpha/task<'));
+        expect(markup.indexOf('>alpha/task<')).toBeLessThan(markup.indexOf('>alpha/idea<'));
     });
 
     it('applies rainbow tag colors in file list pills', () => {
@@ -461,6 +530,50 @@ describe('useFileItemPills', () => {
 
         expect(markup).toContain('data-show-properties="true"');
         expect(markup).toContain('4.5');
+    });
+
+    it('orders property groups by the navigation properties section order', () => {
+        const markup = renderPillRows({
+            file: createTestTFile('Notes/OrderedProperties.md'),
+            isCompactMode: false,
+            tags: [],
+            properties: [
+                {
+                    fieldKey: 'status',
+                    value: 'todo',
+                    valueKind: 'string'
+                },
+                {
+                    fieldKey: 'priority',
+                    value: 'high',
+                    valueKind: 'string'
+                },
+                {
+                    fieldKey: 'area',
+                    value: 'work',
+                    valueKind: 'string'
+                }
+            ],
+            wordCount: null,
+            settings: {
+                ...DEFAULT_SETTINGS,
+                showFileProperties: true
+            },
+            visiblePropertyKeys: new Set<string>(['status', 'priority', 'area']),
+            visibleNavigationPropertyKeys: new Set<string>(['status', 'priority']),
+            fileItemPillOrderModel: {
+                tagTree: new Map(),
+                rootTagOrderMap: new Map(),
+                tagComparator: undefined,
+                rootPropertyNavigationOrderMap: new Map([
+                    ['priority', 0],
+                    ['status', 1]
+                ])
+            }
+        });
+
+        expect(markup.indexOf('>high<')).toBeLessThan(markup.indexOf('>todo<'));
+        expect(markup.indexOf('>todo<')).toBeLessThan(markup.indexOf('>work<'));
     });
 
     it('hides only the exact selected property value pill in property value context', () => {
