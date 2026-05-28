@@ -73,6 +73,7 @@ import { resolveDefaultDateField } from '../utils/sortUtils';
 import { resolveFolderDisplayPath } from '../utils/folderDisplayName';
 import type { FileNameIconNeedle } from '../utils/fileIconUtils';
 import type { FileItemPillDecorationModel } from '../utils/fileItemPillDecoration';
+import type { FileItemPillOrderModel } from '../utils/fileItemPillOrder';
 import type { HiddenTagVisibility } from '../utils/tagPrefixMatcher';
 import { useFileItemContentState, type FileItemContentDb } from './fileItem/useFileItemContentState';
 import { useFileItemPills } from './fileItem/useFileItemPills';
@@ -180,6 +181,7 @@ interface FileItemProps {
     onToggleNoteShortcut: (file: TFile, shortcutKey: string | undefined) => Promise<void>;
     folderDecorationModel: FolderDecorationModel;
     fileItemPillDecorationModel: FileItemPillDecorationModel;
+    fileItemPillOrderModel: FileItemPillOrderModel;
     getSolidBackground: (color?: string | null) => string | undefined;
     disableNativeDrag?: boolean;
     manualSortDisabled?: boolean;
@@ -399,6 +401,7 @@ export const FileItem = React.memo(function FileItem({
     onToggleNoteShortcut,
     folderDecorationModel,
     fileItemPillDecorationModel,
+    fileItemPillOrderModel,
     getSolidBackground,
     disableNativeDrag = false,
     manualSortDisabled = false
@@ -722,7 +725,8 @@ export const FileItem = React.memo(function FileItem({
         hiddenTagVisibility,
         onModifySearchWithTag,
         onModifySearchWithProperty,
-        fileItemPillDecorationModel
+        fileItemPillDecorationModel,
+        fileItemPillOrderModel
     });
 
     // Format display date based on current sort

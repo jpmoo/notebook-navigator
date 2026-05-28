@@ -81,15 +81,28 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
+        version: '3.0.2',
+        date: '2026-06-01',
+        showOnUpdate: true,
+        improved: [
+            '**List pane.** File tag and property pills now follow the navigation pane sort order. Colored items are still showing first if that setting is enabled.',
+            "**List pane.** Folder grouping now uses each file's actual parent folder. Descendant headers show the full path relative to the selected folder."
+        ],
+        fixed: [
+            '**List pane.** Fixed parent folder labels missing from notes in property views when **Show parent folder** was enabled.',
+            '**List pane.** Fixed delete selecting the wrong next note when folder grouping and descendant notes were enabled.'
+        ]
+    },
+    {
         version: '3.0.1',
         date: '2026-05-26',
         showOnUpdate: true,
         bannerUrl: true,
-        info: 'Notebook Navigator should start quickly on all devices. If you feel Notebook Navigator starts slowly, then please enable the new setting "Startup debug logging", restart, and upload the generated markdown file to https://github.com/johansan/notebook-navigator as a bug report and I will take a look at it.',
+        info: 'Notebook Navigator should start quickly on all devices. If you feel Notebook Navigator starts slowly, then please enable the new setting "Startup debug logging", restart, review the generated markdown file, and upload it to https://github.com/johansan/notebook-navigator as a bug report and I will take a look at it.',
         new: [
             '**List pane.** You can now ==merge notes in the list pane==! Right click several files or a group header to create a new note from selected files. You can also use it through the command "Merge notes".',
             '**List pane.** ==Files can show character counts==, with or without spaces. Enable it in Settings > Notes > Word and character count.',
-            '**Startup.** New setting ==Startup debug logging==. Enable this in Advanced settings if you experience slow startup times, then upload the debug file to our GitHub page.'
+            '**Startup.** New setting ==Startup debug logging==. Enable this in Advanced settings if you experience slow startup times, then review and upload the debug file to our GitHub page.'
         ],
         changed: [
             '**Settings.** Settings structure was rewritten for easier navigation. You can now navigate to all sub pages from the first settings page.'

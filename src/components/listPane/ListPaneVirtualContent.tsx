@@ -37,6 +37,7 @@ import type { ListPaneAppearanceSettings } from '../../hooks/useListPaneAppearan
 import type { FileNameIconNeedle } from '../../utils/fileIconUtils';
 import type { HiddenTagVisibility } from '../../utils/tagPrefixMatcher';
 import type { FileItemPillDecorationModel } from '../../utils/fileItemPillDecoration';
+import type { FileItemPillOrderModel } from '../../utils/fileItemPillOrder';
 import { resolveUXIcon } from '../../utils/uxIcons';
 import { hasSolidFileRowBackground } from '../../utils/colorUtils';
 import { getManualSortGroupHeaderPropertyKey, shouldShowManualSortGroupHeaderProgress } from '../../utils/manualSort';
@@ -137,6 +138,7 @@ interface ListPaneVirtualContentProps {
     onNavigateToFolder: (folderPath: string, options?: NavigateToFolderOptions) => void;
     folderDecorationModel: FolderDecorationModel;
     fileItemPillDecorationModel: FileItemPillDecorationModel;
+    fileItemPillOrderModel: FileItemPillOrderModel;
     getSolidBackground: (color?: string | null) => string | undefined;
 }
 
@@ -403,6 +405,7 @@ export function ListPaneVirtualContent({
     onNavigateToFolder,
     folderDecorationModel,
     fileItemPillDecorationModel,
+    fileItemPillOrderModel,
     getSolidBackground
 }: ListPaneVirtualContentProps) {
     const { app, commandQueue, isMobile } = useServices();
@@ -903,6 +906,7 @@ export function ListPaneVirtualContent({
                                             onToggleNoteShortcut={onToggleNoteShortcut}
                                             folderDecorationModel={folderDecorationModel}
                                             fileItemPillDecorationModel={fileItemPillDecorationModel}
+                                            fileItemPillOrderModel={fileItemPillOrderModel}
                                             getSolidBackground={getSolidBackground}
                                         />
                                     ) : null}

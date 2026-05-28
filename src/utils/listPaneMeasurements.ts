@@ -396,7 +396,7 @@ export function shouldShowFileItemParentFolderLine({
         return false;
     }
 
-    if (selectionType === 'tag') {
+    if (selectionType === 'tag' || selectionType === 'property') {
         return true;
     }
 

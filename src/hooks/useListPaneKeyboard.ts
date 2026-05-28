@@ -476,7 +476,8 @@ export function useListPaneKeyboard({
                             selectionState,
                             selectionDispatch,
                             tagTreeService,
-                            propertyTreeService
+                            propertyTreeService,
+                            orderedFiles
                         })
                     );
                 }

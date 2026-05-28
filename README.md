@@ -42,7 +42,7 @@ Notebook Navigator is checked with [TypeScript](https://www.typescriptlang.org/)
 
 Security checks run through [CodeQL](https://codeql.github.com/), with scan history in the [CodeQL workflow runs](https://github.com/johansan/notebook-navigator/actions/workflows/codeql.yml), and the [OpenSSF Scorecard](https://securityscorecards.dev/viewer/?uri=github.com/johansan/notebook-navigator). Current status is shown in the badges at the top of this page.
 
-Notebook Navigator runs locally, but some features make documented HTTP requests for updates, downloads, and remote content. See [section 11 - Network Usage Disclosure](#11-network-usage-disclosure) for the full list.
+Notebook Navigator runs locally, but some features make documented HTTP requests for updates, downloads, and remote content. See [section 11 - Network and Diagnostics Disclosure](#11-network-and-diagnostics-disclosure) for the full list.
 
 <br/>
 
@@ -55,7 +55,7 @@ Notebook Navigator runs locally, but some features make documented HTTP requests
 - [8 Custom hotkeys](#8-custom-hotkeys)
 - [9 Commands](#9-commands)
 - [10 Features](#10-features)
-- [11 Network Usage Disclosure](#11-network-usage-disclosure)
+- [11 Network and Diagnostics Disclosure](#11-network-and-diagnostics-disclosure)
 - [12 Star History](#12-star-history)
 - [13 Contact](#13-contact)
 - [14 Questions or issues?](#14-questions-or-issues)
@@ -466,9 +466,9 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 
 <br/>
 
-## 11 Network Usage Disclosure
+## 11 Network and Diagnostics Disclosure
 
-Notebook Navigator runs locally, but some features make HTTP requests from Obsidian.
+Notebook Navigator runs locally, but some features make HTTP requests from Obsidian. Startup debug logging can also write a local diagnostic file in your vault.
 
 ### 11.1 Release update checks (Optional)
 
@@ -490,9 +490,17 @@ Notebook Navigator runs locally, but some features make HTTP requests from Obsid
 - **What's new modal (On update / when opened):** Loads release banner images from `https://raw.githubusercontent.com/johansan/notebook-navigator/main/images/version-banners/<id>.jpg` for release notes that include a banner.
 - **What's new modal (On update / when opened):** Loads YouTube thumbnails from `https://img.youtube.com/vi/<id>/...` for release notes that include a YouTube link.
 
-### 11.4 Privacy and data handling
+### 11.4 Startup debug files (Optional)
 
-- Notebook Navigator does not send note content, file names, or tags to a Notebook Navigator server.
+- **Setting:** "Startup debug logging"
+- **Storage:** Writes a timestamped `nn-debug-...md` file in the vault root, then stops after startup settles. The file may sync if the vault root is synced.
+- **Data:** Includes startup timing, plugin version, minimum supported Obsidian version, platform, cache counts, queue counts, IndexedDB status, and diagnostic errors. It does not include note contents, tag names, frontmatter values, or a list of vault files.
+- **Paths and identifiers:** Startup initialization, PDF diagnostics, and error cases can include the Obsidian app/vault identifier, vault-relative PDF paths, or error stack details. Review and redact the file before sharing it publicly.
+- **Upload:** Notebook Navigator does not upload debug files. They are shared only if you upload, attach, or sync them outside the plugin.
+
+### 11.5 Privacy and data handling
+
+- Notebook Navigator does not send note content, file names, tags, or debug files to a Notebook Navigator server.
 - Requests to GitHub, YouTube, and any external image host are made directly from your device and include standard HTTP metadata (IP address, user-agent, and similar).
 - Downloaded icon packs and images are stored locally (IndexedDB). Recent notes/files and UI state are stored locally (Obsidian local storage).
 

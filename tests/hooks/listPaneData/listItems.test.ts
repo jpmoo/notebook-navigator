@@ -113,6 +113,19 @@ function getHeaderItems(items: ReturnType<typeof buildListItems>): { data: strin
         }));
 }
 
+function getFolderHeaderItems(
+    items: ReturnType<typeof buildListItems>
+): { data: string; folderPath: string | null; collapseKey: string | null; groupFilePaths: string[] }[] {
+    return items
+        .filter(item => item.type === ListPaneItemType.HEADER && item.headerKind === 'folder' && typeof item.data === 'string')
+        .map(item => ({
+            data: item.data as string,
+            folderPath: item.headerFolderPath ?? null,
+            collapseKey: item.collapseKey ?? null,
+            groupFilePaths: item.groupFilePaths ?? []
+        }));
+}
+
 describe('buildListItems pinned display scope', () => {
     it('adds spacer rows before subsequent fixed-height group headers', () => {
         const app = createApp();
@@ -196,6 +209,118 @@ describe('buildListItems pinned display scope', () => {
 
         expect(header?.groupFilePaths).toEqual([first.path, second.path]);
         expect(items.some(item => item.type === ListPaneItemType.FILE)).toBe(false);
+    });
+
+    it('groups descendant files by their actual parent folder under the selected folder', () => {
+        const app = createApp();
+        const directFile = assignParent(createTestTFile('Folder 1/file 1.md'), 'Folder 1');
+        const childFile = assignParent(createTestTFile('Folder 1/Child Folder/file 3.md'), 'Folder 1/Child Folder');
+        const grandchildFile = assignParent(
+            createTestTFile('Folder 1/Child Folder/Grandchild Folder/file 8.md'),
+            'Folder 1/Child Folder/Grandchild Folder'
+        );
+        const db = createDb({
+            [directFile.path]: { tags: null, properties: null },
+            [childFile.path]: { tags: null, properties: null },
+            [grandchildFile.path]: { tags: null, properties: null }
+        });
+
+        const items = buildListItems({
+            app,
+            dayKey: '2026-03-07',
+            fileVisibility: FILE_VISIBILITY.DOCUMENTS,
+            files: [directFile, childFile, grandchildFile],
+            getDB: () => db,
+            getFileTimestamps: () => ({ created: 0, modified: 0 }),
+            hiddenFileState: new Map(),
+            hiddenTags: [],
+            listConfig: { ...createListConfig({}), groupBy: 'folder' },
+            searchMetaMap: new Map(),
+            selectedFolder: createFolder('Folder 1'),
+            selectionType: ItemType.FOLDER,
+            showHiddenItems: false,
+            sortOption: 'alphabetical-asc'
+        });
+
+        expect(getHeaderItems(items)).toEqual([
+            { data: 'Child Folder', kind: 'folder' },
+            { data: 'Child Folder/Grandchild Folder', kind: 'folder' }
+        ]);
+        expect(getFolderHeaderItems(items)).toEqual([
+            {
+                data: 'Child Folder',
+                folderPath: 'Folder 1/Child Folder',
+                collapseKey: buildListGroupCollapseKey({
+                    selectionType: ItemType.FOLDER,
+                    selectedFolderPath: 'Folder 1',
+                    selectedTag: null,
+                    selectedProperty: null,
+                    groupingMode: 'folder',
+                    groupId: 'folder:Folder 1/Child Folder'
+                }),
+                groupFilePaths: [childFile.path]
+            },
+            {
+                data: 'Child Folder/Grandchild Folder',
+                folderPath: 'Folder 1/Child Folder/Grandchild Folder',
+                collapseKey: buildListGroupCollapseKey({
+                    selectionType: ItemType.FOLDER,
+                    selectedFolderPath: 'Folder 1',
+                    selectedTag: null,
+                    selectedProperty: null,
+                    groupingMode: 'folder',
+                    groupId: 'folder:Folder 1/Child Folder/Grandchild Folder'
+                }),
+                groupFilePaths: [grandchildFile.path]
+            }
+        ]);
+        expect(getFileItems(items)).toEqual([
+            { path: directFile.path, isPinned: false },
+            { path: childFile.path, isPinned: false },
+            { path: grandchildFile.path, isPinned: false }
+        ]);
+    });
+
+    it('uses full relative folder labels when the selected folder is the vault root', () => {
+        const app = createApp();
+        const childFile = assignParent(createTestTFile('Alpha/one.md'), 'Alpha');
+        const grandchildFile = assignParent(createTestTFile('Alpha/Beta/two.md'), 'Alpha/Beta');
+        const db = createDb({
+            [childFile.path]: { tags: null, properties: null },
+            [grandchildFile.path]: { tags: null, properties: null }
+        });
+
+        const items = buildListItems({
+            app,
+            dayKey: '2026-03-07',
+            fileVisibility: FILE_VISIBILITY.DOCUMENTS,
+            files: [childFile, grandchildFile],
+            getDB: () => db,
+            getFileTimestamps: () => ({ created: 0, modified: 0 }),
+            hiddenFileState: new Map(),
+            hiddenTags: [],
+            listConfig: { ...createListConfig({}), groupBy: 'folder' },
+            searchMetaMap: new Map(),
+            selectedFolder: createFolder('/'),
+            selectionType: ItemType.FOLDER,
+            showHiddenItems: false,
+            sortOption: 'alphabetical-asc'
+        });
+
+        expect(getFolderHeaderItems(items)).toEqual([
+            {
+                data: 'Alpha',
+                folderPath: 'Alpha',
+                collapseKey: createCollapseKey('folder', 'folder:/Alpha'),
+                groupFilePaths: [childFile.path]
+            },
+            {
+                data: 'Alpha/Beta',
+                folderPath: 'Alpha/Beta',
+                collapseKey: createCollapseKey('folder', 'folder:/Alpha/Beta'),
+                groupFilePaths: [grandchildFile.path]
+            }
+        ]);
     });
 
     it('adds an Unsorted section for manual sort files missing a valid rank', () => {

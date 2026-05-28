@@ -146,7 +146,7 @@ export function getFilesForNavigationSelection(
  * @param removedPaths - Set of paths that are being removed (deleted or moved)
  * @returns The file to select after removal, or null if none
  */
-export function findNextFileAfterRemoval(allFiles: TFile[], removedPaths: Set<string>): TFile | null {
+export function findNextFileAfterRemoval(allFiles: readonly TFile[], removedPaths: Set<string>): TFile | null {
     if (allFiles.length === 0) return null;
 
     // Find the first removed file's index

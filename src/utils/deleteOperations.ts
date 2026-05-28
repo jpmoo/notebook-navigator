@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { App, TFolder } from 'obsidian';
+import { App, TFile, TFolder } from 'obsidian';
 import { naturalCompare } from './sortUtils';
 import { SelectionState, SelectionAction } from '../context/SelectionContext';
 import { FileSystemOperations } from '../services/FileSystemService';
@@ -38,6 +38,7 @@ interface BaseDeleteOperationsContext {
 interface DeleteFilesContext extends BaseDeleteOperationsContext {
     tagTreeService: TagTreeService | null;
     propertyTreeService: PropertyTreeService | null;
+    orderedFiles?: readonly TFile[];
 }
 
 /**
@@ -52,12 +53,15 @@ export async function deleteSelectedFiles({
     selectionState,
     selectionDispatch,
     tagTreeService,
-    propertyTreeService
+    propertyTreeService,
+    orderedFiles
 }: DeleteFilesContext): Promise<void> {
-    // Check if multiple files are selected
-    if (selectionState.selectedFiles.size > 1) {
-        // Get all files in the current view for smart selection
-        const allFiles = getFilesForNavigationSelection(
+    const getCurrentFiles = (selectedPaths: ReadonlySet<string>): readonly TFile[] => {
+        if (orderedFiles?.some(file => selectedPaths.has(file.path))) {
+            return orderedFiles;
+        }
+
+        return getFilesForNavigationSelection(
             {
                 selectionType: selectionState.selectionType,
                 selectedFolder: selectionState.selectedFolder,
@@ -70,6 +74,11 @@ export async function deleteSelectedFiles({
             tagTreeService,
             propertyTreeService
         );
+    };
+
+    // Check if multiple files are selected
+    if (selectionState.selectedFiles.size > 1) {
+        const allFiles = getCurrentFiles(selectionState.selectedFiles);
 
         // Use centralized delete method with smart selection
         await fileSystemOps.deleteFilesWithSmartSelection(
@@ -90,7 +99,8 @@ export async function deleteSelectedFiles({
                 selectedProperty: selectionState.selectedProperty ?? undefined
             },
             selectionDispatch,
-            settings.confirmBeforeDelete
+            settings.confirmBeforeDelete,
+            getCurrentFiles(new Set([selectionState.selectedFile.path]))
         );
     }
 }
