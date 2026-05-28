@@ -1009,9 +1009,17 @@ export class FileSystemOperations {
         settings: NotebookNavigatorSettings,
         selectionContext: SelectionContext,
         selectionDispatch: SelectionDispatch,
-        confirmBeforeDelete: boolean
+        confirmBeforeDelete: boolean,
+        currentFiles?: readonly TFile[]
     ): Promise<void> {
-        await this.deletionService.deleteSelectedFile(file, settings, selectionContext, selectionDispatch, confirmBeforeDelete);
+        await this.deletionService.deleteSelectedFile(
+            file,
+            settings,
+            selectionContext,
+            selectionDispatch,
+            confirmBeforeDelete,
+            currentFiles
+        );
     }
 
     /**
@@ -1377,7 +1385,7 @@ export class FileSystemOperations {
 
     async deleteFilesWithSmartSelection(
         selectedFiles: Set<string>,
-        allFiles: TFile[],
+        allFiles: readonly TFile[],
         selectionDispatch: SelectionDispatch,
         confirmBeforeDelete: boolean
     ): Promise<void> {

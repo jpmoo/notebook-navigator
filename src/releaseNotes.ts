@@ -86,9 +86,12 @@ const RELEASE_NOTES: ReleaseNote[] = [
         showOnUpdate: true,
         improved: [
             '**List pane.** File tag and property pills now follow the navigation pane sort order. Colored items are still showing first if that setting is enabled.',
-            '**List pane.** Folder grouping now uses each file\'s actual parent folder. Descendant headers show the full path relative to the selected folder.'
+            "**List pane.** Folder grouping now uses each file's actual parent folder. Descendant headers show the full path relative to the selected folder."
         ],
-        fixed: ['**List pane.** Fixed parent folder labels missing from notes in property views when **Show parent folder** was enabled.']
+        fixed: [
+            '**List pane.** Fixed parent folder labels missing from notes in property views when **Show parent folder** was enabled.',
+            '**List pane.** Fixed delete selecting the wrong next note when folder grouping and descendant notes were enabled.'
+        ]
     },
     {
         version: '3.0.1',

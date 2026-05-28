@@ -940,7 +940,8 @@ export const NotebookNavigatorComponent = React.memo(
                             selectionState,
                             selectionDispatch,
                             tagTreeService,
-                            propertyTreeService
+                            propertyTreeService,
+                            orderedFiles: listPaneRef.current?.getOrderedFiles() ?? undefined
                         });
                     });
                 },

@@ -172,22 +172,25 @@ export class FileDeletionService {
         settings: ISettingsProvider['settings'],
         selectionContext: SelectionContext,
         selectionDispatch: SelectionDispatch,
-        confirmBeforeDelete: boolean
+        confirmBeforeDelete: boolean,
+        currentFilesOverride?: readonly TFile[]
     ): Promise<void> {
-        const visibility = this.getVisibilityPreferences();
-        const currentFiles = getFilesForNavigationSelection(
-            {
-                selectionType: selectionContext.selectionType,
-                selectedFolder: selectionContext.selectedFolder ?? null,
-                selectedTag: selectionContext.selectedTag ?? null,
-                selectedProperty: selectionContext.selectedProperty ?? null
-            },
-            settings,
-            visibility,
-            this.app,
-            this.getTagTreeService(),
-            this.getPropertyTreeService()
-        );
+        const currentFiles =
+            currentFilesOverride?.some(currentFile => currentFile.path === file.path) === true
+                ? currentFilesOverride
+                : getFilesForNavigationSelection(
+                      {
+                          selectionType: selectionContext.selectionType,
+                          selectedFolder: selectionContext.selectedFolder ?? null,
+                          selectedTag: selectionContext.selectedTag ?? null,
+                          selectedProperty: selectionContext.selectedProperty ?? null
+                      },
+                      settings,
+                      this.getVisibilityPreferences(),
+                      this.app,
+                      this.getTagTreeService(),
+                      this.getPropertyTreeService()
+                  );
 
         let nextFileToSelect: TFile | null = null;
         const currentIndex = currentFiles.findIndex(currentFile => currentFile.path === file.path);
@@ -340,7 +343,7 @@ export class FileDeletionService {
 
     public async deleteFilesWithSmartSelection(
         selectedFiles: Set<string>,
-        allFiles: TFile[],
+        allFiles: readonly TFile[],
         selectionDispatch: SelectionDispatch,
         confirmBeforeDelete: boolean
     ): Promise<void> {

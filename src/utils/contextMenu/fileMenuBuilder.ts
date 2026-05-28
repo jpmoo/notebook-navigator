@@ -160,6 +160,13 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
             return cachedFileList;
         }
 
+        if (
+            options?.orderedFiles?.some(orderedFile => orderedFile.path === file.path || selectionState.selectedFiles.has(orderedFile.path))
+        ) {
+            cachedFileList = [...options.orderedFiles];
+            return cachedFileList;
+        }
+
         cachedFileList = getFilesForNavigationSelection(
             {
                 selectionType: selectionState.selectionType,
@@ -540,7 +547,16 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
         addSingleFileDuplicateOption(menu, file, fileSystemOps);
 
         // Delete note
-        addSingleFileDeleteOption(menu, file, selectionState, settings, fileSystemOps, selectionDispatch, isFolderNoteFile);
+        addSingleFileDeleteOption(
+            menu,
+            file,
+            selectionState,
+            settings,
+            fileSystemOps,
+            selectionDispatch,
+            isFolderNoteFile,
+            getCachedFileList
+        );
     }
 }
 
@@ -1110,7 +1126,8 @@ function addSingleFileDeleteOption(
     settings: NotebookNavigatorSettings,
     fileSystemOps: FileSystemOperations,
     selectionDispatch: React.Dispatch<SelectionAction>,
-    isFolderNoteFile: boolean
+    isFolderNoteFile: boolean,
+    getCachedFileList: () => TFile[]
 ): void {
     menu.addItem((item: MenuItem) => {
         const title = isFolderNoteFile
@@ -1132,7 +1149,8 @@ function addSingleFileDeleteOption(
                         selectedProperty: selectionState.selectedProperty ?? undefined
                     },
                     selectionDispatch,
-                    settings.confirmBeforeDelete
+                    settings.confirmBeforeDelete,
+                    getCachedFileList()
                 );
             } else {
                 // Normal deletion - not the currently selected file
