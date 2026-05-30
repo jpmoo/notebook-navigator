@@ -323,7 +323,7 @@ export function useStorageVaultSync(params: {
             runAsyncAction(() => buildFileCache(true));
         }
 
-        const queueFileContentRefresh = (file: TFile) => {
+        const queueFilesContentRefresh = (files: TFile[]) => {
             if (stoppedRef.current || !contentRegistryRef.current) {
                 return;
             }
@@ -331,13 +331,179 @@ export function useStorageVaultSync(params: {
             try {
                 const liveSettings = latestSettingsRef.current;
                 const metadataDependentTypes = getMetadataDependentTypes(liveSettings);
-                const { markdownFiles } = queueIndexableFilesForContentGeneration([file], liveSettings);
+                const { markdownFiles } = queueIndexableFilesForContentGeneration(files, liveSettings);
                 if (metadataDependentTypes.length > 0) {
                     queueMetadataContentWhenReady(markdownFiles, metadataDependentTypes, liveSettings);
                 }
             } catch (error: unknown) {
-                console.error('Failed to queue content refresh for file:', file.path, error);
+                console.error('Failed to queue content refresh for files:', error);
             }
+        };
+
+        const queueFileContentRefresh = (file: TFile) => {
+            queueFilesContentRefresh([file]);
+        };
+
+        const pendingModifiedFiles = new Map<string, TFile>();
+        let pendingModifyFlushTimerId: number | null = null;
+        let isProcessingModifyBatch = false;
+        const pendingMetadataChangedFiles = new Map<string, TFile>();
+        let pendingMetadataChangeFlushTimerId: number | null = null;
+        let isProcessingMetadataChangeBatch = false;
+
+        const clearPendingModifyFlushTimer = () => {
+            if (pendingModifyFlushTimerId === null) {
+                return;
+            }
+            if (typeof window !== 'undefined') {
+                window.clearTimeout(pendingModifyFlushTimerId);
+            }
+            pendingModifyFlushTimerId = null;
+        };
+
+        const clearPendingMetadataChangeFlushTimer = () => {
+            if (pendingMetadataChangeFlushTimerId === null) {
+                return;
+            }
+            if (typeof window !== 'undefined') {
+                window.clearTimeout(pendingMetadataChangeFlushTimerId);
+            }
+            pendingMetadataChangeFlushTimerId = null;
+        };
+
+        const resolveLiveFiles = (files: TFile[]): TFile[] => {
+            const filesByPath = new Map<string, TFile>();
+            for (const file of files) {
+                const abstract = app.vault.getAbstractFileByPath(file.path);
+                if (abstract instanceof TFile) {
+                    filesByPath.set(abstract.path, abstract);
+                }
+            }
+            return Array.from(filesByPath.values());
+        };
+
+        const flushModifiedFiles = () => {
+            pendingModifyFlushTimerId = null;
+            if (isProcessingModifyBatch) {
+                return;
+            }
+
+            runAsyncAction(async () => {
+                if (stoppedRef.current) {
+                    pendingModifiedFiles.clear();
+                    return;
+                }
+
+                const pendingFiles = Array.from(pendingModifiedFiles.values());
+                pendingModifiedFiles.clear();
+                if (pendingFiles.length === 0) {
+                    return;
+                }
+
+                const files = resolveLiveFiles(pendingFiles);
+                if (files.length === 0) {
+                    return;
+                }
+
+                let recordedChanges = false;
+                isProcessingModifyBatch = true;
+                try {
+                    const db = getDBInstance();
+                    const existingData = db.getFiles(files.map(file => file.path));
+                    await recordFileChanges(files, existingData, pendingRenameDataRef.current);
+                    recordedChanges = true;
+                } catch (error: unknown) {
+                    console.error('Failed to record file changes on modify:', error);
+                } finally {
+                    isProcessingModifyBatch = false;
+                }
+
+                if (recordedChanges) {
+                    queueFilesContentRefresh(files);
+                }
+
+                if (pendingModifiedFiles.size > 0 && !stoppedRef.current) {
+                    scheduleModifiedFilesFlush();
+                }
+            });
+        };
+
+        const scheduleModifiedFilesFlush = () => {
+            if (stoppedRef.current || isProcessingModifyBatch || pendingModifyFlushTimerId !== null) {
+                return;
+            }
+
+            if (typeof window !== 'undefined') {
+                pendingModifyFlushTimerId = window.setTimeout(flushModifiedFiles, TIMEOUTS.FILE_OPERATION_DELAY);
+                return;
+            }
+
+            flushModifiedFiles();
+        };
+
+        const flushMetadataChangedFiles = () => {
+            pendingMetadataChangeFlushTimerId = null;
+            if (isProcessingMetadataChangeBatch) {
+                return;
+            }
+
+            runAsyncAction(async () => {
+                if (stoppedRef.current) {
+                    pendingMetadataChangedFiles.clear();
+                    return;
+                }
+
+                const pendingFiles = Array.from(pendingMetadataChangedFiles.values());
+                pendingMetadataChangedFiles.clear();
+                if (pendingFiles.length === 0) {
+                    return;
+                }
+
+                const files = resolveLiveFiles(pendingFiles).filter(file => file.extension === 'md' && !isDebugLogPath(file.path));
+                if (files.length === 0) {
+                    return;
+                }
+
+                const liveSettings = latestSettingsRef.current;
+                const metadataDependentTypes = getMetadataDependentTypes(liveSettings);
+                let canQueueContentRefresh = true;
+
+                isProcessingMetadataChangeBatch = true;
+                try {
+                    if (metadataDependentTypes.length > 0) {
+                        // Obsidian's metadata cache can change after initial indexing even when file mtime did
+                        // not trigger a "modify" handler in the expected order. Mark files for regeneration so
+                        // metadata-dependent providers re-run against the updated cache snapshot.
+                        await markFilesForRegeneration(files);
+                    }
+                } catch (error: unknown) {
+                    canQueueContentRefresh = false;
+                    console.error('Failed to mark files for regeneration:', error);
+                } finally {
+                    isProcessingMetadataChangeBatch = false;
+                }
+
+                if (canQueueContentRefresh) {
+                    queueFilesContentRefresh(files);
+                }
+
+                if (pendingMetadataChangedFiles.size > 0 && !stoppedRef.current) {
+                    scheduleMetadataChangedFilesFlush();
+                }
+            });
+        };
+
+        const scheduleMetadataChangedFilesFlush = () => {
+            if (stoppedRef.current || isProcessingMetadataChangeBatch || pendingMetadataChangeFlushTimerId !== null) {
+                return;
+            }
+
+            if (typeof window !== 'undefined') {
+                pendingMetadataChangeFlushTimerId = window.setTimeout(flushMetadataChangedFiles, TIMEOUTS.FILE_OPERATION_DELAY);
+                return;
+            }
+
+            flushMetadataChangedFiles();
         };
 
         const notifyDrawingCompanionChange = (imagePath: string) => {
@@ -446,19 +612,8 @@ export function useStorageVaultSync(params: {
                 return;
             }
 
-            runAsyncAction(async () => {
-                try {
-                    const db = getDBInstance();
-                    const existingData = db.getFiles([file.path]);
-                    await recordFileChanges([file], existingData, pendingRenameDataRef.current);
-                } catch (error: unknown) {
-                    console.error('Failed to record file change on modify:', error);
-                    return;
-                }
-
-                // Content generation can depend on metadata cache readiness, so always go through the queue helpers.
-                queueFileContentRefresh(file);
-            });
+            pendingModifiedFiles.set(file.path, file);
+            scheduleModifiedFilesFlush();
         };
 
         const handleCreateOrDelete = (file: TAbstractFile) => {
@@ -487,23 +642,8 @@ export function useStorageVaultSync(params: {
                 return;
             }
 
-            runAsyncAction(async () => {
-                const liveSettings = latestSettingsRef.current;
-                const metadataDependentTypes = getMetadataDependentTypes(liveSettings);
-                if (metadataDependentTypes.length > 0) {
-                    try {
-                        // Obsidian's metadata cache can change after initial indexing even when the file mtime did
-                        // not trigger a "modify" handler in the expected order. Mark the file for regeneration so
-                        // metadata-dependent providers re-run against the updated cache snapshot.
-                        await markFilesForRegeneration([file]);
-                    } catch (error: unknown) {
-                        console.error('Failed to mark file for regeneration:', error);
-                        return;
-                    }
-                }
-
-                queueFileContentRefresh(file);
-            });
+            pendingMetadataChangedFiles.set(file.path, file);
+            scheduleMetadataChangedFilesFlush();
         };
 
         const metadataEvent = app.metadataCache.on('changed', handleMetadataChange);
@@ -522,6 +662,10 @@ export function useStorageVaultSync(params: {
                 }
                 pendingSyncTimeoutIdRef.current = null;
             }
+            clearPendingModifyFlushTimer();
+            pendingModifiedFiles.clear();
+            clearPendingMetadataChangeFlushTimer();
+            pendingMetadataChangedFiles.clear();
 
             // Clears debouncers and pending waits so no background work continues after teardown.
             cancelTagTreeRebuildDebouncer({ reset: true });

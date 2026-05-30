@@ -88,7 +88,8 @@ const RELEASE_NOTES: ReleaseNote[] = [
             '**List pane.** Added a new setting to List pane > Pinned notes > ==Show pinned section icon==. Enable if you want to see an icon next to "Pinned" group header. As with other icons, this can be changed to any icon in Settings > Appearance & behavior > Interface icons.',
             '**List pane.** Added ==Show subfolder paths== in List pane > Group headers. Disable it to show only folder names when grouping by folder.'
         ],
-        improved: ['**List pane.** Folder group header path segments are now clickable when subfolder paths are shown.']
+        improved: ['**List pane.** Folder group header path segments are now clickable when subfolder paths are shown.'],
+        fixed: ['**Storage.** Fixed repeated content refreshes during large vault change bursts.']
     },
     {
         version: '3.0.2',
