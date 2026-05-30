@@ -501,6 +501,7 @@ export const STRINGS_KO = {
                 'list-sort-property': '속성으로 정렬',
                 'list-appearance': '모양 변경',
                 'list-new-note': '새 노트',
+                'list-pinned': '고정된 노트',
                 'nav-folder-open': '열린 폴더',
                 'nav-folder-closed': '닫힌 폴더',
                 'nav-tags': '태그',
@@ -1113,6 +1114,10 @@ export const STRINGS_KO = {
                 name: '노트를 해당 폴더에서만 고정',
                 desc: '고정된 노트는 자신의 폴더에서만 고정된 것으로 표시됩니다. 폴더 노트이거나 고정된 노트가 많을 때 유용합니다. 태그 또는 속성 보기에는 영향을 주지 않습니다.'
             },
+            showPinnedSectionIcon: {
+                name: '고정 섹션 아이콘 표시',
+                desc: '고정된 노트 섹션 옆에 아이콘을 표시합니다.'
+            },
             separateNoteCounts: {
                 name: '현재와 하위 노트 수를 별도로 표시',
                 desc: '폴더와 태그의 노트 수를 "현재 ▾ 하위" 형식으로 표시합니다.'
@@ -1133,6 +1138,10 @@ export const STRINGS_KO = {
             stickyGroupHeaders: {
                 name: '그룹 헤더 고정',
                 desc: '스크롤하는 동안 현재 날짜, 폴더 또는 고정된 섹션 헤더를 계속 표시합니다.'
+            },
+            showFolderGroupPaths: {
+                name: '하위 폴더 경로 표시',
+                desc: '목록 창에서 폴더별로 그룹화할 때 폴더 이름만 표시하는 대신 하위 폴더 경로를 표시합니다.'
             },
             defaultListMode: {
                 name: '기본 목록 모드',

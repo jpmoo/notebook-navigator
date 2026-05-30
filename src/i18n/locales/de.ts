@@ -504,6 +504,7 @@ export const STRINGS_DE = {
                 'list-sort-property': 'Nach Eigenschaft sortieren',
                 'list-appearance': 'Darstellung ändern',
                 'list-new-note': 'Neue Notiz',
+                'list-pinned': 'Angeheftete Notizen',
                 'nav-folder-open': 'Ordner geöffnet',
                 'nav-folder-closed': 'Ordner geschlossen',
                 'nav-tags': 'Tags',
@@ -1118,6 +1119,10 @@ export const STRINGS_DE = {
                 name: 'Notizen nur in ihrem Ordner anheften',
                 desc: 'Angeheftete Notizen erscheinen nur in ihrem eigenen Ordner als angeheftet. Nützlich für Ordnernotizen oder bei vielen angehefteten Notizen. Hat keinen Einfluss auf Tag- oder Eigenschaftsansichten.'
             },
+            showPinnedSectionIcon: {
+                name: 'Symbol für angehefteten Bereich anzeigen',
+                desc: 'Zeigt ein Symbol neben dem Bereich für angeheftete Notizen an.'
+            },
             separateNoteCounts: {
                 name: 'Aktuelle und Nachkommen-Notizanzahl getrennt anzeigen',
                 desc: 'Zeigt Notizanzahl als "aktuell ▾ Nachkommen" Format in Ordnern und Tags.'
@@ -1138,6 +1143,10 @@ export const STRINGS_DE = {
             stickyGroupHeaders: {
                 name: 'Gruppenüberschriften fixieren',
                 desc: 'Hält die aktuelle Datums-, Ordner- oder Anheftbereichsüberschrift beim Scrollen sichtbar.'
+            },
+            showFolderGroupPaths: {
+                name: 'Unterordnerpfade anzeigen',
+                desc: 'Beim Gruppieren nach Ordner im Listenbereich Unterordnerpfade statt nur Ordnernamen anzeigen.'
             },
             defaultListMode: {
                 name: 'Standardmodus für Listen',

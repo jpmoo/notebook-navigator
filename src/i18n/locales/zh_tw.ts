@@ -501,6 +501,7 @@ export const STRINGS_ZH_TW = {
                 'list-sort-property': '依屬性排序',
                 'list-appearance': '變更外觀',
                 'list-new-note': '新建筆記',
+                'list-pinned': '釘選筆記',
                 'nav-folder-open': '資料夾開啟',
                 'nav-folder-closed': '資料夾關閉',
                 'nav-tags': '標籤',
@@ -1103,6 +1104,10 @@ export const STRINGS_ZH_TW = {
                 name: '僅在筆記所在資料夾中釘選',
                 desc: '釘選筆記僅在其所在資料夾中顯示為已釘選。適用於資料夾筆記或釘選筆記較多的情況。不影響標籤或屬性檢視。'
             },
+            showPinnedSectionIcon: {
+                name: '顯示釘選區段圖示',
+                desc: '在釘選筆記區段旁顯示圖示。'
+            },
             separateNoteCounts: {
                 name: '分別顯示目前和後代筆記計數',
                 desc: '在資料夾和標籤中以「目前 ▾ 後代」格式顯示筆記計數。'
@@ -1123,6 +1128,10 @@ export const STRINGS_ZH_TW = {
             stickyGroupHeaders: {
                 name: '固定群組標題',
                 desc: '捲動時保持目前的日期、資料夾或釘選區段的標題可見。'
+            },
+            showFolderGroupPaths: {
+                name: '顯示子資料夾路徑',
+                desc: '在列表窗格中按資料夾分組時，顯示子資料夾路徑，而不是僅顯示資料夾名稱。'
             },
             defaultListMode: {
                 name: '預設列表模式',

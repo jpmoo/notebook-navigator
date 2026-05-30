@@ -504,6 +504,7 @@ export const STRINGS_ID = {
                 'list-sort-property': 'Urutkan berdasarkan properti',
                 'list-appearance': 'Ubah tampilan',
                 'list-new-note': 'Catatan baru',
+                'list-pinned': 'Catatan yang disematkan',
                 'nav-folder-open': 'Folder terbuka',
                 'nav-folder-closed': 'Folder tertutup',
                 'nav-tags': 'Tag',
@@ -1116,6 +1117,10 @@ export const STRINGS_ID = {
                 name: 'Sematkan catatan hanya di foldernya',
                 desc: 'Catatan yang disematkan hanya tampil disematkan di folder miliknya sendiri. Berguna untuk catatan folder atau jika Anda memiliki banyak catatan yang disematkan. Tidak memengaruhi tampilan tag atau properti.'
             },
+            showPinnedSectionIcon: {
+                name: 'Tampilkan ikon bagian yang disematkan',
+                desc: 'Menampilkan ikon di samping bagian catatan yang disematkan.'
+            },
             separateNoteCounts: {
                 name: 'Tampilkan jumlah catatan saat ini dan turunan secara terpisah',
                 desc: 'Tampilkan jumlah catatan sebagai format "saat ini ▾ turunan" di folder dan tag.'
@@ -1136,6 +1141,10 @@ export const STRINGS_ID = {
             stickyGroupHeaders: {
                 name: 'Header grup tetap',
                 desc: 'Jaga header bagian tanggal, folder, atau yang disematkan saat ini tetap terlihat saat menggulir.'
+            },
+            showFolderGroupPaths: {
+                name: 'Tampilkan jalur subfolder',
+                desc: 'Saat mengelompokkan berdasarkan folder di panel daftar, tampilkan jalur subfolder alih-alih hanya nama folder.'
             },
             defaultListMode: {
                 name: 'Mode daftar default',

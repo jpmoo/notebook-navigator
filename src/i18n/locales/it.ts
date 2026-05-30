@@ -503,6 +503,7 @@ export const STRINGS_IT = {
                 'list-sort-property': 'Ordina per proprietà',
                 'list-appearance': 'Cambia aspetto',
                 'list-new-note': 'Nuova nota',
+                'list-pinned': 'Note fissate',
                 'nav-folder-open': 'Cartella aperta',
                 'nav-folder-closed': 'Cartella chiusa',
                 'nav-tags': 'Tag',
@@ -1112,6 +1113,10 @@ export const STRINGS_IT = {
                 name: 'Fissare le note solo nella loro cartella',
                 desc: 'Le note fissate appaiono fissate solo nella propria cartella. Utile per le note cartella o se hai molte note fissate. Non influisce sulle viste per tag o proprietà.'
             },
+            showPinnedSectionIcon: {
+                name: 'Mostra icona sezione fissata',
+                desc: "Mostra un'icona accanto alla sezione delle note fissate."
+            },
             separateNoteCounts: {
                 name: 'Mostra conteggi note correnti e discendenti separatamente',
                 desc: 'Visualizza i conteggi note nel formato "correnti ▾ discendenti" in cartelle e tag.'
@@ -1132,6 +1137,10 @@ export const STRINGS_IT = {
             stickyGroupHeaders: {
                 name: 'Intestazioni di gruppo fisse',
                 desc: "Mantieni visibile l'intestazione corrente di data, cartella o sezione fissate mentre scorri."
+            },
+            showFolderGroupPaths: {
+                name: 'Mostra percorsi sottocartelle',
+                desc: 'Quando raggruppi per cartella nel pannello lista, mostra i percorsi delle sottocartelle invece dei soli nomi cartella.'
             },
             defaultListMode: {
                 name: 'Modalità lista predefinita',

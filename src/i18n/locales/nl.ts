@@ -506,6 +506,7 @@ export const STRINGS_NL = {
                 'list-sort-property': 'Sorteren op eigenschap',
                 'list-appearance': 'Uiterlijk wijzigen',
                 'list-new-note': 'Nieuwe notitie',
+                'list-pinned': 'Vastgezette notities',
                 'nav-folder-open': 'Map open',
                 'nav-folder-closed': 'Map gesloten',
                 'nav-tags': 'Tags',
@@ -1118,6 +1119,10 @@ export const STRINGS_NL = {
                 name: 'Notities alleen in hun map vastmaken',
                 desc: 'Vastgemaakte notities worden alleen als vastgemaakt weergegeven in hun eigen map. Handig voor mapnotities of als je veel vastgemaakte notities hebt. Heeft geen invloed op tag- of eigenschapweergaven.'
             },
+            showPinnedSectionIcon: {
+                name: 'Pictogram voor vastgezette sectie tonen',
+                desc: 'Toont een pictogram naast de sectie met vastgezette notities.'
+            },
             separateNoteCounts: {
                 name: 'Huidige en afstammeling-notitietellingen apart tonen',
                 desc: 'Notitietelingen weergeven in "huidig ▾ afstammelingen" formaat in mappen en tags.'
@@ -1138,6 +1143,10 @@ export const STRINGS_NL = {
             stickyGroupHeaders: {
                 name: 'Plakkerige groepskoppen',
                 desc: 'Houd de huidige datum-, map- of vastgepinde sectiekop zichtbaar tijdens het scrollen.'
+            },
+            showFolderGroupPaths: {
+                name: 'Submappaden tonen',
+                desc: 'Toont bij groeperen op map in het lijstpaneel submappaden in plaats van alleen mapnamen.'
             },
             defaultListMode: {
                 name: 'Standaard lijstmodus',

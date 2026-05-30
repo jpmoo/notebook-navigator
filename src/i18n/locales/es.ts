@@ -504,6 +504,7 @@ export const STRINGS_ES = {
                 'list-sort-property': 'Ordenar por propiedad',
                 'list-appearance': 'Cambiar apariencia',
                 'list-new-note': 'Nueva nota',
+                'list-pinned': 'Notas fijadas',
                 'nav-folder-open': 'Carpeta abierta',
                 'nav-folder-closed': 'Carpeta cerrada',
                 'nav-tags': 'Etiquetas',
@@ -1117,6 +1118,10 @@ export const STRINGS_ES = {
                 name: 'Fijar notas solo en su carpeta',
                 desc: 'Las notas fijadas aparecen fijadas solo en su propia carpeta. Útil para notas de carpeta o si tiene muchas notas fijadas. No afecta las vistas de etiquetas o propiedades.'
             },
+            showPinnedSectionIcon: {
+                name: 'Mostrar icono de la sección fijada',
+                desc: 'Muestra un icono junto a la sección de notas fijadas.'
+            },
             separateNoteCounts: {
                 name: 'Mostrar recuentos de notas actuales y descendientes por separado',
                 desc: 'Muestra el conteo de notas como formato "actual ▾ descendientes" en carpetas y etiquetas.'
@@ -1137,6 +1142,10 @@ export const STRINGS_ES = {
             stickyGroupHeaders: {
                 name: 'Encabezados de grupo fijos',
                 desc: 'Mantén visible el encabezado actual de fecha, carpeta o sección anclada al desplazarte.'
+            },
+            showFolderGroupPaths: {
+                name: 'Mostrar rutas de subcarpetas',
+                desc: 'Al agrupar por carpeta en el panel de lista, muestra rutas de subcarpetas en lugar de solo nombres de carpeta.'
             },
             defaultListMode: {
                 name: 'Modo de lista predeterminado',

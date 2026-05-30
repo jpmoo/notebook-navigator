@@ -501,6 +501,7 @@ export const STRINGS_ZH_CN = {
                 'list-sort-property': '按属性排序',
                 'list-appearance': '更改外观',
                 'list-new-note': '新建笔记',
+                'list-pinned': '固定笔记',
                 'nav-folder-open': '文件夹打开',
                 'nav-folder-closed': '文件夹关闭',
                 'nav-tags': '标签',
@@ -1103,6 +1104,10 @@ export const STRINGS_ZH_CN = {
                 name: '仅在笔记所在文件夹中固定',
                 desc: '固定笔记仅在其所在文件夹中显示为已固定。适用于文件夹笔记或固定笔记较多的情况。不影响标签或属性视图。'
             },
+            showPinnedSectionIcon: {
+                name: '显示固定部分图标',
+                desc: '在固定笔记部分旁显示图标。'
+            },
             separateNoteCounts: {
                 name: '分别显示当前和后代笔记计数',
                 desc: '在文件夹和标签中以"当前 ▾ 后代"格式显示笔记计数。'
@@ -1123,6 +1128,10 @@ export const STRINGS_ZH_CN = {
             stickyGroupHeaders: {
                 name: '固定分组标题',
                 desc: '滚动时保持当前日期、文件夹或固定部分的标题可见。'
+            },
+            showFolderGroupPaths: {
+                name: '显示子文件夹路径',
+                desc: '在列表窗格中按文件夹分组时，显示子文件夹路径，而不是仅显示文件夹名称。'
             },
             defaultListMode: {
                 name: '默认列表模式',

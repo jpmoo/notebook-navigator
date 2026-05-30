@@ -505,6 +505,7 @@ export const STRINGS_PT_BR = {
                 'list-sort-property': 'Classificar por propriedade',
                 'list-appearance': 'Alterar aparência',
                 'list-new-note': 'Nova nota',
+                'list-pinned': 'Notas fixadas',
                 'nav-folder-open': 'Pasta aberta',
                 'nav-folder-closed': 'Pasta fechada',
                 'nav-tags': 'Tags',
@@ -1118,6 +1119,10 @@ export const STRINGS_PT_BR = {
                 name: 'Fixar notas apenas na sua pasta',
                 desc: 'Notas fixadas aparecem fixadas apenas na sua própria pasta. Útil para notas de pasta ou se você tem muitas notas fixadas. Não afeta as visualizações de tags ou propriedades.'
             },
+            showPinnedSectionIcon: {
+                name: 'Mostrar ícone da seção fixada',
+                desc: 'Exibir um ícone ao lado da seção de notas fixadas.'
+            },
             separateNoteCounts: {
                 name: 'Mostrar contagens de notas atuais e descendentes separadamente',
                 desc: 'Exibir contagens de notas no formato "atual ▾ descendentes" em pastas e tags.'
@@ -1138,6 +1143,10 @@ export const STRINGS_PT_BR = {
             stickyGroupHeaders: {
                 name: 'Cabeçalhos de grupo fixos',
                 desc: 'Mantém o cabeçalho atual de data, pasta ou seção fixada visível ao rolar.'
+            },
+            showFolderGroupPaths: {
+                name: 'Mostrar caminhos das subpastas',
+                desc: 'Ao agrupar por pasta no painel de lista, exibir caminhos das subpastas em vez de apenas nomes de pastas.'
             },
             defaultListMode: {
                 name: 'Modo padrão da lista',

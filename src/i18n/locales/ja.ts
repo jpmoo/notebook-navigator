@@ -503,6 +503,7 @@ export const STRINGS_JA = {
                 'list-sort-property': 'プロパティで並べ替え',
                 'list-appearance': '外観を変更',
                 'list-new-note': '新規ノート',
+                'list-pinned': 'ピン留めされたノート',
                 'nav-folder-open': 'フォルダ（開）',
                 'nav-folder-closed': 'フォルダ（閉）',
                 'nav-tags': 'タグ',
@@ -1115,6 +1116,10 @@ export const STRINGS_JA = {
                 name: 'ノートを自身のフォルダーでのみ固定',
                 desc: '固定したノートは自身のフォルダーでのみ固定済みとして表示されます。フォルダーノートや固定ノートが多い場合に便利です。タグやプロパティビューには影響しません。'
             },
+            showPinnedSectionIcon: {
+                name: 'ピン留めセクションのアイコンを表示',
+                desc: 'ピン留めノートセクションの横にアイコンを表示します。'
+            },
             separateNoteCounts: {
                 name: '現在と子孫のノート数を個別に表示',
                 desc: 'フォルダとタグのノート数を「現在 ▾ 子孫」形式で表示します。'
@@ -1135,6 +1140,10 @@ export const STRINGS_JA = {
             stickyGroupHeaders: {
                 name: 'グループヘッダーを固定',
                 desc: 'スクロール中も現在の日付・フォルダ・ピン留めセクションのヘッダーを表示し続けます。'
+            },
+            showFolderGroupPaths: {
+                name: 'サブフォルダーのパスを表示',
+                desc: 'リストペインでフォルダー別にグループ化する場合、フォルダー名だけでなくサブフォルダーのパスを表示します。'
             },
             defaultListMode: {
                 name: 'リストのデフォルトモード',

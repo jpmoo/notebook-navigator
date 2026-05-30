@@ -503,6 +503,7 @@ export const STRINGS_VI = {
                 'list-sort-property': 'Sắp xếp theo thuộc tính',
                 'list-appearance': 'Thay đổi giao diện',
                 'list-new-note': 'Ghi chú mới',
+                'list-pinned': 'Ghi chú đã ghim',
                 'nav-folder-open': 'Thư mục mở',
                 'nav-folder-closed': 'Thư mục đóng',
                 'nav-tags': 'Thẻ',
@@ -1117,6 +1118,10 @@ export const STRINGS_VI = {
                 name: 'Chỉ ghim ghi chú trong thư mục của nó',
                 desc: 'Ghi chú đã ghim chỉ hiển thị là đã ghim trong thư mục riêng của nó. Hữu ích cho ghi chú thư mục hoặc nếu bạn có nhiều ghi chú đã ghim. Không ảnh hưởng đến chế độ xem thẻ hoặc thuộc tính.'
             },
+            showPinnedSectionIcon: {
+                name: 'Hiện biểu tượng mục đã ghim',
+                desc: 'Hiển thị biểu tượng bên cạnh mục ghi chú đã ghim.'
+            },
             separateNoteCounts: {
                 name: 'Hiện số lượng ghi chú hiện tại và con riêng biệt',
                 desc: 'Hiển thị số lượng ghi chú theo định dạng "hiện tại ▾ con" trong thư mục và thẻ.'
@@ -1137,6 +1142,10 @@ export const STRINGS_VI = {
             stickyGroupHeaders: {
                 name: 'Header nhóm cố định',
                 desc: 'Giữ header phần ngày, thư mục hoặc đã ghim hiện tại hiển thị khi cuộn.'
+            },
+            showFolderGroupPaths: {
+                name: 'Hiện đường dẫn thư mục con',
+                desc: 'Khi nhóm theo thư mục trong ngăn danh sách, hiển thị đường dẫn thư mục con thay vì chỉ tên thư mục.'
             },
             defaultListMode: {
                 name: 'Chế độ danh sách mặc định',
