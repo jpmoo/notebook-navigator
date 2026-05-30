@@ -149,6 +149,7 @@ const BOOLEAN_SETTING_KEYS = [
     'showWordCountPercentage',
     'showSelectedNavigationPills',
     'stickyGroupHeaders',
+    'showFolderGroupPaths',
     'confirmBeforeManualSort',
     'filterPinnedByFolder',
     'showPinnedSectionIcon',

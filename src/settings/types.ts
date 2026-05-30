@@ -608,6 +608,7 @@ export interface NotebookNavigatorSettings {
     noteGrouping: ListNoteGroupingOption;
     showSelectedNavigationPills: boolean;
     stickyGroupHeaders: boolean;
+    showFolderGroupPaths: boolean;
     filterPinnedByFolder: boolean;
     showPinnedSectionIcon: boolean;
     compactItemHeight: number;

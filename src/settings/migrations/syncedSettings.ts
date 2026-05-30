@@ -522,6 +522,10 @@ export function applyExistingUserDefaults(params: { settings: NotebookNavigatorS
     if (typeof settings.showWordCountPercentage !== 'boolean') {
         settings.showWordCountPercentage = false;
     }
+
+    if (typeof settings.showFolderGroupPaths !== 'boolean') {
+        settings.showFolderGroupPaths = DEFAULT_SETTINGS.showFolderGroupPaths;
+    }
 }
 
 // Extracts legacy top-level propertyFields for migration into vault profiles.

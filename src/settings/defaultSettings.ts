@@ -296,6 +296,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     noteGrouping: 'date',
     showSelectedNavigationPills: false,
     stickyGroupHeaders: true,
+    showFolderGroupPaths: true,
     filterPinnedByFolder: false,
     showPinnedSectionIcon: false,
     compactItemHeight: LISTPANE_MEASUREMENTS.defaultCompactItemHeight,

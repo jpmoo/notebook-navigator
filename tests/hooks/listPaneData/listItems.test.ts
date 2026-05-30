@@ -54,6 +54,7 @@ function createListConfig(pinnedNotes: ListPaneConfig['pinnedNotes']): ListPaneC
         groupBy: DEFAULT_SETTINGS.noteGrouping,
         pinnedGroupExpanded: true,
         pinnedNotes,
+        showFolderGroupPaths: DEFAULT_SETTINGS.showFolderGroupPaths,
         showFileTags: false,
         showTags: false
     };
@@ -123,6 +124,17 @@ function getFolderHeaderItems(
             folderPath: item.headerFolderPath ?? null,
             collapseKey: item.collapseKey ?? null,
             groupFilePaths: item.groupFilePaths ?? []
+        }));
+}
+
+function getFolderHeaderSegmentItems(
+    items: ReturnType<typeof buildListItems>
+): { data: string; segments: { label: string; path: string }[] }[] {
+    return items
+        .filter(item => item.type === ListPaneItemType.HEADER && item.headerKind === 'folder' && typeof item.data === 'string')
+        .map(item => ({
+            data: item.data as string,
+            segments: item.headerFolderSegments ?? []
         }));
 }
 
@@ -279,6 +291,19 @@ describe('buildListItems pinned display scope', () => {
             { path: childFile.path, isPinned: false },
             { path: grandchildFile.path, isPinned: false }
         ]);
+        expect(getFolderHeaderSegmentItems(items)).toEqual([
+            {
+                data: 'Child Folder',
+                segments: [{ label: 'Child Folder', path: 'Folder 1/Child Folder' }]
+            },
+            {
+                data: 'Child Folder/Grandchild Folder',
+                segments: [
+                    { label: 'Child Folder', path: 'Folder 1/Child Folder' },
+                    { label: 'Grandchild Folder', path: 'Folder 1/Child Folder/Grandchild Folder' }
+                ]
+            }
+        ]);
     });
 
     it('uses full relative folder labels when the selected folder is the vault root', () => {
@@ -319,6 +344,107 @@ describe('buildListItems pinned display scope', () => {
                 folderPath: 'Alpha/Beta',
                 collapseKey: createCollapseKey('folder', 'folder:/Alpha/Beta'),
                 groupFilePaths: [grandchildFile.path]
+            }
+        ]);
+        expect(getFolderHeaderSegmentItems(items)).toEqual([
+            {
+                data: 'Alpha',
+                segments: [{ label: 'Alpha', path: 'Alpha' }]
+            },
+            {
+                data: 'Alpha/Beta',
+                segments: [
+                    { label: 'Alpha', path: 'Alpha' },
+                    { label: 'Beta', path: 'Alpha/Beta' }
+                ]
+            }
+        ]);
+    });
+
+    it('uses folder name labels when folder group paths are disabled', () => {
+        const app = createApp();
+        const childFile = assignParent(createTestTFile('Alpha/one.md'), 'Alpha');
+        const grandchildFile = assignParent(createTestTFile('Alpha/Beta/two.md'), 'Alpha/Beta');
+        const db = createDb({
+            [childFile.path]: { tags: null, properties: null },
+            [grandchildFile.path]: { tags: null, properties: null }
+        });
+
+        const items = buildListItems({
+            app,
+            dayKey: '2026-03-07',
+            fileVisibility: FILE_VISIBILITY.DOCUMENTS,
+            files: [childFile, grandchildFile],
+            getDB: () => db,
+            getFileTimestamps: () => ({ created: 0, modified: 0 }),
+            hiddenFileState: new Map(),
+            hiddenTags: [],
+            listConfig: { ...createListConfig({}), groupBy: 'folder', showFolderGroupPaths: false },
+            searchMetaMap: new Map(),
+            selectedFolder: createFolder('/'),
+            selectionType: ItemType.FOLDER,
+            showHiddenItems: false,
+            sortOption: 'alphabetical-asc'
+        });
+
+        expect(getFolderHeaderItems(items)).toEqual([
+            {
+                data: 'Alpha',
+                folderPath: 'Alpha',
+                collapseKey: createCollapseKey('folder', 'folder:/Alpha'),
+                groupFilePaths: [childFile.path]
+            },
+            {
+                data: 'Beta',
+                folderPath: 'Alpha/Beta',
+                collapseKey: createCollapseKey('folder', 'folder:/Alpha/Beta'),
+                groupFilePaths: [grandchildFile.path]
+            }
+        ]);
+        expect(getFolderHeaderSegmentItems(items)).toEqual([
+            { data: 'Alpha', segments: [] },
+            { data: 'Beta', segments: [] }
+        ]);
+    });
+
+    it('keeps folder group ordering based on paths when folder group paths are disabled', () => {
+        const app = createApp();
+        const zetaFile = assignParent(createTestTFile('A/Zeta/one.md'), 'A/Zeta');
+        const alphaFile = assignParent(createTestTFile('B/Alpha/two.md'), 'B/Alpha');
+        const db = createDb({
+            [zetaFile.path]: { tags: null, properties: null },
+            [alphaFile.path]: { tags: null, properties: null }
+        });
+
+        const items = buildListItems({
+            app,
+            dayKey: '2026-03-07',
+            fileVisibility: FILE_VISIBILITY.DOCUMENTS,
+            files: [zetaFile, alphaFile],
+            getDB: () => db,
+            getFileTimestamps: () => ({ created: 0, modified: 0 }),
+            hiddenFileState: new Map(),
+            hiddenTags: [],
+            listConfig: { ...createListConfig({}), groupBy: 'folder', showFolderGroupPaths: false },
+            searchMetaMap: new Map(),
+            selectedFolder: createFolder('/'),
+            selectionType: ItemType.FOLDER,
+            showHiddenItems: false,
+            sortOption: 'alphabetical-asc'
+        });
+
+        expect(getFolderHeaderItems(items)).toEqual([
+            {
+                data: 'Zeta',
+                folderPath: 'A/Zeta',
+                collapseKey: createCollapseKey('folder', 'folder:/A/Zeta'),
+                groupFilePaths: [zetaFile.path]
+            },
+            {
+                data: 'Alpha',
+                folderPath: 'B/Alpha',
+                collapseKey: createCollapseKey('folder', 'folder:/B/Alpha'),
+                groupFilePaths: [alphaFile.path]
             }
         ]);
     });

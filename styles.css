@@ -4775,6 +4775,21 @@ button.nn-navigation-calendar-day {
     font-weight: var(--nn-theme-navitem-custom-color-name-font-weight);
 }
 
+.nn-list-group-header-path {
+    display: inline-flex;
+    align-items: center;
+}
+
+.nn-list-group-header-folder-segment {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nn-list-group-header-path-separator {
+    flex: 0 0 auto;
+}
+
 button.nn-list-group-header-collapse-button {
     display: inline-flex;
     align-items: center;

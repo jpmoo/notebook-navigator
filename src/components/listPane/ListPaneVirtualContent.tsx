@@ -58,6 +58,12 @@ interface FolderGroupHeaderTarget {
     folderNote: TFile | null;
 }
 
+interface FolderGroupHeaderSegment {
+    label: string;
+    path: string;
+    target: FolderGroupHeaderTarget | null;
+}
+
 interface HeaderRenderModel {
     index: number;
     label: string;
@@ -69,6 +75,7 @@ interface HeaderRenderModel {
     isCollapsible: boolean;
     folderGroupHeaderTarget: FolderGroupHeaderTarget | null;
     folderGroupHeaderPath: string | null;
+    folderGroupHeaderSegments: FolderGroupHeaderSegment[];
     groupFilePaths: string[];
     manualSortHeaderFilePath: string | null;
     manualSortHeader: ManualSortGroupHeaderData | null;
@@ -244,7 +251,8 @@ function ListPaneGroupHeader({
 }: ListPaneGroupHeaderProps) {
     const folderGroupHeaderTarget = header.folderGroupHeaderTarget;
     const manualSortHeader = header.manualSortHeader;
-    const isClickableFolderGroupHeader = Boolean(folderGroupHeaderTarget) && !header.isPinnedHeader;
+    const hasFolderPathSegments = header.folderGroupHeaderSegments.length > 0;
+    const isClickableFolderGroupHeader = Boolean(folderGroupHeaderTarget) && !header.isPinnedHeader && !hasFolderPathSegments;
     const hasManualSortGoal =
         manualSortHeader !== null && shouldShowManualSortGroupHeaderProgress(manualSortHeader, header.manualSortHeaderTargetWordCount);
     const folderColor = header.folderColor ?? undefined;
@@ -272,6 +280,51 @@ function ListPaneGroupHeader({
         headerClasses.push('nn-list-group-header--manual-sort');
     }
     const handleContextMenu = (event: React.MouseEvent<HTMLDivElement>) => onGroupHeaderContextMenu(event, header);
+    const textClassName = `nn-list-group-header-text ${
+        isClickableFolderGroupHeader ? 'nn-list-group-header-text--folder-note' : ''
+    } ${header.applyFolderColorToLabel ? 'nn-list-group-header-text--custom-color' : ''}`;
+    const folderPathClassName = `${textClassName} nn-list-group-header-path`;
+    const renderFolderGroupHeaderText = () => {
+        if (hasFolderPathSegments) {
+            return (
+                <span className={folderPathClassName} style={folderLabelStyle}>
+                    {header.folderGroupHeaderSegments.map((segment, index) => {
+                        const segmentTarget = segment.target;
+                        const segmentClassName = `nn-list-group-header-folder-segment ${
+                            segmentTarget ? 'nn-list-group-header-text--folder-note' : ''
+                        }`;
+                        return (
+                            <React.Fragment key={segment.path}>
+                                {index > 0 ? (
+                                    <span className="nn-list-group-header-path-separator" aria-hidden="true">
+                                        /
+                                    </span>
+                                ) : null}
+                                <span
+                                    className={segmentClassName}
+                                    onClick={segmentTarget ? event => onFolderGroupHeaderClick(event, segmentTarget) : undefined}
+                                    onMouseDown={segmentTarget ? event => onFolderGroupHeaderMouseDown(event, segmentTarget) : undefined}
+                                >
+                                    {segment.label}
+                                </span>
+                            </React.Fragment>
+                        );
+                    })}
+                </span>
+            );
+        }
+
+        return (
+            <span
+                className={textClassName}
+                style={folderLabelStyle}
+                onClick={folderGroupHeaderTarget ? event => onFolderGroupHeaderClick(event, folderGroupHeaderTarget) : undefined}
+                onMouseDown={folderGroupHeaderTarget ? event => onFolderGroupHeaderMouseDown(event, folderGroupHeaderTarget) : undefined}
+            >
+                {header.label}
+            </span>
+        );
+    };
 
     const headerRow = (
         <div className={headerClasses.join(' ')} onContextMenu={hasManualSortGoal ? undefined : handleContextMenu}>
@@ -299,18 +352,7 @@ function ListPaneGroupHeader({
                             style={folderIconStyle}
                         />
                     ) : null}
-                    <span
-                        className={`nn-list-group-header-text ${
-                            isClickableFolderGroupHeader ? 'nn-list-group-header-text--folder-note' : ''
-                        } ${header.applyFolderColorToLabel ? 'nn-list-group-header-text--custom-color' : ''}`}
-                        style={folderLabelStyle}
-                        onClick={folderGroupHeaderTarget ? event => onFolderGroupHeaderClick(event, folderGroupHeaderTarget) : undefined}
-                        onMouseDown={
-                            folderGroupHeaderTarget ? event => onFolderGroupHeaderMouseDown(event, folderGroupHeaderTarget) : undefined
-                        }
-                    >
-                        {header.label}
-                    </span>
+                    {renderFolderGroupHeaderText()}
                 </>
             )}
             {header.isCollapsible ? (
@@ -442,12 +484,7 @@ export function ListPaneVirtualContent({
     const folderGroupHeaderTargets = useMemo(() => {
         const targets = new Map<string, FolderGroupHeaderTarget>();
 
-        listItems.forEach(item => {
-            if (item.type !== ListPaneItemType.HEADER) {
-                return;
-            }
-
-            const folderPath = item.headerFolderPath;
+        const addTarget = (folderPath: string | null | undefined) => {
             if (!folderPath || targets.has(folderPath)) {
                 return;
             }
@@ -467,6 +504,17 @@ export function ListPaneVirtualContent({
                     : null;
 
             targets.set(folderPath, { folder, folderNote });
+        };
+
+        listItems.forEach(item => {
+            if (item.type !== ListPaneItemType.HEADER) {
+                return;
+            }
+
+            addTarget(item.headerFolderPath);
+            item.headerFolderSegments?.forEach(segment => {
+                addTarget(segment.path);
+            });
         });
 
         return targets;
@@ -502,6 +550,14 @@ export function ListPaneVirtualContent({
             const manualSortHeader = item.headerKind === 'manual-sort-custom' ? (item.manualSortHeader ?? null) : null;
             const baseLabel = manualSortHeader?.title ?? item.data;
             const folderGroupDecorationPath = item.headerKind === 'folder' ? (headerFolderPath ?? '/') : null;
+            const folderGroupHeaderSegments =
+                item.headerKind === 'folder' && settings.showFolderGroupPaths
+                    ? (item.headerFolderSegments ?? []).map(segment => ({
+                          label: segment.label,
+                          path: segment.path,
+                          target: folderGroupHeaderTargets.get(segment.path) ?? null
+                      }))
+                    : [];
             let folderIconId: string | null = null;
             let folderColor: string | null = null;
             const shouldResolveFolderIcon = settings.showFolderIcons;
@@ -542,6 +598,7 @@ export function ListPaneVirtualContent({
                 isCollapsible: isPinnedHeader || collapseKey !== null,
                 folderGroupHeaderTarget: headerFolderPath !== null ? (folderGroupHeaderTargets.get(headerFolderPath) ?? null) : null,
                 folderGroupHeaderPath: item.headerKind === 'folder' ? (headerFolderPath ?? '/') : null,
+                folderGroupHeaderSegments,
                 groupFilePaths: item.groupFilePaths ?? [],
                 manualSortHeaderFilePath: item.headerKind === 'manual-sort-custom' ? (item.manualSortHeaderFilePath ?? null) : null,
                 manualSortHeader,
@@ -566,6 +623,7 @@ export function ListPaneVirtualContent({
         metadataService,
         pinnedGroupExpanded,
         settings.colorIconOnly,
+        settings.showFolderGroupPaths,
         settings.interfaceIcons,
         settings.showFolderIcons
     ]);
