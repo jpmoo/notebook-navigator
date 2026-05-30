@@ -92,6 +92,8 @@ interface ListPaneGroupHeaderProps {
         collapsed: string;
         expanded: string;
     };
+    pinnedSectionIcon: string;
+    showPinnedSectionIcon: boolean;
     onPinnedGroupHeaderToggle: () => void;
     onListGroupHeaderToggle: (collapseKey: string) => void;
     onFolderGroupHeaderClick: (event: React.MouseEvent<HTMLSpanElement>, target: FolderGroupHeaderTarget) => void;
@@ -232,6 +234,8 @@ function shouldHideManualSortGoalHeaderSeparator(header: HeaderRenderModel | nul
 function ListPaneGroupHeader({
     header,
     collapseChevronIcons,
+    pinnedSectionIcon,
+    showPinnedSectionIcon,
     onPinnedGroupHeaderToggle,
     onListGroupHeaderToggle,
     onFolderGroupHeaderClick,
@@ -279,7 +283,14 @@ function ListPaneGroupHeader({
                 />
             ) : (
                 <>
-                    {header.folderIconId ? (
+                    {header.isPinnedHeader && showPinnedSectionIcon ? (
+                        <ServiceIcon
+                            iconId={pinnedSectionIcon}
+                            className="nn-list-group-header-icon nn-pinned-section-icon"
+                            aria-hidden={true}
+                        />
+                    ) : null}
+                    {!header.isPinnedHeader && header.folderIconId ? (
                         <ServiceIcon
                             iconId={header.folderIconId}
                             className="nn-list-group-header-icon nn-list-group-header-folder-icon"
@@ -418,6 +429,7 @@ export function ListPaneVirtualContent({
         }),
         [settings.interfaceIcons]
     );
+    const pinnedSectionIcon = useMemo(() => resolveUXIcon(settings.interfaceIcons, 'list-pinned'), [settings.interfaceIcons]);
     const manualSortGroupHeaderPropertyKey = useMemo(
         () =>
             getManualSortGroupHeaderPropertyKey({
@@ -735,6 +747,8 @@ export function ListPaneVirtualContent({
                     <ListPaneGroupHeader
                         header={stickyHeader}
                         collapseChevronIcons={collapseChevronIcons}
+                        pinnedSectionIcon={pinnedSectionIcon}
+                        showPinnedSectionIcon={settings.showPinnedSectionIcon}
                         onPinnedGroupHeaderToggle={onPinnedGroupHeaderToggle}
                         onListGroupHeaderToggle={onListGroupHeaderToggle}
                         onFolderGroupHeaderClick={handleFolderGroupHeaderClick}
@@ -861,6 +875,8 @@ export function ListPaneVirtualContent({
                                         <ListPaneGroupHeader
                                             header={headerModel}
                                             collapseChevronIcons={collapseChevronIcons}
+                                            pinnedSectionIcon={pinnedSectionIcon}
+                                            showPinnedSectionIcon={settings.showPinnedSectionIcon}
                                             onPinnedGroupHeaderToggle={onPinnedGroupHeaderToggle}
                                             onListGroupHeaderToggle={onListGroupHeaderToggle}
                                             onFolderGroupHeaderClick={handleFolderGroupHeaderClick}

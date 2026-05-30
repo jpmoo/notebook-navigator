@@ -297,6 +297,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     showSelectedNavigationPills: false,
     stickyGroupHeaders: true,
     filterPinnedByFolder: false,
+    showPinnedSectionIcon: false,
     compactItemHeight: LISTPANE_MEASUREMENTS.defaultCompactItemHeight,
     compactItemHeightScaleText: true,
     showQuickActions: true,

@@ -502,6 +502,7 @@ export const STRINGS_EN = {
                 'list-sort-property': 'Sort by property',
                 'list-appearance': 'Change appearance',
                 'list-new-note': 'New note',
+                'list-pinned': 'Pinned notes',
                 'nav-folder-open': 'Folder open',
                 'nav-folder-closed': 'Folder closed',
                 'nav-tags': 'Tags',
@@ -1109,6 +1110,10 @@ export const STRINGS_EN = {
             limitPinnedToCurrentFolder: {
                 name: 'Only pin notes in their folder',
                 desc: 'Pinned notes appear pinned only in their own folder. Useful for folder notes or if you have many pinned notes. Does not affect tag or property views.'
+            },
+            showPinnedSectionIcon: {
+                name: 'Show pinned section icon',
+                desc: 'Display an icon next to the pinned notes section.'
             },
             separateNoteCounts: {
                 name: 'Show current and descendant note counts separately',

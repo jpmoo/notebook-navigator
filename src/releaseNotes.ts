@@ -81,6 +81,12 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
+        version: '3.0.3',
+        date: '2026-06-08',
+        showOnUpdate: true,
+        new: ['**List pane.** Added a new setting to List pane > Pinned notes > ==Show pinned section icon==. Enable if you want to see an icon next to "Pinned" group header. As with other icons, this can be changed to any icon in Settings > Appearance & behavior > Interface icons.']
+    },
+    {
         version: '3.0.2',
         date: '2026-05-29',
         showOnUpdate: true,

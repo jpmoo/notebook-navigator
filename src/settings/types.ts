@@ -609,6 +609,7 @@ export interface NotebookNavigatorSettings {
     showSelectedNavigationPills: boolean;
     stickyGroupHeaders: boolean;
     filterPinnedByFolder: boolean;
+    showPinnedSectionIcon: boolean;
     compactItemHeight: number;
     compactItemHeightScaleText: boolean;
     showQuickActions: boolean;

@@ -151,6 +151,7 @@ const BOOLEAN_SETTING_KEYS = [
     'stickyGroupHeaders',
     'confirmBeforeManualSort',
     'filterPinnedByFolder',
+    'showPinnedSectionIcon',
     'revealFileOnListChanges',
     'hideDrawingPreviewImages',
     'showNoteCount',

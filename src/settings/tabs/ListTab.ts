@@ -162,6 +162,10 @@ export function createListPaneSettingDefinitions(context: SettingsTabContext): S
             createToggleDefinition('filterPinnedByFolder', {
                 name: strings.settings.items.limitPinnedToCurrentFolder.name,
                 desc: strings.settings.items.limitPinnedToCurrentFolder.desc
+            }),
+            createToggleDefinition('showPinnedSectionIcon', {
+                name: strings.settings.items.showPinnedSectionIcon.name,
+                desc: strings.settings.items.showPinnedSectionIcon.desc
             })
         ]),
         createListAppearanceDefinitionGroup(context),

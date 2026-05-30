@@ -23,6 +23,7 @@ describe('resolveUXIcon', () => {
         expect(resolveUXIcon(undefined, 'list-search')).toBe('search');
         expect(resolveUXIcon(undefined, 'nav-tags')).toBe('tags');
         expect(resolveUXIcon(undefined, 'nav-tag')).toBe('tag');
+        expect(resolveUXIcon(undefined, 'list-pinned')).toBe('pin');
         expect(resolveUXIcon(undefined, 'file-unfinished-task')).toBe('circle-alert');
     });
 
