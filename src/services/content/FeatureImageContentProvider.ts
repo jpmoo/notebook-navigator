@@ -75,7 +75,6 @@ const SUPPORTED_IMAGE_MIME_TYPES = new Set([
     'image/png',
     'image/gif',
     'image/webp',
-    'image/svg+xml',
     'image/avif',
     'image/heic',
     'image/heif',
@@ -88,7 +87,6 @@ const MIME_TYPE_BY_EXTENSION: Record<string, string> = {
     png: 'image/png',
     gif: 'image/gif',
     webp: 'image/webp',
-    svg: 'image/svg+xml',
     avif: 'image/avif',
     heic: 'image/heic',
     heif: 'image/heif',
@@ -98,6 +96,10 @@ const MIME_TYPE_BY_EXTENSION: Record<string, string> = {
 type ImageBuffer = { buffer: ArrayBuffer; mimeType: string };
 
 type ThumbnailSourceKind = 'local' | 'external';
+
+type ExternalImagePreflight = {
+    mimeType: string;
+};
 
 export type FeatureImageThumbnailRuntime = {
     externalRequestLimiter: ReturnType<typeof createRenderLimiter>;
@@ -493,6 +495,11 @@ export class FeatureImageContentProvider extends BaseContentProvider {
 
         return await this.getOrCreateDownload(`ext:${trimmedUrl}`, async () => {
             try {
+                const preflight = await this.preflightExternalImage(trimmedUrl);
+                if (!preflight) {
+                    return null;
+                }
+
                 const response = await this.requestUrlWithTimeout(
                     {
                         url: trimmedUrl,
@@ -509,15 +516,7 @@ export class FeatureImageContentProvider extends BaseContentProvider {
                 // Determine the image type from the response headers.
                 // iOS can return `Content-Type` instead of `content-type`, so use a case-insensitive lookup.
                 const contentTypeHeader = this.getHeaderValue(response.headers, 'content-type');
-                if (!contentTypeHeader) {
-                    this.thumbnailRuntime.logOnce(
-                        `featureImage-external-missing-content-type:${trimmedUrl}`,
-                        `[${trimmedUrl}] Skipping external image - missing Content-Type header`
-                    );
-                    return null;
-                }
-
-                const mimeType = this.getMimeTypeFromContentType(contentTypeHeader);
+                const mimeType = contentTypeHeader ? this.getMimeTypeFromContentType(contentTypeHeader) : preflight.mimeType;
                 if (!mimeType) {
                     this.thumbnailRuntime.logOnce(
                         `featureImage-external-unsupported-content-type:${contentTypeHeader}:${trimmedUrl}`,
@@ -547,6 +546,62 @@ export class FeatureImageContentProvider extends BaseContentProvider {
                 return null;
             }
         });
+    }
+
+    private async preflightExternalImage(imageUrl: string): Promise<ExternalImagePreflight | null> {
+        const response = await this.requestUrlWithTimeout(
+            {
+                url: imageUrl,
+                method: 'HEAD',
+                throw: false
+            },
+            EXTERNAL_REQUEST_TIMEOUT_MS
+        );
+
+        if (!response || response.status < 200 || response.status >= 300) {
+            this.thumbnailRuntime.logOnce(
+                `featureImage-external-head-failed:${imageUrl}`,
+                `[${imageUrl}] Skipping external image - HEAD request failed`
+            );
+            return null;
+        }
+
+        const contentTypeHeader = this.getHeaderValue(response.headers, 'content-type');
+        if (!contentTypeHeader) {
+            this.thumbnailRuntime.logOnce(
+                `featureImage-external-missing-content-type:${imageUrl}`,
+                `[${imageUrl}] Skipping external image - missing Content-Type header`
+            );
+            return null;
+        }
+
+        const mimeType = this.getMimeTypeFromContentType(contentTypeHeader);
+        if (!mimeType) {
+            this.thumbnailRuntime.logOnce(
+                `featureImage-external-unsupported-content-type:${contentTypeHeader}:${imageUrl}`,
+                `[${imageUrl}] Skipping external image - unsupported Content-Type: ${contentTypeHeader}`
+            );
+            return null;
+        }
+
+        const contentLength = this.parseContentLength(this.getHeaderValue(response.headers, 'content-length'));
+        if (contentLength === null) {
+            this.thumbnailRuntime.logOnce(
+                `featureImage-external-missing-content-length:${imageUrl}`,
+                `[${imageUrl}] Skipping external image - missing Content-Length header`
+            );
+            return null;
+        }
+
+        if (contentLength > MAX_EXTERNAL_IMAGE_BYTES) {
+            this.thumbnailRuntime.logOnce(
+                `featureImage-external-too-large:${MAX_EXTERNAL_IMAGE_BYTES}:${imageUrl}`,
+                `[${imageUrl}] Skipping external image (${contentLength} bytes) - file too large`
+            );
+            return null;
+        }
+
+        return { mimeType };
     }
 
     private async downloadYoutubeThumbnail(videoId: string): Promise<ImageBuffer | null> {
@@ -631,8 +686,11 @@ export class FeatureImageContentProvider extends BaseContentProvider {
         }
 
         if (effectiveMimeType === 'image/svg+xml') {
-            // Keep SVG data as-is without raster encoding.
-            return new Blob([buffer], { type: effectiveMimeType });
+            this.thumbnailRuntime.logOnce(
+                `featureImage-svg-unsupported:${source}`,
+                `[${source}] Skipping SVG feature image - SVG previews are disabled`
+            );
+            return null;
         }
 
         // Extract dimensions from the image header to determine if resizing is needed.
@@ -997,5 +1055,19 @@ export class FeatureImageContentProvider extends BaseContentProvider {
         }
 
         return mimeType;
+    }
+
+    private parseContentLength(contentLength: string | undefined): number | null {
+        if (!contentLength) {
+            return null;
+        }
+
+        const trimmed = contentLength.trim();
+        if (!/^\d+$/.test(trimmed)) {
+            return null;
+        }
+
+        const parsed = Number(trimmed);
+        return Number.isSafeInteger(parsed) ? parsed : null;
     }
 }

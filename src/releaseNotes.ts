@@ -89,6 +89,9 @@ const RELEASE_NOTES: ReleaseNote[] = [
             '**List pane.** Added ==Show subfolder paths== in List pane > Group headers. Disable it to show only folder names when grouping by folder.'
         ],
         improved: ['**List pane.** Folder group header path segments are now clickable when subfolder paths are shown.'],
+        changed: [
+            '**Feature images.** Some external images may no longer appear in the list pane if their server does not report image type and file size before download. This prevents very large external images and SVG files from being downloaded and shown as feature images. The content cache database is rebuilt so older potentially invalid SVG feature-image thumbnails are removed.'
+        ],
         fixed: ['**Storage.** Fixed repeated content refreshes during large vault change bursts.']
     },
     {

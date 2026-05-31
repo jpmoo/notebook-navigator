@@ -21,7 +21,7 @@ import { ItemType, ListPaneItemType, type NavigationItemType } from '../types';
 import type { FeatureImageStatus, FileData } from '../storage/IndexedDBStorage';
 import { type FeatureImageSizeSetting } from '../settings/types';
 import type { ListPaneItem } from '../types/virtualization';
-import { isImageFile } from './fileTypeUtils';
+import { isRasterImageFile } from './fileTypeUtils';
 import {
     buildPropertyKeyNodeId,
     buildPropertyValueNodeId,
@@ -431,7 +431,7 @@ export function shouldShowFeatureImageArea({
         return true;
     }
 
-    if (isImageFile(file)) {
+    if (isRasterImageFile(file)) {
         return true;
     }
 

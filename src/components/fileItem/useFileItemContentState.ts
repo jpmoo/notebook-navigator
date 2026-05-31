@@ -20,7 +20,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import type { App, TFile } from 'obsidian';
 import { IndexedDBStorage, type FeatureImageStatus, type FileContentChange, type PropertyItem } from '../../storage/IndexedDBStorage';
 import { getCachedFileTags } from '../../utils/tagUtils';
-import { isImageFile } from '../../utils/fileTypeUtils';
+import { isRasterImageFile } from '../../utils/fileTypeUtils';
 import { arePropertyItemsEqual, clonePropertyItems } from '../../utils/propertyUtils';
 import { areStringArraysEqual } from '../../utils/arrayUtils';
 import { getVersionedResourcePath } from '../../utils/resourcePath';
@@ -103,7 +103,7 @@ export function loadFileItemCacheSnapshot({
     const preview = showPreview && file.extension === 'md' ? db.getCachedPreviewText(file.path) : '';
     const record = db.getFile(file.path);
     const tags = [...getCachedFileTags({ app, file, db, fileData: record })];
-    const isDirectImageFile = showImage && !skipFeatureImage && isImageFile(file);
+    const isDirectImageFile = showImage && !skipFeatureImage && isRasterImageFile(file);
     const featureImageKey = record?.featureImageKey ?? (isDirectImageFile ? `direct-image:${file.path}@${fileStatMtime}` : null);
     const featureImageStatus: FeatureImageStatus = record?.featureImageStatus ?? 'unprocessed';
     const properties = clonePropertyItems(record?.properties ?? null);
@@ -296,7 +296,7 @@ export function useFileItemContentState({
             };
         }
 
-        if (isImageFile(file)) {
+        if (isRasterImageFile(file)) {
             try {
                 setFeatureImageUrl(getVersionedResourcePath(app, file, fileStatMtime));
             } catch {

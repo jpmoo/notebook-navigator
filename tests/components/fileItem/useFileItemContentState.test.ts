@@ -118,6 +118,24 @@ describe('useFileItemContentState helpers', () => {
         expect(snapshot.featureImageUrl).toBe('app://local/Assets/Image.png?nn-mtime=1234');
     });
 
+    it('does not create direct preview URLs for SVG files', () => {
+        const app = new App();
+        const file = createTestTFile('Assets/Icon.svg');
+        file.stat.mtime = 1234;
+        app.vault.getResourcePath = () => 'app://local/Assets/Icon.svg';
+
+        const snapshot = loadFileItemCacheSnapshot({
+            app,
+            file,
+            showPreview: false,
+            showImage: true,
+            db: createContentDb(null)
+        });
+
+        expect(snapshot.featureImageKey).toBeNull();
+        expect(snapshot.featureImageUrl).toBeNull();
+    });
+
     it('loads a fresh snapshot after subscribing so mount-time updates are not missed', () => {
         let currentSnapshot: FileItemCacheSnapshot = {
             previewText: 'Initial preview',
