@@ -317,7 +317,7 @@ function getScrollPreservationSignature({
 
 export function isListRowHeightAffectingContentChange(change: FileContentChange): boolean {
     return (
-        change.changes.preview !== undefined ||
+        change.changes.previewStatus !== undefined ||
         change.changes.featureImageKey !== undefined ||
         change.changes.featureImageStatus !== undefined ||
         change.changes.properties !== undefined ||

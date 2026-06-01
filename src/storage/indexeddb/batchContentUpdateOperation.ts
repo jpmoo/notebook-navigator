@@ -205,6 +205,9 @@ export async function runBatchUpdateFileContentAndProviderProcessedMtimes(
                         const previewStatus: PreviewStatus = guardedUpdate.preview.length > 0 ? 'has' : 'none';
                         newData.previewStatus = previewStatus;
                         changes.preview = guardedUpdate.preview;
+                        if (existing.previewStatus !== previewStatus) {
+                            changes.previewStatus = previewStatus;
+                        }
                         hasContentChanges = true;
                         if (previewStore && previewStatus === 'has') {
                             const previewReq = previewStore.put(guardedUpdate.preview, path);
@@ -321,6 +324,7 @@ export async function runBatchUpdateFileContentAndProviderProcessedMtimes(
                     if (hasContentChanges) {
                         const hasContentUpdates =
                             changes.preview !== undefined ||
+                            changes.previewStatus !== undefined ||
                             changes.featureImageKey !== undefined ||
                             changes.featureImageStatus !== undefined ||
                             changes.wordCount !== undefined ||

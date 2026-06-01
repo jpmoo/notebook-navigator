@@ -30,7 +30,8 @@ function createContentChange(patch: Partial<FileContentChange>): FileContentChan
 
 describe('isListRowHeightAffectingContentChange', () => {
     it('detects content fields that can change estimated list row height', () => {
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { preview: 'Preview' } }))).toBe(true);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { previewStatus: 'has' } }))).toBe(true);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { previewStatus: 'none' } }))).toBe(true);
         expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { featureImageKey: 'key' } }))).toBe(true);
         expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { featureImageStatus: 'has' } }))).toBe(true);
         expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { properties: [] } }))).toBe(true);
@@ -39,6 +40,8 @@ describe('isListRowHeightAffectingContentChange', () => {
     });
 
     it('ignores content fields that do not change estimated row height', () => {
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { preview: 'Preview' } }))).toBe(false);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { preview: null } }))).toBe(false);
         expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { taskTotal: 4 } }))).toBe(false);
         expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { taskUnfinished: 2 } }))).toBe(false);
         expect(

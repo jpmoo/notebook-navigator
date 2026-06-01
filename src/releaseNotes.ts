@@ -88,7 +88,10 @@ const RELEASE_NOTES: ReleaseNote[] = [
             '**List pane.** Added a new setting to List pane > Pinned notes > ==Show pinned section icon==. Enable if you want to see an icon next to "Pinned" group header. As with other icons, this can be changed to any icon in Settings > Appearance & behavior > Interface icons.',
             '**List pane.** Added ==Show subfolder paths== in List pane > Group headers. Disable it to show only folder names when grouping by folder.'
         ],
-        improved: ['**List pane.** Folder group header path segments are now clickable when subfolder paths are shown.'],
+        improved: [
+            '**List pane.** Folder group header path segments are now clickable when subfolder paths are shown.',
+            '**List pane.** Loading preview text no longer recalculates list row heights when the preview status is unchanged. Preview-heavy lists avoid a full height pass as text fills in during scrolling.'
+        ],
         changed: [
             '**Feature images.** Some external images may no longer appear in the list pane if their server does not report image type and file size before download. This prevents very large external images and SVG files from being downloaded and shown as feature images. The content cache database is rebuilt so older potentially invalid SVG feature-image thumbnails are removed.'
         ],
