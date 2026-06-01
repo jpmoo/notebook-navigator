@@ -717,36 +717,11 @@ export class FeatureImageContentProvider extends BaseContentProvider {
             thumbnailDimensions
         );
 
-        const shouldSkipDecode =
-            targetWidth === displayDimensions.width && targetHeight === displayDimensions.height && pixelCount <= maxFallbackPixels;
-
         const sourceBlob = new Blob([buffer], { type: effectiveMimeType });
-
-        if (shouldSkipDecode) {
-            // Skip decoding when the image is already within thumbnail limits.
-            //
-            // When the container metadata indicates a display transform (crop/rotation), attempt a re-encode so thumbnails
-            // bake the transform into pixels. Fall back to the original blob when decoding is unavailable or fails.
-            const hasTransformMetadata =
-                displayDimensions.width !== codedDimensions.width || displayDimensions.height !== codedDimensions.height;
-
-            if (!hasTransformMetadata) {
-                return sourceBlob;
-            }
-
-            const releaseDecodeBudget = await this.thumbnailRuntime.imageDecodeLimiter.acquire(pixelCount);
-            try {
-                const reencoded = await this.tryCreateThumbnailFromBitmap(sourceBlob, thumbnailDimensions, true);
-                return reencoded ?? sourceBlob;
-            } finally {
-                releaseDecodeBudget();
-            }
-        }
-
         const releaseDecodeBudget = await this.thumbnailRuntime.imageDecodeLimiter.acquire(pixelCount);
 
         try {
-            // Attempt direct bitmap resize which is more memory-efficient for large images.
+            // Attempt direct bitmap resize/encode, which is more memory-efficient for large images.
             const resizedBitmapResult = await this.tryCreateThumbnailFromResizedBitmap(sourceBlob, targetWidth, targetHeight);
             if (resizedBitmapResult) {
                 return resizedBitmapResult;
@@ -776,10 +751,6 @@ export class FeatureImageContentProvider extends BaseContentProvider {
                 }
 
                 const { width, height } = this.calculateThumbnailDimensions(sourceWidth, sourceHeight, thumbnailDimensions);
-                if (width === sourceWidth && height === sourceHeight) {
-                    // Skip re-encoding when the image is already within thumbnail limits.
-                    return sourceBlob;
-                }
                 return await this.resizeImageToBlob(image, width, height);
             });
         } finally {
@@ -817,12 +788,8 @@ export class FeatureImageContentProvider extends BaseContentProvider {
         }
     }
 
-    // Decodes a blob to an ImageBitmap and resizes it to thumbnail dimensions
-    private async tryCreateThumbnailFromBitmap(
-        blob: Blob,
-        thumbnailDimensions: FeatureImageThumbnailDimensions,
-        forceReencode = false
-    ): Promise<Blob | null> {
+    // Decodes a blob to an ImageBitmap and encodes it to thumbnail dimensions
+    private async tryCreateThumbnailFromBitmap(blob: Blob, thumbnailDimensions: FeatureImageThumbnailDimensions): Promise<Blob | null> {
         if (typeof createImageBitmap === 'undefined') {
             return null;
         }
@@ -843,11 +810,6 @@ export class FeatureImageContentProvider extends BaseContentProvider {
             }
 
             const { width, height } = this.calculateThumbnailDimensions(sourceWidth, sourceHeight, thumbnailDimensions);
-            if (!forceReencode && width === sourceWidth && height === sourceHeight) {
-                // Skip re-encoding when the image is already within thumbnail limits.
-                return blob;
-            }
-
             return await this.resizeSourceToBlob(bitmap, width, height);
         } finally {
             this.closeBitmap(bitmap);

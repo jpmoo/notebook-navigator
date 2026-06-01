@@ -55,6 +55,10 @@ class TestFeatureImageContentProvider extends MarkdownPipelineContentProvider {
         return this.getFeatureImageKey(reference);
     }
 
+    async createThumbnailForTest(reference: FeatureImageReference, settings: NotebookNavigatorSettings): Promise<Blob | null> {
+        return await this.createThumbnailBlob(reference, settings);
+    }
+
     shouldProcess(fileData: FileData | null, file: TFile, settings: NotebookNavigatorSettings): boolean {
         return this.needsProcessing(fileData, file, settings);
     }
@@ -112,6 +116,28 @@ function createFile(path: string): TFile {
     file.basename = metadata.basename;
     file.extension = metadata.extension;
     return file;
+}
+
+function createPngHeaderBytes(width: number, height: number): Uint8Array {
+    const bytes = new Uint8Array(24);
+    bytes.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], 0);
+    bytes.set([0x00, 0x00, 0x00, 0x0d], 8);
+    bytes.set([0x49, 0x48, 0x44, 0x52], 12);
+    bytes[16] = (width >>> 24) & 0xff;
+    bytes[17] = (width >>> 16) & 0xff;
+    bytes[18] = (width >>> 8) & 0xff;
+    bytes[19] = width & 0xff;
+    bytes[20] = (height >>> 24) & 0xff;
+    bytes[21] = (height >>> 16) & 0xff;
+    bytes[22] = (height >>> 8) & 0xff;
+    bytes[23] = height & 0xff;
+    return bytes;
+}
+
+function copyBytesToArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+    const buffer = new ArrayBuffer(bytes.byteLength);
+    new Uint8Array(buffer).set(bytes);
+    return buffer;
 }
 
 type FrontmatterBlock = {
@@ -220,6 +246,81 @@ function setMarkdownContent(
 
     context.cachedMetadataByPath.set(file.path, metadata);
 }
+
+describe('FeatureImageContentProvider thumbnails', () => {
+    it('re-encodes local images that already fit thumbnail dimensions', async () => {
+        const { app } = createApp();
+        const provider = new TestFeatureImageContentProvider(app);
+        const imageFile = createFile('images/small.png');
+        const sourceBytes = createPngHeaderBytes(64, 64);
+        const encodedBytes = new Uint8Array([9, 8, 7]);
+        imageFile.stat.size = sourceBytes.byteLength;
+        app.vault.adapter.readBinary = async () => copyBytesToArrayBuffer(sourceBytes);
+
+        const testWindow = window as Window & {
+            createImageBitmap?: (image: Blob, options?: ImageBitmapOptions) => Promise<ImageBitmap>;
+            OffscreenCanvas?: typeof OffscreenCanvas;
+        };
+        const originalCreateImageBitmap = testWindow.createImageBitmap;
+        const originalOffscreenCanvas = testWindow.OffscreenCanvas;
+        const drawImage = vi.fn();
+        const createImageBitmapMock = vi.fn(async (): Promise<ImageBitmap> => ({ width: 64, height: 64, close: vi.fn() }));
+
+        class TestOffscreenCanvas {
+            width: number;
+            height: number;
+
+            constructor(width: number, height: number) {
+                this.width = width;
+                this.height = height;
+            }
+
+            getContext(contextId: string): OffscreenCanvasRenderingContext2D | null {
+                if (contextId !== '2d') {
+                    return null;
+                }
+
+                return {
+                    imageSmoothingQuality: 'low',
+                    clearRect: vi.fn(),
+                    drawImage
+                } as unknown as OffscreenCanvasRenderingContext2D;
+            }
+
+            async convertToBlob(options?: ImageEncodeOptions): Promise<Blob> {
+                return new Blob([encodedBytes], { type: options?.type ?? 'image/png' });
+            }
+        }
+
+        Object.defineProperty(testWindow, 'createImageBitmap', {
+            configurable: true,
+            value: createImageBitmapMock
+        });
+        Object.defineProperty(testWindow, 'OffscreenCanvas', {
+            configurable: true,
+            value: TestOffscreenCanvas
+        });
+
+        try {
+            const thumbnail = await provider.createThumbnailForTest({ kind: 'local', file: imageFile }, createSettings());
+
+            expect(thumbnail).toBeInstanceOf(Blob);
+            expect(thumbnail?.type).toBe('image/webp');
+            expect(new Uint8Array(await thumbnail!.arrayBuffer())).toEqual(encodedBytes);
+            expect(createImageBitmapMock).toHaveBeenCalledTimes(1);
+            expect(drawImage).toHaveBeenCalledTimes(1);
+        } finally {
+            Object.defineProperty(testWindow, 'createImageBitmap', {
+                configurable: true,
+                value: originalCreateImageBitmap
+            });
+            Object.defineProperty(testWindow, 'OffscreenCanvas', {
+                configurable: true,
+                value: originalOffscreenCanvas
+            });
+        }
+    });
+});
 
 describe('FeatureImageContentProvider scanning', () => {
     it('treats featureImagePixelSize as a markdown regeneration setting', () => {
