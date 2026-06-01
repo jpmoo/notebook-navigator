@@ -200,6 +200,27 @@ export function getFilesInRange(files: TFile[], startIndex: number, endIndex: nu
     return result;
 }
 
+export function mergeFilesIntoSelection(
+    selectedFiles: ReadonlySet<string>,
+    files: readonly TFile[]
+): { selectedFiles: Set<string>; changed: boolean } {
+    const nextSelectedFiles = new Set<string>(selectedFiles);
+    let changed = false;
+
+    files.forEach(file => {
+        if (!nextSelectedFiles.has(file.path)) {
+            changed = true;
+        }
+
+        nextSelectedFiles.add(file.path);
+    });
+
+    return {
+        selectedFiles: nextSelectedFiles,
+        changed
+    };
+}
+
 /**
  * Find the index of a file in an ordered list
  * @param files - Ordered list of files

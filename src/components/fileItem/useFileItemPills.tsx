@@ -19,7 +19,7 @@
 import React, { useCallback, useMemo } from 'react';
 import type { TFile } from 'obsidian';
 import { useMetadataService, useServices } from '../../context/ServicesContext';
-import { useSelectionState } from '../../context/SelectionContext';
+import { useNavigationSelection } from '../../context/SelectionContext';
 import { useTagNavigation } from '../../hooks/useTagNavigation';
 import type { PropertyItem } from '../../storage/IndexedDBStorage';
 import { showsCharacterCount, showsWordCount, type NotebookNavigatorSettings } from '../../settings/types';
@@ -248,7 +248,7 @@ export function useFileItemPills({
 }: UseFileItemPillsParams): FileItemPillsState {
     const { app, isMobile } = useServices();
     const metadataService = useMetadataService();
-    const selectionState = useSelectionState();
+    const { selectionType, selectedTag, selectedProperty } = useNavigationSelection();
     const { navigateToTag, navigateToProperty } = useTagNavigation();
     const wordCountPillIconId = useMemo(() => resolveUXIcon(settings.interfaceIcons, 'file-word-count'), [settings.interfaceIcons]);
     const characterCountPillIconId = useMemo(
@@ -257,18 +257,18 @@ export function useFileItemPills({
     );
     const selectedTagToHide = useMemo(() => {
         return getSelectedTagPillToHide({
-            selectionType: selectionState.selectionType,
-            selectedTag: selectionState.selectedTag,
+            selectionType,
+            selectedTag,
             showSelectedNavigationPills: settings.showSelectedNavigationPills
         });
-    }, [selectionState.selectedTag, selectionState.selectionType, settings.showSelectedNavigationPills]);
+    }, [selectedTag, selectionType, settings.showSelectedNavigationPills]);
     const selectedPropertyValueNodeIdToHide = useMemo(() => {
         return getSelectedPropertyValuePillToHide({
-            selectionType: selectionState.selectionType,
-            selectedProperty: selectionState.selectedProperty,
+            selectionType,
+            selectedProperty,
             showSelectedNavigationPills: settings.showSelectedNavigationPills
         });
-    }, [selectionState.selectedProperty, selectionState.selectionType, settings.showSelectedNavigationPills]);
+    }, [selectedProperty, selectionType, settings.showSelectedNavigationPills]);
 
     const handleTagClick = useCallback(
         (event: React.MouseEvent, tag: string) => {

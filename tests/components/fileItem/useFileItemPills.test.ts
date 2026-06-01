@@ -61,6 +61,7 @@ vi.mock('../../../src/context/ServicesContext', () => ({
 }));
 
 vi.mock('../../../src/context/SelectionContext', () => ({
+    useNavigationSelection: () => mockSelectionState,
     useSelectionState: () => mockSelectionState
 }));
 
