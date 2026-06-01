@@ -283,6 +283,25 @@ export interface FileItemLayoutState {
     isPinnedImageRow: boolean;
 }
 
+export interface FileRowHeightInputs {
+    isPinned: boolean;
+    hasPreviewContent: boolean;
+    showFeatureImageArea: boolean;
+    showExtensionBadgeThumbnail: boolean;
+    showParentFolderLine: boolean;
+    visiblePillRowCount: number;
+}
+
+export interface FileRowHeightConfig {
+    heights: ListPaneMeasurements;
+    titleRows: number;
+    previewRows: number;
+    showDate: boolean;
+    showPreview: boolean;
+    showImage: boolean;
+    compactPaddingTotal: number;
+}
+
 export function getFileItemLayoutState({
     showDate,
     showPreview,
@@ -375,6 +394,37 @@ export function calculateNormalListFileRowHeightEstimate({
     const pillRowsExtraHeight = Math.max(0, pillRowsHeight - pillRowsReservedHeight);
 
     return heights.basePadding + applyFeatureImageFloor(richContentHeight + pillRowsExtraHeight);
+}
+
+export function estimateFileRowHeight(inputs: FileRowHeightInputs, config: FileRowHeightConfig): number {
+    const { heights, titleRows, previewRows, compactPaddingTotal } = config;
+    const visiblePillRowCount = Math.max(0, inputs.visiblePillRowCount);
+    const layoutState = getFileItemLayoutState({
+        showDate: config.showDate,
+        showPreview: config.showPreview,
+        showImage: config.showImage,
+        isPinned: inputs.isPinned,
+        hasPreviewContent: inputs.hasPreviewContent,
+        showFeatureImageArea: inputs.showFeatureImageArea,
+        showExtensionBadgeThumbnail: inputs.showExtensionBadgeThumbnail,
+        hasVisiblePillRows: visiblePillRowCount > 0
+    });
+
+    if (layoutState.isCompactMode) {
+        const textContentHeight = heights.titleLineHeight * titleRows + heights.tagRowHeight * visiblePillRowCount;
+        return compactPaddingTotal + textContentHeight;
+    }
+
+    return calculateNormalListFileRowHeightEstimate({
+        heights,
+        titleRows,
+        previewRows: inputs.isPinned ? 1 : previewRows,
+        layoutState,
+        showFeatureImageArea: inputs.showFeatureImageArea,
+        showExtensionBadgeThumbnail: inputs.showExtensionBadgeThumbnail,
+        showParentFolderLine: inputs.showParentFolderLine,
+        visiblePillRowCount
+    });
 }
 
 export function shouldShowFileItemParentFolderLine({

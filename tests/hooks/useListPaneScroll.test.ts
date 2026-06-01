@@ -17,14 +17,75 @@
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { FileContentChange } from '../../src/storage/IndexedDBStorage';
-import { createRemeasureScheduler, isListRowHeightAffectingContentChange } from '../../src/hooks/useListPaneScroll';
+import { App, TFile } from 'obsidian';
+import { ItemType, ListPaneItemType } from '../../src/types';
+import type { ListPaneItem } from '../../src/types/virtualization';
+import { getListPaneMeasurements } from '../../src/utils/listPaneMeasurements';
+import { createHiddenTagVisibility } from '../../src/utils/tagPrefixMatcher';
+import type { FileContentChange, IndexedDBStorage } from '../../src/storage/IndexedDBStorage';
+import {
+    createRemeasureScheduler,
+    isListRowHeightAffectingContentChange,
+    resolveListFileRowHeightInputs,
+    type ListFileRowSizingConfig
+} from '../../src/hooks/useListPaneScroll';
+import { createTestTFile } from '../utils/createTestTFile';
 
 function createContentChange(patch: Partial<FileContentChange>): FileContentChange {
     return {
         path: 'Notes/Daily.md',
         changes: {},
         ...patch
+    };
+}
+
+function createFileItem(file: TFile, overrides: Partial<ListPaneItem> = {}): ListPaneItem {
+    return {
+        type: ListPaneItemType.FILE,
+        data: file,
+        key: file.path,
+        hasTags: false,
+        ...overrides
+    };
+}
+
+function createRowSizingConfig(overrides: Partial<ListFileRowSizingConfig> = {}): ListFileRowSizingConfig {
+    const showPreview = overrides.showPreview ?? true;
+    const showImage = overrides.showImage ?? false;
+
+    return {
+        heights: getListPaneMeasurements(false),
+        titleRows: 1,
+        previewRows: 3,
+        showDate: true,
+        showPreview,
+        showImage,
+        compactPaddingTotal: 18,
+        isCompactMode: false,
+        tagsBaseEnabled: false,
+        propertyRowsPossible: false,
+        showTextCountProperty: false,
+        showWordCountProperty: false,
+        showCharacterCountProperty: false,
+        showFileProperties: false,
+        showPropertiesOnSeparateRows: false,
+        showFilePropertiesInCompactMode: false,
+        characterCountSpaces: 'include',
+        showParentFolder: false,
+        selectionType: ItemType.FOLDER,
+        includeDescendantNotes: false,
+        selectedTagToHide: null,
+        selectedPropertyValueNodeIdToHide: null,
+        hiddenTagVisibility: createHiddenTagVisibility([], false),
+        visiblePropertyKeys: new Set(),
+        themeMode: 'light',
+        ...overrides
+    };
+}
+
+function createDb(record: unknown = null) {
+    return {
+        getFile: vi.fn(() => record)
     };
 }
 
@@ -76,6 +137,8 @@ describe('isListRowHeightAffectingContentChange', () => {
         expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { properties: [] } }))).toBe(true);
         expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { tags: ['work'] } }))).toBe(true);
         expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { wordCount: 123 } }))).toBe(true);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { characterCountWithSpaces: 456 } }))).toBe(true);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { characterCountWithoutSpaces: 400 } }))).toBe(true);
     });
 
     it('ignores content fields that do not change estimated row height', () => {
@@ -92,6 +155,156 @@ describe('isListRowHeightAffectingContentChange', () => {
                 })
             )
         ).toBe(false);
+    });
+});
+
+describe('resolveListFileRowHeightInputs', () => {
+    it('skips db and drawing metadata reads when row features are disabled', () => {
+        const app = new App();
+        const getFileCache = vi.fn(() => null);
+        app.metadataCache.getFileCache = getFileCache;
+        const file = createTestTFile('Notes/Daily.md');
+        const db = createDb();
+        const hasPreview = vi.fn(() => true);
+
+        const inputs = resolveListFileRowHeightInputs({
+            app,
+            db: db as unknown as IndexedDBStorage,
+            hasPreview,
+            item: createFileItem(file),
+            file,
+            config: createRowSizingConfig({
+                showPreview: false,
+                showImage: false,
+                tagsBaseEnabled: false,
+                propertyRowsPossible: false
+            })
+        });
+
+        expect(inputs.visiblePillRowCount).toBe(0);
+        expect(inputs.showFeatureImageArea).toBe(false);
+        expect(db.getFile).not.toHaveBeenCalled();
+        expect(hasPreview).not.toHaveBeenCalled();
+        expect(getFileCache).not.toHaveBeenCalled();
+    });
+
+    it('reads drawing metadata only when image rows are enabled', () => {
+        const app = new App();
+        const getFileCache = vi.fn(() => null);
+        app.metadataCache.getFileCache = getFileCache;
+        const file = createTestTFile('Notes/Daily.md');
+        const db = createDb({ featureImageStatus: 'none' });
+
+        resolveListFileRowHeightInputs({
+            app,
+            db: db as unknown as IndexedDBStorage,
+            hasPreview: () => false,
+            item: createFileItem(file),
+            file,
+            config: createRowSizingConfig({
+                showImage: true
+            })
+        });
+
+        expect(db.getFile).toHaveBeenCalledWith(file.path);
+        expect(getFileCache).toHaveBeenCalledWith(file);
+    });
+
+    it('uses item tag presence without reading the file record when no selected tag is hidden', () => {
+        const app = new App();
+        const getFileCache = vi.fn(() => null);
+        app.metadataCache.getFileCache = getFileCache;
+        const file = createTestTFile('Notes/Daily.md');
+        const db = createDb({ tags: ['work'] });
+
+        const inputs = resolveListFileRowHeightInputs({
+            app,
+            db: db as unknown as IndexedDBStorage,
+            hasPreview: () => false,
+            item: createFileItem(file, { hasTags: true }),
+            file,
+            config: createRowSizingConfig({
+                showPreview: false,
+                tagsBaseEnabled: true,
+                selectedTagToHide: null
+            })
+        });
+
+        expect(inputs.visiblePillRowCount).toBe(1);
+        expect(db.getFile).not.toHaveBeenCalled();
+        expect(getFileCache).not.toHaveBeenCalled();
+    });
+
+    it('reads live tags when selected navigation pills can hide the only tag row', () => {
+        const app = new App();
+        const file = createTestTFile('Notes/Daily.md');
+        const db = createDb({ tags: ['work', 'project'] });
+
+        const inputs = resolveListFileRowHeightInputs({
+            app,
+            db: db as unknown as IndexedDBStorage,
+            hasPreview: () => false,
+            item: createFileItem(file, { hasTags: true }),
+            file,
+            config: createRowSizingConfig({
+                showPreview: false,
+                tagsBaseEnabled: true,
+                selectedTagToHide: 'work'
+            })
+        });
+
+        expect(inputs.visiblePillRowCount).toBe(1);
+        expect(db.getFile).toHaveBeenCalledWith(file.path);
+    });
+
+    it('skips db reads when frontmatter properties are enabled without visible list property keys', () => {
+        const app = new App();
+        const file = createTestTFile('Notes/Daily.md');
+        const db = createDb({
+            properties: [{ fieldKey: 'status', value: 'active', valueKind: 'text' }]
+        });
+
+        const inputs = resolveListFileRowHeightInputs({
+            app,
+            db: db as unknown as IndexedDBStorage,
+            hasPreview: () => false,
+            item: createFileItem(file),
+            file,
+            config: createRowSizingConfig({
+                showPreview: false,
+                showFileProperties: true,
+                visiblePropertyKeys: new Set(),
+                propertyRowsPossible: false
+            })
+        });
+
+        expect(inputs.visiblePillRowCount).toBe(0);
+        expect(db.getFile).not.toHaveBeenCalled();
+    });
+
+    it('reads the file record when visible property rows can affect height', () => {
+        const app = new App();
+        const file = createTestTFile('Notes/Daily.md');
+        const db = createDb({
+            properties: [{ fieldKey: 'status', value: 'active', valueKind: 'text' }]
+        });
+
+        const inputs = resolveListFileRowHeightInputs({
+            app,
+            db: db as unknown as IndexedDBStorage,
+            hasPreview: () => false,
+            item: createFileItem(file),
+            file,
+            config: createRowSizingConfig({
+                showPreview: false,
+                propertyRowsPossible: true,
+                showFileProperties: true,
+                visiblePropertyKeys: new Set(['status'])
+            })
+        });
+
+        expect(inputs.visiblePillRowCount).toBe(1);
+        expect(db.getFile).toHaveBeenCalledWith(file.path);
     });
 });
 
