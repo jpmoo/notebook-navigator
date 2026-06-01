@@ -90,7 +90,8 @@ const RELEASE_NOTES: ReleaseNote[] = [
         ],
         improved: [
             '**List pane.** Folder group header path segments are now clickable when subfolder paths are shown.',
-            '**List pane.** Loading preview text no longer recalculates list row heights when the preview status is unchanged. Preview-heavy lists avoid a full height pass as text fills in during scrolling.'
+            '**List pane.** Loading preview text no longer recalculates list row heights when the preview status is unchanged. Preview-heavy lists avoid a full height pass as text fills in during scrolling.',
+            '**List pane.** Multiple note updates that affect row height are now measured once per frame, reducing repeated list recalculations during bursts of tag, property, word count, preview, or feature image updates.'
         ],
         changed: [
             '**Feature images.** Some external images may no longer appear in the list pane if their server does not report image type and file size before download. This prevents very large external images and SVG files from being downloaded and shown as feature images. The content cache database is rebuilt so older potentially invalid SVG feature-image thumbnails are removed.'

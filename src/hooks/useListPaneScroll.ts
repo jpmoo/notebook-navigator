@@ -328,6 +328,31 @@ export function isListRowHeightAffectingContentChange(change: FileContentChange)
     );
 }
 
+export function createRemeasureScheduler(measure: () => void): { schedule: () => void; cancel: () => void } {
+    let frameId: number | null = null;
+
+    return {
+        schedule() {
+            if (frameId !== null) {
+                return;
+            }
+
+            frameId = window.requestAnimationFrame(() => {
+                frameId = null;
+                measure();
+            });
+        },
+        cancel() {
+            if (frameId === null) {
+                return;
+            }
+
+            window.cancelAnimationFrame(frameId);
+            frameId = null;
+        }
+    };
+}
+
 function getStickyHeaderHeightBeforeIndex(
     listItems: ListPaneItem[],
     index: number,
@@ -644,6 +669,13 @@ export function useListPaneScroll({
             onVirtualizerScrollingChange?.(nextIsScrolling, instance.scrollElement);
         }
     });
+    const measureCurrentVirtualizerRef = useRef<() => void>(() => undefined);
+    measureCurrentVirtualizerRef.current = () => rowVirtualizer.measure();
+    const remeasureSchedulerRef = useRef<ReturnType<typeof createRemeasureScheduler> | null>(null);
+    if (remeasureSchedulerRef.current === null) {
+        remeasureSchedulerRef.current = createRemeasureScheduler(() => measureCurrentVirtualizerRef.current());
+    }
+
     /**
      * Callback for when scroll container ref is set.
      * Used as a ref callback to capture the DOM element.
@@ -1038,18 +1070,20 @@ export function useListPaneScroll({
         if (!enabled || !rowVirtualizer) return;
 
         const db = getDB();
+        const remeasureScheduler = remeasureSchedulerRef.current;
         const unsubscribe = db.onContentChange(changes => {
             const needsRemeasure = changes.some(change => {
                 return filePathToIndex.has(change.path) && isListRowHeightAffectingContentChange(change);
             });
 
             if (needsRemeasure) {
-                rowVirtualizer.measure();
+                remeasureScheduler?.schedule();
             }
         });
 
         return () => {
             unsubscribe();
+            remeasureScheduler?.cancel();
         };
     }, [enabled, filePathToIndex, getDB, rowVirtualizer]);
 
