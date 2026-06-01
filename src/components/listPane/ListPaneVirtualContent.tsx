@@ -159,15 +159,22 @@ function getItemAt<T>(items: T[], index: number): T | undefined {
     return items[index];
 }
 
-function getGroupHeaderLabel(listItems: ListPaneItem[], index: number): string | null {
-    for (let listIndex = index - 1; listIndex >= 0; listIndex -= 1) {
-        const item = getItemAt(listItems, listIndex);
-        if (item?.type === ListPaneItemType.HEADER && item.headerKind === 'date' && typeof item.data === 'string') {
-            return item.data;
-        }
-    }
+function buildDateGroupLabelsByIndex(listItems: ListPaneItem[]): (string | null)[] {
+    const labelsByIndex = new Array<string | null>(listItems.length).fill(null);
+    let currentDateGroupLabel: string | null = null;
 
-    return null;
+    listItems.forEach((item, index) => {
+        if (item.type === ListPaneItemType.HEADER && item.headerKind === 'date' && typeof item.data === 'string') {
+            currentDateGroupLabel = item.data;
+            return;
+        }
+
+        if (item.type === ListPaneItemType.FILE) {
+            labelsByIndex[index] = currentDateGroupLabel;
+        }
+    });
+
+    return labelsByIndex;
 }
 
 function getFirstFileAfterHeader(listItems: ListPaneItem[], headerIndex: number): TFile | null {
@@ -627,6 +634,7 @@ export function ListPaneVirtualContent({
         settings.interfaceIcons,
         settings.showFolderIcons
     ]);
+    const dateGroupLabelByIndex = useMemo(() => buildDateGroupLabelsByIndex(listItems), [listItems]);
 
     const handleFolderGroupHeaderClick = useCallback(
         (event: React.MouseEvent<HTMLSpanElement>, target: FolderGroupHeaderTarget) => {
@@ -872,7 +880,7 @@ export function ListPaneVirtualContent({
                                 isFileSelected(nextItem.data);
 
                             const groupHeaderLabel =
-                                item.type === ListPaneItemType.FILE ? getGroupHeaderLabel(listItems, virtualItem.index) : null;
+                                item.type === ListPaneItemType.FILE ? (dateGroupLabelByIndex[virtualItem.index] ?? null) : null;
                             const shortcutKey =
                                 item.type === ListPaneItemType.FILE && item.data instanceof TFile
                                     ? noteShortcutKeysByPath.get(item.data.path)
