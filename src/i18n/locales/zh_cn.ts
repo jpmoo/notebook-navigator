@@ -1104,10 +1104,6 @@ export const STRINGS_ZH_CN = {
                 name: '仅在笔记所在文件夹中固定',
                 desc: '固定笔记仅在其所在文件夹中显示为已固定。适用于文件夹笔记或固定笔记较多的情况。不影响标签或属性视图。'
             },
-            showPinnedSectionIcon: {
-                name: '显示固定部分图标',
-                desc: '在固定笔记部分旁显示图标。'
-            },
             separateNoteCounts: {
                 name: '分别显示当前和后代笔记计数',
                 desc: '在文件夹和标签中以"当前 ▾ 后代"格式显示笔记计数。'

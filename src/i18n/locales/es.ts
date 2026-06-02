@@ -1118,10 +1118,6 @@ export const STRINGS_ES = {
                 name: 'Fijar notas solo en su carpeta',
                 desc: 'Las notas fijadas aparecen fijadas solo en su propia carpeta. Útil para notas de carpeta o si tiene muchas notas fijadas. No afecta las vistas de etiquetas o propiedades.'
             },
-            showPinnedSectionIcon: {
-                name: 'Mostrar icono de la sección fijada',
-                desc: 'Muestra un icono junto a la sección de notas fijadas.'
-            },
             separateNoteCounts: {
                 name: 'Mostrar recuentos de notas actuales y descendientes por separado',
                 desc: 'Muestra el conteo de notas como formato "actual ▾ descendientes" en carpetas y etiquetas.'

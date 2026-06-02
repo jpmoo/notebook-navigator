@@ -1118,10 +1118,6 @@ export const STRINGS_VI = {
                 name: 'Chỉ ghim ghi chú trong thư mục của nó',
                 desc: 'Ghi chú đã ghim chỉ hiển thị là đã ghim trong thư mục riêng của nó. Hữu ích cho ghi chú thư mục hoặc nếu bạn có nhiều ghi chú đã ghim. Không ảnh hưởng đến chế độ xem thẻ hoặc thuộc tính.'
             },
-            showPinnedSectionIcon: {
-                name: 'Hiện biểu tượng mục đã ghim',
-                desc: 'Hiển thị biểu tượng bên cạnh mục ghi chú đã ghim.'
-            },
             separateNoteCounts: {
                 name: 'Hiện số lượng ghi chú hiện tại và con riêng biệt',
                 desc: 'Hiển thị số lượng ghi chú theo định dạng "hiện tại ▾ con" trong thư mục và thẻ.'

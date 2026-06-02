@@ -100,7 +100,6 @@ interface ListPaneGroupHeaderProps {
         expanded: string;
     };
     pinnedSectionIcon: string;
-    showPinnedSectionIcon: boolean;
     onPinnedGroupHeaderToggle: () => void;
     onListGroupHeaderToggle: (collapseKey: string) => void;
     onFolderGroupHeaderClick: (event: React.MouseEvent<HTMLSpanElement>, target: FolderGroupHeaderTarget) => void;
@@ -249,7 +248,6 @@ function ListPaneGroupHeader({
     header,
     collapseChevronIcons,
     pinnedSectionIcon,
-    showPinnedSectionIcon,
     onPinnedGroupHeaderToggle,
     onListGroupHeaderToggle,
     onFolderGroupHeaderClick,
@@ -343,7 +341,7 @@ function ListPaneGroupHeader({
                 />
             ) : (
                 <>
-                    {header.isPinnedHeader && showPinnedSectionIcon ? (
+                    {header.isPinnedHeader && pinnedSectionIcon ? (
                         <ServiceIcon
                             iconId={pinnedSectionIcon}
                             className="nn-list-group-header-icon nn-pinned-section-icon"
@@ -814,7 +812,6 @@ export function ListPaneVirtualContent({
                         header={stickyHeader}
                         collapseChevronIcons={collapseChevronIcons}
                         pinnedSectionIcon={pinnedSectionIcon}
-                        showPinnedSectionIcon={settings.showPinnedSectionIcon}
                         onPinnedGroupHeaderToggle={onPinnedGroupHeaderToggle}
                         onListGroupHeaderToggle={onListGroupHeaderToggle}
                         onFolderGroupHeaderClick={handleFolderGroupHeaderClick}
@@ -942,7 +939,6 @@ export function ListPaneVirtualContent({
                                             header={headerModel}
                                             collapseChevronIcons={collapseChevronIcons}
                                             pinnedSectionIcon={pinnedSectionIcon}
-                                            showPinnedSectionIcon={settings.showPinnedSectionIcon}
                                             onPinnedGroupHeaderToggle={onPinnedGroupHeaderToggle}
                                             onListGroupHeaderToggle={onListGroupHeaderToggle}
                                             onFolderGroupHeaderClick={handleFolderGroupHeaderClick}

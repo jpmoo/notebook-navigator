@@ -152,7 +152,6 @@ const BOOLEAN_SETTING_KEYS = [
     'showFolderGroupPaths',
     'confirmBeforeManualSort',
     'filterPinnedByFolder',
-    'showPinnedSectionIcon',
     'revealFileOnListChanges',
     'hideDrawingPreviewImages',
     'showNoteCount',

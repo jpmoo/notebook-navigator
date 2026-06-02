@@ -1120,10 +1120,6 @@ export const STRINGS_FR = {
                 name: 'Épingler les notes uniquement dans leur dossier',
                 desc: 'Les notes épinglées n’apparaissent épinglées que dans leur propre dossier. Utile pour les notes de dossier ou si vous avez beaucoup de notes épinglées. N’affecte pas les vues par étiquette ou propriété.'
             },
-            showPinnedSectionIcon: {
-                name: "Afficher l'icône de la section épinglée",
-                desc: 'Afficher une icône à côté de la section des notes épinglées.'
-            },
             separateNoteCounts: {
                 name: 'Afficher les nombres de notes actuelles et descendantes séparément',
                 desc: 'Affiche le nombre de notes au format "actuel ▾ descendants" dans les dossiers et étiquettes.'

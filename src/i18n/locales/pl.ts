@@ -1120,10 +1120,6 @@ export const STRINGS_PL = {
                 name: 'Przypinaj notatki tylko w ich folderze',
                 desc: 'Przypięte notatki są wyświetlane jako przypięte tylko w swoim własnym folderze. Przydatne dla notatek folderów lub jeśli masz wiele przypiętych notatek. Nie wpływa na widoki tagów ani właściwości.'
             },
-            showPinnedSectionIcon: {
-                name: 'Pokaż ikonę sekcji przypiętych',
-                desc: 'Wyświetla ikonę obok sekcji przypiętych notatek.'
-            },
             separateNoteCounts: {
                 name: 'Pokaż bieżącą i podrzędną liczbę notatek oddzielnie',
                 desc: 'Wyświetla liczbę notatek jako "nadrzędne ▾ podrzędne" w folderach i tagach.'

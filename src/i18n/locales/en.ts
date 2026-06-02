@@ -1111,10 +1111,6 @@ export const STRINGS_EN = {
                 name: 'Only pin notes in their folder',
                 desc: 'Pinned notes appear pinned only in their own folder. Useful for folder notes or if you have many pinned notes. Does not affect tag or property views.'
             },
-            showPinnedSectionIcon: {
-                name: 'Show pinned section icon',
-                desc: 'Display an icon next to the pinned notes section.'
-            },
             separateNoteCounts: {
                 name: 'Show current and descendant note counts separately',
                 desc: 'Display note counts as "current ▾ descendants" format in folders and tags.'

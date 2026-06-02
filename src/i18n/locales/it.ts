@@ -1113,10 +1113,6 @@ export const STRINGS_IT = {
                 name: 'Fissare le note solo nella loro cartella',
                 desc: 'Le note fissate appaiono fissate solo nella propria cartella. Utile per le note cartella o se hai molte note fissate. Non influisce sulle viste per tag o proprietà.'
             },
-            showPinnedSectionIcon: {
-                name: 'Mostra icona sezione fissata',
-                desc: "Mostra un'icona accanto alla sezione delle note fissate."
-            },
             separateNoteCounts: {
                 name: 'Mostra conteggi note correnti e discendenti separatamente',
                 desc: 'Visualizza i conteggi note nel formato "correnti ▾ discendenti" in cartelle e tag.'

@@ -1119,10 +1119,6 @@ export const STRINGS_DE = {
                 name: 'Notizen nur in ihrem Ordner anheften',
                 desc: 'Angeheftete Notizen erscheinen nur in ihrem eigenen Ordner als angeheftet. Nützlich für Ordnernotizen oder bei vielen angehefteten Notizen. Hat keinen Einfluss auf Tag- oder Eigenschaftsansichten.'
             },
-            showPinnedSectionIcon: {
-                name: 'Symbol für angehefteten Bereich anzeigen',
-                desc: 'Zeigt ein Symbol neben dem Bereich für angeheftete Notizen an.'
-            },
             separateNoteCounts: {
                 name: 'Aktuelle und Nachkommen-Notizanzahl getrennt anzeigen',
                 desc: 'Zeigt Notizanzahl als "aktuell ▾ Nachkommen" Format in Ordnern und Tags.'

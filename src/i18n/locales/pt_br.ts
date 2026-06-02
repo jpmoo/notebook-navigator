@@ -1119,10 +1119,6 @@ export const STRINGS_PT_BR = {
                 name: 'Fixar notas apenas na sua pasta',
                 desc: 'Notas fixadas aparecem fixadas apenas na sua própria pasta. Útil para notas de pasta ou se você tem muitas notas fixadas. Não afeta as visualizações de tags ou propriedades.'
             },
-            showPinnedSectionIcon: {
-                name: 'Mostrar ícone da seção fixada',
-                desc: 'Exibir um ícone ao lado da seção de notas fixadas.'
-            },
             separateNoteCounts: {
                 name: 'Mostrar contagens de notas atuais e descendentes separadamente',
                 desc: 'Exibir contagens de notas no formato "atual ▾ descendentes" em pastas e tags.'

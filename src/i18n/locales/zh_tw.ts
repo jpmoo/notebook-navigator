@@ -1104,10 +1104,6 @@ export const STRINGS_ZH_TW = {
                 name: '僅在筆記所在資料夾中釘選',
                 desc: '釘選筆記僅在其所在資料夾中顯示為已釘選。適用於資料夾筆記或釘選筆記較多的情況。不影響標籤或屬性檢視。'
             },
-            showPinnedSectionIcon: {
-                name: '顯示釘選區段圖示',
-                desc: '在釘選筆記區段旁顯示圖示。'
-            },
             separateNoteCounts: {
                 name: '分別顯示目前和後代筆記計數',
                 desc: '在資料夾和標籤中以「目前 ▾ 後代」格式顯示筆記計數。'

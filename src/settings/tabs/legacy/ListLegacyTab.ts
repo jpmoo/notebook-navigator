@@ -461,16 +461,6 @@ export function renderListPaneTab(context: SettingsTabContext): void {
         }
     );
 
-    addToggleSetting(
-        pinnedNotesGroup.addSetting,
-        strings.settings.items.showPinnedSectionIcon.name,
-        strings.settings.items.showPinnedSectionIcon.desc,
-        () => plugin.settings.showPinnedSectionIcon,
-        value => {
-            plugin.settings.showPinnedSectionIcon = value;
-        }
-    );
-
     renderAppearanceGroup();
 
     const behaviorGroup = createGroup(strings.settings.groups.general.behavior);

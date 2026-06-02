@@ -1115,10 +1115,6 @@ export const STRINGS_TR = {
                 name: 'Notları yalnızca kendi klasörlerinde sabitle',
                 desc: 'Sabitlenen notlar yalnızca kendi klasörlerinde sabitlenmiş olarak görünür. Klasör notları veya çok sayıda sabitlenmiş notunuz varsa kullanışlıdır. Etiket veya özellik görünümlerini etkilemez.'
             },
-            showPinnedSectionIcon: {
-                name: 'Sabitlenmiş bölüm simgesini göster',
-                desc: 'Sabitlenmiş notlar bölümünün yanında bir simge göster.'
-            },
             separateNoteCounts: {
                 name: 'Mevcut ve alt not sayılarını ayrı göster',
                 desc: 'Klasör ve etiketlerde not sayılarını "mevcut ▾ alt öğeler" biçiminde göster.'

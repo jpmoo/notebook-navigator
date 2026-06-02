@@ -86,7 +86,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
         showOnUpdate: true,
         info: 'This version focuses on list pane performance. Notebook Navigator now does less work while scrolling: group labels are precomputed, preview text loading no longer recalculates row heights, real height changes are batched, row estimates reuse stable layout inputs, selection updates touch fewer visible rows, and file rows load only the note details used by the current list settings. Give it a go and see if you notice any difference.',
         new: [
-            '**List pane.** Added a new setting to List pane > Pinned notes > ==Show pinned section icon==. Enable if you want to see an icon next to "Pinned" group header. As with other icons, this can be changed to any icon in Settings > Appearance & behavior > Interface icons.',
+            '**Interface icons.** Added ==Pinned notes==. It is empty by default; choose an icon in Settings > Appearance & behavior > Interface icons to show it next to the Pinned group header.',
             '**List pane.** Added ==Show subfolder paths== in List pane > Group headers. Disable it to show only folder names when grouping by folder.'
         ],
         improved: [

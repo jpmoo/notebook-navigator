@@ -1117,10 +1117,6 @@ export const STRINGS_ID = {
                 name: 'Sematkan catatan hanya di foldernya',
                 desc: 'Catatan yang disematkan hanya tampil disematkan di folder miliknya sendiri. Berguna untuk catatan folder atau jika Anda memiliki banyak catatan yang disematkan. Tidak memengaruhi tampilan tag atau properti.'
             },
-            showPinnedSectionIcon: {
-                name: 'Tampilkan ikon bagian yang disematkan',
-                desc: 'Menampilkan ikon di samping bagian catatan yang disematkan.'
-            },
             separateNoteCounts: {
                 name: 'Tampilkan jumlah catatan saat ini dan turunan secara terpisah',
                 desc: 'Tampilkan jumlah catatan sebagai format "saat ini ▾ turunan" di folder dan tag.'
