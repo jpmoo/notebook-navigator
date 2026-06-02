@@ -506,6 +506,7 @@ export const STRINGS_PL = {
                 'list-sort-property': 'Sortuj według atrybutu',
                 'list-appearance': 'Zmień wygląd',
                 'list-new-note': 'Nowa notatka',
+                'list-pinned': 'Przypięte notatki',
                 'nav-folder-open': 'Folder otwarty',
                 'nav-folder-closed': 'Folder zamknięty',
                 'nav-tags': 'Tagi',
@@ -1139,6 +1140,10 @@ export const STRINGS_PL = {
             stickyGroupHeaders: {
                 name: 'Przyklejone nagłówki grup',
                 desc: 'Bieżący nagłówek sekcji daty, folderu lub przypiętej pozostaje widoczny podczas przewijania.'
+            },
+            showFolderGroupPaths: {
+                name: 'Pokaż ścieżki podfolderów',
+                desc: 'Podczas grupowania według folderu w panelu listy pokazuj ścieżki podfolderów zamiast samych nazw folderów.'
             },
             defaultListMode: {
                 name: 'Domyślny tryb listy',

@@ -504,6 +504,7 @@ export const STRINGS_DE = {
                 'list-sort-property': 'Nach Eigenschaft sortieren',
                 'list-appearance': 'Darstellung ändern',
                 'list-new-note': 'Neue Notiz',
+                'list-pinned': 'Angeheftete Notizen',
                 'nav-folder-open': 'Ordner geöffnet',
                 'nav-folder-closed': 'Ordner geschlossen',
                 'nav-tags': 'Tags',
@@ -1138,6 +1139,10 @@ export const STRINGS_DE = {
             stickyGroupHeaders: {
                 name: 'Gruppenüberschriften fixieren',
                 desc: 'Hält die aktuelle Datums-, Ordner- oder Anheftbereichsüberschrift beim Scrollen sichtbar.'
+            },
+            showFolderGroupPaths: {
+                name: 'Unterordnerpfade anzeigen',
+                desc: 'Beim Gruppieren nach Ordner im Listenbereich Unterordnerpfade statt nur Ordnernamen anzeigen.'
             },
             defaultListMode: {
                 name: 'Standardmodus für Listen',

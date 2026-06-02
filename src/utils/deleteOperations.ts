@@ -35,7 +35,13 @@ interface BaseDeleteOperationsContext {
     selectionDispatch: React.Dispatch<SelectionAction>;
 }
 
-interface DeleteFilesContext extends BaseDeleteOperationsContext {
+type DeleteFilesSelectionState = Pick<
+    SelectionState,
+    'selectionType' | 'selectedFolder' | 'selectedTag' | 'selectedProperty' | 'selectedFiles' | 'selectedFile'
+>;
+
+interface DeleteFilesContext extends Omit<BaseDeleteOperationsContext, 'selectionState'> {
+    selectionState: DeleteFilesSelectionState;
     tagTreeService: TagTreeService | null;
     propertyTreeService: PropertyTreeService | null;
     orderedFiles?: readonly TFile[];

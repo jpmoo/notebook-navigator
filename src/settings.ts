@@ -623,6 +623,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
             name: '',
             searchable: false,
             render: (setting, group) => {
+                group.addClass('nn-settings-lifecycle-group');
                 setting.settingEl.detach();
                 onFirstRender(group);
                 return onLastCleanup;

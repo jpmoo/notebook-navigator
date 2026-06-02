@@ -501,6 +501,7 @@ export const STRINGS_KO = {
                 'list-sort-property': '속성으로 정렬',
                 'list-appearance': '모양 변경',
                 'list-new-note': '새 노트',
+                'list-pinned': '고정된 노트',
                 'nav-folder-open': '열린 폴더',
                 'nav-folder-closed': '닫힌 폴더',
                 'nav-tags': '태그',
@@ -1133,6 +1134,10 @@ export const STRINGS_KO = {
             stickyGroupHeaders: {
                 name: '그룹 헤더 고정',
                 desc: '스크롤하는 동안 현재 날짜, 폴더 또는 고정된 섹션 헤더를 계속 표시합니다.'
+            },
+            showFolderGroupPaths: {
+                name: '하위 폴더 경로 표시',
+                desc: '목록 창에서 폴더별로 그룹화할 때 폴더 이름만 표시하는 대신 하위 폴더 경로를 표시합니다.'
             },
             defaultListMode: {
                 name: '기본 목록 모드',

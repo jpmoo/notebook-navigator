@@ -81,6 +81,31 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
+        version: '3.0.3',
+        date: '2026-06-08',
+        showOnUpdate: true,
+        info: 'This version focuses on list pane performance. Notebook Navigator now does less work while scrolling: group labels are precomputed, preview text loading no longer recalculates row heights, real height changes are batched, row estimates reuse stable layout inputs, selection updates touch fewer visible rows, and file rows load only the note details used by the current list settings. Give it a go and see if you notice any difference.',
+        new: [
+            '**Interface icons.** Added ==Pinned notes==. It is empty by default; choose an icon in Settings > Appearance & behavior > Interface icons to show it next to the Pinned group header.',
+            '**List pane.** Added ==Show subfolder paths== in List pane > Group headers. Disable it to show only folder names when grouping by folder.'
+        ],
+        improved: [
+            '**List pane.** Folder group header path segments are now clickable when subfolder paths are shown.',
+            '**List pane.** Loading preview text no longer recalculates list row heights when the preview status is unchanged. Preview-heavy lists avoid a full height pass as text fills in during scrolling.',
+            '**List pane.** Multiple note updates that affect row height are now measured once per frame, reducing repeated list recalculations during bursts of tag, property, word count, preview, or feature image updates.',
+            '**List pane.** Row height calculations now do less repeated work. Notebook Navigator reuses list display settings and only checks note details when tags, properties, previews, or images can change that row, so large lists spend less time recalculating rows during scrolling and updates.',
+            '**List pane.** File rows now load only the note details used by the current list settings. Hidden previews, tags, properties, counts, feature images, and task indicators no longer trigger cache reads or row updates, so large lists do less work while scrolling and selecting notes.',
+            '**List pane.** Selecting notes now updates fewer visible rows. Tag and property pills only react to folder, tag, or property navigation changes, and range selections commit one file-selection update, reducing UI work during keyboard navigation and multi-select in large lists.'
+        ],
+        changed: [
+            '**Feature images.** Some external images may no longer appear in the list pane if their server does not report image type and file size before download. This prevents very large external images and SVG files from being downloaded and shown as feature images. The content cache database is rebuilt so older potentially invalid SVG feature-image thumbnails are removed.'
+        ],
+        fixed: [
+            '**Calendar.** Fixed notes with feature images sometimes showing a blank calendar image after cached thumbnails were refreshed or rebuilt.',
+            '**Storage.** Fixed repeated content refreshes during large vault change bursts.'
+        ]
+    },
+    {
         version: '3.0.2',
         date: '2026-05-29',
         showOnUpdate: true,

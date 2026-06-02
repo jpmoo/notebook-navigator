@@ -4775,6 +4775,21 @@ button.nn-navigation-calendar-day {
     font-weight: var(--nn-theme-navitem-custom-color-name-font-weight);
 }
 
+.nn-list-group-header-path {
+    display: inline-flex;
+    align-items: center;
+}
+
+.nn-list-group-header-folder-segment {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nn-list-group-header-path-separator {
+    flex: 0 0 auto;
+}
+
 button.nn-list-group-header-collapse-button {
     display: inline-flex;
     align-items: center;
@@ -5800,10 +5815,15 @@ body.nn-resizing {
 .modal.nn-whats-new-modal {
     width: 600px;
     max-width: calc(100vw - 40px);
+    overflow: hidden;
 }
 
 /* What's new content layout */
 .modal.nn-whats-new-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
     padding: 16px;
 }
 
@@ -5819,6 +5839,8 @@ body.nn-resizing {
 
 /* What's new scrollable container */
 .nn-whats-new-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
     max-height: min(70vh, 520px);
     overflow-y: auto;
     margin-bottom: 0;
@@ -6718,6 +6740,16 @@ body.nn-resizing {
 .nn-settings-tab-root {
     display: block;
     min-height: 0;
+}
+
+.nn-settings-tab-root .setting-group.nn-settings-lifecycle-group {
+    display: none;
+}
+
+.nn-settings-tab-root .setting-group.nn-settings-lifecycle-group + .setting-group {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
 }
 
 /* Settings section header spacing */

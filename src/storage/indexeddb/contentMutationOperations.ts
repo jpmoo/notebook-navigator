@@ -99,6 +99,9 @@ export async function runUpdateFileContent(
                 const previewStatus: PreviewStatus = preview.length > 0 ? 'has' : 'none';
                 next.previewStatus = previewStatus;
                 changes.preview = preview;
+                if (existing.previewStatus !== previewStatus) {
+                    changes.previewStatus = previewStatus;
+                }
                 if (previewStatus === 'has') {
                     const previewReq = previewStore.put(preview, path);
                     previewReq.onerror = () => {
@@ -225,7 +228,10 @@ export async function runUpdateFileContent(
         }
         if (Object.keys(changes).length > 0) {
             const hasContentChanges =
-                changes.preview !== undefined || changes.featureImageKey !== undefined || changes.featureImageStatus !== undefined;
+                changes.preview !== undefined ||
+                changes.previewStatus !== undefined ||
+                changes.featureImageKey !== undefined ||
+                changes.featureImageStatus !== undefined;
             const hasMetadataChanges = changes.metadata !== undefined;
             const changeType = hasContentChanges && hasMetadataChanges ? 'both' : hasContentChanges ? 'content' : 'metadata';
             const contentChange: FileContentChange = { path, changes, changeType };
@@ -376,6 +382,7 @@ export async function runClearFileContent(
                 if (file.previewStatus !== nextPreviewStatus) {
                     file.previewStatus = nextPreviewStatus;
                     changes.preview = null;
+                    changes.previewStatus = nextPreviewStatus;
                 }
                 const deleteReq = previewStore.delete(path);
                 deleteReq.onerror = () => {
@@ -479,7 +486,10 @@ export async function runClearFileContent(
         }
         if (Object.keys(changes).length > 0) {
             const hasContentCleared =
-                changes.preview === null || changes.featureImageKey === null || changes.featureImageStatus !== undefined;
+                changes.preview === null ||
+                changes.previewStatus !== undefined ||
+                changes.featureImageKey === null ||
+                changes.featureImageStatus !== undefined;
             const hasMetadataCleared = changes.metadata === null;
             const changeType = hasContentCleared && hasMetadataCleared ? 'both' : hasContentCleared ? 'content' : 'metadata';
             const contentChange: FileContentChange = { path, changes, changeType };
@@ -556,6 +566,7 @@ export async function runBatchClearAllFileContent(
                     if (updated.previewStatus !== nextPreviewStatus) {
                         updated.previewStatus = nextPreviewStatus;
                         changes.preview = null;
+                        changes.previewStatus = nextPreviewStatus;
                         hasChanges = true;
                     }
                 }
@@ -641,6 +652,7 @@ export async function runBatchClearAllFileContent(
                     cacheUpdates.push({ path, data: updated });
                     const hasContentCleared =
                         changes.preview === null ||
+                        changes.previewStatus !== undefined ||
                         changes.featureImageKey === null ||
                         changes.featureImageStatus !== undefined ||
                         changes.characterCountWithSpaces !== undefined ||
@@ -879,6 +891,7 @@ export async function runBatchClearFileContent(
                     if (file.previewStatus !== nextPreviewStatus) {
                         file.previewStatus = nextPreviewStatus;
                         changes.preview = null;
+                        changes.previewStatus = nextPreviewStatus;
                         hasChanges = true;
                     }
                     const deleteReq = previewStore.delete(path);
@@ -952,6 +965,7 @@ export async function runBatchClearFileContent(
                     updates.push({ path, data: file });
                     const hasContentCleared =
                         changes.preview === null ||
+                        changes.previewStatus !== undefined ||
                         changes.featureImageKey === null ||
                         changes.featureImageStatus !== undefined ||
                         changes.properties === null;

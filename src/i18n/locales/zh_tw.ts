@@ -501,6 +501,7 @@ export const STRINGS_ZH_TW = {
                 'list-sort-property': '依屬性排序',
                 'list-appearance': '變更外觀',
                 'list-new-note': '新建筆記',
+                'list-pinned': '釘選筆記',
                 'nav-folder-open': '資料夾開啟',
                 'nav-folder-closed': '資料夾關閉',
                 'nav-tags': '標籤',
@@ -1123,6 +1124,10 @@ export const STRINGS_ZH_TW = {
             stickyGroupHeaders: {
                 name: '固定群組標題',
                 desc: '捲動時保持目前的日期、資料夾或釘選區段的標題可見。'
+            },
+            showFolderGroupPaths: {
+                name: '顯示子資料夾路徑',
+                desc: '在列表窗格中按資料夾分組時，顯示子資料夾路徑，而不是僅顯示資料夾名稱。'
             },
             defaultListMode: {
                 name: '預設列表模式',

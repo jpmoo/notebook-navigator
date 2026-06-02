@@ -222,6 +222,7 @@ export interface FileContentChange {
     path: string;
     changes: {
         preview?: string | null;
+        previewStatus?: PreviewStatus;
         featureImage?: Blob | null;
         featureImageKey?: string | null;
         featureImageStatus?: FeatureImageStatus;

@@ -503,6 +503,7 @@ export const STRINGS_VI = {
                 'list-sort-property': 'Sắp xếp theo thuộc tính',
                 'list-appearance': 'Thay đổi giao diện',
                 'list-new-note': 'Ghi chú mới',
+                'list-pinned': 'Ghi chú đã ghim',
                 'nav-folder-open': 'Thư mục mở',
                 'nav-folder-closed': 'Thư mục đóng',
                 'nav-tags': 'Thẻ',
@@ -1137,6 +1138,10 @@ export const STRINGS_VI = {
             stickyGroupHeaders: {
                 name: 'Header nhóm cố định',
                 desc: 'Giữ header phần ngày, thư mục hoặc đã ghim hiện tại hiển thị khi cuộn.'
+            },
+            showFolderGroupPaths: {
+                name: 'Hiện đường dẫn thư mục con',
+                desc: 'Khi nhóm theo thư mục trong ngăn danh sách, hiển thị đường dẫn thư mục con thay vì chỉ tên thư mục.'
             },
             defaultListMode: {
                 name: 'Chế độ danh sách mặc định',

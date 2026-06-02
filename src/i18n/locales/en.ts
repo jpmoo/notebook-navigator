@@ -502,6 +502,7 @@ export const STRINGS_EN = {
                 'list-sort-property': 'Sort by property',
                 'list-appearance': 'Change appearance',
                 'list-new-note': 'New note',
+                'list-pinned': 'Pinned notes',
                 'nav-folder-open': 'Folder open',
                 'nav-folder-closed': 'Folder closed',
                 'nav-tags': 'Tags',
@@ -1130,6 +1131,10 @@ export const STRINGS_EN = {
             stickyGroupHeaders: {
                 name: 'Sticky group headers',
                 desc: 'Keep the current date, folder, or pinned section header visible while scrolling.'
+            },
+            showFolderGroupPaths: {
+                name: 'Show subfolder paths',
+                desc: 'When grouping by folder in the list pane, show subfolder paths instead of only folder names.'
             },
             defaultListMode: {
                 name: 'Default list mode',

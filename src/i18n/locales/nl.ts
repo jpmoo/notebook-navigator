@@ -506,6 +506,7 @@ export const STRINGS_NL = {
                 'list-sort-property': 'Sorteren op eigenschap',
                 'list-appearance': 'Uiterlijk wijzigen',
                 'list-new-note': 'Nieuwe notitie',
+                'list-pinned': 'Vastgezette notities',
                 'nav-folder-open': 'Map open',
                 'nav-folder-closed': 'Map gesloten',
                 'nav-tags': 'Tags',
@@ -1138,6 +1139,10 @@ export const STRINGS_NL = {
             stickyGroupHeaders: {
                 name: 'Plakkerige groepskoppen',
                 desc: 'Houd de huidige datum-, map- of vastgepinde sectiekop zichtbaar tijdens het scrollen.'
+            },
+            showFolderGroupPaths: {
+                name: 'Submappaden tonen',
+                desc: 'Toont bij groeperen op map in het lijstpaneel submappaden in plaats van alleen mapnamen.'
             },
             defaultListMode: {
                 name: 'Standaard lijstmodus',

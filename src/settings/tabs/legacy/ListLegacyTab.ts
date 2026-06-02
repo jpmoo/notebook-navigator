@@ -249,6 +249,16 @@ export function renderListPaneTab(context: SettingsTabContext): void {
         }
     );
 
+    addToggleSetting(
+        groupHeadersGroup.addSetting,
+        strings.settings.items.showFolderGroupPaths.name,
+        strings.settings.items.showFolderGroupPaths.desc,
+        () => plugin.settings.showFolderGroupPaths,
+        value => {
+            plugin.settings.showFolderGroupPaths = value;
+        }
+    );
+
     groupHeadersGroup.addSetting(setting => {
         setting
             .setName(strings.settings.items.manualSortGroupHeaderProperty.name)

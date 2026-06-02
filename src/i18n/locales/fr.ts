@@ -505,6 +505,7 @@ export const STRINGS_FR = {
                 'list-sort-property': 'Trier par propriété',
                 'list-appearance': "Modifier l'apparence",
                 'list-new-note': 'Nouvelle note',
+                'list-pinned': 'Notes épinglées',
                 'nav-folder-open': 'Dossier ouvert',
                 'nav-folder-closed': 'Dossier fermé',
                 'nav-tags': 'Étiquettes',
@@ -1139,6 +1140,10 @@ export const STRINGS_FR = {
             stickyGroupHeaders: {
                 name: 'En-têtes de groupe épinglés',
                 desc: "Garder visible l'en-tête de section actuel (date, dossier ou épinglé) lors du défilement."
+            },
+            showFolderGroupPaths: {
+                name: 'Afficher les chemins des sous-dossiers',
+                desc: 'Lors du regroupement par dossier dans le panneau de liste, afficher les chemins des sous-dossiers au lieu des seuls noms de dossier.'
             },
             defaultListMode: {
                 name: 'Mode de liste par défaut',

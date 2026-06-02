@@ -268,9 +268,7 @@ export class PluginSettingsController {
         );
         const storedInterfaceIcons = storedData?.['interfaceIcons'];
         const hadPinnedSectionIconInStoredData = Boolean(
-            isRecord(storedInterfaceIcons) &&
-            (Object.prototype.hasOwnProperty.call(storedInterfaceIcons, 'list-pinned') ||
-                Object.prototype.hasOwnProperty.call(storedInterfaceIcons, 'pinned-section'))
+            isRecord(storedInterfaceIcons) && Object.prototype.hasOwnProperty.call(storedInterfaceIcons, 'pinned-section')
         );
         const hadInvalidPropertySortKeyInStoredData = Boolean(
             storedData &&

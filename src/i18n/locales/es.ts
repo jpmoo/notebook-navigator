@@ -504,6 +504,7 @@ export const STRINGS_ES = {
                 'list-sort-property': 'Ordenar por propiedad',
                 'list-appearance': 'Cambiar apariencia',
                 'list-new-note': 'Nueva nota',
+                'list-pinned': 'Notas fijadas',
                 'nav-folder-open': 'Carpeta abierta',
                 'nav-folder-closed': 'Carpeta cerrada',
                 'nav-tags': 'Etiquetas',
@@ -1137,6 +1138,10 @@ export const STRINGS_ES = {
             stickyGroupHeaders: {
                 name: 'Encabezados de grupo fijos',
                 desc: 'Mantén visible el encabezado actual de fecha, carpeta o sección anclada al desplazarte.'
+            },
+            showFolderGroupPaths: {
+                name: 'Mostrar rutas de subcarpetas',
+                desc: 'Al agrupar por carpeta en el panel de lista, muestra rutas de subcarpetas en lugar de solo nombres de carpeta.'
             },
             defaultListMode: {
                 name: 'Modo de lista predeterminado',

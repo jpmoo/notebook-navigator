@@ -503,6 +503,7 @@ export const STRINGS_TR = {
                 'list-sort-property': 'Özelliğe göre sırala',
                 'list-appearance': 'Görünümü değiştir',
                 'list-new-note': 'Yeni not',
+                'list-pinned': 'Sabitlenmiş notlar',
                 'nav-folder-open': 'Klasör açık',
                 'nav-folder-closed': 'Klasör kapalı',
                 'nav-tags': 'Etiketler',
@@ -1134,6 +1135,10 @@ export const STRINGS_TR = {
             stickyGroupHeaders: {
                 name: 'Yapışkan grup başlıkları',
                 desc: 'Geçerli tarih, klasör veya sabitlenmiş bölüm başlığını kaydırırken görünür tut.'
+            },
+            showFolderGroupPaths: {
+                name: 'Alt klasör yollarını göster',
+                desc: 'Liste bölmesinde klasöre göre gruplarken, yalnızca klasör adları yerine alt klasör yollarını göster.'
             },
             defaultListMode: {
                 name: 'Varsayılan liste modu',

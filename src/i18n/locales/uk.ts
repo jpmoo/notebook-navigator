@@ -505,6 +505,7 @@ export const STRINGS_UK = {
                 'list-sort-property': 'Сортувати за властивістю',
                 'list-appearance': 'Змінити вигляд',
                 'list-new-note': 'Нова нотатка',
+                'list-pinned': 'Закріплені нотатки',
                 'nav-folder-open': 'Папка відкрита',
                 'nav-folder-closed': 'Папка закрита',
                 'nav-tags': 'Теги',
@@ -1133,6 +1134,10 @@ export const STRINGS_UK = {
             stickyGroupHeaders: {
                 name: 'Закріплені заголовки груп',
                 desc: 'Тримати заголовок поточної дати, теки або закріпленого розділу видимим під час прокручування.'
+            },
+            showFolderGroupPaths: {
+                name: 'Показувати шляхи підпапок',
+                desc: 'Під час групування за папкою на панелі списку показувати шляхи підпапок замість лише назв папок.'
             },
             defaultListMode: {
                 name: 'Режим списку за замовчуванням',

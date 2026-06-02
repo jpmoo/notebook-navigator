@@ -104,6 +104,10 @@ export function createListPaneSettingDefinitions(context: SettingsTabContext): S
                 name: strings.settings.items.stickyGroupHeaders.name,
                 desc: strings.settings.items.stickyGroupHeaders.desc
             }),
+            createToggleDefinition('showFolderGroupPaths', {
+                name: strings.settings.items.showFolderGroupPaths.name,
+                desc: strings.settings.items.showFolderGroupPaths.desc
+            }),
             createRenderDefinition({
                 name: strings.settings.items.manualSortGroupHeaderProperty.name,
                 desc: strings.settings.items.manualSortGroupHeaderProperty.desc,

@@ -501,6 +501,7 @@ export const STRINGS_TH = {
                 'list-sort-property': 'จัดเรียงตามคุณสมบัติ',
                 'list-appearance': 'เปลี่ยนรูปลักษณ์',
                 'list-new-note': 'โน้ตใหม่',
+                'list-pinned': 'โน้ตที่ปักหมุด',
                 'nav-folder-open': 'โฟลเดอร์เปิด',
                 'nav-folder-closed': 'โฟลเดอร์ปิด',
                 'nav-tags': 'แท็ก',
@@ -1129,6 +1130,10 @@ export const STRINGS_TH = {
             stickyGroupHeaders: {
                 name: 'ส่วนหัวกลุ่มแบบติดด้านบน',
                 desc: 'แสดงส่วนหัวของวันที่ โฟลเดอร์ หรือส่วนที่ปักหมุดในปัจจุบันให้เห็นอยู่เสมอขณะเลื่อน'
+            },
+            showFolderGroupPaths: {
+                name: 'แสดงเส้นทางโฟลเดอร์ย่อย',
+                desc: 'เมื่อจัดกลุ่มตามโฟลเดอร์ในแผงรายการ ให้แสดงเส้นทางโฟลเดอร์ย่อยแทนการแสดงเฉพาะชื่อโฟลเดอร์'
             },
             defaultListMode: {
                 name: 'โหมดรายการเริ่มต้น',

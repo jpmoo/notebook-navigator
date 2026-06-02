@@ -501,6 +501,7 @@ export const STRINGS_AR = {
                 'list-sort-property': 'الفرز حسب الخاصية',
                 'list-appearance': 'تغيير المظهر',
                 'list-new-note': 'ملاحظة جديدة',
+                'list-pinned': 'الملاحظات المثبتة',
                 'nav-folder-open': 'مجلد مفتوح',
                 'nav-folder-closed': 'مجلد مغلق',
                 'nav-tags': 'علامات',
@@ -1131,6 +1132,10 @@ export const STRINGS_AR = {
             stickyGroupHeaders: {
                 name: 'تثبيت رؤوس المجموعات',
                 desc: 'إبقاء رأس قسم التاريخ أو المجلد أو القسم المثبت الحالي مرئيًا أثناء التمرير.'
+            },
+            showFolderGroupPaths: {
+                name: 'إظهار مسارات المجلدات الفرعية',
+                desc: 'عند التجميع حسب المجلد في لوحة القائمة، اعرض مسارات المجلدات الفرعية بدلاً من أسماء المجلدات فقط.'
             },
             defaultListMode: {
                 name: 'وضع القائمة الافتراضي',

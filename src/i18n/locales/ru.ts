@@ -504,6 +504,7 @@ export const STRINGS_RU = {
                 'list-sort-property': 'Сортировать по свойству',
                 'list-appearance': 'Изменить вид',
                 'list-new-note': 'Новая заметка',
+                'list-pinned': 'Закреплённые заметки',
                 'nav-folder-open': 'Папка открыта',
                 'nav-folder-closed': 'Папка закрыта',
                 'nav-tags': 'Теги',
@@ -1133,6 +1134,10 @@ export const STRINGS_RU = {
             stickyGroupHeaders: {
                 name: 'Закреплённые заголовки групп',
                 desc: 'Сохранять видимым заголовок текущей даты, папки или раздела закреплённых при прокрутке.'
+            },
+            showFolderGroupPaths: {
+                name: 'Показывать пути подпапок',
+                desc: 'При группировке по папке в панели списка показывать пути подпапок вместо только названий папок.'
             },
             defaultListMode: {
                 name: 'Режим списка по умолчанию',

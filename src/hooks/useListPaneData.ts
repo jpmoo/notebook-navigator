@@ -186,6 +186,7 @@ export function useListPaneData({
             pinnedGroupExpanded,
             showTags: settings.showTags,
             showFileTags: settings.showFileTags,
+            showFolderGroupPaths: settings.showFolderGroupPaths,
             groupBy,
             folderGroupSortOrder: selectedFolderGroupSortOrder
         }),
@@ -195,6 +196,7 @@ export function useListPaneData({
             groupBy,
             pinnedGroupExpanded,
             settings.pinnedNotes,
+            settings.showFolderGroupPaths,
             settings.showFileTags,
             settings.showTags
         ]

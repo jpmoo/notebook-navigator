@@ -19,6 +19,7 @@
 import { describe, expect, it } from 'vitest';
 import {
     calculateNormalListFileRowHeightEstimate,
+    estimateFileRowHeight,
     getFileItemLayoutState,
     getListPaneMeasurements,
     getSelectedPropertyValuePillToHide,
@@ -250,6 +251,118 @@ describe('listPaneMeasurements layout helpers', () => {
                 visiblePillRowCount: 2
             })
         ).toBe(desktopHeights.basePadding + desktopHeights.titleLineHeight + desktopHeights.tagRowHeight * 2);
+    });
+
+    it('estimates compact file rows from compact padding, title rows, and visible pill rows', () => {
+        expect(
+            estimateFileRowHeight(
+                {
+                    isPinned: false,
+                    hasPreviewContent: false,
+                    showFeatureImageArea: false,
+                    showExtensionBadgeThumbnail: false,
+                    showParentFolderLine: false,
+                    visiblePillRowCount: 2
+                },
+                {
+                    heights: desktopHeights,
+                    titleRows: 2,
+                    previewRows: 3,
+                    showDate: false,
+                    showPreview: false,
+                    showImage: false,
+                    compactPaddingTotal: 18
+                }
+            )
+        ).toBe(18 + desktopHeights.titleLineHeight * 2 + desktopHeights.tagRowHeight * 2);
+    });
+
+    it('estimates pinned image rows with the pinned preview row count', () => {
+        const inputs = {
+            isPinned: true,
+            hasPreviewContent: true,
+            showFeatureImageArea: true,
+            showExtensionBadgeThumbnail: false,
+            showParentFolderLine: false,
+            visiblePillRowCount: 1
+        };
+        const layoutState = getFileItemLayoutState({
+            showDate: true,
+            showPreview: true,
+            showImage: true,
+            isPinned: inputs.isPinned,
+            hasPreviewContent: inputs.hasPreviewContent,
+            showFeatureImageArea: inputs.showFeatureImageArea,
+            showExtensionBadgeThumbnail: inputs.showExtensionBadgeThumbnail,
+            hasVisiblePillRows: true
+        });
+
+        expect(
+            estimateFileRowHeight(inputs, {
+                heights: desktopHeights,
+                titleRows: 1,
+                previewRows: 4,
+                showDate: true,
+                showPreview: true,
+                showImage: true,
+                compactPaddingTotal: 18
+            })
+        ).toBe(
+            calculateNormalListFileRowHeightEstimate({
+                heights: desktopHeights,
+                titleRows: 1,
+                previewRows: 1,
+                layoutState,
+                showFeatureImageArea: true,
+                showExtensionBadgeThumbnail: false,
+                showParentFolderLine: false,
+                visiblePillRowCount: 1
+            })
+        );
+    });
+
+    it('estimates extension badge rows from metadata and pill inputs', () => {
+        const inputs = {
+            isPinned: false,
+            hasPreviewContent: false,
+            showFeatureImageArea: true,
+            showExtensionBadgeThumbnail: true,
+            showParentFolderLine: true,
+            visiblePillRowCount: 2
+        };
+        const layoutState = getFileItemLayoutState({
+            showDate: true,
+            showPreview: true,
+            showImage: true,
+            isPinned: false,
+            hasPreviewContent: false,
+            showFeatureImageArea: true,
+            showExtensionBadgeThumbnail: true,
+            hasVisiblePillRows: true
+        });
+
+        expect(
+            estimateFileRowHeight(inputs, {
+                heights: desktopHeights,
+                titleRows: 1,
+                previewRows: 3,
+                showDate: true,
+                showPreview: true,
+                showImage: true,
+                compactPaddingTotal: 18
+            })
+        ).toBe(
+            calculateNormalListFileRowHeightEstimate({
+                heights: desktopHeights,
+                titleRows: 1,
+                previewRows: 3,
+                layoutState,
+                showFeatureImageArea: true,
+                showExtensionBadgeThumbnail: true,
+                showParentFolderLine: true,
+                visiblePillRowCount: 2
+            })
+        );
     });
 
     it('uses the thumbnail minimum row height for short feature image rows', () => {

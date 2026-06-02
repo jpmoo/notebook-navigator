@@ -503,6 +503,7 @@ export const STRINGS_FA = {
                 'list-sort-property': 'مرتب‌سازی بر اساس ویژگی',
                 'list-appearance': 'تغییر ظاهر',
                 'list-new-note': 'یادداشت جدید',
+                'list-pinned': 'یادداشت‌های سنجاق‌شده',
                 'nav-folder-open': 'پوشه باز',
                 'nav-folder-closed': 'پوشه بسته',
                 'nav-tags': 'برچسب‌ها',
@@ -1136,6 +1137,10 @@ export const STRINGS_FA = {
             stickyGroupHeaders: {
                 name: 'هدرهای گروه چسبان',
                 desc: 'هدر بخش تاریخ، پوشه یا قسمت سنجاق‌شده فعلی را هنگام پیمایش نمایان نگه می‌دارد.'
+            },
+            showFolderGroupPaths: {
+                name: 'نمایش مسیرهای زیرپوشه',
+                desc: 'هنگام گروه‌بندی بر اساس پوشه در پنل لیست، مسیرهای زیرپوشه را به جای فقط نام پوشه‌ها نمایش دهید.'
             },
             defaultListMode: {
                 name: 'حالت لیست پیش‌فرض',

@@ -505,6 +505,7 @@ export const STRINGS_PT_BR = {
                 'list-sort-property': 'Classificar por propriedade',
                 'list-appearance': 'Alterar aparência',
                 'list-new-note': 'Nova nota',
+                'list-pinned': 'Notas fixadas',
                 'nav-folder-open': 'Pasta aberta',
                 'nav-folder-closed': 'Pasta fechada',
                 'nav-tags': 'Tags',
@@ -1138,6 +1139,10 @@ export const STRINGS_PT_BR = {
             stickyGroupHeaders: {
                 name: 'Cabeçalhos de grupo fixos',
                 desc: 'Mantém o cabeçalho atual de data, pasta ou seção fixada visível ao rolar.'
+            },
+            showFolderGroupPaths: {
+                name: 'Mostrar caminhos das subpastas',
+                desc: 'Ao agrupar por pasta no painel de lista, exibir caminhos das subpastas em vez de apenas nomes de pastas.'
             },
             defaultListMode: {
                 name: 'Modo padrão da lista',
