@@ -5815,10 +5815,15 @@ body.nn-resizing {
 .modal.nn-whats-new-modal {
     width: 600px;
     max-width: calc(100vw - 40px);
+    overflow: hidden;
 }
 
 /* What's new content layout */
 .modal.nn-whats-new-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
     padding: 16px;
 }
 
@@ -5834,6 +5839,8 @@ body.nn-resizing {
 
 /* What's new scrollable container */
 .nn-whats-new-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
     max-height: min(70vh, 520px);
     overflow-y: auto;
     margin-bottom: 0;

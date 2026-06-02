@@ -16,11 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { App, Modal } from 'obsidian';
+import { App, Modal, Platform } from 'obsidian';
 import { getReleaseBannerUrl, SUPPORT_BUY_ME_A_COFFEE_URL } from '../constants/urls';
 import { getCurrentLanguage, strings } from '../i18n';
 import { ReleaseNote } from '../releaseNotes';
 import { addAsyncEventListener } from '../utils/domEventListeners';
+import { focusElementPreventScroll } from '../utils/domUtils';
 import { DateUtils } from '../utils/dateUtils';
 import { getYoutubeThumbnailUrl, getYoutubeVideoId } from '../utils/youtubeUtils';
 
@@ -287,10 +288,12 @@ export class WhatsNewModal extends Modal {
     open(): void {
         super.open();
         // Focus the thanks button after the modal is fully opened
-        if (this.thanksButton) {
+        if (this.thanksButton && !Platform.isMobile) {
             // Use requestAnimationFrame to ensure DOM is ready
             window.requestAnimationFrame(() => {
-                this.thanksButton?.focus();
+                if (this.thanksButton) {
+                    focusElementPreventScroll(this.thanksButton);
+                }
             });
         }
     }
