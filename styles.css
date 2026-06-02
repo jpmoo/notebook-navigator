@@ -6735,6 +6735,16 @@ body.nn-resizing {
     min-height: 0;
 }
 
+.nn-settings-tab-root .setting-group.nn-settings-lifecycle-group {
+    display: none;
+}
+
+.nn-settings-tab-root .setting-group.nn-settings-lifecycle-group + .setting-group {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
 /* Settings section header spacing */
 .nn-settings-tab-root .setting-item-heading {
     margin-top: 30px;
