@@ -411,6 +411,35 @@ export const FileItem = React.memo(function FileItem({
     const settings = useSettingsState();
     const metadataService = useMetadataService();
     const { getFileDisplayName, getDB, getFileTimestamps, hasPreview, regenerateFeatureImageForFile } = fileItemStorage;
+    const isCompactMode = isListPaneCompactMode({
+        showDate: appearanceSettings.showDate,
+        showPreview: appearanceSettings.showPreview,
+        showImage: appearanceSettings.showImage
+    });
+    const shouldShowWordCount = showsWordCount(settings.textCountDisplay);
+    const shouldShowCharacterCount = showsCharacterCount(settings.textCountDisplay);
+    const isMarkdownFile = file.extension === 'md';
+    const canShowPropertyPills = isMarkdownFile && (!isCompactMode || settings.showFilePropertiesInCompactMode);
+    const shouldLoadTags =
+        isMarkdownFile && settings.showTags && settings.showFileTags && (!isCompactMode || settings.showFileTagsInCompactMode);
+    const shouldLoadWordCountForDisplay =
+        isMarkdownFile &&
+        shouldShowWordCount &&
+        (settings.textCountPlacement === 'title' || (settings.textCountPlacement === 'property' && canShowPropertyPills));
+    const shouldLoadWordCount =
+        shouldLoadWordCountForDisplay || (isMarkdownFile && !isMobile && settings.showTooltips && settings.showTooltipWordCount);
+    const shouldLoadCharacterCount =
+        isMarkdownFile &&
+        shouldShowCharacterCount &&
+        (settings.textCountPlacement === 'title' || (settings.textCountPlacement === 'property' && canShowPropertyPills));
+    const shouldLoadProperties =
+        isMarkdownFile &&
+        ((canShowPropertyPills && settings.showFileProperties && visiblePropertyKeys.size > 0) ||
+            (shouldLoadWordCountForDisplay && settings.wordCountTargetProperty.trim().length > 0));
+    const shouldLoadTaskUnfinished =
+        isMarkdownFile &&
+        (settings.showFileIconUnfinishedTask || settings.showFileBackgroundUnfinishedTask || (!isMobile && settings.showTooltips));
+    const shouldRefreshMetadataVersionOnFeatureImageChange = isMarkdownFile && appearanceSettings.showImage;
     const fileStatMtime = useImageFileResourceVersion(app, file, appearanceSettings.showImage && isRasterImageFile(file));
     const drawingFeatureImageSource = getDrawingFeatureImageSource(app, file);
     const isDrawingFeatureImageRow = drawingFeatureImageSource !== null;
@@ -434,7 +463,17 @@ export const FileItem = React.memo(function FileItem({
         skipFeatureImage: isDrawingFeatureImageRow,
         fileStatMtime,
         getDB,
-        regenerateFeatureImageForFile
+        regenerateFeatureImageForFile,
+        loadOptions: {
+            loadPreviewText: appearanceSettings.showPreview && isMarkdownFile && !searchMeta?.excerpt,
+            loadTags: shouldLoadTags,
+            loadFeatureImage: appearanceSettings.showImage && !isDrawingFeatureImageRow,
+            loadProperties: shouldLoadProperties,
+            loadWordCount: shouldLoadWordCount,
+            loadCharacterCount: shouldLoadCharacterCount,
+            loadTaskUnfinished: shouldLoadTaskUnfinished
+        },
+        refreshMetadataVersionOnFeatureImageChange: shouldRefreshMetadataVersionOnFeatureImageChange
     });
     const drawingFeatureImage = useDrawingFeatureImage({
         app,
@@ -633,12 +672,6 @@ export const FileItem = React.memo(function FileItem({
         return resolveFileDragIconId(file, settings.fileTypeIconMap, app.metadataCache, effectiveFileIconId);
     }, [app.metadataCache, effectiveFileIconId, file, metadataVersion, settings.fileTypeIconMap]);
 
-    const isCompactMode = isListPaneCompactMode({
-        showDate: appearanceSettings.showDate,
-        showPreview: appearanceSettings.showPreview,
-        showImage: appearanceSettings.showImage
-    });
-
     // Determines whether to display the file icon based on icon availability
     const shouldShowFileIcon = useMemo(() => {
         if (!showFileIcons) {
@@ -654,8 +687,6 @@ export const FileItem = React.memo(function FileItem({
     const fileIconClassName = showFileIconUnfinishedTask ? 'nn-file-icon nn-file-icon-unfinished-task' : 'nn-file-icon';
     const dragIconColor = showFileIconUnfinishedTask ? undefined : (fileIconColor ?? undefined);
     const shouldShowCompactExtensionBadge = isCompactMode && (isBaseFile || isCanvasFile);
-    const shouldShowWordCount = showsWordCount(settings.textCountDisplay);
-    const shouldShowCharacterCount = showsCharacterCount(settings.textCountDisplay);
     const wordCountDisplayText = useMemo(() => {
         if (!shouldShowWordCount || file.extension !== 'md') {
             return null;
@@ -1050,10 +1081,7 @@ export const FileItem = React.memo(function FileItem({
     const pinContext = getNavigatorPinContext(selectionType ?? null);
     const isPinnedInCurrentContext = metadataService.isFilePinned(file.path, pinContext);
 
-    // Quick action handlers - these don't need memoization because:
-    // 1. They're only attached to DOM elements that appear on hover
-    // 2. They're not passed as props to child components
-    // 3. They don't cause re-renders when recreated
+    // Quick action handlers are used only by local action elements.
     const handleOpenInNewTab = (e: React.MouseEvent) => {
         e.stopPropagation();
         e.preventDefault();
@@ -1214,7 +1242,7 @@ export const FileItem = React.memo(function FileItem({
         iconService.renderIcon(iconContainer, iconId, fileIconSize);
     }, [effectiveFileIconId, iconServiceVersion, shouldShowFileIcon, isCompactMode, fileIconSize]);
 
-    // Set up the icons when quick actions panel is shown
+    // Set up quick action icons after their elements mount.
     useEffect(() => {
         if (isMobile || !showQuickActionsPanel) {
             return;
@@ -1278,7 +1306,7 @@ export const FileItem = React.memo(function FileItem({
             style={fileRowStyle}
         >
             <div className="nn-file-content">
-                {/* Quick actions panel - appears on hover */}
+                {/* Quick actions panel visibility is controlled by CSS hover and focus selectors. */}
                 {!isMobile && hasQuickActions && showQuickActionsPanel && (
                     <div
                         className={`nn-quick-actions-panel ${isCompactMode ? 'nn-compact-mode' : ''}`}

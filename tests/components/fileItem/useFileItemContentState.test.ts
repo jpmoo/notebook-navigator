@@ -17,10 +17,11 @@
  */
 
 import { App } from 'obsidian';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createDefaultFileData, type FileData } from '../../../src/storage/IndexedDBStorage';
 import {
     loadFileItemCacheSnapshot,
+    shouldRefreshFileItemMetadataVersionForContentChange,
     subscribeToFileItemContentState,
     type FileItemCacheSnapshot,
     type FileItemContentDb
@@ -76,6 +77,163 @@ describe('useFileItemContentState helpers', () => {
         expect(snapshot.taskUnfinished).toBe(2);
         expect(snapshot.properties).toEqual(properties);
         expect(snapshot.properties).not.toBe(properties);
+    });
+
+    it('skips disabled content fields and avoids unused cache reads', () => {
+        const file = createTestTFile('Notes/Daily.md');
+        const getCachedPreviewText = vi.fn(() => 'Cached preview text');
+        const getFile = vi.fn(() =>
+            createFileRecord({
+                tags: ['work'],
+                featureImageKey: 'feature-1',
+                featureImageStatus: 'has',
+                properties: [{ fieldKey: 'status', value: 'open', valueKind: 'string' }],
+                wordCount: 321,
+                characterCountWithSpaces: 1500,
+                characterCountWithoutSpaces: 1300,
+                taskUnfinished: 2
+            })
+        );
+        const db: FileItemContentDb = {
+            getCachedPreviewText,
+            getFile,
+            onFileContentChange: () => () => {},
+            ensurePreviewTextLoaded: async () => {},
+            getFeatureImageBlob: async () => null
+        };
+
+        const snapshot = loadFileItemCacheSnapshot({
+            app: new App(),
+            file,
+            showPreview: true,
+            showImage: true,
+            db,
+            loadOptions: {
+                loadPreviewText: false,
+                loadTags: false,
+                loadFeatureImage: false,
+                loadProperties: false,
+                loadWordCount: false,
+                loadCharacterCount: false,
+                loadTaskUnfinished: false
+            }
+        });
+
+        expect(snapshot).toEqual({
+            previewText: '',
+            tags: [],
+            featureImageKey: null,
+            featureImageStatus: 'unprocessed',
+            featureImageUrl: null,
+            properties: null,
+            wordCount: null,
+            characterCountWithSpaces: null,
+            characterCountWithoutSpaces: null,
+            taskUnfinished: null
+        });
+        expect(getCachedPreviewText).not.toHaveBeenCalled();
+        expect(getFile).not.toHaveBeenCalled();
+    });
+
+    it('loads only requested record-backed fields from the cache snapshot', () => {
+        const file = createTestTFile('Notes/Daily.md');
+        const db = createContentDb(
+            createFileRecord({
+                tags: ['work'],
+                properties: [{ fieldKey: 'status', value: 'open', valueKind: 'string' }],
+                wordCount: 321,
+                characterCountWithSpaces: 1500,
+                characterCountWithoutSpaces: 1300,
+                taskUnfinished: 2
+            })
+        );
+
+        const snapshot = loadFileItemCacheSnapshot({
+            app: new App(),
+            file,
+            showPreview: true,
+            showImage: false,
+            db,
+            loadOptions: {
+                loadPreviewText: false,
+                loadTags: false,
+                loadFeatureImage: false,
+                loadProperties: false,
+                loadWordCount: true,
+                loadCharacterCount: false,
+                loadTaskUnfinished: false
+            }
+        });
+
+        expect(snapshot.previewText).toBe('');
+        expect(snapshot.tags).toEqual([]);
+        expect(snapshot.properties).toBeNull();
+        expect(snapshot.wordCount).toBe(321);
+        expect(snapshot.characterCountWithSpaces).toBeNull();
+        expect(snapshot.characterCountWithoutSpaces).toBeNull();
+        expect(snapshot.taskUnfinished).toBeNull();
+    });
+
+    it('refreshes metadata version only for metadata or skipped feature-image changes', () => {
+        expect(
+            shouldRefreshFileItemMetadataVersionForContentChange({
+                changes: {
+                    properties: [{ fieldKey: 'status', value: 'open', valueKind: 'string' }]
+                },
+                shouldLoadFeatureImage: false,
+                refreshMetadataVersionOnFeatureImageChange: true
+            })
+        ).toBe(false);
+
+        expect(
+            shouldRefreshFileItemMetadataVersionForContentChange({
+                changes: {
+                    metadata: { name: 'Daily note' }
+                },
+                shouldLoadFeatureImage: true,
+                refreshMetadataVersionOnFeatureImageChange: false
+            })
+        ).toBe(true);
+
+        expect(
+            shouldRefreshFileItemMetadataVersionForContentChange({
+                changes: {
+                    featureImageKey: 'd:excalidraw:Notes/Drawing.md'
+                },
+                shouldLoadFeatureImage: false,
+                refreshMetadataVersionOnFeatureImageChange: true
+            })
+        ).toBe(true);
+
+        expect(
+            shouldRefreshFileItemMetadataVersionForContentChange({
+                changes: {
+                    featureImageStatus: 'has'
+                },
+                shouldLoadFeatureImage: false,
+                refreshMetadataVersionOnFeatureImageChange: true
+            })
+        ).toBe(true);
+
+        expect(
+            shouldRefreshFileItemMetadataVersionForContentChange({
+                changes: {
+                    featureImageKey: 'feature-1'
+                },
+                shouldLoadFeatureImage: true,
+                refreshMetadataVersionOnFeatureImageChange: true
+            })
+        ).toBe(false);
+
+        expect(
+            shouldRefreshFileItemMetadataVersionForContentChange({
+                changes: {
+                    featureImageKey: 'feature-1'
+                },
+                shouldLoadFeatureImage: false,
+                refreshMetadataVersionOnFeatureImageChange: false
+            })
+        ).toBe(false);
     });
 
     it('skips preview and tags for non-markdown files', () => {

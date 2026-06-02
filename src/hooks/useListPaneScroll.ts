@@ -166,6 +166,7 @@ type ListLayoutSignatureSettings = Pick<
 export interface ListFileRowSizingConfig extends FileRowHeightConfig {
     isCompactMode: boolean;
     tagsBaseEnabled: boolean;
+    frontmatterPropertyRowsPossible: boolean;
     propertyRowsPossible: boolean;
     showTextCountProperty: boolean;
     showWordCountProperty: boolean;
@@ -183,6 +184,17 @@ export interface ListFileRowSizingConfig extends FileRowHeightConfig {
     visiblePropertyKeys: ReadonlySet<string>;
     themeMode: ThemeMode;
 }
+
+export type ListRowHeightAffectingContentChangeConfig = Pick<
+    ListFileRowSizingConfig,
+    | 'showPreview'
+    | 'showImage'
+    | 'tagsBaseEnabled'
+    | 'frontmatterPropertyRowsPossible'
+    | 'showWordCountProperty'
+    | 'showCharacterCountProperty'
+    | 'characterCountSpaces'
+>;
 
 interface ResolveListFileRowHeightInputsParams {
     app: App;
@@ -346,17 +358,45 @@ function getScrollPreservationSignature({
     });
 }
 
-export function isListRowHeightAffectingContentChange(change: FileContentChange): boolean {
-    return (
-        change.changes.previewStatus !== undefined ||
-        change.changes.featureImageKey !== undefined ||
-        change.changes.featureImageStatus !== undefined ||
-        change.changes.properties !== undefined ||
-        change.changes.tags !== undefined ||
-        change.changes.wordCount !== undefined ||
-        change.changes.characterCountWithSpaces !== undefined ||
-        change.changes.characterCountWithoutSpaces !== undefined
-    );
+export function isListRowHeightAffectingContentChange(
+    change: FileContentChange,
+    config: ListRowHeightAffectingContentChangeConfig
+): boolean {
+    const { changes } = change;
+
+    if (changes.previewStatus !== undefined && config.showPreview) {
+        return true;
+    }
+
+    if ((changes.featureImageKey !== undefined || changes.featureImageStatus !== undefined) && config.showImage) {
+        return true;
+    }
+
+    if (changes.tags !== undefined && config.tagsBaseEnabled) {
+        return true;
+    }
+
+    if (changes.properties !== undefined && config.frontmatterPropertyRowsPossible) {
+        return true;
+    }
+
+    if (changes.wordCount !== undefined && config.showWordCountProperty) {
+        return true;
+    }
+
+    if (changes.characterCountWithSpaces !== undefined && config.showCharacterCountProperty && config.characterCountSpaces === 'include') {
+        return true;
+    }
+
+    if (
+        changes.characterCountWithoutSpaces !== undefined &&
+        config.showCharacterCountProperty &&
+        config.characterCountSpaces === 'exclude'
+    ) {
+        return true;
+    }
+
+    return false;
 }
 
 export function createRemeasureScheduler(measure: () => void): { schedule: () => void; cancel: () => void } {
@@ -635,7 +675,9 @@ export function useListPaneScroll({
         const showTextCountProperty = settings.textCountDisplay !== 'none' && settings.textCountPlacement === 'property';
         const showWordCountProperty = showTextCountProperty && showsWordCount(settings.textCountDisplay);
         const showCharacterCountProperty = showTextCountProperty && showsCharacterCount(settings.textCountDisplay);
+        const canShowPropertiesInCurrentMode = !isCompactMode || settings.showFilePropertiesInCompactMode;
         const showFrontmatterPropertyRows = settings.showFileProperties && visiblePropertyKeys.size > 0;
+        const frontmatterPropertyRowsPossible = canShowPropertiesInCurrentMode && showFrontmatterPropertyRows;
 
         return {
             heights: listMeasurements,
@@ -647,8 +689,8 @@ export function useListPaneScroll({
             compactPaddingTotal: isMobile ? compactListMetrics.mobilePaddingTotal : compactListMetrics.desktopPaddingTotal,
             isCompactMode,
             tagsBaseEnabled: settings.showTags && settings.showFileTags && (!isCompactMode || settings.showFileTagsInCompactMode),
-            propertyRowsPossible:
-                (!isCompactMode || settings.showFilePropertiesInCompactMode) && (showFrontmatterPropertyRows || showTextCountProperty),
+            frontmatterPropertyRowsPossible,
+            propertyRowsPossible: canShowPropertiesInCurrentMode && (showFrontmatterPropertyRows || showTextCountProperty),
             showTextCountProperty,
             showWordCountProperty,
             showCharacterCountProperty,
@@ -1174,7 +1216,7 @@ export function useListPaneScroll({
         const remeasureScheduler = remeasureSchedulerRef.current;
         const unsubscribe = db.onContentChange(changes => {
             const needsRemeasure = changes.some(change => {
-                return filePathToIndex.has(change.path) && isListRowHeightAffectingContentChange(change);
+                return filePathToIndex.has(change.path) && isListRowHeightAffectingContentChange(change, rowSizingConfig);
             });
 
             if (needsRemeasure) {
@@ -1186,7 +1228,7 @@ export function useListPaneScroll({
             unsubscribe();
             remeasureScheduler?.cancel();
         };
-    }, [enabled, filePathToIndex, getDB, rowVirtualizer]);
+    }, [enabled, filePathToIndex, getDB, rowSizingConfig, rowVirtualizer]);
 
     /**
      * Listen for mobile drawer visibility events.

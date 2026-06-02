@@ -26,6 +26,7 @@ import type { FileContentChange, IndexedDBStorage } from '../../src/storage/Inde
 import {
     createRemeasureScheduler,
     isListRowHeightAffectingContentChange,
+    type ListRowHeightAffectingContentChangeConfig,
     resolveListFileRowHeightInputs,
     type ListFileRowSizingConfig
 } from '../../src/hooks/useListPaneScroll';
@@ -63,6 +64,7 @@ function createRowSizingConfig(overrides: Partial<ListFileRowSizingConfig> = {})
         compactPaddingTotal: 18,
         isCompactMode: false,
         tagsBaseEnabled: false,
+        frontmatterPropertyRowsPossible: false,
         propertyRowsPossible: false,
         showTextCountProperty: false,
         showWordCountProperty: false,
@@ -129,30 +131,112 @@ afterEach(() => {
 });
 
 describe('isListRowHeightAffectingContentChange', () => {
+    function createHeightChangeConfig(
+        overrides: Partial<ListRowHeightAffectingContentChangeConfig> = {}
+    ): ListRowHeightAffectingContentChangeConfig {
+        return {
+            showPreview: true,
+            showImage: true,
+            tagsBaseEnabled: true,
+            frontmatterPropertyRowsPossible: true,
+            showWordCountProperty: true,
+            showCharacterCountProperty: true,
+            characterCountSpaces: 'include',
+            ...overrides
+        };
+    }
+
     it('detects content fields that can change estimated list row height', () => {
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { previewStatus: 'has' } }))).toBe(true);
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { previewStatus: 'none' } }))).toBe(true);
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { featureImageKey: 'key' } }))).toBe(true);
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { featureImageStatus: 'has' } }))).toBe(true);
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { properties: [] } }))).toBe(true);
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { tags: ['work'] } }))).toBe(true);
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { wordCount: 123 } }))).toBe(true);
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { characterCountWithSpaces: 456 } }))).toBe(true);
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { characterCountWithoutSpaces: 400 } }))).toBe(true);
+        const config = createHeightChangeConfig({
+            characterCountSpaces: 'exclude'
+        });
+
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { previewStatus: 'has' } }), config)).toBe(true);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { previewStatus: 'none' } }), config)).toBe(true);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { featureImageKey: 'key' } }), config)).toBe(true);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { featureImageStatus: 'has' } }), config)).toBe(true);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { properties: [] } }), config)).toBe(true);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { tags: ['work'] } }), config)).toBe(true);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { wordCount: 123 } }), config)).toBe(true);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { characterCountWithoutSpaces: 400 } }), config)).toBe(
+            true
+        );
+    });
+
+    it('ignores content fields disabled by the active row sizing config', () => {
+        const config = createHeightChangeConfig({
+            showPreview: false,
+            showImage: false,
+            tagsBaseEnabled: false,
+            frontmatterPropertyRowsPossible: false,
+            showWordCountProperty: false,
+            showCharacterCountProperty: false
+        });
+
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { previewStatus: 'has' } }), config)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { featureImageKey: 'key' } }), config)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { featureImageStatus: 'has' } }), config)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { properties: [] } }), config)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { tags: ['work'] } }), config)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { wordCount: 123 } }), config)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { characterCountWithSpaces: 456 } }), config)).toBe(
+            false
+        );
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { characterCountWithoutSpaces: 400 } }), config)).toBe(
+            false
+        );
+    });
+
+    it('ignores property changes when only text-count property rows can be shown', () => {
+        const config = createHeightChangeConfig({
+            frontmatterPropertyRowsPossible: false
+        });
+
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { properties: [] } }), config)).toBe(false);
+    });
+
+    it('uses the selected character count variant when deciding whether to remeasure', () => {
+        expect(
+            isListRowHeightAffectingContentChange(
+                createContentChange({ changes: { characterCountWithSpaces: 456 } }),
+                createHeightChangeConfig({ characterCountSpaces: 'include' })
+            )
+        ).toBe(true);
+        expect(
+            isListRowHeightAffectingContentChange(
+                createContentChange({ changes: { characterCountWithoutSpaces: 400 } }),
+                createHeightChangeConfig({ characterCountSpaces: 'include' })
+            )
+        ).toBe(false);
+        expect(
+            isListRowHeightAffectingContentChange(
+                createContentChange({ changes: { characterCountWithSpaces: 456 } }),
+                createHeightChangeConfig({ characterCountSpaces: 'exclude' })
+            )
+        ).toBe(false);
+        expect(
+            isListRowHeightAffectingContentChange(
+                createContentChange({ changes: { characterCountWithoutSpaces: 400 } }),
+                createHeightChangeConfig({ characterCountSpaces: 'exclude' })
+            )
+        ).toBe(true);
     });
 
     it('ignores content fields that do not change estimated row height', () => {
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { preview: 'Preview' } }))).toBe(false);
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { preview: null } }))).toBe(false);
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { taskTotal: 4 } }))).toBe(false);
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { taskUnfinished: 2 } }))).toBe(false);
+        const config = createHeightChangeConfig();
+
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { preview: 'Preview' } }), config)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { preview: null } }), config)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { taskTotal: 4 } }), config)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { taskUnfinished: 2 } }), config)).toBe(false);
         expect(
             isListRowHeightAffectingContentChange(
                 createContentChange({
                     changes: { metadata: { name: 'Daily note', icon: 'lucide-star', color: '#ff0000', hidden: true } },
                     metadataHiddenChanged: true,
                     metadataNameChanged: true
-                })
+                }),
+                config
             )
         ).toBe(false);
     });
