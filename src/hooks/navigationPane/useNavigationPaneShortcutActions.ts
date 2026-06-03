@@ -20,7 +20,7 @@ import React, { useCallback } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { App, TFile, TFolder } from 'obsidian';
 import type { CommandQueueService } from '../../services/CommandQueueService';
-import type { SelectionAction, SelectionState } from '../../context/SelectionContext';
+import type { NavigationSelectionState, SelectionAction } from '../../context/SelectionContext';
 import type { UIAction } from '../../context/UIStateContext';
 import type { NotebookNavigatorSettings } from '../../settings/types';
 import type { SearchShortcut, ShortcutEntry } from '../../types/shortcuts';
@@ -58,7 +58,7 @@ interface UseNavigationPaneShortcutActionsProps {
     settings: NotebookNavigatorSettings;
     uiState: UIStateLike;
     uiDispatch: Dispatch<UIAction>;
-    selectionState: SelectionState;
+    selectionType: NavigationSelectionState['selectionType'];
     selectionDispatch: Dispatch<SelectionAction>;
     setActiveShortcut: Dispatch<SetStateAction<string | null>>;
     onExecuteSearchShortcut?: (shortcutKey: string, searchShortcut: SearchShortcut) => Promise<void> | void;
@@ -79,7 +79,7 @@ export function useNavigationPaneShortcutActions({
     settings,
     uiState,
     uiDispatch,
-    selectionState,
+    selectionType,
     selectionDispatch,
     setActiveShortcut,
     onExecuteSearchShortcut,
@@ -166,7 +166,7 @@ export function useNavigationPaneShortcutActions({
     const handleShortcutNoteActivate = useCallback(
         (note: TFile, shortcutKey: string) => {
             setActiveShortcut(shortcutKey);
-            if (selectionState.selectionType === ItemType.TAG && onRevealShortcutFile) {
+            if (selectionType === ItemType.TAG && onRevealShortcutFile) {
                 onRevealShortcutFile(note);
             } else {
                 onRevealFile(note);
@@ -190,7 +190,7 @@ export function useNavigationPaneShortcutActions({
             onRevealFile,
             onRevealShortcutFile,
             scheduleShortcutRelease,
-            selectionState.selectionType,
+            selectionType,
             setActiveShortcut,
             uiDispatch,
             uiState.currentSinglePaneView,
@@ -213,7 +213,7 @@ export function useNavigationPaneShortcutActions({
 
     const handleRecentNoteActivate = useCallback(
         (note: TFile) => {
-            if (selectionState.selectionType === ItemType.TAG && onRevealShortcutFile) {
+            if (selectionType === ItemType.TAG && onRevealShortcutFile) {
                 onRevealShortcutFile(note);
             } else {
                 onRevealFile(note);
@@ -235,7 +235,7 @@ export function useNavigationPaneShortcutActions({
             isMobile,
             onRevealFile,
             onRevealShortcutFile,
-            selectionState.selectionType,
+            selectionType,
             uiDispatch,
             uiState.currentSinglePaneView,
             uiState.singlePane

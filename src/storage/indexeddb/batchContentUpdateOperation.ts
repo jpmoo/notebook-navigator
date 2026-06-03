@@ -23,6 +23,7 @@ import { getProviderProcessedMtimeField } from '../providerMtime';
 import { PREVIEW_STORE_NAME, STORE_NAME } from './constants';
 import {
     createDefaultFileData,
+    hasMetadataDecorationChanged,
     hasMetadataHiddenChanged,
     hasMetadataNameChanged,
     normalizeTaskCounters,
@@ -146,6 +147,7 @@ export async function runBatchUpdateFileContentAndProviderProcessedMtimes(
                 const changes: FileContentChange['changes'] = {};
                 let metadataHiddenChanged = false;
                 let metadataNameChanged = false;
+                let metadataDecorationChanged = false;
                 let hasContentChanges = false;
                 const providerField = provider ? getProviderProcessedMtimeField(provider) : null;
                 const shouldApplyProviderContent =
@@ -259,6 +261,7 @@ export async function runBatchUpdateFileContentAndProviderProcessedMtimes(
                     if (guardedUpdate.metadata !== undefined) {
                         metadataHiddenChanged = hasMetadataHiddenChanged(existing.metadata, guardedUpdate.metadata);
                         metadataNameChanged = hasMetadataNameChanged(existing.metadata, guardedUpdate.metadata);
+                        metadataDecorationChanged = hasMetadataDecorationChanged(existing.metadata, guardedUpdate.metadata);
                         newData.metadata = guardedUpdate.metadata;
                         changes.metadata = guardedUpdate.metadata;
                         hasContentChanges = true;
@@ -339,6 +342,7 @@ export async function runBatchUpdateFileContentAndProviderProcessedMtimes(
                         if (changes.metadata !== undefined) {
                             contentChange.metadataHiddenChanged = metadataHiddenChanged;
                             contentChange.metadataNameChanged = metadataNameChanged;
+                            contentChange.metadataDecorationChanged = metadataDecorationChanged;
                         }
                         changeNotifications.push(contentChange);
                     }

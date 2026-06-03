@@ -39,7 +39,9 @@ import { getFilesForFolder, getFilesForProperty, getFilesForTag } from './fileFi
  * @param selectionState The current selection state
  * @returns The path string or null if nothing is selected
  */
-export function getSelectedPath(selectionState: SelectionState): string | null {
+export function getSelectedPath(
+    selectionState: Pick<SelectionState, 'selectionType' | 'selectedFolder' | 'selectedTag' | 'selectedProperty'>
+): string | null {
     if (selectionState.selectionType === ItemType.FOLDER && selectionState.selectedFolder) {
         return selectionState.selectedFolder.path;
     }

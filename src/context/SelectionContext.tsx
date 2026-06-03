@@ -16,9 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { createContext, useContext, useMemo, useReducer } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useReducer, useRef } from 'react';
 import { App } from 'obsidian';
-import type { ReactNode } from 'react';
+import type { MutableRefObject, ReactNode } from 'react';
 import { useSettingsState } from './SettingsContext';
 import { useUXPreferences } from './UXPreferencesContext';
 import type { NotebookNavigatorAPI } from '../api/NotebookNavigatorAPI';
@@ -31,7 +31,7 @@ import {
     useSelectionEnhancedDispatch,
     useSelectionPersistence,
     useSelectionReconciliation,
-    useSelectionStateRef
+    useSelectionStateRef as useSelectionStateRefInternal
 } from './selection/useSelectionProvider';
 import { selectionReducer } from './selection/state';
 import type { SelectionAction, SelectionState } from './selection/types';
@@ -45,12 +45,20 @@ export type SelectionFlagsState = Pick<
     SelectionState,
     'isRevealOperation' | 'isFolderChangeWithAutoSelect' | 'isKeyboardNavigation' | 'isFolderNavigation' | 'revealSource'
 >;
+export type SelectionRevealState = Pick<SelectionState, 'isRevealOperation' | 'revealSource'>;
 export type SelectionHistoryState = Pick<SelectionState, 'navigationHistory' | 'navigationHistoryIndex'>;
+type SelectionStateListener = (state: SelectionState) => void;
+interface SelectionStateSubscription {
+    subscribe: (listener: SelectionStateListener) => () => void;
+}
 
 const NavigationSelectionContext = createContext<NavigationSelectionState | null>(null);
 const FileSelectionContext = createContext<FileSelectionState | null>(null);
 const SelectionFlagsContext = createContext<SelectionFlagsState | null>(null);
+const SelectionRevealContext = createContext<SelectionRevealState | null>(null);
 const SelectionHistoryContext = createContext<SelectionHistoryState | null>(null);
+const SelectionStateRefContext = createContext<MutableRefObject<SelectionState> | null>(null);
+const SelectionStateSubscriptionContext = createContext<SelectionStateSubscription | null>(null);
 const SelectionDispatchContext = createContext<React.Dispatch<SelectionAction> | null>(null);
 
 // Provider component
@@ -84,7 +92,19 @@ export function SelectionProvider({
         undefined,
         () => loadInitialSelectionState({ app, settings })
     );
-    const stateRef = useSelectionStateRef(state);
+    const stateRef = useSelectionStateRefInternal(state);
+    const stateListenersRef = useRef(new Set<SelectionStateListener>());
+    const stateSubscription = useMemo<SelectionStateSubscription>(
+        () => ({
+            subscribe: listener => {
+                stateListenersRef.current.add(listener);
+                return () => {
+                    stateListenersRef.current.delete(listener);
+                };
+            }
+        }),
+        []
+    );
     const enhancedDispatch = useSelectionEnhancedDispatch({
         app,
         dispatch,
@@ -112,6 +132,12 @@ export function SelectionProvider({
         tagTreeService
     });
     useSelectionPersistence({ api, app, state });
+
+    useEffect(() => {
+        stateListenersRef.current.forEach(listener => {
+            listener(state);
+        });
+    }, [state]);
 
     const navigationSelection = useMemo<NavigationSelectionState>(
         () => ({
@@ -147,6 +173,13 @@ export function SelectionProvider({
             state.revealSource
         ]
     );
+    const selectionReveal = useMemo<SelectionRevealState>(
+        () => ({
+            isRevealOperation: state.isRevealOperation,
+            revealSource: state.revealSource
+        }),
+        [state.isRevealOperation, state.revealSource]
+    );
     const selectionHistory = useMemo<SelectionHistoryState>(
         () => ({
             navigationHistory: state.navigationHistory,
@@ -159,9 +192,17 @@ export function SelectionProvider({
         <NavigationSelectionContext.Provider value={navigationSelection}>
             <FileSelectionContext.Provider value={fileSelection}>
                 <SelectionFlagsContext.Provider value={selectionFlags}>
-                    <SelectionHistoryContext.Provider value={selectionHistory}>
-                        <SelectionDispatchContext.Provider value={enhancedDispatch}>{children}</SelectionDispatchContext.Provider>
-                    </SelectionHistoryContext.Provider>
+                    <SelectionRevealContext.Provider value={selectionReveal}>
+                        <SelectionHistoryContext.Provider value={selectionHistory}>
+                            <SelectionStateRefContext.Provider value={stateRef}>
+                                <SelectionStateSubscriptionContext.Provider value={stateSubscription}>
+                                    <SelectionDispatchContext.Provider value={enhancedDispatch}>
+                                        {children}
+                                    </SelectionDispatchContext.Provider>
+                                </SelectionStateSubscriptionContext.Provider>
+                            </SelectionStateRefContext.Provider>
+                        </SelectionHistoryContext.Provider>
+                    </SelectionRevealContext.Provider>
                 </SelectionFlagsContext.Provider>
             </FileSelectionContext.Provider>
         </NavigationSelectionContext.Provider>
@@ -189,6 +230,30 @@ function useSelectionFlags(): SelectionFlagsState {
     const context = useContext(SelectionFlagsContext);
     if (!context) {
         throw new Error('useSelectionFlags must be used within SelectionProvider');
+    }
+    return context;
+}
+
+export function useSelectionReveal(): SelectionRevealState {
+    const context = useContext(SelectionRevealContext);
+    if (!context) {
+        throw new Error('useSelectionReveal must be used within SelectionProvider');
+    }
+    return context;
+}
+
+export function useSelectionStateRefValue(): MutableRefObject<SelectionState> {
+    const context = useContext(SelectionStateRefContext);
+    if (!context) {
+        throw new Error('useSelectionStateRefValue must be used within SelectionProvider');
+    }
+    return context;
+}
+
+export function useSelectionStateSubscription(): SelectionStateSubscription {
+    const context = useContext(SelectionStateSubscriptionContext);
+    if (!context) {
+        throw new Error('useSelectionStateSubscription must be used within SelectionProvider');
     }
     return context;
 }
