@@ -16,14 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { App, TFolder } from 'obsidian';
 import type { IPropertyTreeProvider } from '../../interfaces/IPropertyTreeProvider';
 import type { NotebookNavigatorSettings } from '../../settings/types';
 import type { CommandQueueService } from '../../services/CommandQueueService';
 import type { ExpansionAction } from '../../context/ExpansionContext';
-import type { SelectionAction, SelectionState } from '../../context/SelectionContext';
+import type { NavigationSelectionState, SelectionAction } from '../../context/SelectionContext';
 import type { UIAction } from '../../context/UIStateContext';
 import { localStorage } from '../../utils/localStorage';
 import {
@@ -65,7 +65,7 @@ interface UseNavigationPaneTreeInteractionsProps {
     uiState: UIStateLike;
     expansionState: ExpansionStateLike;
     expansionDispatch: Dispatch<ExpansionAction>;
-    selectionState: SelectionState;
+    selectionState: NavigationSelectionState;
     selectionDispatch: Dispatch<SelectionAction>;
     uiDispatch: Dispatch<UIAction>;
     propertyTreeService: IPropertyTreeProvider | null;
@@ -169,7 +169,8 @@ export function useNavigationPaneTreeInteractions({
             expansionDispatch,
             expansionState.expandedFolders,
             selectionDispatch,
-            selectionState,
+            selectionState.selectedFolder,
+            selectionState.selectionType,
             settings,
             uiDispatch,
             uiState.singlePane
@@ -550,22 +551,42 @@ export function useNavigationPaneTreeInteractions({
         ]
     );
 
-    return {
-        handleFolderToggle,
-        handleFolderClick,
-        handleFolderNameClick,
-        handleFolderNameMouseDown,
-        handleTagToggle,
-        handlePropertyToggle,
-        handleVirtualFolderToggle,
-        getAllDescendantFolders,
-        getAllTagPaths,
-        getAllDescendantTags,
-        getAllPropertyNodeIds,
-        getAllDescendantPropertyNodeIds,
-        handleTagClick,
-        handleTagCollectionClick,
-        handlePropertyCollectionClick,
-        handlePropertyClick
-    };
+    return useMemo(
+        () => ({
+            handleFolderToggle,
+            handleFolderClick,
+            handleFolderNameClick,
+            handleFolderNameMouseDown,
+            handleTagToggle,
+            handlePropertyToggle,
+            handleVirtualFolderToggle,
+            getAllDescendantFolders,
+            getAllTagPaths,
+            getAllDescendantTags,
+            getAllPropertyNodeIds,
+            getAllDescendantPropertyNodeIds,
+            handleTagClick,
+            handleTagCollectionClick,
+            handlePropertyCollectionClick,
+            handlePropertyClick
+        }),
+        [
+            getAllDescendantFolders,
+            getAllDescendantPropertyNodeIds,
+            getAllDescendantTags,
+            getAllPropertyNodeIds,
+            getAllTagPaths,
+            handleFolderClick,
+            handleFolderNameClick,
+            handleFolderNameMouseDown,
+            handleFolderToggle,
+            handlePropertyClick,
+            handlePropertyCollectionClick,
+            handlePropertyToggle,
+            handleTagClick,
+            handleTagCollectionClick,
+            handleTagToggle,
+            handleVirtualFolderToggle
+        ]
+    );
 }

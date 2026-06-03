@@ -22,7 +22,7 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Platform, TFile } from 'obsidian';
 import { Virtualizer } from '@tanstack/react-virtual';
 import { useExpansionDispatch, useExpansionState } from '../../context/ExpansionContext';
-import { useSelectionDispatch, useSelectionState } from '../../context/SelectionContext';
+import { useNavigationSelection, useSelectionDispatch } from '../../context/SelectionContext';
 import { useServices, useMetadataService, useCommandQueue } from '../../context/ServicesContext';
 import { useSettingsState, useSettingsUpdate, useActiveProfile } from '../../context/SettingsContext';
 import { useUXPreferences } from '../../context/UXPreferencesContext';
@@ -119,7 +119,7 @@ export const NavigationPane = React.memo(
         const metadataService = useMetadataService();
         const expansionState = useExpansionState();
         const expansionDispatch = useExpansionDispatch();
-        const selectionState = useSelectionState();
+        const selectionState = useNavigationSelection();
         const selectionDispatch = useSelectionDispatch();
         const settings = useSettingsState();
         const activeProfile = useActiveProfile();
