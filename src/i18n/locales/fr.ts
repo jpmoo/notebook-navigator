@@ -1195,7 +1195,7 @@ export const STRINGS_FR = {
             },
             compactItemHeight: {
                 name: 'Hauteur des éléments compacts',
-                desc: 'Définit la hauteur des éléments compacts sur ordinateur et mobile.',
+                desc: 'Définit la hauteur des éléments compacts sur ordinateur et mobile (pixels).',
                 resetTooltip: 'Restaurer la valeur par défaut (28px)'
             },
             compactItemHeightScaleText: {
@@ -1249,7 +1249,7 @@ export const STRINGS_FR = {
             },
             appearanceScale: {
                 name: 'Niveau de zoom',
-                desc: 'Contrôle le niveau de zoom global de Notebook Navigator.'
+                desc: 'Contrôle le niveau de zoom global de Notebook Navigator (pourcentage).'
             },
             useFloatingToolbars: {
                 name: "Utiliser les barres d'outils flottantes sur iOS/iPadOS",
@@ -2039,11 +2039,11 @@ export const STRINGS_FR = {
             },
             navIndent: {
                 name: "Indentation de l'arbre",
-                desc: "Ajuster la largeur d'indentation pour les dossiers et étiquettes imbriqués."
+                desc: "Ajuster la largeur d'indentation pour les dossiers et étiquettes imbriqués (pixels)."
             },
             navItemHeight: {
                 name: 'Hauteur de ligne',
-                desc: 'Ajuster la hauteur des dossiers et étiquettes dans le panneau de navigation.'
+                desc: 'Ajuster la hauteur des dossiers et étiquettes dans le panneau de navigation (pixels).'
             },
             navItemHeightScaleText: {
                 name: 'Adapter le texte à la hauteur de ligne',
@@ -2055,7 +2055,7 @@ export const STRINGS_FR = {
             },
             navRootSpacing: {
                 name: 'Espacement des éléments racine',
-                desc: 'Espacement entre les dossiers et étiquettes de niveau racine.'
+                desc: 'Espacement entre les dossiers et étiquettes de niveau racine (pixels).'
             },
             showTags: {
                 name: 'Afficher les étiquettes',

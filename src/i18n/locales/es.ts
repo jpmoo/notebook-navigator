@@ -1193,7 +1193,7 @@ export const STRINGS_ES = {
             },
             compactItemHeight: {
                 name: 'Altura de elementos compactos',
-                desc: 'Define la altura de los elementos compactos en escritorio y móvil.',
+                desc: 'Define la altura de los elementos compactos en escritorio y móvil (píxeles).',
                 resetTooltip: 'Restablecer al valor predeterminado (28px)'
             },
             compactItemHeightScaleText: {
@@ -1247,7 +1247,7 @@ export const STRINGS_ES = {
             },
             appearanceScale: {
                 name: 'Nivel de zoom',
-                desc: 'Controla el nivel de zoom general de Notebook Navigator.'
+                desc: 'Controla el nivel de zoom general de Notebook Navigator (porcentaje).'
             },
             useFloatingToolbars: {
                 name: 'Usar barras de herramientas flotantes en iOS/iPadOS',
@@ -2036,11 +2036,11 @@ export const STRINGS_ES = {
             },
             navIndent: {
                 name: 'Sangría del árbol',
-                desc: 'Ajustar el ancho de sangría para carpetas y etiquetas anidadas.'
+                desc: 'Ajustar el ancho de sangría para carpetas y etiquetas anidadas (píxeles).'
             },
             navItemHeight: {
                 name: 'Altura de línea',
-                desc: 'Ajustar la altura de las carpetas y etiquetas en el panel de navegación.'
+                desc: 'Ajustar la altura de las carpetas y etiquetas en el panel de navegación (píxeles).'
             },
             navItemHeightScaleText: {
                 name: 'Escalar texto con la altura de línea',
@@ -2052,7 +2052,7 @@ export const STRINGS_ES = {
             },
             navRootSpacing: {
                 name: 'Espaciado de elementos raíz',
-                desc: 'Espaciado entre carpetas y etiquetas de nivel superior.'
+                desc: 'Espaciado entre carpetas y etiquetas de nivel superior (píxeles).'
             },
             showTags: {
                 name: 'Mostrar etiquetas',

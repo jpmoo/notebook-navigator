@@ -1191,7 +1191,7 @@ export const STRINGS_JA = {
             },
             compactItemHeight: {
                 name: 'スリム表示の項目高さ',
-                desc: 'デスクトップとモバイルのスリム表示項目の高さを設定します。',
+                desc: 'デスクトップとモバイルのスリム表示項目の高さを設定します（ピクセル）。',
                 resetTooltip: 'デフォルトに戻す (28px)'
             },
             compactItemHeightScaleText: {
@@ -1245,7 +1245,7 @@ export const STRINGS_JA = {
             },
             appearanceScale: {
                 name: 'ズームレベル',
-                desc: 'Notebook Navigator 全体のズームレベルを制御します。'
+                desc: 'Notebook Navigator 全体のズームレベルを制御します（パーセント）。'
             },
             useFloatingToolbars: {
                 name: 'iOS/iPadOSでフローティングツールバーを使用',
@@ -2031,11 +2031,11 @@ export const STRINGS_JA = {
             },
             navIndent: {
                 name: 'ツリーインデント',
-                desc: 'ネストされたフォルダとタグのインデント幅を調整します。'
+                desc: 'ネストされたフォルダとタグのインデント幅を調整します（ピクセル）。'
             },
             navItemHeight: {
                 name: '行高',
-                desc: 'ナビゲーションペイン内のフォルダとタグの高さを調整します。'
+                desc: 'ナビゲーションペイン内のフォルダとタグの高さを調整します（ピクセル）。'
             },
             navItemHeightScaleText: {
                 name: '行高に合わせて文字サイズを調整',
@@ -2047,7 +2047,7 @@ export const STRINGS_JA = {
             },
             navRootSpacing: {
                 name: 'ルート要素の間隔',
-                desc: '最上位のフォルダとタグの間隔。'
+                desc: '最上位のフォルダとタグの間隔（ピクセル）。'
             },
             showTags: {
                 name: 'タグを表示',

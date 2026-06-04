@@ -1179,7 +1179,7 @@ export const STRINGS_ZH_TW = {
             },
             compactItemHeight: {
                 name: '精簡項目高度',
-                desc: '設定桌面和行動裝置的精簡列表項目高度。',
+                desc: '設定桌面和行動裝置的精簡列表項目高度（像素）。',
                 resetTooltip: '恢復預設值 (28px)'
             },
             compactItemHeightScaleText: {
@@ -1233,7 +1233,7 @@ export const STRINGS_ZH_TW = {
             },
             appearanceScale: {
                 name: '縮放級別',
-                desc: '控制 Notebook Navigator 的整體縮放級別。'
+                desc: '控制 Notebook Navigator 的整體縮放級別（百分比）。'
             },
             useFloatingToolbars: {
                 name: '在 iOS/iPadOS 上使用浮動工具列',
@@ -2017,11 +2017,11 @@ export const STRINGS_ZH_TW = {
             },
             navIndent: {
                 name: '樹狀縮排',
-                desc: '調整巢狀資料夾和標籤的縮排寬度。'
+                desc: '調整巢狀資料夾和標籤的縮排寬度（像素）。'
             },
             navItemHeight: {
                 name: '行高',
-                desc: '調整導覽窗格中資料夾和標籤的高度。'
+                desc: '調整導覽窗格中資料夾和標籤的高度（像素）。'
             },
             navItemHeightScaleText: {
                 name: '隨行高調整文字大小',
@@ -2033,7 +2033,7 @@ export const STRINGS_ZH_TW = {
             },
             navRootSpacing: {
                 name: '根級項目間距',
-                desc: '根級資料夾和標籤之間的間距。'
+                desc: '根級資料夾和標籤之間的間距（像素）。'
             },
             showTags: {
                 name: '顯示標籤',

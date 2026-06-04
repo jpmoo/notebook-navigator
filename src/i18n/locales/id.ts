@@ -1192,7 +1192,7 @@ export const STRINGS_ID = {
             },
             compactItemHeight: {
                 name: 'Tinggi item kompak',
-                desc: 'Atur tinggi item daftar kompak di desktop dan mobile.',
+                desc: 'Atur tinggi item daftar kompak di desktop dan mobile (piksel).',
                 resetTooltip: 'Kembalikan ke default (28px)'
             },
             compactItemHeightScaleText: {
@@ -1246,7 +1246,7 @@ export const STRINGS_ID = {
             },
             appearanceScale: {
                 name: 'Tingkat zoom',
-                desc: 'Mengontrol tingkat zoom keseluruhan Notebook Navigator.'
+                desc: 'Mengontrol tingkat zoom keseluruhan Notebook Navigator (persentase).'
             },
             useFloatingToolbars: {
                 name: 'Gunakan toolbar mengambang di iOS/iPadOS',
@@ -2033,11 +2033,11 @@ export const STRINGS_ID = {
             },
             navIndent: {
                 name: 'Indentasi pohon',
-                desc: 'Sesuaikan lebar indentasi untuk folder dan tag bersarang.'
+                desc: 'Sesuaikan lebar indentasi untuk folder dan tag bersarang (piksel).'
             },
             navItemHeight: {
                 name: 'Tinggi item',
-                desc: 'Sesuaikan tinggi folder dan tag di panel navigasi.'
+                desc: 'Sesuaikan tinggi folder dan tag di panel navigasi (piksel).'
             },
             navItemHeightScaleText: {
                 name: 'Skalakan teks dengan tinggi item',
@@ -2049,7 +2049,7 @@ export const STRINGS_ID = {
             },
             navRootSpacing: {
                 name: 'Spasi item root',
-                desc: 'Spasi antara folder dan tag tingkat root.'
+                desc: 'Spasi antara folder dan tag tingkat root (piksel).'
             },
             showTags: {
                 name: 'Tampilkan tag',

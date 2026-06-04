@@ -1195,7 +1195,7 @@ export const STRINGS_PL = {
             },
             compactItemHeight: {
                 name: 'Wysokość elementów w trybie kompaktowym',
-                desc: 'Ustawia wysokość elementów kompaktowej listy na komputerach stacjonarnych i urządzeniach mobilnych.',
+                desc: 'Ustawia wysokość elementów kompaktowej listy na komputerach stacjonarnych i urządzeniach mobilnych (piksele).',
                 resetTooltip: 'Przywróć wartość domyślną (28px)'
             },
             compactItemHeightScaleText: {
@@ -1249,7 +1249,7 @@ export const STRINGS_PL = {
             },
             appearanceScale: {
                 name: 'Poziom przybliżenia',
-                desc: 'Kontroluje ogólny poziom przybliżenia Notebook Navigator.'
+                desc: 'Kontroluje ogólny poziom przybliżenia Notebook Navigator (procent).'
             },
             useFloatingToolbars: {
                 name: 'Użyj pływających pasków narzędzi w systemie iOS/iPadOS',
@@ -2037,11 +2037,11 @@ export const STRINGS_PL = {
             },
             navIndent: {
                 name: 'Wcięcie w strukturze',
-                desc: 'Dostosuj szerokość wcięcia w strukturze folderów i tagów.'
+                desc: 'Dostosuj szerokość wcięcia w strukturze folderów i tagów (piksele).'
             },
             navItemHeight: {
                 name: 'Wysokość elementu',
-                desc: 'Dostosuj wysokość folderów i tagów w panelu nawigacji.'
+                desc: 'Dostosuj wysokość folderów i tagów w panelu nawigacji (piksele).'
             },
             navItemHeightScaleText: {
                 name: 'Skaluj tekst z wysokością elementu',
@@ -2053,7 +2053,7 @@ export const STRINGS_PL = {
             },
             navRootSpacing: {
                 name: 'Odstęp elementów głównych',
-                desc: 'Odstęp między nadrzędnymi folderami i tagami.'
+                desc: 'Odstęp między nadrzędnymi folderami i tagami (piksele).'
             },
             showTags: {
                 name: 'Pokaż tagi',

@@ -1194,7 +1194,7 @@ export const STRINGS_DE = {
             },
             compactItemHeight: {
                 name: 'Höhe schlanker Elemente',
-                desc: 'Legt die Höhe schlanker Listenelemente auf Desktop und Mobilgeräten fest.',
+                desc: 'Legt die Höhe schlanker Listenelemente auf Desktop und Mobilgeräten fest (Pixel).',
                 resetTooltip: 'Auf Standard zurücksetzen (28px)'
             },
             compactItemHeightScaleText: {
@@ -1248,7 +1248,7 @@ export const STRINGS_DE = {
             },
             appearanceScale: {
                 name: 'Zoomstufe',
-                desc: 'Steuert die gesamte Zoomstufe von Notebook Navigator.'
+                desc: 'Steuert die gesamte Zoomstufe von Notebook Navigator (Prozent).'
             },
             useFloatingToolbars: {
                 name: 'Schwebende Symbolleisten auf iOS/iPadOS verwenden',
@@ -2036,11 +2036,11 @@ export const STRINGS_DE = {
             },
             navIndent: {
                 name: 'Baum-Einrückung',
-                desc: 'Passen Sie die Einrückungsbreite für verschachtelte Ordner und Tags an.'
+                desc: 'Passen Sie die Einrückungsbreite für verschachtelte Ordner und Tags an (Pixel).'
             },
             navItemHeight: {
                 name: 'Zeilenhöhe',
-                desc: 'Passen Sie die Höhe von Ordnern und Tags im Navigationsbereich an.'
+                desc: 'Passen Sie die Höhe von Ordnern und Tags im Navigationsbereich an (Pixel).'
             },
             navItemHeightScaleText: {
                 name: 'Text mit Zeilenhöhe skalieren',
@@ -2052,7 +2052,7 @@ export const STRINGS_DE = {
             },
             navRootSpacing: {
                 name: 'Abstand für Wurzelelemente',
-                desc: 'Abstand zwischen Ordnern und Tags auf der obersten Ebene.'
+                desc: 'Abstand zwischen Ordnern und Tags auf der obersten Ebene (Pixel).'
             },
             showTags: {
                 name: 'Tags anzeigen',

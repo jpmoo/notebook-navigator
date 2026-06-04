@@ -1190,7 +1190,7 @@ export const STRINGS_TR = {
             },
             compactItemHeight: {
                 name: 'Kompakt öğe yüksekliği',
-                desc: 'Masaüstü ve mobilde kompakt liste öğelerinin yüksekliğini ayarlayın.',
+                desc: 'Masaüstü ve mobilde kompakt liste öğelerinin yüksekliğini ayarlayın (piksel).',
                 resetTooltip: 'Varsayılana sıfırla (28px)'
             },
             compactItemHeightScaleText: {
@@ -1244,7 +1244,7 @@ export const STRINGS_TR = {
             },
             appearanceScale: {
                 name: 'Yakınlaştırma seviyesi',
-                desc: "Notebook Navigator'ın genel yakınlaştırma seviyesini kontrol eder."
+                desc: "Notebook Navigator'ın genel yakınlaştırma seviyesini kontrol eder (yüzde)."
             },
             useFloatingToolbars: {
                 name: "iOS/iPadOS'ta kayan araç çubuklarını kullan",
@@ -2030,11 +2030,11 @@ export const STRINGS_TR = {
             },
             navIndent: {
                 name: 'Ağaç girintisi',
-                desc: 'İç içe klasörler ve etiketler için girinti genişliğini ayarlayın.'
+                desc: 'İç içe klasörler ve etiketler için girinti genişliğini ayarlayın (piksel).'
             },
             navItemHeight: {
                 name: 'Öğe yüksekliği',
-                desc: 'Gezinme bölmesindeki klasör ve etiketlerin yüksekliğini ayarlayın.'
+                desc: 'Gezinme bölmesindeki klasör ve etiketlerin yüksekliğini ayarlayın (piksel).'
             },
             navItemHeightScaleText: {
                 name: 'Metni öğe yüksekliğiyle ölçekle',
@@ -2046,7 +2046,7 @@ export const STRINGS_TR = {
             },
             navRootSpacing: {
                 name: 'Kök öğe aralığı',
-                desc: 'Kök seviyesi klasörler ve etiketler arasındaki boşluk.'
+                desc: 'Kök seviyesi klasörler ve etiketler arasındaki boşluk (piksel).'
             },
             showTags: {
                 name: 'Etiketleri göster',

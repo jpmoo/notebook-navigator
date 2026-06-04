@@ -1185,7 +1185,7 @@ export const STRINGS_TH = {
             },
             compactItemHeight: {
                 name: 'ความสูงรายการกะทัดรัด',
-                desc: 'กำหนดความสูงของรายการกะทัดรัดบนเดสก์ท็อปและมือถือ',
+                desc: 'กำหนดความสูงของรายการกะทัดรัดบนเดสก์ท็อปและมือถือ (พิกเซล)',
                 resetTooltip: 'รีเซ็ตเป็นค่าเริ่มต้น (28px)'
             },
             compactItemHeightScaleText: {
@@ -1239,7 +1239,7 @@ export const STRINGS_TH = {
             },
             appearanceScale: {
                 name: 'ระดับการซูม',
-                desc: 'ควบคุมระดับการซูมโดยรวมของ Notebook Navigator'
+                desc: 'ควบคุมระดับการซูมโดยรวมของ Notebook Navigator (เปอร์เซ็นต์)'
             },
             useFloatingToolbars: {
                 name: 'ใช้แถบเครื่องมือลอยบน iOS/iPadOS',
@@ -2025,11 +2025,11 @@ export const STRINGS_TH = {
             },
             navIndent: {
                 name: 'การเยื้องต้นไม้',
-                desc: 'ปรับความกว้างการเยื้องสำหรับโฟลเดอร์และแท็กที่ซ้อนกัน'
+                desc: 'ปรับความกว้างการเยื้องสำหรับโฟลเดอร์และแท็กที่ซ้อนกัน (พิกเซล)'
             },
             navItemHeight: {
                 name: 'ความสูงรายการ',
-                desc: 'ปรับความสูงของโฟลเดอร์และแท็กในแผงนำทาง'
+                desc: 'ปรับความสูงของโฟลเดอร์และแท็กในแผงนำทาง (พิกเซล)'
             },
             navItemHeightScaleText: {
                 name: 'ปรับขนาดข้อความตามความสูงรายการ',
@@ -2041,7 +2041,7 @@ export const STRINGS_TH = {
             },
             navRootSpacing: {
                 name: 'ระยะห่างรายการหลัก',
-                desc: 'ระยะห่างระหว่างโฟลเดอร์และแท็กระดับหลัก'
+                desc: 'ระยะห่างระหว่างโฟลเดอร์และแท็กระดับหลัก (พิกเซล)'
             },
             showTags: {
                 name: 'แสดงแท็ก',

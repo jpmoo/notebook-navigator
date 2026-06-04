@@ -1193,7 +1193,7 @@ export const STRINGS_VI = {
             },
             compactItemHeight: {
                 name: 'Chiều cao mục gọn',
-                desc: 'Đặt chiều cao mục danh sách gọn trên máy tính và di động.',
+                desc: 'Đặt chiều cao mục danh sách gọn trên máy tính và di động (pixel).',
                 resetTooltip: 'Đặt lại mặc định (28px)'
             },
             compactItemHeightScaleText: {
@@ -1247,7 +1247,7 @@ export const STRINGS_VI = {
             },
             appearanceScale: {
                 name: 'Mức thu phóng',
-                desc: 'Điều khiển mức thu phóng tổng thể của Notebook Navigator.'
+                desc: 'Điều khiển mức thu phóng tổng thể của Notebook Navigator (phần trăm).'
             },
             useFloatingToolbars: {
                 name: 'Sử dụng thanh công cụ nổi trên iOS/iPadOS',
@@ -2033,11 +2033,11 @@ export const STRINGS_VI = {
             },
             navIndent: {
                 name: 'Thụt lề cây',
-                desc: 'Điều chỉnh độ rộng thụt lề cho thư mục và thẻ lồng nhau.'
+                desc: 'Điều chỉnh độ rộng thụt lề cho thư mục và thẻ lồng nhau (pixel).'
             },
             navItemHeight: {
                 name: 'Chiều cao mục',
-                desc: 'Điều chỉnh chiều cao của thư mục và thẻ trong ngăn điều hướng.'
+                desc: 'Điều chỉnh chiều cao của thư mục và thẻ trong ngăn điều hướng (pixel).'
             },
             navItemHeightScaleText: {
                 name: 'Co chữ theo chiều cao mục',
@@ -2049,7 +2049,7 @@ export const STRINGS_VI = {
             },
             navRootSpacing: {
                 name: 'Khoảng cách mục gốc',
-                desc: 'Khoảng cách giữa các thư mục và thẻ cấp gốc.'
+                desc: 'Khoảng cách giữa các thư mục và thẻ cấp gốc (pixel).'
             },
             showTags: {
                 name: 'Hiện thẻ',

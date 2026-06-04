@@ -1189,7 +1189,7 @@ export const STRINGS_KO = {
             },
             compactItemHeight: {
                 name: '슬림 항목 높이',
-                desc: '데스크톱과 모바일에서 슬림 목록 항목 높이를 설정합니다.',
+                desc: '데스크톱과 모바일에서 슬림 목록 항목 높이를 설정합니다(픽셀).',
                 resetTooltip: '기본값으로 복원 (28px)'
             },
             compactItemHeightScaleText: {
@@ -1243,7 +1243,7 @@ export const STRINGS_KO = {
             },
             appearanceScale: {
                 name: '확대 수준',
-                desc: 'Notebook Navigator의 전체 확대 수준을 제어합니다.'
+                desc: 'Notebook Navigator의 전체 확대 수준을 제어합니다(백분율).'
             },
             useFloatingToolbars: {
                 name: 'iOS/iPadOS에서 플로팅 툴바 사용',
@@ -2028,11 +2028,11 @@ export const STRINGS_KO = {
             },
             navIndent: {
                 name: '트리 들여쓰기',
-                desc: '중첩된 폴더와 태그의 들여쓰기 너비를 조정합니다.'
+                desc: '중첩된 폴더와 태그의 들여쓰기 너비를 조정합니다(픽셀).'
             },
             navItemHeight: {
                 name: '항목 높이',
-                desc: '탐색 창에서 폴더와 태그의 높이를 조정합니다.'
+                desc: '탐색 창에서 폴더와 태그의 높이를 조정합니다(픽셀).'
             },
             navItemHeightScaleText: {
                 name: '항목 높이에 따라 글자 크기 조정',
@@ -2044,7 +2044,7 @@ export const STRINGS_KO = {
             },
             navRootSpacing: {
                 name: '루트 항목 간격',
-                desc: '최상위 폴더와 태그 사이의 간격.'
+                desc: '최상위 폴더와 태그 사이의 간격(픽셀).'
             },
             showTags: {
                 name: '태그 표시',

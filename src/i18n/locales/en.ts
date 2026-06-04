@@ -1186,7 +1186,7 @@ export const STRINGS_EN = {
             },
             compactItemHeight: {
                 name: 'Compact item height',
-                desc: 'Set the height of compact list items on desktop and mobile.',
+                desc: 'Set the height of compact list items on desktop and mobile (pixels).',
                 resetTooltip: 'Restore to default (28px)'
             },
             compactItemHeightScaleText: {
@@ -1240,7 +1240,7 @@ export const STRINGS_EN = {
             },
             appearanceScale: {
                 name: 'Zoom level',
-                desc: 'Controls the overall zoom level of Notebook Navigator.'
+                desc: 'Controls the overall zoom level of Notebook Navigator (percentage).'
             },
             useFloatingToolbars: {
                 name: 'Use floating toolbars on iOS/iPadOS',
@@ -2024,11 +2024,11 @@ export const STRINGS_EN = {
             },
             navIndent: {
                 name: 'Tree indentation',
-                desc: 'Adjust the indentation width for nested folders and tags.'
+                desc: 'Adjust the indentation width for nested folders and tags (pixels).'
             },
             navItemHeight: {
                 name: 'Item height',
-                desc: 'Adjust the height of folders and tags in the navigation pane.'
+                desc: 'Adjust the height of folders and tags in the navigation pane (pixels).'
             },
             navItemHeightScaleText: {
                 name: 'Scale text with item height',
@@ -2040,7 +2040,7 @@ export const STRINGS_EN = {
             },
             navRootSpacing: {
                 name: 'Root item spacing',
-                desc: 'Spacing between root-level folders and tags.'
+                desc: 'Spacing between root-level folders and tags (pixels).'
             },
             showTags: {
                 name: 'Show tags',

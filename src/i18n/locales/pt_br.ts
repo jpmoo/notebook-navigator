@@ -1194,7 +1194,7 @@ export const STRINGS_PT_BR = {
             },
             compactItemHeight: {
                 name: 'Altura do item compacto',
-                desc: 'Defina a altura dos itens de lista compactos no desktop e celular.',
+                desc: 'Defina a altura dos itens de lista compactos no desktop e celular (pixels).',
                 resetTooltip: 'Restaurar para padrão (28px)'
             },
             compactItemHeightScaleText: {
@@ -1248,7 +1248,7 @@ export const STRINGS_PT_BR = {
             },
             appearanceScale: {
                 name: 'Nível de zoom',
-                desc: 'Controla o nível de zoom geral do Notebook Navigator.'
+                desc: 'Controla o nível de zoom geral do Notebook Navigator (porcentagem).'
             },
             useFloatingToolbars: {
                 name: 'Usar barras de ferramentas flutuantes no iOS/iPadOS',
@@ -2037,11 +2037,11 @@ export const STRINGS_PT_BR = {
             },
             navIndent: {
                 name: 'Indentação da árvore',
-                desc: 'Ajustar a largura da indentação para pastas e tags aninhadas.'
+                desc: 'Ajustar a largura da indentação para pastas e tags aninhadas (pixels).'
             },
             navItemHeight: {
                 name: 'Altura do item',
-                desc: 'Ajustar a altura de pastas e tags no painel de navegação.'
+                desc: 'Ajustar a altura de pastas e tags no painel de navegação (pixels).'
             },
             navItemHeightScaleText: {
                 name: 'Dimensionar texto com altura do item',
@@ -2053,7 +2053,7 @@ export const STRINGS_PT_BR = {
             },
             navRootSpacing: {
                 name: 'Espaçamento de item raiz',
-                desc: 'Espaçamento entre pastas e tags de nível raiz.'
+                desc: 'Espaçamento entre pastas e tags de nível raiz (pixels).'
             },
             showTags: {
                 name: 'Mostrar tags',
