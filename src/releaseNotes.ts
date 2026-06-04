@@ -103,6 +103,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
         ],
         fixed: [
             '**Calendar.** Fixed notes with feature images sometimes showing a blank calendar image after cached thumbnails were refreshed or rebuilt.',
+            '**Commands.** Fixed Cmd+W closing Notebook Navigator after focusing the sidebar with the Notebook Navigator: Open command.',
             '**Storage.** Fixed repeated content refreshes during large vault change bursts.'
         ]
     },
