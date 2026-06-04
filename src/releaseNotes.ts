@@ -84,9 +84,10 @@ const RELEASE_NOTES: ReleaseNote[] = [
         version: '3.0.3',
         date: '2026-06-05',
         showOnUpdate: true,
-        info: 'This version focuses on ==list pane and navigation pane performance==. Notebook Navigator now does less work scrolling and moving through notes, folders, tags and properties. Give it a try and let me know if you notice a difference!',
+        info: 'This version focuses on ==list pane and navigation pane performance improvements==. Notebook Navigator now does less work when scrolling and moving through notes, folders, tags and properties. Give it a try and let me know if you notice a difference!',
         new: [
             '**Interface icons.** Added ==Pinned notes icon== to Settings > Appearance & behavior > Interface icons. This icon is displayed next to the Pinned items group header if set, default not set.',
+            '**Commands.** Added ==Collapse / expand selected item== to toggle the selected navigation item.',
             '**List pane.** Added ==Show subfolder paths== in List pane > Group headers. Default enabled, disable to only show folder names when grouping by folder.',
             '**Navigation pane.** Added ==Show leaders== in Navigation pane > Appearance. Choose dots, dashes, or a line between item names and note counts. Makes navigation pane look like a table of contents.',
             '**Style settings.** Two new style settings; ==Indent guide color and Leader color== to customize the colors of indent guides and leaders.'
