@@ -879,6 +879,7 @@ export const STRINGS_PT_BR = {
         toggleCompactMode: 'Alternar modo compacto', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'Alternar seção fixada',
         collapseExpand: 'Recolher / expandir todos os itens',
+        collapseExpandSelectedItem: 'Recolher / expandir o item selecionado',
         addTag: 'Adicionar tag aos arquivos selecionados',
         setProperty: 'Definir propriedade nos arquivos selecionados', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'Remover tag dos arquivos selecionados',

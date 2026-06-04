@@ -164,6 +164,7 @@ export interface NotebookNavigatorHandle {
     removeAllTagsFromSelectedFiles: () => Promise<void>;
     toggleSearch: () => void;
     triggerCollapse: () => void;
+    triggerSelectedItemCollapse: () => boolean;
     stopContentProcessing: () => void;
     rebuildCache: () => Promise<void>;
     selectNextFile: () => Promise<boolean>;
@@ -1252,6 +1253,15 @@ export const NotebookNavigatorComponent = React.memo(
                     window.requestAnimationFrame(() => {
                         ensureSelectedNavigationItemVisible();
                     });
+                },
+                triggerSelectedItemCollapse: () => {
+                    const didToggle = navigationPaneRef.current?.triggerSelectedItemCollapse() ?? false;
+                    if (didToggle) {
+                        window.requestAnimationFrame(() => {
+                            ensureSelectedNavigationItemVisible();
+                        });
+                    }
+                    return didToggle;
                 }
             };
         }, [

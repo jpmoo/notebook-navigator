@@ -870,6 +870,7 @@ export const STRINGS_TH = {
         toggleCompactMode: 'สลับโหมดกะทัดรัด', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'สลับส่วนที่ปักหมุด',
         collapseExpand: 'ยุบ / ขยายรายการทั้งหมด',
+        collapseExpandSelectedItem: 'ยุบ / ขยายรายการที่เลือก',
         addTag: 'เพิ่มแท็กในไฟล์ที่เลือก',
         setProperty: 'ตั้งค่าคุณสมบัติในไฟล์ที่เลือก', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'นำแท็กออกจากไฟล์ที่เลือก',

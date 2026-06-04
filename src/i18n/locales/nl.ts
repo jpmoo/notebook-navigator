@@ -879,6 +879,7 @@ export const STRINGS_NL = {
         toggleCompactMode: 'Compacte modus in-/uitschakelen', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'Vastgemaakt gedeelte in-/uitschakelen',
         collapseExpand: 'Alle items in-/uitklappen',
+        collapseExpandSelectedItem: 'Geselecteerd item in-/uitklappen',
         addTag: 'Tag toevoegen aan geselecteerde bestanden',
         setProperty: 'Eigenschap instellen op geselecteerde bestanden', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'Tag verwijderen van geselecteerde bestanden',

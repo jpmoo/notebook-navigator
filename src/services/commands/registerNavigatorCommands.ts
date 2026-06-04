@@ -989,6 +989,23 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
         }
     });
 
+    // Command to collapse or expand the selected item in the navigation pane
+    plugin.addCommand({
+        id: 'collapse-expand-selected-item',
+        name: strings.commands.collapseExpandSelectedItem,
+        callback: () => {
+            runAsyncAction(async () => {
+                const view = await ensureNavigatorOpen(plugin);
+                if (!view) {
+                    return;
+                }
+
+                await view.whenReady();
+                view.triggerSelectedItemCollapse();
+            });
+        }
+    });
+
     // Command to create a new note in the currently selected folder
     plugin.addCommand({
         id: 'new-note',
