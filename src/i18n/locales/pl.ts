@@ -2051,6 +2051,16 @@ export const STRINGS_PL = {
                 name: 'Pokaż linie wcięć',
                 desc: 'Wyświetla linie wcięć w strukturze folderów i tagów.'
             },
+            navCountLeaderStyle: {
+                name: 'Pokaż znaki wiodące',
+                desc: 'Wyświetla kropki, kreski lub linię między nazwami elementów a liczbą notatek.',
+                options: {
+                    none: 'Brak',
+                    dots: 'Kropki (...)',
+                    dashes: 'Kreski (---)',
+                    line: 'Linia'
+                }
+            },
             navRootSpacing: {
                 name: 'Odstęp elementów głównych',
                 desc: 'Odstęp między nadrzędnymi folderami i tagami (piksele).'

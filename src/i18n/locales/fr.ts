@@ -2053,6 +2053,16 @@ export const STRINGS_FR = {
                 name: "Afficher les guides d'indentation",
                 desc: "Afficher les guides d'indentation pour les dossiers et étiquettes imbriqués."
             },
+            navCountLeaderStyle: {
+                name: 'Afficher les points de conduite',
+                desc: 'Afficher des points, des tirets ou une ligne entre les noms des éléments et le nombre de notes.',
+                options: {
+                    none: 'Aucun',
+                    dots: 'Points (...)',
+                    dashes: 'Tirets (---)',
+                    line: 'Ligne'
+                }
+            },
             navRootSpacing: {
                 name: 'Espacement des éléments racine',
                 desc: 'Espacement entre les dossiers et étiquettes de niveau racine (pixels).'

@@ -2042,6 +2042,16 @@ export const STRINGS_KO = {
                 name: '들여쓰기 안내선 표시',
                 desc: '중첩된 폴더와 태그의 들여쓰기 안내선을 표시합니다.'
             },
+            navCountLeaderStyle: {
+                name: '리더 표시',
+                desc: '항목 이름과 노트 수 사이에 점, 대시 또는 선을 표시합니다.',
+                options: {
+                    none: '없음',
+                    dots: '점 (...)',
+                    dashes: '대시 (---)',
+                    line: '선'
+                }
+            },
             navRootSpacing: {
                 name: '루트 항목 간격',
                 desc: '최상위 폴더와 태그 사이의 간격(픽셀).'

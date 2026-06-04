@@ -2031,6 +2031,16 @@ export const STRINGS_ZH_TW = {
                 name: '顯示縮排參考線',
                 desc: '顯示巢狀資料夾和標籤的縮排參考線。'
             },
+            navCountLeaderStyle: {
+                name: '顯示前導符號',
+                desc: '在項目名稱和筆記數量之間顯示點、短劃線或直線。',
+                options: {
+                    none: '無',
+                    dots: '點 (...)',
+                    dashes: '短劃線 (---)',
+                    line: '直線'
+                }
+            },
             navRootSpacing: {
                 name: '根級項目間距',
                 desc: '根級資料夾和標籤之間的間距（像素）。'

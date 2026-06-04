@@ -2046,6 +2046,16 @@ export const STRINGS_IT = {
                 name: 'Mostra guide di indentazione',
                 desc: 'Mostra guide di indentazione per cartelle e tag nidificati.'
             },
+            navCountLeaderStyle: {
+                name: 'Mostra caratteri di riempimento',
+                desc: 'Mostra punti, trattini o una linea tra i nomi degli elementi e il numero di note.',
+                options: {
+                    none: 'Nessuno',
+                    dots: 'Punti (...)',
+                    dashes: 'Trattini (---)',
+                    line: 'Linea'
+                }
+            },
             navRootSpacing: {
                 name: 'Spaziatura elementi root',
                 desc: 'Spaziatura tra cartelle e tag di livello root (pixel).'

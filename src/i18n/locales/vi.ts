@@ -2047,6 +2047,16 @@ export const STRINGS_VI = {
                 name: 'Hiển thị đường dẫn thụt lề',
                 desc: 'Hiển thị đường dẫn thụt lề cho các thư mục và thẻ lồng nhau.'
             },
+            navCountLeaderStyle: {
+                name: 'Hiển thị ký tự dẫn',
+                desc: 'Hiển thị dấu chấm, dấu gạch hoặc một đường kẻ giữa tên mục và số lượng ghi chú.',
+                options: {
+                    none: 'Không',
+                    dots: 'Dấu chấm (...)',
+                    dashes: 'Dấu gạch (---)',
+                    line: 'Đường kẻ'
+                }
+            },
             navRootSpacing: {
                 name: 'Khoảng cách mục gốc',
                 desc: 'Khoảng cách giữa các thư mục và thẻ cấp gốc (pixel).'

@@ -2038,6 +2038,16 @@ export const STRINGS_EN = {
                 name: 'Show indent guides',
                 desc: 'Display indent guides for nested folders and tags.'
             },
+            navCountLeaderStyle: {
+                name: 'Show leaders',
+                desc: 'Display dots, dashes, or a line between item names and note counts.',
+                options: {
+                    none: 'None',
+                    dots: 'Dots (...)',
+                    dashes: 'Dashes (---)',
+                    line: 'Line'
+                }
+            },
             navRootSpacing: {
                 name: 'Root item spacing',
                 desc: 'Spacing between root-level folders and tags (pixels).'

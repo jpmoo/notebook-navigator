@@ -2050,6 +2050,16 @@ export const STRINGS_NL = {
                 name: 'Inspringlijnen tonen',
                 desc: 'Inspringlijnen weergeven voor geneste mappen en tags.'
             },
+            navCountLeaderStyle: {
+                name: 'Opvultekens tonen',
+                desc: 'Punten, streepjes of een lijn weergeven tussen itemnamen en notitie-aantallen.',
+                options: {
+                    none: 'Geen',
+                    dots: 'Punten (...)',
+                    dashes: 'Streepjes (---)',
+                    line: 'Lijn'
+                }
+            },
             navRootSpacing: {
                 name: 'Hoofditem-afstand',
                 desc: 'Afstand tussen mappen en tags op hoofdniveau (pixels).'

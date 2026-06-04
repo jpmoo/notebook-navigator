@@ -159,6 +159,17 @@ export function createNavigationPaneSettingDefinitions(context: SettingsTabConte
                 name: strings.settings.items.showIndentGuides.name,
                 desc: strings.settings.items.showIndentGuides.desc
             }),
+            createDropdownDefinition('navCountLeaderStyle', {
+                name: strings.settings.items.navCountLeaderStyle.name,
+                desc: strings.settings.items.navCountLeaderStyle.desc,
+                aliases: Object.values(strings.settings.items.navCountLeaderStyle.options),
+                options: {
+                    none: strings.settings.items.navCountLeaderStyle.options.none,
+                    dots: strings.settings.items.navCountLeaderStyle.options.dots,
+                    dashes: strings.settings.items.navCountLeaderStyle.options.dashes,
+                    line: strings.settings.items.navCountLeaderStyle.options.line
+                }
+            }),
             createRenderDefinition({
                 name: strings.settings.items.navRootSpacing.name,
                 desc: strings.settings.items.navRootSpacing.desc,

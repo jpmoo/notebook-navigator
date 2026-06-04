@@ -2044,6 +2044,16 @@ export const STRINGS_TR = {
                 name: 'Girinti kılavuzlarını göster',
                 desc: 'İç içe klasörler ve etiketler için girinti kılavuzlarını göster.'
             },
+            navCountLeaderStyle: {
+                name: 'Doldurma işaretlerini göster',
+                desc: 'Öğe adları ile not sayıları arasında nokta, tire veya çizgi göster.',
+                options: {
+                    none: 'Yok',
+                    dots: 'Noktalar (...)',
+                    dashes: 'Tireler (---)',
+                    line: 'Çizgi'
+                }
+            },
             navRootSpacing: {
                 name: 'Kök öğe aralığı',
                 desc: 'Kök seviyesi klasörler ve etiketler arasındaki boşluk (piksel).'

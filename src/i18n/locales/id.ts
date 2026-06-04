@@ -2047,6 +2047,16 @@ export const STRINGS_ID = {
                 name: 'Tampilkan panduan indentasi',
                 desc: 'Tampilkan panduan indentasi untuk folder dan tag bersarang.'
             },
+            navCountLeaderStyle: {
+                name: 'Tampilkan tanda penghubung',
+                desc: 'Tampilkan titik, tanda hubung, atau garis antara nama item dan jumlah catatan.',
+                options: {
+                    none: 'Tidak ada',
+                    dots: 'Titik (...)',
+                    dashes: 'Tanda hubung (---)',
+                    line: 'Garis'
+                }
+            },
             navRootSpacing: {
                 name: 'Spasi item root',
                 desc: 'Spasi antara folder dan tag tingkat root (piksel).'

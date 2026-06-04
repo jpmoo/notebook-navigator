@@ -2050,6 +2050,16 @@ export const STRINGS_ES = {
                 name: 'Mostrar guías de sangría',
                 desc: 'Mostrar guías de sangría para carpetas y etiquetas anidadas.'
             },
+            navCountLeaderStyle: {
+                name: 'Mostrar guías de relleno',
+                desc: 'Mostrar puntos, guiones o una línea entre los nombres de los elementos y el número de notas.',
+                options: {
+                    none: 'Ninguno',
+                    dots: 'Puntos (...)',
+                    dashes: 'Guiones (---)',
+                    line: 'Línea'
+                }
+            },
             navRootSpacing: {
                 name: 'Espaciado de elementos raíz',
                 desc: 'Espaciado entre carpetas y etiquetas de nivel superior (píxeles).'

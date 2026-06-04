@@ -2031,6 +2031,16 @@ export const STRINGS_ZH_CN = {
                 name: '显示缩进参考线',
                 desc: '显示嵌套文件夹和标签的缩进参考线。'
             },
+            navCountLeaderStyle: {
+                name: '显示前导符',
+                desc: '在项目名称和笔记数量之间显示点、短划线或直线。',
+                options: {
+                    none: '无',
+                    dots: '点 (...)',
+                    dashes: '短划线 (---)',
+                    line: '直线'
+                }
+            },
             navRootSpacing: {
                 name: '根级项目间距',
                 desc: '根级文件夹和标签之间的间距（像素）。'

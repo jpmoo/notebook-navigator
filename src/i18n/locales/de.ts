@@ -2050,6 +2050,16 @@ export const STRINGS_DE = {
                 name: 'Einrückungslinien anzeigen',
                 desc: 'Einrückungslinien für verschachtelte Ordner und Tags anzeigen.'
             },
+            navCountLeaderStyle: {
+                name: 'Führungszeichen anzeigen',
+                desc: 'Punkte, Striche oder eine Linie zwischen Elementnamen und Notizanzahl anzeigen.',
+                options: {
+                    none: 'Keine',
+                    dots: 'Punkte (...)',
+                    dashes: 'Striche (---)',
+                    line: 'Linie'
+                }
+            },
             navRootSpacing: {
                 name: 'Abstand für Wurzelelemente',
                 desc: 'Abstand zwischen Ordnern und Tags auf der obersten Ebene (Pixel).'

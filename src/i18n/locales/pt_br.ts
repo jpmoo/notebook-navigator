@@ -2051,6 +2051,16 @@ export const STRINGS_PT_BR = {
                 name: 'Mostrar guias de recuo',
                 desc: 'Exibir guias de recuo para pastas e tags aninhadas.'
             },
+            navCountLeaderStyle: {
+                name: 'Mostrar caracteres de preenchimento',
+                desc: 'Exibir pontos, traços ou uma linha entre os nomes dos itens e a contagem de notas.',
+                options: {
+                    none: 'Nenhum',
+                    dots: 'Pontos (...)',
+                    dashes: 'Traços (---)',
+                    line: 'Linha'
+                }
+            },
             navRootSpacing: {
                 name: 'Espaçamento de item raiz',
                 desc: 'Espaçamento entre pastas e tags de nível raiz (pixels).'

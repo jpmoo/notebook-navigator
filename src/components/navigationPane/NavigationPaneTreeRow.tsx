@@ -169,6 +169,7 @@ export function NavigationPaneTreeRow({ item, context, adjacentFilledClassName }
                     hasChildren={hasChildren}
                     isSelected={Boolean(isSelected)}
                     showFileCount={showFileCount}
+                    showCountLeader={!isShortcutsGroup && !isRecentNotesGroup}
                     countInfo={collectionCountInfo}
                     searchMatch={collectionSearchMatch}
                     trailingAction={trailingAction}

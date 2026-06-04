@@ -87,7 +87,8 @@ const RELEASE_NOTES: ReleaseNote[] = [
         info: 'This version focuses on list pane and navigation pane performance. Notebook Navigator now does less work while scrolling and moving through notes: group labels are precomputed, preview text loading no longer recalculates row heights, real height changes are batched, row estimates reuse stable layout inputs, file rows load only the note details used by the current list settings, and navigation rows react only to relevant selection, tag, property, and frontmatter changes. Give it a go and see if you notice any difference.',
         new: [
             '**Interface icons.** Added ==Pinned notes==. It is empty by default; choose an icon in Settings > Appearance & behavior > Interface icons to show it next to the Pinned group header.',
-            '**List pane.** Added ==Show subfolder paths== in List pane > Group headers. Disable it to show only folder names when grouping by folder.'
+            '**List pane.** Added ==Show subfolder paths== in List pane > Group headers. Disable it to show only folder names when grouping by folder.',
+            '**Navigation pane.** Added ==Show leaders== in Navigation pane > Appearance. Choose dots, dashes, or a line between item names and note counts.'
         ],
         improved: [
             '**List pane.** Folder group header path segments are now clickable when subfolder paths are shown.',

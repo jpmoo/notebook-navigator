@@ -2045,6 +2045,16 @@ export const STRINGS_JA = {
                 name: 'インデントガイドを表示',
                 desc: 'ネストされたフォルダーとタグのインデントガイドを表示します。'
             },
+            navCountLeaderStyle: {
+                name: 'リーダーを表示',
+                desc: '項目名とノート数の間に点、ダッシュ、または線を表示します。',
+                options: {
+                    none: 'なし',
+                    dots: '点 (...)',
+                    dashes: 'ダッシュ (---)',
+                    line: '線'
+                }
+            },
             navRootSpacing: {
                 name: 'ルート要素の間隔',
                 desc: '最上位のフォルダとタグの間隔（ピクセル）。'

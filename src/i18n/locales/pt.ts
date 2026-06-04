@@ -2049,6 +2049,16 @@ export const STRINGS_PT = {
                 name: 'Mostrar guias de indentação',
                 desc: 'Apresentar guias de indentação para pastas e etiquetas aninhadas.'
             },
+            navCountLeaderStyle: {
+                name: 'Mostrar carateres de preenchimento',
+                desc: 'Apresentar pontos, traços ou uma linha entre os nomes dos itens e o número de notas.',
+                options: {
+                    none: 'Nenhum',
+                    dots: 'Pontos (...)',
+                    dashes: 'Traços (---)',
+                    line: 'Linha'
+                }
+            },
             navRootSpacing: {
                 name: 'Espaçamento de itens raiz',
                 desc: 'Espaçamento entre pastas e etiquetas de nível raiz (pixels).'
