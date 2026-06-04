@@ -100,7 +100,8 @@ const RELEASE_NOTES: ReleaseNote[] = [
             '**Navigation pane.** Navigation rows now update from narrower selection, tag, property, and frontmatter changes. Selecting notes no longer refreshes unrelated navigation rows, while frontmatter names, icons, colors, hidden files, tag counts, and property counts still update when those values change. Large navigation trees do less work during keyboard navigation, shortcut use, and frontmatter edits.'
         ],
         changed: [
-            '**Feature images.** Some external images may no longer appear in the list pane if their server does not report image type and file size before download. This prevents very large external images and SVG files from being downloaded and shown as feature images. The content cache database is rebuilt so older potentially invalid SVG feature-image thumbnails are removed.'
+            '**Feature images.** Some external images may no longer appear in the list pane if their server does not report image type and file size before download. This prevents very large external images and SVG files from being downloaded and shown as feature images. The content cache database is rebuilt so older potentially invalid SVG feature-image thumbnails are removed.',
+            '**List pane.** Folder grouping now shows the selected folder header when direct notes are present, even without pinned notes. The header can collapse notes in the current folder.'
         ],
         fixed: [
             '**Calendar.** Fixed notes with feature images sometimes showing a blank calendar image after cached thumbnails were refreshed or rebuilt.',

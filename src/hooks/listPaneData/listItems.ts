@@ -564,17 +564,15 @@ export function buildListItems({
                 return;
             }
 
-            if (!group.isCurrentFolder || pinnedFiles.length > 0) {
-                pushHeaderItem({
-                    data: group.label,
-                    collapseKey: createCollapseKey(group.key),
-                    headerFolderPath: group.folderPath,
-                    headerFolderSegments: group.folderSegments,
-                    key: `header-${group.key}`,
-                    headerKind: 'folder',
-                    groupFiles: group.files
-                });
-            }
+            pushHeaderItem({
+                data: group.label,
+                collapseKey: createCollapseKey(group.key),
+                headerFolderPath: group.folderPath,
+                headerFolderSegments: group.folderSegments,
+                key: `header-${group.key}`,
+                headerKind: 'folder',
+                groupFiles: group.files
+            });
 
             group.files.forEach(file => {
                 pushFileItem(file);
