@@ -44,7 +44,13 @@ import {
     stripLeadingPeriods
 } from '../utils/fileNameUtils';
 import { resolveFolderNoteName, shouldRenameFolderNoteWithFolderName } from '../utils/folderNoteName';
-import { getFolderNote, getFolderNoteDetectionSettings, isFolderNote, isSupportedFolderNoteExtension } from '../utils/folderNotes';
+import {
+    getFolderNote,
+    getFolderNoteDetectionSettings,
+    isFolderNote,
+    isSupportedFolderNoteExtension,
+    resolveFolderNoteNameForFolder
+} from '../utils/folderNotes';
 import { executeCommand, isPluginInstalled } from '../utils/typeGuards';
 import { getErrorMessage } from '../utils/errorUtils';
 import { TagTreeService } from './TagTreeService';
@@ -1070,10 +1076,6 @@ export class FileSystemOperations {
             return;
         }
 
-        if (parent.path === '/') {
-            return;
-        }
-
         const detectionSettings = getFolderNoteDetectionSettings(settings);
 
         if (isFolderNote(file, parent, detectionSettings)) {
@@ -1095,7 +1097,7 @@ export class FileSystemOperations {
         }
 
         const isExcalidraw = isExcalidrawFile(file);
-        let targetBaseName = resolveFolderNoteName(parent.name, settings);
+        let targetBaseName = resolveFolderNoteNameForFolder(parent, settings);
         if (isExcalidraw) {
             // Strip .excalidraw from the base name for folder note naming.
             targetBaseName = stripExcalidrawSuffix(targetBaseName);

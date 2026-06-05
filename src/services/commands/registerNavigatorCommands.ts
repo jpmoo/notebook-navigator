@@ -1202,10 +1202,6 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
                 return false;
             }
 
-            if (parent.path === '/') {
-                return false;
-            }
-
             const fileSystemOps = plugin.fileSystemOps;
             if (!fileSystemOps) {
                 return false;

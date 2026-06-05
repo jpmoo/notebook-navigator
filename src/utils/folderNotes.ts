@@ -19,7 +19,7 @@
 import { App, type PaneType, TFile, TFolder, normalizePath } from 'obsidian';
 import { strings } from '../i18n';
 import { FolderNoteType, FOLDER_NOTE_TYPE_EXTENSIONS, FolderNoteCreationPreference } from '../types/folderNote';
-import { createDatabaseContent, createMarkdownFileFromTemplate } from './fileCreationUtils';
+import { buildPathInFolder, createDatabaseContent, createMarkdownFileFromTemplate } from './fileCreationUtils';
 import { type FolderNoteNameSettings, resolveFolderNoteName } from './folderNoteName';
 import { EXCALIDRAW_BASENAME_SUFFIX, isExcalidrawFile, stripExcalidrawSuffix } from './fileNameUtils';
 import { CommandQueueService } from '../services/CommandQueueService';
@@ -72,6 +72,29 @@ export function getFolderNoteDetectionSettings(settings: FolderNoteDetectionSett
 /** Set of file extensions that are valid for folder notes */
 const SUPPORTED_FOLDER_NOTE_EXTENSIONS = new Set<string>(Object.values(FOLDER_NOTE_TYPE_EXTENSIONS));
 
+interface RootFolderNoteVault {
+    getName?: () => string;
+}
+
+export function resolveRootFolderNoteSourceName(folder: TFolder, vaultOverride?: RootFolderNoteVault): string {
+    const vault = vaultOverride ?? (folder as TFolder & { vault?: RootFolderNoteVault }).vault;
+    const vaultName = typeof vault?.getName === 'function' ? vault.getName() : '';
+    if (typeof vaultName === 'string' && vaultName.trim().length > 0) {
+        return vaultName;
+    }
+
+    const folderName = typeof folder.name === 'string' ? folder.name : '';
+    if (folderName.trim().length > 0 && folderName !== '/') {
+        return folderName;
+    }
+
+    return 'Vault';
+}
+
+export function resolveFolderNoteNameForFolder(folder: TFolder, settings: FolderNoteNameSettings): string {
+    return resolveFolderNoteName(folder.path === '/' ? resolveRootFolderNoteSourceName(folder) : folder.name, settings);
+}
+
 /**
  * Checks if a file extension is supported for folder notes
  * @param extension - The file extension to check
@@ -92,7 +115,7 @@ export function getFolderNote(folder: TFolder, settings: FolderNoteDetectionSett
         return null;
     }
 
-    const expectedName = resolveFolderNoteName(folder.name, settings);
+    const expectedName = resolveFolderNoteNameForFolder(folder, settings);
     const prefix = folder.path === '/' ? '' : `${folder.path}/`;
     const exactCandidates: TFile[] = [];
 
@@ -220,7 +243,7 @@ export function isFolderNote(file: TFile, folder: TFolder, settings: FolderNoteD
         return false;
     }
 
-    const expectedName = resolveFolderNoteName(folder.name, settings);
+    const expectedName = resolveFolderNoteNameForFolder(folder, settings);
     if (file.basename === expectedName) {
         return true;
     }
@@ -276,9 +299,9 @@ export async function createFolderNote(
     }
 
     const extension = FOLDER_NOTE_TYPE_EXTENSIONS[selectedType];
-    const baseName = resolveFolderNoteName(folder.name, settings);
+    const baseName = resolveFolderNoteNameForFolder(folder, settings);
     const noteFileName = `${baseName}.${extension}`;
-    const notePath = normalizePath(`${folder.path}/${noteFileName}`);
+    const notePath = buildPathInFolder(folder.path, noteFileName);
 
     const conflictingItem = app.vault.getAbstractFileByPath(notePath);
     if (conflictingItem) {

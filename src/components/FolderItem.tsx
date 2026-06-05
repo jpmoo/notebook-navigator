@@ -180,7 +180,7 @@ export const FolderItem = React.memo(function FolderItem({
     }, [folder, settings, folderNoteLinksEnabled, noteCounts.current, vaultChangeVersion]);
 
     const isRootFolder = folder.path === '/';
-    const effectiveDisplayName = isRootFolder ? settings.customVaultName || app.vault.getName() : displayName || folder.name;
+    const effectiveDisplayName = displayName || (isRootFolder ? settings.customVaultName || app.vault.getName() : folder.name);
     const shouldShowFolderIcon = settings.showFolderIcons || isRootFolder;
     const tooltip = useMemo(() => {
         if (isMobile || !settings.showTooltips) {

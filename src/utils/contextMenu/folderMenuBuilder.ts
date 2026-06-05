@@ -44,7 +44,6 @@ export function buildFolderCreationMenu(params: FolderMenuBuilderParams, folderD
     const { app, fileSystemOps, metadataService } = services;
     const { selectionState, expandedFolders } = state;
     const { selectionDispatch, expansionDispatch, uiDispatch } = dispatchers;
-    const isVaultRoot = folder.path === '/';
     const folderDisplayName =
         folderDisplayNameOverride ??
         resolveFolderDisplayName({
@@ -163,7 +162,7 @@ export function buildFolderCreationMenu(params: FolderMenuBuilderParams, folderD
     if (settings.enableFolderNotes) {
         const folderNote = getFolderNote(folder, settings);
         const canDeleteFolderNote = Boolean(folderNote);
-        const canCreateFolderNote = !folderNote && !isVaultRoot;
+        const canCreateFolderNote = !folderNote;
 
         if (canDeleteFolderNote || canCreateFolderNote) {
             menu.addSeparator();

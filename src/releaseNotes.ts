@@ -95,6 +95,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
             '**Style settings.** Two new style settings; ==Indent guide color and Leader color== to customize the colors of indent guides and leaders.'
         ],
         improved: [
+            '**Folder notes.** The vault root can now have a folder note. Default naming uses the vault name.',
             '**List pane.** Individual folder group path segments are now clickable when subfolder paths are shown.',
             '**List pane.** Lots of rendering performance improvements in the list pane.',
             '**Navigation pane.** Lots of rendering performance improvements in the navigation pane.'
