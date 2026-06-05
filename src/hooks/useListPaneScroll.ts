@@ -67,7 +67,6 @@ import {
     getListPaneHeaderHeight,
     getListPaneMeasurements,
     getPropertyRowCount,
-    isListPaneCompactMode,
     shouldShowExtensionBadgeThumbnail,
     shouldShowFeatureImageArea,
     shouldShowFileItemParentFolderLine
@@ -645,12 +644,7 @@ export function useListPaneScroll({
     const contextIndexVersionRef = useRef<{ key: string; version: number } | null>(null);
     const lastReportedVirtualizerScrollingRef = useRef(false);
 
-    // Check if we're in compact mode
-    const isCompactMode = isListPaneCompactMode({
-        showDate: folderSettings.showDate,
-        showPreview: folderSettings.showPreview,
-        showImage: folderSettings.showImage
-    });
+    const isCompactMode = folderSettings.mode === 'compact';
     const revealFileOnListChanges = settings.revealFileOnListChanges;
     const hasSelectedFile = Boolean(selectedFile);
     const selectedTagToHide = useMemo(

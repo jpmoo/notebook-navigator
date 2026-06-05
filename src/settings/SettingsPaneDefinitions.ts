@@ -64,7 +64,7 @@ export interface SettingsPaneDefinition {
 export const SETTINGS_PAGE_GROUP_DEFINITIONS: SettingsPageGroupDefinition[] = [
     {
         getHeading: () => strings.settings.pageGroups.configuration,
-        items: ['vault-filters', 'appearance-behavior']
+        items: ['vault-filters', 'appearance-behavior', 'file-operations']
     },
     {
         getHeading: () => strings.settings.pageGroups.navigationAndContent,
@@ -72,7 +72,7 @@ export const SETTINGS_PAGE_GROUP_DEFINITIONS: SettingsPageGroupDefinition[] = [
     },
     {
         getHeading: () => strings.settings.pageGroups.notesAndLists,
-        items: ['list-pane', 'file-operations', 'frontmatter', 'notes']
+        items: ['list-pane', 'frontmatter', 'notes']
     },
     {
         getHeading: () => strings.settings.pageGroups.calendarAndTools,

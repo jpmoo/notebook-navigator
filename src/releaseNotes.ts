@@ -84,7 +84,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
         version: '3.0.3',
         date: '2026-06-05',
         showOnUpdate: true,
-        info: 'This version focuses on ==list pane and navigation pane performance improvements==. Notebook Navigator now does less work when scrolling and moving through notes, folders, tags and properties. Give it a try and let me know if you notice a difference!',
+        info: 'This version focuses on ==list pane and navigation pane performance improvements==. Notebook Navigator now does less work when scrolling and moving through notes, folders, tags and properties. Give it a try and let me know if you notice any difference!',
         new: [
             '**Interface icons.** Added ==Pinned notes icon== to Settings > Appearance & behavior > Interface icons. This icon is displayed next to the Pinned items group header if set, default not set.',
             '**Commands.** Added ==Collapse / expand selected item== to toggle the selected navigation item.',
@@ -99,6 +99,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
         ],
         changed: [
             '**Feature images.** ==SVG images are no longer supported as feature images==. Large SVG images with embedded bitmaps were causing performance and memory issues for some users so this was disabled until further notice. As a result the cache will be rebuilt on startup.',
+            '**List pane.** Standard mode now keeps the standard row layout when date, preview, and feature image are hidden. Compact layout is only used when list mode is Compact.',
             '**List pane.** When grouping by folder, the current folder name will always be displayed on top so you can collapse items in the current folder.'
         ],
         fixed: [
