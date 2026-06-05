@@ -84,11 +84,11 @@ const RELEASE_NOTES: ReleaseNote[] = [
         version: '3.1.0',
         date: '2026-06-05',
         showOnUpdate: true,
-        info: 'This version adds two fantastic new features: ==Open folder notes in right sidebar==, and ==Open related folder notes==. When these settings are enabled, clicking on a note will now automatically open the closest folder note in the right sidebar! Super useful for scratch pads related to different areas of your vault. This release also have dozens of ==list pane and navigation pane performance improvements==. Notebook Navigator now does less work when scrolling and moving through notes, folders, tags and properties. Give it a try and let me know if you notice any difference!',
+        info: 'This version adds two fantastic new features: ==Open folder notes in right sidebar== and ==Right sidebar: Show closest folder note==. When these settings are enabled, selecting a folder will now automatically open its folder note or the closest ancestor folder note in the right sidebar! Super useful for scratch pads related to different areas of your vault. This release also includes dozens of ==list pane and navigation pane performance improvements==. Notebook Navigator now does less work when scrolling and moving through notes, folders, tags and properties. Give it a try and let me know if you notice any difference!',
         new: [
             '**Commands.** New command ==Collapse / expand selected item== to toggle the selected navigation item.',
             '**Settings.** New setting ==Open folder notes in right sidebar== to Settings > Folders & folder notes.',
-            '**Settings.** New setting ==Right sidebar: Open related folder notes==. When a note opens, the right sidebar opens the nearest ancestor folder note. Very useful for shared "scratch pads" related to the notes you are editing.',
+            '**Settings.** New setting ==Right sidebar: Show closest folder note==. When a folder is selected, the right sidebar automatically shows the nearest ancestor folder note.',
             '**Settings.** New setting ==Pinned notes icon== to Settings > Appearance & behavior > Interface icons. This icon is displayed next to the Pinned items group header if set, default not set.',
             '**Settings.** New setting ==Show subfolder paths== in List pane > Group headers. Default enabled, disable to only show folder names when grouping by folder.',
             '**Settings.** New setting ==Show leaders== in Navigation pane > Appearance. Choose dots, dashes, or a line between item names and note counts. Makes navigation pane look like a Table of Contents.',
