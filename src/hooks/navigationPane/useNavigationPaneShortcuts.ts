@@ -216,6 +216,7 @@ export function useNavigationPaneShortcuts({
         uiState,
         uiDispatch,
         selectionType: selectionState.selectionType,
+        selectedFolder: selectionState.selectedFolder,
         selectionDispatch,
         setActiveShortcut: shortcutState.setActiveShortcut,
         onExecuteSearchShortcut,

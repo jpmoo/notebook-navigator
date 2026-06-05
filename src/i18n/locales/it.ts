@@ -2194,8 +2194,8 @@ export const STRINGS_IT = {
                 }
             },
             showNearestFolderNoteInSidebar: {
-                name: 'Barra laterale destra: Apri note cartella correlate',
-                desc: 'Quando una nota si apre, la barra laterale destra apre la nota cartella antenata più vicina.'
+                name: 'Barra laterale destra: Mostra nota cartella più vicina',
+                desc: 'Quando viene selezionata una cartella, la barra laterale destra mostra automaticamente la nota cartella antenata più vicina.'
             },
             confirmBeforeDelete: {
                 name: 'Conferma prima di eliminare',

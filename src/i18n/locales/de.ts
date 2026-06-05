@@ -2198,8 +2198,8 @@ export const STRINGS_DE = {
                 }
             },
             showNearestFolderNoteInSidebar: {
-                name: 'Rechte Seitenleiste: Zugehörige Ordnernotizen öffnen',
-                desc: 'Wenn eine Notiz geöffnet wird, öffnet die rechte Seitenleiste die nächstgelegene übergeordnete Ordnernotiz.'
+                name: 'Rechte Seitenleiste: Nächste Ordnernotiz anzeigen',
+                desc: 'Wenn ein Ordner ausgewählt wird, zeigt die rechte Seitenleiste automatisch die nächstgelegene übergeordnete Ordnernotiz an.'
             },
             confirmBeforeDelete: {
                 name: 'Vor dem Löschen bestätigen',

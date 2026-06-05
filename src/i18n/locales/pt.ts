@@ -2197,8 +2197,8 @@ export const STRINGS_PT = {
                 }
             },
             showNearestFolderNoteInSidebar: {
-                name: 'Barra lateral direita: Abrir notas de pasta relacionadas',
-                desc: 'Quando uma nota é aberta, a barra lateral direita abre a nota de pasta ancestral mais próxima.'
+                name: 'Barra lateral direita: Mostrar nota de pasta mais próxima',
+                desc: 'Quando uma pasta é selecionada, a barra lateral direita mostra automaticamente a nota de pasta ancestral mais próxima.'
             },
             confirmBeforeDelete: {
                 name: 'Confirmar antes de eliminar',

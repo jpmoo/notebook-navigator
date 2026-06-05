@@ -56,6 +56,8 @@ export interface FolderNoteCreationSettings extends FolderNoteNameSettings {
 
 interface CreateFolderNoteOptions {
     folderDisplayName?: string;
+    openContext?: FolderNoteOpenContext;
+    openInRightSidebar?: (folderNote: TFile) => Promise<void>;
 }
 
 /**
@@ -330,8 +332,9 @@ export async function createFolderNote(
             commandQueue: commandQueue ?? null,
             folder,
             folderNote: file,
-            context: null,
-            active: true
+            context: options?.openContext ?? null,
+            active: true,
+            openInRightSidebar: options?.openInRightSidebar
         });
         return file;
     } catch (error) {

@@ -2199,8 +2199,8 @@ export const STRINGS_PL = {
                 }
             },
             showNearestFolderNoteInSidebar: {
-                name: 'Prawy pasek boczny: Otwórz powiązane notatki folderów',
-                desc: 'Gdy notatka zostanie otwarta, prawy pasek boczny otwiera najbliższą nadrzędną notatkę folderu.'
+                name: 'Prawy pasek boczny: Pokaż najbliższą notatkę folderu',
+                desc: 'Po wybraniu folderu prawy pasek boczny automatycznie pokazuje najbliższą nadrzędną notatkę folderu.'
             },
             confirmBeforeDelete: {
                 name: 'Potwierdź przed usunięciem',

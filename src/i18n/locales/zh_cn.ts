@@ -2179,8 +2179,8 @@ export const STRINGS_ZH_CN = {
                 }
             },
             showNearestFolderNoteInSidebar: {
-                name: '右侧边栏：打开相关文件夹笔记',
-                desc: '打开笔记时，右侧边栏会打开最近的上级文件夹笔记。'
+                name: '右侧边栏：显示最近的文件夹笔记',
+                desc: '选择文件夹时，右侧边栏会自动显示最近的上级文件夹笔记。'
             },
             confirmBeforeDelete: {
                 name: '删除前确认',

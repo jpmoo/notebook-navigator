@@ -418,6 +418,7 @@ export const ListPane = React.memo(
         });
 
         const { selectionType, selectedFolder, selectedTag, selectedProperty, selectedFile } = selectionState;
+        const selectedFolderPath = selectionType === ItemType.FOLDER ? (selectedFolder?.path ?? null) : null;
         const effectiveSortSpec = getEffectiveListSort(settings, selectionType, selectedFolder, selectedTag, selectedProperty);
         const effectiveSortOption = effectiveSortSpec.option;
         const effectivePropertySortKey = effectiveSortSpec.propertyKey.trim();
@@ -1382,6 +1383,7 @@ export const ListPane = React.memo(
                             onPinnedGroupHeaderToggle={handlePinnedGroupHeaderToggle}
                             onListGroupHeaderToggle={handleListGroupHeaderToggle}
                             selectionType={selectionType}
+                            selectedFolderPath={selectedFolderPath}
                             sortOption={effectiveSortOption}
                             searchHighlightQuery={searchHighlightQuery}
                             isFolderNavigation={selectionState.isFolderNavigation}

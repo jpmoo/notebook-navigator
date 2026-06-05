@@ -2190,8 +2190,8 @@ export const STRINGS_KO = {
                 }
             },
             showNearestFolderNoteInSidebar: {
-                name: '오른쪽 사이드바: 관련 폴더 노트 열기',
-                desc: '노트를 열면 오른쪽 사이드바가 가장 가까운 상위 폴더 노트를 엽니다.'
+                name: '오른쪽 사이드바: 가장 가까운 폴더 노트 표시',
+                desc: '폴더를 선택하면 오른쪽 사이드바에 가장 가까운 상위 폴더 노트가 자동으로 표시됩니다.'
             },
             confirmBeforeDelete: {
                 name: '삭제 전 확인',

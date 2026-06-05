@@ -650,6 +650,10 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         await this.folderNoteSidebarService?.openFolderNote(folderNote);
     }
 
+    public async syncFolderNoteSidebarToFolder(folder: TFolder | null): Promise<void> {
+        await this.folderNoteSidebarService?.syncToSelectedFolder(folder);
+    }
+
     /**
      * Updates the dual-pane preference and persists to local storage
      */

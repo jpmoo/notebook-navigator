@@ -59,6 +59,7 @@ interface UseNavigationPaneShortcutActionsProps {
     uiState: UIStateLike;
     uiDispatch: Dispatch<UIAction>;
     selectionType: NavigationSelectionState['selectionType'];
+    selectedFolder: NavigationSelectionState['selectedFolder'];
     selectionDispatch: Dispatch<SelectionAction>;
     setActiveShortcut: Dispatch<SetStateAction<string | null>>;
     onExecuteSearchShortcut?: (shortcutKey: string, searchShortcut: SearchShortcut) => Promise<void> | void;
@@ -81,6 +82,7 @@ export function useNavigationPaneShortcutActions({
     uiState,
     uiDispatch,
     selectionType,
+    selectedFolder,
     selectionDispatch,
     setActiveShortcut,
     onExecuteSearchShortcut,
@@ -133,6 +135,7 @@ export function useNavigationPaneShortcutActions({
                 return;
             }
 
+            const wasSelectedFolder = selectionType === ItemType.FOLDER && selectedFolder?.path === folder.path;
             selectionDispatch({ type: 'SET_SELECTED_FOLDER', folder, autoSelectedFile: null });
             const openContext = resolveFolderNoteClickOpenContext(
                 event,
@@ -140,6 +143,11 @@ export function useNavigationPaneShortcutActions({
                 settings.multiSelectModifier,
                 isMobile
             );
+            if (openContext === 'right-sidebar' && settings.showNearestFolderNoteInSidebar && !wasSelectedFolder) {
+                scheduleShortcutRelease();
+                return;
+            }
+
             runAsyncAction(() =>
                 openFolderNoteFile({
                     app,
@@ -159,8 +167,10 @@ export function useNavigationPaneShortcutActions({
             isMobile,
             openFolderNoteInRightSidebar,
             scheduleShortcutRelease,
+            selectedFolder,
             selectionDispatch,
             setActiveShortcut,
+            selectionType,
             settings
         ]
     );

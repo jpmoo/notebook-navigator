@@ -2192,8 +2192,8 @@ export const STRINGS_TR = {
                 }
             },
             showNearestFolderNoteInSidebar: {
-                name: 'Sağ kenar çubuğu: İlgili klasör notlarını aç',
-                desc: 'Bir not açıldığında, sağ kenar çubuğu en yakın üst klasör notunu açar.'
+                name: 'Sağ kenar çubuğu: En yakın klasör notunu göster',
+                desc: 'Bir klasör seçildiğinde, sağ kenar çubuğu en yakın üst klasör notunu otomatik olarak gösterir.'
             },
             confirmBeforeDelete: {
                 name: 'Silmeden önce onayla',

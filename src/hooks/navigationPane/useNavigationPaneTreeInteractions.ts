@@ -192,11 +192,17 @@ export function useNavigationPaneTreeInteractions({
                 return;
             }
 
+            const wasSelectedFolder =
+                selectionState.selectionType === ItemType.FOLDER && selectionState.selectedFolder?.path === folder.path;
             selectionDispatch({ type: 'SET_SELECTED_FOLDER', folder, autoSelectedFile: null });
 
             const openContext = event
                 ? resolveFolderNoteClickOpenContext(event, settings.folderNoteOpenLocation, settings.multiSelectModifier, isMobile)
                 : resolveFolderNoteDefaultOpenContext(settings.folderNoteOpenLocation);
+
+            if (openContext === 'right-sidebar' && settings.showNearestFolderNoteInSidebar && !wasSelectedFolder) {
+                return;
+            }
 
             runAsyncAction(() =>
                 openFolderNoteFile({
@@ -209,7 +215,17 @@ export function useNavigationPaneTreeInteractions({
                 })
             );
         },
-        [app, commandQueue, handleFolderClick, isMobile, openFolderNoteInRightSidebar, selectionDispatch, settings]
+        [
+            app,
+            commandQueue,
+            handleFolderClick,
+            isMobile,
+            openFolderNoteInRightSidebar,
+            selectionDispatch,
+            selectionState.selectedFolder,
+            selectionState.selectionType,
+            settings
+        ]
     );
 
     const handleFolderNameMouseDown = useCallback(

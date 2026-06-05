@@ -2195,8 +2195,8 @@ export const STRINGS_VI = {
                 }
             },
             showNearestFolderNoteInSidebar: {
-                name: 'Thanh bên phải: Mở ghi chú thư mục liên quan',
-                desc: 'Khi một ghi chú mở, thanh bên phải mở ghi chú thư mục tổ tiên gần nhất.'
+                name: 'Thanh bên phải: Hiển thị ghi chú thư mục gần nhất',
+                desc: 'Khi một thư mục được chọn, thanh bên phải tự động hiển thị ghi chú thư mục tổ tiên gần nhất.'
             },
             confirmBeforeDelete: {
                 name: 'Xác nhận trước khi xóa',

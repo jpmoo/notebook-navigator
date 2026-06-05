@@ -40,8 +40,8 @@ import { INTERNAL_NOTEBOOK_NAVIGATOR_API } from '../../api/NotebookNavigatorAPI'
  * Adds folder creation commands (new note/folder/canvas/base/drawing) to a menu.
  */
 export function buildFolderCreationMenu(params: FolderMenuBuilderParams, folderDisplayNameOverride?: string): void {
-    const { folder, menu, services, state, dispatchers } = params;
-    const { app, fileSystemOps, metadataService } = services;
+    const { folder, menu, services, state, dispatchers, settings } = params;
+    const { app, fileSystemOps, metadataService, plugin } = services;
     const { selectionState, expandedFolders } = state;
     const { selectionDispatch, expansionDispatch, uiDispatch } = dispatchers;
     const folderDisplayName =
@@ -49,7 +49,7 @@ export function buildFolderCreationMenu(params: FolderMenuBuilderParams, folderD
         resolveFolderDisplayName({
             app,
             metadataService,
-            settings: params.settings,
+            settings,
             folderPath: folder.path,
             fallbackName: folder.name
         });
@@ -158,7 +158,6 @@ export function buildFolderCreationMenu(params: FolderMenuBuilderParams, folderD
     }
 
     // Folder note operations
-    const { settings } = params;
     if (settings.enableFolderNotes) {
         const folderNote = getFolderNote(folder, settings);
         const canDeleteFolderNote = Boolean(folderNote);
@@ -200,7 +199,11 @@ export function buildFolderCreationMenu(params: FolderMenuBuilderParams, folderD
                             folderNoteTemplate: settings.folderNoteTemplate
                         },
                         services.commandQueue,
-                        { folderDisplayName }
+                        {
+                            folderDisplayName,
+                            openContext: settings.folderNoteOpenLocation === 'right-sidebar' ? 'right-sidebar' : null,
+                            openInRightSidebar: folderNote => plugin.openFolderNoteInRightSidebar(folderNote)
+                        }
                     );
                     handleFileCreation(createdNote);
                     if (createdNote && settings.pinCreatedFolderNote) {

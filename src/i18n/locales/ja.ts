@@ -2193,8 +2193,8 @@ export const STRINGS_JA = {
                 }
             },
             showNearestFolderNoteInSidebar: {
-                name: '右サイドバー: 関連するフォルダノートを開く',
-                desc: 'ノートを開くと、右サイドバーに最も近い上位フォルダノートが開きます。'
+                name: '右サイドバー: 最も近いフォルダノートを表示',
+                desc: 'フォルダを選択すると、右サイドバーに最も近い上位フォルダノートが自動的に表示されます。'
             },
             confirmBeforeDelete: {
                 name: '削除前に確認',

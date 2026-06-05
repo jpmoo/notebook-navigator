@@ -17,7 +17,7 @@
  */
 
 import { describe, expect, it, vi } from 'vitest';
-import type { WorkspaceLeaf } from 'obsidian';
+import { App, TFolder, type WorkspaceLeaf } from 'obsidian';
 import type NotebookNavigatorPlugin from '../../src/main';
 import type { CommandQueueService } from '../../src/services/CommandQueueService';
 import { FolderNoteSidebarService } from '../../src/services/workspace/FolderNoteSidebarService';
@@ -34,6 +34,11 @@ interface TestWorkspaceLeaf {
     openFile: ReturnType<typeof vi.fn>;
 }
 
+interface TestVaultMethods {
+    registerFile(file: ReturnType<typeof createTestTFile>): void;
+    registerFolder(folder: TFolder): void;
+}
+
 function createRightSidebarLeaf(viewState: { type: string; state?: Record<string, unknown> }, rightSplit: object): TestWorkspaceLeaf {
     const openFile = vi.fn().mockResolvedValue(undefined);
     const leaf = {
@@ -46,6 +51,35 @@ function createRightSidebarLeaf(viewState: { type: string; state?: Record<string
     } as unknown as WorkspaceLeaf;
 
     return { leaf, openFile };
+}
+
+function getTestVault(app: App): App['vault'] & TestVaultMethods {
+    return app.vault as App['vault'] & TestVaultMethods;
+}
+
+function createTestFolder(app: App, path: string, parent: TFolder | null = null): TFolder {
+    const folder = new TFolder(path) as TFolder & {
+        children: Array<TFolder | ReturnType<typeof createTestTFile>>;
+        name: string;
+        parent: TFolder | null;
+        vault: App['vault'];
+    };
+    folder.name = path === '/' ? '/' : (path.split('/').pop() ?? path);
+    folder.children = [];
+    folder.parent = parent;
+    folder.vault = app.vault;
+    parent?.children.push(folder);
+    getTestVault(app).registerFolder(folder);
+    return folder;
+}
+
+function addFileToFolder(app: App, folder: TFolder, path: string): ReturnType<typeof createTestTFile> {
+    const file = createTestTFile(path);
+    file.parent = folder;
+    file.vault = app.vault;
+    (folder as TFolder & { children: ReturnType<typeof createTestTFile>[] }).children.push(file);
+    getTestVault(app).registerFile(file);
+    return file;
 }
 
 describe('FolderNoteSidebarService', () => {
@@ -128,5 +162,84 @@ describe('FolderNoteSidebarService', () => {
         expect(executeBackgroundFileOpen).toHaveBeenCalledWith(folderNote, expect.any(Function));
         expect(companionLeaf.openFile).toHaveBeenCalledWith(folderNote, { active: false });
         expect(workspace.revealLeaf).toHaveBeenCalledWith(companionLeaf.leaf);
+    });
+
+    it('opens the closest folder note for the selected folder', async () => {
+        const app = new App();
+        const root = createTestFolder(app, '/');
+        const projects = createTestFolder(app, 'Projects', root);
+        const child = createTestFolder(app, 'Projects/Feature', projects);
+        const projectsFolderNote = addFileToFolder(app, projects, 'Projects/index.md');
+        const rightSplit = {};
+        const companionLeaf = createRightSidebarLeaf({ type: 'empty', state: {} }, rightSplit);
+        const workspace = {
+            rootSplit: {},
+            leftSplit: {},
+            rightSplit,
+            activeLeaf: null,
+            getRightLeaf: vi.fn(() => companionLeaf.leaf),
+            iterateAllLeaves: vi.fn(),
+            revealLeaf: vi.fn().mockResolvedValue(undefined),
+            setActiveLeaf: vi.fn()
+        };
+        app.workspace = workspace as unknown as App['workspace'];
+        const plugin = {
+            app,
+            settings: {
+                enableFolderNotes: true,
+                folderNoteOpenLocation: 'right-sidebar',
+                showNearestFolderNoteInSidebar: true,
+                folderNoteName: 'index',
+                folderNoteNamePattern: ''
+            },
+            isShuttingDown: () => false
+        } as unknown as NotebookNavigatorPlugin;
+        const service = new FolderNoteSidebarService(plugin);
+
+        service.handleWorkspaceReady();
+        await service.syncToSelectedFolder(child);
+
+        expect(companionLeaf.openFile).toHaveBeenCalledWith(projectsFolderNote, { active: false });
+        expect(workspace.revealLeaf).toHaveBeenCalledWith(companionLeaf.leaf);
+    });
+
+    it('uses the pending selected folder after the workspace becomes ready', async () => {
+        const app = new App();
+        const root = createTestFolder(app, '/');
+        const projects = createTestFolder(app, 'Projects', root);
+        const projectsFolderNote = addFileToFolder(app, projects, 'Projects/index.md');
+        const rightSplit = {};
+        const companionLeaf = createRightSidebarLeaf({ type: 'empty', state: {} }, rightSplit);
+        const workspace = {
+            rootSplit: {},
+            leftSplit: {},
+            rightSplit,
+            activeLeaf: null,
+            getRightLeaf: vi.fn(() => companionLeaf.leaf),
+            iterateAllLeaves: vi.fn(),
+            revealLeaf: vi.fn().mockResolvedValue(undefined),
+            setActiveLeaf: vi.fn()
+        };
+        app.workspace = workspace as unknown as App['workspace'];
+        const plugin = {
+            app,
+            settings: {
+                enableFolderNotes: true,
+                folderNoteOpenLocation: 'right-sidebar',
+                showNearestFolderNoteInSidebar: true,
+                folderNoteName: 'index',
+                folderNoteNamePattern: ''
+            },
+            isShuttingDown: () => false
+        } as unknown as NotebookNavigatorPlugin;
+        const service = new FolderNoteSidebarService(plugin);
+
+        await service.syncToSelectedFolder(projects);
+        expect(companionLeaf.openFile).not.toHaveBeenCalled();
+
+        service.handleWorkspaceReady();
+        await Promise.resolve();
+
+        expect(companionLeaf.openFile).toHaveBeenCalledWith(projectsFolderNote, { active: false });
     });
 });

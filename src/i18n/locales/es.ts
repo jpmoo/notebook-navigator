@@ -2198,8 +2198,8 @@ export const STRINGS_ES = {
                 }
             },
             showNearestFolderNoteInSidebar: {
-                name: 'Barra lateral derecha: Abrir notas de carpeta relacionadas',
-                desc: 'Cuando se abre una nota, la barra lateral derecha abre la nota de carpeta ancestro más cercana.'
+                name: 'Barra lateral derecha: Mostrar nota de carpeta más cercana',
+                desc: 'Cuando se selecciona una carpeta, la barra lateral derecha muestra automáticamente la nota de carpeta ancestro más cercana.'
             },
             confirmBeforeDelete: {
                 name: 'Confirmar antes de eliminar',

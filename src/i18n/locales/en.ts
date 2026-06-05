@@ -2186,8 +2186,8 @@ export const STRINGS_EN = {
                 }
             },
             showNearestFolderNoteInSidebar: {
-                name: 'Right sidebar: Open related folder notes',
-                desc: 'When a note opens, the right sidebar opens the nearest ancestor folder note.'
+                name: 'Right sidebar: Show closest folder note',
+                desc: 'When a folder is selected, the right sidebar automatically shows the nearest ancestor folder note.'
             },
             confirmBeforeDelete: {
                 name: 'Confirm before deleting',

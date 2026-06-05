@@ -2195,8 +2195,8 @@ export const STRINGS_ID = {
                 }
             },
             showNearestFolderNoteInSidebar: {
-                name: 'Bilah sisi kanan: Buka catatan folder terkait',
-                desc: 'Saat catatan dibuka, bilah sisi kanan membuka catatan folder leluhur terdekat.'
+                name: 'Bilah sisi kanan: Tampilkan catatan folder terdekat',
+                desc: 'Saat folder dipilih, bilah sisi kanan otomatis menampilkan catatan folder leluhur terdekat.'
             },
             confirmBeforeDelete: {
                 name: 'Konfirmasi sebelum menghapus',

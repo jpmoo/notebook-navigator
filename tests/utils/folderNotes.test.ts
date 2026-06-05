@@ -156,4 +156,44 @@ describe('root folder notes', () => {
         expect(created).toBe(createdFile);
         expect(openFile).toHaveBeenCalledWith(createdFile, { active: true });
     });
+
+    it('opens created folder notes in the right sidebar when requested', async () => {
+        const app = new App();
+        const root = createRootFolder(app, 'Shared Scratch');
+        const openFile = vi.fn().mockResolvedValue(undefined);
+        const openInRightSidebar = vi.fn().mockResolvedValue(undefined);
+        const createdFile = createTestTFile('Shared Scratch.md');
+        createdFile.parent = root;
+        createdFile.vault = app.vault;
+
+        const createNewMarkdownFile = vi.fn(async () => {
+            root.children.push(createdFile);
+            getTestVault(app).registerFile(createdFile);
+            return createdFile;
+        });
+        app.fileManager.createNewMarkdownFile = createNewMarkdownFile;
+        app.workspace = {
+            getLeaf: vi.fn(() => ({ openFile }))
+        } as unknown as App['workspace'];
+
+        const created = await createFolderNote(
+            app,
+            root,
+            {
+                folderNoteType: 'markdown',
+                folderNoteName: '',
+                folderNoteNamePattern: '',
+                folderNoteTemplate: DEFAULT_SETTINGS.folderNoteTemplate
+            },
+            null,
+            {
+                openContext: 'right-sidebar',
+                openInRightSidebar
+            }
+        );
+
+        expect(created).toBe(createdFile);
+        expect(openInRightSidebar).toHaveBeenCalledWith(createdFile);
+        expect(openFile).not.toHaveBeenCalled();
+    });
 });

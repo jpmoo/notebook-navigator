@@ -2179,8 +2179,8 @@ export const STRINGS_ZH_TW = {
                 }
             },
             showNearestFolderNoteInSidebar: {
-                name: '右側邊欄：開啟相關資料夾筆記',
-                desc: '開啟筆記時，右側邊欄會開啟最近的上層資料夾筆記。'
+                name: '右側邊欄：顯示最近的資料夾筆記',
+                desc: '選取資料夾時，右側邊欄會自動顯示最近的上層資料夾筆記。'
             },
             confirmBeforeDelete: {
                 name: '刪除前確認',

@@ -80,6 +80,7 @@ import { getFeatureImageDisplayMeasurements, getListPaneMeasurements } from '../
 import type { InclusionOperator } from '../utils/filterSearch';
 import { useFolderDecorationState } from '../hooks/useFolderDecorationState';
 import { useFileItemPillDecorationState } from '../hooks/useFileItemPillDecorationState';
+import { useSelectedFolderFileVersion } from '../hooks/useSelectedFolderFileVersion';
 import type { FileItemPillOrderModel } from '../utils/fileItemPillOrder';
 import { useNavigationPaneTreeSections } from '../hooks/navigationPane/data/useNavigationPaneTreeSections';
 import { useNavigationPaneSourceState } from '../hooks/navigationPane/data/useNavigationPaneSourceState';
@@ -214,6 +215,26 @@ export const NotebookNavigatorComponent = React.memo(
         } = getNavigationPaneSizing(orientation);
         const selectionState = useSelectionState();
         const selectionDispatch = useSelectionDispatch();
+        const selectedFolderForFolderNoteSidebar = selectionState.selectionType === ItemType.FOLDER ? selectionState.selectedFolder : null;
+        const selectedFolderFileVersionForFolderNoteSidebar = useSelectedFolderFileVersion(
+            app.vault,
+            selectedFolderForFolderNoteSidebar,
+            settings.enableFolderNotes && settings.folderNoteOpenLocation === 'right-sidebar' && settings.showNearestFolderNoteInSidebar,
+            { includeAncestors: true }
+        );
+        useEffect(() => {
+            void selectedFolderFileVersionForFolderNoteSidebar;
+            runAsyncAction(() => plugin.syncFolderNoteSidebarToFolder(selectedFolderForFolderNoteSidebar));
+        }, [
+            plugin,
+            selectedFolderFileVersionForFolderNoteSidebar,
+            selectedFolderForFolderNoteSidebar,
+            settings.enableFolderNotes,
+            settings.folderNoteName,
+            settings.folderNoteNamePattern,
+            settings.folderNoteOpenLocation,
+            settings.showNearestFolderNoteInSidebar
+        ]);
         const uiState = useUIState();
         const uiDispatch = useUIDispatch();
         const {

@@ -2201,8 +2201,8 @@ export const STRINGS_FR = {
                 }
             },
             showNearestFolderNoteInSidebar: {
-                name: 'Barre latérale droite : Ouvrir les notes de dossier associées',
-                desc: "Lorsqu'une note s'ouvre, la barre latérale droite ouvre la note de dossier ancêtre la plus proche."
+                name: 'Barre latérale droite : Afficher la note de dossier la plus proche',
+                desc: "Lorsqu'un dossier est sélectionné, la barre latérale droite affiche automatiquement la note de dossier ancêtre la plus proche."
             },
             confirmBeforeDelete: {
                 name: 'Confirmer avant de supprimer',

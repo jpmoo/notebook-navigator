@@ -2198,8 +2198,8 @@ export const STRINGS_NL = {
                 }
             },
             showNearestFolderNoteInSidebar: {
-                name: 'Rechterzijbalk: Gerelateerde mapnotities openen',
-                desc: 'Wanneer een notitie wordt geopend, opent de rechterzijbalk de dichtstbijzijnde bovenliggende mapnotitie.'
+                name: 'Rechterzijbalk: Dichtstbijzijnde mapnotitie tonen',
+                desc: 'Wanneer een map wordt geselecteerd, toont de rechterzijbalk automatisch de dichtstbijzijnde bovenliggende mapnotitie.'
             },
             confirmBeforeDelete: {
                 name: 'Bevestigen voor verwijderen',
