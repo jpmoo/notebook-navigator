@@ -53,6 +53,7 @@ import {
     isCalendarWeekendDays,
     isFeatureImagePixelSizeSetting,
     isFeatureImageSizeSetting,
+    isFolderNoteOpenLocation,
     isHomepageSource,
     isMouseBackForwardAction,
     isManualSortNewNotePlacement,
@@ -286,6 +287,9 @@ export class PluginSettingsController {
             (!isSortOption(storedData['defaultFolderSort']) || isPropertySortOption(storedData['defaultFolderSort']))
         );
         const hadLegacyNoneGroupingInStoredData = containsLegacyNoneGroupingInStoredData(storedData);
+        const hadLegacyOpenFolderNotesInNewTabInStoredData = Boolean(
+            storedData && Object.prototype.hasOwnProperty.call(storedData, 'openFolderNotesInNewTab')
+        );
         const storedSettings = storedData as Partial<NotebookNavigatorSettings> | null;
         const isFirstLaunch = storedData === null;
         this.shouldPersistDesktopScale = Boolean(storedData && 'desktopScale' in storedData);
@@ -308,6 +312,12 @@ export class PluginSettingsController {
         delete settingsRecord['saveMetadataToFrontmatter'];
         delete settingsRecord['lastAnnouncedRelease'];
         delete settingsRecord['optimizeNoteHeight'];
+
+        if (!isFolderNoteOpenLocation(storedData?.['folderNoteOpenLocation'])) {
+            this.currentSettings.folderNoteOpenLocation =
+                storedData?.['openFolderNotesInNewTab'] === true ? 'new-tab' : DEFAULT_SETTINGS.folderNoteOpenLocation;
+        }
+        delete settingsRecord['openFolderNotesInNewTab'];
 
         if (typeof this.currentSettings.propertySortKey !== 'string') {
             this.currentSettings.propertySortKey = DEFAULT_SETTINGS.propertySortKey;
@@ -494,6 +504,7 @@ export class PluginSettingsController {
             hadInvalidManualSortPropertyKeyInStoredData ||
             hadUnavailableDefaultFolderSortInStoredData ||
             hadLegacyNoneGroupingInStoredData ||
+            hadLegacyOpenFolderNotesInNewTabInStoredData ||
             prunedUnavailablePropertySortOverrides ||
             uiScaleMigrated ||
             migratedMomentFormats ||

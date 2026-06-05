@@ -919,6 +919,7 @@ export const STRINGS_ZH_TW = {
             icons: '圖示包',
             folders: '資料夾',
             folderNotes: '資料夾筆記',
+            folderNoteFiles: '資料夾筆記檔案',
             foldersAndFolderNotes: '資料夾與資料夾筆記',
             foldersAndTags: '資料夾',
             tagsAndProperties: '標籤與屬性',
@@ -2157,8 +2158,8 @@ export const STRINGS_ZH_TW = {
                 desc: '新建 Markdown 資料夾筆記的範本檔案。在外觀與行為 > 範本中設定範本資料夾位置。'
             },
             enableFolderNoteLinks: {
-                name: '啟用資料夾筆記連結',
-                desc: '資料夾標籤顯示為連結樣式，點擊可開啟資料夾筆記。關閉時，資料夾筆記仍提供名稱、圖示和顏色中繼資料。'
+                name: '資料夾名稱開啟資料夾筆記',
+                desc: '點擊資料夾名稱會開啟其資料夾筆記。關閉時，資料夾筆記僅提供資料夾中繼資料，例如名稱、圖示和顏色。'
             },
             hideFolderNoteInList: {
                 name: '在列表中隱藏資料夾筆記',
@@ -2168,9 +2169,18 @@ export const STRINGS_ZH_TW = {
                 name: '釘選建立的資料夾筆記',
                 desc: '從右鍵選單建立時釘選資料夾筆記。'
             },
-            openFolderNotesInNewTab: {
-                name: '在新分頁中開啟資料夾筆記',
-                desc: '點擊資料夾時在新分頁中開啟資料夾筆記。'
+            folderNoteOpenLocation: {
+                name: '開啟資料夾筆記到',
+                desc: '選擇點擊資料夾筆記連結時資料夾筆記的開啟位置。',
+                options: {
+                    currentTab: '目前分頁',
+                    newTab: '新分頁',
+                    rightSidebar: '右側邊欄'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: '右側邊欄：開啟相關資料夾筆記',
+                desc: '開啟筆記時，右側邊欄會開啟最近的上層資料夾筆記。'
             },
             confirmBeforeDelete: {
                 name: '刪除前確認',

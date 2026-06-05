@@ -932,6 +932,7 @@ export const STRINGS_FR = {
             icons: "Packs d'icônes",
             folders: 'Dossiers',
             folderNotes: 'Notes de dossier',
+            folderNoteFiles: 'Fichiers de notes de dossier',
             foldersAndFolderNotes: 'Dossiers et notes de dossier',
             foldersAndTags: 'Dossiers',
             tagsAndProperties: 'Tags et propriétés',
@@ -2179,8 +2180,8 @@ export const STRINGS_FR = {
                 desc: "Fichier modèle pour les nouvelles notes de dossier Markdown. Définir l'emplacement du dossier de modèles dans Apparence et comportement > Modèles."
             },
             enableFolderNoteLinks: {
-                name: 'Activer les liens de notes de dossier',
-                desc: "Les libellés des dossiers sont stylisés comme des liens et ouvrent les notes de dossier au clic. Lorsque désactivé, les notes de dossier fournissent toujours les métadonnées de nom, d'icône et de couleur."
+                name: 'Les noms de dossier ouvrent les notes de dossier',
+                desc: "Cliquer sur un nom de dossier ouvre sa note de dossier. Lorsque cette option est désactivée, les notes de dossier fournissent uniquement des métadonnées de dossier comme le nom, l'icône et la couleur."
             },
             hideFolderNoteInList: {
                 name: 'Masquer les notes de dossier dans la liste',
@@ -2190,9 +2191,18 @@ export const STRINGS_FR = {
                 name: 'Épingler les notes de dossier créées',
                 desc: 'Épingler les notes de dossier lors de leur création depuis le menu contextuel.'
             },
-            openFolderNotesInNewTab: {
-                name: 'Ouvrir les notes de dossier dans un nouvel onglet',
-                desc: 'Ouvrir les notes de dossier dans un nouvel onglet en cliquant sur un dossier.'
+            folderNoteOpenLocation: {
+                name: 'Ouvrir les notes de dossier dans',
+                desc: "Choisir où les notes de dossier s'ouvrent lors du clic sur les liens de notes de dossier.",
+                options: {
+                    currentTab: 'Onglet actuel',
+                    newTab: 'Nouvel onglet',
+                    rightSidebar: 'Barre latérale droite'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'Barre latérale droite : Ouvrir les notes de dossier associées',
+                desc: "Lorsqu'une note s'ouvre, la barre latérale droite ouvre la note de dossier ancêtre la plus proche."
             },
             confirmBeforeDelete: {
                 name: 'Confirmer avant de supprimer',

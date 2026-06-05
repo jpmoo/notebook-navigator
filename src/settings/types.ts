@@ -318,6 +318,13 @@ export function isRecentNotesHideMode(value: unknown): value is RecentNotesHideM
     return value === 'none' || value === 'folder-notes';
 }
 
+/** Where folder notes open when folder-note links are activated. */
+export type FolderNoteOpenLocation = 'current-tab' | 'new-tab' | 'right-sidebar';
+
+export function isFolderNoteOpenLocation(value: unknown): value is FolderNoteOpenLocation {
+    return value === 'current-tab' || value === 'new-tab' || value === 'right-sidebar';
+}
+
 /** Number of calendar week rows shown in the navigation pane */
 export type CalendarWeeksToShow = 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -581,7 +588,8 @@ export interface NotebookNavigatorSettings {
     enableFolderNoteLinks: boolean;
     hideFolderNoteInList: boolean;
     pinCreatedFolderNote: boolean;
-    openFolderNotesInNewTab: boolean;
+    folderNoteOpenLocation: FolderNoteOpenLocation;
+    showNearestFolderNoteInSidebar: boolean;
 
     // Tags tab
     showTags: boolean;

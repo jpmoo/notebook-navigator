@@ -27,13 +27,16 @@ import { promptForFolderNoteType } from '../modals/FolderNoteTypeModal';
 import { showNotice } from './noticeUtils';
 import { openFileInContext } from './openFileInContext';
 
+export type FolderNoteOpenContext = PaneType | 'right-sidebar' | null;
+
 interface OpenFolderNoteFileParams {
     app: App;
     commandQueue: CommandQueueService | null;
     folder: TFolder;
     folderNote: TFile;
-    context: PaneType | null;
+    context: FolderNoteOpenContext;
     active?: boolean;
+    openInRightSidebar?: (folderNote: TFile) => Promise<void>;
 }
 
 /**
@@ -157,9 +160,26 @@ export async function openFolderNoteFile({
     folder,
     folderNote,
     context,
-    active = true
+    active = true,
+    openInRightSidebar
 }: OpenFolderNoteFileParams): Promise<void> {
     const openFile = async () => {
+        if (context === 'right-sidebar') {
+            if (openInRightSidebar) {
+                await openInRightSidebar(folderNote);
+                return;
+            }
+
+            const leaf = app.workspace.getRightLeaf(true) ?? app.workspace.getRightLeaf(false);
+            if (!leaf) {
+                return;
+            }
+
+            await leaf.openFile(folderNote, { active: false });
+            await app.workspace.revealLeaf(leaf);
+            return;
+        }
+
         if (context) {
             await openFileInContext({ app, commandQueue, file: folderNote, context, active });
             return;

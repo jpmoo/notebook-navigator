@@ -929,6 +929,7 @@ export const STRINGS_PT = {
             icons: 'Pacotes de ícones',
             folders: 'Pastas',
             folderNotes: 'Notas de pasta',
+            folderNoteFiles: 'Ficheiros de notas de pasta',
             foldersAndFolderNotes: 'Pastas e notas de pasta',
             foldersAndTags: 'Pastas',
             tagsAndProperties: 'Etiquetas e propriedades',
@@ -2175,8 +2176,8 @@ export const STRINGS_PT = {
                 desc: 'Ficheiro de modelo para novas notas de pasta Markdown. Definir localização da pasta de modelos em Aparência e comportamento > Modelos.'
             },
             enableFolderNoteLinks: {
-                name: 'Ativar ligações de notas de pasta',
-                desc: 'As etiquetas das pastas são apresentadas como ligações e abrem notas de pasta ao clicar. Quando desativado, as notas de pasta continuam a fornecer metadados de nome, ícone e cor.'
+                name: 'Nomes de pastas abrem notas de pasta',
+                desc: 'Clicar no nome de uma pasta abre a respetiva nota de pasta. Quando desativado, as notas de pasta fornecem apenas metadados da pasta, como nome, ícone e cor.'
             },
             hideFolderNoteInList: {
                 name: 'Ocultar nota de pasta na lista',
@@ -2186,9 +2187,18 @@ export const STRINGS_PT = {
                 name: 'Fixar notas de pasta criadas',
                 desc: 'Fixar notas de pasta ao criá-las a partir do menu de contexto.'
             },
-            openFolderNotesInNewTab: {
-                name: 'Abrir notas de pasta em novo separador',
-                desc: 'Abrir notas de pasta num novo separador ao clicar numa pasta.'
+            folderNoteOpenLocation: {
+                name: 'Abrir notas de pasta em',
+                desc: 'Escolha onde as notas de pasta abrem ao clicar em ligações de notas de pasta.',
+                options: {
+                    currentTab: 'Separador atual',
+                    newTab: 'Novo separador',
+                    rightSidebar: 'Barra lateral direita'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'Barra lateral direita: Abrir notas de pasta relacionadas',
+                desc: 'Quando uma nota é aberta, a barra lateral direita abre a nota de pasta ancestral mais próxima.'
             },
             confirmBeforeDelete: {
                 name: 'Confirmar antes de eliminar',

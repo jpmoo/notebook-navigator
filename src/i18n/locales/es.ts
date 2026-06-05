@@ -930,6 +930,7 @@ export const STRINGS_ES = {
             icons: 'Paquetes de iconos',
             folders: 'Carpetas',
             folderNotes: 'Notas de carpeta',
+            folderNoteFiles: 'Archivos de notas de carpeta',
             foldersAndFolderNotes: 'Carpetas y notas de carpeta',
             foldersAndTags: 'Carpetas',
             tagsAndProperties: 'Etiquetas y propiedades',
@@ -2176,8 +2177,8 @@ export const STRINGS_ES = {
                 desc: 'Archivo de plantilla para nuevas notas de carpeta en Markdown. Establecer ubicación de carpeta de plantillas en Apariencia y comportamiento > Plantillas.'
             },
             enableFolderNoteLinks: {
-                name: 'Activar enlaces de notas de carpeta',
-                desc: 'Las etiquetas de carpeta se muestran como enlaces y abren notas de carpeta al hacer clic. Cuando está desactivado, las notas de carpeta siguen proporcionando metadatos de nombre, icono y color.'
+                name: 'Los nombres de carpeta abren notas de carpeta',
+                desc: 'Al hacer clic en el nombre de una carpeta, se abre su nota de carpeta. Cuando está desactivado, las notas de carpeta solo proporcionan metadatos de carpeta como nombre, icono y color.'
             },
             hideFolderNoteInList: {
                 name: 'Ocultar notas de carpeta en la lista',
@@ -2187,9 +2188,18 @@ export const STRINGS_ES = {
                 name: 'Anclar notas de carpeta creadas',
                 desc: 'Fijar las notas de carpeta al crearlas desde el menú contextual.'
             },
-            openFolderNotesInNewTab: {
-                name: 'Abrir notas de carpeta en nueva pestaña',
-                desc: 'Abrir las notas de carpeta en una pestaña nueva al hacer clic en una carpeta.'
+            folderNoteOpenLocation: {
+                name: 'Abrir notas de carpeta en',
+                desc: 'Elige dónde se abren las notas de carpeta al hacer clic en enlaces de notas de carpeta.',
+                options: {
+                    currentTab: 'Pestaña actual',
+                    newTab: 'Nueva pestaña',
+                    rightSidebar: 'Barra lateral derecha'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'Barra lateral derecha: Abrir notas de carpeta relacionadas',
+                desc: 'Cuando se abre una nota, la barra lateral derecha abre la nota de carpeta ancestro más cercana.'
             },
             confirmBeforeDelete: {
                 name: 'Confirmar antes de eliminar',

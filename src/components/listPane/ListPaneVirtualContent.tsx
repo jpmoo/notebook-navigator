@@ -466,7 +466,7 @@ export function ListPaneVirtualContent({
     fileItemPillOrderModel,
     getSolidBackground
 }: ListPaneVirtualContentProps) {
-    const { app, commandQueue, isMobile } = useServices();
+    const { app, commandQueue, isMobile, plugin } = useServices();
     const fileSystemOps = useFileSystemOps();
     const metadataService = useMetadataService();
     const collapseChevronIcons = useMemo(
@@ -651,7 +651,7 @@ export function ListPaneVirtualContent({
 
             const openContext = resolveFolderNoteClickOpenContext(
                 event,
-                settings.openFolderNotesInNewTab,
+                settings.folderNoteOpenLocation,
                 settings.multiSelectModifier,
                 isMobile
             );
@@ -662,11 +662,12 @@ export function ListPaneVirtualContent({
                     commandQueue,
                     folder: target.folder,
                     folderNote,
-                    context: openContext
+                    context: openContext,
+                    openInRightSidebar: folderNoteFile => plugin.openFolderNoteInRightSidebar(folderNoteFile)
                 })
             );
         },
-        [app, commandQueue, isMobile, onNavigateToFolder, settings.multiSelectModifier, settings.openFolderNotesInNewTab]
+        [app, commandQueue, isMobile, onNavigateToFolder, plugin, settings.multiSelectModifier, settings.folderNoteOpenLocation]
     );
 
     const handleFolderGroupHeaderMouseDown = useCallback(

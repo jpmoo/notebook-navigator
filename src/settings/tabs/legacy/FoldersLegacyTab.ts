@@ -22,10 +22,10 @@ import { FilePathInputSuggest } from '../../../suggest/FilePathInputSuggest';
 import { isFolderNoteCreationPreference } from '../../../types/folderNote';
 import { FOLDER_NOTE_NAME_PATTERN_PLACEHOLDER } from '../../../utils/folderNoteName';
 import { normalizeOptionalVaultFilePath } from '../../../utils/pathUtils';
-import { wireToggleSettingWithDependentSection } from '../../dependentSettings';
+import { setElementVisible, wireToggleSettingWithDependentSection } from '../../dependentSettings';
 import { createSettingGroupFactory } from '../../settingGroups';
 import { addSettingSyncModeToggle } from '../../syncModeToggle';
-import { isAlphaSortOrder } from '../../types';
+import { isAlphaSortOrder, isFolderNoteOpenLocation } from '../../types';
 import type { SettingsTabContext } from '../SettingsTabContext';
 
 /** Legacy settings renderer used only by Obsidian versions before native 1.13 setting definitions. */
@@ -85,6 +85,7 @@ export function renderFoldersTab(context: SettingsTabContext, heading?: string):
 
     const folderNotesGroup = createGroup(strings.settings.sections.folderNotes);
 
+    let folderNoteFilesGroupRootEl: HTMLElement | null = null;
     const enableFolderNotesSetting = folderNotesGroup.addSetting(setting => {
         setting.setName(strings.settings.items.enableFolderNotes.name).setDesc(strings.settings.items.enableFolderNotes.desc);
     });
@@ -94,69 +95,45 @@ export function renderFoldersTab(context: SettingsTabContext, heading?: string):
         async value => {
             plugin.settings.enableFolderNotes = value;
             await plugin.saveSettingsAndUpdate();
+            if (folderNoteFilesGroupRootEl) {
+                setElementVisible(folderNoteFilesGroupRootEl, value);
+            }
         }
     );
 
+    let showNearestFolderNoteSetting: Setting | null = null;
     new Setting(folderNotesSettingsEl)
-        .setName(strings.settings.items.folderNoteType.name)
-        .setDesc(strings.settings.items.folderNoteType.desc)
+        .setName(strings.settings.items.folderNoteOpenLocation.name)
+        .setDesc(strings.settings.items.folderNoteOpenLocation.desc)
         .addDropdown(dropdown => {
             dropdown
-                .addOption('ask', strings.settings.items.folderNoteType.options.ask)
-                .addOption('markdown', strings.settings.items.folderNoteType.options.markdown)
-                .addOption('canvas', strings.settings.items.folderNoteType.options.canvas)
-                .addOption('base', strings.settings.items.folderNoteType.options.base)
-                .setValue(plugin.settings.folderNoteType)
+                .addOption('current-tab', strings.settings.items.folderNoteOpenLocation.options.currentTab)
+                .addOption('new-tab', strings.settings.items.folderNoteOpenLocation.options.newTab)
+                .addOption('right-sidebar', strings.settings.items.folderNoteOpenLocation.options.rightSidebar)
+                .setValue(plugin.settings.folderNoteOpenLocation)
                 .onChange(async value => {
-                    if (!isFolderNoteCreationPreference(value)) {
+                    if (!isFolderNoteOpenLocation(value)) {
                         return;
                     }
-                    plugin.settings.folderNoteType = value;
+
+                    plugin.settings.folderNoteOpenLocation = value;
                     await plugin.saveSettingsAndUpdate();
+                    if (showNearestFolderNoteSetting) {
+                        setElementVisible(showNearestFolderNoteSetting.settingEl, value === 'right-sidebar');
+                    }
                 });
         });
 
-    context.createDebouncedTextSetting(
-        folderNotesSettingsEl,
-        strings.settings.items.folderNoteName.name,
-        strings.settings.items.folderNoteName.desc,
-        strings.settings.items.folderNoteName.placeholder,
-        () => plugin.settings.folderNoteName,
-        value => {
-            plugin.settings.folderNoteName = value;
-        }
-    );
-
-    context.createDebouncedTextSetting(
-        folderNotesSettingsEl,
-        strings.settings.items.folderNoteNamePattern.name,
-        strings.settings.items.folderNoteNamePattern.desc,
-        FOLDER_NOTE_NAME_PATTERN_PLACEHOLDER,
-        () => plugin.settings.folderNoteNamePattern,
-        value => {
-            plugin.settings.folderNoteNamePattern = value;
-        }
-    );
-
-    const folderNoteTemplateSetting = context.createDebouncedTextSetting(
-        folderNotesSettingsEl,
-        strings.settings.items.folderNoteTemplate.name,
-        strings.settings.items.folderNoteTemplate.desc,
-        '',
-        () => plugin.settings.folderNoteTemplate ?? '',
-        value => {
-            plugin.settings.folderNoteTemplate = normalizeOptionalVaultFilePath(value);
-        }
-    );
-    folderNoteTemplateSetting.controlEl.addClass('nn-setting-wide-input');
-    const folderNoteTemplateInputEl = folderNoteTemplateSetting.controlEl.querySelector<HTMLInputElement>('input');
-    if (folderNoteTemplateInputEl) {
-        const templateSuggest = new FilePathInputSuggest(context.app, folderNoteTemplateInputEl, {
-            getBaseFolder: () => plugin.settings.calendarTemplateFolder,
-            includeFile: file => file.extension === 'md'
-        });
-        folderNoteTemplateInputEl.addEventListener('click', () => templateSuggest.open());
-    }
+    showNearestFolderNoteSetting = new Setting(folderNotesSettingsEl)
+        .setName(strings.settings.items.showNearestFolderNoteInSidebar.name)
+        .setDesc(strings.settings.items.showNearestFolderNoteInSidebar.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.showNearestFolderNoteInSidebar).onChange(async value => {
+                plugin.settings.showNearestFolderNoteInSidebar = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+    setElementVisible(showNearestFolderNoteSetting.settingEl, plugin.settings.folderNoteOpenLocation === 'right-sidebar');
 
     new Setting(folderNotesSettingsEl)
         .setName(strings.settings.items.enableFolderNoteLinks.name)
@@ -178,23 +155,84 @@ export function renderFoldersTab(context: SettingsTabContext, heading?: string):
             })
         );
 
-    new Setting(folderNotesSettingsEl)
-        .setName(strings.settings.items.pinCreatedFolderNote.name)
-        .setDesc(strings.settings.items.pinCreatedFolderNote.desc)
-        .addToggle(toggle =>
+    const folderNoteFilesGroup = createGroup(strings.settings.sections.folderNoteFiles);
+    folderNoteFilesGroupRootEl = folderNoteFilesGroup.rootEl;
+    setElementVisible(folderNoteFilesGroupRootEl, plugin.settings.enableFolderNotes);
+
+    folderNoteFilesGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.folderNoteType.name).setDesc(strings.settings.items.folderNoteType.desc);
+        setting.addDropdown(dropdown =>
+            dropdown
+                .addOption('ask', strings.settings.items.folderNoteType.options.ask)
+                .addOption('markdown', strings.settings.items.folderNoteType.options.markdown)
+                .addOption('canvas', strings.settings.items.folderNoteType.options.canvas)
+                .addOption('base', strings.settings.items.folderNoteType.options.base)
+                .setValue(plugin.settings.folderNoteType)
+                .onChange(async value => {
+                    if (!isFolderNoteCreationPreference(value)) {
+                        return;
+                    }
+                    plugin.settings.folderNoteType = value;
+                    await plugin.saveSettingsAndUpdate();
+                })
+        );
+    });
+
+    folderNoteFilesGroup.addSetting(setting => {
+        context.configureDebouncedTextSetting(
+            setting,
+            strings.settings.items.folderNoteName.name,
+            strings.settings.items.folderNoteName.desc,
+            strings.settings.items.folderNoteName.placeholder,
+            () => plugin.settings.folderNoteName,
+            value => {
+                plugin.settings.folderNoteName = value;
+            }
+        );
+    });
+
+    folderNoteFilesGroup.addSetting(setting => {
+        context.configureDebouncedTextSetting(
+            setting,
+            strings.settings.items.folderNoteNamePattern.name,
+            strings.settings.items.folderNoteNamePattern.desc,
+            FOLDER_NOTE_NAME_PATTERN_PLACEHOLDER,
+            () => plugin.settings.folderNoteNamePattern,
+            value => {
+                plugin.settings.folderNoteNamePattern = value;
+            }
+        );
+    });
+
+    const folderNoteTemplateSetting = folderNoteFilesGroup.addSetting(setting => {
+        context.configureDebouncedTextSetting(
+            setting,
+            strings.settings.items.folderNoteTemplate.name,
+            strings.settings.items.folderNoteTemplate.desc,
+            '',
+            () => plugin.settings.folderNoteTemplate ?? '',
+            value => {
+                plugin.settings.folderNoteTemplate = normalizeOptionalVaultFilePath(value);
+            }
+        );
+    });
+    folderNoteTemplateSetting.controlEl.addClass('nn-setting-wide-input');
+    const folderNoteTemplateInputEl = folderNoteTemplateSetting.controlEl.querySelector<HTMLInputElement>('input');
+    if (folderNoteTemplateInputEl) {
+        const templateSuggest = new FilePathInputSuggest(context.app, folderNoteTemplateInputEl, {
+            getBaseFolder: () => plugin.settings.calendarTemplateFolder,
+            includeFile: file => file.extension === 'md'
+        });
+        folderNoteTemplateInputEl.addEventListener('click', () => templateSuggest.open());
+    }
+
+    folderNoteFilesGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.pinCreatedFolderNote.name).setDesc(strings.settings.items.pinCreatedFolderNote.desc);
+        setting.addToggle(toggle =>
             toggle.setValue(plugin.settings.pinCreatedFolderNote).onChange(async value => {
                 plugin.settings.pinCreatedFolderNote = value;
                 await plugin.saveSettingsAndUpdate();
             })
         );
-
-    new Setting(folderNotesSettingsEl)
-        .setName(strings.settings.items.openFolderNotesInNewTab.name)
-        .setDesc(strings.settings.items.openFolderNotesInNewTab.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.openFolderNotesInNewTab).onChange(async value => {
-                plugin.settings.openFolderNotesInNewTab = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
+    });
 }

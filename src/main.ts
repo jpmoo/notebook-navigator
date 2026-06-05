@@ -55,6 +55,7 @@ import { cloneCollapsedPinnedContextsRecord, sanitizeRecord } from './utils/reco
 import { runAsyncAction } from './utils/async';
 import WorkspaceCoordinator from './services/workspace/WorkspaceCoordinator';
 import HomepageController from './services/workspace/HomepageController';
+import { FolderNoteSidebarService } from './services/workspace/FolderNoteSidebarService';
 import registerNavigatorCommands from './services/commands/registerNavigatorCommands';
 import registerWorkspaceEvents from './services/workspace/registerWorkspaceEvents';
 import type { RevealFileOptions } from './hooks/useNavigatorReveal';
@@ -136,6 +137,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     private workspaceCoordinator: WorkspaceCoordinator | null = null;
     // Handles homepage file opening and startup behavior
     private homepageController: HomepageController | null = null;
+    private folderNoteSidebarService: FolderNoteSidebarService | null = null;
     private settingTab: NotebookNavigatorSettingTab | null = null;
     private pendingUpdateNotice: ReleaseUpdateNotice | null = null;
     private hasWorkspaceLayoutReady = false;
@@ -342,6 +344,10 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
      * Checks if the given file is open in the right sidebar
      */
     public isFileInRightSidebar(file: TFile): boolean {
+        if (this.folderNoteSidebarService?.isSuppressingSidebarOpen(file.path)) {
+            return true;
+        }
+
         if (!this.settings.autoRevealIgnoreRightSidebar) {
             return false;
         }
@@ -478,6 +484,8 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             () => this.propertyTreeService
         );
         this.commandQueue = new CommandQueueService();
+        this.folderNoteSidebarService = new FolderNoteSidebarService(this);
+        this.folderNoteSidebarService.start();
         this.fileSystemOps = new FileSystemOperations(
             this.app,
             () => this.tagTreeService,
@@ -561,6 +569,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
                 }
 
                 await this.homepageController?.handleWorkspaceReady({ shouldActivateOnStartup });
+                this.folderNoteSidebarService?.handleWorkspaceReady();
 
                 if (isFirstLaunch) {
                     const { WelcomeModal } = await import('./modals/WelcomeModal');
@@ -635,6 +644,10 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
     public isShuttingDown(): boolean {
         return this.isUnloading;
+    }
+
+    public async openFolderNoteInRightSidebar(folderNote: TFile): Promise<void> {
+        await this.folderNoteSidebarService?.openFolderNote(folderNote);
     }
 
     /**
@@ -1086,6 +1099,9 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         this.debugLoggingService = null;
 
         this.preferencesController.dispose();
+
+        this.folderNoteSidebarService?.dispose();
+        this.folderNoteSidebarService = null;
 
         // Clear all listeners first to prevent any callbacks during cleanup
         this.settingsUpdateListeners.clear();

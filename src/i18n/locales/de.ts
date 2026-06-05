@@ -931,6 +931,7 @@ export const STRINGS_DE = {
             icons: 'Icon-Pakete',
             folders: 'Ordner',
             folderNotes: 'Ordnernotizen',
+            folderNoteFiles: 'Ordnernotiz-Dateien',
             foldersAndFolderNotes: 'Ordner & Ordnernotizen',
             foldersAndTags: 'Ordner',
             tagsAndProperties: 'Tags & Eigenschaften',
@@ -2176,8 +2177,8 @@ export const STRINGS_DE = {
                 desc: 'Vorlagendatei für neue Markdown-Ordnernotizen. Vorlagenordner unter Darstellung & Verhalten > Vorlagen festlegen.'
             },
             enableFolderNoteLinks: {
-                name: 'Ordnernotiz-Links aktivieren',
-                desc: 'Ordnerbeschriftungen werden als Links dargestellt und öffnen Ordnernotizen beim Klicken. Wenn deaktiviert, liefern Ordnernotizen weiterhin Name-, Symbol- und Farbmetadaten.'
+                name: 'Ordnernamen öffnen Ordnernotizen',
+                desc: 'Ein Klick auf einen Ordnernamen öffnet seine Ordnernotiz. Wenn deaktiviert, liefern Ordnernotizen nur Ordnermetadaten wie Name, Symbol und Farbe.'
             },
             hideFolderNoteInList: {
                 name: 'Ordnernotizen in Liste ausblenden',
@@ -2187,9 +2188,18 @@ export const STRINGS_DE = {
                 name: 'Erstellte Ordnernotizen anheften',
                 desc: 'Ordnernotizen anheften, wenn sie über das Kontextmenü erstellt werden.'
             },
-            openFolderNotesInNewTab: {
-                name: 'Ordnernotizen in neuem Tab öffnen',
-                desc: 'Ordnernotizen beim Klicken auf einen Ordner in einem neuen Tab öffnen.'
+            folderNoteOpenLocation: {
+                name: 'Ordnernotizen öffnen in',
+                desc: 'Wähle, wo Ordnernotizen beim Klicken auf Ordnernotiz-Links geöffnet werden.',
+                options: {
+                    currentTab: 'Aktueller Tab',
+                    newTab: 'Neuer Tab',
+                    rightSidebar: 'Rechte Seitenleiste'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'Rechte Seitenleiste: Zugehörige Ordnernotizen öffnen',
+                desc: 'Wenn eine Notiz geöffnet wird, öffnet die rechte Seitenleiste die nächstgelegene übergeordnete Ordnernotiz.'
             },
             confirmBeforeDelete: {
                 name: 'Vor dem Löschen bestätigen',

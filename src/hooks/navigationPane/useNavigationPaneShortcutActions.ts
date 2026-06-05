@@ -67,6 +67,7 @@ interface UseNavigationPaneShortcutActionsProps {
     onRevealProperty: (propertyNodeId: string, options?: RevealPropertyOptions) => boolean;
     onRevealFile: (file: TFile) => void;
     onRevealShortcutFile?: (file: TFile) => void;
+    openFolderNoteInRightSidebar: (folderNote: TFile) => Promise<void>;
     tagTree: Map<string, import('../../types/storage').TagTreeNode>;
     hydratedShortcuts: HydratedShortcutActionItem[];
 }
@@ -88,6 +89,7 @@ export function useNavigationPaneShortcutActions({
     onRevealProperty,
     onRevealFile,
     onRevealShortcutFile,
+    openFolderNoteInRightSidebar,
     tagTree,
     hydratedShortcuts
 }: UseNavigationPaneShortcutActionsProps) {
@@ -134,14 +136,33 @@ export function useNavigationPaneShortcutActions({
             selectionDispatch({ type: 'SET_SELECTED_FOLDER', folder, autoSelectedFile: null });
             const openContext = resolveFolderNoteClickOpenContext(
                 event,
-                settings.openFolderNotesInNewTab,
+                settings.folderNoteOpenLocation,
                 settings.multiSelectModifier,
                 isMobile
             );
-            runAsyncAction(() => openFolderNoteFile({ app, commandQueue, folder, folderNote, context: openContext }));
+            runAsyncAction(() =>
+                openFolderNoteFile({
+                    app,
+                    commandQueue,
+                    folder,
+                    folderNote,
+                    context: openContext,
+                    openInRightSidebar: openFolderNoteInRightSidebar
+                })
+            );
             scheduleShortcutRelease();
         },
-        [app, commandQueue, handleShortcutFolderActivate, isMobile, scheduleShortcutRelease, selectionDispatch, setActiveShortcut, settings]
+        [
+            app,
+            commandQueue,
+            handleShortcutFolderActivate,
+            isMobile,
+            openFolderNoteInRightSidebar,
+            scheduleShortcutRelease,
+            selectionDispatch,
+            setActiveShortcut,
+            settings
+        ]
     );
 
     const handleShortcutFolderNoteMouseDown = useCallback(

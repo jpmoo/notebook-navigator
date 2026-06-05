@@ -926,6 +926,7 @@ export const STRINGS_KO = {
             icons: '아이콘 팩',
             folders: '폴더',
             folderNotes: '폴더 노트',
+            folderNoteFiles: '폴더 노트 파일',
             foldersAndFolderNotes: '폴더 및 폴더 노트',
             foldersAndTags: '폴더',
             tagsAndProperties: '태그 및 속성',
@@ -2168,8 +2169,8 @@ export const STRINGS_KO = {
                 desc: '새 마크다운 폴더 노트용 템플릿 파일. 템플릿 폴더 위치는 모양 및 동작 > 템플릿에서 설정하세요.'
             },
             enableFolderNoteLinks: {
-                name: '폴더 노트 링크 활성화',
-                desc: '폴더 레이블이 링크로 표시되며 클릭 시 폴더 노트를 엽니다. 비활성화하면 폴더 노트는 여전히 이름, 아이콘, 색상 메타데이터를 제공합니다.'
+                name: '폴더 이름으로 폴더 노트 열기',
+                desc: '폴더 이름을 클릭하면 해당 폴더 노트를 엽니다. 끄면 폴더 노트는 이름, 아이콘, 색상 같은 폴더 메타데이터만 제공합니다.'
             },
             hideFolderNoteInList: {
                 name: '목록에서 폴더 노트 숨기기',
@@ -2179,9 +2180,18 @@ export const STRINGS_KO = {
                 name: '생성된 폴더 노트 고정',
                 desc: '컨텍스트 메뉴에서 생성 시 폴더 노트를 고정합니다.'
             },
-            openFolderNotesInNewTab: {
-                name: '폴더 노트를 새 탭에서 열기',
-                desc: '폴더를 클릭할 때 폴더 노트를 새 탭에서 엽니다.'
+            folderNoteOpenLocation: {
+                name: '폴더 노트 열 위치',
+                desc: '폴더 노트 링크를 클릭할 때 폴더 노트를 열 위치를 선택합니다.',
+                options: {
+                    currentTab: '현재 탭',
+                    newTab: '새 탭',
+                    rightSidebar: '오른쪽 사이드바'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: '오른쪽 사이드바: 관련 폴더 노트 열기',
+                desc: '노트를 열면 오른쪽 사이드바가 가장 가까운 상위 폴더 노트를 엽니다.'
             },
             confirmBeforeDelete: {
                 name: '삭제 전 확인',

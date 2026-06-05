@@ -931,6 +931,7 @@ export const STRINGS_NL = {
             icons: 'Pictogrampakketten',
             folders: 'Mappen',
             folderNotes: 'Mapnotities',
+            folderNoteFiles: 'Mapnotitiebestanden',
             foldersAndFolderNotes: 'Mappen & mapnotities',
             foldersAndTags: 'Mappen',
             tagsAndProperties: 'Tags & eigenschappen',
@@ -2176,8 +2177,8 @@ export const STRINGS_NL = {
                 desc: 'Sjabloonbestand voor nieuwe Markdown-mapnotities. Stel de sjabloonmaplocatie in bij Uiterlijk & gedrag > Sjablonen.'
             },
             enableFolderNoteLinks: {
-                name: 'Mapnotitiekoppelingen inschakelen',
-                desc: 'Maplabels worden weergegeven als koppelingen en openen mapnotities bij klikken. Wanneer uitgeschakeld, bieden mapnotities nog steeds naam-, pictogram- en kleurmetadata.'
+                name: 'Mapnamen openen mapnotities',
+                desc: 'Klikken op een mapnaam opent de mapnotitie. Wanneer uitgeschakeld, leveren mapnotities alleen mapmetadata zoals naam, pictogram en kleur.'
             },
             hideFolderNoteInList: {
                 name: 'Mapnotities in lijst verbergen',
@@ -2187,9 +2188,18 @@ export const STRINGS_NL = {
                 name: 'Aangemaakte mapnotities vastpinnen',
                 desc: 'Mapnotities vastmaken wanneer ze via het contextmenu worden aangemaakt.'
             },
-            openFolderNotesInNewTab: {
-                name: 'Mapnotities in nieuw tabblad openen',
-                desc: 'Mapnotities openen in een nieuw tabblad bij het klikken op een map.'
+            folderNoteOpenLocation: {
+                name: 'Mapnotities openen in',
+                desc: 'Kies waar mapnotities worden geopend bij het klikken op mapnotitiekoppelingen.',
+                options: {
+                    currentTab: 'Huidig tabblad',
+                    newTab: 'Nieuw tabblad',
+                    rightSidebar: 'Rechterzijbalk'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'Rechterzijbalk: Gerelateerde mapnotities openen',
+                desc: 'Wanneer een notitie wordt geopend, opent de rechterzijbalk de dichtstbijzijnde bovenliggende mapnotitie.'
             },
             confirmBeforeDelete: {
                 name: 'Bevestigen voor verwijderen',

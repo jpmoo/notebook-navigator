@@ -224,6 +224,7 @@ export function useNavigationPaneShortcuts({
         onRevealProperty,
         onRevealFile,
         onRevealShortcutFile,
+        openFolderNoteInRightSidebar: folderNote => plugin.openFolderNoteInRightSidebar(folderNote),
         tagTree: fileData.tagTree,
         hydratedShortcuts
     });

@@ -929,6 +929,7 @@ export const STRINGS_ID = {
             icons: 'Paket ikon',
             folders: 'Folder',
             folderNotes: 'Catatan folder',
+            folderNoteFiles: 'File catatan folder',
             foldersAndFolderNotes: 'Folder & catatan folder',
             foldersAndTags: 'Folder',
             tagsAndProperties: 'Tag & properti',
@@ -2173,8 +2174,8 @@ export const STRINGS_ID = {
                 desc: 'File templat untuk catatan folder markdown baru. Atur lokasi folder templat di Tampilan & perilaku > Templat.'
             },
             enableFolderNoteLinks: {
-                name: 'Aktifkan tautan catatan folder',
-                desc: 'Label folder ditampilkan sebagai tautan dan membuka catatan folder saat diklik. Saat dinonaktifkan, catatan folder tetap menyediakan metadata nama, ikon, dan warna.'
+                name: 'Nama folder membuka catatan folder',
+                desc: 'Mengklik nama folder membuka catatan foldernya. Saat dinonaktifkan, catatan folder hanya menyediakan metadata folder seperti nama, ikon, dan warna.'
             },
             hideFolderNoteInList: {
                 name: 'Sembunyikan catatan folder di daftar',
@@ -2184,9 +2185,18 @@ export const STRINGS_ID = {
                 name: 'Sematkan catatan folder yang dibuat',
                 desc: 'Sematkan catatan folder saat dibuat dari menu konteks.'
             },
-            openFolderNotesInNewTab: {
-                name: 'Buka catatan folder di tab baru',
-                desc: 'Buka catatan folder di tab baru saat mengklik folder.'
+            folderNoteOpenLocation: {
+                name: 'Buka catatan folder di',
+                desc: 'Pilih tempat catatan folder dibuka saat mengklik tautan catatan folder.',
+                options: {
+                    currentTab: 'Tab saat ini',
+                    newTab: 'Tab baru',
+                    rightSidebar: 'Bilah sisi kanan'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'Bilah sisi kanan: Buka catatan folder terkait',
+                desc: 'Saat catatan dibuka, bilah sisi kanan membuka catatan folder leluhur terdekat.'
             },
             confirmBeforeDelete: {
                 name: 'Konfirmasi sebelum menghapus',

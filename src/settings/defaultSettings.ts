@@ -262,7 +262,8 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     enableFolderNoteLinks: true,
     hideFolderNoteInList: true,
     pinCreatedFolderNote: false,
-    openFolderNotesInNewTab: false,
+    folderNoteOpenLocation: 'current-tab',
+    showNearestFolderNoteInSidebar: false,
 
     // Tags tab
     showTags: true,

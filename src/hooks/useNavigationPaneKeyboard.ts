@@ -45,7 +45,7 @@ import { matchesShortcut, KeyboardShortcutAction } from '../utils/keyboardShortc
 import { runAsyncAction } from '../utils/async';
 import { getNavigationIndex } from '../utils/navigationIndex';
 import { getFolderNote, openFolderNoteFile } from '../utils/folderNotes';
-import { isEnterKey, resolveKeyboardOpenContext } from '../utils/keyboardOpenContext';
+import { isEnterKey, resolveFolderNoteDefaultOpenContext, resolveKeyboardOpenContext } from '../utils/keyboardOpenContext';
 import { buildPropertyKeyNodeId } from '../utils/propertyTree';
 import { getNavigationExpansionTargetForItem, toggleNavigationExpansionTarget } from '../utils/navigationExpansion';
 
@@ -100,7 +100,7 @@ interface UseNavigationPaneKeyboardProps {
  * Handles folder/tag-specific keyboard interactions.
  */
 export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pathToIndex }: UseNavigationPaneKeyboardProps) {
-    const { app, commandQueue, isMobile } = useServices();
+    const { app, commandQueue, isMobile, plugin } = useServices();
     const fileSystemOps = useFileSystemOps();
     const settings = useSettingsState();
     const uxPreferences = useUXPreferences();
@@ -263,10 +263,18 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
                     e.preventDefault();
 
                     const modifierContext = resolveKeyboardOpenContext(e, settings);
-                    const openContext = modifierContext ?? (settings.openFolderNotesInNewTab ? 'tab' : null);
+                    const openContext = modifierContext ?? resolveFolderNoteDefaultOpenContext(settings.folderNoteOpenLocation);
 
                     runAsyncAction(() =>
-                        openFolderNoteFile({ app, commandQueue, folder, folderNote, context: openContext, active: false })
+                        openFolderNoteFile({
+                            app,
+                            commandQueue,
+                            folder,
+                            folderNote,
+                            context: openContext,
+                            active: false,
+                            openInRightSidebar: folderNoteFile => plugin.openFolderNoteInRightSidebar(folderNoteFile)
+                        })
                     );
                     return;
                 }
@@ -531,6 +539,7 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
             selectionState,
             app,
             commandQueue,
+            plugin,
             fileSystemOps,
             virtualizer,
             includeDescendantNotes,

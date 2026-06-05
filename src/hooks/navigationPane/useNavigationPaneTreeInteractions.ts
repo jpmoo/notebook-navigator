@@ -18,7 +18,7 @@
 
 import React, { useCallback, useMemo } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { App, TFolder } from 'obsidian';
+import { App, TFile, TFolder } from 'obsidian';
 import type { IPropertyTreeProvider } from '../../interfaces/IPropertyTreeProvider';
 import type { NotebookNavigatorSettings } from '../../settings/types';
 import type { CommandQueueService } from '../../services/CommandQueueService';
@@ -40,7 +40,7 @@ import type { PropertyTreeNode, TagTreeNode } from '../../types/storage';
 import type { InclusionOperator } from '../../utils/filterSearch';
 import { getFolderNote, openFolderNoteFile } from '../../utils/folderNotes';
 import { runAsyncAction } from '../../utils/async';
-import { resolveFolderNoteClickOpenContext } from '../../utils/keyboardOpenContext';
+import { resolveFolderNoteClickOpenContext, resolveFolderNoteDefaultOpenContext } from '../../utils/keyboardOpenContext';
 import { findTagNode } from '../../utils/tagTree';
 import { resolveCanonicalTagPath } from '../../utils/tagUtils';
 import { getTagSearchModifierOperator } from '../../utils/tagUtils';
@@ -75,6 +75,7 @@ interface UseNavigationPaneTreeInteractionsProps {
     setShortcutsExpanded: Dispatch<SetStateAction<boolean>>;
     setRecentNotesExpanded: Dispatch<SetStateAction<boolean>>;
     clearActiveShortcut: () => void;
+    openFolderNoteInRightSidebar: (folderNote: TFile) => Promise<void>;
     onModifySearchWithTag: (tag: string, operator: InclusionOperator) => void;
     onModifySearchWithProperty: (key: string, value: string | null, operator: InclusionOperator) => void;
 }
@@ -116,6 +117,7 @@ export function useNavigationPaneTreeInteractions({
     setShortcutsExpanded,
     setRecentNotesExpanded,
     clearActiveShortcut,
+    openFolderNoteInRightSidebar,
     onModifySearchWithTag,
     onModifySearchWithProperty
 }: UseNavigationPaneTreeInteractionsProps): NavigationPaneTreeInteractionsResult {
@@ -193,14 +195,21 @@ export function useNavigationPaneTreeInteractions({
             selectionDispatch({ type: 'SET_SELECTED_FOLDER', folder, autoSelectedFile: null });
 
             const openContext = event
-                ? resolveFolderNoteClickOpenContext(event, settings.openFolderNotesInNewTab, settings.multiSelectModifier, isMobile)
-                : settings.openFolderNotesInNewTab
-                  ? 'tab'
-                  : null;
+                ? resolveFolderNoteClickOpenContext(event, settings.folderNoteOpenLocation, settings.multiSelectModifier, isMobile)
+                : resolveFolderNoteDefaultOpenContext(settings.folderNoteOpenLocation);
 
-            runAsyncAction(() => openFolderNoteFile({ app, commandQueue, folder, folderNote, context: openContext }));
+            runAsyncAction(() =>
+                openFolderNoteFile({
+                    app,
+                    commandQueue,
+                    folder,
+                    folderNote,
+                    context: openContext,
+                    openInRightSidebar: openFolderNoteInRightSidebar
+                })
+            );
         },
-        [app, commandQueue, handleFolderClick, isMobile, selectionDispatch, settings]
+        [app, commandQueue, handleFolderClick, isMobile, openFolderNoteInRightSidebar, selectionDispatch, settings]
     );
 
     const handleFolderNameMouseDown = useCallback(

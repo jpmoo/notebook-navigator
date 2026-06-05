@@ -925,6 +925,7 @@ export const STRINGS_IT = {
             icons: 'Pacchetti icone',
             folders: 'Cartelle',
             folderNotes: 'Note cartella',
+            folderNoteFiles: 'File note cartella',
             foldersAndFolderNotes: 'Cartelle e note cartella',
             foldersAndTags: 'Cartelle',
             tagsAndProperties: 'Tag e proprietà',
@@ -2172,8 +2173,8 @@ export const STRINGS_IT = {
                 desc: 'File modello per le nuove note cartella Markdown. Impostare la posizione della cartella modelli in Aspetto e comportamento > Modelli.'
             },
             enableFolderNoteLinks: {
-                name: 'Attiva link note cartella',
-                desc: 'Le etichette delle cartelle sono visualizzate come link e aprono le note cartella al clic. Quando disattivato, le note cartella forniscono comunque metadati di nome, icona e colore.'
+                name: 'I nomi delle cartelle aprono note cartella',
+                desc: 'Facendo clic sul nome di una cartella si apre la relativa nota cartella. Quando disattivato, le note cartella forniscono solo metadati della cartella come nome, icona e colore.'
             },
             hideFolderNoteInList: {
                 name: 'Nascondi note cartella nella lista',
@@ -2183,9 +2184,18 @@ export const STRINGS_IT = {
                 name: 'Fissa note cartella create',
                 desc: 'Fissare le note cartella quando create dal menu contestuale.'
             },
-            openFolderNotesInNewTab: {
-                name: 'Apri note cartella in nuova scheda',
-                desc: 'Aprire le note cartella in una nuova scheda cliccando su una cartella.'
+            folderNoteOpenLocation: {
+                name: 'Apri note cartella in',
+                desc: 'Scegli dove aprire le note cartella quando si fa clic sui link delle note cartella.',
+                options: {
+                    currentTab: 'Scheda corrente',
+                    newTab: 'Nuova scheda',
+                    rightSidebar: 'Barra laterale destra'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'Barra laterale destra: Apri note cartella correlate',
+                desc: 'Quando una nota si apre, la barra laterale destra apre la nota cartella antenata più vicina.'
             },
             confirmBeforeDelete: {
                 name: 'Conferma prima di eliminare',
