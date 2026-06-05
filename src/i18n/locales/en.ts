@@ -871,6 +871,7 @@ export const STRINGS_EN = {
         toggleCompactMode: 'Toggle compact mode', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'Toggle pinned section',
         collapseExpand: 'Collapse / expand all items', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
+        collapseExpandSelectedItem: 'Collapse / expand selected item', // Command palette: Collapse or expand the selected navigation item (English: Collapse / expand selected item)
         addTag: 'Add tag to selected files', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Set property on selected files', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'Remove tag from selected files', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
@@ -1186,7 +1187,7 @@ export const STRINGS_EN = {
             },
             compactItemHeight: {
                 name: 'Compact item height',
-                desc: 'Set the height of compact list items on desktop and mobile.',
+                desc: 'Set the height of compact list items on desktop and mobile (pixels).',
                 resetTooltip: 'Restore to default (28px)'
             },
             compactItemHeightScaleText: {
@@ -1240,7 +1241,7 @@ export const STRINGS_EN = {
             },
             appearanceScale: {
                 name: 'Zoom level',
-                desc: 'Controls the overall zoom level of Notebook Navigator.'
+                desc: 'Controls the overall zoom level of Notebook Navigator (percentage).'
             },
             useFloatingToolbars: {
                 name: 'Use floating toolbars on iOS/iPadOS',
@@ -2024,11 +2025,11 @@ export const STRINGS_EN = {
             },
             navIndent: {
                 name: 'Tree indentation',
-                desc: 'Adjust the indentation width for nested folders and tags.'
+                desc: 'Adjust the indentation width for nested folders and tags (pixels).'
             },
             navItemHeight: {
                 name: 'Item height',
-                desc: 'Adjust the height of folders and tags in the navigation pane.'
+                desc: 'Adjust the height of folders and tags in the navigation pane (pixels).'
             },
             navItemHeightScaleText: {
                 name: 'Scale text with item height',
@@ -2038,9 +2039,19 @@ export const STRINGS_EN = {
                 name: 'Show indent guides',
                 desc: 'Display indent guides for nested folders and tags.'
             },
+            navCountLeaderStyle: {
+                name: 'Show leaders',
+                desc: 'Display dots, dashes, or a line between item names and note counts.',
+                options: {
+                    none: 'None',
+                    dots: 'Dots (...)',
+                    dashes: 'Dashes (---)',
+                    line: 'Line'
+                }
+            },
             navRootSpacing: {
                 name: 'Root item spacing',
-                desc: 'Spacing between root-level folders and tags.'
+                desc: 'Spacing between root-level folders and tags (pixels).'
             },
             showTags: {
                 name: 'Show tags',

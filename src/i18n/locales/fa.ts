@@ -877,6 +877,7 @@ export const STRINGS_FA = {
         toggleCompactMode: 'تغییر حالت فشرده', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'تغییر بخش سنجاق‌شده',
         collapseExpand: 'جمع / باز کردن همه آیتم‌ها',
+        collapseExpandSelectedItem: 'جمع / باز کردن آیتم انتخاب‌شده',
         addTag: 'افزودن برچسب به فایل‌های انتخابی',
         setProperty: 'تنظیم ویژگی روی فایل‌های انتخابی', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'حذف برچسب از فایل‌های انتخابی',
@@ -1192,7 +1193,7 @@ export const STRINGS_FA = {
             },
             compactItemHeight: {
                 name: 'ارتفاع آیتم فشرده',
-                desc: 'ارتفاع آیتم‌های لیست فشرده را در دسکتاپ و موبایل تنظیم کنید.',
+                desc: 'ارتفاع آیتم‌های لیست فشرده را در دسکتاپ و موبایل تنظیم کنید (پیکسل).',
                 resetTooltip: 'بازگشت به پیش‌فرض (۲۸ پیکسل)'
             },
             compactItemHeightScaleText: {
@@ -1246,7 +1247,7 @@ export const STRINGS_FA = {
             },
             appearanceScale: {
                 name: 'سطح زوم',
-                desc: 'سطح زوم کلی Notebook Navigator را کنترل می‌کند.'
+                desc: 'سطح زوم کلی Notebook Navigator را کنترل می‌کند (درصد).'
             },
             useFloatingToolbars: {
                 name: 'استفاده از نوار ابزار شناور در iOS/iPadOS',
@@ -2032,11 +2033,11 @@ export const STRINGS_FA = {
             },
             navIndent: {
                 name: 'تورفتگی درخت',
-                desc: 'عرض تورفتگی را برای پوشه‌ها و برچسب‌های تودرتو تنظیم کنید.'
+                desc: 'عرض تورفتگی را برای پوشه‌ها و برچسب‌های تودرتو تنظیم کنید (پیکسل).'
             },
             navItemHeight: {
                 name: 'ارتفاع آیتم',
-                desc: 'ارتفاع پوشه‌ها و برچسب‌ها را در پنل ناوبری تنظیم کنید.'
+                desc: 'ارتفاع پوشه‌ها و برچسب‌ها را در پنل ناوبری تنظیم کنید (پیکسل).'
             },
             navItemHeightScaleText: {
                 name: 'مقیاس‌بندی متن با ارتفاع آیتم',
@@ -2046,9 +2047,19 @@ export const STRINGS_FA = {
                 name: 'نمایش خطوط راهنمای تورفتگی',
                 desc: 'نمایش خطوط راهنمای تورفتگی برای پوشه‌ها و برچسب‌های تودرتو.'
             },
+            navCountLeaderStyle: {
+                name: 'نمایش نشانه‌های اتصال',
+                desc: 'نمایش نقطه، خط تیره یا یک خط بین نام موارد و تعداد یادداشت‌ها.',
+                options: {
+                    none: 'هیچ',
+                    dots: 'نقطه (...)',
+                    dashes: 'خط تیره (---)',
+                    line: 'خط'
+                }
+            },
             navRootSpacing: {
                 name: 'فاصله آیتم اصلی',
-                desc: 'فاصله بین پوشه‌ها و برچسب‌های سطح اصلی.'
+                desc: 'فاصله بین پوشه‌ها و برچسب‌های سطح اصلی (پیکسل).'
             },
             showTags: {
                 name: 'نمایش برچسب‌ها',

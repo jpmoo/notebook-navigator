@@ -878,6 +878,7 @@ export const STRINGS_VI = {
         toggleCompactMode: 'Bật/tắt chế độ gọn', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'Bật/tắt phần đã ghim',
         collapseExpand: 'Thu gọn / mở rộng tất cả', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
+        collapseExpandSelectedItem: 'Thu gọn / mở rộng mục đã chọn',
         addTag: 'Thêm thẻ vào tệp đã chọn', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Đặt thuộc tính cho tệp đã chọn', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'Gỡ thẻ khỏi tệp đã chọn', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
@@ -1193,7 +1194,7 @@ export const STRINGS_VI = {
             },
             compactItemHeight: {
                 name: 'Chiều cao mục gọn',
-                desc: 'Đặt chiều cao mục danh sách gọn trên máy tính và di động.',
+                desc: 'Đặt chiều cao mục danh sách gọn trên máy tính và di động (pixel).',
                 resetTooltip: 'Đặt lại mặc định (28px)'
             },
             compactItemHeightScaleText: {
@@ -1247,7 +1248,7 @@ export const STRINGS_VI = {
             },
             appearanceScale: {
                 name: 'Mức thu phóng',
-                desc: 'Điều khiển mức thu phóng tổng thể của Notebook Navigator.'
+                desc: 'Điều khiển mức thu phóng tổng thể của Notebook Navigator (phần trăm).'
             },
             useFloatingToolbars: {
                 name: 'Sử dụng thanh công cụ nổi trên iOS/iPadOS',
@@ -2033,11 +2034,11 @@ export const STRINGS_VI = {
             },
             navIndent: {
                 name: 'Thụt lề cây',
-                desc: 'Điều chỉnh độ rộng thụt lề cho thư mục và thẻ lồng nhau.'
+                desc: 'Điều chỉnh độ rộng thụt lề cho thư mục và thẻ lồng nhau (pixel).'
             },
             navItemHeight: {
                 name: 'Chiều cao mục',
-                desc: 'Điều chỉnh chiều cao của thư mục và thẻ trong ngăn điều hướng.'
+                desc: 'Điều chỉnh chiều cao của thư mục và thẻ trong ngăn điều hướng (pixel).'
             },
             navItemHeightScaleText: {
                 name: 'Co chữ theo chiều cao mục',
@@ -2047,9 +2048,19 @@ export const STRINGS_VI = {
                 name: 'Hiển thị đường dẫn thụt lề',
                 desc: 'Hiển thị đường dẫn thụt lề cho các thư mục và thẻ lồng nhau.'
             },
+            navCountLeaderStyle: {
+                name: 'Hiển thị ký tự dẫn',
+                desc: 'Hiển thị dấu chấm, dấu gạch hoặc một đường kẻ giữa tên mục và số lượng ghi chú.',
+                options: {
+                    none: 'Không',
+                    dots: 'Dấu chấm (...)',
+                    dashes: 'Dấu gạch (---)',
+                    line: 'Đường kẻ'
+                }
+            },
             navRootSpacing: {
                 name: 'Khoảng cách mục gốc',
-                desc: 'Khoảng cách giữa các thư mục và thẻ cấp gốc.'
+                desc: 'Khoảng cách giữa các thư mục và thẻ cấp gốc (pixel).'
             },
             showTags: {
                 name: 'Hiện thẻ',

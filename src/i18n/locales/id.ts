@@ -877,6 +877,7 @@ export const STRINGS_ID = {
         toggleCompactMode: 'Alihkan mode kompak', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'Alihkan bagian yang disematkan',
         collapseExpand: 'Ciutkan / luaskan semua item',
+        collapseExpandSelectedItem: 'Ciutkan / luaskan item yang dipilih',
         addTag: 'Tambah tag ke file yang dipilih',
         setProperty: 'Atur properti pada file yang dipilih', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'Hapus tag dari file yang dipilih',
@@ -1192,7 +1193,7 @@ export const STRINGS_ID = {
             },
             compactItemHeight: {
                 name: 'Tinggi item kompak',
-                desc: 'Atur tinggi item daftar kompak di desktop dan mobile.',
+                desc: 'Atur tinggi item daftar kompak di desktop dan mobile (piksel).',
                 resetTooltip: 'Kembalikan ke default (28px)'
             },
             compactItemHeightScaleText: {
@@ -1246,7 +1247,7 @@ export const STRINGS_ID = {
             },
             appearanceScale: {
                 name: 'Tingkat zoom',
-                desc: 'Mengontrol tingkat zoom keseluruhan Notebook Navigator.'
+                desc: 'Mengontrol tingkat zoom keseluruhan Notebook Navigator (persentase).'
             },
             useFloatingToolbars: {
                 name: 'Gunakan toolbar mengambang di iOS/iPadOS',
@@ -2033,11 +2034,11 @@ export const STRINGS_ID = {
             },
             navIndent: {
                 name: 'Indentasi pohon',
-                desc: 'Sesuaikan lebar indentasi untuk folder dan tag bersarang.'
+                desc: 'Sesuaikan lebar indentasi untuk folder dan tag bersarang (piksel).'
             },
             navItemHeight: {
                 name: 'Tinggi item',
-                desc: 'Sesuaikan tinggi folder dan tag di panel navigasi.'
+                desc: 'Sesuaikan tinggi folder dan tag di panel navigasi (piksel).'
             },
             navItemHeightScaleText: {
                 name: 'Skalakan teks dengan tinggi item',
@@ -2047,9 +2048,19 @@ export const STRINGS_ID = {
                 name: 'Tampilkan panduan indentasi',
                 desc: 'Tampilkan panduan indentasi untuk folder dan tag bersarang.'
             },
+            navCountLeaderStyle: {
+                name: 'Tampilkan tanda penghubung',
+                desc: 'Tampilkan titik, tanda hubung, atau garis antara nama item dan jumlah catatan.',
+                options: {
+                    none: 'Tidak ada',
+                    dots: 'Titik (...)',
+                    dashes: 'Tanda hubung (---)',
+                    line: 'Garis'
+                }
+            },
             navRootSpacing: {
                 name: 'Spasi item root',
-                desc: 'Spasi antara folder dan tag tingkat root.'
+                desc: 'Spasi antara folder dan tag tingkat root (piksel).'
             },
             showTags: {
                 name: 'Tampilkan tag',

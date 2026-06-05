@@ -82,28 +82,28 @@ export interface ReleaseNote {
 const RELEASE_NOTES: ReleaseNote[] = [
     {
         version: '3.0.3',
-        date: '2026-06-08',
+        date: '2026-06-05',
         showOnUpdate: true,
-        info: 'This version focuses on list pane and navigation pane performance. Notebook Navigator now does less work while scrolling and moving through notes: group labels are precomputed, preview text loading no longer recalculates row heights, real height changes are batched, row estimates reuse stable layout inputs, file rows load only the note details used by the current list settings, and navigation rows react only to relevant selection, tag, property, and frontmatter changes. Give it a go and see if you notice any difference.',
+        info: 'This version focuses on ==list pane and navigation pane performance improvements==. Notebook Navigator now does less work when scrolling and moving through notes, folders, tags and properties. Give it a try and let me know if you notice any difference!',
         new: [
-            '**Interface icons.** Added ==Pinned notes==. It is empty by default; choose an icon in Settings > Appearance & behavior > Interface icons to show it next to the Pinned group header.',
-            '**List pane.** Added ==Show subfolder paths== in List pane > Group headers. Disable it to show only folder names when grouping by folder.'
+            '**Interface icons.** Added ==Pinned notes icon== to Settings > Appearance & behavior > Interface icons. This icon is displayed next to the Pinned items group header if set, default not set.',
+            '**Commands.** Added ==Collapse / expand selected item== to toggle the selected navigation item.',
+            '**List pane.** Added ==Show subfolder paths== in List pane > Group headers. Default enabled, disable to only show folder names when grouping by folder.',
+            '**Navigation pane.** Added ==Show leaders== in Navigation pane > Appearance. Choose dots, dashes, or a line between item names and note counts. Makes navigation pane look like a table of contents.',
+            '**Style settings.** Two new style settings; ==Indent guide color and Leader color== to customize the colors of indent guides and leaders.'
         ],
         improved: [
-            '**List pane.** Folder group header path segments are now clickable when subfolder paths are shown.',
-            '**List pane.** Loading preview text no longer recalculates list row heights when the preview status is unchanged. Preview-heavy lists avoid a full height pass as text fills in during scrolling.',
-            '**List pane.** Multiple note updates that affect row height are now measured once per frame, reducing repeated list recalculations during bursts of tag, property, word count, preview, or feature image updates.',
-            '**List pane.** Row height calculations now do less repeated work. Notebook Navigator reuses list display settings and only checks note details when tags, properties, previews, or images can change that row, so large lists spend less time recalculating rows during scrolling and updates.',
-            '**List pane.** File rows now load only the note details used by the current list settings. Hidden previews, tags, properties, counts, feature images, and task indicators no longer trigger cache reads or row updates, so large lists do less work while scrolling and selecting notes.',
-            '**List pane.** Selecting notes now updates fewer visible rows. Tag and property pills only react to folder, tag, or property navigation changes, and range selections commit one file-selection update, reducing UI work during keyboard navigation and multi-select in large lists.',
-            '**Navigation pane.** Navigation rows now update from narrower selection, tag, property, and frontmatter changes. Selecting notes no longer refreshes unrelated navigation rows, while frontmatter names, icons, colors, hidden files, tag counts, and property counts still update when those values change. Large navigation trees do less work during keyboard navigation, shortcut use, and frontmatter edits.'
+            '**List pane.** Individual folder group path segments are now clickable when subfolder paths are shown.',
+            '**List pane.** Lots of rendering performance improvements in the list pane.',
+            '**Navigation pane.** Lots of rendering performance improvements in the navigation pane.'
         ],
         changed: [
-            '**Feature images.** Some external images may no longer appear in the list pane if their server does not report image type and file size before download. This prevents very large external images and SVG files from being downloaded and shown as feature images. The content cache database is rebuilt so older potentially invalid SVG feature-image thumbnails are removed.'
+            '**Feature images.** ==SVG images are no longer supported as feature images==. Large SVG images with embedded bitmaps were causing performance and memory issues for some users so this was disabled until further notice. As a result the cache will be rebuilt on startup.',
+            '**List pane.** Standard mode now keeps the standard row layout when date, preview, and feature image are hidden. Compact layout is only used when list mode is Compact.',
+            '**List pane.** When grouping by folder, the current folder name will always be displayed on top so you can collapse items in the current folder.'
         ],
         fixed: [
-            '**Calendar.** Fixed notes with feature images sometimes showing a blank calendar image after cached thumbnails were refreshed or rebuilt.',
-            '**Storage.** Fixed repeated content refreshes during large vault change bursts.'
+            '**Commands.** Fixed Cmd+W accidentally closing Notebook Navigator after focusing the sidebar with the Notebook Navigator: Open command.'
         ]
     },
     {

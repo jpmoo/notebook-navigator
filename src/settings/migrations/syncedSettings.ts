@@ -26,6 +26,7 @@ import { cloneShortcuts, createPropertyKeysFromPropertyFields, DEFAULT_VAULT_PRO
 import { ShortcutType, type ShortcutEntry } from '../../types/shortcuts';
 import {
     isCharacterCountSpaces,
+    isNavCountLeaderStyle,
     isRecentNotesHideMode,
     isTagSortOrder,
     isTextCountDisplay,
@@ -511,6 +512,10 @@ export function applyExistingUserDefaults(params: { settings: NotebookNavigatorS
 
     if (!isCharacterCountSpaces(settings.characterCountSpaces)) {
         settings.characterCountSpaces = 'include';
+    }
+
+    if (!isNavCountLeaderStyle(settings.navCountLeaderStyle)) {
+        settings.navCountLeaderStyle = DEFAULT_SETTINGS.navCountLeaderStyle;
     }
 
     if (typeof settings.wordCountTargetProperty !== 'string') {

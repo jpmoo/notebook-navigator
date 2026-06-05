@@ -867,6 +867,7 @@ export const STRINGS_ZH_CN = {
         toggleCompactMode: '切换紧凑模式', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: '切换置顶区域',
         collapseExpand: '折叠/展开所有项目', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
+        collapseExpandSelectedItem: '折叠/展开所选项目',
         addTag: '为选定文件添加标签', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: '为选定文件设置属性', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: '从选定文件移除标签', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
@@ -1179,7 +1180,7 @@ export const STRINGS_ZH_CN = {
             },
             compactItemHeight: {
                 name: '精简项目高度',
-                desc: '设置桌面和移动端的紧凑列表项高度。',
+                desc: '设置桌面和移动端的紧凑列表项高度（像素）。',
                 resetTooltip: '恢复默认值 (28px)'
             },
             compactItemHeightScaleText: {
@@ -1233,7 +1234,7 @@ export const STRINGS_ZH_CN = {
             },
             appearanceScale: {
                 name: '缩放级别',
-                desc: '控制 Notebook Navigator 的整体缩放级别。'
+                desc: '控制 Notebook Navigator 的整体缩放级别（百分比）。'
             },
             useFloatingToolbars: {
                 name: '在 iOS/iPadOS 上使用浮动工具栏',
@@ -2017,11 +2018,11 @@ export const STRINGS_ZH_CN = {
             },
             navIndent: {
                 name: '树形缩进',
-                desc: '调整嵌套文件夹和标签的缩进宽度。'
+                desc: '调整嵌套文件夹和标签的缩进宽度（像素）。'
             },
             navItemHeight: {
                 name: '行高',
-                desc: '调整导航窗格中文件夹和标签的高度。'
+                desc: '调整导航窗格中文件夹和标签的高度（像素）。'
             },
             navItemHeightScaleText: {
                 name: '随行高调整文字大小',
@@ -2031,9 +2032,19 @@ export const STRINGS_ZH_CN = {
                 name: '显示缩进参考线',
                 desc: '显示嵌套文件夹和标签的缩进参考线。'
             },
+            navCountLeaderStyle: {
+                name: '显示前导符',
+                desc: '在项目名称和笔记数量之间显示点、短划线或直线。',
+                options: {
+                    none: '无',
+                    dots: '点 (...)',
+                    dashes: '短划线 (---)',
+                    line: '直线'
+                }
+            },
             navRootSpacing: {
                 name: '根级项目间距',
-                desc: '根级文件夹和标签之间的间距。'
+                desc: '根级文件夹和标签之间的间距（像素）。'
             },
             showTags: {
                 name: '显示标签',

@@ -870,8 +870,7 @@ export const ListPane = React.memo(
         // Attach context menu to empty areas in the list pane for file creation
         useContextMenu(scrollContainerRef, { type: EMPTY_LIST_MENU_TYPE, item: selectedFolder ?? null, options: { orderedFiles } });
 
-        // Check if we're in compact mode
-        const isCompactMode = !appearanceSettings.showDate && !appearanceSettings.showPreview && !appearanceSettings.showImage;
+        const isCompactMode = appearanceSettings.mode === 'compact';
         const {
             selectFileFromList,
             selectAdjacentFile,

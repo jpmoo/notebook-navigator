@@ -872,6 +872,7 @@ export const STRINGS_AR = {
         toggleCompactMode: 'تبديل الوضع المضغوط', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'تبديل قسم المثبتة',
         collapseExpand: 'طي / توسيع جميع العناصر', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
+        collapseExpandSelectedItem: 'طي / توسيع العنصر المحدد',
         addTag: 'إضافة وسم للملفات المحددة', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'تعيين خاصية على الملفات المحددة', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'إزالة وسم من الملفات المحددة', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
@@ -1187,7 +1188,7 @@ export const STRINGS_AR = {
             },
             compactItemHeight: {
                 name: 'ارتفاع العنصر المضغوط',
-                desc: 'تعيين ارتفاع عناصر القائمة المضغوطة على سطح المكتب والجوال.',
+                desc: 'تعيين ارتفاع عناصر القائمة المضغوطة على سطح المكتب والجوال (بالبكسل).',
                 resetTooltip: 'استعادة إلى الافتراضي (28 بكسل)'
             },
             compactItemHeightScaleText: {
@@ -1241,7 +1242,7 @@ export const STRINGS_AR = {
             },
             appearanceScale: {
                 name: 'مستوى التكبير',
-                desc: 'التحكم في مستوى التكبير العام لمتصفح الدفتر.'
+                desc: 'التحكم في مستوى التكبير العام لمتصفح الدفتر (بالنسبة المئوية).'
             },
             useFloatingToolbars: {
                 name: 'استخدام أشرطة الأدوات العائمة على iOS/iPadOS',
@@ -2026,11 +2027,11 @@ export const STRINGS_AR = {
             },
             navIndent: {
                 name: 'مسافة بادئة الشجرة',
-                desc: 'ضبط عرض المسافة البادئة للمجلدات والوسوم المتداخلة.'
+                desc: 'ضبط عرض المسافة البادئة للمجلدات والوسوم المتداخلة (بالبكسل).'
             },
             navItemHeight: {
                 name: 'ارتفاع العنصر',
-                desc: 'ضبط ارتفاع المجلدات والوسوم في لوحة التنقل.'
+                desc: 'ضبط ارتفاع المجلدات والوسوم في لوحة التنقل (بالبكسل).'
             },
             navItemHeightScaleText: {
                 name: 'تحجيم النص مع ارتفاع العنصر',
@@ -2040,9 +2041,19 @@ export const STRINGS_AR = {
                 name: 'إظهار خطوط المسافة البادئة',
                 desc: 'عرض خطوط المسافة البادئة للمجلدات والوسوم المتداخلة.'
             },
+            navCountLeaderStyle: {
+                name: 'إظهار علامات التوصيل',
+                desc: 'عرض نقاط أو شرطات أو خط بين أسماء العناصر وعدد الملاحظات.',
+                options: {
+                    none: 'بدون',
+                    dots: 'نقاط (...)',
+                    dashes: 'شرطات (---)',
+                    line: 'خط'
+                }
+            },
             navRootSpacing: {
                 name: 'تباعد العناصر الجذرية',
-                desc: 'التباعد بين المجلدات والوسوم على مستوى الجذر.'
+                desc: 'التباعد بين المجلدات والوسوم على مستوى الجذر (بالبكسل).'
             },
             showTags: {
                 name: 'إظهار الوسوم',

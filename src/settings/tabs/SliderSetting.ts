@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { requireApiVersion } from 'obsidian';
 import type { Setting, SliderComponent } from 'obsidian';
 import { strings } from '../../i18n';
 import { runAsyncAction } from '../../utils/async';
@@ -42,19 +43,20 @@ export function formatSecondsSliderValue(value: number): string {
     return `${Number(value.toFixed(1))} s`;
 }
 
-/** Renders settings sliders as value, slider, reset. */
+/** Renders settings sliders with reset control. */
 export function renderSliderSetting(setting: Setting, options: SliderSettingOptions): void {
     const normalizeValue = options.normalizeValue ?? ((value: number) => value);
     const formatValue = options.formatValue ?? ((value: number) => value.toString());
     const initialValue = normalizeValue(options.value);
+    const usesNativeSliderValueDisplay = requireApiVersion('1.13.0');
     let sliderComponent: SliderComponent | null = null;
 
     setting.setName(options.name).setDesc(options.desc);
     setting.controlEl.addClass('nn-slider-control');
 
-    const valueEl = setting.controlEl.createDiv({ cls: 'nn-slider-value' });
+    const valueEl = usesNativeSliderValueDisplay ? null : setting.controlEl.createDiv({ cls: 'nn-slider-value' });
     const updateValueLabel = (value: number) => {
-        valueEl.setText(formatValue(value));
+        valueEl?.setText(formatValue(value));
     };
 
     const applyValue = (value: number) => {
@@ -65,12 +67,11 @@ export function renderSliderSetting(setting: Setting, options: SliderSettingOpti
 
     setting
         .addSlider(slider => {
-            sliderComponent = slider
-                .setLimits(options.min, options.max, options.step)
-                .setValue(initialValue)
-                .setInstant(false)
-                .setDynamicTooltip()
-                .onChange(applyValue);
+            let configuredSlider = slider.setLimits(options.min, options.max, options.step).setValue(initialValue).setInstant(false);
+            if (!usesNativeSliderValueDisplay) {
+                configuredSlider = configuredSlider.setDynamicTooltip();
+            }
+            sliderComponent = configuredSlider.onChange(applyValue);
             return slider;
         })
         .addExtraButton(button =>

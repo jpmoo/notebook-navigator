@@ -250,18 +250,6 @@ export function forEachVisibleFrontmatterProperty({
     }
 }
 
-export function isListPaneCompactMode({
-    showDate,
-    showPreview,
-    showImage
-}: {
-    showDate: boolean;
-    showPreview: boolean;
-    showImage: boolean;
-}): boolean {
-    return !showDate && !showPreview && !showImage;
-}
-
 export function getTagPillDisplayName(tag: string, showFileTagAncestors: boolean): string {
     if (showFileTagAncestors) {
         return tag;
@@ -296,6 +284,7 @@ export interface FileRowHeightConfig {
     heights: ListPaneMeasurements;
     titleRows: number;
     previewRows: number;
+    isCompactMode: boolean;
     showDate: boolean;
     showPreview: boolean;
     showImage: boolean;
@@ -303,25 +292,25 @@ export interface FileRowHeightConfig {
 }
 
 export function getFileItemLayoutState({
+    isCompactMode = false,
     showDate,
     showPreview,
-    showImage,
     isPinned,
     hasPreviewContent,
     showFeatureImageArea,
     showExtensionBadgeThumbnail = false,
     hasVisiblePillRows
 }: {
+    isCompactMode?: boolean;
     showDate: boolean;
     showPreview: boolean;
-    showImage: boolean;
+    showImage?: boolean;
     isPinned: boolean;
     hasPreviewContent: boolean;
     showFeatureImageArea: boolean;
     showExtensionBadgeThumbnail?: boolean;
     hasVisiblePillRows: boolean;
 }): FileItemLayoutState {
-    const isCompactMode = isListPaneCompactMode({ showDate, showPreview, showImage });
     const hasImageTextArea = showFeatureImageArea && !showExtensionBadgeThumbnail;
     const isPinnedImageRow = isPinned && hasImageTextArea;
     const shouldReplaceEmptyPreviewWithPills = !hasPreviewContent && hasVisiblePillRows;
@@ -400,9 +389,9 @@ export function estimateFileRowHeight(inputs: FileRowHeightInputs, config: FileR
     const { heights, titleRows, previewRows, compactPaddingTotal } = config;
     const visiblePillRowCount = Math.max(0, inputs.visiblePillRowCount);
     const layoutState = getFileItemLayoutState({
+        isCompactMode: config.isCompactMode,
         showDate: config.showDate,
         showPreview: config.showPreview,
-        showImage: config.showImage,
         isPinned: inputs.isPinned,
         hasPreviewContent: inputs.hasPreviewContent,
         showFeatureImageArea: inputs.showFeatureImageArea,

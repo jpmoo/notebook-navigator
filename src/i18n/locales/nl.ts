@@ -879,6 +879,7 @@ export const STRINGS_NL = {
         toggleCompactMode: 'Compacte modus in-/uitschakelen', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'Vastgemaakt gedeelte in-/uitschakelen',
         collapseExpand: 'Alle items in-/uitklappen',
+        collapseExpandSelectedItem: 'Geselecteerd item in-/uitklappen',
         addTag: 'Tag toevoegen aan geselecteerde bestanden',
         setProperty: 'Eigenschap instellen op geselecteerde bestanden', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'Tag verwijderen van geselecteerde bestanden',
@@ -1194,7 +1195,7 @@ export const STRINGS_NL = {
             },
             compactItemHeight: {
                 name: 'Compacte itemhoogte',
-                desc: 'Stel de hoogte van compacte lijstitems in op desktop en mobiel.',
+                desc: 'Stel de hoogte van compacte lijstitems in op desktop en mobiel (pixels).',
                 resetTooltip: 'Herstellen naar standaard (28px)'
             },
             compactItemHeightScaleText: {
@@ -1248,7 +1249,7 @@ export const STRINGS_NL = {
             },
             appearanceScale: {
                 name: 'Zoomniveau',
-                desc: 'Regelt het algemene zoomniveau van Notebook Navigator.'
+                desc: 'Regelt het algemene zoomniveau van Notebook Navigator (procent).'
             },
             useFloatingToolbars: {
                 name: 'Zwevende werkbalken gebruiken op iOS/iPadOS',
@@ -2036,11 +2037,11 @@ export const STRINGS_NL = {
             },
             navIndent: {
                 name: 'Structuurinspringing',
-                desc: 'De inspringbreedte aanpassen voor geneste mappen en tags.'
+                desc: 'De inspringbreedte aanpassen voor geneste mappen en tags (pixels).'
             },
             navItemHeight: {
                 name: 'Itemhoogte',
-                desc: 'De hoogte van mappen en tags in het navigatiepaneel aanpassen.'
+                desc: 'De hoogte van mappen en tags in het navigatiepaneel aanpassen (pixels).'
             },
             navItemHeightScaleText: {
                 name: 'Tekst schalen met itemhoogte',
@@ -2050,9 +2051,19 @@ export const STRINGS_NL = {
                 name: 'Inspringlijnen tonen',
                 desc: 'Inspringlijnen weergeven voor geneste mappen en tags.'
             },
+            navCountLeaderStyle: {
+                name: 'Opvultekens tonen',
+                desc: 'Punten, streepjes of een lijn weergeven tussen itemnamen en notitie-aantallen.',
+                options: {
+                    none: 'Geen',
+                    dots: 'Punten (...)',
+                    dashes: 'Streepjes (---)',
+                    line: 'Lijn'
+                }
+            },
             navRootSpacing: {
                 name: 'Hoofditem-afstand',
-                desc: 'Afstand tussen mappen en tags op hoofdniveau.'
+                desc: 'Afstand tussen mappen en tags op hoofdniveau (pixels).'
             },
             showTags: {
                 name: 'Tags tonen',

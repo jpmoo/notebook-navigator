@@ -224,6 +224,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     showNoteCount: true,
     separateNoteCounts: true,
     showIndentGuides: false,
+    navCountLeaderStyle: 'none',
     rootLevelSpacing: 0,
     navIndent: NAVPANE_MEASUREMENTS.defaultIndent,
     navItemHeight: NAVPANE_MEASUREMENTS.defaultItemHeight,

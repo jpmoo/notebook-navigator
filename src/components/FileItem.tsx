@@ -57,7 +57,6 @@ import { resolveFileDragIconId, resolveFileIconId } from '../utils/fileIconUtils
 import { buildFileTooltip } from '../utils/navigationTooltipUtils';
 import {
     getFileItemLayoutState,
-    isListPaneCompactMode,
     shouldShowExtensionBadgeThumbnail,
     shouldShowFeatureImageArea,
     shouldShowFileItemParentFolderLine
@@ -411,11 +410,7 @@ export const FileItem = React.memo(function FileItem({
     const settings = useSettingsState();
     const metadataService = useMetadataService();
     const { getFileDisplayName, getDB, getFileTimestamps, hasPreview, regenerateFeatureImageForFile } = fileItemStorage;
-    const isCompactMode = isListPaneCompactMode({
-        showDate: appearanceSettings.showDate,
-        showPreview: appearanceSettings.showPreview,
-        showImage: appearanceSettings.showImage
-    });
+    const isCompactMode = appearanceSettings.mode === 'compact';
     const shouldShowWordCount = showsWordCount(settings.textCountDisplay);
     const shouldShowCharacterCount = showsCharacterCount(settings.textCountDisplay);
     const isMarkdownFile = file.extension === 'md';
@@ -830,9 +825,9 @@ export const FileItem = React.memo(function FileItem({
     const renderedPillRows = shouldShowPillRows ? pillRows : null;
 
     const { shouldShowMultilinePreview, shouldShowDateForItem } = getFileItemLayoutState({
+        isCompactMode,
         showDate: appearanceSettings.showDate,
         showPreview: appearanceSettings.showPreview,
-        showImage: appearanceSettings.showImage,
         isPinned,
         hasPreviewContent,
         showFeatureImageArea,
@@ -1342,7 +1337,7 @@ export const FileItem = React.memo(function FileItem({
                     {isCompactMode ? (
                         // ========== COMPACT MODE ==========
                         // Minimal layout: file name + pills
-                        // Used when date, preview, and image are all disabled
+                        // Used when the current list appearance mode is compact
                         <div className="nn-compact-file-text-content">
                             <div className="nn-compact-file-header">
                                 {fileTitleElement}

@@ -880,6 +880,7 @@ export const STRINGS_FR = {
         toggleCompactMode: 'Basculer le mode compact', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'Basculer la section épinglée',
         collapseExpand: 'Replier / déplier tous les éléments', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
+        collapseExpandSelectedItem: "Replier / déplier l'élément sélectionné",
         addTag: 'Ajouter une étiquette aux fichiers sélectionnés', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Définir une propriété sur les fichiers sélectionnés', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'Supprimer une étiquette des fichiers sélectionnés', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
@@ -1195,7 +1196,7 @@ export const STRINGS_FR = {
             },
             compactItemHeight: {
                 name: 'Hauteur des éléments compacts',
-                desc: 'Définit la hauteur des éléments compacts sur ordinateur et mobile.',
+                desc: 'Définit la hauteur des éléments compacts sur ordinateur et mobile (pixels).',
                 resetTooltip: 'Restaurer la valeur par défaut (28px)'
             },
             compactItemHeightScaleText: {
@@ -1249,7 +1250,7 @@ export const STRINGS_FR = {
             },
             appearanceScale: {
                 name: 'Niveau de zoom',
-                desc: 'Contrôle le niveau de zoom global de Notebook Navigator.'
+                desc: 'Contrôle le niveau de zoom global de Notebook Navigator (pourcentage).'
             },
             useFloatingToolbars: {
                 name: "Utiliser les barres d'outils flottantes sur iOS/iPadOS",
@@ -2039,11 +2040,11 @@ export const STRINGS_FR = {
             },
             navIndent: {
                 name: "Indentation de l'arbre",
-                desc: "Ajuster la largeur d'indentation pour les dossiers et étiquettes imbriqués."
+                desc: "Ajuster la largeur d'indentation pour les dossiers et étiquettes imbriqués (pixels)."
             },
             navItemHeight: {
                 name: 'Hauteur de ligne',
-                desc: 'Ajuster la hauteur des dossiers et étiquettes dans le panneau de navigation.'
+                desc: 'Ajuster la hauteur des dossiers et étiquettes dans le panneau de navigation (pixels).'
             },
             navItemHeightScaleText: {
                 name: 'Adapter le texte à la hauteur de ligne',
@@ -2053,9 +2054,19 @@ export const STRINGS_FR = {
                 name: "Afficher les guides d'indentation",
                 desc: "Afficher les guides d'indentation pour les dossiers et étiquettes imbriqués."
             },
+            navCountLeaderStyle: {
+                name: 'Afficher les points de conduite',
+                desc: 'Afficher des points, des tirets ou une ligne entre les noms des éléments et le nombre de notes.',
+                options: {
+                    none: 'Aucun',
+                    dots: 'Points (...)',
+                    dashes: 'Tirets (---)',
+                    line: 'Ligne'
+                }
+            },
             navRootSpacing: {
                 name: 'Espacement des éléments racine',
-                desc: 'Espacement entre les dossiers et étiquettes de niveau racine.'
+                desc: 'Espacement entre les dossiers et étiquettes de niveau racine (pixels).'
             },
             showTags: {
                 name: 'Afficher les étiquettes',

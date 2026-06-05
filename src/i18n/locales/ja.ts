@@ -876,6 +876,7 @@ export const STRINGS_JA = {
         toggleCompactMode: 'コンパクトモードの切り替え', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'ピン留めセクションの切り替え',
         collapseExpand: 'すべての項目を折りたたむ/展開', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
+        collapseExpandSelectedItem: '選択した項目を折りたたむ/展開',
         addTag: '選択したファイルにタグを追加', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: '選択したファイルにプロパティを設定', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: '選択したファイルからタグを削除', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
@@ -1191,7 +1192,7 @@ export const STRINGS_JA = {
             },
             compactItemHeight: {
                 name: 'スリム表示の項目高さ',
-                desc: 'デスクトップとモバイルのスリム表示項目の高さを設定します。',
+                desc: 'デスクトップとモバイルのスリム表示項目の高さを設定します（ピクセル）。',
                 resetTooltip: 'デフォルトに戻す (28px)'
             },
             compactItemHeightScaleText: {
@@ -1245,7 +1246,7 @@ export const STRINGS_JA = {
             },
             appearanceScale: {
                 name: 'ズームレベル',
-                desc: 'Notebook Navigator 全体のズームレベルを制御します。'
+                desc: 'Notebook Navigator 全体のズームレベルを制御します（パーセント）。'
             },
             useFloatingToolbars: {
                 name: 'iOS/iPadOSでフローティングツールバーを使用',
@@ -2031,11 +2032,11 @@ export const STRINGS_JA = {
             },
             navIndent: {
                 name: 'ツリーインデント',
-                desc: 'ネストされたフォルダとタグのインデント幅を調整します。'
+                desc: 'ネストされたフォルダとタグのインデント幅を調整します（ピクセル）。'
             },
             navItemHeight: {
                 name: '行高',
-                desc: 'ナビゲーションペイン内のフォルダとタグの高さを調整します。'
+                desc: 'ナビゲーションペイン内のフォルダとタグの高さを調整します（ピクセル）。'
             },
             navItemHeightScaleText: {
                 name: '行高に合わせて文字サイズを調整',
@@ -2045,9 +2046,19 @@ export const STRINGS_JA = {
                 name: 'インデントガイドを表示',
                 desc: 'ネストされたフォルダーとタグのインデントガイドを表示します。'
             },
+            navCountLeaderStyle: {
+                name: 'リーダーを表示',
+                desc: '項目名とノート数の間に点、ダッシュ、または線を表示します。',
+                options: {
+                    none: 'なし',
+                    dots: '点 (...)',
+                    dashes: 'ダッシュ (---)',
+                    line: '線'
+                }
+            },
             navRootSpacing: {
                 name: 'ルート要素の間隔',
-                desc: '最上位のフォルダとタグの間隔。'
+                desc: '最上位のフォルダとタグの間隔（ピクセル）。'
             },
             showTags: {
                 name: 'タグを表示',

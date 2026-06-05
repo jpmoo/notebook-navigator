@@ -304,6 +304,13 @@ export function isShortcutBadgeDisplayMode(value: unknown): value is ShortcutBad
     return value === 'index' || value === 'count' || value === 'none';
 }
 
+/** Leader marks shown between navigation item names and note counts */
+export type NavCountLeaderStyle = 'none' | 'dots' | 'dashes' | 'line';
+
+export function isNavCountLeaderStyle(value: unknown): value is NavCountLeaderStyle {
+    return value === 'none' || value === 'dots' || value === 'dashes' || value === 'line';
+}
+
 /** Filter options for hidden items in the recent notes section */
 export type RecentNotesHideMode = 'none' | 'folder-notes';
 
@@ -536,6 +543,7 @@ export interface NotebookNavigatorSettings {
     showNoteCount: boolean;
     separateNoteCounts: boolean;
     showIndentGuides: boolean;
+    navCountLeaderStyle: NavCountLeaderStyle;
     rootLevelSpacing: number;
     navIndent: number;
     navItemHeight: number;

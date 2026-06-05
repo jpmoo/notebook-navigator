@@ -874,6 +874,7 @@ export const STRINGS_RU = {
         toggleCompactMode: 'Переключить компактный режим', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'Переключить закреплённый раздел',
         collapseExpand: 'Свернуть / развернуть все элементы', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
+        collapseExpandSelectedItem: 'Свернуть / развернуть выбранный элемент',
         addTag: 'Добавить тег к выбранным файлам', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Задать свойство для выбранных файлов', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'Удалить тег из выбранных файлов', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
@@ -1189,7 +1190,7 @@ export const STRINGS_RU = {
             },
             compactItemHeight: {
                 name: 'Высота компактных элементов',
-                desc: 'Установите высоту компактных элементов списка на компьютере и мобильном.',
+                desc: 'Установите высоту компактных элементов списка на компьютере и мобильном (в пикселях).',
                 resetTooltip: 'Восстановить по умолчанию (28px)'
             },
             compactItemHeightScaleText: {
@@ -1243,7 +1244,7 @@ export const STRINGS_RU = {
             },
             appearanceScale: {
                 name: 'Уровень масштабирования',
-                desc: 'Управляет общим масштабом Notebook Navigator.'
+                desc: 'Управляет общим масштабом Notebook Navigator (в процентах).'
             },
             useFloatingToolbars: {
                 name: 'Использовать плавающие панели инструментов на iOS/iPadOS',
@@ -2030,11 +2031,11 @@ export const STRINGS_RU = {
             },
             navIndent: {
                 name: 'Отступ дерева',
-                desc: 'Настройте ширину отступа для вложенных папок и тегов.'
+                desc: 'Настройте ширину отступа для вложенных папок и тегов (в пикселях).'
             },
             navItemHeight: {
                 name: 'Высота элемента',
-                desc: 'Настройте высоту папок и тегов в панели навигации.'
+                desc: 'Настройте высоту папок и тегов в панели навигации (в пикселях).'
             },
             navItemHeightScaleText: {
                 name: 'Масштабировать текст с высотой элемента',
@@ -2044,9 +2045,19 @@ export const STRINGS_RU = {
                 name: 'Показать направляющие отступов',
                 desc: 'Отображать направляющие отступов для вложенных папок и тегов.'
             },
+            navCountLeaderStyle: {
+                name: 'Показать заполнители',
+                desc: 'Отображать точки, тире или линию между названиями элементов и количеством заметок.',
+                options: {
+                    none: 'Нет',
+                    dots: 'Точки (...)',
+                    dashes: 'Тире (---)',
+                    line: 'Линия'
+                }
+            },
             navRootSpacing: {
                 name: 'Отступ корневых элементов',
-                desc: 'Отступ между корневыми папками и тегами.'
+                desc: 'Отступ между корневыми папками и тегами (в пикселях).'
             },
             showTags: {
                 name: 'Показывать теги',

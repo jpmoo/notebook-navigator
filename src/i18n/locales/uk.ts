@@ -874,6 +874,7 @@ export const STRINGS_UK = {
         toggleCompactMode: 'Перемкнути компактний режим', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'Перемкнути закріплений розділ',
         collapseExpand: 'Згорнути / розгорнути всі елементи', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
+        collapseExpandSelectedItem: 'Згорнути / розгорнути вибраний елемент',
         addTag: 'Додати тег до вибраних файлів', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Встановити властивість для вибраних файлів', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'Вилучити тег з вибраних файлів', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
@@ -1189,7 +1190,7 @@ export const STRINGS_UK = {
             },
             compactItemHeight: {
                 name: 'Висота компактних елементів',
-                desc: "Встановіть висоту елементів компактного списку на комп'ютері та мобільному.",
+                desc: "Встановіть висоту елементів компактного списку на комп'ютері та мобільному (у пікселях).",
                 resetTooltip: 'Відновити за замовчуванням (28px)'
             },
             compactItemHeightScaleText: {
@@ -1243,7 +1244,7 @@ export const STRINGS_UK = {
             },
             appearanceScale: {
                 name: 'Рівень масштабування',
-                desc: 'Керує загальним рівнем масштабування Notebook Navigator.'
+                desc: 'Керує загальним рівнем масштабування Notebook Navigator (у відсотках).'
             },
             useFloatingToolbars: {
                 name: 'Використовувати плаваючі панелі інструментів на iOS/iPadOS',
@@ -2030,11 +2031,11 @@ export const STRINGS_UK = {
             },
             navIndent: {
                 name: 'Відступ дерева',
-                desc: 'Налаштувати ширину відступу для вкладених папок і тегів.'
+                desc: 'Налаштувати ширину відступу для вкладених папок і тегів (у пікселях).'
             },
             navItemHeight: {
                 name: 'Висота елемента',
-                desc: 'Налаштувати висоту папок і тегів у панелі навігації.'
+                desc: 'Налаштувати висоту папок і тегів у панелі навігації (у пікселях).'
             },
             navItemHeightScaleText: {
                 name: 'Масштабувати текст з висотою елемента',
@@ -2044,9 +2045,19 @@ export const STRINGS_UK = {
                 name: 'Показати напрямні відступів',
                 desc: 'Відображати напрямні відступів для вкладених папок і тегів.'
             },
+            navCountLeaderStyle: {
+                name: 'Показати заповнювачі',
+                desc: 'Відображати крапки, тире або лінію між назвами елементів і кількістю нотаток.',
+                options: {
+                    none: 'Немає',
+                    dots: 'Крапки (...)',
+                    dashes: 'Тире (---)',
+                    line: 'Лінія'
+                }
+            },
             navRootSpacing: {
                 name: 'Відступ кореневих елементів',
-                desc: 'Відстань між папками та тегами кореневого рівня.'
+                desc: 'Відстань між папками та тегами кореневого рівня (у пікселях).'
             },
             showTags: {
                 name: 'Показувати теги',

@@ -26,7 +26,6 @@ import {
     getSelectedTagPillToHide,
     hasVisibleTagPills,
     getPropertyRowCount,
-    isListPaneCompactMode,
     shouldShowExtensionBadgeThumbnail,
     shouldShowFeatureImageArea,
     shouldShowFileItemParentFolderLine
@@ -39,22 +38,32 @@ import { createTestTFile } from './createTestTFile';
 describe('listPaneMeasurements layout helpers', () => {
     const desktopHeights = getListPaneMeasurements(false);
 
-    it('detects compact mode from hidden date, preview, and image sections', () => {
+    it('uses explicit compact mode instead of inferring it from hidden date, preview, and image sections', () => {
         expect(
-            isListPaneCompactMode({
+            getFileItemLayoutState({
+                isCompactMode: false,
                 showDate: false,
                 showPreview: false,
-                showImage: false
+                showImage: false,
+                isPinned: false,
+                hasPreviewContent: false,
+                showFeatureImageArea: false,
+                hasVisiblePillRows: false
             })
-        ).toBe(true);
+        ).toMatchObject({ isCompactMode: false });
 
         expect(
-            isListPaneCompactMode({
-                showDate: true,
+            getFileItemLayoutState({
+                isCompactMode: true,
+                showDate: false,
                 showPreview: false,
-                showImage: false
+                showImage: false,
+                isPinned: false,
+                hasPreviewContent: false,
+                showFeatureImageArea: false,
+                hasVisiblePillRows: false
             })
-        ).toBe(false);
+        ).toMatchObject({ isCompactMode: true });
     });
 
     it('keeps the multiline preview slot when the feature image area is visible', () => {
@@ -268,6 +277,7 @@ describe('listPaneMeasurements layout helpers', () => {
                     heights: desktopHeights,
                     titleRows: 2,
                     previewRows: 3,
+                    isCompactMode: true,
                     showDate: false,
                     showPreview: false,
                     showImage: false,
@@ -275,6 +285,31 @@ describe('listPaneMeasurements layout helpers', () => {
                 }
             )
         ).toBe(18 + desktopHeights.titleLineHeight * 2 + desktopHeights.tagRowHeight * 2);
+    });
+
+    it('keeps the parent folder metadata line in standard mode when date, preview, and image are hidden', () => {
+        expect(
+            estimateFileRowHeight(
+                {
+                    isPinned: false,
+                    hasPreviewContent: false,
+                    showFeatureImageArea: false,
+                    showExtensionBadgeThumbnail: false,
+                    showParentFolderLine: true,
+                    visiblePillRowCount: 0
+                },
+                {
+                    heights: desktopHeights,
+                    titleRows: 1,
+                    previewRows: 3,
+                    isCompactMode: false,
+                    showDate: false,
+                    showPreview: false,
+                    showImage: false,
+                    compactPaddingTotal: 18
+                }
+            )
+        ).toBe(desktopHeights.basePadding + desktopHeights.titleLineHeight + desktopHeights.singleTextLineHeight);
     });
 
     it('estimates pinned image rows with the pinned preview row count', () => {
@@ -302,6 +337,7 @@ describe('listPaneMeasurements layout helpers', () => {
                 heights: desktopHeights,
                 titleRows: 1,
                 previewRows: 4,
+                isCompactMode: false,
                 showDate: true,
                 showPreview: true,
                 showImage: true,
@@ -346,6 +382,7 @@ describe('listPaneMeasurements layout helpers', () => {
                 heights: desktopHeights,
                 titleRows: 1,
                 previewRows: 3,
+                isCompactMode: false,
                 showDate: true,
                 showPreview: true,
                 showImage: true,

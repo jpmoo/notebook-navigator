@@ -21,7 +21,7 @@ import { strings } from '../../../i18n';
 import { NavigationBannerModal } from '../../../modals/NavigationBannerModal';
 import { NavRainbowSectionModal } from '../../../modals/NavRainbowSectionModal';
 import { DEFAULT_SETTINGS } from '../../defaultSettings';
-import { isItemScope, isNavRainbowColorMode, type NavRainbowSettings } from '../../types';
+import { isItemScope, isNavCountLeaderStyle, isNavRainbowColorMode, type NavRainbowSettings } from '../../types';
 import type { SettingsTabContext } from '../SettingsTabContext';
 import { runAsyncAction } from '../../../utils/async';
 import { getActiveVaultProfile } from '../../../utils/vaultProfiles';
@@ -170,6 +170,26 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
                     plugin.settings.showIndentGuides = value;
                     await plugin.saveSettingsAndUpdate();
                 })
+            );
+    });
+
+    appearanceGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.navCountLeaderStyle.name)
+            .setDesc(strings.settings.items.navCountLeaderStyle.desc)
+            .addDropdown(dropdown =>
+                dropdown
+                    .addOptions({
+                        none: strings.settings.items.navCountLeaderStyle.options.none,
+                        dots: strings.settings.items.navCountLeaderStyle.options.dots,
+                        dashes: strings.settings.items.navCountLeaderStyle.options.dashes,
+                        line: strings.settings.items.navCountLeaderStyle.options.line
+                    })
+                    .setValue(plugin.settings.navCountLeaderStyle)
+                    .onChange(async value => {
+                        plugin.settings.navCountLeaderStyle = isNavCountLeaderStyle(value) ? value : DEFAULT_SETTINGS.navCountLeaderStyle;
+                        await plugin.saveSettingsAndUpdate();
+                    })
             );
     });
 

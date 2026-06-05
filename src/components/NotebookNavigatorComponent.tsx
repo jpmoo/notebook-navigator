@@ -164,6 +164,7 @@ export interface NotebookNavigatorHandle {
     removeAllTagsFromSelectedFiles: () => Promise<void>;
     toggleSearch: () => void;
     triggerCollapse: () => void;
+    triggerSelectedItemCollapse: () => boolean;
     stopContentProcessing: () => void;
     rebuildCache: () => Promise<void>;
     selectNextFile: () => Promise<boolean>;
@@ -1252,6 +1253,15 @@ export const NotebookNavigatorComponent = React.memo(
                     window.requestAnimationFrame(() => {
                         ensureSelectedNavigationItemVisible();
                     });
+                },
+                triggerSelectedItemCollapse: () => {
+                    const didToggle = navigationPaneRef.current?.triggerSelectedItemCollapse() ?? false;
+                    if (didToggle) {
+                        window.requestAnimationFrame(() => {
+                            ensureSelectedNavigationItemVisible();
+                        });
+                    }
+                    return didToggle;
                 }
             };
         }, [
@@ -1469,6 +1479,7 @@ export const NotebookNavigatorComponent = React.memo(
                         uiState.singlePane ? (uiState.currentSinglePaneView === 'navigation' ? 'navigation' : 'files') : uiState.focusedPane
                     }
                     data-navigator-focused={isMobile ? 'true' : isNavigatorFocused}
+                    data-nav-count-leader-style={settings.navCountLeaderStyle}
                     tabIndex={-1}
                     onKeyDown={() => {
                         // Allow keyboard events to bubble up from child components

@@ -867,6 +867,7 @@ export const STRINGS_ZH_TW = {
         toggleCompactMode: '切換精簡模式', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: '切換置頂區域',
         collapseExpand: '摺疊/展開所有項目',
+        collapseExpandSelectedItem: '摺疊/展開所選項目',
         addTag: '為選定檔案新增標籤',
         setProperty: '為選定檔案設定屬性', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: '從選定檔案移除標籤',
@@ -1179,7 +1180,7 @@ export const STRINGS_ZH_TW = {
             },
             compactItemHeight: {
                 name: '精簡項目高度',
-                desc: '設定桌面和行動裝置的精簡列表項目高度。',
+                desc: '設定桌面和行動裝置的精簡列表項目高度（像素）。',
                 resetTooltip: '恢復預設值 (28px)'
             },
             compactItemHeightScaleText: {
@@ -1233,7 +1234,7 @@ export const STRINGS_ZH_TW = {
             },
             appearanceScale: {
                 name: '縮放級別',
-                desc: '控制 Notebook Navigator 的整體縮放級別。'
+                desc: '控制 Notebook Navigator 的整體縮放級別（百分比）。'
             },
             useFloatingToolbars: {
                 name: '在 iOS/iPadOS 上使用浮動工具列',
@@ -2017,11 +2018,11 @@ export const STRINGS_ZH_TW = {
             },
             navIndent: {
                 name: '樹狀縮排',
-                desc: '調整巢狀資料夾和標籤的縮排寬度。'
+                desc: '調整巢狀資料夾和標籤的縮排寬度（像素）。'
             },
             navItemHeight: {
                 name: '行高',
-                desc: '調整導覽窗格中資料夾和標籤的高度。'
+                desc: '調整導覽窗格中資料夾和標籤的高度（像素）。'
             },
             navItemHeightScaleText: {
                 name: '隨行高調整文字大小',
@@ -2031,9 +2032,19 @@ export const STRINGS_ZH_TW = {
                 name: '顯示縮排參考線',
                 desc: '顯示巢狀資料夾和標籤的縮排參考線。'
             },
+            navCountLeaderStyle: {
+                name: '顯示前導符號',
+                desc: '在項目名稱和筆記數量之間顯示點、短劃線或直線。',
+                options: {
+                    none: '無',
+                    dots: '點 (...)',
+                    dashes: '短劃線 (---)',
+                    line: '直線'
+                }
+            },
             navRootSpacing: {
                 name: '根級項目間距',
-                desc: '根級資料夾和標籤之間的間距。'
+                desc: '根級資料夾和標籤之間的間距（像素）。'
             },
             showTags: {
                 name: '顯示標籤',

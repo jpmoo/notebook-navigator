@@ -396,7 +396,7 @@ export const FolderItem = React.memo(function FolderItem({
                 >
                     {effectiveDisplayName}
                 </span>
-                <span className="nn-navitem-spacer" />
+                <span className="nn-navitem-spacer nn-navitem-spacer--leader" />
                 {shouldDisplayCount && <span className="nn-navitem-count">{noteCountLabel}</span>}
             </div>
         </div>

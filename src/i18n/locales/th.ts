@@ -870,6 +870,7 @@ export const STRINGS_TH = {
         toggleCompactMode: 'สลับโหมดกะทัดรัด', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'สลับส่วนที่ปักหมุด',
         collapseExpand: 'ยุบ / ขยายรายการทั้งหมด',
+        collapseExpandSelectedItem: 'ยุบ / ขยายรายการที่เลือก',
         addTag: 'เพิ่มแท็กในไฟล์ที่เลือก',
         setProperty: 'ตั้งค่าคุณสมบัติในไฟล์ที่เลือก', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'นำแท็กออกจากไฟล์ที่เลือก',
@@ -1185,7 +1186,7 @@ export const STRINGS_TH = {
             },
             compactItemHeight: {
                 name: 'ความสูงรายการกะทัดรัด',
-                desc: 'กำหนดความสูงของรายการกะทัดรัดบนเดสก์ท็อปและมือถือ',
+                desc: 'กำหนดความสูงของรายการกะทัดรัดบนเดสก์ท็อปและมือถือ (พิกเซล)',
                 resetTooltip: 'รีเซ็ตเป็นค่าเริ่มต้น (28px)'
             },
             compactItemHeightScaleText: {
@@ -1239,7 +1240,7 @@ export const STRINGS_TH = {
             },
             appearanceScale: {
                 name: 'ระดับการซูม',
-                desc: 'ควบคุมระดับการซูมโดยรวมของ Notebook Navigator'
+                desc: 'ควบคุมระดับการซูมโดยรวมของ Notebook Navigator (เปอร์เซ็นต์)'
             },
             useFloatingToolbars: {
                 name: 'ใช้แถบเครื่องมือลอยบน iOS/iPadOS',
@@ -2025,11 +2026,11 @@ export const STRINGS_TH = {
             },
             navIndent: {
                 name: 'การเยื้องต้นไม้',
-                desc: 'ปรับความกว้างการเยื้องสำหรับโฟลเดอร์และแท็กที่ซ้อนกัน'
+                desc: 'ปรับความกว้างการเยื้องสำหรับโฟลเดอร์และแท็กที่ซ้อนกัน (พิกเซล)'
             },
             navItemHeight: {
                 name: 'ความสูงรายการ',
-                desc: 'ปรับความสูงของโฟลเดอร์และแท็กในแผงนำทาง'
+                desc: 'ปรับความสูงของโฟลเดอร์และแท็กในแผงนำทาง (พิกเซล)'
             },
             navItemHeightScaleText: {
                 name: 'ปรับขนาดข้อความตามความสูงรายการ',
@@ -2039,9 +2040,19 @@ export const STRINGS_TH = {
                 name: 'แสดงเส้นนำการเยื้อง',
                 desc: 'แสดงเส้นนำการเยื้องสำหรับโฟลเดอร์และแท็กที่ซ้อนกัน'
             },
+            navCountLeaderStyle: {
+                name: 'แสดงตัวนำสายตา',
+                desc: 'แสดงจุด ขีด หรือเส้นระหว่างชื่อรายการกับจำนวนโน้ต',
+                options: {
+                    none: 'ไม่มี',
+                    dots: 'จุด (...)',
+                    dashes: 'ขีด (---)',
+                    line: 'เส้น'
+                }
+            },
             navRootSpacing: {
                 name: 'ระยะห่างรายการหลัก',
-                desc: 'ระยะห่างระหว่างโฟลเดอร์และแท็กระดับหลัก'
+                desc: 'ระยะห่างระหว่างโฟลเดอร์และแท็กระดับหลัก (พิกเซล)'
             },
             showTags: {
                 name: 'แสดงแท็ก',

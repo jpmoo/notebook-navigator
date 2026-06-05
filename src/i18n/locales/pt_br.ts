@@ -879,6 +879,7 @@ export const STRINGS_PT_BR = {
         toggleCompactMode: 'Alternar modo compacto', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'Alternar seção fixada',
         collapseExpand: 'Recolher / expandir todos os itens',
+        collapseExpandSelectedItem: 'Recolher / expandir o item selecionado',
         addTag: 'Adicionar tag aos arquivos selecionados',
         setProperty: 'Definir propriedade nos arquivos selecionados', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'Remover tag dos arquivos selecionados',
@@ -1194,7 +1195,7 @@ export const STRINGS_PT_BR = {
             },
             compactItemHeight: {
                 name: 'Altura do item compacto',
-                desc: 'Defina a altura dos itens de lista compactos no desktop e celular.',
+                desc: 'Defina a altura dos itens de lista compactos no desktop e celular (pixels).',
                 resetTooltip: 'Restaurar para padrão (28px)'
             },
             compactItemHeightScaleText: {
@@ -1248,7 +1249,7 @@ export const STRINGS_PT_BR = {
             },
             appearanceScale: {
                 name: 'Nível de zoom',
-                desc: 'Controla o nível de zoom geral do Notebook Navigator.'
+                desc: 'Controla o nível de zoom geral do Notebook Navigator (porcentagem).'
             },
             useFloatingToolbars: {
                 name: 'Usar barras de ferramentas flutuantes no iOS/iPadOS',
@@ -2037,11 +2038,11 @@ export const STRINGS_PT_BR = {
             },
             navIndent: {
                 name: 'Indentação da árvore',
-                desc: 'Ajustar a largura da indentação para pastas e tags aninhadas.'
+                desc: 'Ajustar a largura da indentação para pastas e tags aninhadas (pixels).'
             },
             navItemHeight: {
                 name: 'Altura do item',
-                desc: 'Ajustar a altura de pastas e tags no painel de navegação.'
+                desc: 'Ajustar a altura de pastas e tags no painel de navegação (pixels).'
             },
             navItemHeightScaleText: {
                 name: 'Dimensionar texto com altura do item',
@@ -2051,9 +2052,19 @@ export const STRINGS_PT_BR = {
                 name: 'Mostrar guias de recuo',
                 desc: 'Exibir guias de recuo para pastas e tags aninhadas.'
             },
+            navCountLeaderStyle: {
+                name: 'Mostrar caracteres de preenchimento',
+                desc: 'Exibir pontos, traços ou uma linha entre os nomes dos itens e a contagem de notas.',
+                options: {
+                    none: 'Nenhum',
+                    dots: 'Pontos (...)',
+                    dashes: 'Traços (---)',
+                    line: 'Linha'
+                }
+            },
             navRootSpacing: {
                 name: 'Espaçamento de item raiz',
-                desc: 'Espaçamento entre pastas e tags de nível raiz.'
+                desc: 'Espaçamento entre pastas e tags de nível raiz (pixels).'
             },
             showTags: {
                 name: 'Mostrar tags',

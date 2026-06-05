@@ -874,6 +874,7 @@ export const STRINGS_KO = {
         toggleCompactMode: '컴팩트 모드 전환', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: '고정 섹션 전환',
         collapseExpand: '모든 항목 접기 / 펼치기', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
+        collapseExpandSelectedItem: '선택한 항목 접기 / 펼치기',
         addTag: '선택한 파일에 태그 추가', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: '선택한 파일에 속성 설정', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: '선택한 파일에서 태그 제거', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
@@ -1189,7 +1190,7 @@ export const STRINGS_KO = {
             },
             compactItemHeight: {
                 name: '슬림 항목 높이',
-                desc: '데스크톱과 모바일에서 슬림 목록 항목 높이를 설정합니다.',
+                desc: '데스크톱과 모바일에서 슬림 목록 항목 높이를 설정합니다(픽셀).',
                 resetTooltip: '기본값으로 복원 (28px)'
             },
             compactItemHeightScaleText: {
@@ -1243,7 +1244,7 @@ export const STRINGS_KO = {
             },
             appearanceScale: {
                 name: '확대 수준',
-                desc: 'Notebook Navigator의 전체 확대 수준을 제어합니다.'
+                desc: 'Notebook Navigator의 전체 확대 수준을 제어합니다(백분율).'
             },
             useFloatingToolbars: {
                 name: 'iOS/iPadOS에서 플로팅 툴바 사용',
@@ -2028,11 +2029,11 @@ export const STRINGS_KO = {
             },
             navIndent: {
                 name: '트리 들여쓰기',
-                desc: '중첩된 폴더와 태그의 들여쓰기 너비를 조정합니다.'
+                desc: '중첩된 폴더와 태그의 들여쓰기 너비를 조정합니다(픽셀).'
             },
             navItemHeight: {
                 name: '항목 높이',
-                desc: '탐색 창에서 폴더와 태그의 높이를 조정합니다.'
+                desc: '탐색 창에서 폴더와 태그의 높이를 조정합니다(픽셀).'
             },
             navItemHeightScaleText: {
                 name: '항목 높이에 따라 글자 크기 조정',
@@ -2042,9 +2043,19 @@ export const STRINGS_KO = {
                 name: '들여쓰기 안내선 표시',
                 desc: '중첩된 폴더와 태그의 들여쓰기 안내선을 표시합니다.'
             },
+            navCountLeaderStyle: {
+                name: '리더 표시',
+                desc: '항목 이름과 노트 수 사이에 점, 대시 또는 선을 표시합니다.',
+                options: {
+                    none: '없음',
+                    dots: '점 (...)',
+                    dashes: '대시 (---)',
+                    line: '선'
+                }
+            },
             navRootSpacing: {
                 name: '루트 항목 간격',
-                desc: '최상위 폴더와 태그 사이의 간격.'
+                desc: '최상위 폴더와 태그 사이의 간격(픽셀).'
             },
             showTags: {
                 name: '태그 표시',

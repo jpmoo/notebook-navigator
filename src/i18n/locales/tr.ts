@@ -875,6 +875,7 @@ export const STRINGS_TR = {
         toggleCompactMode: 'Kompakt modu aç/kapat', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'Sabitlenmiş bölümü aç/kapat',
         collapseExpand: 'Tüm öğeleri daralt / genişlet', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
+        collapseExpandSelectedItem: 'Seçili öğeyi daralt / genişlet',
         addTag: 'Seçili dosyalara etiket ekle', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Seçili dosyalarda özellik ayarla', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'Seçili dosyalardan etiket kaldır', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
@@ -1190,7 +1191,7 @@ export const STRINGS_TR = {
             },
             compactItemHeight: {
                 name: 'Kompakt öğe yüksekliği',
-                desc: 'Masaüstü ve mobilde kompakt liste öğelerinin yüksekliğini ayarlayın.',
+                desc: 'Masaüstü ve mobilde kompakt liste öğelerinin yüksekliğini ayarlayın (piksel).',
                 resetTooltip: 'Varsayılana sıfırla (28px)'
             },
             compactItemHeightScaleText: {
@@ -1244,7 +1245,7 @@ export const STRINGS_TR = {
             },
             appearanceScale: {
                 name: 'Yakınlaştırma seviyesi',
-                desc: "Notebook Navigator'ın genel yakınlaştırma seviyesini kontrol eder."
+                desc: "Notebook Navigator'ın genel yakınlaştırma seviyesini kontrol eder (yüzde)."
             },
             useFloatingToolbars: {
                 name: "iOS/iPadOS'ta kayan araç çubuklarını kullan",
@@ -2030,11 +2031,11 @@ export const STRINGS_TR = {
             },
             navIndent: {
                 name: 'Ağaç girintisi',
-                desc: 'İç içe klasörler ve etiketler için girinti genişliğini ayarlayın.'
+                desc: 'İç içe klasörler ve etiketler için girinti genişliğini ayarlayın (piksel).'
             },
             navItemHeight: {
                 name: 'Öğe yüksekliği',
-                desc: 'Gezinme bölmesindeki klasör ve etiketlerin yüksekliğini ayarlayın.'
+                desc: 'Gezinme bölmesindeki klasör ve etiketlerin yüksekliğini ayarlayın (piksel).'
             },
             navItemHeightScaleText: {
                 name: 'Metni öğe yüksekliğiyle ölçekle',
@@ -2044,9 +2045,19 @@ export const STRINGS_TR = {
                 name: 'Girinti kılavuzlarını göster',
                 desc: 'İç içe klasörler ve etiketler için girinti kılavuzlarını göster.'
             },
+            navCountLeaderStyle: {
+                name: 'Doldurma işaretlerini göster',
+                desc: 'Öğe adları ile not sayıları arasında nokta, tire veya çizgi göster.',
+                options: {
+                    none: 'Yok',
+                    dots: 'Noktalar (...)',
+                    dashes: 'Tireler (---)',
+                    line: 'Çizgi'
+                }
+            },
             navRootSpacing: {
                 name: 'Kök öğe aralığı',
-                desc: 'Kök seviyesi klasörler ve etiketler arasındaki boşluk.'
+                desc: 'Kök seviyesi klasörler ve etiketler arasındaki boşluk (piksel).'
             },
             showTags: {
                 name: 'Etiketleri göster',

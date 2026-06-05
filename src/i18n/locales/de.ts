@@ -879,6 +879,7 @@ export const STRINGS_DE = {
         toggleCompactMode: 'Kompaktmodus umschalten', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'Angepinnten Bereich umschalten',
         collapseExpand: 'Alle Elemente ein-/ausklappen', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
+        collapseExpandSelectedItem: 'Ausgewähltes Element ein-/ausklappen',
         addTag: 'Tag zu ausgewählten Dateien hinzufügen', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Eigenschaft für ausgewählte Dateien setzen', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'Tag von ausgewählten Dateien entfernen', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
@@ -1194,7 +1195,7 @@ export const STRINGS_DE = {
             },
             compactItemHeight: {
                 name: 'Höhe schlanker Elemente',
-                desc: 'Legt die Höhe schlanker Listenelemente auf Desktop und Mobilgeräten fest.',
+                desc: 'Legt die Höhe schlanker Listenelemente auf Desktop und Mobilgeräten fest (Pixel).',
                 resetTooltip: 'Auf Standard zurücksetzen (28px)'
             },
             compactItemHeightScaleText: {
@@ -1248,7 +1249,7 @@ export const STRINGS_DE = {
             },
             appearanceScale: {
                 name: 'Zoomstufe',
-                desc: 'Steuert die gesamte Zoomstufe von Notebook Navigator.'
+                desc: 'Steuert die gesamte Zoomstufe von Notebook Navigator (Prozent).'
             },
             useFloatingToolbars: {
                 name: 'Schwebende Symbolleisten auf iOS/iPadOS verwenden',
@@ -2036,11 +2037,11 @@ export const STRINGS_DE = {
             },
             navIndent: {
                 name: 'Baum-Einrückung',
-                desc: 'Passen Sie die Einrückungsbreite für verschachtelte Ordner und Tags an.'
+                desc: 'Passen Sie die Einrückungsbreite für verschachtelte Ordner und Tags an (Pixel).'
             },
             navItemHeight: {
                 name: 'Zeilenhöhe',
-                desc: 'Passen Sie die Höhe von Ordnern und Tags im Navigationsbereich an.'
+                desc: 'Passen Sie die Höhe von Ordnern und Tags im Navigationsbereich an (Pixel).'
             },
             navItemHeightScaleText: {
                 name: 'Text mit Zeilenhöhe skalieren',
@@ -2050,9 +2051,19 @@ export const STRINGS_DE = {
                 name: 'Einrückungslinien anzeigen',
                 desc: 'Einrückungslinien für verschachtelte Ordner und Tags anzeigen.'
             },
+            navCountLeaderStyle: {
+                name: 'Führungszeichen anzeigen',
+                desc: 'Punkte, Striche oder eine Linie zwischen Elementnamen und Notizanzahl anzeigen.',
+                options: {
+                    none: 'Keine',
+                    dots: 'Punkte (...)',
+                    dashes: 'Striche (---)',
+                    line: 'Linie'
+                }
+            },
             navRootSpacing: {
                 name: 'Abstand für Wurzelelemente',
-                desc: 'Abstand zwischen Ordnern und Tags auf der obersten Ebene.'
+                desc: 'Abstand zwischen Ordnern und Tags auf der obersten Ebene (Pixel).'
             },
             showTags: {
                 name: 'Tags anzeigen',
