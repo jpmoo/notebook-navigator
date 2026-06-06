@@ -880,6 +880,7 @@ export const STRINGS_ZH_TW = {
     plugin: {
         viewName: '筆記本導覽器',
         calendarViewName: '日曆',
+        folderNoteSidebarViewName: '資料夾筆記',
         ribbonTooltip: '筆記本導覽器',
         revealInNavigator: '在筆記本導覽器中定位'
     },

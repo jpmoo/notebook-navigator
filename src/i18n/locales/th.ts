@@ -883,6 +883,7 @@ export const STRINGS_TH = {
     plugin: {
         viewName: 'Notebook Navigator',
         calendarViewName: 'ปฏิทิน',
+        folderNoteSidebarViewName: 'โน้ตโฟลเดอร์',
         ribbonTooltip: 'Notebook Navigator',
         revealInNavigator: 'แสดงใน Notebook Navigator'
     },

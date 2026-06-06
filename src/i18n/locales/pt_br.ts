@@ -892,6 +892,7 @@ export const STRINGS_PT_BR = {
     plugin: {
         viewName: 'Notebook Navigator',
         calendarViewName: 'Calendário',
+        folderNoteSidebarViewName: 'Nota de pasta',
         ribbonTooltip: 'Notebook Navigator',
         revealInNavigator: 'Revelar no Notebook Navigator'
     },

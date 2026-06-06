@@ -21,6 +21,7 @@ import { NotebookNavigatorSettingTab, type NotebookNavigatorSettings } from './s
 import {
     LocalStorageKeys,
     NOTEBOOK_NAVIGATOR_CALENDAR_VIEW,
+    NOTEBOOK_NAVIGATOR_FOLDER_NOTE_SIDEBAR_VIEW,
     NOTEBOOK_NAVIGATOR_VIEW,
     STORAGE_KEYS,
     type DualPaneOrientation,
@@ -46,6 +47,7 @@ import type { NavigateToFolderOptions } from './hooks/useNavigatorReveal';
 import ReleaseCheckService, { type ReleaseUpdateNotice } from './services/ReleaseCheckService';
 import { NotebookNavigatorView } from './view/NotebookNavigatorView';
 import { NotebookNavigatorCalendarView } from './view/NotebookNavigatorCalendarView';
+import { FolderNoteSidebarPlaceholderView } from './view/FolderNoteSidebarPlaceholderView';
 import { localStorage } from './utils/localStorage';
 import { INTERNAL_NOTEBOOK_NAVIGATOR_API, NotebookNavigatorAPI } from './api/NotebookNavigatorAPI';
 import { initializeDatabase, shutdownDatabase } from './storage/fileOperations';
@@ -542,6 +544,9 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         });
         this.registerView(NOTEBOOK_NAVIGATOR_CALENDAR_VIEW, leaf => {
             return new NotebookNavigatorCalendarView(leaf, this);
+        });
+        this.registerView(NOTEBOOK_NAVIGATOR_FOLDER_NOTE_SIDEBAR_VIEW, leaf => {
+            return new FolderNoteSidebarPlaceholderView(leaf);
         });
 
         // Register commands

@@ -890,6 +890,7 @@ export const STRINGS_ID = {
     plugin: {
         viewName: 'Notebook Navigator',
         calendarViewName: 'Kalender',
+        folderNoteSidebarViewName: 'Catatan folder',
         ribbonTooltip: 'Notebook Navigator',
         revealInNavigator: 'Tampilkan di Notebook Navigator'
     },

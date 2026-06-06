@@ -890,6 +890,7 @@ export const STRINGS_FA = {
     plugin: {
         viewName: 'Notebook Navigator',
         calendarViewName: 'تقویم',
+        folderNoteSidebarViewName: 'یادداشت پوشه',
         ribbonTooltip: 'Notebook Navigator',
         revealInNavigator: 'نمایش در Notebook Navigator'
     },

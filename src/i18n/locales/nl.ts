@@ -892,6 +892,7 @@ export const STRINGS_NL = {
     plugin: {
         viewName: 'Notebook Navigator',
         calendarViewName: 'Kalender',
+        folderNoteSidebarViewName: 'Mapnotitie',
         ribbonTooltip: 'Notebook Navigator',
         revealInNavigator: 'Tonen in Notebook Navigator'
     },

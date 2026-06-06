@@ -37,6 +37,12 @@ export const NOTEBOOK_NAVIGATOR_VIEW = 'notebook-navigator';
 export const NOTEBOOK_NAVIGATOR_CALENDAR_VIEW = 'notebook-navigator-calendar';
 
 /**
+ * Unique identifier for the folder note sidebar placeholder view.
+ * Used to keep a stable right sidebar slot when no folder note is open.
+ */
+export const NOTEBOOK_NAVIGATOR_FOLDER_NOTE_SIDEBAR_VIEW = 'notebook-navigator-folder-note-sidebar';
+
+/**
  * Virtual tag collection id for notes without tags.
  * Stored in tag selection state and used as a tag filter token.
  */
