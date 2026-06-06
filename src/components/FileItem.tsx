@@ -1301,7 +1301,7 @@ export const FileItem = React.memo(function FileItem({
             style={fileRowStyle}
         >
             <div className="nn-file-content">
-                {/* Quick actions panel visibility is controlled by CSS hover and focus selectors. */}
+                {/* Quick actions mount only for the row currently tracked by the list pane hover state. */}
                 {!isMobile && hasQuickActions && showQuickActionsPanel && (
                     <div
                         className={`nn-quick-actions-panel ${isCompactMode ? 'nn-compact-mode' : ''}`}

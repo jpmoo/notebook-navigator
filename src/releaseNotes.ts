@@ -107,6 +107,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
             '**List pane.** When grouping by folder, the current folder name will always be displayed on top so you can collapse items in the current folder.'
         ],
         fixed: [
+            '**List pane.** Fixed quick actions not reappearing after switching from Notebook Navigator to another left sidebar tab and back.',
             '**Commands.** Fixed Cmd+W accidentally closing Notebook Navigator after focusing the sidebar with the Notebook Navigator: Open command.'
         ]
     },
