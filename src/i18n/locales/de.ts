@@ -892,6 +892,7 @@ export const STRINGS_DE = {
     plugin: {
         viewName: 'Notebook Navigator', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: 'Kalender', // Name shown in the view header/tab (English: Calendar)
+        folderNoteSidebarViewName: 'Ordnernotiz', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'In Notebook Navigator anzeigen' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
@@ -931,6 +932,7 @@ export const STRINGS_DE = {
             icons: 'Icon-Pakete',
             folders: 'Ordner',
             folderNotes: 'Ordnernotizen',
+            folderNoteFiles: 'Ordnernotiz-Dateien',
             foldersAndFolderNotes: 'Ordner & Ordnernotizen',
             foldersAndTags: 'Ordner',
             tagsAndProperties: 'Tags & Eigenschaften',
@@ -2176,8 +2178,8 @@ export const STRINGS_DE = {
                 desc: 'Vorlagendatei für neue Markdown-Ordnernotizen. Vorlagenordner unter Darstellung & Verhalten > Vorlagen festlegen.'
             },
             enableFolderNoteLinks: {
-                name: 'Ordnernotiz-Links aktivieren',
-                desc: 'Ordnerbeschriftungen werden als Links dargestellt und öffnen Ordnernotizen beim Klicken. Wenn deaktiviert, liefern Ordnernotizen weiterhin Name-, Symbol- und Farbmetadaten.'
+                name: 'Ordnernamen öffnen Ordnernotizen',
+                desc: 'Ein Klick auf einen Ordnernamen öffnet seine Ordnernotiz. Wenn deaktiviert, liefern Ordnernotizen nur Ordnermetadaten wie Name, Symbol und Farbe.'
             },
             hideFolderNoteInList: {
                 name: 'Ordnernotizen in Liste ausblenden',
@@ -2187,9 +2189,18 @@ export const STRINGS_DE = {
                 name: 'Erstellte Ordnernotizen anheften',
                 desc: 'Ordnernotizen anheften, wenn sie über das Kontextmenü erstellt werden.'
             },
-            openFolderNotesInNewTab: {
-                name: 'Ordnernotizen in neuem Tab öffnen',
-                desc: 'Ordnernotizen beim Klicken auf einen Ordner in einem neuen Tab öffnen.'
+            folderNoteOpenLocation: {
+                name: 'Ordnernotizen öffnen in',
+                desc: 'Wähle, wo Ordnernotizen beim Klicken auf Ordnernotiz-Links geöffnet werden.',
+                options: {
+                    currentTab: 'Aktueller Tab',
+                    newTab: 'Neuer Tab',
+                    rightSidebar: 'Rechte Seitenleiste'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'Rechte Seitenleiste: Nächste Ordnernotiz anzeigen',
+                desc: 'Wenn ein Ordner ausgewählt wird, zeigt die rechte Seitenleiste automatisch die nächstgelegene übergeordnete Ordnernotiz an.'
             },
             confirmBeforeDelete: {
                 name: 'Vor dem Löschen bestätigen',

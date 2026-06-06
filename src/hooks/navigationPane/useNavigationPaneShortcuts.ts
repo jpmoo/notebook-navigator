@@ -216,6 +216,7 @@ export function useNavigationPaneShortcuts({
         uiState,
         uiDispatch,
         selectionType: selectionState.selectionType,
+        selectedFolder: selectionState.selectedFolder,
         selectionDispatch,
         setActiveShortcut: shortcutState.setActiveShortcut,
         onExecuteSearchShortcut,
@@ -224,6 +225,7 @@ export function useNavigationPaneShortcuts({
         onRevealProperty,
         onRevealFile,
         onRevealShortcutFile,
+        openFolderNoteInRightSidebar: folderNote => plugin.openFolderNoteInRightSidebar(folderNote),
         tagTree: fileData.tagTree,
         hydratedShortcuts
     });

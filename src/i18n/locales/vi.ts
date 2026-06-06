@@ -891,6 +891,7 @@ export const STRINGS_VI = {
     plugin: {
         viewName: 'Notebook Navigator', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: 'Lịch', // Name shown in the view header/tab (English: Calendar)
+        folderNoteSidebarViewName: 'Ghi chú thư mục', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'Hiện trong Notebook Navigator' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
@@ -930,6 +931,7 @@ export const STRINGS_VI = {
             icons: 'Gói biểu tượng',
             folders: 'Thư mục',
             folderNotes: 'Ghi chú thư mục',
+            folderNoteFiles: 'Tệp ghi chú thư mục',
             foldersAndFolderNotes: 'Thư mục và ghi chú thư mục',
             foldersAndTags: 'Thư mục',
             tagsAndProperties: 'Thẻ và thuộc tính',
@@ -2173,8 +2175,8 @@ export const STRINGS_VI = {
                 desc: 'Tệp mẫu cho ghi chú thư mục Markdown mới. Đặt vị trí thư mục mẫu trong Giao diện và hành vi > Mẫu.'
             },
             enableFolderNoteLinks: {
-                name: 'Bật liên kết ghi chú thư mục',
-                desc: 'Nhãn thư mục được hiển thị dưới dạng liên kết và mở ghi chú thư mục khi nhấp. Khi tắt, ghi chú thư mục vẫn cung cấp siêu dữ liệu tên, biểu tượng và màu.'
+                name: 'Tên thư mục mở ghi chú thư mục',
+                desc: 'Nhấp vào tên thư mục sẽ mở ghi chú thư mục của thư mục đó. Khi tắt, ghi chú thư mục chỉ cung cấp metadata thư mục như tên, biểu tượng và màu.'
             },
             hideFolderNoteInList: {
                 name: 'Ẩn ghi chú thư mục trong danh sách',
@@ -2184,9 +2186,18 @@ export const STRINGS_VI = {
                 name: 'Ghim ghi chú thư mục đã tạo',
                 desc: 'Ghim ghi chú thư mục khi tạo từ menu ngữ cảnh.'
             },
-            openFolderNotesInNewTab: {
-                name: 'Mở ghi chú thư mục trong tab mới',
-                desc: 'Mở ghi chú thư mục trong tab mới khi nhấp vào thư mục.'
+            folderNoteOpenLocation: {
+                name: 'Mở ghi chú thư mục trong',
+                desc: 'Chọn nơi mở ghi chú thư mục khi nhấp vào liên kết ghi chú thư mục.',
+                options: {
+                    currentTab: 'Tab hiện tại',
+                    newTab: 'Tab mới',
+                    rightSidebar: 'Thanh bên phải'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'Thanh bên phải: Hiển thị ghi chú thư mục gần nhất',
+                desc: 'Khi một thư mục được chọn, thanh bên phải tự động hiển thị ghi chú thư mục tổ tiên gần nhất.'
             },
             confirmBeforeDelete: {
                 name: 'Xác nhận trước khi xóa',

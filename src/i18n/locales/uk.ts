@@ -887,6 +887,7 @@ export const STRINGS_UK = {
     plugin: {
         viewName: 'Notebook Navigator', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: 'Календар', // Name shown in the view header/tab (English: Calendar)
+        folderNoteSidebarViewName: 'Нотатка папки', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'Показати в Notebook Navigator' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
@@ -926,6 +927,7 @@ export const STRINGS_UK = {
             icons: 'Пакети іконок',
             folders: 'Папки',
             folderNotes: 'Нотатки папок',
+            folderNoteFiles: 'Файли нотаток папок',
             foldersAndFolderNotes: 'Папки та нотатки папок',
             foldersAndTags: 'Папки',
             tagsAndProperties: 'Теги та властивості',
@@ -2170,8 +2172,8 @@ export const STRINGS_UK = {
                 desc: 'Файл шаблону для нових нотаток тек Markdown. Вкажіть розташування теки шаблонів у Вигляд і поведінка > Шаблони.'
             },
             enableFolderNoteLinks: {
-                name: 'Увімкнути посилання нотаток тек',
-                desc: 'Мітки тек відображаються як посилання і відкривають нотатки тек при натисканні. Коли вимкнено, нотатки тек все одно надають метадані назви, значка та кольору.'
+                name: 'Назви папок відкривають нотатки папок',
+                desc: 'Натискання назви папки відкриває її нотатку папки. Коли вимкнено, нотатки папок надають лише метадані папки, як-от назву, значок і колір.'
             },
             hideFolderNoteInList: {
                 name: 'Приховувати нотатку папки в списку',
@@ -2181,9 +2183,18 @@ export const STRINGS_UK = {
                 name: 'Закріплювати створені нотатки папок',
                 desc: 'Закріплювати нотатки тек при створенні з контекстного меню.'
             },
-            openFolderNotesInNewTab: {
-                name: 'Відкривати нотатки папок у новій вкладці',
-                desc: 'Відкривати нотатки тек у новій вкладці при натисканні на теку.'
+            folderNoteOpenLocation: {
+                name: 'Відкривати нотатки папок у',
+                desc: 'Виберіть, де відкривати нотатки папок під час натискання посилань нотаток папок.',
+                options: {
+                    currentTab: 'Поточна вкладка',
+                    newTab: 'Нова вкладка',
+                    rightSidebar: 'Права бічна панель'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'Права бічна панель: показувати найближчу нотатку папки',
+                desc: 'Коли вибрано папку, права бічна панель автоматично показує найближчу батьківську нотатку папки.'
             },
             confirmBeforeDelete: {
                 name: 'Підтверджувати перед видаленням',

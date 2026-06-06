@@ -21,7 +21,7 @@ import { App, Menu, TFile, TFolder } from 'obsidian';
 import { Virtualizer } from '@tanstack/react-virtual';
 import { useFileSystemOps, useMetadataService, useServices } from '../../context/ServicesContext';
 import { strings } from '../../i18n';
-import { ListPaneItemType, PINNED_SECTION_HEADER_KEY, type NavigationItemType } from '../../types';
+import { ItemType, ListPaneItemType, PINNED_SECTION_HEADER_KEY, type NavigationItemType } from '../../types';
 import { runAsyncAction } from '../../utils/async';
 import { getFolderNote, openFolderNoteFile } from '../../utils/folderNotes';
 import { resolveFolderNoteClickOpenContext } from '../../utils/keyboardOpenContext';
@@ -121,6 +121,7 @@ interface ListPaneVirtualContentProps {
     onPinnedGroupHeaderToggle: () => void;
     onListGroupHeaderToggle: (collapseKey: string) => void;
     selectionType: NavigationItemType | null;
+    selectedFolderPath: string | null;
     sortOption?: SortOption;
     searchHighlightQuery?: string;
     isFolderNavigation: boolean;
@@ -438,6 +439,7 @@ export function ListPaneVirtualContent({
     onPinnedGroupHeaderToggle,
     onListGroupHeaderToggle,
     selectionType,
+    selectedFolderPath,
     sortOption,
     searchHighlightQuery,
     isFolderNavigation,
@@ -466,7 +468,7 @@ export function ListPaneVirtualContent({
     fileItemPillOrderModel,
     getSolidBackground
 }: ListPaneVirtualContentProps) {
-    const { app, commandQueue, isMobile } = useServices();
+    const { app, commandQueue, isMobile, plugin } = useServices();
     const fileSystemOps = useFileSystemOps();
     const metadataService = useMetadataService();
     const collapseChevronIcons = useMemo(
@@ -651,10 +653,18 @@ export function ListPaneVirtualContent({
 
             const openContext = resolveFolderNoteClickOpenContext(
                 event,
-                settings.openFolderNotesInNewTab,
+                settings.folderNoteOpenLocation,
                 settings.multiSelectModifier,
                 isMobile
             );
+
+            if (
+                openContext === 'right-sidebar' &&
+                settings.showNearestFolderNoteInSidebar &&
+                !(selectionType === ItemType.FOLDER && selectedFolderPath === target.folder.path)
+            ) {
+                return;
+            }
 
             runAsyncAction(() =>
                 openFolderNoteFile({
@@ -662,11 +672,23 @@ export function ListPaneVirtualContent({
                     commandQueue,
                     folder: target.folder,
                     folderNote,
-                    context: openContext
+                    context: openContext,
+                    openInRightSidebar: folderNoteFile => plugin.openFolderNoteInRightSidebar(folderNoteFile)
                 })
             );
         },
-        [app, commandQueue, isMobile, onNavigateToFolder, settings.multiSelectModifier, settings.openFolderNotesInNewTab]
+        [
+            app,
+            commandQueue,
+            isMobile,
+            onNavigateToFolder,
+            plugin,
+            selectedFolderPath,
+            selectionType,
+            settings.folderNoteOpenLocation,
+            settings.multiSelectModifier,
+            settings.showNearestFolderNoteInSidebar
+        ]
     );
 
     const handleFolderGroupHeaderMouseDown = useCallback(

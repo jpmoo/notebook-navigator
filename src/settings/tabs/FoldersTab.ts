@@ -63,37 +63,21 @@ export function createFoldersSettingDefinitions(context: SettingsTabContext, hea
                 name: strings.settings.items.enableFolderNotes.name,
                 desc: strings.settings.items.enableFolderNotes.desc
             }),
-            createDropdownDefinition('folderNoteType', {
-                name: strings.settings.items.folderNoteType.name,
-                desc: strings.settings.items.folderNoteType.desc,
-                aliases: Object.values(strings.settings.items.folderNoteType.options),
+            createDropdownDefinition('folderNoteOpenLocation', {
+                name: strings.settings.items.folderNoteOpenLocation.name,
+                desc: strings.settings.items.folderNoteOpenLocation.desc,
+                aliases: Object.values(strings.settings.items.folderNoteOpenLocation.options),
                 visible: () => plugin.settings.enableFolderNotes,
                 options: {
-                    ask: strings.settings.items.folderNoteType.options.ask,
-                    markdown: strings.settings.items.folderNoteType.options.markdown,
-                    canvas: strings.settings.items.folderNoteType.options.canvas,
-                    base: strings.settings.items.folderNoteType.options.base
+                    'current-tab': strings.settings.items.folderNoteOpenLocation.options.currentTab,
+                    'new-tab': strings.settings.items.folderNoteOpenLocation.options.newTab,
+                    'right-sidebar': strings.settings.items.folderNoteOpenLocation.options.rightSidebar
                 }
             }),
-            createTextDefinition('folderNoteName', {
-                name: strings.settings.items.folderNoteName.name,
-                desc: strings.settings.items.folderNoteName.desc,
-                aliases: [strings.settings.items.folderNoteName.placeholder],
-                placeholder: strings.settings.items.folderNoteName.placeholder,
-                visible: () => plugin.settings.enableFolderNotes
-            }),
-            createTextDefinition('folderNoteNamePattern', {
-                name: strings.settings.items.folderNoteNamePattern.name,
-                desc: strings.settings.items.folderNoteNamePattern.desc,
-                aliases: [FOLDER_NOTE_NAME_PATTERN_PLACEHOLDER],
-                placeholder: FOLDER_NOTE_NAME_PATTERN_PLACEHOLDER,
-                visible: () => plugin.settings.enableFolderNotes
-            }),
-            createRenderDefinition({
-                name: strings.settings.items.folderNoteTemplate.name,
-                desc: strings.settings.items.folderNoteTemplate.desc,
-                visible: () => plugin.settings.enableFolderNotes,
-                render: setting => renderFolderNoteTemplateSetting(setting, context)
+            createToggleDefinition('showNearestFolderNoteInSidebar', {
+                name: strings.settings.items.showNearestFolderNoteInSidebar.name,
+                desc: strings.settings.items.showNearestFolderNoteInSidebar.desc,
+                visible: () => plugin.settings.enableFolderNotes && plugin.settings.folderNoteOpenLocation === 'right-sidebar'
             }),
             createToggleDefinition('enableFolderNoteLinks', {
                 name: strings.settings.items.enableFolderNoteLinks.name,
@@ -104,18 +88,46 @@ export function createFoldersSettingDefinitions(context: SettingsTabContext, hea
                 name: strings.settings.items.hideFolderNoteInList.name,
                 desc: strings.settings.items.hideFolderNoteInList.desc,
                 visible: () => plugin.settings.enableFolderNotes
-            }),
-            createToggleDefinition('pinCreatedFolderNote', {
-                name: strings.settings.items.pinCreatedFolderNote.name,
-                desc: strings.settings.items.pinCreatedFolderNote.desc,
-                visible: () => plugin.settings.enableFolderNotes
-            }),
-            createToggleDefinition('openFolderNotesInNewTab', {
-                name: strings.settings.items.openFolderNotesInNewTab.name,
-                desc: strings.settings.items.openFolderNotesInNewTab.desc,
-                visible: () => plugin.settings.enableFolderNotes
             })
-        ])
+        ]),
+        createGroupDefinition(
+            strings.settings.sections.folderNoteFiles,
+            [
+                createDropdownDefinition('folderNoteType', {
+                    name: strings.settings.items.folderNoteType.name,
+                    desc: strings.settings.items.folderNoteType.desc,
+                    aliases: Object.values(strings.settings.items.folderNoteType.options),
+                    options: {
+                        ask: strings.settings.items.folderNoteType.options.ask,
+                        markdown: strings.settings.items.folderNoteType.options.markdown,
+                        canvas: strings.settings.items.folderNoteType.options.canvas,
+                        base: strings.settings.items.folderNoteType.options.base
+                    }
+                }),
+                createTextDefinition('folderNoteName', {
+                    name: strings.settings.items.folderNoteName.name,
+                    desc: strings.settings.items.folderNoteName.desc,
+                    aliases: [strings.settings.items.folderNoteName.placeholder],
+                    placeholder: strings.settings.items.folderNoteName.placeholder
+                }),
+                createTextDefinition('folderNoteNamePattern', {
+                    name: strings.settings.items.folderNoteNamePattern.name,
+                    desc: strings.settings.items.folderNoteNamePattern.desc,
+                    aliases: [FOLDER_NOTE_NAME_PATTERN_PLACEHOLDER],
+                    placeholder: FOLDER_NOTE_NAME_PATTERN_PLACEHOLDER
+                }),
+                createRenderDefinition({
+                    name: strings.settings.items.folderNoteTemplate.name,
+                    desc: strings.settings.items.folderNoteTemplate.desc,
+                    render: setting => renderFolderNoteTemplateSetting(setting, context)
+                }),
+                createToggleDefinition('pinCreatedFolderNote', {
+                    name: strings.settings.items.pinCreatedFolderNote.name,
+                    desc: strings.settings.items.pinCreatedFolderNote.desc
+                })
+            ],
+            { visible: () => plugin.settings.enableFolderNotes }
+        )
     ];
 }
 

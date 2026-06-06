@@ -885,6 +885,7 @@ export const STRINGS_AR = {
     plugin: {
         viewName: 'متصفح الدفتر', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: 'تقويم', // Name shown in the view header/tab (English: Calendar)
+        folderNoteSidebarViewName: 'ملاحظة المجلد', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'متصفح الدفتر', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'الكشف في متصفح الدفتر' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
@@ -924,6 +925,7 @@ export const STRINGS_AR = {
             icons: 'حزم الأيقونات',
             folders: 'مجلدات',
             folderNotes: 'ملاحظات المجلد',
+            folderNoteFiles: 'ملفات ملاحظات المجلد',
             foldersAndFolderNotes: 'المجلدات وملاحظات المجلد',
             foldersAndTags: 'مجلدات',
             tagsAndProperties: 'الوسوم والخصائص',
@@ -2166,8 +2168,8 @@ export const STRINGS_AR = {
                 desc: 'ملف قالب لملاحظات المجلد الجديدة بتنسيق Markdown. حدد موقع مجلد القوالب في المظهر والسلوك > قوالب.'
             },
             enableFolderNoteLinks: {
-                name: 'تفعيل روابط ملاحظات المجلدات',
-                desc: 'يتم تنسيق تسميات المجلدات كروابط وتفتح ملاحظات المجلدات عند النقر. عند الإيقاف، تستمر ملاحظات المجلدات في توفير بيانات الاسم والأيقونة واللون.'
+                name: 'أسماء المجلدات تفتح ملاحظات المجلد',
+                desc: 'يؤدي النقر على اسم مجلد إلى فتح ملاحظة المجلد الخاصة به. عند الإيقاف، توفر ملاحظات المجلد بيانات وصفية للمجلد فقط مثل الاسم والأيقونة واللون.'
             },
             hideFolderNoteInList: {
                 name: 'إخفاء ملاحظات المجلدات في القائمة',
@@ -2177,9 +2179,18 @@ export const STRINGS_AR = {
                 name: 'تثبيت ملاحظات المجلدات المنشأة',
                 desc: 'تثبيت ملاحظات المجلدات عند إنشائها من قائمة السياق.'
             },
-            openFolderNotesInNewTab: {
-                name: 'فتح ملاحظات المجلد في علامة تبويب جديدة',
-                desc: 'فتح ملاحظات المجلدات في علامة تبويب جديدة عند النقر على مجلد.'
+            folderNoteOpenLocation: {
+                name: 'فتح ملاحظات المجلد في',
+                desc: 'اختر مكان فتح ملاحظات المجلد عند النقر على روابط ملاحظات المجلد.',
+                options: {
+                    currentTab: 'علامة التبويب الحالية',
+                    newTab: 'علامة تبويب جديدة',
+                    rightSidebar: 'الشريط الجانبي الأيمن'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'الشريط الجانبي الأيمن: عرض أقرب ملاحظة مجلد',
+                desc: 'عند تحديد مجلد، يعرض الشريط الجانبي الأيمن تلقائيًا أقرب ملاحظة مجلد أصلية.'
             },
             confirmBeforeDelete: {
                 name: 'التأكيد قبل الحذف',

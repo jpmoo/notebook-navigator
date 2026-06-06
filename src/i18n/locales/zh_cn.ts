@@ -880,6 +880,7 @@ export const STRINGS_ZH_CN = {
     plugin: {
         viewName: '笔记本导航器', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: '日历', // Name shown in the view header/tab (English: Calendar)
+        folderNoteSidebarViewName: '文件夹笔记', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: '笔记本导航器', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: '在笔记本导航器中定位' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
@@ -919,6 +920,7 @@ export const STRINGS_ZH_CN = {
             icons: '图标包',
             folders: '文件夹',
             folderNotes: '文件夹笔记',
+            folderNoteFiles: '文件夹笔记文件',
             foldersAndFolderNotes: '文件夹和文件夹笔记',
             foldersAndTags: '文件夹',
             tagsAndProperties: '标签与属性',
@@ -2157,8 +2159,8 @@ export const STRINGS_ZH_CN = {
                 desc: '新建 Markdown 文件夹笔记的模板文件。在外观和行为 > 模板中设置模板文件夹位置。'
             },
             enableFolderNoteLinks: {
-                name: '启用文件夹笔记链接',
-                desc: '文件夹标签显示为链接样式，点击可打开文件夹笔记。关闭时，文件夹笔记仍提供名称、图标和颜色元数据。'
+                name: '文件夹名称打开文件夹笔记',
+                desc: '点击文件夹名称会打开其文件夹笔记。关闭时，文件夹笔记仅提供文件夹元数据，例如名称、图标和颜色。'
             },
             hideFolderNoteInList: {
                 name: '在列表中隐藏文件夹笔记',
@@ -2168,9 +2170,18 @@ export const STRINGS_ZH_CN = {
                 name: '固定创建的文件夹笔记',
                 desc: '从上下文菜单创建时固定文件夹笔记。'
             },
-            openFolderNotesInNewTab: {
-                name: '在新标签页中打开文件夹笔记',
-                desc: '点击文件夹时在新标签页中打开文件夹笔记。'
+            folderNoteOpenLocation: {
+                name: '打开文件夹笔记到',
+                desc: '选择点击文件夹笔记链接时文件夹笔记的打开位置。',
+                options: {
+                    currentTab: '当前标签页',
+                    newTab: '新标签页',
+                    rightSidebar: '右侧边栏'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: '右侧边栏：显示最近的文件夹笔记',
+                desc: '选择文件夹时，右侧边栏会自动显示最近的上级文件夹笔记。'
             },
             confirmBeforeDelete: {
                 name: '删除前确认',

@@ -890,6 +890,7 @@ export const STRINGS_FA = {
     plugin: {
         viewName: 'Notebook Navigator',
         calendarViewName: 'تقویم',
+        folderNoteSidebarViewName: 'یادداشت پوشه',
         ribbonTooltip: 'Notebook Navigator',
         revealInNavigator: 'نمایش در Notebook Navigator'
     },
@@ -929,6 +930,7 @@ export const STRINGS_FA = {
             icons: 'بسته‌های آیکون',
             folders: 'پوشه‌ها',
             folderNotes: 'یادداشت‌های پوشه',
+            folderNoteFiles: 'فایل‌های یادداشت پوشه',
             foldersAndFolderNotes: 'پوشه‌ها و یادداشت‌های پوشه',
             foldersAndTags: 'پوشه‌ها',
             tagsAndProperties: 'برچسب‌ها و ویژگی‌ها',
@@ -2172,8 +2174,8 @@ export const STRINGS_FA = {
                 desc: 'فایل الگو برای یادداشت‌های پوشه مارک‌داون جدید. محل پوشه الگوها را در ظاهر و رفتار > الگوها تنظیم کنید.'
             },
             enableFolderNoteLinks: {
-                name: 'فعال‌سازی پیوندهای یادداشت پوشه',
-                desc: 'برچسب‌های پوشه به صورت پیوند نمایش داده می‌شوند و با کلیک، یادداشت‌های پوشه را باز می‌کنند. در صورت غیرفعال بودن، یادداشت‌های پوشه همچنان اطلاعات نام، آیکون و رنگ را ارائه می‌دهند.'
+                name: 'نام پوشه‌ها یادداشت‌های پوشه را باز می‌کند',
+                desc: 'کلیک روی نام پوشه، یادداشت پوشه آن را باز می‌کند. در صورت غیرفعال بودن، یادداشت‌های پوشه فقط فراداده پوشه مانند نام، آیکون و رنگ را ارائه می‌دهند.'
             },
             hideFolderNoteInList: {
                 name: 'مخفی کردن یادداشت پوشه در لیست',
@@ -2183,9 +2185,18 @@ export const STRINGS_FA = {
                 name: 'سنجاق کردن یادداشت‌های پوشه ایجاد شده',
                 desc: 'سنجاق کردن یادداشت‌های پوشه هنگام ایجاد از منوی زمینه.'
             },
-            openFolderNotesInNewTab: {
-                name: 'باز کردن یادداشت پوشه در تب جدید',
-                desc: 'باز کردن یادداشت‌های پوشه در تب جدید هنگام کلیک روی پوشه.'
+            folderNoteOpenLocation: {
+                name: 'باز کردن یادداشت‌های پوشه در',
+                desc: 'انتخاب کنید یادداشت‌های پوشه هنگام کلیک روی پیوندهای یادداشت پوشه کجا باز شوند.',
+                options: {
+                    currentTab: 'تب فعلی',
+                    newTab: 'تب جدید',
+                    rightSidebar: 'نوار کناری راست'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'نوار کناری راست: نمایش نزدیک‌ترین یادداشت پوشه',
+                desc: 'وقتی پوشه‌ای انتخاب می‌شود، نوار کناری راست به‌طور خودکار نزدیک‌ترین یادداشت پوشه والد را نشان می‌دهد.'
             },
             confirmBeforeDelete: {
                 name: 'تأیید قبل از حذف',

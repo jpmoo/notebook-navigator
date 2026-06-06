@@ -73,7 +73,7 @@ export function NavigationPaneShortcutRow({ item, context, adjacentFilledClassNa
             const isRootShortcut = folderPath === '/';
             const folderName = (() => {
                 if (isRootShortcut) {
-                    return settings.customVaultName || app.vault.getName();
+                    return item.displayName || settings.customVaultName || app.vault.getName();
                 }
                 if (canInteract && folder) {
                     return item.displayName || folder.name;

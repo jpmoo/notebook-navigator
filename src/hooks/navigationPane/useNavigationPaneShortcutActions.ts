@@ -29,7 +29,7 @@ import { resolvePropertyShortcutNodeId } from '../../utils/propertyTree';
 import { resolveCanonicalTagPath } from '../../utils/tagUtils';
 import { runAsyncAction } from '../../utils/async';
 import { openFileInContext } from '../../utils/openFileInContext';
-import { getFolderNote, openFolderNoteFile } from '../../utils/folderNotes';
+import { getFolderNote, openFolderNoteFile, type FolderNoteOpenContext } from '../../utils/folderNotes';
 import { resolveFolderNoteClickOpenContext } from '../../utils/keyboardOpenContext';
 import { ItemType } from '../../types';
 import type { NavigateToFolderOptions, RevealPropertyOptions, RevealTagOptions } from '../useNavigatorReveal';
@@ -59,6 +59,7 @@ interface UseNavigationPaneShortcutActionsProps {
     uiState: UIStateLike;
     uiDispatch: Dispatch<UIAction>;
     selectionType: NavigationSelectionState['selectionType'];
+    selectedFolder: NavigationSelectionState['selectedFolder'];
     selectionDispatch: Dispatch<SelectionAction>;
     setActiveShortcut: Dispatch<SetStateAction<string | null>>;
     onExecuteSearchShortcut?: (shortcutKey: string, searchShortcut: SearchShortcut) => Promise<void> | void;
@@ -67,6 +68,7 @@ interface UseNavigationPaneShortcutActionsProps {
     onRevealProperty: (propertyNodeId: string, options?: RevealPropertyOptions) => boolean;
     onRevealFile: (file: TFile) => void;
     onRevealShortcutFile?: (file: TFile) => void;
+    openFolderNoteInRightSidebar: (folderNote: TFile) => Promise<void>;
     tagTree: Map<string, import('../../types/storage').TagTreeNode>;
     hydratedShortcuts: HydratedShortcutActionItem[];
 }
@@ -80,6 +82,7 @@ export function useNavigationPaneShortcutActions({
     uiState,
     uiDispatch,
     selectionType,
+    selectedFolder,
     selectionDispatch,
     setActiveShortcut,
     onExecuteSearchShortcut,
@@ -88,9 +91,22 @@ export function useNavigationPaneShortcutActions({
     onRevealProperty,
     onRevealFile,
     onRevealShortcutFile,
+    openFolderNoteInRightSidebar,
     tagTree,
     hydratedShortcuts
 }: UseNavigationPaneShortcutActionsProps) {
+    const focusListPaneAfterRightSidebarFolderNoteSelection = useCallback(
+        (openContext: FolderNoteOpenContext) => {
+            if (!uiState.singlePane || openContext !== 'right-sidebar') {
+                return;
+            }
+
+            uiDispatch({ type: 'SET_SINGLE_PANE_VIEW', view: 'files' });
+            uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'files' });
+        },
+        [uiDispatch, uiState.singlePane]
+    );
+
     const scheduleShortcutRelease = useCallback(() => {
         const release = () => setActiveShortcut(null);
 
@@ -131,17 +147,46 @@ export function useNavigationPaneShortcutActions({
                 return;
             }
 
+            const wasSelectedFolder = selectionType === ItemType.FOLDER && selectedFolder?.path === folder.path;
             selectionDispatch({ type: 'SET_SELECTED_FOLDER', folder, autoSelectedFile: null });
             const openContext = resolveFolderNoteClickOpenContext(
                 event,
-                settings.openFolderNotesInNewTab,
+                settings.folderNoteOpenLocation,
                 settings.multiSelectModifier,
                 isMobile
             );
-            runAsyncAction(() => openFolderNoteFile({ app, commandQueue, folder, folderNote, context: openContext }));
+            focusListPaneAfterRightSidebarFolderNoteSelection(openContext);
+            if (openContext === 'right-sidebar' && settings.showNearestFolderNoteInSidebar && !wasSelectedFolder) {
+                scheduleShortcutRelease();
+                return;
+            }
+
+            runAsyncAction(() =>
+                openFolderNoteFile({
+                    app,
+                    commandQueue,
+                    folder,
+                    folderNote,
+                    context: openContext,
+                    openInRightSidebar: openFolderNoteInRightSidebar
+                })
+            );
             scheduleShortcutRelease();
         },
-        [app, commandQueue, handleShortcutFolderActivate, isMobile, scheduleShortcutRelease, selectionDispatch, setActiveShortcut, settings]
+        [
+            app,
+            commandQueue,
+            focusListPaneAfterRightSidebarFolderNoteSelection,
+            handleShortcutFolderActivate,
+            isMobile,
+            openFolderNoteInRightSidebar,
+            scheduleShortcutRelease,
+            selectedFolder,
+            selectionDispatch,
+            setActiveShortcut,
+            selectionType,
+            settings
+        ]
     );
 
     const handleShortcutFolderNoteMouseDown = useCallback(

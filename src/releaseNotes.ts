@@ -81,24 +81,27 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
-        version: '3.0.3',
+        version: '3.1.0',
         date: '2026-06-05',
         showOnUpdate: true,
-        info: 'This version focuses on ==list pane and navigation pane performance improvements==. Notebook Navigator now does less work when scrolling and moving through notes, folders, tags and properties. Give it a try and let me know if you notice any difference!',
+        info: 'This version adds two fantastic new features: ==Open folder notes in right sidebar== and ==Right sidebar: Show closest folder note==. When these settings are enabled, selecting a folder will now automatically open its folder note or the closest ancestor folder note in the right sidebar! Super useful for scratch pads related to different areas of your vault. This release also includes dozens of ==list pane and navigation pane performance improvements==. Notebook Navigator now does less work when scrolling and moving through notes, folders, tags and properties. Give it a try and let me know if you notice any difference!',
         new: [
-            '**Interface icons.** Added ==Pinned notes icon== to Settings > Appearance & behavior > Interface icons. This icon is displayed next to the Pinned items group header if set, default not set.',
-            '**Commands.** Added ==Collapse / expand selected item== to toggle the selected navigation item.',
-            '**List pane.** Added ==Show subfolder paths== in List pane > Group headers. Default enabled, disable to only show folder names when grouping by folder.',
-            '**Navigation pane.** Added ==Show leaders== in Navigation pane > Appearance. Choose dots, dashes, or a line between item names and note counts. Makes navigation pane look like a table of contents.',
+            '**Commands.** New command ==Collapse / expand selected item== to toggle the selected navigation item.',
+            '**Settings.** New setting ==Open folder notes in right sidebar== to Settings > Folders & folder notes.',
+            '**Settings.** New setting ==Right sidebar: Show closest folder note==. When a folder is selected, the right sidebar automatically shows the nearest ancestor folder note.',
+            '**Settings.** New setting ==Pinned notes icon== to Settings > Appearance & behavior > Interface icons. This icon is displayed next to the Pinned items group header if set, default not set.',
+            '**Settings.** New setting ==Show subfolder paths== in List pane > Group headers. Default enabled, disable to only show folder names when grouping by folder.',
+            '**Settings.** New setting ==Show leaders== in Navigation pane > Appearance. Choose dots, dashes, or a line between item names and note counts. Makes navigation pane look like a Table of Contents.',
             '**Style settings.** Two new style settings; ==Indent guide color and Leader color== to customize the colors of indent guides and leaders.'
         ],
         improved: [
+            '**Folder notes.** The vault root can now have a folder note. Default naming uses the vault name.',
             '**List pane.** Individual folder group path segments are now clickable when subfolder paths are shown.',
             '**List pane.** Lots of rendering performance improvements in the list pane.',
             '**Navigation pane.** Lots of rendering performance improvements in the navigation pane.'
         ],
         changed: [
-            '**Feature images.** ==SVG images are no longer supported as feature images==. Large SVG images with embedded bitmaps were causing performance and memory issues for some users so this was disabled until further notice. As a result the cache will be rebuilt on startup.',
+            '**Feature images.** Breaking change! ==SVG images are no longer supported as feature images==. Large SVG images with embedded bitmaps were causing performance and memory issues for some users so this was disabled until further notice. As a result the cache will be rebuilt on startup.',
             '**List pane.** Standard mode now keeps the standard row layout when date, preview, and feature image are hidden. Compact layout is only used when list mode is Compact.',
             '**List pane.** When grouping by folder, the current folder name will always be displayed on top so you can collapse items in the current folder.'
         ],

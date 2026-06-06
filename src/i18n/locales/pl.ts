@@ -893,6 +893,7 @@ export const STRINGS_PL = {
     plugin: {
         viewName: 'Notebook Navigator', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: 'Kalendarz', // Name shown in the view header/tab (English: Calendar)
+        folderNoteSidebarViewName: 'Notatka folderu', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'Pokaż w Notebook Navigator' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
@@ -932,6 +933,7 @@ export const STRINGS_PL = {
             icons: 'Pakiety ikon',
             folders: 'Foldery',
             folderNotes: 'Notatki folderu',
+            folderNoteFiles: 'Pliki notatek folderów',
             foldersAndFolderNotes: 'Foldery i notatki folderu',
             foldersAndTags: 'Foldery',
             tagsAndProperties: 'Tagi i atrybuty',
@@ -2177,8 +2179,8 @@ export const STRINGS_PL = {
                 desc: 'Plik szablonu dla nowych notatek folderów Markdown. Ustaw lokalizację folderu szablonów w Wygląd i zachowanie > Szablony.'
             },
             enableFolderNoteLinks: {
-                name: 'Włącz linki notatek folderów',
-                desc: 'Etykiety folderów są wyświetlane jako linki i otwierają notatki folderów po kliknięciu. Po wyłączeniu notatki folderów nadal dostarczają metadane nazwy, ikony i koloru.'
+                name: 'Nazwy folderów otwierają notatki folderów',
+                desc: 'Kliknięcie nazwy folderu otwiera jego notatkę folderu. Po wyłączeniu notatki folderów dostarczają tylko metadane folderu, takie jak nazwa, ikona i kolor.'
             },
             hideFolderNoteInList: {
                 name: 'Ukryj notatki folderów na liście',
@@ -2188,9 +2190,18 @@ export const STRINGS_PL = {
                 name: 'Przypnij utworzone notatki folderów',
                 desc: 'Przypnij notatki folderów podczas tworzenia z menu kontekstowego.'
             },
-            openFolderNotesInNewTab: {
-                name: 'Otwórz notatki folderów w nowej karcie',
-                desc: 'Otwórz notatki folderów w nowej karcie po kliknięciu folderu.'
+            folderNoteOpenLocation: {
+                name: 'Otwieraj notatki folderów w',
+                desc: 'Wybierz, gdzie otwierają się notatki folderów po kliknięciu linków notatek folderów.',
+                options: {
+                    currentTab: 'Bieżąca karta',
+                    newTab: 'Nowa karta',
+                    rightSidebar: 'Prawy pasek boczny'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'Prawy pasek boczny: Pokaż najbliższą notatkę folderu',
+                desc: 'Po wybraniu folderu prawy pasek boczny automatycznie pokazuje najbliższą nadrzędną notatkę folderu.'
             },
             confirmBeforeDelete: {
                 name: 'Potwierdź przed usunięciem',

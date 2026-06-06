@@ -889,6 +889,7 @@ export const STRINGS_JA = {
     plugin: {
         viewName: 'ノートブックナビゲーター', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: 'カレンダー', // Name shown in the view header/tab (English: Calendar)
+        folderNoteSidebarViewName: 'フォルダノート', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'ノートブックナビゲーター', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'ノートブックナビゲーターで表示' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
@@ -928,6 +929,7 @@ export const STRINGS_JA = {
             icons: 'アイコンパック',
             folders: 'フォルダノート',
             folderNotes: 'フォルダノート',
+            folderNoteFiles: 'フォルダノートファイル',
             foldersAndFolderNotes: 'フォルダとフォルダノート',
             foldersAndTags: 'フォルダ',
             tagsAndProperties: 'タグとプロパティ',
@@ -2171,8 +2173,8 @@ export const STRINGS_JA = {
                 desc: '新しいMarkdownフォルダノート用のテンプレートファイル。テンプレートフォルダの場所は外観と動作 > テンプレートで設定してください。'
             },
             enableFolderNoteLinks: {
-                name: 'フォルダーノートリンクを有効にする',
-                desc: 'フォルダーラベルがリンクとして表示され、クリックでフォルダーノートを開きます。オフの場合でも、フォルダーノートは名前、アイコン、色のメタデータを提供します。'
+                name: 'フォルダ名でフォルダノートを開く',
+                desc: 'フォルダ名をクリックすると、そのフォルダノートを開きます。オフの場合、フォルダノートは名前、アイコン、色などのフォルダメタデータのみを提供します。'
             },
             hideFolderNoteInList: {
                 name: 'リストでフォルダノートを非表示',
@@ -2182,9 +2184,18 @@ export const STRINGS_JA = {
                 name: '作成したフォルダノートをピン留め',
                 desc: 'コンテキストメニューから作成時にフォルダーノートをピン留めする。'
             },
-            openFolderNotesInNewTab: {
-                name: 'フォルダノートを新しいタブで開く',
-                desc: 'フォルダーをクリック時にフォルダーノートを新しいタブで開く。'
+            folderNoteOpenLocation: {
+                name: 'フォルダノートを開く場所',
+                desc: 'フォルダノートリンクをクリックしたときにフォルダノートを開く場所を選択します。',
+                options: {
+                    currentTab: '現在のタブ',
+                    newTab: '新しいタブ',
+                    rightSidebar: '右サイドバー'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: '右サイドバー: 最も近いフォルダノートを表示',
+                desc: 'フォルダを選択すると、右サイドバーに最も近い上位フォルダノートが自動的に表示されます。'
             },
             confirmBeforeDelete: {
                 name: '削除前に確認',

@@ -888,6 +888,7 @@ export const STRINGS_TR = {
     plugin: {
         viewName: 'Notebook Navigator', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: 'Takvim', // Name shown in the view header/tab (English: Calendar)
+        folderNoteSidebarViewName: 'Klasör notu', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: "Notebook Navigator'da göster" // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
@@ -927,6 +928,7 @@ export const STRINGS_TR = {
             icons: 'Simge paketleri',
             folders: 'Klasörler',
             folderNotes: 'Klasör notları',
+            folderNoteFiles: 'Klasör notu dosyaları',
             foldersAndFolderNotes: 'Klasörler ve klasör notları',
             foldersAndTags: 'Klasörler',
             tagsAndProperties: 'Etiketler ve özellikler',
@@ -2170,8 +2172,8 @@ export const STRINGS_TR = {
                 desc: 'Yeni Markdown klasör notları için şablon dosyası. Şablon klasörü konumunu Görünüm ve davranış > Şablonlar bölümünden ayarlayın.'
             },
             enableFolderNoteLinks: {
-                name: 'Klasör notu bağlantılarını etkinleştir',
-                desc: 'Klasör etiketleri bağlantı olarak gösterilir ve tıklandığında klasör notlarını açar. Kapalı olduğunda, klasör notları yine de ad, simge ve renk meta verilerini sağlar.'
+                name: 'Klasör adları klasör notlarını açar',
+                desc: 'Bir klasör adına tıklamak klasör notunu açar. Kapalı olduğunda, klasör notları yalnızca ad, simge ve renk gibi klasör meta verilerini sağlar.'
             },
             hideFolderNoteInList: {
                 name: 'Listede klasör notunu gizle',
@@ -2181,9 +2183,18 @@ export const STRINGS_TR = {
                 name: 'Oluşturulan klasör notlarını sabitle',
                 desc: 'Bağlam menüsünden oluşturulduğunda klasör notlarını sabitle.'
             },
-            openFolderNotesInNewTab: {
-                name: 'Klasör notlarını yeni sekmede aç',
-                desc: 'Bir klasöre tıklandığında klasör notlarını yeni sekmede aç.'
+            folderNoteOpenLocation: {
+                name: 'Klasör notlarını şurada aç',
+                desc: 'Klasör notu bağlantılarına tıklandığında klasör notlarının nerede açılacağını seçin.',
+                options: {
+                    currentTab: 'Geçerli sekme',
+                    newTab: 'Yeni sekme',
+                    rightSidebar: 'Sağ kenar çubuğu'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'Sağ kenar çubuğu: En yakın klasör notunu göster',
+                desc: 'Bir klasör seçildiğinde, sağ kenar çubuğu en yakın üst klasör notunu otomatik olarak gösterir.'
             },
             confirmBeforeDelete: {
                 name: 'Silmeden önce onayla',

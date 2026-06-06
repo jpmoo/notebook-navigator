@@ -892,6 +892,7 @@ export const STRINGS_PT_BR = {
     plugin: {
         viewName: 'Notebook Navigator',
         calendarViewName: 'Calendário',
+        folderNoteSidebarViewName: 'Nota de pasta',
         ribbonTooltip: 'Notebook Navigator',
         revealInNavigator: 'Revelar no Notebook Navigator'
     },
@@ -931,6 +932,7 @@ export const STRINGS_PT_BR = {
             icons: 'Pacotes de ícones',
             folders: 'Pastas',
             folderNotes: 'Notas de pasta',
+            folderNoteFiles: 'Arquivos de notas de pasta',
             foldersAndFolderNotes: 'Pastas e notas de pasta',
             foldersAndTags: 'Pastas',
             tagsAndProperties: 'Tags e propriedades',
@@ -2177,8 +2179,8 @@ export const STRINGS_PT_BR = {
                 desc: 'Arquivo de modelo para novas notas de pasta Markdown. Definir localização da pasta de modelos em Aparência e comportamento > Modelos.'
             },
             enableFolderNoteLinks: {
-                name: 'Ativar links de notas de pasta',
-                desc: 'Os rótulos das pastas são exibidos como links e abrem notas de pasta ao clicar. Quando desativado, as notas de pasta continuam fornecendo metadados de nome, ícone e cor.'
+                name: 'Nomes de pastas abrem notas de pasta',
+                desc: 'Clicar no nome de uma pasta abre a nota de pasta correspondente. Quando desativado, as notas de pasta fornecem apenas metadados da pasta, como nome, ícone e cor.'
             },
             hideFolderNoteInList: {
                 name: 'Ocultar notas de pasta na lista',
@@ -2188,9 +2190,18 @@ export const STRINGS_PT_BR = {
                 name: 'Fixar notas de pasta criadas',
                 desc: 'Fixar notas de pasta ao criá-las pelo menu de contexto.'
             },
-            openFolderNotesInNewTab: {
-                name: 'Abrir notas de pasta em nova aba',
-                desc: 'Abrir notas de pasta em uma nova aba ao clicar em uma pasta.'
+            folderNoteOpenLocation: {
+                name: 'Abrir notas de pasta em',
+                desc: 'Escolha onde as notas de pasta são abertas ao clicar em links de notas de pasta.',
+                options: {
+                    currentTab: 'Aba atual',
+                    newTab: 'Nova aba',
+                    rightSidebar: 'Barra lateral direita'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'Barra lateral direita: Mostrar nota de pasta mais próxima',
+                desc: 'Quando uma pasta é selecionada, a barra lateral direita mostra automaticamente a nota de pasta ancestral mais próxima.'
             },
             confirmBeforeDelete: {
                 name: 'Confirmar antes de excluir',

@@ -21,6 +21,7 @@ import { NotebookNavigatorSettingTab, type NotebookNavigatorSettings } from './s
 import {
     LocalStorageKeys,
     NOTEBOOK_NAVIGATOR_CALENDAR_VIEW,
+    NOTEBOOK_NAVIGATOR_FOLDER_NOTE_SIDEBAR_VIEW,
     NOTEBOOK_NAVIGATOR_VIEW,
     STORAGE_KEYS,
     type DualPaneOrientation,
@@ -46,6 +47,7 @@ import type { NavigateToFolderOptions } from './hooks/useNavigatorReveal';
 import ReleaseCheckService, { type ReleaseUpdateNotice } from './services/ReleaseCheckService';
 import { NotebookNavigatorView } from './view/NotebookNavigatorView';
 import { NotebookNavigatorCalendarView } from './view/NotebookNavigatorCalendarView';
+import { FolderNoteSidebarPlaceholderView } from './view/FolderNoteSidebarPlaceholderView';
 import { localStorage } from './utils/localStorage';
 import { INTERNAL_NOTEBOOK_NAVIGATOR_API, NotebookNavigatorAPI } from './api/NotebookNavigatorAPI';
 import { initializeDatabase, shutdownDatabase } from './storage/fileOperations';
@@ -55,6 +57,7 @@ import { cloneCollapsedPinnedContextsRecord, sanitizeRecord } from './utils/reco
 import { runAsyncAction } from './utils/async';
 import WorkspaceCoordinator from './services/workspace/WorkspaceCoordinator';
 import HomepageController from './services/workspace/HomepageController';
+import { FolderNoteSidebarService } from './services/workspace/FolderNoteSidebarService';
 import registerNavigatorCommands from './services/commands/registerNavigatorCommands';
 import registerWorkspaceEvents from './services/workspace/registerWorkspaceEvents';
 import type { RevealFileOptions } from './hooks/useNavigatorReveal';
@@ -136,6 +139,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     private workspaceCoordinator: WorkspaceCoordinator | null = null;
     // Handles homepage file opening and startup behavior
     private homepageController: HomepageController | null = null;
+    private folderNoteSidebarService: FolderNoteSidebarService | null = null;
     private settingTab: NotebookNavigatorSettingTab | null = null;
     private pendingUpdateNotice: ReleaseUpdateNotice | null = null;
     private hasWorkspaceLayoutReady = false;
@@ -342,6 +346,10 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
      * Checks if the given file is open in the right sidebar
      */
     public isFileInRightSidebar(file: TFile): boolean {
+        if (this.folderNoteSidebarService?.isSuppressingSidebarOpen(file.path)) {
+            return true;
+        }
+
         if (!this.settings.autoRevealIgnoreRightSidebar) {
             return false;
         }
@@ -478,6 +486,8 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             () => this.propertyTreeService
         );
         this.commandQueue = new CommandQueueService();
+        this.folderNoteSidebarService = new FolderNoteSidebarService(this);
+        this.folderNoteSidebarService.start();
         this.fileSystemOps = new FileSystemOperations(
             this.app,
             () => this.tagTreeService,
@@ -535,6 +545,9 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         this.registerView(NOTEBOOK_NAVIGATOR_CALENDAR_VIEW, leaf => {
             return new NotebookNavigatorCalendarView(leaf, this);
         });
+        this.registerView(NOTEBOOK_NAVIGATOR_FOLDER_NOTE_SIDEBAR_VIEW, leaf => {
+            return new FolderNoteSidebarPlaceholderView(leaf);
+        });
 
         // Register commands
         registerNavigatorCommands(this);
@@ -561,6 +574,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
                 }
 
                 await this.homepageController?.handleWorkspaceReady({ shouldActivateOnStartup });
+                this.folderNoteSidebarService?.handleWorkspaceReady();
 
                 if (isFirstLaunch) {
                     const { WelcomeModal } = await import('./modals/WelcomeModal');
@@ -635,6 +649,14 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
     public isShuttingDown(): boolean {
         return this.isUnloading;
+    }
+
+    public async openFolderNoteInRightSidebar(folderNote: TFile): Promise<void> {
+        await this.folderNoteSidebarService?.openFolderNote(folderNote);
+    }
+
+    public async syncFolderNoteSidebarToFolder(folder: TFolder | null): Promise<void> {
+        await this.folderNoteSidebarService?.syncToSelectedFolder(folder);
     }
 
     /**
@@ -1086,6 +1108,9 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         this.debugLoggingService = null;
 
         this.preferencesController.dispose();
+
+        this.folderNoteSidebarService?.dispose();
+        this.folderNoteSidebarService = null;
 
         // Clear all listeners first to prevent any callbacks during cleanup
         this.settingsUpdateListeners.clear();

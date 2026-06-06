@@ -884,6 +884,7 @@ export const STRINGS_EN = {
     plugin: {
         viewName: 'Notebook Navigator', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: 'Calendar', // Name shown in the view header/tab
+        folderNoteSidebarViewName: 'Folder note', // Name shown in the folder note sidebar tab
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'Reveal in Notebook Navigator' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
@@ -923,6 +924,7 @@ export const STRINGS_EN = {
             icons: 'Icon packs',
             folders: 'Folders',
             folderNotes: 'Folder notes',
+            folderNoteFiles: 'Folder note files',
             foldersAndFolderNotes: 'Folders & folder notes',
             foldersAndTags: 'Folders',
             tagsAndProperties: 'Tags & properties',
@@ -2164,8 +2166,8 @@ export const STRINGS_EN = {
                 desc: 'Template file for new markdown folder notes. Set template folder location in Appearance & behavior > Templates.'
             },
             enableFolderNoteLinks: {
-                name: 'Enable folder note links',
-                desc: 'Folder labels are styled as links and open folder notes on click. When off, folder notes still provide name, icon, and color metadata.'
+                name: 'Folder names open folder notes',
+                desc: 'Clicking a folder name opens its folder note. When off, folder notes only provide folder metadata such as name, icon, and color.'
             },
             hideFolderNoteInList: {
                 name: 'Hide folder notes in list',
@@ -2175,9 +2177,18 @@ export const STRINGS_EN = {
                 name: 'Pin created folder notes',
                 desc: 'Pin folder notes when created from the context menu.'
             },
-            openFolderNotesInNewTab: {
-                name: 'Open folder notes in new tab',
-                desc: 'Open folder notes in a new tab when clicking on a folder.'
+            folderNoteOpenLocation: {
+                name: 'Open folder notes in',
+                desc: 'Choose where folder notes open when clicking folder-note links.',
+                options: {
+                    currentTab: 'Current tab',
+                    newTab: 'New tab',
+                    rightSidebar: 'Right sidebar'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'Right sidebar: Show closest folder note',
+                desc: 'When a folder is selected, the right sidebar automatically shows the nearest ancestor folder note.'
             },
             confirmBeforeDelete: {
                 name: 'Confirm before deleting',

@@ -883,6 +883,7 @@ export const STRINGS_TH = {
     plugin: {
         viewName: 'Notebook Navigator',
         calendarViewName: 'ปฏิทิน',
+        folderNoteSidebarViewName: 'โน้ตโฟลเดอร์',
         ribbonTooltip: 'Notebook Navigator',
         revealInNavigator: 'แสดงใน Notebook Navigator'
     },
@@ -922,6 +923,7 @@ export const STRINGS_TH = {
             icons: 'ชุดไอคอน',
             folders: 'โฟลเดอร์',
             folderNotes: 'โน้ตโฟลเดอร์',
+            folderNoteFiles: 'ไฟล์โน้ตโฟลเดอร์',
             foldersAndFolderNotes: 'โฟลเดอร์และโน้ตโฟลเดอร์',
             foldersAndTags: 'โฟลเดอร์',
             tagsAndProperties: 'แท็กและคุณสมบัติ',
@@ -2165,8 +2167,8 @@ export const STRINGS_TH = {
                 desc: 'ไฟล์เทมเพลตสำหรับโน้ตโฟลเดอร์ Markdown ใหม่ ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในลักษณะและพฤติกรรม > เทมเพลต'
             },
             enableFolderNoteLinks: {
-                name: 'เปิดใช้งานลิงก์โน้ตโฟลเดอร์',
-                desc: 'ป้ายกำกับโฟลเดอร์จะแสดงเป็นลิงก์และเปิดโน้ตโฟลเดอร์เมื่อคลิก เมื่อปิด โน้ตโฟลเดอร์ยังคงให้ข้อมูลชื่อ ไอคอน และสี'
+                name: 'ชื่อโฟลเดอร์เปิดโน้ตโฟลเดอร์',
+                desc: 'การคลิกชื่อโฟลเดอร์จะเปิดโน้ตโฟลเดอร์ของโฟลเดอร์นั้น เมื่อปิด โน้ตโฟลเดอร์จะให้เฉพาะข้อมูลเมตาของโฟลเดอร์ เช่น ชื่อ ไอคอน และสี'
             },
             hideFolderNoteInList: {
                 name: 'ซ่อนโน้ตโฟลเดอร์ในรายการ',
@@ -2176,9 +2178,18 @@ export const STRINGS_TH = {
                 name: 'ปักหมุดโน้ตโฟลเดอร์ที่สร้าง',
                 desc: 'ปักหมุดโน้ตโฟลเดอร์เมื่อสร้างจากเมนูบริบท'
             },
-            openFolderNotesInNewTab: {
-                name: 'เปิดโน้ตโฟลเดอร์ในแท็บใหม่',
-                desc: 'เปิดโน้ตโฟลเดอร์ในแท็บใหม่เมื่อคลิกที่โฟลเดอร์'
+            folderNoteOpenLocation: {
+                name: 'เปิดโน้ตโฟลเดอร์ใน',
+                desc: 'เลือกตำแหน่งที่เปิดโน้ตโฟลเดอร์เมื่อคลิกลิงก์โน้ตโฟลเดอร์',
+                options: {
+                    currentTab: 'แท็บปัจจุบัน',
+                    newTab: 'แท็บใหม่',
+                    rightSidebar: 'แถบด้านขวา'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'แถบด้านขวา: แสดงโน้ตโฟลเดอร์ที่ใกล้ที่สุด',
+                desc: 'เมื่อเลือกโฟลเดอร์ แถบด้านขวาจะแสดงโน้ตโฟลเดอร์บรรพบุรุษที่ใกล้ที่สุดโดยอัตโนมัติ'
             },
             confirmBeforeDelete: {
                 name: 'ยืนยันก่อนลบ',
