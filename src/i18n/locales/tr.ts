@@ -1112,7 +1112,7 @@ export const STRINGS_TR = {
             },
             includeDescendantNotes: {
                 name: 'Alt klasörlerden / alt öğelerden notları göster',
-                desc: 'Klasör veya etiket görüntülerken iç içe alt klasörlerden ve etiket alt öğelerinden notları dahil et.'
+                desc: 'Klasör, etiket veya özellik görüntülerken iç içe alt klasörlerden ve etiket ile özellik alt öğelerinden notları dahil et.'
             },
             limitPinnedToCurrentFolder: {
                 name: 'Notları yalnızca kendi klasörlerinde sabitle',
@@ -1120,7 +1120,7 @@ export const STRINGS_TR = {
             },
             separateNoteCounts: {
                 name: 'Mevcut ve alt not sayılarını ayrı göster',
-                desc: 'Klasör ve etiketlerde not sayılarını "mevcut ▾ alt öğeler" biçiminde göster.'
+                desc: 'Klasörler, etiketler ve özellikler için not sayılarını "mevcut ▾ alt öğeler" biçiminde göster.'
             },
             groupNotes: {
                 name: 'Varsayılan gruplama',
@@ -1202,7 +1202,7 @@ export const STRINGS_TR = {
             },
             showParentFolder: {
                 name: 'Üst klasörü göster',
-                desc: 'Alt klasörlerdeki veya etiketlerdeki notlar için üst klasör adını görüntüle.'
+                desc: 'Alt klasörlerdeki, etiketlerdeki veya özelliklerdeki notlar için üst klasör adını görüntüle.'
             },
             showParentFolderFullPath: {
                 name: 'Tam yolu göster',
@@ -1294,7 +1294,7 @@ export const STRINGS_TR = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'İlk notu otomatik seç',
-                desc: 'Klasör veya etiket değiştirirken ilk notu otomatik olarak aç.'
+                desc: 'Klasör, etiket veya özellik değiştirirken ilk notu otomatik olarak aç.'
             },
             skipAutoScroll: {
                 name: 'Kısayollar için otomatik kaydırmayı devre dışı bırak',
@@ -1642,7 +1642,7 @@ export const STRINGS_TR = {
             },
             vaultProfiles: {
                 name: 'Kasa profili',
-                desc: 'Profiller dosya türü görünürlüğünü, gizli dosyaları, gizli klasörleri, gizli etiketleri, gizli notları, kısayolları ve gezinme afişini saklar. Gezinme bölmesi başlığından profilleri değiştir.',
+                desc: 'Profiller dosya türü görünürlüğünü, gizli dosyaları, gizli klasörleri, gizli etiketleri, gizli notlar için özellik kurallarını, kısayolları ve gezinme afişini saklar. Gezinme bölmesi başlığından profilleri değiştir.',
                 defaultName: 'Varsayılan',
                 addButton: 'Profil ekle',
                 editProfilesButton: 'Profilleri düzenle',
@@ -1653,7 +1653,8 @@ export const STRINGS_TR = {
                 editProfilesModalTitle: 'Profilleri düzenle',
                 addModalPlaceholder: 'Profil adı',
                 deleteModalTitle: '{name} silinsin mi',
-                deleteModalMessage: '{name} kaldırılsın mı? Bu profilde kayıtlı gizli dosya, klasör, etiket ve not filtreleri silinecek.',
+                deleteModalMessage:
+                    '{name} kaldırılsın mı? Bu profilde kayıtlı gizli dosya, klasör, etiket ve özellik tabanlı not filtreleri silinecek.',
                 moveUp: 'Yukarı taşı',
                 moveDown: 'Aşağı taşı',
                 errors: {
@@ -1921,7 +1922,7 @@ export const STRINGS_TR = {
             },
             showNoteCount: {
                 name: 'Not sayısını göster',
-                desc: 'Her klasör ve etiketin yanında not sayısını görüntüle.'
+                desc: 'Klasörler, etiketler ve özelliklerin yanında not sayısını görüntüle.'
             },
             showSectionIcons: {
                 name: 'Kısayollar ve son öğeler için simgeleri göster',
@@ -1929,7 +1930,7 @@ export const STRINGS_TR = {
             },
             interfaceIcons: {
                 name: 'Arayüz simgeleri',
-                desc: 'Araç çubuğu, klasör, etiket, sabitlenmiş, arama ve sıralama simgelerini düzenleyin.',
+                desc: 'Araç çubuğu, klasör, etiket, özellik, sabitlenmiş, arama ve sıralama simgelerini düzenleyin.',
                 buttonText: 'Simgeleri düzenle'
             },
             showIconsColorOnly: {
@@ -2033,11 +2034,11 @@ export const STRINGS_TR = {
             },
             navIndent: {
                 name: 'Ağaç girintisi',
-                desc: 'İç içe klasörler ve etiketler için girinti genişliğini ayarlayın (piksel).'
+                desc: 'İç içe klasörler, etiketler ve özellikler için girinti genişliğini ayarlayın (piksel).'
             },
             navItemHeight: {
                 name: 'Öğe yüksekliği',
-                desc: 'Gezinme bölmesindeki klasör ve etiketlerin yüksekliğini ayarlayın (piksel).'
+                desc: 'Gezinme bölmesindeki klasör, etiket ve özelliklerin yüksekliğini ayarlayın (piksel).'
             },
             navItemHeightScaleText: {
                 name: 'Metni öğe yüksekliğiyle ölçekle',
@@ -2045,7 +2046,7 @@ export const STRINGS_TR = {
             },
             showIndentGuides: {
                 name: 'Girinti kılavuzlarını göster',
-                desc: 'İç içe klasörler ve etiketler için girinti kılavuzlarını göster.'
+                desc: 'İç içe klasörler, etiketler ve özellikler için girinti kılavuzlarını göster.'
             },
             navCountLeaderStyle: {
                 name: 'Doldurma işaretlerini göster',
@@ -2059,7 +2060,7 @@ export const STRINGS_TR = {
             },
             navRootSpacing: {
                 name: 'Kök öğe aralığı',
-                desc: 'Kök seviyesi klasörler ve etiketler arasındaki boşluk (piksel).'
+                desc: 'Kök seviyesi klasörler, etiketler ve özellikler arasındaki boşluk (piksel).'
             },
             showTags: {
                 name: 'Etiketleri göster',
@@ -2219,7 +2220,7 @@ export const STRINGS_TR = {
             },
             metadataCleanup: {
                 name: 'Meta verileri temizle',
-                desc: 'Dosyalar, klasörler veya etiketler Obsidian dışında silindiğinde, taşındığında veya yeniden adlandırıldığında geride kalan yetim meta verileri kaldırır. Bu yalnızca Notebook Navigator ayarlar dosyasını etkiler.',
+                desc: 'Dosyalar, klasörler, etiketler veya özellikler Obsidian dışında silindiğinde, taşındığında veya yeniden adlandırıldığında geride kalan yetim meta verileri kaldırır. Bu yalnızca Notebook Navigator ayarlar dosyasını etkiler.',
                 buttonText: 'Meta verileri temizle',
                 error: 'Ayarlar temizliği başarısız',
                 loading: 'Meta veriler kontrol ediliyor...',

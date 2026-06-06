@@ -1116,7 +1116,7 @@ export const STRINGS_PT_BR = {
             },
             includeDescendantNotes: {
                 name: 'Mostrar notas de subpastas / descendentes',
-                desc: 'Incluir notas de subpastas aninhadas e descendentes de tags ao visualizar uma pasta ou tag.'
+                desc: 'Incluir notas de subpastas aninhadas e descendentes de tags e propriedades ao visualizar uma pasta, tag ou propriedade.'
             },
             limitPinnedToCurrentFolder: {
                 name: 'Fixar notas apenas na sua pasta',
@@ -1124,7 +1124,7 @@ export const STRINGS_PT_BR = {
             },
             separateNoteCounts: {
                 name: 'Mostrar contagens de notas atuais e descendentes separadamente',
-                desc: 'Exibir contagens de notas no formato "atual ▾ descendentes" em pastas e tags.'
+                desc: 'Exibir contagens de notas no formato "atual ▾ descendentes" para pastas, tags e propriedades.'
             },
             groupNotes: {
                 name: 'Agrupamento padrão',
@@ -1206,7 +1206,7 @@ export const STRINGS_PT_BR = {
             },
             showParentFolder: {
                 name: 'Mostrar pasta pai',
-                desc: 'Exibir o nome da pasta pai para notas em subpastas ou tags.'
+                desc: 'Exibir o nome da pasta pai para notas em subpastas, tags ou propriedades.'
             },
             showParentFolderFullPath: {
                 name: 'Mostrar caminho completo',
@@ -1298,7 +1298,7 @@ export const STRINGS_PT_BR = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Selecionar automaticamente a primeira nota',
-                desc: 'Abrir automaticamente a primeira nota ao alternar pastas ou tags.'
+                desc: 'Abrir automaticamente a primeira nota ao alternar pastas, tags ou propriedades.'
             },
             skipAutoScroll: {
                 name: 'Desativar rolagem automática para atalhos',
@@ -1648,7 +1648,7 @@ export const STRINGS_PT_BR = {
             },
             vaultProfiles: {
                 name: 'Perfil do cofre',
-                desc: 'Perfis armazenam visibilidade de tipos de arquivo, arquivos ocultos, pastas ocultas, tags ocultas, notas ocultas, atalhos e banner de navegação. Alterne perfis pelo cabeçalho do painel de navegação.',
+                desc: 'Perfis armazenam visibilidade de tipos de arquivo, arquivos ocultos, pastas ocultas, tags ocultas, regras de propriedades para notas ocultas, atalhos e banner de navegação. Alterne perfis pelo cabeçalho do painel de navegação.',
                 defaultName: 'Padrão',
                 addButton: 'Adicionar perfil',
                 editProfilesButton: 'Editar perfis',
@@ -1660,7 +1660,7 @@ export const STRINGS_PT_BR = {
                 addModalPlaceholder: 'Nome do perfil',
                 deleteModalTitle: 'Excluir {name}',
                 deleteModalMessage:
-                    'Remover {name}? Os filtros de arquivos, pastas, tags e notas ocultas salvos neste perfil serão excluídos.',
+                    'Remover {name}? Os filtros de arquivos, pastas, tags e notas baseados em propriedades salvos neste perfil serão excluídos.',
                 moveUp: 'Mover para cima',
                 moveDown: 'Mover para baixo',
                 errors: {
@@ -1928,7 +1928,7 @@ export const STRINGS_PT_BR = {
             },
             showNoteCount: {
                 name: 'Mostrar contagem de notas',
-                desc: 'Exibir o número de notas ao lado de cada pasta e tag.'
+                desc: 'Exibir contagens de notas ao lado de pastas, tags e propriedades.'
             },
             showSectionIcons: {
                 name: 'Mostrar ícones para atalhos e itens recentes',
@@ -1936,7 +1936,7 @@ export const STRINGS_PT_BR = {
             },
             interfaceIcons: {
                 name: 'Ícones da interface',
-                desc: 'Editar ícones da barra de ferramentas, pastas, tags, itens fixados, pesquisa e ordenação.',
+                desc: 'Editar ícones da barra de ferramentas, pastas, tags, propriedades, itens fixados, pesquisa e ordenação.',
                 buttonText: 'Editar ícones'
             },
             showIconsColorOnly: {
@@ -2040,11 +2040,11 @@ export const STRINGS_PT_BR = {
             },
             navIndent: {
                 name: 'Indentação da árvore',
-                desc: 'Ajustar a largura da indentação para pastas e tags aninhadas (pixels).'
+                desc: 'Ajustar a largura da indentação para pastas, tags e propriedades aninhadas (pixels).'
             },
             navItemHeight: {
                 name: 'Altura do item',
-                desc: 'Ajustar a altura de pastas e tags no painel de navegação (pixels).'
+                desc: 'Ajustar a altura de pastas, tags e propriedades no painel de navegação (pixels).'
             },
             navItemHeightScaleText: {
                 name: 'Dimensionar texto com altura do item',
@@ -2052,7 +2052,7 @@ export const STRINGS_PT_BR = {
             },
             showIndentGuides: {
                 name: 'Mostrar guias de recuo',
-                desc: 'Exibir guias de recuo para pastas e tags aninhadas.'
+                desc: 'Exibir guias de recuo para pastas, tags e propriedades aninhadas.'
             },
             navCountLeaderStyle: {
                 name: 'Mostrar caracteres de preenchimento',
@@ -2066,7 +2066,7 @@ export const STRINGS_PT_BR = {
             },
             navRootSpacing: {
                 name: 'Espaçamento de item raiz',
-                desc: 'Espaçamento entre pastas e tags de nível raiz (pixels).'
+                desc: 'Espaçamento entre pastas, tags e propriedades de nível raiz (pixels).'
             },
             showTags: {
                 name: 'Mostrar tags',
@@ -2226,7 +2226,7 @@ export const STRINGS_PT_BR = {
             },
             metadataCleanup: {
                 name: 'Limpar metadados',
-                desc: 'Remove metadados órfãos deixados para trás quando arquivos, pastas ou tags são excluídos, movidos ou renomeados fora do Obsidian. Isso afeta apenas o arquivo de configurações do Notebook Navigator.',
+                desc: 'Remove metadados órfãos deixados para trás quando arquivos, pastas, tags ou propriedades são excluídos, movidos ou renomeados fora do Obsidian. Isso afeta apenas o arquivo de configurações do Notebook Navigator.',
                 buttonText: 'Limpar metadados',
                 error: 'Falha na limpeza de configurações',
                 loading: 'Verificando metadados...',

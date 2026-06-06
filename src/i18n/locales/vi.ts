@@ -1115,7 +1115,7 @@ export const STRINGS_VI = {
             },
             includeDescendantNotes: {
                 name: 'Hiện ghi chú từ thư mục con / phần tử con',
-                desc: 'Bao gồm ghi chú từ thư mục con lồng nhau và phần tử con của thẻ khi xem thư mục hoặc thẻ.'
+                desc: 'Bao gồm ghi chú từ thư mục con lồng nhau và phần tử con của thẻ và thuộc tính khi xem thư mục, thẻ hoặc thuộc tính.'
             },
             limitPinnedToCurrentFolder: {
                 name: 'Chỉ ghim ghi chú trong thư mục của nó',
@@ -1123,7 +1123,7 @@ export const STRINGS_VI = {
             },
             separateNoteCounts: {
                 name: 'Hiện số lượng ghi chú hiện tại và con riêng biệt',
-                desc: 'Hiển thị số lượng ghi chú theo định dạng "hiện tại ▾ con" trong thư mục và thẻ.'
+                desc: 'Hiển thị số lượng ghi chú theo định dạng "hiện tại ▾ con" cho thư mục, thẻ và thuộc tính.'
             },
             groupNotes: {
                 name: 'Nhóm mặc định',
@@ -1205,7 +1205,7 @@ export const STRINGS_VI = {
             },
             showParentFolder: {
                 name: 'Hiện thư mục cha',
-                desc: 'Hiển thị tên thư mục cha cho ghi chú trong thư mục con hoặc thẻ.'
+                desc: 'Hiển thị tên thư mục cha cho ghi chú trong thư mục con, thẻ hoặc thuộc tính.'
             },
             showParentFolderFullPath: {
                 name: 'Hiện đường dẫn đầy đủ',
@@ -1297,7 +1297,7 @@ export const STRINGS_VI = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Tự động chọn ghi chú đầu tiên',
-                desc: 'Tự động mở ghi chú đầu tiên khi chuyển thư mục hoặc thẻ.'
+                desc: 'Tự động mở ghi chú đầu tiên khi chuyển thư mục, thẻ hoặc thuộc tính.'
             },
             skipAutoScroll: {
                 name: 'Tắt tự động cuộn cho lối tắt',
@@ -1645,7 +1645,7 @@ export const STRINGS_VI = {
             },
             vaultProfiles: {
                 name: 'Hồ sơ vault',
-                desc: 'Hồ sơ lưu trữ hiển thị loại tệp, tệp ẩn, thư mục ẩn, thẻ ẩn, ghi chú ẩn, lối tắt và banner điều hướng. Chuyển hồ sơ từ header ngăn điều hướng.',
+                desc: 'Hồ sơ lưu trữ hiển thị loại tệp, tệp ẩn, thư mục ẩn, thẻ ẩn, quy tắc thuộc tính cho ghi chú ẩn, lối tắt và banner điều hướng. Chuyển hồ sơ từ header ngăn điều hướng.',
                 defaultName: 'Mặc định',
                 addButton: 'Thêm hồ sơ',
                 editProfilesButton: 'Sửa hồ sơ',
@@ -1656,7 +1656,8 @@ export const STRINGS_VI = {
                 editProfilesModalTitle: 'Sửa hồ sơ',
                 addModalPlaceholder: 'Tên hồ sơ',
                 deleteModalTitle: 'Xóa {name}',
-                deleteModalMessage: 'Gỡ {name}? Bộ lọc tệp, thư mục, thẻ và ghi chú ẩn được lưu trong hồ sơ này sẽ bị xóa.',
+                deleteModalMessage:
+                    'Gỡ {name}? Bộ lọc tệp, thư mục, thẻ và ghi chú dựa trên thuộc tính được lưu trong hồ sơ này sẽ bị xóa.',
                 moveUp: 'Di chuyển lên',
                 moveDown: 'Di chuyển xuống',
                 errors: {
@@ -1924,7 +1925,7 @@ export const STRINGS_VI = {
             },
             showNoteCount: {
                 name: 'Hiện số lượng ghi chú',
-                desc: 'Hiển thị số lượng ghi chú bên cạnh mỗi thư mục và thẻ.'
+                desc: 'Hiển thị số lượng ghi chú bên cạnh thư mục, thẻ và thuộc tính.'
             },
             showSectionIcons: {
                 name: 'Hiện biểu tượng cho lối tắt và mục gần đây',
@@ -1932,7 +1933,7 @@ export const STRINGS_VI = {
             },
             interfaceIcons: {
                 name: 'Biểu tượng giao diện',
-                desc: 'Chỉnh sửa biểu tượng thanh công cụ, thư mục, thẻ, đã ghim, tìm kiếm và sắp xếp.',
+                desc: 'Chỉnh sửa biểu tượng thanh công cụ, thư mục, thẻ, thuộc tính, đã ghim, tìm kiếm và sắp xếp.',
                 buttonText: 'Chỉnh sửa biểu tượng'
             },
             showIconsColorOnly: {
@@ -2036,11 +2037,11 @@ export const STRINGS_VI = {
             },
             navIndent: {
                 name: 'Thụt lề cây',
-                desc: 'Điều chỉnh độ rộng thụt lề cho thư mục và thẻ lồng nhau (pixel).'
+                desc: 'Điều chỉnh độ rộng thụt lề cho thư mục, thẻ và thuộc tính lồng nhau (pixel).'
             },
             navItemHeight: {
                 name: 'Chiều cao mục',
-                desc: 'Điều chỉnh chiều cao của thư mục và thẻ trong ngăn điều hướng (pixel).'
+                desc: 'Điều chỉnh chiều cao của thư mục, thẻ và thuộc tính trong ngăn điều hướng (pixel).'
             },
             navItemHeightScaleText: {
                 name: 'Co chữ theo chiều cao mục',
@@ -2048,7 +2049,7 @@ export const STRINGS_VI = {
             },
             showIndentGuides: {
                 name: 'Hiển thị đường dẫn thụt lề',
-                desc: 'Hiển thị đường dẫn thụt lề cho các thư mục và thẻ lồng nhau.'
+                desc: 'Hiển thị đường dẫn thụt lề cho các thư mục, thẻ và thuộc tính lồng nhau.'
             },
             navCountLeaderStyle: {
                 name: 'Hiển thị ký tự dẫn',
@@ -2062,7 +2063,7 @@ export const STRINGS_VI = {
             },
             navRootSpacing: {
                 name: 'Khoảng cách mục gốc',
-                desc: 'Khoảng cách giữa các thư mục và thẻ cấp gốc (pixel).'
+                desc: 'Khoảng cách giữa các thư mục, thẻ và thuộc tính cấp gốc (pixel).'
             },
             showTags: {
                 name: 'Hiện thẻ',
@@ -2222,7 +2223,7 @@ export const STRINGS_VI = {
             },
             metadataCleanup: {
                 name: 'Dọn dẹp metadata',
-                desc: 'Gỡ metadata mồ côi còn sót lại khi tệp, thư mục hoặc thẻ bị xóa, di chuyển hoặc đổi tên bên ngoài Obsidian. Điều này chỉ ảnh hưởng đến tệp cài đặt Notebook Navigator.',
+                desc: 'Gỡ metadata mồ côi còn sót lại khi tệp, thư mục, thẻ hoặc thuộc tính bị xóa, di chuyển hoặc đổi tên bên ngoài Obsidian. Điều này chỉ ảnh hưởng đến tệp cài đặt Notebook Navigator.',
                 buttonText: 'Dọn dẹp metadata',
                 error: 'Dọn dẹp cài đặt thất bại',
                 loading: 'Đang kiểm tra metadata...',

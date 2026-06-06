@@ -1116,7 +1116,7 @@ export const STRINGS_DE = {
             },
             includeDescendantNotes: {
                 name: 'Notizen aus Unterordnern / Nachkommen anzeigen',
-                desc: 'Beim Anzeigen eines Ordners oder Tags Notizen aus Unterordnern und Tag-Nachkommen einbeziehen.'
+                desc: 'Beim Anzeigen eines Ordners, Tags oder einer Eigenschaft Notizen aus Unterordnern sowie Tag- und Eigenschafts-Nachkommen einbeziehen.'
             },
             limitPinnedToCurrentFolder: {
                 name: 'Notizen nur in ihrem Ordner anheften',
@@ -1124,7 +1124,7 @@ export const STRINGS_DE = {
             },
             separateNoteCounts: {
                 name: 'Aktuelle und Nachkommen-Notizanzahl getrennt anzeigen',
-                desc: 'Zeigt Notizanzahl als "aktuell ▾ Nachkommen" Format in Ordnern und Tags.'
+                desc: 'Zeigt Notizanzahlen als "aktuell ▾ Nachkommen" für Ordner, Tags und Eigenschaften.'
             },
             groupNotes: {
                 name: 'Standardgruppierung',
@@ -1206,7 +1206,7 @@ export const STRINGS_DE = {
             },
             showParentFolder: {
                 name: 'Übergeordneten Ordner anzeigen',
-                desc: 'Den übergeordneten Ordnernamen für Notizen in Unterordnern oder Tags anzeigen.'
+                desc: 'Den übergeordneten Ordnernamen für Notizen in Unterordnern, Tags oder Eigenschaften anzeigen.'
             },
             showParentFolderFullPath: {
                 name: 'Vollständigen Pfad anzeigen',
@@ -1298,7 +1298,7 @@ export const STRINGS_DE = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Erste Notiz automatisch auswählen',
-                desc: 'Die erste Notiz automatisch öffnen, wenn Sie den Ordner oder Tag wechseln.'
+                desc: 'Die erste Notiz automatisch öffnen, wenn Sie Ordner, Tags oder Eigenschaften wechseln.'
             },
             skipAutoScroll: {
                 name: 'Auto-Scroll für Verknüpfungen deaktivieren',
@@ -1617,7 +1617,7 @@ export const STRINGS_DE = {
             },
             vaultProfiles: {
                 name: 'Tresorprofil',
-                desc: 'Profile speichern Dateityp-Sichtbarkeit, versteckte Dateien, versteckte Ordner, versteckte Tags, versteckte Notizen, Verknüpfungen und Navigationsbanner. Profile können über die Kopfzeile des Navigationsbereichs gewechselt werden.',
+                desc: 'Profile speichern Dateityp-Sichtbarkeit, versteckte Dateien, versteckte Ordner, versteckte Tags, Eigenschaftsregeln für versteckte Notizen, Verknüpfungen und Navigationsbanner. Profile können über die Kopfzeile des Navigationsbereichs gewechselt werden.',
                 defaultName: 'Standard',
                 addButton: 'Profil hinzufügen',
                 editProfilesButton: 'Profile bearbeiten',
@@ -1628,7 +1628,8 @@ export const STRINGS_DE = {
                 editProfilesModalTitle: 'Profile bearbeiten',
                 addModalPlaceholder: 'Profilname',
                 deleteModalTitle: '{name} löschen',
-                deleteModalMessage: '{name} entfernen? Versteckte Datei-, Ordner-, Tag- und Notizfilter in diesem Profil werden gelöscht.',
+                deleteModalMessage:
+                    '{name} entfernen? Versteckte Datei-, Ordner-, Tag- und eigenschaftsbasierte Notizfilter in diesem Profil werden gelöscht.',
                 moveUp: 'Nach oben',
                 moveDown: 'Nach unten',
                 errors: {
@@ -1927,7 +1928,7 @@ export const STRINGS_DE = {
             },
             showNoteCount: {
                 name: 'Notizenzahl anzeigen',
-                desc: 'Die Anzahl der Notizen neben jedem Ordner und Tag anzeigen.'
+                desc: 'Notizanzahlen neben Ordnern, Tags und Eigenschaften anzeigen.'
             },
             showSectionIcons: {
                 name: 'Icons für Shortcuts und kürzliche Elemente anzeigen',
@@ -1935,7 +1936,7 @@ export const STRINGS_DE = {
             },
             interfaceIcons: {
                 name: 'Oberflächensymbole',
-                desc: 'Symbole für Symbolleiste, Ordner, Tags, angeheftete Elemente, Suche und Sortierung bearbeiten.',
+                desc: 'Symbole für Symbolleiste, Ordner, Tags, Eigenschaften, angeheftete Elemente, Suche und Sortierung bearbeiten.',
                 buttonText: 'Symbole bearbeiten'
             },
             showIconsColorOnly: {
@@ -2039,11 +2040,11 @@ export const STRINGS_DE = {
             },
             navIndent: {
                 name: 'Baum-Einrückung',
-                desc: 'Passen Sie die Einrückungsbreite für verschachtelte Ordner und Tags an (Pixel).'
+                desc: 'Passen Sie die Einrückungsbreite für verschachtelte Ordner, Tags und Eigenschaften an (Pixel).'
             },
             navItemHeight: {
                 name: 'Zeilenhöhe',
-                desc: 'Passen Sie die Höhe von Ordnern und Tags im Navigationsbereich an (Pixel).'
+                desc: 'Passen Sie die Höhe von Ordnern, Tags und Eigenschaften im Navigationsbereich an (Pixel).'
             },
             navItemHeightScaleText: {
                 name: 'Text mit Zeilenhöhe skalieren',
@@ -2051,7 +2052,7 @@ export const STRINGS_DE = {
             },
             showIndentGuides: {
                 name: 'Einrückungslinien anzeigen',
-                desc: 'Einrückungslinien für verschachtelte Ordner und Tags anzeigen.'
+                desc: 'Einrückungslinien für verschachtelte Ordner, Tags und Eigenschaften anzeigen.'
             },
             navCountLeaderStyle: {
                 name: 'Führungszeichen anzeigen',
@@ -2065,7 +2066,7 @@ export const STRINGS_DE = {
             },
             navRootSpacing: {
                 name: 'Abstand für Wurzelelemente',
-                desc: 'Abstand zwischen Ordnern und Tags auf der obersten Ebene (Pixel).'
+                desc: 'Abstand zwischen Ordnern, Tags und Eigenschaften auf der obersten Ebene (Pixel).'
             },
             showTags: {
                 name: 'Tags anzeigen',
@@ -2225,7 +2226,7 @@ export const STRINGS_DE = {
             },
             metadataCleanup: {
                 name: 'Metadaten bereinigen',
-                desc: 'Entfernt verwaiste Metadaten, die zurückbleiben, wenn Dateien, Ordner oder Tags außerhalb von Obsidian gelöscht, verschoben oder umbenannt werden. Dies betrifft nur die Notebook Navigator Einstellungsdatei.',
+                desc: 'Entfernt verwaiste Metadaten, die zurückbleiben, wenn Dateien, Ordner, Tags oder Eigenschaften außerhalb von Obsidian gelöscht, verschoben oder umbenannt werden. Dies betrifft nur die Notebook Navigator Einstellungsdatei.',
                 buttonText: 'Metadaten bereinigen',
                 error: 'Einstellungen-Bereinigung fehlgeschlagen',
                 loading: 'Metadaten werden überprüft...',

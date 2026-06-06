@@ -1110,7 +1110,7 @@ export const STRINGS_IT = {
             },
             includeDescendantNotes: {
                 name: 'Mostra note da sottocartelle / discendenti',
-                desc: 'Includi note da sottocartelle nidificate e tag discendenti quando visualizzi una cartella o tag.'
+                desc: 'Includi note da sottocartelle nidificate e discendenti di tag e proprietà quando visualizzi una cartella, tag o proprietà.'
             },
             limitPinnedToCurrentFolder: {
                 name: 'Fissare le note solo nella loro cartella',
@@ -1118,7 +1118,7 @@ export const STRINGS_IT = {
             },
             separateNoteCounts: {
                 name: 'Mostra conteggi note correnti e discendenti separatamente',
-                desc: 'Visualizza i conteggi note nel formato "correnti ▾ discendenti" in cartelle e tag.'
+                desc: 'Visualizza i conteggi note nel formato "correnti ▾ discendenti" per cartelle, tag e proprietà.'
             },
             groupNotes: {
                 name: 'Raggruppamento predefinito',
@@ -1200,7 +1200,7 @@ export const STRINGS_IT = {
             },
             showParentFolder: {
                 name: 'Mostra cartella genitore',
-                desc: 'Visualizza il nome della cartella genitore per note in sottocartelle o tag.'
+                desc: 'Visualizza il nome della cartella genitore per note in sottocartelle, tag o proprietà.'
             },
             showParentFolderFullPath: {
                 name: 'Mostra percorso completo',
@@ -1292,7 +1292,7 @@ export const STRINGS_IT = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Auto-seleziona prima nota',
-                desc: 'Apri automaticamente la prima nota quando cambi cartella o tag.'
+                desc: 'Apri automaticamente la prima nota quando cambi cartella, tag o proprietà.'
             },
             skipAutoScroll: {
                 name: 'Disabilita auto-scroll per scorciatoie',
@@ -1643,7 +1643,7 @@ export const STRINGS_IT = {
             },
             vaultProfiles: {
                 name: 'Profilo vault',
-                desc: "I profili memorizzano visibilità tipi file, file nascosti, cartelle nascoste, tag nascosti, note nascoste, scorciatoie e banner navigazione. Cambia profilo dall'intestazione del pannello navigazione.",
+                desc: "I profili memorizzano visibilità tipi file, file nascosti, cartelle nascoste, tag nascosti, regole di proprietà per note nascoste, scorciatoie e banner navigazione. Cambia profilo dall'intestazione del pannello navigazione.",
                 defaultName: 'Predefinito',
                 addButton: 'Aggiungi profilo',
                 editProfilesButton: 'Modifica profili',
@@ -1655,7 +1655,7 @@ export const STRINGS_IT = {
                 addModalPlaceholder: 'Nome profilo',
                 deleteModalTitle: 'Elimina {name}',
                 deleteModalMessage:
-                    'Rimuovere {name}? I filtri file, cartelle, tag e note nascoste salvati in questo profilo saranno eliminati.',
+                    'Rimuovere {name}? I filtri file, cartelle, tag e note basati su proprietà salvati in questo profilo saranno eliminati.',
                 moveUp: 'Sposta su',
                 moveDown: 'Sposta giù',
                 errors: {
@@ -1923,7 +1923,7 @@ export const STRINGS_IT = {
             },
             showNoteCount: {
                 name: 'Mostra conteggio note',
-                desc: 'Visualizza il numero di note accanto a ogni cartella e tag.'
+                desc: 'Visualizza i conteggi note accanto a cartelle, tag e proprietà.'
             },
             showSectionIcons: {
                 name: 'Mostra icone per scorciatoie e elementi recenti',
@@ -1931,7 +1931,7 @@ export const STRINGS_IT = {
             },
             interfaceIcons: {
                 name: "Icone dell'interfaccia",
-                desc: 'Modifica icone di barra strumenti, cartelle, tag, elementi fissati, ricerca e ordinamento.',
+                desc: 'Modifica icone di barra strumenti, cartelle, tag, proprietà, elementi fissati, ricerca e ordinamento.',
                 buttonText: 'Modifica icone'
             },
             showIconsColorOnly: {
@@ -2035,11 +2035,11 @@ export const STRINGS_IT = {
             },
             navIndent: {
                 name: 'Indentazione albero',
-                desc: 'Regola la larghezza indentazione per cartelle e tag nidificati (pixel).'
+                desc: 'Regola la larghezza indentazione per cartelle, tag e proprietà nidificati (pixel).'
             },
             navItemHeight: {
                 name: 'Altezza elemento',
-                desc: "Regola l'altezza di cartelle e tag nel pannello navigazione (pixel)."
+                desc: "Regola l'altezza di cartelle, tag e proprietà nel pannello navigazione (pixel)."
             },
             navItemHeightScaleText: {
                 name: 'Scala testo con altezza elemento',
@@ -2047,7 +2047,7 @@ export const STRINGS_IT = {
             },
             showIndentGuides: {
                 name: 'Mostra guide di indentazione',
-                desc: 'Mostra guide di indentazione per cartelle e tag nidificati.'
+                desc: 'Mostra guide di indentazione per cartelle, tag e proprietà nidificati.'
             },
             navCountLeaderStyle: {
                 name: 'Mostra caratteri di riempimento',
@@ -2061,7 +2061,7 @@ export const STRINGS_IT = {
             },
             navRootSpacing: {
                 name: 'Spaziatura elementi root',
-                desc: 'Spaziatura tra cartelle e tag di livello root (pixel).'
+                desc: 'Spaziatura tra cartelle, tag e proprietà di livello root (pixel).'
             },
             showTags: {
                 name: 'Mostra tag',
@@ -2221,7 +2221,7 @@ export const STRINGS_IT = {
             },
             metadataCleanup: {
                 name: 'Pulisci metadati',
-                desc: 'Rimuove metadati orfani lasciati quando file, cartelle o tag sono eliminati, spostati o rinominati fuori da Obsidian. Questo influisce solo sul file impostazioni Notebook Navigator.',
+                desc: 'Rimuove metadati orfani lasciati quando file, cartelle, tag o proprietà sono eliminati, spostati o rinominati fuori da Obsidian. Questo influisce solo sul file impostazioni Notebook Navigator.',
                 buttonText: 'Pulisci metadati',
                 error: 'Pulizia impostazioni fallita',
                 loading: 'Controllo metadati...',

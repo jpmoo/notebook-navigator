@@ -1115,7 +1115,7 @@ export const STRINGS_ES = {
             },
             includeDescendantNotes: {
                 name: 'Mostrar notas de subcarpetas / descendientes',
-                desc: 'Incluir notas de subcarpetas y descendientes de etiquetas al ver una carpeta o etiqueta.'
+                desc: 'Incluir notas de subcarpetas y descendientes de etiquetas y propiedades al ver una carpeta, etiqueta o propiedad.'
             },
             limitPinnedToCurrentFolder: {
                 name: 'Fijar notas solo en su carpeta',
@@ -1123,7 +1123,7 @@ export const STRINGS_ES = {
             },
             separateNoteCounts: {
                 name: 'Mostrar recuentos de notas actuales y descendientes por separado',
-                desc: 'Muestra el conteo de notas como formato "actual ▾ descendientes" en carpetas y etiquetas.'
+                desc: 'Muestra el conteo de notas como "actual ▾ descendientes" para carpetas, etiquetas y propiedades.'
             },
             groupNotes: {
                 name: 'Agrupación predeterminada',
@@ -1205,7 +1205,7 @@ export const STRINGS_ES = {
             },
             showParentFolder: {
                 name: 'Mostrar carpeta principal',
-                desc: 'Muestra el nombre de la carpeta principal para las notas en subcarpetas o etiquetas.'
+                desc: 'Muestra el nombre de la carpeta principal para las notas en subcarpetas, etiquetas o propiedades.'
             },
             showParentFolderFullPath: {
                 name: 'Mostrar ruta completa',
@@ -1297,7 +1297,7 @@ export const STRINGS_ES = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Seleccionar automáticamente la primera nota',
-                desc: 'Abre automáticamente la primera nota al cambiar de carpeta o etiqueta.'
+                desc: 'Abre automáticamente la primera nota al cambiar de carpeta, etiqueta o propiedad.'
             },
             skipAutoScroll: {
                 name: 'Desactivar desplazamiento automático para accesos directos',
@@ -1615,7 +1615,7 @@ export const STRINGS_ES = {
             },
             vaultProfiles: {
                 name: 'Perfil de bóveda',
-                desc: 'Los perfiles almacenan visibilidad de tipos de archivo, archivos ocultos, carpetas ocultas, etiquetas ocultas, notas ocultas, atajos y banner de navegación. Cambia de perfil desde el encabezado del panel de navegación.',
+                desc: 'Los perfiles almacenan visibilidad de tipos de archivo, archivos ocultos, carpetas ocultas, etiquetas ocultas, reglas de propiedades para notas ocultas, atajos y banner de navegación. Cambia de perfil desde el encabezado del panel de navegación.',
                 defaultName: 'Predeterminado',
                 addButton: 'Añadir perfil',
                 editProfilesButton: 'Editar perfiles',
@@ -1627,7 +1627,7 @@ export const STRINGS_ES = {
                 addModalPlaceholder: 'Nombre del perfil',
                 deleteModalTitle: 'Eliminar {name}',
                 deleteModalMessage:
-                    '¿Eliminar {name}? Se eliminarán los filtros de archivos, carpetas, etiquetas y notas ocultas guardados en este perfil.',
+                    '¿Eliminar {name}? Se eliminarán los filtros de archivos, carpetas, etiquetas y notas basados en propiedades guardados en este perfil.',
                 moveUp: 'Subir',
                 moveDown: 'Bajar',
                 errors: {
@@ -1927,7 +1927,7 @@ export const STRINGS_ES = {
             },
             showNoteCount: {
                 name: 'Mostrar conteo de notas',
-                desc: 'Muestra el número de notas junto a cada carpeta y etiqueta.'
+                desc: 'Muestra el conteo de notas junto a carpetas, etiquetas y propiedades.'
             },
             showSectionIcons: {
                 name: 'Mostrar iconos para atajos y elementos recientes',
@@ -1935,7 +1935,7 @@ export const STRINGS_ES = {
             },
             interfaceIcons: {
                 name: 'Iconos de interfaz',
-                desc: 'Editar iconos de barra de herramientas, carpetas, etiquetas, elementos fijados, búsqueda y ordenación.',
+                desc: 'Editar iconos de barra de herramientas, carpetas, etiquetas, propiedades, elementos fijados, búsqueda y ordenación.',
                 buttonText: 'Editar iconos'
             },
             showIconsColorOnly: {
@@ -2039,11 +2039,11 @@ export const STRINGS_ES = {
             },
             navIndent: {
                 name: 'Sangría del árbol',
-                desc: 'Ajustar el ancho de sangría para carpetas y etiquetas anidadas (píxeles).'
+                desc: 'Ajustar el ancho de sangría para carpetas, etiquetas y propiedades anidadas (píxeles).'
             },
             navItemHeight: {
                 name: 'Altura de línea',
-                desc: 'Ajustar la altura de las carpetas y etiquetas en el panel de navegación (píxeles).'
+                desc: 'Ajustar la altura de carpetas, etiquetas y propiedades en el panel de navegación (píxeles).'
             },
             navItemHeightScaleText: {
                 name: 'Escalar texto con la altura de línea',
@@ -2051,7 +2051,7 @@ export const STRINGS_ES = {
             },
             showIndentGuides: {
                 name: 'Mostrar guías de sangría',
-                desc: 'Mostrar guías de sangría para carpetas y etiquetas anidadas.'
+                desc: 'Mostrar guías de sangría para carpetas, etiquetas y propiedades anidadas.'
             },
             navCountLeaderStyle: {
                 name: 'Mostrar guías de relleno',
@@ -2065,7 +2065,7 @@ export const STRINGS_ES = {
             },
             navRootSpacing: {
                 name: 'Espaciado de elementos raíz',
-                desc: 'Espaciado entre carpetas y etiquetas de nivel superior (píxeles).'
+                desc: 'Espaciado entre carpetas, etiquetas y propiedades de nivel superior (píxeles).'
             },
             showTags: {
                 name: 'Mostrar etiquetas',
@@ -2225,7 +2225,7 @@ export const STRINGS_ES = {
             },
             metadataCleanup: {
                 name: 'Limpiar metadatos',
-                desc: 'Elimina metadatos huérfanos dejados cuando archivos, carpetas o etiquetas son eliminados, movidos o renombrados fuera de Obsidian. Esto solo afecta el archivo de configuración de Notebook Navigator.',
+                desc: 'Elimina metadatos huérfanos dejados cuando archivos, carpetas, etiquetas o propiedades son eliminados, movidos o renombrados fuera de Obsidian. Esto solo afecta el archivo de configuración de Notebook Navigator.',
                 buttonText: 'Limpiar metadatos',
                 error: 'Falló la limpieza de configuración',
                 loading: 'Verificando metadatos...',

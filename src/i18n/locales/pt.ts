@@ -1114,7 +1114,7 @@ export const STRINGS_PT = {
             },
             includeDescendantNotes: {
                 name: 'Mostrar notas de subpastas / descendentes',
-                desc: 'Incluir notas de subpastas aninhadas e descendentes de etiquetas ao visualizar uma pasta ou etiqueta.'
+                desc: 'Incluir notas de subpastas aninhadas e descendentes de etiquetas e propriedades ao visualizar uma pasta, etiqueta ou propriedade.'
             },
             limitPinnedToCurrentFolder: {
                 name: 'Fixar notas apenas na sua pasta',
@@ -1122,7 +1122,7 @@ export const STRINGS_PT = {
             },
             separateNoteCounts: {
                 name: 'Mostrar contagens de notas atuais e descendentes separadamente',
-                desc: 'Exibir contagens de notas no formato "atuais ▾ descendentes" em pastas e etiquetas.'
+                desc: 'Exibir contagens de notas no formato "atuais ▾ descendentes" para pastas, etiquetas e propriedades.'
             },
             groupNotes: {
                 name: 'Agrupamento predefinido',
@@ -1204,7 +1204,7 @@ export const STRINGS_PT = {
             },
             showParentFolder: {
                 name: 'Mostrar pasta pai',
-                desc: 'Exibir o nome da pasta pai para notas em subpastas ou etiquetas.'
+                desc: 'Exibir o nome da pasta pai para notas em subpastas, etiquetas ou propriedades.'
             },
             showParentFolderFullPath: {
                 name: 'Mostrar caminho completo',
@@ -1296,7 +1296,7 @@ export const STRINGS_PT = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Selecionar primeira nota automaticamente',
-                desc: 'Abrir automaticamente a primeira nota ao mudar de pastas ou etiquetas.'
+                desc: 'Abrir automaticamente a primeira nota ao mudar de pastas, etiquetas ou propriedades.'
             },
             skipAutoScroll: {
                 name: 'Desativar deslocamento automático para atalhos',
@@ -1646,7 +1646,7 @@ export const STRINGS_PT = {
             },
             vaultProfiles: {
                 name: 'Perfil do cofre',
-                desc: 'Os perfis armazenam visibilidade de tipos de ficheiro, ficheiros ocultos, pastas ocultas, etiquetas ocultas, notas ocultas, atalhos e banner de navegação. Mude de perfis a partir do cabeçalho do painel de navegação.',
+                desc: 'Os perfis armazenam visibilidade de tipos de ficheiro, ficheiros ocultos, pastas ocultas, etiquetas ocultas, regras de propriedades para notas ocultas, atalhos e banner de navegação. Mude de perfis a partir do cabeçalho do painel de navegação.',
                 defaultName: 'Predefinido',
                 addButton: 'Adicionar perfil',
                 editProfilesButton: 'Editar perfis',
@@ -1658,7 +1658,7 @@ export const STRINGS_PT = {
                 addModalPlaceholder: 'Nome do perfil',
                 deleteModalTitle: 'Eliminar {name}',
                 deleteModalMessage:
-                    'Remover {name}? Os filtros de ficheiros, pastas, etiquetas e notas ocultas guardados neste perfil serão eliminados.',
+                    'Remover {name}? Os filtros de ficheiros, pastas, etiquetas e notas baseados em propriedades guardados neste perfil serão eliminados.',
                 moveUp: 'Mover para cima',
                 moveDown: 'Mover para baixo',
                 errors: {
@@ -1926,7 +1926,7 @@ export const STRINGS_PT = {
             },
             showNoteCount: {
                 name: 'Mostrar contagem de notas',
-                desc: 'Exibir o número de notas junto a cada pasta e etiqueta.'
+                desc: 'Exibir contagens de notas junto a pastas, etiquetas e propriedades.'
             },
             showSectionIcons: {
                 name: 'Mostrar ícones para atalhos e itens recentes',
@@ -1934,7 +1934,7 @@ export const STRINGS_PT = {
             },
             interfaceIcons: {
                 name: 'Ícones de interface',
-                desc: 'Editar ícones da barra de ferramentas, pastas, etiquetas, itens fixados, pesquisa e ordenação.',
+                desc: 'Editar ícones da barra de ferramentas, pastas, etiquetas, propriedades, itens fixados, pesquisa e ordenação.',
                 buttonText: 'Editar ícones'
             },
             showIconsColorOnly: {
@@ -2038,11 +2038,11 @@ export const STRINGS_PT = {
             },
             navIndent: {
                 name: 'Indentação da árvore',
-                desc: 'Ajustar a largura de indentação para pastas e etiquetas aninhadas (pixels).'
+                desc: 'Ajustar a largura de indentação para pastas, etiquetas e propriedades aninhadas (pixels).'
             },
             navItemHeight: {
                 name: 'Altura do item',
-                desc: 'Ajustar a altura das pastas e etiquetas no painel de navegação (pixels).'
+                desc: 'Ajustar a altura das pastas, etiquetas e propriedades no painel de navegação (pixels).'
             },
             navItemHeightScaleText: {
                 name: 'Escalar texto com altura do item',
@@ -2050,7 +2050,7 @@ export const STRINGS_PT = {
             },
             showIndentGuides: {
                 name: 'Mostrar guias de indentação',
-                desc: 'Apresentar guias de indentação para pastas e etiquetas aninhadas.'
+                desc: 'Apresentar guias de indentação para pastas, etiquetas e propriedades aninhadas.'
             },
             navCountLeaderStyle: {
                 name: 'Mostrar carateres de preenchimento',
@@ -2064,7 +2064,7 @@ export const STRINGS_PT = {
             },
             navRootSpacing: {
                 name: 'Espaçamento de itens raiz',
-                desc: 'Espaçamento entre pastas e etiquetas de nível raiz (pixels).'
+                desc: 'Espaçamento entre pastas, etiquetas e propriedades de nível raiz (pixels).'
             },
             showTags: {
                 name: 'Mostrar etiquetas',
@@ -2224,7 +2224,7 @@ export const STRINGS_PT = {
             },
             metadataCleanup: {
                 name: 'Limpar metadados',
-                desc: 'Remove metadados órfãos deixados quando ficheiros, pastas ou etiquetas são eliminados, movidos ou renomeados fora do Obsidian. Isto afeta apenas o ficheiro de definições do Notebook Navigator.',
+                desc: 'Remove metadados órfãos deixados quando ficheiros, pastas, etiquetas ou propriedades são eliminados, movidos ou renomeados fora do Obsidian. Isto afeta apenas o ficheiro de definições do Notebook Navigator.',
                 buttonText: 'Limpar metadados',
                 error: 'Falha na limpeza de definições',
                 loading: 'A verificar metadados...',

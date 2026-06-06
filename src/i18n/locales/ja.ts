@@ -1113,7 +1113,7 @@ export const STRINGS_JA = {
             },
             includeDescendantNotes: {
                 name: 'サブフォルダ / 子孫のノートを表示',
-                desc: 'フォルダまたはタグを表示するとき、入れ子のサブフォルダとタグの子孫にあるノートを含めます。'
+                desc: 'フォルダ、タグ、またはプロパティを表示するとき、入れ子のサブフォルダとタグおよびプロパティの子孫にあるノートを含めます。'
             },
             limitPinnedToCurrentFolder: {
                 name: 'ノートを自身のフォルダーでのみ固定',
@@ -1121,7 +1121,7 @@ export const STRINGS_JA = {
             },
             separateNoteCounts: {
                 name: '現在と子孫のノート数を個別に表示',
-                desc: 'フォルダとタグのノート数を「現在 ▾ 子孫」形式で表示します。'
+                desc: 'フォルダ、タグ、プロパティのノート数を「現在 ▾ 子孫」形式で表示します。'
             },
             groupNotes: {
                 name: 'デフォルトのグループ化',
@@ -1203,7 +1203,7 @@ export const STRINGS_JA = {
             },
             showParentFolder: {
                 name: '親フォルダを表示',
-                desc: 'サブフォルダまたはタグ内のノートに親フォルダ名を表示します。'
+                desc: 'サブフォルダ、タグ、またはプロパティ内のノートに親フォルダ名を表示します。'
             },
             showParentFolderFullPath: {
                 name: 'フルパスを表示',
@@ -1295,7 +1295,7 @@ export const STRINGS_JA = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: '最初のノートを自動選択',
-                desc: 'フォルダまたはタグを切り替えた際に自動的に最初のノートを開きます。'
+                desc: 'フォルダ、タグ、またはプロパティを切り替えた際に自動的に最初のノートを開きます。'
             },
             skipAutoScroll: {
                 name: 'ショートカットの自動スクロールを無効化',
@@ -1610,7 +1610,7 @@ export const STRINGS_JA = {
             },
             vaultProfiles: {
                 name: '保管庫プロファイル',
-                desc: 'プロファイルは、ファイルタイプの表示、非表示ファイル、非表示フォルダ、非表示タグ、非表示ノート、ショートカット、ナビゲーションバナーを保存します。ナビゲーションペインのヘッダーからプロファイルを切り替えます。',
+                desc: 'プロファイルは、ファイルタイプの表示、非表示ファイル、非表示フォルダ、非表示タグ、非表示ノート用のプロパティルール、ショートカット、ナビゲーションバナーを保存します。ナビゲーションペインのヘッダーからプロファイルを切り替えます。',
                 defaultName: 'デフォルト',
                 addButton: 'プロファイルを追加',
                 editProfilesButton: 'プロファイルを編集',
@@ -1622,7 +1622,7 @@ export const STRINGS_JA = {
                 addModalPlaceholder: 'プロファイル名',
                 deleteModalTitle: '{name}を削除',
                 deleteModalMessage:
-                    '{name}を削除しますか？このプロファイルに保存されている非表示ファイル、フォルダ、タグ、ノートのフィルタが削除されます。',
+                    '{name}を削除しますか？このプロファイルに保存されている非表示ファイル、フォルダ、タグ、プロパティベースのノートフィルタが削除されます。',
                 moveUp: '上に移動',
                 moveDown: '下に移動',
                 errors: {
@@ -1922,7 +1922,7 @@ export const STRINGS_JA = {
             },
             showNoteCount: {
                 name: 'ノート数を表示',
-                desc: '各フォルダとタグの横にノート数を表示します。'
+                desc: 'フォルダ、タグ、プロパティの横にノート数を表示します。'
             },
             showSectionIcons: {
                 name: 'ショートカットと最近の項目のアイコンを表示',
@@ -1930,7 +1930,7 @@ export const STRINGS_JA = {
             },
             interfaceIcons: {
                 name: 'インターフェースアイコン',
-                desc: 'ツールバー、フォルダ、タグ、ピン留め、検索、並べ替えのアイコンを編集します。',
+                desc: 'ツールバー、フォルダ、タグ、プロパティ、ピン留め、検索、並べ替えのアイコンを編集します。',
                 buttonText: 'アイコンを編集'
             },
             showIconsColorOnly: {
@@ -2034,11 +2034,11 @@ export const STRINGS_JA = {
             },
             navIndent: {
                 name: 'ツリーインデント',
-                desc: 'ネストされたフォルダとタグのインデント幅を調整します（ピクセル）。'
+                desc: 'ネストされたフォルダ、タグ、プロパティのインデント幅を調整します（ピクセル）。'
             },
             navItemHeight: {
                 name: '行高',
-                desc: 'ナビゲーションペイン内のフォルダとタグの高さを調整します（ピクセル）。'
+                desc: 'ナビゲーションペイン内のフォルダ、タグ、プロパティの高さを調整します（ピクセル）。'
             },
             navItemHeightScaleText: {
                 name: '行高に合わせて文字サイズを調整',
@@ -2046,7 +2046,7 @@ export const STRINGS_JA = {
             },
             showIndentGuides: {
                 name: 'インデントガイドを表示',
-                desc: 'ネストされたフォルダーとタグのインデントガイドを表示します。'
+                desc: 'ネストされたフォルダー、タグ、プロパティのインデントガイドを表示します。'
             },
             navCountLeaderStyle: {
                 name: 'リーダーを表示',
@@ -2060,7 +2060,7 @@ export const STRINGS_JA = {
             },
             navRootSpacing: {
                 name: 'ルート要素の間隔',
-                desc: '最上位のフォルダとタグの間隔（ピクセル）。'
+                desc: '最上位のフォルダ、タグ、プロパティの間隔（ピクセル）。'
             },
             showTags: {
                 name: 'タグを表示',
@@ -2220,7 +2220,7 @@ export const STRINGS_JA = {
             },
             metadataCleanup: {
                 name: 'メタデータをクリーンアップ',
-                desc: 'Obsidian外でファイル、フォルダ、タグが削除、移動、または名前変更された際に残された孤立したメタデータを削除します。これはNotebook Navigatorの設定ファイルのみに影響します。',
+                desc: 'Obsidian外でファイル、フォルダ、タグ、またはプロパティが削除、移動、または名前変更された際に残された孤立したメタデータを削除します。これはNotebook Navigatorの設定ファイルのみに影響します。',
                 buttonText: 'メタデータをクリーンアップ',
                 error: '設定のクリーンアップに失敗しました',
                 loading: 'メタデータを確認中...',

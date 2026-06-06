@@ -1117,7 +1117,7 @@ export const STRINGS_PL = {
             },
             includeDescendantNotes: {
                 name: 'Pokaż notatki z podfolderów / elementów podrzędnych',
-                desc: 'Podczas przeglądania folderu lub tagu uwzględnij notatki z podfolderów i tagów podrzędnych.'
+                desc: 'Podczas przeglądania folderu, tagu lub właściwości uwzględnij notatki z podfolderów oraz elementów podrzędnych tagów i właściwości.'
             },
             limitPinnedToCurrentFolder: {
                 name: 'Przypinaj notatki tylko w ich folderze',
@@ -1125,7 +1125,7 @@ export const STRINGS_PL = {
             },
             separateNoteCounts: {
                 name: 'Pokaż bieżącą i podrzędną liczbę notatek oddzielnie',
-                desc: 'Wyświetla liczbę notatek jako "nadrzędne ▾ podrzędne" w folderach i tagach.'
+                desc: 'Wyświetla liczbę notatek jako "nadrzędne ▾ podrzędne" dla folderów, tagów i właściwości.'
             },
             groupNotes: {
                 name: 'Domyślne grupowanie',
@@ -1207,7 +1207,7 @@ export const STRINGS_PL = {
             },
             showParentFolder: {
                 name: 'Pokaż folder nadrzędny',
-                desc: 'Wyświetla nazwę folderu nadrzędnego dla notatek w podfolderach lub tagach.'
+                desc: 'Wyświetla nazwę folderu nadrzędnego dla notatek w podfolderach, tagach lub właściwościach.'
             },
             showParentFolderFullPath: {
                 name: 'Pokaż pełną ścieżkę',
@@ -1299,7 +1299,7 @@ export const STRINGS_PL = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Automatycznie wybierz pierwszą notatkę',
-                desc: 'Automatycznie otwiera pierwszą notatkę po zmianie folderu lub tagu.'
+                desc: 'Automatycznie otwiera pierwszą notatkę po zmianie folderu, tagu lub właściwości.'
             },
             skipAutoScroll: {
                 name: 'Wyłącz automatyczne przewijanie skrótów',
@@ -1648,7 +1648,7 @@ export const STRINGS_PL = {
             },
             vaultProfiles: {
                 name: 'Profil sejfu',
-                desc: 'Profile przechowują widoczność typów plików, ukryte pliki, ukryte foldery, ukryte tagi, ukryte notatki, skróty i panel nawigacji. Przełącz profile w nagłówku panelu nawigacji.',
+                desc: 'Profile przechowują widoczność typów plików, ukryte pliki, ukryte foldery, ukryte tagi, reguły właściwości dla ukrytych notatek, skróty i panel nawigacji. Przełącz profile w nagłówku panelu nawigacji.',
                 defaultName: 'Domyślny',
                 addButton: 'Dodaj profil',
                 editProfilesButton: 'Edytuj profile',
@@ -1660,7 +1660,7 @@ export const STRINGS_PL = {
                 addModalPlaceholder: 'Nazwa profilu',
                 deleteModalTitle: 'Usuń {name}',
                 deleteModalMessage:
-                    'Usunąć {name}? Filtry ukrytych plików, folderów, tagów i notatek zapisane w tym profilu zostaną usunięte.',
+                    'Usunąć {name}? Filtry ukrytych plików, folderów, tagów i notatek oparte na właściwościach zapisane w tym profilu zostaną usunięte.',
                 moveUp: 'Przesuń w górę',
                 moveDown: 'Przesuń w dół',
                 errors: {
@@ -1928,7 +1928,7 @@ export const STRINGS_PL = {
             },
             showNoteCount: {
                 name: 'Pokaż liczbę notatek',
-                desc: 'Wyświetla liczbę notatek obok każdego folderu i tagu.'
+                desc: 'Wyświetla liczbę notatek obok folderów, tagów i właściwości.'
             },
             showSectionIcons: {
                 name: 'Pokaż ikonki skrótów i ostatnich elementów',
@@ -1936,7 +1936,7 @@ export const STRINGS_PL = {
             },
             interfaceIcons: {
                 name: 'Ikonki interfejsu',
-                desc: 'Edytuj ikonki paska narzędzi, folderów, tagów, przypiętych elementów, wyszukiwania i sortowania.',
+                desc: 'Edytuj ikonki paska narzędzi, folderów, tagów, właściwości, przypiętych elementów, wyszukiwania i sortowania.',
                 buttonText: 'Edytuj ikonki'
             },
             showIconsColorOnly: {
@@ -2040,11 +2040,11 @@ export const STRINGS_PL = {
             },
             navIndent: {
                 name: 'Wcięcie w strukturze',
-                desc: 'Dostosuj szerokość wcięcia w strukturze folderów i tagów (piksele).'
+                desc: 'Dostosuj szerokość wcięcia w strukturze folderów, tagów i właściwości (piksele).'
             },
             navItemHeight: {
                 name: 'Wysokość elementu',
-                desc: 'Dostosuj wysokość folderów i tagów w panelu nawigacji (piksele).'
+                desc: 'Dostosuj wysokość folderów, tagów i właściwości w panelu nawigacji (piksele).'
             },
             navItemHeightScaleText: {
                 name: 'Skaluj tekst z wysokością elementu',
@@ -2052,7 +2052,7 @@ export const STRINGS_PL = {
             },
             showIndentGuides: {
                 name: 'Pokaż linie wcięć',
-                desc: 'Wyświetla linie wcięć w strukturze folderów i tagów.'
+                desc: 'Wyświetla linie wcięć w strukturze folderów, tagów i właściwości.'
             },
             navCountLeaderStyle: {
                 name: 'Pokaż znaki wiodące',
@@ -2066,7 +2066,7 @@ export const STRINGS_PL = {
             },
             navRootSpacing: {
                 name: 'Odstęp elementów głównych',
-                desc: 'Odstęp między nadrzędnymi folderami i tagami (piksele).'
+                desc: 'Odstęp między nadrzędnymi folderami, tagami i właściwościami (piksele).'
             },
             showTags: {
                 name: 'Pokaż tagi',
@@ -2226,7 +2226,7 @@ export const STRINGS_PL = {
             },
             metadataCleanup: {
                 name: 'Wyczyść metadane',
-                desc: 'Usuwa niepowiązane metadane pozostałe po usunięciu, przeniesieniu lub zmianie nazwy plików, folderów lub tagów poza Obsidian. Dotyczy to wyłącznie pliku ustawień Notebook Navigator.',
+                desc: 'Usuwa niepowiązane metadane pozostałe po usunięciu, przeniesieniu lub zmianie nazwy plików, folderów, tagów lub właściwości poza Obsidian. Dotyczy to wyłącznie pliku ustawień Notebook Navigator.',
                 buttonText: 'Wyczyść metadane',
                 error: 'Czyszczenie ustawień nie powiodło się',
                 loading: 'Sprawdzanie metadanych...',

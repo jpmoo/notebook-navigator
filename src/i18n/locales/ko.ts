@@ -1111,7 +1111,7 @@ export const STRINGS_KO = {
             },
             includeDescendantNotes: {
                 name: '하위 폴더 / 하위 항목 노트 표시',
-                desc: '폴더나 태그를 볼 때 중첩된 하위 폴더와 태그 하위 항목의 노트를 포함합니다.'
+                desc: '폴더, 태그 또는 속성을 볼 때 중첩된 하위 폴더와 태그 및 속성 하위 항목의 노트를 포함합니다.'
             },
             limitPinnedToCurrentFolder: {
                 name: '노트를 해당 폴더에서만 고정',
@@ -1119,7 +1119,7 @@ export const STRINGS_KO = {
             },
             separateNoteCounts: {
                 name: '현재와 하위 노트 수를 별도로 표시',
-                desc: '폴더와 태그의 노트 수를 "현재 ▾ 하위" 형식으로 표시합니다.'
+                desc: '폴더, 태그, 속성의 노트 수를 "현재 ▾ 하위" 형식으로 표시합니다.'
             },
             groupNotes: {
                 name: '기본 그룹화',
@@ -1201,7 +1201,7 @@ export const STRINGS_KO = {
             },
             showParentFolder: {
                 name: '상위 폴더 표시',
-                desc: '하위 폴더나 태그의 노트에 상위 폴더 이름을 표시합니다.'
+                desc: '하위 폴더, 태그 또는 속성의 노트에 상위 폴더 이름을 표시합니다.'
             },
             showParentFolderFullPath: {
                 name: '전체 경로 표시',
@@ -1293,7 +1293,7 @@ export const STRINGS_KO = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: '첫 번째 노트 자동 선택',
-                desc: '폴더나 태그를 전환할 때 첫 번째 노트를 자동으로 엽니다.'
+                desc: '폴더, 태그 또는 속성을 전환할 때 첫 번째 노트를 자동으로 엽니다.'
             },
             skipAutoScroll: {
                 name: '바로가기 자동 스크롤 비활성화',
@@ -1640,7 +1640,7 @@ export const STRINGS_KO = {
             },
             vaultProfiles: {
                 name: '보관소 프로필',
-                desc: '프로필은 파일 유형 가시성, 숨겨진 파일, 숨겨진 폴더, 숨겨진 태그, 숨겨진 노트, 바로가기, 탐색 배너를 저장합니다. 탐색 창 헤더에서 프로필을 전환합니다.',
+                desc: '프로필은 파일 유형 가시성, 숨겨진 파일, 숨겨진 폴더, 숨겨진 태그, 숨겨진 노트용 속성 규칙, 바로가기, 탐색 배너를 저장합니다. 탐색 창 헤더에서 프로필을 전환합니다.',
                 defaultName: '기본',
                 addButton: '프로필 추가',
                 editProfilesButton: '프로필 편집',
@@ -1651,7 +1651,8 @@ export const STRINGS_KO = {
                 editProfilesModalTitle: '프로필 편집',
                 addModalPlaceholder: '프로필 이름',
                 deleteModalTitle: '{name} 삭제',
-                deleteModalMessage: '{name}을(를) 제거하시겠습니까? 이 프로필에 저장된 숨겨진 파일, 폴더, 태그 및 노트 필터가 삭제됩니다.',
+                deleteModalMessage:
+                    '{name}을(를) 제거하시겠습니까? 이 프로필에 저장된 숨겨진 파일, 폴더, 태그 및 속성 기반 노트 필터가 삭제됩니다.',
                 moveUp: '위로 이동',
                 moveDown: '아래로 이동',
                 errors: {
@@ -1919,7 +1920,7 @@ export const STRINGS_KO = {
             },
             showNoteCount: {
                 name: '노트 수 표시',
-                desc: '각 폴더와 태그 옆에 노트 수를 표시합니다.'
+                desc: '폴더, 태그, 속성 옆에 노트 수를 표시합니다.'
             },
             showSectionIcons: {
                 name: '바로 가기 및 최근 항목 아이콘 표시',
@@ -1927,7 +1928,7 @@ export const STRINGS_KO = {
             },
             interfaceIcons: {
                 name: '인터페이스 아이콘',
-                desc: '도구 모음, 폴더, 태그, 고정 항목, 검색, 정렬 아이콘을 편집합니다.',
+                desc: '도구 모음, 폴더, 태그, 속성, 고정 항목, 검색, 정렬 아이콘을 편집합니다.',
                 buttonText: '아이콘 편집'
             },
             showIconsColorOnly: {
@@ -2031,11 +2032,11 @@ export const STRINGS_KO = {
             },
             navIndent: {
                 name: '트리 들여쓰기',
-                desc: '중첩된 폴더와 태그의 들여쓰기 너비를 조정합니다(픽셀).'
+                desc: '중첩된 폴더, 태그, 속성의 들여쓰기 너비를 조정합니다(픽셀).'
             },
             navItemHeight: {
                 name: '항목 높이',
-                desc: '탐색 창에서 폴더와 태그의 높이를 조정합니다(픽셀).'
+                desc: '탐색 창에서 폴더, 태그, 속성의 높이를 조정합니다(픽셀).'
             },
             navItemHeightScaleText: {
                 name: '항목 높이에 따라 글자 크기 조정',
@@ -2043,7 +2044,7 @@ export const STRINGS_KO = {
             },
             showIndentGuides: {
                 name: '들여쓰기 안내선 표시',
-                desc: '중첩된 폴더와 태그의 들여쓰기 안내선을 표시합니다.'
+                desc: '중첩된 폴더, 태그, 속성의 들여쓰기 안내선을 표시합니다.'
             },
             navCountLeaderStyle: {
                 name: '리더 표시',
@@ -2057,7 +2058,7 @@ export const STRINGS_KO = {
             },
             navRootSpacing: {
                 name: '루트 항목 간격',
-                desc: '최상위 폴더와 태그 사이의 간격(픽셀).'
+                desc: '최상위 폴더, 태그, 속성 사이의 간격(픽셀).'
             },
             showTags: {
                 name: '태그 표시',
@@ -2217,7 +2218,7 @@ export const STRINGS_KO = {
             },
             metadataCleanup: {
                 name: '메타데이터 정리',
-                desc: 'Obsidian 외부에서 파일, 폴더 또는 태그가 삭제, 이동 또는 이름이 변경될 때 남겨진 고아 메타데이터를 제거합니다. 이는 Notebook Navigator 설정 파일에만 영향을 줍니다.',
+                desc: 'Obsidian 외부에서 파일, 폴더, 태그 또는 속성이 삭제, 이동 또는 이름이 변경될 때 남겨진 고아 메타데이터를 제거합니다. 이는 Notebook Navigator 설정 파일에만 영향을 줍니다.',
                 buttonText: '메타데이터 정리',
                 error: '설정 정리에 실패했습니다',
                 loading: '메타데이터 확인 중...',

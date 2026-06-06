@@ -1116,7 +1116,7 @@ export const STRINGS_NL = {
             },
             includeDescendantNotes: {
                 name: 'Notities uit submappen / afstammelingen tonen',
-                desc: 'Notities uit geneste submappen en tag-afstammelingen opnemen bij het bekijken van een map of tag.'
+                desc: 'Notities uit geneste submappen en tag- en eigenschap-afstammelingen opnemen bij het bekijken van een map, tag of eigenschap.'
             },
             limitPinnedToCurrentFolder: {
                 name: 'Notities alleen in hun map vastmaken',
@@ -1124,7 +1124,7 @@ export const STRINGS_NL = {
             },
             separateNoteCounts: {
                 name: 'Huidige en afstammeling-notitietellingen apart tonen',
-                desc: 'Notitietelingen weergeven in "huidig ▾ afstammelingen" formaat in mappen en tags.'
+                desc: 'Notitietellingen weergeven in "huidig ▾ afstammelingen" formaat voor mappen, tags en eigenschappen.'
             },
             groupNotes: {
                 name: 'Standaard groepering',
@@ -1206,7 +1206,7 @@ export const STRINGS_NL = {
             },
             showParentFolder: {
                 name: 'Bovenliggende map tonen',
-                desc: 'De naam van de bovenliggende map weergeven voor notities in submappen of tags.'
+                desc: 'De naam van de bovenliggende map weergeven voor notities in submappen, tags of eigenschappen.'
             },
             showParentFolderFullPath: {
                 name: 'Volledig pad tonen',
@@ -1298,7 +1298,7 @@ export const STRINGS_NL = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Eerste notitie automatisch selecteren',
-                desc: 'Automatisch de eerste notitie openen bij het wisselen van mappen of tags.'
+                desc: 'Automatisch de eerste notitie openen bij het wisselen van mappen, tags of eigenschappen.'
             },
             skipAutoScroll: {
                 name: 'Automatisch scrollen voor snelkoppelingen uitschakelen',
@@ -1647,7 +1647,7 @@ export const STRINGS_NL = {
             },
             vaultProfiles: {
                 name: 'Kluis profiel',
-                desc: 'Profielen bewaren bestandstypezichtbaarheid, verborgen bestanden, verborgen mappen, verborgen labels, verborgen notities, snelkoppelingen en navigatiebanner. Wissel van profiel via de koptekst van het navigatiepaneel.',
+                desc: 'Profielen bewaren bestandstypezichtbaarheid, verborgen bestanden, verborgen mappen, verborgen labels, eigenschapsregels voor verborgen notities, snelkoppelingen en navigatiebanner. Wissel van profiel via de koptekst van het navigatiepaneel.',
                 defaultName: 'Standaard',
                 addButton: 'Profiel toevoegen',
                 editProfilesButton: 'Profielen bewerken',
@@ -1659,7 +1659,7 @@ export const STRINGS_NL = {
                 addModalPlaceholder: 'Profielnaam',
                 deleteModalTitle: '{name} verwijderen',
                 deleteModalMessage:
-                    '{name} verwijderen? Verborgen bestands-, map-, label- en notitiefilters opgeslagen in dit profiel worden verwijderd.',
+                    '{name} verwijderen? Verborgen bestands-, map-, label- en eigenschapsgebaseerde notitiefilters opgeslagen in dit profiel worden verwijderd.',
                 moveUp: 'Omhoog verplaatsen',
                 moveDown: 'Omlaag verplaatsen',
                 errors: {
@@ -1927,7 +1927,7 @@ export const STRINGS_NL = {
             },
             showNoteCount: {
                 name: 'Notitietelling tonen',
-                desc: 'Het aantal notities naast elke map en tag weergeven.'
+                desc: 'Notitietellingen naast mappen, tags en eigenschappen weergeven.'
             },
             showSectionIcons: {
                 name: 'Pictogrammen tonen voor snelkoppelingen en recente items',
@@ -1935,7 +1935,7 @@ export const STRINGS_NL = {
             },
             interfaceIcons: {
                 name: 'Interface-iconen',
-                desc: 'Bewerk werkbalk-, map-, tag-, vastgezette, zoek- en sorteerichtogrammen.',
+                desc: 'Bewerk werkbalk-, map-, tag-, eigenschap-, vastgezette, zoek- en sorteerichtogrammen.',
                 buttonText: 'Iconen bewerken'
             },
             showIconsColorOnly: {
@@ -2039,11 +2039,11 @@ export const STRINGS_NL = {
             },
             navIndent: {
                 name: 'Structuurinspringing',
-                desc: 'De inspringbreedte aanpassen voor geneste mappen en tags (pixels).'
+                desc: 'De inspringbreedte aanpassen voor geneste mappen, tags en eigenschappen (pixels).'
             },
             navItemHeight: {
                 name: 'Itemhoogte',
-                desc: 'De hoogte van mappen en tags in het navigatiepaneel aanpassen (pixels).'
+                desc: 'De hoogte van mappen, tags en eigenschappen in het navigatiepaneel aanpassen (pixels).'
             },
             navItemHeightScaleText: {
                 name: 'Tekst schalen met itemhoogte',
@@ -2051,7 +2051,7 @@ export const STRINGS_NL = {
             },
             showIndentGuides: {
                 name: 'Inspringlijnen tonen',
-                desc: 'Inspringlijnen weergeven voor geneste mappen en tags.'
+                desc: 'Inspringlijnen weergeven voor geneste mappen, tags en eigenschappen.'
             },
             navCountLeaderStyle: {
                 name: 'Opvultekens tonen',
@@ -2065,7 +2065,7 @@ export const STRINGS_NL = {
             },
             navRootSpacing: {
                 name: 'Hoofditem-afstand',
-                desc: 'Afstand tussen mappen en tags op hoofdniveau (pixels).'
+                desc: 'Afstand tussen mappen, tags en eigenschappen op hoofdniveau (pixels).'
             },
             showTags: {
                 name: 'Tags tonen',
@@ -2225,7 +2225,7 @@ export const STRINGS_NL = {
             },
             metadataCleanup: {
                 name: 'Metadata opschonen',
-                desc: 'Verwijdert verweesde metadata die achterblijft wanneer bestanden, mappen of tags worden verwijderd, verplaatst of hernoemd buiten Obsidian. Dit beïnvloedt alleen het Notebook Navigator-instellingenbestand.',
+                desc: 'Verwijdert verweesde metadata die achterblijft wanneer bestanden, mappen, tags of eigenschappen worden verwijderd, verplaatst of hernoemd buiten Obsidian. Dit beïnvloedt alleen het Notebook Navigator-instellingenbestand.',
                 buttonText: 'Metadata opschonen',
                 error: 'Opschonen van instellingen mislukt',
                 loading: 'Metadata controleren...',
