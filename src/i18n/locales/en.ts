@@ -1108,7 +1108,7 @@ export const STRINGS_EN = {
             },
             includeDescendantNotes: {
                 name: 'Show notes from subfolders / descendants',
-                desc: 'Include notes from nested subfolders and tag descendants when viewing a folder or tag.'
+                desc: 'Include notes from nested subfolders and tag and property descendants when viewing a folder, tag, or property.'
             },
             limitPinnedToCurrentFolder: {
                 name: 'Only pin notes in their folder',
@@ -1116,7 +1116,7 @@ export const STRINGS_EN = {
             },
             separateNoteCounts: {
                 name: 'Show current and descendant note counts separately',
-                desc: 'Display note counts as "current ▾ descendants" format in folders and tags.'
+                desc: 'Display note counts as "current ▾ descendants" for folders, tags, and properties.'
             },
             groupNotes: {
                 name: 'Default grouping',
@@ -1198,7 +1198,7 @@ export const STRINGS_EN = {
             },
             showParentFolder: {
                 name: 'Show parent folder',
-                desc: 'Display the parent folder name for notes in subfolders or tags.'
+                desc: 'Display the parent folder name for notes in subfolders, tags, or properties.'
             },
             showParentFolderFullPath: {
                 name: 'Show full path',
@@ -1290,7 +1290,7 @@ export const STRINGS_EN = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Auto-select first note',
-                desc: 'Automatically open the first note when switching folders or tags.'
+                desc: 'Automatically open the first note when switching folders, tags, or properties.'
             },
             skipAutoScroll: {
                 name: 'Disable auto-scroll for shortcuts',
@@ -1637,7 +1637,7 @@ export const STRINGS_EN = {
             },
             vaultProfiles: {
                 name: 'Vault profile',
-                desc: 'Profiles store file type visibility, hidden files, hidden folders, hidden tags, hidden notes, shortcuts, and navigation banner. Switch profiles from the navigation pane header.',
+                desc: 'Profiles store file type visibility, hidden files, hidden folders, hidden tags, property rules for hidden notes, shortcuts, and navigation banner. Switch profiles from the navigation pane header.',
                 defaultName: 'Default',
                 addButton: 'Add profile',
                 editProfilesButton: 'Edit profiles',
@@ -1648,7 +1648,8 @@ export const STRINGS_EN = {
                 editProfilesModalTitle: 'Edit profiles',
                 addModalPlaceholder: 'Profile name',
                 deleteModalTitle: 'Delete {name}',
-                deleteModalMessage: 'Remove {name}? Hidden file, folder, tag, and note filters saved in this profile will be deleted.',
+                deleteModalMessage:
+                    'Remove {name}? Hidden file, folder, tag, and property-based note filters saved in this profile will be deleted.',
                 moveUp: 'Move up',
                 moveDown: 'Move down',
                 errors: {
@@ -1915,7 +1916,7 @@ export const STRINGS_EN = {
             },
             showNoteCount: {
                 name: 'Show note count',
-                desc: 'Display the number of notes next to each folder and tag.'
+                desc: 'Display note counts next to folders, tags, and properties.'
             },
             showSectionIcons: {
                 name: 'Show icons for shortcuts and recent items',
@@ -1923,7 +1924,7 @@ export const STRINGS_EN = {
             },
             interfaceIcons: {
                 name: 'Interface icons',
-                desc: 'Edit toolbar, folder, tag, pinned, search, and sort icons.',
+                desc: 'Edit toolbar, folder, tag, property, pinned, search, and sort icons.',
                 buttonText: 'Edit icons'
             },
             showIconsColorOnly: {
@@ -2027,11 +2028,11 @@ export const STRINGS_EN = {
             },
             navIndent: {
                 name: 'Tree indentation',
-                desc: 'Adjust the indentation width for nested folders and tags (pixels).'
+                desc: 'Adjust the indentation width for nested folders, tags, and properties (pixels).'
             },
             navItemHeight: {
                 name: 'Item height',
-                desc: 'Adjust the height of folders and tags in the navigation pane (pixels).'
+                desc: 'Adjust the height of folders, tags, and properties in the navigation pane (pixels).'
             },
             navItemHeightScaleText: {
                 name: 'Scale text with item height',
@@ -2039,7 +2040,7 @@ export const STRINGS_EN = {
             },
             showIndentGuides: {
                 name: 'Show indent guides',
-                desc: 'Display indent guides for nested folders and tags.'
+                desc: 'Display indent guides for nested folders, tags, and properties.'
             },
             navCountLeaderStyle: {
                 name: 'Show leaders',
@@ -2053,7 +2054,7 @@ export const STRINGS_EN = {
             },
             navRootSpacing: {
                 name: 'Root item spacing',
-                desc: 'Spacing between root-level folders and tags (pixels).'
+                desc: 'Spacing between root-level folders, tags, and properties (pixels).'
             },
             showTags: {
                 name: 'Show tags',
@@ -2213,7 +2214,7 @@ export const STRINGS_EN = {
             },
             metadataCleanup: {
                 name: 'Clean up metadata',
-                desc: 'Removes orphaned metadata left behind when files, folders, or tags are deleted, moved, or renamed outside of Obsidian. This only affects the Notebook Navigator settings file.',
+                desc: 'Removes orphaned metadata left behind when files, folders, tags, or properties are deleted, moved, or renamed outside of Obsidian. This only affects the Notebook Navigator settings file.',
                 buttonText: 'Clean metadata',
                 error: 'Settings cleanup failed',
                 loading: 'Checking metadata...',

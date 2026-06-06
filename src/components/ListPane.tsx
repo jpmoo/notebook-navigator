@@ -315,6 +315,7 @@ export const ListPane = React.memo(
         const [hoveredFilePath, setHoveredFilePath] = useState<string | null>(null);
         const [manualSortEditState, setManualSortEditState] = useState<ManualSortEditState | null>(null);
         const [propertyKeyboardReorderState, setPropertyKeyboardReorderState] = useState<PropertyKeyboardReorderState | null>(null);
+        const hoverSyncFrameRef = useRef<number | null>(null);
         const manualSortEditSessionCounterRef = useRef(0);
         const manualSortEditSaveCounterRef = useRef(0);
         const propertyKeyboardReorderSaveCounterRef = useRef(0);
@@ -757,6 +758,24 @@ export const ListPane = React.memo(
             const nextHoveredFilePath = getHoveredFilePathAtPointer(scrollElement, hoverPointerClientPositionRef.current);
             setHoveredFilePath(previous => (previous === nextHoveredFilePath ? previous : nextHoveredFilePath));
         }, []);
+        const syncHoveredFilePathToPointerAfterPaint = React.useCallback(
+            (scrollElement: HTMLDivElement | null) => {
+                if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
+                    syncHoveredFilePathToPointer(scrollElement);
+                    return;
+                }
+
+                if (hoverSyncFrameRef.current !== null) {
+                    window.cancelAnimationFrame(hoverSyncFrameRef.current);
+                }
+
+                hoverSyncFrameRef.current = window.requestAnimationFrame(() => {
+                    hoverSyncFrameRef.current = null;
+                    syncHoveredFilePathToPointer(scrollElement);
+                });
+            },
+            [syncHoveredFilePathToPointer]
+        );
         const handleVirtualizerScrollingChange = React.useCallback(
             (isScrolling: boolean, scrollElement: HTMLDivElement | null) => {
                 if (isScrolling) {
@@ -769,6 +788,24 @@ export const ListPane = React.memo(
                 setIsListScrolling(false);
             },
             [syncHoveredFilePathToPointer]
+        );
+        const handleScrollContainerVisibilityChange = React.useCallback(
+            (isContainerVisible: boolean, scrollElement: HTMLDivElement | null) => {
+                setIsListScrolling(false);
+
+                if (!isContainerVisible) {
+                    if (hoverSyncFrameRef.current !== null) {
+                        window.cancelAnimationFrame(hoverSyncFrameRef.current);
+                        hoverSyncFrameRef.current = null;
+                    }
+                    setHoveredFilePath(previous => (previous === null ? previous : null));
+                    return;
+                }
+
+                syncHoveredFilePathToPointer(scrollElement);
+                syncHoveredFilePathToPointerAfterPaint(scrollElement);
+            },
+            [syncHoveredFilePathToPointer, syncHoveredFilePathToPointerAfterPaint]
         );
         const visibleListPropertyKeySignature = useMemo(() => {
             if (visibleListPropertyKeys.size === 0) {
@@ -806,7 +843,8 @@ export const ListPane = React.memo(
                 hiddenTagVisibility,
                 scrollMargin: 0,
                 scrollPaddingEnd,
-                onVirtualizerScrollingChange: handleVirtualizerScrollingChange
+                onVirtualizerScrollingChange: handleVirtualizerScrollingChange,
+                onScrollContainerVisibilityChange: handleScrollContainerVisibilityChange
             });
 
         const prevCalendarOverlayVisibleRef = useRef<boolean>(shouldRenderCalendarOverlay);
@@ -854,6 +892,40 @@ export const ListPane = React.memo(
             },
             []
         );
+
+        useEffect(() => {
+            if (isMobile) {
+                return;
+            }
+
+            const handleWindowMouseMove = (event: MouseEvent) => {
+                hoverPointerClientPositionRef.current = {
+                    clientX: event.clientX,
+                    clientY: event.clientY
+                };
+            };
+            const handleWindowMouseOut = (event: MouseEvent) => {
+                if (!event.relatedTarget) {
+                    hoverPointerClientPositionRef.current = null;
+                }
+            };
+
+            window.addEventListener('mousemove', handleWindowMouseMove, { passive: true });
+            window.addEventListener('mouseout', handleWindowMouseOut);
+            return () => {
+                window.removeEventListener('mousemove', handleWindowMouseMove);
+                window.removeEventListener('mouseout', handleWindowMouseOut);
+            };
+        }, [isMobile]);
+
+        useEffect(() => {
+            return () => {
+                if (hoverSyncFrameRef.current !== null) {
+                    window.cancelAnimationFrame(hoverSyncFrameRef.current);
+                    hoverSyncFrameRef.current = null;
+                }
+            };
+        }, []);
 
         useLayoutEffect(() => {
             if (isListScrolling) {

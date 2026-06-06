@@ -1114,7 +1114,7 @@ export const STRINGS_ID = {
             },
             includeDescendantNotes: {
                 name: 'Tampilkan catatan dari subfolder / turunan',
-                desc: 'Sertakan catatan dari subfolder bersarang dan turunan tag saat melihat folder atau tag.'
+                desc: 'Sertakan catatan dari subfolder bersarang serta turunan tag dan properti saat melihat folder, tag, atau properti.'
             },
             limitPinnedToCurrentFolder: {
                 name: 'Sematkan catatan hanya di foldernya',
@@ -1122,7 +1122,7 @@ export const STRINGS_ID = {
             },
             separateNoteCounts: {
                 name: 'Tampilkan jumlah catatan saat ini dan turunan secara terpisah',
-                desc: 'Tampilkan jumlah catatan sebagai format "saat ini ▾ turunan" di folder dan tag.'
+                desc: 'Tampilkan jumlah catatan sebagai "saat ini ▾ turunan" untuk folder, tag, dan properti.'
             },
             groupNotes: {
                 name: 'Pengelompokan default',
@@ -1204,7 +1204,7 @@ export const STRINGS_ID = {
             },
             showParentFolder: {
                 name: 'Tampilkan folder induk',
-                desc: 'Tampilkan nama folder induk untuk catatan di subfolder atau tag.'
+                desc: 'Tampilkan nama folder induk untuk catatan di subfolder, tag, atau properti.'
             },
             showParentFolderFullPath: {
                 name: 'Tampilkan path lengkap',
@@ -1296,7 +1296,7 @@ export const STRINGS_ID = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Auto-pilih catatan pertama',
-                desc: 'Secara otomatis membuka catatan pertama saat beralih folder atau tag.'
+                desc: 'Secara otomatis membuka catatan pertama saat beralih folder, tag, atau properti.'
             },
             skipAutoScroll: {
                 name: 'Nonaktifkan auto-gulir untuk pintasan',
@@ -1644,7 +1644,7 @@ export const STRINGS_ID = {
             },
             vaultProfiles: {
                 name: 'Profil vault',
-                desc: 'Profil menyimpan visibilitas jenis file, file tersembunyi, folder tersembunyi, tag tersembunyi, catatan tersembunyi, pintasan, dan banner navigasi. Beralih profil dari header panel navigasi.',
+                desc: 'Profil menyimpan visibilitas jenis file, file tersembunyi, folder tersembunyi, tag tersembunyi, aturan properti untuk catatan tersembunyi, pintasan, dan banner navigasi. Beralih profil dari header panel navigasi.',
                 defaultName: 'Default',
                 addButton: 'Tambah profil',
                 editProfilesButton: 'Edit profil',
@@ -1656,7 +1656,7 @@ export const STRINGS_ID = {
                 addModalPlaceholder: 'Nama profil',
                 deleteModalTitle: 'Hapus {name}',
                 deleteModalMessage:
-                    'Hapus {name}? Filter file, folder, tag, dan catatan tersembunyi yang disimpan di profil ini akan dihapus.',
+                    'Hapus {name}? Filter file, folder, tag, dan catatan berbasis properti yang disimpan di profil ini akan dihapus.',
                 moveUp: 'Pindah ke atas',
                 moveDown: 'Pindah ke bawah',
                 errors: {
@@ -1924,7 +1924,7 @@ export const STRINGS_ID = {
             },
             showNoteCount: {
                 name: 'Tampilkan jumlah catatan',
-                desc: 'Tampilkan jumlah catatan di sebelah setiap folder dan tag.'
+                desc: 'Tampilkan jumlah catatan di sebelah folder, tag, dan properti.'
             },
             showSectionIcons: {
                 name: 'Tampilkan ikon untuk pintasan dan item terbaru',
@@ -1932,7 +1932,7 @@ export const STRINGS_ID = {
             },
             interfaceIcons: {
                 name: 'Ikon antarmuka',
-                desc: 'Edit ikon toolbar, folder, tag, item tersemat, pencarian, dan pengurutan.',
+                desc: 'Edit ikon toolbar, folder, tag, properti, item tersemat, pencarian, dan pengurutan.',
                 buttonText: 'Edit ikon'
             },
             showIconsColorOnly: {
@@ -2036,11 +2036,11 @@ export const STRINGS_ID = {
             },
             navIndent: {
                 name: 'Indentasi pohon',
-                desc: 'Sesuaikan lebar indentasi untuk folder dan tag bersarang (piksel).'
+                desc: 'Sesuaikan lebar indentasi untuk folder, tag, dan properti bersarang (piksel).'
             },
             navItemHeight: {
                 name: 'Tinggi item',
-                desc: 'Sesuaikan tinggi folder dan tag di panel navigasi (piksel).'
+                desc: 'Sesuaikan tinggi folder, tag, dan properti di panel navigasi (piksel).'
             },
             navItemHeightScaleText: {
                 name: 'Skalakan teks dengan tinggi item',
@@ -2048,7 +2048,7 @@ export const STRINGS_ID = {
             },
             showIndentGuides: {
                 name: 'Tampilkan panduan indentasi',
-                desc: 'Tampilkan panduan indentasi untuk folder dan tag bersarang.'
+                desc: 'Tampilkan panduan indentasi untuk folder, tag, dan properti bersarang.'
             },
             navCountLeaderStyle: {
                 name: 'Tampilkan tanda penghubung',
@@ -2062,7 +2062,7 @@ export const STRINGS_ID = {
             },
             navRootSpacing: {
                 name: 'Spasi item root',
-                desc: 'Spasi antara folder dan tag tingkat root (piksel).'
+                desc: 'Spasi antara folder, tag, dan properti tingkat root (piksel).'
             },
             showTags: {
                 name: 'Tampilkan tag',
@@ -2222,7 +2222,7 @@ export const STRINGS_ID = {
             },
             metadataCleanup: {
                 name: 'Bersihkan metadata',
-                desc: 'Menghapus metadata yatim yang ditinggalkan saat file, folder, atau tag dihapus, dipindahkan, atau diganti nama di luar Obsidian. Ini hanya mempengaruhi file pengaturan Notebook Navigator.',
+                desc: 'Menghapus metadata yatim yang ditinggalkan saat file, folder, tag, atau properti dihapus, dipindahkan, atau diganti nama di luar Obsidian. Ini hanya mempengaruhi file pengaturan Notebook Navigator.',
                 buttonText: 'Bersihkan metadata',
                 error: 'Pembersihan pengaturan gagal',
                 loading: 'Memeriksa metadata...',

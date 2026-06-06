@@ -142,6 +142,8 @@ interface UseListPaneScrollParams {
     scrollPaddingEnd?: number;
     /** Called when the virtualizer scrolling state changes */
     onVirtualizerScrollingChange?: (isScrolling: boolean, scrollElement: HTMLDivElement | null) => void;
+    /** Called when the physical scroll container is hidden or shown */
+    onScrollContainerVisibilityChange?: (isVisible: boolean, scrollElement: HTMLDivElement | null) => void;
 }
 
 type ListPaneAppearanceLayoutSettings = UseListPaneScrollParams['folderSettings'];
@@ -587,7 +589,8 @@ export function useListPaneScroll({
     hiddenTagVisibility,
     scrollMargin = 0,
     scrollPaddingEnd = 0,
-    onVirtualizerScrollingChange
+    onVirtualizerScrollingChange,
+    onScrollContainerVisibilityChange
 }: UseListPaneScrollParams): UseListPaneScrollResult {
     const { app, isMobile } = useServices();
     const listMeasurements = getListPaneMeasurements(isMobile);
@@ -611,6 +614,9 @@ export function useListPaneScroll({
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
     const [scrollContainerEl, setScrollContainerEl] = useState<HTMLDivElement | null>(null);
     const [containerVisible, setContainerVisible] = useState<boolean>(false);
+    const containerVisibleRef = useRef(false);
+    const onVirtualizerScrollingChangeRef = useRef(onVirtualizerScrollingChange);
+    const onScrollContainerVisibilityChangeRef = useRef(onScrollContainerVisibilityChange);
 
     // Track list state changes and pending scroll operations
     const prevListKeyRef = useRef<string>(''); // Previous folder/tag context to detect navigation
@@ -643,6 +649,29 @@ export function useListPaneScroll({
     // Context tracking for index-version based reorder detection within a list context
     const contextIndexVersionRef = useRef<{ key: string; version: number } | null>(null);
     const lastReportedVirtualizerScrollingRef = useRef(false);
+
+    useEffect(() => {
+        onVirtualizerScrollingChangeRef.current = onVirtualizerScrollingChange;
+    }, [onVirtualizerScrollingChange]);
+
+    useEffect(() => {
+        onScrollContainerVisibilityChangeRef.current = onScrollContainerVisibilityChange;
+    }, [onScrollContainerVisibilityChange]);
+
+    const reportContainerVisibility = useCallback((nextVisible: boolean, scrollElement: HTMLDivElement | null) => {
+        setContainerVisible(previous => (previous === nextVisible ? previous : nextVisible));
+
+        if (containerVisibleRef.current === nextVisible) {
+            return;
+        }
+
+        containerVisibleRef.current = nextVisible;
+        if (!nextVisible && lastReportedVirtualizerScrollingRef.current) {
+            lastReportedVirtualizerScrollingRef.current = false;
+            onVirtualizerScrollingChangeRef.current?.(false, scrollElement);
+        }
+        onScrollContainerVisibilityChangeRef.current?.(nextVisible, scrollElement);
+    }, []);
 
     const isCompactMode = folderSettings.mode === 'compact';
     const revealFileOnListChanges = settings.revealFileOnListChanges;
@@ -798,12 +827,15 @@ export function useListPaneScroll({
                 return;
             }
             const nextIsScrolling = instance.isScrolling;
+            if (nextIsScrolling && !containerVisibleRef.current) {
+                return;
+            }
             if (lastReportedVirtualizerScrollingRef.current === nextIsScrolling) {
                 return;
             }
 
             lastReportedVirtualizerScrollingRef.current = nextIsScrolling;
-            onVirtualizerScrollingChange?.(nextIsScrolling, instance.scrollElement);
+            onVirtualizerScrollingChangeRef.current?.(nextIsScrolling, instance.scrollElement);
         }
     });
     const measureCurrentVirtualizerRef = useRef<() => void>(() => undefined);
@@ -817,13 +849,16 @@ export function useListPaneScroll({
      * Callback for when scroll container ref is set.
      * Used as a ref callback to capture the DOM element.
      */
-    const scrollContainerRefCallback = useCallback((element: HTMLDivElement | null) => {
-        scrollContainerRef.current = element;
-        setScrollContainerEl(element);
-        if (!element) {
-            setContainerVisible(false);
-        }
-    }, []);
+    const scrollContainerRefCallback = useCallback(
+        (element: HTMLDivElement | null) => {
+            scrollContainerRef.current = element;
+            setScrollContainerEl(element);
+            if (!element) {
+                reportContainerVisibility(false, null);
+            }
+        },
+        [reportContainerVisibility]
+    );
 
     /**
      * Track the rendered visibility of the list scroll container.
@@ -831,21 +866,21 @@ export function useListPaneScroll({
      * is hidden because they will fail internally and emit retry errors.
      */
     useEffect(() => {
+        const element = scrollContainerEl;
         if (!enabled) {
-            setContainerVisible(false);
+            reportContainerVisibility(false, element);
             return;
         }
 
-        const element = scrollContainerEl;
         if (!element) {
-            setContainerVisible(false);
+            reportContainerVisibility(false, null);
             return;
         }
 
         const updateVisibility = () => {
             const rect = element.getBoundingClientRect();
             const isContainerVisible = rect.width > 0 && rect.height > 0;
-            setContainerVisible(prev => (prev === isContainerVisible ? prev : isContainerVisible));
+            reportContainerVisibility(isContainerVisible, element);
         };
 
         updateVisibility();
@@ -865,13 +900,13 @@ export function useListPaneScroll({
             }
             const { width, height } = entry.contentRect;
             const isContainerVisible = width > 0 && height > 0;
-            setContainerVisible(prev => (prev === isContainerVisible ? prev : isContainerVisible));
+            reportContainerVisibility(isContainerVisible, element);
         });
 
         observer.observe(element);
 
         return () => observer.disconnect();
-    }, [enabled, scrollContainerEl]);
+    }, [enabled, reportContainerVisibility, scrollContainerEl]);
 
     // Container is ready when both the list pane and the physical container are visible
     const isScrollContainerReady = enabled && isVisible && containerVisible;

@@ -1117,7 +1117,7 @@ export const STRINGS_FR = {
             },
             includeDescendantNotes: {
                 name: 'Afficher les notes des sous-dossiers / descendants',
-                desc: "Inclure les notes des sous-dossiers imbriqués et des descendants d'étiquettes lors de l'affichage d'un dossier ou d'une étiquette."
+                desc: "Inclure les notes des sous-dossiers imbriqués et des descendants d'étiquettes et de propriétés lors de l'affichage d'un dossier, d'une étiquette ou d'une propriété."
             },
             limitPinnedToCurrentFolder: {
                 name: 'Épingler les notes uniquement dans leur dossier',
@@ -1125,7 +1125,7 @@ export const STRINGS_FR = {
             },
             separateNoteCounts: {
                 name: 'Afficher les nombres de notes actuelles et descendantes séparément',
-                desc: 'Affiche le nombre de notes au format "actuel ▾ descendants" dans les dossiers et étiquettes.'
+                desc: 'Affiche le nombre de notes au format "actuel ▾ descendants" pour les dossiers, étiquettes et propriétés.'
             },
             groupNotes: {
                 name: 'Regroupement par défaut',
@@ -1207,7 +1207,7 @@ export const STRINGS_FR = {
             },
             showParentFolder: {
                 name: 'Afficher le dossier parent',
-                desc: 'Afficher le nom du dossier parent pour les notes dans les sous-dossiers ou étiquettes.'
+                desc: 'Afficher le nom du dossier parent pour les notes dans les sous-dossiers, étiquettes ou propriétés.'
             },
             showParentFolderFullPath: {
                 name: 'Afficher le chemin complet',
@@ -1299,7 +1299,7 @@ export const STRINGS_FR = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Sélectionner automatiquement la première note',
-                desc: "Ouvrir automatiquement la première note lors du changement de dossier ou d'étiquette."
+                desc: "Ouvrir automatiquement la première note lors du changement de dossier, d'étiquette ou de propriété."
             },
             skipAutoScroll: {
                 name: 'Désactiver le défilement automatique pour les raccourcis',
@@ -1618,7 +1618,7 @@ export const STRINGS_FR = {
             },
             vaultProfiles: {
                 name: 'Profil du coffre',
-                desc: "Les profils stockent la visibilité des types de fichiers, les fichiers cachés, les dossiers cachés, les étiquettes cachées, les notes cachées, les raccourcis et la bannière de navigation. Changez de profil depuis l'en-tête du panneau de navigation.",
+                desc: "Les profils stockent la visibilité des types de fichiers, les fichiers cachés, les dossiers cachés, les étiquettes cachées, les règles de propriétés pour les notes cachées, les raccourcis et la bannière de navigation. Changez de profil depuis l'en-tête du panneau de navigation.",
                 defaultName: 'Par défaut',
                 addButton: 'Ajouter un profil',
                 editProfilesButton: 'Modifier les profils',
@@ -1630,7 +1630,7 @@ export const STRINGS_FR = {
                 addModalPlaceholder: 'Nom du profil',
                 deleteModalTitle: 'Supprimer {name}',
                 deleteModalMessage:
-                    'Supprimer {name} ? Les filtres de fichiers, dossiers, étiquettes et notes cachés enregistrés dans ce profil seront supprimés.',
+                    'Supprimer {name} ? Les filtres de fichiers, dossiers, étiquettes et notes basés sur les propriétés enregistrés dans ce profil seront supprimés.',
                 moveUp: 'Déplacer vers le haut',
                 moveDown: 'Déplacer vers le bas',
                 errors: {
@@ -1930,7 +1930,7 @@ export const STRINGS_FR = {
             },
             showNoteCount: {
                 name: 'Afficher le nombre de notes',
-                desc: 'Afficher le nombre de notes à côté de chaque dossier et étiquette.'
+                desc: 'Afficher le nombre de notes à côté des dossiers, étiquettes et propriétés.'
             },
             showSectionIcons: {
                 name: 'Afficher les icônes pour les raccourcis et les éléments récents',
@@ -1938,7 +1938,7 @@ export const STRINGS_FR = {
             },
             interfaceIcons: {
                 name: "Icônes de l'interface",
-                desc: "Modifier les icônes de barre d'outils, dossiers, étiquettes, éléments épinglés, recherche et tri.",
+                desc: "Modifier les icônes de barre d'outils, dossiers, étiquettes, propriétés, éléments épinglés, recherche et tri.",
                 buttonText: 'Modifier les icônes'
             },
             showIconsColorOnly: {
@@ -2042,11 +2042,11 @@ export const STRINGS_FR = {
             },
             navIndent: {
                 name: "Indentation de l'arbre",
-                desc: "Ajuster la largeur d'indentation pour les dossiers et étiquettes imbriqués (pixels)."
+                desc: "Ajuster la largeur d'indentation pour les dossiers, étiquettes et propriétés imbriqués (pixels)."
             },
             navItemHeight: {
                 name: 'Hauteur de ligne',
-                desc: 'Ajuster la hauteur des dossiers et étiquettes dans le panneau de navigation (pixels).'
+                desc: 'Ajuster la hauteur des dossiers, étiquettes et propriétés dans le panneau de navigation (pixels).'
             },
             navItemHeightScaleText: {
                 name: 'Adapter le texte à la hauteur de ligne',
@@ -2054,7 +2054,7 @@ export const STRINGS_FR = {
             },
             showIndentGuides: {
                 name: "Afficher les guides d'indentation",
-                desc: "Afficher les guides d'indentation pour les dossiers et étiquettes imbriqués."
+                desc: "Afficher les guides d'indentation pour les dossiers, étiquettes et propriétés imbriqués."
             },
             navCountLeaderStyle: {
                 name: 'Afficher les points de conduite',
@@ -2068,7 +2068,7 @@ export const STRINGS_FR = {
             },
             navRootSpacing: {
                 name: 'Espacement des éléments racine',
-                desc: 'Espacement entre les dossiers et étiquettes de niveau racine (pixels).'
+                desc: 'Espacement entre les dossiers, étiquettes et propriétés de niveau racine (pixels).'
             },
             showTags: {
                 name: 'Afficher les étiquettes',
@@ -2228,7 +2228,7 @@ export const STRINGS_FR = {
             },
             metadataCleanup: {
                 name: 'Nettoyer les métadonnées',
-                desc: "Supprime les métadonnées orphelines laissées lorsque des fichiers, dossiers ou étiquettes sont supprimés, déplacés ou renommés en dehors d'Obsidian. Cela n'affecte que le fichier de configuration de Notebook Navigator.",
+                desc: "Supprime les métadonnées orphelines laissées lorsque des fichiers, dossiers, étiquettes ou propriétés sont supprimés, déplacés ou renommés en dehors d'Obsidian. Cela n'affecte que le fichier de configuration de Notebook Navigator.",
                 buttonText: 'Nettoyer les métadonnées',
                 error: 'Échec du nettoyage des paramètres',
                 loading: 'Vérification des métadonnées...',

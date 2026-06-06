@@ -1101,7 +1101,7 @@ export const STRINGS_ZH_TW = {
             },
             includeDescendantNotes: {
                 name: '顯示子資料夾/後代的筆記',
-                desc: '在檢視資料夾或標籤時包含巢狀子資料夾和標籤後代中的筆記。'
+                desc: '在檢視資料夾、標籤或屬性時包含巢狀子資料夾以及標籤和屬性後代中的筆記。'
             },
             limitPinnedToCurrentFolder: {
                 name: '僅在筆記所在資料夾中釘選',
@@ -1109,7 +1109,7 @@ export const STRINGS_ZH_TW = {
             },
             separateNoteCounts: {
                 name: '分別顯示目前和後代筆記計數',
-                desc: '在資料夾和標籤中以「目前 ▾ 後代」格式顯示筆記計數。'
+                desc: '為資料夾、標籤和屬性以「目前 ▾ 後代」格式顯示筆記計數。'
             },
             groupNotes: {
                 name: '預設分組',
@@ -1191,7 +1191,7 @@ export const STRINGS_ZH_TW = {
             },
             showParentFolder: {
                 name: '顯示父資料夾',
-                desc: '為子資料夾或標籤中的筆記顯示父資料夾名稱。'
+                desc: '為子資料夾、標籤或屬性中的筆記顯示父資料夾名稱。'
             },
             showParentFolderFullPath: {
                 name: '顯示完整路徑',
@@ -1283,7 +1283,7 @@ export const STRINGS_ZH_TW = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: '自動選擇第一個筆記',
-                desc: '切換資料夾或標籤時自動開啟第一個筆記。'
+                desc: '切換資料夾、標籤或屬性時自動開啟第一個筆記。'
             },
             skipAutoScroll: {
                 name: '停用捷徑自動捲動',
@@ -1597,7 +1597,7 @@ export const STRINGS_ZH_TW = {
             },
             vaultProfiles: {
                 name: '保險庫設定檔',
-                desc: '設定檔儲存檔案類型可見性、隱藏檔案、隱藏資料夾、隱藏標籤、隱藏筆記、捷徑和導覽橫幅。從導覽窗格標題切換設定檔。',
+                desc: '設定檔儲存檔案類型可見性、隱藏檔案、隱藏資料夾、隱藏標籤、隱藏筆記的屬性規則、捷徑和導覽橫幅。從導覽窗格標題切換設定檔。',
                 defaultName: '預設',
                 addButton: '新增設定檔',
                 editProfilesButton: '編輯設定檔',
@@ -1608,7 +1608,7 @@ export const STRINGS_ZH_TW = {
                 editProfilesModalTitle: '編輯設定檔',
                 addModalPlaceholder: '設定檔名稱',
                 deleteModalTitle: '刪除 {name}',
-                deleteModalMessage: '刪除 {name}？儲存在此設定檔中的隱藏檔案、資料夾、標籤和筆記篩選器將被刪除。',
+                deleteModalMessage: '刪除 {name}？儲存在此設定檔中的隱藏檔案、資料夾、標籤和基於屬性的筆記篩選器將被刪除。',
                 moveUp: '上移',
                 moveDown: '下移',
                 errors: {
@@ -1908,7 +1908,7 @@ export const STRINGS_ZH_TW = {
             },
             showNoteCount: {
                 name: '顯示筆記數',
-                desc: '在每個資料夾和標籤旁顯示筆記數量。'
+                desc: '在資料夾、標籤和屬性旁顯示筆記數量。'
             },
             showSectionIcons: {
                 name: '顯示捷徑和最近項目的圖示',
@@ -1916,7 +1916,7 @@ export const STRINGS_ZH_TW = {
             },
             interfaceIcons: {
                 name: '介面圖示',
-                desc: '編輯工具列、資料夾、標籤、釘選、搜尋和排序圖示。',
+                desc: '編輯工具列、資料夾、標籤、屬性、釘選、搜尋和排序圖示。',
                 buttonText: '編輯圖示'
             },
             showIconsColorOnly: {
@@ -2020,11 +2020,11 @@ export const STRINGS_ZH_TW = {
             },
             navIndent: {
                 name: '樹狀縮排',
-                desc: '調整巢狀資料夾和標籤的縮排寬度（像素）。'
+                desc: '調整巢狀資料夾、標籤和屬性的縮排寬度（像素）。'
             },
             navItemHeight: {
                 name: '行高',
-                desc: '調整導覽窗格中資料夾和標籤的高度（像素）。'
+                desc: '調整導覽窗格中資料夾、標籤和屬性的高度（像素）。'
             },
             navItemHeightScaleText: {
                 name: '隨行高調整文字大小',
@@ -2032,7 +2032,7 @@ export const STRINGS_ZH_TW = {
             },
             showIndentGuides: {
                 name: '顯示縮排參考線',
-                desc: '顯示巢狀資料夾和標籤的縮排參考線。'
+                desc: '顯示巢狀資料夾、標籤和屬性的縮排參考線。'
             },
             navCountLeaderStyle: {
                 name: '顯示前導符號',
@@ -2046,7 +2046,7 @@ export const STRINGS_ZH_TW = {
             },
             navRootSpacing: {
                 name: '根級項目間距',
-                desc: '根級資料夾和標籤之間的間距（像素）。'
+                desc: '根級資料夾、標籤和屬性之間的間距（像素）。'
             },
             showTags: {
                 name: '顯示標籤',
@@ -2206,7 +2206,7 @@ export const STRINGS_ZH_TW = {
             },
             metadataCleanup: {
                 name: '清理中繼資料',
-                desc: '移除在 Obsidian 外部刪除、移動或重新命名檔案、資料夾或標籤時留下的孤立中繼資料。這僅影響 Notebook Navigator 設定檔案。',
+                desc: '移除在 Obsidian 外部刪除、移動或重新命名檔案、資料夾、標籤或屬性時留下的孤立中繼資料。這僅影響 Notebook Navigator 設定檔案。',
                 buttonText: '清理中繼資料',
                 error: '設定清理失敗',
                 loading: '正在檢查中繼資料...',

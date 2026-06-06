@@ -1101,7 +1101,7 @@ export const STRINGS_ZH_CN = {
             },
             includeDescendantNotes: {
                 name: '显示子文件夹/后代的笔记',
-                desc: '在查看文件夹或标签时包含嵌套子文件夹和标签后代中的笔记。'
+                desc: '在查看文件夹、标签或属性时包含嵌套子文件夹以及标签和属性后代中的笔记。'
             },
             limitPinnedToCurrentFolder: {
                 name: '仅在笔记所在文件夹中固定',
@@ -1109,7 +1109,7 @@ export const STRINGS_ZH_CN = {
             },
             separateNoteCounts: {
                 name: '分别显示当前和后代笔记计数',
-                desc: '在文件夹和标签中以"当前 ▾ 后代"格式显示笔记计数。'
+                desc: '为文件夹、标签和属性以"当前 ▾ 后代"格式显示笔记计数。'
             },
             groupNotes: {
                 name: '默认分组',
@@ -1191,7 +1191,7 @@ export const STRINGS_ZH_CN = {
             },
             showParentFolder: {
                 name: '显示父文件夹',
-                desc: '为子文件夹或标签中的笔记显示父文件夹名称。'
+                desc: '为子文件夹、标签或属性中的笔记显示父文件夹名称。'
             },
             showParentFolderFullPath: {
                 name: '显示完整路径',
@@ -1283,7 +1283,7 @@ export const STRINGS_ZH_CN = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: '自动选择第一个笔记',
-                desc: '切换文件夹或标签时自动打开第一个笔记。'
+                desc: '切换文件夹、标签或属性时自动打开第一个笔记。'
             },
             skipAutoScroll: {
                 name: '禁用快捷方式自动滚动',
@@ -1597,7 +1597,7 @@ export const STRINGS_ZH_CN = {
             },
             vaultProfiles: {
                 name: '仓库配置文件',
-                desc: '配置文件存储文件类型可见性、隐藏文件、隐藏文件夹、隐藏标签、隐藏笔记、快捷方式和导航横幅。从导航窗格标题切换配置文件。',
+                desc: '配置文件存储文件类型可见性、隐藏文件、隐藏文件夹、隐藏标签、隐藏笔记的属性规则、快捷方式和导航横幅。从导航窗格标题切换配置文件。',
                 defaultName: '默认',
                 addButton: '添加配置文件',
                 editProfilesButton: '编辑配置文件',
@@ -1608,7 +1608,7 @@ export const STRINGS_ZH_CN = {
                 editProfilesModalTitle: '编辑配置文件',
                 addModalPlaceholder: '配置文件名称',
                 deleteModalTitle: '删除 {name}',
-                deleteModalMessage: '删除 {name}？保存在此配置文件中的隐藏文件、文件夹、标签和笔记过滤器将被删除。',
+                deleteModalMessage: '删除 {name}？保存在此配置文件中的隐藏文件、文件夹、标签和基于属性的笔记过滤器将被删除。',
                 moveUp: '上移',
                 moveDown: '下移',
                 errors: {
@@ -1908,7 +1908,7 @@ export const STRINGS_ZH_CN = {
             },
             showNoteCount: {
                 name: '显示笔记数',
-                desc: '在每个文件夹和标签旁显示笔记数量。'
+                desc: '在文件夹、标签和属性旁显示笔记数量。'
             },
             showSectionIcons: {
                 name: '显示快捷方式和最近项目的图标',
@@ -1916,7 +1916,7 @@ export const STRINGS_ZH_CN = {
             },
             interfaceIcons: {
                 name: '界面图标',
-                desc: '编辑工具栏、文件夹、标签、固定、搜索和排序图标。',
+                desc: '编辑工具栏、文件夹、标签、属性、固定、搜索和排序图标。',
                 buttonText: '编辑图标'
             },
             showIconsColorOnly: {
@@ -2020,11 +2020,11 @@ export const STRINGS_ZH_CN = {
             },
             navIndent: {
                 name: '树形缩进',
-                desc: '调整嵌套文件夹和标签的缩进宽度（像素）。'
+                desc: '调整嵌套文件夹、标签和属性的缩进宽度（像素）。'
             },
             navItemHeight: {
                 name: '行高',
-                desc: '调整导航窗格中文件夹和标签的高度（像素）。'
+                desc: '调整导航窗格中文件夹、标签和属性的高度（像素）。'
             },
             navItemHeightScaleText: {
                 name: '随行高调整文字大小',
@@ -2032,7 +2032,7 @@ export const STRINGS_ZH_CN = {
             },
             showIndentGuides: {
                 name: '显示缩进参考线',
-                desc: '显示嵌套文件夹和标签的缩进参考线。'
+                desc: '显示嵌套文件夹、标签和属性的缩进参考线。'
             },
             navCountLeaderStyle: {
                 name: '显示前导符',
@@ -2046,7 +2046,7 @@ export const STRINGS_ZH_CN = {
             },
             navRootSpacing: {
                 name: '根级项目间距',
-                desc: '根级文件夹和标签之间的间距（像素）。'
+                desc: '根级文件夹、标签和属性之间的间距（像素）。'
             },
             showTags: {
                 name: '显示标签',
@@ -2206,7 +2206,7 @@ export const STRINGS_ZH_CN = {
             },
             metadataCleanup: {
                 name: '清理元数据',
-                desc: '移除在 Obsidian 外部删除、移动或重命名文件、文件夹或标签时留下的孤立元数据。这仅影响 Notebook Navigator 设置文件。',
+                desc: '移除在 Obsidian 外部删除、移动或重命名文件、文件夹、标签或属性时留下的孤立元数据。这仅影响 Notebook Navigator 设置文件。',
                 buttonText: '清理元数据',
                 error: '设置清理失败',
                 loading: '正在检查元数据...',
