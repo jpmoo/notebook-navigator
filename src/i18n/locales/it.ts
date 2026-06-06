@@ -1478,6 +1478,8 @@ export const STRINGS_IT = {
                 momentLinkText: 'formato data Moment',
                 momentDescSuffix:
                     ". Racchiudi i nomi delle sottocartelle tra parentesi quadre, es. [Work]/YYYY. Clicca sull'icona del modello per impostare un modello. Impostare la posizione della cartella modelli in Aspetto e comportamento > Modelli.",
+                templaterSupportInstalled: '✅ Il plugin Templater è installato con supporto completo ai modelli.',
+                templaterSupportMissing: '⚠️ Installa il plugin Templater per il supporto completo ai modelli.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Sintassi attuale: {path}',
                 parsingError: 'Il modello deve poter essere formattato e rianalizzato come una data completa (anno, mese, giorno).'
@@ -2349,6 +2351,7 @@ export const STRINGS_IT = {
     },
     whatsNew: {
         title: 'Novità in Notebook Navigator',
+        openBannerImage: 'Apri immagine banner della versione',
         supportMessage: 'Se trovi Notebook Navigator utile, considera di supportare il suo sviluppo.',
         supportButton: 'Offrimi un caffè',
         thanksButton: 'Grazie!'

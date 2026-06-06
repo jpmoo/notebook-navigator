@@ -1485,6 +1485,8 @@ export const STRINGS_PL = {
                 momentLinkText: 'formatu daty Moment',
                 momentDescSuffix:
                     '. Nazwy podfolderów umieść w nawiasach, np. [Work]/YYYY. Kliknij ikonkę szablonu, aby ustawić szablon. Ustaw lokalizację folderu szablonów w sekcji Wygląd i zachowanie > Szablony.',
+                templaterSupportInstalled: '✅ Wtyczka Templater jest zainstalowana i zapewnia pełną obsługę szablonów.',
+                templaterSupportMissing: '⚠️ Zainstaluj wtyczkę Templater, aby uzyskać pełną obsługę szablonów.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Aktywna składnia: {path}',
                 parsingError: 'Wzór musi być tak sformatowany, aby można było odczytać kompletną datę (rok, miesiąc, dzień).'
@@ -2354,6 +2356,7 @@ export const STRINGS_PL = {
     },
     whatsNew: {
         title: 'Co nowego w Notebook Navigator',
+        openBannerImage: 'Otwórz obraz banera wydania',
         supportMessage: 'Jeśli uważasz, że Notebook Navigator jest pomocny, rozważ wsparcie jego rozwoju.',
         supportButton: 'Postaw kawę',
         thanksButton: 'Dzięki!'

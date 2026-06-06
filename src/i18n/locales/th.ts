@@ -1475,6 +1475,8 @@ export const STRINGS_TH = {
                 momentLinkText: 'รูปแบบวันที่ Moment',
                 momentDescSuffix:
                     ' ใส่ชื่อโฟลเดอร์ย่อยในวงเล็บเหลี่ยม เช่น [Work]/YYYY คลิกไอคอนเทมเพลตเพื่อตั้งค่าเทมเพลต ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในลักษณะและพฤติกรรม > เทมเพลต',
+                templaterSupportInstalled: '✅ ติดตั้งปลั๊กอิน Templater พร้อมการรองรับเทมเพลตเต็มรูปแบบแล้ว',
+                templaterSupportMissing: '⚠️ ติดตั้งปลั๊กอิน Templater เพื่อใช้การรองรับเทมเพลตเต็มรูปแบบ',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'รูปแบบปัจจุบัน: {path}',
                 parsingError: 'แพทเทิร์นต้องสามารถฟอร์แมตและพาร์สกลับเป็นวันที่แบบเต็ม (ปี เดือน วัน) ได้'
@@ -2342,6 +2344,7 @@ export const STRINGS_TH = {
     },
     whatsNew: {
         title: 'มีอะไรใหม่ใน Notebook Navigator',
+        openBannerImage: 'เปิดภาพแบนเนอร์รุ่นเผยแพร่',
         supportMessage: 'หากคุณพบว่า Notebook Navigator มีประโยชน์ โปรดพิจารณาสนับสนุนการพัฒนา',
         supportButton: 'เลี้ยงกาแฟ',
         thanksButton: 'ขอบคุณ!'

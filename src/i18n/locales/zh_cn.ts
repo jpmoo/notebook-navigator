@@ -1468,6 +1468,8 @@ export const STRINGS_ZH_CN = {
                 momentLinkText: 'Moment 日期格式',
                 momentDescSuffix:
                     ' 设置路径。将子文件夹名称用方括号括起来，例如 [Work]/YYYY。点击模板图标设置模板。在外观和行为 > 模板中设置模板文件夹位置。',
+                templaterSupportInstalled: '✅ 已安装 Templater 插件，支持完整模板功能。',
+                templaterSupportMissing: '⚠️ 安装 Templater 插件以支持完整模板功能。',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: '当前语法：{path}',
                 parsingError: '模式必须能格式化并重新解析为完整日期（年、月、日）。'
@@ -2333,6 +2335,7 @@ export const STRINGS_ZH_CN = {
     },
     whatsNew: {
         title: 'Notebook Navigator 的新功能',
+        openBannerImage: '打开发布横幅图片',
         supportMessage: '如果您觉得 Notebook Navigator 有用，请考虑支持其开发。',
         supportButton: '请我喝咖啡',
         thanksButton: '谢谢！'

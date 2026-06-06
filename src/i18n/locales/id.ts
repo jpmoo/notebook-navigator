@@ -1482,6 +1482,8 @@ export const STRINGS_ID = {
                 momentLinkText: 'format tanggal Moment',
                 momentDescSuffix:
                     '. Bungkus nama subfolder dalam tanda kurung, misal [Work]/YYYY. Klik ikon template untuk mengatur template. Atur lokasi folder templat di Tampilan & perilaku > Templat.',
+                templaterSupportInstalled: '✅ Plugin Templater terpasang dengan dukungan template penuh.',
+                templaterSupportMissing: '⚠️ Pasang plugin Templater untuk dukungan template penuh.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Sintaks saat ini: {path}',
                 parsingError: 'Pola harus dapat diformat dan diparse kembali sebagai tanggal lengkap (tahun, bulan, hari).'
@@ -2350,6 +2352,7 @@ export const STRINGS_ID = {
     },
     whatsNew: {
         title: 'Apa yang baru di Notebook Navigator',
+        openBannerImage: 'Buka gambar banner rilis',
         supportMessage: 'Jika Anda merasa Notebook Navigator membantu, silakan pertimbangkan untuk mendukung pengembangannya.',
         supportButton: 'Traktir saya kopi',
         thanksButton: 'Terima kasih!'

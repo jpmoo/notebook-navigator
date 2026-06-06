@@ -1476,6 +1476,8 @@ export const STRINGS_AR = {
                 momentLinkText: 'تنسيق تاريخ Moment',
                 momentDescSuffix:
                     '. ضع أسماء المجلدات الفرعية بين أقواس معقوفة، مثال [Work]/YYYY. انقر على أيقونة القالب لتعيين قالب. حدد موقع مجلد القوالب في المظهر والسلوك > قوالب.',
+                templaterSupportInstalled: '✅ تم تثبيت إضافة Templater مع دعم كامل للقوالب.',
+                templaterSupportMissing: '⚠️ ثبّت إضافة Templater للحصول على دعم كامل للقوالب.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'الصيغة الحالية: {path}',
                 parsingError: 'يجب أن يقوم النمط بتنسيق التاريخ ثم تحليله مرة أخرى كتاريخ كامل (السنة، الشهر، اليوم).'
@@ -2344,6 +2346,7 @@ export const STRINGS_AR = {
     },
     whatsNew: {
         title: 'الجديد في متصفح الدفتر',
+        openBannerImage: 'فتح صورة لافتة الإصدار',
         supportMessage: 'إذا وجدت متصفح الدفتر مفيدًا، يرجى التفكير في دعم تطويره.',
         supportButton: 'اشترِ لي قهوة',
         thanksButton: 'شكرًا!'

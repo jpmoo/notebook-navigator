@@ -41,8 +41,8 @@
  * - Auto-link: https://example.com
  *
  * Supported block formats in info:
- * - Line break: single newline or <br>
- * - Paragraph break: blank line or two consecutive <br> markers
+ * - Line break: single \n or <br>
+ * - Paragraph break: double \n\n or two consecutive <br> markers
  *
  * Not supported:
  * - Italics, headings, inline code, HTML except <br> line break markers
@@ -63,6 +63,8 @@ export interface ReleaseNote {
     showOnUpdate?: boolean;
     /** Optional banner image source. true uses version as banner id, string uses explicit URL or banner id */
     bannerUrl?: boolean | string;
+    /** When true, the banner opens the full image in a new tab */
+    bannerClickable?: boolean;
     /** Optional YouTube video URL shown above the release notes for this version */
     youtubeUrl?: string;
     info?: string; // General information about the release, shown at top without bullets
@@ -85,7 +87,8 @@ const RELEASE_NOTES: ReleaseNote[] = [
         date: '2026-07-07',
         showOnUpdate: true,
         bannerUrl: true,
-        info: 'This version adds two fantastic new features: ==Open folder notes in right sidebar== and ==Right sidebar: Show closest folder note==. When these settings are enabled, selecting a folder will now automatically open its folder note or the closest ancestor folder note in the right sidebar! Super useful for scratch pads related to different areas of your vault. This release also includes dozens of ==list pane and navigation pane performance improvements==. Notebook Navigator now does less work when scrolling and moving through notes, folders, tags and properties. Give it a try and let me know if you notice any difference!',
+        bannerClickable: true,
+        info: 'This version adds two fantastic new features: ==Open folder notes in right sidebar== and ==Right sidebar: Show closest folder note==. When these settings are enabled, selecting a folder will now automatically open its folder note or the closest ancestor folder note in the right sidebar! Super useful for scratch pads related to different areas of your vault.\n\nThis release also includes dozens of ==list pane and navigation pane performance improvements==. Notebook Navigator now does less work when scrolling and moving through notes, folders, tags and properties. Give it a try and let me know if you notice any difference!',
         new: [
             '**Commands.** New command ==Collapse / expand selected item== to toggle the selected navigation item.',
             '**Settings.** New setting ==Open folder notes in right sidebar== to Settings > Folders & folder notes.',

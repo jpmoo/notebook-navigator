@@ -1478,6 +1478,8 @@ export const STRINGS_KO = {
                 momentLinkText: 'Moment 날짜 형식',
                 momentDescSuffix:
                     '을 사용하여 경로 지정. 하위 폴더 이름은 대괄호로 감싸세요, 예: [Work]/YYYY. 템플릿 아이콘을 클릭하여 템플릿을 설정하세요. 템플릿 폴더 위치는 모양 및 동작 > 템플릿에서 설정하세요.',
+                templaterSupportInstalled: '✅ Templater 플러그인이 설치되어 전체 템플릿 지원을 사용할 수 있습니다.',
+                templaterSupportMissing: '⚠️ 전체 템플릿 지원을 사용하려면 Templater 플러그인을 설치하세요.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: '현재 구문: {path}',
                 parsingError: '패턴은 전체 날짜(연, 월, 일)로 포맷되고 다시 파싱될 수 있어야 합니다.'
@@ -2345,6 +2347,7 @@ export const STRINGS_KO = {
     },
     whatsNew: {
         title: 'Notebook Navigator의 새로운 기능',
+        openBannerImage: '릴리스 배너 이미지 열기',
         supportMessage: 'Notebook Navigator가 도움이 되신다면 개발을 지원해 주시기 바랍니다.',
         supportButton: '커피 사주기',
         thanksButton: '감사합니다!'

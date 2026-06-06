@@ -1479,6 +1479,8 @@ export const STRINGS_RU = {
                 momentLinkText: 'формата даты Moment',
                 momentDescSuffix:
                     '. Заключайте названия подпапок в скобки, напр. [Work]/YYYY. Нажмите на значок шаблона, чтобы задать шаблон. Укажите расположение папки шаблонов в Внешний вид и поведение > Шаблоны.',
+                templaterSupportInstalled: '✅ Плагин Templater установлен с полной поддержкой шаблонов.',
+                templaterSupportMissing: '⚠️ Установите плагин Templater для полной поддержки шаблонов.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Текущий синтаксис: {path}',
                 parsingError: 'Шаблон должен форматироваться и разбираться обратно как полная дата (год, месяц, день).'
@@ -2347,6 +2349,7 @@ export const STRINGS_RU = {
     },
     whatsNew: {
         title: 'Что нового в Notebook Navigator',
+        openBannerImage: 'Открыть изображение баннера релиза',
         supportMessage: 'Если вы находите Notebook Navigator полезным, пожалуйста, рассмотрите возможность поддержки его разработки.',
         supportButton: 'Купить кофе',
         thanksButton: 'Спасибо!'

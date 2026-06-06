@@ -1484,6 +1484,8 @@ export const STRINGS_PT_BR = {
                 momentLinkText: 'formato de data Moment',
                 momentDescSuffix:
                     '. Coloque nomes de subpastas entre colchetes, ex. [Work]/YYYY. Clique no ícone de modelo para definir um modelo. Definir localização da pasta de modelos em Aparência e comportamento > Modelos.',
+                templaterSupportInstalled: '✅ O plugin Templater está instalado com suporte completo a modelos.',
+                templaterSupportMissing: '⚠️ Instale o plugin Templater para suporte completo a modelos.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Sintaxe atual: {path}',
                 parsingError: 'O padrão deve ser formatado e analisado novamente como uma data completa (ano, mês, dia).'
@@ -2354,6 +2356,7 @@ export const STRINGS_PT_BR = {
     },
     whatsNew: {
         title: 'O que há de novo no Notebook Navigator',
+        openBannerImage: 'Abrir imagem do banner da versão',
         supportMessage: 'Se você acha o Notebook Navigator útil, considere apoiar seu desenvolvimento.',
         supportButton: 'Me pague um café',
         thanksButton: 'Obrigado!'

@@ -1468,6 +1468,8 @@ export const STRINGS_ZH_TW = {
                 momentLinkText: 'Moment 日期格式',
                 momentDescSuffix:
                     ' 設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。在外觀與行為 > 範本中設定範本資料夾位置。',
+                templaterSupportInstalled: '✅ 已安裝 Templater 外掛，支援完整範本功能。',
+                templaterSupportMissing: '⚠️ 安裝 Templater 外掛以支援完整範本功能。',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: '目前語法：{path}',
                 parsingError: '模式必須能格式化並重新解析為完整日期（年、月、日）。'
@@ -2333,6 +2335,7 @@ export const STRINGS_ZH_TW = {
     },
     whatsNew: {
         title: 'Notebook Navigator 的新功能',
+        openBannerImage: '開啟發布橫幅圖片',
         supportMessage: '如果您覺得 Notebook Navigator 有用，請考慮支持其開發。',
         supportButton: '請我喝咖啡',
         thanksButton: '謝謝！'

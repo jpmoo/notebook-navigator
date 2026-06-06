@@ -2344,6 +2344,7 @@ export const STRINGS_EN = {
     },
     whatsNew: {
         title: "What's new in Notebook Navigator",
+        openBannerImage: 'Open release banner image',
         supportMessage: 'If you find Notebook Navigator helpful, please consider supporting its development.',
         supportButton: 'Buy me a coffee',
         thanksButton: 'Thanks!'

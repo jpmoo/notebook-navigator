@@ -1484,6 +1484,8 @@ export const STRINGS_DE = {
                 momentLinkText: 'Moment-Datumsformat',
                 momentDescSuffix:
                     '. Unterordnernamen in Klammern setzen, z.B. [Work]/YYYY. Klicken Sie auf das Vorlagensymbol, um eine Vorlage festzulegen. Vorlagenordner unter Darstellung & Verhalten > Vorlagen festlegen.',
+                templaterSupportInstalled: '✅ Das Templater-Plugin ist mit voller Vorlagenunterstützung installiert.',
+                templaterSupportMissing: '⚠️ Installieren Sie das Templater-Plugin für volle Vorlagenunterstützung.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Aktuelle Syntax: {path}',
                 parsingError: 'Das Muster muss als vollständiges Datum (Jahr, Monat, Tag) formatiert und wieder geparst werden können.'
@@ -2354,6 +2356,7 @@ export const STRINGS_DE = {
     },
     whatsNew: {
         title: 'Neuigkeiten in Notebook Navigator',
+        openBannerImage: 'Release-Bannerbild öffnen',
         supportMessage: 'Wenn Sie Notebook Navigator hilfreich finden, erwägen Sie bitte, die Entwicklung zu unterstützen.',
         supportButton: 'Kauf mir einen Kaffee',
         thanksButton: 'Danke!'

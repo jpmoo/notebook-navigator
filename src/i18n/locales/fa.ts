@@ -1482,6 +1482,8 @@ export const STRINGS_FA = {
                 momentLinkText: 'فرمت تاریخ Moment',
                 momentDescSuffix:
                     '. نام زیرپوشه‌ها را در کروشه قرار دهید، مثال [Work]/YYYY. روی نماد قالب کلیک کنید تا قالب تنظیم شود. محل پوشه الگوها را در ظاهر و رفتار > الگوها تنظیم کنید.',
+                templaterSupportInstalled: '✅ افزونه Templater با پشتیبانی کامل از قالب‌ها نصب شده است.',
+                templaterSupportMissing: '⚠️ برای پشتیبانی کامل از قالب‌ها، افزونه Templater را نصب کنید.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'نحوه نگارش فعلی: {path}',
                 parsingError: 'الگو باید بتواند به یک تاریخ کامل (سال، ماه، روز) قالب‌بندی شود و دوباره به همان تاریخ تجزیه شود.'
@@ -2350,6 +2352,7 @@ export const STRINGS_FA = {
     },
     whatsNew: {
         title: 'چه چیزی جدید است در Notebook Navigator',
+        openBannerImage: 'باز کردن تصویر بنر انتشار',
         supportMessage: 'اگر Notebook Navigator را مفید می‌دانید، لطفاً حمایت از توسعه آن را در نظر بگیرید.',
         supportButton: 'یک قهوه مهمانم کن',
         thanksButton: 'ممنون!'

@@ -1484,6 +1484,8 @@ export const STRINGS_NL = {
                 momentLinkText: 'Moment-datumnotatie',
                 momentDescSuffix:
                     '. Zet submapnamen tussen haakjes, bijv. [Work]/YYYY. Klik op het sjabloonpictogram om een sjabloon in te stellen. Stel de sjabloonmaplocatie in bij Uiterlijk & gedrag > Sjablonen.',
+                templaterSupportInstalled: '✅ De Templater-plug-in is geïnstalleerd met volledige sjabloonondersteuning.',
+                templaterSupportMissing: '⚠️ Installeer de Templater-plug-in voor volledige sjabloonondersteuning.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Huidige syntaxis: {path}',
                 parsingError: 'Het patroon moet kunnen formatteren en terug-parsen naar een volledige datum (jaar, maand, dag).'
@@ -2353,6 +2355,7 @@ export const STRINGS_NL = {
     },
     whatsNew: {
         title: 'Wat is er nieuw in Notebook Navigator',
+        openBannerImage: 'Releasebannerafbeelding openen',
         supportMessage: 'Als u Notebook Navigator nuttig vindt, overweeg dan om de ontwikkeling te ondersteunen.',
         supportButton: 'Koop me een koffie',
         thanksButton: 'Bedankt!'

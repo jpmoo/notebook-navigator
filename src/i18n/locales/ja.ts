@@ -1480,6 +1480,8 @@ export const STRINGS_JA = {
                 momentLinkText: 'Moment 日付フォーマット',
                 momentDescSuffix:
                     'を使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。 テンプレートフォルダの場所は外観と動作 > テンプレートで設定してください。',
+                templaterSupportInstalled: '✅ Templater プラグインがインストールされており、テンプレートの完全サポートが利用できます。',
+                templaterSupportMissing: '⚠️ テンプレートの完全サポートを利用するには、Templater プラグインをインストールしてください。',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: '現在の構文: {path}',
                 parsingError: 'パターンは完全な日付（年、月、日）としてフォーマットされ、再度パースできる必要があります。'
@@ -2348,6 +2350,7 @@ export const STRINGS_JA = {
     },
     whatsNew: {
         title: 'Notebook Navigatorの新機能',
+        openBannerImage: 'リリースバナー画像を開く',
         supportMessage: 'Notebook Navigatorが役立つと思われる場合は、開発のサポートをご検討ください。',
         supportButton: 'コーヒーをおごる',
         thanksButton: 'ありがとう！'

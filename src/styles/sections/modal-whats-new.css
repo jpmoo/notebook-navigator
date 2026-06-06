@@ -94,6 +94,7 @@
 /* Release banner image */
 .nn-whats-new-banner {
     position: relative;
+    display: block;
     width: 100%;
     aspect-ratio: 16 / 9;
     overflow: hidden;
@@ -101,6 +102,12 @@
     background: var(--background-secondary);
     border: 1px solid var(--background-modifier-border);
     margin-bottom: 12px;
+    text-decoration: none;
+}
+
+.nn-whats-new-banner:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
 }
 
 .nn-whats-new-banner-image {

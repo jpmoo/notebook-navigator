@@ -1483,6 +1483,8 @@ export const STRINGS_ES = {
                 momentLinkText: 'formato de fecha Moment',
                 momentDescSuffix:
                     '. Envuelve los nombres de subcarpetas entre corchetes, ej. [Work]/YYYY. Haz clic en el icono de plantilla para establecer una plantilla. Establecer ubicación de carpeta de plantillas en Apariencia y comportamiento > Plantillas.',
+                templaterSupportInstalled: '✅ El plugin Templater está instalado con soporte completo de plantillas.',
+                templaterSupportMissing: '⚠️ Instala el plugin Templater para obtener soporte completo de plantillas.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Sintaxis actual: {path}',
                 parsingError: 'El patrón debe formatear y volver a analizarse como una fecha completa (año, mes, día).'
@@ -2353,6 +2355,7 @@ export const STRINGS_ES = {
     },
     whatsNew: {
         title: 'Novedades en Notebook Navigator',
+        openBannerImage: 'Abrir imagen del banner de la versión',
         supportMessage: 'Si encuentras útil Notebook Navigator, considera apoyar su desarrollo.',
         supportButton: 'Invítame a un café',
         thanksButton: '¡Gracias!'

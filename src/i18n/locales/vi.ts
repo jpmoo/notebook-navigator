@@ -1483,6 +1483,8 @@ export const STRINGS_VI = {
                 momentLinkText: 'định dạng ngày Moment',
                 momentDescSuffix:
                     '. Đặt tên thư mục con trong dấu ngoặc vuông, vd: [Work]/YYYY. Nhấp vào biểu tượng mẫu để đặt mẫu. Đặt vị trí thư mục mẫu trong Giao diện và hành vi > Mẫu.',
+                templaterSupportInstalled: '✅ Plugin Templater đã được cài đặt với hỗ trợ mẫu đầy đủ.',
+                templaterSupportMissing: '⚠️ Cài đặt plugin Templater để hỗ trợ mẫu đầy đủ.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Cú pháp hiện tại: {path}',
                 parsingError: 'Mẫu phải có thể định dạng và phân tích lại thành một ngày đầy đủ (năm, tháng, ngày).'
@@ -2351,6 +2353,7 @@ export const STRINGS_VI = {
     },
     whatsNew: {
         title: 'Có gì mới trong Notebook Navigator',
+        openBannerImage: 'Mở hình ảnh biểu ngữ phát hành',
         supportMessage: 'Nếu bạn thấy Notebook Navigator hữu ích, hãy cân nhắc hỗ trợ việc phát triển.',
         supportButton: 'Mua cho tôi một ly cà phê',
         thanksButton: 'Cảm ơn!'

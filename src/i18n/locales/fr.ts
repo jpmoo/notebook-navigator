@@ -1485,6 +1485,8 @@ export const STRINGS_FR = {
                 momentLinkText: 'format de date Moment',
                 momentDescSuffix:
                     ". Entourez les noms de sous-dossiers de crochets, par ex. [Work]/YYYY. Cliquez sur l'icône de modèle pour définir un modèle. Définir l'emplacement du dossier de modèles dans Apparence et comportement > Modèles.",
+                templaterSupportInstalled: '✅ Le plugin Templater est installé avec la prise en charge complète des modèles.',
+                templaterSupportMissing: '⚠️ Installez le plugin Templater pour la prise en charge complète des modèles.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Syntaxe actuelle : {path}',
                 parsingError: 'Le modèle doit pouvoir être formaté et ré-analysé comme une date complète (année, mois, jour).'
@@ -2356,6 +2358,7 @@ export const STRINGS_FR = {
     },
     whatsNew: {
         title: 'Nouveautés dans Notebook Navigator',
+        openBannerImage: 'Ouvrir l’image de bannière de la version',
         supportMessage: 'Si vous trouvez Notebook Navigator utile, veuillez envisager de soutenir son développement.',
         supportButton: 'Offrir un café',
         thanksButton: 'Merci !'
