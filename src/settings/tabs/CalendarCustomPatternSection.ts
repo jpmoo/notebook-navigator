@@ -45,6 +45,7 @@ import {
 } from '../../utils/calendarCustomNotePatterns';
 import { resolveCalendarCustomNotePathDate, type CalendarNoteKind } from '../../utils/calendarNotes';
 import { getMomentApi, type MomentApi } from '../../utils/moment';
+import { getTemplaterCreateNoteFromTemplate } from '../../utils/templaterIntegration';
 import { setElementVisible } from '../dependentSettings';
 import { createRenderDefinition } from '../nativeSettingControls';
 import { createInlineExternalLinkText } from './externalLink';
@@ -411,13 +412,16 @@ export function createCalendarCustomPatternRenderers(options: CalendarCustomPatt
         setting.setName('').setDesc('');
         setting.settingEl.addClass('nn-setting-info-container');
         setting.descEl.empty();
-        setting.descEl.append(
-            createInlineExternalLinkText({
-                prefix: strings.settings.items.calendarCustomFilePattern.momentDescPrefix,
-                link: { text: strings.settings.items.calendarCustomFilePattern.momentLinkText, href: MOMENT_FORMAT_DOCS_URL },
-                suffix: strings.settings.items.calendarCustomFilePattern.momentDescSuffix
-            })
-        );
+        const description = createInlineExternalLinkText({
+            prefix: strings.settings.items.calendarCustomFilePattern.momentDescPrefix,
+            link: { text: strings.settings.items.calendarCustomFilePattern.momentLinkText, href: MOMENT_FORMAT_DOCS_URL },
+            suffix: strings.settings.items.calendarCustomFilePattern.momentDescSuffix
+        });
+        const templaterSupportText = getTemplaterCreateNoteFromTemplate(context.app)
+            ? strings.settings.items.calendarCustomFilePattern.templaterSupportInstalled
+            : strings.settings.items.calendarCustomFilePattern.templaterSupportMissing;
+        description.append(createEl('br'), createEl('br'), createEl('strong', { text: templaterSupportText }));
+        setting.descEl.append(description);
     };
 
     const renderCalendarTemplateIndicators = (): void => {

@@ -34,6 +34,8 @@ import {
 } from './calendarCustomNotePatterns';
 import { createMarkdownFileFromTemplate } from './fileCreationUtils';
 import type { MomentApi, MomentInstance } from './moment';
+import { normalizeOptionalVaultFilePath } from './pathUtils';
+import { getTemplaterCreateNoteFromTemplate } from './templaterIntegration';
 
 export type CalendarNoteKind = 'day' | 'week' | 'month' | 'quarter' | 'year';
 
@@ -179,6 +181,16 @@ function getCalendarNoteBaseName(fileName: string): string | null {
     return baseName.length > 0 ? baseName : null;
 }
 
+function getMarkdownTemplateFile(app: App, templatePath: string | null | undefined): TFile | null {
+    const normalizedTemplatePath = normalizeOptionalVaultFilePath(templatePath);
+    if (!normalizedTemplatePath) {
+        return null;
+    }
+
+    const entry = app.vault.getAbstractFileByPath(normalizedTemplatePath);
+    return entry instanceof TFile && entry.extension === 'md' ? entry : null;
+}
+
 export async function createCalendarMarkdownFile(
     app: App,
     folderPath: string,
@@ -193,6 +205,19 @@ export async function createCalendarMarkdownFile(
     const folder = await ensureCalendarFolderExists(app, folderPath);
     if (!folder) {
         throw new Error('Calendar folder path is not a folder');
+    }
+
+    if (templatePath) {
+        const createFromTemplater = getTemplaterCreateNoteFromTemplate(app);
+        const templateFile = createFromTemplater ? getMarkdownTemplateFile(app, templatePath) : null;
+        if (createFromTemplater && templateFile) {
+            const created = await createFromTemplater(templateFile, folder, baseName, false);
+            if (created instanceof TFile) {
+                return created;
+            }
+
+            throw new Error('Templater did not create the calendar note');
+        }
     }
 
     return createMarkdownFileFromTemplate({

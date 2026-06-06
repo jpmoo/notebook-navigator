@@ -1475,6 +1475,8 @@ export const STRINGS_EN = {
                 momentLinkText: 'Moment date format',
                 momentDescSuffix:
                     '. Wrap subfolder names in brackets, e.g., [Work]/YYYY. Click template icon to set template. Set template folder location in Appearance & behavior > Templates.',
+                templaterSupportInstalled: '✅ Templater plugin is installed with full template support.',
+                templaterSupportMissing: '⚠️ Install Templater plugin for full template support.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Current syntax: {path}',
                 parsingError: 'Pattern must format and parse back to a full date (year, month, day).'
