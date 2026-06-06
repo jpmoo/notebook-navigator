@@ -102,7 +102,8 @@ const RELEASE_NOTES: ReleaseNote[] = [
             '**Folder notes.** The vault root can now have a folder note. Default naming uses the vault name.',
             '**List pane.** Individual folder group path segments are now clickable when subfolder paths are shown.',
             '**List pane.** Lots of rendering performance improvements in the list pane.',
-            '**Navigation pane.** Lots of rendering performance improvements in the navigation pane.'
+            '**Navigation pane.** Lots of rendering performance improvements in the navigation pane.',
+            '**Icon packs.** Simple Icons was updated to 16.22, adding 9 brand icons.'
         ],
         changed: [
             '**Feature images.** Breaking change! ==SVG images are no longer supported as feature images==. Large SVG images with embedded bitmaps were causing performance and memory issues for some users so this was disabled until further notice. As a result the cache will be rebuilt on startup.',
