@@ -925,14 +925,12 @@ export const STRINGS_PT = {
             appearanceBehavior: 'Aparência e comportamento',
             navigationPane: 'Painel de navegação',
             calendar: 'Calendário',
-            files: 'Ficheiros',
             fileOperations: 'Operações de ficheiros',
             icons: 'Pacotes de ícones',
             folders: 'Pastas',
             folderNotes: 'Notas de pasta',
             folderNoteFiles: 'Ficheiros de notas de pasta',
             foldersAndFolderNotes: 'Pastas e notas de pasta',
-            foldersAndTags: 'Pastas',
             tagsAndProperties: 'Etiquetas e propriedades',
             tags: 'Etiquetas',
             listPane: 'Painel de lista',
@@ -941,7 +939,6 @@ export const STRINGS_PT = {
             advanced: 'Avançado'
         },
         pageGroups: {
-            gettingStarted: 'Início',
             configuration: 'Configuração',
             navigationAndContent: 'Painel de navegação',
             notesAndLists: 'Painel de lista',
@@ -966,9 +963,6 @@ export const STRINGS_PT = {
         groups: {
             general: {
                 vaultConfiguration: 'Configuração do cofre',
-                vaultProfiles: 'Perfis do cofre',
-                vaultContent: 'Conteúdo do cofre',
-                filtering: 'Conteúdo oculto',
                 templates: 'Modelos',
                 behavior: 'Comportamento',
                 keyboardNavigation: 'Navegação por teclado',
@@ -991,7 +985,6 @@ export const STRINGS_PT = {
             },
             list: {
                 display: 'Aparência',
-                organization: 'Organização',
                 groupHeaders: 'Cabeçalhos de grupo',
                 propertySort: 'Ordenação por propriedade',
                 manualSort: 'Ordenação manual',
@@ -1014,7 +1007,6 @@ export const STRINGS_PT = {
         },
         syncMode: {
             notSynced: '(não sincronizado)',
-            disabled: '(desativado)',
             switchToSynced: 'Ativar sincronização',
             switchToLocal: 'Desativar sincronização'
         },
@@ -1482,6 +1474,8 @@ export const STRINGS_PT = {
                 momentLinkText: 'formato de data Moment',
                 momentDescSuffix:
                     '. Coloque nomes de subpastas entre colchetes, ex. [Work]/YYYY. Clique no ícone de modelo para definir um modelo. Definir localização da pasta de modelos em Aparência e comportamento > Modelos.',
+                templaterSupportInstalled: '✅ O plug-in Templater está instalado com suporte completo de modelos.',
+                templaterSupportMissing: '⚠️ Instale o plug-in Templater para suporte completo de modelos.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Sintaxe atual: {path}',
                 parsingError: 'O padrão deve ser formatado e analisado novamente como uma data completa (ano, mês, dia).'
@@ -2352,6 +2346,7 @@ export const STRINGS_PT = {
     },
     whatsNew: {
         title: 'Novidades no Notebook Navigator',
+        openBannerImage: 'Abrir imagem do banner da versão',
         supportMessage: 'Se acha o Notebook Navigator útil, por favor considere apoiar o seu desenvolvimento.',
         supportButton: 'Compre-me um café',
         thanksButton: 'Obrigado!'

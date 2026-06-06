@@ -918,14 +918,12 @@ export const STRINGS_TH = {
             appearanceBehavior: 'ลักษณะและพฤติกรรม',
             navigationPane: 'แผงนำทาง',
             calendar: 'ปฏิทิน',
-            files: 'ไฟล์',
             fileOperations: 'การดำเนินการกับไฟล์',
             icons: 'ชุดไอคอน',
             folders: 'โฟลเดอร์',
             folderNotes: 'โน้ตโฟลเดอร์',
             folderNoteFiles: 'ไฟล์โน้ตโฟลเดอร์',
             foldersAndFolderNotes: 'โฟลเดอร์และโน้ตโฟลเดอร์',
-            foldersAndTags: 'โฟลเดอร์',
             tagsAndProperties: 'แท็กและคุณสมบัติ',
             tags: 'แท็ก',
             listPane: 'แผงรายการ',
@@ -934,7 +932,6 @@ export const STRINGS_TH = {
             advanced: 'ขั้นสูง'
         },
         pageGroups: {
-            gettingStarted: 'เริ่มต้น',
             configuration: 'การกำหนดค่า',
             navigationAndContent: 'แผงนำทาง',
             notesAndLists: 'แผงรายการ',
@@ -959,9 +956,6 @@ export const STRINGS_TH = {
         groups: {
             general: {
                 vaultConfiguration: 'การตั้งค่าห้องนิรภัย',
-                vaultProfiles: 'โปรไฟล์ห้องนิรภัย',
-                vaultContent: 'เนื้อหาห้องนิรภัย',
-                filtering: 'เนื้อหาที่ซ่อน',
                 templates: 'เทมเพลต',
                 behavior: 'พฤติกรรม',
                 keyboardNavigation: 'การนำทางด้วยแป้นพิมพ์',
@@ -984,7 +978,6 @@ export const STRINGS_TH = {
             },
             list: {
                 display: 'ลักษณะ',
-                organization: 'การจัดระเบียบ',
                 groupHeaders: 'ส่วนหัวกลุ่ม',
                 propertySort: 'การจัดเรียงตามคุณสมบัติ',
                 manualSort: 'การจัดเรียงด้วยตนเอง',
@@ -1007,7 +1000,6 @@ export const STRINGS_TH = {
         },
         syncMode: {
             notSynced: '(ไม่ซิงค์)',
-            disabled: '(ปิดใช้งาน)',
             switchToSynced: 'เปิดใช้งานการซิงค์',
             switchToLocal: 'ปิดใช้งานการซิงค์'
         },
@@ -1475,6 +1467,8 @@ export const STRINGS_TH = {
                 momentLinkText: 'รูปแบบวันที่ Moment',
                 momentDescSuffix:
                     ' ใส่ชื่อโฟลเดอร์ย่อยในวงเล็บเหลี่ยม เช่น [Work]/YYYY คลิกไอคอนเทมเพลตเพื่อตั้งค่าเทมเพลต ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในลักษณะและพฤติกรรม > เทมเพลต',
+                templaterSupportInstalled: '✅ ติดตั้งปลั๊กอิน Templater พร้อมการรองรับเทมเพลตเต็มรูปแบบแล้ว',
+                templaterSupportMissing: '⚠️ ติดตั้งปลั๊กอิน Templater เพื่อใช้การรองรับเทมเพลตเต็มรูปแบบ',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'รูปแบบปัจจุบัน: {path}',
                 parsingError: 'แพทเทิร์นต้องสามารถฟอร์แมตและพาร์สกลับเป็นวันที่แบบเต็ม (ปี เดือน วัน) ได้'
@@ -2342,6 +2336,7 @@ export const STRINGS_TH = {
     },
     whatsNew: {
         title: 'มีอะไรใหม่ใน Notebook Navigator',
+        openBannerImage: 'เปิดภาพแบนเนอร์รุ่นเผยแพร่',
         supportMessage: 'หากคุณพบว่า Notebook Navigator มีประโยชน์ โปรดพิจารณาสนับสนุนการพัฒนา',
         supportButton: 'เลี้ยงกาแฟ',
         thanksButton: 'ขอบคุณ!'

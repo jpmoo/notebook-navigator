@@ -926,14 +926,12 @@ export const STRINGS_VI = {
             appearanceBehavior: 'Giao diện và hành vi',
             navigationPane: 'Bảng điều hướng',
             calendar: 'Lịch',
-            files: 'Tệp',
             fileOperations: 'Thao tác tệp',
             icons: 'Gói biểu tượng',
             folders: 'Thư mục',
             folderNotes: 'Ghi chú thư mục',
             folderNoteFiles: 'Tệp ghi chú thư mục',
             foldersAndFolderNotes: 'Thư mục và ghi chú thư mục',
-            foldersAndTags: 'Thư mục',
             tagsAndProperties: 'Thẻ và thuộc tính',
             tags: 'Thẻ',
             listPane: 'Bảng danh sách',
@@ -942,7 +940,6 @@ export const STRINGS_VI = {
             advanced: 'Nâng cao'
         },
         pageGroups: {
-            gettingStarted: 'Bắt đầu',
             configuration: 'Cấu hình',
             navigationAndContent: 'Bảng điều hướng',
             notesAndLists: 'Bảng danh sách',
@@ -967,9 +964,6 @@ export const STRINGS_VI = {
         groups: {
             general: {
                 vaultConfiguration: 'Thiết lập vault',
-                vaultProfiles: 'Hồ sơ vault',
-                vaultContent: 'Nội dung vault',
-                filtering: 'Nội dung ẩn',
                 templates: 'Mẫu',
                 behavior: 'Hành vi',
                 keyboardNavigation: 'Điều hướng bằng bàn phím',
@@ -992,7 +986,6 @@ export const STRINGS_VI = {
             },
             list: {
                 display: 'Giao diện',
-                organization: 'Tổ chức',
                 groupHeaders: 'Header nhóm',
                 propertySort: 'Sắp xếp theo thuộc tính',
                 manualSort: 'Sắp xếp thủ công',
@@ -1015,7 +1008,6 @@ export const STRINGS_VI = {
         },
         syncMode: {
             notSynced: '(chưa đồng bộ)',
-            disabled: '(đã tắt)',
             switchToSynced: 'Bật đồng bộ',
             switchToLocal: 'Tắt đồng bộ'
         },
@@ -1483,6 +1475,8 @@ export const STRINGS_VI = {
                 momentLinkText: 'định dạng ngày Moment',
                 momentDescSuffix:
                     '. Đặt tên thư mục con trong dấu ngoặc vuông, vd: [Work]/YYYY. Nhấp vào biểu tượng mẫu để đặt mẫu. Đặt vị trí thư mục mẫu trong Giao diện và hành vi > Mẫu.',
+                templaterSupportInstalled: '✅ Plugin Templater đã được cài đặt với hỗ trợ mẫu đầy đủ.',
+                templaterSupportMissing: '⚠️ Cài đặt plugin Templater để hỗ trợ mẫu đầy đủ.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Cú pháp hiện tại: {path}',
                 parsingError: 'Mẫu phải có thể định dạng và phân tích lại thành một ngày đầy đủ (năm, tháng, ngày).'
@@ -2351,6 +2345,7 @@ export const STRINGS_VI = {
     },
     whatsNew: {
         title: 'Có gì mới trong Notebook Navigator',
+        openBannerImage: 'Mở hình ảnh biểu ngữ phát hành',
         supportMessage: 'Nếu bạn thấy Notebook Navigator hữu ích, hãy cân nhắc hỗ trợ việc phát triển.',
         supportButton: 'Mua cho tôi một ly cà phê',
         thanksButton: 'Cảm ơn!'

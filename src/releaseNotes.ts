@@ -41,8 +41,8 @@
  * - Auto-link: https://example.com
  *
  * Supported block formats in info:
- * - Line break: single newline or <br>
- * - Paragraph break: blank line or two consecutive <br> markers
+ * - Line break: single \n or <br>
+ * - Paragraph break: double \n\n or two consecutive <br> markers
  *
  * Not supported:
  * - Italics, headings, inline code, HTML except <br> line break markers
@@ -63,6 +63,8 @@ export interface ReleaseNote {
     showOnUpdate?: boolean;
     /** Optional banner image source. true uses version as banner id, string uses explicit URL or banner id */
     bannerUrl?: boolean | string;
+    /** When true, the banner opens the full image in a new tab */
+    bannerClickable?: boolean;
     /** Optional YouTube video URL shown above the release notes for this version */
     youtubeUrl?: string;
     info?: string; // General information about the release, shown at top without bullets
@@ -82,10 +84,11 @@ export interface ReleaseNote {
 const RELEASE_NOTES: ReleaseNote[] = [
     {
         version: '3.1.0',
-        date: '2026-07-08',
+        date: '2026-07-07',
         showOnUpdate: true,
         bannerUrl: true,
-        info: 'This version adds two fantastic new features: ==Open folder notes in right sidebar== and ==Right sidebar: Show closest folder note==. When these settings are enabled, selecting a folder will now automatically open its folder note or the closest ancestor folder note in the right sidebar! Super useful for scratch pads related to different areas of your vault. This release also includes dozens of ==list pane and navigation pane performance improvements==. Notebook Navigator now does less work when scrolling and moving through notes, folders, tags and properties. Give it a try and let me know if you notice any difference!',
+        bannerClickable: true,
+        info: 'This version adds two fantastic new features: ==Open folder notes in right sidebar== and ==Right sidebar: Show closest folder note==. When these settings are enabled, selecting a folder will now automatically open its folder note or the closest ancestor folder note in the right sidebar! Super useful for scratch pads related to different areas of your vault.\n\nThis release also includes dozens of ==list pane and navigation pane performance improvements==. Notebook Navigator now does less work when scrolling and moving through notes, folders, tags and properties. Give it a try and let me know if you notice any difference!',
         new: [
             '**Commands.** New command ==Collapse / expand selected item== to toggle the selected navigation item.',
             '**Settings.** New setting ==Open folder notes in right sidebar== to Settings > Folders & folder notes.',
@@ -99,7 +102,8 @@ const RELEASE_NOTES: ReleaseNote[] = [
             '**Folder notes.** The vault root can now have a folder note. Default naming uses the vault name.',
             '**List pane.** Individual folder group path segments are now clickable when subfolder paths are shown.',
             '**List pane.** Lots of rendering performance improvements in the list pane.',
-            '**Navigation pane.** Lots of rendering performance improvements in the navigation pane.'
+            '**Navigation pane.** Lots of rendering performance improvements in the navigation pane.',
+            '**Icon packs.** Simple Icons was updated to 16.22, adding 9 brand icons.'
         ],
         changed: [
             '**Feature images.** Breaking change! ==SVG images are no longer supported as feature images==. Large SVG images with embedded bitmaps were causing performance and memory issues for some users so this was disabled until further notice. As a result the cache will be rebuilt on startup.',
@@ -107,6 +111,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
             '**List pane.** When grouping by folder, the current folder name will always be displayed on top so you can collapse items in the current folder.'
         ],
         fixed: [
+            '**Calendar.** Fixed Templater integration for notes created from the calendar.',
             '**List pane.** Fixed quick actions not reappearing after switching from Notebook Navigator to another left sidebar tab and back.',
             '**Commands.** Fixed Cmd+W accidentally closing Notebook Navigator after focusing the sidebar with the Notebook Navigator: Open command.'
         ]

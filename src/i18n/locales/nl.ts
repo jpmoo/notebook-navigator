@@ -927,14 +927,12 @@ export const STRINGS_NL = {
             appearanceBehavior: 'Uiterlijk & gedrag',
             navigationPane: 'Navigatiepaneel',
             calendar: 'Kalender',
-            files: 'Bestanden',
             fileOperations: 'Bestandsbewerkingen',
             icons: 'Pictogrampakketten',
             folders: 'Mappen',
             folderNotes: 'Mapnotities',
             folderNoteFiles: 'Mapnotitiebestanden',
             foldersAndFolderNotes: 'Mappen & mapnotities',
-            foldersAndTags: 'Mappen',
             tagsAndProperties: 'Tags & eigenschappen',
             tags: 'Tags',
             listPane: 'Lijstpaneel',
@@ -943,7 +941,6 @@ export const STRINGS_NL = {
             advanced: 'Geavanceerd'
         },
         pageGroups: {
-            gettingStarted: 'Start',
             configuration: 'Configuratie',
             navigationAndContent: 'Navigatiepaneel',
             notesAndLists: 'Lijstpaneel',
@@ -968,9 +965,6 @@ export const STRINGS_NL = {
         groups: {
             general: {
                 vaultConfiguration: 'Kluisinstelling',
-                vaultProfiles: 'Kluisprofielen',
-                vaultContent: 'Kluisinhoud',
-                filtering: 'Verborgen inhoud',
                 templates: 'Sjablonen',
                 behavior: 'Gedrag',
                 keyboardNavigation: 'Toetsenbordnavigatie',
@@ -993,7 +987,6 @@ export const STRINGS_NL = {
             },
             list: {
                 display: 'Uiterlijk',
-                organization: 'Organisatie',
                 groupHeaders: 'Groepskoppen',
                 propertySort: 'Sorteren op eigenschap',
                 manualSort: 'Handmatig sorteren',
@@ -1016,7 +1009,6 @@ export const STRINGS_NL = {
         },
         syncMode: {
             notSynced: '(niet gesynchroniseerd)',
-            disabled: '(uitgeschakeld)',
             switchToSynced: 'Synchronisatie inschakelen',
             switchToLocal: 'Synchronisatie uitschakelen'
         },
@@ -1484,6 +1476,8 @@ export const STRINGS_NL = {
                 momentLinkText: 'Moment-datumnotatie',
                 momentDescSuffix:
                     '. Zet submapnamen tussen haakjes, bijv. [Work]/YYYY. Klik op het sjabloonpictogram om een sjabloon in te stellen. Stel de sjabloonmaplocatie in bij Uiterlijk & gedrag > Sjablonen.',
+                templaterSupportInstalled: '✅ De Templater-plug-in is geïnstalleerd met volledige sjabloonondersteuning.',
+                templaterSupportMissing: '⚠️ Installeer de Templater-plug-in voor volledige sjabloonondersteuning.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Huidige syntaxis: {path}',
                 parsingError: 'Het patroon moet kunnen formatteren en terug-parsen naar een volledige datum (jaar, maand, dag).'
@@ -2353,6 +2347,7 @@ export const STRINGS_NL = {
     },
     whatsNew: {
         title: 'Wat is er nieuw in Notebook Navigator',
+        openBannerImage: 'Releasebannerafbeelding openen',
         supportMessage: 'Als u Notebook Navigator nuttig vindt, overweeg dan om de ontwikkeling te ondersteunen.',
         supportButton: 'Koop me een koffie',
         thanksButton: 'Bedankt!'

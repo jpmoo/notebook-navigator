@@ -80,14 +80,6 @@
     opacity: 1;
 }
 
-/* Dim disabled calendar pattern text inputs */
-.nn-settings-tab-root .setting-item.nn-setting-disabled input[type='text']:disabled {
-    opacity: 0.6;
-    pointer-events: none;
-    -webkit-user-select: none;
-    user-select: none;
-}
-
 /* Container for additional info below settings */
 .nn-setting-info-container {
     margin-top: 8px;

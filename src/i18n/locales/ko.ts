@@ -922,14 +922,12 @@ export const STRINGS_KO = {
             appearanceBehavior: '모양 및 동작',
             navigationPane: '탐색 창',
             calendar: '달력',
-            files: '파일',
             fileOperations: '파일 작업',
             icons: '아이콘 팩',
             folders: '폴더',
             folderNotes: '폴더 노트',
             folderNoteFiles: '폴더 노트 파일',
             foldersAndFolderNotes: '폴더 및 폴더 노트',
-            foldersAndTags: '폴더',
             tagsAndProperties: '태그 및 속성',
             tags: '태그',
             listPane: '목록 창',
@@ -938,7 +936,6 @@ export const STRINGS_KO = {
             advanced: '고급'
         },
         pageGroups: {
-            gettingStarted: '시작',
             configuration: '구성',
             navigationAndContent: '탐색 창',
             notesAndLists: '목록 창',
@@ -963,9 +960,6 @@ export const STRINGS_KO = {
         groups: {
             general: {
                 vaultConfiguration: '보관소 설정',
-                vaultProfiles: '보관소 프로필',
-                vaultContent: '보관소 콘텐츠',
-                filtering: '숨겨진 콘텐츠',
                 templates: '템플릿',
                 behavior: '동작',
                 keyboardNavigation: '키보드 탐색',
@@ -988,7 +982,6 @@ export const STRINGS_KO = {
             },
             list: {
                 display: '모양',
-                organization: '정리',
                 groupHeaders: '그룹 머리글',
                 propertySort: '속성 정렬',
                 manualSort: '수동 정렬',
@@ -1011,7 +1004,6 @@ export const STRINGS_KO = {
         },
         syncMode: {
             notSynced: '(동기화되지 않음)',
-            disabled: '(비활성화됨)',
             switchToSynced: '동기화 활성화',
             switchToLocal: '동기화 비활성화'
         },
@@ -1478,6 +1470,8 @@ export const STRINGS_KO = {
                 momentLinkText: 'Moment 날짜 형식',
                 momentDescSuffix:
                     '을 사용하여 경로 지정. 하위 폴더 이름은 대괄호로 감싸세요, 예: [Work]/YYYY. 템플릿 아이콘을 클릭하여 템플릿을 설정하세요. 템플릿 폴더 위치는 모양 및 동작 > 템플릿에서 설정하세요.',
+                templaterSupportInstalled: '✅ Templater 플러그인이 설치되어 전체 템플릿 지원을 사용할 수 있습니다.',
+                templaterSupportMissing: '⚠️ 전체 템플릿 지원을 사용하려면 Templater 플러그인을 설치하세요.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: '현재 구문: {path}',
                 parsingError: '패턴은 전체 날짜(연, 월, 일)로 포맷되고 다시 파싱될 수 있어야 합니다.'
@@ -2345,6 +2339,7 @@ export const STRINGS_KO = {
     },
     whatsNew: {
         title: 'Notebook Navigator의 새로운 기능',
+        openBannerImage: '릴리스 배너 이미지 열기',
         supportMessage: 'Notebook Navigator가 도움이 되신다면 개발을 지원해 주시기 바랍니다.',
         supportButton: '커피 사주기',
         thanksButton: '감사합니다!'

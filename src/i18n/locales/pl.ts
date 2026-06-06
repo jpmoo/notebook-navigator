@@ -928,14 +928,12 @@ export const STRINGS_PL = {
             appearanceBehavior: 'Wygląd i zachowanie',
             navigationPane: 'Panel nawigacji',
             calendar: 'Kalendarz',
-            files: 'Pliki',
             fileOperations: 'Operacje na plikach',
             icons: 'Pakiety ikon',
             folders: 'Foldery',
             folderNotes: 'Notatki folderu',
             folderNoteFiles: 'Pliki notatek folderów',
             foldersAndFolderNotes: 'Foldery i notatki folderu',
-            foldersAndTags: 'Foldery',
             tagsAndProperties: 'Tagi i atrybuty',
             tags: 'Tagi',
             listPane: 'Panel listy',
@@ -944,7 +942,6 @@ export const STRINGS_PL = {
             advanced: 'Zaawansowane'
         },
         pageGroups: {
-            gettingStarted: 'Start',
             configuration: 'Konfiguracja',
             navigationAndContent: 'Panel nawigacji',
             notesAndLists: 'Panel listy',
@@ -969,9 +966,6 @@ export const STRINGS_PL = {
         groups: {
             general: {
                 vaultConfiguration: 'Konfiguracja sejfu',
-                vaultProfiles: 'Profile sejfu',
-                vaultContent: 'Zawartość sejfu',
-                filtering: 'Ukryta zawartość',
                 templates: 'Szablony',
                 behavior: 'Zachowanie',
                 keyboardNavigation: 'Nawigacja klawiaturą',
@@ -994,7 +988,6 @@ export const STRINGS_PL = {
             },
             list: {
                 display: 'Wygląd',
-                organization: 'Organizacja',
                 groupHeaders: 'Nagłówki grup',
                 propertySort: 'Sortowanie według atrybutów',
                 manualSort: 'Sortowanie ręczne',
@@ -1017,7 +1010,6 @@ export const STRINGS_PL = {
         },
         syncMode: {
             notSynced: '(niezsynchronizowane)',
-            disabled: '(wyłączone)',
             switchToSynced: 'Włącz synchronizację',
             switchToLocal: 'Wyłącz synchronizację'
         },
@@ -1485,6 +1477,8 @@ export const STRINGS_PL = {
                 momentLinkText: 'formatu daty Moment',
                 momentDescSuffix:
                     '. Nazwy podfolderów umieść w nawiasach, np. [Work]/YYYY. Kliknij ikonkę szablonu, aby ustawić szablon. Ustaw lokalizację folderu szablonów w sekcji Wygląd i zachowanie > Szablony.',
+                templaterSupportInstalled: '✅ Wtyczka Templater jest zainstalowana i zapewnia pełną obsługę szablonów.',
+                templaterSupportMissing: '⚠️ Zainstaluj wtyczkę Templater, aby uzyskać pełną obsługę szablonów.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Aktywna składnia: {path}',
                 parsingError: 'Wzór musi być tak sformatowany, aby można było odczytać kompletną datę (rok, miesiąc, dzień).'
@@ -2354,6 +2348,7 @@ export const STRINGS_PL = {
     },
     whatsNew: {
         title: 'Co nowego w Notebook Navigator',
+        openBannerImage: 'Otwórz obraz banera wydania',
         supportMessage: 'Jeśli uważasz, że Notebook Navigator jest pomocny, rozważ wsparcie jego rozwoju.',
         supportButton: 'Postaw kawę',
         thanksButton: 'Dzięki!'

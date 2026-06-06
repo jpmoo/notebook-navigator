@@ -915,14 +915,12 @@ export const STRINGS_ZH_CN = {
             appearanceBehavior: '外观和行为',
             navigationPane: '导航窗格',
             calendar: '导航日历',
-            files: '文件',
             fileOperations: '文件操作',
             icons: '图标包',
             folders: '文件夹',
             folderNotes: '文件夹笔记',
             folderNoteFiles: '文件夹笔记文件',
             foldersAndFolderNotes: '文件夹和文件夹笔记',
-            foldersAndTags: '文件夹',
             tagsAndProperties: '标签与属性',
             tags: '标签',
             listPane: '列表窗格',
@@ -931,7 +929,6 @@ export const STRINGS_ZH_CN = {
             advanced: '高级'
         },
         pageGroups: {
-            gettingStarted: '开始',
             configuration: '配置',
             navigationAndContent: '导航窗格',
             notesAndLists: '列表窗格',
@@ -956,9 +953,6 @@ export const STRINGS_ZH_CN = {
         groups: {
             general: {
                 vaultConfiguration: '仓库设置',
-                vaultProfiles: '仓库配置文件',
-                vaultContent: '仓库内容',
-                filtering: '隐藏内容',
                 templates: '模板',
                 behavior: '行为',
                 keyboardNavigation: '键盘导航',
@@ -981,7 +975,6 @@ export const STRINGS_ZH_CN = {
             },
             list: {
                 display: '外观',
-                organization: '组织',
                 groupHeaders: '分组标题',
                 propertySort: '属性排序',
                 manualSort: '手动排序',
@@ -1004,7 +997,6 @@ export const STRINGS_ZH_CN = {
         },
         syncMode: {
             notSynced: '（未同步）',
-            disabled: '（已禁用）',
             switchToSynced: '启用同步',
             switchToLocal: '禁用同步'
         },
@@ -1468,6 +1460,8 @@ export const STRINGS_ZH_CN = {
                 momentLinkText: 'Moment 日期格式',
                 momentDescSuffix:
                     ' 设置路径。将子文件夹名称用方括号括起来，例如 [Work]/YYYY。点击模板图标设置模板。在外观和行为 > 模板中设置模板文件夹位置。',
+                templaterSupportInstalled: '✅ 已安装 Templater 插件，支持完整模板功能。',
+                templaterSupportMissing: '⚠️ 安装 Templater 插件以支持完整模板功能。',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: '当前语法：{path}',
                 parsingError: '模式必须能格式化并重新解析为完整日期（年、月、日）。'
@@ -2333,6 +2327,7 @@ export const STRINGS_ZH_CN = {
     },
     whatsNew: {
         title: 'Notebook Navigator 的新功能',
+        openBannerImage: '打开发布横幅图片',
         supportMessage: '如果您觉得 Notebook Navigator 有用，请考虑支持其开发。',
         supportButton: '请我喝咖啡',
         thanksButton: '谢谢！'

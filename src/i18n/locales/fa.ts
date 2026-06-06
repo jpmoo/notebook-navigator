@@ -925,14 +925,12 @@ export const STRINGS_FA = {
             appearanceBehavior: 'ظاهر و رفتار',
             navigationPane: 'پنل ناوبری',
             calendar: 'تقویم',
-            files: 'فایل‌ها',
             fileOperations: 'عملیات فایل',
             icons: 'بسته‌های آیکون',
             folders: 'پوشه‌ها',
             folderNotes: 'یادداشت‌های پوشه',
             folderNoteFiles: 'فایل‌های یادداشت پوشه',
             foldersAndFolderNotes: 'پوشه‌ها و یادداشت‌های پوشه',
-            foldersAndTags: 'پوشه‌ها',
             tagsAndProperties: 'برچسب‌ها و ویژگی‌ها',
             tags: 'برچسب‌ها',
             listPane: 'پنل لیست',
@@ -941,7 +939,6 @@ export const STRINGS_FA = {
             advanced: 'پیشرفته'
         },
         pageGroups: {
-            gettingStarted: 'شروع',
             configuration: 'پیکربندی',
             navigationAndContent: 'پنل ناوبری',
             notesAndLists: 'پنل لیست',
@@ -966,9 +963,6 @@ export const STRINGS_FA = {
         groups: {
             general: {
                 vaultConfiguration: 'پیکربندی خزانه',
-                vaultProfiles: 'پروفایل‌های خزانه',
-                vaultContent: 'محتوای خزانه',
-                filtering: 'محتوای پنهان',
                 templates: 'الگوها',
                 behavior: 'رفتار',
                 keyboardNavigation: 'پیمایش با صفحه‌کلید',
@@ -991,7 +985,6 @@ export const STRINGS_FA = {
             },
             list: {
                 display: 'ظاهر',
-                organization: 'سازماندهی',
                 groupHeaders: 'هدرهای گروه',
                 propertySort: 'مرتب‌سازی بر اساس ویژگی',
                 manualSort: 'مرتب‌سازی دستی',
@@ -1014,7 +1007,6 @@ export const STRINGS_FA = {
         },
         syncMode: {
             notSynced: '(همگام نشده)',
-            disabled: '(غیرفعال)',
             switchToSynced: 'فعال‌سازی همگام‌سازی',
             switchToLocal: 'غیرفعال‌سازی همگام‌سازی'
         },
@@ -1482,6 +1474,8 @@ export const STRINGS_FA = {
                 momentLinkText: 'فرمت تاریخ Moment',
                 momentDescSuffix:
                     '. نام زیرپوشه‌ها را در کروشه قرار دهید، مثال [Work]/YYYY. روی نماد قالب کلیک کنید تا قالب تنظیم شود. محل پوشه الگوها را در ظاهر و رفتار > الگوها تنظیم کنید.',
+                templaterSupportInstalled: '✅ افزونه Templater با پشتیبانی کامل از قالب‌ها نصب شده است.',
+                templaterSupportMissing: '⚠️ برای پشتیبانی کامل از قالب‌ها، افزونه Templater را نصب کنید.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'نحوه نگارش فعلی: {path}',
                 parsingError: 'الگو باید بتواند به یک تاریخ کامل (سال، ماه، روز) قالب‌بندی شود و دوباره به همان تاریخ تجزیه شود.'
@@ -2350,6 +2344,7 @@ export const STRINGS_FA = {
     },
     whatsNew: {
         title: 'چه چیزی جدید است در Notebook Navigator',
+        openBannerImage: 'باز کردن تصویر بنر انتشار',
         supportMessage: 'اگر Notebook Navigator را مفید می‌دانید، لطفاً حمایت از توسعه آن را در نظر بگیرید.',
         supportButton: 'یک قهوه مهمانم کن',
         thanksButton: 'ممنون!'

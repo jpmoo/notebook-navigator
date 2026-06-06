@@ -919,14 +919,12 @@ export const STRINGS_EN = {
             appearanceBehavior: 'Appearance & behavior',
             navigationPane: 'Navigation pane',
             calendar: 'Calendar',
-            files: 'Files',
             fileOperations: 'File operations',
             icons: 'Icon packs',
             folders: 'Folders',
             folderNotes: 'Folder notes',
             folderNoteFiles: 'Folder note files',
             foldersAndFolderNotes: 'Folders & folder notes',
-            foldersAndTags: 'Folders',
             tagsAndProperties: 'Tags & properties',
             tags: 'Tags',
             listPane: 'List pane',
@@ -935,7 +933,6 @@ export const STRINGS_EN = {
             advanced: 'Advanced'
         },
         pageGroups: {
-            gettingStarted: 'Start',
             configuration: 'Configuration',
             navigationAndContent: 'Navigation pane',
             notesAndLists: 'List pane',
@@ -960,9 +957,6 @@ export const STRINGS_EN = {
         groups: {
             general: {
                 vaultConfiguration: 'Vault setup',
-                vaultProfiles: 'Vault profiles',
-                vaultContent: 'Vault content',
-                filtering: 'Hidden content',
                 templates: 'Templates',
                 behavior: 'Behavior',
                 keyboardNavigation: 'Keyboard navigation',
@@ -985,7 +979,6 @@ export const STRINGS_EN = {
             },
             list: {
                 display: 'Appearance',
-                organization: 'Organization',
                 groupHeaders: 'Group headers',
                 propertySort: 'Property sort',
                 manualSort: 'Manual sort',
@@ -1008,7 +1001,6 @@ export const STRINGS_EN = {
         },
         syncMode: {
             notSynced: '(not synced)',
-            disabled: '(disabled)',
             switchToSynced: 'Enable sync',
             switchToLocal: 'Disable sync'
         },
@@ -1475,6 +1467,8 @@ export const STRINGS_EN = {
                 momentLinkText: 'Moment date format',
                 momentDescSuffix:
                     '. Wrap subfolder names in brackets, e.g., [Work]/YYYY. Click template icon to set template. Set template folder location in Appearance & behavior > Templates.',
+                templaterSupportInstalled: '✅ Templater plugin is installed with full template support.',
+                templaterSupportMissing: '⚠️ Install Templater plugin for full template support.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Current syntax: {path}',
                 parsingError: 'Pattern must format and parse back to a full date (year, month, day).'
@@ -2342,6 +2336,7 @@ export const STRINGS_EN = {
     },
     whatsNew: {
         title: "What's new in Notebook Navigator",
+        openBannerImage: 'Open release banner image',
         supportMessage: 'If you find Notebook Navigator helpful, please consider supporting its development.',
         supportButton: 'Buy me a coffee',
         thanksButton: 'Thanks!'

@@ -2620,8 +2620,7 @@ button.nn-icon-button.nn-navitem-hover-action-button {
     flex: 0 0 auto;
 }
 
-.nn-navigation-calendar-month .nn-navigation-calendar-quarter-button,
-.nn-navigation-calendar-month .nn-navigation-calendar-quarter-label {
+.nn-navigation-calendar-month .nn-navigation-calendar-quarter-button {
     flex: 0 0 auto;
 }
 
@@ -2670,15 +2669,6 @@ button.nn-navigation-calendar-period-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-}
-
-.nn-navigation-calendar-period-label {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 1px;
-    border-radius: 6px;
-    background-color: var(--nn-calendar-header-chip-bg);
-    line-height: 1;
 }
 
 .nn-navigation-calendar-period-button.has-period-note:not(.nn-navigation-calendar-quarter-button)::after {
@@ -5883,11 +5873,6 @@ body.nn-resizing {
     pointer-events: auto;
 }
 
-/* What's new header */
-.nn-whats-new-header {
-    margin-bottom: 16px;
-}
-
 /* What's new scrollable container */
 .nn-whats-new-scroll {
     flex: 1 1 auto;
@@ -5952,6 +5937,7 @@ body.nn-resizing {
 /* Release banner image */
 .nn-whats-new-banner {
     position: relative;
+    display: block;
     width: 100%;
     aspect-ratio: 16 / 9;
     overflow: hidden;
@@ -5959,6 +5945,12 @@ body.nn-resizing {
     background: var(--background-secondary);
     border: 1px solid var(--background-modifier-border);
     margin-bottom: 12px;
+    text-decoration: none;
+}
+
+.nn-whats-new-banner:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
 }
 
 .nn-whats-new-banner-image {
@@ -6124,11 +6116,6 @@ body.nn-resizing {
         line-height: 1.6;
     }
 
-    /* Mobile header size for the modal title */
-    .nn-whats-new-header {
-        font-size: 16px;
-    }
-
     /* Version header size on mobile */
     .nn-whats-new-version h3 {
         font-size: 15px;
@@ -6137,11 +6124,6 @@ body.nn-resizing {
 
 /* Obsidian mobile app adjustments */
 .is-mobile {
-    /* Modal title */
-    .nn-whats-new-header {
-        font-size: 16px;
-    }
-
     /* Body text and labels */
     .nn-whats-new-info,
     .nn-whats-new-version li,
@@ -6861,14 +6843,6 @@ body.nn-resizing {
 .nn-setting-sync-toggle:hover {
     color: var(--text-normal);
     opacity: 1;
-}
-
-/* Dim disabled calendar pattern text inputs */
-.nn-settings-tab-root .setting-item.nn-setting-disabled input[type='text']:disabled {
-    opacity: 0.6;
-    pointer-events: none;
-    -webkit-user-select: none;
-    user-select: none;
 }
 
 /* Container for additional info below settings */

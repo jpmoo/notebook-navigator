@@ -921,14 +921,12 @@ export const STRINGS_IT = {
             appearanceBehavior: 'Aspetto e comportamento',
             navigationPane: 'Pannello di navigazione',
             calendar: 'Calendario',
-            files: 'File',
             fileOperations: 'Operazioni sui file',
             icons: 'Pacchetti icone',
             folders: 'Cartelle',
             folderNotes: 'Note cartella',
             folderNoteFiles: 'File note cartella',
             foldersAndFolderNotes: 'Cartelle e note cartella',
-            foldersAndTags: 'Cartelle',
             tagsAndProperties: 'Tag e proprietà',
             tags: 'Tag',
             listPane: 'Pannello lista',
@@ -937,7 +935,6 @@ export const STRINGS_IT = {
             advanced: 'Avanzate'
         },
         pageGroups: {
-            gettingStarted: 'Avvio',
             configuration: 'Configurazione',
             navigationAndContent: 'Pannello di navigazione',
             notesAndLists: 'Pannello lista',
@@ -962,9 +959,6 @@ export const STRINGS_IT = {
         groups: {
             general: {
                 vaultConfiguration: 'Configurazione vault',
-                vaultProfiles: 'Profili vault',
-                vaultContent: 'Contenuto del vault',
-                filtering: 'Contenuto nascosto',
                 templates: 'Modelli',
                 behavior: 'Comportamento',
                 keyboardNavigation: 'Navigazione da tastiera',
@@ -987,7 +981,6 @@ export const STRINGS_IT = {
             },
             list: {
                 display: 'Aspetto',
-                organization: 'Organizzazione',
                 groupHeaders: 'Intestazioni di gruppo',
                 propertySort: 'Ordinamento per proprietà',
                 manualSort: 'Ordinamento manuale',
@@ -1010,7 +1003,6 @@ export const STRINGS_IT = {
         },
         syncMode: {
             notSynced: '(non sincronizzato)',
-            disabled: '(disabilitato)',
             switchToSynced: 'Attiva sincronizzazione',
             switchToLocal: 'Disattiva sincronizzazione'
         },
@@ -1478,6 +1470,8 @@ export const STRINGS_IT = {
                 momentLinkText: 'formato data Moment',
                 momentDescSuffix:
                     ". Racchiudi i nomi delle sottocartelle tra parentesi quadre, es. [Work]/YYYY. Clicca sull'icona del modello per impostare un modello. Impostare la posizione della cartella modelli in Aspetto e comportamento > Modelli.",
+                templaterSupportInstalled: '✅ Il plugin Templater è installato con supporto completo ai modelli.',
+                templaterSupportMissing: '⚠️ Installa il plugin Templater per il supporto completo ai modelli.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Sintassi attuale: {path}',
                 parsingError: 'Il modello deve poter essere formattato e rianalizzato come una data completa (anno, mese, giorno).'
@@ -2349,6 +2343,7 @@ export const STRINGS_IT = {
     },
     whatsNew: {
         title: 'Novità in Notebook Navigator',
+        openBannerImage: 'Apri immagine banner della versione',
         supportMessage: 'Se trovi Notebook Navigator utile, considera di supportare il suo sviluppo.',
         supportButton: 'Offrimi un caffè',
         thanksButton: 'Grazie!'

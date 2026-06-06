@@ -924,14 +924,12 @@ export const STRINGS_JA = {
             appearanceBehavior: '外観と動作',
             navigationPane: 'ナビゲーションペイン',
             calendar: 'カレンダー',
-            files: 'ファイル',
             fileOperations: 'ファイル操作',
             icons: 'アイコンパック',
             folders: 'フォルダノート',
             folderNotes: 'フォルダノート',
             folderNoteFiles: 'フォルダノートファイル',
             foldersAndFolderNotes: 'フォルダとフォルダノート',
-            foldersAndTags: 'フォルダ',
             tagsAndProperties: 'タグとプロパティ',
             tags: 'タグ表示',
             listPane: 'リストペイン',
@@ -940,7 +938,6 @@ export const STRINGS_JA = {
             advanced: '詳細設定'
         },
         pageGroups: {
-            gettingStarted: 'スタート',
             configuration: '設定',
             navigationAndContent: 'ナビゲーションペイン',
             notesAndLists: 'リストペイン',
@@ -965,9 +962,6 @@ export const STRINGS_JA = {
         groups: {
             general: {
                 vaultConfiguration: '保管庫のセットアップ',
-                vaultProfiles: '保管庫プロファイル',
-                vaultContent: '保管庫のコンテンツ',
-                filtering: '非表示コンテンツ',
                 templates: 'テンプレート',
                 behavior: '動作',
                 keyboardNavigation: 'キーボード操作',
@@ -990,7 +984,6 @@ export const STRINGS_JA = {
             },
             list: {
                 display: '外観',
-                organization: '整理',
                 groupHeaders: 'グループヘッダー',
                 propertySort: 'プロパティで並べ替え',
                 manualSort: '手動並べ替え',
@@ -1013,7 +1006,6 @@ export const STRINGS_JA = {
         },
         syncMode: {
             notSynced: '（未同期）',
-            disabled: '（無効）',
             switchToSynced: '同期を有効化',
             switchToLocal: '同期を無効化'
         },
@@ -1480,6 +1472,8 @@ export const STRINGS_JA = {
                 momentLinkText: 'Moment 日付フォーマット',
                 momentDescSuffix:
                     'を使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。 テンプレートフォルダの場所は外観と動作 > テンプレートで設定してください。',
+                templaterSupportInstalled: '✅ Templater プラグインがインストールされており、テンプレートの完全サポートが利用できます。',
+                templaterSupportMissing: '⚠️ テンプレートの完全サポートを利用するには、Templater プラグインをインストールしてください。',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: '現在の構文: {path}',
                 parsingError: 'パターンは完全な日付（年、月、日）としてフォーマットされ、再度パースできる必要があります。'
@@ -2348,6 +2342,7 @@ export const STRINGS_JA = {
     },
     whatsNew: {
         title: 'Notebook Navigatorの新機能',
+        openBannerImage: 'リリースバナー画像を開く',
         supportMessage: 'Notebook Navigatorが役立つと思われる場合は、開発のサポートをご検討ください。',
         supportButton: 'コーヒーをおごる',
         thanksButton: 'ありがとう！'

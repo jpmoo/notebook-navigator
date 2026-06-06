@@ -923,14 +923,12 @@ export const STRINGS_TR = {
             appearanceBehavior: 'Görünüm ve davranış',
             navigationPane: 'Gezinme paneli',
             calendar: 'Takvim',
-            files: 'Dosyalar',
             fileOperations: 'Dosya işlemleri',
             icons: 'Simge paketleri',
             folders: 'Klasörler',
             folderNotes: 'Klasör notları',
             folderNoteFiles: 'Klasör notu dosyaları',
             foldersAndFolderNotes: 'Klasörler ve klasör notları',
-            foldersAndTags: 'Klasörler',
             tagsAndProperties: 'Etiketler ve özellikler',
             tags: 'Etiketler',
             listPane: 'Liste paneli',
@@ -939,7 +937,6 @@ export const STRINGS_TR = {
             advanced: 'Gelişmiş'
         },
         pageGroups: {
-            gettingStarted: 'Başlangıç',
             configuration: 'Yapılandırma',
             navigationAndContent: 'Gezinme paneli',
             notesAndLists: 'Liste paneli',
@@ -964,9 +961,6 @@ export const STRINGS_TR = {
         groups: {
             general: {
                 vaultConfiguration: 'Kasa kurulumu',
-                vaultProfiles: 'Kasa profilleri',
-                vaultContent: 'Kasa içeriği',
-                filtering: 'Gizli içerik',
                 templates: 'Şablonlar',
                 behavior: 'Davranış',
                 keyboardNavigation: 'Klavye ile gezinme',
@@ -989,7 +983,6 @@ export const STRINGS_TR = {
             },
             list: {
                 display: 'Görünüm',
-                organization: 'Düzenleme',
                 groupHeaders: 'Grup başlıkları',
                 propertySort: 'Özelliğe göre sıralama',
                 manualSort: 'Manuel sıralama',
@@ -1012,7 +1005,6 @@ export const STRINGS_TR = {
         },
         syncMode: {
             notSynced: '(senkronize edilmedi)',
-            disabled: '(devre dışı)',
             switchToSynced: 'Senkronizasyonu etkinleştir',
             switchToLocal: 'Senkronizasyonu devre dışı bırak'
         },
@@ -1480,6 +1472,8 @@ export const STRINGS_TR = {
                 momentLinkText: 'Moment tarih biçimi',
                 momentDescSuffix:
                     ' kullanarak yolu biçimlendir. Alt klasör adlarını köşeli parantez içine alın, örn. [Work]/YYYY. Şablon ayarlamak için şablon simgesine tıklayın. Şablon klasörü konumunu Görünüm ve davranış > Şablonlar bölümünden ayarlayın.',
+                templaterSupportInstalled: '✅ Templater eklentisi tam şablon desteğiyle yüklü.',
+                templaterSupportMissing: '⚠️ Tam şablon desteği için Templater eklentisini yükleyin.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Geçerli sözdizimi: {path}',
                 parsingError: 'Desen, tam bir tarih (yıl, ay, gün) olarak biçimlendirilmeli ve tekrar ayrıştırılabilmelidir.'
@@ -2348,6 +2342,7 @@ export const STRINGS_TR = {
     },
     whatsNew: {
         title: 'Notebook Navigator Yenilikleri',
+        openBannerImage: 'Sürüm banner görselini aç',
         supportMessage: "Notebook Navigator'ı yararlı buluyorsanız, lütfen gelişimini desteklemeyi düşünün.",
         supportButton: 'Bana bir kahve ısmarla',
         thanksButton: 'Teşekkürler!'

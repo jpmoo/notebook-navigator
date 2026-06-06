@@ -928,14 +928,12 @@ export const STRINGS_FR = {
             appearanceBehavior: 'Apparence et comportement',
             navigationPane: 'Panneau de navigation',
             calendar: 'Calendrier',
-            files: 'Fichiers',
             fileOperations: 'Opérations sur les fichiers',
             icons: "Packs d'icônes",
             folders: 'Dossiers',
             folderNotes: 'Notes de dossier',
             folderNoteFiles: 'Fichiers de notes de dossier',
             foldersAndFolderNotes: 'Dossiers et notes de dossier',
-            foldersAndTags: 'Dossiers',
             tagsAndProperties: 'Tags et propriétés',
             tags: 'Étiquettes',
             listPane: 'Panneau de liste',
@@ -944,7 +942,6 @@ export const STRINGS_FR = {
             advanced: 'Avancé'
         },
         pageGroups: {
-            gettingStarted: 'Démarrage',
             configuration: 'Configuration',
             navigationAndContent: 'Panneau de navigation',
             notesAndLists: 'Panneau de liste',
@@ -969,9 +966,6 @@ export const STRINGS_FR = {
         groups: {
             general: {
                 vaultConfiguration: 'Configuration du coffre',
-                vaultProfiles: 'Profils du coffre',
-                vaultContent: 'Contenu du coffre',
-                filtering: 'Contenu masqué',
                 templates: 'Modèles',
                 behavior: 'Comportement',
                 keyboardNavigation: 'Navigation au clavier',
@@ -994,7 +988,6 @@ export const STRINGS_FR = {
             },
             list: {
                 display: 'Apparence',
-                organization: 'Organisation',
                 groupHeaders: 'En-têtes de groupe',
                 propertySort: 'Tri par propriété',
                 manualSort: 'Tri manuel',
@@ -1017,7 +1010,6 @@ export const STRINGS_FR = {
         },
         syncMode: {
             notSynced: '(non synchronisé)',
-            disabled: '(désactivé)',
             switchToSynced: 'Activer la synchronisation',
             switchToLocal: 'Désactiver la synchronisation'
         },
@@ -1485,6 +1477,8 @@ export const STRINGS_FR = {
                 momentLinkText: 'format de date Moment',
                 momentDescSuffix:
                     ". Entourez les noms de sous-dossiers de crochets, par ex. [Work]/YYYY. Cliquez sur l'icône de modèle pour définir un modèle. Définir l'emplacement du dossier de modèles dans Apparence et comportement > Modèles.",
+                templaterSupportInstalled: '✅ Le plugin Templater est installé avec la prise en charge complète des modèles.',
+                templaterSupportMissing: '⚠️ Installez le plugin Templater pour la prise en charge complète des modèles.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Syntaxe actuelle : {path}',
                 parsingError: 'Le modèle doit pouvoir être formaté et ré-analysé comme une date complète (année, mois, jour).'
@@ -2356,6 +2350,7 @@ export const STRINGS_FR = {
     },
     whatsNew: {
         title: 'Nouveautés dans Notebook Navigator',
+        openBannerImage: 'Ouvrir l’image de bannière de la version',
         supportMessage: 'Si vous trouvez Notebook Navigator utile, veuillez envisager de soutenir son développement.',
         supportButton: 'Offrir un café',
         thanksButton: 'Merci !'
