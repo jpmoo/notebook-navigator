@@ -29,7 +29,7 @@ import { resolvePropertyShortcutNodeId } from '../../utils/propertyTree';
 import { resolveCanonicalTagPath } from '../../utils/tagUtils';
 import { runAsyncAction } from '../../utils/async';
 import { openFileInContext } from '../../utils/openFileInContext';
-import { getFolderNote, openFolderNoteFile } from '../../utils/folderNotes';
+import { getFolderNote, openFolderNoteFile, type FolderNoteOpenContext } from '../../utils/folderNotes';
 import { resolveFolderNoteClickOpenContext } from '../../utils/keyboardOpenContext';
 import { ItemType } from '../../types';
 import type { NavigateToFolderOptions, RevealPropertyOptions, RevealTagOptions } from '../useNavigatorReveal';
@@ -95,6 +95,18 @@ export function useNavigationPaneShortcutActions({
     tagTree,
     hydratedShortcuts
 }: UseNavigationPaneShortcutActionsProps) {
+    const focusListPaneAfterRightSidebarFolderNoteSelection = useCallback(
+        (openContext: FolderNoteOpenContext) => {
+            if (!uiState.singlePane || openContext !== 'right-sidebar') {
+                return;
+            }
+
+            uiDispatch({ type: 'SET_SINGLE_PANE_VIEW', view: 'files' });
+            uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'files' });
+        },
+        [uiDispatch, uiState.singlePane]
+    );
+
     const scheduleShortcutRelease = useCallback(() => {
         const release = () => setActiveShortcut(null);
 
@@ -143,6 +155,7 @@ export function useNavigationPaneShortcutActions({
                 settings.multiSelectModifier,
                 isMobile
             );
+            focusListPaneAfterRightSidebarFolderNoteSelection(openContext);
             if (openContext === 'right-sidebar' && settings.showNearestFolderNoteInSidebar && !wasSelectedFolder) {
                 scheduleShortcutRelease();
                 return;
@@ -163,6 +176,7 @@ export function useNavigationPaneShortcutActions({
         [
             app,
             commandQueue,
+            focusListPaneAfterRightSidebarFolderNoteSelection,
             handleShortcutFolderActivate,
             isMobile,
             openFolderNoteInRightSidebar,

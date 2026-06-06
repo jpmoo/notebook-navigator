@@ -38,7 +38,7 @@ import {
 } from '../../types';
 import type { PropertyTreeNode, TagTreeNode } from '../../types/storage';
 import type { InclusionOperator } from '../../utils/filterSearch';
-import { getFolderNote, openFolderNoteFile } from '../../utils/folderNotes';
+import { getFolderNote, openFolderNoteFile, type FolderNoteOpenContext } from '../../utils/folderNotes';
 import { runAsyncAction } from '../../utils/async';
 import { resolveFolderNoteClickOpenContext, resolveFolderNoteDefaultOpenContext } from '../../utils/keyboardOpenContext';
 import { findTagNode } from '../../utils/tagTree';
@@ -121,6 +121,18 @@ export function useNavigationPaneTreeInteractions({
     onModifySearchWithTag,
     onModifySearchWithProperty
 }: UseNavigationPaneTreeInteractionsProps): NavigationPaneTreeInteractionsResult {
+    const focusListPaneAfterRightSidebarFolderNoteSelection = useCallback(
+        (openContext: FolderNoteOpenContext) => {
+            if (!uiState.singlePane || openContext !== 'right-sidebar') {
+                return;
+            }
+
+            uiDispatch({ type: 'SET_SINGLE_PANE_VIEW', view: 'files' });
+            uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'files' });
+        },
+        [uiDispatch, uiState.singlePane]
+    );
+
     const handleFolderToggle = useCallback(
         (path: string) => {
             expansionDispatch({ type: 'TOGGLE_FOLDER_EXPANDED', folderPath: path });
@@ -199,6 +211,7 @@ export function useNavigationPaneTreeInteractions({
             const openContext = event
                 ? resolveFolderNoteClickOpenContext(event, settings.folderNoteOpenLocation, settings.multiSelectModifier, isMobile)
                 : resolveFolderNoteDefaultOpenContext(settings.folderNoteOpenLocation);
+            focusListPaneAfterRightSidebarFolderNoteSelection(openContext);
 
             if (openContext === 'right-sidebar' && settings.showNearestFolderNoteInSidebar && !wasSelectedFolder) {
                 return;
@@ -218,6 +231,7 @@ export function useNavigationPaneTreeInteractions({
         [
             app,
             commandQueue,
+            focusListPaneAfterRightSidebarFolderNoteSelection,
             handleFolderClick,
             isMobile,
             openFolderNoteInRightSidebar,
