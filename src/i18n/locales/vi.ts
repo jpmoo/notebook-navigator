@@ -926,14 +926,12 @@ export const STRINGS_VI = {
             appearanceBehavior: 'Giao diện và hành vi',
             navigationPane: 'Bảng điều hướng',
             calendar: 'Lịch',
-            files: 'Tệp',
             fileOperations: 'Thao tác tệp',
             icons: 'Gói biểu tượng',
             folders: 'Thư mục',
             folderNotes: 'Ghi chú thư mục',
             folderNoteFiles: 'Tệp ghi chú thư mục',
             foldersAndFolderNotes: 'Thư mục và ghi chú thư mục',
-            foldersAndTags: 'Thư mục',
             tagsAndProperties: 'Thẻ và thuộc tính',
             tags: 'Thẻ',
             listPane: 'Bảng danh sách',
@@ -942,7 +940,6 @@ export const STRINGS_VI = {
             advanced: 'Nâng cao'
         },
         pageGroups: {
-            gettingStarted: 'Bắt đầu',
             configuration: 'Cấu hình',
             navigationAndContent: 'Bảng điều hướng',
             notesAndLists: 'Bảng danh sách',
@@ -967,9 +964,6 @@ export const STRINGS_VI = {
         groups: {
             general: {
                 vaultConfiguration: 'Thiết lập vault',
-                vaultProfiles: 'Hồ sơ vault',
-                vaultContent: 'Nội dung vault',
-                filtering: 'Nội dung ẩn',
                 templates: 'Mẫu',
                 behavior: 'Hành vi',
                 keyboardNavigation: 'Điều hướng bằng bàn phím',
@@ -992,7 +986,6 @@ export const STRINGS_VI = {
             },
             list: {
                 display: 'Giao diện',
-                organization: 'Tổ chức',
                 groupHeaders: 'Header nhóm',
                 propertySort: 'Sắp xếp theo thuộc tính',
                 manualSort: 'Sắp xếp thủ công',
@@ -1015,7 +1008,6 @@ export const STRINGS_VI = {
         },
         syncMode: {
             notSynced: '(chưa đồng bộ)',
-            disabled: '(đã tắt)',
             switchToSynced: 'Bật đồng bộ',
             switchToLocal: 'Tắt đồng bộ'
         },

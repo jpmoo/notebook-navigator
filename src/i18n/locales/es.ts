@@ -926,14 +926,12 @@ export const STRINGS_ES = {
             appearanceBehavior: 'Apariencia y comportamiento',
             navigationPane: 'Panel de navegación',
             calendar: 'Calendario',
-            files: 'Archivos',
             fileOperations: 'Operaciones de archivos',
             icons: 'Paquetes de iconos',
             folders: 'Carpetas',
             folderNotes: 'Notas de carpeta',
             folderNoteFiles: 'Archivos de notas de carpeta',
             foldersAndFolderNotes: 'Carpetas y notas de carpeta',
-            foldersAndTags: 'Carpetas',
             tagsAndProperties: 'Etiquetas y propiedades',
             tags: 'Etiquetas',
             listPane: 'Panel de lista',
@@ -942,7 +940,6 @@ export const STRINGS_ES = {
             advanced: 'Avanzado'
         },
         pageGroups: {
-            gettingStarted: 'Inicio',
             configuration: 'Configuración',
             navigationAndContent: 'Panel de navegación',
             notesAndLists: 'Panel de lista',
@@ -967,9 +964,6 @@ export const STRINGS_ES = {
         groups: {
             general: {
                 vaultConfiguration: 'Configuración de la bóveda',
-                vaultProfiles: 'Perfiles de bóveda',
-                vaultContent: 'Contenido de la bóveda',
-                filtering: 'Contenido oculto',
                 templates: 'Plantillas',
                 behavior: 'Comportamiento',
                 keyboardNavigation: 'Navegación con teclado',
@@ -992,7 +986,6 @@ export const STRINGS_ES = {
             },
             list: {
                 display: 'Apariencia',
-                organization: 'Organización',
                 groupHeaders: 'Encabezados de grupo',
                 propertySort: 'Orden por propiedad',
                 manualSort: 'Orden manual',
@@ -1015,7 +1008,6 @@ export const STRINGS_ES = {
         },
         syncMode: {
             notSynced: '(no sincronizado)',
-            disabled: '(desactivado)',
             switchToSynced: 'Activar sincronización',
             switchToLocal: 'Desactivar sincronización'
         },

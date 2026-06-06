@@ -928,14 +928,12 @@ export const STRINGS_FR = {
             appearanceBehavior: 'Apparence et comportement',
             navigationPane: 'Panneau de navigation',
             calendar: 'Calendrier',
-            files: 'Fichiers',
             fileOperations: 'Opérations sur les fichiers',
             icons: "Packs d'icônes",
             folders: 'Dossiers',
             folderNotes: 'Notes de dossier',
             folderNoteFiles: 'Fichiers de notes de dossier',
             foldersAndFolderNotes: 'Dossiers et notes de dossier',
-            foldersAndTags: 'Dossiers',
             tagsAndProperties: 'Tags et propriétés',
             tags: 'Étiquettes',
             listPane: 'Panneau de liste',
@@ -944,7 +942,6 @@ export const STRINGS_FR = {
             advanced: 'Avancé'
         },
         pageGroups: {
-            gettingStarted: 'Démarrage',
             configuration: 'Configuration',
             navigationAndContent: 'Panneau de navigation',
             notesAndLists: 'Panneau de liste',
@@ -969,9 +966,6 @@ export const STRINGS_FR = {
         groups: {
             general: {
                 vaultConfiguration: 'Configuration du coffre',
-                vaultProfiles: 'Profils du coffre',
-                vaultContent: 'Contenu du coffre',
-                filtering: 'Contenu masqué',
                 templates: 'Modèles',
                 behavior: 'Comportement',
                 keyboardNavigation: 'Navigation au clavier',
@@ -994,7 +988,6 @@ export const STRINGS_FR = {
             },
             list: {
                 display: 'Apparence',
-                organization: 'Organisation',
                 groupHeaders: 'En-têtes de groupe',
                 propertySort: 'Tri par propriété',
                 manualSort: 'Tri manuel',
@@ -1017,7 +1010,6 @@ export const STRINGS_FR = {
         },
         syncMode: {
             notSynced: '(non synchronisé)',
-            disabled: '(désactivé)',
             switchToSynced: 'Activer la synchronisation',
             switchToLocal: 'Désactiver la synchronisation'
         },

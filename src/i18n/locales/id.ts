@@ -925,14 +925,12 @@ export const STRINGS_ID = {
             appearanceBehavior: 'Tampilan & perilaku',
             navigationPane: 'Panel navigasi',
             calendar: 'Kalender',
-            files: 'File',
             fileOperations: 'Operasi file',
             icons: 'Paket ikon',
             folders: 'Folder',
             folderNotes: 'Catatan folder',
             folderNoteFiles: 'File catatan folder',
             foldersAndFolderNotes: 'Folder & catatan folder',
-            foldersAndTags: 'Folder',
             tagsAndProperties: 'Tag & properti',
             tags: 'Tag',
             listPane: 'Panel daftar',
@@ -941,7 +939,6 @@ export const STRINGS_ID = {
             advanced: 'Lanjutan'
         },
         pageGroups: {
-            gettingStarted: 'Mulai',
             configuration: 'Konfigurasi',
             navigationAndContent: 'Panel navigasi',
             notesAndLists: 'Panel daftar',
@@ -966,9 +963,6 @@ export const STRINGS_ID = {
         groups: {
             general: {
                 vaultConfiguration: 'Penyiapan vault',
-                vaultProfiles: 'Profil vault',
-                vaultContent: 'Konten vault',
-                filtering: 'Konten tersembunyi',
                 templates: 'Templat',
                 behavior: 'Perilaku',
                 keyboardNavigation: 'Navigasi keyboard',
@@ -991,7 +985,6 @@ export const STRINGS_ID = {
             },
             list: {
                 display: 'Tampilan',
-                organization: 'Organisasi',
                 groupHeaders: 'Header grup',
                 propertySort: 'Urutan properti',
                 manualSort: 'Urutan manual',
@@ -1014,7 +1007,6 @@ export const STRINGS_ID = {
         },
         syncMode: {
             notSynced: '(tidak disinkronkan)',
-            disabled: '(dinonaktifkan)',
             switchToSynced: 'Aktifkan sinkronisasi',
             switchToLocal: 'Nonaktifkan sinkronisasi'
         },

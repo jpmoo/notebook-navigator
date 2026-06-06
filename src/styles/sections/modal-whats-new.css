@@ -25,11 +25,6 @@
     pointer-events: auto;
 }
 
-/* What's new header */
-.nn-whats-new-header {
-    margin-bottom: 16px;
-}
-
 /* What's new scrollable container */
 .nn-whats-new-scroll {
     flex: 1 1 auto;
@@ -273,11 +268,6 @@
         line-height: 1.6;
     }
 
-    /* Mobile header size for the modal title */
-    .nn-whats-new-header {
-        font-size: 16px;
-    }
-
     /* Version header size on mobile */
     .nn-whats-new-version h3 {
         font-size: 15px;
@@ -286,11 +276,6 @@
 
 /* Obsidian mobile app adjustments */
 .is-mobile {
-    /* Modal title */
-    .nn-whats-new-header {
-        font-size: 16px;
-    }
-
     /* Body text and labels */
     .nn-whats-new-info,
     .nn-whats-new-version li,

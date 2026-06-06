@@ -921,14 +921,12 @@ export const STRINGS_IT = {
             appearanceBehavior: 'Aspetto e comportamento',
             navigationPane: 'Pannello di navigazione',
             calendar: 'Calendario',
-            files: 'File',
             fileOperations: 'Operazioni sui file',
             icons: 'Pacchetti icone',
             folders: 'Cartelle',
             folderNotes: 'Note cartella',
             folderNoteFiles: 'File note cartella',
             foldersAndFolderNotes: 'Cartelle e note cartella',
-            foldersAndTags: 'Cartelle',
             tagsAndProperties: 'Tag e proprietà',
             tags: 'Tag',
             listPane: 'Pannello lista',
@@ -937,7 +935,6 @@ export const STRINGS_IT = {
             advanced: 'Avanzate'
         },
         pageGroups: {
-            gettingStarted: 'Avvio',
             configuration: 'Configurazione',
             navigationAndContent: 'Pannello di navigazione',
             notesAndLists: 'Pannello lista',
@@ -962,9 +959,6 @@ export const STRINGS_IT = {
         groups: {
             general: {
                 vaultConfiguration: 'Configurazione vault',
-                vaultProfiles: 'Profili vault',
-                vaultContent: 'Contenuto del vault',
-                filtering: 'Contenuto nascosto',
                 templates: 'Modelli',
                 behavior: 'Comportamento',
                 keyboardNavigation: 'Navigazione da tastiera',
@@ -987,7 +981,6 @@ export const STRINGS_IT = {
             },
             list: {
                 display: 'Aspetto',
-                organization: 'Organizzazione',
                 groupHeaders: 'Intestazioni di gruppo',
                 propertySort: 'Ordinamento per proprietà',
                 manualSort: 'Ordinamento manuale',
@@ -1010,7 +1003,6 @@ export const STRINGS_IT = {
         },
         syncMode: {
             notSynced: '(non sincronizzato)',
-            disabled: '(disabilitato)',
             switchToSynced: 'Attiva sincronizzazione',
             switchToLocal: 'Disattiva sincronizzazione'
         },

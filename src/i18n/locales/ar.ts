@@ -920,14 +920,12 @@ export const STRINGS_AR = {
             appearanceBehavior: 'المظهر والسلوك',
             navigationPane: 'لوحة التنقل',
             calendar: 'التقويم',
-            files: 'الملفات',
             fileOperations: 'عمليات الملفات',
             icons: 'حزم الأيقونات',
             folders: 'مجلدات',
             folderNotes: 'ملاحظات المجلد',
             folderNoteFiles: 'ملفات ملاحظات المجلد',
             foldersAndFolderNotes: 'المجلدات وملاحظات المجلد',
-            foldersAndTags: 'مجلدات',
             tagsAndProperties: 'الوسوم والخصائص',
             tags: 'وسوم',
             listPane: 'لوحة القائمة',
@@ -936,7 +934,6 @@ export const STRINGS_AR = {
             advanced: 'متقدم'
         },
         pageGroups: {
-            gettingStarted: 'البداية',
             configuration: 'التكوين',
             navigationAndContent: 'لوحة التنقل',
             notesAndLists: 'لوحة القائمة',
@@ -961,9 +958,6 @@ export const STRINGS_AR = {
         groups: {
             general: {
                 vaultConfiguration: 'إعداد الخزنة',
-                vaultProfiles: 'ملفات الخزنة',
-                vaultContent: 'محتوى الخزنة',
-                filtering: 'المحتوى المخفي',
                 templates: 'قوالب',
                 behavior: 'السلوك',
                 keyboardNavigation: 'التنقل بلوحة المفاتيح',
@@ -986,7 +980,6 @@ export const STRINGS_AR = {
             },
             list: {
                 display: 'المظهر',
-                organization: 'التنظيم',
                 groupHeaders: 'رؤوس المجموعات',
                 propertySort: 'الفرز حسب الخاصية',
                 manualSort: 'الفرز اليدوي',
@@ -1009,7 +1002,6 @@ export const STRINGS_AR = {
         },
         syncMode: {
             notSynced: '(غير متزامن)',
-            disabled: '(معطل)',
             switchToSynced: 'تفعيل المزامنة',
             switchToLocal: 'تعطيل المزامنة'
         },

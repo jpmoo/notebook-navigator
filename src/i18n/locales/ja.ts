@@ -924,14 +924,12 @@ export const STRINGS_JA = {
             appearanceBehavior: '外観と動作',
             navigationPane: 'ナビゲーションペイン',
             calendar: 'カレンダー',
-            files: 'ファイル',
             fileOperations: 'ファイル操作',
             icons: 'アイコンパック',
             folders: 'フォルダノート',
             folderNotes: 'フォルダノート',
             folderNoteFiles: 'フォルダノートファイル',
             foldersAndFolderNotes: 'フォルダとフォルダノート',
-            foldersAndTags: 'フォルダ',
             tagsAndProperties: 'タグとプロパティ',
             tags: 'タグ表示',
             listPane: 'リストペイン',
@@ -940,7 +938,6 @@ export const STRINGS_JA = {
             advanced: '詳細設定'
         },
         pageGroups: {
-            gettingStarted: 'スタート',
             configuration: '設定',
             navigationAndContent: 'ナビゲーションペイン',
             notesAndLists: 'リストペイン',
@@ -965,9 +962,6 @@ export const STRINGS_JA = {
         groups: {
             general: {
                 vaultConfiguration: '保管庫のセットアップ',
-                vaultProfiles: '保管庫プロファイル',
-                vaultContent: '保管庫のコンテンツ',
-                filtering: '非表示コンテンツ',
                 templates: 'テンプレート',
                 behavior: '動作',
                 keyboardNavigation: 'キーボード操作',
@@ -990,7 +984,6 @@ export const STRINGS_JA = {
             },
             list: {
                 display: '外観',
-                organization: '整理',
                 groupHeaders: 'グループヘッダー',
                 propertySort: 'プロパティで並べ替え',
                 manualSort: '手動並べ替え',
@@ -1013,7 +1006,6 @@ export const STRINGS_JA = {
         },
         syncMode: {
             notSynced: '（未同期）',
-            disabled: '（無効）',
             switchToSynced: '同期を有効化',
             switchToLocal: '同期を無効化'
         },

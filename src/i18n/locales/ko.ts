@@ -922,14 +922,12 @@ export const STRINGS_KO = {
             appearanceBehavior: '모양 및 동작',
             navigationPane: '탐색 창',
             calendar: '달력',
-            files: '파일',
             fileOperations: '파일 작업',
             icons: '아이콘 팩',
             folders: '폴더',
             folderNotes: '폴더 노트',
             folderNoteFiles: '폴더 노트 파일',
             foldersAndFolderNotes: '폴더 및 폴더 노트',
-            foldersAndTags: '폴더',
             tagsAndProperties: '태그 및 속성',
             tags: '태그',
             listPane: '목록 창',
@@ -938,7 +936,6 @@ export const STRINGS_KO = {
             advanced: '고급'
         },
         pageGroups: {
-            gettingStarted: '시작',
             configuration: '구성',
             navigationAndContent: '탐색 창',
             notesAndLists: '목록 창',
@@ -963,9 +960,6 @@ export const STRINGS_KO = {
         groups: {
             general: {
                 vaultConfiguration: '보관소 설정',
-                vaultProfiles: '보관소 프로필',
-                vaultContent: '보관소 콘텐츠',
-                filtering: '숨겨진 콘텐츠',
                 templates: '템플릿',
                 behavior: '동작',
                 keyboardNavigation: '키보드 탐색',
@@ -988,7 +982,6 @@ export const STRINGS_KO = {
             },
             list: {
                 display: '모양',
-                organization: '정리',
                 groupHeaders: '그룹 머리글',
                 propertySort: '속성 정렬',
                 manualSort: '수동 정렬',
@@ -1011,7 +1004,6 @@ export const STRINGS_KO = {
         },
         syncMode: {
             notSynced: '(동기화되지 않음)',
-            disabled: '(비활성화됨)',
             switchToSynced: '동기화 활성화',
             switchToLocal: '동기화 비활성화'
         },

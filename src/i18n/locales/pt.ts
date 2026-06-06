@@ -925,14 +925,12 @@ export const STRINGS_PT = {
             appearanceBehavior: 'Aparência e comportamento',
             navigationPane: 'Painel de navegação',
             calendar: 'Calendário',
-            files: 'Ficheiros',
             fileOperations: 'Operações de ficheiros',
             icons: 'Pacotes de ícones',
             folders: 'Pastas',
             folderNotes: 'Notas de pasta',
             folderNoteFiles: 'Ficheiros de notas de pasta',
             foldersAndFolderNotes: 'Pastas e notas de pasta',
-            foldersAndTags: 'Pastas',
             tagsAndProperties: 'Etiquetas e propriedades',
             tags: 'Etiquetas',
             listPane: 'Painel de lista',
@@ -941,7 +939,6 @@ export const STRINGS_PT = {
             advanced: 'Avançado'
         },
         pageGroups: {
-            gettingStarted: 'Início',
             configuration: 'Configuração',
             navigationAndContent: 'Painel de navegação',
             notesAndLists: 'Painel de lista',
@@ -966,9 +963,6 @@ export const STRINGS_PT = {
         groups: {
             general: {
                 vaultConfiguration: 'Configuração do cofre',
-                vaultProfiles: 'Perfis do cofre',
-                vaultContent: 'Conteúdo do cofre',
-                filtering: 'Conteúdo oculto',
                 templates: 'Modelos',
                 behavior: 'Comportamento',
                 keyboardNavigation: 'Navegação por teclado',
@@ -991,7 +985,6 @@ export const STRINGS_PT = {
             },
             list: {
                 display: 'Aparência',
-                organization: 'Organização',
                 groupHeaders: 'Cabeçalhos de grupo',
                 propertySort: 'Ordenação por propriedade',
                 manualSort: 'Ordenação manual',
@@ -1014,7 +1007,6 @@ export const STRINGS_PT = {
         },
         syncMode: {
             notSynced: '(não sincronizado)',
-            disabled: '(desativado)',
             switchToSynced: 'Ativar sincronização',
             switchToLocal: 'Desativar sincronização'
         },

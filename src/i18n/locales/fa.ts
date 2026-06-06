@@ -925,14 +925,12 @@ export const STRINGS_FA = {
             appearanceBehavior: 'ظاهر و رفتار',
             navigationPane: 'پنل ناوبری',
             calendar: 'تقویم',
-            files: 'فایل‌ها',
             fileOperations: 'عملیات فایل',
             icons: 'بسته‌های آیکون',
             folders: 'پوشه‌ها',
             folderNotes: 'یادداشت‌های پوشه',
             folderNoteFiles: 'فایل‌های یادداشت پوشه',
             foldersAndFolderNotes: 'پوشه‌ها و یادداشت‌های پوشه',
-            foldersAndTags: 'پوشه‌ها',
             tagsAndProperties: 'برچسب‌ها و ویژگی‌ها',
             tags: 'برچسب‌ها',
             listPane: 'پنل لیست',
@@ -941,7 +939,6 @@ export const STRINGS_FA = {
             advanced: 'پیشرفته'
         },
         pageGroups: {
-            gettingStarted: 'شروع',
             configuration: 'پیکربندی',
             navigationAndContent: 'پنل ناوبری',
             notesAndLists: 'پنل لیست',
@@ -966,9 +963,6 @@ export const STRINGS_FA = {
         groups: {
             general: {
                 vaultConfiguration: 'پیکربندی خزانه',
-                vaultProfiles: 'پروفایل‌های خزانه',
-                vaultContent: 'محتوای خزانه',
-                filtering: 'محتوای پنهان',
                 templates: 'الگوها',
                 behavior: 'رفتار',
                 keyboardNavigation: 'پیمایش با صفحه‌کلید',
@@ -991,7 +985,6 @@ export const STRINGS_FA = {
             },
             list: {
                 display: 'ظاهر',
-                organization: 'سازماندهی',
                 groupHeaders: 'هدرهای گروه',
                 propertySort: 'مرتب‌سازی بر اساس ویژگی',
                 manualSort: 'مرتب‌سازی دستی',
@@ -1014,7 +1007,6 @@ export const STRINGS_FA = {
         },
         syncMode: {
             notSynced: '(همگام نشده)',
-            disabled: '(غیرفعال)',
             switchToSynced: 'فعال‌سازی همگام‌سازی',
             switchToLocal: 'غیرفعال‌سازی همگام‌سازی'
         },

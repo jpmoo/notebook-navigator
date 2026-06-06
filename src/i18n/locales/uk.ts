@@ -922,14 +922,12 @@ export const STRINGS_UK = {
             appearanceBehavior: 'Вигляд і поведінка',
             navigationPane: 'Панель навігації',
             calendar: 'Календар',
-            files: 'Файли',
             fileOperations: 'Операції з файлами',
             icons: 'Пакети іконок',
             folders: 'Папки',
             folderNotes: 'Нотатки папок',
             folderNoteFiles: 'Файли нотаток папок',
             foldersAndFolderNotes: 'Папки та нотатки папок',
-            foldersAndTags: 'Папки',
             tagsAndProperties: 'Теги та властивості',
             tags: 'Теги',
             listPane: 'Панель списку',
@@ -938,7 +936,6 @@ export const STRINGS_UK = {
             advanced: 'Розширені'
         },
         pageGroups: {
-            gettingStarted: 'Початок',
             configuration: 'Конфігурація',
             navigationAndContent: 'Панель навігації',
             notesAndLists: 'Панель списку',
@@ -963,9 +960,6 @@ export const STRINGS_UK = {
         groups: {
             general: {
                 vaultConfiguration: 'Налаштування сховища',
-                vaultProfiles: 'Профілі сховища',
-                vaultContent: 'Вміст сховища',
-                filtering: 'Прихований вміст',
                 templates: 'Шаблони',
                 behavior: 'Поведінка',
                 keyboardNavigation: 'Навігація з клавіатури',
@@ -988,7 +982,6 @@ export const STRINGS_UK = {
             },
             list: {
                 display: 'Вигляд',
-                organization: 'Організація',
                 groupHeaders: 'Заголовки груп',
                 propertySort: 'Сортування за властивістю',
                 manualSort: 'Ручне сортування',
@@ -1011,7 +1004,6 @@ export const STRINGS_UK = {
         },
         syncMode: {
             notSynced: '(не синхронізовано)',
-            disabled: '(вимкнено)',
             switchToSynced: 'Увімкнути синхронізацію',
             switchToLocal: 'Вимкнути синхронізацію'
         },

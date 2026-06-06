@@ -923,14 +923,12 @@ export const STRINGS_TR = {
             appearanceBehavior: 'Görünüm ve davranış',
             navigationPane: 'Gezinme paneli',
             calendar: 'Takvim',
-            files: 'Dosyalar',
             fileOperations: 'Dosya işlemleri',
             icons: 'Simge paketleri',
             folders: 'Klasörler',
             folderNotes: 'Klasör notları',
             folderNoteFiles: 'Klasör notu dosyaları',
             foldersAndFolderNotes: 'Klasörler ve klasör notları',
-            foldersAndTags: 'Klasörler',
             tagsAndProperties: 'Etiketler ve özellikler',
             tags: 'Etiketler',
             listPane: 'Liste paneli',
@@ -939,7 +937,6 @@ export const STRINGS_TR = {
             advanced: 'Gelişmiş'
         },
         pageGroups: {
-            gettingStarted: 'Başlangıç',
             configuration: 'Yapılandırma',
             navigationAndContent: 'Gezinme paneli',
             notesAndLists: 'Liste paneli',
@@ -964,9 +961,6 @@ export const STRINGS_TR = {
         groups: {
             general: {
                 vaultConfiguration: 'Kasa kurulumu',
-                vaultProfiles: 'Kasa profilleri',
-                vaultContent: 'Kasa içeriği',
-                filtering: 'Gizli içerik',
                 templates: 'Şablonlar',
                 behavior: 'Davranış',
                 keyboardNavigation: 'Klavye ile gezinme',
@@ -989,7 +983,6 @@ export const STRINGS_TR = {
             },
             list: {
                 display: 'Görünüm',
-                organization: 'Düzenleme',
                 groupHeaders: 'Grup başlıkları',
                 propertySort: 'Özelliğe göre sıralama',
                 manualSort: 'Manuel sıralama',
@@ -1012,7 +1005,6 @@ export const STRINGS_TR = {
         },
         syncMode: {
             notSynced: '(senkronize edilmedi)',
-            disabled: '(devre dışı)',
             switchToSynced: 'Senkronizasyonu etkinleştir',
             switchToLocal: 'Senkronizasyonu devre dışı bırak'
         },

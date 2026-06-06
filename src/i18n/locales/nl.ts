@@ -927,14 +927,12 @@ export const STRINGS_NL = {
             appearanceBehavior: 'Uiterlijk & gedrag',
             navigationPane: 'Navigatiepaneel',
             calendar: 'Kalender',
-            files: 'Bestanden',
             fileOperations: 'Bestandsbewerkingen',
             icons: 'Pictogrampakketten',
             folders: 'Mappen',
             folderNotes: 'Mapnotities',
             folderNoteFiles: 'Mapnotitiebestanden',
             foldersAndFolderNotes: 'Mappen & mapnotities',
-            foldersAndTags: 'Mappen',
             tagsAndProperties: 'Tags & eigenschappen',
             tags: 'Tags',
             listPane: 'Lijstpaneel',
@@ -943,7 +941,6 @@ export const STRINGS_NL = {
             advanced: 'Geavanceerd'
         },
         pageGroups: {
-            gettingStarted: 'Start',
             configuration: 'Configuratie',
             navigationAndContent: 'Navigatiepaneel',
             notesAndLists: 'Lijstpaneel',
@@ -968,9 +965,6 @@ export const STRINGS_NL = {
         groups: {
             general: {
                 vaultConfiguration: 'Kluisinstelling',
-                vaultProfiles: 'Kluisprofielen',
-                vaultContent: 'Kluisinhoud',
-                filtering: 'Verborgen inhoud',
                 templates: 'Sjablonen',
                 behavior: 'Gedrag',
                 keyboardNavigation: 'Toetsenbordnavigatie',
@@ -993,7 +987,6 @@ export const STRINGS_NL = {
             },
             list: {
                 display: 'Uiterlijk',
-                organization: 'Organisatie',
                 groupHeaders: 'Groepskoppen',
                 propertySort: 'Sorteren op eigenschap',
                 manualSort: 'Handmatig sorteren',
@@ -1016,7 +1009,6 @@ export const STRINGS_NL = {
         },
         syncMode: {
             notSynced: '(niet gesynchroniseerd)',
-            disabled: '(uitgeschakeld)',
             switchToSynced: 'Synchronisatie inschakelen',
             switchToLocal: 'Synchronisatie uitschakelen'
         },

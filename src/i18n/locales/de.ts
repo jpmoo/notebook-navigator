@@ -927,14 +927,12 @@ export const STRINGS_DE = {
             appearanceBehavior: 'Darstellung & Verhalten',
             navigationPane: 'Navigationsbereich',
             calendar: 'Kalender',
-            files: 'Dateien',
             fileOperations: 'Dateioperationen',
             icons: 'Icon-Pakete',
             folders: 'Ordner',
             folderNotes: 'Ordnernotizen',
             folderNoteFiles: 'Ordnernotiz-Dateien',
             foldersAndFolderNotes: 'Ordner & Ordnernotizen',
-            foldersAndTags: 'Ordner',
             tagsAndProperties: 'Tags & Eigenschaften',
             tags: 'Tags',
             listPane: 'Listenbereich',
@@ -943,7 +941,6 @@ export const STRINGS_DE = {
             advanced: 'Erweitert'
         },
         pageGroups: {
-            gettingStarted: 'Start',
             configuration: 'Konfiguration',
             navigationAndContent: 'Navigationsbereich',
             notesAndLists: 'Listenbereich',
@@ -968,9 +965,6 @@ export const STRINGS_DE = {
         groups: {
             general: {
                 vaultConfiguration: 'Tresor-Einrichtung',
-                vaultProfiles: 'Tresorprofile',
-                vaultContent: 'Tresor-Inhalte',
-                filtering: 'Versteckte Inhalte',
                 templates: 'Vorlagen',
                 behavior: 'Verhalten',
                 keyboardNavigation: 'Tastaturnavigation',
@@ -993,7 +987,6 @@ export const STRINGS_DE = {
             },
             list: {
                 display: 'Darstellung',
-                organization: 'Organisation',
                 groupHeaders: 'Gruppenüberschriften',
                 propertySort: 'Eigenschaftssortierung',
                 manualSort: 'Manuelle Sortierung',
@@ -1016,7 +1009,6 @@ export const STRINGS_DE = {
         },
         syncMode: {
             notSynced: '(nicht synchronisiert)',
-            disabled: '(deaktiviert)',
             switchToSynced: 'Synchronisierung aktivieren',
             switchToLocal: 'Synchronisierung deaktivieren'
         },

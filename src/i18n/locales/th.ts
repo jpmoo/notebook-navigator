@@ -918,14 +918,12 @@ export const STRINGS_TH = {
             appearanceBehavior: 'ลักษณะและพฤติกรรม',
             navigationPane: 'แผงนำทาง',
             calendar: 'ปฏิทิน',
-            files: 'ไฟล์',
             fileOperations: 'การดำเนินการกับไฟล์',
             icons: 'ชุดไอคอน',
             folders: 'โฟลเดอร์',
             folderNotes: 'โน้ตโฟลเดอร์',
             folderNoteFiles: 'ไฟล์โน้ตโฟลเดอร์',
             foldersAndFolderNotes: 'โฟลเดอร์และโน้ตโฟลเดอร์',
-            foldersAndTags: 'โฟลเดอร์',
             tagsAndProperties: 'แท็กและคุณสมบัติ',
             tags: 'แท็ก',
             listPane: 'แผงรายการ',
@@ -934,7 +932,6 @@ export const STRINGS_TH = {
             advanced: 'ขั้นสูง'
         },
         pageGroups: {
-            gettingStarted: 'เริ่มต้น',
             configuration: 'การกำหนดค่า',
             navigationAndContent: 'แผงนำทาง',
             notesAndLists: 'แผงรายการ',
@@ -959,9 +956,6 @@ export const STRINGS_TH = {
         groups: {
             general: {
                 vaultConfiguration: 'การตั้งค่าห้องนิรภัย',
-                vaultProfiles: 'โปรไฟล์ห้องนิรภัย',
-                vaultContent: 'เนื้อหาห้องนิรภัย',
-                filtering: 'เนื้อหาที่ซ่อน',
                 templates: 'เทมเพลต',
                 behavior: 'พฤติกรรม',
                 keyboardNavigation: 'การนำทางด้วยแป้นพิมพ์',
@@ -984,7 +978,6 @@ export const STRINGS_TH = {
             },
             list: {
                 display: 'ลักษณะ',
-                organization: 'การจัดระเบียบ',
                 groupHeaders: 'ส่วนหัวกลุ่ม',
                 propertySort: 'การจัดเรียงตามคุณสมบัติ',
                 manualSort: 'การจัดเรียงด้วยตนเอง',
@@ -1007,7 +1000,6 @@ export const STRINGS_TH = {
         },
         syncMode: {
             notSynced: '(ไม่ซิงค์)',
-            disabled: '(ปิดใช้งาน)',
             switchToSynced: 'เปิดใช้งานการซิงค์',
             switchToLocal: 'ปิดใช้งานการซิงค์'
         },

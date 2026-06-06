@@ -143,8 +143,7 @@
     flex: 0 0 auto;
 }
 
-.nn-navigation-calendar-month .nn-navigation-calendar-quarter-button,
-.nn-navigation-calendar-month .nn-navigation-calendar-quarter-label {
+.nn-navigation-calendar-month .nn-navigation-calendar-quarter-button {
     flex: 0 0 auto;
 }
 
@@ -193,15 +192,6 @@ button.nn-navigation-calendar-period-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-}
-
-.nn-navigation-calendar-period-label {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 1px;
-    border-radius: 6px;
-    background-color: var(--nn-calendar-header-chip-bg);
-    line-height: 1;
 }
 
 .nn-navigation-calendar-period-button.has-period-note:not(.nn-navigation-calendar-quarter-button)::after {

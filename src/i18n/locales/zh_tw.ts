@@ -915,14 +915,12 @@ export const STRINGS_ZH_TW = {
             appearanceBehavior: '外觀與行為',
             navigationPane: '導覽窗格',
             calendar: '導覽日曆',
-            files: '檔案',
             fileOperations: '檔案操作',
             icons: '圖示包',
             folders: '資料夾',
             folderNotes: '資料夾筆記',
             folderNoteFiles: '資料夾筆記檔案',
             foldersAndFolderNotes: '資料夾與資料夾筆記',
-            foldersAndTags: '資料夾',
             tagsAndProperties: '標籤與屬性',
             tags: '標籤',
             listPane: '列表窗格',
@@ -931,7 +929,6 @@ export const STRINGS_ZH_TW = {
             advanced: '進階'
         },
         pageGroups: {
-            gettingStarted: '開始',
             configuration: '設定',
             navigationAndContent: '導覽窗格',
             notesAndLists: '列表窗格',
@@ -956,9 +953,6 @@ export const STRINGS_ZH_TW = {
         groups: {
             general: {
                 vaultConfiguration: '保險庫設定',
-                vaultProfiles: '保險庫設定檔',
-                vaultContent: '保險庫內容',
-                filtering: '隱藏內容',
                 templates: '範本',
                 behavior: '行為',
                 keyboardNavigation: '鍵盤導覽',
@@ -981,7 +975,6 @@ export const STRINGS_ZH_TW = {
             },
             list: {
                 display: '外觀',
-                organization: '組織',
                 groupHeaders: '群組標題',
                 propertySort: '屬性排序',
                 manualSort: '手動排序',
@@ -1004,7 +997,6 @@ export const STRINGS_ZH_TW = {
         },
         syncMode: {
             notSynced: '（未同步）',
-            disabled: '（已停用）',
             switchToSynced: '啟用同步',
             switchToLocal: '停用同步'
         },

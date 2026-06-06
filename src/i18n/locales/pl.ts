@@ -928,14 +928,12 @@ export const STRINGS_PL = {
             appearanceBehavior: 'Wygląd i zachowanie',
             navigationPane: 'Panel nawigacji',
             calendar: 'Kalendarz',
-            files: 'Pliki',
             fileOperations: 'Operacje na plikach',
             icons: 'Pakiety ikon',
             folders: 'Foldery',
             folderNotes: 'Notatki folderu',
             folderNoteFiles: 'Pliki notatek folderów',
             foldersAndFolderNotes: 'Foldery i notatki folderu',
-            foldersAndTags: 'Foldery',
             tagsAndProperties: 'Tagi i atrybuty',
             tags: 'Tagi',
             listPane: 'Panel listy',
@@ -944,7 +942,6 @@ export const STRINGS_PL = {
             advanced: 'Zaawansowane'
         },
         pageGroups: {
-            gettingStarted: 'Start',
             configuration: 'Konfiguracja',
             navigationAndContent: 'Panel nawigacji',
             notesAndLists: 'Panel listy',
@@ -969,9 +966,6 @@ export const STRINGS_PL = {
         groups: {
             general: {
                 vaultConfiguration: 'Konfiguracja sejfu',
-                vaultProfiles: 'Profile sejfu',
-                vaultContent: 'Zawartość sejfu',
-                filtering: 'Ukryta zawartość',
                 templates: 'Szablony',
                 behavior: 'Zachowanie',
                 keyboardNavigation: 'Nawigacja klawiaturą',
@@ -994,7 +988,6 @@ export const STRINGS_PL = {
             },
             list: {
                 display: 'Wygląd',
-                organization: 'Organizacja',
                 groupHeaders: 'Nagłówki grup',
                 propertySort: 'Sortowanie według atrybutów',
                 manualSort: 'Sortowanie ręczne',
@@ -1017,7 +1010,6 @@ export const STRINGS_PL = {
         },
         syncMode: {
             notSynced: '(niezsynchronizowane)',
-            disabled: '(wyłączone)',
             switchToSynced: 'Włącz synchronizację',
             switchToLocal: 'Wyłącz synchronizację'
         },
