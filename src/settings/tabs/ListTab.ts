@@ -97,6 +97,10 @@ export function createListPaneSettingDefinitions(context: SettingsTabContext): S
                     date: strings.settings.items.groupNotes.options.date,
                     folder: strings.settings.items.groupNotes.options.folder
                 }
+            }),
+            createToggleDefinition('showCurrentFolderFilesAtBottom', {
+                name: strings.settings.items.showCurrentFolderFilesAtBottom.name,
+                desc: strings.settings.items.showCurrentFolderFilesAtBottom.desc
             })
         ]),
         createGroupDefinition(strings.settings.groups.list.groupHeaders, [

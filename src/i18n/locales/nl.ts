@@ -1139,6 +1139,10 @@ export const STRINGS_NL = {
                 name: 'Submappaden tonen',
                 desc: 'Toont bij groeperen op map in het lijstpaneel submappaden in plaats van alleen mapnamen.'
             },
+            showCurrentFolderFilesAtBottom: {
+                name: 'Mapgroepering: bestanden van huidige map onderaan',
+                desc: 'Wanneer de standaardgroepering Map is, worden bestanden direct in de geselecteerde map onder submapgroepen geplaatst.'
+            },
             defaultListMode: {
                 name: 'Standaard lijstmodus',
                 desc: 'Selecteer de standaard lijstindeling. Standaard toont titel, datum, beschrijving en voorbeeldtekst. Compact toont alleen de titel. Uiterlijk kan per map worden overschreven.',

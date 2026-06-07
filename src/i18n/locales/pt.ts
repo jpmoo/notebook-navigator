@@ -1137,6 +1137,10 @@ export const STRINGS_PT = {
                 name: 'Mostrar caminhos das subpastas',
                 desc: 'Ao agrupar por pasta no painel de lista, mostrar caminhos das subpastas em vez de apenas nomes de pastas.'
             },
+            showCurrentFolderFilesAtBottom: {
+                name: 'Agrupamento por pasta: ficheiros da pasta atual no fundo',
+                desc: 'Quando o agrupamento predefinido é Pasta, mover os ficheiros diretamente na pasta selecionada para baixo dos grupos de subpastas.'
+            },
             defaultListMode: {
                 name: 'Modo de lista predefinido',
                 desc: 'Selecione o layout de lista predefinido. Padrão mostra título, data, descrição e texto de pré-visualização. Compacto mostra apenas o título. Substitua a aparência por pasta.',

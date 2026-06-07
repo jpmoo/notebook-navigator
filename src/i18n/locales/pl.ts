@@ -1140,6 +1140,10 @@ export const STRINGS_PL = {
                 name: 'Pokaż ścieżki podfolderów',
                 desc: 'Podczas grupowania według folderu w panelu listy pokazuj ścieżki podfolderów zamiast samych nazw folderów.'
             },
+            showCurrentFolderFilesAtBottom: {
+                name: 'Grupowanie folderów: pliki bieżącego folderu na dole',
+                desc: 'Gdy domyślne grupowanie to Folder, przenieś pliki znajdujące się bezpośrednio w wybranym folderze pod grupy podfolderów.'
+            },
             defaultListMode: {
                 name: 'Domyślny tryb listy',
                 desc: 'Wybierz domyślny układ listy. Opcja "Standardowy" wyświetla tytuł, datę, opis i tekst podglądu. Opcja "Kompaktowy" wyświetla tylko tytuł. Można to zmienić dla konkretnych folderów.',

@@ -54,6 +54,7 @@ function createListConfig(pinnedNotes: ListPaneConfig['pinnedNotes']): ListPaneC
         groupBy: DEFAULT_SETTINGS.noteGrouping,
         pinnedGroupExpanded: true,
         pinnedNotes,
+        showCurrentFolderFilesAtBottom: DEFAULT_SETTINGS.showCurrentFolderFilesAtBottom,
         showFolderGroupPaths: DEFAULT_SETTINGS.showFolderGroupPaths,
         showFileTags: false,
         showTags: false
@@ -223,7 +224,7 @@ describe('buildListItems pinned display scope', () => {
         expect(items.some(item => item.type === ListPaneItemType.FILE)).toBe(false);
     });
 
-    it('keeps the selected folder header visible and collapsible without pinned files', () => {
+    it('shows selected folder files without a folder header when there are no pinned files', () => {
         const app = createApp();
         const directFile = assignParent(createTestTFile('Projects/Direct.md'), 'Projects');
         const childFile = assignParent(createTestTFile('Projects/Child/File.md'), 'Projects/Child');
@@ -261,11 +262,67 @@ describe('buildListItems pinned display scope', () => {
 
         expect(getFolderHeaderItems(items)).toEqual([
             {
-                data: 'Projects',
-                folderPath: 'Projects',
-                collapseKey: currentFolderCollapseKey,
-                groupFilePaths: [directFile.path]
+                data: 'Child',
+                folderPath: 'Projects/Child',
+                collapseKey: buildListGroupCollapseKey({
+                    selectionType: ItemType.FOLDER,
+                    selectedFolderPath: 'Projects',
+                    selectedTag: null,
+                    selectedProperty: null,
+                    groupingMode: 'folder',
+                    groupId: 'folder:Projects/Child'
+                }),
+                groupFilePaths: [childFile.path]
+            }
+        ]);
+        expect(items.find(item => item.type === ListPaneItemType.HEADER && item.data === 'Projects')).toBeUndefined();
+        expect(items.find(item => item.collapseKey === currentFolderCollapseKey)).toBeUndefined();
+        expect(getFileItems(items)).toEqual([
+            { path: directFile.path, isPinned: false },
+            { path: childFile.path, isPinned: false }
+        ]);
+    });
+
+    it('uses a blank selected folder boundary at top when pinned files are present', () => {
+        const app = createApp();
+        const pinnedFile = assignParent(createTestTFile('Projects/Pinned.md'), 'Projects');
+        const directFile = assignParent(createTestTFile('Projects/Direct.md'), 'Projects');
+        const childFile = assignParent(createTestTFile('Projects/Child/File.md'), 'Projects/Child');
+        const db = createDb({
+            [pinnedFile.path]: { tags: null, properties: null },
+            [directFile.path]: { tags: null, properties: null },
+            [childFile.path]: { tags: null, properties: null }
+        });
+
+        const items = buildListItems({
+            app,
+            dayKey: '2026-03-07',
+            fileVisibility: FILE_VISIBILITY.DOCUMENTS,
+            files: [pinnedFile, directFile, childFile],
+            getDB: () => db,
+            getFileTimestamps: () => ({ created: 0, modified: 0 }),
+            hiddenFileState: new Map(),
+            hiddenTags: [],
+            listConfig: {
+                ...createListConfig({
+                    [pinnedFile.path]: { folder: true, tag: false, property: false }
+                }),
+                groupBy: 'folder'
             },
+            searchMetaMap: new Map(),
+            selectedFolder: createFolder('Projects'),
+            selectedTag: null,
+            selectionType: ItemType.FOLDER,
+            showHiddenItems: false,
+            sortOption: 'alphabetical-asc'
+        });
+
+        expect(getHeaderItems(items)).toEqual([
+            { data: 'Pinned', kind: 'pinned' },
+            { data: '', kind: 'section' },
+            { data: 'Child', kind: 'folder' }
+        ]);
+        expect(getFolderHeaderItems(items)).toEqual([
             {
                 data: 'Child',
                 folderPath: 'Projects/Child',
@@ -280,8 +337,203 @@ describe('buildListItems pinned display scope', () => {
                 groupFilePaths: [childFile.path]
             }
         ]);
-        expect(items.find(item => item.type === ListPaneItemType.HEADER && item.data === 'Projects')?.isCollapsed).toBe(true);
-        expect(getFileItems(items)).toEqual([{ path: childFile.path, isPinned: false }]);
+        const currentFolderBoundary = items.find(item => item.type === ListPaneItemType.HEADER && item.data === '');
+        expect(currentFolderBoundary?.collapseKey).toBeUndefined();
+        expect(currentFolderBoundary?.groupFilePaths).toEqual([directFile.path]);
+        expect(getFileItems(items)).toEqual([
+            { path: pinnedFile.path, isPinned: true },
+            { path: directFile.path, isPinned: false },
+            { path: childFile.path, isPinned: false }
+        ]);
+    });
+
+    it('moves selected folder files below child folder groups when configured', () => {
+        const app = createApp();
+        const directFile = assignParent(createTestTFile('Projects/Direct.md'), 'Projects');
+        const childFile = assignParent(createTestTFile('Projects/Child/File.md'), 'Projects/Child');
+        const db = createDb({
+            [directFile.path]: { tags: null, properties: null },
+            [childFile.path]: { tags: null, properties: null }
+        });
+
+        const items = buildListItems({
+            app,
+            dayKey: '2026-03-07',
+            fileVisibility: FILE_VISIBILITY.DOCUMENTS,
+            files: [directFile, childFile],
+            getDB: () => db,
+            getFileTimestamps: () => ({ created: 0, modified: 0 }),
+            hiddenFileState: new Map(),
+            hiddenTags: [],
+            listConfig: { ...createListConfig({}), groupBy: 'folder', showCurrentFolderFilesAtBottom: true },
+            searchMetaMap: new Map(),
+            selectedFolder: createFolder('Projects'),
+            selectedTag: null,
+            selectionType: ItemType.FOLDER,
+            showHiddenItems: false,
+            sortOption: 'alphabetical-asc'
+        });
+
+        expect(getHeaderItems(items)).toEqual([
+            { data: 'Child', kind: 'folder' },
+            { data: '', kind: 'section' }
+        ]);
+        expect(getFolderHeaderItems(items)).toEqual([
+            {
+                data: 'Child',
+                folderPath: 'Projects/Child',
+                collapseKey: buildListGroupCollapseKey({
+                    selectionType: ItemType.FOLDER,
+                    selectedFolderPath: 'Projects',
+                    selectedTag: null,
+                    selectedProperty: null,
+                    groupingMode: 'folder',
+                    groupId: 'folder:Projects/Child'
+                }),
+                groupFilePaths: [childFile.path]
+            }
+        ]);
+        const currentFolderBoundary = items.find(item => item.type === ListPaneItemType.HEADER && item.data === '');
+        expect(currentFolderBoundary?.collapseKey).toBeUndefined();
+        expect(currentFolderBoundary?.groupFilePaths).toEqual([directFile.path]);
+        expect(getFileItems(items)).toEqual([
+            { path: childFile.path, isPinned: false },
+            { path: directFile.path, isPinned: false }
+        ]);
+    });
+
+    it('keeps bottom selected folder files visible when the child folder group is collapsed', () => {
+        const app = createApp();
+        const directFile = assignParent(createTestTFile('Projects/Direct.md'), 'Projects');
+        const childFile = assignParent(createTestTFile('Projects/Child/File.md'), 'Projects/Child');
+        const childCollapseKey = buildListGroupCollapseKey({
+            selectionType: ItemType.FOLDER,
+            selectedFolderPath: 'Projects',
+            selectedTag: null,
+            selectedProperty: null,
+            groupingMode: 'folder',
+            groupId: 'folder:Projects/Child'
+        });
+        const db = createDb({
+            [directFile.path]: { tags: null, properties: null },
+            [childFile.path]: { tags: null, properties: null }
+        });
+
+        const items = buildListItems({
+            app,
+            dayKey: '2026-03-07',
+            fileVisibility: FILE_VISIBILITY.DOCUMENTS,
+            files: [directFile, childFile],
+            getDB: () => db,
+            getFileTimestamps: () => ({ created: 0, modified: 0 }),
+            hiddenFileState: new Map(),
+            hiddenTags: [],
+            listConfig: { ...createListConfig({}), groupBy: 'folder', showCurrentFolderFilesAtBottom: true },
+            collapsedListGroups: new Set([childCollapseKey]),
+            searchMetaMap: new Map(),
+            selectedFolder: createFolder('Projects'),
+            selectedTag: null,
+            selectionType: ItemType.FOLDER,
+            showHiddenItems: false,
+            sortOption: 'alphabetical-asc'
+        });
+
+        expect(getHeaderItems(items)).toEqual([
+            { data: 'Child', kind: 'folder' },
+            { data: '', kind: 'section' }
+        ]);
+        expect(getFileItems(items)).toEqual([{ path: directFile.path, isPinned: false }]);
+    });
+
+    it('uses a blank selected folder boundary at bottom even when pinned files are present', () => {
+        const app = createApp();
+        const pinnedFile = assignParent(createTestTFile('Projects/Pinned.md'), 'Projects');
+        const directFile = assignParent(createTestTFile('Projects/Direct.md'), 'Projects');
+        const childFile = assignParent(createTestTFile('Projects/Child/File.md'), 'Projects/Child');
+        const db = createDb({
+            [pinnedFile.path]: { tags: null, properties: null },
+            [directFile.path]: { tags: null, properties: null },
+            [childFile.path]: { tags: null, properties: null }
+        });
+
+        const items = buildListItems({
+            app,
+            dayKey: '2026-03-07',
+            fileVisibility: FILE_VISIBILITY.DOCUMENTS,
+            files: [pinnedFile, directFile, childFile],
+            getDB: () => db,
+            getFileTimestamps: () => ({ created: 0, modified: 0 }),
+            hiddenFileState: new Map(),
+            hiddenTags: [],
+            listConfig: {
+                ...createListConfig({
+                    [pinnedFile.path]: { folder: true, tag: false, property: false }
+                }),
+                groupBy: 'folder',
+                showCurrentFolderFilesAtBottom: true
+            },
+            searchMetaMap: new Map(),
+            selectedFolder: createFolder('Projects'),
+            selectedTag: null,
+            selectionType: ItemType.FOLDER,
+            showHiddenItems: false,
+            sortOption: 'alphabetical-asc'
+        });
+
+        expect(getHeaderItems(items)).toEqual([
+            { data: 'Pinned', kind: 'pinned' },
+            { data: 'Child', kind: 'folder' },
+            { data: '', kind: 'section' }
+        ]);
+        expect(getFolderHeaderItems(items)).toEqual([
+            {
+                data: 'Child',
+                folderPath: 'Projects/Child',
+                collapseKey: buildListGroupCollapseKey({
+                    selectionType: ItemType.FOLDER,
+                    selectedFolderPath: 'Projects',
+                    selectedTag: null,
+                    selectedProperty: null,
+                    groupingMode: 'folder',
+                    groupId: 'folder:Projects/Child'
+                }),
+                groupFilePaths: [childFile.path]
+            }
+        ]);
+        expect(getFileItems(items)).toEqual([
+            { path: pinnedFile.path, isPinned: true },
+            { path: childFile.path, isPinned: false },
+            { path: directFile.path, isPinned: false }
+        ]);
+    });
+
+    it('does not add a selected folder header for direct files only', () => {
+        const app = createApp();
+        const directFile = assignParent(createTestTFile('Projects/Direct.md'), 'Projects');
+        const db = createDb({
+            [directFile.path]: { tags: null, properties: null }
+        });
+
+        const items = buildListItems({
+            app,
+            dayKey: '2026-03-07',
+            fileVisibility: FILE_VISIBILITY.DOCUMENTS,
+            files: [directFile],
+            getDB: () => db,
+            getFileTimestamps: () => ({ created: 0, modified: 0 }),
+            hiddenFileState: new Map(),
+            hiddenTags: [],
+            listConfig: { ...createListConfig({}), groupBy: 'folder', showCurrentFolderFilesAtBottom: true },
+            searchMetaMap: new Map(),
+            selectedFolder: createFolder('Projects'),
+            selectedTag: null,
+            selectionType: ItemType.FOLDER,
+            showHiddenItems: false,
+            sortOption: 'alphabetical-asc'
+        });
+
+        expect(getFolderHeaderItems(items)).toEqual([]);
+        expect(getFileItems(items)).toEqual([{ path: directFile.path, isPinned: false }]);
     });
 
     it('groups descendant files by their actual parent folder under the selected folder', () => {
@@ -316,24 +568,10 @@ describe('buildListItems pinned display scope', () => {
         });
 
         expect(getHeaderItems(items)).toEqual([
-            { data: 'Folder 1', kind: 'folder' },
             { data: 'Child Folder', kind: 'folder' },
             { data: 'Child Folder/Grandchild Folder', kind: 'folder' }
         ]);
         expect(getFolderHeaderItems(items)).toEqual([
-            {
-                data: 'Folder 1',
-                folderPath: 'Folder 1',
-                collapseKey: buildListGroupCollapseKey({
-                    selectionType: ItemType.FOLDER,
-                    selectedFolderPath: 'Folder 1',
-                    selectedTag: null,
-                    selectedProperty: null,
-                    groupingMode: 'folder',
-                    groupId: 'folder:Folder 1'
-                }),
-                groupFilePaths: [directFile.path]
-            },
             {
                 data: 'Child Folder',
                 folderPath: 'Folder 1/Child Folder',
@@ -367,10 +605,6 @@ describe('buildListItems pinned display scope', () => {
             { path: grandchildFile.path, isPinned: false }
         ]);
         expect(getFolderHeaderSegmentItems(items)).toEqual([
-            {
-                data: 'Folder 1',
-                segments: []
-            },
             {
                 data: 'Child Folder',
                 segments: [{ label: 'Child Folder', path: 'Folder 1/Child Folder' }]

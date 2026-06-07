@@ -1138,6 +1138,10 @@ export const STRINGS_VI = {
                 name: 'Hiện đường dẫn thư mục con',
                 desc: 'Khi nhóm theo thư mục trong ngăn danh sách, hiển thị đường dẫn thư mục con thay vì chỉ tên thư mục.'
             },
+            showCurrentFolderFilesAtBottom: {
+                name: 'Nhóm theo thư mục: tệp trong thư mục hiện tại ở dưới cùng',
+                desc: 'Khi kiểu nhóm mặc định là Thư mục, chuyển các tệp nằm trực tiếp trong thư mục đã chọn xuống dưới các nhóm thư mục con.'
+            },
             defaultListMode: {
                 name: 'Chế độ danh sách mặc định',
                 desc: 'Chọn bố cục danh sách mặc định. Chuẩn hiện tiêu đề, ngày, mô tả và văn bản xem trước. Gọn chỉ hiện tiêu đề. Ghi đè giao diện theo thư mục.',

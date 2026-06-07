@@ -1131,6 +1131,10 @@ export const STRINGS_EN = {
                 name: 'Show subfolder paths',
                 desc: 'When grouping by folder in the list pane, show subfolder paths instead of only folder names.'
             },
+            showCurrentFolderFilesAtBottom: {
+                name: 'Folder grouping: current folder files at bottom',
+                desc: 'When Default grouping is Folder, move files directly in the selected folder below subfolder groups.'
+            },
             defaultListMode: {
                 name: 'Default list mode',
                 desc: 'Select the default list layout. Standard shows title, date, description, and preview text. Compact shows title only. Override appearance per folder.',

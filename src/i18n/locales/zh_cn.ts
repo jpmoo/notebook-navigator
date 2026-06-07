@@ -1124,6 +1124,10 @@ export const STRINGS_ZH_CN = {
                 name: '显示子文件夹路径',
                 desc: '在列表窗格中按文件夹分组时，显示子文件夹路径，而不是仅显示文件夹名称。'
             },
+            showCurrentFolderFilesAtBottom: {
+                name: '文件夹分组：当前文件夹文件置底',
+                desc: '当默认分组为文件夹时，将所选文件夹中的直属文件移到子文件夹分组下方。'
+            },
             defaultListMode: {
                 name: '默认列表模式',
                 desc: '选择默认列表布局。标准显示标题、日期、描述和预览文本。紧凑只显示标题。外观可按文件夹覆盖。',

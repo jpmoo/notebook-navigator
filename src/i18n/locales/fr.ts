@@ -1140,6 +1140,10 @@ export const STRINGS_FR = {
                 name: 'Afficher les chemins des sous-dossiers',
                 desc: 'Lors du regroupement par dossier dans le panneau de liste, afficher les chemins des sous-dossiers au lieu des seuls noms de dossier.'
             },
+            showCurrentFolderFilesAtBottom: {
+                name: 'Regroupement par dossier : fichiers du dossier actuel en bas',
+                desc: 'Lorsque le regroupement par défaut est Dossier, déplacer les fichiers directement dans le dossier sélectionné sous les groupes de sous-dossiers.'
+            },
             defaultListMode: {
                 name: 'Mode de liste par défaut',
                 desc: "Sélectionner la mise en page de liste par défaut. Standard affiche le titre, la date, la description et le texte d'aperçu. Compact affiche uniquement le titre. L'apparence peut être remplacée par dossier.",

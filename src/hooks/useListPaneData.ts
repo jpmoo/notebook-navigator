@@ -187,6 +187,7 @@ export function useListPaneData({
             showTags: settings.showTags,
             showFileTags: settings.showFileTags,
             showFolderGroupPaths: settings.showFolderGroupPaths,
+            showCurrentFolderFilesAtBottom: settings.showCurrentFolderFilesAtBottom,
             groupBy,
             folderGroupSortOrder: selectedFolderGroupSortOrder
         }),
@@ -196,6 +197,7 @@ export function useListPaneData({
             groupBy,
             pinnedGroupExpanded,
             settings.pinnedNotes,
+            settings.showCurrentFolderFilesAtBottom,
             settings.showFolderGroupPaths,
             settings.showFileTags,
             settings.showTags

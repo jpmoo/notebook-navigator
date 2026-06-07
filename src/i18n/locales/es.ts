@@ -1138,6 +1138,10 @@ export const STRINGS_ES = {
                 name: 'Mostrar rutas de subcarpetas',
                 desc: 'Al agrupar por carpeta en el panel de lista, muestra rutas de subcarpetas en lugar de solo nombres de carpeta.'
             },
+            showCurrentFolderFilesAtBottom: {
+                name: 'Agrupación por carpeta: archivos de la carpeta actual al final',
+                desc: 'Cuando la agrupación predeterminada sea Carpeta, mueve los archivos directamente en la carpeta seleccionada debajo de los grupos de subcarpetas.'
+            },
             defaultListMode: {
                 name: 'Modo de lista predeterminado',
                 desc: 'Selecciona el diseño de lista predeterminado. Estándar muestra título, fecha, descripción y texto de vista previa. Compacto muestra solo el título. La apariencia se puede sobrescribir por carpeta.',
