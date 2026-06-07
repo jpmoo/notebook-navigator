@@ -50,6 +50,7 @@ export interface ListPaneConfig {
     groupBy: ListNoteGroupingOption;
     pinnedGroupExpanded: boolean;
     pinnedNotes: NotebookNavigatorSettings['pinnedNotes'];
+    showCurrentFolderFilesAtBottom: boolean;
     showFolderGroupPaths: boolean;
     showFileTags: boolean;
     showTags: boolean;
@@ -543,10 +544,6 @@ export function buildListItems({
         const orderedGroups = Array.from(folderGroups.entries())
             .map(([key, group]) => ({ key, ...group }))
             .sort((left, right) => {
-                if (left.isCurrentFolder !== right.isCurrentFolder) {
-                    return left.isCurrentFolder ? -1 : 1;
-                }
-
                 const labelCompare = compareByAlphaSortOrder(left.sortLabel, right.sortLabel, folderGroupSortOrder);
                 if (labelCompare !== 0) {
                     return labelCompare;
@@ -559,25 +556,50 @@ export function buildListItems({
                 return left.key < right.key ? -1 : 1;
             });
 
-        orderedGroups.forEach(group => {
+        const currentFolderGroup = orderedGroups.find(group => group.isCurrentFolder) ?? null;
+        const childFolderGroups = orderedGroups.filter(group => !group.isCurrentFolder);
+        const shouldAddCurrentFolderBoundary =
+            currentFolderGroup !== null &&
+            ((listConfig.showCurrentFolderFilesAtBottom && (pinnedFiles.length > 0 || childFolderGroups.length > 0)) ||
+                (!listConfig.showCurrentFolderFilesAtBottom && pinnedFiles.length > 0));
+        const renderFolderGroup = (group: (typeof orderedGroups)[number]): void => {
             if (group.files.length === 0) {
                 return;
             }
 
-            pushHeaderItem({
-                data: group.label,
-                collapseKey: createCollapseKey(group.key),
-                headerFolderPath: group.folderPath,
-                headerFolderSegments: group.folderSegments,
-                key: `header-${group.key}`,
-                headerKind: 'folder',
-                groupFiles: group.files
-            });
+            if (!group.isCurrentFolder) {
+                pushHeaderItem({
+                    data: group.label,
+                    collapseKey: createCollapseKey(group.key),
+                    headerFolderPath: group.folderPath,
+                    headerFolderSegments: group.folderSegments,
+                    key: `header-${group.key}`,
+                    headerKind: 'folder',
+                    groupFiles: group.files
+                });
+            } else if (shouldAddCurrentFolderBoundary) {
+                pushHeaderItem({
+                    data: '',
+                    key: `header-${group.key}-current-folder-boundary`,
+                    headerKind: 'section',
+                    groupFiles: group.files
+                });
+            }
 
             group.files.forEach(file => {
                 pushFileItem(file);
             });
-        });
+        };
+
+        if (currentFolderGroup && !listConfig.showCurrentFolderFilesAtBottom) {
+            renderFolderGroup(currentFolderGroup);
+        }
+
+        childFolderGroups.forEach(renderFolderGroup);
+
+        if (currentFolderGroup && listConfig.showCurrentFolderFilesAtBottom) {
+            renderFolderGroup(currentFolderGroup);
+        }
     }
 
     items.push({

@@ -1137,6 +1137,10 @@ export const STRINGS_ID = {
                 name: 'Tampilkan jalur subfolder',
                 desc: 'Saat mengelompokkan berdasarkan folder di panel daftar, tampilkan jalur subfolder alih-alih hanya nama folder.'
             },
+            showCurrentFolderFilesAtBottom: {
+                name: 'Pengelompokan folder: file folder saat ini di bawah',
+                desc: 'Saat pengelompokan default adalah Folder, pindahkan file yang langsung berada di folder yang dipilih ke bawah grup subfolder.'
+            },
             defaultListMode: {
                 name: 'Mode daftar default',
                 desc: 'Pilih tata letak daftar default. Standar menampilkan judul, tanggal, deskripsi, dan teks pratinjau. Kompak menampilkan judul saja. Ganti tampilan per folder.',

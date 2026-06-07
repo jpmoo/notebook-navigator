@@ -237,6 +237,16 @@ export function renderListPaneTab(context: SettingsTabContext): void {
             );
     });
 
+    addToggleSetting(
+        organizationGroup.addSetting,
+        strings.settings.items.showCurrentFolderFilesAtBottom.name,
+        strings.settings.items.showCurrentFolderFilesAtBottom.desc,
+        () => plugin.settings.showCurrentFolderFilesAtBottom,
+        value => {
+            plugin.settings.showCurrentFolderFilesAtBottom = value;
+        }
+    );
+
     const groupHeadersGroup = createGroup(strings.settings.groups.list.groupHeaders);
 
     addToggleSetting(

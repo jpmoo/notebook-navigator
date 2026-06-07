@@ -1133,6 +1133,10 @@ export const STRINGS_IT = {
                 name: 'Mostra percorsi sottocartelle',
                 desc: 'Quando raggruppi per cartella nel pannello lista, mostra i percorsi delle sottocartelle invece dei soli nomi cartella.'
             },
+            showCurrentFolderFilesAtBottom: {
+                name: 'Raggruppamento per cartella: file della cartella corrente in basso',
+                desc: 'Quando il raggruppamento predefinito è Cartella, sposta i file direttamente nella cartella selezionata sotto i gruppi di sottocartelle.'
+            },
             defaultListMode: {
                 name: 'Modalità lista predefinita',
                 desc: "Seleziona il layout lista predefinito. Standard mostra titolo, data, descrizione e testo anteprima. Compatto mostra solo il titolo. Sovrascrivi l'aspetto per cartella.",

@@ -83,6 +83,17 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
+        version: '3.1.1',
+        date: '2026-07-07',
+        showOnUpdate: false,
+        new: [
+            '**Settings.** New setting ==Folder grouping: current folder files at bottom== in List pane > Organization. Enable to show files in current folder on bottom when grouping by folder.'
+        ],
+        fixed: [
+            '**Build.** Added workaround for Obsidian code scanner incorrectly flagging properly implemented Obsidian 1.13 support as error.'
+        ]
+    },
+    {
         version: '3.1.0',
         date: '2026-07-07',
         showOnUpdate: true,
@@ -107,8 +118,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
         ],
         changed: [
             '**Feature images.** Breaking change! ==SVG images are no longer supported as feature images==. Large SVG images with embedded bitmaps were causing performance and memory issues for some users so this was disabled until further notice. As a result the cache will be rebuilt on startup.',
-            '**List pane.** Standard mode now keeps the standard row layout when date, preview, and feature image are hidden. Compact layout is only used when list mode is Compact.',
-            '**List pane.** When grouping by folder, the current folder name will always be displayed on top so you can collapse items in the current folder.'
+            '**List pane.** Standard mode now keeps the standard row layout when date, preview, and feature image are hidden. Compact layout is only used when list mode is Compact.'
         ],
         fixed: [
             '**Calendar.** Fixed Templater integration for notes created from the calendar.',

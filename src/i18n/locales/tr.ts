@@ -1135,6 +1135,10 @@ export const STRINGS_TR = {
                 name: 'Alt klasör yollarını göster',
                 desc: 'Liste bölmesinde klasöre göre gruplarken, yalnızca klasör adları yerine alt klasör yollarını göster.'
             },
+            showCurrentFolderFilesAtBottom: {
+                name: 'Klasör gruplama: geçerli klasör dosyaları altta',
+                desc: 'Varsayılan gruplama Klasör olduğunda, seçili klasörde doğrudan bulunan dosyaları alt klasör gruplarının altına taşı.'
+            },
             defaultListMode: {
                 name: 'Varsayılan liste modu',
                 desc: 'Varsayılan liste düzenini seçin. Standart başlık, tarih, açıklama ve önizleme metni gösterir. Kompakt yalnızca başlık gösterir. Klasör başına görünümü geçersiz kıl.',

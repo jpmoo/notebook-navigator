@@ -625,6 +625,7 @@ export interface NotebookNavigatorSettings {
     showSelectedNavigationPills: boolean;
     stickyGroupHeaders: boolean;
     showFolderGroupPaths: boolean;
+    showCurrentFolderFilesAtBottom: boolean;
     filterPinnedByFolder: boolean;
     compactItemHeight: number;
     compactItemHeightScaleText: boolean;

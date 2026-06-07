@@ -531,6 +531,10 @@ export function applyExistingUserDefaults(params: { settings: NotebookNavigatorS
     if (typeof settings.showFolderGroupPaths !== 'boolean') {
         settings.showFolderGroupPaths = DEFAULT_SETTINGS.showFolderGroupPaths;
     }
+
+    if (typeof settings.showCurrentFolderFilesAtBottom !== 'boolean') {
+        settings.showCurrentFolderFilesAtBottom = DEFAULT_SETTINGS.showCurrentFolderFilesAtBottom;
+    }
 }
 
 // Extracts legacy top-level propertyFields for migration into vault profiles.

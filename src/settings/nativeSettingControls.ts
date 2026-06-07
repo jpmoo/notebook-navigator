@@ -25,6 +25,7 @@ import type {
     SettingTextControl,
     SettingToggleControl
 } from 'obsidian';
+import { requireApiVersion } from 'obsidian';
 import { DEFAULT_SETTINGS } from './defaultSettings';
 import type { NotebookNavigatorSettings } from './types';
 import { normalizeCalendarCustomRootFolder } from '../utils/calendarCustomNotePatterns';
@@ -150,6 +151,7 @@ const BOOLEAN_SETTING_KEYS = [
     'showSelectedNavigationPills',
     'stickyGroupHeaders',
     'showFolderGroupPaths',
+    'showCurrentFolderFilesAtBottom',
     'confirmBeforeManualSort',
     'filterPinnedByFolder',
     'revealFileOnListChanges',
@@ -265,10 +267,10 @@ export function createGroupDefinition(
         items
     };
 
-    if (heading) {
+    if (requireApiVersion('1.13.0') && heading) {
         group.heading = heading;
     }
-    if (options?.visible !== undefined) {
+    if (requireApiVersion('1.13.0') && options?.visible !== undefined) {
         group.visible = options.visible;
     }
 
@@ -390,13 +392,13 @@ export function createRenderDefinition(options: DefinitionOptions & { render: Re
         render: (setting, group) => options.render(setting, group)
     };
 
-    if (options.aliases) {
+    if (requireApiVersion('1.13.0') && options.aliases) {
         setting.aliases = options.aliases;
     }
-    if (options.searchable !== undefined) {
+    if (requireApiVersion('1.13.0') && options.searchable !== undefined) {
         setting.searchable = options.searchable;
     }
-    if (options.visible !== undefined) {
+    if (requireApiVersion('1.13.0') && options.visible !== undefined) {
         setting.visible = options.visible;
     }
 
@@ -447,13 +449,13 @@ function createControlDefinition<K extends string>(
         control: options.control
     };
 
-    if (options.aliases) {
+    if (requireApiVersion('1.13.0') && options.aliases) {
         setting.aliases = options.aliases;
     }
-    if (options.searchable !== undefined) {
+    if (requireApiVersion('1.13.0') && options.searchable !== undefined) {
         setting.searchable = options.searchable;
     }
-    if (options.visible !== undefined) {
+    if (requireApiVersion('1.13.0') && options.visible !== undefined) {
         setting.visible = options.visible;
     }
 
