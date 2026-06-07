@@ -32,6 +32,7 @@ import { addSettingSyncModeToggle } from '../syncModeToggle';
 import { FilePathInputSuggest } from '../../suggest/FilePathInputSuggest';
 import { FOLDER_NOTE_NAME_PATTERN_PLACEHOLDER } from '../../utils/folderNoteName';
 import { normalizeOptionalVaultFilePath } from '../../utils/pathUtils';
+import { getTemplaterCreateNoteFromTemplate } from '../../utils/templaterIntegration';
 
 /** Builds native 1.13 setting definitions for folder and folder note settings. */
 export function createFoldersSettingDefinitions(context: SettingsTabContext, heading?: string): SettingDefinitionItem[] {
@@ -88,6 +89,11 @@ export function createFoldersSettingDefinitions(context: SettingsTabContext, hea
                 name: strings.settings.items.hideFolderNoteInList.name,
                 desc: strings.settings.items.hideFolderNoteInList.desc,
                 visible: () => plugin.settings.enableFolderNotes
+            }),
+            createToggleDefinition('pinCreatedFolderNote', {
+                name: strings.settings.items.pinCreatedFolderNote.name,
+                desc: strings.settings.items.pinCreatedFolderNote.desc,
+                visible: () => plugin.settings.enableFolderNotes
             })
         ]),
         createGroupDefinition(
@@ -121,9 +127,10 @@ export function createFoldersSettingDefinitions(context: SettingsTabContext, hea
                     desc: strings.settings.items.folderNoteTemplate.desc,
                     render: setting => renderFolderNoteTemplateSetting(setting, context)
                 }),
-                createToggleDefinition('pinCreatedFolderNote', {
-                    name: strings.settings.items.pinCreatedFolderNote.name,
-                    desc: strings.settings.items.pinCreatedFolderNote.desc
+                createRenderDefinition({
+                    name: 'Templater',
+                    searchable: false,
+                    render: setting => renderFolderNoteTemplateInfoSetting(setting, context)
                 })
             ],
             { visible: () => plugin.settings.enableFolderNotes }
@@ -173,4 +180,15 @@ function renderFolderNoteTemplateSetting(setting: Setting, context: SettingsTabC
         });
         folderNoteTemplateInputEl.addEventListener('click', () => templateSuggest.open());
     }
+}
+
+function renderFolderNoteTemplateInfoSetting(setting: Setting, context: SettingsTabContext): void {
+    setting.setName('').setDesc('');
+    setting.settingEl.addClass('nn-setting-info-container');
+    setting.descEl.empty();
+
+    const templaterSupportText = getTemplaterCreateNoteFromTemplate(context.app)
+        ? strings.settings.items.calendarCustomFilePattern.templaterSupportInstalled
+        : strings.settings.items.calendarCustomFilePattern.templaterSupportMissing;
+    setting.descEl.createEl('strong', { text: templaterSupportText });
 }

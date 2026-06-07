@@ -16,8 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { App, TFile, TFolder } from 'obsidian';
+import { App, Plugin, TFile, TFolder } from 'obsidian';
 import { describe, expect, it, vi } from 'vitest';
+import { TEMPLATER_PLUGIN_ID } from '../../src/constants/pluginIds';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import { createFolderNote, getFolderNote, isFolderNote, resolveFolderNoteNameForFolder } from '../../src/utils/folderNotes';
 import { createTestTFile } from './createTestTFile';
@@ -26,8 +27,45 @@ interface TestVaultMethods {
     registerFile(file: TFile): void;
 }
 
+type TestTemplaterCreateFn = (
+    template: TFile | string,
+    folder?: unknown,
+    filename?: string,
+    openNewNote?: boolean
+) => TFile | Promise<TFile | undefined> | undefined;
+
+class TestTemplaterPlugin extends Plugin {
+    templater: {
+        create_new_note_from_template: TestTemplaterCreateFn;
+    };
+
+    constructor(app: App, createNoteFromTemplate: TestTemplaterCreateFn) {
+        super(app, {
+            id: TEMPLATER_PLUGIN_ID,
+            name: 'Templater',
+            author: 'Test',
+            version: '1.0.0',
+            minAppVersion: '1.0.0',
+            description: 'Test plugin'
+        });
+
+        this.templater = {
+            create_new_note_from_template: createNoteFromTemplate
+        };
+    }
+}
+
 function getTestVault(app: App): App['vault'] & TestVaultMethods {
     return app.vault as App['vault'] & TestVaultMethods;
+}
+
+function registerTemplater(app: App, createNoteFromTemplate: TestTemplaterCreateFn): void {
+    const appWithPlugins = app as App & { plugins: { plugins: Record<string, Plugin> } };
+    appWithPlugins.plugins = {
+        plugins: {
+            [TEMPLATER_PLUGIN_ID]: new TestTemplaterPlugin(app, createNoteFromTemplate)
+        }
+    };
 }
 
 function createRootFolder(app: App, vaultName: string): TFolder {
@@ -195,5 +233,77 @@ describe('root folder notes', () => {
         expect(created).toBe(createdFile);
         expect(openInRightSidebar).toHaveBeenCalledWith(createdFile);
         expect(openFile).not.toHaveBeenCalled();
+    });
+
+    it('uses Templater directly when a configured folder note template is available', async () => {
+        const app = new App();
+        const root = createRootFolder(app, 'Shared Scratch');
+        const templateFile = createTestTFile('Templates/Folder.md');
+        const createdFile = createTestTFile('Shared Scratch.md');
+        const openFile = vi.fn().mockResolvedValue(undefined);
+        const createNewMarkdownFile = vi.fn();
+        const createNoteFromTemplate = vi.fn(async () => createdFile);
+
+        getTestVault(app).registerFile(templateFile);
+        registerTemplater(app, createNoteFromTemplate);
+        app.fileManager.createNewMarkdownFile = createNewMarkdownFile;
+        app.workspace = {
+            getLeaf: vi.fn(() => ({ openFile }))
+        } as unknown as App['workspace'];
+
+        const created = await createFolderNote(
+            app,
+            root,
+            {
+                folderNoteType: 'markdown',
+                folderNoteName: '',
+                folderNoteNamePattern: '',
+                folderNoteTemplate: templateFile.path
+            },
+            null
+        );
+
+        expect(created).toBe(createdFile);
+        expect(createNoteFromTemplate).toHaveBeenCalledWith(templateFile, root, 'Shared Scratch', false);
+        expect(createNewMarkdownFile).not.toHaveBeenCalled();
+        expect(openFile).toHaveBeenCalledWith(createdFile, { active: true });
+    });
+
+    it('copies folder note template content when Templater is unavailable', async () => {
+        const app = new App();
+        const root = createRootFolder(app, 'Shared Scratch');
+        const templateFile = createTestTFile('Templates/Folder.md');
+        const createdFile = createTestTFile('Shared Scratch.md');
+        const templateContent = '---\ncreated: <% tp.file.creation_date("YYYY-MM-DD") %>\n---\n';
+        const openFile = vi.fn().mockResolvedValue(undefined);
+        const createNewMarkdownFile = vi.fn(async () => createdFile);
+        const read = vi.fn(async () => templateContent);
+        const modify = vi.fn(async () => undefined);
+
+        getTestVault(app).registerFile(templateFile);
+        app.fileManager.createNewMarkdownFile = createNewMarkdownFile;
+        app.vault.read = read;
+        app.vault.modify = modify;
+        app.workspace = {
+            getLeaf: vi.fn(() => ({ openFile }))
+        } as unknown as App['workspace'];
+
+        const created = await createFolderNote(
+            app,
+            root,
+            {
+                folderNoteType: 'markdown',
+                folderNoteName: '',
+                folderNoteNamePattern: '',
+                folderNoteTemplate: templateFile.path
+            },
+            null
+        );
+
+        expect(created).toBe(createdFile);
+        expect(createNewMarkdownFile).toHaveBeenCalledWith(root, 'Shared Scratch');
+        expect(read).toHaveBeenCalledWith(templateFile);
+        expect(modify).toHaveBeenCalledWith(createdFile, templateContent);
+        expect(openFile).toHaveBeenCalledWith(createdFile, { active: true });
     });
 });

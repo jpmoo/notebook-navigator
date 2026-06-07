@@ -19,7 +19,7 @@
 import { App, type PaneType, TFile, TFolder, normalizePath } from 'obsidian';
 import { strings } from '../i18n';
 import { FolderNoteType, FOLDER_NOTE_TYPE_EXTENSIONS, FolderNoteCreationPreference } from '../types/folderNote';
-import { buildPathInFolder, createDatabaseContent, createMarkdownFileFromTemplate } from './fileCreationUtils';
+import { buildPathInFolder, createDatabaseContent, createMarkdownFileFromTemplatePreferTemplater } from './fileCreationUtils';
 import { type FolderNoteNameSettings, resolveFolderNoteName } from './folderNoteName';
 import { EXCALIDRAW_BASENAME_SUFFIX, isExcalidrawFile, stripExcalidrawSuffix } from './fileNameUtils';
 import { CommandQueueService } from '../services/CommandQueueService';
@@ -314,7 +314,7 @@ export async function createFolderNote(
     try {
         let file: TFile;
         if (selectedType === 'markdown') {
-            file = await createMarkdownFileFromTemplate({
+            file = await createMarkdownFileFromTemplatePreferTemplater({
                 app,
                 folder,
                 baseName,
