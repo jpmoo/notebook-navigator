@@ -106,6 +106,7 @@ Notebook Navigator runs locally, but some features make documented HTTP requests
 | Shift+Click                                 | Select a range of notes                                                                                                                     |
 | Shift+Home/End                              | Select from current position to first/last item                                                                                             |
 | Shift+↑/↓                                   | Extend selection up/down                                                                                                                    |
+| Cmd/Ctrl+↑/↓                                | Rearrange selected files up/down in manual sort mode                                                                                        |
 
 **Note:** All keyboard shortcuts can be customized. See [section 8 - Custom hotkeys](#8-custom-hotkeys) for details on adding VIM-style navigation (h,j,k,l), alternate keys, and modifier combinations.
 
