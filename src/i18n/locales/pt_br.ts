@@ -949,11 +949,11 @@ export const STRINGS_PT_BR = {
         pageDescriptions: {
             general: 'Notas de versão, suporte, perfil do cofre, tipos de arquivo e chaves de propriedades.',
             vaultFilters: 'Pastas, tags, arquivos, tags de arquivo e regras de propriedades ocultas.',
-            appearanceBehavior: 'Modelos, comportamento, navegação por teclado, botões do mouse, aparência e formatação.',
+            appearanceBehavior: 'Comportamento, navegação por teclado, botões do mouse, aparência e formatação.',
             navigationPane: 'Layout, aparência, contagem de notas, comportamento de recolhimento e cores arco-íris.',
             shortcuts: 'Visibilidade de atalhos, distintivos, arquivos recentes e itens fixados.',
             calendar: 'Exibição do calendário, notas de data, modelos, localidade e posicionamento da barra lateral.',
-            fileOperations: 'Confirmações de exclusão, anexos e comportamento de conflito ao mover arquivos.',
+            fileOperations: 'Modelos, confirmações de exclusão, anexos e comportamento de conflito ao mover arquivos.',
             foldersAndFolderNotes: 'Exibição de pastas, notas de pasta, modelos de notas de pasta e comportamento das notas de pasta.',
             tagsProperties: 'Seções de tags e propriedades, ícones, classificação, escopo e herança.',
             listPane: 'Classificação, agrupamento, modos de lista, notas fixadas e pré-visualizações de desenhos.',
@@ -1471,15 +1471,16 @@ export const STRINGS_PT_BR = {
             calendarTemplateFolder: {
                 name: 'Localização da pasta de modelos',
                 desc: 'O seletor de arquivos de modelo mostra notas desta pasta.',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: 'Usada por notas de calendário e notas de pasta. Configure os modelos em Calendário > Integração do calendário e Pastas e notas de pasta > Arquivos de notas de pasta.'
             },
             calendarCustomFilePattern: {
                 name: 'Notas diárias',
-                desc: 'Formatar caminho usando formato de data Moment. Coloque nomes de subpastas entre colchetes, ex. [Work]/YYYY. Clique no ícone de modelo para definir um modelo. Definir localização da pasta de modelos em Aparência e comportamento > Modelos.',
+                desc: 'Formatar caminho usando formato de data Moment. Coloque nomes de subpastas entre colchetes, ex. [Work]/YYYY. Clique no ícone de modelo para definir um modelo. Definir localização da pasta de modelos em Operações de arquivo > Modelos.',
                 momentDescPrefix: 'Formatar caminho usando ',
                 momentLinkText: 'formato de data Moment',
                 momentDescSuffix:
-                    '. Coloque nomes de subpastas entre colchetes, ex. [Work]/YYYY. Clique no ícone de modelo para definir um modelo. Definir localização da pasta de modelos em Aparência e comportamento > Modelos.',
+                    '. Coloque nomes de subpastas entre colchetes, ex. [Work]/YYYY. Clique no ícone de modelo para definir um modelo. Definir localização da pasta de modelos em Operações de arquivo > Modelos.',
                 templaterSupportInstalled: '✅ O plugin Templater está instalado com suporte completo a modelos.',
                 templaterSupportMissing: '⚠️ Instale o plugin Templater para suporte completo a modelos.',
                 placeholder: 'YYYY/YYYYMMDD',
@@ -2174,7 +2175,7 @@ export const STRINGS_PT_BR = {
             },
             folderNoteTemplate: {
                 name: 'Modelo de nota de pasta',
-                desc: 'Arquivo de modelo para novas notas de pasta Markdown. Definir localização da pasta de modelos em Aparência e comportamento > Modelos.'
+                desc: 'Arquivo de modelo para novas notas de pasta Markdown. Definir localização da pasta de modelos em Operações de arquivo > Modelos.'
             },
             enableFolderNoteLinks: {
                 name: 'Nomes de pastas abrem notas de pasta',

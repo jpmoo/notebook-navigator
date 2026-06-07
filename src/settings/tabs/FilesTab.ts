@@ -16,12 +16,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type { Setting, SettingDefinitionItem } from 'obsidian';
 import { strings } from '../../i18n';
-import type { SettingDefinitionItem } from 'obsidian';
-import { createDropdownDefinition, createGroupDefinition, createToggleDefinition } from '../nativeSettingControls';
+import { getTemplaterCreateNoteFromTemplate } from '../../utils/templaterIntegration';
+import {
+    createDropdownDefinition,
+    createFolderDefinition,
+    createGroupDefinition,
+    createRenderDefinition,
+    createToggleDefinition
+} from '../nativeSettingControls';
+import type { SettingsTabContext } from './SettingsTabContext';
 
 /** Builds native 1.13 setting definitions for file operations settings. */
-export function createFilesSettingDefinitions(heading?: string): SettingDefinitionItem[] {
+export function createFilesSettingDefinitions(context: SettingsTabContext, heading?: string): SettingDefinitionItem[] {
     return [
         createGroupDefinition(heading, [
             createToggleDefinition('confirmBeforeDelete', {
@@ -47,6 +55,33 @@ export function createFilesSettingDefinitions(heading?: string): SettingDefiniti
                     rename: strings.settings.items.moveFileConflicts.options.rename
                 }
             })
+        ]),
+        createGroupDefinition(strings.settings.groups.general.templates, [
+            createFolderDefinition('calendarTemplateFolder', {
+                name: strings.settings.items.calendarTemplateFolder.name,
+                desc: strings.settings.items.calendarTemplateFolder.desc,
+                aliases: [strings.settings.items.calendarTemplateFolder.placeholder],
+                placeholder: strings.settings.items.calendarTemplateFolder.placeholder,
+                includeRoot: true
+            }),
+            createRenderDefinition({
+                name: 'Templater',
+                searchable: false,
+                render: setting => renderTemplateFolderInfoSetting(setting, context)
+            })
         ])
     ];
+}
+
+function renderTemplateFolderInfoSetting(setting: Setting, context: SettingsTabContext): void {
+    setting.setName('').setDesc('');
+    setting.settingEl.addClass('nn-setting-info-container');
+    setting.descEl.empty();
+
+    setting.descEl.createDiv({ text: strings.settings.items.calendarTemplateFolder.usage });
+
+    const templaterSupportText = getTemplaterCreateNoteFromTemplate(context.app)
+        ? strings.settings.items.calendarCustomFilePattern.templaterSupportInstalled
+        : strings.settings.items.calendarCustomFilePattern.templaterSupportMissing;
+    setting.descEl.append(createEl('br'), createEl('strong', { text: templaterSupportText }));
 }

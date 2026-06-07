@@ -948,11 +948,11 @@ export const STRINGS_ES = {
         pageDescriptions: {
             general: 'Notas de versión, soporte, perfil de bóveda, tipos de archivo y claves de propiedades.',
             vaultFilters: 'Carpetas, etiquetas, archivos, etiquetas de archivo y reglas de propiedades ocultos.',
-            appearanceBehavior: 'Plantillas, comportamiento, navegación con teclado, botones del ratón, apariencia y formato.',
+            appearanceBehavior: 'Comportamiento, navegación con teclado, botones del ratón, apariencia y formato.',
             navigationPane: 'Diseño, apariencia, recuento de notas, comportamiento de colapso y colores arcoíris.',
             shortcuts: 'Visibilidad de accesos directos, insignias, archivos recientes y elementos fijados.',
             calendar: 'Visualización del calendario, notas de fecha, plantillas, configuración regional y ubicación de la barra lateral.',
-            fileOperations: 'Confirmaciones de eliminación, adjuntos y comportamiento ante conflictos al mover archivos.',
+            fileOperations: 'Plantillas, confirmaciones de eliminación, adjuntos y comportamiento ante conflictos al mover archivos.',
             foldersAndFolderNotes: 'Visualización de carpetas, notas de carpeta, plantillas y comportamiento de notas de carpeta.',
             tagsProperties: 'Secciones de etiquetas y propiedades, iconos, ordenación, alcance y herencia.',
             listPane: 'Ordenación, agrupación, modos de lista, notas fijadas y vistas previas de dibujos.',
@@ -1470,15 +1470,16 @@ export const STRINGS_ES = {
             calendarTemplateFolder: {
                 name: 'Ubicación de carpeta de plantillas',
                 desc: 'El selector de archivos de plantilla muestra notas de esta carpeta.',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: 'Se usa en notas de calendario y notas de carpeta. Configura las plantillas en Calendario > Integración de calendario y Carpetas y notas de carpeta > Archivos de notas de carpeta.'
             },
             calendarCustomFilePattern: {
                 name: 'Notas diarias',
-                desc: 'Formatear ruta usando formato de fecha de Moment. Envuelve los nombres de subcarpetas entre corchetes, ej. [Work]/YYYY. Haz clic en el icono de plantilla para establecer una plantilla. Establecer ubicación de carpeta de plantillas en Apariencia y comportamiento > Plantillas.',
+                desc: 'Formatear ruta usando formato de fecha de Moment. Envuelve los nombres de subcarpetas entre corchetes, ej. [Work]/YYYY. Haz clic en el icono de plantilla para establecer una plantilla. Establecer ubicación de carpeta de plantillas en Operaciones de archivos > Plantillas.',
                 momentDescPrefix: 'Formatear ruta usando ',
                 momentLinkText: 'formato de fecha Moment',
                 momentDescSuffix:
-                    '. Envuelve los nombres de subcarpetas entre corchetes, ej. [Work]/YYYY. Haz clic en el icono de plantilla para establecer una plantilla. Establecer ubicación de carpeta de plantillas en Apariencia y comportamiento > Plantillas.',
+                    '. Envuelve los nombres de subcarpetas entre corchetes, ej. [Work]/YYYY. Haz clic en el icono de plantilla para establecer una plantilla. Establecer ubicación de carpeta de plantillas en Operaciones de archivos > Plantillas.',
                 templaterSupportInstalled: '✅ El plugin Templater está instalado con soporte completo de plantillas.',
                 templaterSupportMissing: '⚠️ Instala el plugin Templater para obtener soporte completo de plantillas.',
                 placeholder: 'YYYY/YYYYMMDD',
@@ -2173,7 +2174,7 @@ export const STRINGS_ES = {
             },
             folderNoteTemplate: {
                 name: 'Plantilla de nota de carpeta',
-                desc: 'Archivo de plantilla para nuevas notas de carpeta en Markdown. Establecer ubicación de carpeta de plantillas en Apariencia y comportamiento > Plantillas.'
+                desc: 'Archivo de plantilla para nuevas notas de carpeta en Markdown. Establecer ubicación de carpeta de plantillas en Operaciones de archivos > Plantillas.'
             },
             enableFolderNoteLinks: {
                 name: 'Los nombres de carpeta abren notas de carpeta',

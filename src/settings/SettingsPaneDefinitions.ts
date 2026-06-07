@@ -146,7 +146,7 @@ const SETTINGS_PANE_DEFINITIONS: SettingsPaneDefinition[] = [
         id: 'file-operations',
         getLabel: () => strings.settings.sections.fileOperations,
         render: renderFilesTab,
-        createDefinitions: () => createFilesSettingDefinitions()
+        createDefinitions: createFilesSettingDefinitions
     },
     {
         id: 'frontmatter',

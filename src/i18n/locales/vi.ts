@@ -948,11 +948,11 @@ export const STRINGS_VI = {
         pageDescriptions: {
             general: 'Ghi chú phát hành, hỗ trợ, hồ sơ vault, loại tệp và khóa thuộc tính.',
             vaultFilters: 'Thư mục, thẻ, tệp, thẻ tệp và quy tắc thuộc tính bị ẩn.',
-            appearanceBehavior: 'Mẫu, hành vi, điều hướng bằng bàn phím, nút chuột, giao diện và định dạng.',
+            appearanceBehavior: 'Hành vi, điều hướng bằng bàn phím, nút chuột, giao diện và định dạng.',
             navigationPane: 'Bố cục, giao diện, số lượng ghi chú, hành vi thu gọn và màu cầu vồng.',
             shortcuts: 'Khả năng hiển thị lối tắt, huy hiệu, tệp gần đây và mục đã ghim.',
             calendar: 'Hiển thị lịch, ghi chú ngày, mẫu, ngôn ngữ và vị trí thanh bên.',
-            fileOperations: 'Xác nhận xóa, tệp đính kèm và hành vi xung đột khi di chuyển tệp.',
+            fileOperations: 'Mẫu, xác nhận xóa, tệp đính kèm và hành vi xung đột khi di chuyển tệp.',
             foldersAndFolderNotes: 'Hiển thị thư mục, ghi chú thư mục, mẫu ghi chú thư mục và hành vi ghi chú thư mục.',
             tagsProperties: 'Phần thẻ và thuộc tính, biểu tượng, sắp xếp, phạm vi và kế thừa.',
             listPane: 'Sắp xếp, nhóm, chế độ danh sách, ghi chú đã ghim và xem trước bản vẽ.',
@@ -1470,15 +1470,16 @@ export const STRINGS_VI = {
             calendarTemplateFolder: {
                 name: 'Vị trí thư mục mẫu',
                 desc: 'Trình chọn tệp mẫu hiển thị ghi chú từ thư mục này.',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: 'Được dùng bởi ghi chú lịch và ghi chú thư mục. Cấu hình mẫu trong Lịch > Tích hợp lịch và Thư mục và ghi chú thư mục > Tệp ghi chú thư mục.'
             },
             calendarCustomFilePattern: {
                 name: 'Ghi chú hàng ngày',
-                desc: 'Định dạng đường dẫn sử dụng định dạng ngày Moment. Đặt tên thư mục con trong dấu ngoặc vuông, vd: [Work]/YYYY. Nhấp vào biểu tượng mẫu để đặt mẫu. Đặt vị trí thư mục mẫu trong Giao diện và hành vi > Mẫu.',
+                desc: 'Định dạng đường dẫn sử dụng định dạng ngày Moment. Đặt tên thư mục con trong dấu ngoặc vuông, vd: [Work]/YYYY. Nhấp vào biểu tượng mẫu để đặt mẫu. Đặt vị trí thư mục mẫu trong Thao tác tệp > Mẫu.',
                 momentDescPrefix: 'Định dạng đường dẫn sử dụng ',
                 momentLinkText: 'định dạng ngày Moment',
                 momentDescSuffix:
-                    '. Đặt tên thư mục con trong dấu ngoặc vuông, vd: [Work]/YYYY. Nhấp vào biểu tượng mẫu để đặt mẫu. Đặt vị trí thư mục mẫu trong Giao diện và hành vi > Mẫu.',
+                    '. Đặt tên thư mục con trong dấu ngoặc vuông, vd: [Work]/YYYY. Nhấp vào biểu tượng mẫu để đặt mẫu. Đặt vị trí thư mục mẫu trong Thao tác tệp > Mẫu.',
                 templaterSupportInstalled: '✅ Plugin Templater đã được cài đặt với hỗ trợ mẫu đầy đủ.',
                 templaterSupportMissing: '⚠️ Cài đặt plugin Templater để hỗ trợ mẫu đầy đủ.',
                 placeholder: 'YYYY/YYYYMMDD',
@@ -2171,7 +2172,7 @@ export const STRINGS_VI = {
             },
             folderNoteTemplate: {
                 name: 'Mẫu ghi chú thư mục',
-                desc: 'Tệp mẫu cho ghi chú thư mục Markdown mới. Đặt vị trí thư mục mẫu trong Giao diện và hành vi > Mẫu.'
+                desc: 'Tệp mẫu cho ghi chú thư mục Markdown mới. Đặt vị trí thư mục mẫu trong Thao tác tệp > Mẫu.'
             },
             enableFolderNoteLinks: {
                 name: 'Tên thư mục mở ghi chú thư mục',

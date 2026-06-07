@@ -37,7 +37,6 @@ import {
 import { DEFAULT_SETTINGS } from '../defaultSettings';
 import {
     createDropdownControlDefinition,
-    createFolderDefinition,
     createGroupDefinition,
     createRenderDefinition,
     createToggleControlDefinition
@@ -78,12 +77,7 @@ export function createAppearanceBehaviorSettingDefinitions(context: SettingsTabC
         groups.push(createMobileAppearanceDefinitionGroup(context));
     }
 
-    groups.push(
-        createViewDefinitionGroup(context),
-        createIconDefinitionGroup(context),
-        createFormattingDefinitionGroup(context),
-        createTemplateDefinitionGroup()
-    );
+    groups.push(createViewDefinitionGroup(context), createIconDefinitionGroup(context), createFormattingDefinitionGroup(context));
 
     return groups;
 }
@@ -401,18 +395,6 @@ function createFormattingDefinitionGroup(context: SettingsTabContext): SettingDe
             desc: strings.settings.items.timeFormat.desc,
             aliases: [strings.settings.items.timeFormat.momentLinkText, strings.settings.items.timeFormat.helpTooltip],
             render: setting => renderTimeFormatSetting(setting, context)
-        })
-    ]);
-}
-
-function createTemplateDefinitionGroup(): SettingDefinitionGroup {
-    return createGroupDefinition(strings.settings.groups.general.templates, [
-        createFolderDefinition('calendarTemplateFolder', {
-            name: strings.settings.items.calendarTemplateFolder.name,
-            desc: strings.settings.items.calendarTemplateFolder.desc,
-            aliases: [strings.settings.items.calendarTemplateFolder.placeholder],
-            placeholder: strings.settings.items.calendarTemplateFolder.placeholder,
-            includeRoot: true
         })
     ]);
 }

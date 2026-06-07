@@ -950,11 +950,11 @@ export const STRINGS_PL = {
         pageDescriptions: {
             general: 'Informacje o wydaniu, wsparcie, profil sejfu, typy plików i klucze atrybutów.',
             vaultFilters: 'Ukryte foldery, tagi, pliki, tagi plików i reguły atrybutów.',
-            appearanceBehavior: 'Szablony, zachowanie, nawigacja klawiaturą, przyciski myszy, wygląd i formatowanie.',
+            appearanceBehavior: 'Zachowanie, nawigacja klawiaturą, przyciski myszy, wygląd i formatowanie.',
             navigationPane: 'Układ, wygląd, liczba notatek, zachowanie zwijania i kolory tęczy.',
             shortcuts: 'Widoczność skrótów, odznaki, ostatnie pliki i przypięte elementy.',
             calendar: 'Wyświetlanie kalendarza, notatki dat, szablony, lokalizacja i położenie paska bocznego.',
-            fileOperations: 'Potwierdzenia usunięcia, załączniki i zachowanie przy konflikcie przenoszenia plików.',
+            fileOperations: 'Szablony, potwierdzenia usunięcia, załączniki i zachowanie przy konflikcie przenoszenia plików.',
             foldersAndFolderNotes: 'Wyświetlanie folderów, notatki folderu, szablony notatek folderu i zachowanie notatek folderu.',
             tagsProperties: 'Sekcje tagów i atrybutów, ikony, sortowanie, zakres i dziedziczenie.',
             listPane: 'Sortowanie, grupowanie, tryby listy, przypięte notatki i podglądy rysunków.',
@@ -1472,15 +1472,16 @@ export const STRINGS_PL = {
             calendarTemplateFolder: {
                 name: 'Lokalizacja folderu szablonów',
                 desc: 'Wybór pliku szablonu pokazuje notatki z tego folderu.',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: 'Używane przez notatki kalendarza i notatki folderów. Skonfiguruj szablony w Kalendarz > Integracja z kalendarzem oraz Foldery i notatki folderu > Pliki notatek folderów.'
             },
             calendarCustomFilePattern: {
                 name: 'Notatki dziennika',
-                desc: 'Sformatuj ścieżkę przy użyciu formatu daty Moment. Nazwy podfolderów umieść w nawiasach, np. [Work]/YYYY. Kliknij ikonkę szablonu, aby ustawić szablon. Ustaw lokalizację folderu szablonów w sekcji Wygląd i zachowanie > Szablony.',
+                desc: 'Sformatuj ścieżkę przy użyciu formatu daty Moment. Nazwy podfolderów umieść w nawiasach, np. [Work]/YYYY. Kliknij ikonkę szablonu, aby ustawić szablon. Ustaw lokalizację folderu szablonów w sekcji Operacje na plikach > Szablony.',
                 momentDescPrefix: 'Sformatuj ścieżkę przy użyciu ',
                 momentLinkText: 'formatu daty Moment',
                 momentDescSuffix:
-                    '. Nazwy podfolderów umieść w nawiasach, np. [Work]/YYYY. Kliknij ikonkę szablonu, aby ustawić szablon. Ustaw lokalizację folderu szablonów w sekcji Wygląd i zachowanie > Szablony.',
+                    '. Nazwy podfolderów umieść w nawiasach, np. [Work]/YYYY. Kliknij ikonkę szablonu, aby ustawić szablon. Ustaw lokalizację folderu szablonów w sekcji Operacje na plikach > Szablony.',
                 templaterSupportInstalled: '✅ Wtyczka Templater jest zainstalowana i zapewnia pełną obsługę szablonów.',
                 templaterSupportMissing: '⚠️ Zainstaluj wtyczkę Templater, aby uzyskać pełną obsługę szablonów.',
                 placeholder: 'YYYY/YYYYMMDD',
@@ -2174,7 +2175,7 @@ export const STRINGS_PL = {
             },
             folderNoteTemplate: {
                 name: 'Szablon notatki folderu',
-                desc: 'Plik szablonu dla nowych notatek folderów Markdown. Ustaw lokalizację folderu szablonów w Wygląd i zachowanie > Szablony.'
+                desc: 'Plik szablonu dla nowych notatek folderów Markdown. Ustaw lokalizację folderu szablonów w Operacje na plikach > Szablony.'
             },
             enableFolderNoteLinks: {
                 name: 'Nazwy folderów otwierają notatki folderów',

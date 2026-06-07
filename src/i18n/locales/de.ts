@@ -949,11 +949,11 @@ export const STRINGS_DE = {
         pageDescriptions: {
             general: 'Versionshinweise, Support, Tresorprofil, Dateitypen und Eigenschaftsschlüssel.',
             vaultFilters: 'Versteckte Ordner, Tags, Dateien, Datei-Tags und Eigenschaftsregeln.',
-            appearanceBehavior: 'Vorlagen, Verhalten, Tastaturnavigation, Maustasten, Darstellung und Formatierung.',
+            appearanceBehavior: 'Verhalten, Tastaturnavigation, Maustasten, Darstellung und Formatierung.',
             navigationPane: 'Layout, Darstellung, Notizenanzahl, Einklappverhalten und Regenbogenfarben.',
             shortcuts: 'Verknüpfungssichtbarkeit, Abzeichen, zuletzt verwendete Dateien und angeheftete Elemente.',
             calendar: 'Kalenderanzeige, Datumsnotizen, Vorlagen, Sprachumgebung und Seitenleistenposition.',
-            fileOperations: 'Löschbestätigungen, Anhänge und Verhalten bei Dateikonflikten beim Verschieben.',
+            fileOperations: 'Vorlagen, Löschbestätigungen, Anhänge und Verhalten bei Dateikonflikten beim Verschieben.',
             foldersAndFolderNotes: 'Ordneranzeige, Ordnernotizen, Ordnernotiz-Vorlagen und Ordnernotiz-Verhalten.',
             tagsProperties: 'Tag- und Eigenschaftsbereiche, Symbole, Sortierung, Geltungsbereich und Vererbung.',
             listPane: 'Sortierung, Gruppierung, Listenmodi, angeheftete Notizen und Zeichnungsvorschauen.',
@@ -1471,15 +1471,16 @@ export const STRINGS_DE = {
             calendarTemplateFolder: {
                 name: 'Vorlagenordner',
                 desc: 'Die Vorlagenauswahl zeigt Notizen aus diesem Ordner.',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: 'Wird von Kalendernotizen und Ordnernotizen verwendet. Vorlagen unter Kalender > Kalenderintegration und Ordner & Ordnernotizen > Ordnernotiz-Dateien konfigurieren.'
             },
             calendarCustomFilePattern: {
                 name: 'Tägliche Notizen',
-                desc: 'Pfad mit Moment-Datumsformat formatieren. Unterordnernamen in Klammern setzen, z.B. [Work]/YYYY. Klicken Sie auf das Vorlagensymbol, um eine Vorlage festzulegen. Vorlagenordner unter Darstellung & Verhalten > Vorlagen festlegen.',
+                desc: 'Pfad mit Moment-Datumsformat formatieren. Unterordnernamen in Klammern setzen, z.B. [Work]/YYYY. Klicken Sie auf das Vorlagensymbol, um eine Vorlage festzulegen. Vorlagenordner unter Dateioperationen > Vorlagen festlegen.',
                 momentDescPrefix: 'Pfad formatieren mit ',
                 momentLinkText: 'Moment-Datumsformat',
                 momentDescSuffix:
-                    '. Unterordnernamen in Klammern setzen, z.B. [Work]/YYYY. Klicken Sie auf das Vorlagensymbol, um eine Vorlage festzulegen. Vorlagenordner unter Darstellung & Verhalten > Vorlagen festlegen.',
+                    '. Unterordnernamen in Klammern setzen, z.B. [Work]/YYYY. Klicken Sie auf das Vorlagensymbol, um eine Vorlage festzulegen. Vorlagenordner unter Dateioperationen > Vorlagen festlegen.',
                 templaterSupportInstalled: '✅ Das Templater-Plugin ist mit voller Vorlagenunterstützung installiert.',
                 templaterSupportMissing: '⚠️ Installieren Sie das Templater-Plugin für volle Vorlagenunterstützung.',
                 placeholder: 'YYYY/YYYYMMDD',
@@ -2174,7 +2175,7 @@ export const STRINGS_DE = {
             },
             folderNoteTemplate: {
                 name: 'Ordnernotiz-Vorlage',
-                desc: 'Vorlagendatei für neue Markdown-Ordnernotizen. Vorlagenordner unter Darstellung & Verhalten > Vorlagen festlegen.'
+                desc: 'Vorlagendatei für neue Markdown-Ordnernotizen. Vorlagenordner unter Dateioperationen > Vorlagen festlegen.'
             },
             enableFolderNoteLinks: {
                 name: 'Ordnernamen öffnen Ordnernotizen',

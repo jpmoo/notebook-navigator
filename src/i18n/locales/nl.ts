@@ -949,11 +949,11 @@ export const STRINGS_NL = {
         pageDescriptions: {
             general: 'Releasenotities, ondersteuning, kluisprofiel, bestandstypen en eigenschapssleutels.',
             vaultFilters: 'Verborgen mappen, tags, bestanden, bestandstags en eigenschapsregels.',
-            appearanceBehavior: 'Sjablonen, gedrag, toetsenbordnavigatie, muisknoppen, uiterlijk en opmaak.',
+            appearanceBehavior: 'Gedrag, toetsenbordnavigatie, muisknoppen, uiterlijk en opmaak.',
             navigationPane: 'Indeling, uiterlijk, aantal notities, inklapgedrag en regenboogkleuren.',
             shortcuts: 'Zichtbaarheid van snelkoppelingen, badges, recente bestanden en vastgezette items.',
             calendar: 'Kalenderweergave, datumnotities, sjablonen, taalinstellingen en zijbalkplaatsing.',
-            fileOperations: 'Verwijderingsbevestigingen, bijlagen en gedrag bij bestandsverplaatsingsconflicten.',
+            fileOperations: 'Sjablonen, verwijderingsbevestigingen, bijlagen en gedrag bij bestandsverplaatsingsconflicten.',
             foldersAndFolderNotes: 'Mapweergave, mapnotities, mapnotitiesjablonen en mapnotitiegedrag.',
             tagsProperties: 'Tag- en eigenschapssecties, pictogrammen, sortering, bereik en overerving.',
             listPane: 'Sortering, groepering, lijstmodi, vastgezette notities en tekeningvoorbeelden.',
@@ -1471,15 +1471,16 @@ export const STRINGS_NL = {
             calendarTemplateFolder: {
                 name: 'Sjabloonmaplocatie',
                 desc: 'De sjabloonbestandskiezer toont notities uit deze map.',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: 'Gebruikt door kalendernotities en mapnotities. Configureer sjablonen in Kalender > Kalenderintegratie en Mappen & mapnotities > Mapnotitiebestanden.'
             },
             calendarCustomFilePattern: {
                 name: 'Dagelijkse notities',
-                desc: 'Pad formatteren met Moment-datumnotatie. Zet submapnamen tussen haakjes, bijv. [Work]/YYYY. Klik op het sjabloonpictogram om een sjabloon in te stellen. Stel de sjabloonmaplocatie in bij Uiterlijk & gedrag > Sjablonen.',
+                desc: 'Pad formatteren met Moment-datumnotatie. Zet submapnamen tussen haakjes, bijv. [Work]/YYYY. Klik op het sjabloonpictogram om een sjabloon in te stellen. Stel de sjabloonmaplocatie in bij Bestandsbewerkingen > Sjablonen.',
                 momentDescPrefix: 'Pad formatteren met ',
                 momentLinkText: 'Moment-datumnotatie',
                 momentDescSuffix:
-                    '. Zet submapnamen tussen haakjes, bijv. [Work]/YYYY. Klik op het sjabloonpictogram om een sjabloon in te stellen. Stel de sjabloonmaplocatie in bij Uiterlijk & gedrag > Sjablonen.',
+                    '. Zet submapnamen tussen haakjes, bijv. [Work]/YYYY. Klik op het sjabloonpictogram om een sjabloon in te stellen. Stel de sjabloonmaplocatie in bij Bestandsbewerkingen > Sjablonen.',
                 templaterSupportInstalled: '✅ De Templater-plug-in is geïnstalleerd met volledige sjabloonondersteuning.',
                 templaterSupportMissing: '⚠️ Installeer de Templater-plug-in voor volledige sjabloonondersteuning.',
                 placeholder: 'YYYY/YYYYMMDD',
@@ -2173,7 +2174,7 @@ export const STRINGS_NL = {
             },
             folderNoteTemplate: {
                 name: 'Mapnotitiesjabloon',
-                desc: 'Sjabloonbestand voor nieuwe Markdown-mapnotities. Stel de sjabloonmaplocatie in bij Uiterlijk & gedrag > Sjablonen.'
+                desc: 'Sjabloonbestand voor nieuwe Markdown-mapnotities. Stel de sjabloonmaplocatie in bij Bestandsbewerkingen > Sjablonen.'
             },
             enableFolderNoteLinks: {
                 name: 'Mapnamen openen mapnotities',

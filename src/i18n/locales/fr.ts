@@ -950,11 +950,12 @@ export const STRINGS_FR = {
         pageDescriptions: {
             general: 'Notes de version, support, profil du coffre, types de fichiers et clés de propriétés.',
             vaultFilters: 'Dossiers, étiquettes, fichiers, étiquettes de fichiers et règles de propriétés masqués.',
-            appearanceBehavior: 'Modèles, comportement, navigation au clavier, boutons de souris, apparence et formatage.',
+            appearanceBehavior: 'Comportement, navigation au clavier, boutons de souris, apparence et formatage.',
             navigationPane: 'Disposition, apparence, comptage des notes, comportement de repli et couleurs arc-en-ciel.',
             shortcuts: 'Visibilité des raccourcis, badges, fichiers récents et éléments épinglés.',
             calendar: 'Affichage du calendrier, notes de date, modèles, paramètres régionaux et emplacement de la barre latérale.',
-            fileOperations: 'Confirmations de suppression, pièces jointes et comportement en cas de conflit de déplacement de fichiers.',
+            fileOperations:
+                'Modèles, confirmations de suppression, pièces jointes et comportement en cas de conflit de déplacement de fichiers.',
             foldersAndFolderNotes: 'Affichage des dossiers, notes de dossier, modèles et comportement des notes de dossier.',
             tagsProperties: 'Sections de tags et propriétés, icônes, tri, portée et héritage.',
             listPane: 'Tri, regroupement, modes de liste, notes épinglées et aperçus de dessins.',
@@ -1472,15 +1473,16 @@ export const STRINGS_FR = {
             calendarTemplateFolder: {
                 name: 'Emplacement du dossier de modèles',
                 desc: 'Le sélecteur de fichiers de modèles affiche les notes de ce dossier.',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: 'Utilisé par les notes de calendrier et les notes de dossier. Configurez les modèles dans Calendrier > Intégration du calendrier et Dossiers et notes de dossier > Fichiers de notes de dossier.'
             },
             calendarCustomFilePattern: {
                 name: 'Notes quotidiennes',
-                desc: "Formater le chemin en utilisant le format de date Moment. Entourez les noms de sous-dossiers de crochets, par ex. [Work]/YYYY. Cliquez sur l'icône de modèle pour définir un modèle. Définir l'emplacement du dossier de modèles dans Apparence et comportement > Modèles.",
+                desc: "Formater le chemin en utilisant le format de date Moment. Entourez les noms de sous-dossiers de crochets, par ex. [Work]/YYYY. Cliquez sur l'icône de modèle pour définir un modèle. Définir l'emplacement du dossier de modèles dans Opérations sur les fichiers > Modèles.",
                 momentDescPrefix: 'Formater le chemin en utilisant le ',
                 momentLinkText: 'format de date Moment',
                 momentDescSuffix:
-                    ". Entourez les noms de sous-dossiers de crochets, par ex. [Work]/YYYY. Cliquez sur l'icône de modèle pour définir un modèle. Définir l'emplacement du dossier de modèles dans Apparence et comportement > Modèles.",
+                    ". Entourez les noms de sous-dossiers de crochets, par ex. [Work]/YYYY. Cliquez sur l'icône de modèle pour définir un modèle. Définir l'emplacement du dossier de modèles dans Opérations sur les fichiers > Modèles.",
                 templaterSupportInstalled: '✅ Le plugin Templater est installé avec la prise en charge complète des modèles.',
                 templaterSupportMissing: '⚠️ Installez le plugin Templater pour la prise en charge complète des modèles.',
                 placeholder: 'YYYY/YYYYMMDD',
@@ -2176,7 +2178,7 @@ export const STRINGS_FR = {
             },
             folderNoteTemplate: {
                 name: 'Modèle de note de dossier',
-                desc: "Fichier modèle pour les nouvelles notes de dossier Markdown. Définir l'emplacement du dossier de modèles dans Apparence et comportement > Modèles."
+                desc: "Fichier modèle pour les nouvelles notes de dossier Markdown. Définir l'emplacement du dossier de modèles dans Opérations sur les fichiers > Modèles."
             },
             enableFolderNoteLinks: {
                 name: 'Les noms de dossier ouvrent les notes de dossier',

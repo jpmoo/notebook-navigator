@@ -947,11 +947,11 @@ export const STRINGS_ID = {
         pageDescriptions: {
             general: 'Catatan rilis, dukungan, profil vault, tipe file, dan kunci properti.',
             vaultFilters: 'Folder, tag, file, tag file, dan aturan properti tersembunyi.',
-            appearanceBehavior: 'Templat, perilaku, navigasi keyboard, tombol mouse, tampilan, dan pemformatan.',
+            appearanceBehavior: 'Perilaku, navigasi keyboard, tombol mouse, tampilan, dan pemformatan.',
             navigationPane: 'Tata letak, tampilan, jumlah catatan, perilaku menciutkan, dan warna pelangi.',
             shortcuts: 'Visibilitas pintasan, lencana, file terbaru, dan item yang disematkan.',
             calendar: 'Tampilan kalender, catatan tanggal, templat, lokal, dan penempatan bilah sisi.',
-            fileOperations: 'Konfirmasi hapus, lampiran, dan perilaku konflik saat memindahkan file.',
+            fileOperations: 'Templat, konfirmasi hapus, lampiran, dan perilaku konflik saat memindahkan file.',
             foldersAndFolderNotes: 'Tampilan folder, catatan folder, templat catatan folder, dan perilaku catatan folder.',
             tagsProperties: 'Bagian tag dan properti, ikon, pengurutan, cakupan, dan pewarisan.',
             listPane: 'Pengurutan, pengelompokan, mode daftar, catatan yang disematkan, dan pratinjau gambar.',
@@ -1469,15 +1469,16 @@ export const STRINGS_ID = {
             calendarTemplateFolder: {
                 name: 'Lokasi folder template',
                 desc: 'Pemilih file template menampilkan catatan dari folder ini.',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: 'Digunakan oleh catatan kalender dan catatan folder. Konfigurasi template di Kalender > Integrasi kalender dan Folder & catatan folder > File catatan folder.'
             },
             calendarCustomFilePattern: {
                 name: 'Catatan harian',
-                desc: 'Format jalur menggunakan format tanggal Moment. Bungkus nama subfolder dalam tanda kurung, misal [Work]/YYYY. Klik ikon template untuk mengatur template. Atur lokasi folder templat di Tampilan & perilaku > Templat.',
+                desc: 'Format jalur menggunakan format tanggal Moment. Bungkus nama subfolder dalam tanda kurung, misal [Work]/YYYY. Klik ikon template untuk mengatur template. Atur lokasi folder templat di Operasi file > Templat.',
                 momentDescPrefix: 'Format jalur menggunakan ',
                 momentLinkText: 'format tanggal Moment',
                 momentDescSuffix:
-                    '. Bungkus nama subfolder dalam tanda kurung, misal [Work]/YYYY. Klik ikon template untuk mengatur template. Atur lokasi folder templat di Tampilan & perilaku > Templat.',
+                    '. Bungkus nama subfolder dalam tanda kurung, misal [Work]/YYYY. Klik ikon template untuk mengatur template. Atur lokasi folder templat di Operasi file > Templat.',
                 templaterSupportInstalled: '✅ Plugin Templater terpasang dengan dukungan template penuh.',
                 templaterSupportMissing: '⚠️ Pasang plugin Templater untuk dukungan template penuh.',
                 placeholder: 'YYYY/YYYYMMDD',
@@ -2170,7 +2171,7 @@ export const STRINGS_ID = {
             },
             folderNoteTemplate: {
                 name: 'Templat catatan folder',
-                desc: 'File templat untuk catatan folder markdown baru. Atur lokasi folder templat di Tampilan & perilaku > Templat.'
+                desc: 'File templat untuk catatan folder markdown baru. Atur lokasi folder templat di Operasi file > Templat.'
             },
             enableFolderNoteLinks: {
                 name: 'Nama folder membuka catatan folder',
