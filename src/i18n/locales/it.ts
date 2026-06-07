@@ -943,11 +943,11 @@ export const STRINGS_IT = {
         pageDescriptions: {
             general: 'Note di rilascio, supporto, profilo vault, tipi di file e chiavi delle proprietà.',
             vaultFilters: 'Cartelle, tag, file, tag dei file e regole delle proprietà nascosti.',
-            appearanceBehavior: 'Modelli, comportamento, navigazione da tastiera, pulsanti del mouse, aspetto e formattazione.',
+            appearanceBehavior: 'Comportamento, navigazione da tastiera, pulsanti del mouse, aspetto e formattazione.',
             navigationPane: 'Layout, aspetto, conteggio note, comportamento del collasso e colori arcobaleno.',
             shortcuts: 'Visibilità delle scorciatoie, badge, file recenti ed elementi fissati.',
             calendar: 'Visualizzazione calendario, note data, modelli, locale e posizionamento della barra laterale.',
-            fileOperations: 'Conferme di eliminazione, allegati e comportamento in caso di conflitti di spostamento dei file.',
+            fileOperations: 'Modelli, conferme di eliminazione, allegati e comportamento in caso di conflitti di spostamento dei file.',
             foldersAndFolderNotes: 'Visualizzazione cartelle, note cartella, modelli di note cartella e comportamento delle note cartella.',
             tagsProperties: 'Sezioni tag e proprietà, icone, ordinamento, ambito ed ereditarietà.',
             listPane: 'Ordinamento, raggruppamento, modalità lista, note fissate e anteprime dei disegni.',
@@ -1465,15 +1465,16 @@ export const STRINGS_IT = {
             calendarTemplateFolder: {
                 name: 'Posizione cartella modelli',
                 desc: 'Il selettore file modello mostra le note da questa cartella.',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: 'Usato dalle note calendario e dalle note cartella. Configura i modelli in Calendario > Integrazione calendario e Cartelle e note cartella > File note cartella.'
             },
             calendarCustomFilePattern: {
                 name: 'Note giornaliere',
-                desc: "Formatta percorso usando formato data Moment. Racchiudi i nomi delle sottocartelle tra parentesi quadre, es. [Work]/YYYY. Clicca sull'icona del modello per impostare un modello. Impostare la posizione della cartella modelli in Aspetto e comportamento > Modelli.",
+                desc: "Formatta percorso usando formato data Moment. Racchiudi i nomi delle sottocartelle tra parentesi quadre, es. [Work]/YYYY. Clicca sull'icona del modello per impostare un modello. Impostare la posizione della cartella modelli in Operazioni sui file > Modelli.",
                 momentDescPrefix: 'Formatta percorso usando ',
                 momentLinkText: 'formato data Moment',
                 momentDescSuffix:
-                    ". Racchiudi i nomi delle sottocartelle tra parentesi quadre, es. [Work]/YYYY. Clicca sull'icona del modello per impostare un modello. Impostare la posizione della cartella modelli in Aspetto e comportamento > Modelli.",
+                    ". Racchiudi i nomi delle sottocartelle tra parentesi quadre, es. [Work]/YYYY. Clicca sull'icona del modello per impostare un modello. Impostare la posizione della cartella modelli in Operazioni sui file > Modelli.",
                 templaterSupportInstalled: '✅ Il plugin Templater è installato con supporto completo ai modelli.',
                 templaterSupportMissing: '⚠️ Installa il plugin Templater per il supporto completo ai modelli.',
                 placeholder: 'YYYY/YYYYMMDD',
@@ -2169,7 +2170,7 @@ export const STRINGS_IT = {
             },
             folderNoteTemplate: {
                 name: 'Modello nota cartella',
-                desc: 'File modello per le nuove note cartella Markdown. Impostare la posizione della cartella modelli in Aspetto e comportamento > Modelli.'
+                desc: 'File modello per le nuove note cartella Markdown. Impostare la posizione della cartella modelli in Operazioni sui file > Modelli.'
             },
             enableFolderNoteLinks: {
                 name: 'I nomi delle cartelle aprono note cartella',

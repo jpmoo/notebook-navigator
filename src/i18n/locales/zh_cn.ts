@@ -937,11 +937,11 @@ export const STRINGS_ZH_CN = {
         pageDescriptions: {
             general: '发行说明、支持、仓库配置文件、文件类型和属性键。',
             vaultFilters: '隐藏的文件夹、标签、文件、文件标签和属性规则。',
-            appearanceBehavior: '模板、行为、键盘导航、鼠标按钮、外观和格式。',
+            appearanceBehavior: '行为、键盘导航、鼠标按钮、外观和格式。',
             navigationPane: '布局、外观、笔记数量、折叠行为和彩虹颜色。',
             shortcuts: '快捷方式可见性、徽章、最近文件和固定项目。',
             calendar: '日历显示、日期笔记、模板、区域设置和侧边栏位置。',
-            fileOperations: '删除确认、附件和文件移动冲突行为。',
+            fileOperations: '模板、删除确认、附件和文件移动冲突行为。',
             foldersAndFolderNotes: '文件夹显示、文件夹笔记、文件夹笔记模板和文件夹笔记行为。',
             tagsProperties: '标签和属性部分、图标、排序、范围和继承。',
             listPane: '排序、分组、列表模式、固定笔记和绘图预览。',
@@ -1455,15 +1455,16 @@ export const STRINGS_ZH_CN = {
             calendarTemplateFolder: {
                 name: '模板文件夹位置',
                 desc: '模板文件选择器显示此文件夹中的笔记。',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: '用于日历笔记和文件夹笔记。在导航日历 > 日历集成和文件夹和文件夹笔记 > 文件夹笔记文件中配置模板。'
             },
             calendarCustomFilePattern: {
                 name: '日记',
-                desc: '使用 Moment 日期格式设置路径。将子文件夹名称用方括号括起来，例如 [Work]/YYYY。点击模板图标设置模板。在外观和行为 > 模板中设置模板文件夹位置。',
+                desc: '使用 Moment 日期格式设置路径。将子文件夹名称用方括号括起来，例如 [Work]/YYYY。点击模板图标设置模板。在文件操作 > 模板中设置模板文件夹位置。',
                 momentDescPrefix: '使用 ',
                 momentLinkText: 'Moment 日期格式',
                 momentDescSuffix:
-                    ' 设置路径。将子文件夹名称用方括号括起来，例如 [Work]/YYYY。点击模板图标设置模板。在外观和行为 > 模板中设置模板文件夹位置。',
+                    ' 设置路径。将子文件夹名称用方括号括起来，例如 [Work]/YYYY。点击模板图标设置模板。在文件操作 > 模板中设置模板文件夹位置。',
                 templaterSupportInstalled: '✅ 已安装 Templater 插件，支持完整模板功能。',
                 templaterSupportMissing: '⚠️ 安装 Templater 插件以支持完整模板功能。',
                 placeholder: 'YYYY/YYYYMMDD',
@@ -2154,7 +2155,7 @@ export const STRINGS_ZH_CN = {
             },
             folderNoteTemplate: {
                 name: '文件夹笔记模板',
-                desc: '新建 Markdown 文件夹笔记的模板文件。在外观和行为 > 模板中设置模板文件夹位置。'
+                desc: '新建 Markdown 文件夹笔记的模板文件。在文件操作 > 模板中设置模板文件夹位置。'
             },
             enableFolderNoteLinks: {
                 name: '文件夹名称打开文件夹笔记',

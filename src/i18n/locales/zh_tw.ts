@@ -937,11 +937,11 @@ export const STRINGS_ZH_TW = {
         pageDescriptions: {
             general: '發行說明、支援、保險庫設定檔、檔案類型與屬性鍵。',
             vaultFilters: '隱藏的資料夾、標籤、檔案、檔案標籤與屬性規則。',
-            appearanceBehavior: '範本、行為、鍵盤導覽、滑鼠按鈕、外觀與格式。',
+            appearanceBehavior: '行為、鍵盤導覽、滑鼠按鈕、外觀與格式。',
             navigationPane: '版面配置、外觀、筆記數量、摺疊行為與彩虹顏色。',
             shortcuts: '快捷方式可見性、徽章、最近檔案與釘選項目。',
             calendar: '日曆顯示、日期筆記、範本、區域設定與側邊欄位置。',
-            fileOperations: '刪除確認、附件與檔案移動衝突行為。',
+            fileOperations: '範本、刪除確認、附件與檔案移動衝突行為。',
             foldersAndFolderNotes: '資料夾顯示、資料夾筆記、資料夾筆記範本與資料夾筆記行為。',
             tagsProperties: '標籤與屬性區段、圖示、排序、範圍與繼承。',
             listPane: '排序、群組、列表模式、釘選筆記與繪圖預覽。',
@@ -1455,15 +1455,16 @@ export const STRINGS_ZH_TW = {
             calendarTemplateFolder: {
                 name: '範本資料夾位置',
                 desc: '範本檔案選擇器顯示此資料夾中的筆記。',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: '用於行事曆筆記與資料夾筆記。在導覽日曆 > 行事曆整合和資料夾與資料夾筆記 > 資料夾筆記檔案中設定範本。'
             },
             calendarCustomFilePattern: {
                 name: '日記',
-                desc: '使用 Moment 日期格式設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。在外觀與行為 > 範本中設定範本資料夾位置。',
+                desc: '使用 Moment 日期格式設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。在檔案操作 > 範本中設定範本資料夾位置。',
                 momentDescPrefix: '使用 ',
                 momentLinkText: 'Moment 日期格式',
                 momentDescSuffix:
-                    ' 設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。在外觀與行為 > 範本中設定範本資料夾位置。',
+                    ' 設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。在檔案操作 > 範本中設定範本資料夾位置。',
                 templaterSupportInstalled: '✅ 已安裝 Templater 外掛，支援完整範本功能。',
                 templaterSupportMissing: '⚠️ 安裝 Templater 外掛以支援完整範本功能。',
                 placeholder: 'YYYY/YYYYMMDD',
@@ -2154,7 +2155,7 @@ export const STRINGS_ZH_TW = {
             },
             folderNoteTemplate: {
                 name: '資料夾筆記範本',
-                desc: '新建 Markdown 資料夾筆記的範本檔案。在外觀與行為 > 範本中設定範本資料夾位置。'
+                desc: '新建 Markdown 資料夾筆記的範本檔案。在檔案操作 > 範本中設定範本資料夾位置。'
             },
             enableFolderNoteLinks: {
                 name: '資料夾名稱開啟資料夾筆記',

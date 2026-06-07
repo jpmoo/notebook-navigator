@@ -945,11 +945,11 @@ export const STRINGS_TR = {
         pageDescriptions: {
             general: 'Sürüm notları, destek, kasa profili, dosya türleri ve özellik anahtarları.',
             vaultFilters: 'Gizli klasörler, etiketler, dosyalar, dosya etiketleri ve özellik kuralları.',
-            appearanceBehavior: 'Şablonlar, davranış, klavye ile gezinme, fare düğmeleri, görünüm ve biçimlendirme.',
+            appearanceBehavior: 'Davranış, klavye ile gezinme, fare düğmeleri, görünüm ve biçimlendirme.',
             navigationPane: 'Yerleşim, görünüm, not sayıları, daraltma davranışı ve gökkuşağı renkleri.',
             shortcuts: 'Kısayol görünürlüğü, rozetler, son dosyalar ve sabitlenmiş öğeler.',
             calendar: 'Takvim görünümü, tarih notları, şablonlar, yerel ayar ve kenar çubuğu konumu.',
-            fileOperations: 'Silme onayları, ekler ve dosya taşıma çakışma davranışı.',
+            fileOperations: 'Şablonlar, silme onayları, ekler ve dosya taşıma çakışma davranışı.',
             foldersAndFolderNotes: 'Klasör görünümü, klasör notları, klasör notu şablonları ve klasör notu davranışı.',
             tagsProperties: 'Etiket ve özellik bölümleri, simgeler, sıralama, kapsam ve kalıtım.',
             listPane: 'Sıralama, gruplama, liste modları, sabitlenmiş notlar ve çizim önizlemeleri.',
@@ -1467,15 +1467,16 @@ export const STRINGS_TR = {
             calendarTemplateFolder: {
                 name: 'Şablon klasörü konumu',
                 desc: 'Şablon dosya seçici bu klasördeki notları gösterir.',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: 'Takvim notları ve klasör notları tarafından kullanılır. Şablonları Takvim > Takvim entegrasyonu ve Klasörler ve klasör notları > Klasör notu dosyaları bölümünde yapılandırın.'
             },
             calendarCustomFilePattern: {
                 name: 'Günlük notlar',
-                desc: 'Moment tarih biçimini kullanarak yolu biçimlendir. Alt klasör adlarını köşeli parantez içine alın, örn. [Work]/YYYY. Şablon ayarlamak için şablon simgesine tıklayın. Şablon klasörü konumunu Görünüm ve davranış > Şablonlar bölümünden ayarlayın.',
+                desc: 'Moment tarih biçimini kullanarak yolu biçimlendir. Alt klasör adlarını köşeli parantez içine alın, örn. [Work]/YYYY. Şablon ayarlamak için şablon simgesine tıklayın. Şablon klasörü konumunu Dosya işlemleri > Şablonlar bölümünden ayarlayın.',
                 momentDescPrefix: '',
                 momentLinkText: 'Moment tarih biçimi',
                 momentDescSuffix:
-                    ' kullanarak yolu biçimlendir. Alt klasör adlarını köşeli parantez içine alın, örn. [Work]/YYYY. Şablon ayarlamak için şablon simgesine tıklayın. Şablon klasörü konumunu Görünüm ve davranış > Şablonlar bölümünden ayarlayın.',
+                    ' kullanarak yolu biçimlendir. Alt klasör adlarını köşeli parantez içine alın, örn. [Work]/YYYY. Şablon ayarlamak için şablon simgesine tıklayın. Şablon klasörü konumunu Dosya işlemleri > Şablonlar bölümünden ayarlayın.',
                 templaterSupportInstalled: '✅ Templater eklentisi tam şablon desteğiyle yüklü.',
                 templaterSupportMissing: '⚠️ Tam şablon desteği için Templater eklentisini yükleyin.',
                 placeholder: 'YYYY/YYYYMMDD',
@@ -2168,7 +2169,7 @@ export const STRINGS_TR = {
             },
             folderNoteTemplate: {
                 name: 'Klasör notu şablonu',
-                desc: 'Yeni Markdown klasör notları için şablon dosyası. Şablon klasörü konumunu Görünüm ve davranış > Şablonlar bölümünden ayarlayın.'
+                desc: 'Yeni Markdown klasör notları için şablon dosyası. Şablon klasörü konumunu Dosya işlemleri > Şablonlar bölümünden ayarlayın.'
             },
             enableFolderNoteLinks: {
                 name: 'Klasör adları klasör notlarını açar',

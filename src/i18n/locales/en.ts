@@ -941,11 +941,11 @@ export const STRINGS_EN = {
         pageDescriptions: {
             general: 'Release notes, support, vault profile, file types, and property keys.',
             vaultFilters: 'Hidden folders, tags, files, file tags, and property rules.',
-            appearanceBehavior: 'Templates, behavior, keyboard navigation, mouse buttons, appearance, and formatting.',
+            appearanceBehavior: 'Behavior, keyboard navigation, mouse buttons, appearance, and formatting.',
             navigationPane: 'Layout, appearance, note counts, collapse behavior, and rainbow colors.',
             shortcuts: 'Shortcut visibility, badges, recent files, and pinned items.',
             calendar: 'Calendar display, date notes, templates, locale, and sidebar placement.',
-            fileOperations: 'Delete confirmations, attachments, and file move conflict behavior.',
+            fileOperations: 'Template folder, delete confirmations, attachments, and file move conflict behavior.',
             foldersAndFolderNotes: 'Folder display, folder notes, folder note templates, and folder note behavior.',
             tagsProperties: 'Tag and property sections, icons, sorting, scope, and inheritance.',
             listPane: 'Sorting, grouping, list modes, pinned notes, and drawing previews.',
@@ -1462,15 +1462,16 @@ export const STRINGS_EN = {
             calendarTemplateFolder: {
                 name: 'Template folder location',
                 desc: 'Template file picker shows notes from this folder.',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: 'Used by calendar notes and folder notes. Configure templates in Calendar > Calendar integration and Folders & folder notes > Folder note files.'
             },
             calendarCustomFilePattern: {
                 name: 'Daily notes',
-                desc: 'Format path using Moment date format. Wrap subfolder names in brackets, e.g., [Work]/YYYY. Click template icon to set template. Set template folder location in Appearance & behavior > Templates.',
+                desc: 'Format path using Moment date format. Wrap subfolder names in brackets, e.g., [Work]/YYYY. Click template icon to set template. Set template folder location in File operations > Templates.',
                 momentDescPrefix: 'Format path using ',
                 momentLinkText: 'Moment date format',
                 momentDescSuffix:
-                    '. Wrap subfolder names in brackets, e.g., [Work]/YYYY. Click template icon to set template. Set template folder location in Appearance & behavior > Templates.',
+                    '. Wrap subfolder names in brackets, e.g., [Work]/YYYY. Click template icon to set template. Set template folder location in File operations > Templates.',
                 templaterSupportInstalled: '✅ Templater plugin is installed with full template support.',
                 templaterSupportMissing: '⚠️ Install Templater plugin for full template support.',
                 placeholder: 'YYYY/YYYYMMDD',
@@ -2162,7 +2163,7 @@ export const STRINGS_EN = {
             },
             folderNoteTemplate: {
                 name: 'Folder note template',
-                desc: 'Template file for new markdown folder notes. Set template folder location in Appearance & behavior > Templates.'
+                desc: 'Template file for new markdown folder notes. Set template folder location in File operations > Templates.'
             },
             enableFolderNoteLinks: {
                 name: 'Folder names open folder notes',

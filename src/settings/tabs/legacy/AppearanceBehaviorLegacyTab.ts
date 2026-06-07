@@ -20,7 +20,6 @@ import { ButtonComponent, Platform, Setting } from 'obsidian';
 import { MOMENT_FORMAT_DOCS_URL } from '../../../constants/urls';
 import { strings } from '../../../i18n';
 import { HomepageModal } from '../../../modals/HomepageModal';
-import { FolderPathInputSuggest } from '../../../suggest/FolderPathInputSuggest';
 import {
     MAX_PANE_TRANSITION_DURATION_MS,
     MIN_PANE_TRANSITION_DURATION_MS,
@@ -29,7 +28,6 @@ import {
 } from '../../../types';
 import { TIMEOUTS } from '../../../types/obsidian-extended';
 import { runAsyncAction } from '../../../utils/async';
-import { normalizeCalendarCustomRootFolder } from '../../../utils/calendarCustomNotePatterns';
 import { showNotice } from '../../../utils/noticeUtils';
 import {
     DEFAULT_UI_SCALE,
@@ -69,7 +67,6 @@ export function renderAppearanceBehaviorTab(context: SettingsTabContext): void {
     renderViewSettings(context, createGroup);
     renderIconSettings(context, createGroup);
     renderFormattingSettings(context, createGroup);
-    renderTemplateSettings(context, createGroup);
 }
 
 function renderBehaviorSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
@@ -622,27 +619,4 @@ function renderFormattingSettings(context: SettingsTabContext, createGroup: Crea
             })
     );
     timeFormatSetting.controlEl.addClass('nn-setting-wide-input');
-}
-
-function renderTemplateSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
-    const { plugin, configureDebouncedTextSetting } = context;
-    const templatesGroup = createGroup(strings.settings.groups.general.templates);
-    const templateFolderSetting = templatesGroup.addSetting(setting => {
-        configureDebouncedTextSetting(
-            setting,
-            strings.settings.items.calendarTemplateFolder.name,
-            strings.settings.items.calendarTemplateFolder.desc,
-            strings.settings.items.calendarTemplateFolder.placeholder,
-            () => normalizeCalendarCustomRootFolder(plugin.settings.calendarTemplateFolder),
-            value => {
-                plugin.settings.calendarTemplateFolder = normalizeCalendarCustomRootFolder(value);
-            }
-        );
-    });
-    templateFolderSetting.controlEl.addClass('nn-setting-wide-input');
-    const templateFolderInputEl = templateFolderSetting.controlEl.querySelector<HTMLInputElement>('input');
-    if (templateFolderInputEl) {
-        const folderSuggest = new FolderPathInputSuggest(context.app, templateFolderInputEl);
-        templateFolderInputEl.addEventListener('click', () => folderSuggest.open());
-    }
 }

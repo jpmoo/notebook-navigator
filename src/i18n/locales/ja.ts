@@ -946,11 +946,11 @@ export const STRINGS_JA = {
         pageDescriptions: {
             general: 'リリースノート、サポート、保管庫プロファイル、ファイルタイプ、プロパティキー。',
             vaultFilters: '非表示のフォルダ、タグ、ファイル、ファイルタグ、プロパティルール。',
-            appearanceBehavior: 'テンプレート、動作、キーボード操作、マウスボタン、外観、書式。',
+            appearanceBehavior: '動作、キーボード操作、マウスボタン、外観、書式。',
             navigationPane: 'レイアウト、外観、ノート数、折りたたみ動作、レインボーカラー。',
             shortcuts: 'ショートカットの表示、バッジ、最近のファイル、ピン留めされた項目。',
             calendar: 'カレンダー表示、日付ノート、テンプレート、ロケール、サイドバーの配置。',
-            fileOperations: '削除確認、添付ファイル、ファイル移動時の競合動作。',
+            fileOperations: 'テンプレート、削除確認、添付ファイル、ファイル移動時の競合動作。',
             foldersAndFolderNotes: 'フォルダ表示、フォルダノート、フォルダノートのテンプレート、フォルダノートの動作。',
             tagsProperties: 'タグとプロパティのセクション、アイコン、並べ替え、スコープ、継承。',
             listPane: '並べ替え、グループ化、リストモード、ピン留めされたノート、描画プレビュー。',
@@ -1467,15 +1467,16 @@ export const STRINGS_JA = {
             calendarTemplateFolder: {
                 name: 'テンプレートフォルダの場所',
                 desc: 'テンプレートファイルピッカーはこのフォルダからノートを表示します。',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: 'カレンダーノートとフォルダノートで使用されます。テンプレートは カレンダー > カレンダー連携 と フォルダとフォルダノート > フォルダノートファイル で設定します。'
             },
             calendarCustomFilePattern: {
                 name: 'デイリーノート',
-                desc: 'Moment 日付フォーマットを使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。 テンプレートフォルダの場所は外観と動作 > テンプレートで設定してください。',
+                desc: 'Moment 日付フォーマットを使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。 テンプレートフォルダの場所はファイル操作 > テンプレートで設定してください。',
                 momentDescPrefix: '',
                 momentLinkText: 'Moment 日付フォーマット',
                 momentDescSuffix:
-                    'を使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。 テンプレートフォルダの場所は外観と動作 > テンプレートで設定してください。',
+                    'を使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。 テンプレートフォルダの場所はファイル操作 > テンプレートで設定してください。',
                 templaterSupportInstalled: '✅ Templater プラグインがインストールされており、テンプレートの完全サポートが利用できます。',
                 templaterSupportMissing: '⚠️ テンプレートの完全サポートを利用するには、Templater プラグインをインストールしてください。',
                 placeholder: 'YYYY/YYYYMMDD',
@@ -2168,7 +2169,7 @@ export const STRINGS_JA = {
             },
             folderNoteTemplate: {
                 name: 'フォルダノートテンプレート',
-                desc: '新しいMarkdownフォルダノート用のテンプレートファイル。テンプレートフォルダの場所は外観と動作 > テンプレートで設定してください。'
+                desc: '新しいMarkdownフォルダノート用のテンプレートファイル。テンプレートフォルダの場所はファイル操作 > テンプレートで設定してください。'
             },
             enableFolderNoteLinks: {
                 name: 'フォルダ名でフォルダノートを開く',
