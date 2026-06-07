@@ -84,7 +84,7 @@ export interface ReleaseNote {
 const RELEASE_NOTES: ReleaseNote[] = [
     {
         version: '3.1.1',
-        date: '2026-07-07',
+        date: '2026-06-07',
         showOnUpdate: false,
         new: [
             '**Settings.** New setting ==Folder grouping: current folder files at bottom== in List pane > Organization. Enable to show files in current folder on bottom when grouping by folder.'
@@ -95,7 +95,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
     },
     {
         version: '3.1.0',
-        date: '2026-07-07',
+        date: '2026-06-07',
         showOnUpdate: true,
         bannerUrl: true,
         bannerClickable: true,
