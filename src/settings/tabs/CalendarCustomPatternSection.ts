@@ -74,12 +74,12 @@ export interface CalendarCustomPatternSectionController {
 }
 
 export interface CalendarCustomPatternRenderers extends CalendarCustomPatternSectionController {
-    renderRootFolderSetting(setting: Setting): void;
-    renderDailyPatternSetting(setting: Setting): void;
-    renderWeeklyPatternSetting(setting: Setting): void;
-    renderMonthlyPatternSetting(setting: Setting): void;
-    renderQuarterlyPatternSetting(setting: Setting): void;
-    renderYearlyPatternSetting(setting: Setting): void;
+    renderRootFolderSetting(setting: Setting): void | (() => void);
+    renderDailyPatternSetting(setting: Setting): void | (() => void);
+    renderWeeklyPatternSetting(setting: Setting): void | (() => void);
+    renderMonthlyPatternSetting(setting: Setting): void | (() => void);
+    renderQuarterlyPatternSetting(setting: Setting): void | (() => void);
+    renderYearlyPatternSetting(setting: Setting): void | (() => void);
     renderPatternInfoSetting(setting: Setting): void;
 }
 
@@ -92,6 +92,7 @@ interface CalendarCustomPatternSetting {
     templateButton: ExtraButtonComponent | null;
     inputEl: HTMLInputElement | null;
     getTemplatePath: () => string | null;
+    dispose: () => void;
 }
 
 function getInputValue(element: HTMLInputElement | null, fallback: string): string {
@@ -133,8 +134,8 @@ function setElementTextIfPresent(element: HTMLElement | null, text: string): voi
     }
 }
 
-function isConnectedPatternTarget(target: CalendarCustomPatternSetting | null): target is CalendarCustomPatternSetting {
-    return target?.descEl.isConnected === true;
+function isPatternTarget(target: CalendarCustomPatternSetting | null): target is CalendarCustomPatternSetting {
+    return target !== null;
 }
 
 export function createCalendarCustomPatternSettingDefinitions(
@@ -219,9 +220,9 @@ export function createCalendarCustomPatternRenderers(options: CalendarCustomPatt
             calendarCustomMonthPattern,
             calendarCustomQuarterPattern,
             calendarCustomYearPattern
-        ].filter(isConnectedPatternTarget);
+        ].filter(isPatternTarget);
 
-    const renderRootFolderSetting = (setting: Setting): void => {
+    const renderRootFolderSetting = (setting: Setting): (() => void) => {
         configureDebouncedTextSetting(
             setting,
             strings.settings.items.calendarCustomRootFolder.name,
@@ -233,7 +234,14 @@ export function createCalendarCustomPatternRenderers(options: CalendarCustomPatt
             }
         );
         setting.controlEl.addClass('nn-setting-wide-input');
-        calendarCustomRootFolderInputEl = setting.controlEl.querySelector<HTMLInputElement>('input');
+        const inputEl = setting.controlEl.querySelector<HTMLInputElement>('input');
+        calendarCustomRootFolderInputEl = inputEl;
+
+        return () => {
+            if (calendarCustomRootFolderInputEl === inputEl) {
+                calendarCustomRootFolderInputEl = null;
+            }
+        };
     };
 
     const createCalendarCustomPatternSetting = (
@@ -291,7 +299,8 @@ export function createCalendarCustomPatternRenderers(options: CalendarCustomPatt
                 }).open();
             });
         });
-        inputEl?.addEventListener('input', () => requestVisibilityRefresh());
+        const handleInput = (): void => requestVisibilityRefresh();
+        inputEl?.addEventListener('input', handleInput);
 
         return {
             descEl,
@@ -301,12 +310,13 @@ export function createCalendarCustomPatternRenderers(options: CalendarCustomPatt
             templateTextEl,
             templateButton,
             inputEl,
-            getTemplatePath: params.getTemplatePath
+            getTemplatePath: params.getTemplatePath,
+            dispose: () => inputEl?.removeEventListener('input', handleInput)
         };
     };
 
-    const renderDailyPatternSetting = (setting: Setting): void => {
-        calendarCustomFilePattern = createCalendarCustomPatternSetting(setting, {
+    const renderDailyPatternSetting = (setting: Setting): (() => void) => {
+        const target = createCalendarCustomPatternSetting(setting, {
             name: strings.settings.items.calendarCustomFilePattern.name,
             placeholder: strings.settings.items.calendarCustomFilePattern.placeholder,
             getValue: () => normalizeCalendarCustomFilePattern(plugin.settings.calendarCustomFilePattern),
@@ -319,14 +329,23 @@ export function createCalendarCustomPatternRenderers(options: CalendarCustomPatt
             },
             onAfterUpdate: () => requestVisibilityRefresh()
         });
+        calendarCustomFilePattern = target;
         calendarCustomFilePatternErrorEl = calendarCustomFilePattern.descEl.createDiv({
             cls: 'setting-item-description nn-setting-hidden nn-setting-warning'
         });
         requestVisibilityRefresh();
+
+        return () => {
+            target.dispose();
+            if (calendarCustomFilePattern === target) {
+                calendarCustomFilePattern = null;
+                calendarCustomFilePatternErrorEl = null;
+            }
+        };
     };
 
-    const renderWeeklyPatternSetting = (setting: Setting): void => {
-        calendarCustomWeekPattern = createCalendarCustomPatternSetting(setting, {
+    const renderWeeklyPatternSetting = (setting: Setting): (() => void) => {
+        const target = createCalendarCustomPatternSetting(setting, {
             name: strings.settings.items.calendarCustomWeekPattern.name,
             placeholder: DEFAULT_CALENDAR_CUSTOM_WEEK_PATTERN,
             getValue: () => normalizeCalendarCustomFilePattern(plugin.settings.calendarCustomWeekPattern, ''),
@@ -339,6 +358,7 @@ export function createCalendarCustomPatternRenderers(options: CalendarCustomPatt
             },
             onAfterUpdate: () => renderCalendarCustomPatternPreviews()
         });
+        calendarCustomWeekPattern = target;
         calendarCustomWeekPatternErrorEl = calendarCustomWeekPattern.descEl.createDiv({
             cls: 'setting-item-description nn-setting-hidden nn-setting-warning'
         });
@@ -346,10 +366,19 @@ export function createCalendarCustomPatternRenderers(options: CalendarCustomPatt
             cls: 'setting-item-description nn-setting-hidden nn-setting-warning'
         });
         requestVisibilityRefresh();
+
+        return () => {
+            target.dispose();
+            if (calendarCustomWeekPattern === target) {
+                calendarCustomWeekPattern = null;
+                calendarCustomWeekPatternErrorEl = null;
+                calendarCustomWeekPatternWarningEl = null;
+            }
+        };
     };
 
-    const renderMonthlyPatternSetting = (setting: Setting): void => {
-        calendarCustomMonthPattern = createCalendarCustomPatternSetting(setting, {
+    const renderMonthlyPatternSetting = (setting: Setting): (() => void) => {
+        const target = createCalendarCustomPatternSetting(setting, {
             name: strings.settings.items.calendarCustomMonthPattern.name,
             placeholder: DEFAULT_CALENDAR_CUSTOM_MONTH_PATTERN,
             getValue: () => normalizeCalendarCustomFilePattern(plugin.settings.calendarCustomMonthPattern, ''),
@@ -362,14 +391,23 @@ export function createCalendarCustomPatternRenderers(options: CalendarCustomPatt
             },
             onAfterUpdate: () => renderCalendarCustomPatternPreviews()
         });
+        calendarCustomMonthPattern = target;
         calendarCustomMonthPatternErrorEl = calendarCustomMonthPattern.descEl.createDiv({
             cls: 'setting-item-description nn-setting-hidden nn-setting-warning'
         });
         requestVisibilityRefresh();
+
+        return () => {
+            target.dispose();
+            if (calendarCustomMonthPattern === target) {
+                calendarCustomMonthPattern = null;
+                calendarCustomMonthPatternErrorEl = null;
+            }
+        };
     };
 
-    const renderQuarterlyPatternSetting = (setting: Setting): void => {
-        calendarCustomQuarterPattern = createCalendarCustomPatternSetting(setting, {
+    const renderQuarterlyPatternSetting = (setting: Setting): (() => void) => {
+        const target = createCalendarCustomPatternSetting(setting, {
             name: strings.settings.items.calendarCustomQuarterPattern.name,
             placeholder: DEFAULT_CALENDAR_CUSTOM_QUARTER_PATTERN,
             getValue: () => normalizeCalendarCustomFilePattern(plugin.settings.calendarCustomQuarterPattern, ''),
@@ -382,14 +420,23 @@ export function createCalendarCustomPatternRenderers(options: CalendarCustomPatt
             },
             onAfterUpdate: () => renderCalendarCustomPatternPreviews()
         });
+        calendarCustomQuarterPattern = target;
         calendarCustomQuarterPatternErrorEl = calendarCustomQuarterPattern.descEl.createDiv({
             cls: 'setting-item-description nn-setting-hidden nn-setting-warning'
         });
         requestVisibilityRefresh();
+
+        return () => {
+            target.dispose();
+            if (calendarCustomQuarterPattern === target) {
+                calendarCustomQuarterPattern = null;
+                calendarCustomQuarterPatternErrorEl = null;
+            }
+        };
     };
 
-    const renderYearlyPatternSetting = (setting: Setting): void => {
-        calendarCustomYearPattern = createCalendarCustomPatternSetting(setting, {
+    const renderYearlyPatternSetting = (setting: Setting): (() => void) => {
+        const target = createCalendarCustomPatternSetting(setting, {
             name: strings.settings.items.calendarCustomYearPattern.name,
             placeholder: DEFAULT_CALENDAR_CUSTOM_YEAR_PATTERN,
             getValue: () => normalizeCalendarCustomFilePattern(plugin.settings.calendarCustomYearPattern, ''),
@@ -402,10 +449,19 @@ export function createCalendarCustomPatternRenderers(options: CalendarCustomPatt
             },
             onAfterUpdate: () => renderCalendarCustomPatternPreviews()
         });
+        calendarCustomYearPattern = target;
         calendarCustomYearPatternErrorEl = calendarCustomYearPattern.descEl.createDiv({
             cls: 'setting-item-description nn-setting-hidden nn-setting-warning'
         });
         requestVisibilityRefresh();
+
+        return () => {
+            target.dispose();
+            if (calendarCustomYearPattern === target) {
+                calendarCustomYearPattern = null;
+                calendarCustomYearPatternErrorEl = null;
+            }
+        };
     };
 
     const renderPatternInfoSetting = (setting: Setting): void => {
@@ -491,31 +547,31 @@ export function createCalendarCustomPatternRenderers(options: CalendarCustomPatt
             return folderPathRelative ? `${folderPathRelative}/${fileName}` : fileName;
         };
 
-        if (isConnectedPatternTarget(calendarCustomFilePattern)) {
+        if (isPatternTarget(calendarCustomFilePattern)) {
             const dailyPatternRaw = getInputValue(calendarCustomFilePattern.inputEl, plugin.settings.calendarCustomFilePattern);
             const dailyExamplePath = formatExample('day', dailyPatternRaw, DEFAULT_CALENDAR_CUSTOM_FILE_PATTERN);
             setExampleText(calendarCustomFilePattern, dailyExamplePath ? exampleTemplate.replace('{path}', dailyExamplePath) : '');
         }
 
-        if (isConnectedPatternTarget(calendarCustomWeekPattern)) {
+        if (isPatternTarget(calendarCustomWeekPattern)) {
             const weekPatternRaw = getInputValue(calendarCustomWeekPattern.inputEl, plugin.settings.calendarCustomWeekPattern);
             const weekExamplePath = formatExample('week', weekPatternRaw, '');
             setExampleText(calendarCustomWeekPattern, weekExamplePath ? exampleTemplate.replace('{path}', weekExamplePath) : '');
         }
 
-        if (isConnectedPatternTarget(calendarCustomMonthPattern)) {
+        if (isPatternTarget(calendarCustomMonthPattern)) {
             const monthPatternRaw = getInputValue(calendarCustomMonthPattern.inputEl, plugin.settings.calendarCustomMonthPattern);
             const monthExamplePath = formatExample('month', monthPatternRaw, '');
             setExampleText(calendarCustomMonthPattern, monthExamplePath ? exampleTemplate.replace('{path}', monthExamplePath) : '');
         }
 
-        if (isConnectedPatternTarget(calendarCustomQuarterPattern)) {
+        if (isPatternTarget(calendarCustomQuarterPattern)) {
             const quarterPatternRaw = getInputValue(calendarCustomQuarterPattern.inputEl, plugin.settings.calendarCustomQuarterPattern);
             const quarterExamplePath = formatExample('quarter', quarterPatternRaw, '');
             setExampleText(calendarCustomQuarterPattern, quarterExamplePath ? exampleTemplate.replace('{path}', quarterExamplePath) : '');
         }
 
-        if (isConnectedPatternTarget(calendarCustomYearPattern)) {
+        if (isPatternTarget(calendarCustomYearPattern)) {
             const yearPatternRaw = getInputValue(calendarCustomYearPattern.inputEl, plugin.settings.calendarCustomYearPattern);
             const yearExamplePath = formatExample('year', yearPatternRaw, '');
             setExampleText(calendarCustomYearPattern, yearExamplePath ? exampleTemplate.replace('{path}', yearExamplePath) : '');
@@ -529,7 +585,7 @@ export function createCalendarCustomPatternRenderers(options: CalendarCustomPatt
         setElementVisibleIfPresent(calendarLocaleWarningEl, false);
         setElementVisibleIfPresent(calendarCustomWeekPatternWarningEl, false);
 
-        if (plugin.settings.calendarIntegrationMode !== 'notebook-navigator' || !isConnectedPatternTarget(calendarCustomWeekPattern)) {
+        if (plugin.settings.calendarIntegrationMode !== 'notebook-navigator' || !isPatternTarget(calendarCustomWeekPattern)) {
             return;
         }
 
@@ -582,13 +638,13 @@ export function createCalendarCustomPatternRenderers(options: CalendarCustomPatt
     const refresh = (): void => {
         const activeProfile = getActiveProfile();
         const activeElement = typeof activeDocument !== 'undefined' ? activeDocument.activeElement : null;
-        if (calendarCustomRootFolderInputEl?.isConnected && activeElement !== calendarCustomRootFolderInputEl) {
+        if (calendarCustomRootFolderInputEl && activeElement !== calendarCustomRootFolderInputEl) {
             calendarCustomRootFolderInputEl.value = activeProfile.periodicNotesFolder;
         }
 
         const momentApi = getMomentApi();
 
-        if (isConnectedPatternTarget(calendarCustomFilePattern)) {
+        if (isPatternTarget(calendarCustomFilePattern)) {
             const dailyPatternRaw = getInputValue(calendarCustomFilePattern.inputEl, plugin.settings.calendarCustomFilePattern);
             const dailyCustomPattern = buildCustomPattern(dailyPatternRaw, DEFAULT_CALENDAR_CUSTOM_FILE_PATTERN);
             const showDailyError = !isCalendarCustomDatePatternValid(dailyCustomPattern, momentApi);
@@ -599,7 +655,7 @@ export function createCalendarCustomPatternRenderers(options: CalendarCustomPatt
             setElementVisibleIfPresent(calendarCustomFilePatternErrorEl, showDailyError);
         }
 
-        if (isConnectedPatternTarget(calendarCustomWeekPattern)) {
+        if (isPatternTarget(calendarCustomWeekPattern)) {
             const weekPatternRaw = getInputValue(calendarCustomWeekPattern.inputEl, plugin.settings.calendarCustomWeekPattern);
             const weekCustomPattern = buildCustomPattern(weekPatternRaw, '');
             const showWeekError = weekPatternRaw.trim() !== '' && !isCalendarCustomWeekPatternValid(weekCustomPattern, momentApi);
@@ -610,7 +666,7 @@ export function createCalendarCustomPatternRenderers(options: CalendarCustomPatt
             setElementVisibleIfPresent(calendarCustomWeekPatternErrorEl, showWeekError);
         }
 
-        if (isConnectedPatternTarget(calendarCustomMonthPattern)) {
+        if (isPatternTarget(calendarCustomMonthPattern)) {
             const monthPatternRaw = getInputValue(calendarCustomMonthPattern.inputEl, plugin.settings.calendarCustomMonthPattern);
             const monthCustomPattern = buildCustomPattern(monthPatternRaw, '');
             const showMonthError = monthPatternRaw.trim() !== '' && !isCalendarCustomMonthPatternValid(monthCustomPattern, momentApi);
@@ -621,7 +677,7 @@ export function createCalendarCustomPatternRenderers(options: CalendarCustomPatt
             setElementVisibleIfPresent(calendarCustomMonthPatternErrorEl, showMonthError);
         }
 
-        if (isConnectedPatternTarget(calendarCustomQuarterPattern)) {
+        if (isPatternTarget(calendarCustomQuarterPattern)) {
             const quarterPatternRaw = getInputValue(calendarCustomQuarterPattern.inputEl, plugin.settings.calendarCustomQuarterPattern);
             const quarterCustomPattern = buildCustomPattern(quarterPatternRaw, '');
             const showQuarterError =
@@ -633,7 +689,7 @@ export function createCalendarCustomPatternRenderers(options: CalendarCustomPatt
             setElementVisibleIfPresent(calendarCustomQuarterPatternErrorEl, showQuarterError);
         }
 
-        if (isConnectedPatternTarget(calendarCustomYearPattern)) {
+        if (isPatternTarget(calendarCustomYearPattern)) {
             const yearPatternRaw = getInputValue(calendarCustomYearPattern.inputEl, plugin.settings.calendarCustomYearPattern);
             const yearCustomPattern = buildCustomPattern(yearPatternRaw, '');
             const showYearError = yearPatternRaw.trim() !== '' && !isCalendarCustomYearPatternValid(yearCustomPattern, momentApi);

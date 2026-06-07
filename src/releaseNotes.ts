@@ -88,6 +88,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
         showOnUpdate: false,
         fixed: [
             '**Calendar.** Fixed quarterly note indicator alignment with monthly and yearly note indicators.',
+            '**Calendar settings.** Fixed periodic note template buttons and descriptions initially missing in Obsidian 1.13.',
             '**Folder notes.** Fixed Templater integration for folder note templates. The Folder notes settings now also show Templater plugin status.',
             '**Folder notes.** Fixed right-sidebar folder note cleanup closing unrelated right sidebar panels. Users could see Properties, Backlinks, or other right sidebar panels close after toggling the pinned notes header or changing folders.'
         ]
