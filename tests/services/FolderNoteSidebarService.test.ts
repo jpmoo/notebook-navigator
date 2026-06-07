@@ -17,7 +17,7 @@
  */
 
 import { describe, expect, it, vi } from 'vitest';
-import { App, Platform, TFolder, type WorkspaceLeaf } from 'obsidian';
+import { App, FileView, Platform, TFolder, type WorkspaceLeaf } from 'obsidian';
 import type NotebookNavigatorPlugin from '../../src/main';
 import type { CommandQueueService } from '../../src/services/CommandQueueService';
 import { FolderNoteSidebarService } from '../../src/services/workspace/FolderNoteSidebarService';
@@ -36,18 +36,26 @@ interface TestWorkspaceLeaf {
     setViewState: ReturnType<typeof vi.fn>;
 }
 
+interface CreateRightSidebarLeafOptions {
+    view?: unknown;
+}
+
 interface TestVaultMethods {
     registerFile(file: ReturnType<typeof createTestTFile>): void;
     registerFolder(folder: TFolder): void;
 }
 
-function createRightSidebarLeaf(viewState: { type: string; state?: Record<string, unknown> }, rightSplit: object): TestWorkspaceLeaf {
+function createRightSidebarLeaf(
+    viewState: { type: string; state?: Record<string, unknown> },
+    rightSplit: object,
+    options?: CreateRightSidebarLeafOptions
+): TestWorkspaceLeaf {
     const openFile = vi.fn().mockResolvedValue(undefined);
     const detach = vi.fn();
     const setViewState = vi.fn().mockResolvedValue(undefined);
     const leaf = {
         parent: rightSplit,
-        view: {},
+        view: options?.view ?? {},
         detach,
         getViewState: vi.fn(() => viewState),
         openFile,
@@ -84,6 +92,10 @@ function addFileToFolder(app: App, folder: TFolder, path: string): ReturnType<ty
     (folder as TFolder & { children: ReturnType<typeof createTestTFile>[] }).children.push(file);
     getTestVault(app).registerFile(file);
     return file;
+}
+
+function createFileView(file: ReturnType<typeof createTestTFile>): FileView {
+    return Object.setPrototypeOf({ file }, FileView.prototype) as FileView;
 }
 
 describe('FolderNoteSidebarService', () => {
@@ -311,6 +323,273 @@ describe('FolderNoteSidebarService', () => {
         expect(restoredEmptyLeaf.detach).not.toHaveBeenCalled();
         expect(newFolderNoteLeaf.openFile).toHaveBeenCalledWith(folderNote, { active: false });
         expect(workspace.revealLeaf).toHaveBeenCalledWith(newFolderNoteLeaf.leaf);
+    });
+
+    it('reuses restored Excalidraw folder-note leaves before opening a folder note', async () => {
+        const app = new App();
+        const root = createTestFolder(app, '/');
+        const projects = createTestFolder(app, 'Projects', root);
+        const folderNote = addFileToFolder(app, projects, 'Projects/index.excalidraw.md');
+        const rightSplit = {};
+        const restoredExcalidrawLeaf = createRightSidebarLeaf({ type: 'excalidraw', state: { file: folderNote.path } }, rightSplit);
+        const workspace = {
+            rootSplit: {},
+            leftSplit: {},
+            rightSplit,
+            activeLeaf: null,
+            getRightLeaf: vi.fn(),
+            iterateAllLeaves: vi.fn((callback: (leaf: WorkspaceLeaf) => void) => {
+                callback(restoredExcalidrawLeaf.leaf);
+            }),
+            revealLeaf: vi.fn().mockResolvedValue(undefined),
+            setActiveLeaf: vi.fn()
+        };
+        app.workspace = workspace as unknown as App['workspace'];
+        const plugin = {
+            app,
+            settings: {
+                enableFolderNotes: true,
+                folderNoteOpenLocation: 'right-sidebar',
+                folderNoteName: 'index',
+                folderNoteNamePattern: ''
+            },
+            isShuttingDown: () => false
+        } as unknown as NotebookNavigatorPlugin;
+        const service = new FolderNoteSidebarService(plugin);
+
+        await service.openFolderNote(folderNote);
+
+        expect(workspace.getRightLeaf).not.toHaveBeenCalled();
+        expect(restoredExcalidrawLeaf.openFile).toHaveBeenCalledWith(folderNote, { active: false });
+        expect(workspace.revealLeaf).toHaveBeenCalledWith(restoredExcalidrawLeaf.leaf);
+    });
+
+    it('preserves unrelated right sidebar panels that expose a file state before opening a folder note', async () => {
+        const app = new App();
+        const root = createTestFolder(app, '/');
+        const projects = createTestFolder(app, 'Projects', root);
+        const folderNote = addFileToFolder(app, projects, 'Projects/index.md');
+        const rightSplit = {};
+        const infoLeaf = createRightSidebarLeaf({ type: 'file-properties', state: { file: folderNote.path } }, rightSplit);
+        const newFolderNoteLeaf = createRightSidebarLeaf({ type: 'empty', state: {} }, rightSplit);
+        const workspace = {
+            rootSplit: {},
+            leftSplit: {},
+            rightSplit,
+            activeLeaf: null,
+            getRightLeaf: vi.fn((split: boolean) => (split ? newFolderNoteLeaf.leaf : null)),
+            iterateAllLeaves: vi.fn((callback: (leaf: WorkspaceLeaf) => void) => {
+                callback(infoLeaf.leaf);
+            }),
+            revealLeaf: vi.fn().mockResolvedValue(undefined),
+            setActiveLeaf: vi.fn()
+        };
+        app.workspace = workspace as unknown as App['workspace'];
+        const plugin = {
+            app,
+            settings: {
+                enableFolderNotes: true,
+                folderNoteOpenLocation: 'right-sidebar',
+                folderNoteName: 'index',
+                folderNoteNamePattern: ''
+            },
+            isShuttingDown: () => false
+        } as unknown as NotebookNavigatorPlugin;
+        const service = new FolderNoteSidebarService(plugin);
+
+        await service.openFolderNote(folderNote);
+
+        expect(infoLeaf.openFile).not.toHaveBeenCalled();
+        expect(infoLeaf.setViewState).not.toHaveBeenCalled();
+        expect(infoLeaf.detach).not.toHaveBeenCalled();
+        expect(newFolderNoteLeaf.openFile).toHaveBeenCalledWith(folderNote, { active: false });
+        expect(workspace.revealLeaf).toHaveBeenCalledWith(newFolderNoteLeaf.leaf);
+    });
+
+    it('preserves unrelated FileView right sidebar panels before opening a folder note', async () => {
+        const app = new App();
+        const root = createTestFolder(app, '/');
+        const projects = createTestFolder(app, 'Projects', root);
+        const folderNote = addFileToFolder(app, projects, 'Projects/index.md');
+        const rightSplit = {};
+        const infoView = createFileView(folderNote);
+        const infoLeaf = createRightSidebarLeaf({ type: 'file-properties', state: {} }, rightSplit, { view: infoView });
+        const newFolderNoteLeaf = createRightSidebarLeaf({ type: 'empty', state: {} }, rightSplit);
+        const workspace = {
+            rootSplit: {},
+            leftSplit: {},
+            rightSplit,
+            activeLeaf: null,
+            getRightLeaf: vi.fn((split: boolean) => (split ? newFolderNoteLeaf.leaf : null)),
+            iterateAllLeaves: vi.fn((callback: (leaf: WorkspaceLeaf) => void) => {
+                callback(infoLeaf.leaf);
+            }),
+            revealLeaf: vi.fn().mockResolvedValue(undefined),
+            setActiveLeaf: vi.fn()
+        };
+        app.workspace = workspace as unknown as App['workspace'];
+        const plugin = {
+            app,
+            settings: {
+                enableFolderNotes: true,
+                folderNoteOpenLocation: 'right-sidebar',
+                folderNoteName: 'index',
+                folderNoteNamePattern: ''
+            },
+            isShuttingDown: () => false
+        } as unknown as NotebookNavigatorPlugin;
+        const service = new FolderNoteSidebarService(plugin);
+
+        await service.openFolderNote(folderNote);
+
+        expect(infoLeaf.openFile).not.toHaveBeenCalled();
+        expect(infoLeaf.setViewState).not.toHaveBeenCalled();
+        expect(infoLeaf.detach).not.toHaveBeenCalled();
+        expect(newFolderNoteLeaf.openFile).toHaveBeenCalledWith(folderNote, { active: false });
+        expect(workspace.revealLeaf).toHaveBeenCalledWith(newFolderNoteLeaf.leaf);
+    });
+
+    it('does not replace unrelated right sidebar panels that expose a file state when clearing the companion leaf', async () => {
+        const app = new App();
+        const root = createTestFolder(app, '/');
+        const projects = createTestFolder(app, 'Projects', root);
+        const folderNote = addFileToFolder(app, projects, 'Projects/index.md');
+        const rightSplit = {};
+        const infoLeaf = createRightSidebarLeaf({ type: 'file-properties', state: { file: folderNote.path } }, rightSplit);
+        const workspace = {
+            rootSplit: {},
+            leftSplit: {},
+            rightSplit,
+            activeLeaf: null,
+            getRightLeaf: vi.fn(),
+            iterateAllLeaves: vi.fn((callback: (leaf: WorkspaceLeaf) => void) => {
+                callback(infoLeaf.leaf);
+            }),
+            revealLeaf: vi.fn().mockResolvedValue(undefined),
+            setActiveLeaf: vi.fn()
+        };
+        app.workspace = workspace as unknown as App['workspace'];
+        const plugin = {
+            app,
+            settings: {
+                enableFolderNotes: true,
+                folderNoteOpenLocation: 'right-sidebar',
+                showNearestFolderNoteInSidebar: true,
+                folderNoteName: 'index',
+                folderNoteNamePattern: ''
+            },
+            isShuttingDown: () => false
+        } as unknown as NotebookNavigatorPlugin;
+        const service = new FolderNoteSidebarService(plugin);
+        const mutableService = service as unknown as MutableFolderNoteSidebarService;
+        mutableService.companionLeaf = infoLeaf.leaf;
+        mutableService.currentFolderNotePath = folderNote.path;
+
+        service.handleWorkspaceReady();
+        await service.syncToSelectedFolder(null);
+
+        expect(infoLeaf.setViewState).not.toHaveBeenCalled();
+        expect(infoLeaf.detach).not.toHaveBeenCalled();
+        expect(workspace.getRightLeaf).not.toHaveBeenCalled();
+    });
+
+    it('preserves unrelated right sidebar panels when a settings update clears the companion leaf', () => {
+        const app = new App();
+        const root = createTestFolder(app, '/');
+        const projects = createTestFolder(app, 'Projects', root);
+        const folderNote = addFileToFolder(app, projects, 'Projects/index.md');
+        const rightSplit = {};
+        const infoLeaf = createRightSidebarLeaf({ type: 'file-properties', state: { file: folderNote.path } }, rightSplit);
+        let settingsUpdateListener: (() => void) | null = null;
+        const registerSettingsUpdateListener = vi.fn((_id: string, callback: () => void) => {
+            settingsUpdateListener = callback;
+        });
+        const workspace = {
+            rootSplit: {},
+            leftSplit: {},
+            rightSplit,
+            activeLeaf: null,
+            getRightLeaf: vi.fn(),
+            iterateAllLeaves: vi.fn((callback: (leaf: WorkspaceLeaf) => void) => {
+                callback(infoLeaf.leaf);
+            }),
+            revealLeaf: vi.fn().mockResolvedValue(undefined),
+            setActiveLeaf: vi.fn()
+        };
+        app.workspace = workspace as unknown as App['workspace'];
+        const plugin = {
+            app,
+            registerSettingsUpdateListener,
+            unregisterSettingsUpdateListener: vi.fn(),
+            settings: {
+                enableFolderNotes: true,
+                folderNoteOpenLocation: 'current-tab',
+                folderNoteName: 'index',
+                folderNoteNamePattern: ''
+            },
+            isShuttingDown: () => false
+        } as unknown as NotebookNavigatorPlugin;
+        const service = new FolderNoteSidebarService(plugin);
+        const mutableService = service as unknown as MutableFolderNoteSidebarService;
+        mutableService.companionLeaf = infoLeaf.leaf;
+        mutableService.currentFolderNotePath = folderNote.path;
+
+        service.start();
+        service.handleWorkspaceReady();
+        settingsUpdateListener?.();
+
+        expect(registerSettingsUpdateListener).toHaveBeenCalled();
+        expect(infoLeaf.setViewState).not.toHaveBeenCalled();
+        expect(infoLeaf.detach).not.toHaveBeenCalled();
+        expect(workspace.getRightLeaf).not.toHaveBeenCalled();
+    });
+
+    it('preserves user-opened right sidebar folder notes when a settings update runs while sidebar folder notes are disabled', () => {
+        const app = new App();
+        const root = createTestFolder(app, '/');
+        const projects = createTestFolder(app, 'Projects', root);
+        const folderNote = addFileToFolder(app, projects, 'Projects/index.md');
+        const rightSplit = {};
+        const userOpenedFolderNoteLeaf = createRightSidebarLeaf({ type: 'markdown', state: { file: folderNote.path } }, rightSplit);
+        let settingsUpdateListener: (() => void) | null = null;
+        const registerSettingsUpdateListener = vi.fn((_id: string, callback: () => void) => {
+            settingsUpdateListener = callback;
+        });
+        const workspace = {
+            rootSplit: {},
+            leftSplit: {},
+            rightSplit,
+            activeLeaf: null,
+            getRightLeaf: vi.fn(),
+            iterateAllLeaves: vi.fn((callback: (leaf: WorkspaceLeaf) => void) => {
+                callback(userOpenedFolderNoteLeaf.leaf);
+            }),
+            revealLeaf: vi.fn().mockResolvedValue(undefined),
+            setActiveLeaf: vi.fn()
+        };
+        app.workspace = workspace as unknown as App['workspace'];
+        const plugin = {
+            app,
+            registerSettingsUpdateListener,
+            unregisterSettingsUpdateListener: vi.fn(),
+            settings: {
+                enableFolderNotes: true,
+                folderNoteOpenLocation: 'current-tab',
+                folderNoteName: 'index',
+                folderNoteNamePattern: ''
+            },
+            isShuttingDown: () => false
+        } as unknown as NotebookNavigatorPlugin;
+        const service = new FolderNoteSidebarService(plugin);
+
+        service.start();
+        service.handleWorkspaceReady();
+        settingsUpdateListener?.();
+
+        expect(registerSettingsUpdateListener).toHaveBeenCalled();
+        expect(userOpenedFolderNoteLeaf.setViewState).not.toHaveBeenCalled();
+        expect(userOpenedFolderNoteLeaf.detach).not.toHaveBeenCalled();
+        expect(workspace.getRightLeaf).not.toHaveBeenCalled();
     });
 
     it('opens folder notes in the right sidebar without revealing the sidebar on mobile', async () => {

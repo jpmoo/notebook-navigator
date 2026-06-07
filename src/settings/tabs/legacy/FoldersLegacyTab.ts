@@ -22,6 +22,7 @@ import { FilePathInputSuggest } from '../../../suggest/FilePathInputSuggest';
 import { isFolderNoteCreationPreference } from '../../../types/folderNote';
 import { FOLDER_NOTE_NAME_PATTERN_PLACEHOLDER } from '../../../utils/folderNoteName';
 import { normalizeOptionalVaultFilePath } from '../../../utils/pathUtils';
+import { getTemplaterCreateNoteFromTemplate } from '../../../utils/templaterIntegration';
 import { setElementVisible, wireToggleSettingWithDependentSection } from '../../dependentSettings';
 import { createSettingGroupFactory } from '../../settingGroups';
 import { addSettingSyncModeToggle } from '../../syncModeToggle';
@@ -155,6 +156,16 @@ export function renderFoldersTab(context: SettingsTabContext, heading?: string):
             })
         );
 
+    new Setting(folderNotesSettingsEl)
+        .setName(strings.settings.items.pinCreatedFolderNote.name)
+        .setDesc(strings.settings.items.pinCreatedFolderNote.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.pinCreatedFolderNote).onChange(async value => {
+                plugin.settings.pinCreatedFolderNote = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
     const folderNoteFilesGroup = createGroup(strings.settings.sections.folderNoteFiles);
     folderNoteFilesGroupRootEl = folderNoteFilesGroup.rootEl;
     setElementVisible(folderNoteFilesGroupRootEl, plugin.settings.enableFolderNotes);
@@ -226,13 +237,16 @@ export function renderFoldersTab(context: SettingsTabContext, heading?: string):
         folderNoteTemplateInputEl.addEventListener('click', () => templateSuggest.open());
     }
 
-    folderNoteFilesGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.pinCreatedFolderNote.name).setDesc(strings.settings.items.pinCreatedFolderNote.desc);
-        setting.addToggle(toggle =>
-            toggle.setValue(plugin.settings.pinCreatedFolderNote).onChange(async value => {
-                plugin.settings.pinCreatedFolderNote = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
-    });
+    folderNoteFilesGroup.addSetting(setting => renderFolderNoteTemplateInfoSetting(setting, context));
+}
+
+function renderFolderNoteTemplateInfoSetting(setting: Setting, context: SettingsTabContext): void {
+    setting.setName('').setDesc('');
+    setting.settingEl.addClass('nn-setting-info-container');
+    setting.descEl.empty();
+
+    const templaterSupportText = getTemplaterCreateNoteFromTemplate(context.app)
+        ? strings.settings.items.calendarCustomFilePattern.templaterSupportInstalled
+        : strings.settings.items.calendarCustomFilePattern.templaterSupportMissing;
+    setting.descEl.createEl('strong', { text: templaterSupportText });
 }

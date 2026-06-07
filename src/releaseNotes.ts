@@ -83,8 +83,18 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
+        version: '3.1.2',
+        date: '2026-06-07',
+        showOnUpdate: false,
+        fixed: [
+            '**Calendar.** Fixed quarterly note indicator alignment with monthly and yearly note indicators.',
+            '**Folder notes.** Fixed Templater integration for folder note templates. The Folder notes settings now also show Templater plugin status.',
+            '**Folder notes.** Fixed right-sidebar folder note cleanup closing unrelated right sidebar panels. Users could see Properties, Backlinks, or other right sidebar panels close after toggling the pinned notes header or changing folders.'
+        ]
+    },
+    {
         version: '3.1.1',
-        date: '2026-07-07',
+        date: '2026-06-07',
         showOnUpdate: false,
         new: [
             '**Settings.** New setting ==Folder grouping: current folder files at bottom== in List pane > Organization. Enable to show files in current folder on bottom when grouping by folder.'
@@ -95,7 +105,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
     },
     {
         version: '3.1.0',
-        date: '2026-07-07',
+        date: '2026-06-07',
         showOnUpdate: true,
         bannerUrl: true,
         bannerClickable: true,
