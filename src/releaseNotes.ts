@@ -83,6 +83,12 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
+        version: '3.1.2',
+        date: '2026-06-11',
+        showOnUpdate: false,
+        fixed: ['**Calendar.** Fixed quarterly note indicator alignment with monthly and yearly note indicators.']
+    },
+    {
         version: '3.1.1',
         date: '2026-06-07',
         showOnUpdate: false,
