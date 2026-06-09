@@ -371,7 +371,7 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
             max: MAX_PANE_TRANSITION_DURATION_MS,
             step: PANE_TRANSITION_DURATION_STEP_MS,
             resetTooltip: strings.settings.items.paneTransitionDuration.resetTooltip,
-            formatValue: value => `${value} ms`,
+            formatValue: value => `${value}ms`,
             onChange: value => {
                 plugin.setPaneTransitionDuration(value);
             }
