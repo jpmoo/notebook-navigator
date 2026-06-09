@@ -618,10 +618,11 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         onFirstRender: (group: Parameters<SettingDefinitionRender['render']>[1]) => void,
         onLastCleanup: () => void
     ): SettingDefinitionItem[] {
-        // Sentinel row provides page/index lifecycle hooks while Obsidian renders the visible rows.
+        // Hidden sentinel provides page/index lifecycle hooks while Obsidian renders the visible rows.
         const lifecycleDefinition: SettingDefinitionRender = {
             name: '',
             searchable: false,
+            visible: false,
             render: (setting, group) => {
                 group.addClass('nn-settings-lifecycle-group');
                 setting.settingEl.detach();
