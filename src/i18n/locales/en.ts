@@ -2163,7 +2163,8 @@ export const STRINGS_EN = {
             },
             folderNoteTemplate: {
                 name: 'Folder note template',
-                desc: 'Template file for new markdown folder notes. Set template folder location in File operations > Templates.'
+                desc: 'Template file used when creating folder notes. Markdown templates can use Templater. Canvas and Base templates are copied as file content. Set template folder location in File operations > Templates.',
+                formatWarning: 'Template format must match the selected folder note type: .md, .canvas, or .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Folder names open folder notes',

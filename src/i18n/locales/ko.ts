@@ -2167,7 +2167,8 @@ export const STRINGS_KO = {
             },
             folderNoteTemplate: {
                 name: '폴더 노트 템플릿',
-                desc: '새 마크다운 폴더 노트용 템플릿 파일. 템플릿 폴더 위치는 파일 작업 > 템플릿에서 설정하세요.'
+                desc: '폴더 노트를 만들 때 사용하는 템플릿 파일입니다. Markdown 템플릿은 Templater를 사용할 수 있습니다. Canvas 및 Base 템플릿은 파일 내용으로 복사됩니다. 템플릿 폴더 위치는 파일 작업 > 템플릿에서 설정하세요.',
+                formatWarning: '템플릿 형식은 선택한 폴더 노트 유형과 일치해야 합니다: .md, .canvas 또는 .base.'
             },
             enableFolderNoteLinks: {
                 name: '폴더 이름으로 폴더 노트 열기',

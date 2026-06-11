@@ -2174,7 +2174,9 @@ export const STRINGS_ES = {
             },
             folderNoteTemplate: {
                 name: 'Plantilla de nota de carpeta',
-                desc: 'Archivo de plantilla para nuevas notas de carpeta en Markdown. Establecer ubicación de carpeta de plantillas en Operaciones de archivos > Plantillas.'
+                desc: 'Archivo de plantilla usado al crear notas de carpeta. Las plantillas Markdown pueden usar Templater. Las plantillas Canvas y Base se copian como contenido del archivo. Establece la ubicación de la carpeta de plantillas en Operaciones de archivos > Plantillas.',
+                formatWarning:
+                    'El formato de la plantilla debe coincidir con el tipo de nota de carpeta seleccionado: .md, .canvas o .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Los nombres de carpeta abren notas de carpeta',

@@ -2155,7 +2155,8 @@ export const STRINGS_ZH_CN = {
             },
             folderNoteTemplate: {
                 name: '文件夹笔记模板',
-                desc: '新建 Markdown 文件夹笔记的模板文件。在文件操作 > 模板中设置模板文件夹位置。'
+                desc: '创建文件夹笔记时使用的模板文件。Markdown 模板可以使用 Templater。Canvas 和 Base 模板会作为文件内容复制。在文件操作 > 模板中设置模板文件夹位置。',
+                formatWarning: '模板格式必须与所选文件夹笔记类型匹配：.md、.canvas 或 .base。'
             },
             enableFolderNoteLinks: {
                 name: '文件夹名称打开文件夹笔记',

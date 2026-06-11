@@ -2170,7 +2170,8 @@ export const STRINGS_IT = {
             },
             folderNoteTemplate: {
                 name: 'Modello nota cartella',
-                desc: 'File modello per le nuove note cartella Markdown. Impostare la posizione della cartella modelli in Operazioni sui file > Modelli.'
+                desc: 'File modello usato durante la creazione delle note cartella. I modelli Markdown possono usare Templater. I modelli Canvas e Base vengono copiati come contenuto del file. Impostare la posizione della cartella modelli in Operazioni sui file > Modelli.',
+                formatWarning: 'Il formato del modello deve corrispondere al tipo di nota cartella selezionato: .md, .canvas o .base.'
             },
             enableFolderNoteLinks: {
                 name: 'I nomi delle cartelle aprono note cartella',

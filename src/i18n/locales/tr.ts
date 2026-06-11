@@ -2169,7 +2169,8 @@ export const STRINGS_TR = {
             },
             folderNoteTemplate: {
                 name: 'Klasör notu şablonu',
-                desc: 'Yeni Markdown klasör notları için şablon dosyası. Şablon klasörü konumunu Dosya işlemleri > Şablonlar bölümünden ayarlayın.'
+                desc: 'Klasör notları oluşturulurken kullanılan şablon dosyası. Markdown şablonları Templater kullanabilir. Canvas ve Base şablonları dosya içeriği olarak kopyalanır. Şablon klasörü konumunu Dosya işlemleri > Şablonlar bölümünden ayarlayın.',
+                formatWarning: 'Şablon biçimi seçilen klasör notu türüyle eşleşmelidir: .md, .canvas veya .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Klasör adları klasör notlarını açar',

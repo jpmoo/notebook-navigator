@@ -2172,7 +2172,8 @@ export const STRINGS_VI = {
             },
             folderNoteTemplate: {
                 name: 'Mẫu ghi chú thư mục',
-                desc: 'Tệp mẫu cho ghi chú thư mục Markdown mới. Đặt vị trí thư mục mẫu trong Thao tác tệp > Mẫu.'
+                desc: 'Tệp mẫu được dùng khi tạo ghi chú thư mục. Mẫu Markdown có thể dùng Templater. Mẫu Canvas và Base được sao chép dưới dạng nội dung tệp. Đặt vị trí thư mục mẫu trong Thao tác tệp > Mẫu.',
+                formatWarning: 'Định dạng mẫu phải khớp với loại ghi chú thư mục đã chọn: .md, .canvas hoặc .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Tên thư mục mở ghi chú thư mục',

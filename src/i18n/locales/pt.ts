@@ -2173,7 +2173,8 @@ export const STRINGS_PT = {
             },
             folderNoteTemplate: {
                 name: 'Modelo de nota de pasta',
-                desc: 'Ficheiro de modelo para novas notas de pasta Markdown. Definir localização da pasta de modelos em Operações de ficheiros > Modelos.'
+                desc: 'Ficheiro de modelo usado ao criar notas de pasta. Os modelos Markdown podem usar Templater. Os modelos Canvas e Base são copiados como conteúdo do ficheiro. Definir localização da pasta de modelos em Operações de ficheiros > Modelos.',
+                formatWarning: 'O formato do modelo deve corresponder ao tipo de nota de pasta selecionado: .md, .canvas ou .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Nomes de pastas abrem notas de pasta',

@@ -2174,7 +2174,8 @@ export const STRINGS_NL = {
             },
             folderNoteTemplate: {
                 name: 'Mapnotitiesjabloon',
-                desc: 'Sjabloonbestand voor nieuwe Markdown-mapnotities. Stel de sjabloonmaplocatie in bij Bestandsbewerkingen > Sjablonen.'
+                desc: 'Sjabloonbestand dat wordt gebruikt bij het maken van mapnotities. Markdown-sjablonen kunnen Templater gebruiken. Canvas- en Base-sjablonen worden als bestandsinhoud gekopieerd. Stel de sjabloonmaplocatie in bij Bestandsbewerkingen > Sjablonen.',
+                formatWarning: 'De sjabloonindeling moet overeenkomen met het geselecteerde type mapnotitie: .md, .canvas of .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Mapnamen openen mapnotities',

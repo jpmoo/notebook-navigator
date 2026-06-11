@@ -2171,7 +2171,8 @@ export const STRINGS_ID = {
             },
             folderNoteTemplate: {
                 name: 'Templat catatan folder',
-                desc: 'File templat untuk catatan folder markdown baru. Atur lokasi folder templat di Operasi file > Templat.'
+                desc: 'File templat yang digunakan saat membuat catatan folder. Templat Markdown dapat menggunakan Templater. Templat Canvas dan Base disalin sebagai isi file. Atur lokasi folder templat di Operasi file > Templat.',
+                formatWarning: 'Format templat harus cocok dengan jenis catatan folder yang dipilih: .md, .canvas, atau .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Nama folder membuka catatan folder',

@@ -2178,7 +2178,8 @@ export const STRINGS_FR = {
             },
             folderNoteTemplate: {
                 name: 'Modèle de note de dossier',
-                desc: "Fichier modèle pour les nouvelles notes de dossier Markdown. Définir l'emplacement du dossier de modèles dans Opérations sur les fichiers > Modèles."
+                desc: "Fichier modèle utilisé lors de la création de notes de dossier. Les modèles Markdown peuvent utiliser Templater. Les modèles Canvas et Base sont copiés comme contenu de fichier. Définir l'emplacement du dossier de modèles dans Opérations sur les fichiers > Modèles.",
+                formatWarning: 'Le format du modèle doit correspondre au type de note de dossier sélectionné : .md, .canvas ou .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Les noms de dossier ouvrent les notes de dossier',

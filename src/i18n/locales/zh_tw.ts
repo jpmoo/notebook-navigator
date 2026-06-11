@@ -2155,7 +2155,8 @@ export const STRINGS_ZH_TW = {
             },
             folderNoteTemplate: {
                 name: '資料夾筆記範本',
-                desc: '新建 Markdown 資料夾筆記的範本檔案。在檔案操作 > 範本中設定範本資料夾位置。'
+                desc: '建立資料夾筆記時使用的範本檔案。Markdown 範本可以使用 Templater。Canvas 和 Base 範本會作為檔案內容複製。在檔案操作 > 範本中設定範本資料夾位置。',
+                formatWarning: '範本格式必須與所選資料夾筆記類型相符：.md、.canvas 或 .base。'
             },
             enableFolderNoteLinks: {
                 name: '資料夾名稱開啟資料夾筆記',

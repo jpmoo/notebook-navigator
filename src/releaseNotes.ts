@@ -83,6 +83,12 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
+        version: '3.1.3',
+        date: '2026-06-10',
+        showOnUpdate: false,
+        improved: ['**Folder notes.** You can now use Canvas and Base files as templates for folder notes.']
+    },
+    {
         version: '3.1.2',
         date: '2026-06-07',
         showOnUpdate: false,

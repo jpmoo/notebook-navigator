@@ -2175,7 +2175,8 @@ export const STRINGS_PL = {
             },
             folderNoteTemplate: {
                 name: 'Szablon notatki folderu',
-                desc: 'Plik szablonu dla nowych notatek folderów Markdown. Ustaw lokalizację folderu szablonów w Operacje na plikach > Szablony.'
+                desc: 'Plik szablonu używany podczas tworzenia notatek folderów. Szablony Markdown mogą używać Templatera. Szablony Canvas i Base są kopiowane jako zawartość pliku. Ustaw lokalizację folderu szablonów w Operacje na plikach > Szablony.',
+                formatWarning: 'Format szablonu musi odpowiadać wybranemu typowi notatki folderu: .md, .canvas lub .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Nazwy folderów otwierają notatki folderów',

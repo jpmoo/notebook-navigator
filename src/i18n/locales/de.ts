@@ -2175,7 +2175,8 @@ export const STRINGS_DE = {
             },
             folderNoteTemplate: {
                 name: 'Ordnernotiz-Vorlage',
-                desc: 'Vorlagendatei für neue Markdown-Ordnernotizen. Vorlagenordner unter Dateioperationen > Vorlagen festlegen.'
+                desc: 'Vorlagendatei, die beim Erstellen von Ordnernotizen verwendet wird. Markdown-Vorlagen können Templater verwenden. Canvas- und Base-Vorlagen werden als Dateiinhalt kopiert. Vorlagenordner unter Dateioperationen > Vorlagen festlegen.',
+                formatWarning: 'Das Vorlagenformat muss dem ausgewählten Ordnernotiztyp entsprechen: .md, .canvas oder .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Ordnernamen öffnen Ordnernotizen',

@@ -2169,7 +2169,8 @@ export const STRINGS_JA = {
             },
             folderNoteTemplate: {
                 name: 'フォルダノートテンプレート',
-                desc: '新しいMarkdownフォルダノート用のテンプレートファイル。テンプレートフォルダの場所はファイル操作 > テンプレートで設定してください。'
+                desc: 'フォルダノート作成時に使用するテンプレートファイル。MarkdownテンプレートではTemplaterを使用できます。CanvasとBaseテンプレートはファイル内容としてコピーされます。テンプレートフォルダの場所はファイル操作 > テンプレートで設定してください。',
+                formatWarning: 'テンプレート形式は選択したフォルダノートの種類と一致している必要があります: .md、.canvas、.base。'
             },
             enableFolderNoteLinks: {
                 name: 'フォルダ名でフォルダノートを開く',
