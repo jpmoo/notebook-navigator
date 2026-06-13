@@ -84,10 +84,13 @@ export interface ReleaseNote {
 const RELEASE_NOTES: ReleaseNote[] = [
     {
         version: '3.1.3',
-        date: '2026-06-10',
+        date: '2026-06-15',
         showOnUpdate: false,
         improved: ['**Folder notes.** You can now use Canvas and Base files as templates for folder notes.'],
-        fixed: ['**List pane.** Fixed notes embedded in Canvas opening in a separate note tab while typing.']
+        fixed: [
+            '**List pane.** Fixed notes embedded in Canvas files opening in a separate note tab while typing.',
+            '**List pane.** Fixed subfolder path group headers truncating each path segment in narrow views.'
+        ]
     },
     {
         version: '3.1.2',
