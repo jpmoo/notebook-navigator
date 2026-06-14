@@ -59,3 +59,20 @@ export function getReleaseBannerUrl(bannerUrl: boolean | string | undefined, ver
 
     return `${NOTEBOOK_NAVIGATOR_RAW_BASE_URL}/images/version-banners/${bannerSource}.jpg`;
 }
+
+export function getReleaseVideoUrl(videoUrl: boolean | string | undefined, version: string): string | null {
+    if (!videoUrl) {
+        return null;
+    }
+
+    const videoSource = videoUrl === true ? version : videoUrl.trim();
+    if (videoSource.length === 0) {
+        return null;
+    }
+
+    if (/^https?:\/\//i.test(videoSource)) {
+        return videoSource;
+    }
+
+    return `${NOTEBOOK_NAVIGATOR_RAW_BASE_URL}/images/version-banners/${videoSource}.mp4`;
+}
