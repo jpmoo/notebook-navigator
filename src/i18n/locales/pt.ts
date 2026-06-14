@@ -157,6 +157,8 @@ export const STRINGS_PT = {
         hideExcludedItems: 'Ocultar pastas, etiquetas e notas ocultas', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Mostrar painéis duplos', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Mostrar painel único', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'Os painéis duplos não estão disponíveis quando a barra lateral é demasiado estreita. Para alterar isto, defina "Quando a barra lateral é demasiado estreita" como "Não fazer nada" em Definições > Aparência e comportamento.',
         changeAppearance: 'Alterar aparência', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'Mostrar notas de subpastas',
         showFilesFromSubfolders: 'Mostrar ficheiros de subpastas',
@@ -1234,6 +1236,28 @@ export const STRINGS_PT = {
                     vertical: 'Divisão vertical'
                 }
             },
+            narrowSidebarLayout: {
+                name: 'Quando a barra lateral é demasiado estreita',
+                desc: 'Escolha o que acontece quando o painel de navegação e o painel de lista não cabem lado a lado.',
+                options: {
+                    none: 'Não fazer nada',
+                    singlePane: 'Mudar para painel único',
+                    vertical: 'Mudar para divisão vertical'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Limite de barra lateral estreita',
+                desc: 'Escolha como o limite de largura da barra lateral é calculado.',
+                options: {
+                    fitPanes: 'Ajustar painéis',
+                    customWidth: 'Largura personalizada'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Largura do limite de barra lateral estreita',
+                desc: 'Mudar quando a barra lateral for mais estreita do que esta largura.',
+                resetTooltip: 'Repor para a largura predefinida'
+            },
             appearanceBackground: {
                 name: 'Cor de fundo',
                 desc: 'Escolha cores de fundo para os painéis de navegação e lista.',
@@ -2173,7 +2197,8 @@ export const STRINGS_PT = {
             },
             folderNoteTemplate: {
                 name: 'Modelo de nota de pasta',
-                desc: 'Ficheiro de modelo para novas notas de pasta Markdown. Definir localização da pasta de modelos em Operações de ficheiros > Modelos.'
+                desc: 'Ficheiro de modelo usado ao criar notas de pasta. Os modelos Markdown podem usar Templater. Os modelos Canvas e Base são copiados como conteúdo do ficheiro. Definir localização da pasta de modelos em Operações de ficheiros > Modelos.',
+                formatWarning: 'O formato do modelo deve corresponder ao tipo de nota de pasta selecionado: .md, .canvas ou .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Nomes de pastas abrem notas de pasta',

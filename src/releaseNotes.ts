@@ -65,6 +65,10 @@ export interface ReleaseNote {
     bannerUrl?: boolean | string;
     /** When true, the banner opens the full image in a new tab */
     bannerClickable?: boolean;
+    /** Optional autoplay video source. true uses version as video id, string uses explicit URL or video id */
+    videoUrl?: boolean | string;
+    /** When true, the video can be opened in a new tab */
+    videoClickable?: boolean;
     /** Optional YouTube video URL shown above the release notes for this version */
     youtubeUrl?: string;
     info?: string; // General information about the release, shown at top without bullets
@@ -82,6 +86,22 @@ export interface ReleaseNote {
  * 2. Categorize features into: new, improved, changed, or fixed arrays
  */
 const RELEASE_NOTES: ReleaseNote[] = [
+    {
+        version: '3.1.3',
+        date: '2026-06-15',
+        showOnUpdate: false,
+        videoUrl: true,
+        videoClickable: true,
+        new: [
+            'When resizing the sidebar, Notebook Navigator can now automatically switch between dual pane, vertical split, and single pane. Configure this with ==When sidebar is too narrow== in Settings > Appearance & behavior > Desktop appearance.'
+        ],
+        improved: ['**Folder notes.** You can now use Canvas and Base files as templates for folder notes.'],
+        fixed: [
+            '**Navigation pane.** Pinned shortcuts disappeared on iOS/iPadOS because of a WebKit paint bug.',
+            '**List pane.** Notes embedded in Canvas files were opening in a separate notes tab while typing.',
+            '**List pane.** When grouping by subfolders, folder groups incorrectly got truncated to "MyF... / SubF..." instead of "MyFolder / Su...".'
+        ]
+    },
     {
         version: '3.1.2',
         date: '2026-06-07',

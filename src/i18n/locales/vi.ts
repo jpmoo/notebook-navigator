@@ -157,6 +157,8 @@ export const STRINGS_VI = {
         hideExcludedItems: 'Ẩn thư mục, thẻ và ghi chú ẩn', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Hiện hai ngăn', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Hiện một ngăn', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'Không dùng được hai ngăn khi thanh bên quá hẹp. Để thay đổi, đặt "Khi thanh bên quá hẹp" thành "Không làm gì" trong Cài đặt > Giao diện & hành vi.',
         changeAppearance: 'Đổi giao diện', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'Hiện ghi chú từ thư mục con',
         showFilesFromSubfolders: 'Hiện tập tin từ thư mục con',
@@ -1235,6 +1237,28 @@ export const STRINGS_VI = {
                     vertical: 'Chia dọc'
                 }
             },
+            narrowSidebarLayout: {
+                name: 'Khi thanh bên quá hẹp',
+                desc: 'Chọn điều xảy ra khi ngăn điều hướng và ngăn danh sách không vừa khi đặt cạnh nhau.',
+                options: {
+                    none: 'Không làm gì',
+                    singlePane: 'Chuyển sang một ngăn',
+                    vertical: 'Chuyển sang chia dọc'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Ngưỡng thanh bên hẹp',
+                desc: 'Chọn cách tính ngưỡng chiều rộng của thanh bên.',
+                options: {
+                    fitPanes: 'Vừa các ngăn',
+                    customWidth: 'Chiều rộng tùy chỉnh'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Chiều rộng ngưỡng thanh bên hẹp',
+                desc: 'Chuyển khi thanh bên hẹp hơn chiều rộng này.',
+                resetTooltip: 'Đặt lại về chiều rộng mặc định'
+            },
             appearanceBackground: {
                 name: 'Màu nền',
                 desc: 'Chọn màu nền cho ngăn điều hướng và danh sách.',
@@ -2172,7 +2196,8 @@ export const STRINGS_VI = {
             },
             folderNoteTemplate: {
                 name: 'Mẫu ghi chú thư mục',
-                desc: 'Tệp mẫu cho ghi chú thư mục Markdown mới. Đặt vị trí thư mục mẫu trong Thao tác tệp > Mẫu.'
+                desc: 'Tệp mẫu được dùng khi tạo ghi chú thư mục. Mẫu Markdown có thể dùng Templater. Mẫu Canvas và Base được sao chép dưới dạng nội dung tệp. Đặt vị trí thư mục mẫu trong Thao tác tệp > Mẫu.',
+                formatWarning: 'Định dạng mẫu phải khớp với loại ghi chú thư mục đã chọn: .md, .canvas hoặc .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Tên thư mục mở ghi chú thư mục',

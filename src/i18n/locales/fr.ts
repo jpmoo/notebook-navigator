@@ -157,6 +157,8 @@ export const STRINGS_FR = {
         hideExcludedItems: 'Masquer les dossiers, étiquettes et notes masqués', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Afficher les panneaux doubles', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Afficher panneau unique', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'Les deux panneaux ne sont pas disponibles lorsque la barre latérale est trop étroite. Pour modifier cela, réglez « Lorsque la barre latérale est trop étroite » sur « Ne rien faire » dans Paramètres > Apparence et comportement.',
         changeAppearance: "Changer l'apparence", // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'Afficher les notes des sous-dossiers',
         showFilesFromSubfolders: 'Afficher les fichiers des sous-dossiers',
@@ -1238,6 +1240,28 @@ export const STRINGS_FR = {
                     vertical: 'Séparation verticale'
                 }
             },
+            narrowSidebarLayout: {
+                name: 'Lorsque la barre latérale est trop étroite',
+                desc: 'Choisissez ce qui se passe lorsque le panneau de navigation et le panneau de liste ne tiennent pas côte à côte.',
+                options: {
+                    none: 'Ne rien faire',
+                    singlePane: 'Passer au panneau unique',
+                    vertical: 'Passer à la séparation verticale'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Seuil de barre latérale étroite',
+                desc: 'Choisissez comment le seuil de largeur de la barre latérale est calculé.',
+                options: {
+                    fitPanes: 'Adapter les panneaux',
+                    customWidth: 'Largeur personnalisée'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Largeur du seuil de barre latérale étroite',
+                desc: 'Basculer lorsque la barre latérale est plus étroite que cette largeur.',
+                resetTooltip: 'Réinitialiser à la largeur par défaut'
+            },
             appearanceBackground: {
                 name: 'Couleur de fond',
                 desc: 'Choisissez les couleurs de fond pour les volets de navigation et de liste.',
@@ -2178,7 +2202,8 @@ export const STRINGS_FR = {
             },
             folderNoteTemplate: {
                 name: 'Modèle de note de dossier',
-                desc: "Fichier modèle pour les nouvelles notes de dossier Markdown. Définir l'emplacement du dossier de modèles dans Opérations sur les fichiers > Modèles."
+                desc: "Fichier modèle utilisé lors de la création de notes de dossier. Les modèles Markdown peuvent utiliser Templater. Les modèles Canvas et Base sont copiés comme contenu de fichier. Définir l'emplacement du dossier de modèles dans Opérations sur les fichiers > Modèles.",
+                formatWarning: 'Le format du modèle doit correspondre au type de note de dossier sélectionné : .md, .canvas ou .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Les noms de dossier ouvrent les notes de dossier',

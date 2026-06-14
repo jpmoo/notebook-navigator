@@ -156,6 +156,8 @@ export const STRINGS_ZH_TW = {
         hideExcludedItems: '隱藏隱藏的資料夾、標籤和筆記',
         showDualPane: '顯示雙窗格',
         showSinglePane: '顯示單窗格',
+        dualPaneAutoFallbackNotice:
+            '側邊欄過窄時無法使用雙窗格。若要變更此行為，請在設定 > 外觀與行為中將「側邊欄過窄時」設為「不執行任何動作」。',
         changeAppearance: '變更外觀',
         showNotesFromSubfolders: '顯示子資料夾的筆記',
         showFilesFromSubfolders: '顯示子資料夾的檔案',
@@ -1221,6 +1223,28 @@ export const STRINGS_ZH_TW = {
                     vertical: '垂直分割'
                 }
             },
+            narrowSidebarLayout: {
+                name: '側邊欄過窄時',
+                desc: '選擇導覽窗格和清單窗格無法並排顯示時的處理方式。',
+                options: {
+                    none: '不執行任何動作',
+                    singlePane: '切換到單窗格',
+                    vertical: '切換到垂直分割'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: '窄側邊欄閾值',
+                desc: '選擇側邊欄寬度閾值的計算方式。',
+                options: {
+                    fitPanes: '適配窗格',
+                    customWidth: '自訂寬度'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: '窄側邊欄閾值寬度',
+                desc: '當側邊欄窄於此寬度時切換。',
+                resetTooltip: '重設為預設寬度'
+            },
             appearanceBackground: {
                 name: '背景色',
                 desc: '為導覽窗格和列表窗格選擇背景色。',
@@ -2155,7 +2179,8 @@ export const STRINGS_ZH_TW = {
             },
             folderNoteTemplate: {
                 name: '資料夾筆記範本',
-                desc: '新建 Markdown 資料夾筆記的範本檔案。在檔案操作 > 範本中設定範本資料夾位置。'
+                desc: '建立資料夾筆記時使用的範本檔案。Markdown 範本可以使用 Templater。Canvas 和 Base 範本會作為檔案內容複製。在檔案操作 > 範本中設定範本資料夾位置。',
+                formatWarning: '範本格式必須與所選資料夾筆記類型相符：.md、.canvas 或 .base。'
             },
             enableFolderNoteLinks: {
                 name: '資料夾名稱開啟資料夾筆記',

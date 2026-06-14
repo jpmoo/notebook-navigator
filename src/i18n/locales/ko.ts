@@ -156,6 +156,8 @@ export const STRINGS_KO = {
         hideExcludedItems: '숨긴 폴더, 태그, 노트 숨기기', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: '이중 창 표시', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: '단일 창 표시', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            '사이드바가 너무 좁으면 이중 창을 사용할 수 없습니다. 이를 변경하려면 설정 > 모양 및 동작에서 "사이드바가 너무 좁을 때"를 "아무것도 하지 않음"으로 설정하세요.',
         changeAppearance: '모양 변경', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: '하위 폴더 노트 표시',
         showFilesFromSubfolders: '하위 폴더 파일 표시',
@@ -1231,6 +1233,28 @@ export const STRINGS_KO = {
                     vertical: '세로 분할'
                 }
             },
+            narrowSidebarLayout: {
+                name: '사이드바가 너무 좁을 때',
+                desc: '탐색 창과 목록 창이 나란히 맞지 않을 때의 동작을 선택합니다.',
+                options: {
+                    none: '아무것도 하지 않음',
+                    singlePane: '단일 창으로 전환',
+                    vertical: '세로 분할로 전환'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: '좁은 사이드바 임계값',
+                desc: '사이드바 너비 임계값 계산 방법을 선택합니다.',
+                options: {
+                    fitPanes: '창에 맞춤',
+                    customWidth: '사용자 지정 너비'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: '좁은 사이드바 임계값 너비',
+                desc: '사이드바가 이 너비보다 좁으면 전환합니다.',
+                resetTooltip: '기본 너비로 재설정'
+            },
             appearanceBackground: {
                 name: '배경색',
                 desc: '탐색 및 목록 패널의 배경색을 선택합니다.',
@@ -2167,7 +2191,8 @@ export const STRINGS_KO = {
             },
             folderNoteTemplate: {
                 name: '폴더 노트 템플릿',
-                desc: '새 마크다운 폴더 노트용 템플릿 파일. 템플릿 폴더 위치는 파일 작업 > 템플릿에서 설정하세요.'
+                desc: '폴더 노트를 만들 때 사용하는 템플릿 파일입니다. Markdown 템플릿은 Templater를 사용할 수 있습니다. Canvas 및 Base 템플릿은 파일 내용으로 복사됩니다. 템플릿 폴더 위치는 파일 작업 > 템플릿에서 설정하세요.',
+                formatWarning: '템플릿 형식은 선택한 폴더 노트 유형과 일치해야 합니다: .md, .canvas 또는 .base.'
             },
             enableFolderNoteLinks: {
                 name: '폴더 이름으로 폴더 노트 열기',

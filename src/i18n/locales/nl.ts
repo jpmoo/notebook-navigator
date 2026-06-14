@@ -158,6 +158,8 @@ export const STRINGS_NL = {
         hideExcludedItems: 'Verborgen mappen, tags en notities verbergen',
         showDualPane: 'Dubbel paneel tonen',
         showSinglePane: 'Enkel paneel tonen',
+        dualPaneAutoFallbackNotice:
+            'Dubbele panelen zijn niet beschikbaar wanneer de zijbalk te smal is. Stel "Wanneer de zijbalk te smal is" in op "Niets doen" in Instellingen > Uiterlijk & gedrag om dit te wijzigen.',
         changeAppearance: 'Uiterlijk wijzigen',
         showNotesFromSubfolders: 'Notities uit submappen tonen',
         showFilesFromSubfolders: 'Bestanden uit submappen tonen',
@@ -1236,6 +1238,28 @@ export const STRINGS_NL = {
                     vertical: 'Verticale splitsing'
                 }
             },
+            narrowSidebarLayout: {
+                name: 'Wanneer de zijbalk te smal is',
+                desc: 'Kies wat er gebeurt wanneer het navigatiepaneel en lijstpaneel niet naast elkaar passen.',
+                options: {
+                    none: 'Niets doen',
+                    singlePane: 'Overschakelen naar enkel paneel',
+                    vertical: 'Overschakelen naar verticale splitsing'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Drempel voor smalle zijbalk',
+                desc: 'Kies hoe de breedtedrempel van de zijbalk wordt berekend.',
+                options: {
+                    fitPanes: 'Panelen laten passen',
+                    customWidth: 'Aangepaste breedte'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Breedtedrempel voor smalle zijbalk',
+                desc: 'Schakel om wanneer de zijbalk smaller is dan deze breedte.',
+                resetTooltip: 'Standaardbreedte herstellen'
+            },
             appearanceBackground: {
                 name: 'Achtergrondkleur',
                 desc: 'Kies achtergrondkleuren voor navigatie- en lijstpanelen.',
@@ -2174,7 +2198,8 @@ export const STRINGS_NL = {
             },
             folderNoteTemplate: {
                 name: 'Mapnotitiesjabloon',
-                desc: 'Sjabloonbestand voor nieuwe Markdown-mapnotities. Stel de sjabloonmaplocatie in bij Bestandsbewerkingen > Sjablonen.'
+                desc: 'Sjabloonbestand dat wordt gebruikt bij het maken van mapnotities. Markdown-sjablonen kunnen Templater gebruiken. Canvas- en Base-sjablonen worden als bestandsinhoud gekopieerd. Stel de sjabloonmaplocatie in bij Bestandsbewerkingen > Sjablonen.',
+                formatWarning: 'De sjabloonindeling moet overeenkomen met het geselecteerde type mapnotitie: .md, .canvas of .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Mapnamen openen mapnotities',

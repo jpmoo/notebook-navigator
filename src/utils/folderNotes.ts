@@ -26,6 +26,7 @@ import { CommandQueueService } from '../services/CommandQueueService';
 import { promptForFolderNoteType } from '../modals/FolderNoteTypeModal';
 import { showNotice } from './noticeUtils';
 import { openFileInContext } from './openFileInContext';
+import { normalizeOptionalVaultFilePath } from './pathUtils';
 
 export type FolderNoteOpenContext = PaneType | 'right-sidebar' | null;
 
@@ -104,6 +105,76 @@ export function resolveFolderNoteNameForFolder(folder: TFolder, settings: Folder
  */
 export function isSupportedFolderNoteExtension(extension: string): boolean {
     return SUPPORTED_FOLDER_NOTE_EXTENSIONS.has(extension);
+}
+
+function getPathExtension(path: string): string {
+    const name = path.split('/').pop() ?? '';
+    const lastDotIndex = name.lastIndexOf('.');
+    if (lastDotIndex === -1 || lastDotIndex === name.length - 1) {
+        return '';
+    }
+
+    return name.slice(lastDotIndex + 1);
+}
+
+export function isFolderNoteTemplateCompatible(
+    templatePath: string | null | undefined,
+    folderNoteType: FolderNoteCreationPreference
+): boolean {
+    const normalizedTemplatePath = normalizeOptionalVaultFilePath(templatePath);
+    if (!normalizedTemplatePath) {
+        return true;
+    }
+
+    const extension = getPathExtension(normalizedTemplatePath);
+    if (!isSupportedFolderNoteExtension(extension)) {
+        return false;
+    }
+
+    if (folderNoteType === 'ask') {
+        return true;
+    }
+
+    return extension === FOLDER_NOTE_TYPE_EXTENSIONS[folderNoteType];
+}
+
+function getFolderNoteTemplateFile(app: App, templatePath: string | null | undefined, folderNoteType: FolderNoteType): TFile | null {
+    const normalizedTemplatePath = normalizeOptionalVaultFilePath(templatePath);
+    if (!normalizedTemplatePath) {
+        return null;
+    }
+
+    const expectedExtension = FOLDER_NOTE_TYPE_EXTENSIONS[folderNoteType];
+    const entry = app.vault.getAbstractFileByPath(normalizedTemplatePath);
+    if (!(entry instanceof TFile)) {
+        console.warn('[folder note template] Template file not found', normalizedTemplatePath);
+        return null;
+    }
+
+    if (entry.extension !== expectedExtension) {
+        console.warn('[folder note template] Template file extension does not match folder note type', normalizedTemplatePath);
+        return null;
+    }
+
+    return entry;
+}
+
+async function readFolderNoteTemplateContent(
+    app: App,
+    templatePath: string | null | undefined,
+    folderNoteType: FolderNoteType
+): Promise<string | null> {
+    const templateFile = getFolderNoteTemplateFile(app, templatePath, folderNoteType);
+    if (!templateFile) {
+        return null;
+    }
+
+    try {
+        return await app.vault.read(templateFile);
+    } catch (error) {
+        console.error('Failed to read folder note template', templateFile.path, error);
+        return null;
+    }
 }
 
 /**
@@ -313,18 +384,21 @@ export async function createFolderNote(
 
     try {
         let file: TFile;
+        const templatePath = isFolderNoteTemplateCompatible(settings.folderNoteTemplate, selectedType) ? settings.folderNoteTemplate : null;
         if (selectedType === 'markdown') {
             file = await createMarkdownFileFromTemplatePreferTemplater({
                 app,
                 folder,
                 baseName,
-                templatePath: settings.folderNoteTemplate,
+                templatePath,
                 templateErrorContext: 'folder note'
             });
         } else if (selectedType === 'canvas') {
-            file = await app.vault.create(notePath, '{}');
+            const templateContent = await readFolderNoteTemplateContent(app, templatePath, selectedType);
+            file = await app.vault.create(notePath, templateContent ?? '{}');
         } else {
-            file = await app.vault.create(notePath, createDatabaseContent());
+            const templateContent = await readFolderNoteTemplateContent(app, templatePath, selectedType);
+            file = await app.vault.create(notePath, templateContent ?? createDatabaseContent());
         }
 
         await openFolderNoteFile({

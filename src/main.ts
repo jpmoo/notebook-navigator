@@ -18,6 +18,7 @@
 
 import { App, Platform, Plugin, TFile, FileView, TFolder, WorkspaceLeaf, addIcon } from 'obsidian';
 import { NotebookNavigatorSettingTab, type NotebookNavigatorSettings } from './settings';
+import type { NarrowSidebarLayout, NarrowSidebarTriggerMode } from './settings/types';
 import {
     LocalStorageKeys,
     NOTEBOOK_NAVIGATOR_CALENDAR_VIEW,
@@ -685,6 +686,27 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
      */
     public async setDualPaneOrientation(orientation: DualPaneOrientation): Promise<void> {
         await this.preferencesController.setDualPaneOrientation(orientation);
+    }
+
+    /**
+     * Updates the narrow sidebar fallback layout and persists it.
+     */
+    public setNarrowSidebarLayout(layout: NarrowSidebarLayout): void {
+        this.preferencesController.setNarrowSidebarLayout(layout);
+    }
+
+    /**
+     * Updates how the narrow sidebar switch threshold is calculated.
+     */
+    public setNarrowSidebarTriggerMode(mode: NarrowSidebarTriggerMode): void {
+        this.preferencesController.setNarrowSidebarTriggerMode(mode);
+    }
+
+    /**
+     * Updates the custom narrow sidebar switch width.
+     */
+    public setNarrowSidebarCustomWidth(width: number): void {
+        this.preferencesController.setNarrowSidebarCustomWidth(width);
     }
 
     /**

@@ -127,6 +127,24 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         }
     }
 
+    private refreshSettingsDomState(): void {
+        if (!this.isFallbackSettingsDisplay) {
+            this.refreshNativeSettingsDomState();
+            return;
+        }
+
+        const scrollTop = this.containerEl.scrollTop;
+        const activeLegacyTabId = this.activeSettingsPage?.containerEl === this.containerEl ? this.activeSettingsPage.tabId : null;
+
+        if (activeLegacyTabId) {
+            this.renderLegacySettingsPage(activeLegacyTabId);
+        } else {
+            this.renderLegacySettingsLanding();
+        }
+
+        this.containerEl.scrollTop = scrollTop;
+    }
+
     private refreshFromExternalSettingsUpdate(): void {
         const renderContainerEl = this.settingsRenderContainerEl ?? this.containerEl;
         const scrollTop = renderContainerEl.scrollTop;
@@ -618,10 +636,11 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         onFirstRender: (group: Parameters<SettingDefinitionRender['render']>[1]) => void,
         onLastCleanup: () => void
     ): SettingDefinitionItem[] {
-        // Sentinel row provides page/index lifecycle hooks while Obsidian renders the visible rows.
+        // Hidden sentinel provides page/index lifecycle hooks while Obsidian renders the visible rows.
         const lifecycleDefinition: SettingDefinitionRender = {
             name: '',
             searchable: false,
+            visible: false,
             render: (setting, group) => {
                 group.addClass('nn-settings-lifecycle-group');
                 setting.settingEl.detach();
@@ -749,7 +768,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
                 this.diagnosticsController.requestRefresh();
             },
             refreshSettingsDomState: () => {
-                this.refreshNativeSettingsDomState();
+                this.refreshSettingsDomState();
             },
             ensureStatisticsInterval: () => {
                 this.diagnosticsController.ensureStatisticsInterval();

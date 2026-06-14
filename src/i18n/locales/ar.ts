@@ -157,6 +157,8 @@ export const STRINGS_AR = {
         hideExcludedItems: 'إخفاء المجلدات والوسوم والملاحظات المخفية', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'إظهار لوحتين', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'إظهار لوحة واحدة', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'لا تتوفر اللوحتان عندما يكون الشريط الجانبي ضيقًا جدًا. لتغيير ذلك، اضبط "عندما يكون الشريط الجانبي ضيقًا جدًا" على "عدم فعل شيء" في الإعدادات > المظهر والسلوك.',
         changeAppearance: 'تغيير المظهر', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'إظهار الملاحظات من المجلدات الفرعية',
         showFilesFromSubfolders: 'إظهار الملفات من المجلدات الفرعية',
@@ -1229,6 +1231,28 @@ export const STRINGS_AR = {
                     vertical: 'تقسيم رأسي'
                 }
             },
+            narrowSidebarLayout: {
+                name: 'عندما يكون الشريط الجانبي ضيقًا جدًا',
+                desc: 'اختر ما يحدث عندما لا تتسع لوحة التنقل ولوحة القائمة جنبًا إلى جنب.',
+                options: {
+                    none: 'عدم فعل شيء',
+                    singlePane: 'التبديل إلى لوحة واحدة',
+                    vertical: 'التبديل إلى تقسيم عمودي'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'حد الشريط الجانبي الضيق',
+                desc: 'اختر كيفية حساب حد عرض الشريط الجانبي.',
+                options: {
+                    fitPanes: 'ملاءمة اللوحات',
+                    customWidth: 'عرض مخصص'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'عرض حد الشريط الجانبي الضيق',
+                desc: 'يتم التبديل عندما يكون الشريط الجانبي أضيق من هذا العرض.',
+                resetTooltip: 'إعادة التعيين إلى العرض الافتراضي'
+            },
             appearanceBackground: {
                 name: 'لون الخلفية',
                 desc: 'اختر ألوان الخلفية للوحة التنقل ولوحة القائمة.',
@@ -2165,7 +2189,8 @@ export const STRINGS_AR = {
             },
             folderNoteTemplate: {
                 name: 'قالب ملاحظة المجلد',
-                desc: 'ملف قالب لملاحظات المجلد الجديدة بتنسيق Markdown. حدد موقع مجلد القوالب في عمليات الملفات > قوالب.'
+                desc: 'ملف قالب يُستخدم عند إنشاء ملاحظات المجلد. يمكن لقوالب Markdown استخدام Templater. تُنسخ قوالب Canvas وBase كمحتوى للملف. حدد موقع مجلد القوالب في عمليات الملفات > قوالب.',
+                formatWarning: 'يجب أن يتطابق تنسيق القالب مع نوع ملاحظة المجلد المحدد: .md أو .canvas أو .base.'
             },
             enableFolderNoteLinks: {
                 name: 'أسماء المجلدات تفتح ملاحظات المجلد',

@@ -97,6 +97,9 @@ export const SYNC_MODE_SETTING_IDS = [
     'useFloatingToolbars',
     'dualPane',
     'dualPaneOrientation',
+    'narrowSidebarLayout',
+    'narrowSidebarTriggerMode',
+    'narrowSidebarCustomWidth',
     'paneTransitionDuration',
     'toolbarVisibility',
     'pinNavigationBanner',
@@ -281,6 +284,33 @@ export type MouseBackForwardAction = 'none' | 'singlePaneSwitch' | 'history';
 
 export function isMouseBackForwardAction(value: unknown): value is MouseBackForwardAction {
     return value === 'none' || value === 'singlePaneSwitch' || value === 'history';
+}
+
+export const NARROW_SIDEBAR_CUSTOM_WIDTH_MIN = 240;
+export const NARROW_SIDEBAR_CUSTOM_WIDTH_MAX = 900;
+export const NARROW_SIDEBAR_CUSTOM_WIDTH_STEP = 10;
+export const NARROW_SIDEBAR_CUSTOM_WIDTH_DEFAULT = 350;
+
+/** Layout used when horizontal dual pane does not fit in the sidebar. */
+export type NarrowSidebarLayout = 'none' | 'singlePane' | 'vertical';
+
+function isNarrowSidebarLayout(value: unknown): value is NarrowSidebarLayout {
+    return value === 'none' || value === 'singlePane' || value === 'vertical';
+}
+
+export function normalizeNarrowSidebarLayout(value: unknown): NarrowSidebarLayout | null {
+    if (value === 'dualPane') {
+        return 'vertical';
+    }
+
+    return isNarrowSidebarLayout(value) ? value : null;
+}
+
+/** How the narrow sidebar switch threshold is calculated. */
+export type NarrowSidebarTriggerMode = 'fitPanes' | 'customWidth';
+
+export function isNarrowSidebarTriggerMode(value: unknown): value is NarrowSidebarTriggerMode {
+    return value === 'fitPanes' || value === 'customWidth';
 }
 
 /** Display options for vault title */
@@ -512,6 +542,9 @@ export interface NotebookNavigatorSettings {
     // General tab - Desktop appearance
     dualPane: boolean;
     dualPaneOrientation: DualPaneOrientation;
+    narrowSidebarLayout: NarrowSidebarLayout;
+    narrowSidebarTriggerMode: NarrowSidebarTriggerMode;
+    narrowSidebarCustomWidth: number;
     showTooltips: boolean;
     showTooltipPath: boolean;
     showTooltipWordCount: boolean;

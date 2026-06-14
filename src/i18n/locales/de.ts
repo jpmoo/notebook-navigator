@@ -156,6 +156,8 @@ export const STRINGS_DE = {
         hideExcludedItems: 'Versteckte Ordner, Tags und Notizen ausblenden', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Zweispaltige Ansicht anzeigen', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Einspaltige Ansicht anzeigen', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'Doppelbereiche sind nicht verfügbar, wenn die Seitenleiste zu schmal ist. Um dies zu ändern, setzen Sie „Wenn Seitenleiste zu schmal ist“ in Einstellungen > Erscheinungsbild & Verhalten auf „Nichts tun“.',
         changeAppearance: 'Erscheinungsbild ändern', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'Notizen aus Unterordnern anzeigen',
         showFilesFromSubfolders: 'Dateien aus Unterordnern anzeigen',
@@ -1236,6 +1238,28 @@ export const STRINGS_DE = {
                     vertical: 'Vertikale Aufteilung'
                 }
             },
+            narrowSidebarLayout: {
+                name: 'Wenn Seitenleiste zu schmal ist',
+                desc: 'Wählen Sie, was passiert, wenn Navigationsbereich und Listenbereich nicht nebeneinander passen.',
+                options: {
+                    none: 'Nichts tun',
+                    singlePane: 'Zur einspaltigen Ansicht wechseln',
+                    vertical: 'Zur vertikalen Aufteilung wechseln'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Schwellenwert für schmale Seitenleiste',
+                desc: 'Wählen Sie, wie der Breiten-Schwellenwert der Seitenleiste berechnet wird.',
+                options: {
+                    fitPanes: 'Bereiche einpassen',
+                    customWidth: 'Benutzerdefinierte Breite'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Breiten-Schwellenwert für schmale Seitenleiste',
+                desc: 'Wechseln, wenn die Seitenleiste schmaler als diese Breite ist.',
+                resetTooltip: 'Auf Standardbreite zurücksetzen'
+            },
             appearanceBackground: {
                 name: 'Hintergrundfarbe',
                 desc: 'Wählen Sie Hintergrundfarben für Navigations- und Listenbereich.',
@@ -2175,7 +2199,8 @@ export const STRINGS_DE = {
             },
             folderNoteTemplate: {
                 name: 'Ordnernotiz-Vorlage',
-                desc: 'Vorlagendatei für neue Markdown-Ordnernotizen. Vorlagenordner unter Dateioperationen > Vorlagen festlegen.'
+                desc: 'Vorlagendatei, die beim Erstellen von Ordnernotizen verwendet wird. Markdown-Vorlagen können Templater verwenden. Canvas- und Base-Vorlagen werden als Dateiinhalt kopiert. Vorlagenordner unter Dateioperationen > Vorlagen festlegen.',
+                formatWarning: 'Das Vorlagenformat muss dem ausgewählten Ordnernotiztyp entsprechen: .md, .canvas oder .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Ordnernamen öffnen Ordnernotizen',
