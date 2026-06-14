@@ -88,6 +88,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
         showOnUpdate: false,
         improved: ['**Folder notes.** You can now use Canvas and Base files as templates for folder notes.'],
         fixed: [
+            '**Navigation pane.** Fixed pinned shortcuts disappearing on iOS/iPadOS because of a WebKit paint bug.',
             '**List pane.** Fixed notes embedded in Canvas files opening in a separate note tab while typing.',
             '**List pane.** Fixed subfolder path group headers truncating each path segment in narrow views.'
         ]
