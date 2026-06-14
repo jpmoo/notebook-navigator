@@ -383,6 +383,10 @@ export class NotebookNavigatorView extends ItemView {
         this.componentHandle?.focusNavigationPane();
     }
 
+    isDualPaneAutoFallbackActive(): boolean {
+        return this.componentHandle?.isDualPaneAutoFallbackActive() ?? false;
+    }
+
     /**
      * Deletes selected files.
      */

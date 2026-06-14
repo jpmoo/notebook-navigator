@@ -157,6 +157,8 @@ export const STRINGS_PT_BR = {
         hideExcludedItems: 'Ocultar pastas, tags e notas ocultas',
         showDualPane: 'Mostrar painéis duplos',
         showSinglePane: 'Mostrar painel único',
+        dualPaneAutoFallbackNotice:
+            'Os painéis duplos não estão disponíveis quando a barra lateral está estreita demais. Para mudar isso, defina "Quando a barra lateral está estreita demais" como "Não fazer nada" em Configurações > Aparência e comportamento.',
         changeAppearance: 'Alterar aparência',
         showNotesFromSubfolders: 'Mostrar notas de subpastas',
         showFilesFromSubfolders: 'Mostrar arquivos de subpastas',
@@ -1235,6 +1237,28 @@ export const STRINGS_PT_BR = {
                     horizontal: 'Divisão horizontal',
                     vertical: 'Divisão vertical'
                 }
+            },
+            narrowSidebarLayout: {
+                name: 'Quando a barra lateral está estreita demais',
+                desc: 'Escolha o que acontece quando o painel de navegação e o painel de lista não cabem lado a lado.',
+                options: {
+                    none: 'Não fazer nada',
+                    singlePane: 'Mudar para painel único',
+                    vertical: 'Mudar para divisão vertical'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Limite de barra lateral estreita',
+                desc: 'Escolha como o limite de largura da barra lateral é calculado.',
+                options: {
+                    fitPanes: 'Ajustar painéis',
+                    customWidth: 'Largura personalizada'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Largura do limite de barra lateral estreita',
+                desc: 'Mudar quando a barra lateral estiver mais estreita que esta largura.',
+                resetTooltip: 'Redefinir para a largura padrão'
             },
             appearanceBackground: {
                 name: 'Cor de fundo',

@@ -156,6 +156,8 @@ export const STRINGS_JA = {
         hideExcludedItems: '非表示のフォルダ・タグ・ノートを非表示', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'デュアルペインを表示', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'シングルペインを表示', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'サイドバーが狭すぎる場合、デュアルペインは使用できません。変更するには、設定 > 外観と動作で「サイドバーが狭すぎる場合」を「何もしない」に設定してください。',
         changeAppearance: '外観を変更', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'サブフォルダのノートを表示',
         showFilesFromSubfolders: 'サブフォルダのファイルを表示',
@@ -1232,6 +1234,28 @@ export const STRINGS_JA = {
                     horizontal: '水平分割',
                     vertical: '垂直分割'
                 }
+            },
+            narrowSidebarLayout: {
+                name: 'サイドバーが狭すぎる場合',
+                desc: 'ナビゲーションペインとリストペインを横に並べられない場合の動作を選択します。',
+                options: {
+                    none: '何もしない',
+                    singlePane: 'シングルペインに切り替え',
+                    vertical: '縦分割に切り替え'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: '狭いサイドバーのしきい値',
+                desc: 'サイドバー幅のしきい値の計算方法を選択します。',
+                options: {
+                    fitPanes: 'ペインに合わせる',
+                    customWidth: 'カスタム幅'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: '狭いサイドバーのしきい値幅',
+                desc: 'サイドバーがこの幅より狭い場合に切り替えます。',
+                resetTooltip: '既定の幅に戻す'
             },
             appearanceBackground: {
                 name: '背景色',

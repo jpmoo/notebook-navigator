@@ -157,6 +157,8 @@ export const STRINGS_PL = {
         hideExcludedItems: 'Ukryj ukryte foldery, tagi i notatki', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Pokaż oba panele', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Pokaż jeden panel', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'Podwójne panele są niedostępne, gdy pasek boczny jest zbyt wąski. Aby to zmienić, ustaw „Gdy pasek boczny jest zbyt wąski” na „Nic nie rób” w Ustawienia > Wygląd i zachowanie.',
         changeAppearance: 'Zmień wygląd', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'Pokaż notatki z podfolderów',
         showFilesFromSubfolders: 'Pokaż pliki z podfolderów',
@@ -1236,6 +1238,28 @@ export const STRINGS_PL = {
                     horizontal: 'Podział poziomy',
                     vertical: 'Podział pionowy'
                 }
+            },
+            narrowSidebarLayout: {
+                name: 'Gdy pasek boczny jest zbyt wąski',
+                desc: 'Wybierz, co się dzieje, gdy panel nawigacji i panel listy nie mieszczą się obok siebie.',
+                options: {
+                    none: 'Nic nie rób',
+                    singlePane: 'Przełącz na jeden panel',
+                    vertical: 'Przełącz na podział pionowy'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Próg wąskiego paska bocznego',
+                desc: 'Wybierz sposób obliczania progu szerokości paska bocznego.',
+                options: {
+                    fitPanes: 'Dopasuj panele',
+                    customWidth: 'Niestandardowa szerokość'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Szerokość progu wąskiego paska bocznego',
+                desc: 'Przełączaj, gdy pasek boczny jest węższy niż ta szerokość.',
+                resetTooltip: 'Przywróć domyślną szerokość'
             },
             appearanceBackground: {
                 name: 'Kolor tła',

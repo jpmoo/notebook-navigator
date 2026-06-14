@@ -871,7 +871,12 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
         callback: () => {
             // Wrap pane toggle with error handling
             runAsyncAction(async () => {
-                await plugin.activateView();
+                const view = await ensureNavigatorOpen(plugin);
+                if (view?.isDualPaneAutoFallbackActive()) {
+                    showNotice(strings.paneHeader.dualPaneAutoFallbackNotice, { variant: 'warning' });
+                    return;
+                }
+
                 plugin.toggleDualPanePreference();
             });
         }

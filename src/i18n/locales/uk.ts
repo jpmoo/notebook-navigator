@@ -158,6 +158,8 @@ export const STRINGS_UK = {
         hideExcludedItems: 'Сховати приховані папки, теги та нотатки', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Показати подвійну панель', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Показати одну панель', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'Дві панелі недоступні, коли бічна панель занадто вузька. Щоб змінити це, установіть «Коли бічна панель занадто вузька» на «Нічого не робити» в Налаштування > Вигляд і поведінка.',
         changeAppearance: 'Змінити вигляд', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'Показати нотатки з підпапок',
         showFilesFromSubfolders: 'Показати файли з підпапок',
@@ -1230,6 +1232,28 @@ export const STRINGS_UK = {
                     horizontal: 'Горизонтальний поділ',
                     vertical: 'Вертикальний поділ'
                 }
+            },
+            narrowSidebarLayout: {
+                name: 'Коли бічна панель занадто вузька',
+                desc: 'Виберіть, що відбувається, коли панель навігації та панель списку не вміщуються поруч.',
+                options: {
+                    none: 'Нічого не робити',
+                    singlePane: 'Перемкнутися на одну панель',
+                    vertical: 'Перемкнутися на вертикальний поділ'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Поріг вузької бічної панелі',
+                desc: 'Виберіть, як обчислюється поріг ширини бічної панелі.',
+                options: {
+                    fitPanes: 'Умістити панелі',
+                    customWidth: 'Користувацька ширина'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Ширина порога вузької бічної панелі',
+                desc: 'Перемикатися, коли бічна панель вужча за цю ширину.',
+                resetTooltip: 'Скинути до ширини за замовчуванням'
             },
             appearanceBackground: {
                 name: 'Колір фону',

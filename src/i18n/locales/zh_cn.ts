@@ -156,6 +156,8 @@ export const STRINGS_ZH_CN = {
         hideExcludedItems: '隐藏隐藏的文件夹、标签和笔记', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: '显示双窗格', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: '显示单窗格', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            '侧边栏过窄时无法使用双窗格。若要更改此行为，请在设置 > 外观与行为中将“侧边栏过窄时”设为“不执行任何操作”。',
         changeAppearance: '更改外观', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: '显示子文件夹的笔记',
         showFilesFromSubfolders: '显示子文件夹的文件',
@@ -1220,6 +1222,28 @@ export const STRINGS_ZH_CN = {
                     horizontal: '水平分割',
                     vertical: '垂直分割'
                 }
+            },
+            narrowSidebarLayout: {
+                name: '侧边栏过窄时',
+                desc: '选择导航窗格和列表窗格无法并排显示时的处理方式。',
+                options: {
+                    none: '不执行任何操作',
+                    singlePane: '切换到单窗格',
+                    vertical: '切换到垂直分割'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: '窄侧边栏阈值',
+                desc: '选择侧边栏宽度阈值的计算方式。',
+                options: {
+                    fitPanes: '适配窗格',
+                    customWidth: '自定义宽度'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: '窄侧边栏阈值宽度',
+                desc: '当侧边栏窄于此宽度时切换。',
+                resetTooltip: '重置为默认宽度'
             },
             appearanceBackground: {
                 name: '背景色',

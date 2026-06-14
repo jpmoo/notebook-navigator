@@ -157,6 +157,8 @@ export const STRINGS_TR = {
         hideExcludedItems: 'Gizli klasörleri, etiketleri ve notları gizle', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Çift bölme göster', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Tek bölme göster', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'Kenar çubuğu çok dar olduğunda çift bölmeler kullanılamaz. Bunu değiştirmek için Ayarlar > Görünüm ve davranış altında "Kenar çubuğu çok dar olduğunda" ayarını "Hiçbir şey yapma" olarak ayarlayın.',
         changeAppearance: 'Görünümü değiştir', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'Alt klasörlerden notları göster',
         showFilesFromSubfolders: 'Alt klasörlerden dosyaları göster',
@@ -1231,6 +1233,28 @@ export const STRINGS_TR = {
                     horizontal: 'Yatay bölme',
                     vertical: 'Dikey bölme'
                 }
+            },
+            narrowSidebarLayout: {
+                name: 'Kenar çubuğu çok dar olduğunda',
+                desc: 'Gezinme bölmesi ve liste bölmesi yan yana sığmadığında ne olacağını seçin.',
+                options: {
+                    none: 'Hiçbir şey yapma',
+                    singlePane: 'Tek bölmeye geç',
+                    vertical: 'Dikey bölmeye geç'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Dar kenar çubuğu eşiği',
+                desc: 'Kenar çubuğu genişlik eşiğinin nasıl hesaplanacağını seçin.',
+                options: {
+                    fitPanes: 'Bölmeleri sığdır',
+                    customWidth: 'Özel genişlik'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Dar kenar çubuğu eşik genişliği',
+                desc: 'Kenar çubuğu bu genişlikten daha darsa geçiş yap.',
+                resetTooltip: 'Varsayılan genişliğe sıfırla'
             },
             appearanceBackground: {
                 name: 'Arka plan rengi',

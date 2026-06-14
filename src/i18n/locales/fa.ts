@@ -157,6 +157,8 @@ export const STRINGS_FA = {
         hideExcludedItems: 'مخفی کردن پوشه‌ها، برچسب‌ها و یادداشت‌های پنهان',
         showDualPane: 'نمایش پنل‌های دوگانه',
         showSinglePane: 'نمایش پنل تکی',
+        dualPaneAutoFallbackNotice:
+            'وقتی نوار کناری خیلی باریک است، پنل‌های دوگانه در دسترس نیستند. برای تغییر این حالت، در تنظیمات > ظاهر و رفتار، گزینهٔ «وقتی نوار کناری خیلی باریک است» را روی «هیچ کاری نکن» بگذارید.',
         changeAppearance: 'تغییر ظاهر',
         showNotesFromSubfolders: 'نمایش یادداشت‌ها از زیرپوشه‌ها',
         showFilesFromSubfolders: 'نمایش فایل‌ها از زیرپوشه‌ها',
@@ -1233,6 +1235,28 @@ export const STRINGS_FA = {
                     horizontal: 'تقسیم افقی',
                     vertical: 'تقسیم عمودی'
                 }
+            },
+            narrowSidebarLayout: {
+                name: 'وقتی نوار کناری خیلی باریک است',
+                desc: 'انتخاب کنید وقتی پنل ناوبری و پنل فهرست کنار هم جا نمی‌شوند چه اتفاقی بیفتد.',
+                options: {
+                    none: 'هیچ کاری نکن',
+                    singlePane: 'تغییر به پنل تکی',
+                    vertical: 'تغییر به تقسیم عمودی'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'آستانهٔ نوار کناری باریک',
+                desc: 'انتخاب کنید آستانهٔ عرض نوار کناری چگونه محاسبه شود.',
+                options: {
+                    fitPanes: 'جا دادن پنل‌ها',
+                    customWidth: 'عرض سفارشی'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'عرض آستانهٔ نوار کناری باریک',
+                desc: 'وقتی نوار کناری از این عرض باریک‌تر است تغییر کند.',
+                resetTooltip: 'بازنشانی به عرض پیش‌فرض'
             },
             appearanceBackground: {
                 name: 'رنگ پس‌زمینه',

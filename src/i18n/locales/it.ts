@@ -157,6 +157,8 @@ export const STRINGS_IT = {
         hideExcludedItems: 'Nascondi cartelle, tag e note nascosti', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Mostra doppio pannello', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Mostra pannello singolo', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'I pannelli doppi non sono disponibili quando la barra laterale è troppo stretta. Per modificarlo, imposta "Quando la barra laterale è troppo stretta" su "Non fare nulla" in Impostazioni > Aspetto e comportamento.',
         changeAppearance: 'Cambia aspetto', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'Mostra note da sottocartelle',
         showFilesFromSubfolders: 'Mostra file da sottocartelle',
@@ -1229,6 +1231,28 @@ export const STRINGS_IT = {
                     horizontal: 'Divisione orizzontale',
                     vertical: 'Divisione verticale'
                 }
+            },
+            narrowSidebarLayout: {
+                name: 'Quando la barra laterale è troppo stretta',
+                desc: 'Scegli cosa succede quando il pannello di navigazione e il pannello elenco non entrano affiancati.',
+                options: {
+                    none: 'Non fare nulla',
+                    singlePane: 'Passa a pannello singolo',
+                    vertical: 'Passa a divisione verticale'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Soglia barra laterale stretta',
+                desc: 'Scegli come viene calcolata la soglia di larghezza della barra laterale.',
+                options: {
+                    fitPanes: 'Adatta pannelli',
+                    customWidth: 'Larghezza personalizzata'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Larghezza soglia barra laterale stretta',
+                desc: 'Passa quando la barra laterale è più stretta di questa larghezza.',
+                resetTooltip: 'Ripristina larghezza predefinita'
             },
             appearanceBackground: {
                 name: 'Colore sfondo',

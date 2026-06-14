@@ -157,6 +157,8 @@ export const STRINGS_TH = {
         hideExcludedItems: 'ซ่อนโฟลเดอร์ แท็ก และโน้ตที่ซ่อน',
         showDualPane: 'แสดงแผงคู่',
         showSinglePane: 'แสดงแผงเดียว',
+        dualPaneAutoFallbackNotice:
+            'ไม่สามารถใช้สองแผงได้เมื่อแถบด้านข้างแคบเกินไป หากต้องการเปลี่ยน ให้ตั้ง "เมื่อแถบด้านข้างแคบเกินไป" เป็น "ไม่ต้องทำอะไร" ในการตั้งค่า > ลักษณะและพฤติกรรม',
         changeAppearance: 'เปลี่ยนลักษณะ',
         showNotesFromSubfolders: 'แสดงโน้ตจากโฟลเดอร์ย่อย',
         showFilesFromSubfolders: 'แสดงไฟล์จากโฟลเดอร์ย่อย',
@@ -1226,6 +1228,28 @@ export const STRINGS_TH = {
                     horizontal: 'แบ่งแนวนอน',
                     vertical: 'แบ่งแนวตั้ง'
                 }
+            },
+            narrowSidebarLayout: {
+                name: 'เมื่อแถบด้านข้างแคบเกินไป',
+                desc: 'เลือกสิ่งที่จะเกิดขึ้นเมื่อแผงนำทางและแผงรายการไม่พอดีแบบวางเคียงกัน',
+                options: {
+                    none: 'ไม่ต้องทำอะไร',
+                    singlePane: 'สลับเป็นแผงเดียว',
+                    vertical: 'สลับเป็นการแบ่งแนวตั้ง'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'เกณฑ์แถบด้านข้างแคบ',
+                desc: 'เลือกวิธีคำนวณเกณฑ์ความกว้างของแถบด้านข้าง',
+                options: {
+                    fitPanes: 'ปรับให้พอดีกับแผง',
+                    customWidth: 'ความกว้างกำหนดเอง'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'ความกว้างเกณฑ์แถบด้านข้างแคบ',
+                desc: 'สลับเมื่อแถบด้านข้างแคบกว่าความกว้างนี้',
+                resetTooltip: 'รีเซ็ตเป็นความกว้างเริ่มต้น'
             },
             appearanceBackground: {
                 name: 'สีพื้นหลัง',

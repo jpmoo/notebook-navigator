@@ -157,6 +157,8 @@ export const STRINGS_EN = {
         hideExcludedItems: 'Hide hidden folders, tags, and notes', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Show dual panes', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Show single pane', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'Dual panes are unavailable when the sidebar is too narrow. To change this, set "When sidebar is too narrow" to "Do nothing" in Settings > Appearance & behavior.',
         changeAppearance: 'Change appearance', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'Show notes from subfolders',
         showFilesFromSubfolders: 'Show files from subfolders',
@@ -1227,6 +1229,28 @@ export const STRINGS_EN = {
                     horizontal: 'Horizontal split',
                     vertical: 'Vertical split'
                 }
+            },
+            narrowSidebarLayout: {
+                name: 'When sidebar is too narrow',
+                desc: 'Choose what happens when the navigation pane and list pane do not fit side by side.',
+                options: {
+                    none: 'Do nothing',
+                    singlePane: 'Switch to single pane',
+                    vertical: 'Switch to vertical split'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Narrow sidebar threshold',
+                desc: 'Choose how the sidebar width threshold is calculated.',
+                options: {
+                    fitPanes: 'Fit panes',
+                    customWidth: 'Custom width'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Narrow sidebar threshold width',
+                desc: 'Switch when the sidebar is narrower than this width.',
+                resetTooltip: 'Reset to default width'
             },
             appearanceBackground: {
                 name: 'Background color',

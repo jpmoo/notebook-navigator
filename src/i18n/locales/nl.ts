@@ -158,6 +158,8 @@ export const STRINGS_NL = {
         hideExcludedItems: 'Verborgen mappen, tags en notities verbergen',
         showDualPane: 'Dubbel paneel tonen',
         showSinglePane: 'Enkel paneel tonen',
+        dualPaneAutoFallbackNotice:
+            'Dubbele panelen zijn niet beschikbaar wanneer de zijbalk te smal is. Stel "Wanneer de zijbalk te smal is" in op "Niets doen" in Instellingen > Uiterlijk & gedrag om dit te wijzigen.',
         changeAppearance: 'Uiterlijk wijzigen',
         showNotesFromSubfolders: 'Notities uit submappen tonen',
         showFilesFromSubfolders: 'Bestanden uit submappen tonen',
@@ -1235,6 +1237,28 @@ export const STRINGS_NL = {
                     horizontal: 'Horizontale splitsing',
                     vertical: 'Verticale splitsing'
                 }
+            },
+            narrowSidebarLayout: {
+                name: 'Wanneer de zijbalk te smal is',
+                desc: 'Kies wat er gebeurt wanneer het navigatiepaneel en lijstpaneel niet naast elkaar passen.',
+                options: {
+                    none: 'Niets doen',
+                    singlePane: 'Overschakelen naar enkel paneel',
+                    vertical: 'Overschakelen naar verticale splitsing'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Drempel voor smalle zijbalk',
+                desc: 'Kies hoe de breedtedrempel van de zijbalk wordt berekend.',
+                options: {
+                    fitPanes: 'Panelen laten passen',
+                    customWidth: 'Aangepaste breedte'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Breedtedrempel voor smalle zijbalk',
+                desc: 'Schakel om wanneer de zijbalk smaller is dan deze breedte.',
+                resetTooltip: 'Standaardbreedte herstellen'
             },
             appearanceBackground: {
                 name: 'Achtergrondkleur',

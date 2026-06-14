@@ -86,6 +86,9 @@ const RELEASE_NOTES: ReleaseNote[] = [
         version: '3.1.3',
         date: '2026-06-15',
         showOnUpdate: false,
+        new: [
+            'When resizing the sidebar, Notebook Navigator can now automatically switch between dual pane, vertical split, and single pane. Configure this with ==When sidebar is too narrow== in Settings > Appearance & behavior > Desktop appearance.'
+        ],
         improved: ['**Folder notes.** You can now use Canvas and Base files as templates for folder notes.'],
         fixed: [
             '**Navigation pane.** Fixed pinned shortcuts disappearing on iOS/iPadOS because of a WebKit paint bug.',

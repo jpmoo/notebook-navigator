@@ -157,6 +157,8 @@ export const STRINGS_VI = {
         hideExcludedItems: 'Ẩn thư mục, thẻ và ghi chú ẩn', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Hiện hai ngăn', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Hiện một ngăn', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'Không dùng được hai ngăn khi thanh bên quá hẹp. Để thay đổi, đặt "Khi thanh bên quá hẹp" thành "Không làm gì" trong Cài đặt > Giao diện & hành vi.',
         changeAppearance: 'Đổi giao diện', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'Hiện ghi chú từ thư mục con',
         showFilesFromSubfolders: 'Hiện tập tin từ thư mục con',
@@ -1234,6 +1236,28 @@ export const STRINGS_VI = {
                     horizontal: 'Chia ngang',
                     vertical: 'Chia dọc'
                 }
+            },
+            narrowSidebarLayout: {
+                name: 'Khi thanh bên quá hẹp',
+                desc: 'Chọn điều xảy ra khi ngăn điều hướng và ngăn danh sách không vừa khi đặt cạnh nhau.',
+                options: {
+                    none: 'Không làm gì',
+                    singlePane: 'Chuyển sang một ngăn',
+                    vertical: 'Chuyển sang chia dọc'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Ngưỡng thanh bên hẹp',
+                desc: 'Chọn cách tính ngưỡng chiều rộng của thanh bên.',
+                options: {
+                    fitPanes: 'Vừa các ngăn',
+                    customWidth: 'Chiều rộng tùy chỉnh'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Chiều rộng ngưỡng thanh bên hẹp',
+                desc: 'Chuyển khi thanh bên hẹp hơn chiều rộng này.',
+                resetTooltip: 'Đặt lại về chiều rộng mặc định'
             },
             appearanceBackground: {
                 name: 'Màu nền',

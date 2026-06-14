@@ -41,7 +41,6 @@ import { FolderSuggestModal } from '../modals/FolderSuggestModal';
 import { buildPropertyNodeSuggestions, PropertyNodeSuggestModal } from '../modals/PropertyNodeSuggestModal';
 import { TagSuggestModal } from '../modals/TagSuggestModal';
 import {
-    FILE_PANE_DIMENSIONS,
     ItemType,
     NAVPANE_MEASUREMENTS,
     PROPERTIES_ROOT_VIRTUAL_FOLDER_ID,
@@ -54,7 +53,6 @@ import { getSelectedPath, getFilesForSelection, orderFilesByReference } from '..
 import { normalizeNavigationPath } from '../utils/navigationIndex';
 import { createIndexMap } from '../utils/arrayUtils';
 import { deleteSelectedFiles } from '../utils/deleteOperations';
-import { localStorage } from '../utils/localStorage';
 import { calculateCompactListMetrics } from '../utils/listPaneMetrics';
 import { getNavigationPaneSizing } from '../utils/paneSizing';
 import { getAndroidFontScale } from '../utils/androidFontScale';
@@ -171,6 +169,7 @@ export interface NotebookNavigatorHandle {
     selectNextFile: () => Promise<boolean>;
     selectPreviousFile: () => Promise<boolean>;
     openShortcutByNumber: (shortcutNumber: number) => Promise<boolean>;
+    isDualPaneAutoFallbackActive: () => boolean;
 }
 
 /**
@@ -190,12 +189,13 @@ export const NotebookNavigatorComponent = React.memo(
         const activeProfile = useActiveProfile();
         const expansionState = useExpansionState();
         const uxPreferences = useUXPreferences();
+        const uiState = useUIState();
+        const uiDispatch = useUIDispatch();
         const uxRef = useRef(uxPreferences);
         useEffect(() => {
             uxRef.current = uxPreferences;
         }, [uxPreferences]);
-        // Get active orientation from settings
-        const orientation: DualPaneOrientation = settings.dualPaneOrientation;
+        const orientation: DualPaneOrientation = uiState.effectiveDualPaneOrientation;
         // Get background mode for desktop layout
         const desktopBackground: BackgroundMode = settings.desktopBackground ?? 'separate';
         const {
@@ -207,12 +207,9 @@ export const NotebookNavigatorComponent = React.memo(
             desktopScale: settings.desktopScale,
             mobileScale: settings.mobileScale
         });
-        // Retrieve sizing config based on current orientation
-        const {
-            minSize: navigationPaneMinSize,
-            defaultSize: navigationPaneDefaultSize,
-            storageKey: navigationPaneStorageKey
-        } = getNavigationPaneSizing(orientation);
+        const horizontalNavigationPaneSizing = getNavigationPaneSizing('horizontal');
+        const verticalNavigationPaneSizing = getNavigationPaneSizing('vertical');
+        const navigationPaneSizing = orientation === 'vertical' ? verticalNavigationPaneSizing : horizontalNavigationPaneSizing;
         const selectionState = useSelectionState();
         const selectionDispatch = useSelectionDispatch();
         const selectedFolderForFolderNoteSidebar = selectionState.selectionType === ItemType.FOLDER ? selectionState.selectedFolder : null;
@@ -235,8 +232,6 @@ export const NotebookNavigatorComponent = React.memo(
             settings.folderNoteOpenLocation,
             settings.showNearestFolderNoteInSidebar
         ]);
-        const uiState = useUIState();
-        const uiDispatch = useUIDispatch();
         const {
             folderShortcutKeysByPath,
             noteShortcutKeysByPath,
@@ -364,51 +359,68 @@ export const NotebookNavigatorComponent = React.memo(
             [getNavigationSearchUpdateOptions]
         );
 
-        // Enable resizable pane
-        const { paneSize, isResizing, resizeHandleProps } = useResizablePane({
-            orientation,
-            initialSize: navigationPaneDefaultSize,
-            min: navigationPaneMinSize,
-            storageKey: navigationPaneStorageKey,
+        const horizontalNavigationPane = useResizablePane({
+            orientation: 'horizontal',
+            initialSize: horizontalNavigationPaneSizing.defaultSize,
+            min: horizontalNavigationPaneSizing.minSize,
+            storageKey: horizontalNavigationPaneSizing.storageKey,
             scale: uiScale
         });
 
-        // Tracks whether initial dual/single pane check has been performed
-        const hasCheckedInitialVisibility = useRef(false);
+        const verticalNavigationPane = useResizablePane({
+            orientation: 'vertical',
+            initialSize: verticalNavigationPaneSizing.defaultSize,
+            min: verticalNavigationPaneSizing.minSize,
+            storageKey: verticalNavigationPaneSizing.storageKey,
+            scale: uiScale
+        });
+
+        const activeNavigationPane = orientation === 'vertical' ? verticalNavigationPane : horizontalNavigationPane;
+        const paneSize = activeNavigationPane.paneSize;
+        const isResizing = activeNavigationPane.isResizing;
+        const resizeHandleProps = activeNavigationPane.resizeHandleProps;
 
         // Ref callback that stores the navigator root element
         const containerCallbackRef = useCallback((node: HTMLDivElement | null) => {
             containerRef.current = node;
         }, []);
 
-        // Checks container width on first render to determine dual/single pane layout
+        useEffect(() => {
+            uiDispatch({ type: 'SET_PANE_WIDTH', width: horizontalNavigationPane.paneSize });
+        }, [horizontalNavigationPane.paneSize, uiDispatch]);
+
         useLayoutEffect(() => {
-            if (isMobile || orientation === 'vertical') {
-                return;
-            }
-
-            if (hasCheckedInitialVisibility.current) {
-                return;
-            }
-
-            const savedWidth = localStorage.get<number>(navigationPaneStorageKey);
-            if (savedWidth) {
-                hasCheckedInitialVisibility.current = true;
-                return;
-            }
-
             const node = containerRef.current;
             if (!node) {
                 return;
             }
 
-            hasCheckedInitialVisibility.current = true;
+            const reportWidth = (width: number) => {
+                uiDispatch({ type: 'SET_CONTAINER_WIDTH', width });
+            };
 
-            const containerWidth = node.getBoundingClientRect().width;
-            if (containerWidth < paneSize + FILE_PANE_DIMENSIONS.minWidth) {
-                plugin.setDualPanePreference(false);
+            reportWidth(node.offsetWidth);
+
+            if (typeof ResizeObserver === 'undefined') {
+                const handleWindowResize = () => reportWidth(node.offsetWidth);
+                window.addEventListener('resize', handleWindowResize);
+                return () => {
+                    window.removeEventListener('resize', handleWindowResize);
+                };
             }
-        }, [isMobile, orientation, paneSize, plugin, navigationPaneStorageKey]);
+
+            const observer = new ResizeObserver(entries => {
+                const entry = entries[0];
+                if (!entry) {
+                    return;
+                }
+                reportWidth(entry.contentRect.width);
+            });
+
+            observer.observe(node);
+
+            return () => observer.disconnect();
+        }, [uiDispatch]);
 
         // Determine CSS classes
         const containerClasses = ['nn-split-container'];
@@ -945,6 +957,7 @@ export const NotebookNavigatorComponent = React.memo(
                     }
                     return navHandle.openShortcutByNumber(shortcutNumber);
                 },
+                isDualPaneAutoFallbackActive: () => plugin.useDualPane() && !isMobile && uiState.singlePane,
                 deleteSelectedFiles: () => {
                     runAsyncAction(async () => {
                         if (!selectionState.selectedFile && selectionState.selectedFiles.size === 0) {
@@ -1298,6 +1311,7 @@ export const NotebookNavigatorComponent = React.memo(
             navigateSelectionHistory,
             uiState.singlePane,
             uiState.currentSinglePaneView,
+            isMobile,
             app,
             settings,
             plugin,
@@ -1436,11 +1450,11 @@ export const NotebookNavigatorComponent = React.memo(
             }
 
             if (orientation === 'vertical') {
-                return { width: '100%', flexBasis: `${paneSize}px`, minHeight: `${navigationPaneMinSize}px` };
+                return { width: '100%', flexBasis: `${paneSize}px`, minHeight: `${navigationPaneSizing.minSize}px` };
             }
 
             return { width: `${paneSize}px`, height: '100%' };
-        }, [uiState.singlePane, orientation, paneSize, navigationPaneMinSize]);
+        }, [uiState.singlePane, orientation, paneSize, navigationPaneSizing.minSize]);
 
         const shouldRenderSinglePaneCalendar =
             uiState.singlePane &&
