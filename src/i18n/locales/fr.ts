@@ -1330,6 +1330,10 @@ export const STRINGS_FR = {
                 name: 'Développer à la sélection',
                 desc: 'Développer les dossiers et étiquettes lors de la sélection. En mode panneau unique, la première sélection développe, la seconde affiche les fichiers.'
             },
+            collapseOtherBranchesOnExpand: {
+                name: 'Une branche développée',
+                desc: "Replier les autres branches du même arbre lors du développement d'un dossier, d'une étiquette ou d'une propriété."
+            },
             springLoadedFolders: {
                 name: 'Développer au survol',
                 desc: 'Développer les dossiers et les étiquettes au survol pendant le glisser-déposer.'

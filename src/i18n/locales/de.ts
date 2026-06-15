@@ -1328,6 +1328,10 @@ export const STRINGS_DE = {
                 name: 'Bei Auswahl erweitern',
                 desc: 'Ordner und Tags bei Auswahl erweitern. Im Einzelfenster-Modus: erste Auswahl erweitert, zweite Auswahl zeigt Dateien.'
             },
+            collapseOtherBranchesOnExpand: {
+                name: 'Ein erweiterter Zweig',
+                desc: 'Andere Zweige im selben Baum einklappen, wenn ein Ordner, Tag oder eine Eigenschaft erweitert wird.'
+            },
             springLoadedFolders: {
                 name: 'Beim Ziehen erweitern',
                 desc: 'Ordner und Tags beim Überfahren während des Ziehens erweitern.'

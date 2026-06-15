@@ -51,6 +51,10 @@ export function createNavigationPaneSettingDefinitions(context: SettingsTabConte
                 name: strings.settings.items.smartCollapse.name,
                 desc: strings.settings.items.smartCollapse.desc
             }),
+            createToggleDefinition('collapseOtherBranchesOnExpand', {
+                name: strings.settings.items.collapseOtherBranchesOnExpand.name,
+                desc: strings.settings.items.collapseOtherBranchesOnExpand.desc
+            }),
             ...(Platform.isMobile
                 ? []
                 : [

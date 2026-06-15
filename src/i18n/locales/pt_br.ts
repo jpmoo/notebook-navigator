@@ -1328,6 +1328,10 @@ export const STRINGS_PT_BR = {
                 name: 'Expandir ao selecionar',
                 desc: 'Expandir pastas e tags ao selecionar. No modo de painel único, a primeira seleção expande, a segunda mostra arquivos.'
             },
+            collapseOtherBranchesOnExpand: {
+                name: 'Uma ramificação expandida',
+                desc: 'Recolher outras ramificações na mesma árvore ao expandir uma pasta, tag ou propriedade.'
+            },
             springLoadedFolders: {
                 name: 'Expandir ao arrastar',
                 desc: 'Expandir pastas e tags ao passar o mouse sobre elas durante o arraste.'

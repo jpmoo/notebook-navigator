@@ -1320,6 +1320,10 @@ export const STRINGS_EN = {
                 name: 'Expand on selection',
                 desc: 'Expand folders, tags, and properties when selected. In single pane mode, first selection expands, second selection shows files.'
             },
+            collapseOtherBranchesOnExpand: {
+                name: 'One expanded branch',
+                desc: 'Collapse other branches in the same tree when expanding a folder, tag, or property.'
+            },
             springLoadedFolders: {
                 name: 'Spring-loaded folders',
                 desc: 'Expand folders and tags on hover during drag operations.'

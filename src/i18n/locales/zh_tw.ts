@@ -1313,6 +1313,10 @@ export const STRINGS_ZH_TW = {
                 name: '選取時展開',
                 desc: '選取時展開資料夾和標籤。在單窗格模式下，首次選取展開，再次選取顯示檔案。'
             },
+            collapseOtherBranchesOnExpand: {
+                name: '僅展開一個分支',
+                desc: '展開資料夾、標籤或屬性時，摺疊同一樹狀結構中的其他分支。'
+            },
             springLoadedFolders: {
                 name: '拖曳時展開',
                 desc: '拖曳操作中懸停時展開資料夾和標籤。'

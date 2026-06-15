@@ -1324,6 +1324,10 @@ export const STRINGS_TR = {
                 name: 'Seçimde genişlet',
                 desc: 'Seçildiğinde klasörleri ve etiketleri genişlet. Tek bölme modunda ilk seçim genişletir, ikinci seçim dosyaları gösterir.'
             },
+            collapseOtherBranchesOnExpand: {
+                name: 'Tek genişletilmiş dal',
+                desc: 'Bir klasör, etiket veya özellik genişletildiğinde aynı ağaçtaki diğer dalları daralt.'
+            },
             springLoadedFolders: {
                 name: 'Sürüklerken genişlet',
                 desc: 'Sürükleme sırasında üzerine gelirken klasörleri ve etiketleri genişlet.'

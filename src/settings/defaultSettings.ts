@@ -242,6 +242,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     // Navigation pane tab - Behavior
     collapseBehavior: 'all',
     smartCollapse: true,
+    collapseOtherBranchesOnExpand: false,
     autoSelectFirstFileOnFocusChange: false,
     autoExpandNavItems: false,
     springLoadedFolders: true,

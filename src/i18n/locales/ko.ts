@@ -1323,6 +1323,10 @@ export const STRINGS_KO = {
                 name: '선택 시 확장',
                 desc: '선택 시 폴더와 태그를 확장합니다. 단일 창 모드에서는 첫 번째 선택이 확장하고 두 번째 선택이 파일을 표시합니다.'
             },
+            collapseOtherBranchesOnExpand: {
+                name: '하나의 펼친 분기',
+                desc: '폴더, 태그 또는 속성을 펼칠 때 같은 트리의 다른 분기를 접습니다.'
+            },
             springLoadedFolders: {
                 name: '드래그 중 확장',
                 desc: '드래그 작업 중에 마우스를 올리면 폴더와 태그를 확장합니다.'

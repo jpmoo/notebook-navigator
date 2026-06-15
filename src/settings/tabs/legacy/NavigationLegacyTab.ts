@@ -456,6 +456,16 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
         }
     );
 
+    addToggleSetting(
+        behaviorGroup.addSetting,
+        strings.settings.items.collapseOtherBranchesOnExpand.name,
+        strings.settings.items.collapseOtherBranchesOnExpand.desc,
+        () => plugin.settings.collapseOtherBranchesOnExpand,
+        value => {
+            plugin.settings.collapseOtherBranchesOnExpand = value;
+        }
+    );
+
     if (!Platform.isMobile) {
         addToggleSetting(
             behaviorGroup.addSetting,

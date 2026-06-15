@@ -1328,6 +1328,10 @@ export const STRINGS_NL = {
                 name: 'Uitvouwen bij selectie',
                 desc: 'Mappen en tags uitvouwen bij selectie. In enkelvoudige paneelmodus: eerste selectie vouwt uit, tweede selectie toont bestanden.'
             },
+            collapseOtherBranchesOnExpand: {
+                name: 'Een uitgevouwen tak',
+                desc: 'Vouw andere takken in dezelfde boom samen bij het uitvouwen van een map, tag of eigenschap.'
+            },
             springLoadedFolders: {
                 name: 'Uitvouwen bij slepen',
                 desc: 'Mappen en tags uitvouwen bij zweven tijdens slepen.'

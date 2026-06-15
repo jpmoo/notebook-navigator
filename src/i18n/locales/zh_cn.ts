@@ -1313,6 +1313,10 @@ export const STRINGS_ZH_CN = {
                 name: '选中时展开',
                 desc: '选中时展开文件夹和标签。在单窗格模式下，首次选中展开，再次选中显示文件。'
             },
+            collapseOtherBranchesOnExpand: {
+                name: '仅展开一个分支',
+                desc: '展开文件夹、标签或属性时折叠同一树中的其他分支。'
+            },
             springLoadedFolders: {
                 name: '拖动时展开',
                 desc: '拖动操作中悬停时展开文件夹和标签。'

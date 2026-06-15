@@ -1329,6 +1329,10 @@ export const STRINGS_PL = {
                 name: 'Rozwiń podczas zaznaczania',
                 desc: 'Rozwija foldery, tagi i atrybuty po zaznaczeniu. W trybie pojedynczego panelu pierwsze zaznaczenie powoduje rozwinięcie, drugie zaznaczenie powoduje wyświetlenie plików.'
             },
+            collapseOtherBranchesOnExpand: {
+                name: 'Jedna rozwinięta gałąź',
+                desc: 'Zwijaj inne gałęzie w tym samym drzewie podczas rozwijania folderu, tagu lub atrybutu.'
+            },
             springLoadedFolders: {
                 name: 'Rozwiń podczas przeciągania',
                 desc: 'Rozwija foldery i tagi po najechaniu kursorem podczas przeciągania.'

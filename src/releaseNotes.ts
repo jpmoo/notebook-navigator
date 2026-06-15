@@ -93,7 +93,8 @@ const RELEASE_NOTES: ReleaseNote[] = [
         videoUrl: true,
         videoClickable: true,
         new: [
-            'When resizing the sidebar, Notebook Navigator can now automatically switch between dual pane, vertical split, and single pane. Configure this with ==When sidebar is too narrow== in Settings > Appearance & behavior > Desktop appearance.'
+            'When resizing the sidebar, Notebook Navigator can now automatically switch between dual pane, vertical split, and single pane. Configure this with ==When sidebar is too narrow== in Settings > Appearance & behavior > Desktop appearance.',
+            'New setting ==One expanded branch== in Settings > Navigation pane. Enable to automatically collapse other branches in the same tree when expanding a folder, tag, or property.'
         ],
         improved: ['**Folder notes.** You can now use Canvas and Base files as templates for folder notes.'],
         fixed: [
