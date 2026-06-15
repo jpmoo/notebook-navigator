@@ -978,6 +978,9 @@ export const STRINGS_RU = {
             },
             navigation: {
                 appearance: 'Внешний вид',
+                banner: 'Баннер',
+                dragAndDrop: 'Перетаскивание',
+                noteCounts: 'Количество заметок',
                 rainbowColors: 'Цвета радуги',
                 leftSidebar: 'Левая боковая панель',
                 calendarIntegration: 'Интеграция с календарём'

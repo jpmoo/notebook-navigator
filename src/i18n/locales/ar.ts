@@ -976,6 +976,9 @@ export const STRINGS_AR = {
             },
             navigation: {
                 appearance: 'المظهر',
+                banner: 'اللافتة',
+                dragAndDrop: 'السحب والإفلات',
+                noteCounts: 'عدد الملاحظات',
                 rainbowColors: 'ألوان قوس قزح',
                 leftSidebar: 'الشريط الجانبي الأيسر',
                 calendarIntegration: 'تكامل التقويم'

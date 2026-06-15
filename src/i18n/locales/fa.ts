@@ -981,6 +981,9 @@ export const STRINGS_FA = {
             },
             navigation: {
                 appearance: 'ظاهر',
+                banner: 'بنر',
+                dragAndDrop: 'کشیدن و رها کردن',
+                noteCounts: 'تعداد یادداشت‌ها',
                 rainbowColors: 'رنگ‌های رنگین‌کمان',
                 leftSidebar: 'نوار کناری چپ',
                 calendarIntegration: 'یکپارچه‌سازی تقویم'

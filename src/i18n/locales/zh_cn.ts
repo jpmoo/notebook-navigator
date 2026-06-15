@@ -971,6 +971,9 @@ export const STRINGS_ZH_CN = {
             },
             navigation: {
                 appearance: '外观',
+                banner: '横幅',
+                dragAndDrop: '拖放',
+                noteCounts: '笔记数',
                 rainbowColors: '彩虹颜色',
                 leftSidebar: '左侧边栏',
                 calendarIntegration: '日历集成'

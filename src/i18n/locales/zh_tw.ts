@@ -971,6 +971,9 @@ export const STRINGS_ZH_TW = {
             },
             navigation: {
                 appearance: '外觀',
+                banner: '橫幅',
+                dragAndDrop: '拖放',
+                noteCounts: '筆記數',
                 rainbowColors: '彩虹顏色',
                 leftSidebar: '左側邊欄',
                 calendarIntegration: '行事曆整合'

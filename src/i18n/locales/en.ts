@@ -975,6 +975,9 @@ export const STRINGS_EN = {
             },
             navigation: {
                 appearance: 'Appearance',
+                banner: 'Banner',
+                dragAndDrop: 'Drag and drop',
+                noteCounts: 'Note counts',
                 rainbowColors: 'Rainbow colors',
                 leftSidebar: 'Left sidebar',
                 calendarIntegration: 'Calendar integration'

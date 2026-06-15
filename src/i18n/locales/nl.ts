@@ -983,6 +983,9 @@ export const STRINGS_NL = {
             },
             navigation: {
                 appearance: 'Uiterlijk',
+                banner: 'Banner',
+                dragAndDrop: 'Slepen en neerzetten',
+                noteCounts: 'Notitietellingen',
                 rainbowColors: 'Regenboogkleuren',
                 leftSidebar: 'Linkerzijbalk',
                 calendarIntegration: 'Kalenderintegratie'

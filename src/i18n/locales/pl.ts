@@ -984,6 +984,9 @@ export const STRINGS_PL = {
             },
             navigation: {
                 appearance: 'Wygląd',
+                banner: 'Baner',
+                dragAndDrop: 'Przeciągnij i upuść',
+                noteCounts: 'Liczba notatek',
                 rainbowColors: 'Kolory tęczy',
                 leftSidebar: 'Lewy panel boczny',
                 calendarIntegration: 'Integracja z kalendarzem'

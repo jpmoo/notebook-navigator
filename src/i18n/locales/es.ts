@@ -982,6 +982,9 @@ export const STRINGS_ES = {
             },
             navigation: {
                 appearance: 'Apariencia',
+                banner: 'Banner',
+                dragAndDrop: 'Arrastrar y soltar',
+                noteCounts: 'Conteos de notas',
                 rainbowColors: 'Colores arcoíris',
                 leftSidebar: 'Barra lateral izquierda',
                 calendarIntegration: 'Integración de calendario'

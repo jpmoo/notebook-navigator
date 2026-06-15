@@ -983,6 +983,9 @@ export const STRINGS_DE = {
             },
             navigation: {
                 appearance: 'Darstellung',
+                banner: 'Banner',
+                dragAndDrop: 'Drag-and-drop',
+                noteCounts: 'Notizanzahlen',
                 rainbowColors: 'Regenbogenfarben',
                 leftSidebar: 'Linke Seitenleiste',
                 calendarIntegration: 'Kalenderintegration'

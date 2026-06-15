@@ -982,6 +982,9 @@ export const STRINGS_VI = {
             },
             navigation: {
                 appearance: 'Giao diện',
+                banner: 'Banner',
+                dragAndDrop: 'Kéo và thả',
+                noteCounts: 'Số lượng ghi chú',
                 rainbowColors: 'Màu cầu vồng',
                 leftSidebar: 'Thanh bên trái',
                 calendarIntegration: 'Tích hợp lịch'

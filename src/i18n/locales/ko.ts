@@ -978,6 +978,9 @@ export const STRINGS_KO = {
             },
             navigation: {
                 appearance: '모양',
+                banner: '배너',
+                dragAndDrop: '끌어서 놓기',
+                noteCounts: '노트 수',
                 rainbowColors: '무지개 색상',
                 leftSidebar: '왼쪽 사이드바',
                 calendarIntegration: '캘린더 연동'

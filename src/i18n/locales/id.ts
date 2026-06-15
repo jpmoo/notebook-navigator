@@ -981,6 +981,9 @@ export const STRINGS_ID = {
             },
             navigation: {
                 appearance: 'Tampilan',
+                banner: 'Banner',
+                dragAndDrop: 'Seret dan lepas',
+                noteCounts: 'Jumlah catatan',
                 rainbowColors: 'Warna pelangi',
                 leftSidebar: 'Bilah sisi kiri',
                 calendarIntegration: 'Integrasi kalender'

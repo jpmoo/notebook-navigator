@@ -977,6 +977,9 @@ export const STRINGS_IT = {
             },
             navigation: {
                 appearance: 'Aspetto',
+                banner: 'Banner',
+                dragAndDrop: 'Trascina e rilascia',
+                noteCounts: 'Conteggi note',
                 rainbowColors: 'Colori arcobaleno',
                 leftSidebar: 'Barra laterale sinistra',
                 calendarIntegration: 'Integrazione calendario'

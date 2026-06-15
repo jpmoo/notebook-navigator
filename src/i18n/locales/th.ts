@@ -974,6 +974,9 @@ export const STRINGS_TH = {
             },
             navigation: {
                 appearance: 'ลักษณะ',
+                banner: 'แบนเนอร์',
+                dragAndDrop: 'ลากและวาง',
+                noteCounts: 'จำนวนโน้ต',
                 rainbowColors: 'สีรุ้ง',
                 leftSidebar: 'แถบด้านซ้าย',
                 calendarIntegration: 'การรวมปฏิทิน'

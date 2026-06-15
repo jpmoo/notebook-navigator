@@ -65,10 +65,13 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
 
     const createGroup = createSettingGroupFactory(containerEl);
     const behaviorGroup = createGroup(undefined);
+    const dragAndDropGroup = Platform.isMobile ? null : createGroup(strings.settings.groups.navigation.dragAndDrop);
     const rainbowGroup = createGroup(createRainbowHeading(strings.settings.groups.navigation.rainbowColors));
+    const noteCountsGroup = createGroup(strings.settings.groups.navigation.noteCounts);
+    const bannerGroup = createGroup(strings.settings.groups.navigation.banner);
     const appearanceGroup = createGroup(strings.settings.groups.navigation.appearance);
 
-    const navigationBannerSetting = appearanceGroup.addSetting(setting => {
+    const navigationBannerSetting = bannerGroup.addSetting(setting => {
         setting.setName(strings.settings.items.navigationBanner.name);
     });
     navigationBannerSetting.setDesc('');
@@ -138,7 +141,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
         );
     addSettingSyncModeToggle({ setting: pinNavigationBannerSetting, plugin, settingId: 'pinNavigationBanner' });
 
-    const showNoteCountSetting = appearanceGroup.addSetting(setting => {
+    const showNoteCountSetting = noteCountsGroup.addSetting(setting => {
         setting.setName(strings.settings.items.showNoteCount.name).setDesc(strings.settings.items.showNoteCount.desc);
     });
 
@@ -466,6 +469,16 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
         }
     );
 
+    addToggleSetting(
+        behaviorGroup.addSetting,
+        strings.settings.items.autoExpandNavItems.name,
+        strings.settings.items.autoExpandNavItems.desc,
+        () => plugin.settings.autoExpandNavItems,
+        value => {
+            plugin.settings.autoExpandNavItems = value;
+        }
+    );
+
     if (!Platform.isMobile) {
         addToggleSetting(
             behaviorGroup.addSetting,
@@ -478,18 +491,8 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
         );
     }
 
-    addToggleSetting(
-        behaviorGroup.addSetting,
-        strings.settings.items.autoExpandNavItems.name,
-        strings.settings.items.autoExpandNavItems.desc,
-        () => plugin.settings.autoExpandNavItems,
-        value => {
-            plugin.settings.autoExpandNavItems = value;
-        }
-    );
-
-    if (!Platform.isMobile) {
-        const springLoadedFoldersSetting = behaviorGroup.addSetting(setting => {
+    if (dragAndDropGroup) {
+        const springLoadedFoldersSetting = dragAndDropGroup.addSetting(setting => {
             setting.setName(strings.settings.items.springLoadedFolders.name).setDesc(strings.settings.items.springLoadedFolders.desc);
         });
         const springLoadedFoldersDependentSettings = wireToggleSettingWithDependentSection(

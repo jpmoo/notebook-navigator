@@ -979,6 +979,9 @@ export const STRINGS_TR = {
             },
             navigation: {
                 appearance: 'Görünüm',
+                banner: 'Afiş',
+                dragAndDrop: 'Sürükle ve bırak',
+                noteCounts: 'Not sayıları',
                 rainbowColors: 'Gökkuşağı renkleri',
                 leftSidebar: 'Sol kenar çubuğu',
                 calendarIntegration: 'Takvim entegrasyonu'

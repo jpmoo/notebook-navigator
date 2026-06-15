@@ -985,6 +985,9 @@ export const STRINGS_FR = {
             },
             navigation: {
                 appearance: 'Apparence',
+                banner: 'Bannière',
+                dragAndDrop: 'Glisser-déposer',
+                noteCounts: 'Nombre de notes',
                 rainbowColors: 'Couleurs arc-en-ciel',
                 leftSidebar: 'Barre latérale gauche',
                 calendarIntegration: 'Intégration du calendrier'

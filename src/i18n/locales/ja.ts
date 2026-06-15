@@ -980,6 +980,9 @@ export const STRINGS_JA = {
             },
             navigation: {
                 appearance: '外観',
+                banner: 'バナー',
+                dragAndDrop: 'ドラッグ＆ドロップ',
+                noteCounts: 'ノート数',
                 rainbowColors: 'レインボーカラー',
                 leftSidebar: '左サイドバー',
                 calendarIntegration: 'カレンダー連携'
