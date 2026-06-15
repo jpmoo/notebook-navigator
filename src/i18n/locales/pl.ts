@@ -984,6 +984,9 @@ export const STRINGS_PL = {
             },
             navigation: {
                 appearance: 'Wygląd',
+                banner: 'Baner',
+                dragAndDrop: 'Przeciągnij i upuść',
+                noteCounts: 'Liczba notatek',
                 rainbowColors: 'Kolory tęczy',
                 leftSidebar: 'Lewy panel boczny',
                 calendarIntegration: 'Integracja z kalendarzem'
@@ -1328,6 +1331,10 @@ export const STRINGS_PL = {
             autoExpandNavItems: {
                 name: 'Rozwiń podczas zaznaczania',
                 desc: 'Rozwija foldery, tagi i atrybuty po zaznaczeniu. W trybie pojedynczego panelu pierwsze zaznaczenie powoduje rozwinięcie, drugie zaznaczenie powoduje wyświetlenie plików.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'Jedna rozwinięta gałąź',
+                desc: 'Zwijaj inne gałęzie w tym samym drzewie podczas rozwijania folderu, tagu lub atrybutu.'
             },
             springLoadedFolders: {
                 name: 'Rozwiń podczas przeciągania',

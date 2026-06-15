@@ -975,6 +975,9 @@ export const STRINGS_EN = {
             },
             navigation: {
                 appearance: 'Appearance',
+                banner: 'Banner',
+                dragAndDrop: 'Drag and drop',
+                noteCounts: 'Note counts',
                 rainbowColors: 'Rainbow colors',
                 leftSidebar: 'Left sidebar',
                 calendarIntegration: 'Calendar integration'
@@ -1319,6 +1322,10 @@ export const STRINGS_EN = {
             autoExpandNavItems: {
                 name: 'Expand on selection',
                 desc: 'Expand folders, tags, and properties when selected. In single pane mode, first selection expands, second selection shows files.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'One expanded branch',
+                desc: 'Collapse other branches in the same tree when expanding a folder, tag, or property.'
             },
             springLoadedFolders: {
                 name: 'Spring-loaded folders',

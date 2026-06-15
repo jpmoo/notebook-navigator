@@ -985,6 +985,9 @@ export const STRINGS_FR = {
             },
             navigation: {
                 appearance: 'Apparence',
+                banner: 'Bannière',
+                dragAndDrop: 'Glisser-déposer',
+                noteCounts: 'Nombre de notes',
                 rainbowColors: 'Couleurs arc-en-ciel',
                 leftSidebar: 'Barre latérale gauche',
                 calendarIntegration: 'Intégration du calendrier'
@@ -1329,6 +1332,10 @@ export const STRINGS_FR = {
             autoExpandNavItems: {
                 name: 'Développer à la sélection',
                 desc: 'Développer les dossiers et étiquettes lors de la sélection. En mode panneau unique, la première sélection développe, la seconde affiche les fichiers.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'Une branche développée',
+                desc: "Replier les autres branches du même arbre lors du développement d'un dossier, d'une étiquette ou d'une propriété."
             },
             springLoadedFolders: {
                 name: 'Développer au survol',

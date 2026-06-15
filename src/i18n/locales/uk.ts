@@ -978,6 +978,9 @@ export const STRINGS_UK = {
             },
             navigation: {
                 appearance: 'Вигляд',
+                banner: 'Банер',
+                dragAndDrop: 'Перетягування',
+                noteCounts: 'Кількість нотаток',
                 rainbowColors: 'Кольори веселки',
                 leftSidebar: 'Ліва бічна панель',
                 calendarIntegration: 'Інтеграція з календарем'
@@ -1322,6 +1325,10 @@ export const STRINGS_UK = {
             autoExpandNavItems: {
                 name: 'Розгортати при виборі',
                 desc: 'Розгортати папки та теги при виборі. У режимі однієї панелі перший вибір розгортає, другий показує файли.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'Одна розгорнута гілка',
+                desc: 'Згортати інші гілки в тому самому дереві під час розгортання папки, тегу або властивості.'
             },
             springLoadedFolders: {
                 name: 'Розгортати під час перетягування',

@@ -982,6 +982,9 @@ export const STRINGS_ES = {
             },
             navigation: {
                 appearance: 'Apariencia',
+                banner: 'Banner',
+                dragAndDrop: 'Arrastrar y soltar',
+                noteCounts: 'Conteos de notas',
                 rainbowColors: 'Colores arcoíris',
                 leftSidebar: 'Barra lateral izquierda',
                 calendarIntegration: 'Integración de calendario'
@@ -1326,6 +1329,10 @@ export const STRINGS_ES = {
             autoExpandNavItems: {
                 name: 'Expandir al seleccionar',
                 desc: 'Expandir carpetas y etiquetas al seleccionar. En modo de panel único, la primera selección expande, la segunda muestra archivos.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'Una rama expandida',
+                desc: 'Contraer otras ramas del mismo árbol al expandir una carpeta, etiqueta o propiedad.'
             },
             springLoadedFolders: {
                 name: 'Expandir al arrastrar',

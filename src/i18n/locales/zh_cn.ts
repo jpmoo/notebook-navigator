@@ -971,6 +971,9 @@ export const STRINGS_ZH_CN = {
             },
             navigation: {
                 appearance: '外观',
+                banner: '横幅',
+                dragAndDrop: '拖放',
+                noteCounts: '笔记数',
                 rainbowColors: '彩虹颜色',
                 leftSidebar: '左侧边栏',
                 calendarIntegration: '日历集成'
@@ -1312,6 +1315,10 @@ export const STRINGS_ZH_CN = {
             autoExpandNavItems: {
                 name: '选中时展开',
                 desc: '选中时展开文件夹和标签。在单窗格模式下，首次选中展开，再次选中显示文件。'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: '仅展开一个分支',
+                desc: '展开文件夹、标签或属性时折叠同一树中的其他分支。'
             },
             springLoadedFolders: {
                 name: '拖动时展开',

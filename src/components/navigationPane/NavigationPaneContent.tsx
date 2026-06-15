@@ -740,8 +740,12 @@ export const NavigationPane = React.memo(
             }
 
             const target = getNavigationExpansionTargetForItem(item, { showHiddenItems });
-            return target ? toggleNavigationExpansionTarget(target, expansionState, expansionDispatch) : false;
-        }, [expansionDispatch, expansionState, getSelectedRenderedItem, showHiddenItems]);
+            return target
+                ? toggleNavigationExpansionTarget(target, expansionState, expansionDispatch, 'toggle', {
+                      collapseOtherBranches: settings.collapseOtherBranchesOnExpand
+                  })
+                : false;
+        }, [expansionDispatch, expansionState, getSelectedRenderedItem, settings.collapseOtherBranchesOnExpand, showHiddenItems]);
 
         useImperativeHandle(
             ref,

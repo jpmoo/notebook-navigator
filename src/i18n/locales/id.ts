@@ -981,6 +981,9 @@ export const STRINGS_ID = {
             },
             navigation: {
                 appearance: 'Tampilan',
+                banner: 'Banner',
+                dragAndDrop: 'Seret dan lepas',
+                noteCounts: 'Jumlah catatan',
                 rainbowColors: 'Warna pelangi',
                 leftSidebar: 'Bilah sisi kiri',
                 calendarIntegration: 'Integrasi kalender'
@@ -1325,6 +1328,10 @@ export const STRINGS_ID = {
             autoExpandNavItems: {
                 name: 'Luaskan saat dipilih',
                 desc: 'Luaskan folder dan tag saat dipilih. Dalam mode panel tunggal, pilihan pertama meluaskan, pilihan kedua menampilkan file.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'Satu cabang terbuka',
+                desc: 'Ciutkan cabang lain di pohon yang sama saat membuka folder, tag, atau properti.'
             },
             springLoadedFolders: {
                 name: 'Luaskan saat menyeret',

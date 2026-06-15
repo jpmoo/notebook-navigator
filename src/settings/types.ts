@@ -592,6 +592,7 @@ export interface NotebookNavigatorSettings {
     // Navigation pane tab - Behavior
     collapseBehavior: ItemScope;
     smartCollapse: boolean;
+    collapseOtherBranchesOnExpand: boolean;
     autoSelectFirstFileOnFocusChange: boolean;
     autoExpandNavItems: boolean;
     springLoadedFolders: boolean;

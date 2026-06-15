@@ -980,6 +980,9 @@ export const STRINGS_JA = {
             },
             navigation: {
                 appearance: '外観',
+                banner: 'バナー',
+                dragAndDrop: 'ドラッグ＆ドロップ',
+                noteCounts: 'ノート数',
                 rainbowColors: 'レインボーカラー',
                 leftSidebar: '左サイドバー',
                 calendarIntegration: 'カレンダー連携'
@@ -1324,6 +1327,10 @@ export const STRINGS_JA = {
             autoExpandNavItems: {
                 name: '選択時に展開',
                 desc: '選択時にフォルダとタグを展開します。シングルペインモードでは、最初の選択で展開、2回目の選択でファイルを表示します。'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: '展開するブランチを1つにする',
+                desc: 'フォルダ、タグ、またはプロパティを展開するとき、同じツリー内の他のブランチを折りたたみます。'
             },
             springLoadedFolders: {
                 name: 'ドラッグ時に展開',

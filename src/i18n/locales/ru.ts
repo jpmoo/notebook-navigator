@@ -978,6 +978,9 @@ export const STRINGS_RU = {
             },
             navigation: {
                 appearance: 'Внешний вид',
+                banner: 'Баннер',
+                dragAndDrop: 'Перетаскивание',
+                noteCounts: 'Количество заметок',
                 rainbowColors: 'Цвета радуги',
                 leftSidebar: 'Левая боковая панель',
                 calendarIntegration: 'Интеграция с календарём'
@@ -1322,6 +1325,10 @@ export const STRINGS_RU = {
             autoExpandNavItems: {
                 name: 'Разворачивать при выборе',
                 desc: 'Разворачивать папки и теги при выборе. В однопанельном режиме первый выбор разворачивает, второй показывает файлы.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'Одна развернутая ветка',
+                desc: 'Сворачивать другие ветки в том же дереве при разворачивании папки, тега или свойства.'
             },
             springLoadedFolders: {
                 name: 'Разворачивать при перетаскивании',

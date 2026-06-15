@@ -981,6 +981,9 @@ export const STRINGS_FA = {
             },
             navigation: {
                 appearance: 'ظاهر',
+                banner: 'بنر',
+                dragAndDrop: 'کشیدن و رها کردن',
+                noteCounts: 'تعداد یادداشت‌ها',
                 rainbowColors: 'رنگ‌های رنگین‌کمان',
                 leftSidebar: 'نوار کناری چپ',
                 calendarIntegration: 'یکپارچه‌سازی تقویم'
@@ -1325,6 +1328,10 @@ export const STRINGS_FA = {
             autoExpandNavItems: {
                 name: 'باز کردن هنگام انتخاب',
                 desc: 'پوشه‌ها و برچسب‌ها را هنگام انتخاب باز کنید. در حالت پنل تکی، اولین انتخاب باز می‌کند، دومین انتخاب فایل‌ها را نمایش می‌دهد.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'یک شاخه باز',
+                desc: 'هنگام باز کردن یک پوشه، برچسب یا ویژگی، شاخه‌های دیگر همان درخت را جمع کنید.'
             },
             springLoadedFolders: {
                 name: 'گسترش هنگام کشیدن',

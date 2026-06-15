@@ -974,6 +974,9 @@ export const STRINGS_TH = {
             },
             navigation: {
                 appearance: 'ลักษณะ',
+                banner: 'แบนเนอร์',
+                dragAndDrop: 'ลากและวาง',
+                noteCounts: 'จำนวนโน้ต',
                 rainbowColors: 'สีรุ้ง',
                 leftSidebar: 'แถบด้านซ้าย',
                 calendarIntegration: 'การรวมปฏิทิน'
@@ -1318,6 +1321,10 @@ export const STRINGS_TH = {
             autoExpandNavItems: {
                 name: 'ขยายเมื่อเลือก',
                 desc: 'ขยายโฟลเดอร์และแท็กเมื่อเลือก ในโหมดแผงเดียว การเลือกครั้งแรกจะขยาย การเลือกครั้งที่สองจะแสดงไฟล์'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'ขยายเพียงสาขาเดียว',
+                desc: 'ยุบสาขาอื่นในต้นไม้เดียวกันเมื่อขยายโฟลเดอร์ แท็ก หรือคุณสมบัติ'
             },
             springLoadedFolders: {
                 name: 'ขยายระหว่างลาก',

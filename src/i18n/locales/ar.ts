@@ -976,6 +976,9 @@ export const STRINGS_AR = {
             },
             navigation: {
                 appearance: 'المظهر',
+                banner: 'اللافتة',
+                dragAndDrop: 'السحب والإفلات',
+                noteCounts: 'عدد الملاحظات',
                 rainbowColors: 'ألوان قوس قزح',
                 leftSidebar: 'الشريط الجانبي الأيسر',
                 calendarIntegration: 'تكامل التقويم'
@@ -1320,6 +1323,10 @@ export const STRINGS_AR = {
             autoExpandNavItems: {
                 name: 'التوسيع عند التحديد',
                 desc: 'توسيع المجلدات والوسوم عند تحديدها. في وضع اللوحة الواحدة، التحديد الأول يوسع، والتحديد الثاني يعرض الملفات.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'فرع واحد موسّع',
+                desc: 'طي الفروع الأخرى في نفس الشجرة عند توسيع مجلد أو وسم أو خاصية.'
             },
             springLoadedFolders: {
                 name: 'التوسيع أثناء السحب',

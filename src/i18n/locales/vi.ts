@@ -982,6 +982,9 @@ export const STRINGS_VI = {
             },
             navigation: {
                 appearance: 'Giao diện',
+                banner: 'Banner',
+                dragAndDrop: 'Kéo và thả',
+                noteCounts: 'Số lượng ghi chú',
                 rainbowColors: 'Màu cầu vồng',
                 leftSidebar: 'Thanh bên trái',
                 calendarIntegration: 'Tích hợp lịch'
@@ -1326,6 +1329,10 @@ export const STRINGS_VI = {
             autoExpandNavItems: {
                 name: 'Mở rộng khi chọn',
                 desc: 'Mở rộng thư mục và thẻ khi chọn. Ở chế độ một ngăn, chọn lần đầu mở rộng, chọn lần hai hiện tệp.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'Một nhánh được mở rộng',
+                desc: 'Thu gọn các nhánh khác trong cùng một cây khi mở rộng thư mục, thẻ hoặc thuộc tính.'
             },
             springLoadedFolders: {
                 name: 'Mở rộng khi kéo',

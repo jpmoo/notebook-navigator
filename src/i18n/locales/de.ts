@@ -983,6 +983,9 @@ export const STRINGS_DE = {
             },
             navigation: {
                 appearance: 'Darstellung',
+                banner: 'Banner',
+                dragAndDrop: 'Drag-and-drop',
+                noteCounts: 'Notizanzahlen',
                 rainbowColors: 'Regenbogenfarben',
                 leftSidebar: 'Linke Seitenleiste',
                 calendarIntegration: 'Kalenderintegration'
@@ -1327,6 +1330,10 @@ export const STRINGS_DE = {
             autoExpandNavItems: {
                 name: 'Bei Auswahl erweitern',
                 desc: 'Ordner und Tags bei Auswahl erweitern. Im Einzelfenster-Modus: erste Auswahl erweitert, zweite Auswahl zeigt Dateien.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'Ein erweiterter Zweig',
+                desc: 'Andere Zweige im selben Baum einklappen, wenn ein Ordner, Tag oder eine Eigenschaft erweitert wird.'
             },
             springLoadedFolders: {
                 name: 'Beim Ziehen erweitern',

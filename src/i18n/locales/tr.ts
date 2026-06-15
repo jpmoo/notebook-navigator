@@ -979,6 +979,9 @@ export const STRINGS_TR = {
             },
             navigation: {
                 appearance: 'Görünüm',
+                banner: 'Afiş',
+                dragAndDrop: 'Sürükle ve bırak',
+                noteCounts: 'Not sayıları',
                 rainbowColors: 'Gökkuşağı renkleri',
                 leftSidebar: 'Sol kenar çubuğu',
                 calendarIntegration: 'Takvim entegrasyonu'
@@ -1323,6 +1326,10 @@ export const STRINGS_TR = {
             autoExpandNavItems: {
                 name: 'Seçimde genişlet',
                 desc: 'Seçildiğinde klasörleri ve etiketleri genişlet. Tek bölme modunda ilk seçim genişletir, ikinci seçim dosyaları gösterir.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'Tek genişletilmiş dal',
+                desc: 'Bir klasör, etiket veya özellik genişletildiğinde aynı ağaçtaki diğer dalları daralt.'
             },
             springLoadedFolders: {
                 name: 'Sürüklerken genişlet',

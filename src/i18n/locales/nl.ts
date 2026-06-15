@@ -983,6 +983,9 @@ export const STRINGS_NL = {
             },
             navigation: {
                 appearance: 'Uiterlijk',
+                banner: 'Banner',
+                dragAndDrop: 'Slepen en neerzetten',
+                noteCounts: 'Notitietellingen',
                 rainbowColors: 'Regenboogkleuren',
                 leftSidebar: 'Linkerzijbalk',
                 calendarIntegration: 'Kalenderintegratie'
@@ -1327,6 +1330,10 @@ export const STRINGS_NL = {
             autoExpandNavItems: {
                 name: 'Uitvouwen bij selectie',
                 desc: 'Mappen en tags uitvouwen bij selectie. In enkelvoudige paneelmodus: eerste selectie vouwt uit, tweede selectie toont bestanden.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'Een uitgevouwen tak',
+                desc: 'Vouw andere takken in dezelfde boom samen bij het uitvouwen van een map, tag of eigenschap.'
             },
             springLoadedFolders: {
                 name: 'Uitvouwen bij slepen',
