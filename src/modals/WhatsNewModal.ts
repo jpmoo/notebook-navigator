@@ -148,14 +148,12 @@ export class WhatsNewModal extends Modal {
         const video = frame.createEl('video', { cls: 'nn-whats-new-video' });
 
         video.autoplay = true;
-        video.controls = true;
         video.defaultMuted = true;
         video.loop = true;
         video.muted = true;
         video.playsInline = true;
         video.preload = 'auto';
         video.setAttr('autoplay', '');
-        video.setAttr('controls', '');
         video.setAttr('loop', '');
         video.setAttr('muted', '');
         video.setAttr('playsinline', '');
