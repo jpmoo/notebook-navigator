@@ -35,10 +35,6 @@ interface SliderSettingOptions {
     onChange: (value: number) => Promise<void> | void;
 }
 
-type SliderComponentWithDisplayFormat = SliderComponent & {
-    setDisplayFormat(format: (value: number) => string): SliderComponent;
-};
-
 export function formatPixelSliderValue(value: number): string {
     return `${value}px`;
 }
@@ -47,9 +43,18 @@ export function formatSecondsSliderValue(value: number): string {
     return `${Number(value.toFixed(1))}s`;
 }
 
-function hasNativeSliderDisplayFormat(slider: SliderComponent): slider is SliderComponentWithDisplayFormat {
+function applyNativeSliderDisplayFormat(slider: SliderComponent, formatValue: (value: number) => string): void {
     const setDisplayFormat: unknown = Reflect.get(slider, 'setDisplayFormat');
-    return typeof setDisplayFormat === 'function';
+    if (typeof setDisplayFormat === 'function') {
+        Reflect.apply(setDisplayFormat, slider, [formatValue]);
+    }
+}
+
+function applyLegacySliderDynamicTooltip(slider: SliderComponent): void {
+    const setDynamicTooltip: unknown = Reflect.get(slider, 'setDynamicTooltip');
+    if (typeof setDynamicTooltip === 'function') {
+        Reflect.apply(setDynamicTooltip, slider, []);
+    }
 }
 
 /** Renders settings sliders with reset control. */
@@ -76,11 +81,11 @@ export function renderSliderSetting(setting: Setting, options: SliderSettingOpti
 
     setting
         .addSlider(slider => {
-            let configuredSlider = slider.setLimits(options.min, options.max, options.step).setValue(initialValue).setInstant(false);
-            if (usesNativeSliderValueDisplay && hasNativeSliderDisplayFormat(configuredSlider)) {
-                configuredSlider = configuredSlider.setDisplayFormat(formatValue);
+            const configuredSlider = slider.setLimits(options.min, options.max, options.step).setValue(initialValue).setInstant(false);
+            if (usesNativeSliderValueDisplay) {
+                applyNativeSliderDisplayFormat(configuredSlider, formatValue);
             } else if (!usesNativeSliderValueDisplay) {
-                configuredSlider = configuredSlider.setDynamicTooltip();
+                applyLegacySliderDynamicTooltip(configuredSlider);
             }
             sliderComponent = configuredSlider.onChange(applyValue);
             return slider;
