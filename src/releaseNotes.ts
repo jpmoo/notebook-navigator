@@ -87,9 +87,9 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
-        version: '3.1.3',
+        version: '3.1.4',
         date: '2026-06-15',
-        showOnUpdate: false,
+        showOnUpdate: true,
         videoUrl: true,
         videoClickable: true,
         new: [
