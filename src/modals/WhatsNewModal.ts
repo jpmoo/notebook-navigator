@@ -17,7 +17,7 @@
  */
 
 import { App, Modal, Platform, setIcon } from 'obsidian';
-import { getReleaseBannerUrl, getReleaseVideoUrl, SUPPORT_BUY_ME_A_COFFEE_URL } from '../constants/urls';
+import { getReleaseBannerUrl, getReleaseVideoOpenUrl, getReleaseVideoUrl, SUPPORT_BUY_ME_A_COFFEE_URL } from '../constants/urls';
 import { getCurrentLanguage, strings } from '../i18n';
 import { ReleaseNote } from '../releaseNotes';
 import { addAsyncEventListener } from '../utils/domEventListeners';
@@ -143,19 +143,17 @@ export class WhatsNewModal extends Modal {
         image.src = imageUrl;
     }
 
-    private renderReleaseVideo(container: HTMLElement, videoUrl: string, isClickable: boolean): void {
+    private renderReleaseVideo(container: HTMLElement, videoUrl: string, openUrl: string | null): void {
         const frame = container.createDiv({ cls: 'nn-whats-new-video-frame' });
         const video = frame.createEl('video', { cls: 'nn-whats-new-video' });
 
         video.autoplay = true;
-        video.controls = true;
         video.defaultMuted = true;
         video.loop = true;
         video.muted = true;
         video.playsInline = true;
         video.preload = 'auto';
         video.setAttr('autoplay', '');
-        video.setAttr('controls', '');
         video.setAttr('loop', '');
         video.setAttr('muted', '');
         video.setAttr('playsinline', '');
@@ -167,9 +165,9 @@ export class WhatsNewModal extends Modal {
 
         video.src = videoUrl;
 
-        if (isClickable) {
+        if (openUrl) {
             const openLink = frame.createEl('a', { cls: 'nn-whats-new-video-open' });
-            openLink.setAttr('href', videoUrl);
+            openLink.setAttr('href', openUrl);
             openLink.setAttr('rel', 'noopener noreferrer');
             openLink.setAttr('target', '_blank');
             openLink.setAttr('aria-label', strings.modals.welcome.openVideoButton);
@@ -249,7 +247,8 @@ export class WhatsNewModal extends Modal {
 
             const videoUrl = getReleaseVideoUrl(note.videoUrl, note.version);
             if (videoUrl) {
-                this.renderReleaseVideo(versionContainer, videoUrl, note.videoClickable === true);
+                const openUrl = note.videoClickable === true ? getReleaseVideoOpenUrl(note.videoUrl, note.version) : null;
+                this.renderReleaseVideo(versionContainer, videoUrl, openUrl);
             }
 
             if (note.youtubeUrl) {
