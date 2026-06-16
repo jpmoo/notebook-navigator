@@ -87,6 +87,14 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
+        version: '3.1.5',
+        date: '2026-06-22',
+        showOnUpdate: true,
+        improved: [
+            'Navigate to folder, Navigate to tag, and Navigate to property now keep the current single-pane view after selection.'
+        ]
+    },
+    {
         version: '3.1.4',
         date: '2026-06-15',
         showOnUpdate: true,
