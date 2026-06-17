@@ -496,6 +496,7 @@ export const STRINGS_RU = {
                 'nav-show-dual-pane': 'Показать двойную панель',
                 'nav-profile-chevron': 'Стрелка меню профиля',
                 'list-search': 'Поиск',
+                'list-reveal-file': 'Показать файл',
                 'list-descendants': 'Заметки из подпапок',
                 'list-sort-ascending': 'Порядок сортировки: по возрастанию',
                 'list-sort-descending': 'Порядок сортировки: по убыванию',

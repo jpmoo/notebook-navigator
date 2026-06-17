@@ -497,6 +497,7 @@ export const STRINGS_UK = {
                 'nav-show-dual-pane': 'Показати подвійну панель',
                 'nav-profile-chevron': 'Стрілка меню профілю',
                 'list-search': 'Пошук',
+                'list-reveal-file': 'Показати файл',
                 'list-descendants': 'Нотатки з підпапок',
                 'list-sort-ascending': 'Порядок сортування: за зростанням',
                 'list-sort-descending': 'Порядок сортування: за спаданням',

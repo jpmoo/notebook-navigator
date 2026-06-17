@@ -493,6 +493,7 @@ export const STRINGS_ZH_TW = {
                 'nav-show-dual-pane': '顯示雙窗格',
                 'nav-profile-chevron': '設定檔選單箭頭',
                 'list-search': '搜尋',
+                'list-reveal-file': '定位檔案',
                 'list-descendants': '子資料夾中的筆記',
                 'list-sort-ascending': '排序: 升序',
                 'list-sort-descending': '排序: 降序',

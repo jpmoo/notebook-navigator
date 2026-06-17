@@ -493,6 +493,7 @@ export const STRINGS_TH = {
                 'nav-show-dual-pane': 'แสดงแผงคู่',
                 'nav-profile-chevron': 'ลูกศรเมนูโปรไฟล์',
                 'list-search': 'ค้นหา',
+                'list-reveal-file': 'แสดงไฟล์',
                 'list-descendants': 'โน้ตจากโฟลเดอร์ย่อย',
                 'list-sort-ascending': 'ลำดับ: น้อยไปมาก',
                 'list-sort-descending': 'ลำดับ: มากไปน้อย',

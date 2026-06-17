@@ -498,6 +498,7 @@ export const STRINGS_PL = {
                 'nav-show-dual-pane': 'Pokaż oba panele',
                 'nav-profile-chevron': 'Strzałka menu profilu',
                 'list-search': 'Szukaj',
+                'list-reveal-file': 'Pokaż plik',
                 'list-descendants': 'Notatki z podfolderów',
                 'list-sort-ascending': 'Kolejność: rosnąco',
                 'list-sort-descending': 'Kolejność: malejąco',

@@ -496,6 +496,7 @@ export const STRINGS_ID = {
                 'nav-show-dual-pane': 'Tampilkan panel ganda',
                 'nav-profile-chevron': 'Panah menu profil',
                 'list-search': 'Cari',
+                'list-reveal-file': 'Tampilkan file',
                 'list-descendants': 'Catatan dari subfolder',
                 'list-sort-ascending': 'Urutan: menaik',
                 'list-sort-descending': 'Urutan: menurun',

@@ -496,6 +496,7 @@ export const STRINGS_DE = {
                 'nav-show-dual-pane': 'Zweispaltige Ansicht anzeigen',
                 'nav-profile-chevron': 'Profilmenü-Pfeil',
                 'list-search': 'Suche',
+                'list-reveal-file': 'Datei anzeigen',
                 'list-descendants': 'Notizen aus Unterordnern',
                 'list-sort-ascending': 'Sortierung: aufsteigend',
                 'list-sort-descending': 'Sortierung: absteigend',

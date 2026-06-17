@@ -377,6 +377,7 @@ function createViewDefinitionGroup(context: SettingsTabContext): SettingDefiniti
                 strings.paneHeader.newFolder,
                 strings.paneHeader.showFolders,
                 strings.paneHeader.search,
+                strings.commands.revealFile,
                 strings.settings.items.includeDescendantNotes.name,
                 strings.paneHeader.changeSortAndGroup,
                 strings.paneHeader.changeAppearance,

@@ -496,6 +496,7 @@ export const STRINGS_PT = {
                 'nav-show-dual-pane': 'Mostrar painéis duplos',
                 'nav-profile-chevron': 'Seta do menu de perfil',
                 'list-search': 'Pesquisar',
+                'list-reveal-file': 'Revelar ficheiro',
                 'list-descendants': 'Notas de subpastas',
                 'list-sort-ascending': 'Ordem: crescente',
                 'list-sort-descending': 'Ordem: decrescente',

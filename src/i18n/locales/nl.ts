@@ -498,6 +498,7 @@ export const STRINGS_NL = {
                 'nav-show-dual-pane': 'Dubbel paneel tonen',
                 'nav-profile-chevron': 'Profielmenu-pijl',
                 'list-search': 'Zoeken',
+                'list-reveal-file': 'Bestand tonen',
                 'list-descendants': 'Notities uit submappen',
                 'list-sort-ascending': 'Sorteervolgorde: oplopend',
                 'list-sort-descending': 'Sorteervolgorde: aflopend',
