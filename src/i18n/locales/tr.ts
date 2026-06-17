@@ -495,6 +495,7 @@ export const STRINGS_TR = {
                 'nav-show-dual-pane': 'Çift bölme göster',
                 'nav-profile-chevron': 'Profil menüsü oku',
                 'list-search': 'Ara',
+                'list-reveal-file': 'Dosyayı göster',
                 'list-descendants': 'Alt klasörlerden notlar',
                 'list-sort-ascending': 'Sıralama: artan',
                 'list-sort-descending': 'Sıralama: azalan',

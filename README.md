@@ -530,6 +530,8 @@ Feel free to connect with me on [LinkedIn](https://www.linkedin.com/in/johansan/
 **[Join our Discord](https://discord.gg/6eeSUvzEJr)** for support and discussions, or open an issue on the
 [GitHub repository](https://github.com/johansan/notebook-navigator).
 
+**Pull requests are not accepted.** With the emergence of agentic coding, outside code submissions cannot be quality-controlled to the standard the project maintains, so any pull request is closed automatically. Contribute ideas as feature requests instead — [open an issue](https://github.com/johansan/notebook-navigator/issues). See [CONTRIBUTING.md](https://github.com/johansan/notebook-navigator/blob/main/CONTRIBUTING.md) for details.
+
 <br/>
 
 ## 15 License

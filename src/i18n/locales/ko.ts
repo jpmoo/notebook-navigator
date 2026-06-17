@@ -493,6 +493,7 @@ export const STRINGS_KO = {
                 'nav-show-dual-pane': '이중 창 표시',
                 'nav-profile-chevron': '프로필 메뉴 화살표',
                 'list-search': '검색',
+                'list-reveal-file': '파일 표시',
                 'list-descendants': '하위 폴더의 노트',
                 'list-sort-ascending': '정렬 순서: 오름차순',
                 'list-sort-descending': '정렬 순서: 내림차순',

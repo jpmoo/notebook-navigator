@@ -69,6 +69,8 @@ import { ListPane } from './ListPane';
 import type { ListPaneHandle } from './ListPane';
 import { NavigationPane } from './NavigationPane';
 import type { NavigationPaneHandle } from './NavigationPane';
+import type { NavigateToPropertyOptions } from '../utils/propertyNavigation';
+import type { NavigateToTagOptions } from '../utils/tagNavigation';
 import { Calendar } from './calendar';
 import type { SearchShortcut } from '../types/shortcuts';
 import { UpdateNoticeBanner } from './UpdateNoticeBanner';
@@ -151,8 +153,8 @@ export interface NotebookNavigatorHandle {
     navigateForward: () => Promise<boolean>;
     addShortcutForCurrentSelection: () => Promise<void>;
     navigateToFolder: (folder: TFolder | string, options?: NavigateToFolderOptions) => boolean;
-    navigateToTag: (tagPath: string) => string | null;
-    navigateToProperty: (propertyNodeId: string) => string | null;
+    navigateToTag: (tagPath: string, options?: NavigateToTagOptions) => string | null;
+    navigateToProperty: (propertyNodeId: string, options?: NavigateToPropertyOptions) => string | null;
     addDateFilterToSearch: (dateToken: string) => void;
     navigateToFolderWithModal: () => void;
     navigateToTagWithModal: () => void;
@@ -728,6 +730,8 @@ export const NotebookNavigatorComponent = React.memo(
             [app.vault, getSelectionHistoryTarget, navigateToFolder, navigateToProperty, navigateToTag]
         );
 
+        const preserveNavigationFocusForModal = !uiState.singlePane || uiState.currentSinglePaneView === 'navigation';
+
         // Keeps aux-click behavior current without re-subscribing the DOM listener
         useEffect(() => {
             auxClickStateRef.current = {
@@ -1148,7 +1152,7 @@ export const NotebookNavigatorComponent = React.memo(
                         app,
                         (targetFolder: TFolder) => {
                             // Navigate to the selected folder
-                            navigateToFolder(targetFolder, { preserveNavigationFocus: true });
+                            navigateToFolder(targetFolder, { preserveNavigationFocus: preserveNavigationFocusForModal });
                         },
                         strings.modals.folderSuggest.navigatePlaceholder,
                         strings.modals.folderSuggest.instructions.select,
@@ -1163,7 +1167,7 @@ export const NotebookNavigatorComponent = React.memo(
                         plugin,
                         (tagPath: string) => {
                             // Use the shared tag navigation logic
-                            navigateToTag(tagPath);
+                            navigateToTag(tagPath, { preserveNavigationFocus: preserveNavigationFocusForModal });
                         },
                         strings.modals.tagSuggest.navigatePlaceholder,
                         strings.modals.tagSuggest.instructions.select,
@@ -1177,7 +1181,7 @@ export const NotebookNavigatorComponent = React.memo(
                         app,
                         suggestions,
                         nodeId => {
-                            navigateToProperty(nodeId);
+                            navigateToProperty(nodeId, { preserveNavigationFocus: preserveNavigationFocusForModal });
                         },
                         strings.modals.propertySuggest.navigatePlaceholder,
                         strings.modals.propertySuggest.instructions.navigate
@@ -1311,6 +1315,7 @@ export const NotebookNavigatorComponent = React.memo(
             navigateSelectionHistory,
             uiState.singlePane,
             uiState.currentSinglePaneView,
+            preserveNavigationFocusForModal,
             isMobile,
             app,
             settings,

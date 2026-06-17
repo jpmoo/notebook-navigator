@@ -494,6 +494,7 @@ export const STRINGS_EN = {
                 'nav-show-dual-pane': 'Show dual panes',
                 'nav-profile-chevron': 'Profile menu chevron',
                 'list-search': 'Search',
+                'list-reveal-file': 'Reveal file',
                 'list-descendants': 'Notes from subfolders',
                 'list-sort-ascending': 'Sort order: ascending',
                 'list-sort-descending': 'Sort order: descending',

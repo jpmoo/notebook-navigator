@@ -493,6 +493,7 @@ export const STRINGS_ZH_CN = {
                 'nav-show-dual-pane': '显示双窗格',
                 'nav-profile-chevron': '配置菜单箭头',
                 'list-search': '搜索',
+                'list-reveal-file': '定位文件',
                 'list-descendants': '子文件夹中的笔记',
                 'list-sort-ascending': '排序: 升序',
                 'list-sort-descending': '排序: 降序',

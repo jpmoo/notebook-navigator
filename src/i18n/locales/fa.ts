@@ -495,6 +495,7 @@ export const STRINGS_FA = {
                 'nav-show-dual-pane': 'نمایش پنل‌های دوگانه',
                 'nav-profile-chevron': 'فلش منوی پروفایل',
                 'list-search': 'جستجو',
+                'list-reveal-file': 'نمایش فایل',
                 'list-descendants': 'یادداشت‌ها از زیرپوشه‌ها',
                 'list-sort-ascending': 'ترتیب: صعودی',
                 'list-sort-descending': 'ترتیب: نزولی',

@@ -493,6 +493,7 @@ export const STRINGS_AR = {
                 'nav-show-dual-pane': 'إظهار لوحتين',
                 'nav-profile-chevron': 'سهم قائمة الملف الشخصي',
                 'list-search': 'بحث',
+                'list-reveal-file': 'الكشف عن الملف',
                 'list-descendants': 'ملاحظات من المجلدات الفرعية',
                 'list-sort-ascending': 'ترتيب الفرز: تصاعدي',
                 'list-sort-descending': 'ترتيب الفرز: تنازلي',

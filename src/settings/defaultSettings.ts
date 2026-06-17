@@ -201,6 +201,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
         list: {
             back: true,
             search: true,
+            reveal: false,
             descendants: true,
             sort: true,
             appearance: true,

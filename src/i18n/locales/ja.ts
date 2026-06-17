@@ -495,6 +495,7 @@ export const STRINGS_JA = {
                 'nav-show-dual-pane': 'デュアルペインを表示',
                 'nav-profile-chevron': 'プロファイルメニュー矢印',
                 'list-search': '検索',
+                'list-reveal-file': 'ファイルを表示',
                 'list-descendants': 'サブフォルダからのノート',
                 'list-sort-ascending': '並べ替え: 昇順',
                 'list-sort-descending': '並べ替え: 降順',

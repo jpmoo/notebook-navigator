@@ -87,6 +87,15 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
+        version: '3.1.5',
+        date: '2026-06-22',
+        showOnUpdate: true,
+        new: [
+            'Added a ==Reveal file== button in the list pane toolbar. Default disabled, enable it with Settings > Appearance & behavior > Toolbar buttons.'
+        ],
+        improved: ['Navigate to folder, Navigate to tag, and Navigate to property now keep the current single-pane view after selection.']
+    },
+    {
         version: '3.1.4',
         date: '2026-06-15',
         showOnUpdate: true,

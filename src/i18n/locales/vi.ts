@@ -495,6 +495,7 @@ export const STRINGS_VI = {
                 'nav-show-dual-pane': 'Hiện hai ngăn',
                 'nav-profile-chevron': 'Mũi tên menu hồ sơ',
                 'list-search': 'Tìm kiếm',
+                'list-reveal-file': 'Hiện tệp',
                 'list-descendants': 'Ghi chú từ thư mục con',
                 'list-sort-ascending': 'Thứ tự: tăng dần',
                 'list-sort-descending': 'Thứ tự: giảm dần',
