@@ -7776,7 +7776,8 @@ button.nn-youtube-button svg {
         grid-template-columns: repeat(8, 1fr);
     }
 
-    /* Saturation/value square on the left, hue + transparency + hex stacked on the right */
+    /* Saturation/value area on the left, hue + transparency + hex stacked on the right.
+       The SV area stretches to match the height of that stack. */
     .nn-color-area-section {
         flex-direction: row;
         align-items: stretch;
@@ -7785,16 +7786,13 @@ button.nn-youtube-button svg {
 
     .nn-sv-area {
         flex: 1 1 0;
-        align-self: flex-start;
         width: auto;
         height: auto;
-        aspect-ratio: 1;
     }
 
     .nn-color-controls {
         flex: 1 1 0;
         min-width: 0;
-        justify-content: center;
     }
 
     .modal.nn-color-picker-modal .modal-content {
@@ -8080,6 +8078,10 @@ button.nn-youtube-button svg {
         flex: 0 0 auto;
     }
 
+    /* Size the body to its content rather than a fixed height so the modal adapts to large
+       fonts and display scaling. The base max-height caps it to the viewport and the body
+       scrolls instead of clipping. The modal resizes between tabs because each tab fits its
+       own content. */
     .nn-appearance-body {
         height: auto;
         min-height: 0;

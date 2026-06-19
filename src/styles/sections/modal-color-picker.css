@@ -539,7 +539,8 @@
         grid-template-columns: repeat(8, 1fr);
     }
 
-    /* Saturation/value square on the left, hue + transparency + hex stacked on the right */
+    /* Saturation/value area on the left, hue + transparency + hex stacked on the right.
+       The SV area stretches to match the height of that stack. */
     .nn-color-area-section {
         flex-direction: row;
         align-items: stretch;
@@ -548,16 +549,13 @@
 
     .nn-sv-area {
         flex: 1 1 0;
-        align-self: flex-start;
         width: auto;
         height: auto;
-        aspect-ratio: 1;
     }
 
     .nn-color-controls {
         flex: 1 1 0;
         min-width: 0;
-        justify-content: center;
     }
 
     .modal.nn-color-picker-modal .modal-content {
