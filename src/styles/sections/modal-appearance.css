@@ -281,4 +281,8 @@
         height: 240px;
         min-height: 240px;
     }
+
+    .nn-appearance-picker-host .nn-recent-colors {
+        grid-template-columns: repeat(8, 1fr);
+    }
 }

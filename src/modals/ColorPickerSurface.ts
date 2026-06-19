@@ -167,7 +167,6 @@ export class ColorPickerSurface {
         this.buildPalette(leftColumn);
 
         const rightColumn = mainContent.createDiv('nn-color-picker-right');
-        this.buildHexInput(rightColumn);
         this.buildVisualPicker(rightColumn);
 
         this.buildRecentColors(this.recentInLeftColumn ? leftColumn : this.rootEl);
@@ -448,8 +447,8 @@ export class ColorPickerSurface {
         this.userColorsContainer = presetSection.createDiv('nn-preset-colors');
     }
 
-    private buildHexInput(rightColumn: HTMLElement): void {
-        const hexSection = rightColumn.createDiv('nn-hex-section');
+    private buildHexInput(parent: HTMLElement): void {
+        const hexSection = parent.createDiv('nn-hex-section');
         const header = hexSection.createDiv('nn-hex-header');
         header.createEl('label', { text: strings.modals.colorPicker.hexLabel, cls: 'nn-hex-title' });
         const hexContainer = hexSection.createDiv('nn-hex-container');
@@ -492,7 +491,9 @@ export class ColorPickerSurface {
             this.commitHsvColor();
         });
 
-        this.hueSlider = colorAreaSection.createDiv('nn-color-slider nn-hue-slider');
+        const controls = colorAreaSection.createDiv('nn-color-controls');
+
+        this.hueSlider = controls.createDiv('nn-color-slider nn-hue-slider');
         this.hueSlider.setAttribute('aria-label', strings.modals.colorPicker.hueSlider);
         this.hueThumb = this.hueSlider.createDiv('nn-slider-thumb');
         this.attachPointerArea(this.hueSlider, x => {
@@ -500,7 +501,7 @@ export class ColorPickerSurface {
             this.commitHsvColor();
         });
 
-        this.alphaSlider = colorAreaSection.createDiv('nn-color-slider nn-alpha-slider nn-checkerboard');
+        this.alphaSlider = controls.createDiv('nn-color-slider nn-alpha-slider nn-checkerboard');
         this.alphaSlider.setAttribute('aria-label', strings.modals.colorPicker.alphaSlider);
         this.alphaSlider.createDiv('nn-alpha-gradient');
         this.alphaThumb = this.alphaSlider.createDiv('nn-slider-thumb');
@@ -508,6 +509,8 @@ export class ColorPickerSurface {
             this.alpha = Math.round(x * 255);
             this.commitHsvColor();
         });
+
+        this.buildHexInput(controls);
     }
 
     private buildRecentColors(container: HTMLElement): void {

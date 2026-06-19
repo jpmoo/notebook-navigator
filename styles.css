@@ -7396,6 +7396,12 @@ button.nn-youtube-button svg {
     margin-bottom: auto; /* Push everything below to the bottom */
 }
 
+.nn-color-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
 .nn-sv-area {
     position: relative;
     width: 100%;
@@ -7465,9 +7471,9 @@ button.nn-youtube-button svg {
     transform: translate(-50%, -50%);
 }
 
-/* Hex input section */
+/* Hex input section - sits at the bottom of the picker, below the alpha slider */
 .nn-hex-section {
-    margin-bottom: 20px;
+    margin-bottom: 0;
 }
 
 .nn-hex-header {
@@ -7770,6 +7776,27 @@ button.nn-youtube-button svg {
         grid-template-columns: repeat(8, 1fr);
     }
 
+    /* Saturation/value square on the left, hue + transparency + hex stacked on the right */
+    .nn-color-area-section {
+        flex-direction: row;
+        align-items: stretch;
+        gap: 14px;
+    }
+
+    .nn-sv-area {
+        flex: 1 1 0;
+        align-self: flex-start;
+        width: auto;
+        height: auto;
+        aspect-ratio: 1;
+    }
+
+    .nn-color-controls {
+        flex: 1 1 0;
+        min-width: 0;
+        justify-content: center;
+    }
+
     .modal.nn-color-picker-modal .modal-content {
         padding: 16px 16px 12px;
         gap: 12px;
@@ -8062,6 +8089,10 @@ button.nn-youtube-button svg {
         flex: 0 0 auto;
         height: 240px;
         min-height: 240px;
+    }
+
+    .nn-appearance-picker-host .nn-recent-colors {
+        grid-template-columns: repeat(8, 1fr);
     }
 }
 /* Source: src/styles/sections/theme-folder-colors.css */

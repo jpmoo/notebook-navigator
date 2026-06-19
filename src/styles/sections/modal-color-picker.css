@@ -159,6 +159,12 @@
     margin-bottom: auto; /* Push everything below to the bottom */
 }
 
+.nn-color-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
 .nn-sv-area {
     position: relative;
     width: 100%;
@@ -228,9 +234,9 @@
     transform: translate(-50%, -50%);
 }
 
-/* Hex input section */
+/* Hex input section - sits at the bottom of the picker, below the alpha slider */
 .nn-hex-section {
-    margin-bottom: 20px;
+    margin-bottom: 0;
 }
 
 .nn-hex-header {
@@ -531,6 +537,27 @@
     .nn-preset-colors,
     .nn-recent-colors {
         grid-template-columns: repeat(8, 1fr);
+    }
+
+    /* Saturation/value square on the left, hue + transparency + hex stacked on the right */
+    .nn-color-area-section {
+        flex-direction: row;
+        align-items: stretch;
+        gap: 14px;
+    }
+
+    .nn-sv-area {
+        flex: 1 1 0;
+        align-self: flex-start;
+        width: auto;
+        height: auto;
+        aspect-ratio: 1;
+    }
+
+    .nn-color-controls {
+        flex: 1 1 0;
+        min-width: 0;
+        justify-content: center;
     }
 
     .modal.nn-color-picker-modal .modal-content {
