@@ -93,26 +93,28 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
         menu.addSeparator();
     }
 
-    // Change icon
-    if (settings.showTagIcons) {
-        menu.addItem((item: MenuItem) => {
-            setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeIcon).setIcon('lucide-image'), async () => {
-                const { IconPickerModal } = await import('../../modals/IconPickerModal');
-                const modal = new IconPickerModal(app, metadataService, tagPath, ItemType.TAG);
-                modal.open();
-            });
-        });
-    }
+    const openAppearanceModal = async (initialTab: 'icon' | 'color' | 'background'): Promise<void> => {
+        const { AppearanceModal } = await import('../../modals/AppearanceModal');
+        const modal = new AppearanceModal(app, {
+            title: `#${tagPath}`,
+            metadataService,
+            initialTab,
+            icon: settings.showTagIcons
+                ? {
+                      initial: metadataService.getTagIcon(tagPath) ?? null,
+                      apply: async iconId => {
+                          if (iconId === null) {
+                              await metadataService.removeTagIcon(tagPath);
+                              return;
+                          }
 
-    // Change color
-    menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeColor).setIcon('lucide-palette'), async () => {
-            const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
-            const modal = new ColorPickerModal(app, {
-                title: `#${tagPath}`,
-                initialColor: metadataService.getTagColor(tagPath) ?? null,
-                settingsProvider: metadataService.getSettingsProvider(),
-                onChooseColor: async color => {
+                          await metadataService.setTagIcon(tagPath, iconId);
+                      }
+                  }
+                : undefined,
+            color: {
+                initial: metadataService.getTagColor(tagPath) ?? null,
+                apply: async color => {
                     if (color === null) {
                         await metadataService.removeTagColor(tagPath);
                         return;
@@ -120,20 +122,10 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
 
                     await metadataService.setTagColor(tagPath, color);
                 }
-            });
-            modal.open();
-        });
-    });
-
-    // Change background color
-    menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeBackground).setIcon('lucide-paint-bucket'), async () => {
-            const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
-            const modal = new ColorPickerModal(app, {
-                title: `#${tagPath}`,
-                initialColor: metadataService.getTagBackgroundColor(tagPath) ?? null,
-                settingsProvider: metadataService.getSettingsProvider(),
-                onChooseColor: async color => {
+            },
+            background: {
+                initial: metadataService.getTagBackgroundColor(tagPath) ?? null,
+                apply: async color => {
                     if (color === null) {
                         await metadataService.removeTagBackgroundColor(tagPath);
                         return;
@@ -141,8 +133,28 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
 
                     await metadataService.setTagBackgroundColor(tagPath, color);
                 }
+            }
+        });
+        modal.open();
+    };
+
+    if (settings.showTagIcons) {
+        menu.addItem((item: MenuItem) => {
+            setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeIcon).setIcon('lucide-image'), () => {
+                return openAppearanceModal('icon');
             });
-            modal.open();
+        });
+    }
+
+    menu.addItem((item: MenuItem) => {
+        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeColor).setIcon('lucide-palette'), () => {
+            return openAppearanceModal('color');
+        });
+    });
+
+    menu.addItem((item: MenuItem) => {
+        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeBackground).setIcon('lucide-paint-bucket'), () => {
+            return openAppearanceModal('background');
         });
     });
 

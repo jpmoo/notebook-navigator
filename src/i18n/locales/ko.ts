@@ -536,7 +536,21 @@ export const STRINGS_KO = {
             removeRecentColor: '색상 제거',
             apply: '적용',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            rgbLabel: 'RGBA',
+            hexInputLabel: 'Hex color value',
+            saturationValueArea: 'Saturation and brightness',
+            hueSlider: 'Hue',
+            alphaSlider: 'Transparency'
+        },
+        appearance: {
+            menuTitle: 'Change appearance',
+            tabIcon: 'Icon',
+            tabColor: 'Color',
+            tabBackground: 'Background',
+            resetIcon: 'Remove icon',
+            resetColor: 'Remove color',
+            resetBackground: 'Remove background',
+            apply: 'Apply'
         },
         selectVaultProfile: {
             title: '보관소 프로필 변경',
