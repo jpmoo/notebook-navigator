@@ -93,7 +93,10 @@ const RELEASE_NOTES: ReleaseNote[] = [
         new: [
             'Added a ==Reveal file== button in the list pane toolbar. Default disabled, enable it with Settings > Appearance & behavior > Toolbar buttons.'
         ],
-        improved: ['Navigate to folder, Navigate to tag, and Navigate to property now keep the current single-pane view after selection.']
+        improved: [
+            'Navigate to folder, Navigate to tag, and Navigate to property now keep the current single-pane view after selection.',
+            'Redesigned and merged the icon and color pickers into a unified panel with preview, saturation/value rectangle and hue slider.'
+        ]
     },
     {
         version: '3.1.4',

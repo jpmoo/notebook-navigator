@@ -542,14 +542,12 @@ export const STRINGS_NL = {
             apply: 'Toepassen',
             pickerLabel: 'Kiezer',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
             hexInputLabel: 'Hex-kleurwaarde',
             saturationValueArea: 'Verzadiging en helderheid',
             hueSlider: 'Tint',
             alphaSlider: 'Transparantie'
         },
         appearance: {
-            menuTitle: 'Uiterlijk wijzigen',
             tabIcon: 'Pictogram',
             tabColor: 'Kleur',
             tabBackground: 'Achtergrond',

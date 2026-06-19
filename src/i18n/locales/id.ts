@@ -540,14 +540,12 @@ export const STRINGS_ID = {
             apply: 'Terapkan',
             pickerLabel: 'Pemilih',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
             hexInputLabel: 'Nilai warna heksadesimal',
             saturationValueArea: 'Saturasi dan kecerahan',
             hueSlider: 'Rona',
             alphaSlider: 'Transparansi'
         },
         appearance: {
-            menuTitle: 'Ubah tampilan',
             tabIcon: 'Ikon',
             tabColor: 'Warna',
             tabBackground: 'Latar belakang',

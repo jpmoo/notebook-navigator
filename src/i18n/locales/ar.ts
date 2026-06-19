@@ -537,14 +537,12 @@ export const STRINGS_AR = {
             apply: 'تطبيق',
             pickerLabel: 'المنتقي',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
             hexInputLabel: 'قيمة اللون السداسية',
             saturationValueArea: 'التشبع والسطوع',
             hueSlider: 'تدرج اللون',
             alphaSlider: 'الشفافية'
         },
         appearance: {
-            menuTitle: 'تغيير المظهر',
             tabIcon: 'الأيقونة',
             tabColor: 'اللون',
             tabBackground: 'الخلفية',

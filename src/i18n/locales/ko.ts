@@ -537,14 +537,12 @@ export const STRINGS_KO = {
             apply: '적용',
             pickerLabel: '선택기',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
             hexInputLabel: 'HEX 색상 값',
             saturationValueArea: '채도 및 밝기',
             hueSlider: '색조',
             alphaSlider: '투명도'
         },
         appearance: {
-            menuTitle: '모양 변경',
             tabIcon: '아이콘',
             tabColor: '색상',
             tabBackground: '배경',

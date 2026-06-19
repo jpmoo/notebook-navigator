@@ -541,14 +541,12 @@ export const STRINGS_UK = {
             apply: 'Застосувати',
             pickerLabel: 'Вибір',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
             hexInputLabel: 'HEX-значення кольору',
             saturationValueArea: 'Насиченість і яскравість',
             hueSlider: 'Відтінок',
             alphaSlider: 'Прозорість'
         },
         appearance: {
-            menuTitle: 'Змінити вигляд',
             tabIcon: 'Значок',
             tabColor: 'Колір',
             tabBackground: 'Фон',

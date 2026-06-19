@@ -539,14 +539,12 @@ export const STRINGS_TR = {
             apply: 'Uygula',
             pickerLabel: 'Seçici',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
             hexInputLabel: 'HEX renk değeri',
             saturationValueArea: 'Doygunluk ve parlaklık',
             hueSlider: 'Ton',
             alphaSlider: 'Saydamlık'
         },
         appearance: {
-            menuTitle: 'Görünümü değiştir',
             tabIcon: 'Simge',
             tabColor: 'Renk',
             tabBackground: 'Arka plan',

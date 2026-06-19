@@ -539,14 +539,12 @@ export const STRINGS_IT = {
             apply: 'Applica',
             pickerLabel: 'Selettore',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
             hexInputLabel: 'Valore colore esadecimale',
             saturationValueArea: 'Saturazione e luminosità',
             hueSlider: 'Tonalità',
             alphaSlider: 'Trasparenza'
         },
         appearance: {
-            menuTitle: 'Cambia aspetto',
             tabIcon: 'Icona',
             tabColor: 'Colore',
             tabBackground: 'Sfondo',

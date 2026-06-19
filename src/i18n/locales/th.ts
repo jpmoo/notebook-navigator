@@ -537,14 +537,12 @@ export const STRINGS_TH = {
             apply: 'นำไปใช้',
             pickerLabel: 'ตัวเลือก',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
             hexInputLabel: 'ค่าสี HEX',
             saturationValueArea: 'ความอิ่มตัวและความสว่าง',
             hueSlider: 'เฉดสี',
             alphaSlider: 'ความโปร่งใส'
         },
         appearance: {
-            menuTitle: 'เปลี่ยนลักษณะ',
             tabIcon: 'ไอคอน',
             tabColor: 'สี',
             tabBackground: 'พื้นหลัง',

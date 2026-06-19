@@ -537,14 +537,12 @@ export const STRINGS_ZH_TW = {
             apply: '套用',
             pickerLabel: '選色器',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
             hexInputLabel: '十六進位色彩值',
             saturationValueArea: '飽和度與亮度',
             hueSlider: '色相',
             alphaSlider: '透明度'
         },
         appearance: {
-            menuTitle: '變更外觀',
             tabIcon: '圖示',
             tabColor: '顏色',
             tabBackground: '背景',

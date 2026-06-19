@@ -538,14 +538,12 @@ export const STRINGS_EN = {
             apply: 'Apply',
             pickerLabel: 'Picker',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
             hexInputLabel: 'Hex color value',
             saturationValueArea: 'Saturation and brightness',
             hueSlider: 'Hue',
             alphaSlider: 'Transparency'
         },
         appearance: {
-            menuTitle: 'Change appearance',
             tabIcon: 'Icon',
             tabColor: 'Color',
             tabBackground: 'Background',

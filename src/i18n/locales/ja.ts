@@ -539,14 +539,12 @@ export const STRINGS_JA = {
             apply: '適用',
             pickerLabel: 'ピッカー',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
             hexInputLabel: 'HEXカラー値',
             saturationValueArea: '彩度と明度',
             hueSlider: '色相',
             alphaSlider: '透明度'
         },
         appearance: {
-            menuTitle: '外観を変更',
             tabIcon: 'アイコン',
             tabColor: '色',
             tabBackground: '背景',

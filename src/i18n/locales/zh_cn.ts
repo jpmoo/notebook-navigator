@@ -537,14 +537,12 @@ export const STRINGS_ZH_CN = {
             apply: '应用',
             pickerLabel: '拾色器',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
             hexInputLabel: '十六进制颜色值',
             saturationValueArea: '饱和度和亮度',
             hueSlider: '色相',
             alphaSlider: '透明度'
         },
         appearance: {
-            menuTitle: '更改外观',
             tabIcon: '图标',
             tabColor: '颜色',
             tabBackground: '背景',

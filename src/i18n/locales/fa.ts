@@ -539,14 +539,12 @@ export const STRINGS_FA = {
             apply: 'اعمال',
             pickerLabel: 'انتخابگر',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
             hexInputLabel: 'مقدار رنگ هگز',
             saturationValueArea: 'اشباع و روشنایی',
             hueSlider: 'فام',
             alphaSlider: 'شفافیت'
         },
         appearance: {
-            menuTitle: 'تغییر ظاهر',
             tabIcon: 'نماد',
             tabColor: 'رنگ',
             tabBackground: 'پس‌زمینه',

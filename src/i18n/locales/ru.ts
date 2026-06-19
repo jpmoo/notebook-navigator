@@ -540,14 +540,12 @@ export const STRINGS_RU = {
             apply: 'Применить',
             pickerLabel: 'Выбор',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
             hexInputLabel: 'HEX-значение цвета',
             saturationValueArea: 'Насыщенность и яркость',
             hueSlider: 'Оттенок',
             alphaSlider: 'Прозрачность'
         },
         appearance: {
-            menuTitle: 'Изменить внешний вид',
             tabIcon: 'Значок',
             tabColor: 'Цвет',
             tabBackground: 'Фон',

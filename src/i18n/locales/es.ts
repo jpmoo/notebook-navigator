@@ -540,14 +540,12 @@ export const STRINGS_ES = {
             apply: 'Aplicar',
             pickerLabel: 'Selector',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
             hexInputLabel: 'Valor de color hexadecimal',
             saturationValueArea: 'Saturación y brillo',
             hueSlider: 'Tono',
             alphaSlider: 'Transparencia'
         },
         appearance: {
-            menuTitle: 'Cambiar apariencia',
             tabIcon: 'Icono',
             tabColor: 'Color',
             tabBackground: 'Fondo',

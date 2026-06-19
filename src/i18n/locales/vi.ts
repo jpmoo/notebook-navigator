@@ -539,14 +539,12 @@ export const STRINGS_VI = {
             apply: 'Áp dụng',
             pickerLabel: 'Bộ chọn',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
             hexInputLabel: 'Giá trị màu hex',
             saturationValueArea: 'Độ bão hòa và độ sáng',
             hueSlider: 'Sắc độ',
             alphaSlider: 'Độ trong suốt'
         },
         appearance: {
-            menuTitle: 'Đổi giao diện',
             tabIcon: 'Biểu tượng',
             tabColor: 'Màu sắc',
             tabBackground: 'Nền',

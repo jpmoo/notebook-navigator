@@ -542,14 +542,12 @@ export const STRINGS_PL = {
             apply: 'Zastosuj',
             pickerLabel: 'Selektor',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
             hexInputLabel: 'Wartość koloru HEX',
             saturationValueArea: 'Nasycenie i jasność',
             hueSlider: 'Odcień',
             alphaSlider: 'Przezroczystość'
         },
         appearance: {
-            menuTitle: 'Zmień wygląd',
             tabIcon: 'Ikona',
             tabColor: 'Kolor',
             tabBackground: 'Tło',

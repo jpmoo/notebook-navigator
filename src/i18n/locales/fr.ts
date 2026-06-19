@@ -541,14 +541,12 @@ export const STRINGS_FR = {
             apply: 'Appliquer',
             pickerLabel: 'Sélecteur',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA',
             hexInputLabel: 'Valeur de couleur hexadécimale',
             saturationValueArea: 'Saturation et luminosité',
             hueSlider: 'Teinte',
             alphaSlider: 'Transparence'
         },
         appearance: {
-            menuTitle: "Changer l'apparence",
             tabIcon: 'Icône',
             tabColor: 'Couleur',
             tabBackground: 'Arrière-plan',
