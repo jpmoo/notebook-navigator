@@ -7402,6 +7402,16 @@ button.nn-youtube-button svg {
     gap: 14px;
 }
 
+/* Header above the saturation/value area; matches the preset header height so the picker
+   lines up with the swatch grid in the left column. Hidden on mobile where the area sits
+   beside the sliders. */
+.nn-sv-header {
+    display: flex;
+    align-items: center;
+    min-height: 20px;
+    margin-bottom: 8px;
+}
+
 .nn-sv-area {
     position: relative;
     width: 100%;
@@ -7776,6 +7786,10 @@ button.nn-youtube-button svg {
         grid-template-columns: repeat(8, 1fr);
     }
 
+    .nn-sv-header {
+        display: none;
+    }
+
     /* Saturation/value area on the left, hue + transparency + hex stacked on the right.
        The SV area stretches to match the height of that stack. */
     .nn-color-area-section {
@@ -7849,7 +7863,6 @@ button.nn-youtube-button svg {
     max-width: 100%;
     gap: 8px;
     padding: 6px 14px;
-    border: 1px solid var(--background-modifier-border);
     border-radius: var(--radius-s);
     background: var(--nn-preview-bg, var(--background-secondary));
     color: var(--nn-preview-fg, var(--nn-theme-foreground));

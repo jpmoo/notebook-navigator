@@ -540,22 +540,23 @@ export const STRINGS_PL = {
             clearRecentColors: 'Wyczyść ostatnie kolory',
             removeRecentColor: 'Usuń kolor',
             apply: 'Zastosuj',
+            pickerLabel: 'Selektor',
             hexLabel: 'HEX',
             rgbLabel: 'RGBA',
-            hexInputLabel: 'Hex color value',
-            saturationValueArea: 'Saturation and brightness',
-            hueSlider: 'Hue',
-            alphaSlider: 'Transparency'
+            hexInputLabel: 'Wartość koloru HEX',
+            saturationValueArea: 'Nasycenie i jasność',
+            hueSlider: 'Odcień',
+            alphaSlider: 'Przezroczystość'
         },
         appearance: {
-            menuTitle: 'Change appearance',
-            tabIcon: 'Icon',
-            tabColor: 'Color',
-            tabBackground: 'Background',
-            resetIcon: 'Remove icon',
-            resetColor: 'Remove color',
-            resetBackground: 'Remove background',
-            apply: 'Apply'
+            menuTitle: 'Zmień wygląd',
+            tabIcon: 'Ikona',
+            tabColor: 'Kolor',
+            tabBackground: 'Tło',
+            resetIcon: 'Usuń ikonkę',
+            resetColor: 'Usuń kolor',
+            resetBackground: 'Usuń tło',
+            apply: 'Zastosuj'
         },
         selectVaultProfile: {
             title: 'Zmień profil sejfu',

@@ -480,6 +480,9 @@ export class ColorPickerSurface {
     }
 
     private buildVisualPicker(rightColumn: HTMLElement): void {
+        const pickerHeader = rightColumn.createDiv('nn-sv-header');
+        pickerHeader.createSpan({ text: strings.modals.colorPicker.pickerLabel, cls: 'nn-section-label' });
+
         const colorAreaSection = rightColumn.createDiv('nn-color-area-section');
 
         this.svArea = colorAreaSection.createDiv('nn-sv-area');

@@ -535,22 +535,23 @@ export const STRINGS_KO = {
             clearRecentColors: '최근 색상 지우기',
             removeRecentColor: '색상 제거',
             apply: '적용',
+            pickerLabel: '선택기',
             hexLabel: 'HEX',
             rgbLabel: 'RGBA',
-            hexInputLabel: 'Hex color value',
-            saturationValueArea: 'Saturation and brightness',
-            hueSlider: 'Hue',
-            alphaSlider: 'Transparency'
+            hexInputLabel: 'HEX 색상 값',
+            saturationValueArea: '채도 및 밝기',
+            hueSlider: '색조',
+            alphaSlider: '투명도'
         },
         appearance: {
-            menuTitle: 'Change appearance',
-            tabIcon: 'Icon',
-            tabColor: 'Color',
-            tabBackground: 'Background',
-            resetIcon: 'Remove icon',
-            resetColor: 'Remove color',
-            resetBackground: 'Remove background',
-            apply: 'Apply'
+            menuTitle: '모양 변경',
+            tabIcon: '아이콘',
+            tabColor: '색상',
+            tabBackground: '배경',
+            resetIcon: '아이콘 제거',
+            resetColor: '색상 제거',
+            resetBackground: '배경 제거',
+            apply: '적용'
         },
         selectVaultProfile: {
             title: '보관소 프로필 변경',

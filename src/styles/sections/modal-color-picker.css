@@ -165,6 +165,16 @@
     gap: 14px;
 }
 
+/* Header above the saturation/value area; matches the preset header height so the picker
+   lines up with the swatch grid in the left column. Hidden on mobile where the area sits
+   beside the sliders. */
+.nn-sv-header {
+    display: flex;
+    align-items: center;
+    min-height: 20px;
+    margin-bottom: 8px;
+}
+
 .nn-sv-area {
     position: relative;
     width: 100%;
@@ -537,6 +547,10 @@
     .nn-preset-colors,
     .nn-recent-colors {
         grid-template-columns: repeat(8, 1fr);
+    }
+
+    .nn-sv-header {
+        display: none;
     }
 
     /* Saturation/value area on the left, hue + transparency + hex stacked on the right.

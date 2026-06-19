@@ -540,22 +540,23 @@ export const STRINGS_NL = {
             clearRecentColors: 'Recente kleuren wissen',
             removeRecentColor: 'Kleur verwijderen',
             apply: 'Toepassen',
+            pickerLabel: 'Kiezer',
             hexLabel: 'HEX',
             rgbLabel: 'RGBA',
-            hexInputLabel: 'Hex color value',
-            saturationValueArea: 'Saturation and brightness',
-            hueSlider: 'Hue',
-            alphaSlider: 'Transparency'
+            hexInputLabel: 'Hex-kleurwaarde',
+            saturationValueArea: 'Verzadiging en helderheid',
+            hueSlider: 'Tint',
+            alphaSlider: 'Transparantie'
         },
         appearance: {
-            menuTitle: 'Change appearance',
-            tabIcon: 'Icon',
-            tabColor: 'Color',
-            tabBackground: 'Background',
-            resetIcon: 'Remove icon',
-            resetColor: 'Remove color',
-            resetBackground: 'Remove background',
-            apply: 'Apply'
+            menuTitle: 'Uiterlijk wijzigen',
+            tabIcon: 'Pictogram',
+            tabColor: 'Kleur',
+            tabBackground: 'Achtergrond',
+            resetIcon: 'Pictogram verwijderen',
+            resetColor: 'Kleur verwijderen',
+            resetBackground: 'Achtergrond verwijderen',
+            apply: 'Toepassen'
         },
         selectVaultProfile: {
             title: 'Kluisprofiel wijzigen',

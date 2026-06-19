@@ -539,22 +539,23 @@ export const STRINGS_UK = {
             clearRecentColors: 'Очистити останні кольори',
             removeRecentColor: 'Вилучити колір',
             apply: 'Застосувати',
+            pickerLabel: 'Вибір',
             hexLabel: 'HEX',
             rgbLabel: 'RGBA',
-            hexInputLabel: 'Hex color value',
-            saturationValueArea: 'Saturation and brightness',
-            hueSlider: 'Hue',
-            alphaSlider: 'Transparency'
+            hexInputLabel: 'HEX-значення кольору',
+            saturationValueArea: 'Насиченість і яскравість',
+            hueSlider: 'Відтінок',
+            alphaSlider: 'Прозорість'
         },
         appearance: {
-            menuTitle: 'Change appearance',
-            tabIcon: 'Icon',
-            tabColor: 'Color',
-            tabBackground: 'Background',
-            resetIcon: 'Remove icon',
-            resetColor: 'Remove color',
-            resetBackground: 'Remove background',
-            apply: 'Apply'
+            menuTitle: 'Змінити вигляд',
+            tabIcon: 'Значок',
+            tabColor: 'Колір',
+            tabBackground: 'Фон',
+            resetIcon: 'Видалити іконку',
+            resetColor: 'Видалити колір',
+            resetBackground: 'Видалити фон',
+            apply: 'Застосувати'
         },
         selectVaultProfile: {
             title: 'Вибрати профіль сховища',

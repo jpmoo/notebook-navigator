@@ -535,22 +535,23 @@ export const STRINGS_AR = {
             clearRecentColors: 'مسح الألوان الحديثة',
             removeRecentColor: 'إزالة اللون',
             apply: 'تطبيق',
+            pickerLabel: 'المنتقي',
             hexLabel: 'HEX',
             rgbLabel: 'RGBA',
-            hexInputLabel: 'Hex color value',
-            saturationValueArea: 'Saturation and brightness',
-            hueSlider: 'Hue',
-            alphaSlider: 'Transparency'
+            hexInputLabel: 'قيمة اللون السداسية',
+            saturationValueArea: 'التشبع والسطوع',
+            hueSlider: 'تدرج اللون',
+            alphaSlider: 'الشفافية'
         },
         appearance: {
-            menuTitle: 'Change appearance',
-            tabIcon: 'Icon',
-            tabColor: 'Color',
-            tabBackground: 'Background',
-            resetIcon: 'Remove icon',
-            resetColor: 'Remove color',
-            resetBackground: 'Remove background',
-            apply: 'Apply'
+            menuTitle: 'تغيير المظهر',
+            tabIcon: 'الأيقونة',
+            tabColor: 'اللون',
+            tabBackground: 'الخلفية',
+            resetIcon: 'إزالة الأيقونة',
+            resetColor: 'إزالة اللون',
+            resetBackground: 'إزالة الخلفية',
+            apply: 'تطبيق'
         },
         selectVaultProfile: {
             title: 'اختر ملف الخزنة',

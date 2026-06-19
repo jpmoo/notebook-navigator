@@ -535,22 +535,23 @@ export const STRINGS_ZH_TW = {
             clearRecentColors: '清除最近使用的顏色',
             removeRecentColor: '移除顏色',
             apply: '套用',
+            pickerLabel: '選色器',
             hexLabel: 'HEX',
             rgbLabel: 'RGBA',
-            hexInputLabel: 'Hex color value',
-            saturationValueArea: 'Saturation and brightness',
-            hueSlider: 'Hue',
-            alphaSlider: 'Transparency'
+            hexInputLabel: '十六進位色彩值',
+            saturationValueArea: '飽和度與亮度',
+            hueSlider: '色相',
+            alphaSlider: '透明度'
         },
         appearance: {
-            menuTitle: 'Change appearance',
-            tabIcon: 'Icon',
-            tabColor: 'Color',
-            tabBackground: 'Background',
-            resetIcon: 'Remove icon',
-            resetColor: 'Remove color',
-            resetBackground: 'Remove background',
-            apply: 'Apply'
+            menuTitle: '變更外觀',
+            tabIcon: '圖示',
+            tabColor: '顏色',
+            tabBackground: '背景',
+            resetIcon: '移除圖示',
+            resetColor: '移除顏色',
+            resetBackground: '移除背景',
+            apply: '套用'
         },
         selectVaultProfile: {
             title: '選擇保險庫設定檔',

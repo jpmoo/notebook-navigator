@@ -42,7 +42,6 @@
     max-width: 100%;
     gap: 8px;
     padding: 6px 14px;
-    border: 1px solid var(--background-modifier-border);
     border-radius: var(--radius-s);
     background: var(--nn-preview-bg, var(--background-secondary));
     color: var(--nn-preview-fg, var(--nn-theme-foreground));

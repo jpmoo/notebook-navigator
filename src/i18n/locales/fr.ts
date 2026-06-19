@@ -539,22 +539,23 @@ export const STRINGS_FR = {
             clearRecentColors: 'Effacer les couleurs récentes',
             removeRecentColor: 'Supprimer la couleur',
             apply: 'Appliquer',
+            pickerLabel: 'Sélecteur',
             hexLabel: 'HEX',
             rgbLabel: 'RGBA',
-            hexInputLabel: 'Hex color value',
-            saturationValueArea: 'Saturation and brightness',
-            hueSlider: 'Hue',
-            alphaSlider: 'Transparency'
+            hexInputLabel: 'Valeur de couleur hexadécimale',
+            saturationValueArea: 'Saturation et luminosité',
+            hueSlider: 'Teinte',
+            alphaSlider: 'Transparence'
         },
         appearance: {
-            menuTitle: 'Change appearance',
-            tabIcon: 'Icon',
-            tabColor: 'Color',
-            tabBackground: 'Background',
-            resetIcon: 'Remove icon',
-            resetColor: 'Remove color',
-            resetBackground: 'Remove background',
-            apply: 'Apply'
+            menuTitle: "Changer l'apparence",
+            tabIcon: 'Icône',
+            tabColor: 'Couleur',
+            tabBackground: 'Arrière-plan',
+            resetIcon: "Supprimer l'icône",
+            resetColor: 'Supprimer la couleur',
+            resetBackground: "Supprimer l'arrière-plan",
+            apply: 'Appliquer'
         },
         selectVaultProfile: {
             title: 'Changer le profil du coffre',

@@ -535,22 +535,23 @@ export const STRINGS_TH = {
             clearRecentColors: 'ล้างสีล่าสุด',
             removeRecentColor: 'นำสีออก',
             apply: 'นำไปใช้',
+            pickerLabel: 'ตัวเลือก',
             hexLabel: 'HEX',
             rgbLabel: 'RGBA',
-            hexInputLabel: 'Hex color value',
-            saturationValueArea: 'Saturation and brightness',
-            hueSlider: 'Hue',
-            alphaSlider: 'Transparency'
+            hexInputLabel: 'ค่าสี HEX',
+            saturationValueArea: 'ความอิ่มตัวและความสว่าง',
+            hueSlider: 'เฉดสี',
+            alphaSlider: 'ความโปร่งใส'
         },
         appearance: {
-            menuTitle: 'Change appearance',
-            tabIcon: 'Icon',
-            tabColor: 'Color',
-            tabBackground: 'Background',
-            resetIcon: 'Remove icon',
-            resetColor: 'Remove color',
-            resetBackground: 'Remove background',
-            apply: 'Apply'
+            menuTitle: 'เปลี่ยนลักษณะ',
+            tabIcon: 'ไอคอน',
+            tabColor: 'สี',
+            tabBackground: 'พื้นหลัง',
+            resetIcon: 'ลบไอคอน',
+            resetColor: 'ลบสี',
+            resetBackground: 'ลบพื้นหลัง',
+            apply: 'นำไปใช้'
         },
         selectVaultProfile: {
             title: 'เลือกโปรไฟล์ห้องนิรภัย',

@@ -538,22 +538,23 @@ export const STRINGS_ES = {
             clearRecentColors: 'Limpiar colores recientes',
             removeRecentColor: 'Eliminar color',
             apply: 'Aplicar',
+            pickerLabel: 'Selector',
             hexLabel: 'HEX',
             rgbLabel: 'RGBA',
-            hexInputLabel: 'Hex color value',
-            saturationValueArea: 'Saturation and brightness',
-            hueSlider: 'Hue',
-            alphaSlider: 'Transparency'
+            hexInputLabel: 'Valor de color hexadecimal',
+            saturationValueArea: 'Saturación y brillo',
+            hueSlider: 'Tono',
+            alphaSlider: 'Transparencia'
         },
         appearance: {
-            menuTitle: 'Change appearance',
-            tabIcon: 'Icon',
+            menuTitle: 'Cambiar apariencia',
+            tabIcon: 'Icono',
             tabColor: 'Color',
-            tabBackground: 'Background',
-            resetIcon: 'Remove icon',
-            resetColor: 'Remove color',
-            resetBackground: 'Remove background',
-            apply: 'Apply'
+            tabBackground: 'Fondo',
+            resetIcon: 'Quitar icono',
+            resetColor: 'Quitar color',
+            resetBackground: 'Quitar fondo',
+            apply: 'Aplicar'
         },
         selectVaultProfile: {
             title: 'Cambiar perfil de bóveda',

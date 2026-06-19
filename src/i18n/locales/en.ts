@@ -536,6 +536,7 @@ export const STRINGS_EN = {
             clearRecentColors: 'Clear recent colors',
             removeRecentColor: 'Remove color',
             apply: 'Apply',
+            pickerLabel: 'Picker',
             hexLabel: 'HEX',
             rgbLabel: 'RGBA',
             hexInputLabel: 'Hex color value',

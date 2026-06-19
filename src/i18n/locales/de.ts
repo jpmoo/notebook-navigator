@@ -538,22 +538,23 @@ export const STRINGS_DE = {
             clearRecentColors: 'Zuletzt verwendete Farben löschen',
             removeRecentColor: 'Farbe entfernen',
             apply: 'Anwenden',
+            pickerLabel: 'Auswahl',
             hexLabel: 'HEX',
             rgbLabel: 'RGBA',
-            hexInputLabel: 'Hex color value',
-            saturationValueArea: 'Saturation and brightness',
-            hueSlider: 'Hue',
-            alphaSlider: 'Transparency'
+            hexInputLabel: 'Hex-Farbwert',
+            saturationValueArea: 'Sättigung und Helligkeit',
+            hueSlider: 'Farbton',
+            alphaSlider: 'Transparenz'
         },
         appearance: {
-            menuTitle: 'Change appearance',
-            tabIcon: 'Icon',
-            tabColor: 'Color',
-            tabBackground: 'Background',
-            resetIcon: 'Remove icon',
-            resetColor: 'Remove color',
-            resetBackground: 'Remove background',
-            apply: 'Apply'
+            menuTitle: 'Darstellung ändern',
+            tabIcon: 'Symbol',
+            tabColor: 'Farbe',
+            tabBackground: 'Hintergrund',
+            resetIcon: 'Symbol entfernen',
+            resetColor: 'Farbe entfernen',
+            resetBackground: 'Hintergrund entfernen',
+            apply: 'Anwenden'
         },
         selectVaultProfile: {
             title: 'Tresorprofil wechseln',
