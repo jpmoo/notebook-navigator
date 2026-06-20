@@ -549,6 +549,7 @@ export const STRINGS_TH = {
             resetIcon: 'ลบไอคอน',
             resetColor: 'ลบสี',
             resetBackground: 'ลบพื้นหลัง',
+            clear: 'ล้างสไตล์',
             apply: 'นำไปใช้'
         },
         selectVaultProfile: {

@@ -553,6 +553,7 @@ export const STRINGS_PT_BR = {
             resetIcon: 'Remover ícone',
             resetColor: 'Remover cor',
             resetBackground: 'Remover plano de fundo',
+            clear: 'Limpar estilo',
             apply: 'Aplicar'
         },
         selectVaultProfile: {

@@ -552,6 +552,7 @@ export const STRINGS_DE = {
             resetIcon: 'Symbol entfernen',
             resetColor: 'Farbe entfernen',
             resetBackground: 'Hintergrund entfernen',
+            clear: 'Stil löschen',
             apply: 'Anwenden'
         },
         selectVaultProfile: {

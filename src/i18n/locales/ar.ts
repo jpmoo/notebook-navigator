@@ -549,6 +549,7 @@ export const STRINGS_AR = {
             resetIcon: 'إزالة الأيقونة',
             resetColor: 'إزالة اللون',
             resetBackground: 'إزالة الخلفية',
+            clear: 'مسح النمط',
             apply: 'تطبيق'
         },
         selectVaultProfile: {

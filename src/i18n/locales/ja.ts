@@ -551,6 +551,7 @@ export const STRINGS_JA = {
             resetIcon: 'アイコンを削除',
             resetColor: '色を削除',
             resetBackground: '背景を削除',
+            clear: 'スタイルをクリア',
             apply: '適用'
         },
         selectVaultProfile: {

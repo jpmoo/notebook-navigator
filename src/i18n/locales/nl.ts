@@ -554,6 +554,7 @@ export const STRINGS_NL = {
             resetIcon: 'Pictogram verwijderen',
             resetColor: 'Kleur verwijderen',
             resetBackground: 'Achtergrond verwijderen',
+            clear: 'Stijl wissen',
             apply: 'Toepassen'
         },
         selectVaultProfile: {

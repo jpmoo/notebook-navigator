@@ -549,6 +549,7 @@ export const STRINGS_ZH_CN = {
             resetIcon: '移除图标',
             resetColor: '移除颜色',
             resetBackground: '移除背景',
+            clear: '清除样式',
             apply: '应用'
         },
         selectVaultProfile: {

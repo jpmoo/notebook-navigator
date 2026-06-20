@@ -269,8 +269,18 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
         showFolderIcons: settings.showFolderIcons
     });
 
+    addFolderStyleMenu({
+        menu,
+        metadataService,
+        folderPath: folder.path,
+        inheritFolderColors: settings.inheritFolderColors,
+        showFolderIcons: settings.showFolderIcons
+    });
+
     // Child folder sort order
     if (typeof MenuItem.prototype.setSubmenu === 'function') {
+        menu.addSeparator();
+
         menu.addItem((item: MenuItem) => {
             const currentOverride = metadataService.getFolderChildSortOrderOverride(folder.path);
             const effectiveOrder = currentOverride ?? settings.folderSortOrder;
@@ -324,14 +334,6 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
     const folderSeparatorTarget = { type: 'folder', path: folder.path } as const;
     const hasSeparator = metadataService.hasNavigationSeparator(folderSeparatorTarget);
     const disableNavigationSeparatorActions = Boolean(options?.disableNavigationSeparatorActions);
-
-    addFolderStyleMenu({
-        menu,
-        metadataService,
-        folderPath: folder.path,
-        inheritFolderColors: settings.inheritFolderColors,
-        showFolderIcons: settings.showFolderIcons
-    });
 
     menu.addSeparator();
 

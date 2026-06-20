@@ -66,6 +66,7 @@ export class AppearanceModal extends Modal {
     private domDisposers: (() => void)[] = [];
     private previewItem!: HTMLDivElement;
     private previewIconEl!: HTMLSpanElement;
+    private clearButton: HTMLButtonElement | null = null;
     private iconSurface: IconPickerSurface | null = null;
     private colorSurface: ColorPickerSurface | null = null;
     private backgroundSurface: ColorPickerSurface | null = null;
@@ -95,6 +96,17 @@ export class AppearanceModal extends Modal {
         this.previewItem = header.createDiv('nn-appearance-preview-item');
         this.previewIconEl = this.previewItem.createSpan('nn-appearance-preview-icon');
         this.previewItem.createSpan({ cls: 'nn-appearance-preview-name', text: this.params.title });
+
+        this.clearButton = this.previewItem.createEl('button', {
+            cls: 'nn-recent-remove-button nn-appearance-clear-button',
+            attr: {
+                type: 'button',
+                'aria-label': strings.modals.appearance.clear,
+                title: strings.modals.appearance.clear
+            }
+        });
+        this.clearButton.createSpan({ text: '×', cls: 'nn-recent-remove-glyph', attr: { 'aria-hidden': 'true' } });
+        this.domDisposers.push(addAsyncEventListener(this.clearButton, 'click', () => this.clearAll()));
 
         const tabBar = contentEl.createDiv('nn-appearance-tabs');
         tabBar.setAttribute('role', 'tablist');
@@ -139,6 +151,7 @@ export class AppearanceModal extends Modal {
         this.colorSurface = null;
         this.backgroundSurface = null;
         this.resetButton = null;
+        this.clearButton = null;
         this.tabs = [];
         this.activeTabId = null;
         this.domDisposers.forEach(dispose => {
@@ -261,6 +274,26 @@ export class AppearanceModal extends Modal {
         this.renderPreview();
         this.renderTabChips();
         this.renderResetButton();
+        this.renderClearButton();
+    }
+
+    private clearAll(): void {
+        if (this.params.icon) {
+            this.iconTouched = true;
+            this.stagedIcon = null;
+            this.iconSurface?.clearSelection();
+        }
+        if (this.params.color) {
+            this.colorTouched = true;
+            this.stagedColor = null;
+            this.colorSurface?.markCleared();
+        }
+        if (this.params.background) {
+            this.backgroundTouched = true;
+            this.stagedBackground = null;
+            this.backgroundSurface?.markCleared();
+        }
+        this.renderState();
     }
 
     private resetActiveTab(): void {
@@ -372,6 +405,14 @@ export class AppearanceModal extends Modal {
 
         this.resetButton.setText(label);
         this.resetButton.toggleClass('nn-appearance-reset-active', active);
+    }
+
+    private renderClearButton(): void {
+        if (!this.clearButton) {
+            return;
+        }
+        const hasStyle = this.stagedIcon !== null || this.stagedColor !== null || this.stagedBackground !== null;
+        this.clearButton.toggleClass('nn-appearance-clear-hidden', !hasStyle);
     }
 
     private async applyAll(): Promise<void> {

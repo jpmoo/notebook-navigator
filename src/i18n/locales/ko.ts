@@ -549,6 +549,7 @@ export const STRINGS_KO = {
             resetIcon: '아이콘 제거',
             resetColor: '색상 제거',
             resetBackground: '배경 제거',
+            clear: '스타일 지우기',
             apply: '적용'
         },
         selectVaultProfile: {

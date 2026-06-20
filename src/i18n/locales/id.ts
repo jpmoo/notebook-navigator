@@ -552,6 +552,7 @@ export const STRINGS_ID = {
             resetIcon: 'Hapus ikon',
             resetColor: 'Hapus warna',
             resetBackground: 'Hapus latar belakang',
+            clear: 'Bersihkan gaya',
             apply: 'Terapkan'
         },
         selectVaultProfile: {

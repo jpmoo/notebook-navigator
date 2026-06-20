@@ -552,6 +552,7 @@ export const STRINGS_RU = {
             resetIcon: 'Удалить иконку',
             resetColor: 'Удалить цвет',
             resetBackground: 'Удалить фон',
+            clear: 'Очистить стиль',
             apply: 'Применить'
         },
         selectVaultProfile: {

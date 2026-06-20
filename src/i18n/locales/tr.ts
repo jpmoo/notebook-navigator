@@ -551,6 +551,7 @@ export const STRINGS_TR = {
             resetIcon: 'Simgeyi kaldır',
             resetColor: 'Rengi kaldır',
             resetBackground: 'Arka planı kaldır',
+            clear: 'Stili temizle',
             apply: 'Uygula'
         },
         selectVaultProfile: {

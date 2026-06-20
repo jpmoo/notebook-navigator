@@ -255,7 +255,48 @@ export function buildPropertyMenu(params: PropertyMenuBuilderParams): void {
         });
     });
 
+    const propertyIcon = metadataService.getPropertyIcon(normalizedNodeId);
+    const propertyColorData = metadataService.getPropertyColorData(normalizedNodeId);
+    const propertyColor = propertyColorData.color;
+    const propertyBackgroundColor = propertyColorData.background;
+    const directPropertyIcon = settings.propertyIcons?.[normalizedNodeId];
+    const directPropertyColor = settings.propertyColors?.[normalizedNodeId];
+    const directPropertyBackground = settings.propertyBackgroundColors?.[normalizedNodeId];
+
+    addStyleMenu({
+        menu,
+        styleData: {
+            icon: propertyIcon,
+            color: propertyColor,
+            background: propertyBackgroundColor
+        },
+        hasIcon: settings.showPropertyIcons,
+        hasColor: true,
+        hasBackground: true,
+        applyStyle: async clipboard => {
+            const { icon, color, background } = clipboard;
+            const actions: Promise<void>[] = [];
+
+            if (icon) {
+                actions.push(metadataService.setPropertyIcon(normalizedNodeId, icon));
+            }
+            if (color) {
+                actions.push(metadataService.setPropertyColor(normalizedNodeId, color));
+            }
+            if (background) {
+                actions.push(metadataService.setPropertyBackgroundColor(normalizedNodeId, background));
+            }
+
+            await Promise.all(actions);
+        },
+        removeIcon: directPropertyIcon ? async () => metadataService.removePropertyIcon(normalizedNodeId) : undefined,
+        removeColor: directPropertyColor ? async () => metadataService.removePropertyColor(normalizedNodeId) : undefined,
+        removeBackground: directPropertyBackground ? async () => metadataService.removePropertyBackgroundColor(normalizedNodeId) : undefined
+    });
+
     if (typeof MenuItem.prototype.setSubmenu === 'function') {
+        menu.addSeparator();
+
         menu.addItem((item: MenuItem) => {
             const currentOverride = metadataService.getPropertyChildSortOrderOverride(normalizedNodeId);
             const effectiveOrder = currentOverride ?? settings.propertySortOrder;
@@ -314,45 +355,6 @@ export function buildPropertyMenu(params: PropertyMenuBuilderParams): void {
             });
         });
     }
-
-    const propertyIcon = metadataService.getPropertyIcon(normalizedNodeId);
-    const propertyColorData = metadataService.getPropertyColorData(normalizedNodeId);
-    const propertyColor = propertyColorData.color;
-    const propertyBackgroundColor = propertyColorData.background;
-    const directPropertyIcon = settings.propertyIcons?.[normalizedNodeId];
-    const directPropertyColor = settings.propertyColors?.[normalizedNodeId];
-    const directPropertyBackground = settings.propertyBackgroundColors?.[normalizedNodeId];
-
-    addStyleMenu({
-        menu,
-        styleData: {
-            icon: propertyIcon,
-            color: propertyColor,
-            background: propertyBackgroundColor
-        },
-        hasIcon: settings.showPropertyIcons,
-        hasColor: true,
-        hasBackground: true,
-        applyStyle: async clipboard => {
-            const { icon, color, background } = clipboard;
-            const actions: Promise<void>[] = [];
-
-            if (icon) {
-                actions.push(metadataService.setPropertyIcon(normalizedNodeId, icon));
-            }
-            if (color) {
-                actions.push(metadataService.setPropertyColor(normalizedNodeId, color));
-            }
-            if (background) {
-                actions.push(metadataService.setPropertyBackgroundColor(normalizedNodeId, background));
-            }
-
-            await Promise.all(actions);
-        },
-        removeIcon: directPropertyIcon ? async () => metadataService.removePropertyIcon(normalizedNodeId) : undefined,
-        removeColor: directPropertyColor ? async () => metadataService.removePropertyColor(normalizedNodeId) : undefined,
-        removeBackground: directPropertyBackground ? async () => metadataService.removePropertyBackgroundColor(normalizedNodeId) : undefined
-    });
 
     const disableNavigationSeparatorActions = Boolean(options?.disableNavigationSeparatorActions);
     const shouldAddShortcutSectionSeparator = Boolean(services.shortcuts) || !disableNavigationSeparatorActions;

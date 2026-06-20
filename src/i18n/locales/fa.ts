@@ -551,6 +551,7 @@ export const STRINGS_FA = {
             resetIcon: 'حذف آیکون',
             resetColor: 'حذف رنگ',
             resetBackground: 'حذف پس‌زمینه',
+            clear: 'پاک کردن سبک',
             apply: 'اعمال'
         },
         selectVaultProfile: {

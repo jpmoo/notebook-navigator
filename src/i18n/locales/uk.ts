@@ -553,6 +553,7 @@ export const STRINGS_UK = {
             resetIcon: 'Видалити іконку',
             resetColor: 'Видалити колір',
             resetBackground: 'Видалити фон',
+            clear: 'Очистити стиль',
             apply: 'Застосувати'
         },
         selectVaultProfile: {

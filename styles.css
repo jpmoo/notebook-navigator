@@ -7857,7 +7857,21 @@ button.nn-youtube-button svg {
     background: var(--background-secondary);
 }
 
+@media (hover: hover) and (pointer: fine) {
+    .nn-appearance-preview-item:hover .nn-appearance-clear-button,
+    .nn-appearance-preview-item:focus-within .nn-appearance-clear-button {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+}
+
+.nn-appearance-clear-button.nn-appearance-clear-hidden {
+    display: none;
+}
+
 .nn-appearance-preview-item {
+    position: relative;
     display: inline-flex;
     align-items: center;
     max-width: 100%;

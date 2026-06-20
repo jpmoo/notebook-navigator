@@ -551,6 +551,7 @@ export const STRINGS_IT = {
             resetIcon: 'Rimuovi icona',
             resetColor: 'Rimuovi colore',
             resetBackground: 'Rimuovi sfondo',
+            clear: 'Cancella stile',
             apply: 'Applica'
         },
         selectVaultProfile: {

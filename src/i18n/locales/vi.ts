@@ -551,6 +551,7 @@ export const STRINGS_VI = {
             resetIcon: 'Xóa biểu tượng',
             resetColor: 'Xóa màu',
             resetBackground: 'Xóa nền',
+            clear: 'Xóa kiểu',
             apply: 'Áp dụng'
         },
         selectVaultProfile: {

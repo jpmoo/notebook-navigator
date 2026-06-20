@@ -158,8 +158,54 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
         });
     });
 
+    // These include inherited values; direct settings entries are used to decide which "remove" actions to show.
+    const tagIcon = metadataService.getTagIcon(tagPath);
+    const tagColorData = metadataService.getTagColorData(tagPath);
+    const tagColor = tagColorData.color;
+    const tagBackgroundColor = tagColorData.background;
+    const normalizedTagPath = normalizeTagPath(tagPath);
+    const directTagColor = normalizedTagPath ? settings.tagColors?.[normalizedTagPath] : undefined;
+    const directTagBackground = normalizedTagPath ? settings.tagBackgroundColors?.[normalizedTagPath] : undefined;
+
+    const hasRemovableIcon = Boolean(tagIcon);
+    const hasRemovableColor = Boolean(directTagColor);
+    const hasRemovableBackground = Boolean(directTagBackground);
+
+    addStyleMenu({
+        menu,
+        styleData: {
+            icon: tagIcon,
+            color: tagColor,
+            background: tagBackgroundColor
+        },
+        hasIcon: settings.showTagIcons,
+        hasColor: true,
+        hasBackground: true,
+        applyStyle: async clipboard => {
+            const { icon, color, background } = clipboard;
+            const actions: Promise<void>[] = [];
+
+            if (icon) {
+                actions.push(metadataService.setTagIcon(tagPath, icon));
+            }
+            if (color) {
+                actions.push(metadataService.setTagColor(tagPath, color));
+            }
+            if (background) {
+                actions.push(metadataService.setTagBackgroundColor(tagPath, background));
+            }
+
+            await Promise.all(actions);
+        },
+        removeIcon: hasRemovableIcon ? async () => metadataService.removeTagIcon(tagPath) : undefined,
+        removeColor: hasRemovableColor ? async () => metadataService.removeTagColor(tagPath) : undefined,
+        removeBackground: hasRemovableBackground ? async () => metadataService.removeTagBackgroundColor(tagPath) : undefined
+    });
+
     // Child tag sort order
     if (typeof MenuItem.prototype.setSubmenu === 'function') {
+        menu.addSeparator();
+
         menu.addItem((item: MenuItem) => {
             const currentOverride = metadataService.getTagChildSortOrderOverride(tagPath);
             const effectiveOrder = currentOverride ?? settings.tagSortOrder;
@@ -218,50 +264,6 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
             });
         });
     }
-
-    // These include inherited values; direct settings entries are used to decide which "remove" actions to show.
-    const tagIcon = metadataService.getTagIcon(tagPath);
-    const tagColorData = metadataService.getTagColorData(tagPath);
-    const tagColor = tagColorData.color;
-    const tagBackgroundColor = tagColorData.background;
-    const normalizedTagPath = normalizeTagPath(tagPath);
-    const directTagColor = normalizedTagPath ? settings.tagColors?.[normalizedTagPath] : undefined;
-    const directTagBackground = normalizedTagPath ? settings.tagBackgroundColors?.[normalizedTagPath] : undefined;
-
-    const hasRemovableIcon = Boolean(tagIcon);
-    const hasRemovableColor = Boolean(directTagColor);
-    const hasRemovableBackground = Boolean(directTagBackground);
-
-    addStyleMenu({
-        menu,
-        styleData: {
-            icon: tagIcon,
-            color: tagColor,
-            background: tagBackgroundColor
-        },
-        hasIcon: settings.showTagIcons,
-        hasColor: true,
-        hasBackground: true,
-        applyStyle: async clipboard => {
-            const { icon, color, background } = clipboard;
-            const actions: Promise<void>[] = [];
-
-            if (icon) {
-                actions.push(metadataService.setTagIcon(tagPath, icon));
-            }
-            if (color) {
-                actions.push(metadataService.setTagColor(tagPath, color));
-            }
-            if (background) {
-                actions.push(metadataService.setTagBackgroundColor(tagPath, background));
-            }
-
-            await Promise.all(actions);
-        },
-        removeIcon: hasRemovableIcon ? async () => metadataService.removeTagIcon(tagPath) : undefined,
-        removeColor: hasRemovableColor ? async () => metadataService.removeTagColor(tagPath) : undefined,
-        removeBackground: hasRemovableBackground ? async () => metadataService.removeTagBackgroundColor(tagPath) : undefined
-    });
 
     const disableNavigationSeparatorActions = Boolean(options?.disableNavigationSeparatorActions);
     const shouldAddShortcutSectionSeparator = Boolean(services.shortcuts) || !disableNavigationSeparatorActions;
