@@ -16,10 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/*
- * Notebook Navigator - Plugin for Obsidian
- */
-
 import { FileView, TFile, TFolder, type WorkspaceLeaf } from 'obsidian';
 import type NotebookNavigatorPlugin from '../../main';
 import { getCurrentLanguage, strings } from '../../i18n';
@@ -38,7 +34,7 @@ import {
     resolveCalendarCustomNotePathDate,
     type CalendarNoteKind
 } from '../../utils/calendarNotes';
-import { getFolderNote, getFolderNoteDetectionSettings, isFolderNote, isSupportedFolderNoteExtension } from '../../utils/folderNotes';
+import { getFolderNote, getFolderNoteDetectionSettings, isFolderNote, isSupportedFolderNoteExtension } from '../../utils/folderNoteLookup';
 import { createFrontmatterPropertyExclusionMatcher, isFolderInExcludedFolder, shouldExcludeFileWithMatcher } from '../../utils/fileFilters';
 import { getEffectiveFrontmatterExclusions } from '../../utils/exclusionUtils';
 import { runAsyncAction } from '../../utils/async';

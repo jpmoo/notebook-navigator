@@ -36,7 +36,7 @@ import { openFileInContext } from '../openFileInContext';
 import { confirmRemoveAllTagsFromFiles, openAddTagToFilesModal, removeTagFromFilesWithPrompt } from '../tagModalHelpers';
 import { addFolderStyleChangeActions, addFolderStyleMenu, addStyleMenu } from './styleMenuBuilder';
 import { resolveIconForMenu, resolveUXIconForMenu } from '../uxIcons';
-import { isFolderNote } from '../../utils/folderNotes';
+import { isFolderNote } from '../../utils/folderNoteLookup';
 import { getFilesForNavigationSelection, getNavigatorPinContext, orderFilesByReference } from '../selectionUtils';
 import { collectFileMenuPropertyActions, type FileMenuPropertyAction } from '../../utils/propertyMenuActions';
 import { INTERNAL_NOTEBOOK_NAVIGATOR_API } from '../../api/NotebookNavigatorAPI';

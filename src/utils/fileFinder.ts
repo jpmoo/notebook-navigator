@@ -17,7 +17,7 @@
  */
 
 import { TFile, TFolder, App } from 'obsidian';
-import type { NotebookNavigatorSettings } from '../settings';
+import type { NotebookNavigatorSettings } from '../settings/types';
 import type { NavigatorContext, PinnedNotes, VisibilityPreferences } from '../types';
 import { ItemType, PROPERTIES_ROOT_VIRTUAL_FOLDER_ID, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
 import {

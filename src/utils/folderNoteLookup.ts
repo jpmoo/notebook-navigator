@@ -21,6 +21,8 @@ import { FOLDER_NOTE_TYPE_EXTENSIONS } from '../types/folderNote';
 import { EXCALIDRAW_BASENAME_SUFFIX, isExcalidrawFile, stripExcalidrawSuffix } from './fileNameUtils';
 import { type FolderNoteNameSettings, resolveFolderNoteName } from './folderNoteName';
 
+// Lookup-only helpers used by startup services. Creation and opening behavior stays in folderNotes.ts.
+
 /**
  * Settings required for detecting folder notes
  */

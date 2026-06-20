@@ -24,8 +24,7 @@ import { useSettingsState, useSettingsUpdate } from '../context/SettingsContext'
 import { useUXPreferenceActions, useUXPreferences } from '../context/UXPreferencesContext';
 import { strings } from '../i18n';
 import { ConfirmModal } from '../modals/ConfirmModal';
-import type { ListSortOverrideValue, NotebookNavigatorSettings, SortOption } from '../settings';
-import type { ListNoteGroupingOption } from '../settings/types';
+import type { ListNoteGroupingOption, ListSortOverrideValue, NotebookNavigatorSettings, SortOption } from '../settings/types';
 import { ItemType, PROPERTIES_ROOT_VIRTUAL_FOLDER_ID, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
 import {
     areListSortOverridesEqual,
