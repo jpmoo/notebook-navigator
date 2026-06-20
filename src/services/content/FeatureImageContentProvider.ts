@@ -18,7 +18,7 @@
 
 import { App, Platform, RequestUrlParam, RequestUrlResponse, requestUrl, TFile } from 'obsidian';
 import { type ContentProviderType } from '../../interfaces/IContentProvider';
-import { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import type { FeatureImagePixelSizeSetting } from '../../settings/types';
 import { FileData } from '../../storage/IndexedDBStorage';
 import { getDBInstance } from '../../storage/fileOperations';

@@ -36,7 +36,7 @@ import { getDBInstanceOrNull } from '../storage/fileOperations';
 import { extractMetadata } from '../utils/metadataExtractor';
 import { METADATA_SENTINEL } from '../storage/IndexedDBStorage';
 import { getFileDisplayName as getDisplayName } from './fileNameUtils';
-import { getFolderNote, getFolderNoteDetectionSettings } from './folderNotes';
+import { getFolderNote, getFolderNoteDetectionSettings } from './folderNoteLookup';
 import { createHiddenTagVisibility, normalizeTagPathValue } from './tagPrefixMatcher';
 import {
     getActiveFileVisibility,

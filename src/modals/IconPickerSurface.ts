@@ -17,16 +17,15 @@
  */
 
 import { App, Scope, TFile } from 'obsidian';
-import * as emojilib from 'emojilib';
 import { strings } from '../i18n';
 import { getIconService, IconDefinition, IconProvider, RECENT_ICONS_PER_PROVIDER_LIMIT } from '../services/icons';
+import { getEmojiDisplayName } from '../services/icons/emojiCatalog';
 import { getProviderCatalogUrl } from '../services/icons/providerCatalogLinks';
 import { isVaultIconFile } from '../services/icons/providers/VaultIconProvider';
 import { ISettingsProvider } from '../interfaces/ISettingsProvider';
 import { TIMEOUTS } from '../types/obsidian-extended';
 import { runAsyncAction } from '../utils/async';
 import { addAsyncEventListener } from '../utils/domEventListeners';
-import { isRecord } from '../utils/typeGuards';
 
 const GRID_COLUMNS = 5;
 const MAX_SEARCH_RESULTS = 50;
@@ -42,10 +41,6 @@ interface IconPickerSurfaceParams {
     saveRecentOnSelect?: boolean;
     isKeyboardActive?: () => boolean;
     onSelect: (iconId: string) => void | Promise<void>;
-}
-
-function isStringArray(value: unknown): value is string[] {
-    return Array.isArray(value) && value.every(item => typeof item === 'string');
 }
 
 /**
@@ -428,19 +423,9 @@ export class IconPickerSurface {
             }
 
             if (provider.id === 'emoji') {
-                let displayName = '';
-                const emojiLibValue: unknown = emojilib;
-                const emojiEntries = isRecord(emojiLibValue) ? Object.entries(emojiLibValue) : [];
-                for (const [emoji, keywords] of emojiEntries) {
-                    if (emoji === parsed.identifier && isStringArray(keywords)) {
-                        displayName = keywords[0] ?? '';
-                        break;
-                    }
-                }
-
                 const iconDef = {
                     id: parsed.identifier,
-                    displayName,
+                    displayName: getEmojiDisplayName(parsed.identifier),
                     preview: parsed.identifier
                 };
                 const iconItem = this.createIconItem(iconDef, grid, provider);

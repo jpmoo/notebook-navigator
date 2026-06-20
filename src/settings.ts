@@ -19,7 +19,7 @@
 import * as Obsidian from 'obsidian';
 import { App, ButtonComponent, PluginSettingTab, requireApiVersion, Setting } from 'obsidian';
 import type { SettingDefinitionItem, SettingDefinitionPage, SettingDefinitionRender } from 'obsidian';
-import NotebookNavigatorPlugin from './main';
+import type NotebookNavigatorPlugin from './main';
 import { TIMEOUTS } from './types/obsidian-extended';
 import type {
     AddSettingFunction,

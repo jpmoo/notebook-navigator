@@ -33,7 +33,7 @@ import { UIStateProvider } from '../context/UIStateContext';
 import { ShortcutsProvider } from '../context/ShortcutsContext';
 import { RecentDataProvider } from '../context/RecentDataContext';
 import { strings } from '../i18n';
-import NotebookNavigatorPlugin from '../main';
+import type NotebookNavigatorPlugin from '../main';
 import { NOTEBOOK_NAVIGATOR_ICON_ID } from '../constants/notebookNavigatorIcon';
 import { NOTEBOOK_NAVIGATOR_VIEW } from '../types';
 import { UXPreferencesProvider } from '../context/UXPreferencesContext';

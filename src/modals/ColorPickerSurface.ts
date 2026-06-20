@@ -32,7 +32,7 @@ import { showNotice } from '../utils/noticeUtils';
 import { createDragGhostManager, type DragGhostManager } from '../utils/dragGhost';
 import { ConfirmModal } from './ConfirmModal';
 
-export const DEFAULT_PICKER_COLOR = '#3b82f6';
+const DEFAULT_PICKER_COLOR = '#3b82f6';
 
 type RGBAValues = { r: number; g: number; b: number; a: number };
 type HSVValues = { h: number; s: number; v: number };
