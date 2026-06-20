@@ -538,8 +538,22 @@ export const STRINGS_RU = {
             clearRecentColors: 'Очистить недавние цвета',
             removeRecentColor: 'Удалить цвет',
             apply: 'Применить',
+            pickerLabel: 'Выбор',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'HEX-значение цвета',
+            saturationValueArea: 'Насыщенность и яркость',
+            hueSlider: 'Оттенок',
+            alphaSlider: 'Прозрачность'
+        },
+        appearance: {
+            tabIcon: 'Значок',
+            tabColor: 'Цвет',
+            tabBackground: 'Фон',
+            resetIcon: 'Удалить иконку',
+            resetColor: 'Удалить цвет',
+            resetBackground: 'Удалить фон',
+            clear: 'Очистить стиль',
+            apply: 'Применить'
         },
         selectVaultProfile: {
             title: 'Выбор профиля хранилища',

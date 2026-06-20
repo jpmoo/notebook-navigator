@@ -538,8 +538,22 @@ export const STRINGS_ID = {
             clearRecentColors: 'Bersihkan warna terbaru',
             removeRecentColor: 'Hapus warna',
             apply: 'Terapkan',
+            pickerLabel: 'Pemilih',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'Nilai warna heksadesimal',
+            saturationValueArea: 'Saturasi dan kecerahan',
+            hueSlider: 'Rona',
+            alphaSlider: 'Transparansi'
+        },
+        appearance: {
+            tabIcon: 'Ikon',
+            tabColor: 'Warna',
+            tabBackground: 'Latar belakang',
+            resetIcon: 'Hapus ikon',
+            resetColor: 'Hapus warna',
+            resetBackground: 'Hapus latar belakang',
+            clear: 'Bersihkan gaya',
+            apply: 'Terapkan'
         },
         selectVaultProfile: {
             title: 'Pilih profil vault',

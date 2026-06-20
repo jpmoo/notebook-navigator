@@ -538,8 +538,22 @@ export const STRINGS_PT = {
             clearRecentColors: 'Limpar cores recentes',
             removeRecentColor: 'Remover cor',
             apply: 'Aplicar',
+            pickerLabel: 'Seletor',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'Valor de cor hexadecimal',
+            saturationValueArea: 'Saturação e brilho',
+            hueSlider: 'Matiz',
+            alphaSlider: 'Transparência'
+        },
+        appearance: {
+            tabIcon: 'Ícone',
+            tabColor: 'Cor',
+            tabBackground: 'Fundo',
+            resetIcon: 'Remover ícone',
+            resetColor: 'Remover cor',
+            resetBackground: 'Remover fundo',
+            clear: 'Limpar estilo',
+            apply: 'Aplicar'
         },
         selectVaultProfile: {
             title: 'Selecionar perfil do cofre',

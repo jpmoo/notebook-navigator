@@ -535,8 +535,22 @@ export const STRINGS_ZH_CN = {
             clearRecentColors: '清除最近使用的颜色',
             removeRecentColor: '移除颜色',
             apply: '应用',
+            pickerLabel: '拾色器',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: '十六进制颜色值',
+            saturationValueArea: '饱和度和亮度',
+            hueSlider: '色相',
+            alphaSlider: '透明度'
+        },
+        appearance: {
+            tabIcon: '图标',
+            tabColor: '颜色',
+            tabBackground: '背景',
+            resetIcon: '移除图标',
+            resetColor: '移除颜色',
+            resetBackground: '移除背景',
+            clear: '清除样式',
+            apply: '应用'
         },
         selectVaultProfile: {
             title: '更改仓库配置文件',

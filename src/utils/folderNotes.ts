@@ -16,17 +16,32 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { App, type PaneType, TFile, TFolder, normalizePath } from 'obsidian';
+import { App, type PaneType, TFile, TFolder } from 'obsidian';
 import { strings } from '../i18n';
 import { FolderNoteType, FOLDER_NOTE_TYPE_EXTENSIONS, FolderNoteCreationPreference } from '../types/folderNote';
 import { buildPathInFolder, createDatabaseContent, createMarkdownFileFromTemplatePreferTemplater } from './fileCreationUtils';
-import { type FolderNoteNameSettings, resolveFolderNoteName } from './folderNoteName';
-import { EXCALIDRAW_BASENAME_SUFFIX, isExcalidrawFile, stripExcalidrawSuffix } from './fileNameUtils';
+import type { FolderNoteNameSettings } from './folderNoteName';
 import { CommandQueueService } from '../services/CommandQueueService';
 import { promptForFolderNoteType } from '../modals/FolderNoteTypeModal';
 import { showNotice } from './noticeUtils';
 import { openFileInContext } from './openFileInContext';
 import { normalizeOptionalVaultFilePath } from './pathUtils';
+import {
+    getFolderNote,
+    getFolderNoteDetectionSettings,
+    isSupportedFolderNoteExtension,
+    resolveFolderNoteNameForFolder
+} from './folderNoteLookup';
+
+export {
+    getFolderNote,
+    getFolderNoteDetectionSettings,
+    isFolderNote,
+    isSupportedFolderNoteExtension,
+    resolveFolderNoteNameForFolder,
+    resolveRootFolderNoteSourceName
+} from './folderNoteLookup';
+export type { FolderNoteDetectionSettings } from './folderNoteLookup';
 
 export type FolderNoteOpenContext = PaneType | 'right-sidebar' | null;
 
@@ -41,13 +56,6 @@ interface OpenFolderNoteFileParams {
 }
 
 /**
- * Settings required for detecting folder notes
- */
-export interface FolderNoteDetectionSettings extends FolderNoteNameSettings {
-    enableFolderNotes: boolean;
-}
-
-/**
  * Settings required for creating folder notes
  */
 export interface FolderNoteCreationSettings extends FolderNoteNameSettings {
@@ -59,52 +67,6 @@ interface CreateFolderNoteOptions {
     folderDisplayName?: string;
     openContext?: FolderNoteOpenContext;
     openInRightSidebar?: (folderNote: TFile) => Promise<void>;
-}
-
-/**
- * Extracts folder note detection settings from a larger settings object.
- */
-export function getFolderNoteDetectionSettings(settings: FolderNoteDetectionSettings): FolderNoteDetectionSettings {
-    return {
-        enableFolderNotes: settings.enableFolderNotes,
-        folderNoteName: settings.folderNoteName,
-        folderNoteNamePattern: settings.folderNoteNamePattern
-    };
-}
-
-/** Set of file extensions that are valid for folder notes */
-const SUPPORTED_FOLDER_NOTE_EXTENSIONS = new Set<string>(Object.values(FOLDER_NOTE_TYPE_EXTENSIONS));
-
-interface RootFolderNoteVault {
-    getName?: () => string;
-}
-
-export function resolveRootFolderNoteSourceName(folder: TFolder, vaultOverride?: RootFolderNoteVault): string {
-    const vault = vaultOverride ?? (folder as TFolder & { vault?: RootFolderNoteVault }).vault;
-    const vaultName = typeof vault?.getName === 'function' ? vault.getName() : '';
-    if (typeof vaultName === 'string' && vaultName.trim().length > 0) {
-        return vaultName;
-    }
-
-    const folderName = typeof folder.name === 'string' ? folder.name : '';
-    if (folderName.trim().length > 0 && folderName !== '/') {
-        return folderName;
-    }
-
-    return 'Vault';
-}
-
-export function resolveFolderNoteNameForFolder(folder: TFolder, settings: FolderNoteNameSettings): string {
-    return resolveFolderNoteName(folder.path === '/' ? resolveRootFolderNoteSourceName(folder) : folder.name, settings);
-}
-
-/**
- * Checks if a file extension is supported for folder notes
- * @param extension - The file extension to check
- * @returns True if the extension is supported
- */
-export function isSupportedFolderNoteExtension(extension: string): boolean {
-    return SUPPORTED_FOLDER_NOTE_EXTENSIONS.has(extension);
 }
 
 function getPathExtension(path: string): string {
@@ -178,75 +140,6 @@ async function readFolderNoteTemplateContent(
 }
 
 /**
- * Gets the folder note for a folder if it exists
- * @param folder - The folder to check for a folder note
- * @param settings - Settings for folder note detection
- * @returns The folder note file or null if not found
- */
-export function getFolderNote(folder: TFolder, settings: FolderNoteDetectionSettings): TFile | null {
-    if (!settings.enableFolderNotes) {
-        return null;
-    }
-
-    const expectedName = resolveFolderNoteNameForFolder(folder, settings);
-    const prefix = folder.path === '/' ? '' : `${folder.path}/`;
-    const exactCandidates: TFile[] = [];
-
-    for (const extension of Object.values(FOLDER_NOTE_TYPE_EXTENSIONS)) {
-        const candidatePath = normalizePath(`${prefix}${expectedName}.${extension}`);
-        const candidate = folder.vault.getAbstractFileByPath(candidatePath);
-
-        if (!(candidate instanceof TFile) || candidate.parent?.path !== folder.path) {
-            continue;
-        }
-
-        if (!SUPPORTED_FOLDER_NOTE_EXTENSIONS.has(candidate.extension)) {
-            continue;
-        }
-
-        if (candidate.basename === expectedName) {
-            exactCandidates.push(candidate);
-        }
-    }
-
-    let excalidrawCandidate: TFile | null = null;
-    const excalidrawPath = normalizePath(`${prefix}${expectedName}${EXCALIDRAW_BASENAME_SUFFIX}.md`);
-    const abstractExcalidrawCandidate = folder.vault.getAbstractFileByPath(excalidrawPath);
-    if (abstractExcalidrawCandidate instanceof TFile && abstractExcalidrawCandidate.parent?.path === folder.path) {
-        if (isExcalidrawFile(abstractExcalidrawCandidate) && stripExcalidrawSuffix(abstractExcalidrawCandidate.basename) === expectedName) {
-            excalidrawCandidate = abstractExcalidrawCandidate;
-        }
-    }
-
-    if (exactCandidates.length === 1) {
-        return exactCandidates[0];
-    }
-
-    if (exactCandidates.length > 1) {
-        const candidatePaths = new Set<string>(exactCandidates.map(candidate => candidate.path));
-        for (const child of folder.children) {
-            if (!(child instanceof TFile)) {
-                continue;
-            }
-
-            if (child.parent?.path !== folder.path) {
-                continue;
-            }
-
-            if (!candidatePaths.has(child.path)) {
-                continue;
-            }
-
-            return child;
-        }
-
-        return exactCandidates[0] ?? null;
-    }
-
-    return excalidrawCandidate;
-}
-
-/**
  * Opens the folder note for a folder, optionally in a new workspace context.
  * Uses CommandQueueService when available to track folder note opens.
  */
@@ -294,40 +187,6 @@ export async function openFolderNoteFile({
     }
 
     await openFile();
-}
-
-/**
- * Checks if a file is a folder note for a given folder
- * @param file - The file to check
- * @param folder - The folder to check against
- * @param settings - Settings for folder note detection
- * @returns True if the file is a folder note for the given folder
- */
-export function isFolderNote(file: TFile, folder: TFolder, settings: FolderNoteDetectionSettings): boolean {
-    if (!settings.enableFolderNotes) {
-        return false;
-    }
-
-    if (!SUPPORTED_FOLDER_NOTE_EXTENSIONS.has(file.extension)) {
-        return false;
-    }
-
-    if (file.parent?.path !== folder.path) {
-        return false;
-    }
-
-    const expectedName = resolveFolderNoteNameForFolder(folder, settings);
-    if (file.basename === expectedName) {
-        return true;
-    }
-
-    if (!isExcalidrawFile(file) || stripExcalidrawSuffix(file.basename) !== expectedName) {
-        return false;
-    }
-
-    // Use preferred folder note selection so plain notes win over Excalidraw variants.
-    const preferred = getFolderNote(folder, settings);
-    return preferred?.path === file.path;
 }
 
 /**

@@ -31,6 +31,9 @@
  * The lastShownVersion is stored in plugin settings to track what the user has seen.
  */
 
+import { compareVersions } from './utils/versionUtils';
+export { compareVersions } from './utils/versionUtils';
+
 /**
  * Formatting in release notes
  *
@@ -87,13 +90,27 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
-        version: '3.1.5',
-        date: '2026-06-22',
+        version: '3.2.0',
+        date: '2026-06-21',
         showOnUpdate: true,
+        bannerUrl: true,
+        info: '**This release makes Notebook Navigator start MUCH faster!** Most feature code now loads the first time you use a feature instead of while Obsidian starts up, and several background tasks no longer run during plugin load. Many users will see almost a tenfold improvement to startup time.',
         new: [
+            '==New icon and color picker!== Redesigned and merged the icon and color pickers into a unified panel with preview, saturation/value rectangle and a new hue slider.',
             'Added a ==Reveal file== button in the list pane toolbar. Default disabled, enable it with Settings > Appearance & behavior > Toolbar buttons.'
         ],
-        improved: ['Navigate to folder, Navigate to tag, and Navigate to property now keep the current single-pane view after selection.']
+        improved: [
+            '**Startup speed.** The code that runs commands now loads the first time you run a command instead of during startup.',
+            '**Startup speed.** The navigator and calendar views now load their code when Obsidian opens them instead of during startup.',
+            '**Startup speed.** The settings screen now loads when you open settings instead of during startup.',
+            '**Startup speed.** Detecting folder notes no longer loads the full folder note creation and opening code during startup.',
+            '**Startup speed.** The emoji keyword database now loads when you search emoji or show emoji icon names instead of during startup.',
+            '**Startup speed.** External icon packs now initialize only when you have enabled or are managing them instead of during startup.',
+            '**Startup speed.** Preview text now fills in when it is first shown instead of running a background scan during startup.',
+            '**Startup speed.** Non-English languages now load their translation directly instead of loading English first and then merging.',
+            '**Startup speed.** The version check no longer loads the full release notes during startup.',
+            'Navigate to folder, Navigate to tag, and Navigate to property now keep the current single-pane view after selection.'
+        ]
     },
     {
         version: '3.1.4',
@@ -263,28 +280,6 @@ export function getReleaseNotesBetweenVersions(fromVersion: string, toVersion: s
  */
 export function getLatestReleaseNotes(count: number = 5): ReleaseNote[] {
     return RELEASE_NOTES.slice(0, count);
-}
-
-/**
- * Compares two semantic version strings.
- *
- * @param v1 - First version string (e.g., "1.2.3")
- * @param v2 - Second version string (e.g., "1.2.4")
- * @returns 1 if v1 > v2, -1 if v1 < v2, 0 if equal
- */
-export function compareVersions(v1: string, v2: string): number {
-    const parts1 = v1.split('.').map(Number);
-    const parts2 = v2.split('.').map(Number);
-
-    for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
-        const part1 = parts1[i] || 0;
-        const part2 = parts2[i] || 0;
-
-        if (part1 > part2) return 1;
-        if (part1 < part2) return -1;
-    }
-
-    return 0;
 }
 
 /**

@@ -537,8 +537,22 @@ export const STRINGS_JA = {
             clearRecentColors: '最近使用した色をクリア',
             removeRecentColor: '色を削除',
             apply: '適用',
+            pickerLabel: 'ピッカー',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'HEXカラー値',
+            saturationValueArea: '彩度と明度',
+            hueSlider: '色相',
+            alphaSlider: '透明度'
+        },
+        appearance: {
+            tabIcon: 'アイコン',
+            tabColor: '色',
+            tabBackground: '背景',
+            resetIcon: 'アイコンを削除',
+            resetColor: '色を削除',
+            resetBackground: '背景を削除',
+            clear: 'スタイルをクリア',
+            apply: '適用'
         },
         selectVaultProfile: {
             title: '保管庫のプロファイルを変更',

@@ -69,9 +69,9 @@ import {
     normalizeAppearanceGroupBy,
     normalizeListSortOverride,
     resolveDeleteAttachmentsSetting,
+    type NotebookNavigatorSettings,
     resolveMoveFileConflictsSetting
 } from '../../settings/types';
-import type { NotebookNavigatorSettings } from '../../settings/types';
 import { LOCALSTORAGE_VERSION, localStorage } from '../../utils/localStorage';
 import { clearHiddenFileNameMatcherCache } from '../../utils/fileFilters';
 import {

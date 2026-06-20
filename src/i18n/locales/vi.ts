@@ -537,8 +537,22 @@ export const STRINGS_VI = {
             clearRecentColors: 'Xóa màu gần đây',
             removeRecentColor: 'Gỡ màu',
             apply: 'Áp dụng',
+            pickerLabel: 'Bộ chọn',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'Giá trị màu hex',
+            saturationValueArea: 'Độ bão hòa và độ sáng',
+            hueSlider: 'Sắc độ',
+            alphaSlider: 'Độ trong suốt'
+        },
+        appearance: {
+            tabIcon: 'Biểu tượng',
+            tabColor: 'Màu sắc',
+            tabBackground: 'Nền',
+            resetIcon: 'Xóa biểu tượng',
+            resetColor: 'Xóa màu',
+            resetBackground: 'Xóa nền',
+            clear: 'Xóa kiểu',
+            apply: 'Áp dụng'
         },
         selectVaultProfile: {
             title: 'Chọn hồ sơ vault',

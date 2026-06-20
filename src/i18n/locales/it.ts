@@ -537,8 +537,22 @@ export const STRINGS_IT = {
             clearRecentColors: 'Cancella colori recenti',
             removeRecentColor: 'Rimuovi colore',
             apply: 'Applica',
+            pickerLabel: 'Selettore',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'Valore colore esadecimale',
+            saturationValueArea: 'Saturazione e luminosità',
+            hueSlider: 'Tonalità',
+            alphaSlider: 'Trasparenza'
+        },
+        appearance: {
+            tabIcon: 'Icona',
+            tabColor: 'Colore',
+            tabBackground: 'Sfondo',
+            resetIcon: 'Rimuovi icona',
+            resetColor: 'Rimuovi colore',
+            resetBackground: 'Rimuovi sfondo',
+            clear: 'Cancella stile',
+            apply: 'Applica'
         },
         selectVaultProfile: {
             title: 'Seleziona profilo vault',

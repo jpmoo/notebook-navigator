@@ -537,8 +537,22 @@ export const STRINGS_TR = {
             clearRecentColors: 'Son renkleri temizle',
             removeRecentColor: 'Rengi kaldır',
             apply: 'Uygula',
+            pickerLabel: 'Seçici',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'HEX renk değeri',
+            saturationValueArea: 'Doygunluk ve parlaklık',
+            hueSlider: 'Ton',
+            alphaSlider: 'Saydamlık'
+        },
+        appearance: {
+            tabIcon: 'Simge',
+            tabColor: 'Renk',
+            tabBackground: 'Arka plan',
+            resetIcon: 'Simgeyi kaldır',
+            resetColor: 'Rengi kaldır',
+            resetBackground: 'Arka planı kaldır',
+            clear: 'Stili temizle',
+            apply: 'Uygula'
         },
         selectVaultProfile: {
             title: 'Kasa profili seç',

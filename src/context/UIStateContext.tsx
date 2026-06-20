@@ -23,7 +23,7 @@ import { STORAGE_KEYS } from '../types';
 import { localStorage } from '../utils/localStorage';
 import { useServices } from './ServicesContext';
 import { useSettingsState } from './SettingsContext';
-import type { NotebookNavigatorSettings } from '../settings';
+import type { NotebookNavigatorSettings } from '../settings/types';
 import { useUXPreferenceActions, useUXPreferences } from './UXPreferencesContext';
 
 /**

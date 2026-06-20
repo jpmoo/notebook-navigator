@@ -537,8 +537,22 @@ export const STRINGS_FA = {
             clearRecentColors: 'پاک کردن رنگ‌های اخیر',
             removeRecentColor: 'حذف رنگ',
             apply: 'اعمال',
+            pickerLabel: 'انتخابگر',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'مقدار رنگ هگز',
+            saturationValueArea: 'اشباع و روشنایی',
+            hueSlider: 'فام',
+            alphaSlider: 'شفافیت'
+        },
+        appearance: {
+            tabIcon: 'نماد',
+            tabColor: 'رنگ',
+            tabBackground: 'پس‌زمینه',
+            resetIcon: 'حذف آیکون',
+            resetColor: 'حذف رنگ',
+            resetBackground: 'حذف پس‌زمینه',
+            clear: 'پاک کردن سبک',
+            apply: 'اعمال'
         },
         selectVaultProfile: {
             title: 'انتخاب پروفایل خزانه',
