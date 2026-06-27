@@ -16,12 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { App, TFile, type CachedMetadata } from 'obsidian';
+import { App, TFile } from 'obsidian';
 import { FileMetadataService } from '../../src/services/metadata/FileMetadataService';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import type { NotebookNavigatorSettings } from '../../src/settings';
 import type { ISettingsProvider } from '../../src/interfaces/ISettingsProvider';
 import { extractMetadataFromCache } from '../../src/utils/metadataExtractor';
+import { ShortcutType } from '../../src/types/shortcuts';
 
 const updateFileMetadata = vi.fn();
 
@@ -103,14 +104,14 @@ describe('FileMetadataService frontmatter integration', () => {
         service = new FileMetadataService(app, settingsProvider);
     });
 
-    it('saves phosphor icons in Iconize format and extracts canonical metadata', async () => {
+    it('saves phosphor icons in the short slug format and extracts canonical metadata', async () => {
         await service.setFileIcon(file.path, 'phosphor:ph-apple-logo');
 
         expect(processFrontMatter).toHaveBeenCalledTimes(1);
-        expect(frontmatter.icon).toBe('PhAppleLogo');
+        expect(frontmatter.icon).toBe('ph-apple-logo');
         expect(updateFileMetadata).toHaveBeenCalledWith(file.path, { icon: 'phosphor:apple-logo' });
 
-        const metadata = extractMetadataFromCache({ frontmatter: { icon: frontmatter.icon } } as CachedMetadata, settingsProvider.settings);
+        const metadata = extractMetadataFromCache({ frontmatter: { icon: frontmatter.icon } }, settingsProvider.settings);
         expect(metadata.icon).toBe('phosphor:apple-logo');
     });
 
@@ -125,6 +126,52 @@ describe('FileMetadataService frontmatter integration', () => {
         expect(settingsProvider.settings.pinnedNotes?.['Vault/Two.md']).toEqual({ folder: true, tag: false, property: false });
     });
 
+    it('renames note shortcuts that uniquely match the old path with different casing', async () => {
+        settingsProvider.settings.vaultProfiles = [
+            {
+                ...DEFAULT_SETTINGS.vaultProfiles[0],
+                shortcuts: [{ type: ShortcutType.NOTE, path: 'appLab/SKILLS-WORKFLOWS/mmgi/Note.md' }]
+            }
+        ];
+        getAbstractFileByPath.mockReturnValue(null);
+        app.vault.getAllLoadedFiles = vi.fn(() => [new TFile('applab/skills-workflows/mmgi/Renamed.md')]);
+
+        await service.handleFileRename('applab/skills-workflows/mmgi/Note.md', 'applab/skills-workflows/mmgi/Renamed.md');
+
+        expect(settingsProvider.settings.vaultProfiles[0].shortcuts).toEqual([
+            { type: ShortcutType.NOTE, path: 'applab/skills-workflows/mmgi/Renamed.md' }
+        ]);
+    });
+
+    it('does not rename ambiguous casefolded note shortcuts', async () => {
+        settingsProvider.settings.vaultProfiles = [
+            {
+                ...DEFAULT_SETTINGS.vaultProfiles[0],
+                shortcuts: [{ type: ShortcutType.NOTE, path: 'appLab/SKILLS-WORKFLOWS/mmgi/Note.md' }]
+            }
+        ];
+        getAbstractFileByPath.mockReturnValue(null);
+        app.vault.getAllLoadedFiles = vi.fn(() => [new TFile('applab/skills-workflows/mmgi/note.md')]);
+
+        await service.handleFileRename('applab/skills-workflows/mmgi/Note.md', 'applab/skills-workflows/mmgi/Renamed.md');
+
+        expect(settingsProvider.settings.vaultProfiles[0].shortcuts).toEqual([
+            { type: ShortcutType.NOTE, path: 'appLab/SKILLS-WORKFLOWS/mmgi/Note.md' }
+        ]);
+    });
+
+    it('counts only newly pinned notes in folder context', async () => {
+        settingsProvider.settings.pinnedNotes = {
+            'Vault/One.md': { folder: true, tag: false, property: false }
+        };
+
+        const pinnedCount = await service.pinNotes(['Vault/One.md', 'Vault/Two.md'], 'folder');
+
+        expect(pinnedCount).toBe(1);
+        expect(settingsProvider.settings.pinnedNotes?.['Vault/One.md']).toEqual({ folder: true, tag: false, property: false });
+        expect(settingsProvider.settings.pinnedNotes?.['Vault/Two.md']).toEqual({ folder: true, tag: false, property: false });
+    });
+
     it('pins notes in property context', async () => {
         settingsProvider.settings.pinnedNotes = {};
 
@@ -132,14 +179,6 @@ describe('FileMetadataService frontmatter integration', () => {
 
         expect(pinnedCount).toBe(1);
         expect(settingsProvider.settings.pinnedNotes?.['Vault/One.md']).toEqual({ folder: false, tag: false, property: true });
-    });
-
-    it('treats legacy folder+tag pins as pinned in property context', () => {
-        settingsProvider.settings.pinnedNotes = {
-            'Vault/Legacy.md': { folder: true, tag: true }
-        } as unknown as NotebookNavigatorSettings['pinnedNotes'];
-
-        expect(service.isPinned('Vault/Legacy.md', 'property')).toBe(true);
     });
 
     it('unpins legacy folder+tag pins from property context on toggle', async () => {

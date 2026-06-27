@@ -16,18 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { NotebookNavigatorSettings } from '../settings';
+import type { NotebookNavigatorSettings } from '../settings/types';
 import type { App, TFile } from 'obsidian';
 import { isFolderInExcludedFolder, shouldExcludeFile, shouldExcludeFileName } from './fileFilters';
-import {
-    getActiveHiddenFileNames,
-    getActiveHiddenFileTags,
-    getActiveHiddenFileProperties,
-    getActiveHiddenFolders,
-    getActiveHiddenTags
-} from './vaultProfiles';
+import { shouldHideDrawingCompanionImageFile } from './drawingFeatureImages';
 import { createHiddenTagVisibility } from './tagPrefixMatcher';
 import { getCachedFileTags } from './tagUtils';
+import { getActiveHiddenFileNames, getActiveHiddenFileProperties, getActiveHiddenFileTags, getActiveHiddenFolders } from './vaultProfiles';
 
 // Shared empty array used when hidden items are shown to signal no exclusions should apply
 const NO_EXCLUSIONS: string[] = [];
@@ -46,72 +41,88 @@ export function getEffectiveFrontmatterExclusions(settings: NotebookNavigatorSet
 }
 
 /**
- * Detects whether any hidden-item configuration exists so UI surfaces can decide
- * if the toggle button should be shown.
+ * Hidden rule sets used when creating file visibility predicates.
  */
-export function hasHiddenItemSources(settings: NotebookNavigatorSettings): boolean {
-    const hiddenFolders = getActiveHiddenFolders(settings);
-    const hiddenFileProperties = getActiveHiddenFileProperties(settings);
-    const hiddenFileNames = getActiveHiddenFileNames(settings);
-    const hiddenFileTags = getActiveHiddenFileTags(settings);
-    const hiddenTags = getActiveHiddenTags(settings);
-    return (
-        hiddenFolders.length > 0 ||
-        hiddenTags.length > 0 ||
-        hiddenFileTags.length > 0 ||
-        hiddenFileProperties.length > 0 ||
-        hiddenFileNames.length > 0
-    );
+interface HiddenFileMatcherRules {
+    hiddenFileProperties: string[];
+    hiddenFolders: string[];
+    hiddenFileNames: string[];
+    hiddenFileTags: string[];
+    hideDrawingPreviewImages?: boolean;
 }
 
 /**
- * Disables the showHiddenItems toggle when no hidden sources remain.
+ * Creates a reusable file-hidden predicate from hidden rule sets.
  */
-export function resetHiddenToggleIfNoSources(options: {
-    settings: NotebookNavigatorSettings;
-    showHiddenItems: boolean;
-    setShowHiddenItems: (value: boolean) => void;
-}): void {
-    const { settings, showHiddenItems, setShowHiddenItems } = options;
-    if (showHiddenItems && !hasHiddenItemSources(settings)) {
-        setShowHiddenItems(false);
+export function createFileHiddenMatcher(rules: HiddenFileMatcherRules, app: App, showHiddenItems: boolean): (file: TFile) => boolean {
+    if (showHiddenItems) {
+        return () => false;
     }
+
+    const { hiddenFileProperties, hiddenFolders, hiddenFileNames, hiddenFileTags, hideDrawingPreviewImages = true } = rules;
+    const hiddenFileTagVisibility = hiddenFileTags.length > 0 ? createHiddenTagVisibility(hiddenFileTags, false) : null;
+
+    return (file: TFile): boolean => {
+        if (shouldHideDrawingCompanionImageFile(app, file, { hideDrawingPreviewImages })) {
+            return true;
+        }
+
+        const hasHiddenFrontmatter =
+            file.extension === 'md' && hiddenFileProperties.length > 0 && shouldExcludeFile(file, hiddenFileProperties, app);
+        if (hasHiddenFrontmatter) {
+            return true;
+        }
+
+        if (hiddenFileTagVisibility && hiddenFileTagVisibility.hasHiddenRules && file.extension === 'md') {
+            const tags = getCachedFileTags({ app, file });
+            if (tags.some(tag => !hiddenFileTagVisibility.isTagVisible(tag))) {
+                return true;
+            }
+        }
+
+        if (hiddenFileNames.length > 0 && shouldExcludeFileName(file, hiddenFileNames)) {
+            return true;
+        }
+
+        if (hiddenFolders.length === 0 || !file.parent) {
+            return false;
+        }
+
+        return isFolderInExcludedFolder(file.parent, hiddenFolders);
+    };
+}
+
+/**
+ * Creates a reusable file-hidden predicate from current exclusion settings.
+ */
+function createFileHiddenBySettingsMatcher(
+    settings: NotebookNavigatorSettings,
+    app: App,
+    showHiddenItems: boolean
+): (file: TFile) => boolean {
+    const hiddenFileProperties = getActiveHiddenFileProperties(settings);
+    const hiddenFolders = getActiveHiddenFolders(settings);
+    const hiddenFileNames = getActiveHiddenFileNames(settings);
+    const hiddenFileTags = getActiveHiddenFileTags(settings);
+    return createFileHiddenMatcher(
+        {
+            hiddenFileProperties,
+            hiddenFolders,
+            hiddenFileNames,
+            hiddenFileTags,
+            hideDrawingPreviewImages: settings.hideDrawingPreviewImages
+        },
+        app,
+        showHiddenItems
+    );
 }
 
 /**
  * Detects whether a file is hidden by current exclusion settings when hidden items are off.
  */
 export function isFileHiddenBySettings(file: TFile, settings: NotebookNavigatorSettings, app: App, showHiddenItems: boolean): boolean {
-    if (!file || showHiddenItems) {
+    if (!file) {
         return false;
     }
-    const hiddenFileProperties = getActiveHiddenFileProperties(settings);
-    const hiddenFolders = getActiveHiddenFolders(settings);
-    const hiddenFileNames = getActiveHiddenFileNames(settings);
-    const hiddenFileTags = getActiveHiddenFileTags(settings);
-    const hasHiddenFrontmatter =
-        file.extension === 'md' && hiddenFileProperties.length > 0 && shouldExcludeFile(file, hiddenFileProperties, app);
-    if (hasHiddenFrontmatter) {
-        return true;
-    }
-
-    if (hiddenFileTags.length > 0 && file.extension === 'md') {
-        const visibility = createHiddenTagVisibility(hiddenFileTags, false);
-        if (visibility.hasHiddenRules) {
-            const tags = getCachedFileTags({ app, file });
-            if (tags.some(tag => !visibility.isTagVisible(tag))) {
-                return true;
-            }
-        }
-    }
-
-    if (hiddenFileNames.length > 0 && shouldExcludeFileName(file, hiddenFileNames)) {
-        return true;
-    }
-
-    if (hiddenFolders.length === 0 || !file.parent) {
-        return false;
-    }
-
-    return isFolderInExcludedFolder(file.parent, hiddenFolders);
+    return createFileHiddenBySettingsMatcher(settings, app, showHiddenItems)(file);
 }

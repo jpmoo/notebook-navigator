@@ -22,22 +22,29 @@ import { strings } from '../../i18n';
 import { getInternalPlugin } from '../../utils/typeGuards';
 import { getFileDisplayName } from '../../utils/fileNameUtils';
 import { getExtensionSuffix, shouldShowExtensionSuffix } from '../../utils/fileTypeUtils';
-import { ItemType, NavigatorContext } from '../../types';
+import { NavigatorContext } from '../../types';
 import { ShortcutType } from '../../types/shortcuts';
 import { MetadataService } from '../../services/MetadataService';
 import { FileSystemOperations } from '../../services/FileSystemService';
 import { SelectionState, SelectionAction } from '../../context/SelectionContext';
 import type { ShortcutsContextValue } from '../../context/ShortcutsContext';
-import { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import { CommandQueueService } from '../../services/CommandQueueService';
-import { addCopyPathSubmenu, setAsyncOnClick } from './menuAsyncHelpers';
+import { addCopyPathSubmenu, setAsyncOnClick, tryCreateSubmenu } from './menuAsyncHelpers';
 import { addShortcutRenameMenuItem } from './shortcutRenameMenuItem';
 import { openFileInContext } from '../openFileInContext';
 import { confirmRemoveAllTagsFromFiles, openAddTagToFilesModal, removeTagFromFilesWithPrompt } from '../tagModalHelpers';
 import { addFolderStyleChangeActions, addFolderStyleMenu, addStyleMenu } from './styleMenuBuilder';
-import { resolveUXIconForMenu } from '../uxIcons';
-import { isFolderNote } from '../../utils/folderNotes';
-import { getFilesForNavigationSelection } from '../selectionUtils';
+import { resolveIconForMenu, resolveUXIconForMenu } from '../uxIcons';
+import { isFolderNote } from '../../utils/folderNoteLookup';
+import { getFilesForNavigationSelection, getNavigatorPinContext, orderFilesByReference } from '../selectionUtils';
+import { collectFileMenuPropertyActions, type FileMenuPropertyAction } from '../../utils/propertyMenuActions';
+import { INTERNAL_NOTEBOOK_NAVIGATOR_API } from '../../api/NotebookNavigatorAPI';
+import { getManualSortGroupHeaderPropertyKey } from '../manualSort';
+import { getEffectiveListSort, isManualSortPropertyKey } from '../sortUtils';
+import { addManualSortGroupHeaderMenuItems } from './manualSortGroupHeaderMenuItems';
+import { addMergeNotesMenuItem } from './mergeNotesMenuItems';
+import { resolveEffectiveListGroupingForSort, resolveListGrouping } from '../listGrouping';
 
 type FileStyleTarget = { type: 'folder'; folderPath: string } | { type: 'files'; files: TFile[] };
 
@@ -77,13 +84,48 @@ interface FolderStyleActionsParams {
 interface FileStyleRemovalAvailability {
     hasRemovableIcon: boolean;
     hasRemovableColor: boolean;
+    hasRemovableBackground: boolean;
+}
+
+interface AddManualSortGroupHeaderActionParams {
+    menu: Menu;
+    app: App;
+    metadataService: MetadataService;
+    settings: NotebookNavigatorSettings;
+    file: TFile;
+    source: NonNullable<FileMenuBuilderParams['options']>['source'] | undefined;
+    selectionState: SelectionState;
+    shouldShowMultiOptions: boolean;
+}
+
+/**
+ * Resolves an icon for a file-menu property action.
+ */
+function resolveFileMenuPropertyActionIcon(
+    settings: NotebookNavigatorSettings,
+    metadataService: MetadataService,
+    action: FileMenuPropertyAction
+): string {
+    const valueIcon = metadataService.getPropertyIcon(action.nodeId);
+    const menuValueIcon = resolveIconForMenu(valueIcon);
+    if (menuValueIcon) {
+        return menuValueIcon;
+    }
+
+    const keyIcon = metadataService.getPropertyIcon(action.keyNodeId);
+    const menuKeyIcon = resolveIconForMenu(keyIcon);
+    if (menuKeyIcon) {
+        return menuKeyIcon;
+    }
+
+    return resolveUXIconForMenu(settings.interfaceIcons, 'nav-property-value', 'lucide-equal');
 }
 
 /**
  * Builds the context menu for a file
  */
 export function buildFileMenu(params: FileMenuBuilderParams): void {
-    const { file, menu, services, settings, state, dispatchers } = params;
+    const { file, menu, services, settings, state, dispatchers, options } = params;
     const { app, isMobile, fileSystemOps, metadataService, tagTreeService, propertyTreeService, commandQueue, visibility } = services;
     const { selectionState } = state;
     const { selectionDispatch } = dispatchers;
@@ -118,6 +160,13 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
             return cachedFileList;
         }
 
+        if (
+            options?.orderedFiles?.some(orderedFile => orderedFile.path === file.path || selectionState.selectedFiles.has(orderedFile.path))
+        ) {
+            cachedFileList = [...options.orderedFiles];
+            return cachedFileList;
+        }
+
         cachedFileList = getFilesForNavigationSelection(
             {
                 selectionType: selectionState.selectionType,
@@ -137,9 +186,7 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
 
     // Cache selected files to avoid repeated path-to-file conversions
     const cachedSelectedFiles = shouldShowMultiOptions
-        ? Array.from(selectionState.selectedFiles)
-              .map(path => app.vault.getFileByPath(path))
-              .filter((f): f is TFile => !!f)
+        ? resolveSelectedFilesInOrder(selectionState.selectedFiles, app, options?.orderedFiles)
         : [];
     const selectedFilesCount = cachedSelectedFiles.length;
 
@@ -169,6 +216,21 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
 
     menu.addSeparator();
 
+    if (
+        addManualSortGroupHeaderAction({
+            menu,
+            app,
+            metadataService,
+            settings,
+            file,
+            source: options?.source,
+            selectionState,
+            shouldShowMultiOptions
+        })
+    ) {
+        menu.addSeparator();
+    }
+
     const filesForTagOps = shouldShowMultiOptions ? cachedSelectedFiles : [file];
     // Only show tag operations if all files are markdown (tags only work with markdown)
     const canManageTags = filesForTagOps.length > 0 && filesForTagOps.every(f => f.extension === 'md');
@@ -191,6 +253,31 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
                 });
             });
         });
+
+        const propertyActions = collectFileMenuPropertyActions(settings, propertyTreeService);
+        if (propertyActions.length > 0) {
+            menu.addItem((item: MenuItem) => {
+                const submenu = tryCreateSubmenu(item);
+                item.setTitle(strings.contextMenu.file.addPropertyKey).setIcon(
+                    resolveUXIconForMenu(settings.interfaceIcons, 'nav-property', 'lucide-align-left')
+                );
+                if (!submenu) {
+                    item.setDisabled(true);
+                    return;
+                }
+
+                propertyActions.forEach(action => {
+                    submenu.addItem(subItem => {
+                        const configuredItem = subItem.setTitle(action.label);
+                        configuredItem.setIcon(resolveFileMenuPropertyActionIcon(settings, metadataService, action));
+
+                        setAsyncOnClick(configuredItem, async () => {
+                            await fileSystemOps.applyPropertyNodeToFiles(action.nodeId, filesForTagOps);
+                        });
+                    });
+                });
+            });
+        }
 
         // Remove tag - only show if files have tags
         if (hasTags) {
@@ -224,9 +311,8 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
     // Add to shortcuts / Remove from shortcuts and Pin/Unpin - single selection only
     if (!shouldShowMultiOptions) {
         if (services.shortcuts) {
-            const { noteShortcutKeysByPath, addNoteShortcut, removeShortcut, renameShortcut, shortcutMap, collections, getCollectionsWithShortcut, getShortcutInCollection, activeCollectionId } = services.shortcuts;
-            const collectionsWithShortcut = getCollectionsWithShortcut(file.path);
-            const existingShortcutKey = noteShortcutKeysByPath.get(file.path) || getShortcutInCollection(file.path, activeCollectionId);
+            const { noteShortcutKeysByPath, addNoteShortcut, removeShortcut, renameShortcut, shortcutMap } = services.shortcuts;
+            const existingShortcutKey = noteShortcutKeysByPath.get(file.path);
 
             if (existingShortcutKey) {
                 const existingShortcut = shortcutMap.get(existingShortcutKey);
@@ -257,57 +343,19 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
                         }
                     );
                 } else {
-                    setAsyncOnClick(item.setTitle(strings.shortcuts.add).setIcon(resolveUXIconForMenu(settings.interfaceIcons, 'nav-shortcuts', 'lucide-star')), async () => {
-                        if (collections.length > 1) {
-                            // Show collection selection modal
-                            const { ShortcutCollectionSelectionModal } = await import('../../modals/ShortcutCollectionSelectionModal');
-                            const modal = new ShortcutCollectionSelectionModal(app, {
-                                collections,
-                                existingCollections: collectionsWithShortcut,
-                                onSelect: (collectionId) => {
-                                    void addNoteShortcut(file.path, { collectionId });
-                                },
-                                onCancel: () => {
-                                    // Do nothing
-                                }
-                            });
-                            modal.open();
-                        } else {
-                            // Only one collection, add directly
-                            void addNoteShortcut(file.path, { collectionId: collections[0]?.id });
+                    setAsyncOnClick(
+                        item
+                            .setTitle(strings.shortcuts.add)
+                            .setIcon(resolveUXIconForMenu(settings.interfaceIcons, 'nav-shortcuts', 'lucide-star')),
+                        async () => {
+                            await addNoteShortcut(file.path);
                         }
-                    });
+                    );
                 }
             });
-
-            // Add remove options for each collection that has this shortcut
-            if (collectionsWithShortcut.length > 0) {
-                menu.addSeparator();
-                collectionsWithShortcut.forEach(collectionId => {
-                    const collection = collections.find(c => c.id === collectionId);
-                    if (collection) {
-                        menu.addItem((item: MenuItem) => {
-                            item.setTitle(`Remove from ${collection.name}`)
-                                .setIcon('lucide-bookmark-x')
-                                .onClick(async () => {
-                                    // Find the shortcut key in this specific collection
-                                    const shortcutKey = getShortcutInCollection(file.path, collectionId);
-                                    if (shortcutKey) {
-                                        await removeShortcut(shortcutKey);
-                                    }
-                                });
-                        });
-                    }
-                });
-            }
         }
 
-        const pinContext: NavigatorContext =
-            selectionState.selectionType === ItemType.TAG
-                ? 'tag'
-                : selectionState.selectionType === ItemType.PROPERTY
-                  ? 'property'
-                  : 'folder';
+        const pinContext = getNavigatorPinContext(selectionState.selectionType);
         addSingleFilePinOption(menu, file, metadataService, pinContext);
 
         menu.addSeparator();
@@ -319,18 +367,13 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
             addMultipleFilesShortcutOption(menu, cachedSelectedFiles, selectionState, app, settings, services.shortcuts);
         }
 
-        const pinContext: NavigatorContext =
-            selectionState.selectionType === ItemType.TAG
-                ? 'tag'
-                : selectionState.selectionType === ItemType.PROPERTY
-                  ? 'property'
-                  : 'folder';
+        const pinContext = getNavigatorPinContext(selectionState.selectionType);
         addMultipleFilesPinOption(menu, cachedSelectedFiles, metadataService, pinContext);
 
         menu.addSeparator();
 
         const addedMenuExtensions =
-            services.plugin.api?.menus?.applyFileMenuExtensions({
+            services.plugin.api?.[INTERNAL_NOTEBOOK_NAVIGATOR_API].menus.applyFileMenuExtensions({
                 menu,
                 file,
                 selection: { mode: 'multiple', files: [...cachedSelectedFiles] }
@@ -340,6 +383,8 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
         }
 
         // Move, Duplicate, Delete - grouped together
+        addMultipleFilesMergeOption(menu, cachedSelectedFiles, app, commandQueue, fileSystemOps);
+
         // Move note(s) to folder
         const allMarkdownForMove = cachedSelectedFiles.every(f => f.extension === 'md');
         menu.addItem((item: MenuItem) => {
@@ -416,7 +461,7 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
             menu.addItem((item: MenuItem) => {
                 setAsyncOnClick(item.setTitle(strings.contextMenu.file.revealInFolder).setIcon('lucide-folder-search'), async () => {
                     await services.plugin.activateView();
-                    await services.plugin.revealFileInActualFolder(file);
+                    await services.plugin.revealFileInActualFolder(file, { showHiddenFileNotice: true });
                 });
             });
         }
@@ -432,6 +477,12 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
                     }
                 );
             });
+
+            menu.addItem((item: MenuItem) => {
+                setAsyncOnClick(item.setTitle(strings.contextMenu.file.openInDefaultApp).setIcon('lucide-external-link'), async () => {
+                    await fileSystemOps.openInDefaultApp(file);
+                });
+            });
         }
 
         if (canRevealInFolder || canRevealInSystemExplorer) {
@@ -441,7 +492,7 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
 
     if (!shouldShowMultiOptions) {
         const addedMenuExtensions =
-            services.plugin.api?.menus?.applyFileMenuExtensions({
+            services.plugin.api?.[INTERNAL_NOTEBOOK_NAVIGATOR_API].menus.applyFileMenuExtensions({
                 menu,
                 file,
                 selection: { mode: 'single', files: [file] }
@@ -496,8 +547,51 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
         addSingleFileDuplicateOption(menu, file, fileSystemOps);
 
         // Delete note
-        addSingleFileDeleteOption(menu, file, selectionState, settings, fileSystemOps, selectionDispatch, isFolderNoteFile);
+        addSingleFileDeleteOption(
+            menu,
+            file,
+            selectionState,
+            settings,
+            fileSystemOps,
+            selectionDispatch,
+            isFolderNoteFile,
+            getCachedFileList
+        );
     }
+}
+
+function addManualSortGroupHeaderAction(params: AddManualSortGroupHeaderActionParams): boolean {
+    const { menu, app, metadataService, settings, file, source, selectionState, shouldShowMultiOptions } = params;
+    const propertyKey = getManualSortGroupHeaderPropertyKey(settings);
+    if (source !== 'list-pane' || shouldShowMultiOptions || file.extension !== 'md' || !propertyKey) {
+        return false;
+    }
+
+    const sortSpec = getEffectiveListSort(
+        settings,
+        selectionState.selectionType,
+        selectionState.selectedFolder,
+        selectionState.selectedTag,
+        selectionState.selectedProperty
+    );
+    const groupingInfo = resolveListGrouping({
+        settings,
+        selectionType: selectionState.selectionType,
+        folderPath: selectionState.selectedFolder?.path ?? null,
+        tag: selectionState.selectedTag ?? null,
+        propertyNodeId: selectionState.selectedProperty ?? null
+    });
+    const effectiveGrouping = resolveEffectiveListGroupingForSort({
+        groupBy: groupingInfo.effectiveGrouping,
+        sortOption: sortSpec.option,
+        selectionType: selectionState.selectionType,
+        isManualSortActive: isManualSortPropertyKey(settings, sortSpec.propertyKey)
+    });
+    if (effectiveGrouping !== 'custom') {
+        return false;
+    }
+
+    return addManualSortGroupHeaderMenuItems({ menu, app, file, propertyKey, metadataService });
 }
 
 function resolveFileStyleTarget(params: ResolveFileStyleTargetParams): FileStyleTarget {
@@ -510,6 +604,14 @@ function resolveFileStyleTarget(params: ResolveFileStyleTargetParams): FileStyle
         type: 'files',
         files: shouldShowMultiOptions ? selectedFiles : [file]
     };
+}
+
+function resolveSelectedFilesInOrder(selectedPaths: ReadonlySet<string>, app: App, orderedFiles?: readonly TFile[]): TFile[] {
+    const selectedFiles = Array.from(selectedPaths)
+        .map(path => app.vault.getFileByPath(path))
+        .filter((file): file is TFile => file !== null);
+
+    return orderFilesByReference(selectedFiles, orderedFiles);
 }
 
 function addStyleActionsForFileContext(params: AddStyleActionsForFileContextParams): void {
@@ -559,50 +661,74 @@ function addFileStyleActionsForFileContext(params: FileStyleActionsParams): void
     const { menu, app, metadataService, settings, file, targetFiles } = params;
     const fileIcon = metadataService.getFileIcon(file.path);
     const fileColor = metadataService.getFileColor(file.path);
+    const fileBackground = metadataService.getFileBackgroundColor(file.path);
     const removableStyleAvailability = resolveFileStyleRemovalAvailability(targetFiles, metadataService);
-    const { hasRemovableIcon, hasRemovableColor } = removableStyleAvailability;
+    const { hasRemovableIcon, hasRemovableColor, hasRemovableBackground } = removableStyleAvailability;
+    const openAppearanceModal = async (initialTab: 'icon' | 'color' | 'background'): Promise<void> => {
+        const { AppearanceModal } = await import('../../modals/AppearanceModal');
+        const modal = new AppearanceModal(app, {
+            title: file.basename,
+            metadataService,
+            initialTab,
+            icon: settings.showFileIcons
+                ? {
+                      initial: metadataService.getFileIcon(file.path) ?? null,
+                      apply: async iconId => {
+                          await Promise.all(
+                              targetFiles.map(selectedFile =>
+                                  iconId === null
+                                      ? metadataService.removeFileIcon(selectedFile.path)
+                                      : metadataService.setFileIcon(selectedFile.path, iconId)
+                              )
+                          );
+                      }
+                  }
+                : undefined,
+            color: {
+                initial: metadataService.getFileColor(file.path) ?? null,
+                apply: async color => {
+                    await Promise.all(
+                        targetFiles.map(selectedFile =>
+                            color === null
+                                ? metadataService.removeFileColor(selectedFile.path)
+                                : metadataService.setFileColor(selectedFile.path, color)
+                        )
+                    );
+                }
+            },
+            background: {
+                initial: metadataService.getFileBackgroundColor(file.path) ?? null,
+                apply: async color => {
+                    await Promise.all(
+                        targetFiles.map(selectedFile =>
+                            color === null
+                                ? metadataService.removeFileBackgroundColor(selectedFile.path)
+                                : metadataService.setFileBackgroundColor(selectedFile.path, color)
+                        )
+                    );
+                }
+            }
+        });
+        modal.open();
+    };
 
     if (settings.showFileIcons) {
         menu.addItem((item: MenuItem) => {
-            setAsyncOnClick(item.setTitle(strings.contextMenu.file.changeIcon).setIcon('lucide-image'), async () => {
-                const { IconPickerModal } = await import('../../modals/IconPickerModal');
-                const modal = new IconPickerModal(app, metadataService, file.path, ItemType.FILE);
-                modal.onChooseIcon = async iconId => {
-                    if (iconId === undefined) {
-                        return { handled: true };
-                    }
-
-                    const actions = targetFiles.map(selectedFile =>
-                        iconId === null
-                            ? metadataService.removeFileIcon(selectedFile.path)
-                            : metadataService.setFileIcon(selectedFile.path, iconId)
-                    );
-                    await Promise.all(actions);
-                    return { handled: true };
-                };
-                modal.open();
+            setAsyncOnClick(item.setTitle(strings.contextMenu.file.changeIcon).setIcon('lucide-image'), () => {
+                return openAppearanceModal('icon');
             });
         });
     }
 
     menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(item.setTitle(strings.contextMenu.file.changeColor).setIcon('lucide-palette'), async () => {
-            const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
-            const modal = new ColorPickerModal(app, metadataService, file.path, ItemType.FILE, 'foreground');
-            modal.onChooseColor = async color => {
-                if (color === undefined) {
-                    return { handled: true };
-                }
+        setAsyncOnClick(item.setTitle(strings.contextMenu.file.changeColor).setIcon('lucide-palette'), () => {
+            return openAppearanceModal('color');
+        });
+    });
 
-                const actions = targetFiles.map(selectedFile =>
-                    color === null
-                        ? metadataService.removeFileColor(selectedFile.path)
-                        : metadataService.setFileColor(selectedFile.path, color)
-                );
-                await Promise.all(actions);
-                return { handled: true };
-            };
-            modal.open();
+    menu.addItem((item: MenuItem) => {
+        setAsyncOnClick(item.setTitle(strings.contextMenu.folder.changeBackground).setIcon('lucide-paint-bucket'), () => {
+            return openAppearanceModal('background');
         });
     });
 
@@ -610,12 +736,14 @@ function addFileStyleActionsForFileContext(params: FileStyleActionsParams): void
         menu,
         styleData: {
             icon: fileIcon,
-            color: fileColor
+            color: fileColor,
+            background: fileBackground
         },
         hasIcon: settings.showFileIcons,
         hasColor: true,
+        hasBackground: true,
         applyStyle: async clipboard => {
-            const { icon, color } = clipboard;
+            const { icon, color, background } = clipboard;
             const actions: Promise<void>[] = [];
 
             targetFiles.forEach(selectedFile => {
@@ -624,6 +752,9 @@ function addFileStyleActionsForFileContext(params: FileStyleActionsParams): void
                 }
                 if (color) {
                     actions.push(metadataService.setFileColor(selectedFile.path, color));
+                }
+                if (background) {
+                    actions.push(metadataService.setFileBackgroundColor(selectedFile.path, background));
                 }
             });
 
@@ -644,6 +775,14 @@ function addFileStyleActionsForFileContext(params: FileStyleActionsParams): void
                       .map(selectedFile => metadataService.removeFileColor(selectedFile.path));
                   await Promise.all(actions);
               }
+            : undefined,
+        removeBackground: hasRemovableBackground
+            ? async () => {
+                  const actions = targetFiles
+                      .filter(selectedFile => metadataService.getFileBackgroundColor(selectedFile.path))
+                      .map(selectedFile => metadataService.removeFileBackgroundColor(selectedFile.path));
+                  await Promise.all(actions);
+              }
             : undefined
     });
 }
@@ -651,6 +790,7 @@ function addFileStyleActionsForFileContext(params: FileStyleActionsParams): void
 function resolveFileStyleRemovalAvailability(targetFiles: TFile[], metadataService: MetadataService): FileStyleRemovalAvailability {
     let hasRemovableIcon = false;
     let hasRemovableColor = false;
+    let hasRemovableBackground = false;
 
     for (const selectedFile of targetFiles) {
         if (!hasRemovableIcon && metadataService.getFileIcon(selectedFile.path)) {
@@ -661,14 +801,19 @@ function resolveFileStyleRemovalAvailability(targetFiles: TFile[], metadataServi
             hasRemovableColor = true;
         }
 
-        if (hasRemovableIcon && hasRemovableColor) {
+        if (!hasRemovableBackground && metadataService.getFileBackgroundColor(selectedFile.path)) {
+            hasRemovableBackground = true;
+        }
+
+        if (hasRemovableIcon && hasRemovableColor && hasRemovableBackground) {
             break;
         }
     }
 
     return {
         hasRemovableIcon,
-        hasRemovableColor
+        hasRemovableColor,
+        hasRemovableBackground
     };
 }
 
@@ -896,6 +1041,32 @@ function addMultipleFilesPinOption(menu: Menu, selectedFiles: TFile[], metadataS
     });
 }
 
+function addMultipleFilesMergeOption(
+    menu: Menu,
+    selectedFiles: TFile[],
+    app: App,
+    commandQueue: CommandQueueService | null,
+    fileSystemOps: FileSystemOperations
+): void {
+    if (selectedFiles.length < 2 || !selectedFiles.every(file => file.extension === 'md')) {
+        return;
+    }
+
+    const firstFile = selectedFiles[0];
+    const outputFolder = firstFile.parent instanceof TFolder ? firstFile.parent : app.vault.getRoot();
+
+    addMergeNotesMenuItem({
+        menu,
+        app,
+        commandQueue,
+        fileSystemOps,
+        files: selectedFiles,
+        outputFolder,
+        defaultOutputName: strings.modals.mergeNotes.outputNamePlaceholder,
+        title: strings.contextMenu.file.mergeNotes.replace('{count}', selectedFiles.length.toString())
+    });
+}
+
 /**
  * Add duplicate option for a single file
  */
@@ -959,7 +1130,8 @@ function addSingleFileDeleteOption(
     settings: NotebookNavigatorSettings,
     fileSystemOps: FileSystemOperations,
     selectionDispatch: React.Dispatch<SelectionAction>,
-    isFolderNoteFile: boolean
+    isFolderNoteFile: boolean,
+    getCachedFileList: () => TFile[]
 ): void {
     menu.addItem((item: MenuItem) => {
         const title = isFolderNoteFile
@@ -967,7 +1139,7 @@ function addSingleFileDeleteOption(
             : file.extension === 'md'
               ? strings.contextMenu.file.deleteNote
               : strings.contextMenu.file.deleteFile;
-        setAsyncOnClick(item.setTitle(title).setIcon('lucide-trash'), async () => {
+        setAsyncOnClick(item.setTitle(title).setIcon('lucide-trash').setWarning(true), async () => {
             // Check if this is the currently selected file
             if (selectionState.selectedFile?.path === file.path) {
                 // Use the smart delete handler
@@ -981,7 +1153,8 @@ function addSingleFileDeleteOption(
                         selectedProperty: selectionState.selectedProperty ?? undefined
                     },
                     selectionDispatch,
-                    settings.confirmBeforeDelete
+                    settings.confirmBeforeDelete,
+                    getCachedFileList()
                 );
             } else {
                 // Normal deletion - not the currently selected file
@@ -1014,7 +1187,8 @@ function addMultipleFilesDeleteOption(
                         ? strings.contextMenu.file.deleteMultipleNotes.replace('{count}', selectedCount.toString())
                         : strings.contextMenu.file.deleteMultipleFiles.replace('{count}', selectedCount.toString())
                 )
-                .setIcon('lucide-trash'),
+                .setIcon('lucide-trash')
+                .setWarning(true),
             async () => {
                 // Use centralized delete method with smart selection
                 await fileSystemOps.deleteFilesWithSmartSelection(

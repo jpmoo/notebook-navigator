@@ -18,13 +18,13 @@
 
 import React from 'react';
 import { Root, createRoot } from 'react-dom/client';
-import { ItemView, Platform, requireApiVersion, WorkspaceLeaf } from 'obsidian';
+import { ItemView, Platform, WorkspaceLeaf } from 'obsidian';
 import { SettingsProvider } from '../context/SettingsContext';
 import { ServicesProvider } from '../context/ServicesContext';
 import { CalendarRightSidebar } from '../components/CalendarRightSidebar';
 import { NOTEBOOK_NAVIGATOR_ICON_ID } from '../constants/notebookNavigatorIcon';
 import { strings } from '../i18n';
-import NotebookNavigatorPlugin from '../main';
+import type NotebookNavigatorPlugin from '../main';
 import { NOTEBOOK_NAVIGATOR_CALENDAR_VIEW } from '../types';
 import {
     IOS_FLOATING_TOOLBARS_CLASS,
@@ -53,7 +53,7 @@ export class NotebookNavigatorCalendarView extends ItemView {
             return;
         }
 
-        const shouldUseFloatingToolbars = Platform.isIosApp && requireApiVersion('1.11.0') && this.plugin.settings.useFloatingToolbars;
+        const shouldUseFloatingToolbars = Platform.isIosApp && this.plugin.settings.useFloatingToolbars;
         container.classList.toggle(IOS_FLOATING_TOOLBARS_CLASS, shouldUseFloatingToolbars);
     }
 
@@ -70,8 +70,13 @@ export class NotebookNavigatorCalendarView extends ItemView {
     }
 
     async onOpen() {
+        if (!this.plugin.settings.calendarEnabled) {
+            this.leaf.detach();
+            return;
+        }
+
         const container = this.containerEl.children[1];
-        if (!(container instanceof HTMLElement)) {
+        if (!container.instanceOf(HTMLElement)) {
             return;
         }
 
@@ -99,7 +104,7 @@ export class NotebookNavigatorCalendarView extends ItemView {
         this.viewContainer = null;
 
         const container = this.containerEl.children[1];
-        if (!(container instanceof HTMLElement)) {
+        if (!container.instanceOf(HTMLElement)) {
             return;
         }
 

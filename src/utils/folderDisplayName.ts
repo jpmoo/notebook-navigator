@@ -18,11 +18,11 @@
 
 import type { App } from 'obsidian';
 import type { MetadataService } from '../services/MetadataService';
-import type { NotebookNavigatorSettings } from '../settings';
+import type { NotebookNavigatorSettings } from '../settings/types';
 
 interface ResolveFolderDisplayNameParams {
     app: App;
-    metadataService: MetadataService;
+    metadataService: Pick<MetadataService, 'getFolderDisplayData'>;
     settings: Pick<NotebookNavigatorSettings, 'customVaultName'>;
     folderPath: string;
     fallbackName: string;
@@ -34,10 +34,6 @@ interface ResolveFolderDisplayNameParams {
 export function resolveFolderDisplayName(params: ResolveFolderDisplayNameParams): string {
     const { app, metadataService, settings, folderPath, fallbackName } = params;
 
-    if (folderPath === '/') {
-        return settings.customVaultName || app.vault.getName();
-    }
-
     const metadataDisplayName = metadataService.getFolderDisplayData(folderPath, {
         includeDisplayName: true,
         includeColor: false,
@@ -48,5 +44,54 @@ export function resolveFolderDisplayName(params: ResolveFolderDisplayNameParams)
         return metadataDisplayName;
     }
 
+    if (folderPath === '/') {
+        return settings.customVaultName || app.vault.getName();
+    }
+
     return fallbackName;
+}
+
+interface ResolveFolderDisplayPathParams {
+    metadataService: Pick<MetadataService, 'getFolderDisplayData'>;
+    folderPath: string;
+}
+
+export interface FolderDisplayPathSegment {
+    path: string;
+    label: string;
+}
+
+/**
+ * Resolves vault-relative folder path segments using folder display names where available.
+ */
+export function resolveFolderDisplayPathSegments({
+    metadataService,
+    folderPath
+}: ResolveFolderDisplayPathParams): FolderDisplayPathSegment[] {
+    const segments = folderPath.split('/').filter(Boolean);
+    let currentPath = '';
+
+    return segments.map(segment => {
+        currentPath = currentPath ? `${currentPath}/${segment}` : segment;
+        const metadataDisplayName = metadataService.getFolderDisplayData(currentPath, {
+            includeDisplayName: true,
+            includeColor: false,
+            includeBackgroundColor: false,
+            includeIcon: false
+        }).displayName;
+
+        return {
+            path: currentPath,
+            label: metadataDisplayName && metadataDisplayName.length > 0 ? metadataDisplayName : segment
+        };
+    });
+}
+
+/**
+ * Resolves a vault-relative folder path using folder display names where available.
+ */
+export function resolveFolderDisplayPath(params: ResolveFolderDisplayPathParams): string {
+    return resolveFolderDisplayPathSegments(params)
+        .map(segment => segment.label)
+        .join('/');
 }

@@ -33,6 +33,7 @@ export type UXIconId =
     | 'nav-recent-files'
     | 'nav-tree-expand'
     | 'nav-tree-collapse'
+    | 'nav-folder-root'
     | 'nav-folder-open'
     | 'nav-folder-closed'
     | 'nav-tags'
@@ -41,16 +42,23 @@ export type UXIconId =
     | 'nav-property'
     | 'nav-property-value'
     | 'list-search'
+    | 'list-reveal-file'
     | 'list-descendants'
     | 'list-sort-ascending'
     | 'list-sort-descending'
+    | 'list-sort-modified'
+    | 'list-sort-created'
+    | 'list-sort-title'
+    | 'list-sort-filename'
+    | 'list-sort-property'
     | 'list-appearance'
     | 'list-new-note'
     | 'list-pinned'
     | 'file-unfinished-task'
-    | 'file-word-count';
+    | 'file-word-count'
+    | 'file-character-count';
 
-export type UXIconCategory = 'navigationPane' | 'listPane' | 'fileItems';
+export type UXIconCategory = 'navigationPane' | 'folders' | 'tags' | 'properties' | 'listPane' | 'fileItems';
 
 export interface UXIconDefinition {
     id: UXIconId;
@@ -72,22 +80,30 @@ export const UX_ICON_DEFINITIONS: UXIconDefinition[] = [
     { id: 'nav-recent-files', category: 'navigationPane', defaultIconId: 'history' },
     { id: 'nav-tree-expand', category: 'navigationPane', defaultIconId: 'chevron-right' },
     { id: 'nav-tree-collapse', category: 'navigationPane', defaultIconId: 'chevron-down' },
-    { id: 'nav-folder-open', category: 'navigationPane', defaultIconId: 'folder-open' },
-    { id: 'nav-folder-closed', category: 'navigationPane', defaultIconId: 'folder-closed' },
-    { id: 'nav-tags', category: 'navigationPane', defaultIconId: 'tags' },
-    { id: 'nav-tag', category: 'navigationPane', defaultIconId: 'tag' },
-    { id: 'nav-properties', category: 'navigationPane', defaultIconId: 'file-code' },
-    { id: 'nav-property', category: 'navigationPane', defaultIconId: 'align-left' },
-    { id: 'nav-property-value', category: 'navigationPane', defaultIconId: 'equal' },
+    { id: 'nav-folder-root', category: 'folders', defaultIconId: 'vault' },
+    { id: 'nav-folder-open', category: 'folders', defaultIconId: 'folder-open' },
+    { id: 'nav-folder-closed', category: 'folders', defaultIconId: 'folder-closed' },
+    { id: 'nav-tags', category: 'tags', defaultIconId: 'tags' },
+    { id: 'nav-tag', category: 'tags', defaultIconId: 'tag' },
+    { id: 'nav-properties', category: 'properties', defaultIconId: 'file-code' },
+    { id: 'nav-property', category: 'properties', defaultIconId: 'align-left' },
+    { id: 'nav-property-value', category: 'properties', defaultIconId: 'equal' },
     { id: 'list-search', category: 'listPane', defaultIconId: 'search' },
+    { id: 'list-reveal-file', category: 'listPane', defaultIconId: 'locate-fixed' },
     { id: 'list-descendants', category: 'listPane', defaultIconId: 'layers' },
     { id: 'list-sort-ascending', category: 'listPane', defaultIconId: 'sort-asc' },
     { id: 'list-sort-descending', category: 'listPane', defaultIconId: 'sort-desc' },
+    { id: 'list-sort-modified', category: 'listPane', defaultIconId: 'calendar-clock' },
+    { id: 'list-sort-created', category: 'listPane', defaultIconId: 'calendar-plus' },
+    { id: 'list-sort-title', category: 'listPane', defaultIconId: 'type' },
+    { id: 'list-sort-filename', category: 'listPane', defaultIconId: 'file-text' },
+    { id: 'list-sort-property', category: 'listPane', defaultIconId: 'align-left' },
     { id: 'list-appearance', category: 'listPane', defaultIconId: 'palette' },
     { id: 'list-new-note', category: 'listPane', defaultIconId: 'pen-box' },
-    { id: 'list-pinned', category: 'listPane', defaultIconId: 'pin' },
+    { id: 'list-pinned', category: 'listPane', defaultIconId: '' },
     { id: 'file-unfinished-task', category: 'fileItems', defaultIconId: 'circle-alert' },
-    { id: 'file-word-count', category: 'fileItems', defaultIconId: 'sigma' }
+    { id: 'file-word-count', category: 'fileItems', defaultIconId: 'sigma' },
+    { id: 'file-character-count', category: 'fileItems', defaultIconId: 'type' }
 ];
 
 const UX_ICON_ID_SET: ReadonlySet<string> = new Set(UX_ICON_DEFINITIONS.map(definition => definition.id));
@@ -116,8 +132,6 @@ function normalizeUXIconKey(key: string): UXIconId | null {
             return 'nav-folder-closed';
         case 'tag':
             return 'nav-tag';
-        case 'pinned-section':
-            return 'list-pinned';
         case 'recent-files':
             return 'nav-recent-files';
         case 'list-sort':
@@ -165,13 +179,26 @@ function tryResolveLucideMenuIconId(iconId: string): string | null {
     return slug ? `lucide-${slug}` : null;
 }
 
+/**
+ * Normalizes an icon id into a Lucide menu icon id.
+ */
+export function resolveIconForMenu(iconId: string | null | undefined): string | null {
+    if (typeof iconId !== 'string') {
+        return null;
+    }
+
+    return tryResolveLucideMenuIconId(iconId);
+}
+
 export function resolveUXIconForMenu(
     uxIconMap: Record<string, string> | undefined,
     iconId: UXIconId,
-    fallbackLucideMenuIconId: string
+    fallbackLucideMenuIconId?: string
 ): string {
     const resolved = resolveUXIcon(uxIconMap, iconId);
-    return tryResolveLucideMenuIconId(resolved) ?? fallbackLucideMenuIconId;
+    return (
+        resolveIconForMenu(resolved) ?? fallbackLucideMenuIconId ?? resolveIconForMenu(UX_ICON_DEFAULT_CANONICAL[iconId]) ?? 'lucide-circle'
+    );
 }
 
 export function normalizeUXIconMapRecord(uxIconMap: Record<string, string> | undefined): Record<string, string> {

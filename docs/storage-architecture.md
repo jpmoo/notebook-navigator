@@ -1,6 +1,6 @@
 # Notebook Navigator Storage Architecture
 
-Updated: February 18, 2026
+Updated: March 17, 2026
 
 ## Table of Contents
 
@@ -88,7 +88,7 @@ graph TB
 - `featureImageKey`:
   - `null`: not processed yet
   - `''`: processed and no reference selected
-  - `f:<path>@<mtime>`, `e:<url>`, `y:<videoId>`, `x:<path>@<mtime>`: processed and reference selected
+  - `f:<path>@<mtime>`, `e:<url>`, `y:<videoId>`, `d:<provider>:<path>`: processed and reference selected
 - `metadata.created` / `metadata.modified`:
   - `0`: field not configured
   - `-1`: parsing failed
@@ -206,7 +206,6 @@ export const STORAGE_KEYS: LocalStorageKeys = {
   localStorageVersionKey: 'notebook-navigator-localstorage-version',
   vaultProfileKey: 'notebook-navigator-vault-profile',
   releaseCheckTimestampKey: 'notebook-navigator-release-check-timestamp',
-  latestKnownReleaseKey: 'notebook-navigator-latest-known-release',
   searchProviderKey: 'notebook-navigator-search-provider',
   folderSortOrderKey: 'notebook-navigator-folder-sort-order',
   tagSortOrderKey: 'notebook-navigator-tag-sort-order',
@@ -222,6 +221,8 @@ export const STORAGE_KEYS: LocalStorageKeys = {
   calendarPlacementKey: 'notebook-navigator-calendar-placement',
   calendarLeftPlacementKey: 'notebook-navigator-calendar-left-placement',
   calendarWeeksToShowKey: 'notebook-navigator-calendar-weeks-to-show',
+  featureImageSizeKey: 'notebook-navigator-feature-image-size',
+  featureImagePixelSizeKey: 'notebook-navigator-feature-image-pixel-size',
   compactItemHeightKey: 'notebook-navigator-compact-item-height',
   compactItemHeightScaleTextKey: 'notebook-navigator-compact-item-height-scale-text'
 };
@@ -278,10 +279,11 @@ The selection is stored in `settings.syncModes` and resolved during `loadSetting
 Local-sync-mode settings are sourced from local storage keys (in `STORAGE_KEYS`) and mirrored back to local storage even when
 the setting is synced so the rest of the UI can read a single source.
 
-See `SYNC_MODE_SETTING_IDS` in `src/settings/types.ts` for the full list (includes: `vaultProfile`, `tagSortOrder`, `searchProvider`,
-`includeDescendantNotes`, `dualPane`, `dualPaneOrientation`, `paneTransitionDuration`, `toolbarVisibility`, `pinNavigationBanner`,
-`showCalendar`, `navIndent`, `navItemHeight`, `navItemHeightScaleText`, `calendarWeeksToShow`, `compactItemHeight`,
-`compactItemHeightScaleText`, `uiScale`).
+See `SYNC_MODE_SETTING_IDS` in `src/settings/types.ts` for the full list (currently: `vaultProfile`, `folderSortOrder`,
+`tagSortOrder`, `propertySortOrder`, `includeDescendantNotes`, `useFloatingToolbars`, `dualPane`, `dualPaneOrientation`,
+`paneTransitionDuration`, `toolbarVisibility`, `pinNavigationBanner`, `navIndent`, `navItemHeight`,
+`navItemHeightScaleText`, `calendarPlacement`, `calendarLeftPlacement`, `calendarWeeksToShow`, `compactItemHeight`,
+`compactItemHeightScaleText`, `featureImageSize`, `featureImagePixelSize`, `uiScale`).
 
 **Implementation**: `src/settings.ts`, `src/settings/types.ts`, `src/services/settings/syncModeRegistry.ts`
 
@@ -367,8 +369,10 @@ export interface IconAssetRecord {
 3. `IndexedDBStorage.init()` compares local schema/content version markers with `DB_SCHEMA_VERSION` / `DB_CONTENT_VERSION` and clears the cache when a rebuild is required.
 4. Settings are loaded from `data.json`, and sync-mode settings are resolved/mirrored via the sync-mode registry.
 5. When a navigator view mounts, `StorageContext` waits for `useIndexedDBReady()` before doing cache work.
-6. If `IndexedDBStorage` marked a pending rebuild notice (schema downgrade/content version mismatch), `useStorageVaultSync` starts a rebuild progress notice.
-7. `useStorageVaultSync` diffs indexable vault files (`markdown` plus PDFs when enabled) against the in-memory cache (`calculateFileDiff()`),
+6. If `IndexedDBStorage` marked a pending rebuild notice (schema downgrade, content version mismatch, or IndexedDB open recovery),
+   `useStorageVaultSync` starts a rebuild progress notice.
+7. `useStorageVaultSync` diffs indexable vault files (markdown plus PDFs with hidden-item exclusions disabled for indexing)
+   against the in-memory cache (`calculateFileDiff()`),
    then writes additions/updates/removals to IndexedDB (`recordFileChanges()`, `removeFilesFromCache()`).
 8. Tag and property trees are rebuilt from database records (`buildTagTreeFromDatabase()`, `buildPropertyTreeFromDatabase()`), filtered to currently visible markdown paths.
 9. Content providers queue derived content work (previews, tags, metadata, task counters, properties, feature images, PDF thumbnails for PDF files) while the UI renders from the in-memory cache.
@@ -378,12 +382,12 @@ export interface IconAssetRecord {
 ### File Change (During Session)
 
 1. Obsidian emits vault events (create, delete, rename, modify) and metadata cache events (`metadataCache.on('changed')` for markdown files).
-2. Vault events are debounced (`TIMEOUTS.FILE_OPERATION_DELAY`) and collapsed into a single diff pass.
-3. StorageContext runs `calculateFileDiff()` and updates IndexedDB:
-   - Adds new records with default provider state
-   - Updates `mtime` for modified files without clearing provider-owned fields
-   - Removes deleted records
-   - Preserves cached data across renames by seeding the new path with the previous record and moving preview/blob keys
+2. `create`, `delete`, and `rename` events are coalesced through the debounced diff path (`TIMEOUTS.FILE_OPERATION_DELAY`).
+3. StorageContext updates IndexedDB through two paths:
+   - `create` / `delete` / `rename`: runs `calculateFileDiff()`, adds/removes records, and preserves cached data across
+     renames by seeding the new path with the previous record and moving preview/blob keys.
+   - `modify`: updates the file record immediately with `recordFileChanges([file], ...)`, preserves provider-owned
+     fields, and queues regeneration for stale derived content.
 4. For metadata cache changes that do not produce a vault `modify` event, StorageContext can reset provider processed mtimes (`markFilesForRegeneration()`) to force reprocessing against the updated metadata cache.
 5. Content providers queue affected files for regeneration as needed (with `useMetadataCacheQueue` gating metadata-dependent types).
 6. Providers write derived content through `IndexedDBStorage`, which updates the in-memory cache and emits change events for UI consumers.
@@ -403,12 +407,14 @@ export interface IconAssetRecord {
 
 ### Cache Rebuild (Manual)
 
-`StorageContext.rebuildCache()` (invoked by the rebuild-cache command/API) runs an exclusive rebuild sequence:
+`StorageContext.rebuildCache()` (invoked by the rebuild-cache command, settings action, or internal plugin/view rebuild
+path) runs an exclusive rebuild sequence:
 
 1. Stops background work: vault sync timers, tag rebuild debouncers, metadata waits, and content provider queues.
 2. Clears IndexedDB stores (`IndexedDBStorage.clearDatabase()` / `IndexedDBStorage.clear()`), which also resets the in-memory caches.
 3. Resets tag/property tree state and marks storage as not ready.
-4. Persists rebuild notice state in local storage (`STORAGE_KEYS.cacheRebuildNoticeKey`, `source: 'rebuild'`) so a rebuild notice can be restored after a restart.
+4. If there is rebuild work to track (`enabledTypes.length > 0` and `total > 0`), persists rebuild notice state in local
+   storage (`STORAGE_KEYS.cacheRebuildNoticeKey`, `source: 'rebuild'`) so a rebuild notice can be restored after a restart.
 5. Re-runs the initial diff + queue process.
 
 ### UI State Change
@@ -458,9 +464,11 @@ Implementation references:
 
 ### Hidden file property patterns (`hiddenFileProperties`)
 
-- Case-insensitive list of frontmatter keys.
+- Case-insensitive frontmatter exclusion rules.
+- Supported forms: `key` and `key=value`.
 - Applies to markdown files (`.md`) only.
-- A file is hidden when any of the configured keys exist in frontmatter (the value is ignored).
+- A file is hidden when a configured key exists, or when a configured `key=value` rule matches the normalized
+  frontmatter value (including array entries and boolean/number values).
 
 ### Hidden file tag patterns (`hiddenFileTags`)
 
@@ -554,7 +562,7 @@ Initialization behavior:
 
 When IndexedDB schema changes:
 
-1. Increment `DB_SCHEMA_VERSION` in `src/storage/IndexedDBStorage.ts`.
+1. Increment `DB_SCHEMA_VERSION` in `src/storage/indexeddb/constants.ts`.
 2. Schema upgrades run via `onupgradeneeded` (may clear stores when legacy payloads cannot be migrated).
 3. Schema downgrades delete and recreate the database.
 
@@ -562,7 +570,7 @@ When IndexedDB schema changes:
 
 When derived content format changes:
 
-1. Increment `DB_CONTENT_VERSION` in `src/storage/IndexedDBStorage.ts`.
+1. Increment `DB_CONTENT_VERSION` in `src/storage/indexeddb/constants.ts`.
 2. Stores are cleared (`IndexedDBStorage.clear()`).
 3. Content providers regenerate derived content for all files during background processing.
 

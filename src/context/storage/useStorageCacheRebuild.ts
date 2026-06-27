@@ -16,12 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useCallback, type Dispatch, type RefObject, type SetStateAction } from 'react';
+import { useCallback, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import { debounce, type TFile } from 'obsidian';
-import type { NotebookNavigatorAPI } from '../../api/NotebookNavigatorAPI';
 import type { FileContentType } from '../../interfaces/IContentProvider';
 import type { ContentProviderRegistry } from '../../services/content/ContentProviderRegistry';
-import type { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import { getDBInstance } from '../../storage/fileOperations';
 import type { PropertyTreeNode, TagTreeNode } from '../../types/storage';
 import { clearNoteCountCache } from '../../utils/tagTree';
@@ -49,30 +48,28 @@ interface PropertyTreeServiceLike {
  * then restores the previous value on completion.
  */
 export function useStorageCacheRebuild(params: {
-    api: NotebookNavigatorAPI | null;
-    contentRegistryRef: RefObject<ContentProviderRegistry | null>;
-    pendingSyncTimeoutIdRef: RefObject<number | null>;
-    rebuildFileCacheRef: RefObject<ReturnType<typeof debounce> | null>;
+    contentRegistryRef: MutableRefObject<ContentProviderRegistry | null>;
+    pendingSyncTimeoutIdRef: MutableRefObject<number | null>;
+    rebuildFileCacheRef: MutableRefObject<ReturnType<typeof debounce> | null>;
     cancelTagTreeRebuildDebouncer: (options?: { reset?: boolean }) => void;
     cancelPropertyTreeRebuildDebouncer: (options?: { reset?: boolean }) => void;
     disposeMetadataWaitDisposers: () => void;
     // Map: file path -> pending metadata-dependent wait mask (see `useMetadataCacheQueue`).
-    pendingMetadataWaitPathsRef: RefObject<Map<string, number>>;
+    pendingMetadataWaitPathsRef: MutableRefObject<Map<string, number>>;
     setFileData: Dispatch<SetStateAction<StorageFileData>>;
     tagTreeService: TagTreeServiceLike | null;
     propertyTreeService: PropertyTreeServiceLike | null;
     setIsStorageReady: Dispatch<SetStateAction<boolean>>;
-    isStorageReadyRef: RefObject<boolean>;
-    hasBuiltInitialCacheRef: RefObject<boolean>;
-    buildFileCacheFnRef: RefObject<((isInitialLoad?: boolean) => Promise<void>) | null>;
-    latestSettingsRef: RefObject<NotebookNavigatorSettings>;
-    stoppedRef: RefObject<boolean>;
+    isStorageReadyRef: MutableRefObject<boolean>;
+    hasBuiltInitialCacheRef: MutableRefObject<boolean>;
+    buildFileCacheFnRef: MutableRefObject<((isInitialLoad?: boolean) => Promise<void>) | null>;
+    latestSettingsRef: MutableRefObject<NotebookNavigatorSettings>;
+    stoppedRef: MutableRefObject<boolean>;
     clearCacheRebuildNotice: () => void;
     startCacheRebuildNotice: (total: number, enabledTypes: FileContentType[]) => void;
     getIndexableFiles: () => TFile[];
 }): { rebuildCache: () => Promise<void> } {
     const {
-        api,
         contentRegistryRef,
         pendingSyncTimeoutIdRef,
         rebuildFileCacheRef,
@@ -152,7 +149,6 @@ export function useStorageCacheRebuild(params: {
 
         isStorageReadyRef.current = false;
         setIsStorageReady(false);
-        api?.setStorageReady(false);
         hasBuiltInitialCacheRef.current = false;
 
         const buildCache = buildFileCacheFnRef.current;
@@ -187,7 +183,6 @@ export function useStorageCacheRebuild(params: {
 
         stoppedRef.current = previousStopped;
     }, [
-        api,
         buildFileCacheFnRef,
         cancelPropertyTreeRebuildDebouncer,
         cancelTagTreeRebuildDebouncer,

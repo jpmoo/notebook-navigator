@@ -31,7 +31,7 @@ interface ListPaneTitleAreaProps {
 }
 
 export function ListPaneTitleArea({ desktopTitle }: ListPaneTitleAreaProps) {
-    const { app, isMobile } = useServices();
+    const { app, isMobile, plugin } = useServices();
     const commandQueue = useCommandQueue();
     const settings = useSettingsState();
     const selectionState = useSelectionState();
@@ -39,12 +39,16 @@ export function ListPaneTitleArea({ desktopTitle }: ListPaneTitleAreaProps) {
     // Folder note interactions only apply when a folder is selected.
     const selectedFolder = selectionState.selectionType === ItemType.FOLDER ? selectionState.selectedFolder : null;
     // Recomputes folder note lookup when files in the selected folder change.
-    const selectedFolderFileVersion = useSelectedFolderFileVersion(app.vault, selectedFolder, settings.enableFolderNotes);
+    const selectedFolderFileVersion = useSelectedFolderFileVersion(
+        app.vault,
+        selectedFolder,
+        settings.enableFolderNotes && settings.enableFolderNoteLinks
+    );
     // Resolves the note file that represents the selected folder.
     const selectedFolderNote = useMemo(() => {
         void selectedFolderFileVersion;
 
-        if (!selectedFolder || !settings.enableFolderNotes) {
+        if (!selectedFolder || !settings.enableFolderNotes || !settings.enableFolderNoteLinks) {
             return null;
         }
 
@@ -53,7 +57,14 @@ export function ListPaneTitleArea({ desktopTitle }: ListPaneTitleAreaProps) {
             folderNoteName: settings.folderNoteName,
             folderNoteNamePattern: settings.folderNoteNamePattern
         });
-    }, [selectedFolder, settings.enableFolderNotes, settings.folderNoteName, settings.folderNoteNamePattern, selectedFolderFileVersion]);
+    }, [
+        selectedFolder,
+        settings.enableFolderNotes,
+        settings.enableFolderNoteLinks,
+        settings.folderNoteName,
+        settings.folderNoteNamePattern,
+        selectedFolderFileVersion
+    ]);
 
     const handleFolderNoteClick = useCallback(
         (event: React.MouseEvent<HTMLSpanElement>) => {
@@ -66,7 +77,7 @@ export function ListPaneTitleArea({ desktopTitle }: ListPaneTitleAreaProps) {
 
             const openContext = resolveFolderNoteClickOpenContext(
                 event,
-                settings.openFolderNotesInNewTab,
+                settings.folderNoteOpenLocation,
                 settings.multiSelectModifier,
                 isMobile
             );
@@ -77,11 +88,21 @@ export function ListPaneTitleArea({ desktopTitle }: ListPaneTitleAreaProps) {
                     commandQueue,
                     folder: selectedFolder,
                     folderNote: selectedFolderNote,
-                    context: openContext
+                    context: openContext,
+                    openInRightSidebar: folderNote => plugin.openFolderNoteInRightSidebar(folderNote)
                 })
             );
         },
-        [selectedFolder, selectedFolderNote, settings.openFolderNotesInNewTab, settings.multiSelectModifier, isMobile, app, commandQueue]
+        [
+            selectedFolder,
+            selectedFolderNote,
+            settings.folderNoteOpenLocation,
+            settings.multiSelectModifier,
+            isMobile,
+            app,
+            commandQueue,
+            plugin
+        ]
     );
 
     const handleFolderNoteMouseDown = useCallback(

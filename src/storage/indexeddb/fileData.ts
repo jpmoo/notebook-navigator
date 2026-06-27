@@ -114,6 +114,8 @@ export function createDefaultFileData(params: { mtime: number; path: string }): 
         fileThumbnailsMtime: 0,
         tags: isMarkdown ? null : [],
         wordCount: isMarkdown ? null : 0,
+        characterCountWithSpaces: isMarkdown ? null : 0,
+        characterCountWithoutSpaces: isMarkdown ? null : 0,
         taskTotal: isMarkdown ? null : 0,
         taskUnfinished: isMarkdown ? null : 0,
         properties: null,
@@ -164,6 +166,8 @@ export interface FileData {
     fileThumbnailsMtime: number;
     tags: string[] | null; // null = not extracted yet (e.g. when tags disabled)
     wordCount: number | null; // null = not generated yet
+    characterCountWithSpaces: number | null; // null = not generated yet
+    characterCountWithoutSpaces: number | null; // null = not generated yet
     taskTotal: number | null; // null = not generated yet
     taskUnfinished: number | null; // null = not generated yet
     properties: PropertyItem[] | null; // null = not generated yet
@@ -200,7 +204,7 @@ export interface FileData {
      * - `f:<path>@<mtime>`: local vault file reference (image embeds, PDF cover thumbnails)
      * - `e:<url>`: external https URL reference (normalized, without hash)
      * - `y:<videoId>`: YouTube thumbnail reference
-     * - `x:<path>@<mtime>`: Excalidraw file preview reference
+     * - `d:<provider>:<path>`: drawing file with provider-owned preview rendering
      */
     featureImageKey: string | null;
     metadata: {
@@ -218,15 +222,111 @@ export interface FileContentChange {
     path: string;
     changes: {
         preview?: string | null;
+        previewStatus?: PreviewStatus;
         featureImage?: Blob | null;
         featureImageKey?: string | null;
         featureImageStatus?: FeatureImageStatus;
         metadata?: FileData['metadata'] | null;
         tags?: string[] | null;
         wordCount?: number | null;
+        characterCountWithSpaces?: number | null;
+        characterCountWithoutSpaces?: number | null;
         taskTotal?: number | null;
         taskUnfinished?: number | null;
         properties?: FileData['properties'];
     };
     changeType?: 'metadata' | 'content' | 'both';
+    /** True when metadata.name changes between persisted values */
+    metadataNameChanged?: boolean;
+    /** True when metadata fields used by navigation/list decorations change between persisted values */
+    metadataDecorationChanged?: boolean;
+    /** True when metadata.hidden changes between persisted values */
+    metadataHiddenChanged?: boolean;
+}
+
+type FileMetadata = NonNullable<FileData['metadata']>;
+type FileMetadataPatchKey = keyof FileMetadata;
+const FILE_METADATA_PATCH_KEYS: readonly FileMetadataPatchKey[] = ['name', 'created', 'modified', 'icon', 'color', 'background', 'hidden'];
+const FILE_METADATA_DECORATION_KEYS: readonly Exclude<FileMetadataPatchKey, 'name' | 'hidden' | 'created' | 'modified'>[] = [
+    'icon',
+    'color',
+    'background'
+];
+
+function hasOwnMetadataPatchField(patch: Partial<FileMetadata>, key: keyof FileMetadata): boolean {
+    return Object.prototype.hasOwnProperty.call(patch, key);
+}
+
+function applyMetadataPatchField<K extends FileMetadataPatchKey>(next: FileMetadata, patch: Partial<FileMetadata>, key: K): boolean {
+    if (!hasOwnMetadataPatchField(patch, key)) {
+        return false;
+    }
+
+    const nextValue = patch[key];
+    if (nextValue === undefined) {
+        if (hasOwnMetadataPatchField(next, key)) {
+            delete next[key];
+            return true;
+        }
+        return false;
+    }
+
+    if (next[key] === nextValue) {
+        return false;
+    }
+
+    next[key] = nextValue;
+    return true;
+}
+
+export function applyFileMetadataPatch(
+    existing: FileData['metadata'] | null | undefined,
+    patch: Partial<FileMetadata>
+): { metadata: FileMetadata; changed: boolean } {
+    const next: FileMetadata = { ...(existing ?? {}) };
+    let changed = false;
+
+    for (const key of FILE_METADATA_PATCH_KEYS) {
+        changed = applyMetadataPatchField(next, patch, key) || changed;
+    }
+
+    return { metadata: next, changed };
+}
+
+function normalizeMetadataNameForComparison(metadata: FileData['metadata'] | null | undefined): string | undefined {
+    const rawName = metadata?.name;
+    if (typeof rawName !== 'string') {
+        return undefined;
+    }
+
+    const normalizedName = rawName.trim();
+    if (normalizedName.length === 0) {
+        return undefined;
+    }
+    return normalizedName;
+}
+
+export function hasMetadataNameChanged(
+    previousMetadata: FileData['metadata'] | null | undefined,
+    nextMetadata: FileData['metadata'] | null | undefined
+): boolean {
+    return normalizeMetadataNameForComparison(previousMetadata) !== normalizeMetadataNameForComparison(nextMetadata);
+}
+
+export function hasMetadataDecorationChanged(
+    previousMetadata: FileData['metadata'] | null | undefined,
+    nextMetadata: FileData['metadata'] | null | undefined
+): boolean {
+    if (hasMetadataNameChanged(previousMetadata, nextMetadata)) {
+        return true;
+    }
+
+    return FILE_METADATA_DECORATION_KEYS.some(key => previousMetadata?.[key] !== nextMetadata?.[key]);
+}
+
+export function hasMetadataHiddenChanged(
+    previousMetadata: FileData['metadata'] | null | undefined,
+    nextMetadata: FileData['metadata'] | null | undefined
+): boolean {
+    return Boolean(previousMetadata?.hidden) !== Boolean(nextMetadata?.hidden);
 }

@@ -5,9 +5,9 @@
    ======================================================================== */
 
 .modal.nn-property-keys-modal {
-    width: 520px;
+    width: 560px;
     max-width: calc(100vw - 40px);
-    height: min(520px, calc(100vh - 40px));
+    height: min(580px, calc(100vh - 40px));
 }
 
 .is-mobile .modal.nn-property-keys-modal {
@@ -23,6 +23,19 @@
     overflow: hidden;
 }
 
+.modal.nn-property-keys-modal .modal-title {
+    width: 100%;
+    text-align: center;
+}
+
+.nn-property-keys-description {
+    text-align: center;
+    color: var(--nn-theme-foreground-muted);
+    font-size: var(--font-smallest);
+    margin: var(--size-4-2) 0 0;
+    line-height: 1.4;
+}
+
 .is-mobile .modal.nn-property-keys-modal .modal-content {
     gap: var(--size-2-3);
     padding: var(--size-4-6);
@@ -32,21 +45,21 @@
     position: relative;
 }
 
-.modal.nn-property-keys-modal .nn-property-keys-search {
+.modal.nn-property-keys-modal input.nn-property-keys-search {
     margin: 0;
     height: 32px;
-    padding: 4px 36px 4px 12px !important;
-    border-radius: 999px !important;
-    border: 1px solid var(--nn-theme-list-search-border-color) !important;
+    padding: 4px 36px 4px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--nn-theme-list-search-border-color);
 }
 
-.modal.nn-property-keys-modal .nn-property-keys-search.is-active {
-    background: var(--nn-theme-list-search-active-bg) !important;
+.modal.nn-property-keys-modal input.nn-property-keys-search.is-active {
+    background: var(--nn-theme-list-search-active-bg);
 }
 
-.modal.nn-property-keys-modal .nn-property-keys-search:focus {
-    border-color: var(--nn-theme-list-search-border-color) !important;
-    box-shadow: 0 0 0 2px var(--nn-theme-list-search-border-color) !important;
+.modal.nn-property-keys-modal input.nn-property-keys-search:focus {
+    border-color: var(--nn-theme-list-search-border-color);
+    box-shadow: 0 0 0 2px var(--nn-theme-list-search-border-color);
 }
 
 .modal.nn-property-keys-modal .nn-property-keys-search-clear {
@@ -90,7 +103,7 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    margin-top: var(--size-2-2);
+    margin-top: var(--size-4-2);
     padding-right: 4px;
     padding-bottom: var(--size-1-5);
 }
@@ -116,10 +129,16 @@
     gap: var(--size-2-2);
     padding-left: var(--size-2-2);
     padding-right: var(--size-2-2);
+    border-radius: var(--radius-s);
+    transition: background-color 120ms ease;
 }
 
 .is-mobile .modal.nn-property-keys-modal .nn-property-keys-row {
     gap: var(--size-2-3);
+}
+
+.modal.nn-property-keys-modal .nn-property-keys-list .nn-property-keys-row:hover {
+    background: var(--nn-theme-foreground-faint);
 }
 
 .nn-property-keys-label {

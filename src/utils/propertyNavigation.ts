@@ -27,6 +27,7 @@ import {
     type PropertySelectionNodeId
 } from './propertyTree';
 import type { PropertyTreeNode } from '../types/storage';
+import { expandNavigationTreeItems } from './navigationExpansion';
 
 type Dispatch<T> = (action: T) => void;
 
@@ -39,6 +40,8 @@ export interface NavigateToPropertyOptions {
     source?: SelectionRevealSource;
     preserveNavigationFocus?: boolean;
     requirePropertyInTree?: boolean;
+    skipFocus?: boolean;
+    historyIndex?: number;
 }
 
 export interface PropertyNavigationEnvironment {
@@ -47,6 +50,7 @@ export interface PropertyNavigationEnvironment {
     propertyTree: ReadonlyMap<string, PropertyTreeNode>;
     expandedProperties: Set<string>;
     expandedVirtualFolders: Set<string>;
+    collapseOtherBranchesOnExpand?: boolean;
     expansionDispatch: Dispatch<ExpansionAction>;
     selectionDispatch: Dispatch<SelectionAction>;
     uiState: {
@@ -110,7 +114,16 @@ function selectPropertyAndFocus(
     nodeId: PropertySelectionNodeId,
     options?: NavigateToPropertyOptions
 ): void {
-    env.selectionDispatch({ type: 'SET_SELECTED_PROPERTY', nodeId, source: options?.source });
+    env.selectionDispatch({
+        type: 'SET_SELECTED_PROPERTY',
+        nodeId,
+        source: options?.source,
+        historyIndex: options?.historyIndex
+    });
+
+    if (options?.skipFocus) {
+        return;
+    }
 
     const preserveNavigationFocus = options?.preserveNavigationFocus ?? true;
     if (env.uiState.singlePane) {
@@ -157,7 +170,12 @@ export function navigateToProperty(
         keyNodeId !== resolvedNodeId &&
         !env.expandedProperties.has(keyNodeId);
     if (keyNeedsExpansion) {
-        env.expansionDispatch({ type: 'EXPAND_PROPERTIES', propertyNodeIds: [keyNodeId] });
+        expandNavigationTreeItems({
+            type: 'property',
+            ids: [keyNodeId],
+            collapseOtherBranches: Boolean(env.collapseOtherBranchesOnExpand),
+            dispatch: env.expansionDispatch
+        });
     }
 
     selectPropertyAndFocus(env, resolvedNodeId, options);

@@ -19,7 +19,7 @@
 import { TFile, WorkspaceLeaf } from 'obsidian';
 import type NotebookNavigatorPlugin from '../../main';
 import { NOTEBOOK_NAVIGATOR_CALENDAR_VIEW, NOTEBOOK_NAVIGATOR_VIEW } from '../../types';
-import { NotebookNavigatorView } from '../../view/NotebookNavigatorView';
+import { isNotebookNavigatorView } from '../../view/viewGuards';
 import type { RevealFileOptions } from '../../hooks/useNavigatorReveal';
 
 /**
@@ -54,22 +54,34 @@ export default class WorkspaceCoordinator {
             return null;
         }
 
-        const leaf = await workspace.ensureSideLeaf(NOTEBOOK_NAVIGATOR_CALENDAR_VIEW, 'right', {
-            active: activate,
-            reveal,
-            split: true
-        });
-        if (!shouldContinue()) {
-            this.detachCalendarViewLeaves();
+        const existingLeaf = workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_CALENDAR_VIEW)[0] ?? null;
+        if (existingLeaf) {
+            if (reveal) {
+                await workspace.revealLeaf(existingLeaf);
+            } else if (activate) {
+                workspace.setActiveLeaf(existingLeaf, { focus: true });
+            }
+
+            return shouldContinue() ? existingLeaf : null;
+        }
+
+        // Split instead of reusing the current right sidebar leaf so file views stay intact.
+        const leaf = workspace.getRightLeaf(true) ?? workspace.getRightLeaf(false);
+        if (!leaf) {
             return null;
         }
 
-        const leaves = workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_CALENDAR_VIEW);
-        for (const existingLeaf of leaves) {
-            if (existingLeaf === leaf) {
-                continue;
-            }
-            existingLeaf.detach();
+        await leaf.setViewState({
+            type: NOTEBOOK_NAVIGATOR_CALENDAR_VIEW,
+            active: activate
+        });
+        if (!shouldContinue()) {
+            leaf.detach();
+            return null;
+        }
+
+        if (reveal) {
+            await workspace.revealLeaf(leaf);
         }
 
         return leaf;
@@ -81,7 +93,7 @@ export default class WorkspaceCoordinator {
     async activateNavigatorView(): Promise<WorkspaceLeaf | null> {
         const { workspace } = this.plugin.app;
 
-        let leaf: WorkspaceLeaf | null = null;
+        let leaf: WorkspaceLeaf | null;
         const leaves = workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW);
 
         if (leaves.length > 0) {
@@ -109,12 +121,14 @@ export default class WorkspaceCoordinator {
 
     /**
      * Reveals a file in its actual parent folder across all navigator views.
-     * This is a "manual" reveal that always navigates to the file's true location.
+     * This is a "manual" reveal that targets the file's true location.
+     * Hidden files remain not revealable while hidden items are off; views may
+     * keep the current context and select the file as fallback.
      */
     revealFileInActualFolder(file: TFile, options?: RevealFileOptions): void {
         this.getNavigatorLeaves().forEach(leaf => {
             const { view } = leaf;
-            if (view instanceof NotebookNavigatorView) {
+            if (isNotebookNavigatorView(view)) {
                 view.navigateToFile(file, options);
             }
         });
@@ -127,7 +141,7 @@ export default class WorkspaceCoordinator {
     revealFileInNearestFolder(file: TFile, options?: RevealFileOptions): void {
         this.getNavigatorLeaves().forEach(leaf => {
             const { view } = leaf;
-            if (view instanceof NotebookNavigatorView) {
+            if (isNotebookNavigatorView(view)) {
                 view.revealFileInNearestFolder(file, options);
             }
         });

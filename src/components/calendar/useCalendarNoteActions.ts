@@ -20,11 +20,14 @@ import React, { useCallback } from 'react';
 import { App, Menu, TFile } from 'obsidian';
 import { strings } from '../../i18n';
 import { ConfirmModal } from '../../modals/ConfirmModal';
+import type { CommandQueueService } from '../../services/CommandQueueService';
 import type { FileSystemOperations } from '../../services/FileSystemService';
 import type { NotebookNavigatorSettings } from '../../settings/types';
 import { runAsyncAction } from '../../utils/async';
 import { createDailyNote, getDailyNoteFilename, type DailyNoteSettings } from '../../utils/dailyNotes';
+import { setAsyncOnClick } from '../../utils/contextMenu/menuAsyncHelpers';
 import { showNotice } from '../../utils/noticeUtils';
+import { openFileInContext } from '../../utils/openFileInContext';
 import { createCalendarMarkdownFile, getCalendarTemplatePath } from '../../utils/calendarNotes';
 import type { MomentApi, MomentInstance } from '../../utils/moment';
 import { resolveUXIconForMenu } from '../../utils/uxIcons';
@@ -38,17 +41,22 @@ import {
 
 interface UseCalendarNoteActionsOptions {
     app: App;
+    commandQueue: CommandQueueService | null;
     fileSystemOps: FileSystemOperations;
     isMobile: boolean;
     settings: NotebookNavigatorSettings;
     dailyNoteSettings: DailyNoteSettings | null;
     momentApi: MomentApi | null;
-    displayLocale: string;
+    dailyNoteLocale: string;
+    calendarLocale: string;
     weekLocale: string;
     customCalendarRootFolderSettings: CalendarNoteRootFolderSettings;
     openFile: (file: TFile | null, options?: { active?: boolean }) => void;
     clearHoverTooltip: () => void;
     onVaultChange: () => void;
+    showMonthHighlightActions: boolean;
+    setCalendarMonthHighlight: (monthKey: string, dayIso: string) => Promise<void>;
+    removeCalendarMonthHighlight: (monthKey: string) => Promise<void>;
 }
 
 interface UseCalendarNoteActionsResult {
@@ -60,17 +68,22 @@ interface UseCalendarNoteActionsResult {
 
 export function useCalendarNoteActions({
     app,
+    commandQueue,
     fileSystemOps,
     isMobile,
     settings,
     dailyNoteSettings,
     momentApi,
-    displayLocale,
+    dailyNoteLocale,
+    calendarLocale,
     weekLocale,
     customCalendarRootFolderSettings,
     openFile,
     clearHoverTooltip,
-    onVaultChange
+    onVaultChange,
+    showMonthHighlightActions,
+    setCalendarMonthHighlight,
+    removeCalendarMonthHighlight
 }: UseCalendarNoteActionsOptions): UseCalendarNoteActionsResult {
     const collapseNavigationIfMobile = useCallback(() => {
         if (!isMobile || !app.workspace.leftSplit) {
@@ -93,13 +106,13 @@ export function useCalendarNoteActions({
                 kind,
                 date,
                 resolverContext: getCustomCalendarResolverContext(kind),
-                displayLocale,
+                calendarLocale,
                 weekLocale,
                 customCalendarRootFolderSettings,
                 momentApi
             });
         },
-        [app, customCalendarRootFolderSettings, displayLocale, getCustomCalendarResolverContext, momentApi, weekLocale]
+        [app, calendarLocale, customCalendarRootFolderSettings, getCustomCalendarResolverContext, momentApi, weekLocale]
     );
 
     const openOrCreateCustomCalendarNote = useCallback(
@@ -115,7 +128,7 @@ export function useCalendarNoteActions({
                 kind,
                 date,
                 resolverContext,
-                displayLocale,
+                calendarLocale,
                 weekLocale,
                 customCalendarRootFolderSettings,
                 momentApi
@@ -171,7 +184,7 @@ export function useCalendarNoteActions({
             clearHoverTooltip,
             collapseNavigationIfMobile,
             customCalendarRootFolderSettings,
-            displayLocale,
+            calendarLocale,
             getCustomCalendarResolverContext,
             momentApi,
             onVaultChange,
@@ -196,10 +209,11 @@ export function useCalendarNoteActions({
                     return;
                 }
 
-                const filename = getDailyNoteFilename(date, resolvedDailySettings);
+                const localizedDate = date.clone().locale(dailyNoteLocale);
+                const filename = getDailyNoteFilename(localizedDate, resolvedDailySettings);
 
                 const createFile = async () => {
-                    const created = await createDailyNote(app, date, resolvedDailySettings);
+                    const created = await createDailyNote(app, localizedDate, resolvedDailySettings);
                     if (!created) {
                         return;
                     }
@@ -229,7 +243,41 @@ export function useCalendarNoteActions({
 
             openOrCreateCustomCalendarNote('day', date, null);
         },
-        [app, collapseNavigationIfMobile, dailyNoteSettings, onVaultChange, openFile, openOrCreateCustomCalendarNote, settings]
+        [
+            app,
+            collapseNavigationIfMobile,
+            dailyNoteLocale,
+            dailyNoteSettings,
+            onVaultChange,
+            openFile,
+            openOrCreateCustomCalendarNote,
+            settings
+        ]
+    );
+
+    const addCalendarNoteOpenOptions = useCallback(
+        (menu: Menu, file: TFile) => {
+            menu.addItem(item => {
+                setAsyncOnClick(item.setTitle(strings.contextMenu.file.openInNewTab).setIcon('lucide-file-plus'), async () => {
+                    await openFileInContext({ app, commandQueue, file, context: 'tab' });
+                });
+            });
+
+            menu.addItem(item => {
+                setAsyncOnClick(item.setTitle(strings.contextMenu.file.openToRight).setIcon('lucide-separator-vertical'), async () => {
+                    await openFileInContext({ app, commandQueue, file, context: 'split' });
+                });
+            });
+
+            if (!isMobile) {
+                menu.addItem(item => {
+                    setAsyncOnClick(item.setTitle(strings.contextMenu.file.openInNewWindow).setIcon('lucide-external-link'), async () => {
+                        await openFileInContext({ app, commandQueue, file, context: 'window' });
+                    });
+                });
+            }
+        },
+        [app, commandQueue, isMobile]
     );
 
     const showCalendarNoteContextMenu = useCallback(
@@ -240,12 +288,49 @@ export function useCalendarNoteActions({
             clearHoverTooltip();
 
             const menu = new Menu();
-
+            const isCurrentMonthHighlight = target.currentMonthHighlightDayIso === target.dayIso;
             const existingFile = target.existingFile;
+
             if (existingFile) {
+                addCalendarNoteOpenOptions(menu, existingFile);
+                menu.addSeparator();
+            }
+
+            let hasHighlightMenuItem = false;
+
+            if (showMonthHighlightActions && target.kind === 'day' && target.hasFeatureImage && target.monthKey && target.dayIso) {
+                const { monthKey, dayIso } = target;
+                if (!isCurrentMonthHighlight) {
+                    hasHighlightMenuItem = true;
+                    menu.addItem(item => {
+                        item.setTitle(strings.contextMenu.file.setCalendarHighlight)
+                            .setIcon('lucide-image')
+                            .onClick(() => {
+                                runAsyncAction(() => setCalendarMonthHighlight(monthKey, dayIso));
+                            });
+                    });
+                }
+
+                if (isCurrentMonthHighlight) {
+                    hasHighlightMenuItem = true;
+                    menu.addItem(item => {
+                        item.setTitle(strings.contextMenu.file.removeCalendarHighlight)
+                            .setIcon('lucide-image-off')
+                            .onClick(() => {
+                                runAsyncAction(() => removeCalendarMonthHighlight(monthKey));
+                            });
+                    });
+                }
+            }
+
+            if (existingFile) {
+                if (hasHighlightMenuItem) {
+                    menu.addSeparator();
+                }
                 menu.addItem(item => {
                     item.setTitle(strings.contextMenu.file.deleteNote)
                         .setIcon('lucide-trash')
+                        .setWarning(true)
                         .onClick(() => {
                             runAsyncAction(() =>
                                 fileSystemOps.deleteFile(existingFile, settings.confirmBeforeDelete, () => {
@@ -278,12 +363,16 @@ export function useCalendarNoteActions({
             menu.showAtMouseEvent(event.nativeEvent);
         },
         [
+            addCalendarNoteOpenOptions,
             clearHoverTooltip,
             collapseNavigationIfMobile,
             fileSystemOps,
             onVaultChange,
             openOrCreateCustomCalendarNote,
             openOrCreateDailyNote,
+            removeCalendarMonthHighlight,
+            setCalendarMonthHighlight,
+            showMonthHighlightActions,
             settings.confirmBeforeDelete,
             settings.interfaceIcons
         ]

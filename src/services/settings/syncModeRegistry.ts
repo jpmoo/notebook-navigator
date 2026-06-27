@@ -38,6 +38,7 @@ import {
 import type { NotebookNavigatorSettings, SyncModeSettingId } from '../../settings/types';
 import type { DualPaneOrientation, LocalStorageKeys, UXPreferences } from '../../types';
 import { localStorage } from '../../utils/localStorage';
+import { normalizeOptionalVaultFilePath } from '../../utils/pathUtils';
 import { sanitizeUIScale } from '../../utils/uiScale';
 
 export interface SyncModeRegistryEntry {
@@ -63,7 +64,11 @@ interface CreateSyncModeRegistryParams {
     parseDualPaneOrientation: (raw: unknown) => DualPaneOrientation | null;
 
     sanitizeBooleanSetting: (value: unknown, fallback: boolean) => boolean;
+    sanitizeHomepageSetting: (value: unknown) => NotebookNavigatorSettings['homepage'];
     sanitizeDualPaneOrientationSetting: (value: unknown) => DualPaneOrientation;
+    sanitizeNarrowSidebarLayoutSetting: (value: unknown) => NotebookNavigatorSettings['narrowSidebarLayout'];
+    sanitizeNarrowSidebarTriggerModeSetting: (value: unknown) => NotebookNavigatorSettings['narrowSidebarTriggerMode'];
+    sanitizeNarrowSidebarCustomWidthSetting: (value: unknown) => number;
     sanitizeTagSortOrderSetting: (value: unknown) => NotebookNavigatorSettings['tagSortOrder'];
     sanitizeFolderSortOrderSetting: (value: unknown) => NotebookNavigatorSettings['folderSortOrder'];
     sanitizePaneTransitionDurationSetting: (value: unknown) => number;
@@ -74,6 +79,8 @@ interface CreateSyncModeRegistryParams {
     sanitizeCalendarLeftPlacementSetting: (value: unknown) => NotebookNavigatorSettings['calendarLeftPlacement'];
     sanitizeCalendarWeeksToShowSetting: (value: unknown) => NotebookNavigatorSettings['calendarWeeksToShow'];
     sanitizeCompactItemHeightSetting: (value: unknown) => number;
+    sanitizeFeatureImageSizeSetting: (value: unknown) => NotebookNavigatorSettings['featureImageSize'];
+    sanitizeFeatureImagePixelSizeSetting: (value: unknown) => NotebookNavigatorSettings['featureImagePixelSize'];
 
     defaultUXPreferences: UXPreferences;
     isUXPreferencesRecord: (value: unknown) => value is Partial<UXPreferences>;
@@ -145,12 +152,14 @@ export function createSyncModeRegistry(params: CreateSyncModeRegistryParams): Sy
         getCurrent: () => T;
         setCurrent: (value: T) => void;
         cleanupOnLoad?: boolean;
+        hasPersistedValue?: (storedData: Record<string, unknown>) => boolean;
         deleteFromPersisted?: (persisted: Record<string, unknown>) => void;
     }) => {
         return createEntry({
             persistedKeys: entryParams.persistedKeys,
             loadPhase: entryParams.loadPhase,
             cleanupOnLoad: entryParams.cleanupOnLoad,
+            hasPersistedValue: entryParams.hasPersistedValue,
             deleteFromPersisted: entryParams.deleteFromPersisted,
             resolveOnLoad: ({ storedData }) => {
                 if (params.isLocal(entryParams.settingId)) {
@@ -175,6 +184,7 @@ export function createSyncModeRegistry(params: CreateSyncModeRegistryParams): Sy
         resolveDeviceLocal: (storedData: Record<string, unknown> | null) => { value: NotebookNavigatorSettings[K]; migrated: boolean };
         sanitizeSynced: () => NotebookNavigatorSettings[K];
         cleanupOnLoad?: boolean;
+        hasPersistedValue?: (storedData: Record<string, unknown>) => boolean;
         deleteFromPersisted?: (persisted: Record<string, unknown>) => void;
     }) => {
         return createResolvedLocalStorageEntry<NotebookNavigatorSettings[K]>({
@@ -189,6 +199,7 @@ export function createSyncModeRegistry(params: CreateSyncModeRegistryParams): Sy
                 params.getSettings()[entryParams.settingId] = value;
             },
             cleanupOnLoad: entryParams.cleanupOnLoad,
+            hasPersistedValue: entryParams.hasPersistedValue,
             deleteFromPersisted: entryParams.deleteFromPersisted
         });
     };
@@ -227,6 +238,29 @@ export function createSyncModeRegistry(params: CreateSyncModeRegistryParams): Sy
         });
     };
 
+    const resolveLegacyHomepageLocal = (storedData: Record<string, unknown> | null): NotebookNavigatorSettings['homepage'] => {
+        const useMobileHomepage = storedData?.['useMobileHomepage'] === true;
+        const mobileHomepage = normalizeOptionalVaultFilePath(
+            typeof storedData?.['mobileHomepage'] === 'string' ? storedData.mobileHomepage : null
+        );
+        const homepage = normalizeOptionalVaultFilePath(typeof storedData?.['homepage'] === 'string' ? storedData.homepage : null);
+        const resolvedMobileHomepage = mobileHomepage ?? homepage;
+
+        if (useMobileHomepage) {
+            return {
+                source: Platform.isMobile ? (resolvedMobileHomepage ? 'file' : 'none') : homepage ? 'file' : 'none',
+                file: Platform.isMobile ? resolvedMobileHomepage : homepage,
+                createMissingPeriodicNote: params.defaultSettings.homepage.createMissingPeriodicNote
+            };
+        }
+
+        return {
+            source: homepage ? 'file' : 'none',
+            file: homepage,
+            createMissingPeriodicNote: params.defaultSettings.homepage.createMissingPeriodicNote
+        };
+    };
+
     return {
         vaultProfile: createEntry({
             persistedKeys: ['vaultProfile'],
@@ -241,6 +275,37 @@ export function createSyncModeRegistry(params: CreateSyncModeRegistryParams): Sy
                 return { migrated: false };
             },
             mirrorToLocalStorage: mirrorFromSettings(params.keys.vaultProfileKey, () => params.getSettings().vaultProfile)
+        }),
+        homepage: createResolvedLocalStorageSettingEntry({
+            settingId: 'homepage',
+            loadPhase: 'preProfiles',
+            localStorageKey: params.keys.homepageKey,
+            resolveDeviceLocal: storedData => {
+                const storedLocal = localStorage.get<unknown>(params.keys.homepageKey);
+                const migrated = storedData
+                    ? 'homepage' in storedData || 'mobileHomepage' in storedData || 'useMobileHomepage' in storedData
+                    : false;
+                const resolved = params.sanitizeHomepageSetting(storedLocal);
+                const hasStructuredPersistedHomepage =
+                    typeof storedData?.['homepage'] === 'object' &&
+                    storedData?.['homepage'] !== null &&
+                    !Array.isArray(storedData?.['homepage']);
+                const nextValue =
+                    storedLocal === null
+                        ? hasStructuredPersistedHomepage
+                            ? params.sanitizeHomepageSetting(storedData?.['homepage'])
+                            : resolveLegacyHomepageLocal(storedData)
+                        : resolved;
+                setLocalStorage(params.keys.homepageKey, nextValue);
+                return { value: nextValue, migrated };
+            },
+            sanitizeSynced: () => params.sanitizeHomepageSetting(params.getSettings().homepage),
+            deleteFromPersisted: persisted => {
+                delete persisted['homepage'];
+                delete persisted['mobileHomepage'];
+                delete persisted['useMobileHomepage'];
+            },
+            hasPersistedValue: storedData => 'homepage' in storedData || 'mobileHomepage' in storedData || 'useMobileHomepage' in storedData
         }),
         folderSortOrder: createResolvedLocalStorageSettingEntry({
             settingId: 'folderSortOrder',
@@ -309,6 +374,60 @@ export function createSyncModeRegistry(params: CreateSyncModeRegistryParams): Sy
                 return { migrated: false };
             },
             mirrorToLocalStorage: mirrorFromSettings(params.keys.dualPaneOrientationKey, () => params.getSettings().dualPaneOrientation)
+        }),
+        narrowSidebarLayout: createEntry({
+            persistedKeys: ['narrowSidebarLayout'],
+            loadPhase: 'preProfiles',
+            resolveOnLoad: () => {
+                const isLocal = params.isLocal('narrowSidebarLayout');
+                const storedNarrowSidebarLayout = localStorage.get<unknown>(params.keys.narrowSidebarLayoutKey);
+                const settings = params.getSettings();
+                const narrowSidebarLayout = isLocal
+                    ? params.sanitizeNarrowSidebarLayoutSetting(storedNarrowSidebarLayout)
+                    : params.sanitizeNarrowSidebarLayoutSetting(settings.narrowSidebarLayout);
+                settings.narrowSidebarLayout = narrowSidebarLayout;
+                setLocalStorage(params.keys.narrowSidebarLayoutKey, narrowSidebarLayout);
+                return { migrated: false };
+            },
+            mirrorToLocalStorage: mirrorFromSettings(params.keys.narrowSidebarLayoutKey, () => params.getSettings().narrowSidebarLayout)
+        }),
+        narrowSidebarTriggerMode: createEntry({
+            persistedKeys: ['narrowSidebarTriggerMode'],
+            loadPhase: 'preProfiles',
+            resolveOnLoad: () => {
+                const isLocal = params.isLocal('narrowSidebarTriggerMode');
+                const storedTriggerMode = localStorage.get<unknown>(params.keys.narrowSidebarTriggerModeKey);
+                const settings = params.getSettings();
+                const triggerMode = isLocal
+                    ? params.sanitizeNarrowSidebarTriggerModeSetting(storedTriggerMode)
+                    : params.sanitizeNarrowSidebarTriggerModeSetting(settings.narrowSidebarTriggerMode);
+                settings.narrowSidebarTriggerMode = triggerMode;
+                setLocalStorage(params.keys.narrowSidebarTriggerModeKey, triggerMode);
+                return { migrated: false };
+            },
+            mirrorToLocalStorage: mirrorFromSettings(
+                params.keys.narrowSidebarTriggerModeKey,
+                () => params.getSettings().narrowSidebarTriggerMode
+            )
+        }),
+        narrowSidebarCustomWidth: createEntry({
+            persistedKeys: ['narrowSidebarCustomWidth'],
+            loadPhase: 'preProfiles',
+            resolveOnLoad: () => {
+                const isLocal = params.isLocal('narrowSidebarCustomWidth');
+                const storedCustomWidth = localStorage.get<unknown>(params.keys.narrowSidebarCustomWidthKey);
+                const settings = params.getSettings();
+                const customWidth = isLocal
+                    ? params.sanitizeNarrowSidebarCustomWidthSetting(storedCustomWidth)
+                    : params.sanitizeNarrowSidebarCustomWidthSetting(settings.narrowSidebarCustomWidth);
+                settings.narrowSidebarCustomWidth = customWidth;
+                setLocalStorage(params.keys.narrowSidebarCustomWidthKey, customWidth);
+                return { migrated: false };
+            },
+            mirrorToLocalStorage: mirrorFromSettings(
+                params.keys.narrowSidebarCustomWidthKey,
+                () => params.getSettings().narrowSidebarCustomWidth
+            )
         }),
         paneTransitionDuration: createResolvedLocalStorageSettingEntry({
             settingId: 'paneTransitionDuration',
@@ -415,6 +534,30 @@ export function createSyncModeRegistry(params: CreateSyncModeRegistryParams): Sy
                     params.getSettings().compactItemHeightScaleText,
                     params.defaultSettings.compactItemHeightScaleText
                 )
+        }),
+        featureImageSize: createResolvedLocalStorageSettingEntry({
+            settingId: 'featureImageSize',
+            loadPhase: 'preProfiles',
+            localStorageKey: params.keys.featureImageSizeKey,
+            resolveDeviceLocal: () => {
+                const storedLocal = localStorage.get<unknown>(params.keys.featureImageSizeKey);
+                const resolved = params.sanitizeFeatureImageSizeSetting(storedLocal);
+                setLocalStorage(params.keys.featureImageSizeKey, resolved);
+                return { value: resolved, migrated: false };
+            },
+            sanitizeSynced: () => params.sanitizeFeatureImageSizeSetting(params.getSettings().featureImageSize)
+        }),
+        featureImagePixelSize: createResolvedLocalStorageSettingEntry({
+            settingId: 'featureImagePixelSize',
+            loadPhase: 'preProfiles',
+            localStorageKey: params.keys.featureImagePixelSizeKey,
+            resolveDeviceLocal: () => {
+                const storedLocal = localStorage.get<unknown>(params.keys.featureImagePixelSizeKey);
+                const resolved = params.sanitizeFeatureImagePixelSizeSetting(storedLocal);
+                setLocalStorage(params.keys.featureImagePixelSizeKey, resolved);
+                return { value: resolved, migrated: false };
+            },
+            sanitizeSynced: () => params.sanitizeFeatureImagePixelSizeSetting(params.getSettings().featureImagePixelSize)
         }),
         uiScale: createEntry({
             persistedKeys: ['desktopScale', 'mobileScale'],

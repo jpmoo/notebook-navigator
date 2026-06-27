@@ -16,32 +16,201 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { ButtonComponent, Platform, Setting, SliderComponent } from 'obsidian';
+import { ButtonComponent, Platform, Setting } from 'obsidian';
+import type { SettingDefinitionItem } from 'obsidian';
 import { strings } from '../../i18n';
 import { NavigationBannerModal } from '../../modals/NavigationBannerModal';
+import { NavRainbowSectionModal } from '../../modals/NavRainbowSectionModal';
 import { DEFAULT_SETTINGS } from '../defaultSettings';
-import type { ItemScope } from '../types';
+import { isNavRainbowColorMode } from '../types';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { runAsyncAction } from '../../utils/async';
 import { getActiveVaultProfile } from '../../utils/vaultProfiles';
-import { createSettingGroupFactory } from '../settingGroups';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
-import { createSubSettingsContainer, wireToggleSettingWithSubSettings } from '../subSettings';
+import { createDropdownDefinition, createGroupDefinition, createRenderDefinition, createToggleDefinition } from '../nativeSettingControls';
+import { formatPixelSliderValue, formatSecondsSliderValue, renderSliderSetting } from './SliderSetting';
 
-/** Renders the navigation pane settings tab */
-export function renderNavigationPaneTab(context: SettingsTabContext): void {
-    const { containerEl, plugin, addToggleSetting } = context;
+/** Builds native 1.13 setting definitions for navigation pane settings. */
+export function createNavigationPaneSettingDefinitions(context: SettingsTabContext): SettingDefinitionItem[] {
+    const { plugin } = context;
+
+    return [
+        createGroupDefinition(undefined, [
+            createDropdownDefinition('collapseBehavior', {
+                name: strings.settings.items.collapseBehavior.name,
+                desc: strings.settings.items.collapseBehavior.desc,
+                aliases: Object.values(strings.settings.items.collapseBehavior.options),
+                options: {
+                    all: strings.settings.items.collapseBehavior.options.all,
+                    'folders-only': strings.settings.items.collapseBehavior.options.foldersOnly,
+                    'tags-only': strings.settings.items.collapseBehavior.options.tagsOnly,
+                    'properties-only': strings.settings.items.collapseBehavior.options.propertiesOnly
+                }
+            }),
+            createToggleDefinition('smartCollapse', {
+                name: strings.settings.items.smartCollapse.name,
+                desc: strings.settings.items.smartCollapse.desc
+            }),
+            createToggleDefinition('collapseOtherBranchesOnExpand', {
+                name: strings.settings.items.collapseOtherBranchesOnExpand.name,
+                desc: strings.settings.items.collapseOtherBranchesOnExpand.desc
+            }),
+            createToggleDefinition('autoExpandNavItems', {
+                name: strings.settings.items.autoExpandNavItems.name,
+                desc: strings.settings.items.autoExpandNavItems.desc
+            }),
+            ...(Platform.isMobile
+                ? []
+                : [
+                      createToggleDefinition('autoSelectFirstFileOnFocusChange', {
+                          name: strings.settings.items.autoSelectFirstFileOnFocusChange.name,
+                          desc: strings.settings.items.autoSelectFirstFileOnFocusChange.desc
+                      })
+                  ])
+        ]),
+        ...(Platform.isMobile
+            ? []
+            : [
+                  createGroupDefinition(strings.settings.groups.navigation.dragAndDrop, [
+                      createToggleDefinition('springLoadedFolders', {
+                          name: strings.settings.items.springLoadedFolders.name,
+                          desc: strings.settings.items.springLoadedFolders.desc
+                      }),
+                      createRenderDefinition({
+                          name: strings.settings.items.springLoadedFoldersInitialDelay.name,
+                          desc: strings.settings.items.springLoadedFoldersInitialDelay.desc,
+                          visible: () => plugin.settings.springLoadedFolders,
+                          render: setting => renderSpringLoadedFoldersInitialDelaySetting(setting, context)
+                      }),
+                      createRenderDefinition({
+                          name: strings.settings.items.springLoadedFoldersSubsequentDelay.name,
+                          desc: strings.settings.items.springLoadedFoldersSubsequentDelay.desc,
+                          visible: () => plugin.settings.springLoadedFolders,
+                          render: setting => renderSpringLoadedFoldersSubsequentDelaySetting(setting, context)
+                      })
+                  ])
+              ]),
+        createGroupDefinition(strings.settings.groups.navigation.rainbowColors, [
+            createRenderDefinition({
+                name: strings.settings.items.navRainbowMode.name,
+                desc: strings.settings.items.navRainbowMode.desc,
+                aliases: Object.values(strings.settings.items.navRainbowMode.options),
+                render: setting => renderNavRainbowModeSetting(setting, context)
+            }),
+            createRenderDefinition({
+                name: strings.settings.items.navRainbowApplyToShortcuts.name,
+                desc: strings.settings.items.navRainbowApplyToShortcuts.desc,
+                visible: () => getActiveVaultProfile(plugin.settings).navRainbow.mode !== 'none',
+                render: setting => renderNavRainbowSectionSetting(setting, context, 'shortcuts')
+            }),
+            createRenderDefinition({
+                name: strings.settings.items.navRainbowApplyToRecent.name,
+                desc: strings.settings.items.navRainbowApplyToRecent.desc,
+                visible: () => getActiveVaultProfile(plugin.settings).navRainbow.mode !== 'none',
+                render: setting => renderNavRainbowSectionSetting(setting, context, 'recent')
+            }),
+            createRenderDefinition({
+                name: strings.settings.items.navRainbowApplyToFolders.name,
+                desc: strings.settings.items.navRainbowApplyToFolders.desc,
+                visible: () => getActiveVaultProfile(plugin.settings).navRainbow.mode !== 'none',
+                render: setting => renderNavRainbowSectionSetting(setting, context, 'folders')
+            }),
+            createRenderDefinition({
+                name: strings.settings.items.navRainbowApplyToTags.name,
+                desc: strings.settings.items.navRainbowApplyToTags.desc,
+                visible: () => getActiveVaultProfile(plugin.settings).navRainbow.mode !== 'none',
+                render: setting => renderNavRainbowSectionSetting(setting, context, 'tags')
+            }),
+            createRenderDefinition({
+                name: strings.settings.items.navRainbowApplyToProperties.name,
+                desc: strings.settings.items.navRainbowApplyToProperties.desc,
+                visible: () => getActiveVaultProfile(plugin.settings).navRainbow.mode !== 'none',
+                render: setting => renderNavRainbowSectionSetting(setting, context, 'properties')
+            }),
+            createRenderDefinition({
+                name: strings.settings.items.navRainbowBalanceHueLuminance.name,
+                desc: strings.settings.items.navRainbowBalanceHueLuminance.desc,
+                visible: () => getActiveVaultProfile(plugin.settings).navRainbow.mode !== 'none',
+                render: setting => renderNavRainbowToggleSetting(setting, context, 'balanceHueLuminance')
+            }),
+            createRenderDefinition({
+                name: strings.settings.items.navRainbowSeparateThemeColors.name,
+                desc: strings.settings.items.navRainbowSeparateThemeColors.desc,
+                visible: () => getActiveVaultProfile(plugin.settings).navRainbow.mode !== 'none',
+                render: setting => renderNavRainbowToggleSetting(setting, context, 'separateThemeColors')
+            })
+        ]),
+        createGroupDefinition(strings.settings.groups.navigation.noteCounts, [
+            createToggleDefinition('showNoteCount', {
+                name: strings.settings.items.showNoteCount.name,
+                desc: strings.settings.items.showNoteCount.desc
+            }),
+            createToggleDefinition('separateNoteCounts', {
+                name: strings.settings.items.separateNoteCounts.name,
+                desc: strings.settings.items.separateNoteCounts.desc,
+                visible: () => plugin.settings.showNoteCount
+            })
+        ]),
+        createGroupDefinition(strings.settings.groups.navigation.banner, [
+            createRenderDefinition({
+                name: strings.settings.items.navigationBanner.name,
+                desc: strings.settings.items.navigationBanner.desc,
+                aliases: [strings.settings.items.navigationBanner.chooseButton, strings.common.clear],
+                render: setting => renderNavigationBannerSetting(setting, context)
+            }),
+            createRenderDefinition({
+                name: strings.settings.items.pinNavigationBanner.name,
+                desc: strings.settings.items.pinNavigationBanner.desc,
+                render: setting => renderPinNavigationBannerSetting(setting, context)
+            })
+        ]),
+        createGroupDefinition(strings.settings.groups.navigation.appearance, [
+            createToggleDefinition('showIndentGuides', {
+                name: strings.settings.items.showIndentGuides.name,
+                desc: strings.settings.items.showIndentGuides.desc
+            }),
+            createDropdownDefinition('navCountLeaderStyle', {
+                name: strings.settings.items.navCountLeaderStyle.name,
+                desc: strings.settings.items.navCountLeaderStyle.desc,
+                aliases: Object.values(strings.settings.items.navCountLeaderStyle.options),
+                options: {
+                    none: strings.settings.items.navCountLeaderStyle.options.none,
+                    dots: strings.settings.items.navCountLeaderStyle.options.dots,
+                    dashes: strings.settings.items.navCountLeaderStyle.options.dashes,
+                    line: strings.settings.items.navCountLeaderStyle.options.line
+                }
+            }),
+            createRenderDefinition({
+                name: strings.settings.items.navRootSpacing.name,
+                desc: strings.settings.items.navRootSpacing.desc,
+                render: setting => renderRootLevelSpacingSetting(setting, context)
+            }),
+            createRenderDefinition({
+                name: strings.settings.items.navIndent.name,
+                desc: strings.settings.items.navIndent.desc,
+                render: setting => renderNavIndentSetting(setting, context)
+            }),
+            createRenderDefinition({
+                name: strings.settings.items.navItemHeight.name,
+                desc: strings.settings.items.navItemHeight.desc,
+                render: setting => renderNavItemHeightSetting(setting, context)
+            }),
+            createRenderDefinition({
+                name: strings.settings.items.navItemHeightScaleText.name,
+                desc: strings.settings.items.navItemHeightScaleText.desc,
+                render: setting => renderNavItemHeightScaleTextSetting(setting, context)
+            })
+        ])
+    ];
+}
+
+function renderNavigationBannerSetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
     const getActiveProfile = () => getActiveVaultProfile(plugin.settings);
 
-    const createGroup = createSettingGroupFactory(containerEl);
-    const appearanceGroup = createGroup(strings.settings.groups.navigation.appearance);
+    setting.setName(strings.settings.items.navigationBanner.name).setDesc('');
 
-    const navigationBannerSetting = appearanceGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.navigationBanner.name);
-    });
-    navigationBannerSetting.setDesc('');
-
-    const navigationBannerDescEl = navigationBannerSetting.descEl;
+    const navigationBannerDescEl = setting.descEl;
     navigationBannerDescEl.empty();
     navigationBannerDescEl.createDiv({ text: strings.settings.items.navigationBanner.desc });
 
@@ -55,28 +224,24 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
             navigationBannerValueEl.setText(strings.settings.items.navigationBanner.current.replace('{path}', navigationBanner));
         }
 
-        if (clearNavigationBannerButton) {
-            clearNavigationBannerButton.setDisabled(!navigationBanner);
-        }
+        clearNavigationBannerButton?.setDisabled(!navigationBanner);
     };
 
-    navigationBannerSetting.addButton(button => {
+    setting.addButton(button => {
         button.setButtonText(strings.settings.items.navigationBanner.chooseButton);
         button.onClick(() => {
             new NavigationBannerModal(context.app, file => {
                 getActiveProfile().navigationBanner = file.path;
                 renderNavigationBannerValue();
-                // Save navigation banner setting without blocking the UI
                 runAsyncAction(() => plugin.saveSettingsAndUpdate());
             }).open();
         });
     });
 
-    navigationBannerSetting.addButton(button => {
+    setting.addButton(button => {
         button.setButtonText(strings.common.clear);
         clearNavigationBannerButton = button;
         button.setDisabled(!getActiveProfile().navigationBanner);
-        // Clear navigation banner without blocking the UI
         button.onClick(() => {
             runAsyncAction(async () => {
                 const activeProfile = getActiveProfile();
@@ -94,9 +259,12 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
     context.registerSettingsUpdateListener('navigation-pane-navigation-banner', () => {
         renderNavigationBannerValue();
     });
+}
 
-    const navigationBannerSubSettingsEl = createSubSettingsContainer(navigationBannerSetting);
-    const pinNavigationBannerSetting = new Setting(navigationBannerSubSettingsEl)
+function renderPinNavigationBannerSetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
+
+    setting
         .setName(strings.settings.items.pinNavigationBanner.name)
         .setDesc(strings.settings.items.pinNavigationBanner.desc)
         .addToggle(toggle =>
@@ -104,145 +272,112 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
                 plugin.setPinNavigationBanner(value);
             })
         );
-    addSettingSyncModeToggle({ setting: pinNavigationBannerSetting, plugin, settingId: 'pinNavigationBanner' });
+    addSettingSyncModeToggle({ setting, plugin, settingId: 'pinNavigationBanner' });
+}
 
-    const showNoteCountSetting = appearanceGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.showNoteCount.name).setDesc(strings.settings.items.showNoteCount.desc);
-    });
+function renderRootLevelSpacingSetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
 
-    const noteCountSubSettingsEl = wireToggleSettingWithSubSettings(
-        showNoteCountSetting,
-        () => plugin.settings.showNoteCount,
-        async value => {
-            plugin.settings.showNoteCount = value;
+    renderSliderSetting(setting, {
+        name: strings.settings.items.navRootSpacing.name,
+        desc: strings.settings.items.navRootSpacing.desc,
+        value: plugin.settings.rootLevelSpacing,
+        defaultValue: DEFAULT_SETTINGS.rootLevelSpacing,
+        min: 0,
+        max: 6,
+        step: 1,
+        formatValue: formatPixelSliderValue,
+        onChange: async value => {
+            plugin.settings.rootLevelSpacing = value;
             await plugin.saveSettingsAndUpdate();
         }
-    );
+    });
+}
 
-    new Setting(noteCountSubSettingsEl)
-        .setName(strings.settings.items.separateNoteCounts.name)
-        .setDesc(strings.settings.items.separateNoteCounts.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.separateNoteCounts).onChange(async value => {
-                plugin.settings.separateNoteCounts = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
+function renderNavIndentSetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
 
-    appearanceGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.showIndentGuides.name)
-            .setDesc(strings.settings.items.showIndentGuides.desc)
-            .addToggle(toggle =>
-                toggle.setValue(plugin.settings.showIndentGuides).onChange(async value => {
-                    plugin.settings.showIndentGuides = value;
-                    await plugin.saveSettingsAndUpdate();
-                })
-            );
+    renderSliderSetting(setting, {
+        name: strings.settings.items.navIndent.name,
+        desc: strings.settings.items.navIndent.desc,
+        value: plugin.settings.navIndent,
+        defaultValue: DEFAULT_SETTINGS.navIndent,
+        min: 10,
+        max: 24,
+        step: 1,
+        formatValue: formatPixelSliderValue,
+        onChange: value => {
+            plugin.setNavIndent(value);
+        }
     });
 
-    let rootSpacingSlider: SliderComponent;
-    appearanceGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.navRootSpacing.name)
-            .setDesc(strings.settings.items.navRootSpacing.desc)
-            .addSlider(slider => {
-                rootSpacingSlider = slider
-                    .setLimits(0, 6, 1)
-                    .setValue(plugin.settings.rootLevelSpacing)
-                    .setInstant(false)
-                    .setDynamicTooltip()
-                    .onChange(async value => {
-                        plugin.settings.rootLevelSpacing = value;
-                        await plugin.saveSettingsAndUpdate();
-                    });
-                return slider;
-            })
-            .addExtraButton(button =>
-                button
-                    .setIcon('lucide-rotate-ccw')
-                    .setTooltip('Restore to default (0px)')
-                    .onClick(() => {
-                        // Reset root spacing to default without blocking the UI
-                        runAsyncAction(async () => {
-                            const defaultValue = DEFAULT_SETTINGS.rootLevelSpacing;
-                            rootSpacingSlider.setValue(defaultValue);
-                            plugin.settings.rootLevelSpacing = defaultValue;
-                            await plugin.saveSettingsAndUpdate();
-                        });
-                    })
-            );
+    addSettingSyncModeToggle({ setting, plugin, settingId: 'navIndent' });
+}
+
+function renderNavItemHeightSetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
+
+    renderSliderSetting(setting, {
+        name: strings.settings.items.navItemHeight.name,
+        desc: strings.settings.items.navItemHeight.desc,
+        value: plugin.settings.navItemHeight,
+        defaultValue: DEFAULT_SETTINGS.navItemHeight,
+        min: 20,
+        max: 28,
+        step: 1,
+        formatValue: formatPixelSliderValue,
+        onChange: value => {
+            plugin.setNavItemHeight(value);
+        }
     });
 
-    let indentationSlider: SliderComponent;
-    const navIndentSetting = appearanceGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.navIndent.name)
-            .setDesc(strings.settings.items.navIndent.desc)
-            .addSlider(slider => {
-                indentationSlider = slider
-                    .setLimits(10, 24, 1)
-                    .setValue(plugin.settings.navIndent)
-                    .setInstant(false)
-                    .setDynamicTooltip()
-                    .onChange(value => {
-                        plugin.setNavIndent(value);
-                    });
-                return slider;
-            })
-            .addExtraButton(button =>
-                button
-                    .setIcon('lucide-rotate-ccw')
-                    .setTooltip('Restore to default (16px)')
-                    .onClick(() => {
-                        // Reset indentation to default without blocking the UI
-                        runAsyncAction(() => {
-                            const defaultValue = DEFAULT_SETTINGS.navIndent;
-                            indentationSlider.setValue(defaultValue);
-                            plugin.setNavIndent(defaultValue);
-                        });
-                    })
-            );
+    addSettingSyncModeToggle({ setting, plugin, settingId: 'navItemHeight' });
+}
+
+function renderSpringLoadedFoldersInitialDelaySetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
+
+    renderSliderSetting(setting, {
+        name: strings.settings.items.springLoadedFoldersInitialDelay.name,
+        desc: strings.settings.items.springLoadedFoldersInitialDelay.desc,
+        value: plugin.settings.springLoadedFoldersInitialDelay,
+        defaultValue: DEFAULT_SETTINGS.springLoadedFoldersInitialDelay,
+        min: 0.1,
+        max: 2,
+        step: 0.1,
+        formatValue: formatSecondsSliderValue,
+        normalizeValue: value => Math.round(value * 10) / 10,
+        onChange: async value => {
+            plugin.settings.springLoadedFoldersInitialDelay = value;
+            await plugin.saveSettingsAndUpdate();
+        }
     });
+}
 
-    addSettingSyncModeToggle({ setting: navIndentSetting, plugin, settingId: 'navIndent' });
+function renderSpringLoadedFoldersSubsequentDelaySetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
 
-    let lineHeightSlider: SliderComponent;
-    const navItemHeightSetting = appearanceGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.navItemHeight.name)
-            .setDesc(strings.settings.items.navItemHeight.desc)
-            .addSlider(slider => {
-                lineHeightSlider = slider
-                    .setLimits(20, 28, 1)
-                    .setValue(plugin.settings.navItemHeight)
-                    .setInstant(false)
-                    .setDynamicTooltip()
-                    .onChange(value => {
-                        plugin.setNavItemHeight(value);
-                    });
-                return slider;
-            })
-            .addExtraButton(button =>
-                button
-                    .setIcon('lucide-rotate-ccw')
-                    .setTooltip('Restore to default (28px)')
-                    .onClick(() => {
-                        // Reset line height to default without blocking the UI
-                        runAsyncAction(() => {
-                            const defaultValue = DEFAULT_SETTINGS.navItemHeight;
-                            lineHeightSlider.setValue(defaultValue);
-                            plugin.setNavItemHeight(defaultValue);
-                        });
-                    })
-            );
+    renderSliderSetting(setting, {
+        name: strings.settings.items.springLoadedFoldersSubsequentDelay.name,
+        desc: strings.settings.items.springLoadedFoldersSubsequentDelay.desc,
+        value: plugin.settings.springLoadedFoldersSubsequentDelay,
+        defaultValue: DEFAULT_SETTINGS.springLoadedFoldersSubsequentDelay,
+        min: 0.1,
+        max: 2,
+        step: 0.1,
+        formatValue: formatSecondsSliderValue,
+        normalizeValue: value => Math.round(value * 10) / 10,
+        onChange: async value => {
+            plugin.settings.springLoadedFoldersSubsequentDelay = value;
+            await plugin.saveSettingsAndUpdate();
+        }
     });
+}
 
-    addSettingSyncModeToggle({ setting: navItemHeightSetting, plugin, settingId: 'navItemHeight' });
+function renderNavItemHeightScaleTextSetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
 
-    const navItemHeightSettingsEl = createSubSettingsContainer(navItemHeightSetting);
-
-    const navItemHeightScaleTextSetting = new Setting(navItemHeightSettingsEl)
+    setting
         .setName(strings.settings.items.navItemHeightScaleText.name)
         .setDesc(strings.settings.items.navItemHeightScaleText.desc)
         .addToggle(toggle =>
@@ -251,100 +386,84 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
             })
         );
 
-    addSettingSyncModeToggle({ setting: navItemHeightScaleTextSetting, plugin, settingId: 'navItemHeightScaleText' });
+    addSettingSyncModeToggle({ setting, plugin, settingId: 'navItemHeightScaleText' });
+}
 
-    const behaviorGroup = createGroup(strings.settings.groups.general.behavior);
+function renderNavRainbowModeSetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
 
-    behaviorGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.collapseBehavior.name)
-            .setDesc(strings.settings.items.collapseBehavior.desc)
-            .addDropdown(dropdown =>
-                dropdown
-                    .addOption('all', strings.settings.items.collapseBehavior.options.all)
-                    .addOption('folders-only', strings.settings.items.collapseBehavior.options.foldersOnly)
-                    .addOption('tags-only', strings.settings.items.collapseBehavior.options.tagsOnly)
-                    .setValue(plugin.settings.collapseBehavior)
-                    .onChange(async (value: ItemScope) => {
-                        plugin.settings.collapseBehavior = value;
-                        await plugin.saveSettingsAndUpdate();
-                    })
-            );
-    });
+    setting
+        .setName(strings.settings.items.navRainbowMode.name)
+        .setDesc(strings.settings.items.navRainbowMode.desc)
+        .addDropdown(dropdown =>
+            dropdown
+                .addOption('none', strings.settings.items.navRainbowMode.options.none)
+                .addOption('foreground', strings.settings.items.navRainbowMode.options.foreground)
+                .addOption('background', strings.settings.items.navRainbowMode.options.background)
+                .setValue(getActiveVaultProfile(plugin.settings).navRainbow.mode)
+                .onChange(async value => {
+                    if (!isNavRainbowColorMode(value)) {
+                        return;
+                    }
 
-    addToggleSetting(
-        behaviorGroup.addSetting,
-        strings.settings.items.smartCollapse.name,
-        strings.settings.items.smartCollapse.desc,
-        () => plugin.settings.smartCollapse,
-        value => {
-            plugin.settings.smartCollapse = value;
-        }
-    );
-
-    if (!Platform.isMobile) {
-        addToggleSetting(
-            behaviorGroup.addSetting,
-            strings.settings.items.autoSelectFirstFileOnFocusChange.name,
-            strings.settings.items.autoSelectFirstFileOnFocusChange.desc,
-            () => plugin.settings.autoSelectFirstFileOnFocusChange,
-            value => {
-                plugin.settings.autoSelectFirstFileOnFocusChange = value;
-            }
+                    const activeProfile = getActiveVaultProfile(plugin.settings);
+                    activeProfile.navRainbow = { ...activeProfile.navRainbow, mode: value };
+                    context.refreshSettingsDomState();
+                    await plugin.saveSettingsAndUpdate();
+                })
         );
-    }
+}
 
-    addToggleSetting(
-        behaviorGroup.addSetting,
-        strings.settings.items.autoExpandNavItems.name,
-        strings.settings.items.autoExpandNavItems.desc,
-        () => plugin.settings.autoExpandNavItems,
-        value => {
-            plugin.settings.autoExpandNavItems = value;
-        }
+function renderNavRainbowSectionSetting(
+    setting: Setting,
+    context: SettingsTabContext,
+    section: 'shortcuts' | 'recent' | 'folders' | 'tags' | 'properties'
+): void {
+    const { plugin } = context;
+    const sectionStrings = {
+        shortcuts: strings.settings.items.navRainbowApplyToShortcuts,
+        recent: strings.settings.items.navRainbowApplyToRecent,
+        folders: strings.settings.items.navRainbowApplyToFolders,
+        tags: strings.settings.items.navRainbowApplyToTags,
+        properties: strings.settings.items.navRainbowApplyToProperties
+    }[section];
+
+    setting.setName(sectionStrings.name).setDesc(sectionStrings.desc);
+    setting.addToggle(toggle =>
+        toggle.setValue(getActiveVaultProfile(plugin.settings).navRainbow[section].enabled).onChange(async value => {
+            const activeProfile = getActiveVaultProfile(plugin.settings);
+            activeProfile.navRainbow = {
+                ...activeProfile.navRainbow,
+                [section]: { ...activeProfile.navRainbow[section], enabled: value }
+            };
+            await plugin.saveSettingsAndUpdate();
+        })
     );
-
-    if (!Platform.isMobile) {
-        const springLoadedFoldersSetting = behaviorGroup.addSetting(setting => {
-            setting.setName(strings.settings.items.springLoadedFolders.name).setDesc(strings.settings.items.springLoadedFolders.desc);
+    setting.addButton(button => {
+        button.setButtonText(strings.common.configure);
+        button.onClick(() => {
+            new NavRainbowSectionModal(context.app, plugin, section).open();
         });
-        const springLoadedFoldersSubSettings = wireToggleSettingWithSubSettings(
-            springLoadedFoldersSetting,
-            () => plugin.settings.springLoadedFolders,
-            async value => {
-                plugin.settings.springLoadedFolders = value;
-                await plugin.saveSettingsAndUpdate();
-            }
-        );
+    });
+}
 
-        new Setting(springLoadedFoldersSubSettings)
-            .setName(strings.settings.items.springLoadedFoldersInitialDelay.name)
-            .setDesc(strings.settings.items.springLoadedFoldersInitialDelay.desc)
-            .addSlider(slider =>
-                slider
-                    .setLimits(0.1, 2, 0.1)
-                    .setValue(plugin.settings.springLoadedFoldersInitialDelay)
-                    .setInstant(false)
-                    .setDynamicTooltip()
-                    .onChange(async value => {
-                        plugin.settings.springLoadedFoldersInitialDelay = Math.round(value * 10) / 10;
-                        await plugin.saveSettingsAndUpdate();
-                    })
-            );
+function renderNavRainbowToggleSetting(
+    setting: Setting,
+    context: SettingsTabContext,
+    key: 'balanceHueLuminance' | 'separateThemeColors'
+): void {
+    const { plugin } = context;
+    const itemStrings =
+        key === 'balanceHueLuminance'
+            ? strings.settings.items.navRainbowBalanceHueLuminance
+            : strings.settings.items.navRainbowSeparateThemeColors;
 
-        new Setting(springLoadedFoldersSubSettings)
-            .setName(strings.settings.items.springLoadedFoldersSubsequentDelay.name)
-            .setDesc(strings.settings.items.springLoadedFoldersSubsequentDelay.desc)
-            .addSlider(slider =>
-                slider
-                    .setLimits(0.1, 2, 0.1)
-                    .setValue(plugin.settings.springLoadedFoldersSubsequentDelay)
-                    .setInstant(false)
-                    .setDynamicTooltip()
-                    .onChange(async value => {
-                        plugin.settings.springLoadedFoldersSubsequentDelay = Math.round(value * 10) / 10;
-                        await plugin.saveSettingsAndUpdate();
-                    })
-            );
-    }
+    setting.setName(itemStrings.name).setDesc(itemStrings.desc);
+    setting.addToggle(toggle =>
+        toggle.setValue(getActiveVaultProfile(plugin.settings).navRainbow[key]).onChange(async value => {
+            const activeProfile = getActiveVaultProfile(plugin.settings);
+            activeProfile.navRainbow = { ...activeProfile.navRainbow, [key]: value };
+            await plugin.saveSettingsAndUpdate();
+        })
+    );
 }

@@ -19,8 +19,6 @@
 import type { DragEvent } from 'react';
 
 export interface ListReorderHandlers {
-    onDragStart?: (event: DragEvent<HTMLElement>) => void;
-    onDragEnd?: (event: DragEvent<HTMLElement>) => void;
     onDragOver?: (event: DragEvent<HTMLElement>) => void;
     onDragLeave?: (event: DragEvent<HTMLElement>) => void;
     onDrop?: (event: DragEvent<HTMLElement>) => void;

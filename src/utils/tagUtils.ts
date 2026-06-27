@@ -17,7 +17,7 @@
  */
 
 import { TFile, getAllTags, type App } from 'obsidian';
-import { MultiSelectModifier, NotebookNavigatorSettings } from '../settings';
+import type { MultiSelectModifier, NotebookNavigatorSettings } from '../settings/types';
 import { TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
 import type { FileData } from '../storage/IndexedDBStorage';
 import { getDBInstanceOrNull } from '../storage/fileOperations';
@@ -198,11 +198,11 @@ export function extractFileTagsFromRawTags(rawTags: readonly string[] | null): s
         if (!cleanTag) {
             continue;
         }
-        const lowerTag = cleanTag.toLowerCase();
-        if (seen.has(lowerTag)) {
+        const canonicalTag = normalizeTagPathValue(cleanTag);
+        if (!canonicalTag || seen.has(canonicalTag)) {
             continue;
         }
-        seen.add(lowerTag);
+        seen.add(canonicalTag);
         uniqueTags.push(cleanTag);
     }
 

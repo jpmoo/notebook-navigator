@@ -1,7 +1,7 @@
 /* Source: src/styles/sections/list-tags.css */
 
 /* ========================================================================
-   Tag & Custom Property Display Styles
+   Tag & Property Value Display Styles
    ======================================================================== */
 
 /* Tag container */
@@ -29,7 +29,8 @@
     --nn-file-pill-border-color-resolved: var(--nn-theme-file-tag-border-color);
     display: inline-flex;
     align-items: center;
-    height: 20px;
+    box-sizing: border-box;
+    height: var(--nn-file-tag-row-height);
     line-height: 1;
     padding: 0 8px;
     background-color: var(--nn-theme-file-tag-bg);
@@ -100,8 +101,8 @@
     cursor: pointer;
 }
 
-/* Underline property pills that render wiki-link values */
-.nn-file-tag.nn-file-property.nn-file-property-wikilink {
+/* Underline property pills that render clickable link values */
+.nn-file-tag.nn-file-property.nn-file-property-link {
     text-decoration: underline;
     text-underline-offset: 2px;
 }
@@ -139,6 +140,10 @@
 
 .nn-file.nn-selected .nn-file-date {
     color: var(--nn-selected-file-date-color);
+}
+
+.nn-file.nn-selected .nn-file-word-count-suffix {
+    color: var(--nn-selected-file-word-count-color);
 }
 
 .nn-file.nn-selected .nn-parent-folder {

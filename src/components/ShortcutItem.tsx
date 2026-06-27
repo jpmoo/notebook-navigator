@@ -21,7 +21,7 @@ import type { DraggableSyntheticListeners } from '@dnd-kit/core';
 import { useSettingsState } from '../context/SettingsContext';
 import { useUXPreferences } from '../context/UXPreferencesContext';
 import type { ListReorderHandlers } from '../types/listReorder';
-import { NavigationListRow, type DragHandleConfig } from './NavigationListRow';
+import { NavigationListRow, type DragHandleConfig, type NativeDragData } from './NavigationListRow';
 import type { NoteCountInfo } from '../types/noteCounts';
 import { buildNoteCountDisplay } from '../utils/noteCountFormatting';
 import { strings } from '../i18n';
@@ -34,6 +34,7 @@ interface ShortcutItemProps {
     icon: string;
     color?: string;
     backgroundColor?: string;
+    adjacentFilledClassName?: string;
     label: string;
     description?: string;
     level: number;
@@ -52,6 +53,7 @@ interface ShortcutItemProps {
     isDragSource?: boolean;
     dragHandleConfig?: DragHandleConfig;
     hasFolderNote?: boolean;
+    tooltip?: string;
     onLabelClick?: (event: React.MouseEvent<HTMLSpanElement>) => void;
     onLabelMouseDown?: (event: React.MouseEvent<HTMLSpanElement>) => void;
     dragRef?: (node: HTMLDivElement | null) => void;
@@ -60,6 +62,7 @@ interface ShortcutItemProps {
     dragListeners?: DraggableSyntheticListeners;
     dragStyle?: React.CSSProperties;
     isSorting?: boolean;
+    nativeDragData?: NativeDragData;
 }
 
 /**
@@ -70,6 +73,7 @@ export const ShortcutItem = React.memo(function ShortcutItem({
     icon,
     color,
     backgroundColor,
+    adjacentFilledClassName,
     label,
     description,
     level,
@@ -88,6 +92,7 @@ export const ShortcutItem = React.memo(function ShortcutItem({
     isDragSource,
     dragHandleConfig,
     hasFolderNote,
+    tooltip,
     onLabelClick,
     onLabelMouseDown,
     dragRef,
@@ -95,7 +100,8 @@ export const ShortcutItem = React.memo(function ShortcutItem({
     dragAttributes,
     dragListeners,
     dragStyle,
-    isSorting
+    isSorting,
+    nativeDragData
 }: ShortcutItemProps) {
     const settings = useSettingsState();
     const uxPreferences = useUXPreferences();
@@ -122,8 +128,11 @@ export const ShortcutItem = React.memo(function ShortcutItem({
         if (hasRemove) {
             classes.push('nn-shortcut-item--removable');
         }
+        if (adjacentFilledClassName) {
+            classes.push(adjacentFilledClassName);
+        }
         return classes.join(' ');
-    }, [hasRemove, isMissing]);
+    }, [adjacentFilledClassName, hasRemove, isMissing]);
 
     // Conditionally enables label click handler based on row state
     const labelClickHandler = useMemo(() => {
@@ -132,6 +141,13 @@ export const ShortcutItem = React.memo(function ShortcutItem({
         }
         return onLabelClick;
     }, [isMissing, onLabelClick, shouldDisableRow]);
+
+    const labelMouseDownHandler = useMemo(() => {
+        if (shouldDisableRow || isMissing) {
+            return undefined;
+        }
+        return onLabelMouseDown;
+    }, [isMissing, onLabelMouseDown, shouldDisableRow]);
 
     const rowBackgroundColor = useMemo(() => {
         if (isMissing) {
@@ -153,6 +169,7 @@ export const ShortcutItem = React.memo(function ShortcutItem({
         return (
             <NavItemHoverActionSlot
                 label={shouldShowCount ? countLabel : undefined}
+                reserveSpaceWhenHidden={shouldShowCount}
                 actionLabel={strings.shortcuts.remove}
                 icon="lucide-x"
                 onClick={onRemove}
@@ -190,6 +207,7 @@ export const ShortcutItem = React.memo(function ShortcutItem({
             dragHandlers={dragHandlers}
             isDragSource={isDragSource}
             showCount={shouldShowCount || hasRemove}
+            showCountLeader={hasBadge}
             count={countLabel}
             countSlot={countSlot}
             className={classNames}
@@ -197,7 +215,9 @@ export const ShortcutItem = React.memo(function ShortcutItem({
             ariaDisabled={shouldDisableRow || isMissing}
             dragHandleConfig={dragHandleConfig}
             labelClassName={hasFolderNote ? 'nn-has-folder-note' : undefined}
+            tooltip={tooltip}
             onLabelClick={labelClickHandler}
+            onLabelMouseDown={labelMouseDownHandler}
             showIcon={shouldShowIcon}
             dragRef={dragRef}
             dragHandleRef={dragHandleRef}
@@ -205,6 +225,7 @@ export const ShortcutItem = React.memo(function ShortcutItem({
             dragListeners={dragListeners}
             dragStyle={dragStyle}
             isSorting={isSorting}
+            nativeDragData={nativeDragData}
         />
     );
 });

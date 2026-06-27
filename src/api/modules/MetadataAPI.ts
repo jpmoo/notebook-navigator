@@ -17,19 +17,60 @@
  */
 
 import { TFile, TFolder } from 'obsidian';
-import type { NotebookNavigatorAPI } from '../NotebookNavigatorAPI';
-import type { FolderMetadata, TagMetadata, PropertyMetadata, IconString, PinContext, Pinned } from '../types';
-import type { NotebookNavigatorSettings } from '../../settings';
+import type NotebookNavigatorPlugin from '../../main';
+import type {
+    FolderMetadata,
+    FolderMetadataUpdate,
+    TagMetadata,
+    TagMetadataUpdate,
+    PropertyMetadata,
+    PropertyMetadataUpdate,
+    IconInput,
+    IconValue,
+    NotebookNavigatorEventType,
+    NotebookNavigatorEvents,
+    PinContext,
+    Pinned
+} from '../types';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import { PinnedNotes } from '../../types';
-import { normalizeCanonicalIconId } from '../../utils/iconizeFormat';
+import { deserializeIconFromFrontmatterStrict, serializeIconForFrontmatter } from '../../utils/iconizeFormat';
 import { normalizePropertyNodeId } from '../../utils/propertyTree';
 import { clonePinnedNotesRecord, normalizePinnedNoteContext } from '../../utils/recordUtils';
+import { normalizeTagPathValue } from '../../utils/tagPrefixMatcher';
 
 type MetadataUpdate = {
     color?: string | null;
     backgroundColor?: string | null;
-    icon?: IconString | null;
+    icon?: IconInput | null;
 };
+
+type MetadataAPIHost = {
+    getApp: () => { vault: { getFolderByPath: (path: string) => TFolder | null; getRoot: () => TFolder } };
+    getPlugin: () => NotebookNavigatorPlugin;
+    trigger: <T extends NotebookNavigatorEventType>(
+        event: T,
+        ...args: NotebookNavigatorEvents[T] extends void ? [] : [data: NotebookNavigatorEvents[T]]
+    ) => void;
+};
+
+type PinnedContextSnapshot = Pinned extends Map<string, infer TValue> ? TValue : never;
+
+function freezePinnedContext(context: PinnedNotes[string]): PinnedContextSnapshot {
+    return Object.freeze({ ...normalizePinnedNoteContext(context) });
+}
+
+function normalizeIconInput(icon: string): string | null {
+    return deserializeIconFromFrontmatterStrict(icon);
+}
+
+function serializeIconOutput(icon: string | undefined): IconValue | undefined {
+    if (!icon) {
+        return undefined;
+    }
+
+    return serializeIconForFrontmatter(icon) ?? icon;
+}
 
 /**
  * Metadata API - Manage folder, tag, and property appearance, icons, colors, and pinned files
@@ -57,6 +98,7 @@ export class MetadataAPI {
         // File metadata
         fileIcons: {} as Record<string, string>,
         fileColors: {} as Record<string, string>,
+        fileBackgroundColors: {} as Record<string, string>,
 
         // Pinned files
         pinnedNotes: {} as PinnedNotes
@@ -77,6 +119,7 @@ export class MetadataAPI {
         propertyIcons: Record<string, string>;
         fileIcons: Record<string, string>;
         fileColors: Record<string, string>;
+        fileBackgroundColors: Record<string, string>;
         pinnedNotes: PinnedNotes;
         initialized: boolean;
     } = {
@@ -91,23 +134,54 @@ export class MetadataAPI {
         propertyIcons: {},
         fileIcons: {},
         fileColors: {},
+        fileBackgroundColors: {},
         pinnedNotes: {},
         initialized: false
     };
 
-    constructor(private api: NotebookNavigatorAPI) {
+    constructor(private api: MetadataAPIHost) {
         this.initializeFromSettings();
     }
 
     /**
-     * Normalizes a tag key by removing leading "#" and converting to lowercase
+     * Normalizes a tag key into canonical tag-path form.
      * @param tag - Tag string that may or may not have "#" prefix
      * @returns Normalized tag key for internal storage
      */
     private normalizeTagKey(tag: string): string {
-        // Strip single leading "#" if present and lowercase
-        const normalized = tag.startsWith('#') ? tag.slice(1) : tag;
-        return normalized.toLowerCase();
+        return normalizeTagPathValue(tag);
+    }
+
+    private normalizeTagMetadataRecord(record: Record<string, string> | undefined): Record<string, string> {
+        if (!record) {
+            return {};
+        }
+
+        const normalized: Record<string, string> = {};
+        Object.entries(record).forEach(([key, value]) => {
+            const normalizedKey = this.normalizeTagKey(key);
+            if (!normalizedKey) {
+                return;
+            }
+            normalized[normalizedKey] = value;
+        });
+        return normalized;
+    }
+
+    private normalizePropertyMetadataRecord(record: Record<string, string> | undefined): Record<string, string> {
+        if (!record) {
+            return {};
+        }
+
+        const normalized: Record<string, string> = {};
+        Object.entries(record).forEach(([key, value]) => {
+            const normalizedKey = normalizePropertyNodeId(key) ?? key;
+            if (!normalizedKey) {
+                return;
+            }
+            normalized[normalizedKey] = value;
+        });
+        return normalized;
     }
 
     /**
@@ -172,6 +246,19 @@ export class MetadataAPI {
         return false;
     }
 
+    private getPinnedSnapshot(): Readonly<Pinned> {
+        const entries = Object.entries(this.metadataState.pinnedNotes).map(([path, context]) => {
+            return [path, freezePinnedContext(context)] as const;
+        });
+
+        return new Map(entries);
+    }
+
+    private getFolderByPath(folderPath: string): TFolder | null {
+        const vault = this.api.getApp().vault;
+        return folderPath === '/' ? vault.getRoot() : vault.getFolderByPath(folderPath);
+    }
+
     /**
      * Update internal cache when settings change and trigger events
      * Called by the plugin when settings are modified
@@ -182,14 +269,15 @@ export class MetadataAPI {
             folderColors: settings.folderColors || {},
             folderBackgroundColors: settings.folderBackgroundColors || {},
             folderIcons: settings.folderIcons || {},
-            tagColors: settings.tagColors || {},
-            tagBackgroundColors: settings.tagBackgroundColors || {},
-            tagIcons: settings.tagIcons || {},
-            propertyColors: settings.propertyColors || {},
-            propertyBackgroundColors: settings.propertyBackgroundColors || {},
-            propertyIcons: settings.propertyIcons || {},
+            tagColors: this.normalizeTagMetadataRecord(settings.tagColors),
+            tagBackgroundColors: this.normalizeTagMetadataRecord(settings.tagBackgroundColors),
+            tagIcons: this.normalizeTagMetadataRecord(settings.tagIcons),
+            propertyColors: this.normalizePropertyMetadataRecord(settings.propertyColors),
+            propertyBackgroundColors: this.normalizePropertyMetadataRecord(settings.propertyBackgroundColors),
+            propertyIcons: this.normalizePropertyMetadataRecord(settings.propertyIcons),
             fileIcons: settings.fileIcons || {},
             fileColors: settings.fileColors || {},
+            fileBackgroundColors: settings.fileBackgroundColors || {},
             pinnedNotes: clonePinnedNotesRecord(settings.pinnedNotes)
         };
 
@@ -206,6 +294,7 @@ export class MetadataAPI {
             propertyIcons: { ...current.propertyIcons },
             fileIcons: { ...current.fileIcons },
             fileColors: { ...current.fileColors },
+            fileBackgroundColors: { ...current.fileBackgroundColors },
             pinnedNotes: clonePinnedNotesRecord(current.pinnedNotes)
         };
 
@@ -223,6 +312,7 @@ export class MetadataAPI {
                 propertyIcons: { ...current.propertyIcons },
                 fileIcons: { ...current.fileIcons },
                 fileColors: { ...current.fileColors },
+                fileBackgroundColors: { ...current.fileBackgroundColors },
                 pinnedNotes: clonePinnedNotesRecord(current.pinnedNotes),
                 initialized: true
             };
@@ -237,12 +327,12 @@ export class MetadataAPI {
 
         // Fire events for changed folders
         for (const folderPath of changedFolders) {
-            const folder = this.api.getApp().vault.getFolderByPath(folderPath);
+            const folder = this.getFolderByPath(folderPath);
             if (folder) {
                 const metadata = this.getFolderMeta(folder);
                 this.api.trigger('folder-changed', {
                     folder,
-                    metadata: metadata || { color: undefined, backgroundColor: undefined, icon: undefined }
+                    metadata
                 });
             }
         }
@@ -258,7 +348,7 @@ export class MetadataAPI {
             const metadata = this.getTagMeta(tag);
             this.api.trigger('tag-changed', {
                 tag,
-                metadata: metadata || { color: undefined, backgroundColor: undefined, icon: undefined }
+                metadata
             });
         }
 
@@ -276,13 +366,13 @@ export class MetadataAPI {
             const metadata = this.getPropertyMeta(nodeId);
             this.api.trigger('property-changed', {
                 nodeId,
-                metadata: metadata || { color: undefined, backgroundColor: undefined, icon: undefined }
+                metadata
             });
         }
 
         // Check pinned notes
         if (this.pinnedNotesChanged(this.previousState.pinnedNotes, current.pinnedNotes)) {
-            const pinnedMap = this.getPinned();
+            const pinnedMap = this.getPinnedSnapshot();
             this.api.trigger('pinned-files-changed', { files: pinnedMap });
         }
 
@@ -299,6 +389,7 @@ export class MetadataAPI {
             propertyIcons: { ...current.propertyIcons },
             fileIcons: { ...current.fileIcons },
             fileColors: { ...current.fileColors },
+            fileBackgroundColors: { ...current.fileBackgroundColors },
             pinnedNotes: clonePinnedNotesRecord(current.pinnedNotes),
             initialized: true
         };
@@ -352,7 +443,7 @@ export class MetadataAPI {
                 delete iconStore[key];
                 changed = true;
             } else if (typeof meta.icon === 'string') {
-                const normalizedIcon = normalizeCanonicalIconId(meta.icon);
+                const normalizedIcon = normalizeIconInput(meta.icon);
                 if (normalizedIcon) {
                     iconStore[key] = normalizedIcon;
                     changed = true;
@@ -390,7 +481,7 @@ export class MetadataAPI {
         return {
             color: folderDisplayData.color,
             backgroundColor: folderDisplayData.backgroundColor,
-            icon: folderDisplayData.icon as IconString | undefined
+            icon: serializeIconOutput(folderDisplayData.icon)
         };
     }
 
@@ -413,11 +504,7 @@ export class MetadataAPI {
             const metadata = this.getFolderMetadataFromService(folder);
             this.api.trigger('folder-changed', {
                 folder,
-                metadata: {
-                    color: metadata?.color,
-                    backgroundColor: metadata?.backgroundColor,
-                    icon: metadata?.icon
-                }
+                metadata
             });
             return;
         }
@@ -425,13 +512,13 @@ export class MetadataAPI {
         const metadata = this.getFolderMeta(folder);
         this.api.trigger('folder-changed', {
             folder,
-            metadata: metadata || { color: undefined, backgroundColor: undefined, icon: undefined }
+            metadata
         });
     }
 
     /** @internal */
     emitFolderChangedForPath(folderPath: string): void {
-        const folder = this.api.getApp().vault.getFolderByPath(folderPath);
+        const folder = this.getFolderByPath(folderPath);
         if (!folder) {
             return;
         }
@@ -461,7 +548,7 @@ export class MetadataAPI {
         return {
             color,
             backgroundColor,
-            icon: icon as IconString | undefined
+            icon: serializeIconOutput(icon)
         };
     }
 
@@ -470,7 +557,7 @@ export class MetadataAPI {
      * @param folder - Folder to set metadata for
      * @param meta - Partial metadata object with properties to update
      */
-    async setFolderMeta(folder: TFolder, meta: Partial<FolderMetadata>): Promise<void> {
+    async setFolderMeta(folder: TFolder, meta: FolderMetadataUpdate): Promise<void> {
         const plugin = this.api.getPlugin();
         if (!plugin) return;
 
@@ -485,7 +572,7 @@ export class MetadataAPI {
                 if (meta.icon === null) {
                     folderStyleUpdate.icon = null;
                 } else if (typeof meta.icon === 'string') {
-                    const normalizedIcon = normalizeCanonicalIconId(meta.icon);
+                    const normalizedIcon = normalizeIconInput(meta.icon);
                     if (normalizedIcon) {
                         folderStyleUpdate.icon = normalizedIcon;
                     }
@@ -552,7 +639,7 @@ export class MetadataAPI {
         return {
             color,
             backgroundColor,
-            icon: icon as IconString | undefined
+            icon: serializeIconOutput(icon)
         };
     }
 
@@ -561,7 +648,7 @@ export class MetadataAPI {
      * @param tag - Tag string (with or without '#' prefix)
      * @param meta - Partial metadata object with properties to update
      */
-    async setTagMeta(tag: string, meta: Partial<TagMetadata>): Promise<void> {
+    async setTagMeta(tag: string, meta: TagMetadataUpdate): Promise<void> {
         const plugin = this.api.getPlugin();
         if (!plugin) return;
 
@@ -600,7 +687,7 @@ export class MetadataAPI {
         return {
             color,
             backgroundColor,
-            icon: icon as IconString | undefined
+            icon: serializeIconOutput(icon)
         };
     }
 
@@ -609,7 +696,7 @@ export class MetadataAPI {
      * @param nodeId - Property node id (key or key=value)
      * @param meta - Partial metadata object with properties to update
      */
-    async setPropertyMeta(nodeId: string, meta: Partial<PropertyMetadata>): Promise<void> {
+    async setPropertyMeta(nodeId: string, meta: PropertyMetadataUpdate): Promise<void> {
         const plugin = this.api.getPlugin();
         if (!plugin) return;
 
@@ -760,6 +847,6 @@ export class MetadataAPI {
      * @returns Map of file paths to PinnedContext objects
      */
     getPinned(): Readonly<Pinned> {
-        return new Map(Object.entries(this.metadataState.pinnedNotes));
+        return this.getPinnedSnapshot();
     }
 }

@@ -18,21 +18,29 @@
 
 import { useMemo } from 'react';
 import { useSettingsState } from '../context/SettingsContext';
-import { useSelectionState } from '../context/SelectionContext';
-import type { NotePropertyType, ListDisplayMode, ListNoteGroupingOption } from '../settings/types';
-import type { NotebookNavigatorSettings } from '../settings';
+import { useNavigationSelection } from '../context/SelectionContext';
+import type { ListDisplayMode, ListNoteGroupingOption, NotebookNavigatorSettings } from '../settings/types';
 import { ItemType } from '../types';
-import { resolveListGrouping } from '../utils/listGrouping';
+import { resolveListGroupingOverride } from '../utils/listGrouping';
 
 export interface FolderAppearance {
     mode?: ListDisplayMode;
     titleRows?: number;
     previewRows?: number;
-    notePropertyType?: NotePropertyType;
     groupBy?: ListNoteGroupingOption;
 }
 
 export type TagAppearance = FolderAppearance;
+
+export interface ListPaneAppearanceSettings {
+    mode: ListDisplayMode;
+    titleRows: number;
+    previewRows: number;
+    showDate: boolean;
+    showPreview: boolean;
+    showImage: boolean;
+    groupBy: ListNoteGroupingOption;
+}
 
 export function getDefaultListMode(settings: NotebookNavigatorSettings): ListDisplayMode {
     return settings.defaultListMode === 'compact' ? 'compact' : 'standard';
@@ -55,8 +63,14 @@ export function resolveListMode({
     return defaultMode;
 }
 
+interface VisibilityDefaults {
+    showFileDate: boolean;
+    showFilePreview: boolean;
+    showFeatureImage: boolean;
+}
+
 /** Return visibility flags for a given list mode */
-function getVisibilityForMode(mode: ListDisplayMode, settings: NotebookNavigatorSettings) {
+function getVisibilityForMode(mode: ListDisplayMode, defaults: VisibilityDefaults) {
     if (mode === 'compact') {
         return {
             showDate: false,
@@ -66,9 +80,9 @@ function getVisibilityForMode(mode: ListDisplayMode, settings: NotebookNavigator
     }
 
     return {
-        showDate: settings.showFileDate,
-        showPreview: settings.showFilePreview,
-        showImage: settings.showFeatureImage
+        showDate: defaults.showFileDate,
+        showPreview: defaults.showFilePreview,
+        showImage: defaults.showFeatureImage
     };
 }
 
@@ -78,70 +92,59 @@ function getVisibilityForMode(mode: ListDisplayMode, settings: NotebookNavigator
  */
 export function useListPaneAppearance() {
     const settings = useSettingsState();
-    const { selectedFolder, selectedTag, selectionType } = useSelectionState();
+    const { selectedFolder, selectedTag, selectedProperty, selectionType } = useNavigationSelection();
+    const selectedFolderPath = selectionType === ItemType.FOLDER ? (selectedFolder?.path ?? null) : null;
+    const selectedTagPath = selectionType === ItemType.TAG ? selectedTag : null;
+    const selectedPropertyNodeId = selectionType === ItemType.PROPERTY ? selectedProperty : null;
+    const selectedAppearance =
+        selectedFolderPath !== null
+            ? settings.folderAppearances?.[selectedFolderPath]
+            : selectedTagPath !== null
+              ? settings.tagAppearances?.[selectedTagPath]
+              : selectedPropertyNodeId !== null
+                ? settings.propertyAppearances?.[selectedPropertyNodeId]
+                : undefined;
+    const selectedMode = selectedAppearance?.mode;
+    const selectedTitleRows = selectedAppearance?.titleRows;
+    const selectedPreviewRows = selectedAppearance?.previewRows;
+    const selectedGroupBy = selectedAppearance?.groupBy;
+    const { defaultListMode, fileNameRows, noteGrouping, previewRows, showFeatureImage, showFileDate, showFilePreview } = settings;
 
-    return useMemo(() => {
-        const defaultMode = getDefaultListMode(settings);
-
-        const buildAppearance = (appearance: FolderAppearance | undefined) => {
-            const mode = resolveListMode({ appearance, defaultMode });
-            const visibility = getVisibilityForMode(mode, settings);
-
-            return {
-                mode,
-                titleRows: appearance?.titleRows ?? settings.fileNameRows,
-                previewRows: appearance?.previewRows ?? settings.previewRows,
-                notePropertyType: appearance?.notePropertyType ?? settings.notePropertyType,
-                showDate: visibility.showDate,
-                showPreview: visibility.showPreview,
-                showImage: visibility.showImage
-            };
+    return useMemo<ListPaneAppearanceSettings>(() => {
+        const defaultMode = defaultListMode === 'compact' ? 'compact' : 'standard';
+        const appearance = {
+            mode: selectedMode,
+            titleRows: selectedTitleRows,
+            previewRows: selectedPreviewRows
         };
-
-        // For folders
-        if (selectionType === ItemType.FOLDER && selectedFolder) {
-            const folderPath = selectedFolder.path;
-            const folderAppearance = settings.folderAppearances?.[folderPath];
-            // Resolve effective grouping mode for this folder
-            const grouping = resolveListGrouping({
-                settings,
-                selectionType,
-                folderPath
-            });
-
-            const appearance = buildAppearance(folderAppearance);
-
-            return {
-                ...appearance,
-                groupBy: grouping.effectiveGrouping
-            };
-        }
-
-        // For tags
-        if (selectionType === ItemType.TAG && selectedTag) {
-            const tagAppearance = settings.tagAppearances?.[selectedTag];
-            // Resolve effective grouping mode for this tag
-            const grouping = resolveListGrouping({
-                settings,
-                selectionType,
-                tag: selectedTag
-            });
-
-            const appearance = buildAppearance(tagAppearance);
-
-            return {
-                ...appearance,
-                groupBy: grouping.effectiveGrouping
-            };
-        }
-
-        // Default (no selection or other selection types)
-        // Resolve default grouping mode when no folder or tag is selected
-        const grouping = resolveListGrouping({ settings });
-        const appearance = buildAppearance(undefined);
+        const mode = resolveListMode({ appearance, defaultMode });
+        const visibility = getVisibilityForMode(mode, { showFileDate, showFilePreview, showFeatureImage });
+        const grouping = resolveListGroupingOverride({
+            noteGrouping,
+            selectionType,
+            groupBy: selectedGroupBy
+        });
         return {
-            ...appearance,
+            mode,
+            titleRows: selectedTitleRows ?? fileNameRows,
+            previewRows: selectedPreviewRows ?? previewRows,
+            showDate: visibility.showDate,
+            showPreview: visibility.showPreview,
+            showImage: visibility.showImage,
             groupBy: grouping.effectiveGrouping
         };
-    }, [settings, selectedFolder, selectedTag, selectionType]);
+    }, [
+        defaultListMode,
+        fileNameRows,
+        noteGrouping,
+        previewRows,
+        selectedMode,
+        selectedTitleRows,
+        selectedPreviewRows,
+        selectedGroupBy,
+        showFeatureImage,
+        showFileDate,
+        showFilePreview,
+        selectionType
+    ]);
 }

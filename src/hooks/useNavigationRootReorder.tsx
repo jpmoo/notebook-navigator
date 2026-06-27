@@ -18,11 +18,10 @@
 
 import React, { useCallback, useMemo } from 'react';
 import { type App, type TFolder } from 'obsidian';
-import type { NotebookNavigatorSettings } from '../settings';
+import type { NotebookNavigatorSettings } from '../settings/types';
 import type { PropertyTreeNode, TagTreeNode } from '../types/storage';
 import type { CombinedNavigationItem } from '../types/virtualization';
 import { NavigationPaneItemType, UNTAGGED_TAG_ID, STORAGE_KEYS, NavigationSectionId } from '../types';
-import { FILE_VISIBILITY } from '../utils/fileTypeUtils';
 import { strings } from '../i18n';
 import type { MetadataService } from '../services/MetadataService';
 import { localStorage } from '../utils/localStorage';
@@ -31,7 +30,6 @@ import { RootFolderReorderItem } from '../components/RootFolderReorderItem';
 import { runAsyncAction } from '../utils/async';
 import { mergeNavigationSectionOrder, sanitizeNavigationSectionOrder } from '../utils/navigationSections';
 import { getPathBaseName } from '../utils/pathUtils';
-import { useShortcuts } from '../context/ShortcutsContext';
 import type { ActiveProfileState } from '../context/SettingsContext';
 import { shouldExcludeFolder } from '../utils/fileFilters';
 import { createHiddenTagMatcher, matchesHiddenTagPattern } from '../utils/tagPrefixMatcher';
@@ -155,7 +153,6 @@ export function useNavigationRootReorder(options: UseNavigationRootReorderOption
         handleTogglePropertiesSection,
         activeProfile
     } = options;
-    useShortcuts();
 
     const {
         showRootFolder,
@@ -171,7 +168,7 @@ export function useNavigationRootReorder(options: UseNavigationRootReorderOption
         customVaultName
     } = settings;
 
-    const { fileVisibility, hiddenFolders, hiddenTags } = activeProfile;
+    const { hiddenFolders, hiddenTags } = activeProfile;
     const hiddenTagMatcher = useMemo(() => createHiddenTagMatcher(hiddenTags), [hiddenTags]);
     const hasHiddenTagRules = useMemo(() => {
         return (
@@ -790,10 +787,7 @@ export function useNavigationRootReorder(options: UseNavigationRootReorderOption
                 label = strings.navigationPane.shortcutsHeader;
             } else if (identifier === NavigationSectionId.RECENT) {
                 icon = resolveUXIcon(settings.interfaceIcons, 'nav-recent-files');
-                label =
-                    fileVisibility === FILE_VISIBILITY.DOCUMENTS
-                        ? strings.navigationPane.recentNotesHeader
-                        : strings.navigationPane.recentFilesHeader;
+                label = strings.navigationPane.recentFilesHeader;
             } else if (identifier === NavigationSectionId.FOLDERS) {
                 if (vaultRootDescriptor) {
                     const vaultIcon = rootFolderIconMap.get(vaultRootDescriptor.key);
@@ -803,7 +797,13 @@ export function useNavigationRootReorder(options: UseNavigationRootReorderOption
                     } else {
                         icon = foldersSectionExpanded ? 'open-vault' : 'vault';
                     }
-                    label = customVaultName || app.vault.getName();
+                    label = resolveFolderDisplayName({
+                        app,
+                        metadataService,
+                        settings: { customVaultName },
+                        folderPath: vaultRootDescriptor.key,
+                        fallbackName: vaultRootDescriptor.folder?.name ?? app.vault.getRoot().name
+                    });
                 } else {
                     icon = NOTEBOOK_NAVIGATOR_ICON_ID;
                     label = strings.settings.sections.folders;
@@ -846,12 +846,12 @@ export function useNavigationRootReorder(options: UseNavigationRootReorderOption
         showTags,
         propertiesSectionActive,
         rootFolderDescriptors.length,
-        fileVisibility,
         vaultRootDescriptor,
         rootFolderIconMap,
         rootFolderColorMap,
         customVaultName,
-        app.vault,
+        app,
+        metadataService,
         settings.interfaceIcons,
         foldersSectionExpanded,
         tagsSectionExpanded,

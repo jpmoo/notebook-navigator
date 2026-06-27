@@ -15,6 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { describe, it, expect } from 'vitest';
 import {
     convertIconizeToIconId,
@@ -30,6 +32,35 @@ import {
 } from '../../src/utils/iconizeFormat';
 
 const ENGLAND_FLAG_TAG_SEQUENCE = '\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}';
+const EXTERNAL_PROVIDER_METADATA: Array<{ providerId: string; relativePath: string }> = [
+    { providerId: 'bootstrap-icons', relativePath: 'icon-assets/bootstrap-icons/bootstrap-icons.json' },
+    { providerId: 'fontawesome-solid', relativePath: 'icon-assets/fontawesome/icons-solid.json' },
+    { providerId: 'material-icons', relativePath: 'icon-assets/material-icons/icons.json' },
+    { providerId: 'phosphor', relativePath: 'icon-assets/phosphor/icons.json' },
+    { providerId: 'rpg-awesome', relativePath: 'icon-assets/rpg-awesome/icons.json' },
+    { providerId: 'simple-icons', relativePath: 'icon-assets/simple-icons/simple-icons.json' }
+];
+
+function readProviderIconIds(relativePath: string): string[] {
+    const absolutePath = path.resolve(process.cwd(), relativePath);
+    const raw = JSON.parse(readFileSync(absolutePath, 'utf8')) as unknown;
+
+    if (Array.isArray(raw)) {
+        return raw.flatMap(entry => {
+            if (!entry || typeof entry !== 'object' || typeof (entry as { id?: unknown }).id !== 'string') {
+                return [];
+            }
+
+            return [(entry as { id: string }).id];
+        });
+    }
+
+    if (!raw || typeof raw !== 'object') {
+        return [];
+    }
+
+    return Object.keys(raw);
+}
 
 describe('convertIconizeToIconId', () => {
     it('converts lucide identifiers without provider prefix', () => {
@@ -44,13 +75,23 @@ describe('convertIconizeToIconId', () => {
         expect(convertIconizeToIconId('FasUser')).toBe('fontawesome-solid:user');
     });
 
-    it('converts Font Awesome regular identifiers to canonical provider', () => {
-        expect(convertIconizeToIconId('FarUser')).toBe('fontawesome-solid:user');
+    it('converts Simple Icons identifiers with numeric prefixes in Iconize casing', () => {
+        expect(convertIconizeToIconId('Si500px')).toBe('simple-icons:500px');
+        expect(convertIconizeToIconId('Si1password')).toBe('simple-icons:1password');
     });
 
-    it('converts Simple Icons identifiers with numeric prefixes', () => {
+    it('falls back to heuristic decoding for malformed external Iconize identifiers', () => {
         expect(convertIconizeToIconId('Si500Px')).toBe('simple-icons:500px');
         expect(convertIconizeToIconId('Si1Password')).toBe('simple-icons:1password');
+    });
+
+    it('converts numeric Lucide and Bootstrap identifiers using exception aliases', () => {
+        expect(convertIconizeToIconId('LiBuilding2')).toBe('building-2');
+        expect(convertIconizeToIconId('BiDiagram3Fill')).toBe('bootstrap-icons:diagram-3-fill');
+    });
+
+    it('converts numeric Material Icons identifiers using exception aliases', () => {
+        expect(convertIconizeToIconId('MiCrop169')).toBe('material-icons:crop_16_9');
     });
 
     it('converts phosphor identifiers and collapses duplicate prefixes', () => {
@@ -63,9 +104,23 @@ describe('convertIconizeToIconId', () => {
         expect(convertIconizeToIconId('RaRaHarpoonTrident')).toBe('rpg-awesome:harpoon-trident');
     });
 
-    it('returns null when no valid prefix is present', () => {
+    it('returns null for unsupported or invalid Iconize prefixes', () => {
+        expect(convertIconizeToIconId('FarUser')).toBeNull();
+        expect(convertIconizeToIconId('IbCustomIcon')).toBeNull();
         expect(convertIconizeToIconId('Li')).toBeNull();
         expect(convertIconizeToIconId('📝')).toBeNull();
+    });
+
+    it('round-trips bundled external provider identifiers through Iconize format', () => {
+        EXTERNAL_PROVIDER_METADATA.forEach(({ providerId, relativePath }) => {
+            readProviderIconIds(relativePath).forEach(identifier => {
+                const canonical = `${providerId}:${identifier}`;
+                const iconize = convertIconIdToIconize(canonical);
+
+                expect(iconize, canonical).not.toBeNull();
+                expect(convertIconizeToIconId(iconize as string), canonical).toBe(canonical);
+            });
+        });
     });
 });
 
@@ -82,13 +137,9 @@ describe('convertIconIdToIconize', () => {
         expect(convertIconIdToIconize('fontawesome-solid:user')).toBe('FasUser');
     });
 
-    it('converts Simple Icons identifiers that start with numbers', () => {
-        expect(convertIconIdToIconize('simple-icons:500px')).toBe('Si500Px');
-        expect(convertIconIdToIconize('simple-icons:1password')).toBe('Si1Password');
-    });
-
-    it('converts icon brew identifiers with hyphenated names', () => {
-        expect(convertIconIdToIconize('icon-brew:custom-icon')).toBe('IbCustomIcon');
+    it('converts Simple Icons identifiers that start with numbers using Iconize casing', () => {
+        expect(convertIconIdToIconize('simple-icons:500px')).toBe('Si500px');
+        expect(convertIconIdToIconize('simple-icons:1password')).toBe('Si1password');
     });
 
     it('converts phosphor identifiers without repeating provider name', () => {
@@ -101,6 +152,7 @@ describe('convertIconIdToIconize', () => {
 
     it('returns null for providers without Iconize mappings', () => {
         expect(convertIconIdToIconize('emoji:📁')).toBeNull();
+        expect(convertIconIdToIconize('icon-brew:custom-icon')).toBeNull();
         expect(convertIconIdToIconize('unknown-provider:icon')).toBeNull();
     });
 });
@@ -124,8 +176,12 @@ describe('normalizeCanonicalIconId', () => {
 });
 
 describe('frontmatter icon helpers', () => {
-    it('serializes canonical identifiers to Iconize format', () => {
-        expect(serializeIconForFrontmatter('phosphor:ph-apple-logo')).toBe('PhAppleLogo');
+    it('serializes canonical identifiers to the short slug format', () => {
+        expect(serializeIconForFrontmatter('phosphor:ph-apple-logo')).toBe('ph-apple-logo');
+        expect(serializeIconForFrontmatter('phosphor:file-pdf')).toBe('ph-file-pdf');
+        expect(serializeIconForFrontmatter('phosphor:receipt')).toBe('ph-receipt');
+        expect(serializeIconForFrontmatter('material-icons:crop_16_9')).toBe('mi-crop_16_9');
+        expect(serializeIconForFrontmatter('home')).toBe('home');
     });
 
     it('returns bare emoji characters when serializing emoji icons', () => {
@@ -136,17 +192,43 @@ describe('frontmatter icon helpers', () => {
         expect(serializeIconForFrontmatter('emoji:6️⃣')).toBe('6️⃣');
     });
 
-    it('returns null when provider has no Iconize mapping', () => {
+    it('returns null when provider has no supported short frontmatter mapping', () => {
+        expect(serializeIconForFrontmatter('icon-brew:custom-icon')).toBeNull();
         expect(serializeIconForFrontmatter('custom-pack:icon-name')).toBeNull();
+        expect(serializeIconForFrontmatter('notebook-navigator-not-real-icon')).toBeNull();
     });
 
-    it('deserializes Iconize identifiers with redundant prefixes', () => {
+    it('deserializes values stored in the new frontmatter format', () => {
+        expect(deserializeIconFromFrontmatter('home')).toBe('home');
+        expect(deserializeIconFromFrontmatter('ph-apple-logo')).toBe('phosphor:apple-logo');
+        expect(deserializeIconFromFrontmatter('ph-file-pdf')).toBe('phosphor:file-pdf');
+        expect(deserializeIconFromFrontmatter('ph-receipt')).toBe('phosphor:receipt');
+        expect(deserializeIconFromFrontmatter('mi-crop_16_9')).toBe('material-icons:crop_16_9');
+        expect(deserializeIconFromFrontmatter('li-star')).toBe('star');
+    });
+
+    it('prefers supported Lucide slugs before short provider values', () => {
+        expect(deserializeIconFromFrontmatter('ph-test')).toBe('ph-test');
+    });
+
+    it('deserializes legacy short provider values', () => {
+        expect(deserializeIconFromFrontmatter('ph:apple-logo')).toBe('phosphor:apple-logo');
+        expect(deserializeIconFromFrontmatter('mi:crop_16_9')).toBe('material-icons:crop_16_9');
+        expect(deserializeIconFromFrontmatter('li:star')).toBe('star');
+    });
+
+    it('falls back to supported Iconize identifiers', () => {
         expect(deserializeIconFromFrontmatter('PhPhAppleLogo')).toBe('phosphor:apple-logo');
+        expect(deserializeIconFromFrontmatter('LiHome')).toBe('home');
     });
 
-    it('deserializes canonical identifiers that still contain redundant provider prefixes', () => {
-        expect(deserializeIconFromFrontmatter('phosphor:ph-apple-logo')).toBe('phosphor:apple-logo');
-        expect(deserializeIconFromFrontmatter('rpg-awesome:ra-harpoon-trident')).toBe('rpg-awesome:harpoon-trident');
+    it('deserializes wikilinked vault svg paths', () => {
+        expect(deserializeIconFromFrontmatter('[[_resources/icons/TokenTek_Symbol_Black.svg]]')).toBe(
+            'vault:_resources/icons/TokenTek_Symbol_Black.svg'
+        );
+        expect(deserializeIconFromFrontmatter(' [[_resources/icons/TokenTek_Symbol_Black.svg|TokenTek]] ')).toBe(
+            'vault:_resources/icons/TokenTek_Symbol_Black.svg'
+        );
     });
 
     it('deserializes plain emoji strings into canonical emoji identifiers', () => {
@@ -163,8 +245,14 @@ describe('frontmatter icon helpers', () => {
         expect(deserializeIconFromFrontmatter(ENGLAND_FLAG_TAG_SEQUENCE)).toBe(`emoji:${ENGLAND_FLAG_TAG_SEQUENCE}`);
     });
 
-    it('deserializes legacy lucide identifiers', () => {
-        expect(deserializeIconFromFrontmatter('lucide-sun')).toBe('sun');
+    it('ignores unsupported or unrecognized stored values', () => {
+        expect(deserializeIconFromFrontmatter('phosphor:ph-apple-logo')).toBeNull();
+        expect(deserializeIconFromFrontmatter('rpg-awesome:ra-harpoon-trident')).toBeNull();
+        expect(deserializeIconFromFrontmatter('lucide-sun')).toBeNull();
+        expect(deserializeIconFromFrontmatter('FarUser')).toBeNull();
+        expect(deserializeIconFromFrontmatter('ri:alarm-warning-line')).toBeNull();
+        expect(deserializeIconFromFrontmatter('li:not-a-real-icon')).toBeNull();
+        expect(deserializeIconFromFrontmatter('notebook-navigator-not-real-icon')).toBeNull();
     });
 
     it('deserializes legacy provider-prefixed emoji values with compat helper', () => {
@@ -182,11 +270,38 @@ describe('frontmatter icon helpers', () => {
     });
 });
 
+describe('icon map examples', () => {
+    it('uses icons that exist in the bundled Phosphor metadata', () => {
+        const phosphorIconIds = new Set(readProviderIconIds('icon-assets/phosphor/icons.json'));
+
+        expect(phosphorIconIds.has('calendar')).toBe(true);
+        expect(phosphorIconIds.has('receipt')).toBe(true);
+        expect(phosphorIconIds.has('file-code')).toBe(true);
+        expect(phosphorIconIds.has('file-pdf')).toBe(true);
+    });
+});
+
 describe('parseIconMapText', () => {
     it('normalizes mapping values to frontmatter icon values', () => {
         const parsed = parseIconMapText('pdf=SiGithub', normalizeFileTypeIconMapKey);
         expect(parsed.invalidLines).toEqual([]);
-        expect(parsed.map.pdf).toBe('SiGithub');
+        expect(parsed.map.pdf).toBe('si-github');
+    });
+
+    it('accepts preferred short provider icon values for file type mappings', () => {
+        const parsed = parseIconMapText('cpp=ph-file-code\npdf=ph-file-pdf', normalizeFileTypeIconMapKey);
+
+        expect(parsed.invalidLines).toEqual([]);
+        expect(parsed.map.cpp).toBe('ph-file-code');
+        expect(parsed.map.pdf).toBe('ph-file-pdf');
+    });
+
+    it('accepts preferred short provider icon values for file name mappings', () => {
+        const parsed = parseIconMapText('meeting=ph-calendar\ninvoice=ph-receipt', normalizeFileNameIconMapKey);
+
+        expect(parsed.invalidLines).toEqual([]);
+        expect(parsed.map.meeting).toBe('ph-calendar');
+        expect(parsed.map.invoice).toBe('ph-receipt');
     });
 
     it('preserves plain emoji mapping values', () => {
@@ -204,20 +319,27 @@ describe('parseIconMapText', () => {
     it('supports single-quoted file name keys with spaces', () => {
         const parsed = parseIconMapText("'AI '=brain", normalizeFileNameIconMapKey);
         expect(parsed.invalidLines).toEqual([]);
-        expect(parsed.map['ai ']).toBe('LiBrain');
+        expect(parsed.map['ai ']).toBe('brain');
+    });
+
+    it('canonicalizes NFC and NFD-equivalent file name keys to the same identifier', () => {
+        const parsed = parseIconMapText("'Cafe\u0301'=brain\n'Café'=calendar", normalizeFileNameIconMapKey);
+        expect(parsed.invalidLines).toEqual([]);
+        expect(Object.keys(parsed.map)).toEqual(['café']);
+        expect(parsed.map.café).toBe('calendar');
     });
 });
 
 describe('serializeIconMapRecord', () => {
     it('wraps keys containing whitespace in single quotes', () => {
-        const text = serializeIconMapRecord({ 'ai ': 'LiBrain', meeting: 'LiCalendar' });
-        expect(text).toBe("'ai '=LiBrain\nmeeting=LiCalendar");
-        expect(parseIconMapText(text, normalizeFileNameIconMapKey).map['ai ']).toBe('LiBrain');
+        const text = serializeIconMapRecord({ 'ai ': 'brain', meeting: 'calendar' });
+        expect(text).toBe("'ai '=brain\nmeeting=calendar");
+        expect(parseIconMapText(text, normalizeFileNameIconMapKey).map['ai ']).toBe('brain');
     });
 
     it("wraps keys starting with '#'", () => {
-        const text = serializeIconMapRecord({ '#inbox': 'LiCalendar' });
-        expect(text).toBe("'#inbox'=LiCalendar");
-        expect(parseIconMapText(text, normalizeFileNameIconMapKey).map['#inbox']).toBe('LiCalendar');
+        const text = serializeIconMapRecord({ '#inbox': 'calendar' });
+        expect(text).toBe("'#inbox'=calendar");
+        expect(parseIconMapText(text, normalizeFileNameIconMapKey).map['#inbox']).toBe('calendar');
     });
 });

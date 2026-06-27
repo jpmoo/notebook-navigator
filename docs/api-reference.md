@@ -1,10 +1,10 @@
 # Notebook Navigator API Reference
 
-Updated: February 14, 2026
+Updated: April 30, 2026
 
 The Notebook Navigator plugin exposes a public API for other plugins and scripts to interact with navigator features.
 
-**Current API Version:** 1.3.0
+**Current API Version:** 2.0.0
 
 ## Table of Contents
 
@@ -14,6 +14,8 @@ The Notebook Navigator plugin exposes a public API for other plugins and scripts
   - [Folder, Tag, and Property Metadata](#folder-tag-and-property-metadata)
   - [Pinned Files](#pinned-files)
 - [Navigation API](#navigation-api)
+- [Tag Collections API](#tag-collections-api)
+- [Property Nodes API](#property-nodes-api)
 - [Selection API](#selection-api)
 - [Menus API](#menus-api)
 - [Events](#events)
@@ -58,10 +60,12 @@ if (nn) {
 
 ## API Overview
 
-The API provides four main namespaces:
+The API provides six main namespaces:
 
 - **`metadata`** - Folder, tag, and property node colors/icons, and pinned files
 - **`navigation`** - Navigate to files in the navigator
+- **`tagCollections`** - Work with aggregate tag rows such as "Tags" and "Untagged"
+- **`propertyNodes`** - Build and parse property node ids
 - **`selection`** - Query current selection state
 - **`menus`** - Add items to Notebook Navigator context menus
 
@@ -70,10 +74,18 @@ The API provides four main namespaces:
 The supported public surface is the API described in this document and in `src/api/public/notebook-navigator.d.ts`. The
 runtime `api` object may contain additional methods and properties; treat them as internal.
 
+### Stability policy
+
+- The documented API and `src/api/public/notebook-navigator.d.ts` are the compatibility contract.
+- API version `2.x` is additive-only. New methods, events, and type exports may be added without a major version bump.
+- Breaking changes to documented members require a major version bump.
+- Undocumented runtime properties may change without notice.
+
 Core methods:
 
 - **`getVersion()`** - Get the API version string
-- **`isStorageReady()`** - Check if the storage cache is ready
+- **`isStorageReady()`** - Check if the initial storage bootstrap is complete
+- **`whenReady()`** - Resolve when the initial storage bootstrap completes
 
 ## Metadata API
 
@@ -81,13 +93,22 @@ Customize folder, tag, and property node appearance, manage pinned files.
 
 ### Runtime Behavior
 
-- **Icon format**: `IconString` accepts emoji literals (`emoji:📁`) and provider-prefixed values for `lucide`,
-  `bootstrap-icons`, `fontawesome-solid`, `material-icons`, `phosphor`, `rpg-awesome`, and `simple-icons`.
-- **Icon normalization**: Icon values are normalized before saving (for example, redundant prefixes like `lucide-`,
-  `ph-`, and `ra-` are stripped, and `material-icons` identifiers are stored as snake case). Lucide is the default
-  provider and may be stored and returned without a `lucide:` prefix (for example, `'folder-open'`).
-- **Unsupported providers**: The runtime accepts and persists any string. Unsupported providers or malformed IDs do not
-  render and fall back to a default icon.
+- **Icon input format**: Setter methods parse the same icon value format Notebook Navigator writes to frontmatter.
+  Use `IconString` when you want compile-time validation for short provider-prefixed values such as `ph-folder`,
+  `bi-alarm`, `fas-user`, `mi-crop_16_9`, `ra-harpoon-trident`, and `si-github`. Lucide icons use bare slugs such as
+  `folder-open`. Emoji icons use bare emoji such as `📁`.
+- **Legacy Iconize input**: Setter methods also accept supported legacy Iconize compact IDs such as `LiHome`,
+  `PhAppleLogo`, `FasUser`, `MiCrop169`, and `SiGithub`. These values are normalized before saving and are returned in
+  frontmatter format, not Iconize format.
+- **Icon output format**: `FolderMetadata.icon`, `TagMetadata.icon`, and `PropertyMetadata.icon` use `IconValue`
+  because returned values are normalized strings. Supported icons are returned in the same format Notebook Navigator
+  writes to frontmatter: Lucide slug (`folder-open`), short provider-prefixed slug (`ph-folder`), or bare emoji (`📁`).
+  Supported providers are not returned with colon-separated IDs.
+- **Icon normalization**: Icon values are normalized before saving (for example, short provider values are converted to
+  the internal render ID, redundant external-provider prefixes like `ph-` and `ra-` are stripped, and `material-icons`
+  identifiers are stored as snake case internally).
+- **Unsupported providers**: Setter methods ignore values outside the frontmatter icon format and supported legacy
+  Iconize compact IDs. Existing unsupported or malformed settings values may be returned unchanged.
 - **Color values**: Any string is accepted and saved. Invalid CSS colors will not render correctly but won't throw
   errors.
 - **Tag normalization**: The `getTagMeta()` and `setTagMeta()` methods automatically normalize tags:
@@ -110,6 +131,13 @@ Customize folder, tag, and property node appearance, manage pinned files.
 | `getPropertyMeta(nodeId)`     | Get all property node metadata       | `PropertyMetadata \| null` |
 | `setPropertyMeta(nodeId, meta)` | Set property node metadata (partial update) | `Promise<void>`          |
 
+`setFolderMeta()`, `setTagMeta()`, and `setPropertyMeta()` use `FolderMetadataUpdate`,
+`TagMetadataUpdate`, and `PropertyMetadataUpdate`.
+
+When `useFrontmatterMetadata` is enabled, `getFolderMeta()` resolves current folder display data through
+`MetadataService`. `setFolderMeta()` writes through `metadataService.setFolderStyle(...)` whenever `MetadataService` is
+available. Folder metadata can therefore reflect folder-note frontmatter, not only the raw settings maps.
+
 #### Property Update Behavior
 
 When using `setFolderMeta`, `setTagMeta`, or `setPropertyMeta`, partial updates follow this pattern:
@@ -120,9 +148,6 @@ When using `setFolderMeta`, `setTagMeta`, or `setPropertyMeta`, partial updates 
 
 This applies to all metadata properties (color, backgroundColor, icon). Only properties explicitly included in the
 update object are modified.
-
-**TypeScript note**: The runtime uses `null` to clear a property, but the current type definitions use
-`Partial<FolderMetadata>` / `Partial<TagMetadata>` / `Partial<PropertyMetadata>` for the `meta` argument (which does not include `null`).
 
 ### Pinned Files
 
@@ -156,7 +181,7 @@ if (folder) {
   await nn.metadata.setFolderMeta(folder, {
     color: '#FF5733', // Hex, or 'red', 'rgb(255, 87, 51)', 'hsl(9, 100%, 60%)'
     backgroundColor: '#FFF3E0', // Light background color
-    icon: 'lucide:folder-open'
+    icon: 'folder-open'
   });
 
   // Update only specific properties (other properties unchanged)
@@ -194,10 +219,10 @@ for (const [path, context] of pinned) {
 
 | Method                     | Description                            | Returns         |
 | -------------------------- | -------------------------------------- | --------------- |
-| `reveal(file)`             | Reveal and select file in navigator    | `Promise<void>` |
-| `navigateToFolder(folder)` | Select a folder in the navigation pane | `Promise<void>` |
-| `navigateToTag(tag)`       | Select a tag in the navigation pane    | `Promise<void>` |
-| `navigateToProperty(nodeId)` | Select a property node in navigation | `Promise<void>` |
+| `reveal(file)`             | Reveal and select file in navigator    | `Promise<boolean>` |
+| `navigateToFolder(folder)` | Select a folder in the navigation pane | `Promise<boolean>` |
+| `navigateToTag(tag)`       | Select a tag in the navigation pane    | `Promise<boolean>` |
+| `navigateToProperty(nodeId)` | Select a property node in navigation | `Promise<boolean>` |
 
 ### Reveal Behavior
 
@@ -208,14 +233,18 @@ When calling `reveal(file)`:
 - **Expands parent folders** as needed to make the folder visible
 - **Selects and focuses the file** in the file list
 - **Switches to file list view** if in single-pane mode
-- **Rejects** if the navigator view cannot be opened
+- **Returns `false`** if the file path cannot be resolved
+- **Returns `false`** if the navigator view cannot be opened or does not become ready
+- **Returns `false`** if the file is hidden while Show hidden items is off
+- **Keeps the current folder, tag, or property context** when a hidden file cannot be revealed
+- **May still select the file as fallback** when a hidden file cannot be revealed
 
 ```typescript
 // Navigate to active file
 const activeFile = app.workspace.getActiveFile();
 if (activeFile) {
   await nn.navigation.reveal(activeFile);
-  // File is now selected in its parent folder
+  // File is selected in its parent folder when reveal succeeds
 }
 ```
 
@@ -227,40 +256,82 @@ When calling `navigateToFolder(folder)`:
 - Selects the folder in the navigation pane
 - Expands parent folders to make the folder visible
 - Preserves navigation focus in single-pane mode
-- Rejects if the navigator view cannot be opened
+- Accepts either a `TFolder` or a folder path string
+- Returns `false` if the folder path cannot be resolved
+- Returns `false` if the navigator view cannot be opened or does not become ready
 
 ### Tag Navigation Behavior
 
 When calling `navigateToTag(tag)`:
 
-- Accepts both `'work'` and `'#work'` formats
+- Accepts `'work'`, `'#work'`, and aggregate tag collection ids from `nn.tagCollections`
 - Requires tag data to be available (`storage-ready`)
 - Expands the tags root when "All tags" is enabled and collapsed
 - Expands parent tags for hierarchical tags (e.g. `'parent/child'`)
 - Preserves navigation focus in single-pane mode
-- Does nothing if the tag is not present in the current tag tree
-- Rejects if the navigator view cannot be opened
+- Returns `false` if a real tag is not present in the current tag tree
+- Returns `false` if the navigator view cannot be opened or does not become ready
 
 ### Property Navigation Behavior
 
 When calling `navigateToProperty(nodeId)`:
 
-- Accepts property key and key/value node ids (e.g. `'key:status'`, `'key:status=done'`)
+- Accepts `nn.propertyNodes.rootId`, property key ids, and key/value node ids (e.g. `'key:status'`, `'key:status=done'`)
 - Normalizes node ids to canonical lowercase form before selection
 - Expands the properties root when "All properties" is enabled and collapsed
 - Expands the parent key node for key/value selections when needed
 - Preserves navigation focus in single-pane mode
-- Does nothing if the target node is not present in the current property tree
-- Rejects if the navigator view cannot be opened
+- Returns `false` if a key or key/value target is not present in the current property tree
+- Returns `false` if the navigator view cannot be opened or does not become ready
 
 ```typescript
 // Wait for storage if needed, then navigate
-if (!nn.isStorageReady()) {
-  await new Promise<void>(resolve => nn.once('storage-ready', resolve));
-}
+await nn.whenReady();
 
 await nn.navigation.navigateToTag('#work');
 await nn.navigation.navigateToProperty('key:status=done');
+```
+
+## Tag Collections API
+
+Helpers for aggregate tag rows used by tag menus and navigation.
+
+| Method | Description | Returns |
+| ------ | ----------- | ------- |
+| `taggedId` | Aggregate row id for notes with at least one tag | `'__tagged__'` |
+| `untaggedId` | Aggregate row id for notes without tags | `'__untagged__'` |
+| `isCollection(tag)` | Check whether a tag target is an aggregate row id | `boolean` |
+| `getLabel(tag)` | Current localized label for an aggregate row id | `string` |
+
+```typescript
+nn.menus.registerTagMenu(({ tag, addItem }) => {
+  if (!nn.tagCollections.isCollection(tag)) {
+    return;
+  }
+
+  addItem(item => {
+    item.setTitle(`Handle ${nn.tagCollections.getLabel(tag)}`);
+  });
+});
+```
+
+## Property Nodes API
+
+Helpers for building and parsing canonical property node ids.
+
+| Method | Description | Returns |
+| ------ | ----------- | ------- |
+| `rootId` | Property root node id | `'properties-root'` |
+| `buildKey(key)` | Build a canonical key node id | `string \| null` |
+| `buildValue(key, valuePath)` | Build a canonical key/value node id | `string \| null` |
+| `parse(nodeId)` | Parse a property node id | `PropertyNodeParts \| null` |
+| `normalize(nodeId)` | Normalize a property node id | `string \| null` |
+
+```typescript
+const statusKey = nn.propertyNodes.buildKey('Status');
+const doneValue = nn.propertyNodes.buildValue('Status', 'Done');
+const parsed = nn.propertyNodes.parse('key:Status=Done');
+const root = nn.propertyNodes.parse(nn.propertyNodes.rootId);
 ```
 
 ## Selection API
@@ -270,19 +341,22 @@ Query the current selection state in the navigator.
 `getNavItem()` and `getCurrent()` return the navigator's most recently known state. Selection updates while the navigator
 view is active, and navigation selection is restored from localStorage on startup.
 
+When `navItem.type === 'tag'`, `navItem.tag` can be either a canonical tag path or an aggregate tag collection id
+(`'__tagged__'` or `'__untagged__'`).
+
 | Method         | Description                  | Returns          |
 | -------------- | ---------------------------- | ---------------- |
 | `getNavItem()` | Get selected folder, tag, or property | `NavItem`        |
-| `getCurrent()` | Get complete selection state | `SelectionState` |
+| `getCurrent()` | Get current file selection state | `SelectionState` |
 
 ```typescript
 // Check what's selected
 const navItem = nn.selection.getNavItem();
-if (navItem.folder) {
+if (navItem.type === 'folder') {
   console.log('Folder selected:', navItem.folder.path);
-} else if (navItem.tag) {
+} else if (navItem.type === 'tag') {
   console.log('Tag selected:', navItem.tag);
-} else if (navItem.property) {
+} else if (navItem.type === 'property') {
   console.log('Property selected:', navItem.property);
 } else {
   console.log('Nothing selected in navigation pane');
@@ -294,14 +368,16 @@ const { files, focused } = nn.selection.getCurrent();
 
 ## Menus API
 
-Register callbacks that add items to Notebook Navigator's folder and file context menus.
+Register callbacks that add items to Notebook Navigator's file, folder, tag, and property context menus.
 
-Available in API version 1.2.0.
+File and folder menu hooks are available in API version 1.2.0. Tag and property menu hooks are available in API version 2.0.0.
 
 | Method                      | Description                              | Returns                 |
 | --------------------------- | ---------------------------------------- | ----------------------- |
 | `registerFileMenu(callback)` | Add items to the file context menu      | `() => void`            |
 | `registerFolderMenu(callback)` | Add items to the folder context menu  | `() => void`            |
+| `registerTagMenu(callback)` | Add items to the tag context menu        | `() => void`            |
+| `registerPropertyMenu(callback)` | Add items to the property context menu | `() => void`         |
 
 Callbacks run synchronously during menu construction. Add menu items synchronously and do async work in `onClick` handlers.
 
@@ -373,11 +449,18 @@ const dispose = nn?.menus?.registerFolderMenu(({ addItem, folder }) => {
 });
 ```
 
+### Tag and property context menus
+
+- `registerTagMenu(callback)` receives `context.tag`
+- Use `nn.tagCollections.isCollection(context.tag)` to detect aggregate rows
+- `registerPropertyMenu(callback)` receives `context.nodeId`
+
 ## Events
 
 Subscribe to navigator events to react to user actions.
 
-Tag strings in events use canonical form (no `#` prefix, lowercase path). Property node ids use canonical lowercase node ids.
+Tag strings in events use canonical form (no `#` prefix, lowercase path) for real tags. Some tag events may also use
+aggregate tag collection ids (`'__tagged__'` or `'__untagged__'`). Property node ids use canonical lowercase node ids.
 
 | Event                  | Payload                                         | Description                  |
 | ---------------------- | ----------------------------------------------- | ---------------------------- |
@@ -385,9 +468,9 @@ Tag strings in events use canonical form (no `#` prefix, lowercase path). Proper
 | `nav-item-changed`     | `{ item: NavItem }`                             | Navigation selection changed |
 | `selection-changed`    | `{ state: SelectionState }`                     | Selection changed            |
 | `pinned-files-changed` | `{ files: Readonly<Pinned> }`                   | Pinned files changed         |
-| `folder-changed`       | `{ folder: TFolder, metadata: FolderMetadata }` | Folder metadata changed      |
-| `tag-changed`          | `{ tag: string, metadata: TagMetadata }`        | Tag metadata changed         |
-| `property-changed`     | `{ nodeId: string, metadata: PropertyMetadata }` | Property metadata changed    |
+| `folder-changed`       | `{ folder: TFolder, metadata: FolderMetadata \| null }` | Folder metadata changed |
+| `tag-changed`          | `{ tag: string, metadata: TagMetadata \| null }`        | Tag metadata changed    |
+| `property-changed`     | `{ nodeId: string, metadata: PropertyMetadata \| null }` | Property metadata changed |
 
 ```typescript
 // Subscribe to pin changes
@@ -400,18 +483,18 @@ nn.on('pinned-files-changed', ({ files }) => {
 
 // Use 'once' for one-time events (auto-unsubscribes)
 nn.once('storage-ready', () => {
-  // Wait for storage to be ready before querying metadata or pinned files
-  console.log('Storage is ready - safe to call read APIs');
+  // Wait for storage to be ready before storage-backed navigation/tag/property lookups
+  console.log('Storage is ready - initial mirror bootstrap is complete');
   // No need to unsubscribe, it's handled automatically
 });
 
 // Use 'on' for persistent listeners
 const navRef = nn.on('nav-item-changed', ({ item }) => {
-  if (item.folder) {
+  if (item.type === 'folder') {
     console.log('Folder selected:', item.folder.path);
-  } else if (item.tag) {
+  } else if (item.type === 'tag') {
     console.log('Tag selected:', item.tag);
-  } else if (item.property) {
+  } else if (item.type === 'property') {
     console.log('Property selected:', item.property);
   } else {
     console.log('Navigation selection cleared');
@@ -419,7 +502,7 @@ const navRef = nn.on('nav-item-changed', ({ item }) => {
 });
 
 const selectionRef = nn.on('selection-changed', ({ state }) => {
-  // TypeScript knows 'state' is SelectionState with files and focused properties
+  // TypeScript knows 'state' is SelectionState with files and focused
   console.log(`${state.files.length} files selected`);
 });
 
@@ -433,7 +516,8 @@ nn.off(selectionRef);
 | Method                                                                                                       | Description                                      | Returns    |
 | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------ | ---------- |
 | `getVersion()`                                                                                               | Get API version                                  | `string`   |
-| `isStorageReady()`                                                                                           | Check if storage cache is ready                  | `boolean`  |
+| `isStorageReady()`                                                                                           | Check if initial storage bootstrap is complete   | `boolean`  |
+| `whenReady()`                                                                                                | Resolve when the initial storage bootstrap completes | `Promise<void>` |
 | `on<T extends NotebookNavigatorEventType>(event: T, callback: (data: NotebookNavigatorEvents[T]) => void)`   | Subscribe to typed event                         | `EventRef` |
 | `once<T extends NotebookNavigatorEventType>(event: T, callback: (data: NotebookNavigatorEvents[T]) => void)` | Subscribe once (auto-unsubscribes after trigger) | `EventRef` |
 | `off(ref)`                                                                                                   | Unsubscribe from event                           | `void`     |
@@ -446,7 +530,7 @@ Since Obsidian plugins don't export types like npm packages, you have two option
 
 Download the TypeScript definitions file:
 
-**[📄 notebook-navigator.d.ts](https://github.com/johansanneblad/notebook-navigator/blob/main/src/api/public/notebook-navigator.d.ts)**
+**[📄 notebook-navigator.d.ts](https://github.com/johansan/notebook-navigator/blob/main/src/api/public/notebook-navigator.d.ts)**
 
 Save it to your plugin project and import:
 
@@ -458,10 +542,7 @@ if (!nn) {
   return;
 }
 
-// Wait for storage if needed
-if (!nn.isStorageReady()) {
-  await new Promise<void>(resolve => nn.once('storage-ready', resolve));
-}
+await nn.whenReady();
 
 const folder = app.vault.getFolderByPath('Projects');
 if (!folder) {
@@ -469,7 +550,7 @@ if (!folder) {
 }
 
 // Icon strings are type-checked at compile time
-const icon: IconString = 'lucide:folder';
+const icon: IconString = 'ph-folder';
 await nn.metadata.setFolderMeta(folder, { color: '#FF5733', icon });
 
 // Events have full type inference
@@ -484,10 +565,8 @@ nn.on('selection-changed', ({ state }) => {
 // Works without type definitions
 const nn = app.plugins.plugins['notebook-navigator']?.api;
 if (nn) {
-  // Wait for storage if needed, then proceed
-  if (!nn.isStorageReady()) {
-    await new Promise(resolve => nn.once('storage-ready', resolve));
-  }
+  // Wait for storage if you need storage-backed navigation/tag/property reads
+  await nn.whenReady();
 
   const folder = app.vault.getFolderByPath('Projects');
   if (!folder) {
@@ -502,15 +581,29 @@ if (nn) {
 
 The type definitions provide:
 
-- **Template literal types** for icons (`IconString`)
+- **Template literal types** for short provider frontmatter icon input (`IconString`)
 - **Typed event names and payloads** (`NotebookNavigatorEventType`, `NotebookNavigatorEvents`)
 - **Readonly return types** (selected files arrays, pinned map)
-- **Menu extension context types** (file and folder menus)
+- **Menu extension context types** (file, folder, tag, and property menus)
 
 **Note**: These type checks are compile-time only. At runtime, the API is permissive and accepts any values (see Runtime
 Behavior sections for each API).
 
 ## Changelog
+
+### Version 2.0.0 (2026-03-07)
+
+- Added `whenReady()`
+- Added `tagCollections` helper namespace
+- Added `propertyNodes` helper namespace
+- `propertyNodes.parse(rootId)` returns a root descriptor
+- Added `NavItem.type`
+- Added `navigation.reveal(filePath)` and `navigation.navigateToFolder(folderPath)` support
+- Changed navigation methods to return `Promise<boolean>`
+- Added `FolderMetadataUpdate`, `TagMetadataUpdate`, and `PropertyMetadataUpdate`
+- Added `menus.registerTagMenu(callback)`
+- Added `menus.registerPropertyMenu(callback)`
+- Changed `folder-changed`, `tag-changed`, and `property-changed` to allow `metadata: null`
 
 ### Version 1.3.0 (2026-02-14)
 

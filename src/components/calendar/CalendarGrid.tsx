@@ -25,6 +25,7 @@ import { isWeekendDay } from './calendarUtils';
 import type { CalendarDay, CalendarHoverTooltipData, CalendarWeek } from './types';
 
 interface CalendarGridProps {
+    activeEditorFilePath: string | null;
     showWeekNumbers: boolean;
     weekdays: string[];
     weekStartsOn: number;
@@ -53,6 +54,7 @@ interface CalendarGridProps {
 }
 
 export const CalendarGrid = React.memo(function CalendarGrid({
+    activeEditorFilePath,
     showWeekNumbers,
     weekdays,
     weekStartsOn,
@@ -95,6 +97,7 @@ export const CalendarGrid = React.memo(function CalendarGrid({
                 {weeks.map((week, weekIndex) => {
                     const weekNoteFile = weekNoteFilesByKey.get(week.key) ?? null;
                     const weekHasUnfinishedTasks = (weekUnfinishedTaskCountByKey.get(week.key) ?? 0) > 0;
+                    const isActiveEditorWeek = Boolean(weekNoteFile && activeEditorFilePath === weekNoteFile.path);
                     const previousWeek = weekIndex > 0 ? weeks[weekIndex - 1] : null;
                     const nextWeek = weekIndex < weeks.length - 1 ? weeks[weekIndex + 1] : null;
 
@@ -112,6 +115,7 @@ export const CalendarGrid = React.memo(function CalendarGrid({
                                                 'nn-navigation-calendar-weeknumber',
                                                 'nn-navigation-calendar-weeknumber-button',
                                                 weekNoteFile ? 'has-period-note' : '',
+                                                isActiveEditorWeek ? 'is-active-editor-file' : '',
                                                 weekHasUnfinishedTasks ? 'has-unfinished-tasks' : ''
                                             ]
                                                 .filter(Boolean)
@@ -119,6 +123,7 @@ export const CalendarGrid = React.memo(function CalendarGrid({
                                             onClick={event => onWeekClick(event, week, weekNoteFile)}
                                             onContextMenu={event => onWeekContextMenu(event, week, weekNoteFile)}
                                         >
+                                            <span className="nn-navigation-calendar-active-outline" aria-hidden="true" />
                                             <span className="nn-navigation-calendar-weeknumber-value">{week.weekNumber}</span>
                                         </button>
                                     ) : (
@@ -128,6 +133,7 @@ export const CalendarGrid = React.memo(function CalendarGrid({
                                             onClick={event => onWeekLabelClick(event, week)}
                                             onContextMenu={event => onWeekContextMenu(event, week, null)}
                                         >
+                                            <span className="nn-navigation-calendar-active-outline" aria-hidden="true" />
                                             <span className="nn-navigation-calendar-weeknumber-value">{week.weekNumber}</span>
                                         </button>
                                     )}
@@ -142,6 +148,7 @@ export const CalendarGrid = React.memo(function CalendarGrid({
                                 const featureImageUrl = featureImageUrls[day.iso] ?? null;
                                 const hasFeatureImageKey = featureImageKeysByIso.has(day.iso);
                                 const isToday = todayIso === day.iso;
+                                const isActiveEditorDay = Boolean(day.file && activeEditorFilePath === day.file.path);
                                 const dayOfWeek = day.date.toDate().getDay();
                                 const isWeekend = isWeekendDay(dayOfWeek, calendarWeekendDays);
                                 const previousDay = dayIndex > 0 ? week.days[dayIndex - 1] : null;
@@ -180,6 +187,7 @@ export const CalendarGrid = React.memo(function CalendarGrid({
                                     'nn-navigation-calendar-day',
                                     day.inMonth ? 'is-in-month' : 'is-outside-month',
                                     isToday ? 'is-today' : '',
+                                    isActiveEditorDay ? 'is-active-editor-file' : '',
                                     isWeekend ? 'is-weekend' : 'is-weekday',
                                     hasDailyNote ? 'has-daily-note' : '',
                                     hasUnfinishedTasks ? 'has-unfinished-tasks' : '',

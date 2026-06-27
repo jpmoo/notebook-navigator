@@ -17,72 +17,183 @@
  */
 
 import React, { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { TFile } from 'obsidian';
+import { FileView, TFile, normalizePath, type Workspace, type WorkspaceLeaf } from 'obsidian';
 import { getCurrentLanguage, strings } from '../../i18n';
 import { InfoModal } from '../../modals/InfoModal';
 import { useServices } from '../../context/ServicesContext';
-import { useSettingsState } from '../../context/SettingsContext';
+import { useSettingsState, useSettingsUpdate } from '../../context/SettingsContext';
 import { useFileCacheOptional } from '../../context/StorageContext';
 import { getDBInstanceOrNull, isShutdownInProgress, waitForDatabaseInitialization } from '../../storage/fileOperations';
 import { runAsyncAction } from '../../utils/async';
 import { getCalendarCustomWeekAnchorUnit } from '../../utils/calendarCustomNotePatterns';
 import { getDailyNoteFile, getDailyNoteSettings as getCoreDailyNoteSettings } from '../../utils/dailyNotes';
-import { getMomentApi, resolveMomentLocale, type MomentInstance } from '../../utils/moment';
+import {
+    getMomentApi,
+    resolveCalendarLocales,
+    resolveCalendarPeriodicNotesLocale,
+    resolveDailyNoteLocale,
+    type MomentApi,
+    type MomentInstance
+} from '../../utils/moment';
 import { useFileOpener } from '../../hooks/useFileOpener';
 import { useLocalDayKey } from '../../hooks/useLocalDayKey';
 import { extractFrontmatterName } from '../../utils/metadataExtractor';
 import { type CalendarNoteKind } from '../../utils/calendarNotes';
+import { escapeMomentLiteralPath } from '../../utils/calendarCustomNotePatterns';
 import { getActiveVaultProfile } from '../../utils/vaultProfiles';
 import type { CalendarWeeksToShow } from '../../settings/types';
+import { registerActiveFileWorkspaceListeners } from '../../utils/workspaceActiveFileEvents';
 import { CalendarGrid } from './CalendarGrid';
 import { CalendarHeader } from './CalendarHeader';
 import { CalendarHoverTooltip } from './CalendarHoverTooltip';
 import { CalendarYearPanel } from './CalendarYearPanel';
-import { createCalendarNotePathResolverContext, getExistingCalendarNoteFile } from './calendarNoteResolution';
+import {
+    createCalendarNotePathResolverContext,
+    getExistingCalendarNoteFile,
+    parseCalendarNoteDateFromPath
+} from './calendarNoteResolution';
 import {
     buildDateFilterToken,
     clamp,
     formatIsoDate,
     isDateFilterModifierPressed,
-    setUnfinishedTaskCount,
-    startOfWeek
+    resolveCalendarWeekWindow,
+    shouldAutoRevealCalendarNoteKind,
+    setUnfinishedTaskCount
 } from './calendarUtils';
-import { useCalendarFeatureImages } from './useCalendarFeatureImages';
+import {
+    clearCalendarFeatureImageRegenerationSlotsForPath,
+    consumeCalendarFeatureImageRegenerationSlot,
+    getCalendarFeatureImageRegenerationKey,
+    useCalendarFeatureImages,
+    type CalendarFeatureImageTarget
+} from './useCalendarFeatureImages';
 import { useCalendarHoverTooltip } from './useCalendarHoverTooltip';
 import { useCalendarNoteActions } from './useCalendarNoteActions';
 import type { CalendarDay, CalendarHeaderPeriodNoteFiles, CalendarWeek, CalendarYearMonthEntry } from './types';
+import { isStringRecordValue, sanitizeRecord } from '../../utils/recordUtils';
 
 export interface CalendarProps {
     onWeekCountChange?: (count: number) => void;
     onNavigationAction?: () => void;
     weeksToShowOverride?: CalendarWeeksToShow;
     onAddDateFilter?: (dateToken: string) => void;
+    onMissingFeatureImage?: (target: CalendarFeatureImageTarget) => void;
+    onVisibleCalendarNoteFilesChange?: (files: TFile[]) => void;
     isRightSidebar?: boolean;
 }
 
 type HeaderPeriodKind = Extract<CalendarNoteKind, 'month' | 'quarter' | 'year'>;
+
+interface CalendarYearMonthBaseEntry {
+    date: MomentInstance;
+    dayFiles: TFile[];
+    fullLabel: string;
+    hasDailyNote: boolean;
+    key: string;
+    monthIndex: number;
+    shortLabel: string;
+}
+
+interface ActiveEditorCalendarTarget {
+    date: MomentInstance;
+    shouldAutoReveal: boolean;
+}
+
+function resolveInitialCalendarCursorDate(momentApi: MomentApi | null, storedDateIso: string | null): MomentInstance | null {
+    if (!momentApi) {
+        return null;
+    }
+
+    if (storedDateIso) {
+        const storedDate = momentApi(storedDateIso, 'YYYY-MM-DD', true);
+        if (storedDate.isValid()) {
+            return storedDate.startOf('day');
+        }
+    }
+
+    return momentApi().startOf('day');
+}
+
+function getWorkspaceActiveFile(workspace: Workspace): TFile | null {
+    const activeView = workspace.getActiveViewOfType(FileView);
+    const activeFile = activeView?.file;
+    return activeFile instanceof TFile ? activeFile : null;
+}
+
+function resolveActiveEditorFilePath(workspace: Workspace, candidateFile?: TFile | null): string | null {
+    const activeViewFile = getWorkspaceActiveFile(workspace);
+    const file = candidateFile instanceof TFile ? candidateFile : activeViewFile;
+
+    if (file) {
+        return file.path;
+    }
+
+    return null;
+}
+
+function isFileOpenInWorkspace(workspace: Workspace, filePath: string): boolean {
+    if (typeof workspace.iterateAllLeaves !== 'function') {
+        return false;
+    }
+
+    let isOpen = false;
+    workspace.iterateAllLeaves((leaf: WorkspaceLeaf) => {
+        if (isOpen) {
+            return;
+        }
+
+        const view = leaf.view;
+        if (!(view instanceof FileView)) {
+            return;
+        }
+
+        const file = view.file;
+        if (file instanceof TFile && file.path === filePath) {
+            isOpen = true;
+        }
+    });
+
+    return isOpen;
+}
+
+function stripMarkdownExtension(path: string): string {
+    return path.replace(/\.md$/iu, '');
+}
 
 export function Calendar({
     onWeekCountChange,
     onNavigationAction,
     weeksToShowOverride,
     onAddDateFilter,
+    onMissingFeatureImage,
+    onVisibleCalendarNoteFilesChange,
     isRightSidebar = false
 }: CalendarProps) {
-    const { app, fileSystemOps, isMobile } = useServices();
+    const { app, commandQueue, fileSystemOps, isMobile, plugin } = useServices();
     const settings = useSettingsState();
+    const updateSettings = useSettingsUpdate();
     const periodicNotesFolder = getActiveVaultProfile(settings).periodicNotesFolder;
     const customCalendarRootFolderSettings = useMemo(() => ({ calendarCustomRootFolder: periodicNotesFolder }), [periodicNotesFolder]);
     const weeksToShowSetting = weeksToShowOverride ?? settings.calendarWeeksToShow;
     const fileCache = useFileCacheOptional();
     const [dbFallback, setDbFallback] = useState(() => getDBInstanceOrNull());
     const db = fileCache?.getDB() ?? dbFallback;
+    const regenerateFeatureImageForFile = fileCache?.regenerateFeatureImageForFile;
     const openFile = useFileOpener();
     const calendarLabelId = useId();
 
     const momentApi = getMomentApi();
-    const [cursorDate, setCursorDate] = useState<MomentInstance | null>(() => (momentApi ? momentApi().startOf('day') : null));
+    const [initialStoredCursorDateIso] = useState<string | null>(() => plugin.getCalendarCursorDateIso());
+    const [initialCursorDate] = useState<MomentInstance | null>(() =>
+        resolveInitialCalendarCursorDate(momentApi, initialStoredCursorDateIso)
+    );
+    const [cursorDate, setCursorDate] = useState<MomentInstance | null>(() => initialCursorDate);
+    const [yearPanelYear, setYearPanelYear] = useState<number | null>(() => initialCursorDate?.year() ?? null);
     const todayIso = useLocalDayKey();
+    const [activeEditorFilePath, setActiveEditorFilePath] = useState<string | null>(
+        () => resolveActiveEditorFilePath(app.workspace) ?? null
+    );
 
     const [vaultVersion, setVaultVersion] = useState(0);
     const [featureImageVersion, setFeatureImageVersion] = useState(0);
@@ -90,7 +201,11 @@ export function Calendar({
     const [hoverTooltipPreviewVersion, setHoverTooltipPreviewVersion] = useState(0);
     const [metadataVersion, setMetadataVersion] = useState(0);
     const visibleIndicatorNotePathsRef = useRef<Set<string>>(new Set());
+    const visibleFeatureImageNotePathsRef = useRef<Set<string>>(new Set());
     const visibleFrontmatterNotePathsRef = useRef<Set<string>>(new Set());
+    const missingFeatureImageRegenerationRef = useRef<Set<string>>(new Set());
+    const lastAppliedActiveEditorDateKeyRef = useRef<string | null>(null);
+    const shouldSkipInitialActiveEditorRevealRef = useRef(initialStoredCursorDateIso !== null);
     const dayNoteFileLookupCacheRef = useRef<Map<string, TFile | null>>(new Map());
     const vaultVersionDebounceRef = useRef<number | null>(null);
     const scheduleVaultVersionUpdate = useCallback(() => {
@@ -110,6 +225,47 @@ export function Calendar({
             setVaultVersion(v => v + 1);
         }, 120);
     }, []);
+    const syncActiveEditorFilePath = useCallback(
+        (candidateFile?: TFile | null) => {
+            const nextFilePath = resolveActiveEditorFilePath(app.workspace, candidateFile);
+            setActiveEditorFilePath(previousFilePath => {
+                if (previousFilePath === nextFilePath) {
+                    return previousFilePath;
+                }
+
+                if (nextFilePath !== null) {
+                    return nextFilePath;
+                }
+
+                if (previousFilePath && isFileOpenInWorkspace(app.workspace, previousFilePath)) {
+                    return previousFilePath;
+                }
+
+                return null;
+            });
+        },
+        [app.workspace]
+    );
+    const handleMissingCalendarFeatureImage = useCallback(
+        (target: CalendarFeatureImageTarget) => {
+            const shouldRegenerate = consumeCalendarFeatureImageRegenerationSlot({
+                regenerationKeys: missingFeatureImageRegenerationRef.current,
+                filePath: target.file.path,
+                featureImageKey: target.key
+            });
+            if (!shouldRegenerate) {
+                return;
+            }
+
+            if (regenerateFeatureImageForFile) {
+                void regenerateFeatureImageForFile(target.file);
+                return;
+            }
+
+            onMissingFeatureImage?.(target);
+        },
+        [onMissingFeatureImage, regenerateFeatureImageForFile]
+    );
     const shouldTrackCalendarVaultChange = useCallback((file: unknown): boolean => {
         if (!(file instanceof TFile)) {
             return true;
@@ -156,7 +312,7 @@ export function Calendar({
                 }
 
                 await new Promise<void>(resolve => {
-                    globalThis.setTimeout(resolve, 250);
+                    window.setTimeout(resolve, 250);
                 });
             }
         });
@@ -165,6 +321,22 @@ export function Calendar({
             isActive = false;
         };
     }, [dbFallback, fileCache]);
+
+    useEffect(() => {
+        const cleanup = registerActiveFileWorkspaceListeners({
+            workspace: app.workspace,
+            commandQueue,
+            onChange: ({ candidateFile, ignoreBackgroundOpen }) => {
+                syncActiveEditorFilePath(ignoreBackgroundOpen ? undefined : candidateFile);
+            }
+        });
+
+        syncActiveEditorFilePath();
+
+        return () => {
+            cleanup();
+        };
+    }, [app.workspace, commandQueue, syncActiveEditorFilePath]);
 
     useEffect(() => {
         const onVaultUpdate = (file: unknown) => {
@@ -195,10 +367,11 @@ export function Calendar({
 
         return db.onContentChange(changes => {
             const visibleIndicatorPaths = visibleIndicatorNotePathsRef.current;
+            const visibleFeatureImagePaths = visibleFeatureImageNotePathsRef.current;
             const hoverTooltipState = hoverTooltipStateRef.current;
             const hoverPreviewPath =
                 hoverTooltipState && hoverTooltipState.tooltipData.previewEnabled ? hoverTooltipState.tooltipData.previewPath : null;
-            const shouldTrackFeatureImage = settings.calendarShowFeatureImage;
+            const shouldTrackFeatureImage = settings.calendarShowFeatureImage && visibleFeatureImagePaths.size > 0;
             const shouldTrackTaskIndicator = visibleIndicatorPaths.size > 0;
             const shouldTrackHoverPreview = Boolean(hoverPreviewPath);
 
@@ -207,6 +380,14 @@ export function Calendar({
             let hasHoverPreviewChange = !shouldTrackHoverPreview;
 
             for (const change of changes) {
+                const hasFeatureImageContentChange =
+                    change.changes.featureImage !== undefined ||
+                    change.changes.featureImageKey !== undefined ||
+                    change.changes.featureImageStatus !== undefined;
+                if (hasFeatureImageContentChange) {
+                    clearCalendarFeatureImageRegenerationSlotsForPath(missingFeatureImageRegenerationRef.current, change.path);
+                }
+
                 if (
                     !hasHoverPreviewChange &&
                     hoverPreviewPath &&
@@ -216,19 +397,12 @@ export function Calendar({
                     hasHoverPreviewChange = true;
                 }
 
-                if ((!hasTaskIndicatorChange || !hasFeatureImageChange) && visibleIndicatorPaths.has(change.path)) {
-                    if (!hasTaskIndicatorChange && change.changes.taskUnfinished !== undefined) {
-                        hasTaskIndicatorChange = true;
-                    }
+                if (!hasTaskIndicatorChange && visibleIndicatorPaths.has(change.path) && change.changes.taskUnfinished !== undefined) {
+                    hasTaskIndicatorChange = true;
+                }
 
-                    if (
-                        !hasFeatureImageChange &&
-                        (change.changes.featureImage !== undefined ||
-                            change.changes.featureImageKey !== undefined ||
-                            change.changes.featureImageStatus !== undefined)
-                    ) {
-                        hasFeatureImageChange = true;
-                    }
+                if (!hasFeatureImageChange && visibleFeatureImagePaths.has(change.path) && hasFeatureImageContentChange) {
+                    hasFeatureImageChange = true;
                 }
 
                 if (hasFeatureImageChange && hasTaskIndicatorChange && hasHoverPreviewChange) {
@@ -275,33 +449,50 @@ export function Calendar({
         if (!momentApi || cursorDate) {
             return;
         }
-        setCursorDate(momentApi().startOf('day'));
-    }, [cursorDate, momentApi]);
+        const storedDateIso = plugin.getCalendarCursorDateIso();
+        if (storedDateIso !== null) {
+            shouldSkipInitialActiveEditorRevealRef.current = true;
+        }
+        setCursorDate(resolveInitialCalendarCursorDate(momentApi, storedDateIso));
+    }, [cursorDate, momentApi, plugin]);
 
-    const displayLocale = useMemo(() => {
-        if (!momentApi) {
-            return 'en';
+    useEffect(() => {
+        if (!cursorDate) {
+            return;
         }
 
-        // Month name / weekday labels follow the current UI language by default.
-        const currentLanguage = getCurrentLanguage();
-        const fallback = momentApi.locale() || 'en';
-        const requested = (currentLanguage || fallback).replace(/_/g, '-');
+        plugin.setCalendarCursorDateIso(formatIsoDate(cursorDate));
+    }, [cursorDate, plugin]);
 
-        return resolveMomentLocale(requested, momentApi, fallback);
-    }, [momentApi]);
-
-    const calendarRulesLocale = useMemo(() => {
-        if (!momentApi) {
-            return 'en';
+    useEffect(() => {
+        if (!cursorDate) {
+            return;
         }
-        // Week rules (week starts on, week number calculation) can differ from display locale; allow override.
-        const requested = settings.calendarLocale === 'system-default' ? displayLocale : settings.calendarLocale;
-        return resolveMomentLocale(requested, momentApi, displayLocale);
-    }, [displayLocale, momentApi, settings.calendarLocale]);
+
+        setYearPanelYear(previousYear => (previousYear === cursorDate.year() ? previousYear : cursorDate.year()));
+    }, [cursorDate]);
+
+    const currentLanguage = getCurrentLanguage();
+    const { displayLocale, calendarRulesLocale } = useMemo(
+        () => resolveCalendarLocales(settings.calendarLocale, momentApi, currentLanguage),
+        [currentLanguage, momentApi, settings.calendarLocale]
+    );
+    const dailyNoteLocale = resolveDailyNoteLocale(momentApi);
+    const periodicNotesLocale = resolveCalendarPeriodicNotesLocale(
+        settings.calendarPeriodicNotesLocaleSource,
+        calendarRulesLocale,
+        momentApi
+    );
+
+    useEffect(() => {
+        setCursorDate(previousCursorDate => previousCursorDate?.clone().locale(displayLocale) ?? previousCursorDate);
+    }, [displayLocale]);
 
     const isCustomCalendar = settings.calendarIntegrationMode === 'notebook-navigator';
     const weekNotesEnabled = isCustomCalendar && settings.calendarCustomWeekPattern.trim() !== '';
+    const monthNotesEnabled = isCustomCalendar && settings.calendarCustomMonthPattern.trim() !== '';
+    const quarterNotesEnabled = isCustomCalendar && settings.calendarCustomQuarterPattern.trim() !== '';
+    const yearNotesEnabled = isCustomCalendar && settings.calendarCustomYearPattern.trim() !== '';
 
     const effectiveWeekMode = useMemo<'iso' | 'locale'>(() => {
         if (!weekNotesEnabled) {
@@ -368,8 +559,9 @@ export function Calendar({
         customCalendarRootFolderSettings,
         dailyNoteSettings,
         dayNoteResolverContext,
-        displayLocale,
+        dailyNoteLocale,
         momentApi,
+        periodicNotesLocale,
         settings.calendarIntegrationMode,
         vaultVersion
     ]);
@@ -389,13 +581,13 @@ export function Calendar({
                     kind: 'day',
                     date,
                     resolverContext: dayNoteResolverContext,
-                    displayLocale,
-                    weekLocale: calendarRulesLocale,
+                    calendarLocale: periodicNotesLocale,
+                    weekLocale: periodicNotesLocale,
                     customCalendarRootFolderSettings,
                     momentApi
                 });
             } else if (settings.calendarIntegrationMode === 'daily-notes' && dailyNoteSettings) {
-                existingFile = getDailyNoteFile(app, date, dailyNoteSettings);
+                existingFile = getDailyNoteFile(app, date.clone().locale(dailyNoteLocale), dailyNoteSettings);
             }
 
             dayNoteFileLookupCacheRef.current.set(iso, existingFile);
@@ -406,11 +598,158 @@ export function Calendar({
             canResolveCustomDayNotes,
             customCalendarRootFolderSettings,
             dailyNoteSettings,
+            dailyNoteLocale,
             dayNoteResolverContext,
-            displayLocale,
-            calendarRulesLocale,
             momentApi,
+            periodicNotesLocale,
             settings.calendarIntegrationMode
+        ]
+    );
+
+    const resolveActiveEditorCalendarDayDate = useCallback(
+        (filePath: string): MomentInstance | null => {
+            if (!momentApi || !filePath.toLowerCase().endsWith('.md')) {
+                return null;
+            }
+
+            const normalizedFilePath = normalizePath(filePath);
+            const pathWithoutExtension = stripMarkdownExtension(normalizedFilePath);
+
+            if (settings.calendarIntegrationMode === 'daily-notes') {
+                if (!dailyNoteSettings) {
+                    return null;
+                }
+
+                const folderPattern = escapeMomentLiteralPath(dailyNoteSettings.folder);
+                const fullPattern = folderPattern ? `${folderPattern}/${dailyNoteSettings.format}` : dailyNoteSettings.format;
+                const parsedDate = momentApi(pathWithoutExtension, fullPattern, dailyNoteLocale, true);
+                if (!parsedDate.isValid()) {
+                    return null;
+                }
+
+                const normalizedFolder = normalizePath(dailyNoteSettings.folder.trim()).replace(/^\/+/u, '').replace(/\/+$/u, '');
+                const expectedPathWithoutExtension = normalizePath(
+                    normalizedFolder
+                        ? `${normalizedFolder}/${parsedDate.format(dailyNoteSettings.format)}`
+                        : parsedDate.format(dailyNoteSettings.format)
+                );
+                if (`${expectedPathWithoutExtension}.md` !== normalizedFilePath) {
+                    return null;
+                }
+
+                return parsedDate.startOf('day');
+            }
+
+            if (!canResolveCustomDayNotes) {
+                return null;
+            }
+
+            const rootFolderPattern = escapeMomentLiteralPath(customCalendarRootFolderSettings.calendarCustomRootFolder);
+            const fullPattern = rootFolderPattern
+                ? `${rootFolderPattern}/${dayNoteResolverContext.momentPattern}`
+                : dayNoteResolverContext.momentPattern;
+            const parsedDate = momentApi(pathWithoutExtension, fullPattern, periodicNotesLocale, true);
+            if (!parsedDate.isValid()) {
+                return null;
+            }
+
+            const normalizedDate = parsedDate.startOf('day');
+            const resolvedFile = getExistingDayNoteFile(normalizedDate);
+            if (resolvedFile?.path !== normalizedFilePath) {
+                return null;
+            }
+
+            return normalizedDate;
+        },
+        [
+            canResolveCustomDayNotes,
+            customCalendarRootFolderSettings.calendarCustomRootFolder,
+            dailyNoteSettings,
+            dailyNoteLocale,
+            dayNoteResolverContext.momentPattern,
+            getExistingDayNoteFile,
+            momentApi,
+            periodicNotesLocale,
+            settings.calendarIntegrationMode
+        ]
+    );
+
+    const resolveActiveEditorCustomNoteTarget = useCallback(
+        (filePath: string): ActiveEditorCalendarTarget | null => {
+            if (!momentApi || settings.calendarIntegrationMode !== 'notebook-navigator') {
+                return null;
+            }
+
+            const activePeriodKinds: {
+                enabled: boolean;
+                kind: Extract<CalendarNoteKind, 'week' | 'month' | 'quarter' | 'year'>;
+                parseLocale: string;
+            }[] = [
+                { kind: 'week', enabled: weekNotesEnabled, parseLocale: periodicNotesLocale },
+                { kind: 'month', enabled: monthNotesEnabled, parseLocale: periodicNotesLocale },
+                { kind: 'quarter', enabled: quarterNotesEnabled, parseLocale: periodicNotesLocale },
+                { kind: 'year', enabled: yearNotesEnabled, parseLocale: periodicNotesLocale }
+            ];
+
+            for (const { enabled, kind, parseLocale } of activePeriodKinds) {
+                if (!enabled) {
+                    continue;
+                }
+
+                const resolverContext = createCalendarNotePathResolverContext(kind, settings);
+                const parsedDate = parseCalendarNoteDateFromPath({
+                    filePath,
+                    kind,
+                    resolverContext,
+                    calendarLocale: periodicNotesLocale,
+                    weekLocale: periodicNotesLocale,
+                    customCalendarRootFolderSettings,
+                    momentApi,
+                    parseLocale
+                });
+                if (!parsedDate) {
+                    continue;
+                }
+
+                switch (kind) {
+                    case 'week':
+                        return {
+                            date: parsedDate
+                                .clone()
+                                .locale(periodicNotesLocale)
+                                .startOf(getCalendarCustomWeekAnchorUnit(resolverContext.momentPattern)),
+                            shouldAutoReveal: shouldAutoRevealCalendarNoteKind(kind)
+                        };
+                    case 'month':
+                        return {
+                            date: parsedDate.clone().locale(displayLocale).startOf('month'),
+                            shouldAutoReveal: shouldAutoRevealCalendarNoteKind(kind)
+                        };
+                    case 'quarter':
+                        return {
+                            date: parsedDate.clone().locale(displayLocale).startOf('quarter'),
+                            shouldAutoReveal: shouldAutoRevealCalendarNoteKind(kind)
+                        };
+                    case 'year':
+                        return {
+                            date: parsedDate.clone().locale(displayLocale).startOf('year'),
+                            shouldAutoReveal: shouldAutoRevealCalendarNoteKind(kind)
+                        };
+                }
+            }
+
+            return null;
+        },
+        [
+            displayLocale,
+            momentApi,
+            periodicNotesLocale,
+            settings,
+            weekNotesEnabled,
+            monthNotesEnabled,
+            quarterNotesEnabled,
+            yearNotesEnabled,
+            customCalendarRootFolderSettings
         ]
     );
 
@@ -424,29 +763,14 @@ export function Calendar({
 
         const weeksToShow = clamp(weeksToShowSetting, 1, 6);
         const cursor = cursorDate.clone().startOf('day');
-        const cursorWeekStart = startOfWeek(cursor.clone(), weekStartsOn);
         const targetMonth = cursor.month();
         const targetYear = cursor.year();
-
-        let windowStart: MomentInstance;
-        let weekCount: number;
-
-        if (weeksToShow === 6) {
-            // `6` means "full month": render as many week rows as needed to cover the month grid (capped at 6).
-            const monthStart = cursor.clone().startOf('month');
-            const gridStart = startOfWeek(monthStart, weekStartsOn);
-            const monthEnd = monthStart.clone().endOf('month');
-            const gridEndWeekStart = startOfWeek(monthEnd, weekStartsOn);
-            const totalWeeks = clamp(gridEndWeekStart.diff(gridStart, 'weeks') + 1, 1, 6);
-
-            windowStart = gridStart;
-            weekCount = totalWeeks;
-        } else {
-            // For 1..5 weeks: show a sliding N-week window around the cursor week (page navigation never skips weeks).
-            const offset = Math.floor((weeksToShow - 1) / 2);
-            windowStart = cursorWeekStart.clone().subtract(offset, 'week');
-            weekCount = weeksToShow;
-        }
+        const { windowStart, weekCount } = resolveCalendarWeekWindow({
+            cursor,
+            weekStartsOn,
+            weeksToShow,
+            alwaysRenderSixWeeks: isRightSidebar
+        });
 
         const visibleWeeks: CalendarWeek[] = [];
         for (let weekOffset = 0; weekOffset < weekCount; weekOffset++) {
@@ -457,7 +781,7 @@ export function Calendar({
 
             const days: CalendarDay[] = [];
             for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
-                const date = weekStart.clone().add(dayOffset, 'day');
+                const date = weekStart.clone().add(dayOffset, 'day').locale(displayLocale);
                 const inMonth = date.month() === targetMonth && date.year() === targetYear;
                 const iso = formatIsoDate(date);
                 const file = getExistingDayNoteFile(date);
@@ -476,13 +800,77 @@ export function Calendar({
     }, [
         calendarRulesLocale,
         cursorDate,
+        displayLocale,
         effectiveWeekMode,
         getExistingDayNoteFile,
+        isRightSidebar,
         momentApi,
         vaultVersion,
         weeksToShowSetting,
         weekStartsOn
     ]);
+    const activeEditorCalendarTarget = useMemo<ActiveEditorCalendarTarget | null>(() => {
+        if (!activeEditorFilePath) {
+            return null;
+        }
+
+        for (const week of weeks) {
+            for (const day of week.days) {
+                if (day.file?.path === activeEditorFilePath) {
+                    return {
+                        date: day.date.clone().startOf('day').locale(displayLocale),
+                        shouldAutoReveal: true
+                    };
+                }
+            }
+        }
+
+        const activeEditorDayDate = resolveActiveEditorCalendarDayDate(activeEditorFilePath);
+        if (activeEditorDayDate) {
+            return {
+                date: activeEditorDayDate,
+                shouldAutoReveal: true
+            };
+        }
+
+        return resolveActiveEditorCustomNoteTarget(activeEditorFilePath);
+    }, [activeEditorFilePath, displayLocale, resolveActiveEditorCalendarDayDate, resolveActiveEditorCustomNoteTarget, weeks]);
+    const activeEditorDateKey =
+        activeEditorFilePath && activeEditorCalendarTarget
+            ? `${activeEditorFilePath}::${formatIsoDate(activeEditorCalendarTarget.date)}`
+            : null;
+
+    useLayoutEffect(() => {
+        if (!activeEditorCalendarTarget || !activeEditorDateKey || !activeEditorCalendarTarget.shouldAutoReveal) {
+            lastAppliedActiveEditorDateKeyRef.current = null;
+            shouldSkipInitialActiveEditorRevealRef.current = false;
+            return;
+        }
+
+        if (shouldSkipInitialActiveEditorRevealRef.current) {
+            shouldSkipInitialActiveEditorRevealRef.current = false;
+            lastAppliedActiveEditorDateKeyRef.current = activeEditorDateKey;
+            return;
+        }
+
+        if (lastAppliedActiveEditorDateKeyRef.current === activeEditorDateKey) {
+            return;
+        }
+
+        lastAppliedActiveEditorDateKeyRef.current = activeEditorDateKey;
+        setCursorDate(previousCursorDate => {
+            const nextCursorDate = activeEditorCalendarTarget.date.clone().startOf('day').locale(displayLocale);
+            if (
+                previousCursorDate &&
+                previousCursorDate.year() === nextCursorDate.year() &&
+                previousCursorDate.month() === nextCursorDate.month()
+            ) {
+                return previousCursorDate;
+            }
+
+            return nextCursorDate;
+        });
+    }, [activeEditorCalendarTarget, activeEditorDateKey, displayLocale]);
 
     const visibleDayNotePaths = useMemo(() => {
         const paths = new Set<string>();
@@ -524,6 +912,35 @@ export function Calendar({
 
         return featureKeys;
     }, [db, featureImageVersion, settings.calendarShowFeatureImage, weeks]);
+
+    const dayFeatureImageTargets = useMemo<CalendarFeatureImageTarget[]>(() => {
+        const targets: CalendarFeatureImageTarget[] = [];
+
+        if (!settings.calendarShowFeatureImage) {
+            return targets;
+        }
+
+        for (const week of weeks) {
+            for (const day of week.days) {
+                if (!day.file) {
+                    continue;
+                }
+
+                const featureKey = featureImageKeysByIso.get(day.iso);
+                if (!featureKey) {
+                    continue;
+                }
+
+                targets.push({
+                    id: day.iso,
+                    file: day.file,
+                    key: featureKey
+                });
+            }
+        }
+
+        return targets;
+    }, [featureImageKeysByIso, settings.calendarShowFeatureImage, weeks]);
 
     const unfinishedTaskCountByIso = useMemo(() => {
         // Force refresh when calendar task metadata changes so day task indicators stay in sync with content updates.
@@ -589,9 +1006,9 @@ export function Calendar({
     const featureImageUrls = useCalendarFeatureImages({
         db,
         showFeatureImages: settings.calendarShowFeatureImage,
-        featureImageKeysByIso,
-        weeks,
-        maxConcurrentLoads: isMobile ? 4 : 6
+        targets: dayFeatureImageTargets,
+        maxConcurrentLoads: isMobile ? 4 : 6,
+        onMissingFeatureImage: handleMissingCalendarFeatureImage
     });
 
     const handleNavigate = useCallback(
@@ -604,23 +1021,22 @@ export function Calendar({
             const unit = weeksToShow === 6 ? 'month' : 'week';
             const step = weeksToShow === 6 ? delta : delta * weeksToShow;
 
-            setCursorDate(prev => (prev ?? momentApi().startOf('day')).clone().add(step, unit));
+            setCursorDate(prev => (prev ?? momentApi().startOf('day').locale(displayLocale)).clone().add(step, unit).locale(displayLocale));
             onNavigationAction?.();
         },
-        [clearHoverTooltip, momentApi, onNavigationAction, weeksToShowSetting]
+        [clearHoverTooltip, displayLocale, momentApi, onNavigationAction, weeksToShowSetting]
     );
 
     const handleNavigateYear = useCallback(
         (delta: number) => {
-            if (!momentApi) {
-                return;
-            }
-
             clearHoverTooltip();
-            setCursorDate(prev => (prev ?? momentApi().startOf('day')).clone().add(delta, 'year'));
+            setYearPanelYear(previousYear => {
+                const baseYear = previousYear ?? cursorDate?.year() ?? momentApi?.().startOf('day').year() ?? new Date().getFullYear();
+                return baseYear + delta;
+            });
             onNavigationAction?.();
         },
-        [clearHoverTooltip, momentApi, onNavigationAction]
+        [clearHoverTooltip, cursorDate, momentApi, onNavigationAction]
     );
 
     const openCalendarHelp = useCallback(() => {
@@ -666,96 +1082,279 @@ export function Calendar({
             }
 
             clearHoverTooltip();
-            setCursorDate(date.clone().startOf('day'));
+            setCursorDate(date.clone().startOf('day').locale(displayLocale));
+            setYearPanelYear(date.year());
             onNavigationAction?.();
         },
-        [clearHoverTooltip, handleDateFilterModifiedClick, onNavigationAction]
+        [clearHoverTooltip, displayLocale, handleDateFilterModifiedClick, onNavigationAction]
     );
 
     const onVaultChange = useCallback(() => {
         scheduleVaultVersionUpdate();
     }, [scheduleVaultVersionUpdate]);
 
+    const setCalendarMonthHighlight = useCallback(
+        async (monthKey: string, dayIso: string) => {
+            await updateSettings(targetSettings => {
+                const nextHighlights = sanitizeRecord(targetSettings.calendarMonthHighlights, isStringRecordValue);
+                nextHighlights[monthKey] = dayIso;
+                targetSettings.calendarMonthHighlights = nextHighlights;
+            });
+        },
+        [updateSettings]
+    );
+
+    const removeCalendarMonthHighlight = useCallback(
+        async (monthKey: string) => {
+            await updateSettings(targetSettings => {
+                const nextHighlights = sanitizeRecord(targetSettings.calendarMonthHighlights, isStringRecordValue);
+                delete nextHighlights[monthKey];
+                targetSettings.calendarMonthHighlights = nextHighlights;
+            });
+        },
+        [updateSettings]
+    );
+    const showMonthHighlightActions = settings.calendarShowFeatureImage && showYearCalendar;
+
     const { getExistingCustomCalendarNoteFile, openOrCreateCustomCalendarNote, openOrCreateDailyNote, showCalendarNoteContextMenu } =
         useCalendarNoteActions({
             app,
+            commandQueue,
             fileSystemOps,
             isMobile,
             settings,
             dailyNoteSettings,
             momentApi,
-            displayLocale,
-            weekLocale: calendarRulesLocale,
+            dailyNoteLocale,
+            calendarLocale: periodicNotesLocale,
+            weekLocale: periodicNotesLocale,
             customCalendarRootFolderSettings,
             openFile,
             clearHoverTooltip,
-            onVaultChange
+            onVaultChange,
+            showMonthHighlightActions,
+            setCalendarMonthHighlight,
+            removeCalendarMonthHighlight
         });
 
     const handleToday = useCallback(() => {
         if (!momentApi) {
             return;
         }
+
+        const today = momentApi().startOf('day').locale(displayLocale);
+
         clearHoverTooltip();
-        setCursorDate(momentApi().startOf('day'));
+        setCursorDate(today.clone());
         onNavigationAction?.();
-    }, [clearHoverTooltip, momentApi, onNavigationAction]);
+
+        const existingFile = getExistingDayNoteFile(today);
+        if (!existingFile) {
+            return;
+        }
+
+        openOrCreateDailyNote(today, existingFile);
+    }, [clearHoverTooltip, displayLocale, getExistingDayNoteFile, momentApi, onNavigationAction, openOrCreateDailyNote]);
 
     const showWeekNumbers = settings.calendarShowWeekNumber;
     const highlightToday = settings.calendarHighlightToday;
+    const useRightSidebarYearHeaderInlineDetails = isRightSidebar && showYearCalendar;
     const showYearInHeader = !isRightSidebar || !showYearCalendar;
-    const useRightSidebarYearCalendarHeaderLayout = isRightSidebar && showYearCalendar;
-    const useSplitHeaderLayout = !useRightSidebarYearCalendarHeaderLayout;
-    const showHeaderHelpButton = settings.showInfoButtons && !isMobile && useRightSidebarYearCalendarHeaderLayout;
-    const showInlineMonthNavigation = useRightSidebarYearCalendarHeaderLayout;
-    const showCompactQuarterInMonthRow = useRightSidebarYearCalendarHeaderLayout && settings.calendarShowQuarter;
-    const showHeaderPeriodDetails = useSplitHeaderLayout;
-    const showHeaderNavRow = useSplitHeaderLayout;
+    const showHeaderHelpButton = settings.showInfoButtons && !isMobile && useRightSidebarYearHeaderInlineDetails;
+    const showInlineMonthNavigation = false;
+    const showCompactQuarterInMonthRow = useRightSidebarYearHeaderInlineDetails && settings.calendarShowQuarter;
+    const showHeaderPeriodDetails = !useRightSidebarYearHeaderInlineDetails;
+    const showHeaderNavRow = true;
     const showCompactHeaderInlineInfoButton = showHeaderHelpButton;
     const showInfoInNavRow = false;
 
-    const monthNotesEnabled = isCustomCalendar && settings.calendarCustomMonthPattern.trim() !== '';
-    const quarterNotesEnabled = isCustomCalendar && settings.calendarCustomQuarterPattern.trim() !== '';
-    const yearNotesEnabled = isCustomCalendar && settings.calendarCustomYearPattern.trim() !== '';
-    const selectedYear = cursorDate?.year() ?? null;
+    const displayedYear = yearPanelYear ?? cursorDate?.year() ?? null;
 
-    const yearMonthEntries = useMemo<CalendarYearMonthEntry[]>(() => {
-        if (!momentApi || selectedYear === null || !showYearCalendar) {
+    const yearMonthBaseEntries = useMemo<CalendarYearMonthBaseEntry[]>(() => {
+        if (!momentApi || displayedYear === null || !showYearCalendar) {
             return [];
         }
 
-        // Force refresh when vault contents change so year month counts reflect created/renamed/deleted daily notes.
+        // Force refresh when vault contents change so year month note coverage stays in sync.
         void vaultVersion;
 
-        const entries: CalendarYearMonthEntry[] = [];
+        const entries: CalendarYearMonthBaseEntry[] = [];
         for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
-            const monthDate = momentApi(new Date(selectedYear, monthIndex, 1))
+            const monthDate = momentApi(new Date(displayedYear, monthIndex, 1))
                 .startOf('day')
                 .locale(displayLocale);
-            const daysInMonth = new Date(selectedYear, monthIndex + 1, 0).getDate();
-            let noteCount = 0;
+            const daysInMonth = new Date(displayedYear, monthIndex + 1, 0).getDate();
+            const dayFiles: TFile[] = [];
 
             for (let dayNumber = 1; dayNumber <= daysInMonth; dayNumber++) {
                 const dayDate = monthDate.clone().set({ date: dayNumber });
                 const existingFile = getExistingDayNoteFile(dayDate);
 
                 if (existingFile) {
-                    noteCount += 1;
+                    dayFiles.push(existingFile);
                 }
             }
 
             entries.push({
                 date: monthDate,
+                dayFiles,
                 fullLabel: monthDate.format('MMMM'),
-                key: `${selectedYear}-${monthIndex + 1}`,
+                hasDailyNote: dayFiles.length > 0,
+                key: monthDate.format('YYYY-MM'),
                 monthIndex,
-                noteCount,
                 shortLabel: monthDate.format('MMM')
             });
         }
 
         return entries;
-    }, [displayLocale, getExistingDayNoteFile, momentApi, selectedYear, showYearCalendar, vaultVersion]);
+    }, [displayLocale, displayedYear, getExistingDayNoteFile, momentApi, showYearCalendar, vaultVersion]);
+
+    const yearMonthEntries = useMemo<CalendarYearMonthEntry[]>(() => {
+        // Force refresh when calendar task metadata changes so year month indicators stay in sync.
+        void taskIndicatorVersion;
+
+        return yearMonthBaseEntries.map(entry => ({
+            date: entry.date,
+            fullLabel: entry.fullLabel,
+            hasDailyNote: entry.hasDailyNote,
+            hasUnfinishedTasks: db ? entry.dayFiles.some(file => (db.getFile(file.path)?.taskUnfinished ?? 0) > 0) : false,
+            key: entry.key,
+            monthIndex: entry.monthIndex,
+            shortLabel: entry.shortLabel
+        }));
+    }, [db, taskIndicatorVersion, yearMonthBaseEntries]);
+
+    const highlightedMonthFilesByKey = useMemo(() => {
+        const filesByKey = new Map<string, TFile>();
+
+        if (!momentApi || !showYearCalendar) {
+            return filesByKey;
+        }
+
+        void featureImageVersion;
+
+        for (const entry of yearMonthBaseEntries) {
+            const highlightedDayIso = settings.calendarMonthHighlights[entry.key] ?? null;
+            if (highlightedDayIso) {
+                const highlightedDay = momentApi(highlightedDayIso, 'YYYY-MM-DD', true);
+                if (highlightedDay.isValid() && highlightedDay.format('YYYY-MM') === entry.key) {
+                    const file = getExistingDayNoteFile(highlightedDay.startOf('day'));
+                    if (file) {
+                        filesByKey.set(entry.key, file);
+                    }
+                }
+                continue;
+            }
+
+            if (!entry.hasDailyNote) {
+                continue;
+            }
+
+            if (!db) {
+                continue;
+            }
+
+            for (const file of entry.dayFiles) {
+                const record = db.getFile(file.path);
+                const featureKey = record?.featureImageKey ?? null;
+                const featureStatus = record?.featureImageStatus ?? null;
+                if (featureStatus !== 'has' || !featureKey || featureKey === '') {
+                    continue;
+                }
+
+                filesByKey.set(entry.key, file);
+                break;
+            }
+        }
+
+        return filesByKey;
+    }, [
+        db,
+        featureImageVersion,
+        getExistingDayNoteFile,
+        momentApi,
+        settings.calendarMonthHighlights,
+        showYearCalendar,
+        yearMonthBaseEntries
+    ]);
+
+    const highlightedMonthFeatureImageTargets = useMemo<CalendarFeatureImageTarget[]>(() => {
+        void featureImageVersion;
+
+        const targets: CalendarFeatureImageTarget[] = [];
+
+        if (!db || !settings.calendarShowFeatureImage) {
+            return targets;
+        }
+
+        highlightedMonthFilesByKey.forEach((file, monthKey) => {
+            const record = db.getFile(file.path);
+            const featureKey = record?.featureImageKey ?? null;
+            const featureStatus = record?.featureImageStatus ?? null;
+            if (featureStatus !== 'has' || !featureKey || featureKey === '') {
+                return;
+            }
+
+            targets.push({
+                id: monthKey,
+                file,
+                key: featureKey
+            });
+        });
+
+        return targets;
+    }, [db, featureImageVersion, highlightedMonthFilesByKey, settings.calendarShowFeatureImage]);
+
+    useEffect(() => {
+        const activeKeys = new Set<string>();
+        for (const target of [...dayFeatureImageTargets, ...highlightedMonthFeatureImageTargets]) {
+            const regenerationKey = getCalendarFeatureImageRegenerationKey(target.file.path, target.key);
+            if (regenerationKey) {
+                activeKeys.add(regenerationKey);
+            }
+        }
+
+        const pendingKeys = missingFeatureImageRegenerationRef.current;
+        for (const key of pendingKeys) {
+            if (!activeKeys.has(key)) {
+                pendingKeys.delete(key);
+            }
+        }
+    }, [dayFeatureImageTargets, highlightedMonthFeatureImageTargets]);
+
+    const highlightedMonthFeatureImageKeys = useMemo(() => {
+        const keys = new Set<string>();
+
+        highlightedMonthFeatureImageTargets.forEach(target => {
+            keys.add(target.id);
+        });
+
+        return keys;
+    }, [highlightedMonthFeatureImageTargets]);
+
+    const highlightedMonthWatchedNotePaths = useMemo(() => {
+        const paths = new Set<string>();
+        highlightedMonthFilesByKey.forEach(file => {
+            paths.add(file.path);
+        });
+        return paths;
+    }, [highlightedMonthFilesByKey]);
+
+    const highlightedMonthImageUrls = useCalendarFeatureImages({
+        db,
+        showFeatureImages: settings.calendarShowFeatureImage && showYearCalendar,
+        targets: highlightedMonthFeatureImageTargets,
+        maxConcurrentLoads: isMobile ? 2 : 4,
+        onMissingFeatureImage: handleMissingCalendarFeatureImage
+    });
+
+    const yearPanelDate = useMemo(() => {
+        if (!momentApi || !cursorDate || displayedYear === null) {
+            return null;
+        }
+
+        return cursorDate.clone().set({ year: displayedYear }).locale(displayLocale);
+    }, [cursorDate, displayLocale, displayedYear, momentApi]);
 
     const headerPeriodNoteFiles = useMemo<CalendarHeaderPeriodNoteFiles>(() => {
         void vaultVersion;
@@ -851,6 +1450,50 @@ export function Calendar({
         [cursorDate, displayLocale, getHeaderPeriodState, showCalendarNoteContextMenu]
     );
 
+    const yearPanelPeriodNoteFile = useMemo(() => {
+        void vaultVersion;
+        if (!yearPanelDate || !yearNotesEnabled) {
+            return null;
+        }
+
+        return getExistingCustomCalendarNoteFile('year', yearPanelDate);
+    }, [getExistingCustomCalendarNoteFile, vaultVersion, yearNotesEnabled, yearPanelDate]);
+
+    const handleYearPanelPeriodClick = useCallback(
+        (event: React.MouseEvent<HTMLElement>) => {
+            if (!yearPanelDate) {
+                return;
+            }
+
+            if (handleDateFilterModifiedClick(event, 'year', yearPanelDate)) {
+                return;
+            }
+
+            if (!yearNotesEnabled) {
+                return;
+            }
+
+            openOrCreateCustomCalendarNote('year', yearPanelDate, yearPanelPeriodNoteFile);
+        },
+        [handleDateFilterModifiedClick, openOrCreateCustomCalendarNote, yearNotesEnabled, yearPanelDate, yearPanelPeriodNoteFile]
+    );
+
+    const handleYearPanelPeriodContextMenu = useCallback(
+        (event: React.MouseEvent<HTMLElement>) => {
+            if (!yearPanelDate) {
+                return;
+            }
+
+            showCalendarNoteContextMenu(event, {
+                kind: 'year',
+                date: yearPanelDate,
+                existingFile: yearPanelPeriodNoteFile,
+                canCreate: yearNotesEnabled
+            });
+        },
+        [showCalendarNoteContextMenu, yearNotesEnabled, yearPanelDate, yearPanelPeriodNoteFile]
+    );
+
     const weekNoteFilesByKey = useMemo(() => {
         void vaultVersion;
         if (!momentApi || !cursorDate) {
@@ -893,18 +1536,52 @@ export function Calendar({
         return counts;
     }, [db, taskIndicatorVersion, weekNoteFilesByKey]);
 
-    const visibleIndicatorNotePaths = useMemo(() => {
-        const paths = new Set<string>(visibleDayNotePaths);
+    const visibleCalendarNoteFiles = useMemo(() => {
+        const files = new Map<string, TFile>();
+
+        for (const week of weeks) {
+            for (const day of week.days) {
+                if (day.file) {
+                    files.set(day.file.path, day.file);
+                }
+            }
+        }
 
         weekNoteFilesByKey.forEach(file => {
             if (file) {
-                paths.add(file.path);
+                files.set(file.path, file);
             }
         });
 
+        for (const entry of yearMonthBaseEntries) {
+            for (const file of entry.dayFiles) {
+                files.set(file.path, file);
+            }
+        }
+
+        return Array.from(files.values()).filter(file => file.extension === 'md');
+    }, [weekNoteFilesByKey, weeks, yearMonthBaseEntries]);
+
+    useEffect(() => {
+        onVisibleCalendarNoteFilesChange?.(visibleCalendarNoteFiles);
+    }, [onVisibleCalendarNoteFilesChange, visibleCalendarNoteFiles]);
+
+    const visibleIndicatorNotePaths = useMemo(() => {
+        const paths = new Set<string>();
+        visibleCalendarNoteFiles.forEach(file => {
+            paths.add(file.path);
+        });
         return paths;
-    }, [visibleDayNotePaths, weekNoteFilesByKey]);
+    }, [visibleCalendarNoteFiles]);
     visibleIndicatorNotePathsRef.current = visibleIndicatorNotePaths;
+    const visibleFeatureImageNotePaths = useMemo(() => {
+        const paths = new Set<string>(visibleDayNotePaths);
+        highlightedMonthWatchedNotePaths.forEach(path => {
+            paths.add(path);
+        });
+        return paths;
+    }, [highlightedMonthWatchedNotePaths, visibleDayNotePaths]);
+    visibleFeatureImageNotePathsRef.current = visibleFeatureImageNotePaths;
     visibleFrontmatterNotePathsRef.current = visibleDayNotePaths;
 
     const handleWeekClick = useCallback(
@@ -970,26 +1647,37 @@ export function Calendar({
 
     const handleDayContextMenu = useCallback(
         (event: React.MouseEvent<HTMLButtonElement>, day: CalendarWeek['days'][number], canCreate: boolean) => {
+            const monthKey = day.date.format('YYYY-MM');
             showCalendarNoteContextMenu(event, {
                 kind: 'day',
                 date: day.date,
                 existingFile: day.file,
-                canCreate
+                canCreate,
+                monthKey,
+                dayIso: day.iso,
+                hasFeatureImage: featureImageKeysByIso.has(day.iso),
+                currentMonthHighlightDayIso: settings.calendarMonthHighlights[monthKey] ?? null
             });
         },
-        [showCalendarNoteContextMenu]
+        [featureImageKeysByIso, settings.calendarMonthHighlights, showCalendarNoteContextMenu]
     );
 
     if (!momentApi || !cursorDate) {
         return null;
     }
 
-    const selectedYearValue = cursorDate.year();
+    const activeYearValue = cursorDate.year();
+    const currentMonthKey = todayIso ? todayIso.slice(0, 7) : null;
     const monthYearHeaderDate = cursorDate.clone().locale(displayLocale);
-    const monthLabel = monthYearHeaderDate.format('MMMM');
+    const monthHeadingFormat = settings.calendarMonthHeadingFormat === 'short' ? 'MMM' : 'MMMM';
+    const monthLabel = monthYearHeaderDate.format(monthHeadingFormat);
     const yearLabel = monthYearHeaderDate.format('YYYY');
     const quarterLabel = monthYearHeaderDate.format('[Q]Q');
     const canCreateDayNotes = settings.calendarIntegrationMode !== 'daily-notes' || Boolean(dailyNoteSettings);
+    const isMonthPeriodActive = Boolean(activeEditorFilePath && headerPeriodNoteFiles.month?.path === activeEditorFilePath);
+    const isQuarterPeriodActive = Boolean(activeEditorFilePath && headerPeriodNoteFiles.quarter?.path === activeEditorFilePath);
+    const isYearPeriodActive = Boolean(activeEditorFilePath && headerPeriodNoteFiles.year?.path === activeEditorFilePath);
+    const isYearPanelPeriodActive = Boolean(activeEditorFilePath && yearPanelPeriodNoteFile?.path === activeEditorFilePath);
 
     return (
         <>
@@ -1008,8 +1696,7 @@ export function Calendar({
                 aria-labelledby={calendarLabelId}
                 data-highlight-today={highlightToday ? 'true' : undefined}
                 data-weeknumbers={showWeekNumbers ? 'true' : undefined}
-                data-compact-header={useRightSidebarYearCalendarHeaderLayout ? 'true' : undefined}
-                data-split-header={useSplitHeaderLayout ? 'true' : undefined}
+                data-split-header="true"
             >
                 <span id={calendarLabelId} className="nn-visually-hidden">
                     {strings.navigationCalendar.ariaLabel}
@@ -1023,6 +1710,9 @@ export function Calendar({
                     hasMonthPeriodNote={Boolean(headerPeriodNoteFiles.month)}
                     hasQuarterPeriodNote={Boolean(headerPeriodNoteFiles.quarter)}
                     hasYearPeriodNote={Boolean(headerPeriodNoteFiles.year)}
+                    isMonthPeriodActive={isMonthPeriodActive}
+                    isQuarterPeriodActive={isQuarterPeriodActive}
+                    isYearPeriodActive={isYearPeriodActive}
                     showInlineMonthNavigation={showInlineMonthNavigation}
                     showCompactQuarterInMonthRow={showCompactQuarterInMonthRow}
                     showHeaderPeriodDetails={showHeaderPeriodDetails}
@@ -1037,6 +1727,7 @@ export function Calendar({
                 />
 
                 <CalendarGrid
+                    activeEditorFilePath={activeEditorFilePath}
                     showWeekNumbers={showWeekNumbers}
                     weekdays={weekdays}
                     weekStartsOn={weekStartsOn}
@@ -1066,13 +1757,18 @@ export function Calendar({
 
                 <CalendarYearPanel
                     showYearCalendar={showYearCalendar}
-                    selectedYearValue={selectedYearValue}
-                    selectedMonthIndex={cursorDate.month()}
-                    hasYearPeriodNote={Boolean(headerPeriodNoteFiles.year)}
+                    currentMonthKey={currentMonthKey}
+                    displayedYearValue={displayedYear ?? activeYearValue}
+                    activeYearValue={activeYearValue}
+                    activeMonthIndex={cursorDate.month()}
+                    hasYearPeriodNote={Boolean(yearPanelPeriodNoteFile)}
+                    isYearPeriodActive={isYearPanelPeriodActive}
                     yearMonthEntries={yearMonthEntries}
+                    highlightedMonthFeatureImageKeys={highlightedMonthFeatureImageKeys}
+                    highlightedMonthImageUrls={highlightedMonthImageUrls}
                     onNavigateYear={handleNavigateYear}
-                    onYearPeriodClick={event => handleHeaderPeriodClick(event, 'year')}
-                    onYearPeriodContextMenu={event => handleHeaderPeriodContextMenu(event, 'year')}
+                    onYearPeriodClick={handleYearPanelPeriodClick}
+                    onYearPeriodContextMenu={handleYearPanelPeriodContextMenu}
                     onSelectYearMonth={handleSelectYearMonth}
                 />
             </div>

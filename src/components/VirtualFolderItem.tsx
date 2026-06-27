@@ -49,7 +49,6 @@ import { useSettingsState } from '../context/SettingsContext';
 import { getIconService, useIconServiceVersion } from '../services/icons';
 import {
     PROPERTIES_ROOT_VIRTUAL_FOLDER_ID,
-    RECENT_NOTES_VIRTUAL_FOLDER_ID,
     SHORTCUTS_VIRTUAL_FOLDER_ID,
     TAGS_ROOT_VIRTUAL_FOLDER_ID,
     VirtualFolder,
@@ -73,13 +72,18 @@ export interface VirtualFolderTrailingAction {
 interface VirtualFolderItemProps {
     virtualFolder: VirtualFolder; // Static data structure from NavigationPane
     level: number; // Nesting level for indentation
+    color?: string;
+    backgroundColor?: string;
+    adjacentFilledClassName?: string;
     indentGuideLevels?: number[]; // Levels of expanded ancestors whose connector lines should be rendered on this row
     isExpanded: boolean; // From ExpansionContext via NavigationPane
     hasChildren: boolean; // Computed by NavigationPane from tag tree
     onToggle: () => void; // Expansion toggle handler
+    onToggleAllSiblings?: () => void; // Optional recursive toggle handler for modifier-click on the chevron
     onSelect?: (event: React.MouseEvent<HTMLDivElement>) => void; // Optional selection handler
     isSelected?: boolean; // Selection state for virtual folders that act as collections
     showFileCount?: boolean; // Whether to render note count badge
+    showCountLeader?: boolean; // Whether to render count leader marks before the trailing count area
     countInfo?: NoteCountInfo; // Pre-computed note counts
     searchMatch?: 'include' | 'exclude'; // Search highlight state
     trailingAction?: VirtualFolderTrailingAction; // Optional trailing action button
@@ -114,12 +118,17 @@ interface VirtualFolderItemProps {
 export const VirtualFolderComponent = React.memo(function VirtualFolderComponent({
     virtualFolder,
     level,
+    color,
+    backgroundColor,
+    adjacentFilledClassName,
     indentGuideLevels,
     isExpanded,
     hasChildren,
+    onToggleAllSiblings,
     onSelect,
     isSelected = false,
     showFileCount = false,
+    showCountLeader = true,
     countInfo,
     searchMatch,
     trailingAction,
@@ -132,11 +141,12 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
 }: VirtualFolderItemProps) {
     const settings = useSettingsState();
     const uxPreferences = useUXPreferences();
-    const folderRef = useRef<HTMLDivElement>(null);
-    const chevronRef = useRef<HTMLDivElement>(null);
-    const iconRef = useRef<HTMLSpanElement>(null);
+    const folderRef = useRef<HTMLDivElement | null>(null);
+    const chevronRef = useRef<HTMLDivElement | null>(null);
+    const iconRef = useRef<HTMLSpanElement | null>(null);
     const iconVersion = useIconServiceVersion();
     const includeDescendantNotes = uxPreferences.includeDescendantNotes;
+    const applyColorToName = Boolean(color) && !settings.colorIconOnly;
 
     // Format note count display based on descendant notes preference and count settings
     const noteCountDisplay = useMemo(() => {
@@ -182,6 +192,7 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
         }
         return trailingActionLabelMode !== 'note-count';
     }, [noteCountDisplay, shouldDisplayCount, trailingActionLabelMode]);
+    const reserveTrailingActionSpace = trailingActionLabelMode !== 'note-count' || typeof trailingActionLabel === 'string';
 
     // Build CSS class name with selection state
     const className = useMemo(() => {
@@ -195,25 +206,26 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
         if (isSelected) {
             classes.push('nn-selected');
         }
+        if (backgroundColor) {
+            classes.push('nn-has-custom-background');
+        }
         if (searchMatch) {
             classes.push('nn-has-search-match');
         }
+        if (adjacentFilledClassName) {
+            classes.push(adjacentFilledClassName);
+        }
         return classes.join(' ');
-    }, [isSelected, searchMatch, virtualFolder.id]);
+    }, [adjacentFilledClassName, backgroundColor, isSelected, searchMatch, virtualFolder.id]);
 
     const contentClassName = useMemo(() => buildSearchMatchContentClass(['nn-navitem-content'], searchMatch), [searchMatch]);
-
-    const shouldShowIcon = useMemo(() => {
-        if (
-            virtualFolder.id === SHORTCUTS_VIRTUAL_FOLDER_ID ||
-            virtualFolder.id === RECENT_NOTES_VIRTUAL_FOLDER_ID ||
-            virtualFolder.id === TAGS_ROOT_VIRTUAL_FOLDER_ID
-        ) {
-            return true;
+    const virtualFolderNameClassName = useMemo(() => {
+        const classes = ['nn-navitem-name'];
+        if (applyColorToName && color) {
+            classes.push('nn-has-custom-color');
         }
-
-        return settings.showSectionIcons;
-    }, [settings.showSectionIcons, virtualFolder.id]);
+        return classes.join(' ');
+    }, [applyColorToName, color]);
 
     const handleDoubleClick = useCallback(() => {
         if (hasChildren) {
@@ -224,9 +236,18 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
     const handleChevronClick = useCallback(
         (e: React.MouseEvent) => {
             e.stopPropagation();
-            if (hasChildren) onToggle();
+            if (!hasChildren) {
+                return;
+            }
+
+            if (e.altKey && onToggleAllSiblings) {
+                onToggleAllSiblings();
+                return;
+            }
+
+            onToggle();
         },
-        [hasChildren, onToggle]
+        [hasChildren, onToggle, onToggleAllSiblings]
     );
 
     const handleChevronDoubleClick = useCallback((e: React.MouseEvent) => {
@@ -265,14 +286,17 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
         );
     }, [hasChildren, iconVersion, isExpanded, settings.interfaceIcons]);
 
-    // Renders icon for virtual folders based on folder type and icon visibility settings
+    // Renders icon for virtual folders when an icon is configured on the item
     useEffect(() => {
-        if (iconRef.current && shouldShowIcon && virtualFolder.icon) {
+        if (iconRef.current && virtualFolder.icon) {
             getIconService().renderIcon(iconRef.current, virtualFolder.icon);
         }
-    }, [virtualFolder.icon, shouldShowIcon, iconVersion]);
+    }, [virtualFolder.icon, iconVersion]);
 
-    const virtualFolderStyle: CSSPropertiesWithVars = { '--level': level };
+    const virtualFolderStyle: CSSPropertiesWithVars = {
+        '--level': level,
+        ...(backgroundColor ? { '--nn-navitem-custom-bg-color': backgroundColor } : {})
+    };
 
     return (
         <div
@@ -305,9 +329,11 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
                     onDoubleClick={handleChevronDoubleClick}
                     tabIndex={-1}
                 />
-                {shouldShowIcon && virtualFolder.icon && <span className="nn-navitem-icon" ref={iconRef} />}
-                <span className="nn-navitem-name">{virtualFolder.name}</span>
-                <span className="nn-navitem-spacer" />
+                {virtualFolder.icon && <span className="nn-navitem-icon" ref={iconRef} style={color ? { color } : undefined} />}
+                <span className={virtualFolderNameClassName} style={applyColorToName ? { color } : undefined}>
+                    {virtualFolder.name}
+                </span>
+                <span className={`nn-navitem-spacer${showCountLeader ? ' nn-navitem-spacer--leader' : ''}`} />
                 {shouldRenderCountBadge && noteCountDisplay && <span className="nn-navitem-count">{noteCountDisplay.label}</span>}
                 {trailingAction && (
                     <NavItemHoverActionSlot
@@ -315,6 +341,7 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
                         actionLabel={trailingAction.actionLabel}
                         icon={trailingAction.icon}
                         onClick={trailingAction.onClick}
+                        reserveSpaceWhenHidden={reserveTrailingActionSpace}
                     />
                 )}
             </div>

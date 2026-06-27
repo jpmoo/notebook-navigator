@@ -21,10 +21,11 @@ import { BaseMetadataService } from './BaseMetadataService';
 import type { CleanupValidators } from '../MetadataService';
 import { ItemType, NavigatorContext } from '../../types';
 import { isNoteShortcut } from '../../types/shortcuts';
-import type { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import { getDBInstance } from '../../storage/fileOperations';
 import { deserializeIconFromFrontmatterCompat, normalizeCanonicalIconId, serializeIconForFrontmatter } from '../../utils/iconizeFormat';
-import { normalizePinnedNoteContext } from '../../utils/recordUtils';
+import { findMatchingRecordKey, normalizePinnedNoteContext } from '../../utils/recordUtils';
+import { createShortcutTargetPathEventMatcher } from '../../utils/shortcutPathResolver';
 
 /**
  * Service for managing file-specific metadata operations
@@ -217,13 +218,18 @@ export class FileMetadataService extends BaseMetadataService {
             let didUpdate = false;
             try {
                 await this.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
-                    const currentValue = frontmatter[iconField];
+                    const targetField = findMatchingRecordKey(frontmatter, iconField);
+                    if (!targetField) {
+                        return;
+                    }
+
+                    const currentValue = frontmatter[targetField];
                     if (typeof currentValue === 'string') {
                         const normalized = deserializeIconFromFrontmatterCompat(currentValue);
                         if (normalized !== oldIconId) {
                             return;
                         }
-                        frontmatter[iconField] = replacementValue;
+                        frontmatter[targetField] = replacementValue;
                         didUpdate = true;
                         return;
                     }
@@ -243,7 +249,7 @@ export class FileMetadataService extends BaseMetadataService {
                         });
 
                         if (didUpdate) {
-                            frontmatter[iconField] = next;
+                            frontmatter[targetField] = next;
                         }
                     }
                 });
@@ -259,18 +265,18 @@ export class FileMetadataService extends BaseMetadataService {
     }
 
     /**
-     * Writes or deletes an icon/color value in a file's frontmatter and syncs to IndexedDB
+     * Writes or deletes file style metadata in a file's frontmatter and syncs to IndexedDB
      * @param file - The file to update
      * @param field - Frontmatter field name to write to
      * @param value - Value to write, or null to delete the field
-     * @param metadataKey - Type of metadata being written ('icon' or 'color')
+     * @param metadataKey - Type of metadata being written
      * @returns Object with success status and the normalized value that was written
      */
     private async writeFrontmatterValue(
         file: TFile,
         field: string,
         value: string | null,
-        metadataKey: 'icon' | 'color'
+        metadataKey: 'icon' | 'color' | 'background'
     ): Promise<{ success: boolean; normalized: string | null }> {
         const trimmedField = field.trim();
         if (!trimmedField) {
@@ -303,22 +309,25 @@ export class FileMetadataService extends BaseMetadataService {
         try {
             // Update the frontmatter in the file
             await this.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
+                const targetField = findMatchingRecordKey(frontmatter, trimmedField) ?? trimmedField;
                 if (normalizedFrontmatterValue && normalizedFrontmatterValue.length > 0) {
-                    frontmatter[trimmedField] = normalizedFrontmatterValue;
+                    frontmatter[targetField] = normalizedFrontmatterValue;
                     return;
                 }
 
                 // Remove the field if it exists and new value is empty
-                if (Reflect.has(frontmatter, trimmedField)) {
-                    delete frontmatter[trimmedField];
+                if (Reflect.has(frontmatter, targetField)) {
+                    delete frontmatter[targetField];
                 }
             });
             // Sync the change to IndexedDB cache using canonical format
             const db = getDBInstance();
-            const metadataUpdate: { icon?: string; color?: string } = {};
+            const metadataUpdate: { icon?: string; color?: string; background?: string } = {};
             if (metadataKey === 'icon') {
                 // Store canonical icon format in cache for consistency
                 metadataUpdate.icon = canonicalValue && canonicalValue.length > 0 ? canonicalValue : undefined;
+            } else if (metadataKey === 'background') {
+                metadataUpdate.background = canonicalValue && canonicalValue.length > 0 ? canonicalValue : undefined;
             } else {
                 metadataUpdate.color = canonicalValue && canonicalValue.length > 0 ? canonicalValue : undefined;
             }
@@ -335,12 +344,12 @@ export class FileMetadataService extends BaseMetadataService {
     }
 
     /**
-     * Removes an icon or color entry from settings storage for a specific file
+     * Removes a file style entry from settings storage for a specific file
      * Used after successfully migrating metadata to frontmatter
-     * @param key - The settings property to clear ('fileIcons' or 'fileColors')
+     * @param key - The settings property to clear
      * @param filePath - Path to the file whose entry should be removed
      */
-    private async clearSettingsEntry(key: 'fileIcons' | 'fileColors', filePath: string): Promise<void> {
+    private async clearSettingsEntry(key: 'fileIcons' | 'fileColors' | 'fileBackgroundColors', filePath: string): Promise<void> {
         const record = this.settingsProvider.settings[key];
         if (!record || record[filePath] === undefined) {
             return;
@@ -476,6 +485,7 @@ export class FileMetadataService extends BaseMetadataService {
      * @param filePath - Path of the deleted file
      */
     async handleFileDelete(filePath: string): Promise<void> {
+        const matchesShortcutPath = createShortcutTargetPathEventMatcher(this.app, 'note', filePath);
         await this.saveAndUpdate(settings => {
             if (settings.pinnedNotes?.[filePath]) {
                 delete settings.pinnedNotes[filePath];
@@ -486,12 +496,15 @@ export class FileMetadataService extends BaseMetadataService {
             if (settings.fileColors?.[filePath]) {
                 delete settings.fileColors[filePath];
             }
+            if (settings.fileBackgroundColors?.[filePath]) {
+                delete settings.fileBackgroundColors[filePath];
+            }
 
             this.updateShortcuts(settings, shortcut => {
                 if (!isNoteShortcut(shortcut)) {
                     return undefined;
                 }
-                return shortcut.path === filePath ? null : undefined;
+                return matchesShortcutPath(shortcut.path) ? null : undefined;
             });
         });
     }
@@ -505,6 +518,7 @@ export class FileMetadataService extends BaseMetadataService {
         const isVaultIconRename = this.isVaultSvgIconPath(oldPath) && this.isVaultSvgIconPath(newPath);
         const oldVaultIconId = isVaultIconRename ? this.formatVaultIconId(oldPath) : null;
         const newVaultIconId = isVaultIconRename ? this.formatVaultIconId(newPath) : null;
+        const matchesShortcutPath = createShortcutTargetPathEventMatcher(this.app, 'note', oldPath, newPath);
 
         await this.saveAndUpdate(settings => {
             let changed = false;
@@ -519,6 +533,7 @@ export class FileMetadataService extends BaseMetadataService {
 
             changed = this.updateNestedPaths(settings.fileIcons, oldPath, newPath) || changed;
             changed = this.updateNestedPaths(settings.fileColors, oldPath, newPath) || changed;
+            changed = this.updateNestedPaths(settings.fileBackgroundColors, oldPath, newPath) || changed;
 
             if (oldVaultIconId && newVaultIconId) {
                 changed = this.updateVaultIconReferencesInSettings(settings, oldVaultIconId, newVaultIconId) || changed;
@@ -529,7 +544,7 @@ export class FileMetadataService extends BaseMetadataService {
                     if (!isNoteShortcut(shortcut)) {
                         return undefined;
                     }
-                    if (shortcut.path !== oldPath) {
+                    if (!matchesShortcutPath(shortcut.path)) {
                         return undefined;
                     }
 
@@ -658,14 +673,59 @@ export class FileMetadataService extends BaseMetadataService {
     }
 
     /**
-     * Migrates all file icons and colors from settings storage to frontmatter
+     * Sets a background color for a file, storing in frontmatter if enabled, otherwise in settings
+     * @param filePath - Path to the file
+     * @param color - Background color value to set
+     */
+    async setFileBackgroundColor(filePath: string, color: string): Promise<void> {
+        if (!this.validateColor(color)) {
+            return;
+        }
+
+        const file = this.getFile(filePath);
+        if (!file) {
+            return;
+        }
+
+        if (this.shouldUseFrontmatterForFiles() && file.extension === 'md') {
+            const field = this.settingsProvider.settings.frontmatterBackgroundField;
+            const { success } = await this.writeFrontmatterValue(file, field, color, 'background');
+            if (success) {
+                await this.clearSettingsEntry('fileBackgroundColors', filePath);
+                return;
+            }
+        }
+
+        await this.setEntityBackgroundColor(ItemType.FILE, filePath, color);
+    }
+
+    /**
+     * Removes a background color from a file, clearing from frontmatter if enabled, otherwise from settings
+     * @param filePath - Path to the file
+     */
+    async removeFileBackgroundColor(filePath: string): Promise<void> {
+        const file = this.getFile(filePath);
+        if (file && this.shouldUseFrontmatterForFiles() && file.extension === 'md') {
+            const field = this.settingsProvider.settings.frontmatterBackgroundField;
+            const { success } = await this.writeFrontmatterValue(file, field, null, 'background');
+            if (success) {
+                await this.clearSettingsEntry('fileBackgroundColors', filePath);
+                return;
+            }
+        }
+
+        await this.removeEntityBackgroundColor(ItemType.FILE, filePath);
+    }
+
+    /**
+     * Migrates all file icons and color metadata from settings storage to frontmatter
      * Only processes markdown files and only when frontmatter storage is enabled
      * @returns Statistics about the migration including successes and failures
      */
     async migrateSettingsToFrontmatter(): Promise<FileMetadataMigrationResult> {
         const settings = this.settingsProvider.settings;
         const iconsBefore = Object.keys(settings.fileIcons || {}).length;
-        const colorsBefore = Object.keys(settings.fileColors || {}).length;
+        const colorsBefore = Object.keys(settings.fileColors || {}).length + Object.keys(settings.fileBackgroundColors || {}).length;
 
         // Early return if frontmatter storage is not enabled
         if (!this.shouldUseFrontmatterForFiles()) {
@@ -681,6 +741,7 @@ export class FileMetadataService extends BaseMetadataService {
 
         const iconEntries = Object.entries(settings.fileIcons || {});
         const colorEntries = Object.entries(settings.fileColors || {});
+        const backgroundEntries = Object.entries(settings.fileBackgroundColors || {});
         const migratedFiles = new Set<string>();
         let migratedIcons = 0;
         let migratedColors = 0;
@@ -688,8 +749,10 @@ export class FileMetadataService extends BaseMetadataService {
 
         const iconField = settings.frontmatterIconField.trim();
         const colorField = settings.frontmatterColorField.trim();
+        const backgroundField = settings.frontmatterBackgroundField.trim();
         const canMigrateIcons = iconField.length > 0;
         const canMigrateColors = colorField.length > 0;
+        const canMigrateBackgrounds = backgroundField.length > 0;
 
         // Migrate all icons
         if (canMigrateIcons) {
@@ -731,6 +794,25 @@ export class FileMetadataService extends BaseMetadataService {
             }
         }
 
+        if (canMigrateBackgrounds) {
+            for (const [path, background] of backgroundEntries) {
+                const file = this.getFile(path);
+                if (!file || file.extension !== 'md') {
+                    failures += 1;
+                    continue;
+                }
+
+                const { success } = await this.writeFrontmatterValue(file, backgroundField, background, 'background');
+                if (success) {
+                    await this.clearSettingsEntry('fileBackgroundColors', path);
+                    migratedFiles.add(path);
+                    migratedColors += 1;
+                } else {
+                    failures += 1;
+                }
+            }
+        }
+
         return {
             iconsBefore,
             colorsBefore,
@@ -748,6 +830,15 @@ export class FileMetadataService extends BaseMetadataService {
      */
     getFileColor(filePath: string): string | undefined {
         return this.getEntityColor(ItemType.FILE, filePath) ?? undefined;
+    }
+
+    /**
+     * Gets the background color for a file from settings storage
+     * @param filePath - Path to the file
+     * @returns Background color value or undefined if no background color is set
+     */
+    getFileBackgroundColor(filePath: string): string | undefined {
+        return this.getEntityBackgroundColor(ItemType.FILE, filePath) ?? undefined;
     }
 
     /**
@@ -787,8 +878,11 @@ export class FileMetadataService extends BaseMetadataService {
 
         const fileIconCleanup = await this.cleanupMetadata(targetSettings, 'fileIcons', path => validators.vaultFiles.has(path));
         const fileColorCleanup = await this.cleanupMetadata(targetSettings, 'fileColors', path => validators.vaultFiles.has(path));
+        const fileBackgroundCleanup = await this.cleanupMetadata(targetSettings, 'fileBackgroundColors', path =>
+            validators.vaultFiles.has(path)
+        );
 
-        return hasChanges || fileIconCleanup || fileColorCleanup;
+        return hasChanges || fileIconCleanup || fileColorCleanup || fileBackgroundCleanup;
     }
 
     /**

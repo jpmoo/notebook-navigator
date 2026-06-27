@@ -17,8 +17,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { App } from 'obsidian';
-import { CommandQueueService } from '../../src/services/CommandQueueService';
+import { CommandQueueService, OperationType } from '../../src/services/CommandQueueService';
 import { createTestTFile } from '../utils/createTestTFile';
 
 function createDeferredVoid(): { promise: Promise<void>; resolve: () => void } {
@@ -43,8 +42,7 @@ describe('CommandQueueService', () => {
     });
 
     it('tracks recent preview opens after completion', async () => {
-        const app = new App();
-        const commandQueue = new CommandQueueService(app);
+        const commandQueue = new CommandQueueService();
         const file = createTestTFile('notes/test.md');
 
         const openGate = createDeferredVoid();
@@ -64,9 +62,29 @@ describe('CommandQueueService', () => {
         expect(commandQueue.isOpeningActiveFileInBackground(file.path)).toBe(false);
     });
 
+    it('tracks dedicated background file opens without using the active-file queue', async () => {
+        const commandQueue = new CommandQueueService();
+        const file = createTestTFile('notes/sidebar.md');
+
+        const openGate = createDeferredVoid();
+        const openFile = vi.fn(async () => openGate.promise);
+
+        const task = commandQueue.executeBackgroundFileOpen(file, openFile);
+        await Promise.resolve();
+
+        expect(commandQueue.isOpeningActiveFileInBackground(file.path)).toBe(true);
+
+        openGate.resolve();
+        await task;
+
+        expect(commandQueue.isOpeningActiveFileInBackground(file.path)).toBe(true);
+
+        vi.advanceTimersByTime(500);
+        expect(commandQueue.isOpeningActiveFileInBackground(file.path)).toBe(false);
+    });
+
     it('does not report active:true opens as background', async () => {
-        const app = new App();
-        const commandQueue = new CommandQueueService(app);
+        const commandQueue = new CommandQueueService();
         const file = createTestTFile('notes/test.md');
 
         const openGate = createDeferredVoid();
@@ -81,5 +99,47 @@ describe('CommandQueueService', () => {
         await task;
 
         expect(commandQueue.isOpeningActiveFileInBackground(file.path)).toBe(false);
+    });
+
+    it('replays active operations to late operation listeners', async () => {
+        const commandQueue = new CommandQueueService();
+        const file = createTestTFile('notes/delete.md');
+        const deleteGate = createDeferredVoid();
+        const performDelete = vi.fn(async () => deleteGate.promise);
+        const listener = vi.fn();
+
+        const task = commandQueue.executeDeleteFiles([file], performDelete);
+        await Promise.resolve();
+
+        const unsubscribe = commandQueue.onOperationChange(listener);
+
+        expect(listener).toHaveBeenCalledWith(OperationType.DELETE_FILES, true);
+
+        deleteGate.resolve();
+        await task;
+
+        expect(listener).toHaveBeenCalledWith(OperationType.DELETE_FILES, false);
+
+        unsubscribe();
+    });
+
+    it('clears active operation snapshots', async () => {
+        const commandQueue = new CommandQueueService();
+        const file = createTestTFile('notes/delete.md');
+        const deleteGate = createDeferredVoid();
+        const performDelete = vi.fn(async () => deleteGate.promise);
+        const listener = vi.fn();
+
+        const task = commandQueue.executeDeleteFiles([file], performDelete);
+        await Promise.resolve();
+
+        commandQueue.clearAllOperations();
+        commandQueue.onOperationChange(listener);
+
+        expect(commandQueue.isDeletingFiles()).toBe(false);
+        expect(listener).not.toHaveBeenCalled();
+
+        deleteGate.resolve();
+        await task;
     });
 });

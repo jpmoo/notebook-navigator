@@ -8,6 +8,7 @@
 
 /* Navigation item - container for each folder/tag in the tree */
 .nn-navitem {
+    --nn-navitem-background-bottom-overdraw: 0px;
     -webkit-user-select: none;
     user-select: none;
     background: transparent;
@@ -46,8 +47,7 @@
     top: 0px;
     inset-inline-start: 0;
     inset-inline-end: 0;
-    /* Extend slightly beyond bottom item bounds (height rounding issue) to prevent hairline gaps when zoomed */
-    bottom: -0.2px;
+    bottom: var(--nn-navitem-background-bottom-overdraw);
     background-color: var(--nn-navitem-custom-bg-color);
     border-top-left-radius: var(--nn-navitem-top-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));
     border-top-right-radius: var(--nn-navitem-top-right-radius, min(14px, var(--nn-theme-navitem-border-radius)));
@@ -63,31 +63,16 @@
     z-index: 2;
 }
 
-/* Zero shared corners when consecutive background overlays touch */
-.nn-navitem:is(.nn-has-custom-background, .nn-has-search-match) + .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match) {
-    --nn-navitem-top-left-radius: 0;
-    --nn-navitem-top-right-radius: 0;
-}
-
-.nn-navitem:is(.nn-has-custom-background, .nn-has-search-match):has(+ .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match)) {
+/* Overdraw and zero shared corners only between adjacent filled backgrounds */
+.nn-navitem.nn-navitem-has-filled-next {
+    --nn-navitem-background-bottom-overdraw: -0.5px;
     --nn-navitem-bottom-left-radius: 0;
     --nn-navitem-bottom-right-radius: 0;
 }
 
-/* Apply the same corner trimming within the virtualized row wrapper */
-.nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match))
-    + .nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match))
-    > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match) {
+.nn-navitem.nn-navitem-has-filled-previous {
     --nn-navitem-top-left-radius: 0;
     --nn-navitem-top-right-radius: 0;
-}
-
-.nn-virtual-nav-item:has(> .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match)):has(
-        + .nn-virtual-nav-item > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match)
-    )
-    > .nn-navitem:is(.nn-has-custom-background, .nn-has-search-match) {
-    --nn-navitem-bottom-left-radius: 0;
-    --nn-navitem-bottom-right-radius: 0;
 }
 
 /* Folder content - contains folder UI elements */
@@ -121,7 +106,7 @@
     );
     width: var(--nn-indent-guide-line-width);
     transform: translateX(-50%);
-    background-color: var(--nn-theme-foreground-faint);
+    background-color: var(--nn-theme-nav-indent-guide-color);
     pointer-events: none;
     z-index: 0;
 }
@@ -144,8 +129,7 @@
     content: '';
     position: absolute;
     top: 0px;
-    /* Extend slightly beyond bottom item bounds (height rounding issue) to prevent hairline gaps when zoomed */
-    bottom: -0.2px;
+    bottom: var(--nn-navitem-background-bottom-overdraw);
     inset-inline-end: 0;
     inset-inline-start: calc(var(--level, 0) * var(--nn-setting-nav-indent) * -1);
     border-top-left-radius: var(--nn-navitem-top-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));
@@ -174,12 +158,15 @@
 .nn-desktop .nn-navitem:not([data-search-match]):hover::after {
     content: '';
     position: absolute;
-    top: 0;
-    bottom: 0;
+    top: 0px;
+    bottom: var(--nn-navitem-background-bottom-overdraw);
     inset-inline-start: 0;
     inset-inline-end: 0;
     background-color: var(--nn-theme-navitem-hover-bg);
-    border-radius: min(14px, var(--nn-theme-navitem-border-radius));
+    border-top-left-radius: var(--nn-navitem-top-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));
+    border-top-right-radius: var(--nn-navitem-top-right-radius, min(14px, var(--nn-theme-navitem-border-radius)));
+    border-bottom-left-radius: var(--nn-navitem-bottom-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));
+    border-bottom-right-radius: var(--nn-navitem-bottom-right-radius, min(14px, var(--nn-theme-navitem-border-radius)));
     box-shadow: inset 0 0 0 var(--nn-theme-navitem-border-width) var(--nn-theme-navitem-hover-border-color);
     z-index: 1;
     pointer-events: none;
@@ -249,14 +236,10 @@
     line-height: var(--nn-nav-icon-size);
 }
 
-.nn-navitem-icon[data-has-color='true'] svg {
-    stroke-width: 2.4;
-}
-
 /* Folder name text - truncates with ellipsis on overflow */
 .nn-navitem-name {
     font-size: var(--nn-setting-nav-font-size);
-    font-weight: var(--nn-theme-navitem-name-font-weight) !important;
+    font-weight: var(--nn-theme-navitem-name-font-weight);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -270,30 +253,79 @@
 
 /* Custom colored folder names */
 .nn-navitem-name.nn-has-custom-color {
-    font-weight: var(--nn-theme-navitem-custom-color-name-font-weight) !important;
+    font-weight: var(--nn-theme-navitem-custom-color-name-font-weight);
 }
 
 /* Folder with folder note */
 .nn-navitem-name.nn-has-folder-note {
-    font-weight: var(--nn-theme-navitem-folder-note-name-font-weight) !important;
-    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration) !important;
+    font-weight: var(--nn-theme-navitem-folder-note-name-font-weight);
+    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration);
 }
 
 /* Folder with folder note and custom color uses custom color weight */
 .nn-navitem-name.nn-has-folder-note.nn-has-custom-color {
-    font-weight: var(--nn-theme-navitem-custom-color-name-font-weight) !important;
+    font-weight: var(--nn-theme-navitem-custom-color-name-font-weight);
 }
 
 /* Folder with folder note - show pointer cursor on hover */
 .nn-navitem-name.nn-has-folder-note:hover {
     cursor: pointer;
-    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration) !important;
+    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration);
 }
 
 /* Spacer element to push count to the end */
 .nn-navitem-spacer {
+    --nn-nav-leader-color: var(--nn-theme-nav-leader-color);
+    --nn-nav-count-leader-bottom-offset: calc((var(--nn-setting-nav-item-height) - var(--nn-nav-line-height)) / 2 + 4px);
     flex: 1;
     min-width: 8px; /* Minimum space between name and count */
+}
+
+.notebook-navigator-mobile .nn-navitem-spacer {
+    --nn-nav-count-leader-bottom-offset: calc((var(--nn-setting-nav-item-height-mobile) - var(--nn-nav-line-height)) / 2 + 5px);
+}
+
+[data-nav-count-leader-style='dots'] .nn-navitem-spacer--leader,
+[data-nav-count-leader-style='dashes'] .nn-navitem-spacer--leader,
+[data-nav-count-leader-style='line'] .nn-navitem-spacer--leader {
+    position: relative;
+    align-self: stretch;
+    margin-inline: 8px;
+    min-width: 16px;
+}
+
+[data-nav-count-leader-style='dots'] .nn-navitem-spacer--leader::after,
+[data-nav-count-leader-style='dashes'] .nn-navitem-spacer--leader::after,
+[data-nav-count-leader-style='line'] .nn-navitem-spacer--leader::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: var(--nn-nav-count-leader-bottom-offset);
+    pointer-events: none;
+}
+
+[data-nav-count-leader-style='dots'] .nn-navitem-spacer--leader::after {
+    height: 2px;
+    background-image: radial-gradient(circle, var(--nn-nav-leader-color) 0, var(--nn-nav-leader-color) 1px, transparent 1px);
+    background-repeat: repeat-x;
+    background-position: center;
+    background-size: 6px 2px;
+}
+
+[data-nav-count-leader-style='dashes'] .nn-navitem-spacer--leader::after {
+    height: 1px;
+    background-image: repeating-linear-gradient(
+        to right,
+        var(--nn-nav-leader-color) 0,
+        var(--nn-nav-leader-color) 6px,
+        transparent 6px,
+        transparent 10px
+    );
+}
+
+[data-nav-count-leader-style='line'] .nn-navitem-spacer--leader::after {
+    height: 1px;
+    background-color: var(--nn-nav-leader-color);
 }
 
 /* Folder file count - shows number of files in folder */
@@ -319,13 +351,35 @@
     box-shadow: inset 0 0 0 var(--nn-theme-navitem-count-border-width) var(--nn-theme-navitem-count-border-color);
 }
 
+.nn-navitem-operator-indicator {
+    padding-inline: 4px;
+}
+
+.nn-navitem-operator-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+}
+
+.nn-navitem-operator-icon svg {
+    width: 12px;
+    height: 12px;
+}
+
 /* Hover action button - replaces badge/count on hover */
 .nn-navitem-hover-action-slot {
     position: relative;
     flex-shrink: 0;
 }
 
-.nn-navitem-hover-action-button {
+.nn-navitem-hover-action-slot--overlay {
+    width: 0;
+    min-width: 0;
+    overflow: visible;
+}
+
+button.nn-icon-button.nn-navitem-hover-action-button {
     position: absolute;
     top: 50%;
     inset-inline-end: 0;
@@ -333,12 +387,12 @@
     visibility: hidden;
     pointer-events: none;
     cursor: pointer;
-    height: 18px !important;
-    width: 18px !important;
-    min-height: 0 !important;
-    min-width: 0 !important;
-    padding: 0 !important;
-    border-radius: 50% !important;
+    height: 18px;
+    width: 18px;
+    min-height: 0;
+    min-width: 0;
+    padding: 0;
+    border-radius: 50%;
     z-index: 1;
 }
 
@@ -356,6 +410,12 @@
 .nn-desktop .nn-properties-header-item:hover .nn-navitem-hover-action-button {
     visibility: visible;
     pointer-events: auto;
+}
+
+.nn-desktop .nn-shortcut-item--removable:hover .nn-navitem-hover-action-slot--overlay,
+.nn-desktop .nn-shortcut-header-item:hover .nn-navitem-hover-action-slot--overlay,
+.nn-desktop .nn-properties-header-item:hover .nn-navitem-hover-action-slot--overlay {
+    width: 18px;
 }
 
 .nn-desktop .nn-shortcut-item--removable:hover .nn-navitem-hover-action-count,
@@ -396,7 +456,7 @@
 }
 
 .nn-shortcut-item .nn-shortcut-label[data-has-color='true'] {
-    font-weight: var(--nn-theme-navitem-custom-color-file-name-font-weight) !important;
+    font-weight: var(--nn-theme-navitem-custom-color-file-name-font-weight);
 }
 
 .nn-shortcut-item--missing .nn-shortcut-label {
@@ -405,19 +465,19 @@
 
 /* Styles for shortcut labels that have an associated folder note */
 .nn-shortcut-item .nn-navitem-name.nn-has-folder-note .nn-shortcut-label {
-    font-weight: var(--nn-theme-navitem-folder-note-name-font-weight) !important;
-    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration) !important;
+    font-weight: var(--nn-theme-navitem-folder-note-name-font-weight);
+    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration);
 }
 
 /* Folder note shortcuts with custom color use custom color weight */
 .nn-shortcut-item .nn-navitem-name.nn-has-folder-note.nn-has-custom-color .nn-shortcut-label {
-    font-weight: var(--nn-theme-navitem-custom-color-file-name-font-weight) !important;
+    font-weight: var(--nn-theme-navitem-custom-color-file-name-font-weight);
 }
 
 /* Pointer cursor on hover for clickable folder note shortcuts */
 .nn-shortcut-item .nn-navitem-name.nn-has-folder-note:hover .nn-shortcut-label {
     cursor: pointer;
-    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration) !important;
+    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration);
 }
 
 .nn-drag-item .nn-shortcut-description {
@@ -533,7 +593,7 @@
 }
 
 .nn-root-reorder-item .nn-shortcut-label[data-has-color='true'] {
-    font-weight: var(--nn-theme-navitem-custom-color-name-font-weight) !important;
+    font-weight: var(--nn-theme-navitem-custom-color-name-font-weight);
 }
 
 .nn-root-reorder-item--missing .nn-shortcut-label {
@@ -618,115 +678,4 @@
     --nn-theme-navitem-count-color: var(--nn-theme-foreground);
     opacity: 0.5;
     pointer-events: none;
-}
-
-/* Shortcut collection selector styling */
-.nn-shortcut-collection-selector {
-    padding: 4px var(--nn-scroller-padding) 2px;
-    border-bottom: 1px solid var(--nn-theme-divider-border-color);
-    background-color: var(--nn-theme-nav-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.nn-collection-tabs {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.nn-collection-tab {
-    padding: 2px 10px;
-    margin: 0;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    flex-shrink: 0;
-    min-height: var(--nn-setting-nav-item-height, 24px);
-}
-
-.nn-collection-tab .nn-navitem-icon {
-    margin-inline-end: 0;
-    color: var(--nn-theme-navitem-icon-color);
-    opacity: 0.9;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transform: scale(0.97) translateY(1px);
-}
-
-/* Hover background effect - matches navigation items */
-.nn-desktop .nn-collection-tab:hover {
-    position: relative;
-}
-
-.nn-desktop .nn-collection-tab:hover::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    inset-inline-start: 0;
-    inset-inline-end: 0;
-    background-color: var(--nn-theme-navitem-hover-bg);
-    opacity: 0.7;
-    border-radius: min(14px, var(--nn-theme-navitem-border-radius));
-    z-index: 1;
-    pointer-events: none;
-}
-
-.nn-desktop .nn-collection-tab:hover .nn-navitem-icon {
-    position: relative;
-    z-index: 2;
-}
-
-.nn-collection-tab--active .nn-navitem-icon {
-    color: var(--nn-selected-navitem-icon-color, var(--nn-theme-navitem-icon-color));
-}
-
-.nn-collection-tab--dragging {
-    opacity: 0.5;
-}
-
-.nn-collection-tab svg {
-    width: var(--nn-nav-icon-size);
-    height: var(--nn-nav-icon-size);
-    stroke-width: 2.0;
-    transform: scale(0.97);
-}
-
-.nn-collection-tab .nn-iconfont {
-    font-size: calc(var(--nn-nav-icon-size) * 0.97);
-    line-height: calc(var(--nn-nav-icon-size) * 0.97);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.nn-collection-tab > span[data-has-color='true'] svg {
-    stroke-width: 2.4;
-}
-
-.nn-collection-tab--drop-indicator {
-    position: absolute;
-    left: -2px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 2px;
-    height: 16px;
-    background-color: var(--interactive-accent);
-    border-radius: 1px;
-}
-
-.nn-collection-tab--add {
-    opacity: 0.5;
-}
-
-.nn-collection-tab--add:hover {
-    opacity: 0.7;
 }

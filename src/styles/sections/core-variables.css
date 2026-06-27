@@ -74,8 +74,8 @@ body {
     --nn-file-title-line-height-mobile: 21px; /* Mobile title text height */
     --nn-file-single-text-line-height-mobile: 20px; /* Mobile single-line text height */
     --nn-file-multiline-text-line-height-mobile: 19px; /* Mobile preview text height */
-    --nn-feature-image-min-size: 42px; /* Minimum size for feature images */
-    --nn-feature-image-max-size: 64px; /* Maximum size for feature images */
+    --nn-file-thumbnail-min-size: 42px; /* Minimum size for file thumbnails */
+    --nn-file-thumbnail-max-size: 64px; /* Maximum size for file thumbnails */
 
     /* Font sizes - fixed pixel values to prevent scaling with Obsidian font size */
     --nn-file-name-size: 14px; /* Fixed 14px */
@@ -83,15 +83,13 @@ body {
     --nn-compact-font-size: 13px; /* Compact mode desktop font size */
     --nn-compact-font-size-mobile: 15px; /* Compact mode mobile font size */
 
-    /* Date header heights and padding */
-    --nn-date-header-height: 35px; /* First header */
-    --nn-date-header-height-subsequent: 50px; /* Headers with margin */
-    --nn-date-header-padding-top: 24px; /* Top padding for subsequent headers */
-    --nn-date-header-padding-bottom: 6px; /* Bottom padding for subsequent headers */
-    --nn-date-header-height-mobile: var(--nn-date-header-height);
-    --nn-date-header-height-subsequent-mobile: var(--nn-date-header-height-subsequent);
-    --nn-date-header-padding-top-mobile: var(--nn-date-header-padding-top);
-    --nn-date-header-padding-bottom-mobile: var(--nn-date-header-padding-bottom);
+    /* List group header heights and spacing */
+    --nn-list-group-header-height: 27px; /* Header row and sticky header */
+    --nn-list-group-progress-gap-after: 5px; /* Space below manual sort progress bars */
+    --nn-list-group-goal-header-height: calc(var(--nn-list-group-header-height) + var(--nn-list-group-progress-gap-after));
+    --nn-list-group-header-spacer-before: 20px; /* Spacer before subsequent headers */
+    --nn-list-group-header-height-mobile: var(--nn-list-group-header-height);
+    --nn-list-group-goal-header-height-mobile: var(--nn-list-group-goal-header-height);
 
     /* Navigation item heights - fixed pixel values to prevent fractional rendering */
     --nn-nav-line-height: 18px; /* Fixed line height for folder/tag names */
@@ -158,6 +156,8 @@ body {
     );
     --nn-theme-nav-separator-height: 1px;
     --nn-theme-nav-separator-opacity: 0.3;
+    --nn-theme-nav-indent-guide-color: var(--nn-theme-foreground-faded);
+    --nn-theme-nav-leader-color: var(--nn-theme-foreground-faded);
     --nn-theme-pinned-shortcut-shadow-color: rgba(0, 0, 0, 0.03);
 
     /* -- Navigation Calendar -- */
@@ -168,11 +168,14 @@ body {
     --nn-theme-calendar-day-outside-month-color: var(--nn-theme-foreground-faded);
     --nn-theme-calendar-weekend-bg: color-mix(in srgb, var(--nn-theme-foreground) 10%, transparent);
     --nn-theme-calendar-hover-bg: var(--background-modifier-hover);
-    --nn-theme-calendar-day-has-note-bg: var(--nn-theme-foreground-faded);
-    --nn-theme-calendar-day-has-unfinished-task-color: var(--nn-theme-calendar-day-has-note-bg);
-    --nn-theme-calendar-day-has-feature-image-color: white;
+    --nn-theme-calendar-note-indicator-color: var(--nn-theme-foreground-faded);
+    --nn-theme-calendar-unfinished-task-indicator-color: var(--nn-theme-calendar-note-indicator-color);
+    --nn-theme-calendar-feature-image-text-color: white;
+    --nn-theme-calendar-feature-image-overlay-color: rgb(0 0 0 / 0.05);
     --nn-theme-calendar-day-today-color: var(--nn-theme-calendar-day-in-month-color);
     --nn-theme-calendar-day-today-bg: var(--text-selection);
+    --nn-theme-calendar-day-active-border-color: #f94040;
+    --nn-theme-calendar-day-active-border-width: 3px;
 
     /* -- Folder & Tag Items -- */
     --nn-theme-navitem-chevron-color: var(--nn-theme-foreground-muted);
@@ -240,6 +243,7 @@ body {
     --nn-theme-file-task-icon-color: var(--nn-theme-navitem-icon-color);
     --nn-theme-file-feature-border-radius: 4px;
     --nn-theme-file-date-color: var(--nn-theme-foreground-faded);
+    --nn-theme-file-word-count-color: var(--nn-theme-foreground-faded);
     --nn-theme-file-parent-color: var(--nn-theme-foreground-faded);
     --nn-theme-file-tag-color: var(--nn-theme-foreground-faded);
     --nn-theme-file-tag-border-color: color-mix(in srgb, var(--nn-theme-foreground) 30%, transparent);
@@ -255,13 +259,13 @@ body {
     --nn-theme-file-border-radius: 8px;
     --nn-theme-file-border-width: 0px;
     --nn-theme-file-pill-border-width: 1px;
-    --nn-theme-file-hover-border-color: transparent;
     --nn-theme-file-selected-border-color: transparent;
     --nn-theme-file-selected-inactive-border-color: var(--nn-theme-file-selected-border-color);
     --nn-theme-file-selected-bg: var(--text-selection);
     --nn-theme-file-selected-name-color: var(--nn-theme-file-name-color);
     --nn-theme-file-selected-preview-color: var(--nn-theme-file-preview-color);
     --nn-theme-file-selected-date-color: var(--nn-theme-foreground-muted);
+    --nn-theme-file-selected-word-count-color: var(--nn-theme-foreground-muted);
     --nn-theme-file-selected-parent-color: var(--nn-theme-foreground-muted);
     --nn-theme-file-selected-tag-color: var(--nn-theme-foreground-muted);
     --nn-theme-file-selected-tag-bg: var(--nn-theme-file-tag-bg);
@@ -271,6 +275,7 @@ body {
     --nn-theme-file-selected-inactive-name-color: var(--nn-theme-file-selected-name-color);
     --nn-theme-file-selected-inactive-preview-color: var(--nn-theme-file-selected-preview-color);
     --nn-theme-file-selected-inactive-date-color: var(--nn-theme-file-selected-date-color);
+    --nn-theme-file-selected-inactive-word-count-color: var(--nn-theme-file-selected-word-count-color);
     --nn-theme-file-selected-inactive-parent-color: var(--nn-theme-file-selected-parent-color);
     --nn-theme-file-selected-inactive-tag-color: var(--nn-theme-file-selected-tag-color);
     --nn-theme-file-selected-inactive-tag-bg: var(--nn-theme-file-tag-bg);
@@ -283,6 +288,7 @@ body {
     --nn-theme-file-compact-name-font-weight: 400;
     --nn-theme-file-preview-font-weight: 400;
     --nn-theme-file-date-font-weight: 400;
+    --nn-theme-file-word-count-font-weight: 400;
     --nn-theme-file-parent-font-weight: 400;
     --nn-theme-file-tag-font-weight: 400;
 
@@ -318,4 +324,5 @@ body {
 
 .theme-dark {
     --nn-theme-pinned-shortcut-shadow-color: rgba(0, 0, 0, 0.18);
+    --nn-theme-calendar-feature-image-overlay-color: rgb(0 0 0 / 0.3);
 }

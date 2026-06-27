@@ -37,6 +37,14 @@ export const localStorage = {
         // Use localStorage object literal directly to ensure proper this binding (eslint @typescript-eslint/unbound-method)
         localStorage._app = app;
     },
+
+    /**
+     * Returns true when vault-scoped localStorage access is ready.
+     */
+    isInitialized(): boolean {
+        return localStorage._app !== null;
+    },
+
     /**
      * Safely retrieves a value from localStorage with error handling
      * Obsidian automatically deserializes the stored value
@@ -47,7 +55,6 @@ export const localStorage = {
         try {
             if (!localStorage._app) {
                 // Return null if app not initialized to prevent mixing storage
-                console.log(`localStorage accessed before initialization for key "${key}"`);
                 return null;
             }
             // Use vault-specific storage
@@ -69,7 +76,6 @@ export const localStorage = {
         try {
             if (!localStorage._app) {
                 // Ignore writes if app not initialized to prevent mixing storage
-                console.log(`localStorage write attempted before initialization for key "${key}"`);
                 return false;
             }
             // Use vault-specific storage
@@ -90,7 +96,6 @@ export const localStorage = {
         try {
             if (!localStorage._app) {
                 // Ignore removes if app not initialized to prevent mixing storage
-                console.log(`localStorage remove attempted before initialization for key "${key}"`);
                 return false;
             }
             // Use vault-specific storage - pass null to clear

@@ -21,9 +21,11 @@ import type { CSSProperties } from 'react';
 import type { DraggableSyntheticListeners } from '@dnd-kit/core';
 import { useSettingsState } from '../context/SettingsContext';
 import { getIconService, useIconServiceVersion } from '../services/icons';
+import type { ItemType } from '../types';
 import type { ListReorderHandlers } from '../types/listReorder';
 import { ObsidianIcon } from './ObsidianIcon';
-import { setIcon } from 'obsidian';
+import { Platform, setIcon, setTooltip } from 'obsidian';
+import { getTooltipPlacement } from '../utils/domUtils';
 
 /**
  * Configuration for the drag handle element that appears in reorderable rows
@@ -39,6 +41,14 @@ export interface DragHandleConfig {
         onClick?: (event: React.MouseEvent<HTMLSpanElement>) => void;
         onContextMenu?: (event: React.MouseEvent<HTMLSpanElement>) => void;
     };
+}
+
+export interface NativeDragData {
+    path: string;
+    type: ItemType;
+    icon?: string;
+    iconColor?: string;
+    allowMultiFileDrag?: boolean;
 }
 
 /**
@@ -63,6 +73,7 @@ interface NavigationListRowProps {
     dragHandlers?: ListReorderHandlers;
     isDragSource?: boolean;
     showCount?: boolean;
+    showCountLeader?: boolean;
     count?: number | string;
     countSlot?: React.ReactNode;
     dragHandleConfig?: DragHandleConfig;
@@ -73,12 +84,14 @@ interface NavigationListRowProps {
     onLabelMouseDown?: (event: React.MouseEvent<HTMLSpanElement>) => void;
     trailingAccessory?: React.ReactNode;
     showIcon?: boolean;
+    tooltip?: string;
     dragRef?: (node: HTMLDivElement | null) => void;
     dragHandleRef?: (node: HTMLSpanElement | null) => void;
     dragAttributes?: React.HTMLAttributes<HTMLElement>;
     dragListeners?: DraggableSyntheticListeners;
     dragStyle?: CSSProperties;
     isSorting?: boolean;
+    nativeDragData?: NativeDragData;
 }
 
 /**
@@ -101,6 +114,7 @@ export function NavigationListRow({
     dragHandlers,
     isDragSource,
     showCount,
+    showCountLeader,
     count,
     countSlot,
     dragHandleConfig,
@@ -114,16 +128,19 @@ export function NavigationListRow({
     onLabelMouseDown,
     trailingAccessory,
     showIcon = true,
+    tooltip,
     dragRef,
     dragHandleRef,
     dragAttributes,
     dragListeners,
     dragStyle,
-    isSorting
+    isSorting,
+    nativeDragData
 }: NavigationListRowProps) {
     const settings = useSettingsState();
-    const chevronRef = useRef<HTMLSpanElement>(null);
-    const iconRef = useRef<HTMLSpanElement>(null);
+    const rowRef = useRef<HTMLDivElement | null>(null);
+    const chevronRef = useRef<HTMLSpanElement | null>(null);
+    const iconRef = useRef<HTMLSpanElement | null>(null);
     const iconVersion = useIconServiceVersion();
 
     // Determine whether to apply color to the label text instead of the icon
@@ -212,6 +229,7 @@ export function NavigationListRow({
     const hasCountSlot = countSlot !== undefined && countSlot !== null;
     // Determine if count badge should be displayed based on settings and valid count content
     const shouldShowCount = Boolean(showCount && (hasCountValue || hasCountSlot));
+    const shouldShowCountLeader = showCountLeader ?? Boolean(showCount);
 
     // Handles click events on the label element, preventing event propagation to parent row
     const handleLabelClick = useCallback(
@@ -265,12 +283,29 @@ export function NavigationListRow({
 
     const setRowRef = useCallback(
         (node: HTMLDivElement | null) => {
+            rowRef.current = node;
             if (dragRef) {
                 dragRef(node);
             }
         },
         [dragRef]
     );
+
+    useEffect(() => {
+        const row = rowRef.current;
+        if (!row) {
+            return;
+        }
+
+        if (Platform.isMobile || !settings.showTooltips || !tooltip) {
+            setTooltip(row, '');
+            return;
+        }
+
+        setTooltip(row, tooltip, {
+            placement: getTooltipPlacement()
+        });
+    }, [settings.showTooltips, tooltip]);
 
     const setHandleRef = useCallback(
         (node: HTMLSpanElement | null) => {
@@ -282,6 +317,7 @@ export function NavigationListRow({
     );
 
     const handleActive = isDragSource || isSorting;
+    const isNativeDraggable = Boolean(nativeDragData?.path);
 
     return (
         <div
@@ -294,8 +330,15 @@ export function NavigationListRow({
             data-nav-item-disabled={isDisabled ? 'true' : undefined}
             data-nav-item-excluded={isExcluded ? 'true' : undefined}
             data-nav-item-level={level}
+            data-drag-path={nativeDragData?.path}
+            data-drag-type={nativeDragData?.type}
+            data-draggable={isNativeDraggable ? 'true' : undefined}
+            data-drag-icon={nativeDragData?.icon}
+            data-drag-icon-color={nativeDragData?.iconColor}
+            data-drag-allow-multi-file={nativeDragData?.allowMultiFileDrag === false ? 'false' : undefined}
             data-level={level}
             aria-level={level + 1}
+            draggable={isNativeDraggable || undefined}
             onClick={onClick}
             onMouseDown={onMouseDown}
             onContextMenu={onContextMenu}
@@ -331,7 +374,7 @@ export function NavigationListRow({
                     </span>
                     {description ? <span className="nn-shortcut-description">{description}</span> : null}
                 </span>
-                <span className="nn-navitem-spacer" />
+                <span className={`nn-navitem-spacer${shouldShowCountLeader ? ' nn-navitem-spacer--leader' : ''}`} />
                 {shouldShowCount ? (countSlot ?? <span className="nn-navitem-count">{count}</span>) : null}
                 {trailingAccessory ? <div className="nn-navitem-accessory">{trailingAccessory}</div> : null}
                 {handleVisible ? (

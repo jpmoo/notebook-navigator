@@ -16,8 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { getCurrentLanguage } from '../i18n';
+import type { CalendarPeriodicNotesLocaleSource } from '../settings/types';
+
 export interface MomentLocaleData {
     firstDayOfWeek(): number;
+    firstDayOfYear?(): number;
     weekdaysMin(): string[];
     weekdaysShort(): string[];
 }
@@ -169,4 +173,34 @@ export function resolveMomentLocale(requestedLocale: string, momentApi: MomentAp
     const resolved = fallbackLocale || momentApi.locale() || 'en';
     resolvedCache.set(cacheKey, resolved);
     return resolved;
+}
+
+export function resolveCalendarLocales(
+    calendarLocale: string,
+    momentApi: MomentApi | null,
+    currentLanguage: string = getCurrentLanguage()
+): { displayLocale: string; calendarRulesLocale: string } {
+    const fallbackLocale = momentApi?.locale() || 'en';
+    const requestedDisplayLocale = (currentLanguage || fallbackLocale).replace(/_/g, '-');
+    const displayLocale = resolveMomentLocale(requestedDisplayLocale, momentApi, fallbackLocale);
+    const requestedCalendarRulesLocale = calendarLocale === 'system-default' ? displayLocale : calendarLocale;
+    const resolvedCalendarRulesLocale = resolveMomentLocale(requestedCalendarRulesLocale, momentApi, displayLocale);
+
+    return {
+        displayLocale,
+        calendarRulesLocale: resolvedCalendarRulesLocale
+    };
+}
+
+export function resolveDailyNoteLocale(momentApi: MomentApi | null): string {
+    const fallbackLocale = momentApi?.locale() || 'en';
+    return resolveMomentLocale(fallbackLocale, momentApi, fallbackLocale);
+}
+
+export function resolveCalendarPeriodicNotesLocale(
+    source: CalendarPeriodicNotesLocaleSource,
+    calendarRulesLocale: string,
+    momentApi: MomentApi | null
+): string {
+    return source === 'obsidian' ? resolveDailyNoteLocale(momentApi) : calendarRulesLocale;
 }

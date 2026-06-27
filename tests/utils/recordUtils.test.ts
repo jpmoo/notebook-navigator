@@ -17,12 +17,23 @@
  */
 import { describe, expect, it } from 'vitest';
 import {
+    casefold,
+    casefoldPreservingWhitespace,
+    cloneCollapsedPinnedContextsRecord,
     clonePinnedNotesRecord,
+    cleanupCollapsedPinnedContextKeys,
+    deleteCollapsedPinnedContextKeys,
     ensureRecord,
+    findMatchingRecordKey,
+    getMatchingRecordValue,
+    foldSearchText,
+    foldSearchTextFromLowercase,
     isStringRecordValue,
     normalizePinnedNoteContext,
-    sanitizeRecord
+    sanitizeRecord,
+    updateCollapsedPinnedContextKeys
 } from '../../src/utils/recordUtils';
+import { buildPropertyKeyNodeId, buildPropertyValueNodeId } from '../../src/utils/propertyTree';
 
 describe('sanitizeRecord', () => {
     it('returns a null-prototype object while preserving own entries', () => {
@@ -52,6 +63,46 @@ describe('sanitizeRecord', () => {
         const sanitized = sanitizeRecord(record, isStringRecordValue);
 
         expect(sanitized).toEqual({ good: 'yes' });
+    });
+});
+
+describe('foldSearchText', () => {
+    it('folds accents to base characters', () => {
+        expect(foldSearchText('Canción')).toBe('cancion');
+        expect(foldSearchText('Ścieżka')).toBe('sciezka');
+    });
+
+    it('preserves combining marks on non-Latin scripts', () => {
+        expect(foldSearchText('مُدَرِّس')).toBe('مُدَرِّس');
+        expect(foldSearchText('Άλφα')).toBe('άλφα');
+    });
+
+    it('does not apply compatibility equivalence mappings', () => {
+        expect(foldSearchText('straße')).not.toBe(foldSearchText('strasse'));
+        expect(foldSearchText('ﬁle')).not.toBe(foldSearchText('file'));
+        expect(foldSearchText('ＡＢＣ')).not.toBe(foldSearchText('abc'));
+    });
+
+    it('matches foldSearchTextFromLowercase output for lowercased input', () => {
+        const lowercased = 'canción';
+        expect(foldSearchTextFromLowercase(lowercased)).toBe(foldSearchText(lowercased));
+    });
+});
+
+describe('identifier normalization helpers', () => {
+    it('treats NFC and NFD text as equivalent in casefold', () => {
+        expect(casefold('Réunion')).toBe(casefold('Re\u0301union'));
+    });
+
+    it('preserves surrounding whitespace when requested', () => {
+        expect(casefoldPreservingWhitespace(' Re\u0301union ')).toBe(' réunion ');
+    });
+
+    it('finds matching record keys across NFC and NFD variants', () => {
+        const record = { 're\u0301union': 'value' };
+
+        expect(findMatchingRecordKey(record, 'réunion')).toBe('re\u0301union');
+        expect(getMatchingRecordValue(record, 'réunion')).toBe('value');
     });
 });
 
@@ -113,5 +164,102 @@ describe('pinned note record helpers', () => {
         expect(cloned['b.md']).toEqual({ folder: false, tag: false, property: false });
         expect(cloned['c.md']).toEqual({ folder: false, tag: false, property: false });
         expect(cloned['d.md']).toEqual({ folder: true, tag: true, property: true });
+    });
+});
+
+describe('collapsed pinned context helpers', () => {
+    it('keeps only concrete collapsed navigation item keys', () => {
+        const propertyKey = buildPropertyKeyNodeId('name');
+        const cloned = cloneCollapsedPinnedContextsRecord({
+            'folder:/': true,
+            'folder:Projects': true,
+            'tag:work/client': true,
+            [`property:${propertyKey}`]: true,
+            folder: true,
+            'tag:': true,
+            'folder:Archive': false
+        });
+
+        expect(Object.getPrototypeOf(cloned)).toBeNull();
+        expect(cloned).toEqual({
+            'folder:/': true,
+            'folder:Projects': true,
+            'tag:work/client': true,
+            [`property:${propertyKey}`]: true
+        });
+    });
+
+    it('updates exact and descendant collapsed navigation keys on rename', () => {
+        const collapsed = cloneCollapsedPinnedContextsRecord({
+            'folder:Projects': true,
+            'folder:Projects/Client': true,
+            'folder:Archive': true,
+            'tag:Projects': true
+        });
+
+        const changed = updateCollapsedPinnedContextKeys(collapsed, 'folder', 'Projects', 'Work', { descendantDelimiter: '/' });
+
+        expect(changed).toBe(true);
+        expect(collapsed).toEqual({
+            'folder:Work': true,
+            'folder:Work/Client': true,
+            'folder:Archive': true,
+            'tag:Projects': true
+        });
+    });
+
+    it('preserves existing destination collapse state when requested', () => {
+        const collapsed = cloneCollapsedPinnedContextsRecord({
+            'tag:old': true,
+            'tag:old/child': true,
+            'tag:new/child': true
+        });
+
+        const changed = updateCollapsedPinnedContextKeys(collapsed, 'tag', 'old', 'new', {
+            descendantDelimiter: '/',
+            preserveExisting: true
+        });
+
+        expect(changed).toBe(true);
+        expect(collapsed).toEqual({
+            'tag:new': true,
+            'tag:new/child': true
+        });
+    });
+
+    it('deletes exact and descendant collapsed navigation keys', () => {
+        const statusKey = buildPropertyKeyNodeId('status=phase');
+        const statusTodoValue = buildPropertyValueNodeId('status=phase', 'todo');
+        const priorityKey = buildPropertyKeyNodeId('priority');
+        const collapsed = cloneCollapsedPinnedContextsRecord({
+            [`property:${statusKey}`]: true,
+            [`property:${statusTodoValue}`]: true,
+            [`property:${priorityKey}`]: true
+        });
+
+        const changed = deleteCollapsedPinnedContextKeys(collapsed, 'property', statusKey, { descendantDelimiter: '=' });
+
+        expect(changed).toBe(true);
+        expect(collapsed).toEqual({
+            [`property:${priorityKey}`]: true
+        });
+    });
+
+    it('cleans up collapsed navigation keys that fail validation', () => {
+        const collapsed = cloneCollapsedPinnedContextsRecord({
+            'folder:/': true,
+            'folder:Projects': true,
+            'folder:Missing': true,
+            'tag:Missing': true
+        });
+
+        const changed = cleanupCollapsedPinnedContextKeys(collapsed, 'folder', path => path === '/' || path === 'Projects');
+
+        expect(changed).toBe(true);
+        expect(collapsed).toEqual({
+            'folder:/': true,
+            'folder:Projects': true,
+            'tag:Missing': true
+        });
     });
 });

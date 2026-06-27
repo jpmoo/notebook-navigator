@@ -19,6 +19,7 @@
 import { PROPERTIES_ROOT_VIRTUAL_FOLDER_ID } from '../types';
 import { normalizeOptionalVaultFolderPath } from '../utils/pathUtils';
 import { normalizePropertyNodeId } from '../utils/propertyTree';
+import { casefold } from '../utils/recordUtils';
 import { normalizeTagPath } from '../utils/tagUtils';
 import type { SearchProvider } from './search';
 
@@ -122,25 +123,6 @@ export interface PropertyShortcut extends ShortcutAlias {
 export type ShortcutEntry = FolderShortcut | NoteShortcut | SearchShortcut | TagShortcut | PropertyShortcut;
 
 /**
- * Represents a collection of shortcuts with metadata
- */
-export interface ShortcutCollection {
-    id: string;
-    name: string;
-    icon: string;
-    shortcuts: ShortcutEntry[];
-    isDefault?: boolean;
-}
-
-/**
- * Extended shortcut entry that includes collection information
- */
-export interface ShortcutEntryWithCollection {
-    collectionId: string;
-    shortcut: ShortcutEntry;
-}
-
-/**
  * Type guard to check if a shortcut is a folder shortcut
  */
 export function isFolderShortcut(shortcut: ShortcutEntry): shortcut is FolderShortcut {
@@ -194,6 +176,10 @@ export function normalizePropertyShortcutNodeId(nodeId: unknown): string | null 
     }
 
     return normalizePropertyNodeId(nodeId);
+}
+
+export function normalizeSearchShortcutName(name: string): string {
+    return casefold(name);
 }
 
 export function normalizeShortcutStartTarget(startTarget: unknown): ShortcutStartTarget | undefined {
@@ -284,7 +270,7 @@ export function getShortcutKey(shortcut: ShortcutEntry): string {
     }
 
     if (isSearchShortcut(shortcut)) {
-        return `${ShortcutType.SEARCH}:${shortcut.name.toLowerCase()}`;
+        return `${ShortcutType.SEARCH}:${normalizeSearchShortcutName(shortcut.name)}`;
     }
 
     // Exhaustive check - ensures compiler warns if new shortcut type is added

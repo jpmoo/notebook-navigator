@@ -21,7 +21,11 @@ import { TagMetadataService } from '../../src/services/metadata/TagMetadataServi
 import type { NotebookNavigatorSettings } from '../../src/settings';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import type { ISettingsProvider } from '../../src/interfaces/ISettingsProvider';
+import type { CleanupValidators } from '../../src/services/MetadataService';
+import { createDefaultFileData } from '../../src/storage/indexeddb/fileData';
+import type { FileData } from '../../src/storage/IndexedDBStorage';
 import { createVaultProfile } from '../../src/utils/vaultProfiles';
+import { TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../../src/types';
 
 class TestSettingsProvider implements ISettingsProvider {
     constructor(public settings: NotebookNavigatorSettings) {}
@@ -67,6 +71,21 @@ function createSettings(): NotebookNavigatorSettings {
             shortcuts: [...profile.shortcuts]
         }))
     };
+}
+
+function createValidators(dbFiles: CleanupValidators['dbFiles']): CleanupValidators {
+    return {
+        dbFiles,
+        tagTree: new Map(),
+        vaultFiles: new Set(),
+        vaultFolders: new Set(['/'])
+    };
+}
+
+function createMarkdownFile(path: string, tags: string[]): { path: string; data: FileData } {
+    const data = createDefaultFileData({ path, mtime: 1 });
+    data.tags = tags;
+    return { path, data };
 }
 
 describe('TagMetadataService.handleTagRename', () => {
@@ -286,5 +305,40 @@ describe('TagMetadataService.handleTagDelete', () => {
         expect(activeProfile.hiddenTags).toEqual(['draft*', '*draft', 'keep']);
         expect(settings.vaultProfiles[1].hiddenTags).toEqual(['*draft', 'draft*', 'other']);
         expect(provider.saveSettingsAndUpdate).not.toHaveBeenCalled();
+    });
+});
+
+describe('TagMetadataService.cleanupWithValidators', () => {
+    const app = new App();
+
+    it('removes stale tag metadata when processed cache data contains no tags', async () => {
+        const settings = createSettings();
+        settings.tagColors = { stale: '#ff0000' };
+        const provider = new TestSettingsProvider(settings);
+        const service = new TagMetadataService(app, provider, () => null);
+
+        const changed = await service.cleanupWithValidators(createValidators([createMarkdownFile('Note.md', [])]), settings);
+
+        expect(changed).toBe(true);
+        expect(settings.tagColors).toEqual({});
+    });
+
+    it('keeps collapsed state for virtual tag contexts during cleanup', async () => {
+        const settings = createSettings();
+        settings.collapsedPinnedContexts = {
+            [`tag:${TAGGED_TAG_ID}`]: true,
+            [`tag:${UNTAGGED_TAG_ID}`]: true,
+            'tag:stale': true
+        };
+        const provider = new TestSettingsProvider(settings);
+        const service = new TagMetadataService(app, provider, () => null);
+
+        const changed = await service.cleanupWithValidators(createValidators([createMarkdownFile('Note.md', [])]), settings);
+
+        expect(changed).toBe(true);
+        expect(settings.collapsedPinnedContexts).toEqual({
+            [`tag:${TAGGED_TAG_ID}`]: true,
+            [`tag:${UNTAGGED_TAG_ID}`]: true
+        });
     });
 });

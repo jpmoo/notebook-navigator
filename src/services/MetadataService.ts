@@ -17,7 +17,7 @@
  */
 
 import { App, TFolder } from 'obsidian';
-import { SortOption, type AlphaSortOrder, type NotebookNavigatorSettings } from '../settings';
+import type { AlphaSortOrder, ListSortOverrideValue, NotebookNavigatorSettings } from '../settings/types';
 import { ISettingsProvider } from '../interfaces/ISettingsProvider';
 import { ITagTreeProvider } from '../interfaces/ITagTreeProvider';
 import type { IPropertyTreeProvider } from '../interfaces/IPropertyTreeProvider';
@@ -33,10 +33,13 @@ import {
     type FileMetadataMigrationResult
 } from './metadata';
 import { TagTreeNode } from '../types/storage';
-import { FileData } from '../storage/IndexedDBStorage';
+import type { FileData } from '../storage/IndexedDBStorage';
 import { getDBInstance } from '../storage/fileOperations';
 import { NavigatorContext } from '../types';
 import type { NavigationSeparatorTarget } from '../utils/navigationSeparators';
+import { buildPropertyKeyNodeId } from '../utils/propertyTree';
+import { casefold, getCollapsedPinnedContextTarget } from '../utils/recordUtils';
+import { buildTagTreeFromDatabase } from '../utils/tagTree';
 
 /**
  * Validators object containing all data needed for cleanup operations
@@ -79,7 +82,7 @@ export class MetadataService {
      * @param getPropertyTreeProvider - Function to get the property tree provider
      */
     constructor(
-        app: App,
+        private readonly app: App,
         settingsProvider: ISettingsProvider,
         getTagTreeProvider: () => ITagTreeProvider | null,
         getPropertyTreeProvider?: () => IPropertyTreeProvider | null
@@ -180,15 +183,31 @@ export class MetadataService {
         return this.folderService.getFolderDisplayData(folderPath, options);
     }
 
-    async setFolderSortOverride(folderPath: string, sortOption: SortOption): Promise<void> {
-        return this.folderService.setFolderSortOverride(folderPath, sortOption);
+    getFolderDisplayVersion(): number {
+        return this.folderService.getFolderDisplayVersion();
+    }
+
+    subscribeToFolderDisplayChanges(listener: (version: number) => void): () => void {
+        return this.folderService.subscribeToFolderDisplayChanges(listener);
+    }
+
+    getFolderDisplayNameVersion(): number {
+        return this.folderService.getFolderDisplayNameVersion();
+    }
+
+    subscribeToFolderDisplayNameChanges(listener: (version: number) => void): () => void {
+        return this.folderService.subscribeToFolderDisplayNameChanges(listener);
+    }
+
+    async setFolderSortOverride(folderPath: string, sortOverride: ListSortOverrideValue): Promise<void> {
+        return this.folderService.setFolderSortOverride(folderPath, sortOverride);
     }
 
     async removeFolderSortOverride(folderPath: string): Promise<void> {
         return this.folderService.removeFolderSortOverride(folderPath);
     }
 
-    getFolderSortOverride(folderPath: string): SortOption | undefined {
+    getFolderSortOverride(folderPath: string): ListSortOverrideValue | undefined {
         return this.folderService.getFolderSortOverride(folderPath);
     }
 
@@ -275,15 +294,15 @@ export class MetadataService {
         await this.tagService.handleTagDelete(tagPath, settings => this.navigationSeparatorService.applyTagDelete(settings, tagPath));
     }
 
-    async setTagSortOverride(tagPath: string, sortOption: SortOption): Promise<void> {
-        return this.tagService.setTagSortOverride(tagPath, sortOption);
+    async setTagSortOverride(tagPath: string, sortOverride: ListSortOverrideValue): Promise<void> {
+        return this.tagService.setTagSortOverride(tagPath, sortOverride);
     }
 
     async removeTagSortOverride(tagPath: string): Promise<void> {
         return this.tagService.removeTagSortOverride(tagPath);
     }
 
-    getTagSortOverride(tagPath: string): SortOption | undefined {
+    getTagSortOverride(tagPath: string): ListSortOverrideValue | undefined {
         return this.tagService.getTagSortOverride(tagPath);
     }
 
@@ -339,6 +358,18 @@ export class MetadataService {
 
     getPropertyIcon(nodeId: string): string | undefined {
         return this.propertyService.getPropertyIcon(nodeId);
+    }
+
+    async setPropertySortOverride(nodeId: string, sortOverride: ListSortOverrideValue): Promise<void> {
+        return this.propertyService.setPropertySortOverride(nodeId, sortOverride);
+    }
+
+    async removePropertySortOverride(nodeId: string): Promise<void> {
+        return this.propertyService.removePropertySortOverride(nodeId);
+    }
+
+    getPropertySortOverride(nodeId: string): ListSortOverrideValue | undefined {
+        return this.propertyService.getPropertySortOverride(nodeId);
     }
 
     async setPropertyChildSortOrderOverride(nodeId: string, sortOrder: AlphaSortOrder): Promise<void> {
@@ -433,6 +464,14 @@ export class MetadataService {
         return this.fileService.removeFileColor(filePath);
     }
 
+    async setFileBackgroundColor(filePath: string, color: string): Promise<void> {
+        return this.fileService.setFileBackgroundColor(filePath, color);
+    }
+
+    async removeFileBackgroundColor(filePath: string): Promise<void> {
+        return this.fileService.removeFileBackgroundColor(filePath);
+    }
+
     /**
      * Gets the color for a file, checking frontmatter first if enabled
      * @param filePath - Path to the file
@@ -451,6 +490,25 @@ export class MetadataService {
         }
         // Fall back to settings-based storage
         return this.fileService.getFileColor(filePath);
+    }
+
+    /**
+     * Gets the background color for a file, checking frontmatter first if enabled
+     * @param filePath - Path to the file
+     * @returns Background color value if found, undefined otherwise
+     */
+    getFileBackgroundColor(filePath: string): string | undefined {
+        const settings = this.settingsProvider.settings;
+        if (settings.useFrontmatterMetadata) {
+            const db = getDBInstance();
+            const record = db.getFile(filePath);
+            const frontmatterBackground = record?.metadata?.background?.trim();
+            if (frontmatterBackground) {
+                return frontmatterBackground;
+            }
+        }
+
+        return this.fileService.getFileBackgroundColor(filePath);
     }
 
     async migrateFileMetadataToFrontmatter(): Promise<FileMetadataMigrationResult> {
@@ -473,15 +531,8 @@ export class MetadataService {
      * @returns True if any changes were made
      */
     async cleanupAllMetadata(targetSettings: NotebookNavigatorSettings = this.settingsProvider.settings): Promise<boolean> {
-        const [folderChanges, tagChanges, propertyChanges, fileChanges, separatorChanges] = await Promise.all([
-            this.folderService.cleanupFolderMetadata(targetSettings),
-            this.tagService.cleanupTagMetadata(targetSettings),
-            this.propertyService.cleanupPropertyMetadata(targetSettings),
-            this.fileService.cleanupPinnedNotes(targetSettings),
-            this.navigationSeparatorService.cleanupSeparators(targetSettings)
-        ]);
-
-        return folderChanges || tagChanges || propertyChanges || fileChanges || separatorChanges;
+        const validators = MetadataService.prepareCleanupValidators(this.app);
+        return this.runUnifiedCleanup(validators, targetSettings);
     }
 
     /**
@@ -554,13 +605,48 @@ export class MetadataService {
             settings.tagAppearances
         ]);
 
-        const fileKeys = MetadataService.collectUniqueKeys([settings.fileIcons, settings.fileColors]);
+        const fileKeys = MetadataService.collectUniqueKeys([settings.fileIcons, settings.fileColors, settings.fileBackgroundColors]);
         const propertyKeys = MetadataService.collectUniqueKeys([
             settings.propertyColors,
             settings.propertyBackgroundColors,
             settings.propertyIcons,
+            settings.propertySortOverrides,
+            settings.propertyAppearances,
             settings.propertyTreeSortOverrides
         ]);
+        settings.vaultProfiles.forEach(profile => {
+            if (!Array.isArray(profile.propertyKeys) || profile.propertyKeys.length === 0) {
+                return;
+            }
+
+            profile.propertyKeys.forEach(entry => {
+                const normalizedKey = typeof entry?.key === 'string' ? casefold(entry.key) : '';
+                if (!normalizedKey) {
+                    return;
+                }
+
+                propertyKeys.add(buildPropertyKeyNodeId(normalizedKey));
+            });
+        });
+
+        Object.keys(settings.collapsedPinnedContexts ?? {}).forEach(key => {
+            const folderTarget = getCollapsedPinnedContextTarget(key, 'folder');
+            if (folderTarget !== null) {
+                folderKeys.add(folderTarget);
+                return;
+            }
+
+            const tagTarget = getCollapsedPinnedContextTarget(key, 'tag');
+            if (tagTarget !== null) {
+                tagKeys.add(tagTarget);
+                return;
+            }
+
+            const propertyTarget = getCollapsedPinnedContextTarget(key, 'property');
+            if (propertyTarget !== null) {
+                propertyKeys.add(propertyTarget);
+            }
+        });
 
         const pinnedNotes = settings.pinnedNotes ? Object.keys(settings.pinnedNotes).length : 0;
 
@@ -592,11 +678,12 @@ export class MetadataService {
     /**
      * Prepares validators for metadata cleanup by collecting current vault state
      * @param app - Obsidian app instance
-     * @param tagTree - Tag tree for tag metadata validation (empty Map if tags disabled)
+     * @param tagTree - Tag tree for tag metadata validation. When omitted, a vault-wide tree is built from cache data.
      * @returns Validators object for cleanup
      */
-    static prepareCleanupValidators(app: App, tagTree: Map<string, TagTreeNode> = new Map()): CleanupValidators {
+    static prepareCleanupValidators(app: App, tagTree?: Map<string, TagTreeNode>): CleanupValidators {
         const db = getDBInstance();
+        const cleanupTagTree = tagTree ?? buildTagTreeFromDatabase(db, undefined, undefined, [], true, false).tagTree;
 
         // Collect all files in vault
         const vaultFiles = new Set(app.vault.getFiles().map(f => f.path));
@@ -615,7 +702,7 @@ export class MetadataService {
 
         return {
             dbFiles: db.getAllFiles(),
-            tagTree,
+            tagTree: cleanupTagTree,
             vaultFiles,
             vaultFolders
         };

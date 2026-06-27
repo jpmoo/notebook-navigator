@@ -22,7 +22,6 @@ import { useSettingsState, useSettingsUpdate } from './SettingsContext';
 import { useServices } from './ServicesContext';
 import {
     ShortcutEntry,
-    ShortcutCollection,
     ShortcutType,
     SearchShortcut,
     type ShortcutStartTarget,
@@ -34,6 +33,7 @@ import {
     isTagShortcut,
     isPropertyShortcut,
     normalizePropertyShortcutNodeId,
+    normalizeSearchShortcutName,
     normalizeShortcutStartTarget
 } from '../types/shortcuts';
 import type { SearchProvider } from '../types/search';
@@ -41,6 +41,8 @@ import { strings } from '../i18n';
 import { showNotice } from '../utils/noticeUtils';
 import { normalizeTagPath } from '../utils/tagUtils';
 import { runAsyncAction } from '../utils/async';
+import { findVaultProfileById } from '../utils/vaultProfiles';
+import { buildShortcutTargetKeyMaps, foldShortcutTargetPath, resolveShortcutTargets } from '../utils/shortcutPathResolver';
 
 // Generates a unique fingerprint for a shortcut based on its type and key properties
 const getShortcutFingerprint = (shortcut: ShortcutEntry): string => {
@@ -88,17 +90,15 @@ export interface ShortcutsContextValue {
     tagShortcutKeysByPath: Map<string, string>;
     propertyShortcutKeysByNodeId: Map<string, string>;
     searchShortcutsByName: Map<string, SearchShortcut>;
-    collections: ShortcutCollection[];
-    activeCollectionId: string;
-    addFolderShortcut: (path: string, options?: { index?: number; collectionId?: string }) => Promise<boolean>;
-    addNoteShortcut: (path: string, options?: { index?: number; collectionId?: string }) => Promise<boolean>;
-    addTagShortcut: (tagPath: string, options?: { index?: number; collectionId?: string }) => Promise<boolean>;
-    addPropertyShortcut: (nodeId: string, options?: { index?: number; collectionId?: string }) => Promise<boolean>;
+    addFolderShortcut: (path: string, options?: { index?: number }) => Promise<boolean>;
+    addNoteShortcut: (path: string, options?: { index?: number }) => Promise<boolean>;
+    addTagShortcut: (tagPath: string, options?: { index?: number }) => Promise<boolean>;
+    addPropertyShortcut: (nodeId: string, options?: { index?: number }) => Promise<boolean>;
     addSearchShortcut: (
         input: { name: string; query: string; provider: SearchProvider; startTarget?: ShortcutStartTarget },
-        options?: { index?: number; collectionId?: string }
+        options?: { index?: number }
     ) => Promise<boolean>;
-    addShortcutsBatch: (entries: ShortcutEntry[], options?: { index?: number; collectionId?: string }) => Promise<number>;
+    addShortcutsBatch: (entries: ShortcutEntry[], options?: { index?: number }) => Promise<number>;
     removeShortcut: (key: string) => Promise<boolean>;
     renameShortcut: (key: string, alias: string, defaultLabel?: string) => Promise<boolean>;
     removeSearchShortcut: (name: string) => Promise<boolean>;
@@ -109,13 +109,6 @@ export interface ShortcutsContextValue {
     hasTagShortcut: (tagPath: string) => boolean;
     hasPropertyShortcut: (nodeId: string) => boolean;
     findSearchShortcut: (name: string) => SearchShortcut | undefined;
-    setActiveCollection: (collectionId: string) => Promise<void>;
-    addCollection: (collection: Omit<ShortcutCollection, 'id'>) => Promise<boolean>;
-    updateCollection: (collectionId: string, updates: Partial<ShortcutCollection>) => Promise<boolean>;
-    deleteCollection: (collectionId: string) => Promise<boolean>;
-    reorderCollections: (orderedCollectionIds: string[]) => Promise<boolean>;
-    getShortcutInCollection: (path: string, collectionId: string) => string | null;
-    getCollectionsWithShortcut: (path: string) => string[];
 }
 
 const ShortcutsContext = createContext<ShortcutsContextValue | null>(null);
@@ -143,63 +136,55 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
     const updateSettings = useSettingsUpdate();
     const { app } = useServices();
     const [vaultChangeVersion, setVaultChangeVersion] = useState(0);
-    // Caches fingerprints to track which collections have been checked for normalization
+    // Caches fingerprints to track which profiles have been checked for normalization
     const normalizationFingerprintsRef = useRef<Map<string, string>>(new Map());
 
-    // Get collections and active collection from settings
-    const collections = useMemo(() => settings.shortcutCollections ?? [], [settings.shortcutCollections]);
-    const activeCollectionId = useMemo(() => settings.activeShortcutCollection ?? 'default', [settings.activeShortcutCollection]);
-    
-    // Get shortcuts for the active collection
-    const activeCollection = useMemo(() => 
-        collections.find(c => c.id === activeCollectionId) || collections[0], 
-        [collections, activeCollectionId]
+    // Retrieves the active vault profile from settings
+    const activeProfile = useMemo(
+        () => findVaultProfileById(settings.vaultProfiles, settings.vaultProfile),
+        [settings.vaultProfiles, settings.vaultProfile]
     );
-    
-    const collectionShortcuts = useMemo(() => 
-        activeCollection?.shortcuts ?? [], 
-        [activeCollection]
-    );
-
-    // Creates snapshots of shortcuts for all collections with their fingerprints (for normalization)
-    const collectionShortcutSnapshots = useMemo(
+    const activeProfileId = activeProfile.id;
+    const rawShortcuts = useMemo(() => activeProfile.shortcuts ?? [], [activeProfile]);
+    // Creates snapshots of shortcuts for all vault profiles with their fingerprints
+    const profileShortcutSnapshots = useMemo(
         () =>
-            collections.map(collection => {
-                const shortcuts = collection.shortcuts ?? [];
+            settings.vaultProfiles.map(profile => {
+                const shortcuts = profile.shortcuts ?? [];
                 return {
-                    id: collection.id,
+                    id: profile.id,
                     shortcuts,
                     fingerprint: buildShortcutsFingerprint(shortcuts)
                 };
             }),
-        [collections]
+        [settings.vaultProfiles]
     );
 
     // TODO: remove migration once tag shortcuts are normalized across active installs
     // Normalize stored tag shortcut paths for consistent lookups
     useEffect(() => {
         const fingerprintCache = normalizationFingerprintsRef.current;
-        const activeCollectionIds = new Set(collectionShortcutSnapshots.map(snapshot => snapshot.id));
+        const activeProfileIds = new Set(profileShortcutSnapshots.map(snapshot => snapshot.id));
         fingerprintCache.forEach((_value, key) => {
-            if (!activeCollectionIds.has(key)) {
+            if (!activeProfileIds.has(key)) {
                 fingerprintCache.delete(key);
             }
         });
 
-        if (collectionShortcutSnapshots.length === 0) {
+        if (profileShortcutSnapshots.length === 0) {
             return;
         }
 
-        const collectionsNeedingCheck = collectionShortcutSnapshots.filter(snapshot => {
+        const profilesNeedingCheck = profileShortcutSnapshots.filter(snapshot => {
             const cachedFingerprint = fingerprintCache.get(snapshot.id);
             return cachedFingerprint !== snapshot.fingerprint;
         });
 
-        if (collectionsNeedingCheck.length === 0) {
+        if (profilesNeedingCheck.length === 0) {
             return;
         }
 
-        const targets = collectionsNeedingCheck.filter(snapshot =>
+        const targets = profilesNeedingCheck.filter(snapshot =>
             snapshot.shortcuts.some(shortcut => {
                 if (isTagShortcut(shortcut)) {
                     const normalized = normalizeTagPath(shortcut.tagPath);
@@ -216,7 +201,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         );
 
         const targetIds = new Set(targets.map(target => target.id));
-        collectionsNeedingCheck.forEach(snapshot => {
+        profilesNeedingCheck.forEach(snapshot => {
             if (!targetIds.has(snapshot.id)) {
                 fingerprintCache.set(snapshot.id, snapshot.fingerprint);
             }
@@ -229,15 +214,14 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         runAsyncAction(async () => {
             await updateSettings(current => {
                 targets.forEach(target => {
-                    const collections = current.shortcutCollections ?? [];
-                    const collection = collections.find(entry => entry.id === target.id);
-                    if (!collection || !Array.isArray(collection.shortcuts)) {
+                    const profile = current.vaultProfiles.find(entry => entry.id === target.id);
+                    if (!profile || !Array.isArray(profile.shortcuts)) {
                         fingerprintCache.set(target.id, target.fingerprint);
                         return;
                     }
 
                     let mutated = false;
-                    const normalizedShortcuts = collection.shortcuts.map(entry => {
+                    const normalizedShortcuts = profile.shortcuts.map(entry => {
                         if (!isTagShortcut(entry)) {
                             if (!isPropertyShortcut(entry)) {
                                 return entry;
@@ -266,85 +250,75 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                     });
 
                     if (mutated) {
-                        collection.shortcuts = normalizedShortcuts;
+                        profile.shortcuts = normalizedShortcuts;
                         fingerprintCache.set(target.id, buildShortcutsFingerprint(normalizedShortcuts));
                         return;
                     }
 
-                    const currentFingerprint = buildShortcutsFingerprint(collection.shortcuts ?? []);
+                    const currentFingerprint = buildShortcutsFingerprint(profile.shortcuts ?? []);
                     fingerprintCache.set(target.id, currentFingerprint);
                 });
             });
         });
-    }, [collectionShortcutSnapshots, updateSettings]);
+    }, [profileShortcutSnapshots, updateSettings]);
 
-    // Migration: Move existing shortcuts to default collection if collections don't exist
-    // Note: This migration handles the transition from the old shortcuts array to collections
-    // The old shortcuts property may not exist in settings if coming from upstream
-    useEffect(() => {
-        const hasCollections = collections.length > 0;
-        // Check if there's an old shortcuts property (for migration from older versions)
-        const oldShortcuts = (settings as any).shortcuts;
-        const hasOldShortcuts = oldShortcuts && Array.isArray(oldShortcuts) && oldShortcuts.length > 0;
-        
-        if (!hasCollections && hasOldShortcuts) {
-            void (async () => {
-                await updateSettings(current => {
-                    // Create default collection with existing shortcuts
-                    current.shortcutCollections = [
-                        {
-                            id: 'default',
-                            name: 'Default',
-                            icon: 'lucide-bookmark',
-                            shortcuts: [...(oldShortcuts ?? [])],
-                            isDefault: true
-                        }
-                    ];
-                    current.activeShortcutCollection = 'default';
-                    // Clear old shortcuts array if it exists
-                    if ('shortcuts' in current) {
-                        (current as any).shortcuts = [];
-                    }
-                });
-            })();
-        }
-    }, [collections.length, updateSettings]);
+    // Updates shortcuts for the currently active vault profile
+    const updateActiveProfileShortcuts = useCallback(
+        async (mutate: (current: ShortcutEntry[]) => ShortcutEntry[] | null | undefined) => {
+            if (!activeProfileId) {
+                return false;
+            }
+
+            let didChange = false;
+            await updateSettings(current => {
+                const profile = current.vaultProfiles.find(entry => entry.id === activeProfileId);
+                if (!profile) {
+                    return;
+                }
+
+                const existing = Array.isArray(profile.shortcuts) ? profile.shortcuts : [];
+                const next = mutate(existing);
+                if (!next) {
+                    return;
+                }
+                profile.shortcuts = next;
+                didChange = true;
+            });
+
+            return didChange;
+        },
+        [activeProfileId, updateSettings]
+    );
 
     // Creates map of shortcuts by their unique keys for O(1) lookup
     const shortcutMap = useMemo(() => {
         const map = new Map<string, ShortcutEntry>();
-        collectionShortcuts.forEach(shortcut => {
+        rawShortcuts.forEach(shortcut => {
             map.set(getShortcutKey(shortcut), shortcut);
         });
         return map;
-    }, [collectionShortcuts]);
+    }, [rawShortcuts]);
 
-    // Maps folder paths to their shortcut keys for duplicate detection within the ACTIVE collection only
-    const folderShortcutKeysByPath = useMemo(() => {
-        const map = new Map<string, string>();
-        collectionShortcuts.forEach(shortcut => {
-            if (isFolderShortcut(shortcut)) {
-                map.set(shortcut.path, getShortcutKey(shortcut));
-            }
-        });
-        return map;
-    }, [collectionShortcuts]);
+    const shortcutTargetResolution = useMemo(() => {
+        void vaultChangeVersion;
+        return resolveShortcutTargets(app, rawShortcuts);
+    }, [app, rawShortcuts, vaultChangeVersion]);
 
-    // Maps note paths to their shortcut keys for duplicate detection within the ACTIVE collection only
-    const noteShortcutKeysByPath = useMemo(() => {
-        const map = new Map<string, string>();
-        collectionShortcuts.forEach(shortcut => {
-            if (isNoteShortcut(shortcut)) {
-                map.set(shortcut.path, getShortcutKey(shortcut));
-            }
-        });
-        return map;
-    }, [collectionShortcuts]);
+    // Maps folder paths to their shortcut keys for duplicate detection
+    const shortcutTargetKeyMaps = useMemo(
+        () => buildShortcutTargetKeyMaps(rawShortcuts, shortcutTargetResolution),
+        [rawShortcuts, shortcutTargetResolution]
+    );
 
-    // Maps tag paths to their shortcut keys for duplicate detection within the ACTIVE collection only
+    const folderShortcutKeysByPath = shortcutTargetKeyMaps.folderShortcutKeysByPath;
+
+    // Maps note paths to their shortcut keys for duplicate detection
+    const noteShortcutKeysByPath = shortcutTargetKeyMaps.noteShortcutKeysByPath;
+
+    // Maps tag paths to their shortcut keys for duplicate detection
     const tagShortcutKeysByPath = useMemo(() => {
         const map = new Map<string, string>();
-        collectionShortcuts.forEach(shortcut => {
+        rawShortcuts.forEach(shortcut => {
             if (isTagShortcut(shortcut)) {
                 const normalized = normalizeTagPath(shortcut.tagPath);
                 if (normalized) {
@@ -353,11 +327,11 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             }
         });
         return map;
-    }, [collectionShortcuts]);
+    }, [rawShortcuts]);
 
     const propertyShortcutKeysByNodeId = useMemo(() => {
         const map = new Map<string, string>();
-        collectionShortcuts.forEach(shortcut => {
+        rawShortcuts.forEach(shortcut => {
             if (isPropertyShortcut(shortcut)) {
                 const normalized = normalizePropertyShortcutNodeId(shortcut.nodeId);
                 if (normalized) {
@@ -366,63 +340,28 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             }
         });
         return map;
-    }, [collectionShortcuts]);
+    }, [rawShortcuts]);
 
-    // Maps search shortcut names (lowercase) to shortcuts for fast lookup within the active collection
+    // Maps search shortcut names in canonical form to shortcuts for fast lookup
     const searchShortcutsByName = useMemo(() => {
         const map = new Map<string, SearchShortcut>();
-        collectionShortcuts.forEach(shortcut => {
+        rawShortcuts.forEach(shortcut => {
             if (isSearchShortcut(shortcut)) {
-                map.set(shortcut.name.toLowerCase(), shortcut);
+                const normalizedName = normalizeSearchShortcutName(shortcut.name);
+                if (normalizedName) {
+                    map.set(normalizedName, shortcut);
+                }
             }
         });
         return map;
-    }, [collectionShortcuts]);
-
-    // Helper function to check if a shortcut exists in a specific collection
-    const getShortcutInCollection = useCallback((path: string, collectionId: string): string | null => {
-        const collection = collections.find(c => c.id === collectionId);
-        if (!collection) return null;
-
-        const shortcut = collection.shortcuts.find(s => {
-            if (isFolderShortcut(s) || isNoteShortcut(s)) {
-                return s.path === path;
-            }
-            if (isTagShortcut(s)) {
-                const normalized = normalizeTagPath(s.tagPath);
-                return normalized === path;
-            }
-            return false;
-        });
-
-        return shortcut ? getShortcutKey(shortcut) : null;
-    }, [collections]);
-
-    // Helper function to get all collections that contain a specific shortcut
-    const getCollectionsWithShortcut = useCallback((path: string): string[] => {
-        const collectionIds: string[] = [];
-        collections.forEach(collection => {
-            const hasShortcut = collection.shortcuts.some(s => {
-                if (isFolderShortcut(s) || isNoteShortcut(s)) {
-                    return s.path === path;
-                }
-                if (isTagShortcut(s)) {
-                    const normalized = normalizeTagPath(s.tagPath);
-                    return normalized === path;
-                }
-                return false;
-            });
-            if (hasShortcut) {
-                collectionIds.push(collection.id);
-            }
-        });
-        return collectionIds;
-    }, [collections]);
+    }, [rawShortcuts]);
 
     // Monitors vault changes for shortcut target files to trigger re-hydration when they are created/deleted/renamed
     useEffect(() => {
         const folderPaths = new Map(folderShortcutKeysByPath);
         const notePaths = new Map(noteShortcutKeysByPath);
+        const foldedFolderPaths = new Set(Array.from(folderPaths.keys(), foldShortcutTargetPath));
+        const foldedNotePaths = new Set(Array.from(notePaths.keys(), foldShortcutTargetPath));
 
         if (folderPaths.size === 0 && notePaths.size === 0) {
             return;
@@ -430,11 +369,25 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
 
         const vault = app.vault;
 
+        const matchesShortcutExactPath = (path: string): boolean => folderPaths.has(path) || notePaths.has(path);
+
+        const matchesShortcutPath = (file: TFile | TFolder, path: string): boolean => {
+            if (matchesShortcutExactPath(path)) {
+                return true;
+            }
+
+            if (isFolder(file)) {
+                return foldedFolderPaths.has(foldShortcutTargetPath(path));
+            }
+
+            return foldedNotePaths.has(foldShortcutTargetPath(path));
+        };
+
         const handleCreate = (file: TAbstractFile) => {
             if (!isFolder(file) && !isFile(file)) {
                 return;
             }
-            if (folderPaths.has(file.path) || notePaths.has(file.path)) {
+            if (matchesShortcutPath(file, file.path)) {
                 setVaultChangeVersion(value => value + 1);
             }
         };
@@ -443,7 +396,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             if (!isFolder(file) && !isFile(file)) {
                 return;
             }
-            if (folderPaths.has(file.path) || notePaths.has(file.path)) {
+            if (matchesShortcutPath(file, file.path)) {
                 setVaultChangeVersion(value => value + 1);
             }
         };
@@ -452,7 +405,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             if (!isFolder(file) && !isFile(file)) {
                 return;
             }
-            if (folderPaths.has(oldPath) || notePaths.has(oldPath) || folderPaths.has(file.path) || notePaths.has(file.path)) {
+            if (matchesShortcutPath(file, oldPath) || matchesShortcutPath(file, file.path)) {
                 setVaultChangeVersion(value => value + 1);
             }
         };
@@ -471,13 +424,11 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
     }, [app.vault, folderShortcutKeysByPath, noteShortcutKeysByPath]);
 
     const hydratedShortcuts = useMemo<HydratedShortcut[]>(() => {
-        // Reference vaultChangeVersion to ensure memoized value updates when tracked files change
-        void vaultChangeVersion; // Ensures memo recalculates after vault changes
-        return collectionShortcuts.map(shortcut => {
+        return rawShortcuts.map(shortcut => {
             const key = getShortcutKey(shortcut);
 
             if (isFolderShortcut(shortcut)) {
-                const target = shortcut.path === '/' ? app.vault.getRoot() : app.vault.getAbstractFileByPath(shortcut.path);
+                const target = shortcutTargetResolution.folderTargetsByPath.get(shortcut.path) ?? null;
                 if (isFolder(target)) {
                     return {
                         key,
@@ -503,7 +454,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             }
 
             if (isNoteShortcut(shortcut)) {
-                const target = app.vault.getAbstractFileByPath(shortcut.path);
+                const target = shortcutTargetResolution.noteTargetsByPath.get(shortcut.path) ?? null;
                 if (isFile(target)) {
                     return {
                         key,
@@ -568,44 +519,24 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                 isMissing: false
             };
         });
-    }, [app.vault, collectionShortcuts, vaultChangeVersion]);
+    }, [rawShortcuts, shortcutTargetResolution]);
 
     // Inserts a shortcut at the specified index or appends to the end
     const insertShortcut = useCallback(
-        async (shortcut: ShortcutEntry, index?: number, collectionId?: string): Promise<boolean> => {
-            const targetCollectionId = collectionId || activeCollectionId;
-            let didInsert = false;
-            await updateSettings(current => {
-                const collections = current.shortcutCollections ?? [];
-                const collectionIndex = collections.findIndex(c => c.id === targetCollectionId);
-                
-                if (collectionIndex === -1) {
-                    return; // Collection not found
-                }
-                
-                const collection = collections[collectionIndex];
-                const existing = collection.shortcuts ?? [];
+        async (shortcut: ShortcutEntry, index?: number) => {
+            return updateActiveProfileShortcuts(existing => {
                 const next = [...existing];
                 const insertAt = typeof index === 'number' ? Math.max(0, Math.min(index, next.length)) : next.length;
                 next.splice(insertAt, 0, shortcut);
-                
-                // Create new collections array to ensure reference changes
-                const updatedCollections = [...collections];
-                updatedCollections[collectionIndex] = {
-                    ...collection,
-                    shortcuts: next
-                };
-                current.shortcutCollections = updatedCollections;
-                didInsert = true;
+                return next;
             });
-            return didInsert;
         },
-        [updateSettings, activeCollectionId]
+        [updateActiveProfileShortcuts]
     );
 
     // Adds multiple shortcuts, validating each type and showing notices for duplicates or invalid entries
     const addShortcutsBatch = useCallback(
-        async (entries: ShortcutEntry[], options?: { index?: number; collectionId?: string }) => {
+        async (entries: ShortcutEntry[], options?: { index?: number }) => {
             if (entries.length === 0) {
                 return 0;
             }
@@ -704,7 +635,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                         emptySearchQuery = true;
                         return;
                     }
-                    const lookupKey = normalizedName.toLowerCase();
+                    const lookupKey = normalizeSearchShortcutName(normalizedName);
                     if (searchNames.has(lookupKey)) {
                         duplicateSearch = true;
                         return;
@@ -752,46 +683,20 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                 return 0;
             }
 
-            // Insert normalized entries using insertShortcut to support collections
-            const targetCollectionId = options?.collectionId || activeCollectionId;
-            let insertIndex = options?.index;
-            let successCount = 0;
+            // Insert normalized entries at specified index, shifting subsequent items
+            const updated = await updateActiveProfileShortcuts(existing => {
+                const next = [...existing];
+                let insertAt = typeof options?.index === 'number' ? Math.max(0, Math.min(options.index, next.length)) : next.length;
 
-            for (const entry of normalizedEntries) {
-                // Check for duplicates within the target collection
-                let existingKey: string | null = null;
-                if (entry.type === ShortcutType.FOLDER) {
-                    existingKey = getShortcutInCollection(entry.path, targetCollectionId);
-                } else if (entry.type === ShortcutType.NOTE) {
-                    existingKey = getShortcutInCollection(entry.path, targetCollectionId);
-                } else if (entry.type === ShortcutType.TAG) {
-                    existingKey = getShortcutInCollection(entry.tagPath, targetCollectionId);
-                } else if (entry.type === ShortcutType.SEARCH) {
-                    // Search shortcuts are checked by name
-                    const collection = collections.find(c => c.id === targetCollectionId);
-                    if (collection) {
-                        const lookupKey = entry.name.toLowerCase();
-                        const existing = collection.shortcuts.find(s => 
-                            isSearchShortcut(s) && s.name.toLowerCase() === lookupKey
-                        );
-                        if (existing) {
-                            continue; // Skip duplicate
-                        }
-                    }
-                }
+                normalizedEntries.forEach(entry => {
+                    next.splice(insertAt, 0, entry);
+                    insertAt += 1;
+                });
 
-                if (existingKey) {
-                    continue; // Skip duplicate within collection
-                }
+                return next;
+            });
 
-                await insertShortcut(entry, insertIndex, targetCollectionId);
-                successCount++;
-                if (typeof insertIndex === 'number') {
-                    insertIndex += 1;
-                }
-            }
-
-            return successCount;
+            return updated ? normalizedEntries.length : 0;
         },
         [
             folderShortcutKeysByPath,
@@ -799,61 +704,52 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             tagShortcutKeysByPath,
             propertyShortcutKeysByNodeId,
             searchShortcutsByName,
-            insertShortcut,
-            getShortcutInCollection,
-            activeCollectionId,
-            collections
+            updateActiveProfileShortcuts
         ]
     );
 
-    // Adds a folder shortcut if it doesn't already exist in the target collection
+    // Adds a folder shortcut if it doesn't already exist
     const addFolderShortcut = useCallback(
-        async (path: string, options?: { index?: number; collectionId?: string }) => {
-            const targetCollectionId = options?.collectionId || activeCollectionId;
-            const existingKey = getShortcutInCollection(path, targetCollectionId);
-            if (existingKey) {
+        async (path: string, options?: { index?: number }) => {
+            if (folderShortcutKeysByPath.has(path)) {
                 showNotice(strings.shortcuts.folderExists, { variant: 'warning' });
                 return false;
             }
-            return insertShortcut({ type: ShortcutType.FOLDER, path }, options?.index, targetCollectionId);
+            return insertShortcut({ type: ShortcutType.FOLDER, path }, options?.index);
         },
-        [insertShortcut, getShortcutInCollection, activeCollectionId]
+        [insertShortcut, folderShortcutKeysByPath]
     );
 
-    // Adds a note shortcut if it doesn't already exist in the target collection
+    // Adds a note shortcut if it doesn't already exist
     const addNoteShortcut = useCallback(
-        async (path: string, options?: { index?: number; collectionId?: string }) => {
-            const targetCollectionId = options?.collectionId || activeCollectionId;
-            const existingKey = getShortcutInCollection(path, targetCollectionId);
-            if (existingKey) {
+        async (path: string, options?: { index?: number }) => {
+            if (noteShortcutKeysByPath.has(path)) {
                 showNotice(strings.shortcuts.noteExists, { variant: 'warning' });
                 return false;
             }
-            return insertShortcut({ type: ShortcutType.NOTE, path }, options?.index, targetCollectionId);
+            return insertShortcut({ type: ShortcutType.NOTE, path }, options?.index);
         },
-        [insertShortcut, getShortcutInCollection, activeCollectionId]
+        [insertShortcut, noteShortcutKeysByPath]
     );
 
-    // Adds a tag shortcut if it doesn't already exist in the target collection
+    // Adds a tag shortcut if it doesn't already exist
     const addTagShortcut = useCallback(
-        async (tagPath: string, options?: { index?: number; collectionId?: string }) => {
+        async (tagPath: string, options?: { index?: number }) => {
             const normalizedPath = normalizeTagPath(tagPath);
             if (!normalizedPath) {
                 return false;
             }
-            const targetCollectionId = options?.collectionId || activeCollectionId;
-            const existingKey = getShortcutInCollection(normalizedPath, targetCollectionId);
-            if (existingKey) {
+            if (tagShortcutKeysByPath.has(normalizedPath)) {
                 showNotice(strings.shortcuts.tagExists, { variant: 'warning' });
                 return false;
             }
-            return insertShortcut({ type: ShortcutType.TAG, tagPath: normalizedPath }, options?.index, targetCollectionId);
+            return insertShortcut({ type: ShortcutType.TAG, tagPath: normalizedPath }, options?.index);
         },
-        [insertShortcut, getShortcutInCollection, activeCollectionId]
+        [insertShortcut, tagShortcutKeysByPath]
     );
 
     const addPropertyShortcut = useCallback(
-        async (nodeId: string, options?: { index?: number; collectionId?: string }) => {
+        async (nodeId: string, options?: { index?: number }) => {
             const normalizedNodeId = normalizePropertyShortcutNodeId(nodeId);
             if (!normalizedNodeId) {
                 showNotice(strings.shortcuts.invalidProperty, { variant: 'warning' });
@@ -863,10 +759,9 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                 showNotice(strings.shortcuts.propertyExists, { variant: 'warning' });
                 return false;
             }
-            const targetCollectionId = options?.collectionId || activeCollectionId;
-            return insertShortcut({ type: ShortcutType.PROPERTY, nodeId: normalizedNodeId }, options?.index, targetCollectionId);
+            return insertShortcut({ type: ShortcutType.PROPERTY, nodeId: normalizedNodeId }, options?.index);
         },
-        [insertShortcut, propertyShortcutKeysByNodeId, activeCollectionId]
+        [insertShortcut, propertyShortcutKeysByNodeId]
     );
 
     // Adds a search shortcut with validation for name and query uniqueness
@@ -878,7 +773,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                 provider,
                 startTarget
             }: { name: string; query: string; provider: SearchProvider; startTarget?: ShortcutStartTarget },
-            options?: { index?: number; collectionId?: string }
+            options?: { index?: number }
         ) => {
             const normalizedQuery = query.trim();
             if (!normalizedQuery) {
@@ -892,14 +787,13 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                 return false;
             }
 
-            const nameKey = normalizedName.toLowerCase();
+            const nameKey = normalizeSearchShortcutName(normalizedName);
             if (searchShortcutsByName.has(nameKey)) {
                 showNotice(strings.shortcuts.searchExists, { variant: 'warning' });
                 return false;
             }
 
             const normalizedStartTarget = normalizeShortcutStartTarget(startTarget);
-            const targetCollectionId = options?.collectionId || activeCollectionId;
             return insertShortcut(
                 {
                     type: ShortcutType.SEARCH,
@@ -908,11 +802,10 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                     provider,
                     startTarget: normalizedStartTarget
                 },
-                options?.index,
-                targetCollectionId
+                options?.index
             );
         },
-        [insertShortcut, searchShortcutsByName, activeCollectionId]
+        [insertShortcut, searchShortcutsByName]
     );
 
     // Removes a shortcut by its unique key
@@ -922,24 +815,53 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                 return false;
             }
 
-            await updateSettings(current => {
-                const collections = current.shortcutCollections ?? [];
-                const updatedCollections = collections.map(collection => ({
-                    ...collection,
-                    shortcuts: collection.shortcuts.filter(entry => getShortcutKey(entry) !== key)
-                }));
-                current.shortcutCollections = updatedCollections;
+            return updateActiveProfileShortcuts(existing => {
+                const filtered = existing.filter(entry => getShortcutKey(entry) !== key);
+                return filtered.length === existing.length ? null : filtered;
             });
-            return true;
         },
-        [shortcutMap, updateSettings]
+        [shortcutMap, updateActiveProfileShortcuts]
     );
 
     const renameShortcut = useCallback(
         async (key: string, alias: string, defaultLabel?: string) => {
             const existing = shortcutMap.get(key);
-            if (!existing || existing.type === ShortcutType.SEARCH) {
+            if (!existing) {
                 return false;
+            }
+
+            if (isSearchShortcut(existing)) {
+                const trimmedName = alias.trim();
+                if (!trimmedName) {
+                    showNotice(strings.shortcuts.emptySearchName, { variant: 'warning' });
+                    return false;
+                }
+
+                const nextNameKey = normalizeSearchShortcutName(trimmedName);
+                const currentNameKey = normalizeSearchShortcutName(existing.name);
+                const duplicateShortcut = searchShortcutsByName.get(nextNameKey);
+                if (nextNameKey !== currentNameKey && duplicateShortcut) {
+                    showNotice(strings.shortcuts.searchExists, { variant: 'warning' });
+                    return false;
+                }
+
+                return updateActiveProfileShortcuts(current => {
+                    let changed = false;
+                    const next = current.map(entry => {
+                        if (getShortcutKey(entry) !== key || !isSearchShortcut(entry)) {
+                            return entry;
+                        }
+
+                        if (entry.name === trimmedName) {
+                            return entry;
+                        }
+
+                        changed = true;
+                        return { ...entry, name: trimmedName };
+                    });
+
+                    return changed ? next : null;
+                });
             }
 
             const trimmedAlias = alias.trim();
@@ -947,40 +869,32 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             const nextAlias =
                 trimmedAlias.length === 0 || (trimmedDefaultLabel && trimmedAlias === trimmedDefaultLabel) ? undefined : trimmedAlias;
 
-            await updateSettings(current => {
-                const collections = current.shortcutCollections ?? [];
-                const updatedCollections = collections.map(collection => {
-                    if (collection.id !== activeCollectionId) {
-                        return collection;
+            return updateActiveProfileShortcuts(current => {
+                let changed = false;
+                const next = current.map(entry => {
+                    if (getShortcutKey(entry) !== key || entry.type === ShortcutType.SEARCH) {
+                        return entry;
                     }
-                    let changed = false;
-                    const next = collection.shortcuts.map((entry: ShortcutEntry) => {
-                        if (getShortcutKey(entry) !== key || entry.type === ShortcutType.SEARCH) {
-                            return entry;
-                        }
 
-                        const normalizedCurrent = entry.alias && entry.alias.length > 0 ? entry.alias : undefined;
-                        if (normalizedCurrent === nextAlias) {
-                            return entry;
-                        }
+                    const normalizedCurrent = entry.alias && entry.alias.length > 0 ? entry.alias : undefined;
+                    if (normalizedCurrent === nextAlias) {
+                        return entry;
+                    }
 
-                        changed = true;
-                        return { ...entry, alias: nextAlias };
-                    });
-
-                    return changed ? { ...collection, shortcuts: next } : collection;
+                    changed = true;
+                    return { ...entry, alias: nextAlias };
                 });
-                current.shortcutCollections = updatedCollections;
+
+                return changed ? next : null;
             });
-            return true;
         },
-        [shortcutMap, updateSettings, activeCollectionId]
+        [searchShortcutsByName, shortcutMap, updateActiveProfileShortcuts]
     );
 
     // Removes a search shortcut by its name (case-insensitive)
     const removeSearchShortcut = useCallback(
         async (name: string) => {
-            const shortcut = searchShortcutsByName.get(name.trim().toLowerCase());
+            const shortcut = searchShortcutsByName.get(normalizeSearchShortcutName(name));
             if (!shortcut) {
                 return false;
             }
@@ -990,23 +904,16 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
         [removeShortcut, searchShortcutsByName]
     );
 
-    // Removes all shortcuts from the active collection
+    // Removes all shortcuts from the active profile
     const clearShortcuts = useCallback(async () => {
-        await updateSettings(current => {
-            const collections = current.shortcutCollections ?? [];
-            const updatedCollections = collections.map(collection =>
-                collection.id === activeCollectionId ? { ...collection, shortcuts: [] } : collection
-            );
-            current.shortcutCollections = updatedCollections;
-        });
-        return true;
-    }, [updateSettings, activeCollectionId]);
+        return updateActiveProfileShortcuts(() => []);
+    }, [updateActiveProfileShortcuts]);
 
     // Reorders shortcuts based on provided key order (for drag & drop functionality)
     // Validates that all keys are present before applying the new order
     const reorderShortcuts = useCallback(
         async (orderedKeys: string[]) => {
-            if (orderedKeys.length !== collectionShortcuts.length) {
+            if (orderedKeys.length !== rawShortcuts.length) {
                 return false;
             }
 
@@ -1019,24 +926,9 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                 orderedEntries.push(entry);
             }
 
-            await updateSettings(current => {
-                const collections = current.shortcutCollections ?? [];
-                const collectionIndex = collections.findIndex(c => c.id === activeCollectionId);
-                
-                if (collectionIndex !== -1) {
-                    // Create new collections array to ensure reference changes
-                    const updatedCollections = [...collections];
-                    updatedCollections[collectionIndex] = {
-                        ...collections[collectionIndex],
-                        shortcuts: orderedEntries
-                    };
-                    current.shortcutCollections = updatedCollections;
-                }
-            });
-
-            return true;
+            return updateActiveProfileShortcuts(() => orderedEntries);
         },
-        [collectionShortcuts.length, shortcutMap, updateSettings, activeCollectionId]
+        [rawShortcuts.length, shortcutMap, updateActiveProfileShortcuts]
     );
 
     // Checks if a folder shortcut exists for the given path
@@ -1061,106 +953,14 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
     );
 
     // Finds a search shortcut by name (case-insensitive)
-    const findSearchShortcut = useCallback((name: string) => searchShortcutsByName.get(name.trim().toLowerCase()), [searchShortcutsByName]);
-
-    // Collection management functions
-    const setActiveCollection = useCallback(
-        async (collectionId: string) => {
-            await updateSettings(current => {
-                current.activeShortcutCollection = collectionId;
-            });
-        },
-        [updateSettings]
-    );
-
-    const addCollection = useCallback(
-        async (collection: Omit<ShortcutCollection, 'id'>) => {
-            const newCollection: ShortcutCollection = {
-                ...collection,
-                id: `collection_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-            };
-
-            await updateSettings(current => {
-                const collections = current.shortcutCollections ?? [];
-                current.shortcutCollections = [...collections, newCollection];
-            });
-
-            return true;
-        },
-        [updateSettings]
-    );
-
-    const updateCollection = useCallback(
-        async (collectionId: string, updates: Partial<ShortcutCollection>) => {
-            await updateSettings(current => {
-                const collections = current.shortcutCollections ?? [];
-                const index = collections.findIndex(c => c.id === collectionId);
-                
-                if (index !== -1) {
-                    // Create new collections array to ensure reference changes
-                    const updatedCollections = [...collections];
-                    updatedCollections[index] = { ...collections[index], ...updates };
-                    current.shortcutCollections = updatedCollections;
-                }
-            });
-
-            return true;
-        },
-        [updateSettings]
-    );
-
-    const deleteCollection = useCallback(
-        async (collectionId: string) => {
-            // Don't allow deleting the default collection
-            const collection = collections.find(c => c.id === collectionId);
-            if (collection?.isDefault) {
-                return false;
-            }
-
-            await updateSettings(current => {
-                const collections = current.shortcutCollections ?? [];
-                current.shortcutCollections = collections.filter(c => c.id !== collectionId);
-                
-                // If we deleted the active collection, switch to default
-                if (current.activeShortcutCollection === collectionId) {
-                    const defaultCollection = collections.find(c => c.isDefault);
-                    current.activeShortcutCollection = defaultCollection?.id || 'default';
-                }
-            });
-
-            return true;
-        },
-        [updateSettings, collections]
-    );
-
-    const reorderCollections = useCallback(
-        async (orderedCollectionIds: string[]) => {
-            // Validate that all collection IDs are present
-            if (orderedCollectionIds.length !== collections.length) {
-                return false;
-            }
-
-            const orderedCollections: ShortcutCollection[] = [];
-            for (const id of orderedCollectionIds) {
-                const collection = collections.find(c => c.id === id);
-                if (!collection) {
-                    return false;
-                }
-                orderedCollections.push(collection);
-            }
-
-            await updateSettings(current => {
-                current.shortcutCollections = orderedCollections;
-            });
-
-            return true;
-        },
-        [collections, updateSettings]
+    const findSearchShortcut = useCallback(
+        (name: string) => searchShortcutsByName.get(normalizeSearchShortcutName(name)),
+        [searchShortcutsByName]
     );
 
     const value: ShortcutsContextValue = useMemo(
         () => ({
-            shortcuts: collectionShortcuts,
+            shortcuts: rawShortcuts,
             hydratedShortcuts,
             shortcutMap,
             folderShortcutKeysByPath,
@@ -1168,8 +968,6 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             tagShortcutKeysByPath,
             propertyShortcutKeysByNodeId,
             searchShortcutsByName,
-            collections,
-            activeCollectionId,
             addFolderShortcut,
             addNoteShortcut,
             addTagShortcut,
@@ -1185,17 +983,10 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             hasNoteShortcut,
             hasTagShortcut,
             hasPropertyShortcut,
-            findSearchShortcut,
-            setActiveCollection,
-            addCollection,
-            updateCollection,
-            deleteCollection,
-            reorderCollections,
-            getShortcutInCollection,
-            getCollectionsWithShortcut
+            findSearchShortcut
         }),
         [
-            collectionShortcuts,
+            rawShortcuts,
             hydratedShortcuts,
             shortcutMap,
             folderShortcutKeysByPath,
@@ -1203,8 +994,6 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             tagShortcutKeysByPath,
             propertyShortcutKeysByNodeId,
             searchShortcutsByName,
-            collections,
-            activeCollectionId,
             addFolderShortcut,
             addNoteShortcut,
             addTagShortcut,
@@ -1220,14 +1009,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             hasNoteShortcut,
             hasTagShortcut,
             hasPropertyShortcut,
-            findSearchShortcut,
-            setActiveCollection,
-            addCollection,
-            updateCollection,
-            deleteCollection,
-            reorderCollections,
-            getShortcutInCollection,
-            getCollectionsWithShortcut
+            findSearchShortcut
         ]
     );
 

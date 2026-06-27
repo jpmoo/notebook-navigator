@@ -16,8 +16,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { NotebookNavigatorSettings } from '../settings';
-import type { VaultProfile, VaultProfilePropertyKey } from '../settings/types';
+import { NAV_RAINBOW_DEFAULTS } from '../settings/defaultSettings';
+import {
+    isNavRainbowColorMode,
+    isNavRainbowScope,
+    isNavRainbowTransitionStyle,
+    type NavRainbowSettings,
+    type NotebookNavigatorSettings,
+    type VaultProfile,
+    type VaultProfilePropertyKey
+} from '../settings/types';
 import { isSearchShortcut, type ShortcutEntry } from '../types/shortcuts';
 import { strings } from '../i18n';
 import { normalizeCalendarCustomRootFolder } from './calendarCustomNotePatterns';
@@ -55,6 +63,7 @@ interface VaultProfileInitOptions {
     periodicNotesFolder?: string;
     propertyKeys?: VaultProfilePropertyKey[];
     shortcuts?: ShortcutEntry[];
+    navRainbow?: NavRainbowSettings;
 }
 
 // Hidden folder pattern rules (all patterns must be absolute with a leading "/"):
@@ -117,7 +126,7 @@ const matchesHiddenFolderLiteralPrefix = (pattern: ParsedPathPattern, candidateS
         if (segment.type !== 'literal') {
             return false;
         }
-        if (segment.value.toLowerCase() !== candidate) {
+        if (casefold(segment.value) !== candidate) {
             return false;
         }
     }
@@ -244,11 +253,138 @@ const clonePropertyKeyEntry = (entry: VaultProfilePropertyKey): VaultProfileProp
     return {
         key: entry.key,
         showInNavigation: entry.showInNavigation,
-        showInList: entry.showInList
+        showInList: entry.showInList,
+        showInFileMenu: entry.showInFileMenu
+    };
+};
+
+const resolveRainbowColor = (value: unknown, fallback: string): string => {
+    if (typeof value !== 'string') {
+        return fallback;
+    }
+
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : fallback;
+};
+
+const cloneNavRainbowBaseSection = <TSection extends NavRainbowSettings['shortcuts']>(section: TSection): TSection => {
+    return { ...section };
+};
+
+export const cloneNavRainbowSettings = (settings: NavRainbowSettings): NavRainbowSettings => {
+    return {
+        mode: settings.mode,
+        balanceHueLuminance: settings.balanceHueLuminance,
+        separateThemeColors: settings.separateThemeColors,
+        shortcuts: cloneNavRainbowBaseSection(settings.shortcuts),
+        recent: cloneNavRainbowBaseSection(settings.recent),
+        folders: cloneNavRainbowBaseSection(settings.folders),
+        tags: cloneNavRainbowBaseSection(settings.tags),
+        properties: cloneNavRainbowBaseSection(settings.properties)
+    };
+};
+
+export const areNavRainbowSettingsEqual = (previous?: NavRainbowSettings | null, next?: NavRainbowSettings | null): boolean => {
+    if (previous === next) {
+        return true;
+    }
+    if (!previous || !next) {
+        return false;
+    }
+
+    return (
+        previous.mode === next.mode &&
+        previous.balanceHueLuminance === next.balanceHueLuminance &&
+        previous.separateThemeColors === next.separateThemeColors &&
+        previous.shortcuts.enabled === next.shortcuts.enabled &&
+        previous.shortcuts.firstColor === next.shortcuts.firstColor &&
+        previous.shortcuts.lastColor === next.shortcuts.lastColor &&
+        previous.shortcuts.darkFirstColor === next.shortcuts.darkFirstColor &&
+        previous.shortcuts.darkLastColor === next.shortcuts.darkLastColor &&
+        previous.shortcuts.transitionStyle === next.shortcuts.transitionStyle &&
+        previous.recent.enabled === next.recent.enabled &&
+        previous.recent.firstColor === next.recent.firstColor &&
+        previous.recent.lastColor === next.recent.lastColor &&
+        previous.recent.darkFirstColor === next.recent.darkFirstColor &&
+        previous.recent.darkLastColor === next.recent.darkLastColor &&
+        previous.recent.transitionStyle === next.recent.transitionStyle &&
+        previous.folders.enabled === next.folders.enabled &&
+        previous.folders.firstColor === next.folders.firstColor &&
+        previous.folders.lastColor === next.folders.lastColor &&
+        previous.folders.darkFirstColor === next.folders.darkFirstColor &&
+        previous.folders.darkLastColor === next.folders.darkLastColor &&
+        previous.folders.transitionStyle === next.folders.transitionStyle &&
+        previous.folders.scope === next.folders.scope &&
+        previous.tags.enabled === next.tags.enabled &&
+        previous.tags.firstColor === next.tags.firstColor &&
+        previous.tags.lastColor === next.tags.lastColor &&
+        previous.tags.darkFirstColor === next.tags.darkFirstColor &&
+        previous.tags.darkLastColor === next.tags.darkLastColor &&
+        previous.tags.transitionStyle === next.tags.transitionStyle &&
+        previous.tags.scope === next.tags.scope &&
+        previous.properties.enabled === next.properties.enabled &&
+        previous.properties.firstColor === next.properties.firstColor &&
+        previous.properties.lastColor === next.properties.lastColor &&
+        previous.properties.darkFirstColor === next.properties.darkFirstColor &&
+        previous.properties.darkLastColor === next.properties.darkLastColor &&
+        previous.properties.transitionStyle === next.properties.transitionStyle &&
+        previous.properties.scope === next.properties.scope
+    );
+};
+
+const normalizeNavRainbowBaseSection = (value: unknown, defaults: NavRainbowSettings['shortcuts']): NavRainbowSettings['shortcuts'] => {
+    const section = isRecord(value) ? value : null;
+    const firstColor = resolveRainbowColor(section?.firstColor, defaults.firstColor);
+    const lastColor = resolveRainbowColor(section?.lastColor, defaults.lastColor);
+
+    return {
+        enabled: typeof section?.enabled === 'boolean' ? section.enabled : defaults.enabled,
+        firstColor,
+        lastColor,
+        darkFirstColor: resolveRainbowColor(section?.darkFirstColor, defaults.darkFirstColor),
+        darkLastColor: resolveRainbowColor(section?.darkLastColor, defaults.darkLastColor),
+        transitionStyle: isNavRainbowTransitionStyle(section?.transitionStyle) ? section.transitionStyle : defaults.transitionStyle
+    };
+};
+
+const normalizeNavRainbowSettings = (value: unknown, defaults: NavRainbowSettings = NAV_RAINBOW_DEFAULTS): NavRainbowSettings => {
+    const navRainbow = isRecord(value) ? value : null;
+    const shortcuts = isRecord(navRainbow?.shortcuts) ? navRainbow.shortcuts : null;
+    const recent = isRecord(navRainbow?.recent) ? navRainbow.recent : null;
+    const folders = isRecord(navRainbow?.folders) ? navRainbow.folders : null;
+    const tags = isRecord(navRainbow?.tags) ? navRainbow.tags : null;
+    const properties = isRecord(navRainbow?.properties) ? navRainbow.properties : null;
+
+    const foldersBase = normalizeNavRainbowBaseSection(folders, defaults.folders);
+    const tagsBase = normalizeNavRainbowBaseSection(tags, defaults.tags);
+    const propertiesBase = normalizeNavRainbowBaseSection(properties, defaults.properties);
+
+    return {
+        mode: isNavRainbowColorMode(navRainbow?.mode) ? navRainbow.mode : defaults.mode,
+        balanceHueLuminance:
+            typeof navRainbow?.balanceHueLuminance === 'boolean' ? navRainbow.balanceHueLuminance : defaults.balanceHueLuminance,
+        separateThemeColors:
+            typeof navRainbow?.separateThemeColors === 'boolean' ? navRainbow.separateThemeColors : defaults.separateThemeColors,
+        shortcuts: normalizeNavRainbowBaseSection(shortcuts, defaults.shortcuts),
+        recent: normalizeNavRainbowBaseSection(recent, defaults.recent),
+        folders: {
+            ...foldersBase,
+            scope: isNavRainbowScope(folders?.scope) ? folders.scope : defaults.folders.scope
+        },
+        tags: {
+            ...tagsBase,
+            scope: isNavRainbowScope(tags?.scope) ? tags.scope : defaults.tags.scope
+        },
+        properties: {
+            ...propertiesBase,
+            scope: isNavRainbowScope(properties?.scope) ? properties.scope : defaults.properties.scope
+        }
     };
 };
 
 const normalizePropertyKeyToggle = (value: unknown): boolean => value !== false;
+// File menu visibility stays disabled unless persisted settings explicitly set true.
+const normalizePropertyKeyFileMenuToggle = (value: unknown): boolean => value === true;
 
 const sanitizePropertyKeyEntry = (entry: unknown): VaultProfilePropertyKey | null => {
     if (!isRecord(entry)) {
@@ -264,7 +400,8 @@ const sanitizePropertyKeyEntry = (entry: unknown): VaultProfilePropertyKey | nul
     return {
         key,
         showInNavigation: normalizePropertyKeyToggle(entry['showInNavigation']),
-        showInList: normalizePropertyKeyToggle(entry['showInList'])
+        showInList: normalizePropertyKeyToggle(entry['showInList']),
+        showInFileMenu: normalizePropertyKeyFileMenuToggle(entry['showInFileMenu'])
     };
 };
 
@@ -280,7 +417,7 @@ export const clonePropertyKeys = (propertyKeys: VaultProfilePropertyKey[] | unde
         if (!sanitized) {
             return;
         }
-        if (!sanitized.showInNavigation && !sanitized.showInList) {
+        if (!sanitized.showInNavigation && !sanitized.showInList && !sanitized.showInFileMenu) {
             return;
         }
 
@@ -296,12 +433,13 @@ export const clonePropertyKeys = (propertyKeys: VaultProfilePropertyKey[] | unde
     return cloned;
 };
 
-export function getActivePropertyKeySet(
-    settings: NotebookNavigatorSettings,
-    mode: 'any' | 'navigation' | 'list' = 'any'
+export type PropertyKeySetMode = 'any' | 'navigation' | 'list' | 'file-menu';
+
+export function getPropertyKeySet(
+    propertyKeys: readonly VaultProfilePropertyKey[] | undefined,
+    mode: PropertyKeySetMode = 'any'
 ): ReadonlySet<string> {
-    const profile = getActiveVaultProfile(settings);
-    const entries = Array.isArray(profile.propertyKeys) ? profile.propertyKeys : [];
+    const entries = propertyKeys ?? [];
     if (entries.length === 0) {
         return new Set();
     }
@@ -319,8 +457,11 @@ export function getActivePropertyKeySet(
         if (mode === 'list' && !entry.showInList) {
             return;
         }
+        if (mode === 'file-menu' && !entry.showInFileMenu) {
+            return;
+        }
 
-        if (mode === 'any' && !entry.showInNavigation && !entry.showInList) {
+        if (mode === 'any' && !entry.showInNavigation && !entry.showInList && !entry.showInFileMenu) {
             return;
         }
 
@@ -335,6 +476,10 @@ export function getActivePropertyKeySet(
     });
 
     return keys;
+}
+
+export function getActivePropertyKeySet(settings: NotebookNavigatorSettings, mode: PropertyKeySetMode = 'any'): ReadonlySet<string> {
+    return getPropertyKeySet(getActiveVaultProfile(settings).propertyKeys, mode);
 }
 
 export function createPropertyKeysFromPropertyFields(
@@ -364,7 +509,8 @@ export function createPropertyKeysFromPropertyFields(
         propertyKeys.push({
             key,
             showInNavigation: existing?.showInNavigation ?? true,
-            showInList: existing?.showInList ?? true
+            showInList: existing?.showInList ?? true,
+            showInFileMenu: existing?.showInFileMenu ?? false
         });
     });
 
@@ -373,7 +519,7 @@ export function createPropertyKeysFromPropertyFields(
 
 const propertyFieldsByPropertyKeysCache = new WeakMap<readonly VaultProfilePropertyKey[], string>();
 
-const collectPropertyFieldNames = (propertyKeys: VaultProfilePropertyKey[]): string[] => {
+const collectPropertyFieldNames = (propertyKeys: readonly VaultProfilePropertyKey[]): string[] => {
     const keys: string[] = [];
     const seenKeys = new Set<string>();
     propertyKeys.forEach(entry => {
@@ -394,7 +540,7 @@ const collectPropertyFieldNames = (propertyKeys: VaultProfilePropertyKey[]): str
     return keys;
 };
 
-const formatPropertyFieldsFromKeys = (propertyKeys: VaultProfilePropertyKey[] | undefined): string => {
+export function getPropertyFieldsFromPropertyKeys(propertyKeys: readonly VaultProfilePropertyKey[] | undefined): string {
     if (!Array.isArray(propertyKeys) || propertyKeys.length === 0) {
         return '';
     }
@@ -407,7 +553,7 @@ const formatPropertyFieldsFromKeys = (propertyKeys: VaultProfilePropertyKey[] | 
     const formatted = formatCommaSeparatedList(collectPropertyFieldNames(propertyKeys));
     propertyFieldsByPropertyKeysCache.set(propertyKeys, formatted);
     return formatted;
-};
+}
 
 // Creates a clone of shortcuts array to prevent shared references
 export const cloneShortcuts = (shortcuts: ShortcutEntry[] | undefined): ShortcutEntry[] => {
@@ -493,7 +639,8 @@ export function createVaultProfile(name: string, options: VaultProfileInitOption
             typeof options.periodicNotesFolder === 'string' ? options.periodicNotesFolder : ''
         ),
         propertyKeys: clonePropertyKeys(options.propertyKeys),
-        shortcuts: cloneShortcuts(options.shortcuts)
+        shortcuts: cloneShortcuts(options.shortcuts),
+        navRainbow: normalizeNavRainbowSettings(options.navRainbow)
     };
 }
 
@@ -516,7 +663,8 @@ function createVaultProfileFromTemplate(name: string, template: VaultProfileTemp
         navigationBanner: source?.navigationBanner,
         periodicNotesFolder: source?.periodicNotesFolder,
         propertyKeys: source?.propertyKeys,
-        shortcuts: source?.shortcuts
+        shortcuts: source?.shortcuts,
+        navRainbow: source?.navRainbow
     });
 }
 
@@ -590,7 +738,7 @@ function hasVaultProfileNameDuplicate(
         return false;
     }
 
-    const normalizedCandidate = candidateName.trim().toLowerCase();
+    const normalizedCandidate = casefold(candidateName);
     if (!normalizedCandidate) {
         return false;
     }
@@ -599,9 +747,50 @@ function hasVaultProfileNameDuplicate(
         if (options.excludeId && profile.id === options.excludeId) {
             return false;
         }
-        const normalizedProfileName = (profile.name ?? '').trim().toLowerCase();
+        const normalizedProfileName = casefold(profile.name ?? '');
         return normalizedProfileName === normalizedCandidate;
     });
+}
+
+function getCanonicalHiddenTagPattern(pattern: string): string {
+    const trimmed = pattern.trim();
+    if (!trimmed) {
+        return '';
+    }
+
+    const parsed = parsePathPattern(trimmed, { normalizePattern: normalizeTagPathValue });
+    if (parsed) {
+        return parsed.normalized;
+    }
+
+    if (trimmed.startsWith('*') && !trimmed.slice(1).includes('*') && !trimmed.includes('/')) {
+        const suffix = normalizeTagPathValue(trimmed.slice(1));
+        return suffix.length > 0 ? `*${suffix}` : '';
+    }
+
+    if (trimmed.endsWith('*') && !trimmed.slice(0, -1).includes('*') && !trimmed.includes('/')) {
+        const prefix = normalizeTagPathValue(trimmed.slice(0, -1));
+        return prefix.length > 0 ? `${prefix}*` : '';
+    }
+
+    return normalizeTagPathValue(trimmed);
+}
+
+function dedupeCanonicalHiddenTagPatterns(patterns: string[]): string[] {
+    const uniquePatterns: string[] = [];
+    const seen = new Set<string>();
+
+    patterns.forEach(pattern => {
+        const canonical = getCanonicalHiddenTagPattern(pattern);
+        if (!canonical || seen.has(canonical)) {
+            return;
+        }
+
+        seen.add(canonical);
+        uniquePatterns.push(pattern);
+    });
+
+    return uniquePatterns;
 }
 
 // Returns the localized name for the default profile, falling back to English if not available
@@ -680,6 +869,7 @@ export function ensureVaultProfiles(settings: NotebookNavigatorSettings): void {
         profile.periodicNotesFolder = normalizeCalendarCustomRootFolder(profileRecordPeriodicNotesFolder ?? '');
         profile.propertyKeys = clonePropertyKeys(profile.propertyKeys);
         profile.shortcuts = cloneShortcuts(profile.shortcuts);
+        profile.navRainbow = normalizeNavRainbowSettings(profile.navRainbow);
     });
 
     const hasActiveProfile = settings.vaultProfiles.some(profile => profile.id === settings.vaultProfile);
@@ -733,14 +923,14 @@ export function getActiveHiddenFileProperties(settings: NotebookNavigatorSetting
 }
 
 export function getActivePropertyFields(settings: NotebookNavigatorSettings): string {
-    return formatPropertyFieldsFromKeys(getActiveVaultProfile(settings).propertyKeys);
+    return getPropertyFieldsFromPropertyKeys(getActiveVaultProfile(settings).propertyKeys);
 }
 
 export function setActivePropertyFields(settings: NotebookNavigatorSettings, propertyFields: string): boolean {
     const profile = getActiveVaultProfile(settings);
     const nextPropertyKeys = createPropertyKeysFromPropertyFields(propertyFields, profile.propertyKeys);
-    const previousPropertyFields = formatPropertyFieldsFromKeys(profile.propertyKeys);
-    const nextPropertyFields = formatPropertyFieldsFromKeys(nextPropertyKeys);
+    const previousPropertyFields = getPropertyFieldsFromPropertyKeys(profile.propertyKeys);
+    const nextPropertyFields = getPropertyFieldsFromPropertyKeys(nextPropertyKeys);
     if (previousPropertyFields === nextPropertyFields) {
         return false;
     }
@@ -751,6 +941,10 @@ export function setActivePropertyFields(settings: NotebookNavigatorSettings, pro
 
 export function getActiveFileVisibility(settings: NotebookNavigatorSettings): FileVisibility {
     return getActiveVaultProfile(settings).fileVisibility;
+}
+
+export function getActiveNavRainbowSettings(settings: NotebookNavigatorSettings): NavRainbowSettings {
+    return getActiveVaultProfile(settings).navRainbow;
 }
 
 export function hasHiddenTagMatch(settings: NotebookNavigatorSettings, normalizedPath: string): boolean {
@@ -835,7 +1029,7 @@ export function updateHiddenTagPrefixMatches(settings: NotebookNavigatorSettings
         });
 
         if (profileUpdated) {
-            profile.hiddenTags = Array.from(new Set(updatedPatterns));
+            profile.hiddenTags = dedupeCanonicalHiddenTagPatterns(updatedPatterns);
             didUpdate = true;
         }
     });
@@ -881,7 +1075,7 @@ export function updateHiddenFileTagPrefixMatches(settings: NotebookNavigatorSett
         });
 
         if (profileUpdated) {
-            profile.hiddenFileTags = Array.from(new Set(updatedPatterns));
+            profile.hiddenFileTags = dedupeCanonicalHiddenTagPatterns(updatedPatterns);
             didUpdate = true;
         }
     });

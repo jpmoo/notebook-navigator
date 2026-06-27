@@ -1,6 +1,6 @@
 # Notebook Navigator Startup Process
 
-Updated: February 18, 2026
+Updated: March 17, 2026
 
 ## Table of Contents
 
@@ -111,32 +111,36 @@ show progress.
 5. Load settings from `data.json` and run migrations.
    - Sanitize keyboard shortcuts and migrate legacy fields.
    - Apply default date/time formats and migrate folder note template settings.
+6. Sync local mirrors, load per-device UX preferences, and normalize settings.
+   - Resolve sync-mode local mirrors from vault-scoped localStorage.
    - Load UX preferences from vault-scoped localStorage.
-6. Handle first-launch setup when no saved data exists.
-   - Normalize tag settings and clear vault-scoped localStorage keys (preserving IndexedDB version markers).
+   - Normalize tag and property settings.
+7. Handle first-launch setup when no saved data exists.
+   - Clear plugin localStorage keys (preserving IndexedDB version markers).
    - Re-seed per-device localStorage mirrors for sync-mode settings and UX preferences.
    - Expand the root folder when `showRootFolder` is enabled.
    - Persist the current localStorage version (`LOCALSTORAGE_VERSION`).
-7. Initialize recent data and UX tracking.
+8. Initialize recent data and UX tracking.
    - `RecentDataManager` loads persisted recent notes and icons.
    - `RecentNotesService` starts recording file-open history.
-8. Construct core services and controllers:
+9. Construct core services and controllers:
    - `WorkspaceCoordinator` and `HomepageController` manage view activation and homepage flow.
    - `MetadataService`, `TagOperations`, `TagTreeService`, `PropertyTreeService`, and `CommandQueueService`.
    - `FileSystemOperations` wired with tag tree, property tree, and visibility preferences.
    - `OmnisearchService`, `NotebookNavigatorAPI`, and `ReleaseCheckService`.
    - `ExternalIconProviderController` initializes icon providers and syncs settings.
-9. Register view, commands, settings tab, and workspace integrations.
+10. Register view, commands, settings tab, and workspace integrations.
    - Register both `NOTEBOOK_NAVIGATOR_VIEW` (`NotebookNavigatorView`) and
      `NOTEBOOK_NAVIGATOR_CALENDAR_VIEW` (`NotebookNavigatorCalendarView`).
    - `registerNavigatorCommands` wires command palette entries.
    - `registerWorkspaceEvents` adds editor context menu actions, the ribbon icon, recent-note tracking, and
      rename/delete handlers.
-10. Wait for `workspace.onLayoutReady()`.
-   - `HomepageController.handleWorkspaceReady()` activates the view on first launch and opens the configured homepage (if set).
+11. Wait for `workspace.onLayoutReady()`.
+   - `HomepageController.handleWorkspaceReady()` activates the view on first launch and opens the configured homepage target when it resolves.
    - On first launch, the Welcome modal is opened after the workspace is ready.
    - Triggers Style Settings parsing, version notice checks, and optional release polling.
-   - `applyCalendarPlacementView({ force: true, reveal: false })` syncs the calendar right-sidebar leaf with `settings.calendarPlacement`.
+  - `applyCalendarPlacementView({ force: true, reveal: false })` syncs the calendar right-sidebar leaf with the
+    effective calendar placement and detaches restored right-sidebar calendar leaves when the calendar feature is disabled.
 
 ### Phase 2: View Creation
 
@@ -165,23 +169,25 @@ or calendar placement changes run after layout/settings updates.
 4. `NotebookNavigatorView.onOpen()` adds platform classes and (on Android) applies font scaling compensation before React renders:
    - Always adds `notebook-navigator`.
    - Adds `notebook-navigator-mobile` and platform classes on mobile (`notebook-navigator-android`, `notebook-navigator-ios`).
-   - Adds `notebook-navigator-obsidian-1-11-plus-*` when `requireApiVersion('1.11.0')` passes.
 5. Pane chrome uses headers on all platforms and toolbars on mobile:
-   - `NavigationPaneHeader` and `ListPaneHeader` render at the top of the scroll content area.
+   - `NavigationPaneHeader` and `ListPaneHeader` render in pane chrome above the scrollers.
    - Android mobile renders `NavigationToolbar` / `ListToolbar` at the top.
-   - iOS mobile renders `NavigationToolbar` / `ListToolbar` in a bottom toolbar container.
+   - On iOS with floating toolbars enabled, the toolbars render inside the pane; otherwise they render in the bottom
+     toolbar container.
 
 #### Calendar right sidebar view (`NotebookNavigatorCalendarView.tsx`)
 
 1. `applyCalendarPlacementView()` evaluates `settings.calendarPlacement` after layout readiness and on settings updates.
-2. When placement is `right-sidebar`, it calls `WorkspaceCoordinator.ensureCalendarViewInRightSidebar(...)`.
+2. When the effective placement is `right-sidebar` and `calendarEnabled` is true, it calls
+   `WorkspaceCoordinator.ensureCalendarViewInRightSidebar(...)`.
 3. Obsidian calls `NotebookNavigatorCalendarView.onOpen()` when the calendar leaf is created/restored.
 4. React app mounts with:
    - `SettingsProvider`
    - `ServicesProvider`
    - `CalendarRightSidebar`
 5. `CalendarRightSidebar` renders `Calendar` with `weeksToShowOverride={6}` and forwards date-filter actions to the navigator view.
-6. When placement changes away from `right-sidebar`, `WorkspaceCoordinator.detachCalendarViewLeaves()` removes calendar leaves.
+6. When placement changes away from `right-sidebar`, or the feature is disabled, `WorkspaceCoordinator.detachCalendarViewLeaves()`
+   removes calendar leaves. Restored calendar leaves also detach themselves on open when the feature is disabled.
 
 ### Phase 3: Database Version Check and Initialization
 
@@ -234,7 +240,8 @@ tag extraction and markdown pipeline processing:
 
 #### Initial load (`isInitialLoad=true`)
 
-1. Gather indexable files with `getIndexableFiles()` (`getFilteredMarkdownAndPdfFiles()`).
+1. Gather indexable files with `getIndexableFiles()` from `useStorageFileQueries`
+   (`getFilteredIndexableFiles(..., { showHiddenItems: true })`).
 2. Calculate diffs through `calculateFileDiff()`.
    - Cold boot: all files appear as new (database cache is empty)
    - Warm boot: compare against cached data to find new/modified files
@@ -247,7 +254,7 @@ tag extraction and markdown pipeline processing:
        processed mtime fields (`markdownPipelineMtime`, `tagsMtime`, `metadataMtime`, `fileThumbnailsMtime`) against
        `file.stat.mtime` to detect stale content.
 4. Rebuild tag and property trees via `rebuildTagTree()` and `rebuildPropertyTree()`.
-5. Mark storage as ready (`setIsStorageReady(true)` and `NotebookNavigatorAPI.setStorageReady(true)`).
+5. Mark storage as ready (`setIsStorageReady(true)` and the internal Notebook Navigator API readiness bridge).
 6. Queue content generation:
    - Determine metadata-dependent provider types with `getMetadataDependentTypes(settings)`:
      - Always includes `markdownPipeline` (word count, task counters, preview/property/feature image pipelines).
@@ -255,7 +262,7 @@ tag extraction and markdown pipeline processing:
      - Includes `metadata` when frontmatter metadata is enabled or hidden-file frontmatter rules are active.
    - `queueMetadataContentWhenReady(markdownFiles, metadataDependentTypes, settings)` filters to files needing work, waits for
      Obsidian's metadata cache (`resolved` and `changed`), then queues providers in `ContentProviderRegistry`.
-   - When `showFeatureImage` is enabled, queue the `fileThumbnails` provider for PDFs (filtered by `filterPdfFilesRequiringThumbnails`).
+   - When `showFeatureImage` is enabled, queue the `fileThumbnails` provider for supported non-markdown feature-image files (filtered by `filterFilesRequiringFileThumbnails`).
 
 #### Ongoing sync (`isInitialLoad=false`)
 
@@ -276,7 +283,7 @@ The metadata cache gating is managed by `queueMetadataContentWhenReady()` (using
 graph TD
     Start["From Phase 3:<br/>Database & Providers ready"] --> A["processExistingCache (initial)"]
 
-    A --> B["getIndexableFiles<br/>(markdown + PDFs)"]
+    A --> B["getIndexableFiles<br/>(markdown + supported non-markdown feature images)"]
     B --> C[calculateFileDiff]
 
     C --> D["removeFilesFromCache (toRemove)"]
@@ -292,8 +299,8 @@ graph TD
     I --> J["Queue markdownPipeline/tags/metadata providers"]
 
     G --> K{Show feature images?}
-    K -->|Yes| L[Queue fileThumbnails for PDFs]
-    K -->|No| M[Skip PDF thumbnails]
+    K -->|Yes| L[Queue fileThumbnails for supported non-markdown feature images]
+    K -->|No| M[Skip non-markdown feature images]
 
     J --> N[Enter Phase 5]
     L --> N
@@ -344,8 +351,8 @@ Content is generated asynchronously in the background by the ContentProviderRegi
      - `showFilePreview` is enabled and `previewStatus === 'unprocessed'`
      - `showFeatureImage` is enabled and (`featureImageKey === null` or `featureImageStatus === 'unprocessed'`)
      - Property pills are configured and `properties === null`
-   - FeatureImageContentProvider (PDFs): `fileThumbnailsMtime !== file.stat.mtime`, `featureImageStatus === 'unprocessed'`,
-     `featureImageKey === null`, or `featureImageKey` mismatches the expected PDF key
+   - FeatureImageContentProvider (non-markdown feature-image files): `fileThumbnailsMtime !== file.stat.mtime`, `featureImageStatus === 'unprocessed'`,
+     `featureImageKey === null`, or `featureImageKey` mismatches the expected provider key
    - MetadataContentProvider (markdown): `metadata === null`, `metadataMtime !== file.stat.mtime`, or hidden-state tracking requires an update
 
 2. **Queue Management**: Files are queued based on enabled settings
@@ -357,7 +364,7 @@ Content is generated asynchronously in the background by the ContentProviderRegi
 3. **Processing**: Each provider processes files independently
    - TagContentProvider: Extracts tags from Obsidian's metadata cache (`getAllTags(metadata)`)
    - MarkdownPipelineContentProvider: Uses metadata cache for frontmatter/offsets, reads markdown content when needed, runs preview/word count/task/property/feature image processors
-   - FeatureImageContentProvider: Generates thumbnails for non-markdown files (PDF cover thumbnails)
+   - FeatureImageContentProvider: Generates or marks feature images for supported non-markdown files (PDF cover thumbnails and raw drawing rows)
    - MetadataContentProvider: Extracts configured frontmatter fields and hidden state from Obsidian's metadata cache
 
 4. **Database Updates**: Results stored in IndexedDB
@@ -408,28 +415,22 @@ The plugin uses debouncers in a few specific places where Obsidian emits bursty 
 
 **Trigger**: Obsidian calls Plugin.onunload() when disabling the plugin
 
-1. Set the `isUnloading` flag to prevent new operations from starting.
-2. Dispose runtime managers that watch local storage and external providers.
-   - `RecentDataManager.dispose()` stops persistence sync.
-   - `ExternalIconProviderController.dispose()` releases icon provider hooks.
-3. Clear listener maps to avoid callbacks during teardown:
+1. `Plugin.onunload()` calls `initiateShutdown()`.
+2. `initiateShutdown()` sets the `isUnloading` flag and flushes shutdown-critical work:
+   - Flush pending recent-data persists.
+   - Clear queued command operations.
+   - Stop content processing in mounted navigator and calendar leaves.
+   - Call `shutdownDatabase()` to close IndexedDB and clear in-memory caches.
+3. `preferencesController.dispose()` then disposes `RecentDataManager` and clears recent-data / UX listeners.
+4. Clear listener maps to avoid callbacks during teardown:
    - Settings update listeners
    - File rename listeners
-   - Recent data listeners
-4. Release service instances:
-   - `MetadataService` and `TagOperations` references set to `null`
-   - `PropertyTreeService` reference set to `null`
-   - `CommandQueueService.clearAllOperations()` then set to `null`
-   - `OmnisearchService` reference cleared
-   - `RecentDataManager` reference cleared after disposal
-5. Stop content processing in mounted navigator and calendar leaves:
-   - Iterate leaves via `getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW)` and call `NotebookNavigatorView.stopContentProcessing()`.
-   - Iterate leaves via `getLeavesOfType(NOTEBOOK_NAVIGATOR_CALENDAR_VIEW)` and call `NotebookNavigatorCalendarView.stopContentProcessing()`.
+   - Update notice listeners
+5. Dispose long-lived services/controllers and clear remaining references:
+   - `ExternalIconProviderController.dispose()` releases icon provider hooks.
+   - `MetadataService.dispose()` tears down metadata watchers.
+   - Remaining service refs are nulled after cleanup.
 6. Remove the ribbon icon element.
-7. Call `shutdownDatabase()` to:
-   - Close the IndexedDB connection
-   - Clear the in-memory cache
-   - Keep the operation idempotent for repeated unloads
 
 ### Phase 2: View Cleanup
 
@@ -439,16 +440,17 @@ The plugin uses debouncers in a few specific places where Obsidian emits bursty 
    - notebook-navigator
    - notebook-navigator-mobile (if applicable)
    - notebook-navigator-android / notebook-navigator-ios (if applicable)
-   - notebook-navigator-obsidian-1-11-plus-android / notebook-navigator-obsidian-1-11-plus-ios (if applicable)
+   - notebook-navigator-ios-floating-toolbars (if applicable)
 2. `NotebookNavigatorView.onClose()` unmounts the React root:
    - Call root.unmount()
    - Set root to null
    - Clear the container element
 3. `NotebookNavigatorCalendarView.onClose()` unregisters the settings listener, unmounts the React root, and tears down the view container classes.
-4. StorageContext cleanup (via useEffect return):
-   - Stop all content processing in ContentProviderRegistry
-   - Cancel any pending timers
-   - Prevent setState calls after unmount
+4. Storage subtree cleanup happens in two layers:
+   - `NotebookNavigatorView.stopContentProcessing()` reaches `StorageContext.stopAllProcessing()`, which marks storage
+     stopped, cancels debouncers/timeouts, detaches vault and metadata listeners, and clears pending metadata waits.
+   - `useInitializeContentProviderRegistry()` stops provider queues and clears deferred sync timers when the storage
+     subtree unmounts.
 
 ### Key Principles
 

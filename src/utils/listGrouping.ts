@@ -17,64 +17,137 @@
  */
 
 import { ItemType } from '../types';
-import type { NotebookNavigatorSettings } from '../settings';
-import type { ListNoteGroupingOption } from '../settings/types';
+import type { ListNoteGroupingOption, NotebookNavigatorSettings, SortOption } from '../settings/types';
+import { getSortField, isDateSortOption } from './sortUtils';
 
 interface ResolveListGroupingParams {
-    settings: Pick<NotebookNavigatorSettings, 'noteGrouping' | 'folderAppearances' | 'tagAppearances'>;
+    settings: Pick<NotebookNavigatorSettings, 'noteGrouping' | 'folderAppearances' | 'tagAppearances' | 'propertyAppearances'>;
     selectionType?: ItemType;
     folderPath?: string | null;
     tag?: string | null;
+    propertyNodeId?: string | null;
 }
 
-interface ListGroupingResolution {
+export interface ListGroupingResolution {
     defaultGrouping: ListNoteGroupingOption;
     effectiveGrouping: ListNoteGroupingOption;
     normalizedOverride: ListNoteGroupingOption | undefined;
     hasCustomOverride: boolean;
 }
 
-/**
- * Calculates effective list grouping for the current selection.
- * Normalizes legacy tag overrides that stored "folder" by falling back to the tag default.
- */
-export function resolveListGrouping({ settings, selectionType, folderPath, tag }: ResolveListGroupingParams): ListGroupingResolution {
-    const globalDefault: ListNoteGroupingOption = settings.noteGrouping ?? 'none';
+export function resolveEffectiveListGroupingForSort({
+    groupBy,
+    sortOption,
+    selectionType,
+    isManualSortActive = false,
+    isManualSortEditActive = false
+}: {
+    groupBy: ListNoteGroupingOption;
+    sortOption: SortOption;
+    selectionType?: ItemType | null;
+    isManualSortActive?: boolean;
+    isManualSortEditActive?: boolean;
+}): ListNoteGroupingOption {
+    if (isManualSortActive || isManualSortEditActive) {
+        return 'custom';
+    }
 
-    // Folder selection: use folder-specific override if set, otherwise use global default
-    if (selectionType === ItemType.FOLDER && folderPath) {
-        const rawOverride = settings.folderAppearances?.[folderPath]?.groupBy;
+    if (getSortField(sortOption) === 'property') {
+        return selectionType === ItemType.FOLDER && groupBy === 'folder' ? 'folder' : 'custom';
+    }
+
+    if (groupBy === 'date' && !isDateSortOption(sortOption)) {
+        return 'custom';
+    }
+
+    return groupBy;
+}
+
+export function resolveListGroupingOverride({
+    noteGrouping,
+    selectionType,
+    groupBy
+}: {
+    noteGrouping: ListNoteGroupingOption;
+    selectionType?: ItemType | null;
+    groupBy?: ListNoteGroupingOption;
+}): ListGroupingResolution {
+    const globalDefault: ListNoteGroupingOption = noteGrouping ?? 'custom';
+
+    if (selectionType === ItemType.FOLDER) {
         return {
             defaultGrouping: globalDefault,
-            effectiveGrouping: rawOverride ?? globalDefault,
-            normalizedOverride: rawOverride,
-            hasCustomOverride: rawOverride !== undefined
+            effectiveGrouping: groupBy ?? globalDefault,
+            normalizedOverride: groupBy,
+            hasCustomOverride: groupBy !== undefined
         };
     }
 
-    // Tag selection: tags don't support "folder" grouping, so normalize default and overrides
-    if (selectionType === ItemType.TAG && tag) {
-        const rawOverride = settings.tagAppearances?.[tag]?.groupBy;
-        // If global default is "folder", fall back to "date" for tags
-        const defaultTagGrouping: ListNoteGroupingOption = globalDefault === 'folder' ? 'date' : globalDefault;
+    if (selectionType === ItemType.TAG || selectionType === ItemType.PROPERTY) {
+        const defaultGrouping: ListNoteGroupingOption = globalDefault === 'folder' ? 'date' : globalDefault;
 
-        // Treat undefined or "folder" overrides as no custom setting
-        if (rawOverride === undefined || rawOverride === 'folder') {
+        if (groupBy === undefined || groupBy === 'folder') {
             return {
-                defaultGrouping: defaultTagGrouping,
-                effectiveGrouping: defaultTagGrouping,
+                defaultGrouping,
+                effectiveGrouping: defaultGrouping,
                 normalizedOverride: undefined,
                 hasCustomOverride: false
             };
         }
 
-        // Valid custom override for tag (none or date)
         return {
-            defaultGrouping: defaultTagGrouping,
-            effectiveGrouping: rawOverride,
-            normalizedOverride: rawOverride,
+            defaultGrouping,
+            effectiveGrouping: groupBy,
+            normalizedOverride: groupBy,
             hasCustomOverride: true
         };
+    }
+
+    return {
+        defaultGrouping: globalDefault,
+        effectiveGrouping: globalDefault,
+        normalizedOverride: undefined,
+        hasCustomOverride: false
+    };
+}
+
+/**
+ * Calculates effective list grouping for the current selection.
+ * Normalizes tag and property overrides that stored "folder" by falling back to the selection default.
+ */
+export function resolveListGrouping({
+    settings,
+    selectionType,
+    folderPath,
+    tag,
+    propertyNodeId
+}: ResolveListGroupingParams): ListGroupingResolution {
+    const globalDefault: ListNoteGroupingOption = settings.noteGrouping ?? 'custom';
+
+    // Folder selection: use folder-specific override if set, otherwise use global default
+    if (selectionType === ItemType.FOLDER && folderPath) {
+        return resolveListGroupingOverride({
+            noteGrouping: globalDefault,
+            selectionType,
+            groupBy: settings.folderAppearances?.[folderPath]?.groupBy
+        });
+    }
+
+    // Tag and property selections don't support "folder" grouping.
+    if (selectionType === ItemType.TAG && tag) {
+        return resolveListGroupingOverride({
+            noteGrouping: globalDefault,
+            selectionType,
+            groupBy: settings.tagAppearances?.[tag]?.groupBy
+        });
+    }
+
+    if (selectionType === ItemType.PROPERTY && propertyNodeId) {
+        return resolveListGroupingOverride({
+            noteGrouping: globalDefault,
+            selectionType,
+            groupBy: settings.propertyAppearances?.[propertyNodeId]?.groupBy
+        });
     }
 
     // No specific selection or other selection types: use global default

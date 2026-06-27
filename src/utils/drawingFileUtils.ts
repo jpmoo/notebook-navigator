@@ -16,12 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { App, Plugin, TFile, TFolder, normalizePath } from 'obsidian';
+import { App, Plugin, TFile, TFolder } from 'obsidian';
 import { EXCALIDRAW_PLUGIN_ID, TLDRAW_PLUGIN_ID } from '../constants/pluginIds';
 import { EXCALIDRAW_BASENAME_SUFFIX, stripInvalidLinkCharacters } from './fileNameUtils';
-import { generateUniqueFilename } from './fileCreationUtils';
+import { buildFilePathInFolder, generateUniqueFilename } from './fileCreationUtils';
 import { getMomentApi } from './moment';
-import { ensureRecord, isBooleanRecordValue, isStringRecordValue } from './recordUtils';
+import { ensureRecord, isBooleanRecordValue, isPlainObjectRecordValue, isStringRecordValue } from './recordUtils';
 import { getPluginById } from './typeGuards';
 
 export type DrawingType = 'excalidraw' | 'tldraw';
@@ -80,7 +80,7 @@ interface DrawingFilePathOptions {
 }
 
 /** Type guard checking if a plugin exposes a settings object */
-function pluginHasSettings(plugin: Plugin): plugin is Plugin & { settings?: Record<string, unknown> } {
+function pluginHasSettings(plugin: Plugin): boolean {
     return typeof plugin === 'object' && plugin !== null && 'settings' in plugin;
 }
 
@@ -91,8 +91,8 @@ function getPluginSettings(app: App, pluginId: string): Record<string, unknown> 
         return null;
     }
 
-    const settings = plugin.settings;
-    if (!settings) {
+    const settings = Reflect.get(plugin, 'settings');
+    if (!isPlainObjectRecordValue(settings)) {
         return null;
     }
 
@@ -189,8 +189,11 @@ function ensureMarkdownExtension(fileName: string): string {
  */
 function sanitizeDrawingFileName(fileName: string, type: DrawingType): string {
     const withoutInvalidCharacters = stripInvalidLinkCharacters(fileName);
-    const withoutSeparators = withoutInvalidCharacters.replace(/[\\/]/g, ' ');
-    const withoutTraversal = withoutSeparators.replace(/\.\.(\/|\\)?/g, '');
+    const withoutTraversal = withoutInvalidCharacters
+        .split(/[\\/]+/u)
+        .filter(segment => segment !== '.' && segment !== '..')
+        .map(segment => segment.replace(/\.\./gu, ''))
+        .join(' ');
     const normalizedSpaces = withoutTraversal.replace(/\s+/g, ' ').trim();
 
     if (normalizedSpaces === '') {
@@ -285,9 +288,7 @@ function getUniqueDrawingFilePath(app: App, parent: TFolder, fileName: string): 
     const baseName = hasExtension ? fileName.slice(0, dotIndex) : fileName;
     const extension = hasExtension ? fileName.slice(dotIndex + 1) : '';
     const uniqueBaseName = generateUniqueFilename(parent.path, baseName, extension, app);
-    const folderPath = parent.path === '/' ? '' : `${parent.path}/`;
-    const suffix = extension ? `.${extension}` : '';
-    return normalizePath(`${folderPath}${uniqueBaseName}${suffix}`);
+    return buildFilePathInFolder(parent.path, uniqueBaseName, extension);
 }
 
 /** Type guard checking if a plugin exposes the Excalidraw API */

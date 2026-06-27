@@ -16,20 +16,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { App, Modal } from 'obsidian';
-import { SUPPORT_BUY_ME_A_COFFEE_URL } from '../constants/urls';
-import { strings } from '../i18n';
+import { App, Modal, Platform, setIcon } from 'obsidian';
+import { getReleaseBannerUrl, getReleaseVideoOpenUrl, getReleaseVideoUrl, SUPPORT_BUY_ME_A_COFFEE_URL } from '../constants/urls';
+import { getCurrentLanguage, strings } from '../i18n';
 import { ReleaseNote } from '../releaseNotes';
-import { DateUtils } from '../utils/dateUtils';
 import { addAsyncEventListener } from '../utils/domEventListeners';
+import { focusElementPreventScroll } from '../utils/domUtils';
+import { DateUtils } from '../utils/dateUtils';
 import { getYoutubeThumbnailUrl, getYoutubeVideoId } from '../utils/youtubeUtils';
 
 export class WhatsNewModal extends Modal {
     private releaseNotes: ReleaseNote[];
-    private dateFormat: string;
     private thanksButton: HTMLButtonElement | null = null;
     private onCloseCallback?: () => void;
     private domDisposers: (() => void)[] = [];
+
+    private normalizeTextBreaks(text: string): string {
+        return text.replace(/\r\n?/g, '\n').replace(/<br\s*\/?>/gi, '\n');
+    }
 
     // Renders limited formatting into a container element.
     // Supports:
@@ -37,7 +41,7 @@ export class WhatsNewModal extends Modal {
     // - ==text== (highlight as red + bold)
     // - [label](https://link)
     // - Auto-link bare http(s) URLs
-    // - Line breaks: single \n becomes <br>
+    // - Line breaks: single \n or <br> becomes <br>
     private renderFormattedText(container: HTMLElement, text: string): void {
         const renderInline = (segment: string, dest: HTMLElement) => {
             const pattern = /==([\s\S]*?)==|\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|\*\*([^*]+)\*\*|(https?:\/\/[^\s]+)/g;
@@ -88,12 +92,86 @@ export class WhatsNewModal extends Modal {
             appendText(segment.slice(lastIndex));
         };
 
-        const lines = text.split('\n');
+        const lines = this.normalizeTextBreaks(text).split('\n');
         for (let i = 0; i < lines.length; i++) {
             renderInline(lines[i], container);
             if (i < lines.length - 1) {
                 container.createEl('br');
             }
+        }
+    }
+
+    private renderInfoText(container: HTMLElement, text: string): void {
+        const normalizedText = this.normalizeTextBreaks(text).trim();
+        if (normalizedText.length === 0) {
+            return;
+        }
+
+        const paragraphs = normalizedText
+            .split(/\n[ \t]*\n+/)
+            .map(paragraph => paragraph.trim())
+            .filter(paragraph => paragraph.length > 0);
+
+        paragraphs.forEach(paragraph => {
+            const p = container.createEl('p', { cls: 'nn-whats-new-info' });
+            this.renderFormattedText(p, paragraph);
+        });
+    }
+
+    private renderReleaseBanner(container: HTMLElement, imageUrl: string, isClickable: boolean): void {
+        let banner: HTMLElement;
+        if (isClickable) {
+            const link = container.createEl('a', { cls: 'nn-whats-new-banner' });
+            link.setAttr('href', imageUrl);
+            link.setAttr('rel', 'noopener noreferrer');
+            link.setAttr('target', '_blank');
+            link.setAttr('aria-label', strings.whatsNew.openBannerImage);
+            banner = link;
+        } else {
+            banner = container.createDiv({ cls: 'nn-whats-new-banner' });
+        }
+
+        const image = banner.createEl('img', { cls: 'nn-whats-new-banner-image' });
+        image.setAttr('alt', '');
+        image.setAttr('loading', 'lazy');
+        image.setAttr('decoding', 'async');
+
+        image.addEventListener('error', () => {
+            banner.remove();
+        });
+
+        image.src = imageUrl;
+    }
+
+    private renderReleaseVideo(container: HTMLElement, videoUrl: string, openUrl: string | null): void {
+        const frame = container.createDiv({ cls: 'nn-whats-new-video-frame' });
+        const video = frame.createEl('video', { cls: 'nn-whats-new-video' });
+
+        video.autoplay = true;
+        video.defaultMuted = true;
+        video.loop = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = 'auto';
+        video.setAttr('autoplay', '');
+        video.setAttr('loop', '');
+        video.setAttr('muted', '');
+        video.setAttr('playsinline', '');
+        video.setAttr('webkit-playsinline', '');
+
+        video.addEventListener('error', () => {
+            frame.remove();
+        });
+
+        video.src = videoUrl;
+
+        if (openUrl) {
+            const openLink = frame.createEl('a', { cls: 'nn-whats-new-video-open' });
+            openLink.setAttr('href', openUrl);
+            openLink.setAttr('rel', 'noopener noreferrer');
+            openLink.setAttr('target', '_blank');
+            openLink.setAttr('aria-label', strings.modals.welcome.openVideoButton);
+            setIcon(openLink, 'external-link');
         }
     }
 
@@ -132,10 +210,9 @@ export class WhatsNewModal extends Modal {
         thumbnail.createDiv({ cls: 'nn-whats-new-youtube-play' }).setAttr('aria-hidden', 'true');
     }
 
-    constructor(app: App, releaseNotes: ReleaseNote[], dateFormat: string, onCloseCallback?: () => void) {
+    constructor(app: App, releaseNotes: ReleaseNote[], onCloseCallback?: () => void) {
         super(app);
         this.releaseNotes = releaseNotes;
-        this.dateFormat = dateFormat;
         this.onCloseCallback = onCloseCallback;
     }
 
@@ -144,43 +221,42 @@ export class WhatsNewModal extends Modal {
 
         contentEl.empty();
         this.modalEl.addClass('nn-whats-new-modal');
-
-        contentEl.createEl('h2', {
-            text: strings.whatsNew.title,
-            cls: 'nn-whats-new-header'
-        });
+        this.titleEl.setText(strings.whatsNew.title);
 
         this.attachCloseButtonHandler();
 
         const scrollContainer = contentEl.createDiv('nn-whats-new-scroll');
 
+        const displayLocale = (getCurrentLanguage() || 'en').replace(/_/g, '-');
+
         this.releaseNotes.forEach(note => {
             const versionContainer = scrollContainer.createDiv('nn-whats-new-version');
+            let headerText = `Version ${note.version}`;
 
-            versionContainer.createEl('h3', {
-                text: `Version ${note.version}`
-            });
+            const parsedDate = DateUtils.parseLocalDayKey(note.date);
+            if (parsedDate) {
+                const formattedDate = DateUtils.formatLocalizedMonthDay(parsedDate, displayLocale);
+                headerText = `${headerText} (${formattedDate})`;
+            }
+            versionContainer.createEl('h3', { text: headerText });
 
-            // Parse the date string and format according to user preference
-            const parsedDate = new Date(note.date);
-            const formattedDate = DateUtils.formatDate(parsedDate.getTime(), this.dateFormat);
+            const bannerUrl = getReleaseBannerUrl(note.bannerUrl, note.version);
+            if (bannerUrl) {
+                this.renderReleaseBanner(versionContainer, bannerUrl, note.bannerClickable === true);
+            }
 
-            versionContainer.createEl('small', {
-                text: formattedDate,
-                cls: 'nn-whats-new-date'
-            });
+            const videoUrl = getReleaseVideoUrl(note.videoUrl, note.version);
+            if (videoUrl) {
+                const openUrl = note.videoClickable === true ? getReleaseVideoOpenUrl(note.videoUrl, note.version) : null;
+                this.renderReleaseVideo(versionContainer, videoUrl, openUrl);
+            }
 
             if (note.youtubeUrl) {
                 this.renderYoutubeLink(versionContainer, note.youtubeUrl);
             }
 
-            // Show info text first if present (supports paragraphs and line breaks)
             if (note.info) {
-                const paragraphs = note.info.split(/\n\s*\n/);
-                paragraphs.forEach(para => {
-                    const p = versionContainer.createEl('p', { cls: 'nn-whats-new-info' });
-                    this.renderFormattedText(p, para);
-                });
+                this.renderInfoText(versionContainer, note.info);
             }
 
             const categories = [
@@ -261,10 +337,12 @@ export class WhatsNewModal extends Modal {
     open(): void {
         super.open();
         // Focus the thanks button after the modal is fully opened
-        if (this.thanksButton) {
+        if (this.thanksButton && !Platform.isMobile) {
             // Use requestAnimationFrame to ensure DOM is ready
-            requestAnimationFrame(() => {
-                this.thanksButton?.focus();
+            window.requestAnimationFrame(() => {
+                if (this.thanksButton) {
+                    focusElementPreventScroll(this.thanksButton);
+                }
             });
         }
     }

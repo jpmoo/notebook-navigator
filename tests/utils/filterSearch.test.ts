@@ -17,13 +17,23 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
+    buildSearchNavFilterState,
     parseFilterSearchTokens,
     fileMatchesDateFilterTokens,
     fileMatchesFilterTokens,
     updateFilterQueryWithTag
 } from '../../src/utils/filterSearch';
+import { buildPropertyValueNodeId } from '../../src/utils/propertyTree';
+import { foldSearchText } from '../../src/utils/recordUtils';
 
 const sortTokens = (values: string[]) => [...values].sort();
+
+const createLocalDate = (year: number, monthIndex: number, day: number): Date => {
+    const date = new Date(0);
+    date.setFullYear(year, monthIndex, day);
+    date.setHours(0, 0, 0, 0);
+    return date;
+};
 
 describe('parseFilterSearchTokens', () => {
     it('returns neutral tokens for blank queries', () => {
@@ -62,6 +72,30 @@ describe('parseFilterSearchTokens', () => {
         expect(tokens.tagTokens).toEqual([]);
         expect(tokens.requireTagged).toBe(false);
         expect(tokens.includeUntagged).toBe(false);
+    });
+
+    it('folds diacritics in search token parsing', () => {
+        const tokens = parseFilterSearchTokens('canción #Música folder:/Notas/Rápidas ext:ḾD .Estadó=acción');
+        expect(tokens.mode).toBe('filter');
+        expect(tokens.nameTokens).toEqual(['cancion']);
+        expect(tokens.tagTokens).toEqual(['musica']);
+        expect(tokens.folderTokens).toEqual([{ mode: 'exact', value: 'notas/rapidas' }]);
+        expect(tokens.extensionTokens).toEqual(['md']);
+        expect(tokens.propertyTokens).toEqual([{ key: 'estado', value: 'accion' }]);
+    });
+
+    it('treats diacritic-folded connector words as literal tokens', () => {
+        const tokens = parseFilterSearchTokens('#alpha ånd #beta');
+        expect(tokens.mode).toBe('filter');
+        expect(tokens.tagTokens).toEqual(['alpha', 'beta']);
+        expect(tokens.nameTokens).toEqual(['and']);
+    });
+
+    it('treats diacritic-folded OR tokens as literal tokens', () => {
+        const tokens = parseFilterSearchTokens('#alpha ör #beta');
+        expect(tokens.mode).toBe('filter');
+        expect(tokens.tagTokens).toEqual(['alpha', 'beta']);
+        expect(tokens.nameTokens).toEqual(['or']);
     });
 
     it('parses tag tokens combined with name tokens', () => {
@@ -269,6 +303,28 @@ describe('parseFilterSearchTokens', () => {
         expect(range.endMs).toBe(new Date(2027, 0, 1).getTime());
     });
 
+    it('parses three-digit year date tokens with @ prefix', () => {
+        const tokens = parseFilterSearchTokens('@999');
+        expect(tokens.mode).toBe('filter');
+        expect(tokens.dateRanges).toHaveLength(1);
+        expect(tokens.excludeDateRanges).toEqual([]);
+
+        const range = tokens.dateRanges[0];
+        expect(range.field).toBe('default');
+        expect(range.startMs).toBe(createLocalDate(999, 0, 1).getTime());
+        expect(range.endMs).toBe(createLocalDate(1000, 0, 1).getTime());
+    });
+
+    it('parses zero-padded pre-1000 year date tokens with @ prefix', () => {
+        const tokens = parseFilterSearchTokens('@0999');
+        expect(tokens.mode).toBe('filter');
+        expect(tokens.dateRanges).toHaveLength(1);
+
+        const range = tokens.dateRanges[0];
+        expect(range.startMs).toBe(createLocalDate(999, 0, 1).getTime());
+        expect(range.endMs).toBe(createLocalDate(1000, 0, 1).getTime());
+    });
+
     it('parses year/month date tokens with @ prefix', () => {
         const tokens = parseFilterSearchTokens('@2026-02');
         expect(tokens.mode).toBe('filter');
@@ -279,6 +335,17 @@ describe('parseFilterSearchTokens', () => {
         expect(range.field).toBe('default');
         expect(range.startMs).toBe(new Date(2026, 1, 1).getTime());
         expect(range.endMs).toBe(new Date(2026, 2, 1).getTime());
+    });
+
+    it('parses pre-1000 year/month date tokens with @ prefix', () => {
+        const tokens = parseFilterSearchTokens('@999-02');
+        expect(tokens.mode).toBe('filter');
+        expect(tokens.dateRanges).toHaveLength(1);
+        expect(tokens.excludeDateRanges).toEqual([]);
+
+        const range = tokens.dateRanges[0];
+        expect(range.startMs).toBe(createLocalDate(999, 1, 1).getTime());
+        expect(range.endMs).toBe(createLocalDate(999, 2, 1).getTime());
     });
 
     it('parses year/week date tokens with @ prefix', () => {
@@ -327,6 +394,17 @@ describe('parseFilterSearchTokens', () => {
         expect(range.field).toBe('default');
         expect(range.startMs).toBe(new Date(2026, 1, 13).getTime());
         expect(range.endMs).toBe(new Date(2026, 1, 14).getTime());
+    });
+
+    it('parses pre-1000 day date tokens with separators', () => {
+        const tokens = parseFilterSearchTokens('@999-02-13');
+        expect(tokens.mode).toBe('filter');
+        expect(tokens.dateRanges).toHaveLength(1);
+        expect(tokens.excludeDateRanges).toEqual([]);
+
+        const range = tokens.dateRanges[0];
+        expect(range.startMs).toBe(createLocalDate(999, 1, 13).getTime());
+        expect(range.endMs).toBe(createLocalDate(999, 1, 14).getTime());
     });
 
     it('parses date ranges using .. with open ends', () => {
@@ -515,6 +593,29 @@ describe('parseFilterSearchTokens', () => {
     });
 });
 
+describe('buildSearchNavFilterState', () => {
+    it('tracks implicit and explicit operators for included tags', () => {
+        const state = buildSearchNavFilterState('#alpha #beta OR #gamma');
+
+        expect(state.tags.include).toEqual(['alpha', 'beta', 'gamma']);
+        expect(state.tags.includeOperators).toEqual({
+            beta: 'AND',
+            gamma: 'OR'
+        });
+        expect(state.properties.includeOperators).toEqual({});
+    });
+
+    it('tracks operators for included properties in expression mode', () => {
+        const state = buildSearchNavFilterState('#alpha AND .status=started OR .status=finished');
+
+        expect(state.tags.includeOperators).toEqual({});
+        expect(state.properties.includeOperators).toEqual({
+            [buildPropertyValueNodeId('status', 'started')]: 'AND',
+            [buildPropertyValueNodeId('status', 'finished')]: 'OR'
+        });
+    });
+});
+
 describe('updateFilterQueryWithTag', () => {
     it('adds a tag to an empty query', () => {
         const result = updateFilterQueryWithTag('', 'project/alpha', 'AND');
@@ -556,6 +657,13 @@ describe('updateFilterQueryWithTag', () => {
         expect(result.changed).toBe(true);
     });
 
+    it('matches tags with folded diacritics when toggling', () => {
+        const result = updateFilterQueryWithTag('#Canción and #beta', 'cancion', 'AND');
+        expect(result.query).toBe('#beta');
+        expect(result.action).toBe('removed');
+        expect(result.changed).toBe(true);
+    });
+
     it('appends tags without connector operators in mixed queries', () => {
         const result = updateFilterQueryWithTag('#project/alpha @2026-02-04', 'status/green', 'OR');
         expect(result.query).toBe('#project/alpha @2026-02-04 #status/green');
@@ -581,6 +689,37 @@ describe('fileMatchesFilterTokens', () => {
         const tokens = parseFilterSearchTokens('plat form');
         expect(fileMatchesFilterTokens('platform notes', [], tokens)).toBe(true);
         expect(fileMatchesFilterTokens('note list', [], tokens)).toBe(false);
+    });
+
+    it('matches folded name, tag, and folder values', () => {
+        const tokens = parseFilterSearchTokens('cancion #muzyka folder:/notatki/swiat');
+        expect(
+            fileMatchesFilterTokens(foldSearchText('Canción plan'), [foldSearchText('Múzyka')], tokens, {
+                hasUnfinishedTasks: false,
+                foldedFolderPath: foldSearchText('Notatki/Świat')
+            })
+        ).toBe(true);
+    });
+
+    it('keeps non-Latin combining marks distinct in name matching', () => {
+        const markedName = foldSearchText('مُدَرِّس');
+        const unmarkedName = foldSearchText('مدرس');
+
+        const markedTokens = parseFilterSearchTokens(markedName);
+        const unmarkedTokens = parseFilterSearchTokens(unmarkedName);
+
+        expect(fileMatchesFilterTokens(markedName, [], markedTokens)).toBe(true);
+        expect(fileMatchesFilterTokens(markedName, [], unmarkedTokens)).toBe(false);
+    });
+
+    it('keeps compatibility-equivalent forms distinct in name matching', () => {
+        const eszettName = foldSearchText('Straße');
+        const ligatureName = foldSearchText('ﬁle note');
+        const fullWidthName = foldSearchText('ＡＢＣ plan');
+
+        expect(fileMatchesFilterTokens(eszettName, [], parseFilterSearchTokens('strasse'))).toBe(false);
+        expect(fileMatchesFilterTokens(ligatureName, [], parseFilterSearchTokens('file'))).toBe(false);
+        expect(fileMatchesFilterTokens(fullWidthName, [], parseFilterSearchTokens('abc'))).toBe(false);
     });
 
     it('matches tag tokens using prefix comparison', () => {
@@ -723,25 +862,25 @@ describe('fileMatchesFilterTokens', () => {
 
     it('filters notes by included folder tokens', () => {
         const tokens = parseFilterSearchTokens('folder:meetings');
+        expect(fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, foldedFolderPath: 'work/meetings' })).toBe(
+            true
+        );
+        expect(fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, foldedFolderPath: 'work/projects' })).toBe(
+            false
+        );
         expect(
-            fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, lowercaseFolderPath: 'work/meetings' })
-        ).toBe(true);
-        expect(
-            fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, lowercaseFolderPath: 'work/projects' })
-        ).toBe(false);
-        expect(
-            fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, lowercaseFolderPath: 'notes/team-meetings' })
+            fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, foldedFolderPath: 'notes/team-meetings' })
         ).toBe(true);
     });
 
     it('filters notes by excluded folder tokens', () => {
         const tokens = parseFilterSearchTokens('-folder:archive');
-        expect(
-            fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, lowercaseFolderPath: 'notes/archive' })
-        ).toBe(false);
-        expect(
-            fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, lowercaseFolderPath: 'notes/current' })
-        ).toBe(true);
+        expect(fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, foldedFolderPath: 'notes/archive' })).toBe(
+            false
+        );
+        expect(fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, foldedFolderPath: 'notes/current' })).toBe(
+            true
+        );
     });
 
     it('filters notes by exact folder path tokens', () => {
@@ -749,41 +888,41 @@ describe('fileMatchesFilterTokens', () => {
         expect(
             fileMatchesFilterTokens('platform plan', [], tokens, {
                 hasUnfinishedTasks: false,
-                lowercaseFolderPath: 'work/meetings'
+                foldedFolderPath: 'work/meetings'
             })
         ).toBe(true);
         expect(
             fileMatchesFilterTokens('platform plan', [], tokens, {
                 hasUnfinishedTasks: false,
-                lowercaseFolderPath: 'work/meetings/weekly'
+                foldedFolderPath: 'work/meetings/weekly'
             })
         ).toBe(false);
         expect(
             fileMatchesFilterTokens('platform plan', [], tokens, {
                 hasUnfinishedTasks: false,
-                lowercaseFolderPath: 'notes/work/meetings'
+                foldedFolderPath: 'notes/work/meetings'
             })
         ).toBe(false);
     });
 
     it('filters root notes with folder:/', () => {
         const tokens = parseFilterSearchTokens('folder:/');
-        expect(fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, lowercaseFolderPath: '' })).toBe(true);
-        expect(
-            fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, lowercaseFolderPath: 'work/meetings' })
-        ).toBe(false);
+        expect(fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, foldedFolderPath: '' })).toBe(true);
+        expect(fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, foldedFolderPath: 'work/meetings' })).toBe(
+            false
+        );
     });
 
     it('filters notes by included extension tokens', () => {
         const tokens = parseFilterSearchTokens('ext:md');
-        expect(fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, lowercaseExtension: 'md' })).toBe(true);
-        expect(fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, lowercaseExtension: 'pdf' })).toBe(false);
+        expect(fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, foldedExtension: 'md' })).toBe(true);
+        expect(fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, foldedExtension: 'pdf' })).toBe(false);
     });
 
     it('filters notes by excluded extension tokens', () => {
         const tokens = parseFilterSearchTokens('-ext:pdf');
-        expect(fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, lowercaseExtension: 'md' })).toBe(true);
-        expect(fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, lowercaseExtension: 'pdf' })).toBe(false);
+        expect(fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, foldedExtension: 'md' })).toBe(true);
+        expect(fileMatchesFilterTokens('platform plan', [], tokens, { hasUnfinishedTasks: false, foldedExtension: 'pdf' })).toBe(false);
     });
 
     it('treats OR as a literal word when unfinished task filters are mixed with tags', () => {
@@ -807,6 +946,16 @@ describe('fileMatchesDateFilterTokens', () => {
                 { created: 0, modified: new Date(2026, 1, 5, 12, 0, 0).getTime(), defaultField: 'modified' },
                 tokens
             )
+        ).toBe(false);
+    });
+
+    it('matches timestamps inside three-digit year filters', () => {
+        const tokens = parseFilterSearchTokens('@999');
+        const timestamp = createLocalDate(999, 6, 1).getTime();
+
+        expect(fileMatchesDateFilterTokens({ created: 0, modified: timestamp, defaultField: 'modified' }, tokens)).toBe(true);
+        expect(
+            fileMatchesDateFilterTokens({ created: 0, modified: createLocalDate(1000, 0, 1).getTime(), defaultField: 'modified' }, tokens)
         ).toBe(false);
     });
 

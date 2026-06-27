@@ -17,15 +17,31 @@
  */
 
 import { TFolder, TFile } from 'obsidian';
-import type { NotebookNavigatorAPI } from '../NotebookNavigatorAPI';
-import type { SelectionState, NavItem } from '../types';
+import type NotebookNavigatorPlugin from '../../main';
+import type { SelectionState, NavItem, NotebookNavigatorEventType, NotebookNavigatorEvents } from '../types';
 import { STORAGE_KEYS } from '../../types';
 import { localStorage } from '../../utils/localStorage';
 import {
     canRestorePropertySelectionNodeId,
+    normalizePropertyNodeId,
     parseStoredPropertySelectionNodeId,
     type PropertySelectionNodeId
 } from '../../utils/propertyTree';
+import { normalizeTagPath } from '../../utils/tagUtils';
+
+type SelectionAPIHost = {
+    app: {
+        vault: {
+            getFolderByPath: (path: string) => TFolder | null;
+            getFileByPath: (path: string) => TFile | null;
+        };
+    };
+    getPlugin: () => NotebookNavigatorPlugin;
+    trigger: <T extends NotebookNavigatorEventType>(
+        event: T,
+        ...args: NotebookNavigatorEvents[T] extends void ? [] : [data: NotebookNavigatorEvents[T]]
+    ) => void;
+};
 
 /**
  * Selection API - Manage and query selection state in the navigator
@@ -53,9 +69,16 @@ export class SelectionAPI {
     // Snapshot signature of last-emitted selection to ensure events fire when
     // selection content changes (even if the count stays the same)
     private lastSelectionSignature = '';
+    private navigationStateInitialized = false;
 
-    constructor(private api: NotebookNavigatorAPI) {
-        // Initialize navigation state from localStorage
+    constructor(private api: SelectionAPIHost) {}
+
+    private ensureNavigationStateInitialized(): void {
+        if (this.navigationStateInitialized || !localStorage.isInitialized()) {
+            return;
+        }
+
+        this.navigationStateInitialized = true;
         this.initializeNavigationState();
     }
 
@@ -85,9 +108,10 @@ export class SelectionAPI {
 
             const folderPath = localStorage.get<string>(STORAGE_KEYS.selectedFolderKey);
             const tagName = localStorage.get<string>(STORAGE_KEYS.selectedTagKey);
+            const normalizedTagName = normalizeTagPath(tagName);
 
-            if (tagName) {
-                this.selectionState.navigationTag = tagName;
+            if (normalizedTagName) {
+                this.selectionState.navigationTag = normalizedTagName;
                 this.selectionState.navigationFolder = null;
                 this.selectionState.navigationProperty = null;
             } else if (folderPath) {
@@ -108,26 +132,32 @@ export class SelectionAPI {
      * @returns Object with one selected navigation target (folder, tag, property, or none)
      */
     getNavItem(): NavItem {
+        this.ensureNavigationStateInitialized();
+
         if (this.selectionState.navigationProperty) {
             return {
+                type: 'property',
                 folder: null,
                 tag: null,
                 property: this.selectionState.navigationProperty
             };
         } else if (this.selectionState.navigationTag) {
             return {
+                type: 'tag',
                 folder: null,
                 tag: this.selectionState.navigationTag,
                 property: null
             };
         } else if (this.selectionState.navigationFolder) {
             return {
+                type: 'folder',
                 folder: this.selectionState.navigationFolder,
                 tag: null,
                 property: null
             };
         }
         return {
+            type: 'none',
             folder: null,
             tag: null,
             property: null
@@ -140,13 +170,17 @@ export class SelectionAPI {
      * @internal
      */
     updateNavigationState(folder: TFolder | null, tag: string | null, property: PropertySelectionNodeId | null): void {
-        if (property) {
+        this.navigationStateInitialized = true;
+        const normalizedProperty = property === null ? null : (normalizePropertyNodeId(property) ?? property);
+        const normalizedTag = tag === null ? null : normalizeTagPath(tag);
+
+        if (normalizedProperty) {
             this.selectionState.navigationFolder = null;
             this.selectionState.navigationTag = null;
-            this.selectionState.navigationProperty = property;
-        } else if (tag) {
+            this.selectionState.navigationProperty = normalizedProperty;
+        } else if (normalizedTag) {
             this.selectionState.navigationFolder = null;
-            this.selectionState.navigationTag = tag;
+            this.selectionState.navigationTag = normalizedTag;
             this.selectionState.navigationProperty = null;
         } else if (folder) {
             this.selectionState.navigationFolder = folder;

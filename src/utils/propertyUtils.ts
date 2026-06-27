@@ -17,7 +17,7 @@
  */
 
 import type { App } from 'obsidian';
-import type { NotebookNavigatorSettings } from '../settings';
+import { showsWordCount, type NotebookNavigatorSettings } from '../settings/types';
 import type { PropertyItem } from '../storage/IndexedDBStorage';
 import { formatCommaSeparatedList, getCachedCommaSeparatedList } from './commaSeparatedListUtils';
 import { casefold } from './recordUtils';
@@ -25,7 +25,10 @@ import { naturalCompare } from './sortUtils';
 import { isRecord } from './typeGuards';
 import { getActivePropertyFields } from './vaultProfiles';
 
-export type WikiLinkTarget = { target: string; displayText: string };
+type WikiLinkTarget = { kind: 'internal'; target: string; displayText: string };
+type ExternalLinkTarget = { kind: 'external'; target: string; displayText: string };
+type UnsupportedMarkdownLinkTarget = { kind: 'unsupported'; displayText: string };
+export type PropertyLinkTarget = WikiLinkTarget | ExternalLinkTarget | UnsupportedMarkdownLinkTarget;
 export interface PropertyKeySuggestion {
     key: string;
     noteCount: number;
@@ -36,8 +39,56 @@ interface PropertyKeyAggregate {
     noteCount: number;
 }
 
+const EXTERNAL_URI_SCHEME_PATTERN = /^([a-z][a-z0-9+.-]{1,31}):/i;
+// Keep file: out of the blocked set so property pills follow desktop Obsidian's
+// external-link flow, which shows its own warning before opening the target.
+const BLOCKED_EXTERNAL_URI_PROTOCOLS = new Set(['data:', 'javascript:', 'vbscript:']);
+const ALLOWED_NON_SLASH_EXTERNAL_URI_PROTOCOLS = new Set(['mailto:', 'sms:', 'tel:']);
+
+function hasCustomGroupHeaderProperty(settings: NotebookNavigatorSettings): boolean {
+    const key = settings.manualSortGroupHeaderProperty.trim();
+    if (!key || key.includes(',')) {
+        return false;
+    }
+
+    const manualSortPropertyKey = settings.manualSortPropertyKey.trim();
+    return !manualSortPropertyKey || casefold(key) !== casefold(manualSortPropertyKey);
+}
+
+function hasCustomGroupingAppearance(settings: NotebookNavigatorSettings): boolean {
+    if (settings.noteGrouping === 'custom') {
+        return true;
+    }
+
+    const appearances = [settings.folderAppearances, settings.tagAppearances, settings.propertyAppearances];
+    return appearances.some(collection => Object.values(collection).some(appearance => appearance?.groupBy === 'custom'));
+}
+
+function hasWordCountTargetPropertyConsumer(settings: NotebookNavigatorSettings): boolean {
+    return showsWordCount(settings.textCountDisplay) || (hasCustomGroupHeaderProperty(settings) && hasCustomGroupingAppearance(settings));
+}
+
 export function hasPropertyFrontmatterFields(settings: NotebookNavigatorSettings): boolean {
-    return getCachedCommaSeparatedList(getActivePropertyFields(settings)).length > 0;
+    if (getActivePropertyFields(settings).trim().length > 0) {
+        return true;
+    }
+
+    return hasWordCountTargetPropertyConsumer(settings) && settings.wordCountTargetProperty.trim().length > 0;
+}
+
+export function getPropertyFrontmatterFields(settings: NotebookNavigatorSettings): string[] {
+    const fields = [...getCachedCommaSeparatedList(getActivePropertyFields(settings))];
+    const wordCountTargetProperty = hasWordCountTargetPropertyConsumer(settings) ? settings.wordCountTargetProperty.trim() : '';
+    const normalizedWordCountTargetProperty = casefold(wordCountTargetProperty);
+    if (normalizedWordCountTargetProperty && !fields.some(field => casefold(field) === normalizedWordCountTargetProperty)) {
+        fields.push(wordCountTargetProperty);
+    }
+
+    return fields;
+}
+
+export function getPropertyFrontmatterFieldSignature(settings: NotebookNavigatorSettings): string {
+    return formatCommaSeparatedList(getPropertyFrontmatterFields(settings));
 }
 
 export function collectVaultPropertyKeys(app: App): PropertyKeySuggestion[] {
@@ -148,7 +199,7 @@ export function normalizePropertyTreeValuePath(rawValue: string): string {
     return casefold(rawValue);
 }
 
-export function parseStrictWikiLink(value: string): WikiLinkTarget | null {
+function parseStrictWikiLink(value: string): WikiLinkTarget | null {
     // Property pills are clickable only when the full value is a single wiki link token.
     const trimmed = value.trim();
     if (!trimmed.startsWith('[[') || !trimmed.endsWith(']]')) {
@@ -170,9 +221,104 @@ export function parseStrictWikiLink(value: string): WikiLinkTarget | null {
     const displayText = rawDisplayText.length > 0 ? rawDisplayText : rawTarget;
 
     return {
+        kind: 'internal',
         target: rawTarget,
         displayText: displayText.startsWith('#') ? displayText.slice(1) : displayText
     };
+}
+
+function parseSupportedExternalUriTarget(value: string): string | null {
+    const trimmed = value.trim();
+    if (!trimmed || trimmed.includes('\n') || trimmed.includes('\r')) {
+        return null;
+    }
+
+    const schemeMatch = EXTERNAL_URI_SCHEME_PATTERN.exec(trimmed);
+    if (!schemeMatch) {
+        return null;
+    }
+
+    try {
+        const url = new URL(trimmed);
+        const protocol = url.protocol.toLowerCase();
+        if (BLOCKED_EXTERNAL_URI_PROTOCOLS.has(protocol)) {
+            return null;
+        }
+
+        if (ALLOWED_NON_SLASH_EXTERNAL_URI_PROTOCOLS.has(protocol)) {
+            return trimmed;
+        }
+
+        return trimmed.slice(protocol.length).startsWith('//') ? trimmed : null;
+    } catch {
+        return null;
+    }
+}
+
+function parseStrictMarkdownLink(value: string): PropertyLinkTarget | null {
+    const trimmed = value.trim();
+    if (!trimmed.startsWith('[') || trimmed.startsWith('![') || !trimmed.endsWith(')')) {
+        return null;
+    }
+
+    if (trimmed.includes('\n') || trimmed.includes('\r')) {
+        return null;
+    }
+
+    const dividerIndex = trimmed.indexOf('](');
+    if (dividerIndex <= 1) {
+        return null;
+    }
+
+    const rawDisplayText = trimmed.slice(1, dividerIndex).trim();
+    if (rawDisplayText.length === 0) {
+        return null;
+    }
+
+    let rawTarget = trimmed.slice(dividerIndex + 2, -1).trim();
+    if (rawTarget.startsWith('<') && rawTarget.endsWith('>')) {
+        rawTarget = rawTarget.slice(1, -1).trim();
+    }
+
+    if (rawTarget.length === 0) {
+        return null;
+    }
+
+    const supportedTarget = parseSupportedExternalUriTarget(rawTarget);
+    if (!supportedTarget) {
+        return {
+            kind: 'unsupported',
+            displayText: rawDisplayText
+        };
+    }
+
+    return {
+        kind: 'external',
+        target: supportedTarget,
+        displayText: rawDisplayText
+    };
+}
+
+function parsePlainExternalUrl(value: string): ExternalLinkTarget | null {
+    const trimmed = value.trim();
+    const supportedTarget = parseSupportedExternalUriTarget(trimmed);
+    if (!supportedTarget) {
+        return null;
+    }
+
+    return {
+        kind: 'external',
+        target: supportedTarget,
+        displayText: supportedTarget
+    };
+}
+
+export function parsePropertyLinkTarget(value: string): PropertyLinkTarget | null {
+    return parseStrictWikiLink(value) ?? parseStrictMarkdownLink(value) ?? parsePlainExternalUrl(value);
+}
+
+export function resolvePropertyDisplayText(rawValue: string): string {
+    return parsePropertyLinkTarget(rawValue)?.displayText ?? rawValue.trim();
 }
 
 export function isSupportedCssColor(value: string): boolean {
@@ -181,7 +327,7 @@ export function isSupportedCssColor(value: string): boolean {
         return false;
     }
 
-    const cssApi = globalThis.CSS;
+    const cssApi = (activeWindow as Window & { CSS?: { supports(propertyName: string, value: string): boolean } }).CSS;
     if (cssApi && typeof cssApi.supports === 'function') {
         // Runtime validation for CSS color strings (handles named colors, hex, hsl(), var(), etc).
         return cssApi.supports('color', trimmed);

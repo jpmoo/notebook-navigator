@@ -44,7 +44,8 @@ export class PreviewTextCoordinator {
     private readonly previewLoadPromises = new Map<string, Promise<void>>();
     private readonly previewLoadDeferred = new Map<string, { resolve: () => void }>();
     private readonly previewLoadQueue = new Set<string>();
-    private previewLoadFlushTimer: ReturnType<typeof setTimeout> | null = null;
+    private previewLoadFlushTimer: ReturnType<typeof window.setTimeout> | null = null;
+    private previewLoadFlushTimerWindow: Window | null = null;
     private isPreviewLoadFlushRunning = false;
     private previewLoadSessionId = 0;
     // Tracks preview store key moves while a rename is in progress: newPath -> { oldPath, startedAt }.
@@ -55,7 +56,8 @@ export class PreviewTextCoordinator {
     private isPreviewWarmupComplete = false;
     private isPreviewWarmupRunning = false;
     private previewWarmupCursorKey: string | null = null;
-    private previewWarmupTimer: ReturnType<typeof setTimeout> | null = null;
+    private previewWarmupTimer: ReturnType<typeof window.setTimeout> | null = null;
+    private previewWarmupTimerWindow: Window | null = null;
 
     constructor(params: { deps: PreviewTextCoordinatorDeps; previewTextCacheMaxEntries: number; previewLoadMaxBatch: number }) {
         this.cache = params.deps.cache;
@@ -115,10 +117,6 @@ export class PreviewTextCoordinator {
         return loadPromise;
     }
 
-    startPreviewTextWarmup(): void {
-        this.enablePreviewTextWarmup();
-    }
-
     beginMove(oldPath: string, newPath: string): void {
         if (oldPath === newPath) {
             return;
@@ -147,8 +145,13 @@ export class PreviewTextCoordinator {
             return;
         }
 
+        const previousPreviewStatus = existingRecord.previewStatus;
         this.cache.updateFileContent(newPath, { previewText: cachedPreviewText, previewStatus: 'has' });
-        this.emitChanges([{ path: newPath, changes: { preview: cachedPreviewText }, changeType: 'content' }]);
+        const changes: FileContentChange['changes'] = { preview: cachedPreviewText };
+        if (previousPreviewStatus !== 'has') {
+            changes.previewStatus = 'has';
+        }
+        this.emitChanges([{ path: newPath, changes, changeType: 'content' }]);
     }
 
     async deletePreviewText(path: string): Promise<void> {
@@ -352,8 +355,13 @@ export class PreviewTextCoordinator {
 
             if (this.cache.isReady()) {
                 if (movedPreviewText && movedPreviewText.length > 0) {
+                    const previousPreviewStatus = this.cache.getFile(newPath)?.previewStatus ?? null;
                     this.cache.updateFileContent(newPath, { previewText: movedPreviewText, previewStatus: 'has' });
-                    this.emitChanges([{ path: newPath, changes: { preview: movedPreviewText }, changeType: 'content' }]);
+                    const changes: FileContentChange['changes'] = { preview: movedPreviewText };
+                    if (previousPreviewStatus !== null && previousPreviewStatus !== 'has') {
+                        changes.previewStatus = 'has';
+                    }
+                    this.emitChanges([{ path: newPath, changes, changeType: 'content' }]);
 
                     try {
                         await this.repairPreviewStatusRecords([{ path: newPath, previewStatus: 'has' }]);
@@ -367,7 +375,13 @@ export class PreviewTextCoordinator {
                     if (file && file.previewStatus === 'has') {
                         const nextPreviewStatus = getDefaultPreviewStatusForPath(newPath);
                         this.cache.updateFileContent(newPath, { previewText: '', previewStatus: nextPreviewStatus });
-                        this.emitChanges([{ path: newPath, changes: { preview: null }, changeType: 'content' }]);
+                        this.emitChanges([
+                            {
+                                path: newPath,
+                                changes: { preview: null, previewStatus: nextPreviewStatus },
+                                changeType: 'content'
+                            }
+                        ]);
                         try {
                             await this.repairPreviewStatusRecords([{ path: newPath, previewStatus: nextPreviewStatus }]);
                         } catch (error: unknown) {
@@ -393,12 +407,14 @@ export class PreviewTextCoordinator {
     close(): void {
         this.previewLoadSessionId += 1;
         if (this.previewLoadFlushTimer !== null) {
-            globalThis.clearTimeout(this.previewLoadFlushTimer);
+            (this.previewLoadFlushTimerWindow ?? activeWindow).clearTimeout(this.previewLoadFlushTimer);
             this.previewLoadFlushTimer = null;
+            this.previewLoadFlushTimerWindow = null;
         }
         if (this.previewWarmupTimer !== null) {
-            globalThis.clearTimeout(this.previewWarmupTimer);
+            (this.previewWarmupTimerWindow ?? activeWindow).clearTimeout(this.previewWarmupTimer);
             this.previewWarmupTimer = null;
+            this.previewWarmupTimerWindow = null;
         }
         this.isPreviewWarmupEnabled = false;
         this.isPreviewWarmupComplete = true;
@@ -419,8 +435,11 @@ export class PreviewTextCoordinator {
             return;
         }
 
-        this.previewLoadFlushTimer = globalThis.setTimeout(() => {
+        const timerWindow = activeWindow;
+        this.previewLoadFlushTimerWindow = timerWindow;
+        this.previewLoadFlushTimer = timerWindow.setTimeout(() => {
             this.previewLoadFlushTimer = null;
+            this.previewLoadFlushTimerWindow = null;
             void this.flushPreviewTextLoadQueue();
         }, 0);
     }
@@ -461,8 +480,11 @@ export class PreviewTextCoordinator {
             return;
         }
 
-        this.previewWarmupTimer = globalThis.setTimeout(() => {
+        const timerWindow = activeWindow;
+        this.previewWarmupTimerWindow = timerWindow;
+        this.previewWarmupTimer = timerWindow.setTimeout(() => {
             this.previewWarmupTimer = null;
+            this.previewWarmupTimerWindow = null;
             void this.flushPreviewTextWarmup();
         }, delayMs);
     }
@@ -955,7 +977,7 @@ export class PreviewTextCoordinator {
                     const nextPreviewStatus = getDefaultPreviewStatusForPath(path);
                     this.cache.updateFileContent(path, { previewText: '', previewStatus: nextPreviewStatus });
                     previewStatusRepairs.push({ path, previewStatus: nextPreviewStatus });
-                    changes.push({ path, changes: { preview: null }, changeType: 'content' });
+                    changes.push({ path, changes: { preview: null, previewStatus: nextPreviewStatus }, changeType: 'content' });
                 }
 
                 this.previewLoadDeferred.get(path)?.resolve();

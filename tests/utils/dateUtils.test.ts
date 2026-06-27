@@ -159,18 +159,38 @@ vi.mock('obsidian', () => ({
 
 import { DateUtils } from '../../src/utils/dateUtils';
 
+describe('DateUtils.formatLocalizedMonthDay', () => {
+    it.each([
+        ['en-US', 'April 19'],
+        ['sv-SE', '19 april']
+    ])('formats localized month/day order for %s', (locale, expected) => {
+        expect(DateUtils.formatLocalizedMonthDay(new Date(2026, 3, 19, 12, 0, 0, 0), locale)).toBe(expected);
+    });
+});
+
+describe('DateUtils.getDateGroupInfo', () => {
+    it('returns the label and stable key from one grouping pass', () => {
+        const referenceDate = new Date(2026, 2, 7, 12, 0, 0, 0);
+        const timestamp = new Date(2026, 2, 7, 8, 30, 0, 0).getTime();
+
+        const group = DateUtils.getDateGroupInfo(timestamp, referenceDate);
+
+        expect(group).toEqual({
+            label: 'Today',
+            key: 'relative:today'
+        });
+        expect(DateUtils.getDateGroup(timestamp, referenceDate)).toBe(group.label);
+    });
+});
+
 describe('DateUtils.parseFrontmatterDate', () => {
     beforeEach(() => {
-        Object.defineProperty(globalThis, 'window', {
-            value: createMomentStub(),
-            writable: true,
-            configurable: true
-        });
+        vi.stubGlobal('window', createMomentStub());
         getLanguageMock.mockReturnValue('en');
     });
 
     afterEach(() => {
-        delete (globalThis as { window?: unknown }).window;
+        vi.unstubAllGlobals();
         resetMomentApiCacheForTests();
         getLanguageMock.mockReturnValue('en');
         getLanguageMock.mockClear();

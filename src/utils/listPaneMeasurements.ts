@@ -17,10 +17,23 @@
  */
 
 import type { TFile } from 'obsidian';
+import { ItemType, ListPaneItemType, type NavigationItemType } from '../types';
 import type { FeatureImageStatus, FileData } from '../storage/IndexedDBStorage';
-import type { NotePropertyType } from '../settings/types';
-import { isImageFile } from './fileTypeUtils';
+import { type FeatureImageSizeSetting } from '../settings/types';
+import type { ListPaneItem } from '../types/virtualization';
+import { isRasterImageFile } from './fileTypeUtils';
+import {
+    buildPropertyKeyNodeId,
+    buildPropertyValueNodeId,
+    isPropertyKeyOnlyValuePath,
+    normalizePropertyNodeId,
+    normalizePropertyTreeValuePath,
+    parsePropertyNodeId
+} from './propertyTree';
 import { casefold } from './recordUtils';
+import type { HiddenTagVisibility } from './tagPrefixMatcher';
+import { normalizeTagPath } from './tagUtils';
+import { shouldShowManualSortGroupHeaderProgress } from './manualSort';
 
 /**
  * Layout measurements used by the list pane virtualizer.
@@ -32,13 +45,24 @@ export interface ListPaneMeasurements {
     singleTextLineHeight: number;
     multilineTextLineHeight: number;
     tagRowHeight: number;
-    featureImageHeight: number;
-    firstHeader: number;
-    subsequentHeader: number;
+    featureImageMinHeight: number;
+    groupHeaderHeight: number;
+    manualSortGoalHeaderHeight: number;
+    groupHeaderSpacerBefore: number;
     fileIconSize: number;
     topSpacer: number;
     bottomSpacer: number;
 }
+
+export interface FeatureImageDisplayMeasurements {
+    listMaxSize: number;
+}
+
+const FEATURE_IMAGE_DISPLAY_MEASUREMENTS: Readonly<Record<FeatureImageSizeSetting, FeatureImageDisplayMeasurements>> = Object.freeze({
+    '64': { listMaxSize: 64 },
+    '96': { listMaxSize: 96 },
+    '128': { listMaxSize: 128 }
+});
 
 const DESKTOP_MEASUREMENTS: ListPaneMeasurements = Object.freeze({
     basePadding: 16, // 8px padding on each side
@@ -46,9 +70,10 @@ const DESKTOP_MEASUREMENTS: ListPaneMeasurements = Object.freeze({
     singleTextLineHeight: 19,
     multilineTextLineHeight: 18,
     tagRowHeight: 26, // 22px row + 4px gap
-    featureImageHeight: 42,
-    firstHeader: 35,
-    subsequentHeader: 50,
+    featureImageMinHeight: 42,
+    groupHeaderHeight: 27,
+    manualSortGoalHeaderHeight: 32,
+    groupHeaderSpacerBefore: 20,
     fileIconSize: 16,
     topSpacer: 8,
     bottomSpacer: 20
@@ -60,9 +85,10 @@ const MOBILE_MEASUREMENTS: ListPaneMeasurements = Object.freeze({
     singleTextLineHeight: 20,
     multilineTextLineHeight: 19,
     tagRowHeight: 26, // 22px row + 4px gap
-    featureImageHeight: 42,
-    firstHeader: 43, // 35px + 8px mobile increment
-    subsequentHeader: 58, // 50px + 8px mobile increment
+    featureImageMinHeight: 42,
+    groupHeaderHeight: 35, // 27px + 8px mobile increment
+    manualSortGoalHeaderHeight: 40, // 35px header row + 5px below progress
+    groupHeaderSpacerBefore: 20,
     fileIconSize: 20, // 16px + 4px mobile increment
     topSpacer: 8,
     bottomSpacer: 20
@@ -71,8 +97,349 @@ const MOBILE_MEASUREMENTS: ListPaneMeasurements = Object.freeze({
 /**
  * Returns the static measurement set for the current platform.
  */
+export function getFeatureImageDisplayMeasurements(featureImageSize: FeatureImageSizeSetting): FeatureImageDisplayMeasurements {
+    return FEATURE_IMAGE_DISPLAY_MEASUREMENTS[featureImageSize];
+}
+
 export function getListPaneMeasurements(isMobile: boolean): ListPaneMeasurements {
     return isMobile ? MOBILE_MEASUREMENTS : DESKTOP_MEASUREMENTS;
+}
+
+export function getListPaneHeaderHeight(item: ListPaneItem | undefined, measurements: ListPaneMeasurements): number {
+    if (
+        item?.type === ListPaneItemType.HEADER &&
+        item.headerKind === 'manual-sort-custom' &&
+        item.manualSortHeader !== undefined &&
+        shouldShowManualSortGroupHeaderProgress(item.manualSortHeader, item.manualSortHeaderTargetWordCount)
+    ) {
+        return measurements.manualSortGoalHeaderHeight;
+    }
+
+    return measurements.groupHeaderHeight;
+}
+
+export function getSelectedTagPillToHide({
+    selectionType,
+    selectedTag,
+    showSelectedNavigationPills
+}: {
+    selectionType: NavigationItemType | null | undefined;
+    selectedTag: string | null | undefined;
+    showSelectedNavigationPills: boolean;
+}): string | null {
+    if (showSelectedNavigationPills || selectionType !== ItemType.TAG) {
+        return null;
+    }
+
+    return normalizeTagPath(selectedTag);
+}
+
+export function getSelectedPropertyValuePillToHide({
+    selectionType,
+    selectedProperty,
+    showSelectedNavigationPills
+}: {
+    selectionType: NavigationItemType | null | undefined;
+    selectedProperty: string | null | undefined;
+    showSelectedNavigationPills: boolean;
+}): string | null {
+    if (showSelectedNavigationPills || selectionType !== ItemType.PROPERTY || !selectedProperty) {
+        return null;
+    }
+
+    const parsedNode = parsePropertyNodeId(selectedProperty);
+    if (!parsedNode?.valuePath) {
+        return null;
+    }
+
+    return normalizePropertyNodeId(selectedProperty) ?? selectedProperty;
+}
+
+export function hasVisibleTagPills({
+    tags,
+    hiddenTagVisibility,
+    selectedTagToHide
+}: {
+    tags: readonly string[];
+    hiddenTagVisibility?: HiddenTagVisibility | null;
+    selectedTagToHide?: string | null;
+}): boolean {
+    for (const tag of tags) {
+        if (hiddenTagVisibility?.shouldFilterHiddenTags && !hiddenTagVisibility.isTagVisible(tag)) {
+            continue;
+        }
+
+        if (selectedTagToHide && normalizeTagPath(tag) === selectedTagToHide) {
+            continue;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+type FrontmatterPropertyEntry = NonNullable<FileData['properties']>[number];
+type FrontmatterPropertyEntries = NonNullable<FileData['properties']>;
+
+export interface VisibleFrontmatterPropertyEntry {
+    entry: FrontmatterPropertyEntry;
+    trimmedFieldKey: string;
+    rawValue: string;
+    normalizedValuePath: string;
+    isKeyOnlyValue: boolean;
+    propertyNodeId?: string;
+}
+
+export function forEachVisibleFrontmatterProperty({
+    properties,
+    visiblePropertyKeys,
+    hiddenPropertyValueNodeId,
+    visitor
+}: {
+    properties: FileData['properties'] | undefined;
+    visiblePropertyKeys?: ReadonlySet<string>;
+    hiddenPropertyValueNodeId?: string | null;
+    visitor: (property: VisibleFrontmatterPropertyEntry) => void | false;
+}): void {
+    if (!properties || properties.length === 0) {
+        return;
+    }
+
+    for (const entry of properties) {
+        const normalizedFieldKey = casefold(entry.fieldKey);
+        if (visiblePropertyKeys && !visiblePropertyKeys.has(normalizedFieldKey)) {
+            continue;
+        }
+
+        const rawValue = entry.value;
+        if (rawValue.trim().length === 0) {
+            continue;
+        }
+
+        const normalizedValuePath = normalizePropertyTreeValuePath(rawValue);
+        const isKeyOnlyValue = entry.valueKind === 'boolean' ? false : isPropertyKeyOnlyValuePath(normalizedValuePath, entry.valueKind);
+        if (entry.valueKind === undefined && isKeyOnlyValue) {
+            continue;
+        }
+
+        const trimmedFieldKey = entry.fieldKey.trim();
+        const rawPropertyNodeId =
+            trimmedFieldKey.length === 0
+                ? undefined
+                : isKeyOnlyValue
+                  ? buildPropertyKeyNodeId(trimmedFieldKey)
+                  : buildPropertyValueNodeId(trimmedFieldKey, normalizedValuePath);
+        const propertyNodeId = rawPropertyNodeId ? (normalizePropertyNodeId(rawPropertyNodeId) ?? rawPropertyNodeId) : undefined;
+
+        if (hiddenPropertyValueNodeId && propertyNodeId === hiddenPropertyValueNodeId) {
+            continue;
+        }
+
+        const result = visitor({
+            entry,
+            trimmedFieldKey,
+            rawValue,
+            normalizedValuePath,
+            isKeyOnlyValue,
+            propertyNodeId
+        });
+        if (result === false) {
+            return;
+        }
+    }
+}
+
+export function getTagPillDisplayName(tag: string, showFileTagAncestors: boolean): string {
+    if (showFileTagAncestors) {
+        return tag;
+    }
+
+    const segments = tag.split('/').filter(segment => segment.length > 0);
+    if (segments.length === 0) {
+        return tag;
+    }
+
+    return segments[segments.length - 1];
+}
+
+export interface FileItemLayoutState {
+    isCompactMode: boolean;
+    shouldShowMultilinePreview: boolean;
+    shouldReplaceEmptyPreviewWithPills: boolean;
+    shouldShowDateForItem: boolean;
+    isPinnedImageRow: boolean;
+}
+
+export interface FileRowHeightInputs {
+    isPinned: boolean;
+    hasPreviewContent: boolean;
+    showFeatureImageArea: boolean;
+    showExtensionBadgeThumbnail: boolean;
+    showParentFolderLine: boolean;
+    visiblePillRowCount: number;
+}
+
+export interface FileRowHeightConfig {
+    heights: ListPaneMeasurements;
+    titleRows: number;
+    previewRows: number;
+    isCompactMode: boolean;
+    showDate: boolean;
+    showPreview: boolean;
+    showImage: boolean;
+    compactPaddingTotal: number;
+}
+
+export function getFileItemLayoutState({
+    isCompactMode = false,
+    showDate,
+    showPreview,
+    isPinned,
+    hasPreviewContent,
+    showFeatureImageArea,
+    showExtensionBadgeThumbnail = false,
+    hasVisiblePillRows
+}: {
+    isCompactMode?: boolean;
+    showDate: boolean;
+    showPreview: boolean;
+    showImage?: boolean;
+    isPinned: boolean;
+    hasPreviewContent: boolean;
+    showFeatureImageArea: boolean;
+    showExtensionBadgeThumbnail?: boolean;
+    hasVisiblePillRows: boolean;
+}): FileItemLayoutState {
+    const hasImageTextArea = showFeatureImageArea && !showExtensionBadgeThumbnail;
+    const isPinnedImageRow = isPinned && hasImageTextArea;
+    const shouldReplaceEmptyPreviewWithPills = !hasPreviewContent && hasVisiblePillRows;
+    const shouldShowDateForItem = showDate && !isPinned;
+    const shouldShowMultilinePreview = showPreview && !shouldReplaceEmptyPreviewWithPills && (hasPreviewContent || hasImageTextArea);
+
+    return {
+        isCompactMode,
+        shouldShowMultilinePreview,
+        shouldReplaceEmptyPreviewWithPills,
+        shouldShowDateForItem,
+        isPinnedImageRow
+    };
+}
+
+export function calculateNormalListFileRowHeightEstimate({
+    heights,
+    titleRows,
+    previewRows,
+    layoutState,
+    showFeatureImageArea,
+    showExtensionBadgeThumbnail,
+    showParentFolderLine,
+    visiblePillRowCount
+}: {
+    heights: ListPaneMeasurements;
+    titleRows: number;
+    previewRows: number;
+    layoutState: FileItemLayoutState;
+    showFeatureImageArea: boolean;
+    showExtensionBadgeThumbnail: boolean;
+    showParentFolderLine: boolean;
+    visiblePillRowCount: number;
+}): number {
+    const titleContentHeight = heights.titleLineHeight * titleRows;
+    const pillRowCount = Math.max(0, visiblePillRowCount);
+    const hasPillRows = pillRowCount > 0;
+    const hasPreviewSlot = layoutState.shouldShowMultilinePreview;
+    const previewSlotHeight = hasPreviewSlot ? heights.multilineTextLineHeight * previewRows : 0;
+    const metadataLineHeight = layoutState.shouldShowDateForItem || showParentFolderLine ? heights.singleTextLineHeight : 0;
+    const singleTextLineCount = metadataLineHeight > 0 ? 1 : 0;
+    const contentLineCount = singleTextLineCount + pillRowCount;
+    const hasImageTextArea = showFeatureImageArea && !showExtensionBadgeThumbnail;
+    const fillsPreviewSlotWithPills = layoutState.shouldReplaceEmptyPreviewWithPills && hasImageTextArea;
+    const replacementPreviewSlotHeight = fillsPreviewSlotWithPills ? heights.multilineTextLineHeight * previewRows : 0;
+    const canUseBaseHeight = !hasPreviewSlot && !hasImageTextArea;
+    const applyFeatureImageFloor = (contentHeight: number): number =>
+        showFeatureImageArea ? Math.max(contentHeight, heights.featureImageMinHeight) : contentHeight;
+
+    if (canUseBaseHeight && contentLineCount === 0) {
+        return heights.basePadding + applyFeatureImageFloor(titleContentHeight);
+    }
+
+    if (canUseBaseHeight && contentLineCount <= 1) {
+        const contentLineHeight = Math.max(
+            singleTextLineCount > 0 ? heights.singleTextLineHeight : 0,
+            hasPillRows ? heights.tagRowHeight : 0
+        );
+
+        return heights.basePadding + applyFeatureImageFloor(titleContentHeight + contentLineHeight);
+    }
+
+    const reservedPreviewSlotHeight = Math.max(previewSlotHeight, replacementPreviewSlotHeight);
+    const reserveImageMetadataLine = hasImageTextArea && !layoutState.isPinnedImageRow;
+    const reservedMetadataLineHeight = reserveImageMetadataLine ? heights.singleTextLineHeight : metadataLineHeight;
+    const reservedEmptyMetadataLineHeight = reserveImageMetadataLine && metadataLineHeight === 0 ? reservedMetadataLineHeight : 0;
+    const richContentHeight = titleContentHeight + reservedPreviewSlotHeight + reservedMetadataLineHeight;
+    const pillRowsHeight = heights.tagRowHeight * pillRowCount;
+    const pillRowsReservedHeight = replacementPreviewSlotHeight + reservedEmptyMetadataLineHeight;
+    const pillRowsExtraHeight = Math.max(0, pillRowsHeight - pillRowsReservedHeight);
+
+    return heights.basePadding + applyFeatureImageFloor(richContentHeight + pillRowsExtraHeight);
+}
+
+export function estimateFileRowHeight(inputs: FileRowHeightInputs, config: FileRowHeightConfig): number {
+    const { heights, titleRows, previewRows, compactPaddingTotal } = config;
+    const visiblePillRowCount = Math.max(0, inputs.visiblePillRowCount);
+    const layoutState = getFileItemLayoutState({
+        isCompactMode: config.isCompactMode,
+        showDate: config.showDate,
+        showPreview: config.showPreview,
+        isPinned: inputs.isPinned,
+        hasPreviewContent: inputs.hasPreviewContent,
+        showFeatureImageArea: inputs.showFeatureImageArea,
+        showExtensionBadgeThumbnail: inputs.showExtensionBadgeThumbnail,
+        hasVisiblePillRows: visiblePillRowCount > 0
+    });
+
+    if (layoutState.isCompactMode) {
+        const textContentHeight = heights.titleLineHeight * titleRows + heights.tagRowHeight * visiblePillRowCount;
+        return compactPaddingTotal + textContentHeight;
+    }
+
+    return calculateNormalListFileRowHeightEstimate({
+        heights,
+        titleRows,
+        previewRows: inputs.isPinned ? 1 : previewRows,
+        layoutState,
+        showFeatureImageArea: inputs.showFeatureImageArea,
+        showExtensionBadgeThumbnail: inputs.showExtensionBadgeThumbnail,
+        showParentFolderLine: inputs.showParentFolderLine,
+        visiblePillRowCount
+    });
+}
+
+export function shouldShowFileItemParentFolderLine({
+    showParentFolder,
+    isPinned,
+    selectionType,
+    includeDescendantNotes,
+    parentFolder,
+    fileParentPath
+}: {
+    showParentFolder: boolean;
+    isPinned: boolean;
+    selectionType: NavigationItemType | null | undefined;
+    includeDescendantNotes: boolean;
+    parentFolder: string | null | undefined;
+    fileParentPath: string | null | undefined;
+}): boolean {
+    if (!showParentFolder || isPinned || !fileParentPath || fileParentPath === '/') {
+        return false;
+    }
+
+    if (selectionType === 'tag' || selectionType === 'property') {
+        return true;
+    }
+
+    return includeDescendantNotes && Boolean(parentFolder) && fileParentPath !== parentFolder;
 }
 
 /**
@@ -82,12 +449,14 @@ export function shouldShowFeatureImageArea({
     showImage,
     file,
     featureImageStatus,
-    hasFeatureImageUrl
+    hasFeatureImageUrl,
+    showDrawingFeatureImage
 }: {
     showImage: boolean;
     file: TFile | null;
     featureImageStatus?: FeatureImageStatus | null;
     hasFeatureImageUrl?: boolean;
+    showDrawingFeatureImage?: boolean;
 }): boolean {
     if (!showImage || !file) {
         return false;
@@ -101,208 +470,191 @@ export function shouldShowFeatureImageArea({
         return true;
     }
 
-    if (isImageFile(file)) {
+    if (isRasterImageFile(file)) {
+        return true;
+    }
+
+    if (showDrawingFeatureImage) {
         return true;
     }
 
     return featureImageStatus === 'has';
 }
 
-type PropertyEntries = Exclude<FileData['properties'], null>;
+export function shouldShowExtensionBadgeThumbnail({
+    showFeatureImageArea,
+    file,
+    hasFeatureImageUrl,
+    showDrawingMissingFeatureImage
+}: {
+    showFeatureImageArea: boolean;
+    file: TFile | null;
+    hasFeatureImageUrl?: boolean;
+    showDrawingMissingFeatureImage?: boolean;
+}): boolean {
+    if (!showFeatureImageArea || !file || hasFeatureImageUrl) {
+        return false;
+    }
 
-type PropertyRowSummary = {
-    hasAnyNonEmptyValue: boolean;
-    normalizedKeysWithNonEmptyValues: ReadonlySet<string>;
-    uniqueDisplayFieldKeys: readonly { displayKey: string; normalizedKey: string }[];
+    if (showDrawingMissingFeatureImage) {
+        return true;
+    }
+
+    return file.extension === 'canvas' || file.extension === 'base';
+}
+
+type VisibleFrontmatterPropertySummary = {
+    hasVisiblePills: boolean;
+    separateRowCount: number;
 };
 
-const EMPTY_PROPERTY_ROW_SUMMARY: PropertyRowSummary = {
-    hasAnyNonEmptyValue: false,
-    normalizedKeysWithNonEmptyValues: new Set<string>(),
-    uniqueDisplayFieldKeys: []
+const EMPTY_VISIBLE_FRONTMATTER_PROPERTY_SUMMARY: VisibleFrontmatterPropertySummary = {
+    hasVisiblePills: false,
+    separateRowCount: 0
 };
 
-const propertyRowSummaryCache = new WeakMap<PropertyEntries, PropertyRowSummary>();
+type VisibleFrontmatterPropertySummaryCache = {
+    unfiltered: Map<string, VisibleFrontmatterPropertySummary>;
+    filtered: WeakMap<ReadonlySet<string>, Map<string, VisibleFrontmatterPropertySummary>>;
+};
 
-function getPropertyRowSummary(properties: FileData['properties'] | undefined): PropertyRowSummary {
+const visibleFrontmatterPropertySummaryCache = new WeakMap<FrontmatterPropertyEntries, VisibleFrontmatterPropertySummaryCache>();
+
+function getVisibleFrontmatterPropertySummary({
+    properties,
+    visiblePropertyKeys,
+    hiddenPropertyValueNodeId
+}: {
+    properties: FileData['properties'] | undefined;
+    visiblePropertyKeys?: ReadonlySet<string>;
+    hiddenPropertyValueNodeId?: string | null;
+}): VisibleFrontmatterPropertySummary {
     if (!properties || properties.length === 0) {
-        return EMPTY_PROPERTY_ROW_SUMMARY;
+        return EMPTY_VISIBLE_FRONTMATTER_PROPERTY_SUMMARY;
     }
 
-    const cached = propertyRowSummaryCache.get(properties);
-    if (cached) {
-        return cached;
+    let cacheContainer = visibleFrontmatterPropertySummaryCache.get(properties);
+    if (!cacheContainer) {
+        cacheContainer = {
+            unfiltered: new Map<string, VisibleFrontmatterPropertySummary>(),
+            filtered: new WeakMap<ReadonlySet<string>, Map<string, VisibleFrontmatterPropertySummary>>()
+        };
+        visibleFrontmatterPropertySummaryCache.set(properties, cacheContainer);
     }
 
-    let hasAnyNonEmptyValue = false;
-    const normalizedKeysWithNonEmptyValues = new Set<string>();
-    const uniqueDisplayFieldKeys = new Map<string, string>();
-
-    properties.forEach(entry => {
-        if (entry.value.trim().length === 0) {
-            return;
+    let cacheBucket: Map<string, VisibleFrontmatterPropertySummary>;
+    if (!visiblePropertyKeys) {
+        cacheBucket = cacheContainer.unfiltered;
+    } else {
+        const existingFilteredBucket = cacheContainer.filtered.get(visiblePropertyKeys);
+        if (existingFilteredBucket) {
+            cacheBucket = existingFilteredBucket;
+        } else {
+            cacheBucket = new Map<string, VisibleFrontmatterPropertySummary>();
+            cacheContainer.filtered.set(visiblePropertyKeys, cacheBucket);
         }
+    }
 
-        hasAnyNonEmptyValue = true;
-        const normalizedFieldKey = casefold(entry.fieldKey);
-        if (normalizedFieldKey.length > 0) {
-            normalizedKeysWithNonEmptyValues.add(normalizedFieldKey);
-        }
+    const hiddenPropertyCacheKey = hiddenPropertyValueNodeId ?? '';
+    const cachedSummary = cacheBucket.get(hiddenPropertyCacheKey);
+    if (cachedSummary) {
+        return cachedSummary;
+    }
 
-        const trimmedFieldKey = entry.fieldKey.trim();
-        if (trimmedFieldKey.length === 0 || uniqueDisplayFieldKeys.has(trimmedFieldKey)) {
-            return;
+    let hasVisiblePills = false;
+    let hasUnkeyedRow = false;
+    const separateRows = new Set<string>();
+
+    forEachVisibleFrontmatterProperty({
+        properties,
+        visiblePropertyKeys,
+        hiddenPropertyValueNodeId,
+        visitor: ({ trimmedFieldKey }) => {
+            hasVisiblePills = true;
+
+            if (trimmedFieldKey.length === 0) {
+                hasUnkeyedRow = true;
+                return;
+            }
+
+            separateRows.add(trimmedFieldKey);
         }
-        uniqueDisplayFieldKeys.set(trimmedFieldKey, normalizedFieldKey);
     });
 
-    const summary: PropertyRowSummary = {
-        hasAnyNonEmptyValue,
-        normalizedKeysWithNonEmptyValues,
-        uniqueDisplayFieldKeys: Array.from(uniqueDisplayFieldKeys.entries()).map(([displayKey, normalizedKey]) => ({
-            displayKey,
-            normalizedKey
-        }))
+    const summary = {
+        hasVisiblePills,
+        separateRowCount: separateRows.size + (hasUnkeyedRow ? 1 : 0)
     };
-
-    propertyRowSummaryCache.set(properties, summary);
+    cacheBucket.set(hiddenPropertyCacheKey, summary);
     return summary;
 }
 
-function hasVisiblePropertyKeyMatch(normalizedPropertyKeys: ReadonlySet<string>, visiblePropertyKeys: ReadonlySet<string>): boolean {
-    if (normalizedPropertyKeys.size === 0 || visiblePropertyKeys.size === 0) {
-        return false;
-    }
-
-    const iterateKeys = normalizedPropertyKeys.size <= visiblePropertyKeys.size ? normalizedPropertyKeys : visiblePropertyKeys;
-    const lookupKeys = iterateKeys === normalizedPropertyKeys ? visiblePropertyKeys : normalizedPropertyKeys;
-    for (const key of iterateKeys) {
-        if (lookupKeys.has(key)) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-function shouldShowPropertyRow({
-    notePropertyType,
-    showFileProperties,
-    showFilePropertiesInCompactMode,
-    isCompactMode,
-    file,
-    wordCount,
-    properties,
-    visiblePropertyKeys
-}: {
-    notePropertyType: NotePropertyType;
-    showFileProperties: boolean;
-    showFilePropertiesInCompactMode: boolean;
-    isCompactMode: boolean;
-    file: TFile | null;
-    wordCount: FileData['wordCount'] | undefined;
-    properties: FileData['properties'] | undefined;
-    visiblePropertyKeys?: ReadonlySet<string>;
-}): boolean {
-    if (!file || file.extension !== 'md') {
-        return false;
-    }
-
-    if (isCompactMode && !showFilePropertiesInCompactMode) {
-        return false;
-    }
-
-    const hasWordCount = notePropertyType === 'wordCount' && typeof wordCount === 'number' && Number.isFinite(wordCount) && wordCount > 0;
-    const propertySummary = getPropertyRowSummary(properties);
-    const hasPropertyValues = (() => {
-        if (!showFileProperties) {
-            return false;
-        }
-        if (visiblePropertyKeys === undefined) {
-            return propertySummary.hasAnyNonEmptyValue;
-        }
-        return hasVisiblePropertyKeyMatch(propertySummary.normalizedKeysWithNonEmptyValues, visiblePropertyKeys);
-    })();
-
-    return hasWordCount || hasPropertyValues;
-}
-
 export function getPropertyRowCount({
-    notePropertyType,
+    showTextCountProperty,
     showFileProperties,
     showPropertiesOnSeparateRows,
     showFilePropertiesInCompactMode,
     isCompactMode,
     file,
     wordCount,
+    characterCount,
     properties,
-    visiblePropertyKeys
+    visiblePropertyKeys,
+    hiddenPropertyValueNodeId
 }: {
-    notePropertyType: NotePropertyType;
+    showTextCountProperty: boolean;
     showFileProperties: boolean;
     showPropertiesOnSeparateRows: boolean;
     showFilePropertiesInCompactMode: boolean;
     isCompactMode: boolean;
     file: TFile | null;
     wordCount: FileData['wordCount'] | undefined;
+    characterCount: FileData['characterCountWithSpaces'] | undefined;
     properties: FileData['properties'] | undefined;
     visiblePropertyKeys?: ReadonlySet<string>;
+    hiddenPropertyValueNodeId?: string | null;
 }): number {
     // Computes the number of visual rows the property area will occupy.
     // This is used by the list pane virtualizer height estimator and must stay consistent with FileItem rendering.
-    const shouldShow = shouldShowPropertyRow({
-        notePropertyType,
-        showFileProperties,
-        showFilePropertiesInCompactMode,
-        isCompactMode,
-        file,
-        wordCount,
-        properties,
-        visiblePropertyKeys
-    });
-
-    if (!shouldShow) {
-        // No property row will be rendered.
+    if (!file || file.extension !== 'md') {
         return 0;
     }
 
-    const wordCountEnabled =
-        notePropertyType === 'wordCount' && typeof wordCount === 'number' && Number.isFinite(wordCount) && wordCount > 0;
-    const wordCountRowCount = wordCountEnabled ? 1 : 0;
+    if (isCompactMode && !showFilePropertiesInCompactMode) {
+        return 0;
+    }
+
+    const wordCountEnabled = showTextCountProperty && typeof wordCount === 'number' && Number.isFinite(wordCount) && wordCount > 0;
+    const characterCountEnabled =
+        showTextCountProperty && typeof characterCount === 'number' && Number.isFinite(characterCount) && characterCount > 0;
+    const propertySummary = showFileProperties
+        ? getVisibleFrontmatterPropertySummary({
+              properties,
+              visiblePropertyKeys,
+              hiddenPropertyValueNodeId
+          })
+        : EMPTY_VISIBLE_FRONTMATTER_PROPERTY_SUMMARY;
+
+    if (!wordCountEnabled && !characterCountEnabled && !propertySummary.hasVisiblePills) {
+        return 0;
+    }
+
+    const textCountRowCount = wordCountEnabled || characterCountEnabled ? 1 : 0;
 
     let frontmatterPropertyRowCount = 0;
-    if (showFileProperties) {
-        const propertySummary = getPropertyRowSummary(properties);
-        const hasVisiblePropertyValues =
-            visiblePropertyKeys === undefined
-                ? propertySummary.hasAnyNonEmptyValue
-                : hasVisiblePropertyKeyMatch(propertySummary.normalizedKeysWithNonEmptyValues, visiblePropertyKeys);
-
-        if (!showPropertiesOnSeparateRows) {
-            frontmatterPropertyRowCount = hasVisiblePropertyValues ? 1 : 0;
-        } else if (hasVisiblePropertyValues) {
-            if (visiblePropertyKeys === undefined) {
-                frontmatterPropertyRowCount = propertySummary.uniqueDisplayFieldKeys.length;
-            } else {
-                frontmatterPropertyRowCount = propertySummary.uniqueDisplayFieldKeys.reduce((count, entry) => {
-                    if (!entry.normalizedKey || !visiblePropertyKeys.has(entry.normalizedKey)) {
-                        return count;
-                    }
-
-                    return count + 1;
-                }, 0);
-            }
-        }
+    if (!showPropertiesOnSeparateRows) {
+        frontmatterPropertyRowCount = propertySummary.hasVisiblePills ? 1 : 0;
+    } else if (propertySummary.hasVisiblePills) {
+        frontmatterPropertyRowCount = propertySummary.separateRowCount;
     }
 
     if (frontmatterPropertyRowCount === 0) {
-        return wordCountRowCount;
+        return textCountRowCount;
     }
 
     if (!showPropertiesOnSeparateRows) {
-        // Frontmatter properties share one row in non-separate mode; word count remains its own row.
-        return 1 + wordCountRowCount;
+        return 1 + textCountRowCount;
     }
 
-    return frontmatterPropertyRowCount + wordCountRowCount;
+    return frontmatterPropertyRowCount + textCountRowCount;
 }

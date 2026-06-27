@@ -31,6 +31,9 @@ interface CalendarHeaderProps {
     hasMonthPeriodNote: boolean;
     hasQuarterPeriodNote: boolean;
     hasYearPeriodNote: boolean;
+    isMonthPeriodActive: boolean;
+    isQuarterPeriodActive: boolean;
+    isYearPeriodActive: boolean;
     showInlineMonthNavigation: boolean;
     showCompactQuarterInMonthRow: boolean;
     showHeaderPeriodDetails: boolean;
@@ -53,6 +56,9 @@ export const CalendarHeader = React.memo(function CalendarHeader({
     hasMonthPeriodNote,
     hasQuarterPeriodNote,
     hasYearPeriodNote,
+    isMonthPeriodActive,
+    isQuarterPeriodActive,
+    isYearPeriodActive,
     showInlineMonthNavigation,
     showCompactQuarterInMonthRow,
     showHeaderPeriodDetails,
@@ -81,7 +87,8 @@ export const CalendarHeader = React.memo(function CalendarHeader({
             className={[
                 'nn-navigation-calendar-period-button',
                 'nn-navigation-calendar-period-year',
-                hasYearPeriodNote ? 'has-period-note' : ''
+                hasYearPeriodNote ? 'has-period-note' : '',
+                isYearPeriodActive ? 'is-active-editor-file' : ''
             ]
                 .filter(Boolean)
                 .join(' ')}
@@ -89,6 +96,7 @@ export const CalendarHeader = React.memo(function CalendarHeader({
             onClick={event => onPeriodClick(event, 'year')}
             onContextMenu={event => onPeriodContextMenu(event, 'year')}
         >
+            <span className="nn-navigation-calendar-active-outline" aria-hidden="true" />
             {yearLabel}
         </button>
     ) : null;
@@ -101,7 +109,8 @@ export const CalendarHeader = React.memo(function CalendarHeader({
                     'nn-navigation-calendar-period-button',
                     'nn-navigation-calendar-quarter-button',
                     isInline ? 'nn-navigation-calendar-quarter-inline' : '',
-                    hasQuarterPeriodNote ? 'has-period-note' : ''
+                    hasQuarterPeriodNote ? 'has-period-note' : '',
+                    isQuarterPeriodActive ? 'is-active-editor-file' : ''
                 ]
                     .filter(Boolean)
                     .join(' ')}
@@ -109,6 +118,7 @@ export const CalendarHeader = React.memo(function CalendarHeader({
                 onClick={event => onPeriodClick(event, 'quarter')}
                 onContextMenu={event => onPeriodContextMenu(event, 'quarter')}
             >
+                <span className="nn-navigation-calendar-active-outline" aria-hidden="true" />
                 <span className="nn-navigation-calendar-quarter-paren" aria-hidden="true">
                     (
                 </span>
@@ -148,7 +158,8 @@ export const CalendarHeader = React.memo(function CalendarHeader({
                         className={[
                             'nn-navigation-calendar-period-button',
                             'nn-navigation-calendar-period-month',
-                            hasMonthPeriodNote ? 'has-period-note' : ''
+                            hasMonthPeriodNote ? 'has-period-note' : '',
+                            isMonthPeriodActive ? 'is-active-editor-file' : ''
                         ]
                             .filter(Boolean)
                             .join(' ')}
@@ -156,6 +167,7 @@ export const CalendarHeader = React.memo(function CalendarHeader({
                         onClick={event => onPeriodClick(event, 'month')}
                         onContextMenu={event => onPeriodContextMenu(event, 'month')}
                     >
+                        <span className="nn-navigation-calendar-active-outline" aria-hidden="true" />
                         {monthLabel}
                     </button>
                     {showCompactQuarterInMonthRow ? renderQuarterControl(true) : null}

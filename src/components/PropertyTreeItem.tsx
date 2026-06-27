@@ -26,8 +26,10 @@ import type { NoteCountInfo } from '../types/noteCounts';
 import type { PropertyTreeNode } from '../types/storage';
 import { buildNoteCountDisplay, buildSortableNoteCountDisplay } from '../utils/noteCountFormatting';
 import { buildSearchMatchContentClass } from '../utils/searchHighlight';
+import type { InclusionOperator } from '../utils/filterSearch';
 import { resolveUXIcon } from '../utils/uxIcons';
 import { IndentGuideColumns } from './IndentGuideColumns';
+import { ObsidianIcon } from './ObsidianIcon';
 
 interface PropertyTreeItemProps {
     propertyNode: PropertyTreeNode;
@@ -42,8 +44,10 @@ interface PropertyTreeItemProps {
     showFileCount: boolean;
     color?: string;
     backgroundColor?: string;
+    adjacentFilledClassName?: string;
     icon?: string;
     searchMatch?: 'include' | 'exclude';
+    inclusionOperator?: InclusionOperator;
     isDraggable: boolean;
 }
 
@@ -62,8 +66,10 @@ export const PropertyTreeItem = React.memo(
             showFileCount,
             color,
             backgroundColor,
+            adjacentFilledClassName,
             icon,
             searchMatch,
+            inclusionOperator,
             isDraggable
         },
         ref
@@ -71,10 +77,10 @@ export const PropertyTreeItem = React.memo(
         const settings = useSettingsState();
         const uxPreferences = useUXPreferences();
         const includeDescendantNotes = uxPreferences.includeDescendantNotes;
-        const chevronRef = useRef<HTMLDivElement>(null);
-        const iconRef = useRef<HTMLSpanElement>(null);
+        const chevronRef = useRef<HTMLDivElement | null>(null);
+        const iconRef = useRef<HTMLSpanElement | null>(null);
         const iconVersion = useIconServiceVersion();
-        const itemRef = useRef<HTMLDivElement>(null);
+        const itemRef = useRef<HTMLDivElement | null>(null);
 
         const resolvedCounts = useMemo<NoteCountInfo>(() => {
             if (countInfo) {
@@ -98,6 +104,9 @@ export const PropertyTreeItem = React.memo(
         );
         const noteCountLabel = noteCountDisplay.label;
         const shouldDisplayCount = showFileCount && noteCountDisplay.shouldDisplay;
+        const operatorIconName =
+            inclusionOperator === 'OR' ? 'lucide-squares-unite' : inclusionOperator === 'AND' ? 'lucide-squares-intersect' : null;
+        const shouldDisplayOperatorIndicator = searchMatch === 'include' && operatorIconName !== null;
         const hasChildren = useMemo(() => propertyNode.children.size > 0, [propertyNode.children.size]);
         const applyColorToName = Boolean(color) && !settings.colorIconOnly;
         const dragIconId = useMemo(() => {
@@ -120,8 +129,11 @@ export const PropertyTreeItem = React.memo(
             if (searchMatch) {
                 classes.push('nn-has-search-match');
             }
+            if (adjacentFilledClassName) {
+                classes.push(adjacentFilledClassName);
+            }
             return classes.join(' ');
-        }, [backgroundColor, isSelected, searchMatch]);
+        }, [adjacentFilledClassName, backgroundColor, isSelected, searchMatch]);
 
         const propertyNameClassName = useMemo(() => {
             const classes = ['nn-navitem-name'];
@@ -248,8 +260,14 @@ export const PropertyTreeItem = React.memo(
                     <span className={propertyNameClassName} style={applyColorToName ? { color } : undefined}>
                         {propertyNode.name}
                     </span>
-                    <span className="nn-navitem-spacer" />
-                    {shouldDisplayCount && <span className="nn-navitem-count">{noteCountLabel}</span>}
+                    <span className="nn-navitem-spacer nn-navitem-spacer--leader" />
+                    {shouldDisplayOperatorIndicator ? (
+                        <span className="nn-navitem-count nn-navitem-operator-indicator" data-operator={inclusionOperator}>
+                            <ObsidianIcon name={operatorIconName} className="nn-navitem-operator-icon" aria-hidden={true} />
+                        </span>
+                    ) : shouldDisplayCount ? (
+                        <span className="nn-navitem-count">{noteCountLabel}</span>
+                    ) : null}
                 </div>
             </div>
         );

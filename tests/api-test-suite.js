@@ -1,12 +1,12 @@
 /**
  * Notebook Navigator API Test Suite
- * Version: 1.2.0 - Updated with complete API coverage
+ * Version: 2.0.0 - Updated with complete API coverage
  *
  * A comprehensive test suite for the Notebook Navigator API.
  * Paste this entire script into the Obsidian developer console to run tests.
  *
  * Tests include:
- * - Icon format validation (lucide:* and emoji:*)
+ * - Icon format validation (frontmatter-style icon values)
  * - NavItem type for navigation selection
  * - Event API with all supported event types
  * - Context-aware pinning with PinContext type
@@ -275,6 +275,32 @@
                     this.assertExists(this.api.isStorageReady, 'isStorageReady method not found');
                     const isReady = this.api.isStorageReady();
                     this.assertTrue(typeof isReady === 'boolean', 'isStorageReady should return a boolean');
+                },
+
+                'Should have whenReady method': async function () {
+                    this.assertExists(this.api.whenReady, 'whenReady method not found');
+                    const readyPromise = this.api.whenReady();
+                    this.assertTrue(typeof readyPromise?.then === 'function', 'whenReady should return a Promise');
+                },
+
+                'Should expose tagCollections helpers': async function () {
+                    this.assertExists(this.api.tagCollections, 'tagCollections helper not found');
+                    this.assertEqual(this.api.tagCollections.taggedId, '__tagged__', 'taggedId should match the public constant');
+                    this.assertEqual(this.api.tagCollections.untaggedId, '__untagged__', 'untaggedId should match the public constant');
+                    this.assertTrue(this.api.tagCollections.isCollection('__tagged__'), 'Should detect tagged aggregate id');
+                    this.assertFalse(this.api.tagCollections.isCollection('work'), 'Normal tags should not be treated as aggregate ids');
+                    this.assertTrue(
+                        typeof this.api.tagCollections.getLabel(this.api.tagCollections.taggedId) === 'string',
+                        'getLabel should return a string'
+                    );
+                },
+
+                'Should expose propertyNodes helpers': async function () {
+                    this.assertExists(this.api.propertyNodes, 'propertyNodes helper not found');
+                    this.assertEqual(this.api.propertyNodes.rootId, 'properties-root', 'rootId should match the public constant');
+                    const rootParts = this.api.propertyNodes.parse(this.api.propertyNodes.rootId);
+                    this.assertExists(rootParts, 'parse(rootId) should return a descriptor');
+                    this.assertEqual(rootParts.kind, 'root', 'Root descriptor should use kind=root');
                 }
             };
         }
@@ -285,29 +311,16 @@
                     this.assertExists(this.api.navigation, 'Navigation API not found');
                 },
 
-                'Should navigate to a file': async function () {
+                'Should resolve file navigation to a boolean': async function () {
                     const testFile = await this.createTestFile('test-navigation.md', '# Test Navigation');
-
-                    try {
-                        await this.api.navigation.reveal(testFile);
-                        // If successful, navigation completed
-                        this.assertTrue(true, 'Navigation completed successfully');
-                    } catch (error) {
-                        // View might not be open, which is okay
-                        this.assertTrue(error.message.includes('view'), 'Error should mention view not being open');
-                    }
+                    const revealed = await this.api.navigation.reveal(testFile);
+                    this.assertTrue(typeof revealed === 'boolean', 'Navigation should resolve to a boolean');
                 },
 
                 'Should handle navigation to non-existent file gracefully': async function () {
                     const fakeFile = { path: 'fake-file-that-does-not-exist.md' };
-
-                    try {
-                        await this.api.navigation.reveal(fakeFile);
-                        // Should throw an error for non-existent file
-                        this.assertTrue(false, 'Should have thrown an error for non-existent file');
-                    } catch (error) {
-                        this.assertTrue(true, 'Correctly threw error for non-existent file');
-                    }
+                    const revealed = await this.api.navigation.reveal(fakeFile);
+                    this.assertFalse(revealed, 'Should return false for non-existent file');
                 }
             };
         }
@@ -331,15 +344,15 @@
                     this.assertExists(afterColor, 'Should return metadata after setting color');
                     this.assertEqual(afterColor.color, '#ff0000', 'Color should be set');
 
-                    // Set icon - test both lucide and emoji formats
-                    await this.api.metadata.setFolderMeta(testFolder, { icon: 'lucide:folder-open' });
+                    // Set icon - test both Lucide and emoji formats
+                    await this.api.metadata.setFolderMeta(testFolder, { icon: 'folder-open' });
                     const afterIcon = this.api.metadata.getFolderMeta(testFolder);
-                    this.assertEqual(afterIcon.icon, 'lucide:folder-open', 'Icon should be set');
+                    this.assertEqual(afterIcon.icon, 'folder-open', 'Icon should be set');
 
                     // Test emoji icon format
-                    await this.api.metadata.setFolderMeta(testFolder, { icon: 'emoji:📁' });
+                    await this.api.metadata.setFolderMeta(testFolder, { icon: '📁' });
                     const afterEmoji = this.api.metadata.getFolderMeta(testFolder);
-                    this.assertEqual(afterEmoji.icon, 'emoji:📁', 'Emoji icon should be set');
+                    this.assertEqual(afterEmoji.icon, '📁', 'Emoji icon should be set');
 
                     // Clear metadata by passing null
                     await this.api.metadata.setFolderMeta(testFolder, { color: null, icon: null });
@@ -360,15 +373,15 @@
                     this.assertExists(afterColor, 'Should return metadata after setting color');
                     this.assertEqual(afterColor.color, '#00ff00', 'Tag color should be set');
 
-                    // Set icon - test both lucide and emoji formats
-                    await this.api.metadata.setTagMeta(testTag, { icon: 'lucide:tag' });
+                    // Set icon - test both Lucide and emoji formats
+                    await this.api.metadata.setTagMeta(testTag, { icon: 'tag' });
                     const afterIcon = this.api.metadata.getTagMeta(testTag);
-                    this.assertEqual(afterIcon.icon, 'lucide:tag', 'Tag icon should be set');
+                    this.assertEqual(afterIcon.icon, 'tag', 'Tag icon should be set');
 
                     // Test emoji icon format
-                    await this.api.metadata.setTagMeta(testTag, { icon: 'emoji:🏷️' });
+                    await this.api.metadata.setTagMeta(testTag, { icon: '🏷️' });
                     const afterEmoji = this.api.metadata.getTagMeta(testTag);
-                    this.assertEqual(afterEmoji.icon, 'emoji:🏷️', 'Emoji icon should be set');
+                    this.assertEqual(afterEmoji.icon, '🏷️', 'Emoji icon should be set');
 
                     // Clear metadata by passing null
                     await this.api.metadata.setTagMeta(testTag, { color: null, icon: null });
@@ -416,30 +429,30 @@
                     // Set both color and icon
                     await this.api.metadata.setFolderMeta(testFolder, {
                         color: '#ff0000',
-                        icon: 'lucide:folder'
+                        icon: 'folder'
                     });
 
                     let meta = this.api.metadata.getFolderMeta(testFolder);
                     this.assertEqual(meta.color, '#ff0000', 'Color should be set');
-                    this.assertEqual(meta.icon, 'lucide:folder', 'Icon should be set');
+                    this.assertEqual(meta.icon, 'folder', 'Icon should be set');
 
                     // Update only color (icon should be preserved)
                     await this.api.metadata.setFolderMeta(testFolder, { color: '#00ff00' });
                     meta = this.api.metadata.getFolderMeta(testFolder);
                     this.assertEqual(meta.color, '#00ff00', 'Color should be updated');
-                    this.assertEqual(meta.icon, 'lucide:folder', 'Icon should be preserved when not specified');
+                    this.assertEqual(meta.icon, 'folder', 'Icon should be preserved when not specified');
 
                     // Update only icon (color should be preserved)
-                    await this.api.metadata.setFolderMeta(testFolder, { icon: 'emoji:📂' });
+                    await this.api.metadata.setFolderMeta(testFolder, { icon: '📂' });
                     meta = this.api.metadata.getFolderMeta(testFolder);
                     this.assertEqual(meta.color, '#00ff00', 'Color should be preserved when not specified');
-                    this.assertEqual(meta.icon, 'emoji:📂', 'Icon should be updated');
+                    this.assertEqual(meta.icon, '📂', 'Icon should be updated');
 
                     // Clear only color (icon should remain)
                     await this.api.metadata.setFolderMeta(testFolder, { color: null });
                     meta = this.api.metadata.getFolderMeta(testFolder);
                     this.assertEqual(meta.color, undefined, 'Color should be cleared');
-                    this.assertEqual(meta.icon, 'emoji:📂', 'Icon should still be present');
+                    this.assertEqual(meta.icon, '📂', 'Icon should still be present');
 
                     // Clear icon as well
                     await this.api.metadata.setFolderMeta(testFolder, { icon: null });
@@ -504,6 +517,7 @@
                 'Should get selected navigation item': async function () {
                     const navItem = this.api.selection.getNavItem();
                     this.assertExists(navItem, 'Should return NavItem object');
+                    this.assertExists(navItem.type, 'NavItem should have type field');
                     this.assertExists(navItem.folder !== undefined, 'NavItem should have folder property');
                     this.assertExists(navItem.tag !== undefined, 'NavItem should have tag property');
                     this.assertExists(navItem.property !== undefined, 'NavItem should have property field');
@@ -515,18 +529,18 @@
                     }
 
                     // If a folder is selected, it should be a valid TFolder
-                    if (navItem.folder) {
+                    if (navItem.type === 'folder') {
                         this.assertExists(navItem.folder.path, 'Selected folder should have a path');
                         this.assertTrue(typeof navItem.folder.path === 'string', 'Folder path should be a string');
                     }
 
                     // If a tag is selected, it should be a string
-                    if (navItem.tag) {
+                    if (navItem.type === 'tag') {
                         this.assertTrue(typeof navItem.tag === 'string', 'Tag should be a string');
                     }
 
                     // If a property is selected, it should be a string id
-                    if (navItem.property) {
+                    if (navItem.type === 'property') {
                         this.assertTrue(typeof navItem.property === 'string', 'Property should be a string');
                     }
                 },
@@ -674,8 +688,10 @@
                     // If an event was captured, verify structure
                     if (eventData) {
                         this.assertExists(eventData.folder, 'Should have folder');
-                        this.assertExists(eventData.metadata, 'Should have metadata');
-                        this.assertTrue(typeof eventData.metadata === 'object', 'Metadata should be an object');
+                        this.assertTrue(
+                            eventData.metadata === null || typeof eventData.metadata === 'object',
+                            'Metadata should be null or an object'
+                        );
                     }
 
                     // Clean up
@@ -694,8 +710,10 @@
                     // If an event was captured, verify structure
                     if (eventData) {
                         this.assertExists(eventData.tag, 'Should have tag');
-                        this.assertExists(eventData.metadata, 'Should have metadata');
-                        this.assertTrue(typeof eventData.metadata === 'object', 'Metadata should be an object');
+                        this.assertTrue(
+                            eventData.metadata === null || typeof eventData.metadata === 'object',
+                            'Metadata should be null or an object'
+                        );
                     }
 
                     // Clean up
@@ -753,7 +771,8 @@
                         'selection-changed',
                         'pinned-files-changed',
                         'folder-changed',
-                        'tag-changed'
+                        'tag-changed',
+                        'property-changed'
                     ];
 
                     const refs = [];

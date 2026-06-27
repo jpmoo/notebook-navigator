@@ -8,10 +8,15 @@
 .modal.nn-whats-new-modal {
     width: 600px;
     max-width: calc(100vw - 40px);
+    overflow: hidden;
 }
 
 /* What's new content layout */
 .modal.nn-whats-new-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
     padding: 16px;
 }
 
@@ -20,13 +25,10 @@
     pointer-events: auto;
 }
 
-/* What's new header */
-.nn-whats-new-header {
-    margin-bottom: 16px;
-}
-
 /* What's new scrollable container */
 .nn-whats-new-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
     max-height: min(70vh, 520px);
     overflow-y: auto;
     margin-bottom: 0;
@@ -37,22 +39,23 @@
 /* Version container */
 .nn-whats-new-version {
     margin-bottom: 16px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--background-modifier-border);
 }
 
-/* Version container - last child no border */
+/* Version container - last child no margin */
 .nn-whats-new-version:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
+    margin-bottom: 0;
 }
 
 /* Version header */
 .nn-whats-new-version h3 {
+    display: block;
     font-size: 14px;
     font-weight: 600;
     color: var(--nn-theme-foreground);
-    margin: 0 0 4px 0;
+    background: var(--background-secondary);
+    margin: 0 0 4px;
+    padding: 6px 10px;
+    border-radius: 6px;
 }
 
 /* Feature list */
@@ -83,12 +86,86 @@
     margin-bottom: 16px;
 }
 
-/* Version date */
-.nn-whats-new-date {
-    color: var(--nn-theme-foreground-muted);
-    font-size: 12px;
+/* Release banner image */
+.nn-whats-new-banner {
+    position: relative;
     display: block;
-    margin-bottom: 8px;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 8px;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    margin-bottom: 12px;
+    text-decoration: none;
+}
+
+.nn-whats-new-banner:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+.nn-whats-new-banner-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Release video */
+.nn-whats-new-video-frame {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 8px;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    margin-bottom: 12px;
+}
+
+.nn-whats-new-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000000;
+}
+
+.nn-whats-new-video-open {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    color: var(--text-normal);
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    opacity: 0.9;
+    text-decoration: none;
+}
+
+.nn-whats-new-video-open:hover {
+    color: var(--text-normal);
+    background: var(--background-secondary);
+}
+
+.nn-whats-new-video-open:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+.nn-whats-new-video-open svg {
+    width: 16px;
+    height: 16px;
 }
 
 /* YouTube link preview */
@@ -246,28 +323,14 @@
         line-height: 1.6;
     }
 
-    /* Mobile header size for the modal title */
-    .nn-whats-new-header {
-        font-size: 16px;
-    }
-
-    /* Version header and date sizes on mobile */
+    /* Version header size on mobile */
     .nn-whats-new-version h3 {
         font-size: 15px;
-    }
-
-    .nn-whats-new-date {
-        font-size: 14px;
     }
 }
 
 /* Obsidian mobile app adjustments */
 .is-mobile {
-    /* Modal title */
-    .nn-whats-new-header {
-        font-size: 16px;
-    }
-
     /* Body text and labels */
     .nn-whats-new-info,
     .nn-whats-new-version li,
@@ -279,10 +342,5 @@
     /* Version header */
     .nn-whats-new-version h3 {
         font-size: 15px;
-    }
-
-    /* Date line */
-    .nn-whats-new-date {
-        font-size: 14px;
     }
 }

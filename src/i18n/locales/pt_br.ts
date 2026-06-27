@@ -27,7 +27,12 @@ export const STRINGS_PT_BR = {
         delete: 'Excluir',
         clear: 'Limpar',
         remove: 'Remover',
+        restoreDefault: 'Restaurar padrão', // Button text for restoring values to defaults (English: Restore default)
         submit: 'Enviar',
+        save: 'Salvar', // Button text for saving settings and dialogs (English: Save)
+        configure: 'Configurar', // Generic button label used when opening a configuration dialog (English: Configure)
+        lightMode: 'Modo claro', // Label for light theme mode (English: Light mode)
+        darkMode: 'Modo escuro', // Label for dark theme mode (English: Dark mode)
         noSelection: 'Nenhuma seleção',
         untagged: 'Sem tags',
         featureImageAlt: 'Imagem destacada',
@@ -46,7 +51,15 @@ export const STRINGS_PT_BR = {
         pinnedSection: 'Fixadas',
         notesSection: 'Notas',
         filesSection: 'Arquivos',
-        hiddenItemAriaLabel: '{name} (oculto)'
+        hiddenItemAriaLabel: '{name} (oculto)',
+        collapseGroup: 'Recolher grupo',
+        expandGroup: 'Expandir grupo',
+        manualSortTitle: 'Classificação manual: {property}',
+        manualSortHint: 'Arraste para reordenar. A ordem é salva como valores numéricos de índice na propriedade "{property}".',
+        manualSortNonMarkdownHint: 'Arquivos não Markdown são exibidos no final e não podem ser reordenados.',
+        unsortedSection: 'Não classificados',
+        manualSortDone: 'Concluído',
+        manualSortMultipleWriteFailure: '{count} arquivos falharam; primeiro: {path}: {message}'
     },
 
     // Tag list
@@ -58,8 +71,7 @@ export const STRINGS_PT_BR = {
     // Navigation pane
     navigationPane: {
         shortcutsHeader: 'Atalhos',
-        recentNotesHeader: 'Notas recentes',
-        recentFilesHeader: 'Arquivos recentes',
+        recentFilesHeader: 'Arquivos recentes', // Header label for recent files section in navigation pane (English: Recent files)
         properties: 'Propriedades',
         reorderRootFoldersTitle: 'Reordenar navegação',
         reorderRootFoldersHint: 'Use setas ou arraste para reordenar',
@@ -67,10 +79,8 @@ export const STRINGS_PT_BR = {
         resetRootToAlpha: 'Redefinir para ordem alfabética',
         resetRootToFrequency: 'Redefinir para ordem de frequência',
         pinShortcuts: 'Fixar atalhos',
-        pinShortcutsAndRecentNotes: 'Fixar atalhos e notas recentes',
         pinShortcutsAndRecentFiles: 'Fixar atalhos e arquivos recentes',
         unpinShortcuts: 'Desafixar atalhos',
-        unpinShortcutsAndRecentNotes: 'Desafixar atalhos e notas recentes',
         unpinShortcutsAndRecentFiles: 'Desafixar atalhos e arquivos recentes',
         profileMenuAria: 'Alterar perfil do cofre'
     },
@@ -128,8 +138,18 @@ export const STRINGS_PT_BR = {
         newFolder: 'Nova pasta',
         newNote: 'Nova nota',
         mobileBackToNavigation: 'Voltar à navegação',
-        changeSortOrder: 'Alterar ordem de classificação',
+        changeChildSortOrder: 'Alterar ordem de classificação',
+        changeSortAndGroup: 'Alterar classificação e agrupamento',
         defaultSort: 'Padrão',
+        manualSort: 'Classificação manual',
+        editSortOrder: 'Editar ordem de classificação...',
+        removeSortProperty: 'Remover propriedade de classificação',
+        descendants: 'descendentes',
+        subfolders: 'subpastas',
+        subtags: 'subtags',
+        childValues: 'valores filhos',
+        applySortAndGroupToDescendants: (target: string) => `Aplicar classificação e agrupamento a ${target}`,
+        applyAppearanceToDescendants: (target: string) => `Aplicar aparência a ${target}`,
         showFolders: 'Mostrar navegação',
         reorderRootFolders: 'Reordenar navegação',
         finishRootFolderReorder: 'Concluído',
@@ -137,6 +157,8 @@ export const STRINGS_PT_BR = {
         hideExcludedItems: 'Ocultar pastas, tags e notas ocultas',
         showDualPane: 'Mostrar painéis duplos',
         showSinglePane: 'Mostrar painel único',
+        dualPaneAutoFallbackNotice:
+            'Os painéis duplos não estão disponíveis quando a barra lateral está estreita demais. Para mudar isso, defina "Quando a barra lateral está estreita demais" como "Não fazer nada" em Configurações > Aparência e comportamento.',
         changeAppearance: 'Alterar aparência',
         showNotesFromSubfolders: 'Mostrar notas de subpastas',
         showFilesFromSubfolders: 'Mostrar arquivos de subpastas',
@@ -190,11 +212,11 @@ export const STRINGS_PT_BR = {
                     title: 'Propriedades',
                     items: [
                         '`.key` Incluir notas com chave de propriedade.',
-                        '`.key=value` Incluir notas com valor de propriedade.',
+                        '`.key=value` Incluir notas cujo valor de propriedade contenha `value`.',
                         '`."Reading Status"` Incluir notas com uma chave de propriedade que contém espaços.',
                         '`."Reading Status"="In Progress"` Chaves e valores com espaços devem estar entre aspas duplas.',
                         '`-.key` Excluir notas com chave de propriedade.',
-                        '`-.key=value` Excluir notas com valor de propriedade.',
+                        '`-.key=value` Excluir notas cujo valor de propriedade contenha `value`.',
                         'Cmd/Ctrl+Clique em uma propriedade para adicionar com AND. Cmd/Ctrl+Shift+Clique para adicionar com OR.'
                     ]
                 },
@@ -281,17 +303,31 @@ export const STRINGS_PT_BR = {
             revealInFolder: 'Revelar na pasta',
             revealInFinder: 'Revelar no Finder',
             showInExplorer: 'Mostrar no explorador de arquivos',
+            openInDefaultApp: 'Abrir no aplicativo padrão',
             renameNote: 'Renomear nota',
             renameFile: 'Renomear arquivo',
             deleteNote: 'Excluir nota',
             deleteFile: 'Excluir arquivo',
+            setCalendarHighlight: 'Definir destaque',
+            removeCalendarHighlight: 'Remover destaque',
             deleteMultipleNotes: 'Excluir {count} notas',
             deleteMultipleFiles: 'Excluir {count} arquivos',
             moveNoteToFolder: 'Mover nota para...',
             moveFileToFolder: 'Mover arquivo para...',
             moveMultipleNotesToFolder: 'Mover {count} notas para...',
             moveMultipleFilesToFolder: 'Mover {count} arquivos para...',
+            mergeNotes: 'Mesclar {count} notas...',
+            mergeNotesInGroup: 'Mesclar notas no grupo...',
+            setManualSortGroupHeader: 'Definir cabeçalho de grupo',
+            changeManualSortGroupHeader: 'Alterar cabeçalho de grupo',
+            manualSortGroupHeader: {
+                title: 'Cabeçalho de grupo',
+                copyStyle: 'Copiar estilo do cabeçalho',
+                pasteStyle: 'Colar estilo do cabeçalho',
+                remove: 'Remover cabeçalho de grupo'
+            },
             addTag: 'Adicionar tag',
+            addPropertyKey: 'Definir propriedade',
             removeTag: 'Remover tag',
             removeAllTags: 'Remover todas as tags',
             changeIcon: 'Alterar ícone',
@@ -355,6 +391,8 @@ export const STRINGS_PT_BR = {
 
     // Folder appearance menu
     folderAppearance: {
+        appearance: 'Aparência',
+        sortBy: 'Classificar por',
         standardPreset: 'Padrão',
         compactPreset: 'Compacto',
         defaultSuffix: '(padrão)',
@@ -371,6 +409,62 @@ export const STRINGS_PT_BR = {
 
     // Modal dialogs
     modals: {
+        bulkApply: {
+            applyButton: 'Aplicar',
+            applySortAndGroupTitle: (target: string) => `Aplicar classificação e agrupamento a ${target}?`,
+            applyAppearanceTitle: (target: string) => `Aplicar aparência a ${target}?`,
+            affectedCountMessage: (count: number) => `Substituições existentes que serão alteradas: ${count}.`
+        },
+        manualSortConfirm: {
+            propertySortTitle: 'Usar classificação manual?',
+            propertySortMessage: (property: string, count: number) =>
+                `Isso muda a visualização atual para classificação manual usando "${property}". Editar a ordem grava valores numéricos de índice nessa propriedade em ${count} ${count === 1 ? 'nota' : 'notas'} conforme necessário.`,
+            propertySortConfirmButton: 'Usar classificação manual',
+            removePropertyTitle: 'Remover propriedade de classificação?',
+            removePropertyMessage: (property: string, count: number) =>
+                `Isso remove "${property}" de ${count} ${count === 1 ? 'nota' : 'notas'} na lista atual. A ordem de classificação manual será limpa para essas notas.`,
+            removePropertyConfirmButton: 'Remover propriedade',
+            compactTitle: 'Compactar valores de índice?',
+            compactMessage: (count: number) =>
+                `Esta reordenação precisa de mais espaço numérico. ${count} ${count === 1 ? 'nota receberá' : 'notas receberão'} novos valores de índice.`,
+            compactConfirmButton: 'Compactar valores de índice'
+        },
+        manualSortGroupHeader: {
+            title: 'Definir cabeçalho de grupo',
+            titleLabel: 'Título',
+            placeholder: 'Cabeçalho de grupo',
+            icon: 'Ícone',
+            color: 'Cor',
+            wordCount: 'Mostrar contagem de palavras',
+            wordCountTarget: 'Contagem de palavras alvo',
+            wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                'Quando este campo está vazio, a meta do grupo usa a propriedade de meta definida em Configurações > Notas > Contagem de palavras e caracteres. Substitua definindo um valor de meta para este grupo.',
+            description: 'Personalize o cabeçalho de grupo para esta nota. Deixe o título em branco para remover o cabeçalho.'
+        },
+        mergeNotes: {
+            title: 'Mesclar notas',
+            summary: 'Criar uma nota a partir de {count} notas em {folder}.',
+            frontmatterRule: 'O frontmatter da primeira nota é mantido. O frontmatter das outras notas é removido.',
+            crossFolderWarning:
+                'As notas de origem estão em pastas diferentes. Links relativos e incorporações podem parar de funcionar na nota mesclada.',
+            outputName: 'Nome de saída',
+            outputNameDesc: 'A nota mesclada é criada na pasta mostrada acima.',
+            outputNamePlaceholder: 'Notas mescladas',
+            separator: 'Separador',
+            separatorDesc: 'Inserido entre notas.',
+            separatorOptions: {
+                none: 'Nenhum',
+                blankLine: 'Linha em branco',
+                horizontalRule: 'Linha horizontal',
+                heading: 'Cabeçalho com o título da nota'
+            },
+            moveSourcesToTrash: 'Mover notas de origem para a lixeira após mesclar',
+            mergeButton: 'Mesclar'
+        },
+        navRainbowSection: {
+            title: (section: string) => `Cores arco-íris: ${section}`
+        },
         iconPicker: {
             searchPlaceholder: 'Pesquisar ícones...',
             recentlyUsedHeader: 'Usados recentemente',
@@ -403,11 +497,18 @@ export const STRINGS_PT_BR = {
                 'nav-show-dual-pane': 'Mostrar painéis duplos',
                 'nav-profile-chevron': 'Seta do menu de perfil',
                 'list-search': 'Pesquisar',
+                'list-reveal-file': 'Revelar arquivo',
                 'list-descendants': 'Notas de subpastas',
                 'list-sort-ascending': 'Ordem: crescente',
                 'list-sort-descending': 'Ordem: decrescente',
+                'list-sort-modified': 'Classificar por data de edição',
+                'list-sort-created': 'Classificar por data de criação',
+                'list-sort-title': 'Classificar por título',
+                'list-sort-filename': 'Classificar por nome do arquivo',
+                'list-sort-property': 'Classificar por propriedade',
                 'list-appearance': 'Alterar aparência',
                 'list-new-note': 'Nova nota',
+                'list-pinned': 'Notas fixadas',
                 'nav-folder-open': 'Pasta aberta',
                 'nav-folder-closed': 'Pasta fechada',
                 'nav-tags': 'Tags',
@@ -415,9 +516,9 @@ export const STRINGS_PT_BR = {
                 'nav-properties': 'Propriedades',
                 'nav-property': 'Propriedade',
                 'nav-property-value': 'Valor',
-                'list-pinned': 'Itens fixados',
                 'file-unfinished-task': 'Tarefas inacabadas',
-                'file-word-count': 'Contagem de palavras'
+                'file-word-count': 'Contagem de palavras',
+                'file-character-count': 'Contagem de caracteres'
             }
         },
         colorPicker: {
@@ -437,10 +538,23 @@ export const STRINGS_PT_BR = {
             recentColors: 'Cores recentes',
             clearRecentColors: 'Limpar cores recentes',
             removeRecentColor: 'Remover cor',
-            removeColor: 'Remover cor',
             apply: 'Aplicar',
+            pickerLabel: 'Seletor',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'Valor de cor hexadecimal',
+            saturationValueArea: 'Saturação e brilho',
+            hueSlider: 'Matiz',
+            alphaSlider: 'Transparência'
+        },
+        appearance: {
+            tabIcon: 'Ícone',
+            tabColor: 'Cor',
+            tabBackground: 'Plano de fundo',
+            resetIcon: 'Remover ícone',
+            resetColor: 'Remover cor',
+            resetBackground: 'Remover plano de fundo',
+            clear: 'Limpar estilo',
+            apply: 'Aplicar'
         },
         selectVaultProfile: {
             title: 'Alterar perfil do cofre',
@@ -502,6 +616,7 @@ export const STRINGS_PT_BR = {
             deleteFolderTitle: "Excluir '{name}'?",
             deleteFileTitle: "Excluir '{name}'?",
             deleteFileAttachmentsTitle: 'Excluir anexos do arquivo?',
+            moveFileConflictTitle: 'Conflito de movimentação',
             folderNamePrompt: 'Digite o nome da pasta:',
             hideInOtherVaultProfiles: 'Ocultar em outros perfis do cofre',
             renamePrompt: 'Digite o novo nome:',
@@ -513,6 +628,13 @@ export const STRINGS_PT_BR = {
             deleteFileAttachmentsDescriptionMultiple: 'Estes anexos não são mais usados em nenhuma nota. Deseja excluí-los?',
             deleteFileAttachmentsViewFileTreeAriaLabel: 'Árvore de arquivos',
             deleteFileAttachmentsViewGalleryAriaLabel: 'Galeria',
+            moveFileConflictDescriptionSingle: 'Um conflito de arquivo foi encontrado em "{folder}".',
+            moveFileConflictDescriptionMultiple: '{count} conflitos de arquivos foram encontrados em "{folder}".',
+            moveFileConflictAffectedFiles: 'Arquivos afetados',
+            moveFileConflictItem: '"{name}" -> "{suggested}"{renameOnly}',
+            moveFileConflictRenameOnly: '(apenas renomear)',
+            moveFileConflictRename: 'Renomear',
+            moveFileConflictOverwrite: 'Sobrescrever',
             removeAllTagsTitle: 'Remover todas as tags',
             removeAllTagsFromNote: 'Tem certeza de que deseja remover todas as tags desta nota?',
             removeAllTagsFromNotes: 'Tem certeza de que deseja remover todas as tags de {count} notas?'
@@ -580,12 +702,16 @@ export const STRINGS_PT_BR = {
         },
         propertyKeyVisibility: {
             title: 'Visibilidade das chaves de propriedade',
+            description:
+                'Controle onde os valores de propriedade são exibidos. As colunas correspondem ao painel de navegação, painel de lista e menu de contexto do arquivo. Use a linha inferior para alternar todas as linhas de uma coluna.',
             searchPlaceholder: 'Pesquisar chaves de propriedade...',
             propertyColumnLabel: 'Propriedade',
             showInNavigation: 'Mostrar na navegação',
             showInList: 'Mostrar na lista',
+            showInFileMenu: 'Mostrar no menu do arquivo',
             toggleAllInNavigation: 'Alternar todos na navegação',
             toggleAllInList: 'Alternar todos na lista',
+            toggleAllInFileMenu: 'Alternar todos no menu do arquivo',
             applyButton: 'Aplicar',
             emptyState: 'Nenhuma chave de propriedade encontrada.'
         },
@@ -613,11 +739,18 @@ export const STRINGS_PT_BR = {
             deleteFolder: 'Falha ao excluir pasta: {error}',
             deleteFile: 'Falha ao excluir arquivo: {error}',
             deleteAttachments: 'Falha ao excluir os anexos: {error}',
+            mergeNotes: 'Falha ao mesclar notas: {error}',
+            mergeNotesOpenOutput:
+                'A nota mesclada foi criada como {name}, mas não pôde ser aberta: {error}. As notas de origem não foram alteradas.',
+            mergeNotesOpenSkipped: 'Outra solicitação para abrir arquivo teve prioridade.',
+            mergeNotesTrashSources: 'Nota mesclada criada. Falha ao mover {count} notas de origem para a lixeira.',
             duplicateNote: 'Falha ao duplicar nota: {error}',
             duplicateFolder: 'Falha ao duplicar pasta: {error}',
             openVersionHistory: 'Falha ao abrir histórico de versões: {error}',
             versionHistoryNotFound: 'Comando de histórico de versões não encontrado. Certifique-se de que o Obsidian Sync está ativado.',
             revealInExplorer: 'Falha ao revelar arquivo no explorador: {error}',
+            openInDefaultApp: 'Falha ao abrir no aplicativo padrão: {error}',
+            openInDefaultAppNotAvailable: 'Abrir no aplicativo padrão não está disponível nesta plataforma',
             folderNoteAlreadyExists: 'Nota de pasta já existe',
             folderAlreadyExists: 'A pasta "{name}" já existe',
             folderNotesDisabled: 'Ative as notas de pasta nas configurações para converter arquivos',
@@ -644,7 +777,8 @@ export const STRINGS_PT_BR = {
         },
         notices: {
             hideFolder: 'Pasta oculta: {name}',
-            showFolder: 'Pasta exibida: {name}'
+            showFolder: 'Pasta exibida: {name}',
+            mergeNotes: '{count} notas mescladas em {name}'
         },
         notifications: {
             deletedMultipleFiles: '{count} arquivos excluídos',
@@ -662,12 +796,15 @@ export const STRINGS_PT_BR = {
             tagsClearedFromNotes: 'Todas as tags removidas de {count} notas',
             noTagsToRemove: 'Sem tags para remover',
             noFilesSelected: 'Nenhum arquivo selecionado',
+            mergeNotesRequireMultipleMarkdown: 'Selecione pelo menos duas notas Markdown para mesclar',
             tagOperationsNotAvailable: 'Operações de tag não disponíveis',
             propertyOperationsNotAvailable: 'Operações de propriedades não disponíveis',
             tagsRequireMarkdown: 'Tags só são suportadas em notas Markdown',
             propertiesRequireMarkdown: 'As propriedades só são suportadas em notas Markdown',
             propertySetOnNote: 'Propriedade atualizada em 1 nota',
             propertySetOnNotes: 'Propriedade atualizada em {count} notas',
+            manualSortPropertyRemovedFromNote: 'Propriedade de classificação removida de 1 nota',
+            manualSortPropertyRemovedFromNotes: 'Propriedade de classificação removida de {count} notas',
             iconPackDownloaded: '{provider} baixado',
             iconPackUpdated: '{provider} atualizado ({version})',
             iconPackRemoved: '{provider} removido',
@@ -727,6 +864,7 @@ export const STRINGS_PT_BR = {
         search: 'Pesquisar',
         searchVaultRoot: 'Pesquisar na raiz do cofre',
         toggleDualPane: 'Alternar layout de painel duplo',
+        toggleDualPaneOrientation: 'Alternar orientação do painel duplo', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'Alternar calendário',
         selectVaultProfile: 'Alterar perfil do cofre',
         selectVaultProfile1: 'Alterar para o perfil do cofre 1',
@@ -736,8 +874,11 @@ export const STRINGS_PT_BR = {
         createNewNote: 'Criar nova nota',
         createNewNoteFromTemplate: 'Nova nota a partir de modelo',
         moveFiles: 'Mover arquivos',
+        mergeNotes: 'Mesclar notas', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Selecionar próximo arquivo',
         selectPreviousFile: 'Selecionar arquivo anterior',
+        navigateBack: 'Navegar para trás',
+        navigateForward: 'Navegar para frente',
         convertToFolderNote: 'Converter em nota de pasta',
         setAsFolderNote: 'Definir como nota de pasta',
         detachFolderNote: 'Desvincular nota de pasta',
@@ -750,9 +891,14 @@ export const STRINGS_PT_BR = {
         toggleDescendants: 'Alternar descendentes',
         toggleHidden: 'Alternar pastas, tags e notas ocultas',
         toggleTagSort: 'Alternar ordem de classificação de tags',
+        toggleTagsBySelection: 'Alternar tags por seleção',
+        togglePropertiesBySelection: 'Alternar propriedades por seleção',
         toggleCompactMode: 'Alternar modo compacto', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Alternar seção fixada',
         collapseExpand: 'Recolher / expandir todos os itens',
+        collapseExpandSelectedItem: 'Recolher / expandir o item selecionado',
         addTag: 'Adicionar tag aos arquivos selecionados',
+        setProperty: 'Definir propriedade nos arquivos selecionados', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'Remover tag dos arquivos selecionados',
         removeAllTags: 'Remover todas as tags dos arquivos selecionados',
         openAllFiles: 'Abrir todos os arquivos',
@@ -763,6 +909,7 @@ export const STRINGS_PT_BR = {
     plugin: {
         viewName: 'Notebook Navigator',
         calendarViewName: 'Calendário',
+        folderNoteSidebarViewName: 'Nota de pasta',
         ribbonTooltip: 'Notebook Navigator',
         revealInNavigator: 'Revelar no Notebook Navigator'
     },
@@ -774,53 +921,101 @@ export const STRINGS_PT_BR = {
         file: 'arquivo',
         files: 'arquivos',
         folder: 'pasta',
-        folders: 'pastas'
+        folders: 'pastas',
+        wordCount: 'Contagem de palavras'
+    },
+
+    fileCounts: {
+        words: '{count} palavras',
+        characters: '{count} caracteres',
+        separator: ' · '
     },
 
     // Settings
     settings: {
+        changeDefaultSettings: 'Alterar configurações padrão',
         metadataReport: {
             exportSuccess: 'Relatório de metadados com falhas exportado para: {filename}',
             exportFailed: 'Falha ao exportar relatório de metadados'
         },
         sections: {
             general: 'Geral',
-            navigationPane: 'Navegação',
+            vaultFilters: 'Filtros de exibição',
+            appearanceBehavior: 'Aparência e comportamento',
+            navigationPane: 'Painel de navegação',
             calendar: 'Calendário',
+            fileOperations: 'Operações de arquivo',
             icons: 'Pacotes de ícones',
             folders: 'Pastas',
             folderNotes: 'Notas de pasta',
-            foldersAndTags: 'Pastas',
+            folderNoteFiles: 'Arquivos de notas de pasta',
+            foldersAndFolderNotes: 'Pastas e notas de pasta',
             tagsAndProperties: 'Tags e propriedades',
             tags: 'Tags',
-            listPane: 'Lista',
-            notes: 'Notas',
+            listPane: 'Painel de lista',
+            notes: 'Exibição de arquivos',
+            shortcutsAndRecentFiles: 'Atalhos e arquivos recentes',
             advanced: 'Avançado'
+        },
+        pageGroups: {
+            configuration: 'Configuração',
+            navigationAndContent: 'Painel de navegação',
+            notesAndLists: 'Painel de lista',
+            calendarAndTools: 'Calendário e ferramentas'
+        },
+        pageDescriptions: {
+            general: 'Notas de versão, suporte, perfil do cofre, tipos de arquivo e chaves de propriedades.',
+            vaultFilters: 'Pastas, tags, arquivos, tags de arquivo e regras de propriedades ocultas.',
+            appearanceBehavior: 'Comportamento, navegação por teclado, botões do mouse, aparência e formatação.',
+            navigationPane: 'Layout, aparência, contagem de notas, comportamento de recolhimento e cores arco-íris.',
+            shortcuts: 'Visibilidade de atalhos, distintivos, arquivos recentes e itens fixados.',
+            calendar: 'Exibição do calendário, notas de data, modelos, localidade e posicionamento da barra lateral.',
+            fileOperations: 'Modelos, confirmações de exclusão, anexos e comportamento de conflito ao mover arquivos.',
+            foldersAndFolderNotes: 'Exibição de pastas, notas de pasta, modelos de notas de pasta e comportamento das notas de pasta.',
+            tagsProperties: 'Seções de tags e propriedades, ícones, classificação, escopo e herança.',
+            listPane: 'Classificação, agrupamento, modos de lista, notas fixadas e pré-visualizações de desenhos.',
+            frontmatter: 'Campos de frontmatter para nomes de exibição, carimbos de data/hora, ícones e cores.',
+            notes: 'Títulos, texto de pré-visualização, imagens de destaque, tags, propriedades, datas, contagem de palavras e contagem de caracteres.',
+            iconPacks: 'Ícones de interface, ícones de arquivo e gerenciamento de pacotes de ícones.',
+            advanced: 'Diagnóstico, limpeza de metadados, importação/exportação e redefinição.'
         },
         groups: {
             general: {
-                vaultProfiles: 'Perfis do cofre',
-                filtering: 'Filtragem',
+                vaultConfiguration: 'Configuração do cofre',
                 templates: 'Modelos',
                 behavior: 'Comportamento',
                 keyboardNavigation: 'Navegação por teclado',
+                mouseButtons: 'Botões do mouse',
                 view: 'Aparência',
                 icons: 'Ícones',
                 desktopAppearance: 'Aparência do desktop',
                 mobileAppearance: 'Aparência móvel',
                 formatting: 'Formatação'
             },
+            advanced: {
+                maintenance: 'Manutenção',
+                resetSettings: 'Redefinir configurações'
+            },
             navigation: {
                 appearance: 'Aparência',
+                banner: 'Banner',
+                dragAndDrop: 'Arrastar e soltar',
+                noteCounts: 'Contagens de notas',
+                rainbowColors: 'Cores arco-íris',
                 leftSidebar: 'Barra lateral esquerda',
                 calendarIntegration: 'Integração do calendário'
             },
             list: {
                 display: 'Aparência',
-                pinnedNotes: 'Notas fixadas'
+                groupHeaders: 'Cabeçalhos de grupo',
+                propertySort: 'Classificação por propriedade',
+                manualSort: 'Classificação manual',
+                pinnedNotes: 'Notas fixadas',
+                drawingPreviews: 'Pré-visualizações de desenhos'
             },
             notes: {
-                frontmatter: 'Frontmatter',
+                frontmatter: 'Campos de frontmatter',
+                tasks: 'Tarefas',
                 icon: 'Ícone',
                 title: 'Título',
                 previewText: 'Texto de pré-visualização',
@@ -828,12 +1023,12 @@ export const STRINGS_PT_BR = {
                 tags: 'Tags',
                 properties: 'Propriedades',
                 date: 'Data',
-                parentFolder: 'Pasta superior'
+                parentFolder: 'Pasta superior',
+                wordCount: 'Contagem de palavras e caracteres'
             }
         },
         syncMode: {
             notSynced: '(não sincronizado)',
-            disabled: '(desativado)',
             switchToSynced: 'Ativar sincronização',
             switchToLocal: 'Desativar sincronização'
         },
@@ -848,8 +1043,8 @@ export const STRINGS_PT_BR = {
                 }
             },
             sortNotesBy: {
-                name: 'Ordenar notas por',
-                desc: 'Escolha como as notas são ordenadas na lista.',
+                name: 'Ordem de classificação padrão',
+                desc: 'Escolha a ordem de classificação padrão para as notas.',
                 options: {
                     'modified-desc': 'Data de edição (mais recente no topo)',
                     'modified-asc': 'Data de edição (mais antiga no topo)',
@@ -858,19 +1053,24 @@ export const STRINGS_PT_BR = {
                     'title-asc': 'Título (A no topo)',
                     'title-desc': 'Título (Z no topo)',
                     'filename-asc': 'Nome do arquivo (A no topo)',
-                    'filename-desc': 'Nome do arquivo (Z no topo)',
-                    'property-asc': 'Propriedade (A no topo)',
-                    'property-desc': 'Propriedade (Z no topo)'
+                    'filename-desc': 'Nome do arquivo (Z no topo)'
                 },
-                propertyOverride: {
-                    asc: 'Propriedade ‘{property}’ (A no topo)',
-                    desc: 'Propriedade ‘{property}’ (Z no topo)'
+                directions: {
+                    asc: 'Ascendente',
+                    desc: 'Descendente'
+                },
+                fields: {
+                    modified: 'Data de edição',
+                    created: 'Data de criação',
+                    title: 'Título',
+                    filename: 'Nome do arquivo',
+                    property: 'Propriedade'
                 }
             },
             propertySortKey: {
-                name: 'Propriedade de ordenação',
-                desc: 'Usado com a ordenação por propriedade. Notas com esta propriedade frontmatter são listadas primeiro e ordenadas pelo valor da propriedade. Arrays são combinados em um único valor.',
-                placeholder: 'order'
+                name: 'Propriedades para ordenar',
+                desc: 'Propriedades frontmatter separadas por vírgulas exibidas como opções de classificação por propriedade. Valores em array são unidos em uma única string. Essas propriedades não são alteradas.',
+                placeholder: 'published, author'
             },
             propertySortSecondary: {
                 name: 'Ordenação secundária',
@@ -882,38 +1082,86 @@ export const STRINGS_PT_BR = {
                     modified: 'Data de edição'
                 }
             },
+            propertySortInstructions: {
+                intro: 'Cada propriedade listada acima aparece como uma opção de classificação no menu de ordenação no painel de lista. Selecionar uma classifica as notas pelo valor do frontmatter.'
+            },
+            manualSortPropertyKey: {
+                name: 'Propriedade da classificação manual',
+                desc: 'Propriedade frontmatter usada para armazenar valores numéricos de índice para a classificação manual.'
+            },
+            manualSortGroupHeaderProperty: {
+                name: 'Propriedade do cabeçalho de grupo',
+                desc: 'Propriedade frontmatter usada para armazenar cabeçalhos personalizados de grupo.'
+            },
+            groupHeadersInstructions: {
+                intro: 'Cabeçalhos personalizados de grupo são exibidos acima das notas no painel de lista.',
+                items: [
+                    'No menu de ordenação no painel de lista, defina o agrupamento como **Personalizado**.',
+                    'Clique com o botão direito em uma nota e escolha **Definir cabeçalho de grupo** para adicionar um cabeçalho acima dela.'
+                ]
+            },
+            manualSortNewNotePlacement: {
+                name: 'Posicionamento de novas notas',
+                desc: 'Escolha onde as novas notas são colocadas quando a lista atual usa classificação manual.',
+                options: {
+                    top: 'Topo',
+                    bottom: 'Final',
+                    'below-selected-note': 'Abaixo da nota selecionada',
+                    unsorted: 'Não classificadas'
+                }
+            },
+            confirmBeforeManualSort: {
+                name: 'Confirmar antes da classificação manual',
+                desc: 'Mostrar um aviso antes de gravar a propriedade de classificação manual nas notas pela primeira vez. Quando desativado, as notas recebem a propriedade sem aviso.'
+            },
+            manualSortInstructions: {
+                intro: 'A classificação manual grava um valor numérico de índice em uma propriedade frontmatter de cada nota. Notas sem índice aparecem em Não classificadas.',
+                items: [
+                    'Ative a classificação manual escolhendo **Classificação manual** no menu de ordenação. Depois disso, há duas formas de reorganizar as notas.',
+                    'Escolha **Editar ordem de classificação...** no menu de ordenação para abrir uma visualização de reordenação. Arraste notas com o mouse ou com toque no celular. No desktop, **Cmd/Ctrl** ou **Shift** clique seleciona várias notas, e arrastar qualquer uma delas move o grupo inteiro.',
+                    'No painel de lista, selecione uma nota ou várias com seleção múltipla e pressione **Cmd/Ctrl + Arrow Up/Down** para mover a seleção para cima ou para baixo.'
+                ]
+            },
             revealFileOnListChanges: {
                 name: 'Rolar para o arquivo selecionado em mudanças da lista',
                 desc: 'Rolar para o arquivo selecionado ao fixar notas, mostrar notas descendentes, mudar aparência de pastas ou executar operações de arquivo.'
             },
             includeDescendantNotes: {
                 name: 'Mostrar notas de subpastas / descendentes',
-                desc: 'Incluir notas de subpastas aninhadas e descendentes de tags ao visualizar uma pasta ou tag.'
+                desc: 'Incluir notas de subpastas aninhadas e descendentes de tags e propriedades ao visualizar uma pasta, tag ou propriedade.'
             },
             limitPinnedToCurrentFolder: {
-                name: 'Limitar notas fixadas à sua pasta',
-                desc: 'Notas fixadas aparecem apenas ao visualizar a pasta ou tag onde foram fixadas.'
+                name: 'Fixar notas apenas na sua pasta',
+                desc: 'Notas fixadas aparecem fixadas apenas na sua própria pasta. Útil para notas de pasta ou se você tem muitas notas fixadas. Não afeta as visualizações de tags ou propriedades.'
             },
             separateNoteCounts: {
-                name: 'Mostrar contagens atuais e descendentes separadamente',
-                desc: 'Exibir contagens de notas no formato "atual ▾ descendentes" em pastas e tags.'
+                name: 'Mostrar contagens de notas atuais e descendentes separadamente',
+                desc: 'Exibir contagens de notas no formato "atual ▾ descendentes" para pastas, tags e propriedades.'
             },
             groupNotes: {
-                name: 'Agrupar notas',
-                desc: 'Exibir cabeçalhos entre notas agrupadas por data ou pasta. Visualizações de tags usam grupos de data quando o agrupamento de pastas está ativado.',
+                name: 'Agrupamento padrão',
+                desc: 'Personalizado mostra cabeçalhos definidos no frontmatter. Data agrupa as notas por data. Pasta agrupa as notas por pasta. Visualizações de tag e propriedade usam grupos de data quando uma pasta está selecionada.',
                 options: {
-                    none: 'Não agrupar',
-                    date: 'Agrupar por data',
-                    folder: 'Agrupar por pasta'
+                    custom: 'Personalizado',
+                    date: 'Data',
+                    folder: 'Pasta'
                 }
             },
-            showPinnedGroupHeader: {
-                name: 'Mostrar cabeçalho do grupo fixado',
-                desc: 'Exibir o cabeçalho da seção fixada acima das notas fixadas.'
+            showSelectedNavigationPills: {
+                name: 'Sempre mostrar todas as etiquetas e propriedades',
+                desc: 'Quando desativado, as etiquetas que correspondem à seleção de navegação atual ficam ocultas (por exemplo, a etiqueta "receitas" fica oculta ao navegar na etiqueta "receitas"). Ative para manter todas as etiquetas visíveis.'
             },
-            showPinnedIcon: {
-                name: 'Mostrar ícone fixado',
-                desc: 'Exibir o ícone ao lado do cabeçalho da seção fixada.'
+            stickyGroupHeaders: {
+                name: 'Cabeçalhos de grupo fixos',
+                desc: 'Mantém o cabeçalho atual de data, pasta ou seção fixada visível ao rolar.'
+            },
+            showFolderGroupPaths: {
+                name: 'Mostrar caminhos das subpastas',
+                desc: 'Ao agrupar por pasta no painel de lista, exibir caminhos das subpastas em vez de apenas nomes de pastas.'
+            },
+            showCurrentFolderFilesAtBottom: {
+                name: 'Agrupamento por pasta: arquivos da pasta atual embaixo',
+                desc: 'Quando o agrupamento padrão for Pasta, mova os arquivos diretamente na pasta selecionada para baixo dos grupos de subpastas.'
             },
             defaultListMode: {
                 name: 'Modo padrão da lista',
@@ -925,11 +1173,23 @@ export const STRINGS_PT_BR = {
             },
             showFileIcons: {
                 name: 'Mostrar ícones de arquivo',
-                desc: 'Exibir ícones de arquivo com espaçamento alinhado à esquerda. Desativar remove tanto ícones quanto recuo. Prioridade: ícone de tarefas inacabadas > ícone personalizado > ícone de nome de arquivo > ícone de tipo de arquivo > ícone padrão.'
+                desc: 'Exibir ícones de arquivo com espaçamento alinhado à esquerda. Desativar remove tanto ícones quanto recuo. Prioridade: ícone de tarefas inacabadas > ícone personalizado > ícone de pasta > ícone de nome de arquivo > ícone de tipo de arquivo > ícone padrão.'
+            },
+            useFolderIcon: {
+                name: 'Usar ícone de pasta',
+                desc: 'Exibir o ícone da pasta pai quando não há um ícone de arquivo personalizado definido. A cor da pasta é usada quando não há uma cor de arquivo personalizada definida.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Ícone de tarefas inacabadas',
                 desc: 'Exibir um ícone de tarefa quando uma nota possui tarefas inacabadas.'
+            },
+            showFileBackgroundUnfinishedTask: {
+                name: 'Fundo de tarefas inacabadas',
+                desc: 'Aplicar uma cor de fundo quando uma nota possui tarefas inacabadas.'
+            },
+            unfinishedTaskBackgroundColor: {
+                name: 'Cor de fundo de tarefas inacabadas',
+                desc: 'Definir a cor de fundo usada quando uma nota possui tarefas inacabadas.'
             },
             showFilenameMatchIcons: {
                 name: 'Ícones por nome de arquivo',
@@ -938,7 +1198,7 @@ export const STRINGS_PT_BR = {
             fileNameIconMap: {
                 name: 'Mapa de ícones por nome',
                 desc: 'Os arquivos contendo o texto recebem o ícone especificado. Um mapeamento por linha: texto=ícone',
-                placeholder: '# texto=ícone\nreunião=LiCalendar\nfatura=PhReceipt',
+                placeholder: '# texto=ícone\nreunião=ph-calendar\nfatura=ph-receipt',
                 editTooltip: 'Editar mapeamentos'
             },
             showCategoryIcons: {
@@ -948,16 +1208,12 @@ export const STRINGS_PT_BR = {
             fileTypeIconMap: {
                 name: 'Mapa de ícones por tipo',
                 desc: 'Os arquivos com a extensão recebem o ícone especificado. Um mapeamento por linha: extensão=ícone',
-                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                placeholder: '# Extension=icon\ncpp=ph-file-code\npdf=ph-file-pdf',
                 editTooltip: 'Editar mapeamentos'
-            },
-            optimizeNoteHeight: {
-                name: 'Altura de nota variável',
-                desc: 'Usar altura compacta para notas fixadas e notas sem texto de visualização.'
             },
             compactItemHeight: {
                 name: 'Altura do item compacto',
-                desc: 'Defina a altura dos itens de lista compactos no desktop e celular.',
+                desc: 'Defina a altura dos itens de lista compactos no desktop e celular (pixels).',
                 resetTooltip: 'Restaurar para padrão (28px)'
             },
             compactItemHeightScaleText: {
@@ -966,7 +1222,11 @@ export const STRINGS_PT_BR = {
             },
             showParentFolder: {
                 name: 'Mostrar pasta pai',
-                desc: 'Exibir o nome da pasta pai para notas em subpastas ou tags.'
+                desc: 'Exibir o nome da pasta pai para notas em subpastas, tags ou propriedades.'
+            },
+            showParentFolderFullPath: {
+                name: 'Mostrar caminho completo',
+                desc: 'Exibir o caminho completo da pasta pai em vez de apenas o nome da pasta.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Clique na pasta pai abre pasta',
@@ -996,6 +1256,28 @@ export const STRINGS_PT_BR = {
                     vertical: 'Divisão vertical'
                 }
             },
+            narrowSidebarLayout: {
+                name: 'Quando a barra lateral está estreita demais',
+                desc: 'Escolha o que acontece quando o painel de navegação e o painel de lista não cabem lado a lado.',
+                options: {
+                    none: 'Não fazer nada',
+                    singlePane: 'Mudar para painel único',
+                    vertical: 'Mudar para divisão vertical'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Limite de barra lateral estreita',
+                desc: 'Escolha como o limite de largura da barra lateral é calculado.',
+                options: {
+                    fitPanes: 'Ajustar painéis',
+                    customWidth: 'Largura personalizada'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Largura do limite de barra lateral estreita',
+                desc: 'Mudar quando a barra lateral estiver mais estreita que esta largura.',
+                resetTooltip: 'Redefinir para a largura padrão'
+            },
             appearanceBackground: {
                 name: 'Cor de fundo',
                 desc: 'Escolha cores de fundo para painéis de navegação e lista.',
@@ -1007,15 +1289,15 @@ export const STRINGS_PT_BR = {
             },
             appearanceScale: {
                 name: 'Nível de zoom',
-                desc: 'Controla o nível de zoom geral do Notebook Navigator.'
+                desc: 'Controla o nível de zoom geral do Notebook Navigator (porcentagem).'
             },
             useFloatingToolbars: {
                 name: 'Usar barras de ferramentas flutuantes no iOS/iPadOS',
-                desc: 'Aplica-se ao Obsidian 1.11 e posteriores.'
+                desc: 'Aplica-se apenas ao iOS e iPadOS.'
             },
             startView: {
                 name: 'Visualização inicial padrão',
-                desc: 'Escolha qual painel exibir ao abrir o Notebook Navigator. O painel de navegação mostra atalhos, notas recentes e árvore de pastas. O painel de lista mostra a lista de notas imediatamente.',
+                desc: 'Escolha qual painel exibir ao abrir o Notebook Navigator. O painel de navegação mostra atalhos, arquivos recentes e árvore de pastas. O painel de lista mostra a lista de arquivos imediatamente.',
                 options: {
                     navigation: 'Painel de navegação',
                     files: 'Painel de lista'
@@ -1036,12 +1318,16 @@ export const STRINGS_PT_BR = {
                 desc: 'Revelar automaticamente notas quando abertas pelo Alternador Rápido, links ou pesquisa.'
             },
             autoRevealShortestPath: {
-                name: 'Usar caminho mais curto',
+                name: 'Revelação automática: Usar caminho mais curto',
                 desc: 'Ativado: A revelação automática seleciona a pasta ancestral ou tag visível mais próxima. Desativado: A revelação automática seleciona a pasta real do arquivo e a tag exata.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Ignorar eventos da barra lateral direita',
+                name: 'Revelação automática: Ignorar eventos da barra lateral direita',
                 desc: 'Não alterar a nota ativa ao clicar ou alterar notas na barra lateral direita.'
+            },
+            autoRevealIgnoreOtherWindows: {
+                name: 'Revelação automática: Ignorar eventos de outras janelas',
+                desc: 'Não alterar a nota ativa ao trabalhar com notas em uma janela diferente.'
             },
             paneTransitionDuration: {
                 name: 'Animação de painel único',
@@ -1050,7 +1336,7 @@ export const STRINGS_PT_BR = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Selecionar automaticamente a primeira nota',
-                desc: 'Abrir automaticamente a primeira nota ao alternar pastas ou tags.'
+                desc: 'Abrir automaticamente a primeira nota ao alternar pastas, tags ou propriedades.'
             },
             skipAutoScroll: {
                 name: 'Desativar rolagem automática para atalhos',
@@ -1060,16 +1346,20 @@ export const STRINGS_PT_BR = {
                 name: 'Expandir ao selecionar',
                 desc: 'Expandir pastas e tags ao selecionar. No modo de painel único, a primeira seleção expande, a segunda mostra arquivos.'
             },
+            collapseOtherBranchesOnExpand: {
+                name: 'Uma ramificação expandida',
+                desc: 'Recolher outras ramificações na mesma árvore ao expandir uma pasta, tag ou propriedade.'
+            },
             springLoadedFolders: {
                 name: 'Expandir ao arrastar',
                 desc: 'Expandir pastas e tags ao passar o mouse sobre elas durante o arraste.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'Atraso da primeira expansão',
+                name: 'Expandir ao arrastar: Atraso da primeira expansão',
                 desc: 'Atraso antes de expandir a primeira pasta ou tag durante um arraste (segundos).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'Atraso das expansões seguintes',
+                name: 'Expandir ao arrastar: Atraso das expansões seguintes',
                 desc: 'Atraso antes de expandir pastas ou tags adicionais durante o mesmo arraste (segundos).'
             },
             navigationBanner: {
@@ -1096,24 +1386,28 @@ export const STRINGS_PT_BR = {
                 }
             },
             showRecentNotes: {
-                name: 'Mostrar notas recentes',
-                desc: 'Exibir a seção de notas recentes no painel de navegação.'
+                name: 'Mostrar arquivos recentes',
+                desc: 'Exibir a seção de arquivos recentes no painel de navegação.'
             },
             hideRecentNotes: {
-                name: 'Ocultar notas',
-                desc: 'Escolher os tipos de notas a ocultar na seção de notas recentes.',
+                name: 'Ocultar tipos de arquivos dos arquivos recentes',
+                desc: 'Escolher os tipos de arquivos a ocultar na seção de arquivos recentes.',
                 options: {
                     none: 'Nenhum',
                     folderNotes: 'Notas de pasta'
                 }
             },
             recentNotesCount: {
-                name: 'Contagem de notas recentes',
-                desc: 'Número de notas recentes a exibir.'
+                name: 'Contagem de arquivos recentes',
+                desc: 'Número de arquivos recentes a exibir.'
             },
             pinRecentNotesWithShortcuts: {
-                name: 'Fixar notas recentes com atalhos',
-                desc: 'Incluir notas recentes quando os atalhos estiverem fixados.'
+                name: 'Fixar arquivos recentes com atalhos',
+                desc: 'Incluir arquivos recentes quando os atalhos estiverem fixados.'
+            },
+            calendarEnabled: {
+                name: 'Ativar calendário',
+                desc: 'Ativar funcionalidades de calendário do Notebook Navigator.'
             },
             calendarPlacement: {
                 name: 'Posição do calendário',
@@ -1133,7 +1427,9 @@ export const STRINGS_PT_BR = {
             },
             calendarLocale: {
                 name: 'Idioma',
-                desc: 'Controla a numeração das semanas e o primeiro dia da semana.',
+                desc: 'Controla a formatação das datas do calendário, a numeração das semanas e o primeiro dia da semana.',
+                weekPathMismatchWarning:
+                    'O calendário visível e os caminhos das notas semanais usam inícios de semana ou numeração de semana diferentes.',
                 options: {
                     systemDefault: 'Padrão'
                 }
@@ -1146,6 +1442,14 @@ export const STRINGS_PT_BR = {
                     satSun: 'Sábado e domingo',
                     friSat: 'Sexta-feira e sábado',
                     thuFri: 'Quinta-feira e sexta-feira'
+                }
+            },
+            calendarMonthHeadingFormat: {
+                name: 'Formato do nome do mês',
+                desc: 'Nome do mês completo (janeiro) ou abreviado (jan).',
+                options: {
+                    full: 'janeiro (completo)',
+                    short: 'jan (curto)'
                 }
             },
             showInfoButtons: {
@@ -1196,6 +1500,14 @@ export const STRINGS_PT_BR = {
                     dailyNotes: 'Pasta e formato de data são configurados no plugin Daily Notes.'
                 }
             },
+            calendarPeriodicNotesLocale: {
+                name: 'Idioma das notas periódicas',
+                desc: 'Controla nomes de meses, nomes de dias da semana, números de semana e inícios de semana localizados nos caminhos das notas periódicas do Notebook Navigator.',
+                options: {
+                    calendar: 'Calendário',
+                    obsidian: 'Obsidian'
+                }
+            },
 
             calendarCustomRootFolder: {
                 name: 'Pasta raiz',
@@ -1205,15 +1517,18 @@ export const STRINGS_PT_BR = {
             calendarTemplateFolder: {
                 name: 'Localização da pasta de modelos',
                 desc: 'O seletor de arquivos de modelo mostra notas desta pasta.',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: 'Usada por notas de calendário e notas de pasta. Configure os modelos em Calendário > Integração do calendário e Pastas e notas de pasta > Arquivos de notas de pasta.'
             },
             calendarCustomFilePattern: {
                 name: 'Notas diárias',
-                desc: 'Formatar caminho usando formato de data Moment. Coloque nomes de subpastas entre colchetes, ex. [Work]/YYYY. Clique no ícone de modelo para definir um modelo. Definir localização da pasta de modelos em Geral > Modelos.',
+                desc: 'Formatar caminho usando formato de data Moment. Coloque nomes de subpastas entre colchetes, ex. [Work]/YYYY. Clique no ícone de modelo para definir um modelo. Definir localização da pasta de modelos em Operações de arquivo > Modelos.',
                 momentDescPrefix: 'Formatar caminho usando ',
                 momentLinkText: 'formato de data Moment',
                 momentDescSuffix:
-                    '. Coloque nomes de subpastas entre colchetes, ex. [Work]/YYYY. Clique no ícone de modelo para definir um modelo. Definir localização da pasta de modelos em Geral > Modelos.',
+                    '. Coloque nomes de subpastas entre colchetes, ex. [Work]/YYYY. Clique no ícone de modelo para definir um modelo. Definir localização da pasta de modelos em Operações de arquivo > Modelos.',
+                templaterSupportInstalled: '✅ O plugin Templater está instalado com suporte completo a modelos.',
+                templaterSupportMissing: '⚠️ Instale o plugin Templater para suporte completo a modelos.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Sintaxe atual: {path}',
                 parsingError: 'O padrão deve ser formatado e analisado novamente como uma data completa (ano, mês, dia).'
@@ -1221,7 +1536,11 @@ export const STRINGS_PT_BR = {
             calendarCustomWeekPattern: {
                 name: 'Notas semanais',
                 parsingError:
-                    'O padrão deve ser formatado e analisado novamente como uma semana completa (ano da semana, número da semana).'
+                    'O padrão deve ser formatado e analisado novamente como uma semana completa (ano da semana, número da semana).',
+                weekPathMismatchWarning:
+                    'Os caminhos das notas semanais usam o idioma das notas periódicas. Use idiomas correspondentes ou use "GGGG" com "WW" para semanas baseadas na segunda-feira.',
+                mixedWeekTokensWarning:
+                    'Este padrão mistura tokens de semana baseados na segunda-feira ("W" ou "G") com tokens de semana baseados no idioma ("w" ou "g"). Use um conjunto de forma consistente: "GGGG" com "WW" para semanas baseadas na segunda-feira, ou "gggg" com "ww" se as notas semanais devem seguir o idioma selecionado.'
             },
             calendarCustomMonthPattern: {
                 name: 'Notas mensais',
@@ -1243,14 +1562,48 @@ export const STRINGS_PT_BR = {
                 desc: 'Exibir dicas de ferramentas ao passar o mouse com informações adicionais para notas e pastas.'
             },
             showTooltipPath: {
-                name: 'Mostrar caminho',
+                name: 'Mostrar caminho nas dicas de ferramentas',
                 desc: 'Exibir o caminho da pasta abaixo dos nomes de notas nas dicas de ferramentas.'
+            },
+            showTooltipWordCount: {
+                name: 'Mostrar contagem de palavras nas dicas de ferramentas',
+                desc: 'Exibir a contagem de palavras das notas nas dicas de ferramentas.'
             },
             resetPaneSeparator: {
                 name: 'Redefinir posição do separador de painéis',
                 desc: 'Redefinir o separador arrastável entre o painel de navegação e o painel de lista para a posição padrão.',
                 buttonText: 'Redefinir separador',
                 notice: 'Posição do separador redefinida. Reinicie o Obsidian ou reabra o Notebook Navigator para aplicar.'
+            },
+            settingsTransfer: {
+                name: 'Importar e exportar configurações',
+                desc: 'Exportar ou importar configurações do Notebook Navigator como JSON. A importação substitui todas as configurações.',
+                importButtonText: 'Importar',
+                exportButtonText: 'Exportar',
+                import: {
+                    modalTitle: 'Importar configurações',
+                    fileButtonName: 'Importar de arquivo',
+                    fileButtonDesc: 'Carregar um arquivo JSON do disco.',
+                    fileButtonText: 'Importar de arquivo',
+                    editorName: 'JSON',
+                    editorDesc: 'Cole ou edite o JSON abaixo. As configurações não incluídas são redefinidas para os valores padrão.',
+                    placeholder: '{\n  "folderSortOrder": "alpha-desc"\n}',
+                    confirmButtonText: 'Importar',
+                    successNotice: 'Configurações importadas.',
+                    errorNotice: 'Falha ao importar configurações: {message}',
+                    fileReadError: 'Não foi possível ler o arquivo: {message}'
+                },
+                export: {
+                    modalTitle: 'Exportar configurações',
+                    editorName: 'JSON',
+                    editorDesc: 'Apenas as configurações alteradas em relação aos valores padrão são incluídas.',
+                    placeholder: '{}',
+                    copyButtonText: 'Copiar para a área de transferência',
+                    downloadButtonText: 'Baixar',
+                    copyNotice: 'Configurações copiadas para a área de transferência.',
+                    downloadNotice: 'Configurações exportadas.',
+                    downloadError: 'Falha ao baixar configurações: {message}'
+                }
             },
             resetAllSettings: {
                 name: 'Redefinir todas as configurações',
@@ -1287,6 +1640,15 @@ export const STRINGS_PT_BR = {
                 name: 'Ctrl+Enter',
                 desc: 'Abrir o arquivo selecionado em uma nova aba, divisão ou janela ao pressionar Ctrl+Enter.'
             },
+            mouseBackForwardAction: {
+                name: 'Botões voltar/avançar do mouse',
+                desc: 'Ação dos botões voltar e avançar do mouse no desktop.',
+                options: {
+                    none: 'Usar padrão do sistema',
+                    singlePaneSwitch: 'Alternar painéis (painel único)',
+                    history: 'Navegar no histórico'
+                }
+            },
             fileVisibility: {
                 name: 'Mostrar tipos de arquivo (perfil do cofre)',
                 desc: 'Filtrar quais tipos de arquivo são mostrados no navegador. Tipos de arquivo não suportados pelo Obsidian podem abrir em aplicativos externos.',
@@ -1298,14 +1660,25 @@ export const STRINGS_PT_BR = {
             },
             homepage: {
                 name: 'Página inicial',
-                desc: 'Escolha o arquivo que o Notebook Navigator abre automaticamente, como um painel.',
+                desc: 'Escolha o que o Notebook Navigator abre automaticamente ao iniciar.',
                 current: 'Atual: {path}',
-                currentMobile: 'Celular: {path}',
                 chooseButton: 'Escolher arquivo',
-
-                separateMobile: {
-                    name: 'Página inicial separada para celular',
-                    desc: 'Usar uma página inicial diferente para dispositivos móveis.'
+                options: {
+                    none: 'Nenhum',
+                    file: 'Arquivo',
+                    dailyNote: 'Nota diária',
+                    weeklyNote: 'Nota semanal',
+                    monthlyNote: 'Nota mensal',
+                    quarterlyNote: 'Nota trimestral',
+                    yearlyNote: 'Nota anual'
+                },
+                file: {
+                    name: 'Página inicial: Arquivo de inicialização',
+                    empty: 'Nenhum arquivo selecionado'
+                },
+                createMissing: {
+                    name: 'Página inicial: Criar nota se não existir',
+                    desc: 'Cria a nota periódica ao iniciar ou via comando se não existir.'
                 }
             },
             excludedNotes: {
@@ -1320,7 +1693,7 @@ export const STRINGS_PT_BR = {
             },
             vaultProfiles: {
                 name: 'Perfil do cofre',
-                desc: 'Perfis armazenam visibilidade de tipos de arquivo, arquivos ocultos, pastas ocultas, tags ocultas, notas ocultas, atalhos e banner de navegação. Alterne perfis pelo cabeçalho do painel de navegação.',
+                desc: 'Perfis armazenam visibilidade de tipos de arquivo, arquivos ocultos, pastas ocultas, tags ocultas, regras de propriedades para notas ocultas, atalhos e banner de navegação. Alterne perfis pelo cabeçalho do painel de navegação.',
                 defaultName: 'Padrão',
                 addButton: 'Adicionar perfil',
                 editProfilesButton: 'Editar perfis',
@@ -1332,7 +1705,7 @@ export const STRINGS_PT_BR = {
                 addModalPlaceholder: 'Nome do perfil',
                 deleteModalTitle: 'Excluir {name}',
                 deleteModalMessage:
-                    'Remover {name}? Os filtros de arquivos, pastas, tags e notas ocultas salvos neste perfil serão excluídos.',
+                    'Remover {name}? Os filtros de arquivos, pastas, tags e notas baseados em propriedades salvos neste perfil serão excluídos.',
                 moveUp: 'Mover para cima',
                 moveDown: 'Mover para baixo',
                 errors: {
@@ -1387,7 +1760,7 @@ export const STRINGS_PT_BR = {
             },
             showFileProperties: {
                 name: 'Mostrar propriedades de arquivo',
-                desc: 'Exibir propriedades clicáveis nos itens de arquivo.'
+                desc: 'Exibir propriedades nos itens de arquivo. Use o diálogo "Visibilidade das chaves de propriedade" para escolher quais propriedades são mostradas.'
             },
             colorFileProperties: {
                 name: 'Colorir propriedades de arquivo',
@@ -1401,14 +1774,39 @@ export const STRINGS_PT_BR = {
                 name: 'Mostrar propriedades no modo compacto',
                 desc: 'Exibir propriedades quando o modo compacto está ativo.'
             },
-            notePropertyType: {
-                name: 'Propriedade da nota',
-                desc: 'Selecione a propriedade da nota para exibir nos itens de arquivo.',
+            textCountDisplay: {
+                name: 'Tipo de contagem',
+                desc: 'Escolha quais contagens da nota aparecem nos itens de arquivo.',
                 options: {
-                    frontmatter: 'Propriedade frontmatter',
-                    wordCount: 'Contagem de palavras',
-                    none: 'Nenhum'
+                    none: 'Nenhuma',
+                    words: 'Contagem de palavras',
+                    characters: 'Contagem de caracteres',
+                    both: 'Contagem de palavras e caracteres'
                 }
+            },
+            textCountPlacement: {
+                name: 'Posicionamento',
+                desc: 'Escolha onde as contagens da nota aparecem.',
+                options: {
+                    title: 'No título',
+                    property: 'Como propriedade'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Contagem de caracteres',
+                desc: 'Escolha se os espaços são incluídos na contagem de caracteres.',
+                options: {
+                    include: 'Incluindo espaços',
+                    exclude: 'Excluindo espaços'
+                }
+            },
+            wordCountTargetProperty: {
+                name: 'Propriedade alvo',
+                desc: 'Chave da propriedade frontmatter que contém a contagem de palavras alvo. Deixe em branco para ocultar alvos.'
+            },
+            showWordCountPercentage: {
+                name: 'Mostrar porcentagem da meta',
+                desc: 'Mostrar apenas a porcentagem de progresso quando houver uma contagem de palavras alvo disponível.'
             },
             propertyFields: {
                 name: 'Chaves de propriedades (perfil do cofre)',
@@ -1421,6 +1819,14 @@ export const STRINGS_PT_BR = {
             showPropertiesOnSeparateRows: {
                 name: 'Mostrar propriedades em linhas separadas',
                 desc: 'Mostrar cada propriedade na sua própria linha.'
+            },
+            enablePropertyInternalLinks: {
+                name: 'Vincular etiquetas de propriedade a notas',
+                desc: 'Clique em uma etiqueta de propriedade para abrir a nota vinculada.'
+            },
+            enablePropertyExternalLinks: {
+                name: 'Vincular etiquetas de propriedade a URLs',
+                desc: 'Clique em uma etiqueta de propriedade para abrir a URL vinculada.'
             },
             dateFormat: {
                 name: 'Formato de data',
@@ -1454,11 +1860,18 @@ export const STRINGS_PT_BR = {
                 name: 'Remover HTML nas visualizações',
                 desc: 'Remover tags HTML do texto de visualização. Pode afetar o desempenho em notas grandes.'
             },
+            stripLatexInPreview: {
+                name: 'Remover LaTeX nas visualizações',
+                desc: 'Remover expressões LaTeX inline e em bloco do texto de visualização.'
+            },
             previewProperties: {
                 name: 'Propriedades de visualização',
                 desc: 'Lista separada por vírgulas de propriedades do frontmatter para verificar texto de visualização. A primeira propriedade com texto será usada.',
-                placeholder: 'summary, description, abstract',
-                info: 'Se nenhum texto de visualização for encontrado nas propriedades especificadas, a visualização será gerada a partir do conteúdo da nota.'
+                placeholder: 'summary, description, abstract'
+            },
+            previewPropertiesFallback: {
+                name: 'Recorrer ao conteúdo da nota',
+                desc: 'Mostrar o conteúdo da nota como visualização quando nenhuma das propriedades especificadas contém texto.'
             },
             previewRows: {
                 name: 'Linhas de visualização',
@@ -1476,8 +1889,13 @@ export const STRINGS_PT_BR = {
                 desc: 'Número de linhas a exibir para títulos de notas.',
                 options: {
                     '1': '1 linha',
-                    '2': '2 linhas'
+                    '2': '2 linhas',
+                    '3': '3 linhas'
                 }
+            },
+            useFolderColor: {
+                name: 'Usar cor da pasta',
+                desc: 'Colorir títulos de notas e ícones de arquivos com a cor da pasta pai quando não há uma cor de arquivo personalizada definida. Prioridade: cor de arquivo personalizada > cor da pasta > cor padrão.'
             },
             showFeatureImage: {
                 name: 'Mostrar imagem destacada',
@@ -1497,10 +1915,41 @@ export const STRINGS_PT_BR = {
                 desc: 'Lista separada por vírgulas de propriedades do frontmatter. Notas contendo qualquer uma dessas propriedades não armazenam imagens de destaque.',
                 placeholder: 'private, confidential'
             },
+            featureImageSize: {
+                name: 'Tamanho de exibição da imagem de destaque',
+                desc: 'Tamanho máximo de renderização para imagens de destaque em listas de notas.',
+                options: {
+                    standard: '64 px',
+                    large: '96 px',
+                    extraLarge: '128 px'
+                }
+            },
+            featureImagePixelSize: {
+                name: 'Tamanho em pixels da imagem de destaque',
+                desc: 'Resolução usada ao gerar miniaturas armazenadas de imagens de destaque. Aumente esse valor se as visualizações maiores ficarem borradas.',
+                options: {
+                    standard: '256 x 144 px',
+                    large: '384 x 216 px',
+                    extraLarge: '512 x 288 px'
+                }
+            },
 
             downloadExternalFeatureImages: {
                 name: 'Baixar imagens externas',
                 desc: 'Baixar imagens remotas e miniaturas do YouTube para imagens de destaque.'
+            },
+            hideDrawingPreviewImages: {
+                name: 'Ocultar imagens de pré-visualização exportadas',
+                desc: 'Oculta arquivos PNG de pré-visualização de desenhos exportados. Ative "Mostrar itens ocultos" para exibi-los.'
+            },
+            drawingIntegrationInfo: {
+                intro: 'O Notebook Navigator exibe arquivos PNG exportados pelo Excalidraw como pré-visualizações de desenhos.',
+                items: [
+                    'Nas **configurações do Excalidraw**, abra **Embedding Excalidraw into your Notes and Exporting**, depois **Export Settings**, depois **Auto-export Settings**.',
+                    'Ative **Auto-export PNG**. Opcionalmente, ative **Export both dark- and light-themed image**.',
+                    'O Notebook Navigator procura **Drawing.excalidraw.png**, **Drawing.excalidraw.dark.png** ou **Drawing.excalidraw.light.png**.',
+                    'Enquanto **Ocultar imagens de pré-visualização exportadas** estiver ativo, os arquivos PNG aparecem apenas quando **Mostrar itens ocultos** também estiver ativo.'
+                ]
             },
             showRootFolder: {
                 name: 'Mostrar pasta raiz',
@@ -1524,45 +1973,123 @@ export const STRINGS_PT_BR = {
             },
             showNoteCount: {
                 name: 'Mostrar contagem de notas',
-                desc: 'Exibir o número de notas ao lado de cada pasta e tag.'
+                desc: 'Exibir contagens de notas ao lado de pastas, tags e propriedades.'
             },
             showSectionIcons: {
                 name: 'Mostrar ícones para atalhos e itens recentes',
-                desc: 'Exibir ícones para seções de navegação como Atalhos e Arquivos recentes.'
+                desc: 'Exibir ícones ao lado dos itens nas seções Atalhos e Recentes.'
             },
             interfaceIcons: {
                 name: 'Ícones da interface',
-                desc: 'Editar ícones da barra de ferramentas, pastas, tags, itens fixados, pesquisa e ordenação.',
+                desc: 'Editar ícones da barra de ferramentas, pastas, tags, propriedades, itens fixados, pesquisa e ordenação.',
                 buttonText: 'Editar ícones'
             },
             showIconsColorOnly: {
                 name: 'Aplicar cor apenas aos ícones',
                 desc: 'Quando ativado, cores personalizadas são aplicadas apenas aos ícones. Quando desativado, as cores são aplicadas aos ícones e aos rótulos de texto.'
             },
-            showColorsInShortcutsOnly: {
-                name: 'Mostrar cores apenas nos atalhos',
-                desc: 'Quando ativado, cores de fundo e texto personalizadas para pastas e tags são exibidas apenas na área de atalhos. Quando desativado, as cores também são exibidas na árvore de navegação abaixo.'
+            navRainbowMode: {
+                name: 'Modo de cores arco-íris (perfil do cofre)',
+                desc: 'Aplicar cores arco-íris no painel de navegação.',
+                options: {
+                    none: 'Desativado',
+                    foreground: 'Cor do texto',
+                    background: 'Cor de fundo'
+                }
+            },
+            navRainbowFirstColor: {
+                name: 'Primeira cor',
+                desc: 'Primeira cor no gradiente arco-íris.'
+            },
+            navRainbowLastColor: {
+                name: 'Última cor',
+                desc: 'Última cor no gradiente arco-íris.'
+            },
+            navRainbowTransitionStyle: {
+                name: 'Estilo de transição',
+                desc: 'Interpolação utilizada entre a primeira e a última cor.',
+                options: {
+                    hue: 'Matiz',
+                    rgb: 'RGB'
+                }
+            },
+            navRainbowApplyToShortcuts: {
+                name: 'Aplicar aos atalhos',
+                desc: 'Aplicar cores arco-íris aos atalhos.'
+            },
+            navRainbowApplyToRecent: {
+                name: 'Aplicar aos itens recentes',
+                desc: 'Aplicar cores arco-íris aos itens recentes.'
+            },
+            navRainbowApplyToFolders: {
+                name: 'Aplicar às pastas',
+                desc: 'Aplicar cores arco-íris às pastas.'
+            },
+            navRainbowFolderScope: {
+                name: 'Escopo de pastas',
+                desc: 'Selecionar quais níveis de pasta iniciam atribuições de cor.',
+                options: {
+                    root: 'Nível raiz',
+                    child: 'Nível filho',
+                    all: 'Todos os níveis'
+                }
+            },
+            navRainbowApplyToTags: {
+                name: 'Aplicar às tags',
+                desc: 'Aplicar cores arco-íris às tags.'
+            },
+            navRainbowTagScope: {
+                name: 'Escopo de tags',
+                desc: 'Selecionar quais níveis de tag iniciam atribuições de cor.',
+                options: {
+                    root: 'Nível raiz',
+                    child: 'Nível filho',
+                    all: 'Todos os níveis'
+                }
+            },
+            navRainbowApplyToProperties: {
+                name: 'Aplicar às propriedades',
+                desc: 'Aplicar cores arco-íris às propriedades.'
+            },
+            navRainbowBalanceHueLuminance: {
+                name: 'Brilho consistente entre matizes', // (English: Consistent brightness across hues)
+                desc: 'Interpola o brilho entre as cores inicial e final durante as transições de matiz.' // (English: Interpolates brightness between the start and end colors during hue transitions.)
+            },
+            navRainbowSeparateThemeColors: {
+                name: 'Cores separadas para modo claro e escuro', // (English: Separate light and dark mode colors)
+                desc: 'Usar cores de arco-íris diferentes para o modo claro e o modo escuro.' // (English: Use different rainbow colors for light mode and dark mode.)
+            },
+            navRainbowCopyLightToDark: 'Copiar cor do modo claro para o modo escuro', // (English: Copy light mode color to dark mode)
+            navRainbowPropertyScope: {
+                name: 'Escopo de propriedades',
+                desc: 'Selecionar quais níveis de propriedade iniciam atribuições de cor.',
+                options: {
+                    root: 'Nível raiz',
+                    child: 'Nível filho',
+                    all: 'Todos os níveis'
+                }
             },
             collapseBehavior: {
                 name: 'Recolher itens',
                 desc: 'Escolha o que o botão expandir/recolher tudo afeta.',
                 options: {
-                    all: 'Todas as pastas e tags',
+                    all: 'Tudo',
                     foldersOnly: 'Apenas pastas',
-                    tagsOnly: 'Apenas tags'
+                    tagsOnly: 'Apenas tags',
+                    propertiesOnly: 'Apenas propriedades'
                 }
             },
             smartCollapse: {
                 name: 'Manter item selecionado expandido',
-                desc: 'Ao recolher, manter a pasta ou tag atualmente selecionada e seus pais expandidos.'
+                desc: 'Ao recolher, manter o item selecionado e seus pais expandidos.'
             },
             navIndent: {
                 name: 'Indentação da árvore',
-                desc: 'Ajustar a largura da indentação para pastas e tags aninhadas.'
+                desc: 'Ajustar a largura da indentação para pastas, tags e propriedades aninhadas (pixels).'
             },
             navItemHeight: {
                 name: 'Altura do item',
-                desc: 'Ajustar a altura de pastas e tags no painel de navegação.'
+                desc: 'Ajustar a altura de pastas, tags e propriedades no painel de navegação (pixels).'
             },
             navItemHeightScaleText: {
                 name: 'Dimensionar texto com altura do item',
@@ -1570,11 +2097,21 @@ export const STRINGS_PT_BR = {
             },
             showIndentGuides: {
                 name: 'Mostrar guias de recuo',
-                desc: 'Exibir guias de recuo para pastas e tags aninhadas.'
+                desc: 'Exibir guias de recuo para pastas, tags e propriedades aninhadas.'
+            },
+            navCountLeaderStyle: {
+                name: 'Mostrar caracteres de preenchimento',
+                desc: 'Exibir pontos, traços ou uma linha entre os nomes dos itens e a contagem de notas.',
+                options: {
+                    none: 'Nenhum',
+                    dots: 'Pontos (...)',
+                    dashes: 'Traços (---)',
+                    line: 'Linha'
+                }
             },
             navRootSpacing: {
                 name: 'Espaçamento de item raiz',
-                desc: 'Espaçamento entre pastas e tags de nível raiz.'
+                desc: 'Espaçamento entre pastas, tags e propriedades de nível raiz (pixels).'
             },
             showTags: {
                 name: 'Mostrar tags',
@@ -1607,6 +2144,10 @@ export const STRINGS_PT_BR = {
                 name: 'Mostrar notas sem tags',
                 desc: 'Exibir item "Sem tags" para notas sem tags.'
             },
+            scopeTagsToCurrentContext: {
+                name: 'Filtrar tags por seleção',
+                desc: 'Mostrar apenas tags que aparecem em notas na pasta ou propriedade selecionada.'
+            },
             keepEmptyTagsProperty: {
                 name: 'Manter propriedade de tags após remover última tag',
                 desc: 'Manter a propriedade de tags do frontmatter quando todas as tags forem removidas. Quando desativado, a propriedade de tags é excluída do frontmatter.'
@@ -1615,7 +2156,7 @@ export const STRINGS_PT_BR = {
                 name: 'Mostrar propriedades',
                 desc: 'Exibir a seção de propriedades no navegador.',
                 propertyKeysInfoPrefix: 'Configurar propriedades em ',
-                propertyKeysInfoLinkText: 'Geral > Chaves de propriedades',
+                propertyKeysInfoLinkText: 'Início > Chaves de propriedades',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {
@@ -1641,6 +2182,10 @@ export const STRINGS_PT_BR = {
                 name: 'Mostrar pasta de propriedades',
                 desc: 'Exibir "Propriedades" como uma pasta recolhível.'
             },
+            scopePropertiesToCurrentContext: {
+                name: 'Filtrar propriedades por seleção',
+                desc: 'Mostrar apenas propriedades que aparecem em notas na pasta ou tag selecionada.'
+            },
             hiddenTags: {
                 name: 'Ocultar tags (perfil do cofre)',
                 desc: 'Lista de padrões de tags separados por vírgulas. Padrões de nome: tag* (começa com), *tag (termina com). Padrões de caminho: arquivo (tag e descendentes), arquivo/* (apenas descendentes), projetos/*/rascunhos (curinga intermediário).',
@@ -1653,7 +2198,7 @@ export const STRINGS_PT_BR = {
             },
             enableFolderNotes: {
                 name: 'Ativar notas de pasta',
-                desc: 'Quando ativado, pastas com notas associadas são exibidas como links clicáveis.'
+                desc: 'As pastas com um arquivo de nota correspondente são exibidas como links clicáveis.'
             },
             folderNoteType: {
                 name: 'Tipo de nota de pasta padrão',
@@ -1676,19 +2221,33 @@ export const STRINGS_PT_BR = {
             },
             folderNoteTemplate: {
                 name: 'Modelo de nota de pasta',
-                desc: 'Arquivo de modelo para novas notas de pasta Markdown. Definir localização da pasta de modelos em Geral > Modelos.'
+                desc: 'Arquivo de modelo usado ao criar notas de pasta. Os modelos Markdown podem usar o Templater. Os modelos Canvas e Base são copiados como conteúdo do arquivo. Definir localização da pasta de modelos em Operações de arquivo > Modelos.',
+                formatWarning: 'O formato do modelo deve corresponder ao tipo de nota de pasta selecionado: .md, .canvas ou .base.'
             },
-            openFolderNotesInNewTab: {
-                name: 'Abrir notas de pasta em nova aba',
-                desc: 'Sempre abrir notas de pasta em uma nova aba ao clicar em uma pasta.'
+            enableFolderNoteLinks: {
+                name: 'Nomes de pastas abrem notas de pasta',
+                desc: 'Clicar no nome de uma pasta abre a nota de pasta correspondente. Quando desativado, as notas de pasta fornecem apenas metadados da pasta, como nome, ícone e cor.'
             },
             hideFolderNoteInList: {
                 name: 'Ocultar notas de pasta na lista',
-                desc: 'Ocultar a nota de pasta de aparecer na lista de notas da pasta.'
+                desc: 'Ocultar notas de pasta da lista de arquivos.'
             },
             pinCreatedFolderNote: {
                 name: 'Fixar notas de pasta criadas',
-                desc: 'Fixar automaticamente notas de pasta quando criadas a partir do menu de contexto.'
+                desc: 'Fixar notas de pasta ao criá-las pelo menu de contexto.'
+            },
+            folderNoteOpenLocation: {
+                name: 'Abrir notas de pasta em',
+                desc: 'Escolha onde as notas de pasta são abertas ao clicar em links de notas de pasta.',
+                options: {
+                    currentTab: 'Aba atual',
+                    newTab: 'Nova aba',
+                    rightSidebar: 'Barra lateral direita'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'Barra lateral direita: Mostrar nota de pasta mais próxima',
+                desc: 'Quando uma pasta é selecionada, a barra lateral direita mostra automaticamente a nota de pasta ancestral mais próxima.'
             },
             confirmBeforeDelete: {
                 name: 'Confirmar antes de excluir',
@@ -1703,9 +2262,17 @@ export const STRINGS_PT_BR = {
                     never: 'Nunca'
                 }
             },
+            moveFileConflicts: {
+                name: 'Conflitos de movimentação',
+                desc: 'Ao mover um arquivo para uma pasta onde já existe um arquivo com o mesmo nome. Perguntar sempre (renomear, sobrescrever, cancelar) ou sempre renomear.',
+                options: {
+                    ask: 'Perguntar sempre',
+                    rename: 'Sempre renomear'
+                }
+            },
             metadataCleanup: {
                 name: 'Limpar metadados',
-                desc: 'Remove metadados órfãos deixados para trás quando arquivos, pastas ou tags são excluídos, movidos ou renomeados fora do Obsidian. Isso afeta apenas o arquivo de configurações do Notebook Navigator.',
+                desc: 'Remove metadados órfãos deixados para trás quando arquivos, pastas, tags ou propriedades são excluídos, movidos ou renomeados fora do Obsidian. Isso afeta apenas o arquivo de configurações do Notebook Navigator.',
                 buttonText: 'Limpar metadados',
                 error: 'Falha na limpeza de configurações',
                 loading: 'Verificando metadados...',
@@ -1792,8 +2359,12 @@ export const STRINGS_PT_BR = {
             },
             updateCheckOnStart: {
                 name: 'Verificar nova versão ao iniciar',
-                desc: 'Verifica novas versões do plugin na inicialização e mostra uma notificação quando uma atualização está disponível. Cada versão é anunciada apenas uma vez, e as verificações ocorrem no máximo uma vez por dia.',
+                desc: 'Verifica novas versões do plugin na inicialização e mostra uma notificação quando uma atualização está disponível. As verificações ocorrem no máximo uma vez por dia.',
                 status: 'Nova versão disponível: {version}'
+            },
+            debugLogging: {
+                name: 'Registro de depuração na inicialização',
+                desc: 'Grava diagnósticos de inicialização em um arquivo Markdown com carimbo de data/hora na raiz do cofre e para depois que a inicialização se estabiliza. O arquivo pode ser sincronizado e pode incluir caminhos de arquivos.'
             },
             whatsNew: {
                 name: 'O que há de novo no Notebook Navigator {version}',
@@ -1829,6 +2400,7 @@ export const STRINGS_PT_BR = {
     },
     whatsNew: {
         title: 'O que há de novo no Notebook Navigator',
+        openBannerImage: 'Abrir imagem do banner da versão',
         supportMessage: 'Se você acha o Notebook Navigator útil, considere apoiar seu desenvolvimento.',
         supportButton: 'Me pague um café',
         thanksButton: 'Obrigado!'

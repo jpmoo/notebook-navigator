@@ -19,15 +19,21 @@ import { describe, expect, it } from 'vitest';
 import type { NotebookNavigatorSettings } from '../../src/settings/types';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import {
+    areNavRainbowSettingsEqual,
+    cloneNavRainbowSettings,
     cloneShortcuts,
+    createValidatedVaultProfileFromTemplate,
     getActiveFileVisibility,
     getActiveHiddenFileNames,
     getActiveHiddenFileTags,
     getActiveHiddenFileProperties,
     getActiveHiddenFolders,
     getActiveHiddenTags,
+    getActivePropertyKeySet,
     getActiveVaultProfile,
     getHiddenFolderMatcher,
+    getPropertyFieldsFromPropertyKeys,
+    getPropertyKeySet,
     normalizeHiddenFolderPath,
     removeHiddenFileTagPrefixMatches,
     removeHiddenTagPrefixMatches,
@@ -36,6 +42,7 @@ import {
     updateHiddenTagPrefixMatches,
     updateHiddenFolderExactMatches
 } from '../../src/utils/vaultProfiles';
+import { normalizeTagPathValue } from '../../src/utils/tagPrefixMatcher';
 import { ShortcutStartType, ShortcutType, isSearchShortcut, type ShortcutEntry } from '../../src/types/shortcuts';
 
 function createSettings(): NotebookNavigatorSettings {
@@ -309,6 +316,22 @@ describe('removeHiddenFolderExactMatches', () => {
     });
 });
 
+describe('vault profile name validation', () => {
+    it('rejects NFC and NFD-equivalent duplicate profile names', () => {
+        const settings = createSettings();
+        const [baseProfile] = settings.vaultProfiles;
+        settings.vaultProfiles = [
+            {
+                ...baseProfile,
+                id: 'default',
+                name: 'réunion'
+            }
+        ];
+
+        expect(createValidatedVaultProfileFromTemplate(settings.vaultProfiles, 're\u0301union')).toEqual({ error: 'duplicate' });
+    });
+});
+
 describe('hidden tag pattern updates', () => {
     it('does not rewrite name-based wildcard patterns', () => {
         const settings = createSettings();
@@ -388,6 +411,42 @@ describe('hidden tag pattern updates', () => {
 
         expect(didUpdate).toBe(true);
         expect(settings.vaultProfiles[0]?.hiddenFileTags).toEqual(['areas', 'areas/*', 'areas/client/design']);
+    });
+
+    it('dedupes rewritten hidden tag rules across NFC and NFD-equivalent forms', () => {
+        const settings = createSettings();
+        const [baseProfile] = settings.vaultProfiles;
+        settings.vaultProfiles = [
+            {
+                ...baseProfile,
+                id: 'default',
+                hiddenTags: ['cafe\u0301/areas', 'café/projects']
+            }
+        ];
+
+        const didUpdate = updateHiddenTagPrefixMatches(settings, 'cafe\u0301/projects', 'cafe\u0301/areas');
+
+        expect(didUpdate).toBe(true);
+        expect(settings.vaultProfiles[0]?.hiddenTags).toHaveLength(1);
+        expect(settings.vaultProfiles[0]?.hiddenTags.map(normalizeTagPathValue)).toEqual(['café/areas']);
+    });
+
+    it('dedupes rewritten hidden file tag rules across NFC and NFD-equivalent forms', () => {
+        const settings = createSettings();
+        const [baseProfile] = settings.vaultProfiles;
+        settings.vaultProfiles = [
+            {
+                ...baseProfile,
+                id: 'default',
+                hiddenFileTags: ['cafe\u0301/areas', 'café/projects']
+            }
+        ];
+
+        const didUpdate = updateHiddenFileTagPrefixMatches(settings, 'cafe\u0301/projects', 'cafe\u0301/areas');
+
+        expect(didUpdate).toBe(true);
+        expect(settings.vaultProfiles[0]?.hiddenFileTags).toHaveLength(1);
+        expect(settings.vaultProfiles[0]?.hiddenFileTags.map(normalizeTagPathValue)).toEqual(['café/areas']);
     });
 
     it('renames mid-segment wildcard tag rules when the leading segment changes', () => {
@@ -485,6 +544,66 @@ describe('vault profile selectors', () => {
     });
 });
 
+describe('property key selectors', () => {
+    it('filters property keys by visibility mode and normalizes duplicates', () => {
+        const propertyKeys = [
+            { key: 'Status', showInNavigation: true, showInList: false, showInFileMenu: false },
+            { key: ' status ', showInNavigation: true, showInList: true, showInFileMenu: true },
+            { key: 'Priority', showInNavigation: false, showInList: true, showInFileMenu: false },
+            { key: 'Menu', showInNavigation: false, showInList: false, showInFileMenu: true },
+            { key: 'Hidden', showInNavigation: false, showInList: false, showInFileMenu: false },
+            { key: ' ', showInNavigation: true, showInList: true, showInFileMenu: true }
+        ];
+
+        expect(Array.from(getPropertyKeySet(propertyKeys, 'navigation'))).toEqual(['status']);
+        expect(Array.from(getPropertyKeySet(propertyKeys, 'list'))).toEqual(['status', 'priority']);
+        expect(Array.from(getPropertyKeySet(propertyKeys, 'file-menu'))).toEqual(['status', 'menu']);
+        expect(Array.from(getPropertyKeySet(propertyKeys, 'any'))).toEqual(['status', 'priority', 'menu']);
+    });
+
+    it('reads property keys from the active profile', () => {
+        const settings = createSettings();
+        settings.vaultProfiles[0].propertyKeys = [{ key: 'Status', showInNavigation: true, showInList: false, showInFileMenu: false }];
+
+        expect(Array.from(getActivePropertyKeySet(settings, 'navigation'))).toEqual(['status']);
+        expect(Array.from(getActivePropertyKeySet(settings, 'list'))).toEqual([]);
+    });
+
+    it('formats property fields from property keys with normalized duplicates removed', () => {
+        const propertyKeys = [
+            { key: 'Status', showInNavigation: true, showInList: false, showInFileMenu: false },
+            { key: ' status ', showInNavigation: true, showInList: true, showInFileMenu: true },
+            { key: 'Priority', showInNavigation: false, showInList: true, showInFileMenu: false },
+            { key: ' ', showInNavigation: true, showInList: true, showInFileMenu: true }
+        ];
+
+        expect(getPropertyFieldsFromPropertyKeys(propertyKeys)).toBe('Status, Priority');
+    });
+});
+
+describe('areNavRainbowSettingsEqual', () => {
+    it('returns true for distinct clones with the same values', () => {
+        const navRainbow = createSettings().vaultProfiles[0].navRainbow;
+        const cloned = cloneNavRainbowSettings(navRainbow);
+
+        expect(areNavRainbowSettingsEqual(navRainbow, cloned)).toBe(true);
+    });
+
+    it('returns false when any section setting changes', () => {
+        const navRainbow = createSettings().vaultProfiles[0].navRainbow;
+        const nextScope = navRainbow.folders.scope === 'root' ? 'all' : 'root';
+        const changed = {
+            ...cloneNavRainbowSettings(navRainbow),
+            folders: {
+                ...navRainbow.folders,
+                scope: nextScope
+            }
+        } satisfies typeof navRainbow;
+
+        expect(areNavRainbowSettingsEqual(navRainbow, changed)).toBe(false);
+    });
+});
+
 describe('hidden folder matcher', () => {
     it('matches mid-segment wildcard paths and descendants', () => {
         const matcher = getHiddenFolderMatcher(['/Projects/*/Archive']);
@@ -499,6 +618,13 @@ describe('hidden folder matcher', () => {
 
         expect(matcher.matches('/projects/client/archive')).toBe(true);
         expect(matcher.matches('/Projects/CLIENT/archive/Deep')).toBe(true);
+    });
+
+    it('matches NFC and NFD-equivalent paths', () => {
+        const matcher = getHiddenFolderMatcher(['/Réunion/*/Café']);
+
+        expect(matcher.matches('/Re\u0301union/Client/Cafe\u0301')).toBe(true);
+        expect(matcher.matches('/Re\u0301union/Client/Cafe\u0301/Deep')).toBe(true);
     });
 
     it('matches trailing wildcard patterns against the base path', () => {

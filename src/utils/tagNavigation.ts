@@ -23,6 +23,7 @@ import type { TagTreeNode } from '../types/storage';
 import { ItemType, TAGS_ROOT_VIRTUAL_FOLDER_ID } from '../types';
 import { resolveCanonicalTagPath } from './tagUtils';
 import { isVirtualTagCollectionId } from './virtualTagCollections';
+import { expandNavigationTreeItems } from './navigationExpansion';
 
 type Dispatch<T> = (action: T) => void;
 
@@ -35,6 +36,8 @@ export interface NavigateToTagOptions {
     source?: SelectionRevealSource;
     preserveNavigationFocus?: boolean;
     requireTagInTree?: boolean;
+    skipFocus?: boolean;
+    historyIndex?: number;
 }
 
 export interface TagNavigationEnvironment {
@@ -42,6 +45,7 @@ export interface TagNavigationEnvironment {
     showAllTagsFolder: boolean;
     expandedTags: Set<string>;
     expandedVirtualFolders: Set<string>;
+    collapseOtherBranchesOnExpand?: boolean;
     expansionDispatch: Dispatch<ExpansionAction>;
     selectionDispatch: Dispatch<SelectionAction>;
     uiState: {
@@ -78,7 +82,16 @@ function focusPane(env: TagNavigationEnvironment, pane: 'navigation' | 'files', 
 }
 
 function selectTagAndFocus(env: TagNavigationEnvironment, tagPath: string, options?: NavigateToTagOptions): void {
-    env.selectionDispatch({ type: 'SET_SELECTED_TAG', tag: tagPath, source: options?.source });
+    env.selectionDispatch({
+        type: 'SET_SELECTED_TAG',
+        tag: tagPath,
+        source: options?.source,
+        historyIndex: options?.historyIndex
+    });
+
+    if (options?.skipFocus) {
+        return;
+    }
 
     const preserveNavigationFocus = options?.preserveNavigationFocus ?? true;
     if (env.uiState.singlePane) {
@@ -138,7 +151,12 @@ export function navigateToTag(env: TagNavigationEnvironment, tagPath: string, op
         const tagsToExpand = getParentTagPaths(canonicalPath);
         const needsExpansion = tagsToExpand.some(path => !env.expandedTags.has(path));
         if (needsExpansion) {
-            env.expansionDispatch({ type: 'EXPAND_TAGS', tagPaths: tagsToExpand });
+            expandNavigationTreeItems({
+                type: 'tag',
+                ids: tagsToExpand,
+                collapseOtherBranches: Boolean(env.collapseOtherBranchesOnExpand),
+                dispatch: env.expansionDispatch
+            });
         }
     }
 

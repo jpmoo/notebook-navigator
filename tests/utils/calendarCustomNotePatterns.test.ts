@@ -17,7 +17,12 @@
  */
 
 import { describe, expect, test } from 'vitest';
-import { isCalendarCustomWeekPatternValid } from '../../src/utils/calendarCustomNotePatterns';
+import {
+    doesCalendarCustomWeekPatternMixWeekTokenTypes,
+    doesCalendarCustomWeekPatternUseDifferentWeekRules,
+    escapeMomentLiteralPath,
+    isCalendarCustomWeekPatternValid
+} from '../../src/utils/calendarCustomNotePatterns';
 
 describe('calendar custom note patterns', () => {
     type MomentStub = {
@@ -64,6 +69,72 @@ describe('calendar custom note patterns', () => {
         expect(context.lastStartOfUnit).toBe('isoWeek');
     });
 
+    test('does not warn for ISO week patterns because display and paths both use ISO weeks', () => {
+        expect(
+            doesCalendarCustomWeekPatternUseDifferentWeekRules(
+                'GGGG-[W]WW',
+                { firstDayOfWeek: 0, firstDayOfYear: 6 },
+                { firstDayOfWeek: 1, firstDayOfYear: 4 }
+            )
+        ).toBe(false);
+    });
+
+    test('warns for mixed ISO and locale week tokens when display and path week rules differ', () => {
+        expect(
+            doesCalendarCustomWeekPatternUseDifferentWeekRules(
+                'gggg-[W]WW',
+                { firstDayOfWeek: 1, firstDayOfYear: 4 },
+                { firstDayOfWeek: 0, firstDayOfYear: 6 }
+            )
+        ).toBe(true);
+    });
+
+    test('warns for mixed ISO and locale week tokens when display and path week rules match', () => {
+        expect(
+            doesCalendarCustomWeekPatternUseDifferentWeekRules(
+                'gggg-[W]WW',
+                { firstDayOfWeek: 0, firstDayOfYear: 6 },
+                { firstDayOfWeek: 0, firstDayOfYear: 6 }
+            )
+        ).toBe(true);
+    });
+
+    test('detects mixed ISO and locale week tokens', () => {
+        expect(doesCalendarCustomWeekPatternMixWeekTokenTypes('gggg-[W]WW')).toBe(true);
+        expect(doesCalendarCustomWeekPatternMixWeekTokenTypes('GGGG-[W]WW')).toBe(false);
+        expect(doesCalendarCustomWeekPatternMixWeekTokenTypes('gggg/[W]ww')).toBe(false);
+    });
+
+    test('warns for locale week patterns when display and path locales start weeks on different days', () => {
+        expect(
+            doesCalendarCustomWeekPatternUseDifferentWeekRules(
+                'gggg/[W]ww',
+                { firstDayOfWeek: 1, firstDayOfYear: 4 },
+                { firstDayOfWeek: 0, firstDayOfYear: 6 }
+            )
+        ).toBe(true);
+    });
+
+    test('warns for locale week patterns when display and path locales use different first weeks of year', () => {
+        expect(
+            doesCalendarCustomWeekPatternUseDifferentWeekRules(
+                'gggg/[W]ww',
+                { firstDayOfWeek: 1, firstDayOfYear: 4 },
+                { firstDayOfWeek: 1, firstDayOfYear: 6 }
+            )
+        ).toBe(true);
+    });
+
+    test('does not warn for locale week patterns when display and path week rules match', () => {
+        expect(
+            doesCalendarCustomWeekPatternUseDifferentWeekRules(
+                'gggg/[W]ww',
+                { firstDayOfWeek: 1, firstDayOfYear: 4 },
+                { firstDayOfWeek: 1, firstDayOfYear: 4 }
+            )
+        ).toBe(false);
+    });
+
     test('rejects weekly pattern without week number token', () => {
         const context = { lastStartOfUnit: null as string | null };
         const momentApi = createMomentApi(context);
@@ -100,5 +171,9 @@ describe('calendar custom note patterns', () => {
         const momentApi = createMomentApi(context);
         expect(isCalendarCustomWeekPatternValid('YYYY/[Www', momentApi)).toBe(false);
         expect(context.lastStartOfUnit).toBe(null);
+    });
+
+    test('escapes square brackets inside literal path segments', () => {
+        expect(escapeMomentLiteralPath('Daily[Notes]/[2026]')).toBe('[Daily]\\[[Notes]\\]/\\[[2026]\\]');
     });
 });

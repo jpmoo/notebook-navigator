@@ -35,11 +35,11 @@ Automates the release process for the Obsidian plugin.
 **Usage:**
 
 ```bash
-node scripts/release.js                    # Interactive mode
-node scripts/release.js patch              # Direct patch release
-node scripts/release.js minor              # Direct minor release
-node scripts/release.js major              # Direct major release
-node scripts/release.js patch --dry-run    # Preview changes
+node scripts/release.js                    # Publish an untagged merged version, or choose the next release
+node scripts/release.js patch              # Prepare a patch release PR
+node scripts/release.js minor              # Prepare a minor release PR
+node scripts/release.js major              # Prepare a major release PR
+node scripts/release.js patch --dry-run    # Preview release PR preparation
 ```
 
 **Features:**
@@ -47,8 +47,10 @@ node scripts/release.js patch --dry-run    # Preview changes
 - Increments version numbers in `manifest.json`, `package.json`, and `versions.json`
 - Validates git repository state (clean, on main branch, synced with remote)
 - Runs build verification before release
-- Creates git commit and tag
-- Pushes to trigger GitHub Actions release workflow
+- Creates a release branch and pull request with the version bump
+- With GitHub CLI, waits for the release pull request to merge, then publishes by creating and pushing a git tag
+- Pushes the tag to trigger the GitHub Actions release workflow
+- Verifies the remote tag, GitHub release assets, release workflow result, and artifact attestations after publishing
 
 **Version Types:**
 
@@ -61,6 +63,8 @@ node scripts/release.js patch --dry-run    # Preview changes
 - Never manually modify version numbers in files
 - Always commit all changes before running
 - Must be on main branch and synced with remote
+- If the script creates a pull request with GitHub CLI, leave it running while you merge the pull request
+- If you stop the script after merging the release pull request, run `node scripts/release.js` again to publish
 
 ## gitdump.sh
 
@@ -121,16 +125,32 @@ cp main.js manifest.json styles.css ~/Documents/ObsidianVault/.obsidian/plugins/
 
 ## check-unused-strings.mjs
 
-Finds unused i18n keys in `src/i18n/locales/en.ts` by scanning for `strings.<keyPath>` usage across `src` (excluding `src/i18n/locales`). Prompts to remove unused keys from all locale files.
+Finds unused i18n keys in `src/i18n/locales/en.ts` by scanning for `strings.<keyPath>` usage across `src` (excluding `src/i18n/locales`). Also validates that every locale file matches the English locale shape.
 
 ```bash
-node scripts/check-unused-strings.mjs
+node scripts/check-unused-strings.mjs          # Report and prompt before removing unused keys
+node scripts/check-unused-strings.mjs --check  # Exit non-zero if unused keys or locale shape issues exist
+node scripts/check-unused-strings.mjs --fix    # Remove unused keys without prompting
+```
+
+To keep an intentionally dynamic key, add an allowlist comment:
+
+```ts
+// unused-strings keep settings.items.example
 ```
 
 ## check-unused-css.mjs
 
-Scans `styles.css` and `src` for unused plugin CSS classes and variables.
+Builds the expected generated CSS from `src/styles/index.css` in memory, checks whether `styles.css` is stale, and scans `src` for unused plugin CSS classes and variables.
 
 ```bash
-node scripts/check-unused-css.mjs
+node scripts/check-unused-css.mjs          # Report unused CSS and stale generated CSS
+node scripts/check-unused-css.mjs --check  # Exit non-zero if stale CSS or unused CSS exists
+node scripts/check-unused-css.mjs --fix    # Regenerate stale styles.css, then check unused CSS
+```
+
+To keep intentional dynamic CSS usage, add an allowlist comment:
+
+```css
+/* unused-css keep nn-dynamic-class --nn-dynamic-variable */
 ```

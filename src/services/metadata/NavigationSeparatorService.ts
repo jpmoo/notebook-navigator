@@ -19,7 +19,7 @@
 import { App, normalizePath } from 'obsidian';
 import { BaseMetadataService } from './BaseMetadataService';
 import type { ISettingsProvider } from '../../interfaces/ISettingsProvider';
-import type { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import type { CleanupValidators } from '../MetadataService';
 import type { ITagTreeProvider } from '../../interfaces/ITagTreeProvider';
 import type { IPropertyTreeProvider } from '../../interfaces/IPropertyTreeProvider';
@@ -29,6 +29,7 @@ import {
     buildPropertySeparatorKey,
     buildSectionSeparatorKey,
     buildTagSeparatorKey,
+    normalizeNavigationSeparatorKey,
     parseNavigationSeparatorKey
 } from '../../utils/navigationSeparators';
 import { createConfiguredPropertyNodeValidator, normalizePropertyNodeId } from '../../utils/propertyTree';
@@ -37,6 +38,7 @@ import { TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../../types';
 import { ensureRecord, isBooleanRecordValue } from '../../utils/recordUtils';
 import { getDBInstanceOrNull } from '../../storage/fileOperations';
 import { getActivePropertyFields } from '../../utils/vaultProfiles';
+import { collectAllTagPaths } from '../../utils/tagTree';
 
 const FOLDER_PREFIX = 'folder:';
 const TAG_PREFIX = 'tag:';
@@ -209,7 +211,8 @@ export class NavigationSeparatorService extends BaseMetadataService {
         targetSettings: NotebookNavigatorSettings = this.settingsProvider.settings
     ): Promise<boolean> {
         const folderExists = (path: string) => validators.vaultFolders.has(path);
-        const tagExists = (path: string) => this.isVirtualTag(path) || validators.tagTree.has(path);
+        const tagLookup = this.collectValidatorTagPaths(validators.tagTree);
+        const tagExists = (path: string) => this.isVirtualTag(path) || tagLookup.has(path);
         const propertyExists = this.createPropertyNodeValidator(targetSettings, validators);
         const changed = await this.removeInvalidEntries(targetSettings, folderExists, tagExists, propertyExists ?? undefined);
         if (changed) {
@@ -350,6 +353,12 @@ export class NavigationSeparatorService extends BaseMetadataService {
         return new Set(provider.getAllTagPaths());
     }
 
+    private collectValidatorTagPaths(tagTree: CleanupValidators['tagTree']): Set<string> {
+        const paths = new Set<string>();
+        tagTree.forEach(root => collectAllTagPaths(root, paths));
+        return paths;
+    }
+
     private createPropertyNodeValidator(
         targetSettings: NotebookNavigatorSettings,
         validators?: CleanupValidators
@@ -398,7 +407,14 @@ export class NavigationSeparatorService extends BaseMetadataService {
         let changed = false;
 
         Object.keys(store).forEach(key => {
-            const descriptor = parseNavigationSeparatorKey(key);
+            const normalizedKey = normalizeNavigationSeparatorKey(key);
+            if (!normalizedKey) {
+                delete store[key];
+                changed = true;
+                return;
+            }
+
+            const descriptor = parseNavigationSeparatorKey(normalizedKey);
             if (!descriptor) {
                 delete store[key];
                 changed = true;
@@ -406,11 +422,17 @@ export class NavigationSeparatorService extends BaseMetadataService {
             }
             if (descriptor.type === 'folder' && !folderExists(descriptor.path)) {
                 delete store[key];
+                if (normalizedKey !== key && Object.prototype.hasOwnProperty.call(store, normalizedKey)) {
+                    delete store[normalizedKey];
+                }
                 changed = true;
                 return;
             }
             if (descriptor.type === 'tag' && !tagExists(descriptor.path)) {
                 delete store[key];
+                if (normalizedKey !== key && Object.prototype.hasOwnProperty.call(store, normalizedKey)) {
+                    delete store[normalizedKey];
+                }
                 changed = true;
                 return;
             }
@@ -418,30 +440,42 @@ export class NavigationSeparatorService extends BaseMetadataService {
                 const normalizedNodeId = normalizePropertyNodeId(descriptor.nodeId);
                 if (!normalizedNodeId) {
                     delete store[key];
+                    if (normalizedKey !== key && Object.prototype.hasOwnProperty.call(store, normalizedKey)) {
+                        delete store[normalizedKey];
+                    }
                     changed = true;
                     return;
                 }
 
-                const normalizedKey = buildPropertySeparatorKey(normalizedNodeId);
+                const normalizedPropertyKey = buildPropertySeparatorKey(normalizedNodeId);
                 if (propertyExists && !propertyExists(normalizedNodeId)) {
                     if (Object.prototype.hasOwnProperty.call(store, key)) {
                         delete store[key];
                         changed = true;
                     }
-                    if (normalizedKey !== key && Object.prototype.hasOwnProperty.call(store, normalizedKey)) {
-                        delete store[normalizedKey];
+                    if (normalizedPropertyKey !== key && Object.prototype.hasOwnProperty.call(store, normalizedPropertyKey)) {
+                        delete store[normalizedPropertyKey];
                         changed = true;
                     }
                     return;
                 }
 
-                if (normalizedKey !== key) {
-                    if (!Object.prototype.hasOwnProperty.call(store, normalizedKey)) {
-                        store[normalizedKey] = true;
+                if (normalizedPropertyKey !== key) {
+                    if (!Object.prototype.hasOwnProperty.call(store, normalizedPropertyKey)) {
+                        store[normalizedPropertyKey] = store[key];
                     }
                     delete store[key];
                     changed = true;
                 }
+                return;
+            }
+
+            if (normalizedKey !== key) {
+                if (!Object.prototype.hasOwnProperty.call(store, normalizedKey)) {
+                    store[normalizedKey] = store[key];
+                }
+                delete store[key];
+                changed = true;
             }
         });
 

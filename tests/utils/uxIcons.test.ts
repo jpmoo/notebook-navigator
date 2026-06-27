@@ -16,30 +16,44 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import { describe, it, expect } from 'vitest';
-import { normalizeUXIconMapRecord, resolveUXIcon } from '../../src/utils/uxIcons';
+import { normalizeUXIconMapRecord, resolveUXIcon, resolveUXIconForMenu } from '../../src/utils/uxIcons';
 
 describe('resolveUXIcon', () => {
     it('returns defaults when no overrides are present', () => {
         expect(resolveUXIcon(undefined, 'list-search')).toBe('search');
         expect(resolveUXIcon(undefined, 'nav-tags')).toBe('tags');
         expect(resolveUXIcon(undefined, 'nav-tag')).toBe('tag');
+        expect(resolveUXIcon(undefined, 'list-pinned')).toBe('');
         expect(resolveUXIcon(undefined, 'file-unfinished-task')).toBe('circle-alert');
     });
 
     it('deserializes Iconize formatted overrides', () => {
         expect(resolveUXIcon({ 'list-search': 'LiStar' }, 'list-search')).toBe('star');
+        expect(resolveUXIcon({ 'list-pinned': 'LiPin' }, 'list-pinned')).toBe('pin');
+    });
+});
+
+describe('resolveUXIconForMenu', () => {
+    it('uses the registered default icon when no explicit fallback is provided', () => {
+        expect(resolveUXIconForMenu(undefined, 'list-sort-modified')).toBe('lucide-calendar-clock');
+    });
+
+    it('uses the explicit fallback when the override cannot render in an Obsidian menu', () => {
+        expect(resolveUXIconForMenu({ 'list-sort-modified': 'icons/custom.svg' }, 'list-sort-modified', 'lucide-calendar')).toBe(
+            'lucide-calendar'
+        );
     });
 });
 
 describe('normalizeUXIconMapRecord', () => {
-    it('stores overrides in Iconize format and drops unknown keys', () => {
+    it('stores overrides in the frontmatter format and drops unknown keys', () => {
         const normalized = normalizeUXIconMapRecord({
             'list-search': 'star',
             'not-a-real-key': 'LiHome'
         });
 
         expect(Object.keys(normalized)).toEqual(['list-search']);
-        expect(normalized['list-search']).toBe('LiStar');
+        expect(normalized['list-search']).toBe('star');
     });
 
     it('drops values that resolve to the default icon', () => {

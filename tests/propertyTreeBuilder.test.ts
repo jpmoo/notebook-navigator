@@ -25,6 +25,7 @@ import {
     determinePropertyToReveal,
     type PropertyTreeDatabaseLike,
     buildPropertyKeyNodeId,
+    buildPropertyTreeFromFilePaths,
     buildPropertyTreeFromDatabase,
     buildPropertyValueNodeId,
     collectPropertyKeyFilePaths,
@@ -72,6 +73,20 @@ function createMockDb(files: MockFile[]): PropertyTreeDatabaseLike {
     return {
         forEachFile: (callback: (path: string, data: FileData) => void) => {
             payload.forEach(entry => callback(entry.path, entry.data));
+        }
+    };
+}
+
+function createLookupDb(files: MockFile[]) {
+    const payload = new Map<string, FileData>();
+    files.forEach(file => {
+        payload.set(file.path, createFileData(file.properties));
+    });
+
+    return {
+        getFile: (path: string) => payload.get(path) ?? null,
+        forEachFile: () => {
+            throw new Error('full database scan should not run for scoped property builds');
         }
     };
 }
@@ -126,6 +141,25 @@ describe('buildPropertyTreeFromDatabase', () => {
 
         expect(valueNode?.name).toBe('Tech Insights 2026 Week 7');
         expect(valueNode?.displayPath).toBe('Tech Insights 2026 Week 7');
+    });
+
+    it('uses markdown-link display text for external value node labels', () => {
+        const rawValue = '[GitHub issue](https://github.com/johansan/notebook-navigator/issues/935)';
+        const db = createMockDb([
+            {
+                path: 'notes/a.md',
+                properties: [{ fieldKey: 'Status', value: rawValue }]
+            }
+        ]);
+
+        const tree = buildPropertyTreeFromDatabase(db, {
+            includedPropertyKeys: new Set(['status'])
+        });
+        const keyNode = tree.get('status');
+        const valueNode = keyNode?.children.get(buildPropertyValueNodeId('status', normalizePropertyTreeValuePath(rawValue)));
+
+        expect(valueNode?.name).toBe('GitHub issue');
+        expect(valueNode?.displayPath).toBe('GitHub issue');
     });
 
     it('treats plain text and strict wiki-link aliases as the same canonical value', () => {
@@ -314,6 +348,32 @@ describe('buildPropertyTreeFromDatabase', () => {
         ]);
     });
 
+    it('builds a scoped property tree from selected file paths without scanning the full database', () => {
+        const db = createLookupDb([
+            {
+                path: 'notes/status.md',
+                properties: [{ fieldKey: 'Status', value: 'Open' }]
+            },
+            {
+                path: 'notes/priority.md',
+                properties: [{ fieldKey: 'Priority', value: 'High' }]
+            },
+            {
+                path: 'notes/ignored.md',
+                properties: [{ fieldKey: 'Mood', value: 'Calm' }]
+            }
+        ]);
+
+        const tree = buildPropertyTreeFromFilePaths(db, ['notes/status.md', 'notes/priority.md'], {
+            includedPropertyKeys: new Set(['status', 'priority'])
+        });
+
+        expect(Array.from(tree.keys())).toEqual(['priority', 'status']);
+        expect(tree.get('status')?.notesWithValue).toEqual(new Set(['notes/status.md']));
+        expect(tree.get('priority')?.notesWithValue).toEqual(new Set(['notes/priority.md']));
+        expect(tree.has('mood')).toBe(false);
+    });
+
     it('keeps key nodes for empty values without creating value nodes', () => {
         const db = createMockDb([
             {
@@ -334,7 +394,7 @@ describe('buildPropertyTreeFromDatabase', () => {
         expect(keyNode?.children.size).toBe(0);
     });
 
-    it('keeps key nodes for boolean values without creating value nodes', () => {
+    it('creates value nodes for boolean values', () => {
         const db = createMockDb([
             {
                 path: 'notes/true.md',
@@ -352,7 +412,12 @@ describe('buildPropertyTreeFromDatabase', () => {
 
         const keyNode = tree.get('status');
         expect(keyNode?.notesWithValue).toEqual(new Set(['notes/true.md', 'notes/false.md']));
-        expect(keyNode?.children.size).toBe(0);
+
+        const trueNode = keyNode?.children.get(buildPropertyValueNodeId('status', normalizePropertyTreeValuePath('true')));
+        expect(trueNode?.notesWithValue).toEqual(new Set(['notes/true.md']));
+
+        const falseNode = keyNode?.children.get(buildPropertyValueNodeId('status', normalizePropertyTreeValuePath('false')));
+        expect(falseNode?.notesWithValue).toEqual(new Set(['notes/false.md']));
     });
 
     it('keeps string literals "true" and "false" as value nodes', () => {
@@ -425,6 +490,7 @@ describe('property value matching', () => {
 
         expect(getTotalPropertyNoteCount(keyNode, normalizePropertyTreeValuePath('Work'))).toBe(1);
         expect(getTotalPropertyNoteCount(keyNode, normalizePropertyTreeValuePath('Work/Done'))).toBe(2);
+        expect(getTotalPropertyNoteCount(keyNode, normalizePropertyTreeValuePath('true'))).toBe(1);
 
         const directPaths = collectPropertyValueFilePaths(keyNode, normalizePropertyTreeValuePath('Work'));
         expect(directPaths).toEqual(new Set(['notes/c.md']));
@@ -433,8 +499,8 @@ describe('property value matching', () => {
         expect(withDescendants).toEqual(new Set(['notes/c.md']));
 
         const directKeyPaths = collectPropertyKeyFilePaths(keyNode, false);
-        expect(directKeyPaths).toEqual(new Set(['notes/e.md', 'notes/f.md']));
-        expect(getDirectPropertyKeyNoteCount(keyNode)).toBe(2);
+        expect(directKeyPaths).toEqual(new Set(['notes/e.md']));
+        expect(getDirectPropertyKeyNoteCount(keyNode)).toBe(1);
 
         const allKeyPaths = collectPropertyKeyFilePaths(keyNode, true);
         expect(allKeyPaths).toEqual(new Set(['notes/a.md', 'notes/b.md', 'notes/c.md', 'notes/d.md', 'notes/e.md', 'notes/f.md']));
@@ -493,7 +559,7 @@ describe('property node id encoding', () => {
 });
 
 describe('property selection resolution', () => {
-    it('falls back from a missing value node to the key node', () => {
+    it('keeps selected boolean value nodes when the tree contains them', () => {
         const db = createMockDb([
             {
                 path: 'notes/a.md',
@@ -504,9 +570,9 @@ describe('property selection resolution', () => {
             includedPropertyKeys: new Set(['status'])
         });
 
-        const missingValueSelection = buildPropertyValueNodeId('status', normalizePropertyTreeValuePath('true'));
-        const resolved = resolvePropertySelectionNodeId(tree, missingValueSelection);
-        expect(resolved).toBe(buildPropertyKeyNodeId('status'));
+        const valueSelection = buildPropertyValueNodeId('status', normalizePropertyTreeValuePath('true'));
+        const resolved = resolvePropertySelectionNodeId(tree, valueSelection);
+        expect(resolved).toBe(valueSelection);
     });
 
     it('falls back to properties root when selected key does not exist', () => {
@@ -552,6 +618,24 @@ describe('property selection resolution', () => {
         const resolved = resolvePropertySelectionNodeId(tree, legacySelection);
         expect(resolved).toBe(canonicalSelection);
     });
+
+    it('resolves NFC and NFD-equivalent property node ids to the canonical node', () => {
+        const rawValue = 'Planifié';
+        const db = createMockDb([
+            {
+                path: 'notes/a.md',
+                properties: [{ fieldKey: 'Réunion', value: rawValue }]
+            }
+        ]);
+        const tree = buildPropertyTreeFromDatabase(db, {
+            includedPropertyKeys: new Set(['réunion'])
+        });
+
+        const legacySelection = 'key:Re\u0301union=Planifie\u0301';
+        const canonicalSelection = buildPropertyValueNodeId('réunion', normalizePropertyTreeValuePath(rawValue));
+        const resolved = resolvePropertySelectionNodeId(tree, legacySelection);
+        expect(resolved).toBe(canonicalSelection);
+    });
 });
 
 describe('property selection restore', () => {
@@ -573,6 +657,16 @@ describe('property selection restore', () => {
         setActivePropertyFields(settings, 'status');
 
         expect(canRestorePropertySelectionNodeId(settings, PROPERTIES_ROOT_VIRTUAL_FOLDER_ID)).toBe(false);
+    });
+
+    it('allows restoring NFC and NFD-equivalent property node ids for configured keys', () => {
+        const settings = {
+            ...DEFAULT_SETTINGS,
+            showProperties: true
+        };
+        setActivePropertyFields(settings, 'Réunion');
+
+        expect(canRestorePropertySelectionNodeId(settings, 'key:Re\u0301union')).toBe(true);
     });
 });
 
@@ -599,5 +693,22 @@ describe('property reveal selection', () => {
         const selection = buildPropertyKeyNodeId('hidefeature');
         const resolved = determinePropertyToReveal([], selection, settings, false);
         expect(resolved).toBeNull();
+    });
+
+    it('reveals boolean value nodes instead of collapsing them to the key node', () => {
+        const settings = {
+            ...DEFAULT_SETTINGS,
+            showProperties: true
+        };
+        setActivePropertyFields(settings, 'finished');
+
+        const resolved = determinePropertyToReveal(
+            [{ fieldKey: 'finished', value: 'false', valueKind: 'boolean' }],
+            buildPropertyKeyNodeId('finished'),
+            settings,
+            false
+        );
+
+        expect(resolved).toBe(buildPropertyValueNodeId('finished', normalizePropertyTreeValuePath('false')));
     });
 });

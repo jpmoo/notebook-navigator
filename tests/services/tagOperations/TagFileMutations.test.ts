@@ -98,6 +98,26 @@ describe('TagFileMutations', () => {
         expect(file.content).toBe('#project kickoff\nFollow up with tomorrow');
     });
 
+    it('adds tags using the existing frontmatter key and dedupes NFC and NFD-equivalent values', async () => {
+        const file = createFile('Notes/Cafe.md', { Tags: ['Cafe\u0301'] }, '');
+
+        await fileMutations.addTagToFile(file, 'Café');
+
+        expect(file.frontmatter.Tags).toEqual(['Cafe\u0301']);
+        expect(Reflect.has(file.frontmatter, 'tags')).toBe(false);
+    });
+
+    it('clears tags using the existing frontmatter key when keeping an empty tags property', async () => {
+        settings.keepEmptyTagsProperty = true;
+        const file = createFile('Notes/Tagged.md', { Tags: 'project' }, '');
+
+        const cleared = await fileMutations.clearAllTagsFromFile(file);
+
+        expect(cleared).toBe(true);
+        expect(file.frontmatter.Tags).toEqual([]);
+        expect(Reflect.has(file.frontmatter, 'tags')).toBe(false);
+    });
+
     it('removes emoji inline tag occurrences when removing tag from file', async () => {
         const file = createFile('Notes/Emoji.md', { tags: ['project😀'] }, 'Plan #project😀 today');
         cachedTagsByPath.set(file.path, ['project😀']);
@@ -219,6 +239,16 @@ describe('TagFileMutations', () => {
         expect(inlineText).not.toContain('#D10000');
         expect(spanLine).toContain('color:#D10000');
         expect(linkLine).toContain('href="#D10000"');
+    });
+
+    it('keeps matches inside html attributes that contain greater-than signs', async () => {
+        const file = createFile('Projects/HtmlAttribute.md', {}, 'Inline #D10000 <span title="a > b #D10000">example</span>');
+        cachedTagsByPath.set(file.path, ['D10000']);
+
+        const removed = await fileMutations.removeTagFromFile(file, 'D10000');
+
+        expect(removed).toBe(true);
+        expect(file.content).toBe('Inline <span title="a > b #D10000">example</span>');
     });
 
     it('removes inline tags surrounded by comparison operators', async () => {

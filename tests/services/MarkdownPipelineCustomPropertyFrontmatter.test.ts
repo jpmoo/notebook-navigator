@@ -36,7 +36,6 @@ function createSettings(overrides: Partial<NotebookNavigatorSettings> & { proper
     const settings = structuredClone(DEFAULT_SETTINGS);
     settings.showFilePreview = false;
     settings.showFeatureImage = false;
-    settings.notePropertyType = 'none';
     Object.assign(settings, settingsOverrides);
 
     if (typeof propertyFields === 'string') {
@@ -136,7 +135,22 @@ describe('MarkdownPipelineContentProvider frontmatter custom properties', () => 
         ]);
     });
 
-    it('treats null frontmatter values as boolean true', async () => {
+    it('preserves value kind metadata for numeric literals', async () => {
+        const context = createApp();
+        const settings = createSettings({ propertyFields: 'rating, count' });
+        const provider = new TestMarkdownPipelineContentProvider(context.app);
+        const file = createFile('notes/note.md');
+
+        setFrontmatter(context, file, { rating: 4.5, count: 2 });
+        const result = await provider.runCustomProperty(file, settings);
+
+        expect(result).toEqual([
+            { fieldKey: 'rating', value: '4.5', valueKind: 'number' },
+            { fieldKey: 'count', value: '2', valueKind: 'number' }
+        ]);
+    });
+
+    it('treats null frontmatter values as unassigned', async () => {
         const context = createApp();
         const settings = createSettings({ propertyFields: 'status, type' });
         const provider = new TestMarkdownPipelineContentProvider(context.app);
@@ -146,7 +160,7 @@ describe('MarkdownPipelineContentProvider frontmatter custom properties', () => 
         const result = await provider.runCustomProperty(file, settings);
 
         expect(result).toEqual([
-            { fieldKey: 'status', value: 'true', valueKind: 'boolean' },
+            { fieldKey: 'status', value: '' },
             { fieldKey: 'type', value: 'Project', valueKind: 'string' }
         ]);
     });

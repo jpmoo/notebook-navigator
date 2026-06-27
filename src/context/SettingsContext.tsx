@@ -17,10 +17,9 @@
  */
 
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect, useRef } from 'react';
-import NotebookNavigatorPlugin from '../main';
-import { NotebookNavigatorSettings } from '../settings';
+import type NotebookNavigatorPlugin from '../main';
 import type { DualPaneOrientation } from '../types';
-import type { VaultProfile } from '../settings/types';
+import type { NotebookNavigatorSettings, VaultProfile } from '../settings/types';
 import type { FileVisibility } from '../utils/fileTypeUtils';
 import type { ShortcutEntry } from '../types/shortcuts';
 import {
@@ -31,8 +30,20 @@ import {
     isTagShortcut,
     isPropertyShortcut
 } from '../types/shortcuts';
-import { clonePropertyKeys, cloneShortcuts, getActiveVaultProfile } from '../utils/vaultProfiles';
-import { clonePinnedNotesRecord, isStringRecordValue, sanitizeRecord } from '../utils/recordUtils';
+import {
+    areNavRainbowSettingsEqual,
+    cloneNavRainbowSettings,
+    clonePropertyKeys,
+    cloneShortcuts,
+    getActiveVaultProfile
+} from '../utils/vaultProfiles';
+import {
+    cloneCollapsedPinnedContextsRecord,
+    clonePinnedNotesRecord,
+    isStringRecordValue,
+    sanitizeRecord,
+    type PinnedNoteContextValue
+} from '../utils/recordUtils';
 import { areStringArraysEqual } from '../utils/arrayUtils';
 import type { FolderAppearance } from '../hooks/useListPaneAppearance';
 import { buildFileNameIconNeedles, type FileNameIconNeedle } from '../utils/fileIconUtils';
@@ -47,6 +58,7 @@ export interface ActiveProfileState {
     hiddenTags: string[];
     hiddenFileTags: string[];
     fileVisibility: FileVisibility;
+    propertyKeys: VaultProfile['propertyKeys'];
     navigationBanner: string | null;
 }
 
@@ -83,7 +95,8 @@ const arePropertyKeysEqual = (prev?: VaultProfile['propertyKeys'], next?: VaultP
         if (
             previous.key !== current.key ||
             previous.showInNavigation !== current.showInNavigation ||
-            previous.showInList !== current.showInList
+            previous.showInList !== current.showInList ||
+            previous.showInFileMenu !== current.showInFileMenu
         ) {
             return false;
         }
@@ -182,6 +195,61 @@ const cloneAppearanceMap = <T extends FolderAppearance>(map?: Record<string, T>)
     return cloned;
 };
 
+const arePinnedNotesEqual = (
+    previous: Record<string, PinnedNoteContextValue> | null,
+    next: Record<string, PinnedNoteContextValue>
+): boolean => {
+    if (!previous) {
+        return false;
+    }
+
+    const previousKeys = Object.keys(previous);
+    const nextKeys = Object.keys(next);
+    if (previousKeys.length !== nextKeys.length) {
+        return false;
+    }
+
+    for (const path of nextKeys) {
+        const previousContext = previous[path];
+        const nextContext = next[path];
+        if (
+            !previousContext ||
+            previousContext.folder !== nextContext.folder ||
+            previousContext.tag !== nextContext.tag ||
+            previousContext.property !== nextContext.property
+        ) {
+            return false;
+        }
+    }
+
+    return true;
+};
+
+const areCollapsedPinnedContextsEqual = (
+    previous: NotebookNavigatorSettings['collapsedPinnedContexts'] | null,
+    next: NotebookNavigatorSettings['collapsedPinnedContexts']
+): boolean => {
+    if (!previous) {
+        return false;
+    }
+
+    const previousKeys = Object.keys(previous);
+    const nextKeys = Object.keys(next);
+    if (previousKeys.length !== nextKeys.length) {
+        return false;
+    }
+
+    const previousRecord = previous as Readonly<Record<string, boolean | undefined>>;
+    const nextRecord = next as Readonly<Record<string, boolean | undefined>>;
+    for (const key of nextKeys) {
+        if (previousRecord[key] !== nextRecord[key]) {
+            return false;
+        }
+    }
+
+    return true;
+};
+
 interface SettingsProviderProps {
     children: ReactNode;
     plugin: NotebookNavigatorPlugin;
@@ -195,6 +263,8 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
         raw: NotebookNavigatorSettings['interfaceIcons'] | undefined;
         sanitized: Record<string, string>;
     } | null>(null);
+    const previousPinnedNotesRef = useRef<Record<string, PinnedNoteContextValue> | null>(null);
+    const previousCollapsedPinnedContextsRef = useRef<NotebookNavigatorSettings['collapsedPinnedContexts'] | null>(null);
 
     const updateSettings = useCallback(
         async (updater: (settings: NotebookNavigatorSettings) => void) => {
@@ -219,8 +289,11 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
         const tagBackgroundColors = sanitizeRecord(plugin.settings.tagBackgroundColors);
         const propertyColors = sanitizeRecord(plugin.settings.propertyColors);
         const propertyBackgroundColors = sanitizeRecord(plugin.settings.propertyBackgroundColors);
+        const virtualFolderColors = sanitizeRecord(plugin.settings.virtualFolderColors);
+        const virtualFolderBackgroundColors = sanitizeRecord(plugin.settings.virtualFolderBackgroundColors);
         const tagIcons = sanitizeRecord(plugin.settings.tagIcons, isStringRecordValue);
         const propertyIcons = sanitizeRecord(plugin.settings.propertyIcons, isStringRecordValue);
+        const calendarMonthHighlights = sanitizeRecord(plugin.settings.calendarMonthHighlights, isStringRecordValue);
         const rawInterfaceIcons = plugin.settings.interfaceIcons;
         const interfaceIconsCache = previousInterfaceIconsRef.current;
         const interfaceIcons =
@@ -230,6 +303,19 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
         if (!interfaceIconsCache || interfaceIconsCache.raw !== rawInterfaceIcons) {
             previousInterfaceIconsRef.current = { raw: rawInterfaceIcons, sanitized: interfaceIcons };
         }
+        const clonedPinnedNotes = clonePinnedNotesRecord(plugin.settings.pinnedNotes);
+        const previousPinnedNotes = previousPinnedNotesRef.current;
+        const pinnedNotes =
+            previousPinnedNotes && arePinnedNotesEqual(previousPinnedNotes, clonedPinnedNotes) ? previousPinnedNotes : clonedPinnedNotes;
+        previousPinnedNotesRef.current = pinnedNotes;
+        const clonedCollapsedPinnedContexts = cloneCollapsedPinnedContextsRecord(plugin.settings.collapsedPinnedContexts);
+        const previousCollapsedPinnedContexts = previousCollapsedPinnedContextsRef.current;
+        const collapsedPinnedContexts =
+            previousCollapsedPinnedContexts &&
+            areCollapsedPinnedContextsEqual(previousCollapsedPinnedContexts, clonedCollapsedPinnedContexts)
+                ? previousCollapsedPinnedContexts
+                : clonedCollapsedPinnedContexts;
+        previousCollapsedPinnedContextsRef.current = collapsedPinnedContexts;
         const nextSettings: SettingsStateValue = {
             ...plugin.settings,
             dualPaneOrientation: plugin.getDualPaneOrientation(),
@@ -237,12 +323,17 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
             tagBackgroundColors,
             propertyColors,
             propertyBackgroundColors,
+            virtualFolderColors,
+            virtualFolderBackgroundColors,
             tagIcons,
             propertyIcons,
+            calendarMonthHighlights,
             interfaceIcons,
             folderAppearances: cloneAppearanceMap(plugin.settings.folderAppearances),
             tagAppearances: cloneAppearanceMap(plugin.settings.tagAppearances),
-            pinnedNotes: clonePinnedNotesRecord(plugin.settings.pinnedNotes)
+            propertyAppearances: cloneAppearanceMap(plugin.settings.propertyAppearances),
+            pinnedNotes,
+            collapsedPinnedContexts
         };
         // Deep copy vault profiles to prevent mutations from affecting the original settings
         if (Array.isArray(plugin.settings.vaultProfiles)) {
@@ -255,7 +346,8 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
                 hiddenTags: Array.isArray(profile.hiddenTags) ? [...profile.hiddenTags] : [],
                 hiddenFileTags: Array.isArray(profile.hiddenFileTags) ? [...profile.hiddenFileTags] : [],
                 propertyKeys: clonePropertyKeys(profile.propertyKeys),
-                shortcuts: cloneShortcuts(profile.shortcuts)
+                shortcuts: cloneShortcuts(profile.shortcuts),
+                navRainbow: cloneNavRainbowSettings(profile.navRainbow)
             }));
         }
         void version; // Keep dependency so settings snapshot recreates when updates are published
@@ -301,6 +393,7 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
         const nameEqual = previous?.profile.name === profile.name;
         const propertyKeysEqual = arePropertyKeysEqual(previous?.profile.propertyKeys, profile.propertyKeys);
         const shortcutsEqual = areShortcutsEqual(previous?.profile.shortcuts, profile.shortcuts);
+        const navRainbowEqual = areNavRainbowSettingsEqual(previous?.profile.navRainbow, profile.navRainbow);
 
         if (
             isSameProfile &&
@@ -315,6 +408,7 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
             nameEqual &&
             propertyKeysEqual &&
             shortcutsEqual &&
+            navRainbowEqual &&
             previous
         ) {
             return previous;
@@ -328,6 +422,7 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
             hiddenTags: profile.hiddenTags,
             hiddenFileTags: profile.hiddenFileTags,
             fileVisibility: profile.fileVisibility,
+            propertyKeys: propertyKeysEqual && previous ? previous.propertyKeys : profile.propertyKeys,
             navigationBanner
         };
 

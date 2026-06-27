@@ -17,11 +17,10 @@
  */
 
 import { App } from 'obsidian';
-import type { AlphaSortOrder } from '../../settings';
+import type { AlphaSortOrder, ListSortOverrideValue, NotebookNavigatorSettings } from '../../settings/types';
 import type { ISettingsProvider } from '../../interfaces/ISettingsProvider';
-import { ItemType } from '../../types';
+import { ItemType, PROPERTIES_ROOT_VIRTUAL_FOLDER_ID } from '../../types';
 import type { CleanupValidators } from '../MetadataService';
-import type { NotebookNavigatorSettings } from '../../settings';
 import { getDBInstance } from '../../storage/fileOperations';
 import {
     createConfiguredPropertyNodeValidator,
@@ -29,6 +28,7 @@ import {
     normalizePropertyKeyNodeId,
     normalizePropertyNodeId
 } from '../../utils/propertyTree';
+import { casefold, cleanupCollapsedPinnedContextKeys } from '../../utils/recordUtils';
 import { getActivePropertyFields } from '../../utils/vaultProfiles';
 import { BaseMetadataService } from './BaseMetadataService';
 
@@ -160,6 +160,33 @@ export class PropertyMetadataService extends BaseMetadataService {
         return this.getEntityIcon(ItemType.PROPERTY, normalized);
     }
 
+    async setPropertySortOverride(nodeId: string, sortOverride: ListSortOverrideValue): Promise<void> {
+        const normalized = nodeId === PROPERTIES_ROOT_VIRTUAL_FOLDER_ID ? nodeId : normalizePropertyNodeId(nodeId);
+        if (!normalized) {
+            return Promise.resolve();
+        }
+
+        return this.setEntitySortOverride(ItemType.PROPERTY, normalized, sortOverride);
+    }
+
+    async removePropertySortOverride(nodeId: string): Promise<void> {
+        const normalized = nodeId === PROPERTIES_ROOT_VIRTUAL_FOLDER_ID ? nodeId : normalizePropertyNodeId(nodeId);
+        if (!normalized) {
+            return Promise.resolve();
+        }
+
+        return this.removeEntitySortOverride(ItemType.PROPERTY, normalized);
+    }
+
+    getPropertySortOverride(nodeId: string): ListSortOverrideValue | undefined {
+        const normalized = nodeId === PROPERTIES_ROOT_VIRTUAL_FOLDER_ID ? nodeId : normalizePropertyNodeId(nodeId);
+        if (!normalized) {
+            return undefined;
+        }
+
+        return this.getEntitySortOverride(ItemType.PROPERTY, normalized);
+    }
+
     async setPropertyChildSortOrderOverride(nodeId: string, sortOrder: AlphaSortOrder): Promise<void> {
         const keyNodeId = normalizePropertyKeyNodeId(nodeId);
         if (!keyNodeId) {
@@ -191,12 +218,61 @@ export class PropertyMetadataService extends BaseMetadataService {
         targetSettings: NotebookNavigatorSettings,
         validators: CleanupValidators
     ): (nodeId: string) => boolean {
-        return (
+        const validator =
             createConfiguredPropertyNodeValidator({
                 propertyFields: getActivePropertyFields(targetSettings),
                 dbFiles: validators.dbFiles
-            }) ?? (() => false)
-        );
+            }) ?? (() => false);
+
+        return nodeId => nodeId === PROPERTIES_ROOT_VIRTUAL_FOLDER_ID || validator(nodeId);
+    }
+
+    private collectExistingPropertyKeys(validators: CleanupValidators): ReadonlySet<string> {
+        const keys = new Set<string>();
+
+        validators.dbFiles.forEach(file => {
+            const properties = file.data.properties;
+            if (!properties || properties.length === 0) {
+                return;
+            }
+
+            properties.forEach(entry => {
+                const normalizedKey = casefold(entry.fieldKey);
+                if (normalizedKey) {
+                    keys.add(normalizedKey);
+                }
+            });
+        });
+
+        return keys;
+    }
+
+    private pruneConfiguredPropertyKeys(targetSettings: NotebookNavigatorSettings, existingPropertyKeys: ReadonlySet<string>): boolean {
+        if (!Array.isArray(targetSettings.vaultProfiles) || targetSettings.vaultProfiles.length === 0) {
+            return false;
+        }
+
+        let changed = false;
+
+        targetSettings.vaultProfiles.forEach(profile => {
+            if (!Array.isArray(profile.propertyKeys) || profile.propertyKeys.length === 0) {
+                return;
+            }
+
+            const nextPropertyKeys = profile.propertyKeys.filter(entry => {
+                const normalizedKey = typeof entry?.key === 'string' ? casefold(entry.key) : '';
+                return normalizedKey.length > 0 && existingPropertyKeys.has(normalizedKey);
+            });
+
+            if (nextPropertyKeys.length === profile.propertyKeys.length) {
+                return;
+            }
+
+            profile.propertyKeys = nextPropertyKeys;
+            changed = true;
+        });
+
+        return changed;
     }
 
     async cleanupPropertyMetadata(targetSettings: NotebookNavigatorSettings = this.settingsProvider.settings): Promise<boolean> {
@@ -214,13 +290,22 @@ export class PropertyMetadataService extends BaseMetadataService {
         targetSettings: NotebookNavigatorSettings = this.settingsProvider.settings
     ): Promise<boolean> {
         const validator = this.createPropertyNodeValidator(targetSettings, validators);
+        const existingPropertyKeys = this.collectExistingPropertyKeys(validators);
+        const collapsedPinnedContextChanges = cleanupCollapsedPinnedContextKeys(
+            targetSettings.collapsedPinnedContexts,
+            ItemType.PROPERTY,
+            validator
+        );
         const results = await Promise.all([
             this.cleanupMetadata(targetSettings, 'propertyColors', validator),
             this.cleanupMetadata(targetSettings, 'propertyBackgroundColors', validator),
             this.cleanupMetadata(targetSettings, 'propertyIcons', validator),
-            this.cleanupMetadata(targetSettings, 'propertyTreeSortOverrides', validator)
+            this.cleanupMetadata(targetSettings, 'propertySortOverrides', validator),
+            this.cleanupMetadata(targetSettings, 'propertyTreeSortOverrides', validator),
+            this.cleanupMetadata(targetSettings, 'propertyAppearances', validator)
         ]);
+        const propertyKeyChanges = this.pruneConfiguredPropertyKeys(targetSettings, existingPropertyKeys);
 
-        return results.some(changed => changed);
+        return collapsedPinnedContextChanges || propertyKeyChanges || results.some(changed => changed);
     }
 }

@@ -34,9 +34,7 @@
 }
 
 .nn-list-title-area {
-    /* Background is handled by the overlay parent - only set solid background when not in overlay */
-    background-color: transparent !important;
-    background: transparent !important;
+    background-color: var(--nn-theme-list-bg);
     padding: var(--nn-list-title-padding-block) var(--nn-scroller-padding) 8px;
 }
 
@@ -47,7 +45,6 @@
     font-size: var(--nn-list-title-font-size);
     font-weight: var(--nn-theme-list-heading-font-weight);
     color: var(--nn-theme-list-heading-color);
-    background-color: transparent !important;
 }
 
 .nn-list-title-text {
@@ -57,33 +54,26 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    background-color: transparent !important;
-    background: transparent !important;
-}
-
-/* Force transparency on title area - highest specificity to override themes */
-body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title-area,
-body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title-area * {
-    background-color: transparent !important;
-    background: transparent !important;
 }
 
 .nn-list-title-label--folder-note {
-    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration) !important;
+    text-decoration: var(--nn-theme-navitem-folder-note-name-decoration);
 }
 
 .nn-list-title-label--folder-note:hover {
     cursor: pointer;
-    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration) !important;
+    text-decoration: var(--nn-theme-navitem-folder-note-name-hover-decoration);
 }
 
 /* File - container for each file in the list */
 .nn-file {
+    --nn-file-item-border-radius: min(16px, var(--nn-theme-file-border-radius));
     background: transparent;
     padding: 0;
     -webkit-user-select: none;
     user-select: none;
     position: relative;
+    height: 100%;
 
     /* CSS Custom Properties for file items - themes can override these */
     /* Isolate layout and style calculations per item while allowing ::before to extend beyond bounds */
@@ -100,9 +90,48 @@ body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title
 .nn-file-content {
     padding: var(--nn-file-padding-vertical-mobile, var(--nn-file-padding-vertical)) var(--nn-file-item-padding-horizontal);
     margin: 0;
-    border-radius: min(16px, var(--nn-theme-file-border-radius));
+    border-radius: var(--nn-file-item-border-radius);
     background: transparent;
     position: relative; /* For absolute positioning of reveal overlay */
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.nn-file.nn-has-custom-background::before {
+    content: '';
+    position: absolute;
+    top: 0px;
+    inset-inline-start: 0;
+    inset-inline-end: 0;
+    /* Extend slightly beyond bottom item bounds (height rounding issue) to prevent hairline gaps when zoomed */
+    bottom: -0.5px;
+    background-color: var(--nn-file-custom-bg-color);
+    border-top-left-radius: var(--nn-file-top-left-radius, var(--nn-file-item-border-radius));
+    border-top-right-radius: var(--nn-file-top-right-radius, var(--nn-file-item-border-radius));
+    border-bottom-left-radius: var(--nn-file-bottom-left-radius, var(--nn-file-item-border-radius));
+    border-bottom-right-radius: var(--nn-file-bottom-right-radius, var(--nn-file-item-border-radius));
+    box-shadow: inset 0 0 0 var(--nn-theme-file-border-width) transparent;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.nn-file.nn-has-custom-background > .nn-file-content {
+    z-index: 2;
+}
+
+.nn-virtual-file-item-has-custom-background::after,
+.nn-virtual-file-item-has-custom-background-next::after {
+    display: none;
+}
+
+.nn-virtual-file-item-has-custom-background-previous > .nn-file.nn-has-custom-background {
+    --nn-file-top-left-radius: 0;
+    --nn-file-top-right-radius: 0;
+}
+
+.nn-virtual-file-item-has-custom-background-next > .nn-file.nn-has-custom-background {
+    --nn-file-bottom-left-radius: 0;
+    --nn-file-bottom-right-radius: 0;
 }
 
 /* File inner content - flex container for actual content */
@@ -112,6 +141,7 @@ body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title
     gap: var(--nn-file-row-gap);
     align-items: flex-start;
     position: relative;
+    height: 100%;
 }
 
 .nn-file-icon-slot {
@@ -183,9 +213,9 @@ body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title
     flex-direction: column;
     gap: 0;
     order: 1; /* Ensure it appears on the left */
-    min-height: var(--nn-feature-image-min-size); /* Minimum height to match minimum image size */
-    justify-content: flex-start; /* Top-align content */
-    /* No align-self - let it stretch naturally */
+    height: 100%;
+    min-height: 0;
+    justify-content: flex-start;
 }
 
 /* Compact mode file text content - same as above but without min-height */
@@ -197,6 +227,182 @@ body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title
     gap: 0;
     order: 1; /* Ensure it appears on the left */
     justify-content: flex-start; /* Top-align content */
+}
+
+/* Manual property sort editing */
+.nn-manual-sort-scroller {
+    padding: 0 var(--nn-scroller-padding);
+}
+
+.nn-manual-sort-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem 0 1rem;
+}
+
+.nn-manual-sort-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0 var(--nn-file-item-padding-horizontal);
+}
+
+.nn-manual-sort-header-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.nn-manual-sort-title {
+    font-size: var(--nn-desktop-header-font-size);
+    font-weight: var(--nn-theme-list-header-breadcrumb-font-weight);
+    line-height: 1.3;
+    color: var(--nn-theme-list-heading-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nn-manual-sort-hint {
+    font-size: var(--nn-root-reorder-hint-font-size);
+    color: var(--nn-theme-foreground-muted);
+    line-height: 1.25;
+}
+
+.nn-manual-sort-done {
+    flex-shrink: 0;
+    padding: 0 0.75rem;
+    cursor: pointer;
+}
+
+.nn-manual-sort-done:disabled {
+    cursor: default;
+}
+
+.nn-manual-sort-list {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    width: 100%;
+}
+
+.nn-manual-sort-section-header {
+    margin-top: var(--nn-list-group-header-spacer-before);
+}
+
+.nn-manual-sort-list > .nn-manual-sort-section-header:first-child {
+    margin-top: 0;
+}
+
+.nn-manual-sort-sortable-item {
+    position: relative;
+    width: 100%;
+}
+
+.nn-manual-sort-sortable-item-sorting {
+    z-index: 2;
+}
+
+.nn-manual-sort-row {
+    display: flex;
+    align-items: stretch;
+    min-width: 0;
+    cursor: grab;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.nn-manual-sort-row-sorting {
+    z-index: 2;
+}
+
+.nn-manual-sort-row-sorting::after {
+    display: none;
+}
+
+.nn-manual-sort-row-hide-separator::after,
+.nn-manual-sort-row-has-custom-background::after,
+.nn-manual-sort-row-has-custom-background-next::after {
+    display: none;
+}
+
+.nn-manual-sort-row-has-custom-background-previous .nn-file.nn-has-custom-background {
+    --nn-file-top-left-radius: 0;
+    --nn-file-top-right-radius: 0;
+}
+
+.nn-manual-sort-row-has-custom-background-next .nn-file.nn-has-custom-background {
+    --nn-file-bottom-left-radius: 0;
+    --nn-file-bottom-right-radius: 0;
+}
+
+.nn-manual-sort-row-drag-block .nn-file.nn-selected .nn-file-content::before {
+    box-shadow: inset 0 0 0 2px var(--interactive-accent);
+}
+
+.nn-manual-sort-row-disabled {
+    cursor: default;
+}
+
+.nn-manual-sort-row:not(.nn-manual-sort-row-last)::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    inset-inline-start: calc(
+        var(--nn-file-item-padding-horizontal) + var(--nn-file-icon-slot-width-mobile, var(--nn-file-icon-slot-width)) +
+            var(--nn-file-icon-slot-gap)
+    );
+    inset-inline-end: var(--nn-file-item-padding-horizontal);
+    height: var(--nn-separator-height);
+    background-color: var(--nn-theme-list-separator-color);
+    z-index: 100;
+    pointer-events: none;
+}
+
+.nn-manual-sort-file {
+    flex: 1;
+    min-width: 0;
+}
+
+.nn-manual-sort-file .nn-file,
+.nn-manual-sort-file .nn-file-content,
+.nn-manual-sort-file .nn-file-inner-content {
+    height: auto;
+}
+
+.nn-file-manual-sort-disabled {
+    opacity: 0.55;
+}
+
+.notebook-navigator-mobile .nn-manual-sort-title {
+    font-size: var(--nn-mobile-header-font-size);
+}
+
+.notebook-navigator-mobile .nn-manual-sort-hint {
+    font-size: var(--nn-root-reorder-hint-font-size-mobile);
+}
+
+.notebook-navigator-mobile .nn-manual-sort-row {
+    cursor: default;
+}
+
+.notebook-navigator-mobile .nn-manual-sort-row-draggable:not(.nn-manual-sort-row-last)::after {
+    inset-inline-start: calc(
+        var(--nn-file-item-padding-horizontal) + var(--nn-file-icon-slot-width-mobile, var(--nn-file-icon-slot-width)) +
+            var(--nn-file-icon-slot-gap)
+    );
+    inset-inline-end: calc(var(--nn-file-item-padding-horizontal) + 28px + var(--nn-file-item-padding-horizontal));
+}
+
+.notebook-navigator-mobile .nn-manual-sort-row .nn-drag-handle {
+    align-self: center;
+    width: calc(28px + var(--nn-file-item-padding-horizontal));
+    padding-inline-end: var(--nn-file-item-padding-horizontal);
+    box-sizing: border-box;
 }
 
 /* File name - primary text with ellipsis overflow */
@@ -212,12 +418,22 @@ body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title
     -webkit-box-orient: vertical;
     line-height: var(--nn-file-title-line-height);
     word-break: break-word;
-    min-height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1));
-    height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1));
+    max-height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1));
+}
+
+.nn-file-name[data-title-rows='1'] {
+    display: block;
+    white-space: nowrap;
+    word-break: normal;
 }
 
 .nn-file-name[data-has-color='true'] {
     color: var(--nn-file-name-custom-color);
+}
+
+.nn-file-word-count-suffix {
+    color: var(--nn-theme-file-word-count-color);
+    font-weight: var(--nn-theme-file-word-count-font-weight);
 }
 
 .nn-file-icon {
@@ -262,17 +478,13 @@ body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title
     color: var(--nn-theme-file-task-icon-color);
 }
 
-.nn-file-icon[data-has-color='true'] svg {
-    stroke-width: 2.4;
-}
-
 /* Quick actions panel - horizontal container for action icons */
 .nn-quick-actions-panel {
     position: absolute;
     top: 8px; /* Default: 8px for normal mode */
     inset-inline-end: 8px;
     height: 20px;
-    display: none;
+    display: flex;
     background: var(--nn-theme-quick-actions-bg);
     border: 1px solid var(--nn-theme-quick-actions-border);
     border-radius: min(12px, var(--nn-theme-quick-actions-border-radius));
@@ -315,16 +527,10 @@ body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title
     top: max(0px, calc((var(--nn-file-title-line-height) + var(--nn-file-padding-vertical-compact) * 2 - 20px) / 2));
 }
 
-/* Compact mode with tags or 2 title rows: align with compact padding */
-.nn-quick-actions-panel.nn-compact-mode[data-title-rows='2'],
+/* Compact mode with tags or more than 1 title row: align with compact padding */
+.nn-quick-actions-panel.nn-compact-mode:not([data-title-rows='1']),
 .nn-quick-actions-panel.nn-compact-mode[data-has-tags='true'] {
     top: var(--nn-file-padding-vertical-compact);
-}
-
-/* Panel appears when hovering anywhere on file row */
-.nn-desktop .nn-file:hover .nn-quick-actions-panel,
-.nn-desktop.nn-single-pane .nn-file:hover .nn-quick-actions-panel {
-    display: flex;
 }
 
 /* Second line container - holds date and preview text */
@@ -348,11 +554,6 @@ body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title
     line-height: var(--nn-file-single-text-line-height);
 }
 
-/* Date + preview (same line): match legacy spacing. */
-.nn-file-second-line > .nn-file-date + .nn-file-preview {
-    margin-inline-start: 8px;
-}
-
 /* Date + parent folder (same line): match legacy spacing when dot separator is disabled. */
 .nn-file-second-line > .nn-file-date + .nn-parent-folder[data-dot-separator='false'] {
     margin-inline-start: 8px;
@@ -364,6 +565,10 @@ body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title
     flex-shrink: 0;
     margin-inline-end: 4px;
     font-size: 0.65em;
+}
+
+.nn-file-second-line .nn-parent-folder {
+    flex: 0 1 auto;
 }
 
 /* File preview text - secondary line showing file content */
@@ -378,18 +583,7 @@ body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title
     -webkit-line-clamp: var(--preview-rows, 1);
     -webkit-box-orient: vertical;
     word-break: break-word;
-    flex: 1;
-}
-
-/* Multi-line preview - always take up configured number of lines */
-.nn-file-preview:not(.nn-file-second-line .nn-file-preview) {
-    min-height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1));
-    height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1));
-}
-
-/* Preview on same line as date - match date line-height for alignment */
-.nn-file-second-line .nn-file-preview {
-    line-height: var(--nn-file-single-text-line-height);
+    max-height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1));
 }
 
 /* Parent folder indicator shown under file names */
@@ -412,6 +606,14 @@ body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title
     flex: 0 1 auto;
     max-width: 100%;
     min-width: 0;
+}
+
+.nn-parent-folder-content[data-has-background='true'] {
+    box-sizing: border-box;
+    height: var(--nn-file-single-text-line-height);
+    line-height: calc(var(--nn-file-single-text-line-height) - 2px);
+    border-radius: 4px;
+    padding: 1px 4px;
 }
 
 .nn-parent-folder-content[data-reveal='true'] {
@@ -444,10 +646,6 @@ body .nn-list-pane .nn-list-pane-scroller > .nn-list-pane-overlay .nn-list-title
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-}
-
-.nn-parent-folder-icon[data-has-color='true'] svg {
-    stroke-width: 2.4;
 }
 
 .nn-parent-folder-label {

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useCallback, useEffect, useRef, type Dispatch, type RefObject, type SetStateAction } from 'react';
+import { useCallback, useEffect, useRef, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import { App, debounce, TFile } from 'obsidian';
 import type { Debouncer } from 'obsidian';
 import { TIMEOUTS } from '../../types/obsidian-extended';
@@ -25,8 +25,7 @@ import { getDBInstance } from '../../storage/fileOperations';
 import type { StorageFileData } from './storageFileData';
 import type { TagTreeNode } from '../../types/storage';
 import { buildTagTreeFromDatabase } from '../../utils/tagTree';
-import { clearNoteCountCache } from '../../utils/tagTree';
-import type { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import type { FileVisibility } from '../../utils/fileTypeUtils';
 
 /**
@@ -55,9 +54,9 @@ export function useTagTreeSync(params: {
     fileVisibility: FileVisibility;
     profileId: string;
     isStorageReady: boolean;
-    isStorageReadyRef: RefObject<boolean>;
-    latestSettingsRef: RefObject<NotebookNavigatorSettings>;
-    stoppedRef: RefObject<boolean>;
+    isStorageReadyRef: MutableRefObject<boolean>;
+    latestSettingsRef: MutableRefObject<NotebookNavigatorSettings>;
+    stoppedRef: MutableRefObject<boolean>;
     setFileData: Dispatch<SetStateAction<StorageFileData>>;
     getVisibleMarkdownFiles: () => TFile[];
     tagTreeService: TagTreeService | null;
@@ -120,8 +119,6 @@ export function useTagTreeSync(params: {
             hiddenTagsRef.current,
             showHiddenItems
         );
-
-        clearNoteCountCache();
 
         setFileData(previous => ({ ...previous, tagTree, tagged, untagged, hiddenRootTags }));
 

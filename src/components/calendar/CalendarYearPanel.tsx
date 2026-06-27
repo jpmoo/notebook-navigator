@@ -23,10 +23,15 @@ import type { CalendarYearMonthEntry } from './types';
 
 interface CalendarYearPanelProps {
     showYearCalendar: boolean;
-    selectedYearValue: number;
-    selectedMonthIndex: number;
+    currentMonthKey: string | null;
+    displayedYearValue: number;
+    activeYearValue: number;
+    activeMonthIndex: number;
     hasYearPeriodNote: boolean;
+    isYearPeriodActive: boolean;
     yearMonthEntries: CalendarYearMonthEntry[];
+    highlightedMonthFeatureImageKeys: Set<string>;
+    highlightedMonthImageUrls: Record<string, string>;
     onNavigateYear: (delta: number) => void;
     onYearPeriodClick: (event: React.MouseEvent<HTMLElement>) => void;
     onYearPeriodContextMenu: (event: React.MouseEvent<HTMLElement>) => void;
@@ -35,10 +40,15 @@ interface CalendarYearPanelProps {
 
 export const CalendarYearPanel = React.memo(function CalendarYearPanel({
     showYearCalendar,
-    selectedYearValue,
-    selectedMonthIndex,
+    currentMonthKey,
+    displayedYearValue,
+    activeYearValue,
+    activeMonthIndex,
     hasYearPeriodNote,
+    isYearPeriodActive,
     yearMonthEntries,
+    highlightedMonthFeatureImageKeys,
+    highlightedMonthImageUrls,
     onNavigateYear,
     onYearPeriodClick,
     onYearPeriodContextMenu,
@@ -49,7 +59,7 @@ export const CalendarYearPanel = React.memo(function CalendarYearPanel({
     }
 
     return (
-        <>
+        <div className="nn-navigation-calendar-year-panel">
             <div className="nn-navigation-calendar-year-nav">
                 <button
                     type="button"
@@ -64,7 +74,8 @@ export const CalendarYearPanel = React.memo(function CalendarYearPanel({
                     className={[
                         'nn-navigation-calendar-year-label',
                         'nn-navigation-calendar-period-button',
-                        hasYearPeriodNote ? 'has-period-note' : ''
+                        hasYearPeriodNote ? 'has-period-note' : '',
+                        isYearPeriodActive ? 'is-active-editor-file' : ''
                     ]
                         .filter(Boolean)
                         .join(' ')}
@@ -72,7 +83,8 @@ export const CalendarYearPanel = React.memo(function CalendarYearPanel({
                     onClick={onYearPeriodClick}
                     onContextMenu={onYearPeriodContextMenu}
                 >
-                    {selectedYearValue}
+                    <span className="nn-navigation-calendar-active-outline" aria-hidden="true" />
+                    {displayedYearValue}
                 </button>
                 <button
                     type="button"
@@ -86,28 +98,43 @@ export const CalendarYearPanel = React.memo(function CalendarYearPanel({
 
             <div className="nn-navigation-calendar-year-grid">
                 {yearMonthEntries.map(entry => {
-                    const isSelectedMonth = entry.monthIndex === selectedMonthIndex;
-                    const monthLabelText = entry.noteCount > 0 ? `${entry.shortLabel} (${entry.noteCount})` : entry.shortLabel;
-                    const monthAriaLabel =
-                        entry.noteCount > 0
-                            ? `${entry.fullLabel} ${selectedYearValue} (${entry.noteCount})`
-                            : `${entry.fullLabel} ${selectedYearValue}`;
+                    const isSelectedMonth = displayedYearValue === activeYearValue && entry.monthIndex === activeMonthIndex;
+                    const isCurrentMonth = entry.key === currentMonthKey;
+                    const hasFeatureImageKey = highlightedMonthFeatureImageKeys.has(entry.key);
+                    const featureImageUrl = highlightedMonthImageUrls[entry.key] ?? null;
+                    const monthAriaLabel = `${entry.fullLabel} ${displayedYearValue}`;
+                    const style: React.CSSProperties | undefined = featureImageUrl
+                        ? { backgroundImage: `url(${featureImageUrl})` }
+                        : undefined;
 
                     return (
                         <button
                             key={entry.key}
                             type="button"
-                            className={['nn-navigation-calendar-year-month', isSelectedMonth ? 'is-selected-month' : '']
+                            className={[
+                                'nn-navigation-calendar-year-month',
+                                isCurrentMonth ? 'is-current-month' : '',
+                                isSelectedMonth ? 'is-selected-month' : '',
+                                entry.hasDailyNote ? 'has-daily-note' : '',
+                                entry.hasUnfinishedTasks ? 'has-unfinished-tasks' : '',
+                                hasFeatureImageKey ? 'has-feature-image-key' : '',
+                                featureImageUrl ? 'has-feature-image' : ''
+                            ]
                                 .filter(Boolean)
                                 .join(' ')}
                             aria-label={monthAriaLabel}
+                            style={style}
                             onClick={event => onSelectYearMonth(event, entry.date)}
                         >
-                            {monthLabelText}
+                            <span className="nn-navigation-calendar-active-outline" aria-hidden="true" />
+                            <span className="nn-navigation-calendar-year-month-label">{entry.shortLabel}</span>
+                            {entry.hasUnfinishedTasks ? (
+                                <span className="nn-navigation-calendar-year-month-unfinished-task-indicator" aria-hidden="true" />
+                            ) : null}
                         </button>
                     );
                 })}
             </div>
-        </>
+        </div>
     );
 });

@@ -46,6 +46,18 @@ export function getPathBaseName(path: string): string {
 }
 
 /**
+ * Returns the parent folder path for a vault path.
+ * Root-level paths return "/".
+ */
+export function getParentFolderPath(path: string): string {
+    const separatorIndex = path.lastIndexOf('/');
+    if (separatorIndex === -1 || separatorIndex === 0) {
+        return '/';
+    }
+    return path.slice(0, separatorIndex);
+}
+
+/**
  * Checks whether the candidate path is the folder itself or within the folder hierarchy.
  */
 export function doesFolderContainPath(folderPath: string, candidatePath: string): boolean {

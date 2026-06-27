@@ -19,11 +19,11 @@
 import type { FileData } from '../storage/IndexedDBStorage';
 import type { PropertyTreeNode, PropertyTreeNodeId } from '../types/storage';
 import { PROPERTIES_ROOT_VIRTUAL_FOLDER_ID } from '../types';
-import type { NotebookNavigatorSettings } from '../settings';
+import type { NotebookNavigatorSettings } from '../settings/types';
 import type { IPropertyTreeProvider } from '../interfaces/IPropertyTreeProvider';
 import { isPathInExcludedFolder } from './fileFilters';
 import { getCachedCommaSeparatedList } from './commaSeparatedListUtils';
-import { normalizePropertyTreeValuePath, parseStrictWikiLink } from './propertyUtils';
+import { normalizePropertyTreeValuePath, resolvePropertyDisplayText } from './propertyUtils';
 import { casefold } from './recordUtils';
 import { naturalCompare } from './sortUtils';
 import { isRecord } from './typeGuards';
@@ -34,7 +34,7 @@ export { normalizePropertyTreeValuePath };
 export interface BuildPropertyTreeOptions {
     excludedFolderPatterns?: string[];
     includedPaths?: Set<string>;
-    includedPropertyKeys?: Set<string>;
+    includedPropertyKeys?: ReadonlySet<string>;
 }
 
 export interface PropertySelectionValue {
@@ -48,6 +48,10 @@ export type PropertySelectionNodeId = typeof PROPERTIES_ROOT_VIRTUAL_FOLDER_ID |
 
 export interface PropertyTreeDatabaseLike {
     forEachFile: (callback: (path: string, fileData: FileData) => void) => void;
+}
+
+export interface PropertyTreeFileLookupDatabaseLike {
+    getFile: (path: string) => FileData | null;
 }
 
 type PropertyTreeFilePropertyEntry = NonNullable<FileData['properties']>[number];
@@ -148,6 +152,14 @@ export function isPropertyKeyOnlyValuePath(valuePath: string, valueKind?: Proper
 }
 
 /**
+ * Checks whether a normalized property value should stay at the key level in the property tree.
+ * The tree uses value nodes for boolean literals so `true` and `false` can be selected separately.
+ */
+function isPropertyTreeKeyOnlyValuePath(valuePath: string): boolean {
+    return valuePath.length === 0;
+}
+
+/**
  * Registers direct key-level note paths for a property key node.
  */
 export function registerPropertyKeyDirectPaths(keyNode: PropertyTreeNode, directPaths: Iterable<string> = []): void {
@@ -171,6 +183,13 @@ export function collectPropertyKeyFilePaths(keyNode: PropertyTreeNode, includeDe
  */
 export function getDirectPropertyKeyNoteCount(keyNode: PropertyTreeNode): number {
     return getOrBuildDirectPropertyKeyPaths(keyNode).size;
+}
+
+/**
+ * Returns direct note paths for a key node without child value paths.
+ */
+export function getDirectPropertyKeyFilePathSet(keyNode: PropertyTreeNode): ReadonlySet<string> {
+    return getOrBuildDirectPropertyKeyPaths(keyNode);
 }
 
 function buildDirectPropertyKeyPaths(keyNode: PropertyTreeNode): Set<string> {
@@ -259,7 +278,7 @@ export function determinePropertyToReveal(
         }
 
         const normalizedValuePath = normalizePropertyTreeValuePath(entry.value);
-        if (isPropertyKeyOnlyValuePath(normalizedValuePath, entry.valueKind)) {
+        if (isPropertyTreeKeyOnlyValuePath(normalizedValuePath)) {
             keyCandidate.hasKeyOnlyValue = true;
             registerCandidate(keyCandidate.keyNodeId);
             continue;
@@ -316,7 +335,7 @@ function normalizePropertyTreeKey(value: string): string {
     return casefold(value);
 }
 
-function normalizeIncludedPropertyKeySet(includedPropertyKeys: Set<string> | undefined): Set<string> {
+function normalizeIncludedPropertyKeySet(includedPropertyKeys: ReadonlySet<string> | undefined): Set<string> {
     const normalizedKeys = new Set<string>();
     if (!includedPropertyKeys || includedPropertyKeys.size === 0) {
         return normalizedKeys;
@@ -442,7 +461,7 @@ function buildConfiguredPropertyNodeIdSet(
             nodeIds.add(buildPropertyKeyNodeId(normalizedKey));
 
             const normalizedValuePath = normalizePropertyTreeValuePath(entry.value);
-            if (!normalizedValuePath || isPropertyKeyOnlyValuePath(normalizedValuePath, entry.valueKind)) {
+            if (isPropertyTreeKeyOnlyValuePath(normalizedValuePath)) {
                 return;
             }
 
@@ -494,7 +513,12 @@ export function isPropertySelectionNodeIdConfigured(
         return true;
     }
 
-    const parsed = parsePropertyNodeId(selectionNodeId);
+    const normalizedSelectionNodeId = normalizePropertyNodeId(selectionNodeId);
+    if (!normalizedSelectionNodeId) {
+        return false;
+    }
+
+    const parsed = parsePropertyNodeId(normalizedSelectionNodeId);
     if (!parsed) {
         return false;
     }
@@ -510,7 +534,12 @@ export function isPropertySelectionNodeIdVisibleInNavigation(
         return true;
     }
 
-    const parsed = parsePropertyNodeId(selectionNodeId);
+    const normalizedSelectionNodeId = normalizePropertyNodeId(selectionNodeId);
+    if (!normalizedSelectionNodeId) {
+        return false;
+    }
+
+    const parsed = parsePropertyNodeId(normalizedSelectionNodeId);
     if (!parsed) {
         return false;
     }
@@ -543,7 +572,12 @@ export function resolvePropertySelectionNodeId(
         return selectionNodeId;
     }
 
-    const parsed = parsePropertyNodeId(selectionNodeId);
+    const normalizedSelectionNodeId = normalizePropertyNodeId(selectionNodeId);
+    if (!normalizedSelectionNodeId) {
+        return PROPERTIES_ROOT_VIRTUAL_FOLDER_ID;
+    }
+
+    const parsed = parsePropertyNodeId(normalizedSelectionNodeId);
     if (!parsed) {
         return PROPERTIES_ROOT_VIRTUAL_FOLDER_ID;
     }
@@ -733,12 +767,7 @@ function normalizePropertyTreeDisplayValuePath(rawValue: string): string {
         return '';
     }
 
-    const wikiLink = parseStrictWikiLink(trimmedValue);
-    if (wikiLink) {
-        return wikiLink.displayText;
-    }
-
-    return trimmedValue;
+    return resolvePropertyDisplayText(trimmedValue);
 }
 
 function getSelectedPropertyNodeId(selection: PropertySelectionValue | null): PropertySelectionNodeId | null {
@@ -794,7 +823,11 @@ export function parseStoredPropertySelectionNodeId(value: unknown): PropertySele
         if (value === PROPERTIES_ROOT_VIRTUAL_FOLDER_ID) {
             return PROPERTIES_ROOT_VIRTUAL_FOLDER_ID;
         }
-        return isPropertyTreeNodeId(value) ? value : null;
+        if (!isPropertyTreeNodeId(value)) {
+            return null;
+        }
+
+        return normalizePropertyNodeId(value);
     }
 
     const legacySelection = parseLegacyStoredPropertySelection(value);
@@ -803,6 +836,75 @@ export function parseStoredPropertySelectionNodeId(value: unknown): PropertySele
     }
 
     return getSelectedPropertyNodeId(legacySelection);
+}
+
+function registerPropertyTreeEntry(
+    tree: Map<string, PropertyTreeNode>,
+    path: string,
+    propertyEntry: PropertyTreeFilePropertyEntry,
+    includedPropertyKeys: ReadonlySet<string>,
+    shouldFilterPropertyKeys: boolean
+): void {
+    const normalizedKey = normalizePropertyTreeKey(propertyEntry.fieldKey);
+    if (!normalizedKey) {
+        return;
+    }
+
+    if (shouldFilterPropertyKeys && !includedPropertyKeys.has(normalizedKey)) {
+        return;
+    }
+
+    const displayKey = propertyEntry.fieldKey.trim();
+    if (!displayKey) {
+        return;
+    }
+
+    let keyNode = tree.get(normalizedKey);
+    if (!keyNode) {
+        keyNode = {
+            id: buildPropertyKeyNodeId(normalizedKey),
+            kind: 'key',
+            key: normalizedKey,
+            valuePath: null,
+            name: displayKey,
+            displayPath: displayKey,
+            children: new Map(),
+            notesWithValue: new Set()
+        };
+        registerPropertyKeyDirectPaths(keyNode);
+        tree.set(normalizedKey, keyNode);
+    }
+
+    keyNode.notesWithValue.add(path);
+
+    const normalizedValuePath = normalizePropertyTreeValuePath(propertyEntry.value);
+    if (isPropertyTreeKeyOnlyValuePath(normalizedValuePath)) {
+        getOrBuildDirectPropertyKeyPaths(keyNode).add(path);
+        return;
+    }
+
+    const displayValuePath = normalizePropertyTreeDisplayValuePath(propertyEntry.value);
+    if (!displayValuePath) {
+        return;
+    }
+
+    const nodeId = buildPropertyValueNodeId(normalizedKey, normalizedValuePath);
+    let valueNode = keyNode.children.get(nodeId);
+    if (!valueNode) {
+        valueNode = {
+            id: nodeId,
+            kind: 'value',
+            key: normalizedKey,
+            valuePath: normalizedValuePath,
+            name: displayValuePath,
+            displayPath: displayValuePath,
+            children: new Map(),
+            notesWithValue: new Set()
+        };
+        keyNode.children.set(nodeId, valueNode);
+    }
+
+    valueNode.notesWithValue.add(path);
 }
 
 /**
@@ -842,68 +944,44 @@ export function buildPropertyTreeFromDatabase(
         }
 
         for (const propertyEntry of properties) {
-            const normalizedKey = normalizePropertyTreeKey(propertyEntry.fieldKey);
-            if (!normalizedKey) {
-                continue;
-            }
-
-            if (shouldFilterPropertyKeys && !includedPropertyKeys.has(normalizedKey)) {
-                continue;
-            }
-
-            const displayKey = propertyEntry.fieldKey.trim();
-            if (!displayKey) {
-                continue;
-            }
-
-            let keyNode = tree.get(normalizedKey);
-            if (!keyNode) {
-                keyNode = {
-                    id: buildPropertyKeyNodeId(normalizedKey),
-                    kind: 'key',
-                    key: normalizedKey,
-                    valuePath: null,
-                    name: displayKey,
-                    displayPath: displayKey,
-                    children: new Map(),
-                    notesWithValue: new Set()
-                };
-                registerPropertyKeyDirectPaths(keyNode);
-                tree.set(normalizedKey, keyNode);
-            }
-
-            keyNode.notesWithValue.add(path);
-
-            const normalizedValuePath = normalizePropertyTreeValuePath(propertyEntry.value);
-            if (isPropertyKeyOnlyValuePath(normalizedValuePath, propertyEntry.valueKind)) {
-                getOrBuildDirectPropertyKeyPaths(keyNode).add(path);
-                continue;
-            }
-
-            const displayValuePath = normalizePropertyTreeDisplayValuePath(propertyEntry.value);
-            if (!displayValuePath) {
-                continue;
-            }
-
-            const nodeId = buildPropertyValueNodeId(normalizedKey, normalizedValuePath);
-            let valueNode = keyNode.children.get(nodeId);
-            if (!valueNode) {
-                valueNode = {
-                    id: nodeId,
-                    kind: 'value',
-                    key: normalizedKey,
-                    valuePath: normalizedValuePath,
-                    name: displayValuePath,
-                    displayPath: displayValuePath,
-                    children: new Map(),
-                    notesWithValue: new Set()
-                };
-                keyNode.children.set(nodeId, valueNode);
-            }
-
-            valueNode.notesWithValue.add(path);
+            registerPropertyTreeEntry(tree, path, propertyEntry, includedPropertyKeys, shouldFilterPropertyKeys);
         }
     });
+
+    return sortPropertyTreeNodes(tree);
+}
+
+/**
+ * Builds a property tree from a known set of markdown file paths.
+ * Scoped navigation uses this to keep builds proportional to the current selection.
+ */
+export function buildPropertyTreeFromFilePaths(
+    db: PropertyTreeFileLookupDatabaseLike,
+    filePaths: Iterable<string>,
+    options: Pick<BuildPropertyTreeOptions, 'includedPropertyKeys'> = {}
+): Map<string, PropertyTreeNode> {
+    propertyKeyDirectPathCache = new WeakMap<PropertyTreeNode, Set<string>>();
+
+    const tree = new Map<string, PropertyTreeNode>();
+    const hasIncludedPropertyFilter = options.includedPropertyKeys !== undefined && options.includedPropertyKeys.size > 0;
+    const includedPropertyKeys = normalizeIncludedPropertyKeySet(options.includedPropertyKeys);
+    const shouldFilterPropertyKeys = hasIncludedPropertyFilter;
+
+    for (const path of filePaths) {
+        const fileData = db.getFile(path);
+        if (!fileData) {
+            continue;
+        }
+
+        const properties = fileData.properties;
+        if (!properties || properties.length === 0) {
+            continue;
+        }
+
+        for (const propertyEntry of properties) {
+            registerPropertyTreeEntry(tree, path, propertyEntry, includedPropertyKeys, shouldFilterPropertyKeys);
+        }
+    }
 
     return sortPropertyTreeNodes(tree);
 }

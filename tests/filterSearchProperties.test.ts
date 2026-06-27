@@ -18,6 +18,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { fileMatchesFilterTokens, parseFilterSearchTokens, updateFilterQueryWithProperty } from '../src/utils/filterSearch';
+import { foldSearchText } from '../src/utils/recordUtils';
 
 describe('filterSearch property tokenization', () => {
     it('keeps quoted property values in one token', () => {
@@ -71,10 +72,18 @@ describe('filterSearch property parsing', () => {
         expect(tokens.requiresProperties).toBe(true);
         expect(tokens.expression.length).toBeGreaterThan(0);
     });
+
+    it('treats empty property values as key-only tokens', () => {
+        const includeTokens = parseFilterSearchTokens('.hidefeature=');
+        expect(includeTokens.propertyTokens).toEqual([{ key: 'hidefeature', value: null }]);
+
+        const excludeTokens = parseFilterSearchTokens('-.hidefeature=');
+        expect(excludeTokens.excludePropertyTokens).toEqual([{ key: 'hidefeature', value: null }]);
+    });
 });
 
 describe('filterSearch property evaluation', () => {
-    it('matches key-only and value tokens', () => {
+    it('matches key-only and substring value tokens', () => {
         const keyOnlyTokens = parseFilterSearchTokens('.status');
         const valueTokens = parseFilterSearchTokens('.status=work');
 
@@ -96,7 +105,7 @@ describe('filterSearch property evaluation', () => {
         );
 
         expect(fileMatchesFilterTokens('note', [], valueTokens, { hasUnfinishedTasks: false, propertyValuesByKey: statusProperties })).toBe(
-            false
+            true
         );
         expect(
             fileMatchesFilterTokens('note', [], valueTokens, { hasUnfinishedTasks: false, propertyValuesByKey: exactStatusProperties })
@@ -107,6 +116,57 @@ describe('filterSearch property evaluation', () => {
                 propertyValuesByKey: new Map<string, string[]>([['status', ['done']]])
             })
         ).toBe(false);
+    });
+
+    it('matches generated property values by partial author name', () => {
+        const fullNameTokens = parseFilterSearchTokens('.author="noam chomsky"');
+        const surnameTokens = parseFilterSearchTokens('.author=chomsky');
+
+        const fullNameAuthorProperties = new Map<string, string[]>([['author', [foldSearchText('Avram Noam Chomsky')]]]);
+        const etAlAuthorProperties = new Map<string, string[]>([['author', [foldSearchText('Chomsky et al.')]]]);
+
+        expect(
+            fileMatchesFilterTokens('note', [], fullNameTokens, {
+                hasUnfinishedTasks: false,
+                propertyValuesByKey: fullNameAuthorProperties
+            })
+        ).toBe(true);
+        expect(
+            fileMatchesFilterTokens('note', [], surnameTokens, {
+                hasUnfinishedTasks: false,
+                propertyValuesByKey: etAlAuthorProperties
+            })
+        ).toBe(true);
+    });
+
+    it('excludes files by substring property value tokens', () => {
+        const tokens = parseFilterSearchTokens('-.author=chomsky');
+
+        expect(
+            fileMatchesFilterTokens('note', [], tokens, {
+                hasUnfinishedTasks: false,
+                propertyValuesByKey: new Map<string, string[]>([['author', [foldSearchText('Avram Noam Chomsky')]]])
+            })
+        ).toBe(false);
+        expect(
+            fileMatchesFilterTokens('note', [], tokens, {
+                hasUnfinishedTasks: false,
+                propertyValuesByKey: new Map<string, string[]>([['author', [foldSearchText('Ursula K. Le Guin')]]])
+            })
+        ).toBe(true);
+    });
+
+    it('matches empty property value filters as key-only filters', () => {
+        const includeTokens = parseFilterSearchTokens('.hidefeature=');
+        const excludeTokens = parseFilterSearchTokens('-.hidefeature=');
+        const properties = new Map<string, string[]>([['hidefeature', ['true']]]);
+
+        expect(fileMatchesFilterTokens('note', [], includeTokens, { hasUnfinishedTasks: false, propertyValuesByKey: properties })).toBe(
+            true
+        );
+        expect(fileMatchesFilterTokens('note', [], excludeTokens, { hasUnfinishedTasks: false, propertyValuesByKey: properties })).toBe(
+            false
+        );
     });
 
     it('evaluates OR expressions between property tokens', () => {
@@ -132,6 +192,16 @@ describe('filterSearch property evaluation', () => {
             })
         ).toBe(false);
     });
+
+    it('matches folded property keys and values', () => {
+        const tokens = parseFilterSearchTokens('.status=accion');
+        expect(
+            fileMatchesFilterTokens('note', [], tokens, {
+                hasUnfinishedTasks: false,
+                propertyValuesByKey: new Map<string, string[]>([[foldSearchText('Státus'), [foldSearchText('Plan de acción')]]])
+            })
+        ).toBe(true);
+    });
 });
 
 describe('updateFilterQueryWithProperty', () => {
@@ -145,6 +215,13 @@ describe('updateFilterQueryWithProperty', () => {
         expect(removed.query).toBe('');
         expect(removed.action).toBe('removed');
         expect(removed.changed).toBe(true);
+    });
+
+    it('removes property tokens using folded key/value matching', () => {
+        const result = updateFilterQueryWithProperty('.Státus=acción AND .phase=done', 'status', 'accion', 'AND');
+        expect(result.query).toBe('.phase=done');
+        expect(result.action).toBe('removed');
+        expect(result.changed).toBe(true);
     });
 
     it('inserts OR connectors in expression queries', () => {
@@ -184,6 +261,16 @@ describe('updateFilterQueryWithProperty', () => {
 
         const parsed = parseFilterSearchTokens(added.query);
         expect(parsed.propertyTokens).toEqual([{ key: 'status', value: 'in=progress' }]);
+    });
+
+    it('round-trips values containing backslashes', () => {
+        const added = updateFilterQueryWithProperty('', 'path', 'C:\\Notes\\Daily', 'AND');
+        expect(added.query).toBe('.path="c:\\\\notes\\\\daily"');
+        expect(added.action).toBe('added');
+        expect(added.changed).toBe(true);
+
+        const parsed = parseFilterSearchTokens(added.query);
+        expect(parsed.propertyTokens).toEqual([{ key: 'path', value: 'c:\\notes\\daily' }]);
     });
 
     it('appends tokens without connectors in mixed queries', () => {

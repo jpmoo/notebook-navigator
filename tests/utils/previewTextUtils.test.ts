@@ -34,6 +34,18 @@ function createSettings(overrides: Partial<NotebookNavigatorSettings> = {}): Not
 describe('PreviewTextUtils.extractPreviewText', () => {
     const skipCodeSettings = createSettings({ skipHeadingsInPreview: false, skipCodeBlocksInPreview: true, stripHtmlInPreview: true });
     const includeCodeSettings = createSettings({ skipHeadingsInPreview: false, skipCodeBlocksInPreview: false, stripHtmlInPreview: true });
+    const stripLatexSettings = createSettings({
+        skipHeadingsInPreview: false,
+        skipCodeBlocksInPreview: true,
+        stripHtmlInPreview: true,
+        stripLatexInPreview: true
+    });
+    const includeCodeAndStripLatexSettings = createSettings({
+        skipHeadingsInPreview: false,
+        skipCodeBlocksInPreview: false,
+        stripHtmlInPreview: true,
+        stripLatexInPreview: true
+    });
 
     it('keeps italic content wrapped with asterisks', () => {
         const preview = PreviewTextUtils.extractPreviewText('*Italicized* text', skipCodeSettings);
@@ -218,6 +230,24 @@ describe('PreviewTextUtils.extractPreviewText', () => {
         expect(preview).toBe('Alpha red and underlined text');
     });
 
+    it('keeps word spacing after stripping adjacent html tags', () => {
+        const content = 'Alpha<b>bold</b>Beta';
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Alpha bold Beta');
+    });
+
+    it('strips script and style blocks with spaced closing tags', () => {
+        const content = 'Alpha <script>alert("hidden")</script > Beta <style>.hidden { display: none; }</style > Tail';
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Alpha Beta Tail');
+    });
+
+    it('strips script blocks with browser-accepted closing tag attributes', () => {
+        const content = 'Alpha <script>alert("hidden")</script\t\n bar="baz"> Beta';
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Alpha Beta');
+    });
+
     it('keeps html tags that are inside inline code blocks', () => {
         const content = 'Code sample `const markup = "<div>value</div>";` end';
         const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
@@ -246,6 +276,84 @@ describe('PreviewTextUtils.extractPreviewText', () => {
         const settings = createSettings({ skipHeadingsInPreview: false, skipCodeBlocksInPreview: true, stripHtmlInPreview: false });
         const preview = PreviewTextUtils.extractPreviewText('Alpha <b>bold</b> text', settings);
         expect(preview).toBe('Alpha <b>bold</b> text');
+    });
+
+    it('strips inline latex when latex stripping is enabled', () => {
+        const preview = PreviewTextUtils.extractPreviewText('Alpha $x^2 + y^2 = z^2$ tail', stripLatexSettings);
+        expect(preview).toBe('Alpha tail');
+    });
+
+    it('strips block latex when latex stripping is enabled', () => {
+        const content = ['Intro', '$$', '\\sum_{i=1}^{10} i', '$$', 'Outro'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, stripLatexSettings);
+        expect(preview).toBe('Intro Outro');
+    });
+
+    it('keeps unmatched currency dollar markers', () => {
+        const preview = PreviewTextUtils.extractPreviewText('Cost is $5 and $10', stripLatexSettings);
+        expect(preview).toBe('Cost is $5 and $10');
+    });
+
+    it('keeps currency ranges where closing dollar is followed by a digit', () => {
+        const preview = PreviewTextUtils.extractPreviewText('Price range $5-$10 today', stripLatexSettings);
+        expect(preview).toBe('Price range $5-$10 today');
+    });
+
+    it('strips single-dollar math when closing delimiter is followed by punctuation', () => {
+        const preview = PreviewTextUtils.extractPreviewText('Result is $x+1$.', stripLatexSettings);
+        expect(preview).toBe('Result is .');
+    });
+
+    it('keeps escaped opening dollars as literal text', () => {
+        const preview = PreviewTextUtils.extractPreviewText('Escaped \\$x$ tail', stripLatexSettings);
+        expect(preview).toBe('Escaped $x$ tail');
+    });
+
+    it('strips fenced-dollar math blocks with three-dollar delimiters', () => {
+        const content = ['Intro', '$$$', 'x + y = z', '$$$', 'Outro'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, stripLatexSettings);
+        expect(preview).toBe('Intro Outro');
+    });
+
+    it('does not treat opening $$ lines with trailing text as fenced-dollar blocks', () => {
+        const content = ['Intro', '$$ not-fence', 'Outro'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, stripLatexSettings);
+        expect(preview).toBe('Intro $$ not-fence Outro');
+    });
+
+    it('does not treat lines with prefix text before dollars as fenced-dollar closing lines', () => {
+        const content = ['Intro', '$$', 'x + y', 'text $$', 'Outro'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, stripLatexSettings);
+        expect(preview).toBe('Intro');
+    });
+
+    it('requires fenced-dollar closing indentation to be less than or equal to opening indentation', () => {
+        const content = ['Intro', ' $$', 'x + y', '  $$', 'Outro'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, stripLatexSettings);
+        expect(preview).toBe('Intro');
+    });
+
+    it('strips fenced-dollar blocks that include empty lines', () => {
+        const content = ['Intro', '$$', '', 'x + y', '$$', 'Outro'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, stripLatexSettings);
+        expect(preview).toBe('Intro Outro');
+    });
+
+    it('keeps inline and fenced code segments that contain dollar delimiters', () => {
+        const content = ['Inline `$x$` sample', '```', '$$x+y$$', '```', 'Tail'].join('\n');
+        const preview = PreviewTextUtils.extractPreviewText(content, includeCodeAndStripLatexSettings);
+        expect(preview).toBe('Inline $x$ sample $$x+y$$ Tail');
+    });
+
+    it('keeps latex content when latex stripping is disabled', () => {
+        const settings = createSettings({
+            skipHeadingsInPreview: false,
+            skipCodeBlocksInPreview: true,
+            stripHtmlInPreview: true,
+            stripLatexInPreview: false
+        });
+        const preview = PreviewTextUtils.extractPreviewText('Alpha $x^2 + y^2 = z^2$ tail', settings);
+        expect(preview).toBe('Alpha $x^2 + y^2 = z^2$ tail');
     });
 
     it('keeps blockquote text without trailing space', () => {
@@ -535,10 +643,33 @@ describe('PreviewTextUtils.extractPreviewText', () => {
         expect(preview).toBe('Caption');
     });
 
+    it('matches previewProperties across NFC and NFD-equivalent keys', () => {
+        const settings = createSettings({ previewProperties: ['réunion'] });
+        const frontmatter = { 're\u0301union': 'Preview from frontmatter' };
+        const preview = PreviewTextUtils.extractPreviewText('Fallback content', settings, frontmatter);
+        expect(preview).toBe('Preview from frontmatter');
+    });
+
     it('falls back to note content when previewProperties value becomes empty', () => {
         const settings = createSettings({ previewProperties: ['summary'] });
         const frontmatter = { summary: '![[image.png]]' };
         const preview = PreviewTextUtils.extractPreviewText('Fallback content', settings, frontmatter);
+        expect(preview).toBe('Fallback content');
+    });
+
+    it('returns empty preview when previewProperties fallback is disabled and property value becomes empty', () => {
+        const settings = createSettings({
+            previewProperties: ['summary'],
+            previewPropertiesFallback: false
+        });
+        const frontmatter = { summary: '![[image.png]]' };
+        const preview = PreviewTextUtils.extractPreviewText('Fallback content', settings, frontmatter);
+        expect(preview).toBe('');
+    });
+
+    it('uses note content when previewProperties fallback is disabled and no preview properties are configured', () => {
+        const settings = createSettings({ previewPropertiesFallback: false });
+        const preview = PreviewTextUtils.extractPreviewText('Fallback content', settings);
         expect(preview).toBe('Fallback content');
     });
 

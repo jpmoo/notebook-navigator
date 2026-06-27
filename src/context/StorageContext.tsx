@@ -54,19 +54,19 @@ import { useTagTreeSync } from './storage/useTagTreeSync';
 import { usePropertyTreeSync } from './storage/usePropertyTreeSync';
 import { useStorageVaultSync } from './storage/useStorageVaultSync';
 import { useStorageSettingsSync } from './storage/useStorageSettingsSync';
-import { IndexedDBStorage, FileData as DBFileData, METADATA_SENTINEL } from '../storage/IndexedDBStorage';
+import { METADATA_SENTINEL, type FileData as DBFileData, type IndexedDBStorage } from '../storage/IndexedDBStorage';
 import { getDBInstance } from '../storage/fileOperations';
 import type { StorageFileData } from './storage/storageFileData';
 import type { PropertyTreeNode, TagTreeNode } from '../types/storage';
 import { getFileDisplayName as getDisplayName } from '../utils/fileNameUtils';
 import { findTagNode, collectAllTagPaths } from '../utils/tagTree';
-import { isPdfFile } from '../utils/fileTypeUtils';
 import { useServices } from './ServicesContext';
 import { useSettingsState, useActiveProfile } from './SettingsContext';
 import { useUXPreferences } from './UXPreferencesContext';
 import type { NotebookNavigatorAPI } from '../api/NotebookNavigatorAPI';
 import { getCacheRebuildProgressTypes } from './storage/storageContentTypes';
 import { clearCacheRebuildNoticeState, getCacheRebuildNoticeState, setCacheRebuildNoticeState } from './storage/cacheRebuildNoticeStorage';
+import { shouldQueueFileThumbnailProvider } from './storageQueueFilters';
 
 /**
  * Context value providing both file data (tag tree) and the file cache
@@ -99,6 +99,38 @@ interface StorageContextValue {
 }
 
 const StorageContext = createContext<StorageContextValue | null>(null);
+
+type StorageRuntimeActiveListener = (active: boolean) => void;
+
+let activeStorageRuntimeCount = 0;
+const storageRuntimeActiveListeners = new Set<StorageRuntimeActiveListener>();
+
+function notifyStorageRuntimeActiveListeners(): void {
+    const active = activeStorageRuntimeCount > 0;
+    storageRuntimeActiveListeners.forEach(listener => {
+        listener(active);
+    });
+}
+
+function updateActiveStorageRuntimeCount(delta: 1 | -1): void {
+    const wasActive = activeStorageRuntimeCount > 0;
+    activeStorageRuntimeCount = Math.max(0, activeStorageRuntimeCount + delta);
+    if (wasActive !== activeStorageRuntimeCount > 0) {
+        notifyStorageRuntimeActiveListeners();
+    }
+}
+
+export function isStorageRuntimeActive(): boolean {
+    return activeStorageRuntimeCount > 0;
+}
+
+export function subscribeStorageRuntimeActive(listener: StorageRuntimeActiveListener): () => void {
+    storageRuntimeActiveListeners.add(listener);
+    listener(isStorageRuntimeActive());
+    return () => {
+        storageRuntimeActiveListeners.delete(listener);
+    };
+}
 
 interface StorageProviderProps {
     app: App;
@@ -175,6 +207,13 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
     // Run rebuild notice restoration once after storage initialization completes.
     const hasRestoredCacheRebuildNoticeRef = useRef(false);
 
+    useEffect(() => {
+        updateActiveStorageRuntimeCount(1);
+        return () => {
+            updateActiveStorageRuntimeCount(-1);
+        };
+    }, []);
+
     const { getVisibleMarkdownFiles, getIndexableFiles } = useStorageFileQueries({ app, latestSettingsRef, showHiddenItems });
 
     const { rebuildTagTree, scheduleTagTreeRebuild, cancelTagTreeRebuildDebouncer } = useTagTreeSync({
@@ -225,12 +264,12 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
     });
 
     const { queueIndexableFilesForContentGeneration, queueIndexableFilesNeedingContentGeneration } = useStorageContentQueue({
+        app,
         contentRegistryRef: contentRegistry,
         queueMetadataContentWhenReady
     });
 
     const { rebuildCache } = useStorageCacheRebuild({
-        api,
         contentRegistryRef: contentRegistry,
         pendingSyncTimeoutIdRef: pendingSyncTimeoutId,
         rebuildFileCacheRef,
@@ -323,6 +362,8 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
         [app, settings]
     );
 
+    const hasPreview = useCallback((path: string): boolean => getDBInstance().hasPreview(path), []);
+
     const regenerateFeatureImageForFile = useCallback(
         async (file: TFile) => {
             if (stoppedRef.current) {
@@ -334,7 +375,7 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
                 return;
             }
 
-            if (file.extension !== 'md' && !isPdfFile(file)) {
+            if (file.extension !== 'md' && !shouldQueueFileThumbnailProvider(file)) {
                 return;
             }
 
@@ -412,7 +453,7 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
             getDB: getDBInstance,
             getFile: (path: string) => getDBInstance().getFile(path),
             getFiles: (paths: string[]) => getDBInstance().getFiles(paths),
-            hasPreview: (path: string) => getDBInstance().hasPreview(path),
+            hasPreview,
             isStorageReady,
             getTagTree,
             getPropertyTree,
@@ -429,6 +470,7 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
         getFileModifiedTime,
         getFileTimestamps,
         getFileMetadata,
+        hasPreview,
         isStorageReady,
         rebuildCache,
         regenerateFeatureImageForFile

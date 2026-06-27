@@ -17,20 +17,23 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { App, TFile } from 'obsidian';
+import { App, TFile, TFolder } from 'obsidian';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import type { NotebookNavigatorSettings, VaultProfile } from '../../src/settings/types';
 import type { VisibilityPreferences } from '../../src/types';
 import type { ITagTreeProvider } from '../../src/interfaces/ITagTreeProvider';
 import type { TagTreeNode } from '../../src/types/storage';
+import type { PropertyItem } from '../../src/storage/IndexedDBStorage';
 import { FILE_VISIBILITY } from '../../src/utils/fileTypeUtils';
-import { getFilesForTag } from '../../src/utils/fileFinder';
+import { getFilesForFolder, getFilesForProperty, getFilesForTag } from '../../src/utils/fileFinder';
+import { buildPropertyKeyNodeId } from '../../src/utils/propertyTree';
+import { setActivePropertyFields } from '../../src/utils/vaultProfiles';
 import { createTestTFile } from './createTestTFile';
 
-const fileDataByPath = new Map<string, { tags: readonly string[] | null }>();
+const fileDataByPath = new Map<string, { tags: readonly string[] | null; properties: PropertyItem[] | null }>();
 
 const db = {
-    getFile(path: string): { tags: readonly string[] | null } | null {
+    getFile(path: string): { tags: readonly string[] | null; properties: PropertyItem[] | null } | null {
         return fileDataByPath.get(path) ?? null;
     }
 };
@@ -69,6 +72,7 @@ function createAppWithFiles(files: TFile[]): App {
     const allFiles = (): TFile[] => Array.from(filesByPath.values());
 
     Reflect.set(app.vault, 'getFileByPath', (path: string) => filesByPath.get(path) ?? null);
+    Reflect.set(app.vault, 'getAbstractFileByPath', (path: string) => filesByPath.get(path) ?? null);
     Reflect.set(app.vault, 'getFiles', () => allFiles());
     Reflect.set(app.vault, 'getMarkdownFiles', () => allFiles().filter(file => file.extension === 'md'));
 
@@ -100,12 +104,55 @@ function createTagNode(path: string, displayPath: string): TagTreeNode {
 }
 
 function setFileTags(file: TFile, tags: readonly string[]): void {
-    fileDataByPath.set(file.path, { tags: [...tags] });
+    const existing = fileDataByPath.get(file.path);
+    fileDataByPath.set(file.path, {
+        tags: [...tags],
+        properties: existing?.properties ?? null
+    });
+}
+
+function setFileProperties(file: TFile, properties: PropertyItem[]): void {
+    const existing = fileDataByPath.get(file.path);
+    fileDataByPath.set(file.path, {
+        tags: existing?.tags ?? null,
+        properties: [...properties]
+    });
+}
+
+function createFolder(path: string, children: TFile[]): TFolder {
+    const folder = new TFolder() as TFolder & { children: TFile[] };
+    folder.path = path;
+    folder.name = path.split('/').pop() ?? path;
+    folder.children = children;
+    children.forEach(child => {
+        Reflect.set(child, 'parent', folder);
+    });
+    return folder;
 }
 
 function toSortedPaths(files: TFile[]): string[] {
     return files.map(file => file.path).sort();
 }
+
+describe('fileFinder getFilesForFolder', () => {
+    it('honors the Excalidraw rendered preview image hiding setting', () => {
+        const drawing = createTestTFile('Drawings/Sketch.excalidraw.md');
+        const companionImage = createTestTFile('Drawings/Sketch.excalidraw.png');
+        const normalImage = createTestTFile('Drawings/Cover.png');
+        const folder = createFolder('Drawings', [drawing, companionImage, normalImage]);
+        const app = createAppWithFiles([drawing, companionImage, normalImage]);
+        const visibility: VisibilityPreferences = { includeDescendantNotes: false, showHiddenItems: false };
+
+        expect(toSortedPaths(getFilesForFolder(folder, createSettings(), visibility, app))).toEqual([
+            'Drawings/Cover.png',
+            'Drawings/Sketch.excalidraw.md'
+        ]);
+
+        expect(toSortedPaths(getFilesForFolder(folder, { ...createSettings(), hideDrawingPreviewImages: false }, visibility, app))).toEqual(
+            ['Drawings/Cover.png', 'Drawings/Sketch.excalidraw.md', 'Drawings/Sketch.excalidraw.png']
+        );
+    });
+});
 
 describe('fileFinder getFilesForTag', () => {
     beforeEach(() => {
@@ -234,5 +281,134 @@ describe('fileFinder getFilesForTag', () => {
         const files = getFilesForTag('projects', createSettings(), visibility, app, tagTreeService);
 
         expect(toSortedPaths(files)).toEqual([rootTagFile.path]);
+    });
+
+    it('keeps tag pins visible in tag views when folder pin scoping is enabled', () => {
+        const rootTagFile = createTestTFile('notes/root.md');
+        rootTagFile.stat.mtime = 20;
+        rootTagFile.stat.ctime = 20;
+        setFileTags(rootTagFile, ['projects']);
+
+        const childTagFile = createTestTFile('notes/child.md');
+        childTagFile.stat.mtime = 10;
+        childTagFile.stat.ctime = 10;
+        setFileTags(childTagFile, ['projects/client']);
+
+        const settings = createSettings();
+        settings.filterPinnedByFolder = true;
+        settings.pinnedNotes = {
+            [childTagFile.path]: { folder: false, tag: true, property: false }
+        };
+
+        const app = createAppWithFiles([rootTagFile, childTagFile]);
+        const projectsNode = createTagNode('projects', 'Projects');
+        const tagTreeService = createTagTreeService({
+            hasNodes: () => true,
+            findTagNode: () => projectsNode,
+            collectTagFilePaths: () => [rootTagFile.path, childTagFile.path]
+        });
+
+        const files = getFilesForTag('projects', settings, { includeDescendantNotes: true, showHiddenItems: false }, app, tagTreeService);
+
+        expect(files.map(file => file.path)).toEqual([childTagFile.path, rootTagFile.path]);
+    });
+
+    it('skips tag ordering work when orderResults is disabled', () => {
+        const rootTagFile = createTestTFile('notes/root.md');
+        rootTagFile.stat.mtime = 20;
+        rootTagFile.stat.ctime = 20;
+        setFileTags(rootTagFile, ['projects']);
+
+        const childTagFile = createTestTFile('notes/child.md');
+        childTagFile.stat.mtime = 10;
+        childTagFile.stat.ctime = 10;
+        setFileTags(childTagFile, ['projects/client']);
+
+        const settings = createSettings();
+        settings.filterPinnedByFolder = true;
+        settings.pinnedNotes = {
+            [childTagFile.path]: { folder: false, tag: true, property: false }
+        };
+
+        const app = createAppWithFiles([rootTagFile, childTagFile]);
+        const projectsNode = createTagNode('projects', 'Projects');
+        const tagTreeService = createTagTreeService({
+            hasNodes: () => true,
+            findTagNode: () => projectsNode,
+            collectTagFilePaths: () => [rootTagFile.path, childTagFile.path]
+        });
+
+        const files = getFilesForTag('projects', settings, { includeDescendantNotes: true, showHiddenItems: false }, app, tagTreeService, {
+            orderResults: false
+        });
+
+        expect(files.map(file => file.path)).toEqual([rootTagFile.path, childTagFile.path]);
+    });
+});
+
+describe('fileFinder getFilesForProperty', () => {
+    beforeEach(() => {
+        fileDataByPath.clear();
+    });
+
+    it('keeps property pins visible in property views when folder pin scoping is enabled', () => {
+        const keyOnlyFile = createTestTFile('notes/key-only.md');
+        keyOnlyFile.stat.mtime = 20;
+        keyOnlyFile.stat.ctime = 20;
+        setFileProperties(keyOnlyFile, [{ fieldKey: 'status', value: '', valueKind: 'string' }]);
+
+        const valueFile = createTestTFile('notes/value.md');
+        valueFile.stat.mtime = 10;
+        valueFile.stat.ctime = 10;
+        setFileProperties(valueFile, [{ fieldKey: 'status', value: 'work/anthropic', valueKind: 'string' }]);
+
+        const settings = createSettings();
+        setActivePropertyFields(settings, 'status');
+        settings.filterPinnedByFolder = true;
+        settings.pinnedNotes = {
+            [valueFile.path]: { folder: false, tag: false, property: true }
+        };
+
+        const app = createAppWithFiles([keyOnlyFile, valueFile]);
+        const files = getFilesForProperty(
+            buildPropertyKeyNodeId('status'),
+            settings,
+            { includeDescendantNotes: true, showHiddenItems: false },
+            app,
+            null
+        );
+
+        expect(files.map(file => file.path)).toEqual([valueFile.path, keyOnlyFile.path]);
+    });
+
+    it('skips property ordering work when orderResults is disabled', () => {
+        const keyOnlyFile = createTestTFile('notes/key-only.md');
+        keyOnlyFile.stat.mtime = 20;
+        keyOnlyFile.stat.ctime = 20;
+        setFileProperties(keyOnlyFile, [{ fieldKey: 'status', value: '', valueKind: 'string' }]);
+
+        const valueFile = createTestTFile('notes/value.md');
+        valueFile.stat.mtime = 10;
+        valueFile.stat.ctime = 10;
+        setFileProperties(valueFile, [{ fieldKey: 'status', value: 'work/anthropic', valueKind: 'string' }]);
+
+        const settings = createSettings();
+        setActivePropertyFields(settings, 'status');
+        settings.filterPinnedByFolder = true;
+        settings.pinnedNotes = {
+            [valueFile.path]: { folder: false, tag: false, property: true }
+        };
+
+        const app = createAppWithFiles([keyOnlyFile, valueFile]);
+        const files = getFilesForProperty(
+            buildPropertyKeyNodeId('status'),
+            settings,
+            { includeDescendantNotes: true, showHiddenItems: false },
+            app,
+            null,
+            { orderResults: false }
+        );
+
+        expect(files.map(file => file.path)).toEqual([keyOnlyFile.path, valueFile.path]);
     });
 });

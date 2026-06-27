@@ -17,7 +17,12 @@
  */
 
 import { App } from 'obsidian';
-import { NotebookNavigatorSettings, SortOption, type AlphaSortOrder } from '../../settings';
+import {
+    normalizeListSortOverride,
+    type AlphaSortOrder,
+    type ListSortOverrideValue,
+    type NotebookNavigatorSettings
+} from '../../settings/types';
 import { ItemType } from '../../types';
 import { ISettingsProvider } from '../../interfaces/ISettingsProvider';
 import { FolderAppearance, TagAppearance } from '../../hooks/useListPaneAppearance';
@@ -34,21 +39,24 @@ type MetadataFields = {
     folderIcons: Record<string, string>;
     folderColors: Record<string, string>;
     folderBackgroundColors: Record<string, string>;
-    folderSortOverrides: Record<string, SortOption>;
+    folderSortOverrides: Record<string, ListSortOverrideValue>;
     folderTreeSortOverrides: Record<string, AlphaSortOrder>;
     folderAppearances: Record<string, FolderAppearance>;
     fileIcons: Record<string, string>;
     fileColors: Record<string, string>;
+    fileBackgroundColors: Record<string, string>;
     tagColors: Record<string, string>;
     tagIcons: Record<string, string>;
     tagBackgroundColors: Record<string, string>;
-    tagSortOverrides: Record<string, SortOption>;
+    tagSortOverrides: Record<string, ListSortOverrideValue>;
     tagTreeSortOverrides: Record<string, AlphaSortOrder>;
     tagAppearances: Record<string, TagAppearance>;
     propertyIcons: Record<string, string>;
     propertyColors: Record<string, string>;
     propertyBackgroundColors: Record<string, string>;
+    propertySortOverrides: Record<string, ListSortOverrideValue>;
     propertyTreeSortOverrides: Record<string, AlphaSortOrder>;
+    propertyAppearances: Record<string, FolderAppearance>;
 };
 
 type ColorRecordKey =
@@ -58,7 +66,8 @@ type ColorRecordKey =
     | 'folderBackgroundColors'
     | 'tagBackgroundColors'
     | 'propertyBackgroundColors'
-    | 'fileColors';
+    | 'fileColors'
+    | 'fileBackgroundColors';
 type ColorVariant = 'color' | 'background';
 
 type MetadataKey = keyof MetadataFields;
@@ -223,7 +232,7 @@ export abstract class BaseMetadataService {
         if (entityType === ItemType.PROPERTY) {
             return variant === 'color' ? 'propertyColors' : 'propertyBackgroundColors';
         }
-        return 'fileColors';
+        return variant === 'color' ? 'fileColors' : 'fileBackgroundColors';
     }
 
     // Ensures a color record exists in settings and returns it
@@ -376,30 +385,47 @@ export abstract class BaseMetadataService {
     // ========== Generic Sort Override Management ==========
 
     /**
-     * Sets a custom sort order for an entity (folder or tag)
-     * @param entityType - Type of entity ('folder' or 'tag')
+     * Sets a custom sort order for an entity.
+     * @param entityType - Type of entity ('folder', 'tag', or 'property')
      * @param path - Path of the entity
-     * @param sortOption - Sort option to apply
+     * @param sortOverride - Sort override to apply
      */
-    protected async setEntitySortOverride(entityType: EntityType, path: string, sortOption: SortOption): Promise<void> {
+    protected async setEntitySortOverride(entityType: EntityType, path: string, sortOverride: ListSortOverrideValue): Promise<void> {
         await this.saveAndUpdate(settings => {
+            const normalizedOverride = normalizeListSortOverride(sortOverride);
+            if (!normalizedOverride) {
+                return false;
+            }
+
             if (entityType === ItemType.FOLDER) {
                 const overrides = ensureRecord(settings.folderSortOverrides);
                 const next = sanitizeRecord(overrides);
-                next[path] = sortOption;
+                next[path] = normalizedOverride;
                 settings.folderSortOverrides = next;
-            } else {
+                return;
+            }
+            if (entityType === ItemType.TAG) {
                 const overrides = ensureRecord(settings.tagSortOverrides);
                 const next = sanitizeRecord(overrides);
-                next[path] = sortOption;
+                next[path] = normalizedOverride;
                 settings.tagSortOverrides = next;
+                return;
             }
+            if (entityType === ItemType.PROPERTY) {
+                const overrides = ensureRecord(settings.propertySortOverrides);
+                const next = sanitizeRecord(overrides);
+                next[path] = normalizedOverride;
+                settings.propertySortOverrides = next;
+                return;
+            }
+
+            return false;
         });
     }
 
     /**
-     * Removes the custom sort order from an entity
-     * @param entityType - Type of entity ('folder' or 'tag')
+     * Removes the custom sort order from an entity.
+     * @param entityType - Type of entity ('folder', 'tag', or 'property')
      * @param path - Path of the entity
      */
     protected async removeEntitySortOverride(entityType: EntityType, path: string): Promise<void> {
@@ -417,20 +443,33 @@ export abstract class BaseMetadataService {
                 delete next[path];
                 settings.tagSortOverrides = next;
             });
+        } else if (entityType === ItemType.PROPERTY && this.settingsProvider.settings.propertySortOverrides?.[path]) {
+            await this.saveAndUpdate(settings => {
+                const overrides = ensureRecord(settings.propertySortOverrides);
+                const next = sanitizeRecord(overrides);
+                delete next[path];
+                settings.propertySortOverrides = next;
+            });
         }
     }
 
     /**
      * Gets the sort override for an entity
-     * @param entityType - Type of entity ('folder' or 'tag')
+     * @param entityType - Type of entity ('folder', 'tag', or 'property')
      * @param path - Path of the entity
-     * @returns The sort option or undefined
+     * @returns The sort override or undefined
      */
-    protected getEntitySortOverride(entityType: EntityType, path: string): SortOption | undefined {
+    protected getEntitySortOverride(entityType: EntityType, path: string): ListSortOverrideValue | undefined {
         if (entityType === ItemType.FOLDER) {
             return this.settingsProvider.settings.folderSortOverrides?.[path];
         }
-        return this.settingsProvider.settings.tagSortOverrides?.[path];
+        if (entityType === ItemType.TAG) {
+            return this.settingsProvider.settings.tagSortOverrides?.[path];
+        }
+        if (entityType === ItemType.PROPERTY) {
+            return this.settingsProvider.settings.propertySortOverrides?.[path];
+        }
+        return undefined;
     }
 
     // ========== Generic Child Sort Order Overrides (Navigation Tree) ==========
@@ -560,13 +599,15 @@ export abstract class BaseMetadataService {
         let hasChanges = false;
         // We know metadata is an object with string keys
         const metadataObj = metadata as Record<string, unknown>;
+        const metadataPaths = Object.keys(metadataObj);
 
-        for (const path in metadataObj) {
+        for (const path of metadataPaths) {
             if (!validator(path)) {
                 delete metadataObj[path];
                 hasChanges = true;
             }
         }
+
         return hasChanges;
     }
 

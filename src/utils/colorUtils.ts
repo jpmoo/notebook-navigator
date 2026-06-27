@@ -335,6 +335,445 @@ export function parseCssColor(input: string | null | undefined, options?: ColorP
 // Color Formatting and Comparison
 // ============================================================================
 
+interface Oklab {
+    l: number;
+    a: number;
+    b: number;
+}
+
+interface Oklch {
+    l: number;
+    c: number;
+    h: number;
+}
+
+interface LinearRGB {
+    r: number;
+    g: number;
+    b: number;
+}
+
+/** Clamps a normalized value to the valid range [0, 1]. */
+function clampUnit(value: number): number {
+    if (Number.isNaN(value) || !Number.isFinite(value)) {
+        return 0;
+    }
+    if (value <= 0) {
+        return 0;
+    }
+    if (value >= 1) {
+        return 1;
+    }
+    return value;
+}
+
+/** Linearly interpolates between two numbers. */
+function lerp(left: number, right: number, t: number): number {
+    return left + (right - left) * t;
+}
+
+/** Formats an RGBA object into an rgba() string. */
+export function toCssRgba(color: RGBA): string {
+    const r = Math.round(clampChannel(color.r));
+    const g = Math.round(clampChannel(color.g));
+    const b = Math.round(clampChannel(color.b));
+    const a = Math.round(clampUnit(color.a) * 1000) / 1000;
+    return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+
+function srgbChannelToLinear(channel: number): number {
+    const normalized = clampUnit(channel);
+    if (normalized <= 0.04045) {
+        return normalized / 12.92;
+    }
+    return Math.pow((normalized + 0.055) / 1.055, 2.4);
+}
+
+function linearChannelToSrgb(channel: number): number {
+    if (!Number.isFinite(channel)) {
+        return 0;
+    }
+    if (channel <= 0) {
+        return 0;
+    }
+    if (channel >= 1) {
+        return 1;
+    }
+    if (channel <= 0.0031308) {
+        return 12.92 * channel;
+    }
+    return 1.055 * Math.pow(channel, 1 / 2.4) - 0.055;
+}
+
+function rgbToOklab(color: RGBA): Oklab {
+    const red = srgbChannelToLinear(color.r / 255);
+    const green = srgbChannelToLinear(color.g / 255);
+    const blue = srgbChannelToLinear(color.b / 255);
+
+    const lChannel = 0.4122214708 * red + 0.5363325363 * green + 0.0514459929 * blue;
+    const mChannel = 0.2119034982 * red + 0.6806995451 * green + 0.1073969566 * blue;
+    const sChannel = 0.0883024619 * red + 0.2817188376 * green + 0.6299787005 * blue;
+
+    const lPrime = Math.cbrt(lChannel);
+    const mPrime = Math.cbrt(mChannel);
+    const sPrime = Math.cbrt(sChannel);
+
+    return {
+        l: 0.2104542553 * lPrime + 0.793617785 * mPrime - 0.0040720468 * sPrime,
+        a: 1.9779984951 * lPrime - 2.428592205 * mPrime + 0.4505937099 * sPrime,
+        b: 0.0259040371 * lPrime + 0.7827717662 * mPrime - 0.808675766 * sPrime
+    };
+}
+
+function oklabToLinearRgb(lab: Oklab): LinearRGB {
+    const lPrime = lab.l + 0.3963377774 * lab.a + 0.2158037573 * lab.b;
+    const mPrime = lab.l - 0.1055613458 * lab.a - 0.0638541728 * lab.b;
+    const sPrime = lab.l - 0.0894841775 * lab.a - 1.291485548 * lab.b;
+
+    const lChannel = lPrime * lPrime * lPrime;
+    const mChannel = mPrime * mPrime * mPrime;
+    const sChannel = sPrime * sPrime * sPrime;
+
+    return {
+        r: 4.0767416621 * lChannel - 3.3077115913 * mChannel + 0.2309699292 * sChannel,
+        g: -1.2684380046 * lChannel + 2.6097574011 * mChannel - 0.3413193965 * sChannel,
+        b: -0.0041960863 * lChannel - 0.7034186147 * mChannel + 1.707614701 * sChannel
+    };
+}
+
+function oklchToOklab(oklch: Oklch): Oklab {
+    const hueRadians = (oklch.h * Math.PI) / 180;
+    return {
+        l: oklch.l,
+        a: Math.cos(hueRadians) * oklch.c,
+        b: Math.sin(hueRadians) * oklch.c
+    };
+}
+
+function oklchToLinearRgb(oklch: Oklch): LinearRGB {
+    return oklabToLinearRgb(oklchToOklab(oklch));
+}
+
+function isLinearRgbInGamut(rgb: LinearRGB): boolean {
+    return rgb.r >= 0 && rgb.r <= 1 && rgb.g >= 0 && rgb.g <= 1 && rgb.b >= 0 && rgb.b <= 1;
+}
+
+function linearRgbToRgba(rgb: LinearRGB, alpha: number): RGBA {
+    const red = linearChannelToSrgb(rgb.r);
+    const green = linearChannelToSrgb(rgb.g);
+    const blue = linearChannelToSrgb(rgb.b);
+    return {
+        r: red * 255,
+        g: green * 255,
+        b: blue * 255,
+        a: clampUnit(alpha)
+    };
+}
+
+function rgbaToLinearRgb(color: RGBA): LinearRGB {
+    return {
+        r: srgbChannelToLinear(color.r / 255),
+        g: srgbChannelToLinear(color.g / 255),
+        b: srgbChannelToLinear(color.b / 255)
+    };
+}
+
+function relativeLuminanceFromLinearRgb(color: LinearRGB): number {
+    return 0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b;
+}
+
+function relativeLuminanceFromRgba(color: RGBA): number {
+    return relativeLuminanceFromLinearRgb(rgbaToLinearRgb(color));
+}
+
+function adjustRgbaToTargetLuminance(color: RGBA, targetLuminance: number): RGBA {
+    const target = clampUnit(targetLuminance);
+    const linear = rgbaToLinearRgb(color);
+    const current = relativeLuminanceFromLinearRgb(linear);
+
+    if (!Number.isFinite(current)) {
+        return color;
+    }
+
+    if (Math.abs(current - target) <= 0.0005) {
+        return color;
+    }
+
+    if (target <= 0) {
+        return linearRgbToRgba({ r: 0, g: 0, b: 0 }, color.a);
+    }
+
+    if (target >= 1) {
+        return linearRgbToRgba({ r: 1, g: 1, b: 1 }, color.a);
+    }
+
+    if (current <= 0) {
+        return linearRgbToRgba({ r: target, g: target, b: target }, color.a);
+    }
+
+    if (current > target) {
+        const scale = target / current;
+        return linearRgbToRgba({ r: linear.r * scale, g: linear.g * scale, b: linear.b * scale }, color.a);
+    }
+
+    const blend = (target - current) / (1 - current);
+    return linearRgbToRgba(
+        {
+            r: linear.r + (1 - linear.r) * blend,
+            g: linear.g + (1 - linear.g) * blend,
+            b: linear.b + (1 - linear.b) * blend
+        },
+        color.a
+    );
+}
+
+function rgbToOklch(color: RGBA): Oklch {
+    const lab = rgbToOklab(color);
+    const chroma = Math.sqrt(lab.a * lab.a + lab.b * lab.b);
+    const hueRadians = chroma > 0 ? Math.atan2(lab.b, lab.a) : 0;
+    const hueDegrees = ((hueRadians * 180) / Math.PI + 360) % 360;
+    return { l: lab.l, c: chroma, h: hueDegrees };
+}
+
+function oklchToRgbaGamutMapped(oklch: Oklch, alpha: number): RGBA {
+    const lightness = clampUnit(oklch.l);
+    const hue = ((oklch.h % 360) + 360) % 360;
+    const chroma = Math.max(0, oklch.c);
+    const normalized = { l: lightness, c: chroma, h: hue };
+    const direct = oklchToLinearRgb(normalized);
+    if (isLinearRgbInGamut(direct)) {
+        return linearRgbToRgba(direct, alpha);
+    }
+
+    let lowChroma = 0;
+    let highChroma = chroma;
+    for (let i = 0; i < 20; i++) {
+        const midChroma = (lowChroma + highChroma) / 2;
+        const candidate = oklchToLinearRgb({ ...normalized, c: midChroma });
+        if (isLinearRgbInGamut(candidate)) {
+            lowChroma = midChroma;
+        } else {
+            highChroma = midChroma;
+        }
+    }
+
+    const mapped = oklchToLinearRgb({ ...normalized, c: lowChroma });
+    return linearRgbToRgba(mapped, alpha);
+}
+
+function interpolateRgb(start: RGBA, end: RGBA, t: number): RGBA {
+    const clampedT = clampUnit(t);
+    return {
+        r: lerp(start.r, end.r, clampedT),
+        g: lerp(start.g, end.g, clampedT),
+        b: lerp(start.b, end.b, clampedT),
+        a: lerp(start.a, end.a, clampedT)
+    };
+}
+
+interface HSLA {
+    h: number;
+    s: number;
+    l: number;
+    a: number;
+}
+
+/** Converts an RGBA color to HSLA. */
+function rgbaToHsla(color: RGBA): HSLA {
+    const r = clampChannel(color.r) / 255;
+    const g = clampChannel(color.g) / 255;
+    const b = clampChannel(color.b) / 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const delta = max - min;
+    const l = (max + min) / 2;
+
+    if (delta === 0) {
+        return { h: 0, s: 0, l, a: clampAlpha(color.a) };
+    }
+
+    const s = delta / (1 - Math.abs(2 * l - 1));
+    let h: number;
+
+    if (max === r) {
+        h = ((g - b) / delta) % 6;
+    } else if (max === g) {
+        h = (b - r) / delta + 2;
+    } else {
+        h = (r - g) / delta + 4;
+    }
+
+    return {
+        h: (h * 60 + 360) % 360,
+        s,
+        l,
+        a: clampAlpha(color.a)
+    };
+}
+
+/** Converts a hue sector value to an RGB channel. */
+function hueToRgb(p: number, q: number, t: number): number {
+    let normalizedT = t;
+    if (normalizedT < 0) {
+        normalizedT += 1;
+    }
+    if (normalizedT > 1) {
+        normalizedT -= 1;
+    }
+    if (normalizedT < 1 / 6) {
+        return p + (q - p) * 6 * normalizedT;
+    }
+    if (normalizedT < 1 / 2) {
+        return q;
+    }
+    if (normalizedT < 2 / 3) {
+        return p + (q - p) * (2 / 3 - normalizedT) * 6;
+    }
+    return p;
+}
+
+/** Converts an HSLA color to RGBA. */
+function hslaToRgba(color: HSLA): RGBA {
+    const h = (((color.h % 360) + 360) % 360) / 360;
+    const s = clampUnit(color.s);
+    const l = clampUnit(color.l);
+    const a = clampAlpha(color.a);
+
+    if (s === 0) {
+        const channel = clampChannel(l * 255);
+        return { r: channel, g: channel, b: channel, a };
+    }
+
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    return {
+        r: clampChannel(hueToRgb(p, q, h + 1 / 3) * 255),
+        g: clampChannel(hueToRgb(p, q, h) * 255),
+        b: clampChannel(hueToRgb(p, q, h - 1 / 3) * 255),
+        a
+    };
+}
+
+/**
+ * Builds a hue interpolator in OKLCH space and keeps luminance aligned with the end-point ramp.
+ */
+export function createHueInterpolator(start: RGBA, end: RGBA): (t: number) => RGBA {
+    const startLch = rgbToOklch(start);
+    const endLch = rgbToOklch(end);
+    const startLuminance = relativeLuminanceFromRgba(start);
+    const endLuminance = relativeLuminanceFromRgba(end);
+
+    let hueDelta = endLch.h - startLch.h;
+    if (hueDelta < 0) {
+        hueDelta += 360;
+    }
+
+    return (t: number) => {
+        const clampedT = clampUnit(t);
+        if (clampedT <= 0) {
+            return start;
+        }
+        if (clampedT >= 1) {
+            return end;
+        }
+
+        const h = (startLch.h + hueDelta * clampedT) % 360;
+        const l = lerp(startLch.l, endLch.l, clampedT);
+        const c = lerp(startLch.c, endLch.c, clampedT);
+        const color = oklchToRgbaGamutMapped({ l, c, h }, lerp(start.a, end.a, clampedT));
+        const targetLuminance = lerp(startLuminance, endLuminance, clampedT);
+        return adjustRgbaToTargetLuminance(color, targetLuminance);
+    };
+}
+
+/** Builds a hue interpolator in HSL space without OKLCH luminance balancing. */
+function createSimpleHueInterpolator(start: RGBA, end: RGBA): (t: number) => RGBA {
+    const startHsl = rgbaToHsla(start);
+    const endHsl = rgbaToHsla(end);
+
+    let hueDelta = endHsl.h - startHsl.h;
+    if (hueDelta < 0) {
+        hueDelta += 360;
+    }
+
+    return (t: number) => {
+        const clampedT = clampUnit(t);
+        if (clampedT <= 0) {
+            return start;
+        }
+        if (clampedT >= 1) {
+            return end;
+        }
+
+        return hslaToRgba({
+            h: (startHsl.h + hueDelta * clampedT) % 360,
+            s: lerp(startHsl.s, endHsl.s, clampedT),
+            l: lerp(startHsl.l, endHsl.l, clampedT),
+            a: lerp(startHsl.a, endHsl.a, clampedT)
+        });
+    };
+}
+
+/** Builds a fixed-size palette for a start/end gradient and a transition style. */
+export function buildRainbowPalette(params: {
+    steps: number;
+    start: RGBA;
+    end: RGBA;
+    style: 'hue' | 'rgb';
+    balanceHueLuminance?: boolean;
+}): string[] {
+    const steps = Math.max(2, Math.floor(params.steps));
+    const maxIndex = steps - 1;
+
+    const palette = new Array<string>(steps);
+    if (params.style === 'hue') {
+        const interpolate =
+            params.balanceHueLuminance === false
+                ? createSimpleHueInterpolator(params.start, params.end)
+                : createHueInterpolator(params.start, params.end);
+        for (let i = 0; i < steps; i++) {
+            palette[i] = toCssRgba(interpolate(i / maxIndex));
+        }
+        return palette;
+    }
+
+    for (let i = 0; i < steps; i++) {
+        palette[i] = toCssRgba(interpolateRgb(params.start, params.end, i / maxIndex));
+    }
+
+    return palette;
+}
+
+/** Assigns key-to-color entries by indexing into a precomputed palette. */
+export function assignRainbowColorsFromPalette(params: {
+    keys: readonly string[];
+    palette: readonly string[];
+    target: Map<string, string>;
+}): void {
+    const { keys, palette, target } = params;
+    if (keys.length === 0 || palette.length === 0) {
+        return;
+    }
+
+    const maxIndex = Math.max(1, keys.length - 1);
+    const paletteMax = palette.length - 1;
+    for (let i = 0; i < keys.length; i++) {
+        const t = i / maxIndex;
+        const paletteIndex = Math.min(paletteMax, Math.max(0, Math.round(t * paletteMax)));
+        const value = palette[paletteIndex];
+        if (value) {
+            target.set(keys[i], value);
+        }
+    }
+}
+
+/** Builds a key-to-color map by indexing into a precomputed palette. */
+export function buildRainbowColorMapFromPalette(params: { keys: readonly string[]; palette: readonly string[] }): Map<string, string> {
+    const result = new Map<string, string>();
+    assignRainbowColorsFromPalette({ ...params, target: result });
+    return result;
+}
+
 /**
  * Formats an RGBA object into an rgb() string without alpha.
  * Always returns a solid (opaque) color string suitable for CSS.
@@ -489,4 +928,35 @@ export function compositeWithBase(
     // Step 4: Perform alpha compositing and return solid color
     const blended = compositeOntoBase(effectiveBase, overlay);
     return formatRgb(blended);
+}
+
+// ============================================================================
+// File Row Background Resolution
+// ============================================================================
+
+interface ResolveFileRowBackgroundColorParams {
+    customBackgroundColor?: string;
+    taskUnfinished?: number | null;
+    showUnfinishedTaskBackground: boolean;
+    unfinishedTaskBackgroundColor: string;
+    getSolidBackground: (color?: string | null) => string | undefined;
+}
+
+export function resolveFileRowBackgroundColor({
+    customBackgroundColor,
+    taskUnfinished,
+    showUnfinishedTaskBackground,
+    unfinishedTaskBackgroundColor,
+    getSolidBackground
+}: ResolveFileRowBackgroundColorParams): string | undefined {
+    const taskBackgroundColor =
+        showUnfinishedTaskBackground && typeof taskUnfinished === 'number' && taskUnfinished > 0
+            ? unfinishedTaskBackgroundColor
+            : undefined;
+
+    return getSolidBackground(taskBackgroundColor ?? customBackgroundColor);
+}
+
+export function hasSolidFileRowBackground(params: ResolveFileRowBackgroundColorParams): boolean {
+    return Boolean(resolveFileRowBackgroundColor(params));
 }

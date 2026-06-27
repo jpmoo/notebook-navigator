@@ -16,11 +16,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { WorkspaceLeaf } from 'obsidian';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { App } from 'obsidian';
 import { CommandQueueService } from '../../src/services/CommandQueueService';
-import { shouldSkipNavigatorAutoReveal } from '../../src/utils/autoRevealUtils';
+import { isLeafInNavigatorWindow, shouldSkipNavigatorAutoReveal } from '../../src/utils/autoRevealUtils';
 import { createTestTFile } from './createTestTFile';
+
+function createMockLeaf(win: Window): WorkspaceLeaf {
+    return {
+        getContainer: () => ({ win })
+    } as unknown as WorkspaceLeaf;
+}
 
 describe('shouldSkipNavigatorAutoReveal', () => {
     beforeEach(() => {
@@ -33,8 +39,7 @@ describe('shouldSkipNavigatorAutoReveal', () => {
     });
 
     it('skips auto-reveal for navigator preview opens (active: false)', async () => {
-        const app = new App();
-        const commandQueue = new CommandQueueService(app);
+        const commandQueue = new CommandQueueService();
         const file = createTestTFile('notes/note.md');
 
         let resolveOpenFile: () => void = () => {
@@ -71,8 +76,7 @@ describe('shouldSkipNavigatorAutoReveal', () => {
     });
 
     it('does not treat active opens as preview opens (active: true)', async () => {
-        const app = new App();
-        const commandQueue = new CommandQueueService(app);
+        const commandQueue = new CommandQueueService();
         const file = createTestTFile('notes/note.md');
 
         let resolveOpenFile: () => void = () => {
@@ -102,5 +106,17 @@ describe('shouldSkipNavigatorAutoReveal', () => {
             resolveOpenFile();
             await openTask;
         }
+    });
+
+    it('matches active leaves against navigator windows', () => {
+        const primaryWindow = { name: 'primary' } as unknown as Window;
+        const secondaryWindow = { name: 'secondary' } as unknown as Window;
+        const activeLeaf = createMockLeaf(primaryWindow);
+        const navigatorLeaf = createMockLeaf(primaryWindow);
+        const otherNavigatorLeaf = createMockLeaf(secondaryWindow);
+
+        expect(isLeafInNavigatorWindow(activeLeaf, [navigatorLeaf])).toBe(true);
+        expect(isLeafInNavigatorWindow(activeLeaf, [otherNavigatorLeaf])).toBe(false);
+        expect(isLeafInNavigatorWindow(null, [navigatorLeaf])).toBe(false);
     });
 });

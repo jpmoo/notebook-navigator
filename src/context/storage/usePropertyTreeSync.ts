@@ -16,14 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useCallback, useEffect, useMemo, useRef, type Dispatch, type RefObject, type SetStateAction } from 'react';
+import { useCallback, useEffect, useMemo, useRef, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import { App, debounce, TAbstractFile, TFile, TFolder } from 'obsidian';
 import type { Debouncer } from 'obsidian';
 import { TIMEOUTS } from '../../types/obsidian-extended';
 import type { PropertyTreeService } from '../../services/PropertyTreeService';
 import { getDBInstance } from '../../storage/fileOperations';
 import type { StorageFileData } from './storageFileData';
-import type { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import type { FileVisibility } from '../../utils/fileTypeUtils';
 import {
     buildPropertyKeyNodeId,
@@ -91,9 +91,9 @@ export function usePropertyTreeSync(params: {
     fileVisibility: FileVisibility;
     profileId: string;
     isStorageReady: boolean;
-    isStorageReadyRef: RefObject<boolean>;
-    latestSettingsRef: RefObject<NotebookNavigatorSettings>;
-    stoppedRef: RefObject<boolean>;
+    isStorageReadyRef: MutableRefObject<boolean>;
+    latestSettingsRef: MutableRefObject<NotebookNavigatorSettings>;
+    stoppedRef: MutableRefObject<boolean>;
     setFileData: Dispatch<SetStateAction<StorageFileData>>;
     getVisibleMarkdownFiles: () => TFile[];
     propertyTreeService: PropertyTreeService | null;
@@ -318,7 +318,7 @@ export function usePropertyTreeSync(params: {
             for (const change of changes) {
                 const hasPropertyChange = change.changes.properties !== undefined;
                 const hasTagVisibilityChange = shouldRebuildOnTagVisibilityChanges && change.changes.tags !== undefined;
-                const hasFrontmatterVisibilityChange = shouldRebuildOnFrontmatterVisibilityChanges && change.changes.metadata !== undefined;
+                const hasFrontmatterVisibilityChange = shouldRebuildOnFrontmatterVisibilityChanges && change.metadataHiddenChanged === true;
                 if (!hasPropertyChange && !hasTagVisibilityChange && !hasFrontmatterVisibilityChange) {
                     continue;
                 }

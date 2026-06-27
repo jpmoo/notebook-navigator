@@ -25,6 +25,7 @@ import { addShortcutRenameMenuItem } from './shortcutRenameMenuItem';
 import { addStyleMenu } from './styleMenuBuilder';
 import { resolveUXIconForMenu } from '../uxIcons';
 import { normalizePropertyNodeId, parsePropertyNodeId } from '../propertyTree';
+import { INTERNAL_NOTEBOOK_NAVIGATOR_API } from '../../api/NotebookNavigatorAPI';
 
 function resolvePropertyMenuLabel(params: { propertyNodeId: string; propertyNodeName?: string; keyNodeName?: string }): string {
     const { propertyNodeId, propertyNodeName, keyNodeName } = params;
@@ -109,6 +110,15 @@ export function buildPropertyMenu(params: PropertyMenuBuilderParams): void {
             menu.addSeparator();
         }
 
+        const addedMenuExtensions =
+            services.plugin.api?.[INTERNAL_NOTEBOOK_NAVIGATOR_API].menus.applyPropertyMenuExtensions({
+                menu,
+                nodeId: PROPERTIES_ROOT_VIRTUAL_FOLDER_ID
+            }) ?? 0;
+        if (addedMenuExtensions > 0 && services.shortcuts) {
+            menu.addSeparator();
+        }
+
         if (services.shortcuts) {
             addPropertyShortcutMenuItems({
                 app,
@@ -144,12 +154,13 @@ export function buildPropertyMenu(params: PropertyMenuBuilderParams): void {
         menu.addSeparator();
     }
 
-    const ensurePropertySelected = () => {
+    const ensurePropertySelected = (): boolean => {
         if (selectionState.selectionType === ItemType.PROPERTY && selectionState.selectedProperty === normalizedNodeId) {
-            return;
+            return false;
         }
 
         selectionDispatch({ type: 'SET_SELECTED_PROPERTY', nodeId: normalizedNodeId });
+        return true;
     };
 
     const handleFileCreation = (file: TFile | null | undefined) => {
@@ -163,103 +174,86 @@ export function buildPropertyMenu(params: PropertyMenuBuilderParams): void {
 
     menu.addItem((item: MenuItem) => {
         setAsyncOnClick(item.setTitle(strings.contextMenu.folder.newNote).setIcon('lucide-pen-box'), async () => {
-            ensurePropertySelected();
+            const selectionChanged = ensurePropertySelected();
             const sourcePath = selectionState.selectedFile?.path ?? app.workspace.getActiveFile()?.path ?? '';
-            const createdFile = await fileSystemOps.createNewFileForProperty(normalizedNodeId, sourcePath, settings.createNewNotesInNewTab);
+            const manualSortContext = await fileSystemOps.getManualSortNewFileContextForTarget('property', normalizedNodeId, {
+                waitForSelectionUpdate: selectionChanged
+            });
+            const createdFile = await fileSystemOps.createNewFileForProperty(
+                normalizedNodeId,
+                sourcePath,
+                settings.createNewNotesInNewTab,
+                manualSortContext
+            );
             handleFileCreation(createdFile);
         });
     });
     menu.addSeparator();
 
+    const openAppearanceModal = async (initialTab: 'icon' | 'color' | 'background'): Promise<void> => {
+        const { AppearanceModal } = await import('../../modals/AppearanceModal');
+        const modal = new AppearanceModal(app, {
+            title: label,
+            metadataService,
+            initialTab,
+            icon: settings.showPropertyIcons
+                ? {
+                      initial: metadataService.getPropertyIcon(normalizedNodeId) ?? null,
+                      apply: async iconId => {
+                          if (iconId === null) {
+                              await metadataService.removePropertyIcon(normalizedNodeId);
+                              return;
+                          }
+
+                          await metadataService.setPropertyIcon(normalizedNodeId, iconId);
+                      }
+                  }
+                : undefined,
+            color: {
+                initial: metadataService.getPropertyColor(normalizedNodeId) ?? null,
+                apply: async color => {
+                    if (color === null) {
+                        await metadataService.removePropertyColor(normalizedNodeId);
+                        return;
+                    }
+
+                    await metadataService.setPropertyColor(normalizedNodeId, color);
+                }
+            },
+            background: {
+                initial: metadataService.getPropertyBackgroundColor(normalizedNodeId) ?? null,
+                apply: async color => {
+                    if (color === null) {
+                        await metadataService.removePropertyBackgroundColor(normalizedNodeId);
+                        return;
+                    }
+
+                    await metadataService.setPropertyBackgroundColor(normalizedNodeId, color);
+                }
+            }
+        });
+        modal.open();
+    };
+
     if (settings.showPropertyIcons) {
         menu.addItem((item: MenuItem) => {
-            setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeIcon).setIcon('lucide-image'), async () => {
-                const { IconPickerModal } = await import('../../modals/IconPickerModal');
-                const modal = new IconPickerModal(app, metadataService, normalizedNodeId, ItemType.PROPERTY, { titleOverride: label });
-                modal.open();
+            setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeIcon).setIcon('lucide-image'), () => {
+                return openAppearanceModal('icon');
             });
         });
     }
 
     menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeColor).setIcon('lucide-palette'), async () => {
-            const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
-            const modal = new ColorPickerModal(app, metadataService, normalizedNodeId, ItemType.PROPERTY, 'foreground', {
-                titleOverride: label
-            });
-            modal.open();
+        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeColor).setIcon('lucide-palette'), () => {
+            return openAppearanceModal('color');
         });
     });
 
     menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeBackground).setIcon('lucide-paint-bucket'), async () => {
-            const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
-            const modal = new ColorPickerModal(app, metadataService, normalizedNodeId, ItemType.PROPERTY, 'background', {
-                titleOverride: label
-            });
-            modal.open();
+        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeBackground).setIcon('lucide-paint-bucket'), () => {
+            return openAppearanceModal('background');
         });
     });
-
-    if (typeof MenuItem.prototype.setSubmenu === 'function') {
-        menu.addItem((item: MenuItem) => {
-            const currentOverride = metadataService.getPropertyChildSortOrderOverride(normalizedNodeId);
-            const effectiveOrder = currentOverride ?? settings.propertySortOrder;
-            const sortIcon = currentOverride
-                ? effectiveOrder.endsWith('-desc')
-                    ? 'lucide-sort-desc'
-                    : 'lucide-sort-asc'
-                : 'lucide-sliders-horizontal';
-
-            const sortOrderSubmenu = tryCreateSubmenu(item);
-            if (!sortOrderSubmenu) {
-                item.setTitle(strings.paneHeader.changeSortOrder).setIcon(sortIcon).setDisabled(true);
-                return;
-            }
-
-            const globalDefaultLabel = (() => {
-                switch (settings.propertySortOrder) {
-                    case 'alpha-desc':
-                        return strings.settings.items.propertySortOrder.options.alphaDesc;
-                    case 'frequency-asc':
-                        return strings.settings.items.propertySortOrder.options.lowToHigh;
-                    case 'frequency-desc':
-                        return strings.settings.items.propertySortOrder.options.highToLow;
-                    case 'alpha-asc':
-                    default:
-                        return strings.settings.items.propertySortOrder.options.alphaAsc;
-                }
-            })();
-
-            item.setTitle(strings.paneHeader.changeSortOrder).setIcon(sortIcon);
-
-            sortOrderSubmenu.addItem(subItem => {
-                subItem.setTitle(`${strings.folderAppearance.defaultLabel} (${globalDefaultLabel})`).setChecked(!currentOverride);
-                setAsyncOnClick(subItem, async () => {
-                    await metadataService.removePropertyChildSortOrderOverride(normalizedNodeId);
-                    app.workspace.requestSaveLayout();
-                });
-            });
-
-            sortOrderSubmenu.addSeparator();
-
-            sortOrderSubmenu.addItem(subItem => {
-                subItem.setTitle(strings.settings.items.propertySortOrder.options.alphaAsc).setChecked(currentOverride === 'alpha-asc');
-                setAsyncOnClick(subItem, async () => {
-                    await metadataService.setPropertyChildSortOrderOverride(normalizedNodeId, 'alpha-asc');
-                    app.workspace.requestSaveLayout();
-                });
-            });
-
-            sortOrderSubmenu.addItem(subItem => {
-                subItem.setTitle(strings.settings.items.propertySortOrder.options.alphaDesc).setChecked(currentOverride === 'alpha-desc');
-                setAsyncOnClick(subItem, async () => {
-                    await metadataService.setPropertyChildSortOrderOverride(normalizedNodeId, 'alpha-desc');
-                    app.workspace.requestSaveLayout();
-                });
-            });
-        });
-    }
 
     const propertyIcon = metadataService.getPropertyIcon(normalizedNodeId);
     const propertyColorData = metadataService.getPropertyColorData(normalizedNodeId);
@@ -300,6 +294,68 @@ export function buildPropertyMenu(params: PropertyMenuBuilderParams): void {
         removeBackground: directPropertyBackground ? async () => metadataService.removePropertyBackgroundColor(normalizedNodeId) : undefined
     });
 
+    if (typeof MenuItem.prototype.setSubmenu === 'function') {
+        menu.addSeparator();
+
+        menu.addItem((item: MenuItem) => {
+            const currentOverride = metadataService.getPropertyChildSortOrderOverride(normalizedNodeId);
+            const effectiveOrder = currentOverride ?? settings.propertySortOrder;
+            const sortIcon = currentOverride
+                ? effectiveOrder.endsWith('-desc')
+                    ? 'lucide-sort-desc'
+                    : 'lucide-sort-asc'
+                : 'lucide-sliders-horizontal';
+
+            const sortOrderSubmenu = tryCreateSubmenu(item);
+            if (!sortOrderSubmenu) {
+                item.setTitle(strings.paneHeader.changeChildSortOrder).setIcon(sortIcon).setDisabled(true);
+                return;
+            }
+
+            const globalDefaultLabel = (() => {
+                switch (settings.propertySortOrder) {
+                    case 'alpha-desc':
+                        return strings.settings.items.propertySortOrder.options.alphaDesc;
+                    case 'frequency-asc':
+                        return strings.settings.items.propertySortOrder.options.lowToHigh;
+                    case 'frequency-desc':
+                        return strings.settings.items.propertySortOrder.options.highToLow;
+                    case 'alpha-asc':
+                    default:
+                        return strings.settings.items.propertySortOrder.options.alphaAsc;
+                }
+            })();
+
+            item.setTitle(strings.paneHeader.changeChildSortOrder).setIcon(sortIcon);
+
+            sortOrderSubmenu.addItem(subItem => {
+                subItem.setTitle(`${strings.folderAppearance.defaultLabel} (${globalDefaultLabel})`).setChecked(!currentOverride);
+                setAsyncOnClick(subItem, async () => {
+                    await metadataService.removePropertyChildSortOrderOverride(normalizedNodeId);
+                    app.workspace.requestSaveLayout();
+                });
+            });
+
+            sortOrderSubmenu.addSeparator();
+
+            sortOrderSubmenu.addItem(subItem => {
+                subItem.setTitle(strings.settings.items.propertySortOrder.options.alphaAsc).setChecked(currentOverride === 'alpha-asc');
+                setAsyncOnClick(subItem, async () => {
+                    await metadataService.setPropertyChildSortOrderOverride(normalizedNodeId, 'alpha-asc');
+                    app.workspace.requestSaveLayout();
+                });
+            });
+
+            sortOrderSubmenu.addItem(subItem => {
+                subItem.setTitle(strings.settings.items.propertySortOrder.options.alphaDesc).setChecked(currentOverride === 'alpha-desc');
+                setAsyncOnClick(subItem, async () => {
+                    await metadataService.setPropertyChildSortOrderOverride(normalizedNodeId, 'alpha-desc');
+                    app.workspace.requestSaveLayout();
+                });
+            });
+        });
+    }
+
     const disableNavigationSeparatorActions = Boolean(options?.disableNavigationSeparatorActions);
     const shouldAddShortcutSectionSeparator = Boolean(services.shortcuts) || !disableNavigationSeparatorActions;
     if (shouldAddShortcutSectionSeparator) {
@@ -333,8 +389,17 @@ export function buildPropertyMenu(params: PropertyMenuBuilderParams): void {
         });
     }
 
-    if (propertyKey) {
+    const canManagePropertyKey = propertyNode?.kind === 'key' && propertyNode.notesWithValue.size > 0;
+    const addedMenuExtensions =
+        services.plugin.api?.[INTERNAL_NOTEBOOK_NAVIGATOR_API].menus.applyPropertyMenuExtensions({ menu, nodeId: normalizedNodeId }) ?? 0;
+    if (addedMenuExtensions > 0 && canManagePropertyKey) {
         menu.addSeparator();
+    }
+
+    if (propertyKey && canManagePropertyKey) {
+        if (addedMenuExtensions === 0) {
+            menu.addSeparator();
+        }
 
         menu.addItem((item: MenuItem) => {
             setAsyncOnClick(item.setTitle(strings.contextMenu.property.renameKey).setIcon('lucide-pencil'), async () => {
@@ -343,7 +408,7 @@ export function buildPropertyMenu(params: PropertyMenuBuilderParams): void {
         });
 
         menu.addItem((item: MenuItem) => {
-            setAsyncOnClick(item.setTitle(strings.contextMenu.property.deleteKey).setIcon('lucide-trash'), async () => {
+            setAsyncOnClick(item.setTitle(strings.contextMenu.property.deleteKey).setIcon('lucide-trash').setWarning(true), async () => {
                 await propertyOperations.promptDeletePropertyKey(propertyKey);
             });
         });

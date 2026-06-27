@@ -18,6 +18,7 @@
 
 import { STORAGE_KEYS } from '../types';
 import { localStorage } from '../utils/localStorage';
+import { recordStartupDiagnostic } from '../services/diagnostics/DebugLoggingService';
 import type { ContentProviderType, FileContentType } from '../interfaces/IContentProvider';
 import { isMarkdownPath } from '../utils/fileTypeUtils';
 import { DEFAULT_FEATURE_IMAGE_CACHE_MAX, FEATURE_IMAGE_STORE_NAME, FeatureImageBlobStore } from './FeatureImageBlobStore';
@@ -276,24 +277,49 @@ export class IndexedDBStorage {
         const schemaChanged = storedSchemaVersion !== null && storedSchemaVersion !== currentSchemaVersion;
         const contentChanged = storedContentVersion !== null && storedContentVersion !== currentContentVersion;
         const schemaDowngrade = schemaChanged && storedSchemaVersion !== null && storedSchemaVersion > currentSchemaVersion;
+        const rebuildReasons: string[] = [];
+        if (schemaDowngrade) {
+            rebuildReasons.push('schemaDowngrade');
+        }
+        if (contentChanged) {
+            rebuildReasons.push('contentChanged');
+        }
+        if (schemaVersionUnknown) {
+            rebuildReasons.push('schemaVersionMissing');
+        }
+        if (contentVersionUnknown) {
+            rebuildReasons.push('contentVersionMissing');
+        }
+        recordStartupDiagnostic('indexedDb.versionCheck', {
+            storedSchemaVersion,
+            storedContentVersion,
+            currentSchemaVersion,
+            currentContentVersion,
+            rebuildReasons
+        });
 
         // Only downgrade schema changes require database recreation; upgrades are handled via onupgradeneeded.
         if (schemaChanged) {
             if (schemaDowngrade) {
+                // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
                 console.log(
                     `Database schema version downgraded from ${storedSchemaVersion} to ${currentSchemaVersion}. Recreating database.`
                 );
                 await this.deleteDatabase();
             } else {
+                // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
                 console.log(`Database schema version upgraded from ${storedSchemaVersion} to ${currentSchemaVersion}.`);
             }
         } else if (schemaVersionUnknown) {
+            // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
             console.log(`Database schema version is missing. Rebuilding database.`);
         }
 
         if (contentChanged) {
+            // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
             console.log(`Content version changed from ${storedContentVersion} to ${currentContentVersion}. Rebuilding content.`);
         } else if (contentVersionUnknown) {
+            // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
             console.log('Content version is missing. Rebuilding content.');
         }
 
@@ -305,11 +331,13 @@ export class IndexedDBStorage {
             await this.openDatabase(needsRebuild);
         } catch (error: unknown) {
             if (this.isVersionError(error)) {
+                // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
                 console.log('Database version mismatch detected. Recreating database.');
             } else {
                 console.error('Database open failed. Recreating database.', error);
             }
             this.pendingRebuildNotice = true;
+            recordStartupDiagnostic('indexedDb.open.recreate', { error });
             await this.deleteDatabase();
             await this.openDatabase(true);
         }
@@ -318,6 +346,7 @@ export class IndexedDBStorage {
         if (needsRebuild) {
             // Clear all data to force rebuild
             await this.clear();
+            recordStartupDiagnostic('indexedDb.rebuildContent', { reasons: rebuildReasons });
         }
 
         localStorage.set(STORAGE_KEYS.databaseSchemaVersionKey, currentSchemaVersion.toString());
@@ -372,6 +401,7 @@ export class IndexedDBStorage {
     }
 
     private async openDatabase(skipCacheLoad: boolean = false): Promise<void> {
+        const openStartMs = performance.now();
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(this.dbName, DB_SCHEMA_VERSION);
 
@@ -418,6 +448,9 @@ export class IndexedDBStorage {
                 // Initialize the cache with all data from IndexedDB
                 if (skipCacheLoad) {
                     this.cache.resetToEmpty();
+                    recordStartupDiagnostic('indexedDb.cacheHydration.skipped', {
+                        elapsedMs: Math.round(performance.now() - openStartMs)
+                    });
                 } else {
                     try {
                         const db = this.db;
@@ -426,8 +459,14 @@ export class IndexedDBStorage {
                             resolve();
                             return;
                         }
+                        const hydrationStartMs = performance.now();
                         await hydrateCacheFromMainStore({ db, cache: this.cache });
+                        recordStartupDiagnostic('indexedDb.cacheHydration.complete', {
+                            elapsedMs: Math.round(performance.now() - hydrationStartMs),
+                            fileCount: this.cache.getFileCount()
+                        });
                     } catch (error: unknown) {
+                        recordStartupDiagnostic('indexedDb.cacheHydration.failed', { error });
                         console.error('[DB Cache] Failed to initialize cache:', error);
                         console.error(
                             '[DB Cache] IndexedDB cache hydration failed. Run Notebook Navigator: Rebuild cache to reset the database.'
@@ -1018,6 +1057,9 @@ export class IndexedDBStorage {
                 (type === 'featureImage' && (data.featureImageKey === null || data.featureImageStatus === 'unprocessed')) ||
                 (type === 'metadata' && isMarkdownPath(path) && data.metadata === null) ||
                 (type === 'wordCount' && isMarkdownPath(path) && data.wordCount === null) ||
+                (type === 'characterCount' &&
+                    isMarkdownPath(path) &&
+                    (data.characterCountWithSpaces === null || data.characterCountWithoutSpaces === null)) ||
                 (type === 'tasks' && isMarkdownPath(path) && (data.taskTotal === null || data.taskUnfinished === null)) ||
                 (type === 'properties' && isMarkdownPath(path) && data.properties === null)
             ) {
@@ -1037,6 +1079,7 @@ export class IndexedDBStorage {
         const needsFeatureImage = types.includes('featureImage');
         const needsMetadata = types.includes('metadata');
         const needsWordCount = types.includes('wordCount');
+        const needsCharacterCount = types.includes('characterCount');
         const needsTasks = types.includes('tasks');
         const needsProperties = types.includes('properties');
 
@@ -1049,6 +1092,9 @@ export class IndexedDBStorage {
                 (needsFeatureImage && (data.featureImageKey === null || data.featureImageStatus === 'unprocessed')) ||
                 (needsMetadata && isMarkdown && data.metadata === null) ||
                 (needsWordCount && isMarkdown && data.wordCount === null) ||
+                (needsCharacterCount &&
+                    isMarkdown &&
+                    (data.characterCountWithSpaces === null || data.characterCountWithoutSpaces === null)) ||
                 (needsTasks && isMarkdown && (data.taskTotal === null || data.taskUnfinished === null)) ||
                 (needsProperties && isMarkdown && data.properties === null)
             ) {
@@ -1210,7 +1256,9 @@ export class IndexedDBStorage {
      *
      * @param type - Type of content to clear or 'all'
      */
-    async batchClearAllFileContent(type: 'preview' | 'featureImage' | 'metadata' | 'tags' | 'properties' | 'all'): Promise<void> {
+    async batchClearAllFileContent(
+        type: 'preview' | 'featureImage' | 'metadata' | 'tags' | 'characterCount' | 'properties' | 'all'
+    ): Promise<void> {
         await this.init();
         if (!this.db) throw new Error('Database not initialized');
         await runBatchClearAllFileContent(
@@ -1384,14 +1432,6 @@ export class IndexedDBStorage {
      */
     async ensurePreviewTextLoaded(path: string): Promise<void> {
         return this.previewTexts.ensurePreviewTextLoaded(path);
-    }
-
-    /**
-     * Starts warming the preview text LRU cache in the background.
-     * Safe to call multiple times; warmup only runs once per session.
-     */
-    startPreviewTextWarmup(): void {
-        this.previewTexts.startPreviewTextWarmup();
     }
 
     async deletePreviewText(path: string): Promise<void> {

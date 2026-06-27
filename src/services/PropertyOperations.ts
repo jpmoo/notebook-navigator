@@ -17,33 +17,169 @@
  */
 
 import { App, TFile } from 'obsidian';
-import type { NotebookNavigatorSettings } from '../settings/types';
+import { normalizeListSortOverride, type ListSortOverrideValue, type NotebookNavigatorSettings } from '../settings/types';
 import type { IPropertyTreeProvider } from '../interfaces/IPropertyTreeProvider';
 import { strings } from '../i18n';
 import { ConfirmModal } from '../modals/ConfirmModal';
 import { PropertyKeyRenameModal } from '../modals/PropertyKeyRenameModal';
 import { LIMITS } from '../constants/limits';
-import { casefold } from '../utils/recordUtils';
+import { casefold, deleteCollapsedPinnedContextKeys, sanitizeRecord, updateCollapsedPinnedContextKeys } from '../utils/recordUtils';
 import { showNotice } from '../utils/noticeUtils';
 import { runAsyncAction } from '../utils/async';
 import { removePropertyField, renamePropertyField } from '../utils/propertyUtils';
 import { isRecord } from '../utils/typeGuards';
+import { buildPropertyKeyNodeId } from '../utils/propertyTree';
+import { replacePropertySortKey, SORT_OVERRIDE_RECORD_KEYS } from '../utils/sortUtils';
 import { buildUsageSummaryFromPaths, renderAffectedFilesPreview, yieldToEventLoop } from './operations/OperationBatchUtils';
 import { PropertyFileMutations } from './propertyOperations/PropertyFileMutations';
 import type { PropertyKeyDeleteEventPayload, PropertyKeyRenameEventPayload } from './propertyOperations/types';
 import { getActivePropertyFields, setActivePropertyFields } from '../utils/vaultProfiles';
+import { ItemType } from '../types';
 
 export type { PropertyKeyRenameEventPayload, PropertyKeyDeleteEventPayload } from './propertyOperations/types';
 
 const MUTATION_BATCH_SIZE = LIMITS.operations.metadataMutationYieldBatchSize;
 type RenameConflictSnapshot = Map<string, Set<string>>;
+type PropertyMetadataRecord = Record<string, unknown>;
+interface PropertyMetadataAccessor {
+    read: (settings: NotebookNavigatorSettings) => PropertyMetadataRecord | undefined;
+    write: (settings: NotebookNavigatorSettings, next: PropertyMetadataRecord) => void;
+}
+const PROPERTY_NODE_METADATA_ACCESSORS: readonly PropertyMetadataAccessor[] = [
+    {
+        read: settings => settings.propertyColors,
+        write: (settings, next) => {
+            settings.propertyColors = next as NotebookNavigatorSettings['propertyColors'];
+        }
+    },
+    {
+        read: settings => settings.propertyBackgroundColors,
+        write: (settings, next) => {
+            settings.propertyBackgroundColors = next as NotebookNavigatorSettings['propertyBackgroundColors'];
+        }
+    },
+    {
+        read: settings => settings.propertyIcons,
+        write: (settings, next) => {
+            settings.propertyIcons = next as NotebookNavigatorSettings['propertyIcons'];
+        }
+    },
+    {
+        read: settings => settings.propertySortOverrides,
+        write: (settings, next) => {
+            settings.propertySortOverrides = next as NotebookNavigatorSettings['propertySortOverrides'];
+        }
+    },
+    {
+        read: settings => settings.propertyAppearances,
+        write: (settings, next) => {
+            settings.propertyAppearances = next as NotebookNavigatorSettings['propertyAppearances'];
+        }
+    }
+];
+const PROPERTY_KEY_METADATA_ACCESSORS: readonly PropertyMetadataAccessor[] = [
+    {
+        read: settings => settings.propertyTreeSortOverrides,
+        write: (settings, next) => {
+            settings.propertyTreeSortOverrides = next as NotebookNavigatorSettings['propertyTreeSortOverrides'];
+        }
+    }
+];
+function updatePropertySortKeySetting(
+    settings: NotebookNavigatorSettings,
+    oldKeyNormalized: string,
+    newKeyDisplay: string | null
+): boolean {
+    if (!settings.propertySortKey.trim()) {
+        return false;
+    }
+
+    const nextValue = replacePropertySortKey(settings.propertySortKey, oldKeyNormalized, newKeyDisplay);
+    if (nextValue === settings.propertySortKey) {
+        return false;
+    }
+
+    settings.propertySortKey = nextValue;
+    return true;
+}
+
+function updateManualSortPropertyKeySetting(
+    settings: NotebookNavigatorSettings,
+    oldKeyNormalized: string,
+    newKeyDisplay: string | null
+): boolean {
+    const currentKey = settings.manualSortPropertyKey.trim();
+    if (!currentKey || casefold(currentKey) !== oldKeyNormalized) {
+        return false;
+    }
+
+    settings.manualSortPropertyKey = newKeyDisplay ?? '';
+    return true;
+}
+
+function updateManualSortGroupHeaderPropertySetting(
+    settings: NotebookNavigatorSettings,
+    oldKeyNormalized: string,
+    newKeyDisplay: string | null
+): boolean {
+    const currentKey = settings.manualSortGroupHeaderProperty.trim();
+    if (!currentKey || casefold(currentKey) !== oldKeyNormalized) {
+        return false;
+    }
+
+    settings.manualSortGroupHeaderProperty = newKeyDisplay ?? '';
+    return true;
+}
+
+function updateSortOverridePropertyKeys(
+    record: Record<string, ListSortOverrideValue> | undefined,
+    oldKeyNormalized: string,
+    newKeyDisplay: string | null
+): boolean {
+    if (!record) {
+        return false;
+    }
+
+    let changed = false;
+    for (const key of Object.keys(record)) {
+        const normalizedOverride = normalizeListSortOverride((record as Record<string, unknown>)[key]);
+        if (!normalizedOverride || typeof normalizedOverride === 'string') {
+            continue;
+        }
+
+        if (casefold(normalizedOverride.propertyKey ?? '') !== oldKeyNormalized) {
+            continue;
+        }
+
+        if (newKeyDisplay) {
+            record[key] = { ...normalizedOverride, propertyKey: newKeyDisplay };
+        } else {
+            delete record[key];
+        }
+        changed = true;
+    }
+
+    return changed;
+}
+
+function updateSortOverridePropertyKeySettings(
+    settings: NotebookNavigatorSettings,
+    oldKeyNormalized: string,
+    newKeyDisplay: string | null
+): boolean {
+    let changed = false;
+    SORT_OVERRIDE_RECORD_KEYS.forEach(recordKey => {
+        changed = updateSortOverridePropertyKeys(settings[recordKey], oldKeyNormalized, newKeyDisplay) || changed;
+    });
+    return changed;
+}
 
 /**
  * Facade for property key rename/delete operations across the vault.
  *
  * Contract:
  * - Mutates YAML frontmatter in markdown files via `processFrontMatter`.
- * - Updates active-profile property keys and `propertySortKey` when at least one note changed and no file mutation failed.
+ * - Updates active-profile property keys, sort property keys, and related overrides after successful file mutations.
  * - Emits rename/delete events only when settings updates are attempted.
  * - Relies on existing Obsidian modify/metadata listeners for reindexing.
  */
@@ -349,17 +485,193 @@ export class PropertyOperations {
         return true;
     }
 
+    private renamePropertyNodeMetadataRecord<T>(
+        record: Record<string, T> | undefined,
+        oldKeyNodeId: string,
+        newKeyNodeId: string
+    ): { changed: boolean; next: Record<string, T> | undefined } {
+        if (!record || oldKeyNodeId === newKeyNodeId) {
+            return { changed: false, next: record };
+        }
+
+        const oldValuePrefix = `${oldKeyNodeId}=`;
+        const keys = Object.keys(record);
+        let next: Record<string, T> | undefined;
+        let changed = false;
+
+        keys.forEach(key => {
+            if (key !== oldKeyNodeId && !key.startsWith(oldValuePrefix)) {
+                return;
+            }
+
+            if (!next) {
+                next = sanitizeRecord(record);
+            }
+
+            if (key === oldKeyNodeId) {
+                next[newKeyNodeId] = next[key];
+                delete next[key];
+                changed = true;
+                return;
+            }
+
+            if (key.startsWith(oldValuePrefix)) {
+                const mappedKey = `${newKeyNodeId}${key.slice(oldKeyNodeId.length)}`;
+                next[mappedKey] = next[key];
+                delete next[key];
+                changed = true;
+            }
+        });
+
+        return changed && next ? { changed: true, next } : { changed: false, next: record };
+    }
+
+    private renamePropertyKeyMetadataRecord<T>(
+        record: Record<string, T> | undefined,
+        oldKeyNodeId: string,
+        newKeyNodeId: string
+    ): { changed: boolean; next: Record<string, T> | undefined } {
+        if (!record || oldKeyNodeId === newKeyNodeId || !Object.prototype.hasOwnProperty.call(record, oldKeyNodeId)) {
+            return { changed: false, next: record };
+        }
+
+        const next = sanitizeRecord(record);
+        next[newKeyNodeId] = next[oldKeyNodeId];
+        delete next[oldKeyNodeId];
+        return { changed: true, next };
+    }
+
+    private removePropertyNodeMetadataRecord<T>(
+        record: Record<string, T> | undefined,
+        keyNodeId: string
+    ): { changed: boolean; next: Record<string, T> | undefined } {
+        if (!record) {
+            return { changed: false, next: record };
+        }
+
+        const valuePrefix = `${keyNodeId}=`;
+        const keys = Object.keys(record);
+        let next: Record<string, T> | undefined;
+        let changed = false;
+
+        keys.forEach(key => {
+            if (key !== keyNodeId && !key.startsWith(valuePrefix)) {
+                return;
+            }
+
+            if (!next) {
+                next = sanitizeRecord(record);
+            }
+
+            delete next[key];
+            changed = true;
+        });
+
+        return changed && next ? { changed: true, next } : { changed: false, next: record };
+    }
+
+    private removePropertyKeyMetadataRecord<T>(
+        record: Record<string, T> | undefined,
+        keyNodeId: string
+    ): { changed: boolean; next: Record<string, T> | undefined } {
+        if (!record || !Object.prototype.hasOwnProperty.call(record, keyNodeId)) {
+            return { changed: false, next: record };
+        }
+
+        const next = sanitizeRecord(record);
+        delete next[keyNodeId];
+        return { changed: true, next };
+    }
+
+    private mutatePropertyMetadataRecords(
+        settings: NotebookNavigatorSettings,
+        accessors: readonly PropertyMetadataAccessor[],
+        mutate: (record: PropertyMetadataRecord | undefined) => { changed: boolean; next: PropertyMetadataRecord | undefined }
+    ): boolean {
+        let changed = false;
+        accessors.forEach(accessor => {
+            const result = mutate(accessor.read(settings));
+            if (!result.changed || !result.next) {
+                return;
+            }
+            accessor.write(settings, result.next);
+            changed = true;
+        });
+        return changed;
+    }
+
+    private renamePropertyNodeMetadataFields(settings: NotebookNavigatorSettings, oldKeyNodeId: string, newKeyNodeId: string): boolean {
+        return this.mutatePropertyMetadataRecords(settings, PROPERTY_NODE_METADATA_ACCESSORS, record =>
+            this.renamePropertyNodeMetadataRecord(record, oldKeyNodeId, newKeyNodeId)
+        );
+    }
+
+    private renamePropertyKeyMetadataFields(settings: NotebookNavigatorSettings, oldKeyNodeId: string, newKeyNodeId: string): boolean {
+        return this.mutatePropertyMetadataRecords(settings, PROPERTY_KEY_METADATA_ACCESSORS, record =>
+            this.renamePropertyKeyMetadataRecord(record, oldKeyNodeId, newKeyNodeId)
+        );
+    }
+
+    private removePropertyNodeMetadataFields(settings: NotebookNavigatorSettings, keyNodeId: string): boolean {
+        return this.mutatePropertyMetadataRecords(settings, PROPERTY_NODE_METADATA_ACCESSORS, record =>
+            this.removePropertyNodeMetadataRecord(record, keyNodeId)
+        );
+    }
+
+    private removePropertyKeyMetadataFields(settings: NotebookNavigatorSettings, keyNodeId: string): boolean {
+        return this.mutatePropertyMetadataRecords(settings, PROPERTY_KEY_METADATA_ACCESSORS, record =>
+            this.removePropertyKeyMetadataRecord(record, keyNodeId)
+        );
+    }
+
+    private migratePropertyMetadataAfterRename(
+        settings: NotebookNavigatorSettings,
+        oldKeyNormalized: string,
+        newKeyNormalized: string
+    ): boolean {
+        const oldKeyNodeId = buildPropertyKeyNodeId(oldKeyNormalized);
+        const newKeyNodeId = buildPropertyKeyNodeId(newKeyNormalized);
+        const nodeChanged = this.renamePropertyNodeMetadataFields(settings, oldKeyNodeId, newKeyNodeId);
+        const keyChanged = this.renamePropertyKeyMetadataFields(settings, oldKeyNodeId, newKeyNodeId);
+        const collapsedPinnedContextChanged = updateCollapsedPinnedContextKeys(
+            settings.collapsedPinnedContexts,
+            ItemType.PROPERTY,
+            oldKeyNodeId,
+            newKeyNodeId,
+            { descendantDelimiter: '=' }
+        );
+        return nodeChanged || keyChanged || collapsedPinnedContextChanged;
+    }
+
+    private removePropertyMetadataForDeletedKey(settings: NotebookNavigatorSettings, normalizedKey: string): boolean {
+        const keyNodeId = buildPropertyKeyNodeId(normalizedKey);
+        const nodeChanged = this.removePropertyNodeMetadataFields(settings, keyNodeId);
+        const keyChanged = this.removePropertyKeyMetadataFields(settings, keyNodeId);
+        const collapsedPinnedContextChanged = deleteCollapsedPinnedContextKeys(
+            settings.collapsedPinnedContexts,
+            ItemType.PROPERTY,
+            keyNodeId,
+            { descendantDelimiter: '=' }
+        );
+        return nodeChanged || keyChanged || collapsedPinnedContextChanged;
+    }
+
     protected async updateSettingsAfterRename(oldKeyNormalized: string, newKeyDisplay: string): Promise<void> {
         const settings = this.getSettings();
         let changed = false;
         const activePropertyFields = getActivePropertyFields(settings);
+        const newKeyNormalized = casefold(newKeyDisplay);
 
         const nextPropertyFields = renamePropertyField(activePropertyFields, oldKeyNormalized, newKeyDisplay, false);
         changed = setActivePropertyFields(settings, nextPropertyFields) || changed;
 
-        if (casefold(settings.propertySortKey) === oldKeyNormalized && settings.propertySortKey !== newKeyDisplay) {
-            settings.propertySortKey = newKeyDisplay;
-            changed = true;
+        changed = updatePropertySortKeySetting(settings, oldKeyNormalized, newKeyDisplay) || changed;
+        changed = updateManualSortPropertyKeySetting(settings, oldKeyNormalized, newKeyDisplay) || changed;
+        changed = updateManualSortGroupHeaderPropertySetting(settings, oldKeyNormalized, newKeyDisplay) || changed;
+        changed = updateSortOverridePropertyKeySettings(settings, oldKeyNormalized, newKeyDisplay) || changed;
+
+        if (newKeyNormalized) {
+            changed = this.migratePropertyMetadataAfterRename(settings, oldKeyNormalized, newKeyNormalized) || changed;
         }
 
         if (changed) {
@@ -375,10 +687,12 @@ export class PropertyOperations {
         const nextPropertyFields = removePropertyField(activePropertyFields, normalizedKey);
         changed = setActivePropertyFields(settings, nextPropertyFields) || changed;
 
-        if (casefold(settings.propertySortKey) === normalizedKey && settings.propertySortKey.length > 0) {
-            settings.propertySortKey = '';
-            changed = true;
-        }
+        changed = updatePropertySortKeySetting(settings, normalizedKey, null) || changed;
+        changed = updateManualSortPropertyKeySetting(settings, normalizedKey, null) || changed;
+        changed = updateManualSortGroupHeaderPropertySetting(settings, normalizedKey, null) || changed;
+        changed = updateSortOverridePropertyKeySettings(settings, normalizedKey, null) || changed;
+
+        changed = this.removePropertyMetadataForDeletedKey(settings, normalizedKey) || changed;
 
         if (changed) {
             await this.saveSettingsAndUpdate();

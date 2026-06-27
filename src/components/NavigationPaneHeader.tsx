@@ -25,8 +25,8 @@ import { useVaultProfileMenu } from '../hooks/useVaultProfileMenu';
 import { strings } from '../i18n';
 import { ServiceIcon } from './ServiceIcon';
 import { useNavigationActions } from '../hooks/useNavigationActions';
-import { hasHiddenItemSources } from '../utils/exclusionUtils';
 import { runAsyncAction } from '../utils/async';
+import { showNotice } from '../utils/noticeUtils';
 import { resolveUXIcon } from '../utils/uxIcons';
 
 interface NavigationPaneHeaderProps {
@@ -60,13 +60,11 @@ export function NavigationPaneHeader({
 
     // Hook providing shared navigation actions (expand/collapse, folder creation, toggle visibility)
     const { shouldCollapseItems, handleExpandCollapseAll, handleNewFolder, handleToggleShowExcludedFolders } = useNavigationActions();
-    // Detects if any hidden folders, tags, or files are configured to determine if toggle should be shown
-    const hasHiddenItems = hasHiddenItemSources(settings);
     const navigationVisibility = settings.toolbarVisibility.navigation;
     const showToggleDualPaneButton = navigationVisibility.toggleDualPane;
     const showExpandCollapseButton = navigationVisibility.expandCollapse;
-    const showCalendarButton = navigationVisibility.calendar && settings.calendarPlacement !== 'right-sidebar';
-    const showHiddenItemsButton = navigationVisibility.hiddenItems && hasHiddenItems;
+    const showCalendarButton = navigationVisibility.calendar && settings.calendarEnabled && settings.calendarPlacement !== 'right-sidebar';
+    const showHiddenItemsButton = navigationVisibility.hiddenItems;
     const showRootReorderButton = navigationVisibility.rootReorder;
     const showNewFolderButton = navigationVisibility.newFolder;
 
@@ -134,6 +132,9 @@ export function NavigationPaneHeader({
         return null;
     }
 
+    const dualPanePreference = plugin.useDualPane();
+    const dualPaneAutoFallbackActive = dualPanePreference && uiState.singlePane;
+
     return (
         <div className="nn-pane-header">
             <div className="nn-header-actions nn-header-actions--space-between">
@@ -141,9 +142,13 @@ export function NavigationPaneHeader({
                     {showToggleDualPaneButton ? (
                         <button
                             className="nn-icon-button"
-                            aria-label={uiState.dualPane ? strings.paneHeader.showSinglePane : strings.paneHeader.showDualPane}
+                            aria-label={dualPanePreference ? strings.paneHeader.showSinglePane : strings.paneHeader.showDualPane}
                             onClick={() => {
-                                plugin.setDualPanePreference(!plugin.useDualPane());
+                                if (dualPaneAutoFallbackActive) {
+                                    showNotice(strings.paneHeader.dualPaneAutoFallbackNotice, { variant: 'warning' });
+                                    return;
+                                }
+                                plugin.setDualPanePreference(!dualPanePreference);
                             }}
                             tabIndex={-1}
                             type="button"
@@ -151,7 +156,7 @@ export function NavigationPaneHeader({
                             <ServiceIcon
                                 iconId={resolveUXIcon(
                                     settings.interfaceIcons,
-                                    uiState.dualPane ? 'nav-show-single-pane' : 'nav-show-dual-pane'
+                                    dualPanePreference ? 'nav-show-single-pane' : 'nav-show-dual-pane'
                                 )}
                             />
                         </button>
@@ -167,7 +172,7 @@ export function NavigationPaneHeader({
                                 handleExpandCollapseAll();
                                 if (onTreeUpdateComplete) {
                                     // Defer callback until after DOM updates complete
-                                    requestAnimationFrame(() => {
+                                    window.requestAnimationFrame(() => {
                                         onTreeUpdateComplete();
                                     });
                                 }
@@ -190,12 +195,11 @@ export function NavigationPaneHeader({
                                 handleToggleShowExcludedFolders();
                                 if (onTreeUpdateComplete) {
                                     // Defer callback until after DOM updates complete
-                                    requestAnimationFrame(() => {
+                                    window.requestAnimationFrame(() => {
                                         onTreeUpdateComplete();
                                     });
                                 }
                             }}
-                            disabled={!hasHiddenItems}
                             tabIndex={-1}
                         >
                             <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'nav-hidden-items')} />

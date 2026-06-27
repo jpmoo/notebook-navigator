@@ -77,6 +77,19 @@ describe('extractMetadataFromCache - icon extraction', () => {
 
         expect(result.icon).toBe('simple-icons:github');
     });
+
+    it('accepts wikilinked vault svg icon values', () => {
+        const settings = createSettings();
+        const metadata: CachedMetadata = {
+            frontmatter: {
+                icon: '[[_resources/icons/TokenTek_Symbol_Black.svg]]'
+            }
+        };
+
+        const result = extractMetadataFromCache(metadata, settings);
+
+        expect(result.icon).toBe('vault:_resources/icons/TokenTek_Symbol_Black.svg');
+    });
 });
 
 describe('extractMetadataFromCache - name extraction', () => {
@@ -127,6 +140,21 @@ describe('extractMetadataFromCache - name extraction', () => {
 
         expect(result.fn).toBe('From array');
     });
+
+    it('matches configured name fields across NFC and NFD-equivalent keys', () => {
+        const settings = createSettings({
+            frontmatterNameField: 'réunion'
+        });
+        const metadata: CachedMetadata = {
+            frontmatter: {
+                're\u0301union': 'Project X'
+            }
+        };
+
+        const result = extractMetadataFromCache(metadata, settings);
+
+        expect(result.fn).toBe('Project X');
+    });
 });
 
 describe('extractMetadataFromCache - background extraction', () => {
@@ -143,5 +171,20 @@ describe('extractMetadataFromCache - background extraction', () => {
         const result = extractMetadataFromCache(metadata, settings);
 
         expect(result.background).toBe('#112233');
+    });
+
+    it('matches configured icon fields across NFC and NFD-equivalent keys', () => {
+        const settings = createSettings({
+            frontmatterIconField: 'réunion'
+        });
+        const metadata: CachedMetadata = {
+            frontmatter: {
+                're\u0301union': 'ph-calendar'
+            }
+        };
+
+        const result = extractMetadataFromCache(metadata, settings);
+
+        expect(result.icon).toBe('phosphor:calendar');
     });
 });

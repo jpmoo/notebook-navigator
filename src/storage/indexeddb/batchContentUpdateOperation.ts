@@ -21,13 +21,24 @@ import { FeatureImageBlobStore, FEATURE_IMAGE_STORE_NAME, computeFeatureImageMut
 import { MemoryFileCache } from '../MemoryFileCache';
 import { getProviderProcessedMtimeField } from '../providerMtime';
 import { PREVIEW_STORE_NAME, STORE_NAME } from './constants';
-import { createDefaultFileData, normalizeTaskCounters, type FileContentChange, type FileData, type PreviewStatus } from './fileData';
+import {
+    createDefaultFileData,
+    hasMetadataDecorationChanged,
+    hasMetadataHiddenChanged,
+    hasMetadataNameChanged,
+    normalizeTaskCounters,
+    type FileContentChange,
+    type FileData,
+    type PreviewStatus
+} from './fileData';
 import { rejectWithTransactionError } from './idbErrors';
 
 export interface BatchContentUpdate {
     path: string;
     tags?: string[] | null;
     wordCount?: number | null;
+    characterCountWithSpaces?: number | null;
+    characterCountWithoutSpaces?: number | null;
     taskTotal?: number | null;
     taskUnfinished?: number | null;
     preview?: string;
@@ -134,6 +145,9 @@ export async function runBatchUpdateFileContentAndProviderProcessedMtimes(
                 }
                 const newData: FileData = { ...existing };
                 const changes: FileContentChange['changes'] = {};
+                let metadataHiddenChanged = false;
+                let metadataNameChanged = false;
+                let metadataDecorationChanged = false;
                 let hasContentChanges = false;
                 const providerField = provider ? getProviderProcessedMtimeField(provider) : null;
                 const shouldApplyProviderContent =
@@ -164,6 +178,16 @@ export async function runBatchUpdateFileContentAndProviderProcessedMtimes(
                         changes.wordCount = guardedUpdate.wordCount;
                         hasContentChanges = true;
                     }
+                    if (guardedUpdate.characterCountWithSpaces !== undefined) {
+                        newData.characterCountWithSpaces = guardedUpdate.characterCountWithSpaces;
+                        changes.characterCountWithSpaces = guardedUpdate.characterCountWithSpaces;
+                        hasContentChanges = true;
+                    }
+                    if (guardedUpdate.characterCountWithoutSpaces !== undefined) {
+                        newData.characterCountWithoutSpaces = guardedUpdate.characterCountWithoutSpaces;
+                        changes.characterCountWithoutSpaces = guardedUpdate.characterCountWithoutSpaces;
+                        hasContentChanges = true;
+                    }
                     const hasTaskUpdate = guardedUpdate.taskTotal !== undefined || guardedUpdate.taskUnfinished !== undefined;
                     if (hasTaskUpdate) {
                         // Task counters must be written together; normalization preserves pair semantics.
@@ -183,6 +207,9 @@ export async function runBatchUpdateFileContentAndProviderProcessedMtimes(
                         const previewStatus: PreviewStatus = guardedUpdate.preview.length > 0 ? 'has' : 'none';
                         newData.previewStatus = previewStatus;
                         changes.preview = guardedUpdate.preview;
+                        if (existing.previewStatus !== previewStatus) {
+                            changes.previewStatus = previewStatus;
+                        }
                         hasContentChanges = true;
                         if (previewStore && previewStatus === 'has') {
                             const previewReq = previewStore.put(guardedUpdate.preview, path);
@@ -232,6 +259,9 @@ export async function runBatchUpdateFileContentAndProviderProcessedMtimes(
                     }
 
                     if (guardedUpdate.metadata !== undefined) {
+                        metadataHiddenChanged = hasMetadataHiddenChanged(existing.metadata, guardedUpdate.metadata);
+                        metadataNameChanged = hasMetadataNameChanged(existing.metadata, guardedUpdate.metadata);
+                        metadataDecorationChanged = hasMetadataDecorationChanged(existing.metadata, guardedUpdate.metadata);
                         newData.metadata = guardedUpdate.metadata;
                         changes.metadata = guardedUpdate.metadata;
                         hasContentChanges = true;
@@ -297,15 +327,24 @@ export async function runBatchUpdateFileContentAndProviderProcessedMtimes(
                     if (hasContentChanges) {
                         const hasContentUpdates =
                             changes.preview !== undefined ||
+                            changes.previewStatus !== undefined ||
                             changes.featureImageKey !== undefined ||
                             changes.featureImageStatus !== undefined ||
                             changes.wordCount !== undefined ||
+                            changes.characterCountWithSpaces !== undefined ||
+                            changes.characterCountWithoutSpaces !== undefined ||
                             changes.taskTotal !== undefined ||
                             changes.taskUnfinished !== undefined ||
                             changes.properties !== undefined;
                         const hasMetadataUpdates = changes.metadata !== undefined || changes.tags !== undefined;
                         const updateType = hasContentUpdates && hasMetadataUpdates ? 'both' : hasContentUpdates ? 'content' : 'metadata';
-                        changeNotifications.push({ path, changes, changeType: updateType });
+                        const contentChange: FileContentChange = { path, changes, changeType: updateType };
+                        if (changes.metadata !== undefined) {
+                            contentChange.metadataHiddenChanged = metadataHiddenChanged;
+                            contentChange.metadataNameChanged = metadataNameChanged;
+                            contentChange.metadataDecorationChanged = metadataDecorationChanged;
+                        }
+                        changeNotifications.push(contentChange);
                     }
                 }
                 // noop

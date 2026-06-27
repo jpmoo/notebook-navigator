@@ -6,9 +6,14 @@ labels: 'enhancement'
 assignees: ''
 ---
 
-**Before submitting** Please check if your feature is already added to next version: [Features and bug fixes in next release](https://github.com/johansan/notebook-navigator/issues/363)
+**Thanks for taking the time to suggest a feature!**
 
-**Important** Check the Wiki for a list of features already in the backlog, and a list of features that will not or cannot be implemented: [Wiki](https://github.com/johansan/notebook-navigator/wiki)
+Notebook Navigator is currently in a **stabilization phase**, which means development is focused on reliability, performance, and polish. During this phase, small and isolated feature requests that don't affect the overall architecture are much more likely to be accepted.
+
+Large or structural requests will generally be declined — so to save you time, please keep your suggestion focused and concise. If you have a bigger idea, please discuss it on [Discord](https://discord.gg/6eeSUvzEJr) first before writing up a detailed proposal here.
+
+**Before submitting:**
+- Check the Wiki for features that will be re-evaluated and followed up in the future: [Wiki](https://github.com/johansan/notebook-navigator/wiki)
 
 **Describe the feature**
 
