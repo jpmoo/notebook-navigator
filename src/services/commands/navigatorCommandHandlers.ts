@@ -908,6 +908,20 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
         }
     });
 
+    // Command to open the currently selected folder as a masonry card board
+    plugin.addCommand({
+        id: 'open-folder-as-board',
+        name: strings.commands.openFolderAsBoard,
+        callback: () => {
+            const folder = getSelectedFolderForCommand(plugin);
+            if (!folder) {
+                showNotice(strings.board.noFolderSelected, { variant: 'warning' });
+                return;
+            }
+            runAsyncAction(() => plugin.openBoardForFolder(folder.path));
+        }
+    });
+
     plugin.addCommand({
         id: 'open-daily-note',
         name: strings.commands.openDailyNote,

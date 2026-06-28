@@ -298,6 +298,8 @@ export const STRINGS_EN = {
             duplicateMultipleNotes: 'Duplicate {count} notes',
             duplicateMultipleFiles: 'Duplicate {count} files',
             openVersionHistory: 'Open version history',
+            hideFile: 'Hide file',
+            unhideFile: 'Unhide file',
             revealInFolder: 'Reveal in folder',
             revealInFinder: 'Reveal in Finder',
             showInExplorer: 'Show in system explorer',
@@ -332,6 +334,7 @@ export const STRINGS_EN = {
             changeColor: 'Change color'
         },
         folder: {
+            openAsBoard: 'Open as board',
             newNote: 'New note',
             newNoteFromTemplate: 'New note from template',
             newFolder: 'New folder',
@@ -770,6 +773,8 @@ export const STRINGS_EN = {
         notices: {
             hideFolder: 'Folder hidden: {name}',
             showFolder: 'Folder shown: {name}',
+            hideFile: 'File hidden: {name}',
+            showFile: 'File shown: {name}',
             mergeNotes: 'Merged {count} notes into {name}'
         },
         notifications: {
@@ -858,6 +863,7 @@ export const STRINGS_EN = {
         toggleDualPane: 'Toggle dual pane layout', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleDualPaneOrientation: 'Toggle dual pane orientation', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'Toggle calendar', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
+        openFolderAsBoard: 'Open folder as board', // Command palette: Opens the selected folder as a masonry card board (English: Open folder as board)
         selectVaultProfile: 'Select vault profile', // Command palette: Opens a modal to choose a different vault profile (English: Select vault profile)
         selectVaultProfile1: 'Select vault profile 1', // Command palette: Activates the first vault profile without opening the modal (English: Select vault profile 1)
         selectVaultProfile2: 'Select vault profile 2', // Command palette: Activates the second vault profile without opening the modal (English: Select vault profile 2)
@@ -901,9 +907,20 @@ export const STRINGS_EN = {
     plugin: {
         viewName: 'Notebook Navigator', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: 'Calendar', // Name shown in the view header/tab
+        boardViewName: 'Board', // Name shown in the folder board (masonry) view header/tab
         folderNoteSidebarViewName: 'Folder note', // Name shown in the folder note sidebar tab
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'Reveal in Notebook Navigator' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+    },
+
+    // Folder board (masonry card view)
+    board: {
+        searchPlaceholder: 'Search notes…', // Placeholder text for the board's client-side search box
+        empty: 'No notes in this folder.', // Shown when the folder has no notes to display as cards
+        noSearchResults: 'No notes match your search.', // Shown when the search filter hides every card
+        // Notice when the board caps how many cards are rendered. {shown} and {total} are replaced with counts.
+        showingCount: 'Showing {shown} of {total} notes',
+        noFolderSelected: 'Select a folder to open it as a board.' // Notice when the command runs without a selected folder
     },
 
     // Tooltips
@@ -1154,6 +1171,10 @@ export const STRINGS_EN = {
             showCurrentFolderFilesAtBottom: {
                 name: 'Folder grouping: current folder files at bottom',
                 desc: 'When Default grouping is Folder, move files directly in the selected folder below subfolder groups.'
+            },
+            openFolderInBoard: {
+                name: 'Open folder as board on click',
+                desc: 'When enabled, clicking a folder opens its notes as a masonry card board in the main editor area. Notes open in a new tab so the board stays put.'
             },
             defaultListMode: {
                 name: 'Default list mode',

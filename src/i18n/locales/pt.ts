@@ -299,6 +299,8 @@ export const STRINGS_PT = {
             duplicateMultipleNotes: 'Duplicar {count} notas',
             duplicateMultipleFiles: 'Duplicar {count} ficheiros',
             openVersionHistory: 'Abrir histórico de versões',
+            hideFile: 'Hide file',
+            unhideFile: 'Unhide file',
             revealInFolder: 'Revelar na pasta',
             revealInFinder: 'Revelar no Finder',
             showInExplorer: 'Mostrar no explorador do sistema',
@@ -334,6 +336,7 @@ export const STRINGS_PT = {
         },
         folder: {
             newNote: 'Nova nota',
+            openAsBoard: 'Open as board',
             newNoteFromTemplate: 'Nova nota a partir de modelo',
             newFolder: 'Nova pasta',
             newCanvas: 'Nova tela',
@@ -776,6 +779,8 @@ export const STRINGS_PT = {
         notices: {
             hideFolder: 'Pasta ocultada: {name}',
             showFolder: 'Pasta mostrada: {name}',
+            hideFile: 'File hidden: {name}',
+            showFile: 'File shown: {name}',
             mergeNotes: 'Unidas {count} notas em {name}'
         },
         notifications: {
@@ -864,6 +869,7 @@ export const STRINGS_PT = {
         toggleDualPane: 'Alternar layout de painel duplo', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleDualPaneOrientation: 'Alternar orientação do painel duplo', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'Alternar calendário', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
+        openFolderAsBoard: 'Open folder as board',
         selectVaultProfile: 'Selecionar perfil do cofre', // Command palette: Opens a modal to choose a different vault profile (English: Select vault profile)
         selectVaultProfile1: 'Selecionar perfil do cofre 1', // Command palette: Activates the first vault profile without opening the modal (English: Select vault profile 1)
         selectVaultProfile2: 'Selecionar perfil do cofre 2', // Command palette: Activates the second vault profile without opening the modal (English: Select vault profile 2)
@@ -907,12 +913,20 @@ export const STRINGS_PT = {
     plugin: {
         viewName: 'Notebook Navigator', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: 'Calendário', // Name shown in the view header/tab (English: Calendar)
+        boardViewName: 'Board',
         folderNoteSidebarViewName: 'Nota de pasta', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'Revelar no Notebook Navigator' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
 
     // Tooltips
+    board: {
+        searchPlaceholder: 'Search notes…',
+        empty: 'No notes in this folder.',
+        noSearchResults: 'No notes match your search.',
+        showingCount: 'Showing {shown} of {total} notes',
+        noFolderSelected: 'Select a folder to open it as a board.'
+    },
     tooltips: {
         lastModifiedAt: 'Última modificação em',
         createdAt: 'Criado em',
@@ -1160,6 +1174,10 @@ export const STRINGS_PT = {
             showCurrentFolderFilesAtBottom: {
                 name: 'Agrupamento por pasta: ficheiros da pasta atual no fundo',
                 desc: 'Quando o agrupamento predefinido é Pasta, mover os ficheiros diretamente na pasta selecionada para baixo dos grupos de subpastas.'
+            },
+            openFolderInBoard: {
+                name: 'Open folder as board on click',
+                desc: 'When enabled, clicking a folder opens its notes as a masonry card board in the main editor area. Notes open in a new tab so the board stays put.'
             },
             defaultListMode: {
                 name: 'Modo de lista predefinido',

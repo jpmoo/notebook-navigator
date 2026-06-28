@@ -152,6 +152,7 @@ const BOOLEAN_SETTING_KEYS = [
     'stickyGroupHeaders',
     'showFolderGroupPaths',
     'showCurrentFolderFilesAtBottom',
+    'openFolderInBoard',
     'confirmBeforeManualSort',
     'filterPinnedByFolder',
     'revealFileOnListChanges',

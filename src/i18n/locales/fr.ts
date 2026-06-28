@@ -290,6 +290,8 @@ export const STRINGS_FR = {
             duplicateNote: 'Dupliquer la note',
             duplicateMultipleNotes: 'Dupliquer {count} notes',
             openVersionHistory: "Ouvrir l'historique des versions",
+            hideFile: 'Hide file',
+            unhideFile: 'Unhide file',
             revealInFolder: 'Afficher dans le dossier',
             revealInFinder: 'Afficher dans le Finder',
             showInExplorer: "Afficher dans l'explorateur système",
@@ -335,6 +337,7 @@ export const STRINGS_FR = {
         },
         folder: {
             newNote: 'Nouvelle note',
+            openAsBoard: 'Open as board',
             newNoteFromTemplate: 'Nouvelle note depuis un modèle',
             newFolder: 'Nouveau dossier',
             newCanvas: 'Nouveau canevas',
@@ -779,6 +782,8 @@ export const STRINGS_FR = {
         notices: {
             hideFolder: 'Dossier masqué : {name}',
             showFolder: 'Dossier affiché : {name}',
+            hideFile: 'File hidden: {name}',
+            showFile: 'File shown: {name}',
             mergeNotes: '{count} notes fusionnées dans {name}'
         },
         notifications: {
@@ -867,6 +872,7 @@ export const STRINGS_FR = {
         toggleDualPane: 'Basculer la disposition à double panneau', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleDualPaneOrientation: "Basculer l'orientation du double panneau", // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'Afficher/masquer le calendrier', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
+        openFolderAsBoard: 'Open folder as board',
         selectVaultProfile: 'Changer le profil du coffre', // Command palette: Opens a modal to choose a different vault profile (English: Switch vault profile)
         selectVaultProfile1: 'Changer vers le profil du coffre 1', // Command palette: Activates the first vault profile without opening the modal (English: Select vault profile 1)
         selectVaultProfile2: 'Changer vers le profil du coffre 2', // Command palette: Activates the second vault profile without opening the modal (English: Select vault profile 2)
@@ -910,12 +916,20 @@ export const STRINGS_FR = {
     plugin: {
         viewName: 'Navigateur de Carnets', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: 'Calendrier', // Name shown in the view header/tab (English: Calendar)
+        boardViewName: 'Board',
         folderNoteSidebarViewName: 'Note de dossier', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Navigateur de Carnets', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'Révéler dans le Navigateur de Carnets' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
 
     // Tooltips
+    board: {
+        searchPlaceholder: 'Search notes…',
+        empty: 'No notes in this folder.',
+        noSearchResults: 'No notes match your search.',
+        showingCount: 'Showing {shown} of {total} notes',
+        noFolderSelected: 'Select a folder to open it as a board.'
+    },
     tooltips: {
         lastModifiedAt: 'Dernière modification le',
         createdAt: 'Créé le',
@@ -1164,6 +1178,10 @@ export const STRINGS_FR = {
             showCurrentFolderFilesAtBottom: {
                 name: 'Regroupement par dossier : fichiers du dossier actuel en bas',
                 desc: 'Lorsque le regroupement par défaut est Dossier, déplacer les fichiers directement dans le dossier sélectionné sous les groupes de sous-dossiers.'
+            },
+            openFolderInBoard: {
+                name: 'Open folder as board on click',
+                desc: 'When enabled, clicking a folder opens its notes as a masonry card board in the main editor area. Notes open in a new tab so the board stays put.'
             },
             defaultListMode: {
                 name: 'Mode de liste par défaut',

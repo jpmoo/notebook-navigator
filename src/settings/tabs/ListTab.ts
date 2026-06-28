@@ -101,6 +101,10 @@ export function createListPaneSettingDefinitions(context: SettingsTabContext): S
             createToggleDefinition('showCurrentFolderFilesAtBottom', {
                 name: strings.settings.items.showCurrentFolderFilesAtBottom.name,
                 desc: strings.settings.items.showCurrentFolderFilesAtBottom.desc
+            }),
+            createToggleDefinition('openFolderInBoard', {
+                name: strings.settings.items.openFolderInBoard.name,
+                desc: strings.settings.items.openFolderInBoard.desc
             })
         ]),
         createGroupDefinition(strings.settings.groups.list.groupHeaders, [

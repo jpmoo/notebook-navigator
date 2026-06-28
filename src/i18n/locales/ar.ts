@@ -298,6 +298,8 @@ export const STRINGS_AR = {
             duplicateMultipleNotes: 'تكرار {count} ملاحظة',
             duplicateMultipleFiles: 'تكرار {count} ملف',
             openVersionHistory: 'فتح سجل الإصدارات',
+            hideFile: 'Hide file',
+            unhideFile: 'Unhide file',
             revealInFolder: 'الكشف في المجلد',
             revealInFinder: 'الكشف في Finder',
             showInExplorer: 'إظهار في مستكشف النظام',
@@ -333,6 +335,7 @@ export const STRINGS_AR = {
         },
         folder: {
             newNote: 'ملاحظة جديدة',
+            openAsBoard: 'Open as board',
             newNoteFromTemplate: 'ملاحظة جديدة من قالب',
             newFolder: 'مجلد جديد',
             newCanvas: 'لوحة جديدة',
@@ -771,6 +774,8 @@ export const STRINGS_AR = {
         notices: {
             hideFolder: 'تم إخفاء المجلد: {name}',
             showFolder: 'تم إظهار المجلد: {name}',
+            hideFile: 'File hidden: {name}',
+            showFile: 'File shown: {name}',
             mergeNotes: 'تم دمج {count} ملاحظة في {name}'
         },
         notifications: {
@@ -859,6 +864,7 @@ export const STRINGS_AR = {
         toggleDualPane: 'تبديل تخطيط اللوحتين', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleDualPaneOrientation: 'تبديل اتجاه اللوحتين', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'تبديل التقويم', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
+        openFolderAsBoard: 'Open folder as board',
         selectVaultProfile: 'اختيار ملف الخزنة', // Command palette: Opens a modal to choose a different vault profile (English: Select vault profile)
         selectVaultProfile1: 'اختيار ملف الخزنة 1', // Command palette: Activates the first vault profile without opening the modal (English: Select vault profile 1)
         selectVaultProfile2: 'اختيار ملف الخزنة 2', // Command palette: Activates the second vault profile without opening the modal (English: Select vault profile 2)
@@ -902,12 +908,20 @@ export const STRINGS_AR = {
     plugin: {
         viewName: 'متصفح الدفتر', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: 'تقويم', // Name shown in the view header/tab (English: Calendar)
+        boardViewName: 'Board',
         folderNoteSidebarViewName: 'ملاحظة المجلد', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'متصفح الدفتر', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'الكشف في متصفح الدفتر' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
 
     // Tooltips
+    board: {
+        searchPlaceholder: 'Search notes…',
+        empty: 'No notes in this folder.',
+        noSearchResults: 'No notes match your search.',
+        showingCount: 'Showing {shown} of {total} notes',
+        noFolderSelected: 'Select a folder to open it as a board.'
+    },
     tooltips: {
         lastModifiedAt: 'آخر تعديل في',
         createdAt: 'تاريخ الإنشاء',
@@ -1155,6 +1169,10 @@ export const STRINGS_AR = {
             showCurrentFolderFilesAtBottom: {
                 name: 'تجميع المجلدات: ملفات المجلد الحالي في الأسفل',
                 desc: 'عندما يكون التجميع الافتراضي هو المجلد، انقل الملفات الموجودة مباشرة في المجلد المحدد أسفل مجموعات المجلدات الفرعية.'
+            },
+            openFolderInBoard: {
+                name: 'Open folder as board on click',
+                desc: 'When enabled, clicking a folder opens its notes as a masonry card board in the main editor area. Notes open in a new tab so the board stays put.'
             },
             defaultListMode: {
                 name: 'وضع القائمة الافتراضي',

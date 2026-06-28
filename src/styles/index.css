@@ -52,6 +52,8 @@ Keep this list ordered: later files override earlier ones.
 @import './sections/navigation-properties.css';
 /* calendar.css: bottom overlay calendar in navigation pane (`.nn-navigation-calendar*`). */
 @import './sections/calendar.css';
+/* board.css: full-width folder board / masonry card view (`.nn-board*`). */
+@import './sections/board.css';
 /* list-files.css: list scroller (`.nn-list-pane-scroller`), overlay stack, list title area, file rows (`.nn-file`), separators, quick actions panel. */
 @import './sections/list-files.css';
 /* list-tags.css: file tag pills (`.nn-file-tag*`) and selected file text color rules. */

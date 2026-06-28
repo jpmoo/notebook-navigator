@@ -298,6 +298,8 @@ export const STRINGS_FA = {
             duplicateMultipleNotes: 'کپی {count} یادداشت',
             duplicateMultipleFiles: 'کپی {count} فایل',
             openVersionHistory: 'باز کردن تاریخچه نسخه',
+            hideFile: 'Hide file',
+            unhideFile: 'Unhide file',
             revealInFolder: 'نمایش در پوشه',
             revealInFinder: 'نمایش در Finder',
             showInExplorer: 'نمایش در مرورگر سیستم',
@@ -333,6 +335,7 @@ export const STRINGS_FA = {
         },
         folder: {
             newNote: 'یادداشت جدید',
+            openAsBoard: 'Open as board',
             newNoteFromTemplate: 'یادداشت جدید از قالب',
             newFolder: 'پوشه جدید',
             newCanvas: 'بوم جدید',
@@ -776,6 +779,8 @@ export const STRINGS_FA = {
         notices: {
             hideFolder: 'پوشه مخفی شد: {name}',
             showFolder: 'پوشه نمایش داده شد: {name}',
+            hideFile: 'File hidden: {name}',
+            showFile: 'File shown: {name}',
             mergeNotes: '{count} یادداشت در {name} ادغام شد'
         },
         notifications: {
@@ -864,6 +869,7 @@ export const STRINGS_FA = {
         toggleDualPane: 'تغییر نمای پنل دوگانه',
         toggleDualPaneOrientation: 'تغییر جهت پنل دوگانه', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'تغییر تقویم',
+        openFolderAsBoard: 'Open folder as board',
         selectVaultProfile: 'انتخاب پروفایل خزانه',
         selectVaultProfile1: 'انتخاب پروفایل خزانه ۱',
         selectVaultProfile2: 'انتخاب پروفایل خزانه ۲',
@@ -907,12 +913,20 @@ export const STRINGS_FA = {
     plugin: {
         viewName: 'Notebook Navigator',
         calendarViewName: 'تقویم',
+        boardViewName: 'Board',
         folderNoteSidebarViewName: 'یادداشت پوشه',
         ribbonTooltip: 'Notebook Navigator',
         revealInNavigator: 'نمایش در Notebook Navigator'
     },
 
     // Tooltips
+    board: {
+        searchPlaceholder: 'Search notes…',
+        empty: 'No notes in this folder.',
+        noSearchResults: 'No notes match your search.',
+        showingCount: 'Showing {shown} of {total} notes',
+        noFolderSelected: 'Select a folder to open it as a board.'
+    },
     tooltips: {
         lastModifiedAt: 'آخرین تغییر در',
         createdAt: 'ایجاد شده در',
@@ -1160,6 +1174,10 @@ export const STRINGS_FA = {
             showCurrentFolderFilesAtBottom: {
                 name: 'گروه‌بندی پوشه: فایل‌های پوشه فعلی در پایین',
                 desc: 'وقتی گروه‌بندی پیش‌فرض روی پوشه است، فایل‌هایی را که مستقیماً در پوشه انتخاب‌شده هستند به زیر گروه‌های زیرپوشه منتقل کن.'
+            },
+            openFolderInBoard: {
+                name: 'Open folder as board on click',
+                desc: 'When enabled, clicking a folder opens its notes as a masonry card board in the main editor area. Notes open in a new tab so the board stays put.'
             },
             defaultListMode: {
                 name: 'حالت لیست پیش‌فرض',

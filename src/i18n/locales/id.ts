@@ -299,6 +299,8 @@ export const STRINGS_ID = {
             duplicateMultipleNotes: 'Duplikat {count} catatan',
             duplicateMultipleFiles: 'Duplikat {count} file',
             openVersionHistory: 'Buka riwayat versi',
+            hideFile: 'Hide file',
+            unhideFile: 'Unhide file',
             revealInFolder: 'Tampilkan di folder',
             revealInFinder: 'Tampilkan di Finder',
             showInExplorer: 'Tampilkan di explorer sistem',
@@ -334,6 +336,7 @@ export const STRINGS_ID = {
         },
         folder: {
             newNote: 'Catatan baru',
+            openAsBoard: 'Open as board',
             newNoteFromTemplate: 'Catatan baru dari template',
             newFolder: 'Folder baru',
             newCanvas: 'Canvas baru',
@@ -776,6 +779,8 @@ export const STRINGS_ID = {
         notices: {
             hideFolder: 'Folder disembunyikan: {name}',
             showFolder: 'Folder ditampilkan: {name}',
+            hideFile: 'File hidden: {name}',
+            showFile: 'File shown: {name}',
             mergeNotes: 'Menggabungkan {count} catatan menjadi {name}'
         },
         notifications: {
@@ -864,6 +869,7 @@ export const STRINGS_ID = {
         toggleDualPane: 'Alihkan tata letak panel ganda',
         toggleDualPaneOrientation: 'Alihkan orientasi panel ganda', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'Alihkan kalender',
+        openFolderAsBoard: 'Open folder as board',
         selectVaultProfile: 'Pilih profil vault',
         selectVaultProfile1: 'Pilih profil vault 1',
         selectVaultProfile2: 'Pilih profil vault 2',
@@ -907,12 +913,20 @@ export const STRINGS_ID = {
     plugin: {
         viewName: 'Notebook Navigator',
         calendarViewName: 'Kalender',
+        boardViewName: 'Board',
         folderNoteSidebarViewName: 'Catatan folder',
         ribbonTooltip: 'Notebook Navigator',
         revealInNavigator: 'Tampilkan di Notebook Navigator'
     },
 
     // Tooltips
+    board: {
+        searchPlaceholder: 'Search notes…',
+        empty: 'No notes in this folder.',
+        noSearchResults: 'No notes match your search.',
+        showingCount: 'Showing {shown} of {total} notes',
+        noFolderSelected: 'Select a folder to open it as a board.'
+    },
     tooltips: {
         lastModifiedAt: 'Terakhir dimodifikasi pada',
         createdAt: 'Dibuat pada',
@@ -1160,6 +1174,10 @@ export const STRINGS_ID = {
             showCurrentFolderFilesAtBottom: {
                 name: 'Pengelompokan folder: file folder saat ini di bawah',
                 desc: 'Saat pengelompokan default adalah Folder, pindahkan file yang langsung berada di folder yang dipilih ke bawah grup subfolder.'
+            },
+            openFolderInBoard: {
+                name: 'Open folder as board on click',
+                desc: 'When enabled, clicking a folder opens its notes as a masonry card board in the main editor area. Notes open in a new tab so the board stays put.'
             },
             defaultListMode: {
                 name: 'Mode daftar default',

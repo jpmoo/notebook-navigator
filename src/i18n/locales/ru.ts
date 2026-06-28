@@ -299,6 +299,8 @@ export const STRINGS_RU = {
             duplicateMultipleNotes: 'Дублировать {count} заметок',
             duplicateMultipleFiles: 'Дублировать {count} файлов',
             openVersionHistory: 'Открыть историю версий',
+            hideFile: 'Hide file',
+            unhideFile: 'Unhide file',
             revealInFolder: 'Показать в папке',
             revealInFinder: 'Показать в Finder',
             showInExplorer: 'Показать в проводнике',
@@ -334,6 +336,7 @@ export const STRINGS_RU = {
         },
         folder: {
             newNote: 'Новая заметка',
+            openAsBoard: 'Open as board',
             newNoteFromTemplate: 'Новая заметка из шаблона',
             newFolder: 'Новая папка',
             newCanvas: 'Новый холст',
@@ -773,6 +776,8 @@ export const STRINGS_RU = {
         notices: {
             hideFolder: 'Папка скрыта: {name}',
             showFolder: 'Папка показана: {name}',
+            hideFile: 'File hidden: {name}',
+            showFile: 'File shown: {name}',
             mergeNotes: 'Объединено {count} заметок в {name}'
         },
         notifications: {
@@ -861,6 +866,7 @@ export const STRINGS_RU = {
         toggleDualPane: 'Переключить двухпанельный режим', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleDualPaneOrientation: 'Переключить ориентацию двухпанельного режима', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'Переключить календарь', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
+        openFolderAsBoard: 'Open folder as board',
         selectVaultProfile: 'Выбрать профиль хранилища', // Command palette: Opens a modal to choose a different vault profile (English: Select vault profile)
         selectVaultProfile1: 'Выбрать профиль хранилища 1', // Command palette: Activates the first vault profile without opening the modal (English: Select vault profile 1)
         selectVaultProfile2: 'Выбрать профиль хранилища 2', // Command palette: Activates the second vault profile without opening the modal (English: Select vault profile 2)
@@ -904,12 +910,20 @@ export const STRINGS_RU = {
     plugin: {
         viewName: 'Notebook Navigator', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: 'Календарь', // Name shown in the view header/tab (English: Calendar)
+        boardViewName: 'Board',
         folderNoteSidebarViewName: 'Заметка папки', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'Показать в Notebook Navigator' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
 
     // Tooltips
+    board: {
+        searchPlaceholder: 'Search notes…',
+        empty: 'No notes in this folder.',
+        noSearchResults: 'No notes match your search.',
+        showingCount: 'Showing {shown} of {total} notes',
+        noFolderSelected: 'Select a folder to open it as a board.'
+    },
     tooltips: {
         lastModifiedAt: 'Последнее изменение',
         createdAt: 'Создано',
@@ -1157,6 +1171,10 @@ export const STRINGS_RU = {
             showCurrentFolderFilesAtBottom: {
                 name: 'Группировка по папкам: файлы текущей папки внизу',
                 desc: 'Если для группировки по умолчанию выбран вариант «Папка», файлы непосредственно в выбранной папке будут показаны ниже групп вложенных папок.'
+            },
+            openFolderInBoard: {
+                name: 'Open folder as board on click',
+                desc: 'When enabled, clicking a folder opens its notes as a masonry card board in the main editor area. Notes open in a new tab so the board stays put.'
             },
             defaultListMode: {
                 name: 'Режим списка по умолчанию',

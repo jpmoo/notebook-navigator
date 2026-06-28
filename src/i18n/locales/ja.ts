@@ -288,6 +288,8 @@ export const STRINGS_JA = {
             duplicateNote: 'ノートを複製',
             duplicateMultipleNotes: '{count}個のノートを複製',
             openVersionHistory: 'バージョン履歴を開く',
+            hideFile: 'Hide file',
+            unhideFile: 'Unhide file',
             revealInFolder: 'フォルダで表示',
             revealInFinder: 'Finderで表示',
             showInExplorer: 'システムエクスプローラーで表示',
@@ -333,6 +335,7 @@ export const STRINGS_JA = {
         },
         folder: {
             newNote: '新規ノート',
+            openAsBoard: 'Open as board',
             newNoteFromTemplate: 'テンプレートから新規ノート',
             newFolder: '新規フォルダ',
             newCanvas: '新規キャンバス',
@@ -775,6 +778,8 @@ export const STRINGS_JA = {
         notices: {
             hideFolder: 'フォルダを非表示: {name}',
             showFolder: 'フォルダを表示: {name}',
+            hideFile: 'File hidden: {name}',
+            showFile: 'File shown: {name}',
             mergeNotes: '{count} 個のノートを {name} に結合しました'
         },
         notifications: {
@@ -863,6 +868,7 @@ export const STRINGS_JA = {
         toggleDualPane: 'デュアルペインレイアウトを切り替え', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleDualPaneOrientation: 'デュアルペインの向きを切り替え', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'カレンダーの切り替え', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
+        openFolderAsBoard: 'Open folder as board',
         selectVaultProfile: '保管庫のプロファイルを変更', // Command palette: Opens a modal to choose a different vault profile (English: Switch vault profile)
         selectVaultProfile1: '保管庫プロファイル1を選択', // Command palette: Activates the first vault profile without opening the modal (English: Select vault profile 1)
         selectVaultProfile2: '保管庫プロファイル2を選択', // Command palette: Activates the second vault profile without opening the modal (English: Select vault profile 2)
@@ -906,12 +912,20 @@ export const STRINGS_JA = {
     plugin: {
         viewName: 'ノートブックナビゲーター', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: 'カレンダー', // Name shown in the view header/tab (English: Calendar)
+        boardViewName: 'Board',
         folderNoteSidebarViewName: 'フォルダノート', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'ノートブックナビゲーター', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'ノートブックナビゲーターで表示' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
 
     // Tooltips
+    board: {
+        searchPlaceholder: 'Search notes…',
+        empty: 'No notes in this folder.',
+        noSearchResults: 'No notes match your search.',
+        showingCount: 'Showing {shown} of {total} notes',
+        noFolderSelected: 'Select a folder to open it as a board.'
+    },
     tooltips: {
         lastModifiedAt: '最終更新',
         createdAt: '作成日時',
@@ -1159,6 +1173,10 @@ export const STRINGS_JA = {
             showCurrentFolderFilesAtBottom: {
                 name: 'フォルダーグループ化: 現在のフォルダーのファイルを下部に表示',
                 desc: 'デフォルトのグループ化がフォルダーの場合、選択したフォルダー直下のファイルをサブフォルダーグループの下に移動します。'
+            },
+            openFolderInBoard: {
+                name: 'Open folder as board on click',
+                desc: 'When enabled, clicking a folder opens its notes as a masonry card board in the main editor area. Notes open in a new tab so the board stays put.'
             },
             defaultListMode: {
                 name: 'リストのデフォルトモード',

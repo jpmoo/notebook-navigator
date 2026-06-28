@@ -299,6 +299,8 @@ export const STRINGS_PL = {
             duplicateMultipleNotes: 'Duplikuj notatki: {count}',
             duplicateMultipleFiles: 'Duplikuj pliki: {count}',
             openVersionHistory: 'Otwórz historię wersji',
+            hideFile: 'Hide file',
+            unhideFile: 'Unhide file',
             revealInFolder: 'Pokaż w folderze',
             revealInFinder: 'Pokaż w Finderze',
             showInExplorer: 'Pokaż w eksploratorze systemowym',
@@ -334,6 +336,7 @@ export const STRINGS_PL = {
         },
         folder: {
             newNote: 'Nowa notatka',
+            openAsBoard: 'Open as board',
             newNoteFromTemplate: 'Nowa notatka na podstawie szablonu',
             newFolder: 'Nowy folder',
             newCanvas: 'Nowa tablica',
@@ -779,6 +782,8 @@ export const STRINGS_PL = {
         notices: {
             hideFolder: 'Ukryty folder: {name}',
             showFolder: 'Widoczny folder: {name}',
+            hideFile: 'File hidden: {name}',
+            showFile: 'File shown: {name}',
             mergeNotes: 'Scalono {count} notatek w {name}'
         },
         notifications: {
@@ -867,6 +872,7 @@ export const STRINGS_PL = {
         toggleDualPane: 'Przełącz układ podwójnego panelu', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleDualPaneOrientation: 'Przełącz orientację podwójnego panelu', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'Przełącz kalendarz', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
+        openFolderAsBoard: 'Open folder as board',
         selectVaultProfile: 'Wybierz profil sejfu', // Command palette: Opens a modal to choose a different vault profile (English: Switch vault profile)
         selectVaultProfile1: 'Wybierz profil sejfu 1', // Command palette: Activates the first vault profile without opening the modal (English: Select vault profile 1)
         selectVaultProfile2: 'Wybierz profil sejfu 2', // Command palette: Activates the second vault profile without opening the modal (English: Select vault profile 2)
@@ -910,12 +916,20 @@ export const STRINGS_PL = {
     plugin: {
         viewName: 'Notebook Navigator', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: 'Kalendarz', // Name shown in the view header/tab (English: Calendar)
+        boardViewName: 'Board',
         folderNoteSidebarViewName: 'Notatka folderu', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'Pokaż w Notebook Navigator' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
 
     // Tooltips
+    board: {
+        searchPlaceholder: 'Search notes…',
+        empty: 'No notes in this folder.',
+        noSearchResults: 'No notes match your search.',
+        showingCount: 'Showing {shown} of {total} notes',
+        noFolderSelected: 'Select a folder to open it as a board.'
+    },
     tooltips: {
         lastModifiedAt: 'Zmodyfikowano',
         createdAt: 'Utworzono',
@@ -1163,6 +1177,10 @@ export const STRINGS_PL = {
             showCurrentFolderFilesAtBottom: {
                 name: 'Grupowanie folderów: pliki bieżącego folderu na dole',
                 desc: 'Gdy domyślne grupowanie to Folder, przenieś pliki znajdujące się bezpośrednio w wybranym folderze pod grupy podfolderów.'
+            },
+            openFolderInBoard: {
+                name: 'Open folder as board on click',
+                desc: 'When enabled, clicking a folder opens its notes as a masonry card board in the main editor area. Notes open in a new tab so the board stays put.'
             },
             defaultListMode: {
                 name: 'Domyślny tryb listy',

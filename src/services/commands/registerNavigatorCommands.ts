@@ -42,6 +42,7 @@ const STATIC_COMMAND_SPECS: NavigatorCommandSpec[] = [
     { id: 'toggle-dual-pane', name: strings.commands.toggleDualPane },
     { id: 'toggle-dual-pane-orientation', name: strings.commands.toggleDualPaneOrientation },
     { id: 'toggle-calendar', name: strings.commands.toggleCalendar },
+    { id: 'open-folder-as-board', name: strings.commands.openFolderAsBoard },
     { id: 'open-daily-note', name: strings.commands.openDailyNote },
     { id: 'open-weekly-note', name: strings.commands.openWeeklyNote },
     { id: 'open-monthly-note', name: strings.commands.openMonthlyNote },

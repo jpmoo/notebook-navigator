@@ -37,6 +37,9 @@ import { confirmRemoveAllTagsFromFiles, openAddTagToFilesModal, removeTagFromFil
 import { addFolderStyleChangeActions, addFolderStyleMenu, addStyleMenu } from './styleMenuBuilder';
 import { resolveIconForMenu, resolveUXIconForMenu } from '../uxIcons';
 import { isFolderNote } from '../../utils/folderNoteLookup';
+import { createHiddenFileNameMatcher } from '../fileFilters';
+import { getActiveVaultProfile } from '../vaultProfiles';
+import { showNotice } from '../noticeUtils';
 import { getFilesForNavigationSelection, getNavigatorPinContext, orderFilesByReference } from '../selectionUtils';
 import { collectFileMenuPropertyActions, type FileMenuPropertyAction } from '../../utils/propertyMenuActions';
 import { INTERNAL_NOTEBOOK_NAVIGATOR_API } from '../../api/NotebookNavigatorAPI';
@@ -498,6 +501,38 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
                 selection: { mode: 'single', files: [file] }
             }) ?? 0;
         if (addedMenuExtensions > 0) {
+            menu.addSeparator();
+        }
+    }
+
+    // Hide/Unhide this specific file - single selection only.
+    // Mirrors the folder "Hide folder" action but stores the file's exact path as a
+    // path entry in the active profile's hiddenFileNames list, which the file-name
+    // matcher treats as a literal-path match (so only this file is hidden).
+    if (!shouldShowMultiOptions) {
+        const activeProfile = getActiveVaultProfile(services.plugin.settings);
+        const hiddenNames = activeProfile.hiddenFileNames;
+        const filePathPattern = `/${file.path}`;
+        const matchingEntry = hiddenNames.find(pattern => pattern === filePathPattern || pattern === file.path);
+
+        if (matchingEntry) {
+            menu.addItem((item: MenuItem) => {
+                setAsyncOnClick(item.setTitle(strings.contextMenu.file.unhideFile).setIcon('lucide-eye'), async () => {
+                    activeProfile.hiddenFileNames = hiddenNames.filter(pattern => pattern !== matchingEntry);
+                    await services.plugin.saveSettingsAndUpdate();
+                    showNotice(strings.fileSystem.notices.showFile.replace('{name}', file.basename), { variant: 'success' });
+                });
+            });
+            menu.addSeparator();
+        } else if (!createHiddenFileNameMatcher(hiddenNames).matches(file)) {
+            // Only offer "Hide" when the file isn't already hidden by a broader name rule.
+            menu.addItem((item: MenuItem) => {
+                setAsyncOnClick(item.setTitle(strings.contextMenu.file.hideFile).setIcon('lucide-eye-off'), async () => {
+                    activeProfile.hiddenFileNames = [...hiddenNames, filePathPattern];
+                    await services.plugin.saveSettingsAndUpdate();
+                    showNotice(strings.fileSystem.notices.hideFile.replace('{name}', file.basename), { variant: 'success' });
+                });
+            });
             menu.addSeparator();
         }
     }

@@ -298,6 +298,8 @@ export const STRINGS_TH = {
             duplicateMultipleNotes: 'ทำซ้ำ {count} โน้ต',
             duplicateMultipleFiles: 'ทำซ้ำ {count} ไฟล์',
             openVersionHistory: 'เปิดประวัติเวอร์ชัน',
+            hideFile: 'Hide file',
+            unhideFile: 'Unhide file',
             revealInFolder: 'แสดงในโฟลเดอร์',
             revealInFinder: 'แสดงใน Finder',
             showInExplorer: 'แสดงใน explorer ระบบ',
@@ -333,6 +335,7 @@ export const STRINGS_TH = {
         },
         folder: {
             newNote: 'โน้ตใหม่',
+            openAsBoard: 'Open as board',
             newNoteFromTemplate: 'โน้ตใหม่จากเทมเพลต',
             newFolder: 'โฟลเดอร์ใหม่',
             newCanvas: 'Canvas ใหม่',
@@ -769,6 +772,8 @@ export const STRINGS_TH = {
         notices: {
             hideFolder: 'ซ่อนโฟลเดอร์แล้ว: {name}',
             showFolder: 'แสดงโฟลเดอร์แล้ว: {name}',
+            hideFile: 'File hidden: {name}',
+            showFile: 'File shown: {name}',
             mergeNotes: 'รวม {count} โน้ตเป็น {name} แล้ว'
         },
         notifications: {
@@ -857,6 +862,7 @@ export const STRINGS_TH = {
         toggleDualPane: 'สลับรูปแบบแผงคู่',
         toggleDualPaneOrientation: 'สลับทิศทางแผงคู่', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'สลับปฏิทิน',
+        openFolderAsBoard: 'Open folder as board',
         selectVaultProfile: 'เลือกโปรไฟล์ห้องนิรภัย',
         selectVaultProfile1: 'เลือกโปรไฟล์ห้องนิรภัย 1',
         selectVaultProfile2: 'เลือกโปรไฟล์ห้องนิรภัย 2',
@@ -900,12 +906,20 @@ export const STRINGS_TH = {
     plugin: {
         viewName: 'Notebook Navigator',
         calendarViewName: 'ปฏิทิน',
+        boardViewName: 'Board',
         folderNoteSidebarViewName: 'โน้ตโฟลเดอร์',
         ribbonTooltip: 'Notebook Navigator',
         revealInNavigator: 'แสดงใน Notebook Navigator'
     },
 
     // Tooltips
+    board: {
+        searchPlaceholder: 'Search notes…',
+        empty: 'No notes in this folder.',
+        noSearchResults: 'No notes match your search.',
+        showingCount: 'Showing {shown} of {total} notes',
+        noFolderSelected: 'Select a folder to open it as a board.'
+    },
     tooltips: {
         lastModifiedAt: 'แก้ไขล่าสุดเมื่อ',
         createdAt: 'สร้างเมื่อ',
@@ -1153,6 +1167,10 @@ export const STRINGS_TH = {
             showCurrentFolderFilesAtBottom: {
                 name: 'การจัดกลุ่มตามโฟลเดอร์: ไฟล์ในโฟลเดอร์ปัจจุบันอยู่ด้านล่าง',
                 desc: 'เมื่อการจัดกลุ่มเริ่มต้นเป็นโฟลเดอร์ ให้ย้ายไฟล์ที่อยู่ในโฟลเดอร์ที่เลือกโดยตรงไปไว้ใต้กลุ่มโฟลเดอร์ย่อย'
+            },
+            openFolderInBoard: {
+                name: 'Open folder as board on click',
+                desc: 'When enabled, clicking a folder opens its notes as a masonry card board in the main editor area. Notes open in a new tab so the board stays put.'
             },
             defaultListMode: {
                 name: 'โหมดรายการเริ่มต้น',

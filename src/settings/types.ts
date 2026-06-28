@@ -645,6 +645,8 @@ export interface NotebookNavigatorSettings {
 
     // List pane tab
     defaultListMode: ListDisplayMode;
+    // When enabled, clicking a folder opens that folder as a masonry board in the main editor area
+    openFolderInBoard: boolean;
     includeDescendantNotes: boolean;
     defaultFolderSort: SortOption;
     propertySortKey: string;

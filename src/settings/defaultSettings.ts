@@ -296,6 +296,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
 
     // List pane tab
     defaultListMode: 'standard',
+    openFolderInBoard: false,
     includeDescendantNotes: false,
     defaultFolderSort: 'modified-desc',
     propertySortKey: '',

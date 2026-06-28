@@ -301,6 +301,8 @@ export const STRINGS_NL = {
             duplicateMultipleNotes: '{count} notities dupliceren',
             duplicateMultipleFiles: '{count} bestanden dupliceren',
             openVersionHistory: 'Versiegeschiedenis openen',
+            hideFile: 'Hide file',
+            unhideFile: 'Unhide file',
             revealInFolder: 'Tonen in map',
             revealInFinder: 'Tonen in Finder',
             showInExplorer: 'Tonen in systeemverkenner',
@@ -336,6 +338,7 @@ export const STRINGS_NL = {
         },
         folder: {
             newNote: 'Nieuwe notitie',
+            openAsBoard: 'Open as board',
             newNoteFromTemplate: 'Nieuwe notitie uit sjabloon',
             newFolder: 'Nieuwe map',
             newCanvas: 'Nieuw canvas',
@@ -778,6 +781,8 @@ export const STRINGS_NL = {
         notices: {
             hideFolder: 'Map verborgen: {name}',
             showFolder: 'Map zichtbaar: {name}',
+            hideFile: 'File hidden: {name}',
+            showFile: 'File shown: {name}',
             mergeNotes: '{count} notities samengevoegd in {name}'
         },
         notifications: {
@@ -866,6 +871,7 @@ export const STRINGS_NL = {
         toggleDualPane: 'Dubbel paneel in-/uitschakelen',
         toggleDualPaneOrientation: 'Dubbel paneel oriëntatie wisselen', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'Kalender in-/uitschakelen',
+        openFolderAsBoard: 'Open folder as board',
         selectVaultProfile: 'Kluisprofiel wijzigen',
         selectVaultProfile1: 'Kluisprofiel 1 selecteren',
         selectVaultProfile2: 'Kluisprofiel 2 selecteren',
@@ -909,12 +915,20 @@ export const STRINGS_NL = {
     plugin: {
         viewName: 'Notebook Navigator',
         calendarViewName: 'Kalender',
+        boardViewName: 'Board',
         folderNoteSidebarViewName: 'Mapnotitie',
         ribbonTooltip: 'Notebook Navigator',
         revealInNavigator: 'Tonen in Notebook Navigator'
     },
 
     // Tooltips
+    board: {
+        searchPlaceholder: 'Search notes…',
+        empty: 'No notes in this folder.',
+        noSearchResults: 'No notes match your search.',
+        showingCount: 'Showing {shown} of {total} notes',
+        noFolderSelected: 'Select a folder to open it as a board.'
+    },
     tooltips: {
         lastModifiedAt: 'Laatst gewijzigd op',
         createdAt: 'Gemaakt op',
@@ -1162,6 +1176,10 @@ export const STRINGS_NL = {
             showCurrentFolderFilesAtBottom: {
                 name: 'Mapgroepering: bestanden van huidige map onderaan',
                 desc: 'Wanneer de standaardgroepering Map is, worden bestanden direct in de geselecteerde map onder submapgroepen geplaatst.'
+            },
+            openFolderInBoard: {
+                name: 'Open folder as board on click',
+                desc: 'When enabled, clicking a folder opens its notes as a masonry card board in the main editor area. Notes open in a new tab so the board stays put.'
             },
             defaultListMode: {
                 name: 'Standaard lijstmodus',

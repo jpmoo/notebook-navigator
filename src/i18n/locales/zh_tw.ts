@@ -288,6 +288,8 @@ export const STRINGS_ZH_TW = {
             duplicateNote: '複製筆記',
             duplicateMultipleNotes: '複製 {count} 個筆記',
             openVersionHistory: '開啟版本歷史',
+            hideFile: 'Hide file',
+            unhideFile: 'Unhide file',
             revealInFolder: '在資料夾中定位',
             revealInFinder: '在 Finder 中顯示',
             showInExplorer: '在檔案總管中顯示',
@@ -333,6 +335,7 @@ export const STRINGS_ZH_TW = {
         },
         folder: {
             newNote: '新筆記',
+            openAsBoard: 'Open as board',
             newNoteFromTemplate: '從範本新建筆記',
             newFolder: '新建資料夾',
             newCanvas: '新建畫布',
@@ -766,6 +769,8 @@ export const STRINGS_ZH_TW = {
         notices: {
             hideFolder: '已隱藏資料夾：{name}',
             showFolder: '已顯示資料夾：{name}',
+            hideFile: 'File hidden: {name}',
+            showFile: 'File shown: {name}',
             mergeNotes: '已將 {count} 則筆記合併到 {name}'
         },
         notifications: {
@@ -854,6 +859,7 @@ export const STRINGS_ZH_TW = {
         toggleDualPane: '切換雙窗格布局',
         toggleDualPaneOrientation: '切換雙窗格方向', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: '切換日曆',
+        openFolderAsBoard: 'Open folder as board',
         selectVaultProfile: '變更保險庫設定檔',
         selectVaultProfile1: '切換到保險庫設定檔 1',
         selectVaultProfile2: '切換到保險庫設定檔 2',
@@ -897,12 +903,20 @@ export const STRINGS_ZH_TW = {
     plugin: {
         viewName: '筆記本導覽器',
         calendarViewName: '日曆',
+        boardViewName: 'Board',
         folderNoteSidebarViewName: '資料夾筆記',
         ribbonTooltip: '筆記本導覽器',
         revealInNavigator: '在筆記本導覽器中定位'
     },
 
     // Tooltips
+    board: {
+        searchPlaceholder: 'Search notes…',
+        empty: 'No notes in this folder.',
+        noSearchResults: 'No notes match your search.',
+        showingCount: 'Showing {shown} of {total} notes',
+        noFolderSelected: 'Select a folder to open it as a board.'
+    },
     tooltips: {
         lastModifiedAt: '最後修改於',
         createdAt: '建立於',
@@ -1147,6 +1161,10 @@ export const STRINGS_ZH_TW = {
             showCurrentFolderFilesAtBottom: {
                 name: '資料夾分組：目前資料夾檔案置底',
                 desc: '當預設分組為資料夾時，將所選資料夾中的直屬檔案移到子資料夾分組下方。'
+            },
+            openFolderInBoard: {
+                name: 'Open folder as board on click',
+                desc: 'When enabled, clicking a folder opens its notes as a masonry card board in the main editor area. Notes open in a new tab so the board stays put.'
             },
             defaultListMode: {
                 name: '預設列表模式',

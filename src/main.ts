@@ -22,6 +22,7 @@ import { LazyNotebookNavigatorSettingTab } from './settings/LazyNotebookNavigato
 import type { NarrowSidebarLayout, NarrowSidebarTriggerMode } from './settings/types';
 import {
     LocalStorageKeys,
+    NOTEBOOK_NAVIGATOR_BOARD_VIEW,
     NOTEBOOK_NAVIGATOR_CALENDAR_VIEW,
     NOTEBOOK_NAVIGATOR_FOLDER_NOTE_SIDEBAR_VIEW,
     NOTEBOOK_NAVIGATOR_VIEW,
@@ -542,6 +543,12 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
                 // eslint-disable-next-line @typescript-eslint/no-require-imports -- Obsidian registerView callbacks must construct views synchronously.
                 require('./view/FolderNoteSidebarPlaceholderView') as typeof import('./view/FolderNoteSidebarPlaceholderView');
             return new FolderNoteSidebarPlaceholderView(leaf);
+        });
+        this.registerView(NOTEBOOK_NAVIGATOR_BOARD_VIEW, leaf => {
+            const { NotebookNavigatorBoardView } =
+                // eslint-disable-next-line @typescript-eslint/no-require-imports -- Obsidian registerView callbacks must construct views synchronously.
+                require('./view/NotebookNavigatorBoardView') as typeof import('./view/NotebookNavigatorBoardView');
+            return new NotebookNavigatorBoardView(leaf, this);
         });
 
         // Register commands
@@ -1397,6 +1404,13 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
      */
     async activateView() {
         return this.workspaceCoordinator?.activateNavigatorView() ?? null;
+    }
+
+    /**
+     * Opens the given folder as a full-width masonry board in a new (or reused) tab.
+     */
+    async openBoardForFolder(folderPath: string): Promise<WorkspaceLeaf | null> {
+        return this.workspaceCoordinator?.openBoardForFolder(folderPath) ?? null;
     }
 
     /**

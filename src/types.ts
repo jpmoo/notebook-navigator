@@ -37,6 +37,12 @@ export const NOTEBOOK_NAVIGATOR_VIEW = 'notebook-navigator';
 export const NOTEBOOK_NAVIGATOR_CALENDAR_VIEW = 'notebook-navigator-calendar';
 
 /**
+ * Unique identifier for the folder board (masonry) view type.
+ * Used by Obsidian to register and manage the full-width card board view for a folder.
+ */
+export const NOTEBOOK_NAVIGATOR_BOARD_VIEW = 'notebook-navigator-board';
+
+/**
  * Unique identifier for the folder note sidebar placeholder view.
  * Used to keep a stable right sidebar slot when no folder note is open.
  */

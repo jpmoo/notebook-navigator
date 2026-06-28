@@ -260,6 +260,15 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
 
     menu.addSeparator();
 
+    // Open this folder as a full-width masonry card board
+    menu.addItem((item: MenuItem) => {
+        setAsyncOnClick(item.setTitle(strings.contextMenu.folder.openAsBoard).setIcon('layout-grid'), async () => {
+            await plugin.openBoardForFolder(folder.path);
+        });
+    });
+
+    menu.addSeparator();
+
     // Customization options: icon, color, background, separator
     addFolderStyleChangeActions({
         menu,

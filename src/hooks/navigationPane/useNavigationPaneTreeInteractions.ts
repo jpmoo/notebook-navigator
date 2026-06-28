@@ -82,6 +82,7 @@ interface UseNavigationPaneTreeInteractionsProps {
     setRecentNotesExpanded: Dispatch<SetStateAction<boolean>>;
     clearActiveShortcut: () => void;
     openFolderNoteInRightSidebar: (folderNote: TFile) => Promise<void>;
+    openFolderBoard: (folderPath: string) => void;
     onModifySearchWithTag: (tag: string, operator: InclusionOperator) => void;
     onModifySearchWithProperty: (key: string, value: string | null, operator: InclusionOperator) => void;
 }
@@ -124,6 +125,7 @@ export function useNavigationPaneTreeInteractions({
     setRecentNotesExpanded,
     clearActiveShortcut,
     openFolderNoteInRightSidebar,
+    openFolderBoard,
     onModifySearchWithTag,
     onModifySearchWithProperty
 }: UseNavigationPaneTreeInteractionsProps): NavigationPaneTreeInteractionsResult {
@@ -181,6 +183,11 @@ export function useNavigationPaneTreeInteractions({
 
             selectionDispatch({ type: 'SET_SELECTED_FOLDER', folder });
 
+            // Optionally mirror the folder selection as a masonry board in the main editor area.
+            if (settings.openFolderInBoard) {
+                openFolderBoard(folder.path);
+            }
+
             if (shouldCollapseOnSelect) {
                 handleFolderToggle(folder.path);
                 uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'navigation' });
@@ -207,6 +214,7 @@ export function useNavigationPaneTreeInteractions({
             clearActiveShortcut,
             expansionState.expandedFolders,
             handleFolderToggle,
+            openFolderBoard,
             selectionDispatch,
             selectionState.selectedFolder,
             selectionState.selectionType,

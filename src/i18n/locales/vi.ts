@@ -298,6 +298,8 @@ export const STRINGS_VI = {
             duplicateMultipleNotes: 'Nhân bản {count} ghi chú',
             duplicateMultipleFiles: 'Nhân bản {count} tệp',
             openVersionHistory: 'Mở lịch sử phiên bản',
+            hideFile: 'Hide file',
+            unhideFile: 'Unhide file',
             revealInFolder: 'Hiện trong thư mục',
             revealInFinder: 'Hiện trong Finder',
             showInExplorer: 'Hiện trong trình quản lý tệp',
@@ -333,6 +335,7 @@ export const STRINGS_VI = {
         },
         folder: {
             newNote: 'Ghi chú mới',
+            openAsBoard: 'Open as board',
             newNoteFromTemplate: 'Ghi chú mới từ mẫu',
             newFolder: 'Thư mục mới',
             newCanvas: 'Canvas mới',
@@ -777,6 +780,8 @@ export const STRINGS_VI = {
         notices: {
             hideFolder: 'Đã ẩn thư mục: {name}',
             showFolder: 'Đã hiện thư mục: {name}',
+            hideFile: 'File hidden: {name}',
+            showFile: 'File shown: {name}',
             mergeNotes: 'Đã hợp nhất {count} ghi chú vào {name}'
         },
         notifications: {
@@ -865,6 +870,7 @@ export const STRINGS_VI = {
         toggleDualPane: 'Bật/tắt hai ngăn', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleDualPaneOrientation: 'Chuyển đổi hướng hai ngăn', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'Bật/tắt lịch', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
+        openFolderAsBoard: 'Open folder as board',
         selectVaultProfile: 'Chọn hồ sơ vault', // Command palette: Opens a modal to choose a different vault profile (English: Select vault profile)
         selectVaultProfile1: 'Chọn hồ sơ vault 1', // Command palette: Activates the first vault profile without opening the modal (English: Select vault profile 1)
         selectVaultProfile2: 'Chọn hồ sơ vault 2', // Command palette: Activates the second vault profile without opening the modal (English: Select vault profile 2)
@@ -908,12 +914,20 @@ export const STRINGS_VI = {
     plugin: {
         viewName: 'Notebook Navigator', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: 'Lịch', // Name shown in the view header/tab (English: Calendar)
+        boardViewName: 'Board',
         folderNoteSidebarViewName: 'Ghi chú thư mục', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'Hiện trong Notebook Navigator' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
 
     // Tooltips
+    board: {
+        searchPlaceholder: 'Search notes…',
+        empty: 'No notes in this folder.',
+        noSearchResults: 'No notes match your search.',
+        showingCount: 'Showing {shown} of {total} notes',
+        noFolderSelected: 'Select a folder to open it as a board.'
+    },
     tooltips: {
         lastModifiedAt: 'Sửa đổi lần cuối',
         createdAt: 'Tạo lúc',
@@ -1161,6 +1175,10 @@ export const STRINGS_VI = {
             showCurrentFolderFilesAtBottom: {
                 name: 'Nhóm theo thư mục: tệp trong thư mục hiện tại ở dưới cùng',
                 desc: 'Khi kiểu nhóm mặc định là Thư mục, chuyển các tệp nằm trực tiếp trong thư mục đã chọn xuống dưới các nhóm thư mục con.'
+            },
+            openFolderInBoard: {
+                name: 'Open folder as board on click',
+                desc: 'When enabled, clicking a folder opens its notes as a masonry card board in the main editor area. Notes open in a new tab so the board stays put.'
             },
             defaultListMode: {
                 name: 'Chế độ danh sách mặc định',

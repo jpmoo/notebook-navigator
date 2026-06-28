@@ -18,7 +18,7 @@
 
 import { TFile, WorkspaceLeaf } from 'obsidian';
 import type NotebookNavigatorPlugin from '../../main';
-import { NOTEBOOK_NAVIGATOR_CALENDAR_VIEW, NOTEBOOK_NAVIGATOR_VIEW } from '../../types';
+import { NOTEBOOK_NAVIGATOR_BOARD_VIEW, NOTEBOOK_NAVIGATOR_CALENDAR_VIEW, NOTEBOOK_NAVIGATOR_VIEW } from '../../types';
 import { isNotebookNavigatorView } from '../../view/viewGuards';
 import type { RevealFileOptions } from '../../hooks/useNavigatorReveal';
 
@@ -38,6 +38,28 @@ export default class WorkspaceCoordinator {
         for (const leaf of leaves) {
             leaf.detach();
         }
+    }
+
+    /**
+     * Opens the given folder as a full-width masonry board. Reuses an existing board
+     * leaf when one is open (retargeting it to the new folder) so repeated invocations
+     * don't spawn duplicate tabs.
+     */
+    async openBoardForFolder(folderPath: string): Promise<WorkspaceLeaf | null> {
+        const { workspace } = this.plugin.app;
+        const existingLeaf = workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_BOARD_VIEW)[0] ?? null;
+        const leaf = existingLeaf ?? workspace.getLeaf('tab');
+        if (!leaf) {
+            return null;
+        }
+
+        await leaf.setViewState({
+            type: NOTEBOOK_NAVIGATOR_BOARD_VIEW,
+            active: true,
+            state: { targetFolderPath: folderPath }
+        });
+        await workspace.revealLeaf(leaf);
+        return leaf;
     }
 
     async ensureCalendarViewInRightSidebar(options?: {
