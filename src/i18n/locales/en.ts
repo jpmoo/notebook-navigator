@@ -916,6 +916,8 @@ export const STRINGS_EN = {
     // Folder board (masonry card view)
     board: {
         searchPlaceholder: 'Search notes…', // Placeholder text for the board's client-side search box
+        collapseCards: 'Collapse', // Header button: switch cards to the compact/collapsed layout
+        expandCards: 'Expand', // Header button: switch cards back to the full-length layout
         empty: 'No notes in this folder.', // Shown when the folder has no notes to display as cards
         noSearchResults: 'No notes match your search.', // Shown when the search filter hides every card
         // Notice when the board caps how many cards are rendered. {shown} and {total} are replaced with counts.

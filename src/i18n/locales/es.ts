@@ -926,6 +926,8 @@ export const STRINGS_ES = {
         empty: 'No notes in this folder.',
         noSearchResults: 'No notes match your search.',
         showingCount: 'Showing {shown} of {total} notes',
+        collapseCards: 'Collapse',
+        expandCards: 'Expand',
         noFolderSelected: 'Select a folder to open it as a board.'
     },
     tooltips: {

@@ -3619,8 +3619,29 @@ button.nn-navigation-calendar-day {
     font-weight: 600;
 }
 
-.nn-board-search {
+.nn-board-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin-left: auto;
+}
+
+.nn-board-toggle {
+    flex: 0 0 auto;
+    padding: 5px 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background: var(--interactive-normal);
+    color: var(--text-normal);
+    font-size: 0.85em;
+    cursor: pointer;
+}
+
+.nn-board-toggle:hover {
+    background: var(--interactive-hover);
+}
+
+.nn-board-search {
     flex: 0 1 320px;
     min-width: 0;
     padding: 5px 10px;
@@ -3708,11 +3729,20 @@ button.nn-navigation-calendar-day {
     font-size: 0.88em;
     line-height: 1.4;
     white-space: pre-wrap;
-    /* Keep cards reasonably sized; long previews are clamped. */
-    display: -webkit-box;
-    -webkit-line-clamp: 10;
-    -webkit-box-orient: vertical;
+    /* Full layout shows the whole preview snippet; collapsed layout clamps it (below). */
     overflow: hidden;
+}
+
+/* Collapsed layout: compact, uniform-ish cards — clamp the preview to a few lines
+   and shrink the feature image so more cards fit on screen at once. */
+.nn-board-grid--collapsed .nn-board-card-preview {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.nn-board-grid--collapsed .nn-board-card-image {
+    max-height: 120px;
 }
 
 .nn-board-card-tags {

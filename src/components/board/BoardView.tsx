@@ -38,7 +38,11 @@ interface BoardData {
     total: number;
     truncated: boolean;
     accentColor?: string;
+    backgroundColor?: string;
 }
+
+// Persists the full/collapsed card layout choice across board sessions.
+const BOARD_COLLAPSED_KEY = 'notebook-navigator-board-collapsed';
 
 function resolveFolder(app: App, folderPath: string | null): TFolder | null {
     if (folderPath === null) {
@@ -65,8 +69,26 @@ export function BoardView({ app, folderPath }: BoardViewProps) {
     const [query, setQuery] = useState('');
     // Bumped by vault changes within the folder to trigger a re-gather.
     const [refreshKey, setRefreshKey] = useState(0);
+    // Full vs collapsed card layout, persisted across sessions.
+    const [collapsed, setCollapsed] = useState<boolean>(() => {
+        try {
+            return window.localStorage.getItem(BOARD_COLLAPSED_KEY) === '1';
+        } catch {
+            return false;
+        }
+    });
 
-    const includeDescendantNotes = settings.includeDescendantNotes;
+    const toggleCollapsed = useCallback(() => {
+        setCollapsed(prev => {
+            const next = !prev;
+            try {
+                window.localStorage.setItem(BOARD_COLLAPSED_KEY, next ? '1' : '0');
+            } catch {
+                // Ignore storage failures (private mode, quota); the toggle still works for the session.
+            }
+            return next;
+        });
+    }, []);
 
     // Gather the folder's files and build card models from cached content.
     useEffect(() => {
@@ -77,7 +99,9 @@ export function BoardView({ app, folderPath }: BoardViewProps) {
         }
 
         let active = true;
-        const visibility = { includeDescendantNotes, showHiddenItems: false };
+        // The board intentionally shows only the selected folder's own notes, never
+        // descendants, regardless of the navigator's "include descendant notes" setting.
+        const visibility = { includeDescendantNotes: false, showHiddenItems: false };
         const files = getFilesForFolder(folder, settings, visibility, app);
         const capped = files.slice(0, BOARD_MAX_CARDS);
         const db = getDBInstance();
@@ -94,7 +118,8 @@ export function BoardView({ app, folderPath }: BoardViewProps) {
                 cards: result.cards,
                 total: result.total,
                 truncated: result.truncated,
-                accentColor: metadataService.getFolderColor(folder.path)
+                accentColor: metadataService.getFolderColor(folder.path),
+                backgroundColor: metadataService.getFolderBackgroundColor(folder.path)
             });
         };
 
@@ -107,7 +132,7 @@ export function BoardView({ app, folderPath }: BoardViewProps) {
         return () => {
             active = false;
         };
-    }, [app, folderPath, settings, includeDescendantNotes, metadataService, refreshKey]);
+    }, [app, folderPath, settings, metadataService, refreshKey]);
 
     // Refresh when files inside the folder change (create/delete/rename/modify).
     useEffect(() => {
@@ -183,13 +208,23 @@ export function BoardView({ app, folderPath }: BoardViewProps) {
         <div className="nn-board">
             <div className="nn-board-header">
                 <h1 className="nn-board-title">{data.folderName}</h1>
-                <input
-                    type="search"
-                    className="nn-board-search"
-                    placeholder={strings.board.searchPlaceholder}
-                    value={query}
-                    onChange={event => setQuery(event.target.value)}
-                />
+                <div className="nn-board-header-actions">
+                    <button
+                        type="button"
+                        className="nn-board-toggle"
+                        onClick={toggleCollapsed}
+                        aria-pressed={collapsed}
+                    >
+                        {collapsed ? strings.board.expandCards : strings.board.collapseCards}
+                    </button>
+                    <input
+                        type="search"
+                        className="nn-board-search"
+                        placeholder={strings.board.searchPlaceholder}
+                        value={query}
+                        onChange={event => setQuery(event.target.value)}
+                    />
+                </div>
             </div>
             {countNotice ? <div className="nn-board-notice">{countNotice}</div> : null}
             {data.cards.length === 0 ? (
@@ -197,9 +232,16 @@ export function BoardView({ app, folderPath }: BoardViewProps) {
             ) : visibleCards.length === 0 ? (
                 <div className="nn-board-empty">{strings.board.noSearchResults}</div>
             ) : (
-                <div className="nn-board-grid">
+                <div className={collapsed ? 'nn-board-grid nn-board-grid--collapsed' : 'nn-board-grid'}>
                     {visibleCards.map(card => (
-                        <BoardCard key={card.path} card={card} accentColor={data.accentColor} onOpen={openNote} />
+                        <BoardCard
+                            key={card.path}
+                            app={app}
+                            card={card}
+                            accentColor={data.accentColor}
+                            backgroundColor={data.backgroundColor}
+                            onOpen={openNote}
+                        />
                     ))}
                 </div>
             )}
