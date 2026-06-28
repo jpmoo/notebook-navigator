@@ -19,7 +19,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { type App, TFile, TFolder } from 'obsidian';
 import { useSettingsState } from '../../context/SettingsContext';
-import { useMetadataService } from '../../context/ServicesContext';
+import { useMetadataService, useServices } from '../../context/ServicesContext';
 import { getFilesForFolder } from '../../utils/fileFinder';
 import { getDBInstance } from '../../storage/fileOperations';
 import { loadFileItemCacheSnapshot } from '../fileItem/useFileItemContentState';
@@ -65,6 +65,10 @@ function resolveFolder(app: App, folderPath: string | null): TFolder | null {
 export function BoardView({ app, folderPath }: BoardViewProps) {
     const settings = useSettingsState();
     const metadataService = useMetadataService();
+    const { plugin } = useServices();
+    // While the board is open it tracks the navigator's folder selection, so picking a
+    // subfolder updates the board. Initialized from the view's target folder.
+    const [activeFolderPath, setActiveFolderPath] = useState<string | null>(folderPath);
     const [data, setData] = useState<BoardData | null>(null);
     const [query, setQuery] = useState('');
     // Bumped by vault changes within the folder to trigger a re-gather.
@@ -90,9 +94,29 @@ export function BoardView({ app, folderPath }: BoardViewProps) {
         });
     }, []);
 
+    // Re-sync to the view's target folder when the leaf is retargeted (e.g. opened for a
+    // different folder, or restored from saved layout).
+    useEffect(() => {
+        setActiveFolderPath(folderPath);
+    }, [folderPath]);
+
+    // Follow the navigator's folder selection while the board is open.
+    useEffect(() => {
+        const api = plugin.api;
+        if (!api) {
+            return;
+        }
+        const ref = api.on('nav-item-changed', data => {
+            if (data.item.type === 'folder' && data.item.folder) {
+                setActiveFolderPath(data.item.folder.path);
+            }
+        });
+        return () => api.off(ref);
+    }, [plugin]);
+
     // Gather the folder's files and build card models from cached content.
     useEffect(() => {
-        const folder = resolveFolder(app, folderPath);
+        const folder = resolveFolder(app, activeFolderPath);
         if (!folder) {
             setData(null);
             return;
@@ -132,14 +156,14 @@ export function BoardView({ app, folderPath }: BoardViewProps) {
         return () => {
             active = false;
         };
-    }, [app, folderPath, settings, metadataService, refreshKey]);
+    }, [app, activeFolderPath, settings, metadataService, refreshKey]);
 
     // Refresh when files inside the folder change (create/delete/rename/modify).
     useEffect(() => {
-        if (folderPath === null) {
+        if (activeFolderPath === null) {
             return;
         }
-        const prefix = folderPath === '' || folderPath === '/' ? '' : `${folderPath}/`;
+        const prefix = activeFolderPath === '' || activeFolderPath === '/' ? '' : `${activeFolderPath}/`;
         const isInFolder = (path: string) => prefix === '' || path.startsWith(prefix);
 
         let timer: number | null = null;
@@ -177,7 +201,7 @@ export function BoardView({ app, folderPath }: BoardViewProps) {
             }
             refs.forEach(ref => app.vault.offref(ref));
         };
-    }, [app, folderPath]);
+    }, [app, activeFolderPath]);
 
     const openNote = useCallback(
         (path: string) => {
@@ -238,6 +262,7 @@ export function BoardView({ app, folderPath }: BoardViewProps) {
                             key={card.path}
                             app={app}
                             card={card}
+                            collapsed={collapsed}
                             accentColor={data.accentColor}
                             backgroundColor={data.backgroundColor}
                             onOpen={openNote}

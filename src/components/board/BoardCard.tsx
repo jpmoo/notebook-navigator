@@ -25,9 +25,23 @@ import type { BoardCardModel } from '../../utils/boardCards';
 interface BoardCardProps {
     app: App;
     card: BoardCardModel;
+    collapsed: boolean;
     accentColor?: string;
     backgroundColor?: string;
     onOpen: (path: string) => void;
+}
+
+/** Strips a leading YAML frontmatter block so the card body shows note content. */
+function stripFrontmatter(content: string): string {
+    if (!content.startsWith('---')) {
+        return content;
+    }
+    const end = content.indexOf('\n---', 3);
+    if (end === -1) {
+        return content;
+    }
+    const afterClosing = content.indexOf('\n', end + 1);
+    return afterClosing === -1 ? '' : content.slice(afterClosing + 1).replace(/^\s+/, '');
 }
 
 /**
@@ -61,9 +75,32 @@ function resolveFullResImageUrl(app: App, featureImageKey: string): string | nul
  * a full-res equivalent fall back to the cached thumbnail blob (resolved into an
  * object URL and revoked on unmount).
  */
-export function BoardCard({ app, card, accentColor, backgroundColor, onOpen }: BoardCardProps) {
+export function BoardCard({ app, card, collapsed, accentColor, backgroundColor, onOpen }: BoardCardProps) {
     const { featureImageUrl, featureImageKey, featureImageStatus } = card;
     const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
+    // Expanded cards show the full note body; loaded lazily and cached so toggling is instant.
+    const [fullText, setFullText] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (collapsed || fullText !== null) {
+            return;
+        }
+        const file = app.vault.getAbstractFileByPath(card.path);
+        if (!(file instanceof TFile) || file.extension !== 'md') {
+            return;
+        }
+        let active = true;
+        void app.vault.cachedRead(file).then(content => {
+            if (active) {
+                setFullText(stripFrontmatter(content));
+            }
+        });
+        return () => {
+            active = false;
+        };
+    }, [app, card.path, collapsed, fullText]);
+
+    const bodyText = !collapsed && fullText !== null ? fullText : card.previewText;
 
     useEffect(() => {
         // 1. Direct raster image notes already carry a full-resolution resource URL.
@@ -136,7 +173,7 @@ export function BoardCard({ app, card, accentColor, backgroundColor, onOpen }: B
                 </div>
             ) : null}
             <div className="nn-board-card-title">{card.title}</div>
-            {card.previewText ? <div className="nn-board-card-preview">{card.previewText}</div> : null}
+            {bodyText ? <div className="nn-board-card-preview">{bodyText}</div> : null}
             {card.tags.length > 0 ? (
                 <div className="nn-board-card-tags">
                     {card.tags.map(tag => (

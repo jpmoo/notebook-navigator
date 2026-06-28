@@ -141,8 +141,13 @@
     overflow: hidden;
 }
 
-/* Collapsed layout: compact, uniform-ish cards — clamp the preview to a few lines
-   and shrink the feature image so more cards fit on screen at once. */
+/* Collapsed layout: every card is the same fixed size for a tidy uniform grid.
+   The preview is clamped, the feature image shrinks, and overflow is clipped so
+   each card occupies an identical footprint. */
+.nn-board-grid--collapsed .nn-board-card {
+    height: 240px;
+}
+
 .nn-board-grid--collapsed .nn-board-card-preview {
     display: -webkit-box;
     -webkit-line-clamp: 3;
