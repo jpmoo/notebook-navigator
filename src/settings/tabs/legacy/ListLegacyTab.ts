@@ -247,6 +247,16 @@ export function renderListPaneTab(context: SettingsTabContext): void {
         }
     );
 
+    addToggleSetting(
+        organizationGroup.addSetting,
+        strings.settings.items.openFolderInBoard.name,
+        strings.settings.items.openFolderInBoard.desc,
+        () => plugin.settings.openFolderInBoard,
+        value => {
+            plugin.settings.openFolderInBoard = value;
+        }
+    );
+
     const groupHeadersGroup = createGroup(strings.settings.groups.list.groupHeaders);
 
     addToggleSetting(
