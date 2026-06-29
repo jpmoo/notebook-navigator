@@ -995,6 +995,7 @@ export const STRINGS_TR = {
             navigation: {
                 appearance: 'Görünüm',
                 banner: 'Afiş',
+                collapseItems: 'Öğeleri daralt',
                 dragAndDrop: 'Sürükle ve bırak',
                 noteCounts: 'Not sayıları',
                 rainbowColors: 'Gökkuşağı renkleri',
@@ -1200,6 +1201,14 @@ export const STRINGS_TR = {
             showCategoryIcons: {
                 name: 'Dosya türüne göre simgeler',
                 desc: 'Dosyalara uzantılarına göre simge ata.'
+            },
+            fileTypeIconPreset: {
+                name: 'Dosya simgesi ön ayarı',
+                desc: 'Yerleşik simgeleri veya bir simge paketi ön ayarını seçin. Özel uzantı kuralları bu ön ayarı geçersiz kılar.',
+                options: {
+                    none: 'Yerleşik simgeler'
+                },
+                notInstalledWarning: 'Bu simge paketi yüklü değil. Bunun yerine yerleşik simgeler gösterilir.'
             },
             fileTypeIconMap: {
                 name: 'Dosya türü simge eşlemesi',
@@ -2076,6 +2085,10 @@ export const STRINGS_TR = {
             smartCollapse: {
                 name: 'Seçili öğeyi genişletilmiş tut',
                 desc: 'Daraltırken seçili öğeyi ve üst öğelerini genişletilmiş tut.'
+            },
+            excludeVaultRootFromCollapse: {
+                name: 'Daraltırken kasa kökünü atla',
+                desc: 'Tüm öğeleri daraltırken kasa kök klasörünü geçerli durumunda bırak.'
             },
             navIndent: {
                 name: 'Ağaç girintisi',

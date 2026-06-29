@@ -1000,6 +1000,7 @@ export const STRINGS_PL = {
             navigation: {
                 appearance: 'Wygląd',
                 banner: 'Baner',
+                collapseItems: 'Zwiń elementy',
                 dragAndDrop: 'Przeciągnij i upuść',
                 noteCounts: 'Liczba notatek',
                 rainbowColors: 'Kolory tęczy',
@@ -1205,6 +1206,14 @@ export const STRINGS_PL = {
             showCategoryIcons: {
                 name: 'Ikonki według typu pliku',
                 desc: 'Przypisuje ikonki do plików na podstawie ich rozszerzeń.'
+            },
+            fileTypeIconPreset: {
+                name: 'Ustawienie wstępne ikonek plików',
+                desc: 'Wybierz wbudowane ikonki lub ustawienie wstępne pakietu ikonek. Niestandardowe reguły rozszerzeń zastępują to ustawienie wstępne.',
+                options: {
+                    none: 'Wbudowane ikonki'
+                },
+                notInstalledWarning: 'Ten pakiet ikonek nie jest zainstalowany. Zamiast niego są wyświetlane wbudowane ikonki.'
             },
             fileTypeIconMap: {
                 name: 'Przypisanie ikonek na podstawie typu pliku',
@@ -2082,6 +2091,10 @@ export const STRINGS_PL = {
             smartCollapse: {
                 name: 'Zachowaj wybrany element rozwinięty',
                 desc: 'Podczas zwijania, zachowaj wybrany element oraz elementy nadrzędne rozwinięte.'
+            },
+            excludeVaultRootFromCollapse: {
+                name: 'Pomiń katalog główny sejfu podczas zwijania',
+                desc: 'Podczas zwijania wszystkich elementów pozostaw folder główny sejfu w bieżącym stanie.'
             },
             navIndent: {
                 name: 'Wcięcie w strukturze',

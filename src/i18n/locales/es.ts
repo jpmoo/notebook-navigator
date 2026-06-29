@@ -998,6 +998,7 @@ export const STRINGS_ES = {
             navigation: {
                 appearance: 'Apariencia',
                 banner: 'Banner',
+                collapseItems: 'Contraer elementos',
                 dragAndDrop: 'Arrastrar y soltar',
                 noteCounts: 'Conteos de notas',
                 rainbowColors: 'Colores arcoíris',
@@ -1203,6 +1204,14 @@ export const STRINGS_ES = {
             showCategoryIcons: {
                 name: 'Iconos por tipo de archivo',
                 desc: 'Asignar iconos a archivos según su extensión.'
+            },
+            fileTypeIconPreset: {
+                name: 'Preajuste de iconos de archivo',
+                desc: 'Elegir los iconos integrados o un preajuste de paquete de iconos. Las reglas de extensión personalizadas anulan este preajuste.',
+                options: {
+                    none: 'Iconos integrados'
+                },
+                notInstalledWarning: 'Este paquete de iconos no está instalado. En su lugar se muestran los iconos integrados.'
             },
             fileTypeIconMap: {
                 name: 'Mapa de iconos por tipo',
@@ -2081,6 +2090,10 @@ export const STRINGS_ES = {
             smartCollapse: {
                 name: 'Mantener elemento seleccionado expandido',
                 desc: 'Al contraer, mantiene el elemento seleccionado y sus elementos principales expandidos.'
+            },
+            excludeVaultRootFromCollapse: {
+                name: 'Omitir raíz de la bóveda al contraer',
+                desc: 'Al contraer todos los elementos, deja la carpeta raíz de la bóveda en su estado actual.'
             },
             navIndent: {
                 name: 'Sangría del árbol',

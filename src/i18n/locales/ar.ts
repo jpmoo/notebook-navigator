@@ -992,6 +992,7 @@ export const STRINGS_AR = {
             navigation: {
                 appearance: 'المظهر',
                 banner: 'اللافتة',
+                collapseItems: 'طي العناصر',
                 dragAndDrop: 'السحب والإفلات',
                 noteCounts: 'عدد الملاحظات',
                 rainbowColors: 'ألوان قوس قزح',
@@ -1197,6 +1198,14 @@ export const STRINGS_AR = {
             showCategoryIcons: {
                 name: 'أيقونات حسب نوع الملف',
                 desc: 'تعيين أيقونات للملفات بناءً على امتدادها.'
+            },
+            fileTypeIconPreset: {
+                name: 'إعداد أيقونات الملفات المسبق',
+                desc: 'اختر الأيقونات المدمجة أو إعدادًا مسبقًا لحزمة أيقونات. تتجاوز قواعد الامتدادات المخصصة هذا الإعداد المسبق.',
+                options: {
+                    none: 'الأيقونات المدمجة'
+                },
+                notInstalledWarning: 'حزمة الأيقونات هذه غير مثبتة. تُعرض الأيقونات المدمجة بدلاً منها.'
             },
             fileTypeIconMap: {
                 name: 'خريطة أيقونات نوع الملف',
@@ -2072,6 +2081,10 @@ export const STRINGS_AR = {
             smartCollapse: {
                 name: 'إبقاء العنصر المحدد موسعًا',
                 desc: 'عند الطي، إبقاء العنصر المحدد وآبائه موسعين.'
+            },
+            excludeVaultRootFromCollapse: {
+                name: 'تخطي جذر الخزنة عند الطي',
+                desc: 'عند طي كل العناصر، اترك مجلد جذر الخزنة في حالته الحالية.'
             },
             navIndent: {
                 name: 'مسافة بادئة الشجرة',

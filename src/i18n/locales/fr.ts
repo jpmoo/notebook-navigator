@@ -1001,6 +1001,7 @@ export const STRINGS_FR = {
             navigation: {
                 appearance: 'Apparence',
                 banner: 'Bannière',
+                collapseItems: 'Replier les éléments',
                 dragAndDrop: 'Glisser-déposer',
                 noteCounts: 'Nombre de notes',
                 rainbowColors: 'Couleurs arc-en-ciel',
@@ -1206,6 +1207,14 @@ export const STRINGS_FR = {
             showCategoryIcons: {
                 name: 'Icônes par type de fichier',
                 desc: 'Attribuer des icônes aux fichiers selon leur extension.'
+            },
+            fileTypeIconPreset: {
+                name: "Préréglage d'icônes de fichiers",
+                desc: "Choisissez les icônes intégrées ou un préréglage de pack d'icônes. Les règles d'extension personnalisées remplacent ce préréglage.",
+                options: {
+                    none: 'Icônes intégrées'
+                },
+                notInstalledWarning: "Ce pack d'icônes n'est pas installé. Les icônes intégrées sont affichées à la place."
             },
             fileTypeIconMap: {
                 name: 'Correspondance type-icône',
@@ -2085,6 +2094,10 @@ export const STRINGS_FR = {
             smartCollapse: {
                 name: "Garder l'élément sélectionné déplié",
                 desc: "Lors du repliement, garde l'élément sélectionné et ses parents dépliés."
+            },
+            excludeVaultRootFromCollapse: {
+                name: 'Ignorer la racine du coffre lors du repliement',
+                desc: 'Lors du repliement de tous les éléments, garde le dossier racine du coffre dans son état actuel.'
             },
             navIndent: {
                 name: "Indentation de l'arbre",

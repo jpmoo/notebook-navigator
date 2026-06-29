@@ -993,6 +993,7 @@ export const STRINGS_IT = {
             navigation: {
                 appearance: 'Aspetto',
                 banner: 'Banner',
+                collapseItems: 'Comprimi elementi',
                 dragAndDrop: 'Trascina e rilascia',
                 noteCounts: 'Conteggi note',
                 rainbowColors: 'Colori arcobaleno',
@@ -1198,6 +1199,14 @@ export const STRINGS_IT = {
             showCategoryIcons: {
                 name: 'Icone per tipo file',
                 desc: 'Assegna icone ai file in base alla loro estensione.'
+            },
+            fileTypeIconPreset: {
+                name: 'Preset icone file',
+                desc: 'Scegli le icone integrate o un preset di pacchetto icone. Le regole di estensione personalizzate sostituiscono questo preset.',
+                options: {
+                    none: 'Icone integrate'
+                },
+                notInstalledWarning: 'Questo pacchetto icone non è installato. Vengono mostrate invece le icone integrate.'
             },
             fileTypeIconMap: {
                 name: 'Mappa icone per tipo',
@@ -2077,6 +2086,10 @@ export const STRINGS_IT = {
             smartCollapse: {
                 name: 'Mantieni elemento selezionato espanso',
                 desc: "Quando comprimi, mantieni l'elemento selezionato e i suoi genitori espansi."
+            },
+            excludeVaultRootFromCollapse: {
+                name: 'Ignora la root del vault quando comprimi',
+                desc: 'Quando comprimi tutti gli elementi, lascia la cartella root del vault nello stato corrente.'
             },
             navIndent: {
                 name: 'Indentazione albero',

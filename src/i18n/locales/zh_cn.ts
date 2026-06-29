@@ -987,6 +987,7 @@ export const STRINGS_ZH_CN = {
             navigation: {
                 appearance: '外观',
                 banner: '横幅',
+                collapseItems: '折叠项目',
                 dragAndDrop: '拖放',
                 noteCounts: '笔记数',
                 rainbowColors: '彩虹颜色',
@@ -1189,6 +1190,14 @@ export const STRINGS_ZH_CN = {
             showCategoryIcons: {
                 name: '按文件类型设置图标',
                 desc: '根据文件扩展名分配图标。'
+            },
+            fileTypeIconPreset: {
+                name: '文件图标预设',
+                desc: '选择内置图标或图标包预设。自定义扩展名规则会覆盖此预设。',
+                options: {
+                    none: '内置图标'
+                },
+                notInstalledWarning: '未安装此图标包。将改为显示内置图标。'
             },
             fileTypeIconMap: {
                 name: '文件类型图标映射',
@@ -2062,6 +2071,10 @@ export const STRINGS_ZH_CN = {
             smartCollapse: {
                 name: '保持选中项展开',
                 desc: '折叠时，保持选中项及其父级展开。'
+            },
+            excludeVaultRootFromCollapse: {
+                name: '折叠时跳过仓库根目录',
+                desc: '折叠所有项目时，保持仓库根文件夹的当前状态。'
             },
             navIndent: {
                 name: '树形缩进',

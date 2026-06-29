@@ -994,6 +994,7 @@ export const STRINGS_KO = {
             navigation: {
                 appearance: '모양',
                 banner: '배너',
+                collapseItems: '항목 접기',
                 dragAndDrop: '끌어서 놓기',
                 noteCounts: '노트 수',
                 rainbowColors: '무지개 색상',
@@ -1199,6 +1200,14 @@ export const STRINGS_KO = {
             showCategoryIcons: {
                 name: '파일 유형으로 아이콘 설정',
                 desc: '파일 확장자를 기반으로 아이콘을 지정합니다.'
+            },
+            fileTypeIconPreset: {
+                name: '파일 아이콘 프리셋',
+                desc: '기본 제공 아이콘 또는 아이콘 팩 프리셋을 선택합니다. 사용자 지정 확장자 규칙은 이 프리셋보다 우선합니다.',
+                options: {
+                    none: '기본 제공 아이콘'
+                },
+                notInstalledWarning: '이 아이콘 팩이 설치되어 있지 않습니다. 대신 기본 제공 아이콘이 표시됩니다.'
             },
             fileTypeIconMap: {
                 name: '파일 유형 아이콘 맵',
@@ -2074,6 +2083,10 @@ export const STRINGS_KO = {
             smartCollapse: {
                 name: '선택한 항목 펼친 상태 유지',
                 desc: '접을 때 선택한 항목과 상위 항목을 펼친 상태로 유지합니다.'
+            },
+            excludeVaultRootFromCollapse: {
+                name: '접을 때 보관소 루트 건너뛰기',
+                desc: '모든 항목을 접을 때 보관소 루트 폴더를 현재 상태로 둡니다.'
             },
             navIndent: {
                 name: '트리 들여쓰기',

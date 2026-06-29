@@ -991,6 +991,7 @@ export const STRINGS_EN = {
             navigation: {
                 appearance: 'Appearance',
                 banner: 'Banner',
+                collapseItems: 'Collapse items',
                 dragAndDrop: 'Drag and drop',
                 noteCounts: 'Note counts',
                 rainbowColors: 'Rainbow colors',
@@ -1196,6 +1197,14 @@ export const STRINGS_EN = {
             showCategoryIcons: {
                 name: 'Icons by file type',
                 desc: 'Assign icons to files based on their extension.'
+            },
+            fileTypeIconPreset: {
+                name: 'File icon preset',
+                desc: 'Choose the built-in icons or an icon pack preset. Custom extension rules override this preset.',
+                options: {
+                    none: 'Built-in icons'
+                },
+                notInstalledWarning: 'This icon pack is not installed. Built-in icons are shown instead.'
             },
             fileTypeIconMap: {
                 name: 'File type icon map',
@@ -2071,6 +2080,10 @@ export const STRINGS_EN = {
                 name: 'Keep selected item expanded',
                 desc: 'When collapsing, keep the selected item and its parents expanded.'
             },
+            excludeVaultRootFromCollapse: {
+                name: 'Skip vault root when collapsing',
+                desc: 'When collapsing all items, leave the vault root folder in its current state.'
+            },
             navIndent: {
                 name: 'Tree indentation',
                 desc: 'Adjust the indentation width for nested folders, tags, and properties (pixels).'
@@ -2243,7 +2256,7 @@ export const STRINGS_EN = {
             },
             deleteAttachments: {
                 name: 'Delete attachments when deleting files',
-                desc: "Automatically remove attachments linked to the deleted file if they're not used elsewhere",
+                desc: "Automatically remove linked attachments and generated drawing previews if they're not used elsewhere",
                 options: {
                     ask: 'Ask each time',
                     always: 'Always',

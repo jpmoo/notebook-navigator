@@ -987,6 +987,7 @@ export const STRINGS_ZH_TW = {
             navigation: {
                 appearance: '外觀',
                 banner: '橫幅',
+                collapseItems: '摺疊項目',
                 dragAndDrop: '拖放',
                 noteCounts: '筆記數',
                 rainbowColors: '彩虹顏色',
@@ -1189,6 +1190,14 @@ export const STRINGS_ZH_TW = {
             showCategoryIcons: {
                 name: '按檔案類型設定圖示',
                 desc: '根據檔案副檔名指派圖示。'
+            },
+            fileTypeIconPreset: {
+                name: '檔案圖示預設',
+                desc: '選擇內建圖示或圖示包預設。自訂副檔名規則會覆寫此預設。',
+                options: {
+                    none: '內建圖示'
+                },
+                notInstalledWarning: '未安裝此圖示包。將改為顯示內建圖示。'
             },
             fileTypeIconMap: {
                 name: '檔案類型圖示對應',
@@ -2062,6 +2071,10 @@ export const STRINGS_ZH_TW = {
             smartCollapse: {
                 name: '保持選取項展開',
                 desc: '摺疊時，保持選取項及其父級展開。'
+            },
+            excludeVaultRootFromCollapse: {
+                name: '摺疊時略過保險庫根目錄',
+                desc: '摺疊所有項目時，保持保險庫根資料夾的目前狀態。'
             },
             navIndent: {
                 name: '樹狀縮排',

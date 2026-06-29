@@ -998,6 +998,7 @@ export const STRINGS_VI = {
             navigation: {
                 appearance: 'Giao diện',
                 banner: 'Banner',
+                collapseItems: 'Thu gọn mục',
                 dragAndDrop: 'Kéo và thả',
                 noteCounts: 'Số lượng ghi chú',
                 rainbowColors: 'Màu cầu vồng',
@@ -1203,6 +1204,14 @@ export const STRINGS_VI = {
             showCategoryIcons: {
                 name: 'Biểu tượng theo loại tệp',
                 desc: 'Gán biểu tượng cho tệp dựa trên phần mở rộng.'
+            },
+            fileTypeIconPreset: {
+                name: 'Cài đặt sẵn biểu tượng tệp',
+                desc: 'Chọn biểu tượng tích hợp hoặc cài đặt sẵn của gói biểu tượng. Quy tắc phần mở rộng tùy chỉnh ghi đè cài đặt sẵn này.',
+                options: {
+                    none: 'Biểu tượng tích hợp'
+                },
+                notInstalledWarning: 'Gói biểu tượng này chưa được cài đặt. Biểu tượng tích hợp sẽ được hiển thị thay thế.'
             },
             fileTypeIconMap: {
                 name: 'Bản đồ biểu tượng loại tệp',
@@ -2079,6 +2088,10 @@ export const STRINGS_VI = {
             smartCollapse: {
                 name: 'Giữ mục đã chọn mở rộng',
                 desc: 'Khi thu gọn, giữ mục đã chọn và cha của nó mở rộng.'
+            },
+            excludeVaultRootFromCollapse: {
+                name: 'Bỏ qua thư mục gốc vault khi thu gọn',
+                desc: 'Khi thu gọn tất cả mục, giữ thư mục gốc vault ở trạng thái hiện tại.'
             },
             navIndent: {
                 name: 'Thụt lề cây',

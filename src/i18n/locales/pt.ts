@@ -997,6 +997,7 @@ export const STRINGS_PT = {
             navigation: {
                 appearance: 'Aparência',
                 banner: 'Banner',
+                collapseItems: 'Recolher itens',
                 dragAndDrop: 'Arrastar e largar',
                 noteCounts: 'Contagens de notas',
                 rainbowColors: 'Cores arco-íris',
@@ -1202,6 +1203,14 @@ export const STRINGS_PT = {
             showCategoryIcons: {
                 name: 'Ícones por tipo de ficheiro',
                 desc: 'Atribuir ícones a ficheiros com base na sua extensão.'
+            },
+            fileTypeIconPreset: {
+                name: 'Predefinição de ícones de ficheiro',
+                desc: 'Escolher os ícones integrados ou uma predefinição de pacote de ícones. As regras de extensão personalizadas substituem esta predefinição.',
+                options: {
+                    none: 'Ícones integrados'
+                },
+                notInstalledWarning: 'Este pacote de ícones não está instalado. Em vez disso, são mostrados os ícones integrados.'
             },
             fileTypeIconMap: {
                 name: 'Mapa de ícones por tipo',
@@ -2080,6 +2089,10 @@ export const STRINGS_PT = {
             smartCollapse: {
                 name: 'Manter item selecionado expandido',
                 desc: 'Ao recolher, manter o item selecionado e os seus pais expandidos.'
+            },
+            excludeVaultRootFromCollapse: {
+                name: 'Ignorar raiz do cofre ao recolher',
+                desc: 'Ao recolher todos os itens, deixe a pasta raiz do cofre no estado atual.'
             },
             navIndent: {
                 name: 'Indentação da árvore',

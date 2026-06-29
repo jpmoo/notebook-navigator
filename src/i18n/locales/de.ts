@@ -999,6 +999,7 @@ export const STRINGS_DE = {
             navigation: {
                 appearance: 'Darstellung',
                 banner: 'Banner',
+                collapseItems: 'Elemente einklappen',
                 dragAndDrop: 'Drag-and-drop',
                 noteCounts: 'Notizanzahlen',
                 rainbowColors: 'Regenbogenfarben',
@@ -1204,6 +1205,14 @@ export const STRINGS_DE = {
             showCategoryIcons: {
                 name: 'Symbole nach Dateityp',
                 desc: 'Symbole basierend auf der Dateierweiterung zuweisen.'
+            },
+            fileTypeIconPreset: {
+                name: 'Dateisymbol-Voreinstellung',
+                desc: 'Die integrierten Symbole oder eine Symbolpaket-Voreinstellung auswählen. Benutzerdefinierte Erweiterungsregeln überschreiben diese Voreinstellung.',
+                options: {
+                    none: 'Integrierte Symbole'
+                },
+                notInstalledWarning: 'Dieses Symbolpaket ist nicht installiert. Stattdessen werden integrierte Symbole angezeigt.'
             },
             fileTypeIconMap: {
                 name: 'Dateityp-Symbol-Zuordnung',
@@ -2082,6 +2091,10 @@ export const STRINGS_DE = {
             smartCollapse: {
                 name: 'Ausgewähltes Element erweitert halten',
                 desc: 'Beim Einklappen bleibt das ausgewählte Element und seine übergeordneten Elemente erweitert.'
+            },
+            excludeVaultRootFromCollapse: {
+                name: 'Tresorverzeichnis beim Einklappen überspringen',
+                desc: 'Beim Einklappen aller Elemente bleibt der Stammordner des Tresors in seinem aktuellen Zustand.'
             },
             navIndent: {
                 name: 'Baum-Einrückung',

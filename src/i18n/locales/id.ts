@@ -997,6 +997,7 @@ export const STRINGS_ID = {
             navigation: {
                 appearance: 'Tampilan',
                 banner: 'Banner',
+                collapseItems: 'Ciutkan item',
                 dragAndDrop: 'Seret dan lepas',
                 noteCounts: 'Jumlah catatan',
                 rainbowColors: 'Warna pelangi',
@@ -1202,6 +1203,14 @@ export const STRINGS_ID = {
             showCategoryIcons: {
                 name: 'Ikon berdasarkan tipe file',
                 desc: 'Tetapkan ikon ke file berdasarkan ekstensinya.'
+            },
+            fileTypeIconPreset: {
+                name: 'Preset ikon file',
+                desc: 'Pilih ikon bawaan atau preset paket ikon. Aturan ekstensi khusus menggantikan preset ini.',
+                options: {
+                    none: 'Ikon bawaan'
+                },
+                notInstalledWarning: 'Paket ikon ini belum terpasang. Ikon bawaan ditampilkan sebagai gantinya.'
             },
             fileTypeIconMap: {
                 name: 'Peta ikon tipe file',
@@ -2078,6 +2087,10 @@ export const STRINGS_ID = {
             smartCollapse: {
                 name: 'Pertahankan item yang dipilih tetap terbuka',
                 desc: 'Saat menciutkan, pertahankan item yang dipilih dan induknya tetap terbuka.'
+            },
+            excludeVaultRootFromCollapse: {
+                name: 'Lewati root vault saat menciutkan',
+                desc: 'Saat menciutkan semua item, biarkan folder root vault tetap dalam keadaan saat ini.'
             },
             navIndent: {
                 name: 'Indentasi pohon',
