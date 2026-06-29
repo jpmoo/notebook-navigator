@@ -69,6 +69,7 @@ interface UseNavigationPaneShortcutActionsProps {
     onRevealFile: (file: TFile) => void;
     onRevealShortcutFile?: (file: TFile) => void;
     openFolderNoteInRightSidebar: (folderNote: TFile) => Promise<void>;
+    openFolderBoard: (folderPath: string) => void;
     tagTree: Map<string, import('../../types/storage').TagTreeNode>;
     hydratedShortcuts: HydratedShortcutActionItem[];
 }
@@ -92,6 +93,7 @@ export function useNavigationPaneShortcutActions({
     onRevealFile,
     onRevealShortcutFile,
     openFolderNoteInRightSidebar,
+    openFolderBoard,
     tagTree,
     hydratedShortcuts
 }: UseNavigationPaneShortcutActionsProps) {
@@ -124,13 +126,26 @@ export function useNavigationPaneShortcutActions({
         (folder: TFolder, shortcutKey: string) => {
             setActiveShortcut(shortcutKey);
             onNavigateToFolder(folder.path, { skipScroll: settings.skipAutoScroll, source: 'shortcut' });
+            // Mirror the folder-tree behavior: optionally open the folder as a board.
+            if (settings.openFolderInBoard) {
+                openFolderBoard(folder.path);
+            }
             scheduleShortcutRelease();
             const container = rootContainerRef.current;
             if (container && !uiState.singlePane) {
                 container.focus();
             }
         },
-        [onNavigateToFolder, rootContainerRef, scheduleShortcutRelease, setActiveShortcut, settings.skipAutoScroll, uiState.singlePane]
+        [
+            onNavigateToFolder,
+            openFolderBoard,
+            rootContainerRef,
+            scheduleShortcutRelease,
+            setActiveShortcut,
+            settings.openFolderInBoard,
+            settings.skipAutoScroll,
+            uiState.singlePane
+        ]
     );
 
     const handleShortcutFolderNoteClick = useCallback(
