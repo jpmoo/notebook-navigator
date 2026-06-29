@@ -261,6 +261,8 @@ Add multiple bindings per action to support alternate keys, like the `ArrowUp` a
 | `list:select-all`                 | Mod+A                             |
 | `list:extend-selection-up`        | Shift+ArrowUp                     |
 | `list:extend-selection-down`      | Shift+ArrowDown                   |
+| `list:manual-sort-up`             | Mod+ArrowUp                       |
+| `list:manual-sort-down`           | Mod+ArrowDown                     |
 | `list:range-to-start`             | Shift+Home                        |
 | `list:range-to-end`               | Shift+End                         |
 | `search:focus-list`               | Tab, Enter                        |

@@ -54,4 +54,13 @@ describe('keyboardShortcuts', () => {
         expect(shortcuts[KeyboardShortcutAction.PANE_MOVE_UP]).toEqual([{ modifiers: [], key: 'K' }]);
         expect(shortcuts[KeyboardShortcutAction.PANE_RENAME]).toEqual([{ modifiers: [], key: 'F2' }]);
     });
+
+    it('adds manual sort actions when sanitizing older shortcut configs', () => {
+        const shortcuts = sanitizeKeyboardShortcuts({
+            [KeyboardShortcutAction.PANE_MOVE_UP]: [{ modifiers: [], key: 'K' }]
+        });
+
+        expect(shortcuts[KeyboardShortcutAction.LIST_MANUAL_SORT_UP]).toEqual([{ modifiers: ['Mod'], key: 'ArrowUp' }]);
+        expect(shortcuts[KeyboardShortcutAction.LIST_MANUAL_SORT_DOWN]).toEqual([{ modifiers: ['Mod'], key: 'ArrowDown' }]);
+    });
 });

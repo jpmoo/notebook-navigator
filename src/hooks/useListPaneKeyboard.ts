@@ -46,7 +46,7 @@ import { useFileOpener } from './useFileOpener';
 import { matchesShortcut, KeyboardShortcutAction } from '../utils/keyboardShortcuts';
 import { runAsyncAction } from '../utils/async';
 import { openFileInContext } from '../utils/openFileInContext';
-import { isEnterKey, isModifierArrowReorderShortcut, resolveKeyboardOpenContext } from '../utils/keyboardOpenContext';
+import { isEnterKey, resolveKeyboardOpenContext } from '../utils/keyboardOpenContext';
 import type { Align } from '../types/scroll';
 
 /**
@@ -321,9 +321,15 @@ export function useListPaneKeyboard({
                 openFileInWorkspace(file);
             };
 
-            if (isModifierArrowReorderShortcut(e, settings.multiSelectModifier)) {
-                const direction = e.key === 'ArrowDown' ? 'down' : 'up';
-                if (onReorderPropertySort?.(direction) === true) {
+            if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.LIST_MANUAL_SORT_DOWN)) {
+                if (onReorderPropertySort?.('down') === true) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+
+            if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.LIST_MANUAL_SORT_UP)) {
+                if (onReorderPropertySort?.('up') === true) {
                     e.preventDefault();
                     return;
                 }

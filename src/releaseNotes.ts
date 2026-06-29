@@ -98,6 +98,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
         info: 'You can now **rename files, tags and properties inline** using Enter (macOS) or F2 (Windows and Linux)! And we got more optimizations! This release significantly reduces **preview work while typing** and also improves **drag and drop performance**. Previously there were lots of processing happening in the background every time Obsidian updated the current file when typing, now all actions are heavily gated.',
         new: [
             '**Inline rename.** ==Rename files, folders, tags, and properties inline== with Enter on macOS or F2 on Windows/Linux. The keyboard command is customizable with the `pane:rename` action.',
+            '**Manual sort.** Manual-sort movement now uses the custom hotkey actions `list:manual-sort-up` and `list:manual-sort-down`. Defaults remain `Mod+ArrowUp` and `Mod+ArrowDown`.',
             '**File icons.** New setting: ==File icon preset== in Notes > Icons by file type. You can now pick default file icons from one of the installed icon packs.',
             '**Navigation pane.** New setting ==Skip vault root when collapsing== in Navigation pane > Collapse items. When collapsing all items, the vault root folder keeps its current state.'
         ],

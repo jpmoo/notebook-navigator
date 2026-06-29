@@ -23,7 +23,7 @@ import { useServices } from '../context/ServicesContext';
 import { useSettingsState } from '../context/SettingsContext';
 import { runAsyncAction } from '../utils/async';
 import { focusElementPreventScroll, isKeyboardEventContextBlocked } from '../utils/domUtils';
-import { isEnterKey, isModifierArrowReorderShortcut, resolveKeyboardOpenContext } from '../utils/keyboardOpenContext';
+import { isEnterKey, resolveKeyboardOpenContext } from '../utils/keyboardOpenContext';
 import { KeyboardShortcutAction, matchesShortcut } from '../utils/keyboardShortcuts';
 import { getManualSortSelectedMarkdownPaths, moveManualSortSelectionByDirection, type ManualSortMoveDirection } from '../utils/manualSort';
 import { openFileInContext } from '../utils/openFileInContext';
@@ -307,9 +307,15 @@ export function useManualSortKeyboard({
                 return;
             }
 
-            if (isModifierArrowReorderShortcut(nativeEvent, settings.multiSelectModifier)) {
-                const direction = nativeEvent.key === 'ArrowDown' ? 'down' : 'up';
-                if (handleKeyboardReorder(direction)) {
+            if (matchesShortcut(nativeEvent, shortcuts, KeyboardShortcutAction.LIST_MANUAL_SORT_DOWN)) {
+                if (handleKeyboardReorder('down')) {
+                    event.preventDefault();
+                    return;
+                }
+            }
+
+            if (matchesShortcut(nativeEvent, shortcuts, KeyboardShortcutAction.LIST_MANUAL_SORT_UP)) {
+                if (handleKeyboardReorder('up')) {
                     event.preventDefault();
                     return;
                 }

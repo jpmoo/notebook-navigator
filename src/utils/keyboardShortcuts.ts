@@ -39,6 +39,8 @@ export const KeyboardShortcutAction = {
     LIST_SELECT_ALL: 'list:select-all',
     LIST_EXTEND_SELECTION_UP: 'list:extend-selection-up',
     LIST_EXTEND_SELECTION_DOWN: 'list:extend-selection-down',
+    LIST_MANUAL_SORT_UP: 'list:manual-sort-up',
+    LIST_MANUAL_SORT_DOWN: 'list:manual-sort-down',
     LIST_RANGE_TO_START: 'list:range-to-start',
     LIST_RANGE_TO_END: 'list:range-to-end',
     SEARCH_FOCUS_LIST: 'search:focus-list',
@@ -83,6 +85,8 @@ function createDefaultKeyboardShortcuts(): KeyboardShortcutConfig {
         [KeyboardShortcutAction.LIST_SELECT_ALL]: [{ modifiers: ['Mod'], key: 'A' }],
         [KeyboardShortcutAction.LIST_EXTEND_SELECTION_UP]: [{ modifiers: ['Shift'], key: 'ArrowUp' }],
         [KeyboardShortcutAction.LIST_EXTEND_SELECTION_DOWN]: [{ modifiers: ['Shift'], key: 'ArrowDown' }],
+        [KeyboardShortcutAction.LIST_MANUAL_SORT_UP]: [{ modifiers: ['Mod'], key: 'ArrowUp' }],
+        [KeyboardShortcutAction.LIST_MANUAL_SORT_DOWN]: [{ modifiers: ['Mod'], key: 'ArrowDown' }],
         [KeyboardShortcutAction.LIST_RANGE_TO_START]: [{ modifiers: ['Shift'], key: 'Home' }],
         [KeyboardShortcutAction.LIST_RANGE_TO_END]: [{ modifiers: ['Shift'], key: 'End' }],
         [KeyboardShortcutAction.SEARCH_FOCUS_LIST]: [
