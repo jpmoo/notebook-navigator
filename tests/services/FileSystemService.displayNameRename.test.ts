@@ -152,6 +152,25 @@ describe('FileSystemOperations display-name rename', () => {
         expect(processFrontMatter).toHaveBeenCalledWith(file, expect.any(Function));
     });
 
+    it('removes file frontmatter name when the value matches the file name', async () => {
+        const app = new App();
+        const processFrontMatter = installFrontmatterMocks(app);
+        const file = createFile('Johan.md', { title: 'JohanS' });
+        const operations = createOperations(
+            app,
+            createSettings({
+                useFrontmatterMetadata: true,
+                frontmatterNameField: 'title, name'
+            })
+        );
+
+        expect(operations.getFileDisplayNameRenameInput(file).initialValue).toBe('JohanS');
+        await expect(operations.renameFileDisplayName(file, 'Johan')).resolves.toBe(true);
+
+        expect(file.frontmatter).toEqual({});
+        expect(processFrontMatter).toHaveBeenCalledWith(file, expect.any(Function));
+    });
+
     it('renames the file path when frontmatter display names are not active', async () => {
         const app = new App();
         const file = createFile('Note.md', {});
